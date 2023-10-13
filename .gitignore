@@ -49,7 +49,7 @@ bower_components
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 
 build/Release
-
+public/index.js
 # Dependency directories
 
 node_modules/
