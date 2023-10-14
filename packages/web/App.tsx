@@ -1,10 +1,15 @@
 import React, { useState, useMemo } from "react";
+import { useRoutes } from "react-router-dom";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 import { renderMdastNode } from "./renderMdastNode";
+import { generatorRoutes } from "./generatorRoutes";
 
-export default function App({ context }) {
+export default function App({ context, hostname }) {
+  const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
+  let element = useRoutes(routes);
+
   const text = context.text;
   const mdast = useMemo(() => {
     const processor = unified().use(remarkParse).use(remarkGfm);
@@ -28,7 +33,7 @@ export default function App({ context }) {
         <meta name="description" content="Bun, Elysia & React" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body>{renderedContent}</body>
+      <body>{element}</body>
     </html>
   );
 }

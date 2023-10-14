@@ -1,8 +1,8 @@
-import { createElement } from "react";
+import React, { createElement } from "react";
 import { renderToReadableStream } from "react-dom/server";
 import { App } from "web";
 import { readFile } from "../database/read";
-
+import { StaticRouter } from "react-router-dom/server";
 const text = await readFile();
 
 if (process.env.ENV === "production") {
@@ -13,13 +13,21 @@ if (process.env.ENV === "production") {
       console.log("443 req", req);
 
       const url = new URL(req.url);
+      const Html = () => {
+        return (
+          <StaticRouter location={req.url}>
+            <App context={{ text }} hostname={req.host} />
+          </StaticRouter>
+        );
+      };
+
       if (url.pathname.startsWith("/public")) {
         const file = url.pathname.replace("/public", "");
         return new Response(Bun.file(`public/${file}`));
       }
 
       if (url.pathname === "/") {
-        const app = createElement(App, { context: { text } });
+        const app = createElement(Html);
 
         const stream = await renderToReadableStream(app, {
           bootstrapScripts: ["/public/entry.js"],
@@ -44,15 +52,23 @@ Bun.serve({
   port: 80,
   hostname: "0.0.0.0",
   async fetch(req) {
-    console.log("80 req", req);
     const url = new URL(req.url);
     if (url.pathname.startsWith("/public")) {
       const file = url.pathname.replace("/public", "");
       return new Response(Bun.file(`public/${file}`));
     }
 
-    if (url.pathname === "/") {
-      const app = createElement(App, { context: { text } });
+    if (url.pathname === "/api") {
+      return new Response("Hi!");
+    } else {
+      const Html = () => {
+        return (
+          <StaticRouter location={url}>
+            <App context={{ text }} hostname={req.host} />
+          </StaticRouter>
+        );
+      };
+      const app = createElement(Html);
 
       const stream = await renderToReadableStream(app, {
         bootstrapScripts: ["/public/entry.js"],
@@ -62,7 +78,6 @@ Bun.serve({
       });
     }
 
-    if (url.pathname === "/blog") return new Response("Blog!");
     return new Response("404!");
   },
 });
