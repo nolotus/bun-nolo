@@ -23,8 +23,9 @@
     "unified": "^11.0.3"
   },
   "scripts": {
-    "build": "bun build ./packages/web/index.tsx --outdir ./public",
-    "server": "bun ./packages/server/index.tsx",
+    "build:css": "tailwindcss -i ./web/input.css -o ./public/output.css --optimize-minimize",
+    "build:web": "bun build ./packages/web/index.tsx --minify-whitespace --minify-identifiers --minify-syntax --outdir ./public --splitting",
+    "server": "bun --hot ./packages/server/index.tsx",
     "dev": "bun run build && bun run server"
   }
 }
