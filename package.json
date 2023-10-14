@@ -21,5 +21,10 @@
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0",
     "unified": "^11.0.3"
+  },
+  "scripts": {
+    "build": "bun build ./packages/web/index.tsx --outdir ./public",
+    "server": "node ./packages/server/index.tsx",
+    "dev": "bun run build && bun run server"
   }
 }
