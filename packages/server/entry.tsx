@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { renderToReadableStream } from "react-dom/server";
-import App from "../../App";
+import { App } from "web";
 import { readFile } from "../database/read";
 
 const text = await readFile();
@@ -22,7 +22,7 @@ if (process.env.ENV === "production") {
         const app = createElement(App, { context: { text } });
 
         const stream = await renderToReadableStream(app, {
-          bootstrapScripts: ["/public/index.js"],
+          bootstrapScripts: ["/public/entry.js"],
         });
         return new Response(stream, {
           headers: { "Content-Type": "text/html" },
@@ -55,7 +55,7 @@ Bun.serve({
       const app = createElement(App, { context: { text } });
 
       const stream = await renderToReadableStream(app, {
-        bootstrapScripts: ["/public/index.js"],
+        bootstrapScripts: ["/public/entry.js"],
       });
       return new Response(stream, {
         headers: { "Content-Type": "text/html" },

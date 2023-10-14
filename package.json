@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@types/react": "^18.2.28",
+    "concurrently": "^8.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-syntax-highlighter": "^15.5.0",
@@ -23,9 +24,10 @@
     "unified": "^11.0.3"
   },
   "scripts": {
-    "build:css": "tailwindcss -i ./web/input.css -o ./public/output.css --optimize-minimize",
-    "build:web": "bun build ./packages/web/index.tsx --minify-whitespace --minify-identifiers --minify-syntax --outdir ./public --splitting",
-    "server": "bun --hot ./packages/server/index.tsx",
+    "build:css": "tailwindcss -i ./packages/web/input.css -o ./public/output.css --optimize-minimize",
+    "build:web": "bun build ./packages/web/entry.tsx --minify-whitespace --minify-identifiers --minify-syntax --outdir ./public --format esm",
+    "build": "concurrently \"bun run build:css\" \"bun run build:web\" ",
+    "server": "bun --hot ./packages/server/entry.tsx",
     "dev": "bun run build && bun run server"
   }
 }

@@ -49,7 +49,7 @@ bower_components
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 
 build/Release
-public/
+
 # Dependency directories
 
 node_modules/
@@ -167,3 +167,10 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.\*
+
+# IntelliJ based IDEs
+.idea
+
+# Finder (MacOS) folder config
+.DS_Store
+
