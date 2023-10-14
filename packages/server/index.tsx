@@ -35,7 +35,6 @@ if (process.env.ENV === "production") {
     tls: {
       key: Bun.file("./key.pem"),
       cert: Bun.file("./cert.pem"),
-      ca: Bun.file("./ca.pem"),
     },
   });
 }
