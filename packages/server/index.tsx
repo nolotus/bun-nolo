@@ -10,7 +10,6 @@ await Bun.build({
 const text = await readFile();
 if (process.env.ENV === "production") {
   Bun.serve({
-    port: process.env.PORT,
     async fetch(req) {
       const url = new URL(req.url);
       if (url.pathname.startsWith("/public")) {
