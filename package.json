@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "bun build ./packages/web/index.tsx --outdir ./public",
-    "server": "node ./packages/server/index.tsx",
+    "server": "bun ./packages/server/index.tsx",
     "dev": "bun run build && bun run server"
   }
 }
