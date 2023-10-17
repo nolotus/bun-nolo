@@ -36,4 +36,4 @@ jobs:
             git fetch --all
             git reset --hard origin/${{ github.ref_name }}
             bun run build
-            pm2 start --interpreter ~/.bun/bin/bun packages/server/entry.tsx
+            pm2 restart all
