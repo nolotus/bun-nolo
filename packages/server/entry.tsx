@@ -5,41 +5,72 @@ import { memCache } from "app";
 
 import { StaticRouter } from "react-router-dom/server";
 
+// 共享请求处理函数
+const handleRequest = async (req) => {
+  const url = new URL(req.url);
+
+  // 处理公共资源请求
+  if (url.pathname.startsWith("/public")) {
+    const file = url.pathname.replace("/public", "");
+    return new Response(Bun.file(`public/${file}`));
+  }
+
+  // 渲染主应用页面
+  try {
+    return await handleRender(req);
+  } catch (error) {
+    console.error(`处理请求时发生错误: ${error}`);
+    return new Response("<h1>服务器发生错误，请稍后重试</h1>", {
+      status: 500,
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }
+};
+
+// 渲染函数
+const handleRender = async (req) => {
+  const url = new URL(req.url);
+  let didError = false;
+  const renderContent = Array.from(memCache, ([name, value]) => ({
+    id: name,
+    value,
+  }));
+
+  const Html = () => (
+    <StaticRouter location={url}>
+      <App preloadState={renderContent} hostname={req.host} />
+    </StaticRouter>
+  );
+
+  try {
+    const app = createElement(Html);
+    const stream = await renderToReadableStream(app, {
+      bootstrapScripts: ["/public/entry.js"],
+      onError(error) {
+        didError = true;
+        console.error(`渲染错误: ${error}`);
+      },
+    });
+
+    return new Response(stream, {
+      status: didError ? 500 : 200,
+      headers: { "content-type": "text/html" },
+    });
+  } catch (error) {
+    console.error(`处理请求时发生错误: ${error}`);
+    return new Response("<h1>抱歉，服务器发生错误，请稍后重试</h1>", {
+      status: 500,
+      headers: { "content-type": "text/html" },
+    });
+  }
+};
+
+// 根据环境变量决定是否启动 https 服务器
 if (process.env.ENV === "production") {
   Bun.serve({
     port: 443,
     hostname: "0.0.0.0",
-    async fetch(req) {
-      console.log("443 req", req);
-
-      const url = new URL(req.url);
-      const Html = () => {
-        return (
-          <StaticRouter location={req.url}>
-            <App context={{ text }} hostname={req.host} />
-          </StaticRouter>
-        );
-      };
-
-      if (url.pathname.startsWith("/public")) {
-        const file = url.pathname.replace("/public", "");
-        return new Response(Bun.file(`public/${file}`));
-      }
-
-      if (url.pathname === "/") {
-        const app = createElement(Html);
-
-        const stream = await renderToReadableStream(app, {
-          bootstrapScripts: ["/public/entry.js"],
-        });
-        return new Response(stream, {
-          headers: { "Content-Type": "text/html" },
-        });
-      }
-
-      if (url.pathname === "/blog") return new Response("Blog!");
-      return new Response("404!");
-    },
+    fetch: handleRequest,
     tls: {
       key: Bun.file("./key.pem"),
       cert: Bun.file("./cert.pem"),
@@ -48,53 +79,9 @@ if (process.env.ENV === "production") {
   });
 }
 
+// 启动 http 服务器
 Bun.serve({
   port: 80,
   hostname: "0.0.0.0",
-  async fetch(req) {
-    const url = new URL(req.url);
-    if (url.pathname.startsWith("/public")) {
-      const file = url.pathname.replace("/public", "");
-      return new Response(Bun.file(`public/${file}`));
-    }
-
-    if (url.pathname === "/api") {
-      return new Response("Hi!");
-    } else {
-      console.log("server render");
-      try {
-        let didError = false;
-        const renderContent = Array.from(memCache, ([name, value]) => ({
-          id: name,
-          value,
-        }));
-
-        const Html = () => {
-          return (
-            <StaticRouter location={url}>
-              <App preloadState={renderContent} hostname={req.host} />
-            </StaticRouter>
-          );
-        };
-        const app = createElement(Html);
-
-        const stream = await renderToReadableStream(app, {
-          bootstrapScripts: ["/public/entry.js"],
-          onError(error) {
-            didError = true;
-            console.error(error);
-          },
-        });
-        return new Response(stream, {
-          status: didError ? 500 : 200,
-          headers: { "content-type": "text/html" },
-        });
-      } catch (error) {
-        return new Response("<h1>Something went wrong</h1>", {
-          status: 500,
-          headers: { "content-type": "text/html" },
-        });
-      }
-    }
-  },
+  fetch: handleRequest,
 });
