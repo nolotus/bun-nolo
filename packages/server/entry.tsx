@@ -66,7 +66,7 @@ const handleRender = async (req) => {
 };
 
 // 根据环境变量决定是否启动 https 服务器
-if (process.env.ENV === "production") {
+if (process.env.NODE_ENV === "production") {
   Bun.serve({
     port: 443,
     hostname: "0.0.0.0",
