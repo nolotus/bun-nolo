@@ -1,0 +1,22 @@
+{
+  "name": "user",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.3.2",
+    "auth": "workspace:auth",
+    "core": "workspace:core",
+    "react-hook-form": "^7.47.0",
+    "react-i18next": "^13.3.0",
+    "react-router-dom": "^6.17.0",
+    "utils": "workspace:utils",
+    "components": "workspace:components",
+    "zod": "^3.22.4"
+  }
+}

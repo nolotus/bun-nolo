@@ -1,20 +1,20 @@
 import React from "react";
 import clsx from "clsx";
-import { CloseIcon } from "./icons/CloseIcon";
-import { PlusIcon } from "./icons/PlusIcon";
-import { ChevronDownIcon } from "./icons/ChevronDownIcon";
-import { ChevronUpIcon } from "./icons/ChevronUpIcon";
-import { UserIcon } from "./icons/UserIcon";
-import { SpinnerIcon } from "./icons/SpinnerIcon";
-import { SettingIcon } from "./icons/SettingIcon";
-import { NaviIcon } from "./icons/NaviIcon";
-import { ArchiveIcon } from "./icons/ArchiveIcon";
-import { TagIcon } from "./icons/TagIcon";
-import { BellIcon } from "./icons/BellIcon";
-import { CalendarIcon } from "./icons/CalendarIcon";
-import { ChatIcon } from "./icons/ChatIcon";
-import { SweepIcon } from "./icons/SweepIcon";
-import { TrashIcon } from "./icons/TrashIcon";
+import { CloseIcon } from "ui/icons/CloseIcon";
+import { PlusIcon } from "ui/icons/PlusIcon";
+import { ChevronDownIcon } from "ui/icons/ChevronDownIcon";
+import { ChevronUpIcon } from "ui/icons/ChevronUpIcon";
+import { UserIcon } from "ui/icons/UserIcon";
+import { SpinnerIcon } from "ui/icons/SpinnerIcon";
+import { SettingIcon } from "ui/icons/SettingIcon";
+import { NaviIcon } from "ui/icons/NaviIcon";
+import { ArchiveIcon } from "ui/icons/ArchiveIcon";
+import { TagIcon } from "ui/icons/TagIcon";
+import { BellIcon } from "ui/icons/BellIcon";
+import { CalendarIcon } from "ui/icons/CalendarIcon";
+import { ChatIcon } from "ui/icons/ChatIcon";
+import { SweepIcon } from "ui/icons/SweepIcon";
+import { TrashIcon } from "ui/icons/TrashIcon";
 
 interface IconProps {
   name: keyof typeof iconMap;

@@ -6,3 +6,8 @@ export const API_ENDPOINTS = {
     UPDATE_PASSWORD: `${API_VERSION}/users/:id/password`,
     READ_ALL: `${API_VERSION}/db/readAll`,
   };
+
+  const serviceName = 'nolotus';
+  const slogonforYou =
+    'The goodness or badness of this world concerns every individual.';
+  export const SALT = serviceName + slogonforYou;

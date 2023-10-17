@@ -3,7 +3,7 @@ import clsx from "clsx";
 import NavListItem from "./NavListItem";
 
 // import { GoUser } from "../../user/blocks/GoUser";
-import { Icon } from "./ui";
+import { Icon } from "ui";
 const nav = [
   { path: "/", label: "Nolo主页" },
   { path: "/nomadspots", label: "旅居点" },
@@ -45,7 +45,7 @@ export const Header: React.FC = () => {
           </button>
           <ul className="hidden lg:flex space-x-4">
             {nav.map((item) => (
-              <NavListItem key={item.path} {...item} className="text-black" />
+              <NavListItem {...item} key={item.path} className="text-black" />
             ))}
           </ul>
 
@@ -64,7 +64,7 @@ export const Header: React.FC = () => {
 
             <ul className="space-y-2 text-white mt-8">
               {nav.map((item) => (
-                <NavListItem key={item.path} {...item} className="text-white" />
+                <NavListItem {...item} key={item.path} className="text-white" />
               ))}
             </ul>
           </div>

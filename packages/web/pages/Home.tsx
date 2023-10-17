@@ -1,6 +1,5 @@
 import React from "react";
-import { Card } from "../ui/Card";
-import { Link } from "../ui/Link";
+import { Card, Link } from "ui";
 
 const Home = () => {
   console.log("Home render");

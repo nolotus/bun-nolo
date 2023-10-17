@@ -1,5 +1,5 @@
 {
-  "name": "utils",
+  "name": "core",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
@@ -9,6 +9,9 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "pino": "^8.16.0"
+    "@sphereon/isomorphic-argon2": "^1.0.1",
+    "@types/crypto-js": "^4.1.2",
+    "crypto-js": "^4.1.1",
+    "tweetnacl": "^1.0.3"
   }
 }
