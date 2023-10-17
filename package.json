@@ -22,7 +22,6 @@
   "scripts": {
     "build:css": "tailwindcss -i ./packages/web/input.css -o ./public/output.css --optimize-minimize",
     "build": "concurrently \"bun run build:css\" \"bun ./scripts/build\" ",
-    "server": "bun --hot ./packages/server/entry.tsx",
-    "dev": "bun run build && bun run server"
+    "dev": "bun --hot run ./scripts/dev"
   }
 }

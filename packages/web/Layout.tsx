@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
-// import { Header } from "../blocks/Header";
+import { Header } from "./Header";
 // import Footer from "../blocks/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -29,7 +29,7 @@ const Layout = ({ disableAnimation = false }) => {
 
   return (
     <div className="bg-[#D5DDE0] bg-opacity-70 flex flex-col min-h-screen">
-      {/* <Header /> */}
+      <Header />
       <div className="max-w-7xl w-full mx-auto p-8 md:p-16 flex-grow">
         {renderContent()}
       </div>

@@ -21,7 +21,7 @@ const productionConfig = {
 
 const config = isProduction ? productionConfig : commonConfig;
 
-async function runBuild() {
+export async function runBuild() {
   try {
     const result = await build(config);
     console.log(result);
