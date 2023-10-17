@@ -1,5 +1,4 @@
 import pino from 'pino';
-
 const baseLogger = pino({transport: {target: 'pino-pretty'}});
 const defaultOptions = {
   activeLoggers: [

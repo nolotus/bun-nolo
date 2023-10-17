@@ -4,6 +4,7 @@ module.exports = {
     "./packages/web/**/*",
     "./packages/ui/**/*",
     "./packages/user/**/*",
+    "./packages/components/**/*",
   ],
   safelist: ["columns-3", "shadow-md", "shadow-xl"],
   theme: {

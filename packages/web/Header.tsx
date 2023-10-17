@@ -48,7 +48,6 @@ export const Header: React.FC = () => {
               <NavListItem {...item} key={item.path} className="text-black" />
             ))}
           </ul>
-
           <div className="flex items-center">
             <GoUser />
           </div>

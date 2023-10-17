@@ -35,5 +35,7 @@ jobs:
             cd /root/bun-nolo
             git fetch --all
             git reset --hard origin/${{ github.ref_name }}
+            rm -rf bun.lockb
+            bun install
             bun run build
             pm2 restart all
