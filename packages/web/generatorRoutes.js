@@ -16,17 +16,11 @@ import React, { Suspense } from "react";
 // import { routes as yujierRoutes } from "../third/yujier/route";
 import Home from "./pages/Home";
 import Layout from "./Layout";
-const Page = () => {
-  return <div>id</div>;
-};
+import { Page } from "./Page";
 export const nolotusRoutes = [
   {
     path: "/",
-    element: (
-      <Suspense fallback={<>样式加载中</>}>
-        <Layout />
-      </Suspense>
-    ),
+    element: <Layout />,
     children: [
       { index: true, element: <Home /> },
       {

@@ -1,30 +1,16 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useRoutes } from "react-router-dom";
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkGfm from "remark-gfm";
-import { renderMdastNode } from "./renderMdastNode";
 import { generatorRoutes } from "./generatorRoutes";
-
-export default function App({ context, hostname }) {
+export default function App({ preloadState, hostname }) {
   const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   let element = useRoutes(routes);
-
-  const text = context.text;
-  const mdast = useMemo(() => {
-    const processor = unified().use(remarkParse).use(remarkGfm);
-    return processor.parse(text);
-  }, [text]);
-  const renderedContent = useMemo(() => {
-    return renderMdastNode(mdast, "1");
-  }, [mdast]);
 
   return (
     <html>
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.NOLO_STORE_DATA=${JSON.stringify(text)}`,
+            __html: `window.NOLO_STORE_DATA=${JSON.stringify(preloadState)}`,
           }}
         ></script>
         <meta charSet="utf-8" />

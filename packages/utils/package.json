@@ -1,14 +1,9 @@
 {
-  "name": "server",
+  "name": "utils",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
     "bun-types": "latest"
-  },
-  "dependencies": {
-    "web": "workspace:web",
-    "app": "workspace:app"
-
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
