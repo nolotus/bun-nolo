@@ -32,7 +32,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /root/nolo
+            cd /root/bun-nolo
             git fetch --all
             git reset --hard origin/${{ github.ref_name }}
             bun run build
