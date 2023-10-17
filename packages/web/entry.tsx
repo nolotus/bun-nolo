@@ -12,6 +12,10 @@ let hostname = window.location.hostname;
 hydrateRoot(
   document,
   <BrowserRouter>
-    <App preloadState={preloadState} hostname={hostname} />
+    <App
+      preloadState={preloadState}
+      hostname={hostname}
+      lng={navigator.language}
+    />
   </BrowserRouter>
 );

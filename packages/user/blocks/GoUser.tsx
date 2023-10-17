@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { UserContext } from "../UserContext";
 import { UserMenu } from "./UserMenu";
 
-export const GoUser: React.FC = () => {
-  const { isLogin } = useContext(UserContext);
+export const GoUser = () => {
   const { t } = useTranslation();
+  const { isLogin } = useContext(UserContext);
 
   return (
     <div className="flex items-center">

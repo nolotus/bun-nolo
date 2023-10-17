@@ -27,7 +27,7 @@ export const UserProvider = ({ children }) => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const isLogin = currentUser !== null;
+  const isLogin = currentUser;
 
   const updateCurrentUser = useCallback((user) => {
     setCurrentUser(user);
@@ -50,8 +50,9 @@ export const UserProvider = ({ children }) => {
     const tokens = getTokensFromLocalStorage();
     if (tokens) {
       const parsedUsers = tokens.map((token) => parseToken(token));
+
       // 设置第一个用户为当前用户
-      setCurrentUser(parsedUsers[0]);
+      parsedUsers.length > 0 && setCurrentUser(parsedUsers[0]);
       // 更新用户列表
       setUsers(parsedUsers);
     }

@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 
-export const SettingIcon = props => {
+export const SettingIcon = (props) => {
   return (
     <svg viewBox="0 0 50 50" className={props?.className} fill="currentColor">
       <path d="M25 34c-5 0-9-4-9-9s4-9 9-9 9 4 9 9-4 9-9 9zm0-16c-3.9 0-7 3.1-7 7s3.1 7 7 7 7-3.1 7-7-3.1-7-7-7z" />

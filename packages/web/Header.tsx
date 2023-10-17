@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import clsx from "clsx";
 import NavListItem from "./NavListItem";
 
-// import { GoUser } from "../../user/blocks/GoUser";
+import { GoUser } from "user/blocks/GoUser";
 import { Icon } from "ui";
 const nav = [
   { path: "/", label: "Nolo主页" },
@@ -49,7 +49,9 @@ export const Header: React.FC = () => {
             ))}
           </ul>
 
-          <div className="flex items-center">{/* <GoUser /> */}</div>
+          <div className="flex items-center">
+            <GoUser />
+          </div>
         </div>
       </div>
       {isMobileMenuOpen && (

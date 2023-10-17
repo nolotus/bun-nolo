@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 
-export const SpinnerIcon = props => {
+export const SpinnerIcon = (props) => {
   return (
     <svg viewBox="0 0 50 50" className={props?.className} fill="currentColor">
       <path d="M25 18c-.6 0-1-.4-1-1V9c0-.6.4-1 1-1s1 .4 1 1v8c0 .6-.4 1-1 1z" />

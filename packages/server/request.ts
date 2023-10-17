@@ -8,7 +8,6 @@ export const handleRequest = async (req) => {
       const file = url.pathname.replace("/public", "");
       return new Response(Bun.file(`public/${file}`));
     }
-  
     // 渲染主应用页面
     try {
       return await handleRender(req);

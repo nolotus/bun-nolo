@@ -11,12 +11,13 @@
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
     "auth": "workspace:auth",
+    "components": "workspace:components",
     "core": "workspace:core",
+    "web": "workspace:web",
+    "utils": "workspace:utils",
     "react-hook-form": "^7.47.0",
     "react-i18next": "^13.3.0",
     "react-router-dom": "^6.17.0",
-    "utils": "workspace:utils",
-    "components": "workspace:components",
     "zod": "^3.22.4"
   }
 }

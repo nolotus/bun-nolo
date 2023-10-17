@@ -1,5 +1,5 @@
 {
-  "name": "utils",
+  "name": "i18n",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
@@ -7,9 +7,5 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "pino": "^8.16.0",
-    "pino-pretty": "^10.2.3"
   }
 }

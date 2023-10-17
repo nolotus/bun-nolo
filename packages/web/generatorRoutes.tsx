@@ -1,9 +1,9 @@
 import React, { Suspense } from "react";
 
 // import { routes as UIRoutes } from "../ui/route";
-// import NoMatch from "../ui/NoMatch";
+import NoMatch from "ui/NoMatch";
 
-// import { userRoutes } from "../domain/user/client/route";
+import { userRoutes } from "user/client/route";
 // import { settingRoutes } from "../domain/setting/route";
 // import { lifeRoutes } from "../domain/life/route";
 // import { createRoutes } from "../domain/create/route";
@@ -43,7 +43,7 @@ const hostRoutesMap = {
   // "nolotus.top": uniqeicRoutes,
 };
 
-export const generatorRoutes = (host) => {
+export const generatorRoutes = (host: string) => {
   let hostRoutes = hostRoutesMap[host] || nolotusRoutes;
 
   // const pluginRoutes = [xlsxRoute, ...chatRoutes];
@@ -56,7 +56,8 @@ export const generatorRoutes = (host) => {
   //   { path: "*", element: <NoMatch /> },
   // ];
   // const routes = [...hostRoutes, ...pluginRoutes, ...commonRoutes];
-  const routes = [...hostRoutes];
+  const commonRoutes = [...userRoutes, { path: "*", element: <NoMatch /> }];
+  const routes = [...hostRoutes, ...commonRoutes];
 
   return routes;
 };

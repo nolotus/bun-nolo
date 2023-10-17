@@ -1,6 +1,10 @@
 const plugin = require("tailwindcss/plugin");
 module.exports = {
-  content: ["./packages/web/**/*"],
+  content: [
+    "./packages/web/**/*",
+    "./packages/ui/**/*",
+    "./packages/user/**/*",
+  ],
   safelist: ["columns-3", "shadow-md", "shadow-xl"],
   theme: {
     extend: {

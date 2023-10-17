@@ -12,9 +12,11 @@ export const handleRender = async (req) => {
     value,
   }));
 
+  const acceptLanguage = req.headers.get("accept-language");
+  const lng = acceptLanguage.split(",")[0];
   const Html = () => (
     <StaticRouter location={url}>
-      <App preloadState={renderContent} hostname={req.host} />
+      <App preloadState={renderContent} hostname={req.host} lng={lng} />
     </StaticRouter>
   );
 
