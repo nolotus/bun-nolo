@@ -21,8 +21,7 @@
   },
   "scripts": {
     "build:css": "tailwindcss -i ./packages/web/input.css -o ./public/output.css --optimize-minimize",
-    "build:web": "bun build ./packages/web/entry.tsx  --outdir ./public --format esm",
-    "build": "concurrently \"bun run build:css\" \"bun run build:web\" ",
+    "build": "concurrently \"bun run build:css\" \"bun ./scripts/build\" ",
     "server": "bun --hot ./packages/server/entry.tsx",
     "dev": "bun run build && bun run server"
   }
