@@ -5,9 +5,9 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
 
-import { renderMdastNode } from "./renderMdastNode";
+import { renderMdastNode } from "render";
 
-export const Page = () => {
+const Page = () => {
   console.log("render");
   let params = useParams();
   const pageId = params.id;
@@ -22,3 +22,4 @@ export const Page = () => {
   }, [mdast]);
   return <div>{renderedContent}</div>;
 };
+export default Page;

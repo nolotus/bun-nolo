@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, lazy } from "react";
 
 // import { routes as UIRoutes } from "../ui/route";
 import NoMatch from "ui/NoMatch";
@@ -9,14 +9,14 @@ import { userRoutes } from "user/client/route";
 // import { createRoutes } from "../domain/create/route";
 
 // import { xlsxRoute } from "../domain/xlsx/route";
-// import { chatRoutes } from "../domain/chat/route";
+import { chatRoutes } from "chat/route";
 
 // import { routes as uniqeicRoutes } from "../third/uniqeic/route";
 // import { routes as nolotusRoutes } from "../third/nolotus/route";
 // import { routes as yujierRoutes } from "../third/yujier/route";
 import Home from "./pages/Home";
-import Layout from "./Layout";
-import { Page } from "./Page";
+import Layout from "./layout/Default";
+import Page from "./Page";
 export const nolotusRoutes = [
   {
     path: "/",
@@ -25,11 +25,7 @@ export const nolotusRoutes = [
       { index: true, element: <Home /> },
       {
         path: "/:id",
-        element: (
-          <Suspense fallback={<>...</>}>
-            <Page />
-          </Suspense>
-        ),
+        element: <Page />,
       },
     ],
   },
@@ -47,6 +43,8 @@ export const generatorRoutes = (host: string) => {
   let hostRoutes = hostRoutesMap[host] || nolotusRoutes;
 
   // const pluginRoutes = [xlsxRoute, ...chatRoutes];
+  const pluginRoutes = [...chatRoutes];
+
   // const commonRoutes = [
   //   ...UIRoutes,
   //   ...userRoutes,
@@ -55,9 +53,8 @@ export const generatorRoutes = (host: string) => {
   //   ...createRoutes,
   //   { path: "*", element: <NoMatch /> },
   // ];
-  // const routes = [...hostRoutes, ...pluginRoutes, ...commonRoutes];
   const commonRoutes = [...userRoutes, { path: "*", element: <NoMatch /> }];
-  const routes = [...hostRoutes, ...commonRoutes];
+  const routes = [...hostRoutes, ...pluginRoutes, ...commonRoutes];
 
   return routes;
 };

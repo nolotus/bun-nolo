@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import Layout from "web/Layout";
+import Layout from "web/layout/Default";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 export const userRoutes = [

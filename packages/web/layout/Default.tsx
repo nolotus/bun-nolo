@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { Header } from "./Header";
-// import Footer from "../blocks/Footer";
+import { Header } from "./blocks/Header";
+import Footer from "../blocks/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 
 const Layout = ({ disableAnimation = false }) => {

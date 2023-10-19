@@ -6,16 +6,12 @@ import React from "react";
 import { hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
-const preloadState = window.NOLO_STORE_DATA;
 let hostname = window.location.hostname;
 
+const domNode = document.getElementById("root");
 hydrateRoot(
-  document,
+  domNode,
   <BrowserRouter>
-    <App
-      preloadState={preloadState}
-      hostname={hostname}
-      lng={navigator.language}
-    />
+    <App hostname={hostname} lng={navigator.language} />
   </BrowserRouter>
 );

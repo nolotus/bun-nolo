@@ -29,8 +29,110 @@ export const handleRender = async (req) => {
         console.error(`渲染错误: ${error}`);
       },
     });
+    const [, copyRenderReactStream] = stream.tee();
+    const { readable, writable } = new TransformStream({
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+      },
+    });
+    let doneReact = false;
+    let doneLocal = false;
+    const writer = writable.getWriter();
 
-    return new Response(stream, {
+    const tryCloseStream = () => {
+      console.log("doneLocal", doneLocal);
+      if (doneReact && doneLocal) {
+        writer.write(
+          new TextEncoder().encode(`
+            </body>
+          </html>
+        `)
+        );
+
+        console.log("Stream complete");
+
+        writer.close();
+      }
+    };
+
+    writer.write(
+      new TextEncoder().encode(`
+      <!DOCTYPE html>
+      <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="Bun, Elysia & React" />
+
+        <title>Bun, Elysia & React</title>
+        <link rel="stylesheet" href="/public/output.css"></link>
+        <script>
+          function $U(h, s) {
+            document.getElementById(h)?.remove();
+            document.getElementById(h.replace('ST', 'SR'))?.remove();
+          }
+        </script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: window.NOLO_STORE_DATA=${JSON.stringify(renderContent)},
+          }}
+        ></script>
+      </head>
+      <body>
+    `)
+    );
+
+    async function writeToStreamAsync() {
+      const iterations = 30;
+
+      for (let i = 0; i <= iterations; i++) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.round(Math.random() * 100))
+        );
+
+        let content = `<div id="ST-${i}">Iteration ${i}</div>`;
+
+        if (i > 0) {
+          content += `<script id="SR-${i}">$U("ST-${
+            i - 1
+          }","ST-${i}")</script>`;
+        }
+
+        if (i === iterations) {
+          content += `<script id="SR-${i}">$U("SR-${i}","SR-${i}")</script>`;
+        }
+
+        writer.write(new TextEncoder().encode(content));
+      }
+
+      doneLocal = true;
+      tryCloseStream();
+    }
+
+    writeToStreamAsync();
+    const reader = copyRenderReactStream.getReader();
+
+    const proxyReactStream = async () => {
+      let finish = false;
+
+      while (!finish) {
+        const { done, value } = await reader.read();
+        if (done) {
+          finish = true;
+          doneReact = true;
+
+          writer.write(new TextEncoder().encode("</div>"));
+
+          tryCloseStream();
+          break;
+        }
+
+        writer.write(value);
+      }
+    };
+
+    writer.write(new TextEncoder().encode('<div id="root">'));
+    proxyReactStream();
+    return new Response(readable, {
       status: didError ? 500 : 200,
       headers: { "content-type": "text/html" },
     });

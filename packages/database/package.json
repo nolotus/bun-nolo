@@ -9,6 +9,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "core": "workspace:core",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "utils": "workspace:utils"

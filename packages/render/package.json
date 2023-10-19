@@ -1,0 +1,23 @@
+{
+  "name": "render",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "app": "workspace:app",
+    "clsx": "^2.0.0",
+    "database": "workspace:database",
+    "framer-motion": "^10.16.4",
+    "react-router-dom": "^6.16.0",
+    "react-syntax-highlighter": "^15.5.0",
+    "remark-gfm": "^4.0.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.3",
+    "user": "workspace:user"
+  }
+}

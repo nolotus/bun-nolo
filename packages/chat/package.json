@@ -1,5 +1,5 @@
 {
-  "name": "ui",
+  "name": "chat",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
@@ -9,6 +9,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "react-use": "^17.4.0"
+    "ai": "workspace:ai",
+    "render": "workspace:render"
   }
 }

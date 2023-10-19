@@ -1,5 +1,5 @@
 {
-  "name": "ui",
+  "name": "ai",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
@@ -7,8 +7,5 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "react-use": "^17.4.0"
   }
 }

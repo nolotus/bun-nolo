@@ -1,33 +1,34 @@
-// import {Button} from './Button';
+import {Button} from './Button';
 import {Icon} from './Icon';
-// import {Modal, useModal} from './Modal';
+import {Modal, useModal} from './Modal';
 // import {Heading} from './Heading';
 // import {Table} from './Table';
 import {LinkButton} from './LinkButton';
 // import Toggle from './Toggle';
 import DropDown from './DropDown';
-// import {ButtonLink} from './ButtonLink';
-// import {Dialog} from './Dialog';
-// import {Alert, useDeleteAlert} from './Alert';
+import {ButtonLink} from './ButtonLink';
+import {Dialog} from './Dialog';
+import {Alert, useDeleteAlert} from './Alert';
 // import {Notify} from './Notify';
 import {Card} from './Card';
 import {Link} from './Link';
-
+import { Avatar } from './Avatar';
 export {
-  // Button,
+  Button,
   Icon,
-  // Modal,
-  // useModal,
+  Modal,
+  useModal,
   // Heading,
   // Table,
   LinkButton,
   // Toggle,
   DropDown,
-  // ButtonLink,
-  // Dialog,
-  // Alert,
+  ButtonLink,
+  Dialog,
+  Alert,
   // Notify,
-  // useDeleteAlert,
+  useDeleteAlert,
   Card,
-  Link
+  Link,
+  Avatar
 };
