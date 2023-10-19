@@ -7,8 +7,8 @@
   },
   "dependencies": {
     "web": "workspace:web",
-    "app": "workspace:app"
-
+    "app": "workspace:app",
+    "user": "workspace:user"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

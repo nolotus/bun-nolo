@@ -13,11 +13,12 @@
     "auth": "workspace:auth",
     "components": "workspace:components",
     "core": "workspace:core",
-    "web": "workspace:web",
-    "utils": "workspace:utils",
+    "i18next": "^23.5.1",
     "react-hook-form": "^7.47.0",
     "react-i18next": "^13.3.0",
     "react-router-dom": "^6.17.0",
+    "utils": "workspace:utils",
+    "web": "workspace:web",
     "zod": "^3.22.4"
   }
 }

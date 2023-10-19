@@ -44,7 +44,6 @@ export const generateUserId = (
       .replace(/[=]+$/, '');
 
     cryptoLogger.info('Successfully generated unique userId.');
-
     cryptoLogger.info('userId:', {userId});
     return userId;
   } catch (error) {

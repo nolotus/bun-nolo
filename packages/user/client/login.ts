@@ -3,6 +3,7 @@ import { generateKeyPairFromSeed } from "core/crypto";
 import { hashPassword } from "core/password";
 import { generateUserId } from "core/generateMainKey";
 import { signToken } from "auth/token";
+import { API_ENDPOINTS } from "database/config";
 
 const authLogger = getLogger("auth");
 interface LoginRequest {
@@ -26,7 +27,7 @@ export const handleLogin = async (user: LoginRequest) => {
   const userId = generateUserId(publicKey, username, language);
   const token = signToken({ userId, publicKey, username }, secretKey);
 
-  const response = await fetch(API.USERS + "/login", {
+  const response = await fetch(API_ENDPOINTS.USERS + "/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
