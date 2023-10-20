@@ -1,11 +1,14 @@
-import React from "react";
-import { Card, Link } from "ui";
-
+import React, { Suspense } from "react";
+import { Card, Link, Button } from "ui";
+import { Buttons } from "./Buttons";
 const Home = () => {
   console.log("Home render");
   return (
     <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-6 font-patrick">
       <div className="w-full lg:w-1/2 mb-6 lg:mb-0">
+        <Suspense fallback={<>Waitttt</>}>
+          <Buttons variant="secondary">Lazy button</Buttons>
+        </Suspense>
         <header className="mb-12">
           <h1 className="text-3xl font-bold mb-10">嘿，你好,我是Nolotus！</h1>
         </header>
