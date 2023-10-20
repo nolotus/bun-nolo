@@ -1,14 +1,12 @@
 // useStreamHandler.ts
 import {useState} from 'react';
 import {getLogger} from 'utils/logger';
-import {getUser} from 'auth/client/token';
 import {tokenStatic} from 'ai/client/static';
 import {sendRequestToOpenAI} from 'ai/client/request';
 
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 
-export const useStreamHandler = (config, setMessages) => {
-  const {username, userId} = getUser();
+export const useStreamHandler = (config, setMessages,userId,username) => {
   const [tempMessages, setTempMessages] = useState({
     role: 'assistant',
     id: '',

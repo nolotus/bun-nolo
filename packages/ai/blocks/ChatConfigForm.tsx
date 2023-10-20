@@ -35,10 +35,10 @@ const ChatConfigForm = ({ id, onClose }) => {
     <form onSubmit={handleSubmit(onSubmit)}>
       {fields.map((field) => (
         <FormField
-          key={field.id}
           {...field}
           errors={errors}
           register={register}
+          key={field.id}
         />
       ))}
       <Button type="submit">{t("update")}</Button>

@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { handleLogin } from "./client/login";
 import {
@@ -24,10 +23,9 @@ interface User {
   email?: string;
 }
 export const UserProvider = ({ children }) => {
-  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const isLogin = currentUser;
+  const isLogin = !!currentUser;
 
   const updateCurrentUser = useCallback((user) => {
     setCurrentUser(user);
@@ -58,27 +56,21 @@ export const UserProvider = ({ children }) => {
     }
   }, []);
 
-  const login = useCallback(
-    async (input) => {
-      const newToken = await handleLogin(input);
-      storeTokens(newToken);
-      const result = parseToken(newToken);
-      setCurrentUser(result);
-      setUsers((prevUsers) => (prevUsers ? [...prevUsers, result] : [result])); // 更新用户列表
-      navigate("/welcome");
-    },
-    [navigate]
-  );
+  const login = useCallback(async (input) => {
+    const newToken = await handleLogin(input);
+    storeTokens(newToken);
+    const result = parseToken(newToken);
+    setCurrentUser(result);
+    setUsers((prevUsers) => (prevUsers ? [...prevUsers, result] : [result])); // 更新用户列表
+    // navigate("/welcome");
+  }, []);
 
-  const signup = useCallback(
-    (token) => {
-      storeTokens(token);
-      const result = parseToken(token);
-      setCurrentUser(result);
-      navigate("/welcome");
-    },
-    [navigate]
-  );
+  const signup = useCallback((token) => {
+    storeTokens(token);
+    const result = parseToken(token);
+    setCurrentUser(result);
+    // navigate("/welcome");
+  }, []);
 
   const logout = useCallback(() => {
     const token = retrieveFirstToken();
@@ -92,8 +84,8 @@ export const UserProvider = ({ children }) => {
     });
     const nextUser = users.find((u) => u !== currentUser);
     setCurrentUser(nextUser ? nextUser : null);
-    navigate("/");
-  }, [navigate, currentUser, users]);
+    // navigate("/");
+  }, [currentUser, users]);
 
   const contextValue = useMemo(
     () => ({

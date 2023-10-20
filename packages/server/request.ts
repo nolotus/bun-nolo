@@ -1,6 +1,7 @@
 import { logIn, signUp } from "user/server";
-import { API_ENDPOINTS } from "database/config";
+import { API_VERSION,API_ENDPOINTS } from "database/config";
 import { handleRender } from "./render";
+import { handleQuery } from "database/query";
 
 let res = {
   status: function (statusCode) {
@@ -11,6 +12,7 @@ let res = {
     };
   },
 };
+
 export const handleRequest = async (requst: Request) => {
   const url = new URL(requst.url);
 
@@ -19,21 +21,33 @@ export const handleRequest = async (requst: Request) => {
     const file = url.pathname.replace("/public", "");
     return new Response(Bun.file(`public/${file}`));
   }
-  if (url.pathname.startsWith(API_ENDPOINTS.USERS)) {
- 
+  if (url.pathname.startsWith(API_VERSION)) {
     let body = await requst.json()
-    const req = {body}
-    if (url.pathname.endsWith("/login")) {
-      console.log("Processing login");
+    let query = Object.fromEntries(new URLSearchParams(url.search));  
+    let req = { body, query, params: {} };  
+    if (url.pathname.startsWith(API_ENDPOINTS.USERS)){
+      if (url.pathname.endsWith("/login")) {
+        console.log("Processing login");
+        return logIn(req, res);
+      }
+      if (url.pathname.endsWith("/signup")) {
+        console.log("Processing signup");
+        return signUp(req, res);
+      } else {
+        return new Response("user");
+      }
+    }
+    if (url.pathname.startsWith(API_ENDPOINTS.DATABASE)){
+      // 使用split函数获取查询的query  
+      if (url.pathname.startsWith("/api/v1/db/query/")) {  
+        let userId = url.pathname.split("/api/v1/db/query/")[1];  
+        req.params={userId}
+      return  handleQuery(req,res)
+      } else {    
+        return new Response("database");    
+      }    
+    }
 
-      return logIn(req, res);
-    }
-    if (url.pathname.endsWith("/signup")) {
-      console.log("Processing signup");
-      return signUp(req, res);
-    } else {
-      return new Response("user");
-    }
   }
   // 渲染主应用页面
   try {

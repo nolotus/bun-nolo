@@ -8,7 +8,6 @@ import remarkGfm from "remark-gfm";
 import { renderMdastNode } from "render";
 
 const Page = () => {
-  console.log("render");
   let params = useParams();
   const pageId = params.id;
   const data = useStore(pageId);

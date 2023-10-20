@@ -37,6 +37,8 @@ export const useChatData = (configId) => {
         queryConfigs(true),
         queryConfigs(false, userId),
       ]);
+      console.log('nolotusConfigs',nolotusConfigs)
+      console.log('userConfigs',userConfigs)
 
       const uniqueConfigs = mergeConfigs(nolotusConfigs, userConfigs);
       setChatList(uniqueConfigs);

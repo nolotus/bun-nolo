@@ -4,7 +4,7 @@ import {Modal, useModal} from './Modal';
 // import {Heading} from './Heading';
 // import {Table} from './Table';
 import {LinkButton} from './LinkButton';
-// import Toggle from './Toggle';
+import Toggle from './Toggle';
 import DropDown from './DropDown';
 import {ButtonLink} from './ButtonLink';
 import {Dialog} from './Dialog';
@@ -21,7 +21,7 @@ export {
   // Heading,
   // Table,
   LinkButton,
-  // Toggle,
+  Toggle,
   DropDown,
   ButtonLink,
   Dialog,

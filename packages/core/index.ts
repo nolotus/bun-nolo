@@ -1,1 +1,4 @@
-console.log("Hello via Bun!");
+import {noloToObject }from './noloToOther'
+import {getHeadTail} from './decodeData';
+
+export {noloToObject,getHeadTail}

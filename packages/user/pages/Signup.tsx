@@ -10,7 +10,7 @@ import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
 import { UserContext } from "../UserContext";
 import { handleSignup } from "../client/signUp";
 
-const Register: React.FC = () => {
+const Signup: React.FC = () => {
   const { signup } = useContext(UserContext);
 
   const { t } = useTranslation();
@@ -86,4 +86,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register;
+export default Signup;

@@ -5,13 +5,19 @@
 import React from "react";
 import { hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { UserProvider } from "user";
+
 import App from "./App";
 let hostname = window.location.hostname;
 
 const domNode = document.getElementById("root");
 hydrateRoot(
   domNode,
-  <BrowserRouter>
-    <App hostname={hostname} lng={navigator.language} />
-  </BrowserRouter>
+  <React.StrictMode>
+    <UserProvider>
+      <BrowserRouter>
+        <App hostname={hostname} lng={navigator.language} />
+      </BrowserRouter>
+    </UserProvider>
+  </React.StrictMode>
 );

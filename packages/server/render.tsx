@@ -1,8 +1,9 @@
-import { App } from "web";
 import React, { createElement } from "react";
+import { App } from "web";
 import { renderToReadableStream } from "react-dom/server";
 import { StaticRouter } from "react-router-dom/server";
 import { memCache } from "app";
+import { UserProvider } from "user";
 
 export const handleRender = async (req) => {
   const url = new URL(req.url);
@@ -15,9 +16,11 @@ export const handleRender = async (req) => {
   const acceptLanguage = req.headers.get("accept-language");
   const lng = acceptLanguage.split(",")[0];
   const Html = () => (
-    <StaticRouter location={url}>
-      <App preloadState={renderContent} hostname={req.host} lng={lng} />
-    </StaticRouter>
+    <UserProvider>
+      <StaticRouter location={url}>
+        <App preloadState={renderContent} hostname={req.host} lng={lng} />
+      </StaticRouter>
+    </UserProvider>
   );
 
   try {
@@ -40,7 +43,6 @@ export const handleRender = async (req) => {
     const writer = writable.getWriter();
 
     const tryCloseStream = () => {
-      console.log("doneLocal", doneLocal);
       if (doneReact && doneLocal) {
         writer.write(
           new TextEncoder().encode(`
@@ -48,9 +50,6 @@ export const handleRender = async (req) => {
           </html>
         `)
         );
-
-        console.log("Stream complete");
-
         writer.close();
       }
     };
