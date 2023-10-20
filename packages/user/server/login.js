@@ -1,12 +1,13 @@
 import path from "path";
 import { t } from "i18next";
 import { verifyToken } from "auth/token";
-import { DATABASE_DIR } from "./init";
+import { serverGetData } from "database/server/read";
+import { DATABASE_DIR, DEFAULT_INDEX_FILE } from "./init";
 
 export async function logIn(req, res) {
   const { userId, token } = req.body;
   // 定义目录路径
-  const userDirPath = path.join(DATABASE_DIR, userId);
+  const userDirPath = path.join(DATABASE_DIR, userId, DEFAULT_INDEX_FILE);
   const file = Bun.file(userDirPath);
   const isExist = await file.exists();
   // 检查目录是否存在
