@@ -1,8 +1,7 @@
-import { logIn, signUp } from "user/server";
 import { API_VERSION,API_ENDPOINTS } from "database/config";
-import { handleRender } from "./render";
 import { handleQuery } from "database/query";
-
+import { handleRender } from "./render";
+import { userServerRoute } from 'user/server/route'
 let res = {
   status: function (statusCode) {
     return {
@@ -24,18 +23,9 @@ export const handleRequest = async (requst: Request) => {
   if (url.pathname.startsWith(API_VERSION)) {
     let body = await requst.json()
     let query = Object.fromEntries(new URLSearchParams(url.search));  
-    let req = { body, query, params: {} };  
+    let req = {url, body, query, params: {} };  
     if (url.pathname.startsWith(API_ENDPOINTS.USERS)){
-      if (url.pathname.endsWith("/login")) {
-        console.log("Processing login");
-        return logIn(req, res);
-      }
-      if (url.pathname.endsWith("/signup")) {
-        console.log("Processing signup");
-        return signUp(req, res);
-      } else {
-        return new Response("user");
-      }
+      userServerRoute(req,res)
     }
     if (url.pathname.startsWith(API_ENDPOINTS.DATABASE)){
       // 使用split函数获取查询的query  

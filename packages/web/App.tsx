@@ -8,8 +8,10 @@ import Login from "user/pages/Login";
 import Default from "web/layout/Default";
 import Full from "web/layout/Full";
 import Signup from "user/pages/Signup";
+
 import Home from "./pages/Home";
 import Page from "./Page";
+import Life from "life/All";
 import { UserContext } from "user/UserContext";
 import {
   UserProfile,
@@ -55,6 +57,10 @@ const routes = (currentUser) => [
       { index: true, element: <Home /> },
       { path: "login", element: <Login /> },
       { path: "signup", element: <Signup /> },
+      {
+        path: "life",
+        element: <Life />,
+      },
     ],
   },
   {

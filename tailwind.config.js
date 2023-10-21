@@ -7,6 +7,7 @@ module.exports = {
     "./packages/components/**/*",
     "./packages/chat/**/*",
     "./packages/setting/**/*",
+    "./packages/life/**/*",
   ],
   safelist: ["columns-3", "shadow-md", "shadow-xl"],
   theme: {
