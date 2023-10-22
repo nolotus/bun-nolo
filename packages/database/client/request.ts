@@ -1,19 +1,7 @@
 import {API_ENDPOINTS} from 'database/config';
 import {fetchWithToken} from 'app/request';
-import {formatData} from 'core/formatData';
-import {WriteDataRequestBody} from '../types';
 
-export const prepareRequestData = (
-  data,
-  flags,
-  customId,
-): WriteDataRequestBody => {
-  return {
-    data: formatData(data, flags),
-    flags,
-    customId,
-  };
-};
+
 
 export const sendWriteRequest = async requestData => {
   const url = `${API_ENDPOINTS.DATABASE}/write`;

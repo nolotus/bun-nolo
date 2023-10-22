@@ -25,6 +25,7 @@ import {
   AccountSettings,
   ServiceProviderSettings,
 } from "setting";
+import ChatPage from "chat/ChatPage";
 
 // import { generatorRoutes } from "./generatorRoutes";
 
@@ -47,6 +48,10 @@ const routes = (currentUser) => [
           { path: "account", element: <AccountSettings /> },
           { path: "service-provider", element: <ServiceProviderSettings /> },
         ],
+      },
+      {
+        path: "chat",
+        element: <ChatPage />,
       },
     ],
   },

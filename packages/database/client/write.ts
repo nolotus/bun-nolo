@@ -10,6 +10,7 @@ export const writeData = async (
   flags: Flags,
   customId: string,
   userId: string = nolotusId,
+  host:window.location.origin
 ): Promise<ResponseData> => {
   try {
     const responseData = await sendWriteRequest({
@@ -17,13 +18,17 @@ export const writeData = async (
       flags,
       customId,
       userId,
-    });
+    },host);
     return responseData;
   } catch (error) {
     console.error('Error:', error);
     throw error;
   }
 };
+
+
+
+
 
 export const writeHashData = async (
   data,

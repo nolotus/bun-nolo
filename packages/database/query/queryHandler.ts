@@ -1,10 +1,11 @@
 
 import {extractAndDecodePrefix} from 'core/prefix';
 import {noloToObject,getHeadTail} from 'core';
+import {readLines} from 'utils/bun/readLines'
 
 import {QueryCondition, QueryOptions} from './types';
 import {evaluateCondition} from './operators';
-import {readLines} from 'utils/bun/readLines'
+
 const handleData = (
   data: string,
   condition: QueryCondition,
@@ -13,7 +14,6 @@ const handleData = (
   isJSON: boolean,
   isList: boolean,
 ) => {
-  console.log('Handling data with condition:', condition); // 添加调试信息
   if (flags.isList && isList) {
     return handleListData(data, condition);
   }
@@ -37,7 +37,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     limit = 10,
     sort,
   } = options;
-  console.log('Querying data with condition:', condition); // 添加调试信息
 
   try {
     const path = `./nolodata/${userId}/index.nolo`;
@@ -51,7 +50,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     let reader = readLines(stream);
     try {
       for await (let line of reader) {
-        console.log('line',line)
           const {key: dataKey, value: data} = getHeadTail(line);
           const flags = extractAndDecodePrefix(dataKey);
           const result = handleData(
@@ -86,7 +84,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
       });
     }
   
-    console.log('results', results)
     return results;
   } catch(e) {
     console.error('出错了:', e);
@@ -96,7 +93,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 };
 
 function handleObjectData(data: string, condition: QueryCondition) {
-  console.log('Handling object data with condition:', condition); // 添加调试信息
   const objectData = noloToObject(data);
   if (evaluateCondition(condition, objectData)) {
     return objectData;
@@ -105,7 +101,6 @@ function handleObjectData(data: string, condition: QueryCondition) {
 }
 
 function handleJSONData(data: string, condition: QueryCondition) {
-  console.log('Handling JSON data with condition:', condition); // 添加调试信息
   try {
     const jsonData = JSON.parse(data);
     if (evaluateCondition(condition, jsonData)) {

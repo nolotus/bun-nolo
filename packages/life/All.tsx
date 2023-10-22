@@ -2,21 +2,22 @@ import React, { useEffect, useState, useContext } from "react";
 import { UserContext } from "user/UserContext";
 import { useUserData } from "user/hooks/useUserData";
 import { getLogger } from "utils/logger";
+import ChatBotList from "ai/blocks/ChatBotList";
 
 import { AccountBalance } from "./blocks/AccountBanlance";
 import ArticleBlock from "./blocks/ArticleBlock";
 import OtherDataBlock from "./blocks/OtherDataBlock";
-import ChatBotBlock from "./blocks/ChatBotBlock";
 import fetchReadAllData from "database/client/readAll";
 import TokenStatisticsBlock from "./blocks/TokenStatisticsBlock";
+const lifeLogger = getLogger("life");
 
 const LifeAll = () => {
   const [data, setData] = useState(null);
   const [articles, setArticles] = useState(null);
   const [chatBots, setChatBots] = useState(null);
+
   const [aiUsage, setAiUsage] = useState(0);
   const [tokenStatistics, setTokenStatistics] = useState(null);
-  const lifeLogger = getLogger("life");
 
   const { currentUser } = useContext(UserContext);
 
@@ -99,7 +100,7 @@ const LifeAll = () => {
     <div className="p-4">
       <ArticleBlock articles={articles} refreshData={fetchData} />
       <AccountBalance aiUsage={aiUsage} />
-      {chatBots && <ChatBotBlock data={chatBots} refreshData={fetchData} />}
+      {chatBots && <ChatBotList data={chatBots} />}
       {tokenStatistics && (
         <TokenStatisticsBlock
           data={tokenStatistics}

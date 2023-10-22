@@ -66,25 +66,13 @@ export const evaluateCondition = (
         }
         break;
       case '$eq': {
-        console.log('Evaluating $eq condition:', condition.$eq); // 添加调试信息
-        console.log('Object data:', objectData); // 添加调试信息
         const eqResult = Object.keys(condition.$eq!).every(k => {
           const comparisonResult = objectData[k] === condition.$eq![k];
-          console.log(
-            `Comparing objectData[${k}] (${
-              objectData[k]
-            }) with condition.$eq[${k}] (${
-              condition.$eq![k]
-            }). Result: ${comparisonResult}`,
-          ); // 添加调试信息
           return comparisonResult;
         });
-        console.log('Overall $eq comparison result:', eqResult); // 添加调试信息
         if (!eqResult) {
-          console.log('Failed $eq condition'); // 添加调试信息
           return false;
         }
-        console.log('Passed $eq condition'); // 添加调试信息
         break;
       }
 

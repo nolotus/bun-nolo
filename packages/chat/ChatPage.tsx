@@ -3,6 +3,14 @@ import React, { useState, useRef, useContext, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Icon, Button } from "ui";
+import { nolotusId } from "core/init";
+import { getLogger } from "utils/logger";
+
+import { UserContext } from "user/UserContext";
+import { queryData } from "database/client/query";
+
+import { tokenStatic } from "ai/client/static";
+import { calcCurrentUserIdCost } from "ai/utils/calcCost";
 
 // import chatTranslations from "./chatI18n";
 // import aiTranslations from "../ai/aiI18n";
@@ -11,17 +19,12 @@ import ChatSidebar from "./blocks/ChatSidebar";
 import MessagesDisplay from "./blocks/MessagesDisplay";
 import MessageInput from "./blocks/MessageInput";
 import { sendRequestToOpenAI } from "ai/client/request";
-// import { getLogger } from "../../utils/logger";
+
 import { useChatData } from "./useChatData";
 import { useStreamHandler } from "./useStreamHandler";
-import { tokenStatic } from "ai/client/static";
 import { getUser } from "auth/client/token";
-import { UserContext } from "user/UserContext";
-import { queryData } from "database/client/query";
-import { calcCurrentUserIdCost } from "ai/utils/calcCost";
-import { nolotusId } from "core/init";
 
-// const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
+const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
 // Object.keys(chatTranslations).forEach((lang) => {
 //   const translations = chatTranslations[lang].translation;
@@ -37,9 +40,9 @@ const ChatPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { currentUser } = useContext(UserContext);
   const [cost, setCost] = useState(0);
+
   const allowSend = Number(cost.totalCost) < 2;
   let userId, username;
-  console.log("currentUser", currentUser);
 
   if (currentUser) {
     userId = currentUser.userId;
@@ -88,7 +91,6 @@ const ChatPage = () => {
   );
 
   const [mode] = useState<"text" | "image" | "stream">("stream");
-  console.log("config", config);
   const {
     tempMessages,
     handleStreamMessage,

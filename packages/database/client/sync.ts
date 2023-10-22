@@ -1,9 +1,8 @@
 import {API_ENDPOINTS} from 'database/config';
 import {generateIdWithCustomId} from 'core/generateMainKey';
-import {extractAndDecodePrefix, extractCustomId} from 'core/prefix';
+import {extractAndDecodePrefix, extractCustomId,extractUserId} from 'core/prefix';
 import {getUserId, validateToken} from 'auth/client/token';
 import {readData} from './read';
-import {prepareRequestData} from './request';
 
 const getSyncEndpoints = async () => {
   const userId = getUserId();
@@ -41,12 +40,13 @@ export const syncData = async (id, data) => {
     console.error('Failed to sync data:', error);
   }
 };
-
+//todo use write
 const syncDataToEndpoint = async (endpoint: string, id: string, data: any) => {
   const token = validateToken();
   const flags = extractAndDecodePrefix(id);
+  const userId =extractUserId(id)
   const customId = extractCustomId(id);
-  const requestData = prepareRequestData(data, flags, customId);
+  const requestData = {data, flags, customId,userId}
 
   try {
     const response = await fetch(endpoint, {

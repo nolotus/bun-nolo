@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "ai": "workspace:ai",
-    "render": "workspace:render"
+    "render": "workspace:render",
+    "utils": "workspace:utils"
   }
 }
