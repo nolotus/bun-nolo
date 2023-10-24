@@ -1,16 +1,17 @@
 import React, { useContext } from "react";
 import { deleteUser } from "user/client/delete";
-import { UserContext } from "user/UserContext";
+import { useAppDispatch, useAppSelector } from "app/hooks";
+import { userLogout } from "user/userSlice";
 
 const AccountSettings = () => {
-  const { currentUser, logout } = useContext(UserContext);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const dispatch = useAppDispatch();
 
   const handleDeleteAccountClick = () => {
     //todo add modal tip
     deleteUser(currentUser?.userId)
       .then((result) => {
-        console.log(result);
-        logout();
+        dispatch(userLogout());
       })
       .catch((error) => {
         alert(error.message);

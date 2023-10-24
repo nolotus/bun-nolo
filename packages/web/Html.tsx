@@ -1,14 +1,16 @@
 import React from "react";
-import { UserProvider } from "user";
 import { StaticRouter } from "react-router-dom/server";
+import { Provider } from "react-redux";
+import store from "app/store";
+
 import App from "./App";
 
 export const Html = ({ url, renderContent, hostname, lng }) => {
   return (
-    <UserProvider>
+    <Provider store={store}>
       <StaticRouter location={url}>
         <App preloadState={renderContent} hostname={hostname} lng={lng} />
       </StaticRouter>
-    </UserProvider>
+    </Provider>
   );
 };

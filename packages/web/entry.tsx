@@ -5,7 +5,8 @@
 import React from "react";
 import { hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { UserProvider } from "user";
+import { Provider } from "react-redux";
+import store from "app/store";
 
 import App from "./App";
 let hostname = window.location.hostname;
@@ -15,10 +16,10 @@ const lng = window.navigator.language;
 hydrateRoot(
   domNode,
   <React.StrictMode>
-    <UserProvider>
+    <Provider store={store}>
       <BrowserRouter>
         <App hostname={hostname} lng={lng} />
       </BrowserRouter>
-    </UserProvider>
+    </Provider>
   </React.StrictMode>
 );

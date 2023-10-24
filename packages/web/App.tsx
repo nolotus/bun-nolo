@@ -1,6 +1,8 @@
-import React, { useContext } from "react";
+import React, { useEffect } from "react";
 import { use } from "i18next";
 import { initReactI18next } from "react-i18next";
+import { getTokensFromLocalStorage } from "auth/client/token";
+import { parseToken } from "auth/token";
 
 import { useRoutes } from "react-router-dom";
 import { resources } from "i18n";
@@ -8,11 +10,11 @@ import Login from "user/pages/Login";
 import Default from "web/layout/Default";
 import Full from "web/layout/Full";
 import Signup from "user/pages/Signup";
-
+import { useAppDispatch, useAppSelector } from "app/hooks";
+import { restoreSession } from "user/userSlice";
 import Home from "./pages/Home";
 import Page from "./Page";
 import Life from "life/All";
-import { UserContext } from "user/UserContext";
 import {
   UserProfile,
   ExtendedProfile,
@@ -77,7 +79,8 @@ const routes = (currentUser) => [
 export default function App({ hostname, lng = "en" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
-  const { currentUser } = useContext(UserContext);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+
   console.log("currentUser", currentUser);
   use(initReactI18next).init({
     lng,
@@ -92,6 +95,17 @@ export default function App({ hostname, lng = "en" }) {
     },
     resources,
   });
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    const tokens = getTokensFromLocalStorage();
+
+    if (tokens) {
+      const parsedUsers = tokens.map((token) => parseToken(token));
+      parsedUsers.length > 0 &&
+        dispatch(restoreSession({ user: parsedUsers[0], users: parsedUsers }));
+    }
+  }, []);
+
   const element = useRoutes(routes(currentUser));
   return element;
 }

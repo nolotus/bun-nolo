@@ -1,13 +1,13 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { UserContext } from "../UserContext";
 import { UserMenu } from "./UserMenu";
+import { useAppSelector } from "app/hooks";
 
 export const GoUser = () => {
   const { t } = useTranslation();
-  const { isLoggedIn } = useContext(UserContext);
+  const isLoggedIn = useAppSelector((state) => state.user.isLoggedIn);
 
   return (
     <div className="flex items-center">

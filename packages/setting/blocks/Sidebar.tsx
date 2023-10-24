@@ -1,7 +1,8 @@
-import React, { useContext, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { UserContext } from "user/UserContext";
 import { nolotusId } from "core/init";
+import { useAppSelector } from "app/hooks";
+
 const allowedUserIds = [nolotusId];
 
 export const USER_PROFILE_ROUTE = "user-profile";
@@ -19,7 +20,8 @@ const navItems = [
   { path: "/settings/service-provider", label: "服务商设置" },
 ];
 const Sidebar: React.FC<{ userId: string | null }> = () => {
-  const { currentUser } = useContext(UserContext);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+
   console.log("currentUser", currentUser);
 
   const couldDisplay = (item) => {

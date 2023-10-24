@@ -1,14 +1,40 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-
+import { useAppDispatch, useAppSelector } from "app/hooks";
+import { changeCurrentUser } from "user/userSlice";
 import { Icon, LinkButton, DropDown } from "ui";
-import { UserContext } from "../UserContext";
+import { getTokensFromLocalStorage } from "auth/client/token";
+import { parseToken } from "auth/token";
+import { removeToken, retrieveFirstToken } from "auth/client/token";
+import { userLogout } from "user/userSlice";
 
 export const UserMenu = () => {
   const { t } = useTranslation();
-  const { logout, currentUser, users, changeCurrentUser } =
-    useContext(UserContext);
-  console.log("users", users);
+  const dispatch = useAppDispatch();
+  const logout = () => {
+    const token = retrieveFirstToken();
+    removeToken(token);
+    dispatch(userLogout());
+  };
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const users = useAppSelector((state) => state.user.users);
+
+  const changeUser = (user) => {
+    const tokens = getTokensFromLocalStorage();
+    const updatedToken = tokens.find(
+      (t) => parseToken(t).userId === user.userId
+    );
+
+    if (updatedToken) {
+      const newTokens = [
+        updatedToken,
+        ...tokens.filter((t) => t !== updatedToken),
+      ];
+      window.localStorage.setItem("tokens", JSON.stringify(newTokens));
+      dispatch(changeCurrentUser(user));
+    }
+  };
+  console.log("UserMenu render ");
   return (
     <>
       <LinkButton
@@ -44,7 +70,7 @@ export const UserMenu = () => {
               user !== currentUser && (
                 <li key={user.userId}>
                   <button
-                    onClick={() => changeCurrentUser(user)}
+                    onClick={() => changeUser(user)}
                     className="block w-full px-4 py-2 text-left hover:bg-gray-100"
                   >
                     change to {user.username}

@@ -1,9 +1,11 @@
-import {useState, useEffect, useContext} from 'react';
+import {useState, useEffect} from 'react';
 import {readOwnData} from 'database/client/read';
-import {UserContext} from '../UserContext';
+import { useAppSelector } from "app/hooks";
+
 
 export function useUserData(dataName) {
-  const {currentUser} = useContext(UserContext);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+
   const [userData, setUserData] = useState(null);
 
   const fetchData = async () => {

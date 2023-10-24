@@ -1,12 +1,14 @@
-import React, { useState, useRef, useContext, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { decrement, increment } from "./chatSlice";
 // import i18n from "i18next";
 import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Icon, Button } from "ui";
 import { nolotusId } from "core/init";
 import { getLogger } from "utils/logger";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 
-import { UserContext } from "user/UserContext";
 import { queryData } from "database/client/query";
 
 import { tokenStatic } from "ai/client/static";
@@ -36,9 +38,12 @@ const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 // });
 
 const ChatPage = () => {
+  const count = useSelector((state) => state.counter.value);
+  const dispatch = useDispatch();
+
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { currentUser } = useContext(UserContext);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
   const [cost, setCost] = useState(0);
 
   const allowSend = Number(cost.totalCost) < 2;
@@ -229,6 +234,19 @@ const ChatPage = () => {
             {/* todo 需要发出终止的信号 ，避免一直回复 */}
           </Button>
         </div>
+        <button
+          aria-label="Increment value"
+          onClick={() => dispatch(increment())}
+        >
+          Increment
+        </button>
+        <span>{count}</span>
+        <button
+          aria-label="Decrement value"
+          onClick={() => dispatch(decrement())}
+        >
+          Decrement
+        </button>
         {requestFailed && <Button onClick={handleRetry}>重试</Button>}
 
         {isStopped && <Button onClick={handleContinue}>继续</Button>}

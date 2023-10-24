@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useContext } from "react";
-import { UserContext } from "user/UserContext";
+import React, { useEffect, useState } from "react";
 import { useUserData } from "user/hooks/useUserData";
 import { getLogger } from "utils/logger";
 import ChatBotList from "ai/blocks/ChatBotList";
+import { useAppSelector } from "app/hooks";
 
 import { AccountBalance } from "./blocks/AccountBanlance";
 import ArticleBlock from "./blocks/ArticleBlock";
@@ -19,7 +19,7 @@ const LifeAll = () => {
   const [aiUsage, setAiUsage] = useState(0);
   const [tokenStatistics, setTokenStatistics] = useState(null);
 
-  const { currentUser } = useContext(UserContext);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
 
   const pluginSettings = useUserData("pluginSettings");
   lifeLogger.info("pluginSettings", pluginSettings);

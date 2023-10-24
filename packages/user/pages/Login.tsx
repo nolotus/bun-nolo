@@ -1,13 +1,16 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { FormField } from "components/Form/FormField";
 import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
-
+import { handleLogin } from "user/client/login";
+import { storeTokens } from "auth/client/token";
+import { parseToken } from "auth/token";
+import { useAppDispatch } from "app/hooks";
 import { userFormSchema } from "../schema";
-import { UserContext } from "../UserContext";
+import { userLogin } from "user/userSlice";
 
 const formDSL = {
   username: {
@@ -23,7 +26,7 @@ const fields = createFieldsFromDSL(formDSL);
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useContext(UserContext);
+  const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [error, setError] = useState(null);
 
@@ -40,7 +43,16 @@ const Login: React.FC = () => {
   //   const willSaveData = `${name}:${values}`;
   //   change('3-myNoloConfig', willSaveData);
   // };
-
+  const login = async (input): Promise<void> => {
+    const newToken = await handleLogin(input);
+    storeTokens(newToken);
+    const user = parseToken(newToken);
+    dispatch(userLogin(user));
+    // dispatch({
+    //   type: "USER_LOGIN",
+    //   payload: { user },
+    // });
+  };
   const onSubmit = async (user) => {
     try {
       await login(user);

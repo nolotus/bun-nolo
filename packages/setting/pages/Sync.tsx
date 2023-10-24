@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback, useContext } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import StringToArrayInput from "components/Form/StringToArrayInput";
 
 import { readOwnData } from "database/client/read";
-import { UserContext } from "user/UserContext";
 import { saveData } from "database/client/save";
+import { useAppSelector } from "app/hooks";
 
 export function useUserData(dataName) {
-  const { currentUser } = useContext(UserContext);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+
   const [userData, setUserData] = useState(null);
   const fetchData = useCallback(async () => {
     if (currentUser?.userId && dataName) {

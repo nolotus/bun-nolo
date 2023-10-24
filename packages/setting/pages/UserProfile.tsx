@@ -1,9 +1,10 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useProfileData } from "../useProfileData"; // 确保路径正确
-import { UserContext } from "user/UserContext";
+import { useAppSelector } from "app/hooks";
 
 const UserProfile = () => {
-  const { currentUser } = useContext(UserContext);
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+
   const customId = "userProfile";
   const { formData, setFormData, handleSaveClick, error } =
     useProfileData(customId);

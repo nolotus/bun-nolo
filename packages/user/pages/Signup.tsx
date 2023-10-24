@@ -1,23 +1,31 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "ui";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-
+import { storeTokens } from "auth/client/token";
+import { parseToken } from "auth/token";
+import { userRegister } from "user/userSlice";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 import { FormField } from "components/Form/FormField";
 import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
-import { UserContext } from "../UserContext";
 import { handleSignup } from "../client/signUp";
+import { useAppDispatch } from "app/hooks";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-
-  const { signup } = useContext(UserContext);
+  const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const signup = (token: string) => {
+    storeTokens(token);
+    const user = parseToken(token);
+    dispatch(userRegister(user));
+  };
+
   const onSubmit = async (user) => {
     try {
       setLoading(true);
