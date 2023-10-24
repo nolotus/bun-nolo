@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "ui";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
 
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 import { FormField } from "components/Form/FormField";
@@ -11,6 +12,8 @@ import { UserContext } from "../UserContext";
 import { handleSignup } from "../client/signUp";
 
 const Signup: React.FC = () => {
+  const navigate = useNavigate();
+
   const { signup } = useContext(UserContext);
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -19,7 +22,8 @@ const Signup: React.FC = () => {
     try {
       setLoading(true);
       const { token } = await handleSignup(user);
-      signup(token);
+      await signup(token);
+      navigate("/welcome");
     } catch (error) {
       console.error(error);
       setError(error.message);

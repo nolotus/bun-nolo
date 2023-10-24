@@ -1,7 +1,6 @@
-import React, { useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import StringToArrayInput from "components/Form/StringToArrayInput";
 
-import { useState, useEffect, useContext } from "react";
 import { readOwnData } from "database/client/read";
 import { UserContext } from "user/UserContext";
 import { saveData } from "database/client/save";
@@ -20,12 +19,13 @@ export function useUserData(dataName) {
 
   useEffect(() => {
     currentUser && fetchData();
-  }, [currentUser, dataName, fetchData]);
+  }, [currentUser, fetchData]);
 
   return userData;
 }
 export const useProfileData = (customId: string) => {
   const data = useUserData(customId);
+  console.log("data", data);
   const [formData, setFormData] = useState(data);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +47,7 @@ const Sync = () => {
   const customId = "syncSettings";
   const { formData, setFormData, handleSaveClick, error } =
     useProfileData(customId);
-
+  console.log("formData", formData);
   return (
     <div>
       <h1>Sync</h1>

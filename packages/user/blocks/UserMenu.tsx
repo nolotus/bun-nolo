@@ -6,7 +6,7 @@ import { UserContext } from "../UserContext";
 
 export const UserMenu = () => {
   const { t } = useTranslation();
-  const { logout, currentUser, users, updateCurrentUser } =
+  const { logout, currentUser, users, changeCurrentUser } =
     useContext(UserContext);
   console.log("users", users);
   return (
@@ -44,7 +44,7 @@ export const UserMenu = () => {
               user !== currentUser && (
                 <li key={user.userId}>
                   <button
-                    onClick={() => updateCurrentUser(user)}
+                    onClick={() => changeCurrentUser(user)}
                     className="block w-full px-4 py-2 text-left hover:bg-gray-100"
                   >
                     change to {user.username}

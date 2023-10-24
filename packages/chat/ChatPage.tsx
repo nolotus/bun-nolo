@@ -208,12 +208,6 @@ const ChatPage = () => {
 
       {/* Chat Window */}
       <div className="w-full lg:w-5/6 flex flex-col h-full">
-        <div className="flex justify-end p-4">
-          <Button onClick={clearMessages} icon={<Icon name="trash" />}>
-            {t("clearChat")}
-            {/* todo 需要发出终止的信号 ，避免一直回复 */}
-          </Button>
-        </div>
         <MessagesDisplay
           messages={messages}
           tempMessages={tempMessages}
@@ -229,7 +223,12 @@ const ChatPage = () => {
         ) : (
           <div>欠费大于10元，请在你的个人中心查看付费，点击你的名字</div>
         )}
-
+        <div className="flex justify-end p-4">
+          <Button onClick={clearMessages} icon={<Icon name="trash" />}>
+            {t("clearChat")}
+            {/* todo 需要发出终止的信号 ，避免一直回复 */}
+          </Button>
+        </div>
         {requestFailed && <Button onClick={handleRetry}>重试</Button>}
 
         {isStopped && <Button onClick={handleContinue}>继续</Button>}

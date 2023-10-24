@@ -7,11 +7,11 @@ import { UserMenu } from "./UserMenu";
 
 export const GoUser = () => {
   const { t } = useTranslation();
-  const { isLogin } = useContext(UserContext);
+  const { isLoggedIn } = useContext(UserContext);
 
   return (
     <div className="flex items-center">
-      {isLogin ? (
+      {isLoggedIn ? (
         <UserMenu />
       ) : (
         <div className="flex items-center">
