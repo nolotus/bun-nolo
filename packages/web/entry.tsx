@@ -11,12 +11,13 @@ import App from "./App";
 let hostname = window.location.hostname;
 
 const domNode = document.getElementById("root");
+const lng = window.navigator.language;
 hydrateRoot(
   domNode,
   <React.StrictMode>
     <UserProvider>
       <BrowserRouter>
-        <App hostname={hostname} lng={navigator.language} />
+        <App hostname={hostname} lng={lng} />
       </BrowserRouter>
     </UserProvider>
   </React.StrictMode>

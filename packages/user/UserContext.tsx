@@ -62,7 +62,6 @@ export const UserProvider = ({ children }) => {
     const result = parseToken(newToken);
     setCurrentUser(result);
     setUsers((prevUsers) => (prevUsers ? [...prevUsers, result] : [result])); // 更新用户列表
-    // navigate("/welcome");
   }, []);
 
   const signup = useCallback((token) => {

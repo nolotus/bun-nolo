@@ -50,6 +50,7 @@ bower_components
 
 build/Release
 public/
+build/
 # Dependency directories
 
 node_modules/

@@ -12,12 +12,9 @@ import { handleSignup } from "../client/signUp";
 
 const Signup: React.FC = () => {
   const { signup } = useContext(UserContext);
-
   const { t } = useTranslation();
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const onSubmit = async (user) => {
     try {
       setLoading(true);
@@ -30,15 +27,12 @@ const Signup: React.FC = () => {
       setLoading(false);
     }
   };
-
   const userDefinition = {
     username: { type: "string" },
     password: { type: "string" },
   };
-
   const userFormSchema = createZodSchemaFromDSL(userDefinition);
   const fields = createFieldsFromDSL(userDefinition);
-
   const {
     register,
     handleSubmit,

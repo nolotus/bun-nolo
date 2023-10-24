@@ -1,9 +1,8 @@
 import React, { createElement } from "react";
-import { App } from "web";
 import { renderToReadableStream } from "react-dom/server";
-import { StaticRouter } from "react-router-dom/server";
 import { memCache } from "app";
-import { UserProvider } from "user";
+import { Html } from "web/Html";
+import assets from "../../public/output.json";
 
 export const handleRender = async (req) => {
   const url = new URL(req.url);
@@ -12,21 +11,14 @@ export const handleRender = async (req) => {
     id: name,
     value,
   }));
-
   const acceptLanguage = req.headers.get("accept-language");
   const lng = acceptLanguage.split(",")[0];
-  const Html = () => (
-    <UserProvider>
-      <StaticRouter location={url}>
-        <App preloadState={renderContent} hostname={req.host} lng={lng} />
-      </StaticRouter>
-    </UserProvider>
-  );
 
   try {
-    const app = createElement(Html);
+    const data = { url, renderContent, hostnameL: req.host, lng };
+    const app = createElement(Html, data);
     const stream = await renderToReadableStream(app, {
-      bootstrapScripts: ["/public/entry.js"],
+      bootstrapScripts: [`/public/${assets.path}`],
       onError(error) {
         didError = true;
         console.error(`渲染错误: ${error}`);
@@ -41,7 +33,6 @@ export const handleRender = async (req) => {
     let doneReact = false;
     let doneLocal = false;
     const writer = writable.getWriter();
-
     const tryCloseStream = () => {
       if (doneReact && doneLocal) {
         writer.write(
@@ -53,7 +44,6 @@ export const handleRender = async (req) => {
         writer.close();
       }
     };
-
     writer.write(
       new TextEncoder().encode(`
       <!DOCTYPE html>
@@ -61,7 +51,6 @@ export const handleRender = async (req) => {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="Bun, Elysia & React" />
-
         <title>Bun, Elysia & React</title>
         <link rel="stylesheet" href="/public/output.css"></link>
         <script>
@@ -79,56 +68,42 @@ export const handleRender = async (req) => {
       <body>
     `)
     );
-
     async function writeToStreamAsync() {
       const iterations = 30;
-
       for (let i = 0; i <= iterations; i++) {
         await new Promise((resolve) =>
           setTimeout(resolve, Math.round(Math.random() * 100))
         );
-
         let content = `<div id="ST-${i}">Iteration ${i}</div>`;
-
         if (i > 0) {
           content += `<script id="SR-${i}">$U("ST-${
             i - 1
           }","ST-${i}")</script>`;
         }
-
         if (i === iterations) {
           content += `<script id="SR-${i}">$U("SR-${i}","SR-${i}")</script>`;
         }
-
         writer.write(new TextEncoder().encode(content));
       }
-
       doneLocal = true;
       tryCloseStream();
     }
-
     writeToStreamAsync();
     const reader = copyRenderReactStream.getReader();
-
     const proxyReactStream = async () => {
       let finish = false;
-
       while (!finish) {
         const { done, value } = await reader.read();
         if (done) {
           finish = true;
           doneReact = true;
-
           writer.write(new TextEncoder().encode("</div>"));
-
           tryCloseStream();
           break;
         }
-
         writer.write(value);
       }
     };
-
     writer.write(new TextEncoder().encode('<div id="root">'));
     proxyReactStream();
     return new Response(readable, {

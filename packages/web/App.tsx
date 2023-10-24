@@ -27,7 +27,7 @@ import {
 } from "setting";
 import ChatPage from "chat/ChatPage";
 
-// import { generatorRoutes } from "./generatorRoutes";
+// // import { generatorRoutes } from "./generatorRoutes";
 
 const routes = (currentUser) => [
   {
@@ -93,6 +93,5 @@ export default function App({ hostname, lng = "en" }) {
     resources,
   });
   const element = useRoutes(routes(currentUser));
-
   return element;
 }

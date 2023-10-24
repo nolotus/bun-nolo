@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { useNavigate } from "react-router-dom";
 import { FormField } from "components/Form/FormField";
 import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
 
@@ -22,6 +22,7 @@ const formDSL = {
 const fields = createFieldsFromDSL(formDSL);
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
   const { login } = useContext(UserContext);
   const { t } = useTranslation();
   const [error, setError] = useState(null);
@@ -43,6 +44,7 @@ const Login: React.FC = () => {
   const onSubmit = async (user) => {
     try {
       await login(user);
+      navigate("/welcome");
     } catch (noloError) {
       console.error(noloError);
 

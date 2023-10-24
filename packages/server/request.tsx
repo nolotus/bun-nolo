@@ -12,7 +12,6 @@ let res = createResponse();
 export const handleRequest = async (request: Request) => {
   const url = new URL(request.url);
 
-  // 处理公共资源请求
   if (url.pathname.startsWith("/public")) {
     const file = url.pathname.replace("/public", "");
     return new Response(Bun.file(`public/${file}`));
@@ -36,7 +35,6 @@ export const handleRequest = async (request: Request) => {
 
       // 使用split函数获取查询的query
       if (url.pathname.startsWith("/api/v1/db/query/")) {
-        
         let userId = url.pathname.split("/api/v1/db/query/")[1];
         req.params = { userId };
         return handleQuery(req, res);
@@ -45,7 +43,6 @@ export const handleRequest = async (request: Request) => {
       }
     }
   }
-  // 渲染主应用页面
   try {
     return await handleRender(request);
   } catch (error) {
