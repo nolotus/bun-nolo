@@ -1,5 +1,6 @@
 import { API_VERSION, API_ENDPOINTS } from "database/config";
 import { handleQuery } from "database/query";
+import { handleReadSingle } from "database/server/read";
 import { handleWrite } from "database/server/write";
 import { userServerRoute } from "user/server/route";
 import { handleToken } from "auth/server/token";
@@ -17,7 +18,7 @@ export const handleRequest = async (request: Request) => {
     return new Response(Bun.file(`public/${file}`));
   }
   if (url.pathname.startsWith(API_VERSION)) {
-    let body = await request.json();
+    let body = request.body ? await request.json() : null;
     let query = Object.fromEntries(new URLSearchParams(url.search));
     let req = { url, body, query, params: {} };
     if (url.pathname.startsWith(`${API_VERSION}/openai-proxy`)) {
@@ -28,6 +29,12 @@ export const handleRequest = async (request: Request) => {
       return userServerRoute(req, res);
     }
     if (url.pathname.startsWith(API_ENDPOINTS.DATABASE)) {
+      if (url.pathname.startsWith("/api/v1/db/read")) {
+        let id = url.pathname.split("/api/v1/db/read/")[1];
+        req.params = { id };
+        return handleReadSingle(req, res);
+      }
+
       if (url.pathname.startsWith("/api/v1/db/write")) {
         req.user = await handleToken(request, res);
         return handleWrite(req, res);

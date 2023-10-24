@@ -1,6 +1,47 @@
-import React from "react";
-import { useProfileData } from "../useProfileData";
-import StringToArrayInput from "components/Form/StringToArrayInput"; // 导入 StringToArrayInput 组件
+import React, { useCallback } from "react";
+import StringToArrayInput from "components/Form/StringToArrayInput";
+
+import { useState, useEffect, useContext } from "react";
+import { readOwnData } from "database/client/read";
+import { UserContext } from "user/UserContext";
+import { saveData } from "database/client/save";
+
+export function useUserData(dataName) {
+  const { currentUser } = useContext(UserContext);
+  const [userData, setUserData] = useState(null);
+  const fetchData = useCallback(async () => {
+    if (currentUser?.userId && dataName) {
+      const result = await readOwnData(currentUser.userId, dataName, {
+        isJSON: true,
+      });
+      setUserData(result);
+    }
+  }, [currentUser, dataName]);
+
+  useEffect(() => {
+    currentUser && fetchData();
+  }, [currentUser, dataName, fetchData]);
+
+  return userData;
+}
+export const useProfileData = (customId: string) => {
+  const data = useUserData(customId);
+  const [formData, setFormData] = useState(data);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSaveClick = async () => {
+    try {
+      const flags = { isJSON: true };
+      await saveData(formData, customId, flags);
+      setError(null);
+    } catch (error) {
+      console.error("保存失败:", error);
+      setError("保存失败");
+    }
+  };
+
+  return { formData, setFormData, handleSaveClick, error };
+};
 
 const Sync = () => {
   const customId = "syncSettings";
