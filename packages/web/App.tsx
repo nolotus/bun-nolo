@@ -28,7 +28,8 @@ import {
 } from "setting";
 
 // // import { generatorRoutes } from "./generatorRoutes";
-const ChatPage = lazy(() => import("chat/ChatPage"));
+import ChatPage from "chat/ChatPage";
+// const ChatPage = lazy(() => import("chat/ChatPage"));
 const Home = lazy(() => import("./pages/Home"));
 
 const routes = (currentUser) => [
@@ -53,11 +54,7 @@ const routes = (currentUser) => [
       },
       {
         path: "chat",
-        element: (
-          <Suspense fallback={<div>loading chat</div>}>
-            <ChatPage />
-          </Suspense>
-        ),
+        element: <ChatPage />,
       },
     ],
   },

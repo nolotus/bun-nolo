@@ -5,12 +5,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { FormField } from "components/Form/FormField";
 import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
-import { handleLogin } from "user/client/login";
 import { storeTokens } from "auth/client/token";
 import { parseToken } from "auth/token";
 import { useAppDispatch } from "app/hooks";
 import { userFormSchema } from "../schema";
 import { userLogin } from "user/userSlice";
+import { useLoginMutation } from "app/services/auth";
+import { generateUserId } from "core/generateMainKey";
+import { generateKeyPairFromSeed } from "core/crypto";
+import { hashPassword } from "core/password";
+import { signToken } from "auth/token";
 
 const formDSL = {
   username: {
@@ -43,19 +47,25 @@ const Login: React.FC = () => {
   //   const willSaveData = `${name}:${values}`;
   //   change('3-myNoloConfig', willSaveData);
   // };
-  const login = async (input): Promise<void> => {
-    const newToken = await handleLogin(input);
-    storeTokens(newToken);
-    const user = parseToken(newToken);
-    dispatch(userLogin(user));
-    // dispatch({
-    //   type: "USER_LOGIN",
-    //   payload: { user },
-    // });
-  };
-  const onSubmit = async (user) => {
+
+  const [login, { isLoading }] = useLoginMutation();
+  const onSubmit = async (input) => {
     try {
-      await login(user);
+      // await login(user);
+      const { username, password } = input;
+      const language = navigator.language;
+      const encryptionKey = await hashPassword(password);
+
+      const { publicKey, secretKey } = generateKeyPairFromSeed(
+        username + encryptionKey + language
+      );
+      const userId = generateUserId(publicKey, username, language);
+
+      const token = signToken({ userId, publicKey, username }, secretKey);
+      const { token: newToken } = await login({ userId, token }).unwrap();
+      const user = parseToken(newToken);
+      storeTokens(newToken);
+      dispatch(userLogin(user));
       navigate("/welcome");
     } catch (noloError) {
       console.error(noloError);

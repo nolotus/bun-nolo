@@ -28,7 +28,7 @@
   },
   "scripts": {
     "build": "bun ./scripts/esbuild",
-    "dev": "bun ./scripts/esDev.js",
+    "dev": "bun  ./scripts/esDev.js",
     "server": "bun --watch ./packages/server/entry.tsx"
   }
 }

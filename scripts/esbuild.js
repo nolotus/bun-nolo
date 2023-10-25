@@ -1,5 +1,8 @@
 import * as esbuild from "esbuild";
 import fs from "node:fs";
+import autoprefixer from "autoprefixer";
+import postCssPlugin from "esbuild-style-plugin";
+
 // import publicPath from "../public/output.json";
 // const inputPath = "./packages/web/entry.tsx";
 // const config = {
@@ -37,9 +40,8 @@ import fs from "node:fs";
 //   }
 // };
 // esbuildClient();
-import autoprefixer from "autoprefixer";
-import postCssPlugin from "esbuild-style-plugin";
-let result = await esbuild.build({
+
+const config = {
   entryPoints: ["./packages/web/entry.tsx"],
   outdir: "public",
   plugins: [
@@ -50,5 +52,20 @@ let result = await esbuild.build({
     }),
   ],
   bundle: true,
-});
+  // splitting: true,
+  // format: "esm",
+  loader: {
+    // 将 JavaScript 文件作为 JSX 加载
+    ".js": "jsx",
+    // 将 WebP 文件作为文件加载
+    ".webp": "file",
+    // 将 JPEG 文件作为文件加载
+    ".jpg": "file",
+    // 将 PNG 文件作为文件加载
+    ".png": "file",
+    // 将 SVG 文件作为文本加载
+    ".svg": "text",
+  },
+};
+let result = await esbuild.build(config);
 console.log("build", result);

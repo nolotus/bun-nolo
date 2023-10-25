@@ -11,10 +11,6 @@ interface LoginRequest {
   password: string;
   username: string;
 }
-export const hashUserPassword = async (password: string) => {
-  const hashedPassword = await hashPassword(password);
-  return hashedPassword;
-};
 
 export const handleLogin = async (user: LoginRequest) => {
   const { username, password } = user;

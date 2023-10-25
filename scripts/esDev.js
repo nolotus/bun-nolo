@@ -14,6 +14,8 @@ let ctx = await esbuild.context({
     }),
   ],
   bundle: true,
+  // splitting: true,
+  // format: "esm",
 });
 await ctx.watch();
 

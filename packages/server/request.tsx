@@ -22,6 +22,7 @@ export const handleRequest = async (request: Request) => {
     let body = request.body ? await request.json() : null;
     let query = Object.fromEntries(new URLSearchParams(url.search));
     let req = { url, body, query, params: {} };
+
     if (url.pathname.startsWith(`${API_VERSION}/openai-proxy`)) {
       req.user = await handleToken(request, res);
       return postToOpenAIProxy(req, res);

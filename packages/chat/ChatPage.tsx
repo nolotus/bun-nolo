@@ -23,17 +23,19 @@ import MessageInput from "./blocks/MessageInput";
 import { useChatData } from "./useChatData";
 import { useStreamHandler } from "./useStreamHandler";
 import { receiveMessage, sendMessage } from "./chatSlice";
+import { isBrowser } from "utils/env";
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
-
-Object.keys(chatTranslations).forEach((lang) => {
-  const translations = chatTranslations[lang].translation;
-  i18n.addResourceBundle(lang, "translation", translations, true, true);
-});
-Object.keys(aiTranslations).forEach((lang) => {
-  const translations = aiTranslations[lang].translation;
-  i18n.addResourceBundle(lang, "translation", translations, true, true);
-});
+// if (isBrowser) {
+//   Object.keys(chatTranslations).forEach((lang) => {
+//     const translations = chatTranslations[lang].translation;
+//     i18n.addResourceBundle(lang, "translation", translations, true, true);
+//   });
+//   Object.keys(aiTranslations).forEach((lang) => {
+//     const translations = aiTranslations[lang].translation;
+//     i18n.addResourceBundle(lang, "translation", translations, true, true);
+//   });
+// }
 
 const ChatPage = () => {
   const currentUser = useAppSelector((state) => state.user.currentUser);

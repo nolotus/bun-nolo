@@ -6,7 +6,7 @@ import React from "react";
 import { hydrateRoot, createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
-import store from "app/store";
+import { store } from "app/store";
 
 import App from "./App";
 import "./input.css";
@@ -24,10 +24,11 @@ const ClientApp = (
     </Provider>
   </React.StrictMode>
 );
-const isProduction = env === "production";
-if (isProduction) {
-  hydrateRoot(domNode, ClientApp);
-} else {
-  let root = createRoot(domNode);
-  root.render(ClientApp);
-}
+hydrateRoot(domNode, ClientApp);
+// const isProduction = env === "production";
+// if (isProduction) {
+
+// } else {
+//   let root = createRoot(domNode);
+//   root.render(ClientApp);
+// }

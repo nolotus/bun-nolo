@@ -1,9 +1,7 @@
 import React from "react";
 import { Card, Link } from "ui";
-import { useGetPokemonByNameQuery } from "app/services/pokemon";
 const Home = () => {
   console.log("Home render");
-  const { data, error, isLoading } = useGetPokemonByNameQuery("bulbasaur");
   return (
     <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-6 font-patrick">
       <div className="w-full lg:w-1/2 mb-6 lg:mb-0">
