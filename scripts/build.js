@@ -3,14 +3,11 @@ const isProduction = env === "production";
 
 const commonConfig = {
   entrypoints: ["./packages/web/entry.tsx"],
-  outdir: "./public",
-  naming: "[dir]/[name]-[hash].[ext]",
+  outdir: "public",
   minify: {
     whitespace: true,
     syntax: true,
   },
-  splitting: true,
-  publicPath: "./public",
   target: "browser",
 };
 
@@ -21,22 +18,23 @@ const productionConfig = {
 const config = isProduction ? productionConfig : commonConfig;
 
 export async function runBuild() {
-  let json = {};
+  // let json = {};
   try {
     const build = await Bun.build(config);
+    console.log("build", build);
     for (const output of build.outputs) {
       const result = await output;
       if (result.kind === "entry-point") {
-        console.log("result", result);
-        let arr = result.path.split("/");
-        let filename = arr.pop();
-        json.main = filename;
+        // console.log("result", result);
+        // let arr = result.path.split("/");
+        // let filename = arr.pop();
+        // json.main = filename;
       }
     }
 
     // await Bun.write("./public/test.json", JSON.stringify(...result));
 
-    await Bun.write("./public/output.json", JSON.stringify(json));
+    // await Bun.write("./public/output.json", JSON.stringify(json));
 
     // console.log(result);
   } catch (error) {
@@ -44,7 +42,7 @@ export async function runBuild() {
   }
 }
 
-runBuild();
+// runBuild();
 // const serverConfig = {
 //   entrypoints: ["./packages/server/entry.tsx"],
 //   outdir: "./build",

@@ -37,6 +37,6 @@ jobs:
             git fetch --all
             git reset --hard origin/${{ github.ref_name }}
             rm -rf bun.lockb
-            bun install
+            bun i
             bun run build
             pm2 restart all

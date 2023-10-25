@@ -1,7 +1,8 @@
 import { handleRequest } from "./request";
 import { serve } from "bun";
-// 根据环境变量决定是否启动 https 服务器
-
+import { esbuildClient } from "../../scripts/esbuild";
+await esbuildClient();
+//
 export const startServer = () => {
   if (process.env.NODE_ENV === "production") {
     serve({

@@ -12,7 +12,6 @@ import Full from "web/layout/Full";
 import Signup from "user/pages/Signup";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { restoreSession } from "user/userSlice";
-import Home from "./pages/Home";
 import Page from "./Page";
 import Life from "life/All";
 import {
@@ -30,6 +29,8 @@ import {
 
 // // import { generatorRoutes } from "./generatorRoutes";
 const ChatPage = lazy(() => import("chat/ChatPage"));
+const Home = lazy(() => import("./pages/Home"));
+
 const routes = (currentUser) => [
   {
     path: "/",
@@ -53,7 +54,7 @@ const routes = (currentUser) => [
       {
         path: "chat",
         element: (
-          <Suspense fallback={<div>loader chat</div>}>
+          <Suspense fallback={<div>loading chat</div>}>
             <ChatPage />
           </Suspense>
         ),
@@ -62,9 +63,20 @@ const routes = (currentUser) => [
   },
   {
     path: "/*",
-    element: <Default />,
+    element: (
+      <Suspense fallback={<div>loading layout</div>}>
+        <Default />
+      </Suspense>
+    ),
     children: [
-      { index: true, element: <Home /> },
+      {
+        index: true,
+        element: (
+          <Suspense fallback={<div>loading honme</div>}>
+            <Home />
+          </Suspense>
+        ),
+      },
       { path: "login", element: <Login /> },
       { path: "signup", element: <Signup /> },
       {

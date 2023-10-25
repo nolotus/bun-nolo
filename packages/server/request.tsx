@@ -1,6 +1,7 @@
 import { API_VERSION, API_ENDPOINTS } from "database/config";
 import { handleQuery } from "database/query";
 import { handleReadSingle } from "database/server/read";
+import { handleUpdate } from "database/server/update";
 import { handleWrite } from "database/server/write";
 import { userServerRoute } from "user/server/route";
 import { handleToken } from "auth/server/token";
@@ -38,6 +39,12 @@ export const handleRequest = async (request: Request) => {
       if (url.pathname.startsWith("/api/v1/db/write")) {
         req.user = await handleToken(request, res);
         return handleWrite(req, res);
+      }
+      if (url.pathname.startsWith("/api/v1/db/update")) {
+        req.user = await handleToken(request, res);
+        let id = url.pathname.split("/api/v1/db/update/")[1];
+        req.params = { id };
+        return handleUpdate(req, res);
       }
 
       // 使用split函数获取查询的query
