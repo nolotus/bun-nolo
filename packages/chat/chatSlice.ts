@@ -1,28 +1,45 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-export const counterSlice = createSlice({
-  name: 'counter',
+interface Message {
+  role: string
+  content: string
+  image?: string
+}
+
+type ChatSliceState = {
+  messages: Message[],
+  allowSend: boolean,
+  tempMessage: Message
+  
+}
+
+export const chatSlice = createSlice({
+  name: 'chat',
   initialState: {
-    value: 0
+    messages: [],
+    allowSend: true,
+    tempMessage: {
+      id: Date.now(),
+      role: 'user',
+      content: ''
+    }
   },
   reducers: {
-    increment: state => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based off those changes
-      state.value += 1
+    sendMessage: (state: ChatSliceState, action: PayloadAction<Message>) => {
+      // 发送消息
+      state.messages.push(action.payload)
     },
-    decrement: state => {
-      state.value -= 1
+    receiveMessage: (state: ChatSliceState, action: PayloadAction<Message>) => {
+      // 添加对方回复的消息
+      state.messages.push(action.payload)
     },
-    incrementByAmount: (state, action) => {
-      state.value += action.payload
+    clearMessages: (state: ChatSliceState) => {
+      // 清除消息
+      state.messages = []
     }
   }
 })
 
-// Action creators are generated for each case reducer function
-export const { increment, decrement, incrementByAmount } = counterSlice.actions
+export const { sendMessage,receiveMessage ,clearMessages } = chatSlice.actions
 
-export default counterSlice.reducer
+export default chatSlice.reducer

@@ -3,10 +3,13 @@ import { useState } from "react";
 import { getLogger } from "utils/logger";
 import { tokenStatic } from "ai/client/static";
 import { sendRequestToOpenAI } from "ai/client/request";
+import { useAppDispatch } from "app/hooks";
+import { receiveMessage ,clearMessages } from "./chatSlice";
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
-export const useStreamHandler = (config, setMessages, userId, username) => {
+export const useStreamHandler = (config,userId, username) => {
+  const dispatch =useAppDispatch()
   const [tempMessages, setTempMessages] = useState({
     role: "assistant",
     id: "",
@@ -37,10 +40,8 @@ export const useStreamHandler = (config, setMessages, userId, username) => {
             // 自然停止
             const finishReason = json.choices[0].finish_reason;
             if (finishReason === "stop") {
-              setMessages((prevMessages) => {
-                console.log("tempMessages", tempMessages);
-                return [...prevMessages, { role: "assistant", content: temp }];
-              });
+              dispatch(receiveMessage( { role: "assistant", content: temp }))
+              
               setTempMessages({ role: "", id: "", content: "" });
               const staticData = {
                 dialogType: "receive",
@@ -91,15 +92,15 @@ export const useStreamHandler = (config, setMessages, userId, username) => {
       handleStreamData // 传递回调函数
     );
   };
-  const clearMessages = () => {
-    setMessages([]);
+  const clear = () => {
+    dispatch(clearMessages())
     setTempMessages({ role: "assistant", id: "", content: "" });
   };
 
   return {
     tempMessages,
     handleStreamMessage,
-    clearMessages,
+    clear,
     isStopped,
     setIsStopped,
     setTempMessages,

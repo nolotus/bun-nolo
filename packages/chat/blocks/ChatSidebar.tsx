@@ -51,7 +51,7 @@ const ChatSidebar = ({
             {allowEdit && (
               <div className="opacity-0 group-hover:opacity-100 ml-auto">
                 <button className="text-blue-400" onClick={() => open(chat)}>
-                  Show Config
+                  edit
                 </button>
               </div>
             )}

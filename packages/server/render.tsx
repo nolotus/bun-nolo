@@ -2,7 +2,7 @@ import React, { createElement } from "react";
 import { renderToReadableStream } from "react-dom/server";
 import { memCache } from "app";
 import { Html } from "web/Html";
-import assets from "../../public/output.json";
+// import assets from "../../public/output.json";
 
 export const handleRender = async (req) => {
   const url = new URL(req.url);
@@ -18,7 +18,7 @@ export const handleRender = async (req) => {
     const data = { url, renderContent, hostnameL: req.host, lng };
     const app = createElement(Html, data);
     const stream = await renderToReadableStream(app, {
-      bootstrapModules: [`/public/${assets.main}`],
+      bootstrapModules: [`/public/entry.js`],
       onError(error) {
         didError = true;
         console.error(`渲染错误: ${error}`);
@@ -52,7 +52,7 @@ export const handleRender = async (req) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="Bun, Elysia & React" />
         <title>Bun, Elysia & React</title>
-        <link rel="stylesheet" href="/public/output.css"></link>
+        <link rel="stylesheet" href="/public/entry.css"></link>
         <script>
           function $U(h, s) {
             document.getElementById(h)?.remove();
@@ -68,27 +68,27 @@ export const handleRender = async (req) => {
       <body>
     `)
     );
-    // async function writeToStreamAsync() {
-    //   const iterations = 30;
-    //   for (let i = 0; i <= iterations; i++) {
-    //     await new Promise((resolve) =>
-    //       setTimeout(resolve, Math.round(Math.random() * 100))
-    //     );
-    //     let content = `<div id="ST-${i}">Iteration ${i}</div>`;
-    //     if (i > 0) {
-    //       content += `<script id="SR-${i}">$U("ST-${
-    //         i - 1
-    //       }","ST-${i}")</script>`;
-    //     }
-    //     if (i === iterations) {
-    //       content += `<script id="SR-${i}">$U("SR-${i}","SR-${i}")</script>`;
-    //     }
-    //     writer.write(new TextEncoder().encode(content));
-    //   }
-    //   doneLocal = true;
-    //   tryCloseStream();
-    // }
-    // writeToStreamAsync();
+    async function writeToStreamAsync() {
+      // const iterations = 30;
+      // for (let i = 0; i <= iterations; i++) {
+      //   await new Promise((resolve) =>
+      //     setTimeout(resolve, Math.round(Math.random() * 100))
+      //   );
+      //   let content = `<div id="ST-${i}">Iteration ${i}</div>`;
+      //   if (i > 0) {
+      //     content += `<script id="SR-${i}">$U("ST-${
+      //       i - 1
+      //     }","ST-${i}")</script>`;
+      //   }
+      //   if (i === iterations) {
+      //     content += `<script id="SR-${i}">$U("SR-${i}","SR-${i}")</script>`;
+      //   }
+      //   writer.write(new TextEncoder().encode(content));
+      // }
+      doneLocal = true;
+      tryCloseStream();
+    }
+    writeToStreamAsync();
     const reader = copyRenderReactStream.getReader();
     const proxyReactStream = async () => {
       let finish = false;

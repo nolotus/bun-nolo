@@ -1,8 +1,6 @@
 import { handleRequest } from "./request";
 import { serve } from "bun";
-import { esbuildClient } from "../../scripts/esbuild";
-await esbuildClient();
-//
+
 export const startServer = () => {
   if (process.env.NODE_ENV === "production") {
     serve({

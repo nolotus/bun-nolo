@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { decrement, increment } from "./chatSlice";
-// import i18n from "i18next";
+import i18n from "i18next";
 import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Icon, Button } from "ui";
@@ -13,44 +11,44 @@ import { queryData } from "database/client/query";
 
 import { tokenStatic } from "ai/client/static";
 import { calcCurrentUserIdCost } from "ai/utils/calcCost";
+import aiTranslations from "ai/aiI18n";
+import { sendRequestToOpenAI } from "ai/client/request";
 
-// import chatTranslations from "./chatI18n";
-// import aiTranslations from "../ai/aiI18n";
+import chatTranslations from "./chatI18n";
 
 import ChatSidebar from "./blocks/ChatSidebar";
 import MessagesDisplay from "./blocks/MessagesDisplay";
 import MessageInput from "./blocks/MessageInput";
-import { sendRequestToOpenAI } from "ai/client/request";
 
 import { useChatData } from "./useChatData";
 import { useStreamHandler } from "./useStreamHandler";
-import { getUser } from "auth/client/token";
+import { receiveMessage, sendMessage } from "./chatSlice";
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
-// Object.keys(chatTranslations).forEach((lang) => {
-//   const translations = chatTranslations[lang].translation;
-//   i18n.addResourceBundle(lang, "translation", translations, true, true);
-// });
-// Object.keys(aiTranslations).forEach((lang) => {
-//   const translations = aiTranslations[lang].translation;
-//   i18n.addResourceBundle(lang, "translation", translations, true, true);
-// });
+Object.keys(chatTranslations).forEach((lang) => {
+  const translations = chatTranslations[lang].translation;
+  i18n.addResourceBundle(lang, "translation", translations, true, true);
+});
+Object.keys(aiTranslations).forEach((lang) => {
+  const translations = aiTranslations[lang].translation;
+  i18n.addResourceBundle(lang, "translation", translations, true, true);
+});
 
 const ChatPage = () => {
-  const count = useSelector((state) => state.counter.value);
-  const dispatch = useDispatch();
+  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const allowSend = useAppSelector((state) => state.chat.allowSend);
+  const messages = useAppSelector((state) => state.chat.messages);
+  const dispatch = useAppDispatch();
 
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentUser = useAppSelector((state) => state.user.currentUser);
   const [cost, setCost] = useState(0);
 
-  const allowSend = Number(cost.totalCost) < 2;
-  let userId, username;
+  // const allowSend = Number(cost.totalCost) < 2;
+  let username;
 
   if (currentUser) {
-    userId = currentUser.userId;
     username = currentUser.username;
   }
   useEffect(() => {
@@ -64,14 +62,17 @@ const ChatPage = () => {
       };
 
       const result = await queryData(nolotusId, options);
-      const currentUserIdCost = calcCurrentUserIdCost(result, userId);
+      const currentUserIdCost = calcCurrentUserIdCost(
+        result,
+        currentUser?.userId
+      );
       console.log("result", result);
       console.log("currentUserIdCost", currentUserIdCost);
       setCost(currentUserIdCost);
     };
 
-    userId && fetchCost();
-  }, [userId]);
+    currentUser?.userId && fetchCost();
+  }, [currentUser?.userId]);
   const { configId } = useParams();
   const { chatList, config, selectedChat, handleChatSelect, reloadChatList } =
     useChatData(configId);
@@ -91,27 +92,21 @@ const ChatPage = () => {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>(
-    []
-  );
-
   const [mode] = useState<"text" | "image" | "stream">("stream");
   const {
     tempMessages,
     handleStreamMessage,
-    clearMessages,
+    clear,
     isStopped,
     setIsStopped,
     setTempMessages,
-  } = useStreamHandler(config, setMessages, userId, username);
-  const handleSendMessage = async (newMessage) => {
-    if (!newMessage.trim()) return;
+  } = useStreamHandler(config, currentUser?.userId, username);
+  const handleSendMessage = async (newContent) => {
+    if (!newContent.trim()) return;
 
     setRequestFailed(false);
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { role: "user", content: newMessage },
-    ]);
+    dispatch(sendMessage({ role: "user", content: newContent }));
+
     setIsLoading(true);
     try {
       let assistantMessage;
@@ -119,44 +114,40 @@ const ChatPage = () => {
         assistantMessage = await sendRequestToOpenAI(
           "text",
           {
-            userMessage: newMessage,
+            userMessage: newContent,
             prevMessages: messages,
           },
           config
         );
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "user", content: newMessage },
-          { role: "assistant", content: assistantMessage },
-        ]);
+        dispatch(
+          receiveMessage({ role: "assistant", content: assistantMessage })
+        );
       } else if (mode === "image") {
         const imageData = await sendRequestToOpenAI(
           "image",
           {
-            prompt: newMessage,
+            prompt: newContent,
           },
           config
         );
         const imageUrl = imageData.data[0].url; // 提取图片 URL
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "user", content: newMessage },
-          {
+
+        dispatch(
+          receiveMessage({
             role: "assistant",
             content: "Here is your generated image:",
             image: imageUrl, // 使用提取出的图片 URL
-          },
-        ]);
+          })
+        );
       }
       if (mode === "stream") {
-        await handleStreamMessage(newMessage, messages);
-        const { userId, username } = getUser();
+        await handleStreamMessage(newContent, messages);
         const staticData = {
           dialogType: "send",
           model: config.model,
-          length: newMessage.length,
-          userId,
-          username,
+          length: newContent.length,
+          userIdL: currentUser?.userId,
+          username: currentUser?.username,
         };
         tokenStatic(staticData);
       }
@@ -170,7 +161,7 @@ const ChatPage = () => {
   const handleContinue = async () => {
     // 移除第一条消息
     const newMessages = messages.slice(1);
-    setMessages(newMessages);
+    dispatch(sendMessage(newMessages));
 
     // 重置 isStopped 状态
     setIsStopped(false);
@@ -186,12 +177,10 @@ const ChatPage = () => {
   const handleRetry = async () => {
     // 重置 tempMessages
     setTempMessages({ role: "assistant", id: "", content: "" });
-
     // 获取并移除最后一条消息
     const lastMessage = messages[messages.length - 1];
     const newMessages = messages.slice(0, -1);
-    setMessages(newMessages);
-
+    dispatch(sendMessage(newMessages));
     // 使用 handleSendMessage 重新发送最后一条消息
     if (lastMessage && lastMessage.role === "user") {
       await handleSendMessage(lastMessage.content);
@@ -229,24 +218,12 @@ const ChatPage = () => {
           <div>欠费大于10元，请在你的个人中心查看付费，点击你的名字</div>
         )}
         <div className="flex justify-end p-4">
-          <Button onClick={clearMessages} icon={<Icon name="trash" />}>
+          <Button onClick={clear} icon={<Icon name="trash" />}>
             {t("clearChat")}
             {/* todo 需要发出终止的信号 ，避免一直回复 */}
           </Button>
         </div>
-        <button
-          aria-label="Increment value"
-          onClick={() => dispatch(increment())}
-        >
-          Increment
-        </button>
-        <span>{count}</span>
-        <button
-          aria-label="Decrement value"
-          onClick={() => dispatch(decrement())}
-        >
-          Decrement
-        </button>
+
         {requestFailed && <Button onClick={handleRetry}>重试</Button>}
 
         {isStopped && <Button onClick={handleContinue}>继续</Button>}

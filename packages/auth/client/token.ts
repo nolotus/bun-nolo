@@ -42,7 +42,7 @@ export const validateToken = () => {
   return token;
 };
 
-export const getUser = () => {
+const getUser = () => {
   const user = parseToken(retrieveFirstToken());
   return user;
 };
