@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # ...
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
 
       # run any `bun` or `bunx` command
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -37,6 +37,6 @@ jobs:
             git fetch --all
             git reset --hard origin/${{ github.ref_name }}
             rm -rf bun.lockb
-            bun i
-            bun run build
+            /root/.bun/bin/bun install
+            /root/.bun/bin/bun run build 
             pm2 restart all
