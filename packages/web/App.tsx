@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { use } from "i18next";
 import { initReactI18next } from "react-i18next";
 import { getTokensFromLocalStorage } from "auth/client/token";
@@ -27,10 +27,9 @@ import {
   AccountSettings,
   ServiceProviderSettings,
 } from "setting";
-import ChatPage from "chat/ChatPage";
 
 // // import { generatorRoutes } from "./generatorRoutes";
-
+const ChatPage = lazy(() => import("chat/ChatPage"));
 const routes = (currentUser) => [
   {
     path: "/",
@@ -53,7 +52,11 @@ const routes = (currentUser) => [
       },
       {
         path: "chat",
-        element: <ChatPage />,
+        element: (
+          <Suspense fallback={<div>loader chat</div>}>
+            <ChatPage />
+          </Suspense>
+        ),
       },
     ],
   },

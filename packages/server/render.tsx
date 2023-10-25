@@ -2,7 +2,7 @@ import React, { createElement } from "react";
 import { renderToReadableStream } from "react-dom/server";
 import { memCache } from "app";
 import { Html } from "web/Html";
-import assets from "../../public/output.json";
+// import assets from "../../public/output.json";
 
 export const handleRender = async (req) => {
   const url = new URL(req.url);
@@ -18,7 +18,7 @@ export const handleRender = async (req) => {
     const data = { url, renderContent, hostnameL: req.host, lng };
     const app = createElement(Html, data);
     const stream = await renderToReadableStream(app, {
-      bootstrapScripts: [`/public/${assets.path}`],
+      bootstrapModules: [`/public/entry.js`],
       onError(error) {
         didError = true;
         console.error(`渲染错误: ${error}`);

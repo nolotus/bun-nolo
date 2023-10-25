@@ -24,7 +24,9 @@
   },
   "scripts": {
     "build:css": "tailwindcss -i ./packages/web/input.css -o ./public/output.css --optimize-minimize",
-    "build": "concurrently \"bun run build:css\" \"bun ./scripts/build\" ",
-    "dev": "bun --watch run build && bun --watch ./packages/server/entry.tsx"
+    "build": "concurrently \"bun run build:css\" \"bun run build:client\" ",
+    "build:client": " bunx esbuild packages/web/entry.tsx --loader:.js=jsx --loader:.webp=file --loader:.jpg=file --loader:.png=file --loader:.svg=text --splitting --format=esm --bundle --outdir=public",
+    "dev": "bun --watch run build && bun --watch ./packages/server/entry.tsx",
+    "server": "bun --watch ./packages/server/entry.tsx"
   }
 }
