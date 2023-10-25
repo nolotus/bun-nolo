@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useUserData } from "user/hooks/useUserData";
 import { getLogger } from "utils/logger";
 import ChatBotList from "ai/blocks/ChatBotList";
-import { useAppSelector } from "app/hooks";
+import { useAuth } from "app/hooks";
 
 import { AccountBalance } from "./blocks/AccountBanlance";
 import ArticleBlock from "./blocks/ArticleBlock";
@@ -19,7 +19,7 @@ const LifeAll = () => {
   const [aiUsage, setAiUsage] = useState(0);
   const [tokenStatistics, setTokenStatistics] = useState(null);
 
-  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const auth = useAuth();
 
   const pluginSettings = useUserData("pluginSettings");
   lifeLogger.info("pluginSettings", pluginSettings);
@@ -29,7 +29,7 @@ const LifeAll = () => {
     const nolotusDomain = "nolotus.com";
 
     if (currentDomain === nolotusDomain) {
-      const res = await fetchReadAllData(nolotusDomain, currentUser?.userId);
+      const res = await fetchReadAllData(nolotusDomain, auth.user?.userId);
       if (res) {
         setData(res.map((item) => ({ ...item, source: "both" })));
       } else {
@@ -37,8 +37,8 @@ const LifeAll = () => {
       }
     } else {
       const [localData, nolotusData] = await Promise.all([
-        fetchReadAllData(currentDomain, currentUser?.userId),
-        fetchReadAllData(nolotusDomain, currentUser?.userId),
+        fetchReadAllData(currentDomain, auth.user?.userId),
+        fetchReadAllData(nolotusDomain, auth.user?.userId),
       ]);
 
       if (!localData && !nolotusData) {
@@ -94,7 +94,7 @@ const LifeAll = () => {
 
   useEffect(() => {
     fetchData();
-  }, [currentUser?.userId]);
+  }, [auth.user?.userId]);
 
   return (
     <div className="p-4">

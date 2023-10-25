@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { Icon, Button } from "ui";
 import { nolotusId } from "core/init";
 import { getLogger } from "utils/logger";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 
 import { queryData } from "database/client/query";
 
@@ -38,7 +38,7 @@ const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 // }
 
 const ChatPage = () => {
-  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const auth = useAuth();
   const allowSend = useAppSelector((state) => state.chat.allowSend);
   const messages = useAppSelector((state) => state.chat.messages);
   const dispatch = useAppDispatch();
@@ -50,8 +50,8 @@ const ChatPage = () => {
   // const allowSend = Number(cost.totalCost) < 2;
   let username;
 
-  if (currentUser) {
-    username = currentUser.username;
+  if (auth.user) {
+    username = auth.user.username;
   }
   useEffect(() => {
     const fetchCost = async () => {
@@ -66,15 +66,15 @@ const ChatPage = () => {
       const result = await queryData(nolotusId, options);
       const currentUserIdCost = calcCurrentUserIdCost(
         result,
-        currentUser?.userId
+        auth?.user?.userId
       );
       console.log("result", result);
       console.log("currentUserIdCost", currentUserIdCost);
       setCost(currentUserIdCost);
     };
 
-    currentUser?.userId && fetchCost();
-  }, [currentUser?.userId]);
+    auth?.user?.userId && fetchCost();
+  }, [auth?.user?.userId]);
   const { configId } = useParams();
   const { chatList, config, selectedChat, handleChatSelect, reloadChatList } =
     useChatData(configId);
@@ -102,7 +102,7 @@ const ChatPage = () => {
     isStopped,
     setIsStopped,
     setTempMessages,
-  } = useStreamHandler(config, currentUser?.userId, username);
+  } = useStreamHandler(config, auth?.user?.userId, username);
   const handleSendMessage = async (newContent) => {
     if (!newContent.trim()) return;
 
@@ -148,8 +148,8 @@ const ChatPage = () => {
           dialogType: "send",
           model: config.model,
           length: newContent.length,
-          userIdL: currentUser?.userId,
-          username: currentUser?.username,
+          userIdL: auth?.user?.userId,
+          username: auth?.user?.username,
         };
         tokenStatic(staticData);
       }

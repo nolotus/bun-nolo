@@ -10,7 +10,7 @@ import Login from "user/pages/Login";
 import Default from "web/layout/Default";
 import Full from "web/layout/Full";
 import Signup from "user/pages/Signup";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAuth } from "app/hooks";
 import { restoreSession } from "user/userSlice";
 import Page from "./Page";
 import Life from "life/All";
@@ -91,9 +91,8 @@ const routes = (currentUser) => [
 export default function App({ hostname, lng = "en" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
-  const currentUser = useAppSelector((state) => state.user.currentUser);
-
-  console.log("currentUser", currentUser);
+  const auth = useAuth();
+  console.log("auth.user", auth.user);
   use(initReactI18next).init({
     lng,
     fallbackLng: {
@@ -118,6 +117,6 @@ export default function App({ hostname, lng = "en" }) {
     }
   }, []);
 
-  const element = useRoutes(routes(currentUser));
+  const element = useRoutes(routes(auth.user));
   return element;
 }

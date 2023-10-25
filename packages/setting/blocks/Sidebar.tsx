@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { nolotusId } from "core/init";
-import { useAppSelector } from "app/hooks";
+import { useAuth } from "app/hooks";
 
 const allowedUserIds = [nolotusId];
 
@@ -20,15 +20,12 @@ const navItems = [
   { path: "/settings/service-provider", label: "服务商设置" },
 ];
 const Sidebar: React.FC<{ userId: string | null }> = () => {
-  const currentUser = useAppSelector((state) => state.user.currentUser);
-
-  console.log("currentUser", currentUser);
+  const auth = useAuth();
 
   const couldDisplay = (item) => {
     if (item.label === "服务商设置") {
-      if (currentUser) {
-        const { userId } = currentUser;
-        if (allowedUserIds.includes(userId)) {
+      if (auth.user) {
+        if (allowedUserIds.includes(auth.user?.userId)) {
           return true;
         }
       }

@@ -3,24 +3,23 @@ import StringToArrayInput from "components/Form/StringToArrayInput";
 
 import { readOwnData } from "database/client/read";
 import { saveData } from "database/client/save";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector, useAuth } from "app/hooks";
 
 export function useUserData(dataName) {
-  const currentUser = useAppSelector((state) => state.user.currentUser);
-
+  const auth = useAuth();
   const [userData, setUserData] = useState(null);
   const fetchData = useCallback(async () => {
-    if (currentUser?.userId && dataName) {
-      const result = await readOwnData(currentUser.userId, dataName, {
+    if (auth.user?.userId && dataName) {
+      const result = await readOwnData(auth.user.userId, dataName, {
         isJSON: true,
       });
       setUserData(result);
     }
-  }, [currentUser, dataName]);
+  }, [auth.user, dataName]);
 
   useEffect(() => {
-    currentUser && fetchData();
-  }, [currentUser, fetchData]);
+    auth.user && fetchData();
+  }, [auth.user, fetchData]);
 
   return userData;
 }

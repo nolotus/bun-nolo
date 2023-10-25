@@ -1,23 +1,23 @@
-import {useState, useEffect} from 'react';
-import {readOwnData} from 'database/client/read';
-import { useAppSelector } from "app/hooks";
+import { useState, useEffect } from "react";
+import { readOwnData } from "database/client/read";
+import { useAuth } from "app/hooks";
 
-
-export function useUserData(dataName) {
-  const currentUser = useAppSelector((state) => state.user.currentUser);
-
+export function useUserData(dataName: string) {
+  const auth = useAuth();
   const [userData, setUserData] = useState(null);
 
   const fetchData = async () => {
-    if (currentUser?.userId && dataName) {
-      const result = await readOwnData(currentUser.userId, dataName, {isJSON: true});
+    if (auth.user?.userId && dataName) {
+      const result = await readOwnData(auth.user.userId, dataName, {
+        isJSON: true,
+      });
       setUserData(result);
     }
   };
 
   useEffect(() => {
-    currentUser && fetchData();
-  }, [currentUser, dataName, fetchData, setUserData]);
+    auth.user && fetchData();
+  }, [auth.user, dataName, fetchData, setUserData]);
 
   return userData;
 }

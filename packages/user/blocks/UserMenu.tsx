@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 import { changeCurrentUser } from "user/userSlice";
 import { Icon, LinkButton, DropDown } from "ui";
 import { getTokensFromLocalStorage } from "auth/client/token";
@@ -16,7 +16,7 @@ export const UserMenu = () => {
     removeToken(token);
     dispatch(userLogout());
   };
-  const currentUser = useAppSelector((state) => state.user.currentUser);
+  const auth = useAuth();
   const users = useAppSelector((state) => state.user.users);
 
   const changeUser = (user) => {
@@ -54,7 +54,7 @@ export const UserMenu = () => {
       <LinkButton
         to="/life"
         icon="user"
-        label={currentUser?.username}
+        label={auth.user?.username}
         extraClass="flex justify-center items-center"
       />
       <DropDown
@@ -67,7 +67,7 @@ export const UserMenu = () => {
         <ul className="py-2">
           {users.map(
             (user) =>
-              user !== currentUser && (
+              user !== auth.user && (
                 <li key={user.userId}>
                   <button
                     onClick={() => changeUser(user)}

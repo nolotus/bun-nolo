@@ -1,10 +1,9 @@
 import React from "react";
 import { useProfileData } from "../useProfileData"; // 确保路径正确
-import { useAppSelector } from "app/hooks";
+import { useAuth } from "app/hooks";
 
 const UserProfile = () => {
-  const currentUser = useAppSelector((state) => state.user.currentUser);
-
+  const auth = useAuth();
   const customId = "userProfile";
   const { formData, setFormData, handleSaveClick, error } =
     useProfileData(customId);
@@ -13,7 +12,7 @@ const UserProfile = () => {
     <div className="p-8 bg-gray-100 rounded-lg">
       <h1 className="text-2xl font-semibold mb-4">UserProfile</h1>
       <div className="mb-4">
-        <p className="text-lg mb-2">userId: {currentUser?.userId}</p>
+        <p className="text-lg mb-2">userId: {auth.user?.userId}</p>
         <div className="flex flex-col space-y-4">
           <input
             type="text"
