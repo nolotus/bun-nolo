@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from "react";
+import { useAppSelector } from "app/hooks";
 import { Message } from "./Message";
+import { selectChat } from "../chatSlice";
 
 interface Message {
   role: string;
@@ -9,14 +11,12 @@ interface Message {
 
 interface MessagesDisplayProps {
   messages: Message[];
-  tempMessages;
   scrollToBottom: () => void; // 新增
 }
 
-const MessagesDisplay: React.FC<MessagesDisplayProps> = ({
-  messages,
-  tempMessages,
-}) => {
+const MessagesDisplay: React.FC<MessagesDisplayProps> = ({ messages }) => {
+  const { tempMessage } = useAppSelector(selectChat);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -26,7 +26,7 @@ const MessagesDisplay: React.FC<MessagesDisplayProps> = ({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, tempMessages]);
+  }, [messages, tempMessage]);
 
   return (
     <div
@@ -41,7 +41,7 @@ const MessagesDisplay: React.FC<MessagesDisplayProps> = ({
           image={message.image} // 新增代码
         />
       ))}
-      <Message {...tempMessages} key={tempMessages.id} />
+      <Message {...tempMessage} key={tempMessage.id} />
     </div>
   );
 };

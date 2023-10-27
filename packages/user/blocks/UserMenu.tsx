@@ -7,14 +7,17 @@ import { getTokensFromLocalStorage } from "auth/client/token";
 import { parseToken } from "auth/token";
 import { removeToken, retrieveFirstToken } from "auth/client/token";
 import { userLogout } from "user/userSlice";
+import { useNavigate } from "react-router-dom";
 
 export const UserMenu = () => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const logout = () => {
     const token = retrieveFirstToken();
     removeToken(token);
     dispatch(userLogout());
+    navigate("/home");
   };
   const auth = useAuth();
   const users = useAppSelector((state) => state.user.users);

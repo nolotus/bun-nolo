@@ -7,13 +7,13 @@ import { FormField } from "components/Form/FormField";
 import { useStore } from "app";
 import { Button } from "ui/Button";
 import { updateData } from "database/client/update";
+import { useAuth } from "app/hooks";
 
-const ChatConfigForm = ({ id, onClose }) => {
+const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
-  const initialValues = useStore(id);
-
+  const auth = useAuth();
   const onSubmit = async (data) => {
-    await updateData(data, id);
+    await updateData(auth.user?.userId, data, id);
     onClose(); // 关闭弹窗
   };
 

@@ -1,13 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import i18n from "i18next";
 import { useTranslation } from "react-i18next";
-import { useParams, useSearchParams } from "react-router-dom";
 import { Icon, Button } from "ui";
-import { nolotusId } from "core/init";
 import { getLogger } from "utils/logger";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
-
-import { queryData } from "database/client/query";
 
 import { tokenStatic } from "ai/client/static";
 import { calcCurrentUserIdCost } from "ai/utils/calcCost";
@@ -20,31 +16,36 @@ import ChatSidebar from "./blocks/ChatSidebar";
 import MessagesDisplay from "./blocks/MessagesDisplay";
 import MessageInput from "./blocks/MessageInput";
 
-import { useChatData } from "./useChatData";
 import { useStreamHandler } from "./useStreamHandler";
-import { receiveMessage, sendMessage } from "./chatSlice";
-import { isBrowser } from "utils/env";
+import {
+  receiveMessage,
+  sendMessage,
+  selectChat,
+  retry,
+  clearMessages,
+  continueMessage,
+  messageEnd,
+} from "./chatSlice";
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
-// if (isBrowser) {
-//   Object.keys(chatTranslations).forEach((lang) => {
-//     const translations = chatTranslations[lang].translation;
-//     i18n.addResourceBundle(lang, "translation", translations, true, true);
-//   });
-//   Object.keys(aiTranslations).forEach((lang) => {
-//     const translations = aiTranslations[lang].translation;
-//     i18n.addResourceBundle(lang, "translation", translations, true, true);
-//   });
-// }
+// Object.keys(chatTranslations).forEach((lang) => {
+//   const translations = chatTranslations[lang].translation;
+//   i18n.addResourceBundle(lang, "translation", translations, true, true);
+// });
+// Object.keys(aiTranslations).forEach((lang) => {
+//   const translations = aiTranslations[lang].translation;
+//   i18n.addResourceBundle(lang, "translation", translations, true, true);
+// });
 
 const ChatPage = () => {
   const auth = useAuth();
-  const allowSend = useAppSelector((state) => state.chat.allowSend);
-  const messages = useAppSelector((state) => state.chat.messages);
   const dispatch = useAppDispatch();
 
+  const allowSend = useAppSelector((state) => state.chat.allowSend);
+  const messages = useAppSelector((state) => state.chat.messages);
+
   const { t } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
+
   const [cost, setCost] = useState(0);
 
   // const allowSend = Number(cost.totalCost) < 2;
@@ -53,36 +54,31 @@ const ChatPage = () => {
   if (auth.user) {
     username = auth.user.username;
   }
-  useEffect(() => {
-    const fetchCost = async () => {
-      const options = {
-        isJSON: true,
-        condition: {
-          $eq: { type: "tokenStatistics" },
-        },
-        limit: 1000,
-      };
+  // useEffect(() => {
+  //   const fetchCost = async () => {
+  //     const options = {
+  //       isJSON: true,
+  //       condition: {
+  //         $eq: { type: "tokenStatistics" },
+  //       },
+  //       limit: 1000,
+  //     };
 
-      const result = await queryData(nolotusId, options);
-      const currentUserIdCost = calcCurrentUserIdCost(
-        result,
-        auth?.user?.userId
-      );
-      console.log("result", result);
-      console.log("currentUserIdCost", currentUserIdCost);
-      setCost(currentUserIdCost);
-    };
+  //     const result = await queryData(nolotusId, options);
+  //     const currentUserIdCost = calcCurrentUserIdCost(
+  //       result,
+  //       auth?.user?.userId
+  //     );
+  //     console.log("result", result);
+  //     console.log("currentUserIdCost", currentUserIdCost);
+  //     setCost(currentUserIdCost);
+  //   };
 
-    auth?.user?.userId && fetchCost();
-  }, [auth?.user?.userId]);
-  const { configId } = useParams();
-  const { chatList, config, selectedChat, handleChatSelect, reloadChatList } =
-    useChatData(configId);
+  //   auth?.user?.userId && fetchCost();
+  // }, [auth?.user?.userId]);
+  const { currentChatConfig, isStopped, isMessageStreaming } =
+    useAppSelector(selectChat);
 
-  const handleChatSelectWithSearchParamsUpdate = (chat) => {
-    handleChatSelect(chat);
-    setSearchParams({ ...searchParams, id: chat.id });
-  };
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -92,24 +88,19 @@ const ChatPage = () => {
 
   const [requestFailed, setRequestFailed] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [setIsLoading] = useState(false);
 
   const [mode] = useState<"text" | "image" | "stream">("stream");
-  const {
-    tempMessages,
-    handleStreamMessage,
-    clear,
-    isStopped,
-    setIsStopped,
-    setTempMessages,
-  } = useStreamHandler(config, auth?.user?.userId, username);
+
+  const { handleStreamMessage } = useStreamHandler(
+    currentChatConfig,
+    auth?.user?.userId,
+    username
+  );
   const handleSendMessage = async (newContent) => {
     if (!newContent.trim()) return;
-
     setRequestFailed(false);
     dispatch(sendMessage({ role: "user", content: newContent }));
-
-    setIsLoading(true);
     try {
       let assistantMessage;
       if (mode === "text") {
@@ -119,7 +110,7 @@ const ChatPage = () => {
             userMessage: newContent,
             prevMessages: messages,
           },
-          config
+          currentChatConfig
         );
         dispatch(
           receiveMessage({ role: "assistant", content: assistantMessage })
@@ -130,7 +121,7 @@ const ChatPage = () => {
           {
             prompt: newContent,
           },
-          config
+          currentChatConfig
         );
         const imageUrl = imageData.data[0].url; // 提取图片 URL
 
@@ -146,10 +137,11 @@ const ChatPage = () => {
         await handleStreamMessage(newContent, messages);
         const staticData = {
           dialogType: "send",
-          model: config.model,
+          model: currentChatConfig?.model,
           length: newContent.length,
           userIdL: auth?.user?.userId,
           username: auth?.user?.username,
+          date: new Date(),
         };
         tokenStatic(staticData);
       }
@@ -157,16 +149,14 @@ const ChatPage = () => {
       chatWindowLogger.error({ error }, "Error while sending message");
       setRequestFailed(true);
     } finally {
-      setIsLoading(false);
+      dispatch(messageEnd);
     }
   };
+
   const handleContinue = async () => {
     // 移除第一条消息
     const newMessages = messages.slice(1);
-    dispatch(sendMessage(newMessages));
-
-    // 重置 isStopped 状态
-    setIsStopped(false);
+    dispatch(continueMessage(newMessages));
 
     // 发送新的请求
     if (newMessages.length > 0) {
@@ -177,12 +167,8 @@ const ChatPage = () => {
     }
   };
   const handleRetry = async () => {
-    // 重置 tempMessages
-    setTempMessages({ role: "assistant", id: "", content: "" });
-    // 获取并移除最后一条消息
     const lastMessage = messages[messages.length - 1];
-    const newMessages = messages.slice(0, -1);
-    dispatch(sendMessage(newMessages));
+    dispatch(retry());
     // 使用 handleSendMessage 重新发送最后一条消息
     if (lastMessage && lastMessage.role === "user") {
       await handleSendMessage(lastMessage.content);
@@ -192,41 +178,38 @@ const ChatPage = () => {
     <div className="flex flex-col lg:flex-row h-[calc(100vh-60px)]">
       {/* Config Panel and Toggle Button */}
       <div className="hidden lg:block lg:w-1/6 bg-gray-200 overflow-y-auto">
-        {selectedChat && (
-          <ChatSidebar
-            chatList={chatList}
-            selectedChat={selectedChat}
-            handleChatSelect={handleChatSelectWithSearchParamsUpdate}
-            reloadChatList={reloadChatList}
-          />
-        )}
+        <ChatSidebar />
       </div>
 
       {/* Chat Window */}
       <div className="w-full lg:w-5/6 flex flex-col h-full">
-        <MessagesDisplay
-          messages={messages}
-          tempMessages={tempMessages}
-          scrollToBottom={scrollToBottom}
-        />
+        <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} />
         {allowSend ? (
-          <div className="p-4">
-            <MessageInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-            />
+          <div className="p-4 flex items-center">
+            <div className="flex-grow">
+              <MessageInput
+                onSendMessage={handleSendMessage}
+                isLoading={isMessageStreaming}
+              />
+            </div>
+            <div className="ml-2 flex space-x-2">
+              <Button
+                onClick={() => dispatch(clearMessages())}
+                icon={<Icon name="trash" />}
+                className="text-sm p-1"
+              >
+                {t("clearChat")}
+              </Button>
+              {requestFailed && (
+                <Button onClick={handleRetry} className="text-sm p-1">
+                  重试
+                </Button>
+              )}
+            </div>
           </div>
         ) : (
           <div>欠费大于10元，请在你的个人中心查看付费，点击你的名字</div>
         )}
-        <div className="flex justify-end p-4">
-          <Button onClick={clear} icon={<Icon name="trash" />}>
-            {t("clearChat")}
-            {/* todo 需要发出终止的信号 ，避免一直回复 */}
-          </Button>
-        </div>
-
-        {requestFailed && <Button onClick={handleRetry}>重试</Button>}
 
         {isStopped && <Button onClick={handleContinue}>继续</Button>}
       </div>

@@ -3,7 +3,7 @@ import StringToArrayInput from "components/Form/StringToArrayInput";
 
 import { readOwnData } from "database/client/read";
 import { saveData } from "database/client/save";
-import { useAppSelector, useAuth } from "app/hooks";
+import { useAuth } from "app/hooks";
 
 export function useUserData(dataName) {
   const auth = useAuth();
@@ -24,6 +24,7 @@ export function useUserData(dataName) {
   return userData;
 }
 export const useProfileData = (customId: string) => {
+  const auth = useAuth();
   const data = useUserData(customId);
   console.log("data", data);
   const [formData, setFormData] = useState(data);
@@ -32,7 +33,7 @@ export const useProfileData = (customId: string) => {
   const handleSaveClick = async () => {
     try {
       const flags = { isJSON: true };
-      await saveData(formData, customId, flags);
+      await saveData(auth.user?.userId, formData, customId, flags);
       setError(null);
     } catch (error) {
       console.error("保存失败:", error);

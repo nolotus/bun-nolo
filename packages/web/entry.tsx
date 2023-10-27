@@ -4,7 +4,7 @@
 /// <reference lib="dom.iterable" />
 import React from "react";
 import { hydrateRoot, createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, HashRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "app/store";
 
@@ -15,20 +15,28 @@ let hostname = window.location.hostname;
 const domNode = document.getElementById("root");
 const lng = window.navigator.language;
 const env = process.env.NODE_ENV;
-const ClientApp = (
-  <React.StrictMode>
-    <Provider store={store}>
-      <BrowserRouter>
-        <App hostname={hostname} lng={lng} />
-      </BrowserRouter>
-    </Provider>
-  </React.StrictMode>
-);
-hydrateRoot(domNode, ClientApp);
-// const isProduction = env === "production";
-// if (isProduction) {
 
-// } else {
-//   let root = createRoot(domNode);
-//   root.render(ClientApp);
-// }
+const isProduction = env === "production";
+if (isProduction) {
+  hydrateRoot(
+    domNode,
+    <React.StrictMode>
+      <Provider store={store}>
+        <BrowserRouter>
+          <App hostname={hostname} lng={lng} />
+        </BrowserRouter>
+      </Provider>
+    </React.StrictMode>
+  );
+} else {
+  let root = createRoot(domNode);
+  root.render(
+    <React.StrictMode>
+      <Provider store={store}>
+        <HashRouter>
+          <App hostname={hostname} lng={lng} />
+        </HashRouter>
+      </Provider>
+    </React.StrictMode>
+  );
+}

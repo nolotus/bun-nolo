@@ -6,8 +6,17 @@ export function createResponse() {
     headers.set("Content-Type", "application/json");
     // Add CORS headers
     headers.set("Access-Control-Allow-Origin", "*");
-    headers.set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE");
-    headers.set("Access-Control-Allow-Headers", "Content-Type");
+    headers.set(
+      "Access-Control-Allow-Methods",
+      "OPTIONS, GET, POST, PUT, DELETE"
+    );
+    headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, Accept, X-Requested-With"
+    );
+    headers.set("Access-Control-Max-Age", "1800");
+    headers.set("X-Frame-Options", "DENY");
+    headers.set("X-XSS-Protection", "1; mode=block");
 
     response = new Response(JSON.stringify(data), {
       status: statusCode,
@@ -30,7 +39,7 @@ export function createResponse() {
 
   function setHeader(name: string, value: string) {
     headers.set(name, value);
-    return this;
+    return response;
   }
 
   function write(data: string) {

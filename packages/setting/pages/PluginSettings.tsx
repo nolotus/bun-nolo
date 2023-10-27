@@ -4,6 +4,7 @@ import { saveData } from "database/client/save";
 import { Toggle } from "ui";
 import { Button } from "ui/Button";
 import { useUserData } from "user/hooks/useUserData";
+import { useAuth } from "app/hooks";
 
 const SaveButton = ({ onClick }: { onClick: () => void }) => (
   <Button onClick={onClick} variant="primary" size="medium">
@@ -33,6 +34,7 @@ const PluginToggle: React.FC<PluginToggleProps> = ({
 };
 
 const PluginSettings = () => {
+  const auth = useAuth();
   const customId = "pluginSettings";
   const data = useUserData(customId);
   const [plugins, setPlugins] = useState({
@@ -54,7 +56,7 @@ const PluginSettings = () => {
     try {
       const dataToSave = plugins;
       const flags = { isJSON: true };
-      await saveData(dataToSave, customId, flags);
+      await saveData(auth.user?.userId, dataToSave, customId, flags);
       setError(null);
     } catch (error) {
       console.error("保存失败:", error);

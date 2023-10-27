@@ -55,6 +55,10 @@ const routes = (currentUser) => [
       {
         path: "chat",
         element: <ChatPage />,
+        children: [
+          { path: ":chatId", element: <ChatPage /> },
+          { path: "*", element: <ChatPage /> },
+        ],
       },
     ],
   },

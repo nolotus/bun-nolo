@@ -12,7 +12,7 @@ export const handleReadSingle = async (req, res) => {
     let id = req.params.id;
     const result = await serverGetData(id);
     readDataLogger.info({ id }, "handleReadSingle result");
-    return res.json(result); // 使用 res.json 而不是 res.send 来确保发送 JSON
+    return res.json({ ...result, id }); // 使用 res.json 而不是 res.send 来确保发送 JSON
   } catch (error) {
     readDataLogger.info({ error }, "Error fetching data");
     res.status(500).json({ error: "An error occurred while fetching data" });

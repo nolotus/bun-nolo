@@ -1,6 +1,5 @@
-import {parseToken} from '../token';
 export const getTokensFromLocalStorage = () => {
-  const storedTokens = window.localStorage.getItem('tokens');
+  const storedTokens = window.localStorage.getItem("tokens");
 
   if (!storedTokens) {
     return [];
@@ -15,17 +14,17 @@ export const getTokensFromLocalStorage = () => {
   }
 };
 
-export const storeTokens = newToken => {
+export const storeTokens = (newToken) => {
   let tokens = getTokensFromLocalStorage();
-  tokens = tokens.filter(token => token !== newToken);
+  tokens = tokens.filter((token) => token !== newToken);
   tokens.unshift(newToken);
-  window.localStorage.setItem('tokens', JSON.stringify(tokens));
+  window.localStorage.setItem("tokens", JSON.stringify(tokens));
 };
-export const removeToken = token_to_remove => {
+export const removeToken = (token_to_remove) => {
   const tokens = getTokensFromLocalStorage().filter(
-    token => token !== token_to_remove,
+    (token) => token !== token_to_remove
   );
-  window.localStorage.setItem('tokens', JSON.stringify(tokens));
+  window.localStorage.setItem("tokens", JSON.stringify(tokens));
 };
 
 export const retrieveFirstToken = () => {
@@ -36,18 +35,8 @@ export const retrieveFirstToken = () => {
 export const validateToken = () => {
   const token = retrieveFirstToken();
   if (!token) {
-    window.location.href = '/';
-    throw new Error('No token found');
+    window.location.href = "/";
+    throw new Error("No token found");
   }
   return token;
-};
-
-const getUser = () => {
-  const user = parseToken(retrieveFirstToken());
-  return user;
-};
-
-export const getUserId = () => {
-  const {userId} = getUser();
-  return userId;
 };

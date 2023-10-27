@@ -6,7 +6,8 @@ export const handleOperations = async (
   operation,
   key,
   content,
-  refreshData
+  refreshData,
+  userId
 ) => {
   try {
     switch (operation) {
@@ -14,7 +15,7 @@ export const handleOperations = async (
         // 编辑逻辑
         break;
       case "save":
-        await updateData(content, key);
+        await updateData(userId, content, key);
         console.log("Data updated successfully");
         refreshData();
         break;
@@ -24,7 +25,7 @@ export const handleOperations = async (
         refreshData();
         break;
       case "syncToNolotus":
-        await syncData(key, content);
+        await syncData(userId, key, content);
         console.log("Data synced successfully");
         break;
       case "syncFromNolotus":

@@ -4,18 +4,16 @@ import { getLogger } from "utils/logger";
 import { tokenStatic } from "ai/client/static";
 import { sendRequestToOpenAI } from "ai/client/request";
 import { useAppDispatch } from "app/hooks";
-import { receiveMessage ,clearMessages } from "./chatSlice";
+import {
+  messageStreamEnd,
+  messageStreaming,
+  messagesReachedMax,
+} from "./chatSlice";
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
-export const useStreamHandler = (config,userId, username) => {
-  const dispatch =useAppDispatch()
-  const [tempMessages, setTempMessages] = useState({
-    role: "assistant",
-    id: "",
-    content: "",
-  });
-  const [isStopped, setIsStopped] = useState(false);
+export const useStreamHandler = (config, userId, username) => {
+  const dispatch = useAppDispatch();
 
   let temp;
   let tokenCount = 0;
@@ -40,9 +38,7 @@ export const useStreamHandler = (config,userId, username) => {
             // 自然停止
             const finishReason = json.choices[0].finish_reason;
             if (finishReason === "stop") {
-              dispatch(receiveMessage( { role: "assistant", content: temp }))
-              
-              setTempMessages({ role: "", id: "", content: "" });
+              dispatch(messageStreamEnd({ role: "assistant", content: temp }));
               const staticData = {
                 dialogType: "receive",
                 model: json.model,
@@ -58,17 +54,18 @@ export const useStreamHandler = (config,userId, username) => {
               finishReason === "length" ||
               finishReason === "content_filter"
             ) {
-              setIsStopped(true);
+              dispatch(messagesReachedMax());
             } else if (finishReason === "function_call") {
               // nerver use just sign it
             } else {
               temp = (temp || "") + (json.choices[0]?.delta?.content || "");
-
-              setTempMessages({
-                role: "assistant",
-                id: json.id,
-                content: temp,
-              });
+              dispatch(
+                messageStreaming({
+                  role: "assistant",
+                  id: json.id,
+                  content: temp,
+                })
+              );
             }
             if (json.choices[0]?.delta?.content) {
               tokenCount++; // 单次计数
@@ -92,17 +89,8 @@ export const useStreamHandler = (config,userId, username) => {
       handleStreamData // 传递回调函数
     );
   };
-  const clear = () => {
-    dispatch(clearMessages())
-    setTempMessages({ role: "assistant", id: "", content: "" });
-  };
 
   return {
-    tempMessages,
     handleStreamMessage,
-    clear,
-    isStopped,
-    setIsStopped,
-    setTempMessages,
   };
 };

@@ -2,8 +2,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { handleOperations } from "../operations";
+import { useAuth } from "app/hooks";
 
 const DataItem = ({ dataId, content, refreshData, source }) => {
+  const auth = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
 
@@ -18,7 +20,13 @@ const DataItem = ({ dataId, content, refreshData, source }) => {
     if (operation === "save") {
       setIsEditing(false);
     }
-    handleOperations(operation, dataId, editedContent, refreshData);
+    handleOperations(
+      operation,
+      dataId,
+      editedContent,
+      refreshData,
+      auth.user?.userId
+    );
   };
 
   return (

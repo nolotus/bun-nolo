@@ -1,20 +1,20 @@
-import pino from 'pino';
-const baseLogger = pino({transport: {target: 'pino-pretty'}});
+import pino from "pino";
+const baseLogger = pino({ transport: { target: "pino-pretty" } });
 const defaultOptions = {
   activeLoggers: [
-    'life',
-    'OpenAI',
-    'signup',
-    'crypto',
-    'validation',
-    'api',
-    'form',
-    'update',
-    'deleteUser',
-    'data-import',
-    'Message',
-    'TableComponent',
-    'ChatWindow',
+    "life",
+    "OpenAI",
+    "signup",
+    "crypto",
+    "validation",
+    "api",
+    "form",
+    "update",
+    "deleteUser",
+    "data-import",
+    "Message",
+    "TableComponent",
+    "ChatWindow",
   ],
 };
 const childLoggers = {};
@@ -24,15 +24,15 @@ export const getLogger = (name, options = defaultOptions) => {
     filterIDs ? filterIDs.includes(obj.id) : true;
   const setActiveLogLevel = (logger, name, activeLoggers) => {
     if (!activeLoggers.includes(name)) {
-      logger.level = 'silent';
+      logger.level = "silent";
     }
   };
   if (childLoggers[name]) {
     return childLoggers[name];
   }
 
-  const newLogger = baseLogger.child({name});
-  const {activeLoggers = defaultOptions.activeLoggers, filterIDs} = options;
+  const newLogger = baseLogger.child({ name });
+  const { activeLoggers = defaultOptions.activeLoggers, filterIDs } = options;
 
   if (!filterIDs) {
     setActiveLogLevel(newLogger, name, activeLoggers);

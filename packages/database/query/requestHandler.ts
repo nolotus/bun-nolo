@@ -12,6 +12,14 @@ export const handleQuery = async (req, res) => {
       condition: req.body,
       limit: Number(req.query.limit),
     };
+    if (
+      options.userId === undefined ||
+      options.userId.trim() === "" ||
+      options.userId === "undefined"
+    ) {
+      return res.status(400).json({ error: "UserId is required" });
+    }
+
     const isValid = validateQueryOptions(options);
 
     if (!isValid) {

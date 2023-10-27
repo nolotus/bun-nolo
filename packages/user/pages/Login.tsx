@@ -8,13 +8,14 @@ import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
 import { storeTokens } from "auth/client/token";
 import { parseToken } from "auth/token";
 import { useAppDispatch } from "app/hooks";
-import { userFormSchema } from "../schema";
 import { userLogin } from "user/userSlice";
 import { useLoginMutation } from "app/services/auth";
 import { generateUserId } from "core/generateMainKey";
 import { generateKeyPairFromSeed } from "core/crypto";
 import { hashPassword } from "core/password";
 import { signToken } from "auth/token";
+
+import { userFormSchema } from "../schema";
 
 const formDSL = {
   username: {

@@ -1,14 +1,22 @@
-import React from 'react';
-import {Link} from 'react-router-dom';
-import {handleOperations} from '../operations';
+import React from "react";
+import { Link } from "react-router-dom";
+import { handleOperations } from "../operations";
+import { useAuth } from "app/hooks";
 
-const ArticleBlock = ({articles, refreshData}) => {
+const ArticleBlock = ({ articles, refreshData }) => {
+  const auth = useAuth();
   const handleButtonClick = (operation, article) => {
-    handleOperations(operation, article.key, article.value, refreshData);
+    handleOperations(
+      operation,
+      article.key,
+      article.value,
+      refreshData,
+      auth.user?.userId
+    );
   };
 
-  const truncateContent = content => {
-    return content.length > 50 ? content.substring(0, 50) + '...' : content;
+  const truncateContent = (content) => {
+    return content.length > 50 ? content.substring(0, 50) + "..." : content;
   };
 
   return (
@@ -16,10 +24,11 @@ const ArticleBlock = ({articles, refreshData}) => {
       <h2 className="text-xl font-bold">Articles</h2>
       <div className="space-y-4">
         {articles
-          ? articles.map(article => (
+          ? articles.map((article) => (
               <div
                 key={article.key}
-                className="flex justify-between items-center">
+                className="flex justify-between items-center"
+              >
                 <div>
                   <h3>
                     <Link to={`/${article.key}`}>{article.value.title}</Link>
@@ -28,26 +37,29 @@ const ArticleBlock = ({articles, refreshData}) => {
                 </div>
                 <div>
                   <button
-                    onClick={() => handleButtonClick('delete', article)}
-                    className="bg-red-500 text-white px-4 py-2 rounded">
+                    onClick={() => handleButtonClick("delete", article)}
+                    className="bg-red-500 text-white px-4 py-2 rounded"
+                  >
                     Delete
                   </button>
                   <button
-                    onClick={() => handleButtonClick('syncToNolotus', article)}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded">
+                    onClick={() => handleButtonClick("syncToNolotus", article)}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded"
+                  >
                     Sync to Nolotus
                   </button>
                   <button
                     onClick={() =>
-                      handleButtonClick('syncFromNolotus', article)
+                      handleButtonClick("syncFromNolotus", article)
                     }
-                    className="bg-yellow-500 text-white px-4 py-2 rounded">
+                    className="bg-yellow-500 text-white px-4 py-2 rounded"
+                  >
                     Sync from Nolotus
                   </button>
                 </div>
               </div>
             ))
-          : 'Loading articles...'}
+          : "Loading articles..."}
       </div>
     </div>
   );

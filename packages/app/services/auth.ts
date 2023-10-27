@@ -1,45 +1,29 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { RootState } from '../store'
-
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { api } from "./api";
 export interface User {
-  first_name: string
-  last_name: string
+  first_name: string;
+  last_name: string;
 }
 
 export interface UserResponse {
-  user: User
-  token: string
+  user: User;
+  token: string;
 }
 
 export interface LoginRequest {
-  userId: string
-  token: string
+  userId: string;
+  token: string;
 }
 
-export const authApi = createApi({
-  baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost/api/v1/users',
-    // prepareHeaders: (headers, { getState }) => {
-    //   // By default, if we have a token in the store, let's use that for authenticated requests
-    //   const token = (getState() as RootState).auth.token
-    //   if (token) {
-    //     headers.set('authorization', `Bearer ${token}`)
-    //   }
-    //   return headers
-    // },
-  }),
+export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<UserResponse, LoginRequest>({
       query: (credentials) => ({
-        url: 'login',
-        method: 'POST',
+        url: "/users/login",
+        method: "POST",
         body: credentials,
       }),
     }),
-    protected: builder.mutation<{ message: string }, void>({
-      query: () => 'protected',
-    }),
   }),
-})
-
-export const { useLoginMutation, useProtectedMutation } = authApi
+});
+export const { useLoginMutation } = authApi;
