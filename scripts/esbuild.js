@@ -52,6 +52,10 @@ const config = {
     }),
   ],
   bundle: true,
+  // minify 选项根据环境进行设置
+  minify: process.env.NODE_ENV === "production",
+  sourcemap: isProduction ? "external" : true,
+  treeShaking: true,
   // splitting: true,
   // format: "esm",
   loader: {
@@ -67,5 +71,6 @@ const config = {
     ".svg": "text",
   },
 };
+
 let result = await esbuild.build(config);
 console.log("build", result);
