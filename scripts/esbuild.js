@@ -52,12 +52,11 @@ const config = {
     }),
   ],
   bundle: true,
-  // minify 选项根据环境进行设置
-  minify: process.env.NODE_ENV === "production",
-  sourcemap: isProduction ? "external" : true,
+  minify: true,
+  sourcemap: "external",
   treeShaking: true,
-  // splitting: true,
-  // format: "esm",
+  splitting: true,
+  format: "esm",
   loader: {
     // 将 JavaScript 文件作为 JSX 加载
     ".js": "jsx",
