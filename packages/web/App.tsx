@@ -1,5 +1,6 @@
 import CreateChatRobot from 'ai/pages/CreateChatRobot';
 import { useAppDispatch, useAuth } from 'app/hooks';
+import { authRoutes } from 'auth/client/routes';
 import { getTokensFromLocalStorage } from 'auth/client/token';
 import { parseToken } from 'auth/token';
 import ChatPage from 'chat/ChatPage';
@@ -21,8 +22,6 @@ import {
   AccountSettings,
   ServiceProviderSettings,
 } from 'setting';
-import Login from 'user/pages/Login';
-import Signup from 'user/pages/Signup';
 import { restoreSession } from 'user/userSlice';
 import Default from 'web/layout/Default';
 import Full from 'web/layout/Full';
@@ -79,8 +78,7 @@ const routes = (currentUser) => [
           </Suspense>
         ),
       },
-      { path: 'login', element: <Login /> },
-      { path: 'signup', element: <Signup /> },
+      ...authRoutes,
       {
         path: 'life',
         element: <Life />,

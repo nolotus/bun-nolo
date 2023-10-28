@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { validateToken } from 'auth/client/token';
-
+import { retrieveFirstToken } from 'auth/client/token';
 // import { RootState } from "../store";
 
 export const api = createApi({
@@ -8,7 +7,7 @@ export const api = createApi({
     baseUrl: 'http://localhost/api/v1/',
     prepareHeaders: (headers, { getState }) => {
       // By default, if we have a token in the store, let's use that for authenticated requests
-      const token = validateToken();
+      const token = retrieveFirstToken();
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
       }

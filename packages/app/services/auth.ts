@@ -1,5 +1,4 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { api } from "./api";
+import { api } from './api';
 export interface User {
   first_name: string;
   last_name: string;
@@ -19,8 +18,8 @@ export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<UserResponse, LoginRequest>({
       query: (credentials) => ({
-        url: "/users/login",
-        method: "POST",
+        url: '/users/login',
+        method: 'POST',
         body: credentials,
       }),
     }),

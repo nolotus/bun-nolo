@@ -1,8 +1,10 @@
-import React from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import { Header } from "./blocks/Header";
-import Footer from "../blocks/Footer";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from 'framer-motion';
+import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+
+// import Footer from '../blocks/Footer';
+
+import { Header } from './blocks/Header';
 
 const Layout = ({ disableAnimation = false }) => {
   const location = useLocation();
@@ -16,10 +18,10 @@ const Layout = ({ disableAnimation = false }) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
-          initial={{ opacity: 0, visibility: "hidden" }}
-          animate={{ opacity: 1, visibility: "visible" }}
-          exit={{ opacity: 0, visibility: "hidden" }}
-          transition={{ duration: 0.3, when: "beforeChildren" }}
+          initial={{ opacity: 0, visibility: 'hidden' }}
+          animate={{ opacity: 1, visibility: 'visible' }}
+          exit={{ opacity: 0, visibility: 'hidden' }}
+          transition={{ duration: 0.3, when: 'beforeChildren' }}
         >
           <Outlet />
         </motion.div>

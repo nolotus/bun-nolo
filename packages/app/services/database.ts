@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from './api';
 
 export const dbApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -11,12 +11,12 @@ export const dbApi = api.injectEndpoints({
         const queryParams = new URLSearchParams({
           isObject: (options.isObject ?? false).toString(),
           isJSON: (options.isJSON ?? false).toString(),
-          limit: options.limit?.toString() ?? "",
+          limit: options.limit?.toString() ?? '',
         });
 
         return {
           url: `${url}?${queryParams}`,
-          method: "POST",
+          method: 'POST',
           body: options.condition,
         };
       },

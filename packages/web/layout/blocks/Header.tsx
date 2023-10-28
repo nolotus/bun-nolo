@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useCallback } from "react";
-import clsx from "clsx";
-import NavListItem from "../../NavListItem";
+import clsx from 'clsx';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Icon } from 'ui';
+import { GoUser } from 'user/blocks/GoUser';
 
-import { GoUser } from "user/blocks/GoUser";
-import { Icon } from "ui";
+import NavListItem from '../../NavListItem';
+
 const nav = [
-  { path: "/", label: "Nolo主页" },
-  { path: "/nomadspots", label: "旅居点" },
-  { path: "/interestspots", label: "兴趣点" },
-  { path: "/itineraries", label: "行程" },
-  { path: "/peoples", label: "游民" },
-  { path: "/gears", label: "装备" },
+  { path: '/', label: 'Nolo主页' },
+  { path: '/nomadspots', label: '旅居点' },
+  { path: '/interestspots', label: '兴趣点' },
+  { path: '/itineraries', label: '行程' },
+  { path: '/peoples', label: '游民' },
+  { path: '/gears', label: '装备' },
 ];
 
 export const Header: React.FC = () => {
@@ -22,9 +23,9 @@ export const Header: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
 
@@ -34,8 +35,8 @@ export const Header: React.FC = () => {
 
   return (
     <header
-      className={clsx("bg-white z-10", {
-        "fixed top-0 left-0 right-0 bg-gray-200 shadow-md": isSticky,
+      className={clsx('bg-white z-10', {
+        'fixed top-0 left-0 right-0 bg-gray-200 shadow-md': isSticky,
       })}
     >
       <div className="container mx-auto px-4 lg:px-10">
