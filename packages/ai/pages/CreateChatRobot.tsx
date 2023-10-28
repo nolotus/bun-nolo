@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from 'app/hooks';
 import { FormField } from 'components/Form/FormField';
-import i18n from 'i18next';
+import i18next from 'i18n';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -11,10 +11,10 @@ import { Button } from 'ui/Button';
 import allTranslations from '../aiI18n';
 import { schema, fields } from '../dsl';
 import { createChatRobot } from '../services';
-// Object.keys(allTranslations).forEach((lang) => {
-//   const translations = allTranslations[lang].translation;
-//   i18n.addResourceBundle(lang, 'translation', translations, true, true);
-// });
+Object.keys(allTranslations).forEach((lang) => {
+  const translations = allTranslations[lang].translation;
+  i18next.addResourceBundle(lang, 'translation', translations, true, true);
+});
 
 const CreateChatRobot = () => {
   const { t } = useTranslation();

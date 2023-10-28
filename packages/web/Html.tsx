@@ -1,9 +1,9 @@
-import React from "react";
-import { StaticRouter } from "react-router-dom/server";
-import { Provider } from "react-redux";
-import { store } from "app/store";
+import { store } from 'app/store';
+import React from 'react';
+import { Provider } from 'react-redux';
+import { StaticRouter } from 'react-router-dom/server';
 
-import App from "./App";
+import App from './App';
 
 export const Html = ({ url, renderContent, hostname, lng }) => {
   return (

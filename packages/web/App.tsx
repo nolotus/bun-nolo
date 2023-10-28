@@ -4,11 +4,9 @@ import { authRoutes } from 'auth/client/routes';
 import { getTokensFromLocalStorage } from 'auth/client/token';
 import { parseToken } from 'auth/token';
 import ChatPage from 'chat/ChatPage';
-import { resources } from 'i18n';
-import { use } from 'i18next';
+import i18n from 'i18n';
 import Life from 'life/All';
 import React, { Suspense, lazy, useEffect } from 'react';
-import { initReactI18next } from 'react-i18next';
 import { useRoutes } from 'react-router-dom';
 import {
   UserProfile,
@@ -99,21 +97,9 @@ export default function App({ hostname, lng = 'en' }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
   const auth = useAuth();
-  console.log('auth.user', auth.user);
-  use(initReactI18next).init({
-    lng,
-    fallbackLng: {
-      'zh-TW': ['zh-Hant'],
-      'zh-HK': ['zh-Hant'],
-      'zh-MO': ['zh-Hant'],
-      default: ['en'],
-    },
-    interpolation: {
-      escapeValue: false,
-    },
-    resources,
-  });
+  i18n.changeLanguage(lng);
   const dispatch = useAppDispatch();
+
   useEffect(() => {
     const tokens = getTokensFromLocalStorage();
 
