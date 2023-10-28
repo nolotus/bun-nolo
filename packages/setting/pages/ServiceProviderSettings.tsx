@@ -1,13 +1,14 @@
-import React, { useState } from "react";
-import { queryUser } from "user/client/query";
-import { useProfileData } from "../useProfileData";
-import { UserArrayComponent } from "user/blocks/UserItem";
-import { syncUserData } from "user/client/sync";
-import fetchReadAllData from "database/client/readAll";
+import fetchReadAllData from 'database/client/readAll';
+import React, { useState } from 'react';
+import { UserArrayComponent } from 'user/blocks/UserItem';
+import { queryUser } from 'user/client/query';
+import { syncUserData } from 'user/client/sync';
+
+import { useProfileData } from '../useProfileData';
 
 const ServiceProviderSettings = () => {
   const { formData, setFormData, handleSaveClick } = useProfileData(
-    "serviceProviderSettings"
+    'serviceProviderSettings',
   );
   const [userArray, setUserArray] = useState(null);
   const [error, setError] = useState(null);
@@ -48,19 +49,19 @@ const ServiceProviderSettings = () => {
   // 执行数据同步
   const performDataSync = async (idDataMap, targetSource) => {
     try {
-      console.log("Sending sync request...");
+      console.log('Sending sync request...');
       const response = await syncUserData(idDataMap, targetSource);
-      console.log("Server response:", response);
-      console.log("Data synced successfully.");
+      console.log('Server response:', response);
+      console.log('Data synced successfully.');
     } catch (error) {
-      console.log("Error occurred while syncing data:", error);
+      console.log('Error occurred while syncing data:', error);
     }
   };
   const handleSyncClick = async () => {
     // 获取所有用户数据
     const idDataMap = await fetchAllUserData(
       syncUserArray,
-      formData?.dataSource
+      formData?.dataSource,
     );
 
     // 判断同步目标
@@ -69,8 +70,8 @@ const ServiceProviderSettings = () => {
       `${window.location.hostname}:${window.location.port}`;
     console.log(
       `Starting to sync to ${
-        formData?.targetSource ? "another" : "current"
-      } source...`
+        formData?.targetSource ? 'another' : 'current'
+      } source...`,
     );
 
     // 执行数据同步
@@ -86,7 +87,7 @@ const ServiceProviderSettings = () => {
         </label>
         <input
           type="text"
-          value={formData?.dataSource || ""}
+          value={formData?.dataSource || ''}
           onChange={(e) =>
             setFormData({ ...formData, dataSource: e.target.value })
           }
@@ -103,13 +104,13 @@ const ServiceProviderSettings = () => {
         </label>
         <input
           type="text"
-          value={formData?.targetSource || ""}
+          value={formData?.targetSource || ''}
           onChange={(e) =>
             setFormData({ ...formData, targetSource: e.target.value })
           }
         />
         <button onClick={handleSyncClick} className="ml-2">
-          {formData?.targetSource ? "同步到目标服务器" : "同步到当前"}
+          {formData?.targetSource ? '同步到目标服务器' : '同步到当前'}
         </button>
 
         {userArray && (

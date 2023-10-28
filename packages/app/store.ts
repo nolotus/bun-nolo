@@ -1,8 +1,9 @@
-import { configureStore } from "@reduxjs/toolkit";
-import chatReducer from "chat/chatSlice";
-import userReducer from "user/userSlice";
+import { configureStore } from '@reduxjs/toolkit';
+import chatReducer from 'chat/chatSlice';
+import userReducer from 'user/userSlice';
+
 // import { setupListeners } from '@reduxjs/toolkit/query'
-import { api } from "./services/api";
+import { api } from './services/api';
 
 export const store = configureStore({
   reducer: {
