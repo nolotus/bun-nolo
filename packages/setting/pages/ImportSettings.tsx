@@ -1,47 +1,47 @@
-import React, { useState } from "react";
-import { API_ENDPOINTS } from "database/config";
-import { fetchWithToken } from "app/request";
-import { getLogger } from "utils/logger";
-import { importData } from "database/client/import";
+import { fetchWithToken } from 'app/request';
+import { importData } from 'database/client/import';
+import { API_ENDPOINTS } from 'database/config';
+import React, { useState } from 'react';
+import { getLogger } from 'utils/logger';
 
-const writeLogger = getLogger("write");
+const writeLogger = getLogger('write');
 
 const ImportSettings = () => {
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState('');
   const [data, setData] = useState([]);
   const [importedItems, setImportedItems] = useState(new Set());
   //todo vs self data
   const fetchData = async () => {
     try {
       const fetchedData = await fetchWithToken(
-        `${API_ENDPOINTS.DATABASE}/readAll`,
+        `${API_ENDPOINTS.DATABASE}readAll`,
         {
-          method: "POST",
+          method: 'POST',
           body: JSON.stringify({ userId }),
-        }
+        },
       );
       setData(fetchedData);
-      writeLogger.info({ fetchedData }, "Fetched data successfully");
+      writeLogger.info({ fetchedData }, 'Fetched data successfully');
     } catch (error) {
-      writeLogger.error("Error fetching data:", error);
+      writeLogger.error('Error fetching data:', error);
     }
   };
 
   const handleImport = async (item, index) => {
     try {
       const responseData = await importData(item.key, item.value);
-      writeLogger.info({ responseData }, "Data imported successfully");
+      writeLogger.info({ responseData }, 'Data imported successfully');
       setImportedItems(new Set([...importedItems, index]));
     } catch (error) {
-      writeLogger.error("Error importing data:", error);
+      writeLogger.error('Error importing data:', error);
     }
   };
 
   const truncateString = (str, num) =>
-    str.length > num ? str.slice(0, num) + "..." : str;
+    str.length > num ? str.slice(0, num) + '...' : str;
 
   const renderValue = (value) =>
-    typeof value === "object"
+    typeof value === 'object'
       ? JSON.stringify(value)
       : truncateString(value, 30);
 
@@ -53,7 +53,7 @@ const ImportSettings = () => {
           htmlFor="userId"
           className="block text-sm font-medium text-gray-600"
         >
-          User ID:{" "}
+          User ID:{' '}
         </label>
         <input
           type="text"
@@ -75,7 +75,7 @@ const ImportSettings = () => {
             {item.key}:
             <span
               title={
-                typeof item.value === "object"
+                typeof item.value === 'object'
                   ? JSON.stringify(item.value)
                   : item.value
               }

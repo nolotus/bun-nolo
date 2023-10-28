@@ -1,21 +1,22 @@
-import { API_ENDPOINTS } from "database/config";
-import { generateIdWithCustomId } from "core/generateMainKey";
+import { validateToken } from 'auth/client/token';
+import { generateIdWithCustomId } from 'core/generateMainKey';
 import {
   extractAndDecodePrefix,
   extractCustomId,
   extractUserId,
-} from "core/prefix";
-import { validateToken } from "auth/client/token";
-import { readData } from "./read";
+} from 'core/prefix';
+import { API_ENDPOINTS } from 'database/config';
+
+import { readData } from './read';
 
 const getSyncEndpoints = async (userId) => {
   const flags = { isJSON: true };
-  const dataId = generateIdWithCustomId(userId, "syncSettings", flags);
-  console.log("dataId", dataId);
+  const dataId = generateIdWithCustomId(userId, 'syncSettings', flags);
+  console.log('dataId', dataId);
 
   const syncSettings = await readData(dataId);
   const result = syncSettings.serverAddress;
-  console.log("resule", result);
+  console.log('resule', result);
 
   return result;
 };
@@ -23,24 +24,24 @@ const getSyncEndpoints = async (userId) => {
 export const syncDataFromNolotus = async (id, data) => {
   const currentHost = window.location.origin; // 获取当前服务器的host
   await syncDataToEndpoint(
-    `${currentHost}${API_ENDPOINTS.DATABASE}/write`,
+    `${currentHost}${API_ENDPOINTS.DATABASE}write`,
     id,
-    data
+    data,
   );
-  console.log("Data synced from nolotus successfully");
+  console.log('Data synced from nolotus successfully');
 };
 
 export const syncData = async (userId, id, data) => {
   const syncEndpoints = (await getSyncEndpoints(userId)) || []; // 获取完整的远程endpoints，包括host
   const syncPromises = syncEndpoints.map((endpoint) =>
-    syncDataToEndpoint(`${endpoint}${API_ENDPOINTS.DATABASE}/write`, id, data)
+    syncDataToEndpoint(`${endpoint}${API_ENDPOINTS.DATABASE}write`, id, data),
   );
 
   try {
     await Promise.all(syncPromises);
-    console.log("Data synced successfully");
+    console.log('Data synced successfully');
   } catch (error) {
-    console.error("Failed to sync data:", error);
+    console.error('Failed to sync data:', error);
   }
 };
 //todo use write
@@ -53,9 +54,9 @@ const syncDataToEndpoint = async (endpoint: string, id: string, data: any) => {
 
   try {
     const response = await fetch(endpoint, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(requestData),
@@ -63,7 +64,7 @@ const syncDataToEndpoint = async (endpoint: string, id: string, data: any) => {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to sync data to ${endpoint}, status: ${response.status}`
+        `Failed to sync data to ${endpoint}, status: ${response.status}`,
       );
     }
 

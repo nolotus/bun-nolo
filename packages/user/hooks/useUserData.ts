@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { readOwnData } from "database/client/read";
-import { useAuth } from "app/hooks";
+import { useAuth } from 'app/hooks';
+import { readOwnData } from 'database/client/read';
+import { useState, useEffect } from 'react';
 
 export function useUserData(dataName: string) {
   const auth = useAuth();
@@ -8,6 +8,7 @@ export function useUserData(dataName: string) {
 
   const fetchData = async () => {
     if (auth.user?.userId && dataName) {
+      console.log('userId', auth.user?.userId);
       const result = await readOwnData(auth.user.userId, dataName, {
         isJSON: true,
       });

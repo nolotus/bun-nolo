@@ -1,5 +1,6 @@
-import {API_ENDPOINTS} from '../config';
-import {retrieveFirstToken} from 'auth/client/token';
+import { retrieveFirstToken } from 'auth/client/token';
+
+import { API_ENDPOINTS } from '../config';
 
 export const deleteData = async (dataKey: string) => {
   try {
@@ -9,13 +10,13 @@ export const deleteData = async (dataKey: string) => {
       throw new Error('No token found');
     }
 
-    const response = await fetch(`${API_ENDPOINTS.DATABASE}/delete`, {
+    const response = await fetch(`${API_ENDPOINTS.DATABASE}delete`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({dataKey}),
+      body: JSON.stringify({ dataKey }),
     });
 
     if (!response.ok) {

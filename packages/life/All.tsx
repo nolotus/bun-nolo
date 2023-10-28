@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { useUserData } from "user/hooks/useUserData";
-import { getLogger } from "utils/logger";
-import ChatBotList from "ai/blocks/ChatBotList";
-import { useAuth } from "app/hooks";
+import ChatBotList from 'ai/blocks/ChatBotList';
+import { useAuth } from 'app/hooks';
+import fetchReadAllData from 'database/client/readAll';
+import React, { useEffect, useState } from 'react';
+import { useUserData } from 'user/hooks/useUserData';
+import { getLogger } from 'utils/logger';
 
-import { AccountBalance } from "./blocks/AccountBanlance";
-import ArticleBlock from "./blocks/ArticleBlock";
-import OtherDataBlock from "./blocks/OtherDataBlock";
-import fetchReadAllData from "database/client/readAll";
-import TokenStatisticsBlock from "./blocks/TokenStatisticsBlock";
-const lifeLogger = getLogger("life");
+import { AccountBalance } from './blocks/AccountBanlance';
+import ArticleBlock from './blocks/ArticleBlock';
+import OtherDataBlock from './blocks/OtherDataBlock';
+import TokenStatisticsBlock from './blocks/TokenStatisticsBlock';
+const lifeLogger = getLogger('life');
 
 const LifeAll = () => {
   const [data, setData] = useState(null);
@@ -21,28 +21,30 @@ const LifeAll = () => {
 
   const auth = useAuth();
 
-  const pluginSettings = useUserData("pluginSettings");
-  lifeLogger.info("pluginSettings", pluginSettings);
+  // const pluginSettings = useUserData('pluginSettings');
+  // lifeLogger.info('pluginSettings', pluginSettings);
 
   const fetchData = async () => {
-    const currentDomain = `${window.location.hostname}:${window.location.port}`;
-    const nolotusDomain = "nolotus.com";
-
-    if (currentDomain === nolotusDomain) {
+    const currentDomain = window.location.port
+      ? `${window.location.hostname}:${window.location.port}`
+      : `${window.location.hostname}`;
+    const nolotusDomain = 'nolotus.com';
+    const isMainHost = currentDomain === nolotusDomain;
+    console.log('isMainHost', isMainHost);
+    if (isMainHost) {
       const res = await fetchReadAllData(nolotusDomain, auth.user?.userId);
       if (res) {
-        setData(res.map((item) => ({ ...item, source: "both" })));
+        setData(res.map((item) => ({ ...item, source: 'both' })));
       } else {
-        lifeLogger.error("Failed to fetch data from nolotus.com");
+        lifeLogger.error('Failed to fetch data from nolotus.com');
       }
     } else {
       const [localData, nolotusData] = await Promise.all([
         fetchReadAllData(currentDomain, auth.user?.userId),
         fetchReadAllData(nolotusDomain, auth.user?.userId),
       ]);
-
       if (!localData && !nolotusData) {
-        lifeLogger.error("Both requests failed");
+        lifeLogger.error('Both requests failed');
         return;
       }
 
@@ -54,36 +56,36 @@ const LifeAll = () => {
           : new Set();
         mergedData = localData.map((item) => ({
           ...item,
-          source: nolotusKeys.has(item.key) ? "both" : "local",
+          source: nolotusKeys.has(item.key) ? 'both' : 'local',
         }));
       }
 
       if (nolotusData) {
         nolotusData.forEach((item) => {
           if (!mergedData.some((localItem) => localItem.key === item.key)) {
-            mergedData.push({ ...item, source: "nolotus" });
+            mergedData.push({ ...item, source: 'nolotus' });
           }
         });
       }
 
       const articleData = mergedData.filter(
-        (item) => item.value && item.value.type === "article"
+        (item) => item.value && item.value.type === 'article',
       );
       const chatBotData = mergedData.filter(
-        (item) => item.value && item.value.type === "chatRobot"
+        (item) => item.value && item.value.type === 'chatRobot',
       );
       const tokenStatisticsData = mergedData.filter(
-        (item) => item.value && item.value.type === "tokenStatistics"
+        (item) => item.value && item.value.type === 'tokenStatistics',
       );
       const otherData = mergedData.filter(
         (item) =>
           !item.value ||
-          (item.value.type !== "article" &&
-            item.value.type !== "chatRobot" &&
-            item.value.type !== "tokenStatistics")
+          (item.value.type !== 'article' &&
+            item.value.type !== 'chatRobot' &&
+            item.value.type !== 'tokenStatistics'),
       );
 
-      lifeLogger.info("chatBotData", chatBotData);
+      lifeLogger.info('chatBotData', chatBotData);
 
       setArticles(articleData);
       setChatBots(chatBotData);
@@ -93,7 +95,7 @@ const LifeAll = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    auth.user?.userId && fetchData();
   }, [auth.user?.userId]);
 
   return (
