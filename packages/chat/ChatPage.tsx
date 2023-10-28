@@ -1,22 +1,18 @@
-import React, { useState, useRef } from "react";
-import i18n from "i18next";
-import { useTranslation } from "react-i18next";
-import { Icon, Button } from "ui";
-import { getLogger } from "utils/logger";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
+// import aiTranslations from "ai/aiI18n";
+import { sendRequestToOpenAI } from 'ai/client/request';
+import { tokenStatic } from 'ai/client/static';
+// import { calcCurrentUserIdCost } from "ai/utils/calcCost";
+import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+// import i18n from "i18next";
+import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Icon, Button } from 'ui';
+import { getLogger } from 'utils/logger';
 
-import { tokenStatic } from "ai/client/static";
-import { calcCurrentUserIdCost } from "ai/utils/calcCost";
-import aiTranslations from "ai/aiI18n";
-import { sendRequestToOpenAI } from "ai/client/request";
-
-import chatTranslations from "./chatI18n";
-
-import ChatSidebar from "./blocks/ChatSidebar";
-import MessagesDisplay from "./blocks/MessagesDisplay";
-import MessageInput from "./blocks/MessageInput";
-
-import { useStreamHandler } from "./useStreamHandler";
+import ChatSidebar from './blocks/ChatSidebar';
+import MessageInput from './blocks/MessageInput';
+import MessagesDisplay from './blocks/MessagesDisplay';
+// import chatTranslations from "./chatI18n";
 import {
   receiveMessage,
   sendMessage,
@@ -25,9 +21,10 @@ import {
   clearMessages,
   continueMessage,
   messageEnd,
-} from "./chatSlice";
+} from './chatSlice';
+import { useStreamHandler } from './useStreamHandler';
 
-const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
+const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 // Object.keys(chatTranslations).forEach((lang) => {
 //   const translations = chatTranslations[lang].translation;
 //   i18n.addResourceBundle(lang, "translation", translations, true, true);
@@ -88,55 +85,55 @@ const ChatPage = () => {
 
   const [requestFailed, setRequestFailed] = useState(false);
 
-  const [setIsLoading] = useState(false);
-
-  const [mode] = useState<"text" | "image" | "stream">("stream");
+  const [mode] = useState<'text' | 'image' | 'stream'>('stream');
 
   const { handleStreamMessage } = useStreamHandler(
     currentChatConfig,
     auth?.user?.userId,
-    username
+    username,
   );
   const handleSendMessage = async (newContent) => {
-    if (!newContent.trim()) return;
+    if (!newContent.trim()) {
+      return;
+    }
     setRequestFailed(false);
-    dispatch(sendMessage({ role: "user", content: newContent }));
+    dispatch(sendMessage({ role: 'user', content: newContent }));
     try {
       let assistantMessage;
-      if (mode === "text") {
+      if (mode === 'text') {
         assistantMessage = await sendRequestToOpenAI(
-          "text",
+          'text',
           {
             userMessage: newContent,
             prevMessages: messages,
           },
-          currentChatConfig
+          currentChatConfig,
         );
         dispatch(
-          receiveMessage({ role: "assistant", content: assistantMessage })
+          receiveMessage({ role: 'assistant', content: assistantMessage }),
         );
-      } else if (mode === "image") {
+      } else if (mode === 'image') {
         const imageData = await sendRequestToOpenAI(
-          "image",
+          'image',
           {
             prompt: newContent,
           },
-          currentChatConfig
+          currentChatConfig,
         );
         const imageUrl = imageData.data[0].url; // 提取图片 URL
 
         dispatch(
           receiveMessage({
-            role: "assistant",
-            content: "Here is your generated image:",
+            role: 'assistant',
+            content: 'Here is your generated image:',
             image: imageUrl, // 使用提取出的图片 URL
-          })
+          }),
         );
       }
-      if (mode === "stream") {
+      if (mode === 'stream') {
         await handleStreamMessage(newContent, messages);
         const staticData = {
-          dialogType: "send",
+          dialogType: 'send',
           model: currentChatConfig?.model,
           length: newContent.length,
           userIdL: auth?.user?.userId,
@@ -146,7 +143,7 @@ const ChatPage = () => {
         tokenStatic(staticData);
       }
     } catch (error) {
-      chatWindowLogger.error({ error }, "Error while sending message");
+      chatWindowLogger.error({ error }, 'Error while sending message');
       setRequestFailed(true);
     } finally {
       dispatch(messageEnd);
@@ -170,7 +167,7 @@ const ChatPage = () => {
     const lastMessage = messages[messages.length - 1];
     dispatch(retry());
     // 使用 handleSendMessage 重新发送最后一条消息
-    if (lastMessage && lastMessage.role === "user") {
+    if (lastMessage && lastMessage.role === 'user') {
       await handleSendMessage(lastMessage.content);
     }
   };
@@ -198,7 +195,7 @@ const ChatPage = () => {
                 icon={<Icon name="trash" />}
                 className="text-sm p-1"
               >
-                {t("clearChat")}
+                {t('clearChat')}
               </Button>
               {requestFailed && (
                 <Button onClick={handleRetry} className="text-sm p-1">

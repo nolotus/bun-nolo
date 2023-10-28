@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "app/store";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from 'app/store';
 interface Message {
   role: string;
   content: string;
@@ -17,24 +17,24 @@ interface ChatConfig {
 }
 
 type ChatSliceState = {
-  messages: Message[];
-  allowSend: boolean;
-  tempMessage: Message;
-  chatList: ChatConfig[];
-  currentChatConfig: ChatConfig | null;
-  isStopped: boolean;
-  isMessageStreaming: boolean;
+  messages: Message[],
+  allowSend: boolean,
+  tempMessage: Message,
+  chatList: ChatConfig[],
+  currentChatConfig: ChatConfig | null,
+  isStopped: boolean,
+  isMessageStreaming: boolean,
 };
 
 export const chatSlice = createSlice({
-  name: "chat",
+  name: 'chat',
   initialState: {
     messages: [],
     allowSend: true,
     tempMessage: {
       id: Date.now(),
-      role: "user",
-      content: "",
+      role: 'user',
+      content: '',
     },
     chatList: [],
     currentChatConfig: null,
@@ -53,17 +53,17 @@ export const chatSlice = createSlice({
     clearMessages: (state: ChatSliceState) => {
       // 清除消息
       state.messages = [];
-      state.tempMessage = { role: "assistant", content: "" };
+      state.tempMessage = { role: 'assistant', content: '' };
     },
     setCurrentChatConfig: (
       state: ChatSliceState,
-      action: PayloadAction<ChatConfig>
+      action: PayloadAction<ChatConfig>,
     ) => {
       state.currentChatConfig = action.payload;
     },
     fetchNolotuschatListSuccess: (
       state: ChatSliceState,
-      action: PayloadAction<any[]>
+      action: PayloadAction<any[]>,
     ) => {
       let idSet = new Set(state.chatList.map((chat) => chat.id));
       action.payload.forEach((chat) => {
@@ -77,7 +77,7 @@ export const chatSlice = createSlice({
     },
     fetchUserChatListSuccess: (
       state: ChatSliceState,
-      action: PayloadAction<any[]>
+      action: PayloadAction<any[]>,
     ) => {
       let idSet = new Set(state.chatList.map((chat) => chat.id));
       action.payload.forEach((chat) => {
@@ -91,10 +91,10 @@ export const chatSlice = createSlice({
     },
     setCurrentChatByID: (
       state: ChatSliceState,
-      action: PayloadAction<String>
+      action: PayloadAction<String>,
     ) => {
       const targetChat = state.chatList.find(
-        (chat) => chat.id === action.payload
+        (chat) => chat.id === action.payload,
       );
       if (targetChat) {
         state.currentChatConfig = targetChat;
@@ -102,7 +102,7 @@ export const chatSlice = createSlice({
     },
     fetchDefaultConfig: (
       state: ChatSliceState,
-      action: PayloadAction<ChatConfig>
+      action: PayloadAction<ChatConfig>,
     ) => {
       state.currentChatConfig = action.payload;
       if (state.chatList.length === 0) {
@@ -115,20 +115,20 @@ export const chatSlice = createSlice({
       }
     },
     retry: (state: ChatSliceState) => {
-      state.tempMessage = { role: "assistant", content: "" };
+      state.tempMessage = { role: 'assistant', content: '' };
       state.messages.pop();
     },
     messageStreamEnd: (
       state: ChatSliceState,
-      action: PayloadAction<Message>
+      action: PayloadAction<Message>,
     ) => {
       state.messages.push(action.payload);
-      state.tempMessage = { role: "", content: "" };
+      state.tempMessage = { role: '', content: '' };
       state.isMessageStreaming = false;
     },
     messageStreaming: (
       state: ChatSliceState,
-      action: PayloadAction<Message>
+      action: PayloadAction<Message>,
     ) => {
       state.tempMessage = action.payload;
       state.isMessageStreaming = true;
@@ -138,7 +138,7 @@ export const chatSlice = createSlice({
     },
     continueMessage: (
       state: ChatSliceState,
-      action: PayloadAction<Message>
+      action: PayloadAction<Message>,
     ) => {
       state.isStopped = false;
       state.messages.push(action.payload);

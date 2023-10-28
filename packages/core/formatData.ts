@@ -1,4 +1,4 @@
-import {toObjectString} from './otherToNolo';
+import { toObjectString } from './otherToNolo';
 
 export const formatData = (data, flags) => {
   let formattedData = data;

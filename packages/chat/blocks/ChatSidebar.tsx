@@ -1,38 +1,44 @@
-import React, { useEffect } from "react";
-import { ButtonLink, useModal, Dialog, Alert, useDeleteAlert } from "ui";
-import ChatConfigForm from "ai/blocks/ChatConfigForm";
-import { useSearchParams } from "react-router-dom";
-import { nolotusId } from "core/init";
-
-import { extractUserId } from "core/prefix";
-import { deleteData } from "database/client/delete";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
+import ChatConfigForm from 'ai/blocks/ChatConfigForm';
+import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import {
   useGetEntriesQuery,
   useLazyGetEntriesQuery,
   useLazyGetEntryQuery,
-} from "app/services/database";
+} from 'app/services/database';
+import { nolotusId } from 'core/init';
+import { extractUserId } from 'core/prefix';
+import { deleteData } from 'database/client/delete';
+import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { ButtonLink, useModal, Dialog, Alert, useDeleteAlert } from 'ui';
 
 import {
   selectChat,
   setCurrentChatByID,
   fetchNolotuschatListSuccess,
   fetchDefaultConfig,
-} from "../chatSlice";
+} from '../chatSlice';
 
 const ChatSidebar = () => {
-  const dispatch = useAppDispatch();
-
   const [searchParams, setSearchParams] = useSearchParams();
+  const chatId = searchParams.get('chatId');
+
+  const dispatch = useAppDispatch();
+  const { currentChatConfig } = useAppSelector(selectChat);
 
   const [getDefaultConfig, { data, isSuccess: readOk }] =
     useLazyGetEntryQuery();
+
+  useEffect(() => {
+    chatId && getDefaultConfig(chatId);
+    readOk && dispatch(fetchDefaultConfig(data));
+  }, [chatId, readOk, data, dispatch, getDefaultConfig]);
 
   const chatList = useAppSelector((state) => state.chat.chatList);
   const options = {
     isJSON: true,
     condition: {
-      $eq: { type: "chatRobot" },
+      $eq: { type: 'chatRobot' },
     },
     limit: 20,
   };
@@ -43,16 +49,10 @@ const ChatSidebar = () => {
 
   useEffect(() => {
     getNolotusChatList({ userId: nolotusId, options });
+    console.log('isSuccess', isSuccess);
+
     isSuccess && dispatch(fetchNolotuschatListSuccess(nolotusChatRobots));
   }, [isSuccess]);
-  const chatId = searchParams.get("chatId");
-
-  useEffect(() => {
-    chatId && getDefaultConfig(chatId);
-    readOk && dispatch(fetchDefaultConfig(data));
-  }, [chatId]);
-
-  const { currentChatConfig } = useAppSelector(selectChat);
 
   const handleChatSelect = (chat) => {
     dispatch(setCurrentChatByID(chat.id));
@@ -94,14 +94,14 @@ const ChatSidebar = () => {
         </ButtonLink>
       </div>
       {isLoading ? (
-        "loading"
+        'loading'
       ) : (
         <>
           {chatList.map((chat, index) => (
             <div
               key={index}
               className={`flex items-center p-4 cursor-pointer group ${
-                selectedChat === chat.id ? "bg-gray-200" : "hover:bg-gray-200"
+                selectedChat === chat.id ? 'bg-gray-200' : 'hover:bg-gray-200'
               }`}
               onClick={() => handleChatSelect(chat)}
             >

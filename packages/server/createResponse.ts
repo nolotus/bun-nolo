@@ -3,20 +3,20 @@ export function createResponse() {
   let statusCode: number = 200;
   let headers: Headers = new Headers();
   function json(data: object) {
-    headers.set("Content-Type", "application/json");
+    headers.set('Content-Type', 'application/json');
     // Add CORS headers
-    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set('Access-Control-Allow-Origin', '*');
     headers.set(
-      "Access-Control-Allow-Methods",
-      "OPTIONS, GET, POST, PUT, DELETE"
+      'Access-Control-Allow-Methods',
+      'OPTIONS, GET, POST, PUT, DELETE',
     );
     headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, Accept, X-Requested-With"
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, Accept, X-Requested-With',
     );
-    headers.set("Access-Control-Max-Age", "1800");
-    headers.set("X-Frame-Options", "DENY");
-    headers.set("X-XSS-Protection", "1; mode=block");
+    headers.set('Access-Control-Max-Age', '1800');
+    headers.set('X-Frame-Options', 'DENY');
+    headers.set('X-XSS-Protection', '1; mode=block');
 
     response = new Response(JSON.stringify(data), {
       status: statusCode,

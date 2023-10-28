@@ -1,29 +1,28 @@
-import { queryData } from "./queryHandler";
-
-import { QueryOptions } from "./types";
-import { validateQueryOptions } from "./validation";
+import { queryData } from './queryHandler';
+import { QueryOptions } from './types';
+import { validateQueryOptions } from './validation';
 
 export const handleQuery = async (req, res) => {
   try {
     const options: QueryOptions = {
       userId: req.params.userId,
-      isObject: req.query.isObject === "true",
-      isJSON: req.query.isJSON === "true",
+      isObject: req.query.isObject === 'true',
+      isJSON: req.query.isJSON === 'true',
       condition: req.body,
       limit: Number(req.query.limit),
     };
     if (
       options.userId === undefined ||
-      options.userId.trim() === "" ||
-      options.userId === "undefined"
+      options.userId.trim() === '' ||
+      options.userId === 'undefined'
     ) {
-      return res.status(400).json({ error: "UserId is required" });
+      return res.status(400).json({ error: 'UserId is required' });
     }
 
     const isValid = validateQueryOptions(options);
 
     if (!isValid) {
-      return res.status(400).json({ error: "Invalid query parameters" });
+      return res.status(400).json({ error: 'Invalid query parameters' });
     }
 
     const data = await queryData(options);

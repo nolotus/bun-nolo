@@ -1,16 +1,16 @@
-import { ResponseData } from "../types";
+import { nolotusId } from 'core/init';
+import { Flags } from 'core/prefix';
 
-import { sendWriteRequest } from "./request";
+import { ResponseData } from '../types';
 
-import { Flags } from "core/prefix";
-import { nolotusId } from "core/init";
+import { sendWriteRequest } from './request';
 
 export const writeData = async (
   data,
   flags: Flags,
   customId: string,
   userId: string = nolotusId,
-  host: window.location.origin
+  host: window.location.origin,
 ): Promise<ResponseData> => {
   try {
     const responseData = await sendWriteRequest(
@@ -20,11 +20,11 @@ export const writeData = async (
         customId,
         userId,
       },
-      host
+      host,
     );
     return responseData;
   } catch (error) {
-    console.error("Error:", error);
+    console.error('Error:', error);
     throw error;
   }
 };
@@ -32,7 +32,7 @@ export const writeData = async (
 export const writeHashData = async (
   data,
   flags: Flags,
-  userId: string = nolotusId
+  userId: string = nolotusId,
 ): Promise<ResponseData> => {
   try {
     const requestData = {
@@ -44,7 +44,7 @@ export const writeHashData = async (
     console.log(responseData);
     return responseData;
   } catch (error) {
-    console.error("Error:", error);
+    console.error('Error:', error);
     throw error;
   }
 };

@@ -1,13 +1,13 @@
-import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslation } from "react-i18next";
-import { fields, schema } from "../dsl";
-import { FormField } from "components/Form/FormField";
-import { useStore } from "app";
-import { Button } from "ui/Button";
-import { updateData } from "database/client/update";
-import { useAuth } from "app/hooks";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from 'app/hooks';
+import { FormField } from 'components/Form/FormField';
+import { updateData } from 'database/client/update';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { Button } from 'ui/Button';
+
+import { fields, schema } from '../dsl';
 
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
@@ -41,7 +41,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
           key={field.id}
         />
       ))}
-      <Button type="submit">{t("update")}</Button>
+      <Button type="submit">{t('update')}</Button>
     </form>
   );
 };
