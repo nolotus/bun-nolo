@@ -61,21 +61,7 @@ export const chatSlice = createSlice({
     ) => {
       state.currentChatConfig = action.payload;
     },
-    fetchNolotuschatListSuccess: (
-      state: ChatSliceState,
-      action: PayloadAction<any[]>,
-    ) => {
-      let idSet = new Set(state.chatList.map((chat) => chat.id));
-      action.payload.forEach((chat) => {
-        if (!idSet.has(chat.id)) {
-          state.chatList.push(chat);
-        }
-      });
-      if (!state.currentChatConfig) {
-        state.currentChatConfig = action.payload[0] ? action.payload[0] : null;
-      }
-    },
-    fetchUserChatListSuccess: (
+    fetchchatListSuccess: (
       state: ChatSliceState,
       action: PayloadAction<any[]>,
     ) => {
@@ -154,8 +140,7 @@ export const {
   receiveMessage,
   clearMessages,
   setCurrentChatConfig,
-  fetchNolotuschatListSuccess,
-  fetchUserChatListSuccess,
+  fetchchatListSuccess,
   setCurrentChatByID,
   fetchDefaultConfig,
   retry,

@@ -1,9 +1,9 @@
-// import aiTranslations from "ai/aiI18n";
+import aiTranslations from 'ai/aiI18n';
 import { sendRequestToOpenAI } from 'ai/client/request';
 import { tokenStatic } from 'ai/client/static';
 // import { calcCurrentUserIdCost } from "ai/utils/calcCost";
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
-// import i18n from "i18next";
+import i18n from 'i18n';
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Icon, Button } from 'ui';
@@ -12,7 +12,7 @@ import { getLogger } from 'utils/logger';
 import ChatSidebar from './blocks/ChatSidebar';
 import MessageInput from './blocks/MessageInput';
 import MessagesDisplay from './blocks/MessagesDisplay';
-// import chatTranslations from "./chatI18n";
+import chatTranslations from './chatI18n';
 import {
   receiveMessage,
   sendMessage,
@@ -25,14 +25,14 @@ import {
 import { useStreamHandler } from './useStreamHandler';
 
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
-// Object.keys(chatTranslations).forEach((lang) => {
-//   const translations = chatTranslations[lang].translation;
-//   i18n.addResourceBundle(lang, "translation", translations, true, true);
-// });
-// Object.keys(aiTranslations).forEach((lang) => {
-//   const translations = aiTranslations[lang].translation;
-//   i18n.addResourceBundle(lang, "translation", translations, true, true);
-// });
+Object.keys(chatTranslations).forEach((lang) => {
+  const translations = chatTranslations[lang].translation;
+  i18n.addResourceBundle(lang, 'translation', translations, true, true);
+});
+Object.keys(aiTranslations).forEach((lang) => {
+  const translations = aiTranslations[lang].translation;
+  i18n.addResourceBundle(lang, 'translation', translations, true, true);
+});
 
 const ChatPage = () => {
   const auth = useAuth();

@@ -1,7 +1,6 @@
 import ChatConfigForm from 'ai/blocks/ChatConfigForm';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import {
-  useGetEntriesQuery,
   useLazyGetEntriesQuery,
   useLazyGetEntryQuery,
 } from 'app/services/database';
@@ -15,7 +14,7 @@ import { ButtonLink, useModal, Dialog, Alert, useDeleteAlert } from 'ui';
 import {
   selectChat,
   setCurrentChatByID,
-  fetchNolotuschatListSuccess,
+  fetchchatListSuccess,
   fetchDefaultConfig,
 } from '../chatSlice';
 
@@ -23,6 +22,7 @@ const ChatSidebar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const chatId = searchParams.get('chatId');
 
+  const auth = useAuth();
   const dispatch = useAppDispatch();
   const { currentChatConfig } = useAppSelector(selectChat);
 
@@ -35,24 +35,33 @@ const ChatSidebar = () => {
   }, [chatId, readOk, data, dispatch, getDefaultConfig]);
 
   const chatList = useAppSelector((state) => state.chat.chatList);
-  const options = {
-    isJSON: true,
-    condition: {
-      $eq: { type: 'chatRobot' },
-    },
-    limit: 20,
-  };
-  const [
-    getNolotusChatList,
-    { data: nolotusChatRobots, isLoading, isSuccess },
-  ] = useLazyGetEntriesQuery();
+
+  const [getChatList, { data: nolotusChatRobots, isLoading, isSuccess }] =
+    useLazyGetEntriesQuery();
 
   useEffect(() => {
-    getNolotusChatList({ userId: nolotusId, options });
-    console.log('isSuccess', isSuccess);
+    const options = {
+      isJSON: true,
+      condition: {
+        $eq: { type: 'chatRobot' },
+      },
+      limit: 20,
+    };
+    const fetchChatList = async () => {
+      const nolotusChatList = await getChatList({ userId: nolotusId, options });
+      isSuccess && dispatch(fetchchatListSuccess(nolotusChatList.data));
 
-    isSuccess && dispatch(fetchNolotuschatListSuccess(nolotusChatRobots));
-  }, [isSuccess]);
+      if (auth.user?.userId) {
+        const userChatList = await getChatList({
+          userId: auth.user?.userId,
+          options,
+        });
+        console.log('userChatList', userChatList.data);
+        isSuccess && dispatch(fetchchatListSuccess(userChatList.data));
+      }
+    };
+    fetchChatList();
+  }, [isSuccess, auth.user?.userId, dispatch, getChatList]);
 
   const handleChatSelect = (chat) => {
     dispatch(setCurrentChatByID(chat.id));
@@ -63,6 +72,8 @@ const ChatSidebar = () => {
 
   const { visible, open, close } = useModal();
   const reloadChatList = async () => {
+    getChatList({ userId: auth.user?.userId, options });
+    isSuccess && dispatch(fetchchatListSuccess(nolotusChatRobots));
     // const [nolotusConfigs, userConfigs] = await Promise.all([
     //   queryConfigs(true),
     //   queryConfigs(false, userId),
@@ -83,7 +94,6 @@ const ChatSidebar = () => {
     deleteChatBot(chat);
   });
   const dataUserId = selectedChat && extractUserId(selectedChat);
-  const auth = useAuth();
   const allowEdit = dataUserId === auth.user?.userId;
 
   return (

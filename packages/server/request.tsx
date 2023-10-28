@@ -15,8 +15,9 @@ let res = createResponse();
 export const handleRequest = async (request: Request) => {
   const url = new URL(request.url);
   if (url.pathname.startsWith('/public')) {
-    const file = url.pathname.replace('/public', '');
-    return new Response(Bun.file(`public/${file}`));
+    const filePath = url.pathname.replace('/public', '');
+    const file = Bun.file(`public${filePath}`);
+    return new Response(file);
   }
   if (url.pathname.startsWith(API_VERSION)) {
     if (request.method === 'OPTIONS') {
