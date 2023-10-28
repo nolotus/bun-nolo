@@ -65,7 +65,7 @@ const ChatSidebar = () => {
 
   const handleChatSelect = (chat) => {
     dispatch(setCurrentChatByID(chat.id));
-    setSearchParams({ ...searchParams, chatId: currentChatConfig?.id });
+    setSearchParams({ ...searchParams, chatId: chat.id });
   };
 
   const selectedChat = currentChatConfig?.id;
