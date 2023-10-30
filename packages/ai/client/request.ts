@@ -1,21 +1,22 @@
-import { API_VERSION } from "database/config";
-import { createRequestBody } from "./common";
-import { retrieveFirstToken } from "auth/client/token";
-import { getLogger } from "utils/logger";
-import { readChunks } from "./stream";
-const openAiLogger = getLogger("openAi");
+import { retrieveFirstToken } from 'auth/client/token';
+import { API_ENDPOINTS  } from 'database/config';
+import { getLogger } from 'utils/logger';
+
+import { createRequestBody } from './common';
+import { readChunks } from './stream';
+const openAiLogger = getLogger('openAi');
 
 const createHeaders = () => {
   const token = retrieveFirstToken();
   return {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   };
 };
 
 const sendRequest = async (url, requestBody, headers) => {
   const response = await fetch(url, {
-    method: "POST",
+    method: 'POST',
     headers,
     body: JSON.stringify(requestBody),
   });
@@ -27,12 +28,12 @@ export const sendRequestToOpenAI = async (
   type,
   payload,
   config,
-  onStreamData?
+  onStreamData?,
 ) => {
-  if (!["stream", "text", "image"].includes(type)) {
-    throw new Error("Invalid type specified");
+  if (!['stream', 'text', 'image'].includes(type)) {
+    throw new Error('Invalid type specified');
   }
-  const url = `http://localhost${API_VERSION}/openai-proxy`;
+  const url = API_ENDPOINTS.CHAT_AI;
 
   const requestBody = createRequestBody(type, payload, {
     ...config,
@@ -46,13 +47,13 @@ export const sendRequestToOpenAI = async (
   try {
     const response = await Promise.race([
       fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers,
         body: JSON.stringify(requestBody),
       }),
       new Promise((_, reject) => {
         timeoutId = setTimeout(() => {
-          reject(new Error("Request timeout after 5 seconds"));
+          reject(new Error('Request timeout after 5 seconds'));
         }, 5000);
       }),
     ]);
@@ -63,15 +64,15 @@ export const sendRequestToOpenAI = async (
       throw new Error(`Server returned an error: ${response.statusText}`);
     }
 
-    if (type === "stream") {
+    if (type === 'stream') {
       const reader = response.body!.getReader();
       await readChunks(reader, onStreamData);
     } else {
       const data = await sendRequest(url, requestBody, headers);
 
-      if (type === "text") {
+      if (type === 'text') {
         return data.choices[0].message.content;
-      } else if (type === "image") {
+      } else if (type === 'image') {
         return data;
       }
     }

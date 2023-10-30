@@ -1,31 +1,32 @@
-import { getLogger } from "utils/logger";
-import { createResponse } from "server/createResponse";
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { createResponse } from 'server/createResponse';
+import { getLogger } from 'utils/logger';
 
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { FrontEndRequestBody } from "../types";
-import { getOpenAIHeaders } from "./openAIConfig";
-import { getProxyAxiosConfig } from "./proxyUtils";
-const openAiLogger = getLogger("OpenAI");
+import { FrontEndRequestBody } from '../types';
+
+import { getOpenAIHeaders } from './openAIConfig';
+import { getProxyAxiosConfig } from './proxyUtils';
+const openAiLogger = getLogger('OpenAI');
 
 const handleStreamEvents = (stream: AxiosResponse<any>) => {
   if (stream && stream.data) {
     const textEncoder = new TextEncoder();
     const readableStream = new ReadableStream({
       start(controller) {
-        stream.data.on("data", (chunk) => {
+        stream.data.on('data', (chunk) => {
           controller.enqueue(textEncoder.encode(chunk.toString()));
         });
-        stream.data.on("end", () => {
+        stream.data.on('end', () => {
           controller.close();
         });
       },
     });
 
     const responseHeaders = {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*",
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
     };
     const response = new Response(readableStream, { headers: responseHeaders });
     return response;
@@ -41,9 +42,9 @@ export const handleStreamReq = async (req: Request, res) => {
   const config: AxiosRequestConfig = {
     ...proxyConfig,
     headers: openAIHeaders,
-    method: "POST",
-    responseType: "stream",
-    url: "https://api.openai.com/v1/chat/completions",
+    method: 'POST',
+    responseType: 'stream',
+    url: 'https://api.openai.com/v1/chat/completions',
     data: {
       model: requestBody.model,
       messages: requestBody.messages,

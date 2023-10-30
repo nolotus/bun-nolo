@@ -24,7 +24,7 @@ export const handleRequest = async (request: Request) => {
     let query = Object.fromEntries(new URLSearchParams(url.search));
     let req = { url, body, query, params: {} };
 
-    if (url.pathname.startsWith(`${API_VERSION}/openai-proxy`)) {
+    if (url.pathname.startsWith(API_ENDPOINTS.CHAT_AI)) {
       req.user = await handleToken(request, res);
       return postToOpenAIProxy(req, res);
     }
