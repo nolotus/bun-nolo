@@ -1,29 +1,28 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { nolotusId } from "core/init";
-import { useAuth } from "app/hooks";
+import { useAuth } from 'app/hooks';
+import { nolotusId } from 'core/init';
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+import { USER_PROFILE_ROUTE, EXTENDED_PROFILE_ROUTE } from '../routes';
 
 const allowedUserIds = [nolotusId];
 
-export const USER_PROFILE_ROUTE = "user-profile";
-export const EXTENDED_PROFILE_ROUTE = "extended-profile";
-
 const navItems = [
-  { path: `/settings/${USER_PROFILE_ROUTE}`, label: "个人资料" },
-  { path: `/settings/${EXTENDED_PROFILE_ROUTE}`, label: "生活与兴趣" },
-  { path: "/settings/network", label: "网络设置" },
-  { path: "/settings/sync", label: "同步设置" },
-  { path: "/settings/plugins", label: "插件设置" },
-  { path: "/settings/import", label: "导入设置" },
-  { path: "/settings/export", label: "导出设置" },
-  { path: "/settings/account", label: "账号设置" },
-  { path: "/settings/service-provider", label: "服务商设置" },
+  { path: `/settings/${USER_PROFILE_ROUTE}`, label: '个人资料' },
+  { path: `/settings/${EXTENDED_PROFILE_ROUTE}`, label: '生活与兴趣' },
+  { path: '/settings/network', label: '网络设置' },
+  { path: '/settings/sync', label: '同步设置' },
+  { path: '/settings/plugins', label: '插件设置' },
+  { path: '/settings/import', label: '导入设置' },
+  { path: '/settings/export', label: '导出设置' },
+  { path: '/settings/account', label: '账号设置' },
+  { path: '/settings/service-provider', label: '服务商设置' },
 ];
 const Sidebar: React.FC<{ userId: string | null }> = () => {
   const auth = useAuth();
 
   const couldDisplay = (item) => {
-    if (item.label === "服务商设置") {
+    if (item.label === '服务商设置') {
       if (auth.user) {
         if (allowedUserIds.includes(auth.user?.userId)) {
           return true;

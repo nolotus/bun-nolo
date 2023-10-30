@@ -33,7 +33,13 @@ export const sendRequestToOpenAI = async (
   if (!['stream', 'text', 'image'].includes(type)) {
     throw new Error('Invalid type specified');
   }
-  const url = API_ENDPOINTS.CHAT_AI;
+
+
+  const addPrefixForEnv = (url: string) => {
+    return process.env.NODE_ENV === 'production' ? url : `http://localhost${url}`;
+  };
+
+  const url = addPrefixForEnv(API_ENDPOINTS.CHAT_AI);
 
   const requestBody = createRequestBody(type, payload, {
     ...config,

@@ -1,6 +1,6 @@
 import React from 'react';
-import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter';
-import {vscDarkPlus} from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 function copyToClipboard(text) {
   var tempInput = document.createElement('textarea');
@@ -12,7 +12,7 @@ function copyToClipboard(text) {
   document.body.removeChild(tempInput);
 }
 
-const Code = ({value, language}) => {
+const Code = ({ value, language }) => {
   // 自定义样式
   const customStyle = {
     ...vscDarkPlus,
@@ -27,7 +27,8 @@ const Code = ({value, language}) => {
     <div className="relative my-8 overflow-auto">
       <button
         className="absolute top-2 right-2 text-white bg-blue-500 p-1 rounded hover:bg-blue-700 cursor-pointer"
-        onClick={() => copyToClipboard(value)}>
+        onClick={() => copyToClipboard(value)}
+      >
         Copy
       </button>
       <SyntaxHighlighter language={language || 'jsx'} style={customStyle}>

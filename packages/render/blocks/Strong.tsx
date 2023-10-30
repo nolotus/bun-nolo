@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Strong = ({children}) => {
+const Strong = ({ children }) => {
   return <strong>{children}</strong>;
 };
 

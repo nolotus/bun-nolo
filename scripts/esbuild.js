@@ -1,7 +1,7 @@
-import * as esbuild from "esbuild";
-import fs from "node:fs";
-import autoprefixer from "autoprefixer";
-import postCssPlugin from "esbuild-style-plugin";
+import fs from 'node:fs';
+
+import * as esbuild from 'esbuild';
+import postCssPlugin from 'esbuild-style-plugin';
 
 // import publicPath from "../public/output.json";
 // const inputPath = "./packages/web/entry.tsx";
@@ -42,34 +42,34 @@ import postCssPlugin from "esbuild-style-plugin";
 // esbuildClient();
 
 const config = {
-  entryPoints: ["./packages/web/entry.tsx"],
-  outdir: "public",
+  entryPoints: ['./packages/web/entry.tsx'],
+  outdir: 'public',
   plugins: [
     postCssPlugin({
       postcss: {
-        plugins: [require("tailwindcss"), require("autoprefixer")],
+        plugins: [require('tailwindcss'), require('autoprefixer')],
       },
     }),
   ],
   bundle: true,
   minify: true,
-  sourcemap: "external",
+  sourcemap: 'external',
   treeShaking: true,
   splitting: true,
-  format: "esm",
+  format: 'esm',
   loader: {
     // 将 JavaScript 文件作为 JSX 加载
-    ".js": "jsx",
+    '.js': 'jsx',
     // 将 WebP 文件作为文件加载
-    ".webp": "file",
+    '.webp': 'file',
     // 将 JPEG 文件作为文件加载
-    ".jpg": "file",
+    '.jpg': 'file',
     // 将 PNG 文件作为文件加载
-    ".png": "file",
+    '.png': 'file',
     // 将 SVG 文件作为文本加载
-    ".svg": "text",
+    '.svg': 'text',
   },
 };
 
 let result = await esbuild.build(config);
-console.log("build", result);
+console.log('build', result);

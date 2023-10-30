@@ -1,7 +1,7 @@
-import React from "react";
-import { Card, Link } from "ui";
+import React from 'react';
+import { Card, Link } from 'ui';
 const Home = () => {
-  console.log("Home render");
+  console.log('Home render');
   return (
     <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-6 font-patrick">
       <div className="w-full lg:w-1/2 mb-6 lg:mb-0">
@@ -24,7 +24,7 @@ const Home = () => {
               <br />
               亦或是
               <Link to="/interestspots" className="text-blue-500">
-                各种兴趣爱好{" "}
+                各种兴趣爱好{' '}
               </Link>
               的攻略。
               <br />
@@ -53,10 +53,10 @@ const Home = () => {
         <Card className="p-12 rounded-lg text-center text-lg text-gray-700 space-y-4">
           <div className="text-3xl mb-4 font-patrick">如果你也想分享</div>
           <div className="text-2xl mb-4 font-patrick">
-            点击{" "}
+            点击{' '}
             <Link to="/register" className="text-blue-600 font-bold underline">
               注册
-            </Link>{" "}
+            </Link>{' '}
             使用
           </div>
           <div className="text-xl divide-y divide-gray-200 space-y-4 font-shadows">

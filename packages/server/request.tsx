@@ -11,20 +11,21 @@ let res = createResponse();
 
 export const handleRequest = async (request: Request) => {
   const url = new URL(request.url);
+  if (request.method === 'OPTIONS') {
+    return res.status(200).json('ok');
+  }
   if (url.pathname.startsWith('/public')) {
     const filePath = url.pathname.replace('/public', '');
     const file = Bun.file(`public${filePath}`);
     return new Response(file);
   }
   if (url.pathname.startsWith(API_VERSION)) {
-    if (request.method === 'OPTIONS') {
-      return res.status(200).json('ok');
-    }
     let body = request.body ? await request.json() : null;
     let query = Object.fromEntries(new URLSearchParams(url.search));
     let req = { url, body, query, params: {} };
 
     if (url.pathname.startsWith(API_ENDPOINTS.CHAT_AI)) {
+      console.log('ai');
       req.user = await handleToken(request, res);
       return postToOpenAIProxy(req, res);
     }

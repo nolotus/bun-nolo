@@ -1,7 +1,7 @@
-import React, { createElement } from "react";
-import { renderToReadableStream } from "react-dom/server";
-import { memCache } from "app";
-import { Html } from "web/Html";
+import { memCache } from 'app';
+import React, { createElement } from 'react';
+import { renderToReadableStream } from 'react-dom/server';
+import { Html } from 'web/Html';
 // import assets from "../../public/output.json";
 
 export const handleRender = async (req) => {
@@ -11,14 +11,14 @@ export const handleRender = async (req) => {
     id: name,
     value,
   }));
-  const acceptLanguage = req.headers.get("accept-language");
-  const lng = acceptLanguage.split(",")[0];
+  const acceptLanguage = req.headers.get('accept-language');
+  const lng = acceptLanguage.split(',')[0];
 
   try {
     const data = { url, renderContent, hostnameL: req.host, lng };
     const app = createElement(Html, data);
     const stream = await renderToReadableStream(app, {
-      bootstrapModules: [`/public/entry.js`],
+      bootstrapModules: ['/public/entry.js'],
       onError(error) {
         didError = true;
         console.error(`渲染错误: ${error}`);
@@ -39,7 +39,7 @@ export const handleRender = async (req) => {
           new TextEncoder().encode(`
             </body>
           </html>
-        `)
+        `),
         );
         writer.close();
       }
@@ -66,7 +66,7 @@ export const handleRender = async (req) => {
         ></script>
       </head>
       <body>
-    `)
+    `),
     );
     async function writeToStreamAsync() {
       // const iterations = 30;
@@ -97,7 +97,7 @@ export const handleRender = async (req) => {
         if (done) {
           finish = true;
           doneReact = true;
-          writer.write(new TextEncoder().encode("</div>"));
+          writer.write(new TextEncoder().encode('</div>'));
           tryCloseStream();
           break;
         }
@@ -108,13 +108,13 @@ export const handleRender = async (req) => {
     proxyReactStream();
     return new Response(readable, {
       status: didError ? 500 : 200,
-      headers: { "content-type": "text/html" },
+      headers: { 'content-type': 'text/html' },
     });
   } catch (error) {
     console.error(`处理请求时发生错误: ${error}`);
-    return new Response("<h1>抱歉，服务器发生错误，请稍后重试</h1>", {
+    return new Response('<h1>抱歉，服务器发生错误，请稍后重试</h1>', {
       status: 500,
-      headers: { "content-type": "text/html" },
+      headers: { 'content-type': 'text/html' },
     });
   }
 };

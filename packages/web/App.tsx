@@ -29,6 +29,7 @@ import Page from './Page';
 // // import { generatorRoutes } from "./generatorRoutes";
 // const ChatPage = lazy(() => import("chat/ChatPage"));
 const Home = lazy(() => import('./pages/Home'));
+const Welcome = lazy(() => import('./pages/Welcome'));
 
 const routes = (currentUser) => [
   {
@@ -76,6 +77,15 @@ const routes = (currentUser) => [
           </Suspense>
         ),
       },
+      {
+        path: 'welcome',
+        element: (
+          <Suspense fallback={<>...</>}>
+            <Welcome />
+          </Suspense>
+        ),
+      },
+
       ...authRoutes,
       {
         path: 'life',

@@ -1,11 +1,10 @@
-import React, { useMemo } from "react";
-import { useStore } from "app";
-import { useParams } from "react-router-dom";
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkGfm from "remark-gfm";
-
-import { renderMdastNode } from "render";
+import { useStore } from 'app';
+import React, { useMemo } from 'react';
+import { useParams } from 'react-router-dom';
+import remarkGfm from 'remark-gfm';
+import remarkParse from 'remark-parse';
+import { renderContentNode } from 'render';
+import { unified } from 'unified';
 
 const Page = () => {
   let params = useParams();
@@ -17,7 +16,7 @@ const Page = () => {
     return processor.parse(content);
   }, [content]);
   const renderedContent = useMemo(() => {
-    return renderMdastNode(mdast, "1");
+    return renderContentNode(mdast);
   }, [mdast]);
   return <div>{renderedContent}</div>;
 };

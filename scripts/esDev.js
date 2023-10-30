@@ -1,7 +1,5 @@
-import { serve } from 'bun';
 import * as esbuild from 'esbuild';
 import postCssPlugin from 'esbuild-style-plugin';
-import { handleRequest } from 'server/request';
 
 let ctx = await esbuild.context({
   entryPoints: ['./packages/web/entry.tsx'],

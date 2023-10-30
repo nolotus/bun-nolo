@@ -1,2 +1,2 @@
-import { renderMdastNode } from "./renderMdastNode";
-export { renderMdastNode };
+import { renderContentNode } from './renderContentNode';
+export { renderContentNode };

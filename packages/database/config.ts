@@ -5,7 +5,7 @@ export const API_ENDPOINTS = {
   USERS: `${API_VERSION}/users`,
   UPDATE_PASSWORD: `${API_VERSION}/users/:id/password`,
   READ_ALL: `${API_VERSION}/db/readAll`,
-  CHAT_AI: `${API_VERSION}/ai/chat`,
+  CHAT_AI: `${API_VERSION}/ai/chat/`,
 };
 
 const serviceName = 'nolotus';
