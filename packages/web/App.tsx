@@ -4,28 +4,29 @@ import { authRoutes } from 'auth/client/routes';
 import { getTokensFromLocalStorage } from 'auth/client/token';
 import { parseToken } from 'auth/token';
 import ChatPage from 'chat/ChatPage';
+import { routes as createRoutes } from 'create/routes';
 import i18n from 'i18n';
 import Life from 'life/All';
 import React, { Suspense, lazy, useEffect } from 'react';
 import { useRoutes } from 'react-router-dom';
-import {
-  UserProfile,
-  ExtendedProfile,
-  SettingLayout,
-  Network,
-  Sync,
-  PluginSettings,
-  ImportSettings,
-  ExportSettings,
-  AccountSettings,
-  ServiceProviderSettings,
-} from 'setting';
+import Default from 'render/layout/Default';
+import Full from 'render/layout/Full';
+// import {
+//   UserProfile,
+//   ExtendedProfile,
+//   SettingLayout,
+//   Network,
+//   Sync,
+//   PluginSettings,
+//   ImportSettings,
+//   ExportSettings,
+//   AccountSettings,
+//   ServiceProviderSettings,
+// } from 'setting';
+import { routes as settingRoutes } from 'setting/routes';
 import { restoreSession } from 'user/userSlice';
-import Default from 'web/layout/Default';
-import Full from 'web/layout/Full';
 
 import Page from './Page';
-
 // // import { generatorRoutes } from "./generatorRoutes";
 // const ChatPage = lazy(() => import("chat/ChatPage"));
 const Home = lazy(() => import('./pages/Home'));
@@ -36,21 +37,6 @@ const routes = (currentUser) => [
     path: '/',
     element: <Full />,
     children: [
-      {
-        path: 'settings',
-        element: <SettingLayout />,
-        children: [
-          { path: 'user-profile', element: <UserProfile /> },
-          { path: 'extended-profile', element: <ExtendedProfile /> },
-          { path: 'plugins', element: <PluginSettings /> },
-          { path: 'network', element: <Network /> },
-          { path: 'sync', element: <Sync /> },
-          { path: 'import', element: <ImportSettings /> },
-          { path: 'export', element: <ExportSettings /> },
-          { path: 'account', element: <AccountSettings /> },
-          { path: 'service-provider', element: <ServiceProviderSettings /> },
-        ],
-      },
       {
         path: 'chat',
         element: <ChatPage />,
@@ -97,6 +83,8 @@ const routes = (currentUser) => [
       },
     ],
   },
+  ...settingRoutes,
+  ...createRoutes,
   {
     path: '/*',
     element: <Full />,

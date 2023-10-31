@@ -18,7 +18,7 @@ const navItems = [
   { path: '/settings/account', label: '账号设置' },
   { path: '/settings/service-provider', label: '服务商设置' },
 ];
-const Sidebar: React.FC<{ userId: string | null }> = () => {
+const Sidebar: React.FC = () => {
   const auth = useAuth();
 
   const couldDisplay = (item) => {

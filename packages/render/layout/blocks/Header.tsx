@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Icon } from 'ui';
 import { GoUser } from 'user/blocks/GoUser';
 
-import NavListItem from '../../NavListItem';
+import NavListItem from '../blocks/NavListItem';
 
 const nav = [
   { path: '/', label: 'Nolo主页' },

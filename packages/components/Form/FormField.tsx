@@ -1,25 +1,26 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { TextAreaField } from "./TextAreaField";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { getLogger } from 'utils/logger';
 
-import { TextField } from "./TextField";
-import { NumberField } from "./NumberField";
-import { FormFieldProps } from "./type";
-import { EnumField } from "./EnumField";
-import { PasswordField } from "./PasswordField";
-import { ArrayField } from "./ArrayField";
-import { DateField } from "./DateField";
-import { TimestampField } from "./TimestampField";
-import { DurationField } from "./DurationField";
-import { WeekdayField } from "./WeekdayField";
-import { DatetimeField } from "./DatetimeField";
-import { getLogger } from "utils/logger";
+import { ArrayField } from './ArrayField';
+import { DateField } from './DateField';
+import { DatetimeField } from './DatetimeField';
+import { DurationField } from './DurationField';
+import { EnumField } from './EnumField';
+import { NumberField } from './NumberField';
+import { PasswordField } from './PasswordField';
+import { TextAreaField } from './TextAreaField';
+import { TextField } from './TextField';
+import { TimestampField } from './TimestampField';
+import { FormFieldProps } from './type';
+import { WeekdayField } from './WeekdayField';
+
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-const i18nLogger = getLogger("i18n");
-const formLogger = getLogger("form");
+const i18nLogger = getLogger('i18n');
+const formLogger = getLogger('form');
 //todos
 //deps ,setValueAs,valueAsDate,valueAsNumber,validate,pattern,min,max,minLength,maxLength
 export const FormField: React.FC<FormFieldProps> = ({
@@ -36,13 +37,13 @@ export const FormField: React.FC<FormFieldProps> = ({
 }) => {
   const { t } = useTranslation();
   const translatedLabel = capitalizeFirstLetter(t(label));
-  i18nLogger.info({ label, translatedLabel }, "Translated label");
+  i18nLogger.info({ label, translatedLabel }, 'Translated label');
 
   let FieldComponent;
   switch (type) {
-    case "time":
+    case 'time':
       switch (subtype) {
-        case "date":
+        case 'date':
           FieldComponent = (
             <DateField
               id={id}
@@ -52,7 +53,7 @@ export const FormField: React.FC<FormFieldProps> = ({
             />
           );
           break;
-        case "timestamp":
+        case 'timestamp':
           FieldComponent = (
             <TimestampField
               id={id}
@@ -61,7 +62,7 @@ export const FormField: React.FC<FormFieldProps> = ({
             />
           );
           break;
-        case "duration":
+        case 'duration':
           FieldComponent = (
             <DurationField
               id={id}
@@ -70,12 +71,12 @@ export const FormField: React.FC<FormFieldProps> = ({
             />
           );
           break;
-        case "weekday":
+        case 'weekday':
           FieldComponent = (
             <WeekdayField id={id} register={register} label={translatedLabel} />
           );
           break;
-        case "datetime":
+        case 'datetime':
           FieldComponent = (
             <DatetimeField
               id={id}
@@ -88,7 +89,7 @@ export const FormField: React.FC<FormFieldProps> = ({
           FieldComponent = null;
       }
       break;
-    case "textarea":
+    case 'textarea':
       FieldComponent = (
         <TextAreaField
           optional={optional}
@@ -99,7 +100,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       );
       break;
 
-    case "string":
+    case 'string':
       FieldComponent = (
         <TextField
           id={id}
@@ -111,17 +112,17 @@ export const FormField: React.FC<FormFieldProps> = ({
         />
       );
       break;
-    case "number":
+    case 'number':
       FieldComponent = (
         <NumberField id={id} register={register} label={translatedLabel} />
       );
       break;
-    case "password":
+    case 'password':
       FieldComponent = (
         <PasswordField id={id} register={register} label={translatedLabel} />
       );
       break;
-    case "enum":
+    case 'enum':
       FieldComponent = (
         <EnumField
           id={id}
@@ -131,7 +132,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         />
       );
       break;
-    case "array":
+    case 'array':
       FieldComponent = (
         <ArrayField
           id={id}
