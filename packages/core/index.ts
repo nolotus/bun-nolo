@@ -1,4 +1,4 @@
-import {noloToObject }from './noloToOther'
-import {getHeadTail} from './decodeData';
+import { getHeadTail } from './decodeData';
+import { noloToObject } from './noloToOther';
 
-export {noloToObject,getHeadTail}
+export { noloToObject, getHeadTail };

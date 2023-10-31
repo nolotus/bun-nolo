@@ -1,5 +1,5 @@
-import { transToList, noloToObject } from "./noloToOther";
-import { extractAndDecodePrefix } from "./prefix";
+import { transToList, noloToObject } from './noloToOther';
+import { extractAndDecodePrefix } from './prefix';
 
 const exampleText = `
 number1 100
@@ -27,7 +27,7 @@ const decodeData = (data, flags) => {
       try {
         return JSON.parse(data);
       } catch (error) {
-        console.error(`Failed to decode isJSON data:`, error);
+        console.error('Failed to decode isJSON data:', error);
         return data; // 返回原始数据，如果 JSON 解析失败
       }
     },
@@ -49,7 +49,7 @@ const decodeData = (data, flags) => {
   return decodedData;
 };
 
-export const getHeadTail = (str, separtor = " ") => {
+export const getHeadTail = (str, separtor = ' ') => {
   const index = str.indexOf(separtor);
   const key = str.slice(0, index);
   const value = str.slice(index + 1);
@@ -57,15 +57,23 @@ export const getHeadTail = (str, separtor = " ") => {
 };
 
 const parseValue = (value) => {
-  if (value === "true") return true;
-  if (value === "false") return false;
-  if (!isNaN(parseFloat(value))) return parseFloat(value);
+  if (value === 'true') {
+    return true;
+  }
+  if (value === 'false') {
+    return false;
+  }
+  if (!isNaN(parseFloat(value))) {
+    return parseFloat(value);
+  }
   return value;
 };
 
 export function processLine(line) {
-  if (line.trim() === "") return [];
-  const { key, value } = getHeadTail(line, " ");
+  if (line.trim() === '') {
+    return [];
+  }
+  const { key, value } = getHeadTail(line, ' ');
   const parsedValue = parseValue(value);
   const flags = extractAndDecodePrefix(key);
   const decodedValue = decodeData(parsedValue, flags);

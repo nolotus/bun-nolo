@@ -1,6 +1,7 @@
-import {setKeyPrefix} from './prefix';
-import {getLogger} from 'utils/logger';
-import {generateHash} from './crypto';
+import { getLogger } from 'utils/logger';
+
+import { generateHash } from './crypto';
+import { setKeyPrefix } from './prefix';
 
 const cryptoLogger = getLogger('crypto');
 
@@ -44,7 +45,7 @@ export const generateUserId = (
       .replace(/[=]+$/, '');
 
     cryptoLogger.info('Successfully generated unique userId.');
-    cryptoLogger.info('userId:', {userId});
+    cryptoLogger.info('userId:', { userId });
     return userId;
   } catch (error) {
     cryptoLogger.error('Error generating unique userId:', error);

@@ -1,52 +1,5 @@
+import { FLAGS_MAP } from './flagsMap';
 const SEPARATOR = '-';
-
-const FLAGS_MAP = {
-  0: [],
-  1: ['isInit'],
-  5: ['isHash', 'isVersion', 'isToList', 'isObject', 'isString'],
-  7: [
-    'isHash',
-    'isVersion',
-    'isList',
-    'isObject',
-    'isString',
-    'isBase64',
-    'isJSON',
-  ],
-  8: [
-    'isHash',
-    'isVersion',
-    'isList',
-    'isObject',
-    'isString',
-    'isBase64',
-    'isJSON',
-    'isUrlSafe', // 新增的标志
-  ],
-  9: [
-    'isHash',
-    'isVersion',
-    'isList',
-    'isObject',
-    'isString',
-    'isBase64',
-    'isJSON',
-    'isUrlSafe',
-    'isOthersWritable', // 新增的标志
-  ],
-  10: [
-    'isHash',
-    'isVersion',
-    'isList',
-    'isObject',
-    'isString',
-    'isBase64',
-    'isJSON',
-    'isUrlSafe',
-    'isOthersWritable',
-    'isReadableByOthers', // 新增的标志
-  ],
-};
 
 // 添加一个缓存对象
 const decodeCache = {};
@@ -70,7 +23,7 @@ export const setKeyPrefix = (flags: Flags = {}): string => {
   if (!lengthFlags) {
     throw new Error(`No flags defined for prefix of length ${DEFAULT_LENGTH}`);
   }
-  return lengthFlags.map(flag => Number(flags[flag] || false)).join('');
+  return lengthFlags.map((flag) => Number(flags[flag] || false)).join('');
 };
 
 export const decodeKeyPrefix = (prefix: string): Flags => {

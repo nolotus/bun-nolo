@@ -1,4 +1,3 @@
-import CreateChatRobot from 'ai/pages/CreateChatRobot';
 import { useAppDispatch, useAuth } from 'app/hooks';
 import { authRoutes } from 'auth/client/routes';
 import { getTokensFromLocalStorage } from 'auth/client/token';
@@ -11,18 +10,6 @@ import React, { Suspense, lazy, useEffect } from 'react';
 import { useRoutes } from 'react-router-dom';
 import Default from 'render/layout/Default';
 import Full from 'render/layout/Full';
-// import {
-//   UserProfile,
-//   ExtendedProfile,
-//   SettingLayout,
-//   Network,
-//   Sync,
-//   PluginSettings,
-//   ImportSettings,
-//   ExportSettings,
-//   AccountSettings,
-//   ServiceProviderSettings,
-// } from 'setting';
 import { routes as settingRoutes } from 'setting/routes';
 import { restoreSession } from 'user/userSlice';
 
@@ -33,20 +20,6 @@ const Home = lazy(() => import('./pages/Home'));
 const Welcome = lazy(() => import('./pages/Welcome'));
 
 const routes = (currentUser) => [
-  {
-    path: '/',
-    element: <Full />,
-    children: [
-      {
-        path: 'chat',
-        element: <ChatPage />,
-        children: [
-          { path: ':chatId', element: <ChatPage /> },
-          { path: '*', element: <ChatPage /> },
-        ],
-      },
-    ],
-  },
   {
     path: '/',
     element: (
@@ -77,14 +50,35 @@ const routes = (currentUser) => [
         path: 'life',
         element: <Life />,
       },
-      {
-        path: 'create/chatRobot',
-        element: <CreateChatRobot />,
-      },
     ],
   },
   ...settingRoutes,
   ...createRoutes,
+  {
+    path: '/',
+    element: <Full />,
+    children: [
+      {
+        path: 'chat',
+        element: (
+          <Suspense>
+            <ChatPage />
+          </Suspense>
+        ),
+        children: [
+          {
+            path: ':chatId',
+            element: (
+              <Suspense>
+                <ChatPage />
+              </Suspense>
+            ),
+          },
+          { path: '*', element: <ChatPage /> },
+        ],
+      },
+    ],
+  },
   {
     path: '/*',
     element: <Full />,

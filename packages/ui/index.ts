@@ -1,18 +1,18 @@
-import {Button} from './Button';
-import {Icon} from './Icon';
-import {Modal, useModal} from './Modal';
+import { Alert, useDeleteAlert } from './Alert';
+import { Avatar } from './Avatar';
+import { Button } from './Button';
+import { ButtonLink } from './ButtonLink';
+import { Card } from './Card';
+import { Dialog } from './Dialog';
+import DropDown from './DropDown';
+import { Icon } from './Icon';
+import { Link } from './Link';
+import { LinkButton } from './LinkButton';
+import { Modal, useModal } from './Modal';
 // import {Heading} from './Heading';
 // import {Table} from './Table';
-import {LinkButton} from './LinkButton';
 import Toggle from './Toggle';
-import DropDown from './DropDown';
-import {ButtonLink} from './ButtonLink';
-import {Dialog} from './Dialog';
-import {Alert, useDeleteAlert} from './Alert';
 // import {Notify} from './Notify';
-import {Card} from './Card';
-import {Link} from './Link';
-import { Avatar } from './Avatar';
 export {
   Button,
   Icon,
@@ -30,5 +30,5 @@ export {
   useDeleteAlert,
   Card,
   Link,
-  Avatar
+  Avatar,
 };

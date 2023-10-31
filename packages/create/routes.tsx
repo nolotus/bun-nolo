@@ -3,7 +3,7 @@ import React, { Suspense, lazy } from 'react';
 const Create = lazy(() => import('.'));
 const Layout = lazy(() => import('render/layout/Default'));
 const UploadPage = lazy(() => import('./UploadPage'));
-const CreatePage = lazy(() => import('./pages/Createpage'));
+const CreatePage = lazy(() => import('./CreatePage'));
 const CreateBlock = lazy(() => import('./pages/CreateBlock'));
 const CreateNoMoadSpot = lazy(() => import('./pages/CreateNoMoadSpot'));
 const CreateType = lazy(() => import('./pages/CreateType'));
