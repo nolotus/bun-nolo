@@ -1,12 +1,9 @@
 import ChatConfigForm from 'ai/blocks/ChatConfigForm';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
-import {
-  useLazyGetEntriesQuery,
-  useLazyGetEntryQuery,
-} from 'app/services/database';
 import { nolotusId } from 'core/init';
 import { extractUserId } from 'core/prefix';
 import { deleteData } from 'database/client/delete';
+import { useLazyGetEntriesQuery, useLazyGetEntryQuery } from 'database/service';
 import React, { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ButtonLink, useModal, Dialog, Alert, useDeleteAlert } from 'ui';

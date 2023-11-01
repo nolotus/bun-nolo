@@ -1,14 +1,14 @@
 const env = process.env.NODE_ENV;
-const isProduction = env === "production";
+const isProduction = env === 'production';
 
 const commonConfig = {
-  entrypoints: ["./packages/web/entry.tsx"],
-  outdir: "public",
+  entrypoints: ['./packages/web/entry.tsx'],
+  outdir: 'public',
   minify: {
     whitespace: true,
     syntax: true,
   },
-  target: "browser",
+  target: 'browser',
 };
 
 const productionConfig = {
@@ -21,10 +21,10 @@ export async function runBuild() {
   // let json = {};
   try {
     const build = await Bun.build(config);
-    console.log("build", build);
+    console.log('build', build);
     for (const output of build.outputs) {
       const result = await output;
-      if (result.kind === "entry-point") {
+      if (result.kind === 'entry-point') {
         // console.log("result", result);
         // let arr = result.path.split("/");
         // let filename = arr.pop();

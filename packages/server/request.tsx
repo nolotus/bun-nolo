@@ -22,10 +22,9 @@ export const handleRequest = async (request: Request) => {
   if (url.pathname.startsWith(API_VERSION)) {
     let body = request.body ? await request.json() : null;
     let query = Object.fromEntries(new URLSearchParams(url.search));
-    let req = { url, body, query, params: {} };
+    let req = { url, body, query, params: {}, headers: request.headers };
 
     if (url.pathname.startsWith(API_ENDPOINTS.CHAT_AI)) {
-      console.log('ai');
       req.user = await handleToken(request, res);
       return postToOpenAIProxy(req, res);
     }

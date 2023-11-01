@@ -1,4 +1,5 @@
-import { useAppDispatch, useAppSelector } from 'app/hooks';
+import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import { useWriteMutation } from 'database/service';
 import React, { useMemo, useEffect, useRef } from 'react';
 import { renderContentNode } from 'render';
 import { useMarkdownProcessor } from 'render/MarkdownProcessor';
@@ -14,9 +15,10 @@ import {
 } from './pageSlice';
 
 const CreatePage = () => {
+  const auth = useAuth();
   const dispatch = useAppDispatch();
   const pageState = useAppSelector((state) => state.page);
-
+  const [mutate] = useWriteMutation();
   const mdast = useMarkdownProcessor(pageState.content, (title) =>
     dispatch(setTitle(title)),
   );
@@ -28,6 +30,21 @@ const CreatePage = () => {
   const handleSave = () => {
     dispatch(setCreatedTime());
     console.log('Submitted Data:', pageState);
+    mutate({
+      data: pageState.content,
+      flags: {}, // 你需要根据实际情况提供适当的flags
+      customId: pageState.slug, // 假设 slug 是自定义ID，根据实际情况调整
+      userId: auth.user?.userId,
+    }).then((result) => {
+      if (result.isSuccess) {
+        // 成功处理逻辑
+        dispatch(setCreatedTime());
+        console.log('Submitted Data:', pageState);
+      } else {
+        // 错误处理逻辑
+        console.error('Mutation failed:', result.error);
+      }
+    });
   };
   const textareaRef = useRef(null);
 
