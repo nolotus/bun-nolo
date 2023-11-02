@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "app/store";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from 'app/store';
 export interface User {
   userId: string;
   username: string;
@@ -19,7 +19,7 @@ const initialState: UserState = {
 };
 
 export const userSlice = createSlice({
-  name: "user",
+  name: 'user',
   initialState,
   reducers: {
     changeCurrentUser: (state, action: PayloadAction<User>) => {
@@ -33,7 +33,7 @@ export const userSlice = createSlice({
     },
     logoutCurrentUser: (state) => {
       const updatedUsers = state.users.filter(
-        (user) => user !== state.currentUser
+        (user) => user !== state.currentUser,
       );
       const nextUser = updatedUsers.length > 0 ? updatedUsers[0] : null;
       state.isLoggedIn = nextUser ? true : false;
@@ -47,7 +47,7 @@ export const userSlice = createSlice({
     },
     restoreSession: (
       state,
-      action: PayloadAction<{ user: User; users: User[] }>
+      action: PayloadAction<{ user: User, users: User[] }>,
     ) => {
       state.isLoggedIn = true;
       state.currentUser = action.payload.user;
@@ -55,7 +55,7 @@ export const userSlice = createSlice({
     },
     userLogout: (state) => {
       const updatedUsers = state.users.filter(
-        (user) => user !== state.currentUser
+        (user) => user !== state.currentUser,
       );
       const nextUser = updatedUsers.length > 0 ? updatedUsers[0] : null;
       state.isLoggedIn = false;

@@ -1,7 +1,7 @@
 import { getLogger } from 'utils/logger';
 
 import { generateHash } from './crypto';
-import { setKeyPrefix } from './prefix';
+import { Flags, setKeyPrefix } from './prefix';
 
 const cryptoLogger = getLogger('crypto');
 
@@ -20,7 +20,12 @@ export const generateIdWithCustomId = (
   return `${idPrefix}-${userId}-${customId}`;
 };
 
-export const generateKey = (data, userId, flags, customId) => {
+export const generateKey = (
+  data,
+  userId: string,
+  flags: Flags,
+  customId: string,
+) => {
   flags.isHash = !customId;
   return customId
     ? generateIdWithCustomId(userId, customId, flags)

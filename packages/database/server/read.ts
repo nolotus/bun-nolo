@@ -1,21 +1,21 @@
-import { createReadStream } from "node:fs";
-import readline from "readline";
-import fs from "fs";
-import { processLine } from "core/decodeData";
+import fs from 'fs';
+import { createReadStream } from 'node:fs';
+import readline from 'readline';
 
-import { getLogger } from "utils/logger";
-import { DEFAULT_INDEX_FILE } from "user/server/init";
-const readDataLogger = getLogger("readData");
+import { processLine } from 'core/decodeData';
+import { DEFAULT_INDEX_FILE } from 'user/server/init';
+import { getLogger } from 'utils/logger';
+const readDataLogger = getLogger('readData');
 
 export const handleReadSingle = async (req, res) => {
   try {
     let id = req.params.id;
     const result = await serverGetData(id);
-    readDataLogger.info({ id }, "handleReadSingle result");
+    readDataLogger.info({ id }, 'handleReadSingle result');
     return res.json({ ...result, id }); // 使用 res.json 而不是 res.send 来确保发送 JSON
   } catch (error) {
-    readDataLogger.info({ error }, "Error fetching data");
-    res.status(500).json({ error: "An error occurred while fetching data" });
+    readDataLogger.info({ error }, 'Error fetching data');
+    res.status(500).json({ error: 'An error occurred while fetching data' });
   }
 };
 export const readIdFromIndexFile = async (dirPath, id) => {
@@ -28,37 +28,37 @@ export const readIdFromIndexFile = async (dirPath, id) => {
     const input = createReadStream(filePath);
     const rl = readline.createInterface({ input });
 
-    rl.on("line", (line) => {
+    rl.on('line', (line) => {
       const [key, value] = processLine(line);
-      console.log("id", id);
+      console.log('id', id);
 
       if (key === id) {
-        console.log("hi", key);
+        console.log('hi', key);
 
         resolve(value);
         rl.close();
       }
     });
 
-    rl.on("close", () => resolve(null));
-    rl.on("error", (err) => reject(err));
+    rl.on('close', () => resolve(null));
+    rl.on('error', (err) => reject(err));
   });
 };
 
 export const serverGetData = (id) => {
-  readDataLogger.info({ id }, "serverGetData");
+  readDataLogger.info({ id }, 'serverGetData');
 
   if (!id) {
-    readDataLogger.info("id is empty");
+    readDataLogger.info('id is empty');
     return Promise.resolve(null); // 如果 id 为空，立即返回 null
   }
 
-  let parts = id.split("-");
+  let parts = id.split('-');
   let userId = parts[1];
 
   // 检查 userId 是否未定义或无效
   if (!userId) {
-    readDataLogger.info("userId is undefined or invalid");
+    readDataLogger.info('userId is undefined or invalid');
     return Promise.resolve(null); // 如果 userId 未定义或无效，立即返回 null
   }
 
@@ -66,7 +66,7 @@ export const serverGetData = (id) => {
 
   // 检查文件是否存在
   if (!fs.existsSync(path)) {
-    readDataLogger.info("File does not exist");
+    readDataLogger.info('File does not exist');
     return Promise.resolve(null); // 如果文件不存在，立即返回 null
   }
 
@@ -74,28 +74,28 @@ export const serverGetData = (id) => {
     let found = false; // data found flag
     const input = createReadStream(path);
 
-    input.on("error", (err) => reject(err));
+    input.on('error', (err) => reject(err));
 
     const rl = readline.createInterface({ input });
 
-    rl.on("line", (line) => {
+    rl.on('line', (line) => {
       const [key, value] = processLine(line);
-      readDataLogger.info({ key, value }, "processLine");
+      readDataLogger.info({ key, value }, 'processLine');
       if (id === key) {
-        readDataLogger.info({ id, value }, "result");
+        readDataLogger.info({ id, value }, 'result');
         found = true;
         resolve(value);
         rl.close();
       }
     });
 
-    rl.on("close", () => {
+    rl.on('close', () => {
       if (!found) {
-        readDataLogger.info("id not found");
+        readDataLogger.info('id not found');
         resolve(null); // Resolve with null when id is not found
       }
     });
 
-    rl.on("error", (err) => reject(err)); // Handles other types of errors
+    rl.on('error', (err) => reject(err)); // Handles other types of errors
   });
 };

@@ -1,16 +1,17 @@
-import { handleRequest } from "./request";
-import { serve } from "bun";
+import { serve } from 'bun';
+
+import { handleRequest } from './request';
 
 export const startServer = () => {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     serve({
       port: 443,
-      hostname: "0.0.0.0",
+      hostname: '0.0.0.0',
       fetch: handleRequest,
       tls: {
-        key: Bun.file("./key.pem"),
-        cert: Bun.file("./cert.pem"),
-        ca: Bun.file("./ca.pem"),
+        key: Bun.file('./key.pem'),
+        cert: Bun.file('./cert.pem'),
+        ca: Bun.file('./ca.pem'),
       },
     });
   }
@@ -18,7 +19,7 @@ export const startServer = () => {
   // 启动 http 服务器
   serve({
     port: 80,
-    hostname: "0.0.0.0",
+    hostname: '0.0.0.0',
     fetch: handleRequest,
   });
 };

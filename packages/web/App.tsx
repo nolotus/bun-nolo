@@ -10,10 +10,10 @@ import React, { Suspense, lazy, useEffect } from 'react';
 import { useRoutes } from 'react-router-dom';
 import Default from 'render/layout/Default';
 import Full from 'render/layout/Full';
+import Page from 'render/Page';
 import { routes as settingRoutes } from 'setting/routes';
 import { restoreSession } from 'user/userSlice';
 
-import Page from './Page';
 // // import { generatorRoutes } from "./generatorRoutes";
 // const ChatPage = lazy(() => import("chat/ChatPage"));
 const Home = lazy(() => import('./pages/Home'));
@@ -80,8 +80,8 @@ const routes = (currentUser) => [
     ],
   },
   {
-    path: '/*',
-    element: <Full />,
+    path: ':pageId',
+    element: <Default />,
     children: [{ index: true, element: <Page /> }],
   },
 ];

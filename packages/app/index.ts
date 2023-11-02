@@ -1,6 +1,6 @@
-import React, {useSyncExternalStore} from 'react';
-import {isBrowser} from 'utils/env'
-import {readData} from 'database/client/read'
+import { readData } from 'database/client/read';
+import React, { useSyncExternalStore } from 'react';
+import { isBrowser } from 'utils/env';
 
 export let memCache = new Map();
 let promiseCache = new Map();
@@ -23,11 +23,11 @@ export function promiseHandle(promise) {
   } else {
     promise.status = 'pending';
     promise.then(
-      result => {
+      (result) => {
         promise.status = 'fulfilled';
         promise.value = result;
       },
-      reason => {
+      (reason) => {
         promise.status = 'rejected';
         promise.reason = reason;
       },
@@ -37,48 +37,56 @@ export function promiseHandle(promise) {
 }
 
 function getResult(id: string) {
+  if (!id) {
+    // 添加了对 id 的检查
+    return '0'; // 如果 id 不存在或者为空字符串，直接返回 '0'
+  }
   const result = promiseHandle(fetchData(id));
   if (result === null || result.error) {
     return '0';
   }
   return result;
 }
-export const useStore =(id)=>{
+export const useStore = (id) => {
   function subscribe(listener) {
     listeners = [...listeners, listener];
     return () => {
-      listeners = listeners.filter(l => l !== listener);
+      listeners = listeners.filter((l) => l !== listener);
     };
   }
-  
+
   const getSnapshot = React.useCallback(() => {
     const result = getResult(id);
-  console.log('browser result',result)
+    console.log('browser result', result);
 
     return result;
   }, [id]);
-  
+
   const getServerSnapshot = React.useCallback(() => {
+    if (!id) {
+      // 添加了对 id 的检查
+      return '0'; // 如果 id 不存在或者为空字符串，直接返回 '0'
+    }
     if (!isBrowser) {
       const result = getResult(id);
-    console.log('server result',id,result)
+      console.log('server result', id, result);
       memCache.set(id, result);
-      return result
+      return result;
     }
     if (isBrowser) {
       const result = window.NOLO_STORE_DATA;
-      console.log('browser init result',result)
-      let value
-      if(result.length>0){
-         value = result.filter(item => item.id === id)[0].value;
+      console.log('browser init result', result);
+      let value;
+      if (result.length > 0) {
+        value = result.filter((item) => item.id === id)[0].value;
       }
-      return value
+      return value;
     }
   }, [id]);
-  const  result = useSyncExternalStore(
+  const result = useSyncExternalStore(
     subscribe,
     getSnapshot,
     getServerSnapshot,
   );
   return result;
-}
+};

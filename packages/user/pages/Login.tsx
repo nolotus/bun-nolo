@@ -1,29 +1,28 @@
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
-import { FormField } from "components/Form/FormField";
-import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
-import { storeTokens } from "auth/client/token";
-import { parseToken } from "auth/token";
-import { useAppDispatch } from "app/hooks";
-import { userLogin } from "user/userSlice";
-import { useLoginMutation } from "app/services/auth";
-import { generateUserId } from "core/generateMainKey";
-import { generateKeyPairFromSeed } from "core/crypto";
-import { hashPassword } from "core/password";
-import { signToken } from "auth/token";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAppDispatch } from 'app/hooks';
+import { useLoginMutation } from 'app/services/auth';
+import { storeTokens } from 'auth/client/token';
+import { parseToken, signToken } from 'auth/token';
+import { createFieldsFromDSL } from 'components/Form/createFieldsFromDSL';
+import { FormField } from 'components/Form/FormField';
+import { generateKeyPairFromSeed } from 'core/crypto';
+import { generateUserId } from 'core/generateMainKey';
+import { hashPassword } from 'core/password';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { userLogin } from 'user/userSlice';
 
-import { userFormSchema } from "../schema";
+import { userFormSchema } from '../schema';
 
 const formDSL = {
   username: {
-    type: "string",
+    type: 'string',
     min: 1,
   },
   password: {
-    type: "password",
+    type: 'password',
     min: 6,
   },
 };
@@ -58,7 +57,7 @@ const Login: React.FC = () => {
       const encryptionKey = await hashPassword(password);
 
       const { publicKey, secretKey } = generateKeyPairFromSeed(
-        username + encryptionKey + language
+        username + encryptionKey + language,
       );
       const userId = generateUserId(publicKey, username, language);
 
@@ -67,24 +66,24 @@ const Login: React.FC = () => {
       const user = parseToken(newToken);
       storeTokens(newToken);
       dispatch(userLogin(user));
-      navigate("/welcome");
+      navigate('/welcome');
     } catch (noloError) {
       console.error(noloError);
 
       let message;
       switch (noloError.message) {
-        case "404":
-          message = t("errors.userNotFound");
+        case '404':
+          message = t('errors.userNotFound');
           break;
-        case "403":
-          message = t("errors.invalidCredentials");
+        case '403':
+          message = t('errors.invalidCredentials');
           break;
-        case "400":
-          message = t("errors.validationError");
+        case '400':
+          message = t('errors.validationError');
           break;
-        case "500":
+        case '500':
         default:
-          message = t("errors.serverError");
+          message = t('errors.serverError');
           break;
       }
 
@@ -98,7 +97,7 @@ const Login: React.FC = () => {
           onSubmit={handleSubmit(onSubmit)}
           className="bg-white w-96 rounded-lg shadow-lg p-8"
         >
-          <h2 className="text-xl font-bold mb-4">{t("login")}</h2>
+          <h2 className="text-xl font-bold mb-4">{t('login')}</h2>
           {fields.map((field) => (
             <FormField
               {...field}
@@ -112,7 +111,7 @@ const Login: React.FC = () => {
             type="submit"
             className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
           >
-            {t("submit")}
+            {t('submit')}
           </button>
         </form>
       </div>

@@ -1,12 +1,13 @@
-import {SHA3} from 'crypto-js';
+import { SHA3 } from 'crypto-js';
 import nacl from 'tweetnacl';
-import {getLogger} from 'utils/logger';
-import {uint8ArrayToBase64Url, base64UrlToUint8Array} from './base64';
+import { getLogger } from 'utils/logger';
+
+import { uint8ArrayToBase64Url, base64UrlToUint8Array } from './base64';
 
 const cryptoLogger = getLogger('crypto');
 
-export const generateHash = data => {
-  const hashWordArray = SHA3(data, {outputLength: 256});
+export const generateHash = (data) => {
+  const hashWordArray = SHA3(data, { outputLength: 256 });
   const words = hashWordArray.words;
   const sigBytes = hashWordArray.sigBytes;
   const bytes = new Uint8Array(sigBytes);
@@ -17,7 +18,7 @@ export const generateHash = data => {
   return uint8ArrayToBase64Url(bytes);
 };
 
-export const generateKeyPairFromSeed = seedData => {
+export const generateKeyPairFromSeed = (seedData: string) => {
   const seed = generateHash(seedData);
   const keyPair = nacl.sign.keyPair.fromSeed(base64UrlToUint8Array(seed));
   return {

@@ -37,10 +37,8 @@ export const renderContentNode = (
 ): ReactNode => {
   const isDevelopment = process.env.NODE_ENV === 'development';
   const { enableClassName = isDevelopment, debug = isDevelopment } = options;
-  console.log('node', node);
 
   const classNames = enableClassName ? node.className : undefined;
-  console.log('node.className', node.className);
   const renderChild = (child: ContentNode) => renderContentNode(child);
 
   switch (node.type) {

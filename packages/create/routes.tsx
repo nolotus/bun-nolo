@@ -9,6 +9,9 @@ const CreateNoMoadSpot = lazy(() => import('./pages/CreateNoMoadSpot'));
 const CreateType = lazy(() => import('./pages/CreateType'));
 const CreateArtcile = lazy(() => import('./pages/CreateArtcile'));
 const CreateBooking = lazy(() => import('./pages/CreateBookings'));
+const CreateSurfingTrip = lazy(() => import('./pages/CreateSurfingTrip'));
+const CreateSurferProfile = lazy(() => import('./pages/CreateSurferProfile'));
+
 const CreateChatRobot = lazy(() => import('ai/pages/CreateChatRobot'));
 
 const createPages = [
@@ -18,7 +21,9 @@ const createPages = [
   { path: 'type', component: CreateType },
   { path: 'artcile', component: CreateArtcile },
   { path: 'booking', component: CreateBooking },
-  { path: 'chatrobot', component: CreateChatRobot }, // 新添加的页面
+  { path: 'chatrobot', component: CreateChatRobot },
+  { path: 'surfing-trip', component: CreateSurfingTrip },
+  { path: 'surfer-profile', component: CreateSurferProfile },
 ];
 
 export const routesConfig = [

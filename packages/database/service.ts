@@ -23,7 +23,6 @@ export const dbApi = api.injectEndpoints({
       },
     }),
     write: builder.mutation<ResponseData, WriteDataType>({
-      // 更改为 "write"
       query: ({ data, flags, customId, userId, host }) => {
         return {
           url: '/db/write',
@@ -39,7 +38,6 @@ export const dbApi = api.injectEndpoints({
       },
     }),
     writeHash: builder.mutation<ResponseData, WriteHashDataType>({
-      // 更改为 "writeHash"
       query: ({ data, flags, userId }) => {
         return {
           url: '/db/write',
@@ -52,6 +50,12 @@ export const dbApi = api.injectEndpoints({
         };
       },
     }),
+    deleteEntry: builder.mutation<ResponseData, { entryId: string }>({
+      query: ({ entryId }) => ({
+        url: `/db/delete/${entryId}`,
+        method: 'DELETE', // 使用 HTTP DELETE 方法
+      }),
+    }),
   }),
 });
 
@@ -62,4 +66,5 @@ export const {
   useLazyGetEntryQuery,
   useWriteMutation,
   useWriteHashMutation,
+  useDeleteEntryMutation,
 } = dbApi;
