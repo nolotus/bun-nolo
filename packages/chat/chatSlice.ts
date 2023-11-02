@@ -132,6 +132,13 @@ export const chatSlice = createSlice({
     messageEnd: (state: ChatSliceState) => {
       state.isMessageStreaming = false;
     },
+    reloadChatList: (
+      state: ChatSliceState,
+      action: PayloadAction<ChatConfig[]>,
+    ) => {
+      // 重新加载聊天列表
+      state.chatList = action.payload;
+    },
   },
 });
 
@@ -149,6 +156,7 @@ export const {
   messagesReachedMax,
   continueMessage,
   messageEnd,
+  reloadChatList,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

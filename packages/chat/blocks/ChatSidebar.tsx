@@ -2,10 +2,13 @@ import ChatConfigForm from 'ai/blocks/ChatConfigForm';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { nolotusId } from 'core/init';
 import { extractUserId } from 'core/prefix';
-import { deleteData } from 'database/client/delete';
-import { useLazyGetEntriesQuery, useLazyGetEntryQuery } from 'database/service';
+import {
+  useLazyGetEntriesQuery,
+  useLazyGetEntryQuery,
+  useDeleteEntryMutation,
+} from 'database/service';
 import React, { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ButtonLink, useModal, Dialog, Alert, useDeleteAlert } from 'ui';
 
 import {
@@ -13,9 +16,18 @@ import {
   setCurrentChatByID,
   fetchchatListSuccess,
   fetchDefaultConfig,
+  reloadChatList,
 } from '../chatSlice';
 
+const options = {
+  isJSON: true,
+  condition: {
+    $eq: { type: 'chatRobot' },
+  },
+  limit: 20,
+};
 const ChatSidebar = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const chatId = searchParams.get('chatId');
 
@@ -23,27 +35,25 @@ const ChatSidebar = () => {
   const dispatch = useAppDispatch();
   const { currentChatConfig } = useAppSelector(selectChat);
 
-  const [getDefaultConfig, { data, isSuccess: readOk }] =
-    useLazyGetEntryQuery();
+  const [getDefaultConfig] = useLazyGetEntryQuery();
 
   useEffect(() => {
-    chatId && getDefaultConfig(chatId);
-    readOk && dispatch(fetchDefaultConfig(data));
-  }, [chatId, readOk, data, dispatch, getDefaultConfig]);
+    const requestDefaultConfig = async () => {
+      const chatIdConfig = await getDefaultConfig(chatId);
+      console.log('chatIdConfig', chatIdConfig);
+      if (chatIdConfig.error?.status === 404) {
+        navigate('/chat');
+      }
+      chatIdConfig.data && dispatch(fetchDefaultConfig(chatIdConfig.data));
+    };
+    chatId && requestDefaultConfig();
+  }, [chatId, dispatch, getDefaultConfig, navigate]);
 
   const chatList = useAppSelector((state) => state.chat.chatList);
 
-  const [getChatList, { data: nolotusChatRobots, isLoading, isSuccess }] =
-    useLazyGetEntriesQuery();
+  const [getChatList, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
 
   useEffect(() => {
-    const options = {
-      isJSON: true,
-      condition: {
-        $eq: { type: 'chatRobot' },
-      },
-      limit: 20,
-    };
     const fetchChatList = async () => {
       const nolotusChatList = await getChatList({ userId: nolotusId, options });
       isSuccess && dispatch(fetchchatListSuccess(nolotusChatList.data));
@@ -68,18 +78,23 @@ const ChatSidebar = () => {
   const selectedChat = currentChatConfig?.id;
 
   const { visible, open, close } = useModal();
-  const reloadChatList = async () => {
-    getChatList({ userId: auth.user?.userId, options });
-    isSuccess && dispatch(fetchchatListSuccess(nolotusChatRobots));
+  const postReloadChatList = async () => {
+    const result = await getChatList({ userId: auth.user?.userId, options });
+    isSuccess && dispatch(reloadChatList(result.data));
     // const [nolotusConfigs, userConfigs] = await Promise.all([
     //   queryConfigs(true),
     //   queryConfigs(false, userId),
     // ]);
     // const uniqueConfigs = mergeConfigs(nolotusConfigs, userConfigs);
   };
+
+  const [deleteEntry, { isLoading: isDeleting }] = useDeleteEntryMutation();
+
   const deleteChatBot = async (chat) => {
-    await deleteData(chat.id);
-    reloadChatList();
+    await deleteEntry({ entryId: chat.id }).unwrap();
+    // 删除成功后的逻辑
+    console.log('delete ok');
+    postReloadChatList();
   };
   const {
     visible: alertVisible,

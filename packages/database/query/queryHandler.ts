@@ -1,10 +1,9 @@
+import { noloToObject, getHeadTail } from 'core';
+import { extractAndDecodePrefix } from 'core/prefix';
+import { readLines } from 'utils/bun/readLines';
 
-import {extractAndDecodePrefix} from 'core/prefix';
-import {noloToObject,getHeadTail} from 'core';
-import {readLines} from 'utils/bun/readLines'
-
-import {QueryCondition, QueryOptions} from './types';
-import {evaluateCondition} from './operators';
+import { evaluateCondition } from './operators';
+import { QueryCondition, QueryOptions } from './types';
 
 const handleData = (
   data: string,
@@ -42,37 +41,35 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     const path = `./nolodata/${userId}/index.nolo`;
     const file = Bun.file(path);
     const stream = file.stream();
-  
+
     const results: any[] = [];
     let count = 0;
-  
+
     // 利用我们先前定义的 readLines 函数
     let reader = readLines(stream);
     try {
       for await (let line of reader) {
-          const {key: dataKey, value: data} = getHeadTail(line);
-          const flags = extractAndDecodePrefix(dataKey);
-          const result = handleData(
-              data,
-              condition || {},
-              flags,
-              isObject,
-              isJSON,
-              isList,
-          );
-          if (result) {
-            if (count >= skip && results.length < limit) {
-              results.push({id: dataKey, ...result});
-            }
-            count++;
+        const { key: dataKey, value: data } = getHeadTail(line);
+        const flags = extractAndDecodePrefix(dataKey);
+        const result = handleData(
+          data,
+          condition || {},
+          flags,
+          isObject,
+          isJSON,
+          isList,
+        );
+        if (result) {
+          if (count >= skip && results.length < limit) {
+            results.push({ id: dataKey, ...result });
           }
-          
-  
+          count++;
+        }
       }
     } catch (err) {
-        console.error(err);
+      console.error(err);
     }
-  
+
     // 如果有排序条件，进行排序
     if (sort) {
       results.sort((a, b) => {
@@ -83,13 +80,11 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         }
       });
     }
-  
+
     return results;
-  } catch(e) {
+  } catch (e) {
     console.error('出错了:', e);
   }
-
-
 };
 
 function handleObjectData(data: string, condition: QueryCondition) {

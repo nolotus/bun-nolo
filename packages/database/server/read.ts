@@ -12,12 +12,19 @@ export const handleReadSingle = async (req, res) => {
     let id = req.params.id;
     const result = await serverGetData(id);
     readDataLogger.info({ id }, 'handleReadSingle result');
-    return res.json({ ...result, id }); // 使用 res.json 而不是 res.send 来确保发送 JSON
+    if (result) {
+      return res.json({ ...result, id });
+    } else {
+      return res.status(404).json({ error: 'Data not found' });
+    }
   } catch (error) {
-    readDataLogger.info({ error }, 'Error fetching data');
-    res.status(500).json({ error: 'An error occurred while fetching data' });
+    readDataLogger.error({ error }, 'Error fetching data');
+    return res
+      .status(500)
+      .json({ error: 'An error occurred while fetching data' });
   }
 };
+
 export const readIdFromIndexFile = async (dirPath, id) => {
   const filePath = `${dirPath}/${DEFAULT_INDEX_FILE}`;
   if (!fs.existsSync(filePath)) {
