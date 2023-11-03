@@ -1,23 +1,26 @@
 // DataItem.js
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { handleOperations } from "../operations";
-import { useAuth } from "app/hooks";
+import { useAuth } from 'app/hooks';
+import { useDeleteEntryMutation } from 'database/service';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+
+import { handleOperations } from '../operations';
 
 const DataItem = ({ dataId, content, refreshData, source }) => {
   const auth = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
+  const [deleteEntry] = useDeleteEntryMutation();
 
   const displayContent =
-    typeof content === "string" ? content : JSON.stringify(content);
+    typeof content === 'string' ? content : JSON.stringify(content);
 
   const handleButtonClick = (operation) => {
-    if (operation === "edit") {
+    if (operation === 'edit') {
       setIsEditing(true);
       return;
     }
-    if (operation === "save") {
+    if (operation === 'save') {
       setIsEditing(false);
     }
     handleOperations(
@@ -25,10 +28,14 @@ const DataItem = ({ dataId, content, refreshData, source }) => {
       dataId,
       editedContent,
       refreshData,
-      auth.user?.userId
+      auth.user?.userId,
     );
   };
-
+  const deleteItem = async () => {
+    await deleteEntry({ entryId: dataId });
+    console.log('Data deleted successfully');
+    refreshData();
+  };
   return (
     <div className="flex justify-between items-center">
       <div className="flex items-center space-x-2">
@@ -49,51 +56,51 @@ const DataItem = ({ dataId, content, refreshData, source }) => {
       <div>
         {isEditing ? (
           <button
-            onClick={() => handleButtonClick("save")}
+            onClick={() => handleButtonClick('save')}
             className="bg-green-500 text-white px-4 py-2 rounded"
           >
             Save
           </button>
         ) : (
           <button
-            onClick={() => handleButtonClick("edit")}
+            onClick={() => handleButtonClick('edit')}
             className="bg-blue-500 text-white px-4 py-2 rounded"
           >
             Edit
           </button>
         )}
         <button
-          onClick={() => handleButtonClick("delete")}
+          onClick={deleteItem}
           className="bg-red-500 text-white px-4 py-2 rounded"
         >
           Delete
         </button>
-        {source === "local" && (
+        {source === 'local' && (
           <button
-            onClick={() => handleButtonClick("syncToNolotus")}
+            onClick={() => handleButtonClick('syncToNolotus')}
             className="bg-yellow-500 text-white px-4 py-2 rounded"
           >
             Sync to Nolotus
           </button>
         )}
-        {source === "nolotus" && (
+        {source === 'nolotus' && (
           <button
-            onClick={() => handleButtonClick("syncFromNolotus")}
+            onClick={() => handleButtonClick('syncFromNolotus')}
             className="bg-yellow-500 text-white px-4 py-2 rounded"
           >
             Sync from Nolotus
           </button>
         )}
-        {source === "both" && (
+        {source === 'both' && (
           <>
             <button
-              onClick={() => handleButtonClick("syncToNolotus")}
+              onClick={() => handleButtonClick('syncToNolotus')}
               className="bg-yellow-500 text-white px-4 py-2 rounded"
             >
               Sync to Nolotus
             </button>
             <button
-              onClick={() => handleButtonClick("syncFromNolotus")}
+              onClick={() => handleButtonClick('syncFromNolotus')}
               className="bg-yellow-500 text-white px-4 py-2 rounded"
             >
               Sync from Nolotus

@@ -1,19 +1,19 @@
 import ChatBotList from 'ai/blocks/ChatBotList';
 import { useAuth } from 'app/hooks';
+import { nolotusDomain } from 'core/init';
 import fetchReadAllData from 'database/client/readAll';
 import React, { useEffect, useState } from 'react';
 import { useUserData } from 'user/hooks/useUserData';
 import { getLogger } from 'utils/logger';
 
 import { AccountBalance } from './blocks/AccountBanlance';
-import ArticleBlock from './blocks/ArticleBlock';
 import OtherDataBlock from './blocks/OtherDataBlock';
 import TokenStatisticsBlock from './blocks/TokenStatisticsBlock';
+
 const lifeLogger = getLogger('life');
 
 const LifeAll = () => {
   const [data, setData] = useState(null);
-  const [articles, setArticles] = useState(null);
   const [chatBots, setChatBots] = useState(null);
 
   const [aiUsage, setAiUsage] = useState(0);
@@ -28,11 +28,11 @@ const LifeAll = () => {
     const currentDomain = window.location.port
       ? `${window.location.hostname}:${window.location.port}`
       : `${window.location.hostname}`;
-    const nolotusDomain = 'nolotus.com';
-    const isMainHost = currentDomain === nolotusDomain;
+    const mainDomain = nolotusDomain[0];
+    const isMainHost = currentDomain === mainDomain;
     console.log('isMainHost', isMainHost);
     if (isMainHost) {
-      const res = await fetchReadAllData(nolotusDomain, auth.user?.userId);
+      const res = await fetchReadAllData(mainDomain, auth.user?.userId);
       if (res) {
         setData(res.map((item) => ({ ...item, source: 'both' })));
       } else {
@@ -41,7 +41,7 @@ const LifeAll = () => {
     } else {
       const [localData, nolotusData] = await Promise.all([
         fetchReadAllData(currentDomain, auth.user?.userId),
-        fetchReadAllData(nolotusDomain, auth.user?.userId),
+        fetchReadAllData(mainDomain, auth.user?.userId),
       ]);
       if (!localData && !nolotusData) {
         lifeLogger.error('Both requests failed');
@@ -87,7 +87,6 @@ const LifeAll = () => {
 
       lifeLogger.info('chatBotData', chatBotData);
 
-      setArticles(articleData);
       setChatBots(chatBotData);
       setTokenStatistics(tokenStatisticsData);
       setData(otherData);
@@ -100,7 +99,6 @@ const LifeAll = () => {
 
   return (
     <div className="p-4">
-      <ArticleBlock articles={articles} refreshData={fetchData} />
       <AccountBalance aiUsage={aiUsage} />
       {chatBots && <ChatBotList data={chatBots} />}
       {tokenStatistics && (

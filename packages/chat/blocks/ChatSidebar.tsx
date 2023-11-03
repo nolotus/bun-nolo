@@ -88,7 +88,7 @@ const ChatSidebar = () => {
     // const uniqueConfigs = mergeConfigs(nolotusConfigs, userConfigs);
   };
 
-  const [deleteEntry, { isLoading: isDeleting }] = useDeleteEntryMutation();
+  const [deleteEntry] = useDeleteEntryMutation();
 
   const deleteChatBot = async (chat) => {
     await deleteEntry({ entryId: chat.id }).unwrap();

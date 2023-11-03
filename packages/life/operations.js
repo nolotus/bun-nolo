@@ -1,4 +1,3 @@
-import { deleteData } from 'database/client/delete';
 import { syncData, syncDataFromNolotus } from 'database/client/sync';
 import { updateData } from 'database/client/update';
 
@@ -19,11 +18,7 @@ export const handleOperations = async (
         console.log('Data updated successfully');
         refreshData();
         break;
-      case 'delete':
-        await deleteData(key);
-        console.log('Data deleted successfully');
-        refreshData();
-        break;
+
       case 'syncToNolotus':
         await syncData(userId, key, content);
         console.log('Data synced successfully');
