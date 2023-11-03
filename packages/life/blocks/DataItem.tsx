@@ -1,16 +1,44 @@
 // DataItem.js
+import { ChatBotBlock } from 'ai/blocks/ChatBotBlock';
 import { useAuth } from 'app/hooks';
 import { useDeleteEntryMutation } from 'database/service';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { handleOperations } from '../operations';
-
+const truncateContent = (content) => {
+  return content.length > 50 ? content.substring(0, 50) + '...' : content;
+};
 const DataItem = ({ dataId, content, refreshData, source }) => {
   const auth = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
   const [deleteEntry] = useDeleteEntryMutation();
+
+  if (content?.type === 'chatRobot') {
+    return (
+      <ChatBotBlock
+        item={{ value: content, source, key: dataId }}
+        key={dataId}
+      />
+    );
+  }
+  if (content?.type === 'tokenStatistics') {
+    return (
+      <Link
+        to={`/${dataId}`}
+        key={dataId}
+        className="p-2 w-full sm:w-1/2 lg:w-1/3"
+      >
+        <div className="p-4 border border-gray-300 bg-white rounded-lg shadow-sm">
+          <h3 className="text-md font-semibold text-gray-700">{dataId}</h3>
+          <p className="mt-2 text-sm text-gray-500">
+            {truncateContent(JSON.stringify(content))}
+          </p>
+        </div>
+      </Link>
+    );
+  }
 
   const displayContent =
     typeof content === 'string' ? content : JSON.stringify(content);

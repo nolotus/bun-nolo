@@ -1,28 +1,22 @@
-import ChatBotList from 'ai/blocks/ChatBotList';
 import { useAuth } from 'app/hooks';
 import { nolotusDomain } from 'core/init';
 import fetchReadAllData from 'database/client/readAll';
 import React, { useEffect, useState } from 'react';
-import { useUserData } from 'user/hooks/useUserData';
 import { getLogger } from 'utils/logger';
 
 import { AccountBalance } from './blocks/AccountBanlance';
-import OtherDataBlock from './blocks/OtherDataBlock';
+import DataList from './blocks/DataList';
 import TokenStatisticsBlock from './blocks/TokenStatisticsBlock';
 
 const lifeLogger = getLogger('life');
 
 const LifeAll = () => {
   const [data, setData] = useState(null);
-  const [chatBots, setChatBots] = useState(null);
 
   const [aiUsage, setAiUsage] = useState(0);
   const [tokenStatistics, setTokenStatistics] = useState(null);
 
   const auth = useAuth();
-
-  // const pluginSettings = useUserData('pluginSettings');
-  // lifeLogger.info('pluginSettings', pluginSettings);
 
   const fetchData = async () => {
     const currentDomain = window.location.port
@@ -30,7 +24,7 @@ const LifeAll = () => {
       : `${window.location.hostname}`;
     const mainDomain = nolotusDomain[0];
     const isMainHost = currentDomain === mainDomain;
-    console.log('isMainHost', isMainHost);
+
     if (isMainHost) {
       const res = await fetchReadAllData(mainDomain, auth.user?.userId);
       if (res) {
@@ -68,28 +62,12 @@ const LifeAll = () => {
         });
       }
 
-      const articleData = mergedData.filter(
-        (item) => item.value && item.value.type === 'article',
-      );
-      const chatBotData = mergedData.filter(
-        (item) => item.value && item.value.type === 'chatRobot',
-      );
       const tokenStatisticsData = mergedData.filter(
         (item) => item.value && item.value.type === 'tokenStatistics',
       );
-      const otherData = mergedData.filter(
-        (item) =>
-          !item.value ||
-          (item.value.type !== 'article' &&
-            item.value.type !== 'chatRobot' &&
-            item.value.type !== 'tokenStatistics'),
-      );
 
-      lifeLogger.info('chatBotData', chatBotData);
-
-      setChatBots(chatBotData);
       setTokenStatistics(tokenStatisticsData);
-      setData(otherData);
+      setData(mergedData);
     }
   };
 
@@ -100,18 +78,14 @@ const LifeAll = () => {
   return (
     <div className="p-4">
       <AccountBalance aiUsage={aiUsage} />
-      {chatBots && <ChatBotList data={chatBots} />}
       {tokenStatistics && (
         <TokenStatisticsBlock
           data={tokenStatistics}
           onCostCalculated={setAiUsage}
         />
       )}
-      {/* 渲染 ChatBotBlock 并传递 chatBots 属性 */}
-      <h1 className="text-2xl font-bold">
-        Your Life Data (Excluding Articles)
-      </h1>
-      <OtherDataBlock data={data} refreshData={fetchData} />
+
+      <DataList data={data} refreshData={fetchData} />
     </div>
   );
 };

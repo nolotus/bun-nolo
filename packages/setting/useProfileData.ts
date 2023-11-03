@@ -1,8 +1,8 @@
 // useProfileData.ts
-import { useState } from "react";
-import { saveData } from "database/client/save";
-import { useUserData } from "user/hooks/useUserData";
-import { useAuth } from "app/hooks";
+import { useAuth } from 'app/hooks';
+import { saveData } from 'database/client/save';
+import { useState } from 'react';
+import { useUserData } from 'user/hooks/useUserData';
 
 export const useProfileData = (customId: string) => {
   const data = useUserData(customId);
@@ -16,8 +16,8 @@ export const useProfileData = (customId: string) => {
       await saveData(auth.user?.userId, formData, customId, flags);
       setError(null);
     } catch (error) {
-      console.error("保存失败:", error);
-      setError("保存失败");
+      console.error('保存失败:', error);
+      setError('保存失败');
     }
   };
 

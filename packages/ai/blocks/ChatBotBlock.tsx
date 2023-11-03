@@ -1,12 +1,13 @@
-import { Link } from "react-router-dom";
-import { syncDataFromNolotus } from "database/client/sync";
+import { syncDataFromNolotus } from 'database/client/sync';
+import React from 'react';
+import { Link } from 'react-router-dom';
 const OMIT_NAME_MAX_LENGTH = 60;
 
 const omitName = (content) => {
   const { name, ...otherProps } = content;
   let jsonString = JSON.stringify(otherProps);
   if (jsonString.length > OMIT_NAME_MAX_LENGTH) {
-    jsonString = jsonString.substr(0, OMIT_NAME_MAX_LENGTH) + "...";
+    jsonString = jsonString.substr(0, OMIT_NAME_MAX_LENGTH) + '...';
   }
   return jsonString;
 };
@@ -16,7 +17,7 @@ export const ChatBotBlock = (props) => {
 
   const sync = async () => {
     await syncDataFromNolotus(key, value);
-    console.log("Data synced from nolotus successfully");
+    console.log('Data synced from nolotus successfully');
     refreshData();
   };
   return (
@@ -26,7 +27,7 @@ export const ChatBotBlock = (props) => {
         <div className="text-purple-600 font-medium bg-purple-100 rounded p-1">
           {source}
         </div>
-        {source === "nolotus" && (
+        {source === 'nolotus' && (
           <button
             onClick={sync}
             className="bg-yellow-500 text-white px-4 py-2 rounded"

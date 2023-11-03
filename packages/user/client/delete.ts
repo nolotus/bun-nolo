@@ -1,4 +1,4 @@
-import {API_ENDPOINTS} from 'database/config';
+import { API_ENDPOINTS } from 'database/config';
 
 export const deleteUser = async (userId, domainPrefix = 'nolotus.com') => {
   const response = await fetch(

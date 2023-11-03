@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-
-// import {deleteUser} from '../../user/client/delete';
-// import fetchReadAllData from '../../database/client/readAll';
+import fetchReadAllData from 'database/client/readAll';
+import React, { useState } from 'react';
+import { deleteUser } from 'user/client/delete';
 
 export const UserItem = ({ user, handleCheckboxChange, dataSource }) => {
   const [detailedData, setDetailedData] = useState(null);
@@ -31,10 +30,10 @@ export const UserItem = ({ user, handleCheckboxChange, dataSource }) => {
         <button
           onClick={() => handleDetailClick(user.userId)}
           className={`ml-auto bg-blue-500 text-white px-4 py-2 rounded ${
-            isOpen ? "bg-blue-700" : ""
+            isOpen ? 'bg-blue-700' : ''
           }`}
         >
-          {isOpen ? "关闭详细信息" : "详细查询"}
+          {isOpen ? '关闭详细信息' : '详细查询'}
         </button>
         <button
           onClick={() => handleDeleteClick(user.userId)}

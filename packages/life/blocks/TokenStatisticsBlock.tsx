@@ -1,12 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { calcCost } from "ai/utils/calcCost";
+import { calcCost } from 'ai/utils/calcCost';
+import React, { useState, useEffect } from 'react';
 
 const TokenStatisticsBlock = ({ data, onCostCalculated }) => {
   const [costs, setCosts] = useState(null);
-  const truncateContent = (content) => {
-    return content.length > 50 ? content.substring(0, 50) + "..." : content;
-  };
 
   useEffect(() => {
     if (data) {
@@ -43,39 +39,17 @@ const TokenStatisticsBlock = ({ data, onCostCalculated }) => {
                           key={model}
                           className="text-sm text-gray-500 truncate"
                         >
-                          - {model}: 输入成本 {input.toFixed(2)}，输出成本{" "}
+                          - {model}: 输入成本 {input.toFixed(2)}，输出成本{' '}
                           {output.toFixed(2)}
                         </p>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
               </div>
-            )
+            ),
           )}
         </div>
-      )}
-      {data ? (
-        <div className="flex flex-wrap -m-2">
-          {data.slice(0, 3).map((item) => (
-            <Link
-              to={`/chat?id=${item.key}`}
-              key={item.key}
-              className="p-2 w-full sm:w-1/2 lg:w-1/3"
-            >
-              <div className="p-4 border border-gray-300 bg-white rounded-lg shadow-sm">
-                <h3 className="text-md font-semibold text-gray-700">
-                  {item.key}
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  {truncateContent(JSON.stringify(item.value))}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-500 text-lg">Loading...</p>
       )}
     </div>
   );
