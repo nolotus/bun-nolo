@@ -14,6 +14,8 @@ import Page from 'render/Page';
 import { routes as settingRoutes } from 'setting/routes';
 import { restoreSession } from 'user/userSlice';
 
+import { SurfTip } from './SurfTip';
+
 // // import { generatorRoutes } from "./generatorRoutes";
 // const ChatPage = lazy(() => import("chat/ChatPage"));
 const Home = lazy(() => import('./pages/Home'));
@@ -78,6 +80,11 @@ const routes = (currentUser) => [
         ],
       },
     ],
+  },
+  {
+    path: '/',
+    element: <Default />,
+    children: [{ path: 'surfing-safety-tips', element: <SurfTip /> }],
   },
   {
     path: ':pageId',
