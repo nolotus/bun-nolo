@@ -9,17 +9,17 @@ import DataList from './blocks/DataList';
 import TokenStatisticsBlock from './blocks/TokenStatisticsBlock';
 import { fetchDataThunk, setFilterType } from './lifeSlice';
 import { selectFilterType } from './selectors';
-export const currentDomain = isDevelopment
-  ? 'localhost'
-  : window.location.port
-  ? `${window.location.hostname}:${window.location.port}`
-  : `${window.location.hostname}`;
-
-const LifeAll = () => {
+export const LifeAll = () => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const filterType = useAppSelector(selectFilterType);
   const fetchData = (userId: string) => {
+    const currentDomain = isDevelopment
+      ? 'localhost'
+      : window.location.port
+      ? `${window.location.hostname}:${window.location.port}`
+      : `${window.location.hostname}`;
+
     const domains = nolotusDomain.map((domain) => ({ domain, source: domain }));
 
     // 检查 currentDomain 是否已经包含在 domains 数组中
