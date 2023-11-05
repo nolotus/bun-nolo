@@ -1,91 +1,80 @@
-import { useAuth } from 'app/hooks';
-import { nolotusDomain } from 'core/init';
-import fetchReadAllData from 'database/client/readAll';
-import React, { useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import React, { useEffect } from 'react';
 import { getLogger } from 'utils/logger';
 
 import { AccountBalance } from './blocks/AccountBanlance';
 import DataList from './blocks/DataList';
 import TokenStatisticsBlock from './blocks/TokenStatisticsBlock';
-
-const lifeLogger = getLogger('life');
+import {
+  setFilterType,
+  setExcludeType,
+  fetchLocalData,
+  fetchNolotusData,
+} from './lifeSlice';
+import { selectTokenStatisticsData, selectCosts } from './selectors';
+const lifeLogger = getLogger('life ');
 
 const LifeAll = () => {
-  const [data, setData] = useState(null);
-
-  const [aiUsage, setAiUsage] = useState(0);
-  const [tokenStatistics, setTokenStatistics] = useState(null);
-
   const auth = useAuth();
-
-  const fetchData = async () => {
-    const currentDomain = window.location.port
-      ? `${window.location.hostname}:${window.location.port}`
-      : `${window.location.hostname}`;
-    const mainDomain = nolotusDomain[0];
-    const isMainHost = currentDomain === mainDomain;
-
-    if (isMainHost) {
-      const res = await fetchReadAllData(mainDomain, auth.user?.userId);
-      if (res) {
-        setData(res.map((item) => ({ ...item, source: 'both' })));
-      } else {
-        lifeLogger.error('Failed to fetch data from nolotus.com');
-      }
-    } else {
-      const [localData, nolotusData] = await Promise.all([
-        fetchReadAllData(currentDomain, auth.user?.userId),
-        fetchReadAllData(mainDomain, auth.user?.userId),
-      ]);
-      if (!localData && !nolotusData) {
-        lifeLogger.error('Both requests failed');
-        return;
-      }
-
-      let mergedData = [];
-
-      if (localData) {
-        const nolotusKeys = nolotusData
-          ? new Set(nolotusData.map((item) => item.key))
-          : new Set();
-        mergedData = localData.map((item) => ({
-          ...item,
-          source: nolotusKeys.has(item.key) ? 'both' : 'local',
-        }));
-      }
-
-      if (nolotusData) {
-        nolotusData.forEach((item) => {
-          if (!mergedData.some((localItem) => localItem.key === item.key)) {
-            mergedData.push({ ...item, source: 'nolotus' });
-          }
-        });
-      }
-
-      const tokenStatisticsData = mergedData.filter(
-        (item) => item.value && item.value.type === 'tokenStatistics',
-      );
-
-      setTokenStatistics(tokenStatisticsData);
-      setData(mergedData);
-    }
+  const dispatch = useAppDispatch();
+  const fetchData = (userId: string) => {
+    dispatch(fetchLocalData(userId));
+    dispatch(fetchNolotusData(userId));
   };
+  // const [data, setData] = useState(null);
+  const { data, status, error, filterType, excludeType } = useAppSelector(
+    (state) => state.life,
+  );
 
+  const tokenStatistics = useAppSelector(selectTokenStatisticsData);
   useEffect(() => {
-    auth.user?.userId && fetchData();
+    auth.user?.userId && fetchData(auth.user?.userId);
   }, [auth.user?.userId]);
 
+  const costs = useAppSelector(selectCosts);
+  const aiUsage = costs?.totalCost;
+
+  const handleExcludeChange = (event) => {
+    // 创建一个新的处理函数来处理反选类型的更改
+    dispatch(setExcludeType(event.target.value));
+  };
+
+  const handleFilterChange = (event) => {
+    // 创建一个新的处理函数来处理筛选条件的更改
+    dispatch(setFilterType(event.target.value));
+  };
+
+  const filteredData = data?.filter((item) => {
+    const meetsFilterCondition = filterType
+      ? item.value?.type === filterType
+      : true;
+    const meetsExcludeCondition = excludeType
+      ? item.value?.type !== excludeType
+      : true;
+    return meetsFilterCondition && meetsExcludeCondition;
+  });
+  console.log('filteredData', filteredData);
   return (
     <div className="p-4">
-      <AccountBalance aiUsage={aiUsage} />
-      {tokenStatistics && (
-        <TokenStatisticsBlock
-          data={tokenStatistics}
-          onCostCalculated={setAiUsage}
-        />
-      )}
+      <select value={filterType} onChange={handleFilterChange}>
+        {/* 添加一个下拉菜单来选择筛选条件 */}
+        <option value="">All</option>
+        <option value="tokenStatistics">Token Statistics</option>
+        <option value="page">page</option>
 
-      <DataList data={data} refreshData={fetchData} />
+        {/* ...其他选项... */}
+      </select>
+
+      <select value={excludeType} onChange={handleExcludeChange}>
+        {/* 添加一个下拉菜单来选择反选类型 */}
+        <option value="">None</option>
+        <option value="tokenStatistics">Token Statistics</option>
+        {/* ...其他选项... */}
+      </select>
+      <AccountBalance aiUsage={aiUsage} />
+      {tokenStatistics && <TokenStatisticsBlock />}
+
+      <DataList data={filteredData} refreshData={fetchData} />
     </div>
   );
 };

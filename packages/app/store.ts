@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import chatReducer from 'chat/chatSlice';
 import pageReducer from 'create/pageSlice';
+import lifeReducer from 'life/lifeSlice';
 import userReducer from 'user/userSlice';
 
 // import { setupListeners } from '@reduxjs/toolkit/query'
@@ -12,6 +13,7 @@ export const store = configureStore({
     user: userReducer,
     page: pageReducer,
     [api.reducerPath]: api.reducer,
+    life: lifeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(api.middleware),

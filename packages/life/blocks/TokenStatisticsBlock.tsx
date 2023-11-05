@@ -1,20 +1,8 @@
-import { calcCost } from 'ai/utils/calcCost';
-import React, { useState, useEffect } from 'react';
+import { useAppSelector } from 'app/hooks';
+import React from 'react';
 
-const TokenStatisticsBlock = ({ data, onCostCalculated }) => {
-  const [costs, setCosts] = useState(null);
-
-  useEffect(() => {
-    if (data) {
-      const values = data.map((item) => ({
-        ...item.value,
-        userId: item.value.userId,
-      }));
-      const result = calcCost(values);
-      setCosts(result);
-      onCostCalculated(result.totalCost);
-    }
-  }, [data, onCostCalculated]);
+const TokenStatisticsBlock = () => {
+  const { costs } = useAppSelector((state) => state.life);
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
