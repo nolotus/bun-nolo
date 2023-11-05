@@ -2,13 +2,19 @@ import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { nolotusDomain } from 'core/init';
 import { DataType } from 'create/types';
 import React, { useEffect } from 'react';
-import { currentDomain } from 'utils/env';
+import { isDevelopment } from 'utils/env';
 
 import { AccountBalance } from './blocks/AccountBanlance';
 import DataList from './blocks/DataList';
 import TokenStatisticsBlock from './blocks/TokenStatisticsBlock';
 import { fetchDataThunk, setFilterType } from './lifeSlice';
 import { selectFilterType } from './selectors';
+export const currentDomain = isDevelopment
+  ? 'localhost'
+  : window.location.port
+  ? `${window.location.hostname}:${window.location.port}`
+  : `${window.location.hostname}`;
+
 const LifeAll = () => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
