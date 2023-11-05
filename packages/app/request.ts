@@ -1,4 +1,4 @@
-import {retrieveFirstToken} from 'auth/client/token';
+import { retrieveFirstToken } from 'auth/client/token';
 export const isIPv4 = (address: string): boolean => {
   const ipv4Regex =
     /^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.((25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.){2}(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$/;
@@ -6,8 +6,10 @@ export const isIPv4 = (address: string): boolean => {
 };
 
 export const buildURL = (domain: string, endpoint: string) => {
-  const {protocol, domainPrefix, port} = getProtocolAndPrefix(domain);
+  const { protocol, domainPrefix, port } = getProtocolAndPrefix(domain);
+
   const domainWithPort = port ? `${domainPrefix}:${port}` : domainPrefix;
+
   return `${protocol}://${domainWithPort}${endpoint}`;
 };
 export const getProtocolAndPrefix = (domainWithPort: string) => {
@@ -23,7 +25,7 @@ export const getProtocolAndPrefix = (domainWithPort: string) => {
     protocol = 'http';
   }
 
-  return {protocol, domainPrefix, port};
+  return { protocol, domainPrefix, port };
 };
 
 export const fetchApiData = async (url, method = 'GET', data = null) => {

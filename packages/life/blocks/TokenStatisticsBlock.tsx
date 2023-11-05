@@ -1,8 +1,10 @@
 import { useAppSelector } from 'app/hooks';
 import React from 'react';
 
+import { selectCosts } from '../selectors';
+
 const TokenStatisticsBlock = () => {
-  const { costs } = useAppSelector((state) => state.life);
+  const costs = useAppSelector(selectCosts);
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">

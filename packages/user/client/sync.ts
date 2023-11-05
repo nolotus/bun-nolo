@@ -1,6 +1,5 @@
-import {API_ENDPOINTS} from 'database/config';
-
-import {fetchWithToken, buildURL} from 'app/request';
+import { fetchWithToken, buildURL } from 'app/request';
+import { API_ENDPOINTS } from 'database/config';
 
 export const syncUserData = async (idDataMap, domain) => {
   const url = buildURL(domain, `${API_ENDPOINTS.USERS}/sync`);

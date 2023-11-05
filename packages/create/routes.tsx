@@ -7,8 +7,6 @@ const CreatePage = lazy(() => import('./CreatePage'));
 const CreateBlock = lazy(() => import('./pages/CreateBlock'));
 const CreateNoMoadSpot = lazy(() => import('./pages/CreateNoMoadSpot'));
 const CreateType = lazy(() => import('./pages/CreateType'));
-const CreateArtcile = lazy(() => import('./pages/CreateArtcile'));
-const CreateBooking = lazy(() => import('./pages/CreateBookings'));
 const CreateSurfingTrip = lazy(() => import('./pages/CreateSurfingTrip'));
 const CreateSurferProfile = lazy(() => import('./pages/CreateSurferProfile'));
 
@@ -19,8 +17,6 @@ const createPages = [
   { path: 'nomadspot', component: CreateNoMoadSpot },
   { path: 'block', component: CreateBlock },
   { path: 'type', component: CreateType },
-  { path: 'artcile', component: CreateArtcile },
-  { path: 'booking', component: CreateBooking },
   { path: 'chatrobot', component: CreateChatRobot },
   { path: 'surfing-trip', component: CreateSurfingTrip },
   { path: 'surfer-profile', component: CreateSurferProfile },

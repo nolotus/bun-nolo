@@ -1,5 +1,5 @@
-import {API_ENDPOINTS} from 'database/config';
-import {buildURL} from 'app/request';
+import { buildURL } from 'app/request';
+import { API_ENDPOINTS } from 'database/config';
 
 export const queryUser = async (limit, offset?, domain = 'nolotus.com') => {
   const url = buildURL(

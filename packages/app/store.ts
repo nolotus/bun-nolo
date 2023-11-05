@@ -9,11 +9,11 @@ import { api } from './services/api';
 
 export const store = configureStore({
   reducer: {
+    life: lifeReducer,
     chat: chatReducer,
     user: userReducer,
     page: pageReducer,
     [api.reducerPath]: api.reducer,
-    life: lifeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(api.middleware),

@@ -12,7 +12,6 @@ export default {
       path: 'Path',
       content: 'Content',
       title: 'Title',
-      createArticle: 'Create Article',
       // ...
     },
   },
@@ -29,7 +28,6 @@ export default {
       path: '路径',
       content: '内容',
       title: '标题',
-      createArticle: '创建文章',
       // add more translation strings here
     },
   },
@@ -46,7 +44,6 @@ export default {
       path: '路徑',
       content: '內容',
       title: '標題',
-      createArticle: '創建文章',
       // ... add more UI messages here
     },
   },
@@ -63,7 +60,6 @@ export default {
       path: 'パス',
       content: 'コンテンツ',
       title: 'タイトル',
-      createArticle: '記事を作成',
       // ... add more UI messages here
     },
   },
