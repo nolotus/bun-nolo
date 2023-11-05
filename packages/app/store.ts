@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import chatReducer from 'chat/chatSlice';
 import pageReducer from 'create/pageSlice';
+import lifeReducer from 'life/lifeSlice';
 import userReducer from 'user/userSlice';
 
 // import { setupListeners } from '@reduxjs/toolkit/query'
@@ -8,6 +9,7 @@ import { api } from './services/api';
 
 export const store = configureStore({
   reducer: {
+    life: lifeReducer,
     chat: chatReducer,
     user: userReducer,
     page: pageReducer,

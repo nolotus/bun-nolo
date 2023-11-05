@@ -1,91 +1,71 @@
-import { useAuth } from 'app/hooks';
+import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { nolotusDomain } from 'core/init';
-import fetchReadAllData from 'database/client/readAll';
-import React, { useEffect, useState } from 'react';
-import { getLogger } from 'utils/logger';
+import { DataType } from 'create/types';
+import React, { useEffect } from 'react';
+import { currentDomain } from 'utils/env';
 
 import { AccountBalance } from './blocks/AccountBanlance';
 import DataList from './blocks/DataList';
 import TokenStatisticsBlock from './blocks/TokenStatisticsBlock';
-
-const lifeLogger = getLogger('life');
-
+import { fetchDataThunk, setFilterType } from './lifeSlice';
+import { selectFilterType } from './selectors';
 const LifeAll = () => {
-  const [data, setData] = useState(null);
-
-  const [aiUsage, setAiUsage] = useState(0);
-  const [tokenStatistics, setTokenStatistics] = useState(null);
-
   const auth = useAuth();
+  const dispatch = useAppDispatch();
+  const filterType = useAppSelector(selectFilterType);
+  const fetchData = (userId: string) => {
+    const domains = nolotusDomain.map((domain) => ({ domain, source: domain }));
 
-  const fetchData = async () => {
-    const currentDomain = window.location.port
-      ? `${window.location.hostname}:${window.location.port}`
-      : `${window.location.hostname}`;
-    const mainDomain = nolotusDomain[0];
-    const isMainHost = currentDomain === mainDomain;
+    // 检查 currentDomain 是否已经包含在 domains 数组中
+    const isCurrentDomainIncluded = domains.some(
+      (item) => item.domain === currentDomain,
+    );
 
-    if (isMainHost) {
-      const res = await fetchReadAllData(mainDomain, auth.user?.userId);
-      if (res) {
-        setData(res.map((item) => ({ ...item, source: 'both' })));
-      } else {
-        lifeLogger.error('Failed to fetch data from nolotus.com');
-      }
-    } else {
-      const [localData, nolotusData] = await Promise.all([
-        fetchReadAllData(currentDomain, auth.user?.userId),
-        fetchReadAllData(mainDomain, auth.user?.userId),
-      ]);
-      if (!localData && !nolotusData) {
-        lifeLogger.error('Both requests failed');
-        return;
-      }
-
-      let mergedData = [];
-
-      if (localData) {
-        const nolotusKeys = nolotusData
-          ? new Set(nolotusData.map((item) => item.key))
-          : new Set();
-        mergedData = localData.map((item) => ({
-          ...item,
-          source: nolotusKeys.has(item.key) ? 'both' : 'local',
-        }));
-      }
-
-      if (nolotusData) {
-        nolotusData.forEach((item) => {
-          if (!mergedData.some((localItem) => localItem.key === item.key)) {
-            mergedData.push({ ...item, source: 'nolotus' });
-          }
-        });
-      }
-
-      const tokenStatisticsData = mergedData.filter(
-        (item) => item.value && item.value.type === 'tokenStatistics',
-      );
-
-      setTokenStatistics(tokenStatisticsData);
-      setData(mergedData);
+    // 如果 currentDomain 不包含在 domains 数组中，则将其添加到数组中
+    if (!isCurrentDomainIncluded) {
+      domains.push({ domain: currentDomain, source: currentDomain });
     }
+
+    // 遍历 domains 数组，为每个 domain 调用 fetchDataThunk 函数
+    domains.forEach(({ domain, source }) => {
+      dispatch(fetchDataThunk({ userId, domain, source }));
+    });
   };
 
   useEffect(() => {
-    auth.user?.userId && fetchData();
+    auth.user?.userId && fetchData(auth.user?.userId);
   }, [auth.user?.userId]);
+
+  const handleFilterTypeChange = (
+    event: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    dispatch(setFilterType(event.target.value));
+  };
 
   return (
     <div className="p-4">
-      <AccountBalance aiUsage={aiUsage} />
-      {tokenStatistics && (
-        <TokenStatisticsBlock
-          data={tokenStatistics}
-          onCostCalculated={setAiUsage}
-        />
-      )}
+      <AccountBalance />
+      <TokenStatisticsBlock />
+      <div className="my-4">
+        <label htmlFor="filterType">Filter Type:</label>
+        <select
+          id="filterType"
+          value={filterType}
+          onChange={handleFilterTypeChange}
+        >
+          <option value="" disabled hidden>
+            Select a filter type
+          </option>{' '}
+          {/* 新增的 option 元素 */}
+          {Object.values(DataType).map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <DataList data={data} refreshData={fetchData} />
+      <DataList refreshData={fetchData} />
     </div>
   );
 };

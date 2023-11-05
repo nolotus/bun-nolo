@@ -73,10 +73,10 @@ export function processLine(line) {
   if (line.trim() === '') {
     return [];
   }
-  const { key, value } = getHeadTail(line, ' ');
+  const { key: id, value } = getHeadTail(line, ' ');
   const parsedValue = parseValue(value);
-  const flags = extractAndDecodePrefix(key);
+  const flags = extractAndDecodePrefix(id);
   const decodedValue = decodeData(parsedValue, flags);
 
-  return [key.trim(), decodedValue];
+  return [id.trim(), decodedValue];
 }

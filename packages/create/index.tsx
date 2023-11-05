@@ -5,16 +5,6 @@ import { renderButton } from './blocks/renderButton'; // 确保路径是正确�
 import { YourTemplates } from './blocks/YourTemplates';
 const buttonsInfo = [
   {
-    text: '文章',
-    route: 'artcile',
-    customStyles: 'bg-red-500 text-white hover:bg-red-600',
-  },
-  {
-    text: '预定',
-    route: 'booking',
-    customStyles: 'bg-blue-500 text-white hover:bg-blue-600',
-  },
-  {
     text: '聊天机器人',
     route: 'chatrobot',
     customStyles: 'bg-green-500 text-white hover:bg-green-600',

@@ -1,7 +1,6 @@
 // pageSlice.js
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import defaultMdast from 'render/defaultMdast';
 import {
   markdownToMdast,
   mdastToMarkdown,
@@ -17,7 +16,7 @@ export const pageSlice = createSlice({
     slug: '',
     creator: '',
     createdTime: '',
-    mdast: defaultMdast,
+    mdast: { type: 'root', children: [] },
   },
   reducers: {
     setTitle: (state, action) => {

@@ -18,7 +18,6 @@ const fetchReadAllData = async (domain, userId) => {
       method: 'POST',
       body: JSON.stringify({ userId }),
     });
-
     const parsedData = await Promise.race([fetchPromise, timeoutPromise]);
     readLogger.info(`Data from ${url}:`, parsedData);
     return parsedData;

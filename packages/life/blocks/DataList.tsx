@@ -1,15 +1,20 @@
+import { useAppSelector } from 'app/hooks';
 import React from 'react';
+
+import { selectFilteredLifeData } from '../selectors';
 
 import DataItem from './DataItem';
 
-const DataList = ({ data, refreshData }) => {
+const DataList = ({ refreshData }) => {
+  const data = useAppSelector(selectFilteredLifeData);
+
   return (
     <div className="space-y-4">
       {data
         ? data.map((item) => (
-            <div className="p-2" key={item.key}>
+            <div className="p-2" key={item.id}>
               <DataItem
-                dataId={item.key}
+                dataId={item.id}
                 content={item.value}
                 refreshData={refreshData}
                 source={item.source}
