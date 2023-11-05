@@ -18,10 +18,10 @@ export const serverGetAllData = (userId, stream) => {
       const rl = readline.createInterface({ input });
 
       rl.on('line', (line) => {
-        const [key, value] = processLine(line);
-        readLogger.info({ key, value }, 'processLine');
-        if (key.includes(userId)) {
-          data.push({ key, value }); // Add data to array
+        const [id, value] = processLine(line);
+        readLogger.info({ id, value }, 'processLine');
+        if (id.includes(userId)) {
+          data.push({ id, value }); // Add data to array
         }
       });
 

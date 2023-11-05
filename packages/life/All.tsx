@@ -1,5 +1,7 @@
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import { nolotusDomain } from 'core/init';
 import React, { useEffect } from 'react';
+import { isDevelopment } from 'utils/env';
 import { getLogger } from 'utils/logger';
 
 import { AccountBalance } from './blocks/AccountBanlance';
@@ -17,7 +19,16 @@ const lifeLogger = getLogger('life ');
 const LifeAll = () => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
+
   const fetchData = (userId: string) => {
+    const currentDomain = isDevelopment
+      ? 'localhost'
+      : window.location.port
+      ? `${window.location.hostname}:${window.location.port}`
+      : `${window.location.hostname}`;
+    const mainDomain = nolotusDomain[0];
+    const isMainHost = currentDomain === mainDomain;
+
     dispatch(fetchLocalData(userId));
     dispatch(fetchNolotusData(userId));
   };
