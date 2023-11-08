@@ -1,4 +1,4 @@
-import { api } from 'app/services/api';
+import { api } from 'app/api';
 
 import { ResponseData, WriteHashDataType, WriteDataType } from './types';
 export const dbApi = api.injectEndpoints({

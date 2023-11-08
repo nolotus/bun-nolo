@@ -38,8 +38,8 @@ export const sendRequestToOpenAI = async (
   const addPrefixForEnv = (url: string) => {
     return process.env.NODE_ENV === 'production' ? url : `http://localhost${url}`;
   };
-
-  const url = addPrefixForEnv(API_ENDPOINTS.CHAT_AI);
+const chatUrl = `${API_ENDPOINTS.AI}/chat`;
+  const url = addPrefixForEnv(chatUrl);
 
   const requestBody = createRequestBody(type, payload, {
     ...config,

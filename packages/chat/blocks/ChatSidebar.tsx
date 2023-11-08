@@ -6,7 +6,7 @@ import {
   useLazyGetEntriesQuery,
   useLazyGetEntryQuery,
   useDeleteEntryMutation,
-} from 'database/service';
+} from 'database/services';
 import React, { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ButtonLink, useModal, Dialog, Alert, useDeleteAlert } from 'ui';

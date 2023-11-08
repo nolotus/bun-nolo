@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppDispatch } from 'app/hooks';
-import { useLoginMutation } from 'app/services/auth';
 import { storeTokens } from 'auth/client/token';
+import { useLoginMutation } from 'auth/services';
 import { parseToken, signToken } from 'auth/token';
 import { createFieldsFromDSL } from 'components/Form/createFieldsFromDSL';
 import { FormField } from 'components/Form/FormField';

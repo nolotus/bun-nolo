@@ -1,7 +1,7 @@
 // proxyConfig.ts
-import {HttpsProxyAgent} from 'https-proxy-agent';
-import {AxiosRequestConfig} from 'axios';
-import {getLogger} from 'utils/logger';
+import { AxiosRequestConfig } from 'axios';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import { getLogger } from 'utils/logger';
 
 const openAiLogger = getLogger('OpenAI');
 

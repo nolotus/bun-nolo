@@ -1,12 +1,10 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { createResponse } from 'server/createResponse';
-import { getLogger } from 'utils/logger';
 
 import { FrontEndRequestBody } from '../types';
 
 import { getOpenAIHeaders } from './openAIConfig';
 import { getProxyAxiosConfig } from './proxyUtils';
-const openAiLogger = getLogger('OpenAI');
 
 const handleStreamEvents = (stream: AxiosResponse<any>) => {
   if (stream && stream.data) {

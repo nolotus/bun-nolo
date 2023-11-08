@@ -1,5 +1,5 @@
 import { useAppSelector, useAuth } from 'app/hooks';
-import { useDeleteEntryMutation, useGetEntryQuery } from 'database/service';
+import { useDeleteEntryMutation, useGetEntryQuery } from 'database/services';
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; // 引入 useHistory 来进行页面跳转
 import { renderContentNode } from 'render';

@@ -2,15 +2,9 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { retrieveFirstToken } from 'auth/client/token';
 // import { RootState } from "../store";
 
-const getDynamicBaseUrl = () => {
-  return process.env.NODE_ENV === 'production'
-    ? '/api/v1/'
-    : 'http://localhost/api/v1/';
-};
-
 export const api = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: getDynamicBaseUrl(),
+    baseUrl: 'http://localhost/api/v1/',
     prepareHeaders: (headers, { getState }) => {
       // By default, if we have a token in the store, let's use that for authenticated requests
       const token = retrieveFirstToken();
@@ -18,6 +12,17 @@ export const api = createApi({
         headers.set('authorization', `Bearer ${token}`);
       }
       return headers;
+    },
+    responseHandler: async (response) => {
+      if (response.headers.get('Content-Type')?.includes('audio')) {
+        // Instead of returning the Blob directly, create an Object URL here and return that instead.
+        const blob = new Blob([await response.arrayBuffer()], {
+          type: 'audio/mpeg',
+        });
+        return URL.createObjectURL(blob);
+      }
+      // Default to JSON handling
+      return response.json();
     },
   }),
   endpoints: () => ({}),

@@ -5,7 +5,7 @@ import lifeReducer from 'life/lifeSlice';
 import userReducer from 'user/userSlice';
 
 // import { setupListeners } from '@reduxjs/toolkit/query'
-import { api } from './services/api';
+import { api } from './api';
 
 export const store = configureStore({
   reducer: {

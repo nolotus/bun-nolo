@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
-import { useWriteMutation } from 'database/service';
+import { useWriteMutation } from 'database/services';
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { renderContentNode } from 'render';

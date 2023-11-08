@@ -1,4 +1,4 @@
-import { postToOpenAIProxy } from 'ai/server/openai';
+import { aiServerRoute } from 'ai/server/routes';
 import { handleToken } from 'auth/server/token';
 import { API_VERSION, API_ENDPOINTS } from 'database/config';
 import { DatabaseRequest } from 'database/server/routes';
@@ -22,11 +22,18 @@ export const handleRequest = async (request: Request) => {
   if (url.pathname.startsWith(API_VERSION)) {
     let body = request.body ? await request.json() : null;
     let query = Object.fromEntries(new URLSearchParams(url.search));
-    let req = { url, body, query, params: {}, headers: request.headers };
+    let req = {
+      url,
+      body,
+      query,
+      params: {},
+      headers: request.headers,
+      method: request.method,
+    };
 
-    if (url.pathname.startsWith(API_ENDPOINTS.CHAT_AI)) {
+    if (url.pathname.startsWith(API_ENDPOINTS.AI)) {
       req.user = await handleToken(request, res);
-      return postToOpenAIProxy(req, res);
+      return aiServerRoute(req, res);
     }
     if (url.pathname.startsWith(API_ENDPOINTS.USERS)) {
       return userServerRoute(req, res);

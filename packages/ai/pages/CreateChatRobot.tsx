@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { nanoid } from '@reduxjs/toolkit';
 import { useAuth } from 'app/hooks';
 import { FormField } from 'components/Form/FormField';
+import { useWriteMutation } from 'database/services';
 import i18next from 'i18n';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -10,7 +12,6 @@ import { Button } from 'ui/Button';
 
 import allTranslations from '../aiI18n';
 import { schema, fields } from '../dsl';
-import { createChatRobot } from '../services';
 Object.keys(allTranslations).forEach((lang) => {
   const translations = allTranslations[lang].translation;
   i18next.addResourceBundle(lang, 'translation', translations, true, true);
@@ -19,6 +20,10 @@ Object.keys(allTranslations).forEach((lang) => {
 const CreateChatRobot = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const [write, { isLoading: isWriteLoading, error: writeError }] =
+    useWriteMutation();
+
   const [error, setError] = useState(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const auth = useAuth();
@@ -30,8 +35,20 @@ const CreateChatRobot = () => {
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = (data: any) => {
-    createChatRobot(data, setIsSuccess, setError, auth.user?.userId); // Make sure to implement this function
+  const onSubmit = async (data) => {
+    const requestBody = {
+      data: { ...data, type: 'chatRobot' },
+      flags: { isJSON: true },
+      userId: auth.user?.userId,
+      customId: data.path ? data.path : nanoid(),
+    };
+
+    try {
+      const result = await write(requestBody).unwrap();
+      setIsSuccess(result.dataId); // 可以直接设置成功状态
+    } catch (error) {
+      setError(error.data?.message || error.status); // 可以直接设置错误状态
+    }
   };
 
   return (

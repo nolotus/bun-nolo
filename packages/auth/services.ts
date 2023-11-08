@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api } from 'app/api';
 export interface User {
   first_name: string;
   last_name: string;

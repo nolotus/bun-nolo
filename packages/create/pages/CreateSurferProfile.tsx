@@ -2,7 +2,7 @@
 import { useStore } from 'app';
 import { useAuth } from 'app/hooks';
 import { nolotusId } from 'core/init';
-import { useWriteHashMutation } from 'database/service';
+import { useWriteHashMutation } from 'database/services';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useSearchParams } from 'react-router-dom';

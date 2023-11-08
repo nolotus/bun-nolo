@@ -1,6 +1,6 @@
 // CreateSurfingTrip.tsx
 import { useAuth } from 'app/hooks';
-import { useWriteHashMutation } from 'database/service'; // 更新为api文件的真实路径
+import { useWriteHashMutation } from 'database/services'; // 更新为api文件的真实路径
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';

@@ -1,7 +1,7 @@
 // DataItem.js
 import { ChatBotBlock } from 'ai/blocks/ChatBotBlock';
 import { useAuth } from 'app/hooks';
-import { useDeleteEntryMutation } from 'database/service';
+import { useDeleteEntryMutation } from 'database/services';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 

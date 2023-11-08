@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from "react";
-import { useAppSelector } from "app/hooks";
-import { Message } from "./Message";
-import { selectChat } from "../chatSlice";
+import { useAppSelector } from 'app/hooks';
+import React, { useEffect, useRef } from 'react';
+
+import { selectChat } from '../chatSlice';
+
+import { Message } from './Message';
 
 interface Message {
   role: string;
