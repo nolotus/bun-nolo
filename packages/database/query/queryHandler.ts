@@ -1,5 +1,4 @@
-import { noloToObject, getHeadTail } from 'core';
-import { extractAndDecodePrefix } from 'core/prefix';
+import { noloToObject, getHeadTail, extractAndDecodePrefix } from 'core';
 import { readLines } from 'utils/bun/readLines';
 
 import { evaluateCondition } from './operators';

@@ -58,14 +58,24 @@ const CreateChatRobot = () => {
         className="bg-white w-full sm:w-4/5 md:w-3/5 lg:w-1/2 xl:w-3/5 2xl:w-1/2 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8"
       >
         <h2 className="text-xl font-bold mb-4">{t('createRobot')}</h2>
+
         {fields.map((field) => (
-          <FormField
-            key={field.id}
-            {...field}
-            errors={errors}
-            register={register}
-          />
+          <div className={'flex flex-col mb-4'} key={field.id}>
+            <label
+              htmlFor={field.id}
+              className={'block text-sm font-medium text-gray-700 mb-1'}
+            >
+              {t(field.label)}
+            </label>
+            <FormField
+              {...field}
+              key={field.id}
+              errors={errors}
+              register={register}
+            />
+          </div>
         ))}
+
         {error && <p className="text-red-500 text-sm mt-2 mb-2">{error}</p>}
         {isSuccess ? (
           <Button

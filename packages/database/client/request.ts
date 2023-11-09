@@ -2,7 +2,7 @@ import { fetchWithToken } from 'app/request';
 import { API_ENDPOINTS } from 'database/config';
 
 export const sendWriteRequest = async (requestData) => {
-  const url = `${API_ENDPOINTS.DATABASE}write`;
+  const url = `${API_ENDPOINTS.DATABASE}/write`;
   const options = {
     method: 'POST',
     body: JSON.stringify(requestData),

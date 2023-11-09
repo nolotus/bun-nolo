@@ -12,10 +12,18 @@ import { handleWrite } from './write';
 export const DatabaseRequest = async (req, res, url) => {
   const pathname = url.pathname;
 
-  const getIdFromPath = (prefix) => pathname.split(prefix)[1];
-
+  const getIdFromPath = (prefix) => {
+    const start = pathname.indexOf(prefix) + prefix.length;
+    const end =
+      pathname.indexOf('/', start) !== -1
+        ? pathname.indexOf('/', start)
+        : undefined;
+    return pathname.slice(start, end);
+  };
   if (pathname.startsWith(API_ENDPOINTS.DATABASE)) {
-    const operation = pathname.split(API_ENDPOINTS.DATABASE)[1].split('/')[0];
+    const operation = pathname
+      .substr(API_ENDPOINTS.DATABASE.length)
+      .split('/')[1];
 
     switch (operation) {
       case 'read':

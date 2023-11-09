@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from 'app/hooks';
 import { FormField } from 'components/Form/FormField';
-import { updateData } from 'database/client/update';
+import { useUpdateEntryMutation } from 'database/services'; // 导入新的 mutation 钩子
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -12,9 +12,19 @@ import { fields, schema } from '../dsl';
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const auth = useAuth();
+  const [updateEntry] = useUpdateEntryMutation(); // 初始化 mutation 钩子
+
   const onSubmit = async (data) => {
-    await updateData(auth.user?.userId, data, initialValues.id);
-    onClose(); // 关闭弹窗
+    try {
+      await updateEntry({
+        entryId: initialValues.id,
+        data,
+      }).unwrap();
+      onClose(); // 关闭弹窗
+    } catch (error) {
+      // 这里可以处理错误，例如显示一个错误信息
+      console.error('Error updating entry:', error);
+    }
   };
 
   const {
@@ -39,7 +49,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
             htmlFor={field.id}
             className={'block text-sm font-medium text-gray-700 mb-1'}
           >
-            {field.label}
+            {t(field.label)}
           </label>
           <FormField {...field} errors={errors} register={register} />
         </div>

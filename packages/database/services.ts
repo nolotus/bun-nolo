@@ -1,4 +1,6 @@
 import { api } from 'app/api';
+import { extractAndDecodePrefix, extractUserId } from 'core';
+import { selectCurrentUser } from 'user/userSlice';
 
 import { API_ENDPOINTS } from './config';
 import { ResponseData, WriteHashDataType, WriteDataType } from './types';
@@ -21,13 +23,19 @@ type DeleteEntryArgs = {
   entryId: string,
   domain?: string,
 };
+
+type UpdateEntryArgs = {
+  entryId: string,
+  data: any, // 根据需要定义更准确的类型
+  domain?: string,
+};
 export const dbApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getEntry: builder.query<ResponseData, GetEntryType>({
       query: ({ entryId, domain }) => {
         const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}read/${entryId}`
-          : `${API_ENDPOINTS.DATABASE}read/${entryId}`;
+          ? `${domain}${API_ENDPOINTS.DATABASE}/read/${entryId}`
+          : `${API_ENDPOINTS.DATABASE}/read/${entryId}`;
         return url;
       },
     }),
@@ -41,8 +49,8 @@ export const dbApi = api.injectEndpoints({
         });
 
         const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}${urlPath}?${queryParams}`
-          : `${API_ENDPOINTS.DATABASE}${urlPath}?${queryParams}`;
+          ? `${domain}${API_ENDPOINTS.DATABASE}/${urlPath}?${queryParams}`
+          : `${API_ENDPOINTS.DATABASE}/${urlPath}?${queryParams}`;
 
         return {
           url,
@@ -55,8 +63,8 @@ export const dbApi = api.injectEndpoints({
     write: builder.mutation<ResponseData, WriteDataType>({
       query: ({ data, flags, customId, userId, domain }) => {
         const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}write`
-          : `${API_ENDPOINTS.DATABASE}write`;
+          ? `${domain}${API_ENDPOINTS.DATABASE}/write`
+          : `${API_ENDPOINTS.DATABASE}/write`;
 
         return {
           url: url,
@@ -86,12 +94,65 @@ export const dbApi = api.injectEndpoints({
     deleteEntry: builder.mutation<ResponseData, DeleteEntryArgs>({
       query: ({ entryId, domain }) => {
         const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}delete/${entryId}`
-          : `${API_ENDPOINTS.DATABASE}delete/${entryId}`;
+          ? `${domain}${API_ENDPOINTS.DATABASE}/delete/${entryId}`
+          : `${API_ENDPOINTS.DATABASE}/delete/${entryId}`;
         return {
           url,
           method: 'DELETE',
         };
+      },
+    }),
+    updateEntry: builder.mutation<ResponseData, UpdateEntryArgs>({
+      queryFn: async (
+        { entryId, data, domain },
+        { getState },
+        extraArg,
+        baseQuery,
+      ) => {
+        // 直接访问状态
+        const state = getState();
+        const currentUser = selectCurrentUser(state);
+        const userId = currentUser?.userId;
+
+        if (!userId) {
+          // 如果找不到用户ID，则返回错误
+          return {
+            error: {
+              status: 'CUSTOM_ERROR',
+              error: 'No user ID found in state.',
+            },
+          };
+        }
+
+        const dataUserId = extractUserId(entryId);
+        const flags = extractAndDecodePrefix(entryId);
+
+        if (
+          !(
+            dataUserId === userId ||
+            (flags.isOthersWritable && data.writeableIds.includes(userId))
+          )
+        ) {
+          // 如果用户没有更新权限，返回错误
+          return {
+            error: {
+              status: 'CUSTOM_ERROR',
+              error: 'You do not have permission to update this entry.',
+            },
+          };
+        }
+
+        // 构建URL和请求配置
+        const url = domain
+          ? `${domain}${API_ENDPOINTS.DATABASE}/update/${entryId}`
+          : `${API_ENDPOINTS.DATABASE}/update/${entryId}`;
+
+        // 使用baseQuery执行请求
+        return baseQuery({
+          url,
+          method: 'PUT',
+          body: data,
+        });
       },
     }),
   }),
@@ -105,4 +166,5 @@ export const {
   useWriteMutation,
   useWriteHashMutation,
   useDeleteEntryMutation,
+  useUpdateEntryMutation,
 } = dbApi;

@@ -1,7 +1,6 @@
 import { Alert, useDeleteAlert } from './Alert';
 import { Avatar } from './Avatar';
 import { Button } from './Button';
-import { ButtonLink } from './ButtonLink';
 import { Card } from './Card';
 import { Dialog } from './Dialog';
 import DropDown from './DropDown';
@@ -23,7 +22,6 @@ export {
   LinkButton,
   Toggle,
   DropDown,
-  ButtonLink,
   Dialog,
   Alert,
   // Notify,

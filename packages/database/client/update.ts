@@ -1,6 +1,6 @@
 import { retrieveFirstToken } from 'auth/client/token';
+import { extractAndDecodePrefix, extractUserId } from 'core';
 import { formatData } from 'core/formatData';
-import { extractAndDecodePrefix, extractUserId } from 'core/prefix';
 import { getLogger } from 'utils/logger';
 
 import { API_ENDPOINTS } from '../config';
@@ -8,7 +8,7 @@ import { API_ENDPOINTS } from '../config';
 const updateLogger = getLogger('update');
 
 const updateDatabase = async (formattedData, dataId, token) => {
-  const response = await fetch(`${API_ENDPOINTS.DATABASE}update/${dataId}`, {
+  const response = await fetch(`${API_ENDPOINTS.DATABASE}/update/${dataId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

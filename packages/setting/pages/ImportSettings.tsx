@@ -14,7 +14,7 @@ const ImportSettings = () => {
   const fetchData = async () => {
     try {
       const fetchedData = await fetchWithToken(
-        `${API_ENDPOINTS.DATABASE}readAll`,
+        `${API_ENDPOINTS.DATABASE}/readAll`,
         {
           method: 'POST',
           body: JSON.stringify({ userId }),

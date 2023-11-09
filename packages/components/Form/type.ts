@@ -21,6 +21,6 @@ export interface FormFieldProps extends FieldProps {
   errors: Record<string, any>;
   subtype;
   readOnly: boolean;
-  className:string;
+  className?:string;
 
 }

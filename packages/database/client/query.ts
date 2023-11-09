@@ -2,7 +2,7 @@ import { API_ENDPOINTS } from '../config';
 import { QueryOptions } from '../query/types';
 
 export const queryData = async (userId: string, options: QueryOptions) => {
-  const url = `${API_ENDPOINTS.DATABASE}query/${userId}`;
+  const url = `${API_ENDPOINTS.DATABASE}/query/${userId}`;
 
   const queryParams = new URLSearchParams({
     isObject: options.isObject ? 'true' : 'false',

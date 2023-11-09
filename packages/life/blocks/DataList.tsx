@@ -1,9 +1,5 @@
 import { useAppSelector } from 'app/hooks';
-import {
-  extractAndDecodePrefix,
-  extractCustomId,
-  extractUserId,
-} from 'core/prefix';
+import { extractAndDecodePrefix, extractCustomId, extractUserId } from 'core';
 import { useDeleteEntryMutation, useWriteMutation } from 'database/services';
 import React from 'react';
 import { Card } from 'ui';
@@ -16,9 +12,20 @@ const DataList = ({ refreshData }) => {
   const data = useAppSelector(selectFilteredLifeData);
   const [deleteEntry] = useDeleteEntryMutation();
   const [write] = useWriteMutation();
-  const pullData = async (key, value) => {
+  const pullData = async (id, value) => {
     // Define the logic for pulling data here
     console.log('Data pulled from nolotus successfully');
+    const flags = extractAndDecodePrefix(id);
+    const userId = extractUserId(id);
+    const customId = extractCustomId(id);
+
+    await write({
+      data: value,
+      flags,
+      userId,
+      customId,
+      domain: 'http://localhost',
+    }).unwrap();
     refreshData();
   };
 

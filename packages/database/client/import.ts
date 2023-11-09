@@ -1,4 +1,4 @@
-import { extractAndDecodePrefix, extractCustomId } from 'core/prefix';
+import { extractAndDecodePrefix, extractCustomId } from 'core';
 import { getLogger } from 'utils/logger';
 
 import { sendWriteRequest } from './request';

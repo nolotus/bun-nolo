@@ -1,10 +1,11 @@
-import React from "react";
-import { useProfileData } from "../useProfileData"; // 确保路径正确
-import { useAuth } from "app/hooks";
+import { useAuth } from 'app/hooks';
+import React from 'react';
+
+import { useProfileData } from '../useProfileData'; // 确保路径正确
 
 const UserProfile = () => {
   const auth = useAuth();
-  const customId = "userProfile";
+  const customId = 'userProfile';
   const { formData, setFormData, handleSaveClick, error } =
     useProfileData(customId);
 
@@ -17,7 +18,7 @@ const UserProfile = () => {
           <input
             type="text"
             placeholder="Avatar URL"
-            value={formData?.avatar || ""}
+            value={formData?.avatar || ''}
             onChange={(e) =>
               setFormData({ ...formData, avatar: e.target.value })
             }
@@ -25,7 +26,7 @@ const UserProfile = () => {
           />
           <textarea
             placeholder="Self Introduction"
-            value={formData?.introduction || ""}
+            value={formData?.introduction || ''}
             onChange={(e) =>
               setFormData({ ...formData, introduction: e.target.value })
             }
@@ -34,7 +35,7 @@ const UserProfile = () => {
           <input
             type="text"
             placeholder="Personal Website"
-            value={formData?.website || ""}
+            value={formData?.website || ''}
             onChange={(e) =>
               setFormData({ ...formData, website: e.target.value })
             }

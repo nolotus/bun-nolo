@@ -9,14 +9,14 @@ export const readOwnData = async (
   flags: Flags,
 ) => {
   const dataId = generateIdWithCustomId(userId, customId, flags);
-  const validUrl = `${API_ENDPOINTS.DATABASE}read/${dataId}`;
+  const validUrl = `${API_ENDPOINTS.DATABASE}/read/${dataId}`;
   return await fetch(validUrl).then((res) => {
     return res.json();
   });
 };
 
 export async function readData(dataId: string) {
-  let validUrl = `${API_ENDPOINTS.DATABASE}read/${dataId}`;
+  let validUrl = `${API_ENDPOINTS.DATABASE}/read/${dataId}`;
   console.log('validUrl', validUrl);
   return await fetch(validUrl).then((res) => {
     return res.json();
