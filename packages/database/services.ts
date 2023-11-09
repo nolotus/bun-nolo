@@ -1,5 +1,6 @@
 import { api } from 'app/api';
 
+import { API_ENDPOINTS } from './config';
 import { ResponseData, WriteHashDataType, WriteDataType } from './types';
 export const dbApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -23,16 +24,19 @@ export const dbApi = api.injectEndpoints({
       },
     }),
     write: builder.mutation<ResponseData, WriteDataType>({
-      query: ({ data, flags, customId, userId, host }) => {
+      query: ({ data, flags, customId, userId, domain }) => {
+        const url = domain
+          ? `${domain}${API_ENDPOINTS.DATABASE}write`
+          : `${API_ENDPOINTS.DATABASE}write`; // 如果提供了 domain，就使用它
+
         return {
-          url: '/db/write',
+          url: url,
           method: 'POST',
           body: {
             data,
             flags,
             customId,
             userId,
-            host,
           },
         };
       },

@@ -1,3 +1,4 @@
+import { nanoid } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { useWriteMutation } from 'database/services';
 import React, { useEffect, useRef } from 'react';
@@ -13,6 +14,7 @@ import {
   setCreatedTime,
   saveContentAndMdast,
 } from './pageSlice';
+import { DataType } from './types';
 
 const CreatePage = () => {
   const auth = useAuth();
@@ -27,15 +29,17 @@ const CreatePage = () => {
       const pageData = {
         content: pageState.content,
         title: pageState.title,
-        hasVersion: pageState.hasVersion,
+        has_version: pageState.hasVersion,
         creator: auth.user?.userId, // 确保与auth状态同步
-        createdTime: pageState.createdTime,
+        created_at: pageState.createdTime,
         mdast: pageState.mdast,
+        type: DataType.Page,
       };
+      const newSlug = nanoid();
       const result = await mutate({
         data: pageData,
         flags: { isJSON: true },
-        customId: pageState.slug,
+        customId: newSlug,
         userId: auth.user?.userId,
       });
 

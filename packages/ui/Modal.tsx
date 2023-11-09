@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { createPortal } from "react-dom";
-import { useKey } from "react-use";
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useKey } from 'react-use';
 
 export const useModal = () => {
   const [visible, setVisible] = useState(false);
@@ -26,9 +26,11 @@ interface ModalProps {
 }
 
 export const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
-  useKey("Escape", onClose);
+  useKey('Escape', onClose);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const handleOverlayClick = (event) => {
     if (event.target === event.currentTarget) {
@@ -48,6 +50,6 @@ export const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
         {children}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

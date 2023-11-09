@@ -1,5 +1,6 @@
-import React from "react";
-import { Modal } from "./index";
+import React from 'react';
+
+import { Modal } from './index';
 
 export const Dialog = ({ isOpen, onClose, children }) => {
   return (

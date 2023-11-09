@@ -46,6 +46,18 @@ const routes = (currentUser) => [
           </Suspense>
         ),
       },
+      {
+        path: 'price',
+        element: (
+          <Suspense fallback={<>...</>}>
+            <Page
+              id={
+                '000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-v9ziDvBB6UkWgFM_S2PV6'
+              }
+            />
+          </Suspense>
+        ),
+      },
 
       ...authRoutes,
       {

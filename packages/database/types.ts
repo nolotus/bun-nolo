@@ -16,7 +16,7 @@ export type WriteDataType = {
   flags: Flags,
   customId: string,
   userId?: string,
-  host?: string,
+  domain?: string,
 };
 
 export type WriteHashDataType = {

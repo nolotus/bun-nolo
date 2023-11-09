@@ -1,5 +1,6 @@
-import React from "react";
-import { Modal, useModal } from "./index";
+import React from 'react';
+
+import { Modal, useModal } from './index';
 interface AlertProps {
   isOpen: boolean;
   onClose: () => void;

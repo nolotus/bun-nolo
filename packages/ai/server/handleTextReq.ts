@@ -1,5 +1,6 @@
-import {getLogger} from 'utils/logger';
-import {getOpenAIHeaders} from './openAIConfig';
+import { getLogger } from 'utils/logger';
+
+import { getOpenAIHeaders } from './openAIConfig';
 
 const apiLogger = getLogger('api');
 
@@ -11,7 +12,10 @@ export const handleTextReq = async (req, res) => {
 
   const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-  apiLogger.info({requestBody, openAIHeaders}, 'Sending request to OpenAI API');
+  apiLogger.info(
+    { requestBody, openAIHeaders },
+    'Sending request to OpenAI API',
+  );
 
   const response = await fetch(apiUrl, {
     method: 'POST',
@@ -28,7 +32,7 @@ export const handleTextReq = async (req, res) => {
   }
 
   const responseData = await response.json();
-  apiLogger.info({responseData}, 'Received response from OpenAI API');
+  apiLogger.info({ responseData }, 'Received response from OpenAI API');
 
   res.json(responseData);
 };
