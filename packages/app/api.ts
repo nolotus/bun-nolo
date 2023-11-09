@@ -4,7 +4,7 @@ import { retrieveFirstToken } from 'auth/client/token';
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: '/',
+    baseUrl: 'http://localhost/',
     prepareHeaders: (headers, { getState }) => {
       // By default, if we have a token in the store, let's use that for authenticated requests
       const token = retrieveFirstToken();

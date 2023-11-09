@@ -1,10 +1,8 @@
 export const handleChatReq = async (req, res) => {
   console.log('handleChatReq', req);
   //   const openAIHeaders = getOpenAIHeaders();
-  //   const proxyConfig = getProxyAxiosConfig();
   //   const requestBody: FrontEndRequestBody = req.body;
   //   const config: AxiosRequestConfig = {
-  //     ...proxyConfig,
   //     headers: openAIHeaders,
   //     method: 'POST',
   //     responseType: 'stream',

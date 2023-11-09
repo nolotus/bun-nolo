@@ -2,7 +2,6 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { getLogger } from 'utils/logger';
 
 import { getOpenAIHeaders } from './openAIConfig';
-import { getProxyAxiosConfig } from './proxyUtils';
 
 interface ImageRequestBody {
   prompt: string;
@@ -15,13 +14,11 @@ const openAiLogger = getLogger('OpenAI');
 export const handleImageReq = async (req: any, res: any) => {
   const requestBody: ImageRequestBody = req.body;
   const openAIHeaders = getOpenAIHeaders();
-  const proxyConfig = getProxyAxiosConfig();
   openAiLogger.info({ requestBody }, 'Handling image request');
 
   const apiUrl = 'https://api.openai.com/v1/images/generations';
 
   const config: AxiosRequestConfig = {
-    ...proxyConfig,
     headers: openAIHeaders,
     method: 'POST',
     url: apiUrl,

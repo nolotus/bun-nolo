@@ -3,7 +3,7 @@ import { getLogger } from 'utils/logger';
 import { FrontEndRequestBody } from '../types';
 
 import { handleAudioReq } from './handleAudioReq';
-import { handleImageReq } from './handleImageReq';
+// import { handleImageReq } from './handleImageReq';
 import { handleStreamReq } from './handleStreamReq';
 import { handleTextReq } from './handleTextReq';
 
@@ -17,8 +17,6 @@ export const postToOpenAIProxy = async (req, res): Promise<void> => {
   try {
     if (type === 'text') {
       return handleTextReq(req, res);
-    } else if (type === 'image') {
-      return handleImageReq(req, res);
     } else if (type === 'stream') {
       return handleStreamReq(req, res);
     } else if (type === 'audio') {

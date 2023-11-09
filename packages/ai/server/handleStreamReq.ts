@@ -1,10 +1,8 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { createResponse } from 'server/createResponse';
 
 import { FrontEndRequestBody } from '../types';
 
 import { getOpenAIHeaders } from './openAIConfig';
-import { getProxyAxiosConfig } from './proxyUtils';
 
 const handleStreamEvents = (stream: AxiosResponse<any>) => {
   if (stream && stream.data) {
@@ -31,14 +29,18 @@ const handleStreamEvents = (stream: AxiosResponse<any>) => {
   }
   return null;
 };
+
 export const handleStreamReq = async (req: Request, res) => {
   const openAIHeaders = getOpenAIHeaders();
-  const proxyConfig = getProxyAxiosConfig();
 
   const requestBody: FrontEndRequestBody = req.body;
 
   const config: AxiosRequestConfig = {
-    ...proxyConfig,
+    proxy: {
+      protocol: 'http',
+      host: '127.0.0.1',
+      port: 10080,
+    },
     headers: openAIHeaders,
     method: 'POST',
     responseType: 'stream',
@@ -52,9 +54,8 @@ export const handleStreamReq = async (req: Request, res) => {
 
   try {
     const response = await axios.request(config);
-    let res = createResponse();
 
-    return handleStreamEvents(response, res);
+    return handleStreamEvents(response);
   } catch (error) {
     console.log(error.message);
   }
