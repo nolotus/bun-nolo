@@ -50,7 +50,7 @@ const Home = () => {
         </main>
       </div>
       <aside className="w-full lg:w-1/2">
-        <Card className="p-12 rounded-lg text-center text-lg text-gray-700 space-y-4">
+        <Card className="p-12  text-center text-lg text-gray-700 space-y-4">
           <div className="text-3xl mb-4 font-patrick">如果你也想分享</div>
           <div className="text-2xl mb-4 font-patrick">
             点击{' '}

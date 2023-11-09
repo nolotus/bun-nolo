@@ -17,7 +17,9 @@ const DataItem = ({ dataId, content, source }) => {
     );
   }
   if (content?.type === 'page') {
-    return <PageBlock value={content} key={dataId} source={source} />;
+    return (
+      <PageBlock value={content} id={dataId} key={dataId} source={source} />
+    );
   }
   if (content?.type === 'tokenStatistics') {
     return (

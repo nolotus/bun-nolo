@@ -1,18 +1,11 @@
 // StringToArrayInput.tsx
 import React from 'react';
 
-const StringToArrayInput = ({
-  value,
-  onChange,
-  name,
-  label,
-  placeholder,
-  error,
-}) => {
-  const handleInputChange = e => {
-    const {value} = e.target;
+const StringToArrayInput = ({ value, onChange, name, placeholder, error }) => {
+  const handleInputChange = (e) => {
+    const { value } = e.target;
     // 将逗号分隔的字符串转换为数组
-    const valueArray = value.split(',').map(item => item.trim());
+    const valueArray = value.split(',').map((item) => item.trim());
     onChange(valueArray); // 将数组传递给onChange函数
   };
 
@@ -21,11 +14,6 @@ const StringToArrayInput = ({
 
   return (
     <div>
-      <label
-        htmlFor={name}
-        className="block text-gray-700 text-sm font-bold mb-2 mt-4">
-        {label}:
-      </label>
       <input
         type="text"
         id={name}

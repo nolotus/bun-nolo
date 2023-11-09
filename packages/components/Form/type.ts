@@ -6,6 +6,7 @@ export interface FieldProps {
   defaultValue?: string;
   optional?: boolean;
   readOnly?: boolean;
+  icon?: React.ReactNode;
 }
 export interface FormFieldProps extends FieldProps {
   type:
@@ -20,4 +21,6 @@ export interface FormFieldProps extends FieldProps {
   errors: Record<string, any>;
   subtype;
   readOnly: boolean;
+  className:string;
+
 }

@@ -30,7 +30,7 @@ const Layout = ({ disableAnimation = false }) => {
   };
 
   return (
-    <div className="bg-[#D5DDE0] bg-opacity-70 flex flex-col min-h-screen">
+    <div className="bg-[#e2e1e0] bg-opacity-70 flex flex-col min-h-screen">
       <Header />
       <div className="max-w-7xl w-full mx-auto p-8 md:p-16 flex-grow">
         {renderContent()}

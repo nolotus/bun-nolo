@@ -10,7 +10,6 @@ import React from 'react';
 export const DateField: React.FC<DateFieldProps> = ({
   id,
   register,
-  label,
   readOnly,
 }) => {
   const renderReadOnly = () => {
@@ -34,9 +33,6 @@ export const DateField: React.FC<DateFieldProps> = ({
 
   return (
     <div className="flex flex-col w-full md:w-1/2 lg:w-1/3">
-      <label htmlFor={id} className="text-sm font-medium text-gray-600 mb-2">
-        {label}
-      </label>
       {readOnly ? renderReadOnly() : renderInput()}
     </div>
   );

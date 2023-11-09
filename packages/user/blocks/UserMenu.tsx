@@ -1,14 +1,23 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
-import { changeCurrentUser } from "user/userSlice";
-import { Icon, LinkButton, DropDown } from "ui";
-import { getTokensFromLocalStorage } from "auth/client/token";
-import { parseToken } from "auth/token";
-import { removeToken, retrieveFirstToken } from "auth/client/token";
-import { userLogout } from "user/userSlice";
-import { useNavigate } from "react-router-dom";
-
+import {
+  GearIcon,
+  SignOutIcon,
+  CommentIcon,
+  PlusIcon,
+  PersonIcon,
+  ChevronDownIcon,
+} from '@primer/octicons-react';
+import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import {
+  getTokensFromLocalStorage,
+  removeToken,
+  retrieveFirstToken,
+} from 'auth/client/token';
+import { parseToken } from 'auth/token';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { LinkButton, DropDown } from 'ui';
+import { changeCurrentUser, userLogout } from 'user/userSlice';
 export const UserMenu = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -17,7 +26,7 @@ export const UserMenu = () => {
     const token = retrieveFirstToken();
     removeToken(token);
     dispatch(userLogout());
-    navigate("/home");
+    navigate('/');
   };
   const auth = useAuth();
   const users = useAppSelector((state) => state.user.users);
@@ -25,7 +34,7 @@ export const UserMenu = () => {
   const changeUser = (user) => {
     const tokens = getTokensFromLocalStorage();
     const updatedToken = tokens.find(
-      (t) => parseToken(t).userId === user.userId
+      (t) => parseToken(t).userId === user.userId,
     );
 
     if (updatedToken) {
@@ -33,68 +42,71 @@ export const UserMenu = () => {
         updatedToken,
         ...tokens.filter((t) => t !== updatedToken),
       ];
-      window.localStorage.setItem("tokens", JSON.stringify(newTokens));
+      window.localStorage.setItem('tokens', JSON.stringify(newTokens));
       dispatch(changeCurrentUser(user));
     }
   };
-  console.log("UserMenu render ");
+  console.log('UserMenu render ');
   return (
     <>
       <LinkButton
         to="/chat"
-        icon="chat"
+        icon={<CommentIcon size={24} />}
         label=""
-        extraClass="rounded  flex items-center"
-        iconClass="text-blue"
+        extraClass="rounded flex items-center p-3 hover:bg-gray-100"
+        iconClass="text-blue-500"
       />
       <LinkButton
         to="/create"
-        icon="plus"
+        icon={<PlusIcon size={24} />}
         label=""
-        extraClass="rounded  flex items-center"
-        iconClass="text-blue"
+        extraClass="rounded flex items-center p-3 hover:bg-gray-100"
+        iconClass="text-green-500"
       />
       <LinkButton
         to="/life"
-        icon="user"
+        icon={<PersonIcon size={24} />}
         label={auth.user?.username}
-        extraClass="flex justify-center items-center"
+        extraClass="flex justify-center items-center p-3 hover:bg-gray-100"
+        iconClass="text-purple-500"
       />
       <DropDown
         trigger={
-          <button className="flex items-center ml-2 focus:outline-none">
-            <Icon name="chevronDown" className="w-8 h-8" />
+          <button className="flex items-center ml-2 p-3 hover:bg-gray-100 focus:outline-none rounded-full">
+            <ChevronDownIcon size={24} className="text-gray-700" />
           </button>
         }
       >
-        <ul className="py-2">
+        <ul className="bg-white shadow-lg rounded-md py-1">
           {users.map(
             (user) =>
               user !== auth.user && (
                 <li key={user.userId}>
                   <button
                     onClick={() => changeUser(user)}
-                    className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                    className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
                   >
-                    change to {user.username}
+                    {t('change_to')} {user.username}
                   </button>
                 </li>
-              )
+              ),
           )}
           <li>
             <button
               onClick={logout}
-              className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+              className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-sm"
             >
-              {t("logout")}
+              <SignOutIcon size={24} className="mr-3 text-gray-700" />
+              {t('sign_out')}
             </button>
           </li>
           <li>
             <button
-              onClick={() => {}}
-              className="block w-full px-4 py-2 text-left hover:bg-gray-200"
+              onClick={() => navigate('/settings')}
+              className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-sm"
             >
-              <LinkButton to="/settings" icon="setting" label={t("settings")} />
+              <GearIcon size={24} className="mr-3 text-gray-700" />
+              {t('settings')}
             </button>
           </li>
         </ul>

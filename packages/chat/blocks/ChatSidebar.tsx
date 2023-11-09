@@ -1,4 +1,3 @@
-import ChatConfigForm from 'ai/blocks/ChatConfigForm';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { nolotusId } from 'core/init';
 import { extractUserId } from 'core/prefix';
@@ -9,7 +8,7 @@ import {
 } from 'database/services';
 import React, { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ButtonLink, useModal, Dialog, Alert, useDeleteAlert } from 'ui';
+import { ButtonLink } from 'ui';
 
 import {
   selectChat,
@@ -19,6 +18,7 @@ import {
   reloadChatList,
 } from '../chatSlice';
 
+import ChatItem from './ChatItem';
 const options = {
   isJSON: true,
   condition: {
@@ -46,6 +46,7 @@ const ChatSidebar = () => {
       }
       chatIdConfig.data && dispatch(fetchDefaultConfig(chatIdConfig.data));
     };
+    console.log('chatId', chatId);
     chatId && requestDefaultConfig();
   }, [chatId, dispatch, getDefaultConfig, navigate]);
 
@@ -77,15 +78,9 @@ const ChatSidebar = () => {
 
   const selectedChat = currentChatConfig?.id;
 
-  const { visible, open, close } = useModal();
   const postReloadChatList = async () => {
     const result = await getChatList({ userId: auth.user?.userId, options });
     isSuccess && dispatch(reloadChatList(result.data));
-    // const [nolotusConfigs, userConfigs] = await Promise.all([
-    //   queryConfigs(true),
-    //   queryConfigs(false, userId),
-    // ]);
-    // const uniqueConfigs = mergeConfigs(nolotusConfigs, userConfigs);
   };
 
   const [deleteEntry] = useDeleteEntryMutation();
@@ -96,15 +91,7 @@ const ChatSidebar = () => {
     console.log('delete ok');
     postReloadChatList();
   };
-  const {
-    visible: alertVisible,
-    confirmDelete,
-    doDelete,
-    closeAlert,
-    modalState,
-  } = useDeleteAlert((chat) => {
-    deleteChatBot(chat);
-  });
+
   const dataUserId = selectedChat && extractUserId(selectedChat);
   const allowEdit = dataUserId === auth.user?.userId;
 
@@ -120,46 +107,16 @@ const ChatSidebar = () => {
       ) : (
         <>
           {chatList.map((chat, index) => (
-            <div
-              key={index}
-              className={`flex items-center p-4 cursor-pointer group ${
-                selectedChat === chat.id ? 'bg-gray-200' : 'hover:bg-gray-200'
-              }`}
-              onClick={() => handleChatSelect(chat)}
-            >
-              <span className="text-gray-600">{chat.name}</span>
-              {allowEdit && (
-                <div className="opacity-0 group-hover:opacity-100 ml-auto">
-                  <button className="text-blue-400" onClick={() => open(chat)}>
-                    edit
-                  </button>
-                  <Dialog isOpen={visible} onClose={close}>
-                    {visible && (
-                      <ChatConfigForm initialValues={chat} onClose={close} />
-                    )}
-                  </Dialog>
-                </div>
-              )}
-              {allowEdit && (
-                <div className="opacity-0 group-hover:opacity-100 ml-auto">
-                  <button
-                    className="text-blue-400"
-                    onClick={() => confirmDelete(chat)}
-                  >
-                    删除
-                  </button>
-                  {alertVisible && (
-                    <Alert
-                      isOpen={alertVisible}
-                      onClose={closeAlert}
-                      onConfirm={doDelete}
-                      title={`删除 ${modalState.name}`}
-                      message={`你确定要删除 ${modalState.name} 吗？`}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
+            <ChatItem
+              key={chat.id}
+              chat={chat}
+              onChatSelect={handleChatSelect}
+              onDeleteChat={deleteChatBot}
+              isSelected={selectedChat === chat.id}
+              allowEdit={
+                allowEdit && extractUserId(chat.id) === auth.user?.userId
+              }
+            />
           ))}
         </>
       )}

@@ -5,7 +5,6 @@ const Layout = lazy(() => import('render/layout/Default'));
 const UploadPage = lazy(() => import('./UploadPage'));
 const CreatePage = lazy(() => import('./CreatePage'));
 const CreateBlock = lazy(() => import('./pages/CreateBlock'));
-const CreateNoMoadSpot = lazy(() => import('./pages/CreateNoMoadSpot'));
 const CreateType = lazy(() => import('./pages/CreateType'));
 const CreateSurfingTrip = lazy(() => import('./pages/CreateSurfingTrip'));
 const CreateSurferProfile = lazy(() => import('./pages/CreateSurferProfile'));
@@ -14,7 +13,6 @@ const CreateChatRobot = lazy(() => import('ai/pages/CreateChatRobot'));
 
 const createPages = [
   { path: 'page', component: CreatePage },
-  { path: 'nomadspot', component: CreateNoMoadSpot },
   { path: 'block', component: CreateBlock },
   { path: 'type', component: CreateType },
   { path: 'chatrobot', component: CreateChatRobot },

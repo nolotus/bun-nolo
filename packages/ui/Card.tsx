@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export const Card = (props) => {
   const { children, onClick, className } = props;

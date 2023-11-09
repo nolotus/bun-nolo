@@ -1,14 +1,12 @@
 import React from 'react';
 
-export const WeekdayField = ({id, register, label}) => (
+export const WeekdayField = ({ id, register }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-      {label}
-    </label>
     <select
       id={id}
       {...register(id)}
-      className="mt-1 p-2 w-full border rounded-md">
+      className="mt-1 p-2 w-full border rounded-md"
+    >
       <option value="0">Sunday</option>
       <option value="1">Monday</option>
       <option value="2">Tuesday</option>

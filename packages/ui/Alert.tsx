@@ -1,6 +1,8 @@
 import React from 'react';
+import { Button } from 'ui/Button'; // 确保这是正确的导入路径
 
 import { Modal, useModal } from './index';
+
 interface AlertProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,6 +22,7 @@ export const useDeleteAlert = (deleteCallback) => {
     deleteCallback(modalState);
     close();
   };
+
   return { visible, confirmDelete, doDelete, closeAlert: close, modalState };
 };
 
@@ -32,16 +35,17 @@ export const Alert: React.FC<AlertProps> = ({
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="p-6 bg-red-100 rounded-lg">
-        <h2 className="text-2xl font-bold mb-4">{title}</h2>
-        <p className="text-red-700">{message}</p>
-        <button
-          className="mt-4 py-2 px-6 rounded bg-red-600 text-white hover:bg-red-500 transition-colors duration-200 ease-in-out"
-          onClick={onConfirm}
-        >
-          确定
-        </button>
-        <button onClick={onClose}>取消</button>
+      <div className="p-6 bg-white rounded-lg">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">{title}</h2>
+        <p className="text-gray-700">{message}</p>
+        <div className="flex justify-end space-x-4 mt-4">
+          <Button variant="secondary" size="medium" onClick={onClose}>
+            取消
+          </Button>
+          <Button variant="primary" size="medium" onClick={onConfirm}>
+            确定
+          </Button>
+        </div>
       </div>
     </Modal>
   );

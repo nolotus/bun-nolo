@@ -9,7 +9,7 @@ const NoMatch = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-[#D5DDE0] bg-opacity-70">
+    <div className="flex flex-col items-center justify-center">
       <h2 className="text-2xl md:text-4xl lg:text-6xl font-semibold mb-8">
         Nothing to see here!
       </h2>

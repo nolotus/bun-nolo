@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { PersonIcon, LockIcon } from '@primer/octicons-react';
 import { useAppDispatch } from 'app/hooks';
 import { storeTokens } from 'auth/client/token';
 import { useLoginMutation } from 'auth/services';
@@ -12,6 +13,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { Button } from 'ui';
 import { userLogin } from 'user/userSlice';
 
 import { userFormSchema } from '../schema';
@@ -95,24 +97,43 @@ const Login: React.FC = () => {
       <div className="flex items-center justify-center">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="bg-white w-96 rounded-lg shadow-lg p-8"
+          className="w-full max-w-lg p-10 bg-white rounded-lg shadow"
         >
-          <h2 className="text-xl font-bold mb-4">{t('login')}</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">
+            {t('login')}
+          </h2>
           {fields.map((field) => (
-            <FormField
-              {...field}
-              key={field.id}
-              register={register}
-              errors={errors}
-            />
+            <div key={field.id} className="mb-6">
+              <label
+                htmlFor={field.id}
+                className="block mb-2 text-sm font-medium text-gray-700"
+              >
+                {t(field.label)}
+              </label>
+              <FormField
+                {...field}
+                register={register}
+                errors={errors}
+                icon={
+                  field.id === 'username' ? (
+                    <PersonIcon className="text-gray-400" size={24} />
+                  ) : (
+                    <LockIcon className="text-gray-400" size={24} />
+                  )
+                }
+              />
+            </div>
           ))}
           {error && <p className="text-red-500 text-sm mt-2 mb-2">{error}</p>}
-          <button
+          <Button
             type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
+            variant="primary"
+            size="medium"
+            width="w-full" // 通过 props 传递宽度类
+            loading={isLoading} // 假设你有一个状态来表示加载状态
           >
             {t('submit')}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

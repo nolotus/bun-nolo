@@ -35,7 +35,7 @@ export const Header: React.FC = () => {
 
   return (
     <header
-      className={clsx('bg-white z-10', {
+      className={clsx('bg-white', {
         'fixed top-0 left-0 right-0 bg-gray-200 shadow-md': isSticky,
       })}
     >

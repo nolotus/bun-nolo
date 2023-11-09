@@ -1,11 +1,9 @@
 import React from 'react';
-import {FieldProps} from './type';
 
-export const NumberField: React.FC<FieldProps> = ({id, register, label}) => (
+import { FieldProps } from './type';
+
+export const NumberField: React.FC<FieldProps> = ({ id, register }) => (
   <div>
-    <label htmlFor={id} className="block font-medium mb-1">
-      {label}
-    </label>
     <input
       type="number"
       id={id}

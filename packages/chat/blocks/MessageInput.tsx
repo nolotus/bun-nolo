@@ -1,28 +1,28 @@
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function MessageInput({ onSendMessage, isLoading }) {
   const { t } = useTranslation();
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState('');
 
   const handleNewMessageChange = (event) => {
     setNewMessage(event.target.value);
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === "Enter" && !event.shiftKey) {
+    if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       onSendMessage(newMessage);
-      setNewMessage("");
+      setNewMessage('');
     }
   };
 
   return (
     <div className="p-4 flex justify-center items-center">
-      <div className="relative w-full sm:w-4/5 md:w-3/4 lg:w-3/5">
+      <div className="relative w-full sm:w-4/5 md:w-3/4 lg:w-3/5 shadow">
         <textarea
-          className="w-full h-20 sm:h-24 md:h-28 p-3 pr-16 rounded border border-gray-300 shadow-inner resize-none text-black"
-          placeholder={t("typeMessage")}
+          className="w-full h-20 sm:h-24 md:h-28 p-3 pr-16 resize-none text-black"
+          placeholder={t('typeMessage')}
           value={newMessage}
           onChange={handleNewMessageChange}
           onKeyDown={handleKeyDown}
@@ -33,10 +33,10 @@ function MessageInput({ onSendMessage, isLoading }) {
           disabled={isLoading} // 禁用按钮
           onClick={() => {
             onSendMessage(newMessage);
-            setNewMessage("");
+            setNewMessage('');
           }}
         >
-          {isLoading ? "Sending..." : t("sendMessage")}
+          {isLoading ? 'Sending...' : t('sendMessage')}
         </button>
       </div>
     </div>

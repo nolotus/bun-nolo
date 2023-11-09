@@ -20,7 +20,7 @@ const Page = (props) => {
   const auth = useAuth();
   let navigate = useNavigate(); // 使用 useHistory hook 来控制路由跳转
   // const data = useStore(pageId);
-  const { data } = useGetEntryQuery(pageId);
+  const { data } = useGetEntryQuery({ entryId: pageId });
   const [deleteEntry, { isLoading: isDeleting }] = useDeleteEntryMutation();
 
   if (data) {

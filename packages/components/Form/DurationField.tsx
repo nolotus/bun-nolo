@@ -1,10 +1,7 @@
 import React from 'react';
 
-export const DurationField = ({id, register, label}) => (
+export const DurationField = ({ id, register }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-      {label}
-    </label>
     <input
       type="text"
       id={id}

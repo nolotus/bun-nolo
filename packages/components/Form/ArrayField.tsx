@@ -1,16 +1,9 @@
 import React from 'react';
-import {FieldProps} from './type';
 
-export const ArrayField: React.FC<FieldProps> = ({
-  id,
-  register,
-  label,
-  options,
-}) => (
+import { FieldProps } from './type';
+
+export const ArrayField: React.FC<FieldProps> = ({ id, register, options }) => (
   <div>
-    <label htmlFor={id} className="block font-medium mb-1">
-      {label}
-    </label>
     {options &&
       options.map((option, index) => (
         <label key={index} className="block">

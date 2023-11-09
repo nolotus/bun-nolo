@@ -20,7 +20,6 @@ const capitalizeFirstLetter = (string) => {
 };
 
 const i18nLogger = getLogger('i18n');
-const formLogger = getLogger('form');
 //todos
 //deps ,setValueAs,valueAsDate,valueAsNumber,validate,pattern,min,max,minLength,maxLength
 export const FormField: React.FC<FormFieldProps> = ({
@@ -34,6 +33,8 @@ export const FormField: React.FC<FormFieldProps> = ({
   readOnly,
   optional,
   defaultValue,
+  className,
+  icon,
 }) => {
   const { t } = useTranslation();
   const translatedLabel = capitalizeFirstLetter(t(label));
@@ -54,36 +55,16 @@ export const FormField: React.FC<FormFieldProps> = ({
           );
           break;
         case 'timestamp':
-          FieldComponent = (
-            <TimestampField
-              id={id}
-              register={register}
-              label={translatedLabel}
-            />
-          );
+          FieldComponent = <TimestampField id={id} register={register} />;
           break;
         case 'duration':
-          FieldComponent = (
-            <DurationField
-              id={id}
-              register={register}
-              label={translatedLabel}
-            />
-          );
+          FieldComponent = <DurationField id={id} register={register} />;
           break;
         case 'weekday':
-          FieldComponent = (
-            <WeekdayField id={id} register={register} label={translatedLabel} />
-          );
+          FieldComponent = <WeekdayField id={id} register={register} />;
           break;
         case 'datetime':
-          FieldComponent = (
-            <DatetimeField
-              id={id}
-              register={register}
-              label={translatedLabel}
-            />
-          );
+          FieldComponent = <DatetimeField id={id} register={register} />;
           break;
         default:
           FieldComponent = null;
@@ -109,6 +90,7 @@ export const FormField: React.FC<FormFieldProps> = ({
           label={translatedLabel}
           readOnly={readOnly}
           defaultValue={defaultValue}
+          icon={icon}
         />
       );
       break;
@@ -119,7 +101,12 @@ export const FormField: React.FC<FormFieldProps> = ({
       break;
     case 'password':
       FieldComponent = (
-        <PasswordField id={id} register={register} label={translatedLabel} />
+        <PasswordField
+          id={id}
+          register={register}
+          label={translatedLabel}
+          icon={icon}
+        />
       );
       break;
     case 'enum':
@@ -147,10 +134,10 @@ export const FormField: React.FC<FormFieldProps> = ({
   }
 
   return (
-    <div className="mb-4">
-      {FieldComponent}
+    <div className={className}>
+      <div>{FieldComponent}</div>
       {errors && errors[id] && (
-        <p className="text-red-500 text-sm mt-2 mb-2">
+        <p className="text-red-500 text-xs mt-2">
           {String(errors[id].message)}
         </p>
       )}

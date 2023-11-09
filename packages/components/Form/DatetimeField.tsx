@@ -1,10 +1,7 @@
 import React from 'react';
 
-export const DatetimeField = ({id, register, label}) => (
+export const DatetimeField = ({ id, register }) => (
   <div>
-    <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-      {label}
-    </label>
     <input
       type="datetime-local"
       id={id}

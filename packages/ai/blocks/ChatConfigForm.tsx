@@ -13,7 +13,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const auth = useAuth();
   const onSubmit = async (data) => {
-    await updateData(auth.user?.userId, data, id);
+    await updateData(auth.user?.userId, data, initialValues.id);
     onClose(); // 关闭弹窗
   };
 
@@ -34,12 +34,15 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       {fields.map((field) => (
-        <FormField
-          {...field}
-          errors={errors}
-          register={register}
-          key={field.id}
-        />
+        <div className={'flex flex-col mb-4'} key={field.id}>
+          <label
+            htmlFor={field.id}
+            className={'block text-sm font-medium text-gray-700 mb-1'}
+          >
+            {field.label}
+          </label>
+          <FormField {...field} errors={errors} register={register} />
+        </div>
       ))}
       <Button type="submit">{t('update')}</Button>
     </form>
