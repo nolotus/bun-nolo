@@ -1,60 +1,38 @@
-// dbSlice.js
-import {
-  createSlice,
-  createEntityAdapter,
-  createAsyncThunk,
-} from '@reduxjs/toolkit';
-import { getLogger } from 'utils/logger';
-
-import { dbApi } from './services'; // 确保从正确的位置导入 dbApi
-
-const logger = getLogger('db');
+import { createSlice, createEntityAdapter } from '@reduxjs/toolkit';
 
 // Entity adapter
-const dbAdapter = createEntityAdapter();
+export const dbAdapter = createEntityAdapter();
 
 // Initial state
-const initialState = dbAdapter.getInitialState({
-  status: 'idle',
-  error: null,
-});
+const initialState = dbAdapter.getInitialState({});
 
-// Async thunk
-export const fetchReadAllData = createAsyncThunk(
-  'db/fetchReadAll',
-  async ({ userId }, { rejectWithValue }) => {
-    try {
-      const response = await dbApi.endpoints.readAll.initiate(userId);
-      return response.data;
-    } catch (error) {
-      logger.error(error);
-      return rejectWithValue(error.message);
-    }
-  },
-);
+function mergeSource(existingItem, newSource) {
+  if (existingItem) {
+    const sourceSet = new Set(existingItem.source);
+    sourceSet.add(newSource);
+    return Array.from(sourceSet);
+  } else {
+    return [newSource];
+  }
+}
 
 // Slice
 const dbSlice = createSlice({
   name: 'db',
   initialState,
   reducers: {
-    // ...可能的其他reducers
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchReadAllData.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(fetchReadAllData.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        dbAdapter.setAll(state, action.payload);
-      })
-      .addCase(fetchReadAllData.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload;
+    updateData: (state, action) => {
+      const updatedData = action.payload.data.map((item) => {
+        const existingItem = state.entities[item.id];
+        return {
+          ...item,
+          source: mergeSource(existingItem, action.payload.source),
+        };
       });
+      dbAdapter.upsertMany(state, updatedData);
+    },
   },
 });
 
-export const {} = dbSlice.actions;
+export const { updateData } = dbSlice.actions;
 export default dbSlice.reducer;

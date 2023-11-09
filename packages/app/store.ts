@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import chatReducer from 'chat/chatSlice';
 import pageReducer from 'create/pageSlice';
+import dbReducer from 'database/dbSlice';
 import lifeReducer from 'life/lifeSlice';
 import userReducer from 'user/userSlice';
 
@@ -13,6 +14,7 @@ export const store = configureStore({
     chat: chatReducer,
     user: userReducer,
     page: pageReducer,
+    db: dbReducer,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

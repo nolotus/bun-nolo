@@ -155,6 +155,32 @@ export const dbApi = api.injectEndpoints({
         });
       },
     }),
+    readAll: builder.query<ResponseData, { userId: string, domain?: string }>({
+      query: ({ userId, domain }) => {
+        // 确保domain具有正确的协议前缀
+        let fullDomain = domain;
+        if (domain) {
+          const hasHttp = domain.startsWith('http://');
+          const hasHttps = domain.startsWith('https://');
+          if (!hasHttp && !hasHttps) {
+            fullDomain = domain.startsWith('localhost')
+              ? `http://${domain}`
+              : `https://${domain}`;
+          }
+        }
+
+        const endpoint = '/readAll';
+        const url = fullDomain
+          ? `${fullDomain}${API_ENDPOINTS.DATABASE}${endpoint}`
+          : `${API_ENDPOINTS.DATABASE}${endpoint}`;
+
+        return {
+          url,
+          method: 'POST',
+          body: { userId },
+        };
+      },
+    }),
   }),
 });
 
@@ -167,4 +193,5 @@ export const {
   useWriteHashMutation,
   useDeleteEntryMutation,
   useUpdateEntryMutation,
+  useLazyReadAllQuery,
 } = dbApi;

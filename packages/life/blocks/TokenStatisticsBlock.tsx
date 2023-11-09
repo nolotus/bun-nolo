@@ -1,7 +1,6 @@
+import { selectCosts } from 'ai/selectors';
 import { useAppSelector } from 'app/hooks';
 import React from 'react';
-
-import { selectCosts } from '../selectors';
 
 const TokenStatisticsBlock = () => {
   const costs = useAppSelector(selectCosts);

@@ -1,19 +1,22 @@
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { nolotusDomain } from 'core/init';
 import { DataType } from 'create/types';
+import { updateData } from 'database/dbSlice';
+import { useLazyReadAllQuery } from 'database/services';
 import React, { useEffect } from 'react';
 import { isDevelopment } from 'utils/env';
 
 import { AccountBalance } from './blocks/AccountBanlance';
 import DataList from './blocks/DataList';
 import TokenStatisticsBlock from './blocks/TokenStatisticsBlock';
-import { fetchDataThunk, setFilterType } from './lifeSlice';
+import { setFilterType } from './lifeSlice';
 import { selectFilterType } from './selectors';
 export const LifeAll = () => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const filterType = useAppSelector(selectFilterType);
-  const fetchData = (userId: string) => {
+  const [trigger, { data, error, isLoading }] = useLazyReadAllQuery();
+  const fetchData = async (userId: string) => {
     const currentDomain = isDevelopment
       ? 'localhost'
       : window.location.port
@@ -32,9 +35,10 @@ export const LifeAll = () => {
       domains.push({ domain: currentDomain, source: currentDomain });
     }
 
-    // 遍历 domains 数组，为每个 domain 调用 fetchDataThunk 函数
-    domains.forEach(({ domain, source }) => {
-      dispatch(fetchDataThunk({ userId, domain, source }));
+    domains.forEach(async ({ domain, source }) => {
+      const result = await trigger({ userId, domain }).unwrap();
+      console.log('result', result);
+      dispatch(updateData({ data: result, source }));
     });
   };
 
