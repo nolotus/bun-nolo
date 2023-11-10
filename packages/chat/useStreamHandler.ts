@@ -1,7 +1,8 @@
 // useStreamHandler.ts
 import { sendRequestToOpenAI } from 'ai/client/request';
 import { tokenStatic } from 'ai/client/static';
-import { useAppDispatch } from 'app/hooks';
+import { useAppDispatch, useAuth } from 'app/hooks';
+import { useWriteHashMutation } from 'database/services';
 import { getLogger } from 'utils/logger';
 
 import {
@@ -14,7 +15,8 @@ const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 
 export const useStreamHandler = (config, userId, username) => {
   const dispatch = useAppDispatch();
-
+  const auth = useAuth();
+  const [writeHashData] = useWriteHashMutation();
   let temp;
   let tokenCount = 0;
   const handleStreamData = (data) => {
@@ -48,7 +50,8 @@ export const useStreamHandler = (config, userId, username) => {
                 userId,
                 username,
               };
-              tokenStatic(staticData);
+              tokenStatic(staticData, auth, writeHashData);
+
               tokenCount = 0; // 重置计数器
             } else if (
               finishReason === 'length' ||

@@ -9,36 +9,7 @@ const buttonsInfo = [
     route: 'chatrobot',
     customStyles: 'bg-green-500 text-white hover:bg-green-600',
   },
-  {
-    text: '位置',
-    route: 'location',
-    customStyles: 'bg-purple-500 text-white hover:bg-purple-600',
-  },
-  {
-    text: '俱乐部',
-    route: 'club',
-    customStyles: 'bg-indigo-500 text-white hover:bg-indigo-600',
-  },
-  {
-    text: '旅居点',
-    route: 'nomadspot',
-    customStyles: 'bg-blue-500 text-white hover:bg-blue-600',
-  },
-  {
-    text: '期限物品',
-    route: 'nomadspot',
-    customStyles: 'bg-yellow-500 text-white hover:bg-yellow-600',
-  },
-  {
-    text: '记账',
-    route: 'nomadspot',
-    customStyles: 'bg-orange-500 text-white hover:bg-orange-600',
-  },
-  {
-    text: '任务',
-    route: 'nomadspot',
-    customStyles: 'bg-teal-500 text-white hover:bg-teal-600',
-  },
+
   {
     text: '冲浪行程',
     route: 'surfing-trip',

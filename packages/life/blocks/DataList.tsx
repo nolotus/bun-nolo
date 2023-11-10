@@ -1,7 +1,8 @@
+import { TrashIcon, RepoPullIcon, RepoPushIcon } from '@primer/octicons-react';
 import { useAppSelector } from 'app/hooks';
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from 'core';
 import { useDeleteEntryMutation, useWriteMutation } from 'database/services';
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from 'ui';
 
 import { selectFilteredLifeData } from '../selectors';
@@ -52,48 +53,90 @@ const DataList = ({ refreshData }) => {
     console.log('Data deleted successfully');
     refreshData();
   };
+  const [selectedItems, setSelectedItems] = useState({});
+
+  // 其他函数保持不变
+
+  const toggleSelectAll = () => {
+    const newSelectedItems = {};
+    if (Object.keys(selectedItems).length !== data.length) {
+      data.forEach((item) => {
+        newSelectedItems[item.id] = true;
+      });
+    }
+    setSelectedItems(newSelectedItems);
+  };
+
+  const deleteSelectedItems = async () => {
+    await Promise.all(
+      Object.keys(selectedItems).map((itemId) =>
+        deleteEntry({ entryId: itemId }),
+      ),
+    );
+    console.log('Selected data deleted successfully');
+    refreshData();
+  };
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <input
+            type="checkbox"
+            checked={Object.keys(selectedItems).length === data.length}
+            onChange={toggleSelectAll}
+          />
+          <label>全选</label>
+        </div>
+        <button
+          onClick={deleteSelectedItems}
+          className="bg-red-500 text-white p-2 rounded hover:bg-red-400"
+        >
+          删除选中
+        </button>
+      </div>
+
       {data
         ? data.map((item) => (
-            <Card key={item.id}>
-              <DataItem
-                dataId={item.id}
-                content={item.value}
-                refreshData={refreshData}
-                source={item.source}
-              />
-              <ul className="flex flex-wrap -m-1">
-                {item.source.map((src, index) => (
-                  <li key={index} className="m-1">
-                    <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-                      {src}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex space-x-2">
+            <div className="flex group" key={item.id}>
+              <div className="flex flex-col space-y-2 mr-4 invisible group-hover:visible">
                 <button
                   onClick={() => pullData(item.id, item.value)}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded"
+                  className="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-400"
                 >
-                  Pull
+                  <RepoPullIcon size={16} />
                 </button>
                 <button
                   onClick={() => pushData(item.id, item.value)}
-                  className="bg-green-500 text-white px-4 py-2 rounded"
+                  className="bg-green-500 text-white p-2 rounded hover:bg-green-400"
                 >
-                  Push
+                  <RepoPushIcon size={16} />
                 </button>
                 <button
                   onClick={() => deleteItem(item.id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  className="bg-red-500 text-white p-2 rounded hover:bg-red-400"
                 >
-                  Delete
+                  <TrashIcon size={16} />
                 </button>
               </div>
-            </Card>
+              <Card>
+                <DataItem
+                  dataId={item.id}
+                  content={item.value}
+                  refreshData={refreshData}
+                  source={item.source}
+                />
+                <ul className="flex flex-wrap -m-1">
+                  {item.source.map((src, index) => (
+                    <li key={index} className="m-1">
+                      <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                        {src}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
           ))
         : 'Loading...'}
     </div>

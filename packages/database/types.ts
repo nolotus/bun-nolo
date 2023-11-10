@@ -23,4 +23,5 @@ export type WriteHashDataType = {
   data: any,
   flags: Flags,
   userId?: string,
+  domain?: string,
 };

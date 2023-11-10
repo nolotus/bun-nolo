@@ -79,9 +79,13 @@ export const dbApi = api.injectEndpoints({
       },
     }),
     writeHash: builder.mutation<ResponseData, WriteHashDataType>({
-      query: ({ data, flags, userId }) => {
+      query: ({ data, flags, userId, domain }) => {
+        const url = domain
+          ? `${domain}${API_ENDPOINTS.DATABASE}/write`
+          : `${API_ENDPOINTS.DATABASE}/write`;
+
         return {
-          url: '/db/write',
+          url,
           method: 'POST',
           body: {
             data,
