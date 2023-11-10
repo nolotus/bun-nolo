@@ -36,11 +36,6 @@ export const handleStreamReq = async (req: Request, res) => {
   const requestBody: FrontEndRequestBody = req.body;
 
   const config: AxiosRequestConfig = {
-    proxy: {
-      protocol: 'http',
-      host: '127.0.0.1',
-      port: 10080,
-    },
     headers: openAIHeaders,
     method: 'POST',
     responseType: 'stream',
