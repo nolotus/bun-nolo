@@ -61,7 +61,6 @@ const ChatPage = () => {
   //       limit: 1000,
   //     };
 
-  //     const result = await queryData(nolotusId, options);
   //     const currentUserIdCost = calcCurrentUserIdCost(
   //       result,
   //       auth?.user?.userId

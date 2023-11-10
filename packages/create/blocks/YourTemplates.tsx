@@ -1,5 +1,4 @@
 import { useAuth } from 'app/hooks';
-import { queryData } from 'database/client/query';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,13 +19,13 @@ export const YourTemplates = () => {
   }, []);
 
   useEffect(() => {
-    queryData(auth.user?.userId, options)
-      .then((data) => {
-        setTemplates(data);
-      })
-      .catch((error) => {
-        console.error('error', error);
-      });
+    // queryData(auth.user?.userId, options)
+    //   .then((data) => {
+    //     setTemplates(data);
+    //   })
+    //   .catch((error) => {
+    //     console.error('error', error);
+    //   });
   }, [auth.user?.userId, options]);
 
   return (

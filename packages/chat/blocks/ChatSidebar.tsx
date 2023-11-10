@@ -42,6 +42,7 @@ const ChatSidebar = () => {
   const { currentChatConfig } = useAppSelector(selectChat);
 
   const chatList = useAppSelector((state) => state.chat.chatList);
+  const chatItems = chatList.ids.map((id) => chatList.entities[id]);
 
   const [getChatList, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
 
@@ -94,7 +95,7 @@ const ChatSidebar = () => {
         'loading'
       ) : (
         <>
-          {chatList.map((chat, index) => (
+          {chatItems.map((chat) => (
             <ChatItem
               key={chat.id}
               chat={chat}
