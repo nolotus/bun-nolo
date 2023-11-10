@@ -1,4 +1,3 @@
-import fetchReadAllData from 'database/client/readAll';
 import React, { useState } from 'react';
 import { UserArrayComponent } from 'user/blocks/UserItem';
 import { queryUser } from 'user/client/query';
@@ -37,7 +36,9 @@ const ServiceProviderSettings = () => {
     const promises = syncUserArray.map(async (user) => {
       const { userId } = user;
       console.log(`Fetching data for user ID: ${userId}`);
-      const userData = await fetchReadAllData(dataSource, userId);
+      // const userData = await fetchReadAllData(dataSource, userId);
+      const userData = [];
+
       console.log(`Fetched data for user ID: ${userId}`);
       return [userId, userData];
     });

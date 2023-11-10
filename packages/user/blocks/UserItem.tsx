@@ -1,4 +1,3 @@
-import fetchReadAllData from 'database/client/readAll';
 import React, { useState } from 'react';
 import { deleteUser } from 'user/client/delete';
 
@@ -7,7 +6,8 @@ export const UserItem = ({ user, handleCheckboxChange, dataSource }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDetailClick = async (userId) => {
-    const data = await fetchReadAllData(dataSource, userId);
+    // const data = await fetchReadAllData(dataSource, userId);
+    const data = [];
     setDetailedData(data);
     setIsOpen(!isOpen);
   };
