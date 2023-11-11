@@ -44,18 +44,4 @@ export const FLAGS_MAP = {
     'isOthersWritable',
     'isReadableByOthers', // 新增的标志
   ],
-  12: [
-    'isHash',
-    'isVersion',
-    'isList',
-    'isObject',
-    'isString',
-    'isBase64',
-    'isJSON',
-    'isUrlSafe',
-    'isOthersWritable',
-    'isReadableByOthers',
-    'isIndex', // 新增的标志
-    'isVersion', // 新增的标志
-  ],
 };

@@ -16,7 +16,7 @@ jobs:
       # run any `bun` or `bunx` command
       - run: rm -rf bun.lockb
       - run: bun install
-      - run: bun run build
+      - run: bun test
   deploy:
     needs: build-test
     runs-on: ubuntu-latest
