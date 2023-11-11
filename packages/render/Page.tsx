@@ -1,6 +1,6 @@
 import { useAppSelector, useAuth } from 'app/hooks';
 import { useDeleteEntryMutation, useGetEntryQuery } from 'database/services';
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; // 引入 useHistory 来进行页面跳转
 import { renderContentNode } from 'render';
 
@@ -16,7 +16,7 @@ const Page = (props) => {
     pageId = params.pageId;
   }
   const isLoggedIn = useAppSelector((state) => state.user.isLoggedIn);
-
+  const [showMarkdown, setShowMarkdown] = useState(false);
   const auth = useAuth();
   let navigate = useNavigate(); // 使用 useHistory hook 来控制路由跳转
   // const data = useStore(pageId);
@@ -42,7 +42,7 @@ const Page = (props) => {
       // 编辑页面的逻辑，这里假设跳转到编辑页面的路由
       // navigate(`/edit/${pageId}`);
     };
-    const { mdast, type } = data;
+    const { mdast, type, content } = data;
     let renderedContent;
     if (type === 'page') {
       renderedContent = renderContentNode(mdast);
@@ -50,6 +50,9 @@ const Page = (props) => {
       renderedContent = <pre>{JSON.stringify(data, null, 2)}</pre>;
     }
     if (data) {
+      const toggleMarkdown = () => {
+        setShowMarkdown(!showMarkdown);
+      };
       const isCreator = data.creator === auth.user?.userId;
       return (
         <div>
@@ -75,6 +78,14 @@ const Page = (props) => {
               >
                 {isDeleting ? 'Deleting...' : 'Delete Page'}
               </button>
+              <button
+                type="button"
+                onClick={toggleMarkdown}
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              >
+                {showMarkdown ? 'Hide Markdown' : 'Show Markdown'}
+              </button>
+              {showMarkdown && <div>{content}</div>}
             </>
           )}
         </div>

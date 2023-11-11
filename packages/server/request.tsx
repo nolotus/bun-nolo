@@ -9,10 +9,7 @@ import { handleRender } from './render';
 
 let res = createResponse();
 
-export const handleRequest = async (
-  request: Request,
-  assets: { js: string, css: string },
-) => {
+export const handleRequest = async (request: Request) => {
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') {
     return res.status(200).json('ok');
@@ -59,7 +56,7 @@ export const handleRequest = async (
     }
   }
   try {
-    return await handleRender(request, assets);
+    return await handleRender(request);
   } catch (error) {
     console.error(`处理请求时发生错误: ${error}`);
     return new Response('<h1>服务器发生错误，请稍后重试</h1>', {

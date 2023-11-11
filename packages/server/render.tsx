@@ -3,9 +3,9 @@ import React, { createElement } from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { Html } from 'web/Html';
 
-export const handleRender = async (req, assets) => {
-  const bootstrapJs = `/public/${assets.js}`;
-  const bootstrapCss = `/public/${assets.css}`;
+export const handleRender = async (req) => {
+  const bootstrapJs = '/public/assets/entry.js';
+  const bootstrapCss = '/public/assets/entry.css';
   const url = new URL(req.url);
   let didError = false;
   const renderContent = Array.from(memCache, ([name, value]) => ({
