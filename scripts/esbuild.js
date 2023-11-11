@@ -20,7 +20,6 @@ const config = {
   minify: isProduction, // 仅在生产环境中最小化代码
   sourcemap: isProduction ? false : 'external', // 仅在非生产环境中生成源代码映射
   treeShaking: true,
-  splitting: true,
   format: 'esm',
   loader: {
     // 加载器配置保持不变
