@@ -5,6 +5,8 @@ const initialState = lifeAdapter.getInitialState({
   filterType: '',
   excludeType: '',
   userIdFilter: '',
+  sortKey: '', // 新增：用于筛选的键
+  sortOrder: 'asc', // 新增：排序顺序，默认为升序（asc）
 });
 const lifeSlice = createSlice({
   name: 'life',
@@ -16,7 +18,14 @@ const lifeSlice = createSlice({
     setUserIdFilter: (state, action) => {
       state.userIdFilter = action.payload;
     },
+    setSortKey: (state, action) => {
+      state.sortKey = action.payload;
+    },
+    setSortOrder: (state, action) => {
+      state.sortOrder = action.payload;
+    },
   },
 });
-export const { setFilterType, setUserIdFilter } = lifeSlice.actions;
+export const { setFilterType, setUserIdFilter, setSortKey, setSortOrder } =
+  lifeSlice.actions;
 export default lifeSlice.reducer;

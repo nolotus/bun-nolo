@@ -51,8 +51,8 @@ export const handleRender = async (req, assets) => {
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="Bun, Elysia & React" />
-        <title>Bun, Elysia & React</title>
+        <meta name="description" content="nolotus" />
+        <title>nolotus</title>
         <link rel="stylesheet" href="${bootstrapCss}"></link>
         <script>
           function $U(h, s) {

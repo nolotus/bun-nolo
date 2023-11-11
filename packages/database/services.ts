@@ -97,9 +97,21 @@ export const dbApi = api.injectEndpoints({
     }),
     deleteEntry: builder.mutation<ResponseData, DeleteEntryArgs>({
       query: ({ entryId, domain }) => {
-        const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}/delete/${entryId}`
+        let fullDomain = domain;
+        if (domain) {
+          const hasHttp = domain.startsWith('http://');
+          const hasHttps = domain.startsWith('https://');
+          if (!hasHttp && !hasHttps) {
+            fullDomain = domain.startsWith('localhost')
+              ? `http://${domain}`
+              : `https://${domain}`;
+          }
+        }
+        const url = fullDomain
+          ? `${fullDomain}${API_ENDPOINTS.DATABASE}/delete/${entryId}`
           : `${API_ENDPOINTS.DATABASE}/delete/${entryId}`;
+        console.log('url', url);
+
         return {
           url,
           method: 'DELETE',

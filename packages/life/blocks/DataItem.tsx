@@ -1,12 +1,10 @@
 // DataItem.js
 import { ChatBotBlock } from 'ai/blocks/ChatBotBlock';
+import TokenStatisticsItem from 'ai/blocks/TokenStatisticsItem';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { PageBlock } from './PageBlock';
-const truncateContent = (content) => {
-  return content.length > 50 ? content.substring(0, 50) + '...' : content;
-};
 const DataItem = ({ dataId, content, source }) => {
   if (content?.type === 'chatRobot') {
     return (
@@ -22,18 +20,7 @@ const DataItem = ({ dataId, content, source }) => {
     );
   }
   if (content?.type === 'tokenStatistics') {
-    return (
-      <Link
-        to={`/${dataId}`}
-        key={dataId}
-        className="p-2 w-full sm:w-1/2 lg:w-1/3"
-      >
-        <h3 className="text-md font-semibold text-gray-700">{dataId}</h3>
-        <p className="mt-2 text-sm text-gray-500">
-          {truncateContent(JSON.stringify(content))}
-        </p>
-      </Link>
-    );
+    return <TokenStatisticsItem dataId={dataId} content={content} />;
   }
 
   const displayContent =

@@ -31,8 +31,11 @@ const dbSlice = createSlice({
       });
       dbAdapter.upsertMany(state, updatedData);
     },
+    deleteData: (state, action) => {
+      dbAdapter.removeOne(state, action.payload);
+    },
   },
 });
 
-export const { updateData } = dbSlice.actions;
+export const { updateData, deleteData } = dbSlice.actions;
 export default dbSlice.reducer;

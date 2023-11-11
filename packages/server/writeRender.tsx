@@ -2,7 +2,6 @@ import { memCache } from 'app';
 import React, { createElement } from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { Html } from 'web/Html';
-// import assets from "../../public/output.json";
 
 export const handleRender = async (request) => {
   const url = new URL(request.url);
@@ -50,8 +49,8 @@ export const handleRender = async (request) => {
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="Bun, Elysia & React" />
-        <title>Bun, Elysia & React</title>
+        <meta name="description" content="nolotus" />
+        <title>nolotus</title>
         <link rel="stylesheet" href="/public/entry.css"></link>
         <script>
           function $U(h, s) {

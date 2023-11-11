@@ -1,6 +1,7 @@
 import { TrashIcon, RepoPullIcon, RepoPushIcon } from '@primer/octicons-react';
-import { useAppSelector, useAuth } from 'app/hooks';
+import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from 'core';
+import { deleteData } from 'database/dbSlice';
 import { useDeleteEntryMutation, useWriteMutation } from 'database/services';
 import React, { useState } from 'react';
 import { Card } from 'ui';
@@ -12,6 +13,7 @@ import DataItem from './DataItem';
 const DataList = ({ refreshData }) => {
   const auth = useAuth();
   const data = useAppSelector(selectFilteredLifeData);
+  const dispatch = useAppDispatch();
   const [deleteEntry] = useDeleteEntryMutation();
   const [write] = useWriteMutation();
   const pullData = async (id, value) => {
@@ -46,14 +48,17 @@ const DataList = ({ refreshData }) => {
       domain: 'http://nolotus.com',
     }).unwrap();
     console.log('Data pushed to nolotus successfully');
-    refreshData();
+    refreshData(auth.user?.userId);
   };
 
-  const deleteItem = async (dataId: string) => {
-    await deleteEntry({ entryId: dataId });
-    console.log('Data deleted successfully');
-    refreshData();
+  const deleteItem = async (dataId: string, domains: string[]) => {
+    for (const domain of domains) {
+      await deleteEntry({ entryId: dataId, domain });
+      console.log(`Data deleted successfully from domain: ${domain}`);
+    }
+    dispatch(deleteData(dataId));
   };
+
   const [selectedItems, setSelectedItems] = useState({});
 
   // 其他函数保持不变
@@ -75,7 +80,7 @@ const DataList = ({ refreshData }) => {
       ),
     );
     console.log('Selected data deleted successfully');
-    refreshData();
+    refreshData(auth.user?.userId);
   };
 
   return (
@@ -114,7 +119,7 @@ const DataList = ({ refreshData }) => {
                   <RepoPushIcon size={16} />
                 </button>
                 <button
-                  onClick={() => deleteItem(item.id)}
+                  onClick={() => deleteItem(item.id, item.source)}
                   className="bg-red-500 text-white p-2 rounded hover:bg-red-400"
                 >
                   <TrashIcon size={16} />
