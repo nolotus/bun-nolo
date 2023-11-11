@@ -19,7 +19,7 @@ export const FLAGS_MAP = {
     'isString',
     'isBase64',
     'isJSON',
-    'isUrlSafe', // 新增的标志
+    'isUrlSafe',
   ],
   9: [
     'isHash',
@@ -30,7 +30,7 @@ export const FLAGS_MAP = {
     'isBase64',
     'isJSON',
     'isUrlSafe',
-    'isOthersWritable', // 新增的标志
+    'isOthersWritable',
   ],
   10: [
     'isHash',
@@ -42,7 +42,7 @@ export const FLAGS_MAP = {
     'isJSON',
     'isUrlSafe',
     'isOthersWritable',
-    'isReadableByOthers', // 新增的标志
+    'isReadableByOthers',
   ],
   12: [
     'isHash',
@@ -53,7 +53,9 @@ export const FLAGS_MAP = {
     'isBase64',
     'isJSON',
     'isUrlSafe',
+    'isOthersWritable',
+    'isReadableByOthers',
     'isIndex',
-    'isVersion', // 新增的标志
+    'isPrivate',
   ],
 };

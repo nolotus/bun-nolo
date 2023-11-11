@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'bun:test';
+
 import {
   setKeyPrefix,
   decodeKeyPrefix,
@@ -7,7 +9,6 @@ import {
   isUrlSafe,
   getDecodedFlag,
 } from './prefix';
-
 describe('Key Prefix utilities', () => {
   it('should correctly decode a prefix into flags with new flag', () => {
     const prefix = '101010111';
@@ -63,7 +64,7 @@ describe('Key Prefix utilities', () => {
       isReadableByOthers: true, // 新增的标志
     };
     const prefix = setKeyPrefix(flags);
-    expect(prefix).toBe('1010101111'); // 注意：现在有10个标志
+    expect(prefix).toBe('101010111100'); // 注意：现在有10个标志
   });
 
   it('should correctly decode a prefix into flags with new flags', () => {
