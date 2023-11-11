@@ -16,11 +16,7 @@ const Page = lazy(() => import('render/Page'));
 export const routes = (currentUser) => [
   {
     path: '/',
-    element: (
-      <Suspense fallback={<div>loading layout</div>}>
-        <Default />
-      </Suspense>
-    ),
+    element: <Default />,
     children: [
       {
         index: true,
