@@ -1,6 +1,7 @@
 import { authRoutes } from 'auth/client/routes';
 import { routes as createRoutes } from 'create/routes';
 import React, { Suspense, lazy } from 'react';
+import Default from 'render/layout/Default';
 import { routes as settingRoutes } from 'setting/routes';
 
 import { SurfTip } from './SurfTip';
@@ -9,7 +10,6 @@ const ChatPage = lazy(() => import('chat/ChatPage'));
 const Home = lazy(() => import('./pages/Home'));
 const Life = lazy(() => import('life/All'));
 const Welcome = lazy(() => import('./pages/Welcome'));
-const Default = lazy(() => import('render/layout/Default'));
 const Full = lazy(() => import('render/layout/Full'));
 const Page = lazy(() => import('render/Page'));
 

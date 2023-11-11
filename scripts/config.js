@@ -18,7 +18,7 @@ export const config = {
   bundle: true,
   minify: isProduction, // 仅在生产环境中最小化代码
   sourcemap: isProduction ? false : 'external', // 仅在非生产环境中生成源代码映射
-  splitting: isProduction ? true : false, // 仅在生产环境中拆分代码
+  splitting: true,
   treeShaking: true,
   format: 'esm',
   loader: {
