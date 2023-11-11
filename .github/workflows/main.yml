@@ -38,5 +38,5 @@ jobs:
             git reset --hard origin/${{ github.ref_name }}
             rm -rf bun.lockb
             /root/.bun/bin/bun install
-            /root/.bun/bin/bun ./packages/server/entry.tsx
+            /root/.bun/bin/bun run build  
             pm2 restart all

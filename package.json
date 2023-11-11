@@ -38,7 +38,7 @@
     "unist-util-visit": "^5.0.0"
   },
   "scripts": {
-    "dev": "bun --watch ./packages/server/entry.tsx",
-    "prod": "bun  ./packages/server/entry.tsx"
+    "dev": "bun --watch ./scripts/esDev",
+    "build": "bun  ./scripts/esBuild"
   }
 }
