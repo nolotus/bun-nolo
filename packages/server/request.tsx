@@ -18,18 +18,7 @@ export const handleRequest = async (request: Request) => {
     const filePath = url.pathname.replace('/public', '');
     const file = Bun.file(`public${filePath}`);
 
-    let cacheControlHeader = 'no-cache, no-store, must-revalidate'; // 默认为开发环境设置
-    if (process.env.NODE_ENV === 'production') {
-      // 在生产环境中设置更长的缓存时间
-      cacheControlHeader = 'public, max-age=86400'; // 例如, 1年
-    }
-
-    return new Response(file, {
-      headers: {
-        'Cache-Control': cacheControlHeader,
-        'Content-Type': file.type,
-      },
-    });
+    return new Response(file);
   }
   if (url.pathname.startsWith(API_VERSION)) {
     let body = request.body ? await request.json() : null;

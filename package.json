@@ -39,7 +39,7 @@
   },
   "scripts": {
     "server":"bun --hot ./packages/server/entry.ts",
-    "dev": "bun  ./scripts/esDev && bun server",
+    "dev": "bun server & bun ./scripts/esDev",
     "build": "bun  ./scripts/esBuild"
   }
 }
