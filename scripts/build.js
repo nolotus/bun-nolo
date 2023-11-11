@@ -44,7 +44,7 @@ export async function runBuild() {
 
 // runBuild();
 // const serverConfig = {
-//   entrypoints: ["./packages/server/entry.tsx"],
+//   entrypoints: ["./packages/server/entry.ts"],
 //   outdir: "./build",
 //   naming: "[dir]/[name].[ext]",
 //   sourcemap: "external",
