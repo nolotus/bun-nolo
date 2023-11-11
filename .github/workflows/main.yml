@@ -29,7 +29,7 @@ jobs:
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ github.ref == 'refs/heads/alpha' && 'nolotus.top' || (github.ref == 'refs/heads/main' && 'nolotus.com') }}
+          host: ${{ github.ref == 'refs/heads/alpha' && 'nolotus.com' || (github.ref == 'refs/heads/main' && 'nolotus.com') }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
