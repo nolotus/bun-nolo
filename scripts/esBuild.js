@@ -4,6 +4,6 @@ import { config } from './config';
 
 // console.log(await esbuild.analyzeMetafile(result.metafile));
 export const runBuild = async () => {
-  await esbuild.build({ ...config, write: false });
+  await esbuild.build(config);
 };
 runBuild();
