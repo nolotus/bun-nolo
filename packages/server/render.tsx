@@ -2,9 +2,10 @@ import { memCache } from 'app';
 import React, { createElement } from 'react';
 import { renderToReadableStream } from 'react-dom/server';
 import { Html } from 'web/Html';
-// import assets from "../../public/output.json";
 
-export const handleRender = async (req) => {
+export const handleRender = async (req, assets) => {
+  const bootstrapJs = `/public/${assets.js}`;
+  const bootstrapCss = `/public/${assets.css}`;
   const url = new URL(req.url);
   let didError = false;
   const renderContent = Array.from(memCache, ([name, value]) => ({
@@ -19,7 +20,7 @@ export const handleRender = async (req) => {
     const data = { url, renderContent, hostnameL: req.host, lng };
     const app = createElement(Html, data);
     const stream = await renderToReadableStream(app, {
-      bootstrapModules: ['/public/entry.js'],
+      bootstrapModules: [bootstrapJs],
       onError(error) {
         didError = true;
         console.error(`渲染错误: ${error}`);
@@ -53,7 +54,7 @@ export const handleRender = async (req) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="Bun, Elysia & React" />
         <title>Bun, Elysia & React</title>
-        <link rel="stylesheet" href="/public/entry.css"></link>
+        <link rel="stylesheet" href="${bootstrapCss}"></link>
         <script>
           function $U(h, s) {
             document.getElementById(h)?.remove();

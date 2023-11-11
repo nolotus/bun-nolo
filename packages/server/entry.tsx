@@ -1,13 +1,15 @@
 import { serve } from 'bun';
 
-import { handleRequest } from './request';
+import { esbuildClient } from '../../scripts/esbuild';
 
-export const startServer = () => {
+import { handleRequest } from './request';
+export const startServer = async () => {
+  const assets = await esbuildClient();
   if (process.env.NODE_ENV === 'production') {
     serve({
       port: 443,
       hostname: '0.0.0.0',
-      fetch: handleRequest,
+      fetch: (request) => handleRequest(request, assets),
       tls: {
         key: Bun.file('./key.pem'),
         cert: Bun.file('./cert.pem'),
@@ -20,7 +22,7 @@ export const startServer = () => {
   serve({
     port: 80,
     hostname: '0.0.0.0',
-    fetch: handleRequest,
+    fetch: (request) => handleRequest(request, assets),
   });
 };
 startServer();
