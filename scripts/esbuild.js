@@ -2,47 +2,14 @@ import fs from 'node:fs';
 
 import * as esbuild from 'esbuild';
 import postCssPlugin from 'esbuild-style-plugin';
+import rimraf from 'rimraf';
+import { isProduction } from 'utils/env';
 
-// import publicPath from "../public/output.json";
-// const inputPath = "./packages/web/entry.tsx";
-// const config = {
-//   entryPoints: [inputPath],
-//   entryNames: "[dir]/[name]-[hash]",
-//   bundle: true,
-//   outdir: "public",
-//   format: "esm",
-//   loader: {
-//     // 将 JavaScript 文件作为 JSX 加载
-//     ".js": "jsx",
-//     // 将 WebP 文件作为文件加载
-//     ".webp": "file",
-//     // 将 JPEG 文件作为文件加载
-//     ".jpg": "file",
-//     // 将 PNG 文件作为文件加载
-//     ".png": "file",
-//     // 将 SVG 文件作为文本加载
-//     ".svg": "text",
-//   },
-// };
-
-// console.log(await esbuild.analyzeMetafile(result.metafile));
-// export const esbuildClient = async () => {
-//   const before = publicPath.main;
-//   let result = await esbuild.build({ ...config, write: false });
-//   const arr = result.outputFiles[0].path.split("/");
-//   const filename = arr[4];
-//   const json = { main: filename };
-//   const str = new TextDecoder().decode(result.outputFiles[0].contents);
-//   if (filename !== before) {
-//     console.log("esbuildClient", result);
-//     fs.writeFileSync(`./public/${filename}`, str);
-//     fs.writeFileSync("./public/output.json", JSON.stringify(json));
-//   }
-// };
-// esbuildClient();
-
+const inputPath = './packages/web/entry.tsx';
 const config = {
-  entryPoints: ['./packages/web/entry.tsx'],
+  entryPoints: [inputPath],
+
+  entryNames: '[dir]/[name]-[hash]',
   outdir: 'public',
   plugins: [
     postCssPlugin({
@@ -52,24 +19,60 @@ const config = {
     }),
   ],
   bundle: true,
-  minify: true,
-  sourcemap: 'external',
+  minify: isProduction, // 仅在生产环境中最小化代码
+  sourcemap: isProduction ? false : 'external', // 仅在非生产环境中生成源代码映射
   treeShaking: true,
   splitting: true,
   format: 'esm',
   loader: {
-    // 将 JavaScript 文件作为 JSX 加载
+    // 加载器配置保持不变
     '.js': 'jsx',
-    // 将 WebP 文件作为文件加载
     '.webp': 'file',
-    // 将 JPEG 文件作为文件加载
     '.jpg': 'file',
-    // 将 PNG 文件作为文件加载
     '.png': 'file',
-    // 将 SVG 文件作为文本加载
     '.svg': 'text',
   },
 };
 
-let result = await esbuild.build(config);
-console.log('build', result);
+// console.log(await esbuild.analyzeMetafile(result.metafile));
+export const esbuildClient = async () => {
+  let result = await esbuild.build({ ...config, write: false });
+
+  // 清空 public 目录
+  rimraf.sync('./public/*');
+
+  try {
+    // 遍历所有输出文件并写入
+    result.outputFiles.forEach((file) => {
+      const pathParts = file.path.split('/');
+      const filename = pathParts.pop();
+      fs.writeFileSync(
+        `./public/${filename}`,
+        new TextDecoder().decode(file.contents),
+      );
+    });
+
+    const entryJsFile = result.outputFiles.find((file) => {
+      const parts = file.path.split('/');
+      const filename = parts.pop();
+      return filename.startsWith('entry') && filename.endsWith('.js');
+    });
+
+    const entryCssFile = result.outputFiles.find((file) => {
+      const parts = file.path.split('/');
+      const filename = parts.pop();
+      return filename.startsWith('entry') && filename.endsWith('.css');
+    });
+
+    if (entryJsFile && entryCssFile) {
+      const jsFilename = entryJsFile.path.split('/').pop();
+      const cssFilename = entryCssFile.path.split('/').pop();
+      return { js: jsFilename, css: cssFilename }; // 返回 JavaScript 和 CSS 的文件名
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error writing files:', error);
+    return null;
+  }
+};

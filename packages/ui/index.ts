@@ -4,6 +4,7 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { Dialog } from './Dialog';
 import DropDown from './DropDown';
+import Select from './forms/Select';
 import { Icon } from './Icon';
 import { Link } from './Link';
 import { LinkButton } from './LinkButton';
@@ -12,6 +13,7 @@ import { Modal, useModal } from './Modal';
 // import {Table} from './Table';
 import Toggle from './Toggle';
 // import {Notify} from './Notify';
+
 export {
   Button,
   Icon,
@@ -29,4 +31,5 @@ export {
   Card,
   Link,
   Avatar,
+  Select,
 };

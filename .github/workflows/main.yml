@@ -16,7 +16,7 @@ jobs:
       # run any `bun` or `bunx` command
       - run: rm -rf bun.lockb
       - run: bun install
-      - run: bun run build
+      - run: bun test
   deploy:
     needs: build-test
     runs-on: ubuntu-latest
@@ -38,5 +38,5 @@ jobs:
             git reset --hard origin/${{ github.ref_name }}
             rm -rf bun.lockb
             /root/.bun/bin/bun install
-            /root/.bun/bin/bun ./scripts/esbuild
+            /root/.bun/bin/bun ./packages/server/entry.tsx
             pm2 restart all

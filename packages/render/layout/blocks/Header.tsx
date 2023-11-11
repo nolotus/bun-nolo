@@ -40,7 +40,7 @@ export const Header: React.FC = () => {
       })}
     >
       <div className="container mx-auto px-4 lg:px-10">
-        <div className="flex justify-between items-center py-2">
+        <div className="flex justify-between items-center">
           <button onClick={handleMobileMenuToggle} className="lg:hidden">
             <Icon name="navi" />
           </button>

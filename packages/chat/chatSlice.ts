@@ -1,30 +1,15 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createSlice,
+  PayloadAction,
+  createEntityAdapter,
+} from '@reduxjs/toolkit';
 import { RootState } from 'app/store';
-interface Message {
-  role: string;
-  content: string;
-  image?: string;
-}
-interface ChatConfig {
-  id: string;
-  name?: string;
-  description?: string;
-  type?: string;
-  model?: string;
-  replyRule?: string;
-  knowledge?: string;
-  path?: string;
-}
 
-type ChatSliceState = {
-  messages: Message[],
-  allowSend: boolean,
-  tempMessage: Message,
-  chatList: ChatConfig[],
-  currentChatConfig: ChatConfig | null,
-  isStopped: boolean,
-  isMessageStreaming: boolean,
-};
+import { ChatConfig, Message, ChatSliceState } from './types';
+export const chatAdapter = createEntityAdapter<ChatConfig>({
+  // Assume IDs are stored in the 'id' field of each chat config
+  selectId: (chat) => chat.id,
+});
 
 export const chatSlice = createSlice({
   name: 'chat',
@@ -36,10 +21,10 @@ export const chatSlice = createSlice({
       role: 'user',
       content: '',
     },
-    chatList: [],
     currentChatConfig: null,
     isStopped: false,
     isMessageStreaming: false,
+    chatList: chatAdapter.getInitialState(),
   },
   reducers: {
     sendMessage: (state: ChatSliceState, action: PayloadAction<Message>) => {
@@ -65,40 +50,27 @@ export const chatSlice = createSlice({
       state: ChatSliceState,
       action: PayloadAction<any[]>,
     ) => {
-      let idSet = new Set(state.chatList.map((chat) => chat.id));
-      action.payload.forEach((chat) => {
-        if (!idSet.has(chat.id)) {
-          state.chatList.push(chat);
-        }
-      });
+      chatAdapter.upsertMany(state.chatList, action.payload);
       if (!state.currentChatConfig) {
         state.currentChatConfig = action.payload[0] ? action.payload[0] : null;
       }
     },
     setCurrentChatByID: (
       state: ChatSliceState,
-      action: PayloadAction<String>,
+      action: PayloadAction<string>,
     ) => {
-      const targetChat = state.chatList.find(
-        (chat) => chat.id === action.payload,
-      );
+      const targetChat = state.chatList.entities[action.payload];
       if (targetChat) {
         state.currentChatConfig = targetChat;
       }
     },
+
     fetchDefaultConfig: (
       state: ChatSliceState,
       action: PayloadAction<ChatConfig>,
     ) => {
       state.currentChatConfig = action.payload;
-      if (state.chatList.length === 0) {
-        state.chatList.push(action.payload);
-      } else {
-        const idSet = new Set(state.chatList.map((chat) => chat.id));
-        if (!idSet.has(action.payload.id)) {
-          state.chatList.push(action.payload);
-        }
-      }
+      chatAdapter.addOne(state.chatList, action.payload);
     },
     retry: (state: ChatSliceState) => {
       state.tempMessage = { role: 'assistant', content: '' };
@@ -136,8 +108,13 @@ export const chatSlice = createSlice({
       state: ChatSliceState,
       action: PayloadAction<ChatConfig[]>,
     ) => {
-      // 重新加载聊天列表
-      state.chatList = action.payload;
+      chatAdapter.setAll(state.chatList, action.payload);
+    },
+    updateChatConfig: (
+      state: ChatSliceState,
+      action: PayloadAction<{ id: string, changes: ChatConfig }>,
+    ) => {
+      chatAdapter.upsertOne(state.chatList, action.payload);
     },
   },
 });
@@ -157,6 +134,7 @@ export const {
   continueMessage,
   messageEnd,
   reloadChatList,
+  updateChatConfig,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

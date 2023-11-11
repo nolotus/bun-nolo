@@ -29,6 +29,7 @@ const handleStreamEvents = (stream: AxiosResponse<any>) => {
   }
   return null;
 };
+const useProxy = process.env.USE_PROXY === 'true'; // Check if USE_PROXY is set to true
 
 export const handleStreamReq = async (req: Request, res) => {
   const openAIHeaders = getOpenAIHeaders();
@@ -36,6 +37,14 @@ export const handleStreamReq = async (req: Request, res) => {
   const requestBody: FrontEndRequestBody = req.body;
 
   const config: AxiosRequestConfig = {
+    ...(useProxy && {
+      // If useProxy is true, add the proxy configuration
+      proxy: {
+        protocol: 'http',
+        host: '127.0.0.1',
+        port: 10080,
+      },
+    }),
     headers: openAIHeaders,
     method: 'POST',
     responseType: 'stream',

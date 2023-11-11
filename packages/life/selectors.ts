@@ -1,17 +1,25 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { selectAllData } from 'database/selectors';
 export const selectFilterType = (state) => state.life.filterType;
+export const selectUserIdFilter = (state) => state.life.userIdFilter;
 
 export const selectFilteredLifeData = createSelector(
-  [selectAllData, selectFilterType],
-  (data, filterType) => {
+  [selectAllData, selectFilterType, selectUserIdFilter],
+  (data, filterType, userIdFilter) => {
     let filteredData = data;
 
     if (filterType) {
       filteredData = filteredData.filter(
-        (item) => item.value.type === filterType, // 直接使用 filterType 而不是 DataType[filterType as keyof typeof DataType]
+        (item) => item.value.type === filterType,
       );
     }
+
+    if (userIdFilter) {
+      filteredData = filteredData.filter(
+        (item) => item.value.userId === userIdFilter,
+      );
+    }
+
     return filteredData;
   },
 );

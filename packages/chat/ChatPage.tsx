@@ -3,6 +3,7 @@ import { sendRequestToOpenAI } from 'ai/client/request';
 import { tokenStatic } from 'ai/client/static';
 // import { calcCurrentUserIdCost } from "ai/utils/calcCost";
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import { useWriteHashMutation } from 'database/services';
 import i18n from 'i18n';
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +24,6 @@ import {
   messageEnd,
 } from './chatSlice';
 import { useStreamHandler } from './useStreamHandler';
-
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 Object.keys(chatTranslations).forEach((lang) => {
   const translations = chatTranslations[lang].translation;
@@ -42,7 +42,7 @@ const ChatPage = () => {
   const messages = useAppSelector((state) => state.chat.messages);
 
   const { t } = useTranslation();
-
+  const [writeHashData] = useWriteHashMutation();
   const [cost, setCost] = useState(0);
 
   // const allowSend = Number(cost.totalCost) < 2;
@@ -61,7 +61,6 @@ const ChatPage = () => {
   //       limit: 1000,
   //     };
 
-  //     const result = await queryData(nolotusId, options);
   //     const currentUserIdCost = calcCurrentUserIdCost(
   //       result,
   //       auth?.user?.userId
@@ -140,7 +139,7 @@ const ChatPage = () => {
           username: auth?.user?.username,
           date: new Date(),
         };
-        tokenStatic(staticData);
+        tokenStatic(staticData, auth, writeHashData);
       }
     } catch (error) {
       chatWindowLogger.error({ error }, 'Error while sending message');

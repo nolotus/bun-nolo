@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from 'app/hooks';
+import { useAppDispatch, useAuth } from 'app/hooks';
+import { updateChatConfig } from 'chat/chatSlice';
 import { FormField } from 'components/Form/FormField';
 import { useUpdateEntryMutation } from 'database/services'; // 导入新的 mutation 钩子
 import React, { useEffect } from 'react';
@@ -8,18 +9,19 @@ import { useTranslation } from 'react-i18next';
 import { Button } from 'ui/Button';
 
 import { fields, schema } from '../dsl';
-
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const auth = useAuth();
+  const dispatch = useAppDispatch();
   const [updateEntry] = useUpdateEntryMutation(); // 初始化 mutation 钩子
 
   const onSubmit = async (data) => {
     try {
-      await updateEntry({
+      const result = await updateEntry({
         entryId: initialValues.id,
         data,
       }).unwrap();
+      dispatch(updateChatConfig(result.data));
       onClose(); // 关闭弹窗
     } catch (error) {
       // 这里可以处理错误，例如显示一个错误信息

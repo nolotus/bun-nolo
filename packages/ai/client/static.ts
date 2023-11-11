@@ -1,6 +1,4 @@
-import { useAuth } from 'app/hooks';
 import { nolotusId } from 'core/init';
-import { writeHashData } from 'database/client/write';
 
 export interface TokenStaticData {
   type: 'tokenStatistics';
@@ -14,8 +12,7 @@ export interface TokenStaticData {
   date: Date;
 }
 
-export const tokenStatic = (data: TokenStaticData): void => {
-  const auth = useAuth();
+export const tokenStatic = (data, auth, writeHashData) => {
   if (auth.user?.userId === nolotusId) {
     writeHashData({ ...data, type: 'tokenStatistics' }, { isJSON: true });
   } else {

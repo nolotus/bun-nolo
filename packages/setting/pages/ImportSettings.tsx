@@ -1,5 +1,4 @@
 import { fetchWithToken } from 'app/request';
-import { importData } from 'database/client/import';
 import { API_ENDPOINTS } from 'database/config';
 import React, { useState } from 'react';
 import { getLogger } from 'utils/logger';
@@ -29,7 +28,7 @@ const ImportSettings = () => {
 
   const handleImport = async (item, index) => {
     try {
-      const responseData = await importData(item.key, item.value);
+      // const responseData = await importData(item.key, item.value);
       writeLogger.info({ responseData }, 'Data imported successfully');
       setImportedItems(new Set([...importedItems, index]));
     } catch (error) {

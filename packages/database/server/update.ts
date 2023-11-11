@@ -54,7 +54,9 @@ export const handleUpdate = async (req, res) => {
   try {
     const data = req.body;
     await updateData(acitonUserId, id, data);
-    return res.status(200).json({ message: 'Data updated successfully.' });
+    return res
+      .status(200)
+      .json({ data: { id, ...data }, message: 'Data updated successfully.' });
   } catch (error) {
     handleError(res, error);
   }
