@@ -1,6 +1,6 @@
 import { serve } from 'bun';
 
-import { assets } from '../../public/assets.json';
+import assets from '../../public/assets.json';
 
 import { handleRequest } from './request';
 export const startServer = async () => {
