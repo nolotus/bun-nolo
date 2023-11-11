@@ -1,5 +1,5 @@
 import { TrashIcon, RepoPullIcon, RepoPushIcon } from '@primer/octicons-react';
-import { useAppSelector } from 'app/hooks';
+import { useAppSelector, useAuth } from 'app/hooks';
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from 'core';
 import { useDeleteEntryMutation, useWriteMutation } from 'database/services';
 import React, { useState } from 'react';
@@ -10,6 +10,7 @@ import { selectFilteredLifeData } from '../selectors';
 import DataItem from './DataItem';
 
 const DataList = ({ refreshData }) => {
+  const auth = useAuth();
   const data = useAppSelector(selectFilteredLifeData);
   const [deleteEntry] = useDeleteEntryMutation();
   const [write] = useWriteMutation();
@@ -27,7 +28,7 @@ const DataList = ({ refreshData }) => {
       customId,
       domain: 'http://localhost',
     }).unwrap();
-    refreshData();
+    refreshData(auth.user?.userId);
   };
 
   const pushData = async (id: string, value) => {

@@ -12,7 +12,6 @@ export const handleRender = async (req, assets) => {
     id: name,
     value,
   }));
-  console.log('req', req);
   const acceptLanguage = req.headers.get('accept-language');
   const lng = acceptLanguage.split(',')[0];
 

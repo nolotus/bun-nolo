@@ -1,10 +1,12 @@
 import { serve } from 'bun';
 
-import { esbuildClient } from '../../scripts/esbuild';
+import { esbuildClient, updatePublicAssets } from '../../scripts/esbuild';
 
 import { handleRequest } from './request';
 export const startServer = async () => {
-  const assets = await esbuildClient();
+  const ctx = await esbuildClient();
+  const result = await ctx.rebuild();
+  const assets = await updatePublicAssets(result);
   if (process.env.NODE_ENV === 'production') {
     serve({
       port: 443,

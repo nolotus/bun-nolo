@@ -1,10 +1,8 @@
-import fs from 'node:fs';
-
+import { write } from 'bun';
 import * as esbuild from 'esbuild';
 import postCssPlugin from 'esbuild-style-plugin';
 import rimraf from 'rimraf';
 import { isProduction } from 'utils/env';
-
 const inputPath = './packages/web/entry.tsx';
 const config = {
   entryPoints: [inputPath],
@@ -36,34 +34,32 @@ const config = {
 
 // console.log(await esbuild.analyzeMetafile(result.metafile));
 export const esbuildClient = async () => {
-  let result = await esbuild.build({ ...config, write: false });
-
+  return esbuild.context({ ...config, write: false });
+};
+export const updatePublicAssets = async (result) => {
   // 清空 public 目录
   rimraf.sync('./public/*');
-
   try {
     // 遍历所有输出文件并写入
-    result.outputFiles.forEach((file) => {
-      const pathParts = file.path.split('/');
-      const filename = pathParts.pop();
-      fs.writeFileSync(
-        `./public/${filename}`,
-        new TextDecoder().decode(file.contents),
-      );
-    });
-
+    await Promise.all(
+      result.outputFiles.map(async (file) => {
+        const pathParts = file.path.split('/');
+        const filename = pathParts.pop();
+        const filePath = `./public/${filename}`;
+        // const data = new TextDecoder().decode(file.contents);
+        await write(filePath, file.contents);
+      }),
+    );
     const entryJsFile = result.outputFiles.find((file) => {
       const parts = file.path.split('/');
       const filename = parts.pop();
       return filename.startsWith('entry') && filename.endsWith('.js');
     });
-
     const entryCssFile = result.outputFiles.find((file) => {
       const parts = file.path.split('/');
       const filename = parts.pop();
       return filename.startsWith('entry') && filename.endsWith('.css');
     });
-
     if (entryJsFile && entryCssFile) {
       const jsFilename = entryJsFile.path.split('/').pop();
       const cssFilename = entryCssFile.path.split('/').pop();
