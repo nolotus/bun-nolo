@@ -7,11 +7,7 @@ import {
   ChevronDownIcon,
 } from '@primer/octicons-react';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
-import {
-  getTokensFromLocalStorage,
-  removeToken,
-  retrieveFirstToken,
-} from 'auth/client/token';
+import { getTokensFromLocalStorage, removeToken } from 'auth/client/token';
 import { parseToken } from 'auth/token';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,9 +18,9 @@ export const UserMenu = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const currentToken = useAppSelector((state) => state.user.currentToken);
   const logout = () => {
-    const token = retrieveFirstToken();
-    removeToken(token);
+    removeToken(currentToken);
     dispatch(userLogout());
     navigate('/');
   };
@@ -43,7 +39,7 @@ export const UserMenu = () => {
         ...tokens.filter((t) => t !== updatedToken),
       ];
       window.localStorage.setItem('tokens', JSON.stringify(newTokens));
-      dispatch(changeCurrentUser(user));
+      dispatch(changeCurrentUser({ user, token: updatedToken }));
     }
   };
   console.log('UserMenu render ');

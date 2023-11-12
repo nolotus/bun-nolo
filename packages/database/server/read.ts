@@ -13,7 +13,7 @@ export const handleReadSingle = async (req, res) => {
     const result = await serverGetData(id);
     readDataLogger.info({ id }, 'handleReadSingle result');
     if (result) {
-      return res.json({ ...result, id });
+      return res.status(200).json({ ...result, id });
     } else {
       return res.status(404).json({ error: 'Data not found' });
     }

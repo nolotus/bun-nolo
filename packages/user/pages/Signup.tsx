@@ -24,7 +24,7 @@ const Signup: React.FC = () => {
   const signup = (token: string) => {
     storeTokens(token);
     const user = parseToken(token);
-    dispatch(userRegister(user));
+    dispatch(userRegister({ user, token }));
   };
 
   const onSubmit = async (user) => {

@@ -2,16 +2,15 @@ import { authRoutes } from 'auth/client/routes';
 import { routes as createRoutes } from 'create/routes';
 import React, { Suspense, lazy } from 'react';
 import Default from 'render/layout/Default';
+import Page from 'render/page/PageIndex';
 import { routes as settingRoutes } from 'setting/routes';
 
 import { SurfTip } from './SurfTip';
-
 const ChatPage = lazy(() => import('chat/ChatPage'));
 const Home = lazy(() => import('./pages/Home'));
 const Life = lazy(() => import('life/All'));
 const Welcome = lazy(() => import('./pages/Welcome'));
 const Full = lazy(() => import('render/layout/Full'));
-const Page = lazy(() => import('render/page/PageIndex'));
 
 export const routes = (currentUser) => [
   {
@@ -37,13 +36,11 @@ export const routes = (currentUser) => [
       {
         path: 'price',
         element: (
-          <Suspense fallback={<>...</>}>
-            <Page
-              id={
-                '000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-v9ziDvBB6UkWgFM_S2PV6'
-              }
-            />
-          </Suspense>
+          <Page
+            id={
+              '000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-v9ziDvBB6UkWgFM_S2PV6'
+            }
+          />
         ),
       },
 

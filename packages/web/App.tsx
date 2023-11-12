@@ -7,7 +7,7 @@ import { useRoutes } from 'react-router-dom';
 import { restoreSession } from 'user/userSlice';
 
 // // import { generatorRoutes } from "./generatorRoutes";
-// const ChatPage = lazy(() => import("chat/ChatPage"));
+
 import { routes } from './routes';
 export default function App({ hostname, lng = 'en' }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
@@ -18,11 +18,16 @@ export default function App({ hostname, lng = 'en' }) {
 
   useEffect(() => {
     const tokens = getTokensFromLocalStorage();
-
     if (tokens) {
       const parsedUsers = tokens.map((token) => parseToken(token));
       parsedUsers.length > 0 &&
-        dispatch(restoreSession({ user: parsedUsers[0], users: parsedUsers }));
+        dispatch(
+          restoreSession({
+            user: parsedUsers[0],
+            users: parsedUsers,
+            token: tokens[0],
+          }),
+        );
     }
   }, []);
 

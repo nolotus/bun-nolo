@@ -5,7 +5,6 @@ const Layout = lazy(() => import('render/layout/Default'));
 const UploadPage = lazy(() => import('./UploadPage'));
 const CreatePage = lazy(() => import('render/page/CreatePage'));
 const CreateSurfingTrip = lazy(() => import('./pages/CreateSurfingTrip'));
-const CreateSurferProfile = lazy(() => import('./pages/CreateSurferProfile'));
 
 const CreateChatRobot = lazy(() => import('ai/pages/CreateChatRobot'));
 
@@ -13,7 +12,6 @@ const createPages = [
   { path: 'page', component: CreatePage },
   { path: 'chatrobot', component: CreateChatRobot },
   { path: 'surfing-trip', component: CreateSurfingTrip },
-  { path: 'surfer-profile', component: CreateSurferProfile },
 ];
 
 export const routesConfig = [

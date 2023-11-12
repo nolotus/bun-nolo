@@ -15,6 +15,7 @@ const Table: FC<TableProps> = ({ children }) => {
                   className: `${child.props.className || ''} ${
                     index % 2 === 0 ? 'bg-gray-100' : 'bg-white'
                   }`,
+                  key: index,
                 })
               : child,
           )}

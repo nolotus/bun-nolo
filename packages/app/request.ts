@@ -28,34 +28,6 @@ export const getProtocolAndPrefix = (domainWithPort: string) => {
   return { protocol, domainPrefix, port };
 };
 
-export const fetchApiData = async (url, method = 'GET', data = null) => {
-  try {
-    const token = retrieveFirstToken();
-    if (!token) {
-      window.location.href = '/';
-      throw new Error('No token found');
-    }
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-    if (data) {
-      headers['Content-Type'] = 'application/json';
-    }
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: data ? JSON.stringify(data) : null,
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const result = await response.json();
-    console.log('Data retrieved:', result);
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
-};
-
 export const fetchWithToken = async (
   url,
   options = {},

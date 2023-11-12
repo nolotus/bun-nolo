@@ -15,11 +15,6 @@ const buttonsInfo = [
     route: 'surfing-trip',
     customStyles: 'bg-teal-500 text-white hover:bg-teal-600',
   },
-  {
-    text: '冲浪资料',
-    route: 'surfer-profile',
-    customStyles: 'bg-teal-500 text-white hover:bg-teal-600',
-  },
 ];
 
 const Create = () => {

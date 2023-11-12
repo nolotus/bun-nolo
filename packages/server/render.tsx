@@ -1,30 +1,36 @@
-import { memCache } from 'app';
-import React, { createElement } from 'react';
+import { api } from 'app/api';
+import { store } from 'app/store';
+import React from 'react';
 import { renderToReadableStream } from 'react-dom/server';
-import { Html } from 'web/Html';
+import { Provider } from 'react-redux';
+import { StaticRouter } from 'react-router-dom/server';
+import App from 'web/App';
 
 export const handleRender = async (req) => {
   const bootstrapJs = '/public/assets/entry.js';
   const bootstrapCss = '/public/assets/entry.css';
   const url = new URL(req.url);
   let didError = false;
-  const renderContent = Array.from(memCache, ([name, value]) => ({
-    id: name,
-    value,
-  }));
+
   const acceptLanguage = req.headers.get('accept-language');
   const lng = acceptLanguage.split(',')[0];
 
   try {
-    const data = { url, renderContent, hostnameL: req.host, lng };
-    const app = createElement(Html, data);
-    const stream = await renderToReadableStream(app, {
-      bootstrapModules: [bootstrapJs],
-      onError(error) {
-        didError = true;
-        console.error(`渲染错误: ${error}`);
+    // const data = { url, renderContent, hostnameL: req.host, lng };
+    const stream = await renderToReadableStream(
+      <Provider store={store}>
+        <StaticRouter location={url}>
+          <App hostname={req.host} lng={lng} />
+        </StaticRouter>
+      </Provider>,
+      {
+        bootstrapModules: [bootstrapJs],
+        onError(error) {
+          didError = true;
+          console.error(`渲染错误: ${error}`);
+        },
       },
-    });
+    );
     const [, copyRenderReactStream] = stream.tee();
     const { readable, writable } = new TransformStream({
       transform(chunk, controller) {
@@ -60,11 +66,6 @@ export const handleRender = async (req) => {
             document.getElementById(h.replace('ST', 'SR'))?.remove();
           }
         </script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: window.NOLO_STORE_DATA=${JSON.stringify(renderContent)},
-          }}
-        ></script>
       </head>
       <body>
     `),
@@ -86,6 +87,20 @@ export const handleRender = async (req) => {
       //   }
       //   writer.write(new TextEncoder().encode(content));
       // }
+      await Promise.all(store.dispatch(api.util.getRunningQueriesThunk()));
+
+      const preloadedState = store.getState();
+      writer.write(
+        new TextEncoder().encode(`
+          <script>
+            // WARNING: See the following for security issues around embedding JSON in HTML:
+            // https://redux.js.org/usage/server-rendering#security-considerations
+            window.__PRELOADED_STATE__ = ${JSON.stringify(
+              preloadedState,
+            ).replace(/</g, '\\u003c')}
+          </script>
+        `),
+      );
       doneLocal = true;
       tryCloseStream();
     }

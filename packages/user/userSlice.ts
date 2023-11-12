@@ -10,26 +10,36 @@ interface UserState {
   currentUser: User | null;
   users: User[];
   isLoggedIn: boolean;
+  currentToken: string | null;
 }
 
 const initialState: UserState = {
   currentUser: null,
   users: [],
   isLoggedIn: false,
+  currentToken: null,
 };
 
 export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    changeCurrentUser: (state, action: PayloadAction<User>) => {
-      state.currentUser = action.payload;
+    changeCurrentUser: (
+      state,
+      action: PayloadAction<{ user: User, token: string }>,
+    ) => {
+      (state.currentUser = action.payload.user),
+        (state.currentToken = action.payload.token);
     },
 
-    userLogin: (state, action: PayloadAction<User>) => {
+    userLogin: (
+      state,
+      action: PayloadAction<{ user: User, token: string }>,
+    ) => {
       state.isLoggedIn = true;
-      state.currentUser = action.payload;
-      state.users = [action.payload, ...state.users];
+      state.currentUser = action.payload.user;
+      state.users = [action.payload.user, ...state.users];
+      state.currentToken = action.payload.token;
     },
     logoutCurrentUser: (state) => {
       const updatedUsers = state.users.filter(
@@ -39,19 +49,25 @@ export const userSlice = createSlice({
       state.isLoggedIn = nextUser ? true : false;
       state.currentUser = nextUser;
       state.users = updatedUsers;
+      state.currentToken = null;
     },
-    userRegister: (state, action: PayloadAction<User>) => {
-      state.currentUser = action.payload;
+    userRegister: (
+      state,
+      action: PayloadAction<{ user: User, token: string }>,
+    ) => {
+      state.currentUser = action.payload.user;
       state.isLoggedIn = true;
-      state.users = [action.payload, ...state.users];
+      state.users = [action.payload.user, ...state.users];
+      state.currentToken = action.payload.token;
     },
     restoreSession: (
       state,
-      action: PayloadAction<{ user: User, users: User[] }>,
+      action: PayloadAction<{ user: User, users: User[], token: string }>,
     ) => {
       state.isLoggedIn = true;
       state.currentUser = action.payload.user;
       state.users = action.payload.users;
+      state.currentToken = action.payload.token;
     },
     userLogout: (state) => {
       const updatedUsers = state.users.filter(
@@ -61,6 +77,7 @@ export const userSlice = createSlice({
       state.isLoggedIn = false;
       state.currentUser = nextUser;
       state.users = updatedUsers;
+      state.currentToken = null;
     },
   },
 });

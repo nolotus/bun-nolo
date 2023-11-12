@@ -12,8 +12,10 @@ const Page = ({ id }) => {
   const [searchParams] = useSearchParams();
   const isEditMode = searchParams.get('edit') === 'true';
   const pageId = id || paramPageId;
-  const { data } = useGetEntryQuery({ entryId: pageId });
-
+  const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
+  if (isLoading) {
+    return <div>loading</div>;
+  }
   if (data) {
     if (data.type === 'page') {
       <RenderJson data={data} />;

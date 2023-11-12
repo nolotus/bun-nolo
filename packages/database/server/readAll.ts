@@ -20,7 +20,7 @@ export const serverGetAllData = (userId, stream) => {
       rl.on('line', (line) => {
         const [id, value] = processLine(line);
         readLogger.info({ id, value }, 'processLine');
-        if (id.includes(userId)) {
+        if (id && id.includes(userId)) {
           data.push({ id, value }); // Add data to array
         }
       });

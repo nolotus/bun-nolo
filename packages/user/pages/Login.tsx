@@ -67,7 +67,7 @@ const Login: React.FC = () => {
       const { token: newToken } = await login({ userId, token }).unwrap();
       const user = parseToken(newToken);
       storeTokens(newToken);
-      dispatch(userLogin(user));
+      dispatch(userLogin({ user, token }));
       navigate('/welcome');
     } catch (noloError) {
       console.error(noloError);

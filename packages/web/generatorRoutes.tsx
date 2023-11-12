@@ -33,7 +33,6 @@ export const generatorRoutes = (host: string) => {
   //   ...settingRoutes,
   //   ...lifeRoutes,
   //   ...createRoutes,
-  //   { path: "*", element: <NoMatch /> },
   // ];
   const routes = [...hostRoutes, ...pluginRoutes];
   return routes;

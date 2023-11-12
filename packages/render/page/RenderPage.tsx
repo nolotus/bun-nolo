@@ -4,7 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { renderContentNode } from 'render';
 
-const RenderPage = ({ pageId, data, id }) => {
+const RenderPage = ({ pageId, data }) => {
   const navigate = useNavigate();
 
   console.log('pageId', pageId);
@@ -15,6 +15,7 @@ const RenderPage = ({ pageId, data, id }) => {
       return <pre>{JSON.stringify(data, null, 2)}</pre>;
     }
   }, [data]);
+  // console.log('renderedContent', renderedContent);
 
   const handleEdit = useCallback(() => {
     navigate(`/${pageId}?edit=true`);
