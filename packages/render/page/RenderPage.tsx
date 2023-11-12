@@ -4,7 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { renderContentNode } from 'render';
 
-const RenderPage = ({ pageId, data }) => {
+const RenderPage = ({ pageId, data, id }) => {
   const navigate = useNavigate();
 
   console.log('pageId', pageId);
