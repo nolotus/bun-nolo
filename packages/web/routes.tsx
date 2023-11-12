@@ -11,7 +11,7 @@ const Home = lazy(() => import('./pages/Home'));
 const Life = lazy(() => import('life/All'));
 const Welcome = lazy(() => import('./pages/Welcome'));
 const Full = lazy(() => import('render/layout/Full'));
-const Page = lazy(() => import('render/Page'));
+const Page = lazy(() => import('render/page/PageIndex'));
 
 export const routes = (currentUser) => [
   {

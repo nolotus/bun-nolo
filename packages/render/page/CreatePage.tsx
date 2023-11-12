@@ -1,5 +1,6 @@
 import { nanoid } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import { DataType } from 'create/types';
 import { useWriteMutation } from 'database/services';
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -14,9 +15,8 @@ import {
   setCreatedTime,
   saveContentAndMdast,
 } from './pageSlice';
-import { DataType } from './types';
 
-const CreatePage = () => {
+const CreatePage = ({}) => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const pageState = useAppSelector((state) => state.page);

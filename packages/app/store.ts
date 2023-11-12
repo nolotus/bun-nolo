@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import chatReducer from 'chat/chatSlice';
-import pageReducer from 'create/pageSlice';
 import dbReducer from 'database/dbSlice';
 import lifeReducer from 'life/lifeSlice';
+import pageReducer from 'render/page/pageSlice';
 import userReducer from 'user/userSlice';
 
 // import { setupListeners } from '@reduxjs/toolkit/query'
