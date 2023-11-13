@@ -4,6 +4,7 @@ import { isProduction } from 'utils/env';
 const inputPath = './packages/web/entry.tsx';
 export const config = {
   entryPoints: [inputPath],
+  entryNames: '[dir]/[name]-[hash]',
   outdir: 'public/assets',
   plugins: [
     postCssPlugin({
@@ -26,4 +27,5 @@ export const config = {
     '.png': 'file',
     '.svg': 'text',
   },
+  metafile: true,
 };

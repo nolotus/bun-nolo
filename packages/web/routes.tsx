@@ -1,5 +1,5 @@
 import { authRoutes } from 'auth/client/routes';
-import { routes as createRoutes } from 'create/routes';
+import { createRoutes } from 'create/routes';
 import React, { Suspense, lazy } from 'react';
 import Default from 'render/layout/Default';
 import Page from 'render/page/PageIndex';
@@ -7,6 +7,8 @@ import { routes as settingRoutes } from 'setting/routes';
 
 import Home from './pages/Home';
 import { SurfTip } from './SurfTip';
+
+// const CreatePage = lazy(() => import('render/page/CreatePage'));
 const ChatPage = lazy(() => import('chat/ChatPage'));
 const Life = lazy(() => import('life/All'));
 const Welcome = lazy(() => import('./pages/Welcome'));
@@ -21,6 +23,8 @@ export const routes = (currentUser) => [
         index: true,
         element: <Home />,
       },
+      ...createRoutes,
+
       {
         path: 'welcome',
         element: (
@@ -52,7 +56,6 @@ export const routes = (currentUser) => [
     ],
   },
   ...settingRoutes,
-  ...createRoutes,
   {
     path: '/',
     element: (

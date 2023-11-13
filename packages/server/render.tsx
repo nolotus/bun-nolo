@@ -6,9 +6,11 @@ import { Provider } from 'react-redux';
 import { StaticRouter } from 'react-router-dom/server';
 import App from 'web/App';
 
+import assets from '../../public/assets.json';
+
 export const handleRender = async (req) => {
-  const bootstrapJs = '/public/assets/entry.js';
-  const bootstrapCss = '/public/assets/entry.css';
+  const bootstrapJs = `/${assets.js}`;
+  const bootstrapCss = `/${assets.css}`;
   const url = new URL(req.url);
   let didError = false;
 
@@ -16,7 +18,6 @@ export const handleRender = async (req) => {
   const lng = acceptLanguage.split(',')[0];
 
   try {
-    // const data = { url, renderContent, hostnameL: req.host, lng };
     const stream = await renderToReadableStream(
       <Provider store={store}>
         <StaticRouter location={url}>

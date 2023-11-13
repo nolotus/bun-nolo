@@ -6,7 +6,7 @@ import { YourTemplates } from './blocks/YourTemplates';
 const buttonsInfo = [
   {
     text: '聊天机器人',
-    route: 'chatrobot',
+    route: 'chat-robot',
     customStyles: 'bg-green-500 text-white hover:bg-green-600',
   },
 

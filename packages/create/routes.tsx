@@ -1,41 +1,42 @@
 import React, { Suspense, lazy } from 'react';
 
-const Create = lazy(() => import('.'));
-const Layout = lazy(() => import('render/layout/Default'));
-const CreatePage = lazy(() => import('render/page/CreatePage'));
+const Create = lazy(() => import('./index'));
 const CreateSurfingTrip = lazy(() => import('./pages/CreateSurfingTrip'));
 
+const CreatePage = lazy(() => import('render/page/CreatePage'));
 const CreateChatRobot = lazy(() => import('ai/pages/CreateChatRobot'));
 
-const createPages = [
-  { path: 'page', component: CreatePage },
-  { path: 'chatrobot', component: CreateChatRobot },
-  { path: 'surfing-trip', component: CreateSurfingTrip },
-];
-
-export const routesConfig = [
+export const createRoutes = [
   {
-    path: '/',
-    component: Layout,
-    children: [
-      { path: 'create', component: Create },
-      ...createPages.map((page) => ({
-        path: `create/${page.path}`,
-        component: page.component,
-      })),
-    ],
-  },
-];
-
-export const routes = routesConfig.map((route) => ({
-  path: route.path,
-  element: <route.component />,
-  children: route.children?.map((childRoute) => ({
-    path: childRoute.path,
+    path: 'create',
     element: (
-      <Suspense fallback={<>...</>}>
-        <childRoute.component />
+      <Suspense fallback={<div>loading create</div>}>
+        <Create />
       </Suspense>
     ),
-  })),
-}));
+  },
+  {
+    path: 'create/page',
+    element: (
+      <Suspense fallback={<div>CreatePage</div>}>
+        <CreatePage />
+      </Suspense>
+    ),
+  },
+  {
+    path: 'create/chat-robot',
+    element: (
+      <Suspense fallback={<div>chat-robot</div>}>
+        <CreateChatRobot />
+      </Suspense>
+    ),
+  },
+  {
+    path: 'create/surfing-trip',
+    element: (
+      <Suspense fallback={<div>surf-trip</div>}>
+        <CreateSurfingTrip />
+      </Suspense>
+    ),
+  },
+];

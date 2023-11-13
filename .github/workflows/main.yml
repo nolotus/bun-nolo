@@ -41,5 +41,5 @@ jobs:
             rm -rf bun.lockb
             /root/.bun/bin/bun install
             rm -rf public/assets
-            /root/.bun/bin/bun run build  
+            /root/.bun/bin/bun run ./scripts/esBuild.js  
             pm2 restart all
