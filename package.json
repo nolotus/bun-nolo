@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@primer/octicons-react": "^19.8.0",
+    "@primer/react": "^36.1.0",
     "@reduxjs/toolkit": "^1.9.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -38,7 +39,7 @@
     "unist-util-visit": "^5.0.0"
   },
   "scripts": {
-    "server":"bun --hot ./packages/server/entry.ts",
+    "server": "bun --hot ./packages/server/entry.ts",
     "dev": "bun server & bun ./scripts/esDev",
     "build": "bun  ./scripts/esBuild"
   }

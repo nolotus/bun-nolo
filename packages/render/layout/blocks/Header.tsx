@@ -1,6 +1,6 @@
+import { ThreeBarsIcon, XIcon } from '@primer/octicons-react';
 import clsx from 'clsx';
 import React, { useState, useEffect, useCallback } from 'react';
-import { Icon } from 'ui';
 import { GoUser } from 'user/blocks/GoUser';
 
 import NavListItem from '../blocks/NavListItem';
@@ -42,8 +42,9 @@ export const Header: React.FC = () => {
       <div className="container mx-auto px-4 lg:px-10">
         <div className="flex justify-between items-center">
           <button onClick={handleMobileMenuToggle} className="lg:hidden">
-            <Icon name="navi" />
+            <ThreeBarsIcon size={24} /> {/* 调整尺寸以适应你的布局 */}
           </button>
+
           <ul className="hidden lg:flex space-x-4">
             {nav.map((item) => (
               <NavListItem {...item} key={item.path} className="text-black" />
@@ -61,7 +62,7 @@ export const Header: React.FC = () => {
               onClick={handleMobileMenuToggle}
               className="text-white float-right"
             >
-              <Icon name="close" />
+              <XIcon size={24} />
             </button>
 
             <ul className="space-y-2 text-white mt-8">

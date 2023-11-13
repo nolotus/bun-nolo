@@ -1,3 +1,4 @@
+import { TrashIcon } from '@primer/octicons-react';
 import aiTranslations from 'ai/aiI18n';
 import { sendRequestToOpenAI } from 'ai/client/request';
 import { tokenStatic } from 'ai/client/static';
@@ -7,7 +8,7 @@ import { useWriteHashMutation } from 'database/services';
 import i18n from 'i18n';
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Icon, Button } from 'ui';
+import { Button } from 'ui';
 import { getLogger } from 'utils/logger';
 
 import ChatSidebar from './blocks/ChatSidebar';
@@ -191,7 +192,7 @@ const ChatPage = () => {
             <div className="ml-2 flex space-x-2">
               <Button
                 onClick={() => dispatch(clearMessages())}
-                icon={<Icon name="trash" />}
+                icon={<TrashIcon size={16} />} // 使用 TrashIcon 并设置合适的尺寸
                 className="text-sm p-1"
               >
                 {t('clearChat')}

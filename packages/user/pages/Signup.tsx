@@ -9,11 +9,10 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Icon } from 'ui';
+import { Button } from 'ui';
 import { userRegister } from 'user/userSlice';
 
 import { handleSignup } from '../client/signUp';
-
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -79,23 +78,15 @@ const Signup: React.FC = () => {
           ))}
 
           {error && <p className="text-red-500 text-sm mt-2 mb-2">{error}</p>}
-          {loading ? (
-            <button
-              type="submit"
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-              disabled
-            >
-              <Icon name="spinner" />
-              {t('submitting')}
-            </button>
-          ) : (
-            <button
-              type="submit"
-              className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-            >
-              {t('submit')}
-            </button>
-          )}
+
+          <Button
+            type="submit"
+            loading={loading}
+            variant="primary"
+            className="rounded-lg"
+          >
+            注册
+          </Button>
         </form>
       </div>
     </div>

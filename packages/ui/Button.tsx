@@ -1,17 +1,18 @@
+import { Spinner } from '@primer/react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 export type ButtonProps = {
-  className?: string;
-  children: React.ReactNode;
-  onClick?: () => void;
-  width?: string;
-  loading?: boolean;
-  variant?: 'primary' | 'secondary';
-  size?: 'small' | 'medium' | 'large';
-  icon?: React.ReactNode;
-  disabled?: boolean;
-  type?;
+  className?: string,
+  children: React.ReactNode,
+  onClick?: () => void,
+  width?: string,
+  loading?: boolean,
+  variant?: 'primary' | 'secondary',
+  size?: 'small' | 'medium' | 'large',
+  icon?: React.ReactNode,
+  disabled?: boolean,
+  type?: 'button' | 'submit' | 'reset', // 定义 type 的类型
 };
 
 export const Button = (props: ButtonProps) => {
@@ -25,7 +26,7 @@ export const Button = (props: ButtonProps) => {
     size = 'medium',
     icon,
     disabled = false,
-    type,
+    type = 'button', // 设置默认的 type
   } = props;
 
   const { t } = useTranslation();
@@ -50,17 +51,11 @@ export const Button = (props: ButtonProps) => {
       disabled={disabled || loading}
       type={type}
     >
-      {loading ? (
-        <>
-          {icon && <span className="mr-2">{icon}</span>}
-          {t('submitting')}
-        </>
-      ) : (
-        <>
-          {icon && <span className="mr-2">{icon}</span>}
-          {children}
-        </>
-      )}
+      {loading && <Spinner size={16} className="mr-2" />}
+      {/* 当 loading 为 true 时显示 Spinner */}
+      {icon && !loading && <span className="mr-2">{icon}</span>}
+      {/* 当不是 loading 状态时显示 icon */}
+      {children}
     </button>
   );
 };

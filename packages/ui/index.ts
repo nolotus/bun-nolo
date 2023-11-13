@@ -5,7 +5,6 @@ import { Card } from './Card';
 import { Dialog } from './Dialog';
 import DropDown from './DropDown';
 import Select from './forms/Select';
-import { Icon } from './Icon';
 import { Link } from './Link';
 import { LinkButton } from './LinkButton';
 import { Modal, useModal } from './Modal';
@@ -16,7 +15,6 @@ import Toggle from './Toggle';
 
 export {
   Button,
-  Icon,
   Modal,
   useModal,
   // Heading,
