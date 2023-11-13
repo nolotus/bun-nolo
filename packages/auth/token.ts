@@ -1,5 +1,5 @@
-import {detachedSign, verifyDetachedSignature} from 'core/crypto';
-import {base64UrlDecode, base64UrlEncode} from 'core/base64';
+import { base64UrlDecode, base64UrlEncode } from 'core/base64';
+import { detachedSign, verifyDetachedSignature } from 'core/crypto';
 
 export const signToken = (payload: any, secretKeyBase64: string): string => {
   // Convert payload to a string then to base64Url
@@ -39,7 +39,7 @@ export const verifyToken = (
   return JSON.parse(decodedPayload);
 };
 
-export const parseToken = token => {
+export const parseToken = (token: string) => {
   try {
     const [payloadBase64Url] = token.split('.');
     const decodedPayload = base64UrlDecode(payloadBase64Url);

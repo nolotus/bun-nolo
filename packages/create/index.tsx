@@ -39,22 +39,10 @@ const Create = () => {
         <h2 className="text-2xl font-bold">创建原始类型</h2>
         <div className="flex flex-wrap space-x-4">
           {renderButton({
-            text: '类型',
-            route: 'type',
-            navigate,
-            customStyles: 'bg-blue-500 text-white',
-          })}
-          {renderButton({
             text: '页面',
             route: 'page',
             navigate,
             customStyles: 'bg-blue-500 text-white',
-          })}
-          {renderButton({
-            text: '图片上传',
-            route: '/upload',
-            navigate,
-            customStyles: 'bg-green-500 text-white',
           })}
         </div>
       </div>

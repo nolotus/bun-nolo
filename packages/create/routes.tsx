@@ -2,7 +2,6 @@ import React, { Suspense, lazy } from 'react';
 
 const Create = lazy(() => import('.'));
 const Layout = lazy(() => import('render/layout/Default'));
-const UploadPage = lazy(() => import('./UploadPage'));
 const CreatePage = lazy(() => import('render/page/CreatePage'));
 const CreateSurfingTrip = lazy(() => import('./pages/CreateSurfingTrip'));
 
@@ -24,7 +23,6 @@ export const routesConfig = [
         path: `create/${page.path}`,
         component: page.component,
       })),
-      { path: 'upload', component: UploadPage },
     ],
   },
 ];

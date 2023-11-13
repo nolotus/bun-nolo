@@ -41,16 +41,7 @@ export const userSlice = createSlice({
       state.users = [action.payload.user, ...state.users];
       state.currentToken = action.payload.token;
     },
-    logoutCurrentUser: (state) => {
-      const updatedUsers = state.users.filter(
-        (user) => user !== state.currentUser,
-      );
-      const nextUser = updatedUsers.length > 0 ? updatedUsers[0] : null;
-      state.isLoggedIn = nextUser ? true : false;
-      state.currentUser = nextUser;
-      state.users = updatedUsers;
-      state.currentToken = null;
-    },
+
     userRegister: (
       state,
       action: PayloadAction<{ user: User, token: string }>,
@@ -85,7 +76,6 @@ export const userSlice = createSlice({
 export const {
   changeCurrentUser,
   userLogin,
-  logoutCurrentUser,
   userRegister,
   restoreSession,
   userLogout,
