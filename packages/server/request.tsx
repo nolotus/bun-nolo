@@ -17,9 +17,13 @@ export const handleRequest = async (request: Request) => {
   if (url.pathname.startsWith('/public')) {
     const filePath = url.pathname.replace('/public', '');
     const file = Bun.file(`public${filePath}`);
-
-    return new Response(file);
+    const headers = new Headers({
+      'Cache-Control': 'max-age=3600',
+      type: file.type,
+    });
+    return new Response(file.stream(), { headers });
   }
+
   if (url.pathname.startsWith(API_VERSION)) {
     let body = request.body ? await request.json() : null;
     let query = Object.fromEntries(new URLSearchParams(url.search));

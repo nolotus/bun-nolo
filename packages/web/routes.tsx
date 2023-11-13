@@ -5,9 +5,9 @@ import Default from 'render/layout/Default';
 import Page from 'render/page/PageIndex';
 import { routes as settingRoutes } from 'setting/routes';
 
+import Home from './pages/Home';
 import { SurfTip } from './SurfTip';
 const ChatPage = lazy(() => import('chat/ChatPage'));
-const Home = lazy(() => import('./pages/Home'));
 const Life = lazy(() => import('life/All'));
 const Welcome = lazy(() => import('./pages/Welcome'));
 const Full = lazy(() => import('render/layout/Full'));
@@ -19,11 +19,7 @@ export const routes = (currentUser) => [
     children: [
       {
         index: true,
-        element: (
-          <Suspense fallback={<div>loading home</div>}>
-            <Home />
-          </Suspense>
-        ),
+        element: <Home />,
       },
       {
         path: 'welcome',

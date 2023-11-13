@@ -16,6 +16,8 @@ jobs:
       # run any `bun` or `bunx` command
       - run: rm -rf bun.lockb
       - run: bun install
+      - run: rm -rf public/assets
+      - run: bun run build
       - run: bun test
   deploy:
     needs: build-test
@@ -38,5 +40,6 @@ jobs:
             git reset --hard origin/${{ github.ref_name }}
             rm -rf bun.lockb
             /root/.bun/bin/bun install
+            rm -rf public/assets
             /root/.bun/bin/bun run build  
             pm2 restart all
