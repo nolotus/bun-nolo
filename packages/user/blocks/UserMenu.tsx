@@ -1,3 +1,4 @@
+'use client';
 import {
   GearIcon,
   SignOutIcon,
@@ -42,7 +43,6 @@ export const UserMenu = () => {
       dispatch(changeCurrentUser({ user, token: updatedToken }));
     }
   };
-  console.log('UserMenu render ');
   return (
     <>
       <LinkButton

@@ -56,7 +56,6 @@ const ChatSidebar = () => {
           userId: auth.user?.userId,
           options,
         });
-        console.log('userChatList', userChatList.data);
         isSuccess && dispatch(fetchchatListSuccess(userChatList.data));
       }
     };
@@ -85,7 +84,7 @@ const ChatSidebar = () => {
     <div className="flex flex-col h-full justify-start bg-gray-100">
       <div className="p-4">
         <button onClick={openConfigModal} className="text-blue-400">
-          定制你的专属智能机器
+          创建智能助理
         </button>
       </div>
       <Dialog isOpen={configModalVisible} onClose={closeConfigModal}>

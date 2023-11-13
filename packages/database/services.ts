@@ -83,7 +83,7 @@ export const dbApi = api.injectEndpoints({
         const url = domain
           ? `${domain}${API_ENDPOINTS.DATABASE}/write`
           : `${API_ENDPOINTS.DATABASE}/write`;
-
+        console.log('data', data);
         return {
           url,
           method: 'POST',

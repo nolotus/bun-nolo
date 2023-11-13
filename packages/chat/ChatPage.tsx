@@ -1,4 +1,5 @@
 import { TrashIcon } from '@primer/octicons-react';
+import { nanoid } from '@reduxjs/toolkit';
 import aiTranslations from 'ai/aiI18n';
 import { sendRequestToOpenAI } from 'ai/client/request';
 import { tokenStatic } from 'ai/client/static';
@@ -97,7 +98,7 @@ const ChatPage = () => {
       return;
     }
     setRequestFailed(false);
-    dispatch(sendMessage({ role: 'user', content: newContent }));
+    dispatch(sendMessage({ role: 'user', content: newContent, id: nanoid }));
     try {
       let assistantMessage;
       if (mode === 'text') {
@@ -110,7 +111,11 @@ const ChatPage = () => {
           currentChatConfig,
         );
         dispatch(
-          receiveMessage({ role: 'assistant', content: assistantMessage }),
+          receiveMessage({
+            role: 'assistant',
+            content: assistantMessage,
+            id: nanoid,
+          }),
         );
       } else if (mode === 'image') {
         const imageData = await sendRequestToOpenAI(

@@ -16,7 +16,6 @@ export const useDefaultConfig = (chatId: string) => {
         const chatIdConfig = await getDefaultConfig({
           entryId: chatId,
         }).unwrap();
-        console.log('chatIdConfig', chatIdConfig);
         if (chatIdConfig.error?.status === 404) {
           navigate('/chat');
         } else {

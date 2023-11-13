@@ -9,6 +9,7 @@ interface Message {
   role: string;
   content: string;
   image?: string;
+  id: string;
 }
 
 interface MessagesDisplayProps {
@@ -35,9 +36,9 @@ const MessagesDisplay: React.FC<MessagesDisplayProps> = ({ messages }) => {
       className="flex-grow flex flex-col space-y-4 p-3 overflow-y-auto max-w-full break-words"
       ref={messagesEndRef}
     >
-      {messages.map((message, i) => (
+      {messages.map((message) => (
         <Message
-          key={i}
+          key={message.id}
           content={message.content}
           role={message.role}
           image={message.image} // 新增代码
