@@ -2,6 +2,7 @@ import { authRoutes } from 'auth/client/routes';
 import { createRoutes } from 'create/routes';
 import React, { Suspense, lazy } from 'react';
 import Default from 'render/layout/Default';
+import Full from 'render/layout/Full';
 import Page from 'render/page/PageIndex';
 import { routes as settingRoutes } from 'setting/routes';
 
@@ -12,7 +13,6 @@ import { SurfTip } from './SurfTip';
 const ChatPage = lazy(() => import('chat/ChatPage'));
 const Life = lazy(() => import('life/All'));
 const Welcome = lazy(() => import('./pages/Welcome'));
-const Full = lazy(() => import('render/layout/Full'));
 
 export const routes = (currentUser) => [
   {
@@ -58,11 +58,7 @@ export const routes = (currentUser) => [
   ...settingRoutes,
   {
     path: '/',
-    element: (
-      <Suspense fallback={<div>loading full</div>}>
-        <Full />
-      </Suspense>
-    ),
+    element: <Full />,
     children: [
       {
         path: 'chat',

@@ -7,19 +7,18 @@ interface LinkButtonProps {
   to: string;
   icon: React.ReactNode
   label?: string;
-  extraClass?: string;
-  iconClass?: string;
+  className?: string;
 }
 
 export const LinkButton: FC<LinkButtonProps> = ({
   to,
   icon,
   label,
-  extraClass,
+  className,
 }) => (
   <Link
     to={to}
-    className={clsx('flex items-center', extraClass ? extraClass : '')}
+    className={clsx('flex items-center', className ? className : '')}
   >
     {icon}
     {label && <span className="ml-2">{label}</span>}

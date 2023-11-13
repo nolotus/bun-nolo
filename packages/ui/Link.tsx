@@ -17,8 +17,8 @@ export const Link: React.FC<LinkProps> = ({
   style = {},
   target = '_blank',
 }) => {
-  const baseStyle = 'text-blue-500 hover:text-blue-700';
-  const activeStyle = 'text-green-700';
+  const baseStyle = 'text-sky-500 hover:text-sky-700';
+  const activeStyle = 'text-sky-700';
 
   return (
     <NavLink

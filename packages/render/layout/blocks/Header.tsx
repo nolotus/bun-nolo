@@ -1,19 +1,18 @@
-import { ThreeBarsIcon, XIcon } from '@primer/octicons-react';
+import { ThreeBarsIcon, HomeIcon } from '@primer/octicons-react';
 import clsx from 'clsx';
 import React, { useState, useEffect, useCallback } from 'react';
-import { GoUser } from 'user/blocks/GoUser';
+import { UserControls } from 'user/blocks/UserControls';
 
-import NavListItem from '../blocks/NavListItem';
-
+import { DesktopMenu } from './DesktopMenu'; // 假设这些是拆分后的组件
+import { MobileMenu } from './MobileMenu'; // 假设这些是拆分后的组件
 const nav = [
-  { path: '/', label: '首页' },
+  { path: '/', label: '首页', icon: <HomeIcon size={24} /> },
   // { path: '/nomadspots', label: '旅居点' },
   // { path: '/interestspots', label: '兴趣点' },
   // { path: '/itineraries', label: '行程' },
   // { path: '/peoples', label: '游民' },
   // { path: '/gears', label: '装备' },
 ];
-
 export const Header: React.FC = () => {
   const [isSticky, setIsSticky] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -42,37 +41,18 @@ export const Header: React.FC = () => {
       <div className="container mx-auto px-4 lg:px-10">
         <div className="flex justify-between items-center">
           <button onClick={handleMobileMenuToggle} className="lg:hidden">
-            <ThreeBarsIcon size={24} /> {/* 调整尺寸以适应你的布局 */}
+            <ThreeBarsIcon size={24} />
           </button>
-
-          <ul className="hidden lg:flex space-x-4">
-            {nav.map((item) => (
-              <NavListItem {...item} key={item.path} className="text-black" />
-            ))}
-          </ul>
-          <div className="flex items-center">
-            <GoUser />
-          </div>
+          <DesktopMenu navItems={nav} />
+          <UserControls />
         </div>
       </div>
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden">
-          <div className="px-4 py-2">
-            <button
-              onClick={handleMobileMenuToggle}
-              className="text-white float-right"
-            >
-              <XIcon size={24} />
-            </button>
 
-            <ul className="space-y-2 text-white mt-8">
-              {nav.map((item) => (
-                <NavListItem {...item} key={item.path} className="text-white" />
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        toggleMenu={handleMobileMenuToggle}
+        navItems={nav}
+      />
     </header>
   );
 };

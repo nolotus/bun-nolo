@@ -49,27 +49,24 @@ export const UserMenu = () => {
         to="/chat"
         icon={<CommentIcon size={24} />}
         label=""
-        extraClass="rounded flex items-center p-3 hover:bg-gray-100"
-        iconClass="text-blue-500"
+        className="flex items-center p-3 hover:bg-sky-500 hover:text-white"
       />
       <LinkButton
         to="/create"
         icon={<PlusIcon size={24} />}
         label=""
-        extraClass="rounded flex items-center p-3 hover:bg-gray-100"
-        iconClass="text-green-500"
+        className="flex items-center p-3 hover:bg-sky-500 hover:text-white"
       />
       <LinkButton
         to="/life"
         icon={<PersonIcon size={24} />}
         label={auth.user?.username}
-        extraClass="flex justify-center items-center p-3 hover:bg-gray-100"
-        iconClass="text-purple-500"
+        className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"
       />
       <DropDown
         trigger={
-          <button className="flex items-center ml-2 p-3 hover:bg-gray-100 focus:outline-none rounded-full">
-            <ChevronDownIcon size={24} className="text-gray-700" />
+          <button className="flex items-center ml-2 p-3 hover:bg-sky-500 focus:outline-none rounded-full hover:text-white">
+            <ChevronDownIcon size={24} className="text-ne" />
           </button>
         }
       >

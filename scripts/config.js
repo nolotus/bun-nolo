@@ -2,9 +2,9 @@ import postCssPlugin from 'esbuild-style-plugin';
 import { isProduction } from 'utils/env';
 
 const inputPath = './packages/web/entry.tsx';
-export const config = {
+// 定义公共配置
+const commonConfig = {
   entryPoints: [inputPath],
-  entryNames: '[dir]/[name]-[hash]',
   outdir: 'public/assets',
   plugins: [
     postCssPlugin({
@@ -14,13 +14,10 @@ export const config = {
     }),
   ],
   bundle: true,
-  minify: isProduction, // 仅在生产环境中最小化代码
-  sourcemap: isProduction ? false : 'external', // 仅在非生产环境中生成源代码映射
   splitting: true,
   treeShaking: true,
   format: 'esm',
   loader: {
-    // 加载器配置保持不变
     '.js': 'jsx',
     '.webp': 'file',
     '.jpg': 'file',
@@ -29,3 +26,15 @@ export const config = {
   },
   metafile: true,
 };
+
+// 定义生产环境特有配置
+const prodConfig = {
+  entryNames: '[dir]/[name]-[hash]',
+  minify: true,
+  sourcemap: false,
+};
+
+// 合并配置，如果是生产环境，添加 prodConfig
+export const config = isProduction
+  ? { ...commonConfig, ...prodConfig }
+  : commonConfig;

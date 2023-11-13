@@ -16,13 +16,13 @@ const NoMatch = () => {
       <p className="text-base md:text-lg lg:text-xl flex space-x-4">
         <Link
           to="/"
-          className="text-gray-700 bg-gray-300 hover:bg-gray-400 p-4 rounded-full shadow-md flex items-center space-x-4"
+          className="text-neutral-700 bg-neutral-300 hover:bg-neutral-400 p-4  shadow flex items-center space-x-4"
         >
           <span>Go to Home</span>
         </Link>
         <button
           onClick={goBack}
-          className="text-gray-700 bg-gray-200 hover:bg-gray-300 p-4 rounded-lg shadow-md flex items-center space-x-4"
+          className="text-neutral-700 bg-neutral-200 hover:bg-neutral-300 p-4 shadow flex items-center space-x-4"
         >
           <span>Go Back</span>
         </button>

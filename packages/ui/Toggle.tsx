@@ -51,7 +51,7 @@ const Toggle: React.FC<ToggleProps> = ({
         <div
           className={`absolute inset-0 transition-colors duration-300 ease-in-out ${
             checked
-              ? 'bg-emerald-400'
+              ? 'bg-emerald-500'
               : 'bg-neutral-300 group-hover:bg-neutral-400'
           }`}
         />
