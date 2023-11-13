@@ -14,6 +14,12 @@ module.exports = {
   safelist: ['columns-3', 'shadow-md', 'shadow-xl'],
   theme: {
     extend: {
+      transitionTimingFunction: {
+        snappy: 'cubic-bezier(0,1,0.5,1)',
+      },
+      width: {
+        '13': '3.25rem', // 或者您需要的任何具体值
+      },
       colors: {},
       display: ['group-hover'],
       boxShadow: {

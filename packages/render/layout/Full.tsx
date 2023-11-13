@@ -5,7 +5,7 @@ import { Header } from './blocks/Header';
 
 const Layout = () => {
   return (
-    <div className="bg-[#e2e1e0] bg-opacity-70 flex flex-col min-h-screen">
+    <div className="bg-neutral-200 flex flex-col min-h-screen">
       <Header />
       <div className="w-full  flex-grow">
         <Outlet />

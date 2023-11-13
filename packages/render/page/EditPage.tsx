@@ -1,9 +1,9 @@
 import { nanoid } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { DataType } from 'create/types';
-import { useWriteMutation } from 'database/services';
-import React, { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useWriteMutation, useDeleteEntryMutation } from 'database/services';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { renderContentNode } from 'render';
 import { Button, Toggle } from 'ui';
 
@@ -18,8 +18,9 @@ import {
   updateContent,
 } from './pageSlice';
 
-const CreatePage = () => {
+const EditPage = () => {
   const dispatch = useAppDispatch();
+  const { pageId } = useParams();
 
   const auth = useAuth();
   const pageState = useAppSelector((state) => state.page);
@@ -94,6 +95,20 @@ const CreatePage = () => {
       // handleSave(); // 调用已有的保存逻辑
     }
   };
+
+  const [deleteEntry, { isLoading: isDeleting }] = useDeleteEntryMutation();
+
+  const handleDelete = useCallback(async () => {
+    try {
+      await deleteEntry({ entryId: pageId }).unwrap();
+      alert('Page deleted successfully!');
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to delete the page:', error);
+      alert('Error deleting page. Please try again.');
+    }
+  }, [deleteEntry, navigate, pageId]);
+
   const contentChange = (content) => {
     dispatch(updateContent(content));
   };
@@ -114,34 +129,43 @@ const CreatePage = () => {
         <Button onClick={handleSave} variant="primary" size="medium">
           Save
         </Button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className={`bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ${
+            isDeleting ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          {isDeleting ? 'Deleting...' : 'Delete'}
+        </button>
       </div>
       <div className="flex-grow flex">
         <div className="w-full flex-shrink-0">
-          <div className="w-full p-4 flex flex-col">
-            {pageState.showAsMarkdown ? (
-              <MarkdownEdit
-                initValue={pageState.content}
-                onChange={contentChange}
-              />
-            ) : (
-              <>
+          {pageState.showAsMarkdown ? (
+            <MarkdownEdit
+              initValue={pageState.content}
+              onChange={contentChange}
+            />
+          ) : (
+            <div className="w-full p-4 flex flex-col">
+              <div className=" w-full flex-shrink-0">
                 <div>{renderContentNode(mdastFromSlice)}</div>
-
-                <textarea
-                  id="content"
-                  className="w-full h-auto focus:ring-0 focus:outline-none resize-none bg-transparent"
-                  value={textareaContent} // 使用本地状态
-                  onChange={(e) => setTextareaContent(e.target.value)} // 使用本地状态
-                  onKeyDown={handleKeyDown} // 添加键盘事件处理器
-                  ref={textareaRef}
-                />
-              </>
-            )}
-          </div>
+              </div>
+              <textarea
+                id="content"
+                className="w-full h-auto focus:ring-0 focus:outline-none resize-none bg-transparent"
+                value={textareaContent} // 使用本地状态
+                onChange={(e) => setTextareaContent(e.target.value)} // 使用本地状态
+                onKeyDown={handleKeyDown} // 添加键盘事件处理器
+                ref={textareaRef}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default CreatePage;
+export default EditPage;

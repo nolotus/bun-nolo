@@ -6,9 +6,9 @@ import { unified } from 'unified';
 
 const getColorClass = (role) => {
   if (role === 'user') {
-    return 'text-blue-400'; // 使用 Tailwind 默认的较淡的蓝色
+    return 'text-sky-500';
   }
-  return 'text-gray-600'; // 使用 Tailwind 默认的较淡的灰色
+  return 'text-neutral-600';
 };
 
 export const MessageContent: React.FC<{ role: string, content: string }> = ({
@@ -28,7 +28,7 @@ export const MessageContent: React.FC<{ role: string, content: string }> = ({
 
   return (
     <div
-      className={`py-2 px-4 rounded-lg mx-2 bg-gray-100 ${colorClass} whitespace-pre-wrap`}
+      className={`py-2 px-4 rounded-lg mx-2 bg-neutral-100 ${colorClass} whitespace-pre-wrap`}
     >
       {role === 'user' ? content : renderedContent}
     </div>

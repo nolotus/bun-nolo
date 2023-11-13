@@ -29,7 +29,7 @@ function MessageInput({ onSendMessage, isLoading }) {
           disabled={isLoading} // 禁用输入框
         />
         <button
-          className="absolute right-2 bottom-2 py-1 px-4 bg-blue-500 text-white rounded"
+          className="absolute right-2 bottom-2 py-1 px-4 bg-sky-500 text-white rounded"
           disabled={isLoading} // 禁用按钮
           onClick={() => {
             onSendMessage(newMessage);

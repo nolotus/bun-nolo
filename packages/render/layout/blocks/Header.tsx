@@ -6,7 +6,7 @@ import { GoUser } from 'user/blocks/GoUser';
 import NavListItem from '../blocks/NavListItem';
 
 const nav = [
-  { path: '/', label: 'Nolo首页' },
+  { path: '/', label: '首页' },
   // { path: '/nomadspots', label: '旅居点' },
   // { path: '/interestspots', label: '兴趣点' },
   // { path: '/itineraries', label: '行程' },

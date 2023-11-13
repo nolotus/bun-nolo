@@ -29,11 +29,7 @@ export const routesConfig = [
 
 export const routes = routesConfig.map((route) => ({
   path: route.path,
-  element: (
-    <Suspense fallback={<>样式加载中</>}>
-      <route.component />
-    </Suspense>
-  ),
+  element: <route.component />,
   children: route.children?.map((childRoute) => ({
     path: childRoute.path,
     element: (
