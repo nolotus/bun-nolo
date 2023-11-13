@@ -1,26 +1,24 @@
-import {API_ENDPOINTS} from 'database/config';
-import {generateUserId} from 'core/generateMainKey';
+import { signToken } from 'auth/token';
+import { generateKeyPairFromSeed, verifySignedMessage } from 'core/crypto';
+import { generateUserId } from 'core/generateMainKey';
 import {
   encryptWithPassword,
   generateAndSplitRecoveryPassword,
   hashPassword,
 } from 'core/password';
-import {
-  generateKeyPairFromSeed,
-  verifySignedMessage,
-} from 'core/crypto';
-import {getLogger} from 'utils/logger';
-import {SignupData} from '../types';
-import {signToken} from 'auth/token';
+import { API_ENDPOINTS } from 'database/config';
+import { getLogger } from 'utils/logger';
+
+import { SignupData } from '../types';
 
 const signupLogger = getLogger('signup');
 
 const sendToServer = async (data: {
-  username: string;
-  publicKey: string;
-  language: string;
-  remoteRecoveryPassword: string | null;
-  encryptedEncryptionKey: string | null;
+  username: string,
+  publicKey: string,
+  language: string,
+  remoteRecoveryPassword: string | null,
+  encryptedEncryptionKey: string | null,
 }): Promise<any> => {
   const body = data;
   const response = await fetch(API_ENDPOINTS.USERS + '/signup', {
@@ -41,14 +39,14 @@ const sendToServer = async (data: {
 };
 
 export const handleSignup = async (user, isStoreRecovery?) => {
-  const {username, password: brainPassword, answer} = user;
+  const { username, password: brainPassword, answer } = user;
   // Generate encryption key
   const encryptionKey = await hashPassword(brainPassword);
   // Get the user's language setting
   const language = navigator.language;
 
   // Generate public and private key pair based on the encryption key
-  const {publicKey, secretKey} = generateKeyPairFromSeed(
+  const { publicKey, secretKey } = generateKeyPairFromSeed(
     username + encryptionKey + language,
   );
 
@@ -71,7 +69,7 @@ export const handleSignup = async (user, isStoreRecovery?) => {
     );
   }
 
-  const {encryptedData} = await sendToServer(sendData);
+  const { encryptedData } = await sendToServer(sendData);
 
   const decryptedData = await verifySignedMessage(
     encryptedData,
@@ -83,7 +81,7 @@ export const handleSignup = async (user, isStoreRecovery?) => {
 
   const userId = generateUserId(publicKey, username, language);
   console.log('sendData:', userId, sendData);
-  const token = signToken({userId, username}, secretKey);
+  const token = signToken({ userId, username }, secretKey);
 
   if (
     decryptedDataObject.username === sendData.username &&
@@ -91,7 +89,7 @@ export const handleSignup = async (user, isStoreRecovery?) => {
     decryptedDataObject.userId === userId
   ) {
     signupLogger.info('Server data matches local data.');
-    return {token};
+    return { token };
   } else {
     signupLogger.error('Server data does not match local data.');
     throw new Error('Server data does not match local data.');

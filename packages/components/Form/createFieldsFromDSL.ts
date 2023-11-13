@@ -1,5 +1,5 @@
 export function createFieldsFromDSL(dsl) {
-  return Object.keys(dsl).map(key => ({
+  return Object.keys(dsl).map((key) => ({
     id: key,
     label: key, // 直接使用字段名称，不进行首字母大写
     type: dsl[key].type, // 从 DSL 中获取字段类型

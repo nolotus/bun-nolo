@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { PersonIcon, LockIcon } from '@primer/octicons-react';
 import { useAppDispatch } from 'app/hooks';
 import { storeTokens } from 'auth/client/token';
 import { parseToken } from 'auth/token';
@@ -13,6 +14,7 @@ import { Button } from 'ui';
 import { userRegister } from 'user/userSlice';
 
 import { handleSignup } from '../client/signUp';
+
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -40,8 +42,8 @@ const Signup: React.FC = () => {
     }
   };
   const userDefinition = {
-    username: { type: 'string' },
-    password: { type: 'string' },
+    username: { type: 'string', min: 1 },
+    password: { type: 'password', min: 6 },
   };
   const userFormSchema = createZodSchemaFromDSL(userDefinition);
   const fields = createFieldsFromDSL(userDefinition);
@@ -54,12 +56,14 @@ const Signup: React.FC = () => {
   });
   return (
     <div>
-      <div className=" flex items-center justify-center ">
+      <div className="flex items-center justify-center">
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="bg-white w-96 rounded-lg shadow-lg p-8"
+          className="w-full max-w-lg p-10 bg-white rounded-lg shadow"
         >
-          <h2 className="text-xl font-bold mb-4">{t('signup')}</h2>
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">
+            {t('signup')}
+          </h2>
           {fields.map((field) => (
             <div key={field.id} className="flex flex-col mb-4">
               <label
@@ -70,9 +74,15 @@ const Signup: React.FC = () => {
               </label>
               <FormField
                 {...field}
-                key={field.id}
                 register={register}
                 errors={errors}
+                icon={
+                  field.id === 'username' ? (
+                    <PersonIcon className="text-gray-400" size={24} />
+                  ) : (
+                    <LockIcon className="text-gray-400" size={24} />
+                  )
+                }
               />
             </div>
           ))}

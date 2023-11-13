@@ -1,11 +1,12 @@
+import { getLogger } from 'utils/logger';
 import * as z from 'zod';
-import {getLogger} from 'utils/logger';
-import {createTimeFieldSchema} from './createTimeFieldSchema';
+
+import { createTimeFieldSchema } from './createTimeFieldSchema';
 
 const schemaLogger = getLogger('schema');
 // 定义可用的转换
 const TRANSFORMS = {
-  toLowerCase: value => value.toLowerCase(),
+  toLowerCase: (value) => value.toLowerCase(),
   // ...可以在此添加其他转换
 };
 
@@ -19,23 +20,25 @@ const createFieldSchemaByType = (field, key) => {
     textarea: () => z.string(),
     file: () => z.any(),
     string: () => z.string(),
+    password: () => z.string(),
+
     email: () => z.string().email(),
     url: () => z.string().url(),
     uuid: () =>
       z
         .string()
         .refine(
-          value =>
+          (value) =>
             /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
               value,
             ),
-          {message: 'Invalid UUID'},
+          { message: 'Invalid UUID' },
         ),
     regex: () => {
       if (!field.regex) {
         throw new Error(`Regex is not defined for field: ${key}`);
       }
-      return z.string().refine(value => new RegExp(field.regex).test(value));
+      return z.string().refine((value) => new RegExp(field.regex).test(value));
     },
     integer: () => z.number().int(),
     float: () => z.number(),
@@ -48,7 +51,7 @@ const createFieldSchemaByType = (field, key) => {
           ? z[field.subtype]()
           : field.values
           ? z.enum(field.values)
-          : createZodSchemaFromDSL({[key]: field.subtype}).shape[key],
+          : createZodSchemaFromDSL({ [key]: field.subtype }).shape[key],
       ),
     object: () => createZodSchemaFromDSL(field.fields),
   };
@@ -97,7 +100,7 @@ const applyAdditionalOptions = (fieldSchema, field) => {
   return schema;
 };
 
-export const createZodSchemaFromDSL = dsl => {
+export const createZodSchemaFromDSL = (dsl) => {
   schemaLogger.info('Creating Zod schema from DSL');
 
   let zodSchema = {};
