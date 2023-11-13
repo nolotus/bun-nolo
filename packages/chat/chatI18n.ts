@@ -15,11 +15,11 @@ export default {
   'zh-CN': {
     translation: {
       chatTitle: '聊天',
-      sendMessage: '发送消息',
+      sendMessage: '发送',
       typeMessage: '输入你的消息...',
       onlineStatus: '在线',
       offlineStatus: '离线',
-      clearChat: '清除对话',
+      clearChat: '清空',
       loadingChat: '对话窗口加载中...', // 新增
       // ...其他聊天相关文本
     },
