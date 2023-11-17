@@ -9,6 +9,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "react-use": "^17.4.0"
+    "react-use": "^17.4.0",
+    "tailwind-merge": "^2.0.0"
   }
 }

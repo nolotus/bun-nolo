@@ -35,7 +35,11 @@ export const handleStreamReq = async (req: Request, res) => {
   const openAIHeaders = getOpenAIHeaders();
 
   const requestBody: FrontEndRequestBody = req.body;
-
+  //must same with the openai api schema , or it will return 400
+  const sanitizedMessages = requestBody.messages.map((message) => {
+    const { id, ...rest } = message;
+    return rest;
+  });
   const config: AxiosRequestConfig = {
     ...(useProxy && {
       // If useProxy is true, add the proxy configuration
@@ -51,11 +55,10 @@ export const handleStreamReq = async (req: Request, res) => {
     url: 'https://api.openai.com/v1/chat/completions',
     data: {
       model: requestBody.model,
-      messages: requestBody.messages,
+      messages: sanitizedMessages,
       stream: true,
     },
   };
-
   try {
     const response = await axios.request(config);
 

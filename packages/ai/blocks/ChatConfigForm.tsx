@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAppDispatch, useAuth } from 'app/hooks';
+import { useAppDispatch } from 'app/hooks';
 import { updateChatConfig } from 'chat/chatSlice';
+import { createFieldsFromDSL } from 'components/Form/createFieldsFromDSL';
 import { FormField } from 'components/Form/FormField';
 import { useUpdateEntryMutation } from 'database/services'; // 导入新的 mutation 钩子
 import React, { useEffect } from 'react';
@@ -8,18 +9,59 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Button } from 'ui/Button';
 
-import { fields, schema } from '../dsl';
+import { schema } from '../dsl';
+export const editDsl = {
+  name: {
+    type: 'string',
+    min: 1,
+  },
+  description: {
+    type: 'textarea',
+    min: 1,
+  },
+
+  replyRule: {
+    type: 'textarea',
+    min: 1,
+    optional: true,
+  },
+  knowledge: {
+    type: 'textarea',
+    min: 1,
+    optional: true,
+  },
+  model: {
+    type: 'enum',
+    values: [
+      'gpt-3.5-turbo',
+      'gpt-3.5-turbo-16k',
+      'gpt-3.5-turbo-0613',
+      'gpt-3.5-turbo-16k-0613',
+      'gpt-4',
+      'gpt-4-0613',
+      'gpt-4-0314',
+      'gpt-4-1106-preview',
+    ],
+  },
+  path: {
+    type: 'string',
+    min: 1,
+    optional: true,
+  },
+};
+export const fields = createFieldsFromDSL(editDsl);
+
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
-  const auth = useAuth();
   const dispatch = useAppDispatch();
   const [updateEntry] = useUpdateEntryMutation(); // 初始化 mutation 钩子
 
   const onSubmit = async (data) => {
+    const chatRobotConfig = { ...data, type: 'chatRobot' };
     try {
       const result = await updateEntry({
         entryId: initialValues.id,
-        data,
+        data: chatRobotConfig,
       }).unwrap();
       dispatch(updateChatConfig(result.data));
       onClose(); // 关闭弹窗
@@ -46,17 +88,27 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       {fields.map((field) => (
-        <div className={'flex flex-col mb-4'} key={field.id}>
+        <div
+          className="flex flex-col mb-4 space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-x-4 md:space-x-6 lg:space-x-8 xl:space-x-10 2xl:space-x-12 sm:space-y-0"
+          key={field.id}
+        >
           <label
             htmlFor={field.id}
-            className={'block text-sm font-medium text-gray-700 mb-1'}
+            className="block text-neutral-700 font-medium mb-2 sm:mb-0 sm:w-1/3 lg:w-1/4 xl:w-1/5 2xl:w-1/6"
           >
             {t(field.label)}
           </label>
-          <FormField {...field} errors={errors} register={register} />
+          <div className="w-full sm:w-2/3 lg:w-3/4 xl:w-4/5 2xl:w-5/6">
+            <FormField {...field} errors={errors} register={register} />
+          </div>
         </div>
       ))}
-      <Button type="submit">{t('update')}</Button>
+      <Button
+        type="submit"
+        className="transition duration-300 ease-snappy w-full py-2 text-white bg-emerald-500 hover:bg-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-300 shadow-md sm:w-auto sm:px-6 sm:rounded-md sm:py-3 sm:mt-3 md:px-8 md:py-4 lg:px-10 lg:py-4 xl:px-12 xl:py-5 2xl:px-14 2xl:py-5"
+      >
+        {t('update')}
+      </Button>
     </form>
   );
 };
