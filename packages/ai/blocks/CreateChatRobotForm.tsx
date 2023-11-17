@@ -52,8 +52,6 @@ const CreateChatRobotForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-      <h2 className="text-xl font-bold mb-4">{t('createRobot')}</h2>
-
       {fields.map((field) => (
         <div className={'flex flex-col mb-4'} key={field.id}>
           <label

@@ -4,6 +4,7 @@ import { nolotusId } from 'core/init';
 import { extractUserId } from 'core/prefix';
 import { useLazyGetEntriesQuery } from 'database/services';
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useModal, Dialog } from 'ui';
 
@@ -26,6 +27,8 @@ const options = {
   limit: 20,
 };
 const ChatSidebar = () => {
+  const { t } = useTranslation();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const chatId = useChatId();
 
@@ -88,7 +91,11 @@ const ChatSidebar = () => {
           创建智能助理
         </button>
       </div>
-      <Dialog isOpen={configModalVisible} onClose={closeConfigModal}>
+      <Dialog
+        isOpen={configModalVisible}
+        onClose={closeConfigModal}
+        title={<h2 className="text-xl font-bold">{t('createRobot')}</h2>}
+      >
         <CreateChatRobotForm onClose={closeConfigModal} />
       </Dialog>
       {isLoading ? (
