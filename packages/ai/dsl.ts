@@ -1,6 +1,7 @@
 import { createFieldsFromDSL } from 'components/Form/createFieldsFromDSL';
 import { createZodSchemaFromDSL } from 'database/schema/createZodSchemaFromDSL';
 
+import { ModelPriceEnum } from './model/modelPrice';
 export const dsl = {
   name: {
     type: 'string',
@@ -18,16 +19,7 @@ export const dsl = {
   },
   model: {
     type: 'enum',
-    values: [
-      'gpt-3.5-turbo',
-      'gpt-3.5-turbo-16k',
-      'gpt-3.5-turbo-0613',
-      'gpt-3.5-turbo-16k-0613',
-      'gpt-4',
-      'gpt-4-0613',
-      'gpt-4-0314',
-      'gpt-4-1106-preview',
-    ],
+    values: ModelPriceEnum,
   },
   replyRule: {
     type: 'textarea',

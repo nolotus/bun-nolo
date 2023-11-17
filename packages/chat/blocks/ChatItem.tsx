@@ -1,15 +1,10 @@
 import { PencilIcon, TrashIcon } from '@primer/octicons-react';
 import ChatConfigForm from 'ai/blocks/ChatConfigForm';
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { useModal, Dialog, Alert, useDeleteAlert } from 'ui';
 
-const ChatItem = ({
-  chat,
-  onChatSelect,
-  onDeleteChat,
-  isSelected,
-  allowEdit,
-}) => {
+const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
 
   const {
@@ -23,11 +18,11 @@ const ChatItem = ({
   });
 
   return (
-    <div
+    <NavLink
+      to={`chat?chatId=${chat.id}`}
       className={`flex items-center p-4 cursor-pointer group ${
         isSelected ? 'bg-gray-200' : 'hover:bg-gray-200'
       }`}
-      onClick={() => onChatSelect(chat)}
     >
       <span className="text-gray-600">{chat.name}</span>
       {allowEdit && (
@@ -70,7 +65,7 @@ const ChatItem = ({
           )}
         </div>
       )}
-    </div>
+    </NavLink>
   );
 };
 

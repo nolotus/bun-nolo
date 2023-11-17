@@ -2,20 +2,21 @@ import CreateChatRobotForm from 'ai/blocks/CreateChatRobotForm'; // Import the f
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { nolotusId } from 'core/init';
 import { extractUserId } from 'core/prefix';
-import { useLazyGetEntriesQuery } from 'database/services';
+import {
+  useLazyGetEntriesQuery,
+  useLazyGetEntryQuery,
+} from 'database/services';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useModal, Dialog } from 'ui';
 
 import {
+  fetchDefaultConfig,
   selectChat,
-  setCurrentChatByID,
   fetchchatListSuccess,
   reloadChatList,
 } from '../chatSlice';
-import useChatId from '../hooks/useChatId';
-import { useDefaultConfig } from '../hooks/useDefaultConfig';
 import { useDeleteChat } from '../hooks/useDeleteChat';
 
 import ChatItem from './ChatItem';
@@ -28,11 +29,11 @@ const options = {
 };
 const ChatSidebar = () => {
   const { t } = useTranslation();
+  const [getDefaultConfig] = useLazyGetEntryQuery();
+  const navigate = useNavigate();
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const chatId = useChatId();
-
-  useDefaultConfig(chatId);
+  const [searchParams] = useSearchParams();
+  const chatId = searchParams.get('chatId');
 
   const {
     visible: configModalVisible,
@@ -50,6 +51,22 @@ const ChatSidebar = () => {
   const [getChatList, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
 
   useEffect(() => {
+    const requestDefaultConfig = async () => {
+      if (chatId) {
+        const chatIdConfig = await getDefaultConfig({
+          entryId: chatId,
+        }).unwrap();
+        if (chatIdConfig.error?.status === 404) {
+          navigate('/chat');
+        } else {
+          dispatch(fetchDefaultConfig(chatIdConfig));
+        }
+      }
+    };
+    requestDefaultConfig();
+  }, [chatId, dispatch, getDefaultConfig, navigate]);
+
+  useEffect(() => {
     const fetchChatList = async () => {
       const nolotusChatList = await getChatList({ userId: nolotusId, options });
       isSuccess && dispatch(fetchchatListSuccess(nolotusChatList.data));
@@ -64,12 +81,6 @@ const ChatSidebar = () => {
     };
     fetchChatList();
   }, [isSuccess, auth.user?.userId, dispatch, getChatList]);
-
-  const handleChatSelect = (chat) => {
-    console.log('chat', chat);
-    dispatch(setCurrentChatByID(chat.id));
-    setSearchParams({ ...searchParams, chatId: chat.id });
-  };
 
   const selectedChat = currentChatConfig?.id;
 
@@ -106,7 +117,6 @@ const ChatSidebar = () => {
             <ChatItem
               key={chat.id}
               chat={chat}
-              onChatSelect={handleChatSelect}
               onDeleteChat={deleteChatBot}
               isSelected={selectedChat === chat.id}
               allowEdit={isCreator(chat.id)}

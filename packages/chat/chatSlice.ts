@@ -55,15 +55,6 @@ export const chatSlice = createSlice({
         state.currentChatConfig = action.payload[0] ? action.payload[0] : null;
       }
     },
-    setCurrentChatByID: (
-      state: ChatSliceState,
-      action: PayloadAction<string>,
-    ) => {
-      const targetChat = state.chatList.entities[action.payload];
-      if (targetChat) {
-        state.currentChatConfig = targetChat;
-      }
-    },
 
     fetchDefaultConfig: (
       state: ChatSliceState,
@@ -125,7 +116,6 @@ export const {
   clearMessages,
   setCurrentChatConfig,
   fetchchatListSuccess,
-  setCurrentChatByID,
   fetchDefaultConfig,
   retry,
   messageStreamEnd,
