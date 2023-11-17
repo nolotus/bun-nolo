@@ -77,9 +77,10 @@ const ChatSidebar = () => {
 
   const deleteChatBot = useDeleteChat(postReloadChatList);
 
-  const dataUserId = selectedChat && extractUserId(selectedChat);
-  const allowEdit = dataUserId === auth.user?.userId;
-
+  const isCreator = (dataId) => {
+    const dataUserId = extractUserId(dataId);
+    return dataUserId === auth.user?.userId;
+  };
   return (
     <div className="flex flex-col h-full justify-start bg-gray-100">
       <div className="p-4">
@@ -101,9 +102,7 @@ const ChatSidebar = () => {
               onChatSelect={handleChatSelect}
               onDeleteChat={deleteChatBot}
               isSelected={selectedChat === chat.id}
-              allowEdit={
-                allowEdit && extractUserId(chat.id) === auth.user?.userId
-              }
+              allowEdit={isCreator(chat.id)}
             />
           ))}
         </>
