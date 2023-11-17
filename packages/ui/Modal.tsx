@@ -44,7 +44,8 @@ export const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
       onClick={handleOverlayClick}
     >
       <div
-        className={`m-auto shadow-2xl rounded-lg w-1/3 ${className}`}
+        className={`m-auto shadow-2xl rounded-lg transition-all
+    w-full sm:w-3/4 md:w-3/5 lg:w-2/3 xl:w-1/2 2xl:w-1/2 ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {children}
