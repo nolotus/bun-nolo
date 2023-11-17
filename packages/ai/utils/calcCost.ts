@@ -1,20 +1,15 @@
-import { Dialog, ModelPrice } from '../types';
-export const modelPrice: ModelPrice = {
-  'gpt-3.5-turbo': { input: 0.0015, output: 0.002 },
-  'gpt-3.5-turbo-16k': { input: 0.003, output: 0.004 },
-  'gpt-3.5-turbo-0613': { input: 0.0015, output: 0.002 },
-  'gpt-3.5-turbo-16k-0613': { input: 0.003, output: 0.004 },
-  'gpt-4': { input: 0.03, output: 0.06 },
-  'gpt-4-0613': { input: 0.03, output: 0.06 },
-  'gpt-4-0314': { input: 0.03, output: 0.06 },
-};
-
+import { modelPrice } from '../model/modelPrice';
+import { Dialog } from '../types';
 export function calcCost(dataList: Dialog[]): any {
   let totalCost = 0;
   let modelCosts: { [key: string]: any } = {}; // 存储各个模型的总成本
   let userCosts: { [key: string]: any } = {}; // 新增：存储每个用户的成本信息
 
   for (let data of dataList) {
+    if (!modelPrice[data.model]) {
+      console.warn(`Unknown model price for model: ${data.model}`);
+      continue; // 跳过未知模型
+    }
     const direction_cost = data.dialogType === 'send' ? 'output' : 'input';
     const cost = (modelPrice[data.model][direction_cost] * data.length) / 1000;
     totalCost += cost;
@@ -56,6 +51,10 @@ export function calcCurrentUserIdCost(
   for (let data of dataList) {
     if (data.userId !== currentUserId) {
       continue; // 只计算当前用户的成本
+    }
+    if (!modelPrice[data.model]) {
+      console.warn(`Unknown model price for model: ${data.model}`);
+      continue; // 跳过未知模型
     }
 
     const direction_cost = data.dialogType === 'send' ? 'output' : 'input';
