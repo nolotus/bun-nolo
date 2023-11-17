@@ -1,4 +1,4 @@
-import { PlayIcon } from '@primer/octicons-react';
+import { UnmuteIcon } from '@primer/octicons-react';
 import { useGenerateAudioMutation } from 'ai/services';
 import React, { useState, useEffect } from 'react';
 import { Avatar } from 'ui';
@@ -48,7 +48,7 @@ const UserMessage: React.FC<MessageProps> = ({ content, image }) => {
     <div className="flex justify-end mb-2">
       <div className="flex items-start">
         <div onClick={handlePlayClick}>
-          <PlayIcon className="mr-2 self-center cursor-pointer" />
+          <UnmuteIcon className="mr-2 self-center cursor-pointer" />
         </div>
         {image ? (
           <MessageImage image={image} />
@@ -80,7 +80,7 @@ const OtherMessage: React.FC<MessageProps> = ({ content, image }) => {
           <MessageContent role="other" content={content} />
         )}
         <div onClick={handlePlayClick}>
-          <PlayIcon className="ml-2 self-center cursor-pointer" />
+          <UnmuteIcon className="ml-2 self-center cursor-pointer" />
         </div>
       </div>
       {audioSrc && <audio src={audioSrc} controls />}
