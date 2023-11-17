@@ -25,6 +25,7 @@ import {
   continueMessage,
   messageEnd,
 } from './chatSlice';
+import { useSendTextMessage } from './hooks/useSendTextMessage';
 import { useStreamHandler } from './useStreamHandler';
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 Object.keys(chatTranslations).forEach((lang) => {
@@ -42,7 +43,7 @@ const ChatPage = () => {
 
   const allowSend = useAppSelector((state) => state.chat.allowSend);
   const messages = useAppSelector((state) => state.chat.messages);
-
+  const { sendTextMessage } = useSendTextMessage();
   const { t } = useTranslation();
   const [writeHashData] = useWriteHashMutation();
   const [cost, setCost] = useState(0);
@@ -88,7 +89,7 @@ const ChatPage = () => {
 
   const [mode] = useState<'text' | 'image' | 'stream'>('stream');
 
-  const { handleStreamMessage } = useStreamHandler(
+  const { handleStreamMessage, onCancel } = useStreamHandler(
     currentChatConfig,
     auth?.user?.userId,
     username,
@@ -98,25 +99,10 @@ const ChatPage = () => {
       return;
     }
     setRequestFailed(false);
-    dispatch(sendMessage({ role: 'user', content: newContent, id: nanoid }));
+    dispatch(sendMessage({ role: 'user', content: newContent, id: nanoid() }));
     try {
-      let assistantMessage;
       if (mode === 'text') {
-        assistantMessage = await sendRequestToOpenAI(
-          'text',
-          {
-            userMessage: newContent,
-            prevMessages: messages,
-          },
-          currentChatConfig,
-        );
-        dispatch(
-          receiveMessage({
-            role: 'assistant',
-            content: assistantMessage,
-            id: nanoid,
-          }),
-        );
+        sendTextMessage(newContent);
       } else if (mode === 'image') {
         const imageData = await sendRequestToOpenAI(
           'image',
@@ -192,6 +178,7 @@ const ChatPage = () => {
               <MessageInput
                 onSendMessage={handleSendMessage}
                 isLoading={isMessageStreaming}
+                onCancel={onCancel}
               />
             </div>
             <div className="ml-2 flex space-x-2">

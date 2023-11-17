@@ -34,5 +34,5 @@ export const handleTextReq = async (req, res) => {
   const responseData = await response.json();
   apiLogger.info({ responseData }, 'Received response from OpenAI API');
 
-  res.json(responseData);
+  return res.json(responseData);
 };

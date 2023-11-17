@@ -1,8 +1,10 @@
 // useStreamHandler.ts
 import { sendRequestToOpenAI } from 'ai/client/request';
 import { tokenStatic } from 'ai/client/static';
+import { useStreamChatMutation } from 'ai/services';
 import { useAppDispatch, useAuth } from 'app/hooks';
 import { useWriteHashMutation } from 'database/services';
+import { useRef } from 'react';
 import { getLogger } from 'utils/logger';
 
 import {
@@ -10,15 +12,16 @@ import {
   messageStreaming,
   messagesReachedMax,
 } from './chatSlice';
-
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 
 export const useStreamHandler = (config, userId, username) => {
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const [writeHashData] = useWriteHashMutation();
+  const [streamChat] = useStreamChatMutation();
   let temp;
   let tokenCount = 0;
+  const activeStream = useRef(null);
   const handleStreamData = (data) => {
     const text = new TextDecoder('utf-8').decode(data);
     const lines = text.trim().split('\n');
@@ -80,20 +83,29 @@ export const useStreamHandler = (config, userId, username) => {
       }
     });
   };
-
   const handleStreamMessage = async (newMessage, prevMessages) => {
-    await sendRequestToOpenAI(
-      'stream',
-      {
+    const controller = new AbortController();
+    const result = await streamChat({
+      payload: {
         userMessage: newMessage,
         prevMessages: prevMessages,
       },
       config,
-      handleStreamData, // 传递回调函数
-    );
+      onStreamData: handleStreamData,
+      signal: controller.signal,
+    });
+    activeStream.current = controller;
+  };
+  const onCancel = () => {
+    if (activeStream.current) {
+      console.log('cancel activeStream', activeStream);
+      activeStream.current.abort();
+      activeStream.current = null;
+    }
   };
 
   return {
     handleStreamMessage,
+    onCancel,
   };
 };

@@ -42,7 +42,11 @@ const ChatItem = ({
             <PencilIcon size={16} />
           </button>
           {editVisible && (
-            <Dialog isOpen={editVisible} onClose={closeEdit}>
+            <Dialog
+              isOpen={editVisible}
+              onClose={closeEdit}
+              title={`Edit ${chat.name}`}
+            >
               <ChatConfigForm initialValues={chat} onClose={closeEdit} />
             </Dialog>
           )}

@@ -1,15 +1,28 @@
+import { SquareIcon, PaperAirplaneIcon } from '@primer/octicons-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-function MessageInput({ onSendMessage, isLoading }) {
+interface MessageInputProps {
+  onSendMessage: (message: string) => void;
+  isLoading: boolean;
+  onCancel: () => void;
+}
+
+const MessageInput: React.FC<MessageInputProps> = ({
+  onSendMessage,
+  isLoading,
+  onCancel,
+}) => {
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
 
-  const handleNewMessageChange = (event) => {
+  const handleNewMessageChange = (
+    event: React.ChangeEvent<HTMLTextAreaElement>,
+  ) => {
     setNewMessage(event.target.value);
   };
 
-  const handleKeyDown = (event) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       onSendMessage(newMessage);
@@ -26,21 +39,29 @@ function MessageInput({ onSendMessage, isLoading }) {
           value={newMessage}
           onChange={handleNewMessageChange}
           onKeyDown={handleKeyDown}
-          disabled={isLoading} // 禁用输入框
         />
-        <button
-          className="absolute right-2 bottom-2 py-1 px-4 bg-sky-500 text-white"
-          disabled={isLoading} // 禁用按钮
-          onClick={() => {
-            onSendMessage(newMessage);
-            setNewMessage('');
-          }}
-        >
-          {isLoading ? 'Sending...' : t('sendMessage')}
-        </button>
+        {!isLoading && (
+          <button
+            className="absolute right-2 bottom-2 py-1 px-4 bg-sky-500 text-white flex items-center"
+            onClick={() => {
+              onSendMessage(newMessage);
+              setNewMessage('');
+            }}
+          >
+            <PaperAirplaneIcon size={16} className="-rotate-45" />
+          </button>
+        )}
+        {isLoading && (
+          <button
+            className="absolute right-2 bottom-2 py-1 px-4 bg-red-500 text-white flex items-center"
+            onClick={onCancel}
+          >
+            <SquareIcon size={16} />
+          </button>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default MessageInput;

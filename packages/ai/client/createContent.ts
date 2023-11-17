@@ -1,7 +1,7 @@
-import {mapLanguage} from 'i18n/mapLanuage'; // Adjust the import based on your folder structure
+import { mapLanguage } from 'i18n/mapLanuage'; // Adjust the import based on your folder structure
 
 export const createContent = (config: any) => {
-  const {name, description, replyRule, knowledge, responseLanguage} = config;
+  const { name, description, replyRule, knowledge, responseLanguage } = config;
   const mappedLanguage = mapLanguage(responseLanguage);
 
   const nameSection = name ? `Your name is ${name}. ` : '';

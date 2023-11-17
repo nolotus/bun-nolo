@@ -18,6 +18,7 @@ const Page = ({ id }) => {
   const isEditMode = searchParams.get('edit') === 'true';
   const pageId = id || paramPageId;
   const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
+
   if (data) {
     dispatch(initPage(data.content));
   }
