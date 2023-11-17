@@ -3,13 +3,13 @@ import { useAppDispatch } from 'app/hooks';
 import { updateChatConfig } from 'chat/chatSlice';
 import { createFieldsFromDSL } from 'components/Form/createFieldsFromDSL';
 import { FormField } from 'components/Form/FormField';
+import { createZodSchemaFromDSL } from 'database/schema/createZodSchemaFromDSL';
 import { useUpdateEntryMutation } from 'database/services'; // 导入新的 mutation 钩子
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Button } from 'ui/Button';
 
-import { schema } from '../dsl';
 import { ModelPriceEnum } from '../model/modelPrice';
 export const editDsl = {
   name: {
@@ -41,14 +41,15 @@ export const editDsl = {
     optional: true,
   },
 };
-export const fields = createFieldsFromDSL(editDsl);
-
+const fields = createFieldsFromDSL(editDsl);
+const schema = createZodSchemaFromDSL(editDsl);
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [updateEntry] = useUpdateEntryMutation(); // 初始化 mutation 钩子
 
   const onSubmit = async (data) => {
+    console.log('data', data);
     const chatRobotConfig = { ...data, type: 'chatRobot' };
     try {
       const result = await updateEntry({
@@ -56,6 +57,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
         data: chatRobotConfig,
       }).unwrap();
       dispatch(updateChatConfig(result.data));
+      console.log('result', result);
       onClose(); // 关闭弹窗
     } catch (error) {
       // 这里可以处理错误，例如显示一个错误信息
