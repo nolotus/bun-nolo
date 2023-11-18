@@ -1,7 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { nanoid } from '@reduxjs/toolkit';
 import { useAuth } from 'app/hooks';
+import { createFieldsFromDSL } from 'components/Form/createFieldsFromDSL';
 import { FormField } from 'components/Form/FormField';
+import { createZodSchemaFromDSL } from 'database/schema/createZodSchemaFromDSL';
 import { useWriteMutation } from 'database/services';
 import i18next from 'i18n';
 import React, { useState } from 'react';
@@ -11,18 +13,50 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from 'ui/Button';
 
 import allTranslations from '../aiI18n';
-import { schema, fields } from '../dsl';
+import { ModelPriceEnum } from '../model/modelPrice';
+
+export const createDsl = {
+  name: {
+    type: 'string',
+    min: 1,
+  },
+  description: {
+    type: 'textarea',
+    min: 1,
+  },
+
+  replyRule: {
+    type: 'textarea',
+    min: 1,
+    optional: true,
+  },
+  knowledge: {
+    type: 'textarea',
+    min: 1,
+    optional: true,
+  },
+  model: {
+    type: 'enum',
+    values: Object.keys(ModelPriceEnum),
+  },
+  path: {
+    type: 'string',
+    min: 1,
+    optional: true,
+  },
+};
+const fields = createFieldsFromDSL(createDsl);
+const schema = createZodSchemaFromDSL(createDsl);
 Object.keys(allTranslations).forEach((lang) => {
   const translations = allTranslations[lang].translation;
   i18next.addResourceBundle(lang, 'translation', translations, true, true);
 });
 
-const CreateChatRobotForm = () => {
+const CreateChatRobotForm = ({ onClose }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [write, { isLoading: isWriteLoading, error: writeError }] =
-    useWriteMutation();
+  const [write, { isLoading: isWriteLoading }] = useWriteMutation();
 
   const [error, setError] = useState(null);
   const auth = useAuth();
@@ -44,7 +78,9 @@ const CreateChatRobotForm = () => {
 
     try {
       const result = await write(requestBody).unwrap();
+      console.log(result);
       navigate(`/chat?chatId=${result.dataId}`);
+      onClose();
     } catch (error) {
       setError(error.data?.message || error.status); // 可以直接设置错误状态
     }
