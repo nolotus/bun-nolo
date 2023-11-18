@@ -19,7 +19,7 @@ export const dsl = {
   },
   model: {
     type: 'enum',
-    values: ModelPriceEnum,
+    values: Object.values(ModelPriceEnum),
   },
   replyRule: {
     type: 'textarea',
