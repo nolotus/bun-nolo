@@ -1,11 +1,12 @@
-import path from 'path';
 import fs from 'fs';
-import {t} from 'i18next';
+import path from 'path';
 
-import {DATABASE_DIR, DEFAULT_INDEX_FILE} from './init';
-import {generateUserId} from 'core/generateMainKey';
-import {getLogger} from 'utils/logger';
-import {signMessage} from 'core/crypto';
+import { signMessage } from 'core/crypto';
+import { generateUserId } from 'core/generateMainKey';
+import { t } from 'i18next';
+import { getLogger } from 'utils/logger';
+
+import { DATABASE_DIR, DEFAULT_INDEX_FILE } from './init';
 
 const signupLogger = getLogger('signup');
 
@@ -42,9 +43,11 @@ export async function signUp(req, res) {
 
   const userId = generateUserId(publicKey, username, language);
   const userDirPath = path.join(DATABASE_DIR, userId);
-const isExists= fs.existsSync(userDirPath)
+  const isExists = fs.existsSync(userDirPath);
   if (isExists) {
-    return res.status(409).json({message: t('errors.dataExists', {id: userId})});
+    return res
+      .status(409)
+      .json({ message: t('errors.dataExists', { id: userId }) });
   } else {
     const filePath = path.join(userDirPath, DEFAULT_INDEX_FILE);
 
@@ -65,10 +68,10 @@ const isExists= fs.existsSync(userDirPath)
       JSON.stringify(sendData),
       process.env.SECRET_KEY,
     );
-    fs.mkdirSync(userDirPath, {recursive: true});
+    fs.mkdirSync(userDirPath, { recursive: true });
     fs.writeFileSync(filePath, fileContent);
-    signupLogger.info({userId, username}, 'User data successfully saved.');
+    signupLogger.info({ userId, username }, 'User data successfully saved.');
 
-    return res.status(200).json({encryptedData});
+    return res.status(200).json({ encryptedData });
   }
 }

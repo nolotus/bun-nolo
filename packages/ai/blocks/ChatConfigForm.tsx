@@ -57,7 +57,6 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
         data: chatRobotConfig,
       }).unwrap();
       dispatch(updateChatConfig(result.data));
-      console.log('result', result);
       onClose(); // 关闭弹窗
     } catch (error) {
       // 这里可以处理错误，例如显示一个错误信息
