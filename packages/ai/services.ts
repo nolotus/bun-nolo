@@ -1,16 +1,43 @@
 import { api } from 'app/api'; // 确保路径正确
 import { API_ENDPOINTS } from 'database/config';
+import { isProduction } from 'utils/env';
 
 import { createContent } from './client/createContent';
 import { readChunks } from './client/stream';
 const chatUrl = `${API_ENDPOINTS.AI}/chat`;
 const addPrefixForEnv = (url: string) => {
-  return process.env.NODE_ENV === 'production' ? url : `http://localhost${url}`;
+  return isProduction ? url : `http://localhost${url}`;
 };
 
 export const aiApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    // 其他endpoints保持不变
+    generateImageEdit: builder.mutation({
+      query: (payload) => ({
+        url: `${API_ENDPOINTS.AI}/images/edits`,
+        method: 'POST',
+        body: payload, // 直接使用 payload 作为请求体
+      }),
+    }),
+
+    generateImageVariation: builder.mutation({
+      query: (payload) => ({
+        url: `${API_ENDPOINTS.AI}/images/variations`,
+        method: 'POST',
+        body: payload, // 直接使用 payload 作为请求体
+      }),
+    }),
+
+    generateImage: builder.mutation({
+      query: (payload) => {
+        const url = `${API_ENDPOINTS.AI}/images/generations`;
+
+        return {
+          url,
+          method: 'POST',
+          body: payload, // 直接使用 payload 作为请求体
+        };
+      },
+    }),
     generateAudio: builder.mutation({
       query: (content) => ({
         url: `${API_ENDPOINTS.AI}/audio/speech`,
@@ -30,8 +57,6 @@ export const aiApi = api.injectEndpoints({
         extraOptions,
         baseQuery,
       ) => {
-        console.log('payload', payload);
-        console.log('config', config);
         const createStreamRequestBody = (payload: any, config: any) => {
           const model = config.model || 'gpt-3.5-turbo-16k';
           const content = createContent(config);
@@ -82,7 +107,6 @@ export const aiApi = api.injectEndpoints({
           }
 
           const reader = response.body.getReader();
-          console.log('reader', reader);
 
           await readChunks(reader, onStreamData);
         } catch (error) {
@@ -94,4 +118,10 @@ export const aiApi = api.injectEndpoints({
   }),
 });
 
-export const { useGenerateAudioMutation, useStreamChatMutation } = aiApi;
+export const {
+  useGenerateAudioMutation,
+  useStreamChatMutation,
+  useGenerateImageMutation,
+  useGenerateImageEditMutation,
+  useGenerateImageVariationMutation,
+} = aiApi;

@@ -31,7 +31,7 @@ export const handleImageReq = async (req: any, res: any) => {
 
   try {
     const response = await axios.request(config);
-    res.json(response.data);
+    return res.json(response.data);
   } catch (error) {
     openAiLogger.error('Error during OpenAI API request: %s', error.message);
   }

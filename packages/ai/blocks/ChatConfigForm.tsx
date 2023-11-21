@@ -49,7 +49,6 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
   const [updateEntry] = useUpdateEntryMutation(); // 初始化 mutation 钩子
 
   const onSubmit = async (data) => {
-    console.log('data', data);
     const chatRobotConfig = { ...data, type: 'chatRobot' };
     try {
       const result = await updateEntry({

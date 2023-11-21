@@ -19,13 +19,11 @@ export const tokenStatic = (data, auth, writeHashData) => {
     flags: { isJSON: true },
     userId: nolotusId,
   };
-  console.log('writeData', writeData);
 
   if (auth.user?.userId === nolotusId) {
     writeHashData(writeData);
   } else {
     //write to nolotus
-    console.log('writeData', writeData);
     writeHashData(writeData);
     //write to user
     writeHashData({ ...writeData, userId: auth.user?.userId });

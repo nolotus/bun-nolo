@@ -1,9 +1,10 @@
 import { TrashIcon } from '@primer/octicons-react';
 import { nanoid } from '@reduxjs/toolkit';
 import aiTranslations from 'ai/aiI18n';
-import { sendRequestToOpenAI } from 'ai/client/request';
 import { tokenStatic } from 'ai/client/static';
+import { useGenerateImageMutation } from 'ai/services';
 // import { calcCurrentUserIdCost } from "ai/utils/calcCost";
+import { ModeType } from 'ai/types';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { useWriteHashMutation } from 'database/services';
 import i18n from 'i18n';
@@ -25,8 +26,8 @@ import {
   continueMessage,
   messageEnd,
 } from './chatSlice';
-import { useSendTextMessage } from './hooks/useSendTextMessage';
 import { useStreamHandler } from './useStreamHandler';
+
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 Object.keys(chatTranslations).forEach((lang) => {
   const translations = chatTranslations[lang].translation;
@@ -43,10 +44,11 @@ const ChatPage = () => {
 
   const allowSend = useAppSelector((state) => state.chat.allowSend);
   const messages = useAppSelector((state) => state.chat.messages);
-  const { sendTextMessage } = useSendTextMessage();
   const { t } = useTranslation();
   const [writeHashData] = useWriteHashMutation();
   const [cost, setCost] = useState(0);
+  const [generateImage, { isLoading: isGeneratingImage }] =
+    useGenerateImageMutation();
 
   // const allowSend = Number(cost.totalCost) < 2;
   let username;
@@ -87,8 +89,6 @@ const ChatPage = () => {
 
   const [requestFailed, setRequestFailed] = useState(false);
 
-  const [mode] = useState<'text' | 'image' | 'stream'>('stream');
-
   const { handleStreamMessage, onCancel } = useStreamHandler(
     currentChatConfig,
     auth?.user?.userId,
@@ -98,21 +98,27 @@ const ChatPage = () => {
     if (!newContent.trim()) {
       return;
     }
+
+    let mode: ModeType = 'stream';
+    const generateImagePattern = /生成.*图片/;
+    if (
+      generateImagePattern.test(newContent) ||
+      newContent.includes('生成图片')
+    ) {
+      mode = 'image';
+    }
+
     setRequestFailed(false);
     dispatch(sendMessage({ role: 'user', content: newContent, id: nanoid() }));
     try {
-      if (mode === 'text') {
-        sendTextMessage(newContent);
-      } else if (mode === 'image') {
-        const imageData = await sendRequestToOpenAI(
-          'image',
-          {
-            prompt: newContent,
-          },
-          currentChatConfig,
-        );
-        const imageUrl = imageData.data[0].url; // 提取图片 URL
-
+      if (mode === 'image') {
+        const response = await generateImage({
+          prompt: newContent,
+        }).unwrap();
+        console.log('response', response);
+        const data = response.data;
+        const imageUrl = data.data[0].url; // 提取图片 URL
+        console.log('imageUrl', imageUrl);
         dispatch(
           receiveMessage({
             role: 'assistant',
@@ -137,7 +143,7 @@ const ChatPage = () => {
       chatWindowLogger.error({ error }, 'Error while sending message');
       setRequestFailed(true);
     } finally {
-      dispatch(messageEnd);
+      dispatch(messageEnd());
     }
   };
 

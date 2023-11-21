@@ -1,5 +1,4 @@
 // useStreamHandler.ts
-import { sendRequestToOpenAI } from 'ai/client/request';
 import { tokenStatic } from 'ai/client/static';
 import { useStreamChatMutation } from 'ai/services';
 import { useAppDispatch, useAuth } from 'app/hooks';
@@ -85,7 +84,7 @@ export const useStreamHandler = (config, userId, username) => {
   };
   const handleStreamMessage = async (newMessage, prevMessages) => {
     const controller = new AbortController();
-    const result = await streamChat({
+    await streamChat({
       payload: {
         userMessage: newMessage,
         prevMessages: prevMessages,

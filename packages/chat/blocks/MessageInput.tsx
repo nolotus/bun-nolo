@@ -1,4 +1,4 @@
-import { SquareIcon, PaperAirplaneIcon } from '@primer/octicons-react';
+import { SquareIcon, ArrowUpIcon } from '@primer/octicons-react';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -42,13 +42,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
         />
         {!isLoading && (
           <button
-            className="absolute right-2 bottom-2 py-1 px-4 bg-sky-500 text-white flex items-center"
+            className="absolute right-1 bottom-1 py-1 px-3 bg-sky-500 text-white flex items-center"
             onClick={() => {
               onSendMessage(newMessage);
               setNewMessage('');
             }}
           >
-            <PaperAirplaneIcon size={16} className="-rotate-45" />
+            <ArrowUpIcon size={20} />
           </button>
         )}
         {isLoading && (

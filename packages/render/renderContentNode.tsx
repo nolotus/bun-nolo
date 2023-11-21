@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { isDevelopment } from 'utils/env';
 
 import Blockquote from './blocks/Blockquote';
 import Card from './blocks/Card';
@@ -20,6 +21,7 @@ import TableCell from './blocks/TableCell';
 import TableRow from './blocks/TableRow';
 import TaskList from './blocks/TaskList';
 import TaskListItem from './blocks/TaskListItem';
+
 interface ContentNode {
   type: string;
   children?: ContentNode[];
@@ -35,7 +37,6 @@ export const renderContentNode = (
   node: ContentNode,
   options: RenderOptions = {},
 ): ReactNode => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
   const { enableClassName = isDevelopment, debug = isDevelopment } = options;
 
   const classNames = enableClassName ? node.className : undefined;

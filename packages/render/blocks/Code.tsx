@@ -13,12 +13,21 @@ const Code = ({ value, language }) => {
     'code[class*="language-"]': {
       ...vscDarkPlus['code[class*="language-"]'],
       fontFamily: "'Courier New', monospace",
-      fontSize: '12px', // 较小的屏幕使用较小的字体
+      fontSize: '14px', // 默认字体大小调整为14px
       '@media(min-width: 640px)': {
-        fontSize: '14px',
+        fontSize: '15px', // sm
       },
       '@media(min-width: 768px)': {
-        fontSize: '16px',
+        fontSize: '16px', // md
+      },
+      '@media(min-width: 1024px)': {
+        fontSize: '17px', // lg
+      },
+      '@media(min-width: 1280px)': {
+        fontSize: '18px', // xl
+      },
+      '@media(min-width: 1536px)': {
+        fontSize: '19px', // 2xl
       },
     },
     'pre[class*="language-"]': {
@@ -33,6 +42,15 @@ const Code = ({ value, language }) => {
       },
       '@media(min-width: 768px)': {
         margin: '2em 0',
+      },
+      '@media(min-width: 1024px)': {
+        margin: '2.5em 0',
+      },
+      '@media(min-width: 1280px)': {
+        margin: '3em 0',
+      },
+      '@media(min-width: 1536px)': {
+        margin: '3.5em 0',
       },
     },
   };

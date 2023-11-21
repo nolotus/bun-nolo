@@ -18,3 +18,5 @@ export type Dialog = {
   model: string,
   length: number,
 };
+
+export type ModeType = 'text' | 'image' | 'stream' | 'audio' | 'speech';

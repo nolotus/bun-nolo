@@ -1,8 +1,10 @@
 import { serve } from 'bun';
+import { isProduction } from 'utils/env';
 
 import { handleRequest } from './request';
+
 export const startServer = async () => {
-  if (process.env.NODE_ENV === 'production') {
+  if (isProduction) {
     serve({
       port: 443,
       hostname: '0.0.0.0',

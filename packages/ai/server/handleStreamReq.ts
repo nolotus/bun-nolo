@@ -1,8 +1,8 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 import { FrontEndRequestBody } from '../types';
 
-import { getOpenAIHeaders } from './openAIConfig';
+import { createOpenAIRequestConfig } from './openAIConfig';
 
 const handleStreamEvents = (stream: AxiosResponse<any>) => {
   if (stream && stream.data) {
@@ -29,39 +29,27 @@ const handleStreamEvents = (stream: AxiosResponse<any>) => {
   }
   return null;
 };
-const useProxy = process.env.USE_PROXY === 'true'; // Check if USE_PROXY is set to true
 
 export const handleStreamReq = async (req: Request, res) => {
-  const openAIHeaders = getOpenAIHeaders();
-
   const requestBody: FrontEndRequestBody = req.body;
   //must same with the openai api schema , or it will return 400
   const sanitizedMessages = requestBody.messages.map((message) => {
     const { id, ...rest } = message;
     return rest;
   });
-  const config: AxiosRequestConfig = {
-    ...(useProxy && {
-      // If useProxy is true, add the proxy configuration
-      proxy: {
-        protocol: 'http',
-        host: '127.0.0.1',
-        port: 10080,
-      },
-    }),
-    headers: openAIHeaders,
-    method: 'POST',
-    responseType: 'stream',
-    url: 'https://api.openai.com/v1/chat/completions',
-    data: {
-      model: requestBody.model,
-      messages: sanitizedMessages,
-      stream: true,
-    },
-  };
+  const config = createOpenAIRequestConfig();
   try {
-    const response = await axios.request(config);
-
+    const response = await axios.request({
+      ...config,
+      url: 'https://api.openai.com/v1/chat/completions',
+      method: 'POST',
+      responseType: 'stream',
+      data: {
+        model: requestBody.model,
+        messages: sanitizedMessages,
+        stream: true,
+      },
+    });
     return handleStreamEvents(response);
   } catch (error) {
     console.log(error.message);

@@ -3,7 +3,7 @@ import { getLogger } from 'utils/logger';
 import { FrontEndRequestBody } from '../types';
 
 import { handleAudioReq } from './handleAudioReq';
-// import { handleImageReq } from './handleImageReq';
+import { handleImageReq } from './handleImageReq';
 import { handleStreamReq } from './handleStreamReq';
 import { handleTextReq } from './handleTextReq';
 
@@ -14,6 +14,7 @@ export const postToOpenAIProxy = async (req, res): Promise<void> => {
 
   const requestBody: FrontEndRequestBody = req.body;
   const type: string = requestBody.type || 'text';
+  console.log('type', type);
   try {
     if (type === 'text') {
       return handleTextReq(req, res);
@@ -21,6 +22,8 @@ export const postToOpenAIProxy = async (req, res): Promise<void> => {
       return handleStreamReq(req, res);
     } else if (type === 'audio') {
       return handleAudioReq(req, res);
+    } else if (type === 'image') {
+      return handleImageReq(req, res);
     } else {
       openAiLogger.error('Invalid type specified');
       return res.status(400).json({ error: 'Invalid type specified' });

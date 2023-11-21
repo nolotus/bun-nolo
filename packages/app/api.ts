@@ -4,9 +4,9 @@ import {
   coreModule,
   reactHooksModule,
 } from '@reduxjs/toolkit/query/react';
-// import { RootState } from "../store";
-const baseUrl =
-  process.env.NODE_ENV === 'production' ? '/' : 'http://localhost';
+import { isProduction } from 'utils/env';
+
+const baseUrl = isProduction ? '/' : 'http://localhost';
 
 const createApi = buildCreateApi(
   coreModule(),
