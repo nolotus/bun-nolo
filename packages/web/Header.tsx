@@ -1,10 +1,9 @@
 import { ThreeBarsIcon, HomeIcon } from '@primer/octicons-react';
 import clsx from 'clsx';
 import React, { useState, useEffect, useCallback } from 'react';
+import { DesktopMenu } from 'render/layout/blocks/DesktopMenu'; // 假设这些是拆分后的组件
+import { MobileMenu } from 'render/layout/blocks/MobileMenu'; // 假设这些是拆分后的组件
 import { UserControls } from 'user/blocks/UserControls';
-
-import { DesktopMenu } from './DesktopMenu'; // 假设这些是拆分后的组件
-import { MobileMenu } from './MobileMenu'; // 假设这些是拆分后的组件
 const nav = [
   { path: '/', label: '首页', icon: <HomeIcon size={24} /> },
   // { path: '/nomadspots', label: '旅居点' },

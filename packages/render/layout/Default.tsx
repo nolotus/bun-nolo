@@ -1,10 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-
-// import Footer from '../blocks/Footer';
-
-import { Header } from './blocks/Header';
+import { Header } from 'web/Header';
 
 const Layout = ({ disableAnimation = false }) => {
   const location = useLocation();

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-
-import { Header } from './blocks/Header';
+import { Header } from 'web/Header';
 
 const Layout = () => {
   return (

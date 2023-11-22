@@ -1,18 +1,15 @@
 import { TrashIcon, RepoPullIcon, RepoPushIcon } from '@primer/octicons-react';
-import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import { useAppDispatch, useAuth } from 'app/hooks';
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from 'core';
 import { deleteData } from 'database/dbSlice';
 import { useDeleteEntryMutation, useWriteMutation } from 'database/services';
 import React, { useState } from 'react';
 import { Card } from 'ui';
 
-import { selectFilteredLifeData } from '../selectors';
-
 import DataItem from './DataItem';
 
-const DataList = ({ refreshData }) => {
+const DataList = ({ data, refreshData }) => {
   const auth = useAuth();
-  const data = useAppSelector(selectFilteredLifeData);
   const dispatch = useAppDispatch();
   const [deleteEntry] = useDeleteEntryMutation();
   const [write] = useWriteMutation();

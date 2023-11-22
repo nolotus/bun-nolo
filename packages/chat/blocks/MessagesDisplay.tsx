@@ -2,8 +2,7 @@ import { useAppSelector } from 'app/hooks';
 import React, { useEffect, useRef } from 'react';
 
 import { selectChat } from '../chatSlice';
-
-import { Message } from './Message';
+import { Message } from '../messages/Message';
 
 interface Message {
   role: string;

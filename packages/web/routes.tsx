@@ -1,5 +1,6 @@
 import { authRoutes } from 'auth/client/routes';
 import { createRoutes } from 'create/routes';
+import { routes as lifeRoutes } from 'life/routes';
 import React, { Suspense, lazy } from 'react';
 import Default from 'render/layout/Default';
 import Full from 'render/layout/Full';
@@ -11,9 +12,8 @@ import { SurfTip } from './SurfTip';
 
 // const CreatePage = lazy(() => import('render/page/CreatePage'));
 const ChatPage = lazy(() => import('chat/ChatPage'));
-const Life = lazy(() => import('life/All'));
-const Welcome = lazy(() => import('./pages/Welcome'));
 
+const Welcome = lazy(() => import('./pages/Welcome'));
 export const routes = (currentUser) => [
   {
     path: '/',
@@ -45,14 +45,6 @@ export const routes = (currentUser) => [
       },
 
       ...authRoutes,
-      {
-        path: 'life',
-        element: (
-          <Suspense fallback={<div>loading life</div>}>
-            <Life />
-          </Suspense>
-        ),
-      },
     ],
   },
   ...settingRoutes,
@@ -90,6 +82,7 @@ export const routes = (currentUser) => [
     ),
     children: [{ path: 'surfing-safety-tips', element: <SurfTip /> }],
   },
+  lifeRoutes,
   {
     path: ':pageId',
     element: (

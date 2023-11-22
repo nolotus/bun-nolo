@@ -1,6 +1,7 @@
-import React from "react";
-import { Outlet } from "react-router-dom";
-import Sidebar from "./blocks/Sidebar";
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+
+import Sidebar from './blocks/Sidebar';
 
 const SettingLayout: React.FC = () => {
   return (

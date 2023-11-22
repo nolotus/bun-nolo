@@ -4,13 +4,19 @@ import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { renderContentNode } from 'render';
 
+import { markdownToMdast } from '../MarkdownProcessor';
+
 const RenderPage = ({ pageId, data }) => {
   const navigate = useNavigate();
 
   console.log('pageId', pageId);
   const renderedContent = useMemo(() => {
     if (data.type === 'page') {
-      return renderContentNode(data.mdast);
+      if (data.mdast) {
+        return renderContentNode(data.mdast);
+      } else if (data.content) {
+        return renderContentNode(markdownToMdast(data.content));
+      }
     } else {
       return <pre>{JSON.stringify(data, null, 2)}</pre>;
     }
