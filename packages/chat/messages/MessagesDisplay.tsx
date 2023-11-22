@@ -2,14 +2,9 @@ import { useAppSelector } from 'app/hooks';
 import React, { useEffect, useRef } from 'react';
 
 import { selectChat } from '../chatSlice';
-import { Message } from '../messages/Message';
 
-interface Message {
-  role: string;
-  content: string;
-  image?: string;
-  id: string;
-}
+import { MessageItem } from './Message';
+import { Message } from './types';
 
 interface MessagesDisplayProps {
   messages: Message[];
@@ -36,14 +31,15 @@ const MessagesDisplay: React.FC<MessagesDisplayProps> = ({ messages }) => {
       ref={messagesEndRef}
     >
       {messages.map((message) => (
-        <Message
+        <MessageItem
+          id={message.id}
           key={message.id}
           content={message.content}
           role={message.role}
           image={message.image} // 新增代码
         />
       ))}
-      <Message {...tempMessage} key={tempMessage.id} />
+      <MessageItem {...tempMessage} key={tempMessage.id} id={tempMessage.id} />
     </div>
   );
 };

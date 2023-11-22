@@ -1,10 +1,5 @@
 import { chatAdapter } from './chatSlice';
-export interface Message {
-  role: string;
-  content: string;
-  image?: string;
-  id: string;
-}
+import { Message } from './messages/types';
 export interface ChatConfig {
   id: string;
   name?: string;

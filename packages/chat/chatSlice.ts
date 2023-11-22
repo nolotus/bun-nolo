@@ -5,7 +5,8 @@ import {
 } from '@reduxjs/toolkit';
 import { RootState } from 'app/store';
 
-import { ChatConfig, Message, ChatSliceState } from './types';
+import { Message } from './messages/types';
+import { ChatConfig, ChatSliceState } from './types';
 export const chatAdapter = createEntityAdapter<ChatConfig>({
   // Assume IDs are stored in the 'id' field of each chat config
   selectId: (chat) => chat.id,
@@ -107,6 +108,11 @@ export const chatSlice = createSlice({
     ) => {
       chatAdapter.upsertOne(state.chatList, action.payload);
     },
+    deleteMessage: (state: ChatSliceState, action: PayloadAction<number>) => {
+      state.messages = state.messages.filter(
+        (message) => message.id !== action.payload,
+      );
+    },
   },
 });
 
@@ -125,6 +131,7 @@ export const {
   messageEnd,
   reloadChatList,
   updateChatConfig,
+  deleteMessage,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

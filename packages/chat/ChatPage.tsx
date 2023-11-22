@@ -15,7 +15,6 @@ import { getLogger } from 'utils/logger';
 
 import ChatSidebar from './blocks/ChatSidebar';
 import MessageInput from './blocks/MessageInput';
-import MessagesDisplay from './blocks/MessagesDisplay';
 import chatTranslations from './chatI18n';
 import {
   receiveMessage,
@@ -26,6 +25,7 @@ import {
   continueMessage,
   messageEnd,
 } from './chatSlice';
+import MessagesDisplay from './messages/MessagesDisplay';
 import { useStreamHandler } from './useStreamHandler';
 
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志

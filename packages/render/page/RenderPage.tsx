@@ -40,10 +40,12 @@ const RenderPage = ({ pageId, data }) => {
   }, [deleteEntry, navigate, pageId]);
   const auth = useAuth();
   const isCreator = data.creator === auth.user?.userId;
+  const isNotBelongAnyone = !data.creator;
+  const allowEdit = isCreator || isNotBelongAnyone;
 
   return (
     <div>
-      {isCreator && (
+      {allowEdit && (
         <>
           <button
             type="button"
