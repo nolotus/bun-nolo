@@ -1,31 +1,36 @@
-import { nanoid } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { DataType } from 'create/types';
-import { useWriteMutation, useDeleteEntryMutation } from 'database/services';
+import {
+  useUpdateEntryMutation,
+  useDeleteEntryMutation,
+} from 'database/services';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderContentNode } from 'render';
 import { Button, Toggle } from 'ui';
+import { Toast } from 'ui/toast/Toast';
+import { useToastManager } from 'ui/toast/useToastManager';
 
 import { MarkdownEdit } from './MarkdownEdit';
 import {
   setHasVersion,
   setSlug,
   setCreator,
-  setCreatedTime,
   saveContentAndMdast,
   setShowAsMarkdown,
   updateContent,
 } from './pageSlice';
 
 const EditPage = () => {
+  const { toasts, addToast, removeToast } = useToastManager();
+
   const dispatch = useAppDispatch();
   const { pageId } = useParams();
 
   const auth = useAuth();
   const pageState = useAppSelector((state) => state.page);
   const mdastFromSlice = pageState.mdast;
-  const [mutate] = useWriteMutation();
+  const [updateEntry] = useUpdateEntryMutation();
   const navigate = useNavigate();
   const textareaRef = useRef(null);
   const [textareaContent, setTextareaContent] = React.useState<string>('');
@@ -42,24 +47,17 @@ const EditPage = () => {
         mdast: pageState.mdast,
         type: DataType.Page,
       };
-      const newSlug = nanoid();
-      const result = await mutate({
-        data: pageData,
-        flags: { isJSON: true },
-        customId: newSlug,
-        userId: auth.user?.userId,
-      });
+      const result = await updateEntry({
+        entryId: pageId, // 使用 pageId 作为 entryId
+        data: pageData, // 将页面数据作为更新内容
+      }).unwrap(); // 使用 unwrap 处理响应
 
       if (result) {
         // 成功处理逻辑
-        dispatch(setCreatedTime());
+        addToast('保存成功');
+
         console.log('Submitted Data:', pageState);
         console.log(' result', result);
-
-        const dataId = result.data.dataId; // 假设 dataId 在 result.data.dataId，你需要根据实际响应调整
-        dispatch(setCreatedTime());
-
-        navigate(`/${dataId}?edit=true`); // 使用 dataId 进行页面跳转
       }
     } catch (error) {
       // 错误处理逻辑
@@ -101,19 +99,28 @@ const EditPage = () => {
   const handleDelete = useCallback(async () => {
     try {
       await deleteEntry({ entryId: pageId }).unwrap();
-      alert('Page deleted successfully!');
-      navigate('/');
+
+      // addToast('Page deleted successfully!');
+      navigate('/life/notes');
     } catch (error) {
       console.error('Failed to delete the page:', error);
-      alert('Error deleting page. Please try again.');
+      addToast('Error deleting page. Please try again.');
     }
-  }, [deleteEntry, navigate, pageId]);
+  }, [deleteEntry, navigate, pageId, addToast]);
 
   const contentChange = (content) => {
     dispatch(updateContent(content));
   };
   return (
     <div className="flex flex-col h-screen">
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          id={toast.id}
+          message={toast.message}
+          onClose={removeToast}
+        />
+      ))}
       <div className="flex justify-between items-center bg-gray-100 p-4">
         <div className="text-gray-600">
           {pageState.createdTime} |{' '}

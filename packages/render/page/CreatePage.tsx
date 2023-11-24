@@ -12,7 +12,6 @@ import {
   setHasVersion,
   setSlug,
   setCreator,
-  setCreatedTime,
   saveContentAndMdast,
   setShowAsMarkdown,
   updateContent,
@@ -50,14 +49,7 @@ const CreatePage = () => {
       });
 
       if (result) {
-        // 成功处理逻辑
-        dispatch(setCreatedTime());
-        console.log('Submitted Data:', pageState);
-        console.log(' result', result);
-
         const dataId = result.data.dataId; // 假设 dataId 在 result.data.dataId，你需要根据实际响应调整
-        dispatch(setCreatedTime());
-
         navigate(`/${dataId}?edit=true`); // 使用 dataId 进行页面跳转
       }
     } catch (error) {

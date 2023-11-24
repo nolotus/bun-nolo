@@ -23,9 +23,6 @@ export const pageSlice = createSlice({
     setCreator: (state, action) => {
       state.creator = action.payload;
     },
-    setCreatedTime: (state) => {
-      state.createdTime = new Date().toISOString();
-    },
     setShowAsMarkdown: (state, action: PayloadAction<boolean>) => {
       state.showAsMarkdown = action.payload;
     },
@@ -81,7 +78,6 @@ export const {
   setHasVersion,
   setSlug,
   setCreator,
-  setCreatedTime,
   saveContentAndMdast,
   setShowAsMarkdown,
   initPage,
