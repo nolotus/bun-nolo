@@ -9,7 +9,7 @@ import i18next from 'i18n';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, NavLink } from 'react-router-dom';
 import { Button } from 'ui/Button';
 
 import allTranslations from '../aiI18n';
@@ -114,6 +114,14 @@ const CreateChatRobotForm = ({ onClose }) => {
       >
         {t('startConfiguringYourRobot')}
       </Button>
+      <div className="mt-4">
+        <NavLink
+          to="/create/chat-robot"
+          className="text-blue-600 hover:text-blue-800"
+        >
+          {t('configureDetailedSettings')}
+        </NavLink>
+      </div>
     </form>
   );
 };

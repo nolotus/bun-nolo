@@ -11,7 +11,7 @@ export const createRoutes = [
     path: 'create',
     element: (
       <Suspense fallback={<div>loading create</div>}>
-        <Create />
+        <CreatePage />
       </Suspense>
     ),
   },

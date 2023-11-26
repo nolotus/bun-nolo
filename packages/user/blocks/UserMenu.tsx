@@ -51,12 +51,35 @@ export const UserMenu = () => {
         label=""
         className="flex items-center p-3 hover:bg-sky-500 hover:text-white"
       />
-      <LinkButton
-        to="/create"
-        icon={<PlusIcon size={24} />}
-        label=""
-        className="flex items-center p-3 hover:bg-sky-500 hover:text-white"
-      />
+      <DropDown
+        trigger={
+          <LinkButton
+            to="/create"
+            icon={<PlusIcon size={24} />}
+            label={t('create')}
+            className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"
+          />
+        }
+        triggerType="hover" // 设置触发类型为 hover
+      >
+        <ul className="bg-white shadow-lg rounded-md py-1">
+          <li>
+            <a href="#a" className="block px-4 py-2 text-sm hover:bg-gray-100">
+              Option A
+            </a>
+          </li>
+          <li>
+            <a href="#b" className="block px-4 py-2 text-sm hover:bg-gray-100">
+              Option B
+            </a>
+          </li>
+          <li>
+            <a href="#c" className="block px-4 py-2 text-sm hover:bg-gray-100">
+              Option C
+            </a>
+          </li>
+        </ul>
+      </DropDown>
       <LinkButton
         to="/life"
         icon={<PersonIcon size={24} />}
@@ -64,6 +87,7 @@ export const UserMenu = () => {
         className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"
       />
       <DropDown
+        triggerType="click"
         trigger={
           <button className="flex items-center ml-2 p-3 hover:bg-sky-500 focus:outline-none rounded-full hover:text-white">
             <ChevronDownIcon size={24} className="text-ne" />

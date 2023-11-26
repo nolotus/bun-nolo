@@ -10,6 +10,7 @@ module.exports = {
     './packages/life/**/*',
     './packages/render/**/*',
     './packages/create/**/*',
+    './packages/ai/**/*',
   ],
   safelist: ['columns-3', 'shadow-md', 'shadow-xl'],
   theme: {

@@ -10,6 +10,7 @@ export default {
       knowledge: 'Knowledge', // 新增
       createRobot: 'Create Robot', // 新增
       startConfiguringYourRobot: 'Begin Robot Configuration', // 新增
+      configureDetailedSettings: 'Configure Detailed Settings', // 新增
     },
   },
   'zh-CN': {
@@ -23,6 +24,7 @@ export default {
       knowledge: '知识', // 新增
       createRobot: '创建机器人', // 新增
       startConfiguringYourRobot: '开始配置你的机器人', // 新增
+      configureDetailedSettings: '配置详细设置', // 新增
     },
   },
   'zh-Hant': {
@@ -36,6 +38,7 @@ export default {
       knowledge: '知識', // 新增
       createRobot: '創建機器人', // 新增
       startConfiguringYourRobot: '開始配置你的機器人', // 新增
+      configureDetailedSettings: '配置詳細設置', // 新增
     },
   },
   ja: {
@@ -49,6 +52,7 @@ export default {
       knowledge: '知識', // 新增
       createRobot: 'ロボットを作成', // 新增
       startConfiguringYourRobot: 'ロボットの設定を開始', // 新增
+      configureDetailedSettings: '詳細設定を構成する', // 新增
     },
   },
 };
