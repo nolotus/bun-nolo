@@ -5,8 +5,8 @@ export const getDomains = () => {
   const currentDomain = isDevelopment
     ? 'localhost'
     : window.location.port
-    ? `${window.location.hostname}:${window.location.port}`
-    : `${window.location.hostname}`;
+      ? `${window.location.hostname}:${window.location.port}`
+      : `${window.location.hostname}`;
   let domains = nolotusDomain.map((domain) => ({ domain, source: domain }));
 
   if (!domains.some((item) => item.domain === currentDomain)) {

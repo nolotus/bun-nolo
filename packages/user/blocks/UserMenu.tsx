@@ -8,13 +8,13 @@ import {
   ChevronDownIcon,
 } from '@primer/octicons-react';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import { changeCurrentUser, userLogout } from 'auth/authSlice';
 import { getTokensFromLocalStorage, removeToken } from 'auth/client/token';
 import { parseToken } from 'auth/token';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { LinkButton, DropDown } from 'ui';
-import { changeCurrentUser, userLogout } from 'auth/authSlice';
 export const UserMenu = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -81,7 +81,7 @@ export const UserMenu = () => {
         </ul>
       </DropDown>
       <LinkButton
-        to="/life"
+        to="/life/all"
         icon={<PersonIcon size={24} />}
         label={auth.user?.username}
         className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"

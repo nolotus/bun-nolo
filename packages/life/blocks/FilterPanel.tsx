@@ -1,6 +1,7 @@
+import { getDomains } from 'app/domains';
 import { useAppDispatch, useAppSelector } from 'app/hooks';
 import { DataType } from 'create/types';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, Select } from 'ui';
 
@@ -9,6 +10,7 @@ import {
   setUserIdFilter,
   setSortKey,
   setSortOrder,
+  setSourceFilter,
 } from '../lifeSlice';
 import {
   selectFilterType,
@@ -22,6 +24,10 @@ export const FilterPanel = () => {
   const userIdFilter = useAppSelector(selectUserIdFilter);
   const filteredData = useAppSelector(selectFilteredLifeData);
   let [searchParams, setSearchParams] = useSearchParams();
+
+  const domains = useMemo(() => getDomains(), []);
+  const sourceOptions = ['All', ...domains.map((domain) => domain.source)];
+
   useEffect(() => {
     dispatch(setFilterType(searchParams.get('filterType') || ''));
     dispatch(setUserIdFilter(searchParams.get('userIdFilter') || ''));
@@ -48,6 +54,11 @@ export const FilterPanel = () => {
     dispatch(setSortOrder(event.target.value));
     setSearchParams({ sortOrder: event.target.value });
   };
+  const handleSourceChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    dispatch(setSourceFilter(event.target.value));
+    setSearchParams({ ...searchParams, source: event.target.value });
+  };
+
   return (
     <Card className="my-4 p-4 shadow-lg">
       <div className="flex flex-wrap gap-6 border-b pb-4 mb-4">
@@ -111,6 +122,17 @@ export const FilterPanel = () => {
             onChange={handleSortOrderChange}
             options={['asc', 'desc']}
             placeholder="Select sort order"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="source" className="text-sm font-medium text-gray-700">
+            Source:
+          </label>
+          <Select
+            id="source"
+            onChange={handleSourceChange}
+            options={sourceOptions}
+            placeholder="Select source"
           />
         </div>
       </div>

@@ -19,7 +19,8 @@ interface MdastLeaf {
   depth?: number;
   [key: string]: any;
 }
-const createProcessor = () => unified().use(remarkParse).use(remarkGfm).use(remarkStringify)
+const createProcessor = () =>
+  unified().use(remarkParse).use(remarkGfm).use(remarkStringify);
 export const getH1TextFromMdast = (mdast: MdastNode): string | null => {
   let h1Text: string | null = null;
   visit(mdast, 'heading', (node: MdastNode) => {
@@ -36,7 +37,6 @@ export const getH1TextFromMdast = (mdast: MdastNode): string | null => {
   });
   return h1Text;
 };
-
 
 // 主要的自定义Hook
 export const markdownToMdast = (content: string) => {

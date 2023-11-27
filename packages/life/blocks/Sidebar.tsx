@@ -4,6 +4,9 @@ import {
   FileIcon,
   TasklistIcon,
   GraphIcon,
+  ArchiveIcon,
+  ProjectIcon,
+  DatabaseIcon,
 } from '@primer/octicons-react';
 import clsx from 'clsx';
 import React from 'react';
@@ -20,6 +23,14 @@ export const Sidebar = () => {
     <div className="w-48 min-h-full bg-neutral-100 overflow-y-auto">
       <div className="flex flex-col justify-between p-4">
         <nav>
+          <NavLink to="/life" className={getNavLinkClass}>
+            <ProjectIcon size={20} className={iconClass} />
+            <span>Projects</span>
+          </NavLink>
+          <NavLink to="/life/all" className={getNavLinkClass}>
+            <DatabaseIcon size={20} className={iconClass} />
+            <span>All</span>
+          </NavLink>
           <NavLink to="/life/notes" className={getNavLinkClass}>
             <NoteIcon size={20} className={iconClass} />
             <span>Notes</span>
@@ -44,8 +55,11 @@ export const Sidebar = () => {
             <GraphIcon size={20} className={iconClass} />
             <span>统计</span>
           </NavLink>
+          <NavLink to="/life/archive" className={getNavLinkClass}>
+            <ArchiveIcon size={20} className={iconClass} />
+            <span>Archive</span>
+          </NavLink>
         </nav>
-        <div>{/* Settings or other items */}</div>
       </div>
     </div>
   );

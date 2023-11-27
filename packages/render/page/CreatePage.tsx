@@ -1,13 +1,14 @@
 import { nanoid } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
-import { DataType } from 'create/types';
 import { useWriteMutation } from 'database/services';
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { renderContentNode } from 'render';
+import { markdownToMdast, getH1TextFromMdast } from 'render/MarkdownProcessor';
 import { Button, Toggle } from 'ui';
 
 import { MarkdownEdit } from './MarkdownEdit';
+import { createPageData } from './pageDataUtils';
 import {
   setHasVersion,
   setSlug,
@@ -16,11 +17,11 @@ import {
   setShowAsMarkdown,
   updateContent,
 } from './pageSlice';
-
 const CreatePage = () => {
   const dispatch = useAppDispatch();
 
   const auth = useAuth();
+  const userId = auth.user?.userId;
   const pageState = useAppSelector((state) => state.page);
   const mdastFromSlice = pageState.mdast;
   const [mutate] = useWriteMutation();
@@ -28,18 +29,8 @@ const CreatePage = () => {
   const textareaRef = useRef(null);
   const [textareaContent, setTextareaContent] = React.useState<string>('');
 
-  //保存之前检查输入区内容
-  const handleSave = async () => {
+  const saveData = async (pageData) => {
     try {
-      const pageData = {
-        content: pageState.content,
-        title: pageState.title,
-        has_version: pageState.hasVersion,
-        creator: auth.user?.userId, // 确保与auth状态同步
-        created_at: pageState.createdTime,
-        mdast: pageState.mdast,
-        type: DataType.Page,
-      };
       const newSlug = nanoid();
       const result = await mutate({
         data: pageData,
@@ -56,6 +47,32 @@ const CreatePage = () => {
       // 错误处理逻辑
       console.error('Mutation failed:', error);
     }
+  };
+
+  //保存之前检查输入区内容
+  const handleSave = async () => {
+    let updatedPageState = createPageData(pageState, userId);
+    if (textareaContent) {
+      const newMdast = markdownToMdast(textareaContent);
+      // 更新 pageState
+      updatedPageState = {
+        ...updatedPageState,
+        mdast: {
+          ...updatedPageState.mdast,
+          children: [...updatedPageState.mdast.children, ...newMdast.children],
+        },
+        content:
+          updatedPageState.content +
+          (updatedPageState.content ? '\n\n' : '') +
+          textareaContent,
+        title: getH1TextFromMdast(newMdast) || updatedPageState.title,
+      };
+
+      // 清空 textarea
+      setTextareaContent('');
+    }
+
+    saveData(updatedPageState);
   };
 
   // 在组件挂载后自动选中 textarea

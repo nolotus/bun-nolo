@@ -1,10 +1,9 @@
 import fs, { promises as fsPromises } from 'fs';
 import path from 'path';
 
+import { DATABASE_DIR, DEFAULT_INDEX_FILE } from 'auth/server/init';
 import { extractAndDecodePrefix } from 'core';
 import { formatData } from 'core/formatData';
-
-import { DATABASE_DIR, DEFAULT_INDEX_FILE } from 'auth/server/init';
 
 const syncUserData = async (userId, data) => {
   const userDirPath = path.join(DATABASE_DIR, userId);

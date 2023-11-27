@@ -1,5 +1,4 @@
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
-import { DataType } from 'create/types';
 import {
   useUpdateEntryMutation,
   useDeleteEntryMutation,
@@ -12,6 +11,7 @@ import { Toast } from 'ui/toast/Toast';
 import { useToastManager } from 'ui/toast/useToastManager';
 
 import { MarkdownEdit } from './MarkdownEdit';
+import { createPageData } from './pageDataUtils';
 import {
   setHasVersion,
   setSlug,
@@ -28,6 +28,8 @@ const EditPage = () => {
   const { pageId } = useParams();
 
   const auth = useAuth();
+  const userId = auth.user?.userId;
+
   const pageState = useAppSelector((state) => state.page);
   const mdastFromSlice = pageState.mdast;
   const [updateEntry] = useUpdateEntryMutation();
@@ -37,16 +39,15 @@ const EditPage = () => {
 
   //保存之前检查输入区内容
   const handleSave = async () => {
+    console.log('textareaContent', textareaContent);
+    const hasNoSubmitContent = !!textareaContent;
+    if (hasNoSubmitContent) {
+      dispatch(saveContentAndMdast(textareaContent));
+      setTextareaContent(''); // 清空 textarea
+    }
     try {
-      const pageData = {
-        content: pageState.content,
-        title: pageState.title,
-        has_version: pageState.hasVersion,
-        creator: auth.user?.userId, // 确保与auth状态同步
-        created_at: pageState.createdTime,
-        mdast: pageState.mdast,
-        type: DataType.Page,
-      };
+      const pageData = createPageData(pageState, userId);
+
       const result = await updateEntry({
         entryId: pageId, // 使用 pageId 作为 entryId
         data: pageData, // 将页面数据作为更新内容

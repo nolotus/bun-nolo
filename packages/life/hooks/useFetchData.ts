@@ -7,7 +7,6 @@ export const useFetchData = () => {
   const dispatch = useAppDispatch();
   const [trigger, { data, error, isLoading }] = useLazyReadAllQuery();
   const domains = useMemo(() => getDomains(), []);
-
   const fetchData = async (userId: string) => {
     domains.forEach(async ({ domain, source }) => {
       const result = await trigger({ userId, domain }).unwrap();
