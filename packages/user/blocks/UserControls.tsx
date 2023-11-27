@@ -25,7 +25,7 @@ const AuthLinks = () => {
 };
 
 export const UserControls = () => {
-  const isLoggedIn = useAppSelector((state) => state.user.isLoggedIn);
+  const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
 
   return (
     <div className="flex items-center">

@@ -19,14 +19,14 @@ export const UserMenu = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const currentToken = useAppSelector((state) => state.user.currentToken);
+  const currentToken = useAppSelector((state) => state.auth.currentToken);
   const logout = () => {
     removeToken(currentToken);
     dispatch(userLogout());
     navigate('/');
   };
   const auth = useAuth();
-  const users = useAppSelector((state) => state.user.users);
+  const users = useAppSelector((state) => state.auth.users);
 
   const changeUser = (user) => {
     const tokens = getTokensFromLocalStorage();
