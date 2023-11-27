@@ -85,7 +85,7 @@ export const aiApi = api.injectEndpoints({
         });
 
         const url = addPrefixForEnv(chatUrl);
-        const token = getState().user.currentToken;
+        const token = getState().auth.currentToken;
         const headers = {
           'Content-Type': 'application/json',
           // 如果 token 存在，则添加到 headers
