@@ -2,7 +2,7 @@
 import { useAuth } from 'app/hooks';
 import { saveData } from 'database/client/save';
 import { useState } from 'react';
-import { useUserData } from 'user/hooks/useUserData';
+import { useUserData } from 'auth/hooks/useUserData';
 
 export const useProfileData = (customId: string) => {
   const data = useUserData(customId);

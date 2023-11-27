@@ -4,7 +4,7 @@ import { verifyToken } from "auth/token";
 import { serverGetData } from "database/server/read";
 import { DATABASE_DIR, DEFAULT_INDEX_FILE } from "./init";
 
-export async function logIn(req, res) {
+export async function handleLogin(req, res) {
   const { userId, token } = req.body;
   // 定义目录路径
   const userDirPath = path.join(DATABASE_DIR, userId, DEFAULT_INDEX_FILE);

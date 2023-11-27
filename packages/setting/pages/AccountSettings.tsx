@@ -1,7 +1,7 @@
 import React from "react";
 import { deleteUser } from "user/client/delete";
 import { useAppDispatch, useAuth } from "app/hooks";
-import { userLogout } from "user/userSlice";
+import { userLogout } from 'auth/authSlice';
 
 const AccountSettings = () => {
   const auth = useAuth();

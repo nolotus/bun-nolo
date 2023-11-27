@@ -3,7 +3,7 @@ import { createReadStream } from 'node:fs';
 import readline from 'readline';
 
 import { processLine } from 'core/decodeData';
-import { DEFAULT_INDEX_FILE } from 'user/server/init';
+import { DEFAULT_INDEX_FILE } from 'auth/server/init';
 import { getLogger } from 'utils/logger';
 const readDataLogger = getLogger('readData');
 

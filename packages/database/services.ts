@@ -1,6 +1,6 @@
 import { api } from 'app/api';
 import { extractAndDecodePrefix, extractUserId } from 'core';
-import { selectCurrentUser } from 'user/userSlice';
+import { selectCurrentUser } from 'auth/authSlice';
 
 import { API_ENDPOINTS } from './config';
 import { ResponseData, WriteHashDataType, WriteDataType } from './types';

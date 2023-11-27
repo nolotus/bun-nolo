@@ -11,11 +11,83 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'ui';
-import { userRegister } from 'user/userSlice';
+import { userRegister } from 'auth/authSlice';
+import {
+  encryptWithPassword,
+  generateAndSplitRecoveryPassword,
+  hashPassword,
+} from 'core/password';
+import { generateKeyPairFromSeed, verifySignedMessage } from 'core/crypto';
+import { SignupData } from '../types';
+import { getLogger } from 'utils/logger';
 
-import { handleSignup } from '../client/signUp';
+import { signToken } from 'auth/token';
+import { generateUserId } from 'core/generateMainKey';
+
+import {useRegisterMutation } from '../services'
+const signupLogger = getLogger('signup');
+
 
 const Signup: React.FC = () => {
+  const [registerUser] = useRegisterMutation();
+  const handleSignup = async (user, isStoreRecovery?) => {
+    const { username, password: brainPassword, answer } = user;
+    // Generate encryption key
+    const encryptionKey = await hashPassword(brainPassword);
+    // Get the user's language setting
+    const language = navigator.language;
+  
+    // Generate public and private key pair based on the encryption key
+    const { publicKey, secretKey } = generateKeyPairFromSeed(
+      username + encryptionKey + language,
+    );
+  
+    const sendData: SignupData = {
+      username,
+      publicKey,
+      encryptedEncryptionKey: null,
+      remoteRecoveryPassword: null,
+      language,
+    };
+  
+    if (isStoreRecovery) {
+      const recoveryPassword = generateAndSplitRecoveryPassword(answer, 3);
+      const [localRecoveryPassword, remoteRecoveryPassword] = recoveryPassword;
+  
+      sendData.remoteRecoveryPassword = remoteRecoveryPassword;
+      sendData.encryptedEncryptionKey = encryptWithPassword(
+        encryptionKey,
+        recoveryPassword.join(''),
+      );
+    }
+  
+    const response = await registerUser(sendData).unwrap();
+    const { encryptedData } = response
+  
+    const decryptedData = await verifySignedMessage(
+      encryptedData,
+      'pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus',
+    );
+  
+    const decryptedDataObject = JSON.parse(decryptedData);
+    console.log('decryptedDataObject:', decryptedDataObject);
+  
+    const userId = generateUserId(publicKey, username, language);
+    console.log('sendData:', userId, sendData);
+    const token = signToken({ userId, username }, secretKey);
+  
+    if (
+      decryptedDataObject.username === sendData.username &&
+      decryptedDataObject.publicKey === sendData.publicKey &&
+      decryptedDataObject.userId === userId
+    ) {
+      signupLogger.info('Server data matches local data.');
+      return { token };
+    } else {
+      signupLogger.error('Server data does not match local data.');
+      throw new Error('Server data does not match local data.');
+    }
+  };
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
@@ -29,6 +101,7 @@ const Signup: React.FC = () => {
   };
 
   const onSubmit = async (user) => {
+    console.log('user',user)
     try {
       setLoading(true);
       const { token } = await handleSignup(user);

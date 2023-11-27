@@ -14,7 +14,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'ui';
-import { userLogin } from 'user/userSlice';
+import { userLogin } from 'auth/authSlice';
 
 import { userFormSchema } from '../schema';
 

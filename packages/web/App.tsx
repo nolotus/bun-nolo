@@ -4,7 +4,7 @@ import { parseToken } from 'auth/token';
 import i18n from 'i18n';
 import React, { useEffect } from 'react';
 import { useRoutes } from 'react-router-dom';
-import { restoreSession } from 'user/userSlice';
+import { restoreSession } from 'auth/authSlice';
 
 // // import { generatorRoutes } from "./generatorRoutes";
 

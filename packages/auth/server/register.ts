@@ -32,7 +32,7 @@ const generateFileContent = (
   ].join('\n');
 };
 
-export async function signUp(req, res) {
+export async function handleRegister(req, res) {
   const {
     username,
     publicKey,
@@ -40,9 +40,10 @@ export async function signUp(req, res) {
     remoteRecoveryPassword,
     language,
   } = req.body;
-
   const userId = generateUserId(publicKey, username, language);
+
   const userDirPath = path.join(DATABASE_DIR, userId);
+
   const isExists = fs.existsSync(userDirPath);
   if (isExists) {
     return res
@@ -58,12 +59,15 @@ export async function signUp(req, res) {
       remoteRecoveryPassword,
       userId,
     );
+    console.log('fileContent',fileContent)
 
     const sendData = {
       username,
       userId,
       publicKey,
     };
+    console.log('sendData',sendData)
+
     const encryptedData = signMessage(
       JSON.stringify(sendData),
       process.env.SECRET_KEY,

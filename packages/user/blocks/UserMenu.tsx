@@ -14,7 +14,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { LinkButton, DropDown } from 'ui';
-import { changeCurrentUser, userLogout } from 'user/userSlice';
+import { changeCurrentUser, userLogout } from 'auth/authSlice';
 export const UserMenu = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();

@@ -10,10 +10,11 @@ const AuthLinks = () => {
 
   return (
     <div className="flex items-center">
-      <Link to={RoutePaths.LOGIN} className="mr-4 font-semibold text-zinc-900">
+      <Link target='_self' to={RoutePaths.LOGIN} className="mr-4 font-semibold text-zinc-900">
         {t('login')}
       </Link>
       <Link
+      target='_self'
         to={RoutePaths.REGISTER}
         className="text-emerald-500 underline decoration-double font-semibold p-2 hover:text-emerald-700 "
       >
