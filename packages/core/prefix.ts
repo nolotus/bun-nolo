@@ -66,7 +66,12 @@ export const isUrlSafe = (prefix: string): boolean =>
   getDecodedFlag(prefix, 'isUrlSafe');
 
 export const extractKeyPart = (key: string, index: number): string => {
-  return key.split(SEPARATOR)[index];
+  const parts = key.split(SEPARATOR);
+  if (index < 2) {
+    return parts[index];
+  } else {
+    return parts.slice(index).join(SEPARATOR);
+  }
 };
 
 const extractPrefix = (key: string): string => extractKeyPart(key, 0);
