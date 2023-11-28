@@ -10,5 +10,5 @@ export const selectAllData = dbAdapter.getSelectors(
 // 使用 createSelector 来创建一个基于 selectAllData 的 memoized selector
 export const selectPages = createSelector(
   [selectAllData], // 这是输入 selector
-  (allData) => allData.filter((item) => item.value.type === 'page'), // 这是一个 transform function
+  (allData) => allData.filter((item) => item.type === 'page'), // 这是一个 transform function
 );

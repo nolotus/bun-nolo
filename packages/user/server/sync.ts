@@ -27,6 +27,7 @@ const syncUserData = async (userId, data) => {
     });
     for (const item of data) {
       const flags = extractAndDecodePrefix(item.key);
+      //todo remove .value
       const formattedValue = formatData(item.value, flags);
       const line = `${item.key} ${formattedValue}\n`; // key 和 formattedData 之间用空格分隔，然后换行
       writable.write(line);

@@ -17,14 +17,12 @@ export const selectFilteredLifeData = createSelector(
     let filteredData = data;
 
     if (filterType) {
-      filteredData = filteredData.filter(
-        (item) => item.value.type === filterType,
-      );
+      filteredData = filteredData.filter((item) => item.type === filterType);
     }
 
     if (userIdFilter) {
       filteredData = filteredData.filter(
-        (item) => item.value.userId === userIdFilter,
+        (item) => item.userId === userIdFilter,
       );
     }
     if (sourceFilter && sourceFilter !== 'All') {
@@ -35,13 +33,11 @@ export const selectFilteredLifeData = createSelector(
 
     // 检查并筛选出具有指定sortKey的数据
     if (sortKey) {
-      filteredData = filteredData.filter(
-        (item) => item.value[sortKey] !== undefined,
-      );
+      filteredData = filteredData.filter((item) => item[sortKey] !== undefined);
       // 排序
       filteredData = filteredData.sort((a, b) => {
-        const aValue = a.value[sortKey];
-        const bValue = b.value[sortKey];
+        const aValue = a[sortKey];
+        const bValue = b[sortKey];
 
         if (sortOrder === 'asc') {
           return aValue < bValue ? -1 : 1;

@@ -3,6 +3,7 @@ import { useAppDispatch, useAuth } from 'app/hooks';
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from 'core';
 import { deleteData } from 'database/dbSlice';
 import { useDeleteEntryMutation, useWriteMutation } from 'database/services';
+import { omit } from 'rambda';
 import React, { useState } from 'react';
 import { Card } from 'ui';
 
@@ -15,13 +16,13 @@ const DataList = ({ data, refreshData }) => {
   const [write] = useWriteMutation();
   const pullData = async (id, value) => {
     // Define the logic for pulling data here
-    console.log('Data pulled from nolotus successfully');
     const flags = extractAndDecodePrefix(id);
     const userId = extractUserId(id);
     const customId = extractCustomId(id);
+    const formatValue = omit('id', value);
 
     await write({
-      data: value,
+      data: formatValue,
       flags,
       userId,
       customId,
@@ -32,19 +33,18 @@ const DataList = ({ data, refreshData }) => {
 
   const pushData = async (id: string, value) => {
     // 调用 write mutation 并传递 domain 参数
-    console.log('key', id);
+    const formatValue = omit('id', value);
     const customId = extractCustomId(id);
     const flags = extractAndDecodePrefix(id);
     const userId = extractUserId(id);
 
     await write({
-      data: value,
+      data: formatValue,
       flags,
       userId,
       customId,
       domain: 'http://nolotus.com',
     }).unwrap();
-    console.log('Data pushed to nolotus successfully');
     refreshData(auth.user?.userId);
   };
 
@@ -76,7 +76,6 @@ const DataList = ({ data, refreshData }) => {
         deleteEntry({ entryId: itemId }),
       ),
     );
-    console.log('Selected data deleted successfully');
     refreshData(auth.user?.userId);
   };
 
@@ -104,13 +103,13 @@ const DataList = ({ data, refreshData }) => {
             <div className="flex group" key={item.id}>
               <div className="flex flex-col space-y-2 mr-4 invisible group-hover:visible">
                 <button
-                  onClick={() => pullData(item.id, item.value)}
+                  onClick={() => pullData(item.id, item)}
                   className="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-400"
                 >
                   <RepoPullIcon size={16} />
                 </button>
                 <button
-                  onClick={() => pushData(item.id, item.value)}
+                  onClick={() => pushData(item.id, item)}
                   className="bg-green-500 text-white p-2 rounded hover:bg-green-400"
                 >
                   <RepoPushIcon size={16} />
@@ -125,7 +124,7 @@ const DataList = ({ data, refreshData }) => {
               <Card>
                 <DataItem
                   dataId={item.id}
-                  content={item.value}
+                  content={item}
                   refreshData={refreshData}
                   source={item.source}
                 />
