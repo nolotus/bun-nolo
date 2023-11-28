@@ -23,7 +23,7 @@ const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
         isSelected ? 'bg-gray-200' : 'hover:bg-gray-200'
       }`}
     >
-      <NavLink to={`chat?chatId=${chat.id}`}>
+      <NavLink to={`/chat?chatId=${chat.id}`}>
         <span className="text-gray-600">{chat.name}</span>
       </NavLink>
       {allowEdit && (

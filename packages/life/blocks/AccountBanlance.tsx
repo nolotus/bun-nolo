@@ -1,9 +1,9 @@
-import { selectCosts } from 'ai/selectors';
+import { selectTotalCosts } from 'ai/selectors';
 import { useAppSelector } from 'app/hooks';
 import React from 'react';
 
 export const AccountBalance = () => {
-  const costs = useAppSelector(selectCosts);
+  const costs = useAppSelector(selectTotalCosts);
   const aiUsage = costs?.totalCost;
 
   const exchangeRate = 8;

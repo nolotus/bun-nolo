@@ -1,8 +1,8 @@
 import { aiServerRoute } from 'ai/server/routes';
+import { authServerRoutes } from 'auth/server/route';
 import { handleToken } from 'auth/server/token';
 import { API_VERSION, API_ENDPOINTS } from 'database/config';
-import { DatabaseRequest } from 'database/server/routes';
-import {  authServerRoutes } from 'auth/server/route';
+import { databaseRequest } from 'database/server/routes';
 
 import { createResponse } from './createResponse';
 import { handleRender } from './render';
@@ -12,7 +12,7 @@ let res = createResponse();
 export const handleRequest = async (request: Request) => {
   const url = new URL(request.url);
   if (request.method === 'OPTIONS') {
-    return res.status(200).json({ok:true});
+    return res.status(200).json({ ok: true });
   }
   if (url.pathname.startsWith('/public')) {
     const filePath = url.pathname.replace('/public', '');
@@ -41,14 +41,14 @@ export const handleRequest = async (request: Request) => {
       return aiServerRoute(req, res);
     }
     if (url.pathname.startsWith(API_ENDPOINTS.USERS)) {
-      console.log('auth')
       return authServerRoutes(req, res);
     }
 
     if (url.pathname.startsWith(API_ENDPOINTS.DATABASE)) {
-      return DatabaseRequest(req, res, url);
+      return databaseRequest(req, res, url);
     }
   }
+
   try {
     return await handleRender(request);
   } catch (error) {

@@ -46,7 +46,7 @@ const ChatSidebar = () => {
   const { currentChatConfig } = useAppSelector(selectChat);
 
   const chatList = useAppSelector((state) => state.chat.chatList);
-  const chatItems = chatList.ids.map((id) => chatList.entities[id]);
+  const chatItems = chatList.ids.map((id) => chatList.entities[id].value);
 
   const [getChatList, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
 
@@ -68,15 +68,18 @@ const ChatSidebar = () => {
 
   useEffect(() => {
     const fetchChatList = async () => {
-      const nolotusChatList = await getChatList({ userId: nolotusId, options });
-      isSuccess && dispatch(fetchchatListSuccess(nolotusChatList.data));
+      const nolotusChatList = await getChatList({
+        userId: nolotusId,
+        options,
+      }).unwrap();
+      isSuccess && dispatch(fetchchatListSuccess(nolotusChatList));
 
       if (auth.user?.userId) {
         const userChatList = await getChatList({
           userId: auth.user?.userId,
           options,
-        });
-        isSuccess && dispatch(fetchchatListSuccess(userChatList.data));
+        }).unwrap();
+        isSuccess && dispatch(fetchchatListSuccess(userChatList));
       }
     };
     fetchChatList();
@@ -86,6 +89,7 @@ const ChatSidebar = () => {
 
   const postReloadChatList = async () => {
     const result = await getChatList({ userId: auth.user?.userId, options });
+    console.log('postReloadChatList result', result);
     isSuccess && dispatch(reloadChatList(result.data));
   };
 
@@ -113,7 +117,7 @@ const ChatSidebar = () => {
         'loading'
       ) : (
         <>
-          {chatItems.map((chat) => (
+          {chatItems?.map((chat) => (
             <ChatItem
               key={chat.id}
               chat={chat}

@@ -9,7 +9,7 @@ import { handleReadAll } from './readAll';
 import { handleUpdate } from './update';
 import { handleWrite } from './write';
 
-export const DatabaseRequest = async (req, res, url) => {
+export const databaseRequest = async (req, res, url) => {
   const pathname = url.pathname;
 
   const getIdFromPath = (prefix) => {

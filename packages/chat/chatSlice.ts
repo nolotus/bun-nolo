@@ -16,7 +16,6 @@ export const chatSlice = createSlice({
   name: 'chat',
   initialState: {
     messages: [],
-    allowSend: true,
     tempMessage: {
       id: Date.now(),
       role: 'user',
@@ -62,7 +61,8 @@ export const chatSlice = createSlice({
       action: PayloadAction<ChatConfig>,
     ) => {
       state.currentChatConfig = action.payload;
-      chatAdapter.addOne(state.chatList, action.payload);
+      const data = { id: action.payload.id, value: action.payload };
+      chatAdapter.upsertOne(state.chatList, data);
     },
     retry: (state: ChatSliceState) => {
       state.tempMessage = { role: 'assistant', content: '' };

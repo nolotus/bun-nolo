@@ -59,17 +59,6 @@ export const routes = (currentUser) => [
             <ChatPage />
           </Suspense>
         ),
-        children: [
-          {
-            path: ':chatId',
-            element: (
-              <Suspense fallback={<div>loading chat</div>}>
-                <ChatPage />
-              </Suspense>
-            ),
-          },
-          { path: '*', element: <ChatPage /> },
-        ],
       },
     ],
   },

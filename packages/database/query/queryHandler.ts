@@ -60,7 +60,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         );
         if (result) {
           if (count >= skip && results.length < limit) {
-            results.push({ id: dataKey, ...result });
+            results.push({ id: dataKey, value: { id: dataKey, ...result } });
           }
           count++;
         }
@@ -111,5 +111,3 @@ function handleListData(data: string, condition: QueryCondition) {
   console.log('data', data, condition);
   return null;
 }
-
-// 其他代码保持不变

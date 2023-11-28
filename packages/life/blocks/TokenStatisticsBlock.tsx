@@ -1,9 +1,9 @@
-import { selectCosts } from 'ai/selectors';
+import { selectTotalCosts } from 'ai/selectors';
 import { useAppSelector } from 'app/hooks';
 import React from 'react';
 
 const TokenStatisticsBlock = () => {
-  const costs = useAppSelector(selectCosts);
+  const costs = useAppSelector(selectTotalCosts);
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
