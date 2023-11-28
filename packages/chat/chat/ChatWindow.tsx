@@ -1,12 +1,12 @@
 import { TrashIcon } from '@primer/octicons-react';
 import { nanoid } from '@reduxjs/toolkit';
 import { tokenStatic } from 'ai/client/static';
-import { selectCostByUserId, selectTotalCosts } from 'ai/selectors';
+import { selectCostByUserId } from 'ai/selectors';
 import { useGenerateImageMutation } from 'ai/services';
 import { ModeType } from 'ai/types';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { useWriteHashMutation } from 'database/services';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from 'ui';
 import { getLogger } from 'utils/logger';
@@ -127,12 +127,9 @@ const ChatWindow = () => {
     }
   };
   const userCost = useAppSelector(selectCostByUserId);
-  const totalCost = useAppSelector(selectTotalCosts);
-  console.log('totalCost', totalCost);
-
   console.log('userCost', userCost);
-  const allowSend = Number(userCost.totalCost) < 2;
-
+  // const allowSend = Number(userCost.totalCost) < 2;
+  const allowSend = true;
   return (
     <div className="w-full lg:w-5/6 flex flex-col h-full">
       <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} />

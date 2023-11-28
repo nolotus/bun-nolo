@@ -7,9 +7,7 @@ export const selectTokenStatisticsData = createSelector(
   [selectAllData],
   (data) => {
     // 在此处打印 data
-    return data.filter(
-      (item) => item.value && item.value.type === 'tokenStatistics',
-    );
+    return data.filter((item) => item.type === 'tokenStatistics');
   },
 );
 
@@ -20,8 +18,7 @@ export const selectTotalCosts = createSelector(
     let modelCosts = {};
     let userCosts = {};
     console.log('tokenStatisticsData', tokenStatisticsData);
-    for (let item of tokenStatisticsData) {
-      const data = item.value;
+    for (let data of tokenStatisticsData) {
       if (!modelPrice[data.model]) {
         console.warn(`Unknown model price for model: ${data.model}`);
         continue; // 跳过未知模型
@@ -64,8 +61,7 @@ export const selectCostByUserId = createSelector(
     let totalCost = 0;
     let modelCosts = {};
 
-    for (let item of tokenStatisticsData) {
-      const data = item.value;
+    for (let data of tokenStatisticsData) {
       if (data.userId !== userId) {
         continue;
       }

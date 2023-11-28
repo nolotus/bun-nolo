@@ -60,7 +60,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         );
         if (result) {
           if (count >= skip && results.length < limit) {
-            results.push({ id: dataKey, value: { id: dataKey, ...result } });
+            results.push({ id: dataKey, ...result });
           }
           count++;
         }

@@ -61,8 +61,7 @@ export const chatSlice = createSlice({
       action: PayloadAction<ChatConfig>,
     ) => {
       state.currentChatConfig = action.payload;
-      const data = { id: action.payload.id, value: action.payload };
-      chatAdapter.upsertOne(state.chatList, data);
+      chatAdapter.upsertOne(state.chatList, action.payload);
     },
     retry: (state: ChatSliceState) => {
       state.tempMessage = { role: 'assistant', content: '' };
@@ -106,7 +105,10 @@ export const chatSlice = createSlice({
       state: ChatSliceState,
       action: PayloadAction<{ id: string, changes: ChatConfig }>,
     ) => {
-      chatAdapter.upsertOne(state.chatList, action.payload);
+      chatAdapter.updateOne(state.chatList, {
+        id: action.payload.id,
+        changes: action.payload,
+      });
     },
     deleteMessage: (state: ChatSliceState, action: PayloadAction<number>) => {
       state.messages = state.messages.filter(

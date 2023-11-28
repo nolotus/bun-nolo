@@ -20,6 +20,7 @@ import {
 import { useDeleteChat } from '../hooks/useDeleteChat';
 
 import ChatItem from './ChatItem';
+
 const options = {
   isJSON: true,
   condition: {
@@ -46,7 +47,7 @@ const ChatSidebar = () => {
   const { currentChatConfig } = useAppSelector(selectChat);
 
   const chatList = useAppSelector((state) => state.chat.chatList);
-  const chatItems = chatList.ids.map((id) => chatList.entities[id].value);
+  const chatItems = chatList.ids.map((id) => chatList.entities[id]);
 
   const [getChatList, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
 

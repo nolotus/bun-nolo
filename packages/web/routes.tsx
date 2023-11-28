@@ -10,8 +10,7 @@ import { routes as settingRoutes } from 'setting/routes';
 import Home from './pages/Home';
 import { SurfTip } from './SurfTip';
 
-// const CreatePage = lazy(() => import('render/page/CreatePage'));
-const ChatPage = lazy(() => import('chat/ChatPage'));
+const ChatPage = lazy(() => import('chat/chat/ChatPage'));
 
 const Welcome = lazy(() => import('./pages/Welcome'));
 export const routes = (currentUser) => [

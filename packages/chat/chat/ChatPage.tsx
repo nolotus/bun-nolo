@@ -1,15 +1,15 @@
 import aiTranslations from 'ai/aiI18n';
-import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
+import { useAppDispatch } from 'app/hooks';
 import { nolotusId } from 'core/init';
 import { updateData } from 'database/dbSlice';
 import { useLazyGetEntriesQuery } from 'database/services';
 import i18n from 'i18n';
 import React, { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 
-import ChatSidebar from './blocks/ChatSidebar';
-import ChatWindow from './blocks/ChatWindow';
-import chatTranslations from './chatI18n';
+import chatTranslations from '../chatI18n';
+
+import ChatSidebar from './ChatSidebar';
+import ChatWindow from './ChatWindow';
 
 Object.keys(chatTranslations).forEach((lang) => {
   const translations = chatTranslations[lang].translation;
@@ -21,8 +21,6 @@ Object.keys(aiTranslations).forEach((lang) => {
 });
 
 const ChatPage = () => {
-  const { t } = useTranslation();
-
   const [getChatList, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
   const fetchChatList = async () => {
     const options = {
@@ -33,19 +31,21 @@ const ChatPage = () => {
       limit: 10000,
     };
 
-    const nolotusChatList = await getChatList({
+    const defaultTokenStatisticsList = await getChatList({
       userId: nolotusId,
       options,
     }).unwrap();
-    const nolotusComChatList = await getChatList({
+    const nolotusTokenStatisticsList = await getChatList({
       userId: nolotusId,
       options,
       domain: 'https://nolotus.com',
     }).unwrap();
-    console.log('nolotusChatList', nolotusChatList);
-    dispatch(updateData({ data: nolotusChatList }));
-    console.log('nolotusComChatList', nolotusComChatList);
-    dispatch(updateData({ data: nolotusComChatList }));
+    console.log('defaultTokenStatisticsList', defaultTokenStatisticsList);
+
+    dispatch(updateData({ data: defaultTokenStatisticsList }));
+    console.log('nolotusTokenStatisticsList', nolotusTokenStatisticsList);
+
+    dispatch(updateData({ data: nolotusTokenStatisticsList }));
   };
   useEffect(() => {
     fetchChatList();
