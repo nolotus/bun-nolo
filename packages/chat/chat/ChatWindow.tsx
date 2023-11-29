@@ -2,7 +2,7 @@ import { TrashIcon } from '@primer/octicons-react';
 import { nanoid } from '@reduxjs/toolkit';
 import { tokenStatic } from 'ai/client/static';
 import { selectCostByUserId } from 'ai/selectors';
-import { useGenerateImageMutation } from 'ai/services';
+import { useGenerateImageMutation, useStreamChatMutation } from 'ai/services';
 import { ModeType } from 'ai/types';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { useWriteHashMutation } from 'database/services';
@@ -19,10 +19,12 @@ import {
   clearMessages,
   continueMessage,
   messageEnd,
+  messageStreamEnd,
+  messagesReachedMax,
+  messageStreaming,
 } from '../chatSlice';
 import MessageInput from '../messages/MessageInput';
 import MessagesDisplay from '../messages/MessagesDisplay';
-import { useStreamHandler } from '../useStreamHandler';
 
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 
@@ -46,12 +48,100 @@ const ChatWindow = () => {
   const { currentChatConfig, isStopped, isMessageStreaming } =
     useAppSelector(selectChat);
   const [writeHashData] = useWriteHashMutation();
+  let temp;
 
-  const { handleStreamMessage, onCancel } = useStreamHandler(
-    currentChatConfig,
-    auth.user?.userId,
-    auth.user?.username,
-  );
+  let tokenCount = 0;
+  // const { handleStreamMessage, onCancel } = useStreamHandler(
+  //   currentChatConfig,
+  //   auth.user?.userId,
+  //   auth.user?.username,
+  // );
+  const activeStream = useRef(null);
+
+  const onCancel = () => {
+    if (activeStream.current) {
+      console.log('cancel activeStream', activeStream);
+      activeStream.current.abort();
+      activeStream.current = null;
+    }
+  };
+  const [streamChat] = useStreamChatMutation();
+  const handleStreamData = (data) => {
+    const text = new TextDecoder('utf-8').decode(data);
+    const lines = text.trim().split('\n');
+    lines.forEach((line) => {
+      // 使用正则表达式匹配 "data:" 后面的内容
+      const match = line.match(/data: (done|{.*}|)/);
+
+      if (match && match[1] !== undefined) {
+        const statusOrJson = match[1];
+        if (statusOrJson === '' || statusOrJson === 'done') {
+          chatWindowLogger.info(
+            statusOrJson === ''
+              ? 'Received gap (empty string)'
+              : 'Received done',
+          );
+        } else {
+          try {
+            const json = JSON.parse(statusOrJson);
+            // 自然停止
+            const finishReason = json.choices[0].finish_reason;
+            if (finishReason === 'stop') {
+              dispatch(messageStreamEnd({ role: 'assistant', content: temp }));
+              const staticData = {
+                dialogType: 'receive',
+                model: json.model,
+                length: tokenCount,
+                chatId: json.id,
+                chatCreated: json.created,
+                userId: auth.user?.userId,
+                username: auth.user?.username,
+              };
+              tokenStatic(staticData, auth, writeHashData);
+
+              tokenCount = 0; // 重置计数器
+            } else if (
+              finishReason === 'length' ||
+              finishReason === 'content_filter'
+            ) {
+              dispatch(messagesReachedMax());
+            } else if (finishReason === 'function_call') {
+              // nerver use just sign it
+            } else {
+              temp = (temp || '') + (json.choices[0]?.delta?.content || '');
+              dispatch(
+                messageStreaming({
+                  role: 'assistant',
+                  id: json.id,
+                  content: temp,
+                }),
+              );
+            }
+            if (json.choices[0]?.delta?.content) {
+              tokenCount++; // 单次计数
+            }
+          } catch (e) {
+            chatWindowLogger.error({ error: e }, 'Error parsing JSON');
+          }
+        }
+      }
+    });
+  };
+
+  const handleStreamMessage = async (newMessage, prevMessages) => {
+    const controller = new AbortController();
+    await streamChat({
+      payload: {
+        userMessage: newMessage,
+        prevMessages: prevMessages,
+      },
+
+      config: currentChatConfig,
+      onStreamData: handleStreamData,
+      signal: controller.signal,
+    });
+    activeStream.current = controller;
+  };
 
   const handleSendMessage = async (newContent) => {
     if (!newContent.trim()) {
@@ -59,14 +149,13 @@ const ChatWindow = () => {
     }
 
     let mode: ModeType = 'stream';
-    const generateImagePattern = /生成.*图片/;
+    const generateImagePattern = /^生成.*图片/;
     if (
-      generateImagePattern.test(newContent) ||
-      newContent.includes('生成图片')
+      generateImagePattern.test(newContent.split('\n')[0]) ||
+      newContent.split('\n')[0].includes('生成图片')
     ) {
       mode = 'image';
     }
-
     setRequestFailed(false);
     dispatch(sendMessage({ role: 'user', content: newContent, id: nanoid() }));
     try {
