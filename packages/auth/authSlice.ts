@@ -1,5 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from 'app/store';
+
+import { authApi } from './services';
+import { parseToken } from './token';
+
 export interface User {
   userId: string;
   username: string;
@@ -32,16 +36,6 @@ export const authSlice = createSlice({
         (state.currentToken = action.payload.token);
     },
 
-    userLogin: (
-      state,
-      action: PayloadAction<{ user: User, token: string }>,
-    ) => {
-      state.isLoggedIn = true;
-      state.currentUser = action.payload.user;
-      state.users = [action.payload.user, ...state.users];
-      state.currentToken = action.payload.token;
-    },
-
     userRegister: (
       state,
       action: PayloadAction<{ user: User, token: string }>,
@@ -71,15 +65,23 @@ export const authSlice = createSlice({
       state.currentToken = null;
     },
   },
+  extraReducers: (builder) => {
+    builder.addMatcher(
+      authApi.endpoints.login.matchFulfilled,
+      (state, { payload }) => {
+        console.log('payload', payload);
+        const user = parseToken(payload.token);
+        state.currentUser = user;
+        state.currentToken = payload.token;
+        state.isLoggedIn = true;
+        state.users = [user, ...state.users];
+      },
+    );
+  },
 });
 
-export const {
-  changeCurrentUser,
-  userLogin,
-  userRegister,
-  restoreSession,
-  userLogout,
-} = authSlice.actions;
+export const { changeCurrentUser, userRegister, restoreSession, userLogout } =
+  authSlice.actions;
 
 export default authSlice.reducer;
 export const selectCurrentUser = (state: RootState) => state.auth.currentUser;

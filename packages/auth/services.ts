@@ -1,5 +1,6 @@
 import { api } from 'app/api';
 import { API_VERSION } from 'database/config';
+
 export interface User {
   first_name: string;
   last_name: string;
@@ -37,6 +38,5 @@ export const authApi = api.injectEndpoints({
       }),
     }),
   }),
-  
 });
-export const { useLoginMutation,useRegisterMutation } = authApi;
+export const { useLoginMutation, useRegisterMutation } = authApi;

@@ -1,7 +1,7 @@
 import { handleSyncRequest } from 'user/server/sync';
 
 import { handleLogin } from './login';
-import {handleRegister} from './register'
+import { handleRegister } from './register';
 export const authServerRoutes = (req, res) => {
   const { url } = req;
   if (url.pathname.endsWith('/login')) {

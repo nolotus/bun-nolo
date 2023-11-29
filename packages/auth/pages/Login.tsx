@@ -1,9 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonIcon, LockIcon } from '@primer/octicons-react';
-import { useAppDispatch } from 'app/hooks';
 import { storeTokens } from 'auth/client/token';
 import { useLoginMutation } from 'auth/services';
-import { parseToken, signToken } from 'auth/token';
+import { signToken } from 'auth/token';
 import { createFieldsFromDSL } from 'components/Form/createFieldsFromDSL';
 import { FormField } from 'components/Form/FormField';
 import { generateKeyPairFromSeed } from 'core/crypto';
@@ -14,7 +13,6 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'ui';
-import { userLogin } from 'auth/authSlice';
 
 import { userFormSchema } from '../schema';
 
@@ -32,7 +30,6 @@ const fields = createFieldsFromDSL(formDSL);
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [error, setError] = useState(null);
 
@@ -65,9 +62,7 @@ const Login: React.FC = () => {
 
       const token = signToken({ userId, publicKey, username }, secretKey);
       const { token: newToken } = await login({ userId, token }).unwrap();
-      const user = parseToken(newToken);
       storeTokens(newToken);
-      dispatch(userLogin({ user, token }));
       navigate('/welcome');
     } catch (noloError) {
       console.error(noloError);

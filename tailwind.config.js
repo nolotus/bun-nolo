@@ -11,6 +11,7 @@ module.exports = {
     './packages/render/**/*',
     './packages/create/**/*',
     './packages/ai/**/*',
+    './packages/auth/**/*',
   ],
   safelist: ['columns-3', 'shadow-md', 'shadow-xl'],
   theme: {
