@@ -1,24 +1,38 @@
 import { CheckIcon, CopyIcon } from '@primer/octicons-react';
 import clsx from 'clsx';
-import React, { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-// Import the new style you want to use
+import React, { useState, Suspense, lazy, useCallback } from 'react';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const Code = ({ value, language }) => {
+const SyntaxHighlighter = lazy(() =>
+  import('react-syntax-highlighter').then((module) => ({
+    default: module.Prism,
+  })),
+);
+
+// 加载显示组件
+const Loader = () => <div>Loading...</div>;
+
+// 复制代码到剪贴板的函数
+const useCopyToClipboard = (text, duration = 2000) => {
   const [isCopied, setIsCopied] = useState(false);
 
-  const handleCopy = async () => {
-    if (value && navigator.clipboard) {
+  const handleCopy = useCallback(async () => {
+    if (text && navigator.clipboard) {
       try {
-        await navigator.clipboard.writeText(value);
+        await navigator.clipboard.writeText(text);
         setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
+        setTimeout(() => setIsCopied(false), duration);
       } catch (err) {
         console.error('无法复制:', err);
       }
     }
-  };
+  }, [text, duration]);
+
+  return [isCopied, handleCopy];
+};
+
+const Code = ({ value, language }) => {
+  const [isCopied, handleCopy] = useCopyToClipboard(value);
 
   return (
     <div className="relative my-6 mx-auto overflow-hidden rounded-lg shadow-md bg-gray-800 text-gray-100">
@@ -41,13 +55,19 @@ const Code = ({ value, language }) => {
         </button>
       </div>
 
-      <SyntaxHighlighter
-        language={language || 'jsx'}
-        style={dracula}
-        customStyle={{ background: 'transparent', padding: '1em', margin: '0' }}
-      >
-        {value}
-      </SyntaxHighlighter>
+      <Suspense fallback={<Loader />}>
+        <SyntaxHighlighter
+          language={language || 'jsx'}
+          style={dracula}
+          customStyle={{
+            background: 'transparent',
+            padding: '1em',
+            margin: '0',
+          }}
+        >
+          {value}
+        </SyntaxHighlighter>
+      </Suspense>
     </div>
   );
 };

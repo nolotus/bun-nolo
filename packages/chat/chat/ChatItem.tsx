@@ -19,15 +19,18 @@ const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
 
   return (
     <div
-      className={`flex items-center p-4 cursor-pointer group ${
-        isSelected ? 'bg-gray-200' : 'hover:bg-gray-200'
-      }`}
+      className={`flex items-center px-4 py-2 cursor-pointer group ${
+        isSelected ? 'bg-gray-200' : 'hover:bg-gray-100'
+      } transition duration-150 ease-in-out`}
     >
-      <NavLink to={`/chat?chatId=${chat.id}`}>
-        <span className="text-gray-600">{chat.name}</span>
+      <NavLink
+        to={`/chat?chatId=${chat.id}`}
+        className="flex-grow text-gray-600 hover:text-gray-800"
+      >
+        <span className="block p-2">{chat.name}</span>
       </NavLink>
       {allowEdit && (
-        <div className="flex opacity-0 group-hover:opacity-100 ml-auto space-x-2">
+        <div className="flex opacity-0 group-hover:opacity-100 ml-auto space-x-2 transition duration-150 ease-in-out">
           <button
             className="text-gray-500 hover:text-blue-500 focus:outline-none"
             onClick={(e) => {
