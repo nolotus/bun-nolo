@@ -9,6 +9,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "database": "workspace:database"
+    "database": "workspace:database",
+    "rambda": "^8.6.0"
   }
 }

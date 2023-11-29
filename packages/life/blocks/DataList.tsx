@@ -58,15 +58,9 @@ const DataList = ({ data, refreshData }) => {
 
   const [selectedItems, setSelectedItems] = useState({});
 
-  // 其他函数保持不变
-
   const toggleSelectAll = () => {
-    const newSelectedItems = {};
-    if (Object.keys(selectedItems).length !== data.length) {
-      data.forEach((item) => {
-        newSelectedItems[item.id] = true;
-      });
-    }
+    const newSelectedItems = data.map((item) => item.id);
+
     setSelectedItems(newSelectedItems);
   };
 
@@ -77,6 +71,12 @@ const DataList = ({ data, refreshData }) => {
       ),
     );
     refreshData(auth.user?.userId);
+  };
+  const paySelectedItems = async () => {
+    const data = {
+      payIds: [],
+    };
+    // refreshData(auth.user?.userId);
   };
 
   return (
@@ -90,6 +90,12 @@ const DataList = ({ data, refreshData }) => {
           />
           <label>全选</label>
         </div>
+        <button
+          onClick={paySelectedItems}
+          className="bg-red-500 text-white p-2 rounded hover:bg-red-400"
+        >
+          支付
+        </button>
         <button
           onClick={deleteSelectedItems}
           className="bg-red-500 text-white p-2 rounded hover:bg-red-400"
