@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { createOpenAIRequestConfig } from './openAIConfig';
+import { createOpenAIRequestConfig } from '../openAI/config';
 
 interface ImageEditsRequest {
   image: File; // 请确保这里的类型与您的实际情况相符

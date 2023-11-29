@@ -1,6 +1,7 @@
-import {getLogger} from 'utils/logger';
 import FormData from 'form-data';
-import {getOpenAIHeaders} from './openAIConfig';
+import { getLogger } from 'utils/logger';
+
+import { getOpenAIHeaders } from '../openAI/config';
 
 const openAiLogger = getLogger('OpenAI');
 
@@ -12,13 +13,13 @@ export async function handleAudioReq(req: Request, res: Response) {
 
   if (!requestBody.file) {
     openAiLogger.error('No audio file provided');
-    return res.status(400).json({error: 'No audio file provided'});
+    return res.status(400).json({ error: 'No audio file provided' });
   }
 
   const apiUrl = 'https://api.openai.com/v1/audio/transcriptions';
   const form = new FormData();
   form.append('model', requestBody.model || 'whisper-1');
-  form.append('file', requestBody.file as Buffer, {filename: 'audio.mp3'});
+  form.append('file', requestBody.file as Buffer, { filename: 'audio.mp3' });
 
   const openAIHeaders = {
     Authorization: openAIHeader.Authorization,

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { createOpenAIRequestConfig } from './openAIConfig';
+import { createOpenAIRequestConfig } from '../openAI/config';
 
 interface ImageGenerationsRequest {
   prompt: string;

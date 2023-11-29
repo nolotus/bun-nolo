@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { createResponse } from 'server/createResponse';
 
-import { openAIConfig } from './openAIConfig';
+import { openAIConfig } from '../openAI/config';
 
 export const handleAudioSpeechRequest = async (req, res) => {
   if (req.method === 'POST') {

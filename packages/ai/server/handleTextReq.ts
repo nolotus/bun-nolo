@@ -1,6 +1,6 @@
 import { getLogger } from 'utils/logger';
 
-import { getOpenAIHeaders } from './openAIConfig';
+import { getOpenAIHeaders } from '../openAI/config';
 
 const apiLogger = getLogger('api');
 
