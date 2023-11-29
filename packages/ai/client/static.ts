@@ -1,6 +1,6 @@
 import { nolotusId } from 'core/init';
+import { DataType } from 'create/types';
 import { WriteHashDataType } from 'database/types';
-
 export interface TokenStaticData {
   type: 'tokenStatistics';
   dialogType: 'send' | 'receive';
@@ -15,7 +15,7 @@ export interface TokenStaticData {
 
 export const tokenStatic = (data, auth, writeHashData) => {
   const writeData: WriteHashDataType = {
-    data: { ...data, type: 'tokenStatistics' },
+    data: { ...data, type: DataType.TokenStatistics },
     flags: { isJSON: true },
     userId: nolotusId,
   };

@@ -7,6 +7,7 @@ import { promisify } from 'util';
 import { formatData } from 'core/formatData';
 import { generateKey } from 'core/generateMainKey';
 import { nolotusId } from 'core/init';
+import { DataType } from 'create/types';
 // import {WriteDataRequestBody} from '../types';
 
 export const handleError = (res, error) => {
@@ -18,7 +19,7 @@ export const handleError = (res, error) => {
 const pipelineAsync = promisify(pipeline);
 
 const allowType = {
-  [nolotusId]: ['tokenStatistics'],
+  [nolotusId]: [DataType.TokenStatistics],
 };
 export const writeData = async (dataKey, data, userId) => {
   const path = `./nolodata/${userId}/index.nolo`;

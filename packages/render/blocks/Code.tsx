@@ -1,67 +1,51 @@
-import { CopyIcon } from '@primer/octicons-react';
-import React from 'react';
+import { CheckIcon, CopyIcon } from '@primer/octicons-react';
+import clsx from 'clsx';
+import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+// Import the new style you want to use
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const Code = ({ value, language }) => {
-  // 优化复制按钮样式，考虑不同尺寸的对应样式
-  const copyButtonStyles = `
-    absolute right-2 top-2 text-white bg-sky-500 p-1 rounded 
-    shadow transition-colors duration-150 ease-snappy hover:bg-sky-600 
-    disabled:opacity-50 focus:outline-none focus:ring focus:ring-sky-300 
-    sm:right-3 sm:top-3 sm:p-2
-    lg:right-4 lg:top-4 lg:p-2.5
-    2xl:right-5 2xl:top-5 2xl:p-3
-  `;
+  const [isCopied, setIsCopied] = useState(false);
 
-  // SyntaxHighlighter的自定义样式，适应屏幕尺寸变化，略微增大最大宽度
-  const customStyle = {
-    ...vscDarkPlus,
-    borderRadius: '0.25em',
-    margin: '0.5em',
-    padding: '0.5em',
-    overflow: 'auto',
-    backgroundColor: 'rgb(55, 65, 81)', // 更新为Neutral灰色颜色系
-    '@media(min-width: 640px)': {
-      borderRadius: '0.5em',
-      margin: '1em',
-      padding: '1em',
-    },
-    '@media(min-width: 1024px)': {
-      borderRadius: '0.5em',
-      margin: '1em',
-      padding: '1.5em',
-    },
-    '@media(min-width: 1536px)': {
-      borderRadius: '0.5em',
-      margin: '1em',
-      padding: '2em',
-    },
-  };
-
-  const handleCopy = async (text) => {
-    if (navigator.clipboard) {
+  const handleCopy = async () => {
+    if (value && navigator.clipboard) {
       try {
-        await navigator.clipboard.writeText(text);
-        // 提供用户反馈，例如弹窗或更改按钮文本提示用户已复制
+        await navigator.clipboard.writeText(value);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
       } catch (err) {
-        // 错误处理，例如通知用户复制失败
+        console.error('无法复制:', err);
       }
-    } else {
-      // 兼容性处理，如使用老式的复制方法
     }
   };
 
   return (
-    <div className="relative my-4 mx-auto max-w-xl sm:max-w-2xl md:max-w-4xl lg:max-w-5xl 2xl:max-w-7xl overflow-hidden rounded shadow">
-      <button
-        className={copyButtonStyles}
-        onClick={() => handleCopy(value)}
-        aria-label="复制代码"
+    <div className="relative my-6 mx-auto overflow-hidden rounded-lg shadow-md bg-gray-800 text-gray-100">
+      <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-blue-500 to-teal-600">
+        <span className="text-sm font-medium">
+          {language?.toUpperCase() || 'CODE'}
+        </span>
+        <button
+          onClick={handleCopy}
+          className={clsx(
+            'p-2 rounded transition-all duration-200 ease-in-out',
+            isCopied
+              ? 'text-green-400 bg-gray-700'
+              : 'text-gray-200 hover:bg-gray-700',
+          )}
+          disabled={!value}
+          aria-label="复制代码"
+        >
+          {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
+        </button>
+      </div>
+
+      <SyntaxHighlighter
+        language={language || 'jsx'}
+        style={dracula}
+        customStyle={{ background: 'transparent', padding: '1em', margin: '0' }}
       >
-        <CopyIcon size={16} className="sm:size-18 lg:size-20 2xl:size-24" />
-      </button>
-      <SyntaxHighlighter language={language || 'jsx'} style={customStyle}>
         {value}
       </SyntaxHighlighter>
     </div>
