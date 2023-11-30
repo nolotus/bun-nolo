@@ -19,7 +19,13 @@ export type Dialog = {
   length: number,
 };
 
-export type ModeType = 'text' | 'image' | 'stream' | 'audio' | 'speech';
+export type ModeType =
+  | 'text'
+  | 'image'
+  | 'stream'
+  | 'audio'
+  | 'speech'
+  | 'surf';
 
 export type Message = {
   content: string,

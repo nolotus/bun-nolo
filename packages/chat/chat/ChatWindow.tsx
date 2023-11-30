@@ -6,6 +6,11 @@ import { useGenerateImageMutation, useStreamChatMutation } from 'ai/services';
 import { ModeType } from 'ai/types';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { useWriteHashMutation } from 'database/services';
+import {
+  parseWeatherParams,
+  formatDataSnippet,
+  useWeatherInfo,
+} from 'integrations/weather';
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from 'ui';
@@ -33,6 +38,13 @@ const ChatWindow = () => {
   const { t } = useTranslation();
 
   const dispatch = useAppDispatch();
+  const {
+    fetchWeatherInfo,
+    weatherData,
+    weatherLoading,
+    weatherError,
+    isWeatherUninitialized,
+  } = useWeatherInfo();
 
   const messages = useAppSelector((state) => state.chat.messages);
   const [generateImage, { isLoading: isGeneratingImage }] =
@@ -56,13 +68,11 @@ const ChatWindow = () => {
   //   auth.user?.userId,
   //   auth.user?.username,
   // );
-  const activeStream = useRef(null);
 
   const onCancel = () => {
-    if (activeStream.current) {
-      console.log('cancel activeStream', activeStream);
-      activeStream.current.abort();
-      activeStream.current = null;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
   };
   const [streamChat] = useStreamChatMutation();
@@ -127,9 +137,13 @@ const ChatWindow = () => {
       }
     });
   };
-
+  const abortControllerRef = useRef(null);
   const handleStreamMessage = async (newMessage, prevMessages) => {
-    const controller = new AbortController();
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     await streamChat({
       payload: {
         userMessage: newMessage,
@@ -138,9 +152,8 @@ const ChatWindow = () => {
 
       config: currentChatConfig,
       onStreamData: handleStreamData,
-      signal: controller.signal,
+      signal: abortControllerRef.current.signal,
     });
-    activeStream.current = controller;
   };
 
   const handleSendMessage = async (newContent) => {
@@ -150,7 +163,10 @@ const ChatWindow = () => {
 
     let mode: ModeType = 'stream';
     const generateImagePattern = /^生成.*图片/;
-    if (
+    const surfModePattern = /查看海浪条件/;
+    if (surfModePattern.test(newContent)) {
+      mode = 'surf'; // 如果符合surf模式的判定条件则设置为 'surf'
+    } else if (
       generateImagePattern.test(newContent.split('\n')[0]) ||
       newContent.split('\n')[0].includes('生成图片')
     ) {
@@ -174,8 +190,36 @@ const ChatWindow = () => {
             image: imageUrl, // 使用提取出的图片 URL
           }),
         );
-      }
-      if (mode === 'stream') {
+      } else if (mode === 'surf') {
+        // 如果检测到surf模式，我们应该解析出查询参数并获取天气信息
+        const queryParams = parseWeatherParams(newContent); // 解析出天气查询参数的函数
+        console.log('queryParams', queryParams);
+        if (queryParams) {
+          try {
+            const weatherInfo = await fetchWeatherInfo(queryParams);
+            console.log('weatherData', weatherInfo);
+
+            // 此处可采用weatherInfo而非weatherData，因为weatherData可能尚未被设置
+            const formattedData = formatDataSnippet(weatherInfo.hours);
+            console.log('formattedData', formattedData);
+
+            dispatch(
+              receiveMessage({
+                role: 'assistant',
+                content: `查询结果（部分显示）：\n${formattedData}`,
+              }),
+            );
+          } catch (error) {
+            console.error('Error fetching weather info:', error);
+            dispatch(
+              receiveMessage({
+                role: 'assistant',
+                content: '查询天气信息时出错。',
+              }),
+            );
+          }
+        }
+      } else if (mode === 'stream') {
         await handleStreamMessage(newContent, messages);
         const staticData = {
           dialogType: 'send',
@@ -194,6 +238,7 @@ const ChatWindow = () => {
       dispatch(messageEnd());
     }
   };
+
   const handleRetry = async () => {
     const lastMessage = messages[messages.length - 1];
     dispatch(retry());

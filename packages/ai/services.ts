@@ -1,4 +1,4 @@
-import { api } from 'app/api'; // 确保路径正确
+import { api } from 'app/api';
 import { API_ENDPOINTS } from 'database/config';
 import { isProduction } from 'utils/env';
 
@@ -52,8 +52,8 @@ export const aiApi = api.injectEndpoints({
 
     streamChat: builder.mutation({
       queryFn: async (
-        { payload, config, onStreamData },
-        { signal, getState },
+        { payload, config, onStreamData, signal },
+        { dispatch, getState },
         extraOptions,
         baseQuery,
       ) => {
@@ -61,7 +61,6 @@ export const aiApi = api.injectEndpoints({
           const model = config.model || 'gpt-3.5-turbo-16k';
           const content = createContent(config);
           const { userMessage, prevMessages } = payload;
-
           return {
             type: 'stream',
             model,

@@ -3,10 +3,10 @@ import { authServerRoutes } from 'auth/server/route';
 import { handleToken } from 'auth/server/token';
 import { API_VERSION, API_ENDPOINTS } from 'database/config';
 import { databaseRequest } from 'database/server/routes';
+import { weatherRouteHandler } from 'integrations/weather';
 
 import { createResponse } from './createResponse';
 import { handleRender } from './render';
-
 let res = createResponse();
 
 export const handleRequest = async (request: Request) => {
@@ -46,6 +46,9 @@ export const handleRequest = async (request: Request) => {
 
     if (url.pathname.startsWith(API_ENDPOINTS.DATABASE)) {
       return databaseRequest(req, res, url);
+    }
+    if (url.pathname.startsWith(API_ENDPOINTS.WEATHER)) {
+      return weatherRouteHandler(req, res);
     }
   }
 
