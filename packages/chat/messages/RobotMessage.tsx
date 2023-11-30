@@ -12,11 +12,11 @@ import IconButton from 'ui/IconButton';
 import { Toast } from 'ui/toast/Toast';
 import { useToastManager } from 'ui/toast/useToastManager';
 
-import { deleteMessage } from '../chatSlice';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
 import { MessageContent } from './MessageContent';
 import { MessageImage } from './MessageImage';
+import { deleteMessage } from './messageSlice';
 import { Message } from './types';
 
 // 机器人消息组件

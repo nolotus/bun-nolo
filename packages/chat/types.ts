@@ -1,5 +1,4 @@
 import { chatAdapter } from './chatSlice';
-import { Message } from './messages/types';
 export interface ChatConfig {
   id: string;
   name?: string;
@@ -12,11 +11,6 @@ export interface ChatConfig {
 }
 
 export type ChatSliceState = {
-  messages: Message[],
-  allowSend: boolean,
-  tempMessage: Message,
   chatList: ReturnType<typeof chatAdapter.getInitialState>,
   currentChatConfig: ChatConfig | null,
-  isStopped: boolean,
-  isMessageStreaming: boolean,
 };

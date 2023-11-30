@@ -10,14 +10,14 @@ export interface User {
   email?: string;
 }
 
-interface UserState {
+interface AuthState {
   currentUser: User | null;
   users: User[];
   isLoggedIn: boolean;
   currentToken: string | null;
 }
 
-const initialState: UserState = {
+const initialState: AuthState = {
   currentUser: null,
   users: [],
   isLoggedIn: false,

@@ -16,20 +16,20 @@ import { useTranslation } from 'react-i18next';
 import { Button } from 'ui';
 import { getLogger } from 'utils/logger';
 
+import { selectChat } from '../chatSlice';
+import MessageInput from '../messages/MessageInput';
+import MessagesDisplay from '../messages/MessagesDisplay';
 import {
+  messageStreaming,
+  messagesReachedMax,
+  messageStreamEnd,
   receiveMessage,
   sendMessage,
-  selectChat,
   retry,
   clearMessages,
   continueMessage,
   messageEnd,
-  messageStreamEnd,
-  messagesReachedMax,
-  messageStreaming,
-} from '../chatSlice';
-import MessageInput from '../messages/MessageInput';
-import MessagesDisplay from '../messages/MessagesDisplay';
+} from '../messages/messageSlice';
 
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 
@@ -38,13 +38,7 @@ const ChatWindow = () => {
   const { t } = useTranslation();
 
   const dispatch = useAppDispatch();
-  const {
-    fetchWeatherInfo,
-    weatherData,
-    weatherLoading,
-    weatherError,
-    isWeatherUninitialized,
-  } = useWeatherInfo();
+  const { fetchWeatherInfo } = useWeatherInfo();
 
   const messages = useAppSelector((state) => state.chat.messages);
   const [generateImage, { isLoading: isGeneratingImage }] =
@@ -63,11 +57,6 @@ const ChatWindow = () => {
   let temp;
 
   let tokenCount = 0;
-  // const { handleStreamMessage, onCancel } = useStreamHandler(
-  //   currentChatConfig,
-  //   auth.user?.userId,
-  //   auth.user?.username,
-  // );
 
   const onCancel = () => {
     if (abortControllerRef.current) {
