@@ -6,6 +6,7 @@ import {
   PlusIcon,
   PersonIcon,
   ChevronDownIcon,
+  NoteIcon,
 } from '@primer/octicons-react';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { changeCurrentUser, userLogout } from 'auth/authSlice';
@@ -13,7 +14,7 @@ import { getTokensFromLocalStorage, removeToken } from 'auth/client/token';
 import { parseToken } from 'auth/token';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { LinkButton, DropDown } from 'ui';
 export const UserMenu = () => {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export const UserMenu = () => {
         <ul className="bg-white shadow-lg rounded-md py-1">
           <li>
             <a href="#a" className="block px-4 py-2 text-sm hover:bg-gray-100">
-              Option A
+              创建智能助理
             </a>
           </li>
           <li>
@@ -80,14 +81,43 @@ export const UserMenu = () => {
           </li>
         </ul>
       </DropDown>
-      <LinkButton
-        to="/life/all"
-        icon={<PersonIcon size={24} />}
-        label={auth.user?.username}
-        className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"
-      />
+
       <DropDown
-        triggerType="click"
+        trigger={
+          <LinkButton
+            to="/life/all"
+            icon={<PersonIcon size={24} />}
+            label={auth.user?.username}
+            className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"
+          />
+        }
+        triggerType="hover" // 设置触发类型为 hover
+      >
+        <ul className="bg-white shadow-lg rounded-md py-1">
+          <li>
+            <NavLink
+              to="/life"
+              className="block px-4 py-2 text-sm hover:bg-gray-100"
+            >
+              <NoteIcon size={20} />
+              <span>Notes</span>
+            </NavLink>
+          </li>
+          <li>
+            <a href="#b" className="block px-4 py-2 text-sm hover:bg-gray-100">
+              Option B
+            </a>
+          </li>
+          <li>
+            <a href="#c" className="block px-4 py-2 text-sm hover:bg-gray-100">
+              Option C
+            </a>
+          </li>
+        </ul>
+      </DropDown>
+
+      <DropDown
+        triggerType="hover"
         trigger={
           <button className="flex items-center ml-2 p-3 hover:bg-sky-500 focus:outline-none rounded-full hover:text-white">
             <ChevronDownIcon size={24} className="text-ne" />

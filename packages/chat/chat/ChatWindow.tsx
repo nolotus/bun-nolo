@@ -40,7 +40,7 @@ const ChatWindow = () => {
   const dispatch = useAppDispatch();
   const { fetchWeatherInfo } = useWeatherInfo();
 
-  const messages = useAppSelector((state) => state.chat.messages);
+  const messages = useAppSelector((state) => state.message.messages);
   const [generateImage, { isLoading: isGeneratingImage }] =
     useGenerateImageMutation();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
