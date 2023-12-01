@@ -1,9 +1,8 @@
 import { useAppSelector } from 'app/hooks';
 import React, { useEffect, useRef } from 'react';
 
-import { selectChat } from '../chatSlice';
-
 import { MessageItem } from './Message';
+import { selectMessage } from './selector';
 import { Message } from './types';
 
 interface MessagesDisplayProps {
@@ -12,7 +11,7 @@ interface MessagesDisplayProps {
 }
 
 const MessagesDisplay: React.FC<MessagesDisplayProps> = ({ messages }) => {
-  const { tempMessage } = useAppSelector(selectChat);
+  const { tempMessage } = useAppSelector(selectMessage);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const scrollToBottom = () => {

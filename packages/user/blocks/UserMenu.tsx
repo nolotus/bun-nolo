@@ -96,7 +96,7 @@ export const UserMenu = () => {
         <ul className="bg-white shadow-lg rounded-md py-1">
           <li>
             <NavLink
-              to="/life"
+              to="/life/notes"
               className="block px-4 py-2 text-sm hover:bg-gray-100"
             >
               <NoteIcon size={20} />
