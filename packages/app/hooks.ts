@@ -1,6 +1,6 @@
+import { selectCurrentUser } from 'auth/authSlice';
 import { useMemo } from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import { selectCurrentUser } from 'auth/authSlice';
 
 import type { RootState, AppDispatch } from './store';
 

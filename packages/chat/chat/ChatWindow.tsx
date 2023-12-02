@@ -30,6 +30,7 @@ import {
   continueMessage,
   messageEnd,
 } from '../messages/messageSlice';
+import { selectMessage } from '../messages/selector';
 
 const chatWindowLogger = getLogger('ChatWindow'); // 初始化日志
 
@@ -51,8 +52,8 @@ const ChatWindow = () => {
     }
   };
   const [requestFailed, setRequestFailed] = useState(false);
-  const { currentChatConfig, isStopped, isMessageStreaming } =
-    useAppSelector(selectChat);
+  const { currentChatConfig } = useAppSelector(selectChat);
+  const { isMessageStreaming, isStopped } = useAppSelector(selectMessage);
   const [writeHashData] = useWriteHashMutation();
   let temp;
 
