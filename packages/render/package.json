@@ -13,11 +13,16 @@
     "clsx": "^2.0.0",
     "database": "workspace:database",
     "framer-motion": "^10.16.4",
+    "react-json-view-lite": "^1.2.1",
     "react-router-dom": "^6.16.0",
     "react-syntax-highlighter": "^15.5.0",
+    "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
     "unified": "^11.0.3",
-    "user": "workspace:user"
+    "unist-util-visit": "^5.0.0",
+    "user": "workspace:user",
+    "yaml": "^2.3.4"
   }
 }

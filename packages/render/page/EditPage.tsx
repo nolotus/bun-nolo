@@ -3,7 +3,7 @@ import {
   useUpdateEntryMutation,
   useDeleteEntryMutation,
 } from 'database/services';
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, {  useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderContentNode } from 'render';
 import { Button, Toggle } from 'ui';
@@ -34,7 +34,6 @@ const EditPage = () => {
   const mdastFromSlice = pageState.mdast;
   const [updateEntry] = useUpdateEntryMutation();
   const navigate = useNavigate();
-  const textareaRef = useRef(null);
   const [textareaContent, setTextareaContent] = React.useState<string>('');
 
   //保存之前检查输入区内容
@@ -66,20 +65,9 @@ const EditPage = () => {
     }
   };
 
-  // 在组件挂载后自动选中 textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
-    }
-  }, []);
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'inherit'; // 重置高度以重新计算
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`; // 设置为滚动高度
-    }
-  }, [textareaContent]);
+
+
 
   const toggleShowAsMarkdown = (value) => {
     dispatch(setShowAsMarkdown(value));
@@ -152,7 +140,7 @@ const EditPage = () => {
         <div className="w-full flex-shrink-0">
           {pageState.showAsMarkdown ? (
             <MarkdownEdit
-              initValue={pageState.content}
+              value={pageState.content}
               onChange={contentChange}
             />
           ) : (
@@ -160,14 +148,11 @@ const EditPage = () => {
               <div className=" w-full flex-shrink-0">
                 <div>{renderContentNode(mdastFromSlice)}</div>
               </div>
-              <textarea
-                id="content"
-                className="w-full h-auto focus:ring-0 focus:outline-none resize-none bg-transparent"
-                value={textareaContent} // 使用本地状态
-                onChange={(e) => setTextareaContent(e.target.value)} // 使用本地状态
-                onKeyDown={handleKeyDown} // 添加键盘事件处理器
-                ref={textareaRef}
-              />
+              <MarkdownEdit
+                  onKeyDown={handleKeyDown}
+                  value={textareaContent} 
+                  onChange={(value) => setTextareaContent(value)} 
+                />
             </div>
           )}
         </div>

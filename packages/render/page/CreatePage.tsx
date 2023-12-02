@@ -1,7 +1,7 @@
 import { nanoid } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { useWriteMutation } from 'database/services';
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { renderContentNode } from 'render';
 import { markdownToMdast, getH1TextFromMdast } from 'render/MarkdownProcessor';
@@ -26,7 +26,6 @@ const CreatePage = () => {
   const mdastFromSlice = pageState.mdast;
   const [mutate] = useWriteMutation();
   const navigate = useNavigate();
-  const textareaRef = useRef(null);
   const [textareaContent, setTextareaContent] = React.useState<string>('');
 
   const saveData = async (pageData) => {
@@ -75,20 +74,8 @@ const CreatePage = () => {
     saveData(updatedPageState);
   };
 
-  // 在组件挂载后自动选中 textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-      textareaRef.current.select();
-    }
-  }, []);
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'inherit'; // 重置高度以重新计算
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`; // 设置为滚动高度
-    }
-  }, [textareaContent]);
+
 
   const toggleShowAsMarkdown = (value) => {
     dispatch(setShowAsMarkdown(value));
@@ -100,7 +87,6 @@ const CreatePage = () => {
       dispatch(saveContentAndMdast(textareaContent));
       setTextareaContent(''); // 清空 textarea
 
-      // handleSave(); // 调用已有的保存逻辑
     }
   };
   const contentChange = (content) => {
@@ -129,20 +115,16 @@ const CreatePage = () => {
           <div className="w-full p-4 flex flex-col">
             {pageState.showAsMarkdown ? (
               <MarkdownEdit
-                initValue={pageState.content}
+              value={pageState.content}
                 onChange={contentChange}
               />
             ) : (
               <>
                 <div>{renderContentNode(mdastFromSlice)}</div>
-
-                <textarea
-                  id="content"
-                  className="w-full h-auto focus:ring-0 focus:outline-none resize-none bg-transparent"
-                  value={textareaContent} // 使用本地状态
-                  onChange={(e) => setTextareaContent(e.target.value)} // 使用本地状态
-                  onKeyDown={handleKeyDown} // 添加键盘事件处理器
-                  ref={textareaRef}
+                <MarkdownEdit
+                  onKeyDown={handleKeyDown}
+                  value={textareaContent} 
+                  onChange={(value) => setTextareaContent(value)} 
                 />
               </>
             )}

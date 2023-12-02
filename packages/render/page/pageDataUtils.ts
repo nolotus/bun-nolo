@@ -6,5 +6,5 @@ export const createPageData = (pageState, userId: string) => ({
   creator: userId,
   created_at: pageState.createdTime,
   mdast: pageState.mdast,
-  type: DataType.Page,
+  type: pageState.type || DataType.Page,
 });

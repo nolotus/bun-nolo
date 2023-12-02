@@ -19,7 +19,6 @@ const sendOpenAIRequest = async (
     responseType: 'stream',
     data,
   };
-
   try {
     const response = await axios.request(config);
     return response;

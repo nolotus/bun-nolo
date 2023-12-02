@@ -1,17 +1,23 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { markdownToMdast, getH1TextFromMdast } from 'render/MarkdownProcessor';
-
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  markdownToMdast,
+  getH1TextFromMdast,
+  getYamlValueFromMdast,
+} from "render/MarkdownProcessor";
+import { parse } from "yaml";
+import { pick } from "rambda";
 export const pageSlice = createSlice({
-  name: 'page',
+  name: "page",
   initialState: {
-    content: '',
-    title: '',
+    content: "",
+    title: "",
     hasVersion: false,
-    slug: '',
-    creator: '',
-    createdTime: '',
-    mdast: { type: 'root', children: [] },
-    showAsMarkdown: false, // 新增状态属性
+    slug: "",
+    creator: "",
+    createdTime: "",
+    mdast: { type: "root", children: [] },
+    showAsMarkdown: false,
+    type: ''
   },
   reducers: {
     setHasVersion: (state, action) => {
@@ -34,7 +40,7 @@ export const pageSlice = createSlice({
       // Update the mdast state
       state.mdast.children = [...state.mdast.children, ...mdast.children];
 
-      state.content += state.content ? '\n\n' + action.payload : action.payload;
+      state.content += state.content ? "\n\n" + action.payload : action.payload;
       // Optionally, extract and set the title from mdast
       const newTitle = getH1TextFromMdast(mdast);
       if (newTitle) {
@@ -69,6 +75,20 @@ export const pageSlice = createSlice({
       const newTitle = getH1TextFromMdast(mdast);
       if (newTitle) {
         state.title = newTitle;
+      }
+      const newYamlValue = getYamlValueFromMdast(mdast);
+
+      if (newYamlValue) {
+        try {
+          const parsedYaml = parse(newYamlValue);
+          console.log("parsedYaml", parsedYaml);
+          // const meta = extractFrontMatter(parsedYaml);
+          const meta = pick(['type', 'lat', 'lng'], parsedYaml)
+          console.log("meta", meta);
+          state.type = meta.type
+        } catch (error) {
+          console.error("parse函数出错：", error);
+        }
       }
     },
   },

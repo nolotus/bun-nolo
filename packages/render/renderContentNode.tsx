@@ -21,7 +21,7 @@ import TableCell from './blocks/TableCell';
 import TableRow from './blocks/TableRow';
 import TaskList from './blocks/TaskList';
 import TaskListItem from './blocks/TaskListItem';
-
+import Yaml from './blocks/Yaml';
 interface ContentNode {
   type: string;
   children?: ContentNode[];
@@ -157,6 +157,14 @@ export const renderContentNode = (
           {node.children?.map(renderChild)}
         </TaskListItem>
       );
+    case 'yaml':
+      return <Yaml value={node.value} />;
+    // case 'json': {
+    //   const str = `{${node.value}}`;
+    //   console.log('str', node.value);
+    //   const json = JSON.parse(str);
+    //   return <div>{JSON.stringify(json)}</div>;
+    // }
 
     case 'strikethrough':
     case 'delete':
