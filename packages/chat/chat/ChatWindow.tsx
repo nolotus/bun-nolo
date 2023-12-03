@@ -9,7 +9,7 @@ import { useWriteHashMutation } from 'database/services';
 import {
   parseWeatherParams,
   formatDataSnippet,
-  useWeatherInfo,
+  useLazyGetWeatherQuery,
 } from 'integrations/weather';
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -39,7 +39,7 @@ const ChatWindow = () => {
   const { t } = useTranslation();
 
   const dispatch = useAppDispatch();
-  const { fetchWeatherInfo } = useWeatherInfo();
+  const [fetchWeatherInfo] = useLazyGetWeatherQuery();
 
   const messages = useAppSelector((state) => state.message.messages);
   const [generateImage, { isLoading: isGeneratingImage }] =

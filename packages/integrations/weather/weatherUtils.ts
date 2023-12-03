@@ -1,8 +1,8 @@
 import { WeatherQueryParams } from '.';
-export const parseWeatherParams = (message: string): WeatherQueryParams => {
+export const parseWeatherParams = ({ lat, lng }): WeatherQueryParams => {
   return {
-    lat: 22.603494850535416, // 假设的纬度值
-    lng: 114.90834694390016, // 假设的经度值
+    lat,
+    lng,
     params: [
       'airTemperature',
       'pressure',
@@ -30,8 +30,6 @@ export const parseWeatherParams = (message: string): WeatherQueryParams => {
       'windDirection',
       'windSpeed',
     ],
-    start: '2023-11-30T00:00:00Z',
-    end: '2023-12-03T00:00:00Z',
   };
 };
 

@@ -3,7 +3,7 @@ import {
   useUpdateEntryMutation,
   useDeleteEntryMutation,
 } from 'database/services';
-import React, {  useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { renderContentNode } from 'render';
 import { Button, Toggle } from 'ui';
@@ -38,7 +38,6 @@ const EditPage = () => {
 
   //保存之前检查输入区内容
   const handleSave = async () => {
-    console.log('textareaContent', textareaContent);
     const hasNoSubmitContent = !!textareaContent;
     if (hasNoSubmitContent) {
       dispatch(saveContentAndMdast(textareaContent));
@@ -64,10 +63,6 @@ const EditPage = () => {
       console.error('Mutation failed:', error);
     }
   };
-
-
-
-
 
   const toggleShowAsMarkdown = (value) => {
     dispatch(setShowAsMarkdown(value));
@@ -139,20 +134,17 @@ const EditPage = () => {
       <div className="flex-grow flex">
         <div className="w-full flex-shrink-0">
           {pageState.showAsMarkdown ? (
-            <MarkdownEdit
-              value={pageState.content}
-              onChange={contentChange}
-            />
+            <MarkdownEdit value={pageState.content} onChange={contentChange} />
           ) : (
             <div className="w-full p-4 flex flex-col">
               <div className=" w-full flex-shrink-0">
                 <div>{renderContentNode(mdastFromSlice)}</div>
               </div>
               <MarkdownEdit
-                  onKeyDown={handleKeyDown}
-                  value={textareaContent} 
-                  onChange={(value) => setTextareaContent(value)} 
-                />
+                onKeyDown={handleKeyDown}
+                value={textareaContent}
+                onChange={(value) => setTextareaContent(value)}
+              />
             </div>
           )}
         </div>

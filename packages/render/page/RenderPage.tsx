@@ -1,15 +1,21 @@
 import { useAuth } from 'app/hooks';
+import { DataType } from 'create/types';
 import { useDeleteEntryMutation } from 'database/services';
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { renderContentNode } from 'render';
 
 import { markdownToMdast } from '../MarkdownProcessor';
+
 import { RenderJson } from './RenderJson';
+import SurfSpotPage from './SurfSpotPage';
 
 const RenderPage = ({ pageId, data }) => {
   const navigate = useNavigate();
   const renderedContent = useMemo(() => {
+    if (data.type === DataType.SurfSpot) {
+      return <SurfSpotPage data={data} />;
+    }
     if (data.type === 'page') {
       if (data.mdast) {
         return renderContentNode(data.mdast);
@@ -17,10 +23,9 @@ const RenderPage = ({ pageId, data }) => {
         return renderContentNode(markdownToMdast(data.content));
       }
     } else {
-      return <RenderJson data={data}/>
+      return <RenderJson data={data} />;
     }
   }, [data]);
-  // console.log('renderedContent', renderedContent);
 
   const handleEdit = useCallback(() => {
     navigate(`/${pageId}?edit=true`);

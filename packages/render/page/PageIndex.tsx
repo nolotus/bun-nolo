@@ -7,7 +7,6 @@ import NoMatch from '../NoMatch';
 
 import EditPage from './EditPage';
 import { initPage } from './pageSlice';
-import { RenderJson } from './RenderJson';
 import RenderPage from './RenderPage';
 
 const Page = ({ id }) => {
@@ -20,16 +19,13 @@ const Page = ({ id }) => {
   const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
 
   if (data) {
-    dispatch(initPage(data.content));
+    dispatch(initPage(data));
   }
 
   if (isLoading) {
     return <div>loading</div>;
   }
   if (data) {
-    if (data.type === 'page') {
-      <RenderJson data={data} />;
-    }
     if (isEditMode) {
       // 渲染编辑模式的 UI
       return <EditPage />;

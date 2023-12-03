@@ -1,23 +1,26 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { DataType } from 'create/types';
+import { pick } from 'rambda';
 import {
   markdownToMdast,
   getH1TextFromMdast,
   getYamlValueFromMdast,
-} from "render/MarkdownProcessor";
-import { parse } from "yaml";
-import { pick } from "rambda";
+} from 'render/MarkdownProcessor';
+import { parse } from 'yaml';
 export const pageSlice = createSlice({
-  name: "page",
+  name: 'page',
   initialState: {
-    content: "",
-    title: "",
+    content: '',
+    title: '',
     hasVersion: false,
-    slug: "",
-    creator: "",
-    createdTime: "",
-    mdast: { type: "root", children: [] },
+    slug: '',
+    creator: '',
+    createdTime: '',
+    mdast: { type: 'root', children: [] },
     showAsMarkdown: false,
-    type: ''
+    meta: {
+      type: DataType.Page,
+    },
   },
   reducers: {
     setHasVersion: (state, action) => {
@@ -40,25 +43,46 @@ export const pageSlice = createSlice({
       // Update the mdast state
       state.mdast.children = [...state.mdast.children, ...mdast.children];
 
-      state.content += state.content ? "\n\n" + action.payload : action.payload;
+      state.content += state.content ? '\n\n' + action.payload : action.payload;
       // Optionally, extract and set the title from mdast
       const newTitle = getH1TextFromMdast(mdast);
       if (newTitle) {
         state.title = newTitle;
       }
+      const newYamlValue = getYamlValueFromMdast(mdast);
+      console.log('newYamlValue', newYamlValue);
+
+      if (newYamlValue) {
+        try {
+          const parsedYaml = parse(newYamlValue);
+          console.log('parsedYaml', parsedYaml);
+          // const meta = extractFrontMatter(parsedYaml);
+          const meta = pick(['type', 'lat', 'lng'], parsedYaml);
+          console.log('meta', meta);
+          state.meta.type = meta.type;
+        } catch (error) {
+          console.error('parse函数出错：', error);
+        }
+      }
     },
     initPage: (state, action: PayloadAction<string>) => {
       // Update content with the incoming markdown
-      state.content = action.payload;
+      state.content = action.payload.content;
+      state.meta.type = action.payload.type;
 
       // Convert markdown to mdast
-      const mdast = markdownToMdast(action.payload);
+      const mdast = markdownToMdast(action.payload.content);
 
       // Update the mdast state
       state.mdast = mdast;
 
       // Extract and set the title from mdast
-      const title = getH1TextFromMdast(mdast);
+      let title;
+      if (action.payload.title) {
+        title = action.payload.title;
+      } else {
+        title = getH1TextFromMdast(mdast);
+      }
       if (title) {
         state.title = title;
       }
@@ -81,13 +105,13 @@ export const pageSlice = createSlice({
       if (newYamlValue) {
         try {
           const parsedYaml = parse(newYamlValue);
-          console.log("parsedYaml", parsedYaml);
+          console.log('parsedYaml', parsedYaml);
           // const meta = extractFrontMatter(parsedYaml);
-          const meta = pick(['type', 'lat', 'lng'], parsedYaml)
-          console.log("meta", meta);
-          state.type = meta.type
+          const meta = pick(['type', 'lat', 'lng'], parsedYaml);
+          console.log('meta', meta);
+          state.meta = meta;
         } catch (error) {
-          console.error("parse函数出错：", error);
+          console.error('parse函数出错：', error);
         }
       }
     },

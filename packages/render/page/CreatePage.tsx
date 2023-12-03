@@ -74,9 +74,6 @@ const CreatePage = () => {
     saveData(updatedPageState);
   };
 
-
-
-
   const toggleShowAsMarkdown = (value) => {
     dispatch(setShowAsMarkdown(value));
   };
@@ -86,7 +83,6 @@ const CreatePage = () => {
       e.preventDefault(); // 阻止默认换行行为
       dispatch(saveContentAndMdast(textareaContent));
       setTextareaContent(''); // 清空 textarea
-
     }
   };
   const contentChange = (content) => {
@@ -115,7 +111,7 @@ const CreatePage = () => {
           <div className="w-full p-4 flex flex-col">
             {pageState.showAsMarkdown ? (
               <MarkdownEdit
-              value={pageState.content}
+                value={pageState.content}
                 onChange={contentChange}
               />
             ) : (
@@ -123,8 +119,8 @@ const CreatePage = () => {
                 <div>{renderContentNode(mdastFromSlice)}</div>
                 <MarkdownEdit
                   onKeyDown={handleKeyDown}
-                  value={textareaContent} 
-                  onChange={(value) => setTextareaContent(value)} 
+                  value={textareaContent}
+                  onChange={(value) => setTextareaContent(value)}
                 />
               </>
             )}

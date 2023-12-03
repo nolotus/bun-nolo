@@ -4,5 +4,5 @@ export enum DataType {
   TokenStatistics = 'tokenStatistics',
   SurfProfile = 'surf-profile',
   Page = 'page',
-  SurfSpot = 'surf-spot'
+  SurfSpot = 'surf-spot',
 }

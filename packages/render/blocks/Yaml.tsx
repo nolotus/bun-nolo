@@ -1,6 +1,7 @@
 import React from 'react';
-import { parse } from 'yaml';
 import { JsonView, allExpanded, defaultStyles } from 'react-json-view-lite';
+import { parse } from 'yaml';
+import 'react-json-view-lite/dist/index.css';
 
 const Yaml = ({ value }) => {
   let json;
@@ -13,7 +14,11 @@ const Yaml = ({ value }) => {
 
   return (
     <div>
-      <JsonView data={json} shouldExpandNode={allExpanded} style={defaultStyles} />
+      <JsonView
+        data={json}
+        shouldExpandNode={allExpanded}
+        style={defaultStyles}
+      />
     </div>
   );
 };
