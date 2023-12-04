@@ -7,16 +7,19 @@ import {
   PersonIcon,
   ChevronDownIcon,
   NoteIcon,
+  DependabotIcon,
 } from '@primer/octicons-react';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { changeCurrentUser, userLogout } from 'auth/authSlice';
 import { getTokensFromLocalStorage, removeToken } from 'auth/client/token';
 import { parseToken } from 'auth/token';
+import { CreateRoutePaths } from 'create/routes';
 import { LifeRoutePaths } from 'life/routes';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LinkButton, DropDown } from 'ui';
+
 export const UserMenu = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -62,23 +65,35 @@ export const UserMenu = () => {
             className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"
           />
         }
-        triggerType="hover" // 设置触发类型为 hover
+        triggerType="hover"
       >
-        <ul className="bg-white shadow-lg rounded-md py-1">
+        <ul className="bg-white    py-1">
           <li>
-            <a href="#a" className="block px-4 py-2 text-sm hover:bg-gray-100">
-              创建智能助理
-            </a>
+            <NavLink
+              to={`${CreateRoutePaths.CREATE_PAGE}`}
+              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 ease-in-out"
+            >
+              <NoteIcon size={20} className="mr-2" />
+              <span>创建空白页面</span>
+            </NavLink>
           </li>
           <li>
-            <a href="#b" className="block px-4 py-2 text-sm hover:bg-gray-100">
-              创建浪点
-            </a>
+            <NavLink
+              to={`${CreateRoutePaths.CREATE_CHAT_ROBOT}`}
+              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 ease-in-out"
+            >
+              <DependabotIcon size={20} className="mr-2" />
+              <span>创建智能助理</span>
+            </NavLink>
           </li>
           <li>
-            <a href="#c" className="block px-4 py-2 text-sm hover:bg-gray-100">
-              Option C
-            </a>
+            <NavLink
+              to={`${CreateRoutePaths.CREATE_CHAT_ROBOT}`}
+              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 ease-in-out"
+            >
+              <DependabotIcon size={20} className="mr-2" />
+              <span>创建浪点</span>
+            </NavLink>
           </li>
         </ul>
       </DropDown>

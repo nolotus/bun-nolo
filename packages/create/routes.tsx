@@ -1,42 +1,39 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
+import LazyLoadComponent from 'render/components/LazyLoadComponent';
 
-const Create = lazy(() => import('./index'));
-const CreateSurfingTrip = lazy(() => import('./pages/CreateSurfingTrip'));
-
-const CreatePage = lazy(() => import('render/page/CreatePage'));
-const CreateChatRobot = lazy(() => import('ai/pages/CreateChatRobot'));
+export enum CreateRoutePaths {
+  CREATE = 'create',
+  CREATE_PAGE = 'create/page',
+  CREATE_CHAT_ROBOT = 'create/chat-robot',
+}
 
 export const createRoutes = [
   {
-    path: 'create',
+    path: CreateRoutePaths.CREATE,
     element: (
-      <Suspense fallback={<div>loading create</div>}>
-        <CreatePage />
-      </Suspense>
+      <LazyLoadComponent
+        factory={() => import('./index')}
+        fallback={<div>Loading Create...</div>}
+      />
     ),
   },
   {
-    path: 'create/page',
+    path: CreateRoutePaths.CREATE_PAGE,
     element: (
-      <Suspense fallback={<div>CreatePage</div>}>
-        <CreatePage />
-      </Suspense>
+      <LazyLoadComponent
+        factory={() => import('render/page/CreatePage')}
+        fallback={<div>Loading CreatePage...</div>}
+      />
     ),
   },
   {
-    path: 'create/chat-robot',
+    path: CreateRoutePaths.CREATE_CHAT_ROBOT,
     element: (
-      <Suspense fallback={<div>chat-robot</div>}>
-        <CreateChatRobot />
-      </Suspense>
+      <LazyLoadComponent
+        factory={() => import('ai/pages/CreateChatRobot')}
+        fallback={<div>Loading Chat Robot...</div>}
+      />
     ),
   },
-  {
-    path: 'create/surfing-trip',
-    element: (
-      <Suspense fallback={<div>surf-trip</div>}>
-        <CreateSurfingTrip />
-      </Suspense>
-    ),
-  },
+  // 其他路由...
 ];

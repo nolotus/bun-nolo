@@ -1,4 +1,5 @@
-import React, { Suspense, lazy, SuspenseProps, ComponentType } from 'react';
+import React from 'react';
+import LazyLoadComponent from 'render/components/LazyLoadComponent';
 
 import { Layout } from './Layout';
 
@@ -9,19 +10,6 @@ export enum LifeRoutePaths {
   NOTES = 'life/notes',
 }
 
-interface LazyLoadProps {
-  factory: () => Promise<{ default: ComponentType<any> }>;
-  fallback: SuspenseProps['fallback'];
-}
-
-const LazyLoadComponent: React.FC<LazyLoadProps> = ({ factory, fallback }) => {
-  const Component = lazy(factory);
-  return (
-    <Suspense fallback={fallback}>
-      <Component />
-    </Suspense>
-  );
-};
 const Welcome = (
   <LazyLoadComponent
     factory={() => import('web/pages/Welcome')}

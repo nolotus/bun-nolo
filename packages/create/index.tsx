@@ -9,12 +9,6 @@ const buttonsInfo = [
     route: 'chat-robot',
     customStyles: 'bg-green-500 text-white hover:bg-green-600',
   },
-
-  {
-    text: '冲浪行程',
-    route: 'surfing-trip',
-    customStyles: 'bg-teal-500 text-white hover:bg-teal-600',
-  },
 ];
 
 const Create = () => {
@@ -33,13 +27,8 @@ const Create = () => {
               customStyles: button.customStyles,
             }),
           )}
-        </div>
-      </div>
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">创建原始类型</h2>
-        <div className="flex flex-wrap space-x-4">
           {renderButton({
-            text: '页面',
+            text: '空白页面',
             route: 'page',
             navigate,
             customStyles: 'bg-blue-500 text-white',
