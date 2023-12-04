@@ -1,11 +1,51 @@
-import React, { Suspense, lazy } from 'react';
-
-const All = lazy(() => import('life/pages/All'));
-const Statistics = lazy(() => import('life/pages/Statistics'));
-const Notes = lazy(() => import('life/pages/Notes'));
-const Welcome = lazy(() => import('web/pages/Welcome'));
+import React, { Suspense, lazy, SuspenseProps, ComponentType } from 'react';
 
 import { Layout } from './Layout';
+
+export enum LifeRoutePaths {
+  WELCOME = 'life/',
+  ALL = 'life/all',
+  STATISTICS = 'life/statistics',
+  NOTES = 'life/notes',
+}
+
+interface LazyLoadProps {
+  factory: () => Promise<{ default: ComponentType<any> }>;
+  fallback: SuspenseProps['fallback'];
+}
+
+const LazyLoadComponent: React.FC<LazyLoadProps> = ({ factory, fallback }) => {
+  const Component = lazy(factory);
+  return (
+    <Suspense fallback={fallback}>
+      <Component />
+    </Suspense>
+  );
+};
+const Welcome = (
+  <LazyLoadComponent
+    factory={() => import('web/pages/Welcome')}
+    fallback={<div>Loading Welcome...</div>}
+  />
+);
+const All = (
+  <LazyLoadComponent
+    factory={() => import('life/pages/All')}
+    fallback={<div>Loading All...</div>}
+  />
+);
+const Statistics = (
+  <LazyLoadComponent
+    factory={() => import('life/pages/Statistics')}
+    fallback={<div>Loading Statistics...</div>}
+  />
+);
+const Notes = (
+  <LazyLoadComponent
+    factory={() => import('life/pages/Notes')}
+    fallback={<div>Loading Notes...</div>}
+  />
+);
 
 export const routes = {
   path: '/',
@@ -14,39 +54,10 @@ export const routes = {
     {
       path: 'life',
       children: [
-        {
-          index: true,
-          element: (
-            <Suspense fallback={<div>loading Welcome</div>}>
-              <Welcome />
-            </Suspense>
-          ),
-        },
-        {
-          index: true,
-          path: 'all',
-          element: (
-            <Suspense fallback={<div>loading all</div>}>
-              <All />
-            </Suspense>
-          ),
-        },
-        {
-          path: 'statistics',
-          element: (
-            <Suspense fallback={<div>loading statistics</div>}>
-              <Statistics />
-            </Suspense>
-          ),
-        },
-        {
-          path: 'notes',
-          element: (
-            <Suspense fallback={<div>loading notes</div>}>
-              <Notes />
-            </Suspense>
-          ),
-        },
+        { index: true, element: Welcome },
+        { path: 'all', element: All },
+        { path: 'statistics', element: Statistics },
+        { path: 'notes', element: Notes },
       ],
     },
   ],

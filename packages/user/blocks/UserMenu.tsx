@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { changeCurrentUser, userLogout } from 'auth/authSlice';
 import { getTokensFromLocalStorage, removeToken } from 'auth/client/token';
 import { parseToken } from 'auth/token';
+import { LifeRoutePaths } from 'life/routes';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useNavigate } from 'react-router-dom';
@@ -71,7 +72,7 @@ export const UserMenu = () => {
           </li>
           <li>
             <a href="#b" className="block px-4 py-2 text-sm hover:bg-gray-100">
-              Option B
+              创建浪点
             </a>
           </li>
           <li>
@@ -85,7 +86,7 @@ export const UserMenu = () => {
       <DropDown
         trigger={
           <LinkButton
-            to="/life/all"
+            to={`/${LifeRoutePaths.WELCOME}`}
             icon={<PersonIcon size={24} />}
             label={auth.user?.username}
             className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"

@@ -12,7 +12,6 @@ import { SurfTip } from './SurfTip';
 
 const ChatPage = lazy(() => import('chat/chat/ChatPage'));
 
-const Welcome = lazy(() => import('./pages/Welcome'));
 export const routes = (currentUser) => [
   {
     path: '/',
@@ -24,14 +23,6 @@ export const routes = (currentUser) => [
       },
       ...createRoutes,
 
-      {
-        path: 'welcome',
-        element: (
-          <Suspense fallback={<>...</>}>
-            <Welcome />
-          </Suspense>
-        ),
-      },
       {
         path: 'price',
         element: (

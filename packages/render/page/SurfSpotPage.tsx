@@ -42,11 +42,10 @@ const SurfSpotPage = ({ data }) => {
             <div className="text-gray-600">阵风</div>
             <div className="text-gray-600">湿度</div>
             <div className="text-gray-600">降水量</div>
-            <div className="text-gray-600">气压</div>
             <div className="text-gray-600">海平面</div>
             <div className="text-gray-600">次级浪向</div>
             <div className="text-gray-600">次级浪高</div>
-            <div className="text-gray-600">次级浪周期</div>
+            <div className="min-w-[120px] text-gray-600">次级浪周期</div>
             <div className="text-gray-600">主浪向</div>
             <div className="text-gray-600">主浪高</div>
             <div className="text-gray-600">主浪周期</div>
@@ -88,9 +87,6 @@ const SurfSpotPage = ({ data }) => {
                 <div className="text-gray-600 text-sm">{hour.humidity.sg}%</div>
                 <div className="text-gray-600 text-sm">
                   {hour.precipitation.sg.toFixed(1)}mm
-                </div>
-                <div className="text-gray-600 text-sm">
-                  {hour.pressure.sg.toFixed(1)}hPa
                 </div>
                 <div className="text-gray-600 text-sm">
                   {hour.seaLevel?.sg.toFixed(2)}m

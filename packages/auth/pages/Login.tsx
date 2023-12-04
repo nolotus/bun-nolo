@@ -8,6 +8,7 @@ import { FormField } from 'components/Form/FormField';
 import { generateKeyPairFromSeed } from 'core/crypto';
 import { generateUserId } from 'core/generateMainKey';
 import { hashPassword } from 'core/password';
+import { LifeRoutePaths } from 'life/routes';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -63,7 +64,7 @@ const Login: React.FC = () => {
       const token = signToken({ userId, publicKey, username }, secretKey);
       const { token: newToken } = await login({ userId, token }).unwrap();
       storeTokens(newToken);
-      navigate('/welcome');
+      navigate(`/${LifeRoutePaths.WELCOME}`);
     } catch (noloError) {
       console.error(noloError);
 

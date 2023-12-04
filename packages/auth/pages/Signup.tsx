@@ -1,32 +1,31 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PersonIcon, LockIcon } from '@primer/octicons-react';
 import { useAppDispatch } from 'app/hooks';
+import { userRegister } from 'auth/authSlice';
 import { storeTokens } from 'auth/client/token';
-import { parseToken } from 'auth/token';
+import { parseToken, signToken } from 'auth/token';
 import { createFieldsFromDSL } from 'components/Form/createFieldsFromDSL';
 import { FormField } from 'components/Form/FormField';
-import { createZodSchemaFromDSL } from 'database/schema/createZodSchemaFromDSL';
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { Button } from 'ui';
-import { userRegister } from 'auth/authSlice';
+import { generateKeyPairFromSeed, verifySignedMessage } from 'core/crypto';
+import { generateUserId } from 'core/generateMainKey';
 import {
   encryptWithPassword,
   generateAndSplitRecoveryPassword,
   hashPassword,
 } from 'core/password';
-import { generateKeyPairFromSeed, verifySignedMessage } from 'core/crypto';
-import { SignupData } from '../types';
+import { createZodSchemaFromDSL } from 'database/schema/createZodSchemaFromDSL';
+import { LifeRoutePaths } from 'life/routes';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Button } from 'ui';
 import { getLogger } from 'utils/logger';
 
-import { signToken } from 'auth/token';
-import { generateUserId } from 'core/generateMainKey';
+import { useRegisterMutation } from '../services';
+import { SignupData } from '../types';
 
-import {useRegisterMutation } from '../services'
 const signupLogger = getLogger('signup');
-
 
 const Signup: React.FC = () => {
   const [registerUser] = useRegisterMutation();
@@ -36,12 +35,12 @@ const Signup: React.FC = () => {
     const encryptionKey = await hashPassword(brainPassword);
     // Get the user's language setting
     const language = navigator.language;
-  
+
     // Generate public and private key pair based on the encryption key
     const { publicKey, secretKey } = generateKeyPairFromSeed(
       username + encryptionKey + language,
     );
-  
+
     const sendData: SignupData = {
       username,
       publicKey,
@@ -49,33 +48,33 @@ const Signup: React.FC = () => {
       remoteRecoveryPassword: null,
       language,
     };
-  
+
     if (isStoreRecovery) {
       const recoveryPassword = generateAndSplitRecoveryPassword(answer, 3);
       const [localRecoveryPassword, remoteRecoveryPassword] = recoveryPassword;
-  
+
       sendData.remoteRecoveryPassword = remoteRecoveryPassword;
       sendData.encryptedEncryptionKey = encryptWithPassword(
         encryptionKey,
         recoveryPassword.join(''),
       );
     }
-  
+
     const response = await registerUser(sendData).unwrap();
-    const { encryptedData } = response
-  
+    const { encryptedData } = response;
+
     const decryptedData = await verifySignedMessage(
       encryptedData,
       'pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus',
     );
-  
+
     const decryptedDataObject = JSON.parse(decryptedData);
     console.log('decryptedDataObject:', decryptedDataObject);
-  
+
     const userId = generateUserId(publicKey, username, language);
     console.log('sendData:', userId, sendData);
     const token = signToken({ userId, username }, secretKey);
-  
+
     if (
       decryptedDataObject.username === sendData.username &&
       decryptedDataObject.publicKey === sendData.publicKey &&
@@ -101,12 +100,11 @@ const Signup: React.FC = () => {
   };
 
   const onSubmit = async (user) => {
-    console.log('user',user)
     try {
       setLoading(true);
       const { token } = await handleSignup(user);
       await signup(token);
-      navigate('/welcome');
+      navigate(`/${LifeRoutePaths.WELCOME}`);
     } catch (error) {
       console.error(error);
       setError(error.message);
