@@ -1,9 +1,9 @@
 import { useAuth } from 'app/hooks';
+import { useUserData } from 'auth/hooks/useUserData';
 import { saveData } from 'database/client/save';
 import React, { useState } from 'react';
 import { Toggle } from 'ui';
 import { Button } from 'ui/Button';
-import { useUserData } from 'auth/hooks/useUserData';
 
 const SaveButton = ({ onClick }: { onClick: () => void }) => (
   <Button onClick={onClick} variant="primary" size="medium">

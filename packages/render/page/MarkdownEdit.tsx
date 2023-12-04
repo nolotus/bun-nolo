@@ -13,12 +13,12 @@ const updateTextAreaHeight = debounce((textarea: HTMLTextAreaElement) => {
     textarea.style.height = 'auto'; // 设置高度为auto以获取正确的scrollHeight
     textarea.style.height = `${textarea.scrollHeight}px`;
   });
-}, 16); 
+}, 16);
 
 export const MarkdownEdit: React.FC<MarkdownEditProps> = ({
   value,
   onChange,
-  onKeyDown
+  onKeyDown,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

@@ -32,7 +32,6 @@ export const api = createApi({
         });
         return URL.createObjectURL(blob);
       }
-      // Default to JSON handling
       return response.json();
     },
   }),

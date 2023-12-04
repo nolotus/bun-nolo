@@ -7,7 +7,7 @@ export const PageBlock = ({ value, id }) => (
       <h3 className="font-semibold text-lg mb-2">
         <Link
           to={`/${id}`}
-          className="text-black hover:text-sky-500 transition-colors duration-150 ease-snappy"
+          className="text-black hover:text-blue-500 transition-colors duration-150 ease-snappy"
         >
           {value.title}
         </Link>
@@ -17,7 +17,7 @@ export const PageBlock = ({ value, id }) => (
     <div className="mt-4">
       <Link
         to={`/${id}`}
-        className="text-white bg-sky-500 hover:bg-sky-600 transition-colors duration-150 ease-snappy py-2 px-4 rounded text-sm font-medium"
+        className="text-white bg-blue-500 hover:bg-blue-600 transition-colors duration-150 ease-snappy py-2 px-4 rounded text-sm font-medium"
       >
         查看更多
       </Link>

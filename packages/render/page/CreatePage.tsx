@@ -1,8 +1,8 @@
 import { nanoid } from '@reduxjs/toolkit';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
-import { useWriteMutation } from 'database/services';
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useWriteMutation, useGetEntryQuery } from 'database/services';
+import React, { useEffect } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { renderContentNode } from 'render';
 import { markdownToMdast, getH1TextFromMdast } from 'render/MarkdownProcessor';
 import { Button, Toggle } from 'ui';
@@ -11,15 +11,20 @@ import { MarkdownEdit } from './MarkdownEdit';
 import { createPageData } from './pageDataUtils';
 import {
   setHasVersion,
-  setSlug,
-  setCreator,
   saveContentAndMdast,
   setShowAsMarkdown,
   updateContent,
+  setSaveAsTemplate,
+  initPageFromTemplate,
 } from './pageSlice';
-const CreatePage = () => {
-  const dispatch = useAppDispatch();
 
+const CreatePage = () => {
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get('id');
+  const { data, isLoading } = useGetEntryQuery({ entryId: templateId });
+  console.log('data', data);
+  const dispatch = useAppDispatch();
+  const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
   const auth = useAuth();
   const userId = auth.user?.userId;
   const pageState = useAppSelector((state) => state.page);
@@ -28,6 +33,9 @@ const CreatePage = () => {
   const navigate = useNavigate();
   const [textareaContent, setTextareaContent] = React.useState<string>('');
 
+  useEffect(() => {
+    data && dispatch(initPageFromTemplate(data));
+  }, [data]);
   const saveData = async (pageData) => {
     try {
       const newSlug = nanoid();
@@ -77,7 +85,9 @@ const CreatePage = () => {
   const toggleShowAsMarkdown = (value) => {
     dispatch(setShowAsMarkdown(value));
   };
-
+  const handleToggleTemplateChange = (value: boolean) => {
+    dispatch(setSaveAsTemplate(value));
+  };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault(); // 阻止默认换行行为
@@ -96,12 +106,17 @@ const CreatePage = () => {
           {pageState.hasVersion ? 'Versioned' : 'Not Versioned'}
         </div>
         <Toggle
-          label="Markdown 显示" // 简洁的标签
-          id="markdown-toggle" // 唯一的 ID
+          label="Markdown 显示"
+          id="markdown-toggle"
           checked={pageState.showAsMarkdown}
           onChange={toggleShowAsMarkdown}
         />
-
+        <Toggle
+          id="save-as-template"
+          label="保存为模板"
+          checked={saveAsTemplate}
+          onChange={handleToggleTemplateChange}
+        />
         <Button onClick={handleSave} variant="primary" size="medium">
           Save
         </Button>

@@ -25,7 +25,7 @@ export const ChatBotBlock = (props) => {
             对话
           </button>
         </Link>
-        <button className="bg-sky-500 hover:bg-sky-700 text-white font-bold py-1 px-2 rounded mr-2">
+        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2">
           编辑
         </button>
       </div>

@@ -7,28 +7,27 @@ import {
   getYamlValueFromMdast,
 } from 'render/MarkdownProcessor';
 import { parse } from 'yaml';
+
 export const pageSlice = createSlice({
   name: 'page',
   initialState: {
     content: '',
-    title: '',
     hasVersion: false,
-    slug: '',
-    creator: '',
     createdTime: '',
     mdast: { type: 'root', children: [] },
     showAsMarkdown: false,
     meta: {
       type: DataType.Page,
+      creator: '',
+      title: '',
     },
+    saveAsTemplate: false,
   },
   reducers: {
     setHasVersion: (state, action) => {
       state.hasVersion = action.payload;
     },
-    setSlug: (state, action) => {
-      state.slug = action.payload;
-    },
+
     setCreator: (state, action) => {
       state.creator = action.payload;
     },
@@ -42,13 +41,13 @@ export const pageSlice = createSlice({
 
       // Update the mdast state
       state.mdast.children = [...state.mdast.children, ...mdast.children];
-
       state.content += state.content ? '\n\n' + action.payload : action.payload;
       // Optionally, extract and set the title from mdast
       const newTitle = getH1TextFromMdast(mdast);
       if (newTitle) {
-        state.title = newTitle;
+        state.meta.title = newTitle;
       }
+      console.log('state.meta', state.meta);
       const newYamlValue = getYamlValueFromMdast(mdast);
       console.log('newYamlValue', newYamlValue);
 
@@ -57,7 +56,7 @@ export const pageSlice = createSlice({
           const parsedYaml = parse(newYamlValue);
           console.log('parsedYaml', parsedYaml);
           // const meta = extractFrontMatter(parsedYaml);
-          const meta = pick(['type', 'lat', 'lng'], parsedYaml);
+          const meta = pick(['type', 'lat', 'lng', 'title'], parsedYaml);
           console.log('meta', meta);
           state.meta.type = meta.type;
         } catch (error) {
@@ -67,25 +66,24 @@ export const pageSlice = createSlice({
     },
     initPage: (state, action: PayloadAction<string>) => {
       // Update content with the incoming markdown
+      state.saveAsTemplate = action.payload.is_template;
       state.content = action.payload.content;
       state.meta.type = action.payload.type;
-
+      state.meta.title = action.payload.title;
       // Convert markdown to mdast
       const mdast = markdownToMdast(action.payload.content);
-
       // Update the mdast state
       state.mdast = mdast;
-
-      // Extract and set the title from mdast
-      let title;
-      if (action.payload.title) {
-        title = action.payload.title;
-      } else {
-        title = getH1TextFromMdast(mdast);
-      }
-      if (title) {
-        state.title = title;
-      }
+    },
+    initPageFromTemplate: (state, action: PayloadAction<string>) => {
+      // Update content with the incoming markdown
+      state.content = action.payload.content;
+      state.meta.type = action.payload.type;
+      state.meta.title = action.payload.title;
+      // Convert markdown to mdast
+      const mdast = markdownToMdast(action.payload.content);
+      // Update the mdast state
+      state.mdast = mdast;
     },
     updateContent: (state, action: PayloadAction<string>) => {
       // 直接更新 content
@@ -98,34 +96,38 @@ export const pageSlice = createSlice({
       // 从 mdast 中提取并更新 title
       const newTitle = getH1TextFromMdast(mdast);
       if (newTitle) {
-        state.title = newTitle;
+        state.meta.title = newTitle;
       }
       const newYamlValue = getYamlValueFromMdast(mdast);
 
       if (newYamlValue) {
         try {
           const parsedYaml = parse(newYamlValue);
-          console.log('parsedYaml', parsedYaml);
-          // const meta = extractFrontMatter(parsedYaml);
-          const meta = pick(['type', 'lat', 'lng'], parsedYaml);
-          console.log('meta', meta);
-          state.meta = meta;
+          const metaUpdates = pick(['type', 'lat', 'lng'], parsedYaml);
+          // 添加或更新 state.meta 中的相应字段
+          state.meta = {
+            ...state.meta,
+            ...metaUpdates,
+          };
         } catch (error) {
           console.error('parse函数出错：', error);
         }
       }
+    },
+    setSaveAsTemplate(state, action: PayloadAction<boolean>) {
+      state.saveAsTemplate = action.payload;
     },
   },
 });
 
 export const {
   setHasVersion,
-  setSlug,
-  setCreator,
   saveContentAndMdast,
   setShowAsMarkdown,
   initPage,
+  initPageFromTemplate,
   updateContent,
+  setSaveAsTemplate,
 } = pageSlice.actions;
 
 export default pageSlice.reducer;

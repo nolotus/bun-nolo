@@ -23,7 +23,7 @@ export const UserMessage: React.FC<Message> = ({ content, image }) => {
           <MessageContent role="user" content={content} />
         )}
         <div className="flex-shrink-0">
-          <Avatar role="user" />
+          <Avatar name="user" />
         </div>
       </div>
       {audioSrc && <audio src={audioSrc} controls />}

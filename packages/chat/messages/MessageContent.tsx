@@ -6,7 +6,7 @@ import { unified } from 'unified';
 
 const getColorClass = (role) => {
   if (role === 'user') {
-    return 'text-sky-500';
+    return 'text-blue-500';
   }
   return 'text-neutral-600';
 };

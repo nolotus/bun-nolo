@@ -4,7 +4,7 @@ import {
   useDeleteEntryMutation,
 } from 'database/services';
 import React, { useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { renderContentNode } from 'render';
 import { Button, Toggle } from 'ui';
 import { Toast } from 'ui/toast/Toast';
@@ -14,11 +14,10 @@ import { MarkdownEdit } from './MarkdownEdit';
 import { createPageData } from './pageDataUtils';
 import {
   setHasVersion,
-  setSlug,
-  setCreator,
   saveContentAndMdast,
   setShowAsMarkdown,
   updateContent,
+  setSaveAsTemplate,
 } from './pageSlice';
 
 const EditPage = () => {
@@ -26,6 +25,7 @@ const EditPage = () => {
 
   const dispatch = useAppDispatch();
   const { pageId } = useParams();
+  const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
 
   const auth = useAuth();
   const userId = auth.user?.userId;
@@ -45,7 +45,6 @@ const EditPage = () => {
     }
     try {
       const pageData = createPageData(pageState, userId);
-
       const result = await updateEntry({
         entryId: pageId, // 使用 pageId 作为 entryId
         data: pageData, // 将页面数据作为更新内容
@@ -73,8 +72,6 @@ const EditPage = () => {
       e.preventDefault(); // 阻止默认换行行为
       dispatch(saveContentAndMdast(textareaContent));
       setTextareaContent(''); // 清空 textarea
-
-      // handleSave(); // 调用已有的保存逻辑
     }
   };
 
@@ -94,6 +91,9 @@ const EditPage = () => {
 
   const contentChange = (content) => {
     dispatch(updateContent(content));
+  };
+  const handleToggleTemplateChange = (value: boolean) => {
+    dispatch(setSaveAsTemplate(value));
   };
   return (
     <div className="flex flex-col h-screen">
@@ -116,10 +116,16 @@ const EditPage = () => {
           checked={pageState.showAsMarkdown}
           onChange={toggleShowAsMarkdown}
         />
-
+        <Toggle
+          id="save-as-template"
+          label="保存为模板"
+          checked={saveAsTemplate}
+          onChange={handleToggleTemplateChange}
+        />
         <Button onClick={handleSave} variant="primary" size="medium">
           Save
         </Button>
+        <NavLink to={`/${pageId}`}>preview</NavLink>
         <button
           type="button"
           onClick={handleDelete}

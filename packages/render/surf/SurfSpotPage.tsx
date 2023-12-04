@@ -4,6 +4,7 @@ import { useGetWeatherQuery, parseWeatherParams } from 'integrations/weather';
 import React, { useEffect, useState } from 'react';
 
 const SurfSpotPage = ({ data }) => {
+  console.log('data', data);
   const { lat, lng } = data;
   const queryParams = parseWeatherParams({ lat, lng }); // 解析出天气查询参数的函数
 
@@ -22,7 +23,7 @@ const SurfSpotPage = ({ data }) => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-gray-900 my-6">海滩冲浪地点</h1>
+      <h1 className="text-2xl font-bold text-gray-900 my-6">{data.title}</h1>
       <div className="mb-4">
         <p className="text-gray-700">经度：{data.lng}</p>
         <p className="text-gray-700">纬度：{data.lat}</p>

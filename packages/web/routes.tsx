@@ -1,16 +1,15 @@
 import { authRoutes } from 'auth/client/routes';
+import { routes as chatRoutes } from 'chat/routes';
 import { createRoutes } from 'create/routes';
 import { routes as lifeRoutes } from 'life/routes';
 import React, { Suspense, lazy } from 'react';
 import Default from 'render/layout/Default';
-import Full from 'render/layout/Full';
 import Page from 'render/page/PageIndex';
 import { routes as settingRoutes } from 'setting/routes';
 
 import Home from './pages/Home';
+import Spots from './pages/Spots';
 import { SurfTip } from './SurfTip';
-
-const ChatPage = lazy(() => import('chat/chat/ChatPage'));
 
 export const routes = (currentUser) => [
   {
@@ -20,6 +19,15 @@ export const routes = (currentUser) => [
       {
         index: true,
         element: <Home />,
+      },
+      {
+        index: true,
+        path: 'spots',
+        element: (
+          <Suspense fallback={<div>loading spots</div>}>
+            <Spots />
+          </Suspense>
+        ),
       },
       ...createRoutes,
 
@@ -37,21 +45,8 @@ export const routes = (currentUser) => [
       ...authRoutes,
     ],
   },
-  ...settingRoutes,
-  {
-    path: '/',
-    element: <Full />,
-    children: [
-      {
-        path: 'chat',
-        element: (
-          <Suspense fallback={<div>loading chat</div>}>
-            <ChatPage />
-          </Suspense>
-        ),
-      },
-    ],
-  },
+  settingRoutes,
+  chatRoutes,
   {
     path: '/',
     element: (

@@ -37,11 +37,11 @@ export const Button = (props: ButtonProps) => {
     size === 'small'
       ? 'py-1 px-2'
       : size === 'medium'
-      ? 'py-2 px-4'
-      : 'py-3 px-6';
+        ? 'py-2 px-4'
+        : 'py-3 px-6';
   const variantStyles =
     variant === 'primary'
-      ? 'bg-sky-500 text-white hover:bg-sky-600 focus:ring-sky-500'
+      ? 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-500'
       : 'bg-white text-black hover:bg-neutral-100 focus:ring-neutral-400';
 
   return (

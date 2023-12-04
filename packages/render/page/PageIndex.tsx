@@ -17,23 +17,19 @@ const Page = ({ id }) => {
   const isEditMode = searchParams.get('edit') === 'true';
   const pageId = id || paramPageId;
   const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
-
-  if (data) {
-    dispatch(initPage(data));
-  }
-
   if (isLoading) {
     return <div>loading</div>;
   }
   if (data) {
+    dispatch(initPage(data));
     if (isEditMode) {
-      // 渲染编辑模式的 UI
       return <EditPage />;
     }
     if (!isEditMode) {
       return <RenderPage pageId={pageId} data={data} />;
     }
   }
+
   if (!data) {
     return <NoMatch />;
   }

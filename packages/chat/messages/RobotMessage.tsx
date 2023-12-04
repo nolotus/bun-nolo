@@ -56,7 +56,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
       ))}
       <div className="flex items-start space-x-2">
         <div className="flex-shrink-0">
-          <Avatar role="robot" />
+          <Avatar name="robot" />
         </div>
         {image ? (
           <MessageImage image={image} />

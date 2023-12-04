@@ -42,7 +42,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         />
         {!isLoading && (
           <button
-            className="absolute right-1 bottom-1 py-1 px-3 bg-sky-500 text-white flex items-center"
+            className="absolute right-1 bottom-1 py-1 px-3 bg-blue-500 text-white flex items-center"
             onClick={() => {
               onSendMessage(newMessage);
               setNewMessage('');

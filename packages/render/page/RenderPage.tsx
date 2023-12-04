@@ -6,9 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { renderContentNode } from 'render';
 
 import { markdownToMdast } from '../MarkdownProcessor';
+import SurfSpotPage from '../surf/SurfSpotPage';
 
 import { RenderJson } from './RenderJson';
-import SurfSpotPage from './SurfSpotPage';
 
 const RenderPage = ({ pageId, data }) => {
   const navigate = useNavigate();

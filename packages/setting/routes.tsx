@@ -28,28 +28,26 @@ const createRoute = (path, component) => ({
   element: <LazyLoadWrapper component={component} />,
 });
 
-export const routes = [
-  {
-    path: '/',
-    element: <Layout />,
-    children: [
-      {
-        path: 'settings',
-        element: <LazyLoadWrapper component={<Setting />} />,
-        children: [
-          createRoute(USER_PROFILE_ROUTE, <UserProfile />),
-          createRoute('network', <Network />),
-          createRoute('sync', <Sync />),
-          createRoute('plugins', <PluginSettings />),
-          // 添加导入和导出的路由
-          createRoute('import', <ImportSettings />),
-          createRoute('export', <ExportSettings />),
-          createRoute('account', <AccountSettings />),
-          createRoute(EXTENDED_PROFILE_ROUTE, <ExtendedProfile />),
-          // 添加服务商设置的路由
-          createRoute('service-provider', <ServiceProviderSettings />),
-        ],
-      },
-    ],
-  },
-];
+export const routes = {
+  path: '/',
+  element: <Layout />,
+  children: [
+    {
+      path: 'settings',
+      element: <LazyLoadWrapper component={<Setting />} />,
+      children: [
+        createRoute(USER_PROFILE_ROUTE, <UserProfile />),
+        createRoute('network', <Network />),
+        createRoute('sync', <Sync />),
+        createRoute('plugins', <PluginSettings />),
+        // 添加导入和导出的路由
+        createRoute('import', <ImportSettings />),
+        createRoute('export', <ExportSettings />),
+        createRoute('account', <AccountSettings />),
+        createRoute(EXTENDED_PROFILE_ROUTE, <ExtendedProfile />),
+        // 添加服务商设置的路由
+        createRoute('service-provider', <ServiceProviderSettings />),
+      ],
+    },
+  ],
+};

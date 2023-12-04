@@ -8,6 +8,7 @@ import {
   ChevronDownIcon,
   NoteIcon,
   DependabotIcon,
+  LocationIcon,
 } from '@primer/octicons-react';
 import { useAppDispatch, useAppSelector, useAuth } from 'app/hooks';
 import { changeCurrentUser, userLogout } from 'auth/authSlice';
@@ -54,7 +55,7 @@ export const UserMenu = () => {
         to="/chat"
         icon={<CommentIcon size={24} />}
         label=""
-        className="flex items-center p-3 hover:bg-sky-500 hover:text-white"
+        className="flex items-center p-3 hover:bg-blue-500 hover:text-white"
       />
       <DropDown
         trigger={
@@ -62,7 +63,7 @@ export const UserMenu = () => {
             to="/create"
             icon={<PlusIcon size={24} />}
             label={t('create')}
-            className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"
+            className="flex justify-center items-center p-3 hover:bg-blue-500 hover:text-white"
           />
         }
         triggerType="hover"
@@ -88,10 +89,10 @@ export const UserMenu = () => {
           </li>
           <li>
             <NavLink
-              to={`${CreateRoutePaths.CREATE_CHAT_ROBOT}`}
+              to={`${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`}
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 ease-in-out"
             >
-              <DependabotIcon size={20} className="mr-2" />
+              <LocationIcon size={20} className="mr-2" />
               <span>创建浪点</span>
             </NavLink>
           </li>
@@ -104,7 +105,7 @@ export const UserMenu = () => {
             to={`/${LifeRoutePaths.WELCOME}`}
             icon={<PersonIcon size={24} />}
             label={auth.user?.username}
-            className="flex justify-center items-center p-3 hover:bg-sky-500 hover:text-white"
+            className="flex justify-center items-center p-3 hover:bg-blue-500 hover:text-white"
           />
         }
         triggerType="hover" // 设置触发类型为 hover
@@ -135,7 +136,7 @@ export const UserMenu = () => {
       <DropDown
         triggerType="hover"
         trigger={
-          <button className="flex items-center ml-2 p-3 hover:bg-sky-500 focus:outline-none rounded-full hover:text-white">
+          <button className="flex items-center ml-2 p-3 hover:bg-blue-500 focus:outline-none rounded-full hover:text-white">
             <ChevronDownIcon size={24} className="text-ne" />
           </button>
         }

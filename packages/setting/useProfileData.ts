@@ -1,8 +1,8 @@
 // useProfileData.ts
 import { useAuth } from 'app/hooks';
+import { useUserData } from 'auth/hooks/useUserData';
 import { saveData } from 'database/client/save';
 import { useState } from 'react';
-import { useUserData } from 'auth/hooks/useUserData';
 
 export const useProfileData = (customId: string) => {
   const data = useUserData(customId);
