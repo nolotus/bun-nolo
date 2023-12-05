@@ -1,31 +1,9 @@
-// import { useMemo } from 'react';
-import remarkFrontmatter from "remark-frontmatter";
-import remarkGfm from "remark-gfm";
-import remarkParse from "remark-parse";
-import remarkStringify from "remark-stringify";
-import { unified } from "unified";
-import { visit } from "unist-util-visit";
-import { intersection, pick, flatten } from "rambda";
-
-type FrontMatter = {
-  layout?: string;
-  title?: string;
-  date?: string;
-  categories?: string[];
-  tags?: string[];
-};
-
-function isFrontMatterObject(obj: any): obj is FrontMatter {
-  return typeof obj === "object" && obj !== null;
-}
-
-const defaultAllowedFields = ["type", "lat", "lng"];
-// const frontMatterFields = [
-//   'layout', 'title', 'date', 'categories', 'tags', 'permalink',
-//   'published', 'excerpt', 'comments', 'updated'
-// ];
-
-// 如果allowedFields被传入了，则使用传入的值；否则使用默认值
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
+import remarkParse from 'remark-parse';
+import remarkStringify from 'remark-stringify';
+import { unified } from 'unified';
+import { visit } from 'unist-util-visit';
 
 type MdastNode = MdastParent | MdastLeaf;
 
@@ -48,20 +26,20 @@ const createProcessor = () =>
     .use(remarkGfm)
     .use(remarkStringify)
     .use(remarkFrontmatter, [
-      "yaml",
-      "toml",
-      { type: "json", fence: { open: "{", close: "}" } },
+      'yaml',
+      'toml',
+      { type: 'json', fence: { open: '{', close: '}' } },
     ]);
 
 export const getH1TextFromMdast = (mdast: MdastNode): string | null => {
   let h1Text: string | null = null;
-  visit(mdast, "heading", (node: MdastNode) => {
+  visit(mdast, 'heading', (node: MdastNode) => {
     if (
-      node.type === "heading" &&
+      node.type === 'heading' &&
       node.depth === 1 &&
       node.children &&
       node.children[0] &&
-      node.children[0].type === "text"
+      node.children[0].type === 'text'
     ) {
       h1Text = node.children[0].value as string;
       return false; // 停止访问
@@ -71,15 +49,15 @@ export const getH1TextFromMdast = (mdast: MdastNode): string | null => {
 };
 
 export interface YamlMdastNode extends MdastNode {
-  type: "yaml";
+  type: 'yaml';
   value?: string;
   // 根据实际节点结构，这里可能需要其他属性
 }
 
 export const getYamlValueFromMdast = (mdast: MdastNode): string | null => {
   let yamlValue: string | null = null;
-  visit(mdast, "yaml", (node: YamlMdastNode) => {
-    if (node.type === "yaml" && node.value) {
+  visit(mdast, 'yaml', (node: YamlMdastNode) => {
+    if (node.type === 'yaml' && node.value) {
       yamlValue = node.value;
       return false; // 停止访问
     }

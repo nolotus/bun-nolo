@@ -13,7 +13,10 @@ export const createPageData = (pageState, userId: string) => {
     type: pageState.meta.type,
     lat: pageState.meta.lat,
     lng: pageState.meta.lng,
+    layout: pageState.meta.layout,
     is_template: pageState.saveAsTemplate,
     updated_at: nowISO, // 添加更新时间
+    categories: pageState.meta.categories,
+    tags: pageState.meta.tags,
   };
 };

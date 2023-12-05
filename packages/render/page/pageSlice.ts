@@ -20,6 +20,9 @@ export const pageSlice = createSlice({
       type: DataType.Page,
       creator: '',
       title: '',
+      layout: 'default',
+      categories: [],
+      tags: [],
     },
     saveAsTemplate: false,
   },
@@ -56,7 +59,10 @@ export const pageSlice = createSlice({
           const parsedYaml = parse(newYamlValue);
           console.log('parsedYaml', parsedYaml);
           // const meta = extractFrontMatter(parsedYaml);
-          const meta = pick(['type', 'lat', 'lng', 'title'], parsedYaml);
+          const meta = pick(
+            ['type', 'lat', 'lng', 'title', 'tags', 'categories'],
+            parsedYaml,
+          );
           console.log('meta', meta);
           state.meta.type = meta.type;
         } catch (error) {
@@ -103,7 +109,10 @@ export const pageSlice = createSlice({
       if (newYamlValue) {
         try {
           const parsedYaml = parse(newYamlValue);
-          const metaUpdates = pick(['type', 'lat', 'lng'], parsedYaml);
+          const metaUpdates = pick(
+            ['type', 'lat', 'lng', 'layout', 'title', 'tags', 'categories'],
+            parsedYaml,
+          );
           // 添加或更新 state.meta 中的相应字段
           state.meta = {
             ...state.meta,

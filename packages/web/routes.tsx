@@ -4,12 +4,12 @@ import { createRoutes } from 'create/routes';
 import { routes as lifeRoutes } from 'life/routes';
 import React, { Suspense, lazy } from 'react';
 import Default from 'render/layout/Default';
-import Page from 'render/page/PageIndex';
 import { routes as settingRoutes } from 'setting/routes';
 
 import Home from './pages/Home';
 import Spots from './pages/Spots';
 import { SurfTip } from './SurfTip';
+const Page = lazy(() => import('render/page/PageIndex'));
 
 export const routes = (currentUser) => [
   {
@@ -60,10 +60,9 @@ export const routes = (currentUser) => [
   {
     path: ':pageId',
     element: (
-      <Suspense fallback={<div>loading default</div>}>
-        <Default />
+      <Suspense fallback={<div>loading Page</div>}>
+        <Page />
       </Suspense>
     ),
-    children: [{ index: true, element: <Page /> }],
   },
 ];

@@ -1,4 +1,3 @@
-import data from './mock.json';
 import fetchWeatherData from './weatherService';
 export async function weatherRouteHandler(req, res) {
   try {
@@ -12,13 +11,13 @@ export async function weatherRouteHandler(req, res) {
     const end = req.query.end;
     // 确保lat和lng是数字类型且params是一个字符串数组
     if (!isNaN(lat) && !isNaN(lng) && Array.isArray(params)) {
-      // const data = await fetchWeatherData({
-      //   lat,
-      //   lng,
-      //   params, // 传入处理过的params数组
-      //   start,
-      //   end,
-      // });
+      const data = await fetchWeatherData({
+        lat,
+        lng,
+        params, // 传入处理过的params数组
+        start,
+        end,
+      });
 
       return res.json(data);
     } else {
