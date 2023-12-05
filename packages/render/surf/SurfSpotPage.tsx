@@ -6,8 +6,8 @@ import { WeatherDisplay } from "./WeatherDisplay";
 const SurfSpotPage = ({ data }) => {
 	const { lat, lng } = data;
 
-	const [mode, setMode] = useState("sg"); // 默认模式为 'sg'
-	const [interval, setInterval] = useState(1); // 默认间隔设置为 1
+	const [mode, setMode] = useState("sg");
+	const [interval, setInterval] = useState(3); //
 
 	const handleModeChange = (newMode) => {
 		setMode(newMode);
