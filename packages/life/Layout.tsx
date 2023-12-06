@@ -11,7 +11,7 @@ export const Layout = () => {
 
 	useEffect(() => {
 		auth.user?.userId && fetchData(auth.user?.userId);
-	}, [auth.user?.userId, fetchData]);
+	}, [auth.user?.userId]);
 	return (
 		<div className="flex h-screen flex-col bg-neutral-200">
 			<Header />
