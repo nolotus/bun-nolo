@@ -8,10 +8,9 @@ import { Provider } from "react-redux";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 
 import App from "./App";
-// import { browserStore } from "./store";
-import { store } from "app/store";
+import { browserStore } from "./store";
 import "./input.css";
-let hostname = window.location.hostname;
+const hostname = window.location.hostname;
 
 const domNode = document.getElementById("root");
 const lng = window.navigator.language;
@@ -24,7 +23,7 @@ if (isProduction) {
 	hydrateRoot(
 		domNode,
 		<React.StrictMode>
-			<Provider store={store}>
+			<Provider store={browserStore}>
 				<BrowserRouter>
 					<App hostname={hostname} lng={lng} />
 				</BrowserRouter>
@@ -32,10 +31,10 @@ if (isProduction) {
 		</React.StrictMode>,
 	);
 } else {
-	let root = createRoot(domNode);
+	const root = createRoot(domNode);
 	root.render(
 		<React.StrictMode>
-			<Provider store={store}>
+			<Provider store={browserStore}>
 				<HashRouter>
 					<App hostname={hostname} lng={lng} />
 				</HashRouter>
