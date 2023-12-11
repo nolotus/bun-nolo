@@ -41,6 +41,16 @@ export const dbApi = api.injectEndpoints({
     }),
     getEntries: builder.query<ResponseData, GetEntriesArgs>({
       query: ({ userId, options, domain }) => {
+        let fullDomain = domain;
+        if (domain) {
+          const hasHttp = domain.startsWith('http://');
+          const hasHttps = domain.startsWith('https://');
+          if (!hasHttp && !hasHttps) {
+            fullDomain = domain.startsWith('localhost')
+              ? `http://${domain}`
+              : `https://${domain}`;
+          }
+        }
         const urlPath = `query/${userId}`;
         const queryParams = new URLSearchParams({
           isObject: (options.isObject ?? false).toString(),
@@ -48,8 +58,8 @@ export const dbApi = api.injectEndpoints({
           limit: options.limit?.toString() ?? '',
         });
 
-        const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}/${urlPath}?${queryParams}`
+        const url = fullDomain
+          ? `${fullDomain}${API_ENDPOINTS.DATABASE}/${urlPath}?${queryParams}`
           : `${API_ENDPOINTS.DATABASE}/${urlPath}?${queryParams}`;
 
         return {

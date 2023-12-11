@@ -1,120 +1,133 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React from "react";
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+	StatusBar,
+	StyleSheet,
+	Text,
+	useColorScheme,
+	View,
+} from "react-native";
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import { Colors } from "react-native/Libraries/NewAppScreen";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Octicons from "react-native-vector-icons/Octicons";
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-import { nolotusId } from 'core/init';
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+import { SpotsScreen } from "app/screens/Spots";
+
+import { Provider } from "react-redux";
+import { store } from "app/store";
+
+const Tab = createBottomTabNavigator();
+
+function HomeScreen() {
+	return (
+		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+			<Text>Home!</Text>
+		</View>
+	);
 }
 
+function ChatScreen() {
+	return (
+		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+			<Text>chat!</Text>
+		</View>
+	);
+}
+
+function UserScreen() {
+	return (
+		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+			<Text>User!</Text>
+		</View>
+	);
+}
+
+function CreateScreen() {
+	return (
+		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+			<Text>Create!</Text>
+		</View>
+	);
+}
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+	const isDarkMode = useColorScheme() === "dark";
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+	const backgroundStyle = {
+		backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+	};
 
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-      {nolotusId}
+	return (
+		<Provider store={store}>
+			<StatusBar
+				barStyle={isDarkMode ? "light-content" : "dark-content"}
+				backgroundColor={backgroundStyle.backgroundColor}
+			/>
+			<NavigationContainer>
+				<Tab.Navigator
+					screenOptions={({ route }) => ({
+						tabBarIcon: ({ focused, color, size }) => {
+							let iconName;
 
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+							switch (route.name) {
+								case "Home":
+									iconName = "home";
+									break;
+							}
+							// You can return any component that you like here!
+							return <Octicons name={iconName} size={size} color={color} />;
+						},
+						tabBarActiveTintColor: "tomato",
+						tabBarInactiveTintColor: "gray",
+					})}
+				>
+					<Tab.Screen name="Home" component={HomeScreen} />
+					<Tab.Screen
+						name="Chat"
+						component={ChatScreen}
+						options={{
+							tabBarLabel: "Chat",
+							tabBarIcon: ({ color, size }) => (
+								<Octicons name="comment" size={size} color={color} />
+							),
+						}}
+					/>
+					<Tab.Screen
+						name="Create"
+						component={CreateScreen}
+						options={{
+							tabBarLabel: "Create",
+							tabBarIcon: ({ color, size }) => (
+								<Octicons name="plus" size={size} color={color} />
+							),
+						}}
+					/>
+					<Tab.Screen
+						name="Location"
+						component={SpotsScreen}
+						options={{
+							tabBarLabel: "Spots",
+							tabBarIcon: ({ color, size }) => (
+								<Octicons name="location" size={size} color={color} />
+							),
+						}}
+					/>
+					<Tab.Screen
+						name="User"
+						component={UserScreen}
+						options={{
+							tabBarLabel: "User",
+							tabBarIcon: ({ color, size }) => (
+								<Octicons name="person" size={size} color={color} />
+							),
+						}}
+					/>
+				</Tab.Navigator>
+			</NavigationContainer>
+		</Provider>
+	);
 }
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+const styles = StyleSheet.create({});
 
 export default App;

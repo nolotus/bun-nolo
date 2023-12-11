@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "utils": "workspace:utils",
-    "database": "workspace:database"
+    "database": "workspace:database",
+    "ui": "workspace:ui"
+
   }
 }

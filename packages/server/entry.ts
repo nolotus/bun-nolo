@@ -12,7 +12,6 @@ export const startServer = async () => {
       tls: {
         key: Bun.file('./key.pem'),
         cert: Bun.file('./cert.pem'),
-        ca: Bun.file('./ca.pem'),
       },
     });
   }

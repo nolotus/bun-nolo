@@ -8,7 +8,7 @@ import { routes as settingRoutes } from "setting/routes";
 
 import { SurfTip } from "./SurfTip";
 import Home from "./pages/Home";
-import Spots from "./pages/Spots";
+import Spots from "app/pages/Spots";
 const Page = lazy(() => import("render/page/PageIndex"));
 
 export const routes = (currentUser) => [

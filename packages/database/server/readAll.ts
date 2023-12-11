@@ -47,7 +47,7 @@ export const handleReadAll = async (req, res) => {
 
     const data = await serverGetAllData(userId, stream); // 传递 userId 和 stream 到 serverGetAllData 函数
 
-    return res.json(data);
+    return res.status(200).json(data);
   } catch (err) {
     readLogger.error({ error: err.message }, 'Error in handleReadAll function');
     return res.status(500).json({ error: err.message });
