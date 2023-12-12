@@ -15,7 +15,7 @@ import Octicons from "react-native-vector-icons/Octicons";
 import { SpotsScreen } from "app/screens/Spots";
 
 import { Provider } from "react-redux";
-import { store } from "app/store";
+import { mobileStore } from "./store";
 
 const Tab = createBottomTabNavigator();
 
@@ -58,7 +58,7 @@ function App(): React.JSX.Element {
 	};
 
 	return (
-		<Provider store={store}>
+		<Provider store={mobileStore}>
 			<StatusBar
 				barStyle={isDarkMode ? "light-content" : "dark-content"}
 				backgroundColor={backgroundStyle.backgroundColor}
