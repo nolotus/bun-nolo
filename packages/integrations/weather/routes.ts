@@ -11,19 +11,19 @@ export async function weatherRouteHandler(req, res) {
     const end = req.query.end;
     // 确保lat和lng是数字类型且params是一个字符串数组
     if (!isNaN(lat) && !isNaN(lng) && Array.isArray(params)) {
-      const data = await fetchWeatherData({
+      const queryParams= {
         lat,
         lng,
         params, // 传入处理过的params数组
         start,
         end,
-      });
+      }
+      const data = await fetchWeatherData(queryParams);
 
       return res.json(data);
-    } else {
-      // 如果参数有误，返回400错误
-      return res.status(400).json({ message: 'Invalid query parameters' });
-    }
+    } 
+    return res.status(400).json({ message: 'Invalid query parameters' });
+ 
   } catch (error) {
     // 如果API调用失败，返回500错误及错误信息
     return res.status(500).json({ message: error.message });

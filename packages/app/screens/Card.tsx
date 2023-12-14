@@ -1,17 +1,25 @@
 // Card.js
 import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+
 import Avatar from "../../ui/screens/Avatar";
-const Card = ({ title, imageUri, userName, avatarUri }) => {
+const Card = ({ id, title, imageUri, userName, avatarUri }) => {
+	const navigation = useNavigation();
 	return (
-		<View style={styles.card}>
+		<TouchableOpacity
+			style={styles.card}
+			onPress={() => {
+				navigation.navigate("SurfSpot", { id });
+			}}
+		>
 			<Image source={{ uri: imageUri }} style={styles.cardImage} />
 			<Text style={styles.cardTitle}>{title}</Text>
 			<View style={styles.userInfo}>
 				<Avatar uri={avatarUri} />
 				<Text style={styles.userName}>{userName}</Text>
 			</View>
-		</View>
+		</TouchableOpacity>
 	);
 };
 

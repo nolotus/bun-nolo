@@ -16,7 +16,7 @@ import { SpotsScreen } from "app/screens/Spots";
 
 import { Provider } from "react-redux";
 import { mobileStore } from "./store";
-
+import { SpotsStackScreen } from "app/screens/SpotsStack";
 const Tab = createBottomTabNavigator();
 
 function HomeScreen() {
@@ -104,8 +104,9 @@ function App(): React.JSX.Element {
 					/>
 					<Tab.Screen
 						name="Location"
-						component={SpotsScreen}
+						component={SpotsStackScreen}
 						options={{
+							headerShown: false,
 							tabBarLabel: "Spots",
 							tabBarIcon: ({ color, size }) => (
 								<Octicons name="location" size={size} color={color} />

@@ -10,6 +10,7 @@ import Card from "./Card";
 import { useGetEntriesQuery } from "database/services";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
+import { Button } from "react-native";
 
 export function SpotsScreen() {
 	const options = {
@@ -36,11 +37,12 @@ export function SpotsScreen() {
 	return (
 		<ScrollView style={styles.container}>
 			<Text style={styles.headerTitle}>浪点</Text>
-			{/* 卡片容器 */}
 			<View style={styles.cardContainer}>
 				{data?.map((item) => {
 					return (
 						<Card
+							key={item.id}
+							id={item.id}
 							title={item.title}
 							userName={item.creator}
 							imageUri="https://via.placeholder.com/150"

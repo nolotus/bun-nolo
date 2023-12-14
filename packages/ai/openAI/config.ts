@@ -17,7 +17,7 @@ export const createOpenAIRequestConfig = () => {
       proxy: {
         protocol: 'http',
         host: '127.0.0.1',
-        port: 10080,
+        port: 7890,
       },
     }),
     headers: openAIHeaders,

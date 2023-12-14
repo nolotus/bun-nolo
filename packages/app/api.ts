@@ -6,8 +6,7 @@ import {
 } from '@reduxjs/toolkit/query/react';
 import { isProduction } from 'utils/env';
 
-const baseUrl = isProduction ? '/' : 'http://localhost';
-
+const baseUrl = isProduction ? '/' : 'http://192.168.31.48';
 const createApi = buildCreateApi(
   coreModule(),
   reactHooksModule({ unstable__sideEffectsInRender: true }),

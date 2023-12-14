@@ -4,41 +4,27 @@ import { API_ENDPOINTS } from 'database/config';
 
 import { WeatherQueryParams, WeatherApiResponse } from './weatherTypes';
 
-// uitlity function to create query string from WeatherQueryParams
-const createQueryString = (params: WeatherQueryParams): URLSearchParams => {
-  const { lat, lng, params: paramsList, start, end, source } = params;
-  const searchParams = new URLSearchParams({
-    lat: lat.toString(),
-    lng: lng.toString(),
-    params: paramsList.join(','),
-  });
-
-  if (start) {
-    searchParams.set('start', start);
-  }
-  if (end) {
-    searchParams.set('end', end);
-  }
-  if (source) {
-    searchParams.set('source', source);
-  }
-
-  return searchParams;
-};
-
 export const weatherApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getWeather: builder.query<WeatherApiResponse, WeatherQueryParams>({
-      query: (queryParams) => {
-        const searchParams = createQueryString(queryParams);
+      query: (params) => {
+        const searchParams = {
+          lat: params.lat.toString(),
+          lng: params.lng.toString(),
+          params: params.params.join(','),
+          // 其他可能的查询参数, 如果它们存在
+          ...(params.start && { start: params.start }),
+          ...(params.end && { end: params.end }),
+          ...(params.source && { source: params.source }),
+        };
+        console.log('searchParams',searchParams)
         return {
           url: `${API_ENDPOINTS.WEATHER}`,
-          params: searchParams,
+          params: searchParams
         };
       },
     }),
   }),
-  overrideExisting: false,
 });
 
 export const { useGetWeatherQuery, useLazyGetWeatherQuery } = weatherApi;
