@@ -12,7 +12,6 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 		isLoading,
 		error,
 	} = useGetWeatherQuery(queryParams);
-
 	const getDataByMode = (hour, field) => {
 		return hour[field]?.[mode] ? `${hour[field][mode].toFixed(1)}` : "-";
 	};

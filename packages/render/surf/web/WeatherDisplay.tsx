@@ -153,7 +153,7 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 																className={clsx(
 																	dateCellStyle,
 																	fontBoldStyle,
-																	"text-green-600",
+																	"text-green-600 ",
 																)}
 															>
 																{hour.hourMinute}
@@ -189,7 +189,7 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 																	getDataByMode(hour, "swellHeight"),
 																	"swellHeight",
 																)}
-																className="text-gray-600 text-sm"
+																className="text-gray-600 text-sm py-1 px-2"
 															>
 																{getDataByMode(hour, "swellHeight")}
 															</div>
@@ -198,7 +198,7 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 																	getDataByMode(hour, "swellPeriod"),
 																	"swellPeriod",
 																)}
-																className="text-gray-600 text-sm"
+																className="text-gray-600 text-sm py-1 px-2"
 															>
 																{getDataByMode(hour, "swellPeriod")}
 															</div>
@@ -210,11 +210,11 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 																		"windSpeed",
 																	),
 																}}
-																className="h-6 text-sm"
+																className="text-sm  py-1 px-2"
 															>
 																{getDataByMode(hour, "windSpeed")}
 															</div>
-															<div className="text-gray-600 text-sm h-6">
+															<div className="text-gray-600 text-sm  py-1 px-2">
 																{getDataByMode(hour, "gust")}
 															</div>
 														</div>
