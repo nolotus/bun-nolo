@@ -5,6 +5,7 @@ import useSurfSpot from "../useSurfSpot";
 import { modes, intervals } from "../config";
 import { ModeButton, IntervalButton } from "./Buttons";
 import { styles as extraStyles } from "../styles/container";
+import MapView from "react-native-maps";
 export function SurfSpotScreen({ id }) {
 	const { mode, interval, handleModeChange, handleIntervalChange } =
 		useSurfSpot();
@@ -24,7 +25,23 @@ export function SurfSpotScreen({ id }) {
 			<View style={styles.container}>
 				<Text style={styles.title}>{title}</Text>
 				<View style={styles.mapPlaceholder}>
-					<Text style={styles.mapText}>地图占位符</Text>
+					<MapView
+						style={{
+							width: "100%",
+							height: 200,
+							justifyContent: "center",
+							alignItems: "center",
+							backgroundColor: "#EDF2F7",
+							borderRadius: 16,
+							marginTop: 16,
+						}}
+						initialRegion={{
+							latitude: lat,
+							longitude: lng,
+							latitudeDelta: 0.0922,
+							longitudeDelta: 0.0421,
+						}}
+					/>
 				</View>
 				<View style={styles.buttonContainer}>
 					<View style={styles.intervalButtonGroup}>

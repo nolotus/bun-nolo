@@ -1,10 +1,12 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { Text } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import React, { useLayoutEffect } from "react";
+import { useGetEntryQuery } from "database/services";
+
 import { SurfSpotScreen } from "./SurfSpotScreen";
 const Tab = createMaterialTopTabNavigator();
-const Feed = () => {
-	return <Text>Feed</Text>;
-};
+
 const Notifications = () => {
 	return <Text>Feed</Text>;
 };
@@ -14,10 +16,21 @@ const Profile = () => {
 };
 export function SurfHomeScreen({ route }) {
 	const { id } = route.params;
+	const navigation = useNavigation();
+	const { data, isLoading } = useGetEntryQuery({
+		entryId: id,
+		domain: "nolotus.com",
+	});
 
+	useLayoutEffect(() => {
+		data?.title &&
+			navigation.setOptions({
+				headerTitle: `${data.title}`, // 动态设置标题
+			});
+	}, [navigation, data]);
 	return (
 		<Tab.Navigator
-			initialRouteName="Feed"
+			initialRouteName="SurfSpotScreen"
 			screenOptions={{
 				tabBarActiveTintColor: "#e91e63",
 				tabBarLabelStyle: { fontSize: 12 },
