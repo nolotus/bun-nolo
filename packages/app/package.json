@@ -12,6 +12,5 @@
     "utils": "workspace:utils",
     "database": "workspace:database",
     "ui": "workspace:ui"
-
   }
 }

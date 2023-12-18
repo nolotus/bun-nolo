@@ -23,7 +23,6 @@ export function SurfSpotScreen({ id }) {
 
 		return (
 			<View style={styles.container}>
-				<Text style={styles.title}>{title}</Text>
 				<View style={styles.mapPlaceholder}>
 					<MapView
 						style={{
@@ -83,13 +82,6 @@ const styles = StyleSheet.create({
 		paddingBottom: 20,
 		paddingHorizontal: 20,
 		backgroundColor: "#fff",
-	},
-	title: {
-		fontSize: 26,
-		fontWeight: "bold",
-		color: "#333",
-		paddingTop: 10,
-		textAlign: "center",
 	},
 	...extraStyles,
 });

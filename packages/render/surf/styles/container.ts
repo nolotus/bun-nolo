@@ -6,7 +6,7 @@ export const styles = {
 		alignItems: "center",
 		backgroundColor: "#EDF2F7",
 		borderRadius: 16,
-		marginTop: 16,
+		marginTop: 8,
 	},
 	mapText: {
 		fontSize: 18,
