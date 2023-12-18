@@ -6,6 +6,7 @@ import lifeReducer from "life/lifeSlice";
 import pageReducer from "render/page/pageSlice";
 
 import { api } from "./api";
+import themeSliceReducer from "./theme/themeSlice";
 
 export const reducer = {
 	life: lifeReducer,
@@ -14,5 +15,6 @@ export const reducer = {
 	page: pageReducer,
 	message: messageSlice,
 	db: dbReducer,
+	theme: themeSliceReducer,
 	[api.reducerPath]: api.reducer,
 };

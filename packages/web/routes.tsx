@@ -7,7 +7,8 @@ import Default from "render/layout/Default";
 import { routes as settingRoutes } from "setting/routes";
 
 import { SurfTip } from "./SurfTip";
-import Home from "./pages/Home";
+import Home from "app/pages/Home";
+import Lab from "app/pages/Lab";
 import Spots from "app/pages/Spots";
 const Page = lazy(() => import("render/page/PageIndex"));
 
@@ -21,7 +22,10 @@ export const routes = (currentUser) => [
 				element: <Home />,
 			},
 			{
-				index: true,
+				path: "lab",
+				element: <Lab />,
+			},
+			{
 				path: "spots",
 				element: (
 					<Suspense fallback={<div>loading spots</div>}>

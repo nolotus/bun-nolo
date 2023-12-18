@@ -12,7 +12,7 @@ export enum LifeRoutePaths {
 
 const Welcome = (
 	<LazyLoadComponent
-		factory={() => import("web/pages/Welcome")}
+		factory={() => import("app/pages/Welcome")}
 		fallback={<div>Loading Welcome...</div>}
 	/>
 );

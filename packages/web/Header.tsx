@@ -1,18 +1,50 @@
-import { ThreeBarsIcon, HomeIcon, LocationIcon } from "@primer/octicons-react";
+import {
+	ThreeBarsIcon,
+	HomeIcon,
+	LocationIcon,
+	BeakerIcon,
+} from "@primer/octicons-react";
+import { useAuth } from "app/hooks";
 import clsx from "clsx";
 import React, { useState, useEffect, useCallback } from "react";
-import { DesktopMenu } from "render/layout/blocks/DesktopMenu"; // 假设这些是拆分后的组件
 import { MobileMenu } from "render/layout/blocks/MobileMenu"; // 假设这些是拆分后的组件
 import { UserControls } from "user/blocks/UserControls";
+import NavListItem from "render/layout/blocks/NavListItem"; // 假设这些是拆分后的组件
+
 const nav = [
 	{ path: "/", label: "首页", icon: <HomeIcon size={24} /> },
 	// { path: '/nomadspots', label: '旅居点' },
-	{ path: "/spots", label: "兴趣点", icon: <LocationIcon size={24} /> },
+	{
+		path: "/spots",
+		label: "兴趣点",
+		icon: <LocationIcon size={24} />,
+		allow: "",
+	},
+	{
+		path: "/lab",
+		label: "实验功能",
+		icon: <BeakerIcon size={24} />,
+		allow_users: ["UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ"],
+	},
+
 	// { path: '/itineraries', label: '行程' },
 	// { path: '/peoples', label: '游民' },
 	// { path: '/gears', label: '装备' },
 ];
+const allowRule = (user, navItems) => {
+	return user
+		? navItems.filter((item) => {
+				if (!item.allow_users) {
+					return true;
+				}
+				return item.allow_users.includes(user.userId);
+		  })
+		: navItems;
+};
+
 export const Header: React.FC = () => {
+	const auth = useAuth();
+	const isAllowNav = allowRule(auth?.user, nav);
 	const [isSticky, setIsSticky] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -42,7 +74,11 @@ export const Header: React.FC = () => {
 					<button onClick={handleMobileMenuToggle} className="lg:hidden">
 						<ThreeBarsIcon size={24} />
 					</button>
-					<DesktopMenu navItems={nav} />
+					<ul className="hidden lg:flex space-x-4">
+						{isAllowNav.map((item) => (
+							<NavListItem {...item} key={item.path} />
+						))}
+					</ul>
 					<UserControls />
 				</div>
 			</div>
@@ -50,7 +86,7 @@ export const Header: React.FC = () => {
 			<MobileMenu
 				isOpen={isMobileMenuOpen}
 				toggleMenu={handleMobileMenuToggle}
-				navItems={nav}
+				navItems={isAllowNav}
 			/>
 		</header>
 	);
