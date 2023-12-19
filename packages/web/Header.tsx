@@ -3,6 +3,7 @@ import {
 	HomeIcon,
 	LocationIcon,
 	BeakerIcon,
+	PeopleIcon,
 } from "@primer/octicons-react";
 import { useAuth } from "app/hooks";
 import clsx from "clsx";
@@ -18,18 +19,17 @@ const nav = [
 		path: "/spots",
 		label: "兴趣点",
 		icon: <LocationIcon size={24} />,
-		allow: "",
-	},
-	{
-		path: "/lab",
-		label: "实验功能",
-		icon: <BeakerIcon size={24} />,
-		allow_users: ["UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ"],
 	},
 
 	// { path: '/itineraries', label: '行程' },
-	// { path: '/peoples', label: '游民' },
+	{ path: "/people", label: "游民", icon: <PeopleIcon size={24} /> },
 	// { path: '/gears', label: '装备' },
+	{
+		path: "/lab",
+		label: "实验室",
+		icon: <BeakerIcon size={24} />,
+		allow_users: ["UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ"],
+	},
 ];
 const allowRule = (user, navItems) => {
 	return user
@@ -71,7 +71,11 @@ export const Header: React.FC = () => {
 		>
 			<div className="container mx-auto ">
 				<div className="flex justify-between items-center">
-					<button onClick={handleMobileMenuToggle} className="lg:hidden">
+					<button
+						type="button"
+						onClick={handleMobileMenuToggle}
+						className="lg:hidden"
+					>
 						<ThreeBarsIcon size={24} />
 					</button>
 					<ul className="hidden lg:flex space-x-4">

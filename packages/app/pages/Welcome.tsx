@@ -169,7 +169,7 @@ const welcomeMdast = {
 								},
 								{
 									type: "link",
-									url: "/peoples",
+									url: "/people",
 									className: "text-orange-500 underline",
 									children: [
 										{

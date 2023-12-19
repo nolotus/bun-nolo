@@ -11,7 +11,7 @@ import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
 import Spots from "app/pages/Spots";
 const Page = lazy(() => import("render/page/PageIndex"));
-
+import People from "app/pages/People";
 export const routes = (currentUser) => [
 	{
 		path: "/",
@@ -24,6 +24,10 @@ export const routes = (currentUser) => [
 			{
 				path: "lab",
 				element: <Lab />,
+			},
+			{
+				path: "people",
+				element: <People />,
 			},
 			{
 				path: "spots",

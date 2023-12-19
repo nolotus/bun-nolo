@@ -63,8 +63,8 @@ const Home = () => {
 						<div className="py-2">
 							通过
 							<Link to="/itineraries">一起出发</Link>，
-							<Link to="/peoples">寻找你周边的人</Link>，
-							<Link to="/peoples">寻找相同兴趣爱好的人</Link>，
+							<Link to="/people">寻找你周边的人</Link>，
+							<Link to="/people">寻找相同兴趣爱好的人</Link>，
 						</div>
 					</div>
 				</Card>
