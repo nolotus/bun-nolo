@@ -67,7 +67,7 @@ export const UserMenu = () => {
 				<ul className="bg-white    py-1">
 					<li>
 						<NavLink
-							to={`${CreateRoutePaths.CREATE_PAGE}`}
+							to={`/${CreateRoutePaths.CREATE_PAGE}`}
 							className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 ease-in-out"
 						>
 							<NoteIcon size={20} className="mr-2" />
@@ -76,7 +76,7 @@ export const UserMenu = () => {
 					</li>
 					<li>
 						<NavLink
-							to={`${CreateRoutePaths.CREATE_CHAT_ROBOT}`}
+							to={`/${CreateRoutePaths.CREATE_CHAT_ROBOT}`}
 							className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 ease-in-out"
 						>
 							<DependabotIcon size={20} className="mr-2" />
@@ -85,7 +85,7 @@ export const UserMenu = () => {
 					</li>
 					<li>
 						<NavLink
-							to={`${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`}
+							to={`/${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`}
 							className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 ease-in-out"
 						>
 							<LocationIcon size={20} className="mr-2" />
