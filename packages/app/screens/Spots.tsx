@@ -10,7 +10,6 @@ import Card from "./Card";
 import { useGetEntriesQuery } from "database/services";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import { Button } from "react-native";
 
 export function SpotsScreen() {
 	const options = {
@@ -25,7 +24,6 @@ export function SpotsScreen() {
 		options,
 		domain: "nolotus.com",
 	});
-
 	if (isLoading) {
 		return (
 			<View style={styles.loader}>

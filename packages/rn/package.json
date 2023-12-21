@@ -10,6 +10,9 @@
 	},
 	"dependencies": {
 		"app": "workspace:app",
-		"render": "workspace:render"
+		"render": "workspace:render",
+		"intl-pluralrules": "^2.0.1",
+		"@react-navigation/bottom-tabs": "^6.5.11",
+		"react-native-localize": "^3.0.4"
 	}
 }

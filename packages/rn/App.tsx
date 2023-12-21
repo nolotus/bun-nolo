@@ -5,6 +5,7 @@ import { Colors } from "react-native/Libraries/NewAppScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import i18n from "i18n";
 import * as RNLocalize from "react-native-localize";
+import "intl-pluralrules";
 
 import { Provider } from "react-redux";
 import { mobileStore } from "./store";
