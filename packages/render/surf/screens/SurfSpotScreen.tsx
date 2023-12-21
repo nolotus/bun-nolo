@@ -6,6 +6,14 @@ import { modes, intervals } from "../config";
 import { ModeButton, IntervalButton } from "./Buttons";
 import { styles as extraStyles } from "../styles/container";
 import MapView from "react-native-maps";
+import i18next from "i18n";
+import weatherTranslations from "integrations/weather/weatherI18n";
+
+Object.keys(weatherTranslations).forEach((lang) => {
+	const translations = weatherTranslations[lang].translation;
+	i18next.addResourceBundle(lang, "translation", translations, true, true);
+});
+
 export function SurfSpotScreen({ id }) {
 	const { mode, interval, handleModeChange, handleIntervalChange } =
 		useSurfSpot();

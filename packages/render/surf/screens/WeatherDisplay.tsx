@@ -2,10 +2,19 @@ import React from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { parseWeatherParams, useGetWeatherQuery } from "integrations/weather";
 import { formatTime, calculateAverage, getQualityColor } from "../weatherUtils";
+import { format } from "date-fns";
+import { zhCN } from "date-fns/locale";
 
 import Octicons from "react-native-vector-icons/Octicons";
+import { defaultDisplayConfig } from "../config";
+import { useTranslation } from "react-i18next";
 
+const dataQualityStyle = (value, type) => ({
+	backgroundColor: getQualityColor(value, type),
+});
 const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
+	const { t } = useTranslation();
+
 	const queryParams = parseWeatherParams({ lat, lng });
 	const {
 		data: weatherData,
@@ -16,9 +25,6 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 		return hour[field]?.[mode] ? `${hour[field][mode].toFixed(1)}` : "-";
 	};
 
-	const dataQualityStyle = (value, type) => ({
-		backgroundColor: getQualityColor(value, type),
-	});
 	if (weatherData) {
 		const groupedWeatherData = weatherData?.hours.reduce((acc, hour) => {
 			const { monthDay, hourMinute } = formatTime(hour.time);
@@ -31,14 +37,14 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 		return (
 			<View style={styles.topContainer}>
 				<View style={styles.labelsContainer}>
-					<Text style={styles.labelText}>日期</Text>
-					<Text style={styles.labelText}>时间</Text>
-					<Text style={styles.labelText}>浪向</Text>
-					<Text style={styles.labelText}>风向</Text>
-					<Text style={styles.labelText}>风速</Text>
-					<Text style={styles.labelText}>浪高</Text>
-					<Text style={styles.labelText}>周期</Text>
-					<Text style={styles.labelText}>阵风</Text>
+					{defaultDisplayConfig.map(
+						(config) =>
+							config.enabled && (
+								<Text key={config.key} style={styles.labelText}>
+									{t(config.key)}
+								</Text>
+							),
+					)}
 				</View>
 				<ScrollView horizontal style={styles.container}>
 					<View style={styles.daysRowContainer}>
@@ -48,11 +54,6 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 							</View>
 						) : (
 							Object.entries(groupedWeatherData).map(([monthDay, hours]) => {
-								const avgAirTemperature = calculateAverage(
-									hours,
-									"airTemperature",
-									mode,
-								);
 								const avgWaterTemperature = calculateAverage(
 									hours,
 									"waterTemperature",
@@ -61,8 +62,7 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 								return (
 									<View key={monthDay} style={styles.dayContainer}>
 										<Text style={styles.dataText}>
-											{monthDay}
-											{`气温：${avgAirTemperature}°C 水温：${avgWaterTemperature}°C`}
+											{monthDay} {` 水温：${avgWaterTemperature}°C`}
 										</Text>
 										<View style={styles.hoursContainer}>
 											{hours
@@ -72,84 +72,85 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 														key={`${monthDay}-${hourIndex}`}
 														style={styles.hourContainer}
 													>
-														<Text style={styles.dataText}>
-															{hour.hourMinute}
-														</Text>
-														<Text style={styles.dataText}>
-															<View>
-																<Octicons
-																	name="arrow-down"
-																	size={16}
-																	color="#4a4a4a"
-																	style={{
-																		transform: [
-																			{
-																				rotate: `${hour.swellDirection[mode]}deg`,
-																			},
-																		],
-																	}}
-																/>
-															</View>
-														</Text>
-														<Text style={styles.dataText}>
-															<View>
-																<Octicons
-																	name="arrow-down"
-																	size={16}
-																	color="#4a4a4a"
-																	style={{
-																		transform: [
-																			{
-																				rotate: `${hour.windDirection[mode]}deg`,
-																			},
-																		],
-																	}}
-																/>
-															</View>
-														</Text>
-														<View
-															style={[
-																styles.dataWrapper,
-																dataQualityStyle(
-																	getDataByMode(hour, "windSpeed"),
-																	"windSpeed",
-																),
-															]}
-														>
-															<Text style={styles.dataText}>
-																{getDataByMode(hour, "windSpeed")}
-															</Text>
-														</View>
-														<View
-															style={[
-																styles.dataWrapper,
-																dataQualityStyle(
-																	getDataByMode(hour, "swellHeight"),
-																	"swellHeight",
-																),
-															]}
-														>
-															<Text style={styles.dataText}>
-																{getDataByMode(hour, "swellHeight")}
-															</Text>
-														</View>
-														<View
-															style={[
-																styles.dataWrapper,
-																dataQualityStyle(
-																	getDataByMode(hour, "swellPeriod"),
-																	"swellPeriod",
-																),
-															]}
-														>
-															<Text style={styles.dataText}>
-																{getDataByMode(hour, "swellPeriod")}
-															</Text>
-														</View>
+														{defaultDisplayConfig.map((config) => {
+															if (!config.enabled) {
+																return null;
+															}
 
-														<Text style={styles.dataText}>
-															{getDataByMode(hour, "gust")}
-														</Text>
+															const value = getDataByMode(hour, config.key);
+															let component = null;
+
+															switch (config.key) {
+																case "windSpeed":
+																case "swellHeight":
+																case "swellPeriod":
+																	// 使用数据质量背景的数据项
+																	const qualityStyle = dataQualityStyle(
+																		value,
+																		config.key,
+																	);
+																	component = (
+																		<View
+																			key={`${monthDay}-${hourIndex}-${config.key}`}
+																			style={[styles.dataWrapper, qualityStyle]}
+																		>
+																			<Text style={styles.dataText}>
+																				{value}
+																			</Text>
+																		</View>
+																	);
+																	break;
+																case "swellDirection":
+																case "windDirection":
+																	// 使用图标显示方向的数据项
+																	component = (
+																		<View
+																			key={`${monthDay}-${hourIndex}-${config.key}`}
+																			style={styles.dataWrapper}
+																		>
+																			<Octicons
+																				name="arrow-down"
+																				size={16}
+																				color="#4a4a4a"
+																				style={{
+																					transform: [
+																						{ rotate: `${value}deg` },
+																					],
+																				}}
+																			/>
+																		</View>
+																	);
+																	break;
+																case "time":
+																	const hourFormatted = format(
+																		new Date(hour.time),
+																		"HH",
+																		{ locale: zhCN },
+																	);
+																	component = (
+																		<Text
+																			key={`${monthDay}-${hourIndex}-${config.key}`}
+																			style={styles.dataText}
+																		>
+																			{hourFormatted}
+																		</Text>
+																	);
+																	break;
+																default:
+																	// 默认文本显示
+																	component = (
+																		<Text
+																			key={`${monthDay}-${hourIndex}-${config.key}`}
+																			style={styles.dataText}
+																		>
+																			{value}
+																		</Text>
+																	);
+																	break;
+															}
+
+															return component;
+														})}
 													</View>
 												))}
 										</View>
@@ -169,7 +170,6 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 	},
 	labelsContainer: {
-		width: 60, // 减小宽度使得布局更紧凑
 		paddingVertical: 4, // 减小垂直内边距
 		backgroundColor: "#f0f0f0", // 一个较为清新的灰色调
 	},

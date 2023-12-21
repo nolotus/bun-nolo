@@ -1,9 +1,10 @@
 import React from "react";
-import { StatusBar, StyleSheet, useColorScheme } from "react-native";
+import { StatusBar, useColorScheme } from "react-native";
 
 import { Colors } from "react-native/Libraries/NewAppScreen";
-import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import i18n from "i18n";
+import * as RNLocalize from "react-native-localize";
 
 import { Provider } from "react-redux";
 import { mobileStore } from "./store";
@@ -13,7 +14,8 @@ const Tab = createBottomTabNavigator();
 
 function App(): React.JSX.Element {
 	const isDarkMode = useColorScheme() === "dark";
-
+	const systemLanguage = RNLocalize.getLocales()[0].languageCode;
+	i18n.changeLanguage(systemLanguage);
 	const backgroundStyle = {
 		backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
 	};
