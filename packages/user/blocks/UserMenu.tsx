@@ -21,7 +21,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import NavListItem from "render/layout/blocks/NavListItem";
-import { LinkButton, DropDown } from "ui";
+import { DropDown } from "ui";
 
 export const UserMenu = () => {
 	const navigate = useNavigate();
