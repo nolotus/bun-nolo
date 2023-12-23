@@ -43,7 +43,8 @@
 		"react-native-screens": "^3.29.0",
 		"react-native-tab-view": "^3.5.2",
 		"react-native-vector-icons": "^10.0.2",
-		"react-redux": "^9.0.1"
+		"react-redux": "^9.0.1",
+		"react-native-localize": "^3.0.4"
 	},
 	"scripts": {
 		"server": "bun run build & bun --watch ./packages/server/entry.ts",
