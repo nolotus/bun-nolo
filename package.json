@@ -34,6 +34,7 @@
     "@react-navigation/native-stack": "^6.9.17",
     "@reduxjs/toolkit": "^2.0.1",
     "@stablelib/base64": "^1.0.1",
+    "js-base64": "^3.7.5",
     "rambda": "^8.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

@@ -40,7 +40,7 @@ export const generateUserId = (
 	extra: string = "",
 ) => {
 	try {
-		const text = "Ns1SCm26aG_uPCR2dsO4LYvpwaY6J2VBhyYT9QPQ3wcnolotuszh-CN";
+		const text = publicKey + username + language + extra;
 		cryptoLogger.info(`text: ${text}`);
 		let userId = generateHash(text);
 		cryptoLogger.info("generateHash:", { userId });

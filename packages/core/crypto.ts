@@ -1,9 +1,7 @@
 import { SHA3 } from "crypto-js";
 import nacl from "tweetnacl";
-import { getLogger } from "utils/logger";
 import { encodeURLSafe, decodeURLSafe } from "@stablelib/base64";
 
-const cryptoLogger = getLogger("crypto");
 export const generateHash = (data) => {
 	const hashWordArray = SHA3(data, { outputLength: 256 });
 
