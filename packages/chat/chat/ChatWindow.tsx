@@ -2,15 +2,9 @@ import { TrashIcon } from "@primer/octicons-react";
 import { nanoid } from "@reduxjs/toolkit";
 import { tokenStatic } from "ai/client/static";
 import { selectCostByUserId } from "ai/selectors";
-import { useGenerateImageMutation, useStreamChatMutation } from "ai/services";
-import { ModeType } from "ai/types";
+import { useStreamChatMutation } from "ai/services";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 import { useWriteHashMutation } from "database/services";
-import {
-	parseWeatherParams,
-	formatDataSnippet,
-	useLazyGetWeatherQuery,
-} from "integrations/weather";
 import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "ui";
@@ -31,7 +25,8 @@ import {
 	messageEnd,
 } from "../messages/messageSlice";
 import { selectMessage } from "../messages/selector";
-
+import { getModefromContent } from "../hooks/getModefromContent";
+import { getContextFromMode } from "../hooks/getContextfromMode";
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
 const ChatWindow = () => {
@@ -39,11 +34,9 @@ const ChatWindow = () => {
 	const { t } = useTranslation();
 
 	const dispatch = useAppDispatch();
-	const [fetchWeatherInfo] = useLazyGetWeatherQuery();
 
 	const messages = useAppSelector((state) => state.message.messages);
-	const [generateImage, { isLoading: isGeneratingImage }] =
-		useGenerateImageMutation();
+
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
 	const scrollToBottom = () => {
@@ -146,69 +139,48 @@ const ChatWindow = () => {
 		});
 	};
 
-	const handleSendMessage = async (newContent) => {
+	const handleSendMessage = async (newContent: string) => {
 		if (!newContent.trim()) {
 			return;
 		}
-
-		let mode: ModeType = "stream";
-		const generateImagePattern = /^生成.*图片/;
-		const surfModePattern = /查看海浪条件/;
-		if (surfModePattern.test(newContent)) {
-			mode = "surf"; // 如果符合surf模式的判定条件则设置为 'surf'
-		} else if (
-			generateImagePattern.test(newContent.split("\n")[0]) ||
-			newContent.split("\n")[0].includes("生成图片")
-		) {
-			mode = "image";
-		}
 		setRequestFailed(false);
 		dispatch(sendMessage({ role: "user", content: newContent, id: nanoid() }));
-		try {
+
+		const mode = getModefromContent(newContent);
+		const context = await getContextFromMode(mode, newContent);
+		if (context?.isError) {
+			await handleStreamMessage(newContent, messages);
+			const staticData = {
+				dialogType: "send",
+				model: currentChatConfig?.model,
+				length: newContent.length,
+				userIdL: auth?.user?.userId,
+				username: auth?.user?.username,
+				date: new Date(),
+			};
+			tokenStatic(staticData, auth, writeHashData);
+		} else {
 			if (mode === "image") {
-				const response = await generateImage({
-					prompt: newContent,
-				}).unwrap();
-				console.log("response", response);
-				const data = response.data;
-				const imageUrl = data.data[0].url; // 提取图片 URL
-				console.log("imageUrl", imageUrl);
 				dispatch(
 					receiveMessage({
 						role: "assistant",
 						content: "Here is your generated image:",
-						image: imageUrl, // 使用提取出的图片 URL
+						image: context.image,
 					}),
 				);
-			} else if (mode === "surf") {
-				// 如果检测到surf模式，我们应该解析出查询参数并获取天气信息
-				const queryParams = parseWeatherParams(newContent); // 解析出天气查询参数的函数
-				if (queryParams) {
-					try {
-						const weatherInfo = await fetchWeatherInfo(queryParams);
-						console.log("weatherData", weatherInfo);
+			}
+			if (mode === "surf") {
+				dispatch(
+					receiveMessage({
+						role: "assistant",
+						content: context.content,
+					}),
+				);
+			}
+		}
 
-						// 此处可采用weatherInfo而非weatherData，因为weatherData可能尚未被设置
-						const formattedData = formatDataSnippet(weatherInfo.hours);
-						console.log("formattedData", formattedData);
-
-						dispatch(
-							receiveMessage({
-								role: "assistant",
-								content: `查询结果（部分显示）：\n${formattedData}`,
-							}),
-						);
-					} catch (error) {
-						console.error("Error fetching weather info:", error);
-						dispatch(
-							receiveMessage({
-								role: "assistant",
-								content: "查询天气信息时出错。",
-							}),
-						);
-					}
-				}
-			} else if (mode === "stream") {
+		try {
+			if (mode === "stream") {
 				await handleStreamMessage(newContent, messages);
 				const staticData = {
 					dialogType: "send",

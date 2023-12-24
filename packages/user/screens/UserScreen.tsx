@@ -19,12 +19,17 @@ const styles = StyleSheet.create({
 	},
 });
 
-export function UserScreen() {
+export function UserScreen({ navigation }) {
 	const dispatch = useDispatch();
 	const mainBackgroundColor = useSelector(
 		(state) => state.theme.mainBackgroundColor,
 	); // 从 Redux store 获取背景颜色
-
+	const goToLogin = () => {
+		navigation.navigate("Auth", { screen: "Login" });
+	};
+	const goToRegister = () => {
+		navigation.navigate("Auth", { screen: "Register" });
+	};
 	const selectColor = (color) => {
 		dispatch(changeMainColor(color));
 	};
@@ -48,6 +53,8 @@ export function UserScreen() {
 					</View>
 				))}
 			</View>
+			<Button title="登录" onPress={goToLogin} />
+			<Button title="注册" onPress={goToRegister} />
 		</View>
 	);
 }

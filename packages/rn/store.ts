@@ -13,8 +13,8 @@ export const mobileStore = configureStore({
 	reducer: {
 		life: lifeReducer,
 		chat: chatReducer,
+		message: messageReducer,
 		auth: authReducer,
-		message: messageReducer, // 使用修改后的命名
 		db: dbReducer,
 		theme: themeReducer, // 添加themeReducer
 		[api.reducerPath]: api.reducer,

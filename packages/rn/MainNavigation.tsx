@@ -7,14 +7,9 @@ import { View, Text } from "react-native";
 import { useSelector } from "react-redux";
 import { UserScreen } from "user/screens/UserScreen";
 import { HomeScreen } from "app/screens/Home";
-function ChatScreen() {
-	return (
-		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-			<Text>chat!</Text>
-		</View>
-	);
-}
+import { ChatScreen } from "chat/screens/Chat";
 
+import { AuthStackNavigator } from "auth/screens/AuthStackNavigator";
 function CreateScreen() {
 	return (
 		<View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -87,6 +82,11 @@ function MainNavigation() {
 							<Octicons name="person" size={size} color={color} />
 						),
 					}}
+				/>
+				<Tab.Screen
+					name="Auth"
+					component={AuthStackNavigator}
+					options={{ tabBarButton: () => null }} // 使其不在底部标签中显示
 				/>
 			</Tab.Navigator>
 		</NavigationContainer>

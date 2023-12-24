@@ -4,9 +4,9 @@ import {
 	coreModule,
 	reactHooksModule,
 } from "@reduxjs/toolkit/query/react";
-import { isProduction } from "utils/env";
+import addPrefixForEnv from "utils/urlConfig";
 
-const baseUrl = isProduction ? "/" : "http://192.168.31.48";
+const baseUrl = addPrefixForEnv("/");
 const createApi = buildCreateApi(
 	coreModule(),
 	reactHooksModule({ unstable__sideEffectsInRender: true }),

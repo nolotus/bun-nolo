@@ -11,9 +11,9 @@ import themeSliceReducer from "./theme/themeSlice";
 export const reducer = {
 	life: lifeReducer,
 	chat: chatReducer,
+	message: messageSlice,
 	auth: authReducer,
 	page: pageReducer,
-	message: messageSlice,
 	db: dbReducer,
 	theme: themeSliceReducer,
 	[api.reducerPath]: api.reducer,

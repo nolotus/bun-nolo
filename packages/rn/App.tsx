@@ -10,6 +10,7 @@ import * as RNLocalize from "react-native-localize";
 import { Provider } from "react-redux";
 import { mobileStore } from "./store";
 import MainNavigation from "./MainNavigation";
+global._ISRN_ = true;
 
 function App(): React.JSX.Element {
 	const isDarkMode = useColorScheme() === "dark";
