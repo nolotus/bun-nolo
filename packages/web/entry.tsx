@@ -10,13 +10,12 @@ import { BrowserRouter, HashRouter } from "react-router-dom";
 import App from "./App";
 import { browserStore } from "./store";
 import "./input.css";
+import { isProduction } from "utils/env";
 const hostname = window.location.hostname;
 
 const domNode = document.getElementById("root");
 const lng = window.navigator.language;
 const env = process.env.NODE_ENV;
-
-const isProduction = env === "production";
 
 delete window.__PRELOADED_STATE__;
 if (isProduction) {
