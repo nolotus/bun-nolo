@@ -19,6 +19,7 @@ import {
 	updateContent,
 	setSaveAsTemplate,
 } from "./pageSlice";
+import { processContent } from "./processContent";
 
 const EditPage = () => {
 	const { toasts, addToast, removeToast } = useToastManager();
@@ -89,8 +90,10 @@ const EditPage = () => {
 		}
 	}, [deleteEntry, navigate, pageId, addToast]);
 
-	const contentChange = (content) => {
-		dispatch(updateContent(content));
+	const handleContentChange = (changeValue: string) => {
+		const { content, mdast, metaUpdates } = processContent(changeValue);
+
+		dispatch(updateContent({ content, metaUpdates, mdast }));
 	};
 	const handleToggleTemplateChange = (value: boolean) => {
 		dispatch(setSaveAsTemplate(value));
@@ -140,7 +143,10 @@ const EditPage = () => {
 			<div className="flex-grow flex">
 				<div className="w-full flex-shrink-0">
 					{pageState.showAsMarkdown ? (
-						<MarkdownEdit value={pageState.content} onChange={contentChange} />
+						<MarkdownEdit
+							value={pageState.content}
+							onChange={handleContentChange}
+						/>
 					) : (
 						<div className="w-full p-4 flex flex-col">
 							<div className=" w-full flex-shrink-0">

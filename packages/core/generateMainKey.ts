@@ -1,8 +1,7 @@
 import { getLogger } from "utils/logger";
-
+import { Base64 } from "js-base64";
 import { generateHash } from "./crypto";
 import { Flags, setKeyPrefix } from "./prefix";
-import { encode } from "@stablelib/base64";
 
 const cryptoLogger = getLogger("crypto");
 
@@ -43,10 +42,9 @@ export const generateUserId = (
 		const text = publicKey + username + language + extra;
 		cryptoLogger.info(`text: ${text}`);
 		let userId = generateHash(text);
-		cryptoLogger.info("generateHash:", { userId });
 
-		// 使用 stablelib 的 base64 编码
-		userId = encode(userId)
+		// 使用Base64 URL编码
+		userId = Base64.btoa(userId)
 			.replace(/\+/g, "-")
 			.replace(/\//g, "_")
 			.replace(/[=]+$/, "");

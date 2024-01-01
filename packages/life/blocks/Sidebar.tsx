@@ -23,7 +23,7 @@ export const Sidebar = () => {
 		<div className="w-48 min-h-full bg-neutral-100 overflow-y-auto">
 			<div className="flex flex-col justify-between p-4">
 				<nav>
-					<NavLink to="/life" className={getNavLinkClass}>
+					<NavLink to="/life/dashboard" className={getNavLinkClass}>
 						<ProjectIcon size={20} className={iconClass} />
 						<span>Projects</span>
 					</NavLink>
@@ -35,11 +35,10 @@ export const Sidebar = () => {
 						<NoteIcon size={20} className={iconClass} />
 						<span>Notes</span>
 					</NavLink>
-					{/* Menu Item 2 */}
-					<button className={clsx(buttonBaseClass)}>
+					<NavLink to="/life/calendar" className={getNavLinkClass}>
 						<CalendarIcon size={20} className={iconClass} />
-						Calendar
-					</button>
+						<span>Calendar</span>
+					</NavLink>
 					{/* Menu Item 3 */}
 					<button className={clsx(buttonBaseClass)}>
 						<FileIcon size={20} className={iconClass} />

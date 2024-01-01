@@ -1,147 +1,115 @@
-import {QueryCondition} from './types';
+import { QueryCondition } from "./types";
 
 export const evaluateCondition = (
-  condition: QueryCondition,
-  objectData: any,
+	condition: QueryCondition,
+	objectData: any,
 ): boolean => {
-  // Handle logical operators
-  if (condition.$and) {
-    return condition.$and.every(cond => evaluateCondition(cond, objectData));
-  }
-  if (condition.$or) {
-    return condition.$or.some(cond => evaluateCondition(cond, objectData));
-  }
-  if (condition.$not) {
-    return !evaluateCondition(condition.$not, objectData);
-  }
-  if (condition.$nor) {
-    return !condition.$nor.some(cond => evaluateCondition(cond, objectData));
-  }
+	// Handle logical operators
+	if (condition.$and) {
+		return condition.$and.every((cond) => evaluateCondition(cond, objectData));
+	}
+	if (condition.$or) {
+		return condition.$or.some((cond) => evaluateCondition(cond, objectData));
+	}
+	if (condition.$not) {
+		return !evaluateCondition(condition.$not, objectData);
+	}
+	if (condition.$nor) {
+		return !condition.$nor.some((cond) => evaluateCondition(cond, objectData));
+	}
 
-  // Handle arithmetic operators
-  for (const key in condition) {
-    switch (key) {
-      // 在 "Handle arithmetic operators" 部分添加以下代码
+	// Handle arithmetic operators
+	for (const key in condition) {
+		switch (key) {
+			// 在 "Handle arithmetic operators" 部分添加以下代码
 
-      case '$timeGt':
-        if (
-          !Object.keys(condition.$timeGt!).every(
-            k =>
-              new Date(objectData[k]).getTime() >
-              new Date(condition.$timeGt![k]).getTime(),
-          )
-        ) {
-          return false;
-        }
-        break;
+			case "$gt":
+				if (
+					!Object.keys(condition.$gt!).every(
+						(k) => objectData[k] > condition.$gt![k],
+					)
+				) {
+					return false;
+				}
+				break;
+			case "$lt":
+				if (
+					!Object.keys(condition.$lt!).every(
+						(k) => objectData[k] < condition.$lt![k],
+					)
+				) {
+					return false;
+				}
+				break;
 
-      case '$timeLt':
-        if (
-          !Object.keys(condition.$timeLt!).every(
-            k =>
-              new Date(objectData[k]).getTime() <
-              new Date(condition.$timeLt![k]).getTime(),
-          )
-        ) {
-          return false;
-        }
-        break;
+			case "$ne":
+				if (
+					!Object.keys(condition.$ne!).every(
+						(k) => objectData[k] !== condition.$ne![k],
+					)
+				) {
+					return false;
+				}
+				break;
+			case "$in":
+				if (
+					!Object.keys(condition.$in!).every((k) =>
+						condition.$in![k].includes(objectData[k]),
+					)
+				) {
+					return false;
+				}
+				break;
+			case "$nin":
+				if (
+					!Object.keys(condition.$nin!).every(
+						(k) => !condition.$nin![k].includes(objectData[k]),
+					)
+				) {
+					return false;
+				}
+				break;
+			case "$size":
+				if (
+					!Object.keys(condition.$size!).every(
+						(k) => objectData[k].length === condition.$size![k],
+					)
+				) {
+					return false;
+				}
+				break;
+		}
+	}
 
-      case '$gt':
-        if (
-          !Object.keys(condition.$gt!).every(
-            k => objectData[k] > condition.$gt![k],
-          )
-        ) {
-          return false;
-        }
-        break;
-      case '$lt':
-        if (
-          !Object.keys(condition.$lt!).every(
-            k => objectData[k] < condition.$lt![k],
-          )
-        ) {
-          return false;
-        }
-        break;
-      case '$eq': {
-        const eqResult = Object.keys(condition.$eq!).every(k => {
-          const comparisonResult = objectData[k] === condition.$eq![k];
-          return comparisonResult;
-        });
-        if (!eqResult) {
-          return false;
-        }
-        break;
-      }
+	// Handle $all operator
+	if (condition.$all) {
+		for (const key in condition.$all) {
+			if (
+				!condition.$all[key].every((element) =>
+					objectData[key].includes(element),
+				)
+			) {
+				return false;
+			}
+		}
+	}
 
-      case '$ne':
-        if (
-          !Object.keys(condition.$ne!).every(
-            k => objectData[k] !== condition.$ne![k],
-          )
-        ) {
-          return false;
-        }
-        break;
-      case '$in':
-        if (
-          !Object.keys(condition.$in!).every(k =>
-            condition.$in![k].includes(objectData[k]),
-          )
-        ) {
-          return false;
-        }
-        break;
-      case '$nin':
-        if (
-          !Object.keys(condition.$nin!).every(
-            k => !condition.$nin![k].includes(objectData[k]),
-          )
-        ) {
-          return false;
-        }
-        break;
-      case '$size':
-        if (
-          !Object.keys(condition.$size!).every(
-            k => objectData[k].length === condition.$size![k],
-          )
-        ) {
-          return false;
-        }
-        break;
-    }
-  }
+	// Handle $elemMatch operator
+	if (condition.$elemMatch) {
+		for (const key in condition.$elemMatch) {
+			const elemMatchCondition = condition.$elemMatch[key];
+			if (
+				elemMatchCondition &&
+				!objectData[key].some((element: any) =>
+					evaluateCondition(elemMatchCondition, element),
+				)
+			) {
+				return false;
+			}
+		}
+	}
 
-  // Handle $all operator
-  if (condition.$all) {
-    for (const key in condition.$all) {
-      if (
-        !condition.$all[key].every(element => objectData[key].includes(element))
-      ) {
-        return false;
-      }
-    }
-  }
-
-  // Handle $elemMatch operator
-  if (condition.$elemMatch) {
-    for (const key in condition.$elemMatch) {
-      const elemMatchCondition = condition.$elemMatch[key];
-      if (
-        elemMatchCondition &&
-        !objectData[key].some((element: any) =>
-          evaluateCondition(elemMatchCondition, element),
-        )
-      ) {
-        return false;
-      }
-    }
-  }
-
-  return true; // Return true if no conditions are false
+	return true; // Return true if no conditions are false
 };
 
 // TODO: 实现查询功能

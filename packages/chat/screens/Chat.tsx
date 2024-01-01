@@ -45,7 +45,7 @@ export function ChatScreen() {
 		const options = {
 			isJSON: true,
 			condition: {
-				$eq: { type: "tokenStatistics" },
+				type: "tokenStatistics",
 			},
 			limit: 10000,
 		};
@@ -235,7 +235,7 @@ export function ChatScreen() {
 				dialogType: "send",
 				model: currentChatConfig?.model,
 				length: newContent.length,
-				userIdL: auth?.user?.userId,
+				userId: auth?.user?.userId,
 				username: auth?.user?.username,
 				date: new Date(),
 			};
@@ -267,7 +267,7 @@ export function ChatScreen() {
 					dialogType: "send",
 					model: currentChatConfig?.model,
 					length: newContent.length,
-					userIdL: auth?.user?.userId,
+					userId: auth?.user?.userId,
 					username: auth?.user?.username,
 					date: new Date(),
 				};

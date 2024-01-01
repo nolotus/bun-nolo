@@ -154,7 +154,7 @@ const ChatWindow = () => {
 				dialogType: "send",
 				model: currentChatConfig?.model,
 				length: newContent.length,
-				userIdL: auth?.user?.userId,
+				userId: auth?.user?.userId,
 				username: auth?.user?.username,
 				date: new Date(),
 			};
@@ -186,7 +186,7 @@ const ChatWindow = () => {
 					dialogType: "send",
 					model: currentChatConfig?.model,
 					length: newContent.length,
-					userIdL: auth?.user?.userId,
+					userId: auth?.user?.userId,
 					username: auth?.user?.username,
 					date: new Date(),
 				};

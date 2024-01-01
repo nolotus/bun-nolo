@@ -26,7 +26,7 @@ const ChatPage = () => {
 		const options = {
 			isJSON: true,
 			condition: {
-				$eq: { type: "tokenStatistics" },
+				type: "tokenStatistics",
 			},
 			limit: 10000,
 		};

@@ -9,7 +9,7 @@ const Spots = () => {
 	const options = {
 		isJSON: true,
 		condition: {
-			$eq: { type: DataType.SurfSpot },
+			type: DataType.SurfSpot,
 		},
 		limit: 20,
 	};

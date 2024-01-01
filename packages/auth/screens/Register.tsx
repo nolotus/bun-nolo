@@ -50,7 +50,7 @@ const RegistrationScreen = () => {
 		console.log("decryptedDataObject:", decryptedDataObject);
 
 		const userId = generateUserId(publicKey, username, deviceLanguage);
-		console.log("sendData:", userId, sendData);
+		console.log("userId:", userId);
 		const token = signToken({ userId, username }, secretKey);
 		if (
 			decryptedDataObject.username === sendData.username &&

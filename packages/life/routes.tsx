@@ -5,9 +5,10 @@ import { Layout } from "./Layout";
 
 export enum LifeRoutePaths {
 	WELCOME = "life/",
+	NOTES = "life/notes",
 	ALL = "life/all",
 	STATISTICS = "life/statistics",
-	NOTES = "life/notes",
+	DASHBOARD = "life/dashboard",
 }
 
 const Welcome = (
@@ -34,7 +35,19 @@ const Notes = (
 		fallback={<div>Loading Notes...</div>}
 	/>
 );
+const Dashboard = (
+	<LazyLoadComponent
+		factory={() => import("life/pages/Dashboard")}
+		fallback={<div>Loading dashboard...</div>}
+	/>
+);
 
+const Calendar = (
+	<LazyLoadComponent
+		factory={() => import("life/pages/Calendar")}
+		fallback={<div>Loading dashboard...</div>}
+	/>
+);
 export const routes = {
 	path: "/",
 	element: <Layout />,
@@ -46,6 +59,8 @@ export const routes = {
 				{ path: "all", element: All },
 				{ path: "statistics", element: Statistics },
 				{ path: "notes", element: Notes },
+				{ path: "dashboard", element: Dashboard },
+				{ path: "calendar", element: Calendar },
 			],
 		},
 	],

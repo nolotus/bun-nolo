@@ -7,8 +7,6 @@ import { generateUserId } from "core/generateMainKey";
 import { signToken } from "auth/token";
 import { storeTokens } from "auth/client/token";
 import { useLoginMutation } from "auth/services";
-import argon2 from "react-native-argon2";
-import { SALT } from "database/config";
 import { Picker } from "@react-native-picker/picker";
 
 const LoginScreen = ({ navigation }) => {

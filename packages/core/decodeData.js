@@ -22,7 +22,7 @@ const decodeData = (data, flags) => {
   let decodedData = data;
 
   const decodeOperations = {
-    isBase64: (data) => (isBase64(data) ? atob(data) : data),
+    isBase64: (data) => (isBase64(data) ? Base64.atob(data) : data),
     isJSON: (data) => {
       try {
         return JSON.parse(data);

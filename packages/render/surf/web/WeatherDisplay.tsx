@@ -63,8 +63,8 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 					>
 						<div className={dateCellStyle}>日期:</div>
 						<div className={dateCellStyle}>时间:</div>
-						<div className={headerCellStyle}>浪向:</div>
 						<div className={headerCellStyle}>风向:</div>
+						<div className={headerCellStyle}>浪向:</div>
 						<div className={headerCellStyle}>浪高(m):</div>
 						<div className={headerCellStyle}>周期(s):</div>
 						<div className={headerCellStyle}>风速(m/s):</div>
@@ -164,7 +164,7 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 																		...iconContainerStyle,
 																		transform: `rotate(${getDataByMode(
 																			hour,
-																			"swellDirection",
+																			"windDirection",
 																		)}deg)`,
 																	}}
 																>
@@ -177,13 +177,14 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
 																		...iconContainerStyle,
 																		transform: `rotate(${getDataByMode(
 																			hour,
-																			"windDirection",
+																			"swellDirection",
 																		)}deg)`,
 																	}}
 																>
 																	<ArrowDownIcon size={16} />
 																</div>
 															</div>
+
 															<div
 																style={getBackgroundColorStyle(
 																	getDataByMode(hour, "swellHeight"),

@@ -17,6 +17,7 @@ import {
 	setSaveAsTemplate,
 	initPageFromTemplate,
 } from "./pageSlice";
+import { processContent } from "./processContent";
 
 const CreatePage = () => {
 	const [searchParams] = useSearchParams();
@@ -95,8 +96,11 @@ const CreatePage = () => {
 			setTextareaContent(""); // 清空 textarea
 		}
 	};
-	const contentChange = (content) => {
-		dispatch(updateContent(content));
+
+	const handleContentChange = (changeValue: string) => {
+		const { content, mdast, metaUpdates } = processContent(changeValue);
+
+		dispatch(updateContent({ content, metaUpdates, mdast }));
 	};
 	return (
 		<div className="flex flex-col min-h-screen">
@@ -127,7 +131,7 @@ const CreatePage = () => {
 						{pageState.showAsMarkdown ? (
 							<MarkdownEdit
 								value={pageState.content}
-								onChange={contentChange}
+								onChange={handleContentChange}
 							/>
 						) : (
 							<>
