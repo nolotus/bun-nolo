@@ -19,32 +19,32 @@ const Welcome = (
 );
 const All = (
 	<LazyLoadComponent
-		factory={() => import("life/pages/All")}
+		factory={() => import("./web/All")}
 		fallback={<div>Loading All...</div>}
 	/>
 );
 const Statistics = (
 	<LazyLoadComponent
-		factory={() => import("life/pages/Statistics")}
+		factory={() => import("./web/Statistics")}
 		fallback={<div>Loading Statistics...</div>}
 	/>
 );
 const Notes = (
 	<LazyLoadComponent
-		factory={() => import("life/pages/Notes")}
+		factory={() => import("./web/Notes")}
 		fallback={<div>Loading Notes...</div>}
 	/>
 );
 const Dashboard = (
 	<LazyLoadComponent
-		factory={() => import("life/pages/Dashboard")}
+		factory={() => import("./web/Dashboard")}
 		fallback={<div>Loading dashboard...</div>}
 	/>
 );
 
 const Calendar = (
 	<LazyLoadComponent
-		factory={() => import("life/pages/Calendar")}
+		factory={() => import("./web/Calendar")}
 		fallback={<div>Loading dashboard...</div>}
 	/>
 );
