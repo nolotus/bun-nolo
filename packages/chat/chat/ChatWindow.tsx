@@ -62,12 +62,12 @@ const ChatWindow = () => {
 	const handleStreamData = (data) => {
 		const text = new TextDecoder("utf-8").decode(data);
 		const lines = text.trim().split("\n");
-		lines.forEach((line) => {
+		for (const line of lines) {
 			// 使用正则表达式匹配 "data:" 后面的内容
 			const match = line.match(/data: (done|{.*}|)/);
 
 			if (match && match[1] !== undefined) {
-				const statusOrJson = match[1];
+				const statusOrJson: string = match[1];
 				if (statusOrJson === "" || statusOrJson === "done") {
 					chatWindowLogger.info(
 						statusOrJson === ""
@@ -78,7 +78,7 @@ const ChatWindow = () => {
 					try {
 						const json = JSON.parse(statusOrJson);
 						// 自然停止
-						const finishReason = json.choices[0].finish_reason;
+						const finishReason: string = json.choices[0].finish_reason;
 						if (finishReason === "stop") {
 							dispatch(messageStreamEnd({ role: "assistant", content: temp }));
 							const staticData = {
@@ -118,7 +118,7 @@ const ChatWindow = () => {
 					}
 				}
 			}
-		});
+		}
 	};
 	const abortControllerRef = useRef(null);
 	const handleStreamMessage = async (newMessage, prevMessages) => {
