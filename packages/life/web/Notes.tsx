@@ -1,20 +1,20 @@
-import { useAppSelector } from 'app/hooks';
-import { selectPages } from 'database/selectors';
-import React from 'react';
+import { useAppSelector } from "app/hooks";
+import { selectPages } from "database/selectors";
+import React from "react";
 
-import DataList from '../blocks/DataList';
-import { FilterPanel } from '../blocks/FilterPanel';
-import { useFetchData } from '../hooks/useFetchData';
+import { FilterPanel } from "../blocks/FilterPanel";
+import { useFetchData } from "../hooks/useFetchData";
+import NoteList from "./NoteList";
 export const Notes = () => {
-  const data = useAppSelector(selectPages);
-  const { fetchData } = useFetchData();
+	const data = useAppSelector(selectPages);
+	const { fetchData } = useFetchData();
 
-  return (
-    <div className="p-4">
-      <FilterPanel />
-      <DataList data={data} refreshData={fetchData} />
-    </div>
-  );
+	return (
+		<div className="p-4">
+			<FilterPanel />
+			<NoteList data={data} refreshData={fetchData} />
+		</div>
+	);
 };
 
 export default Notes;
