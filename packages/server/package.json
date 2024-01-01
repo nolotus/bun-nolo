@@ -1,16 +1,17 @@
 {
-  "name": "server",
-  "module": "index.ts",
-  "type": "module",
-  "devDependencies": {
-    "bun-types": "latest"
-  },
-  "dependencies": {
-    "web": "workspace:web",
-    "app": "workspace:app",
-    "user": "workspace:user"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  }
+	"name": "server",
+	"module": "index.ts",
+	"type": "module",
+	"devDependencies": {
+		"bun-types": "latest"
+	},
+	"dependencies": {
+		"web": "workspace:web",
+		"app": "workspace:app",
+		"user": "workspace:user",
+		"utils": "workspace:utils"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	}
 }
