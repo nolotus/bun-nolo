@@ -1,4 +1,3 @@
-import { Spinner } from "@primer/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -51,7 +50,7 @@ export const Button = (props: ButtonProps) => {
 			disabled={disabled || loading}
 			type={type}
 		>
-			{loading && <Spinner size={16} className="mr-2" />}
+			{loading && "loading"}
 			{icon && !loading && <span className="mr-2">{icon}</span>}
 			{children}
 		</button>
