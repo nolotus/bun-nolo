@@ -3,7 +3,7 @@ import { useGetEntryQuery } from "database/services";
 import WeatherDisplay from "./WeatherDisplay";
 import useSurfSpot from "../useSurfSpot";
 import { modes, intervals } from "../config";
-import { ModeButton, IntervalButton } from "./Buttons";
+import ToggleButton from "./Buttons";
 import { styles as extraStyles } from "../styles/container";
 import MapView from "react-native-maps";
 import i18next from "i18n";
@@ -53,24 +53,24 @@ export function SurfSpotScreen({ id }) {
 				<View style={styles.buttonContainer}>
 					<View style={styles.intervalButtonGroup}>
 						{intervals.map((intervalItem) => (
-							<IntervalButton
+							<ToggleButton
 								key={intervalItem.value}
+								value={intervalItem.value}
 								title={intervalItem.title}
 								isActive={interval === intervalItem.value}
-								onIntervalChange={() =>
-									handleIntervalChange(intervalItem.value)
-								}
+								onPress={handleIntervalChange}
 							/>
 						))}
 					</View>
+
 					<View style={styles.modeButtonGroup}>
 						{modes.map((modeItem) => (
-							<ModeButton
+							<ToggleButton
 								key={modeItem.value}
-								modeValue={modeItem.value}
+								value={modeItem.value}
 								title={modeItem.title}
 								isActive={mode === modeItem.value}
-								onModeChange={handleModeChange}
+								onPress={handleModeChange}
 							/>
 						))}
 					</View>

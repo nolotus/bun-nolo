@@ -1,42 +1,36 @@
-import { transformStyles, combineStyles } from "utils/styles/transformStyles";
-import { buttonStyles } from "../styles/button";
+import React from "react";
+import * as styles from "../styles/ToggleButtonStyles";
 
-const webStyles = transformStyles(buttonStyles);
+interface ToggleButtonProps {
+	value: string | number;
+	title: string;
+	isActive: boolean;
+	onPress: (value: string | number) => void;
+}
 
-export const ModeButton = ({ modeValue, title, isActive, onModeChange }) => (
-	<div
-		style={combineStyles([
-			webStyles.modeButton,
-			isActive && webStyles.modeButtonActive,
-		])}
-		onClick={() => onModeChange(modeValue)}
-	>
-		<div
-			style={combineStyles([
-				webStyles.modeButtonText,
-				isActive && webStyles.modeButtonTextActive,
-			])}
+const ToggleButton: React.FC<ToggleButtonProps> = ({
+	value,
+	title,
+	isActive,
+	onPress,
+}) => {
+	const buttonClasses = `${styles.baseButton} ${
+		isActive ? styles.activeButton : ""
+	}`;
+
+	// 使用textClasses为标题文本应用样式
+	const textClasses = `${styles.baseText} ${isActive ? styles.activeText : ""}`;
+
+	return (
+		<button
+			type="button"
+			className={buttonClasses}
+			onClick={() => onPress(value)}
 		>
-			{title}
-		</div>
-	</div>
-);
+			{/* 应用textClasses的span标签包裹标题文本 */}
+			<span className={textClasses}>{title}</span>
+		</button>
+	);
+};
 
-export const IntervalButton = ({ title, isActive, onIntervalChange }) => (
-	<div
-		style={combineStyles([
-			webStyles.intervalButton,
-			isActive && webStyles.intervalButtonSelected,
-		])}
-		onClick={onIntervalChange}
-	>
-		<div
-			style={combineStyles([
-				webStyles.intervalButtonText,
-				isActive && webStyles.intervalButtonTextSelected,
-			])}
-		>
-			{title}
-		</div>
-	</div>
-);
+export default ToggleButton;

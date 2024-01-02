@@ -1,33 +1,31 @@
+// ToggleButton.mobile.tsx
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
-import { buttonStyles } from "../styles/button";
-export const ModeButton = ({ modeValue, title, isActive, onModeChange }) => (
-	<TouchableOpacity
-		style={[styles.modeButton, isActive && styles.modeButtonActive]}
-		onPress={() => onModeChange(modeValue)}
-	>
-		<Text
-			style={[styles.modeButtonText, isActive && styles.modeButtonTextActive]}
-		>
-			{title}
-		</Text>
-	</TouchableOpacity>
-);
+import { TouchableOpacity, Text } from "react-native";
+import { style as tw } from "twrnc";
+import * as styles from "../styles/ToggleButtonStyles"; // 导入共享的样式字符串
 
-export const IntervalButton = ({ title, isActive, onIntervalChange }) => (
-	<TouchableOpacity
-		style={[styles.intervalButton, isActive && styles.intervalButtonSelected]}
-		onPress={onIntervalChange}
-	>
-		<Text
-			style={[
-				styles.intervalButtonText,
-				isActive && styles.intervalButtonTextSelected,
-			]}
-		>
-			{title}
-		</Text>
-	</TouchableOpacity>
-);
+interface ToggleButtonProps {
+	value: string | number;
+	title: string;
+	isActive: boolean;
+	onPress: (value: string | number) => void;
+}
 
-const styles = StyleSheet.create(buttonStyles);
+const ToggleButton: React.FC<ToggleButtonProps> = ({
+	value,
+	title,
+	isActive,
+	onPress,
+}) => {
+	const buttonStyle = tw(styles.baseButton, isActive && styles.activeButton);
+
+	const textStyle = tw(styles.baseText, isActive && styles.activeText);
+
+	return (
+		<TouchableOpacity style={buttonStyle} onPress={() => onPress(value)}>
+			<Text style={textStyle}>{title}</Text>
+		</TouchableOpacity>
+	);
+};
+
+export default ToggleButton;
