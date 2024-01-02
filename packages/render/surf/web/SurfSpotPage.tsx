@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import React, { useState } from "react";
 import { WeatherDisplay } from "./WeatherDisplay";
-import { modes } from "../config";
+import { modes, intervals } from "../config";
 import { ModeButton, IntervalButton } from "./Buttons";
 import useSurfSpot from "../useSurfSpot";
 import { transformStyles } from "utils/styles/transformStyles";
@@ -24,17 +24,14 @@ const SurfSpotPage = ({ data }) => {
 			</div>
 			<div style={webStyles.buttonContainer}>
 				<div style={webStyles.intervalButtonGroup}>
-					{/* 使用IntervalButton组件 */}
-					<IntervalButton
-						title="1h"
-						isActive={interval === 1}
-						onIntervalChange={() => handleIntervalChange(1)}
-					/>
-					<IntervalButton
-						title="3h"
-						isActive={interval === 3}
-						onIntervalChange={() => handleIntervalChange(3)}
-					/>
+					{intervals.map((intervalItem) => (
+						<IntervalButton
+							key={intervalItem.value}
+							title={intervalItem.title}
+							isActive={interval === intervalItem.value}
+							onIntervalChange={() => handleIntervalChange(intervalItem.value)}
+						/>
+					))}
 				</div>
 
 				<div style={webStyles.modeButtonGroup}>

@@ -1,13 +1,20 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { parseWeatherParams, useGetWeatherQuery } from "integrations/weather";
-import { formatTime, calculateAverage, getQualityColor } from "../weatherUtils";
+import { calculateAverage, getQualityColor } from "../weatherUtils";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
 import Octicons from "react-native-vector-icons/Octicons";
 import { defaultDisplayConfig } from "../config";
 import { useTranslation } from "react-i18next";
+export const formatTime = (timeString) => {
+	const time = new Date(timeString);
+	return {
+		monthDay: format(time, "MM/dd", { locale: zhCN }),
+		hourMinute: format(time, "HH", { locale: zhCN }),
+	};
+};
 
 const dataQualityStyle = (value, type) => ({
 	backgroundColor: getQualityColor(value, type),

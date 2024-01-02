@@ -1,14 +1,4 @@
-import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
 import COLORS from "./color";
-// 辅助函数，用于格式化时间
-export const formatTime = (timeString) => {
-	const time = new Date(timeString);
-	return {
-		monthDay: format(time, "MM/dd", { locale: zhCN }),
-		hourMinute: format(time, "HH", { locale: zhCN }),
-	};
-};
 
 export const calculateAverage = (
 	hours: Array<any>,
