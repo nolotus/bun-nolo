@@ -18,6 +18,8 @@ const Page = ({ id }) => {
 
 	const pageId = id || paramPageId;
 	const isEditMode = searchParams.get("edit") === "true";
+	const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
+
 	const renderEdit = () => {
 		if (isEditMode) {
 			return <EditPage />;
@@ -27,7 +29,6 @@ const Page = ({ id }) => {
 		}
 	};
 
-	const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
 	console.log("data", data);
 	const renderContent = () => {
 		return (

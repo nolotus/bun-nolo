@@ -1,23 +1,21 @@
 import React from "react";
-import { ArrowDownIcon } from "@primer/octicons-react";
 import { calculateAverage, getQualityColor } from "../weatherUtils";
-import { iconContainerStyle, outerDivStyle } from "../WeatherIconStyles";
 import { format, parseISO } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import DirectionArrow from "./DirectionArrow";
+
 type WeatherDataGridProps = {
 	groupedWeatherData: Record<string, any[]>;
 	interval: number;
 	mode: string;
 };
-const getDayOfWeekShort = (dateStr: string): string => {
-	const date = parseISO(dateStr);
-	return format(date, "eee", { locale: zhCN }); // 使用‘eee’来获取简短的星期名称
-};
+
 const getMonthDayAndWeekday = (dateStr: string): string => {
 	const date = parseISO(dateStr); // 将字符串转换为日期对象
 	// 使用‘MM-dd’来获取月和日，‘eee’来获取简短的星期名称
 	return format(date, "MM-dd eee", { locale: zhCN });
 };
+
 const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
 	groupedWeatherData,
 	interval,
@@ -35,11 +33,6 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
 		const colorValue = getQualityColor(numericValue, type);
 		return { backgroundColor: colorValue };
 	};
-
-	const getRotationStyle = (rotationValue: string) => ({
-		...iconContainerStyle,
-		transform: `rotate(${rotationValue}deg)`,
-	});
 
 	return (
 		<div className="col-span-1 overflow-x-auto w-full">
@@ -88,24 +81,15 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
 															locale: zhCN,
 														})}
 													</div>
-													<div style={outerDivStyle}>
-														<div
-															style={getRotationStyle(
-																getDataByMode(hour, "windDirection"),
-															)}
-														>
-															<ArrowDownIcon size={16} />
-														</div>
-													</div>
-													<div style={outerDivStyle}>
-														<div
-															style={getRotationStyle(
-																getDataByMode(hour, "swellDirection"),
-															)}
-														>
-															<ArrowDownIcon size={16} />
-														</div>
-													</div>
+													<DirectionArrow
+														rotationValue={getDataByMode(hour, "windDirection")}
+													/>
+													<DirectionArrow
+														rotationValue={getDataByMode(
+															hour,
+															"swellDirection",
+														)}
+													/>
 													<div
 														style={getBackgroundColorStyle(
 															getDataByMode(hour, "swellHeight"),

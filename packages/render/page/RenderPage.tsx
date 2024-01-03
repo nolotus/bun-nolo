@@ -19,12 +19,10 @@ const RenderPage = ({ pageId, data }) => {
 		if (data.type === "page") {
 			if (data.mdast) {
 				return renderContentNode(data.mdast);
-			} else if (data.content) {
-				return renderContentNode(markdownToMdast(data.content));
 			}
-		} else {
-			return <RenderJson data={data} />;
+			return renderContentNode(markdownToMdast(data.content));
 		}
+		return <RenderJson data={data} />;
 	}, [data]);
 
 	const handleEdit = useCallback(() => {
