@@ -1,5 +1,6 @@
 import React from "react";
 import * as styles from "../styles/ToggleButtonStyles";
+import { twMerge } from "tailwind-merge"; // 导入tailwind-merge
 
 interface ToggleButtonProps {
 	value: string | number;
@@ -14,12 +15,11 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({
 	isActive,
 	onPress,
 }) => {
-	const buttonClasses = `${styles.baseButton} ${
-		isActive ? styles.activeButton : ""
-	}`;
-
-	// 使用textClasses为标题文本应用样式
-	const textClasses = `${styles.baseText} ${isActive ? styles.activeText : ""}`;
+	const buttonClasses = twMerge(
+		styles.baseButton,
+		isActive && styles.activeButton,
+	);
+	const textClasses = twMerge(styles.baseText, isActive && styles.activeText);
 
 	return (
 		<button
@@ -27,7 +27,6 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({
 			className={buttonClasses}
 			onClick={() => onPress(value)}
 		>
-			{/* 应用textClasses的span标签包裹标题文本 */}
 			<span className={textClasses}>{title}</span>
 		</button>
 	);

@@ -49,6 +49,7 @@
     "react-native-tab-view": "^3.5.2",
     "react-native-vector-icons": "^10.0.2",
     "react-redux": "^9.0.1",
+    "tailwind-merge": "^2.2.0",
     "twrnc": "^3.6.7"
   },
   "scripts": {

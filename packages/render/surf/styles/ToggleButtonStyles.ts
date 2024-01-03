@@ -1,3 +1,4 @@
+// ToggleButtonStyles.ts
 export const baseButton: string =
 	"flex-1 py-1 bg-white border border-gray-300 text-gray-800 hover:bg-gray-100 transition duration-300 ease-in-out";
 export const activeButton: string =
