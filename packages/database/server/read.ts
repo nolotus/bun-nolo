@@ -1,108 +1,136 @@
-import fs from 'fs';
-import { createReadStream } from 'node:fs';
-import readline from 'readline';
+import fs from "fs";
+import { createReadStream } from "node:fs";
+import readline from "readline";
 
-import { processLine } from 'core/decodeData';
-import { DEFAULT_INDEX_FILE } from 'auth/server/init';
-import { getLogger } from 'utils/logger';
-const readDataLogger = getLogger('readData');
+import { processLine } from "core/decodeData";
+import { DEFAULT_INDEX_FILE } from "auth/server/init";
+import { getLogger } from "utils/logger";
+const readDataLogger = getLogger("readData");
 
 export const handleReadSingle = async (req, res) => {
-  try {
-    let id = req.params.id;
-    const result = await serverGetData(id);
-    readDataLogger.info({ id }, 'handleReadSingle result');
-    if (result) {
-      return res.status(200).json({ ...result, id });
-    } else {
-      return res.status(404).json({ error: 'Data not found' });
-    }
-  } catch (error) {
-    readDataLogger.error({ error }, 'Error fetching data');
-    return res
-      .status(500)
-      .json({ error: 'An error occurred while fetching data' });
-  }
+	try {
+		const id = req.params.id;
+		const result = await serverGetData(id);
+		readDataLogger.info({ id }, "handleReadSingle result");
+		if (result) {
+			return res.status(200).json({ ...result, id });
+		}
+		return res.status(404).json({ error: "Data not found" });
+	} catch (error) {
+		readDataLogger.error({ error }, "Error fetching data");
+		return res
+			.status(500)
+			.json({ error: "An error occurred while fetching data" });
+	}
 };
 
 export const readIdFromIndexFile = async (dirPath, id) => {
-  const filePath = `${dirPath}/${DEFAULT_INDEX_FILE}`;
-  if (!fs.existsSync(filePath)) {
-    return null;
-  }
+	const filePath = `${dirPath}/${DEFAULT_INDEX_FILE}`;
+	if (!fs.existsSync(filePath)) {
+		return null;
+	}
 
-  return new Promise((resolve, reject) => {
-    const input = createReadStream(filePath);
-    const rl = readline.createInterface({ input });
+	return new Promise((resolve, reject) => {
+		const input = createReadStream(filePath);
+		const rl = readline.createInterface({ input });
 
-    rl.on('line', (line) => {
-      const [key, value] = processLine(line);
-      console.log('id', id);
+		rl.on("line", (line) => {
+			const [key, value] = processLine(line);
+			console.log("id", id);
 
-      if (key === id) {
-        console.log('hi', key);
+			if (key === id) {
+				console.log("hi", key);
 
-        resolve(value);
-        rl.close();
-      }
-    });
+				resolve(value);
+				rl.close();
+			}
+		});
 
-    rl.on('close', () => resolve(null));
-    rl.on('error', (err) => reject(err));
-  });
+		rl.on("close", () => resolve(null));
+		rl.on("error", (err) => reject(err));
+	});
 };
 
-export const serverGetData = (id) => {
-  readDataLogger.info({ id }, 'serverGetData');
+const checkFileExists = (filePath) => {
+	return fs.existsSync(filePath);
+};
+const findDataInFile = (filePath, id) => {
+	return new Promise((resolve, reject) => {
+		let found = false;
+		const input = createReadStream(filePath);
 
-  if (!id) {
-    readDataLogger.info('id is empty');
-    return Promise.resolve(null); // 如果 id 为空，立即返回 null
-  }
+		input.on("error", (err) => reject(err));
 
-  let parts = id.split('-');
-  let userId = parts[1];
+		const rl = readline.createInterface({ input });
 
-  // 检查 userId 是否未定义或无效
-  if (!userId) {
-    readDataLogger.info('userId is undefined or invalid');
-    return Promise.resolve(null); // 如果 userId 未定义或无效，立即返回 null
-  }
+		rl.on("line", (line) => {
+			const [key, value] = processLine(line);
+			readDataLogger.info({ key, value }, "processLine");
+			if (id === key) {
+				readDataLogger.info({ id, value }, "result");
+				found = true;
+				resolve(value);
+				rl.close();
+			}
+		});
 
-  const path = `./nolodata/${userId}/index.nolo`;
+		rl.on("close", () => {
+			if (!found) {
+				readDataLogger.info("id not found");
+				resolve(null);
+			}
+		});
 
-  // 检查文件是否存在
-  if (!fs.existsSync(path)) {
-    readDataLogger.info('File does not exist');
-    return Promise.resolve(null); // 如果文件不存在，立即返回 null
-  }
+		rl.on("error", (err) => reject(err));
+	});
+};
+export const serverGetData = (id: string) => {
+	readDataLogger.info({ id }, "serverGetData");
 
-  return new Promise((resolve, reject) => {
-    let found = false; // data found flag
-    const input = createReadStream(path);
+	if (!id) {
+		readDataLogger.info("id is empty");
+		return Promise.resolve(null);
+	}
 
-    input.on('error', (err) => reject(err));
+	const parts = id.split("-");
+	const userId = parts[1];
 
-    const rl = readline.createInterface({ input });
+	if (!userId) {
+		readDataLogger.info("userId is undefined or invalid");
+		return Promise.resolve(null);
+	}
 
-    rl.on('line', (line) => {
-      const [key, value] = processLine(line);
-      readDataLogger.info({ key, value }, 'processLine');
-      if (id === key) {
-        readDataLogger.info({ id, value }, 'result');
-        found = true;
-        resolve(value);
-        rl.close();
-      }
-    });
+	const indexPath = `./nolodata/${userId}/index.nolo`;
+	const hashPath = `./nolodata/${userId}/hash.nolo`;
 
-    rl.on('close', () => {
-      if (!found) {
-        readDataLogger.info('id not found');
-        resolve(null); // Resolve with null when id is not found
-      }
-    });
+	if (!checkFileExists(indexPath)) {
+		readDataLogger.info("index file does not exist");
+		return Promise.resolve(null);
+	}
+	if (!checkFileExists(hashPath)) {
+		readDataLogger.info("hash file does not exist");
+		return Promise.resolve(null);
+	}
 
-    rl.on('error', (err) => reject(err)); // Handles other types of errors
-  });
+	return findDataInFile(indexPath, id).then((data) => {
+		if (data) {
+			readDataLogger.info("Data found in index file");
+			return data;
+		}
+		if (id.startsWith("1")) {
+			readDataLogger.info("Data not found in index file, searching hash file");
+			return findDataInFile(hashPath, id).then((hashData) => {
+				if (hashData) {
+					readDataLogger.info("Data found in hash file");
+				} else {
+					readDataLogger.info("Data not found in hash file");
+				}
+				return hashData;
+			});
+		}
+		readDataLogger.info(
+			"Data not found in index file, and id does not start with '1'",
+		);
+		return null;
+	});
 };
