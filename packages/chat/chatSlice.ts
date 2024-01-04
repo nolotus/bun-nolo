@@ -5,34 +5,39 @@ import {
 } from "@reduxjs/toolkit";
 import { RootState } from "app/store";
 
-import { ChatConfig, ChatSliceState } from "./types";
+import { ChatConfig } from "./types";
+
+export type ChatSliceState = {
+	chatList: ReturnType<typeof chatAdapter.getInitialState>;
+	currentChatId: string | null;
+};
+
 export const chatAdapter = createEntityAdapter<ChatConfig>({
 	// Assume IDs are stored in the 'id' field of each chat config
 	selectId: (chat) => chat.id,
 });
+export const {
+	selectAll: selectAllChats,
+	selectById: selectChatById, // 新添加的按ID选择实体的选择器
+	// 可以继续添加其他需要的选择器，例如 selectIds, selectEntities, selectTotal
+} = chatAdapter.getSelectors((state: RootState) => state.chat.chatList);
 
 export const chatSlice = createSlice({
 	name: "chat",
 	initialState: {
-		currentChatConfig: null,
-		isStopped: false,
-		isMessageStreaming: false,
+		currentChatId: null,
 		chatList: chatAdapter.getInitialState(),
 	},
 	reducers: {
-		setCurrentChatConfig: (
-			state: ChatSliceState,
-			action: PayloadAction<ChatConfig>,
-		) => {
-			state.currentChatConfig = action.payload;
-		},
-		fetchchatListSuccess: (
+		fetchChatListSuccess: (
 			state: ChatSliceState,
 			action: PayloadAction<any[]>,
 		) => {
 			chatAdapter.upsertMany(state.chatList, action.payload);
-			if (!state.currentChatConfig) {
-				state.currentChatConfig = action.payload[0] ? action.payload[0] : null;
+			if (!state.currentChatId) {
+				state.currentChatId = action.payload[0].id
+					? action.payload[0].id
+					: null;
 			}
 		},
 
@@ -40,7 +45,7 @@ export const chatSlice = createSlice({
 			state: ChatSliceState,
 			action: PayloadAction<ChatConfig>,
 		) => {
-			state.currentChatConfig = action.payload;
+			state.currentChatId = action.payload.id;
 			chatAdapter.upsertOne(state.chatList, action.payload);
 		},
 
@@ -63,8 +68,7 @@ export const chatSlice = createSlice({
 });
 
 export const {
-	setCurrentChatConfig,
-	fetchchatListSuccess,
+	fetchChatListSuccess,
 	fetchDefaultConfig,
 	reloadChatList,
 	updateChatConfig,

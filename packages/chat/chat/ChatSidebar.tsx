@@ -14,7 +14,7 @@ import { useModal, Dialog } from "ui";
 import {
 	fetchDefaultConfig,
 	selectChat,
-	fetchchatListSuccess,
+	fetchChatListSuccess,
 	reloadChatList,
 } from "../chatSlice";
 import { useDeleteChat } from "../hooks/useDeleteChat";
@@ -44,7 +44,7 @@ const ChatSidebar = () => {
 
 	const auth = useAuth();
 	const dispatch = useAppDispatch();
-	const { currentChatConfig } = useAppSelector(selectChat);
+	const { currentChatId } = useAppSelector(selectChat);
 
 	const chatList = useAppSelector((state) => state.chat.chatList);
 	const chatItems = chatList.ids.map((id) => chatList.entities[id]);
@@ -73,20 +73,18 @@ const ChatSidebar = () => {
 				userId: nolotusId,
 				options,
 			}).unwrap();
-			isSuccess && dispatch(fetchchatListSuccess(nolotusChatList));
+			isSuccess && dispatch(fetchChatListSuccess(nolotusChatList));
 
 			if (auth.user?.userId) {
 				const userChatList = await getChatList({
 					userId: auth.user?.userId,
 					options,
 				}).unwrap();
-				isSuccess && dispatch(fetchchatListSuccess(userChatList));
+				isSuccess && dispatch(fetchChatListSuccess(userChatList));
 			}
 		};
 		fetchChatList();
 	}, [isSuccess, auth.user?.userId, dispatch, getChatList]);
-
-	const selectedChat = currentChatConfig?.id;
 
 	const postReloadChatList = async () => {
 		const result = await getChatList({ userId: auth.user?.userId, options });
@@ -103,7 +101,11 @@ const ChatSidebar = () => {
 	return (
 		<div className="flex flex-col h-full justify-start bg-gray-100">
 			<div className="p-4">
-				<button onClick={openConfigModal} className="text-blue-400">
+				<button
+					type="button"
+					onClick={openConfigModal}
+					className="text-blue-400"
+				>
 					创建智能助理
 				</button>
 			</div>
@@ -123,7 +125,7 @@ const ChatSidebar = () => {
 							key={chat.id}
 							chat={chat}
 							onDeleteChat={deleteChatBot}
-							isSelected={selectedChat === chat.id}
+							isSelected={currentChatId === chat.id}
 							allowEdit={isCreator(chat.id)}
 						/>
 					))}

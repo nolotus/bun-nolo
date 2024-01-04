@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "ui";
 import { getLogger } from "utils/logger";
 
-import { selectChat } from "../chatSlice";
 import MessageInput from "../messages/MessageInput";
 import MessagesDisplay from "../messages/MessagesDisplay";
 import {
@@ -27,6 +26,7 @@ import {
 import { selectMessage } from "../messages/selector";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
+import { useCurrentChatConfig } from "./chatHooks";
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
 const ChatWindow = () => {
@@ -45,7 +45,8 @@ const ChatWindow = () => {
 		}
 	};
 	const [requestFailed, setRequestFailed] = useState(false);
-	const { currentChatConfig } = useAppSelector(selectChat);
+
+	const currentChatConfig = useCurrentChatConfig();
 	const { isMessageStreaming, isStopped } = useAppSelector(selectMessage);
 	const [writeHashData] = useWriteHashMutation();
 	let temp;

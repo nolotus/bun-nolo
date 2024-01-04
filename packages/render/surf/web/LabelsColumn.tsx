@@ -1,35 +1,23 @@
 // LabelsColumn.tsx
 import React from "react";
-import clsx from "clsx";
 
-type LabelsColumnProps = {
-	stickyCellStyle: string;
-	dateCellStyle: string;
-	headerCellStyle: string;
-};
+const commonCellStyle = "h-6 truncate";
+const dateTextColor = "text-gray-800";
+const headerTextColor = "text-gray-600";
+const containerClasses =
+	"col-span-1 grid items-center bg-gray-100 sticky top-0 z-10 bg-white opacity-90";
 
-const LabelsColumn: React.FC<LabelsColumnProps> = ({
-	stickyCellStyle,
-	dateCellStyle,
-	headerCellStyle,
-}) => {
+const LabelsColumn: React.FC = () => {
 	return (
-		<div
-			className={clsx(
-				"col-span-1",
-				stickyCellStyle,
-				"grid items-center",
-				"bg-gray-100",
-			)}
-		>
-			<div className={dateCellStyle}>日期:</div>
-			<div className={dateCellStyle}>时间:</div>
-			<div className={headerCellStyle}>风向:</div>
-			<div className={headerCellStyle}>浪向:</div>
-			<div className={headerCellStyle}>浪高(m):</div>
-			<div className={headerCellStyle}>周期(s):</div>
-			<div className={headerCellStyle}>风速(m/s):</div>
-			<div className={headerCellStyle}>阵风(m/s):</div>
+		<div className={containerClasses}>
+			<div className={`${commonCellStyle} ${dateTextColor}`}>日期:</div>
+			<div className={`${commonCellStyle} ${dateTextColor}`}>时间:</div>
+			<div className={`${commonCellStyle} ${headerTextColor}`}>风向:</div>
+			<div className={`${commonCellStyle} ${headerTextColor}`}>浪向:</div>
+			<div className={`${commonCellStyle} ${headerTextColor}`}>浪高(m):</div>
+			<div className={`${commonCellStyle} ${headerTextColor}`}>周期(s):</div>
+			<div className={`${commonCellStyle} ${headerTextColor}`}>风速(m/s):</div>
+			<div className={`${commonCellStyle} ${headerTextColor}`}>阵风(m/s):</div>
 		</div>
 	);
 };

@@ -25,13 +25,13 @@ import {
 	continueMessage,
 	messageEnd,
 } from "../messages/messageSlice";
-import { selectChat } from "../chatSlice";
 import MessageItem from "./Messageitem";
 import { getLogger } from "utils/logger";
 import { selectMessage } from "../messages/selector";
 import { createContent } from "ai/client/createContent";
 import { retrieveFirstToken } from "auth/client/token";
 import RNFetchBlob from "react-native-blob-util";
+import { useCurrentChatConfig } from "../chat/chatHooks";
 const chatUrl = `${API_ENDPOINTS.AI}/chat`;
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
@@ -135,7 +135,7 @@ export function ChatScreen() {
 			return { error: { status: "FETCH_ERROR", data: error.message } };
 		}
 	};
-	const { currentChatConfig } = useAppSelector(selectChat);
+	const currentChatConfig = useCurrentChatConfig();
 	const [writeHashData] = useWriteHashMutation();
 
 	const [requestFailed, setRequestFailed] = useState(false);
