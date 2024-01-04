@@ -104,53 +104,57 @@ const NoteList = ({ data, refreshData }) => {
 					删除选中
 				</button>
 			</div>
-
-			{data
-				? data.map((item) => (
-						<div className="flex group" key={item.id}>
-							<div className="flex flex-col space-y-2 mr-4 invisible group-hover:visible">
-								<button
-									type="button"
-									onClick={() => pullData(item.id, item)}
-									className="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-400"
-								>
-									<RepoPullIcon size={16} />
-								</button>
-								<button
-									type="button"
-									onClick={() => pushData(item.id, item)}
-									className="bg-green-500 text-white p-2 rounded hover:bg-green-400"
-								>
-									<RepoPushIcon size={16} />
-								</button>
-								<button
-									type="button"
-									onClick={() => deleteItem(item.id, item.source)}
-									className="bg-red-500 text-white p-2 rounded hover:bg-red-400"
-								>
-									<TrashIcon size={16} />
-								</button>
+			<div className="flex flex-wrap">
+				{data
+					? data.map((item) => (
+							<div
+								className="flex group w-full sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4 p-2"
+								key={item.id}
+							>
+								<div className="flex flex-col space-y-2 mr-4 invisible group-hover:visible">
+									<button
+										type="button"
+										onClick={() => pullData(item.id, item)}
+										className="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-400"
+									>
+										<RepoPullIcon size={16} />
+									</button>
+									<button
+										type="button"
+										onClick={() => pushData(item.id, item)}
+										className="bg-green-500 text-white p-2 rounded hover:bg-green-400"
+									>
+										<RepoPushIcon size={16} />
+									</button>
+									<button
+										type="button"
+										onClick={() => deleteItem(item.id, item.source)}
+										className="bg-red-500 text-white p-2 rounded hover:bg-red-400"
+									>
+										<TrashIcon size={16} />
+									</button>
+								</div>
+								<div>
+									<NoteItem
+										dataId={item.id}
+										content={item}
+										refreshData={refreshData}
+										source={item.source}
+									/>
+									<ul className="flex flex-wrap -m-1">
+										{item.source.map((src, index) => (
+											<li key={index} className="m-1">
+												<span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+													{src}
+												</span>
+											</li>
+										))}
+									</ul>
+								</div>
 							</div>
-							<div>
-								<NoteItem
-									dataId={item.id}
-									content={item}
-									refreshData={refreshData}
-									source={item.source}
-								/>
-								<ul className="flex flex-wrap -m-1">
-									{item.source.map((src, index) => (
-										<li key={index} className="m-1">
-											<span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
-												{src}
-											</span>
-										</li>
-									))}
-								</ul>
-							</div>
-						</div>
-				  ))
-				: "Loading..."}
+					  ))
+					: "Loading..."}
+			</div>
 		</div>
 	);
 };

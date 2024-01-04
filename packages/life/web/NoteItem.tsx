@@ -21,12 +21,9 @@ const NoteItem: React.FC<NoteItemProps> = ({
 		<div
 			className={clsx(
 				baseCard, // 使用导入的基础卡片样式
-				"rounded-lg overflow-hidden",
-				"hover:shadow-lg hover:-translate-y-1", // 一致性hover动态效果
-				"space-y-4", // 给予元素之间更多垂直空间
-				"bg-white", // 白色背景
-				"text-gray-700", // 淡灰色系字体，优雅易读
-				"transition-all duration-300", // 平滑变换效果
+				"rounded overflow-hidden",
+				"bg-white",
+				"text-gray-700",
 			)}
 		>
 			<div className="p-6">
@@ -35,9 +32,7 @@ const NoteItem: React.FC<NoteItemProps> = ({
 						{title}
 					</Link>
 				</h3>
-				<p className="text-gray-600 text-sm leading-relaxed truncate">
-					{content}
-				</p>
+				<p className="text-gray-600 text-sm leading-relaxed ">{content}</p>
 			</div>
 			<div className="flex justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-200">
 				<Link
