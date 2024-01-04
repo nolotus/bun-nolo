@@ -11,6 +11,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { MobileMenu } from "render/layout/blocks/MobileMenu"; // 假设这些是拆分后的组件
 import { UserControls } from "user/blocks/UserControls";
 import NavListItem from "render/layout/blocks/NavListItem"; // 假设这些是拆分后的组件
+import zIndex from "app/styles/z-index";
 
 const nav = [
 	{ path: "/", label: "首页", icon: <HomeIcon size={24} /> },
@@ -65,6 +66,7 @@ export const Header: React.FC = () => {
 
 	return (
 		<header
+			style={{ zIndex: zIndex.header }}
 			className={clsx("bg-white", {
 				"fixed top-0 left-0 right-0 bg-gray-200 shadow-md": isSticky,
 			})}

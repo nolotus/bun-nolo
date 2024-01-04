@@ -2,7 +2,7 @@ import { useAppSelector } from "app/hooks";
 import { selectPages } from "database/selectors";
 import React from "react";
 
-import { FilterPanel } from "../blocks/FilterPanel";
+import { FilterPanel } from "./FilterPanel";
 import { useFetchData } from "../hooks/useFetchData";
 import NoteList from "./NoteList";
 export const Notes = () => {
