@@ -9,7 +9,10 @@ import {
 	TasklistIcon,
 } from "@primer/octicons-react";
 import clsx from "clsx";
-import React from "react";
+import React, { useEffect } from "react";
+import { useFetchData } from "../hooks/useFetchData";
+import { useAuth } from "app/hooks";
+
 import { NavLink } from "react-router-dom";
 const buttonBaseClass =
 	"w-full flex items-center p-2 mb-2 text-sm font-medium rounded-md transition-colors ease-snappy hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-400";
@@ -17,8 +20,14 @@ const iconClass = "text-neutral-600 mr-2";
 const activeClass = "bg-neutral-300";
 
 export const Sidebar = () => {
+	const { fetchData } = useFetchData();
+	const auth = useAuth();
+	useEffect(() => {
+		auth.user?.userId && fetchData(auth.user?.userId);
+	}, [auth.user?.userId]);
 	const getNavLinkClass = ({ isActive }) =>
 		clsx(buttonBaseClass, isActive && activeClass);
+
 	return (
 		<div className="w-48 min-h-full bg-neutral-100 overflow-y-auto">
 			<div className="flex flex-col justify-between p-4">
@@ -39,13 +48,11 @@ export const Sidebar = () => {
 						<CalendarIcon size={20} className={iconClass} />
 						<span>Calendar</span>
 					</NavLink>
-					{/* Menu Item 3 */}
-					<button className={clsx(buttonBaseClass)}>
+					<button type="button" className={clsx(buttonBaseClass)}>
 						<FileIcon size={20} className={iconClass} />
 						Files
 					</button>
-					{/* Menu Item 4 */}
-					<button className={clsx(buttonBaseClass)}>
+					<button type="button" className={clsx(buttonBaseClass)}>
 						<TasklistIcon size={20} className={iconClass} />
 						Tasks
 					</button>

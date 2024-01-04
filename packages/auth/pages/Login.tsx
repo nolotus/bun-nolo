@@ -64,7 +64,7 @@ const Login: React.FC = () => {
 			const token = signToken({ userId, publicKey, username }, secretKey);
 			const { token: newToken } = await login({ userId, token }).unwrap();
 			storeTokens(newToken);
-			// navigate(`/${LifeRoutePaths.WELCOME}`);
+			navigate(`/${LifeRoutePaths.WELCOME}`);
 		} catch (noloError) {
 			console.error(noloError);
 

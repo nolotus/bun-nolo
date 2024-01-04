@@ -7,8 +7,7 @@ import React, { useCallback } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { renderContentNode } from "render";
 import { Button, Toggle } from "ui";
-import { Toast } from "ui/toast/Toast";
-import { useToastManager } from "ui/toast/useToastManager";
+import { Toast, useToastManager } from "ui/Toast";
 
 import { MarkdownEdit } from "./MarkdownEdit";
 import { createPageData } from "./pageDataUtils";
@@ -104,7 +103,7 @@ const EditPage = () => {
 				<Toast
 					key={toast.id}
 					id={toast.id}
-					message={toast.message}
+					content={toast.content}
 					onClose={removeToast}
 				/>
 			))}
