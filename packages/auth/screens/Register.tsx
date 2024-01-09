@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TextInput, Button, Alert } from "react-native";
 import { hashPassword } from "core/password";
-import { useRegisterMutation } from "../services";
 import * as RNLocalize from "react-native-localize";
 import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { generateUserId } from "core/generateMainKey";
