@@ -42,6 +42,7 @@ export const base64UrlToUint8Array = (base64Url) => {
 		base64 += "=";
 	}
 	validationLogger.info("base64UrlToUint8Array base64", base64);
+
 	const binaryString = Base64.atob(base64);
 	const len = binaryString.length;
 	const bytes = new Uint8Array(len);

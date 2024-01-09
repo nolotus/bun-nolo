@@ -72,6 +72,7 @@ const Signup: React.FC = () => {
 		console.log("decryptedDataObject:", decryptedDataObject);
 
 		const userId = generateUserId(publicKey, username, language);
+		console.log("userId", userId);
 		console.log("sendData:", userId, sendData);
 		const token = signToken({ userId, username }, secretKey);
 
