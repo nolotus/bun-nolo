@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
 	UPDATE_PASSWORD: `${API_VERSION}/users/:id/password`,
 	AI: `${API_VERSION}/ai`,
 	WEATHER: `${API_VERSION}/weather`,
+	HI: `${API_VERSION}/hi`,
 };
 
 const serviceName = "nolotus";

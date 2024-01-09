@@ -26,6 +26,23 @@ const learningModules = {
 		},
 	],
 };
+const moduleData = {
+	study: {
+		title: "学习",
+		modules: [...learningModules.studyModules], // 初始已有学习模块
+	},
+	mobile: {
+		title: "Nolo移动端",
+		modules: [
+			{ name: "安卓端", content: "安卓端模块内容" },
+			{ name: "iOS端", content: "iOS端模块内容" },
+		],
+	},
+	officialWebsite: {
+		title: "Nolotus官网",
+		modules: [{ name: "Nolotus官网", content: "Nolotus官网模块内容" }],
+	},
+};
 const calculateRemainingDays = (deadline) => {
 	const today = new Date();
 	const dueDate = new Date(deadline);
@@ -74,8 +91,8 @@ const MyDashboard = () => {
 			<div style={{ display: "flex", justifyContent: "space-between" }}>
 				{/* 学习模块 */}
 				<div>
-					<h2>学习</h2>
-					{learningModules.studyModules.map((module, index) => (
+					<h2>{moduleData.study.title}</h2>
+					{moduleData.study.modules.map((module, index) => (
 						<div key={index}>
 							<h3>{module.title}</h3>
 							{module.deadline && (
@@ -102,21 +119,24 @@ const MyDashboard = () => {
 
 				{/* 移动端模块 */}
 				<div>
-					<h2>Nolo移动端</h2>
-					<div>
-						<h3>安卓端</h3>
-						{/* 安卓端模块内容 */}
-					</div>
-					<div>
-						<h3>iOS端</h3>
-						{/* iOS端模块内容 */}
-					</div>
+					<h2>{moduleData.mobile.title}</h2>
+					{moduleData.mobile.modules.map((module, index) => (
+						<div key={index}>
+							<h3>{module.name}</h3>
+							<p>{module.content}</p>
+						</div>
+					))}
 				</div>
 
 				{/* Nolotus官网模块 */}
 				<div>
-					<h2>Nolotus官网</h2>
-					{/* Nolotus官网模块内容 */}
+					<h2>{moduleData.officialWebsite.title}</h2>
+					{moduleData.officialWebsite.modules.map((module, index) => (
+						<div key={index}>
+							<h3>{module.name}</h3>
+							<p>{module.content}</p>
+						</div>
+					))}
 				</div>
 				{modules.map((module) => (
 					<div key={module.id}>
