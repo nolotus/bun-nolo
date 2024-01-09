@@ -7,6 +7,7 @@ import { weatherRouteHandler } from "integrations/weather";
 
 import { createResponse } from "./createResponse";
 import { handleRender } from "./render";
+import { isProduction } from "utils/env";
 
 const res = createResponse();
 
@@ -27,7 +28,9 @@ export const handleRequest = async (request: Request) => {
 
 	if (url.pathname.startsWith(API_VERSION)) {
 		if (url.pathname.startsWith(API_ENDPOINTS.HI)) {
-			return res.status(200).json({ API_VERSION: API_VERSION });
+			return res
+				.status(200)
+				.json({ API_VERSION: API_VERSION, isProduction: isProduction });
 		}
 		let body = request.body ? await request.json() : null;
 		let query = Object.fromEntries(new URLSearchParams(url.search));

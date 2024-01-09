@@ -39,8 +39,6 @@ export const readIdFromIndexFile = async (dirPath, id) => {
 			console.log("id", id);
 
 			if (key === id) {
-				console.log("hi", key);
-
 				resolve(value);
 				rl.close();
 			}
