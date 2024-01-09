@@ -93,7 +93,7 @@ const Login: React.FC = () => {
 			<div className="flex items-center justify-center">
 				<form
 					onSubmit={handleSubmit(onSubmit)}
-					className="w-full max-w-lg p-10 bg-white rounded-lg shadow"
+					className="w-full max-w-lg p-10 bg-white rounded shadow"
 				>
 					<h2 className="text-2xl font-bold mb-6 text-gray-800">
 						{t("login")}
