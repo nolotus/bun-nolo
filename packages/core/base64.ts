@@ -42,6 +42,7 @@ export const base64UrlToUint8Array = (base64Url) => {
 		base64 += "=";
 	}
 	const binaryString = Base64.atob(base64);
+	console.log("binaryString", binaryString);
 	const len = binaryString.length;
 	const bytes = new Uint8Array(len);
 	for (let i = 0; i < len; i++) {

@@ -7,6 +7,7 @@ import { weatherRouteHandler } from "integrations/weather";
 
 import { createResponse } from "./createResponse";
 import { handleRender } from "./render";
+
 const res = createResponse();
 
 export const handleRequest = async (request: Request) => {
@@ -25,6 +26,9 @@ export const handleRequest = async (request: Request) => {
 	}
 
 	if (url.pathname.startsWith(API_VERSION)) {
+		if (url.pathname.startsWith(API_ENDPOINTS.HI)) {
+			return res.status(200).json({ API_VERSION: API_VERSION });
+		}
 		let body = request.body ? await request.json() : null;
 		let query = Object.fromEntries(new URLSearchParams(url.search));
 		let req = {
@@ -35,9 +39,6 @@ export const handleRequest = async (request: Request) => {
 			headers: request.headers,
 			method: request.method,
 		};
-		if (url.pathname.startsWith(API_ENDPOINTS.hi)) {
-			return "hi";
-		}
 
 		if (url.pathname.startsWith(API_ENDPOINTS.AI)) {
 			req.user = await handleToken(request, res);
