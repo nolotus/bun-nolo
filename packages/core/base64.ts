@@ -37,6 +37,8 @@ export function base64UrlDecode(base64Url: string | undefined): string | null {
 }
 
 export const base64UrlToUint8Array = (base64Url) => {
+	validationLogger.info("base64UrlToUint8Array base64Url", base64Url);
+
 	let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
 	while (base64.length % 4) {
 		base64 += "=";
