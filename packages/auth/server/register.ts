@@ -8,7 +8,7 @@ import { getLogger } from "utils/logger";
 
 import { DATABASE_DIR, DEFAULT_INDEX_FILE } from "./init";
 
-const signupLogger = getLogger("signup");
+const registerLogger = getLogger("register");
 
 // 生成文件内容
 const generateFileContent = (
@@ -41,6 +41,8 @@ export async function handleRegister(req, res) {
 		language,
 	} = req.body;
 	const userId = generateUserId(publicKey, username, language);
+	registerLogger.info({ userId }, "userId");
+
 	const userDirPath = path.join(DATABASE_DIR, userId);
 
 	const isExists = fs.existsSync(userDirPath);
@@ -48,33 +50,34 @@ export async function handleRegister(req, res) {
 		return res
 			.status(409)
 			.json({ message: t("errors.dataExists", { id: userId }) });
-	} 
+	}
+	registerLogger.info({ isExists }, "isExists");
 
-  const filePath = path.join(userDirPath, DEFAULT_INDEX_FILE);
+	const filePath = path.join(userDirPath, DEFAULT_INDEX_FILE);
+	registerLogger.info({ filePath }, "filePath");
 
-  const fileContent = generateFileContent(
-    publicKey,
-    username,
-    encryptedEncryptionKey,
-    remoteRecoveryPassword,
-    userId,
-  );
+	const fileContent = generateFileContent(
+		publicKey,
+		username,
+		encryptedEncryptionKey,
+		remoteRecoveryPassword,
+		userId,
+	);
+	registerLogger.info({ fileContent }, "fileContent");
 
+	const encryptedData = signMessage(
+		JSON.stringify({
+			username,
+			userId,
+			publicKey,
+		}),
+		process.env.SECRET_KEY,
+	);
+	registerLogger.info({ encryptedData }, "encryptedData");
 
-  const encryptedData = signMessage(
-    JSON.stringify({
-      username,
-      userId,
-      publicKey,
-    }
-),
-    process.env.SECRET_KEY,
-  );
+	fs.mkdirSync(userDirPath, { recursive: true });
+	fs.writeFileSync(filePath, fileContent);
+	registerLogger.info({ userId, username }, "User data successfully saved.");
 
-
-  fs.mkdirSync(userDirPath, { recursive: true });
-  fs.writeFileSync(filePath, fileContent);
-  signupLogger.info({ userId, username }, "User data successfully saved.");
-
-  return res.status(200).json({ encryptedData });
+	return res.status(200).json({ encryptedData });
 }
