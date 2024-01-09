@@ -42,6 +42,7 @@ export const generateUserId = (
 		const text = publicKey + username + language + extra;
 		cryptoLogger.info(`text: ${text}`);
 		let userId = generateHash(text);
+		cryptoLogger.info("before Base64 userId:", { userId });
 
 		// 使用Base64 URL编码
 		userId = Base64.btoa(userId)
