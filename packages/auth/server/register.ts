@@ -64,14 +64,15 @@ export async function handleRegister(req, res) {
 	);
 	registerLogger.info({ fileContent }, "fileContent");
 
-	const encryptedData = signMessage(
-		JSON.stringify({
-			username,
-			userId,
-			publicKey,
-		}),
-		process.env.SECRET_KEY,
-	);
+	const message = JSON.stringify({
+		username,
+		userId,
+		publicKey,
+	});
+	const secretKey = process.env.SECRET_KEY;
+	registerLogger.info({ message, secretKey }, "message,secretKey");
+
+	const encryptedData = signMessage(message, secretKey);
 	registerLogger.info({ encryptedData }, "encryptedData");
 
 	fs.mkdirSync(userDirPath, { recursive: true });
