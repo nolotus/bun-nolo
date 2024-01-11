@@ -54,7 +54,6 @@ export async function handleRegister(req, res) {
 	registerLogger.info({ isExists }, "isExists");
 
 	const filePath = path.join(userDirPath, DEFAULT_INDEX_FILE);
-	registerLogger.info({ filePath }, "filePath");
 
 	const fileContent = generateFileContent(
 		publicKey,
