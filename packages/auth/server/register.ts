@@ -63,6 +63,7 @@ export async function handleRegister(req, res) {
 		userId,
 	);
 	registerLogger.info({ fileContent }, "fileContent");
+	registerLogger.info({ username, userId, publicKey }, "get message");
 
 	const message = JSON.stringify({
 		username,
