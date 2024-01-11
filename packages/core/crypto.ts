@@ -2,7 +2,7 @@ import { SHA3 } from "crypto-js";
 import nacl from "tweetnacl";
 import { getLogger } from "utils/logger";
 import { uint8ArrayToBase64Url, base64UrlToUint8Array } from "./base64";
-
+import { toUint8Array } from "js-base64";
 const cryptoLogger = getLogger("crypto");
 
 export const generateHash = (data) => {
@@ -28,10 +28,7 @@ export const generateKeyPairFromSeed = (seedData) => {
 
 export const signMessage = (message, secretKeyBase64) => {
 	const messageUint8 = new TextEncoder().encode(message);
-	const signedMessage = nacl.sign(
-		messageUint8,
-		base64UrlToUint8Array(secretKeyBase64),
-	);
+	const signedMessage = nacl.sign(messageUint8, toUint8Array(secretKeyBase64));
 	return uint8ArrayToBase64Url(new Uint8Array(signedMessage.buffer));
 };
 

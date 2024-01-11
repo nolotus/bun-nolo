@@ -37,6 +37,12 @@ export function base64UrlDecode(base64Url: string | undefined): string | null {
 }
 
 export const base64UrlToUint8Array = (base64Url: string) => {
+	const regex = /^[0-9a-zA-Z-_]*$/;
+
+	if (!regex.test(base64Url)) {
+		throw new Error("Invalid character in input base64Url string");
+	}
+
 	validationLogger.info({ base64Url }, "base64UrlToUint8Array base64Url");
 
 	let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
