@@ -2,7 +2,7 @@ import { SHA3 } from "crypto-js";
 import nacl from "tweetnacl";
 import { getLogger } from "utils/logger";
 import { uint8ArrayToBase64Url, base64UrlToUint8Array } from "./base64";
-import { toUint8Array } from "js-base64";
+import { fromUint8Array, toUint8Array } from "js-base64";
 const cryptoLogger = getLogger("crypto");
 
 export const generateHash = (data) => {
@@ -26,17 +26,41 @@ export const generateKeyPairFromSeed = (seedData) => {
 	};
 };
 
-export const signMessage = (message, secretKeyBase64) => {
-	const messageUint8 = new TextEncoder().encode(message);
-	const signedMessage = nacl.sign(messageUint8, toUint8Array(secretKeyBase64));
-	return uint8ArrayToBase64Url(new Uint8Array(signedMessage.buffer));
+/**
+ * 使用给定的密钥对消息进行签名
+ *
+ * @param {string} message - 要签名的消息
+ * @param {string} secretKeyBase64 - base64 编码的密钥，由 tweetnaclgh生成
+ * @returns {string} - 签名后的消息
+ */
+export const signMessage = (
+	message: string,
+	secretKeyBase64: string,
+): string => {
+	const messageUint8: Uint8Array = new TextEncoder().encode(message);
+	const signedMessage: Uint8Array = nacl.sign(
+		messageUint8,
+		toUint8Array(secretKeyBase64),
+	);
+	return fromUint8Array(signedMessage);
 };
 
-export const verifySignedMessage = (signedMessageBase64, publicKeyBase64) => {
-	const signedMessage = base64UrlToUint8Array(signedMessageBase64);
-	const message = nacl.sign.open(
+/**
+ * 验证已签名的消息并解码
+ *
+ * @param {string} signedMessageBase64 - base64 编码的已签名消息
+ * @param {string} publicKeyBase64 - base64 编码的公钥
+ * @returns {string} - 解码后的消息
+ * @throws {Error} - 当解码失败时抛出异常
+ */
+export const verifySignedMessage = (
+	signedMessageBase64: string,
+	publicKeyBase64: string,
+): string => {
+	const signedMessage: Uint8Array = toUint8Array(signedMessageBase64);
+	const message: Uint8Array | null = nacl.sign.open(
 		signedMessage,
-		base64UrlToUint8Array(publicKeyBase64),
+		toUint8Array(publicKeyBase64),
 	);
 	if (message == null) {
 		throw new Error("Decoding failed, message is null");
