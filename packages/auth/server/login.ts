@@ -18,8 +18,8 @@ export async function handleLogin(req, res) {
 			.json({ message: t("errors.dataNotFound", { id: userId }) });
 	}
 	console.log("userId", userId);
-
-	const storedPublicKey = await serverGetData(`0-${userId}-publicKey`);
+	const publicKeyId = `0-${userId}-publicKey`;
+	const storedPublicKey = await serverGetData(publicKeyId);
 	console.log("storedPublicKey", storedPublicKey);
 	const verification = await verifyToken(token, storedPublicKey);
 	if (verification) {
