@@ -21,16 +21,11 @@ export const verifyToken = (
 ): Record<string, any> | null => {
 	const [payloadBase64Url, signatureBase64Url] = token.split(".");
 
-	console.log("payloadBase64Url", payloadBase64Url);
-	console.log("signatureBase64Url", signatureBase64Url);
-	console.log("publicKeyBase64Url", publicKeyBase64Url);
-
 	const isValid = verifyDetachedSignature(
 		payloadBase64Url,
 		signatureBase64Url,
 		publicKeyBase64Url,
 	);
-	console.log("isValid", isValid);
 
 	if (!isValid) {
 		return null;
