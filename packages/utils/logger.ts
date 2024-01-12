@@ -16,7 +16,6 @@ const defaultOptions = {
 		"TableComponent",
 		"ChatWindow",
 		"register",
-		"readData",
 	],
 };
 const childLoggers = {};
