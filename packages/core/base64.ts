@@ -43,13 +43,10 @@ export const base64UrlToUint8Array = (base64Url: string) => {
 		throw new Error("Invalid character in input base64Url string");
 	}
 
-	validationLogger.info({ base64Url }, "base64UrlToUint8Array base64Url");
-
 	let base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
 	while (base64.length % 4) {
 		base64 += "=";
 	}
-	validationLogger.info({ base64 }, "base64UrlToUint8Array base64");
 
 	const binaryString = Base64.atob(base64);
 	const len = binaryString.length;

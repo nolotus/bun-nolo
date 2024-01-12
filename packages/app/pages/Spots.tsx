@@ -47,6 +47,26 @@ const Spots = () => {
 			<div className="flex flex-wrap -mx-2">
 				{isSuccess && renderSpotList(data)}
 			</div>
+			<div className="flex items-center justify-between p-4">
+				<h1 className="text-2xl font-bold text-gray-700">旅居点</h1>
+				{/* <button className="flex items-center px-3 py-2 text-sm font-semibold text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-700">
+          <PlusIcon size={16} className="mr-2" />
+          新增浪点
+        </button> */}
+			</div>
+			<div className="flex flex-wrap -mx-2">
+				{isSuccess && renderSpotList(data)}
+			</div>
+			<div className="flex items-center justify-between p-4">
+				<h1 className="text-2xl font-bold text-gray-700">餐饮</h1>
+				{/* <button className="flex items-center px-3 py-2 text-sm font-semibold text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-700">
+          <PlusIcon size={16} className="mr-2" />
+          新增浪点
+        </button> */}
+			</div>
+			<div className="flex flex-wrap -mx-2">
+				{isSuccess && renderSpotList(data)}
+			</div>
 		</>
 	);
 };

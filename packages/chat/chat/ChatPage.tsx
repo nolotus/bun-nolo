@@ -11,14 +11,15 @@ import chatTranslations from "../chatI18n";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 
-Object.keys(chatTranslations).forEach((lang) => {
+for (const lang of Object.keys(chatTranslations)) {
 	const translations = chatTranslations[lang].translation;
 	i18n.addResourceBundle(lang, "translation", translations, true, true);
-});
-Object.keys(aiTranslations).forEach((lang) => {
+}
+
+for (const lang of Object.keys(aiTranslations)) {
 	const translations = aiTranslations[lang].translation;
 	i18n.addResourceBundle(lang, "translation", translations, true, true);
-});
+}
 
 const ChatPage = () => {
 	const [getChatList, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
