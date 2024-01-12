@@ -105,10 +105,6 @@ export const serverGetData = (id: string) => {
 		readDataLogger.info("index file does not exist");
 		return Promise.resolve(null);
 	}
-	if (!checkFileExists(hashPath)) {
-		readDataLogger.info("hash file does not exist");
-		return Promise.resolve(null);
-	}
 
 	return findDataInFile(indexPath, id).then((data) => {
 		if (data) {
@@ -116,6 +112,11 @@ export const serverGetData = (id: string) => {
 			return data;
 		}
 		if (id.startsWith("1")) {
+			if (!checkFileExists(hashPath)) {
+				readDataLogger.info("hash file does not exist");
+				return Promise.resolve(null);
+			}
+
 			readDataLogger.info("Data not found in index file, searching hash file");
 			return findDataInFile(hashPath, id).then((hashData) => {
 				if (hashData) {
