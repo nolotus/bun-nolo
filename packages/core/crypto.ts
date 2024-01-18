@@ -5,7 +5,7 @@ import { uint8ArrayToBase64Url, base64UrlToUint8Array } from "./base64";
 import { fromUint8Array, toUint8Array } from "js-base64";
 const cryptoLogger = getLogger("crypto");
 
-export const generateHash = (data) => {
+export const generateHash = (data: string) => {
 	const hashWordArray = SHA3(data, { outputLength: 256 });
 	const words = hashWordArray.words;
 	const sigBytes = hashWordArray.sigBytes;

@@ -15,7 +15,6 @@ const hostname = window.location.hostname;
 
 const domNode = document.getElementById("root");
 const lng = window.navigator.language;
-const env = process.env.NODE_ENV;
 
 delete window.__PRELOADED_STATE__;
 if (isProduction) {

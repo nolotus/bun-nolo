@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-export const MessageImage: React.FC<{ image: string }> = ({ image }) => (
-  <img src={image} alt="Message" className="max-w-full h-auto" />
+export const MessageImage: React.FC<{ url: string }> = ({ url }) => (
+	<img src={url} alt="Message" className="max-w-full h-auto" />
 );

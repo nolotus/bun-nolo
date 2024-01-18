@@ -11,7 +11,15 @@ export const messageSlice = createSlice({
 	},
 	reducers: {
 		sendMessage: (state: MessageSliceState, action: PayloadAction<Message>) => {
-			state.messages.push(action.payload);
+			const message = action.payload;
+			state.messages.push(message);
+		},
+		startMessage: (state: MessageSliceState) => {
+			state.tempMessage = {
+				role: "assistant",
+				content: "loading",
+				id: nanoid(),
+			};
 			state.isMessageStreaming = true;
 		},
 		receiveMessage: (
@@ -19,6 +27,7 @@ export const messageSlice = createSlice({
 			action: PayloadAction<Message>,
 		) => {
 			state.messages.push(action.payload);
+			state.tempMessage = {};
 		},
 		clearMessages: (state: MessageSliceState) => {
 			// 清除消息
@@ -71,6 +80,7 @@ export const messageSlice = createSlice({
 
 export const {
 	sendMessage,
+	startMessage,
 	receiveMessage,
 	clearMessages,
 	retry,

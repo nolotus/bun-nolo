@@ -8,11 +8,11 @@ const DEFAULT_LENGTH = Math.max(...Object.keys(FLAGS_MAP).map(Number));
 // 使用 TypeScript 定义类型
 export interface Flags {
 	isHash?: boolean;
+	isFile?: boolean;
 	isVersion?: boolean;
 	isList?: boolean;
 	isObject?: boolean;
 	isString?: boolean;
-	isBase64?: boolean;
 	isJSON?: boolean;
 	isUrlSafe?: boolean;
 	isOthersWritable?: boolean;
@@ -64,6 +64,8 @@ export const isBase64 = (prefix: string): boolean =>
 	getDecodedFlag(prefix, "isBase64");
 export const isUrlSafe = (prefix: string): boolean =>
 	getDecodedFlag(prefix, "isUrlSafe");
+export const isFile = (prefix: string): boolean =>
+	getDecodedFlag(prefix, "isFile");
 
 export const extractKeyPart = (key: string, index: number): string => {
 	const parts = key.split(SEPARATOR);

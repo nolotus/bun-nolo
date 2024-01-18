@@ -1,43 +1,39 @@
+import { Message, RequestPayloadProperties } from "ai/types";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-
-import { createOpenAIRequestConfig } from "../openAI/config";
-import { Message, RequestPayloadProperties } from "../types";
-
+import { getProxyConfig } from "utils/getProxyConfig";
 type RequestPayload = RequestPayloadProperties & {
 	messages: Message[];
 };
+
+const proxyConfig = getProxyConfig();
 
 function createRequestConfig(
 	requestPayload: RequestPayload,
 	authorization: string,
 ): AxiosRequestConfig {
-	const data = {
-		...requestPayload,
-		stream: true,
-	};
-
-	const commonConfig = createOpenAIRequestConfig();
 	return {
-		...commonConfig,
 		url: "https://api.perplexity.ai/chat/completions",
 		method: "POST",
 		responseType: "stream",
 		headers: {
-			...commonConfig.headers,
+			"Content-Type": "application/json",
 			Authorization: authorization,
 		},
-		data,
+		data: {
+			...requestPayload,
+			stream: true,
+		},
+		...proxyConfig,
 	};
 }
 
-export async function sendPerplexityRequest(
+export async function chatRequest(
 	requestPayload: RequestPayload,
 ): Promise<AxiosResponse<any>> {
-	const authorization = `Bearer ${process.env.PERPLEXITY_AI_TOKEN}`;
-	const config = createRequestConfig(requestPayload, authorization);
+	const authToken = process.env.PERPLEXITY_AI_TOKEN || "";
+	const config = createRequestConfig(requestPayload, authToken);
 	try {
-		const response: AxiosResponse<any> = await axios.request(config);
-		return response;
+		return await axios.request(config);
 	} catch (error) {
 		console.error("Error making the request:", error.message);
 		throw error;

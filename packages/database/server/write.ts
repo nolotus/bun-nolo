@@ -8,6 +8,8 @@ import { formatData } from "core/formatData";
 import { generateKey } from "core/generateMainKey";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
+import { extractUserId } from "core";
+import { extractAndDecodePrefix } from "core/prefix";
 // import {WriteDataRequestBody} from '../types';
 
 export const handleError = (res, error) => {
@@ -28,6 +30,19 @@ export const writeData = async (dataKey, data, userId) => {
 	} catch {
 		throw new Error("没有该用户");
 	}
+	const result = extractAndDecodePrefix(dataKey);
+	const { isFile } = result;
+	if (isFile) {
+		const mimeTypes = {
+			"image/jpeg": ".jpg",
+			"image/png": ".png",
+			"application/pdf": ".pdf",
+			// ...其它MIME类型及对应后缀
+		};
+		const fileExtension = mimeTypes[data.type] || ""; // 如果找不到对应的MIME类型, 返回空字符串作为后缀
+
+		await Bun.write(`nolodata/${userId}/${dataKey}`, data);
+	}
 	const output = createWriteStream(path, { flags: "a" });
 	await pipelineAsync(Readable.from(`${dataKey} ${data}\n`), output);
 };
@@ -35,10 +50,19 @@ export const writeData = async (dataKey, data, userId) => {
 export const handleWrite = async (req, res) => {
 	const { user } = req;
 	const actionUserId = user.userId;
+	if (req.body instanceof FormData) {
+		const formData = req.body;
+		const fileBlob = formData.get("file");
+		const clientGeneratedID = formData.get("dataId");
+		const saveUserId = extractUserId(clientGeneratedID);
+		await writeData(clientGeneratedID, fileBlob, saveUserId);
+		return res
+			.status(200)
+			.json({ message: "success", dataId: clientGeneratedID });
+	}
+
 	const { userId, data, flags, customId } = req.body;
-
 	const saveUserId = userId;
-
 	const isWriteSelf = actionUserId === saveUserId;
 	const value = formatData(data, flags);
 

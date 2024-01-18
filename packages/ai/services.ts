@@ -1,13 +1,28 @@
 import { api } from "app/api";
 import { API_ENDPOINTS } from "database/config";
 
-import { createContent } from "./client/createContent";
+import { createPromotMessage } from "./utils/createPromotMessage";
 import { readChunks } from "./client/stream";
 import addPrefixForEnv from "utils/urlConfig";
+
 const chatUrl = `${API_ENDPOINTS.AI}/chat`;
 
 export const aiApi = api.injectEndpoints({
 	endpoints: (builder) => ({
+		visionChat: builder.mutation({
+			query: (payload) => ({
+				url: `${API_ENDPOINTS.AI}/chat`,
+				method: "POST",
+				body: payload, // 直接使用 payload 作为请求体
+			}),
+		}),
+		textChat: builder.mutation({
+			query: (payload) => ({
+				url: `${API_ENDPOINTS.AI}/images/edits`,
+				method: "POST",
+				body: payload, // 直接使用 payload 作为请求体
+			}),
+		}),
 		generateImageEdit: builder.mutation({
 			query: (payload) => ({
 				url: `${API_ENDPOINTS.AI}/images/edits`,
@@ -25,7 +40,7 @@ export const aiApi = api.injectEndpoints({
 		}),
 
 		generateAudio: builder.mutation({
-			query: (content) => ({
+			query: (content: string) => ({
 				url: `${API_ENDPOINTS.AI}/audio/speech`,
 				method: "POST",
 				body: {
@@ -45,14 +60,14 @@ export const aiApi = api.injectEndpoints({
 			) => {
 				const createStreamRequestBody = (payload: any, config: any) => {
 					const model = config.model || "gpt-3.5-turbo-16k";
-					const content = createContent(config);
+					const promotMessage = createPromotMessage(config);
 					const { userMessage, prevMessages } = payload;
 
 					return {
 						type: "stream",
 						model,
 						messages: [
-							{ role: "system", content },
+							promotMessage,
 							...prevMessages,
 							{ role: "user", content: userMessage },
 						],
@@ -84,11 +99,6 @@ export const aiApi = api.injectEndpoints({
 						signal,
 						headers,
 					});
-					console.log("response", response);
-					console.log("response.ok", response.ok);
-					console.log("getReader", response.body);
-
-					console.log("getReader", response.body.getReader);
 
 					if (!response.ok) {
 						// 处理错误
@@ -110,6 +120,8 @@ export const aiApi = api.injectEndpoints({
 });
 
 export const {
+	useVisionChatMutation,
+	useTextChatMutation,
 	useGenerateAudioMutation,
 	useStreamChatMutation,
 	useGenerateImageEditMutation,

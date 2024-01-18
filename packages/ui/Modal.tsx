@@ -1,56 +1,56 @@
-import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
-import { useKey } from 'react-use';
+import React, { useState } from "react";
+import { createPortal } from "react-dom";
+import { useKey } from "react-use";
 
 export const useModal = () => {
-  const [visible, setVisible] = useState(false);
-  const [modalState, setModalState] = useState(null);
+	const [visible, setVisible] = useState(false);
+	const [modalState, setModalState] = useState(null);
 
-  const open = (item) => {
-    setModalState(item);
-    setVisible(true);
-  };
+	const open = (item) => {
+		setModalState(item);
+		setVisible(true);
+	};
 
-  const close = () => {
-    setVisible(false);
-  };
+	const close = () => {
+		setVisible(false);
+	};
 
-  return { visible, open, close, modalState };
+	return { visible, open, close, modalState };
 };
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  className?: string;
+	isOpen: boolean;
+	onClose: () => void;
+	children: React.ReactNode;
+	className?: string;
 }
 
 export const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
-  useKey('Escape', onClose);
+	useKey("Escape", onClose);
 
-  if (!isOpen) {
-    return null;
-  }
+	if (!isOpen) {
+		return null;
+	}
 
-  const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
+	const handleOverlayClick = (event) => {
+		if (event.target === event.currentTarget) {
+			onClose();
+		}
+	};
 
-  return createPortal(
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-      onClick={handleOverlayClick}
-    >
-      <div
-        className={`m-auto shadow-2xl rounded-lg transition-all
+	return createPortal(
+		<div
+			className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+			onClick={handleOverlayClick}
+		>
+			<div
+				className={`m-auto shadow-2xl rounded-lg transition-all
     w-full sm:w-3/4 md:w-3/5 lg:w-2/3 xl:w-1/2 2xl:w-1/2 ${className}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body,
-  );
+				onClick={(e) => e.stopPropagation()}
+			>
+				{children}
+			</div>
+		</div>,
+		document.body,
+	);
 };

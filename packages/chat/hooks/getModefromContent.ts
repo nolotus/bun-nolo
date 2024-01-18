@@ -1,4 +1,6 @@
-export const getModefromContent = (content: string) => {
+import { ModeType } from "ai/types";
+
+export const getModefromContent = (content: string, message): ModeType => {
 	const generateImagePattern = /^生成.*图片/;
 	const surfModePattern = /查看海浪条件/;
 	if (surfModePattern.test(content)) {
@@ -9,6 +11,11 @@ export const getModefromContent = (content: string) => {
 		content.split("\n")[0].includes("生成图片")
 	) {
 		return "image";
+	}
+	const hasImageUrl = message.content.some((item) => item.type === "image_url");
+
+	if (hasImageUrl) {
+		return "vision";
 	}
 	return "stream";
 };

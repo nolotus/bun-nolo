@@ -13,7 +13,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { Button } from "ui/Button";
 
 import allTranslations from "../aiI18n";
-import { ModelPriceEnum } from "../model/modelPrice";
+import { ModelPriceEnum } from "../modelPrice";
 
 export const createDsl = {
 	name: {

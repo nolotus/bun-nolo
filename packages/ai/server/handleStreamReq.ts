@@ -1,26 +1,13 @@
 import { AxiosResponse } from "axios";
-import { pick, map } from "rambda";
+import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
+import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
+import { openaiModelPrice } from "integrations/openAI/modelPrice";
+import { adjustPerplexityFrequencyPenalty } from "integrations/perplexity/adjust";
+import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 
-import { adjustOpenAIFrequencyPenalty } from "../openAI/adjust";
-import { openaiModelPrice } from "../openAI/modelPrice";
-import sendOpenAIRequest from "../openAI/sendOpenAIRequest";
-import { adjustPerplexityFrequencyPenalty } from "../perplexity/adjust";
-import { perplexityModelPrice } from "../perplexity/modelPrice";
-import { sendPerplexityRequest } from "../perplexity/sendPerplexityRequest";
-
-const propertiesToPick = [
-	"model",
-	"presence_penalty",
-	"frequency_penalty",
-	"top_k",
-	"top_p",
-	"temperature",
-	"max_tokens",
-];
-
-const messagePropertiesToPick = ["content", "role"];
-
-const pickMessages = map(pick(messagePropertiesToPick));
+import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
+import { chatRequest } from "integrations/openAI/chatRequest";
+import { pickMessages } from "../utils/pickMessages";
 
 const createStreamResponse = (stream: AxiosResponse<any>) => {
 	const textEncoder = new TextEncoder();
@@ -46,32 +33,28 @@ const createStreamResponse = (stream: AxiosResponse<any>) => {
 
 export const handleStreamReq = async (req: Request, res) => {
 	const requestBody = {
-		...pick(propertiesToPick, req.body),
+		...pickAiRequstBody(req.body),
 		messages: pickMessages(req.body.messages),
 	};
+	const isBelongOenAIModel = openaiModelPrice.hasOwnProperty(requestBody.model);
+	const isBelongPerplexityModel = perplexityModelPrice.hasOwnProperty(
+		requestBody.model,
+	);
 
-	if (openaiModelPrice.hasOwnProperty(requestBody.model)) {
+	if (isBelongOenAIModel) {
 		requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
 			requestBody.frequency_penalty,
 		);
-	} else if (perplexityModelPrice.hasOwnProperty(requestBody.model)) {
-		requestBody.frequency_penalty = adjustPerplexityFrequencyPenalty(
-			requestBody.frequency_penalty,
-		);
-	} else {
-		// 如果模型未知，可以选择不调整frequency_penalty，也可以设置一个默认值
-		// 或者也可以选择直接返回一个响应，说明模型未知
-		throw new Error(`Unknown model: ${requestBody.model}`);
-	}
-	console.log("requestBody.model", requestBody.model);
-	if (openaiModelPrice.hasOwnProperty(requestBody.model)) {
 		try {
-			const response = await sendOpenAIRequest(requestBody);
+			const response = await chatRequest(requestBody, true);
 			return createStreamResponse(response);
 		} catch (error) {
 			console.error(error.message);
 		}
-	} else if (perplexityModelPrice.hasOwnProperty(requestBody.model)) {
+	} else if (isBelongPerplexityModel) {
+		requestBody.frequency_penalty = adjustPerplexityFrequencyPenalty(
+			requestBody.frequency_penalty,
+		);
 		try {
 			const response = await sendPerplexityRequest(requestBody);
 			return createStreamResponse(response);

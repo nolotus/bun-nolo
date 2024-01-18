@@ -8,6 +8,7 @@ import { weatherRouteHandler } from "integrations/weather";
 import { createResponse } from "./createResponse";
 import { handleRender } from "./render";
 import { isProduction } from "utils/env";
+import { handlePublicRequest } from "./publicRequestHandler"; // 确保路径正确
 
 const res = createResponse();
 
@@ -17,13 +18,8 @@ export const handleRequest = async (request: Request) => {
 		return res.status(200).json({ ok: true });
 	}
 	if (url.pathname.startsWith("/public")) {
-		const filePath = url.pathname.replace("/public", "");
-		const file = Bun.file(`public${filePath}`);
-		const headers = new Headers({
-			"Cache-Control": "max-age=3600",
-			type: file.type,
-		});
-		return new Response(file.stream(), { headers });
+		// 这里确保url是URL类型，如果不是需要先进行转换
+		return handlePublicRequest(url);
 	}
 
 	if (url.pathname.startsWith(API_VERSION)) {
@@ -32,12 +28,28 @@ export const handleRequest = async (request: Request) => {
 				.status(200)
 				.json({ API_VERSION: API_VERSION, isProduction: isProduction });
 		}
-		let body = request.body ? await request.json() : null;
-		let query = Object.fromEntries(new URLSearchParams(url.search));
+		const contentType = request.headers.get("content-type") || "";
+		let body;
+
+		// 如果是'formdata'类型，则使用formData()方法解析
+		if (contentType.includes("multipart/form-data")) {
+			try {
+				body = await request.formData();
+			} catch (error) {
+				console.error("Error parsing formdata:", error);
+			}
+		} else if (contentType.includes("application/json")) {
+			// 如果请求体为JSON，尝试解析为JSON对象
+			try {
+				body = await request.json();
+			} catch (error) {
+				console.error("Error parsing JSON:", error);
+			}
+		}
 		let req = {
 			url,
-			body,
-			query,
+			body, // 这里赋值可能是FormData对象或者是JSON对象，视请求而定
+			query: Object.fromEntries(new URLSearchParams(url.search)),
 			params: {},
 			headers: request.headers,
 			method: request.method,

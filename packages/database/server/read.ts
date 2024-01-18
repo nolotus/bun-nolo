@@ -3,13 +3,24 @@ import { createReadStream } from "node:fs";
 import readline from "readline";
 
 import { processLine } from "core/decodeData";
-import { DEFAULT_INDEX_FILE } from "auth/server/init";
+import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "auth/server/init";
 import { getLogger } from "utils/logger";
+import { extractAndDecodePrefix, extractUserId } from "core";
 const readDataLogger = getLogger("readData");
 
 export const handleReadSingle = async (req, res) => {
+	const id = req.params.id;
+	const { isFile } = extractAndDecodePrefix(id);
+	const userId = extractUserId(id);
+	if (isFile) {
+		const file = Bun.file(`nolodata/${userId}/${id}`);
+		const headers = new Headers({
+			"Cache-Control": "max-age=3600",
+			"Content-Type": file.type,
+		});
+		return new Response(file.stream(), { headers });
+	}
 	try {
-		const id = req.params.id;
 		const result = await serverGetData(id);
 		readDataLogger.info({ id }, "handleReadSingle result");
 		if (result) {
@@ -22,31 +33,6 @@ export const handleReadSingle = async (req, res) => {
 			.status(500)
 			.json({ error: "An error occurred while fetching data" });
 	}
-};
-
-export const readIdFromIndexFile = async (dirPath, id) => {
-	const filePath = `${dirPath}/${DEFAULT_INDEX_FILE}`;
-	if (!fs.existsSync(filePath)) {
-		return null;
-	}
-
-	return new Promise((resolve, reject) => {
-		const input = createReadStream(filePath);
-		const rl = readline.createInterface({ input });
-
-		rl.on("line", (line) => {
-			const [key, value] = processLine(line);
-			console.log("id", id);
-
-			if (key === id) {
-				resolve(value);
-				rl.close();
-			}
-		});
-
-		rl.on("close", () => resolve(null));
-		rl.on("error", (err) => reject(err));
-	});
 };
 
 const checkFileExists = (filePath) => {
@@ -98,8 +84,8 @@ export const serverGetData = (id: string) => {
 		return Promise.resolve(null);
 	}
 
-	const indexPath = `./nolodata/${userId}/index.nolo`;
-	const hashPath = `./nolodata/${userId}/hash.nolo`;
+	const indexPath = `./nolodata/${userId}/${DEFAULT_INDEX_FILE}`;
+	const hashPath = `./nolodata/${userId}/${DEFAULT_HASH_FILE}`;
 
 	if (!checkFileExists(indexPath)) {
 		readDataLogger.info("index file does not exist");

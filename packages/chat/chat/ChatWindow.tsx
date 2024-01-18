@@ -1,5 +1,4 @@
 import { TrashIcon } from "@primer/octicons-react";
-import { nanoid } from "@reduxjs/toolkit";
 import { tokenStatic } from "ai/client/static";
 import { selectCostByUserId } from "ai/selectors";
 import { useStreamChatMutation } from "ai/services";
@@ -9,6 +8,8 @@ import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "ui";
 import { getLogger } from "utils/logger";
+import { useVisionChatMutation } from "ai/services";
+import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
 
 import MessageInput from "../messages/MessageInput";
 import MessagesDisplay from "../messages/MessagesDisplay";
@@ -22,17 +23,23 @@ import {
 	clearMessages,
 	continueMessage,
 	messageEnd,
+	startMessage,
 } from "../messages/messageSlice";
 import { selectMessage } from "../messages/selector";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
 import { useCurrentChatConfig } from "./chatHooks";
+import { Message } from "../messages/types";
+import { createPromotMessage } from "ai/utils/createPromotMessage";
+
+import { pickMessages } from "ai/utils/pickMessages";
+
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
 const ChatWindow = () => {
 	const auth = useAuth();
 	const { t } = useTranslation();
-
+	const [visionChat] = useVisionChatMutation();
 	const dispatch = useAppDispatch();
 
 	const messages = useAppSelector((state) => state.message.messages);
@@ -140,14 +147,14 @@ const ChatWindow = () => {
 		});
 	};
 
-	const handleSendMessage = async (newContent: string) => {
-		if (!newContent.trim()) {
-			return;
-		}
+	const handleSendMessage = async (newContent: string, message: Message) => {
 		setRequestFailed(false);
-		dispatch(sendMessage({ role: "user", content: newContent, id: nanoid() }));
 
-		const mode = getModefromContent(newContent);
+		dispatch(sendMessage(message));
+		dispatch(startMessage());
+
+		const mode = getModefromContent(newContent, message);
+
 		const context = await getContextFromMode(mode, newContent);
 		if (context?.isError) {
 			await handleStreamMessage(newContent, messages);
@@ -181,6 +188,35 @@ const ChatWindow = () => {
 		}
 
 		try {
+			if (mode === "vision") {
+				const createRequestBody = (config) => {
+					const model = config.model || "gpt-3.5-turbo-16k";
+					const promotMessage = createPromotMessage(config);
+					const body = {
+						type: "vision",
+						model,
+						messages: pickMessages([promotMessage, ...messages, message]),
+						temperature: config.temperature || 0.8,
+						max_tokens: config.max_tokens || 4096,
+						top_p: config.top_p || 0.9,
+						frequency_penalty: config.frequency_penalty || 0,
+						presence_penalty: config.presence_penalty || 0,
+					};
+					return {
+						...pickAiRequstBody(body),
+						messages: pickMessages(body.messages),
+					};
+				};
+				const requestBody = createRequestBody({
+					...currentChatConfig,
+					responseLanguage: navigator.language,
+				});
+
+				const result = await visionChat(requestBody).unwrap();
+				const content = result.choices[0].message;
+
+				dispatch(receiveMessage(content));
+			}
 			if (mode === "stream") {
 				await handleStreamMessage(newContent, messages);
 				const staticData = {

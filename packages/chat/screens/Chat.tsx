@@ -19,7 +19,7 @@ import {
 	messagesReachedMax,
 	messageStreamEnd,
 	receiveMessage,
-	sendMessage,
+	sendMessages,
 	retry,
 	clearMessages,
 	continueMessage,
@@ -28,7 +28,7 @@ import {
 import MessageItem from "./Messageitem";
 import { getLogger } from "utils/logger";
 import { selectMessage } from "../messages/selector";
-import { createContent } from "ai/client/createContent";
+import { createPromotMessage } from "ai/utils/createPromotMessage";
 import { retrieveFirstToken } from "auth/client/token";
 import RNFetchBlob from "react-native-blob-util";
 import { useCurrentChatConfig } from "../chat/chatHooks";
@@ -68,14 +68,14 @@ export function ChatScreen() {
 
 		const createStreamRequestBody = (payload: any, config: any) => {
 			const model = config.model || "gpt-3.5-turbo-16k";
-			const content = createContent(config);
+			const promotMessage = createPromotMessage(config);
 			const { userMessage, prevMessages } = payload;
 
 			return {
 				type: "stream",
 				model,
 				messages: [
-					{ role: "system", content },
+					promotMessage,
 					...prevMessages,
 					{ role: "user", content: userMessage },
 				],
@@ -219,12 +219,13 @@ export function ChatScreen() {
 			signal: abortControllerRef.current.signal,
 		});
 	};
-	const handleSendMessage = async (newContent: string) => {
+	const handleSendMessage = async (newContent: string, messages) => {
 		if (!newContent.trim()) {
 			return;
 		}
 		setRequestFailed(false);
-		dispatch(sendMessage({ role: "user", content: newContent, id: nanoid() }));
+
+		dispatch(sendMessages(messages));
 
 		const mode = getModefromContent(newContent);
 		const context = await getContextFromMode(mode, newContent);

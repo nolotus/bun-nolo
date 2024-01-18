@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "ui/Button";
 
-import { ModelPriceEnum } from "../model/modelPrice";
+import { ModelPriceEnum } from "../modelPrice";
 export const editDsl = {
 	name: {
 		type: "string",

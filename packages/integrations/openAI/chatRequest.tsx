@@ -1,21 +1,24 @@
 import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
 
-import { createOpenAIRequestConfig } from "../openAI/config";
-import { FrontEndRequestBody } from "../types";
+import { createOpenAIRequestConfig } from "./config";
+import { FrontEndRequestBody } from "./types";
 
-const sendOpenAIRequest = async (
+export const chatRequest = async (
 	requestBody: FrontEndRequestBody,
+	isStream: boolean, // 改成 boolean，因为它不仅可以是 true，还可以是 false。
 ): Promise<AxiosResponse<any> | null> => {
 	const data = {
-		model: requestBody.model,
+		model: requestBody.model || "gpt-3.5-turbo-16k",
 		messages: requestBody.messages,
-		stream: true,
+		stream: isStream, // 使用传进来的 isStream 参数
+		max_tokens: requestBody.max_tokens,
 	};
 	const config: AxiosRequestConfig = {
 		...createOpenAIRequestConfig(),
 		url: "https://api.openai.com/v1/chat/completions",
 		method: "POST",
-		responseType: "stream",
+		// 根据 isStream 参数动态设置 responseType
+		responseType: isStream ? "stream" : "json",
 		data,
 	};
 	try {
@@ -26,5 +29,3 @@ const sendOpenAIRequest = async (
 		return null;
 	}
 };
-
-export default sendOpenAIRequest;

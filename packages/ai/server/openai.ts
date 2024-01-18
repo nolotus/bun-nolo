@@ -4,28 +4,25 @@ import { FrontEndRequestBody } from "../types";
 
 import { handleAudioReq } from "./handleAudioReq";
 import { handleStreamReq } from "./handleStreamReq";
-import { handleTextReq } from "./handleTextReq";
+import { chatRequest } from "integrations/openAI/chatRequest";
 
 const openAiLogger = getLogger("OpenAI");
 
-export const postToOpenAIProxy = async (req, res): Promise<void> => {
+export const postToOpenAIProxy = async (req, res) => {
 	openAiLogger.info("Received a request to post to AI");
 
 	const requestBody: FrontEndRequestBody = req.body;
 	const type: string = requestBody.type || "text";
 	console.log("type", type);
 	try {
-		if (type === "text") {
-			return handleTextReq(req, res);
-		}
 		if (type === "stream") {
 			return handleStreamReq(req, res);
 		}
 		if (type === "audio") {
 			return handleAudioReq(req, res);
 		}
-		openAiLogger.error("Invalid type specified");
-		return res.status(400).json({ error: "Invalid type specified" });
+		const result = await chatRequest(req.body, false);
+		return res.status(200).json(result.data);
 	} catch (error) {
 		openAiLogger.error(
 			"An error occurred when communicating with OpenAI",

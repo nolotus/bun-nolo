@@ -1,6 +1,6 @@
 import { mapLanguage } from "i18n/mapLanuage"; // Adjust the import based on your folder structure
 
-export const createContent = (config: any) => {
+export const createPromotMessage = (config: any) => {
 	const { name, description, replyRule, knowledge, responseLanguage } = config;
 	const mappedLanguage = mapLanguage(responseLanguage);
 
@@ -16,5 +16,7 @@ export const createContent = (config: any) => {
 		? `Response Language: ${mappedLanguage}`
 		: "";
 
-	return `${nameSection}${knowledgeSection}${descriptionSection}${replyRuleSection}${languageSection}`;
+	const content = `${nameSection}${knowledgeSection}${descriptionSection}${replyRuleSection}${languageSection}`;
+
+	return { role: "system", content };
 };
