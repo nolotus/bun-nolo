@@ -24,6 +24,6 @@ describe("base64UrlToUint8Array", () => {
 	test("should handle invalid characters in base64Url string", () => {
 		const input = "aGVsbG8#d29ybGRfIQ==";
 		const output = () => base64UrlToUint8Array(input);
-		expect(output).toThrowError("Invalid character in input base64Url string");
+		expect(output).toThrow(/Invalid character in input base64Url string/); // 修改在这里
 	});
 });

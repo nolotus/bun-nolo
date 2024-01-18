@@ -80,7 +80,7 @@ export function ChatScreen() {
 					{ role: "user", content: userMessage },
 				],
 				temperature: config.temperature || 0.8,
-				max_tokens: config.max_tokens || 2048,
+				max_tokens: config.max_tokens || 4096,
 				top_p: config.top_p || 0.9,
 				frequency_penalty: config.frequency_penalty || 0,
 				presence_penalty: config.presence_penalty || 0,
