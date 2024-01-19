@@ -2,12 +2,15 @@ import { createSelector } from "@reduxjs/toolkit";
 import { selectAllData } from "database/selectors";
 
 import { modelPrice } from "./modelPrice";
+import { DataType } from "create/types";
 
 export const selectTokenStatisticsData = createSelector(
 	[selectAllData],
 	(data) => {
 		// 在此处打印 data
-		return data.filter((item) => item.type === "tokenStatistics");
+		return data.filter(
+			(item) => item.type === DataType.TokenStatistics || DataType.TokenStats,
+		);
 	},
 );
 

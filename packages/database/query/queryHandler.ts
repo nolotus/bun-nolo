@@ -1,9 +1,9 @@
 import { noloToObject, getHeadTail, extractAndDecodePrefix } from "core";
 import { readLines } from "utils/bun/readLines";
 
-import { evaluateCondition } from "./operators";
 import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
+import { getDatabaseFilePath } from "auth/server/init";
 
 const handleData = (
 	data: string,
@@ -25,6 +25,36 @@ const handleData = (
 	return null;
 };
 
+// 创建数据流函数
+async function createDataStream(path: string) {
+	const file = Bun.file(path);
+	return file.stream();
+}
+function sortResults(results, sort) {
+	if (sort) {
+		results.sort((a, b) => {
+			if (sort.order === "asc") {
+				return a[sort.key] > b[sort.key] ? 1 : -1;
+			}
+			return a[sort.key] < b[sort.key] ? 1 : -1;
+		});
+	}
+}
+
+function processLine(line, condition, isObject, isJSON, isList) {
+	const { key: dataKey, value: data } = getHeadTail(line);
+	const flags = extractAndDecodePrefix(dataKey);
+	const result = handleData(
+		data,
+		condition || {},
+		flags,
+		isObject,
+		isJSON,
+		isList,
+	);
+	return result ? { id: dataKey, ...result } : null;
+}
+
 export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 	const {
 		userId,
@@ -38,49 +68,45 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 	} = options;
 
 	try {
-		const path = `./nolodata/${userId}/index.nolo`;
-		const file = Bun.file(path);
-		const stream = file.stream();
+		const { indexPath, hashPath } = getDatabaseFilePath(userId);
+		const paths = [indexPath, hashPath];
 
 		const results: any[] = [];
 		let count = 0;
+		let isLimitReached = false;
 
-		// 利用我们先前定义的 readLines 函数
-		let reader = readLines(stream);
-		try {
-			for await (let line of reader) {
-				const { key: dataKey, value: data } = getHeadTail(line);
-				const flags = extractAndDecodePrefix(dataKey);
-				const result = handleData(
-					data,
-					condition || {},
-					flags,
+		for (const path of paths) {
+			if (isLimitReached) break; // 如果已达到limit，中断循环
+
+			const stream = await createDataStream(path);
+			const reader = readLines(stream);
+
+			for await (const line of reader) {
+				const resultWithKey = processLine(
+					line,
+					condition,
 					isObject,
 					isJSON,
 					isList,
 				);
-				if (result) {
+
+				if (resultWithKey) {
 					if (count >= skip && results.length < limit) {
-						results.push({ id: dataKey, ...result });
+						results.push(resultWithKey);
 					}
 					count++;
+
+					// 如果达到limit，不再进行处理
+					if (results.length >= limit) {
+						isLimitReached = true;
+						break;
+					}
 				}
 			}
-		} catch (err) {
-			console.error(err);
 		}
 
-		// 如果有排序条件，进行排序
-		if (sort) {
-			results.sort((a, b) => {
-				if (sort.order === "asc") {
-					return a[sort.key] > b[sort.key] ? 1 : -1;
-				} else {
-					return a[sort.key] < b[sort.key] ? 1 : -1;
-				}
-			});
-		}
-
+		// 只在最后对所有结果进行排序
+		sortResults(results, sort);
 		return results;
 	} catch (e) {
 		console.error("出错了:", e);
