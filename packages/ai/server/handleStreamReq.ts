@@ -6,15 +6,19 @@ import { adjustPerplexityFrequencyPenalty } from "integrations/perplexity/adjust
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 
 import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
+import { chatRequest as sendMistralRequest } from "integrations/mistral/chatRequest";
+
 import { chatRequest } from "integrations/openAI/chatRequest";
 import { pickMessages } from "../utils/pickMessages";
+import { mistralModelPrice } from "integrations/mistral/modelPrice";
 
 const createStreamResponse = (stream: AxiosResponse<any>) => {
 	const textEncoder = new TextEncoder();
 	const readableStream = new ReadableStream({
 		start(controller) {
 			stream.data.on("data", (chunk) => {
-				controller.enqueue(textEncoder.encode(chunk.toString()));
+				const value = textEncoder.encode(chunk.toString());
+				controller.enqueue(value);
 			});
 			stream.data.on("end", () => {
 				controller.close();
@@ -40,6 +44,9 @@ export const handleStreamReq = async (req: Request, res) => {
 	const isBelongPerplexityModel = perplexityModelPrice.hasOwnProperty(
 		requestBody.model,
 	);
+	const isBelongMistralModel = mistralModelPrice.hasOwnProperty(
+		requestBody.model,
+	);
 
 	if (isBelongOenAIModel) {
 		requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
@@ -57,6 +64,13 @@ export const handleStreamReq = async (req: Request, res) => {
 		);
 		try {
 			const response = await sendPerplexityRequest(requestBody);
+			return createStreamResponse(response);
+		} catch (error) {
+			console.error(error.message);
+		}
+	} else if (isBelongMistralModel) {
+		try {
+			const response = await sendMistralRequest(requestBody, true);
 			return createStreamResponse(response);
 		} catch (error) {
 			console.error(error.message);
