@@ -9,11 +9,10 @@ import { chatRequest } from "integrations/openAI/chatRequest";
 const openAiLogger = getLogger("OpenAI");
 
 export const postToOpenAIProxy = async (req, res) => {
-	openAiLogger.info("Received a request to post to AI");
-
 	const requestBody: FrontEndRequestBody = req.body;
 	const type: string = requestBody.type || "text";
-	console.log("type", type);
+	openAiLogger.info(type, "Received a request to post to AI");
+
 	try {
 		if (type === "stream") {
 			return handleStreamReq(req, res);

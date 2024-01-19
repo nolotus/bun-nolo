@@ -2,14 +2,25 @@ import { parseWeatherParams, formatDataSnippet } from "integrations/weather";
 import { getWeather } from "integrations/weather/getWeather";
 import generateImage from "integrations/image/generateImage";
 import { ModeType } from "ai/types";
+import { tokenStatic } from "ai/client/static";
 
 export const getContextFromMode = async (mode: ModeType, content: string) => {
 	if (mode === "image") {
+		//todo  add static
 		const response = await generateImage({
 			prompt: content,
 		});
 		const data = response.data;
 		const imageUrl = data.data[0].url; // 提取图片 URL
+		// const staticData = {
+		// 	dialogType: "send",
+		// 	model: 'dalle-3'
+		// 	length: newMessage.length,
+		// 	userId: auth?.user?.userId,
+		// 	username: auth?.user?.username,
+		// 	date: new Date(),
+		// };
+		// tokenStatic(staticData, auth, writeHashData);
 		return { image: imageUrl };
 	}
 	if (mode === "surf") {
