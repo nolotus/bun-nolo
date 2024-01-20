@@ -1,5 +1,5 @@
 export interface Message {
-	role: "user" | "system" | "assistant";
+	role: MessageRole;
 	content: string;
 	image?: string;
 	id: string;
@@ -10,3 +10,4 @@ export interface MessageSliceState {
 	isMessageStreaming: boolean;
 	tempMessage: Message;
 }
+export type MessageRole = "user" | "system" | "assistant";

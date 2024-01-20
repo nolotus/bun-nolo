@@ -12,7 +12,9 @@ export const getModefromContent = (content: string, message): ModeType => {
 	) {
 		return "image";
 	}
-	const hasImageUrl = message.content.some((item) => item.type === "image_url");
+	const hasImageUrl =
+		Array.isArray(message.content) &&
+		message.content.some((item) => item.type === "image_url");
 
 	if (hasImageUrl) {
 		return "vision";
