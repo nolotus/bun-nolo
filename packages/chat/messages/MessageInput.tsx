@@ -31,7 +31,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const [isDragOver, setIsDragOver] = useState(false); // 新增状态来追踪是否有文件被拖到组件上
 
   const handleNewMessageChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     setNewMessage(event.target.value);
   };
@@ -47,31 +47,26 @@ const MessageInput: React.FC<MessageInputProps> = ({
       return;
     }
 
-    const content = imagePreviewUrls
-      ? newMessage
-      : [
+    const content = imagePreviewUrls[0]
+      ? [
           {
             type: "text",
             text: newMessage,
           },
-          ...(imagePreviewUrls[0]
-            ? [
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: imagePreviewUrls[0],
-                  },
-                },
-              ]
-            : []),
-        ];
+          {
+            type: "image_url",
+            image_url: {
+              url: imagePreviewUrls[0],
+            },
+          },
+        ]
+      : newMessage;
 
     const message = {
       id: nanoid(),
       role: "user",
       content,
     };
-
     onSendMessage(newMessage, message);
     setNewMessage("");
   };
@@ -112,7 +107,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
       // 发送文件上传请求
       const response = await fetch(
         "http://localhost/api/v1/db/write",
-        requestOptions
+        requestOptions,
       );
 
       if (!response.ok) {
@@ -142,7 +137,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
   const handleRemoveImage = (indexToRemove: number) => {
     setImagePreviewUrls((prevUrls) =>
-      prevUrls.filter((_, index) => index !== indexToRemove)
+      prevUrls.filter((_, index) => index !== indexToRemove),
     );
   };
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -168,20 +163,20 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="flex justify-center items-start p-4 space-x-4">
+    <div className="flex items-start justify-center space-x-4 p-4">
       <div
         className={clsx(
-          "flex flex-col relative w-full sm:w-4/5 md:w-3/4 lg:w-3/5 bg-white shadow rounded",
-          isDragOver ? "border-blue-500 border-4" : ""
+          "relative flex w-full flex-col rounded bg-white shadow sm:w-4/5 md:w-3/4 lg:w-3/5",
+          isDragOver ? "border-4 border-blue-500" : "",
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         {/* 输入文本区 */}
-        <div className="flex-grow relative">
+        <div className="relative flex-grow">
           <textarea
-            className="w-full h-36 text-black border-none p-3 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="h-36 w-full border-none p-3 text-black focus:outline-none focus:ring-2 focus:ring-blue-300"
             placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
             value={newMessage}
             onChange={handleNewMessageChange}
@@ -189,7 +184,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
           />
 
           {/* 图像预览和发送按钮 */}
-          <div className="absolute inset-x-0 bottom-0 right-0 left-auto flex justify-end items-center m-2 space-x-2 min-w-[160px] ">
+          <div className="absolute inset-x-0 bottom-0 left-auto right-0 m-2 flex min-w-[160px] items-center justify-end space-x-2 ">
             <ImagePreview
               imageUrls={imagePreviewUrls}
               onRemove={(index: number) => handleRemoveImage(index)}
@@ -203,7 +198,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         </div>
       </div>
       <div>
-        <label className="inline-flex items-baseli justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full cursor-pointer p-2">
+        <label className="items-baseli inline-flex cursor-pointer justify-center rounded-full bg-blue-500 p-2 text-white hover:bg-blue-600">
           <FileMediaIcon size={24} />
           <input
             type="file"
