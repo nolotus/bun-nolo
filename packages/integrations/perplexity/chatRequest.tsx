@@ -1,5 +1,6 @@
 import { Message, RequestPayloadProperties } from "ai/types";
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosRequestConfig, AxiosResponse } from "axios";
+import axios from "utils/axios";
 import { getProxyConfig } from "utils/getProxyConfig";
 type RequestPayload = RequestPayloadProperties & {
   messages: Message[];
@@ -9,7 +10,7 @@ const proxyConfig = getProxyConfig();
 
 function createRequestConfig(
   requestPayload: RequestPayload,
-  authorization: string
+  authorization: string,
 ): AxiosRequestConfig {
   return {
     url: "https://api.perplexity.ai/chat/completions",
@@ -28,7 +29,7 @@ function createRequestConfig(
 }
 
 export async function chatRequest(
-  requestPayload: RequestPayload
+  requestPayload: RequestPayload,
 ): Promise<AxiosResponse<any>> {
   const authToken = process.env.PERPLEXITY_AI_TOKEN || "";
   const config = createRequestConfig(requestPayload, authToken);

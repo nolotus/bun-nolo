@@ -1,11 +1,12 @@
-import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
+import { AxiosResponse, AxiosRequestConfig } from "axios";
+import axios from "utils/axios";
 
 import { createOpenAIRequestConfig } from "./config";
 import { FrontEndRequestBody } from "./types";
 
 export const chatRequest = async (
   requestBody: FrontEndRequestBody,
-  isStream: boolean
+  isStream: boolean,
 ): Promise<AxiosResponse<any> | null> => {
   const data = {
     model: requestBody.model || "gpt-3.5-turbo-16k",
