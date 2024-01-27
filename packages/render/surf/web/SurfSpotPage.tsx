@@ -1,56 +1,39 @@
-import clsx from "clsx";
-import React, { useState } from "react";
-import { WeatherDisplay } from "./WeatherDisplay";
-import { modes, intervals } from "../config";
-import ToggleButton from "./Buttons";
-import useSurfSpot from "../useSurfSpot";
-import { transformStyles } from "utils/styles/transformStyles";
-import { styles as extraStyles } from "../styles/container";
+import React from "react";
+import Map from "render/map/GoogleMap";
+import { WeatherRelate } from "./WeatherRelate";
 
-const webStyles = transformStyles(extraStyles);
+const SurfSpotDescription = ({ title, description }) => (
+  <div className="bg-gray-50 p-4">
+    <h1 className="my-6 text-xl font-bold text-gray-900">{title}</h1>
+    <h2 className="mb-2 text-lg font-semibold text-gray-900">浪点描述</h2>
+    <p className="text-gray-700">{description}</p>
+  </div>
+);
 
 const SurfSpotPage = ({ data }) => {
-	const { lat, lng } = data;
+  const { lat, lng } = data;
 
-	const { mode, interval, handleModeChange, handleIntervalChange } =
-		useSurfSpot();
+  return (
+    <div className="mx-auto max-w-full p-0 sm:p-2 md:p-4 lg:p-6 xl:p-8">
+      <div className="flex flex-col lg:flex-row">
+        <div className="w-full lg:w-1/2">
+          <div className="mb-4 h-64 overflow-hidden bg-gray-200 lg:h-[400px]">
+            <Map lat={lat} lng={lng} title={data.title} />
+          </div>
+          <div className="mb-4 lg:hidden">
+            <WeatherRelate lat={lat} lng={lng} />
+          </div>
+          <div className="hidden lg:mt-4 lg:block">
+            <WeatherRelate lat={lat} lng={lng} />
+          </div>
+        </div>
 
-	return (
-		<div className="mx-auto max-w-full">
-			<h1 className="text-2xl font-bold text-gray-900 my-6">{data.title}</h1>
-			<div className="mb-4">
-				<p className="text-gray-700">经度：{lat}</p>
-				<p className="text-gray-700">纬度：{lng}</p>
-			</div>
-			<div style={webStyles.buttonContainer}>
-				<div style={webStyles.intervalButtonGroup}>
-					{intervals.map((intervalItem) => (
-						<ToggleButton
-							key={intervalItem.value}
-							value={intervalItem.value}
-							title={intervalItem.title}
-							isActive={interval === intervalItem.value}
-							onPress={() => handleIntervalChange(intervalItem.value)}
-						/>
-					))}
-				</div>
-
-				<div style={webStyles.modeButtonGroup}>
-					{modes.map((item) => (
-						<ToggleButton
-							key={item.value}
-							value={item.value}
-							title={item.title}
-							isActive={mode === item.value}
-							onPress={handleModeChange}
-						/>
-					))}
-				</div>
-			</div>
-			<div className="w-full">
-				<WeatherDisplay lat={lat} lng={lng} mode={mode} interval={interval} />
-			</div>
-		</div>
-	);
+        <div className="w-full lg:w-1/2 lg:pl-4">
+          <SurfSpotDescription title={data.title} description="xxx" />
+        </div>
+      </div>
+    </div>
+  );
 };
+
 export default SurfSpotPage;

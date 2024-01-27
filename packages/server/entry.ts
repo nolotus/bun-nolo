@@ -1,10 +1,8 @@
 import { serve } from "bun";
 import { isProduction } from "utils/env";
-console.log("isProduction", isProduction);
-console.log("process.env.NODE_ENV ", process.env.NODE_ENV);
 import { handleRequest } from "./request";
 
-export const startServer = async () => {
+export const startServer = () => {
   if (isProduction) {
     serve({
       port: 443,

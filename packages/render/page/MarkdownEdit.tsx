@@ -1,16 +1,16 @@
-import debounce from 'lodash.debounce';
-import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
+import debounce from "lodash.debounce";
+import React, { useEffect, useRef, useState, ChangeEvent } from "react";
 
 type MarkdownEditProps = {
-  value: string,
-  onChange: (value: string) => void,
-  onKeyDown?
+  value: string;
+  onChange: (value: string) => void;
+  onKeyDown?;
 };
 
 // 更新TextArea高度的函数，应用了debounce来减少更新频率
 const updateTextAreaHeight = debounce((textarea: HTMLTextAreaElement) => {
   requestAnimationFrame(() => {
-    textarea.style.height = 'auto'; // 设置高度为auto以获取正确的scrollHeight
+    textarea.style.height = "auto"; // 设置高度为auto以获取正确的scrollHeight
     textarea.style.height = `${textarea.scrollHeight}px`;
   });
 }, 16);
@@ -45,7 +45,7 @@ export const MarkdownEdit: React.FC<MarkdownEditProps> = ({
   return (
     <textarea
       ref={textareaRef}
-      className="w-full h-auto focus:ring-0 focus:outline-none resize-none bg-transparent overflow-hidden"
+      className="h-auto w-full resize-none overflow-hidden bg-transparent focus:outline-none focus:ring-0"
       value={value}
       onChange={handleChange}
       onKeyDown={onKeyDown}
