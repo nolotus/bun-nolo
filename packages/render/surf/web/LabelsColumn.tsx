@@ -18,7 +18,7 @@ const LabelsColumn: React.FC = () => {
       <div className={`${commonCellStyle} ${headerTextColor}`}>周期(s):</div>
       <div className={`${commonCellStyle} ${headerTextColor}`}>风速(m/s):</div>
       <div className={`${commonCellStyle} ${headerTextColor}`}>阵风(m/s):</div>
-      <div className={`${commonCellStyle} ${headerTextColor}`}>气温():</div>
+      <div className={`${commonCellStyle} ${headerTextColor}`}>气温(℃):</div>
     </div>
   );
 };

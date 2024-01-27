@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { calculateAverage, getQualityColor } from "../weatherUtils";
 import { format, parseISO } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -21,6 +21,12 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
   interval,
   mode,
 }) => {
+  const [hideNightTime, setHideNightTime] = useState(true);
+
+  // const toggleNightTime = () => {
+  //   setHideNightTime(!hideNightTime);
+  // };
+
   const getDataByMode = (hour, field) => {
     return hour[field]?.[mode] ? `${hour[field][mode].toFixed(1)}` : "-";
   };
@@ -34,8 +40,21 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
     return { backgroundColor: colorValue };
   };
 
+  const hourIsVisible = (hour) => {
+    const hourNumber = format(parseISO(hour.time), "HH", {
+      locale: zhCN,
+    });
+    if (hideNightTime) {
+      return hourNumber < 20 && hourNumber >= 4;
+    }
+    return true;
+  };
+
   return (
     <div className="col-span-1 w-full overflow-x-auto">
+      {/* <button onClick={toggleNightTime} className="mb-2">
+        切换夜间时间显示
+      </button> */}
       <div className="grid grid-flow-col">
         {Object.entries(groupedWeatherData).map(([monthDay, hours]) => {
           const avgWaterTemperature = calculateAverage(
@@ -48,11 +67,11 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
             <React.Fragment key={monthDay}>
               <div key={monthDay} className="flex flex-col">
                 <div className="sticky top-0 z-10 flex flex-row items-center justify-start space-x-3 rounded-lg bg-white p-1 opacity-90 shadow-sm">
-                  <div className="h-6 flex-shrink-0 text-xs font-semibold text-blue-700 text-gray-800">
+                  <div className="h-6 flex-shrink-0 text-xs font-semibold  text-gray-800">
                     {getMonthDayAndWeekday(monthDay)}
                   </div>
 
-                  <div className="h-6 text-xs text-blue-500 text-gray-800">
+                  <div className="h-6 text-xs  text-gray-800">
                     {`水温: ${avgWaterTemperature}°C`}
                   </div>
                 </div>
@@ -62,7 +81,7 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
                   } grid grid-flow-col`}
                 >
                   {hours.reduce((acc, hour, index) => {
-                    if (index % interval === 0) {
+                    if (index % interval === 0 && hourIsVisible(hour)) {
                       acc.push(
                         <div
                           key={`${monthDay}-${index}`}
