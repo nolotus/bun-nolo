@@ -1,44 +1,44 @@
 import { isProduction } from "utils/env";
 
 const commonConfig = {
-	entrypoints: ["./packages/web/entry.tsx"],
-	outdir: "public",
-	minify: {
-		whitespace: true,
-		syntax: true,
-	},
-	target: "browser",
+  entrypoints: ["./packages/web/entry.tsx"],
+  outdir: "public",
+  minify: {
+    whitespace: true,
+    syntax: true,
+  },
+  target: "browser",
 };
 
 const productionConfig = {
-	...commonConfig,
+  ...commonConfig,
 };
-
+console.log("isProduction", isProduction);
 const config = isProduction ? productionConfig : commonConfig;
 
 export async function runBuild() {
-	// let json = {};
-	try {
-		const build = await Bun.build(config);
-		console.log("build", build);
-		for (const output of build.outputs) {
-			const result = await output;
-			if (result.kind === "entry-point") {
-				// console.log("result", result);
-				// let arr = result.path.split("/");
-				// let filename = arr.pop();
-				// json.main = filename;
-			}
-		}
+  // let json = {};
+  try {
+    const build = await Bun.build(config);
+    console.log("build", build);
+    for (const output of build.outputs) {
+      const result = await output;
+      if (result.kind === "entry-point") {
+        // console.log("result", result);
+        // let arr = result.path.split("/");
+        // let filename = arr.pop();
+        // json.main = filename;
+      }
+    }
 
-		// await Bun.write("./public/test.json", JSON.stringify(...result));
+    // await Bun.write("./public/test.json", JSON.stringify(...result));
 
-		// await Bun.write("./public/output.json", JSON.stringify(json));
+    // await Bun.write("./public/output.json", JSON.stringify(json));
 
-		// console.log(result);
-	} catch (error) {
-		console.error(error);
-	}
+    // console.log(result);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 // runBuild();
