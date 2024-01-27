@@ -1,7 +1,44 @@
-import { CheckIcon, CopyIcon } from "@primer/octicons-react";
+import {
+  CheckIcon,
+  CopyIcon,
+  EyeIcon,
+  EyeClosedIcon,
+} from "@primer/octicons-react";
 import clsx from "clsx";
-import React, { Suspense, lazy, useCallback, useState } from "react";
+import React, { Suspense, lazy, useCallback, useState, memo } from "react";
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+const CopyToClipboard = memo(({ text }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copyText = useCallback(async () => {
+    if (text && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000); // 复制状态持续2秒
+      } catch (err) {
+        console.error("无法复制:", err);
+      }
+    }
+  }, [text]);
+
+  return (
+    <button
+      onClick={copyText}
+      className={clsx(
+        "rounded px-2 py-1 transition-all duration-200 ease-in-out",
+        isCopied
+          ? "bg-gray-700 text-green-400"
+          : "text-gray-200 hover:bg-gray-700",
+      )}
+      disabled={!text}
+      aria-label="复制代码"
+    >
+      {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
+    </button>
+  );
+});
 
 const SyntaxHighlighter = lazy(() =>
   import("react-syntax-highlighter").then((module) => ({
@@ -12,30 +49,11 @@ const SyntaxHighlighter = lazy(() =>
 // 加载显示组件
 const Loader = () => <div>Loading...</div>;
 
-// 复制代码到剪贴板的函数
-const useCopyToClipboard = (text, duration = 2000) => {
-  const [isCopied, setIsCopied] = useState(false);
-
-  const handleCopy = useCallback(async () => {
-    if (text && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(text);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), duration);
-      } catch (err) {
-        console.error("无法复制:", err);
-      }
-    }
-  }, [text, duration]);
-
-  return [isCopied, handleCopy];
-};
-
 const Code = ({ value, language }) => {
-  const [isCopied, handleCopy] = useCopyToClipboard(value);
   const [isPreview, setIsPreview] = useState(false); // 新增预览状态
 
   const togglePreview = () => setIsPreview(!isPreview);
+
   function renderJson(jsonOrString) {
     let json;
     if (typeof jsonOrString === "string") {
@@ -62,10 +80,10 @@ const Code = ({ value, language }) => {
 
     return React.createElement(json.type, json.props, children);
   }
+
   const renderContent = () => {
     if (isPreview) {
       try {
-        // 假设DSL JSON已经存储在`value`变量中
         return renderJson(value);
       } catch (error) {
         console.error("渲染错误:", error);
@@ -89,33 +107,25 @@ const Code = ({ value, language }) => {
       );
     }
   };
+
   return (
     <div className="relative mx-auto my-6 overflow-hidden rounded-lg bg-gray-800 text-gray-100 shadow-md">
       <div className="flex items-center justify-between bg-gradient-to-r from-blue-500 to-teal-600 px-2 py-1">
         <span className="text-sm font-medium">
           {language?.toUpperCase() || "CODE"}
         </span>
-        <button
-          onClick={handleCopy}
-          className={clsx(
-            "rounded px-2 py-1 transition-all duration-200 ease-in-out",
-            isCopied
-              ? "bg-gray-700 text-green-400"
-              : "text-gray-200 hover:bg-gray-700",
-          )}
-          disabled={!value}
-          aria-label="复制代码"
-        >
-          {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
-        </button>
+        <div className="flex items-center">
+          <button
+            onClick={togglePreview} // 切换预览状态
+            className="rounded px-1 py-1 text-gray-200 transition-all duration-200 ease-in-out hover:bg-gray-700"
+            aria-label="切换预览"
+          >
+            {isPreview ? <EyeClosedIcon size={16} /> : <EyeIcon size={16} />}{" "}
+            {/*根据状态显示不同图标*/}
+          </button>
+          <CopyToClipboard text={value} />
+        </div>
       </div>
-      <button
-        onClick={togglePreview} // 切换预览状态
-        className="rounded px-2 py-1 text-gray-200 transition-all duration-200 ease-in-out hover:bg-gray-700"
-        aria-label="切换预览"
-      >
-        {isPreview ? "源代码" : "预览"} {/* 根据状态显示不同文本 */}
-      </button>
       {renderContent()}
     </div>
   );
