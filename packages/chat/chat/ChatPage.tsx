@@ -59,7 +59,7 @@ const ChatPage = () => {
       style={{ height: `calc(100vh - ${baseHeight})` }}
     >
       {/* Config Panel and Toggle Button */}
-      <div className="hidden overflow-y-auto bg-gray-200 lg:block lg:w-1/6">
+      <div className="w-full overflow-y-auto bg-gray-200 lg:block lg:w-1/6">
         <ChatSidebar />
       </div>
 
