@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "app": "workspace:app",
-    "clsx": "^2.0.0",
     "database": "workspace:database",
     "framer-motion": "^10.16.4",
     "react-json-view-lite": "^1.2.1",

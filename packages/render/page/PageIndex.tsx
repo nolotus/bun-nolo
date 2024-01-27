@@ -3,7 +3,7 @@ import { useGetEntryQuery } from "database/services";
 import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { Header } from "web/Header";
+import { Header } from "../layout/Header";
 
 import NoMatch from "../NoMatch";
 
@@ -12,63 +12,63 @@ import { initPage } from "./pageSlice";
 import RenderPage from "./RenderPage";
 
 const Page = ({ id }) => {
-	const { pageId: paramPageId } = useParams();
-	const [searchParams] = useSearchParams();
-	const dispatch = useAppDispatch();
+  const { pageId: paramPageId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dispatch = useAppDispatch();
 
-	const pageId = id || paramPageId;
-	const isEditMode = searchParams.get("edit") === "true";
-	const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
+  const pageId = id || paramPageId;
+  const isEditMode = searchParams.get("edit") === "true";
+  const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
 
-	const renderEdit = () => {
-		if (isEditMode) {
-			return <EditPage />;
-		}
-		if (!isEditMode) {
-			return <RenderPage pageId={pageId} data={data} />;
-		}
-	};
+  const renderEdit = () => {
+    if (isEditMode) {
+      return <EditPage />;
+    }
+    if (!isEditMode) {
+      return <RenderPage pageId={pageId} data={data} />;
+    }
+  };
 
-	console.log("data", data);
-	const renderContent = () => {
-		return (
-			<AnimatePresence mode="wait">
-				<motion.div
-					key={pageId}
-					initial={{ opacity: 0, visibility: "hidden" }}
-					animate={{ opacity: 1, visibility: "visible" }}
-					exit={{ opacity: 0, visibility: "hidden" }}
-					transition={{ duration: 0.3, when: "beforeChildren" }}
-				/>
-				{renderEdit()}
-			</AnimatePresence>
-		);
-	};
+  console.log("data", data);
+  const renderContent = () => {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={pageId}
+          initial={{ opacity: 0, visibility: "hidden" }}
+          animate={{ opacity: 1, visibility: "visible" }}
+          exit={{ opacity: 0, visibility: "hidden" }}
+          transition={{ duration: 0.3, when: "beforeChildren" }}
+        />
+        {renderEdit()}
+      </AnimatePresence>
+    );
+  };
 
-	if (data) {
-		dispatch(initPage(data));
-		const { layout } = data;
-		if (layout === "full") {
-			return (
-				<div className="bg-neutral-200 flex flex-col min-h-screen">
-					<Header />
-					<div className="w-full  flex-grow">{renderEdit()}</div>
-				</div>
-			);
-		}
-		return (
-			<div className="bg-neutral-200 flex flex-col min-h-screen">
-				<div className="max-w-8xl w-full mx-auto p-8 md:p-16 flex-grow">
-					{renderContent()}
-				</div>
-				{/* <Footer /> */}
-			</div>
-		);
-	}
+  if (data) {
+    dispatch(initPage(data));
+    const { layout } = data;
+    if (layout === "full") {
+      return (
+        <div className="flex min-h-screen flex-col bg-neutral-200">
+          <Header />
+          <div className="w-full  flex-grow">{renderEdit()}</div>
+        </div>
+      );
+    }
+    return (
+      <div className="flex min-h-screen flex-col bg-neutral-200">
+        <div className="max-w-8xl mx-auto w-full flex-grow p-8 md:p-16">
+          {renderContent()}
+        </div>
+        {/* <Footer /> */}
+      </div>
+    );
+  }
 
-	if (!data) {
-		return <NoMatch />;
-	}
+  if (!data) {
+    return <NoMatch />;
+  }
 };
 
 export default Page;

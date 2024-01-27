@@ -1,16 +1,16 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { Header } from "web/Header";
+import { Header } from "./Header";
 
 const Layout = () => {
-	return (
-		<div className="bg-neutral-200 flex flex-col min-h-screen">
-			<Header />
-			<div className="w-full  flex-grow">
-				<Outlet />
-			</div>
-		</div>
-	);
+  return (
+    <div className="flex min-h-screen flex-col bg-neutral-200">
+      <Header />
+      <div className="w-full  flex-grow">
+        <Outlet />
+      </div>
+    </div>
+  );
 };
 
 export default Layout;

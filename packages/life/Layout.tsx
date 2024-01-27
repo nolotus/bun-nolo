@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { Header } from "web/Header";
+import { Header } from "render/layout/Header";
 import React from "react";
 
 import { Sidebar } from "./blocks/Sidebar";
