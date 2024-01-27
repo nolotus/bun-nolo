@@ -29,7 +29,7 @@ const Layout = ({ disableAnimation = false }) => {
   return (
     <div className="flex min-h-screen flex-col bg-neutral-200">
       <Header />
-      <div className="max-w-8xl mx-auto w-full flex-grow p-8 md:p-16">
+      <div className="mx-auto w-full flex-grow sm:p-8 md:p-12">
         <Suspense fallback={<div>hi</div>}>{renderContent()}</Suspense>
       </div>
       {/* <Footer /> */}
