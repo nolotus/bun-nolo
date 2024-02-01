@@ -44,7 +44,13 @@ const Page = ({ id }) => {
       </AnimatePresence>
     );
   };
-
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-white text-lg text-gray-800">
+        加载中 请稍等
+      </div>
+    );
+  }
   if (data) {
     dispatch(initPage(data));
     const { layout } = data;
