@@ -11,6 +11,8 @@ import App from "./App";
 import { browserStore } from "./store";
 import "./input.css";
 import { isProduction } from "utils/env";
+import { APILoader } from "@uiw/react-amap";
+
 const hostname = window.location.hostname;
 
 const domNode = document.getElementById("root");
@@ -18,25 +20,29 @@ const lng = window.navigator.language;
 
 delete window.__PRELOADED_STATE__;
 if (isProduction) {
-	hydrateRoot(
-		domNode,
-		<React.StrictMode>
-			<Provider store={browserStore}>
-				<BrowserRouter>
-					<App hostname={hostname} lng={lng} />
-				</BrowserRouter>
-			</Provider>
-		</React.StrictMode>,
-	);
+  hydrateRoot(
+    domNode,
+    <React.StrictMode>
+      <APILoader version="2.0.5" akey="a7a90e05a37d3f6bf76d4a9032fc9129">
+        <Provider store={browserStore}>
+          <BrowserRouter>
+            <App hostname={hostname} lng={lng} />
+          </BrowserRouter>
+        </Provider>
+      </APILoader>
+    </React.StrictMode>,
+  );
 } else {
-	const root = createRoot(domNode);
-	root.render(
-		<React.StrictMode>
-			<Provider store={browserStore}>
-				<HashRouter>
-					<App hostname={hostname} lng={lng} />
-				</HashRouter>
-			</Provider>
-		</React.StrictMode>,
-	);
+  const root = createRoot(domNode);
+  root.render(
+    <React.StrictMode>
+      <APILoader version="2.0.5" akey="a7a90e05a37d3f6bf76d4a9032fc9129">
+        <Provider store={browserStore}>
+          <HashRouter>
+            <App hostname={hostname} lng={lng} />
+          </HashRouter>
+        </Provider>
+      </APILoader>
+    </React.StrictMode>,
+  );
 }

@@ -46,6 +46,8 @@
   "dependencies": {
     "@primer/octicons-react": "^19.8.0",
     "@reduxjs/toolkit": "^2.0.1",
+    "@uiw/react-amap": "^6.0.2",
+    "@uiw/react-amap-types": "^6.0.2",
     "google-map-react": "^2.2.1",
     "js-base64": "^3.7.5",
     "rambda": "^8.6.0",

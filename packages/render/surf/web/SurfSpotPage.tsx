@@ -1,24 +1,82 @@
 import React from "react";
-import Map from "render/map/GoogleMap";
+import GaodeMap from "render/map/GaodeMap";
 import { WeatherRelate } from "./WeatherRelate";
+import Card from "./Card";
+// 定义SurfSpotDescription组件的props类型
+interface SurfSpotDescriptionProps {
+  title: string;
+  description: string;
+}
 
-const SurfSpotDescription = ({ title, description }) => (
-  <div className="bg-gray-50 p-4">
-    <h1 className="my-6 text-xl font-bold text-gray-900">{title}</h1>
-    <h2 className="mb-2 text-lg font-semibold text-gray-900">浪点描述</h2>
+import { BeakerIcon, PinIcon, PlusIcon } from "@primer/octicons-react";
+
+const SurfSpotDescription = ({
+  title,
+  description,
+}: SurfSpotDescriptionProps) => (
+  <Card>
+    <div className="flex items-center justify-between">
+      <Card.Title>{title}</Card.Title>
+      <Card.Actions>
+        <button className="flex items-center rounded-md bg-orange-500 px-2 py-1 text-sm text-white hover:bg-orange-600">
+          <BeakerIcon size={16} className="mr-1" />
+          分享浪点
+        </button>
+      </Card.Actions>
+    </div>
     <p className="text-gray-700">{description}</p>
-  </div>
+  </Card>
 );
 
-const SurfSpotPage = ({ data }) => {
-  const { lat, lng } = data;
+const Surfers = () => (
+  <Card>
+    <div className="flex items-center justify-between">
+      <Card.Title>最近下浪的人</Card.Title>
+      <Card.Actions>
+        <button className="flex items-center rounded-md bg-green-500 px-2 py-1 text-sm text-white hover:bg-green-600">
+          <PinIcon size={16} className="mr-1" /> {/* 更换为 PinIcon */}
+          留下足迹
+        </button>
+      </Card.Actions>
+    </div>
+    {/* 这里插入正在下浪的人的信息 */}
+  </Card>
+);
+
+const NearbyClubs = () => (
+  <Card>
+    <div className="flex items-center justify-between">
+      <Card.Title>附近的俱乐部</Card.Title>
+      <Card.Actions>
+        <button className="flex items-center rounded-md bg-blue-500 px-2 py-1 text-sm text-white hover:bg-blue-600">
+          <PlusIcon size={16} className="mr-1" />
+          添加我的俱乐部
+        </button>
+      </Card.Actions>
+    </div>
+    {/* 这里插入附近俱乐部的信息 */}
+  </Card>
+);
+// 定义SurfSpotPage组件的props类型
+interface SurfSpotData {
+  lat?: number;
+  lng?: number;
+  title: string;
+}
+
+interface SurfSpotPageProps {
+  data: SurfSpotData;
+}
+
+const SurfSpotPage = ({ data }: SurfSpotPageProps) => {
+  const { lat = 31.86119, lng = 117.283042, title } = data;
 
   return (
     <div className="mx-auto max-w-full p-0 sm:p-2 md:p-4 lg:p-6 xl:p-8">
       <div className="flex flex-col lg:flex-row">
         <div className="w-full lg:w-1/2">
           <div className="mb-4 h-64 overflow-hidden bg-gray-200 lg:h-[400px]">
-            <Map lat={lat} lng={lng} title={data.title} />
+            <GaodeMap lat={lat} lng={lng} title={title} />
           </div>
           <div className="mb-4 lg:hidden">
             <WeatherRelate lat={lat} lng={lng} />
@@ -29,7 +87,9 @@ const SurfSpotPage = ({ data }) => {
         </div>
 
         <div className="w-full lg:w-1/2 lg:pl-4">
-          <SurfSpotDescription title={data.title} description="xxx" />
+          <SurfSpotDescription title={title} description="xxx" />
+          <Surfers />
+          <NearbyClubs />
         </div>
       </div>
     </div>

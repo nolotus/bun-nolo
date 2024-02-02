@@ -9,51 +9,51 @@ import App from "web/App";
 import assets from "../../public/assets.json";
 
 export const handleRender = async (req) => {
-	const bootstrapJs = `/${assets.js}`;
-	const bootstrapCss = `/${assets.css}`;
-	const url = new URL(req.url);
-	let didError = false;
+  const bootstrapJs = `/${assets.js}`;
+  const bootstrapCss = `/${assets.css}`;
+  const url = new URL(req.url);
+  let didError = false;
 
-	const acceptLanguage = req.headers.get("accept-language");
-	const lng = acceptLanguage.split(",")[0];
+  const acceptLanguage = req.headers.get("accept-language");
+  const lng = acceptLanguage.split(",")[0];
 
-	try {
-		const stream = await renderToReadableStream(
-			<Provider store={store}>
-				<StaticRouter location={url}>
-					<App hostname={req.host} lng={lng} />
-				</StaticRouter>
-			</Provider>,
-			{
-				bootstrapModules: [bootstrapJs],
-				onError(error) {
-					didError = true;
-					console.error(`渲染错误: ${error}`);
-				},
-			},
-		);
-		const [, copyRenderReactStream] = stream.tee();
-		const { readable, writable } = new TransformStream({
-			transform(chunk, controller) {
-				controller.enqueue(chunk);
-			},
-		});
-		let doneReact = false;
-		let doneLocal = false;
-		const writer = writable.getWriter();
-		const tryCloseStream = () => {
-			if (doneReact && doneLocal) {
-				writer.write(
-					new TextEncoder().encode(`
+  try {
+    const stream = await renderToReadableStream(
+      <Provider store={store}>
+        <StaticRouter location={url}>
+          <App hostname={req.host} lng={lng} />
+        </StaticRouter>
+      </Provider>,
+      {
+        bootstrapModules: [bootstrapJs],
+        onError(error) {
+          didError = true;
+          console.error(`渲染错误: ${error}`);
+        },
+      },
+    );
+    const [, copyRenderReactStream] = stream.tee();
+    const { readable, writable } = new TransformStream({
+      transform(chunk, controller) {
+        controller.enqueue(chunk);
+      },
+    });
+    let doneReact = false;
+    let doneLocal = false;
+    const writer = writable.getWriter();
+    const tryCloseStream = () => {
+      if (doneReact && doneLocal) {
+        writer.write(
+          new TextEncoder().encode(`
             </body>
           </html>
         `),
-				);
-				writer.close();
-			}
-		};
-		writer.write(
-			new TextEncoder().encode(`
+        );
+        writer.close();
+      }
+    };
+    writer.write(
+      new TextEncoder().encode(`
       <!DOCTYPE html>
       <head>
         <meta charSet="UTF-8" />
@@ -70,68 +70,68 @@ export const handleRender = async (req) => {
       </head>
       <body>
     `),
-		);
-		async function writeToStreamAsync() {
-			// const iterations = 30;
-			// for (let i = 0; i <= iterations; i++) {
-			//   await new Promise((resolve) =>
-			//     setTimeout(resolve, Math.round(Math.random() * 100))
-			//   );
-			//   let content = `<div id="ST-${i}">Iteration ${i}</div>`;
-			//   if (i > 0) {
-			//     content += `<script id="SR-${i}">$U("ST-${
-			//       i - 1
-			//     }","ST-${i}")</script>`;
-			//   }
-			//   if (i === iterations) {
-			//     content += `<script id="SR-${i}">$U("SR-${i}","SR-${i}")</script>`;
-			//   }
-			//   writer.write(new TextEncoder().encode(content));
-			// }
-			await Promise.all(store.dispatch(api.util.getRunningQueriesThunk()));
+    );
+    async function writeToStreamAsync() {
+      // const iterations = 30;
+      // for (let i = 0; i <= iterations; i++) {
+      //   await new Promise((resolve) =>
+      //     setTimeout(resolve, Math.round(Math.random() * 100))
+      //   );
+      //   let content = `<div id="ST-${i}">Iteration ${i}</div>`;
+      //   if (i > 0) {
+      //     content += `<script id="SR-${i}">$U("ST-${
+      //       i - 1
+      //     }","ST-${i}")</script>`;
+      //   }
+      //   if (i === iterations) {
+      //     content += `<script id="SR-${i}">$U("SR-${i}","SR-${i}")</script>`;
+      //   }
+      //   writer.write(new TextEncoder().encode(content));
+      // }
+      await Promise.all(store.dispatch(api.util.getRunningQueriesThunk()));
 
-			const preloadedState = store.getState();
-			writer.write(
-				new TextEncoder().encode(`
+      const preloadedState = store.getState();
+      writer.write(
+        new TextEncoder().encode(`
           <script>
             // WARNING: See the following for security issues around embedding JSON in HTML:
             // https://redux.js.org/usage/server-rendering#security-considerations
             window.__PRELOADED_STATE__ = ${JSON.stringify(
-							preloadedState,
-						).replace(/</g, "\\u003c")}
+              preloadedState,
+            ).replace(/</g, "\\u003c")}
           </script>
         `),
-			);
-			doneLocal = true;
-			tryCloseStream();
-		}
-		writeToStreamAsync();
-		const reader = copyRenderReactStream.getReader();
-		const proxyReactStream = async () => {
-			let finish = false;
-			while (!finish) {
-				const { done, value } = await reader.read();
-				if (done) {
-					finish = true;
-					doneReact = true;
-					writer.write(new TextEncoder().encode("</div>"));
-					tryCloseStream();
-					break;
-				}
-				writer.write(value);
-			}
-		};
-		writer.write(new TextEncoder().encode('<div id="root">'));
-		proxyReactStream();
-		return new Response(readable, {
-			status: didError ? 500 : 200,
-			headers: { "content-type": "text/html" },
-		});
-	} catch (error) {
-		console.error(`处理请求时发生错误: ${error}`);
-		return new Response("<h1>抱歉，服务器发生错误，请稍后重试</h1>", {
-			status: 500,
-			headers: { "content-type": "text/html; charset=utf-8" },
-		});
-	}
+      );
+      doneLocal = true;
+      tryCloseStream();
+    }
+    writeToStreamAsync();
+    const reader = copyRenderReactStream.getReader();
+    const proxyReactStream = async () => {
+      let finish = false;
+      while (!finish) {
+        const { done, value } = await reader.read();
+        if (done) {
+          finish = true;
+          doneReact = true;
+          writer.write(new TextEncoder().encode("</div>"));
+          tryCloseStream();
+          break;
+        }
+        writer.write(value);
+      }
+    };
+    writer.write(new TextEncoder().encode('<div id="root">'));
+    proxyReactStream();
+    return new Response(readable, {
+      status: didError ? 500 : 200,
+      headers: { "content-type": "text/html" },
+    });
+  } catch (error) {
+    console.error(`处理请求时发生错误: ${error}`);
+    return new Response("<h1>抱歉，服务器发生错误，请稍后重试</h1>", {
+      status: 500,
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }
 };
