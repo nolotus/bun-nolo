@@ -29,7 +29,6 @@ const Page = ({ id }) => {
     }
   };
 
-  console.log("data", data);
   const renderContent = () => {
     return (
       <AnimatePresence mode="wait">

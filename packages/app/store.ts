@@ -1,9 +1,10 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { api } from './api'; 
-import { reducer } from './reducer';
+import { configureStore } from "@reduxjs/toolkit";
+import { api } from "./api";
+import { reducer } from "./reducer";
 
 // 确定预加载状态是否存在，以便适配服务端和客户端
-const preloadedState = (typeof window !== 'undefined') ? window.__PRELOADED_STATE__ : undefined;
+const preloadedState =
+  typeof window !== "undefined" ? window.__PRELOADED_STATE__ : undefined;
 
 export const store = configureStore({
   reducer,

@@ -13,55 +13,55 @@ import Spots from "app/pages/Spots";
 const Page = lazy(() => import("render/page/PageIndex"));
 import People from "app/pages/People";
 export const routes = (currentUser) => [
-	{
-		path: "/",
-		element: <Default />,
-		children: [
-			{
-				index: true,
-				element: <Home />,
-			},
-			{
-				path: "lab",
-				element: <Lab />,
-			},
-			{
-				path: "people",
-				element: <People />,
-			},
-			{
-				path: "spots",
-				element: (
-					<Suspense fallback={<div>loading spots</div>}>
-						<Spots />
-					</Suspense>
-				),
-			},
-			...authRoutes,
-			...createRoutes,
+  {
+    path: "/",
+    element: <Default />,
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: "lab",
+        element: <Lab />,
+      },
+      {
+        path: "people",
+        element: <People />,
+      },
+      {
+        path: "spots",
+        element: (
+          <Suspense fallback={<div>loading spots</div>}>
+            <Spots />
+          </Suspense>
+        ),
+      },
+      ...authRoutes,
+      ...createRoutes,
 
-			{
-				path: "price",
-				element: (
-					<Page
-						id={
-							"000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-v9ziDvBB6UkWgFM_S2PV6"
-						}
-					/>
-				),
-			},
-			{ path: "surfing-safety-tips", element: <SurfTip /> },
-		],
-	},
-	settingRoutes,
-	chatRoutes,
-	lifeRoutes,
-	{
-		path: ":pageId",
-		element: (
-			<Suspense fallback={<div>loading Page</div>}>
-				<Page />
-			</Suspense>
-		),
-	},
+      {
+        path: "price",
+        element: (
+          <Page
+            id={
+              "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-v9ziDvBB6UkWgFM_S2PV6"
+            }
+          />
+        ),
+      },
+      { path: "surfing-safety-tips", element: <SurfTip /> },
+    ],
+  },
+  settingRoutes,
+  chatRoutes,
+  lifeRoutes,
+  {
+    path: ":pageId",
+    element: (
+      <Suspense>
+        <Page />
+      </Suspense>
+    ),
+  },
 ];
