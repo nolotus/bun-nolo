@@ -23,26 +23,23 @@ if (isProduction) {
   hydrateRoot(
     domNode,
     <React.StrictMode>
-      <APILoader version="2.0.5" akey="a7a90e05a37d3f6bf76d4a9032fc9129">
-        <Provider store={browserStore}>
-          <BrowserRouter>
-            <App hostname={hostname} lng={lng} />
-          </BrowserRouter>
-        </Provider>
-      </APILoader>
+      <Provider store={browserStore}>
+        <BrowserRouter>
+          <App hostname={hostname} lng={lng} />
+        </BrowserRouter>
+      </Provider>
+      ~{" "}
     </React.StrictMode>,
   );
 } else {
   const root = createRoot(domNode);
   root.render(
     <React.StrictMode>
-      <APILoader version="2.0.5" akey="a7a90e05a37d3f6bf76d4a9032fc9129">
-        <Provider store={browserStore}>
-          <HashRouter>
-            <App hostname={hostname} lng={lng} />
-          </HashRouter>
-        </Provider>
-      </APILoader>
+      <Provider store={browserStore}>
+        <HashRouter>
+          <App hostname={hostname} lng={lng} />
+        </HashRouter>
+      </Provider>
     </React.StrictMode>,
   );
 }
