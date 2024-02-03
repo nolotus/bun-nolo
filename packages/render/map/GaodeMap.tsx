@@ -3,9 +3,7 @@ import { Map, ToolBarControl, Marker } from "@uiw/react-amap";
 import { APILoader } from "@uiw/react-amap";
 
 const GaodeMap = ({ lat = 31.86119, lng = 117.283042, title }) => {
-  console.log("lat", lat);
-  console.log("lng", lng);
-
+  const position = new AMap.LngLat(Number(lng), Number(lat));
   const [center, setCenter] = useState([lng, lat]);
   return (
     <APILoader version="2.0.5" akey="a7a90e05a37d3f6bf76d4a9032fc9129">
@@ -22,7 +20,7 @@ const GaodeMap = ({ lat = 31.86119, lng = 117.283042, title }) => {
             // 设置文本标注方位
             direction: "right",
           }}
-          position={new AMap.LngLat(Number(lng), Number(lat))}
+          position={position}
         />
       </Map>
     </APILoader>
