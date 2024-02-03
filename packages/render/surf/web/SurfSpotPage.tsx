@@ -1,5 +1,8 @@
 import React from "react";
 import GaodeMap from "render/map/GaodeMap";
+import { APILoader } from "@uiw/react-amap";
+//be careful APILoader can't in entry or Map file, you could try will debug
+
 import { WeatherRelate } from "./WeatherRelate";
 import Card from "./Card";
 // 定义SurfSpotDescription组件的props类型
@@ -76,7 +79,9 @@ const SurfSpotPage = ({ data }: SurfSpotPageProps) => {
       <div className="flex flex-col lg:flex-row">
         <div className="w-full lg:w-1/2">
           <div className="mb-4 h-64 overflow-hidden bg-gray-200 lg:h-[400px]">
-            <GaodeMap lat={lat} lng={lng} title={title} />
+            <APILoader version="2.0.5" akey="a7a90e05a37d3f6bf76d4a9032fc9129">
+              <GaodeMap lat={lat} lng={lng} title={title} />
+            </APILoader>
           </div>
           <div className="mb-4 lg:hidden">
             <WeatherRelate lat={lat} lng={lng} />
