@@ -28,7 +28,6 @@ if (isProduction) {
           <App hostname={hostname} lng={lng} />
         </BrowserRouter>
       </Provider>
-      ~{" "}
     </React.StrictMode>,
   );
 } else {
