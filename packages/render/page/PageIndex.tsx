@@ -50,31 +50,31 @@ const Page = ({ id }) => {
         加载中 请稍等
       </div>
     );
-  }
-  if (data) {
-    dispatch(initPage(data));
-    const { layout } = data;
-    if (layout === "full") {
+  } else {
+    if (data) {
+      dispatch(initPage(data));
+      const { layout } = data;
+      if (layout === "full") {
+        return (
+          <div className="flex min-h-screen flex-col bg-neutral-200">
+            <Header />
+            <div className="w-full  flex-grow">{renderEdit()}</div>
+          </div>
+        );
+      }
       return (
         <div className="flex min-h-screen flex-col bg-neutral-200">
           <Header />
-          <div className="w-full  flex-grow">{renderEdit()}</div>
+          <div className="max-w-8xl mx-auto w-full flex-grow p-8 md:p-16">
+            {renderContent()}
+          </div>
+          {/* <Footer /> */}
         </div>
       );
     }
-    return (
-      <div className="flex min-h-screen flex-col bg-neutral-200">
-        <Header />
-        <div className="max-w-8xl mx-auto w-full flex-grow p-8 md:p-16">
-          {renderContent()}
-        </div>
-        {/* <Footer /> */}
-      </div>
-    );
-  }
-
-  if (!data) {
-    return <NoMatch />;
+    if (!data) {
+      return <NoMatch />;
+    }
   }
 };
 
