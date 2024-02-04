@@ -7,7 +7,11 @@ import {
   getYamlValueFromMdast,
 } from "render/MarkdownProcessor";
 import { pick } from "rambda";
-
+const location = ["lat", "lng", "country", "province", "state", "city"];
+const render = ["layout"];
+const artcile = ["title", "tags", "categories"];
+const todo = ["end_time", "start_time"];
+const pay = ["price", "payment_method", "pay_time"];
 export function processContent(content: string) {
   // 使用自定义的函数将内容转换为mdast对象
   const mdast = markdownToMdast(content);
@@ -20,23 +24,7 @@ export function processContent(content: string) {
     try {
       const parsedYaml = parseYaml(newYamlValue);
       metaUpdates = pick(
-        [
-          "type",
-          "lat",
-          "lng",
-          "layout",
-          "title",
-          "tags",
-          "categories",
-          "end_time",
-          "start_time",
-          "date",
-          "country",
-          "province",
-          "state",
-          "city",
-          "country",
-        ],
+        ["type", ...location, ...render, ...artcile, ...todo, ...pay, "date"],
         parsedYaml,
       );
 

@@ -64,6 +64,7 @@ const Page = ({ id }) => {
     }
     return (
       <div className="flex min-h-screen flex-col bg-neutral-200">
+        <Header />
         <div className="max-w-8xl mx-auto w-full flex-grow p-8 md:p-16">
           {renderContent()}
         </div>

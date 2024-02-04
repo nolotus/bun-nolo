@@ -1,11 +1,11 @@
-import { useAppSelector } from 'app/hooks';
-import React from 'react';
+import { useAppSelector } from "app/hooks";
+import React from "react";
 
-import { AccountBalance } from '../blocks/AccountBanlance';
-import DataList from '../blocks/DataList';
-import { FilterPanel } from '../blocks/FilterPanel';
-import { useFetchData } from '../hooks/useFetchData';
-import { selectFilteredLifeData } from '../selectors';
+import { AccountBalance } from "../blocks/AccountBanlance";
+import DataList from "../blocks/DataList";
+import { FilterPanel } from "../blocks/FilterPanel";
+import { useFetchData } from "../hooks/useFetchData";
+import { selectFilteredLifeData } from "../selectors";
 export const LifeAll = () => {
   const { fetchData } = useFetchData();
   const data = useAppSelector(selectFilteredLifeData);
