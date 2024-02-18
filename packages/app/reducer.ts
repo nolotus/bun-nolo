@@ -9,12 +9,12 @@ import { api } from "./api";
 import themeSliceReducer from "./theme/themeSlice";
 
 export const reducer = {
-	life: lifeReducer,
-	chat: chatReducer,
-	message: messageSlice,
-	auth: authReducer,
-	page: pageReducer,
-	db: dbReducer,
-	theme: themeSliceReducer,
-	[api.reducerPath]: api.reducer,
+  life: lifeReducer,
+  chat: chatReducer,
+  message: messageSlice,
+  auth: authReducer,
+  page: pageReducer,
+  db: dbReducer,
+  theme: themeSliceReducer,
+  [api.reducerPath]: api.reducer,
 };

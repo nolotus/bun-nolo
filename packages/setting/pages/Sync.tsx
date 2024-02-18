@@ -42,10 +42,10 @@ export const useProfileData = (customId: string) => {
 
   return { formData, setFormData, handleSaveClick, error };
 };
-const currentDomain = window.location.hostname;
-const port = window.location.port;
-const displayPort = port ? `:${port}` : "";
-const isDefaultDomain = currentDomain === "nolotus.com";
+// const currentDomain = window.location.hostname;
+// const port = window.location.port;
+// const displayPort = port ? `:${port}` : "";
+// const isDefaultDomain = currentDomain === "nolotus.com";
 
 const Sync = () => {
   const customId = "syncSettings";
@@ -56,17 +56,7 @@ const Sync = () => {
     <div>
       <h1>Sync</h1>
       <h2>点击同步时候</h2>
-      {isDefaultDomain ? (
-        <p>默认域名: nolotus.com</p>
-      ) : (
-        <>
-          <p>
-            当前域名: {currentDomain}
-            {displayPort}
-          </p>
-          <p>默认域名: nolotus.com</p>
-        </>
-      )}
+
       <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput
         value={formData?.serverAddress || ""}
@@ -83,17 +73,7 @@ const Sync = () => {
         Save
       </button>
       <h2>创建或编辑时</h2>
-      {isDefaultDomain ? (
-        <p>默认域名: nolotus.com</p>
-      ) : (
-        <>
-          <p>
-            当前域名: {currentDomain}
-            {displayPort}
-          </p>
-          <p>默认域名: nolotus.com</p>
-        </>
-      )}
+
       <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput
         value={formData?.serverAddress || ""}
@@ -110,17 +90,7 @@ const Sync = () => {
         Save
       </button>
       <h2>删除数据时</h2>
-      {isDefaultDomain ? (
-        <p>默认域名: nolotus.com</p>
-      ) : (
-        <>
-          <p>
-            当前域名: {currentDomain}
-            {displayPort}
-          </p>
-          <p>默认域名: nolotus.com</p>
-        </>
-      )}
+
       <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput
         value={formData?.serverAddress || ""}
