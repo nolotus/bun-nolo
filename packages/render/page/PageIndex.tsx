@@ -29,6 +29,7 @@ const Page = ({ id }) => {
     }
   };
 
+  console.log("data", data);
   const renderContent = () => {
     return (
       <AnimatePresence mode="wait">
@@ -43,36 +44,6 @@ const Page = ({ id }) => {
       </AnimatePresence>
     );
   };
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex h-screen w-full items-center justify-center bg-white text-lg text-gray-800">
-  //       加载中 请稍等
-  //     </div>
-  //   );
-  // }
-  if (data) {
-    dispatch(initPage(data));
-    const { layout } = data;
-    if (layout === "full") {
-      return (
-        <div className="flex min-h-screen flex-col bg-neutral-200">
-          <Header />
-          <div className="w-full  flex-grow">{renderEdit()}</div>
-        </div>
-      );
-    }
-    return (
-      <div className="flex min-h-screen flex-col bg-neutral-200">
-        <div className="max-w-8xl mx-auto w-full flex-grow p-8 md:p-16">
-          {renderContent()}
-        </div>
-        {/* <Footer /> */}
-      </div>
-    );
-  }
-
-  if (!data) {
-    return <NoMatch />;
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-white text-lg text-gray-800">
