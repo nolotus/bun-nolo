@@ -111,7 +111,24 @@ const NoteList = ({ data, refreshData }) => {
                 className="group flex w-full p-2 sm:w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
                 key={item.id}
               >
-                <div className="invisible mr-4 flex flex-col space-y-2 group-hover:visible">
+                <div>
+                  <NoteItem
+                    dataId={item.id}
+                    content={item}
+                    refreshData={refreshData}
+                    source={item.source}
+                  />
+                  <ul className="-m-1 flex flex-wrap">
+                    {item.source.map((src, index) => (
+                      <li key={index} className="m-1">
+                        <span className="mr-2 inline-block rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                          {src}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="invisible ml-4 flex flex-col space-y-2 group-hover:visible">
                   <button
                     type="button"
                     onClick={() => pullData(item.id, item)}
@@ -133,23 +150,6 @@ const NoteList = ({ data, refreshData }) => {
                   >
                     <TrashIcon size={16} />
                   </button>
-                </div>
-                <div>
-                  <NoteItem
-                    dataId={item.id}
-                    content={item}
-                    refreshData={refreshData}
-                    source={item.source}
-                  />
-                  <ul className="-m-1 flex flex-wrap">
-                    {item.source.map((src, index) => (
-                      <li key={index} className="m-1">
-                        <span className="mr-2 inline-block rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
-                          {src}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
               </div>
             ))
