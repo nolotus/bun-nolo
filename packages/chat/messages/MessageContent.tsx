@@ -29,7 +29,7 @@ export const MessageContent: React.FC<{
 
   return (
     <div
-      className={`py-2 px-4 rounded-lg mx-2 bg-neutral-100 ${colorClass} whitespace-pre-wrap`}
+      className={`mx-2 rounded-lg bg-neutral-100 px-4 py-2 ${colorClass} whitespace-pre-wrap`}
     >
       {type === "user" ? content : renderedContent}
     </div>

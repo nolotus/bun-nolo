@@ -1,5 +1,5 @@
-import { createSelector } from '@reduxjs/toolkit';
-import { selectAllData } from 'database/selectors';
+import { createSelector } from "@reduxjs/toolkit";
+import { selectAllData } from "database/selectors";
 export const selectFilterType = (state) => state.life.filterType;
 export const selectUserIdFilter = (state) => state.life.userIdFilter;
 export const selectSourceFilter = (state) => state.life.sourceFilter;
@@ -25,7 +25,7 @@ export const selectFilteredLifeData = createSelector(
         (item) => item.userId === userIdFilter,
       );
     }
-    if (sourceFilter && sourceFilter !== 'All') {
+    if (sourceFilter && sourceFilter !== "All") {
       filteredData = filteredData.filter((item) =>
         item.source.includes(sourceFilter),
       );
@@ -39,7 +39,7 @@ export const selectFilteredLifeData = createSelector(
         const aValue = a[sortKey];
         const bValue = b[sortKey];
 
-        if (sortOrder === 'asc') {
+        if (sortOrder === "asc") {
           return aValue < bValue ? -1 : 1;
         } else {
           return aValue > bValue ? -1 : 1;

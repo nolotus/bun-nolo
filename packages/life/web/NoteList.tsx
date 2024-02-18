@@ -71,12 +71,6 @@ const NoteList = ({ data, refreshData }) => {
     );
     refreshData(auth.user?.userId);
   };
-  const paySelectedItems = async () => {
-    const data = {
-      payIds: [],
-    };
-    // refreshData(auth.user?.userId);
-  };
 
   return (
     <div className="space-y-4">
@@ -89,13 +83,7 @@ const NoteList = ({ data, refreshData }) => {
           />
           <label>全选</label>
         </div>
-        <button
-          type="button"
-          onClick={paySelectedItems}
-          className="rounded bg-red-500 p-2 text-white hover:bg-red-400"
-        >
-          支付
-        </button>
+
         <button
           type="button"
           onClick={deleteSelectedItems}

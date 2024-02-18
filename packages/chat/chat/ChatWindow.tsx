@@ -81,7 +81,7 @@ const ChatWindow = () => {
           chatWindowLogger.info(
             statusOrJson === ""
               ? "Received gap (empty string)"
-              : "Received done"
+              : "Received done",
           );
         } else {
           try {
@@ -116,7 +116,7 @@ const ChatWindow = () => {
                   role: "assistant",
                   id: json.id,
                   content: temp,
-                })
+                }),
               );
             }
             if (json.choices[0]?.delta?.content) {
@@ -176,7 +176,7 @@ const ChatWindow = () => {
             role: "assistant",
             content: "Here is your generated image:",
             image: context.image,
-          })
+          }),
         );
       }
       if (mode === "surf") {
@@ -184,7 +184,7 @@ const ChatWindow = () => {
           receiveMessage({
             role: "assistant",
             content: context.content,
-          })
+          }),
         );
       }
     }
@@ -255,10 +255,10 @@ const ChatWindow = () => {
   // const allowSend = Number(userCost.totalCost) < 2;
   const allowSend = true;
   return (
-    <div className="w-full lg:w-5/6 flex flex-col h-full">
+    <div className="flex h-full w-full flex-col lg:w-5/6">
       <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} />
       {allowSend ? (
-        <div className="p-4 flex items-center">
+        <div className="flex items-center p-4">
           <div className="flex-grow">
             <MessageInput
               onSendMessage={handleSendMessage}
@@ -270,12 +270,12 @@ const ChatWindow = () => {
             <Button
               onClick={() => dispatch(clearMessages())}
               icon={<TrashIcon size={16} />} // 使用 TrashIcon 并设置合适的尺寸
-              className="text-sm p-1"
+              className="p-1 text-sm"
             >
               {t("clearChat")}
             </Button>
             {requestFailed && (
-              <Button onClick={handleRetry} className="text-sm p-1">
+              <Button onClick={handleRetry} className="p-1 text-sm">
                 重试
               </Button>
             )}
