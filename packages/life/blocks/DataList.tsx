@@ -31,20 +31,24 @@ const DataList = ({ data, refreshData }) => {
     refreshData(auth.user?.userId);
   };
 
-  const pushData = async (id: string, value) => {
-    // 调用 write mutation 并传递 domain 参数
+  const pushData = async (id: string, value, domains: string[]) => {
+    // 先对数据进行格式化
     const formatValue = omit("id", value);
     const customId = extractCustomId(id);
     const flags = extractAndDecodePrefix(id);
     const userId = extractUserId(id);
 
-    await write({
-      data: formatValue,
-      flags,
-      userId,
-      customId,
-      domain: "http://nolotus.com",
-    }).unwrap();
+    // 遍历所有域名并对每个执行 write 操作
+    for (const domain of domains) {
+      await write({
+        data: formatValue,
+        flags,
+        userId,
+        customId,
+        domain,
+      }).unwrap();
+    }
+
     refreshData(auth.user?.userId);
   };
 

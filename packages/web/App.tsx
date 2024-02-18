@@ -1,15 +1,15 @@
-import { useAppDispatch, useAuth } from 'app/hooks';
-import { getTokensFromLocalStorage } from 'auth/client/token';
-import { parseToken } from 'auth/token';
-import i18n from 'i18n';
-import React, { useEffect } from 'react';
-import { useRoutes } from 'react-router-dom';
-import { restoreSession } from 'auth/authSlice';
+import { useAppDispatch, useAuth } from "app/hooks";
+import { getTokensFromLocalStorage } from "auth/client/token";
+import { parseToken } from "auth/token";
+import i18n from "i18n";
+import React, { useEffect } from "react";
+import { useRoutes } from "react-router-dom";
+import { restoreSession } from "auth/authSlice";
 
 // // import { generatorRoutes } from "./generatorRoutes";
 
-import { routes } from './routes';
-export default function App({ hostname, lng = 'en' }) {
+import { routes } from "./routes";
+export default function App({ hostname, lng = "en" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
   const auth = useAuth();
