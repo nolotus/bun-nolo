@@ -62,7 +62,6 @@ const Sync = () => {
         value={formData?.serverAddress || ""}
         onChange={(value) => setFormData({ ...formData, serverAddress: value })}
         name="serverAddress"
-        label="您的自定义服务器" // 修改此行来添加您的自定义服务器标签
         placeholder="Enter server addresses (comma separated)"
         error={error}
       />
@@ -79,7 +78,6 @@ const Sync = () => {
         value={formData?.serverAddress || ""}
         onChange={(value) => setFormData({ ...formData, serverAddress: value })}
         name="serverAddress"
-        label="您的自定义服务器" // 修改此行来添加您的自定义服务器标签
         placeholder="Enter server addresses (comma separated)"
         error={error}
       />
@@ -96,7 +94,6 @@ const Sync = () => {
         value={formData?.serverAddress || ""}
         onChange={(value) => setFormData({ ...formData, serverAddress: value })}
         name="serverAddress"
-        label="您的自定义服务器" // 修改此行来添加您的自定义服务器标签
         placeholder="Enter server addresses (comma separated)"
         error={error}
       />
