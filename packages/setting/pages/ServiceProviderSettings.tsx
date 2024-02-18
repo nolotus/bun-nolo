@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { UserArrayComponent } from 'user/blocks/UserItem';
-import { queryUser } from 'user/client/query';
-import { syncUserData } from 'user/client/sync';
+import React, { useState } from "react";
+import { UserArrayComponent } from "user/blocks/UserItem";
+import { queryUser } from "user/client/query";
+import { syncUserData } from "user/client/sync";
 
-import { useProfileData } from '../useProfileData';
+import { useProfileData } from "../useProfileData";
 
 const ServiceProviderSettings = () => {
   const { formData, setFormData, handleSaveClick } = useProfileData(
-    'serviceProviderSettings',
+    "serviceProviderSettings",
   );
   const [userArray, setUserArray] = useState(null);
   const [error, setError] = useState(null);
@@ -50,12 +50,12 @@ const ServiceProviderSettings = () => {
   // 执行数据同步
   const performDataSync = async (idDataMap, targetSource) => {
     try {
-      console.log('Sending sync request...');
+      console.log("Sending sync request...");
       const response = await syncUserData(idDataMap, targetSource);
-      console.log('Server response:', response);
-      console.log('Data synced successfully.');
+      console.log("Server response:", response);
+      console.log("Data synced successfully.");
     } catch (error) {
-      console.log('Error occurred while syncing data:', error);
+      console.log("Error occurred while syncing data:", error);
     }
   };
   const handleSyncClick = async () => {
@@ -71,7 +71,7 @@ const ServiceProviderSettings = () => {
       `${window.location.hostname}:${window.location.port}`;
     console.log(
       `Starting to sync to ${
-        formData?.targetSource ? 'another' : 'current'
+        formData?.targetSource ? "another" : "current"
       } source...`,
     );
 
@@ -83,12 +83,12 @@ const ServiceProviderSettings = () => {
     <div>
       Service Provider Settings
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2 mt-4">
+        <label className="mb-2 mt-4 block text-sm font-bold text-gray-700">
           Data Source:
         </label>
         <input
           type="text"
-          value={formData?.dataSource || ''}
+          value={formData?.dataSource || ""}
           onChange={(e) =>
             setFormData({ ...formData, dataSource: e.target.value })
           }
@@ -96,22 +96,22 @@ const ServiceProviderSettings = () => {
         {/* 添加查询按钮 */}
         <button
           onClick={handleQueryClick}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mb-4 ml-2"
+          className="focus:shadow-outline mb-4 ml-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
         >
           查询
         </button>
-        <label className="block text-gray-700 text-sm font-bold mb-2 mt-4">
+        <label className="mb-2 mt-4 block text-sm font-bold text-gray-700">
           Target Source:
         </label>
         <input
           type="text"
-          value={formData?.targetSource || ''}
+          value={formData?.targetSource || ""}
           onChange={(e) =>
             setFormData({ ...formData, targetSource: e.target.value })
           }
         />
         <button onClick={handleSyncClick} className="ml-2">
-          {formData?.targetSource ? '同步到目标服务器' : '同步到当前'}
+          {formData?.targetSource ? "同步到目标服务器" : "同步到当前"}
         </button>
 
         {userArray && (

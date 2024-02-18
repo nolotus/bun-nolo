@@ -1,8 +1,8 @@
-import { useAuth } from 'app/hooks';
-import StringToArrayInput from 'components/Form/StringToArrayInput';
-import { readOwnData } from 'database/client/read';
-import { saveData } from 'database/client/save';
-import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from "app/hooks";
+import StringToArrayInput from "components/Form/StringToArrayInput";
+import { readOwnData } from "database/client/read";
+import { saveData } from "database/client/save";
+import React, { useState, useEffect, useCallback } from "react";
 
 export function useUserData(dataName) {
   const auth = useAuth();
@@ -25,7 +25,7 @@ export function useUserData(dataName) {
 export const useProfileData = (customId: string) => {
   const auth = useAuth();
   const data = useUserData(customId);
-  console.log('data', data);
+  console.log("data", data);
   const [formData, setFormData] = useState(data);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,33 +35,71 @@ export const useProfileData = (customId: string) => {
       await saveData(auth.user?.userId, formData, customId, flags);
       setError(null);
     } catch (error) {
-      console.error('保存失败:', error);
-      setError('保存失败');
+      console.error("保存失败:", error);
+      setError("保存失败");
     }
   };
 
   return { formData, setFormData, handleSaveClick, error };
 };
+// const currentDomain = window.location.hostname;
+// const port = window.location.port;
+// const displayPort = port ? `:${port}` : "";
+// const isDefaultDomain = currentDomain === "nolotus.com";
 
 const Sync = () => {
-  const customId = 'syncSettings';
+  const customId = "syncSettings";
   const { formData, setFormData, handleSaveClick, error } =
     useProfileData(customId);
-  console.log('formData', formData);
+  console.log("formData", formData);
   return (
     <div>
       <h1>Sync</h1>
+      <h2>点击同步时候</h2>
+
+      <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput
-        value={formData?.serverAddress || ''} // 使用 StringToArrayInput 处理服务器地址
+        value={formData?.serverAddress || ""}
         onChange={(value) => setFormData({ ...formData, serverAddress: value })}
         name="serverAddress"
-        label="Server Address"
         placeholder="Enter server addresses (comma separated)"
         error={error}
       />
       <button
         onClick={handleSaveClick}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4"
+        className="focus:shadow-outline mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
+      >
+        Save
+      </button>
+      <h2>创建或编辑时</h2>
+
+      <label htmlFor="serverAddress">您的自定义服务器</label>
+      <StringToArrayInput
+        value={formData?.serverAddress || ""}
+        onChange={(value) => setFormData({ ...formData, serverAddress: value })}
+        name="serverAddress"
+        placeholder="Enter server addresses (comma separated)"
+        error={error}
+      />
+      <button
+        onClick={handleSaveClick}
+        className="focus:shadow-outline mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
+      >
+        Save
+      </button>
+      <h2>删除数据时</h2>
+
+      <label htmlFor="serverAddress">您的自定义服务器</label>
+      <StringToArrayInput
+        value={formData?.serverAddress || ""}
+        onChange={(value) => setFormData({ ...formData, serverAddress: value })}
+        name="serverAddress"
+        placeholder="Enter server addresses (comma separated)"
+        error={error}
+      />
+      <button
+        onClick={handleSaveClick}
+        className="focus:shadow-outline mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
       >
         Save
       </button>

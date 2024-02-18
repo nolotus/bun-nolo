@@ -6,15 +6,15 @@ import { FilterPanel } from "./FilterPanel";
 import { useFetchData } from "../hooks/useFetchData";
 import NoteList from "./NoteList";
 export const Notes = () => {
-	const data = useAppSelector(selectPages);
-	const { fetchData } = useFetchData();
+  const data = useAppSelector(selectPages);
+  const { fetchData } = useFetchData();
 
-	return (
-		<div className="p-4">
-			<FilterPanel />
-			<NoteList data={data} refreshData={fetchData} />
-		</div>
-	);
+  return (
+    <div className="p-4">
+      <FilterPanel />
+      <NoteList data={data} refreshData={fetchData} />
+    </div>
+  );
 };
 
 export default Notes;

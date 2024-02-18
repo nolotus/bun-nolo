@@ -2,7 +2,6 @@ import { formatISO } from "date-fns"; // 假设您使用 date-fns 来处理日�
 
 export const createPageData = (pageState, userId: string) => {
   const nowISO = formatISO(new Date()); // 获取并格式化当前时间
-
   return {
     content: pageState.content,
     title: pageState.meta.title,
@@ -22,5 +21,8 @@ export const createPageData = (pageState, userId: string) => {
     categories: pageState.meta.categories,
     tags: pageState.meta.tags,
     end_time: pageState.meta.end_time,
+    price: pageState.meta.price,
+    pay_time: pageState.meta.pay_time,
+    payment_method: pageState.meta.payment_method,
   };
 };

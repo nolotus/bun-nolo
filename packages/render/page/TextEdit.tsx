@@ -15,7 +15,7 @@ const updateTextAreaHeight = debounce((textarea: HTMLTextAreaElement) => {
   });
 }, 16);
 
-export const MarkdownEdit: React.FC<MarkdownEditProps> = ({
+export const TextEdit: React.FC<MarkdownEditProps> = ({
   value,
   onChange,
   onKeyDown,
