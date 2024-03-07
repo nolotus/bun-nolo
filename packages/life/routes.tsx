@@ -8,7 +8,6 @@ export enum LifeRoutePaths {
   NOTES = "life/notes",
   ALL = "life/all",
   STATISTICS = "life/statistics",
-  DASHBOARD = "life/dashboard",
 }
 
 const Welcome = (
@@ -35,17 +34,11 @@ const Notes = (
     fallback={<div>Loading Notes...</div>}
   />
 );
-const Dashboard = (
-  <LazyLoadComponent
-    factory={() => import("./web/Dashboard")}
-    fallback={<div>Loading dashboard...</div>}
-  />
-);
 
 const Calendar = (
   <LazyLoadComponent
     factory={() => import("./web/Calendar")}
-    fallback={<div>Loading dashboard...</div>}
+    fallback={<div>Loading Calendar...</div>}
   />
 );
 export const routes = {
@@ -59,7 +52,6 @@ export const routes = {
         { path: "all", element: All },
         { path: "statistics", element: Statistics },
         { path: "notes", element: Notes },
-        { path: "dashboard", element: Dashboard },
         { path: "calendar", element: Calendar },
       ],
     },

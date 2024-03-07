@@ -32,7 +32,6 @@ export const Sidebar = () => {
     <div className="min-h-full w-48 overflow-y-auto bg-neutral-100">
       <div className="flex flex-col justify-between p-4">
         <nav>
-          <NavLink to="/life/dashboard" className={getNavLinkClass}></NavLink>
           <NavLink to="/life/all" className={getNavLinkClass}>
             <DatabaseIcon size={20} className={iconClass} />
             <span>All</span>
