@@ -10,10 +10,15 @@ export const serverGetAllData = (userId) => {
   const indexPath = `./nolodata/${userId}/index.nolo`;
   const hashPath = `./nolodata/${userId}/hash.nolo`;
 
-  return Promise.all([
-    readDataFromFile(indexPath, userId),
-    readDataFromFile(hashPath, userId),
-  ]).then(([indexData, hashData]) => indexData.concat(hashData));
+  const indexPromise = readDataFromFile(indexPath, userId).catch(() => []);
+  const hashPromise = readDataFromFile(hashPath, userId).catch(() => []);
+
+  return Promise.all([indexPromise, hashPromise]).then(
+    ([indexData, hashData]) => {
+      // 合并两个数组，忽略空数组
+      return [...indexData, ...hashData];
+    },
+  );
 };
 
 const readDataFromFile = (filePath, userId) => {
