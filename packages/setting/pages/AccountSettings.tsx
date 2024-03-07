@@ -1,37 +1,40 @@
 import React from "react";
-import { deleteUser } from "user/client/delete";
+// import { deleteUser } from "user/client/delete";
 import { useAppDispatch, useAuth } from "app/hooks";
 import { userLogout } from "auth/authSlice";
+import { useDeleteUserMutation } from "auth/services";
 
 const AccountSettings = () => {
-	const auth = useAuth();
-	const dispatch = useAppDispatch();
+  const auth = useAuth();
+  const dispatch = useAppDispatch();
+  const [deleteUser, { isLoading }] = useDeleteUserMutation(); // 使用钩子
 
-	const handleDeleteAccountClick = () => {
-		//todo add modal tip
-		deleteUser(auth.user?.userId)
-			.then((result) => {
-				dispatch(userLogout());
-			})
-			.catch((error) => {
-				alert(error.message);
-				console.error(error);
-				// 弹出错误信息
-			});
-	};
+  const handleDeleteAccountClick = async () => {
+    try {
+      // 调用删除用户的 mutation
+      await deleteUser({ userId: auth.user?.userId }).unwrap();
+      // 删除成功后,触发注销 action
+      dispatch(userLogout());
+    } catch (error) {
+      // 处理删除失败的错误
+      console.error("Failed to delete account:", error);
+      alert("Failed to delete account. Please try again later.");
+    }
+  };
 
-	return (
-		<div>
-			<h1>账号设置</h1>
-			<button
-				type="button"
-				onClick={handleDeleteAccountClick}
-				className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-			>
-				删除账号
-			</button>
-		</div>
-	);
+  return (
+    <div>
+      <h1>账号设置</h1>
+      <button
+        type="button"
+        onClick={handleDeleteAccountClick}
+        disabled={isLoading}
+        className="focus:shadow-outline rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 focus:outline-none"
+      >
+        删除账号
+      </button>
+    </div>
+  );
 };
 
 export default AccountSettings;
