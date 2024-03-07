@@ -4,6 +4,7 @@ import {
   LocationIcon,
   BeakerIcon,
   PeopleIcon,
+  DependabotIcon,
 } from "@primer/octicons-react";
 import { useAuth } from "app/hooks";
 import clsx from "clsx";
@@ -23,6 +24,8 @@ const nav = [
 
   // { path: '/itineraries', label: '行程' },
   { path: "/people", label: "游民", icon: <PeopleIcon size={24} /> },
+  { path: "/robots", label: "AI", icon: <DependabotIcon size={24} /> },
+
   // { path: '/gears', label: '装备' },
   {
     path: "/lab",
@@ -71,7 +74,7 @@ export const Header: React.FC = () => {
         [headerStickyStyles]: isSticky,
       })}
     >
-      <div className="container mx-auto ">
+      <div className="container mx-auto">
         <div className="flex items-center justify-between">
           <button
             type="button"

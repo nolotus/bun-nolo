@@ -1,6 +1,6 @@
-import { WeatherQueryParams, WeatherApiResponse } from './weatherTypes';
+import { WeatherQueryParams, WeatherApiResponse } from "./weatherTypes";
 
-const WEATHER_API_URL = 'https://api.stormglass.io/v2/weather/point';
+const WEATHER_API_URL = "https://api.stormglass.io/v2/weather/point";
 
 const fetchWeatherData = async ({
   lat,
@@ -10,7 +10,7 @@ const fetchWeatherData = async ({
   end,
   source,
 }: WeatherQueryParams): Promise<WeatherApiResponse> => {
-  const paramString = params.join(',');
+  const paramString = params.join(",");
 
   const query = new URLSearchParams({
     lat: lat.toString(),
@@ -19,13 +19,13 @@ const fetchWeatherData = async ({
   });
 
   if (start) {
-    query.append('start', start);
+    query.append("start", start);
   }
   if (end) {
-    query.append('end', end);
+    query.append("end", end);
   }
   if (source) {
-    query.append('source', source);
+    query.append("source", source);
   }
 
   const queryString = query.toString();
@@ -46,7 +46,7 @@ const fetchWeatherData = async ({
 
     return response.json();
   } catch (error) {
-    console.error('错误发生在fetchWeatherData中', error);
+    console.error("错误发生在fetchWeatherData中", error);
     throw error; // 这里保留抛出错误，以便可以在函数调用者那里捕获异常
   }
 };

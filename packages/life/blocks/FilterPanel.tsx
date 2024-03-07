@@ -1,9 +1,9 @@
-import { getDomains } from 'app/domains';
-import { useAppDispatch, useAppSelector } from 'app/hooks';
-import { DataType } from 'create/types';
-import React, { useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Card, Select } from 'ui';
+import { getDomains } from "app/domains";
+import { useAppDispatch, useAppSelector } from "app/hooks";
+import { DataType } from "create/types";
+import React, { useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Card, Select } from "ui";
 
 import {
   setFilterType,
@@ -11,12 +11,12 @@ import {
   setSortKey,
   setSortOrder,
   setSourceFilter,
-} from '../lifeSlice';
+} from "../lifeSlice";
 import {
   selectFilterType,
   selectUserIdFilter,
   selectFilteredLifeData,
-} from '../selectors';
+} from "../selectors";
 
 export const FilterPanel = () => {
   const dispatch = useAppDispatch();
@@ -26,13 +26,13 @@ export const FilterPanel = () => {
   let [searchParams, setSearchParams] = useSearchParams();
 
   const domains = useMemo(() => getDomains(), []);
-  const sourceOptions = ['All', ...domains.map((domain) => domain.source)];
+  const sourceOptions = ["All", ...domains.map((domain) => domain.source)];
 
   useEffect(() => {
-    dispatch(setFilterType(searchParams.get('filterType') || ''));
-    dispatch(setUserIdFilter(searchParams.get('userIdFilter') || ''));
-    dispatch(setSortKey(searchParams.get('sortKey') || ''));
-    dispatch(setSortOrder(searchParams.get('sortOrder') || ''));
+    dispatch(setFilterType(searchParams.get("filterType") || ""));
+    dispatch(setUserIdFilter(searchParams.get("userIdFilter") || ""));
+    dispatch(setSortKey(searchParams.get("sortKey") || ""));
+    dispatch(setSortOrder(searchParams.get("sortOrder") || ""));
   }, []);
   const handleFilterTypeChange = (
     event: React.ChangeEvent<HTMLSelectElement>,
@@ -61,7 +61,7 @@ export const FilterPanel = () => {
 
   return (
     <Card className="my-4 p-4 shadow-lg">
-      <div className="flex flex-wrap gap-6 border-b pb-4 mb-4">
+      <div className="mb-4 flex flex-wrap gap-6 border-b pb-4">
         <div className="flex flex-col gap-2">
           <label
             htmlFor="filterType"
@@ -77,7 +77,7 @@ export const FilterPanel = () => {
             placeholder="Select a filter type"
           />
         </div>
-        <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+        <div className="flex min-w-[200px] flex-1 flex-col gap-2">
           <label
             htmlFor="userIdFilter"
             className="text-sm font-medium text-gray-700"
@@ -89,7 +89,7 @@ export const FilterPanel = () => {
             value={userIdFilter}
             onChange={handleUserIdChange}
             placeholder="Enter User ID"
-            className="w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -110,7 +110,7 @@ export const FilterPanel = () => {
             id="sortKey"
             onChange={handleSortKeyChange}
             placeholder="Enter key to sort"
-            className="w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -120,7 +120,7 @@ export const FilterPanel = () => {
           <Select
             id="sortOrder"
             onChange={handleSortOrderChange}
-            options={['asc', 'desc']}
+            options={["asc", "desc"]}
             placeholder="Select sort order"
           />
         </div>

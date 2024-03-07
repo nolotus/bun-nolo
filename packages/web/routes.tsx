@@ -12,6 +12,8 @@ import Lab from "app/pages/Lab";
 import Spots from "app/pages/Spots";
 const Page = lazy(() => import("render/page/PageIndex"));
 import People from "app/pages/People";
+import AI from "app/pages/AI";
+
 export const routes = (currentUser) => [
   {
     path: "/",
@@ -28,6 +30,10 @@ export const routes = (currentUser) => [
       {
         path: "people",
         element: <People />,
+      },
+      {
+        path: "robots",
+        element: <AI />,
       },
       {
         path: "spots",

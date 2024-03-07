@@ -6,49 +6,49 @@ import { utcToZonedTime } from "date-fns-tz";
 import WeatherDataGrid from "./WeatherDataGrid";
 
 export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
-	const queryParams = parseWeatherParams({ lat, lng });
-	const {
-		data: weatherData,
-		error,
-		isLoading,
-		isSuccess,
-	} = useGetWeatherQuery(queryParams);
-	const containerStyle =
-		"grid grid-cols-[minmax(auto,70px)_1fr] bg-white shadow";
+  const queryParams = parseWeatherParams({ lat, lng });
+  const {
+    data: weatherData,
+    error,
+    isLoading,
+    isSuccess,
+  } = useGetWeatherQuery(queryParams);
+  const containerStyle =
+    "grid grid-cols-[minmax(auto,70px)_1fr] bg-white shadow";
 
-	const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-	const groupedWeatherData = weatherData?.hours.reduce(
-		(acc: Record<string, any[]>, hour) => {
-			const date = parseISO(hour.time); // 转换成 JS 日期对象
-			const zonedDate = utcToZonedTime(date, timeZone); // 转换到当地时区时间
-			const localDate = format(zonedDate, "yyyy-MM-dd", { timeZone }); // 按当地时区格式化日期
+  const groupedWeatherData = weatherData?.hours.reduce(
+    (acc: Record<string, any[]>, hour) => {
+      const date = parseISO(hour.time); // 转换成 JS 日期对象
+      const zonedDate = utcToZonedTime(date, timeZone); // 转换到当地时区时间
+      const localDate = format(zonedDate, "yyyy-MM-dd", { timeZone }); // 按当地时区格式化日期
 
-			if (!acc[localDate]) {
-				acc[localDate] = [];
-			}
-			acc[localDate].push(hour);
+      if (!acc[localDate]) {
+        acc[localDate] = [];
+      }
+      acc[localDate].push(hour);
 
-			return acc;
-		},
-		{},
-	);
+      return acc;
+    },
+    {},
+  );
 
-	if (isLoading) {
-		return (
-			<div className="flex justify-center items-center w-full h-full">
-				<div className="text-lg text-blue-500">正在加载天气数据...</div>
-			</div>
-		);
-	}
-	return (
-		<div className={containerStyle}>
-			<LabelsColumn />
-			<WeatherDataGrid
-				groupedWeatherData={groupedWeatherData}
-				interval={interval}
-				mode={mode}
-			/>
-		</div>
-	);
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="text-lg text-blue-500">正在加载天气数据...</div>
+      </div>
+    );
+  }
+  return (
+    <div className={containerStyle}>
+      <LabelsColumn />
+      <WeatherDataGrid
+        groupedWeatherData={groupedWeatherData}
+        interval={interval}
+        mode={mode}
+      />
+    </div>
+  );
 };
