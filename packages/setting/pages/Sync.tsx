@@ -2,6 +2,8 @@ import { useAuth } from "app/hooks";
 import StringToArrayInput from "components/Form/StringToArrayInput";
 import { readOwnData } from "database/client/read";
 import { saveData } from "database/client/save";
+import { ServerIcon } from "@primer/octicons-react";
+
 import React, { useState, useEffect, useCallback } from "react";
 
 export function useUserData(dataName) {
@@ -54,9 +56,13 @@ const Sync = () => {
   console.log("formData", formData);
   return (
     <div>
-      <h1>Sync</h1>
+      <h1>同步设置</h1>
+      <h2>
+        <ServerIcon size={24} />
+        服务器设置
+      </h2>
+      主服务器 备份服务器
       <h2>点击同步时候</h2>
-
       <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput
         value={formData?.serverAddress || ""}
@@ -72,7 +78,6 @@ const Sync = () => {
         Save
       </button>
       <h2>创建或编辑时</h2>
-
       <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput
         value={formData?.serverAddress || ""}
@@ -88,7 +93,6 @@ const Sync = () => {
         Save
       </button>
       <h2>删除数据时</h2>
-
       <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput
         value={formData?.serverAddress || ""}

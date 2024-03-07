@@ -4,7 +4,7 @@ import { DataType } from "create/types";
 import React, { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, Select } from "ui";
-
+import { SortDescIcon } from "@primer/octicons-react";
 import {
   setFilterType,
   setUserIdFilter,
@@ -77,7 +77,7 @@ export const FilterPanel = () => {
             placeholder="Select a filter type"
           />
         </div>
-        <div className="flex min-w-[200px] flex-1 flex-col gap-2">
+        {/* <div className="flex min-w-[200px] flex-1 flex-col gap-2">
           <label
             htmlFor="userIdFilter"
             className="text-sm font-medium text-gray-700"
@@ -91,13 +91,13 @@ export const FilterPanel = () => {
             placeholder="Enter User ID"
             className="w-full rounded border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
-        </div>
+        </div> */}
       </div>
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <span className="text-sm font-medium text-gray-700">
           Data Count: {filteredData.length}
         </span>
-      </div>
+      </div> */}
       <div className="flex gap-4">
         <div className="flex flex-col gap-2">
           <label
@@ -115,6 +115,8 @@ export const FilterPanel = () => {
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">
+            <SortDescIcon size={24} />
+            {/* <SortAscIcon size={24} /> */}
             Sort Order:
           </label>
           <Select

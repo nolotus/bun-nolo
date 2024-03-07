@@ -27,7 +27,6 @@ const Spots = () => {
   });
   // 定义函数来渲染条目列表，过滤掉 is_template 的项
 
-  // 根据加载状态渲染组件
   if (isLoading) {
     return <div>Loading...</div>;
   }

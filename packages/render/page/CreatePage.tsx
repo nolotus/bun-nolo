@@ -6,6 +6,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { renderContentNode } from "render";
 import { markdownToMdast, getH1TextFromMdast } from "render/MarkdownProcessor";
 import { Button, Toggle } from "ui";
+import { VersionsIcon } from "@primer/octicons-react";
 
 import { TextEdit } from "./TextEdit";
 import { createPageData } from "./pageDataUtils";
@@ -104,13 +105,14 @@ const CreatePage = () => {
   };
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="flex items-center justify-between bg-gray-100 p-4">
+      <div className="container mx-auto flex items-center justify-between bg-gray-100 p-4">
+        {pageState.createdTime}
         <div className="text-gray-600">
-          {pageState.createdTime} |{" "}
+          <VersionsIcon size={18} className="mr-2" />
           {pageState.hasVersion ? "Versioned" : "Not Versioned"}
         </div>
         <Toggle
-          label="Markdown 显示"
+          label="Markdown编辑"
           id="markdown-toggle"
           checked={pageState.showAsMarkdown}
           onChange={toggleShowAsMarkdown}

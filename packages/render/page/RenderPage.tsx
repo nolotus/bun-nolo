@@ -9,9 +9,11 @@ import { markdownToMdast } from "../MarkdownProcessor";
 import SurfSpotPage from "../surf/web/SurfSpotPage";
 
 import { RenderJson } from "./RenderJson";
-import { FloatingEditPanel } from "./FloatingEditPanel";
+import { ButtonGroup } from "./ButtonGroup";
+import { extractUserId } from "core";
 const RenderPage = ({ pageId, data }) => {
   const navigate = useNavigate();
+  const createId = extractUserId(pageId);
   const renderedContent = useMemo(() => {
     if (data.type === DataType.SurfSpot) {
       return <SurfSpotPage data={data} />;
@@ -46,14 +48,17 @@ const RenderPage = ({ pageId, data }) => {
   const allowEdit = isCreator || isNotBelongAnyone;
 
   return (
-    <div>
-      {allowEdit && (
-        <FloatingEditPanel
+    <div className="mx-auto max-w-full p-0 sm:p-2 md:p-4 lg:p-6 xl:p-8">
+      <div className="container flex justify-between ">
+        <div>{createId}</div>
+
+        <ButtonGroup
           onEdit={handleEdit}
           onDelete={handleDelete}
           isDeleting={isDeleting}
+          allowEdit={allowEdit}
         />
-      )}
+      </div>
 
       {renderedContent}
     </div>

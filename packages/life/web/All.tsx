@@ -1,6 +1,11 @@
 import { useAppSelector } from "app/hooks";
 import React from "react";
-import { NoteIcon, ProjectIcon } from "@primer/octicons-react";
+import {
+  NoteIcon,
+  ProjectIcon,
+  ListUnorderedIcon,
+  TagIcon,
+} from "@primer/octicons-react";
 import { AccountBalance } from "../blocks/AccountBanlance";
 import DataList from "../blocks/DataList";
 import { FilterPanel } from "../blocks/FilterPanel";
@@ -16,9 +21,14 @@ export const LifeAll = () => {
       <div className="flex justify-between">
         <FilterPanel />
         <div>
-          试图切换
+          标签选择
+          <TagIcon size={24} />
+        </div>
+        <div>
+          视图切换
           <ProjectIcon size={24} />
           <NoteIcon size={24} />
+          <ListUnorderedIcon size={24} />
         </div>
       </div>
 

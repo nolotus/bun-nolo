@@ -11,7 +11,7 @@ interface SurfSpotDescriptionProps {
   description: string;
 }
 
-import { BeakerIcon, PinIcon, PlusIcon } from "@primer/octicons-react";
+import { ShareIcon, PinIcon, PlusIcon } from "@primer/octicons-react";
 
 const SurfSpotDescription = ({
   title,
@@ -22,7 +22,7 @@ const SurfSpotDescription = ({
       <Card.Title>{title}</Card.Title>
       <Card.Actions>
         <button className="flex items-center rounded-md bg-orange-500 px-2 py-1 text-sm text-white hover:bg-orange-600">
-          <BeakerIcon size={16} className="mr-1" />
+          <ShareIcon size={20} className="mr-1" />
           分享浪点
         </button>
       </Card.Actions>
@@ -37,7 +37,7 @@ const Surfers = () => (
       <Card.Title>最近下浪的人</Card.Title>
       <Card.Actions>
         <button className="flex items-center rounded-md bg-green-500 px-2 py-1 text-sm text-white hover:bg-green-600">
-          <PinIcon size={16} className="mr-1" /> {/* 更换为 PinIcon */}
+          <PinIcon size={20} className="mr-1" /> {/* 更换为 PinIcon */}
           留下足迹
         </button>
       </Card.Actions>
@@ -52,7 +52,7 @@ const NearbyClubs = () => (
       <Card.Title>附近的俱乐部</Card.Title>
       <Card.Actions>
         <button className="flex items-center rounded-md bg-blue-500 px-2 py-1 text-sm text-white hover:bg-blue-600">
-          <PlusIcon size={16} className="mr-1" />
+          <PlusIcon size={20} className="mr-1" />
           添加我的俱乐部
         </button>
       </Card.Actions>
@@ -75,7 +75,7 @@ const SurfSpotPage = ({ data }: SurfSpotPageProps) => {
   const { lat = 31.86119, lng = 117.283042, title } = data;
 
   return (
-    <div className="mx-auto max-w-full p-0 sm:p-2 md:p-4 lg:p-6 xl:p-8">
+    <div className="mt-4">
       <div className="flex flex-col lg:flex-row">
         <div className="w-full lg:w-1/2">
           <div className="mb-4 h-64 overflow-hidden bg-gray-200 lg:h-[400px]">

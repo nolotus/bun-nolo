@@ -1,3 +1,3 @@
-import { handleQuery } from './requestHandler';
+import { handleQuery } from "./requestHandler";
 
 export { handleQuery };
