@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Select } from 'ui';
-
-import { useProfileData } from '../useProfileData';
+import React, { useState, useEffect } from "react";
+import { Select } from "ui";
+import { OrganizationIcon } from "@primer/octicons-react";
+import { useProfileData } from "../useProfileData";
 const ExtendedProfile = () => {
-  const customId = 'extendedProfile';
+  const customId = "extendedProfile";
   const { formData, setFormData, handleSaveClick, error } =
     useProfileData(customId);
 
-  const provinces = ['北京', '上海', '广东'];
+  const provinces = ["北京", "上海", "广东"];
   const cities = {
-    北京: ['北京市'],
-    上海: ['上海市'],
-    广东: ['广州市', '深圳市'],
+    北京: ["北京市"],
+    上海: ["上海市"],
+    广东: ["广州市", "深圳市"],
   };
 
-  const [currentProvince, setCurrentProvince] = useState('');
-  const [nextProvince, setNextProvince] = useState('');
+  const [currentProvince, setCurrentProvince] = useState("");
+  const [nextProvince, setNextProvince] = useState("");
   const [journeyPoints, setJourneyPoints] = useState([]);
   const fetchJourneyPointsAPI = () => {
     return Promise.resolve([
-      '旅居点1',
-      '旅居点2',
-      '旅居点3',
+      "旅居点1",
+      "旅居点2",
+      "旅居点3",
       // ...更多旅居点
     ]);
   };
@@ -30,43 +30,43 @@ const ExtendedProfile = () => {
   }, []);
 
   return (
-    <div className="p-4 space-y-4">
-      <h1 className="text-2xl mb-2 font-semibold">ExtendedProfile</h1>
-      <div className="px-4 py-3 bg-gray-100 rounded space-y-2">
+    <div className="space-y-4 p-4">
+      <h1 className="mb-2 text-2xl font-semibold">ExtendedProfile</h1>
+      <div className="space-y-2 rounded bg-gray-100 px-4 py-3">
         <h2 className="text-xl font-semibold">兴趣爱好</h2>
         <input
           type="text"
           placeholder="已经会的兴趣 (comma separated)"
           value={
-            formData?.knownInterests ? formData.knownInterests.join(', ') : ''
+            formData?.knownInterests ? formData.knownInterests.join(", ") : ""
           }
           onChange={(e) =>
             setFormData({
               ...formData,
               knownInterests: e.target.value
-                .split(', ')
+                .split(", ")
                 .map((str) => str.trim()),
             })
           }
-          className="border border-gray-300 p-2 rounded w-full"
+          className="w-full rounded border border-gray-300 p-2"
         />
         <input
           type="text"
           placeholder="感兴趣的 (comma separated)"
           value={
-            formData?.interestedIn ? formData?.interestedIn.join(', ') : ''
+            formData?.interestedIn ? formData?.interestedIn.join(", ") : ""
           }
           onChange={(e) =>
             setFormData({
               ...formData,
-              interestedIn: e.target.value.split(', ').map((str) => str.trim()),
+              interestedIn: e.target.value.split(", ").map((str) => str.trim()),
             })
           }
-          className="border border-gray-300 p-2 rounded w-full"
+          className="w-full rounded border border-gray-300 p-2"
         />
       </div>
 
-      <div className="px-4 py-3 space-y-6">
+      <div className="space-y-6 px-4 py-3">
         <h2 className="text-xl font-semibold">居住</h2>
         <div className="space-y-2">
           <h3 className="text-lg font-bold">现居</h3>
@@ -82,21 +82,26 @@ const ExtendedProfile = () => {
           />
           <Select
             options={cities[currentProvince] || []}
-            value={formData?.currentCity || ''}
+            value={formData?.currentCity || ""}
             onChange={(e) =>
               setFormData({ ...formData, currentCity: e.target.value })
             }
             placeholder="选择城市"
           />
-
-          <Select
-            options={journeyPoints}
-            value={formData?.currentJourneyPoint || ''}
-            onChange={(e) =>
-              setFormData({ ...formData, currentJourneyPoint: e.target.value })
-            }
-            placeholder="请选择旅居点"
-          />
+          <div className="flex items-center">
+            <OrganizationIcon size={24} className="mr-2" />
+            <Select
+              options={journeyPoints}
+              value={formData?.currentJourneyPoint || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  currentJourneyPoint: e.target.value,
+                })
+              }
+              placeholder="请选择旅居点"
+            />
+          </div>
         </div>
         <div className="space-y-2">
           <h3 className="text-lg font-bold">将去</h3>
@@ -112,7 +117,7 @@ const ExtendedProfile = () => {
           />
           <Select
             options={cities[nextProvince] || []}
-            value={formData?.nextCity || ''}
+            value={formData?.nextCity || ""}
             onChange={(e) =>
               setFormData({ ...formData, nextCity: e.target.value })
             }
@@ -121,7 +126,7 @@ const ExtendedProfile = () => {
 
           <Select
             options={journeyPoints}
-            value={formData?.nextJourneyPoint || ''}
+            value={formData?.nextJourneyPoint || ""}
             onChange={(e) =>
               setFormData({ ...formData, nextJourneyPoint: e.target.value })
             }
@@ -131,7 +136,7 @@ const ExtendedProfile = () => {
       </div>
       <button
         onClick={handleSaveClick}
-        className="w-full py-2 px-4 font-bold text-white rounded bg-blue-500 hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+        className="focus:shadow-outline w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
       >
         Save
       </button>
