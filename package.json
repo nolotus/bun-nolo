@@ -18,7 +18,6 @@
     "@types/react-test-renderer": "^18.0.0",
     "autoprefixer": "^10.4.16",
     "babel-jest": "^29.6.3",
-    "bun-types": "latest",
     "esbuild": "^0.19.5",
     "esbuild-style-plugin": "^1.6.2",
     "postcss": "^8.4.31",
@@ -46,6 +45,7 @@
   "dependencies": {
     "@primer/octicons-react": "^19.8.0",
     "@reduxjs/toolkit": "^2.0.1",
+    "@types/bun": "^1.0.8",
     "@uiw/react-amap": "^6.0.2",
     "@uiw/react-amap-types": "^6.0.2",
     "google-map-react": "^2.2.1",
