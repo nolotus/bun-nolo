@@ -14,7 +14,6 @@ jobs:
       - uses: oven-sh/setup-bun@v1
 
       # run any `bun` or `bunx` command
-      - run: rm -rf bun.lockb
       - run: bun install
       - run: rm -rf public/assets
       - run: bun run build
