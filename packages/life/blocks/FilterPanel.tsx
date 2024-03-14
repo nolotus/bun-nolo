@@ -1,6 +1,5 @@
 import { getDomains } from "app/domains";
-import { useAppDispatch, useAppSelector } from "app/hooks";
-import { DataType } from "create/types";
+import { useAppDispatch } from "app/hooks";
 import React, { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, Select } from "ui";
@@ -11,11 +10,9 @@ import {
   setSortOrder,
   setSourceFilter,
 } from "../lifeSlice";
-import { selectFilterType } from "../selectors";
 
 export const FilterPanel = () => {
   const dispatch = useAppDispatch();
-  const filterType = useAppSelector(selectFilterType);
   let [searchParams, setSearchParams] = useSearchParams();
 
   const domains = useMemo(() => getDomains(), []);
@@ -26,12 +23,6 @@ export const FilterPanel = () => {
     dispatch(setSortKey(searchParams.get("sortKey") || ""));
     dispatch(setSortOrder(searchParams.get("sortOrder") || ""));
   }, []);
-  const handleFilterTypeChange = (
-    event: React.ChangeEvent<HTMLSelectElement>,
-  ) => {
-    dispatch(setFilterType(event.target.value));
-    setSearchParams({ filterType: event.target.value });
-  };
 
   const handleSortKeyChange = (event) => {
     dispatch(setSortKey(event.target.value));
@@ -48,24 +39,7 @@ export const FilterPanel = () => {
   };
 
   return (
-    <Card className="my-4 p-4 shadow-lg">
-      <div className="mb-4 flex flex-wrap gap-6 border-b pb-4">
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="filterType"
-            className="text-sm font-medium text-gray-700"
-          >
-            Filter Type:
-          </label>
-          <Select
-            id="filterType"
-            value={filterType}
-            onChange={handleFilterTypeChange}
-            options={Object.values(DataType)}
-            placeholder="Select a filter type"
-          />
-        </div>
-      </div>
+    <Card className="my-4 p-4">
       <div className="flex gap-4">
         <div className="flex flex-col gap-2">
           <label

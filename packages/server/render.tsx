@@ -15,7 +15,9 @@ export const handleRender = async (req) => {
   let didError = false;
 
   const acceptLanguage = req.headers.get("accept-language");
+  console.log("acceptLanguage", acceptLanguage);
   const lng = acceptLanguage.split(",")[0];
+  console.log("lng", lng);
 
   try {
     const stream = await renderToReadableStream(
