@@ -22,7 +22,7 @@ for (const lang of Object.keys(aiTranslations)) {
 }
 
 const ChatPage = () => {
-  const [getChatList, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
+  const [getentries, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
   const fetchChatList = async () => {
     const options = {
       isJSON: true,
@@ -32,11 +32,11 @@ const ChatPage = () => {
       limit: 10000,
     };
 
-    const defaultTokenStatisticsList = await getChatList({
+    const defaultTokenStatisticsList = await getentries({
       userId: nolotusId,
       options,
     }).unwrap();
-    const nolotusTokenStatisticsList = await getChatList({
+    const nolotusTokenStatisticsList = await getentries({
       userId: nolotusId,
       options,
       domain: "https://nolotus.com",
