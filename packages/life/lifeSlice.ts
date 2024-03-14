@@ -1,23 +1,20 @@
-import { createSlice, createEntityAdapter } from '@reduxjs/toolkit';
+import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
 
 export const lifeAdapter = createEntityAdapter();
 const initialState = lifeAdapter.getInitialState({
-  filterType: '',
-  excludeType: '',
-  userIdFilter: '',
-  sortKey: '', // 新增：用于筛选的键
-  sortOrder: 'asc', // 新增：排序顺序，默认为升序（asc）
-  sourceFilter: '',
+  filterType: "",
+  excludeType: "",
+  userIdFilter: "",
+  sortKey: "", // 新增：用于筛选的键
+  sortOrder: "asc", // 新增：排序顺序，默认为升序（asc）
+  sourceFilter: "",
 });
 const lifeSlice = createSlice({
-  name: 'life',
+  name: "life",
   initialState,
   reducers: {
     setFilterType: (state, action) => {
       state.filterType = action.payload;
-    },
-    setUserIdFilter: (state, action) => {
-      state.userIdFilter = action.payload;
     },
     setSortKey: (state, action) => {
       state.sortKey = action.payload;
@@ -30,11 +27,6 @@ const lifeSlice = createSlice({
     },
   },
 });
-export const {
-  setFilterType,
-  setUserIdFilter,
-  setSortKey,
-  setSortOrder,
-  setSourceFilter,
-} = lifeSlice.actions;
+export const { setFilterType, setSortKey, setSortOrder, setSourceFilter } =
+  lifeSlice.actions;
 export default lifeSlice.reducer;

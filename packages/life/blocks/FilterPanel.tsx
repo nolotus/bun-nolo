@@ -7,22 +7,15 @@ import { Card, Select } from "ui";
 import { SortDescIcon } from "@primer/octicons-react";
 import {
   setFilterType,
-  setUserIdFilter,
   setSortKey,
   setSortOrder,
   setSourceFilter,
 } from "../lifeSlice";
-import {
-  selectFilterType,
-  selectUserIdFilter,
-  selectFilteredLifeData,
-} from "../selectors";
+import { selectFilterType } from "../selectors";
 
 export const FilterPanel = () => {
   const dispatch = useAppDispatch();
   const filterType = useAppSelector(selectFilterType);
-  const userIdFilter = useAppSelector(selectUserIdFilter);
-  const filteredData = useAppSelector(selectFilteredLifeData);
   let [searchParams, setSearchParams] = useSearchParams();
 
   const domains = useMemo(() => getDomains(), []);
@@ -30,7 +23,6 @@ export const FilterPanel = () => {
 
   useEffect(() => {
     dispatch(setFilterType(searchParams.get("filterType") || ""));
-    dispatch(setUserIdFilter(searchParams.get("userIdFilter") || ""));
     dispatch(setSortKey(searchParams.get("sortKey") || ""));
     dispatch(setSortOrder(searchParams.get("sortOrder") || ""));
   }, []);
@@ -41,10 +33,6 @@ export const FilterPanel = () => {
     setSearchParams({ filterType: event.target.value });
   };
 
-  const handleUserIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setUserIdFilter(event.target.value));
-    setSearchParams({ userIdFilter: event.target.value });
-  };
   const handleSortKeyChange = (event) => {
     dispatch(setSortKey(event.target.value));
     setSearchParams({ sortKey: event.target.value });
@@ -77,27 +65,7 @@ export const FilterPanel = () => {
             placeholder="Select a filter type"
           />
         </div>
-        {/* <div className="flex min-w-[200px] flex-1 flex-col gap-2">
-          <label
-            htmlFor="userIdFilter"
-            className="text-sm font-medium text-gray-700"
-          >
-            User ID Filter:
-          </label>
-          <input
-            id="userIdFilter"
-            value={userIdFilter}
-            onChange={handleUserIdChange}
-            placeholder="Enter User ID"
-            className="w-full rounded border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div> */}
       </div>
-      {/* <div className="mb-4">
-        <span className="text-sm font-medium text-gray-700">
-          Data Count: {filteredData.length}
-        </span>
-      </div> */}
       <div className="flex gap-4">
         <div className="flex flex-col gap-2">
           <label
