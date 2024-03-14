@@ -5,10 +5,10 @@ import {
   ListUnorderedIcon,
   TagIcon,
 } from "@primer/octicons-react";
-import { Card, Select } from "ui";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { DataType } from "create/types";
 import { useSearchParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import { AccountBalance } from "../blocks/AccountBanlance";
 import DataList from "../blocks/DataList";
@@ -22,6 +22,7 @@ export const LifeAll = () => {
   const dispatch = useAppDispatch();
   const filterType = useAppSelector(selectFilterType);
   let [searchParams, setSearchParams] = useSearchParams();
+  const mainColor = useSelector((state: any) => state.theme.mainColor);
 
   const { fetchData } = useFetchData();
   const data = useAppSelector(selectFilteredLifeData);
@@ -35,12 +36,17 @@ export const LifeAll = () => {
       <AccountBalance />
       <div className="flex gap-2">
         {typeArray.map((typeItem) => {
+          const isActive = filterType === typeItem;
           return (
             <div
-              onClick={() => {
-                handleFilterTypeChange(typeItem);
-              }}
-              className=""
+              key={typeItem}
+              onClick={() => handleFilterTypeChange(typeItem)}
+              className="relative flex cursor-pointer items-center justify-center p-2 transition-all duration-200 hover:bg-blue-100"
+              style={
+                isActive
+                  ? { borderBottom: "3px solid", borderBottomColor: mainColor }
+                  : undefined
+              }
             >
               {typeItem}
             </div>
