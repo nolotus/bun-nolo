@@ -41,4 +41,4 @@ jobs:
             /root/.bun/bin/bun install
             rm -rf public/assets
             /root/.bun/bin/bun run ./scripts/esBuild.js  
-            pm2 restart all
+            bunx pm2 restart all
