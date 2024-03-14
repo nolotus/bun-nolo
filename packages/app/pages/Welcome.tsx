@@ -17,7 +17,19 @@ const welcomeMdast = {
           children: [
             {
               type: "text",
-              value: "嗨，欢迎来到这里！👋",
+              value: "嗨，欢迎来到这里！👋，本站还在测试中，",
+            },
+          ],
+        },
+        {
+          type: "heading",
+          depth: 2,
+          className: "text-xl font-semibold mb-4",
+          children: [
+            {
+              type: "text",
+              value:
+                "很多功能都不完善，如果你有任何问题请发送邮件至s@nolotus.com",
             },
           ],
         },

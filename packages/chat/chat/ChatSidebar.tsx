@@ -1,6 +1,5 @@
-import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm"; // Import the form component
+import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
-import { nolotusId } from "core/init";
 import { extractUserId } from "core/prefix";
 import {
   useLazyGetEntriesQuery,
@@ -11,23 +10,11 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useModal, Dialog } from "ui";
 
-import {
-  fetchDefaultConfig,
-  selectChat,
-  fetchChatListSuccess,
-  reloadChatList,
-} from "../chatSlice";
+import { fetchDefaultConfig, selectChat, reloadChatList } from "../chatSlice";
 import { useDeleteChat } from "../hooks/useDeleteChat";
 
 import ChatItem from "./ChatItem";
 
-const options = {
-  isJSON: true,
-  condition: {
-    type: "chatRobot",
-  },
-  limit: 20,
-};
 const ChatSidebar = () => {
   const { t } = useTranslation();
   const [getDefaultConfig] = useLazyGetEntryQuery();
@@ -68,22 +55,16 @@ const ChatSidebar = () => {
   }, [chatId, dispatch, getDefaultConfig, navigate]);
 
   useEffect(() => {
-    const fetchChatList = async () => {
-      const nolotusChatList = await getentries({
-        userId: nolotusId,
-        options,
-      }).unwrap();
-      isSuccess && dispatch(fetchChatListSuccess(nolotusChatList));
-
-      if (auth.user?.userId) {
-        const userChatList = await getentries({
-          userId: auth.user?.userId,
-          options,
-        }).unwrap();
-        isSuccess && dispatch(fetchChatListSuccess(userChatList));
-      }
-    };
-    fetchChatList();
+    // const fetchChatList = async () => {
+    //   if (auth.user?.userId) {
+    //     const userChatList = await getentries({
+    //       userId: auth.user?.userId,
+    //       options,
+    //     }).unwrap();
+    //     isSuccess && dispatch(fetchChatListSuccess(userChatList));
+    //   }
+    // };
+    // fetchChatList();
   }, [isSuccess, auth.user?.userId, dispatch, getentries]);
 
   const postReloadChatList = async () => {

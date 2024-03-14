@@ -9,7 +9,7 @@ export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export const useAuth = () => {
-	const user = useAppSelector(selectCurrentUser);
+  const user = useAppSelector(selectCurrentUser);
 
-	return useMemo(() => ({ user }), [user]);
+  return useMemo(() => ({ user }), [user]);
 };
