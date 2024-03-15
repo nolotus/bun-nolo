@@ -6,10 +6,9 @@ import {
   useLazyGetEntriesQuery,
 } from "database/services";
 import { nolotusId } from "core/init";
-import { updateData } from "database/dbSlice";
+import { makeSelectEntityById, updateData } from "database/dbSlice";
 import { API_ENDPOINTS } from "database/config";
 
-import { nanoid } from "@reduxjs/toolkit";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
@@ -31,7 +30,6 @@ import { selectMessage } from "../messages/selector";
 import { createPromotMessage } from "ai/utils/createPromotMessage";
 import { retrieveFirstToken } from "auth/client/token";
 import RNFetchBlob from "react-native-blob-util";
-import { useCurrentChatConfig } from "../chat/chatHooks";
 const chatUrl = `${API_ENDPOINTS.AI}/chat`;
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
@@ -135,7 +133,9 @@ export function ChatScreen() {
       return { error: { status: "FETCH_ERROR", data: error.message } };
     }
   };
-  const currentChatConfig = useCurrentChatConfig();
+
+  const currentChatConfig = useAppSelector(makeSelectEntityById(chatId));
+
   const [writeHashData] = useWriteHashMutation();
 
   const [requestFailed, setRequestFailed] = useState(false);

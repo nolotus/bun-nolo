@@ -1,22 +1,28 @@
 import i18n from "i18n";
 import React, { useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { baseHeight } from "app/styles/height";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 
 import { nolotusId } from "core/init";
-import { updateData } from "database/dbSlice";
+import {
+  updateData,
+  makeSelectEntityById,
+  upsertOne,
+  upsertMany,
+} from "database/dbSlice";
 import { useLazyGetEntriesQuery } from "database/services";
-import { useSearchParams } from "react-router-dom";
+import { useLazyGetEntryQuery } from "database/services";
 
 import { DataType } from "create/types";
 import CreateChatAIButton from "ai/blocks/CreateChatAIButton";
 import { chatAIOptions } from "ai/request";
 import aiTranslations from "ai/aiI18n";
 import ChatAIList from "ai/blocks/ChatAIList";
+import { selectCurrentUserChatRobots } from "chat/selectors";
 
 import chatTranslations from "../chatI18n";
-import { fetchChatListSuccess } from "../chatSlice";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 
@@ -32,6 +38,7 @@ for (const lang of Object.keys(aiTranslations)) {
 
 const ChatPage = () => {
   const auth = useAuth();
+
   if (!auth.user) {
     return (
       <div className="container mx-auto mt-16 text-center text-3xl">
@@ -39,10 +46,13 @@ const ChatPage = () => {
       </div>
     );
   }
+  const [getDefaultConfig] = useLazyGetEntryQuery();
+  const navigate = useNavigate();
+
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const chatId = searchParams.get("chatId");
-  const [getentries, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
+  const [getentries] = useLazyGetEntriesQuery();
   const fetchTokenUsage = async () => {
     const options = {
       isJSON: true,
@@ -71,7 +81,7 @@ const ChatPage = () => {
       userId,
       options: chatAIOptions,
     }).unwrap();
-    dispatch(fetchChatListSuccess(userChatList));
+    dispatch(upsertMany(userChatList));
   };
   useEffect(() => {
     if (auth.user?.userId) {
@@ -79,17 +89,44 @@ const ChatPage = () => {
       fetchTokenUsage(auth.user?.userId);
     }
   }, [auth.user?.userId]);
-  const chatList = useAppSelector((state) => state.chat.chatList);
 
+  useEffect(() => {
+    const requestDefaultConfig = async () => {
+      if (chatId) {
+        const chatIdConfig = await getDefaultConfig({
+          entryId: chatId,
+        }).unwrap();
+        console.log("chatIdConfig", chatIdConfig);
+        if (chatIdConfig.status === 404) {
+          navigate("/chat");
+        } else {
+          dispatch(upsertOne(chatIdConfig));
+        }
+      }
+    };
+    requestDefaultConfig();
+  }, [chatId, dispatch, getDefaultConfig, navigate]);
+
+  const chatItems = useAppSelector((state) =>
+    selectCurrentUserChatRobots(state),
+  );
+
+  const currentChatConfig = useAppSelector(makeSelectEntityById(chatId));
+  console.log("currentChatConfig", currentChatConfig);
+  const chatList = currentChatConfig
+    ? [currentChatConfig, ...chatItems]
+    : chatItems;
+  console.log("chatItems", chatItems);
+  console.log("chatList", chatList);
   return (
     <div
       className={`flex flex-col lg:flex-row`}
       style={{ height: `calc(100vh - ${baseHeight})` }}
     >
-      {chatList.ids.length > 0 || chatId ? (
+      {chatItems.length > 0 || currentChatConfig ? (
         <>
           <div className="w-full overflow-y-auto bg-gray-200 lg:block lg:w-1/6">
-            <ChatSidebar />
+            <ChatSidebar chatList={chatItems} />
           </div>
           <ChatWindow />
         </>

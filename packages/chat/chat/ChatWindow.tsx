@@ -28,7 +28,6 @@ import {
 import { selectMessage } from "../messages/selector";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
-import { useCurrentChatConfig } from "./chatHooks";
 import { Message } from "../messages/types";
 import { createPromotMessage } from "ai/utils/createPromotMessage";
 
@@ -36,7 +35,7 @@ import { pickMessages } from "ai/utils/pickMessages";
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
-const ChatWindow = () => {
+const ChatWindow = ({ currentChatConfig }) => {
   const auth = useAuth();
   const { t } = useTranslation();
   const [visionChat] = useVisionChatMutation();
@@ -53,7 +52,6 @@ const ChatWindow = () => {
   };
   const [requestFailed, setRequestFailed] = useState(false);
 
-  const currentChatConfig = useCurrentChatConfig();
   const { isMessageStreaming, isStopped } = useAppSelector(selectMessage);
   const [writeHashData] = useWriteHashMutation();
   let temp;

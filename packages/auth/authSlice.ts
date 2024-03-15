@@ -1,8 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from 'app/store';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { RootState } from "app/store";
 
-import { authApi } from './services';
-import { parseToken } from './token';
+import { authApi } from "./services";
+import { parseToken } from "./token";
 
 export interface User {
   userId: string;
@@ -10,7 +10,7 @@ export interface User {
   email?: string;
 }
 
-interface AuthState {
+export interface AuthState {
   currentUser: User | null;
   users: User[];
   isLoggedIn: boolean;
@@ -25,12 +25,12 @@ const initialState: AuthState = {
 };
 
 export const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     changeCurrentUser: (
       state,
-      action: PayloadAction<{ user: User, token: string }>,
+      action: PayloadAction<{ user: User; token: string }>,
     ) => {
       (state.currentUser = action.payload.user),
         (state.currentToken = action.payload.token);
@@ -38,7 +38,7 @@ export const authSlice = createSlice({
 
     userRegister: (
       state,
-      action: PayloadAction<{ user: User, token: string }>,
+      action: PayloadAction<{ user: User; token: string }>,
     ) => {
       state.currentUser = action.payload.user;
       state.isLoggedIn = true;
@@ -47,7 +47,7 @@ export const authSlice = createSlice({
     },
     restoreSession: (
       state,
-      action: PayloadAction<{ user: User, users: User[], token: string }>,
+      action: PayloadAction<{ user: User; users: User[]; token: string }>,
     ) => {
       state.isLoggedIn = true;
       state.currentUser = action.payload.user;
@@ -69,7 +69,7 @@ export const authSlice = createSlice({
     builder.addMatcher(
       authApi.endpoints.login.matchFulfilled,
       (state, { payload }) => {
-        console.log('payload', payload);
+        console.log("payload", payload);
         const user = parseToken(payload.token);
         state.currentUser = user;
         state.currentToken = payload.token;

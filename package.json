@@ -51,6 +51,7 @@
     "google-map-react": "^2.2.1",
     "js-base64": "^3.7.5",
     "rambda": "^8.6.0",
+    "re-reselect": "^5.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^9.0.1"

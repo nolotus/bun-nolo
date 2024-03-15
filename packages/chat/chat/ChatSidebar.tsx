@@ -1,27 +1,22 @@
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
-import { extractUserId } from "core/prefix";
-import {
-  useLazyGetEntriesQuery,
-  useLazyGetEntryQuery,
-} from "database/services";
-import React, { useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { useAppDispatch, useAuth } from "app/hooks";
 import { useSearchParams, useNavigate } from "react-router-dom";
+
+import { extractUserId } from "core/prefix";
+import React from "react";
+import { useTranslation } from "react-i18next";
 import { useModal, Dialog } from "ui";
 
-import { fetchDefaultConfig, selectChat, reloadChatList } from "../chatSlice";
-import { useDeleteChat } from "../hooks/useDeleteChat";
+import { useDeleteEntryMutation } from "database/services";
 
 import ChatItem from "./ChatItem";
+import { removeOne } from "database/dbSlice";
 
-const ChatSidebar = () => {
-  const { t } = useTranslation();
-  const [getDefaultConfig] = useLazyGetEntryQuery();
+const ChatSidebar = ({ chatList }) => {
+  const auth = useAuth();
   const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
-  const chatId = searchParams.get("chatId");
+  const { t } = useTranslation();
 
   const {
     visible: configModalVisible,
@@ -29,43 +24,22 @@ const ChatSidebar = () => {
     close: closeConfigModal,
   } = useModal();
 
-  const auth = useAuth();
   const dispatch = useAppDispatch();
-  const { currentChatId } = useAppSelector(selectChat);
 
-  const chatList = useAppSelector((state) => state.chat.chatList);
-  const chatItems = chatList.ids.map((id) => chatList.entities[id]);
+  const [deleteEntry] = useDeleteEntryMutation();
 
-  const [getentries, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
-
-  useEffect(() => {
-    const requestDefaultConfig = async () => {
-      if (chatId) {
-        const chatIdConfig = await getDefaultConfig({
-          entryId: chatId,
-        }).unwrap();
-        if (chatIdConfig.error?.status === 404) {
-          navigate("/chat");
-        } else {
-          dispatch(fetchDefaultConfig(chatIdConfig));
-        }
-      }
-    };
-    requestDefaultConfig();
-  }, [chatId, dispatch, getDefaultConfig, navigate]);
-
-  const postReloadChatList = async () => {
-    const result = await getentries({ userId: auth.user?.userId, options });
-    console.log("postReloadChatList result", result);
-    isSuccess && dispatch(reloadChatList(result.data));
+  const deleteChatBot = async (chat) => {
+    await deleteEntry({ entryId: chat.id }).unwrap();
+    dispatch(removeOne(chat.id));
+    navigate("/chat");
   };
-
-  const deleteChatBot = useDeleteChat(postReloadChatList);
 
   const isCreator = (dataId) => {
     const dataUserId = extractUserId(dataId);
     return dataUserId === auth.user?.userId;
   };
+  const [searchParams] = useSearchParams();
+  const currentChatId = searchParams.get("chatId");
   return (
     <div className="flex h-full flex-col justify-start bg-gray-100">
       <div className="p-4">
@@ -84,21 +58,15 @@ const ChatSidebar = () => {
       >
         <CreateChatRobotForm onClose={closeConfigModal} />
       </Dialog>
-      {isLoading ? (
-        "loading"
-      ) : (
-        <>
-          {chatItems?.map((chat) => (
-            <ChatItem
-              key={chat.id}
-              chat={chat}
-              onDeleteChat={deleteChatBot}
-              isSelected={currentChatId === chat.id}
-              allowEdit={isCreator(chat.id)}
-            />
-          ))}
-        </>
-      )}
+      {chatList?.map((chat) => (
+        <ChatItem
+          key={chat.id}
+          chat={chat}
+          onDeleteChat={deleteChatBot}
+          isSelected={currentChatId === chat.id}
+          allowEdit={isCreator(chat.id)}
+        />
+      ))}
     </div>
   );
 };
