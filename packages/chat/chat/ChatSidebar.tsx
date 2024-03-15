@@ -54,19 +54,6 @@ const ChatSidebar = () => {
     requestDefaultConfig();
   }, [chatId, dispatch, getDefaultConfig, navigate]);
 
-  useEffect(() => {
-    // const fetchChatList = async () => {
-    //   if (auth.user?.userId) {
-    //     const userChatList = await getentries({
-    //       userId: auth.user?.userId,
-    //       options,
-    //     }).unwrap();
-    //     isSuccess && dispatch(fetchChatListSuccess(userChatList));
-    //   }
-    // };
-    // fetchChatList();
-  }, [isSuccess, auth.user?.userId, dispatch, getentries]);
-
   const postReloadChatList = async () => {
     const result = await getentries({ userId: auth.user?.userId, options });
     console.log("postReloadChatList result", result);

@@ -1,5 +1,4 @@
 import {
-  createSlice,
   PayloadAction,
   createEntityAdapter,
   buildCreateSlice,
@@ -37,7 +36,7 @@ export const chatSlice = createAppSlice({
   reducers: (create) => ({
     fetchChatListSuccess: create.reducer(
       (state: ChatSliceState, action: PayloadAction<any[]>) => {
-        chatAdapter.upsertMany(state.chatList, action.payload);
+        chatAdapter.setAll(state.chatList, action.payload);
         if (!state.currentChatId) {
           state.currentChatId = action.payload[0].id
             ? action.payload[0].id

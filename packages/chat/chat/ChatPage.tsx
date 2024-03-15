@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 import { nolotusId } from "core/init";
 import { updateData } from "database/dbSlice";
 import { useLazyGetEntriesQuery } from "database/services";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import { DataType } from "create/types";
 import CreateChatAIButton from "ai/blocks/CreateChatAIButton";
@@ -32,7 +32,6 @@ for (const lang of Object.keys(aiTranslations)) {
 
 const ChatPage = () => {
   const auth = useAuth();
-  console.log("auth", auth);
   if (!auth.user) {
     return (
       <div className="container mx-auto mt-16 text-center text-3xl">
@@ -67,21 +66,20 @@ const ChatPage = () => {
     console.log("nolotusTokenStatisticsList", nolotusTokenStatisticsList);
     dispatch(updateData({ data: nolotusTokenStatisticsList }));
   };
-  const fetchChatList = async () => {
-    if (auth.user?.userId) {
-      const userChatList = await getentries({
-        userId: auth.user?.userId,
-        options: chatAIOptions,
-      }).unwrap();
-      isSuccess && dispatch(fetchChatListSuccess(userChatList));
-    }
+  const fetchChatList = async (userId) => {
+    const userChatList = await getentries({
+      userId,
+      options: chatAIOptions,
+    }).unwrap();
+    dispatch(fetchChatListSuccess(userChatList));
   };
   useEffect(() => {
-    fetchChatList();
-    fetchTokenUsage();
-  }, []);
+    if (auth.user?.userId) {
+      fetchChatList(auth.user?.userId);
+      fetchTokenUsage(auth.user?.userId);
+    }
+  }, [auth.user?.userId]);
   const chatList = useAppSelector((state) => state.chat.chatList);
-  console.log("chatList", chatList.ids.length);
 
   return (
     <div
