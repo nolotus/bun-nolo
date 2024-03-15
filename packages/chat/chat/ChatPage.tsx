@@ -128,7 +128,7 @@ const ChatPage = () => {
           <div className="w-full overflow-y-auto bg-gray-200 lg:block lg:w-1/6">
             <ChatSidebar chatList={chatItems} />
           </div>
-          <ChatWindow />
+          <ChatWindow currentChatConfig={currentChatConfig} />
         </>
       ) : (
         <div className="container mx-auto mt-16">
