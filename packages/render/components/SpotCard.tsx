@@ -6,7 +6,7 @@ import { baseCard } from "../styles";
 export const SpotCard = ({ data }) => (
   <NavLink
     to={`/${data.id}`}
-    className={`${baseCard} m-2 block w-full flex-1 transform bg-white p-0 shadow-md transition duration-500 ease-in-out`}
+    className={`${baseCard} m-2 block w-full flex-1 transform bg-white shadow-md transition duration-500 ease-in-out`}
   >
     <div className="flex">
       {data.image ? (

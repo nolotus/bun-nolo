@@ -13,8 +13,7 @@ const AI = () => {
   console.log("data", data);
   return (
     <div className="container mx-auto ">
-      <h2>对话AIs</h2>
-
+      <h1 className="mb-4 text-2xl font-bold text-gray-700">对话AIs</h1>
       <ChatAIList />
     </div>
   );

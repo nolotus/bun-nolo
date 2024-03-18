@@ -15,7 +15,7 @@ export async function chatRequest(
     responseType: isStream ? "stream" : "json",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.MISTRAL_API_KEY}`,
+      Authorization: `Bearer ${process.env.MISTRAL_KEY}`,
       Accept: isStream ? "text/event-stream" : "application/json",
     },
     data: {

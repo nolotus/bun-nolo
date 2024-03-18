@@ -11,7 +11,6 @@ import App from "./App";
 import { browserStore } from "./store";
 import "./input.css";
 import { isProduction } from "utils/env";
-import { APILoader } from "@uiw/react-amap";
 
 const hostname = window.location.hostname;
 

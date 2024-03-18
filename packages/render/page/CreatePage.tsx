@@ -2,7 +2,7 @@ import { nanoid } from "@reduxjs/toolkit";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 import { useWriteMutation, useGetEntryQuery } from "database/services";
 import React, { useEffect } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { renderContentNode } from "render";
 import { markdownToMdast, getH1TextFromMdast } from "render/MarkdownProcessor";
 import { Button, Toggle } from "ui";
