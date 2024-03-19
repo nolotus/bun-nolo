@@ -1,4 +1,3 @@
-import React from "react";
 import GaodeMap from "render/map/GaodeMap";
 import { APILoader } from "@uiw/react-amap";
 //be careful APILoader can't in entry or Map file, you could try will debug
@@ -78,8 +77,8 @@ const SurfSpotPage = ({ data }: SurfSpotPageProps) => {
     <div className="mt-4">
       <div className="flex flex-col lg:flex-row">
         <div className="w-full lg:w-1/2">
-          <div className="mb-4 h-64 overflow-hidden bg-gray-200 lg:h-[400px]">
-            <APILoader version="2.0.5" akey="a7a90e05a37d3f6bf76d4a9032fc9129">
+          <div className="mb-4 h-64 overflow-hidden bg-gray-200 lg:h-[300px]">
+            <APILoader version="2.0.5" akey="56b1c6772542a92ab459923a7c556566">
               <GaodeMap lat={lat} lng={lng} title={title} />
             </APILoader>
           </div>
