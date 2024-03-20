@@ -1,5 +1,5 @@
 import { getDomains } from "app/domains";
-import { useAppDispatch, useAuth } from "app/hooks";
+import { useAppDispatch } from "app/hooks";
 import { updateData } from "database/dbSlice";
 import { useLazyReadAllQuery } from "database/services";
 import { useMemo } from "react";

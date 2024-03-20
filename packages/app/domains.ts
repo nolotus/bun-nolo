@@ -1,9 +1,9 @@
-import { nolotusDomain } from 'core/init';
-import { isDevelopment } from 'utils/env';
+import { nolotusDomain } from "core/init";
+import { isDevelopment } from "utils/env";
 
 export const getDomains = () => {
   const currentDomain = isDevelopment
-    ? 'localhost'
+    ? "localhost"
     : window.location.port
       ? `${window.location.hostname}:${window.location.port}`
       : `${window.location.hostname}`;

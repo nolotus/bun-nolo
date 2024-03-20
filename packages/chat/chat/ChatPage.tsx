@@ -100,7 +100,7 @@ const ChatPage = () => {
         if (chatIdConfig.status === 404) {
           navigate("/chat");
         } else {
-          dispatch(upsertOne(chatIdConfig));
+          dispatch(upsertOne({ id: chatIdConfig.id, value: chatIdConfig }));
         }
       }
     };

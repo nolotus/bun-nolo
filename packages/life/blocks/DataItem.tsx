@@ -24,7 +24,6 @@ const DataItem = ({ dataId, content, source }) => {
   }
   const displayContent =
     typeof content === "string" ? content : JSON.stringify(content, null, 2);
-  console.log("content", content);
   const text =
     displayContent.length > 188
       ? displayContent.substring(0, 188) + "..."
@@ -33,29 +32,19 @@ const DataItem = ({ dataId, content, source }) => {
   return (
     <>
       <div className="flex items-center justify-between">
-        <h3 className="mr-4 text-base font-semibold text-gray-900">
+        <h3 className="mr-4 text-base  font-semibold text-blue-500">
           <Link to={`/${dataId}`} className="flex items-center hover:underline">
             {content.title}
           </Link>
         </h3>
-        <div className="flex items-center">
-          <Link
-            to={`/${dataId}`}
-            className="mr-4 flex items-center text-blue-500 transition-colors duration-300 hover:text-blue-600"
-            aria-label="查看更多"
-          >
-            <EyeIcon size={16} className="mr-1" />
-            查看
-          </Link>
-          <Link
-            to={`/${dataId}?edit=true`}
-            className="flex items-center text-blue-500 transition-colors duration-300 hover:text-blue-600"
-            aria-label="编辑"
-          >
-            <PencilIcon size={16} className="mr-1" />
-            编辑
-          </Link>
-        </div>
+        <Link
+          to={`/${dataId}?edit=true`}
+          className="flex items-center text-blue-500 transition-colors duration-300 hover:text-blue-600"
+          aria-label="编辑"
+        >
+          <PencilIcon size={16} className="mr-1" />
+          编辑
+        </Link>
       </div>
       <p className="overflow-hidden text-ellipsis text-sm leading-relaxed text-gray-600">
         {text}

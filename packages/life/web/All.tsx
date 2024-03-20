@@ -1,4 +1,3 @@
-import React from "react";
 import {
   NoteIcon,
   ProjectIcon,
@@ -13,18 +12,28 @@ import { useSelector } from "react-redux";
 import { AccountBalance } from "../blocks/AccountBanlance";
 import DataList from "../blocks/DataList";
 import { FilterPanel } from "../blocks/FilterPanel";
-import { useFetchData } from "../hooks/useFetchData";
 import { selectFilteredLifeData } from "../selectors";
 import { selectFilterType } from "../selectors";
 import { setFilterType } from "../lifeSlice";
+import { updateData } from "database/dbSlice";
+import { getDomains } from "app/domains";
 
 export const LifeAll = () => {
   const dispatch = useAppDispatch();
   const filterType = useAppSelector(selectFilterType);
   let [searchParams, setSearchParams] = useSearchParams();
-  const mainColor = useSelector((state: any) => state.theme.mainColor);
+  console.log("searchParams", searchParams);
 
-  const { fetchData } = useFetchData();
+  const mainColor = useSelector((state: any) => state.theme.mainColor);
+  const domains = getDomains();
+  console.log("domains", domains);
+  const fetchData = async (userId: string) => {
+    domains.forEach(async ({ domain, source }) => {
+      const result = await trigger({ userId, domain }).unwrap();
+      dispatch(updateData({ data: result, source }));
+    });
+  };
+
   const data = useAppSelector(selectFilteredLifeData);
   const handleFilterTypeChange = (chooseDataType) => {
     dispatch(setFilterType(chooseDataType));

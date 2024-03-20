@@ -31,7 +31,7 @@ const DataList = ({ data, refreshData }) => {
     refreshData(auth.user?.userId);
   };
 
-  const pushData = async (id: string, value, domains: string[]) => {
+  const pushData = async (id: string, value) => {
     // 先对数据进行格式化
     const formatValue = omit("id", value);
     const customId = extractCustomId(id);
@@ -39,16 +39,19 @@ const DataList = ({ data, refreshData }) => {
     const userId = extractUserId(id);
 
     // 遍历所有域名并对每个执行 write 操作
-    for (const domain of domains) {
-      await write({
-        data: formatValue,
-        flags,
-        userId,
-        customId,
-        domain,
-      }).unwrap();
-    }
-
+    // const domains = getDomains();
+    const domains = ["https://nolotus.com", "https://us.nolotus.com"];
+    await Promise.all(
+      domains.map((domain) =>
+        write({
+          data: formatValue,
+          flags,
+          userId,
+          customId,
+          domain,
+        }).unwrap(),
+      ),
+    );
     refreshData(auth.user?.userId);
   };
 

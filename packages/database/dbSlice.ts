@@ -46,7 +46,8 @@ const dbSlice = createSlice({
       dbAdapter.upsertMany(state, action.payload);
     }),
     upsertOne: create.reducer((state, action) => {
-      dbAdapter.upsertOne(state, action.payload);
+      // windows.localstorage
+      dbAdapter.upsertOne(state, action.payload.value);
     }),
     removeOne: create.reducer((state, action) => {
       dbAdapter.removeOne(state, action.payload);
