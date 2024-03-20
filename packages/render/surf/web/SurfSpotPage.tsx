@@ -1,6 +1,7 @@
 import GaodeMap from "render/map/GaodeMap";
 import { APILoader } from "@uiw/react-amap";
 //be careful APILoader can't in entry or Map file, you could try will debug
+import { renderContentNode } from "render";
 
 import { WeatherRelate } from "./WeatherRelate";
 import Card from "./Card";
@@ -26,7 +27,9 @@ const SurfSpotDescription = ({
         </button>
       </Card.Actions>
     </div>
-    <p className="text-gray-700">{description}</p>
+    {description && (
+      <p className="text-gray-700">{renderContentNode(description)}</p>
+    )}
   </Card>
 );
 
@@ -72,7 +75,6 @@ interface SurfSpotPageProps {
 
 const SurfSpotPage = ({ data }: SurfSpotPageProps) => {
   const { lat = 31.86119, lng = 117.283042, title } = data;
-
   return (
     <div className="mt-4">
       <div className="flex flex-col lg:flex-row">
@@ -91,7 +93,10 @@ const SurfSpotPage = ({ data }: SurfSpotPageProps) => {
         </div>
 
         <div className="w-full lg:w-1/2 lg:pl-4">
-          <SurfSpotDescription title={title} description="xxx" />
+          <SurfSpotDescription
+            title={title}
+            description={data.mdast.children[2]}
+          />
           <Surfers />
           <NearbyClubs />
         </div>

@@ -7,37 +7,37 @@ import { renderButton } from "./blocks/renderButton"; // 确保路径是正确�
 import { YourTemplates } from "./blocks/YourTemplates";
 
 const buttonsInfo = [
-	{
-		text: "聊天机器人",
-		route: "chat-robot",
-		customStyles: "bg-green-500 text-white hover:bg-green-600",
-	},
+  {
+    text: "聊天机器人",
+    route: "chat-robot",
+    customStyles: "bg-green-500 text-white hover:bg-green-600",
+  },
 ];
 
 const Create = () => {
-	const navigate = useNavigate();
-	const options = {
-		isJSON: true,
-		condition: {
-			is_template: true,
-		},
-		limit: 20,
-	};
+  const navigate = useNavigate();
+  const options = {
+    isJSON: true,
+    condition: {
+      is_template: true,
+    },
+    limit: 20,
+  };
 
-	const {
-		data: templates,
-		error,
-		isLoading,
-		isSuccess,
-	} = useGetEntriesQuery({
-		userId: nolotusId,
-		options,
-	});
+  const {
+    data: templates,
+    error,
+    isLoading,
+    isSuccess,
+  } = useGetEntriesQuery({
+    userId: nolotusId,
+    options,
+  });
 
-	console.log("templates", templates);
+  console.log("templates", templates);
 
-	return (
-    <div className="space-y-8">
+  return (
+    <div className="container mx-auto space-y-8">
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">从公共模板创建</h2>
         <div className="flex flex-wrap space-x-4">
@@ -55,11 +55,11 @@ const Create = () => {
               }),
           )}
           {renderButton({
-            key: 'blank',
-            text: '空白页面',
-            route: 'page',
+            key: "blank",
+            text: "空白页面",
+            route: "page",
             navigate,
-            customStyles: 'bg-blue-500 text-white',
+            customStyles: "bg-blue-500 text-white",
           })}
           {isSuccess &&
             templates &&
@@ -75,7 +75,7 @@ const Create = () => {
                     text: template.title, // 假设template对象有name属性
                     route: `/create/page?id=${template.id}`, // 假设template对象有route属性
                     navigate,
-                    customStyles: 'bg-blue-500 text-white',
+                    customStyles: "bg-blue-500 text-white",
                   })}
                 </div>
               ),

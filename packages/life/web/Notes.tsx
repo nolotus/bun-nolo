@@ -4,7 +4,7 @@ import React from "react";
 
 import { FilterPanel } from "./FilterPanel";
 import { useFetchData } from "../hooks/useFetchData";
-import NoteList from "./NoteList";
+import DataList from "../blocks/DataList";
 export const Notes = () => {
   const data = useAppSelector(selectPages);
   const { fetchData } = useFetchData();
@@ -12,7 +12,7 @@ export const Notes = () => {
   return (
     <div className="p-4">
       <FilterPanel />
-      <NoteList data={data} refreshData={fetchData} />
+      <DataList data={data} refreshData={fetchData} />
     </div>
   );
 };

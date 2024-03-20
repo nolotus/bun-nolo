@@ -1,4 +1,9 @@
-import { PencilIcon, TrashIcon, ThumbsupIcon } from "@primer/octicons-react";
+import {
+  PencilIcon,
+  TrashIcon,
+  ThumbsupIcon,
+  HeartIcon,
+} from "@primer/octicons-react";
 
 export const ButtonGroup = ({ onEdit, onDelete, isDeleting, allowEdit }) => {
   return (
@@ -9,7 +14,7 @@ export const ButtonGroup = ({ onEdit, onDelete, isDeleting, allowEdit }) => {
         className="flex transform items-center rounded bg-blue-100 px-4 py-2 font-semibold text-blue-800 shadow transition duration-150 ease-in-out hover:bg-blue-200 hover:shadow-md"
         title="编辑页面"
       >
-        <PencilIcon size={16} className="mr-2" />
+        <HeartIcon size={16} className="mr-2" />
         收藏
       </button>
       <button

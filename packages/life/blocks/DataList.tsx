@@ -5,7 +5,7 @@ import { deleteData } from "database/dbSlice";
 import { useDeleteEntryMutation, useWriteMutation } from "database/services";
 import { omit } from "rambda";
 import React, { useState } from "react";
-import { Card } from "ui";
+import { baseCard } from "render/styles";
 
 import DataItem from "./DataItem";
 
@@ -107,50 +107,56 @@ const DataList = ({ data, refreshData }) => {
           删除选中
         </button>
       </div>
+      <div className="flex flex-wrap">
+        {data
+          ? data.map((item) => (
+              <div
+                className=" group flex w-full  px-8 py-4  sm:w-full md:w-1/2 lg:w-1/3"
+                key={item.id}
+              >
+                <div className={`${baseCard} w-full p-4`}>
+                  <DataItem
+                    dataId={item.id}
+                    content={item}
+                    refreshData={refreshData}
+                    source={item.source}
+                  />
+                  <ul className="-m-1 flex flex-wrap">
+                    {item.source.map((src, index) => (
+                      <li key={index} className="m-1">
+                        <span className="mr-2 inline-block rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                          {src}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-      {data
-        ? data.map((item) => (
-            <div className="group flex" key={item.id}>
-              <div className="invisible mr-4 flex flex-col space-y-2 group-hover:visible">
-                <button
-                  onClick={() => pullData(item.id, item)}
-                  className="rounded bg-yellow-500 p-2 text-white hover:bg-yellow-400"
-                >
-                  <RepoPullIcon size={16} />
-                </button>
-                <button
-                  onClick={() => pushData(item.id, item)}
-                  className="rounded bg-green-500 p-2 text-white hover:bg-green-400"
-                >
-                  <RepoPushIcon size={16} />
-                </button>
-                <button
-                  onClick={() => deleteItem(item.id, item.source)}
-                  className="rounded bg-red-500 p-2 text-white hover:bg-red-400"
-                >
-                  <TrashIcon size={16} />
-                </button>
+                <div className="invisible ml-4 flex flex-col space-y-2 group-hover:visible">
+                  <button
+                    type="button"
+                    onClick={() => pullData(item.id, item)}
+                    className="rounded bg-yellow-500 p-2 text-white hover:bg-yellow-400"
+                  >
+                    <RepoPullIcon size={16} />
+                  </button>
+                  <button
+                    onClick={() => pushData(item.id, item)}
+                    className="rounded bg-green-500 p-2 text-white hover:bg-green-400"
+                  >
+                    <RepoPushIcon size={16} />
+                  </button>
+                  <button
+                    onClick={() => deleteItem(item.id, item.source)}
+                    className="rounded bg-red-500 p-2 text-white hover:bg-red-400"
+                  >
+                    <TrashIcon size={16} />
+                  </button>
+                </div>
               </div>
-              <Card>
-                <DataItem
-                  dataId={item.id}
-                  content={item}
-                  refreshData={refreshData}
-                  source={item.source}
-                />
-                <ul className="-m-1 flex flex-wrap">
-                  {item.source.map((src, index) => (
-                    <li key={index} className="m-1">
-                      <span className="mr-2 inline-block rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
-                        {src}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            </div>
-          ))
-        : "Loading..."}
+            ))
+          : "Loading..."}
+      </div>
     </div>
   );
 };
