@@ -8,8 +8,8 @@ import { TextEdit } from "./TextEdit";
 import { createPageData } from "./pageDataUtils";
 import { setHasVersion, saveContentAndMdast, updateContent } from "./pageSlice";
 import { processContent } from "./processContent";
-import { RichTextEdit } from "./RichTextEdit";
 import { EditTool } from "./EditTool";
+import { RichEdit } from "./RichEdit";
 
 const EditPage = () => {
   const { toasts, addToast, removeToast } = useToastManager();
@@ -94,10 +94,11 @@ const EditPage = () => {
               onChange={handleContentChange}
             />
           ) : (
-            <RichTextEdit
+            <RichEdit
+              mdast={pageState.mdast}
               onKeyDown={handleKeyDown}
               value={currentEditText}
-              onChange={(value) => setTextareaContent(value)}
+              onChange={setTextareaContent}
             />
           )}
         </div>

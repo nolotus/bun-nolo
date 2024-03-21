@@ -4,12 +4,7 @@ import React, { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, Select } from "ui";
 import { SortDescIcon } from "@primer/octicons-react";
-import {
-  setFilterType,
-  setSortKey,
-  setSortOrder,
-  setSourceFilter,
-} from "../lifeSlice";
+import { setSortKey, setSortOrder, setSourceFilter } from "../lifeSlice";
 
 export const FilterPanel = () => {
   const dispatch = useAppDispatch();
@@ -19,7 +14,6 @@ export const FilterPanel = () => {
   const sourceOptions = ["All", ...domains.map((domain) => domain.source)];
 
   useEffect(() => {
-    dispatch(setFilterType(searchParams.get("filterType") || ""));
     dispatch(setSortKey(searchParams.get("sortKey") || ""));
     dispatch(setSortOrder(searchParams.get("sortOrder") || ""));
   }, []);

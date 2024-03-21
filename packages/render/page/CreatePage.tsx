@@ -3,12 +3,10 @@ import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 import { useWriteMutation, useGetEntryQuery } from "database/services";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { renderContentNode } from "render";
 import { markdownToMdast, getH1TextFromMdast } from "render/MarkdownProcessor";
 import { Button, Toggle } from "ui";
 import { VersionsIcon } from "@primer/octicons-react";
 
-import { TextEdit } from "./TextEdit";
 import { createPageData } from "./pageDataUtils";
 import {
   setHasVersion,
@@ -26,7 +24,6 @@ const CreatePage = () => {
   const [searchParams] = useSearchParams();
   const templateId = searchParams.get("id");
   const { data, isLoading } = useGetEntryQuery({ entryId: templateId });
-  console.log("data", data);
   const dispatch = useAppDispatch();
   const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
   const auth = useAuth();
