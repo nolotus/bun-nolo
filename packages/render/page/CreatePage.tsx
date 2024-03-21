@@ -19,6 +19,8 @@ import {
   initPageFromTemplate,
 } from "./pageSlice";
 import { processContent } from "./processContent";
+import { MarkdownEdit } from "./MarkdownEdit";
+import { RichEdit } from "./RichEdit";
 
 const CreatePage = () => {
   const [searchParams] = useSearchParams();
@@ -127,23 +129,21 @@ const CreatePage = () => {
           Save
         </Button>
       </div>
-      <div className="flex flex-grow">
+      <div className="container mx-auto flex flex-grow">
         <div className="w-full flex-shrink-0">
-          <div className="flex w-full flex-col p-4">
+          <div className="flex w-full flex-col">
             {pageState.showAsMarkdown ? (
-              <TextEdit
+              <MarkdownEdit
                 value={pageState.content}
                 onChange={handleContentChange}
               />
             ) : (
-              <>
-                <div>{renderContentNode(mdastFromSlice)}</div>
-                <TextEdit
-                  onKeyDown={handleKeyDown}
-                  value={textareaContent}
-                  onChange={(value) => setTextareaContent(value)}
-                />
-              </>
+              <RichEdit
+                mdast={mdastFromSlice}
+                onKeyDown={handleKeyDown}
+                value={textareaContent}
+                onChange={setTextareaContent}
+              />
             )}
           </div>
         </div>

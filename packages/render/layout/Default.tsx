@@ -32,7 +32,6 @@ const Layout = ({ disableAnimation = false }) => {
       <div className="mx-auto w-full flex-grow sm:py-8 md:py-12">
         <Suspense fallback={<div>hi</div>}>{renderContent()}</Suspense>
       </div>
-      {/* <Footer /> */}
     </div>
   );
 };
