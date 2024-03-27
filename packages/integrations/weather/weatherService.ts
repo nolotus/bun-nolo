@@ -2,7 +2,7 @@ import { WeatherQueryParams, WeatherApiResponse } from "./weatherTypes";
 
 const WEATHER_API_URL = "https://api.stormglass.io/v2/weather/point";
 
-const fetchWeatherData = async ({
+export const fetchWeatherData = async ({
   lat,
   lng,
   params,
@@ -50,5 +50,3 @@ const fetchWeatherData = async ({
     throw error; // 这里保留抛出错误，以便可以在函数调用者那里捕获异常
   }
 };
-
-export default fetchWeatherData;

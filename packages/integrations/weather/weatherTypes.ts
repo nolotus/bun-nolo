@@ -1,58 +1,58 @@
 export type WeatherParam =
-  | 'time'
-  | 'airTemperature'
-  | 'airTemperature80m'
-  | 'airTemperature100m'
-  | 'airTemperature1000hpa'
-  | 'airTemperature800hpa'
-  | 'airTemperature500hpa'
-  | 'airTemperature200hpa'
-  | 'pressure'
-  | 'cloudCover'
-  | 'currentDirection'
-  | 'currentSpeed'
-  | 'gust'
-  | 'humidity'
-  | 'iceCover'
-  | 'precipitation'
-  | 'snowDepth'
-  | 'seaLevel'
-  | 'swellDirection'
-  | 'swellHeight'
-  | 'swellPeriod'
-  | 'secondarySwellPeriod'
-  | 'secondarySwellDirection'
-  | 'secondarySwellHeight'
-  | 'visibility'
-  | 'waterTemperature'
-  | 'waveDirection'
-  | 'waveHeight'
-  | 'wavePeriod'
-  | 'windWaveDirection'
-  | 'windWaveHeight'
-  | 'windWavePeriod'
-  | 'windDirection'
-  | 'windDirection20m'
-  | 'windDirection30m'
-  | 'windDirection40m'
-  | 'windDirection50m'
-  | 'windDirection80m'
-  | 'windDirection100m'
-  | 'windDirection1000hpa'
-  | 'windDirection800hpa'
-  | 'windDirection500hpa'
-  | 'windDirection200hpa'
-  | 'windSpeed'
-  | 'windSpeed20m'
-  | 'windSpeed30m'
-  | 'windSpeed40m'
-  | 'windSpeed50m'
-  | 'windSpeed80m'
-  | 'windSpeed100m'
-  | 'windSpeed1000hpa'
-  | 'windSpeed800hpa'
-  | 'windSpeed500hpa'
-  | 'windSpeed200hpa';
+  | "time"
+  | "airTemperature"
+  | "airTemperature80m"
+  | "airTemperature100m"
+  | "airTemperature1000hpa"
+  | "airTemperature800hpa"
+  | "airTemperature500hpa"
+  | "airTemperature200hpa"
+  | "pressure"
+  | "cloudCover"
+  | "currentDirection"
+  | "currentSpeed"
+  | "gust"
+  | "humidity"
+  | "iceCover"
+  | "precipitation"
+  | "snowDepth"
+  | "seaLevel"
+  | "swellDirection"
+  | "swellHeight"
+  | "swellPeriod"
+  | "secondarySwellPeriod"
+  | "secondarySwellDirection"
+  | "secondarySwellHeight"
+  | "visibility"
+  | "waterTemperature"
+  | "waveDirection"
+  | "waveHeight"
+  | "wavePeriod"
+  | "windWaveDirection"
+  | "windWaveHeight"
+  | "windWavePeriod"
+  | "windDirection"
+  | "windDirection20m"
+  | "windDirection30m"
+  | "windDirection40m"
+  | "windDirection50m"
+  | "windDirection80m"
+  | "windDirection100m"
+  | "windDirection1000hpa"
+  | "windDirection800hpa"
+  | "windDirection500hpa"
+  | "windDirection200hpa"
+  | "windSpeed"
+  | "windSpeed20m"
+  | "windSpeed30m"
+  | "windSpeed40m"
+  | "windSpeed50m"
+  | "windSpeed80m"
+  | "windSpeed100m"
+  | "windSpeed1000hpa"
+  | "windSpeed800hpa"
+  | "windSpeed500hpa"
+  | "windSpeed200hpa";
 
 // 接口用以表达获取天气数据的请求参数
 export interface WeatherQueryParams {
@@ -129,10 +129,10 @@ export interface HourlyWeather {
 export interface WeatherApiResponse {
   hours: HourlyWeather[];
   meta: {
-    dailyQuota: number,
-    lat: number,
-    lng: number,
-    requestCount: number,
+    dailyQuota: number;
+    lat: number;
+    lng: number;
+    requestCount: number;
   };
 }
 

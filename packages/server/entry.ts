@@ -1,8 +1,17 @@
 import { serve } from "bun";
 import { isProduction } from "utils/env";
 import { handleRequest } from "./request";
+import { Cron } from "croner";
+import { tasks } from "./tasks";
 
-export const startServer = () => {
+const startTasks = () => {
+  tasks.forEach(({ interval, task }) => {
+    const cron = new Cron(interval, task);
+    cron.start();
+  });
+};
+
+const httpServer = () => {
   if (isProduction) {
     serve({
       port: 443,
@@ -22,4 +31,10 @@ export const startServer = () => {
     fetch: handleRequest,
   });
 };
+
+export const startServer = () => {
+  httpServer();
+  startTasks();
+};
+
 startServer();
