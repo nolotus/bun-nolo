@@ -126,7 +126,7 @@ const ChatPage = () => {
       {chatItems.length > 0 || currentChatConfig ? (
         <>
           <div className="w-full overflow-y-auto bg-gray-200 lg:block lg:w-1/6">
-            <ChatSidebar chatList={chatItems} />
+            <ChatSidebar chatList={chatList} />
           </div>
           <ChatWindow currentChatConfig={currentChatConfig} />
         </>

@@ -1,9 +1,12 @@
 import { api } from "app/api";
-import { selectCurrentUser } from "auth/authSlice";
+import { selectCurrentUserId } from "auth/selectors";
+
 import { extractAndDecodePrefix, extractUserId } from "core";
 
 import { API_ENDPOINTS } from "./config";
 import { ResponseData, WriteHashDataType, WriteDataType } from "./types";
+import { generateIdWithCustomId } from "core/generateMainKey";
+import { updateOne } from "database/dbSlice";
 
 export type GetEntryType = {
   entryId: string;
@@ -141,14 +144,13 @@ export const dbApi = api.injectEndpoints({
     updateEntry: builder.mutation<ResponseData, UpdateEntryArgs>({
       queryFn: async (
         { entryId, data, domain },
-        { getState },
+        { getState, dispatch },
         extraArg,
         baseQuery,
       ) => {
         // 直接访问状态
         const state = getState();
-        const currentUser = selectCurrentUser(state);
-        const userId = currentUser?.userId;
+        const userId = selectCurrentUserId(state);
 
         if (!userId) {
           // 如果找不到用户ID，则返回错误
@@ -184,11 +186,30 @@ export const dbApi = api.injectEndpoints({
           : `${API_ENDPOINTS.DATABASE}/update/${entryId}`;
 
         // 使用baseQuery执行请求
-        return baseQuery({
+        const result = await baseQuery({
           url,
           method: "PUT",
           body: data,
         });
+        dispatch(updateOne({ id: entryId, changes: data }));
+
+        if (data.type === "chatRobot") {
+          const listId = generateIdWithCustomId(userId, "chatRobot-list", {
+            isList: true,
+          });
+
+          const listUrl = domain
+            ? `${domain}${API_ENDPOINTS.DATABASE}/update/${listId}`
+            : `${API_ENDPOINTS.DATABASE}/update/${listId}`;
+          console.log("entryId", entryId);
+          const result = await baseQuery({
+            url: listUrl,
+            method: "PUT",
+            body: { id: entryId },
+          });
+          console.log("result", result);
+        }
+        return result.data ? { data: result.data } : { error: result.error };
       },
     }),
     readAll: builder.query<ResponseData, { userId: string; domain?: string }>({

@@ -1,5 +1,8 @@
-import { transToList, noloToObject } from './noloToOther';
-import { extractAndDecodePrefix } from './prefix';
+import { listToArray, noloToObject } from "./noloToOther";
+import { extractAndDecodePrefix } from "./prefix";
+import { getLogger } from "utils/logger";
+
+const readDataLogger = getLogger("readData");
 
 const exampleText = `
 number1 100
@@ -27,11 +30,14 @@ const decodeData = (data, flags) => {
       try {
         return JSON.parse(data);
       } catch (error) {
-        console.error('Failed to decode isJSON data:', error);
+        console.error("Failed to decode isJSON data:", error);
         return data; // 返回原始数据，如果 JSON 解析失败
       }
     },
     isUrlSafe: decodeURIComponent,
+    isList: (data) => {
+      return listToArray(data);
+    },
   };
 
   for (const flag in flags) {
@@ -42,41 +48,52 @@ const decodeData = (data, flags) => {
 
   if (flags.isObject) {
     decodedData = noloToObject(decodedData);
-  } else if (flags.isList) {
-    decodedData = transToList(decodedData);
   }
-
   return decodedData;
 };
 
-export const getHeadTail = (str, separtor = ' ') => {
+export const getHeadTail = (str, separtor = " ") => {
   const index = str.indexOf(separtor);
   const key = str.slice(0, index);
   const value = str.slice(index + 1);
+
   return { key, value };
 };
 
 const parseValue = (value) => {
-  if (value === 'true') {
+  if (value === "true") {
     return true;
   }
-  if (value === 'false') {
+  if (value === "false") {
     return false;
   }
-  if (!isNaN(parseFloat(value))) {
+  // 使用正则表达式，考虑科学计数法等极端情况
+  // ^-? 表示可能的负号
+  // \d*\.?\d+ 匹配整数或小数
+  // (?:[eE][-+]?\d+)? 匹配科学计数法的指数部分
+  const isNumericRegex = /^-?\d*\.?\d+(?:[eE][-+]?\d+)?$/;
+  if (isNumericRegex.test(value)) {
     return parseFloat(value);
   }
   return value;
 };
 
 export function processLine(line) {
-  if (line.trim() === '') {
+  if (line.trim() === "") {
     return [];
   }
-  const { key: id, value } = getHeadTail(line, ' ');
+
+  const { key: id, value } = getHeadTail(line, " ");
+
   const parsedValue = parseValue(value);
+  readDataLogger.info({ parsedValue, value }, "getHeadTail");
+
   const flags = extractAndDecodePrefix(id);
+  // if (parsedValue === 100000) {
+  //   console.log("error line", line);
+  // }
   const decodedValue = decodeData(parsedValue, flags);
+  readDataLogger.info({ decodedValue }, "getHeadTail");
 
   return [id.trim(), decodedValue];
 }

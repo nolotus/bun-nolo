@@ -18,9 +18,10 @@ const ExtendedProfile = lazy(() => import("./pages/ExtendedProfile"));
 const ServiceProviderSettings = lazy(
   () => import("./pages/ServiceProviderSettings"),
 );
-
+const EditorConfig = lazy(() => import("./pages/EditorConfig"));
 // routeNames.ts
 export const USER_PROFILE_ROUTE = "user-profile";
+export const EDITOR_CONFIG = "editor-config";
 export const EXTENDED_PROFILE_ROUTE = "personal-interests";
 
 const createRoute = (path, component) => ({
@@ -37,6 +38,7 @@ export const routes = {
       element: <LazyLoadWrapper component={<Setting />} />,
       children: [
         createRoute(USER_PROFILE_ROUTE, <UserProfile />),
+        createRoute(EDITOR_CONFIG, <EditorConfig />),
         createRoute("network", <Network />),
         createRoute("sync", <Sync />),
         createRoute("plugins", <PluginSettings />),

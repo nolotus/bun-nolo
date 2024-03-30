@@ -19,10 +19,13 @@ const RenderPage = ({ pageId, data }) => {
       return <SurfSpotPage data={data} />;
     }
     if (data.type === "page") {
-      if (data.mdast) {
-        return renderContentNode(data.mdast);
-      }
-      return renderContentNode(markdownToMdast(data.content));
+      return (
+        <div>
+          {data.mdast
+            ? renderContentNode(data.mdast)
+            : renderContentNode(markdownToMdast(data.content))}
+        </div>
+      );
     }
     return <RenderJson data={data} />;
   }, [data]);
@@ -48,10 +51,9 @@ const RenderPage = ({ pageId, data }) => {
   const allowEdit = isCreator || isNotBelongAnyone;
 
   return (
-    <div className="mx-auto max-w-full p-0 sm:p-2 md:p-4 lg:p-6 xl:p-8">
-      <div className="container flex justify-between ">
+    <div className="container mx-auto p-4">
+      <div className="flex justify-between ">
         <div>{createId}</div>
-
         <ButtonGroup
           onEdit={handleEdit}
           onDelete={handleDelete}
@@ -59,7 +61,6 @@ const RenderPage = ({ pageId, data }) => {
           allowEdit={allowEdit}
         />
       </div>
-
       {renderedContent}
     </div>
   );

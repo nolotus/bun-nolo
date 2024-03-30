@@ -4,6 +4,7 @@ import { readLines } from "utils/bun/readLines";
 import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
 import { getDatabaseFilePath } from "auth/server/init";
+import { listToArray } from "core/noloToOther";
 
 const handleData = (
   data: string,
@@ -134,7 +135,5 @@ function handleJSONData(data: string, condition: QueryConditions) {
 }
 
 function handleListData(data: string, condition: QueryCondition) {
-  // 处理列表数据的逻辑
-  console.log("data", data, condition);
-  return null;
+  return listToArray(data);
 }

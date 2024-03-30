@@ -30,35 +30,50 @@ import { selectMessage } from "../messages/selector";
 import { createPromotMessage } from "ai/utils/createPromotMessage";
 import { retrieveFirstToken } from "auth/client/token";
 import RNFetchBlob from "react-native-blob-util";
+import { chatAIOptions } from "ai/request";
+import { upsertOne, upsertMany } from "database/dbSlice";
 const chatUrl = `${API_ENDPOINTS.AI}/chat`;
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
 export function ChatScreen() {
-  const auth = useAuth();
+  // const auth = useAuth();
   const [getEntries, { isLoading, isSuccess }] = useLazyGetEntriesQuery();
-  const { tempMessage } = useAppSelector(selectMessage);
+  // const { tempMessage } = useAppSelector(selectMessage);
 
-  const fetchChatList = async () => {
-    const options = {
-      isJSON: true,
-      condition: {
-        type: "tokenStatistics",
-      },
-      limit: 10000,
-    };
-    const nolotusTokenStatisticsList = await getEntries({
-      userId: nolotusId,
-      options,
-      domain: "https://nolotus.com",
+  // const fetchChatList = async () => {
+  //   const options = {
+  //     isJSON: true,
+  //     condition: {
+  //       type: "tokenStatistics",
+  //     },
+  //     limit: 10000,
+  //   };
+  //   const nolotusTokenStatisticsList = await getEntries({
+  //     userId: nolotusId,
+  //     options,
+  //     domain: "https://nolotus.com",
+  //   }).unwrap();
+
+  //   dispatch(updateData({ data: nolotusTokenStatisticsList }));
+  // };
+  let chatId;
+
+  const fetchChatList = async (userId) => {
+    const userChatList = await getEntries({
+      userId,
+      options: chatAIOptions,
     }).unwrap();
+    console.log("userChatList", userChatList);
+    // chatId = userChatList[0].chatId;
+    console.log("chatId", chatId);
 
-    dispatch(updateData({ data: nolotusTokenStatisticsList }));
+    dispatch(upsertMany(userChatList));
   };
   useEffect(() => {
     fetchChatList();
   }, []);
-  const messages = useAppSelector((state) => state.message.messages);
+  // const messages = useAppSelector((state) => state.message.messages);
   const dispatch = useAppDispatch();
 
   const streamChat = async ({ payload, config, onStreamData, signal }) => {
@@ -136,7 +151,7 @@ export function ChatScreen() {
 
   const currentChatConfig = useAppSelector(makeSelectEntityById(chatId));
 
-  const [writeHashData] = useWriteHashMutation();
+  // const [writeHashData] = useWriteHashMutation();
 
   const [requestFailed, setRequestFailed] = useState(false);
 
@@ -281,17 +296,17 @@ export function ChatScreen() {
       dispatch(messageEnd());
     }
   };
-  // 渲染单条消息的UI
-  const renderMessage = ({ item }) => <MessageItem item={item} />;
+  // // 渲染单条消息的UI
+  // const renderMessage = ({ item }) => <MessageItem item={item} />;
   return (
     <View style={styles.container}>
-      <FlatList
+      {/* <FlatList
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
         style={styles.messageList}
-      />
-      <MessageItem item={tempMessage} key={tempMessage.id} />
+      /> */}
+      {/* <MessageItem item={tempMessage} key={tempMessage.id} /> */}
       <MessageInput onSend={handleSendMessage} />
     </View>
   );

@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "ui/Button";
 
 import { ModelPriceEnum } from "../modelPrice";
-import { updateOne } from "database/dbSlice";
 export const editDsl = {
   name: {
     type: "string",
@@ -55,7 +54,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
         entryId: initialValues.id,
         data: chatRobotConfig,
       }).unwrap();
-      dispatch(updateOne(result.data));
+
       onClose(); // 关闭弹窗
     } catch (error) {
       // 这里可以处理错误，例如显示一个错误信息

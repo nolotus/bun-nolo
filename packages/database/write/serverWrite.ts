@@ -1,12 +1,7 @@
 import { promises as fs } from "fs";
 import { dirname } from "path";
 import { extractAndDecodePrefix, extractUserId } from "core/prefix";
-import { createWriteStream } from "node:fs";
-import { promisify } from "util";
-import { pipeline, Readable } from "stream";
-
-const pipelineAsync = promisify(pipeline);
-
+import { appendDataToIndex } from "utils/file";
 // export const serverWrite = async (dataKey, data, userId) => {
 //   const path = `./nolodata/${userId}/index.nolo`;
 //   try {
@@ -63,23 +58,15 @@ function processDataKey(dataKey: string, data: any): { isFile: boolean } {
   }
   return { isFile };
 }
-async function appendDataToFile(
-  userId: string,
-  dataKey: string,
-  data: any,
-): Promise<void> {
-  const path = `./nolodata/${userId}/index.nolo`;
-  const output = createWriteStream(path, { flags: "a" });
-  await pipelineAsync(Readable.from(`${dataKey} ${data}\n`), output);
-}
+
 export const serverWrite = async (
   dataKey: string,
-  data: any,
+  data: string,
   userId: string,
 ): Promise<void> => {
   await checkUserDirectory(userId);
   const result = processDataKey(dataKey, data);
   if (!result.isFile) {
-    await appendDataToFile(userId, dataKey, data);
+    await appendDataToIndex(userId, dataKey, data);
   }
 };

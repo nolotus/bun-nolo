@@ -1,11 +1,8 @@
-import fs from "fs";
-import { createReadStream } from "node:fs";
-import readline from "readline";
-
-import { processLine } from "core/decodeData";
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "auth/server/init";
 import { getLogger } from "utils/logger";
 import { extractAndDecodePrefix, extractUserId } from "core";
+import { checkFileExists, findDataInFile } from "utils/file";
+
 const readDataLogger = getLogger("readData");
 
 export const handleReadSingle = async (req, res) => {
@@ -35,39 +32,6 @@ export const handleReadSingle = async (req, res) => {
   }
 };
 
-const checkFileExists = (filePath) => {
-  return fs.existsSync(filePath);
-};
-const findDataInFile = (filePath, id) => {
-  return new Promise((resolve, reject) => {
-    let found = false;
-    const input = createReadStream(filePath);
-
-    input.on("error", (err) => reject(err));
-
-    const rl = readline.createInterface({ input });
-
-    rl.on("line", (line) => {
-      const [key, value] = processLine(line);
-      readDataLogger.info({ key, value }, "processLine");
-      if (id === key) {
-        readDataLogger.info({ id, value }, "result");
-        found = true;
-        resolve(value);
-        rl.close();
-      }
-    });
-
-    rl.on("close", () => {
-      if (!found) {
-        readDataLogger.info("id not found");
-        resolve(null);
-      }
-    });
-
-    rl.on("error", (err) => reject(err));
-  });
-};
 export const serverGetData = (id: string) => {
   readDataLogger.info({ id }, "serverGetData");
 
@@ -97,6 +61,7 @@ export const serverGetData = (id: string) => {
       readDataLogger.info("Data found in index file");
       return data;
     }
+    //is hash
     if (id.startsWith("1")) {
       if (!checkFileExists(hashPath)) {
         readDataLogger.info("hash file does not exist");

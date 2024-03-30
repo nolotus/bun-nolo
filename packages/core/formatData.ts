@@ -1,4 +1,4 @@
-import { toObjectString } from "./otherToNolo";
+import { listToTrans, toObjectString } from "./otherToNolo";
 import { Base64 } from "js-base64";
 
 export const formatData = (data, flags) => {
@@ -13,7 +13,7 @@ export const formatData = (data, flags) => {
   } else if (flags.isObject) {
     formattedData = toObjectString(data);
   } else if (flags.isList) {
-    formattedData = toObjectString(data);
+    formattedData = listToTrans(data);
   }
 
   // 添加其他数据类型处理逻辑…

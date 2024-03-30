@@ -74,7 +74,7 @@ const EditPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="container mx-auto flex min-h-screen flex-col p-4">
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
