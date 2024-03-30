@@ -7,4 +7,5 @@ export enum DataType {
   SurfProfile = "surf-profile",
   Page = "page",
   SurfSpot = "surf-spot",
+  SurfInfo = "surf_info",
 }

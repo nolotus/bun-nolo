@@ -6,8 +6,8 @@ import { tasks } from "./tasks";
 
 const startTasks = () => {
   tasks.forEach(({ interval, task }) => {
-    const cron = new Cron(interval, task);
-    cron.start();
+    const cron = Cron(interval, task);
+    cron.trigger();
   });
 };
 
@@ -34,7 +34,7 @@ const httpServer = () => {
 
 export const startServer = () => {
   httpServer();
-  startTasks();
+  // startTasks();
 };
 
 startServer();
