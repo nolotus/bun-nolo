@@ -1,4 +1,4 @@
-import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "auth/server/init";
+import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { getLogger } from "utils/logger";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists, findDataInFile } from "utils/file";

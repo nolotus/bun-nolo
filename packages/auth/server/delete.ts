@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { getLogger } from "utils/logger";
-import { DATABASE_DIR } from "./init";
+import { DATABASE_DIR } from "database/init";
 
 const deleteLogger = getLogger("delete");
 

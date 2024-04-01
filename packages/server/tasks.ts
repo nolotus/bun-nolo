@@ -1,12 +1,15 @@
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
 import { queryData } from "database/query/queryHandler";
-import { serverWrite } from "database/write/serverWrite";
 import { parseWeatherParams, fetchWeatherData } from "integrations/weather";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
 import { extractAndDecodePrefix, formatData } from "core";
 import { getLogger } from "utils/logger";
+import {
+  serverCreateTable,
+  serverWriteDataInTable,
+} from "database/write/table";
 
 const surfWeatherLogger = getLogger("surfWeather");
 
@@ -30,13 +33,13 @@ const queryTopTenCollectors = async () => {
 };
 
 // 单独的处理天气数据的函数
-const processWeatherData = (weatherData, collector) => {
-  weatherData.hours.forEach((hour) => {
+const processWeatherData = async (weatherData, collector) => {
+  weatherData.hours.forEach(async (hour) => {
     const specificTime = new Date(hour.time).getTime();
     const ulidForSpecificTime = ulid(specificTime);
     const customId = ulidForSpecificTime;
     const dataId = generateIdWithCustomId(nolotusId, customId, {
-      isJson: true,
+      isJSON: true,
     });
     // 在这里添加 lat 和 lng 到 hour 数据中
     const augmentedHour = {
@@ -47,12 +50,13 @@ const processWeatherData = (weatherData, collector) => {
       type: DataType.SurfInfo,
     };
     const flags = extractAndDecodePrefix(dataId);
-    surfWeatherLogger.info(flags, "flags");
     surfWeatherLogger.info(augmentedHour, "augmentedHour");
     const value = formatData(augmentedHour, flags);
     surfWeatherLogger.info(value, "value");
     // 注意：这里假设 serverWrite 是异步函数，实际应用中需要根据实现情况决定是否使用 await
-    // serverWrite(dataId, value, nolotusId);
+    const tableName = "surf_info";
+    await serverCreateTable(nolotusId, "surf_info");
+    await serverWriteDataInTable(nolotusId, tableName, hour.time, value);
   });
 };
 

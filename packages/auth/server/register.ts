@@ -6,7 +6,11 @@ import { generateUserId } from "core/generateMainKey";
 import { t } from "i18next";
 import { getLogger } from "utils/logger";
 
-import { DATABASE_DIR, DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "./init";
+import {
+  DATABASE_DIR,
+  DEFAULT_INDEX_FILE,
+  DEFAULT_HASH_FILE,
+} from "database/init";
 
 const registerLogger = getLogger("register");
 

@@ -3,7 +3,7 @@ import { readLines } from "utils/bun/readLines";
 
 import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
-import { getDatabaseFilePath } from "auth/server/init";
+import { getDatabaseFilePath } from "../init";
 import { listToArray } from "core/noloToOther";
 
 const handleData = (
