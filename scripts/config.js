@@ -1,35 +1,35 @@
-import postCssPlugin from 'esbuild-style-plugin';
-import { isProduction } from 'utils/env';
+import postCssPlugin from "esbuild-style-plugin";
+import { isProduction } from "utils/env";
 
-const inputPath = './packages/web/entry.tsx';
+const inputPath = "./packages/web/entry.tsx";
 // 定义公共配置
 const commonConfig = {
   entryPoints: [inputPath],
-  outdir: 'public/assets',
+  outdir: "public/assets",
   plugins: [
     postCssPlugin({
       postcss: {
-        plugins: [require('tailwindcss'), require('autoprefixer')],
+        plugins: [require("tailwindcss"), require("autoprefixer")],
       },
     }),
   ],
   bundle: true,
   splitting: true,
   treeShaking: true,
-  format: 'esm',
+  format: "esm",
   loader: {
-    '.js': 'jsx',
-    '.webp': 'file',
-    '.jpg': 'file',
-    '.png': 'file',
-    '.svg': 'text',
+    ".js": "jsx",
+    ".webp": "file",
+    ".jpg": "file",
+    ".png": "file",
+    ".svg": "text",
   },
   metafile: true,
 };
 
 // 定义生产环境特有配置
 const prodConfig = {
-  entryNames: '[dir]/[name]-[hash]',
+  entryNames: "[dir]/[name]-[hash]",
   minify: true,
   sourcemap: false,
 };

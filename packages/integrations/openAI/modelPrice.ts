@@ -12,4 +12,5 @@ export const openaiModelPrice = {
   "gpt-4-vision-preview": { input: 0.01, output: 0.03 },
   "gpt-4-1106-preview": { input: 0.01, output: 0.03 },
   "gpt-4-0125-preview": { input: 0.01, output: 0.03 },
+  "gpt-4-turbo-2024-04-09": { input: 0.01, output: 0.03 },
 };
