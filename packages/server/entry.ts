@@ -33,7 +33,10 @@ const httpServer = () => {
 };
 
 export const startServer = () => {
+  console.log("start httpServer");
   httpServer();
+  console.log("end httpServer");
+
   // startTasks();
 };
 
