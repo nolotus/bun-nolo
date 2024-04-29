@@ -12,6 +12,12 @@ const startTasks = () => {
 };
 
 const httpServer = () => {
+  // 启动 http 服务器
+  serve({
+    port: 80,
+    hostname: "0.0.0.0",
+    fetch: handleRequest,
+  });
   if (isProduction) {
     serve({
       port: 443,
@@ -23,13 +29,6 @@ const httpServer = () => {
       },
     });
   }
-
-  // 启动 http 服务器
-  serve({
-    port: 80,
-    hostname: "0.0.0.0",
-    fetch: handleRequest,
-  });
 };
 
 export const startServer = () => {
