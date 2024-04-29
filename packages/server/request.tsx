@@ -13,6 +13,7 @@ import { handlePublicRequest } from "./publicRequestHandler"; // 确保路径正
 const res = createResponse();
 
 export const handleRequest = async (request: Request) => {
+  console.log("request", request);
   const url = new URL(request.url);
   if (request.method === "OPTIONS") {
     return res.status(200).json({ ok: true });
