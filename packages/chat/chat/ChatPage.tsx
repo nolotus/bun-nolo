@@ -114,8 +114,9 @@ const ChatPage = () => {
   const currentChatConfig = useAppSelector(makeSelectEntityById(chatId));
   console.log("currentChatConfig", currentChatConfig);
   const chatList = currentChatConfig
-    ? [currentChatConfig, ...chatItems]
+    ? [...new Set([currentChatConfig, ...chatItems])]
     : chatItems;
+
   console.log("chatItems", chatItems);
   console.log("chatList", chatList);
   return (
