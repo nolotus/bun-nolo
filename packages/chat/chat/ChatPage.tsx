@@ -2,7 +2,7 @@ import i18n from "i18n";
 import React, { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-import { baseHeight } from "app/styles/height";
+import { chatPageHeight } from "app/styles/height";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 
 import { nolotusId } from "core/init";
@@ -122,7 +122,7 @@ const ChatPage = () => {
   return (
     <div
       className={`flex flex-col lg:flex-row`}
-      style={{ height: `calc(100vh - ${baseHeight})` }}
+      style={{ height: `${chatPageHeight}` }}
     >
       {chatItems.length > 0 || currentChatConfig ? (
         <>
