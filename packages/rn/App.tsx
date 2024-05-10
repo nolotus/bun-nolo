@@ -13,22 +13,22 @@ import MainNavigation from "./MainNavigation";
 global._ISRN_ = true;
 
 function App(): React.JSX.Element {
-	const isDarkMode = useColorScheme() === "dark";
-	const systemLanguage = RNLocalize.getLocales()[0].languageCode;
-	i18n.changeLanguage(systemLanguage);
-	const backgroundStyle = {
-		backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-	};
+  const isDarkMode = useColorScheme() === "dark";
+  const systemLanguage = RNLocalize.getLocales()[0].languageCode;
+  i18n.changeLanguage(systemLanguage);
+  const backgroundStyle = {
+    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  };
 
-	return (
-		<Provider store={mobileStore}>
-			<StatusBar
-				barStyle={isDarkMode ? "light-content" : "dark-content"}
-				backgroundColor={"#fff"}
-			/>
-			<MainNavigation />
-		</Provider>
-	);
+  return (
+    <Provider store={mobileStore}>
+      <StatusBar
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={"#fff"}
+      />
+      <MainNavigation />
+    </Provider>
+  );
 }
 
 export default App;
