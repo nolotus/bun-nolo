@@ -12,8 +12,20 @@ import { handlePublicRequest } from "./publicRequestHandler"; // 确保路径正
 
 const res = createResponse();
 
-export const handleRequest = async (request: Request) => {
-  console.log("request", request);
+export const handleRequest = async (request: Request, server) => {
+  // const cookies = request.headers.get("Cookie");
+  // const token = cookies["X-Token"];
+  // const user = await getUserFromToken(token);
+  const upgraded = server.upgrade(request, {
+    data: {
+      createdAt: Date.now(),
+      // token: cookies["X-Token"],
+      // userId: user.id,
+    },
+  });
+
+  if (upgraded) return undefined;
+
   const url = new URL(request.url);
   if (request.method === "OPTIONS") {
     return res.status(200).json({ ok: true });
@@ -22,7 +34,9 @@ export const handleRequest = async (request: Request) => {
     // 这里确保url是URL类型，如果不是需要先进行转换
     return handlePublicRequest(url);
   }
-
+  if (url.pathname.startsWith("/api/v2/db")) {
+    return new Response("Hello v2!");
+  }
   if (url.pathname.startsWith(API_VERSION)) {
     if (url.pathname.startsWith(API_ENDPOINTS.HI)) {
       return res

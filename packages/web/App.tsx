@@ -12,6 +12,7 @@ import { routes } from "./routes";
 export default function App({ hostname, lng = "en" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
+
   const auth = useAuth();
   i18n.changeLanguage(lng);
   const dispatch = useAppDispatch();

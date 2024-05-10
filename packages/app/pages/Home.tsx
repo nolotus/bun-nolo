@@ -1,4 +1,3 @@
-import React from "react";
 import { Card, Link } from "ui";
 
 const Home = () => {

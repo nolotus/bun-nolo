@@ -7,6 +7,7 @@ import { hydrateRoot, createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 
+import { WebSocketProvider } from "app/providers/WebSocketProvider";
 import App from "./App";
 import { browserStore } from "./store";
 import "./input.css";
@@ -34,9 +35,11 @@ if (isProduction) {
   root.render(
     <React.StrictMode>
       <Provider store={browserStore}>
-        <HashRouter>
-          <App hostname={hostname} lng={lng} />
-        </HashRouter>
+        <WebSocketProvider url="ws://localhost:80">
+          <HashRouter>
+            <App hostname={hostname} lng={lng} />
+          </HashRouter>
+        </WebSocketProvider>
       </Provider>
     </React.StrictMode>,
   );
