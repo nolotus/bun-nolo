@@ -4,10 +4,13 @@ export type ModelPrice = {
 import { openaiModelPrice } from "integrations/openAI/modelPrice";
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 import { mistralModelPrice } from "integrations/mistral/modelPrice";
+import { deepSeekModels } from "integrations/deepSeek/models";
+
 export const modelPrice = {
   ...openaiModelPrice,
   ...perplexityModelPrice,
   ...mistralModelPrice,
+  ...deepSeekModels,
 };
 
 export const ModelPriceEnum = Object.keys(modelPrice).reduce(

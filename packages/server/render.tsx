@@ -1,7 +1,7 @@
 import { api } from "app/api";
 import { store } from "app/store";
 import React from "react";
-import { renderToReadableStream } from "react-dom/server";
+import { renderToReadableStream } from "react-dom/server.browser";
 import { Provider } from "react-redux";
 import { StaticRouter } from "react-router-dom/server";
 import App from "web/App";
