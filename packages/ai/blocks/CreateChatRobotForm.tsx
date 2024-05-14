@@ -13,38 +13,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { Button } from "ui/Button";
 
 import allTranslations from "../aiI18n";
-import { ModelPriceEnum } from "../modelPrice";
-
-export const createDsl = {
-  name: {
-    type: "string",
-    min: 1,
-  },
-  description: {
-    type: "textarea",
-    min: 1,
-  },
-
-  replyRule: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
-  knowledge: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
-  model: {
-    type: "enum",
-    values: Object.keys(ModelPriceEnum),
-  },
-  path: {
-    type: "string",
-    min: 1,
-    optional: true,
-  },
-};
+import { createDsl } from "../schema";
 const fields = createFieldsFromDSL(createDsl);
 const schema = createZodSchemaFromDSL(createDsl);
 Object.keys(allTranslations).forEach((lang) => {

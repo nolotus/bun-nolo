@@ -1,20 +1,21 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { nanoid } from '@reduxjs/toolkit';
-import { useAuth } from 'app/hooks';
-import { FormField } from 'components/Form/FormField';
-import { useWriteMutation } from 'database/services';
-import i18next from 'i18n';
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { Button } from 'ui/Button';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { nanoid } from "@reduxjs/toolkit";
+import { useAuth } from "app/hooks";
+import { FormField } from "components/Form/FormField";
+import { useWriteMutation } from "database/services";
+import i18next from "i18n";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { Button } from "ui/Button";
 
-import allTranslations from '../aiI18n';
-import { schema, fields } from '../dsl';
+import allTranslations from "../aiI18n";
+import { schema, fields } from "../schema";
+
 Object.keys(allTranslations).forEach((lang) => {
   const translations = allTranslations[lang].translation;
-  i18next.addResourceBundle(lang, 'translation', translations, true, true);
+  i18next.addResourceBundle(lang, "translation", translations, true, true);
 });
 
 const CreateChatRobot = () => {
@@ -37,7 +38,7 @@ const CreateChatRobot = () => {
 
   const onSubmit = async (data) => {
     const requestBody = {
-      data: { ...data, type: 'chatRobot' },
+      data: { ...data, type: "chatRobot" },
       flags: { isJSON: true },
       userId: auth.user?.userId,
       customId: data.path ? data.path : nanoid(),
@@ -55,15 +56,15 @@ const CreateChatRobot = () => {
     <div className="flex items-center justify-center">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white w-full sm:w-4/5 md:w-3/5 lg:w-1/2 xl:w-3/5 2xl:w-1/2 rounded-lg shadow-lg p-4 sm:p-6 lg:p-8"
+        className="w-full rounded-lg bg-white p-4 shadow-lg sm:w-4/5 sm:p-6 md:w-3/5 lg:w-1/2 lg:p-8 xl:w-3/5 2xl:w-1/2"
       >
-        <h2 className="text-xl font-bold mb-4">{t('createRobot')}</h2>
+        <h2 className="mb-4 text-xl font-bold">{t("createRobot")}</h2>
 
         {fields.map((field) => (
-          <div className={'flex flex-col mb-4'} key={field.id}>
+          <div className={"mb-4 flex flex-col"} key={field.id}>
             <label
               htmlFor={field.id}
-              className={'block text-sm font-medium text-gray-700 mb-1'}
+              className={"mb-1 block text-sm font-medium text-gray-700"}
             >
               {t(field.label)}
             </label>
@@ -76,14 +77,14 @@ const CreateChatRobot = () => {
           </div>
         ))}
 
-        {error && <p className="text-red-500 text-sm mt-2 mb-2">{error}</p>}
+        {error && <p className="mb-2 mt-2 text-sm text-red-500">{error}</p>}
         {isSuccess ? (
           <Button
             variant="primary"
             size="medium"
             onClick={() => navigate(`/chat?chatId=${isSuccess}`)} // 假设 isSuccess 存储了新创建的聊天机器人的 ID
           >
-            {t('startChattingWithYourRobot')}
+            {t("startChattingWithYourRobot")}
           </Button>
         ) : (
           <Button
@@ -92,7 +93,7 @@ const CreateChatRobot = () => {
             size="medium"
             disabled={isSuccess} // 如果成功，则禁用按钮
           >
-            {t('startConfiguringYourRobot')}
+            {t("startConfiguringYourRobot")}
           </Button>
         )}
       </form>
