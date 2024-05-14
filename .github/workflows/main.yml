@@ -16,6 +16,7 @@ jobs:
       # run any `bun` or `bunx` command
       - run: bun install
       - run: rm -rf public/assets
+      - run: bun i
       - run: bun run build
       - run: bun test
   deploy:
