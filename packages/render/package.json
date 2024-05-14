@@ -13,7 +13,6 @@
     "database": "workspace:database",
     "framer-motion": "^10.16.4",
     "react-json-view-lite": "^1.2.1",
-    "react-router-dom": "^6.16.0",
     "react-syntax-highlighter": "^15.5.0",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.0",
