@@ -9,12 +9,10 @@ import { useAuth } from "app/hooks";
 import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
-import { Message } from "./types";
-import { ulid } from "ulid";
-import { generateIdWithCustomId } from "core/generateMainKey";
 
 interface MessageInputProps {
-  onSendMessage: (content: string, message: Message) => void;
+  onSendMessage: (content: string) => void;
+
   isLoading: boolean;
   onCancel: () => void;
 }
@@ -26,7 +24,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
 }) => {
   const { t } = useTranslation();
   const auth = useAuth();
-
   const [textContent, setTextContent] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false); // 新增状态来追踪是否有文件被拖到组件上
@@ -51,7 +48,6 @@ const MessageInput: React.FC<MessageInputProps> = ({
     if (!textContent.trim()) {
       return;
     }
-
     const content = imagePreviewUrls[0]
       ? [
           {
@@ -66,14 +62,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
           },
         ]
       : textContent;
-    const userId = auth.user?.userId;
-    const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
-    const message = {
-      id,
-      role: "user",
-      content,
-    };
-    onSendMessage(textContent, message);
+    onSendMessage(content);
+
     setTextContent("");
   };
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

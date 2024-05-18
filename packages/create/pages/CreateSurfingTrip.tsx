@@ -1,9 +1,10 @@
 // CreateSurfingTrip.tsx
 import { useAuth } from "app/hooks";
-import { useWriteHashMutation } from "database/services"; // 更新为api文件的真实路径
+import { useWriteMutation } from "database/services";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { ulid } from "ulid";
 
 const CreateSurfingTrip = () => {
   const auth = useAuth();
@@ -13,8 +14,7 @@ const CreateSurfingTrip = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const [write, { isLoading, isSuccess, isError, error }] =
-    useWriteHashMutation();
+  const [write, { isLoading, isSuccess, isError, error }] = useWriteMutation();
 
   const onSubmit = async (data) => {
     try {
@@ -23,6 +23,7 @@ const CreateSurfingTrip = () => {
           data,
           flags: { isJSON: true },
           userId: auth.user?.userId,
+          customId: ulid(),
         }).unwrap();
 
         // 如果成功，跳转到新创建的行程页面

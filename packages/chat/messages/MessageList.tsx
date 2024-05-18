@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from "react";
 
 import { StreamingMessage } from "./StreamingMessage";
 import { selectMessage } from "./selector";
-import { Message } from "./types";
 import { MessageItem } from "./MessageItem";
 interface MessagesDisplayProps {
   scrollToBottom: () => void; // 新增
@@ -28,14 +27,16 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messageIdsList }) => {
       className="flex max-w-full flex-grow flex-col space-y-4 overflow-y-auto break-words p-3"
       ref={messagesEndRef}
     >
-      {messageIdsList.map((id) => {
+      {messageIdsList.map((id: string) => {
         return <MessageItem id={id} key={id} />;
       })}
-      <StreamingMessage
-        {...tempMessage}
-        key={tempMessage.id}
-        id={tempMessage.id}
-      />
+      {tempMessage && (
+        <StreamingMessage
+          {...tempMessage}
+          key={tempMessage.id}
+          id={tempMessage.id}
+        />
+      )}
     </div>
   );
 };

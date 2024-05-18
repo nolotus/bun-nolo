@@ -1,5 +1,4 @@
 import { createCachedSelector } from "re-reselect";
-import { RootState } from "app/store";
 
 import { extractUserId } from "core";
 import { selectAllData } from "database/selectors";

@@ -24,7 +24,6 @@ export async function runBuild() {
     for (const output of build.outputs) {
       const result = await output;
       if (result.kind === "entry-point") {
-        // console.log("result", result);
         // let arr = result.path.split("/");
         // let filename = arr.pop();
         // json.main = filename;

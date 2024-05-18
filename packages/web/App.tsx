@@ -9,7 +9,7 @@ import { restoreSession } from "auth/authSlice";
 // // import { generatorRoutes } from "./generatorRoutes";
 
 import { routes } from "./routes";
-import { updateCurrentServer } from "setting/settingSlice";
+import { addHostToCurrentServer } from "setting/settingSlice";
 export default function App({ hostname, lng = "en" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
@@ -17,7 +17,7 @@ export default function App({ hostname, lng = "en" }) {
   const auth = useAuth();
   i18n.changeLanguage(lng);
   const dispatch = useAppDispatch();
-  dispatch(updateCurrentServer(hostname));
+  dispatch(addHostToCurrentServer(hostname));
   useEffect(() => {
     const tokens = getTokensFromLocalStorage();
     if (tokens) {

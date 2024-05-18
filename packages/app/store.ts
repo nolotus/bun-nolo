@@ -14,5 +14,6 @@ export const store = configureStore({
   preloadedState,
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export type NoloRootState = ReturnType<typeof store.getState>;
+
 export type AppDispatch = typeof store.dispatch;

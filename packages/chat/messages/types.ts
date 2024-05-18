@@ -5,9 +5,12 @@ export interface Message {
   id: string;
 }
 export interface MessageSliceState {
+  messageListId: string | null;
+  ids: string[];
   messages: Message[];
   isStopped: boolean;
   isMessageStreaming: boolean;
-  tempMessage: Message;
+  tempMessage: Message | null;
+  requestFailed: boolean;
 }
 export type MessageRole = "user" | "system" | "assistant";

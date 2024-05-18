@@ -1,10 +1,12 @@
-import { useGetEntryQuery } from "database/services";
+import { useGetEntryQuery, useLazyGetEntryQuery } from "database/services";
 import IconButton from "ui/IconButton";
 import { TrashIcon } from "@primer/octicons-react";
 import * as stylex from "@stylexjs/stylex";
 import { useDispatch } from "react-redux";
-import { deleteMessage, deleteNotFound } from "./messageSlice";
+import { addMessage, deleteMessage, deleteNotFound } from "./messageSlice";
 import { useItem } from "app/hooks";
+import { useEffect, useState } from "react";
+import { upsertOne } from "database/dbSlice";
 const styles = stylex.create({
   main: {
     display: "flex",
@@ -15,22 +17,34 @@ const styles = stylex.create({
 });
 
 export const MessageItem = ({ id }) => {
+  const dispatch = useDispatch();
+
   const localMessage = useItem(id);
 
-  const {
-    data: serverMessage,
-    isLoading,
-    isSuccess,
-    isError,
-    error,
-  } = useGetEntryQuery({ entryId: id });
-  const message = localMessage ? localMessage : serverMessage;
+  const [trigger, { isError, error }] = useLazyGetEntryQuery();
+  const [message, setMessage] = useState();
+  // let message = localMessage ? localMessage : serverMessage;
+
+  useEffect(() => {
+    if (localMessage) {
+      setMessage(localMessage);
+    } else {
+      //这里无论如何都会执行一次
+      console.log("localMessage", localMessage);
+      const getMessage = async () => {
+        const result = await trigger({ entryId: id }).unwrap();
+        console.log("trigger result", result);
+        dispatch(upsertOne(result));
+        dispatch(addMessage(result));
+      };
+      getMessage();
+    }
+  }, [localMessage]);
   const couldDelete = true;
-  const dispatch = useDispatch();
   const handleDeleteMessage = () => {
     dispatch(deleteMessage(id));
   };
-  if (isLoading) {
+  if (!message) {
     return <div>loading</div>;
   } else if (message) {
     const { content } = message;

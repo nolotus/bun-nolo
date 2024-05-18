@@ -1,13 +1,14 @@
 import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
-import { RootState } from "app/store";
+import { NoloRootState } from "app/store";
 
 // Entity adapter
 export const dbAdapter = createEntityAdapter();
 export const { selectById } = dbAdapter.getSelectors(
-  (state: RootState) => state.db,
+  (state: NoloRootState) => state.db,
 );
-export const makeSelectEntityById = (entityId: string) => (state: RootState) =>
-  selectById(state, entityId);
+export const makeSelectEntityById =
+  (entityId: string) => (state: NoloRootState) =>
+    selectById(state, entityId);
 
 // Initial state
 const initialState = dbAdapter.getInitialState({});

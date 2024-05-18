@@ -39,7 +39,6 @@ export const ChatBotBlock = (props) => {
 
     try {
       const result = await write(requestBody).unwrap();
-      console.log("result", result);
       navigate(`/chat?chatId=${result.noloId}`);
     } catch (error) {
       // setError(error.data?.message || error.status);

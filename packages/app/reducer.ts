@@ -17,6 +17,6 @@ export const reducer = {
   page: pageReducer,
   db: dbReducer,
   theme: themeSliceReducer,
-  setting: settingReducer,
+  settings: settingReducer,
   [api.reducerPath]: api.reducer,
 };

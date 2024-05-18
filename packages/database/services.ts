@@ -228,7 +228,6 @@ export const {
   useLazyGetEntriesQuery,
   useLazyGetEntryQuery,
   useWriteMutation,
-  useWriteHashMutation,
   useDeleteEntryMutation,
   useUpdateEntryMutation,
   useLazyReadAllQuery,

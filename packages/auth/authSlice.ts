@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "app/store";
+import { NoloRootState } from "app/store";
 
 import { authApi } from "./services";
 import { parseToken } from "./token";
@@ -84,4 +84,5 @@ export const { changeCurrentUser, userRegister, restoreSession, userLogout } =
   authSlice.actions;
 
 export default authSlice.reducer;
-export const selectCurrentUser = (state: RootState) => state.auth.currentUser;
+export const selectCurrentUser = (state: NoloRootState) =>
+  state.auth.currentUser;
