@@ -16,7 +16,6 @@ export const handleRender = async (req) => {
 
   const acceptLanguage = req.headers.get("accept-language");
   const lng = acceptLanguage.split(",")[0];
-
   try {
     const stream = await renderToReadableStream(
       <Provider store={store}>

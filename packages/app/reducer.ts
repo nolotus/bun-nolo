@@ -5,9 +5,9 @@ import dialogSlice from "chat/dialog/dialogSlice";
 import dbReducer from "database/dbSlice";
 import lifeReducer from "life/lifeSlice";
 import pageReducer from "render/page/pageSlice";
-
-import { api } from "./api";
 import themeSliceReducer from "./theme/themeSlice";
+import settingReducer from "setting/settingSlice";
+import { api } from "./api";
 
 export const reducer = {
   life: lifeReducer,
@@ -17,5 +17,6 @@ export const reducer = {
   page: pageReducer,
   db: dbReducer,
   theme: themeSliceReducer,
+  setting: settingReducer,
   [api.reducerPath]: api.reducer,
 };
