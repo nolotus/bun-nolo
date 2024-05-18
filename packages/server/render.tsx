@@ -61,6 +61,8 @@ export const handleRender = async (req) => {
         <meta name="description" content="nolotus" />
         <title>nolotus</title>
         <link rel="stylesheet" href="${bootstrapCss}"></link>
+        <link rel="stylesheet" href="/public/assets/stylex.css"></link>
+
         <script>
           function $U(h, s) {
             document.getElementById(h)?.remove();
