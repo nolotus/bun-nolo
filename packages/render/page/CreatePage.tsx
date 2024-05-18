@@ -48,8 +48,8 @@ const CreatePage = () => {
       });
 
       if (result) {
-        const dataId = result.data.dataId; // 假设 dataId 在 result.data.dataId，你需要根据实际响应调整
-        navigate(`/${dataId}?edit=true`); // 使用 dataId 进行页面跳转
+        const noloId = result.data.noloId;
+        navigate(`/${noloId}?edit=true`);
       }
     } catch (error) {
       // 错误处理逻辑

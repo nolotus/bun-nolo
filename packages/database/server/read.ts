@@ -7,7 +7,7 @@ const readDataLogger = getLogger("readData");
 
 export const handleReadSingle = async (req, res) => {
   const id = req.params.id;
-  const { isFile } = extractAndDecodePrefix(id);
+  const { isFile, isList } = extractAndDecodePrefix(id);
   const userId = extractUserId(id);
   if (isFile) {
     const file = Bun.file(`nolodata/${userId}/${id}`);
@@ -21,6 +21,9 @@ export const handleReadSingle = async (req, res) => {
     const result = await serverGetData(id);
     readDataLogger.info({ id }, "handleReadSingle result");
     if (result) {
+      if (isList) {
+        return res.status(200).json({ array: [...result], noloId: id });
+      }
       return res.status(200).json({ ...result, id });
     }
     return res.status(404).json({ error: "Data not found" });

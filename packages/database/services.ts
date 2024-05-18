@@ -5,7 +5,6 @@ import { extractAndDecodePrefix, extractUserId } from "core";
 
 import { API_ENDPOINTS } from "./config";
 import { ResponseData, WriteHashDataType, WriteDataType } from "./types";
-import { generateIdWithCustomId } from "core/generateMainKey";
 import { updateOne } from "database/dbSlice";
 
 export type GetEntryType = {
@@ -49,7 +48,6 @@ export const dbApi = api.injectEndpoints({
         const url = fullDomain
           ? `${fullDomain}${API_ENDPOINTS.DATABASE}/read/${entryId}`
           : `${API_ENDPOINTS.DATABASE}/read/${entryId}`;
-        console.log("url", url);
         return url;
       },
     }),
@@ -192,23 +190,6 @@ export const dbApi = api.injectEndpoints({
           body: data,
         });
         dispatch(updateOne({ id: entryId, changes: data }));
-
-        if (data.type === "chatRobot") {
-          const listId = generateIdWithCustomId(userId, "chatRobot-list", {
-            isList: true,
-          });
-
-          const listUrl = domain
-            ? `${domain}${API_ENDPOINTS.DATABASE}/update/${listId}`
-            : `${API_ENDPOINTS.DATABASE}/update/${listId}`;
-          console.log("entryId", entryId);
-          const result = await baseQuery({
-            url: listUrl,
-            method: "PUT",
-            body: { id: entryId },
-          });
-          console.log("result", result);
-        }
         return result.data ? { data: result.data } : { error: result.error };
       },
     }),

@@ -55,12 +55,11 @@ const DataList = ({ data, refreshData }) => {
     refreshData(auth.user?.userId);
   };
 
-  const deleteItem = async (dataId: string, domains: string[]) => {
+  const deleteItem = async (noloId: string, domains: string[]) => {
     for (const domain of domains) {
-      await deleteEntry({ entryId: dataId, domain });
-      console.log(`Data deleted successfully from domain: ${domain}`);
+      await deleteEntry({ entryId: noloId, domain });
     }
-    dispatch(deleteData(dataId));
+    dispatch(deleteData(noloId));
   };
 
   const [selectedItems, setSelectedItems] = useState({});
@@ -119,7 +118,7 @@ const DataList = ({ data, refreshData }) => {
               >
                 <div className={`${baseCard} w-full p-4`}>
                   <DataItem
-                    dataId={item.id}
+                    noloId={item.id}
                     content={item}
                     refreshData={refreshData}
                     source={item.source}

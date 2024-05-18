@@ -1,9 +1,9 @@
 import { API_VERSION } from "database/config";
 import addPrefixForEnv from "utils/urlConfig";
-const registerUrl = `${API_VERSION}/users/register`;
+const signUpurl = `${API_VERSION}/users/signup`;
 
 export const registerUser = async (user) => {
-  const url = addPrefixForEnv(registerUrl);
+  const url = addPrefixForEnv(signUpurl);
   console.log("url", url);
   try {
     const response = await fetch(url, {

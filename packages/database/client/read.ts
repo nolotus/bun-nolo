@@ -8,16 +8,16 @@ export const readOwnData = async (
   customId: string,
   flags: Flags,
 ) => {
-  const dataId = generateIdWithCustomId(userId, customId, flags);
-  const validUrl = `${API_ENDPOINTS.DATABASE}/read/${dataId}`;
+  const noloId = generateIdWithCustomId(userId, customId, flags);
+  const validUrl = `${API_ENDPOINTS.DATABASE}/read/${noloId}`;
   return await fetch(validUrl).then((res) => {
     return res.json();
   });
 };
 
-export async function readData(dataId: string) {
+export async function readData(noloId: string) {
   const prefixDomain = "http://localhost";
-  const apiUrl = `${API_ENDPOINTS.DATABASE}/read/${dataId}`;
+  const apiUrl = `${API_ENDPOINTS.DATABASE}/read/${noloId}`;
   const validUrl = prefixDomain + apiUrl;
   console.log("validUrl", validUrl);
   return await fetch(validUrl).then((res) => {

@@ -1,20 +1,15 @@
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
-import { useAppDispatch, useAuth } from "app/hooks";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAuth } from "app/hooks";
+import { useSearchParams } from "react-router-dom";
 
 import { extractUserId } from "core/prefix";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useModal, Dialog } from "ui";
 
-import { useDeleteEntryMutation } from "database/services";
-
-import ChatItem from "./ChatItem";
-import { removeOne } from "database/dbSlice";
-
-const ChatSidebar = ({ chatList }) => {
+import { DialogItem } from "./DialogItem";
+const DialogSideBar = ({ dialogList }) => {
   const auth = useAuth();
-  const navigate = useNavigate();
 
   const { t } = useTranslation();
 
@@ -24,18 +19,8 @@ const ChatSidebar = ({ chatList }) => {
     close: closeConfigModal,
   } = useModal();
 
-  const dispatch = useAppDispatch();
-
-  const [deleteEntry] = useDeleteEntryMutation();
-
-  const deleteChatBot = async (chat) => {
-    await deleteEntry({ entryId: chat.id }).unwrap();
-    dispatch(removeOne(chat.id));
-    navigate("/chat");
-  };
-
-  const isCreator = (dataId) => {
-    const dataUserId = extractUserId(dataId);
+  const isCreator = (noloId) => {
+    const dataUserId = extractUserId(noloId);
     return dataUserId === auth.user?.userId;
   };
   const [searchParams] = useSearchParams();
@@ -58,17 +43,17 @@ const ChatSidebar = ({ chatList }) => {
       >
         <CreateChatRobotForm onClose={closeConfigModal} />
       </Dialog>
-      {chatList?.map((chat) => (
-        <ChatItem
-          key={chat.id}
-          chat={chat}
-          onDeleteChat={deleteChatBot}
-          isSelected={currentChatId === chat.id}
-          allowEdit={isCreator(chat.id)}
+
+      {dialogList?.map((dialog) => (
+        <DialogItem
+          key={dialog.id}
+          dialog={dialog}
+          isSelected={currentChatId === dialog.id}
+          allowEdit={isCreator(dialog.id)}
         />
       ))}
     </div>
   );
 };
 
-export default ChatSidebar;
+export default DialogSideBar;

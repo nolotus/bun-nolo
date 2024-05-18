@@ -27,11 +27,15 @@ export const Sidebar = () => {
   }, [auth.user?.userId]);
   const getNavLinkClass = ({ isActive }) =>
     clsx(buttonBaseClass, isActive && activeClass);
-
+  //develop mode could use database
   return (
     <div className="min-h-full w-48 overflow-y-auto bg-neutral-100">
       <div className="flex flex-col justify-between p-4">
         <nav>
+          <NavLink to="/life/database" className={getNavLinkClass}>
+            <DatabaseIcon size={20} className={iconClass} />
+            <span>database</span>
+          </NavLink>
           <NavLink to="/life/all" className={getNavLinkClass}>
             <DatabaseIcon size={20} className={iconClass} />
             <span>All</span>

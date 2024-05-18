@@ -42,13 +42,13 @@ const dbSlice = createSlice({
     deleteData: create.reducer((state, action) => {
       dbAdapter.removeOne(state, action.payload);
     }),
+    upsertOne: create.reducer((state, action) => {
+      dbAdapter.upsertOne(state, action.payload);
+    }),
     upsertMany: create.reducer((state, action) => {
       dbAdapter.upsertMany(state, action.payload);
     }),
-    upsertOne: create.reducer((state, action) => {
-      // windows.localstorage
-      dbAdapter.upsertOne(state, action.payload.value);
-    }),
+
     removeOne: create.reducer((state, action) => {
       dbAdapter.removeOne(state, action.payload);
     }),
@@ -64,8 +64,8 @@ const dbSlice = createSlice({
 export const {
   updateData,
   deleteData,
-  upsertMany,
   upsertOne,
+  upsertMany,
   removeOne,
   updateOne,
 } = dbSlice.actions;

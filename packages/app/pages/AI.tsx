@@ -8,7 +8,7 @@ import { useAuth } from "../hooks";
 
 const AI = () => {
   const auth = useAuth();
-
+  // could use selectCurrentUserChatRobots
   const { data, error, isLoading, isSuccess } = useGetEntriesQuery({
     userId: nolotusId,
     options: chatAIOptions,

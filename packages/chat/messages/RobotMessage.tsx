@@ -4,8 +4,7 @@ import {
   TrashIcon,
 } from "@primer/octicons-react";
 import { useAppDispatch, useAuth } from "app/hooks";
-import { useWriteHashMutation } from "database/services";
-import { WriteHashDataType } from "database/types";
+import { useWriteMutation } from "database/services";
 import React from "react";
 import { Avatar } from "ui";
 import IconButton from "ui/IconButton";
@@ -17,26 +16,28 @@ import { MessageContent } from "./MessageContent";
 import { MessageImage } from "./MessageImage";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
+import { ulid } from "ulid";
 // 机器人消息组件
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();
 
   const { audioSrc, handlePlayClick } = useAudioPlayer(content);
-  const [writeHash] = useWriteHashMutation();
+  const [write] = useWriteMutation();
   const auth = useAuth();
   const handleSaveContent = async () => {
     if (content) {
-      const writeData: WriteHashDataType = {
+      const writeData = {
         data: { content, type: "page", create_at: new Date().toISOString() },
         flags: { isJSON: true },
         userId: auth.user?.userId,
+        customId: ulid(),
       };
 
-      const response = await writeHash(writeData);
+      const response = await write(writeData);
       addToast(
         <div className="text-black">
           <Link
-            to={`/${response.data.dataId}`}
+            to={`/${response.data.noloId}`}
             target="_blank"
             rel="noopener noreferrer"
             className="font-bold text-blue-600 hover:text-blue-800"

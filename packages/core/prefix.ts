@@ -79,9 +79,9 @@ const extractPrefix = (key: string): string => extractKeyPart(key, 0);
 export const extractUserId = (key: string): string => extractKeyPart(key, 1);
 export const extractCustomId = (key: string): string => extractKeyPart(key, 2);
 
-export const extractAndDecodePrefix = (dataId: string): Flags => {
-  // 从 dataId 中提取 prefix
-  const prefix = extractPrefix(dataId);
+export const extractAndDecodePrefix = (noloId: string): Flags => {
+  // 从 noloId 中提取 prefix
+  const prefix = extractPrefix(noloId);
 
   // 使用 decodeKeyPrefix 函数从 prefix 中解析出 flags
   const flags = decodeKeyPrefix(prefix);

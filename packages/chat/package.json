@@ -1,7 +1,6 @@
 {
   "name": "chat",
   "module": "index.ts",
-  "type": "module",
   "devDependencies": {
     "bun-types": "latest"
   },

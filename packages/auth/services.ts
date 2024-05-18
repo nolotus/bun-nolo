@@ -34,9 +34,9 @@ export const authApi = api.injectEndpoints({
         body: credentials,
       }),
     }),
-    register: builder.mutation<UserResponse, RegisterRequest>({
+    signup: builder.mutation<UserResponse, RegisterRequest>({
       query: (user) => ({
-        url: `${API_VERSION}/users/register`,
+        url: `${API_VERSION}/users/signup`,
         method: "POST",
         body: user,
       }),
@@ -49,5 +49,5 @@ export const authApi = api.injectEndpoints({
     }),
   }),
 });
-export const { useLoginMutation, useRegisterMutation, useDeleteUserMutation } =
+export const { useLoginMutation, useSignupMutation, useDeleteUserMutation } =
   authApi;

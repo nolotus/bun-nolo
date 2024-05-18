@@ -22,6 +22,12 @@ const All = (
     fallback={<div>Loading All...</div>}
   />
 );
+const Database = (
+  <LazyLoadComponent
+    factory={() => import("./web/Database")}
+    fallback={<div>Loading All...</div>}
+  />
+);
 const Statistics = (
   <LazyLoadComponent
     factory={() => import("./web/Statistics")}
@@ -50,6 +56,7 @@ export const routes = {
       children: [
         { index: true, element: Welcome },
         { path: "all", element: All },
+        { path: "database", element: Database },
         { path: "statistics", element: Statistics },
         { path: "notes", element: Notes },
         { path: "calendar", element: Calendar },

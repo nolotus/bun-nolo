@@ -1,9 +1,9 @@
 // CreateSurfingTrip.tsx
-import { useAuth } from 'app/hooks';
-import { useWriteHashMutation } from 'database/services'; // 更新为api文件的真实路径
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from "app/hooks";
+import { useWriteHashMutation } from "database/services"; // 更新为api文件的真实路径
+import React from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 
 const CreateSurfingTrip = () => {
   const auth = useAuth();
@@ -26,10 +26,10 @@ const CreateSurfingTrip = () => {
         }).unwrap();
 
         // 如果成功，跳转到新创建的行程页面
-        navigate(`/${result.dataId}`); // 假设返回的对象中有一个id字段
+        navigate(`/${result.noloId}`); // 假设返回的对象中有一个id字段
       }
     } catch (err) {
-      console.error('Failed to write surfing trip data:', err);
+      console.error("Failed to write surfing trip data:", err);
     }
   };
 
@@ -39,30 +39,30 @@ const CreateSurfingTrip = () => {
       {/* 表单字段 */}
       <div>
         <label htmlFor="location">地点：</label>
-        <input id="location" {...register('location', { required: true })} />
+        <input id="location" {...register("location", { required: true })} />
       </div>
       <div>
         <label htmlFor="time">时间：</label>
         <input
           type="time"
           id="time"
-          {...register('time', { required: true })}
+          {...register("time", { required: true })}
         />
       </div>
       <div>
         <label htmlFor="surfboard">提供的装备：</label>
-        <select id="surfboard" {...register('surfboard', { required: true })}>
+        <select id="surfboard" {...register("surfboard", { required: true })}>
           <option value="9-foot-longboard">9尺长板</option>
           <option value="7.6-foot-midboard">7.6尺中板</option>
         </select>
       </div>
       <div>
         <label htmlFor="sunscreen">提供的其他装备：</label>
-        <input id="sunscreen" {...register('sunscreen')} />
+        <input id="sunscreen" {...register("sunscreen")} />
       </div>
       <div>
         <label htmlFor="wetsuitAdvice">湿衣建议：</label>
-        <input id="wetsuitAdvice" {...register('wetsuitAdvice')} />
+        <input id="wetsuitAdvice" {...register("wetsuitAdvice")} />
       </div>
       {/* 更多字段 */}
       <input type="submit" value="创建行程模板" />

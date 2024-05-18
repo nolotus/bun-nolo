@@ -4,15 +4,14 @@ import { selectCostByUserId } from "ai/selectors";
 import { useStreamChatMutation } from "ai/services";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 import { useWriteHashMutation } from "database/services";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "ui";
 import { getLogger } from "utils/logger";
 import { useVisionChatMutation } from "ai/services";
 import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
 
-import MessageInput from "../messages/MessageInput";
-import MessagesDisplay from "../messages/MessagesDisplay";
+import MessageInput from "./MessageInput";
 import {
   messageStreaming,
   messagesReachedMax,
@@ -23,25 +22,39 @@ import {
   clearMessages,
   continueMessage,
   messageEnd,
-  startMessage,
-} from "../messages/messageSlice";
-import { selectMessage } from "../messages/selector";
+  initMessages,
+} from "./messageSlice";
+import { selectMessage } from "./selector";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
-import { Message } from "../messages/types";
+import { Message } from "./types";
 import { createPromotMessage } from "ai/utils/createPromotMessage";
 
 import { pickMessages } from "ai/utils/pickMessages";
+import { selectCurrentLLMConfig, initLLMConfig } from "chat/dialog/dialogSlice";
+import MessagesList from "./MessageList";
 
 const chatWindowLogger = getLogger("ChatWindow"); // 初始化日志
 
-const ChatWindow = ({ currentChatConfig }) => {
+const ChatWindow = ({ currentDialogConfig }) => {
   const auth = useAuth();
   const { t } = useTranslation();
   const [visionChat] = useVisionChatMutation();
   const dispatch = useAppDispatch();
 
+  useEffect(() => {
+    currentDialogConfig.llmId &&
+      dispatch(initLLMConfig(currentDialogConfig.llmId));
+    currentDialogConfig.messageListId &&
+      dispatch(initMessages(currentDialogConfig.messageListId));
+  }, [currentDialogConfig]);
+
+  const LLMConfig = useAppSelector(selectCurrentLLMConfig);
+
   const messages = useAppSelector((state) => state.message.messages);
+  const messageIdsList = useAppSelector(
+    (state) => state.message.messageIdsList,
+  );
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -87,7 +100,9 @@ const ChatWindow = ({ currentChatConfig }) => {
             // 自然停止
             const finishReason: string = json.choices[0].finish_reason;
             if (finishReason === "stop") {
-              dispatch(messageStreamEnd({ role: "assistant", content: temp }));
+              const message = { role: "assistant", content: temp };
+              dispatch(messageStreamEnd(message));
+              //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
               const staticData = {
                 dialogType: "receive",
                 model: json.model,
@@ -131,7 +146,7 @@ const ChatWindow = ({ currentChatConfig }) => {
   const handleStreamMessage = async (newMessage, prevMessages) => {
     const staticData = {
       dialogType: "send",
-      model: currentChatConfig?.model,
+      model: currentDialogConfig?.model,
       length: newMessage.length,
       userId: auth?.user?.userId,
       username: auth?.user?.username,
@@ -143,14 +158,12 @@ const ChatWindow = ({ currentChatConfig }) => {
       abortControllerRef.current.abort();
     }
     abortControllerRef.current = new AbortController();
-
     await streamChat({
       payload: {
         userMessage: newMessage,
         prevMessages: prevMessages,
       },
-
-      config: currentChatConfig,
+      config: LLMConfig,
       onStreamData: handleStreamData,
       signal: abortControllerRef.current.signal,
     });
@@ -160,7 +173,6 @@ const ChatWindow = ({ currentChatConfig }) => {
     setRequestFailed(false);
 
     dispatch(sendMessage(message));
-    dispatch(startMessage());
 
     const mode = getModefromContent(newContent, message);
 
@@ -208,7 +220,7 @@ const ChatWindow = ({ currentChatConfig }) => {
           };
         };
         const requestBody = createRequestBody({
-          ...currentChatConfig,
+          ...currentDialogConfig,
           responseLanguage: navigator.language,
         });
 
@@ -254,7 +266,12 @@ const ChatWindow = ({ currentChatConfig }) => {
   const allowSend = true;
   return (
     <div className="flex h-full w-full flex-col lg:w-5/6">
-      <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} />
+      {/* <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} /> */}
+      <MessagesList
+        messageIdsList={messageIdsList}
+        scrollToBottom={scrollToBottom}
+      />
+
       {allowSend ? (
         <div className="flex items-center p-4">
           <div className="flex-grow">

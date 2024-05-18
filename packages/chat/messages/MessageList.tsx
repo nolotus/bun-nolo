@@ -4,13 +4,12 @@ import React, { useEffect, useRef } from "react";
 import { StreamingMessage } from "./StreamingMessage";
 import { selectMessage } from "./selector";
 import { Message } from "./types";
-
+import { MessageItem } from "./MessageItem";
 interface MessagesDisplayProps {
-  messages: Message[];
   scrollToBottom: () => void; // 新增
 }
 
-const MessagesDisplay: React.FC<MessagesDisplayProps> = ({ messages }) => {
+const MessagesList: React.FC<MessagesDisplayProps> = ({ messageIdsList }) => {
   const { tempMessage } = useAppSelector(selectMessage);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -22,22 +21,16 @@ const MessagesDisplay: React.FC<MessagesDisplayProps> = ({ messages }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, tempMessage]);
+  }, [messageIdsList, tempMessage]);
 
   return (
     <div
       className="flex max-w-full flex-grow flex-col space-y-4 overflow-y-auto break-words p-3"
       ref={messagesEndRef}
     >
-      {messages.map((message) => (
-        <StreamingMessage
-          id={message.id}
-          key={message.id}
-          content={message.content}
-          role={message.role}
-          image={message.image}
-        />
-      ))}
+      {messageIdsList.map((id) => {
+        return <MessageItem id={id} key={id} />;
+      })}
       <StreamingMessage
         {...tempMessage}
         key={tempMessage.id}
@@ -47,4 +40,4 @@ const MessagesDisplay: React.FC<MessagesDisplayProps> = ({ messages }) => {
   );
 };
 
-export default MessagesDisplay;
+export default MessagesList;

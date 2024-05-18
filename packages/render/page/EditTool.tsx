@@ -1,9 +1,6 @@
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import React, { useCallback } from "react";
-import {
-  useUpdateEntryMutation,
-  useDeleteEntryMutation,
-} from "database/services";
+import { useDeleteEntryMutation } from "database/services";
 import { Button, Toggle } from "ui";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 import {

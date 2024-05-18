@@ -16,7 +16,6 @@ const defaultOptions = {
     "Message",
     "TableComponent",
     "ChatWindow",
-    "register",
     "surfWeather",
   ],
 };

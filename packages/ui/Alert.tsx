@@ -1,7 +1,7 @@
-import React from 'react';
-import { Button } from 'ui/Button'; // 确保这是正确的导入路径
+import React from "react";
+import { Button } from "ui/Button"; // 确保这是正确的导入路径
 
-import { Modal, useModal } from './index';
+import { Modal, useModal } from "./index";
 
 interface AlertProps {
   isOpen: boolean;
@@ -35,10 +35,10 @@ export const Alert: React.FC<AlertProps> = ({
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="p-6 bg-white rounded-lg">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">{title}</h2>
+      <div className="rounded-lg bg-white p-6">
+        <h2 className="mb-4 text-2xl font-bold text-gray-800">{title}</h2>
         <p className="text-gray-700">{message}</p>
-        <div className="flex justify-end space-x-4 mt-4">
+        <div className="mt-4 flex justify-end space-x-4">
           <Button variant="secondary" size="medium" onClick={onClose}>
             取消
           </Button>

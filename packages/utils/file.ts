@@ -17,16 +17,12 @@ const readDataLogger = getLogger("readData");
 export const checkFileExists = (filePath) => {
   return fs.existsSync(filePath);
 };
-export const findDataInFile = (filePath, id) => {
+export const findDataInFile = (filePath, id: string) => {
   return new Promise((resolve, reject) => {
     let found = false;
-
     const input = createReadStream(filePath);
-
     input.on("error", (err) => reject(err));
-
     const rl = readline.createInterface({ input });
-
     rl.on("line", (line) => {
       readDataLogger.info({ line }, "line");
       const [key, value] = processLine(line);
@@ -62,13 +58,15 @@ export async function appendDataToFile(
 export async function appendDataToIndex(
   userId: string,
   dataKey: string,
-  data: string,
+  data: string | Blob,
 ): Promise<void> {
   const path = `./nolodata/${userId}/index.nolo`;
   const output = createWriteStream(path, { flags: "a" });
   await pipelineAsync(Readable.from(`${dataKey} ${data}\n`), output);
 }
-export const updateDataInFile = async (filePath, id, value) => {
+//通用写入文件函数
+//考虑文件很大的情况，内存小于文件大小
+export const updateDataInFile = async (filePath, id: string, value: string) => {
   const tempFilePath = `${filePath}.tmp`;
   const writer = Bun.file(tempFilePath).writer();
 
@@ -87,7 +85,7 @@ export const updateDataInFile = async (filePath, id, value) => {
     await writer.end();
 
     if (updated) {
-      await unlink(filePath);
+      // await unlink(filePath);
       await Bun.write(filePath, Bun.file(tempFilePath));
       await unlink(tempFilePath);
     } else {
@@ -105,5 +103,4 @@ export const deleteFromFile = async (filePath: string, id: string) => {
   const lines = fileContent.split("\n");
   const newLines = lines.filter((line) => !line.startsWith(id));
   await fs.promises.writeFile(filePath, newLines.join("\n"));
-  console.log("Data deleted successfully.");
 };

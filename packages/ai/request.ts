@@ -1,7 +1,9 @@
+import { DataType } from "create/types";
+
 export const chatAIOptions = {
   isJSON: true,
   condition: {
-    type: "chatRobot",
+    type: DataType.ChatRobot,
   },
   limit: 20,
 };

@@ -1,7 +1,7 @@
 import { handleSyncRequest } from "user/server/sync";
 
 import { handleLogin } from "./login";
-import { handleRegister } from "./register";
+import { handleSignUp } from "./signup";
 import { handleDeleteUser } from "./delete";
 
 export const authServerRoutes = (req, res) => {
@@ -10,8 +10,8 @@ export const authServerRoutes = (req, res) => {
   switch (true) {
     case url.pathname.endsWith("/login"):
       return handleLogin(req, res);
-    case url.pathname.endsWith("/register"):
-      return handleRegister(req, res);
+    case url.pathname.endsWith("/signup"):
+      return handleSignUp(req, res);
     case url.pathname.endsWith("/sync"):
       return handleSyncRequest(req, res);
     case url.pathname.match(/\/users\/delete\/\w+$/) && method === "DELETE":

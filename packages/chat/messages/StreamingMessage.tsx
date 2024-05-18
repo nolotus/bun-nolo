@@ -4,7 +4,7 @@ import RobotMessage from "./RobotMessage";
 import { Message } from "./types";
 import { UserMessage } from "./UserMessage";
 
-export const MessageItem: React.FC<Message> = (props) => {
+export const StreamingMessage: React.FC<Message> = (props) => {
   if (!props.content && !props.image) {
     return null;
   }

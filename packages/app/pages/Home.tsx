@@ -44,7 +44,7 @@ const Home = () => {
             <div className="font-patrick mb-4 text-2xl">
               如果你也想分享, 点击{" "}
               <Link
-                to="/register"
+                to="/signup"
                 className="font-bold underline decoration-wavy"
               >
                 注册

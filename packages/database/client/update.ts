@@ -1,45 +1,45 @@
-import { retrieveFirstToken } from 'auth/client/token';
-import { extractAndDecodePrefix, extractUserId } from 'core';
-import { formatData } from 'core/formatData';
-import { getLogger } from 'utils/logger';
+import { retrieveFirstToken } from "auth/client/token";
+import { extractAndDecodePrefix, extractUserId } from "core";
+import { formatData } from "core/formatData";
+import { getLogger } from "utils/logger";
 
-import { API_ENDPOINTS } from '../config';
+import { API_ENDPOINTS } from "../config";
 
-const updateLogger = getLogger('update');
+const updateLogger = getLogger("update");
 
-const updateDatabase = async (formattedData, dataId, token) => {
-  const response = await fetch(`${API_ENDPOINTS.DATABASE}/update/${dataId}`, {
-    method: 'PUT',
+const updateDatabase = async (formattedData, noloId, token) => {
+  const response = await fetch(`${API_ENDPOINTS.DATABASE}/update/${noloId}`, {
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(formattedData),
   });
 
   if (!response.ok) {
-    updateLogger.error({ status: response.status }, 'HTTP error');
+    updateLogger.error({ status: response.status }, "HTTP error");
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
   const responseData = await response.json();
-  updateLogger.info({ responseData }, 'Response data');
+  updateLogger.info({ responseData }, "Response data");
   return responseData;
 };
 
-export const updateData = async (userId, data, dataId) => {
+export const updateData = async (userId, data, noloId) => {
   try {
     const token = retrieveFirstToken();
 
     if (!token) {
-      window.location.href = '/';
-      updateLogger.error({ token }, 'No token found');
-      throw new Error('No token found');
+      window.location.href = "/";
+      updateLogger.error({ token }, "No token found");
+      throw new Error("No token found");
     }
 
-    const dataUserId = extractUserId(dataId);
-    const flags = extractAndDecodePrefix(dataId);
-    updateLogger.info({ dataUserId, userId }, 'Formatted data for user');
+    const dataUserId = extractUserId(noloId);
+    const flags = extractAndDecodePrefix(noloId);
+    updateLogger.info({ dataUserId, userId }, "Formatted data for user");
 
     if (
       dataUserId === userId ||
@@ -48,20 +48,20 @@ export const updateData = async (userId, data, dataId) => {
       const formattedData = {
         data: formatData(data, flags),
         flags,
-        dataId,
+        noloId,
       };
 
       updateLogger.info(
         { formattedData },
         dataUserId === userId
-          ? 'Formatted data for user'
-          : 'Formatted data for other writable users',
+          ? "Formatted data for user"
+          : "Formatted data for other writable users",
       );
 
-      return await updateDatabase(formattedData, dataId, token);
+      return await updateDatabase(formattedData, noloId, token);
     }
   } catch (error) {
-    updateLogger.error({ error }, 'Error in updateData');
+    updateLogger.error({ error }, "Error in updateData");
     throw error;
   }
 };

@@ -6,14 +6,13 @@ export const handleError = (res, error) => {
   res.status(status).json({ error: error.message });
 };
 
-import {
-  appendDataToFile,
-  checkFileExists,
-  findDataInFile,
-  updateDataInFile,
-} from "utils/file";
+import { updateDataInFile } from "utils/file";
+import { serverGetData } from "./read";
 
-const updateData = async (actionUserId, id, value) => {
+// 只关心写入文件问题
+//更新数据，现在是使用readLines 替换
+//可以考虑在内存 然后使用lsm
+const updateData = async (actionUserId, id, value: string) => {
   const userId = extractUserId(id);
   const filePath = `./nolodata/${userId}/index.nolo`;
   await updateDataInFile(filePath, id, value);
@@ -45,28 +44,38 @@ const updateData = async (actionUserId, id, value) => {
   //   throw error;
   // }
 };
-const updateList = async (acitonUserId, dataKey, data) => {
-  const userId = extractUserId(dataKey);
-  const ListPath = `./nolodata/${userId}/list.nolo`;
-  const isListDirExist = checkFileExists(ListPath);
-  if (isListDirExist) {
-    let array = await findDataInFile(ListPath, dataKey);
-    if (array) {
-      //merge exist
-      if (!array.includes(data.id)) {
-        array.push(data.id);
-      }
-      const value = formatData(array, { isList: true });
-      await updateDataInFile(ListPath, dataKey, value);
-    } else {
-      const value = formatData([data.id], { isList: true });
-      appendDataToFile(ListPath, dataKey, value);
+const updateList = async (actionUserId, dataKey, data, res) => {
+  try {
+    let array = await serverGetData(dataKey);
+
+    if (!Array.isArray(array)) {
+      array = [];
     }
-  } else {
-    const value = formatData([data.id], { isList: true });
-    await Bun.write(ListPath, `${dataKey} ${value}\n`);
+
+    const idsToUpdate = Array.isArray(data.ids) ? data.ids : [data.id];
+    if (data.action === "remove") {
+      array = array.filter((id) => !idsToUpdate.includes(id));
+    } else {
+      idsToUpdate.forEach((id) => {
+        if (!array.includes(id)) {
+          array.push(id);
+        }
+      });
+    }
+    const value = formatData(array, { isList: true });
+    await updateData(actionUserId, dataKey, value);
+
+    return res
+      .status(200)
+      .json({ array, message: "Data updated successfully." });
+  } catch (error) {
+    console.error("Error updating list:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+//更新数据
+// 更新普通json 以及其他数据
+//更新list数据
 export const handleUpdate = async (req, res) => {
   const { user } = req;
   const acitonUserId = user.userId;
@@ -77,7 +86,7 @@ export const handleUpdate = async (req, res) => {
   const { isList, isHash, isFile } = flags;
   //如果是isHash  isFile 则不允许更新
   if (isList) {
-    updateList(acitonUserId, id, data);
+    return updateList(acitonUserId, id, data, res);
   } else {
     try {
       const value = formatData(data, flags);

@@ -5,12 +5,13 @@ import { retrieveFirstToken } from "auth/client/token";
 import { generateFileID } from "database/fileUpload/generateFileID";
 import clsx from "clsx";
 import { useAuth } from "app/hooks";
-import { nanoid } from "@reduxjs/toolkit";
 
 import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
 import { Message } from "./types";
+import { ulid } from "ulid";
+import { generateIdWithCustomId } from "core/generateMainKey";
 
 interface MessageInputProps {
   onSendMessage: (content: string, message: Message) => void;
@@ -26,14 +27,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
   const { t } = useTranslation();
   const auth = useAuth();
 
-  const [newMessage, setNewMessage] = useState("");
+  const [textContent, setTextContent] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false); // 新增状态来追踪是否有文件被拖到组件上
 
   const handleNewMessageChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
-    setNewMessage(event.target.value);
+    setTextContent(event.target.value);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -47,7 +48,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
     }
   };
   const beforeSend = () => {
-    if (!newMessage.trim()) {
+    if (!textContent.trim()) {
       return;
     }
 
@@ -55,7 +56,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
       ? [
           {
             type: "text",
-            text: newMessage,
+            text: textContent,
           },
           {
             type: "image_url",
@@ -64,15 +65,16 @@ const MessageInput: React.FC<MessageInputProps> = ({
             },
           },
         ]
-      : newMessage;
-
+      : textContent;
+    const userId = auth.user?.userId;
+    const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
     const message = {
-      id: nanoid(),
+      id,
       role: "user",
       content,
     };
-    onSendMessage(newMessage, message);
-    setNewMessage("");
+    onSendMessage(textContent, message);
+    setTextContent("");
   };
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -93,7 +95,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
     const prefix = setKeyPrefix({ isHash: true, isFile: true });
     const fileID = generateFileID(buffer);
-    formData.append("dataId", `${prefix}-${auth.user?.userId}-${fileID}`); // 添加计算出的文件名
+    formData.append("noloId", `${prefix}-${auth.user?.userId}-${fileID}`); // 添加计算出的文件名
 
     // 获取token
     const token = await retrieveFirstToken();
@@ -120,10 +122,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
       // 获取响应体，可能根据实际接口结构有所不同
       const responseBody = await response.json();
-      console.log("File uploaded successfully:", responseBody.dataId);
+      console.log("File uploaded successfully:", responseBody.noloId);
       setImagePreviewUrls((prevUrls) => [
         ...prevUrls,
-        `http://localhost/api/v1/db/read/${responseBody.dataId}`,
+        `http://localhost/api/v1/db/read/${responseBody.noloId}`,
       ]);
     } catch (error) {
       console.error("Image upload error:", error);
@@ -182,7 +184,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
           <textarea
             className="h-36 w-full border-none p-3 text-black focus:outline-none focus:ring-2 focus:ring-blue-300"
             placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
-            value={newMessage}
+            value={textContent}
             onChange={handleNewMessageChange}
             onKeyDown={handleKeyDown}
           />

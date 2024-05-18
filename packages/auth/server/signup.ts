@@ -12,7 +12,7 @@ import {
   DEFAULT_HASH_FILE,
 } from "database/init";
 
-const registerLogger = getLogger("register");
+const signUpLogger = getLogger("signUp");
 
 // 生成文件内容
 const generateFileContent = (
@@ -36,7 +36,7 @@ const generateFileContent = (
   ].join("\n");
 };
 
-export async function handleRegister(req, res) {
+export async function handleSignUp(req, res) {
   const {
     username,
     publicKey,
@@ -45,7 +45,7 @@ export async function handleRegister(req, res) {
     language,
   } = req.body;
   const userId = generateUserId(publicKey, username, language);
-  registerLogger.info({ userId }, "userId");
+  signUpLogger.info({ userId }, "userId");
 
   const userDirPath = path.join(DATABASE_DIR, userId);
   const isExists = fs.existsSync(userDirPath);
@@ -54,7 +54,7 @@ export async function handleRegister(req, res) {
       .status(409)
       .json({ message: t("errors.dataExists", { id: userId }) });
   }
-  registerLogger.info({ isExists }, "isExists");
+  signUpLogger.info({ isExists }, "isExists");
 
   const indexPath = path.join(userDirPath, DEFAULT_INDEX_FILE);
   const hashPath = path.join(userDirPath, DEFAULT_HASH_FILE);
@@ -66,8 +66,8 @@ export async function handleRegister(req, res) {
     remoteRecoveryPassword,
     userId,
   );
-  registerLogger.info({ fileContent }, "fileContent");
-  registerLogger.info({ username, userId, publicKey }, "get message");
+  signUpLogger.info({ fileContent }, "fileContent");
+  signUpLogger.info({ username, userId, publicKey }, "get message");
 
   const message = JSON.stringify({
     username,
@@ -75,16 +75,16 @@ export async function handleRegister(req, res) {
     publicKey,
   });
   const secretKey = process.env.SECRET_KEY;
-  registerLogger.info({ message, secretKey }, "message,secretKey");
+  signUpLogger.info({ message, secretKey }, "message,secretKey");
 
   const encryptedData = signMessage(message, secretKey);
-  registerLogger.info({ encryptedData }, "encryptedData");
+  signUpLogger.info({ encryptedData }, "encryptedData");
 
   fs.mkdirSync(userDirPath, { recursive: true });
   fs.writeFileSync(indexPath, fileContent);
   fs.writeFileSync(hashPath, "");
 
-  registerLogger.info({ userId, username }, "User data successfully saved.");
+  signUpLogger.info({ userId, username }, "User data successfully saved.");
 
   return res.status(200).json({ encryptedData });
 }

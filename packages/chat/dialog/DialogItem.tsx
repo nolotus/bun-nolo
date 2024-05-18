@@ -1,12 +1,27 @@
+import { NavLink } from "react-router-dom";
+import { useGetEntryQuery } from "database/services";
+import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
 import { PencilIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
-import React from "react";
-import { NavLink } from "react-router-dom";
-import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
+import { useDeleteEntryMutation } from "database/services";
+import { useAppDispatch } from "app/hooks";
+import { removeOne } from "database/dbSlice";
+import { useNavigate } from "react-router-dom";
 
-const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
+export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
+  const [deleteEntry] = useDeleteEntryMutation();
 
+  const { data, isLoading } = useGetEntryQuery({ entryId: dialog.llmId });
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const onDeleteDialog = async (dialog) => {
+    await deleteEntry({ entryId: dialog.id }).unwrap();
+    await deleteEntry({ entryId: dialog.messageListId }).unwrap();
+    dispatch(removeOne(dialog.id));
+    navigate("/chat");
+  };
   const {
     visible: deleteAlertVisible,
     confirmDelete,
@@ -14,9 +29,8 @@ const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
     closeAlert,
     modalState,
   } = useDeleteAlert(() => {
-    onDeleteChat(chat);
+    onDeleteDialog(dialog);
   });
-
   return (
     <div
       className={`group flex cursor-pointer items-center px-4 py-2 ${
@@ -24,10 +38,10 @@ const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
       } transition duration-150 ease-in-out`}
     >
       <NavLink
-        to={`/chat?chatId=${chat.id}`}
+        to={`/chat?chatId=${dialog.id}`}
         className="flex-grow text-gray-600 hover:text-gray-800"
       >
-        <span className="block p-2">{chat.name}</span>
+        <span className="block p-2">{data?.name}</span>
       </NavLink>
       {allowEdit && (
         <div className="ml-auto flex space-x-2 opacity-0 transition duration-150 ease-in-out group-hover:opacity-100">
@@ -45,9 +59,9 @@ const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
             <Dialog
               isOpen={editVisible}
               onClose={closeEdit}
-              title={`Edit ${chat.name}`}
+              title={`Edit ${data.name}`}
             >
-              <ChatConfigForm initialValues={chat} onClose={closeEdit} />
+              <ChatConfigForm initialValues={data} onClose={closeEdit} />
             </Dialog>
           )}
           <button
@@ -55,7 +69,7 @@ const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
             className="text-gray-500 hover:text-red-500 focus:outline-none"
             onClick={(e) => {
               e.stopPropagation();
-              confirmDelete(chat);
+              confirmDelete(data);
             }}
           >
             <TrashIcon size={16} />
@@ -65,8 +79,8 @@ const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
               isOpen={deleteAlertVisible}
               onClose={closeAlert}
               onConfirm={doDelete}
-              title={`删除 ${modalState.name}`}
-              message={`你确定要删除 ${modalState.name} 吗？`}
+              title={`删除和${data?.name}的对话？`}
+              message={`你确定要删除 ${data?.name} 的对话吗？`}
             />
           )}
         </div>
@@ -74,5 +88,3 @@ const ChatItem = ({ chat, onDeleteChat, isSelected, allowEdit }) => {
     </div>
   );
 };
-
-export default ChatItem;

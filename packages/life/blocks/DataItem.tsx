@@ -7,17 +7,17 @@ import { PayBlock } from "render/pay/Payblock";
 
 import { DataType } from "create/types";
 
-const DataItem = ({ dataId, content, source }) => {
+const DataItem = ({ noloId, content, source }) => {
   if (content?.type === "chatRobot") {
     return (
       <ChatBotBlock
-        item={{ value: content, source, key: dataId }}
-        key={dataId}
+        item={{ value: content, source, key: noloId }}
+        key={noloId}
       />
     );
   }
   if (content?.type === "tokenStatistics") {
-    return <TokenStatisticsItem dataId={dataId} content={content} />;
+    return <TokenStatisticsItem noloId={noloId} content={content} />;
   }
   if (content?.type === DataType.pay) {
     return <PayBlock data={content} />;
@@ -33,12 +33,12 @@ const DataItem = ({ dataId, content, source }) => {
     <>
       <div className="flex items-center justify-between">
         <h3 className="mr-4 text-base  font-semibold text-blue-500">
-          <Link to={`/${dataId}`} className="flex items-center hover:underline">
+          <Link to={`/${noloId}`} className="flex items-center hover:underline">
             {content.title}
           </Link>
         </h3>
         <Link
-          to={`/${dataId}?edit=true`}
+          to={`/${noloId}?edit=true`}
           className="flex items-center text-blue-500 transition-colors duration-300 hover:text-blue-600"
           aria-label="编辑"
         >

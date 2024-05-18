@@ -38,7 +38,7 @@ const processWeatherData = async (weatherData, collector) => {
     const specificTime = new Date(hour.time).getTime();
     const ulidForSpecificTime = ulid(specificTime);
     const customId = ulidForSpecificTime;
-    const dataId = generateIdWithCustomId(nolotusId, customId, {
+    const noloId = generateIdWithCustomId(nolotusId, customId, {
       isJSON: true,
     });
     // 在这里添加 lat 和 lng 到 hour 数据中
@@ -49,7 +49,7 @@ const processWeatherData = async (weatherData, collector) => {
       created_at: Date.now(),
       type: DataType.SurfInfo,
     };
-    const flags = extractAndDecodePrefix(dataId);
+    const flags = extractAndDecodePrefix(noloId);
     surfWeatherLogger.info(augmentedHour, "augmentedHour");
     const value = formatData(augmentedHour, flags);
     surfWeatherLogger.info(value, "value");
