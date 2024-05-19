@@ -28,7 +28,7 @@ const ChatWindow = ({ currentDialogConfig }) => {
   }, [currentDialogConfig]);
 
   const messages = useAppSelector((state) => state.message.messages);
-  const messageIdsList = useAppSelector((state) => state.message.ids);
+  const messageIds = useAppSelector((state) => state.message.ids);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -86,11 +86,8 @@ const ChatWindow = ({ currentDialogConfig }) => {
   return (
     <div className="flex h-full w-full flex-col lg:w-5/6">
       {/* <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} /> */}
-      {messageIdsList && (
-        <MessagesList
-          messageIdsList={messageIdsList}
-          scrollToBottom={scrollToBottom}
-        />
+      {messageIds && (
+        <MessagesList messageIds={messageIds} scrollToBottom={scrollToBottom} />
       )}
 
       {allowSend ? (

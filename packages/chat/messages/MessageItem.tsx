@@ -22,8 +22,8 @@ export const MessageItem = ({ id }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
     const getMessage = async () => {
+      setLoading(true);
       dispatch(read(id))
         .then((action) => {
           dispatch(addMessage(action.payload));
@@ -36,7 +36,9 @@ export const MessageItem = ({ id }) => {
           setLoading(false); // 结束加载
         });
     };
-    getMessage();
+    if (!message) {
+      getMessage();
+    }
   }, []);
   const couldDelete = true;
   const handleDeleteMessage = () => {

@@ -5,10 +5,10 @@ import { StreamingMessage } from "./StreamingMessage";
 import { selectMessage } from "./selector";
 import { MessageItem } from "./MessageItem";
 interface MessagesDisplayProps {
-  scrollToBottom: () => void; // 新增
+  scrollToBottom: () => void;
 }
 
-const MessagesList: React.FC<MessagesDisplayProps> = ({ messageIdsList }) => {
+const MessagesList: React.FC<MessagesDisplayProps> = ({ messageIds }) => {
   const { tempMessage } = useAppSelector(selectMessage);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -20,14 +20,14 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messageIdsList }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messageIdsList, tempMessage]);
+  }, [messageIds, tempMessage]);
 
   return (
     <div
       className="flex max-w-full flex-grow flex-col space-y-4 overflow-y-auto break-words p-3"
       ref={messagesEndRef}
     >
-      {messageIdsList.map((id: string) => {
+      {messageIds.map((id: string) => {
         return <MessageItem id={id} key={id} />;
       })}
       {tempMessage && (
