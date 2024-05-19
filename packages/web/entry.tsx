@@ -22,11 +22,11 @@ hydrateRoot(
   domNode,
   <React.StrictMode>
     <Provider store={browserStore}>
-      <WebSocketProvider url="ws://nolouts.com:80">
-        <BrowserRouter>
-          <App hostname={hostname} lng={lng} />
-        </BrowserRouter>
-      </WebSocketProvider>
+      {/* <WebSocketProvider url="ws://nolouts.com:80"> */}
+      <BrowserRouter>
+        <App hostname={hostname} lng={lng} />
+      </BrowserRouter>
+      {/* </WebSocketProvider> */}
     </Provider>
   </React.StrictMode>,
 );
