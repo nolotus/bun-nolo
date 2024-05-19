@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import { useGetEntryQuery } from "database/services";
 import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
 import { PencilIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
@@ -12,7 +11,6 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const [deleteEntry] = useDeleteEntryMutation();
 
-  // const { data } = useGetEntryQuery({ entryId: dialog.llmId });
   const data = useItem(dialog.llmId);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();

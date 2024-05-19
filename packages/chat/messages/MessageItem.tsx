@@ -1,12 +1,11 @@
-import { useGetEntryQuery, useLazyGetEntryQuery } from "database/services";
 import IconButton from "ui/IconButton";
 import { TrashIcon } from "@primer/octicons-react";
 import * as stylex from "@stylexjs/stylex";
 import { useDispatch } from "react-redux";
 import { addMessage, deleteMessage, deleteNotFound } from "./messageSlice";
-import { useItem } from "app/hooks";
+import { useAppSelector } from "app/hooks";
 import { useEffect, useState } from "react";
-import { upsertOne } from "database/dbSlice";
+import { read, selectById } from "database/dbSlice";
 const styles = stylex.create({
   main: {
     display: "flex",
@@ -18,33 +17,32 @@ const styles = stylex.create({
 
 export const MessageItem = ({ id }) => {
   const dispatch = useDispatch();
-
-  const localMessage = useItem(id);
-
-  const [trigger, { isError, error }] = useLazyGetEntryQuery();
-  const [message, setMessage] = useState();
-  // let message = localMessage ? localMessage : serverMessage;
+  const message = useAppSelector((state) => selectById(state, id));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (localMessage) {
-      setMessage(localMessage);
-    } else {
-      //这里无论如何都会执行一次
-      console.log("localMessage", localMessage);
-      const getMessage = async () => {
-        const result = await trigger({ entryId: id }).unwrap();
-        console.log("trigger result", result);
-        dispatch(upsertOne(result));
-        dispatch(addMessage(result));
-      };
-      getMessage();
-    }
-  }, [localMessage]);
+    setLoading(true);
+    const getMessage = async () => {
+      dispatch(read(id))
+        .then((action) => {
+          dispatch(addMessage(action.payload));
+          setError(null); // 清除错误信息
+        })
+        .catch((err) => {
+          setError(err); // 捕捉错误
+        })
+        .finally(() => {
+          setLoading(false); // 结束加载
+        });
+    };
+    getMessage();
+  }, []);
   const couldDelete = true;
   const handleDeleteMessage = () => {
     dispatch(deleteMessage(id));
   };
-  if (!message) {
+  if (loading) {
     return <div>loading</div>;
   } else if (message) {
     const { content } = message;
@@ -58,7 +56,7 @@ export const MessageItem = ({ id }) => {
         </div>
       </div>
     );
-  } else if (isError) {
+  } else if (error) {
     console.log("error", error);
     return (
       <div {...stylex.props(styles.main)}>

@@ -6,6 +6,7 @@ import {
   asyncThunkCreator,
   createEntityAdapter,
 } from "@reduxjs/toolkit";
+import { noloReadRequest } from "./client/readRequest";
 // Entity adapter
 export const dbAdapter = createEntityAdapter();
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
@@ -46,6 +47,19 @@ const dbSlice = createSliceWithThunks({
       {
         fulfilled: (state, action) => {
           dbAdapter.upsertMany(state, action.payload);
+        },
+      },
+    ),
+    read: create.asyncThunk(
+      async (id, thunkApi) => {
+        const state = thunkApi.getState();
+        const res = await noloReadRequest(state, id);
+        const result = await res.json();
+        return result;
+      },
+      {
+        fulfilled: (state, action) => {
+          dbAdapter.upsertOne(state, action.payload);
         },
       },
     ),
@@ -90,5 +104,6 @@ export const {
   removeOne,
   updateOne,
   query,
+  read,
 } = dbSlice.actions;
 export default dbSlice.reducer;

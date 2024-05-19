@@ -226,7 +226,6 @@ export const {
   useGetEntriesQuery,
   useGetEntryQuery,
   useLazyGetEntriesQuery,
-  useLazyGetEntryQuery,
   useWriteMutation,
   useDeleteEntryMutation,
   useUpdateEntryMutation,
