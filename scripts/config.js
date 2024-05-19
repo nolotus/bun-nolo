@@ -47,6 +47,9 @@ const commonConfig = {
     ".svg": "text",
   },
   metafile: true,
+  entryNames: "[dir]/[name]-[hash]",
+  minify: true,
+  sourcemap: false,
 };
 
 // 定义生产环境特有配置

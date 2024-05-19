@@ -1,7 +1,7 @@
-import { write } from 'bun';
-import * as esbuild from 'esbuild';
+import { write } from "bun";
+import * as esbuild from "esbuild";
 
-import { config } from './config';
+import { config } from "./config";
 
 const measureTime = async (operation, action) => {
   const startTime = performance.now();
@@ -12,12 +12,12 @@ const measureTime = async (operation, action) => {
 };
 
 const getEntryFiles = (metaData) => {
-  const entryFiles = { js: '', css: '' };
+  const entryFiles = { js: "", css: "" };
   Object.entries(metaData.outputs).forEach(([path, output]) => {
-    if (path.startsWith('public/assets/entry')) {
-      if (path.endsWith('.js')) {
+    if (path.startsWith("public/assets/entry")) {
+      if (path.endsWith(".js")) {
         entryFiles.js = path;
-      } else if (path.endsWith('.css')) {
+      } else if (path.endsWith(".css")) {
         entryFiles.css = path;
       }
     }
@@ -28,16 +28,14 @@ const getEntryFiles = (metaData) => {
 export const runMetaBuild = async () => {
   const totalStartTime = performance.now();
 
-  const result = await measureTime('esbuild 构建', () =>
-    esbuild.build({ ...config }),
-  );
+  const result = await measureTime("esbuild 构建", () => esbuild.build(config));
 
-  await measureTime('写入 meta.json', () =>
-    write('public/meta.json', JSON.stringify(result.metafile)),
+  await measureTime("写入 meta.json", () =>
+    write("public/meta.json", JSON.stringify(result.metafile)),
   );
   const assets = getEntryFiles(result.metafile);
-  await measureTime('写入 assets.json', () =>
-    write('public/assets.json', JSON.stringify(assets)),
+  await measureTime("写入 assets.json", () =>
+    write("public/assets.json", JSON.stringify(assets)),
   );
 
   const totalEndTime = performance.now();
