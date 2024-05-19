@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const inputPath = "./packages/web/entry.tsx";
 // 定义公共配置
-const commonConfig = {
+export const config = {
   entryPoints: [inputPath],
   outdir: "public/assets",
   plugins: [
@@ -48,8 +48,8 @@ const commonConfig = {
   },
   metafile: true,
   entryNames: "[dir]/[name]-[hash]",
-  minify: true,
-  sourcemap: false,
+  // minify: true,
+  sourcemap: true,
 };
 
 // 定义生产环境特有配置
@@ -60,6 +60,6 @@ const prodConfig = {
 };
 
 // 合并配置，如果是生产环境，添加 prodConfig
-export const config = isProduction
-  ? { ...commonConfig, ...prodConfig }
-  : commonConfig;
+// export const config = isProduction
+//   ? { ...commonConfig, ...prodConfig }
+//   : commonConfig;
