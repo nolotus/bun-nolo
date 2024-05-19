@@ -13,6 +13,7 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const [deleteEntry] = useDeleteEntryMutation();
 
   const { data, isLoading } = useGetEntryQuery({ entryId: dialog.llmId });
+  console.log("dialogitem data", data);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
