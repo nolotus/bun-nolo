@@ -2,7 +2,8 @@ import { write } from "bun";
 import * as esbuild from "esbuild";
 
 import { config } from "./config";
-
+import { isProduction } from "utils/env";
+console.log("isProduction", isProduction);
 const measureTime = async (operation, action) => {
   const startTime = performance.now();
   const result = await action();

@@ -24,9 +24,11 @@ if (isProduction) {
     domNode,
     <React.StrictMode>
       <Provider store={browserStore}>
-        <BrowserRouter>
-          <App hostname={hostname} lng={lng} />
-        </BrowserRouter>
+        <WebSocketProvider url="ws://nolouts.com:80">
+          <BrowserRouter>
+            <App hostname={hostname} lng={lng} />
+          </BrowserRouter>
+        </WebSocketProvider>
       </Provider>
     </React.StrictMode>,
   );
