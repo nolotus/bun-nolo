@@ -5,16 +5,11 @@ export interface User {
   first_name: string;
   last_name: string;
 }
-
 export interface UserResponse {
   user: User;
   token: string;
 }
 
-export interface LoginRequest {
-  userId: string;
-  token: string;
-}
 export interface RegisterRequest {
   username: string;
   password: string;
@@ -27,13 +22,6 @@ export interface DeleteUserRequest {
 }
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<UserResponse, LoginRequest>({
-      query: (credentials) => ({
-        url: `${API_VERSION}/users/login`,
-        method: "POST",
-        body: credentials,
-      }),
-    }),
     signup: builder.mutation<UserResponse, RegisterRequest>({
       query: (user) => ({
         url: `${API_VERSION}/users/signup`,
@@ -49,5 +37,4 @@ export const authApi = api.injectEndpoints({
     }),
   }),
 });
-export const { useLoginMutation, useSignupMutation, useDeleteUserMutation } =
-  authApi;
+export const { useSignupMutation, useDeleteUserMutation } = authApi;

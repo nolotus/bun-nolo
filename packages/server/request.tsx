@@ -7,7 +7,6 @@ import { weatherRouteHandler } from "integrations/weather";
 
 import { createResponse } from "./createResponse";
 import { handleRender } from "./render";
-import { isProduction } from "utils/env";
 import { handlePublicRequest } from "./publicRequestHandler"; // 确保路径正确
 
 const res = createResponse();
@@ -39,9 +38,7 @@ export const handleRequest = async (request: Request, server) => {
   }
   if (url.pathname.startsWith(API_VERSION)) {
     if (url.pathname.startsWith(API_ENDPOINTS.HI)) {
-      return res
-        .status(200)
-        .json({ API_VERSION: API_VERSION, isProduction: isProduction });
+      return res.status(200).json({ API_VERSION: API_VERSION });
     }
     const contentType = request.headers.get("content-type") || "";
     let body;

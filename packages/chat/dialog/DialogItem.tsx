@@ -4,7 +4,7 @@ import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
 import { PencilIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
 import { useDeleteEntryMutation } from "database/services";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch, useItem } from "app/hooks";
 import { removeOne } from "database/dbSlice";
 import { useNavigate } from "react-router-dom";
 
@@ -12,8 +12,8 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const [deleteEntry] = useDeleteEntryMutation();
 
-  const { data, isLoading } = useGetEntryQuery({ entryId: dialog.llmId });
-  console.log("dialogitem data", data);
+  // const { data } = useGetEntryQuery({ entryId: dialog.llmId });
+  const data = useItem(dialog.llmId);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 

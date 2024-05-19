@@ -1,33 +1,68 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { PayloadAction } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
+import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
+import { generateUserId } from "core/generateMainKey";
+import { hashPassword } from "core/password";
+import { generateKeyPairFromSeed } from "core/crypto";
+import { signToken } from "auth/token";
+import { storeTokens } from "auth/client/token";
 
-import { authApi } from "./services";
 import { parseToken } from "./token";
-
-export interface User {
-  userId: string;
-  username: string;
-  email?: string;
-}
-
-export interface AuthState {
-  currentUser: User | null;
-  users: User[];
-  isLoggedIn: boolean;
-  currentToken: string | null;
-}
+import { AuthState, User } from "./types";
+import { loginRequest } from "./client/loginRequest";
 
 const initialState: AuthState = {
   currentUser: null,
   users: [],
   isLoggedIn: false,
   currentToken: null,
+  isLoading: false,
 };
-
-export const authSlice = createSlice({
+const createSliceWithThunks = buildCreateSlice({
+  creators: { asyncThunk: asyncThunkCreator },
+});
+export const authSlice = createSliceWithThunks({
   name: "auth",
   initialState,
-  reducers: {
+  reducers: (create) => ({
+    signIn: create.asyncThunk(
+      async (input, thunkAPI) => {
+        const { username, password, locale } = input;
+        const encryptionKey = await hashPassword(password);
+        const { publicKey, secretKey } = generateKeyPairFromSeed(
+          username + encryptionKey + locale,
+        );
+        const userId = generateUserId(publicKey, username, locale);
+        const token = signToken({ userId, publicKey, username }, secretKey);
+        const state = thunkAPI.getState();
+        const res = await loginRequest(state, { userId, token });
+        // console.log("newToken", newToken);
+        const result = await res.json();
+        console.log("result", result);
+        storeTokens(result.token);
+        return result;
+      },
+      {
+        pending: (state) => {
+          state.isLoading = true;
+        },
+        rejected: (state, error) => {
+          console.log("error", error);
+          state.isLoading = false;
+        },
+        fulfilled: (state, action) => {
+          const { payload } = action;
+          state.isLoggedIn = true;
+          const token = payload.token;
+          state.currentToken = token;
+          const user = parseToken(payload.token);
+          state.currentUser = user;
+          state.isLoggedIn = true;
+          state.users = [user, ...state.users];
+          state.isLoading = false;
+        },
+      },
+    ),
     changeCurrentUser: (
       state,
       action: PayloadAction<{ user: User; token: string }>,
@@ -64,24 +99,16 @@ export const authSlice = createSlice({
       state.users = updatedUsers;
       state.currentToken = null;
     },
-  },
-  extraReducers: (builder) => {
-    builder.addMatcher(
-      authApi.endpoints.login.matchFulfilled,
-      (state, { payload }) => {
-        console.log("payload", payload);
-        const user = parseToken(payload.token);
-        state.currentUser = user;
-        state.currentToken = payload.token;
-        state.isLoggedIn = true;
-        state.users = [user, ...state.users];
-      },
-    );
-  },
+  }),
 });
 
-export const { changeCurrentUser, userRegister, restoreSession, userLogout } =
-  authSlice.actions;
+export const {
+  changeCurrentUser,
+  userRegister,
+  restoreSession,
+  userLogout,
+  signIn,
+} = authSlice.actions;
 
 export default authSlice.reducer;
 export const selectCurrentUser = (state: NoloRootState) =>

@@ -1,9 +1,9 @@
 import React from "react";
 import { useWriteMutation } from "database/services";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "app/hooks";
-import { ulid } from "ulid";
 import { DataType } from "create/types";
+import { noloWriteRequest } from "database/client/writeRequest";
+import { useSelector } from "react-redux";
 
 const OMIT_NAME_MAX_LENGTH = 60;
 
@@ -17,28 +17,24 @@ const omitName = (content) => {
 };
 export const ChatBotBlock = (props) => {
   const navigate = useNavigate();
-  const auth = useAuth();
-
+  const state = useSelector((state) => state);
   const { item } = props;
   const { value, key } = item;
   const [write, { isLoading: isWriteLoading }] = useWriteMutation();
   const createNewDialog = async () => {
-    const initMessageList = await write({
-      data: [],
-      flags: { isList: true },
-      userId: auth.user?.userId,
-      customId: ulid(),
-    }).unwrap();
-    const data = { llmId: key, messageListId: initMessageList.noloId };
-    const requestBody = {
-      data: { ...data, type: DataType.Dialog },
-      flags: { isJSON: true },
-      userId: auth.user?.userId,
-      customId: ulid(),
-    };
-
+    const initMessageList = await noloWriteRequest(state, [], { isList: true });
     try {
-      const result = await write(requestBody).unwrap();
+      // const result = await write(requestBody).unwrap();
+      const res = await noloWriteRequest(
+        state,
+        {
+          type: DataType.Dialog,
+          llmId: key,
+          messageListId: initMessageList.noloId,
+        },
+        { isJSON: true },
+      );
+      const result = await res.json();
       navigate(`/chat?chatId=${result.noloId}`);
     } catch (error) {
       // setError(error.data?.message || error.status);

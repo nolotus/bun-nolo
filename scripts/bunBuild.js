@@ -13,7 +13,6 @@ const commonConfig = {
 const productionConfig = {
   ...commonConfig,
 };
-console.log("isProduction", isProduction);
 const config = isProduction ? productionConfig : commonConfig;
 
 export async function runBuild() {

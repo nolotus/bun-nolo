@@ -47,7 +47,7 @@ export const config = {
     ".svg": "text",
   },
   metafile: true,
-  entryNames: "[dir]/[name]-[hash]",
+  // entryNames: "[dir]/[name]-[hash]",
   // minify: true,
   sourcemap: true,
 };

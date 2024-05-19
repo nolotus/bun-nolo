@@ -1,46 +1,27 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TextInput, Button, Text } from "react-native";
-import { hashPassword } from "core/password";
-import { generateKeyPairFromSeed } from "core/crypto";
 import * as RNLocalize from "react-native-localize";
-import { generateUserId } from "core/generateMainKey";
-import { signToken } from "auth/token";
 import { storeTokens } from "auth/client/token";
-import { useLoginMutation } from "auth/services";
 import { Picker } from "@react-native-picker/picker";
+import { useAppDispatch } from "app/hooks";
+import { signIn } from "../authSlice";
 
 const LoginScreen = ({ navigation }) => {
+  const dispatch = useAppDispatch();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [selectedAlgorithm, setSelectedAlgorithm] = useState("argon2");
-  const [login, { isLoading }] = useLoginMutation();
 
   const handleLogin = async () => {
     const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
     const deviceCountry = RNLocalize.getCountry(); // 'US', 'CN' 等
-
     const locale = `${deviceLanguage}-${deviceCountry}`;
-
-    const encryptionKey = await hashPassword(password);
-
-    const { publicKey, secretKey } = generateKeyPairFromSeed(
-      username + encryptionKey + locale,
-    );
-    generateUserId;
-
-    console.log("publicKey", publicKey);
-    console.log("secretKey", secretKey);
-
-    const userId = generateUserId(publicKey, username, locale);
-    console.log("userId", userId);
-
-    const token = signToken({ userId, publicKey, username }, secretKey);
-    console.log("token", token);
-
-    const result = await login({ userId, token }).unwrap();
-    const { token: newToken } = result;
-    storeTokens(newToken);
-    navigation.navigate("User"); // 跳转到 AuthStack 的 Login Screen
+    const input = { username, password, locale };
+    const resultAction = await dispatch(signIn(input));
+    if (resultAction.payload.token) {
+      storeTokens(resultAction.payload.token);
+      navigation.navigate("User"); // 跳转到 AuthStack 的 Login Screen
+    }
   };
 
   return (
