@@ -358,10 +358,6 @@ export const messageSlice = createSliceWithThunks({
                 } else {
                   try {
                     const json = JSON.parse(statusOrJson);
-                    const eachStep = json.choices[0]?.delta?.content;
-
-                    console.log("eachStep", eachStep);
-                    console.log("temp", temp);
 
                     // 自然停止
                     const finishReason: string = json.choices[0].finish_reason;
@@ -395,7 +391,6 @@ export const messageSlice = createSliceWithThunks({
                       //逐渐相加
                       temp =
                         (temp || "") + (json.choices[0]?.delta?.content || "");
-                      console.log("temp", temp);
                       const message = {
                         role: "assistant",
                         id: json.id,

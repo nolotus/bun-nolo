@@ -4,9 +4,10 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
-import { API_ENDPOINTS } from "database/config";
+import { noloReadRequest } from "database/client/readRequest";
 import { upsertMany } from "database/dbSlice";
-
+import { noloQueryRequest } from "database/client/queryRequest";
+import { selectCurrentUserId } from "auth/selectors";
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -28,9 +29,7 @@ const DialogSlice = createSliceWithThunks({
     initDialog: create.asyncThunk(
       async (dialogId, thunkApi) => {
         thunkApi.dispatch(setCurrentDialogId(dialogId));
-        const res = await fetch(
-          `http://localhost${API_ENDPOINTS.DATABASE}/read/${dialogId}`,
-        );
+        const res = await noloReadRequest(dialogId);
         const result = await res.json();
         return result;
       },
@@ -48,8 +47,7 @@ const DialogSlice = createSliceWithThunks({
     fetchDialogList: create.asyncThunk(
       async (id: string, thunkApi) => {
         const state = thunkApi.getState();
-        const userId = state.auth.currentUser.userId;
-        const token = state.auth.currentToken;
+        const userId = selectCurrentUserId(state);
 
         const options = {
           isJSON: true,
@@ -63,16 +61,15 @@ const DialogSlice = createSliceWithThunks({
           isJSON: (options.isJSON ?? false).toString(),
           limit: options.limit?.toString() ?? "",
         });
-        const res = await fetch(
-          `http://localhost${API_ENDPOINTS.DATABASE}/query/${userId}?${queryParams}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(options.condition),
-          },
+        // const res = await fetch(
+        //   `http://localhost${API_ENDPOINTS.DATABASE}/query/${userId}?${queryParams}`,
+        //   {},
+        // );
+        const res = await noloQueryRequest(
+          userId,
+          state,
+          queryParams,
+          JSON.stringify(options.condition),
         );
         const result = await res.json();
         thunkApi.dispatch(upsertMany(result));
@@ -86,9 +83,7 @@ const DialogSlice = createSliceWithThunks({
     ),
     initLLMConfig: create.asyncThunk(
       async (llmID: string, thunkApi) => {
-        const res = await fetch(
-          `http://localhost${API_ENDPOINTS.DATABASE}/read/${llmID}`,
-        );
+        const res = await noloReadRequest(state, llmID);
         return await res.json();
       },
       {
