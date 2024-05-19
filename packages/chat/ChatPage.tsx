@@ -5,8 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { chatPageHeight } from "app/styles/height";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 
-import { query, updateData } from "database/dbSlice";
-import { useLazyGetEntriesQuery } from "database/services";
+import { query } from "database/dbSlice";
 
 import { DataType } from "create/types";
 import aiTranslations from "ai/aiI18n";
@@ -42,7 +41,6 @@ const ChatPage = () => {
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const chatId = searchParams.get("chatId");
-  const [getentries] = useLazyGetEntriesQuery();
   const fetchTokenUsage = async () => {
     const options = {
       isJSON: true,
@@ -96,7 +94,7 @@ const ChatPage = () => {
     >
       {dialogList.length > 0 || currentDialogConfig ? (
         <>
-          <div className="w-full overflow-y-auto bg-gray-200 lg:block lg:w-1/6">
+          <div className="w-full overflow-y-auto bg-white lg:block lg:w-1/6">
             <DialogSidebar dialogList={dialogList} />
           </div>
           {currentDialogConfig && (

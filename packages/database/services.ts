@@ -225,7 +225,6 @@ export const dbApi = api.injectEndpoints({
 export const {
   useGetEntriesQuery,
   useGetEntryQuery,
-  useLazyGetEntriesQuery,
   useWriteMutation,
   useDeleteEntryMutation,
   useUpdateEntryMutation,

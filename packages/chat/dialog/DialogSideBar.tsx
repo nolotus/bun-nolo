@@ -26,7 +26,7 @@ const DialogSideBar = ({ dialogList }) => {
   const [searchParams] = useSearchParams();
   const currentChatId = searchParams.get("chatId");
   return (
-    <div className="flex h-full flex-col justify-start bg-gray-100">
+    <div className="flex flex-col justify-start">
       <div className="p-4">
         <button
           type="button"
