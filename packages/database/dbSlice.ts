@@ -1,17 +1,24 @@
-import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-
+import { noloQueryRequest } from "database/client/queryRequest";
+import {
+  PayloadAction,
+  buildCreateSlice,
+  asyncThunkCreator,
+  createEntityAdapter,
+} from "@reduxjs/toolkit";
 // Entity adapter
 export const dbAdapter = createEntityAdapter();
-export const { selectById } = dbAdapter.getSelectors(
-  (state: NoloRootState) => state.db,
-);
+export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
+  dbAdapter.getSelectors((state: NoloRootState) => state.db);
 export const makeSelectEntityById =
   (entityId: string) => (state: NoloRootState) =>
     selectById(state, entityId);
 
 // Initial state
 const initialState = dbAdapter.getInitialState({});
+const createSliceWithThunks = buildCreateSlice({
+  creators: { asyncThunk: asyncThunkCreator },
+});
 
 function mergeSource(existingItem, newSource) {
   if (existingItem) {
@@ -24,11 +31,24 @@ function mergeSource(existingItem, newSource) {
 }
 
 // Slice
-const dbSlice = createSlice({
+const dbSlice = createSliceWithThunks({
   name: "db",
   initialState,
 
   reducers: (create) => ({
+    query: create.asyncThunk(
+      async (queryConfig, thunkApi) => {
+        const state = thunkApi.getState();
+        const res = await noloQueryRequest(state, queryConfig);
+        const result = await res.json();
+        return result;
+      },
+      {
+        fulfilled: (state, action) => {
+          dbAdapter.upsertMany(state, action.payload);
+        },
+      },
+    ),
     updateData: create.reducer((state, action) => {
       const updatedData = action.payload.data.map((item) => {
         const existingItem = state.entities[item.id];
@@ -69,5 +89,6 @@ export const {
   upsertMany,
   removeOne,
   updateOne,
+  query,
 } = dbSlice.actions;
 export default dbSlice.reducer;

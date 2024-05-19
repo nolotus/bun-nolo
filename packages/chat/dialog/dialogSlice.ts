@@ -3,11 +3,7 @@ import {
   buildCreateSlice,
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
-import { DataType } from "create/types";
 import { noloReadRequest } from "database/client/readRequest";
-import { upsertMany } from "database/dbSlice";
-import { noloQueryRequest } from "database/client/queryRequest";
-import { selectCurrentUserId } from "auth/selectors";
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -45,39 +41,6 @@ const DialogSlice = createSliceWithThunks({
       },
     ),
 
-    fetchDialogList: create.asyncThunk(
-      async (id: string, thunkApi) => {
-        const state = thunkApi.getState();
-        const userId = selectCurrentUserId(state);
-
-        const options = {
-          isJSON: true,
-          limit: 20,
-          condition: {
-            type: DataType.Dialog,
-          },
-        };
-        const queryParams = new URLSearchParams({
-          isObject: (options.isObject ?? false).toString(),
-          isJSON: (options.isJSON ?? false).toString(),
-          limit: options.limit?.toString() ?? "",
-        });
-        const res = await noloQueryRequest(
-          userId,
-          state,
-          queryParams,
-          JSON.stringify(options.condition),
-        );
-        const result = await res.json();
-        thunkApi.dispatch(upsertMany(result));
-        return result;
-      },
-      {
-        fulfilled: (state, action) => {
-          // state.llmConfig = action.payload;
-        },
-      },
-    ),
     initLLMConfig: create.asyncThunk(
       async (llmID: string, thunkApi) => {
         const state = thunkApi.getState();
@@ -93,12 +56,8 @@ const DialogSlice = createSliceWithThunks({
     deleteDialog: create.asyncThunk(async () => {}, {}),
   }),
 });
-export const {
-  initDialog,
-  setCurrentDialogId,
-  fetchDialogList,
-  initLLMConfig,
-} = DialogSlice.actions;
+export const { initDialog, setCurrentDialogId, initLLMConfig } =
+  DialogSlice.actions;
 
 export default DialogSlice.reducer;
 export const selectCurrentLLMConfig = (state) => state.dialog.currenLLMConfig;

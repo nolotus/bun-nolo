@@ -56,7 +56,7 @@ const settingSlice = createSlice({
     // 新增主机名到当前服务器的reducer
     addHostToCurrentServer: (state, action) => {
       const hostname = action.payload;
-      const protocol = hostname === "localhost" ? "http" : "https";
+      const protocol = hostname === "nolotus.local" ? "http" : "https";
       const port = protocol === "http" ? "80" : "443";
       state.syncSetting.currentServer = `${protocol}://${hostname}:${port}`;
     },

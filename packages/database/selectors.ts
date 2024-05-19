@@ -1,14 +1,13 @@
 import { createSelector } from "@reduxjs/toolkit";
+import { createCachedSelector } from "re-reselect";
+import { extractUserId } from "core";
 
 export const selectFilterType = (state) => state.life.filterType;
 
-import { dbAdapter } from "./dbSlice";
-export const selectAllData = dbAdapter.getSelectors(
-  (state) => state.db,
-).selectAll;
+import { selectAll } from "./dbSlice";
 
 // 使用 createSelector 来创建一个基于 selectAllData 的 memoized selector
-export const selectPages = createSelector([selectAllData], (allData) =>
+export const selectPages = createSelector([selectAll], (allData) =>
   allData
     .filter((item) => item.type === "page")
     .sort((a, b) => {
@@ -28,3 +27,12 @@ export const selectPages = createSelector([selectAllData], (allData) =>
       return 0;
     }),
 );
+export const selectFilteredDataByUserAndType = (userId, type) =>
+  createCachedSelector([selectAll], (allData) =>
+    allData.filter(
+      (item) => item.type === type && extractUserId(item.id) === userId,
+    ),
+  )(
+    // 生成唯一的缓存键，基于userId和type
+    () => `${userId}-${type}`,
+  );

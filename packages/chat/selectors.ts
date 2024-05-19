@@ -1,12 +1,12 @@
 import { createCachedSelector } from "re-reselect";
 
 import { extractUserId } from "core";
-import { selectAllData } from "database/selectors";
 import { selectCurrentUserId } from "auth/selectors";
 import { DataType } from "create/types";
+import { selectAll } from "database/dbSlice";
 
 export const selectCurrentUserChatRobots = createCachedSelector(
-  [selectAllData, selectCurrentUserId],
+  [selectAll, selectCurrentUserId],
   (allData, userId) =>
     // 使用短路运算符直接确定是否需要进一步筛选
     userId
@@ -21,7 +21,7 @@ export const selectCurrentUserChatRobots = createCachedSelector(
   (_state, userId) => userId ?? "empty",
 );
 export const selectCurrentUserDialog = createCachedSelector(
-  [selectAllData, selectCurrentUserId],
+  [selectAll, selectCurrentUserId],
   (allData, userId) =>
     // 使用短路运算符直接确定是否需要进一步筛选
     userId

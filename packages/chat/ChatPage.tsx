@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { chatPageHeight } from "app/styles/height";
 import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 
-import { updateData } from "database/dbSlice";
+import { query, updateData } from "database/dbSlice";
 import { useLazyGetEntriesQuery } from "database/services";
 
 import { DataType } from "create/types";
@@ -15,12 +15,9 @@ import { selectCurrentUserDialog } from "chat/selectors";
 import chatTranslations from "./chatI18n";
 import DialogSidebar from "./dialog/DialogSideBar";
 import ChatWindow from "./messages/MessageWindow";
-import {
-  fetchDialogList,
-  initDialog,
-  selectCurrentDialogConfig,
-} from "./dialog/dialogSlice";
+import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
 import { ChatGuide } from "./ChatGuide";
+import { selectCurrentUserId } from "auth/selectors";
 for (const lang of Object.keys(chatTranslations)) {
   const translations = chatTranslations[lang].translation;
   i18n.addResourceBundle(lang, "translation", translations, true, true);
@@ -33,7 +30,7 @@ for (const lang of Object.keys(aiTranslations)) {
 
 const ChatPage = () => {
   const auth = useAuth();
-
+  const currentUserId = useAppSelector(selectCurrentUserId);
   if (!auth.user) {
     return (
       <div className="container mx-auto mt-16 text-center text-3xl">
@@ -71,8 +68,20 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    dispatch(fetchDialogList());
-  }, []);
+    if (currentUserId) {
+      const queryConfig = {
+        queryUserId: currentUserId,
+        options: {
+          isJSON: true,
+          limit: 20,
+          condition: {
+            type: DataType.Dialog,
+          },
+        },
+      };
+      dispatch(query(queryConfig));
+    }
+  }, [currentUserId]);
 
   useEffect(() => {
     chatId && dispatch(initDialog(chatId));

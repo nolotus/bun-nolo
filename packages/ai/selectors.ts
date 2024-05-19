@@ -1,18 +1,15 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { selectAllData } from "database/selectors";
 
 import { modelPrice } from "./models";
 import { DataType } from "create/types";
+import { selectAll } from "database/dbSlice";
 
-export const selectTokenStatisticsData = createSelector(
-  [selectAllData],
-  (data) => {
-    // 在此处打印 data
-    return data.filter(
-      (item) => item.type === DataType.TokenStatistics || DataType.TokenStats,
-    );
-  },
-);
+export const selectTokenStatisticsData = createSelector([selectAll], (data) => {
+  // 在此处打印 data
+  return data.filter(
+    (item) => item.type === DataType.TokenStatistics || DataType.TokenStats,
+  );
+});
 
 export const selectTotalCosts = createSelector(
   [selectTokenStatisticsData],
