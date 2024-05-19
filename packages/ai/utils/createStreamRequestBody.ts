@@ -6,7 +6,7 @@ export const createStreamRequestBody = (
   currentTextContent: string,
   prevMessages: Array<Message>,
 ) => {
-  const model = config.model || "gpt-3.5-turbo-16k";
+  const model = config.model;
   const promotMessage = createPromotMessage(config);
 
   return {

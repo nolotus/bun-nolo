@@ -22,7 +22,6 @@ import { getContextFromMode } from "../hooks/getContextfromMode";
 import { createPromotMessage } from "ai/utils/createPromotMessage";
 import { pickMessages } from "ai/utils/pickMessages";
 import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
-import addPrefixForEnv from "utils/urlConfig";
 import { readChunks } from "ai/client/stream";
 import { getLogger } from "utils/logger";
 import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
@@ -419,7 +418,8 @@ export const messageSlice = createSliceWithThunks({
               messages,
             );
 
-            const url = addPrefixForEnv(chatUrl);
+            const currentServer = selectCurrentServer(state);
+            const url = `${currentServer}${chatUrl}`;
 
             try {
               const response = await fetch(url, {
@@ -477,7 +477,7 @@ export const messageSlice = createSliceWithThunks({
         try {
           if (mode === "vision") {
             const createRequestBody = (config) => {
-              const model = config.model || "gpt-3.5-turbo-16k";
+              const model = config.model;
               const promotMessage = createPromotMessage(config);
               const body = {
                 type: "vision",

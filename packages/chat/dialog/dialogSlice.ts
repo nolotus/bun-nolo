@@ -15,7 +15,6 @@ const createSliceWithThunks = buildCreateSlice({
 const DialogSlice = createSliceWithThunks({
   name: "chat",
   initialState: {
-    llmConfig: {},
     currentDialogId: null,
     currentDialogConfig: null,
     currenLLMConfig: null,
@@ -29,7 +28,8 @@ const DialogSlice = createSliceWithThunks({
     initDialog: create.asyncThunk(
       async (dialogId, thunkApi) => {
         thunkApi.dispatch(setCurrentDialogId(dialogId));
-        const res = await noloReadRequest(dialogId);
+        const state = thunkApi.getState();
+        const res = await noloReadRequest(state, dialogId);
         const result = await res.json();
         return result;
       },
@@ -38,6 +38,7 @@ const DialogSlice = createSliceWithThunks({
         pending: (state) => {
           // state.loading = true;
         },
+        rejected: (a, action) => {},
         fulfilled: (state, action) => {
           state.currentDialogConfig = action.payload;
         },
@@ -61,10 +62,6 @@ const DialogSlice = createSliceWithThunks({
           isJSON: (options.isJSON ?? false).toString(),
           limit: options.limit?.toString() ?? "",
         });
-        // const res = await fetch(
-        //   `http://localhost${API_ENDPOINTS.DATABASE}/query/${userId}?${queryParams}`,
-        //   {},
-        // );
         const res = await noloQueryRequest(
           userId,
           state,
@@ -77,12 +74,13 @@ const DialogSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          state.llmConfig = action.payload;
+          // state.llmConfig = action.payload;
         },
       },
     ),
     initLLMConfig: create.asyncThunk(
       async (llmID: string, thunkApi) => {
+        const state = thunkApi.getState();
         const res = await noloReadRequest(state, llmID);
         return await res.json();
       },

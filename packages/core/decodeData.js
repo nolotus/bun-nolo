@@ -2,8 +2,6 @@ import { listToArray, noloToObject } from "./noloToOther";
 import { extractAndDecodePrefix } from "./prefix";
 import { getLogger } from "utils/logger";
 
-const readDataLogger = getLogger("readData");
-
 const exampleText = `
 number1 100
 number2 100.1

@@ -1,8 +1,6 @@
 import fs from "fs";
 import readline from "readline";
-import { getLogger } from "utils/logger";
 import { createWriteStream, createReadStream } from "node:fs";
-import { formatData, extractAndDecodePrefix } from "core";
 
 import { pipeline, Readable } from "stream";
 import { promisify } from "util";
@@ -11,8 +9,6 @@ import { readLines } from "utils/bun/readLines"; // Ensure this points to the lo
 import { unlink } from "node:fs/promises";
 
 const pipelineAsync = promisify(pipeline);
-
-const readDataLogger = getLogger("readData");
 
 export const checkFileExists = (filePath) => {
   return fs.existsSync(filePath);
@@ -24,11 +20,8 @@ export const findDataInFile = (filePath, id: string) => {
     input.on("error", (err) => reject(err));
     const rl = readline.createInterface({ input });
     rl.on("line", (line) => {
-      readDataLogger.info({ line }, "line");
       const [key, value] = processLine(line);
-      readDataLogger.info({ key, value }, "processLine");
       if (id === key) {
-        readDataLogger.info({ id, value }, "result");
         found = true;
         resolve(value);
         rl.close();
@@ -37,7 +30,6 @@ export const findDataInFile = (filePath, id: string) => {
 
     rl.on("close", () => {
       if (!found) {
-        readDataLogger.info({ id }, "id not found");
         resolve(null);
       }
     });
