@@ -3,20 +3,24 @@ import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { chatPageHeight } from "app/styles/height";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
-
-import { query } from "database/dbSlice";
+import {
+  useAppDispatch,
+  useAppSelector,
+  useAuth,
+  useQueryData,
+} from "app/hooks";
 
 import { DataType } from "create/types";
 import aiTranslations from "ai/aiI18n";
-import { selectCurrentUserDialog } from "chat/selectors";
 
 import chatTranslations from "./chatI18n";
 import DialogSidebar from "./dialog/DialogSideBar";
 import ChatWindow from "./messages/MessageWindow";
 import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
 import { ChatGuide } from "./ChatGuide";
+import { selectFilteredDataByUserAndType } from "database/selectors";
 import { selectCurrentUserId } from "auth/selectors";
+
 for (const lang of Object.keys(chatTranslations)) {
   const translations = chatTranslations[lang].translation;
   i18n.addResourceBundle(lang, "translation", translations, true, true);
@@ -29,7 +33,11 @@ for (const lang of Object.keys(aiTranslations)) {
 
 const ChatPage = () => {
   const auth = useAuth();
-  const currentUserId = useAppSelector(selectCurrentUserId);
+  const [searchParams] = useSearchParams();
+  const chatId = searchParams.get("chatId");
+
+  const dispatch = useAppDispatch();
+
   if (!auth.user) {
     return (
       <div className="container mx-auto mt-16 text-center text-3xl">
@@ -38,9 +46,6 @@ const ChatPage = () => {
     );
   }
 
-  const dispatch = useAppDispatch();
-  const [searchParams] = useSearchParams();
-  const chatId = searchParams.get("chatId");
   const fetchTokenUsage = async () => {
     const options = {
       isJSON: true,
@@ -66,27 +71,25 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    if (currentUserId) {
-      const queryConfig = {
-        queryUserId: currentUserId,
-        options: {
-          isJSON: true,
-          limit: 20,
-          condition: {
-            type: DataType.Dialog,
-          },
-        },
-      };
-      dispatch(query(queryConfig));
-    }
-  }, [currentUserId]);
-
-  useEffect(() => {
     chatId && dispatch(initDialog(chatId));
   }, [chatId]);
 
-  const dialogList = useAppSelector(selectCurrentUserDialog);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  const currentUserId = useAppSelector(selectCurrentUserId);
+  const queryConfig = {
+    queryUserId: currentUserId,
+    options: {
+      isJSON: true,
+      limit: 20,
+      condition: {
+        type: DataType.Dialog,
+      },
+    },
+  };
+  const { isLoading } = useQueryData(queryConfig);
+  const dialogList = useAppSelector(
+    selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
+  );
   return (
     <div
       className={`flex flex-col lg:flex-row`}

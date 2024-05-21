@@ -98,6 +98,7 @@ export const messageSlice = createSliceWithThunks({
             }),
           },
         );
+
         return await writeMessageToList.json();
       },
       {
@@ -166,6 +167,7 @@ export const messageSlice = createSliceWithThunks({
             },
           );
           const result = await writeMessageToList.json();
+          console.log("result", result);
           return result;
         } catch (error) {
           console.log("error", error);
@@ -183,30 +185,14 @@ export const messageSlice = createSliceWithThunks({
         },
       },
     ),
-    // sendMessage: create.reducer<Message>((state, action) => {
-    //   const message = action.payload;
-
-    //   state.tempMessage = {
-    //     role: "assistant",
-    //     content: "loading",
-    //     id: nanoid(),
-    //   };
-    //   state.isMessageStreaming = true;
-    // }),
-
     receiveMessage: create.reducer((state, action) => {
       state.messages.push(action.payload);
       state.tempMessage = null;
-    }),
-    clearMessages: create.reducer<Message>((state, action) => {
-      state.messages = [];
-      state.tempMessage = { role: "assistant", content: "", id: nanoid() };
     }),
     retry: create.reducer<Message>((state, action) => {
       state.tempMessage = { role: "assistant", content: "", id: nanoid() };
       state.messages.pop();
     }),
-
     messageStreaming: create.reducer<Message>((state, action) => {
       state.tempMessage = action.payload;
       state.isMessageStreaming = true;
@@ -526,7 +512,6 @@ export const messageSlice = createSliceWithThunks({
 export const {
   sendMessage,
   receiveMessage,
-  clearMessages,
   retry,
   messageStreamEnd,
   messageStreaming,

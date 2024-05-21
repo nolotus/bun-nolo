@@ -3,9 +3,7 @@ import { TrashIcon } from "@primer/octicons-react";
 import * as stylex from "@stylexjs/stylex";
 import { useDispatch } from "react-redux";
 import { addMessage, deleteMessage, deleteNotFound } from "./messageSlice";
-import { useAppSelector } from "app/hooks";
-import { useEffect, useState } from "react";
-import { read, selectById } from "database/dbSlice";
+import { useFetchData } from "app/hooks";
 const styles = stylex.create({
   main: {
     display: "flex",
@@ -17,37 +15,17 @@ const styles = stylex.create({
 
 export const MessageItem = ({ id }) => {
   const dispatch = useDispatch();
-  const message = useAppSelector((state) => selectById(state, id));
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { data, loading, error } = useFetchData(id);
 
-  useEffect(() => {
-    const getMessage = async () => {
-      setLoading(true);
-      dispatch(read(id))
-        .then((action) => {
-          dispatch(addMessage(action.payload));
-          setError(null); // 清除错误信息
-        })
-        .catch((err) => {
-          setError(err); // 捕捉错误
-        })
-        .finally(() => {
-          setLoading(false); // 结束加载
-        });
-    };
-    if (!message) {
-      getMessage();
-    }
-  }, []);
   const couldDelete = true;
   const handleDeleteMessage = () => {
     dispatch(deleteMessage(id));
   };
   if (loading) {
     return <div>loading</div>;
-  } else if (message) {
-    const { content } = message;
+  } else if (data) {
+    dispatch(addMessage(data));
+    const { content } = data;
     return (
       <div {...stylex.props(styles.main)}>
         {content}

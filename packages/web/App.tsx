@@ -17,7 +17,6 @@ export default function App({ hostname, lng = "en" }) {
   const auth = useAuth();
   i18n.changeLanguage(lng);
   const dispatch = useAppDispatch();
-  dispatch(addHostToCurrentServer(hostname));
   useEffect(() => {
     const tokens = getTokensFromLocalStorage();
     if (tokens) {
@@ -31,6 +30,9 @@ export default function App({ hostname, lng = "en" }) {
           }),
         );
     }
+  }, []);
+  useEffect(() => {
+    dispatch(addHostToCurrentServer(hostname));
   }, []);
 
   const element = useRoutes(routes(auth.user));
