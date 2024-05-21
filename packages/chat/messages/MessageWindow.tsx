@@ -23,7 +23,7 @@ const ChatWindow = ({ currentDialogConfig }) => {
   useEffect(() => {
     currentDialogConfig.llmId &&
       dispatch(initLLMConfig(currentDialogConfig.llmId));
-    currentDialogConfig.messageListId &&
+    currentDialogConfig &&
       dispatch(initMessages(currentDialogConfig.messageListId));
   }, [currentDialogConfig]);
 

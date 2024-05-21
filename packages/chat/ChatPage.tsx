@@ -34,7 +34,7 @@ for (const lang of Object.keys(aiTranslations)) {
 const ChatPage = () => {
   const auth = useAuth();
   const [searchParams] = useSearchParams();
-  const chatId = searchParams.get("chatId");
+  const dialogId = searchParams.get("dialogId");
 
   const dispatch = useAppDispatch();
 
@@ -71,8 +71,8 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    chatId && dispatch(initDialog(chatId));
-  }, [chatId]);
+    dialogId && dispatch(initDialog(dialogId));
+  }, [dialogId]);
 
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const currentUserId = useAppSelector(selectCurrentUserId);

@@ -1,16 +1,14 @@
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
-import { useAuth, useAppDispatch } from "app/hooks";
+import { useAuth } from "app/hooks";
 import { useSearchParams } from "react-router-dom";
 
 import { extractUserId } from "core/prefix";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { useModal, Dialog } from "ui";
 
 import { DialogItem } from "./DialogItem";
 const DialogSideBar = ({ dialogList }) => {
-  const dispatch = useAppDispatch();
-
   const [searchParams] = useSearchParams();
   const auth = useAuth();
   const { t } = useTranslation();
@@ -24,7 +22,7 @@ const DialogSideBar = ({ dialogList }) => {
     const dataUserId = extractUserId(noloId);
     return dataUserId === auth.user?.userId;
   };
-  const currentChatId = searchParams.get("chatId");
+  const currentDialogId = searchParams.get("dialogId");
 
   return (
     <div className="flex flex-col justify-start">
@@ -49,7 +47,7 @@ const DialogSideBar = ({ dialogList }) => {
         <DialogItem
           key={dialog.id}
           dialog={dialog}
-          isSelected={currentChatId === dialog.id}
+          isSelected={currentDialogId === dialog.id}
           allowEdit={isCreator(dialog.id)}
         />
       ))}

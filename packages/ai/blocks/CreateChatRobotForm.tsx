@@ -47,7 +47,7 @@ const CreateChatRobotForm = ({ onClose }) => {
 
     try {
       const result = await write(requestBody).unwrap();
-      navigate(`/chat?chatId=${result.noloId}`);
+      navigate(`/chat?dialogId=${result.noloId}`);
       onClose();
     } catch (error) {
       setError(error.data?.message || error.status); // 可以直接设置错误状态

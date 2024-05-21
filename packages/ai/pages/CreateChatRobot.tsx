@@ -82,7 +82,7 @@ const CreateChatRobot = () => {
           <Button
             variant="primary"
             size="medium"
-            onClick={() => navigate(`/chat?chatId=${isSuccess}`)} // 假设 isSuccess 存储了新创建的聊天机器人的 ID
+            onClick={() => navigate(`/chat?dialogId=${isSuccess}`)} // 假设 isSuccess 存储了新创建的聊天机器人的 ID
           >
             {t("startChattingWithYourRobot")}
           </Button>

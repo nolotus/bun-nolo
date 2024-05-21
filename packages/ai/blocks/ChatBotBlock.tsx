@@ -1,5 +1,4 @@
 import React from "react";
-import { useWriteMutation } from "database/services";
 import { useNavigate } from "react-router-dom";
 import { DataType } from "create/types";
 import { noloWriteRequest } from "database/client/writeRequest";
@@ -20,7 +19,6 @@ export const ChatBotBlock = (props) => {
   const state = useSelector((state) => state);
   const { item } = props;
   const { value, key } = item;
-  const [write, { isLoading: isWriteLoading }] = useWriteMutation();
   const createNewDialog = async () => {
     const initMessageList = await noloWriteRequest(state, [], { isList: true });
     try {
@@ -35,7 +33,7 @@ export const ChatBotBlock = (props) => {
         { isJSON: true },
       );
       const result = await res.json();
-      navigate(`/chat?chatId=${result.noloId}`);
+      navigate(`/chat?dialogId=${result.noloId}`);
     } catch (error) {
       // setError(error.data?.message || error.status);
     }

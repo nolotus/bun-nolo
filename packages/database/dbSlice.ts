@@ -7,7 +7,6 @@ import {
   createEntityAdapter,
 } from "@reduxjs/toolkit";
 import { noloReadRequest } from "./client/readRequest";
-// Entity adapter
 export const dbAdapter = createEntityAdapter();
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
   dbAdapter.getSelectors((state: NoloRootState) => state.db);
@@ -15,7 +14,6 @@ export const makeSelectEntityById =
   (entityId: string) => (state: NoloRootState) =>
     selectById(state, entityId);
 
-// Initial state
 const initialState = dbAdapter.getInitialState({});
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },

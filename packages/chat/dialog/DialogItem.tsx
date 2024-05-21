@@ -2,23 +2,21 @@ import { NavLink } from "react-router-dom";
 import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
 import { PencilIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
-import { useDeleteEntryMutation } from "database/services";
 import { useAppDispatch, useItem } from "app/hooks";
-import { removeOne } from "database/dbSlice";
 import { useNavigate } from "react-router-dom";
+import { deleteDialog, initDialog } from "./dialogSlice";
 
 export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
-  const [deleteEntry] = useDeleteEntryMutation();
 
   const data = useItem(dialog.llmId);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const onDeleteDialog = async (dialog) => {
-    await deleteEntry({ entryId: dialog.id }).unwrap();
-    await deleteEntry({ entryId: dialog.messageListId }).unwrap();
-    dispatch(removeOne(dialog.id));
+    dispatch(deleteDialog(dialog)).then((result) => {
+      console.log("result", result);
+    });
     navigate("/chat");
   };
   const {
@@ -37,8 +35,9 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
       } transition duration-150 ease-in-out`}
     >
       <NavLink
-        to={`/chat?chatId=${dialog.id}`}
+        to={`/chat?dialogId=${dialog.id}`}
         className="flex-grow text-gray-600 hover:text-gray-800"
+        onClick={() => dispatch(initDialog(dialog.id))}
       >
         <span className="block p-2">{data?.name}</span>
       </NavLink>

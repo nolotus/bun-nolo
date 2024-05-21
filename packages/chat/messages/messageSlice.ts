@@ -50,10 +50,20 @@ export const messageSlice = createSliceWithThunks({
     initMessages: create.asyncThunk(
       async (messageListId, thunkApi) => {
         const state = thunkApi.getState();
+        if (!messageListId) {
+          throw new Error("messageListId not exist");
+        }
         const res = await noloReadRequest(state, messageListId);
         return await res.json();
       },
+
       {
+        pending: (state) => {
+          state.ids = [];
+        },
+        rejected: (state) => {
+          state.ids = [];
+        },
         fulfilled: (state, action) => {
           state.ids = action.payload.array;
         },
