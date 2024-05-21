@@ -1,5 +1,5 @@
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import { useSearchParams } from "react-router-dom";
 
 import { extractUserId } from "core/prefix";
@@ -18,8 +18,9 @@ const DialogSideBar = ({ dialogList }) => {
     open: openConfigModal,
     close: closeConfigModal,
   } = useModal();
-  const isCreator = (noloId) => {
-    const dataUserId = extractUserId(noloId);
+
+  const isCreator = (id) => {
+    const dataUserId = extractUserId(id);
     return dataUserId === auth.user?.userId;
   };
   const currentDialogId = searchParams.get("dialogId");

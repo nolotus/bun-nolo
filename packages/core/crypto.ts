@@ -17,7 +17,7 @@ export const generateHash = (data: string) => {
   return uint8ArrayToBase64Url(bytes);
 };
 
-export const generateKeyPairFromSeed = (seedData) => {
+export const generateKeyPairFromSeed = (seedData: string) => {
   const seed = generateHash(seedData);
   const keyPair = nacl.sign.keyPair.fromSeed(base64UrlToUint8Array(seed));
   return {

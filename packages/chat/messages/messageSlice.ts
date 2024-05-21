@@ -6,19 +6,6 @@ import {
 } from "@reduxjs/toolkit";
 import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
-
-import { Message, MessageSliceState } from "./types";
-import {
-  selectCurrentDialogConfig,
-  selectCurrentLLMConfig,
-} from "../dialog/dialogSlice";
-import { ulid } from "ulid";
-import { DataType } from "create/types";
-import { selectCurrentUserId } from "auth/selectors";
-import { upsertOne } from "database/dbSlice";
-import { selectCurrentServer } from "setting/settingSlice";
-import { getModefromContent } from "../hooks/getModefromContent";
-import { getContextFromMode } from "../hooks/getContextfromMode";
 import { createPromotMessage } from "ai/utils/createPromotMessage";
 import { pickMessages } from "ai/utils/pickMessages";
 import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
@@ -27,6 +14,20 @@ import { getLogger } from "utils/logger";
 import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
 import { noloRequest } from "utils/noloRequest";
 import { noloReadRequest } from "database/client/readRequest";
+import { ulid } from "ulid";
+import { DataType } from "create/types";
+import { selectCurrentUserId } from "auth/authSlice";
+import { upsertOne } from "database/dbSlice";
+import { selectCurrentServer } from "setting/settingSlice";
+
+import { getModefromContent } from "../hooks/getModefromContent";
+import { getContextFromMode } from "../hooks/getContextfromMode";
+
+import { Message, MessageSliceState } from "./types";
+import {
+  selectCurrentDialogConfig,
+  selectCurrentLLMConfig,
+} from "../dialog/dialogSlice";
 const chatUrl = `${API_ENDPOINTS.AI}/chat`;
 const chatWindowLogger = getLogger("ChatWindow");
 
@@ -307,7 +308,7 @@ export const messageSlice = createSliceWithThunks({
         const messages = state.message.messages;
         const userId = selectCurrentUserId(state);
         const token = state.auth.currentToken;
-
+        const currentDialogConfig = selectCurrentDialogConfig(state);
         const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
 
         if (typeof content === "string") {
@@ -317,6 +318,7 @@ export const messageSlice = createSliceWithThunks({
           id,
           role: "user",
           content,
+          belongs: [currentDialogConfig.messageListId],
         };
 
         thunkApi.dispatch(sendMessage(message));
@@ -360,7 +362,13 @@ export const messageSlice = createSliceWithThunks({
                       const id = generateIdWithCustomId(userId, ulid(), {
                         isJSON: true,
                       });
-                      const message = { role: "assistant", content: temp, id };
+                      console.log("");
+                      const message = {
+                        role: "assistant",
+                        content: temp,
+                        id,
+                        userId,
+                      };
                       thunkApi.dispatch(messageStreamEnd(message));
                       //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
                       // const staticData = {
@@ -386,6 +394,7 @@ export const messageSlice = createSliceWithThunks({
                       //逐渐相加
                       temp =
                         (temp || "") + (json.choices[0]?.delta?.content || "");
+                      console.log("stream temp", temp);
                       const message = {
                         role: "assistant",
                         id: json.id,
@@ -511,6 +520,9 @@ export const messageSlice = createSliceWithThunks({
         }
       },
       {
+        rejected: (state, action) => {
+          console.log("action", action);
+        },
         fulfilled: (state, action) => {
           state.isMessageStreaming = false;
         },

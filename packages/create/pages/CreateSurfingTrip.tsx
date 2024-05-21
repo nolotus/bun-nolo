@@ -1,5 +1,5 @@
 // CreateSurfingTrip.tsx
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import { useWriteMutation } from "database/services";
 import React from "react";
 import { useForm } from "react-hook-form";

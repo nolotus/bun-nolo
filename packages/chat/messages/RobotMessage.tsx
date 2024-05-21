@@ -3,7 +3,7 @@ import {
   UnmuteIcon,
   TrashIcon,
 } from "@primer/octicons-react";
-import { useAppDispatch, useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import { useWriteMutation } from "database/services";
 import React from "react";
 import { Avatar } from "ui";
@@ -17,6 +17,7 @@ import { MessageImage } from "./MessageImage";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
 import { ulid } from "ulid";
+import { useAppDispatch } from "app/hooks";
 // 机器人消息组件
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();

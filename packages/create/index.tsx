@@ -1,10 +1,10 @@
 import { nolotusId } from "core/init";
-import { useGetEntriesQuery } from "database/services";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
 import { renderButton } from "./blocks/renderButton"; // 确保路径是正确的
 import { YourTemplates } from "./blocks/YourTemplates";
+import { useQueryData } from "app/hooks";
 
 const buttonsInfo = [
   {
@@ -23,18 +23,13 @@ const Create = () => {
     },
     limit: 20,
   };
-
-  const {
-    data: templates,
-    error,
-    isLoading,
-    isSuccess,
-  } = useGetEntriesQuery({
-    userId: nolotusId,
+  const queryConfig = {
+    queryUserId: nolotusId,
     options,
-  });
+  };
 
-  console.log("templates", templates);
+  //返回值是当前结果，需要使用useSelect查询其他server结果
+  const { data: templates, isLoading, error } = useQueryData(queryConfig);
 
   return (
     <div className="container mx-auto space-y-8">
@@ -61,8 +56,7 @@ const Create = () => {
             navigate,
             customStyles: "bg-blue-500 text-white",
           })}
-          {isSuccess &&
-            templates &&
+          {templates &&
             templates.map(
               (
                 template,

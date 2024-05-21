@@ -6,7 +6,7 @@ import {
   PeopleIcon,
   DependabotIcon,
 } from "@primer/octicons-react";
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import clsx from "clsx";
 import React, { useState, useEffect, useCallback } from "react";
 import { MobileMenu } from "render/layout/blocks/MobileMenu"; // 假设这些是拆分后的组件

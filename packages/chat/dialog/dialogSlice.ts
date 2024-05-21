@@ -3,9 +3,10 @@ import {
   buildCreateSlice,
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
+import { NoloRootState } from "app/store";
 import { noloReadRequest } from "database/client/readRequest";
 import { API_ENDPOINTS } from "database/config";
-import { removeOne } from "database/dbSlice";
+import { deleteData } from "database/dbSlice";
 import { noloRequest } from "utils/noloRequest";
 
 const createSliceWithThunks = buildCreateSlice({
@@ -37,6 +38,8 @@ const DialogSlice = createSliceWithThunks({
       {
         pending: (state) => {
           // state.loading = true;
+          state.currenLLMConfig = null;
+          state.currentDialogConfig = null;
         },
         rejected: (a, action) => {},
         fulfilled: (state, action) => {
@@ -61,21 +64,19 @@ const DialogSlice = createSliceWithThunks({
       async (dialog, thunkApi) => {
         try {
           const state = thunkApi.getState();
-
           if (dialog.messageListId) {
             await noloRequest(state, {
               url: `${API_ENDPOINTS.DATABASE}/delete/${dialog.messageListId}`,
               method: "DELETE",
+              body: JSON.stringify({ ids: state.message.ids }),
             });
           }
-          const res = await noloRequest(state, {
-            url: `${API_ENDPOINTS.DATABASE}/delete/${dialog.id}`,
-            method: "DELETE",
-          });
-          const result = await res.json();
-          console.log("result", result);
-          thunkApi.dispatch(removeOne(result.id));
-          return result;
+          const action = await thunkApi.dispatch(deleteData(dialog.id));
+          console.log("deleteDialog res", action);
+          // const result = await res.json();
+          // console.log("result", result);
+          // return result;
+          return action;
         } catch (error) {
           console.error("Failed to delete:", error);
         }
@@ -91,6 +92,8 @@ export const { initDialog, setCurrentDialogId, initLLMConfig, deleteDialog } =
   DialogSlice.actions;
 
 export default DialogSlice.reducer;
-export const selectCurrentLLMConfig = (state) => state.dialog.currenLLMConfig;
-export const selectCurrentDialogConfig = (state) =>
+export const selectCurrentLLMConfig = (state: NoloRootState) =>
+  state.dialog.currenLLMConfig;
+
+export const selectCurrentDialogConfig = (state: NoloRootState) =>
   state.dialog.currentDialogConfig;

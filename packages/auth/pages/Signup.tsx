@@ -1,110 +1,40 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PersonIcon, LockIcon } from "@primer/octicons-react";
 import { useAppDispatch } from "app/hooks";
-import { userRegister } from "auth/authSlice";
+import { signUp } from "auth/authSlice";
 import { storeTokens } from "auth/client/token";
-import { parseToken, signToken } from "auth/token";
-import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
 import { FormField } from "components/Form/FormField";
-import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
-import { generateUserId } from "core/generateMainKey";
-import {
-  encryptWithPassword,
-  generateAndSplitRecoveryPassword,
-  hashPassword,
-} from "core/password";
-import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 import { LifeRoutePaths } from "life/routes";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "ui";
-import { getLogger } from "utils/logger";
 
-import { useSignupMutation } from "../services";
-import { SignupData } from "../types";
-
-const signupLogger = getLogger("signup");
+import { signUpfields, signUpSchema } from "../schema";
 
 const Signup: React.FC = () => {
-  const [registerUser] = useSignupMutation();
-  const handleSignup = async (user, isStoreRecovery?) => {
-    const { username, password: brainPassword, answer } = user;
-    // Generate encryption key
-    const encryptionKey = await hashPassword(brainPassword);
-    // Get the user's language setting
-    const language = navigator.language;
-
-    // Generate public and private key pair based on the encryption key
-    const { publicKey, secretKey } = generateKeyPairFromSeed(
-      username + encryptionKey + language,
-    );
-
-    const sendData: SignupData = {
-      username,
-      publicKey,
-      encryptedEncryptionKey: null,
-      remoteRecoveryPassword: null,
-      language,
-    };
-
-    if (isStoreRecovery) {
-      const recoveryPassword = generateAndSplitRecoveryPassword(answer, 3);
-      const [localRecoveryPassword, remoteRecoveryPassword] = recoveryPassword;
-
-      sendData.remoteRecoveryPassword = remoteRecoveryPassword;
-      sendData.encryptedEncryptionKey = encryptWithPassword(
-        encryptionKey,
-        recoveryPassword.join(""),
-      );
-    }
-
-    const response = await registerUser(sendData).unwrap();
-    const { encryptedData } = response;
-
-    const decryptedData = await verifySignedMessage(
-      encryptedData,
-      "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus",
-    );
-
-    const decryptedDataObject = JSON.parse(decryptedData);
-    console.log("decryptedDataObject:", decryptedDataObject);
-
-    const userId = generateUserId(publicKey, username, language);
-    console.log("userId", userId);
-    console.log("sendData:", userId, sendData);
-    const token = signToken({ userId, username }, secretKey);
-
-    if (
-      decryptedDataObject.username === sendData.username &&
-      decryptedDataObject.publicKey === sendData.publicKey &&
-      decryptedDataObject.userId === userId
-    ) {
-      signupLogger.info("Server data matches local data.");
-      return { token };
-    }
-    signupLogger.error("Server data does not match local data.");
-    throw new Error("Server data does not match local data.");
-  };
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const signup = (token: string) => {
-    storeTokens(token);
-    const user = parseToken(token);
-    dispatch(userRegister({ user, token }));
-  };
-
   const onSubmit = async (user) => {
     try {
-      setLoading(true);
-      const { token } = await handleSignup(user);
-      await signup(token);
-      navigate(`/${LifeRoutePaths.WELCOME}`);
+      // setLoading(true);
+      // await handleSignup(user);
+
+      // Get the user's language setting
+      const locale = navigator.language;
+      dispatch(signUp({ ...user, locale })).then((action) => {
+        const result = action.payload;
+        const { token } = result;
+        if (token) {
+          storeTokens(token);
+        }
+        navigate(`/${LifeRoutePaths.WELCOME}`);
+      });
     } catch (error) {
       console.error(error);
       setError(error.message);
@@ -112,18 +42,13 @@ const Signup: React.FC = () => {
       setLoading(false);
     }
   };
-  const userDefinition = {
-    username: { type: "string", min: 1 },
-    password: { type: "password", min: 6 },
-  };
-  const userFormSchema = createZodSchemaFromDSL(userDefinition);
-  const fields = createFieldsFromDSL(userDefinition);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(userFormSchema),
+    resolver: zodResolver(signUpSchema),
   });
   return (
     <div>
@@ -135,7 +60,7 @@ const Signup: React.FC = () => {
           <h2 className="mb-6 text-2xl font-bold text-gray-800">
             {t("signup")}
           </h2>
-          {fields.map((field) => (
+          {signUpfields.map((field) => (
             <div key={field.id} className="mb-4 flex flex-col">
               <label
                 htmlFor={field.id}

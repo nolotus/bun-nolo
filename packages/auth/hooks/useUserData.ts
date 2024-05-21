@@ -1,4 +1,4 @@
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import { readOwnData } from "database/client/read";
 import { useState, useEffect } from "react";
 

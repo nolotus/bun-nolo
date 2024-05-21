@@ -60,22 +60,20 @@ export async function appendDataToIndex(
 //考虑文件很大的情况，内存小于文件大小
 export const updateDataInFile = async (filePath, id: string, value: string) => {
   const tempFilePath = `${filePath}.tmp`;
-  const writer = Bun.file(tempFilePath).writer();
+  const readStream = Bun.file(filePath).stream();
+  const tempWriter = Bun.file(tempFilePath).writer();
 
   let updated = false;
   try {
-    const fileStream = Bun.file(filePath).stream();
-    for await (const line of readLines(fileStream)) {
+    for await (const line of readLines(readStream)) {
       if (line.startsWith(id)) {
-        await writer.write(`${id} ${value}\n`);
+        await tempWriter.write(`${id} ${value}\n`);
         updated = true;
       } else {
-        await writer.write(`${line}\n`);
+        await tempWriter.write(`${line}\n`);
       }
     }
-
-    await writer.end();
-
+    await tempWriter.end();
     if (updated) {
       // await unlink(filePath);
       await Bun.write(filePath, Bun.file(tempFilePath));
@@ -95,4 +93,26 @@ export const deleteFromFile = async (filePath: string, id: string) => {
   const lines = fileContent.split("\n");
   const newLines = lines.filter((line) => !line.startsWith(id));
   await fs.promises.writeFile(filePath, newLines.join("\n"));
+};
+
+export const removeDataFromFile = async (filePath, ids: [string]) => {
+  const tempFilePath = `${filePath}.tmp`;
+  const readStream = Bun.file(filePath).stream();
+  const tempWriter = Bun.file(tempFilePath).writer();
+
+  try {
+    for await (const line of readLines(readStream)) {
+      const lineId = line.split(" ")[0];
+      if (!ids.includes(lineId)) {
+        await tempWriter.write(`${line}\n`);
+      }
+    }
+    await tempWriter.end();
+    // 不论是否有ID被移除，始终替换原文件
+    await Bun.write(filePath, Bun.file(tempFilePath));
+    await unlink(tempFilePath);
+  } catch (error) {
+    await unlink(tempFilePath);
+    throw error;
+  }
 };

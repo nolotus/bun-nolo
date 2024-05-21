@@ -2,14 +2,13 @@ import { NavLink } from "react-router-dom";
 import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
 import { PencilIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
-import { useAppDispatch, useItem } from "app/hooks";
+import { useAppDispatch, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import { deleteDialog, initDialog } from "./dialogSlice";
 
 export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
-
-  const data = useItem(dialog.llmId);
+  const { data } = useFetchData(dialog.llmId);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -67,7 +66,7 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
             className="text-gray-500 hover:text-red-500 focus:outline-none"
             onClick={(e) => {
               e.stopPropagation();
-              confirmDelete(data);
+              confirmDelete(dialog);
             }}
           >
             <TrashIcon size={16} />
@@ -78,7 +77,7 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
               onClose={closeAlert}
               onConfirm={doDelete}
               title={`删除和${data?.name}的对话？`}
-              message={`你确定要删除 ${data?.name} 的对话吗？`}
+              message={`你确定要删除 ${dialog?.id} 的对话吗？`}
             />
           )}
         </div>

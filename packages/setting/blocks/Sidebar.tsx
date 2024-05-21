@@ -1,4 +1,4 @@
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import { nolotusId } from "core/init";
 import React from "react";
 import { Link } from "react-router-dom";

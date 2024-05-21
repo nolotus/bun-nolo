@@ -10,8 +10,6 @@ import {
 } from "@primer/octicons-react";
 import clsx from "clsx";
 import React, { useEffect } from "react";
-import { useFetchData } from "../hooks/useFetchData";
-import { useAuth } from "app/hooks";
 
 import { NavLink } from "react-router-dom";
 const buttonBaseClass =
@@ -20,14 +18,8 @@ const iconClass = "text-neutral-600 mr-2";
 const activeClass = "bg-neutral-300";
 
 export const Sidebar = () => {
-  const { fetchData } = useFetchData();
-  const auth = useAuth();
-  useEffect(() => {
-    auth.user?.userId && fetchData(auth.user?.userId);
-  }, [auth.user?.userId]);
   const getNavLinkClass = ({ isActive }) =>
     clsx(buttonBaseClass, isActive && activeClass);
-  //develop mode could use database
   return (
     <div className="min-h-full w-48 overflow-y-auto bg-neutral-100">
       <div className="flex flex-col justify-between p-4">

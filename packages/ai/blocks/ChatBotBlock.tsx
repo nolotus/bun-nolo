@@ -1,8 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { DataType } from "create/types";
-import { noloWriteRequest } from "database/client/writeRequest";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { write } from "database/dbSlice";
+import { useAppSelector } from "app/hooks";
+import { selectCurrentUserId } from "auth/authSlice";
 
 const OMIT_NAME_MAX_LENGTH = 60;
 
@@ -16,24 +18,37 @@ const omitName = (content) => {
 };
 export const ChatBotBlock = (props) => {
   const navigate = useNavigate();
-  const state = useSelector((state) => state);
+  const dispatch = useDispatch();
+  const currentUserId = useAppSelector(selectCurrentUserId);
   const { item } = props;
-  const { value, key } = item;
+  const { name, id } = item;
   const createNewDialog = async () => {
-    const initMessageList = await noloWriteRequest(state, [], { isList: true });
-    try {
-      // const result = await write(requestBody).unwrap();
-      const res = await noloWriteRequest(
-        state,
-        {
+    // const initMessageList = await noloWriteRequest(state, [], { isList: true });
+    const messageListConfig = {
+      data: [],
+      flags: { isList: true },
+      userId: currentUserId,
+    };
+    dispatch(write(messageListConfig)).then((action) => {
+      const initMessageList = action.payload;
+      const dialogConfig = {
+        data: {
           type: DataType.Dialog,
-          llmId: key,
+          llmId: id,
           messageListId: initMessageList.noloId,
         },
-        { isJSON: true },
-      );
-      const result = await res.json();
-      navigate(`/chat?dialogId=${result.noloId}`);
+        flags: { isJSON: true },
+        userId: currentUserId,
+      };
+      dispatch(write(dialogConfig)).then(async (action) => {
+        const result = action.payload;
+        navigate(`/chat?dialogId=${result.noloId}`);
+      });
+    });
+    // console.log("initMessageList", initMessageList);
+    return;
+    try {
+      // const result = await write(requestBody).unwrap();
     } catch (error) {
       // setError(error.data?.message || error.status);
     }
@@ -41,7 +56,7 @@ export const ChatBotBlock = (props) => {
   return (
     <div className="flex cursor-pointer flex-col bg-white  transition-colors duration-200 hover:bg-gray-100">
       <div className="flex items-center justify-between pb-4">
-        <div className="text-lg font-bold">{value.name}</div>
+        <div className="text-lg font-bold">{item.name}</div>
       </div>
       <div className="flex">
         <button
@@ -55,7 +70,7 @@ export const ChatBotBlock = (props) => {
         </button>
       </div>
       <div>
-        <p>{omitName(value)}</p>
+        <p>{omitName(item)}</p>
       </div>
     </div>
   );

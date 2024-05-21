@@ -1,5 +1,4 @@
-import { useAppDispatch } from "app/hooks";
-import { useGetEntryQuery } from "database/services";
+import { useAppDispatch, useFetchData } from "app/hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
@@ -18,8 +17,7 @@ const Page = ({ id }) => {
 
   const pageId = id || paramPageId;
   const isEditMode = searchParams.get("edit") === "true";
-  const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
-
+  const { data, isLoading, error } = useFetchData(id);
   const renderEdit = () => {
     if (isEditMode) {
       return <EditPage />;
@@ -29,7 +27,6 @@ const Page = ({ id }) => {
     }
   };
 
-  console.log("data", data);
   const renderContent = () => {
     return (
       <AnimatePresence mode="wait">

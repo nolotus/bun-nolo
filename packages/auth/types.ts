@@ -4,7 +4,7 @@ export interface SignupData {
   userId: string;
   remoteRecoveryPassword: string | null;
   encryptedEncryptionKey: string | null;
-  language: string;
+  locale: string;
 }
 export interface User {
   userId: string;

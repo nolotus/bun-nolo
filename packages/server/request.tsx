@@ -51,9 +51,11 @@ export const handleRequest = async (request: Request, server) => {
         console.error("Error parsing formdata:", error);
       }
     } else if (contentType.includes("application/json")) {
-      // 如果请求体为JSON，尝试解析为JSON对象
       try {
         body = await request.json();
+        if (!body) {
+          body = {};
+        }
       } catch (error) {
         console.error("Error parsing JSON:", error);
       }

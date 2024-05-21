@@ -1,7 +1,8 @@
 import React from "react";
 // import { deleteUser } from "user/client/delete";
-import { useAppDispatch, useAuth } from "app/hooks";
-import { userLogout } from "auth/authSlice";
+import { useAppDispatch } from "app/hooks";
+import { useAuth } from "auth/useAuth";
+import { signOut } from "auth/authSlice";
 import { useDeleteUserMutation } from "auth/services";
 
 const AccountSettings = () => {
@@ -14,7 +15,7 @@ const AccountSettings = () => {
       // 调用删除用户的 mutation
       await deleteUser({ userId: auth.user?.userId }).unwrap();
       // 删除成功后,触发注销 action
-      dispatch(userLogout());
+      dispatch(signOut());
     } catch (error) {
       // 处理删除失败的错误
       console.error("Failed to delete account:", error);

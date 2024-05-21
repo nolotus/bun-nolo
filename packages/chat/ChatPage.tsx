@@ -3,23 +3,19 @@ import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { chatPageHeight } from "app/styles/height";
-import {
-  useAppDispatch,
-  useAppSelector,
-  useAuth,
-  useQueryData,
-} from "app/hooks";
+import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
 
 import { DataType } from "create/types";
 import aiTranslations from "ai/aiI18n";
+import { selectFilteredDataByUserAndType } from "database/selectors";
+import { useAuth } from "auth/useAuth";
 
 import chatTranslations from "./chatI18n";
 import DialogSidebar from "./dialog/DialogSideBar";
 import ChatWindow from "./messages/MessageWindow";
 import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
 import { ChatGuide } from "./ChatGuide";
-import { selectFilteredDataByUserAndType } from "database/selectors";
-import { selectCurrentUserId } from "auth/selectors";
+import { selectCurrentUserId } from "auth/authSlice";
 
 for (const lang of Object.keys(chatTranslations)) {
   const translations = chatTranslations[lang].translation;
@@ -73,9 +69,9 @@ const ChatPage = () => {
   useEffect(() => {
     dialogId && dispatch(initDialog(dialogId));
   }, [dialogId]);
+  const currentUserId = useAppSelector(selectCurrentUserId);
 
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  const currentUserId = useAppSelector(selectCurrentUserId);
   const queryConfig = {
     queryUserId: currentUserId,
     options: {
@@ -86,7 +82,7 @@ const ChatPage = () => {
       },
     },
   };
-  const { isLoading } = useQueryData(queryConfig);
+  const { isLoading, isSuccess } = useQueryData(queryConfig);
   const dialogList = useAppSelector(
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
@@ -95,17 +91,22 @@ const ChatPage = () => {
       className={`flex flex-col lg:flex-row`}
       style={{ height: `${chatPageHeight}` }}
     >
-      {dialogList.length > 0 || currentDialogConfig ? (
+      {isLoading ? (
+        <div>loading</div>
+      ) : (
+        <div className="w-full overflow-y-auto bg-white lg:block lg:w-1/6">
+          <DialogSidebar dialogList={dialogList} />
+        </div>
+      )}
+
+      {isSuccess && (
         <>
-          <div className="w-full overflow-y-auto bg-white lg:block lg:w-1/6">
-            <DialogSidebar dialogList={dialogList} />
-          </div>
-          {currentDialogConfig && (
+          {currentDialogConfig ? (
             <ChatWindow currentDialogConfig={currentDialogConfig} />
+          ) : (
+            <ChatGuide />
           )}
         </>
-      ) : (
-        <ChatGuide />
       )}
     </div>
   );

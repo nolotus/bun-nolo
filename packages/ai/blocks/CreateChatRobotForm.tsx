@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { nanoid } from "@reduxjs/toolkit";
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
 import { FormField } from "components/Form/FormField";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";

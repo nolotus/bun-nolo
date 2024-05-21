@@ -1,10 +1,10 @@
 import { api } from "app/api";
-import { selectCurrentUserId } from "auth/selectors";
+import { selectCurrentUserId } from "auth/authSlice";
 
 import { extractAndDecodePrefix, extractUserId } from "core";
 
 import { API_ENDPOINTS } from "./config";
-import { ResponseData, WriteHashDataType, WriteDataType } from "./types";
+import { ResponseData, WriteDataType } from "./types";
 import { updateOne } from "database/dbSlice";
 
 export type GetEntryType = {
@@ -33,55 +33,6 @@ type UpdateEntryArgs = {
 };
 export const dbApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    getEntry: builder.query<ResponseData, GetEntryType>({
-      query: ({ entryId, domain }) => {
-        let fullDomain = domain;
-        if (domain) {
-          const hasHttp = domain.startsWith("http://");
-          const hasHttps = domain.startsWith("https://");
-          if (!hasHttp && !hasHttps) {
-            fullDomain = domain.startsWith("localhost")
-              ? `http://${domain}`
-              : `https://${domain}`;
-          }
-        }
-        const url = fullDomain
-          ? `${fullDomain}${API_ENDPOINTS.DATABASE}/read/${entryId}`
-          : `${API_ENDPOINTS.DATABASE}/read/${entryId}`;
-        return url;
-      },
-    }),
-    getEntries: builder.query<ResponseData, GetEntriesArgs>({
-      query: ({ userId, options, domain }) => {
-        let fullDomain = domain;
-        if (domain) {
-          const hasHttp = domain.startsWith("http://");
-          const hasHttps = domain.startsWith("https://");
-          if (!hasHttp && !hasHttps) {
-            fullDomain = domain.startsWith("localhost")
-              ? `http://${domain}`
-              : `https://${domain}`;
-          }
-        }
-        const urlPath = `query/${userId}`;
-        const queryParams = new URLSearchParams({
-          isObject: (options.isObject ?? false).toString(),
-          isJSON: (options.isJSON ?? false).toString(),
-          limit: options.limit?.toString() ?? "",
-        });
-
-        const url = fullDomain
-          ? `${fullDomain}${API_ENDPOINTS.DATABASE}/${urlPath}?${queryParams}`
-          : `${API_ENDPOINTS.DATABASE}/${urlPath}?${queryParams}`;
-
-        return {
-          url,
-          method: "POST",
-          body: options.condition,
-        };
-      },
-    }),
-
     write: builder.mutation<ResponseData, WriteDataType>({
       query: ({ data, flags, customId, userId, domain }) => {
         const url = domain
@@ -97,45 +48,6 @@ export const dbApi = api.injectEndpoints({
             customId,
             userId,
           },
-        };
-      },
-    }),
-    writeHash: builder.mutation<ResponseData, WriteHashDataType>({
-      query: ({ data, flags, userId, domain }) => {
-        const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}/writeHash`
-          : `${API_ENDPOINTS.DATABASE}/writeHash`;
-        return {
-          url,
-          method: "POST",
-          body: {
-            data,
-            flags: { isHash: true, ...flags },
-            userId,
-          },
-        };
-      },
-    }),
-    deleteEntry: builder.mutation<ResponseData, DeleteEntryArgs>({
-      query: ({ entryId, domain }) => {
-        let fullDomain = domain;
-        if (domain) {
-          const hasHttp = domain.startsWith("http://");
-          const hasHttps = domain.startsWith("https://");
-          if (!hasHttp && !hasHttps) {
-            fullDomain = domain.startsWith("localhost")
-              ? `http://${domain}`
-              : `https://${domain}`;
-          }
-        }
-        const url = fullDomain
-          ? `${fullDomain}${API_ENDPOINTS.DATABASE}/delete/${entryId}`
-          : `${API_ENDPOINTS.DATABASE}/delete/${entryId}`;
-        console.log("url", url);
-
-        return {
-          url,
-          method: "DELETE",
         };
       },
     }),
@@ -193,40 +105,7 @@ export const dbApi = api.injectEndpoints({
         return result.data ? { data: result.data } : { error: result.error };
       },
     }),
-    readAll: builder.query<ResponseData, { userId: string; domain?: string }>({
-      query: ({ userId, domain }) => {
-        // 确保domain具有正确的协议前缀
-        let fullDomain = domain;
-        if (domain) {
-          const hasHttp = domain.startsWith("http://");
-          const hasHttps = domain.startsWith("https://");
-          if (!hasHttp && !hasHttps) {
-            fullDomain = domain.startsWith("localhost")
-              ? `http://${domain}`
-              : `https://${domain}`;
-          }
-        }
-
-        const endpoint = "/readAll";
-        const url = fullDomain
-          ? `${fullDomain}${API_ENDPOINTS.DATABASE}${endpoint}`
-          : `${API_ENDPOINTS.DATABASE}${endpoint}`;
-
-        return {
-          url,
-          method: "POST",
-          body: { userId },
-        };
-      },
-    }),
   }),
 });
 
-export const {
-  useGetEntriesQuery,
-  useGetEntryQuery,
-  useWriteMutation,
-  useDeleteEntryMutation,
-  useUpdateEntryMutation,
-  useLazyReadAllQuery,
-} = dbApi;
+export const { useWriteMutation, useUpdateEntryMutation } = dbApi;

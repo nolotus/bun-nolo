@@ -1,19 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
-import { selectById } from "database/dbSlice";
+import { selectById, syncQuery } from "database/dbSlice";
 import { query, read } from "database/dbSlice";
-import { selectCurrentUser } from "auth/authSlice";
 
 import type { AppDispatch, NoloRootState } from "./store";
 
 export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<NoloRootState> = useSelector;
 
-export const useAuth = () => {
-  const user = useAppSelector(selectCurrentUser);
-  return useMemo(() => ({ user }), [user]);
-};
 export const useItem = (id: string) => {
   return useAppSelector((state: NoloRootState) => selectById(state, id));
 };
@@ -22,7 +17,7 @@ export function useFetchData(id) {
   const data = useAppSelector((state) => selectById(state, id));
   const dispatch = useDispatch();
   // 状态管理
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -45,24 +40,31 @@ export function useFetchData(id) {
   }, [dispatch, id, data]);
 
   // 返回数据、加载状态和错误信息供组件使用
-  return { data, loading, error };
+  return { data, isLoading, error };
 }
 
-export const useQueryData = (queryOptions) => {
+export const useQueryData = (queryConfig) => {
   const dispatch = useDispatch();
+  const [data, setData] = useState(null);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [isSuccess, setSuccess] = useState(false);
+  const sync = async () => {
+    await dispatch(syncQuery(queryConfig));
+  };
   useEffect(() => {
-    if (!queryOptions) {
+    if (!queryConfig) {
       setLoading(false);
-      return; // 如果没有提供查询选项，不执行查询
+      return;
     }
 
     const fetchData = async () => {
       try {
         setLoading(true);
-        await dispatch(query(queryOptions));
+        await dispatch(query(queryConfig)).then((action) => {
+          setSuccess(true);
+          setData(action.payload);
+        });
       } catch (err) {
         setError(err);
       } finally {
@@ -71,7 +73,16 @@ export const useQueryData = (queryOptions) => {
     };
 
     fetchData();
+    // sync();
   }, []);
 
-  return { isLoading, error };
+  return { isLoading, error, data, isSuccess };
+};
+export const useWriteData = () => {
+  const dispatch = useDispatch();
+  const [isLoading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {}, []);
+  return { result, isLoading, error };
 };

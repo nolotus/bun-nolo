@@ -1,17 +1,13 @@
-import { getDomains } from "app/domains";
 import { useAppDispatch } from "app/hooks";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, Select } from "ui";
 import { SortDescIcon } from "@primer/octicons-react";
-import { setSortKey, setSortOrder, setSourceFilter } from "../lifeSlice";
+import { setSortKey, setSortOrder } from "../lifeSlice";
 
 export const FilterPanel = () => {
   const dispatch = useAppDispatch();
   let [searchParams, setSearchParams] = useSearchParams();
-
-  const domains = useMemo(() => getDomains(), []);
-  const sourceOptions = ["All", ...domains.map((domain) => domain.source)];
 
   useEffect(() => {
     dispatch(setSortKey(searchParams.get("sortKey") || ""));
@@ -26,10 +22,6 @@ export const FilterPanel = () => {
   const handleSortOrderChange = (event) => {
     dispatch(setSortOrder(event.target.value));
     setSearchParams({ sortOrder: event.target.value });
-  };
-  const handleSourceChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    dispatch(setSourceFilter(event.target.value));
-    setSearchParams({ ...searchParams, source: event.target.value });
   };
 
   return (
@@ -60,17 +52,6 @@ export const FilterPanel = () => {
             onChange={handleSortOrderChange}
             options={["asc", "desc"]}
             placeholder="Select sort order"
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <label htmlFor="source" className="text-sm font-medium text-gray-700">
-            Source:
-          </label>
-          <Select
-            id="source"
-            onChange={handleSourceChange}
-            options={sourceOptions}
-            placeholder="Select source"
           />
         </div>
       </div>

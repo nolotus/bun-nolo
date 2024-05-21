@@ -1,10 +1,11 @@
 import { selectCurrentServer } from "setting/settingSlice";
 
-export const noloRequest = async (state, fetchConfig) => {
+//handle currentServer and token
+export const noloRequest = async (state, config) => {
   const currentServer = selectCurrentServer(state);
-  const dynamicUrl = currentServer + fetchConfig.url;
-  const method = fetchConfig.method ? fetchConfig.method : "GET";
-  const body = fetchConfig.body;
+  const dynamicUrl = currentServer + config.url;
+  const method = config.method ? config.method : "GET";
+  const body = config.body;
   let headers = {
     "Content-Type": "application/json",
   };

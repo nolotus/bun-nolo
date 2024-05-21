@@ -4,7 +4,7 @@ import { FileMediaIcon } from "@primer/octicons-react";
 import { retrieveFirstToken } from "auth/client/token";
 import { generateFileID } from "database/fileUpload/generateFileID";
 import clsx from "clsx";
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 
 import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";

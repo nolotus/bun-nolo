@@ -77,5 +77,6 @@ export const {
 // 导出selectors
 export const selectCurrentServer = (state: NoloRootState): string =>
   state.settings.syncSetting.currentServer;
-
+export const selectSyncServer = (state: NoloRootState): string =>
+  state.settings.syncSetting.syncServers;
 export default settingSlice.reducer;

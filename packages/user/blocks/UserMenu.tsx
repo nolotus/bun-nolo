@@ -11,8 +11,9 @@ import {
   LocationIcon,
   QuestionIcon,
 } from "@primer/octicons-react";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
-import { changeCurrentUser, userLogout } from "auth/authSlice";
+import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAuth } from "auth/useAuth";
+import { changeCurrentUser, signOut } from "auth/authSlice";
 import { getTokensFromLocalStorage, removeToken } from "auth/client/token";
 import { parseToken } from "auth/token";
 import { CreateRoutePaths } from "create/routes";
@@ -30,12 +31,11 @@ export const UserMenu = () => {
   const currentToken = useAppSelector((state) => state.auth.currentToken);
   const logout = () => {
     removeToken(currentToken);
-    dispatch(userLogout());
+    dispatch(signOut());
     navigate("/");
   };
   const auth = useAuth();
   const users = useAppSelector((state) => state.auth.users);
-
   const changeUser = (user) => {
     const tokens = getTokensFromLocalStorage();
     const updatedToken = tokens.find(
@@ -142,7 +142,8 @@ export const UserMenu = () => {
         <ul className="rounded-md bg-white py-1 shadow-lg">
           {users.map(
             (user) =>
-              user !== auth.user && (
+              user !== auth.user &&
+              user && (
                 <li key={user.userId}>
                   <button
                     type="button"

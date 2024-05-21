@@ -1,4 +1,4 @@
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import React from "react";
 import { TrophyIcon } from "@primer/octicons-react";
 

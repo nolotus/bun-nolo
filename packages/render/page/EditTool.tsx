@@ -1,8 +1,6 @@
 import { NavLink, useNavigate, useParams } from "react-router-dom";
-import React, { useCallback } from "react";
-import { useDeleteEntryMutation } from "database/services";
+import React, { useCallback, useState } from "react";
 import { Button, Toggle } from "ui";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
 import {
   setHasVersion,
   saveContentAndMdast,
@@ -10,13 +8,15 @@ import {
   updateContent,
   setSaveAsTemplate,
 } from "./pageSlice";
+import { useAppSelector, useAppDispatch } from "app/hooks";
+import { removeOne } from "database/dbSlice";
 export const EditTool = ({ handleSave }) => {
   const { pageId } = useParams();
   const navigate = useNavigate();
 
   const pageState = useAppSelector((state) => state.page);
   const dispatch = useAppDispatch();
-  const [deleteEntry, { isLoading: isDeleting }] = useDeleteEntryMutation();
+  const [isDeleting, setDeleting] = useState(false);
 
   const toggleShowAsMarkdown = (value) => {
     dispatch(setShowAsMarkdown(value));
@@ -27,16 +27,19 @@ export const EditTool = ({ handleSave }) => {
   const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
 
   const handleDelete = useCallback(async () => {
+    setDeleting(true);
     try {
-      await deleteEntry({ entryId: pageId }).unwrap();
+      // await deleteEntry({ entryId: pageId }).unwrap();
+      dispatch(removeOne(pageId));
 
       // addToast('Page deleted successfully!');
       navigate("/life/notes");
+      setDeleting(false);
     } catch (error) {
       console.error("Failed to delete the page:", error);
       //   addToast("Error deleting page. Please try again.");
     }
-  }, [deleteEntry, navigate, pageId]);
+  }, [navigate, pageId]);
 
   return (
     <div className="flex items-center justify-between bg-gray-100 p-4">

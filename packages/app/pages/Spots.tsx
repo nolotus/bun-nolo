@@ -1,9 +1,11 @@
 import { PlusIcon } from "@primer/octicons-react";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import { useGetEntriesQuery } from "database/services";
 import React from "react";
 import { SpotCard } from "render/components/SpotCard";
+import { useAppSelector, useQueryData } from "app/hooks";
+import { selectFilteredDataByUserAndType } from "database/selectors";
+
 const options = {
   isJSON: true,
   condition: {
@@ -15,16 +17,19 @@ const renderSpotList = (spots) => {
   if (!spots) {
     return null;
   }
-
   const filteredSpots = spots.filter((spot) => !spot.is_template);
-
   return filteredSpots.map((spot) => <SpotCard key={spot.id} data={spot} />);
 };
 const Spots = () => {
-  const { data, error, isLoading, isSuccess } = useGetEntriesQuery({
-    userId: nolotusId,
+  const queryConfig = {
+    queryUserId: nolotusId,
     options,
-  });
+  };
+
+  const { isLoading, error } = useQueryData(queryConfig);
+  const data = useAppSelector(
+    selectFilteredDataByUserAndType(nolotusId, DataType.SurfSpot),
+  );
   // 定义函数来渲染条目列表，过滤掉 is_template 的项
 
   if (isLoading) {
@@ -43,7 +48,7 @@ const Spots = () => {
           新增浪点
         </button> */}
       </div>
-      <div className="flex flex-wrap">{isSuccess && renderSpotList(data)}</div>
+      <div className="flex flex-wrap">{data && renderSpotList(data)}</div>
       <div className="flex items-center justify-between p-4">
         {/* <h1 className="text-2xl font-bold text-gray-700">旅居点</h1> */}
         {/* <button className="flex items-center px-3 py-2 text-sm font-semibold text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-700">

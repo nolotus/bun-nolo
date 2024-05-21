@@ -1,4 +1,4 @@
-import { useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import StringToArrayInput from "components/Form/StringToArrayInput";
 import { readOwnData } from "database/client/read";
 import { saveData } from "database/client/save";
@@ -27,7 +27,6 @@ export function useUserData(dataName) {
 export const useProfileData = (customId: string) => {
   const auth = useAuth();
   const data = useUserData(customId);
-  console.log("data", data);
   const [formData, setFormData] = useState(data);
   const [error, setError] = useState<string | null>(null);
 

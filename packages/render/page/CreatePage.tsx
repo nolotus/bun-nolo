@@ -1,6 +1,7 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
-import { useWriteMutation, useGetEntryQuery } from "database/services";
+import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
+import { useAuth } from "auth/useAuth";
+import { useWriteMutation } from "database/services";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { markdownToMdast, getH1TextFromMdast } from "render/MarkdownProcessor";
@@ -23,7 +24,8 @@ import { RichEdit } from "./RichEdit";
 const CreatePage = () => {
   const [searchParams] = useSearchParams();
   const templateId = searchParams.get("id");
-  const { data, isLoading } = useGetEntryQuery({ entryId: templateId });
+
+  const { data, isLoading, error } = useFetchData(templateId);
   const dispatch = useAppDispatch();
   const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
   const auth = useAuth();

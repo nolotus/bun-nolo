@@ -25,7 +25,7 @@ const All = (
 const Database = (
   <LazyLoadComponent
     factory={() => import("./web/Database")}
-    fallback={<div>Loading All...</div>}
+    fallback={<div>Loading Database...</div>}
   />
 );
 const Statistics = (

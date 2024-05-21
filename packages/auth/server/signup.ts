@@ -42,9 +42,9 @@ export async function handleSignUp(req, res) {
     publicKey,
     encryptedEncryptionKey,
     remoteRecoveryPassword,
-    language,
+    locale,
   } = req.body;
-  const userId = generateUserId(publicKey, username, language);
+  const userId = generateUserId(publicKey, username, locale);
   signUpLogger.info({ userId }, "userId");
 
   const userDirPath = path.join(DATABASE_DIR, userId);

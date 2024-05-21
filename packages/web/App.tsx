@@ -1,4 +1,4 @@
-import { useAppDispatch, useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import { getTokensFromLocalStorage } from "auth/client/token";
 import { parseToken } from "auth/token";
 import i18n from "i18n";
@@ -10,6 +10,7 @@ import { restoreSession } from "auth/authSlice";
 
 import { routes } from "./routes";
 import { addHostToCurrentServer } from "setting/settingSlice";
+import { useAppDispatch } from "app/hooks";
 export default function App({ hostname, lng = "en" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);

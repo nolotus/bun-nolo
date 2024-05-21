@@ -11,7 +11,7 @@ import { Button } from "ui";
 import { userFormSchema } from "../schema";
 import { useAppDispatch } from "app/hooks";
 import { signIn } from "../authSlice";
-import { loginFields } from "../schema";
+import { signInFields } from "../schema";
 import { useSelector } from "react-redux";
 
 const Login: React.FC = () => {
@@ -30,35 +30,30 @@ const Login: React.FC = () => {
   });
   const onSubmit = async (input) => {
     const locale = navigator.language;
-    try {
-      const resultAction = await dispatch(signIn({ ...input, locale }));
-      if (resultAction.payload.token) {
+    dispatch(signIn({ ...input, locale }))
+      .then(() => {
         navigate(`/${LifeRoutePaths.WELCOME}`);
-      }
-
-      return;
-    } catch (noloError) {
-      console.error(noloError);
-
-      let message;
-      switch (noloError.message) {
-        case "404":
-          message = t("errors.userNotFound");
-          break;
-        case "403":
-          message = t("errors.invalidCredentials");
-          break;
-        case "400":
-          message = t("errors.validationError");
-          break;
-        case "500":
-        default:
-          message = t("errors.serverError");
-          break;
-      }
-
-      setError(message);
-    }
+      })
+      .catch((noloError) => {
+        console.error(noloError);
+        let message;
+        switch (noloError.message) {
+          case "404":
+            message = t("errors.userNotFound");
+            break;
+          case "403":
+            message = t("errors.invalidCredentials");
+            break;
+          case "400":
+            message = t("errors.validationError");
+            break;
+          case "500":
+          default:
+            message = t("errors.serverError");
+            break;
+        }
+        setError(message);
+      });
   };
   return (
     <div>
@@ -70,7 +65,7 @@ const Login: React.FC = () => {
           <h2 className="mb-6 text-2xl font-bold text-gray-800">
             {t("login")}
           </h2>
-          {loginFields.map((field) => (
+          {signInFields.map((field) => (
             <div key={field.id} className="mb-6">
               <label
                 htmlFor={field.id}
