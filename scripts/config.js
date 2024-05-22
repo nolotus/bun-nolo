@@ -24,7 +24,7 @@ export const commonConfig = {
     ".png": "file",
     ".svg": "text",
   },
-  // metafile: true,
+  metafile: true,
   // entryNames: "[dir]/[name]-[hash]",
   // minify: true,
   sourcemap: true,
