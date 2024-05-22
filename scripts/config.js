@@ -1,12 +1,9 @@
 import postCssPlugin from "esbuild-style-plugin";
 import { isProduction } from "utils/env";
-import { fileURLToPath } from "url";
-import path from "path";
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const inputPath = "./packages/web/entry.tsx";
 // 定义公共配置
-export const config = {
+export const commonConfig = {
   entryPoints: [inputPath],
   outdir: "public/assets",
   plugins: [
@@ -27,7 +24,7 @@ export const config = {
     ".png": "file",
     ".svg": "text",
   },
-  metafile: true,
+  // metafile: true,
   // entryNames: "[dir]/[name]-[hash]",
   // minify: true,
   sourcemap: true,
@@ -41,6 +38,6 @@ const prodConfig = {
 };
 
 // 合并配置，如果是生产环境，添加 prodConfig
-// export const config = isProduction
-//   ? { ...commonConfig, ...prodConfig }
-//   : commonConfig;
+export const config = isProduction
+  ? { ...commonConfig, ...prodConfig }
+  : commonConfig;
