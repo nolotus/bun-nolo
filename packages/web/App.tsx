@@ -15,9 +15,11 @@ export default function App({ hostname, lng = "en" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
 
+  const dispatch = useAppDispatch();
+
+  dispatch(addHostToCurrentServer(hostname));
   const auth = useAuth();
   i18n.changeLanguage(lng);
-  const dispatch = useAppDispatch();
   useEffect(() => {
     const tokens = getTokensFromLocalStorage();
     if (tokens) {
@@ -31,9 +33,6 @@ export default function App({ hostname, lng = "en" }) {
           }),
         );
     }
-  }, []);
-  useEffect(() => {
-    dispatch(addHostToCurrentServer(hostname));
   }, []);
 
   const element = useRoutes(routes(auth.user));

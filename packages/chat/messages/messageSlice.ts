@@ -307,6 +307,7 @@ export const messageSlice = createSliceWithThunks({
           role: "user",
           content,
           belongs: [currentDialogConfig.messageListId],
+          userId,
         };
 
         thunkApi.dispatch(sendMessage(message));

@@ -10,8 +10,6 @@ import { Avatar } from "ui";
 import IconButton from "ui/IconButton";
 import { Toast, useToastManager } from "ui/Toast";
 import { Link } from "react-router-dom";
-import * as stylex from "@stylexjs/stylex";
-import { globalTokens as $, spacing } from "app/globalTokens.stylex";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { MessageContent } from "./MessageContent";
@@ -20,22 +18,6 @@ import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
 import { ulid } from "ulid";
 import { useAppDispatch } from "app/hooks";
-
-const styles = stylex.create({
-  message: {
-    display: "flex",
-    marginBottom: spacing.xxs,
-  },
-  main: {
-    display: "flex",
-  },
-  avatar: {
-    marginRight: spacing.xxxs,
-  },
-  buttons: {
-    marginLeft: spacing.sm,
-  },
-});
 
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();
@@ -72,7 +54,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const { toasts, addToast, removeToast } = useToastManager();
 
   return (
-    <div className="justify-start space-x-2" {...stylex.props(styles.message)}>
+    <div className="flex justify-start space-x-2">
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
@@ -82,7 +64,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
         />
       ))}
       <div className="flex items-start">
-        <div {...stylex.props(styles.avatar)}>
+        <div>
           <Avatar name="robot" />
         </div>
         {image ? (

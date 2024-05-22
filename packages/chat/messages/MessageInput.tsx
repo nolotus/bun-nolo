@@ -12,7 +12,6 @@ import { setKeyPrefix } from "core/prefix";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
-
   isLoading: boolean;
   onCancel: () => void;
 }

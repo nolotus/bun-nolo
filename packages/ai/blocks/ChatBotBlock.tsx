@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { createDialog } from "chat/dialog/dialogSlice";
-// import * as stylex from "@stylexjs/stylex";
 
 const OMIT_NAME_MAX_LENGTH = 60;
 
