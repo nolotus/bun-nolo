@@ -2,7 +2,6 @@ import { TrashIcon, RepoPullIcon, RepoPushIcon } from "@primer/octicons-react";
 import { useAppDispatch } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
-import { useWriteMutation } from "database/services";
 import { omit } from "rambda";
 import React, { useState } from "react";
 import { baseCard } from "render/styles";
@@ -10,14 +9,10 @@ import { baseCard } from "render/styles";
 import DataItem from "./DataItem";
 import { removeOne, write } from "database/dbSlice";
 const DataList = ({ data }) => {
-  const auth = useAuth();
   const dispatch = useAppDispatch();
-  // const [write] = useWriteMutation();
   const pullData = async (id, value) => {
-    console.log("pullData", pullData);
     // Define the logic for pulling data here
     const flags = extractAndDecodePrefix(id);
-    console.log("id", id);
     const userId = extractUserId(id);
     const customId = extractCustomId(id);
     const formatValue = omit("id", value);
@@ -111,7 +106,7 @@ const DataList = ({ data }) => {
                 <div className={`${baseCard} w-full p-4`}>
                   <DataItem item={item} />
                   <ul className="-m-1 flex flex-wrap">
-                    {item.source.map((adderss) => (
+                    {item.source?.map((adderss) => (
                       <li key={adderss} className="m-1">
                         <span className="mr-2 inline-block rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
                           {adderss}

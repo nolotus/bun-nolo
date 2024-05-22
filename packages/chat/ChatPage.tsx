@@ -91,9 +91,9 @@ const ChatPage = () => {
       className={`flex flex-col lg:flex-row`}
       style={{ height: `${chatPageHeight}` }}
     >
-      {isLoading ? (
-        <div>loading</div>
-      ) : (
+      {isLoading && <div>loading</div>}
+
+      {dialogList.length > 0 && (
         <div className="w-full overflow-y-auto bg-white lg:block lg:w-1/6">
           <DialogSidebar dialogList={dialogList} />
         </div>
@@ -102,7 +102,9 @@ const ChatPage = () => {
       {isSuccess && (
         <>
           {currentDialogConfig ? (
-            <ChatWindow currentDialogConfig={currentDialogConfig} />
+            <div className="lg:w-5/6">
+              <ChatWindow currentDialogConfig={currentDialogConfig} />
+            </div>
           ) : (
             <ChatGuide />
           )}

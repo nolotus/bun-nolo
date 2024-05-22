@@ -50,13 +50,14 @@ export const handleRequest = async (request: Request, server) => {
       } catch (error) {
         console.error("Error parsing formdata:", error);
       }
-    } else if (contentType.includes("application/json")) {
+    } else if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
         if (!body) {
           body = {};
         }
       } catch (error) {
+        console.log("error req", request.body);
         console.error("Error parsing JSON:", error);
       }
     }

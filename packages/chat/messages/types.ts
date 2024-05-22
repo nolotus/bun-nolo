@@ -7,7 +7,6 @@ export interface Message {
 export interface MessageSliceState {
   messageListId: string | null;
   ids: string[];
-  messages: Message[];
   isStopped: boolean;
   isMessageStreaming: boolean;
   tempMessage: Message | null;

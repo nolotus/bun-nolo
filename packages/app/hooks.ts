@@ -45,13 +45,16 @@ export function useFetchData(id) {
 
 export const useQueryData = (queryConfig) => {
   const dispatch = useDispatch();
+
   const [data, setData] = useState(null);
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSuccess, setSuccess] = useState(false);
+
   const sync = async () => {
     await dispatch(syncQuery(queryConfig));
   };
+
   useEffect(() => {
     if (!queryConfig) {
       setLoading(false);

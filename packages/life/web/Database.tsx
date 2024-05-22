@@ -25,6 +25,7 @@ export const Database = () => {
   let [searchParams] = useSearchParams();
   const [type, setType] = useState(null);
   const currentUserId = useAppSelector(selectCurrentUserId);
+
   const data = useAppSelector(
     selectFilteredDataByUserAndType(currentUserId, type),
   );

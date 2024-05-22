@@ -18,7 +18,7 @@ export const handleReadSingle = async (req, res) => {
     const result = await serverGetData(id);
     if (result) {
       if (isList) {
-        return res.status(200).json({ array: [...result], noloId: id });
+        return res.status(200).json({ array: [...result], id });
       }
       return res.status(200).json({ ...result, id });
     }

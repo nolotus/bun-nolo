@@ -85,7 +85,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
     const prefix = setKeyPrefix({ isHash: true, isFile: true });
     const fileID = generateFileID(buffer);
-    formData.append("noloId", `${prefix}-${auth.user?.userId}-${fileID}`); // 添加计算出的文件名
+    formData.append("id", `${prefix}-${auth.user?.userId}-${fileID}`); // 添加计算出的文件名
 
     // 获取token
     const token = await retrieveFirstToken();
@@ -112,10 +112,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
       // 获取响应体，可能根据实际接口结构有所不同
       const responseBody = await response.json();
-      console.log("File uploaded successfully:", responseBody.noloId);
+      console.log("File uploaded successfully:", responseBody.id);
       setImagePreviewUrls((prevUrls) => [
         ...prevUrls,
-        `http://localhost/api/v1/db/read/${responseBody.noloId}`,
+        `http://localhost/api/v1/db/read/${responseBody.id}`,
       ]);
     } catch (error) {
       console.error("Image upload error:", error);

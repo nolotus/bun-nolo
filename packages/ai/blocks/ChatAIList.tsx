@@ -3,12 +3,12 @@ import { useAppSelector, useQueryData } from "app/hooks";
 import { DataType } from "create/types";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 
-const ChatAIList = ({ queryUserId }) => {
+const ChatAIList = ({ queryUserId, limit = 20 }) => {
   const queryConfig = {
     queryUserId,
     options: {
       isJSON: true,
-      limit: 20,
+      limit,
       condition: {
         type: DataType.ChatRobot,
       },

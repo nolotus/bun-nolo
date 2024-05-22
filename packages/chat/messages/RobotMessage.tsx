@@ -10,15 +10,33 @@ import { Avatar } from "ui";
 import IconButton from "ui/IconButton";
 import { Toast, useToastManager } from "ui/Toast";
 import { Link } from "react-router-dom";
-import { useAudioPlayer } from "../hooks/useAudioPlayer";
+import * as stylex from "@stylexjs/stylex";
+import { globalTokens as $, spacing } from "app/globalTokens.stylex";
 
+import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { MessageContent } from "./MessageContent";
 import { MessageImage } from "./MessageImage";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
 import { ulid } from "ulid";
 import { useAppDispatch } from "app/hooks";
-// 机器人消息组件
+
+const styles = stylex.create({
+  message: {
+    display: "flex",
+    marginBottom: spacing.xxs,
+  },
+  main: {
+    display: "flex",
+  },
+  avatar: {
+    marginRight: spacing.xxxs,
+  },
+  buttons: {
+    marginLeft: spacing.sm,
+  },
+});
+
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();
 
@@ -38,7 +56,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
       addToast(
         <div className="text-black">
           <Link
-            to={`/${response.data.noloId}`}
+            to={`/${response.data.id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="font-bold text-blue-600 hover:text-blue-800"
@@ -50,14 +68,11 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
       );
     }
   };
-  const handleDeleteMessage = () => {
-    dispatch(deleteMessage(id));
-  };
 
   const { toasts, addToast, removeToast } = useToastManager();
 
   return (
-    <div className="mb-2 flex justify-start space-x-2">
+    <div className="justify-start space-x-2" {...stylex.props(styles.message)}>
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
@@ -66,19 +81,22 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
           onClose={removeToast}
         />
       ))}
-      <div className="flex items-start space-x-2">
-        <div className="flex-shrink-0">
+      <div className="flex items-start">
+        <div {...stylex.props(styles.avatar)}>
           <Avatar name="robot" />
         </div>
         {image ? (
           <MessageImage image={image} />
         ) : (
-          <MessageContent role="robot" content={content} />
+          <MessageContent content={content} />
         )}
         <div className="ml-2 flex flex-col space-y-1">
           <IconButton icon={UnmuteIcon} onClick={handlePlayClick} />
           <IconButton icon={DesktopDownloadIcon} onClick={handleSaveContent} />
-          <IconButton icon={TrashIcon} onClick={handleDeleteMessage} />
+          <IconButton
+            icon={TrashIcon}
+            onClick={() => dispatch(deleteMessage(id))}
+          />
         </div>
       </div>
       {audioSrc && <audio src={audioSrc} controls />}

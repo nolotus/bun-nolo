@@ -2,6 +2,7 @@ import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 
 import { ModelPriceEnum } from "./models";
+import { DataType } from "create/types";
 //for page create
 export const dsl = {
   name: {
@@ -15,7 +16,7 @@ export const dsl = {
   type: {
     type: "string",
     readOnly: true,
-    default: "chatRobot",
+    default: DataType.ChatRobot,
     readonly: true,
   },
   model: {

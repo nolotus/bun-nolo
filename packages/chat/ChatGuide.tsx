@@ -8,7 +8,7 @@ export const ChatGuide = () => {
       <h2>创建自己的=》</h2>
       <CreateChatAIButton />
       <h2>使用别人的=》</h2>
-      <ChatAIList queryUserId={nolotusId} />
+      <ChatAIList queryUserId={nolotusId} limit={6} />
     </div>
   );
 };

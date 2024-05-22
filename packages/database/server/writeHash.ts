@@ -49,14 +49,14 @@ export const handleWriteHash = async (req, res) => {
         message: "Data contains newline character and is not allowed.",
       });
     }
-    const noloId = generateKey(value, saveUserId, flags, customId);
+    const hashId = generateKey(value, saveUserId, flags, customId);
 
     if (isWriteSelf) {
       try {
-        await writeDataToHash(noloId, value, saveUserId);
+        await writeDataToHash(hashId, value, saveUserId);
         return res.status(200).json({
           message: "Data written to file successfully.",
-          noloId,
+          hashId,
         });
       } catch (error) {
         return handleError(res, error);
@@ -66,10 +66,10 @@ export const handleWriteHash = async (req, res) => {
       const isAllowType = userRule?.includes(data.type);
 
       if (isAllowType) {
-        await writeDataToHash(noloId, value, saveUserId);
+        await writeDataToHash(hashId, value, saveUserId);
         return res.status(200).json({
           message: "Data written to file successfully.",
-          noloId,
+          hashId,
         });
       }
       return res.status(403).json({

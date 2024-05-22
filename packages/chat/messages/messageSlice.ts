@@ -17,7 +17,7 @@ import { noloReadRequest } from "database/client/readRequest";
 import { ulid } from "ulid";
 import { DataType } from "create/types";
 import { selectCurrentUserId } from "auth/authSlice";
-import { upsertOne } from "database/dbSlice";
+import { deleteData, selectEntitiesByIds, upsertOne } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 
 import { getModefromContent } from "../hooks/getModefromContent";
@@ -38,7 +38,6 @@ const createSliceWithThunks = buildCreateSlice({
 const initialState: MessageSliceState = {
   messageListId: null,
   ids: [],
-  messages: [],
   isStopped: false,
   isMessageStreaming: false,
   tempMessage: null,
@@ -73,8 +72,7 @@ export const messageSlice = createSliceWithThunks({
     messageStreamEnd: create.asyncThunk(
       async (message, thunkApi) => {
         thunkApi.dispatch(upsertOne(message));
-        thunkApi.dispatch(addMessageToUI(message.id));
-        thunkApi.dispatch(addMessage(message));
+        thunkApi.dispatch(addMessage(message.id));
 
         const state = thunkApi.getState();
         const userId = selectCurrentUserId(state);
@@ -105,7 +103,7 @@ export const messageSlice = createSliceWithThunks({
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              id: saveMessage.noloId,
+              id: saveMessage.id,
             }),
           },
         );
@@ -138,7 +136,6 @@ export const messageSlice = createSliceWithThunks({
       async (message, thunkApi) => {
         thunkApi.dispatch(upsertOne(message));
         thunkApi.dispatch(startSendingMessage(message));
-        //   state.messages.push(message);
         const state = thunkApi.getState();
         const token = state.auth.currentToken;
         const userId = selectCurrentUserId(state);
@@ -173,7 +170,7 @@ export const messageSlice = createSliceWithThunks({
                 Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
-                id: saveMessage.noloId,
+                id: saveMessage.id,
               }),
             },
           );
@@ -196,25 +193,21 @@ export const messageSlice = createSliceWithThunks({
         },
       },
     ),
+    //todo
     receiveMessage: create.reducer((state, action) => {
-      state.messages.push(action.payload);
+      state.ids.push(action.payload.id);
       state.tempMessage = null;
     }),
+    //todo please consider muti agent
     retry: create.reducer<Message>((state, action) => {
       state.tempMessage = { role: "assistant", content: "", id: nanoid() };
-      state.messages.pop();
     }),
     messageStreaming: create.reducer<Message>((state, action) => {
       state.tempMessage = action.payload;
       state.isMessageStreaming = true;
     }),
-    addMessageToUI: create.reducer((state, action: PayloadAction<string>) => {
+    addMessage: create.reducer((state, action: PayloadAction<string>) => {
       state.ids.push(action.payload);
-    }),
-    addMessage: create.reducer((state, action: PayloadAction<Message>) => {
-      if (!state.messages.some((message) => message.id === action.payload.id)) {
-        state.messages.push(action.payload);
-      }
     }),
     removeMessageFromUI: create.reducer(
       (state, action: PayloadAction<string>) => {
@@ -229,18 +222,11 @@ export const messageSlice = createSliceWithThunks({
         const token = state.auth.currentToken;
         const dialogConfig = selectCurrentDialogConfig(state);
         const currentServer = selectCurrentServer(state);
-
-        const deleteMessage = await fetch(
-          `${currentServer}${API_ENDPOINTS.DATABASE}/delete/${messageId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({}),
-          },
+        const deleteMessageResult = await thunkApi.dispatch(
+          deleteData(messageId),
         );
+        console.log("deleteMessageResult", deleteMessageResult);
+
         const deleteMessageFromList = await fetch(
           `${currentServer}${API_ENDPOINTS.DATABASE}/update/${dialogConfig.messageListId}`,
           {
@@ -255,6 +241,8 @@ export const messageSlice = createSliceWithThunks({
             }),
           },
         );
+
+        console.log("deleteMessageFromList", deleteMessageFromList);
       },
 
       {
@@ -293,9 +281,9 @@ export const messageSlice = createSliceWithThunks({
         fulfilled: () => {},
       },
     ),
+    //todo
     continueMessage: create.reducer((state, action) => {
       state.isStopped = false;
-      state.messages.push(action.payload);
     }),
     messagesReachedMax: create.reducer((state, action) => {
       state.isStopped = true;
@@ -305,7 +293,7 @@ export const messageSlice = createSliceWithThunks({
         let textContent;
         const state = thunkApi.getState();
         const config = selectCurrentLLMConfig(state);
-        const messages = state.message.messages;
+        const messages = selectEntitiesByIds(state, state.message.ids);
         const userId = selectCurrentUserId(state);
         const token = state.auth.currentToken;
         const currentDialogConfig = selectCurrentDialogConfig(state);
@@ -367,7 +355,7 @@ export const messageSlice = createSliceWithThunks({
                         role: "assistant",
                         content: temp,
                         id,
-                        userId,
+                        llmId: currentDialogConfig.llmId,
                       };
                       thunkApi.dispatch(messageStreamEnd(message));
                       //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
@@ -528,6 +516,9 @@ export const messageSlice = createSliceWithThunks({
         },
       },
     ),
+    clearMessages: create.reducer((state, action) => {
+      state.ids = [];
+    }),
   }),
 });
 
@@ -544,9 +535,9 @@ export const {
   startSendingMessage,
   removeMessageFromUI,
   deleteNotFound,
-  addMessageToUI,
-  handleSendMessage,
   addMessage,
+  handleSendMessage,
+  clearMessages,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

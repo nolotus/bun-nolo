@@ -5,6 +5,8 @@ import { saveData } from "database/client/save";
 import { ServerIcon } from "@primer/octicons-react";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useAppSelector } from "app/hooks";
+import { selectCurrentServer, selectSyncServer } from "../settingSlice";
 
 export function useUserData(dataName) {
   const auth = useAuth();
@@ -53,6 +55,8 @@ const Sync = () => {
   const { formData, setFormData, handleSaveClick, error } =
     useProfileData(customId);
   console.log("formData", formData);
+  const currentServer = useAppSelector(selectCurrentServer);
+  const syncServer = useAppSelector(selectSyncServer);
   return (
     <div>
       <h1>同步设置</h1>
@@ -60,7 +64,14 @@ const Sync = () => {
         <ServerIcon size={24} />
         服务器设置
       </h2>
-      主服务器 备份服务器
+      <div>
+        主服务器
+        {currentServer}
+      </div>
+      备份服务器
+      {syncServer.map((server) => {
+        return <div> {server}</div>;
+      })}
       <h2>点击同步时候</h2>
       <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput

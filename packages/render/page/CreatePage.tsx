@@ -50,8 +50,8 @@ const CreatePage = () => {
       });
 
       if (result) {
-        const noloId = result.data.noloId;
-        navigate(`/${noloId}?edit=true`);
+        const id = result.data.id;
+        navigate(`/${id}?edit=true`);
       }
     } catch (error) {
       // 错误处理逻辑

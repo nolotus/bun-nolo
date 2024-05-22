@@ -7,8 +7,8 @@ import { API_ENDPOINTS } from "../config";
 
 const updateLogger = getLogger("update");
 
-const updateDatabase = async (formattedData, noloId, token) => {
-  const response = await fetch(`${API_ENDPOINTS.DATABASE}/update/${noloId}`, {
+const updateDatabase = async (formattedData, id, token) => {
+  const response = await fetch(`${API_ENDPOINTS.DATABASE}/update/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -27,7 +27,7 @@ const updateDatabase = async (formattedData, noloId, token) => {
   return responseData;
 };
 
-export const updateData = async (userId, data, noloId) => {
+export const updateData = async (userId, data, id) => {
   try {
     const token = retrieveFirstToken();
 
@@ -37,8 +37,8 @@ export const updateData = async (userId, data, noloId) => {
       throw new Error("No token found");
     }
 
-    const dataUserId = extractUserId(noloId);
-    const flags = extractAndDecodePrefix(noloId);
+    const dataUserId = extractUserId(id);
+    const flags = extractAndDecodePrefix(id);
     updateLogger.info({ dataUserId, userId }, "Formatted data for user");
 
     if (
@@ -48,7 +48,7 @@ export const updateData = async (userId, data, noloId) => {
       const formattedData = {
         data: formatData(data, flags),
         flags,
-        noloId,
+        id,
       };
 
       updateLogger.info(
@@ -58,7 +58,7 @@ export const updateData = async (userId, data, noloId) => {
           : "Formatted data for other writable users",
       );
 
-      return await updateDatabase(formattedData, noloId, token);
+      return await updateDatabase(formattedData, id, token);
     }
   } catch (error) {
     updateLogger.error({ error }, "Error in updateData");

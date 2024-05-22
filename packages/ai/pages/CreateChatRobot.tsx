@@ -46,7 +46,7 @@ const CreateChatRobot = () => {
 
     try {
       const result = await write(requestBody).unwrap();
-      setIsSuccess(result.noloId); // 可以直接设置成功状态
+      setIsSuccess(result.id);
     } catch (error) {
       setError(error.data?.message || error.status); // 可以直接设置错误状态
     }

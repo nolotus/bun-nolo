@@ -22,12 +22,10 @@ export const handleWrite = async (req, res) => {
   if (req.body instanceof FormData) {
     const formData = req.body;
     const fileBlob = formData.get("file");
-    const clientGeneratedID = formData.get("noloId");
+    const clientGeneratedID = formData.get("id");
     const saveUserId = extractUserId(clientGeneratedID);
     await serverWrite(clientGeneratedID, fileBlob, saveUserId);
-    return res
-      .status(200)
-      .json({ message: "success", noloId: clientGeneratedID });
+    return res.status(200).json({ message: "success", id: clientGeneratedID });
   }
 
   const { userId, data, flags, customId } = req.body;
@@ -40,14 +38,14 @@ export const handleWrite = async (req, res) => {
       message: "Data contains newline character and is not allowed.",
     });
   }
-  const noloId = generateKey(value, saveUserId, flags, customId);
+  const id = generateKey(value, saveUserId, flags, customId);
 
   if (isWriteSelf) {
     try {
-      await serverWrite(noloId, value, saveUserId);
+      await serverWrite(id, value, saveUserId);
       return res.status(200).json({
         message: "Data written to file successfully.",
-        noloId,
+        id,
       });
     } catch (error) {
       return handleError(res, error);
@@ -57,10 +55,10 @@ export const handleWrite = async (req, res) => {
     const isAllowType = userRule?.includes(data.type);
 
     if (isAllowType) {
-      await serverWrite(noloId, value, saveUserId);
+      await serverWrite(id, value, saveUserId);
       return res.status(200).json({
         message: "Data written to file successfully.",
-        noloId,
+        id,
       });
     }
     return res.status(403).json({

@@ -9,7 +9,7 @@ export type WriteDataRequestBody = {
 // ResponseData.ts
 export interface ResponseData {
   message: string;
-  noloId: string;
+  id: string;
 }
 export type WriteDataType = {
   data: any;

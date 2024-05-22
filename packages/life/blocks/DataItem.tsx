@@ -12,7 +12,7 @@ const DataItem = ({ item }) => {
     return <ChatBotBlock item={{ value: item, source, key: id }} key={id} />;
   }
   if (item?.type === "tokenStatistics") {
-    return <TokenStatisticsItem noloId={id} content={item} />;
+    return <TokenStatisticsItem id={id} content={item} />;
   }
   if (item?.type === DataType.pay) {
     return <PayBlock data={item} />;

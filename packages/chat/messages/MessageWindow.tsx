@@ -84,7 +84,7 @@ const ChatWindow = ({ currentDialogConfig }) => {
     dispatch(handleSendMessage({ content, abortControllerRef }));
   };
   return (
-    <div className="flex h-full w-full flex-col lg:w-5/6">
+    <div className="flex h-full w-full flex-col">
       {/* <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} /> */}
       {messageIds && (
         <MessagesList messageIds={messageIds} scrollToBottom={scrollToBottom} />

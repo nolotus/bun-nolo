@@ -4,6 +4,8 @@ import {
   buildCreateSlice,
   asyncThunkCreator,
   createEntityAdapter,
+  createSelector,
+  createSelectorCreator,
 } from "@reduxjs/toolkit";
 import { noloRequest } from "utils/noloRequest";
 import { selectSyncServer } from "setting/settingSlice";
@@ -125,6 +127,7 @@ const dbSlice = createSliceWithThunks({
       {
         fulfilled: (state, action) => {
           console.log("deleteData fulfilled", action);
+          //double remove !
           dbAdapter.removeOne(state, action.payload.id);
         },
       },
@@ -188,7 +191,11 @@ const dbSlice = createSliceWithThunks({
     }),
   }),
 });
-
+export const selectEntitiesByIds = createSelector(
+  [(state) => state, (state, ids) => ids],
+  (state, ids) => ids.map((id) => selectById(state, id)),
+);
+createSelectorCreator;
 export const {
   updateData,
   removeOne,

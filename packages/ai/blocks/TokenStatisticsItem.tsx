@@ -1,10 +1,8 @@
-import { extractCustomId } from "core";
 import { format, fromUnixTime } from "date-fns";
 import React from "react";
 import { Link } from "react-router-dom";
 import { truncateContent } from "utils/truncate";
-const TokenStatisticsItem = ({ noloId, content }) => {
-  const id = extractCustomId(noloId);
+const TokenStatisticsItem = ({ id, content }) => {
   let formattedDate = "";
 
   if (content.chatCreated) {
@@ -15,11 +13,7 @@ const TokenStatisticsItem = ({ noloId, content }) => {
   }
 
   return (
-    <Link
-      to={`/${noloId}`}
-      key={noloId}
-      className="w-full p-2 sm:w-1/2 lg:w-1/3"
-    >
+    <Link to={`/${id}`} key={id} className="w-full p-2 sm:w-1/2 lg:w-1/3">
       <h3 className="text-md font-semibold text-gray-700">{id}</h3>
       <p className="mt-2 text-sm text-gray-500">
         {content.chatCreated && (
