@@ -5,13 +5,6 @@ import { renderContentNode } from "render";
 import { unified } from "unified";
 import { MessageRole } from "./types";
 
-const getColorClass = (type: MessageRole) => {
-  if (type === "user") {
-    return "text-blue-500";
-  }
-  return "text-neutral-600";
-};
-
 export const MessageContent: React.FC<{
   type: MessageRole;
   content: string;
@@ -25,11 +18,11 @@ export const MessageContent: React.FC<{
     return renderContentNode(mdast);
   }, [mdast]);
   //增加闪烁，如果网络卡了
-  const colorClass = getColorClass(type);
 
   return (
     <div
-      className={`mx-2 rounded-lg bg-neutral-100 px-4 py-2 ${colorClass} whitespace-pre-wrap`}
+      className={`surface-1 mx-2 whitespace-pre-wrap rounded-lg px-4   py-2`}
+      style={{ boxShadow: "var(--shadow-2)" }}
     >
       {type === "user" ? content : renderedContent}
     </div>

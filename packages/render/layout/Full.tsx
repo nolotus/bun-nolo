@@ -4,7 +4,7 @@ import { Header } from "./Header";
 
 const Layout = () => {
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-200">
+    <div className="min-h-screen">
       <Header />
       <div className="w-full  flex-grow">
         <Outlet />

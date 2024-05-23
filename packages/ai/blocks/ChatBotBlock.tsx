@@ -33,6 +33,7 @@ export const ChatBotBlock = ({ item }) => {
       <div className="flex items-center justify-between pb-4">
         <div className="text-lg font-bold">{item.name}</div>
         <div className="flex">
+          <button>删除</button>
           <button
             onClick={createNewDialog}
             className="mr-2 rounded bg-green-500 px-2 py-1 font-bold text-white hover:bg-green-700"

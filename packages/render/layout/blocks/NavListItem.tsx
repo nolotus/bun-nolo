@@ -25,6 +25,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
     fontWeight: "bold",
     transition: "color 0.2s, background-color 0.2s",
     color: "#444",
+    textDecoration: "none",
     ...style, // 合并外部传入的style
   };
 

@@ -1,3 +1,31 @@
-@tailwind base;
+@import "open-props/sizes";
+@import "open-props/fonts";
+@import "open-props/shadows";
+@import "open-props/colors";
+@import "open-props/normalize";
+
+
+/* @tailwind base; */
 @tailwind components;
 @tailwind utilities;
+
+.surface-1 {
+    background-color: var(--surface-1);
+    color: var(--text-2);
+  }
+  
+
+.surface-2 {
+    background-color: var(--surface-2);
+    color: var(--text-2);
+}
+
+.surface-3 {
+    background-color: var(--surface-3);
+    color: var(--text-1);
+}
+
+.surface-4 {
+    background-color: var(--surface-4);
+    color: var(--text-1);
+}

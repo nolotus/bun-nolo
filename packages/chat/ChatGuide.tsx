@@ -4,10 +4,10 @@ import { nolotusId } from "core/init";
 
 export const ChatGuide = () => {
   return (
-    <div className="container mx-auto mt-16">
-      <h2>创建自己的=》</h2>
+    <div className="container mt-16">
+      <h3>创建自己的</h3>
       <CreateChatAIButton />
-      <h2>使用别人的=》</h2>
+      <h3>使用别人的</h3>
       <ChatAIList queryUserId={nolotusId} limit={6} />
     </div>
   );
