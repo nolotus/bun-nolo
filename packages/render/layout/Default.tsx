@@ -27,7 +27,7 @@ const Layout = ({ disableAnimation = false }) => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-200">
+    <div className="flex min-h-screen flex-col">
       <Header />
       <div className="mx-auto w-full flex-grow sm:py-8 md:py-12">
         <Suspense fallback={<div>loading</div>}>{renderContent()}</Suspense>

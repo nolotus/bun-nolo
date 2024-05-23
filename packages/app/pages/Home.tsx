@@ -8,7 +8,7 @@ const Home = () => {
           <h1 className="mb-10 text-3xl font-bold ">嘿，你好,我是Nolotus！</h1>
         </header>
         <main>
-          <div className="divide-y divide-gray-200 text-lg">
+          <div>
             <div className="py-4">
               我在这里用AI管理我的一切。
               <br />
@@ -40,7 +40,7 @@ const Home = () => {
       </div>
       <aside className="w-full lg:w-1/2">
         <Card className="space-y-4  p-12 text-center text-lg text-gray-700">
-          <div className="font-shadows space-y-4 divide-y divide-gray-200 text-xl">
+          <div className="space-y-4">
             <div className="font-patrick mb-4 text-2xl">
               如果你也想分享, 点击{" "}
               <Link

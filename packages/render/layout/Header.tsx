@@ -65,12 +65,12 @@ export const Header: React.FC = () => {
   const handleMobileMenuToggle = useCallback(() => {
     setIsMobileMenuOpen((prevState) => !prevState);
   }, []);
-  const headerStickyStyles = "fixed left-0 right-0 top-0 bg-gray-200 shadow-md";
+  const headerStickyStyles = "fixed left-0 right-0 top-0";
 
   return (
     <header
-      style={{ zIndex: zIndex.header }}
-      className={clsx(headerHeight, "bg-white", {
+      style={{ zIndex: zIndex.header, boxShadow: "var(--shadow-3)" }}
+      className={clsx(headerHeight, "surface-2", {
         [headerStickyStyles]: isSticky,
       })}
     >

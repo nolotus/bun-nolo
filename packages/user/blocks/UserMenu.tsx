@@ -64,35 +64,31 @@ export const UserMenu = () => {
         }
         triggerType="hover"
       >
-        <ul className="bg-white    py-1">
-          <li>
-            <NavLink
-              to={`/${CreateRoutePaths.CREATE_PAGE}`}
-              className="flex items-center px-4 py-2 text-sm text-gray-700 transition-colors duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-900"
-            >
-              <NoteIcon size={20} className="mr-2" />
-              <span>创建空白页面</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/${CreateRoutePaths.CREATE_CHAT_ROBOT}`}
-              className="flex items-center px-4 py-2 text-sm text-gray-700 transition-colors duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-900"
-            >
-              <DependabotIcon size={20} className="mr-2" />
-              <span>创建智能助理</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to={`/${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`}
-              className="flex items-center px-4 py-2 text-sm text-gray-700 transition-colors duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-900"
-            >
-              <LocationIcon size={20} className="mr-2" />
-              <span>创建浪点</span>
-            </NavLink>
-          </li>
-        </ul>
+        <div className="bg-white py-1">
+          <NavLink
+            to={`/${CreateRoutePaths.CREATE_PAGE}`}
+            className="flex items-center px-4 py-2 text-sm text-gray-700 transition-colors duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-900"
+          >
+            <NoteIcon size={20} className="mr-2" />
+            <span>创建空白页面</span>
+          </NavLink>
+
+          <NavLink
+            to={`/${CreateRoutePaths.CREATE_CHAT_ROBOT}`}
+            className="flex items-center px-4 py-2 text-sm text-gray-700 transition-colors duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-900"
+          >
+            <DependabotIcon size={20} className="mr-2" />
+            <span>创建智能助理</span>
+          </NavLink>
+
+          <NavLink
+            to={`/${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`}
+            className="flex items-center px-4 py-2 text-sm text-gray-700 transition-colors duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-900"
+          >
+            <LocationIcon size={20} className="mr-2" />
+            <span>创建浪点</span>
+          </NavLink>
+        </div>
       </DropDown>
 
       <DropDown
@@ -105,27 +101,15 @@ export const UserMenu = () => {
         }
         triggerType="hover" // 设置触发类型为 hover
       >
-        <ul className="rounded-md bg-white py-1 shadow-lg">
-          <li>
-            <NavLink
-              to="/life/notes"
-              className="block px-4 py-2 text-sm hover:bg-gray-100"
-            >
-              <NoteIcon size={20} />
-              <span>Notes</span>
-            </NavLink>
-          </li>
-          <li>
-            <a href="#b" className="block px-4 py-2 text-sm hover:bg-gray-100">
-              Option B
-            </a>
-          </li>
-          <li>
-            <a href="#c" className="block px-4 py-2 text-sm hover:bg-gray-100">
-              Option C
-            </a>
-          </li>
-        </ul>
+        <div className="rounded-md bg-white py-1 shadow-lg">
+          <NavLink
+            to="/life/notes"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 "
+          >
+            <NoteIcon size={20} />
+            <span>Notes</span>
+          </NavLink>
+        </div>
       </DropDown>
 
       <DropDown
@@ -139,53 +123,49 @@ export const UserMenu = () => {
           </button>
         }
       >
-        <ul className="rounded-md bg-white py-1 shadow-lg">
+        <div className="rounded-md bg-white py-1 shadow-lg">
           {users.map(
             (user) =>
               user !== auth.user &&
               user && (
-                <li key={user.userId}>
-                  <button
-                    type="button"
-                    onClick={() => changeUser(user)}
-                    className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-                  >
-                    {t("change_to")} {user.username}
-                  </button>
-                </li>
+                <button
+                  key={user.userId}
+                  type="button"
+                  onClick={() => changeUser(user)}
+                  className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
+                >
+                  {t("change_to")} {user.username}
+                </button>
               ),
           )}
-          <li>
-            <button
-              type="button"
-              onClick={logout}
-              className="flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100"
-            >
-              <SignOutIcon size={24} className="mr-3 text-gray-700" />
-              {t("sign_out")}
-            </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              onClick={() => navigate("/help")}
-              className="flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100"
-            >
-              <QuestionIcon size={24} className="mr-3 text-gray-700" />
-              {t("help")}
-            </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              onClick={() => navigate("/settings")}
-              className="flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100"
-            >
-              <GearIcon size={24} className="mr-3 text-gray-700" />
-              {t("settings")}
-            </button>
-          </li>
-        </ul>
+
+          <button
+            type="button"
+            onClick={logout}
+            className="flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100"
+          >
+            <SignOutIcon size={24} className="mr-3 text-gray-700" />
+            {t("sign_out")}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/help")}
+            className="flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100"
+          >
+            <QuestionIcon size={24} className="mr-3 text-gray-700" />
+            {t("help")}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/settings")}
+            className="flex w-full items-center px-4 py-2 text-sm hover:bg-gray-100"
+          >
+            <GearIcon size={24} className="mr-3 text-gray-700" />
+            {t("settings")}
+          </button>
+        </div>
       </DropDown>
     </>
   );

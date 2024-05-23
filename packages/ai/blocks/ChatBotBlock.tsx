@@ -29,20 +29,15 @@ export const ChatBotBlock = ({ item }) => {
     }
   };
   return (
-    <div className="flex cursor-pointer flex-col bg-white  transition-colors duration-200 hover:bg-gray-100">
+    <div className="card flex flex-col bg-white">
       <div className="flex items-center justify-between pb-4">
         <div className="text-lg font-bold">{item.name}</div>
         <div className="flex">
-          <button>删除</button>
-          <button
-            onClick={createNewDialog}
-            className="mr-2 rounded bg-green-500 px-2 py-1 font-bold text-white hover:bg-green-700"
-          >
+          <button className="mr-2">删除</button>
+          <button onClick={createNewDialog} className="mr-2">
             对话
           </button>
-          <button className="mr-2 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700">
-            编辑
-          </button>
+          <button className="mr-2">编辑</button>
         </div>
       </div>
 
