@@ -56,16 +56,13 @@ const CreateChatRobot = () => {
     <div className="flex items-center justify-center">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full rounded-lg bg-white p-4 shadow-lg sm:w-4/5 sm:p-6 md:w-3/5 lg:w-1/2 lg:p-8 xl:w-3/5 2xl:w-1/2"
+        className="w-full rounded-lg p-4  sm:w-4/5 sm:p-6 md:w-3/5 lg:w-1/2 lg:p-8 xl:w-3/5 2xl:w-1/2"
       >
         <h2 className="mb-4 text-xl font-bold">{t("createRobot")}</h2>
 
         {fields.map((field) => (
           <div className={"mb-4 flex flex-col"} key={field.id}>
-            <label
-              htmlFor={field.id}
-              className={"mb-1 block text-sm font-medium text-gray-700"}
-            >
+            <label htmlFor={field.id} className={"mb-1 block"}>
               {t(field.label)}
             </label>
             <FormField

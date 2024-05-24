@@ -5,6 +5,7 @@ import {
   EyeClosedIcon,
 } from "@primer/octicons-react";
 import clsx from "clsx";
+import Gradients from "open-props/src/gradients";
 import React, { Suspense, lazy, useCallback, useState, memo } from "react";
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
 
@@ -34,6 +35,10 @@ const CopyToClipboard = memo(({ text }) => {
       )}
       disabled={!text}
       aria-label="复制代码"
+      style={{
+        background: "transparent",
+        border: "none",
+      }}
     >
       {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
     </button>
@@ -110,7 +115,12 @@ const Code = ({ value, language }) => {
 
   return (
     <div className="relative mx-auto my-6 overflow-hidden rounded-lg bg-gray-800 text-gray-100 shadow-md">
-      <div className="flex items-center justify-between bg-gradient-to-r from-blue-500 to-teal-600 px-2 py-1">
+      <div
+        className="flex items-center justify-between bg-gradient-to-r from-blue-500 to-teal-600 px-2 py-1"
+        style={{
+          backgroundImage: Gradients["--gradient-23"],
+        }}
+      >
         <span className="text-sm font-medium">
           {language?.toUpperCase() || "CODE"}
         </span>
@@ -119,6 +129,9 @@ const Code = ({ value, language }) => {
             onClick={togglePreview} // 切换预览状态
             className="rounded px-1 py-1 text-gray-200 transition-all duration-200 ease-in-out hover:bg-gray-700"
             aria-label="切换预览"
+            style={{
+              background: "transparent",
+            }}
           >
             {isPreview ? <EyeClosedIcon size={16} /> : <EyeIcon size={16} />}{" "}
             {/*根据状态显示不同图标*/}

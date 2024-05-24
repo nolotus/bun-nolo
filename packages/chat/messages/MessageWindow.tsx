@@ -15,6 +15,7 @@ import { selectMessage } from "./selector";
 
 import { initLLMConfig } from "chat/dialog/dialogSlice";
 import MessagesList from "./MessageList";
+import Sizes from "open-props/src/sizes";
 
 const ChatWindow = ({ currentDialogConfig }) => {
   const { t } = useTranslation();
@@ -84,7 +85,10 @@ const ChatWindow = ({ currentDialogConfig }) => {
     dispatch(handleSendMessage({ content, abortControllerRef }));
   };
   return (
-    <div className="flex h-full w-full flex-col">
+    <div
+      className="flex h-full w-full flex-col"
+      style={{ marginRight: Sizes["--size-fluid-9"] }}
+    >
       {/* <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} /> */}
       {messageIds && (
         <MessagesList messageIds={messageIds} scrollToBottom={scrollToBottom} />

@@ -2,7 +2,6 @@ import i18n from "i18n";
 import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { chatPageHeight } from "app/styles/height";
 import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
 
 import { DataType } from "create/types";
@@ -87,10 +86,7 @@ const ChatPage = () => {
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
   return (
-    <div
-      className={`flex flex-col lg:flex-row`}
-      style={{ height: `${chatPageHeight}` }}
-    >
+    <div className={`flex flex-col lg:flex-row`} style={{ height: "100vh" }}>
       {isLoading && <div>loading</div>}
 
       {dialogList.length > 0 && (

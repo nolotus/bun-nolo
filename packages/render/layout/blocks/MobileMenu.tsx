@@ -1,7 +1,6 @@
 import { XIcon } from "@primer/octicons-react";
 import React from "react";
 import NavListItem from "./NavListItem";
-import zIndex from "app/styles/z-index";
 import IconButton from "ui/IconButton";
 
 interface MobileMenuProps {
@@ -25,7 +24,6 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
     right: 0,
     bottom: 0,
     left: 0,
-    zIndex: zIndex.mobileMenu,
     backgroundColor: "rgba(0, 0, 0, 0.8)", // 对应 bg-black bg-opacity-80
     display: "block", // 对应 lg:hidden
   };

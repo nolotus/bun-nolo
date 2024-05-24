@@ -5,6 +5,7 @@ import { retrieveFirstToken } from "auth/client/token";
 import { generateFileID } from "database/fileUpload/generateFileID";
 import clsx from "clsx";
 import { useAuth } from "auth/useAuth";
+import Sizes from "open-props/src/sizes";
 
 import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
@@ -161,7 +162,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
     <div className="flex items-start justify-center space-x-4 p-4">
       <div
         className={clsx(
-          "relative flex w-full flex-col rounded bg-white shadow sm:w-4/5 md:w-3/4 lg:w-3/5",
+          "relative flex w-full flex-col sm:w-4/5 md:w-3/4 lg:w-3/5",
           isDragOver ? "border-4 border-blue-500" : "",
         )}
         onDragOver={handleDragOver}
@@ -170,11 +171,12 @@ const MessageInput: React.FC<MessageInputProps> = ({
       >
         <div className="relative flex-grow">
           <textarea
-            className="h-36  w-full"
+            className="w-full"
             placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
             value={textContent}
             onChange={handleNewMessageChange}
             onKeyDown={handleKeyDown}
+            style={{ height: Sizes["--size-fluid-7"] }}
           />
 
           <div className="absolute inset-x-0 bottom-0 left-auto right-0 m-2 flex min-w-[160px] items-center justify-end space-x-2 ">
@@ -191,7 +193,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         </div>
       </div>
       <div>
-        <label className="items-baseli inline-flex cursor-pointer justify-center rounded-full bg-blue-500 p-2 text-white hover:bg-blue-600">
+        <label className="cursor-pointer ">
           <FileMediaIcon size={24} />
           <input
             type="file"

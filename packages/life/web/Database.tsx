@@ -61,32 +61,38 @@ export const Database = () => {
           标签选择
           <TagIcon size={24} />
         </div> */}
-        {/* <div>
+      </div>
+      <div className="flex justify-between">
+        <div className="flex w-3/5 gap-2 overflow-auto">
+          {typeArray.map((typeItem) => {
+            const isActive = type === typeItem || (typeItem === "All" && !type);
+            return (
+              <div
+                key={typeItem}
+                onClick={() => changeType(typeItem)}
+                className="relative flex cursor-pointer items-center justify-center p-2 transition-all duration-200 hover:bg-blue-100"
+                style={
+                  isActive
+                    ? {
+                        borderBottom: "3px solid",
+                        borderBottomColor: mainColor,
+                      }
+                    : undefined
+                }
+              >
+                {typeItem}
+              </div>
+            );
+          })}
+        </div>
+        <div className="w-1/5">
           视图切换
           <ProjectIcon size={24} />
           <NoteIcon size={24} />
           <ListUnorderedIcon size={24} />
-        </div> */}
+        </div>
       </div>
-      <div className="flex gap-2">
-        {typeArray.map((typeItem) => {
-          const isActive = type === typeItem || (typeItem === "All" && !type);
-          return (
-            <div
-              key={typeItem}
-              onClick={() => changeType(typeItem)}
-              className="relative flex cursor-pointer items-center justify-center p-2 transition-all duration-200 hover:bg-blue-100"
-              style={
-                isActive
-                  ? { borderBottom: "3px solid", borderBottomColor: mainColor }
-                  : undefined
-              }
-            >
-              {typeItem}
-            </div>
-          );
-        })}
-      </div>
+
       <DataList data={data} />
     </div>
   );

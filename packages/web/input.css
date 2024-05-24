@@ -5,6 +5,7 @@
 @import "open-props/normalize";
 @import "open-props/buttons";
 @import "open-props/gray-hsl";
+@import "open-props/aspects";
 
 
 /* @tailwind base; */
@@ -12,9 +13,7 @@
 @tailwind utilities;
 
 
-html {
-  --brand:var(--blue-5);
-}
+
 
 
   * {
@@ -110,8 +109,3 @@ p.text1 {
   ;
 }
 
-
-.brand {
-  color: var(--brand);
-  background-color: var(--brand);
-}

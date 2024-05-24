@@ -19,8 +19,9 @@ export const MessageItem = ({ id }) => {
   if (loading) {
     return <div>loading</div>;
   } else if (data) {
-    console.log("data.userId", data.userId);
     const isSelf = currentUserId === data.userId;
+    console.log("isSelf", isSelf);
+
     const { content, image } = data;
     if (data.llmId) {
       return <RobotMessage id={id} content={content} image={image} />;

@@ -9,7 +9,6 @@ import { routes as settingRoutes } from "setting/routes";
 import { SurfTip } from "./SurfTip";
 import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
-import Spots from "app/pages/Spots";
 const Page = lazy(() => import("render/page/PageIndex"));
 import People from "app/pages/People";
 import AI from "app/pages/AI";
@@ -34,14 +33,6 @@ export const routes = (currentUser) => [
       {
         path: "robots",
         element: <AI />,
-      },
-      {
-        path: "spots",
-        element: (
-          <Suspense fallback={<div>loading spots</div>}>
-            <Spots />
-          </Suspense>
-        ),
       },
       ...authRoutes,
       ...createRoutes,

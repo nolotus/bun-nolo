@@ -33,13 +33,12 @@ export const ChatBotBlock = ({ item }) => {
   };
   return (
     <div
-      className="surface1 rad-shadow flex flex-col"
+      className="surface1  flex flex-col"
       style={{ padding: "var(--size-1)" }}
     >
       <div className="flex items-center justify-between pb-4">
         <div className="text-lg font-bold">{item.name}</div>
         <div className="flex">
-          <button className="mr-2">删除</button>
           <button onClick={createNewDialog} className="mr-2">
             对话
           </button>

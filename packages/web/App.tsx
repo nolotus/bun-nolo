@@ -1,16 +1,18 @@
 import { useAuth } from "auth/useAuth";
-import { getTokensFromLocalStorage } from "auth/client/token";
 import { parseToken } from "auth/token";
 import i18n from "i18n";
 import React, { useEffect } from "react";
 import { useRoutes } from "react-router-dom";
 import { restoreSession } from "auth/authSlice";
 
+import { addHostToCurrentServer } from "setting/settingSlice";
+import { useAppDispatch, useAppSelector } from "app/hooks";
+import { FloatMenu } from "app/FloatMenu";
 // // import { generatorRoutes } from "./generatorRoutes";
 
+import { getTokensFromLocalStorage, removeToken } from "auth/client/token";
 import { routes } from "./routes";
-import { addHostToCurrentServer } from "setting/settingSlice";
-import { useAppDispatch } from "app/hooks";
+
 export default function App({ hostname, lng = "en" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
@@ -36,5 +38,11 @@ export default function App({ hostname, lng = "en" }) {
   }, []);
 
   const element = useRoutes(routes(auth.user));
-  return element;
+
+  return (
+    <>
+      {element}
+      <FloatMenu />
+    </>
+  );
 }

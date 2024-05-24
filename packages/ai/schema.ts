@@ -3,8 +3,8 @@ import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 
 import { ModelPriceEnum } from "./models";
 import { DataType } from "create/types";
-//for page create
-export const dsl = {
+
+const baseFields = {
   name: {
     type: "string",
     min: 1,
@@ -12,12 +12,6 @@ export const dsl = {
   description: {
     type: "textarea",
     min: 1,
-  },
-  type: {
-    type: "string",
-    readOnly: true,
-    default: DataType.ChatRobot,
-    readonly: true,
   },
   model: {
     type: "enum",
@@ -39,68 +33,19 @@ export const dsl = {
     optional: true,
   },
 };
-//for dialog create
-export const createDsl = {
-  name: {
-    type: "string",
-    min: 1,
-  },
-  description: {
-    type: "textarea",
-    min: 1,
-  },
 
-  replyRule: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
-  knowledge: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
-  model: {
-    type: "enum",
-    values: Object.keys(ModelPriceEnum),
-  },
-  path: {
+// 专门为页面创建定义的字段
+export const dsl = {
+  ...baseFields,
+  type: {
     type: "string",
-    min: 1,
-    optional: true,
+    readOnly: true,
+    default: DataType.ChatRobot,
+    readonly: true,
   },
 };
-
-const editDsl = {
-  name: {
-    type: "string",
-    min: 1,
-  },
-  description: {
-    type: "textarea",
-    min: 1,
-  },
-
-  replyRule: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
-  knowledge: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
-  model: {
-    type: "enum",
-    values: Object.keys(ModelPriceEnum),
-  },
-  path: {
-    type: "string",
-    min: 1,
-    optional: true,
-  },
-};
+export const createDsl = { ...baseFields };
+export const editDsl = { ...baseFields };
 
 export const schema = createZodSchemaFromDSL(dsl);
 export const fields = createFieldsFromDSL(dsl);

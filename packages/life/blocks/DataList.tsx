@@ -8,8 +8,12 @@ import { baseCard } from "render/styles";
 
 import DataItem from "./DataItem";
 import { removeOne, write } from "database/dbSlice";
+import { CardList } from "./CardList";
+import { DataTable } from "./DataTable";
 const DataList = ({ data }) => {
   const dispatch = useAppDispatch();
+  const [viewMode, setViewMdoe] = useState("table");
+
   const pullData = async (id, value) => {
     // Define the logic for pulling data here
     const flags = extractAndDecodePrefix(id);
@@ -96,8 +100,13 @@ const DataList = ({ data }) => {
           删除选中
         </button> */}
       </div>
-      <div className="flex flex-wrap">
-        {data
+      <div className="">
+        {viewMode === "table" ? (
+          <DataTable dataList={data} />
+        ) : (
+          <CardList dataList={data} />
+        )}
+        {/* {data
           ? data.map((item) => (
               <div
                 className=" group flex w-full  px-8 py-4  sm:w-full md:w-1/2 lg:w-1/3"
@@ -130,16 +139,17 @@ const DataList = ({ data }) => {
                   >
                     <RepoPushIcon size={16} />
                   </button>
+
                   <button
                     onClick={() => deleteItem(item.id)}
-                    className="rounded bg-red-500 p-2 text-white hover:bg-red-400"
+                    className="rounded bg-red-500 p-2  hover:bg-red-400"
                   >
                     <TrashIcon size={16} />
                   </button>
                 </div>
               </div>
             ))
-          : "Loading..."}
+          : "Loading..."} */}
       </div>
     </div>
   );

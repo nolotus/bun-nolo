@@ -1,72 +1,94 @@
 import React, { useState, useRef, useEffect } from "react";
-import zIndex from "app/styles/z-index";
 
 interface DropDownProps {
-	trigger: React.ReactNode;
-	children: React.ReactNode;
-	triggerType?: "click" | "hover"; // 使 triggerType 变成可选属性
+  trigger: React.ReactNode;
+  children: React.ReactNode;
+  triggerType?: "click" | "hover";
+  direction?: "top" | "bottom" | "left" | "right";
 }
 
 const DropDown: React.FC<DropDownProps> = ({
-	trigger,
-	children,
-	triggerType = "hover",
+  trigger,
+  children,
+  triggerType = "hover",
+  direction = "bottom",
 }) => {
-	// triggerType 默认值设置为 'hover'
-	const node = useRef<HTMLDivElement | null>(null);
-	const [isOpen, setIsOpen] = useState<boolean>(false);
+  const node = useRef<HTMLDivElement | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
-	const handleClickOutside = (e: MouseEvent) => {
-		if (!node.current || node.current.contains(e.target as Node)) {
-			return;
-		}
-		setIsOpen(false);
-	};
+  const handleClickOutside = (e: MouseEvent) => {
+    if (!node.current || node.current.contains(e.target as Node)) {
+      return;
+    }
+    setIsOpen(false);
+  };
 
-	const handleEscapeKey = (e: KeyboardEvent) => {
-		if (e.key === "Escape") {
-			setIsOpen(false);
-		}
-	};
+  const handleEscapeKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
 
-	useEffect(() => {
-		if (isOpen) {
-			document.addEventListener("mousedown", handleClickOutside);
-			document.addEventListener("keydown", handleEscapeKey);
-		}
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscapeKey);
+    }
 
-		return () => {
-			document.removeEventListener("mousedown", handleClickOutside);
-			document.removeEventListener("keydown", handleEscapeKey);
-		};
-	}, [isOpen]);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [isOpen]);
 
-	const toggleDropDown = () => setIsOpen((prev) => !prev);
+  const toggleDropDown = () => setIsOpen((prev) => !prev);
 
-	// 根据 triggerType 来设置不同的事件处理器
-	const eventHandlers =
-		triggerType === "click"
-			? {
-					onClick: toggleDropDown,
-			  }
-			: {
-					onMouseEnter: () => setIsOpen(true),
-					onMouseLeave: () => setIsOpen(false),
-			  };
-
-	return (
-		<div className="relative" ref={node} {...eventHandlers}>
-			<div className="focus:outline-none">{trigger}</div>
-			{isOpen && (
-				<div
-					className="absolute right-0 w-56 bg-white" // 移除了 z-50 类
-					style={{ transform: "scale(1)", opacity: 1, zIndex: zIndex.dropdown }}
-				>
-					<div className="py-1">{children}</div>
-				</div>
-			)}
-		</div>
-	);
+  // 根据 triggerType 来设置不同的事件处理器
+  const eventHandlers =
+    triggerType === "click"
+      ? {
+          onClick: toggleDropDown,
+        }
+      : {
+          onMouseEnter: () => setIsOpen(true),
+          onMouseLeave: () => setIsOpen(false),
+        };
+  let positionStyle = {};
+  switch (direction) {
+    case "top":
+      positionStyle = { bottom: "100%", right: 0 };
+      break;
+    case "right":
+      positionStyle = { left: "100%", top: 0 };
+      break;
+    case "left":
+      positionStyle = { right: "100%", top: 0 };
+      break;
+    case "bottom":
+    default:
+      positionStyle = { top: "100%", right: 0 };
+      break;
+  }
+  return (
+    <div className="relative" ref={node} {...eventHandlers}>
+      <div className="focus:outline-none">{trigger}</div>
+      {isOpen && (
+        <div
+          className="absolute"
+          style={{
+            ...positionStyle,
+            transform: "scale(1)",
+            opacity: 1,
+            zIndex: 2,
+            width: "auto",
+            minWidth: "56px",
+          }}
+        >
+          <div className="py-1">{children}</div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default DropDown;

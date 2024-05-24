@@ -12,12 +12,11 @@ import { Toast, useToastManager } from "ui/Toast";
 import { Link } from "react-router-dom";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
-import { MessageTextContent } from "./MessageTextContent";
-import { MessageImage } from "./MessageImage";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
 import { ulid } from "ulid";
 import { useAppDispatch } from "app/hooks";
+import { MessageContent } from "./MessageContent";
 
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();
@@ -67,11 +66,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
         <div>
           <Avatar name="robot" />
         </div>
-        {image ? (
-          <MessageImage image={image} />
-        ) : (
-          <MessageTextContent content={content} />
-        )}
+        <MessageContent content={content} />
         <div className="ml-2 flex flex-col space-y-1">
           <IconButton icon={UnmuteIcon} onClick={handlePlayClick} />
           <IconButton icon={DesktopDownloadIcon} onClick={handleSaveContent} />

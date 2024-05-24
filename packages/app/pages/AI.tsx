@@ -1,6 +1,5 @@
 import React from "react";
 
-import { nolotusId } from "core/init";
 import ChatAIList from "ai/blocks/ChatAIList";
 import { useAuth } from "auth/useAuth";
 
@@ -15,9 +14,6 @@ const AI = () => {
           <ChatAIList queryUserId={user?.userId} />
         </>
       )}
-
-      <h2 className="mb-4">公共 AIs</h2>
-      <ChatAIList queryUserId={nolotusId} />
     </div>
   );
 };

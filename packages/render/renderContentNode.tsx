@@ -177,9 +177,6 @@ export const renderContentNode = (
       );
 
     default:
-      if (debug) {
-        console.log("Debugging node:", node);
-      }
       if (typeof node === "string") {
         return node;
       } else if (Array.isArray(node)) {
@@ -196,6 +193,9 @@ export const renderContentNode = (
           </div>
         );
       } else {
+        if (debug) {
+          console.log("Debugging node:", node);
+        }
         return <span className="text-red-500">Unknown type: {node.type}</span>;
       }
   }

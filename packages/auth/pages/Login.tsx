@@ -5,8 +5,9 @@ import { LifeRoutePaths } from "life/routes";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Button } from "ui";
+import Sizes from "open-props/src/sizes";
 
 import { userFormSchema } from "../schema";
 import { useAppDispatch } from "app/hooks";
@@ -58,32 +59,18 @@ const Login: React.FC = () => {
   return (
     <div>
       <div className="flex items-center justify-center">
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="w-full max-w-lg rounded bg-white p-10 shadow"
-        >
-          <h2 className="mb-6 text-2xl font-bold text-gray-800">
-            {t("login")}
-          </h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-lg">
+          <h2 className="mb-6">{t("login")}</h2>
           {signInFields.map((field) => (
             <div key={field.id} className="mb-6">
-              <label
-                htmlFor={field.id}
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor={field.id} className="mb-2 block">
                 {t(field.label)}
               </label>
               <FormField
                 {...field}
                 register={register}
                 errors={errors}
-                icon={
-                  field.id === "username" ? (
-                    <PersonIcon className="text-gray-400" size={24} />
-                  ) : (
-                    <LockIcon className="text-gray-400" size={24} />
-                  )
-                }
+                icon={field.id === "username" ? <PersonIcon /> : <LockIcon />}
               />
             </div>
           ))}
@@ -97,6 +84,16 @@ const Login: React.FC = () => {
           >
             {t("submit")}
           </Button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: Sizes["--size-fluid-1"],
+            }}
+          >
+            <NavLink to="/signup">注册</NavLink>
+            <NavLink to="/">忘记密码</NavLink>
+          </div>
         </form>
       </div>
     </div>
