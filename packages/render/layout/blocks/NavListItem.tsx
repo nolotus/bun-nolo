@@ -15,7 +15,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
   icon,
   style,
 }) => {
-  const mainColor = useSelector((state: any) => state.theme.mainColor);
+  const brandColor = useSelector((state: any) => state.theme.brandColor);
 
   // 默认样式，用于NavLink的基础样式
   const defaultStyle: React.CSSProperties = {
@@ -36,10 +36,10 @@ const NavListItem: React.FC<NavListItemProps> = ({
       style={({ isActive }) => ({
         ...defaultStyle,
         color: isActive ? "white" : defaultStyle.color,
-        backgroundColor: isActive ? mainColor : "transparent",
+        backgroundColor: isActive ? brandColor : "transparent",
       })}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = mainColor;
+        e.currentTarget.style.backgroundColor = brandColor;
         e.currentTarget.style.color = "white";
       }}
       onMouseLeave={(e) => {

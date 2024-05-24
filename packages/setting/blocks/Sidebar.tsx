@@ -38,25 +38,21 @@ const Sidebar: React.FC = () => {
     return true;
   };
   return (
-    <div className="min-h-screen w-64 space-y-4 bg-gray-800 p-6 text-white">
-      <h1 className="text-2xl font-bold">Settings</h1>
-
-      <nav className="space-y-2">
-        <ul>
-          {navItems.map((item, index) => {
-            const isDisplay = couldDisplay(item);
-            return isDisplay ? (
-              <li className="rounded" key={index}>
-                <Link
-                  to={item.path}
-                  className="block rounded p-2 text-gray-300 transition-colors duration-200 ease-in-out hover:bg-gray-700 hover:text-white"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ) : null;
-          })}
-        </ul>
+    <div className=" min-h-screen w-64 space-y-4 p-6 ">
+      <h3>Settings</h3>
+      <nav style={{ display: "flex", flexDirection: "column" }}>
+        {navItems.map((item) => {
+          const isDisplay = couldDisplay(item);
+          return isDisplay ? (
+            <Link
+              key={item.label}
+              to={item.path}
+              className="block rounded p-2 transition-colors duration-200 ease-in-out"
+            >
+              <button>{item.label}</button>
+            </Link>
+          ) : null;
+        })}
       </nav>
     </div>
   );

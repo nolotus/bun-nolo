@@ -12,58 +12,67 @@ import clsx from "clsx";
 import React, { useEffect } from "react";
 
 import { NavLink } from "react-router-dom";
-const buttonBaseClass =
-  "w-full flex items-center p-2 mb-2 text-sm font-medium rounded-md transition-colors ease-snappy hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-neutral-400";
-const iconClass = "text-neutral-600 mr-2";
+const buttonBaseClass = "w-full flex";
 const activeClass = "bg-neutral-300";
 
 export const Sidebar = () => {
   const getNavLinkClass = ({ isActive }) =>
     clsx(buttonBaseClass, isActive && activeClass);
   return (
-    <div className="min-h-full w-48 overflow-y-auto bg-neutral-100">
-      <div className="flex flex-col justify-between p-4">
-        <nav>
-          <NavLink to="/life/database" className={getNavLinkClass}>
-            <DatabaseIcon size={20} className={iconClass} />
-            <span>database</span>
-          </NavLink>
-          <NavLink to="/life/all" className={getNavLinkClass}>
-            <DatabaseIcon size={20} className={iconClass} />
-            <span>All</span>
-          </NavLink>
-          <NavLink to="/life/notes" className={getNavLinkClass}>
-            <FileMediaIcon size={24} />
-            <span>Medias</span>
-          </NavLink>
+    <div className="flex flex-col  p-4" style={{ gap: "12px" }}>
+      <NavLink to="/life/database" className={getNavLinkClass}>
+        <button>
+          <DatabaseIcon size={20} />
+          <span>database</span>
+        </button>
+      </NavLink>
 
-          <NavLink to="/life/notes" className={getNavLinkClass}>
-            <NoteIcon size={20} className={iconClass} />
-            <span>Notes</span>
-          </NavLink>
-          <NavLink to="/life/calendar" className={getNavLinkClass}>
-            <CalendarIcon size={20} className={iconClass} />
-            <span>Calendar</span>
-          </NavLink>
-          <button type="button" className={clsx(buttonBaseClass)}>
-            <FileIcon size={20} className={iconClass} />
-            Files
-          </button>
-          <button type="button" className={clsx(buttonBaseClass)}>
-            <TasklistIcon size={20} className={iconClass} />
-            Tasks
-          </button>
+      <NavLink to="/life/all" className={getNavLinkClass}>
+        <button>
+          <DatabaseIcon size={20} />
+          <span>All</span>
+        </button>
+      </NavLink>
 
-          <NavLink to="/life/statistics" className={getNavLinkClass}>
-            <GraphIcon size={20} className={iconClass} />
-            <span>统计</span>
-          </NavLink>
-          <NavLink to="/life/archive" className={getNavLinkClass}>
-            <ArchiveIcon size={20} className={iconClass} />
-            <span>Archive</span>
-          </NavLink>
-        </nav>
-      </div>
+      <NavLink to="/life/notes" className={getNavLinkClass}>
+        <button>
+          <FileMediaIcon size={24} />
+          <span>Medias</span>
+        </button>
+      </NavLink>
+      <NavLink to="/life/notes" className={getNavLinkClass}>
+        <button>
+          <NoteIcon size={20} />
+          <span>Notes</span>
+        </button>
+      </NavLink>
+      <NavLink to="/life/calendar" className={getNavLinkClass}>
+        <button>
+          <CalendarIcon size={20} />
+          <span>Calendar</span>
+        </button>
+      </NavLink>
+      <button type="button" className={clsx(buttonBaseClass)}>
+        <FileIcon size={20} />
+        Files
+      </button>
+      <button type="button" className={clsx(buttonBaseClass)}>
+        <TasklistIcon size={20} />
+        Tasks
+      </button>
+
+      <NavLink to="/life/statistics" className={getNavLinkClass}>
+        <button>
+          <GraphIcon size={20} />
+          <span>统计</span>
+        </button>
+      </NavLink>
+      <NavLink to="/life/archive" className={getNavLinkClass}>
+        <button>
+          <ArchiveIcon size={20} />
+          <span>Archive</span>
+        </button>
+      </NavLink>
     </div>
   );
 };

@@ -31,9 +31,9 @@ const ExtendedProfile = () => {
 
   return (
     <div className="space-y-4 p-4">
-      <h1 className="mb-2 text-2xl font-semibold">ExtendedProfile</h1>
-      <div className="space-y-2 rounded bg-gray-100 px-4 py-3">
-        <h2 className="text-xl font-semibold">兴趣爱好</h2>
+      <h2 className="mb-2">ExtendedProfile</h2>
+      <div className="space-y-2">
+        <h2>兴趣爱好</h2>
         <input
           type="text"
           placeholder="已经会的兴趣 (comma separated)"
@@ -48,7 +48,7 @@ const ExtendedProfile = () => {
                 .map((str) => str.trim()),
             })
           }
-          className="w-full rounded border border-gray-300 p-2"
+          className="w-full "
         />
         <input
           type="text"
@@ -62,15 +62,14 @@ const ExtendedProfile = () => {
               interestedIn: e.target.value.split(", ").map((str) => str.trim()),
             })
           }
-          className="w-full rounded border border-gray-300 p-2"
+          className="w-full"
         />
       </div>
 
-      <div className="space-y-6 px-4 py-3">
-        <h2 className="text-xl font-semibold">居住</h2>
+      <div className="space-y-6  py-3">
+        <h2>居住</h2>
         <div className="space-y-2">
-          <h3 className="text-lg font-bold">现居</h3>
-
+          <h4>将去</h4>
           <Select
             options={provinces}
             value={currentProvince}
@@ -104,7 +103,7 @@ const ExtendedProfile = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-bold">将去</h3>
+          <h4>将去</h4>
 
           <Select
             options={provinces}
@@ -134,10 +133,7 @@ const ExtendedProfile = () => {
           />
         </div>
       </div>
-      <button
-        onClick={handleSaveClick}
-        className="focus:shadow-outline w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
-      >
+      <button onClick={handleSaveClick} className=" w-full  ">
         Save
       </button>
       {error && <div className="text-red-500">{error}</div>}

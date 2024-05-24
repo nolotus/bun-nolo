@@ -5,7 +5,7 @@ import { renderContentNode } from "render";
 import { unified } from "unified";
 import { MessageRole } from "./types";
 
-export const MessageContent: React.FC<{
+export const MessageTextContent: React.FC<{
   type: MessageRole;
   content: string;
 }> = ({ type, content }) => {
@@ -21,7 +21,7 @@ export const MessageContent: React.FC<{
 
   return (
     <div
-      className={`surface-1 mx-2 whitespace-pre-wrap rounded-lg px-4   py-2`}
+      className={`surface-1 mx-2 whitespace-pre-wrap rounded-lg px-4 py-2`}
       style={{ boxShadow: "var(--shadow-2)" }}
     >
       {type === "user" ? content : renderedContent}

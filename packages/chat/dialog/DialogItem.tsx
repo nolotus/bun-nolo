@@ -2,9 +2,10 @@ import { NavLink } from "react-router-dom";
 import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
 import { PencilIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
-import { useAppDispatch, useFetchData } from "app/hooks";
+import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import { deleteDialog, initDialog } from "./dialogSlice";
+import IconButton from "ui/IconButton";
 
 export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
@@ -27,31 +28,31 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   } = useDeleteAlert(() => {
     onDeleteDialog(dialog);
   });
+  const brandColor = useAppSelector((state) => state.theme.brandColor);
+
   return (
     <div
-      className={`group flex cursor-pointer items-center px-4 py-2 ${
-        isSelected ? "bg-gray-200" : "hover:bg-gray-100"
-      } transition duration-150 ease-in-out`}
+      className={`group flex cursor-pointer items-center px-4 py-2 transition duration-150 ease-in-out`}
     >
       <NavLink
         to={`/chat?dialogId=${dialog.id}`}
-        className="flex-grow text-gray-600 hover:text-gray-800"
         onClick={() => dispatch(initDialog(dialog.id))}
       >
-        <span className="block p-2">{data?.name}</span>
+        <button className={` ${isSelected ? "surface3  " : "surface1"} `}>
+          <span className="block p-2">{data?.name}</span>
+        </button>
       </NavLink>
+
       {allowEdit && (
         <div className="ml-auto flex space-x-2 opacity-0 transition duration-150 ease-in-out group-hover:opacity-100">
-          <button
-            type="button"
-            className="text-gray-500 hover:text-blue-500 focus:outline-none"
+          <IconButton
+            icon={PencilIcon}
+            style={{ color: "var(--blue-6)" }}
             onClick={(e) => {
               e.stopPropagation();
               openEdit();
             }}
-          >
-            <PencilIcon size={16} />
-          </button>
+          />
           {editVisible && (
             <Dialog
               isOpen={editVisible}
@@ -61,16 +62,15 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
               <ChatConfigForm initialValues={data} onClose={closeEdit} />
             </Dialog>
           )}
-          <button
-            type="button"
-            className="text-gray-500 hover:text-red-500 focus:outline-none"
+
+          <IconButton
+            icon={TrashIcon}
+            style={{ color: "var(--red-6)" }}
             onClick={(e) => {
               e.stopPropagation();
               confirmDelete(dialog);
             }}
-          >
-            <TrashIcon size={16} />
-          </button>
+          />
           {deleteAlertVisible && (
             <Alert
               isOpen={deleteAlertVisible}

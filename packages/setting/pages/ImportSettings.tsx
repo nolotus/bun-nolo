@@ -45,29 +45,19 @@ const ImportSettings = () => {
       : truncateString(value, 30);
 
   return (
-    <div className="rounded-md bg-white p-4 shadow-md">
-      <h1 className="mb-4 text-2xl font-semibold">Import Settings</h1>
+    <div className="rounded-md  p-4">
+      <h2 className="mb-4">Import Settings</h2>
       <div className="mb-4">
-        <label
-          htmlFor="userId"
-          className="block text-sm font-medium text-gray-600"
-        >
-          User ID:{" "}
-        </label>
+        <label htmlFor="userId">User ID: </label>
         <input
           type="text"
           id="userId"
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
-          className="mt-1 w-full rounded-md border p-2"
+          className="mt-1 w-full"
         />
       </div>
-      <button
-        onClick={fetchData}
-        className="rounded-md bg-blue-500 p-2 text-white"
-      >
-        Fetch Data
-      </button>
+      <button onClick={fetchData}>Fetch Data</button>
       <ul className="mt-4">
         {data.map((item, index) => (
           <li key={index} className="mb-2">

@@ -168,17 +168,15 @@ const MessageInput: React.FC<MessageInputProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* 输入文本区 */}
         <div className="relative flex-grow">
           <textarea
-            className="h-36 w-full border-none p-3 text-black focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="h-36  w-full"
             placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
             value={textContent}
             onChange={handleNewMessageChange}
             onKeyDown={handleKeyDown}
           />
 
-          {/* 图像预览和发送按钮 */}
           <div className="absolute inset-x-0 bottom-0 left-auto right-0 m-2 flex min-w-[160px] items-center justify-end space-x-2 ">
             <ImagePreview
               imageUrls={imagePreviewUrls}

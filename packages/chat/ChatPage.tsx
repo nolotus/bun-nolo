@@ -94,7 +94,7 @@ const ChatPage = () => {
       {isLoading && <div>loading</div>}
 
       {dialogList.length > 0 && (
-        <div className="w-full overflow-y-auto bg-white lg:block lg:w-1/5">
+        <div className="w-full overflow-y-auto  lg:block lg:w-1/5">
           <DialogSidebar dialogList={dialogList} />
         </div>
       )}

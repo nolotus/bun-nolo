@@ -12,7 +12,7 @@ import { Toast, useToastManager } from "ui/Toast";
 import { Link } from "react-router-dom";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
-import { MessageContent } from "./MessageContent";
+import { MessageTextContent } from "./MessageTextContent";
 import { MessageImage } from "./MessageImage";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
@@ -70,7 +70,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
         {image ? (
           <MessageImage image={image} />
         ) : (
-          <MessageContent content={content} />
+          <MessageTextContent content={content} />
         )}
         <div className="ml-2 flex flex-col space-y-1">
           <IconButton icon={UnmuteIcon} onClick={handlePlayClick} />

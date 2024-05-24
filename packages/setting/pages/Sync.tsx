@@ -83,7 +83,7 @@ const Sync = () => {
       />
       <button
         onClick={handleSaveClick}
-        className="focus:shadow-outline mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
+        className="focus:shadow-outline primary mt-4  rounded px-4 py-2 font-bold"
       >
         Save
       </button>
@@ -96,10 +96,7 @@ const Sync = () => {
         placeholder="Enter server addresses (comma separated)"
         error={error}
       />
-      <button
-        onClick={handleSaveClick}
-        className="focus:shadow-outline mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
-      >
+      <button onClick={handleSaveClick} className="mt-4">
         Save
       </button>
       <h2>删除数据时</h2>
@@ -111,10 +108,7 @@ const Sync = () => {
         placeholder="Enter server addresses (comma separated)"
         error={error}
       />
-      <button
-        onClick={handleSaveClick}
-        className="focus:shadow-outline mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
-      >
+      <button onClick={handleSaveClick} className="mt-4 ">
         Save
       </button>
     </div>

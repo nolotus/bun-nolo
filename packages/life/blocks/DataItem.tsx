@@ -7,9 +7,9 @@ import { PayBlock } from "render/pay/Payblock";
 import { DataType } from "create/types";
 
 const DataItem = ({ item }) => {
-  const { id, source } = item;
+  const { id } = item;
   if (item?.type === "chatRobot") {
-    return <ChatBotBlock item={{ value: item, source, key: id }} key={id} />;
+    return <ChatBotBlock item={item} />;
   }
   if (item?.type === "tokenStatistics") {
     return <TokenStatisticsItem id={id} content={item} />;
@@ -20,7 +20,7 @@ const DataItem = ({ item }) => {
   if (item?.type === DataType.Message) {
     return (
       <div>
-        {item.content}
+        {/* {item.content} */}
         <div>
           belongs:
           {item.belongs?.map((belongId) => {

@@ -83,9 +83,7 @@ const ServiceProviderSettings = () => {
     <div>
       Service Provider Settings
       <div className="mb-4">
-        <label className="mb-2 mt-4 block text-sm font-bold text-gray-700">
-          Data Source:
-        </label>
+        <label className="mb-2 mt-4 block">Data Source:</label>
         <input
           type="text"
           value={formData?.dataSource || ""}
@@ -94,15 +92,10 @@ const ServiceProviderSettings = () => {
           }
         />
         {/* 添加查询按钮 */}
-        <button
-          onClick={handleQueryClick}
-          className="focus:shadow-outline mb-4 ml-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
-        >
+        <button onClick={handleQueryClick} className="ml-2">
           查询
         </button>
-        <label className="mb-2 mt-4 block text-sm font-bold text-gray-700">
-          Target Source:
-        </label>
+        <label className="mb-2 mt-4 block">Target Source:</label>
         <input
           type="text"
           value={formData?.targetSource || ""}

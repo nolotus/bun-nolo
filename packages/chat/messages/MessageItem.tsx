@@ -24,6 +24,8 @@ export const MessageItem = ({ id }) => {
     const { content, image } = data;
     if (data.llmId) {
       return <RobotMessage id={id} content={content} image={image} />;
+    } else {
+      return <UserMessage content={content} />;
     }
 
     return (

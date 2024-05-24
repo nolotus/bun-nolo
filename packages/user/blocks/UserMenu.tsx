@@ -2,7 +2,6 @@
 import {
   GearIcon,
   SignOutIcon,
-  CommentIcon,
   PlusIcon,
   PersonIcon,
   ChevronDownIcon,
@@ -53,7 +52,6 @@ export const UserMenu = () => {
   };
   return (
     <>
-      <NavListItem path="/chat" icon={<CommentIcon size={24} />} label="聊天" />
       <DropDown
         trigger={
           <NavListItem
