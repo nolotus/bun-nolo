@@ -1,5 +1,7 @@
 import { Link } from "ui";
+import Sizes from "open-props/src/sizes";
 import { nolotusId } from "core/init";
+
 import ChatAIList from "ai/blocks/ChatAIList";
 import { useAppSelector, useQueryData } from "app/hooks";
 import { DataType } from "create/types";
@@ -13,7 +15,7 @@ import {
   DependabotIcon,
 } from "@primer/octicons-react";
 import { SpotCard } from "render/components/SpotCard";
-import Sizes from "open-props/src/sizes";
+import React from "react";
 
 const Home = () => {
   const options = {

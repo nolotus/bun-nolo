@@ -2,6 +2,7 @@ import { ChatBotBlock } from "ai/blocks/ChatBotBlock";
 import { useAppSelector, useQueryData } from "app/hooks";
 import { DataType } from "create/types";
 import { selectFilteredDataByUserAndType } from "database/selectors";
+import React from "react";
 
 const ChatAIList = ({ queryUserId, limit = 20 }) => {
   const queryConfig = {

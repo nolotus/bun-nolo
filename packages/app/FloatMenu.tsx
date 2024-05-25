@@ -1,4 +1,4 @@
-import { useAuth } from "auth/useAuth";
+import React from "react";
 import {
   CommentIcon,
   HomeIcon,
@@ -12,9 +12,12 @@ import Shadows from "open-props/src/shadows";
 import Sizes from "open-props/src/sizes";
 import Borders from "open-props/src/borders";
 import { DropDown } from "ui";
-import { changeCurrentUser, signOut } from "auth/authSlice";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+
+import { useAuth } from "auth/useAuth";
+import { changeCurrentUser, signOut } from "auth/authSlice";
+
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { getTokensFromLocalStorage, removeToken } from "auth/client/token";
 import { CreateMenu } from "create/blocks/CreateMenu";
