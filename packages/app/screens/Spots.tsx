@@ -6,11 +6,11 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import Card from "./Card";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import { query } from "database/dbSlice";
-import { useAppDispatch } from "../hooks";
+
+import Card from "./Card";
+import { useAppDispatch, useQueryData } from "../hooks";
 
 export function SpotsScreen() {
   const dispath = useAppDispatch();
@@ -26,17 +26,17 @@ export function SpotsScreen() {
     queryUserId: nolotusId,
     options,
   };
-  useEffect(() => {
-    dispath(query(options));
-  }, []);
 
-  if (!data) {
+  const { data, isLoading, isSuccess } = useQueryData(queryConfig);
+
+  if (isLoading) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
+  console.log("data", data);
 
   return (
     <ScrollView style={styles.container}>
@@ -62,13 +62,13 @@ export function SpotsScreen() {
 const styles = StyleSheet.create({
   loader: {
     flex: 1,
-    justifyContent: "center", // 居中显示
-    alignItems: "center", // 居中显示
+    justifyContent: "center",
+    alignItems: "center",
   },
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: "#f9f9f9", // 背景颜色
+    backgroundColor: "#f9f9f9",
   },
   headerTitle: {
     fontSize: 24,
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between", // 让卡片分散对齐，从而产生间隙
-    paddingHorizontal: 10, // 容器的左右内边距
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
   },
 });

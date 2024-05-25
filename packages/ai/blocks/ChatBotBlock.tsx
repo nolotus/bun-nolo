@@ -42,7 +42,6 @@ export const ChatBotBlock = ({ item }) => {
           <button onClick={createNewDialog} className="mr-2">
             对话
           </button>
-          <button className="mr-2">编辑</button>
         </div>
       </div>
 

@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import Colors from "open-props/src/colors";
-
+import OpenProps from "open-props";
 import { blues } from "../colors";
 import { lightTheme } from "./lightTheme";
 // 定义一个主色调数组
@@ -9,7 +8,7 @@ const mainColors = [...blues];
 const initialState = {
   theme: "light",
   mainColor: lightTheme.mainActiveColor,
-  brandColor: Colors["--blue-5"],
+  brandColor: OpenProps["--blue-5"],
   statusBarColor: lightTheme.statusBarColor,
   mainBackgroundColor: lightTheme.mainBackgroundColor,
 };

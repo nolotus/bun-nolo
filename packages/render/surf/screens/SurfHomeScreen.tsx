@@ -29,7 +29,6 @@ export function SurfHomeScreen({ route }) {
   const navigation = useNavigation();
 
   const { data, isLoading, error } = useFetchData(id);
-
   useLayoutEffect(() => {
     data?.title &&
       navigation.setOptions({
