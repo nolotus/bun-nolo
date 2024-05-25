@@ -1235,27 +1235,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNVectorIcons (10.0.3):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - SocketRocket (0.7.0)
   - Yoga (0.0.0)
 
@@ -1322,7 +1301,6 @@ DEPENDENCIES:
   - RNLocalize (from `../node_modules/react-native-localize`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1451,8 +1429,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
-  RNVectorIcons:
-    :path: "../node_modules/react-native-vector-icons"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1517,7 +1493,6 @@ SPEC CHECKSUMS:
   RNLocalize: 1ce4263770515f53d3de442ce7657b3661b16a37
   RNReanimated: 7ad0f08a845cb60955ee5d461d2156d7b9707118
   RNScreens: 23dad53fc9db1da2c93e647ae33fd7ce2bd49d60
-  RNVectorIcons: 50ea777efffdd991a22e968aa312d75da7ff46c3
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Yoga: b9a182ab00cf25926e7f79657d08c5d23c2d03b0
 
