@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 
-import { FieldProps } from './type';
+import { FieldProps } from "./type";
 
 export const TextAreaField: React.FC<FieldProps> = ({
   id,
@@ -13,7 +13,7 @@ export const TextAreaField: React.FC<FieldProps> = ({
       {...register(id, {
         required: !optional,
       })}
-      className="w-full p-2 border rounded-lg"
+      className="w-full "
     />
   </div>
 );
