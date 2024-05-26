@@ -113,8 +113,15 @@ const Home = () => {
         <span>AIs</span>
       </h4>
       <ChatAIList queryUserId={nolotusId} />
-      <h4 className="">浪点</h4>
+      <h4 className="">
+        <LocationIcon size="medium" />
+        浪点
+      </h4>
       <div className="flex flex-wrap">{data && renderSpotList(data)}</div>
+      <h4 className="">
+        <PeopleIcon size="medium" />
+        游民
+      </h4>
     </div>
   );
 };

@@ -102,7 +102,6 @@ export const authSlice = createSliceWithThunks({
         //   );
         // }
 
-        // const response = await registerUser(sendData).unwrap();
         const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
         const state = thunkAPI.getState();
         const res = await noloRequest(state, {

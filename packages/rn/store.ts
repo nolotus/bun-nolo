@@ -6,6 +6,8 @@ import themeReducer from "app/theme/themeSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { api } from "app/api";
 import reactotron from "../../ReactotronConfig";
+import settingReducer from "setting/settingSlice";
+
 const preloadedState = {};
 
 export const mobileStore = configureStore({
@@ -15,6 +17,8 @@ export const mobileStore = configureStore({
     auth: authReducer,
     db: dbReducer,
     theme: themeReducer,
+    settings: settingReducer,
+
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

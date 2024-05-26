@@ -95,17 +95,13 @@ const ChatPage = () => {
         </div>
       )}
 
-      {isSuccess && (
-        <>
-          {currentDialogConfig ? (
-            <div className="lg:w-4/5">
-              <ChatWindow currentDialogConfig={currentDialogConfig} />
-            </div>
-          ) : (
-            <ChatGuide />
-          )}
-        </>
+      {currentDialogConfig && isSuccess && (
+        <div className="lg:w-4/5">
+          <ChatWindow currentDialogConfig={currentDialogConfig} />
+        </div>
       )}
+
+      {isSuccess && dialogList.length == 0 && <ChatGuide />}
     </div>
   );
 };

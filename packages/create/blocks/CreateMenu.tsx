@@ -26,7 +26,6 @@ export const CreateMenu = () => {
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
-            boxShadow: Shadows["--shadow-6"],
           }}
           onClick={() => {
             navigate("/create");
@@ -42,7 +41,6 @@ export const CreateMenu = () => {
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
-            boxShadow: Shadows["--shadow-6"],
           }}
           onClick={() => {
             navigate(`/${CreateRoutePaths.CREATE_PAGE}`);
@@ -54,7 +52,6 @@ export const CreateMenu = () => {
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
-            boxShadow: Shadows["--shadow-6"],
           }}
           onClick={() => {
             navigate(`/${CreateRoutePaths.CREATE_CHAT_ROBOT}`);
@@ -66,7 +63,6 @@ export const CreateMenu = () => {
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
-            boxShadow: Shadows["--shadow-6"],
           }}
           onClick={() => {
             navigate(

@@ -167,6 +167,7 @@ export const renderContentNode = (
     // }
 
     case "strikethrough":
+      return <s> {node.children?.map(renderChild)}</s>;
     case "thematicBreak":
       return <hr className={classNames} />;
     case "delete":
@@ -175,7 +176,13 @@ export const renderContentNode = (
           {node.children?.map(renderChild)}
         </Strikethrough>
       );
-
+    case "footnoteDefinition":
+      return <sup> {node.children?.map(renderChild)}</sup>;
+    case "footnoteReference":
+      return <p> {node.children?.map(renderChild)}</p>;
+    case "html":
+      console.log("html", node);
+      return <p>{node.value}</p>;
     default:
       if (typeof node === "string") {
         return node;

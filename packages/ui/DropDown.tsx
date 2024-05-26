@@ -71,7 +71,7 @@ const DropDown: React.FC<DropDownProps> = ({
   }
   return (
     <div className="relative" ref={node} {...eventHandlers}>
-      <div className="focus:outline-none">{trigger}</div>
+      {trigger}
       {isOpen && (
         <div
           className="absolute"

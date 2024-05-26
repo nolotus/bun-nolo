@@ -1,8 +1,4 @@
-import {
-  DesktopDownloadIcon,
-  UnmuteIcon,
-  TrashIcon,
-} from "@primer/octicons-react";
+import { UnmuteIcon, TrashIcon, DuplicateIcon } from "@primer/octicons-react";
 import { useAuth } from "auth/useAuth";
 import { useWriteMutation } from "database/services";
 import React from "react";
@@ -32,7 +28,6 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
         userId: auth.user?.userId,
         customId: ulid(),
       };
-
       const response = await write(writeData);
       addToast(
         <div className="text-black">
@@ -40,7 +35,6 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
             to={`/${response.data.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-bold text-blue-600 hover:text-blue-800"
           >
             保存成功，这里
           </Link>
@@ -69,7 +63,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
         <MessageContent content={content} />
         <div className="ml-2 flex flex-col space-y-1">
           <IconButton icon={UnmuteIcon} onClick={handlePlayClick} />
-          <IconButton icon={DesktopDownloadIcon} onClick={handleSaveContent} />
+          <IconButton icon={DuplicateIcon} onClick={handleSaveContent} />
           <IconButton
             icon={TrashIcon}
             onClick={() => dispatch(deleteMessage(id))}

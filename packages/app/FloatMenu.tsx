@@ -44,7 +44,6 @@ const IsLoggedInMenu = () => {
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
-            boxShadow: Shadows["--shadow-6"],
           }}
           onClick={() => {
             navigate("/life");
@@ -55,14 +54,19 @@ const IsLoggedInMenu = () => {
       }
       triggerType="hover"
     >
-      <div className="flex w-[180px]" style={{ gap: Sizes["--size-fluid-2"] }}>
+      <div
+        className="flex "
+        style={{
+          gap: Sizes["--size-fluid-1"],
+          width: Sizes["--size-fluid-7"],
+        }}
+      >
         <button
           type="button"
           onClick={logout}
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
-            boxShadow: Shadows["--shadow-6"],
           }}
         >
           <SignOutIcon size={24} />
@@ -74,7 +78,6 @@ const IsLoggedInMenu = () => {
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
-            boxShadow: Shadows["--shadow-6"],
           }}
         >
           <GearIcon size={24} />
@@ -107,7 +110,6 @@ export const FloatMenu = () => {
         className="p-[10px]"
         style={{
           borderRadius: Borders["--radius-round"],
-          boxShadow: Shadows["--shadow-6"],
         }}
         onClick={() => {
           navigate("/");
@@ -121,7 +123,6 @@ export const FloatMenu = () => {
         className="p-[10px]"
         style={{
           borderRadius: Borders["--radius-round"],
-          boxShadow: Shadows["--shadow-6"],
         }}
         onClick={() => {
           navigate("/chat");
@@ -138,7 +139,7 @@ export const FloatMenu = () => {
             className="p-[10px]"
             style={{
               borderRadius: Borders["--radius-round"],
-              boxShadow: Shadows["--shadow-6"],
+              boxShadow: Shadows["--shadow-5"],
             }}
             onClick={() => {
               navigate(RoutePaths.LOGIN);

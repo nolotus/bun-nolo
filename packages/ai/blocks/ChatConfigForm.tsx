@@ -50,7 +50,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
         >
           <label
             htmlFor={field.id}
-            className="mb-2 block font-medium text-neutral-700 sm:mb-0 sm:w-1/3 lg:w-1/4 xl:w-1/5 2xl:w-1/6"
+            className="mb-2 block  sm:mb-0 sm:w-1/3 lg:w-1/4 xl:w-1/5 2xl:w-1/6"
           >
             {t(field.label)}
           </label>
@@ -61,7 +61,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
       ))}
       <Button
         type="submit"
-        className="w-full bg-emerald-500 py-2 text-white shadow-md transition duration-300 ease-snappy hover:bg-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-300 sm:mt-3 sm:w-auto sm:rounded-md sm:px-6 sm:py-3 md:px-8 md:py-4 lg:px-10 lg:py-4 xl:px-12 xl:py-5 2xl:px-14 2xl:py-5"
+        className="w-full py-2  transition duration-300 ease-snappy sm:mt-3"
       >
         {t("update")}
       </Button>

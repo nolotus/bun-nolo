@@ -1,9 +1,5 @@
-import React from 'react';
+import React from "react";
 
-const InlineCode = ({value}) => (
-  <span className="px-1 py-1 text-sm font-mono bg-gray-200 rounded-md">
-    {value}
-  </span>
-);
+const InlineCode = ({ value }) => <code className="font-mono">{value}</code>;
 
 export default InlineCode;

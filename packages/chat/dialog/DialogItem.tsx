@@ -1,12 +1,13 @@
 import { NavLink } from "react-router-dom";
 import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
-import { PencilIcon, TrashIcon } from "@primer/octicons-react";
+import { PencilIcon, PlusIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
-import { deleteDialog, initDialog } from "./dialogSlice";
+import { createDialog, deleteDialog, initDialog } from "./dialogSlice";
 import IconButton from "ui/IconButton";
-
+import Sizes from "open-props/src/sizes";
+import Colors from "open-props/src/colors";
 export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const { data } = useFetchData(dialog.llmId);
@@ -39,15 +40,23 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
         onClick={() => dispatch(initDialog(dialog.id))}
       >
         <button className={` ${isSelected ? "surface3  " : "surface1"} `}>
-          <span className="block p-2">{data?.name}</span>
+          <span>{data?.name}</span>
         </button>
       </NavLink>
 
       {allowEdit && (
         <div className="ml-auto flex space-x-2 opacity-0 transition duration-150 ease-in-out group-hover:opacity-100">
           <IconButton
+            icon={PlusIcon}
+            style={{ color: Colors["--stone-12"] }}
+            onClick={() => {
+              dispatch(createDialog(dialog.llmId));
+            }}
+          />
+
+          <IconButton
             icon={PencilIcon}
-            style={{ color: "var(--blue-6)" }}
+            style={{ color: Colors["--blue-5"] }}
             onClick={(e) => {
               e.stopPropagation();
               openEdit();
@@ -65,7 +74,7 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
 
           <IconButton
             icon={TrashIcon}
-            style={{ color: "var(--red-6)" }}
+            style={{ color: Colors["--red-5"] }}
             onClick={(e) => {
               e.stopPropagation();
               confirmDelete(dialog);

@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode } from "react";
 
 interface EmphasisProps {
   className?: string;
@@ -6,7 +6,7 @@ interface EmphasisProps {
 }
 
 const Emphasis: React.FC<EmphasisProps> = ({ className, children }) => {
-  return <em className={`${className} italic`}>{children}</em>;
+  return <em className={`${className} `}>{children}</em>;
 };
 
 export default Emphasis;

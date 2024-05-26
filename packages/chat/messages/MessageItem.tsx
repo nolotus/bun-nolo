@@ -20,15 +20,14 @@ export const MessageItem = ({ id }) => {
     return <div>loading</div>;
   } else if (data) {
     const isSelf = currentUserId === data.userId;
-    console.log("isSelf", isSelf);
 
     const { content, image } = data;
-    if (data.llmId) {
+    console.log("content", content);
+    if (isSelf) {
+      return <UserMessage content={content} id={id} />;
+    } else if (data.llmId) {
       return <RobotMessage id={id} content={content} image={image} />;
-    } else {
-      return <UserMessage content={content} />;
     }
-
     return (
       <div className="flex">
         <div className="mr-2"></div>
