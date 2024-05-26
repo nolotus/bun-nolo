@@ -117,6 +117,7 @@ const dbSlice = createSliceWithThunks({
       async (id, thunkApi) => {
         thunkApi.dispatch(removeOne(id));
         const state = thunkApi.getState();
+
         const res = await noloRequest(state, {
           url: `${API_ENDPOINTS.DATABASE}/delete/${id}`,
           method: "DELETE",
@@ -135,6 +136,7 @@ const dbSlice = createSliceWithThunks({
     write: create.asyncThunk(
       async (writeConfig, thunkApi) => {
         const state = thunkApi.getState();
+        thunkApi.dispatch(syncWrite(state));
         const writeRes = await noloWriteRequest(state, writeConfig);
         return await writeRes.json();
       },
@@ -143,6 +145,36 @@ const dbSlice = createSliceWithThunks({
         fulfilled: () => {},
       },
     ),
+    // syncWrite: create.asyncThunk(
+    //   async (writeConfig, thunkApi) => {
+    //     const state = thunkApi.getState();
+    //     // const writeRes = await noloWriteRequest(state, writeConfig);
+    //     const makeRequest = async (server) => {
+    //       const url = `${API_ENDPOINTS.DATABASE}/write/`;
+    //       const fullUrl = server + url;
+    //       let headers = {
+    //         "Content-Type": "application/json",
+    //       };
+    //       const response = await fetch(fullUrl, {
+    //         method: "POST",
+    //         headers,
+    //         body,
+    //       });
+    //       const data = await response.json();
+    //       thunkApi.dispatch(upsertMany({ data, server }));
+    //       return data;
+    //     };
+
+    //     const results = await Promise.all(
+    //       syncServers.map((server) => makeRequest(server)),
+    //     );
+    //     return await writeRes.json();
+    //   },
+    //   {
+    //     pending: (state, action) => {},
+    //     fulfilled: () => {},
+    //   },
+    // ),
     updateData: create.reducer((state, action) => {
       const updatedData = action.payload.data.map((item) => {
         const existingItem = state.entities[item.id];

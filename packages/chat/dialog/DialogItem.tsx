@@ -48,7 +48,7 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
         <div className="ml-auto flex space-x-2 opacity-0 transition duration-150 ease-in-out group-hover:opacity-100">
           <IconButton
             icon={PlusIcon}
-            style={{ color: Colors["--stone-12"] }}
+            style={{ color: "var('--text-1')" }}
             onClick={() => {
               dispatch(createDialog(dialog.llmId));
             }}

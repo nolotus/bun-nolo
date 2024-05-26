@@ -1,6 +1,7 @@
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
 import { useAuth } from "auth/useAuth";
 import { useSearchParams } from "react-router-dom";
+import Sizes from "open-props/src/sizes";
 
 import { extractUserId } from "core/prefix";
 import React from "react";
@@ -26,23 +27,19 @@ const DialogSideBar = ({ dialogList }) => {
   const currentDialogId = searchParams.get("dialogId");
 
   return (
-    <div className="flex flex-col justify-start">
+    <div className="flex flex-col">
       <div className="p-4">
-        <button
-          type="button"
-          onClick={openConfigModal}
-          className="text-blue-400"
-        >
+        <button type="button" onClick={openConfigModal}>
           创建智能助理
+          <Dialog
+            isOpen={configModalVisible}
+            onClose={closeConfigModal}
+            title={<h2 className="text-xl ">{t("createRobot")}</h2>}
+          >
+            <CreateChatRobotForm onClose={closeConfigModal} />
+          </Dialog>
         </button>
       </div>
-      <Dialog
-        isOpen={configModalVisible}
-        onClose={closeConfigModal}
-        title={<h2 className="text-xl font-bold">{t("createRobot")}</h2>}
-      >
-        <CreateChatRobotForm onClose={closeConfigModal} />
-      </Dialog>
 
       {dialogList?.map((dialog) => (
         <DialogItem

@@ -72,7 +72,7 @@ const CreateChatRobotForm = ({ onClose }) => {
         <div className={"mb-4 flex flex-col"} key={field.id}>
           <label
             htmlFor={field.id}
-            className={"mb-1 block text-sm font-medium text-gray-700"}
+            className={"mb-1 block text-sm font-medium "}
           >
             {t(field.label)}
           </label>
@@ -95,10 +95,7 @@ const CreateChatRobotForm = ({ onClose }) => {
         {t("startConfiguringYourRobot")}
       </Button>
       <div className="mt-4">
-        <NavLink
-          to="/create/chat-robot"
-          className="text-blue-600 hover:text-blue-800"
-        >
+        <NavLink to="/create/chat-robot">
           {t("configureDetailedSettings")}
         </NavLink>
       </div>

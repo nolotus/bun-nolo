@@ -38,11 +38,7 @@ export const ChatBotBlock = ({ item }) => {
     >
       <div className="flex items-center justify-between pb-4">
         <div className="text-lg font-bold">{item.name}</div>
-        <div className="flex">
-          <button onClick={createNewDialog} className="mr-2">
-            对话
-          </button>
-        </div>
+        <button onClick={createNewDialog}>对话</button>
       </div>
 
       <div>{/* <p>{omitName(item)}</p> */}</div>
