@@ -45,7 +45,7 @@ const IsLoggedInMenu = () => {
           style={{
             borderRadius: Borders["--radius-round"],
           }}
-          onClick={() => {
+          onMouseDown={() => {
             navigate("/life");
           }}
         >
@@ -63,7 +63,7 @@ const IsLoggedInMenu = () => {
       >
         <button
           type="button"
-          onClick={logout}
+          onMouseDown={logout}
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
@@ -74,7 +74,7 @@ const IsLoggedInMenu = () => {
         </button>
         <button
           type="button"
-          onClick={() => navigate("/settings")}
+          onMouseDown={() => navigate("/settings")}
           className="p-[10px]"
           style={{
             borderRadius: Borders["--radius-round"],
@@ -111,7 +111,7 @@ export const FloatMenu = () => {
         style={{
           borderRadius: Borders["--radius-round"],
         }}
-        onClick={() => {
+        onMouseDown={() => {
           navigate("/");
         }}
       >
@@ -124,7 +124,7 @@ export const FloatMenu = () => {
         style={{
           borderRadius: Borders["--radius-round"],
         }}
-        onClick={() => {
+        onMouseDown={() => {
           navigate("/chat");
         }}
       >

@@ -27,7 +27,7 @@ export const CreateMenu = () => {
           style={{
             borderRadius: Borders["--radius-round"],
           }}
-          onClick={() => {
+          onMouseDown={() => {
             navigate("/create");
           }}
         >
@@ -42,7 +42,7 @@ export const CreateMenu = () => {
           style={{
             borderRadius: Borders["--radius-round"],
           }}
-          onClick={() => {
+          onMouseDown={() => {
             navigate(`/${CreateRoutePaths.CREATE_PAGE}`);
           }}
         >
@@ -53,7 +53,7 @@ export const CreateMenu = () => {
           style={{
             borderRadius: Borders["--radius-round"],
           }}
-          onClick={() => {
+          onMouseDown={() => {
             navigate(`/${CreateRoutePaths.CREATE_CHAT_ROBOT}`);
           }}
         >
@@ -64,7 +64,7 @@ export const CreateMenu = () => {
           style={{
             borderRadius: Borders["--radius-round"],
           }}
-          onClick={() => {
+          onMouseDown={() => {
             navigate(
               `/${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`,
             );
