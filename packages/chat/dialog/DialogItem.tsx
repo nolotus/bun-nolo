@@ -33,13 +33,13 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
 
   return (
     <div
-      className={`group flex cursor-pointer items-center px-4 py-2 transition duration-150 ease-in-out`}
+      className={`group flex cursor-pointer items-center  px-4 py-2 transition duration-150 ease-in-out`}
     >
       <NavLink
         to={`/chat?dialogId=${dialog.id}`}
         onClick={() => dispatch(initDialog(dialog.id))}
       >
-        <button className={` ${isSelected ? "surface3  " : "surface1"} `}>
+        <button className={`${isSelected && "surface3"} `}>
           <span>{data?.name}</span>
         </button>
       </NavLink>

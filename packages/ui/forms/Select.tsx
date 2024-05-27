@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const Select = ({ id, options, value, onChange, placeholder }) => {
   return (
@@ -6,11 +6,9 @@ const Select = ({ id, options, value, onChange, placeholder }) => {
       id={id}
       value={value}
       onChange={onChange}
-      className={`block w-full p-2 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
-        value ? 'border-blue-300' : 'border-gray-300'
-      }`}
+      className={`block w-full  p-2`}
     >
-      <option value="" disabled hidden className="bg-gray-200">
+      <option value="" disabled hidden>
         {placeholder}
       </option>
       {options.map((option, index) => (

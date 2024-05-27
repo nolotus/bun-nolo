@@ -85,17 +85,13 @@ const ChatWindow = ({ currentDialogConfig }) => {
     dispatch(handleSendMessage({ content, abortControllerRef }));
   };
   return (
-    <div
-      className="flex h-full w-full flex-col"
-      style={{ marginRight: Sizes["--size-fluid-9"] }}
-    >
-      {/* <MessagesDisplay messages={messages} scrollToBottom={scrollToBottom} /> */}
+    <div className="flex w-full flex-col">
       {messageIds && (
         <MessagesList messageIds={messageIds} scrollToBottom={scrollToBottom} />
       )}
 
       {allowSend ? (
-        <div className="flex items-center p-4">
+        <div className="flex items-center">
           <div className="flex-grow">
             <MessageInput
               onSendMessage={onSendMessage}

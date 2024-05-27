@@ -1,7 +1,6 @@
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
 import { useAuth } from "auth/useAuth";
-import { useSearchParams } from "react-router-dom";
-import Sizes from "open-props/src/sizes";
+import { NavLink, useSearchParams } from "react-router-dom";
 
 import { extractUserId } from "core/prefix";
 import React from "react";
@@ -9,6 +8,9 @@ import { useTranslation } from "react-i18next";
 import { useModal, Dialog } from "ui";
 
 import { DialogItem } from "./DialogItem";
+import { NorthStarIcon, PlusIcon } from "@primer/octicons-react";
+import Fonts from "open-props/src/fonts";
+
 const DialogSideBar = ({ dialogList }) => {
   const [searchParams] = useSearchParams();
   const auth = useAuth();
@@ -28,9 +30,10 @@ const DialogSideBar = ({ dialogList }) => {
 
   return (
     <div className="flex flex-col">
-      <div className="p-4">
+      <div className="flex justify-between p-4">
         <button type="button" onClick={openConfigModal}>
-          创建智能助理
+          <PlusIcon />
+          <span style={{ fontSize: Fonts["--font-size-1"] }}>AI</span>
           <Dialog
             isOpen={configModalVisible}
             onClose={closeConfigModal}
@@ -39,6 +42,12 @@ const DialogSideBar = ({ dialogList }) => {
             <CreateChatRobotForm onClose={closeConfigModal} />
           </Dialog>
         </button>
+        <NavLink to={"/ais"}>
+          <button>
+            <NorthStarIcon />
+            <span style={{ fontSize: Fonts["--font-size-1"] }}>发现</span>
+          </button>
+        </NavLink>
       </div>
 
       {dialogList?.map((dialog) => (

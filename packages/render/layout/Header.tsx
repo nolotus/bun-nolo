@@ -11,7 +11,6 @@ const nav = [
   // },
   // { path: '/itineraries', label: '行程' },
   // { path: "/people", label: "游民", icon: <PeopleIcon size={24} /> },
-  // { path: "/robots", label: "AI", icon: <DependabotIcon size={24} /> },
   // { path: '/gears', label: '装备' },
   // {
   //   path: "/lab",

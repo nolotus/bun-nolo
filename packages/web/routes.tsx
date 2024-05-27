@@ -31,7 +31,7 @@ export const routes = (currentUser) => [
         element: <People />,
       },
       {
-        path: "robots",
+        path: "ais",
         element: <AI />,
       },
       ...authRoutes,

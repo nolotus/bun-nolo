@@ -159,7 +159,10 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="flex items-start justify-center space-x-4 p-4">
+    <div
+      className="flex items-start justify-center space-x-4"
+      style={{ padding: Sizes["--size-fluid-1"] }}
+    >
       <div
         className={clsx(
           "relative flex w-full flex-col sm:w-4/5 md:w-3/4 lg:w-3/5",
