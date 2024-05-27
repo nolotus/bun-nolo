@@ -22,7 +22,6 @@ export const MessageItem = ({ id }) => {
     const isSelf = currentUserId === data.userId;
 
     const { content, image } = data;
-    console.log("content", content);
     if (isSelf) {
       return <UserMessage content={content} id={id} />;
     } else if (data.llmId) {

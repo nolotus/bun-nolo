@@ -11,6 +11,8 @@ import { useAuth } from "auth/useAuth";
 import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoading } from "render/blocks/PageLoading";
 import ZIndex from "open-props/src/zindex";
+import Sizes from "open-props/src/sizes";
+
 import chatTranslations from "./chatI18n";
 import DialogSidebar from "./dialog/DialogSideBar";
 import ChatWindow from "./messages/MessageWindow";
@@ -86,14 +88,20 @@ const ChatPage = () => {
   const dialogList = useAppSelector(
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
+  if (isLoading) {
+    return <PageLoading />;
+  }
   return (
     <div className={`flex flex-col lg:flex-row`} style={{ height: "100vh" }}>
-      {isLoading && <PageLoading />}
-
       {dialogList.length > 0 && (
         <div
-          className="overflow-y-auto lg:block"
-          style={{ position: "absolute", zIndex: ZIndex["--layer-2"] }}
+          className="h-screen overflow-y-auto "
+          style={{
+            position: "absolute",
+            zIndex: ZIndex["--layer-2"],
+            paddingTop: Sizes["--size-fluid-4"],
+            paddingLeft: Sizes["--size-fluid-2"],
+          }}
         >
           <DialogSidebar dialogList={dialogList} />
         </div>

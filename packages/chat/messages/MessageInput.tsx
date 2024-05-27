@@ -161,51 +161,54 @@ const MessageInput: React.FC<MessageInputProps> = ({
   return (
     <div
       className="flex items-start justify-center space-x-4"
-      style={{ padding: Sizes["--size-fluid-1"] }}
+      style={{
+        paddingTop: Sizes["--size-fluid-1"],
+        paddingBottom: Sizes["--size-fluid-1"],
+        paddingLeft: Sizes["--size-13"],
+        paddingRight: Sizes["--size-13"],
+      }}
     >
       <div
         className={clsx(
-          "relative flex w-full flex-col sm:w-4/5 md:w-3/4 lg:w-3/5",
+          "relative flex flex-grow  items-end gap-2",
           isDragOver ? "border-4 border-blue-500" : "",
         )}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
       >
-        <div className="relative flex-grow">
-          <textarea
-            className="w-full"
-            placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
-            value={textContent}
-            onChange={handleNewMessageChange}
-            onKeyDown={handleKeyDown}
-            style={{ height: Sizes["--size-fluid-7"] }}
-          />
+        <button className="px-3 py-1">
+          <label className="cursor-pointer ">
+            <FileMediaIcon size={24} />
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
+              multiple
+            />
+          </label>
+        </button>
+        <textarea
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className="w-full "
+          placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
+          value={textContent}
+          onChange={handleNewMessageChange}
+          onKeyDown={handleKeyDown}
+          style={{ height: Sizes["--size-fluid-6"] }}
+        />
 
-          <div className="absolute inset-x-0 bottom-0 left-auto right-0 m-2 flex min-w-[160px] items-center justify-end space-x-2 ">
-            <ImagePreview
-              imageUrls={imagePreviewUrls}
-              onRemove={(index: number) => handleRemoveImage(index)}
-            />
-            <ActionButton
-              isSending={isLoading}
-              onSend={beforeSend}
-              onCancel={onCancel}
-            />
-          </div>
-        </div>
-      </div>
-      <div>
-        <label className="cursor-pointer ">
-          <FileMediaIcon size={24} />
-          <input
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={handleFileChange}
-            multiple
+        <div className="absolute inset-x-0 bottom-0 left-auto right-0 m-2 flex min-w-[160px] items-center justify-end space-x-2">
+          <ImagePreview
+            imageUrls={imagePreviewUrls}
+            onRemove={(index: number) => handleRemoveImage(index)}
           />
-        </label>
+        </div>
+        <ActionButton
+          isSending={isLoading}
+          onSend={beforeSend}
+          onCancel={onCancel}
+        />
       </div>
     </div>
   );

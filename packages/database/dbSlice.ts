@@ -136,7 +136,7 @@ const dbSlice = createSliceWithThunks({
     write: create.asyncThunk(
       async (writeConfig, thunkApi) => {
         const state = thunkApi.getState();
-        thunkApi.dispatch(syncWrite(state));
+        // thunkApi.dispatch(syncWrite(state));
         const writeRes = await noloWriteRequest(state, writeConfig);
         return await writeRes.json();
       },

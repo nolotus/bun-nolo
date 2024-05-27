@@ -18,10 +18,10 @@ const ActionButton: React.FC<ButtonProps> = ({
       isSending
         ? "bg-red-500 hover:bg-red-600"
         : "bg-blue-500 hover:bg-blue-600"
-    }`}
+    } `}
     onClick={isSending ? onCancel : onSend}
   >
-    {isSending ? <SquareIcon size={16} /> : <ArrowUpIcon size={20} />}
+    {isSending ? <SquareIcon /> : <ArrowUpIcon />}
   </button>
 );
 

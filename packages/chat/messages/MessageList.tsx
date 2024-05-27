@@ -28,8 +28,8 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messageIds }) => {
       className="flex  flex-grow flex-col space-y-4 overflow-y-auto break-words p-3"
       ref={messagesEndRef}
       style={{
-        paddingRight: Sizes["--size-fluid-8"],
-        paddingLeft: Sizes["--size-fluid-8"],
+        paddingRight: Sizes["--size-13"],
+        paddingLeft: Sizes["--size-13"],
       }}
     >
       {messageIds.map((id: string) => {

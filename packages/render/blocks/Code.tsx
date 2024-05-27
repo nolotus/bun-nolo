@@ -7,43 +7,42 @@ import {
 import clsx from "clsx";
 import Gradients from "open-props/src/gradients";
 import React, { Suspense, lazy, useCallback, useState, memo } from "react";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+  dracula,
+  vscDarkPlus,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
+import { copyToClipboard } from "utils/clipboard";
+import Colors from "open-props/src/colors";
+import Shadows from "open-props/src/shadows";
 
-const CopyToClipboard = memo(({ text }) => {
+const CopyToClipboard = ({ text }) => {
   const [isCopied, setIsCopied] = useState(false);
 
   const copyText = useCallback(async () => {
-    if (text && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(text);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000); // 复制状态持续2秒
-      } catch (err) {
-        console.error("无法复制:", err);
-      }
+    try {
+      await copyToClipboard(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // 复制状态持续2秒
+    } catch (err) {
+      console.error("无法复制:", err);
     }
   }, [text]);
 
   return (
     <button
       onClick={copyText}
-      className={clsx(
-        "rounded px-2 py-1 transition-all duration-200 ease-in-out",
-        isCopied
-          ? "bg-gray-700 text-green-400"
-          : "text-gray-200 hover:bg-gray-700",
-      )}
+      className={clsx("border-0 bg-transparent px-3 py-1")}
+      style={{
+        boxShadow: Shadows["--shadow-1"],
+        color: isCopied && Colors["--green-7"],
+      }}
       disabled={!text}
       aria-label="复制代码"
-      style={{
-        background: "transparent",
-        border: "none",
-      }}
     >
-      {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
+      {isCopied ? <CheckIcon /> : <CopyIcon />}
     </button>
   );
-});
+};
 
 const SyntaxHighlighter = lazy(() =>
   import("react-syntax-highlighter").then((module) => ({
@@ -98,11 +97,11 @@ const Code = ({ value, language }) => {
       return (
         <Suspense fallback={<Loader />}>
           <SyntaxHighlighter
+            wrapLongLines={true}
             language={language || "jsx"}
-            style={dracula}
+            style={vscDarkPlus}
             customStyle={{
-              background: "transparent",
-              padding: "1em",
+              borderRadius: "0",
               margin: "0",
             }}
           >
@@ -112,33 +111,27 @@ const Code = ({ value, language }) => {
       );
     }
   };
-
-  return (
-    <div className="relative mx-auto my-6 overflow-hidden rounded-lg bg-gray-800 text-gray-100 shadow-md">
-      <div
-        className="flex items-center justify-between bg-gradient-to-r from-blue-500 to-teal-600 px-2 py-1"
-        style={{
-          backgroundImage: Gradients["--gradient-23"],
-        }}
-      >
-        <span className="text-sm font-medium">
-          {language?.toUpperCase() || "CODE"}
-        </span>
+  const CodeHeader = () => {
+    return (
+      <div className="surface3 flex items-center  justify-between px-4 py-2">
+        <span>{language?.toUpperCase() || "CODE"}</span>
         <div className="flex items-center">
           <button
             onClick={togglePreview} // 切换预览状态
-            className="rounded px-1 py-1 text-gray-200 transition-all duration-200 ease-in-out hover:bg-gray-700"
             aria-label="切换预览"
-            style={{
-              background: "transparent",
-            }}
+            className="surface3 mr-2 border-0 px-3 py-1"
+            style={{ boxShadow: Shadows["--shadow-1"] }}
           >
-            {isPreview ? <EyeClosedIcon size={16} /> : <EyeIcon size={16} />}{" "}
-            {/*根据状态显示不同图标*/}
+            {isPreview ? <EyeClosedIcon /> : <EyeIcon />}
           </button>
           <CopyToClipboard text={value} />
         </div>
       </div>
+    );
+  };
+  return (
+    <div className="relative my-6">
+      <CodeHeader />
       {renderContent()}
     </div>
   );

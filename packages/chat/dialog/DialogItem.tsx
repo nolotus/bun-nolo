@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import { createDialog, deleteDialog, initDialog } from "./dialogSlice";
 import IconButton from "ui/IconButton";
-import Sizes from "open-props/src/sizes";
+import Fonts from "open-props/src/fonts";
 import Colors from "open-props/src/colors";
 export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
@@ -33,13 +33,16 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
 
   return (
     <div
-      className={`group flex cursor-pointer items-center  px-4 py-2 transition duration-150 ease-in-out`}
+      className={`group flex cursor-pointer items-center  transition duration-150 ease-in-out`}
     >
       <NavLink
         to={`/chat?dialogId=${dialog.id}`}
         onClick={() => dispatch(initDialog(dialog.id))}
       >
-        <button className={`${isSelected && "surface3"} `}>
+        <button
+          className={`${isSelected && "surface2"} w-full p-1`}
+          style={{ fontSize: Fonts["--font-size-1"] }}
+        >
           <span>{data?.name}</span>
         </button>
       </NavLink>

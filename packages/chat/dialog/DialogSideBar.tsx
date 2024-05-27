@@ -29,11 +29,11 @@ const DialogSideBar = ({ dialogList }) => {
   const currentDialogId = searchParams.get("dialogId");
 
   return (
-    <div className="flex flex-col">
-      <div className="flex justify-between p-4">
-        <button type="button" onClick={openConfigModal}>
-          <PlusIcon />
-          <span style={{ fontSize: Fonts["--font-size-1"] }}>AI</span>
+    <div className="flex flex-col gap-1">
+      <div className="flex ">
+        <button className="mr-6" type="button" onClick={openConfigModal}>
+          <PlusIcon size={"small"} />
+          <span>AI</span>
           <Dialog
             isOpen={configModalVisible}
             onClose={closeConfigModal}
@@ -42,14 +42,13 @@ const DialogSideBar = ({ dialogList }) => {
             <CreateChatRobotForm onClose={closeConfigModal} />
           </Dialog>
         </button>
-        <NavLink to={"/ais"}>
-          <button>
-            <NorthStarIcon />
-            <span style={{ fontSize: Fonts["--font-size-1"] }}>发现</span>
-          </button>
-        </NavLink>
       </div>
-
+      <NavLink to={"/ais"}>
+        <button>
+          <NorthStarIcon />
+          <span>发现</span>
+        </button>
+      </NavLink>
       {dialogList?.map((dialog) => (
         <DialogItem
           key={dialog.id}
