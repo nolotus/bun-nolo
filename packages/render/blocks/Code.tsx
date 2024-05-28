@@ -10,10 +10,53 @@ import React, { Suspense, lazy, useCallback, useState, memo } from "react";
 import {
   dracula,
   vscDarkPlus,
+  vs,
+  synthwave84,
+  solarizedDarkAtom,
+  shadesOfPurple,
+  pojoaque,
+  oneLight,
+  oneDark,
+  nord,
+  nightOwl,
+  materialOceanic,
+  materialLight,
+  materialDark,
+  lucario,
+  hopscotch,
+  holiTheme,
+  gruvboxLight,
+  gruvboxDark,
+  ghcolors,
+  duotoneSpace,
+  duotoneSea,
+  duotoneLight,
+  darcula,
+  coyWithoutShadows,
+  coldarkDark,
+  coldarkCold,
+  cb,
+  base16AteliersulphurpoolLight,
+  atomDark,
+  a11yDark,
+  prism,
+  twilight,
+  tomorrow,
+  solarizedlight,
+  okaidia,
+  funky,
+  dark,
+  coy,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+// light choose coyWithoutShadows
 import { copyToClipboard } from "utils/clipboard";
 import Colors from "open-props/src/colors";
 import Shadows from "open-props/src/shadows";
+import Borders from "open-props/src/borders";
+import Fonts from "open-props/src/fonts";
+import Sizes from "open-props/src/sizes";
+import { BlockLoader } from "./BlockLoder";
 
 const CopyToClipboard = ({ text }) => {
   const [isCopied, setIsCopied] = useState(false);
@@ -49,9 +92,6 @@ const SyntaxHighlighter = lazy(() =>
     default: module.Prism,
   })),
 );
-
-// 加载显示组件
-const Loader = () => <div>Loading...</div>;
 
 const Code = ({ value, language }) => {
   const [isPreview, setIsPreview] = useState(false); // 新增预览状态
@@ -95,14 +135,16 @@ const Code = ({ value, language }) => {
       }
     } else {
       return (
-        <Suspense fallback={<Loader />}>
+        <Suspense fallback={<BlockLoader />}>
           <SyntaxHighlighter
             wrapLongLines={true}
             language={language || "jsx"}
-            style={vscDarkPlus}
+            style={dracula}
             customStyle={{
               borderRadius: "0",
               margin: "0",
+              fontSize: Fonts["--font-size-1"],
+              padding: Sizes["--size-fluid-1"],
             }}
           >
             {value}
@@ -113,7 +155,13 @@ const Code = ({ value, language }) => {
   };
   const CodeHeader = () => {
     return (
-      <div className="surface3 flex items-center  justify-between px-4 py-2">
+      <div
+        className="surface3 flex items-center  justify-between px-4 py-2"
+        style={{
+          borderTopLeftRadius: Borders["--radius-2"],
+          borderTopRightRadius: Borders["--radius-2"],
+        }}
+      >
         <span>{language?.toUpperCase() || "CODE"}</span>
         <div className="flex items-center">
           <button
@@ -130,7 +178,7 @@ const Code = ({ value, language }) => {
     );
   };
   return (
-    <div className="relative my-6">
+    <div className="relative my-6 ">
       <CodeHeader />
       {renderContent()}
     </div>

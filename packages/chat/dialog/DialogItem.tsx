@@ -6,8 +6,10 @@ import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import { createDialog, deleteDialog, initDialog } from "./dialogSlice";
 import IconButton from "ui/IconButton";
-import Fonts from "open-props/src/fonts";
 import Colors from "open-props/src/colors";
+import Shadows from "open-props/src/shadows";
+import Borders from "open-props/src/borders";
+
 export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const { data } = useFetchData(dialog.llmId);
@@ -33,18 +35,18 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
 
   return (
     <div
-      className={`group flex cursor-pointer items-center  transition duration-150 ease-in-out`}
+      className={`group flex cursor-pointer items-center transition duration-150 ease-in-out`}
     >
       <NavLink
         to={`/chat?dialogId=${dialog.id}`}
         onClick={() => dispatch(initDialog(dialog.id))}
+        className={`${isSelected ? " surface1" : "surface2"} px-4 py-1`}
+        style={{
+          boxShadow: Shadows["--shadow-4"],
+          borderRadius: Borders["--radius-2"],
+        }}
       >
-        <button
-          className={`${isSelected && "surface2"} w-full p-1`}
-          style={{ fontSize: Fonts["--font-size-1"] }}
-        >
-          <span>{data?.name}</span>
-        </button>
+        <span>{data?.name}</span>
       </NavLink>
 
       {allowEdit && (

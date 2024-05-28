@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { PageLoading } from "render/blocks/PageLoading";
+import { PageLoader } from "render/blocks/PageLoader";
 import Full from "render/layout/Full";
 const ChatPage = lazy(() => import("./ChatPage"));
 
@@ -10,7 +10,7 @@ export const routes = {
     {
       path: "chat",
       element: (
-        <Suspense fallback={<PageLoading />}>
+        <Suspense fallback={<PageLoader />}>
           <ChatPage />
         </Suspense>
       ),

@@ -29,7 +29,6 @@ export const MessageItem = ({ id }) => {
     }
     return (
       <div className="flex">
-        <div className="mr-2"></div>
         <UserMessage content={content} />
         <div>
           {couldDelete && (

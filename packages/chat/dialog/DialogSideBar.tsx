@@ -10,6 +10,7 @@ import { useModal, Dialog } from "ui";
 import { DialogItem } from "./DialogItem";
 import { NorthStarIcon, PlusIcon } from "@primer/octicons-react";
 import Fonts from "open-props/src/fonts";
+import Borders from "open-props/src/borders";
 
 const DialogSideBar = ({ dialogList }) => {
   const [searchParams] = useSearchParams();
@@ -29,11 +30,19 @@ const DialogSideBar = ({ dialogList }) => {
   const currentDialogId = searchParams.get("dialogId");
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex ">
-        <button className="mr-6" type="button" onClick={openConfigModal}>
+    <div className="flex flex-col gap-2">
+      <div>
+        <button
+          type="button"
+          className="py-0 pl-4"
+          onClick={openConfigModal}
+          style={{
+            fontSize: Fonts["--font-size-1"],
+            borderRadius: Borders["--radius-2"],
+          }}
+        >
           <PlusIcon size={"small"} />
-          <span>AI</span>
+          <span style={{}}>定制你的AI</span>
           <Dialog
             isOpen={configModalVisible}
             onClose={closeConfigModal}
@@ -43,12 +52,20 @@ const DialogSideBar = ({ dialogList }) => {
           </Dialog>
         </button>
       </div>
+
       <NavLink to={"/ais"}>
-        <button>
-          <NorthStarIcon />
-          <span>发现</span>
+        <button
+          className="py-0 pl-4"
+          style={{
+            fontSize: Fonts["--font-size-1"],
+            borderRadius: Borders["--radius-2"],
+          }}
+        >
+          <NorthStarIcon size="small" className="mr-2" />
+          <span>去看看别人的AI</span>
         </button>
       </NavLink>
+
       {dialogList?.map((dialog) => (
         <DialogItem
           key={dialog.id}

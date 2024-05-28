@@ -3,7 +3,6 @@ import { useAppSelector, useQueryData } from "app/hooks";
 import { DataType } from "create/types";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import React from "react";
-import { PageLoading } from "render/blocks/PageLoading";
 const ChatAIList = ({ queryUserId, limit = 20 }) => {
   const queryConfig = {
     queryUserId,

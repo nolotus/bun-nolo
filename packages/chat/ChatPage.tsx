@@ -9,7 +9,7 @@ import aiTranslations from "ai/aiI18n";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAuth } from "auth/useAuth";
 import { selectCurrentUserId } from "auth/authSlice";
-import { PageLoading } from "render/blocks/PageLoading";
+import { PageLoader } from "render/blocks/PageLoader";
 import ZIndex from "open-props/src/zindex";
 import Sizes from "open-props/src/sizes";
 
@@ -89,7 +89,7 @@ const ChatPage = () => {
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
   if (isLoading) {
-    return <PageLoading />;
+    return <PageLoader />;
   }
   return (
     <div className={`flex flex-col lg:flex-row`} style={{ height: "100vh" }}>
