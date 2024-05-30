@@ -39,15 +39,23 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
     }
   }, []);
 
-  function handleThemeChange(event) {
-    if (event.matches) {
-      dispatch(setTheme("dark"));
-    } else {
-      dispatch(setTheme("light"));
-    }
-  }
-  const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  colorSchemeQuery.addEventListener("change", handleThemeChange);
+  useEffect(() => {
+    const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleThemeChange = (event) => {
+      if (event.matches) {
+        dispatch(setTheme("dark"));
+      } else {
+        dispatch(setTheme("light"));
+      }
+    };
+
+    colorSchemeQuery.addEventListener("change", handleThemeChange);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      colorSchemeQuery.removeEventListener("change", handleThemeChange);
+    };
+  }, [dispatch]);
 
   const element = useRoutes(routes(auth.user));
 
