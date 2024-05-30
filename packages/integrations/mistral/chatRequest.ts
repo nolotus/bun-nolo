@@ -13,7 +13,7 @@ export async function chatRequest(
     method: "POST",
     url:
       model === mistralModels["codestral-latest"]
-        ? "https://api.mistral.ai/v1/fim/completions"
+        ? "https://codestral.mistral.ai/v1/chat/completions"
         : "https://api.mistral.ai/v1/chat/completions",
     responseType: isStream ? "stream" : "json",
     headers: {
