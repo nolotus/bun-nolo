@@ -5,7 +5,7 @@ import { adjustPerplexityFrequencyPenalty } from "integrations/perplexity/adjust
 
 import { openAIModels } from "integrations/openAI/models";
 
-import { mistralModelPrice } from "integrations/mistral/modelPrice";
+import { mistralModels } from "integrations/mistral/models";
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 import { deepSeekModels } from "integrations/deepSeek/models";
 
@@ -78,7 +78,7 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "openai");
     } else if (isModelInPriceList(requestBody.model, perplexityModelPrice)) {
       return await processModelRequest(requestBody, "perplexity");
-    } else if (isModelInPriceList(requestBody.model, mistralModelPrice)) {
+    } else if (isModelInPriceList(requestBody.model, mistralModels)) {
       return await processModelRequest(requestBody, "mistral");
     } else if (isModelInPriceList(requestBody.model, deepSeekModels)) {
       return await processModelRequest(requestBody, "deepSeek");

@@ -9,7 +9,6 @@ export const MessageText: React.FC<{
   content: string;
 }> = ({ content }) => {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-
   const mdast = useMemo(() => {
     return processor.parse(content);
   }, [content]);

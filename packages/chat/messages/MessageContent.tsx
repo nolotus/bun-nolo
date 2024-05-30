@@ -16,10 +16,12 @@ export const MessageContent = ({ content }) => {
       ) : (
         content.map((item) => {
           if (item.type === "text") {
-            return <MessageText content={item.text} />;
+            return <MessageText key={item.text} content={item.text} />;
           }
           if (item.type === "image_url") {
-            return <MessageImage url={item.image_url.url} />;
+            return (
+              <MessageImage key={item.image_url.url} url={item.image_url.url} />
+            );
           }
           return <div>unknow message type</div>;
         })

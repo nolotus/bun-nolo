@@ -3,13 +3,13 @@ export type ModelPrice = {
 };
 import { openAIModels } from "integrations/openAI/models";
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
-import { mistralModelPrice } from "integrations/mistral/modelPrice";
+import { mistralModels } from "integrations/mistral/models";
 import { deepSeekModels } from "integrations/deepSeek/models";
 
 export const modelPrice = {
   ...openAIModels,
   ...perplexityModelPrice,
-  ...mistralModelPrice,
+  ...mistralModels,
   ...deepSeekModels,
 };
 

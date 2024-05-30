@@ -23,7 +23,6 @@ const themeSlice = createSlice({
     },
     setTheme: (state, action) => {
       const newName = action.payload;
-
       state.themeName = newName;
       newName === "dark"
         ? (state.isDarkMode = true)

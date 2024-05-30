@@ -1,27 +1,30 @@
 import axios from "utils/axios";
 
 import { getProxyConfig } from "utils/getProxyConfig";
+import { mistralModels } from "./models";
 
 export async function chatRequest(
   requestBody,
   isStream: boolean,
 ): Promise<any> {
   const { model, messages, max_tokens } = requestBody;
-
   const proxyConfig = getProxyConfig();
-  const axiosConfig = {
+  let axiosConfig = {
     method: "POST",
-    url: "https://api.mistral.ai/v1/chat/completions",
+    url:
+      model === mistralModels["codestral-latest"]
+        ? "https://api.mistral.ai/v1/fim/completions"
+        : "https://api.mistral.ai/v1/chat/completions",
     responseType: isStream ? "stream" : "json",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.MISTRAL_KEY}`,
+      Authorization: `Bearer ${model === mistralModels["codestral-latest"] ? process.env.CODESTRAL_KEY : process.env.MISTRAL_KEY}`,
       Accept: isStream ? "text/event-stream" : "application/json",
     },
     data: {
       model,
       messages,
-      stream: isStream, // 根据参数设置stream
+      stream: isStream,
       max_tokens,
     },
     ...proxyConfig,

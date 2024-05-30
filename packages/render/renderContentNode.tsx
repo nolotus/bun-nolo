@@ -27,7 +27,7 @@ interface ContentNode {
   children?: ContentNode[];
   value?: string;
   className?: string;
-  [key: string]: any; // 用于捕获其他所有属性
+  [key: string]: any;
 }
 interface RenderOptions {
   isDarkMode?: boolean;
@@ -46,8 +46,9 @@ export const renderContentNode = (
     : isDevelopment;
   const classNames = enableClassName ? node.className : undefined;
   //所以这里需要传递options
+
   const renderChild = (child: ContentNode) => renderContentNode(child, options);
-  const isDarkMode = options?.isDarkMode ? options.isDarkMode : false;
+
   switch (node.type) {
     case "root":
       return <>{node.children?.map(renderChild)}</>;
@@ -109,7 +110,11 @@ export const renderContentNode = (
       );
     case "code":
       return (
-        <Code language={node.lang} value={node.value} isDarkMode={isDarkMode} />
+        <Code
+          language={node.lang}
+          value={node.value}
+          isDarkMode={options?.isDarkMode}
+        />
       );
     case "table":
       return (
@@ -187,7 +192,6 @@ export const renderContentNode = (
     case "footnoteReference":
       return <p> {node.children?.map(renderChild)}</p>;
     case "html":
-      console.log("html", node);
       return <p>{node.value}</p>;
     default:
       if (typeof node === "string") {
