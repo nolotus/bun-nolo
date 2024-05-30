@@ -6,7 +6,8 @@ import { lightTheme } from "./lightTheme";
 const mainColors = [...blues];
 
 const initialState = {
-  theme: "light",
+  themeName: "light",
+  isDarkMode: false,
   mainColor: lightTheme.mainActiveColor,
   brandColor: OpenProps["--blue-5"],
   statusBarColor: lightTheme.statusBarColor,
@@ -18,10 +19,15 @@ const themeSlice = createSlice({
   initialState,
   reducers: {
     toggleTheme: (state) => {
-      state.theme = state.theme === "light" ? "dark" : "light";
+      state.themeName = state.themeName === "light" ? "dark" : "light";
     },
     setTheme: (state, action) => {
-      state.theme = action.payload;
+      const newName = action.payload;
+
+      state.themeName = newName;
+      newName === "dark"
+        ? (state.isDarkMode = true)
+        : (state.isDarkMode = false);
     },
     // 增加改变主色调的函数
     changeMainColor: (state, action) => {

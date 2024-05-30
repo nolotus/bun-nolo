@@ -28,32 +28,26 @@ const settingSlice = createSlice({
   initialState,
   // 包含reducer函数的对象
   reducers: {
-    // 更新当前服务器地址的reducer
     updateCurrentServer: (state, action) => {
       state.syncSetting.currentServer = action.payload;
     },
-    // 新增同步服务器地址的reducer
     addSyncServer: (state, action) => {
       state.syncSetting.syncServers.push(action.payload);
     },
-    // 删除同步服务器地址的reducer
     removeSyncServer: (state, action) => {
       state.syncSetting.syncServers = state.syncSetting.syncServers.filter(
         (server) => server !== action.payload,
       );
     },
-    // 新增第三方服务器地址的reducer
     addThirdPartyServer: (state, action) => {
       state.syncSetting.thirdPartyServers.push(action.payload);
     },
-    // 删除第三方服务器地址的reducer
     removeThirdPartyServer: (state, action) => {
       state.syncSetting.thirdPartyServers =
         state.syncSetting.thirdPartyServers.filter(
           (server) => server !== action.payload,
         );
     },
-    // 新增主机名到当前服务器的reducer
     addHostToCurrentServer: (state, action) => {
       const hostname = action.payload;
       const protocol = hostname === "nolotus.local" ? "http" : "https";
@@ -63,7 +57,6 @@ const settingSlice = createSlice({
   },
 });
 
-// 导出reducer和action creators
 export const {
   updateCurrentServer,
   addSyncServer,
@@ -73,8 +66,6 @@ export const {
   addHostToCurrentServer,
 } = settingSlice.actions;
 
-// 导出selectors
-// 导出selectors
 export const selectCurrentServer = (state: NoloRootState): string =>
   state.settings.syncSetting.currentServer;
 export const selectSyncServer = (state: NoloRootState): string =>

@@ -30,18 +30,24 @@ interface ContentNode {
   [key: string]: any; // 用于捕获其他所有属性
 }
 interface RenderOptions {
+  isDarkMode?: boolean;
   enableClassName?: boolean;
   debug?: boolean;
 }
+
+//这个函数会递归渲染 renderChild，如果传递了options 不二次传递会丢失
 export const renderContentNode = (
   node: ContentNode,
-  options: RenderOptions = {},
+  options?: RenderOptions,
 ): ReactNode => {
-  const { enableClassName = isDevelopment, debug = isDevelopment } = options;
-
+  const debug = options?.debug ? options.debug : isDevelopment;
+  const enableClassName = options?.enableClassName
+    ? options.enableClassName
+    : isDevelopment;
   const classNames = enableClassName ? node.className : undefined;
-  const renderChild = (child: ContentNode) => renderContentNode(child);
-
+  //所以这里需要传递options
+  const renderChild = (child: ContentNode) => renderContentNode(child, options);
+  const isDarkMode = options?.isDarkMode ? options.isDarkMode : false;
   switch (node.type) {
     case "root":
       return <>{node.children?.map(renderChild)}</>;
@@ -103,7 +109,7 @@ export const renderContentNode = (
       );
     case "code":
       return (
-        <Code className={classNames} language={node.lang} value={node.value} />
+        <Code language={node.lang} value={node.value} isDarkMode={isDarkMode} />
       );
     case "table":
       return (

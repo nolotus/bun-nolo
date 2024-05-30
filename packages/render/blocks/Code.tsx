@@ -5,7 +5,6 @@ import {
   EyeClosedIcon,
 } from "@primer/octicons-react";
 import clsx from "clsx";
-import Gradients from "open-props/src/gradients";
 import React, { Suspense, lazy, useCallback, useState, memo } from "react";
 import {
   dracula,
@@ -93,9 +92,9 @@ const SyntaxHighlighter = lazy(() =>
   })),
 );
 
-const Code = ({ value, language }) => {
+const Code = ({ value, language, isDarkMode }) => {
   const [isPreview, setIsPreview] = useState(false); // 新增预览状态
-
+  console.log("Code isDarkMode", isDarkMode);
   const togglePreview = () => setIsPreview(!isPreview);
 
   function renderJson(jsonOrString) {
@@ -139,7 +138,7 @@ const Code = ({ value, language }) => {
           <SyntaxHighlighter
             wrapLongLines={true}
             language={language || "jsx"}
-            style={dracula}
+            style={isDarkMode ? vscDarkPlus : coyWithoutShadows}
             customStyle={{
               borderRadius: "0",
               margin: "0",
@@ -164,14 +163,14 @@ const Code = ({ value, language }) => {
       >
         <span>{language?.toUpperCase() || "CODE"}</span>
         <div className="flex items-center">
-          <button
+          {/* <button
             onClick={togglePreview} // 切换预览状态
             aria-label="切换预览"
             className="surface3 mr-2 border-0 px-3 py-1"
             style={{ boxShadow: Shadows["--shadow-1"] }}
           >
             {isPreview ? <EyeClosedIcon /> : <EyeIcon />}
-          </button>
+          </button> */}
           <CopyToClipboard text={value} />
         </div>
       </div>
