@@ -9,7 +9,8 @@ import NoMatch from "../NoMatch";
 import EditPage from "./EditPage";
 import { initPage } from "./pageSlice";
 import RenderPage from "./RenderPage";
-
+//id is for special page such as price
+//todo custom path
 const Page = ({ id }) => {
   const { pageId: paramPageId } = useParams();
   const [searchParams] = useSearchParams();
@@ -17,7 +18,8 @@ const Page = ({ id }) => {
 
   const pageId = id || paramPageId;
   const isEditMode = searchParams.get("edit") === "true";
-  const { data, isLoading, error } = useFetchData(id);
+
+  const { data, isLoading, error } = useFetchData(pageId);
   const renderEdit = () => {
     if (isEditMode) {
       return <EditPage />;

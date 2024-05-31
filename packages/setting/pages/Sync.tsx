@@ -59,21 +59,35 @@ const Sync = () => {
   const syncServer = useAppSelector(selectSyncServer);
   return (
     <div>
-      <h1>同步设置</h1>
-      <h2>
+      <h2 style={{ fontSize: "1.5em", fontWeight: "bold" }}>同步设置</h2>
+      <h3
+        style={{
+          fontSize: "1.2em",
+          marginTop: "10px",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
         <ServerIcon size={24} />
-        服务器设置
-      </h2>
-      <div>
-        主服务器
-        {currentServer}
+        <span style={{ marginLeft: "10px" }}>服务器设置</span>
+      </h3>
+      <div style={{ marginTop: "10px" }}>主服务器: {currentServer}</div>
+      <div style={{ marginTop: "10px" }}>
+        备份服务器:
+        {syncServer.map((server, index) => (
+          <div
+            key={index}
+            style={{
+              padding: "5px",
+              backgroundColor: "#f9f9f9",
+              marginTop: "5px",
+            }}
+          >
+            {server}
+          </div>
+        ))}
       </div>
-      备份服务器
-      {syncServer.map((server) => {
-        return <div> {server}</div>;
-      })}
-      <h2>点击同步时候</h2>
-      <label htmlFor="serverAddress">您的自定义服务器</label>
+      {/* <label htmlFor="serverAddress">您的自定义服务器</label>
       <StringToArrayInput
         value={formData?.serverAddress || ""}
         onChange={(value) => setFormData({ ...formData, serverAddress: value })}
@@ -86,31 +100,7 @@ const Sync = () => {
         className="focus:shadow-outline primary mt-4  rounded px-4 py-2 font-bold"
       >
         Save
-      </button>
-      <h2>创建或编辑时</h2>
-      <label htmlFor="serverAddress">您的自定义服务器</label>
-      <StringToArrayInput
-        value={formData?.serverAddress || ""}
-        onChange={(value) => setFormData({ ...formData, serverAddress: value })}
-        name="serverAddress"
-        placeholder="Enter server addresses (comma separated)"
-        error={error}
-      />
-      <button onClick={handleSaveClick} className="mt-4">
-        Save
-      </button>
-      <h2>删除数据时</h2>
-      <label htmlFor="serverAddress">您的自定义服务器</label>
-      <StringToArrayInput
-        value={formData?.serverAddress || ""}
-        onChange={(value) => setFormData({ ...formData, serverAddress: value })}
-        name="serverAddress"
-        placeholder="Enter server addresses (comma separated)"
-        error={error}
-      />
-      <button onClick={handleSaveClick} className="mt-4 ">
-        Save
-      </button>
+      </button> */}
     </div>
   );
 };
