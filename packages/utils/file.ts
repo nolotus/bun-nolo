@@ -102,6 +102,10 @@ export const removeDataFromFile = async (filePath, ids: [string]) => {
 
   try {
     for await (const line of readLines(readStream)) {
+      if (line.trim() === "") {
+        continue;
+      }
+
       const lineId = line.split(" ")[0];
       if (!ids.includes(lineId)) {
         await tempWriter.write(`${line}\n`);

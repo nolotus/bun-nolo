@@ -383,7 +383,6 @@ export const messageSlice = createSliceWithThunks({
                       //逐渐相加
                       temp =
                         (temp || "") + (json.choices[0]?.delta?.content || "");
-                      console.log("stream temp", temp);
                       const message = {
                         role: "assistant",
                         id: json.id,
