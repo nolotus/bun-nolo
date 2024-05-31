@@ -1,7 +1,9 @@
+import React from "react";
+
 import { useAuth } from "auth/useAuth";
 import { nolotusId } from "core/init";
-import React from "react";
 import { Link } from "react-router-dom";
+import Sizes from "open-props/src/sizes";
 
 import {
   USER_PROFILE_ROUTE,
@@ -38,17 +40,18 @@ const Sidebar: React.FC = () => {
     return true;
   };
   return (
-    <div className=" min-h-screen w-64 space-y-4 p-6 ">
-      <h3>Settings</h3>
-      <nav style={{ display: "flex", flexDirection: "column" }}>
+    <div style={{ padding: Sizes["--size-fluid-2"] }}>
+      <nav
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: Sizes["--size-1"],
+        }}
+      >
         {navItems.map((item) => {
           const isDisplay = couldDisplay(item);
           return isDisplay ? (
-            <Link
-              key={item.label}
-              to={item.path}
-              className="block rounded p-2 transition-colors duration-200 ease-in-out"
-            >
+            <Link key={item.label} to={item.path}>
               <button>{item.label}</button>
             </Link>
           ) : null;
