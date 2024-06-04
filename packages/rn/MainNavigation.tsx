@@ -5,7 +5,7 @@ import Octicons from "react-native-vector-icons/Octicons";
 import { SpotsStackScreen } from "app/screens/SpotsStack";
 import { View, Text } from "react-native";
 import { useSelector } from "react-redux";
-import { UserScreen } from "user/screens/UserScreen";
+import { UserScreen } from "auth/screens/UserScreen";
 import { HomeScreen } from "app/screens/Home";
 import { ChatScreen } from "chat/screens/Chat";
 

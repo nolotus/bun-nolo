@@ -14,7 +14,6 @@
     "database": "workspace:database",
     "framer-motion": "^10.16.4",
     "remark-gfm": "^4.0.0",
-    "remark-parse": "^11.0.0",
-    "user": "workspace:user"
+    "remark-parse": "^11.0.0"
   }
 }
