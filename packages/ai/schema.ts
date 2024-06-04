@@ -1,4 +1,4 @@
-import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
+import { createFieldsFromDSL } from "ui/Form/createFieldsFromDSL";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 
 import { ModelPriceEnum } from "./models";

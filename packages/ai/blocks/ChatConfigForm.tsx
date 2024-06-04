@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
-import { FormField } from "components/Form/FormField";
+import { FormField } from "ui/Form/FormField";
 import { useUpdateEntryMutation } from "database/services"; // 导入新的 mutation 钩子
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";

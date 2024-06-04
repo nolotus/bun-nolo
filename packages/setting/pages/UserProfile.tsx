@@ -1,18 +1,38 @@
-import { useAuth } from "auth/useAuth";
 import React from "react";
+import { useAuth } from "auth/useAuth";
 import { TrophyIcon } from "@primer/octicons-react";
-
-import { useProfileData } from "../useProfileData"; // 确保路径正确
+import { generateIdWithCustomId } from "core/generateMainKey";
+import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
+import { selectCurrentUserId } from "auth/authSlice";
+import { PageLoader } from "render/blocks/PageLoader";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 const UserProfile = () => {
   const auth = useAuth();
-  const customId = "userProfile";
-  const { formData, setFormData, handleSaveClick, error } =
-    useProfileData(customId);
+  const { t } = useTranslation();
+
+  const customId = "user-profile";
+  const userId = useAppSelector(selectCurrentUserId);
+  const flags = { isJSON: true };
+  const id = generateIdWithCustomId(userId, customId, flags);
+  const { data, isLoading } = useFetchData(id);
+  if (isLoading) {
+    return <PageLoader />;
+  }
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    defaultValues: data,
+  });
 
   return (
-    <div className="rounded-lg p-8">
-      <h2 className="mb-4 ">个人资料</h2>
+    <div>
+      <h3 className="mb-4 ">个人资料</h3>
       <div className="mb-4">
         <p className="mb-2 ">用户Id: {auth.user?.userId}</p>
         <p className="mb-2 ">当前语言: {navigator.language}</p>
@@ -20,43 +40,28 @@ const UserProfile = () => {
           <input
             type="text"
             placeholder="Avatar URL"
-            value={formData?.avatar || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, avatar: e.target.value })
-            }
+            value={data?.avatar || ""}
             className="rounded border p-2"
           />
           <textarea
             placeholder="Self Introduction"
-            value={formData?.introduction || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, introduction: e.target.value })
-            }
+            value={data?.introduction || ""}
             className="rounded border p-2"
           />
           <input
             type="text"
             placeholder="Personal Website"
-            value={formData?.website || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, website: e.target.value })
-            }
+            value={data?.website || ""}
             className="rounded border p-2"
           />
         </div>
       </div>
 
-      <h2>
+      {/* <h2>
          成就
         <TrophyIcon size={24} />
-      </h2>
-      <button
-        onClick={handleSaveClick}
-        className="focus:shadow-outline mb-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none"
-      >
-        Save
-      </button>
-      {error && <div className="text-red-500">{error}</div>}
+      </h2> */}
+      <button type="submit">{t("save")}</button>
     </div>
   );
 };

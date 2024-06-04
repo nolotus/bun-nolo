@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PersonIcon, LockIcon } from "@primer/octicons-react";
-import { FormField } from "components/Form/FormField";
+import { FormField } from "ui/Form/FormField";
 import { LifeRoutePaths } from "life/routes";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -29,6 +29,7 @@ const Login: React.FC = () => {
   } = useForm({
     resolver: zodResolver(userFormSchema),
   });
+
   const onSubmit = async (input) => {
     const locale = navigator.language;
     dispatch(signIn({ ...input, locale }))

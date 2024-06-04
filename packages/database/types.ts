@@ -11,13 +11,6 @@ export interface ResponseData {
   message: string;
   id: string;
 }
-export type WriteDataType = {
-  data: any;
-  flags: Flags;
-  customId: string;
-  userId?: string;
-  domain?: string;
-};
 
 export type WriteHashDataType = {
   data: any;

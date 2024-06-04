@@ -1,6 +1,5 @@
 import { UnmuteIcon, TrashIcon, DuplicateIcon } from "@primer/octicons-react";
 import { useAuth } from "auth/useAuth";
-import { useWriteMutation } from "database/services";
 import React from "react";
 import { Avatar } from "ui";
 import IconButton from "ui/IconButton";
@@ -10,15 +9,14 @@ import { Link } from "react-router-dom";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
-import { ulid } from "ulid";
 import { useAppDispatch } from "app/hooks";
 import { MessageContent } from "./MessageContent";
+import { write } from "database/dbSlice";
 
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();
 
   const { audioSrc, handlePlayClick } = useAudioPlayer(content);
-  const [write] = useWriteMutation();
   const auth = useAuth();
   const handleSaveContent = async () => {
     if (content) {
@@ -26,13 +24,13 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
         data: { content, type: "page", create_at: new Date().toISOString() },
         flags: { isJSON: true },
         userId: auth.user?.userId,
-        customId: ulid(),
       };
-      const response = await write(writeData);
+      const saveAction = await dispatch(write(writeData));
+      const response = saveAction.payload;
       addToast(
         <div className="text-black">
           <Link
-            to={`/${response.data.id}`}
+            to={`/${response.id}`}
             target="_blank"
             rel="noopener noreferrer"
           >

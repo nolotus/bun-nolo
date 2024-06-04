@@ -90,29 +90,34 @@ const DialogSlice = createSliceWithThunks({
         fulfilled: (state, action) => {},
       },
     ),
-    createDialog: create.asyncThunk(async (llmId, thunkApi) => {
-      const state = thunkApi.getState();
-      const currentUserId = selectCurrentUserId(state);
-      const dispatch = thunkApi.dispatch;
-      const messageListConfig = {
-        data: [],
-        flags: { isList: true },
-        userId: currentUserId,
-      };
-      const writeMessageAction = await dispatch(write(messageListConfig));
-      const initMessageList = writeMessageAction.payload;
-      const dialogConfig = {
-        data: {
-          type: DataType.Dialog,
-          llmId,
-          messageListId: initMessageList.id,
-        },
-        flags: { isJSON: true },
-        userId: currentUserId,
-      };
-      const writeDialogAction = await dispatch(write(dialogConfig));
-      return writeDialogAction.payload;
-    }, {}),
+    createDialog: create.asyncThunk(
+      async (llmId, thunkApi) => {
+        const state = thunkApi.getState();
+        const currentUserId = selectCurrentUserId(state);
+        const dispatch = thunkApi.dispatch;
+        const messageListConfig = {
+          data: [],
+          flags: { isList: true },
+          userId: currentUserId,
+        };
+        const writeMessageAction = await dispatch(write(messageListConfig));
+        const initMessageList = writeMessageAction.payload;
+        const dialogConfig = {
+          data: {
+            type: DataType.Dialog,
+            llmId,
+            messageListId: initMessageList.id,
+          },
+          flags: { isJSON: true },
+          userId: currentUserId,
+        };
+        const writeDialogAction = await dispatch(write(dialogConfig));
+        return writeDialogAction.payload;
+      },
+      {
+        fulfilled: (state, action) => {},
+      },
+    ),
   }),
 });
 export const {

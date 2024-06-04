@@ -98,7 +98,7 @@ const ChatPage = () => {
           className="h-screen overflow-y-auto "
           style={{
             position: "absolute",
-            zIndex: ZIndex["--layer-2"],
+            zIndex: ZIndex["--layer-1"],
             paddingTop: Sizes["--size-fluid-4"],
             paddingLeft: Sizes["--size-fluid-2"],
           }}

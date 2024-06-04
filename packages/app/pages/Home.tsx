@@ -1,5 +1,4 @@
 import { Link } from "ui";
-import Sizes from "open-props/src/sizes";
 import { nolotusId } from "core/init";
 
 import ChatAIList from "ai/blocks/ChatAIList";
@@ -38,12 +37,7 @@ const Home = () => {
     return filteredSpots.map((spot) => <SpotCard key={spot.id} data={spot} />);
   };
   return (
-    <div
-      style={{
-        paddingLeft: Sizes["--size-fluid-7"],
-        paddingRight: Sizes["--size-fluid-7"],
-      }}
-    >
+    <div>
       <div className="flex flex-col gap-6 lg:flex-row">
         <div
           className="text2 mb-6 w-full lg:mb-0 lg:w-1/2"

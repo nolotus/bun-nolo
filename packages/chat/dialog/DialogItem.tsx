@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
 import { PencilIcon, PlusIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
-import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
+import { useAppDispatch, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import { createDialog, deleteDialog, initDialog } from "./dialogSlice";
 import IconButton from "ui/IconButton";
@@ -31,7 +31,6 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   } = useDeleteAlert(() => {
     onDeleteDialog(dialog);
   });
-  const brandColor = useAppSelector((state) => state.theme.brandColor);
 
   return (
     <div

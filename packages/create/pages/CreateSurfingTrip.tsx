@@ -1,10 +1,8 @@
 // CreateSurfingTrip.tsx
 import { useAuth } from "auth/useAuth";
-import { useWriteMutation } from "database/services";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { ulid } from "ulid";
 
 const CreateSurfingTrip = () => {
   const auth = useAuth();
@@ -14,20 +12,18 @@ const CreateSurfingTrip = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const [write, { isLoading, isSuccess, isError, error }] = useWriteMutation();
 
   const onSubmit = async (data) => {
     try {
       if (auth.user?.userId) {
-        const result = await write({
-          data,
-          flags: { isJSON: true },
-          userId: auth.user?.userId,
-          customId: ulid(),
-        }).unwrap();
-
+        // const result = await write({
+        //   data,
+        //   flags: { isJSON: true },
+        //   userId: auth.user?.userId,
+        //   customId: ulid(),
+        // }).unwrap();
         // 如果成功，跳转到新创建的行程页面
-        navigate(`/${result.id}`); // 假设返回的对象中有一个id字段
+        // navigate(`/${result.id}`); // 假设返回的对象中有一个id字段
       }
     } catch (err) {
       console.error("Failed to write surfing trip data:", err);

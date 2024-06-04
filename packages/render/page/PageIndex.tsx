@@ -55,14 +55,14 @@ const Page = ({ id }) => {
       const { layout } = data;
       if (layout === "full") {
         return (
-          <div className="flex min-h-screen flex-col bg-neutral-200">
+          <div className="flex min-h-screen flex-col">
             <Header />
             <div className="w-full  flex-grow">{renderEdit()}</div>
           </div>
         );
       }
       return (
-        <div className="flex min-h-screen flex-col bg-neutral-200">
+        <div className="flex min-h-screen flex-col">
           <Header />
           <div className="max-w-8xl m-4 mx-auto w-full flex-grow">
             {renderContent()}

@@ -3,6 +3,7 @@ import type { NoloRootState } from "app/store";
 
 interface SettingState {
   syncSetting: {
+    isAutoSync: boolean;
     currentServer: string;
     officialServers: string[];
     syncServers: string[];
@@ -11,13 +12,11 @@ interface SettingState {
 }
 const initialState: SettingState = {
   syncSetting: {
+    isAutoSync: false,
     currentServer: "https://nolotus.com",
     officialServers: ["https://nolotus.com", "https://us.nolotus.com"],
     syncServers: ["https://nolotus.com", "https://us.nolotus.com"],
-    thirdPartyServers: [
-      "https://thirdparty.server1.com",
-      "https://thirdparty.server2.com",
-    ],
+    thirdPartyServers: ["https://thirdparty.server1.com"],
   },
 };
 // 创建一个新的slice
@@ -68,6 +67,6 @@ export const {
 
 export const selectCurrentServer = (state: NoloRootState): string =>
   state.settings.syncSetting.currentServer;
-export const selectSyncServer = (state: NoloRootState): string =>
+export const selectSyncServers = (state: NoloRootState): string =>
   state.settings.syncSetting.syncServers;
 export default settingSlice.reducer;

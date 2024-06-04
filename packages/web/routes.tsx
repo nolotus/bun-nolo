@@ -11,7 +11,6 @@ import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
 const Page = lazy(() => import("render/page/PageIndex"));
 import People from "app/pages/People";
-import AI from "app/pages/AI";
 
 export const routes = (currentUser) => [
   {
@@ -29,10 +28,6 @@ export const routes = (currentUser) => [
       {
         path: "people",
         element: <People />,
-      },
-      {
-        path: "ais",
-        element: <AI />,
       },
       ...authRoutes,
       ...createRoutes,

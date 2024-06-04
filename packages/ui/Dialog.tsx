@@ -6,11 +6,11 @@ import { Modal } from "./index";
 export const Dialog = ({ isOpen, onClose, title, children }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="surface3 flex h-auto  max-h-[500px] flex-col">
+      <div className="surface3 flex h-auto  max-h-[500px] flex-col ">
         <div className="flex items-center justify-between p-6">
-          <h2 className="text-xl font-bold">{title}</h2>
+          <h2>{title}</h2>
           <button
-            className="transition-colors duration-300 ease-in-out hover:text-red-500"
+            className=" hover:text-red-500"
             onClick={onClose}
             aria-label="Close"
           >

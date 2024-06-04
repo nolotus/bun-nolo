@@ -1,27 +1,12 @@
 import { api } from "app/api";
 import { selectCurrentUserId } from "auth/authSlice";
-
+import { updateOne } from "database/dbSlice";
 import { extractAndDecodePrefix, extractUserId } from "core";
 
 import { API_ENDPOINTS } from "./config";
-import { ResponseData, WriteDataType } from "./types";
-import { updateOne } from "database/dbSlice";
+import { ResponseData } from "./types";
 
 export type GetEntryType = {
-  entryId: string;
-  domain?: string;
-};
-type GetEntriesArgs = {
-  userId: string;
-  options: {
-    isObject?: boolean;
-    isJSON?: boolean;
-    limit?: number;
-    condition?: any;
-  };
-  domain?: string;
-};
-type DeleteEntryArgs = {
   entryId: string;
   domain?: string;
 };
@@ -33,24 +18,6 @@ type UpdateEntryArgs = {
 };
 export const dbApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    write: builder.mutation<ResponseData, WriteDataType>({
-      query: ({ data, flags, customId, userId, domain }) => {
-        const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}/write`
-          : `${API_ENDPOINTS.DATABASE}/write`;
-
-        return {
-          url: url,
-          method: "POST",
-          body: {
-            data,
-            flags,
-            customId,
-            userId,
-          },
-        };
-      },
-    }),
     updateEntry: builder.mutation<ResponseData, UpdateEntryArgs>({
       queryFn: async (
         { entryId, data, domain },
@@ -108,4 +75,4 @@ export const dbApi = api.injectEndpoints({
   }),
 });
 
-export const { useWriteMutation, useUpdateEntryMutation } = dbApi;
+export const { useUpdateEntryMutation } = dbApi;

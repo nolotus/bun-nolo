@@ -3,7 +3,7 @@ import { PersonIcon, LockIcon } from "@primer/octicons-react";
 import { useAppDispatch } from "app/hooks";
 import { signUp } from "auth/authSlice";
 import { storeTokens } from "auth/client/token";
-import { FormField } from "components/Form/FormField";
+import { FormField } from "ui/Form/FormField";
 import { LifeRoutePaths } from "life/routes";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";

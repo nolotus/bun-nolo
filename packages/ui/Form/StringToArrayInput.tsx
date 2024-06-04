@@ -1,7 +1,8 @@
 // StringToArrayInput.tsx
 import React from "react";
 
-const StringToArrayInput = ({ value, onChange, name, placeholder, error }) => {
+const StringToArrayInput = ({ value?, onChange?, name, placeholder, error }) => {
+  
   const handleInputChange = (e) => {
     const { value } = e.target;
     // 将逗号分隔的字符串转换为数组

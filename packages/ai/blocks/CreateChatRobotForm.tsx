@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "auth/useAuth";
-import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
-import { FormField } from "components/Form/FormField";
+import { createFieldsFromDSL } from "ui/Form/createFieldsFromDSL";
+import { FormField } from "ui/Form/FormField";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 import i18next from "i18n";
 import React, { useState } from "react";
@@ -29,7 +29,6 @@ const CreateChatRobotForm = ({ onClose }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isWriteLoading, setWriting] = useState(false);
-  // const [write, { isLoading: isWriteLoading }] = useWriteMutation();
 
   const [error, setError] = useState(null);
   const auth = useAuth();
@@ -43,17 +42,16 @@ const CreateChatRobotForm = ({ onClose }) => {
 
   const onSubmit = async (data) => {
     try {
-      // const result = await write(requestBody).unwrap();
       setWriting(true);
       const writeChatRobotAction = await dispatch(
         write({
-          data: { ...data, type: "chatRobot" },
+          data: { type: "chatRobot", ...data },
           flags: { isJSON: true },
           userId: auth.user?.userId,
         }),
       );
       console.log("writeChatRobotAction", writeChatRobotAction);
-      const llmId = writeChatRobotAction.payload;
+      const llmId = writeChatRobotAction.payload.id;
       const writeDialogAction = await dispatch(createDialog(llmId));
       console.log("writeDialogAction", writeDialogAction);
       const result = writeDialogAction.payload;

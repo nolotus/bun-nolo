@@ -1,6 +1,5 @@
 import {
   PayloadAction,
-  nanoid,
   buildCreateSlice,
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
@@ -200,7 +199,7 @@ export const messageSlice = createSliceWithThunks({
     }),
     //todo please consider muti agent
     retry: create.reducer<Message>((state, action) => {
-      state.tempMessage = { role: "assistant", content: "", id: nanoid() };
+      state.tempMessage = { role: "assistant", content: "", id: ulid() };
     }),
     messageStreaming: create.reducer<Message>((state, action) => {
       state.tempMessage = action.payload;

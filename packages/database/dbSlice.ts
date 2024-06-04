@@ -8,12 +8,16 @@ import {
   createSelectorCreator,
 } from "@reduxjs/toolkit";
 import { noloRequest } from "utils/noloRequest";
-import { selectSyncServer } from "setting/settingSlice";
+import { selectSyncServers } from "setting/settingSlice";
+import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
+import { ulid } from "ulid";
 
 import { API_ENDPOINTS } from "./config";
 import { noloReadRequest } from "./client/readRequest";
 import { noloWriteRequest } from "./client/writeRequest";
 import { noloQueryRequest } from "./client/queryRequest";
+import { noloUpdateRequest } from "./client/updateRequest";
+import { generateIdWithCustomId } from "core/generateMainKey";
 
 export const dbAdapter = createEntityAdapter();
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
@@ -68,7 +72,7 @@ const dbSlice = createSliceWithThunks({
     syncQuery: create.asyncThunk(
       async (queryConfig, thunkApi) => {
         const state = thunkApi.getState();
-        const syncServers = selectSyncServer(state);
+        const syncServers = selectSyncServers(state);
         const { queryUserId, options } = queryConfig;
         let headers = {
           "Content-Type": "application/json",
@@ -104,6 +108,7 @@ const dbSlice = createSliceWithThunks({
       async (id, thunkApi) => {
         const state = thunkApi.getState();
         const res = await noloReadRequest(state, id);
+
         const result = await res.json();
         return result;
       },
@@ -113,6 +118,7 @@ const dbSlice = createSliceWithThunks({
         },
       },
     ),
+    syncRead: create.asyncThunk(() => {}, {}),
     deleteData: create.asyncThunk(
       async (id, thunkApi) => {
         thunkApi.dispatch(removeOne(id));
@@ -136,13 +142,35 @@ const dbSlice = createSliceWithThunks({
     write: create.asyncThunk(
       async (writeConfig, thunkApi) => {
         const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
         // thunkApi.dispatch(syncWrite(state));
-        const writeRes = await noloWriteRequest(state, writeConfig);
+        const { id, flags, data, userId } = writeConfig;
+        const customId = id ? id : ulid();
+        const { isJSON, isList } = flags;
+        let config = {
+          flags,
+          data,
+        };
+        const saveId = generateIdWithCustomId(userId, customId, flags);
+        if (isJSON) {
+          const saveData = { id: saveId, ...data };
+          dispatch(addOne(saveData));
+        }
+        if (isList) {
+          const saveData = { id: saveId, array: data };
+          dispatch(addOne(saveData));
+        }
+        config = {
+          ...writeConfig,
+          customId,
+        };
+
+        const writeRes = await noloWriteRequest(state, config);
         return await writeRes.json();
       },
       {
         pending: (state, action) => {},
-        fulfilled: () => {},
+        fulfilled: (state, action) => {},
       },
     ),
     // syncWrite: create.asyncThunk(
@@ -175,17 +203,56 @@ const dbSlice = createSliceWithThunks({
     //     fulfilled: () => {},
     //   },
     // ),
-    updateData: create.reducer((state, action) => {
-      const updatedData = action.payload.data.map((item) => {
-        const existingItem = state.entities[item.id];
-        return {
-          ...item,
-          source: mergeSource(existingItem, action.payload.source),
-        };
-      });
-      dbAdapter.upsertMany(state, updatedData);
-    }),
+    // updateData: create.reducer((state, action) => {
+    //   const updatedData = action.payload.data.map((item) => {
+    //     const existingItem = state.entities[item.id];
+    //     return {
+    //       ...item,
+    //       source: mergeSource(existingItem, action.payload.source),
+    //     };
+    //   });
+    //   dbAdapter.upsertMany(state, updatedData);
+    // }),
+    updateData: create.asyncThunk(
+      async (updateConfig, thunkApi) => {
+        const { id, data } = updateConfig;
+        const state = thunkApi.getState();
+        const res = await noloUpdateRequest(state, id, data);
+        const result = await res.json();
+        return result;
+      },
+      {
+        fulfilled: (state, action) => {
+          const one = action.payload.data;
+          dbAdapter.upsertOne(state, one);
+        },
+      },
+    ),
+    saveData: create.asyncThunk(
+      async (saveConfig, thunkApi) => {
+        const dispatch = thunkApi.dispatch;
+        const id = saveConfig.id;
+        const readAction = await dispatch(read(id));
+        const result = readAction.payload;
 
+        if (result.error) {
+          const { data } = saveConfig;
+          const dataBelongUserId = extractUserId(saveConfig.id);
+          const id = extractCustomId(saveConfig.id);
+          const flags = extractAndDecodePrefix(saveConfig.id);
+          const writeConfig = { userId: dataBelongUserId, data, flags, id };
+          const writeRes = await dispatch(write(writeConfig));
+        } else {
+          const updateRes = await dispatch(updateData({ ...saveConfig, id }));
+          return updateRes.payload.data;
+        }
+      },
+      {
+        fulfilled: (state, action) => {
+          dbAdapter.upsertOne(state, action);
+        },
+      },
+    ),
     removeOne: create.reducer((state, action) => {
       dbAdapter.removeOne(state, action.payload);
     }),
@@ -221,6 +288,7 @@ const dbSlice = createSliceWithThunks({
         changes: action.payload.changes,
       });
     }),
+    addOne: dbAdapter.addOne,
   }),
 });
 export const selectEntitiesByIds = createSelector(
@@ -229,7 +297,6 @@ export const selectEntitiesByIds = createSelector(
 );
 createSelectorCreator;
 export const {
-  updateData,
   removeOne,
   upsertOne,
   upsertMany,
@@ -239,5 +306,8 @@ export const {
   read,
   syncQuery,
   write,
+  updateData,
+  saveData,
+  addOne,
 } = dbSlice.actions;
 export default dbSlice.reducer;

@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { baseCard } from "render/styles";
 
 import DataItem from "./DataItem";
-import { removeOne, write } from "database/dbSlice";
+import { write } from "database/dbSlice";
 import { CardList } from "./CardList";
 import { DataTable } from "./DataTable";
 const DataList = ({ data }) => {
@@ -50,11 +50,6 @@ const DataList = ({ data }) => {
       ),
     );
     // refreshData(auth.user?.userId);
-  };
-
-  const deleteItem = async (id: string, domains: string[]) => {
-    console.log("id", id);
-    dispatch(removeOne(id));
   };
 
   const [selectedItems, setSelectedItems] = useState({});

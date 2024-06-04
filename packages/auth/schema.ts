@@ -1,6 +1,6 @@
 import z from "zod";
 import { t } from "i18next";
-import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
+import { createFieldsFromDSL } from "ui/Form/createFieldsFromDSL";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 
 export const userFormSchema = z.object({

@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 
 export const WeekdayField = ({ id, register }) => (
   <div>
     <select
       id={id}
       {...register(id)}
-      className="mt-1 p-2 w-full border rounded-md"
+      className="mt-1 w-full rounded-md border p-2"
     >
       <option value="0">Sunday</option>
       <option value="1">Monday</option>

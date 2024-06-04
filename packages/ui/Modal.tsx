@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useKey } from "react-use";
 import Shadows from "open-props/src/shadows";
+import ZIndex from "open-props/src/zindex";
 
 export const useModal = () => {
   const [visible, setVisible] = useState(false);
@@ -41,6 +42,9 @@ export const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
   return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+      style={{
+        zIndex: ZIndex["--layer-2"],
+      }}
       onClick={handleOverlayClick}
     >
       <div

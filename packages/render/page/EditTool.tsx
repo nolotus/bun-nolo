@@ -43,10 +43,10 @@ export const EditTool = ({ handleSave }) => {
 
   return (
     <div className="flex items-center justify-between bg-gray-100 p-4">
-      <div className="text-gray-600">
+      {/* <div className="text-gray-600">
         {pageState.createdTime} |{" "}
         {pageState.hasVersion ? "Versioned" : "Not Versioned"}
-      </div>
+      </div> */}
       <Toggle
         label="Markdown 显示" // 简洁的标签
         id="markdown-toggle" // 唯一的 ID

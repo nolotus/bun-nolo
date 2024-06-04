@@ -5,7 +5,6 @@ import { handleQuery } from "../query";
 
 import { handleDelete } from "./delete";
 import { handleReadSingle } from "./read";
-import { handleReadAll } from "./readAll";
 import { handleUpdate } from "./update";
 import { handleWrite } from "./write";
 import { handleWriteHash } from "./writeHash";
@@ -29,8 +28,6 @@ export const databaseRequest = async (req, res, url) => {
       case "read":
         req.params = { id: getIdFromPath("/api/v1/db/read/") };
         return handleReadSingle(req, res);
-      case "readAll":
-        return handleReadAll(req, res);
       case "write":
         req.user = await handleToken(req, res);
         return handleWrite(req, res);

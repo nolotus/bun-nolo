@@ -1,48 +1,37 @@
-import { retrieveFirstToken } from "auth/client/token";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { formatData } from "core/formatData";
 import { getLogger } from "utils/logger";
 
 import { API_ENDPOINTS } from "../config";
+import { noloRequest } from "utils/noloRequest";
 
 const updateLogger = getLogger("update");
 
-const updateDatabase = async (formattedData, id, token) => {
-  const response = await fetch(`${API_ENDPOINTS.DATABASE}/update/${id}`, {
+export const noloUpdateRequest = async (state, id, data) => {
+  const config = {
+    url: `${API_ENDPOINTS.DATABASE}/update/${id}`,
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(formattedData),
-  });
-
+    body: JSON.stringify(data),
+  };
+  const response = await noloRequest(state, config);
   if (!response.ok) {
     updateLogger.error({ status: response.status }, "HTTP error");
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-
-  const responseData = await response.json();
-  updateLogger.info({ responseData }, "Response data");
-  return responseData;
+  return response;
 };
 
 export const updateData = async (userId, data, id) => {
   try {
-    const token = retrieveFirstToken();
-
-    if (!token) {
-      window.location.href = "/";
-      updateLogger.error({ token }, "No token found");
-      throw new Error("No token found");
-    }
-
-    const dataUserId = extractUserId(id);
+    const dataBelongUserId = extractUserId(id);
     const flags = extractAndDecodePrefix(id);
-    updateLogger.info({ dataUserId, userId }, "Formatted data for user");
+    updateLogger.info(
+      { dataUserId: dataBelongUserId, userId },
+      "Formatted data for user",
+    );
 
     if (
-      dataUserId === userId ||
+      dataBelongUserId === userId ||
       (flags.isOthersWritable && data.writeableIds.includes(userId))
     ) {
       const formattedData = {
@@ -53,12 +42,12 @@ export const updateData = async (userId, data, id) => {
 
       updateLogger.info(
         { formattedData },
-        dataUserId === userId
+        dataBelongUserId === userId
           ? "Formatted data for user"
           : "Formatted data for other writable users",
       );
 
-      return await updateDatabase(formattedData, id, token);
+      return await update(formattedData, id, token);
     }
   } catch (error) {
     updateLogger.error({ error }, "Error in updateData");

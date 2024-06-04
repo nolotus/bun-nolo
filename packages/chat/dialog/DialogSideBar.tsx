@@ -1,16 +1,17 @@
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
 import { useAuth } from "auth/useAuth";
-import { NavLink, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import Sizes from "open-props/src/sizes";
 
 import { extractUserId } from "core/prefix";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useModal, Dialog } from "ui";
-
-import { DialogItem } from "./DialogItem";
 import { NorthStarIcon, PlusIcon } from "@primer/octicons-react";
 import Fonts from "open-props/src/fonts";
 import Borders from "open-props/src/borders";
+import AI from "ai/blocks/AI";
+import { DialogItem } from "./DialogItem";
 
 const DialogSideBar = ({ dialogList }) => {
   const [searchParams] = useSearchParams();
@@ -22,7 +23,11 @@ const DialogSideBar = ({ dialogList }) => {
     open: openConfigModal,
     close: closeConfigModal,
   } = useModal();
-
+  const {
+    visible: AIsModalVisible,
+    open: openAIsModal,
+    close: closeAIsModal,
+  } = useModal();
   const isCreator = (id) => {
     const dataUserId = extractUserId(id);
     return dataUserId === auth.user?.userId;
@@ -53,18 +58,25 @@ const DialogSideBar = ({ dialogList }) => {
         </button>
       </div>
 
-      <NavLink to={"/ais"}>
-        <button
-          className="py-0 pl-4"
-          style={{
-            fontSize: Fonts["--font-size-1"],
-            borderRadius: Borders["--radius-2"],
-          }}
+      <button
+        style={{
+          fontSize: Fonts["--font-size-1"],
+          borderRadius: Borders["--radius-2"],
+          padding: 0,
+          paddingLeft: Sizes["--size-1"],
+        }}
+        onClick={openAIsModal}
+      >
+        <NorthStarIcon size="small" />
+        <span>从AI创建对话</span>
+        <Dialog
+          isOpen={AIsModalVisible}
+          onClose={closeAIsModal}
+          title={<h3>{t("createDialog")}</h3>}
         >
-          <NorthStarIcon size="small" className="mr-2" />
-          <span>去看看别人的AI</span>
-        </button>
-      </NavLink>
+          <AI />
+        </Dialog>
+      </button>
 
       {dialogList?.map((dialog) => (
         <DialogItem

@@ -94,7 +94,6 @@ const SyntaxHighlighter = lazy(() =>
 
 const Code = ({ value, language, isDarkMode }) => {
   const [isPreview, setIsPreview] = useState(false); // 新增预览状态
-  console.log("Code isDarkMode", isDarkMode);
   const togglePreview = () => setIsPreview(!isPreview);
 
   function renderJson(jsonOrString) {
