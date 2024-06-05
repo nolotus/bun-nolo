@@ -55,8 +55,6 @@ import Shadows from "open-props/src/shadows";
 import Borders from "open-props/src/borders";
 import Fonts from "open-props/src/fonts";
 import Sizes from "open-props/src/sizes";
-import { BlockLoader } from "./BlockLoder";
-
 const CopyToClipboard = ({ text }) => {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -88,7 +86,7 @@ const CopyToClipboard = ({ text }) => {
 
 const SyntaxHighlighter = lazy(() =>
   import("react-syntax-highlighter").then((module) => ({
-    default: module.Prism,
+    default: module.PrismLight,
   })),
 );
 
@@ -133,16 +131,22 @@ const Code = ({ value, language, isDarkMode }) => {
       }
     } else {
       return (
-        <Suspense fallback={<BlockLoader />}>
+        <Suspense fallback={<div>{value}</div>}>
           <SyntaxHighlighter
+            codeTagProps={{
+              style: {
+                display: "block",
+                width: `calc(100vw - ${Sizes["--size-13"] + Sizes["--size-13"] + Sizes["--size-9"]})`,
+              },
+            }}
             wrapLongLines={true}
             language={language || "jsx"}
-            style={isDarkMode ? vscDarkPlus : coyWithoutShadows}
+            style={isDarkMode ? atomDark : prism}
             customStyle={{
               borderRadius: "0",
               margin: "0",
               fontSize: Fonts["--font-size-1"],
-              padding: Sizes["--size-fluid-1"],
+              padding: Sizes["--size-fluid-2"],
             }}
           >
             {value}
@@ -176,7 +180,7 @@ const Code = ({ value, language, isDarkMode }) => {
     );
   };
   return (
-    <div className="relative my-6 ">
+    <div className="relative my-6">
       <CodeHeader />
       {renderContent()}
     </div>

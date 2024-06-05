@@ -13,11 +13,15 @@ import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/ch
 import { chatRequest as sendMistralRequest } from "integrations/mistral/chatRequest";
 import { chatRequest } from "integrations/openAI/chatRequest";
 import { chatRequest as sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
+import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest";
 
 import { pickMessages } from "../utils/pickMessages";
-function isModelInPriceList(model, priceList) {
-  return priceList.hasOwnProperty(model);
+import { zhipuModels } from "integrations/zhipu/models";
+
+function isModelInList(modelname, modelList) {
+  return modelList.hasOwnProperty(modelname);
 }
+
 const createStreamResponse = (stream: AxiosResponse<any>) => {
   const textEncoder = new TextEncoder();
   const readableStream = new ReadableStream({
@@ -61,8 +65,13 @@ async function processModelRequest(requestBody, modelType) {
     case "deepSeek":
       response = await sendDeepSeekRequest(requestBody, true);
       break;
+    case "zhipu":
+      response = await sendZhihuRequest(requestBody, true);
+      break;
     default:
-      throw new Error(`Unknown model: ${requestBody.model}`);
+      throw new Error(
+        `processModelRequest Unknown model: ${requestBody.model}`,
+      );
   }
   return createStreamResponse(response);
 }
@@ -74,16 +83,18 @@ export const handleStreamReq = async (req: Request, res) => {
   };
 
   try {
-    if (isModelInPriceList(requestBody.model, openAIModels)) {
+    if (isModelInList(requestBody.model, openAIModels)) {
       return await processModelRequest(requestBody, "openai");
-    } else if (isModelInPriceList(requestBody.model, perplexityModelPrice)) {
+    } else if (isModelInList(requestBody.model, perplexityModelPrice)) {
       return await processModelRequest(requestBody, "perplexity");
-    } else if (isModelInPriceList(requestBody.model, mistralModels)) {
+    } else if (isModelInList(requestBody.model, mistralModels)) {
       return await processModelRequest(requestBody, "mistral");
-    } else if (isModelInPriceList(requestBody.model, deepSeekModels)) {
+    } else if (isModelInList(requestBody.model, deepSeekModels)) {
       return await processModelRequest(requestBody, "deepSeek");
+    } else if (isModelInList(requestBody.model, zhipuModels)) {
+      return await processModelRequest(requestBody, "zhipu");
     } else {
-      throw new Error(`Unknown model: ${requestBody.model}`);
+      throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }
   } catch (error) {
     console.error(error.message);

@@ -2,13 +2,14 @@ import React from "react";
 import { Avatar } from "ui";
 import IconButton from "ui/IconButton";
 import { UnmuteIcon, TrashIcon } from "@primer/octicons-react";
-import { useAudioPlayer } from "../hooks/useAudioPlayer";
+import Sizes from "open-props/src/sizes";
 
 import { Message } from "./types";
 import { useAppDispatch } from "app/hooks";
 import { deleteMessage } from "./messageSlice";
 import { MessageText } from "./MessageText";
 import { MessageImage } from "./MessageImage";
+import { useAudioPlayer } from "../hooks/useAudioPlayer";
 
 export const SelfMessage: React.FC<Message> = ({ content, id }) => {
   const dispatch = useAppDispatch();
@@ -16,7 +17,7 @@ export const SelfMessage: React.FC<Message> = ({ content, id }) => {
   return (
     <div className="mb-2 flex justify-end">
       <div className="flex items-start">
-        <div className="flex flex-col">
+        <div className="flex flex-col " style={{ width: Sizes["--size-9"] }}>
           <div onClick={handlePlayClick}>
             <UnmuteIcon className="mr-2 cursor-pointer self-center" />
           </div>

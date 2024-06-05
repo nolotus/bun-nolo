@@ -12,6 +12,7 @@ import { Message } from "./types";
 import { useAppDispatch } from "app/hooks";
 import { MessageContent } from "./MessageContent";
 import { write } from "database/dbSlice";
+import Sizes from "open-props/src/sizes";
 
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();
@@ -59,7 +60,10 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
           <Avatar name="robot" />
         </div>
         <MessageContent content={content} />
-        <div className="ml-2 flex flex-col space-y-1">
+        <div
+          className="ml-2 flex flex-col space-y-1"
+          style={{ width: Sizes["--size-9"] }}
+        >
           <IconButton icon={UnmuteIcon} onClick={handlePlayClick} />
           <IconButton icon={DuplicateIcon} onClick={handleSaveContent} />
           <IconButton
