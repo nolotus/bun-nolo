@@ -7,6 +7,7 @@ import { deleteMessage, deleteNotFound } from "./messageSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import RobotMessage from "./RobotMessage";
 import { UserMessage } from "./UserMessage";
+import { SelfMessage } from "./SelfMessage";
 
 export const MessageItem = ({ id }) => {
   const dispatch = useDispatch();
@@ -23,7 +24,7 @@ export const MessageItem = ({ id }) => {
 
     const { content, image } = data;
     if (isSelf) {
-      return <UserMessage content={content} id={id} />;
+      return <SelfMessage content={content} id={id} />;
     } else if (data.llmId) {
       return <RobotMessage id={id} content={content} image={image} />;
     }

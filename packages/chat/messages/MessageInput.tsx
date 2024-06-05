@@ -6,6 +6,7 @@ import { generateFileID } from "database/fileUpload/generateFileID";
 import clsx from "clsx";
 import { useAuth } from "auth/useAuth";
 import Sizes from "open-props/src/sizes";
+import TextareaAutosize from "react-textarea-autosize";
 
 import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
@@ -186,17 +187,21 @@ const MessageInput: React.FC<MessageInputProps> = ({
             />
           </label>
         </button>
-        <textarea
+
+        <TextareaAutosize
+          value={textContent}
+          placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
+          onChange={handleNewMessageChange}
+          onKeyDown={handleKeyDown}
+          className="w-full"
+        />
+
+        {/* <textarea
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className="w-full "
-          placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
-          value={textContent}
-          onChange={handleNewMessageChange}
-          onKeyDown={handleKeyDown}
           style={{ height: Sizes["--size-fluid-6"] }}
-        />
+        /> */}
 
         <div className="absolute inset-x-0 bottom-0 left-auto right-0 m-2 flex min-w-[160px] items-center justify-end space-x-2">
           <ImagePreview
