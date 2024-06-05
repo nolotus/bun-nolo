@@ -2,6 +2,7 @@ import React from "react";
 import LazyLoadComponent from "render/components/LazyLoadComponent";
 
 import { Layout } from "./Layout";
+import { PageLoader } from "render/blocks/PageLoader";
 
 export enum LifeRoutePaths {
   WELCOME = "life/",
@@ -13,38 +14,38 @@ export enum LifeRoutePaths {
 const Welcome = (
   <LazyLoadComponent
     factory={() => import("app/pages/Welcome")}
-    fallback={<div>Loading Welcome...</div>}
+    fallback={<PageLoader />}
   />
 );
 const All = (
   <LazyLoadComponent
     factory={() => import("./web/All")}
-    fallback={<div>Loading All...</div>}
+    fallback={<PageLoader />}
   />
 );
 const Database = (
   <LazyLoadComponent
     factory={() => import("./web/Database")}
-    fallback={<div>Loading Database...</div>}
+    fallback={<PageLoader />}
   />
 );
 const Statistics = (
   <LazyLoadComponent
     factory={() => import("./web/Statistics")}
-    fallback={<div>Loading Statistics...</div>}
+    fallback={<PageLoader />}
   />
 );
 const Notes = (
   <LazyLoadComponent
     factory={() => import("./web/Notes")}
-    fallback={<div>Loading Notes...</div>}
+    fallback={<PageLoader />}
   />
 );
 
 const Calendar = (
   <LazyLoadComponent
     factory={() => import("./web/Calendar")}
-    fallback={<div>Loading Calendar...</div>}
+    fallback={<PageLoader />}
   />
 );
 export const routes = {

@@ -30,9 +30,9 @@ const Login: React.FC = () => {
     resolver: zodResolver(userFormSchema),
   });
 
-  const onSubmit = async (input) => {
+  const onSubmit = async (data) => {
     const locale = navigator.language;
-    dispatch(signIn({ ...input, locale }))
+    dispatch(signIn({ ...data, locale }))
       .then(() => {
         navigate(`/${LifeRoutePaths.WELCOME}`);
       })
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
             message = t("errors.serverError");
             break;
         }
-        setError(message);
+        setError(error);
       });
   };
   return (

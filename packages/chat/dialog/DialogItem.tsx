@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
-import { PencilIcon, PlusIcon, TrashIcon } from "@primer/octicons-react";
+import { PencilIcon, CopyIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
@@ -51,7 +51,7 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
       {allowEdit && (
         <div className="ml-auto flex space-x-2 opacity-0 transition duration-150 ease-in-out group-hover:opacity-100">
           <IconButton
-            icon={PlusIcon}
+            icon={CopyIcon}
             style={{ color: "var('--text-1')" }}
             onClick={() => {
               dispatch(createDialog(dialog.llmId));
