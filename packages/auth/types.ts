@@ -4,5 +4,17 @@ export interface SignupData {
   userId: string;
   remoteRecoveryPassword: string | null;
   encryptedEncryptionKey: string | null;
-  language: string;
+  locale: string;
+}
+export interface User {
+  userId: string;
+  username: string;
+  email?: string;
+}
+export interface AuthState {
+  currentUser: User | null;
+  users: User[];
+  isLoggedIn: boolean;
+  currentToken: string | null;
+  isLoading: boolean;
 }

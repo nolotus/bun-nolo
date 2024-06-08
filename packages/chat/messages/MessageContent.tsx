@@ -1,37 +1,31 @@
-import React, { useMemo } from "react";
-import remarkGfm from "remark-gfm";
-import remarkParse from "remark-parse";
-import { renderContentNode } from "render";
-import { unified } from "unified";
-import { MessageRole } from "./types";
+import { MessageText } from "./MessageText";
+import { MessageImage } from "./MessageImage";
 
-const getColorClass = (type: MessageRole) => {
-  if (type === "user") {
-    return "text-blue-500";
-  }
-  return "text-neutral-600";
-};
-
-export const MessageContent: React.FC<{
-  type: MessageRole;
-  content: string;
-}> = ({ type, content }) => {
-  const mdast = useMemo(() => {
-    const processor = unified().use(remarkParse).use(remarkGfm);
-    return processor.parse(content);
-  }, [content]);
-
-  const renderedContent = useMemo(() => {
-    return renderContentNode(mdast);
-  }, [mdast]);
-  //增加闪烁，如果网络卡了
-  const colorClass = getColorClass(type);
-
+export const MessageContent = ({ content }) => {
   return (
     <div
-      className={`mx-2 rounded-lg bg-neutral-100 px-4 py-2 ${colorClass} whitespace-pre-wrap`}
+      className="surface1 rounded-lg p-2"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        boxShadow: "var(--shadow-2)",
+      }}
     >
-      {type === "user" ? content : renderedContent}
+      {typeof content === "string" ? (
+        <MessageText content={content} />
+      ) : (
+        content.map((item) => {
+          if (item.type === "text") {
+            return <MessageText key={item.text} content={item.text} />;
+          }
+          if (item.type === "image_url") {
+            return (
+              <MessageImage key={item.image_url.url} url={item.image_url.url} />
+            );
+          }
+          return <div>unknow message type</div>;
+        })
+      )}
     </div>
   );
 };

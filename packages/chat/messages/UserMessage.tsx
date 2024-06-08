@@ -1,41 +1,35 @@
-import { UnmuteIcon } from "@primer/octicons-react";
 import React from "react";
 import { Avatar } from "ui";
-
+import IconButton from "ui/IconButton";
+import { UnmuteIcon, TrashIcon } from "@primer/octicons-react";
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 
-import { MessageContent } from "./MessageContent";
-import { MessageImage } from "./MessageImage";
 import { Message } from "./types";
+import { MessageContent } from "./MessageContent";
+import { useAppDispatch } from "app/hooks";
+import { deleteMessage } from "./messageSlice";
 
-const UserMessageContent = ({ content }) => {
-  if (typeof content === "string") {
-    return <MessageContent type="user" content={content} />;
-  }
-  console.log("content", content);
-  return content.map((item) => {
-    if (item.type === "text") {
-      return <MessageContent type="user" content={item.text} />;
-    }
-    if (item.type === "image_url") {
-      return <MessageImage url={item.image_url.url} />;
-    }
-    return <div>unknow message type</div>;
-  });
-};
-export const UserMessage: React.FC<Message> = ({ content }) => {
+export const UserMessage: React.FC<Message> = ({ content, id }) => {
+  const dispatch = useAppDispatch();
   const { audioSrc, handlePlayClick } = useAudioPlayer(content[0].text);
   return (
-    <div className="flex justify-end mb-2">
+    <div className="mb-2 flex justify-end">
       <div className="flex items-start">
-        <div onClick={handlePlayClick}>
-          <UnmuteIcon className="mr-2 self-center cursor-pointer" />
+        <div className="flex flex-col">
+          <div onClick={handlePlayClick}>
+            <UnmuteIcon className="mr-2 cursor-pointer self-center" />
+          </div>
+          <IconButton
+            icon={TrashIcon}
+            onClick={() => dispatch(deleteMessage(id))}
+          />
         </div>
-        <UserMessageContent content={content} />
 
-        <div className="flex-shrink-0">
-          <Avatar name="user" />
-        </div>
+        <MessageContent content={content} />
+      </div>
+
+      <div className="flex-shrink-0">
+        <Avatar name="user" />
       </div>
       {audioSrc && <audio src={audioSrc} controls />}
     </div>

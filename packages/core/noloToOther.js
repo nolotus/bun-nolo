@@ -18,5 +18,9 @@ export const noloToObject = (text) => {
   return object;
 };
 export const listToArray = (data) => {
-  return data.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+  if (!data) return [];
+  const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+  return data.split(regex).map((item) => {
+    return item.replace(/^"|"$/g, "");
+  });
 };

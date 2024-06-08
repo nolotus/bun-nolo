@@ -9,7 +9,7 @@ export const chatRequest = async (
   isStream: boolean,
 ): Promise<AxiosResponse<any> | null> => {
   const data = {
-    model: requestBody.model || "gpt-3.5-turbo-16k",
+    model: requestBody.model,
     messages: requestBody.messages,
     stream: isStream,
     max_tokens: requestBody.max_tokens,

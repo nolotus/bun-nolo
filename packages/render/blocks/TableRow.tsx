@@ -1,13 +1,11 @@
-import React, { FC, ReactNode } from 'react';
+import React, { FC, ReactNode } from "react";
 
 interface TableRowProps {
   children: ReactNode;
   className?: string;
 }
-const TableRow: FC<TableRowProps> = ({ children, className = '' }) => {
-  return (
-    <tr className={`border-b border-gray-400 py-2 ${className}`}>{children}</tr>
-  );
+const TableRow: FC<TableRowProps> = ({ children, className = "" }) => {
+  return <tr className={`${className}`}>{children}</tr>;
 };
 
 export default TableRow;

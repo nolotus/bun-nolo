@@ -14,6 +14,9 @@ import "./input.css";
 import { isProduction } from "utils/env";
 
 const hostname = window.location.hostname;
+const isDark =
+  window.matchMedia &&
+  window.matchMedia("(prefers-color-scheme: dark)").matches;
 
 const domNode = document.getElementById("root");
 const lng = window.navigator.language;
@@ -25,7 +28,11 @@ if (isProduction) {
     <React.StrictMode>
       <Provider store={browserStore}>
         <BrowserRouter>
-          <App hostname={hostname} lng={lng} />
+          <App
+            hostname={hostname}
+            lng={lng}
+            theme={isDark ? "dark" : "light"}
+          />
         </BrowserRouter>
       </Provider>
     </React.StrictMode>,
@@ -37,7 +44,11 @@ if (isProduction) {
       <Provider store={browserStore}>
         <WebSocketProvider url="ws://localhost:80">
           <HashRouter>
-            <App hostname={hostname} lng={lng} />
+            <App
+              hostname={hostname}
+              lng={lng}
+              theme={isDark ? "dark" : "light"}
+            />
           </HashRouter>
         </WebSocketProvider>
       </Provider>

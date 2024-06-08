@@ -2,8 +2,6 @@ import { listToArray, noloToObject } from "./noloToOther";
 import { extractAndDecodePrefix } from "./prefix";
 import { getLogger } from "utils/logger";
 
-const readDataLogger = getLogger("readData");
-
 const exampleText = `
 number1 100
 number2 100.1
@@ -21,7 +19,7 @@ const isBase64 = (str) => {
     /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
   return regExp.test(str);
 };
-const decodeData = (data, flags) => {
+const decodeData = (data, flags, id) => {
   let decodedData = data;
 
   const decodeOperations = {
@@ -86,14 +84,10 @@ export function processLine(line) {
   const { key: id, value } = getHeadTail(line, " ");
 
   const parsedValue = parseValue(value);
-  readDataLogger.info({ parsedValue, value }, "getHeadTail");
-
   const flags = extractAndDecodePrefix(id);
-  // if (parsedValue === 100000) {
-  //   console.log("error line", line);
-  // }
-  const decodedValue = decodeData(parsedValue, flags);
-  readDataLogger.info({ decodedValue }, "getHeadTail");
+
+  //add id for test
+  const decodedValue = decodeData(parsedValue, flags, id);
 
   return [id.trim(), decodedValue];
 }

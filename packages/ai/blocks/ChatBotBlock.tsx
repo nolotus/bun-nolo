@@ -1,5 +1,9 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { createDialog } from "chat/dialog/dialogSlice";
+import { extractCustomId } from "core";
+
 const OMIT_NAME_MAX_LENGTH = 60;
 
 const omitName = (content) => {
@@ -10,28 +14,34 @@ const omitName = (content) => {
   }
   return jsonString;
 };
-export const ChatBotBlock = (props) => {
-  const { item } = props;
-  const { value, key } = item;
+export const ChatBotBlock = ({ item }) => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  const displayId = extractCustomId(item.id);
+  const createNewDialog = async () => {
+    try {
+      const llmId = item.id;
+      const writeDialogAction = await dispatch(createDialog(llmId));
+      console.log("writeDialogAction", writeDialogAction);
+      const result = writeDialogAction.payload;
+      navigate(`/chat?dialogId=${result.id}`);
+    } catch (error) {
+      console.log("errror", error);
+      // setError(error.data?.message || error.status);
+    }
+  };
   return (
-    <div className="flex cursor-pointer flex-col bg-white  transition-colors duration-200 hover:bg-gray-100">
+    <div
+      className="surface1  flex flex-col"
+      style={{ padding: "var(--size-1)" }}
+    >
       <div className="flex items-center justify-between pb-4">
-        <div className="text-lg font-bold">{value.name}</div>
+        <div className="text-lg font-bold">{item.name}</div>
+        <button onClick={createNewDialog}>对话</button>
       </div>
-      <div className="flex">
-        <Link to={`/chat?chatId=${key}`}>
-          <button className="mr-2 rounded bg-green-500 px-2 py-1 font-bold text-white hover:bg-green-700">
-            对话
-          </button>
-        </Link>
-        <button className="mr-2 rounded bg-blue-500 px-2 py-1 font-bold text-white hover:bg-blue-700">
-          编辑
-        </button>
-      </div>
-      <div>
-        <p>{omitName(value)}</p>
-      </div>
+
+      <div>{/* <p>{omitName(item)}</p> */}</div>
     </div>
   );
 };

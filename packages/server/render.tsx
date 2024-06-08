@@ -7,7 +7,13 @@ import { StaticRouter } from "react-router-dom/server";
 import App from "web/App";
 
 import assets from "../../public/assets.json";
+// import inject from "@stylexjs/dev-runtime";
 
+// inject({
+//   classNamePrefix: "x",
+//   dev: true,
+//   test: false,
+// });
 export const handleRender = async (req) => {
   const bootstrapJs = `/${assets.js}`;
   const bootstrapCss = `/${assets.css}`;
@@ -16,12 +22,13 @@ export const handleRender = async (req) => {
 
   const acceptLanguage = req.headers.get("accept-language");
   const lng = acceptLanguage.split(",")[0];
+  const hostname = req.headers.get("host");
 
   try {
     const stream = await renderToReadableStream(
       <Provider store={store}>
         <StaticRouter location={url}>
-          <App hostname={req.host} lng={lng} />
+          <App hostname={hostname} lng={lng} />
         </StaticRouter>
       </Provider>,
       {
@@ -61,6 +68,7 @@ export const handleRender = async (req) => {
         <meta name="description" content="nolotus" />
         <title>nolotus</title>
         <link rel="stylesheet" href="${bootstrapCss}"></link>
+
         <script>
           function $U(h, s) {
             document.getElementById(h)?.remove();

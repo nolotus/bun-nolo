@@ -11,12 +11,10 @@ const defaultOptions = {
     "api",
     "form",
     "update",
-    "deleteUser",
     "data-import",
     "Message",
     "TableComponent",
     "ChatWindow",
-    "register",
     "surfWeather",
   ],
 };

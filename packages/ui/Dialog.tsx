@@ -1,16 +1,16 @@
-import { XIcon } from '@primer/octicons-react';
-import React from 'react';
+import { XIcon } from "@primer/octicons-react";
+import React from "react";
 
-import { Modal } from './index';
+import { Modal } from "./index";
 
 export const Dialog = ({ isOpen, onClose, title, children }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="flex flex-col bg-white rounded-lg max-h-[500px] h-auto">
-        <div className="flex justify-between items-center p-6">
-          <h2 className="text-xl font-bold">{title}</h2>
+      <div className="surface3 flex h-auto  max-h-[500px] flex-col ">
+        <div className="flex items-center justify-between p-6">
+          <h2>{title}</h2>
           <button
-            className="text-black font-bold hover:text-red-500 transition-colors duration-300 ease-in-out"
+            className=" hover:text-red-500"
             onClick={onClose}
             aria-label="Close"
           >

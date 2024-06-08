@@ -8,7 +8,7 @@ export async function chatRequest(
 ): Promise<any> {
   const { model, messages, max_tokens } = requestBody;
 
-  const proxyConfig = getProxyConfig();
+  const proxyConfig = getProxyConfig(false);
   const axiosConfig = {
     method: "POST",
     url: "https://api.deepseek.com/chat/completions",

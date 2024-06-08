@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React, { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { Header } from "./Header";
+import Sizes from "open-props/src/sizes";
 
 const Layout = ({ disableAnimation = false }) => {
   const location = useLocation();
@@ -27,12 +27,20 @@ const Layout = ({ disableAnimation = false }) => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-200">
-      <Header />
-      <div className="mx-auto w-full flex-grow sm:py-8 md:py-12">
-        <Suspense fallback={<div>hi</div>}>{renderContent()}</Suspense>
+    <>
+      <div className="flex min-h-screen flex-col">
+        <div
+          className="mx-auto w-full flex-grow"
+          style={{
+            paddingTop: Sizes["--size-fluid-3"],
+            paddingLeft: Sizes["--size-fluid-7"],
+            paddingRight: Sizes["--size-fluid-7"],
+          }}
+        >
+          <Suspense fallback={<div>loading</div>}>{renderContent()}</Suspense>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

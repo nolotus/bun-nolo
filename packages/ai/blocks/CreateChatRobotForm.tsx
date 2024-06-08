@@ -1,10 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { nanoid } from "@reduxjs/toolkit";
-import { useAuth } from "app/hooks";
-import { createFieldsFromDSL } from "components/Form/createFieldsFromDSL";
-import { FormField } from "components/Form/FormField";
+import { useAuth } from "auth/useAuth";
+import { createFieldsFromDSL } from "ui/Form/createFieldsFromDSL";
+import { FormField } from "ui/Form/FormField";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
-import { useWriteMutation } from "database/services";
 import i18next from "i18n";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,50 +11,24 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { Button } from "ui/Button";
 
 import allTranslations from "../aiI18n";
-import { ModelPriceEnum } from "../modelPrice";
+import { createDsl } from "../schema";
+import { useAppDispatch } from "app/hooks";
+import { write } from "database/dbSlice";
+import { createDialog } from "chat/dialog/dialogSlice";
 
-export const createDsl = {
-  name: {
-    type: "string",
-    min: 1,
-  },
-  description: {
-    type: "textarea",
-    min: 1,
-  },
-
-  replyRule: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
-  knowledge: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
-  model: {
-    type: "enum",
-    values: Object.keys(ModelPriceEnum),
-  },
-  path: {
-    type: "string",
-    min: 1,
-    optional: true,
-  },
-};
 const fields = createFieldsFromDSL(createDsl);
 const schema = createZodSchemaFromDSL(createDsl);
+
 Object.keys(allTranslations).forEach((lang) => {
   const translations = allTranslations[lang].translation;
   i18next.addResourceBundle(lang, "translation", translations, true, true);
 });
 
 const CreateChatRobotForm = ({ onClose }) => {
+  const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const navigate = useNavigate();
-
-  const [write, { isLoading: isWriteLoading }] = useWriteMutation();
+  const [isWriteLoading, setWriting] = useState(false);
 
   const [error, setError] = useState(null);
   const auth = useAuth();
@@ -69,19 +41,25 @@ const CreateChatRobotForm = ({ onClose }) => {
   });
 
   const onSubmit = async (data) => {
-    const requestBody = {
-      data: { ...data, type: "chatRobot" },
-      flags: { isJSON: true },
-      userId: auth.user?.userId,
-      customId: data.path ? data.path : nanoid(),
-    };
-
     try {
-      const result = await write(requestBody).unwrap();
-      console.log(result);
-      navigate(`/chat?chatId=${result.dataId}`);
+      setWriting(true);
+      const writeChatRobotAction = await dispatch(
+        write({
+          data: { type: "chatRobot", ...data },
+          flags: { isJSON: true },
+          userId: auth.user?.userId,
+        }),
+      );
+      console.log("writeChatRobotAction", writeChatRobotAction);
+      const llmId = writeChatRobotAction.payload.id;
+      const writeDialogAction = await dispatch(createDialog(llmId));
+      console.log("writeDialogAction", writeDialogAction);
+      const result = writeDialogAction.payload;
+      navigate(`/chat?dialogId=${result.id}`);
       onClose();
+      setWriting(false);
     } catch (error) {
+      setWriting(false);
       setError(error.data?.message || error.status); // 可以直接设置错误状态
     }
   };
@@ -92,7 +70,7 @@ const CreateChatRobotForm = ({ onClose }) => {
         <div className={"mb-4 flex flex-col"} key={field.id}>
           <label
             htmlFor={field.id}
-            className={"mb-1 block text-sm font-medium text-gray-700"}
+            className={"mb-1 block text-sm font-medium "}
           >
             {t(field.label)}
           </label>
@@ -115,10 +93,7 @@ const CreateChatRobotForm = ({ onClose }) => {
         {t("startConfiguringYourRobot")}
       </Button>
       <div className="mt-4">
-        <NavLink
-          to="/create/chat-robot"
-          className="text-blue-600 hover:text-blue-800"
-        >
+        <NavLink to="/create/chat-robot">
           {t("configureDetailedSettings")}
         </NavLink>
       </div>

@@ -3,7 +3,7 @@ import { isProduction } from "utils/env";
 
 const inputPath = "./packages/web/entry.tsx";
 // 定义公共配置
-const commonConfig = {
+export const commonConfig = {
   entryPoints: [inputPath],
   outdir: "public/assets",
   plugins: [
@@ -25,6 +25,9 @@ const commonConfig = {
     ".svg": "text",
   },
   metafile: true,
+  // entryNames: "[dir]/[name]-[hash]",
+  // minify: true,
+  sourcemap: true,
 };
 
 // 定义生产环境特有配置

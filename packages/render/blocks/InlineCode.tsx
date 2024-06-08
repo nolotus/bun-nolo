@@ -1,9 +1,8 @@
-import React from 'react';
+import React from "react";
+import Fonts from "open-props/src/fonts";
 
-const InlineCode = ({value}) => (
-  <span className="px-1 py-1 text-sm font-mono bg-gray-200 rounded-md">
-    {value}
-  </span>
+const InlineCode = ({ value }) => (
+  <code style={{ fontSize: Fonts["--font-size-1"] }}>{value}</code>
 );
 
 export default InlineCode;

@@ -1,7 +1,6 @@
 import { DataType } from "create/types";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/hooks";
 import { selectFilterType } from "../selectors";
-import { setFilterType } from "../lifeSlice";
 import { useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -9,20 +8,16 @@ const typeArray = ["All", ...Object.values(DataType)];
 
 export const TypeChange = () => {
   const filterType = useAppSelector(selectFilterType);
-  const dispatch = useAppDispatch();
   let [searchParams, setSearchParams] = useSearchParams();
 
   //style
   const mainColor = useSelector((state: any) => state.theme.mainColor);
 
-  const handleFilterTypeChange = (type) => {};
   const changeType = (type) => {
     if (type === "All") {
       console.log("type", type);
-      dispatch(setFilterType());
       setSearchParams({});
     } else {
-      dispatch(setFilterType(type));
       setSearchParams({ filterType: type });
     }
   };

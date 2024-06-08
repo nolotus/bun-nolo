@@ -1,4 +1,4 @@
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import { useUpdateEntryMutation } from "database/services";
 import React from "react";
 import { useParams } from "react-router-dom";
@@ -10,6 +10,7 @@ import { setHasVersion, saveContentAndMdast, updateContent } from "./pageSlice";
 import { processContent } from "./processContent";
 import { EditTool } from "./EditTool";
 import { RichEdit } from "./RichEdit";
+import { useAppSelector, useAppDispatch } from "app/hooks";
 
 const EditPage = () => {
   const { toasts, addToast, removeToast } = useToastManager();

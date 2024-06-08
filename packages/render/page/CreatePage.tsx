@@ -1,11 +1,11 @@
-import { nanoid } from "@reduxjs/toolkit";
-import { useAppDispatch, useAppSelector, useAuth } from "app/hooks";
-import { useWriteMutation, useGetEntryQuery } from "database/services";
+import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
+import { useAuth } from "auth/useAuth";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { markdownToMdast, getH1TextFromMdast } from "render/MarkdownProcessor";
 import { Button, Toggle } from "ui";
 import { VersionsIcon } from "@primer/octicons-react";
+import { write } from "database/dbSlice";
 
 import { createPageData } from "./pageDataUtils";
 import {
@@ -23,14 +23,14 @@ import { RichEdit } from "./RichEdit";
 const CreatePage = () => {
   const [searchParams] = useSearchParams();
   const templateId = searchParams.get("id");
-  const { data, isLoading } = useGetEntryQuery({ entryId: templateId });
+
+  const { data, isLoading, error } = useFetchData(templateId);
   const dispatch = useAppDispatch();
   const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
   const auth = useAuth();
   const userId = auth.user?.userId;
   const pageState = useAppSelector((state) => state.page);
   const mdastFromSlice = pageState.mdast;
-  const [mutate] = useWriteMutation();
   const navigate = useNavigate();
   const [textareaContent, setTextareaContent] = React.useState<string>("");
 
@@ -39,17 +39,18 @@ const CreatePage = () => {
   }, [data]);
   const saveData = async (pageData) => {
     try {
-      const newSlug = nanoid();
-      const result = await mutate({
-        data: pageData,
-        flags: { isJSON: true },
-        customId: newSlug,
-        userId: auth.user?.userId,
-      });
+      const writePageAction = await dispatch(
+        write({
+          data: pageData,
+          flags: { isJSON: true },
+          userId: auth.user?.userId,
+        }),
+      );
 
+      const result = writePageAction.payload;
       if (result) {
-        const dataId = result.data.dataId; // 假设 dataId 在 result.data.dataId，你需要根据实际响应调整
-        navigate(`/${dataId}?edit=true`); // 使用 dataId 进行页面跳转
+        const id = result.id;
+        navigate(`/${id}?edit=true`);
       }
     } catch (error) {
       // 错误处理逻辑
@@ -106,10 +107,10 @@ const CreatePage = () => {
     <div className="flex min-h-screen flex-col">
       <div className="container mx-auto flex items-center justify-between bg-gray-100 p-4">
         {pageState.createdTime}
-        <div className="text-gray-600">
+        {/* <div className="text-gray-600">
           <VersionsIcon size={18} className="mr-2" />
           {pageState.hasVersion ? "Versioned" : "Not Versioned"}
-        </div>
+        </div> */}
         <Toggle
           label="Markdown编辑"
           id="markdown-toggle"

@@ -7,33 +7,19 @@ import {
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useSearchParams } from "react-router-dom";
 import React, { useEffect } from "react";
-import { updateData } from "database/dbSlice";
-import { getDomains } from "app/domains";
 
 import { AccountBalance } from "../blocks/AccountBanlance";
 import DataList from "../blocks/DataList";
 import { FilterPanel } from "../blocks/FilterPanel";
 import { selectFilteredLifeData } from "../selectors";
-import { setFilterType } from "../lifeSlice";
 import { TypeChange } from "./typeChange";
 
 export const LifeAll = () => {
   const dispatch = useAppDispatch();
   let [searchParams] = useSearchParams();
 
-  const domains = getDomains();
-  const fetchData = async (userId: string) => {
-    domains.forEach(async ({ domain, source }) => {
-      const result = await trigger({ userId, domain }).unwrap();
-      dispatch(updateData({ data: result, source }));
-    });
-  };
-
   const data = useAppSelector(selectFilteredLifeData);
 
-  useEffect(() => {
-    dispatch(setFilterType(searchParams.get("filterType") || ""));
-  }, []);
   return (
     <div className="p-4">
       <AccountBalance />
@@ -52,7 +38,7 @@ export const LifeAll = () => {
         </div>
       </div>
 
-      <DataList data={data} refreshData={fetchData} />
+      <DataList data={data} />
     </div>
   );
 };

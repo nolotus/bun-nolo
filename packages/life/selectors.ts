@@ -1,11 +1,11 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { selectAllData } from "database/selectors";
+import { selectAll } from "database/dbSlice";
 export const selectFilterType = (state) => state.life.filterType;
 export const selectSourceFilter = (state) => state.life.sourceFilter;
 
 export const selectFilteredLifeData = createSelector(
   [
-    selectAllData,
+    selectAll,
     selectFilterType,
     selectSourceFilter,
     (state) => state.life.sortKey,

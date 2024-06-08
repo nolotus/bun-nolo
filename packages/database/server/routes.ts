@@ -5,11 +5,9 @@ import { handleQuery } from "../query";
 
 import { handleDelete } from "./delete";
 import { handleReadSingle } from "./read";
-import { handleReadAll } from "./readAll";
 import { handleUpdate } from "./update";
 import { handleWrite } from "./write";
 import { handleWriteHash } from "./writeHash";
-
 export const databaseRequest = async (req, res, url) => {
   const pathname = url.pathname;
 
@@ -30,8 +28,6 @@ export const databaseRequest = async (req, res, url) => {
       case "read":
         req.params = { id: getIdFromPath("/api/v1/db/read/") };
         return handleReadSingle(req, res);
-      case "readAll":
-        return handleReadAll(req, res);
       case "write":
         req.user = await handleToken(req, res);
         return handleWrite(req, res);
@@ -45,10 +41,10 @@ export const databaseRequest = async (req, res, url) => {
       case "query":
         req.params = { userId: getIdFromPath("/api/v1/db/query/") };
         return handleQuery(req, res);
-      case "delete": // 新增的删除操作
+      case "delete":
         req.user = await handleToken(req, res);
         req.params = { id: getIdFromPath("/api/v1/db/delete/") };
-        return handleDelete(req, res); // 确保你有这个函数
+        return handleDelete(req, res);
       default:
         return new Response("database");
     }

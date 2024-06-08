@@ -8,7 +8,6 @@
 	"dependencies": {
 		"web": "workspace:web",
 		"app": "workspace:app",
-		"user": "workspace:user",
 		"utils": "workspace:utils"
 	},
 	"peerDependencies": {

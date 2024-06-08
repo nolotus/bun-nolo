@@ -1,26 +1,33 @@
 import { extractUserId } from "core/prefix";
-import { deleteFromFile } from "utils/file";
+import { removeDataFromFile } from "utils/file";
 
-const deleteData = async (id: string, actionUserId: string) => {
-  const userId = extractUserId(id);
-  if (actionUserId === userId) {
-    const indexPath = `./nolodata/${userId}/index.nolo`;
-    const hashPath = `./nolodata/${userId}/hash.nolo`;
-    await deleteFromFile(indexPath, id);
-    await deleteFromFile(hashPath, id);
-  } else {
-    // 如果操作用户 ID 和数据用户 ID 不匹配，抛出一个错误
-    throw new Error("Unauthorized action.");
-  }
+const deleteData = async (userId: string, ids) => {
+  const indexPath = `./nolodata/${userId}/index.nolo`;
+  const hashPath = `./nolodata/${userId}/hash.nolo`;
+  await removeDataFromFile(indexPath, ids);
+  await removeDataFromFile(hashPath, ids);
 };
 
 export const handleDelete = async (req, res) => {
-  const { user } = req;
-  const actionUserId = user.userId;
+  const { userId: actionUserId } = req.user;
+  const { id } = req.params;
+
+  const userId = extractUserId(id);
+  const isSelfData = actionUserId === userId;
+  if (!isSelfData) {
+    throw new Error("Unauthorized action.");
+  }
+
+  const { ids } = req.body || {};
+  if (ids) {
+    console.log("ids", ids);
+    //maybe ids not belong userID database
+    //meybe need check belongs
+    await deleteData(userId, ids);
+  }
   try {
-    const { id } = req.params;
-    await deleteData(id, actionUserId);
-    return res.status(200).json({ message: "Data deleted successfully." });
+    await deleteData(userId, [id]);
+    return res.status(200).json({ message: "Data deleted successfully.", id });
   } catch (error) {
     console.error(error);
     const status = error.message === "Access denied" ? 401 : 500;

@@ -1,3 +1,3 @@
-import { RootState } from 'app/store';
+import { NoloRootState } from "app/store";
 
-export const selectMessage = (state: RootState) => state.message;
+export const selectMessage = (state: NoloRootState) => state.message;

@@ -6,52 +6,92 @@ import {
 } from "@primer/octicons-react";
 import clsx from "clsx";
 import React, { Suspense, lazy, useCallback, useState, memo } from "react";
-import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+  dracula,
+  vscDarkPlus,
+  vs,
+  synthwave84,
+  solarizedDarkAtom,
+  shadesOfPurple,
+  pojoaque,
+  oneLight,
+  oneDark,
+  nord,
+  nightOwl,
+  materialOceanic,
+  materialLight,
+  materialDark,
+  lucario,
+  hopscotch,
+  holiTheme,
+  gruvboxLight,
+  gruvboxDark,
+  ghcolors,
+  duotoneSpace,
+  duotoneSea,
+  duotoneLight,
+  darcula,
+  coyWithoutShadows,
+  coldarkDark,
+  coldarkCold,
+  cb,
+  base16AteliersulphurpoolLight,
+  atomDark,
+  a11yDark,
+  prism,
+  twilight,
+  tomorrow,
+  solarizedlight,
+  okaidia,
+  funky,
+  dark,
+  coy,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
 
-const CopyToClipboard = memo(({ text }) => {
+// light choose coyWithoutShadows
+import { copyToClipboard } from "utils/clipboard";
+import Colors from "open-props/src/colors";
+import Shadows from "open-props/src/shadows";
+import Borders from "open-props/src/borders";
+import Fonts from "open-props/src/fonts";
+import Sizes from "open-props/src/sizes";
+const CopyToClipboard = ({ text }) => {
   const [isCopied, setIsCopied] = useState(false);
 
   const copyText = useCallback(async () => {
-    if (text && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(text);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000); // 复制状态持续2秒
-      } catch (err) {
-        console.error("无法复制:", err);
-      }
+    try {
+      await copyToClipboard(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // 复制状态持续2秒
+    } catch (err) {
+      console.error("无法复制:", err);
     }
   }, [text]);
 
   return (
     <button
       onClick={copyText}
-      className={clsx(
-        "rounded px-2 py-1 transition-all duration-200 ease-in-out",
-        isCopied
-          ? "bg-gray-700 text-green-400"
-          : "text-gray-200 hover:bg-gray-700",
-      )}
+      className={clsx("border-0 bg-transparent px-3 py-1")}
+      style={{
+        boxShadow: Shadows["--shadow-1"],
+        color: isCopied && Colors["--green-7"],
+      }}
       disabled={!text}
       aria-label="复制代码"
     >
-      {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
+      {isCopied ? <CheckIcon /> : <CopyIcon />}
     </button>
   );
-});
+};
 
 const SyntaxHighlighter = lazy(() =>
   import("react-syntax-highlighter").then((module) => ({
-    default: module.Prism,
+    default: module.PrismLight,
   })),
 );
 
-// 加载显示组件
-const Loader = () => <div>Loading...</div>;
-
-const Code = ({ value, language }) => {
+const Code = ({ value, language, isDarkMode }) => {
   const [isPreview, setIsPreview] = useState(false); // 新增预览状态
-
   const togglePreview = () => setIsPreview(!isPreview);
 
   function renderJson(jsonOrString) {
@@ -91,14 +131,22 @@ const Code = ({ value, language }) => {
       }
     } else {
       return (
-        <Suspense fallback={<Loader />}>
+        <Suspense fallback={<div>{value}</div>}>
           <SyntaxHighlighter
+            codeTagProps={{
+              style: {
+                display: "block",
+                width: `calc(100vw - ${Sizes["--size-13"] + Sizes["--size-13"] + Sizes["--size-9"]})`,
+              },
+            }}
+            wrapLongLines={true}
             language={language || "jsx"}
-            style={dracula}
+            style={isDarkMode ? atomDark : prism}
             customStyle={{
-              background: "transparent",
-              padding: "1em",
+              borderRadius: "0",
               margin: "0",
+              fontSize: Fonts["--font-size-1"],
+              padding: Sizes["--size-fluid-2"],
             }}
           >
             {value}
@@ -107,25 +155,33 @@ const Code = ({ value, language }) => {
       );
     }
   };
-
-  return (
-    <div className="relative mx-auto my-6 overflow-hidden rounded-lg bg-gray-800 text-gray-100 shadow-md">
-      <div className="flex items-center justify-between bg-gradient-to-r from-blue-500 to-teal-600 px-2 py-1">
-        <span className="text-sm font-medium">
-          {language?.toUpperCase() || "CODE"}
-        </span>
+  const CodeHeader = () => {
+    return (
+      <div
+        className="surface3 flex items-center  justify-between px-4 py-2"
+        style={{
+          borderTopLeftRadius: Borders["--radius-2"],
+          borderTopRightRadius: Borders["--radius-2"],
+        }}
+      >
+        <span>{language?.toUpperCase() || "CODE"}</span>
         <div className="flex items-center">
-          <button
+          {/* <button
             onClick={togglePreview} // 切换预览状态
-            className="rounded px-1 py-1 text-gray-200 transition-all duration-200 ease-in-out hover:bg-gray-700"
             aria-label="切换预览"
+            className="surface3 mr-2 border-0 px-3 py-1"
+            style={{ boxShadow: Shadows["--shadow-1"] }}
           >
-            {isPreview ? <EyeClosedIcon size={16} /> : <EyeIcon size={16} />}{" "}
-            {/*根据状态显示不同图标*/}
-          </button>
+            {isPreview ? <EyeClosedIcon /> : <EyeIcon />}
+          </button> */}
           <CopyToClipboard text={value} />
         </div>
       </div>
+    );
+  };
+  return (
+    <div className="relative my-6">
+      <CodeHeader />
       {renderContent()}
     </div>
   );

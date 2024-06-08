@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, cloneElement } from 'react';
+import React, { FC, ReactNode, cloneElement } from "react";
 
 interface TableProps {
   children: ReactNode;
@@ -6,15 +6,13 @@ interface TableProps {
 
 const Table: FC<TableProps> = ({ children }) => {
   return (
-    <div className="overflow-x-auto shadow-lg rounded-lg">
-      <table className="w-full bg-white divide-y divide-gray-300">
-        <tbody className="divide-y divide-gray-300">
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <tbody className="">
           {React.Children.map(children, (child, index) =>
             React.isValidElement(child)
               ? cloneElement(child, {
-                  className: `${child.props.className || ''} ${
-                    index % 2 === 0 ? 'bg-gray-100' : 'bg-white'
-                  }`,
+                  className: `${child.props.className || ""}`,
                   key: index,
                 })
               : child,

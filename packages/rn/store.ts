@@ -1,10 +1,12 @@
 import authReducer from "auth/authSlice";
-import messageReducer from "chat/messages/messageSlice"; // 修改命名
+import messageReducer from "chat/messages/messageSlice";
 import dbReducer from "database/dbSlice";
 import lifeReducer from "life/lifeSlice";
-import themeReducer from "app/theme/themeSlice"; // 假设存在 theme/themeSlice
+import themeReducer from "app/theme/themeSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { api } from "app/api";
+import reactotron from "../../ReactotronConfig";
+import settingReducer from "setting/settingSlice";
 
 const preloadedState = {};
 
@@ -14,10 +16,16 @@ export const mobileStore = configureStore({
     message: messageReducer,
     auth: authReducer,
     db: dbReducer,
-    theme: themeReducer, // 添加themeReducer
+    theme: themeReducer,
+    settings: settingReducer,
+
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(api.middleware),
+  enhancers: (getDefaultEnhancers) => {
+    return getDefaultEnhancers().concat(reactotron.createEnhancer!());
+  },
+
   preloadedState,
 });

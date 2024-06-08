@@ -1,6 +1,6 @@
-import clsx from 'clsx';
-import React, { CSSProperties } from 'react';
-import { NavLink } from 'react-router-dom';
+import clsx from "clsx";
+import React, { CSSProperties } from "react";
+import { NavLink } from "react-router-dom";
 
 export interface LinkProps {
   to?: string;
@@ -8,19 +8,19 @@ export interface LinkProps {
   children: React.ReactNode;
   className?: string;
   style?: CSSProperties;
-  target?: '_blank' | '_self' | '_parent' | '_top';
+  target?: "_blank" | "_self" | "_parent" | "_top";
 }
 
 const Link: React.FC<LinkProps> = ({
   to,
   href,
   children,
-  className = '',
+  className = "",
   style = {},
-  target = '_blank',
+  target = "_blank",
 }) => {
-  const baseStyle = 'text-blue-500 hover:text-blue-700';
-  const activeStyle = 'text-green-700';
+  const baseStyle = "text-blue-500 hover:text-blue-700";
+  const activeStyle = "text-green-700";
   if (to) {
     return (
       <NavLink

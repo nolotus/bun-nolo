@@ -8,7 +8,7 @@ export interface TokenStaticData {
   length: number;
   userId: string;
   username: string;
-  chatId?: string;
+  dialogId?: string;
   chatCreated?: string;
   date: Date;
 }

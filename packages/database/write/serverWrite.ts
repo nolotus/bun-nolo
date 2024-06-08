@@ -61,7 +61,7 @@ function processDataKey(dataKey: string, data: any): { isFile: boolean } {
 
 export const serverWrite = async (
   dataKey: string,
-  data: string,
+  data: string | Blob,
   userId: string,
 ): Promise<void> => {
   await checkUserDirectory(userId);

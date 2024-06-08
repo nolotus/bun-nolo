@@ -8,7 +8,7 @@ const welcomeMdast = {
 
   children: [
     {
-      type: "card",
+      type: "paragraph",
       children: [
         {
           type: "heading",

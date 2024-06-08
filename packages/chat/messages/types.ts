@@ -1,13 +1,15 @@
 export interface Message {
-	role: MessageRole;
-	content: string;
-	image?: string;
-	id: string;
+  role: MessageRole;
+  content: string;
+  image?: string;
+  id: string;
 }
 export interface MessageSliceState {
-	messages: Message[];
-	isStopped: boolean;
-	isMessageStreaming: boolean;
-	tempMessage: Message;
+  messageListId: string | null;
+  ids: string[];
+  isStopped: boolean;
+  isMessageStreaming: boolean;
+  tempMessage: Message | null;
+  requestFailed: boolean;
 }
 export type MessageRole = "user" | "system" | "assistant";

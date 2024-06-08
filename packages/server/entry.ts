@@ -1,4 +1,3 @@
-import { serve } from "bun";
 import { isProduction } from "utils/env";
 import { handleRequest } from "./request";
 import { Cron } from "croner";
@@ -13,7 +12,7 @@ const startTasks = () => {
 
 const httpServer = () => {
   // 启动 http 服务器
-  serve({
+  Bun.serve({
     port: 80,
     hostname: "0.0.0.0",
     fetch: handleRequest,
@@ -28,7 +27,7 @@ const httpServer = () => {
     },
   });
   if (isProduction) {
-    serve({
+    Bun.serve({
       port: 443,
       hostname: "0.0.0.0",
       fetch: handleRequest,

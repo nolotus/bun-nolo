@@ -1,5 +1,4 @@
-import { useAppDispatch } from "app/hooks";
-import { useGetEntryQuery } from "database/services";
+import { useAppDispatch, useFetchData } from "app/hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
@@ -10,7 +9,8 @@ import NoMatch from "../NoMatch";
 import EditPage from "./EditPage";
 import { initPage } from "./pageSlice";
 import RenderPage from "./RenderPage";
-
+//id is for special page such as price
+//todo custom path
 const Page = ({ id }) => {
   const { pageId: paramPageId } = useParams();
   const [searchParams] = useSearchParams();
@@ -18,8 +18,8 @@ const Page = ({ id }) => {
 
   const pageId = id || paramPageId;
   const isEditMode = searchParams.get("edit") === "true";
-  const { data, isLoading } = useGetEntryQuery({ entryId: pageId });
 
+  const { data, isLoading, error } = useFetchData(pageId);
   const renderEdit = () => {
     if (isEditMode) {
       return <EditPage />;
@@ -29,7 +29,6 @@ const Page = ({ id }) => {
     }
   };
 
-  console.log("data", data);
   const renderContent = () => {
     return (
       <AnimatePresence mode="wait">
@@ -56,14 +55,14 @@ const Page = ({ id }) => {
       const { layout } = data;
       if (layout === "full") {
         return (
-          <div className="flex min-h-screen flex-col bg-neutral-200">
+          <div className="flex min-h-screen flex-col">
             <Header />
             <div className="w-full  flex-grow">{renderEdit()}</div>
           </div>
         );
       }
       return (
-        <div className="flex min-h-screen flex-col bg-neutral-200">
+        <div className="flex min-h-screen flex-col">
           <Header />
           <div className="max-w-8xl m-4 mx-auto w-full flex-grow">
             {renderContent()}

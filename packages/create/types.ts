@@ -8,4 +8,6 @@ export enum DataType {
   Page = "page",
   SurfSpot = "surf-spot",
   SurfInfo = "surf_info",
+  Dialog = "dialog",
+  Message = "message",
 }

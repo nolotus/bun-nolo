@@ -61,13 +61,10 @@ const styles = StyleSheet.create({
   },
   section: {
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#D1D5DB", // 浅灰色，与背景色相协调
-    backgroundColor: "#E5E7EB", // 设置为 `mainBackgroundColor`
   },
   textDescription: {
     fontSize: 16,
-    color: "#1F2937", // 深灰色/近黑色，确保良好的对比度和阅读性
+    color: "#1F2937",
     textAlign: "center",
     marginVertical: 6,
   },
@@ -75,7 +72,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600", // 稍微加粗来突出链接
     color: "#3B82F6", // 使用更鲜艳的蓝色调，用于引起注意
-    textDecorationLine: "underline",
     textAlign: "center",
     marginVertical: 6,
   },

@@ -1,5 +1,8 @@
-export function getProxyConfig() {
-  if (process.env.USE_PROXY === "true") {
+export function getProxyConfig(isProxy?: boolean) {
+  if (isProxy === false) {
+    return;
+  }
+  if (isProxy || process.env.USE_PROXY === "true") {
     return {
       proxy: {
         protocol: "http",

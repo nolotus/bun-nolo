@@ -27,20 +27,27 @@ interface ContentNode {
   children?: ContentNode[];
   value?: string;
   className?: string;
-  [key: string]: any; // 用于捕获其他所有属性
+  [key: string]: any;
 }
 interface RenderOptions {
+  isDarkMode?: boolean;
   enableClassName?: boolean;
   debug?: boolean;
 }
+
+//这个函数会递归渲染 renderChild，如果传递了options 不二次传递会丢失
 export const renderContentNode = (
   node: ContentNode,
-  options: RenderOptions = {},
+  options?: RenderOptions,
 ): ReactNode => {
-  const { enableClassName = isDevelopment, debug = isDevelopment } = options;
-
+  const debug = options?.debug ? options.debug : isDevelopment;
+  const enableClassName = options?.enableClassName
+    ? options.enableClassName
+    : isDevelopment;
   const classNames = enableClassName ? node.className : undefined;
-  const renderChild = (child: ContentNode) => renderContentNode(child);
+  //所以这里需要传递options
+
+  const renderChild = (child: ContentNode) => renderContentNode(child, options);
 
   switch (node.type) {
     case "root":
@@ -103,7 +110,11 @@ export const renderContentNode = (
       );
     case "code":
       return (
-        <Code className={classNames} language={node.lang} value={node.value} />
+        <Code
+          language={node.lang}
+          value={node.value}
+          isDarkMode={options?.isDarkMode}
+        />
       );
     case "table":
       return (
@@ -167,6 +178,7 @@ export const renderContentNode = (
     // }
 
     case "strikethrough":
+      return <s> {node.children?.map(renderChild)}</s>;
     case "thematicBreak":
       return <hr className={classNames} />;
     case "delete":
@@ -175,11 +187,13 @@ export const renderContentNode = (
           {node.children?.map(renderChild)}
         </Strikethrough>
       );
-
+    case "footnoteDefinition":
+      return <sup> {node.children?.map(renderChild)}</sup>;
+    case "footnoteReference":
+      return <p> {node.children?.map(renderChild)}</p>;
+    case "html":
+      return <p>{node.value}</p>;
     default:
-      if (debug) {
-        console.log("Debugging node:", node);
-      }
       if (typeof node === "string") {
         return node;
       } else if (Array.isArray(node)) {
@@ -196,6 +210,9 @@ export const renderContentNode = (
           </div>
         );
       } else {
+        if (debug) {
+          console.log("Debugging node:", node);
+        }
         return <span className="text-red-500">Unknown type: {node.type}</span>;
       }
   }
