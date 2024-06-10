@@ -8,8 +8,3 @@ export const API_ENDPOINTS = {
   WEATHER: `${API_VERSION}/weather`,
   HI: `${API_VERSION}/hi`,
 };
-
-const serviceName = "nolotus";
-const slogonforYou =
-  "The goodness or badness of this world concerns every individual.";
-export const SALT = serviceName + slogonforYou;

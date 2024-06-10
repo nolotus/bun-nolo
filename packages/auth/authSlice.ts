@@ -33,9 +33,7 @@ export const authSlice = createSliceWithThunks({
     signIn: create.asyncThunk(
       async (input, thunkAPI) => {
         const state = thunkAPI.getState();
-
-        const { username, password, locale } = input;
-        const encryptionKey = await hashPassword(password);
+        const { username, encryptionKey, locale } = input;
         const { publicKey, secretKey } = generateKeyPairFromSeed(
           username + encryptionKey + locale,
         );
