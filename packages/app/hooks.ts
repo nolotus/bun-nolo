@@ -39,7 +39,6 @@ export function useFetchData(id) {
     }
   }, [dispatch, id, data]);
 
-  // 返回数据、加载状态和错误信息供组件使用
   return { data, isLoading, error };
 }
 
@@ -49,10 +48,6 @@ export const useQueryData = (queryConfig) => {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSuccess, setSuccess] = useState(false);
-
-  // const sync = async () => {
-  //   await dispatch(syncQuery(queryConfig));
-  // };
 
   useEffect(() => {
     if (!queryConfig) {
@@ -75,7 +70,6 @@ export const useQueryData = (queryConfig) => {
     };
 
     fetchData();
-    // sync();
   }, []);
 
   return { isLoading, error, data, isSuccess };

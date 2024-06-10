@@ -13,6 +13,7 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
     isLoading,
     isSuccess,
   } = useGetWeatherQuery(queryParams);
+
   const containerStyle =
     "grid grid-cols-[minmax(auto,70px)_1fr] bg-white shadow";
 

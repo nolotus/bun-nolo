@@ -8,6 +8,8 @@ import { zhCN } from "date-fns/locale";
 import Octicons from "react-native-vector-icons/Octicons";
 import { defaultDisplayConfig } from "../config";
 import { useTranslation } from "react-i18next";
+import { Loader } from "ui/screens/Loader";
+
 export const formatTime = (timeString) => {
   const time = new Date(timeString);
   return {
@@ -19,18 +21,22 @@ export const formatTime = (timeString) => {
 const dataQualityStyle = (value, type) => ({
   backgroundColor: getQualityColor(value, type),
 });
+
 const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
   const { t } = useTranslation();
 
   const queryParams = parseWeatherParams({ lat, lng });
   const {
     data: weatherData,
-    isLoading,
     error,
+    isLoading,
   } = useGetWeatherQuery(queryParams);
   const getDataByMode = (hour, field) => {
     return hour[field]?.[mode] ? `${hour[field][mode].toFixed(1)}` : "-";
   };
+  if (isLoading) {
+    return <Loader />;
+  }
 
   if (weatherData) {
     const groupedWeatherData = weatherData?.hours.reduce((acc, hour) => {
