@@ -10,7 +10,7 @@ import DataItem from "./DataItem";
 import { write } from "database/dbSlice";
 import { CardList } from "./CardList";
 import { DataTable } from "./DataTable";
-const DataList = ({ data }) => {
+const DataList = ({ data, type }) => {
   const dispatch = useAppDispatch();
   const [viewMode, setViewMdoe] = useState("table");
 
@@ -97,7 +97,7 @@ const DataList = ({ data }) => {
       </div>
       <div className="">
         {viewMode === "table" ? (
-          <DataTable dataList={data} />
+          <DataTable dataList={data} type={type} />
         ) : (
           <CardList dataList={data} />
         )}

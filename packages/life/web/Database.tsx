@@ -93,7 +93,7 @@ export const Database = () => {
         </div>
       </div>
 
-      <DataList data={data} />
+      <DataList data={data} type={type} />
     </div>
   );
 };
