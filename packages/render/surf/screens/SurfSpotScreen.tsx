@@ -1,16 +1,16 @@
-import { Button, Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import React, { useLayoutEffect } from "react";
 
-import WeatherDisplay from "./WeatherDisplay";
-import useSurfSpot from "../useSurfSpot";
-import { modes, intervals } from "../config";
-import ToggleButton from "./Buttons";
 import MapView from "react-native-maps";
 import i18next from "i18n";
 import weatherTranslations from "integrations/weather/weatherI18n";
 import { useFetchData } from "app/hooks";
 import { useNavigation } from "@react-navigation/native";
 
+import { WeatherDisplay } from "./WeatherDisplay";
+import useSurfSpot from "../useSurfSpot";
+import { modes, intervals } from "../config";
+import ToggleButton from "./Buttons";
 Object.keys(weatherTranslations).forEach((lang) => {
   const translations = weatherTranslations[lang].translation;
   i18next.addResourceBundle(lang, "translation", translations, true, true);
@@ -59,6 +59,7 @@ export function SurfSpotScreen({ route }) {
             }}
           />
         </View>
+
         <View style={styles.buttonContainer}>
           <View style={styles.intervalButtonGroup}>
             {intervals.map((intervalItem) => (
