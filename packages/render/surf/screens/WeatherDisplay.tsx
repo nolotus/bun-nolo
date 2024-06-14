@@ -9,6 +9,7 @@ import Octicons from "react-native-vector-icons/Octicons";
 import { defaultDisplayConfig } from "../config";
 import { useTranslation } from "react-i18next";
 import { Loader } from "ui/screens/Loader";
+import { SurfWeatherLabelCol } from "./SurfWeatherLabelCol";
 
 export const formatTime = (timeString) => {
   const time = new Date(timeString);
@@ -49,17 +50,8 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
     }, {});
     return (
       <View style={styles.topContainer}>
-        <View style={styles.labelsContainer}>
-          {defaultDisplayConfig.map(
-            (config) =>
-              config.enabled && (
-                <Text key={config.key} style={styles.labelText}>
-                  {t(config.key)}
-                </Text>
-              ),
-          )}
-        </View>
         <ScrollView horizontal style={styles.container}>
+          <SurfWeatherLabelCol />
           <View style={styles.daysRowContainer}>
             {isLoading ? (
               <View style={styles.loadingContainer}>
@@ -75,7 +67,7 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
                 return (
                   <View key={monthDay} style={styles.dayContainer}>
                     <Text style={styles.dataText}>
-                      {monthDay} {` 水温：${avgWaterTemperature}°C`}
+                      {monthDay} {`水温：${avgWaterTemperature}°C`}
                     </Text>
                     <View style={styles.hoursContainer}>
                       {hours
@@ -115,7 +107,6 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
                                   break;
                                 case "swellDirection":
                                 case "windDirection":
-                                  // 使用图标显示方向的数据项
                                   component = (
                                     <View
                                       key={`${monthDay}-${hourIndex}-${config.key}`}
@@ -150,7 +141,6 @@ const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
                                   );
                                   break;
                                 default:
-                                  // 默认文本显示
                                   component = (
                                     <Text
                                       key={`${monthDay}-${hourIndex}-${config.key}`}
@@ -182,16 +172,7 @@ const styles = StyleSheet.create({
   topContainer: {
     flexDirection: "row",
   },
-  labelsContainer: {
-    paddingVertical: 4, // 减小垂直内边距
-    backgroundColor: "#f0f0f0", // 一个较为清新的灰色调
-  },
-  labelText: {
-    marginBottom: 6, // 减小标签底部边距
-    fontWeight: "600", // 加粗字体，使用600而不是bold来保持清晰度
-    fontSize: 14, // 减小字体大小以适应更紧凑的布局
-    lineHeight: 20, // 减小行高以适应更小的字体
-  },
+
   dataText: {
     fontSize: 14, // 与labelText的字体大小一致
     lineHeight: 20, // 调整行高以保证对齐
@@ -234,8 +215,8 @@ const styles = StyleSheet.create({
   dataWrapper: {
     justifyContent: "center",
     alignItems: "center",
-    minWidth: 50, // 确保背景色可以覆盖足够的空间
-    // 其他样式属性按需添加
+    minWidth: 50,
+    height: 26,
   },
 });
 
