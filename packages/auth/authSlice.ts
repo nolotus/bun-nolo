@@ -161,7 +161,7 @@ export const authSlice = createSliceWithThunks({
         (state.currentToken = action.payload.token);
     },
     initAuth: create.asyncThunk(
-      (tokens, thunkAPI) => {
+      async (tokens, thunkAPI) => {
         const { dispatch } = thunkAPI;
         const parsedUsers = tokens.map((token) => parseToken(token));
         const exists = parsedUsers.length > 0;
@@ -173,7 +173,7 @@ export const authSlice = createSliceWithThunks({
               token: tokens[0],
             }),
           );
-          dispatch(initSyncSetting());
+          await dispatch(initSyncSetting());
         }
       },
       {

@@ -9,8 +9,6 @@ const AIThead = () => {
   return (
     <thead>
       <tr>
-        <th>Id</th>
-        <th>数据类型</th>
         <th>AI名字</th>
         <th>AI所用模型</th>
         <th>AI 定制描述</th>
@@ -22,7 +20,17 @@ const AIThead = () => {
     </thead>
   );
 };
-
+const Thead = () => {
+  return (
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>数据源</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+  );
+};
 const PageThead = () => {
   return (
     <thead>
@@ -51,16 +59,32 @@ export const DataTable = ({ dataList, type }) => {
   //   ],
   //   data,
   // );
-  const TR = ({ data }) => {
+  const AITR = ({ data }) => {
     return (
       <tr>
-        <td>{extractCustomId(data.id)}</td>
-        <td>{data.type}</td>
         <td>{data.name}</td>
         <td>{data.model}</td>
         <td>{data.description}</td>
         <td>{data.replyRule}</td>
         <td>{data.knowledge}</td>
+        <td>{data.source}</td>
+        <td>
+          <button
+            onClick={() => {
+              dispatch(deleteData(data.id));
+            }}
+          >
+            删除
+          </button>
+        </td>
+      </tr>
+    );
+  };
+
+  const TR = ({ data }) => {
+    return (
+      <tr>
+        <td>{extractCustomId(data.id)}</td>
         <td>{data.source}</td>
         <td>
           <button
@@ -104,6 +128,7 @@ export const DataTable = ({ dataList, type }) => {
       <table>
         {type === DataType.ChatRobot && <AIThead />}
         {type === DataType.Page && <PageThead />}
+        {!type && <Thead />}
 
         {/* <tfoot>
           <tr>
@@ -117,8 +142,11 @@ export const DataTable = ({ dataList, type }) => {
         <tbody>
           {dataList.map((data) => (
             <>
-              {type === DataType.ChatRobot && <TR data={data} key={data.id} />}
+              {type === DataType.ChatRobot && (
+                <AITR data={data} key={data.id} />
+              )}
               {type === DataType.Page && <PageTR data={data} key={data.id} />}
+              {!type && <TR data={data} key={data.id} />}
             </>
           ))}
         </tbody>

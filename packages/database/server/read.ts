@@ -3,6 +3,9 @@ import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists, findDataInFile } from "utils/file";
 
 export const handleReadSingle = async (req, res) => {
+  if (!req.params.id) {
+    return res.status(500).json({ error: "need id" });
+  }
   const id = req.params.id;
   const { isFile, isList } = extractAndDecodePrefix(id);
   const userId = extractUserId(id);

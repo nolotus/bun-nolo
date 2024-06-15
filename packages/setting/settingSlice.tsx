@@ -40,12 +40,12 @@ const settingSlice = createSliceWithThunks({
         const state = thunkAPI.getState();
         const userId = selectCurrentUserId(state);
         const id = generateCustomId(userId, "sync-settings");
-        const result = await dispatch(read(id));
-        return result.payload;
+        const action = await dispatch(read({ id }));
+        return action.payload;
       },
       {
         fulfilled: (state, action) => {
-          state.syncSetting = action.payload;
+          state.syncSetting = { ...state.syncSetting, ...action.payload };
         },
       },
     ),

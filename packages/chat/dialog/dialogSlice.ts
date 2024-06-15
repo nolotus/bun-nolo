@@ -4,9 +4,8 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-import { noloReadRequest } from "database/client/readRequest";
 import { API_ENDPOINTS } from "database/config";
-import { deleteData, write } from "database/dbSlice";
+import { deleteData, read, write } from "database/dbSlice";
 import { noloRequest } from "utils/noloRequest";
 import { clearMessages } from "../messages/messageSlice";
 import { selectCurrentUserId } from "auth/authSlice";
@@ -30,20 +29,20 @@ const DialogSlice = createSliceWithThunks({
       },
     ),
     initDialog: create.asyncThunk(
-      async (dialogId, thunkApi) => {
-        thunkApi.dispatch(setCurrentDialogId(dialogId));
-        const state = thunkApi.getState();
-        const res = await noloReadRequest(state, dialogId);
-        const result = await res.json();
-        return result;
+      async (args, thunkApi) => {
+        const { dialogId, source } = args;
+        const { dispatch } = thunkApi;
+        dispatch(setCurrentDialogId(dialogId));
+        const action = await dispatch(read({ id: dialogId, source }));
+        return action.payload;
       },
-
       {
         pending: (state) => {
           // state.loading = true;
           state.currenLLMConfig = null;
           state.currentDialogConfig = null;
         },
+        rejected: (state, action) => {},
         fulfilled: (state, action) => {
           state.currentDialogConfig = action.payload;
         },
@@ -52,9 +51,8 @@ const DialogSlice = createSliceWithThunks({
 
     initLLMConfig: create.asyncThunk(
       async (llmID: string, thunkApi) => {
-        const state = thunkApi.getState();
-        const res = await noloReadRequest(state, llmID);
-        return await res.json();
+        const action = await thunkApi.dispatch(read({ id: llmID }));
+        return action.payload;
       },
       {
         fulfilled: (state, action) => {

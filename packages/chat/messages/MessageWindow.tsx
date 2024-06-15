@@ -23,8 +23,14 @@ const ChatWindow = ({ currentDialogConfig }) => {
   useEffect(() => {
     currentDialogConfig.llmId &&
       dispatch(initLLMConfig(currentDialogConfig.llmId));
+
     currentDialogConfig &&
-      dispatch(initMessages(currentDialogConfig.messageListId));
+      dispatch(
+        initMessages({
+          messageListId: currentDialogConfig.messageListId,
+          source: currentDialogConfig.source,
+        }),
+      );
   }, [currentDialogConfig]);
 
   const messages = useAppSelector((state) => state.message.messages);

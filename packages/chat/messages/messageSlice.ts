@@ -12,11 +12,15 @@ import { readChunks } from "ai/client/stream";
 import { getLogger } from "utils/logger";
 import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
 import { noloRequest } from "utils/noloRequest";
-import { noloReadRequest } from "database/client/readRequest";
 import { ulid } from "ulid";
 import { DataType } from "create/types";
 import { selectCurrentUserId } from "auth/authSlice";
-import { deleteData, selectEntitiesByIds, upsertOne } from "database/dbSlice";
+import {
+  deleteData,
+  read,
+  selectEntitiesByIds,
+  upsertOne,
+} from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 
 import { getModefromContent } from "../hooks/getModefromContent";
@@ -47,15 +51,15 @@ export const messageSlice = createSliceWithThunks({
   initialState,
   reducers: (create) => ({
     initMessages: create.asyncThunk(
-      async (messageListId, thunkApi) => {
-        const state = thunkApi.getState();
+      async (args, thunkApi) => {
+        const { messageListId, source } = args;
         if (!messageListId) {
           throw new Error("messageListId not exist");
         }
-        const res = await noloReadRequest(state, messageListId);
-        return await res.json();
+        const { dispatch } = thunkApi;
+        const action = await dispatch(read({ id: messageListId, source }));
+        return action.payload;
       },
-
       {
         pending: (state) => {
           state.ids = [];

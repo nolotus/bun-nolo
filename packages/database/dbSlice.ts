@@ -8,7 +8,7 @@ import {
   createSelectorCreator,
 } from "@reduxjs/toolkit";
 import { noloRequest } from "utils/noloRequest";
-import { selectSyncServers } from "setting/settingSlice";
+import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 import { ulid } from "ulid";
 
@@ -45,72 +45,94 @@ function mergeSource(existingItem, newSource) {
 const dbSlice = createSliceWithThunks({
   name: "db",
   initialState,
-
   reducers: (create) => ({
-    query: create.asyncThunk(
+    queryServer: create.asyncThunk(
       async (queryConfig, thunkApi) => {
+        const { dispatch } = thunkApi;
+        const { server } = queryConfig;
+
         try {
-          const state = thunkApi.getState();
-          const res = await noloQueryRequest(state, queryConfig);
-          const result = await res.json();
+          const res = await noloQueryRequest(queryConfig);
+          const data = await res.json();
           if (res.status === 200) {
+            dispatch(mergeMany({ data, server }));
             return result;
           } else {
             const { error } = result;
             throw error;
           }
         } catch (error) {
-          throw error; // 可以重新抛出异常，让调用者知道发生了错误
+          throw error;
         }
-      },
-      {
-        fulfilled: (state, action) => {
-          dbAdapter.upsertMany(state, action.payload);
-        },
-      },
-    ),
-    syncQuery: create.asyncThunk(
-      async (queryConfig, thunkApi) => {
-        const state = thunkApi.getState();
-        const syncServers = selectSyncServers(state);
-        const { queryUserId, options } = queryConfig;
-        let headers = {
-          "Content-Type": "application/json",
-        };
-        const queryParams = new URLSearchParams({
-          isObject: (options.isObject ?? false).toString(),
-          isJSON: (options.isJSON ?? false).toString(),
-          limit: options.limit?.toString() ?? "",
-        });
-        const body = JSON.stringify(options.condition);
-        const makeRequest = async (server) => {
-          const url = `${API_ENDPOINTS.DATABASE}/query/${queryUserId}?${queryParams}`;
-          const fullUrl = server + url;
-          const response = await fetch(fullUrl, {
-            method: "POST",
-            headers,
-            body,
-          });
-          const data = await response.json();
-          thunkApi.dispatch(upsertMany({ data, server }));
-          return data;
-        };
-
-        const results = await Promise.all(
-          syncServers.map((server) => makeRequest(server)),
-        );
       },
       {
         fulfilled: (state, action) => {},
       },
     ),
     read: create.asyncThunk(
-      async (id, thunkApi) => {
+      async ({ id, source }, thunkApi) => {
         const state = thunkApi.getState();
-        const res = await noloReadRequest(state, id);
 
-        const result = await res.json();
-        return result;
+        const token = state.auth.currentToken;
+
+        if (source) {
+          const res = await noloReadRequest(source[0], id, token);
+          if (res.status === 200) {
+            const result = await res.json();
+            return result;
+          }
+        } else {
+          const isAutoSync = state.settings.syncSetting.isAutoSync;
+          const currentServer = selectCurrentServer(state);
+
+          if (!isAutoSync) {
+            const res = await noloReadRequest(currentServer, id, token);
+            if (res.status === 200) {
+              const result = await res.json();
+              return result;
+            }
+          } else {
+            const syncServers = selectSyncServers(state);
+            const raceRes = await requestServers(
+              [currentServer, ...syncServers],
+              id,
+              token,
+            );
+            return raceRes;
+          }
+        }
+
+        async function makeRequest(server, id, token) {
+          try {
+            const res = await noloReadRequest(server, id, token);
+            if (res.status === 200) {
+              const result = await res.json();
+              return result;
+            } else {
+              throw new Error(`Request failed with status ${res.status}`);
+            }
+          } catch (error) {
+            throw error; // 继续抛出错误
+          }
+        }
+        async function requestServers(servers, id, token) {
+          const requests = servers.map((server) =>
+            makeRequest(server, id, token).catch((error) => error),
+          );
+
+          const results = await Promise.all(requests); // 等待所有请求完成
+          const validResults = results.filter(
+            (result) => !(result instanceof Error),
+          ); // 过滤出成功的响应
+
+          if (validResults.length > 0) {
+            return validResults[0]; // 返回第一个成功的结果
+          } else {
+            throw new Error(
+              "All servers failed to respond with a valid result.",
+            );
+          }
+        }
       },
       {
         fulfilled: (state, action) => {
@@ -118,6 +140,7 @@ const dbSlice = createSliceWithThunks({
         },
       },
     ),
+    readServer: create.asyncThunk(() => {}, {}),
     syncRead: create.asyncThunk(() => {}, {}),
     deleteData: create.asyncThunk(
       async (id, thunkApi) => {
@@ -232,7 +255,7 @@ const dbSlice = createSliceWithThunks({
       async (saveConfig, thunkApi) => {
         const dispatch = thunkApi.dispatch;
         const id = saveConfig.id;
-        const readAction = await dispatch(read(id));
+        const readAction = await dispatch(read({ id }));
         const result = readAction.payload;
 
         if (result.error) {
@@ -259,25 +282,18 @@ const dbSlice = createSliceWithThunks({
     upsertOne: create.reducer((state, action) => {
       dbAdapter.upsertOne(state, action.payload);
     }),
-    upsertMany: create.reducer((state, action) => {
+    mergeMany: create.reducer((state, action) => {
       const { data, server } = action.payload;
-      // console.log("data", data);
       const withSourceData = data.map((item) => {
-        // console.log("item", item.id);
-        // console.log(`state ${server}`, state.entities);
-        const exist = state.entities[item.id];
-        // console.log("exist", exist);
-
+        const exist = dbAdapter.selectId(item.id);
         if (exist) {
           const mergeBefore = {
             ...item,
-            source: [...withSourceData.server, server],
+            source: [...exist.server, server],
           };
           return mergeBefore;
         }
-        const mergeFirst = { ...item, source: [server] };
-        // console.log("mergeFirst", mergeFirst);
-        return mergeFirst;
+        return { ...item, source: [server] };
       });
       dbAdapter.upsertMany(state, withSourceData);
     }),
@@ -299,15 +315,16 @@ createSelectorCreator;
 export const {
   removeOne,
   upsertOne,
-  upsertMany,
+  mergeMany,
   deleteData,
   updateOne,
-  query,
   read,
   syncQuery,
   write,
   updateData,
   saveData,
   addOne,
+  queryServer,
+  readServer,
 } = dbSlice.actions;
 export default dbSlice.reducer;

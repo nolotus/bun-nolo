@@ -32,7 +32,7 @@ const MessagesList: React.FC<MessagesDisplayProps> = () => {
         paddingLeft: Sizes["--size-13"],
       }}
     >
-      {messageIds.map((id: string) => {
+      {messageIds?.map((id: string) => {
         return <MessageItem id={id} key={id} />;
       })}
       {tempMessage && (

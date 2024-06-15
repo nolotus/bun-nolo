@@ -14,11 +14,7 @@ import { generateCustomId } from "core/generateMainKey";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import {
-  initSyncSetting,
-  selectCurrentServer,
-  selectSyncServers,
-} from "../settingSlice";
+import { selectCurrentServer, selectSyncServers } from "../settingSlice";
 
 const Sync = () => {
   const { t } = useTranslation();
