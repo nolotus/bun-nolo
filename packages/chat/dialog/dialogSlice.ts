@@ -44,7 +44,6 @@ const DialogSlice = createSliceWithThunks({
           state.currenLLMConfig = null;
           state.currentDialogConfig = null;
         },
-        rejected: (a, action) => {},
         fulfilled: (state, action) => {
           state.currentDialogConfig = action.payload;
         },

@@ -42,6 +42,7 @@ export const Database = () => {
     queryConfig.options.condition.type = type;
   }
   const { isLoading } = useQueryData(queryConfig);
+  const [viewMode, setViewMdoe] = useState("table");
 
   const changeType = (type) => {
     if (type === "All") {
@@ -93,7 +94,7 @@ export const Database = () => {
         </div>
       </div>
 
-      <DataDisplay data={data} type={type} />
+      <DataDisplay data={data} type={type} viewMode={viewMode} />
     </div>
   );
 };

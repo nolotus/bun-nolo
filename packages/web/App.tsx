@@ -3,7 +3,7 @@ import { parseToken } from "auth/token";
 import i18n from "i18n";
 import React, { useEffect } from "react";
 import { useRoutes } from "react-router-dom";
-import { restoreSession } from "auth/authSlice";
+import { initAuth, restoreSession } from "auth/authSlice";
 
 import { addHostToCurrentServer } from "setting/settingSlice";
 import { useAppDispatch, useAppSelector } from "app/hooks";
@@ -24,18 +24,11 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
   dispatch(setTheme(theme));
   const auth = useAuth();
   i18n.changeLanguage(lng);
+
   useEffect(() => {
     const tokens = getTokensFromLocalStorage();
     if (tokens) {
-      const parsedUsers = tokens.map((token) => parseToken(token));
-      parsedUsers.length > 0 &&
-        dispatch(
-          restoreSession({
-            user: parsedUsers[0],
-            users: parsedUsers,
-            token: tokens[0],
-          }),
-        );
+      dispatch(initAuth(tokens));
     }
   }, []);
 

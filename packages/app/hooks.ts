@@ -34,6 +34,8 @@ export function useFetchData(id) {
       }
     };
     // 当 data 不存在时，尝试获取数据
+    // 如果存在需要考虑 是否使用缓存
+    //hash 不用获取
     if (!data) {
       getData();
     }
@@ -48,7 +50,10 @@ export const useQueryData = (queryConfig) => {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSuccess, setSuccess] = useState(false);
-
+  const isAutoSync = useAppSelector(
+    (state) => state.settings.syncSetting.isAutoSync,
+  );
+  console.log("isAutoSync", isAutoSync);
   useEffect(() => {
     if (!queryConfig) {
       setLoading(false);
