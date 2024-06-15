@@ -6,10 +6,10 @@ import {
 } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useSearchParams } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import { AccountBalance } from "../blocks/AccountBanlance";
-import DataList from "../blocks/DataList";
+import DataDisplay from "../blocks/DataDisplay";
 import { FilterPanel } from "../blocks/FilterPanel";
 import { selectFilteredLifeData } from "../selectors";
 import { TypeChange } from "./typeChange";
@@ -17,6 +17,7 @@ import { TypeChange } from "./typeChange";
 export const LifeAll = () => {
   const dispatch = useAppDispatch();
   let [searchParams] = useSearchParams();
+  const [viewMode, setViewMdoe] = useState("table");
 
   const data = useAppSelector(selectFilteredLifeData);
 
@@ -38,7 +39,7 @@ export const LifeAll = () => {
         </div>
       </div>
 
-      <DataList data={data} />
+      <DataDisplay data={data} />
     </div>
   );
 };

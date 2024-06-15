@@ -9,7 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
 import { AccountBalance } from "../blocks/AccountBanlance";
-import DataList from "../blocks/DataList";
+import DataDisplay from "../blocks/DataDisplay";
 import { FilterPanel } from "../blocks/FilterPanel";
 import { TypeChange } from "./typeChange";
 import { selectFilteredDataByUserAndType } from "database/selectors";
@@ -93,7 +93,7 @@ export const Database = () => {
         </div>
       </div>
 
-      <DataList data={data} type={type} />
+      <DataDisplay data={data} type={type} />
     </div>
   );
 };

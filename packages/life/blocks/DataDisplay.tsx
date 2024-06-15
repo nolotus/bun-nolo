@@ -10,9 +10,8 @@ import DataItem from "./DataItem";
 import { write } from "database/dbSlice";
 import { CardList } from "./CardList";
 import { DataTable } from "./DataTable";
-const DataList = ({ data, type }) => {
+const DataDisplay = ({ data, type, viewMode = "table" }) => {
   const dispatch = useAppDispatch();
-  const [viewMode, setViewMdoe] = useState("table");
 
   const pullData = async (id, value) => {
     // Define the logic for pulling data here
@@ -150,4 +149,4 @@ const DataList = ({ data, type }) => {
   );
 };
 
-export default DataList;
+export default DataDisplay;

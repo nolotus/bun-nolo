@@ -7,7 +7,7 @@ export function getProxyConfig(isProxy?: boolean) {
       proxy: {
         protocol: "http",
         host: "127.0.0.1",
-        port: 10080,
+        port: 6152,
       },
     };
   }
