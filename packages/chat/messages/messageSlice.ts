@@ -145,6 +145,9 @@ export const messageSlice = createSliceWithThunks({
         const token = state.auth.currentToken;
         const userId = selectCurrentUserId(state);
         const currentServer = selectCurrentServer(state);
+
+        const dialogConfig = selectCurrentDialogConfig(state);
+
         try {
           if (dialogConfig.messageListId) {
             const writeMessage = await fetch(
@@ -163,7 +166,6 @@ export const messageSlice = createSliceWithThunks({
                 }),
               },
             );
-            const dialogConfig = selectCurrentDialogConfig(state);
             const saveMessage = await writeMessage.json();
             const updateId = dialogConfig.messageListId;
             const writeMessageToList = await fetch(
@@ -190,10 +192,7 @@ export const messageSlice = createSliceWithThunks({
       },
       {
         pending: () => {},
-        rejected: (state, action) => {
-          // state.error = action.payload ?? action.error;
-          console.log("action", action);
-        },
+        rejected: (state, action) => {},
         fulfilled: (state, action) => {
           state.ids = action.payload.array;
         },

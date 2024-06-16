@@ -135,7 +135,9 @@ const dbSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          dbAdapter.upsertOne(state, action.payload);
+          if (action.payload) {
+            dbAdapter.upsertOne(state, action.payload);
+          }
         },
       },
     ),

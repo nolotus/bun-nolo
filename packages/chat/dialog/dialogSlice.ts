@@ -29,7 +29,6 @@ const DialogSlice = createSliceWithThunks({
     initDialog: create.asyncThunk(
       async (args, thunkApi) => {
         const { dialogId, source } = args;
-        console.log("initDialog", args);
         const { dispatch } = thunkApi;
         dispatch(setCurrentDialogId(dialogId));
         const action = await dispatch(read({ id: dialogId, source }));
