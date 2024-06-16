@@ -57,7 +57,7 @@ const Page = ({ id }) => {
         return (
           <div className="flex min-h-screen flex-col">
             <Header />
-            <div className="w-full  flex-grow">{renderEdit()}</div>
+            <div className="w-full flex-grow">{renderEdit()}</div>
           </div>
         );
       }

@@ -24,12 +24,14 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
   dispatch(setTheme(theme));
   const auth = useAuth();
   i18n.changeLanguage(lng);
-
-  useEffect(() => {
+  const init = async () => {
     const tokens = getTokensFromLocalStorage();
     if (tokens) {
-      dispatch(initAuth(tokens));
+      await dispatch(initAuth(tokens));
     }
+  };
+  useEffect(() => {
+    init();
   }, []);
 
   useEffect(() => {
