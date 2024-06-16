@@ -4,9 +4,7 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-import { API_ENDPOINTS } from "database/config";
 import { deleteData, read, write } from "database/dbSlice";
-import { noloRequest } from "utils/noloRequest";
 import { clearMessages } from "../messages/messageSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
@@ -31,10 +29,11 @@ const DialogSlice = createSliceWithThunks({
     initDialog: create.asyncThunk(
       async (args, thunkApi) => {
         const { dialogId, source } = args;
+        console.log("initDialog", args);
         const { dispatch } = thunkApi;
         dispatch(setCurrentDialogId(dialogId));
         const action = await dispatch(read({ id: dialogId, source }));
-        return action.payload;
+        return { ...action.payload, source };
       },
       {
         pending: (state) => {
@@ -62,29 +61,25 @@ const DialogSlice = createSliceWithThunks({
     ),
     deleteDialog: create.asyncThunk(
       async (dialog, thunkApi) => {
-        try {
-          const state = thunkApi.getState();
-          thunkApi.dispatch(clearMessages());
-          if (dialog.messageListId) {
-            await noloRequest(state, {
-              url: `${API_ENDPOINTS.DATABASE}/delete/${dialog.messageListId}`,
-              method: "DELETE",
-              body: JSON.stringify({ ids: state.message.ids }),
-            });
-          }
-          const action = await thunkApi.dispatch(deleteData(dialog.id));
-          console.log("deleteDialog res", action);
-          // const result = await res.json();
-          // console.log("result", result);
-          // return result;
-          return action;
-        } catch (error) {
-          console.error("Failed to delete:", error);
+        const { dispatch, getState } = thunkApi;
+        const state = getState();
+        thunkApi.dispatch(clearMessages());
+        if (dialog.messageListId) {
+          const body = { ids: state.message.ids };
+
+          const deleteMesssagListAction = await dispatch(
+            deleteData({
+              id: dialog.messageListId,
+              body,
+              source: dialog.source,
+            }),
+          );
+          const deleteConfig = { id: dialog.id, source: dialog.source };
+          const deleteDialogAction = await dispatch(deleteData(deleteConfig));
         }
       },
       {
-        rejected: () => {},
-        fulfilled: (state, action) => {},
+        fulfilled: () => {},
       },
     ),
     createDialog: create.asyncThunk(

@@ -7,7 +7,6 @@ import {
   createSelector,
   createSelectorCreator,
 } from "@reduxjs/toolkit";
-import { noloRequest } from "utils/noloRequest";
 import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 import { ulid } from "ulid";
@@ -143,16 +142,35 @@ const dbSlice = createSliceWithThunks({
     readServer: create.asyncThunk(() => {}, {}),
     syncRead: create.asyncThunk(() => {}, {}),
     deleteData: create.asyncThunk(
-      async (id, thunkApi) => {
+      async (args, thunkApi) => {
+        const { id, body, source } = args;
+        const { dispatch, getState } = thunkApi;
+        const state = getState();
         thunkApi.dispatch(removeOne(id));
-        const state = thunkApi.getState();
 
-        const res = await noloRequest(state, {
-          url: `${API_ENDPOINTS.DATABASE}/delete/${id}`,
-          method: "DELETE",
-        });
-        const result = await res.json();
-        return result;
+        if (source) {
+          console.log("source");
+          const dynamicUrl =
+            source[0] + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
+          let headers = {
+            "Content-Type": "application/json",
+          };
+          if (state.auth) {
+            const token = state.auth.currentToken;
+            headers.Authorization = `Bearer ${token}`;
+          }
+          const res = await fetch(dynamicUrl, {
+            method: "DELETE",
+            headers,
+            body,
+          });
+          console.log("deleteData", res);
+          if (res.status === 200) {
+            const result = await res.json();
+            console.log("deleteData 200", result);
+            return result;
+          }
+        }
       },
       {
         fulfilled: (state, action) => {

@@ -82,7 +82,7 @@ export const useQueryData = (queryConfig) => {
         // return;
       });
     }
-  }, []);
+  }, [isAutoSync]);
 
   return { isLoading, error, data, isSuccess };
 };

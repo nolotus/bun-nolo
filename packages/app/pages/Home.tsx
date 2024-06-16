@@ -6,15 +6,13 @@ import { useAppSelector, useQueryData } from "app/hooks";
 import { DataType } from "create/types";
 
 import {
-  ThreeBarsIcon,
-  HomeIcon,
   LocationIcon,
-  BeakerIcon,
   PeopleIcon,
   DependabotIcon,
 } from "@primer/octicons-react";
 import { SpotCard } from "render/components/SpotCard";
 import React from "react";
+import { selectFilteredDataByUserAndType } from "database/selectors";
 
 const Home = () => {
   const options = {
@@ -28,7 +26,10 @@ const Home = () => {
     queryUserId: nolotusId,
     options,
   };
-  const { data, isSuccess, isLoading, error } = useQueryData(queryConfig);
+  const data = useAppSelector(
+    selectFilteredDataByUserAndType(nolotusId, DataType.SurfSpot),
+  );
+  const { isSuccess, isLoading, error } = useQueryData(queryConfig);
   const renderSpotList = (spots) => {
     if (!spots) {
       return null;

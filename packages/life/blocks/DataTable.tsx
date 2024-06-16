@@ -71,7 +71,7 @@ export const DataTable = ({ dataList, type }) => {
         <td>
           <button
             onClick={() => {
-              dispatch(deleteData(data.id));
+              dispatch(deleteData({ id: data.id, source: data.source }));
             }}
           >
             删除
@@ -89,7 +89,7 @@ export const DataTable = ({ dataList, type }) => {
         <td>
           <button
             onClick={() => {
-              dispatch(deleteData(data.id));
+              dispatch(deleteData({ id: data.id, source: data.source }));
             }}
           >
             删除
@@ -111,7 +111,7 @@ export const DataTable = ({ dataList, type }) => {
         <td>
           <button
             onClick={() => {
-              dispatch(deleteData(data.id));
+              dispatch(deleteData({ id: data.id, source: data.source }));
             }}
           >
             删除

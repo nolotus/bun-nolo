@@ -40,11 +40,12 @@ const createSliceWithThunks = buildCreateSlice({
 
 const initialState: MessageSliceState = {
   messageListId: null,
-  ids: [],
+  ids: null,
   isStopped: false,
   isMessageStreaming: false,
   tempMessage: null,
   requestFailed: false,
+  messageListFailed: false,
 };
 export const messageSlice = createSliceWithThunks({
   name: "message",
@@ -58,14 +59,15 @@ export const messageSlice = createSliceWithThunks({
         }
         const { dispatch } = thunkApi;
         const action = await dispatch(read({ id: messageListId, source }));
+        if (action.error) {
+          throw new Error(action.error);
+        }
         return action.payload;
       },
       {
-        pending: (state) => {
-          state.ids = [];
-        },
+        pending: (state) => {},
         rejected: (state) => {
-          state.ids = [];
+          state.messageListFailed = true;
         },
         fulfilled: (state, action) => {
           state.ids = action.payload.array;
@@ -144,42 +146,43 @@ export const messageSlice = createSliceWithThunks({
         const userId = selectCurrentUserId(state);
         const currentServer = selectCurrentServer(state);
         try {
-          const writeMessage = await fetch(
-            `${currentServer}${API_ENDPOINTS.DATABASE}/write/`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+          if (dialogConfig.messageListId) {
+            const writeMessage = await fetch(
+              `${currentServer}${API_ENDPOINTS.DATABASE}/write/`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  data: { type: DataType.Message, ...message },
+                  flags: { isJSON: true },
+                  customId: ulid(),
+                  userId,
+                }),
               },
-              body: JSON.stringify({
-                data: { type: DataType.Message, ...message },
-                flags: { isJSON: true },
-                customId: ulid(),
-                userId,
-              }),
-            },
-          );
-          const saveMessage = await writeMessage.json();
-          const dialogConfig = selectCurrentDialogConfig(state);
-          const updateId = dialogConfig.messageListId;
-
-          const writeMessageToList = await fetch(
-            `${currentServer}${API_ENDPOINTS.DATABASE}/update/${updateId}`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+            );
+            const dialogConfig = selectCurrentDialogConfig(state);
+            const saveMessage = await writeMessage.json();
+            const updateId = dialogConfig.messageListId;
+            const writeMessageToList = await fetch(
+              `${currentServer}${API_ENDPOINTS.DATABASE}/update/${updateId}`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  id: saveMessage.id,
+                }),
               },
-              body: JSON.stringify({
-                id: saveMessage.id,
-              }),
-            },
-          );
-          const result = await writeMessageToList.json();
-          console.log("result", result);
-          return result;
+            );
+            const result = await writeMessageToList.json();
+            console.log("result", result);
+            return result;
+          }
         } catch (error) {
           console.log("error", error);
           return error;
@@ -226,7 +229,7 @@ export const messageSlice = createSliceWithThunks({
         const dialogConfig = selectCurrentDialogConfig(state);
         const currentServer = selectCurrentServer(state);
         const deleteMessageResult = await thunkApi.dispatch(
-          deleteData(messageId),
+          deleteData({ id: messageId }),
         );
         console.log("deleteMessageResult", deleteMessageResult);
 
