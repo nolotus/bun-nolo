@@ -9,7 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
 import { AccountBalance } from "../blocks/AccountBanlance";
-import DataList from "../blocks/DataList";
+import DataDisplay from "../blocks/DataDisplay";
 import { FilterPanel } from "../blocks/FilterPanel";
 import { TypeChange } from "./typeChange";
 import { selectFilteredDataByUserAndType } from "database/selectors";
@@ -42,6 +42,7 @@ export const Database = () => {
     queryConfig.options.condition.type = type;
   }
   const { isLoading } = useQueryData(queryConfig);
+  const [viewMode, setViewMdoe] = useState("table");
 
   const changeType = (type) => {
     if (type === "All") {
@@ -93,7 +94,7 @@ export const Database = () => {
         </div>
       </div>
 
-      <DataList data={data} />
+      <DataDisplay data={data} type={type} viewMode={viewMode} />
     </div>
   );
 };

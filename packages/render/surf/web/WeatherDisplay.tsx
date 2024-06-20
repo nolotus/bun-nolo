@@ -17,6 +17,13 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
   const containerStyle =
     "grid grid-cols-[minmax(auto,70px)_1fr] bg-white shadow";
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="text-lg text-blue-500">正在加载天气数据...</div>
+      </div>
+    );
+  }
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const groupedWeatherData = weatherData?.hours.reduce(
@@ -34,22 +41,16 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
     },
     {},
   );
-
-  if (isLoading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="text-lg text-blue-500">正在加载天气数据...</div>
-      </div>
-    );
-  }
   return (
     <div className={containerStyle}>
       <LabelsColumn />
-      <WeatherDataGrid
-        groupedWeatherData={groupedWeatherData}
-        interval={interval}
-        mode={mode}
-      />
+      {groupedWeatherData && (
+        <WeatherDataGrid
+          groupedWeatherData={groupedWeatherData}
+          interval={interval}
+          mode={mode}
+        />
+      )}
     </div>
   );
 };

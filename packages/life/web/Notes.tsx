@@ -4,7 +4,7 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 
 import { FilterPanel } from "./FilterPanel";
-import DataList from "../blocks/DataList";
+import DataDisplay from "../blocks/DataDisplay";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 
 export const Notes = () => {
@@ -16,7 +16,7 @@ export const Notes = () => {
   return (
     <div className="p-4">
       <FilterPanel />
-      <DataList data={data} />
+      <DataDisplay data={data} />
     </div>
   );
 };

@@ -2,20 +2,21 @@ import { PayloadAction } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { generateUserId } from "core/generateMainKey";
+import { hashPassword } from "core/password";
+import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
 import { storeTokens } from "auth/client/token";
-import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 
-import { hashPassword } from "core/password";
 import { API_VERSION } from "database/config";
+
+import { noloRequest } from "utils/noloRequest";
+import { formatISO, addDays } from "date-fns";
+import { initSyncSetting, selectCurrentServer } from "setting/settingSlice";
 
 import { parseToken } from "./token";
 import { AuthState, User } from "./types";
 import { loginRequest } from "./client/loginRequest";
 import { SignupData } from "./types";
-import { noloRequest } from "utils/noloRequest";
-import { formatISO, addDays } from "date-fns";
-
 const initialState: AuthState = {
   currentUser: null,
   users: [],
@@ -33,25 +34,31 @@ export const authSlice = createSliceWithThunks({
     signIn: create.asyncThunk(
       async (input, thunkAPI) => {
         const state = thunkAPI.getState();
-        const { username, encryptionKey, locale } = input;
-        const { publicKey, secretKey } = generateKeyPairFromSeed(
-          username + encryptionKey + locale,
-        );
-        const userId = generateUserId(publicKey, username, locale);
-        const token = signToken({ userId, publicKey, username }, secretKey);
-        const res = await loginRequest(state, { userId, token });
-        // console.log("newToken", newToken);
-        const result = await res.json();
-        console.log("result", result);
-        storeTokens(result.token);
-        return result;
+
+        try {
+          const { username, encryptionKey, locale } = input;
+          const { publicKey, secretKey } = generateKeyPairFromSeed(
+            username + encryptionKey + locale,
+          );
+          const userId = generateUserId(publicKey, username, locale);
+          const token = signToken({ userId, publicKey, username }, secretKey);
+          const currentServer = selectCurrentServer(state);
+          const res = await loginRequest(currentServer, { userId, token });
+          if (res.status === 200) {
+            storeTokens(res.token);
+            return res;
+          } else {
+            throw res;
+          }
+        } catch (error) {
+          return thunkAPI.rejectWithValue(error); // 使用rejectWithValue返回错误信息
+        }
       },
       {
         pending: (state) => {
           state.isLoading = true;
         },
         rejected: (state, error) => {
-          console.log("error", error);
           state.isLoading = false;
         },
         fulfilled: (state, action) => {
@@ -159,6 +166,26 @@ export const authSlice = createSliceWithThunks({
       (state.currentUser = action.payload.user),
         (state.currentToken = action.payload.token);
     },
+    initAuth: create.asyncThunk(
+      async (tokens, thunkAPI) => {
+        const { dispatch } = thunkAPI;
+        const parsedUsers = tokens.map((token) => parseToken(token));
+        const exists = parsedUsers.length > 0;
+        if (exists) {
+          dispatch(
+            restoreSession({
+              user: parsedUsers[0],
+              users: parsedUsers,
+              token: tokens[0],
+            }),
+          );
+          await dispatch(initSyncSetting());
+        }
+      },
+      {
+        fulfilled: () => {},
+      },
+    ),
     restoreSession: (
       state,
       action: PayloadAction<{ user: User; users: User[]; token: string }>,
@@ -181,8 +208,14 @@ export const authSlice = createSliceWithThunks({
   }),
 });
 
-export const { changeCurrentUser, restoreSession, signIn, signUp, signOut } =
-  authSlice.actions;
+export const {
+  changeCurrentUser,
+  initAuth,
+  restoreSession,
+  signIn,
+  signUp,
+  signOut,
+} = authSlice.actions;
 
 export default authSlice.reducer;
 export const selectCurrentUser = (state: NoloRootState) =>

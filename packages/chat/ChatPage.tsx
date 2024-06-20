@@ -37,10 +37,7 @@ const ChatPage = () => {
   const dispatch = useAppDispatch();
   if (!auth.user) {
     return (
-      <div className="container mx-auto mt-16 text-center text-3xl">
-        {/* please login to use AI chat */}
-        请登录
-      </div>
+      <div className="container mx-auto mt-16 text-center text-3xl">请登录</div>
     );
   }
 
@@ -69,16 +66,15 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    dialogId && dispatch(initDialog(dialogId));
+    dialogId && dispatch(initDialog({ dialogId }));
   }, [dialogId]);
   const currentUserId = useAppSelector(selectCurrentUserId);
-
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const queryConfig = {
     queryUserId: currentUserId,
     options: {
       isJSON: true,
-      limit: 20,
+      limit: 100,
       condition: {
         type: DataType.Dialog,
       },

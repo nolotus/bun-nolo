@@ -8,20 +8,22 @@ interface HeadingProps {
 }
 
 const Heading: React.FC<HeadingProps> = ({ children, level, className }) => {
-  const baseStyle = "font-bold mb-4";
-  const levelStyles: { [key: number]: string } = {
-    1: "text-4xl",
-    2: "text-3xl",
-    3: "text-2xl",
-    4: "text-xl",
-    5: "text-lg",
-    6: "text-base",
-  };
-
-  // 使用 className（如果有的话）
-  const style = `${baseStyle} ${levelStyles[level] || ""} ${className || ""}`;
-
-  return React.createElement(`h${level}`, { className: style }, children);
+  switch (level) {
+    case 1:
+      return <h1>{children}</h1>;
+    case 2:
+      return <h2>{children}</h2>;
+    case 3:
+      return <h3>{children}</h3>;
+    case 4:
+      return <h4>{children}</h4>;
+    case 5:
+      return <h5>{children}</h5>;
+    case 6:
+      return <h6>{children}</h6>;
+    default:
+      break;
+  }
 };
 
 export default Heading;

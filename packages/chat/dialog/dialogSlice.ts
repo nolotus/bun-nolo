@@ -4,10 +4,7 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-import { noloReadRequest } from "database/client/readRequest";
-import { API_ENDPOINTS } from "database/config";
-import { deleteData, write } from "database/dbSlice";
-import { noloRequest } from "utils/noloRequest";
+import { deleteData, read, write } from "database/dbSlice";
 import { clearMessages } from "../messages/messageSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
@@ -30,21 +27,20 @@ const DialogSlice = createSliceWithThunks({
       },
     ),
     initDialog: create.asyncThunk(
-      async (dialogId, thunkApi) => {
-        thunkApi.dispatch(setCurrentDialogId(dialogId));
-        const state = thunkApi.getState();
-        const res = await noloReadRequest(state, dialogId);
-        const result = await res.json();
-        return result;
+      async (args, thunkApi) => {
+        const { dialogId, source } = args;
+        const { dispatch } = thunkApi;
+        dispatch(setCurrentDialogId(dialogId));
+        const action = await dispatch(read({ id: dialogId, source }));
+        return { ...action.payload, source };
       },
-
       {
         pending: (state) => {
           // state.loading = true;
           state.currenLLMConfig = null;
           state.currentDialogConfig = null;
         },
-        rejected: (a, action) => {},
+        rejected: (state, action) => {},
         fulfilled: (state, action) => {
           state.currentDialogConfig = action.payload;
         },
@@ -53,9 +49,8 @@ const DialogSlice = createSliceWithThunks({
 
     initLLMConfig: create.asyncThunk(
       async (llmID: string, thunkApi) => {
-        const state = thunkApi.getState();
-        const res = await noloReadRequest(state, llmID);
-        return await res.json();
+        const action = await thunkApi.dispatch(read({ id: llmID }));
+        return action.payload;
       },
       {
         fulfilled: (state, action) => {
@@ -65,29 +60,25 @@ const DialogSlice = createSliceWithThunks({
     ),
     deleteDialog: create.asyncThunk(
       async (dialog, thunkApi) => {
-        try {
-          const state = thunkApi.getState();
-          thunkApi.dispatch(clearMessages());
-          if (dialog.messageListId) {
-            await noloRequest(state, {
-              url: `${API_ENDPOINTS.DATABASE}/delete/${dialog.messageListId}`,
-              method: "DELETE",
-              body: JSON.stringify({ ids: state.message.ids }),
-            });
-          }
-          const action = await thunkApi.dispatch(deleteData(dialog.id));
-          console.log("deleteDialog res", action);
-          // const result = await res.json();
-          // console.log("result", result);
-          // return result;
-          return action;
-        } catch (error) {
-          console.error("Failed to delete:", error);
+        const { dispatch, getState } = thunkApi;
+        const state = getState();
+        thunkApi.dispatch(clearMessages());
+        if (dialog.messageListId) {
+          const body = { ids: state.message.ids };
+
+          const deleteMesssagListAction = await dispatch(
+            deleteData({
+              id: dialog.messageListId,
+              body,
+              source: dialog.source,
+            }),
+          );
+          const deleteConfig = { id: dialog.id, source: dialog.source };
+          const deleteDialogAction = await dispatch(deleteData(deleteConfig));
         }
       },
       {
-        rejected: () => {},
-        fulfilled: (state, action) => {},
+        fulfilled: () => {},
       },
     ),
     createDialog: create.asyncThunk(

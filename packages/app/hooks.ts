@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
-import { selectById, syncQuery } from "database/dbSlice";
-import { query, read } from "database/dbSlice";
+import { queryServer, selectById, read } from "database/dbSlice";
+import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
 
 import type { AppDispatch, NoloRootState } from "./store";
 
@@ -12,32 +12,32 @@ export const useAppSelector: TypedUseSelectorHook<NoloRootState> = useSelector;
 export const useItem = (id: string) => {
   return useAppSelector((state: NoloRootState) => selectById(state, id));
 };
-export function useFetchData(id) {
-  // 使用 redux 存储中的数据
+export function useFetchData(id, source) {
   const data = useAppSelector((state) => selectById(state, id));
   const dispatch = useDispatch();
-  // 状态管理
+
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 定义获取数据的异步函数
     const getData = async () => {
       try {
-        setLoading(true); // 开始加载
-        dispatch(read(id)); // 分发读取操作
-        setError(null); // 正常情况下清除错误信息
+        setLoading(true);
+        dispatch(read({ id, source }));
+        setError(null);
       } catch (err) {
-        setError(err); // 捕捉并设置错误信息
+        setError(err);
       } finally {
-        setLoading(false); // 结束加载
+        setLoading(false);
       }
     };
     // 当 data 不存在时，尝试获取数据
+    // 如果存在需要考虑 是否使用缓存
+    //hash 不用获取
     if (!data) {
       getData();
     }
-  }, [dispatch, id, data]);
+  }, [dispatch, id]);
 
   return { data, isLoading, error };
 }
@@ -48,17 +48,23 @@ export const useQueryData = (queryConfig) => {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSuccess, setSuccess] = useState(false);
-
+  const isAutoSync = useAppSelector(
+    (state) => state.settings.syncSetting.isAutoSync,
+  );
+  const syncServers = useAppSelector(selectSyncServers);
+  const curretnServer = useAppSelector(selectCurrentServer);
   useEffect(() => {
     if (!queryConfig) {
       setLoading(false);
       return;
     }
 
-    const fetchData = async () => {
+    const fetchCurrentServerData = async () => {
       try {
         setLoading(true);
-        await dispatch(query(queryConfig)).then((action) => {
+        await dispatch(
+          queryServer({ server: curretnServer, ...queryConfig }),
+        ).then((action) => {
           setSuccess(true);
           setData(action.payload);
         });
@@ -69,8 +75,14 @@ export const useQueryData = (queryConfig) => {
       }
     };
 
-    fetchData();
-  }, []);
+    fetchCurrentServerData();
+    if (isAutoSync) {
+      syncServers.map((server) => {
+        dispatch(queryServer({ server, ...queryConfig }));
+        // return;
+      });
+    }
+  }, [isAutoSync]);
 
   return { isLoading, error, data, isSuccess };
 };

@@ -5,7 +5,7 @@ export const selectFilterType = (state) => state.life.filterType;
 
 import { selectAll } from "./dbSlice";
 
-export const selectFilteredDataByUserAndType = (userId, type) =>
+export const selectFilteredDataByUserAndType = (userId: string, type: string) =>
   createCachedSelector([selectAll], (allData) =>
     allData.filter(
       (item) =>

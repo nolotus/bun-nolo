@@ -1,7 +1,6 @@
 import { useAuth } from "auth/useAuth";
 import StringToArrayInput from "ui/Form/StringToArrayInput";
 import { ServerIcon } from "@primer/octicons-react";
-import { generateIdWithCustomId } from "core/generateMainKey";
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { saveData } from "database/dbSlice";
@@ -9,6 +8,7 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
 import { TextField } from "ui/Form/TextField";
 import { BooleanField } from "ui/Form/BooleanField";
+import { generateCustomId } from "core/generateMainKey";
 
 // import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -21,11 +21,7 @@ const Sync = () => {
 
   const userId = useAppSelector(selectCurrentUserId);
   const dispatch = useAppDispatch();
-
-  const customId = "sync-settings";
-  const flags = { isJSON: true };
-  const id = generateIdWithCustomId(userId, customId, flags);
-
+  const id = generateCustomId(userId, "sync-settings");
   const { data, isLoading } = useFetchData(id);
 
   if (isLoading) {
