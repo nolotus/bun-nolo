@@ -190,6 +190,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         </button>
 
         <TextareaAutosize
+        maxRows={10}
           minRows={2}
           value={textContent}
           placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
