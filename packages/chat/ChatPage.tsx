@@ -37,10 +37,7 @@ const ChatPage = () => {
   const dispatch = useAppDispatch();
   if (!auth.user) {
     return (
-      <div className="container mx-auto mt-16 text-center text-3xl">
-        {/* please login to use AI chat */}
-        请登录
-      </div>
+      <div className="container mx-auto mt-16 text-center text-3xl">请登录</div>
     );
   }
 

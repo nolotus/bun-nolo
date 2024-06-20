@@ -21,7 +21,7 @@ const Login: React.FC = () => {
   const { isLoading } = useSelector((state) => state.auth);
 
   const { t } = useTranslation();
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("123");
   const dispatch = useAppDispatch();
   const {
     register,
@@ -36,28 +36,31 @@ const Login: React.FC = () => {
     const { password } = data;
     const encryptionKey = await hashPassword(password);
     dispatch(signIn({ ...data, locale, encryptionKey }))
-      .then(() => {
-        navigate(`/${LifeRoutePaths.WELCOME}`);
-      })
-      .catch((noloError) => {
-        console.error(noloError);
-        let message;
-        switch (noloError.message) {
-          case "404":
-            message = t("errors.userNotFound");
-            break;
-          case "403":
-            message = t("errors.invalidCredentials");
-            break;
-          case "400":
-            message = t("errors.validationError");
-            break;
-          case "500":
-          default:
-            message = t("errors.serverError");
-            break;
+      .then((result) => {
+        console.log("result", result);
+        if (result.type === "signIn/fulfilled") {
+          navigate(`/${LifeRoutePaths.WELCOME}`);
+        } else {
+          switch (result.payload.status) {
+            case 404:
+              setError(t("errors.userNotFound"));
+              break;
+            case 403:
+              setError(t("errors.invalidCredentials"));
+              break;
+            case 400:
+              setError(t("errors.validationError"));
+              break;
+            case 500:
+            default:
+              setError(t("errors.serverError"));
+              break;
+          }
         }
-        setError(error);
+      })
+      .catch((error) => {
+        console.error("error", error);
+        setError(error.message || "Unknown error");
       });
   };
   return (
