@@ -161,12 +161,13 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
   return (
     <div
-      className="flex items-start justify-center space-x-4"
+      className="flex items-start justify-center space-x-4 "
       style={{
         paddingTop: Sizes["--size-fluid-1"],
         paddingBottom: Sizes["--size-fluid-1"],
         paddingLeft: Sizes["--size-13"],
         paddingRight: Sizes["--size-13"],
+        marginBottom: Sizes["--size-8"],
       }}
     >
       <div
@@ -189,6 +190,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         </button>
 
         <TextareaAutosize
+          minRows={2}
           value={textContent}
           placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
           onChange={handleNewMessageChange}
