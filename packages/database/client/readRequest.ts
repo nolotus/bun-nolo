@@ -1,13 +1,21 @@
 import { API_ENDPOINTS } from "database/config";
-import { noloRequest } from "utils/noloRequest";
-// import { selectCurrentUserId } from "auth/selectors";
-import { NoloRootState } from "app/store";
 
-export const noloReadRequest = async (state: NoloRootState, id: string) => {
-  // const userId = selectCurrentUserId(state);
-  const fetchConfig = {
-    url: `${API_ENDPOINTS.DATABASE}/read/${id}`,
-    method: "GET",
+export const noloReadRequest = async (
+  server: string,
+  id: string,
+  token?: string,
+) => {
+  const url = `${API_ENDPOINTS.DATABASE}/read/${id}`;
+  let headers = {
+    "Content-Type": "application/json",
   };
-  return await noloRequest(state, fetchConfig);
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(server + url, {
+    method: "GET",
+    headers,
+  });
+  return res;
 };

@@ -15,6 +15,7 @@ import { loginRequest } from "./client/loginRequest";
 import { SignupData } from "./types";
 import { noloRequest } from "utils/noloRequest";
 import { formatISO, addDays } from "date-fns";
+import { initSyncSetting } from "setting/settingSlice";
 
 const initialState: AuthState = {
   currentUser: null,
@@ -33,9 +34,7 @@ export const authSlice = createSliceWithThunks({
     signIn: create.asyncThunk(
       async (input, thunkAPI) => {
         const state = thunkAPI.getState();
-
-        const { username, password, locale } = input;
-        const encryptionKey = await hashPassword(password);
+        const { username, encryptionKey, locale } = input;
         const { publicKey, secretKey } = generateKeyPairFromSeed(
           username + encryptionKey + locale,
         );
@@ -161,6 +160,26 @@ export const authSlice = createSliceWithThunks({
       (state.currentUser = action.payload.user),
         (state.currentToken = action.payload.token);
     },
+    initAuth: create.asyncThunk(
+      async (tokens, thunkAPI) => {
+        const { dispatch } = thunkAPI;
+        const parsedUsers = tokens.map((token) => parseToken(token));
+        const exists = parsedUsers.length > 0;
+        if (exists) {
+          dispatch(
+            restoreSession({
+              user: parsedUsers[0],
+              users: parsedUsers,
+              token: tokens[0],
+            }),
+          );
+          await dispatch(initSyncSetting());
+        }
+      },
+      {
+        fulfilled: () => {},
+      },
+    ),
     restoreSession: (
       state,
       action: PayloadAction<{ user: User; users: User[]; token: string }>,
@@ -183,8 +202,14 @@ export const authSlice = createSliceWithThunks({
   }),
 });
 
-export const { changeCurrentUser, restoreSession, signIn, signUp, signOut } =
-  authSlice.actions;
+export const {
+  changeCurrentUser,
+  initAuth,
+  restoreSession,
+  signIn,
+  signUp,
+  signOut,
+} = authSlice.actions;
 
 export default authSlice.reducer;
 export const selectCurrentUser = (state: NoloRootState) =>

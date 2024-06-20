@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-
+import { Loader } from "ui/screens/Loader";
 import Card from "./Card";
 import { useAppDispatch, useQueryData } from "../hooks";
 
@@ -30,13 +30,8 @@ export function SpotsScreen() {
   const { data, isLoading, isSuccess } = useQueryData(queryConfig);
 
   if (isLoading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
+    return <Loader />;
   }
-  console.log("data", data);
 
   return (
     <ScrollView style={styles.container}>
@@ -60,11 +55,6 @@ export function SpotsScreen() {
 }
 
 const styles = StyleSheet.create({
-  loader: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   container: {
     flex: 1,
     padding: 10,

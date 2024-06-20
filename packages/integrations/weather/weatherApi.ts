@@ -1,4 +1,3 @@
-// /src/integrations/weatherApi.ts
 import { api } from "app/api";
 import { API_ENDPOINTS } from "database/config";
 

@@ -7,9 +7,20 @@ import { useAppDispatch } from "app/hooks";
 import { signIn } from "../authSlice";
 import { useForm, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import Argon2 from "@sphereon/react-native-argon2";
-
-console.log("Argon2", Argon2);
+// import argon2 from "@sphereon/react-native-argon2";
+import { SALT } from "core/config";
+// const hashPassword = async (password: string) => {
+//   console.log("argon2", argon2);
+//   const result = await argon2(password, SALT, {
+//     hashLength: 32,
+//     memory: 1024,
+//     parallelism: 1,
+//     mode: "argon2id",
+//     iterations: 1,
+//   });
+//   console.log("result", result);
+//   // return hashedPassword.encoded;
+// };
 const LoginScreen = ({ navigation }) => {
   const dispatch = useAppDispatch();
   // const dispatch = useAppDispatch();
@@ -58,13 +69,16 @@ const LoginScreen = ({ navigation }) => {
       password: "",
     },
   });
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log(data);
     // const { t } = useTranslation();
 
     const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
     const deviceCountry = RNLocalize.getCountry(); // 'US', 'CN' 等
     const locale = `${deviceLanguage}-${deviceCountry}`;
+    const { password } = data;
+    // const encryptionKey = await hashPassword(password);
+
     dispatch(signIn({ ...data, locale }))
       .then(() => {
         navigation.navigate("User"); // 跳转到 AuthStack 的 Login Screen

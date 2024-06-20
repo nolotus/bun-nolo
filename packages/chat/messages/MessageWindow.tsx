@@ -11,7 +11,11 @@ import {
   initMessages,
   handleSendMessage,
 } from "./messageSlice";
-import { selectMessage } from "./selector";
+import {
+  selectMessageFailed,
+  selectMessageList,
+  selectMessage,
+} from "./selector";
 
 import { initLLMConfig } from "chat/dialog/dialogSlice";
 import MessagesList from "./MessageList";
@@ -19,12 +23,19 @@ import MessagesList from "./MessageList";
 const ChatWindow = ({ currentDialogConfig }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const messageFailed = useAppSelector(selectMessageFailed);
 
   useEffect(() => {
     currentDialogConfig.llmId &&
       dispatch(initLLMConfig(currentDialogConfig.llmId));
+
     currentDialogConfig &&
-      dispatch(initMessages(currentDialogConfig.messageListId));
+      dispatch(
+        initMessages({
+          messageListId: currentDialogConfig.messageListId,
+          source: currentDialogConfig.source,
+        }),
+      );
   }, [currentDialogConfig]);
 
   const messages = useAppSelector((state) => state.message.messages);
@@ -78,7 +89,7 @@ const ChatWindow = ({ currentDialogConfig }) => {
   // };
   const userCost = useAppSelector(selectCostByUserId);
   // const allowSend = Number(userCost.totalCost) < 2;
-  const allowSend = true;
+  const allowSend = !messageFailed;
   const onSendMessage = (content) => {
     dispatch(handleSendMessage({ content, abortControllerRef }));
   };

@@ -69,16 +69,15 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    dialogId && dispatch(initDialog(dialogId));
+    dialogId && dispatch(initDialog({ dialogId }));
   }, [dialogId]);
   const currentUserId = useAppSelector(selectCurrentUserId);
-
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const queryConfig = {
     queryUserId: currentUserId,
     options: {
       isJSON: true,
-      limit: 20,
+      limit: 100,
       condition: {
         type: DataType.Dialog,
       },

@@ -1,6 +1,6 @@
 import { Argon2, Argon2Mode } from "@sphereon/isomorphic-argon2";
 import CryptoJS from "crypto-js";
-import { SALT } from "database/config";
+import { SALT } from "core/config";
 
 export const hashPassword = async (password: string) => {
   console.log("Argon2", Argon2);

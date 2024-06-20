@@ -15,7 +15,6 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { data } = useFetchData(dialog.llmId);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
   const onDeleteDialog = async (dialog) => {
     dispatch(deleteDialog(dialog)).then((result) => {
       console.log("result", result);
@@ -38,7 +37,9 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
     >
       <NavLink
         to={`/chat?dialogId=${dialog.id}`}
-        onClick={() => dispatch(initDialog(dialog.id))}
+        onClick={() =>
+          dispatch(initDialog({ dialogId: dialog.id, source: dialog.source }))
+        }
         className={`${isSelected ? " surface1" : "surface2"} px-4 py-1`}
         style={{
           boxShadow: Shadows["--shadow-4"],

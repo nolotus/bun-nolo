@@ -14,6 +14,7 @@ import { useAppDispatch } from "app/hooks";
 import { signIn } from "../authSlice";
 import { signInFields } from "../schema";
 import { useSelector } from "react-redux";
+import { hashPassword } from "core/password";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -32,7 +33,9 @@ const Login: React.FC = () => {
 
   const onSubmit = async (data) => {
     const locale = navigator.language;
-    dispatch(signIn({ ...data, locale }))
+    const { password } = data;
+    const encryptionKey = await hashPassword(password);
+    dispatch(signIn({ ...data, locale, encryptionKey }))
       .then(() => {
         navigate(`/${LifeRoutePaths.WELCOME}`);
       })

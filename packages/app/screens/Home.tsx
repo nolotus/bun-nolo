@@ -26,6 +26,8 @@ export function HomeScreen() {
       <View style={styles.section}>
         <TouchableOpacity onPress={() => navigation.navigate("Location")}>
           <Text style={styles.linkText}>浪点功能</Text>
+          <Text style={styles.textDescription}> 待优化：数据展示</Text>
+          <Text style={styles.textDescription}> 待优化：涨落潮数据</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.section}>
@@ -70,8 +72,8 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 16,
-    fontWeight: "600", // 稍微加粗来突出链接
-    color: "#3B82F6", // 使用更鲜艳的蓝色调，用于引起注意
+    fontWeight: "600",
+    color: "#3B82F6",
     textAlign: "center",
     marginVertical: 6,
   },

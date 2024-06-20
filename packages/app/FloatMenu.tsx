@@ -101,7 +101,7 @@ export const FloatMenu = () => {
         flexDirection: "column",
         position: "fixed",
         bottom: Sizes["--size-fluid-6"],
-        right: Sizes["--size-fluid-4"],
+        right: Sizes["--size-fluid-3"],
         gap: Sizes["--size-relative-7"],
       }}
     >

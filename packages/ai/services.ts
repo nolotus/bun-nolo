@@ -10,13 +10,6 @@ export const aiApi = api.injectEndpoints({
         body: payload, // 直接使用 payload 作为请求体
       }),
     }),
-    textChat: builder.mutation({
-      query: (payload) => ({
-        url: `${API_ENDPOINTS.AI}/images/edits`,
-        method: "POST",
-        body: payload, // 直接使用 payload 作为请求体
-      }),
-    }),
     generateImageEdit: builder.mutation({
       query: (payload) => ({
         url: `${API_ENDPOINTS.AI}/images/edits`,
@@ -48,7 +41,6 @@ export const aiApi = api.injectEndpoints({
 });
 
 export const {
-  useTextChatMutation,
   useGenerateAudioMutation,
   useGenerateImageEditMutation,
   useGenerateImageVariationMutation,

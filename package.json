@@ -39,7 +39,7 @@
     "twrnc": "^3.6.7"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.5.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -62,7 +62,11 @@
     "react-dom": "18.3.",
     "react-hook-form": "^7.51.5",
     "react-i18next": "^14.1.2",
+    "react-native-gifted-charts": "^1.4.10",
+    "react-native-linear-gradient": "^2.8.3",
+    "react-native-svg": "^15.3.0",
     "react-redux": "^9.0.1",
+    "react-responsive": "^10.0.0",
     "react-router": "^6.23.1",
     "react-router-dom": "^6.23.1",
     "react-textarea-autosize": "^8.5.3",
