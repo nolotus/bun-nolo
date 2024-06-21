@@ -38,7 +38,10 @@ export const Alert: React.FC<AlertProps> = ({
       <div className="rounded-lg bg-white p-6">
         <h2 className="mb-4 text-2xl font-bold text-gray-800">{title}</h2>
         <p className="text-gray-700">{message}</p>
-        <div className="mt-4 flex justify-end space-x-4">
+        <div
+          className="mt-4 flex space-x-4"
+          style={{ justifyContent: "start" }}
+        >
           <Button variant="secondary" size="medium" onClick={onClose}>
             取消
           </Button>

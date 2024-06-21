@@ -3,7 +3,7 @@ import { APILoader } from "@uiw/react-amap";
 //be careful APILoader can't in entry or Map file, you could try will debug
 import { renderContentNode } from "render";
 import { useMediaQuery } from "react-responsive";
-
+import OpenProps from "open-props";
 import { WeatherRelate } from "./WeatherRelate";
 import Card from "./Card";
 // 定义SurfSpotDescription组件的props类型
@@ -52,7 +52,10 @@ const SurfSpotPage = ({ data }: SurfSpotPageProps) => {
     <>
       <SurfSpotDescription title={title} description={data.mdast.children[2]} />
       <div className="w-full">
-        <div className="mb-4 h-64 overflow-hidden bg-gray-200 lg:h-[300px]">
+        <div
+          className="surface2 h-64 overflow-hidden"
+          style={{ marginBottom: OpenProps["--size-fluid-2"] }}
+        >
           <APILoader version="2.0.5" akey="56b1c6772542a92ab459923a7c556566">
             <GaodeMap lat={lat} lng={lng} title={title} />
           </APILoader>

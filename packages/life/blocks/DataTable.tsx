@@ -4,6 +4,7 @@ import { DataType } from "create/types";
 import { deleteData, removeOne } from "database/dbSlice";
 import { omit } from "rambda";
 import { Link } from "react-router-dom";
+import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
 
 const AIThead = () => {
   return (
@@ -20,17 +21,7 @@ const AIThead = () => {
     </thead>
   );
 };
-const Thead = () => {
-  return (
-    <thead>
-      <tr>
-        <th>Id</th>
-        <th>数据源</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-  );
-};
+
 const PageThead = () => {
   return (
     <thead>
@@ -42,8 +33,31 @@ const PageThead = () => {
     </thead>
   );
 };
-
-export const DataTable = ({ dataList, type }) => {
+const Thead = () => {
+  return (
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>数据类型</th>
+        <th>数据源</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+  );
+};
+const SurfHead = () => {
+  return (
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>浪点名字</th>
+        <th>数据源</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+  );
+};
+export const DataTable = ({ dataList, type, pullData }) => {
   const dispatch = useAppDispatch();
 
   // const formatValue = omit(
@@ -84,27 +98,70 @@ export const DataTable = ({ dataList, type }) => {
   const TR = ({ data }) => {
     return (
       <tr>
-        <td>{extractCustomId(data.id)}</td>
+        <td className="w-full">
+          <Link to={`/${data.id}`}>{extractCustomId(data.id)}</Link>
+        </td>
+        <td>{data.type}</td>
+
         <td>{data.source}</td>
+
         <td>
           <button
             onClick={() => {
               dispatch(deleteData({ id: data.id, source: data.source }));
             }}
           >
+            <TrashIcon size={16} />
             删除
+          </button>
+          <button
+            type="button"
+            onClick={() => pullData(data.id, data)}
+            className="rounded  p-2 "
+          >
+            <RepoPullIcon size={16} />
+            拉取
           </button>
         </td>
       </tr>
     );
   };
+  const SurfTR = ({ data }) => {
+    return (
+      <tr>
+        <td className="w-full">
+          <Link to={`/${data.id}`}>{extractCustomId(data.id)}</Link>
+        </td>
+        <td>{data.title}</td>
 
+        <td>{data.source}</td>
+
+        <td>
+          <button
+            onClick={() => {
+              dispatch(deleteData({ id: data.id, source: data.source }));
+            }}
+          >
+            <TrashIcon size={16} />
+            删除
+          </button>
+          <button
+            type="button"
+            onClick={() => pullData(data.id, data)}
+            className="rounded  p-2 "
+          >
+            <RepoPullIcon size={16} />
+            拉取
+          </button>
+        </td>
+      </tr>
+    );
+  };
   const PageTR = ({ data }) => {
     return (
       <tr>
-        {/* <td>{extractCustomId(data.id)}</td> */}
-        <td>
-          <Link to={`/${data.id}`}>{data.id}</Link>
+        <td className="w-full">
+          <Link to={`/${data.id}`}>{extractCustomId(data.id)}</Link>
         </td>
 
         <td>{data.source}</td>
@@ -128,6 +185,8 @@ export const DataTable = ({ dataList, type }) => {
       <table>
         {type === DataType.ChatRobot && <AIThead />}
         {type === DataType.Page && <PageThead />}
+        {type === DataType.SurfSpot && <SurfHead />}
+
         {!type && <Thead />}
 
         {/* <tfoot>
@@ -146,6 +205,9 @@ export const DataTable = ({ dataList, type }) => {
                 <AITR data={data} key={data.id} />
               )}
               {type === DataType.Page && <PageTR data={data} key={data.id} />}
+              {type === DataType.SurfSpot && (
+                <SurfTR data={data} key={data.id} />
+              )}
               {!type && <TR data={data} key={data.id} />}
             </>
           ))}

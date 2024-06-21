@@ -22,8 +22,9 @@ export const Database = () => {
   const mainColor = useAppSelector((state) => state.theme.mainColor);
 
   const dispatch = useAppDispatch();
-  let [searchParams] = useSearchParams();
-  const [type, setType] = useState(null);
+  let [searchParams, setSearchParams] = useSearchParams();
+
+  const [type, setType] = useState(searchParams.get("type"));
   const currentUserId = useAppSelector(selectCurrentUserId);
 
   const data = useAppSelector(
@@ -47,11 +48,14 @@ export const Database = () => {
   const changeType = (type) => {
     if (type === "All") {
       console.log("type", type);
+      setSearchParams({});
       setType(null);
     } else {
       setType(type);
+      setSearchParams({ type });
     }
   };
+
   return (
     <div className="p-4">
       {/* <AccountBalance /> */}
