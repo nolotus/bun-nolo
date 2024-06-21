@@ -23,7 +23,7 @@ const DataDisplay = ({ data, type, viewMode = "table" }) => {
       data: formatValue,
       flags,
       userId,
-      customId,
+      id: customId,
     };
     dispatch(write(writeConfig));
   };
@@ -96,7 +96,7 @@ const DataDisplay = ({ data, type, viewMode = "table" }) => {
       </div>
       <div className="">
         {viewMode === "table" ? (
-          <DataTable dataList={data} type={type} />
+          <DataTable dataList={data} type={type} pullData={pullData} />
         ) : (
           <CardList dataList={data} />
         )}

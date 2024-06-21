@@ -13,7 +13,7 @@ import { ulid } from "ulid";
 
 import { API_ENDPOINTS } from "./config";
 import { noloReadRequest } from "./client/readRequest";
-import { noloWriteRequest } from "./client/writeRequest";
+import { noloWriteRequest } from "./write/writeRequest";
 import { noloQueryRequest } from "./client/queryRequest";
 import { noloUpdateRequest } from "./client/updateRequest";
 import { generateIdWithCustomId } from "core/generateMainKey";

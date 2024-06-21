@@ -52,9 +52,6 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
 
   return (
     <div className="col-span-1 w-full overflow-x-auto">
-      {/* <button onClick={toggleNightTime} className="mb-2">
-        切换夜间时间显示
-      </button> */}
       <div className="grid grid-flow-col">
         {Object.entries(groupedWeatherData).map(([monthDay, hours]) => {
           const avgWaterTemperature = calculateAverage(
@@ -66,19 +63,15 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
           return (
             <React.Fragment key={monthDay}>
               <div key={monthDay} className="flex flex-col">
-                <div className="sticky top-0 z-10 flex flex-row items-center justify-start space-x-3 rounded-lg bg-white p-1 opacity-90 shadow-sm">
-                  <div className="h-6 flex-shrink-0 text-xs font-semibold  text-gray-800">
-                    {getMonthDayAndWeekday(monthDay)}
-                  </div>
+                <div className="h-6">
+                  {getMonthDayAndWeekday(monthDay)}
 
-                  <div className="h-6 text-xs  text-gray-800">
-                    {`水温: ${avgWaterTemperature}°C`}
-                  </div>
+                  {`水温: ${avgWaterTemperature}°C`}
                 </div>
                 <div
                   className={`col-span-${
                     hours.length / interval
-                  } grid grid-flow-col`}
+                  }  grid grid-flow-col`}
                 >
                   {hours.reduce((acc, hour, index) => {
                     if (index % interval === 0 && hourIsVisible(hour)) {

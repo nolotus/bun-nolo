@@ -14,13 +14,12 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
     isSuccess,
   } = useGetWeatherQuery(queryParams);
 
-  const containerStyle =
-    "grid grid-cols-[minmax(auto,70px)_1fr] bg-white shadow";
+  const containerStyle = "grid grid-cols-[minmax(auto,70px)_1fr]";
 
   if (isLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <div className="text-lg text-blue-500">正在加载天气数据...</div>
+        <div className="text-lg">正在加载天气数据...</div>
       </div>
     );
   }

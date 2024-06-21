@@ -40,11 +40,8 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
         onClick={() =>
           dispatch(initDialog({ dialogId: dialog.id, source: dialog.source }))
         }
-        className={`${isSelected ? " surface1" : "surface2"} px-4 py-1`}
-        style={{
-          boxShadow: Shadows["--shadow-4"],
-          borderRadius: Borders["--radius-2"],
-        }}
+        className={`${isSelected && " surface2"} px-4 py-1`}
+        style={{}}
       >
         <span>{data?.name}</span>
       </NavLink>
@@ -91,7 +88,7 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
               onClose={closeAlert}
               onConfirm={doDelete}
               title={`删除和${data?.name}的对话？`}
-              message={`你确定要删除 ${dialog?.id} 的对话吗？`}
+              message={`你确定要删除对话吗？`}
             />
           )}
         </div>
