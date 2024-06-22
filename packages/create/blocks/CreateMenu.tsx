@@ -6,7 +6,6 @@ import {
 } from "@primer/octicons-react";
 import { DropDown } from "ui";
 import Borders from "open-props/src/borders";
-import Shadows from "open-props/src/shadows";
 import Sizes from "open-props/src/sizes";
 import React from "react";
 

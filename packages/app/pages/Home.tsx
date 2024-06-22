@@ -13,8 +13,10 @@ import {
 import { SpotCard } from "render/components/SpotCard";
 import React from "react";
 import { selectFilteredDataByUserAndType } from "database/selectors";
+import { selectCurrentUserId } from "auth/authSlice";
 
 const Home = () => {
+  const userId = useAppSelector(selectCurrentUserId);
   const options = {
     isJSON: true,
     condition: {
@@ -107,7 +109,7 @@ const Home = () => {
         <DependabotIcon size="medium" />
         <span>AIs</span>
       </h4>
-      <ChatAIList queryUserId={nolotusId} />
+      <ChatAIList queryUserId={userId ? userId : nolotusId} />
       <h4 className="">
         <LocationIcon size="medium" />
         浪点
