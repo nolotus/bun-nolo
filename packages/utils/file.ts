@@ -77,7 +77,9 @@ export const updateDataInFile = async (filePath, id: string, value: string) => {
     if (updated) {
       // await unlink(filePath);
       await Bun.write(filePath, Bun.file(tempFilePath));
-      await unlink(tempFilePath);
+      if (tempFilePath) {
+        await unlink(tempFilePath);
+      }
     } else {
       await unlink(tempFilePath);
       throw new Error("Data not found");

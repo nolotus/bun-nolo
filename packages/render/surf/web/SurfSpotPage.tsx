@@ -13,6 +13,8 @@ interface SurfSpotDescriptionProps {
 }
 
 import { ShareIcon } from "@primer/octicons-react";
+import { useFetchData } from "app/hooks";
+import { PageLoader } from "../../blocks/PageLoader";
 
 const SurfSpotDescription = ({
   title,
@@ -32,38 +34,49 @@ const SurfSpotDescription = ({
   </div>
 );
 
-interface SurfSpotData {
-  lat?: number;
-  lng?: number;
-  title: string;
-}
-
 interface SurfSpotPageProps {
-  data: SurfSpotData;
+  id: string;
+  source: string;
 }
 
-const SurfSpotPage = ({ data }: SurfSpotPageProps) => {
-  const { lat = 31.86119, lng = 117.283042, title } = data;
+const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
+  const { data, isLoading } = useFetchData(id, source);
   // const mobile = useMediaQuery({ minWidth: 640 });
   // const tablet = useMediaQuery({ minWidth: 768 });
-  // const laptop = useMediaQuery({ minWidth: 768, maxWidth: 1280 });
   // const monitor = useMediaQuery({ minWidth: 1281 });
-  return (
-    <>
-      <SurfSpotDescription title={title} description={data.mdast.children[2]} />
-      <div className="w-full">
-        <div
-          className="surface2 h-64 overflow-hidden"
-          style={{ marginBottom: OpenProps["--size-fluid-2"] }}
-        >
-          <APILoader version="2.0.5" akey="56b1c6772542a92ab459923a7c556566">
-            <GaodeMap lat={lat} lng={lng} title={title} />
-          </APILoader>
+  if (isLoading) {
+    return <PageLoader />;
+  }
+  if (data) {
+    const { title, lat = 31.86119, lng = 117.283042 } = data;
+    return (
+      <div style={{ marginTop: OpenProps.sizeFluid2 }}>
+        <div style={{ display: "flex" }}>
+          <div style={{ width: "45%", marginRight: "10%" }}>
+            <SurfSpotDescription
+              title={title}
+              description={data.mdast.children[2]}
+            />
+          </div>
+
+          <div style={{ width: "45%" }}>
+            <div
+              className="surface2 h-64 overflow-hidden"
+              style={{ marginBottom: OpenProps["--size-fluid-2"] }}
+            >
+              <APILoader
+                version="2.0.5"
+                akey="56b1c6772542a92ab459923a7c556566"
+              >
+                <GaodeMap lat={lat} lng={lng} title={title} />
+              </APILoader>
+            </div>
+          </div>
         </div>
+        <WeatherRelate lat={lat} lng={lng} />
       </div>
-      <WeatherRelate lat={lat} lng={lng} />
-    </>
-  );
+    );
+  }
 };
 
 export default SurfSpotPage;

@@ -1,97 +1,20 @@
 import React from "react";
-import {
-  CommentIcon,
-  HomeIcon,
-  PersonIcon,
-  SignOutIcon,
-  GearIcon,
-  SignInIcon,
-} from "@primer/octicons-react";
-
-import Shadows from "open-props/src/shadows";
+import { CommentIcon, HomeIcon, SignInIcon } from "@primer/octicons-react";
+import { useMediaQuery } from "react-responsive";
 import Sizes from "open-props/src/sizes";
 import Borders from "open-props/src/borders";
-import { DropDown } from "ui";
-import { NavLink, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "auth/useAuth";
-import { changeCurrentUser, signOut } from "auth/authSlice";
-
-import { useAppDispatch, useAppSelector } from "app/hooks";
-import { getTokensFromLocalStorage, removeToken } from "auth/client/token";
+import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
 import { CreateMenu } from "create/blocks/CreateMenu";
 
 import { RoutePaths } from "auth/client/routes";
-
-const IsLoggedInMenu = () => {
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-
-  const currentToken = useAppSelector((state) => state.auth.currentToken);
-
-  const logout = () => {
-    removeToken(currentToken);
-    dispatch(signOut());
-    navigate("/");
-  };
-  return (
-    <DropDown
-      direction="left"
-      trigger={
-        <button
-          type="button"
-          className="p-[10px]"
-          style={{
-            borderRadius: Borders["--radius-round"],
-          }}
-          onMouseDown={() => {
-            navigate("/life");
-          }}
-        >
-          <PersonIcon />
-        </button>
-      }
-      triggerType="hover"
-    >
-      <div
-        className="flex "
-        style={{
-          gap: Sizes["--size-fluid-1"],
-          width: Sizes["--size-fluid-7"],
-        }}
-      >
-        <button
-          type="button"
-          onMouseDown={logout}
-          className="p-[10px]"
-          style={{
-            borderRadius: Borders["--radius-round"],
-          }}
-        >
-          <SignOutIcon size={24} />
-          {/* {t("sign_out")} */}
-        </button>
-        <button
-          type="button"
-          onMouseDown={() => navigate("/settings")}
-          className="p-[10px]"
-          style={{
-            borderRadius: Borders["--radius-round"],
-          }}
-        >
-          <GearIcon size={24} />
-          {/* {t("settings")} */}
-        </button>
-      </div>
-    </DropDown>
-  );
-};
+import OpenProps from "open-props";
 
 export const FloatMenu = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
-
+  const laptop = useMediaQuery({ minWidth: 768, maxWidth: 1280 });
   const { isLoggedIn } = useAuth();
 
   return (
@@ -101,7 +24,7 @@ export const FloatMenu = () => {
         flexDirection: "column",
         position: "fixed",
         bottom: Sizes["--size-fluid-6"],
-        right: Sizes["--size-fluid-3"],
+        right: laptop ? OpenProps.sizeFluid2 : OpenProps.sizeFluid3,
         gap: Sizes["--size-relative-7"],
       }}
     >
@@ -138,8 +61,8 @@ export const FloatMenu = () => {
           <button
             className="p-[10px]"
             style={{
-              borderRadius: Borders["--radius-round"],
-              boxShadow: Shadows["--shadow-5"],
+              borderRadius: OpenProps.radiusRound,
+              boxShadow: OpenProps.shadow5,
             }}
             onClick={() => {
               navigate(RoutePaths.LOGIN);
@@ -153,37 +76,3 @@ export const FloatMenu = () => {
     </div>
   );
 };
-{
-  /* <div className="rounded-md bg-white py-1 shadow-lg">
-{users.map(
-  (user) =>
-    user !== auth.user &&
-    user && (
-      <button
-        key={user.userId}
-        type="button"
-        onClick={() => changeUser(user)}
-        className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
-      >
-        {t("change_to")} {user.username}
-      </button>
-    ),
-)}
-</div> */
-}
-
-// const changeUser = (user) => {
-//   const tokens = getTokensFromLocalStorage();
-//   const updatedToken = tokens.find(
-//     (t) => parseToken(t).userId === user.userId,
-//   );
-
-//   if (updatedToken) {
-//     const newTokens = [
-//       updatedToken,
-//       ...tokens.filter((t) => t !== updatedToken),
-//     ];
-//     window.localStorage.setItem("tokens", JSON.stringify(newTokens));
-//     dispatch(changeCurrentUser({ user, token: updatedToken }));
-//   }
-// };

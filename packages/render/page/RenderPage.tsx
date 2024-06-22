@@ -15,11 +15,10 @@ import { removeOne } from "database/dbSlice";
 const RenderPage = ({ pageId, data }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const createId = extractUserId(pageId);
   const renderedContent = useMemo(() => {
     if (data.type === DataType.SurfSpot) {
-      return <SurfSpotPage data={data} />;
+      return <SurfSpotPage id={pageId} source={data.source} />;
     }
     if (data.type === "page") {
       return (

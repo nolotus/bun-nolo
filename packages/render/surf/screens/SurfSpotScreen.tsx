@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from "react-native";
+import { Text, View, StyleSheet, ScrollView } from "react-native";
 import React, { useLayoutEffect } from "react";
 
 import MapView from "react-native-maps";
@@ -39,54 +39,56 @@ export function SurfSpotScreen({ route }) {
     const { lat, lng, title } = data;
 
     return (
-      <View style={styles.container}>
-        <View style={styles.mapPlaceholder}>
-          <MapView
-            style={{
-              width: "100%",
-              height: 200,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "#EDF2F7",
-              borderRadius: 16,
-              marginTop: 16,
-            }}
-            initialRegion={{
-              latitude: lat,
-              longitude: lng,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-          />
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <View style={styles.intervalButtonGroup}>
-            {intervals.map((intervalItem) => (
-              <ToggleButton
-                key={intervalItem.value}
-                value={intervalItem.value}
-                title={intervalItem.title}
-                isActive={interval === intervalItem.value}
-                onPress={handleIntervalChange}
-              />
-            ))}
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={styles.mapPlaceholder}>
+            <MapView
+              style={{
+                width: "100%",
+                height: 200,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "#EDF2F7",
+                borderRadius: 16,
+                marginTop: 16,
+              }}
+              initialRegion={{
+                latitude: lat,
+                longitude: lng,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}
+            />
           </View>
 
-          <View style={styles.modeButtonGroup}>
-            {modes.map((modeItem) => (
-              <ToggleButton
-                key={modeItem.value}
-                value={modeItem.value}
-                title={modeItem.title}
-                isActive={mode === modeItem.value}
-                onPress={handleModeChange}
-              />
-            ))}
+          <View style={styles.buttonContainer}>
+            <View style={styles.intervalButtonGroup}>
+              {intervals.map((intervalItem) => (
+                <ToggleButton
+                  key={intervalItem.value}
+                  value={intervalItem.value}
+                  title={intervalItem.title}
+                  isActive={interval === intervalItem.value}
+                  onPress={handleIntervalChange}
+                />
+              ))}
+            </View>
+
+            <View style={styles.modeButtonGroup}>
+              {modes.map((modeItem) => (
+                <ToggleButton
+                  key={modeItem.value}
+                  value={modeItem.value}
+                  title={modeItem.title}
+                  isActive={mode === modeItem.value}
+                  onPress={handleModeChange}
+                />
+              ))}
+            </View>
           </View>
+          <WeatherDisplay lat={lat} lng={lng} mode={mode} interval={interval} />
         </View>
-        <WeatherDisplay lat={lat} lng={lng} mode={mode} interval={interval} />
-      </View>
+      </ScrollView>
     );
   }
   return <Text>没有数据</Text>;
