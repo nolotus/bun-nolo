@@ -55,7 +55,7 @@ const dbSlice = createSliceWithThunks({
           const data = await res.json();
           if (res.status === 200) {
             dispatch(mergeMany({ data, server }));
-            return result;
+            return data;
           } else {
             const { error } = result;
             throw error;

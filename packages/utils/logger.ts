@@ -16,11 +16,12 @@ const defaultOptions = {
     "TableComponent",
     "ChatWindow",
     "surfWeather",
+    "default",
   ],
 };
 const childLoggers = {};
 
-export const getLogger = (name, options = defaultOptions) => {
+export const getLogger = (name = "default", options = defaultOptions) => {
   const shouldLog = (filterIDs, obj) =>
     filterIDs ? filterIDs.includes(obj.id) : true;
   const setActiveLogLevel = (logger, name, activeLoggers) => {
@@ -40,9 +41,9 @@ export const getLogger = (name, options = defaultOptions) => {
   }
 
   const customLogger = {
-    info: (obj, msg) => {
+    info: (msg, obj) => {
       if (shouldLog(filterIDs, obj)) {
-        newLogger.info(obj, msg);
+        newLogger.info(msg, obj);
       }
     },
     error: (obj, msg) => {
