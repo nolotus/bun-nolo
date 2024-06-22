@@ -1,14 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { useModal, Dialog, Alert, useDeleteAlert } from "ui";
+import { useModal, Dialog, Alert, useDeleteAlert } from "render/ui";
 import { PencilIcon, CopyIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import { createDialog, deleteDialog, initDialog } from "./dialogSlice";
-import IconButton from "ui/IconButton";
+import IconButton from "render/ui/IconButton";
 import Colors from "open-props/src/colors";
-import Shadows from "open-props/src/shadows";
-import Borders from "open-props/src/borders";
 
 export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();

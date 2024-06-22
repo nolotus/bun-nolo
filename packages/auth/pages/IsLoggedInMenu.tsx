@@ -1,11 +1,11 @@
 import React from "react";
-import { DropDown } from "ui";
+import { DropDown } from "render/ui";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import OpenProps from "open-props";
 import { PersonIcon, SignOutIcon, GearIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
-import { flex } from "ui/styles";
+import { flex } from "render/ui/styles";
 
 import { changeCurrentUser, selectUsers, signOut } from "../authSlice";
 import { getTokensFromLocalStorage, removeToken } from "../client/token";

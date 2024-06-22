@@ -3,7 +3,7 @@ import { useAuth } from "auth/useAuth";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { markdownToMdast, getH1TextFromMdast } from "render/MarkdownProcessor";
-import { Button, Toggle } from "ui";
+import { Button, Toggle } from "render/ui";
 import { VersionsIcon } from "@primer/octicons-react";
 import { write } from "database/dbSlice";
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, Select } from "ui";
+import { Card, Select } from "render/ui";
 
 export const FilterPanel = () => {
   let [searchParams, setSearchParams] = useSearchParams();

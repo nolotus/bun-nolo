@@ -1,12 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "auth/useAuth";
-import { FormField } from "ui/Form/FormField";
+import { FormField } from "render/ui/Form/FormField";
 import i18next from "i18n";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button } from "ui/Button";
+import { Button } from "render/ui/Button";
 import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import { createDialog } from "chat/dialog/dialogSlice";

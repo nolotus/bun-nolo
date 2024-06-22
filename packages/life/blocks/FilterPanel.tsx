@@ -1,7 +1,7 @@
 import { useAppDispatch } from "app/hooks";
 import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, Select } from "ui";
+import { Card, Select } from "render/ui";
 import { SortDescIcon } from "@primer/octicons-react";
 import { setSortKey, setSortOrder } from "../lifeSlice";
 

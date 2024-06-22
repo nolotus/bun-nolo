@@ -1,4 +1,4 @@
-import IconButton from "ui/IconButton";
+import IconButton from "render/ui/IconButton";
 import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useAppSelector, useFetchData } from "app/hooks";

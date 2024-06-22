@@ -1,6 +1,5 @@
 import React from "react";
-import { Button } from "ui/Button"; // 确保这是正确的导入路径
-
+import { Button } from "render/ui/Button";
 import { Modal, useModal } from "./index";
 
 interface AlertProps {

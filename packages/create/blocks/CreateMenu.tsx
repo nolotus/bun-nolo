@@ -4,7 +4,7 @@ import {
   DependabotIcon,
   LocationIcon,
 } from "@primer/octicons-react";
-import { DropDown } from "ui";
+import { DropDown } from "render/ui";
 import Borders from "open-props/src/borders";
 import Sizes from "open-props/src/sizes";
 import React from "react";
