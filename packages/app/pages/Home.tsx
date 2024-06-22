@@ -1,4 +1,4 @@
-import { Link } from "ui";
+import { Link } from "render/ui";
 import { nolotusId } from "core/init";
 
 import ChatAIList from "ai/blocks/ChatAIList";

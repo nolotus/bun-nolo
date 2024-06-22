@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Avatar } from "ui";
+import { Avatar } from "render/ui";
 
 import { baseCard } from "../styles";
 export const SpotCard = ({ data }) => (

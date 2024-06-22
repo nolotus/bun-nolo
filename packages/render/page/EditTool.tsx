@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import React, { useCallback, useState } from "react";
-import { Button, Toggle } from "ui";
+import { Button, Toggle } from "render/ui";
 import {
   setHasVersion,
   saveContentAndMdast,

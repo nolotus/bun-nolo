@@ -1,12 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PersonIcon, LockIcon } from "@primer/octicons-react";
-import { FormField } from "ui/Form/FormField";
+import { FormField } from "render/ui/Form/FormField";
 import { LifeRoutePaths } from "life/routes";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Button } from "ui";
+import { Button } from "render/ui";
 import Sizes from "open-props/src/sizes";
 
 import { userFormSchema } from "../schema";

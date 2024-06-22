@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import { Loader } from "ui/screens/Loader";
+import { Loader } from "render/ui/screens/Loader";
 import Card from "./Card";
 import { useAppDispatch, useQueryData } from "../hooks";
 

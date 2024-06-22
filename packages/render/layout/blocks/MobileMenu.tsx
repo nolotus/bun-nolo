@@ -1,7 +1,7 @@
 import { XIcon } from "@primer/octicons-react";
 import React from "react";
 import NavListItem from "./NavListItem";
-import IconButton from "ui/IconButton";
+import IconButton from "render/ui/IconButton";
 
 interface MobileMenuProps {
   isOpen: boolean;

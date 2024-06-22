@@ -1,13 +1,13 @@
 import { useAuth } from "auth/useAuth";
-import StringToArrayInput from "ui/Form/StringToArrayInput";
+import StringToArrayInput from "render/ui/Form/StringToArrayInput";
 import { ServerIcon } from "@primer/octicons-react";
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { saveData } from "database/dbSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
-import { TextField } from "ui/Form/TextField";
-import { BooleanField } from "ui/Form/BooleanField";
+import { TextField } from "render/ui/Form/TextField";
+import { BooleanField } from "render/ui/Form/BooleanField";
 import { generateCustomId } from "core/generateMainKey";
 
 // import { zodResolver } from "@hookform/resolvers/zod";

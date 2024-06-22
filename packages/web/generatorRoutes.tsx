@@ -1,5 +1,5 @@
-import { chatRoutes } from "chat/route";
 import React, { Suspense, lazy } from "react";
+import { chatRoutes } from "chat/route";
 
 // import { routes as UIRoutes } from "../ui/route";
 

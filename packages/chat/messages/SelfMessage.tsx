@@ -1,6 +1,6 @@
 import React from "react";
-import { Avatar } from "ui";
-import IconButton from "ui/IconButton";
+import { Avatar } from "render/ui";
+import IconButton from "render/ui/IconButton";
 import { UnmuteIcon, TrashIcon } from "@primer/octicons-react";
 import Sizes from "open-props/src/sizes";
 

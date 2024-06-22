@@ -1,4 +1,4 @@
-import { useModal, Dialog } from "ui";
+import { useModal, Dialog } from "render/ui";
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
 import { useTranslation } from "react-i18next";
 

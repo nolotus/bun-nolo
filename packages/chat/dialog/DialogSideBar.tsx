@@ -6,7 +6,7 @@ import Sizes from "open-props/src/sizes";
 import { extractUserId } from "core/prefix";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useModal, Dialog } from "ui";
+import { useModal, Dialog } from "render/ui";
 import { NorthStarIcon, PlusIcon } from "@primer/octicons-react";
 import Fonts from "open-props/src/fonts";
 import Borders from "open-props/src/borders";

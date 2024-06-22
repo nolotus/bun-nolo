@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
-import { FormField } from "ui/Form/FormField";
+import { FormField } from "render/ui/Form/FormField";
 import { useUpdateEntryMutation } from "database/services"; // 导入新的 mutation 钩子
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { Button } from "ui/Button";
+import { Button } from "render/ui/Button";
 import { editSchema, editFields } from "../schema";
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();

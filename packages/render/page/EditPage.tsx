@@ -2,7 +2,7 @@ import { useAuth } from "auth/useAuth";
 import { useUpdateEntryMutation } from "database/services";
 import React from "react";
 import { useParams } from "react-router-dom";
-import { Toast, useToastManager } from "ui/Toast";
+import { Toast, useToastManager } from "render/ui/Toast";
 
 import { TextEdit } from "./TextEdit";
 import { createPageData } from "./pageDataUtils";

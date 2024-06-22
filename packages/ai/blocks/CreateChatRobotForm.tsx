@@ -1,14 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "auth/useAuth";
-import { createFieldsFromDSL } from "ui/Form/createFieldsFromDSL";
-import { FormField } from "ui/Form/FormField";
+import { createFieldsFromDSL } from "render/ui/Form/createFieldsFromDSL";
+import { FormField } from "render/ui/Form/FormField";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
 import i18next from "i18n";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate, NavLink } from "react-router-dom";
-import { Button } from "ui/Button";
+import { Button } from "render/ui/Button";
 
 import allTranslations from "../aiI18n";
 import { createDsl } from "../schema";

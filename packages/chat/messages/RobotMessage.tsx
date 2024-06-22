@@ -1,9 +1,9 @@
 import { UnmuteIcon, TrashIcon, DuplicateIcon } from "@primer/octicons-react";
 import { useAuth } from "auth/useAuth";
 import React from "react";
-import { Avatar } from "ui";
-import IconButton from "ui/IconButton";
-import { Toast, useToastManager } from "ui/Toast";
+import { Avatar } from "render/ui";
+import IconButton from "render/ui/IconButton";
+import { Toast, useToastManager } from "render/ui/Toast";
 import { Link } from "react-router-dom";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
