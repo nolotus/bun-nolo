@@ -2,8 +2,13 @@ import React, { useState } from "react";
 import { calculateAverage, getQualityColor } from "../weatherUtils";
 import { format, parseISO } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import DirectionArrow from "./DirectionArrow";
 
+import { SurfTideChart } from "./Chart";
+import DirectionArrow from "./DirectionArrow";
+import {
+  extractTimeAndSwellHeight,
+  groupHourlyWeatherByLocalDate,
+} from "../utils/groupedWeatherData";
 type WeatherDataGridProps = {
   groupedWeatherData: Record<string, any[]>;
   interval: number;
@@ -17,10 +22,16 @@ const getMonthDayAndWeekday = (dateStr: string): string => {
 };
 
 const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
-  groupedWeatherData,
   interval,
   mode,
+  hours,
 }) => {
+  const groupedWeatherData = groupHourlyWeatherByLocalDate(hours);
+
+  const tideChartData = extractTimeAndSwellHeight(hours);
+
+  const { x, y } = tideChartData;
+
   const [hideNightTime, setHideNightTime] = useState(true);
 
   // const toggleNightTime = () => {
@@ -141,6 +152,7 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
           );
         })}
       </div>
+      <SurfTideChart x={x} y={y} style={{ width: "2060px" }} />
     </div>
   );
 };
