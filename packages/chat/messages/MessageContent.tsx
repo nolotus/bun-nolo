@@ -8,7 +8,7 @@ export const MessageContent = ({ content }) => {
       style={{
         display: "flex",
         flexDirection: "column",
-        boxShadow: "var(--shadow-2)",
+        boxShadow: "var(--shadow-3)",
       }}
     >
       {typeof content === "string" ? (
