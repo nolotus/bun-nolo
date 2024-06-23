@@ -77,73 +77,77 @@ echarts.use([
 ]);
 
 // The usage of ReactEChartsCore are same with above.
-const xData = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const yData = [120, 282, 111, 234, 220, 340, 310];
-const option = {
-  color: ["#80FFA5", "#00DDFF", "#37A2FF", "#FF0087", "#FFBF00"],
 
-  tooltip: {
-    trigger: "axis",
-    axisPointer: {
-      type: "cross",
-      label: {
-        backgroundColor: "#6a7985",
+const fromDataToOption = (x, y) => {
+  const option = {
+    color: ["#80FFA5", "#00DDFF", "#37A2FF", "#FF0087", "#FFBF00"],
+
+    tooltip: {
+      trigger: "axis",
+      axisPointer: {
+        type: "cross",
+        label: {
+          backgroundColor: "#6a7985",
+        },
       },
     },
-  },
-  toolbox: {
-    feature: {
-      saveAsImage: {},
-    },
-  },
-  grid: {
-    left: "3%",
-    right: "4%",
-    bottom: "3%",
-    containLabel: true,
-  },
-  xAxis: [
-    {
-      type: "category",
-      boundaryGap: false,
-      data: xData,
-    },
-  ],
-  yAxis: [
-    {
-      type: "value",
-    },
-  ],
-  series: [
-    {
-      name: "Line 2",
-      type: "line",
-      stack: "Total",
-      smooth: true,
-      lineStyle: {
-        width: 0,
+    toolbox: {
+      feature: {
+        saveAsImage: {},
       },
-      showSymbol: false,
-      areaStyle: {
-        opacity: 0.8,
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          {
-            offset: 0,
-            color: "rgb(0, 221, 255)",
-          },
-          {
-            offset: 1,
-            color: "rgb(77, 119, 255)",
-          },
-        ]),
-      },
-      emphasis: {
-        focus: "series",
-      },
-      data: yData,
     },
-  ],
+    grid: {
+      left: "1%",
+      right: "1%",
+      bottom: "1%",
+      containLabel: true,
+      width: "2060",
+    },
+    xAxis: [
+      {
+        type: "category",
+        boundaryGap: false,
+        data: x,
+      },
+    ],
+    yAxis: [
+      {
+        type: "value",
+      },
+    ],
+    series: [
+      {
+        name: "Line 2",
+        type: "line",
+        stack: "Total",
+        smooth: true,
+        lineStyle: {
+          width: 0,
+        },
+        showSymbol: false,
+        areaStyle: {
+          opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: "rgb(0, 221, 255)",
+            },
+            {
+              offset: 1,
+              color: "rgb(77, 119, 255)",
+            },
+          ]),
+        },
+        emphasis: {
+          focus: "series",
+        },
+        data: y,
+      },
+    ],
+  };
+  return option;
 };
-export const SurfTideChart = ({ style }) => {
+export const SurfTideChart = ({ style, x, y }) => {
+  const option = fromDataToOption(x, y);
   return <ReactECharts option={option} style={style} />;
 };

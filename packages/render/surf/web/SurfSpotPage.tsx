@@ -48,7 +48,7 @@ const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
     return <PageLoader />;
   }
   if (data) {
-    const { title, lat = 31.86119, lng = 117.283042 } = data;
+    const { title, lat, lng } = data;
     return (
       <div style={{ marginTop: OpenProps.sizeFluid2 }}>
         <div style={{ display: "flex" }}>
