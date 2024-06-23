@@ -3,9 +3,10 @@ import { useAuth } from "auth/useAuth";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { markdownToMdast, getH1TextFromMdast } from "render/MarkdownProcessor";
-import { Button, Toggle } from "render/ui";
+import { Button } from "render/ui";
 import { VersionsIcon } from "@primer/octicons-react";
 import { write } from "database/dbSlice";
+import { ToggleSwitch, Text } from "@primer/react";
 
 import { createPageData } from "./pageDataUtils";
 import {
@@ -111,16 +112,21 @@ const CreatePage = () => {
           <VersionsIcon size={18} className="mr-2" />
           {pageState.hasVersion ? "Versioned" : "Not Versioned"}
         </div> */}
-        <Toggle
-          label="Markdown编辑"
-          id="markdown-toggle"
-          checked={pageState.showAsMarkdown}
+        <Text id="markdown-toggle" fontWeight="bold" fontSize={1}>
+          按Markdown编辑
+        </Text>
+        <ToggleSwitch
+          aria-labelledby="toggle"
+          defaultChecked={pageState.showAsMarkdown}
           onChange={toggleShowAsMarkdown}
         />
-        <Toggle
-          id="save-as-template"
-          label="保存为模板"
-          checked={saveAsTemplate}
+
+        <Text id="markdown-toggle" fontWeight="bold" fontSize={1}>
+          按模板保存
+        </Text>
+        <ToggleSwitch
+          aria-labelledby="toggle"
+          defaultChecked={saveAsTemplate}
           onChange={handleToggleTemplateChange}
         />
         <Button onClick={handleSave} variant="primary" size="medium">
