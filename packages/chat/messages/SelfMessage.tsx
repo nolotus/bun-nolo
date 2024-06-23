@@ -32,7 +32,7 @@ export const SelfMessage: React.FC<Message> = ({ content, id }) => {
           style={{
             display: "flex",
             flexDirection: "column",
-            boxShadow: "var(--shadow-2)",
+            boxShadow: "var(--shadow-3)",
           }}
         >
           {typeof content === "string" ? (

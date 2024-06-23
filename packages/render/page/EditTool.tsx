@@ -1,12 +1,12 @@
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import React, { useCallback, useState } from "react";
 import { Button } from "render/ui";
-
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { removeOne } from "database/dbSlice";
+import OpenProps from "open-props";
 
-import { Text } from "@primer/react";
 import ToggleSwitch from "render/ui/ToggleSwitch";
+
 import {
   setHasVersion,
   saveContentAndMdast,
@@ -51,23 +51,33 @@ export const EditTool = ({ handleSave }) => {
         {pageState.createdTime} |{" "}
         {pageState.hasVersion ? "Versioned" : "Not Versioned"}
       </div> */}
-      <Text id="markdown-toggle" fontWeight="bold" fontSize={1}>
-        按Markdown编辑
-      </Text>
-      <ToggleSwitch
-        aria-labelledby="toggle"
-        defaultChecked={pageState.showAsMarkdown}
-        onChange={toggleShowAsMarkdown}
-      />
-
-      <Text id="markdown-toggle" fontWeight="bold" fontSize={1}>
-        按模板保存
-      </Text>
-      <ToggleSwitch
-        aria-labelledby="toggle"
-        defaultChecked={saveAsTemplate}
-        onChange={handleToggleTemplateChange}
-      />
+      <div
+        style={{
+          display: "flex",
+          gap: OpenProps.sizeFluid1,
+          alignItems: "center",
+        }}
+      >
+        <span>按Markdown编辑</span>
+        <ToggleSwitch
+          aria-labelledby="toggle"
+          defaultChecked={pageState.showAsMarkdown}
+          onChange={toggleShowAsMarkdown}
+        />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          gap: OpenProps.sizeFluid1,
+          alignItems: "center",
+        }}
+      >
+        <span>按模板保存</span>
+        <ToggleSwitch
+          defaultChecked={saveAsTemplate}
+          onChange={handleToggleTemplateChange}
+        />
+      </div>
 
       <Button onClick={handleSave} variant="primary" size="medium">
         保存
