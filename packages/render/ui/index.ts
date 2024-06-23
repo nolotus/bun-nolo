@@ -9,7 +9,6 @@ import { Link } from "./Link";
 import { Modal, useModal } from "./Modal";
 // import {Heading} from './Heading';
 // import {Table} from './Table';
-import Toggle from "./Toggle";
 // import {Notify} from './Notify';
 
 export {
@@ -18,7 +17,6 @@ export {
   useModal,
   // Heading,
   // Table,
-  Toggle,
   DropDown,
   Dialog,
   Alert,

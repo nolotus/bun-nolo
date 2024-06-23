@@ -1,6 +1,12 @@
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import React, { useCallback, useState } from "react";
-import { Button, Toggle } from "render/ui";
+import { Button } from "render/ui";
+
+import { useAppSelector, useAppDispatch } from "app/hooks";
+import { removeOne } from "database/dbSlice";
+
+import { Text } from "@primer/react";
+import ToggleSwitch from "render/ui/ToggleSwitch";
 import {
   setHasVersion,
   saveContentAndMdast,
@@ -8,8 +14,6 @@ import {
   updateContent,
   setSaveAsTemplate,
 } from "./pageSlice";
-import { useAppSelector, useAppDispatch } from "app/hooks";
-import { removeOne } from "database/dbSlice";
 export const EditTool = ({ handleSave }) => {
   const { pageId } = useParams();
   const navigate = useNavigate();
@@ -47,23 +51,28 @@ export const EditTool = ({ handleSave }) => {
         {pageState.createdTime} |{" "}
         {pageState.hasVersion ? "Versioned" : "Not Versioned"}
       </div> */}
-      <Toggle
-        label="Markdown 显示" // 简洁的标签
-        id="markdown-toggle" // 唯一的 ID
-        checked={pageState.showAsMarkdown}
+      <Text id="markdown-toggle" fontWeight="bold" fontSize={1}>
+        按Markdown编辑
+      </Text>
+      <ToggleSwitch
+        aria-labelledby="toggle"
+        defaultChecked={pageState.showAsMarkdown}
         onChange={toggleShowAsMarkdown}
       />
-      <Toggle
-        id="save-as-template"
-        label="保存为模板"
-        checked={saveAsTemplate}
+
+      <Text id="markdown-toggle" fontWeight="bold" fontSize={1}>
+        按模板保存
+      </Text>
+      <ToggleSwitch
+        aria-labelledby="toggle"
+        defaultChecked={saveAsTemplate}
         onChange={handleToggleTemplateChange}
       />
 
       <Button onClick={handleSave} variant="primary" size="medium">
-        Save
+        保存
       </Button>
-      <NavLink to={`/${pageId}`}>preview</NavLink>
+      <NavLink to={`/${pageId}`}>预览</NavLink>
       <button
         type="button"
         onClick={handleDelete}

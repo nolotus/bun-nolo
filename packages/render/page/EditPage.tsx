@@ -73,7 +73,6 @@ const EditPage = () => {
     const { content, mdast, metaUpdates } = processContent(changeValue);
     dispatch(updateContent({ content, metaUpdates, mdast }));
   };
-
   return (
     <div className="container mx-auto flex min-h-screen flex-col p-4">
       {toasts.map((toast) => (
