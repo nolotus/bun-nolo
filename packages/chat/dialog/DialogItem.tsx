@@ -1,17 +1,17 @@
 import { NavLink } from "react-router-dom";
 import { useModal, Dialog, Alert, useDeleteAlert } from "render/ui";
-import { PencilIcon, CopyIcon, TrashIcon } from "@primer/octicons-react";
+import { PencilIcon, TrashIcon } from "@primer/octicons-react";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
-import { createDialog, deleteDialog, initDialog } from "./dialogSlice";
+import { deleteDialog, initDialog } from "./dialogSlice";
 import IconButton from "render/ui/IconButton";
 import Colors from "open-props/src/colors";
 
-export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
+export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
-
-  const { data } = useFetchData(dialog.llmId);
+  const { data: dialog } = useFetchData(id, source);
+  const { data } = useFetchData(dialog.llmId, source);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const onDeleteDialog = async (dialog) => {
@@ -47,14 +47,6 @@ export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
 
       {allowEdit && (
         <div className="ml-auto flex space-x-2 opacity-0 transition duration-150 ease-in-out group-hover:opacity-100">
-          <IconButton
-            icon={CopyIcon}
-            style={{ color: "var('--text-1')" }}
-            onClick={() => {
-              dispatch(createDialog(dialog.llmId));
-            }}
-          />
-
           <IconButton
             icon={PencilIcon}
             style={{ color: Colors["--blue-5"] }}

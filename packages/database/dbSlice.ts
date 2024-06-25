@@ -196,7 +196,11 @@ const dbSlice = createSliceWithThunks({
         };
         const saveId = generateIdWithCustomId(userId, customId, flags);
         if (isJSON) {
-          const saveData = { id: saveId, ...data };
+          const saveData = {
+            id: saveId,
+            ...data,
+            created: new Date().toISOString(),
+          };
           dispatch(addOne(saveData));
         }
         if (isList) {
@@ -283,8 +287,14 @@ const dbSlice = createSliceWithThunks({
           const dataBelongUserId = extractUserId(saveConfig.id);
           const id = extractCustomId(saveConfig.id);
           const flags = extractAndDecodePrefix(saveConfig.id);
-          const writeConfig = { userId: dataBelongUserId, data, flags, id };
+          const writeConfig = {
+            userId: dataBelongUserId,
+            data: { ...data, create_at: new Date().toISOString() },
+            flags,
+            id,
+          };
           const writeRes = await dispatch(write(writeConfig));
+          console.log("writeRes", writeRes);
         } else {
           const updateRes = await dispatch(updateData({ ...saveConfig, id }));
           return updateRes.payload.data;
