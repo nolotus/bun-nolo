@@ -1,17 +1,16 @@
 import { NavLink } from "react-router-dom";
-import { useModal, Dialog, Alert, useDeleteAlert } from "render/ui";
+import { Alert, useDeleteAlert } from "render/ui";
 import { PencilIcon, TrashIcon } from "@primer/octicons-react";
-import ChatConfigForm from "ai/blocks/ChatConfigForm";
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import { deleteDialog, initDialog } from "./dialogSlice";
 import IconButton from "render/ui/IconButton";
 import Colors from "open-props/src/colors";
+import { format } from "date-fns";
 
 export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
-  const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const { data: dialog } = useFetchData(id, source);
-  const { data } = useFetchData(dialog.llmId, source);
+  const { data: llm } = useFetchData(dialog.llmId, source);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const onDeleteDialog = async (dialog) => {
@@ -42,7 +41,11 @@ export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
         className={`${isSelected && " surface2"} px-4 py-1`}
         style={{}}
       >
-        <span>{data?.name}</span>
+        <span>
+          {dialog.title
+            ? format(new Date(dialog.title), "MM-dd HH:mm")
+            : llm?.name}
+        </span>
       </NavLink>
 
       {allowEdit && (
@@ -52,18 +55,9 @@ export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
             style={{ color: Colors["--blue-5"] }}
             onClick={(e) => {
               e.stopPropagation();
-              openEdit();
+              // could edit dialog title
             }}
           />
-          {editVisible && (
-            <Dialog
-              isOpen={editVisible}
-              onClose={closeEdit}
-              title={`Edit ${data.name}`}
-            >
-              <ChatConfigForm initialValues={data} onClose={closeEdit} />
-            </Dialog>
-          )}
 
           <IconButton
             icon={TrashIcon}
@@ -78,7 +72,7 @@ export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
               isOpen={deleteAlertVisible}
               onClose={closeAlert}
               onConfirm={doDelete}
-              title={`删除和${data?.name}的对话？`}
+              title={`删除和${llm?.name}的对话？`}
               message={`你确定要删除对话吗？`}
             />
           )}
