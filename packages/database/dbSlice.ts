@@ -190,30 +190,35 @@ const dbSlice = createSliceWithThunks({
         const { id, flags, data, userId } = writeConfig;
         const customId = id ? id : ulid();
         const { isJSON, isList } = flags;
-        let config = {
-          flags,
-          data,
-        };
         const saveId = generateIdWithCustomId(userId, customId, flags);
+        const saveData = { ...data, created: new Date().toISOString() };
+        //local save
         if (isJSON) {
-          const saveData = {
-            id: saveId,
-            ...data,
-            created: new Date().toISOString(),
+          dispatch(
+            addOne({
+              id: saveId,
+              ...saveData,
+            }),
+          );
+          //server save
+          const serverWriteConfig = {
+            ...writeConfig,
+            data: saveData,
+            customId,
           };
-          dispatch(addOne(saveData));
+          const writeRes = await noloWriteRequest(state, serverWriteConfig);
+          return await writeRes.json();
         }
         if (isList) {
-          const saveData = { id: saveId, array: data };
-          dispatch(addOne(saveData));
+          dispatch(addOne({ id: saveId, array: data }));
+          //server save
+          const serverWriteConfig = {
+            ...writeConfig,
+            customId,
+          };
+          const writeRes = await noloWriteRequest(state, serverWriteConfig);
+          return await writeRes.json();
         }
-        config = {
-          ...writeConfig,
-          customId,
-        };
-
-        const writeRes = await noloWriteRequest(state, config);
-        return await writeRes.json();
       },
       {
         pending: (state, action) => {},

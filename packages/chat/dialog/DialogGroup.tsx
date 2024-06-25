@@ -16,7 +16,6 @@ export const DialogGroup = ({
   source,
 }) => {
   const { data: llm } = useFetchData(llmId, source);
-  console.log("llm", llm);
   const dispatch = useAppDispatch();
 
   return (
