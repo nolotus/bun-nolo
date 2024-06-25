@@ -123,7 +123,6 @@ export interface HourlyWeather {
   windSpeed800hpa?: DataSourceValue; // 800hpa等压面的风速
   windSpeed500hpa?: DataSourceValue; // 500hpa等压面的风速
   windSpeed200hpa?: DataSourceValue; // 200hpa等压面的风速
-  // ...如果有更多参数，按需继续添加
 }
 
 export interface WeatherApiResponse {
