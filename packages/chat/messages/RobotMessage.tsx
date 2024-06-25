@@ -22,7 +22,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const handleSaveContent = async () => {
     if (content) {
       const writeData = {
-        data: { content, type: "page", create_at: new Date().toISOString() },
+        data: { content, type: "page" },
         flags: { isJSON: true },
         userId: auth.user?.userId,
       };
