@@ -98,6 +98,7 @@ const DialogSlice = createSliceWithThunks({
             type: DataType.Dialog,
             llmId,
             messageListId: initMessageList.id,
+            title: new Date().toISOString(),
           },
           flags: { isJSON: true },
           userId: currentUserId,

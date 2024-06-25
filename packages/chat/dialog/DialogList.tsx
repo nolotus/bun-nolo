@@ -2,13 +2,11 @@ import React from "react";
 import { useAuth } from "auth/useAuth";
 import { useSearchParams } from "react-router-dom";
 import { extractUserId } from "core/prefix";
-import { DialogGroup } from "./DialogGroup"; // 引入新的DialogGroup组件
+import { DialogGroup } from "./DialogGroup";
 
 export const DialogList = ({ dialogList, source }) => {
-  // 添加source参数
-
   const [searchParams] = useSearchParams();
-  const auth = useAuth(); // 正确的使用 auth hook
+  const auth = useAuth();
 
   const currentDialogId = searchParams.get("dialogId");
 
