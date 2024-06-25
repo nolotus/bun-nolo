@@ -10,6 +10,7 @@ import Colors from "open-props/src/colors";
 
 export const DialogItem = ({ dialog, isSelected, allowEdit }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
+
   const { data } = useFetchData(dialog.llmId);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
