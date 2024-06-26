@@ -1,7 +1,6 @@
-import { useAuth } from "auth/useAuth";
 import StringToArrayInput from "render/ui/Form/StringToArrayInput";
 import { ServerIcon } from "@primer/octicons-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { saveData } from "database/dbSlice";
 import { selectCurrentUserId } from "auth/authSlice";
@@ -18,7 +17,6 @@ import { selectCurrentServer, selectSyncServers } from "../settingSlice";
 
 const Sync = () => {
   const { t } = useTranslation();
-
   const userId = useAppSelector(selectCurrentUserId);
   const dispatch = useAppDispatch();
   const id = generateCustomId(userId, "sync-settings");
@@ -68,7 +66,6 @@ const Sync = () => {
       ></h3>
       <form onSubmit={handleSubmit(onSubmit)}>
         <label style={{ marginRight: "10px" }}>开启自动同步:</label>
-
         <Controller
           name="isAutoSync"
           control={control}

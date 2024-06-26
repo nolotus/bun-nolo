@@ -20,10 +20,10 @@ export const ChatBotBlock = ({ item }) => {
 
   const displayId = extractCustomId(item.id);
   const createNewDialog = async () => {
+    //todo handle click multi
     try {
       const llmId = item.id;
       const writeDialogAction = await dispatch(createDialog(llmId));
-      console.log("writeDialogAction", writeDialogAction);
       const result = writeDialogAction.payload;
       navigate(`/chat?dialogId=${result.id}`);
     } catch (error) {

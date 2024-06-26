@@ -12,7 +12,7 @@ export const useAppSelector: TypedUseSelectorHook<NoloRootState> = useSelector;
 export const useItem = (id: string) => {
   return useAppSelector((state: NoloRootState) => selectById(state, id));
 };
-export function useFetchData(id, source) {
+export function useFetchData(id: string, source?: string) {
   const data = useAppSelector((state) => selectById(state, id));
   const dispatch = useDispatch();
 

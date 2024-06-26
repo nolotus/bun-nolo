@@ -4,18 +4,19 @@ const streamLogger = getLogger("stream");
 
 export async function readChunks(
   reader: ReadableStreamReader<Uint8Array>,
-  onStreamData: (chunk: Uint8Array) => void,
+  onStreamData: (chunk: string) => void,
 ): Promise<void> {
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
         streamLogger.info("Stream is done reading");
-        break;
+        return;
       }
       if (value) {
-        streamLogger.info("Received a new chunk of size: %d", value.length);
-        onStreamData(value);
+        const text = new TextDecoder("utf-8").decode(value);
+        streamLogger.info("Received stream", text);
+        onStreamData(text);
       }
     }
   } catch (err) {

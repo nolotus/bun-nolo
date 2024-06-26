@@ -19,9 +19,16 @@ export const generateIdWithCustomId = (
   const idPrefix = setKeyPrefix(flags);
   return `${idPrefix}-${userId}-${customId}`;
 };
-export function generateCustomId(userId: string, customId: string) {
-  const flags = { isJSON: true };
-  return generateIdWithCustomId(userId, customId, flags);
+export function generateCustomId(
+  userId: string,
+  customId: string,
+  flags?: Flags,
+) {
+  return generateIdWithCustomId(
+    userId,
+    customId,
+    flags ? flags : { isJSON: true },
+  );
 }
 
 export const generateKey = (

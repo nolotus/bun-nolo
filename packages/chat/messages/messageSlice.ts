@@ -327,8 +327,7 @@ export const messageSlice = createSliceWithThunks({
           let temp: string;
 
           const streamChat = async (textContent) => {
-            const handleStreamData = (data) => {
-              const text = new TextDecoder("utf-8").decode(data);
+            const handleStreamData = (text: string) => {
               const lines = text.trim().split("\n");
               for (const line of lines) {
                 // 使用正则表达式匹配 "data:" 后面的内容
@@ -341,7 +340,6 @@ export const messageSlice = createSliceWithThunks({
                   } else {
                     try {
                       const json = JSON.parse(statusOrJson);
-
                       // 自然停止
                       const finishReason: string =
                         json.choices[0].finish_reason;
@@ -432,14 +430,14 @@ export const messageSlice = createSliceWithThunks({
               }
 
               const reader = response.body.getReader();
-              console.log("reader", reader);
               await readChunks(reader, handleStreamData);
             } catch (error) {
               // 处理错误
               return { error: { status: "FETCH_ERROR", data: error.message } };
             }
           };
-          await streamChat(textContent);
+          const result = await streamChat(textContent);
+          console.log("stream", result);
         }
 
         if (mode === "image") {
