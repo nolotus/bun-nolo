@@ -17,6 +17,7 @@ import { noloWriteRequest } from "./write/writeRequest";
 import { noloQueryRequest } from "./client/queryRequest";
 import { noloUpdateRequest } from "./client/updateRequest";
 import { generateIdWithCustomId } from "core/generateMainKey";
+import { selectCurrentUser } from "auth/authSlice";
 
 export const dbAdapter = createEntityAdapter();
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
@@ -201,10 +202,20 @@ const dbSlice = createSliceWithThunks({
         const state = thunkApi.getState();
         const dispatch = thunkApi.dispatch;
         // thunkApi.dispatch(syncWrite(state));
-        const { id, flags, data, userId } = writeConfig;
+        let userId;
+        const { id, flags, data } = writeConfig;
         const customId = id ? id : ulid();
         const { isJSON, isList } = flags;
+        if (writeConfig.userId) {
+          userId = writeConfig.userId;
+        } else {
+          const currenUserId = selectCurrentUser(state);
+          userId = currenUserId;
+        }
         const saveId = generateIdWithCustomId(userId, customId, flags);
+        if (!!data.type) {
+          console.log("type", data.type);
+        }
         const saveData = { ...data, created: new Date().toISOString() };
         //local save
         if (isJSON) {
@@ -308,7 +319,7 @@ const dbSlice = createSliceWithThunks({
           const flags = extractAndDecodePrefix(saveConfig.id);
           const writeConfig = {
             userId: dataBelongUserId,
-            data: { ...data, create_at: new Date().toISOString() },
+            data: { ...data },
             flags,
             id,
           };

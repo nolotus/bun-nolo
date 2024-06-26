@@ -3,7 +3,6 @@ import { isDevelopment } from "utils/env";
 
 import Blockquote from "./blocks/Blockquote";
 import Card from "./blocks/Card";
-import Code from "./blocks/Code";
 import Emphasis from "./blocks/Emphasis";
 import Heading from "./blocks/Heading";
 import Image from "./blocks/Image";
@@ -22,6 +21,9 @@ import TableRow from "./blocks/TableRow";
 import TaskList from "./blocks/TaskList";
 import TaskListItem from "./blocks/TaskListItem";
 import Yaml from "./blocks/Yaml";
+
+import Code from "./Code/index";
+
 interface ContentNode {
   type: string;
   children?: ContentNode[];

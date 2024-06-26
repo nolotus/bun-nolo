@@ -13,6 +13,8 @@ const AccountSettings = lazy(() => import("./pages/AccountSettings"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 
 const EditorConfig = lazy(() => import("./pages/EditorConfig"));
+const Website = lazy(() => import("./pages/Website"));
+
 // routeNames.ts
 export const USER_PROFILE_ROUTE = "user-profile";
 export const EDITOR_CONFIG = "editor-config";
@@ -36,6 +38,7 @@ export const routes = {
         // createRoute("plugins", <PluginSettings />),
         createRoute("export", <ExportSettings />),
         createRoute("account", <AccountSettings />),
+        createRoute("website", <Website />),
       ],
     },
   ],
