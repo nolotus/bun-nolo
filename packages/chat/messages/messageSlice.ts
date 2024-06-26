@@ -16,6 +16,7 @@ import { ulid } from "ulid";
 import { DataType } from "create/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import {
+  addToList,
   deleteData,
   read,
   selectEntitiesByIds,
@@ -139,8 +140,9 @@ export const messageSlice = createSliceWithThunks({
     }),
     sendMessage: create.asyncThunk(
       async (message, thunkApi) => {
-        thunkApi.dispatch(upsertOne(message));
-        thunkApi.dispatch(startSendingMessage(message));
+        const dispatch = thunkApi.dispatch;
+        dispatch(upsertOne(message));
+        dispatch(startSendingMessage(message));
         const state = thunkApi.getState();
         const token = state.auth.currentToken;
         const userId = selectCurrentUserId(state);
@@ -164,24 +166,15 @@ export const messageSlice = createSliceWithThunks({
                 }),
               },
             );
+
             const saveMessage = await writeMessage.json();
+
             const updateId = dialogConfig.messageListId;
-            const writeMessageToList = await fetch(
-              `${currentServer}${API_ENDPOINTS.DATABASE}/update/${updateId}`,
-              {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  id: saveMessage.id,
-                }),
-              },
+
+            const actionResult = await dispatch(
+              addToList({ willAddId: saveMessage.id, updateId }),
             );
-            const result = await writeMessageToList.json();
-            console.log("result", result);
-            return result;
+            return actionResult.payload;
           }
         } catch (error) {
           console.log("error", error);

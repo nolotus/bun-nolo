@@ -365,6 +365,28 @@ const dbSlice = createSliceWithThunks({
       });
     }),
     addOne: dbAdapter.addOne,
+    addToList: create.asyncThunk(async ({ willAddId, updateId }, thunkApi) => {
+      const state = thunkApi.getState();
+      const currentServer = selectCurrentServer(state);
+      const token = state.auth.currentToken;
+
+      const res = await fetch(
+        `${currentServer}${API_ENDPOINTS.DATABASE}/update/${updateId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            id: willAddId,
+          }),
+        },
+      );
+
+      const result = await res.json();
+      return result;
+    }, {}),
   }),
 });
 export const selectEntitiesByIds = createSelector(
@@ -386,5 +408,6 @@ export const {
   addOne,
   queryServer,
   readServer,
+  addToList,
 } = dbSlice.actions;
 export default dbSlice.reducer;
