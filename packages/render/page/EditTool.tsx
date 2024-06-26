@@ -46,7 +46,7 @@ export const EditTool = ({ handleSave }) => {
   }, [navigate, pageId]);
 
   return (
-    <div className="flex items-center justify-between bg-gray-100 p-4">
+    <div>
       {/* <div className="text-gray-600">
         {pageState.createdTime} |{" "}
         {pageState.hasVersion ? "Versioned" : "Not Versioned"}
@@ -82,17 +82,21 @@ export const EditTool = ({ handleSave }) => {
       <Button onClick={handleSave} variant="primary" size="medium">
         保存
       </Button>
-      <NavLink to={`/${pageId}`}>预览</NavLink>
-      <button
-        type="button"
-        onClick={handleDelete}
-        disabled={isDeleting}
-        className={`rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 ${
-          isDeleting ? "cursor-not-allowed opacity-50" : ""
-        }`}
-      >
-        {isDeleting ? "Deleting..." : "Delete"}
-      </button>
+      <div>
+        <NavLink to={`/${pageId}`}>预览</NavLink>
+      </div>
+      <div>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className={`rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700 ${
+            isDeleting ? "cursor-not-allowed opacity-50" : ""
+          }`}
+        >
+          {isDeleting ? "Deleting..." : "Delete"}
+        </button>
+      </div>
     </div>
   );
 };

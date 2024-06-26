@@ -3,6 +3,7 @@ import { useUpdateEntryMutation } from "database/services";
 import React from "react";
 import { useParams } from "react-router-dom";
 import { Toast, useToastManager } from "render/ui/Toast";
+import OpenProps from "open-props";
 
 import { TextEdit } from "./TextEdit";
 import { createPageData } from "./pageDataUtils";
@@ -74,7 +75,31 @@ const EditPage = () => {
     dispatch(updateContent({ content, metaUpdates, mdast }));
   };
   return (
-    <div className="container mx-auto flex min-h-screen flex-col p-4">
+    <>
+      <div
+        className="container mx-auto flex  min-h-screen"
+        style={{ gap: OpenProps.sizeFluid5 }}
+      >
+        <div className="flex flex-grow">
+          <div className="w-full flex-shrink-0">
+            {pageState.showAsMarkdown ? (
+              <TextEdit
+                value={pageState.content}
+                onChange={handleContentChange}
+              />
+            ) : (
+              <RichEdit
+                mdast={pageState.mdast}
+                onKeyDown={handleKeyDown}
+                value={currentEditText}
+                onChange={setTextareaContent}
+              />
+            )}
+          </div>
+        </div>
+        <EditTool handleSave={handleSave} />
+      </div>
+
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
@@ -83,27 +108,7 @@ const EditPage = () => {
           onClose={removeToast}
         />
       ))}
-
-      <EditTool handleSave={handleSave} />
-
-      <div className="flex flex-grow">
-        <div className="w-full flex-shrink-0">
-          {pageState.showAsMarkdown ? (
-            <TextEdit
-              value={pageState.content}
-              onChange={handleContentChange}
-            />
-          ) : (
-            <RichEdit
-              mdast={pageState.mdast}
-              onKeyDown={handleKeyDown}
-              value={currentEditText}
-              onChange={setTextareaContent}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 
