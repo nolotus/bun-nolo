@@ -14,6 +14,7 @@ const navItems = [
   { path: `/settings/${EDITOR_CONFIG}`, label: "编辑器设置" },
   { path: "/settings/sync", label: "同步设置" },
   { path: "/settings/account", label: "账号设置" },
+  { path: "/settings/website", label: "网站设置" },
 ];
 const Sidebar: React.FC = () => {
   const auth = useAuth();

@@ -7,11 +7,11 @@ import { saveData } from "database/dbSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
 import { TextField } from "render/ui/Form/TextField";
-import { BooleanField } from "render/ui/Form/BooleanField";
 import { generateCustomId } from "core/generateMainKey";
+import ToggleSwitch from "render/ui/ToggleSwitch";
 
 // import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import { selectCurrentServer, selectSyncServers } from "../settingSlice";
@@ -32,6 +32,7 @@ const Sync = () => {
   const syncServers = useAppSelector(selectSyncServers);
 
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -67,22 +68,18 @@ const Sync = () => {
       ></h3>
       <form onSubmit={handleSubmit(onSubmit)}>
         <label style={{ marginRight: "10px" }}>开启自动同步:</label>
-        <BooleanField
-          id={"isAutoSync"}
-          register={register}
-          defaultValue={data?.isAutoSync}
+
+        <Controller
+          name="isAutoSync"
+          control={control}
+          render={({ field }) => <ToggleSwitch {...field} />}
         />
         <div className="">
           <label>
             <ServerIcon size={24} />
             主服务器
           </label>
-          <TextField
-            readOnly
-            id={"currentServer"}
-            register={register}
-            defaultValue={currentServer}
-          />
+          <TextField readOnly id={"currentServer"} register={register} />
         </div>
 
         <label>备份服务器:</label>
@@ -91,7 +88,6 @@ const Sync = () => {
             key={index}
             style={{
               padding: "5px",
-              backgroundColor: "#f9f9f9",
               marginTop: "5px",
             }}
           >
