@@ -22,7 +22,7 @@ import TaskList from "./blocks/TaskList";
 import TaskListItem from "./blocks/TaskListItem";
 import Yaml from "./blocks/Yaml";
 
-import Code from "./Code/index";
+import Code from "./code/index";
 
 interface ContentNode {
   type: string;

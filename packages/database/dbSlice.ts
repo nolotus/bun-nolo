@@ -205,7 +205,7 @@ const dbSlice = createSliceWithThunks({
         let userId;
         const { id, flags, data } = writeConfig;
         const customId = id ? id : ulid();
-        const { isJSON, isList } = flags;
+        const { isJSON, isList, isObject } = flags;
         if (writeConfig.userId) {
           userId = writeConfig.userId;
         } else {
@@ -218,7 +218,7 @@ const dbSlice = createSliceWithThunks({
         }
         const saveData = { ...data, created: new Date().toISOString() };
         //local save
-        if (isJSON) {
+        if (isJSON || isObject) {
           dispatch(
             addOne({
               id: saveId,
@@ -310,9 +310,7 @@ const dbSlice = createSliceWithThunks({
         const dispatch = thunkApi.dispatch;
         const id = saveConfig.id;
         const readAction = await dispatch(read({ id }));
-        const result = readAction.payload;
-
-        if (result.error) {
+        if (readAction.error) {
           const { data } = saveConfig;
           const dataBelongUserId = extractUserId(saveConfig.id);
           const id = extractCustomId(saveConfig.id);

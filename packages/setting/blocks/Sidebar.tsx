@@ -43,7 +43,7 @@ const Sidebar: React.FC = () => {
           const isDisplay = couldDisplay(item);
           return isDisplay ? (
             <Link key={item.label} to={item.path}>
-              <button>{item.label}</button>
+              {item.label}
             </Link>
           ) : null;
         })}

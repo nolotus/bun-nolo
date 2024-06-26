@@ -14,6 +14,7 @@ const updateServerData = async (actionUserId, id, value: string) => {
   const filePath = `./nolodata/${userId}/index.nolo`;
   await updateDataInFile(filePath, id, value);
 };
+// allow update not exist array
 const updateList = async (actionUserId, dataKey, data, res) => {
   try {
     let array = await serverGetData(dataKey);

@@ -163,8 +163,8 @@ export const authSlice = createSliceWithThunks({
       state,
       action: PayloadAction<{ user: User; token: string }>,
     ) => {
-      (state.currentUser = action.payload.user),
-        (state.currentToken = action.payload.token);
+      state.currentUser = action.payload.user;
+      state.currentToken = action.payload.token;
     },
     initAuth: create.asyncThunk(
       async (tokens, thunkAPI) => {

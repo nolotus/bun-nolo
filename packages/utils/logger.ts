@@ -17,6 +17,7 @@ const defaultOptions = {
     "ChatWindow",
     "surfWeather",
     "default",
+    "stream",
   ],
 };
 const childLoggers = {};

@@ -11,11 +11,10 @@ export const handleError = (res, error) => {
   const status = error.message === "Access denied" ? 401 : 500;
   return res.status(status).json({ error: error.message });
 };
-
+const allowIds = ["domain-list"];
 const allowType = {
   [nolotusId]: [DataType.TokenStatistics],
 };
-
 export const handleWrite = async (req, res) => {
   const { user } = req;
   const actionUserId = user.userId;
@@ -53,8 +52,8 @@ export const handleWrite = async (req, res) => {
   } else {
     const userRule = allowType[saveUserId];
     const isAllowType = userRule?.includes(data.type);
-
-    if (isAllowType) {
+    const isAllowId = allowIds.includes(customId);
+    if (isAllowType || isAllowId) {
       await serverWrite(id, value, saveUserId);
       return res.status(200).json({
         message: "Data written to file successfully.",

@@ -17,6 +17,7 @@ export const noloToObject = (text) => {
   }, {});
   return object;
 };
+
 export const listToArray = (data) => {
   if (!data) return [];
   const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
