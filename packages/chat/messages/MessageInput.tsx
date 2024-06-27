@@ -11,6 +11,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
+import { ChatContainerPaddingRight } from "../styles";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
@@ -164,10 +165,9 @@ const MessageInput: React.FC<MessageInputProps> = ({
       className="flex items-start justify-center space-x-4 "
       style={{
         paddingTop: Sizes["--size-fluid-1"],
-        paddingBottom: Sizes["--size-fluid-1"],
-        paddingLeft: Sizes["--size-13"],
-        paddingRight: Sizes["--size-13"],
-        marginBottom: Sizes["--size-8"],
+        paddingLeft: Sizes["--size-8"],
+        paddingRight: ChatContainerPaddingRight,
+        marginBottom: Sizes["--size-7"],
       }}
     >
       <div
@@ -190,7 +190,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         </button>
 
         <TextareaAutosize
-        maxRows={10}
+          maxRows={10}
           minRows={2}
           value={textContent}
           placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
