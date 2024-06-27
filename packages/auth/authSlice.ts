@@ -34,7 +34,6 @@ export const authSlice = createSliceWithThunks({
     signIn: create.asyncThunk(
       async (input, thunkAPI) => {
         const state = thunkAPI.getState();
-
         try {
           const { username, encryptionKey, locale } = input;
           const { publicKey, secretKey } = generateKeyPairFromSeed(
@@ -44,14 +43,14 @@ export const authSlice = createSliceWithThunks({
           const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
           const res = await loginRequest(currentServer, { userId, token });
-          if (res.status === 200) {
+          if (res) {
             storeTokens(res.token);
             return res;
           } else {
             throw res;
           }
         } catch (error) {
-          return thunkAPI.rejectWithValue(error); // 使用rejectWithValue返回错误信息
+          return thunkAPI.rejectWithValue(error);
         }
       },
       {
