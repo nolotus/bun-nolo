@@ -10,6 +10,7 @@ import {
   selectMessageList,
   selectMessage,
 } from "./selector";
+import { ChatContainerPaddingRight } from "../styles";
 interface MessagesDisplayProps {
   scrollToBottom: () => void;
 }
@@ -36,8 +37,8 @@ const MessagesList: React.FC<MessagesDisplayProps> = () => {
       className="flex  flex-grow flex-col space-y-4 overflow-y-auto break-words p-3"
       ref={messagesEndRef}
       style={{
-        paddingRight: Sizes["--size-13"],
-        paddingLeft: Sizes["--size-13"],
+        paddingRight: ChatContainerPaddingRight,
+        paddingLeft: Sizes["--size-5"],
       }}
     >
       {messageFailed ? (
