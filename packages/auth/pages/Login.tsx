@@ -8,20 +8,20 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Button } from "render/ui";
 import Sizes from "open-props/src/sizes";
-
-import { userFormSchema } from "../schema";
 import { useAppDispatch } from "app/hooks";
-import { signIn } from "../authSlice";
-import { signInFields } from "../schema";
 import { useSelector } from "react-redux";
 import { hashPassword } from "core/password";
+
+import { signInFields } from "../schema";
+import { signIn } from "../authSlice";
+import { userFormSchema } from "../schema";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.auth);
 
   const { t } = useTranslation();
-  const [error, setError] = useState("123");
+  const [error, setError] = useState();
   const dispatch = useAppDispatch();
   const {
     register,
@@ -35,33 +35,38 @@ const Login: React.FC = () => {
     const locale = navigator.language;
     const { password } = data;
     const encryptionKey = await hashPassword(password);
-    dispatch(signIn({ ...data, locale, encryptionKey }))
-      .then((result) => {
-        console.log("result", result);
-        if (result.type === "signIn/fulfilled") {
-          navigate(`/${LifeRoutePaths.WELCOME}`);
-        } else {
-          switch (result.payload.status) {
-            case 404:
-              setError(t("errors.userNotFound"));
-              break;
-            case 403:
-              setError(t("errors.invalidCredentials"));
-              break;
-            case 400:
-              setError(t("errors.validationError"));
-              break;
-            case 500:
-            default:
-              setError(t("errors.serverError"));
-              break;
-          }
-        }
-      })
-      .catch((error) => {
-        console.error("error", error);
-        setError(error.message || "Unknown error");
-      });
+    const action = dispatch(signIn({ ...data, locale, encryptionKey }));
+
+    console.log("action", action);
+    if (action.payload.token) {
+      navigate(`/${LifeRoutePaths.WELCOME}`);
+    }
+
+    // .then((result) => {
+    //   console.log("result", result);
+    //   if (result.type === "signIn/fulfilled") {
+    //   } else {
+    //     switch (result.payload.status) {
+    //       case 404:
+    //         setError(t("errors.userNotFound"));
+    //         break;
+    //       case 403:
+    //         setError(t("errors.invalidCredentials"));
+    //         break;
+    //       case 400:
+    //         setError(t("errors.validationError"));
+    //         break;
+    //       case 500:
+    //       default:
+    //         setError(t("errors.serverError"));
+    //         break;
+    //     }
+    //   }
+    // })
+    // .catch((error) => {
+    //   console.error("error", error);
+    //   setError(error.message || "Unknown error");
+    // });
   };
   return (
     <div>

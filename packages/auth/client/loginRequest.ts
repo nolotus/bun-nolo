@@ -1,14 +1,12 @@
 import { API_VERSION } from "database/config";
 
 export const loginRequest = async (currentServer: string, data) => {
-  const url = `${currentServer}${API_VERSION}/users/login`;
-  const body = JSON.stringify(data);
-  const res = await fetch(url, {
+  const res = await fetch(`${currentServer}${API_VERSION}/users/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body,
+    body: JSON.stringify(data),
   });
 
   if (res.status === 200) {
