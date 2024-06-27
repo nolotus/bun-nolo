@@ -35,7 +35,7 @@ const Login: React.FC = () => {
     const locale = navigator.language;
     const { password } = data;
     const encryptionKey = await hashPassword(password);
-    const action = dispatch(signIn({ ...data, locale, encryptionKey }));
+    const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
 
     console.log("action", action);
     if (action.payload.token) {
