@@ -1,5 +1,4 @@
 import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
-
 import Sizes from "open-props/src/sizes";
 
 import React from "react";
@@ -11,6 +10,7 @@ import Borders from "open-props/src/borders";
 import AI from "ai/blocks/AI";
 
 import { DialogList } from "./DialogList";
+import { ChatSidebarPadding, ChatSidebarWidth } from "../styles";
 
 const DialogSideBar = ({ dialogList }) => {
   const { t } = useTranslation();
@@ -27,50 +27,58 @@ const DialogSideBar = ({ dialogList }) => {
   } = useModal();
 
   return (
-    <div className="flex flex-col gap-2">
-      <div>
+    <div
+      className="overflow-y-auto "
+      style={{
+        padding: ChatSidebarPadding,
+        width: ChatSidebarWidth,
+      }}
+    >
+      <div className="gap-2">
+        <div>
+          <button
+            type="button"
+            className="py-0 pl-4"
+            onClick={openConfigModal}
+            style={{
+              fontSize: Fonts["--font-size-1"],
+              borderRadius: Borders["--radius-2"],
+            }}
+          >
+            <PlusIcon size={"small"} />
+            <span style={{}}>定制你的AI</span>
+            <Dialog
+              isOpen={configModalVisible}
+              onClose={closeConfigModal}
+              title={<h2 className="text-xl ">{t("createRobot")}</h2>}
+            >
+              <CreateChatRobotForm onClose={closeConfigModal} />
+            </Dialog>
+          </button>
+        </div>
+
         <button
-          type="button"
-          className="py-0 pl-4"
-          onClick={openConfigModal}
           style={{
             fontSize: Fonts["--font-size-1"],
             borderRadius: Borders["--radius-2"],
+            padding: 0,
+            paddingLeft: Sizes["--size-1"],
           }}
+          onClick={openAIsModal}
         >
-          <PlusIcon size={"small"} />
-          <span style={{}}>定制你的AI</span>
+          <NorthStarIcon size="small" />
+          <span>从AI创建对话</span>
           <Dialog
-            isOpen={configModalVisible}
-            onClose={closeConfigModal}
-            title={<h2 className="text-xl ">{t("createRobot")}</h2>}
+            isOpen={AIsModalVisible}
+            onClose={closeAIsModal}
+            title={<h3>{t("createDialog")}</h3>}
           >
-            <CreateChatRobotForm onClose={closeConfigModal} />
+            <AI />
           </Dialog>
         </button>
+
+        <DialogList dialogList={dialogList} />
       </div>
-
-      <button
-        style={{
-          fontSize: Fonts["--font-size-1"],
-          borderRadius: Borders["--radius-2"],
-          padding: 0,
-          paddingLeft: Sizes["--size-1"],
-        }}
-        onClick={openAIsModal}
-      >
-        <NorthStarIcon size="small" />
-        <span>从AI创建对话</span>
-        <Dialog
-          isOpen={AIsModalVisible}
-          onClose={closeAIsModal}
-          title={<h3>{t("createDialog")}</h3>}
-        >
-          <AI />
-        </Dialog>
-      </button>
-
-      <DialogList dialogList={dialogList} />
     </div>
   );
 };
