@@ -27,6 +27,8 @@ const PageThead = () => {
     <thead>
       <tr>
         <th>链接</th>
+        <th>标题</th>
+
         <th>数据源</th>
         <th>操作</th>
       </tr>
@@ -158,6 +160,7 @@ export const DataTable = ({ dataList, type, pullData }) => {
     );
   };
   const PageTR = ({ data }) => {
+    console.log('data',data)
     return (
       <tr>
         <td className="w-full">
@@ -165,6 +168,8 @@ export const DataTable = ({ dataList, type, pullData }) => {
         </td>
 
         <td>{data.source}</td>
+        <td>{data.title}</td>
+
         <td>
           <button
             onClick={() => {
