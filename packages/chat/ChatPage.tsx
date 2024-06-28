@@ -10,7 +10,6 @@ import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAuth } from "auth/useAuth";
 import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
-import OpenProps from "open-props";
 
 import chatTranslations from "./chatI18n";
 import DialogSidebar from "./dialog/DialogSideBar";
@@ -88,16 +87,7 @@ const ChatPage = () => {
   }
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "row" }}>
-      {dialogList.length > 0 && (
-        <div
-          className="overflow-y-auto "
-          style={{
-            padding: OpenProps.sizeFluid2,
-          }}
-        >
-          <DialogSidebar dialogList={dialogList} />
-        </div>
-      )}
+      {dialogList.length > 0 && <DialogSidebar dialogList={dialogList} />}
 
       {currentDialogConfig && isSuccess && (
         <ChatWindow currentDialogConfig={currentDialogConfig} />
