@@ -15,6 +15,7 @@ const navItems = [
   { path: "/settings/sync", label: "同步设置" },
   { path: "/settings/account", label: "账号设置" },
   { path: "/settings/website", label: "网站设置" },
+  { path: "/settings/customize", label: "个性化设置" },
 ];
 const Sidebar: React.FC = () => {
   const auth = useAuth();
@@ -42,7 +43,9 @@ const Sidebar: React.FC = () => {
         {navItems.map((item) => {
           const isDisplay = couldDisplay(item);
           return isDisplay ? (
-            <Link key={item.label} to={item.path}>
+            <Link key={item.label} to={item.path} className="text-black"
+            
+            style={{fontWeight:'bold'}}>
               {item.label}
             </Link>
           ) : null;
