@@ -14,10 +14,8 @@ const ChatAIList = ({ queryUserId, limit = 20 }) => {
       },
     },
   };
-  const data = useAppSelector(
-    selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot),
-  );
-  const { isLoading, isSuccess } = useQueryData(queryConfig);
+
+  const { data, isLoading, isSuccess } = useQueryData(queryConfig);
 
   if (isLoading) {
     return <div>loading ailist</div>;

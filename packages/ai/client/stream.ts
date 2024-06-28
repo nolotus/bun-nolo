@@ -14,6 +14,7 @@ export async function readChunks(
         return;
       }
       if (value) {
+        streamLogger.info("Received stream value", value);
         const text = new TextDecoder("utf-8").decode(value);
         streamLogger.info("Received stream", text);
         onStreamData(text);
