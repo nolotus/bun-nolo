@@ -4,7 +4,7 @@ import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { renderContentNode } from "render";
 
-import { markdownToMdast } from "../MarkdownProcessor";
+import { markdownToMdast } from "../processor/MarkdownProcessor";
 import SurfSpotPage from "../surf/web/SurfSpotPage";
 
 import { RenderJson } from "./RenderJson";

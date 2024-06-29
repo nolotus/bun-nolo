@@ -2,7 +2,10 @@ import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { markdownToMdast, getH1TextFromMdast } from "render/MarkdownProcessor";
+import {
+  markdownToMdast,
+  getH1TextFromMdast,
+} from "render/processor/MarkdownProcessor";
 import { Button } from "render/ui";
 import { VersionsIcon } from "@primer/octicons-react";
 import { write } from "database/dbSlice";
@@ -106,8 +109,27 @@ const CreatePage = () => {
     dispatch(updateContent({ content, metaUpdates, mdast }));
   };
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="container mx-auto flex items-center justify-between bg-gray-100 p-4">
+    <div className="flex min-h-screen flex-row">
+      <div className="container mx-auto flex flex-grow">
+        <div className="w-full flex-shrink-0">
+          <div className="flex w-full flex-col">
+            {pageState.showAsMarkdown ? (
+              <MarkdownEdit
+                value={pageState.content}
+                onChange={handleContentChange}
+              />
+            ) : (
+              <RichEdit
+                mdast={mdastFromSlice}
+                onKeyDown={handleKeyDown}
+                value={textareaContent}
+                onChange={setTextareaContent}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="mx-auto  items-center">
         {pageState.createdTime}
         {/* <div className="text-gray-600">
           <VersionsIcon size={18} className="mr-2" />
@@ -140,28 +162,7 @@ const CreatePage = () => {
             onChange={handleToggleTemplateChange}
           />
         </div>
-        <Button onClick={handleSave} variant="primary" size="medium">
-          Save
-        </Button>
-      </div>
-      <div className="container mx-auto flex flex-grow">
-        <div className="w-full flex-shrink-0">
-          <div className="flex w-full flex-col">
-            {pageState.showAsMarkdown ? (
-              <MarkdownEdit
-                value={pageState.content}
-                onChange={handleContentChange}
-              />
-            ) : (
-              <RichEdit
-                mdast={mdastFromSlice}
-                onKeyDown={handleKeyDown}
-                value={textareaContent}
-                onChange={setTextareaContent}
-              />
-            )}
-          </div>
-        </div>
+        <Button onClick={handleSave}>Save</Button>
       </div>
     </div>
   );

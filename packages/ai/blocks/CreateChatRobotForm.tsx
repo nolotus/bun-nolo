@@ -14,7 +14,7 @@ import allTranslations from "../aiI18n";
 import { createDsl } from "../schema";
 import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
-import { createDialog } from "chat/dialog/dialogSlice";
+import { useCreateDialog } from "chat/dialog/useCreateDialog";
 
 const fields = createFieldsFromDSL(createDsl);
 const schema = createZodSchemaFromDSL(createDsl);
@@ -28,6 +28,7 @@ const CreateChatRobotForm = ({ onClose }) => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { createDialog } = useCreateDialog();
   const [isWriteLoading, setWriting] = useState(false);
 
   const [error, setError] = useState(null);
@@ -52,10 +53,7 @@ const CreateChatRobotForm = ({ onClose }) => {
       );
       console.log("writeChatRobotAction", writeChatRobotAction);
       const llmId = writeChatRobotAction.payload.id;
-      const writeDialogAction = await dispatch(createDialog(llmId));
-      console.log("writeDialogAction", writeDialogAction);
-      const result = writeDialogAction.payload;
-      navigate(`/chat?dialogId=${result.id}`);
+      await createDialog(llmId);
       onClose();
       setWriting(false);
     } catch (error) {
@@ -84,19 +82,9 @@ const CreateChatRobotForm = ({ onClose }) => {
       ))}
 
       {error && <p className="mb-2 mt-2 text-sm text-red-500">{error}</p>}
-      <Button
-        type="submit"
-        variant="primary"
-        size="medium"
-        loading={isWriteLoading}
-      >
-        {t("startConfiguringYourRobot")}
+      <Button type="submit" loading={isWriteLoading}>
+        {t("create")}
       </Button>
-      <div className="mt-4">
-        <NavLink to="/create/chat-robot">
-          {t("configureDetailedSettings")}
-        </NavLink>
-      </div>
     </form>
   );
 };

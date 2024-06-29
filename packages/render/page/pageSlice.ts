@@ -5,7 +5,7 @@ import {
   markdownToMdast,
   getH1TextFromMdast,
   getYamlValueFromMdast,
-} from "render/MarkdownProcessor";
+} from "render/processor/MarkdownProcessor";
 import { parse } from "yaml";
 
 export const pageSlice = createSlice({

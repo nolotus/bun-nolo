@@ -9,7 +9,7 @@ import { useModal, Dialog } from "render/ui";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
 
 import { DialogItem } from "./DialogItem";
-import { createDialog } from "./dialogSlice";
+import { useCreateDialog } from "./useCreateDialog";
 
 export const DialogGroup = ({
   llmId,
@@ -21,6 +21,7 @@ export const DialogGroup = ({
   const { data: llm } = useFetchData(llmId, source);
   const dispatch = useAppDispatch();
   const { visible: editVisible, open, close: closeEdit } = useModal();
+  const { isLoading, createDialog } = useCreateDialog();
   if (llm) {
     const allowEdit = isCreator(llm.id);
 
@@ -33,8 +34,9 @@ export const DialogGroup = ({
               <IconButton
                 icon={PlusIcon}
                 onClick={() => {
-                  dispatch(createDialog(llmId));
+                  createDialog(llmId);
                 }}
+                isLoading={isLoading}
               />
               <IconButton
                 icon={PencilIcon}

@@ -11,13 +11,13 @@ import { SelfMessage } from "./SelfMessage";
 
 export const MessageItem = ({ id }) => {
   const dispatch = useDispatch();
-  const { data, loading, error } = useFetchData(id);
+  const { data, isLoading, error } = useFetchData(id);
   const currentUserId = useAppSelector(selectCurrentUserId);
   const couldDelete = true;
   const handleDeleteMessage = () => {
     dispatch(deleteMessage(id));
   };
-  if (loading) {
+  if (isLoading) {
     return <div>loading</div>;
   } else if (data) {
     const isSelf = currentUserId === data.userId;

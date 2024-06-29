@@ -4,10 +4,8 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-import { deleteData, read, write } from "database/dbSlice";
+import { deleteData, read } from "database/dbSlice";
 import { clearMessages } from "../messages/messageSlice";
-import { selectCurrentUserId } from "auth/authSlice";
-import { DataType } from "create/types";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -62,7 +60,9 @@ const DialogSlice = createSliceWithThunks({
       async (dialog, thunkApi) => {
         const { dispatch, getState } = thunkApi;
         const state = getState();
-        thunkApi.dispatch(clearMessages());
+        dispatch(deleteData(dialog.id));
+        dispatch(clearMessages());
+
         if (dialog.messageListId) {
           const body = { ids: state.message.ids };
 
@@ -81,44 +81,10 @@ const DialogSlice = createSliceWithThunks({
         fulfilled: () => {},
       },
     ),
-    createDialog: create.asyncThunk(
-      async (llmId, thunkApi) => {
-        const state = thunkApi.getState();
-        const currentUserId = selectCurrentUserId(state);
-        const dispatch = thunkApi.dispatch;
-        const messageListConfig = {
-          data: [],
-          flags: { isList: true },
-          userId: currentUserId,
-        };
-        const writeMessageAction = await dispatch(write(messageListConfig));
-        const initMessageList = writeMessageAction.payload;
-        const dialogConfig = {
-          data: {
-            type: DataType.Dialog,
-            llmId,
-            messageListId: initMessageList.id,
-            title: new Date().toISOString(),
-          },
-          flags: { isJSON: true },
-          userId: currentUserId,
-        };
-        const writeDialogAction = await dispatch(write(dialogConfig));
-        return writeDialogAction.payload;
-      },
-      {
-        fulfilled: (state, action) => {},
-      },
-    ),
   }),
 });
-export const {
-  initDialog,
-  setCurrentDialogId,
-  initLLMConfig,
-  deleteDialog,
-  createDialog,
-} = DialogSlice.actions;
+export const { initDialog, setCurrentDialogId, initLLMConfig, deleteDialog } =
+  DialogSlice.actions;
 
 export default DialogSlice.reducer;
 export const selectCurrentLLMConfig = (state: NoloRootState) =>
