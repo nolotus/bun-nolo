@@ -74,11 +74,15 @@ const DialogSlice = createSliceWithThunks({
             }),
           );
           const deleteConfig = { id: dialog.id, source: dialog.source };
-          const deleteDialogAction = await dispatch(deleteData(deleteConfig));
+          await dispatch(deleteData(deleteConfig));
         }
       },
       {
-        fulfilled: () => {},
+        fulfilled: (state) => {
+          state.currenLLMConfig = null;
+          state.currentDialogConfig = null;
+          state.currentDialogId = null;
+        },
       },
     ),
   }),

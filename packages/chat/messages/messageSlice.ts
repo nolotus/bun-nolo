@@ -214,15 +214,11 @@ export const messageSlice = createSliceWithThunks({
     deleteMessage: create.asyncThunk(
       async (messageId: string, thunkApi) => {
         thunkApi.dispatch(removeMessageFromUI(messageId));
-        // thunkApi.dispatch(removeOne(messageId));
         const state = thunkApi.getState();
         const token = state.auth.currentToken;
         const dialogConfig = selectCurrentDialogConfig(state);
         const currentServer = selectCurrentServer(state);
-        const deleteMessageResult = await thunkApi.dispatch(
-          deleteData({ id: messageId }),
-        );
-        console.log("deleteMessageResult", deleteMessageResult);
+        thunkApi.dispatch(deleteData({ id: messageId }));
 
         const deleteMessageFromList = await fetch(
           `${currentServer}${API_ENDPOINTS.DATABASE}/update/${dialogConfig.messageListId}`,
@@ -250,7 +246,6 @@ export const messageSlice = createSliceWithThunks({
     deleteNotFound: create.asyncThunk(
       async (messageId: string, thunkApi) => {
         thunkApi.dispatch(removeMessageFromUI(messageId));
-        // thunkApi.dispatch(removeOne(messageId));
         const state = thunkApi.getState();
         const token = state.auth.currentToken;
         const dialogConfig = selectCurrentDialogConfig(state);
