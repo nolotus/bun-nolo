@@ -6,7 +6,7 @@ import { TextField } from "render/ui/Form/TextField";
 import { useTranslation } from "react-i18next";
 import { generateCustomId } from "core/generateMainKey";
 import { nolotusId } from "core/init";
-import { saveData, write } from "database/dbSlice";
+import { upsertData } from "database/dbSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 
 const Website = () => {
@@ -29,13 +29,14 @@ const Website = () => {
   const onSubmit = async (data) => {
     console.log("onSubmit data", data);
     try {
-      await dispatch(saveData({ id, data: data }));
+      //save for person
+      await dispatch(upsertData({ id, data: data }));
       const nolotusSaveId = generateCustomId(nolotusId, "domain-list", {
         isObject: true,
       });
-
+      //save domain list
       const writeAction = await dispatch(
-        saveData({
+        upsertData({
           id: nolotusSaveId,
           data: {
             [data.domain]: userId,

@@ -12,13 +12,15 @@ export const useAppSelector: TypedUseSelectorHook<NoloRootState> = useSelector;
 export const useItem = (id: string) => {
   return useAppSelector((state: NoloRootState) => selectById(state, id));
 };
-export function useFetchData(id: string, source?: string) {
+export function useFetchData(id: string, options) {
+  const source = options?.source;
+  const forceUpdate = options?.forceUpdate;
   const data = useAppSelector((state) => selectById(state, id));
   const dispatch = useDispatch();
 
   const [isLoading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
+  const [error, setError] = useState(null);
   useEffect(() => {
     const getData = async () => {
       try {
@@ -31,10 +33,12 @@ export function useFetchData(id: string, source?: string) {
         setLoading(false);
       }
     };
-    // 当 data 不存在时，尝试获取数据
     // 如果存在需要考虑 是否使用缓存
     //hash 不用获取
-    if (!data) {
+    // 当 data 不存在时，尝试获取数据
+    //当data 存在 只是在内存存在，不保证最新，需要主动每次调用获取新数据，或者主动接受服务器推送
+
+    if (forceUpdate || !data) {
       getData();
     }
   }, [dispatch, id]);

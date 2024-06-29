@@ -18,7 +18,7 @@ const ChatAIList = ({ queryUserId, limit = 20 }) => {
   const { data, isLoading, isSuccess } = useQueryData(queryConfig);
 
   if (isLoading) {
-    return <div>loading ailist</div>;
+    return <div>loading AI list</div>;
   }
   return (
     <div className="grid grid-cols-3  gap-4">

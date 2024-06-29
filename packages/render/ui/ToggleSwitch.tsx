@@ -18,8 +18,9 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   onChange,
   ariaLabelledby,
   ariaDescribedby,
+  value,
 }) => {
-  const [isChecked, setIsChecked] = useState<boolean>(defaultChecked);
+  const [isChecked, setIsChecked] = useState<boolean>(value, defaultChecked);
 
   useEffect(() => {
     if (checked !== undefined) {

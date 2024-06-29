@@ -1,7 +1,8 @@
 import { listToTrans, toObjectString } from "./otherToNolo";
 import { Base64 } from "js-base64";
+import { Flags } from "./prefix";
 
-export const formatData = (data, flags) => {
+export const formatData = (data: any, flags: Flags): string => {
   let formattedData = data;
 
   if (flags.isBase64) {

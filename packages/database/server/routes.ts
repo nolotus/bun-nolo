@@ -5,12 +5,12 @@ import { handleQuery } from "../query";
 
 import { handleDelete } from "./delete";
 import { handleReadSingle } from "./read";
-import { handleUpdate } from "./update";
+import { handlePut } from "./put";
 import { handleWrite } from "./write";
 import { handleWriteHash } from "./writeHash";
+import { handlePatch } from "./patch";
 export const databaseRequest = async (req, res, url) => {
   const pathname = url.pathname;
-
   const getIdFromPath = (prefix) => {
     const start = pathname.indexOf(prefix) + prefix.length;
     const end =
@@ -34,10 +34,14 @@ export const databaseRequest = async (req, res, url) => {
       case "writeHash":
         req.user = await handleToken(req, res);
         return handleWriteHash(req, res);
-      case "update":
+      case "put":
         req.user = await handleToken(req, res);
-        req.params = { id: getIdFromPath("/api/v1/db/update/") };
-        return handleUpdate(req, res);
+        req.params = { id: getIdFromPath("/api/v1/db/put/") };
+        return handlePut(req, res);
+      case "patch":
+        req.user = await handleToken(req, res);
+        req.params = { id: getIdFromPath("/api/v1/db/patch/") };
+        return handlePatch(req, res);
       case "query":
         req.params = { userId: getIdFromPath("/api/v1/db/query/") };
         return handleQuery(req, res);

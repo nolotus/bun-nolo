@@ -46,6 +46,7 @@ const initialState: MessageSliceState = {
   isMessageStreaming: false,
   tempMessage: null,
   requestFailed: false,
+  messageLoading: false,
   messageListFailed: false,
 };
 export const messageSlice = createSliceWithThunks({
@@ -66,13 +67,17 @@ export const messageSlice = createSliceWithThunks({
         return action.payload;
       },
       {
-        pending: (state) => {},
+        pending: (state) => {
+          state.messageLoading = true;
+        },
         rejected: (state) => {
           state.messageListFailed = true;
+          state.messageLoading = false;
         },
         fulfilled: (state, action) => {
           state.messageListFailed = false;
           state.ids = action.payload.array;
+          state.messageLoading = false;
         },
       },
     ),

@@ -4,6 +4,7 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { write } from "database/dbSlice";
 import { DataType } from "create/types";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 
 export const useCreateDialog = () => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export const useCreateDialog = () => {
           type: DataType.Dialog,
           llmId,
           messageListId: initMessageList.id,
-          title: new Date().toISOString(),
+          title: format(new Date(), "MM-dd HH:mm"),
         },
         flags: { isJSON: true },
         userId: currentUserId,

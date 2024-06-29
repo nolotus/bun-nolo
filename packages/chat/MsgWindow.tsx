@@ -4,27 +4,28 @@ import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui";
 
-import MessageInput from "./MessageInput";
+import MessageInput from "./messages/MessageInput";
 import {
   retry,
   continueMessage,
   initMessages,
   handleSendMessage,
-} from "./messageSlice";
+} from "./messages/messageSlice";
 import {
   selectMessageFailed,
   selectMessageList,
   selectMessage,
-} from "./selector";
+} from "./messages/selector";
 
 import { initLLMConfig } from "chat/dialog/dialogSlice";
-import MessagesList from "./MessageList";
+import MessagesList from "./messages/MessageList";
+import { Spinner } from "@primer/react";
 
 const ChatWindow = ({ currentDialogConfig }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const messageFailed = useAppSelector(selectMessageFailed);
-
+  const loading = useAppSelector((state) => state.message.messageLoading);
   useEffect(() => {
     currentDialogConfig.llmId &&
       dispatch(initLLMConfig(currentDialogConfig.llmId));
@@ -97,6 +98,8 @@ const ChatWindow = ({ currentDialogConfig }) => {
 
   return (
     <div className="flex w-full flex-col">
+      {loading && <Spinner size={"large"} />}
+      {messageList?.length === 0 && <div>啥也没</div>}
       {messageList && (
         <MessagesList
           scrollToBottom={scrollToBottom}
