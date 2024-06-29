@@ -10,7 +10,6 @@ const defaultOptions = {
     "validation",
     "api",
     "form",
-    "update",
     "data-import",
     "Message",
     "TableComponent",

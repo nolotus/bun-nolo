@@ -329,7 +329,7 @@ const dbSlice = createSliceWithThunks({
       const token = state.auth.currentToken;
 
       const res = await fetch(
-        `${currentServer}${API_ENDPOINTS.DATABASE}/update/${updateId}`,
+        `${currentServer}${API_ENDPOINTS.PUT}/${updateId}`,
         {
           method: "PUT",
           headers: {

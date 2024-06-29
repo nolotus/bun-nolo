@@ -107,7 +107,7 @@ export const messageSlice = createSliceWithThunks({
 
         const updateId = dialogConfig.messageListId;
         const writeMessageToList = await fetch(
-          `${currentServer}${API_ENDPOINTS.DATABASE}/update/${updateId}`,
+          `${currentServer}${API_ENDPOINTS.PUT}/${updateId}`,
           {
             method: "PUT",
             headers: {
@@ -226,7 +226,7 @@ export const messageSlice = createSliceWithThunks({
         thunkApi.dispatch(deleteData({ id: messageId }));
 
         const deleteMessageFromList = await fetch(
-          `${currentServer}${API_ENDPOINTS.DATABASE}/update/${dialogConfig.messageListId}`,
+          `${currentServer}${API_ENDPOINTS.PUT}/${dialogConfig.messageListId}`,
           {
             method: "DELETE",
             headers: {
@@ -257,7 +257,7 @@ export const messageSlice = createSliceWithThunks({
         const currentServer = selectCurrentServer(state);
 
         const deleteMessageFromList = await fetch(
-          `${currentServer}${API_ENDPOINTS.DATABASE}/update/${dialogConfig.messageListId}`,
+          `${currentServer}${API_ENDPOINTS.PUT}/${dialogConfig.messageListId}`,
           {
             method: "DELETE",
             headers: {

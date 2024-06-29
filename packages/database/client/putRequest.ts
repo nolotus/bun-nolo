@@ -1,9 +1,6 @@
-import { getLogger } from "utils/logger";
-
-import { API_ENDPOINTS } from "../config";
 import { noloRequest } from "utils/noloRequest";
 
-const updateLogger = getLogger("update");
+import { API_ENDPOINTS } from "../config";
 
 export const noloPutRequest = async (state, id, data) => {
   const config = {
@@ -13,7 +10,6 @@ export const noloPutRequest = async (state, id, data) => {
   };
   const response = await noloRequest(state, config);
   if (!response.ok) {
-    updateLogger.error({ status: response.status }, "HTTP error");
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   return response;
