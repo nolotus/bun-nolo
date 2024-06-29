@@ -7,4 +7,5 @@ export const API_ENDPOINTS = {
   AI: `${API_VERSION}/ai`,
   WEATHER: `${API_VERSION}/weather`,
   HI: `${API_VERSION}/hi`,
+  PUT: `${API_VERSION}/db/put`,
 };
