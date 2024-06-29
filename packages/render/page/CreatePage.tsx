@@ -42,7 +42,7 @@ const CreatePage = () => {
   useEffect(() => {
     data && dispatch(initPageFromTemplate(data));
   }, [data]);
-  const saveData = async (pageData) => {
+  const save = async (pageData) => {
     try {
       const writePageAction = await dispatch(
         write({
@@ -86,7 +86,7 @@ const CreatePage = () => {
       setTextareaContent("");
     }
 
-    saveData(updatedPageState);
+    save(updatedPageState);
   };
 
   const toggleShowAsMarkdown = (value) => {

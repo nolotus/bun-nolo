@@ -2,7 +2,7 @@ import StringToArrayInput from "render/ui/Form/StringToArrayInput";
 import { ServerIcon } from "@primer/octicons-react";
 import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
-import { saveData } from "database/dbSlice";
+import { upsertData } from "database/dbSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
 import { TextField } from "render/ui/Form/TextField";
@@ -21,7 +21,6 @@ const Sync = () => {
   const dispatch = useAppDispatch();
   const id = generateCustomId(userId, "sync-settings");
   const { data, isLoading } = useFetchData(id);
-
   if (isLoading) {
     return <PageLoader />;
   }
@@ -47,7 +46,7 @@ const Sync = () => {
   const onSubmit = async (data) => {
     console.log("onSubmit data", data);
     try {
-      await dispatch(saveData({ id, data: data }));
+      await dispatch(upsertData({ id, data: data }));
     } catch (error) {
       // 这里可以处理错误，例如显示一个错误信息
       console.error("Error updating entry:", error);
@@ -69,7 +68,9 @@ const Sync = () => {
         <Controller
           name="isAutoSync"
           control={control}
-          render={({ field }) => <ToggleSwitch {...field} />}
+          render={({ field }) => {
+            return <ToggleSwitch {...field} />;
+          }}
         />
         <div className="">
           <label>

@@ -9,7 +9,11 @@ export const handleError = (res, error) => {
 import { updateDataInFile } from "utils/file";
 import { serverGetData } from "./read";
 
-const updateServerData = async (actionUserId, id, value: string) => {
+export const updateServerData = async (
+  actionUserId: string,
+  id: string,
+  value: string,
+) => {
   const userId = extractUserId(id);
   const filePath = `./nolodata/${userId}/index.nolo`;
   await updateDataInFile(filePath, id, value);
@@ -47,9 +51,9 @@ const updateList = async (actionUserId, dataKey, data, res) => {
 //更新数据
 // 更新普通json 以及其他数据
 //更新list数据
-export const handleUpdate = async (req, res) => {
+export const handlePut = async (req, res) => {
   const { user } = req;
-  const acitonUserId = user.userId;
+  const actionUserId = user.userId;
   let id = req.params.id;
   const data = req.body;
   const flags = extractAndDecodePrefix(id);
@@ -57,11 +61,11 @@ export const handleUpdate = async (req, res) => {
   const { isList, isHash, isFile } = flags;
   //如果是isHash  isFile 则不允许更新
   if (isList) {
-    return updateList(acitonUserId, id, data, res);
+    return updateList(actionUserId, id, data, res);
   } else {
     try {
       const value = formatData(data, flags);
-      await updateServerData(acitonUserId, id, value);
+      await updateServerData(actionUserId, id, value);
       return res
         .status(200)
         .json({ data: { id, ...data }, message: "Data updated successfully." });

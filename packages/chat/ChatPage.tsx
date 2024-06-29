@@ -13,7 +13,7 @@ import { PageLoader } from "render/blocks/PageLoader";
 
 import chatTranslations from "./chatI18n";
 import DialogSidebar from "./dialog/DialogSideBar";
-import ChatWindow from "./messages/MessageWindow";
+import ChatWindow from "./MsgWindow";
 import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
 import { ChatGuide } from "./ChatGuide";
 
@@ -58,9 +58,7 @@ const ChatPage = () => {
     //   domain: "https://nolotus.com",
     // }).unwrap();
     // console.log("defaultTokenStatisticsList", defaultTokenStatisticsList);
-    // dispatch(updateData({ data: defaultTokenStatisticsList }));
     // console.log("nolotusTokenStatisticsList", nolotusTokenStatisticsList);
-    // dispatch(updateData({ data: nolotusTokenStatisticsList }));
   };
 
   useEffect(() => {
