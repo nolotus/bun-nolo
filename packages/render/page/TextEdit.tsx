@@ -44,6 +44,7 @@ export const TextEdit: React.FC<MarkdownEditProps> = ({
 
   return (
     <textarea
+      autoFocus
       ref={textareaRef}
       className="h-auto w-full resize-none overflow-hidden bg-transparent focus:outline-none focus:ring-0"
       value={value}

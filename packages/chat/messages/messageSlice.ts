@@ -71,6 +71,7 @@ export const messageSlice = createSliceWithThunks({
           state.messageListFailed = true;
         },
         fulfilled: (state, action) => {
+          state.messageListFailed = false;
           state.ids = action.payload.array;
         },
       },
@@ -508,7 +509,7 @@ export const messageSlice = createSliceWithThunks({
       },
     ),
     clearMessages: create.reducer((state, action) => {
-      state.ids = [];
+      state.ids = null;
     }),
   }),
 });

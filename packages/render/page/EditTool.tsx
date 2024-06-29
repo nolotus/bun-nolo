@@ -79,9 +79,7 @@ export const EditTool = ({ handleSave }) => {
         />
       </div>
 
-      <Button onClick={handleSave} variant="primary" size="medium">
-        保存
-      </Button>
+      <Button onClick={handleSave}>保存</Button>
       <div>
         <NavLink to={`/${pageId}`}>预览</NavLink>
       </div>

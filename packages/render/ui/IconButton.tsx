@@ -1,19 +1,20 @@
 import React from "react";
+import { Spinner } from "@primer/react";
 
-// IconButton组件，接收一个icon和onClick回调函数
 const IconButton: React.FC<{
   icon: React.ElementType;
   onClick: () => void;
   className?: string;
-  style;
-}> = ({ icon: Icon, onClick, className, style }) => {
+  style?: React.CSSProperties;
+  isLoading: boolean;
+}> = ({ icon: Icon, onClick, className, style, isLoading }) => {
   return (
     <div
       onClick={onClick}
       className={`cursor-pointer ${className}`}
       style={style}
     >
-      <Icon />
+      {isLoading ? <Spinner size={"small"} /> : <Icon />}
     </div>
   );
 };

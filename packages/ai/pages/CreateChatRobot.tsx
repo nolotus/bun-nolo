@@ -5,11 +5,10 @@ import i18next from "i18n";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { Button } from "render/ui/Button";
 import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
-import { createDialog } from "chat/dialog/dialogSlice";
+import { useCreateDialog } from "chat/dialog/useCreateDialog";
 
 import allTranslations from "../aiI18n";
 import { schema, fields } from "../schema";
@@ -21,10 +20,7 @@ Object.keys(allTranslations).forEach((lang) => {
 
 const CreateChatRobot = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
-
-  const [isLoading, setIsLoading] = useState(false);
 
   const [error, setError] = useState(null);
   const auth = useAuth();
@@ -35,9 +31,9 @@ const CreateChatRobot = () => {
   } = useForm({
     resolver: zodResolver(schema),
   });
+  const { isLoading, createDialog } = useCreateDialog();
 
   const onSubmit = async (data) => {
-    setIsLoading(true);
     try {
       const writeChatRobotAction = await dispatch(
         write({
@@ -47,11 +43,7 @@ const CreateChatRobot = () => {
         }),
       );
       const llmId = writeChatRobotAction.payload.id;
-      const writeDialogAction = await dispatch(createDialog(llmId));
-      console.log("writeDialogAction", writeDialogAction);
-      const result = writeDialogAction.payload;
-      navigate(`/chat?dialogId=${result.id}`);
-      setIsLoading(false);
+      createDialog(llmId);
     } catch (error) {
       setError(error.data?.message || error.status); // 可以直接设置错误状态
     }
@@ -81,7 +73,7 @@ const CreateChatRobot = () => {
 
         {error && <p className="mb-2 mt-2 text-sm text-red-500">{error}</p>}
 
-        <Button type="submit" variant="primary" size="medium">
+        <Button loading={isLoading} type="submit">
           {t("startConfiguringYourRobot")}
         </Button>
       </form>

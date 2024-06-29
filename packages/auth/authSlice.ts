@@ -42,7 +42,9 @@ export const authSlice = createSliceWithThunks({
           const userId = generateUserId(publicKey, username, locale);
           const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
+
           const res = await loginRequest(currentServer, { userId, token });
+
           if (res) {
             storeTokens(res.token);
             return res;

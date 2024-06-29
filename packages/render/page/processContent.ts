@@ -5,7 +5,7 @@ import {
   markdownToMdast,
   getH1TextFromMdast,
   getYamlValueFromMdast,
-} from "render/MarkdownProcessor";
+} from "render/processor/MarkdownProcessor";
 import { pick } from "rambda";
 const location = ["lat", "lng", "country", "province", "state", "city"];
 const render = ["layout"];

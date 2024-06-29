@@ -1,6 +1,6 @@
 import React from "react";
 import { renderContentNode } from "render";
-import { markdownToMdast } from "render/MarkdownProcessor";
+import { markdownToMdast } from "render/processor/MarkdownProcessor";
 const markdown = `
 在休闲冲浪时，虽然受伤的可能性不大，但仍需注意一些不太可能出现（小于百分之一）但较为危险的情况，以及相应的处理方案。以下是整理的内容：
 
@@ -48,5 +48,5 @@ const markdown = `
 
 const mdast = markdownToMdast(markdown);
 export const SurfTip = () => {
-	return <div>{renderContentNode(mdast)}</div>;
+  return <div>{renderContentNode(mdast)}</div>;
 };
