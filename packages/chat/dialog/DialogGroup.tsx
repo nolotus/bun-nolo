@@ -1,30 +1,25 @@
-// DialogGroup.js
 import React from "react";
-import { useAppDispatch, useFetchData } from "app/hooks";
+import { useFetchData } from "app/hooks";
 import IconButton from "render/ui/IconButton";
 import { PlusIcon } from "@primer/octicons-react";
 import OpenProps from "open-props";
 import { PencilIcon } from "@primer/octicons-react";
 import { useModal, Dialog } from "render/ui";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
-
+import { Spinner } from "@primer/react";
+import { useCouldEdit } from "auth/useCouldEdit";
 import { DialogItem } from "./DialogItem";
 import { useCreateDialog } from "./useCreateDialog";
 
-export const DialogGroup = ({
-  llmId,
-  dialogs,
-  currentDialogId,
-  isCreator,
-  source,
-}) => {
-  const { data: llm } = useFetchData(llmId, source);
-  const dispatch = useAppDispatch();
+export const DialogGroup = ({ llmId, dialogs, currentDialogId, source }) => {
+  const { isLoading, data: llm } = useFetchData(llmId, source);
   const { visible: editVisible, open, close: closeEdit } = useModal();
-  const { isLoading, createDialog } = useCreateDialog();
+  const { isLoading: creatingDialog, createDialog } = useCreateDialog();
+  const allowEdit = useCouldEdit(llmId);
+  if (isLoading) {
+    return <Spinner />;
+  }
   if (llm) {
-    const allowEdit = isCreator(llm.id);
-
     return (
       <div key={llmId}>
         <div style={{ display: "flex", gap: OpenProps.sizeFluid1 }}>
@@ -33,10 +28,10 @@ export const DialogGroup = ({
             <>
               <IconButton
                 icon={PlusIcon}
+                isLoading={creatingDialog}
                 onClick={() => {
                   createDialog(llmId);
                 }}
-                isLoading={isLoading}
               />
               <IconButton
                 icon={PencilIcon}
@@ -62,7 +57,6 @@ export const DialogGroup = ({
             key={dialog.id}
             id={dialog.id}
             isSelected={currentDialogId === dialog.id}
-            allowEdit={allowEdit}
             source={source}
           />
         ))}

@@ -5,7 +5,6 @@ import { generateUserId } from "core/generateMainKey";
 import { hashPassword } from "core/password";
 import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
-import { storeTokens } from "auth/client/token";
 
 import { API_VERSION } from "database/config";
 
@@ -44,13 +43,11 @@ export const authSlice = createSliceWithThunks({
           const currentServer = selectCurrentServer(state);
 
           const res = await loginRequest(currentServer, { userId, token });
-
-          if (res) {
-            storeTokens(res.token);
-            return res;
-          } else {
-            throw res;
+          if (res.status === 200) {
+            const result = await res.json();
+            return { token: result.token };
           }
+          return { status: res.status };
         } catch (error) {
           return thunkAPI.rejectWithValue(error);
         }

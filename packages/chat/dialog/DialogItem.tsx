@@ -7,8 +7,9 @@ import { deleteDialog, initDialog } from "./dialogSlice";
 import IconButton from "render/ui/IconButton";
 import Colors from "open-props/src/colors";
 import { format } from "date-fns";
+import { useCouldEdit } from "auth/useCouldEdit";
 
-export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
+export const DialogItem = ({ id, isSelected, source }) => {
   const { data: dialog } = useFetchData(id, source);
   const { data: llm } = useFetchData(dialog.llmId, source);
   const dispatch = useAppDispatch();
@@ -28,6 +29,7 @@ export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
   } = useDeleteAlert(() => {
     onDeleteDialog(dialog);
   });
+  const allowEdit = useCouldEdit(id);
 
   return (
     <div
