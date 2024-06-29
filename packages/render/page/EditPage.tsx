@@ -2,8 +2,9 @@ import { useAuth } from "auth/useAuth";
 import { useUpdateEntryMutation } from "database/services";
 import React from "react";
 import { useParams } from "react-router-dom";
-import { Toast, useToastManager } from "render/ui/Toast";
 import OpenProps from "open-props";
+import toast from "react-hot-toast";
+import { useAppSelector, useAppDispatch } from "app/hooks";
 
 import { TextEdit } from "./TextEdit";
 import { createPageData } from "./pageDataUtils";
@@ -11,11 +12,8 @@ import { setHasVersion, saveContentAndMdast, updateContent } from "./pageSlice";
 import { processContent } from "./processContent";
 import { EditTool } from "./EditTool";
 import { RichEdit } from "./RichEdit";
-import { useAppSelector, useAppDispatch } from "app/hooks";
 
 const EditPage = () => {
-  const { toasts, addToast, removeToast } = useToastManager();
-
   const dispatch = useAppDispatch();
   const { pageId } = useParams();
 
@@ -43,18 +41,7 @@ const EditPage = () => {
       }).unwrap(); // 使用 unwrap 处理响应
 
       if (result) {
-        // 成功处理逻辑
-        addToast(
-          <div className="text-black">
-            <a
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-blue-600 hover:text-blue-800"
-            >
-              保存成功
-            </a>
-          </div>,
-        );
+        toast.success("保存成功");
       }
     } catch (error) {
       // 错误处理逻辑
@@ -99,15 +86,6 @@ const EditPage = () => {
         </div>
         <EditTool handleSave={handleSave} />
       </div>
-
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          id={toast.id}
-          content={toast.content}
-          onClose={removeToast}
-        />
-      ))}
     </>
   );
 };
