@@ -2,7 +2,6 @@ import React from "react";
 import { CommentIcon, HomeIcon, SignInIcon } from "@primer/octicons-react";
 import { useMediaQuery } from "react-responsive";
 import Sizes from "open-props/src/sizes";
-import Borders from "open-props/src/borders";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "auth/useAuth";
@@ -11,9 +10,13 @@ import { CreateMenu } from "create/blocks/CreateMenu";
 
 import { RoutePaths } from "auth/client/routes";
 import OpenProps from "open-props";
+import { Tooltip } from "@primer/react/next";
+import { circleButtonStyle } from "render/button/style";
+import { useTranslation } from "react-i18next";
 
 export const FloatMenu = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const laptop = useMediaQuery({ minWidth: 768, maxWidth: 1280 });
   const { isLoggedIn } = useAuth();
 
@@ -28,50 +31,45 @@ export const FloatMenu = () => {
         gap: Sizes["--size-relative-7"],
       }}
     >
-      <button
-        type="button"
-        className="p-[10px]"
-        style={{
-          borderRadius: Borders["--radius-round"],
-        }}
-        onMouseDown={() => {
-          navigate("/");
-        }}
-      >
-        <HomeIcon />
-      </button>
+      <Tooltip text={"回到首页"} direction="n">
+        <button
+          type="button"
+          style={circleButtonStyle}
+          onMouseDown={() => {
+            navigate("/");
+          }}
+        >
+          <HomeIcon />
+        </button>
+      </Tooltip>
+
       {isLoggedIn && <CreateMenu />}
-      <button
-        type="button"
-        className="p-[10px]"
-        style={{
-          borderRadius: Borders["--radius-round"],
-        }}
-        onMouseDown={() => {
-          navigate("/chat");
-        }}
-      >
-        <CommentIcon />
-      </button>
+
+      <Tooltip text={"chat"} direction="n">
+        <button
+          type="button"
+          style={circleButtonStyle}
+          onMouseDown={() => {
+            navigate("/chat");
+          }}
+        >
+          <CommentIcon />
+        </button>
+      </Tooltip>
 
       {isLoggedIn ? (
         <IsLoggedInMenu />
       ) : (
-        <div>
+        <Tooltip text={t("login")} direction="n">
           <button
-            className="p-[10px]"
-            style={{
-              borderRadius: OpenProps.radiusRound,
-              boxShadow: OpenProps.shadow5,
-            }}
+            style={circleButtonStyle}
             onClick={() => {
               navigate(RoutePaths.LOGIN);
             }}
           >
             <SignInIcon size={24} />
-            {/* {t("login")} */}
           </button>
-        </div>
+        </Tooltip>
       )}
     </div>
   );

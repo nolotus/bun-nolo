@@ -144,59 +144,49 @@ const dbSlice = createSliceWithThunks({
     ),
     readServer: create.asyncThunk(() => {}, {}),
     syncRead: create.asyncThunk(() => {}, {}),
-    deleteData: create.asyncThunk(
-      async (args, thunkApi) => {
-        const { id, body, source } = args;
-        const { dispatch, getState } = thunkApi;
-        const state = getState();
-        thunkApi.dispatch(removeOne(id));
-        const currentServer = selectCurrentServer(state);
-        let headers = {
-          "Content-Type": "application/json",
-        };
-        if (state.auth) {
-          const token = state.auth.currentToken;
-          headers.Authorization = `Bearer ${token}`;
+    deleteData: create.asyncThunk(async (args, thunkApi) => {
+      const { id, body, source } = args;
+      const { dispatch, getState } = thunkApi;
+      const state = getState();
+      thunkApi.dispatch(removeOne(id));
+      const currentServer = selectCurrentServer(state);
+      let headers = {
+        "Content-Type": "application/json",
+      };
+      if (state.auth) {
+        const token = state.auth.currentToken;
+        headers.Authorization = `Bearer ${token}`;
+      }
+      if (source) {
+        console.log("source");
+        const dynamicUrl = source[0] + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
+        const res = await fetch(dynamicUrl, {
+          method: "DELETE",
+          headers,
+          body,
+        });
+        console.log("deleteData", res);
+        if (res.status === 200) {
+          const result = await res.json();
+          console.log("deleteData 200", result);
+          return result;
         }
-        if (source) {
-          console.log("source");
-          const dynamicUrl =
-            source[0] + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
-          const res = await fetch(dynamicUrl, {
-            method: "DELETE",
-            headers,
-            body,
-          });
-          console.log("deleteData", res);
-          if (res.status === 200) {
-            const result = await res.json();
-            console.log("deleteData 200", result);
-            return result;
-          }
-        } else {
-          const dynamicUrl =
-            currentServer + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
-          const res = await fetch(dynamicUrl, {
-            method: "DELETE",
-            headers,
-            body,
-          });
-          console.log("deleteData", res);
-          if (res.status === 200) {
-            const result = await res.json();
-            console.log("deleteData 200", result);
-            return result;
-          }
+      } else {
+        const dynamicUrl =
+          currentServer + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
+        const res = await fetch(dynamicUrl, {
+          method: "DELETE",
+          headers,
+          body,
+        });
+        console.log("deleteData", res);
+        if (res.status === 200) {
+          const result = await res.json();
+          console.log("deleteData 200", result);
+          return result;
         }
-      },
-      {
-        fulfilled: (state, action) => {
-          console.log("deleteData fulfilled", action);
-          //double remove !
-          dbAdapter.removeOne(state, action.payload.id);
-        },
-      },
-    ),
+      }
+    }, {}),
     write: create.asyncThunk(
       async (writeConfig, thunkApi) => {
         const state = thunkApi.getState();

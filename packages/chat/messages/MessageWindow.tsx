@@ -93,9 +93,16 @@ const ChatWindow = ({ currentDialogConfig }) => {
   const onSendMessage = (content) => {
     dispatch(handleSendMessage({ content, abortControllerRef }));
   };
+  const messageList = useAppSelector(selectMessageList);
+
   return (
     <div className="flex w-full flex-col">
-      <MessagesList scrollToBottom={scrollToBottom} />
+      {messageList && (
+        <MessagesList
+          scrollToBottom={scrollToBottom}
+          messageList={messageList}
+        />
+      )}
 
       {allowSend ? (
         <div className="flex items-center">

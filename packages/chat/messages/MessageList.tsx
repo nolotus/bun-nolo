@@ -4,23 +4,15 @@ import Sizes from "open-props/src/sizes";
 
 import { StreamingMessage } from "./StreamingMessage";
 import { MessageItem } from "./MessageItem";
-import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
-import {
-  selectMessageFailed,
-  selectMessageList,
-  selectMessage,
-} from "./selector";
+import { selectMessage } from "./selector";
 import { ChatContainerPaddingRight } from "../styles";
 interface MessagesDisplayProps {
   scrollToBottom: () => void;
+  messageList;
 }
 
-const MessagesList: React.FC<MessagesDisplayProps> = () => {
+const MessagesList: React.FC<MessagesDisplayProps> = ({ messageList }) => {
   const { tempMessage } = useAppSelector(selectMessage);
-  const messageList = useAppSelector(selectMessageList);
-
-  const messageFailed = useAppSelector(selectMessageFailed);
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const scrollToBottom = () => {
@@ -41,21 +33,15 @@ const MessagesList: React.FC<MessagesDisplayProps> = () => {
         paddingLeft: Sizes["--size-5"],
       }}
     >
-      {messageFailed ? (
-        "failed"
-      ) : (
-        <>
-          {messageList?.map((id: string) => {
-            return <MessageItem id={id} key={id} />;
-          })}
-          {tempMessage && (
-            <StreamingMessage
-              {...tempMessage}
-              key={tempMessage.id}
-              id={tempMessage.id}
-            />
-          )}
-        </>
+      {messageList.map((id: string) => {
+        return <MessageItem id={id} key={id} />;
+      })}
+      {tempMessage && (
+        <StreamingMessage
+          {...tempMessage}
+          key={tempMessage.id}
+          id={tempMessage.id}
+        />
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 import { useAppDispatch } from "app/hooks";
 import { extractCustomId } from "core";
 import { DataType } from "create/types";
-import { deleteData, removeOne } from "database/dbSlice";
+import { deleteData } from "database/dbSlice";
 import { omit } from "rambda";
 import { Link } from "react-router-dom";
 import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
@@ -160,7 +160,6 @@ export const DataTable = ({ dataList, type, pullData }) => {
     );
   };
   const PageTR = ({ data }) => {
-    console.log('data',data)
     return (
       <tr>
         <td className="w-full">

@@ -66,8 +66,8 @@ const ChatPage = () => {
   useEffect(() => {
     dialogId && dispatch(initDialog({ dialogId }));
   }, [dialogId]);
+
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const queryConfig = {
     queryUserId: currentUserId,
     options: {
@@ -79,6 +79,7 @@ const ChatPage = () => {
     },
   };
   const { isLoading, isSuccess } = useQueryData(queryConfig);
+  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const dialogList = useAppSelector(
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
