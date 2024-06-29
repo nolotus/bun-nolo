@@ -3,16 +3,16 @@ import { useAuth } from "auth/useAuth";
 import React from "react";
 import { Avatar } from "render/ui";
 import IconButton from "render/ui/IconButton";
-import { Toast, useToastManager } from "render/ui/Toast";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useAppDispatch } from "app/hooks";
+import { write } from "database/dbSlice";
+import Sizes from "open-props/src/sizes";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
-import { useAppDispatch } from "app/hooks";
 import { MessageContent } from "./MessageContent";
-import { write } from "database/dbSlice";
-import Sizes from "open-props/src/sizes";
 
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();
@@ -28,14 +28,15 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
       };
       const saveAction = await dispatch(write(writeData));
       const response = saveAction.payload;
-      addToast(
-        <div className="text-black">
+      toast.success(
+        <div>
+          保存成功
           <Link
             to={`/${response.id}`}
             target="_blank"
             rel="noopener noreferrer"
           >
-            保存成功，这里
+            点击我
           </Link>
           查看详情。
         </div>,
@@ -43,18 +44,8 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
     }
   };
 
-  const { toasts, addToast, removeToast } = useToastManager();
-
   return (
     <div className="flex justify-start space-x-2">
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          id={toast.id}
-          content={toast.content}
-          onClose={removeToast}
-        />
-      ))}
       <div className="flex items-start">
         <div>
           <Avatar name="robot" />

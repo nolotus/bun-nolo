@@ -1,16 +1,15 @@
 import { useAuth } from "auth/useAuth";
-import { parseToken } from "auth/token";
 import i18n from "i18n";
 import React, { useEffect } from "react";
 import { useRoutes } from "react-router-dom";
-import { initAuth, restoreSession } from "auth/authSlice";
-
+import { initAuth } from "auth/authSlice";
+import { Toaster } from "react-hot-toast";
 import { addHostToCurrentServer } from "setting/settingSlice";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch } from "app/hooks";
 import { FloatMenu } from "app/FloatMenu";
 // // import { generatorRoutes } from "./generatorRoutes";
 
-import { getTokensFromLocalStorage, removeToken } from "auth/client/token";
+import { getTokensFromLocalStorage } from "auth/client/token";
 import { routes } from "./routes";
 import { setTheme } from "app/theme/themeSlice";
 
@@ -56,6 +55,7 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
 
   return (
     <>
+      <Toaster />
       {element}
       <FloatMenu />
     </>
