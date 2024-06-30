@@ -4,7 +4,6 @@ import { useAuth } from "auth/useAuth";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 import { omit } from "rambda";
 import React, { useState } from "react";
-import { baseCard } from "render/styles";
 
 import DataItem from "./DataItem";
 import { write } from "database/dbSlice";
@@ -106,7 +105,7 @@ const DataDisplay = ({ data, type, viewMode = "table" }) => {
                 className=" group flex w-full  px-8 py-4  sm:w-full md:w-1/2 lg:w-1/3"
                 key={item.id}
               >
-                <div className={`${baseCard} w-full p-4`}>
+                <div className={`${} w-full p-4`}>
                   <DataItem item={item} />
                   <ul className="-m-1 flex flex-wrap">
                     {item.source?.map((adderss) => (

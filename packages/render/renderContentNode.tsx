@@ -71,6 +71,7 @@ export const renderContentNode = (
         </List>
       );
     case "listItem":
+      console.log("node", node);
       return (
         <ListItem className={classNames}>
           {node.children?.map((child: ContentNode) => {
