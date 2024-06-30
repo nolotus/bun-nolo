@@ -13,6 +13,7 @@ import OpenProps from "open-props";
 import { Tooltip } from "@primer/react/next";
 import { circleButtonStyle } from "render/button/style";
 import { useTranslation } from "react-i18next";
+import { Button } from "render/ui";
 
 export const FloatMenu = () => {
   const navigate = useNavigate();
@@ -32,43 +33,44 @@ export const FloatMenu = () => {
       }}
     >
       <Tooltip text={"回到首页"} direction="n">
-        <button
-          type="button"
-          style={circleButtonStyle}
-          onMouseDown={() => {
-            navigate("/");
-          }}
-        >
-          <HomeIcon />
-        </button>
+        <div>
+          <Button
+            style={circleButtonStyle}
+            icon={<HomeIcon size={"small"} />}
+            onClick={() => {
+              navigate("/");
+            }}
+          />
+        </div>
       </Tooltip>
 
       {isLoggedIn && <CreateMenu />}
 
-      <Tooltip text={"chat"} direction="n">
-        <button
-          type="button"
-          style={circleButtonStyle}
-          onMouseDown={() => {
-            navigate("/chat");
-          }}
-        >
-          <CommentIcon />
-        </button>
+      <Tooltip text={"mine"} direction="n">
+        <div>
+          <Button
+            style={circleButtonStyle}
+            icon={<CommentIcon />}
+            onClick={() => {
+              navigate("/chat");
+            }}
+          />
+        </div>
       </Tooltip>
 
       {isLoggedIn ? (
         <IsLoggedInMenu />
       ) : (
         <Tooltip text={t("login")} direction="n">
-          <button
-            style={circleButtonStyle}
-            onClick={() => {
-              navigate(RoutePaths.LOGIN);
-            }}
-          >
-            <SignInIcon size={24} />
-          </button>
+          <div>
+            <Button
+              style={circleButtonStyle}
+              icon={<SignInIcon />}
+              onClick={() => {
+                navigate(RoutePaths.LOGIN);
+              }}
+            />
+          </div>
         </Tooltip>
       )}
     </div>

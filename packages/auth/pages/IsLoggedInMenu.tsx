@@ -1,11 +1,13 @@
 import React from "react";
-import { DropDown } from "render/ui";
+import { Button, DropDown } from "render/ui";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import OpenProps from "open-props";
 import { PersonIcon, SignOutIcon, GearIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import { flex } from "render/ui/styles";
+import { Tooltip } from "@primer/react/next";
+import { circleButtonStyle } from "render/button/style";
 
 import { changeCurrentUser, selectUsers, signOut } from "../authSlice";
 import { getTokensFromLocalStorage, removeToken } from "../client/token";
@@ -45,18 +47,17 @@ export const IsLoggedInMenu = () => {
     <DropDown
       direction="left"
       trigger={
-        <button
-          type="button"
-          className="p-[10px]"
-          style={{
-            borderRadius: OpenProps.radiusRound,
-          }}
-          onMouseDown={() => {
-            navigate("/life");
-          }}
-        >
-          <PersonIcon />
-        </button>
+        <Tooltip text={"chat"} direction="n">
+          <div>
+            <Button
+              style={circleButtonStyle}
+              icon={<PersonIcon />}
+              onClick={() => {
+                navigate("/life");
+              }}
+            />
+          </div>
+        </Tooltip>
       }
       triggerType="hover"
     >
@@ -81,28 +82,26 @@ export const IsLoggedInMenu = () => {
               </button>
             ),
         )}
-        <button
-          type="button"
-          onMouseDown={logout}
-          className="p-[10px]"
-          style={{
-            borderRadius: OpenProps.radiusRound,
-          }}
-        >
-          <SignOutIcon size={24} />
-          {/* {t("sign_out")} */}
-        </button>
-        <button
-          type="button"
-          onMouseDown={() => navigate("/settings")}
-          className="p-[10px]"
-          style={{
-            borderRadius: OpenProps.radiusRound,
-          }}
-        >
-          <GearIcon size={24} />
-          {/* {t("settings")} */}
-        </button>
+
+        <Tooltip text={t("sign_out")} direction="n">
+          <div>
+            <Button
+              style={circleButtonStyle}
+              icon={<SignOutIcon />}
+              onClick={logout}
+            />
+          </div>
+        </Tooltip>
+
+        <Tooltip text={t("settings")} direction="n">
+          <div>
+            <Button
+              style={circleButtonStyle}
+              icon={<GearIcon size={24} />}
+              onClick={() => navigate("/settings")}
+            />
+          </div>
+        </Tooltip>
       </div>
     </DropDown>
   );

@@ -4,7 +4,7 @@ import {
   DependabotIcon,
   LocationIcon,
 } from "@primer/octicons-react";
-import { DropDown } from "render/ui";
+import { Button, DropDown } from "render/ui";
 import Borders from "open-props/src/borders";
 import Sizes from "open-props/src/sizes";
 import React from "react";
@@ -40,31 +40,30 @@ export const CreateMenu: React.FC = () => {
     <DropDown
       direction="left"
       trigger={
-        <button
-          type="button"
-          className="p-[10px]"
-          style={{
-            borderRadius: Borders["--radius-round"],
-          }}
-          onMouseDown={() => {
-            navigate("/create");
-          }}
-        >
-          <PlusIcon />
-        </button>
+        <Tooltip text={"add new"} direction="n">
+          <div>
+            <Button
+              icon={<PlusIcon />}
+              style={circleButtonStyle}
+              onClick={() => {
+                navigate("/create");
+              }}
+            />
+          </div>
+        </Tooltip>
       }
       triggerType="hover"
     >
       <div className="flex w-[200px]" style={{ gap: Sizes["--size-fluid-2"] }}>
         {buttonItems.map((item, index) => (
           <Tooltip key={index} text={item.tooltip} direction="n">
-            <button
-              type="button"
-              style={circleButtonStyle}
-              onClick={() => navigate(item.path)}
-            >
-              {item.icon}
-            </button>
+            <div>
+              <Button
+                icon={item.icon}
+                style={circleButtonStyle}
+                onClick={() => navigate(item.path)}
+              />
+            </div>
           </Tooltip>
         ))}
       </div>

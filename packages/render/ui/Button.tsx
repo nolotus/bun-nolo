@@ -16,6 +16,7 @@ export type ButtonProps = {
 export const Button = (props: ButtonProps) => {
   const {
     className,
+    style,
     children,
     onClick,
     width = "auto",
@@ -29,13 +30,14 @@ export const Button = (props: ButtonProps) => {
 
   return (
     <button
-      className={` ${className} ${width}`}
-      onClick={onClick}
+      className={` ${className} surface2 text2 ${width}`}
+      onMouseDown={onClick}
       disabled={disabled || loading}
       type={type}
+      style={style}
     >
       {loading && <Spinner size={"small"} />}
-      {icon && !loading && <span className="mr-2">{icon}</span>}
+      {icon && !loading && icon}
       {children}
     </button>
   );

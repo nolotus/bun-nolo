@@ -2,43 +2,19 @@ import { Link } from "render/ui";
 import { nolotusId } from "core/init";
 
 import ChatAIList from "ai/blocks/ChatAIList";
-import { useAppSelector, useQueryData } from "app/hooks";
-import { DataType } from "create/types";
+import { useAppSelector } from "app/hooks";
 
 import {
   LocationIcon,
   PeopleIcon,
   DependabotIcon,
 } from "@primer/octicons-react";
-import { SpotCard } from "render/components/SpotCard";
 import React from "react";
-import { selectFilteredDataByUserAndType } from "database/selectors";
 import { selectCurrentUserId } from "auth/authSlice";
-
+import { SpotList } from "render/components/SpotList";
 const Home = () => {
   const userId = useAppSelector(selectCurrentUserId);
-  const options = {
-    isJSON: true,
-    condition: {
-      type: DataType.SurfSpot,
-    },
-    limit: 20,
-  };
-  const queryConfig = {
-    queryUserId: nolotusId,
-    options,
-  };
-  const data = useAppSelector(
-    selectFilteredDataByUserAndType(nolotusId, DataType.SurfSpot),
-  );
-  const { isSuccess, isLoading, error } = useQueryData(queryConfig);
-  const renderSpotList = (spots) => {
-    if (!spots) {
-      return null;
-    }
-    const filteredSpots = spots.filter((spot) => !spot.is_template);
-    return filteredSpots.map((spot) => <SpotCard key={spot.id} data={spot} />);
-  };
+
   return (
     <div>
       <div
@@ -62,7 +38,7 @@ const Home = () => {
           的攻略。 例如<Link to="/spots">冲浪</Link>和
           <Link to="/spots">滑雪</Link>。
         </p>
-        <div className="flex flex-wrap">{data && renderSpotList(data)}</div>
+        <SpotList userId={nolotusId} />
         <h4>如果你也想分享你的生活,用AI管理你的数据</h4>
         <h3>
           请
