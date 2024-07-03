@@ -205,9 +205,8 @@ export const messageSlice = createSliceWithThunks({
       state.tempMessage = { role: "assistant", content: "", id: ulid() };
     }),
     messageStreaming: create.reducer<Message>((state, action) => {
-      console.log("");
-      // state.tempMessage = action.payload;
-      // state.isMessageStreaming = true;
+      state.tempMessage = action.payload;
+      state.isMessageStreaming = true;
     }),
     addMessage: create.reducer((state, action: PayloadAction<string>) => {
       state.ids.push(action.payload);
