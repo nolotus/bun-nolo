@@ -7,7 +7,6 @@ import { Button } from "render/ui";
 import MessageInput from "./messages/MessageInput";
 import {
   retry,
-  continueMessage,
   initMessages,
   handleSendMessage,
 } from "./messages/messageSlice";
@@ -75,19 +74,7 @@ const ChatWindow = ({ currentDialogConfig }) => {
       dispatch(handleSendMessage(lastMessage.content));
     }
   };
-  // const handleContinue = async () => {
-  //   // 移除第一条消息
-  //   const newMessages = messages.slice(1);
-  //   dispatch(continueMessage(newMessages));
 
-  //   // 发送新的请求
-  //   if (newMessages.length > 0) {
-  //     const lastUserMessage = newMessages[newMessages.length - 1].content;
-  //     if (lastUserMessage) {
-  //       await handleStreamMessage(lastUserMessage, newMessages);
-  //     }
-  //   }
-  // };
   const userCost = useAppSelector(selectCostByUserId);
   // const allowSend = Number(userCost.totalCost) < 2;
   const allowSend = !messageFailed;

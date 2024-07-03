@@ -15,7 +15,7 @@ export const renderButton: React.FC<RenderButtonProps> = ({
   customStyles = "",
 }) => (
   <Button
-    className={`h-12 w-32 flex-1 rounded-lg ${customStyles}`}
+    className={`${customStyles}`}
     key={route}
     onClick={() => {
       navigate(route);

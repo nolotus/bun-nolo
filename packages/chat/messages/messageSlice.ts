@@ -205,8 +205,9 @@ export const messageSlice = createSliceWithThunks({
       state.tempMessage = { role: "assistant", content: "", id: ulid() };
     }),
     messageStreaming: create.reducer<Message>((state, action) => {
-      state.tempMessage = action.payload;
-      state.isMessageStreaming = true;
+      console.log("");
+      // state.tempMessage = action.payload;
+      // state.isMessageStreaming = true;
     }),
     addMessage: create.reducer((state, action: PayloadAction<string>) => {
       state.ids.push(action.payload);
@@ -279,9 +280,7 @@ export const messageSlice = createSliceWithThunks({
       },
     ),
     //todo
-    continueMessage: create.reducer((state, action) => {
-      state.isStopped = false;
-    }),
+
     messagesReachedMax: create.reducer((state, action) => {
       state.isStopped = true;
     }),
@@ -348,7 +347,6 @@ export const messageSlice = createSliceWithThunks({
                         const id = generateIdWithCustomId(userId, ulid(), {
                           isJSON: true,
                         });
-                        console.log("");
                         const message = {
                           role: "assistant",
                           content: temp,
@@ -521,7 +519,6 @@ export const {
   messageStreamEnd,
   messageStreaming,
   messagesReachedMax,
-  continueMessage,
   deleteMessage,
   initMessages,
   startSendingMessage,
