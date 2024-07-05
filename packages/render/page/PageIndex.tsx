@@ -2,13 +2,16 @@ import { useAppDispatch, useFetchData } from "app/hooks";
 import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+
+import { initPage } from "./pageSlice";
+import RenderPage from "./RenderPage";
+
 import { Header } from "../layout/Header";
 
 import NoMatch from "../NoMatch";
 
 import EditPage from "./EditPage";
-import { initPage } from "./pageSlice";
-import RenderPage from "./RenderPage";
+
 //id is for special page such as price
 //todo custom path
 const Page = ({ id }) => {

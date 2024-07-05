@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { isDevelopment } from "utils/env";
+import { InlineMath, BlockMath } from "react-katex";
 
 import Blockquote from "./blocks/Blockquote";
 import Card from "./blocks/Card";
@@ -54,6 +55,10 @@ export const renderContentNode = (
   switch (node.type) {
     case "root":
       return <>{node.children?.map(renderChild)}</>;
+    case "inlineMath":
+      return <InlineMath math={node.value} />;
+    case "math":
+      return <BlockMath math={node.value} />;
     case "card":
       return <Card>{node.children?.map(renderChild)}</Card>;
     case "heading":

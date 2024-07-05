@@ -61,6 +61,7 @@ const EditPage = () => {
     const { content, mdast, metaUpdates } = processContent(changeValue);
     dispatch(updateContent({ content, metaUpdates, mdast }));
   };
+
   return (
     <>
       <div
