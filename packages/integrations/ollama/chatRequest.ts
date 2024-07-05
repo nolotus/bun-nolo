@@ -1,35 +1,29 @@
 import axios from "utils/axios";
 
-import { getProxyConfig } from "utils/getProxyConfig";
-
 export async function chatRequest(
   requestBody,
   isStream: boolean,
 ): Promise<any> {
   const { model, messages, max_tokens } = requestBody;
 
-  const proxyConfig = getProxyConfig(false);
   const axiosConfig = {
     method: "POST",
-    url: "https://api.deepseek.com/chat/completions",
-    responseType: isStream ? "stream" : "json",
+    url: "http://localhost:11434/api/chat",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.DEEPSEEK_KEY}`,
       Accept: isStream ? "text/event-stream" : "application/json",
     },
+    responseType: isStream ? "stream" : "json",
     data: {
       model,
       messages,
       stream: isStream,
       max_tokens,
     },
-    ...proxyConfig,
   };
 
   try {
     const response = await axios(axiosConfig);
-
     return response;
   } catch (err) {
     console.error("axios error:", err);

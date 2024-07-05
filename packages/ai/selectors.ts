@@ -1,6 +1,6 @@
 import { createSelector } from "@reduxjs/toolkit";
 
-import { modelPrice } from "./models";
+import { allModels } from "./models";
 import { DataType } from "create/types";
 import { selectAll } from "database/dbSlice";
 
@@ -19,13 +19,12 @@ export const selectTotalCosts = createSelector(
     let userCosts = {};
     console.log("tokenStatisticsData", tokenStatisticsData);
     for (let data of tokenStatisticsData) {
-      if (!modelPrice[data.model]) {
+      if (!allModels[data.model]) {
         console.warn(`Unknown model price for model: ${data.model}`);
         continue; // 跳过未知模型
       }
       const direction_cost = data.dialogType === "send" ? "output" : "input";
-      const cost =
-        (modelPrice[data.model][direction_cost] * data.length) / 1000;
+      const cost = (allModels[data.model][direction_cost] * data.length) / 1000;
 
       totalCost += cost;
 
@@ -65,14 +64,13 @@ export const selectCostByUserId = createSelector(
       if (data.userId !== userId) {
         continue;
       }
-      if (!modelPrice[data.model]) {
+      if (!allModels[data.model]) {
         console.warn(`Unknown model price for model: ${data.model}`);
         continue;
       }
 
       const direction_cost = data.dialogType === "send" ? "output" : "input";
-      const cost =
-        (modelPrice[data.model][direction_cost] * data.length) / 1000;
+      const cost = (allModels[data.model][direction_cost] * data.length) / 1000;
       totalCost += cost;
 
       if (!modelCosts[data.model]) {

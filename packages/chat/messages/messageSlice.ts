@@ -23,6 +23,7 @@ import {
   upsertOne,
 } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
+import { filter } from "rambda";
 
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
@@ -200,10 +201,7 @@ export const messageSlice = createSliceWithThunks({
       state.ids.push(action.payload.id);
       state.tempMessage = null;
     }),
-    //todo please consider muti agent
-    retry: create.reducer<Message>((state, action) => {
-      state.tempMessage = { role: "assistant", content: "", id: ulid() };
-    }),
+
     messageStreaming: create.reducer<Message>((state, action) => {
       state.tempMessage = action.payload;
       state.isMessageStreaming = true;
@@ -223,8 +221,6 @@ export const messageSlice = createSliceWithThunks({
         const token = state.auth.currentToken;
         const dialogConfig = selectCurrentDialogConfig(state);
         const currentServer = selectCurrentServer(state);
-        thunkApi.dispatch(deleteData({ id: messageId }));
-
         const deleteMessageFromList = await fetch(
           `${currentServer}${API_ENDPOINTS.PUT}/${dialogConfig.messageListId}`,
           {
@@ -239,8 +235,9 @@ export const messageSlice = createSliceWithThunks({
             }),
           },
         );
-
         console.log("deleteMessageFromList", deleteMessageFromList);
+
+        thunkApi.dispatch(deleteData({ id: messageId }));
       },
 
       {
@@ -288,7 +285,11 @@ export const messageSlice = createSliceWithThunks({
         let textContent;
         const state = thunkApi.getState();
         const config = selectCurrentLLMConfig(state);
-        const messages = selectEntitiesByIds(state, state.message.ids);
+        const originMessages = selectEntitiesByIds(state, state.message.ids);
+        const messages = filter(
+          (x) => x !== null && x !== undefined,
+          originMessages,
+        );
         const userId = selectCurrentUserId(state);
         const token = state.auth.currentToken;
         const currentDialogConfig = selectCurrentDialogConfig(state);
@@ -327,72 +328,98 @@ export const messageSlice = createSliceWithThunks({
 
           const streamChat = async (textContent) => {
             const handleStreamData = (text: string) => {
-              const lines = text.trim().split("\n");
-              for (const line of lines) {
-                // 使用正则表达式匹配 "data:" 后面的内容
-                const match = line.match(/data: (done|{.*}|)/);
+              const id = generateIdWithCustomId(userId, ulid(), {
+                isJSON: true,
+              });
+              if (config.model === "llama3") {
+                let rawJSON = {};
+                try {
+                  rawJSON = JSON.parse(text);
+                } catch (error) {
+                  console.log("json parse text", text);
+                  console.log("json parse error", error);
+                }
+                console.log("rawJSON", rawJSON);
+                const { done_reason, done } = rawJSON;
+                temp = (temp || "") + (rawJSON.message.content || "");
 
-                if (match && match[1] !== undefined) {
-                  const statusOrJson: string = match[1];
+                const message = {
+                  role: "assistant",
+                  id,
+                  content: temp,
+                };
+                console.log("message", message);
+                if (done) {
+                  thunkApi.dispatch(messageStreamEnd(message));
+                } else {
+                  thunkApi.dispatch(messageStreaming(message));
+                }
+              } else {
+                console.log("text", text);
+                const lines = text.trim().split("\n");
+                for (const line of lines) {
+                  // 使用正则表达式匹配 "data:" 后面的内容
+                  const match = line.match(/data: (done|{.*}|)/);
 
-                  if (statusOrJson === "" || statusOrJson === "done") {
-                  } else {
-                    try {
-                      const json = JSON.parse(statusOrJson);
-                      // 自然停止
-                      const finishReason: string =
-                        json.choices[0].finish_reason;
-                      if (finishReason === "stop") {
-                        const id = generateIdWithCustomId(userId, ulid(), {
-                          isJSON: true,
-                        });
-                        const message = {
-                          role: "assistant",
-                          content: temp,
-                          id,
-                          llmId: currentDialogConfig.llmId,
-                        };
-                        thunkApi.dispatch(messageStreamEnd(message));
-                        //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
-                        // const staticData = {
-                        //   dialogType: "receive",
-                        //   model: json.model,
-                        //   length: tokenCount,
-                        //   chatId: json.id,
-                        //   chatCreated: json.created,
-                        //   userId: auth.user?.userId,
-                        //   username: auth.user?.username,
-                        // };
-                        // tokenStatic(staticData, auth, writeHashData);
+                  if (match && match[1] !== undefined) {
+                    const statusOrJson: string = match[1];
 
-                        // tokenCount = 0; // 重置计数器
-                      } else if (
-                        finishReason === "length" ||
-                        finishReason === "content_filter"
-                      ) {
-                        thunkApi.dispatch(messagesReachedMax());
-                      } else if (finishReason === "function_call") {
-                        // nerver use just sign it
-                      } else {
-                        //逐渐相加
-                        temp =
-                          (temp || "") +
-                          (json.choices[0]?.delta?.content || "");
-                        const message = {
-                          role: "assistant",
-                          id: json.id,
-                          content: temp,
-                        };
-                        thunkApi.dispatch(messageStreaming(message));
+                    if (statusOrJson === "" || statusOrJson === "done") {
+                    } else {
+                      try {
+                        const json = JSON.parse(statusOrJson);
+                        // 自然停止
+                        const finishReason: string =
+                          json.choices[0].finish_reason;
+                        if (finishReason === "stop") {
+                          const message = {
+                            role: "assistant",
+                            content: temp,
+                            id,
+                            llmId: currentDialogConfig.llmId,
+                          };
+                          thunkApi.dispatch(messageStreamEnd(message));
+                          //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
+                          // const staticData = {
+                          //   dialogType: "receive",
+                          //   model: json.model,
+                          //   length: tokenCount,
+                          //   chatId: json.id,
+                          //   chatCreated: json.created,
+                          //   userId: auth.user?.userId,
+                          //   username: auth.user?.username,
+                          // };
+                          // tokenStatic(staticData, auth, writeHashData);
+
+                          // tokenCount = 0; // 重置计数器
+                        } else if (
+                          finishReason === "length" ||
+                          finishReason === "content_filter"
+                        ) {
+                          thunkApi.dispatch(messagesReachedMax());
+                        } else if (finishReason === "function_call") {
+                          // nerver use just sign it
+                        } else {
+                          //逐渐相加
+                          temp =
+                            (temp || "") +
+                            (json.choices[0]?.delta?.content || "");
+                          const message = {
+                            role: "assistant",
+                            id,
+                            content: temp,
+                          };
+                          thunkApi.dispatch(messageStreaming(message));
+                        }
+                        // if (json.choices[0]?.delta?.content) {
+                        //   tokenCount++; // 单次计数
+                        // }
+                      } catch (e) {
+                        chatWindowLogger.error(
+                          { error: e },
+                          "Error parsing JSON",
+                        );
                       }
-                      // if (json.choices[0]?.delta?.content) {
-                      //   tokenCount++; // 单次计数
-                      // }
-                    } catch (e) {
-                      chatWindowLogger.error(
-                        { error: e },
-                        "Error parsing JSON",
-                      );
                     }
                   }
                 }
@@ -514,7 +541,6 @@ export const messageSlice = createSliceWithThunks({
 export const {
   sendMessage,
   receiveMessage,
-  retry,
   messageStreamEnd,
   messageStreaming,
   messagesReachedMax,

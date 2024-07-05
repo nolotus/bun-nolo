@@ -14,9 +14,11 @@ import { chatRequest as sendMistralRequest } from "integrations/mistral/chatRequ
 import { chatRequest } from "integrations/openAI/chatRequest";
 import { chatRequest as sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
 import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest";
+import { chatRequest as sendOllamaRequest } from "integrations/ollama/chatRequest";
 
 import { pickMessages } from "../utils/pickMessages";
 import { zhipuModels } from "integrations/zhipu/models";
+import { ollamaModels } from "integrations/ollama/models";
 
 function isModelInList(modelname, modelList) {
   return modelList.hasOwnProperty(modelname);
@@ -68,6 +70,9 @@ async function processModelRequest(requestBody, modelType) {
     case "zhipu":
       response = await sendZhihuRequest(requestBody, true);
       break;
+    case "ollama":
+      response = await sendOllamaRequest(requestBody, true);
+      break;
     default:
       throw new Error(
         `processModelRequest Unknown model: ${requestBody.model}`,
@@ -93,6 +98,8 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "deepSeek");
     } else if (isModelInList(requestBody.model, zhipuModels)) {
       return await processModelRequest(requestBody, "zhipu");
+    } else if (isModelInList(requestBody.model, ollamaModels)) {
+      return await processModelRequest(requestBody, "ollama");
     } else {
       throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }
