@@ -331,7 +331,11 @@ export const messageSlice = createSliceWithThunks({
               const id = generateIdWithCustomId(userId, ulid(), {
                 isJSON: true,
               });
-              if (config.model === "llama3") {
+              if (
+                config.model === "llama3" ||
+                config.model === "qwen2" ||
+                config.model === "gemma2"
+              ) {
                 let rawJSON = {};
                 try {
                   rawJSON = JSON.parse(text);
