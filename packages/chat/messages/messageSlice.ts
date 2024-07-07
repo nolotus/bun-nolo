@@ -34,6 +34,7 @@ import {
   selectCurrentLLMConfig,
 } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
+import { extractCustomId } from "core";
 const chatWindowLogger = getLogger("ChatWindow");
 
 const createSliceWithThunks = buildCreateSlice({
@@ -84,44 +85,12 @@ export const messageSlice = createSliceWithThunks({
     ),
     messageStreamEnd: create.asyncThunk(
       async (message, thunkApi) => {
-        thunkApi.dispatch(upsertOne(message));
-        thunkApi.dispatch(addMessage(message.id));
+        const { dispatch } = thunkApi;
+        dispatch(upsertOne(message));
+        dispatch(addMessageToUI(message.id));
+        const action = await dispatch(addMessageToServer(message));
 
-        const state = thunkApi.getState();
-        const userId = selectCurrentUserId(state);
-        const token = state.auth.currentToken;
-        const dialogConfig = selectCurrentDialogConfig(state);
-        const currentServer = selectCurrentServer(state);
-
-        const fetchConfig = {
-          url: `${API_ENDPOINTS.DATABASE}/write/`,
-          method: "POST",
-          body: JSON.stringify({
-            data: { type: DataType.Message, ...message },
-            flags: { isJSON: true },
-            customId: ulid(),
-            userId,
-          }),
-        };
-        const writeMessage = await noloRequest(state, fetchConfig);
-        const saveMessage = await writeMessage.json();
-
-        const updateId = dialogConfig.messageListId;
-        const writeMessageToList = await fetch(
-          `${currentServer}${API_ENDPOINTS.PUT}/${updateId}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              id: saveMessage.id,
-            }),
-          },
-        );
-
-        return await writeMessageToList.json();
+        return action.payload;
       },
       {
         rejected: (state, action) => {
@@ -206,9 +175,64 @@ export const messageSlice = createSliceWithThunks({
       state.tempMessage = action.payload;
       state.isMessageStreaming = true;
     }),
-    addMessage: create.reducer((state, action: PayloadAction<string>) => {
+    addMessageToUI: create.reducer((state, action: PayloadAction<string>) => {
       state.ids.push(action.payload);
     }),
+    addMessageToLocal: create.reducer(
+      (state, action: PayloadAction<string>) => {
+        state.ids.push(action.payload);
+      },
+    ),
+    addMessageToServer: create.asyncThunk(
+      async (message, thunkApi) => {
+        console.log("message", message);
+        const state = thunkApi.getState();
+        const userId = selectCurrentUserId(state);
+        const customId = extractCustomId(message.id);
+        const config = {
+          url: `${API_ENDPOINTS.DATABASE}/write/`,
+          method: "POST",
+          body: JSON.stringify({
+            data: { type: DataType.Message, ...message },
+            flags: { isJSON: true },
+            customId,
+            userId,
+          }),
+        };
+        const writeMessage = await noloRequest(state, config);
+        const saveMessage = await writeMessage.json();
+        console.log("saveMessage", saveMessage);
+        const dialogConfig = selectCurrentDialogConfig(state);
+        const currentServer = selectCurrentServer(state);
+        const token = state.auth.currentToken;
+        const updateId = dialogConfig.messageListId;
+
+        const writeMessageToList = await fetch(
+          `${currentServer}${API_ENDPOINTS.PUT}/${updateId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              id: saveMessage.id,
+            }),
+          },
+        );
+        return await writeMessageToList.json();
+      },
+      {
+        rejected: (state, action) => {
+          // state.error = action.payload ?? action.error;
+          // console.log("action", action);
+        },
+        fulfilled: (state, action) => {
+          // state.tempMessage = { role: "assistant", content: "", id: ulid() };
+          // state.isMessageStreaming = false;
+        },
+      },
+    ),
     removeMessageFromUI: create.reducer(
       (state, action: PayloadAction<string>) => {
         state.ids = state.ids.filter((id) => id !== action.payload);
@@ -553,9 +577,10 @@ export const {
   startSendingMessage,
   removeMessageFromUI,
   deleteNotFound,
-  addMessage,
+  addMessageToUI,
   handleSendMessage,
   clearMessages,
+  addMessageToServer,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;
