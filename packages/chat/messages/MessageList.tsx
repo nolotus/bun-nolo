@@ -1,6 +1,6 @@
 import { useAppSelector } from "app/hooks";
 import React, { useEffect, useRef } from "react";
-import Sizes from "open-props/src/sizes";
+import OpenProps from "open-props";
 
 import { StreamingMessage } from "./StreamingMessage";
 import { MessageItem } from "./MessageItem";
@@ -26,11 +26,16 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messageList }) => {
   }, [messageList, tempMessage]);
   return (
     <div
-      className="flex  flex-grow flex-col space-y-4 overflow-y-auto break-words p-3"
+      className="break-words"
       ref={messagesEndRef}
       style={{
+        display: "flex",
+        flexDirection: "column",
         paddingRight: ChatContainerPaddingRight,
-        paddingLeft: Sizes["--size-5"],
+        paddingLeft: OpenProps.size5,
+        gap: OpenProps.size2,
+        overflow: "auto",
+        height: "100vh",
       }}
     >
       {messageList.map((id: string) => {
