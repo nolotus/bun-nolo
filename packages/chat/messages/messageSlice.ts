@@ -119,43 +119,9 @@ export const messageSlice = createSliceWithThunks({
         const dispatch = thunkApi.dispatch;
         dispatch(upsertOne(message));
         dispatch(startSendingMessage(message));
-        const state = thunkApi.getState();
-        const token = state.auth.currentToken;
-        const userId = selectCurrentUserId(state);
-        const currentServer = selectCurrentServer(state);
-        const dialogConfig = selectCurrentDialogConfig(state);
-        try {
-          if (dialogConfig.messageListId) {
-            const writeMessage = await fetch(
-              `${currentServer}${API_ENDPOINTS.DATABASE}/write/`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  data: { type: DataType.Message, ...message },
-                  flags: { isJSON: true },
-                  customId: ulid(),
-                  userId,
-                }),
-              },
-            );
 
-            const saveMessage = await writeMessage.json();
-
-            const updateId = dialogConfig.messageListId;
-
-            const actionResult = await dispatch(
-              addToList({ willAddId: saveMessage.id, updateId }),
-            );
-            return actionResult.payload;
-          }
-        } catch (error) {
-          console.log("error", error);
-          return error;
-        }
+        const actionResult = await dispatch(addMessageToServer(message));
+        return actionResult.payload;
       },
       {
         pending: () => {},
@@ -178,15 +144,11 @@ export const messageSlice = createSliceWithThunks({
     addMessageToUI: create.reducer((state, action: PayloadAction<string>) => {
       state.ids.push(action.payload);
     }),
-    addMessageToLocal: create.reducer(
-      (state, action: PayloadAction<string>) => {
-        state.ids.push(action.payload);
-      },
-    ),
     addMessageToServer: create.asyncThunk(
       async (message, thunkApi) => {
         console.log("message", message);
         const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
         const userId = selectCurrentUserId(state);
         const customId = extractCustomId(message.id);
         const config = {
@@ -203,24 +165,12 @@ export const messageSlice = createSliceWithThunks({
         const saveMessage = await writeMessage.json();
         console.log("saveMessage", saveMessage);
         const dialogConfig = selectCurrentDialogConfig(state);
-        const currentServer = selectCurrentServer(state);
-        const token = state.auth.currentToken;
         const updateId = dialogConfig.messageListId;
 
-        const writeMessageToList = await fetch(
-          `${currentServer}${API_ENDPOINTS.PUT}/${updateId}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              id: saveMessage.id,
-            }),
-          },
+        const actionResult = await dispatch(
+          addToList({ willAddId: saveMessage.id, updateId }),
         );
-        return await writeMessageToList.json();
+        return actionResult.payload;
       },
       {
         rejected: (state, action) => {
@@ -375,6 +325,7 @@ export const messageSlice = createSliceWithThunks({
                   role: "assistant",
                   id,
                   content: temp,
+                  llmId: currentDialogConfig.llmId,
                 };
                 console.log("message", message);
                 if (done) {
