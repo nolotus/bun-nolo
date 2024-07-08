@@ -7,14 +7,14 @@ export const aiApi = api.injectEndpoints({
       query: (payload) => ({
         url: `${API_ENDPOINTS.AI}/chat`,
         method: "POST",
-        body: payload, // 直接使用 payload 作为请求体
+        body: payload,
       }),
     }),
     generateImageEdit: builder.mutation({
       query: (payload) => ({
         url: `${API_ENDPOINTS.AI}/images/edits`,
         method: "POST",
-        body: payload, // 直接使用 payload 作为请求体
+        body: payload,
       }),
     }),
 
@@ -22,7 +22,7 @@ export const aiApi = api.injectEndpoints({
       query: (payload) => ({
         url: `${API_ENDPOINTS.AI}/images/variations`,
         method: "POST",
-        body: payload, // 直接使用 payload 作为请求体
+        body: payload,
       }),
     }),
 

@@ -6,10 +6,12 @@ export async function readChunks(
   reader: ReadableStreamReader<Uint8Array>,
   onStreamData: (chunk: string) => void,
 ): Promise<void> {
+  let value;
   try {
     while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
+      const result = await reader.read();
+      value = result.value;
+      if (result.done) {
         streamLogger.info("Stream is done reading");
         return;
       }
@@ -22,6 +24,10 @@ export async function readChunks(
     }
   } catch (err) {
     streamLogger.error("An error occurred while reading the stream: %j", err);
+    if (value) {
+      // 输出出错时的原始数据
+      streamLogger.error("Error occurred with stream value: %j", value);
+    }
   } finally {
     reader.releaseLock();
   }

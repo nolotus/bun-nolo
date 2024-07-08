@@ -30,7 +30,7 @@ export const Button = (props: ButtonProps) => {
 
   return (
     <button
-      className={` ${className} surface2 text2 ${width}`}
+      className={` ${className}  surface2 text2 ${width}`}
       onMouseDown={onClick}
       disabled={disabled || loading}
       type={type}

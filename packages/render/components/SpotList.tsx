@@ -22,7 +22,7 @@ export const SpotList = ({ userId }) => {
   if (isLoading) {
     return <Spinner />;
   }
-  const filteredSpots = data.filter((spot) => !spot.is_template);
+  const filteredSpots = data?.filter((spot) => !spot.is_template) || [];
 
   return (
     <div style={{ display: "flex", gap: OpenProps.size4, flexWrap: "wrap" }}>
