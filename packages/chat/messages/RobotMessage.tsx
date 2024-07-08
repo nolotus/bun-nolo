@@ -8,11 +8,13 @@ import toast from "react-hot-toast";
 import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import Sizes from "open-props/src/sizes";
+import OpenProps from "open-props";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
 import { MessageContent } from "./MessageContent";
+import { messageContentWithAvatarGap } from "./styles";
 
 const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
   const dispatch = useAppDispatch();
@@ -46,7 +48,14 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
 
   return (
     <div className="flex justify-start space-x-2">
-      <div className="flex items-start">
+      <div
+        style={{
+          display: "flex",
+          marginBottom: OpenProps.size3,
+          gap: messageContentWithAvatarGap,
+          justifyItems: "start",
+        }}
+      >
         <div>
           <Avatar name="robot" />
         </div>

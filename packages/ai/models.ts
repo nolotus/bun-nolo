@@ -5,7 +5,7 @@ import { openAIModels } from "integrations/openAI/models";
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 import { mistralModels } from "integrations/mistral/models";
 import { deepSeekModels } from "integrations/deepSeek/models";
-import { zhipuModels } from "integrations/zhipu/models";
+// import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
 
 export const allModels = {
@@ -13,7 +13,6 @@ export const allModels = {
   ...perplexityModelPrice,
   ...mistralModels,
   ...deepSeekModels,
-  ...zhipuModels,
   ...ollamaModels,
 };
 //todo add source from

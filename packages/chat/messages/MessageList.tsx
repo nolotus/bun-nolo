@@ -6,13 +6,14 @@ import { StreamingMessage } from "./StreamingMessage";
 import { MessageItem } from "./MessageItem";
 import { selectMessage } from "./selector";
 import { ChatContainerPaddingRight } from "../styles";
+
 interface MessagesDisplayProps {
-  scrollToBottom: () => void;
-  messageList;
+  messageList: string[];
 }
 
 const MessagesList: React.FC<MessagesDisplayProps> = ({ messageList }) => {
   const { tempMessage } = useAppSelector(selectMessage);
+  const { isMessageStreaming } = useAppSelector(selectMessage);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const scrollToBottom = () => {
@@ -23,14 +24,15 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messageList }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messageList, tempMessage]);
+  }, [isMessageStreaming]);
+
   return (
     <div
       className="break-words"
       ref={messagesEndRef}
       style={{
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "column-reverse",
         paddingRight: ChatContainerPaddingRight,
         paddingLeft: OpenProps.size5,
         gap: OpenProps.size2,
@@ -38,9 +40,6 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messageList }) => {
         height: "100vh",
       }}
     >
-      {messageList.map((id: string) => {
-        return <MessageItem id={id} key={id} />;
-      })}
       {tempMessage && (
         <StreamingMessage
           {...tempMessage}
@@ -48,6 +47,9 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messageList }) => {
           id={tempMessage.id}
         />
       )}
+      {messageList.map((id: string) => {
+        return <MessageItem id={id} key={id} />;
+      })}
     </div>
   );
 };

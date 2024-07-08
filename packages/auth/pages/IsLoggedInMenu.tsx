@@ -64,8 +64,10 @@ export const IsLoggedInMenu = () => {
       <div
         style={{
           ...flex,
-          width: "200px",
+          flexDirection: "row-reverse",
+          width: "120px",
           gap: OpenProps.sizeFluid1,
+          paddingRight: OpenProps.sizeFluid1,
         }}
       >
         {users.map(
@@ -83,22 +85,21 @@ export const IsLoggedInMenu = () => {
             ),
         )}
 
-        <Tooltip text={t("sign_out")} direction="n">
-          <div>
-            <Button
-              style={circleButtonStyle}
-              icon={<SignOutIcon />}
-              onClick={logout}
-            />
-          </div>
-        </Tooltip>
-
         <Tooltip text={t("settings")} direction="n">
           <div>
             <Button
               style={circleButtonStyle}
               icon={<GearIcon size={24} />}
               onClick={() => navigate("/settings")}
+            />
+          </div>
+        </Tooltip>
+        <Tooltip text={t("sign_out")} direction="n">
+          <div>
+            <Button
+              style={circleButtonStyle}
+              icon={<SignOutIcon />}
+              onClick={logout}
             />
           </div>
         </Tooltip>

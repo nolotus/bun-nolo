@@ -33,17 +33,8 @@ const ChatWindow = ({ currentDialogConfig }) => {
       );
   }, [currentDialogConfig]);
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
-    }
-  };
-
   const { isMessageStreaming } = useAppSelector(selectMessage);
 
-  let tokenCount = 0;
   const abortControllerRef = useRef(null);
 
   const onCancel = () => {
@@ -52,8 +43,6 @@ const ChatWindow = ({ currentDialogConfig }) => {
       abortControllerRef.current = null;
     }
   };
-
-  //only handle text with stream
 
   const userCost = useAppSelector(selectCostByUserId);
   // const allowSend = Number(userCost.totalCost) < 2;
@@ -67,12 +56,7 @@ const ChatWindow = ({ currentDialogConfig }) => {
     <div className="flex w-full flex-col">
       {loading && <Spinner size={"large"} />}
       {messageList?.length === 0 && <div>啥也没</div>}
-      {messageList && (
-        <MessagesList
-          scrollToBottom={scrollToBottom}
-          messageList={messageList}
-        />
-      )}
+      {messageList && <MessagesList messageList={messageList} />}
 
       {allowSend ? (
         <div className="flex-grow">

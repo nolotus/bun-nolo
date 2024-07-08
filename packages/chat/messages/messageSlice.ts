@@ -53,7 +53,7 @@ const initialState: MessageSliceState = {
 };
 export const messageSlice = createSliceWithThunks({
   name: "message",
-  initialState,
+  initialState: initialState as MessageSliceState,
   reducers: (create) => ({
     initMessages: create.asyncThunk(
       async (args, thunkApi) => {
