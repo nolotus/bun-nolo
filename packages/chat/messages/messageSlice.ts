@@ -3,6 +3,8 @@ import {
   buildCreateSlice,
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
+import { extractCustomId } from "core";
+
 import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { createPromotMessage } from "ai/utils/createPromotMessage";
@@ -20,10 +22,11 @@ import {
   deleteData,
   read,
   selectEntitiesByIds,
+  setOne,
   upsertOne,
 } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
-import { filter } from "rambda";
+import { filter, reverse } from "rambda";
 
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
@@ -34,7 +37,7 @@ import {
   selectCurrentLLMConfig,
 } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
-import { extractCustomId } from "core";
+
 const chatWindowLogger = getLogger("ChatWindow");
 
 const createSliceWithThunks = buildCreateSlice({
@@ -46,10 +49,10 @@ const initialState: MessageSliceState = {
   ids: null,
   isStopped: false,
   isMessageStreaming: false,
-  tempMessage: null,
   requestFailed: false,
   messageLoading: false,
   messageListFailed: false,
+  streamMessages: [],
 };
 export const messageSlice = createSliceWithThunks({
   name: "message",
@@ -78,75 +81,63 @@ export const messageSlice = createSliceWithThunks({
         },
         fulfilled: (state, action) => {
           state.messageListFailed = false;
-          state.ids = action.payload.array;
+          state.ids = reverse(action.payload.array);
           state.messageLoading = false;
         },
       },
     ),
     messageStreamEnd: create.asyncThunk(
-      async (message, thunkApi) => {
+      async ({ id, content, llmId }, thunkApi) => {
         const { dispatch } = thunkApi;
-        dispatch(upsertOne(message));
-        dispatch(addMessageToUI(message.id));
-        const action = await dispatch(addMessageToServer(message));
-
-        return action.payload;
+        const message = {
+          id,
+          content,
+          llmId,
+        };
+        const action = await dispatch(addAIMessage(message));
+        const { array } = action.payload;
+        return { array, id };
       },
       {
-        rejected: (state, action) => {
-          // state.error = action.payload ?? action.error;
-          console.log("action", action);
-        },
+        rejected: (state, action) => {},
         fulfilled: (state, action) => {
-          state.tempMessage = { role: "assistant", content: "", id: ulid() };
+          const { id, array } = action.payload;
           state.isMessageStreaming = false;
+          state.ids = reverse(array);
+
+          state.streamMessages = filter(
+            (msg) => msg.id !== id,
+            state.streamMessages,
+          );
         },
       },
     ),
     startSendingMessage: create.reducer((state, action) => {
-      const message = action.payload;
-      state.requestFailed = false;
-      state.ids.push(message.id);
-      state.tempMessage = {
-        role: "assistant",
-        content: "loading",
-        id: ulid(),
-      };
+      //should change to message
       state.isMessageStreaming = true;
     }),
-    sendMessage: create.asyncThunk(
-      async (message, thunkApi) => {
-        const dispatch = thunkApi.dispatch;
-        dispatch(upsertOne(message));
-        dispatch(startSendingMessage(message));
-
-        const actionResult = await dispatch(addMessageToServer(message));
-        return actionResult.payload;
-      },
-      {
-        pending: () => {},
-        rejected: (state, action) => {},
-        fulfilled: (state, action) => {
-          state.ids = action.payload.array;
-        },
-      },
-    ),
-    //todo
     receiveMessage: create.reducer((state, action) => {
-      state.ids.push(action.payload.id);
-      state.tempMessage = null;
+      state.ids.unshift(action.payload.id);
     }),
 
     messageStreaming: create.reducer<Message>((state, action) => {
-      state.tempMessage = action.payload;
-      state.isMessageStreaming = true;
+      const message = action.payload;
+      const index = state.streamMessages.findIndex(
+        (msg) => msg.id === message.id,
+      );
+      if (index !== -1) {
+        state.streamMessages[index] = message;
+      } else {
+        state.streamMessages.unshift(message);
+      }
     }),
     addMessageToUI: create.reducer((state, action: PayloadAction<string>) => {
-      state.ids.push(action.payload);
+      if (!state.ids.includes(action.payload)) {
+        state.ids.unshift(action.payload);
+      }
     }),
     addMessageToServer: create.asyncThunk(
       async (message, thunkApi) => {
-        console.log("message", message);
         const state = thunkApi.getState();
         const dispatch = thunkApi.dispatch;
         const userId = selectCurrentUserId(state);
@@ -178,8 +169,8 @@ export const messageSlice = createSliceWithThunks({
           // console.log("action", action);
         },
         fulfilled: (state, action) => {
-          // state.tempMessage = { role: "assistant", content: "", id: ulid() };
-          // state.isMessageStreaming = false;
+          state.isMessageStreaming = false;
+          state.ids = reverse(action.payload.array);
         },
       },
     ),
@@ -258,183 +249,157 @@ export const messageSlice = createSliceWithThunks({
       async ({ content, abortControllerRef }, thunkApi) => {
         let textContent;
         const state = thunkApi.getState();
-        const config = selectCurrentLLMConfig(state);
-        const originMessages = selectEntitiesByIds(state, state.message.ids);
-        const messages = filter(
-          (x) => x !== null && x !== undefined,
-          originMessages,
-        );
-        const userId = selectCurrentUserId(state);
-        const token = state.auth.currentToken;
-        const currentDialogConfig = selectCurrentDialogConfig(state);
-        const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
+        const dispatch = thunkApi.dispatch;
 
         if (typeof content === "string") {
           textContent = content;
         }
-        const message = {
-          id,
-          role: "user",
-          content,
-          belongs: [currentDialogConfig.messageListId],
-          userId,
-        };
+        thunkApi.dispatch(addUserMessage({ content }));
+        // after addUserMessage maybe multi agent
+        const originMessages = selectEntitiesByIds(state, state.message.ids);
+        const messages = reverse(
+          filter((x) => x !== null && x !== undefined, originMessages),
+        );
+        console.log("messages", messages);
+        const llmConfig = selectCurrentLLMConfig(state);
+        const llmId = llmConfig.id;
 
-        thunkApi.dispatch(sendMessage(message));
-
-        const mode = getModefromContent(textContent, message);
+        const mode = getModefromContent(textContent, content);
         const context = await getContextFromMode(mode, textContent);
         if (mode === "stream") {
           //   const staticData = {
           //     dialogType: "send",
-          //     model: currentDialogConfig?.model,
+          //     model: config?.model,
           //     length: newMessage.length,
           //     userId: auth?.user?.userId,
           //     username: auth?.user?.username,
           //     date: new Date(),
           //   };
           //   tokenStatic(staticData, auth, writeHashData);
-          if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-          }
-          abortControllerRef.current = new AbortController();
+
           let temp: string;
 
-          const streamChat = async (textContent) => {
-            const handleStreamData = (text: string) => {
-              const id = generateIdWithCustomId(userId, ulid(), {
-                isJSON: true,
-              });
-              if (
-                config.model === "llama3" ||
-                config.model === "qwen2" ||
-                config.model === "gemma2"
-              ) {
-                let rawJSON = {};
-                try {
-                  rawJSON = JSON.parse(text);
-                } catch (error) {
-                  console.log("json parse text", text);
-                  console.log("json parse error", error);
-                }
-                console.log("rawJSON", rawJSON);
-                const { done_reason, done } = rawJSON;
-                temp = (temp || "") + (rawJSON.message.content || "");
+          const streamChat = async (textContent: string) => {
+            try {
+              const action = await dispatch(
+                streamRequest({
+                  textContent,
+                  messages,
+                  llmConfig,
+                  abortControllerRef,
+                }),
+              );
+              const { reader, id } = action.payload;
+              const handleStreamData = async (id: string, text: string) => {
+                //both
+                // dispatch(startSendingMessage());
 
-                const message = {
-                  role: "assistant",
-                  id,
-                  content: temp,
-                  llmId: currentDialogConfig.llmId,
-                };
-                console.log("message", message);
-                if (done) {
-                  thunkApi.dispatch(messageStreamEnd(message));
+                if (
+                  llmConfig.model === "llama3" ||
+                  llmConfig.model === "qwen2" ||
+                  llmConfig.model === "gemma2"
+                ) {
+                  let rawJSON = {};
+                  try {
+                    rawJSON = JSON.parse(text);
+                  } catch (error) {
+                    console.log("json parse text", text);
+                    console.log("json parse error", error);
+                  }
+                  console.log("rawJSON", rawJSON);
+                  const { done_reason, done } = rawJSON;
+                  temp = (temp || "") + (rawJSON.message.content || "");
+                  console.log("llmId", llmId);
+
+                  if (done) {
+                    thunkApi.dispatch(
+                      messageStreamEnd({
+                        id,
+                        content: temp,
+                        llmId,
+                      }),
+                    );
+                  } else {
+                    const message = {
+                      role: "assistant",
+                      id,
+                      content: temp,
+                      llmId,
+                    };
+                    thunkApi.dispatch(setOne(message));
+                    thunkApi.dispatch(messageStreaming(message));
+                  }
                 } else {
-                  thunkApi.dispatch(messageStreaming(message));
-                }
-              } else {
-                console.log("text", text);
-                const lines = text.trim().split("\n");
-                for (const line of lines) {
-                  // 使用正则表达式匹配 "data:" 后面的内容
-                  const match = line.match(/data: (done|{.*}|)/);
+                  const lines = text.trim().split("\n");
+                  for (const line of lines) {
+                    // 使用正则表达式匹配 "data:" 后面的内容
+                    const match = line.match(/data: (done|{.*}|)/);
 
-                  if (match && match[1] !== undefined) {
-                    const statusOrJson: string = match[1];
+                    if (match && match[1] !== undefined) {
+                      const statusOrJson: string = match[1];
+                      if (statusOrJson === "" || statusOrJson === "done") {
+                      } else {
+                        try {
+                          const json = JSON.parse(statusOrJson);
+                          const finishReason: string =
+                            json.choices[0].finish_reason;
+                          if (finishReason === "stop") {
+                            const message = {
+                              content: temp,
+                              id,
+                              llmId,
+                            };
+                            console.log("finishReason llmId", llmId);
 
-                    if (statusOrJson === "" || statusOrJson === "done") {
-                    } else {
-                      try {
-                        const json = JSON.parse(statusOrJson);
-                        // 自然停止
-                        const finishReason: string =
-                          json.choices[0].finish_reason;
-                        if (finishReason === "stop") {
-                          const message = {
-                            role: "assistant",
-                            content: temp,
-                            id,
-                            llmId: currentDialogConfig.llmId,
-                          };
-                          thunkApi.dispatch(messageStreamEnd(message));
-                          //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
-                          // const staticData = {
-                          //   dialogType: "receive",
-                          //   model: json.model,
-                          //   length: tokenCount,
-                          //   chatId: json.id,
-                          //   chatCreated: json.created,
-                          //   userId: auth.user?.userId,
-                          //   username: auth.user?.username,
-                          // };
-                          // tokenStatic(staticData, auth, writeHashData);
+                            thunkApi.dispatch(messageStreamEnd(message));
+                            //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
+                            // const staticData = {
+                            //   dialogType: "receive",
+                            //   model: json.model,
+                            //   length: tokenCount,
+                            //   chatId: json.id,
+                            //   chatCreated: json.created,
+                            //   userId: auth.user?.userId,
+                            //   username: auth.user?.username,
+                            // };
+                            // tokenStatic(staticData, auth, writeHashData);
 
-                          // tokenCount = 0; // 重置计数器
-                        } else if (
-                          finishReason === "length" ||
-                          finishReason === "content_filter"
-                        ) {
-                          thunkApi.dispatch(messagesReachedMax());
-                        } else if (finishReason === "function_call") {
-                          // nerver use just sign it
-                        } else {
-                          //逐渐相加
-                          temp =
-                            (temp || "") +
-                            (json.choices[0]?.delta?.content || "");
-                          const message = {
-                            role: "assistant",
-                            id,
-                            content: temp,
-                          };
-                          thunkApi.dispatch(messageStreaming(message));
+                            // tokenCount = 0; // 重置计数器
+                          } else if (
+                            finishReason === "length" ||
+                            finishReason === "content_filter"
+                          ) {
+                            thunkApi.dispatch(messagesReachedMax());
+                          } else if (finishReason === "function_call") {
+                            // nerver use just sign it
+                          } else {
+                            temp =
+                              (temp || "") +
+                              (json.choices[0]?.delta?.content || "");
+                            const message = {
+                              role: "assistant",
+                              id,
+                              content: temp,
+                              llmId,
+                            };
+                            thunkApi.dispatch(setOne(message));
+                            thunkApi.dispatch(messageStreaming(message));
+                          }
+                          // if (json.choices[0]?.delta?.content) {
+                          //   tokenCount++; // 单次计数
+                          // }
+                        } catch (e) {
+                          chatWindowLogger.error(
+                            { error: e },
+                            "Error parsing JSON",
+                          );
                         }
-                        // if (json.choices[0]?.delta?.content) {
-                        //   tokenCount++; // 单次计数
-                        // }
-                      } catch (e) {
-                        chatWindowLogger.error(
-                          { error: e },
-                          "Error parsing JSON",
-                        );
                       }
                     }
                   }
                 }
-              }
-            };
-
-            const currentServer = selectCurrentServer(state);
-            const requestBody = createStreamRequestBody(
-              {
-                ...config,
-                responseLanguage: navigator.language,
-              },
-              textContent,
-              messages,
-            );
-
-            try {
-              const response = await chatStreamRequest({
-                currentServer,
-                requestBody,
-                abortControllerRef,
-                token,
-              });
-
-              if (!response.ok) {
-                // 处理错误
-                return {
-                  error: {
-                    status: response.status,
-                    data: await response.text(),
-                  },
-                };
-              }
-
-              const reader = response.body.getReader();
-              await readChunks(reader, handleStreamData);
+              };
+              await readChunks({ reader, id }, handleStreamData);
             } catch (error) {
               // 处理错误
               return { error: { status: "FETCH_ERROR", data: error.message } };
@@ -505,6 +470,7 @@ export const messageSlice = createSliceWithThunks({
       {
         rejected: (state, action) => {
           console.log("action", action);
+          state.isMessageStreaming = false;
         },
         fulfilled: (state, action) => {
           state.isMessageStreaming = false;
@@ -514,6 +480,124 @@ export const messageSlice = createSliceWithThunks({
     clearMessages: create.reducer((state, action) => {
       state.ids = null;
     }),
+    addUserMessage: create.asyncThunk(
+      async ({ content, isSaveToServer = true }, thunkApi) => {
+        const state = thunkApi.getState();
+
+        const userId = selectCurrentUserId(state);
+
+        const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
+
+        const dispatch = thunkApi.dispatch;
+
+        const currentDialogConfig = selectCurrentDialogConfig(state);
+
+        const message = {
+          id,
+          role: "user",
+          content,
+          belongs: [currentDialogConfig.messageListId],
+          userId,
+        };
+        dispatch(upsertOne(message));
+        dispatch(addMessageToUI(message.id));
+        if (isSaveToServer) {
+          const actionResult = await dispatch(addMessageToServer(message));
+          return actionResult.payload;
+        }
+      },
+      {
+        pending: () => {},
+        rejected: (state, action) => {},
+        fulfilled: (state, action) => {
+          if (action.payload) {
+            state.ids = reverse(action.payload.array);
+          }
+        },
+      },
+    ),
+    addAIMessage: create.asyncThunk(
+      async ({ content, id, isSaveToServer = true, llmId }, thunkApi) => {
+        const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
+
+        const currentDialogConfig = selectCurrentDialogConfig(state);
+
+        const message = {
+          role: "assistant",
+          id,
+          content,
+          belongs: [currentDialogConfig.messageListId],
+          llmId,
+        };
+        dispatch(upsertOne(message));
+        dispatch(addMessageToUI(message.id));
+        if (isSaveToServer) {
+          const actionResult = await dispatch(addMessageToServer(message));
+          return actionResult.payload;
+        }
+      },
+      {
+        pending: () => {},
+        rejected: (state, action) => {},
+        fulfilled: (state, action) => {
+          if (action.payload) {
+            state.ids = reverse(action.payload.array);
+          }
+        },
+      },
+    ),
+
+    streamRequest: create.asyncThunk(
+      async (
+        { textContent, messages, llmConfig, abortControllerRef },
+        thunkApi,
+      ) => {
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+        const state = thunkApi.getState();
+        const userId = selectCurrentUserId(state);
+        const llmId = llmConfig.id;
+        const id = generateIdWithCustomId(userId, ulid(), {
+          isJSON: true,
+        });
+
+        const dispatch = thunkApi.dispatch;
+        console.log("xxx", llmId);
+        await dispatch(
+          addAIMessage({
+            content: "loading ...",
+            id,
+            isSaveToServer: false,
+            llmId,
+          }),
+        );
+        const currentServer = selectCurrentServer(state);
+        const token = state.auth.currentToken;
+
+        const requestBody = createStreamRequestBody(
+          {
+            ...llmConfig,
+            responseLanguage: navigator.language,
+          },
+          textContent,
+          messages,
+        );
+        console.log("requestBody", requestBody);
+
+        const response = await chatStreamRequest({
+          currentServer,
+          requestBody,
+          abortControllerRef,
+          token,
+        });
+        const reader = response.body.getReader();
+        return { reader, id };
+      },
+      {},
+    ),
   }),
 });
 
@@ -532,6 +616,9 @@ export const {
   handleSendMessage,
   clearMessages,
   addMessageToServer,
+  addAIMessage,
+  addUserMessage,
+  streamRequest,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

@@ -15,7 +15,19 @@ import { useAudioPlayer } from "../hooks/useAudioPlayer";
 
 export const SelfMessage: React.FC<Message> = ({ content, id }) => {
   const dispatch = useAppDispatch();
-  const { audioSrc, handlePlayClick } = useAudioPlayer(content[0].text);
+  if (!content) {
+    return (
+      <div>
+        empty{" "}
+        <IconButton
+          icon={TrashIcon}
+          onClick={() => dispatch(deleteMessage(id))}
+        />
+      </div>
+    );
+  }
+  const { audioSrc, handlePlayClick } = useAudioPlayer(content[0]?.text);
+
   return (
     <div
       className="justify-end"
@@ -47,7 +59,7 @@ export const SelfMessage: React.FC<Message> = ({ content, id }) => {
           {typeof content === "string" ? (
             <div style={{ whiteSpace: "preserve" }}>{content} </div>
           ) : (
-            content.map((item) => {
+            content?.map((item) => {
               if (item.type === "text") {
                 return <MessageText key={item.text} content={item.text} />;
               }

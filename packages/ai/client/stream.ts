@@ -3,8 +3,8 @@ import { getLogger } from "utils/logger";
 const streamLogger = getLogger("stream");
 
 export async function readChunks(
-  reader: ReadableStreamReader<Uint8Array>,
-  onStreamData: (chunk: string) => void,
+  { reader, id },
+  onStreamData: (id: string, chunk: string) => void,
 ): Promise<void> {
   let value;
   try {
@@ -16,10 +16,9 @@ export async function readChunks(
         return;
       }
       if (value) {
-        streamLogger.info("Received stream value", value);
         const text = new TextDecoder("utf-8").decode(value);
-        streamLogger.info("Received stream", text);
-        onStreamData(text);
+        streamLogger.info("Received stream x", text);
+        onStreamData(id, text);
       }
     }
   } catch (err) {

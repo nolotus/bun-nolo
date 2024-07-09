@@ -9,9 +9,9 @@ export interface MessageSliceState {
   ids: string[] | null;
   isStopped: boolean;
   isMessageStreaming: boolean;
-  tempMessage: Message | null;
   requestFailed: boolean;
   messageListFailed: boolean;
   messageLoading: boolean;
+  streamMessages: Message[];
 }
 export type MessageRole = "user" | "system" | "assistant";

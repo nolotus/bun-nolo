@@ -9,7 +9,9 @@ import RobotMessage from "./RobotMessage";
 import { UserMessage } from "./UserMessage";
 import { SelfMessage } from "./SelfMessage";
 
-export const MessageItem = ({ id }) => {
+export const MessageItem = ({ message }) => {
+  const { id } = message;
+  const streamContent = message.content;
   const dispatch = useDispatch();
   const { data, isLoading, error } = useFetchData(id);
   const currentUserId = useAppSelector(selectCurrentUserId);
@@ -21,8 +23,8 @@ export const MessageItem = ({ id }) => {
     return <div>loading</div>;
   } else if (data) {
     const isSelf = currentUserId === data.userId;
-
-    const { content, image } = data;
+    const { image } = data;
+    let content = streamContent ? streamContent : data.content;
     if (isSelf) {
       return <SelfMessage content={content} id={id} />;
     } else if (data.llmId) {

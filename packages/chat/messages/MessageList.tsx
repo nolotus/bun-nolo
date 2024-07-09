@@ -2,17 +2,15 @@ import { useAppSelector } from "app/hooks";
 import React, { useEffect, useRef } from "react";
 import OpenProps from "open-props";
 
-import { StreamingMessage } from "./StreamingMessage";
 import { MessageItem } from "./MessageItem";
 import { selectMessage } from "./selector";
 import { ChatContainerPaddingRight } from "../styles";
 
 interface MessagesDisplayProps {
-  messageList: string[];
+  messages;
 }
 
-const MessagesList: React.FC<MessagesDisplayProps> = ({ messageList }) => {
-  const { tempMessage } = useAppSelector(selectMessage);
+const MessagesList: React.FC<MessagesDisplayProps> = ({ messages }) => {
   const { isMessageStreaming } = useAppSelector(selectMessage);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -40,15 +38,8 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messageList }) => {
         height: "100vh",
       }}
     >
-      {tempMessage && (
-        <StreamingMessage
-          {...tempMessage}
-          key={tempMessage.id}
-          id={tempMessage.id}
-        />
-      )}
-      {messageList.map((id: string) => {
-        return <MessageItem id={id} key={id} />;
+      {messages.map((message) => {
+        return <MessageItem key={message.id} message={message} />;
       })}
     </div>
   );

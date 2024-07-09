@@ -7,8 +7,8 @@ import MessageInput from "./messages/MessageInput";
 import { initMessages, handleSendMessage } from "./messages/messageSlice";
 import {
   selectMessageFailed,
-  selectMessageList,
   selectMessage,
+  selectMergedMessages,
 } from "./messages/selector";
 
 import { initLLMConfig } from "chat/dialog/dialogSlice";
@@ -50,13 +50,13 @@ const ChatWindow = ({ currentDialogConfig }) => {
   const onSendMessage = (content) => {
     dispatch(handleSendMessage({ content, abortControllerRef }));
   };
-  const messageList = useAppSelector(selectMessageList);
+  const messages = useAppSelector(selectMergedMessages);
 
   return (
     <div className="flex w-full flex-col">
       {loading && <Spinner size={"large"} />}
-      {messageList?.length === 0 && <div>啥也没</div>}
-      {messageList && <MessagesList messageList={messageList} />}
+      {messages?.length === 0 && <div>啥也没</div>}
+      {messages && <MessagesList messages={messages} />}
 
       {allowSend ? (
         <div className="flex-grow">

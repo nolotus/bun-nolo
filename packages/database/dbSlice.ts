@@ -323,6 +323,7 @@ const dbSlice = createSliceWithThunks({
 
     updateOne: dbAdapter.updateOne,
     addOne: dbAdapter.addOne,
+    setOne: dbAdapter.setOne,
     addToList: create.asyncThunk(async ({ willAddId, updateId }, thunkApi) => {
       const state = thunkApi.getState();
       const currentServer = selectCurrentServer(state);
@@ -356,6 +357,7 @@ export const {
   removeOne,
   upsertOne,
   updateOne,
+  setOne,
 
   mergeMany,
   deleteData,
