@@ -24,7 +24,7 @@ const Home = () => {
         <h1>嘿，你好，我是Nolotus！</h1>
         <p>
           我在这里用AI <DependabotIcon size="medium" />
-          管理我的一切,从日常的Todos，财务，到旅途拍摄的美景。
+          管理我的一切,从日常的Todo，财务，到旅途拍摄的美景。
         </p>
         <ChatAIList queryUserId={userId ? userId : nolotusId} limit={9} />
         <h3>
