@@ -1,33 +1,27 @@
-import { useAppSelector } from "app/hooks";
 import React, { useEffect, useRef } from "react";
-import OpenProps from "open-props";
-
+import { useAppSelector } from "app/hooks";
 import { MessageItem } from "./MessageItem";
 import { selectMessage } from "./selector";
 import { ChatContainerPaddingRight } from "../styles";
+import OpenProps from "open-props";
 
 interface MessagesDisplayProps {
-  messages;
+  messages: Array<{ id: string; content?: string }>;
 }
 
 const MessagesList: React.FC<MessagesDisplayProps> = ({ messages }) => {
-  const { isMessageStreaming } = useAppSelector(selectMessage);
-
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
-    }
-  };
+  const isMessageStreaming = useAppSelector(selectMessage).isMessageStreaming;
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [isMessageStreaming]);
+    if (isMessageStreaming && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [isMessageStreaming, messages]);
 
   return (
     <div
-      className="break-words"
-      ref={messagesEndRef}
+      ref={containerRef}
       style={{
         display: "flex",
         flexDirection: "column-reverse",
@@ -36,13 +30,14 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messages }) => {
         gap: OpenProps.size2,
         overflow: "auto",
         height: "100vh",
+        position: "relative",
       }}
     >
-      {messages.map((message) => {
-        return <MessageItem key={message.id} message={message} />;
-      })}
+      {messages.map((message) => (
+        <MessageItem key={message.id} message={message} />
+      ))}
     </div>
   );
 };
 
-export default MessagesList;
+export default React.memo(MessagesList);
