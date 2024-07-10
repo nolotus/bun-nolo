@@ -7,6 +7,7 @@ import { mistralModels } from "integrations/mistral/models";
 import { deepSeekModels } from "integrations/deepSeek/models";
 // import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
+import { claudeModels } from "integrations/anthropic/models";
 
 export const allModels = {
   ...openAIModels,
@@ -14,7 +15,9 @@ export const allModels = {
   ...mistralModels,
   ...deepSeekModels,
   ...ollamaModels,
+  ...claudeModels,
 };
+
 //todo add source from
 export const modelEnum = Object.keys(allModels).reduce(
   (acc, key) => {

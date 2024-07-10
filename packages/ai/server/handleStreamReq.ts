@@ -8,17 +8,18 @@ import { openAIModels } from "integrations/openAI/models";
 import { mistralModels } from "integrations/mistral/models";
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 import { deepSeekModels } from "integrations/deepSeek/models";
-
+import { zhipuModels } from "integrations/zhipu/models";
+import { ollamaModels } from "integrations/ollama/models";
+import { claudeModels } from "integrations/anthropic/models";
 import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
 import { chatRequest as sendMistralRequest } from "integrations/mistral/chatRequest";
 import { chatRequest } from "integrations/openAI/chatRequest";
 import { chatRequest as sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
 import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest";
 import { chatRequest as sendOllamaRequest } from "integrations/ollama/chatRequest";
+import { chatRequest as sendAnthropicRequest } from "integrations/anthropic/chatRequest";
 
 import { pickMessages } from "../utils/pickMessages";
-import { zhipuModels } from "integrations/zhipu/models";
-import { ollamaModels } from "integrations/ollama/models";
 
 function isModelInList(modelname, modelList) {
   return modelList.hasOwnProperty(modelname);
@@ -73,6 +74,9 @@ async function processModelRequest(requestBody, modelType) {
     case "ollama":
       response = await sendOllamaRequest(requestBody, true);
       break;
+    case "claude":
+      response = await sendAnthropicRequest(requestBody, true);
+      break;
     default:
       throw new Error(
         `processModelRequest Unknown model: ${requestBody.model}`,
@@ -100,6 +104,8 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "zhipu");
     } else if (isModelInList(requestBody.model, ollamaModels)) {
       return await processModelRequest(requestBody, "ollama");
+    } else if (isModelInList(requestBody.model, claudeModels)) {
+      return await processModelRequest(requestBody, "claude");
     } else {
       throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }
