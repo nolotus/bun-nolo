@@ -49,7 +49,6 @@ const initialState: MessageSliceState = {
   messageListId: null,
   ids: null,
   isStopped: false,
-  isMessageStreaming: false,
   requestFailed: false,
   messageLoading: false,
   messageListFailed: false,
@@ -103,9 +102,7 @@ export const messageSlice = createSliceWithThunks({
         rejected: (state, action) => {},
         fulfilled: (state, action) => {
           const { id, array } = action.payload;
-          state.isMessageStreaming = false;
           state.ids = reverse(array);
-
           state.streamMessages = filter(
             (msg) => msg.id !== id,
             state.streamMessages,
@@ -113,10 +110,6 @@ export const messageSlice = createSliceWithThunks({
         },
       },
     ),
-    startSendingMessage: create.reducer((state, action) => {
-      //should change to message
-      state.isMessageStreaming = true;
-    }),
     receiveMessage: create.reducer((state, action) => {
       state.ids.unshift(action.payload.id);
     }),
@@ -170,7 +163,6 @@ export const messageSlice = createSliceWithThunks({
           // console.log("action", action);
         },
         fulfilled: (state, action) => {
-          state.isMessageStreaming = false;
           state.ids = reverse(action.payload.array);
         },
       },
@@ -247,7 +239,7 @@ export const messageSlice = createSliceWithThunks({
       state.isStopped = true;
     }),
     handleSendMessage: create.asyncThunk(
-      async ({ content, abortControllerRef }, thunkApi) => {
+      async ({ content }, thunkApi) => {
         let textContent;
         const state = thunkApi.getState();
         const dispatch = thunkApi.dispatch;
@@ -276,19 +268,19 @@ export const messageSlice = createSliceWithThunks({
 
           const streamChat = async (textContent: string) => {
             let temp: string;
-
+            const controller = new AbortController();
+            const signal = controller.signal;
             try {
               const action = await dispatch(
                 streamRequest({
                   textContent,
                   messages,
                   llmConfig,
-                  abortControllerRef,
+                  signal,
                 }),
               );
               const { reader, id } = action.payload;
               const handleStreamData = async (id: string, text: string) => {
-                dispatch(startSendingMessage());
                 if (
                   llmConfig.model === "llama3" ||
                   llmConfig.model === "qwen2" ||
@@ -322,7 +314,9 @@ export const messageSlice = createSliceWithThunks({
                       llmId,
                     };
                     thunkApi.dispatch(setOne(message));
-                    thunkApi.dispatch(messageStreaming(message));
+                    thunkApi.dispatch(
+                      messageStreaming({ ...message, controller }),
+                    );
                   }
                 } else {
                   const lines = text.trim().split("\n");
@@ -378,7 +372,9 @@ export const messageSlice = createSliceWithThunks({
                               llmId,
                             };
                             thunkApi.dispatch(setOne(message));
-                            thunkApi.dispatch(messageStreaming(message));
+                            thunkApi.dispatch(
+                              messageStreaming({ ...message, controller }),
+                            );
                           }
                           // if (json.choices[0]?.delta?.content) {
                           //   tokenCount++; // 单次计数
@@ -465,11 +461,8 @@ export const messageSlice = createSliceWithThunks({
       {
         rejected: (state, action) => {
           console.log("action", action);
-          state.isMessageStreaming = false;
         },
-        fulfilled: (state, action) => {
-          state.isMessageStreaming = false;
-        },
+        fulfilled: (state, action) => {},
       },
     ),
     clearMessages: create.reducer((state, action) => {
@@ -544,14 +537,7 @@ export const messageSlice = createSliceWithThunks({
     ),
 
     streamRequest: create.asyncThunk(
-      async (
-        { textContent, messages, llmConfig, abortControllerRef },
-        thunkApi,
-      ) => {
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-        }
-        abortControllerRef.current = new AbortController();
+      async ({ textContent, messages, llmConfig, signal }, thunkApi) => {
         const state = thunkApi.getState();
         const userId = selectCurrentUserId(state);
         const llmId = llmConfig.id;
@@ -560,7 +546,6 @@ export const messageSlice = createSliceWithThunks({
         });
 
         const dispatch = thunkApi.dispatch;
-        console.log("xxx", llmId);
         await dispatch(
           addAIMessage({
             content: "loading ...",
@@ -580,12 +565,11 @@ export const messageSlice = createSliceWithThunks({
           textContent,
           messages,
         );
-        console.log("requestBody", requestBody);
 
         const response = await chatStreamRequest({
           currentServer,
           requestBody,
-          abortControllerRef,
+          signal,
           token,
         });
         const reader = response.body.getReader();
@@ -604,7 +588,6 @@ export const {
   messagesReachedMax,
   deleteMessage,
   initMessages,
-  startSendingMessage,
   removeMessageFromUI,
   deleteNotFound,
   addMessageToUI,

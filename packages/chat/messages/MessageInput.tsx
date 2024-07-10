@@ -15,15 +15,9 @@ import { ChatContainerPaddingRight } from "../styles";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
-  isLoading: boolean;
-  onCancel: () => void;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({
-  onSendMessage,
-  isLoading,
-  onCancel,
-}) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const { t } = useTranslation();
   const auth = useAuth();
   const [textContent, setTextContent] = useState("");
@@ -212,11 +206,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
             onRemove={(index: number) => handleRemoveImage(index)}
           />
         </div>
-        <ActionButton
-          isSending={isLoading}
-          onSend={beforeSend}
-          onCancel={onCancel}
-        />
+        <ActionButton onSend={beforeSend} />
       </div>
     </div>
   );

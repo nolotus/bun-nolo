@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useAppSelector } from "app/hooks";
 import { MessageItem } from "./MessageItem";
-import { selectMessage } from "./selector";
+import { selectStreamMessages } from "./selector";
 import { ChatContainerPaddingRight } from "../styles";
 import OpenProps from "open-props";
 
@@ -10,14 +10,13 @@ interface MessagesDisplayProps {
 }
 
 const MessagesList: React.FC<MessagesDisplayProps> = ({ messages }) => {
-  const isMessageStreaming = useAppSelector(selectMessage).isMessageStreaming;
   const containerRef = useRef<HTMLDivElement | null>(null);
-
+  const streamingMessages = useAppSelector(selectStreamMessages);
   useEffect(() => {
-    if (isMessageStreaming && containerRef.current) {
+    if (streamingMessages && containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [isMessageStreaming, messages]);
+  }, [streamingMessages, messages]);
 
   return (
     <div

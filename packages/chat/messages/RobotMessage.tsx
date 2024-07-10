@@ -1,8 +1,13 @@
-import { UnmuteIcon, TrashIcon, DuplicateIcon } from "@primer/octicons-react";
+import {
+  UnmuteIcon,
+  TrashIcon,
+  DuplicateIcon,
+  SquareIcon,
+  SquareFillIcon,
+} from "@primer/octicons-react";
 import { useAuth } from "auth/useAuth";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { Avatar } from "render/ui";
-import IconButton from "render/ui/IconButton";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "app/hooks";
@@ -15,20 +20,31 @@ import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
 import { MessageContent } from "./MessageContent";
 import { messageContentWithAvatarGap } from "./styles";
+import IconButton from "render/ui/IconButton";
 
-const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
+const RobotMessage: React.FC<Message> = ({
+  id,
+  content,
+  image,
+  controller,
+}) => {
   const dispatch = useAppDispatch();
-
   const { audioSrc, handlePlayClick } = useAudioPlayer(content);
   const auth = useAuth();
-  const handleSaveContent = async () => {
+  const [hovered, setHovered] = useState(false);
+
+  const saveContent = async (content: string) => {
+    const writeData = {
+      data: { content, type: "page" },
+      flags: { isJSON: true },
+      userId: auth.user?.userId,
+    };
+    return await dispatch(write(writeData));
+  };
+
+  const handleSaveContent = useCallback(async () => {
     if (content) {
-      const writeData = {
-        data: { content, type: "page" },
-        flags: { isJSON: true },
-        userId: auth.user?.userId,
-      };
-      const saveAction = await dispatch(write(writeData));
+      const saveAction = await saveContent(content);
       const response = saveAction.payload;
       toast.success(
         <div>
@@ -44,14 +60,28 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
         </div>,
       );
     }
-  };
+  }, [content, dispatch, auth]);
+
+  const handleDeleteMessage = useCallback(() => {
+    dispatch(deleteMessage(id));
+  }, [dispatch, id]);
+
+  const handleAbortController = useCallback(() => {
+    controller?.abort();
+  }, [controller]);
 
   return (
-    <div className="flex justify-start space-x-2">
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "start",
+        gap: "0.5rem",
+        marginBottom: OpenProps.size3,
+      }}
+    >
       <div
         style={{
           display: "flex",
-          marginBottom: OpenProps.size3,
           gap: messageContentWithAvatarGap,
           justifyItems: "start",
         }}
@@ -59,21 +89,56 @@ const RobotMessage: React.FC<Message> = ({ id, content, image }) => {
         <div>
           <Avatar name="robot" />
         </div>
-        <MessageContent content={content} />
+        <div style={{ position: "relative" }}>
+          <MessageContent content={content} />
+          {controller && (
+            <div
+              onClick={handleAbortController}
+              onMouseEnter={() => setHovered(true)}
+              onMouseLeave={() => setHovered(false)}
+              style={{
+                // 使用绝对定位将其放置在右下角，并添加样式
+                position: "absolute",
+                bottom: "0",
+                right: "0",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "32px", // 调整大小
+                height: "32px", // 调整大小
+                backgroundColor: "red",
+                borderRadius: "50%",
+                color: "white",
+                fontSize: "16px",
+                transform: "translate(50%, 50%)", // 微调位置，使其完全在右下角
+              }}
+            >
+              {hovered ? (
+                <SquareFillIcon size={24} />
+              ) : (
+                <SquareIcon size={24} />
+              )}
+            </div>
+          )}
+        </div>
         <div
-          className="ml-2 flex flex-col space-y-1"
-          style={{ width: Sizes["--size-9"] }}
+          style={{
+            marginLeft: "0.5rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.2rem",
+            width: Sizes["--size-9"],
+          }}
         >
           <IconButton icon={UnmuteIcon} onClick={handlePlayClick} />
           <IconButton icon={DuplicateIcon} onClick={handleSaveContent} />
-          <IconButton
-            icon={TrashIcon}
-            onClick={() => dispatch(deleteMessage(id))}
-          />
+          <IconButton icon={TrashIcon} onClick={handleDeleteMessage} />
         </div>
       </div>
-      {audioSrc && <audio src={audioSrc} controls />}
+      {audioSrc && <audio src={audioSrc} />}
     </div>
   );
 };
+
 export default RobotMessage;

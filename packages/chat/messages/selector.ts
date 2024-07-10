@@ -3,7 +3,6 @@ import { createSelector } from "@reduxjs/toolkit";
 import { selectById } from "database/dbSlice";
 import { uniqBy, prop } from "rambda";
 
-export const selectMessage = (state: NoloRootState) => state.message;
 export const selectMessageFailed = (state: NoloRootState) =>
   state.message.messageListFailed;
 

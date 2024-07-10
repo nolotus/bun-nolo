@@ -12,6 +12,7 @@ import { SelfMessage } from "./SelfMessage";
 export const MessageItem = ({ message }) => {
   const { id } = message;
   const streamContent = message.content;
+  const controller = message.controller;
   const dispatch = useDispatch();
   const { data, isLoading, error } = useFetchData(id);
   const currentUserId = useAppSelector(selectCurrentUserId);
@@ -28,7 +29,14 @@ export const MessageItem = ({ message }) => {
     if (isSelf) {
       return <SelfMessage content={content} id={id} />;
     } else if (data.llmId) {
-      return <RobotMessage id={id} content={content} image={image} />;
+      return (
+        <RobotMessage
+          id={id}
+          content={content}
+          image={image}
+          controller={controller}
+        />
+      );
     }
     return (
       <div className="flex">

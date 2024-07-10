@@ -1,15 +1,11 @@
 import { selectCostByUserId } from "ai/selectors";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import React, { useRef, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import MessageInput from "./messages/MessageInput";
 import { initMessages, handleSendMessage } from "./messages/messageSlice";
-import {
-  selectMessageFailed,
-  selectMessage,
-  selectMergedMessages,
-} from "./messages/selector";
+import { selectMessageFailed, selectMergedMessages } from "./messages/selector";
 
 import { initLLMConfig } from "chat/dialog/dialogSlice";
 import MessagesList from "./messages/MessageList";
@@ -33,22 +29,11 @@ const ChatWindow = ({ currentDialogConfig }) => {
       );
   }, [currentDialogConfig]);
 
-  const { isMessageStreaming } = useAppSelector(selectMessage);
-
-  const abortControllerRef = useRef(null);
-
-  const onCancel = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-  };
-
   const userCost = useAppSelector(selectCostByUserId);
   // const allowSend = Number(userCost.totalCost) < 2;
   const allowSend = !messageFailed;
   const onSendMessage = (content) => {
-    dispatch(handleSendMessage({ content, abortControllerRef }));
+    dispatch(handleSendMessage({ content }));
   };
   const messages = useAppSelector(selectMergedMessages);
 
@@ -60,13 +45,7 @@ const ChatWindow = ({ currentDialogConfig }) => {
 
       {allowSend ? (
         <div className="flex-grow">
-          <MessageInput
-            onSendMessage={onSendMessage}
-            isLoading={isMessageStreaming}
-            onCancel={() => {
-              dispatch(onCancel);
-            }}
-          />
+          <MessageInput onSendMessage={onSendMessage} />
         </div>
       ) : (
         <div>欠费大于10元，请在你的个人中心查看付费，点击你的名字</div>
