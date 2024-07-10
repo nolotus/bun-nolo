@@ -37,6 +37,7 @@ import {
   selectCurrentLLMConfig,
 } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
+import { getFilteredMessages } from "./utils";
 
 const chatWindowLogger = getLogger("ChatWindow");
 
@@ -256,11 +257,7 @@ export const messageSlice = createSliceWithThunks({
         }
         thunkApi.dispatch(addUserMessage({ content }));
         // after addUserMessage maybe multi agent
-        const originMessages = selectEntitiesByIds(state, state.message.ids);
-        const messages = reverse(
-          filter((x) => x !== null && x !== undefined, originMessages),
-        );
-        console.log("messages", messages);
+        const messages = getFilteredMessages(state);
         const llmConfig = selectCurrentLLMConfig(state);
         const llmId = llmConfig.id;
 
@@ -277,9 +274,9 @@ export const messageSlice = createSliceWithThunks({
           //   };
           //   tokenStatic(staticData, auth, writeHashData);
 
-          let temp: string;
-
           const streamChat = async (textContent: string) => {
+            let temp: string;
+
             try {
               const action = await dispatch(
                 streamRequest({
@@ -291,9 +288,7 @@ export const messageSlice = createSliceWithThunks({
               );
               const { reader, id } = action.payload;
               const handleStreamData = async (id: string, text: string) => {
-                //both
-                // dispatch(startSendingMessage());
-
+                dispatch(startSendingMessage());
                 if (
                   llmConfig.model === "llama3" ||
                   llmConfig.model === "qwen2" ||

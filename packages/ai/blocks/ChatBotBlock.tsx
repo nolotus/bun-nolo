@@ -37,7 +37,7 @@ export const ChatBotBlock = ({ item }) => {
           对话
         </Button>
       </div>
-      <div>使用模型 ：{item.model}</div>
+      <div>模型名 ：{item.model}</div>
       <div>{/* <p>{omitName(item)}</p> */}</div>
     </div>
   );
