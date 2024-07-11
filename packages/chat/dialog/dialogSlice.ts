@@ -4,7 +4,7 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-import { deleteData, read } from "database/dbSlice";
+import { deleteData, read, removeOne } from "database/dbSlice";
 import { clearMessages } from "../messages/messageSlice";
 
 const createSliceWithThunks = buildCreateSlice({
@@ -60,12 +60,12 @@ const DialogSlice = createSliceWithThunks({
       async (dialog, thunkApi) => {
         const { dispatch, getState } = thunkApi;
         const state = getState();
-        dispatch(deleteData(dialog.id));
+        dispatch(removeOne(dialog.id));
         dispatch(clearMessages());
+        const deleteConfig = { id: dialog.id, source: dialog.source };
 
         if (dialog.messageListId) {
           const body = { ids: state.message.ids };
-
           const deleteMesssagListAction = await dispatch(
             deleteData({
               id: dialog.messageListId,
@@ -73,7 +73,9 @@ const DialogSlice = createSliceWithThunks({
               source: dialog.source,
             }),
           );
-          const deleteConfig = { id: dialog.id, source: dialog.source };
+          console.log("deleteMesssagListAction", deleteMesssagListAction);
+          await dispatch(deleteData(deleteConfig));
+        } else {
           await dispatch(deleteData(deleteConfig));
         }
       },

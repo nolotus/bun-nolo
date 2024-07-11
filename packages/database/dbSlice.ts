@@ -119,7 +119,6 @@ const dbSlice = createSliceWithThunks({
       const { dispatch, getState } = thunkApi;
       const state = getState();
       thunkApi.dispatch(removeOne(id));
-      const currentServer = selectCurrentServer(state);
       let headers = {
         "Content-Type": "application/json",
       };
@@ -127,36 +126,28 @@ const dbSlice = createSliceWithThunks({
         const token = state.auth.currentToken;
         headers.Authorization = `Bearer ${token}`;
       }
+      let url;
       if (source) {
-        console.log("source");
-        const dynamicUrl = source[0] + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
-        const res = await fetch(dynamicUrl, {
-          method: "DELETE",
-          headers,
-          body,
-        });
-        console.log("deleteData", res);
-        if (res.status === 200) {
-          const result = await res.json();
-          console.log("deleteData 200", result);
-          return result;
-        }
+        url = source[0] + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
       } else {
-        const dynamicUrl =
-          currentServer + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
-        const res = await fetch(dynamicUrl, {
-          method: "DELETE",
-          headers,
-          body,
-        });
-        console.log("deleteData", res);
-        if (res.status === 200) {
-          const result = await res.json();
-          console.log("deleteData 200", result);
-          return result;
-        }
+        const currentServer = selectCurrentServer(state);
+        url = currentServer + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
+      }
+      dispatch(deleteServerData({ url, headers, body }));
+    }, {}),
+    deleteServerData: create.asyncThunk(async (args, thunkApi) => {
+      const { url, headers, body } = args;
+      const res = await fetch(url, {
+        method: "DELETE",
+        headers,
+        body,
+      });
+      if (res.status === 200) {
+        const result = await res.json();
+        return result;
       }
     }, {}),
+
     write: create.asyncThunk(
       async (writeConfig, thunkApi) => {
         const state = thunkApi.getState();
@@ -370,5 +361,6 @@ export const {
   addOne,
   queryServer,
   addToList,
+  deleteServerData,
 } = dbSlice.actions;
 export default dbSlice.reducer;

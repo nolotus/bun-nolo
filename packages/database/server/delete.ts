@@ -12,9 +12,13 @@ export const handleDelete = async (req, res) => {
   const { userId: actionUserId } = req.user;
   const { id } = req.params;
 
-  const userId = extractUserId(id);
-  const isSelfData = actionUserId === userId;
+  const dataBelongUserId = extractUserId(id);
+  const isSelfData = actionUserId === dataBelongUserId;
   if (!isSelfData) {
+    console.log("req", req);
+    console.log("id", id);
+    console.log("actionUserId", actionUserId);
+    console.log("dataBelongUserId", dataBelongUserId);
     throw new Error("Unauthorized action.");
   }
 
@@ -23,10 +27,10 @@ export const handleDelete = async (req, res) => {
     console.log("ids", ids);
     //maybe ids not belong userID database
     //meybe need check belongs
-    await deleteData(userId, ids);
+    await deleteData(dataBelongUserId, ids);
   }
   try {
-    await deleteData(userId, [id]);
+    await deleteData(dataBelongUserId, [id]);
     return res.status(200).json({ message: "Data deleted successfully.", id });
   } catch (error) {
     console.error(error);
