@@ -24,7 +24,6 @@ export const YourTemplates = () => {
     //     setTemplates(data);
     //   })
     //   .catch((error) => {
-    //     console.error('error', error);
     //   });
   }, [auth.user?.userId, options]);
 

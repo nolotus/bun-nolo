@@ -44,7 +44,6 @@ export const useCreateDialog = () => {
       navigate(`/chat?dialogId=${result.payload.id}`);
       setIsSuccess(true);
     } catch (error) {
-      console.error("Failed to create dialog:", error);
     } finally {
       setIsLoading(false);
     }

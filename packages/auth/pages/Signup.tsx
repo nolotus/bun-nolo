@@ -36,7 +36,6 @@ const Signup: React.FC = () => {
         navigate(`/${LifeRoutePaths.WELCOME}`);
       });
     } catch (error) {
-      console.error(error);
       setError(error.message);
     } finally {
       setLoading(false);

@@ -37,7 +37,6 @@ export const handleDelete = async (req, res) => {
     await deleteData(dataBelongUserId, [id]);
     return res.status(200).json({ message: "Data deleted successfully.", id });
   } catch (error) {
-    console.error(error);
     const status = error.message === "Access denied" ? 401 : 500;
     return res.status(status).json({ error: error.message });
   }

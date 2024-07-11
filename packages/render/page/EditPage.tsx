@@ -44,7 +44,6 @@ const EditPage = () => {
       }
     } catch (error) {
       // 错误处理逻辑
-      console.error("Mutation failed:", error);
     }
   };
 

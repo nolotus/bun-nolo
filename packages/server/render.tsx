@@ -35,7 +35,6 @@ export const handleRender = async (req) => {
         bootstrapModules: [bootstrapJs],
         onError(error) {
           didError = true;
-          console.error(`渲染错误: ${error}`);
         },
       },
     );
@@ -136,7 +135,6 @@ export const handleRender = async (req) => {
       headers: { "content-type": "text/html" },
     });
   } catch (error) {
-    console.error(`处理请求时发生错误: ${error}`);
     return new Response("<h1>抱歉，服务器发生错误，请稍后重试</h1>", {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },

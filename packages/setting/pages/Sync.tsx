@@ -46,10 +46,7 @@ const Sync = () => {
   const onSubmit = async (data) => {
     try {
       await dispatch(upsertData({ id, data: data }));
-    } catch (error) {
-      // 这里可以处理错误，例如显示一个错误信息
-      console.error("Error updating entry:", error);
-    }
+    } catch (error) {}
   };
   return (
     <div>

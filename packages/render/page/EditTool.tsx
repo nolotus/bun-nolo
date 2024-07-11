@@ -38,7 +38,6 @@ export const EditTool = ({ handleSave }) => {
       navigate("/life/notes");
       setDeleting(false);
     } catch (error) {
-      console.error("Failed to delete the page:", error);
       toast.error("Error deleting page. Please try again.");
     }
   }, [navigate, pageId]);

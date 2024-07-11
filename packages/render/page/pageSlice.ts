@@ -73,9 +73,7 @@ export const pageSlice = createSlice({
             parsedYaml,
           );
           state.meta.type = meta.type;
-        } catch (error) {
-          console.error("parse函数出错：", error);
-        }
+        } catch (error) {}
       }
     },
     initPage: (state, action: PayloadAction<string>) => {

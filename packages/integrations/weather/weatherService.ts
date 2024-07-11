@@ -64,7 +64,6 @@ export const fetchWeatherData = async ({
     }
     return response.json();
   } catch (error) {
-    console.error("错误发生在fetchWeatherData中", error);
     throw error; // 这里保留抛出错误，以便可以在函数调用者那里捕获异常
   }
 };

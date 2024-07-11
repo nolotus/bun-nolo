@@ -18,7 +18,6 @@ const AccountSettings = () => {
       dispatch(signOut());
     } catch (error) {
       // 处理删除失败的错误
-      console.error("Failed to delete account:", error);
       alert("Failed to delete account. Please try again later.");
     }
   };

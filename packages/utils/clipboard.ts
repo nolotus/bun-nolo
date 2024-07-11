@@ -17,7 +17,6 @@ export async function copyToClipboard(textToCopy) {
     try {
       document.execCommand("copy");
     } catch (error) {
-      console.error(error);
     } finally {
       textArea.remove();
     }

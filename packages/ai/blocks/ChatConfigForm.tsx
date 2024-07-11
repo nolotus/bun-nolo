@@ -22,10 +22,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
       }).unwrap();
 
       onClose(); // 关闭弹窗
-    } catch (error) {
-      // 这里可以处理错误，例如显示一个错误信息
-      console.error("Error updating entry:", error);
-    }
+    } catch (error) {}
   };
 
   const {

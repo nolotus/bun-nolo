@@ -31,9 +31,7 @@ export async function runBuild() {
     // await Bun.write("./public/test.json", JSON.stringify(...result));
 
     // await Bun.write("./public/output.json", JSON.stringify(json));
-  } catch (error) {
-    console.error(error);
-  }
+  } catch (error) {}
 }
 
 // runBuild();

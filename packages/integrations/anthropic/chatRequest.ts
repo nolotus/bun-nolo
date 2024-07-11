@@ -31,7 +31,6 @@ export async function chatRequest(
     const response = await axios(axiosConfig);
     return response;
   } catch (err) {
-    console.error("axios error:", err);
     throw err;
   }
 }

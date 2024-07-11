@@ -47,9 +47,7 @@ export const handleRequest = async (request: Request, server) => {
     if (contentType.includes("multipart/form-data")) {
       try {
         body = await request.formData();
-      } catch (error) {
-        console.error("Error parsing formdata:", error);
-      }
+      } catch (error) {}
     } else if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
@@ -86,7 +84,6 @@ export const handleRequest = async (request: Request, server) => {
   try {
     return await handleRender(request);
   } catch (error) {
-    console.error(`处理请求时发生错误: ${error}`);
     return new Response("<h1>服务器发生错误，请稍后重试</h1>", {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },

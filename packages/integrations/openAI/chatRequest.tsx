@@ -25,7 +25,6 @@ export const chatRequest = async (
     const response = await axios.request(config);
     return response;
   } catch (error) {
-    console.error(error.message);
     return null;
   }
 };

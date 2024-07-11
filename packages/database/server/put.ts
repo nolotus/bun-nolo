@@ -1,7 +1,6 @@
 import { formatData, extractAndDecodePrefix, extractUserId } from "core";
 
 export const handleError = (res, error) => {
-  console.error(error);
   const status = error.message === "Access denied" ? 401 : 500;
   res.status(status).json({ error: error.message });
 };
@@ -44,7 +43,6 @@ const updateList = async (actionUserId, dataKey, data, res) => {
       .status(200)
       .json({ array, message: "Data updated successfully." });
   } catch (error) {
-    console.error("Error updating list:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };

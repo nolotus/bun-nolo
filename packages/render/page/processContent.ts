@@ -40,7 +40,6 @@ export function processContent(content: string) {
         });
       }
     } catch (error) {
-      console.error("解析YAML出错：", error);
       // 处理解析错误
     }
   }

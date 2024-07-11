@@ -76,7 +76,7 @@ async function processModelRequest(requestBody, modelType) {
       break;
     case "claude":
       response = await sendAnthropicRequest(requestBody, true);
-      console.log("claude", response);
+      console.log("claude");
       break;
     default:
       throw new Error(
@@ -110,7 +110,5 @@ export const handleStreamReq = async (req: Request, res) => {
     } else {
       throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }
-  } catch (error) {
-    console.error(error.message);
-  }
+  } catch (error) {}
 };

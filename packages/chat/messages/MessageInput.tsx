@@ -112,9 +112,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
         ...prevUrls,
         `http://localhost/api/v1/db/read/${responseBody.id}`,
       ]);
-    } catch (error) {
-      console.error("Image upload error:", error);
-    }
+    } catch (error) {}
   };
 
   const previewImage = (file: File) => {

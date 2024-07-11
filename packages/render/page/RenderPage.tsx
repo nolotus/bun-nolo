@@ -43,7 +43,6 @@ const RenderPage = ({ pageId, data }) => {
       toast.success("Page deleted successfully!");
       navigate("/");
     } catch (error) {
-      console.error("Failed to delete the page:", error);
       alert("Error deleting page. Please try again.");
     }
   }, [navigate, pageId]);

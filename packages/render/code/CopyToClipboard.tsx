@@ -12,9 +12,7 @@ const CopyToClipboard = ({ text }) => {
       await copyToClipboard(text);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000); // 复制状态持续2秒
-    } catch (err) {
-      console.error("无法复制:", err);
-    }
+    } catch (err) {}
   }, [text]);
 
   return (
