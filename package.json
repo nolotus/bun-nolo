@@ -43,6 +43,7 @@
     "typescript": "^5.5.0"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3",
     "@hookform/resolvers": "^3.3.2",
     "@primer/octicons-react": "^19.8.0",
     "@primer/react": "^36.23.0",
