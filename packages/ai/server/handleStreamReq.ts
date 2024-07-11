@@ -76,6 +76,7 @@ async function processModelRequest(requestBody, modelType) {
       break;
     case "claude":
       response = await sendAnthropicRequest(requestBody, true);
+      console.log("claude", response);
       break;
     default:
       throw new Error(

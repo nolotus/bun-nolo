@@ -50,14 +50,11 @@ export const pageSlice = createSlice({
       if (newTitle) {
         state.meta.title = newTitle;
       }
-      console.log("state.meta", state.meta);
       const newYamlValue = getYamlValueFromMdast(mdast);
-      console.log("newYamlValue", newYamlValue);
 
       if (newYamlValue) {
         try {
           const parsedYaml = parse(newYamlValue);
-          console.log("parsedYaml", parsedYaml);
           // const meta = extractFrontMatter(parsedYaml);
           const meta = pick(
             [
@@ -75,7 +72,6 @@ export const pageSlice = createSlice({
             ],
             parsedYaml,
           );
-          console.log("meta", meta);
           state.meta.type = meta.type;
         } catch (error) {
           console.error("parse函数出错：", error);

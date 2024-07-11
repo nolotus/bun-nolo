@@ -73,7 +73,6 @@ const DialogSlice = createSliceWithThunks({
               source: dialog.source,
             }),
           );
-          console.log("deleteMesssagListAction", deleteMesssagListAction);
           await dispatch(deleteData(deleteConfig));
         } else {
           await dispatch(deleteData(deleteConfig));

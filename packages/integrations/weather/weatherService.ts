@@ -5,7 +5,6 @@ import { queryData } from "database/query/queryHandler";
 const WEATHER_API_URL = "https://api.stormglass.io/v2/weather/point";
 
 export const queryWeatherCache = async (lat, lng, start, end) => {
-  console.log("start", start);
   const result = await queryData({
     userId: nolotusId,
     isJSON: true,

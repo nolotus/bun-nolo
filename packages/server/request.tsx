@@ -56,10 +56,7 @@ export const handleRequest = async (request: Request, server) => {
         if (!body) {
           body = {};
         }
-      } catch (error) {
-        console.log("error req", request.body);
-        console.error("Error parsing JSON:", error);
-      }
+      } catch (error) {}
     }
     let req = {
       url,

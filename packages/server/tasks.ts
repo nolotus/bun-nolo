@@ -116,13 +116,11 @@ const sendRequestsToTopTenCollectors = async (
 export const runTopCollectorsTask = async () => {
   const collectors = await queryTopTenCollectors();
   sendRequestsToTopTenCollectors(collectors);
-  console.log("Sent requests to top ten collectors");
 };
 // 任务 2 - 其他任务
 const OTHER_TASK_INTERVAL = "*/30 * * * * *"; // 每隔 5 分钟执行一次
 const runOtherTask = async () => {
   // 这里是伪代码，实际需要根据您的需求进行修改
-  console.log("Executed other task");
 };
 
 export const tasks = [

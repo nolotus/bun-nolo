@@ -32,7 +32,6 @@ export const handleAudioSpeechRequest = async (req, res) => {
           "Content-Type": "audio/mpeg",
         },
       });
-      console.log("response", response);
 
       return response;
     } catch (error) {}

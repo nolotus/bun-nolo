@@ -108,7 +108,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
 
       // 获取响应体，可能根据实际接口结构有所不同
       const responseBody = await response.json();
-      console.log("File uploaded successfully:", responseBody.id);
       setImagePreviewUrls((prevUrls) => [
         ...prevUrls,
         `http://localhost/api/v1/db/read/${responseBody.id}`,

@@ -3,7 +3,6 @@ import CryptoJS from "crypto-js";
 import { SALT } from "core/config";
 
 export const hashPassword = async (password: string) => {
-  console.log("Argon2", Argon2);
   const hashedPassword = await Argon2.hash(password, SALT, {
     hashLength: 32,
     memory: 1024,

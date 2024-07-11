@@ -148,7 +148,6 @@ export const messageSlice = createSliceWithThunks({
         };
         const writeMessage = await noloRequest(state, config);
         const saveMessage = await writeMessage.json();
-        console.log("saveMessage", saveMessage);
         const dialogConfig = selectCurrentDialogConfig(state);
         const updateId = dialogConfig.messageListId;
 
@@ -160,7 +159,6 @@ export const messageSlice = createSliceWithThunks({
       {
         rejected: (state, action) => {
           // state.error = action.payload ?? action.error;
-          // console.log("action", action);
         },
         fulfilled: (state, action) => {
           state.ids = reverse(action.payload.array);
@@ -193,7 +191,6 @@ export const messageSlice = createSliceWithThunks({
             }),
           },
         );
-        console.log("deleteMessageFromList", deleteMessageFromList);
 
         thunkApi.dispatch(deleteData({ id: messageId }));
       },
@@ -225,7 +222,6 @@ export const messageSlice = createSliceWithThunks({
             }),
           },
         );
-        console.log("deleteMessageFromList", deleteMessageFromList);
       },
 
       {
@@ -289,14 +285,9 @@ export const messageSlice = createSliceWithThunks({
                   let rawJSON = {};
                   try {
                     rawJSON = JSON.parse(text);
-                  } catch (error) {
-                    console.log("json parse text", text);
-                    console.log("json parse error", error);
-                  }
-                  console.log("rawJSON", rawJSON);
+                  } catch (error) {}
                   const { done_reason, done } = rawJSON;
                   temp = (temp || "") + (rawJSON.message.content || "");
-                  console.log("llmId", llmId);
 
                   if (done) {
                     thunkApi.dispatch(
@@ -338,7 +329,6 @@ export const messageSlice = createSliceWithThunks({
                               id,
                               llmId,
                             };
-                            console.log("finishReason llmId", llmId);
 
                             thunkApi.dispatch(messageStreamEnd(message));
                             //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
@@ -397,7 +387,6 @@ export const messageSlice = createSliceWithThunks({
             }
           };
           const result = await streamChat(textContent);
-          console.log("stream", result);
         }
 
         if (mode === "image") {
@@ -459,9 +448,7 @@ export const messageSlice = createSliceWithThunks({
         }
       },
       {
-        rejected: (state, action) => {
-          console.log("action", action);
-        },
+        rejected: (state, action) => {},
         fulfilled: (state, action) => {},
       },
     ),

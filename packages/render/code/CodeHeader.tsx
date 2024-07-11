@@ -11,7 +11,6 @@ const CodeHeader = ({ value, language }) => {
   const saveToDataBase = () => {
     const json = parse(value);
     dispath(write(json));
-    console.log("saveToDataBase", json);
   };
   return (
     <div

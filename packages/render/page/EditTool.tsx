@@ -33,7 +33,7 @@ export const EditTool = ({ handleSave }) => {
   const handleDelete = useCallback(async () => {
     setDeleting(true);
     try {
-      dispatch(deleteData(pageId));
+      dispatch(deleteData({ id: pageId }));
       toast.success("Page deleted successfully!");
       navigate("/life/notes");
       setDeleting(false);

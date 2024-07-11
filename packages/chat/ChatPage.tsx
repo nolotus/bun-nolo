@@ -57,8 +57,6 @@ const ChatPage = () => {
     //   options,
     //   domain: "https://nolotus.com",
     // }).unwrap();
-    // console.log("defaultTokenStatisticsList", defaultTokenStatisticsList);
-    // console.log("nolotusTokenStatisticsList", nolotusTokenStatisticsList);
   };
 
   useEffect(() => {

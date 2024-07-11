@@ -39,7 +39,6 @@ const Login: React.FC = () => {
     const encryptionKey = await hashPassword(password);
     const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
 
-    console.log("action", action);
     if (action.payload.token) {
       storeTokens(action.payload.token);
       navigate(`/${LifeRoutePaths.WELCOME}`);

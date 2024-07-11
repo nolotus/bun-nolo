@@ -75,7 +75,6 @@ export const updateDataInFile = async (filePath, id: string, value: string) => {
     }
     await tempWriter.end();
     if (updated) {
-      // await unlink(filePath);
       await Bun.write(filePath, Bun.file(tempFilePath));
       if (tempFilePath) {
         await unlink(tempFilePath);
@@ -107,7 +106,9 @@ export const removeDataFromFile = async (filePath, ids: [string]) => {
       if (line.trim() === "") {
         continue;
       }
-
+      if (!line.startsWith("0")) {
+        console.log("error line", line);
+      }
       const lineId = line.split(" ")[0];
       if (!ids.includes(lineId)) {
         await tempWriter.write(`${line}\n`);

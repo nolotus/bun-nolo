@@ -76,7 +76,6 @@ export const renderContentNode = (
         </List>
       );
     case "listItem":
-      console.log("node", node);
       return (
         <ListItem className={classNames}>
           {node.children?.map((child: ContentNode) => {
@@ -180,7 +179,6 @@ export const renderContentNode = (
       return <Yaml value={node.value} />;
     // case 'json': {
     //   const str = `{${node.value}}`;
-    //   console.log('str', node.value);
     //   const json = JSON.parse(str);
     //   return <div>{JSON.stringify(json)}</div>;
     // }

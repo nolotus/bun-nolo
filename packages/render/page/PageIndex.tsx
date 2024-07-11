@@ -23,7 +23,6 @@ const Page = ({ id }) => {
   const isEditMode = searchParams.get("edit") === "true";
 
   const { data, isLoading, error } = useFetchData(pageId);
-  console.log("data", data);
   const renderEdit = () => {
     if (isEditMode) {
       return <EditPage />;

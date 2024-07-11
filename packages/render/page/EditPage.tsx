@@ -33,7 +33,6 @@ const EditPage = () => {
     }
     try {
       const pageData = createPageData(pageState, userId);
-      console.log("before save:", pageData);
 
       const result = await updateEntry({
         entryId: pageId, // 使用 pageId 作为 entryId

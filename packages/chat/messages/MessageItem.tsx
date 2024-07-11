@@ -49,7 +49,6 @@ export const MessageItem = ({ message }) => {
       </div>
     );
   } else if (error) {
-    console.log("error", error);
     return (
       <div className="flex">
         {error.data.error}

@@ -21,7 +21,6 @@ const httpServer = () => {
       async message(ws, message) {
         // the contextual dta is available as the `data` property
         // on the WebSocket instance
-        console.log(`Received ${message}}`);
         ws.send(`Received`);
       },
     },
@@ -36,7 +35,6 @@ const httpServer = () => {
         async message(ws, message) {
           // the contextual dta is available as the `data` property
           // on the WebSocket instance
-          console.log(`Received ${message}}`);
           ws.send(`Received`);
         },
       },

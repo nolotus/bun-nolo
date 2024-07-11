@@ -22,7 +22,6 @@ export const ChatBotBlock = ({ item }) => {
       const llmId = item.id;
       await createDialog(llmId);
     } catch (error) {
-      console.log("errror", error);
       // setError(error.data?.message || error.status);
     }
   };

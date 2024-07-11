@@ -44,7 +44,6 @@ const Sync = () => {
   }, [data, currentServer]);
 
   const onSubmit = async (data) => {
-    console.log("onSubmit data", data);
     try {
       await dispatch(upsertData({ id, data: data }));
     } catch (error) {

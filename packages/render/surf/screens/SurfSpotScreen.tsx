@@ -24,7 +24,6 @@ export function SurfSpotScreen({ route }) {
     useSurfSpot();
 
   const { data, isLoading, error } = useFetchData(id);
-  console.log("data", data);
 
   useLayoutEffect(() => {
     data?.title &&

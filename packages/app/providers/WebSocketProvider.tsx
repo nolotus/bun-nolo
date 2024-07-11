@@ -24,18 +24,13 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({
   useEffect(() => {
     const newWebSocket = new WebSocket(url);
 
-    newWebSocket.onopen = () => {
-      console.log("WebSocket Connected");
-    };
+    newWebSocket.onopen = () => {};
 
-    newWebSocket.onclose = () => {
-      console.log("WebSocket Disconnected");
-    };
+    newWebSocket.onclose = () => {};
 
     newWebSocket.onmessage = (event) => {
       const message = event.data;
       setData(message);
-      console.log("Received message: ", message);
     };
 
     setWebSocket(newWebSocket);

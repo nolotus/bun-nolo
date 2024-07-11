@@ -90,8 +90,6 @@ export const authSlice = createSliceWithThunks({
           remoteRecoveryPassword: null,
           locale,
         };
-        console.log("sendData", sendData);
-        console.log("sendData", sendData);
 
         // if (isStoreRecovery) {
         //   const recoveryPassword = generateAndSplitRecoveryPassword(answer, 3);
@@ -114,7 +112,6 @@ export const authSlice = createSliceWithThunks({
         });
 
         const { encryptedData } = await res.json();
-        console.log("encryptedData:", encryptedData);
 
         const decryptedData = await verifySignedMessage(
           encryptedData,
@@ -122,9 +119,7 @@ export const authSlice = createSliceWithThunks({
         );
 
         const remoteData = JSON.parse(decryptedData);
-        console.log("remoteData:", remoteData);
         const localUserId = generateUserId(publicKey, username, locale);
-        console.log("userId", localUserId);
         if (
           remoteData.username === sendData.username &&
           remoteData.publicKey === sendData.publicKey &&

@@ -32,8 +32,6 @@ const decodeData = (data, flags, id) => {
       try {
         return JSON.parse(data);
       } catch (error) {
-        console.log("isJSON data", JSON.stringify(data));
-        console.error("Failed to decode isJSON data:", error);
         return data; // 返回原始数据，如果 JSON 解析失败
       }
     },

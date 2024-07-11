@@ -17,7 +17,6 @@ export const selectTotalCosts = createSelector(
     let totalCost = 0;
     let modelCosts = {};
     let userCosts = {};
-    console.log("tokenStatisticsData", tokenStatisticsData);
     for (let data of tokenStatisticsData) {
       if (!allModels[data.model]) {
         console.warn(`Unknown model price for model: ${data.model}`);

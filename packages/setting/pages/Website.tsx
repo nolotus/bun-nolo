@@ -27,7 +27,6 @@ const Website = () => {
     defaultValues: data,
   });
   const onSubmit = async (data) => {
-    console.log("onSubmit data", data);
     try {
       //save for person
       await dispatch(upsertData({ id, data: data }));
@@ -43,7 +42,6 @@ const Website = () => {
           },
         }),
       );
-      console.log("writeAction", writeAction);
     } catch (error) {
       // 这里可以处理错误，例如显示一个错误信息
       console.error("Error updating entry:", error);

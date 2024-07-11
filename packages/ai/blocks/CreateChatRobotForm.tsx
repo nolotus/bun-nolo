@@ -51,7 +51,6 @@ const CreateChatRobotForm = ({ onClose }) => {
           userId: auth.user?.userId,
         }),
       );
-      console.log("writeChatRobotAction", writeChatRobotAction);
       const llmId = writeChatRobotAction.payload.id;
       await createDialog(llmId);
       onClose();

@@ -165,7 +165,6 @@ const dbSlice = createSliceWithThunks({
         }
         const saveId = generateIdWithCustomId(userId, customId, flags);
         if (!!data.type) {
-          console.log("type", data.type);
         }
         const willSaveData = { ...data, created: new Date().toISOString() };
         //local save
@@ -273,7 +272,6 @@ const dbSlice = createSliceWithThunks({
             id,
           };
           const writeRes = await dispatch(write(writeConfig));
-          console.log("writeRes", writeRes);
         } else {
           const updateRes = await dispatch(setData({ ...saveConfig, id }));
           return updateRes.payload.data;

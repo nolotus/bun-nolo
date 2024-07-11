@@ -52,7 +52,6 @@ export const handleImageEditsRequest = async (req, res) => {
         config,
       );
 
-      console.log("openAIResponse", openAIResponse);
       return res.status(200).json({ data: openAIResponse.data });
     } catch (error) {
       console.error(error);

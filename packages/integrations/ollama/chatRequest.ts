@@ -5,7 +5,6 @@ export async function chatRequest(
   isStream: boolean,
 ): Promise<any> {
   const { model, messages, max_tokens } = requestBody;
-  console.log("messages", messages);
   const axiosConfig = {
     method: "POST",
     url: "http://localhost:11434/api/chat",

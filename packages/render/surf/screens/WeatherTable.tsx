@@ -25,7 +25,6 @@ const WeatherTable = ({ mode, interval = 3, weatherData }) => {
   const getDataByMode = (hour, field) => {
     return hour[field]?.[mode] ? `${hour[field][mode].toFixed(1)}` : "-";
   };
-  console.log("weatherData", weatherData);
   const groupedWeatherData = weatherData?.hours.reduce((acc, hour) => {
     const { monthDay, hourMinute } = formatTime(hour.time);
     if (!acc[monthDay]) {

@@ -25,9 +25,7 @@ export const DialogItem = ({ id, isSelected, source }) => {
   const [title, setTitle] = useState(id);
 
   const onDeleteDialog = async (dialog) => {
-    dispatch(deleteDialog(dialog)).then((result) => {
-      console.log("result", result);
-    });
+    dispatch(deleteDialog(dialog));
     navigate("/chat");
   };
   const {
