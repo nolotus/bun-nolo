@@ -16,11 +16,6 @@ const baseFields = {
     type: "enum",
     values: Object.values(modelEnum),
   },
-  replyRule: {
-    type: "textarea",
-    min: 1,
-    optional: true,
-  },
   knowledge: {
     type: "textarea",
     min: 1,

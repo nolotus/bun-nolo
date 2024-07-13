@@ -5,7 +5,6 @@ export default {
       name: "Name",
       description: "Description",
       model: "Model",
-      replyRule: "Reply Rule",
       type: "Type",
       knowledge: "Knowledge",
       createRobot: "Create Robot",
@@ -19,7 +18,6 @@ export default {
       name: "名称",
       description: "描述",
       model: "模型",
-      replyRule: "回复规则",
       type: "类型",
       knowledge: "知识",
       createRobot: "创建机器人",
@@ -33,7 +31,6 @@ export default {
       name: "名稱",
       description: "描述",
       model: "模型",
-      replyRule: "回覆規則",
       type: "類型",
       knowledge: "知識", // 新增
       createRobot: "創建機器人", // 新增
@@ -47,7 +44,6 @@ export default {
       name: "名前",
       description: "説明",
       model: "モデル",
-      replyRule: "返信ルール",
       type: "タイプ",
       knowledge: "知識", // 新增
       createRobot: "ロボットを作成", // 新增

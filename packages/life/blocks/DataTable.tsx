@@ -13,7 +13,6 @@ const AIThead = () => {
         <th>AI名字</th>
         <th>AI所用模型</th>
         <th>AI 定制描述</th>
-        <th>AI 回复规则</th>
         <th>AI 知识</th>
         <th>数据源</th>
         <th>操作</th>
@@ -70,7 +69,6 @@ export const DataTable = ({ dataList, type, pullData }) => {
   //     "model",
   //     "type",
   //     "path",
-  //     "replyRule",
   //     "knowledge",
   //   ],
   //   data,
@@ -81,7 +79,6 @@ export const DataTable = ({ dataList, type, pullData }) => {
         <td>{data.name}</td>
         <td>{data.model}</td>
         <td>{data.description}</td>
-        <td>{data.replyRule}</td>
         <td>{data.knowledge}</td>
         <td>{data.source}</td>
         <td>
