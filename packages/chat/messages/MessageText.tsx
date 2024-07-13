@@ -15,5 +15,9 @@ export const MessageText: React.FC<{
     return renderContentNode(mdast, { isDarkMode });
   }, [mdast, isDarkMode]);
   //增加闪烁，如果网络卡了
-  return <div className={`mx-2 whitespace-pre-wrap `}>{renderedContent}</div>;
+  return (
+    <div className={`mx-2 whitespace-pre-wrap `} style={{ maxWidth: "70vw" }}>
+      {renderedContent}
+    </div>
+  );
 };

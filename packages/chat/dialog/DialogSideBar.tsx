@@ -76,7 +76,6 @@ const DialogSideBar = ({ dialogList }) => {
             <AI />
           </Dialog>
         </button>
-
         <DialogList dialogList={dialogList} />
       </div>
     </div>

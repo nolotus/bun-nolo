@@ -61,6 +61,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     onSendMessage(content);
 
     setTextContent("");
+    setImagePreviewUrls([]);
   };
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {

@@ -4,7 +4,6 @@ import ToggleButton from "./Buttons";
 import { WeatherDisplay } from "./WeatherDisplay";
 import { modes, intervals } from "../config";
 import useSurfSpot from "../useSurfSpot";
-import { SurfTideChart } from "./Chart";
 
 export const WeatherRelate = ({ lat, lng }) => {
   const queryParams = parseWeatherParams({ lat, lng });

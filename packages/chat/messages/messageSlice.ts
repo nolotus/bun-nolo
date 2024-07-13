@@ -7,9 +7,6 @@ import { extractCustomId } from "core";
 
 import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
-import { createPromotMessage } from "ai/utils/createPromotMessage";
-import { pickMessages } from "ai/utils/pickMessages";
-import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
 import { readChunks } from "ai/client/stream";
 import { getLogger } from "utils/logger";
 import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
@@ -37,6 +34,7 @@ import {
 } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
 import { getFilteredMessages } from "./utils";
+import { createRequestBody } from "../utils/createRequestBody";
 
 const chatWindowLogger = getLogger("ChatWindow");
 
@@ -160,7 +158,9 @@ export const messageSlice = createSliceWithThunks({
       },
     ),
     receiveMessage: create.reducer((state, action) => {
-      state.ids.unshift(action.payload.id);
+      if (!state.ids.includes(action.payload)) {
+        state.ids.unshift(action.payload);
+      }
     }),
 
     messageStreaming: create.reducer<Message>((state, action) => {
@@ -278,14 +278,14 @@ export const messageSlice = createSliceWithThunks({
         fulfilled: () => {},
       },
     ),
-    //todo
 
     messagesReachedMax: create.reducer((state, action) => {
       state.isStopped = true;
     }),
     handleSendMessage: create.asyncThunk(
-      async ({ content }, thunkApi) => {
+      async (args, thunkApi) => {
         let textContent;
+        const { content } = args;
         const state = thunkApi.getState();
         const dispatch = thunkApi.dispatch;
 
@@ -297,9 +297,16 @@ export const messageSlice = createSliceWithThunks({
         const messages = getFilteredMessages(state);
         const llmConfig = selectCurrentLLMConfig(state);
         const llmId = llmConfig.id;
+        const model = llmConfig.model;
 
         const mode = getModefromContent(textContent, content);
+
         const context = await getContextFromMode(mode, textContent);
+        const userId = selectCurrentUserId(state);
+
+        const id = generateIdWithCustomId(userId, ulid(), {
+          isJSON: true,
+        });
         if (mode === "stream") {
           //   const staticData = {
           //     dialogType: "send",
@@ -311,10 +318,11 @@ export const messageSlice = createSliceWithThunks({
           //   };
           //   tokenStatic(staticData, auth, writeHashData);
 
-          const streamChat = async (textContent: string) => {
+          const streamChat = async (textContent: string, id) => {
             let temp: string;
             const controller = new AbortController();
             const signal = controller.signal;
+
             try {
               const action = await dispatch(
                 streamRequest({
@@ -322,9 +330,10 @@ export const messageSlice = createSliceWithThunks({
                   messages,
                   llmConfig,
                   signal,
+                  id,
                 }),
               );
-              const { reader, id } = action.payload;
+              const { reader } = action.payload;
               const handleStreamData = async (id: string, text: string) => {
                 if (llmConfig.model.includes("claude")) {
                   const jsonResults = parseMultipleJson(text);
@@ -476,7 +485,7 @@ export const messageSlice = createSliceWithThunks({
               return { error: { status: "FETCH_ERROR", data: error.message } };
             }
           };
-          const result = await streamChat(textContent);
+          await streamChat(textContent, id);
         }
 
         if (mode === "image") {
@@ -499,39 +508,30 @@ export const messageSlice = createSliceWithThunks({
 
         try {
           if (mode === "vision") {
-            const createRequestBody = (config) => {
-              const model = config.model;
-              const promotMessage = createPromotMessage(config);
-              const body = {
-                type: "vision",
-                model,
-                messages: pickMessages([promotMessage, ...messages, message]),
-                temperature: config.temperature || 0.8,
-                max_tokens: config.max_tokens || 4096,
-                top_p: config.top_p || 0.9,
-                frequency_penalty: config.frequency_penalty || 0,
-                presence_penalty: config.presence_penalty || 0,
-              };
-              return {
-                ...pickAiRequstBody(body),
-                messages: pickMessages(body.messages),
-              };
-            };
             const currentDialogConfig = selectCurrentDialogConfig(state);
+
             const requestBody = createRequestBody({
               ...currentDialogConfig,
               responseLanguage: navigator.language,
+              model,
+              prevMessages: messages,
+              message: { role: "user", content },
             });
+
             const visionChat = (body) => {
-              return fetch(`${API_ENDPOINTS.AI}/chat`, {
+              return fetch(`http://localhost:80${API_ENDPOINTS.AI}/chat`, {
                 method: "POST",
-                body,
+                body: JSON.stringify(body),
+                headers: {
+                  "Content-Type": "application/json",
+                },
               });
             };
-            const result = await visionChat(requestBody).json();
-            const content = result.choices[0].message;
-
-            thunkApi.dispatch(receiveMessage(content));
+            const res = await visionChat(requestBody);
+            const result = await res.json();
+            const received = { ...result.choices[0].message, llmId, id };
+            console.log("received", received);
+            dispatch(messageStreamEnd(received));
           }
         } catch (error) {
           // setRequestFailed(true);
@@ -614,14 +614,9 @@ export const messageSlice = createSliceWithThunks({
     ),
 
     streamRequest: create.asyncThunk(
-      async ({ textContent, messages, llmConfig, signal }, thunkApi) => {
+      async ({ textContent, messages, llmConfig, signal, id }, thunkApi) => {
         const state = thunkApi.getState();
-        const userId = selectCurrentUserId(state);
         const llmId = llmConfig.id;
-        const id = generateIdWithCustomId(userId, ulid(), {
-          isJSON: true,
-        });
-
         const dispatch = thunkApi.dispatch;
         await dispatch(
           addAIMessage({

@@ -2,9 +2,7 @@ import { createPromotMessage } from "../utils/createPromotMessage";
 
 export const createRequestBody = (type: string, payload: any, config: any) => {
   const model = config.model;
-
   const promotMessage = createPromotMessage(config);
-
   if (type === "text" || type === "stream") {
     const { userMessage, prevMessages } = payload;
     return {

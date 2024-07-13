@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Spinner } from "@primer/react";
+import OpenProps from "open-props";
 
 export type ButtonProps = {
   className?: string;
@@ -30,11 +31,11 @@ export const Button = (props: ButtonProps) => {
 
   return (
     <button
-      className={` ${className}  surface2 text2 ${width}`}
+      className={` ${className} ${width} `}
       onMouseDown={onClick}
       disabled={disabled || loading}
       type={type}
-      style={style}
+      style={{ ...style, color: OpenProps.gray12 }}
     >
       {loading && <Spinner size={"small"} />}
       {icon && !loading && icon}

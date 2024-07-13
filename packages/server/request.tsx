@@ -64,7 +64,6 @@ export const handleRequest = async (request: Request, server) => {
       headers: request.headers,
       method: request.method,
     };
-
     if (url.pathname.startsWith(API_ENDPOINTS.AI)) {
       req.user = await handleToken(request, res);
       return aiServerRoute(req, res);
