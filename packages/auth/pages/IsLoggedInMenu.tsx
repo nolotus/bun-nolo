@@ -1,13 +1,12 @@
 import React from "react";
-import { Button, DropDown } from "render/ui";
+import { DropDown } from "render/ui";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useNavigate } from "react-router-dom";
 import OpenProps from "open-props";
 import { PersonIcon, SignOutIcon, GearIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import { flex } from "render/ui/styles";
-import { Tooltip } from "@primer/react/next";
-import { circleButtonStyle } from "render/button/style";
+import { CircleButton } from "render/button/CircleButton";
 
 import { changeCurrentUser, selectUsers, signOut } from "../authSlice";
 import { getTokensFromLocalStorage, removeToken } from "../client/token";
@@ -28,6 +27,7 @@ export const IsLoggedInMenu = () => {
     dispatch(signOut());
     navigate("/");
   };
+
   const changeUser = (user) => {
     const tokens = getTokensFromLocalStorage();
     const updatedToken = tokens.find(
@@ -47,17 +47,11 @@ export const IsLoggedInMenu = () => {
     <DropDown
       direction="left"
       trigger={
-        <Tooltip text={"chat"} direction="n">
-          <div>
-            <Button
-              style={circleButtonStyle}
-              icon={<PersonIcon />}
-              onClick={() => {
-                navigate("/life");
-              }}
-            />
-          </div>
-        </Tooltip>
+        <CircleButton
+          tooltip="chat"
+          icon={<PersonIcon size="medium" />}
+          onClick={() => navigate("/life")}
+        />
       }
       triggerType="hover"
     >
@@ -85,24 +79,17 @@ export const IsLoggedInMenu = () => {
             ),
         )}
 
-        <Tooltip text={t("settings")} direction="n">
-          <div>
-            <Button
-              style={circleButtonStyle}
-              icon={<GearIcon size={24} />}
-              onClick={() => navigate("/settings")}
-            />
-          </div>
-        </Tooltip>
-        <Tooltip text={t("sign_out")} direction="n">
-          <div>
-            <Button
-              style={circleButtonStyle}
-              icon={<SignOutIcon />}
-              onClick={logout}
-            />
-          </div>
-        </Tooltip>
+        <CircleButton
+          tooltip={t("settings")}
+          icon={<GearIcon size="medium" />}
+          onClick={() => navigate("/settings")}
+        />
+
+        <CircleButton
+          tooltip={t("sign_out")}
+          icon={<SignOutIcon size="medium" />}
+          onClick={logout}
+        />
       </div>
     </DropDown>
   );

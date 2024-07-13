@@ -19,6 +19,7 @@ export const DialogItem = ({ id, isSelected, source }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { data: dialog } = useFetchData(id, { source });
+
   const { data: llm } = useFetchData(dialog.llmId, { source });
 
   const [isEditing, setEditing] = useState(false);

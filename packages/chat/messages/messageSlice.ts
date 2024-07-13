@@ -97,42 +97,15 @@ const initialState: MessageSliceState = {
   ids: null,
   isStopped: false,
   requestFailed: false,
-  messageLoading: false,
-  messageListFailed: false,
   streamMessages: [],
 };
 export const messageSlice = createSliceWithThunks({
   name: "message",
   initialState: initialState as MessageSliceState,
   reducers: (create) => ({
-    initMessages: create.asyncThunk(
-      async (args, thunkApi) => {
-        const { messageListId, source } = args;
-        if (!messageListId) {
-          throw new Error("messageListId not exist");
-        }
-        const { dispatch } = thunkApi;
-        const action = await dispatch(read({ id: messageListId, source }));
-        if (action.error) {
-          throw new Error(action.error);
-        }
-        return action.payload;
-      },
-      {
-        pending: (state) => {
-          state.messageLoading = true;
-        },
-        rejected: (state) => {
-          state.messageListFailed = true;
-          state.messageLoading = false;
-        },
-        fulfilled: (state, action) => {
-          state.messageListFailed = false;
-          state.ids = reverse(action.payload.array);
-          state.messageLoading = false;
-        },
-      },
-    ),
+    initMessages: create.reducer((state, action) => {
+      state.ids = action.payload;
+    }),
     messageStreamEnd: create.asyncThunk(
       async ({ id, content, llmId }, thunkApi) => {
         const { dispatch } = thunkApi;
@@ -544,6 +517,7 @@ export const messageSlice = createSliceWithThunks({
     ),
     clearMessages: create.reducer((state, action) => {
       state.ids = null;
+      state.streamMessages = [];
     }),
     addUserMessage: create.asyncThunk(
       async ({ content, isSaveToServer = true }, thunkApi) => {

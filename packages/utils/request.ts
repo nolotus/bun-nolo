@@ -1,4 +1,4 @@
-import { noloReadRequest } from "database/client/readRequest";
+import { noloReadRequest } from "database/read/readRequest";
 
 async function makeRequest(server: string, id: string, token: string) {
   try {

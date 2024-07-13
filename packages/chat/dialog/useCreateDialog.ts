@@ -26,6 +26,7 @@ export const useCreateDialog = () => {
     };
 
     try {
+      //todo could write in local first
       const writeMessageAction = await dispatch(write(messageListConfig));
       const initMessageList = writeMessageAction.payload;
 

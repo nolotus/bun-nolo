@@ -1,23 +1,49 @@
 import React, { useEffect, useRef } from "react";
-import { useAppSelector } from "app/hooks";
-import { MessageItem } from "./MessageItem";
-import { selectStreamMessages } from "./selector";
-import { ChatContainerPaddingRight } from "../styles";
+import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
+import { Spinner } from "@primer/react";
 import OpenProps from "open-props";
 
+import { MessageItem } from "./MessageItem";
+import { selectStreamMessages, selectMergedMessages } from "./selector";
+import { ChatContainerPaddingRight } from "../styles";
+import { initMessages } from "./messageSlice";
+import { reverse } from "rambda";
+
 interface MessagesDisplayProps {
-  messages: Array<{ id: string; content?: string }>;
+  id: string;
+  source: string[];
 }
 
-const MessagesList: React.FC<MessagesDisplayProps> = ({ messages }) => {
+const MessagesList: React.FC<MessagesDisplayProps> = ({ id, source }) => {
+  const dispatch = useAppDispatch();
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const { data, isLoading, error } = useFetchData(id, { source });
   const streamingMessages = useAppSelector(selectStreamMessages);
+  const messages = useAppSelector(selectMergedMessages);
+
   useEffect(() => {
     if (streamingMessages && containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, [streamingMessages, messages]);
+  //even useEffect still have order
+  useEffect(() => {
+    dispatch(initMessages());
+  }, [id, error]);
 
+  useEffect(() => {
+    if (data) {
+      dispatch(initMessages(reverse(data.array)));
+    }
+  }, [data]);
+
+  if (isLoading) {
+    return <Spinner size={"large"} />;
+  }
+  if (error) {
+    return <div style={{ height: "100vh" }}>{error.message}</div>;
+  }
   return (
     <div
       ref={containerRef}
@@ -39,4 +65,4 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ messages }) => {
   );
 };
 
-export default React.memo(MessagesList);
+export default MessagesList;

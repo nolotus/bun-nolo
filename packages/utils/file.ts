@@ -89,13 +89,6 @@ export const updateDataInFile = async (filePath, id: string, value: string) => {
   }
 };
 
-export const deleteFromFile = async (filePath: string, id: string) => {
-  const fileContent = await fs.promises.readFile(filePath, "utf-8");
-  const lines = fileContent.split("\n");
-  const newLines = lines.filter((line) => !line.startsWith(id));
-  await fs.promises.writeFile(filePath, newLines.join("\n"));
-};
-
 export const removeDataFromFile = async (filePath, ids: [string]) => {
   const tempFilePath = `${filePath}.tmp`;
   const readStream = Bun.file(filePath).stream();

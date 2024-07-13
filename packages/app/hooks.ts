@@ -15,7 +15,7 @@ export const useItem = (id: string) => {
 export function useFetchData(id: string, options) {
   const source = options?.source;
   const forceUpdate = options?.forceUpdate;
-  const data = useAppSelector((state) => selectById(state, id));
+  const memdata = useAppSelector((state) => selectById(state, id));
   const dispatch = useDispatch();
 
   const [isLoading, setLoading] = useState(false);
@@ -25,8 +25,11 @@ export function useFetchData(id: string, options) {
     const getData = async () => {
       try {
         setLoading(true);
-        dispatch(read({ id, source }));
+        const readAction = await dispatch(read({ id, source }));
         setError(null);
+        if (readAction.error) {
+          throw readAction.error;
+        }
       } catch (err) {
         setError(err);
       } finally {
@@ -38,12 +41,12 @@ export function useFetchData(id: string, options) {
     // 当 data 不存在时，尝试获取数据
     //当data 存在 只是在内存存在，不保证最新，需要主动每次调用获取新数据，或者主动接受服务器推送
 
-    if (forceUpdate || !data) {
+    if (forceUpdate || !memdata) {
       getData();
     }
   }, [dispatch, id]);
 
-  return { data, isLoading, error };
+  return { data: memdata, isLoading, error };
 }
 
 export const useQueryData = (queryConfig) => {

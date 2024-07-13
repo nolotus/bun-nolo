@@ -4,45 +4,35 @@ import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import MessageInput from "./messages/MessageInput";
-import { initMessages, handleSendMessage } from "./messages/messageSlice";
-import { selectMessageFailed, selectMergedMessages } from "./messages/selector";
+import { handleSendMessage } from "./messages/messageSlice";
 
 import { initLLMConfig } from "chat/dialog/dialogSlice";
 import MessagesList from "./messages/MessageList";
-import { Spinner } from "@primer/react";
 
 const ChatWindow = ({ currentDialogConfig }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const messageFailed = useAppSelector(selectMessageFailed);
-  const loading = useAppSelector((state) => state.message.messageLoading);
   useEffect(() => {
     currentDialogConfig.llmId &&
       dispatch(initLLMConfig(currentDialogConfig.llmId));
-
-    currentDialogConfig &&
-      dispatch(
-        initMessages({
-          messageListId: currentDialogConfig.messageListId,
-          source: currentDialogConfig.source,
-        }),
-      );
   }, [currentDialogConfig]);
 
   const userCost = useAppSelector(selectCostByUserId);
   // const allowSend = Number(userCost.totalCost) < 2;
-  const allowSend = !messageFailed;
+
+  const allowSend = true;
   const onSendMessage = (content) => {
     dispatch(handleSendMessage({ content }));
   };
-  const messages = useAppSelector(selectMergedMessages);
 
   return (
     <div className="flex w-full flex-col">
-      {loading && <Spinner size={"large"} />}
-      {messages?.length === 0 && <div>啥也没</div>}
-      {messages && <MessagesList messages={messages} />}
-
+      {currentDialogConfig.messageListId && (
+        <MessagesList
+          id={currentDialogConfig.messageListId}
+          source={currentDialogConfig.source}
+        />
+      )}
       {allowSend ? (
         <div className="flex-grow">
           <MessageInput onSendMessage={onSendMessage} />

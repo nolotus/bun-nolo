@@ -11,8 +11,9 @@ import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 import { ulid } from "ulid";
 import { requestServers } from "utils/request";
+
 import { API_ENDPOINTS } from "./config";
-import { noloReadRequest } from "./client/readRequest";
+import { noloReadRequest } from "database/read/readRequest";
 import { noloWriteRequest } from "./write/writeRequest";
 import { noloQueryRequest } from "./client/queryRequest";
 import { noloPutRequest } from "./client/putRequest";
@@ -73,9 +74,9 @@ const dbSlice = createSliceWithThunks({
     read: create.asyncThunk(
       async ({ id, source }, thunkApi) => {
         const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
 
         const token = state.auth.currentToken;
-
         if (source) {
           //source 第一优先级
           const res = await noloReadRequest(source[0], id, token);
@@ -86,16 +87,16 @@ const dbSlice = createSliceWithThunks({
         } else {
           const isAutoSync = state.settings.syncSetting.isAutoSync;
           const currentServer = selectCurrentServer(state);
-
           if (!isAutoSync) {
             //current 第二优先级
             const res = await noloReadRequest(currentServer, id, token);
             if (res.status === 200) {
               const result = await res.json();
               return result;
+            } else {
+              throw new Error(`Request failed with status code ${res.status}`);
             }
           } else {
-            //全部请求
             const syncServers = selectSyncServers(state);
             const raceRes = await requestServers(
               [currentServer, ...syncServers],
@@ -107,6 +108,7 @@ const dbSlice = createSliceWithThunks({
         }
       },
       {
+        rejected: (state, action) => {},
         fulfilled: (state, action) => {
           if (action.payload) {
             dbAdapter.upsertOne(state, action.payload);

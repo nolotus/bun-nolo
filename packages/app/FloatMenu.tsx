@@ -10,10 +10,8 @@ import { CreateMenu } from "create/blocks/CreateMenu";
 
 import { RoutePaths } from "auth/client/routes";
 import OpenProps from "open-props";
-import { Tooltip } from "@primer/react/next";
-import { circleButtonStyle } from "render/button/style";
 import { useTranslation } from "react-i18next";
-import { Button } from "render/ui";
+import { CircleButton } from "render/button/CircleButton";
 
 export const FloatMenu = () => {
   const navigate = useNavigate();
@@ -32,46 +30,28 @@ export const FloatMenu = () => {
         gap: Sizes["--size-relative-7"],
       }}
     >
-      <Tooltip text={"回到首页"} direction="n">
-        <div>
-          <Button
-            style={circleButtonStyle}
-            icon={<HomeIcon size={"small"} />}
-            onClick={() => {
-              navigate("/");
-            }}
-          />
-        </div>
-      </Tooltip>
+      <CircleButton
+        tooltip="回到首页"
+        icon={<HomeIcon size="medium" />}
+        onClick={() => navigate("/")}
+      />
 
       {isLoggedIn && <CreateMenu />}
 
-      <Tooltip text={"mine"} direction="n">
-        <div>
-          <Button
-            style={circleButtonStyle}
-            icon={<CommentIcon />}
-            onClick={() => {
-              navigate("/chat");
-            }}
-          />
-        </div>
-      </Tooltip>
+      <CircleButton
+        tooltip="chat"
+        icon={<CommentIcon size="medium" />}
+        onClick={() => navigate("/chat")}
+      />
 
       {isLoggedIn ? (
         <IsLoggedInMenu />
       ) : (
-        <Tooltip text={t("login")} direction="n">
-          <div>
-            <Button
-              style={circleButtonStyle}
-              icon={<SignInIcon />}
-              onClick={() => {
-                navigate(RoutePaths.LOGIN);
-              }}
-            />
-          </div>
-        </Tooltip>
+        <CircleButton
+          tooltip={t("login")}
+          icon={<SignInIcon size="small" />}
+          onClick={() => navigate(RoutePaths.LOGIN)}
+        />
       )}
     </div>
   );
