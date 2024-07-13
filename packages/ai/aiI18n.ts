@@ -7,10 +7,10 @@ export default {
       model: "Model",
       replyRule: "Reply Rule",
       type: "Type",
-      knowledge: "Knowledge", // 新增
-      createRobot: "Create Robot", // 新增
-      startConfiguringYourRobot: "Begin Robot Configuration", // 新增
-      configureDetailedSettings: "Configure Detailed Settings", // 新增
+      knowledge: "Knowledge",
+      createRobot: "Create Robot",
+      startConfiguringYourRobot: "Begin Robot Configuration",
+      configureDetailedSettings: "Configure Detailed Settings",
     },
   },
   "zh-CN": {

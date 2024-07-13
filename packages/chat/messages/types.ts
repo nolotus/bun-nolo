@@ -8,7 +8,6 @@ export interface MessageSliceState {
   ids: string[] | null;
   isStopped: boolean;
   requestFailed: boolean;
-  messageListFailed: boolean;
   streamMessages: Message[];
 }
 export type MessageRole = "user" | "system" | "assistant";
