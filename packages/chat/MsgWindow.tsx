@@ -2,11 +2,10 @@ import { selectCostByUserId } from "ai/selectors";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { initLLMConfig } from "chat/dialog/dialogSlice";
 
 import MessageInput from "./messages/MessageInput";
 import { handleSendMessage } from "./messages/messageSlice";
-
-import { initLLMConfig } from "chat/dialog/dialogSlice";
 import MessagesList from "./messages/MessageList";
 
 const ChatWindow = ({ currentDialogConfig }) => {
