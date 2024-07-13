@@ -11,7 +11,7 @@ import { write } from "database/dbSlice";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 
 import allTranslations from "../aiI18n";
-import { schema, fields } from "../schema";
+import { schema, fields } from "../llm/schema";
 
 Object.keys(allTranslations).forEach((lang) => {
   const translations = allTranslations[lang].translation;

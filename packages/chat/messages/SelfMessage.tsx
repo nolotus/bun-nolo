@@ -49,7 +49,7 @@ export const SelfMessage: React.FC<Message> = ({ content, id }) => {
         </div>
 
         <div
-          className="surface1 rounded-lg p-2"
+          className="rounded-lg p-2"
           style={{
             display: "flex",
             flexDirection: "column",

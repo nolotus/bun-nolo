@@ -7,14 +7,15 @@ import i18next from "i18n";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "render/ui/Button";
 
-import allTranslations from "../aiI18n";
-import { createDsl } from "../schema";
 import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
+
+import { createDsl } from "../llm/schema";
+import allTranslations from "../aiI18n";
 
 const fields = createFieldsFromDSL(createDsl);
 const schema = createZodSchemaFromDSL(createDsl);

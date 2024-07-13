@@ -1,11 +1,11 @@
 import { createSelector } from "@reduxjs/toolkit";
 
-import { allModels } from "./models";
 import { DataType } from "create/types";
 import { selectAll } from "database/dbSlice";
 
+import { allModels } from "./llm/models";
+
 export const selectTokenStatisticsData = createSelector([selectAll], (data) => {
-  // 在此处打印 data
   return data.filter(
     (item) => item.type === DataType.TokenStatistics || DataType.TokenStats,
   );

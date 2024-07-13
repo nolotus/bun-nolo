@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
 
-import { editSchema, editFields } from "../schema";
+import { editSchema, editFields } from "../llm/schema";
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();

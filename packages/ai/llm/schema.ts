@@ -1,8 +1,9 @@
 import { createFieldsFromDSL } from "render/ui/Form/createFieldsFromDSL";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
+import { DataType } from "create/types";
 
 import { modelEnum } from "./models";
-import { DataType } from "create/types";
+
 const baseFields = {
   name: {
     type: "string",
