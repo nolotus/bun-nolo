@@ -3,7 +3,7 @@ import OpenProps from "open-props";
 import { useQueryData } from "app/hooks";
 import { DataType } from "create/types";
 import { Spinner } from "@primer/react";
-
+import React from "react";
 export const SpotList = ({ userId }) => {
   const options = {
     isJSON: true,
