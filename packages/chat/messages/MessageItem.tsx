@@ -51,7 +51,7 @@ export const MessageItem = ({ message }) => {
   } else if (error) {
     return (
       <div className="flex">
-        {error.data.error}
+        {error.data?.error}
         <div>
           {couldDelete && (
             <IconButton

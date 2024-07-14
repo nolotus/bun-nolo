@@ -57,7 +57,7 @@ export const SelfMessage: React.FC<Message> = ({ content, id }) => {
           }}
         >
           {typeof content === "string" ? (
-            <div style={{ whiteSpace: "preserve" }}>{content} </div>
+            <MessageText content={content} />
           ) : (
             content?.map((item) => {
               if (item.type === "text") {

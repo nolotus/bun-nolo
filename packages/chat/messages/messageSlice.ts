@@ -23,7 +23,7 @@ import {
 } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { filter, reverse } from "rambda";
-
+import { transformMessages } from "ai/llm/transformMessage";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
 
@@ -259,11 +259,9 @@ export const messageSlice = createSliceWithThunks({
 
         thunkApi.dispatch(addUserMessage({ content }));
         // after addUserMessage maybe multi cybot
-        const messages = getFilteredMessages(state);
+        let messages = getFilteredMessages(state);
         const dialogConfig = selectCurrentDialogConfig(state);
 
-        /// todo multi cybot could reply multi msg
-        //for now just one gu
         const cybotId = dialogConfig.cybots
           ? dialogConfig.cybots[0]
           : dialogConfig.llmId;
@@ -271,6 +269,14 @@ export const messageSlice = createSliceWithThunks({
         const readAction = await dispatch(read({ id: cybotId }));
         const cybotConfig = readAction.payload;
         const model = cybotConfig.model;
+        console.log("messages", messages);
+
+        if (model === "llava") {
+          messages = transformMessages(messages);
+        }
+        console.log("messages", messages);
+        /// todo multi cybot could reply multi msg
+        //for now just one gu
 
         // move to inside
         if (typeof content === "string") {
@@ -356,7 +362,8 @@ export const messageSlice = createSliceWithThunks({
                 if (
                   model === "llama3" ||
                   model === "qwen2" ||
-                  model === "gemma2"
+                  model === "gemma2" ||
+                  model === "llava"
                 ) {
                   let rawJSON = {};
                   try {
