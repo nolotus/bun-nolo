@@ -4,7 +4,8 @@ import LazyLoadComponent from "render/components/LazyLoadComponent";
 export enum CreateRoutePaths {
   CREATE = "create",
   CREATE_PAGE = "create/page",
-  CREATE_CHAT_ROBOT = "create/chat-robot",
+  CREATE_CYBOT = "create/cybot",
+  CREATE_LLM = "create/llm",
 }
 
 export const createRoutes = [
@@ -27,7 +28,7 @@ export const createRoutes = [
     ),
   },
   {
-    path: CreateRoutePaths.CREATE_CHAT_ROBOT,
+    path: CreateRoutePaths.CREATE_CYBOT,
     element: (
       <LazyLoadComponent
         factory={() => import("ai/pages/CreateChatRobot")}
@@ -35,5 +36,4 @@ export const createRoutes = [
       />
     ),
   },
-  // 其他路由...
 ];

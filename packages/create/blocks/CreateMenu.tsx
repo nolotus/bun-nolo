@@ -21,7 +21,7 @@ const buttonItems = [
   {
     tooltip: "添加AI",
     icon: <DependabotIcon size="medium" />,
-    path: `/${CreateRoutePaths.CREATE_CHAT_ROBOT}`,
+    path: `/${CreateRoutePaths.CREATE_CYBOT}`,
   },
   {
     tooltip: "添加地点",
