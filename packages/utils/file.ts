@@ -99,7 +99,7 @@ export const removeDataFromFile = async (filePath, ids: [string]) => {
       if (line.trim() === "") {
         continue;
       }
-      if (!line.startsWith("0")) {
+      if (!line.startsWith("0") || !line.startsWith("1")) {
         console.log("error line", line);
       }
       const lineId = line.split(" ")[0];
