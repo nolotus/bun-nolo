@@ -40,7 +40,7 @@ export const createRoutes = [
     path: CreateRoutePaths.CREATE_LLM,
     element: (
       <LazyLoadComponent
-        factory={() => import("ai/llm/CreateLLM")}
+        factory={() => import("ai/llm/CreateLLm")}
         fallback={<div>Loading page for {CreateRoutePaths.CREATE_LLM}</div>}
       />
     ),
