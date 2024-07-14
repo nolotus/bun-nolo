@@ -15,7 +15,8 @@ export async function chatRequest(requestBody: any): Promise<any> {
 
   baseLogger.info(filteredMessages);
 
-  const client = new Anthropic();
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   const response = client.messages.stream({
     messages: filteredMessages,
     model,

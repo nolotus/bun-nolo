@@ -14,12 +14,12 @@ import { CircleButton } from "render/button/CircleButton";
 
 const buttonItems = [
   {
-    tooltip: "添加笔记",
+    tooltip: "添加页面",
     icon: <NoteIcon size="medium" />,
     path: `/${CreateRoutePaths.CREATE_PAGE}`,
   },
   {
-    tooltip: "添加AI",
+    tooltip: "添加Cybot",
     icon: <DependabotIcon size="medium" />,
     path: `/${CreateRoutePaths.CREATE_CYBOT}`,
   },

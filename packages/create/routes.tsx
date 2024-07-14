@@ -14,7 +14,7 @@ export const createRoutes = [
     element: (
       <LazyLoadComponent
         factory={() => import("./index")}
-        fallback={<div>Loading Create...</div>}
+        fallback={<div>Loading Create Index...</div>}
       />
     ),
   },
@@ -23,7 +23,7 @@ export const createRoutes = [
     element: (
       <LazyLoadComponent
         factory={() => import("render/page/CreatePage")}
-        fallback={<div>Loading CreatePage...</div>}
+        fallback={<div>Loading page for {CreateRoutePaths.CREATE_PAGE}</div>}
       />
     ),
   },
@@ -31,8 +31,17 @@ export const createRoutes = [
     path: CreateRoutePaths.CREATE_CYBOT,
     element: (
       <LazyLoadComponent
-        factory={() => import("ai/pages/CreateChatRobot")}
-        fallback={<div>Loading Chat Robot...</div>}
+        factory={() => import("ai/cybot/CreateCybot")}
+        fallback={<div>Loading page for {CreateRoutePaths.CREATE_CYBOT}</div>}
+      />
+    ),
+  },
+  {
+    path: CreateRoutePaths.CREATE_LLM,
+    element: (
+      <LazyLoadComponent
+        factory={() => import("ai/llm/CreateLLM")}
+        fallback={<div>Loading page for {CreateRoutePaths.CREATE_LLM}</div>}
       />
     ),
   },
