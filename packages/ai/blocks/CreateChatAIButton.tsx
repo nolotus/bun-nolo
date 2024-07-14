@@ -1,6 +1,6 @@
 import { useModal, Dialog } from "render/ui";
-import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
 import { useTranslation } from "react-i18next";
+import CreateCybot from "../cybot/CreateCybot";
 
 const CreateChatAIButton = () => {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ const CreateChatAIButton = () => {
         onClose={closeConfigModal}
         title={<h2 className="text-xl font-bold">{t("createRobot")}</h2>}
       >
-        <CreateChatRobotForm onClose={closeConfigModal} />
+        <CreateCybot onClose={closeConfigModal} />
       </Dialog>
       <button type="button" onClick={openConfigModal} className="text-blue-400">
         创建对话AI

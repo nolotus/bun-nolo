@@ -5,27 +5,17 @@ import { useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
 
 import { DataType } from "create/types";
-import aiTranslations from "ai/aiI18n";
+
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAuth } from "auth/useAuth";
 import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
 
-import chatTranslations from "./chatI18n";
 import DialogSidebar from "./dialog/DialogSideBar";
 import ChatWindow from "./MsgWindow";
 import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
 import { ChatGuide } from "./ChatGuide";
-
-for (const lang of Object.keys(chatTranslations)) {
-  const translations = chatTranslations[lang].translation;
-  i18n.addResourceBundle(lang, "translation", translations, true, true);
-}
-
-for (const lang of Object.keys(aiTranslations)) {
-  const translations = aiTranslations[lang].translation;
-  i18n.addResourceBundle(lang, "translation", translations, true, true);
-}
+import withTranslations from "i18n/withTranslations";
 
 const ChatPage = () => {
   const auth = useAuth();
@@ -95,4 +85,4 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default withTranslations(ChatPage, ["chat"]);

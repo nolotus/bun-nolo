@@ -184,7 +184,9 @@ export const DataTable = ({ dataList, type, pullData }) => {
         return <div>{JSON.stringify(data)}</div>;
       })} */}
       <table>
-        {type === DataType.ChatRobot && <AIThead />}
+        {(type === DataType.ChatRobot || type === DataType.Cybot) && (
+          <AIThead />
+        )}
         {type === DataType.Page && <PageThead />}
         {type === DataType.SurfSpot && <SurfHead />}
 
@@ -202,7 +204,7 @@ export const DataTable = ({ dataList, type, pullData }) => {
         <tbody>
           {dataList.map((data) => (
             <>
-              {type === DataType.ChatRobot && (
+              {(type === DataType.ChatRobot || type === DataType.Cybot) && (
                 <AITR data={data} key={data.id} />
               )}
               {type === DataType.Page && <PageTR data={data} key={data.id} />}

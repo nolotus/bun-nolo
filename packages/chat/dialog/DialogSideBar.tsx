@@ -1,5 +1,3 @@
-import CreateChatRobotForm from "ai/blocks/CreateChatRobotForm";
-import Sizes from "open-props/src/sizes";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useModal, Dialog, Button } from "render/ui";
@@ -11,6 +9,7 @@ import OpenProps from "open-props";
 
 import { DialogList } from "./DialogList";
 import { ChatSidebarPadding, ChatSidebarWidth } from "../styles";
+import CreateCybot from "ai/cybot/CreateCybot";
 
 const DialogSideBar = ({ dialogList }) => {
   const { t } = useTranslation();
@@ -60,7 +59,7 @@ const DialogSideBar = ({ dialogList }) => {
             onClose={closeConfigModal}
             title={<h2 className="text-xl ">{t("createRobot")}</h2>}
           >
-            <CreateChatRobotForm onClose={closeConfigModal} />
+            <CreateCybot onClose={closeConfigModal} />
           </Dialog>
         </button>
 

@@ -1,23 +1,22 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { DataType } from "create/types";
-import i18next from "i18n";
+import { useTranslation } from "react-i18next";
 import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import ToggleSwitch from "render/ui/ToggleSwitch";
+import { globalStyles } from "render/ui/formStyle";
+import withTranslations from "i18n/withTranslations";
 
 import { modelEnum } from "../llm/models";
-import allTranslations from "../aiI18n";
 
-Object.keys(allTranslations).forEach((lang) => {
-  const translations = allTranslations[lang].translation;
-  i18next.addResourceBundle(lang, "translation", translations, true, true);
-});
-const CreateCybot = () => {
+const CreateCybot = ({ onClose }) => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
+  const { isLoading, createDialog } = useCreateDialog();
 
   const {
     register,
@@ -26,9 +25,10 @@ const CreateCybot = () => {
     setValue,
     formState: { errors },
   } = useForm();
-  const { isLoading, createDialog } = useCreateDialog();
+
   const isPrivate = watch("isPrivate");
   const isEncrypted = watch("isEncrypted");
+
   const onSubmit = async (data) => {
     console.log(data);
     try {
@@ -40,123 +40,98 @@ const CreateCybot = () => {
         }),
       );
       const cybotId = writeChatRobotAction.payload.id;
-      createDialog({ cybots: [cybotId] });
+      await createDialog({ cybots: [cybotId] });
+      onClose();
     } catch (error) {
-      // setError(error.data?.message || error.status); // 可以直接设置错误状态
+      // 错误处理
     }
   };
 
-  const formStyle = {
-    maxWidth: "500px",
-    margin: "0 auto",
-    padding: "20px",
-  };
-
-  const inputStyle = {
-    width: "100%",
-    padding: "8px",
-    margin: "8px 0",
-  };
-
-  const labelStyle = {
-    fontWeight: "bold",
-    marginBottom: "5px",
-    display: "block",
-  };
-
-  const errorStyle = {
-    color: "red",
-    fontSize: "0.8em",
-  };
-
   return (
-    <div style={formStyle}>
-      <h2 style={{ textAlign: "center", color: "#333" }}>Create a New Cybot</h2>
+    <div style={globalStyles.formStyle}>
+      <h2 style={{ textAlign: "center", color: "#333" }}>{t("createCybot")}</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
-          <label htmlFor="name" style={labelStyle}>
-            Cybot Name:
+          <label htmlFor="name" style={globalStyles.labelStyle}>
+            {t("cybotName")}:
           </label>
           <input
             id="name"
-            style={inputStyle}
-            {...register("name", { required: "Cybot name is required" })}
+            style={globalStyles.inputStyle}
+            {...register("name", { required: t("cybotNameRequired") })}
           />
-          {errors.name && <p style={errorStyle}>{errors.name.message}</p>}
+          {errors.name && (
+            <p style={globalStyles.errorStyle}>{errors.name.message}</p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="greeting" style={labelStyle}>
-            Greeting Message:
+          <label htmlFor="greeting" style={globalStyles.labelStyle}>
+            {t("greetingMessage")}:
           </label>
           <input
             id="greeting"
-            style={inputStyle}
-            {...register("greeting", {
-              required: "Greeting message is required",
-            })}
+            style={globalStyles.inputStyle}
+            {...register("greeting", { required: t("greetingRequired") })}
           />
           {errors.greeting && (
-            <p style={errorStyle}>{errors.greeting.message}</p>
+            <p style={globalStyles.errorStyle}>{errors.greeting.message}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="introduction" style={labelStyle}>
-            Self Introduction:
+          <label htmlFor="introduction" style={globalStyles.labelStyle}>
+            {t("selfIntroduction")}:
           </label>
           <textarea
             id="introduction"
-            style={{ ...inputStyle, height: "100px" }}
+            style={{ ...globalStyles.inputStyle, height: "100px" }}
             {...register("introduction", {
-              required: "Self introduction is required",
+              required: t("introductionRequired"),
             })}
           />
           {errors.introduction && (
-            <p style={errorStyle}>{errors.introduction.message}</p>
+            <p style={globalStyles.errorStyle}>{errors.introduction.message}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="model" style={labelStyle}>
-            Model:
+          <label htmlFor="model" style={globalStyles.labelStyle}>
+            {t("model")}:
           </label>
           <select
             id="model"
-            style={inputStyle}
-            {...register("model", { required: "Model selection is required" })}
+            style={globalStyles.inputStyle}
+            {...register("model", { required: t("modelRequired") })}
           >
-            <option value="">Select a model</option>
+            <option value="">{t("selectModel")}</option>
             {Object.entries(modelEnum).map(([key, value]) => (
               <option key={key} value={value}>
                 {key}
               </option>
             ))}
           </select>
-          {errors.model && <p style={errorStyle}>{errors.model.message}</p>}
+          {errors.model && (
+            <p style={globalStyles.errorStyle}>{errors.model.message}</p>
+          )}
         </div>
 
         <div>
-          <label htmlFor="prompt" style={labelStyle}>
-            Prompt:
+          <label htmlFor="prompt" style={globalStyles.labelStyle}>
+            {t("prompt")}:
           </label>
           <textarea
             id="prompt"
-            style={{ ...inputStyle, height: "100px" }}
+            style={{ ...globalStyles.inputStyle, height: "100px" }}
             {...register("prompt")}
           />
-          {errors.prompt && <p style={errorStyle}>{errors.prompt.message}</p>}
+          {errors.prompt && (
+            <p style={globalStyles.errorStyle}>{errors.prompt.message}</p>
+          )}
         </div>
-        <div style={{ marginTop: "20px" }}>
-          <label
-            style={{
-              ...labelStyle,
-              display: "inline-block",
-              marginRight: "10px",
-            }}
-          >
-            Private:
-          </label>
+
+        <div style={globalStyles.toggleSwitchContainer}>
+          <label style={globalStyles.toggleSwitchLabel}>{t("private")}:</label>
           <ToggleSwitch
             checked={isPrivate}
             onChange={(checked) => setValue("isPrivate", checked)}
@@ -164,15 +139,9 @@ const CreateCybot = () => {
           />
         </div>
 
-        <div style={{ marginTop: "20px" }}>
-          <label
-            style={{
-              ...labelStyle,
-              display: "inline-block",
-              marginRight: "10px",
-            }}
-          >
-            Encrypted:
+        <div style={globalStyles.toggleSwitchContainer}>
+          <label style={globalStyles.toggleSwitchLabel}>
+            {t("encrypted")}:
           </label>
           <ToggleSwitch
             checked={isEncrypted}
@@ -180,23 +149,13 @@ const CreateCybot = () => {
             ariaLabelledby="encrypted-label"
           />
         </div>
-        <button
-          type="submit"
-          style={{
-            marginTop: "20px",
-            padding: "10px 20px",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Create Cybot
+
+        <button type="submit" style={globalStyles.buttonStyle}>
+          {t("createCybot")}
         </button>
       </form>
     </div>
   );
 };
 
-export default CreateCybot;
+export default withTranslations(CreateCybot, ["ai"]);
