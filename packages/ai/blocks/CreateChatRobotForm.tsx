@@ -16,6 +16,7 @@ import { useCreateDialog } from "chat/dialog/useCreateDialog";
 
 import { createDsl } from "../llm/schema";
 import allTranslations from "../aiI18n";
+import { DataType } from "create/types";
 
 const fields = createFieldsFromDSL(createDsl);
 const schema = createZodSchemaFromDSL(createDsl);
@@ -47,13 +48,13 @@ const CreateChatRobotForm = ({ onClose }) => {
       setWriting(true);
       const writeChatRobotAction = await dispatch(
         write({
-          data: { type: "chatRobot", ...data },
+          data: { type: DataType.Cybot, ...data },
           flags: { isJSON: true },
           userId: auth.user?.userId,
         }),
       );
-      const llmId = writeChatRobotAction.payload.id;
-      await createDialog(llmId);
+      const cybotId = writeChatRobotAction.payload.id;
+      await createDialog({ cybots: [cybotId] });
       onClose();
       setWriting(false);
     } catch (error) {

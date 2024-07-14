@@ -15,38 +15,40 @@ export const useCreateDialog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const createDialog = async (llmId: string) => {
+  const createDialog = async ({ cybots, users }) => {
     setIsLoading(true);
     setIsSuccess(false);
-
-    const messageListConfig = {
-      data: [],
-      flags: { isList: true },
-      userId: currentUserId,
-    };
-
-    try {
-      //todo could write in local first
-      const writeMessageAction = await dispatch(write(messageListConfig));
-      const initMessageList = writeMessageAction.payload;
-
-      const dialogConfig = {
-        data: {
-          type: DataType.Dialog,
-          llmId,
-          messageListId: initMessageList.id,
-          title: format(new Date(), "MM-dd HH:mm"),
-        },
-        flags: { isJSON: true },
+    if (cybots) {
+      //todo greet
+      const messageListConfig = {
+        data: [],
+        flags: { isList: true },
         userId: currentUserId,
       };
 
-      const result = await dispatch(write(dialogConfig));
-      navigate(`/chat?dialogId=${result.payload.id}`);
-      setIsSuccess(true);
-    } catch (error) {
-    } finally {
-      setIsLoading(false);
+      try {
+        //todo could write in local first
+        const writeMessageAction = await dispatch(write(messageListConfig));
+        const initMessageList = writeMessageAction.payload;
+
+        const dialogConfig = {
+          data: {
+            type: DataType.Dialog,
+            cybots,
+            messageListId: initMessageList.id,
+            title: format(new Date(), "MM-dd HH:mm"),
+          },
+          flags: { isJSON: true },
+          userId: currentUserId,
+        };
+
+        const result = await dispatch(write(dialogConfig));
+        navigate(`/chat?dialogId=${result.payload.id}`);
+        setIsSuccess(true);
+      } catch (error) {
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 

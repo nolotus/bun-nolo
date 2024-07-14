@@ -16,7 +16,6 @@ const DialogSlice = createSliceWithThunks({
   initialState: {
     currentDialogId: null,
     currentDialogConfig: null,
-    currenLLMConfig: null,
   },
   reducers: (create) => ({
     setCurrentDialogId: create.reducer(
@@ -35,7 +34,6 @@ const DialogSlice = createSliceWithThunks({
       {
         pending: (state) => {
           // state.loading = true;
-          state.currenLLMConfig = null;
           state.currentDialogConfig = null;
         },
         rejected: (state, action) => {},
@@ -45,17 +43,6 @@ const DialogSlice = createSliceWithThunks({
       },
     ),
 
-    initLLMConfig: create.asyncThunk(
-      async (llmID: string, thunkApi) => {
-        const action = await thunkApi.dispatch(read({ id: llmID }));
-        return action.payload;
-      },
-      {
-        fulfilled: (state, action) => {
-          state.currenLLMConfig = action.payload;
-        },
-      },
-    ),
     deleteDialog: create.asyncThunk(
       async (dialog, thunkApi) => {
         const { dispatch, getState } = thunkApi;
@@ -80,7 +67,6 @@ const DialogSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state) => {
-          state.currenLLMConfig = null;
           state.currentDialogConfig = null;
           state.currentDialogId = null;
         },
@@ -88,12 +74,10 @@ const DialogSlice = createSliceWithThunks({
     ),
   }),
 });
-export const { initDialog, setCurrentDialogId, initLLMConfig, deleteDialog } =
+export const { initDialog, setCurrentDialogId, deleteDialog } =
   DialogSlice.actions;
 
 export default DialogSlice.reducer;
-export const selectCurrentLLMConfig = (state: NoloRootState) =>
-  state.dialog.currenLLMConfig;
 
 export const selectCurrentDialogConfig = (state: NoloRootState) =>
   state.dialog.currentDialogConfig;

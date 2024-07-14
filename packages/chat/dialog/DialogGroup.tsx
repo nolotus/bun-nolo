@@ -12,25 +12,25 @@ import { DialogItem } from "./DialogItem";
 import { useCreateDialog } from "./useCreateDialog";
 import { extractCustomId } from "core";
 
-export const DialogGroup = ({ llmId, dialogs, currentDialogId, source }) => {
-  const { isLoading, data: llm } = useFetchData(llmId, { source });
+export const DialogGroup = ({ cybotId, dialogs, currentDialogId, source }) => {
+  const { isLoading, data: llm } = useFetchData(cybotId, { source });
   const { visible: editVisible, open, close: closeEdit } = useModal();
   const { isLoading: creatingDialog, createDialog } = useCreateDialog();
-  const allowEdit = useCouldEdit(llmId);
+  const allowEdit = useCouldEdit(cybotId);
   if (isLoading) {
     return <Spinner />;
   }
   return (
-    <div key={llmId}>
+    <div key={cybotId}>
       <div style={{ display: "flex", gap: OpenProps.sizeFluid1 }}>
-        <div>{llm?.name ? llm.name : extractCustomId(llmId)}</div>
+        <div>{llm?.name ? llm.name : extractCustomId(cybotId)}</div>
         {allowEdit && (
           <>
             <IconButton
               icon={PlusIcon}
               isLoading={creatingDialog}
               onClick={() => {
-                createDialog(llmId);
+                createDialog({ cybots: [cybotId] });
               }}
             />
             <IconButton

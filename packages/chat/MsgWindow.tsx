@@ -1,8 +1,7 @@
 import { selectCostByUserId } from "ai/selectors";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import React, { useEffect } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { initLLMConfig } from "chat/dialog/dialogSlice";
 
 import MessageInput from "./messages/MessageInput";
 import { handleSendMessage } from "./messages/messageSlice";
@@ -11,10 +10,6 @@ import MessagesList from "./messages/MessageList";
 const ChatWindow = ({ currentDialogConfig }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  useEffect(() => {
-    currentDialogConfig.llmId &&
-      dispatch(initLLMConfig(currentDialogConfig.llmId));
-  }, [currentDialogConfig]);
 
   const userCost = useAppSelector(selectCostByUserId);
   // const allowSend = Number(userCost.totalCost) < 2;

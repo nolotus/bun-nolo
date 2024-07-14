@@ -19,8 +19,8 @@ export const ChatBotBlock = ({ item }) => {
   const createNewDialog = async () => {
     //todo handle click multi
     try {
-      const llmId = item.id;
-      await createDialog(llmId);
+      const cybotId = item.id;
+      await createDialog({ cybots: [cybotId] });
     } catch (error) {
       // setError(error.data?.message || error.status);
     }

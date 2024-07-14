@@ -1,16 +1,49 @@
 import React from "react";
 import { useForm } from "react-hook-form";
+import { DataType } from "create/types";
+import i18next from "i18n";
+import { useAppDispatch } from "app/hooks";
+import { write } from "database/dbSlice";
+import { useAuth } from "auth/useAuth";
+import { useCreateDialog } from "chat/dialog/useCreateDialog";
+import ToggleSwitch from "render/ui/ToggleSwitch";
 
+import { modelEnum } from "../llm/models";
+import allTranslations from "../aiI18n";
+
+Object.keys(allTranslations).forEach((lang) => {
+  const translations = allTranslations[lang].translation;
+  i18next.addResourceBundle(lang, "translation", translations, true, true);
+});
 const CreateCybot = () => {
+  const dispatch = useAppDispatch();
+  const auth = useAuth();
+
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm();
-
-  const onSubmit = (data) => {
+  const { isLoading, createDialog } = useCreateDialog();
+  const isPrivate = watch("isPrivate");
+  const isEncrypted = watch("isEncrypted");
+  const onSubmit = async (data) => {
     console.log(data);
-    // Here you would typically send the data to your backend
+    try {
+      const writeChatRobotAction = await dispatch(
+        write({
+          data: { type: DataType.Cybot, ...data },
+          flags: { isJSON: true },
+          userId: auth.user?.userId,
+        }),
+      );
+      const cybotId = writeChatRobotAction.payload.id;
+      createDialog({ cybots: [cybotId] });
+    } catch (error) {
+      // setError(error.data?.message || error.status); // 可以直接设置错误状态
+    }
   };
 
   const formStyle = {
@@ -23,28 +56,12 @@ const CreateCybot = () => {
     width: "100%",
     padding: "8px",
     margin: "8px 0",
-    borderRadius: "4px",
-    border: "1px solid #ddd",
   };
 
   const labelStyle = {
     fontWeight: "bold",
     marginBottom: "5px",
     display: "block",
-  };
-
-  const buttonStyle = {
-    backgroundColor: "#4CAF50",
-    border: "none",
-    color: "white",
-    padding: "12px 24px",
-    textAlign: "center",
-    textDecoration: "none",
-    display: "inline-block",
-    fontSize: "16px",
-    margin: "4px 2px",
-    cursor: "pointer",
-    borderRadius: "4px",
   };
 
   const errorStyle = {
@@ -110,8 +127,11 @@ const CreateCybot = () => {
             {...register("model", { required: "Model selection is required" })}
           >
             <option value="">Select a model</option>
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-            <option value="gpt-4">GPT-4</option>
+            {Object.entries(modelEnum).map(([key, value]) => (
+              <option key={key} value={value}>
+                {key}
+              </option>
+            ))}
           </select>
           {errors.model && <p style={errorStyle}>{errors.model.message}</p>}
         </div>
@@ -123,12 +143,55 @@ const CreateCybot = () => {
           <textarea
             id="prompt"
             style={{ ...inputStyle, height: "100px" }}
-            {...register("prompt", { required: "Prompt is required" })}
+            {...register("prompt")}
           />
           {errors.prompt && <p style={errorStyle}>{errors.prompt.message}</p>}
         </div>
+        <div style={{ marginTop: "20px" }}>
+          <label
+            style={{
+              ...labelStyle,
+              display: "inline-block",
+              marginRight: "10px",
+            }}
+          >
+            Private:
+          </label>
+          <ToggleSwitch
+            checked={isPrivate}
+            onChange={(checked) => setValue("isPrivate", checked)}
+            ariaLabelledby="private-label"
+          />
+        </div>
 
-        <button type="submit" style={buttonStyle}>
+        <div style={{ marginTop: "20px" }}>
+          <label
+            style={{
+              ...labelStyle,
+              display: "inline-block",
+              marginRight: "10px",
+            }}
+          >
+            Encrypted:
+          </label>
+          <ToggleSwitch
+            checked={isEncrypted}
+            onChange={(checked) => setValue("isEncrypted", checked)}
+            ariaLabelledby="encrypted-label"
+          />
+        </div>
+        <button
+          type="submit"
+          style={{
+            marginTop: "20px",
+            padding: "10px 20px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
           Create Cybot
         </button>
       </form>

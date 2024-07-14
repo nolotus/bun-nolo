@@ -42,8 +42,8 @@ const CreateChatRobot = () => {
           userId: auth.user?.userId,
         }),
       );
-      const llmId = writeChatRobotAction.payload.id;
-      createDialog(llmId);
+      const cybotId = writeChatRobotAction.payload.id;
+      createDialog({ cybots: [cybotId] });
     } catch (error) {
       setError(error.data?.message || error.status); // 可以直接设置错误状态
     }

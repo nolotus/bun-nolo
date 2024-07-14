@@ -28,7 +28,7 @@ export const MessageItem = ({ message }) => {
     let content = streamContent ? streamContent : data.content;
     if (isSelf) {
       return <SelfMessage content={content} id={id} />;
-    } else if (data.llmId) {
+    } else if (data.llmId || data.cybotId) {
       return (
         <RobotMessage
           id={id}

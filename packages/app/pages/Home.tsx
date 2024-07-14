@@ -21,7 +21,9 @@ const Home = () => {
         className="flex flex-col gap-6"
         style={{ gap: "var(--size-fluid-1)" }}
       >
-        <h1>嘿，你好，我是Nolotus！</h1>
+        <h2>嘿，你好，我是Nolotus！</h2>
+        <h2>嗨，欢迎来到这里！👋，本站还在测试中!</h2>
+        <h3>很多功能都不完善，如果你有任何问题请发送邮件至s@nolotus.com</h3>
         <p>
           我在这里用AI <DependabotIcon size="medium" />
           管理我的一切,从日常的Todo，财务，到旅途拍摄的美景。

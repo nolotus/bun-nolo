@@ -20,8 +20,6 @@ export const DialogItem = ({ id, isSelected, source }) => {
   const navigate = useNavigate();
   const { data: dialog } = useFetchData(id, { source });
 
-  const { data: llm } = useFetchData(dialog.llmId, { source });
-
   const [isEditing, setEditing] = useState(false);
   const [title, setTitle] = useState(id);
 
@@ -42,7 +40,7 @@ export const DialogItem = ({ id, isSelected, source }) => {
 
   useEffect(() => {
     setTitle(dialog?.title || dialog.id);
-  }, [dialog, llm]);
+  }, [dialog]);
 
   const saveTitle = async () => {
     dispatch(patchData({ id, changes: { title }, source: dialog.source }));
@@ -115,7 +113,7 @@ export const DialogItem = ({ id, isSelected, source }) => {
               isOpen={deleteAlertVisible}
               onClose={closeAlert}
               onConfirm={doDelete}
-              title={`删除和${llm?.name}的对话？`}
+              title={`删除和${title}的对话？`}
               message={`你确定要删除对话吗？`}
             />
           )}

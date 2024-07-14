@@ -16,7 +16,7 @@ export const DialogList = ({ dialogList, source }) => {
     const dataUserId = extractUserId(id);
     return dataUserId === auth.user?.userId;
   };
-
+  //todo handle cybots
   const dialogGroups = dialogList.reduce((acc, dialog) => {
     const llmId = dialog.llmId;
     if (!acc[llmId]) {
@@ -33,7 +33,7 @@ export const DialogList = ({ dialogList, source }) => {
       {Object.entries(dialogGroups).map(([llmId, dialogs]) => (
         <DialogGroup
           key={llmId}
-          llmId={llmId}
+          cybotId={llmId}
           dialogs={dialogs}
           currentDialogId={currentDialogId}
           isCreator={isCreator}

@@ -28,10 +28,7 @@ import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
 
 import { Message, MessageSliceState } from "./types";
-import {
-  selectCurrentDialogConfig,
-  selectCurrentLLMConfig,
-} from "../dialog/dialogSlice";
+import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
 import { getFilteredMessages } from "./utils";
 import { createRequestBody } from "../utils/createRequestBody";
@@ -93,10 +90,8 @@ function parseMultipleJson(text) {
   return results.length === 1 ? results[0] : results;
 }
 const initialState: MessageSliceState = {
-  messageListId: null,
   ids: null,
   isStopped: false,
-  requestFailed: false,
   streamMessages: [],
 };
 export const messageSlice = createSliceWithThunks({
@@ -107,12 +102,12 @@ export const messageSlice = createSliceWithThunks({
       state.ids = action.payload;
     }),
     messageStreamEnd: create.asyncThunk(
-      async ({ id, content, llmId }, thunkApi) => {
+      async ({ id, content, cybotId }, thunkApi) => {
         const { dispatch } = thunkApi;
         const message = {
           id,
           content,
-          llmId,
+          cybotId,
         };
         const action = await dispatch(addAIMessage(message));
         const { array } = action.payload;
@@ -262,15 +257,25 @@ export const messageSlice = createSliceWithThunks({
         const state = thunkApi.getState();
         const dispatch = thunkApi.dispatch;
 
+        thunkApi.dispatch(addUserMessage({ content }));
+        // after addUserMessage maybe multi cybot
+        const messages = getFilteredMessages(state);
+        const dialogConfig = selectCurrentDialogConfig(state);
+
+        /// todo multi cybot could reply multi msg
+        //for now just one gu
+        const cybotId = dialogConfig.cybots
+          ? dialogConfig.cybots[0]
+          : dialogConfig.llmId;
+
+        const readAction = await dispatch(read({ id: cybotId }));
+        const cybotConfig = readAction.payload;
+        const model = cybotConfig.model;
+
+        // move to inside
         if (typeof content === "string") {
           textContent = content;
         }
-        thunkApi.dispatch(addUserMessage({ content }));
-        // after addUserMessage maybe multi agent
-        const messages = getFilteredMessages(state);
-        const llmConfig = selectCurrentLLMConfig(state);
-        const llmId = llmConfig.id;
-        const model = llmConfig.model;
 
         const mode = getModefromContent(textContent, content);
 
@@ -295,23 +300,22 @@ export const messageSlice = createSliceWithThunks({
             let temp: string;
             const controller = new AbortController();
             const signal = controller.signal;
-
             try {
               const action = await dispatch(
                 streamRequest({
                   textContent,
                   messages,
-                  llmConfig,
+                  cybotConfig,
                   signal,
                   id,
                 }),
               );
               const { reader } = action.payload;
+
               const handleStreamData = async (id: string, text: string) => {
-                if (llmConfig.model.includes("claude")) {
+                if (cybotConfig.model.includes("claude")) {
                   const jsonResults = parseMultipleJson(text);
                   console.log("raw json xxx", jsonResults);
-
                   const jsonArray = Array.isArray(jsonResults)
                     ? jsonResults
                     : [jsonResults];
@@ -323,7 +327,7 @@ export const messageSlice = createSliceWithThunks({
                           messageStreamEnd({
                             id,
                             content: temp,
-                            llmId,
+                            cybotId,
                           }),
                         );
                         break; // 不要遗漏 `break`
@@ -335,7 +339,7 @@ export const messageSlice = createSliceWithThunks({
                           role: "assistant",
                           id,
                           content: temp,
-                          llmId,
+                          cybotId,
                         };
                         thunkApi.dispatch(setOne(message));
                         thunkApi.dispatch(
@@ -350,9 +354,9 @@ export const messageSlice = createSliceWithThunks({
                 }
 
                 if (
-                  llmConfig.model === "llama3" ||
-                  llmConfig.model === "qwen2" ||
-                  llmConfig.model === "gemma2"
+                  model === "llama3" ||
+                  model === "qwen2" ||
+                  model === "gemma2"
                 ) {
                   let rawJSON = {};
                   try {
@@ -366,7 +370,7 @@ export const messageSlice = createSliceWithThunks({
                       messageStreamEnd({
                         id,
                         content: temp,
-                        llmId,
+                        cybotId,
                       }),
                     );
                   } else {
@@ -374,7 +378,7 @@ export const messageSlice = createSliceWithThunks({
                       role: "assistant",
                       id,
                       content: temp,
-                      llmId,
+                      cybotId,
                     };
                     thunkApi.dispatch(setOne(message));
                     thunkApi.dispatch(
@@ -399,7 +403,7 @@ export const messageSlice = createSliceWithThunks({
                             const message = {
                               content: temp,
                               id,
-                              llmId,
+                              cybotId,
                             };
 
                             thunkApi.dispatch(messageStreamEnd(message));
@@ -431,7 +435,7 @@ export const messageSlice = createSliceWithThunks({
                               role: "assistant",
                               id,
                               content: temp,
-                              llmId,
+                              cybotId,
                             };
                             thunkApi.dispatch(setOne(message));
                             thunkApi.dispatch(
@@ -502,8 +506,7 @@ export const messageSlice = createSliceWithThunks({
             };
             const res = await visionChat(requestBody);
             const result = await res.json();
-            const received = { ...result.choices[0].message, llmId, id };
-            console.log("received", received);
+            const received = { ...result.choices[0].message, cybotId, id };
             dispatch(messageStreamEnd(received));
           }
         } catch (error) {
@@ -556,7 +559,7 @@ export const messageSlice = createSliceWithThunks({
       },
     ),
     addAIMessage: create.asyncThunk(
-      async ({ content, id, isSaveToServer = true, llmId }, thunkApi) => {
+      async ({ content, id, isSaveToServer = true, cybotId }, thunkApi) => {
         const state = thunkApi.getState();
         const dispatch = thunkApi.dispatch;
 
@@ -567,7 +570,7 @@ export const messageSlice = createSliceWithThunks({
           id,
           content,
           belongs: [currentDialogConfig.messageListId],
-          llmId,
+          cybotId,
         };
         dispatch(upsertOne(message));
         dispatch(addMessageToUI(message.id));
@@ -588,16 +591,17 @@ export const messageSlice = createSliceWithThunks({
     ),
 
     streamRequest: create.asyncThunk(
-      async ({ textContent, messages, llmConfig, signal, id }, thunkApi) => {
+      async ({ textContent, messages, cybotConfig, signal, id }, thunkApi) => {
         const state = thunkApi.getState();
-        const llmId = llmConfig.id;
+        const cybotId = cybotConfig.id;
+
         const dispatch = thunkApi.dispatch;
         await dispatch(
           addAIMessage({
             content: "loading ...",
             id,
             isSaveToServer: false,
-            llmId,
+            cybotId,
           }),
         );
         const currentServer = selectCurrentServer(state);
@@ -605,7 +609,7 @@ export const messageSlice = createSliceWithThunks({
 
         const requestBody = createStreamRequestBody(
           {
-            ...llmConfig,
+            ...cybotConfig,
             responseLanguage: navigator.language,
           },
           textContent,

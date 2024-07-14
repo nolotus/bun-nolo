@@ -18,16 +18,13 @@ import { selectCurrentServer, selectSyncServers } from "../settingSlice";
 const Sync = () => {
   const { t } = useTranslation();
   const userId = useAppSelector(selectCurrentUserId);
-  const dispatch = useAppDispatch();
-  const id = generateCustomId(userId, "sync-settings");
-  const { data, isLoading } = useFetchData(id);
-  if (isLoading) {
-    return <PageLoader />;
-  }
-
   const currentServer = useAppSelector(selectCurrentServer);
   const syncServers = useAppSelector(selectSyncServers);
 
+  const dispatch = useAppDispatch();
+  const id = generateCustomId(userId, "sync-settings");
+
+  const { data, isLoading } = useFetchData(id);
   const {
     control,
     register,
@@ -37,17 +34,19 @@ const Sync = () => {
   } = useForm({
     defaultValues: data,
   });
-
   useEffect(() => {
     const initValue = { ...data, currentServer };
     reset(initValue);
   }, [data, currentServer]);
-
   const onSubmit = async (data) => {
     try {
       await dispatch(upsertData({ id, data: data }));
     } catch (error) {}
   };
+  if (isLoading) {
+    return <PageLoader />;
+  }
+
   return (
     <div>
       <h2>同步设置</h2>
