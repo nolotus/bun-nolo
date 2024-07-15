@@ -1,21 +1,9 @@
 import React from "react";
-import { extractCustomId } from "core";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { Button } from "render/ui";
 
-const OMIT_NAME_MAX_LENGTH = 60;
-
-const omitName = (content) => {
-  const { name, ...otherProps } = content;
-  let jsonString = JSON.stringify(otherProps);
-  if (jsonString.length > OMIT_NAME_MAX_LENGTH) {
-    jsonString = jsonString.substr(0, OMIT_NAME_MAX_LENGTH) + "...";
-  }
-  return jsonString;
-};
 export const ChatBotBlock = ({ item }) => {
   const { isLoading, createDialog } = useCreateDialog();
-  const displayId = extractCustomId(item.id);
   const createNewDialog = async () => {
     //todo handle click multi
     try {
@@ -37,7 +25,7 @@ export const ChatBotBlock = ({ item }) => {
         </Button>
       </div>
       <div>模型名 ：{item.model}</div>
-      <div>{/* <p>{omitName(item)}</p> */}</div>
+      <div>介绍 ：{item.introduction}</div>
     </div>
   );
 };
