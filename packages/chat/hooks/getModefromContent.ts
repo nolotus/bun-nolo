@@ -12,10 +12,10 @@ export const getModefromContent = (text: string, content): ModeType => {
   // ) {
   //   return "image";
   // }
-  const hasImageUrl =
-    Array.isArray(content) && content.some((item) => item.type === "image_url");
-  if (hasImageUrl) {
-    return "vision";
-  }
+  // const hasImageUrl =
+  //   Array.isArray(content) && content.some((item) => item.type === "image_url");
+  // if (hasImageUrl) {
+  //   return "vision";
+  // }
   return "stream";
 };

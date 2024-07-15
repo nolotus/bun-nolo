@@ -1,4 +1,4 @@
-import { createPromotMessage } from "../utils/createPromotMessage";
+import { createPromotMessage } from "../messages/createPromotMessage";
 
 export const createRequestBody = (type: string, payload: any, config: any) => {
   const model = config.model;

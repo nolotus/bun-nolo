@@ -1,22 +1,23 @@
-import { createPromotMessage } from "ai/utils/createPromotMessage";
+import { createPromotMessage } from "ai/messages/createPromotMessage";
+import { prepareMsgs } from "ai/messages/prepareMsgs";
 import { Message } from "../types";
 
 export const createStreamRequestBody = (
   config: any,
-  currentTextContent: string,
-  prevMessages: Array<Message>,
+  content: string,
+  prevMsgs: Array<Message>,
 ) => {
   const model = config.model;
   const promotMessage = createPromotMessage(config);
 
+  const prepareMsgConfig = { model, promotMessage, prevMsgs, content };
+
+  const messages = prepareMsgs(prepareMsgConfig);
+
   return {
     type: "stream",
     model,
-    messages: [
-      promotMessage,
-      ...prevMessages,
-      { role: "user", content: currentTextContent },
-    ],
+    messages,
     temperature: config.temperature || 0.8,
     max_tokens: config.max_tokens || 4096,
     top_p: config.top_p || 0.9,

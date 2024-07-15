@@ -23,7 +23,6 @@ import {
 } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { filter, reverse } from "rambda";
-import { transformMessages } from "ai/llm/transformMessage";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
 
@@ -259,7 +258,7 @@ export const messageSlice = createSliceWithThunks({
 
         thunkApi.dispatch(addUserMessage({ content }));
         // after addUserMessage maybe multi cybot
-        let messages = getFilteredMessages(state);
+        let prevMsgs = getFilteredMessages(state);
         const dialogConfig = selectCurrentDialogConfig(state);
 
         const cybotId = dialogConfig.cybots
@@ -269,12 +268,7 @@ export const messageSlice = createSliceWithThunks({
         const readAction = await dispatch(read({ id: cybotId }));
         const cybotConfig = readAction.payload;
         const model = cybotConfig.model;
-        console.log("messages", messages);
 
-        if (model === "llava") {
-          messages = transformMessages(messages);
-        }
-        console.log("messages", messages);
         /// todo multi cybot could reply multi msg
         //for now just one gu
 
@@ -284,7 +278,6 @@ export const messageSlice = createSliceWithThunks({
         }
 
         const mode = getModefromContent(textContent, content);
-
         const context = await getContextFromMode(mode, textContent);
         const userId = selectCurrentUserId(state);
 
@@ -302,15 +295,15 @@ export const messageSlice = createSliceWithThunks({
           //   };
           //   tokenStatic(staticData, auth, writeHashData);
 
-          const streamChat = async (textContent: string, id) => {
+          const streamChat = async (content, id) => {
             let temp: string;
             const controller = new AbortController();
             const signal = controller.signal;
             try {
               const action = await dispatch(
                 streamRequest({
-                  textContent,
-                  messages,
+                  content,
+                  prevMsgs,
                   cybotConfig,
                   signal,
                   id,
@@ -469,7 +462,7 @@ export const messageSlice = createSliceWithThunks({
               return { error: { status: "FETCH_ERROR", data: error.message } };
             }
           };
-          await streamChat(textContent, id);
+          await streamChat(content, id);
         }
 
         if (mode === "image") {
@@ -498,7 +491,7 @@ export const messageSlice = createSliceWithThunks({
               ...currentDialogConfig,
               responseLanguage: navigator.language,
               model,
-              prevMessages: messages,
+              prevMessages: prevMsgs,
               message: { role: "user", content },
             });
 
@@ -598,11 +591,11 @@ export const messageSlice = createSliceWithThunks({
     ),
 
     streamRequest: create.asyncThunk(
-      async ({ textContent, messages, cybotConfig, signal, id }, thunkApi) => {
+      async ({ content, prevMsgs, cybotConfig, signal, id }, thunkApi) => {
+        const dispatch = thunkApi.dispatch;
         const state = thunkApi.getState();
         const cybotId = cybotConfig.id;
 
-        const dispatch = thunkApi.dispatch;
         await dispatch(
           addAIMessage({
             content: "loading ...",
@@ -613,14 +606,13 @@ export const messageSlice = createSliceWithThunks({
         );
         const currentServer = selectCurrentServer(state);
         const token = state.auth.currentToken;
-
         const requestBody = createStreamRequestBody(
           {
             ...cybotConfig,
             responseLanguage: navigator.language,
           },
-          textContent,
-          messages,
+          content,
+          prevMsgs,
         );
 
         const response = await chatStreamRequest({

@@ -1,6 +1,7 @@
-import { pickMessages } from "ai/utils/pickMessages";
+import { pickMessages } from "ai/messages/pickMessages";
+import { createPromotMessage } from "ai/messages/createPromotMessage";
+
 import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
-import { createPromotMessage } from "ai/utils/createPromotMessage";
 
 export const createRequestBody = (config) => {
   const { model, prevMessages, message } = config;

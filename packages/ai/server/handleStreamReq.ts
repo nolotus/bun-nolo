@@ -19,8 +19,9 @@ import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest"
 import { chatRequest as sendOllamaRequest } from "integrations/ollama/chatRequest";
 import { chatRequest as sendAnthropicRequest } from "integrations/anthropic/chatRequest";
 
-import { pickMessages } from "../utils/pickMessages";
 import { baseLogger } from "utils/logger";
+
+import { pickMessages } from "../messages/pickMessages";
 
 function isModelInList(modelname, modelList) {
   return modelList.hasOwnProperty(modelname);
@@ -128,6 +129,7 @@ export const handleStreamReq = async (req: Request, res) => {
     } else if (isModelInList(requestBody.model, zhipuModels)) {
       return await processModelRequest(requestBody, "zhipu");
     } else if (isModelInList(requestBody.model, ollamaModels)) {
+      console.log("ollama");
       return await processModelRequest(requestBody, "ollama");
     } else if (isModelInList(requestBody.model, claudeModels)) {
       return await processModelRequest(requestBody, "claude");
