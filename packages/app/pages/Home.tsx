@@ -46,11 +46,11 @@ const Home = () => {
           className="text2 mb-6 w-full lg:mb-0 lg:w-1/2"
           style={{ display: "grid", gap: "var(--size-fluid-2)" }}
         >
-          <h2>嘿，你好,我是Nolotus！</h2>
+          <h2>嘿!你好呀，我是Nolotus！</h2>
           <p>
-            我在这里用AI管理我的一切。
+            我在这里用AI记录我的一切。
             <br />
-            从日常的Todos，到旅途拍摄的美景。
+            从日常的todo，到旅途拍摄的美景。
           </p>
           <p>
             <div className="py-3">
@@ -60,19 +60,19 @@ const Home = () => {
               <br />
               亦或是
               <Link to="/spots">各种兴趣爱好 </Link>
-              的攻略。
+              的经验和攻略。
               <br />
-              例如
+              比如
               <Link to="/spots">冲浪</Link>和<Link to="/spots">滑雪</Link>。
             </div>
             <div className="py-3">
-              甚至是管理我的这些兴趣爱好的
+              甚至是管理这些兴趣爱好所涉及的
               <Link to="/gears" className="text-blue-500">
                 装备
               </Link>
               。
               <br />
-              总而言之我用它管理我的一切数据，并分享给来到这里的你。
+              总之，我用它管理我的一切数据，并分享给来到这里的你。
             </div>
           </p>
         </div>
