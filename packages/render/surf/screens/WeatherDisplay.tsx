@@ -41,7 +41,6 @@ export const WeatherDisplay = ({ lat, lng, mode, interval = 3 }) => {
     error,
     isLoading,
   } = useGetWeatherQuery(queryParams);
-  console.log("weatherData", weatherData);
   if (isLoading) {
     return <Loader />;
   }

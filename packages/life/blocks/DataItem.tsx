@@ -8,7 +8,7 @@ import { DataType } from "create/types";
 
 const DataItem = ({ item }) => {
   const { id } = item;
-  if (item?.type === "chatRobot") {
+  if (item?.type === DataType.ChatRobot) {
     return <ChatBotBlock item={item} />;
   }
   if (item?.type === "tokenStatistics") {

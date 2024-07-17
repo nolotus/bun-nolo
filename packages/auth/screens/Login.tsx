@@ -85,7 +85,6 @@ const LoginScreen = ({ navigation }) => {
         // navigate(`/${LifeRoutePaths.WELCOME}`);
       })
       .catch((error) => {
-        console.error(error);
         // let message;
         // switch (noloError.message) {
         //   case "404":

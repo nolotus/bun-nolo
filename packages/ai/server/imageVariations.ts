@@ -42,10 +42,8 @@ export const handleImageVariationsRequest = async (req, res) => {
         config,
       );
 
-      console.log("openAIResponse", openAIResponse);
       return res.status(200).json({ data: openAIResponse.data });
     } catch (error) {
-      console.error(error);
       return res.status(500).json({ message: "Internal Server Error" });
     }
   } else {

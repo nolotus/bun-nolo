@@ -5,7 +5,7 @@ import {
   markdownToMdast,
   getH1TextFromMdast,
   getYamlValueFromMdast,
-} from "render/MarkdownProcessor";
+} from "render/processor/MarkdownProcessor";
 import { pick } from "rambda";
 const location = ["lat", "lng", "country", "province", "state", "city"];
 const render = ["layout"];
@@ -40,7 +40,6 @@ export function processContent(content: string) {
         });
       }
     } catch (error) {
-      console.error("解析YAML出错：", error);
       // 处理解析错误
     }
   }

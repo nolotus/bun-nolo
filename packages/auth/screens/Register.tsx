@@ -35,9 +35,7 @@ const RegistrationScreen = () => {
       remoteRecoveryPassword: null,
       language: locale,
     };
-    console.log("sendData", sendData);
     // const response = await registerUser(sendData);
-    console.log("response", response);
 
     const { encryptedData } = response;
     const decryptedData = await verifySignedMessage(
@@ -46,10 +44,8 @@ const RegistrationScreen = () => {
     );
 
     const decryptedDataObject = JSON.parse(decryptedData);
-    console.log("decryptedDataObject:", decryptedDataObject);
 
     const userId = generateUserId(publicKey, username, deviceLanguage);
-    console.log("userId:", userId);
     const token = signToken({ userId, username }, secretKey);
     if (
       decryptedDataObject.username === sendData.username &&

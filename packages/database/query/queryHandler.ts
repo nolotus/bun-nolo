@@ -109,9 +109,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     // 只在最后对所有结果进行排序
     sortResults(results, sort);
     return results;
-  } catch (e) {
-    console.error("出错了:", e);
-  }
+  } catch (e) {}
 };
 
 function handleObjectData(data: string, condition: QueryConditions) {
@@ -128,9 +126,7 @@ function handleJSONData(data: string, condition: QueryConditions) {
     if (checkQuery(jsonData, condition)) {
       return jsonData;
     }
-  } catch (error) {
-    console.error("JSON parsing failed:", error); // 打印错误信息
-  }
+  } catch (error) {}
   return null;
 }
 

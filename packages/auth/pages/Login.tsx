@@ -11,6 +11,7 @@ import Sizes from "open-props/src/sizes";
 import { useAppDispatch } from "app/hooks";
 import { useSelector } from "react-redux";
 import { hashPassword } from "core/password";
+import { storeTokens } from "auth/client/token";
 
 import { signInFields } from "../schema";
 import { signIn } from "../authSlice";
@@ -19,10 +20,11 @@ import { userFormSchema } from "../schema";
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
 
   const { t } = useTranslation();
   const [error, setError] = useState();
-  const dispatch = useAppDispatch();
+
   const {
     register,
     handleSubmit,
@@ -37,36 +39,27 @@ const Login: React.FC = () => {
     const encryptionKey = await hashPassword(password);
     const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
 
-    console.log("action", action);
     if (action.payload.token) {
+      storeTokens(action.payload.token);
       navigate(`/${LifeRoutePaths.WELCOME}`);
     }
-
-    // .then((result) => {
-    //   console.log("result", result);
-    //   if (result.type === "signIn/fulfilled") {
-    //   } else {
-    //     switch (result.payload.status) {
-    //       case 404:
-    //         setError(t("errors.userNotFound"));
-    //         break;
-    //       case 403:
-    //         setError(t("errors.invalidCredentials"));
-    //         break;
-    //       case 400:
-    //         setError(t("errors.validationError"));
-    //         break;
-    //       case 500:
-    //       default:
-    //         setError(t("errors.serverError"));
-    //         break;
-    //     }
-    //   }
-    // })
-    // .catch((error) => {
-    //   console.error("error", error);
-    //   setError(error.message || "Unknown error");
-    // });
+    if (action.payload.status) {
+      switch (action.payload.status) {
+        case 404:
+          setError(t("errors.userNotFound"));
+          break;
+        case 403:
+          setError(t("errors.invalidCredentials"));
+          break;
+        case 400:
+          setError(t("errors.validationError"));
+          break;
+        case 500:
+        default:
+          setError(t("errors.serverError"));
+          break;
+      }
+    }
   };
   return (
     <div>
@@ -89,8 +82,6 @@ const Login: React.FC = () => {
           {error && <p className="mb-2 mt-2 text-sm text-red-500">{error}</p>}
           <Button
             type="submit"
-            variant="primary"
-            size="medium"
             width="w-full" // 通过 props 传递宽度类
             loading={isLoading}
           >

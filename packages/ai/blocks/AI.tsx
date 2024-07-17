@@ -6,7 +6,6 @@ import { useAuth } from "auth/useAuth";
 
 const AI = () => {
   const { isLoggedIn, user } = useAuth();
-
   return (
     <>
       {isLoggedIn && (

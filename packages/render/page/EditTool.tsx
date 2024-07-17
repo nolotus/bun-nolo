@@ -2,9 +2,9 @@ import { NavLink, useNavigate, useParams } from "react-router-dom";
 import React, { useCallback, useState } from "react";
 import { Button } from "render/ui";
 import { useAppSelector, useAppDispatch } from "app/hooks";
-import { removeOne } from "database/dbSlice";
+import { deleteData } from "database/dbSlice";
 import OpenProps from "open-props";
-
+import toast from "react-hot-toast";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 
 import {
@@ -33,15 +33,12 @@ export const EditTool = ({ handleSave }) => {
   const handleDelete = useCallback(async () => {
     setDeleting(true);
     try {
-      // await deleteEntry({ entryId: pageId }).unwrap();
-      dispatch(removeOne(pageId));
-
-      // addToast('Page deleted successfully!');
+      dispatch(deleteData({ id: pageId }));
+      toast.success("Page deleted successfully!");
       navigate("/life/notes");
       setDeleting(false);
     } catch (error) {
-      console.error("Failed to delete the page:", error);
-      //   addToast("Error deleting page. Please try again.");
+      toast.error("Error deleting page. Please try again.");
     }
   }, [navigate, pageId]);
 
@@ -79,9 +76,7 @@ export const EditTool = ({ handleSave }) => {
         />
       </div>
 
-      <Button onClick={handleSave} variant="primary" size="medium">
-        保存
-      </Button>
+      <Button onClick={handleSave}>保存</Button>
       <div>
         <NavLink to={`/${pageId}`}>预览</NavLink>
       </div>

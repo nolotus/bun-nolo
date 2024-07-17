@@ -9,7 +9,6 @@ export const SurfWeatherLabelCol = () => {
   const { t } = useTranslation();
   const surface1 = useAppSelector((state) => state.theme.surface1);
   const surface2 = useAppSelector((state) => state.theme.surface2);
-  console.log("surface2", surface2);
   const styles = StyleSheet.create({
     labelsContainer: {
       paddingTop: CELL_HEIGHT,

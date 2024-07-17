@@ -29,9 +29,7 @@ export const getContextFromMode = async (mode: ModeType, content: string) => {
     if (queryParams) {
       try {
         const weatherInfo = await getWeather(queryParams);
-        console.log("weatherData", weatherInfo);
         const formattedData = formatDataSnippet(weatherInfo.hours);
-        console.log("formattedData", formattedData);
         return { content: `查询结果（部分显示）：\n${formattedData}` };
       } catch (error) {
         return { isError: true };

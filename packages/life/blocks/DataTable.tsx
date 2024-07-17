@@ -1,7 +1,7 @@
 import { useAppDispatch } from "app/hooks";
 import { extractCustomId } from "core";
 import { DataType } from "create/types";
-import { deleteData, removeOne } from "database/dbSlice";
+import { deleteData } from "database/dbSlice";
 import { omit } from "rambda";
 import { Link } from "react-router-dom";
 import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
@@ -13,7 +13,6 @@ const AIThead = () => {
         <th>AI名字</th>
         <th>AI所用模型</th>
         <th>AI 定制描述</th>
-        <th>AI 回复规则</th>
         <th>AI 知识</th>
         <th>数据源</th>
         <th>操作</th>
@@ -70,7 +69,6 @@ export const DataTable = ({ dataList, type, pullData }) => {
   //     "model",
   //     "type",
   //     "path",
-  //     "replyRule",
   //     "knowledge",
   //   ],
   //   data,
@@ -81,7 +79,6 @@ export const DataTable = ({ dataList, type, pullData }) => {
         <td>{data.name}</td>
         <td>{data.model}</td>
         <td>{data.description}</td>
-        <td>{data.replyRule}</td>
         <td>{data.knowledge}</td>
         <td>{data.source}</td>
         <td>
@@ -160,7 +157,6 @@ export const DataTable = ({ dataList, type, pullData }) => {
     );
   };
   const PageTR = ({ data }) => {
-    console.log('data',data)
     return (
       <tr>
         <td className="w-full">
@@ -188,7 +184,9 @@ export const DataTable = ({ dataList, type, pullData }) => {
         return <div>{JSON.stringify(data)}</div>;
       })} */}
       <table>
-        {type === DataType.ChatRobot && <AIThead />}
+        {(type === DataType.ChatRobot || type === DataType.Cybot) && (
+          <AIThead />
+        )}
         {type === DataType.Page && <PageThead />}
         {type === DataType.SurfSpot && <SurfHead />}
 
@@ -206,7 +204,7 @@ export const DataTable = ({ dataList, type, pullData }) => {
         <tbody>
           {dataList.map((data) => (
             <>
-              {type === DataType.ChatRobot && (
+              {(type === DataType.ChatRobot || type === DataType.Cybot) && (
                 <AITR data={data} key={data.id} />
               )}
               {type === DataType.Page && <PageTR data={data} key={data.id} />}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { FileMediaIcon } from "@primer/octicons-react";
 import { retrieveFirstToken } from "auth/client/token";
@@ -15,20 +15,14 @@ import { ChatContainerPaddingRight } from "../styles";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
-  isLoading: boolean;
-  onCancel: () => void;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({
-  onSendMessage,
-  isLoading,
-  onCancel,
-}) => {
+const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const { t } = useTranslation();
   const auth = useAuth();
   const [textContent, setTextContent] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
-  const [isDragOver, setIsDragOver] = useState(false); // 新增状态来追踪是否有文件被拖到组件上
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleNewMessageChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>,
@@ -67,14 +61,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
     onSendMessage(content);
 
     setTextContent("");
-  };
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const files = Array.from(event.target.files);
-      for (const file of files) {
-        previewImage(file);
-      }
-    }
+    setImagePreviewUrls([]);
   };
 
   const uploadImage = async (file: File) => {
@@ -114,14 +101,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
 
       // 获取响应体，可能根据实际接口结构有所不同
       const responseBody = await response.json();
-      console.log("File uploaded successfully:", responseBody.id);
       setImagePreviewUrls((prevUrls) => [
         ...prevUrls,
         `http://localhost/api/v1/db/read/${responseBody.id}`,
       ]);
-    } catch (error) {
-      console.error("Image upload error:", error);
-    }
+    } catch (error) {}
   };
 
   const previewImage = (file: File) => {
@@ -160,6 +144,29 @@ const MessageInput: React.FC<MessageInputProps> = ({
     setIsDragOver(false); // 文件放下后，取消高亮
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const files = Array.from(event.target.files);
+      for (const file of files) {
+        previewImage(file);
+      }
+    }
+  };
+  const handlePaste = useCallback((event: React.ClipboardEvent) => {
+    const items = event.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) previewImage(file);
+      }
+    }
+  }, []);
   return (
     <div
       className="flex items-start justify-center space-x-4 "
@@ -175,20 +182,29 @@ const MessageInput: React.FC<MessageInputProps> = ({
           "relative flex flex-grow  items-end gap-2",
           isDragOver ? "border-4 border-blue-500" : "",
         )}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
-        <button className="px-3 py-1">
-          <label className="cursor-pointer ">
-            <FileMediaIcon size={24} />
-            <input
-              type="file"
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileChange}
-              multiple
+        {imagePreviewUrls.length > 0 && (
+          <div className="absolute -top-20 right-0 z-10">
+            <ImagePreview
+              imageUrls={imagePreviewUrls}
+              onRemove={(index: number) => handleRemoveImage(index)}
             />
-          </label>
+          </div>
+        )}
+        <button onClick={handleFileButtonClick} title={t("uploadImage")}>
+          <FileMediaIcon size={24} />
         </button>
-
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileChange}
+          multiple
+        />
         <TextareaAutosize
           maxRows={10}
           minRows={2}
@@ -196,27 +212,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
           placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
           onChange={handleNewMessageChange}
           onKeyDown={handleKeyDown}
-          className="w-full"
+          onPaste={handlePaste}
+          className={clsx(
+            "w-full rounded-md border p-2 transition-colors duration-200",
+            isDragOver ? "border-blue-500 bg-blue-50" : "",
+          )}
         />
 
-        {/* <textarea
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          style={{ height: Sizes["--size-fluid-6"] }}
-        /> */}
-
-        <div className="absolute inset-x-0 bottom-0 left-auto right-0 m-2 flex min-w-[160px] items-center justify-end space-x-2">
-          <ImagePreview
-            imageUrls={imagePreviewUrls}
-            onRemove={(index: number) => handleRemoveImage(index)}
-          />
-        </div>
-        <ActionButton
-          isSending={isLoading}
-          onSend={beforeSend}
-          onCancel={onCancel}
-        />
+        <ActionButton onSend={beforeSend} />
       </div>
     </div>
   );

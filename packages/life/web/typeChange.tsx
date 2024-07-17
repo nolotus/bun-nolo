@@ -15,7 +15,6 @@ export const TypeChange = () => {
 
   const changeType = (type) => {
     if (type === "All") {
-      console.log("type", type);
       setSearchParams({});
     } else {
       setSearchParams({ filterType: type });

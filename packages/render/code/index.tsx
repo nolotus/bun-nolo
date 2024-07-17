@@ -52,7 +52,6 @@ function renderJson(jsonOrString) {
     try {
       json = JSON.parse(jsonOrString);
     } catch (error) {
-      console.error("JSON解析错误:", error);
       return <div>JSON解析错误，请检查。</div>;
     }
   } else {
@@ -82,7 +81,6 @@ const Code = ({ value, language, isDarkMode }) => {
       try {
         return renderJson(value);
       } catch (error) {
-        console.error("渲染错误:", error);
         return <div>代码渲染错误，请检查。</div>;
       }
     } else {

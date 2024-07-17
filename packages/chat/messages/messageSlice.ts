@@ -3,11 +3,10 @@ import {
   buildCreateSlice,
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
+import { extractCustomId } from "core";
+
 import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
-import { createPromotMessage } from "ai/utils/createPromotMessage";
-import { pickMessages } from "ai/utils/pickMessages";
-import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
 import { readChunks } from "ai/client/stream";
 import { getLogger } from "utils/logger";
 import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
@@ -19,192 +18,169 @@ import {
   addToList,
   deleteData,
   read,
-  selectEntitiesByIds,
+  setOne,
   upsertOne,
 } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
-
+import { filter, reverse } from "rambda";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
 
 import { Message, MessageSliceState } from "./types";
-import {
-  selectCurrentDialogConfig,
-  selectCurrentLLMConfig,
-} from "../dialog/dialogSlice";
+import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
+import { getFilteredMessages } from "./utils";
+import { createRequestBody } from "../utils/createRequestBody";
+
 const chatWindowLogger = getLogger("ChatWindow");
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
+function parseMultipleJson(text) {
+  console.log("text", text);
 
+  let buffer = "";
+  const separator = "}{";
+  const results = [];
+
+  for (let char of text) {
+    buffer += char;
+    try {
+      // 尝试解析缓冲区内容
+      if (buffer.trim()) {
+        const json = JSON.parse(buffer);
+        results.push(json);
+        buffer = ""; // 清空缓冲区，准备解析下一个对象
+      }
+    } catch (e) {
+      // 当前缓冲区内容不是完整的JSON对象，继续累积字符
+      if (buffer.endsWith(separator)) {
+        // 如果缓冲区以 '}{' 结束，说明一个对象可能已经完成，前一个已正确解析，切割并尝试下一部分
+        const parts = buffer.split(separator);
+        for (const part of parts.slice(0, -1)) {
+          if (part.trim()) {
+            try {
+              const completeJson = JSON.parse(part + "}");
+              results.push(completeJson);
+            } catch (error) {
+              console.error("Invalid JSON:", part + "}");
+            }
+          }
+        }
+        buffer = "{" + parts.slice(-1);
+      }
+    }
+  }
+
+  // 检查缓冲区中剩余的内容
+  if (buffer.trim()) {
+    try {
+      const finalJson = JSON.parse(buffer);
+      console.log("json", finalJson);
+      results.push(finalJson);
+    } catch (e) {
+      console.error("Remaining data could not be parsed:", buffer);
+    }
+  }
+
+  // 如果只解析出了一个结果，直接返回这个结果（单个JSON对象）
+  // 否则返回解析出的所有JSON对象（数组）
+  return results.length === 1 ? results[0] : results;
+}
 const initialState: MessageSliceState = {
-  messageListId: null,
   ids: null,
   isStopped: false,
-  isMessageStreaming: false,
-  tempMessage: null,
-  requestFailed: false,
-  messageListFailed: false,
+  streamMessages: [],
 };
 export const messageSlice = createSliceWithThunks({
   name: "message",
-  initialState,
+  initialState: initialState as MessageSliceState,
   reducers: (create) => ({
-    initMessages: create.asyncThunk(
-      async (args, thunkApi) => {
-        const { messageListId, source } = args;
-        if (!messageListId) {
-          throw new Error("messageListId not exist");
-        }
+    initMessages: create.reducer((state, action) => {
+      state.ids = action.payload;
+    }),
+    messageStreamEnd: create.asyncThunk(
+      async ({ id, content, cybotId }, thunkApi) => {
         const { dispatch } = thunkApi;
-        const action = await dispatch(read({ id: messageListId, source }));
-        if (action.error) {
-          throw new Error(action.error);
-        }
-        return action.payload;
+        const message = {
+          id,
+          content,
+          cybotId,
+        };
+        const action = await dispatch(addAIMessage(message));
+        const { array } = action.payload;
+        return { array, id };
       },
       {
-        pending: (state) => {},
-        rejected: (state) => {
-          state.messageListFailed = true;
-        },
+        rejected: (state, action) => {},
         fulfilled: (state, action) => {
-          state.ids = action.payload.array;
+          const { id, array } = action.payload;
+          state.ids = reverse(array);
+          state.streamMessages = filter(
+            (msg) => msg.id !== id,
+            state.streamMessages,
+          );
         },
       },
     ),
-    messageStreamEnd: create.asyncThunk(
+    receiveMessage: create.reducer((state, action) => {
+      if (!state.ids.includes(action.payload)) {
+        state.ids.unshift(action.payload);
+      }
+    }),
+
+    messageStreaming: create.reducer<Message>((state, action) => {
+      const message = action.payload;
+      const index = state.streamMessages.findIndex(
+        (msg) => msg.id === message.id,
+      );
+      if (index !== -1) {
+        state.streamMessages[index] = message;
+      } else {
+        state.streamMessages.unshift(message);
+      }
+    }),
+    addMessageToUI: create.reducer((state, action: PayloadAction<string>) => {
+      if (!state.ids.includes(action.payload)) {
+        state.ids.unshift(action.payload);
+      }
+    }),
+    addMessageToServer: create.asyncThunk(
       async (message, thunkApi) => {
-        thunkApi.dispatch(upsertOne(message));
-        thunkApi.dispatch(addMessage(message.id));
-
         const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
         const userId = selectCurrentUserId(state);
-        const token = state.auth.currentToken;
-        const dialogConfig = selectCurrentDialogConfig(state);
-        const currentServer = selectCurrentServer(state);
-
-        const fetchConfig = {
+        const customId = extractCustomId(message.id);
+        const config = {
           url: `${API_ENDPOINTS.DATABASE}/write/`,
           method: "POST",
           body: JSON.stringify({
             data: { type: DataType.Message, ...message },
             flags: { isJSON: true },
-            customId: ulid(),
+            customId,
             userId,
           }),
         };
-        const writeMessage = await noloRequest(state, fetchConfig);
+        const writeMessage = await noloRequest(state, config);
         const saveMessage = await writeMessage.json();
-
+        const dialogConfig = selectCurrentDialogConfig(state);
         const updateId = dialogConfig.messageListId;
-        const writeMessageToList = await fetch(
-          `${currentServer}${API_ENDPOINTS.DATABASE}/update/${updateId}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              id: saveMessage.id,
-            }),
-          },
-        );
 
-        return await writeMessageToList.json();
+        const actionResult = await dispatch(
+          addToList({ willAddId: saveMessage.id, updateId }),
+        );
+        return actionResult.payload;
       },
       {
         rejected: (state, action) => {
           // state.error = action.payload ?? action.error;
-          console.log("action", action);
         },
         fulfilled: (state, action) => {
-          state.tempMessage = { role: "assistant", content: "", id: ulid() };
-          state.isMessageStreaming = false;
+          state.ids = reverse(action.payload.array);
         },
       },
     ),
-    startSendingMessage: create.reducer((state, action) => {
-      const message = action.payload;
-      state.requestFailed = false;
-      state.ids.push(message.id);
-      state.tempMessage = {
-        role: "assistant",
-        content: "loading",
-        id: ulid(),
-      };
-      state.isMessageStreaming = true;
-    }),
-    sendMessage: create.asyncThunk(
-      async (message, thunkApi) => {
-        const dispatch = thunkApi.dispatch;
-        dispatch(upsertOne(message));
-        dispatch(startSendingMessage(message));
-        const state = thunkApi.getState();
-        const token = state.auth.currentToken;
-        const userId = selectCurrentUserId(state);
-        const currentServer = selectCurrentServer(state);
-        const dialogConfig = selectCurrentDialogConfig(state);
-        try {
-          if (dialogConfig.messageListId) {
-            const writeMessage = await fetch(
-              `${currentServer}${API_ENDPOINTS.DATABASE}/write/`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  data: { type: DataType.Message, ...message },
-                  flags: { isJSON: true },
-                  customId: ulid(),
-                  userId,
-                }),
-              },
-            );
-
-            const saveMessage = await writeMessage.json();
-
-            const updateId = dialogConfig.messageListId;
-
-            const actionResult = await dispatch(
-              addToList({ willAddId: saveMessage.id, updateId }),
-            );
-            return actionResult.payload;
-          }
-        } catch (error) {
-          console.log("error", error);
-          return error;
-        }
-      },
-      {
-        pending: () => {},
-        rejected: (state, action) => {},
-        fulfilled: (state, action) => {
-          state.ids = action.payload.array;
-        },
-      },
-    ),
-    //todo
-    receiveMessage: create.reducer((state, action) => {
-      state.ids.push(action.payload.id);
-      state.tempMessage = null;
-    }),
-    //todo please consider muti agent
-    retry: create.reducer<Message>((state, action) => {
-      state.tempMessage = { role: "assistant", content: "", id: ulid() };
-    }),
-    messageStreaming: create.reducer<Message>((state, action) => {
-      state.tempMessage = action.payload;
-      state.isMessageStreaming = true;
-    }),
-    addMessage: create.reducer((state, action: PayloadAction<string>) => {
-      state.ids.push(action.payload);
-    }),
     removeMessageFromUI: create.reducer(
       (state, action: PayloadAction<string>) => {
         state.ids = state.ids.filter((id) => id !== action.payload);
@@ -213,18 +189,12 @@ export const messageSlice = createSliceWithThunks({
     deleteMessage: create.asyncThunk(
       async (messageId: string, thunkApi) => {
         thunkApi.dispatch(removeMessageFromUI(messageId));
-        // thunkApi.dispatch(removeOne(messageId));
         const state = thunkApi.getState();
         const token = state.auth.currentToken;
         const dialogConfig = selectCurrentDialogConfig(state);
         const currentServer = selectCurrentServer(state);
-        const deleteMessageResult = await thunkApi.dispatch(
-          deleteData({ id: messageId }),
-        );
-        console.log("deleteMessageResult", deleteMessageResult);
-
         const deleteMessageFromList = await fetch(
-          `${currentServer}${API_ENDPOINTS.DATABASE}/update/${dialogConfig.messageListId}`,
+          `${currentServer}${API_ENDPOINTS.PUT}/${dialogConfig.messageListId}`,
           {
             method: "DELETE",
             headers: {
@@ -238,7 +208,7 @@ export const messageSlice = createSliceWithThunks({
           },
         );
 
-        console.log("deleteMessageFromList", deleteMessageFromList);
+        thunkApi.dispatch(deleteData({ id: messageId }));
       },
 
       {
@@ -249,14 +219,13 @@ export const messageSlice = createSliceWithThunks({
     deleteNotFound: create.asyncThunk(
       async (messageId: string, thunkApi) => {
         thunkApi.dispatch(removeMessageFromUI(messageId));
-        // thunkApi.dispatch(removeOne(messageId));
         const state = thunkApi.getState();
         const token = state.auth.currentToken;
         const dialogConfig = selectCurrentDialogConfig(state);
         const currentServer = selectCurrentServer(state);
 
         const deleteMessageFromList = await fetch(
-          `${currentServer}${API_ENDPOINTS.DATABASE}/update/${dialogConfig.messageListId}`,
+          `${currentServer}${API_ENDPOINTS.PUT}/${dialogConfig.messageListId}`,
           {
             method: "DELETE",
             headers: {
@@ -269,7 +238,6 @@ export const messageSlice = createSliceWithThunks({
             }),
           },
         );
-        console.log("deleteMessageFromList", deleteMessageFromList);
       },
 
       {
@@ -277,167 +245,224 @@ export const messageSlice = createSliceWithThunks({
         fulfilled: () => {},
       },
     ),
-    //todo
-    continueMessage: create.reducer((state, action) => {
-      state.isStopped = false;
-    }),
+
     messagesReachedMax: create.reducer((state, action) => {
       state.isStopped = true;
     }),
     handleSendMessage: create.asyncThunk(
-      async ({ content, abortControllerRef }, thunkApi) => {
+      async (args, thunkApi) => {
         let textContent;
+        const { content } = args;
         const state = thunkApi.getState();
-        const config = selectCurrentLLMConfig(state);
-        const messages = selectEntitiesByIds(state, state.message.ids);
-        const userId = selectCurrentUserId(state);
-        const token = state.auth.currentToken;
-        const currentDialogConfig = selectCurrentDialogConfig(state);
-        const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
+        const dispatch = thunkApi.dispatch;
 
+        thunkApi.dispatch(addUserMessage({ content }));
+        // after addUserMessage maybe multi cybot
+        let prevMsgs = getFilteredMessages(state);
+        const dialogConfig = selectCurrentDialogConfig(state);
+
+        const cybotId = dialogConfig.cybots
+          ? dialogConfig.cybots[0]
+          : dialogConfig.llmId;
+
+        const readAction = await dispatch(read({ id: cybotId }));
+        const cybotConfig = readAction.payload;
+        const model = cybotConfig.model;
+
+        /// todo multi cybot could reply multi msg
+        //for now just one gu
+
+        // move to inside
         if (typeof content === "string") {
           textContent = content;
         }
-        const message = {
-          id,
-          role: "user",
-          content,
-          belongs: [currentDialogConfig.messageListId],
-          userId,
-        };
 
-        thunkApi.dispatch(sendMessage(message));
-
-        const mode = getModefromContent(textContent, message);
+        const mode = getModefromContent(textContent, content);
         const context = await getContextFromMode(mode, textContent);
+        const userId = selectCurrentUserId(state);
+
+        const id = generateIdWithCustomId(userId, ulid(), {
+          isJSON: true,
+        });
         if (mode === "stream") {
           //   const staticData = {
           //     dialogType: "send",
-          //     model: currentDialogConfig?.model,
+          //     model: config?.model,
           //     length: newMessage.length,
           //     userId: auth?.user?.userId,
           //     username: auth?.user?.username,
           //     date: new Date(),
           //   };
           //   tokenStatic(staticData, auth, writeHashData);
-          if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-          }
-          abortControllerRef.current = new AbortController();
-          let temp: string;
 
-          const streamChat = async (textContent) => {
-            const handleStreamData = (text: string) => {
-              const lines = text.trim().split("\n");
-              for (const line of lines) {
-                // 使用正则表达式匹配 "data:" 后面的内容
-                const match = line.match(/data: (done|{.*}|)/);
+          const streamChat = async (content, id) => {
+            let temp: string;
+            const controller = new AbortController();
+            const signal = controller.signal;
+            try {
+              const action = await dispatch(
+                streamRequest({
+                  content,
+                  prevMsgs,
+                  cybotConfig,
+                  signal,
+                  id,
+                }),
+              );
+              const { reader } = action.payload;
 
-                if (match && match[1] !== undefined) {
-                  const statusOrJson: string = match[1];
+              const handleStreamData = async (id: string, text: string) => {
+                if (cybotConfig.model.includes("claude")) {
+                  const jsonResults = parseMultipleJson(text);
+                  console.log("raw json xxx", jsonResults);
+                  const jsonArray = Array.isArray(jsonResults)
+                    ? jsonResults
+                    : [jsonResults];
 
-                  if (statusOrJson === "" || statusOrJson === "done") {
-                  } else {
-                    try {
-                      const json = JSON.parse(statusOrJson);
-                      // 自然停止
-                      const finishReason: string =
-                        json.choices[0].finish_reason;
-                      if (finishReason === "stop") {
-                        const id = generateIdWithCustomId(userId, ulid(), {
-                          isJSON: true,
-                        });
-                        console.log("");
+                  jsonArray.forEach((json) => {
+                    switch (json.type) {
+                      case "message_stop":
+                        thunkApi.dispatch(
+                          messageStreamEnd({
+                            id,
+                            content: temp,
+                            cybotId,
+                          }),
+                        );
+                        break; // 不要遗漏 `break`
+
+                      case "content_block_delta":
+                        console.log("json xxx", json);
+                        temp = (temp || "") + (json.delta?.text || "");
                         const message = {
                           role: "assistant",
-                          content: temp,
                           id,
-                          llmId: currentDialogConfig.llmId,
-                        };
-                        thunkApi.dispatch(messageStreamEnd(message));
-                        //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
-                        // const staticData = {
-                        //   dialogType: "receive",
-                        //   model: json.model,
-                        //   length: tokenCount,
-                        //   chatId: json.id,
-                        //   chatCreated: json.created,
-                        //   userId: auth.user?.userId,
-                        //   username: auth.user?.username,
-                        // };
-                        // tokenStatic(staticData, auth, writeHashData);
-
-                        // tokenCount = 0; // 重置计数器
-                      } else if (
-                        finishReason === "length" ||
-                        finishReason === "content_filter"
-                      ) {
-                        thunkApi.dispatch(messagesReachedMax());
-                      } else if (finishReason === "function_call") {
-                        // nerver use just sign it
-                      } else {
-                        //逐渐相加
-                        temp =
-                          (temp || "") +
-                          (json.choices[0]?.delta?.content || "");
-                        const message = {
-                          role: "assistant",
-                          id: json.id,
                           content: temp,
+                          cybotId,
                         };
-                        thunkApi.dispatch(messageStreaming(message));
+                        thunkApi.dispatch(setOne(message));
+                        thunkApi.dispatch(
+                          messageStreaming({ ...message, controller }),
+                        );
+                        break;
+
+                      default:
+                        break;
+                    }
+                  });
+                }
+
+                if (
+                  model === "llama3" ||
+                  model === "qwen2" ||
+                  model === "gemma2" ||
+                  model === "llava"
+                ) {
+                  let rawJSON = {};
+                  try {
+                    rawJSON = JSON.parse(text);
+                  } catch (error) {}
+                  const { done_reason, done } = rawJSON;
+                  temp = (temp || "") + (rawJSON.message.content || "");
+
+                  if (done) {
+                    thunkApi.dispatch(
+                      messageStreamEnd({
+                        id,
+                        content: temp,
+                        cybotId,
+                      }),
+                    );
+                  } else {
+                    const message = {
+                      role: "assistant",
+                      id,
+                      content: temp,
+                      cybotId,
+                    };
+                    thunkApi.dispatch(setOne(message));
+                    thunkApi.dispatch(
+                      messageStreaming({ ...message, controller }),
+                    );
+                  }
+                } else {
+                  const lines = text.trim().split("\n");
+                  for (const line of lines) {
+                    // 使用正则表达式匹配 "data:" 后面的内容
+                    const match = line.match(/data: (done|{.*}|)/);
+
+                    if (match && match[1] !== undefined) {
+                      const statusOrJson: string = match[1];
+                      if (statusOrJson === "" || statusOrJson === "done") {
+                      } else {
+                        try {
+                          const json = JSON.parse(statusOrJson);
+                          const finishReason: string =
+                            json.choices[0].finish_reason;
+                          if (finishReason === "stop") {
+                            const message = {
+                              content: temp,
+                              id,
+                              cybotId,
+                            };
+
+                            thunkApi.dispatch(messageStreamEnd(message));
+                            //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
+                            // const staticData = {
+                            //   dialogType: "receive",
+                            //   model: json.model,
+                            //   length: tokenCount,
+                            //   chatId: json.id,
+                            //   chatCreated: json.created,
+                            //   userId: auth.user?.userId,
+                            //   username: auth.user?.username,
+                            // };
+                            // tokenStatic(staticData, auth, writeHashData);
+
+                            // tokenCount = 0; // 重置计数器
+                          } else if (
+                            finishReason === "length" ||
+                            finishReason === "content_filter"
+                          ) {
+                            thunkApi.dispatch(messagesReachedMax());
+                          } else if (finishReason === "function_call") {
+                            // nerver use just sign it
+                          } else {
+                            temp =
+                              (temp || "") +
+                              (json.choices[0]?.delta?.content || "");
+                            const message = {
+                              role: "assistant",
+                              id,
+                              content: temp,
+                              cybotId,
+                            };
+                            thunkApi.dispatch(setOne(message));
+                            thunkApi.dispatch(
+                              messageStreaming({ ...message, controller }),
+                            );
+                          }
+                          // if (json.choices[0]?.delta?.content) {
+                          //   tokenCount++; // 单次计数
+                          // }
+                        } catch (e) {
+                          chatWindowLogger.error(
+                            { error: e },
+                            "Error parsing JSON",
+                          );
+                        }
                       }
-                      // if (json.choices[0]?.delta?.content) {
-                      //   tokenCount++; // 单次计数
-                      // }
-                    } catch (e) {
-                      chatWindowLogger.error(
-                        { error: e },
-                        "Error parsing JSON",
-                      );
                     }
                   }
                 }
-              }
-            };
-
-            const currentServer = selectCurrentServer(state);
-            const requestBody = createStreamRequestBody(
-              {
-                ...config,
-                responseLanguage: navigator.language,
-              },
-              textContent,
-              messages,
-            );
-
-            try {
-              const response = await chatStreamRequest({
-                currentServer,
-                requestBody,
-                abortControllerRef,
-                token,
-              });
-
-              if (!response.ok) {
-                // 处理错误
-                return {
-                  error: {
-                    status: response.status,
-                    data: await response.text(),
-                  },
-                };
-              }
-
-              const reader = response.body.getReader();
-              await readChunks(reader, handleStreamData);
+              };
+              await readChunks({ reader, id }, handleStreamData);
             } catch (error) {
               // 处理错误
               return { error: { status: "FETCH_ERROR", data: error.message } };
             }
           };
-          const result = await streamChat(textContent);
-          console.log("stream", result);
+          await streamChat(content, id);
         }
 
         if (mode === "image") {
@@ -460,75 +485,167 @@ export const messageSlice = createSliceWithThunks({
 
         try {
           if (mode === "vision") {
-            const createRequestBody = (config) => {
-              const model = config.model;
-              const promotMessage = createPromotMessage(config);
-              const body = {
-                type: "vision",
-                model,
-                messages: pickMessages([promotMessage, ...messages, message]),
-                temperature: config.temperature || 0.8,
-                max_tokens: config.max_tokens || 4096,
-                top_p: config.top_p || 0.9,
-                frequency_penalty: config.frequency_penalty || 0,
-                presence_penalty: config.presence_penalty || 0,
-              };
-              return {
-                ...pickAiRequstBody(body),
-                messages: pickMessages(body.messages),
-              };
-            };
             const currentDialogConfig = selectCurrentDialogConfig(state);
+
             const requestBody = createRequestBody({
               ...currentDialogConfig,
               responseLanguage: navigator.language,
+              model,
+              prevMessages: prevMsgs,
+              message: { role: "user", content },
             });
+
             const visionChat = (body) => {
-              return fetch(`${API_ENDPOINTS.AI}/chat`, {
+              return fetch(`http://localhost:80${API_ENDPOINTS.AI}/chat`, {
                 method: "POST",
-                body,
+                body: JSON.stringify(body),
+                headers: {
+                  "Content-Type": "application/json",
+                },
               });
             };
-            const result = await visionChat(requestBody).json();
-            const content = result.choices[0].message;
-
-            thunkApi.dispatch(receiveMessage(content));
+            const res = await visionChat(requestBody);
+            const result = await res.json();
+            const received = { ...result.choices[0].message, cybotId, id };
+            dispatch(messageStreamEnd(received));
           }
         } catch (error) {
           // setRequestFailed(true);
         }
       },
       {
-        rejected: (state, action) => {
-          console.log("action", action);
-        },
-        fulfilled: (state, action) => {
-          state.isMessageStreaming = false;
-        },
+        rejected: (state, action) => {},
+        fulfilled: (state, action) => {},
       },
     ),
     clearMessages: create.reducer((state, action) => {
-      state.ids = [];
+      state.ids = null;
+      state.streamMessages = [];
     }),
+    addUserMessage: create.asyncThunk(
+      async ({ content, isSaveToServer = true }, thunkApi) => {
+        const state = thunkApi.getState();
+
+        const userId = selectCurrentUserId(state);
+
+        const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
+
+        const dispatch = thunkApi.dispatch;
+
+        const currentDialogConfig = selectCurrentDialogConfig(state);
+
+        const message = {
+          id,
+          role: "user",
+          content,
+          belongs: [currentDialogConfig.messageListId],
+          userId,
+        };
+        dispatch(upsertOne(message));
+        dispatch(addMessageToUI(message.id));
+        if (isSaveToServer) {
+          const actionResult = await dispatch(addMessageToServer(message));
+          return actionResult.payload;
+        }
+      },
+      {
+        pending: () => {},
+        rejected: (state, action) => {},
+        fulfilled: (state, action) => {
+          if (action.payload) {
+            state.ids = reverse(action.payload.array);
+          }
+        },
+      },
+    ),
+    addAIMessage: create.asyncThunk(
+      async ({ content, id, isSaveToServer = true, cybotId }, thunkApi) => {
+        const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
+
+        const currentDialogConfig = selectCurrentDialogConfig(state);
+
+        const message = {
+          role: "assistant",
+          id,
+          content,
+          belongs: [currentDialogConfig.messageListId],
+          cybotId,
+        };
+        dispatch(upsertOne(message));
+        dispatch(addMessageToUI(message.id));
+        if (isSaveToServer) {
+          const actionResult = await dispatch(addMessageToServer(message));
+          return actionResult.payload;
+        }
+      },
+      {
+        pending: () => {},
+        rejected: (state, action) => {},
+        fulfilled: (state, action) => {
+          if (action.payload) {
+            state.ids = reverse(action.payload.array);
+          }
+        },
+      },
+    ),
+
+    streamRequest: create.asyncThunk(
+      async ({ content, prevMsgs, cybotConfig, signal, id }, thunkApi) => {
+        const dispatch = thunkApi.dispatch;
+        const state = thunkApi.getState();
+        const cybotId = cybotConfig.id;
+
+        await dispatch(
+          addAIMessage({
+            content: "loading ...",
+            id,
+            isSaveToServer: false,
+            cybotId,
+          }),
+        );
+        const currentServer = selectCurrentServer(state);
+        const token = state.auth.currentToken;
+        const requestBody = createStreamRequestBody(
+          {
+            ...cybotConfig,
+            responseLanguage: navigator.language,
+          },
+          content,
+          prevMsgs,
+        );
+
+        const response = await chatStreamRequest({
+          currentServer,
+          requestBody,
+          signal,
+          token,
+        });
+        const reader = response.body.getReader();
+        return { reader, id };
+      },
+      {},
+    ),
   }),
 });
 
 export const {
   sendMessage,
   receiveMessage,
-  retry,
   messageStreamEnd,
   messageStreaming,
   messagesReachedMax,
-  continueMessage,
   deleteMessage,
   initMessages,
-  startSendingMessage,
   removeMessageFromUI,
   deleteNotFound,
-  addMessage,
+  addMessageToUI,
   handleSendMessage,
   clearMessages,
+  addMessageToServer,
+  addAIMessage,
+  addUserMessage,
+  streamRequest,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

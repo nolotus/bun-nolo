@@ -47,19 +47,14 @@ export const handleRequest = async (request: Request, server) => {
     if (contentType.includes("multipart/form-data")) {
       try {
         body = await request.formData();
-      } catch (error) {
-        console.error("Error parsing formdata:", error);
-      }
+      } catch (error) {}
     } else if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
         if (!body) {
           body = {};
         }
-      } catch (error) {
-        console.log("error req", request.body);
-        console.error("Error parsing JSON:", error);
-      }
+      } catch (error) {}
     }
     let req = {
       url,
@@ -69,7 +64,6 @@ export const handleRequest = async (request: Request, server) => {
       headers: request.headers,
       method: request.method,
     };
-
     if (url.pathname.startsWith(API_ENDPOINTS.AI)) {
       req.user = await handleToken(request, res);
       return aiServerRoute(req, res);
@@ -89,7 +83,6 @@ export const handleRequest = async (request: Request, server) => {
   try {
     return await handleRender(request);
   } catch (error) {
-    console.error(`处理请求时发生错误: ${error}`);
     return new Response("<h1>服务器发生错误，请稍后重试</h1>", {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },

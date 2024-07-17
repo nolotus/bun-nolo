@@ -4,7 +4,8 @@ import LazyLoadComponent from "render/components/LazyLoadComponent";
 export enum CreateRoutePaths {
   CREATE = "create",
   CREATE_PAGE = "create/page",
-  CREATE_CHAT_ROBOT = "create/chat-robot",
+  CREATE_CYBOT = "create/cybot",
+  CREATE_LLM = "create/llm",
 }
 
 export const createRoutes = [
@@ -13,7 +14,7 @@ export const createRoutes = [
     element: (
       <LazyLoadComponent
         factory={() => import("./index")}
-        fallback={<div>Loading Create...</div>}
+        fallback={<div>Loading Create Index...</div>}
       />
     ),
   },
@@ -22,18 +23,26 @@ export const createRoutes = [
     element: (
       <LazyLoadComponent
         factory={() => import("render/page/CreatePage")}
-        fallback={<div>Loading CreatePage...</div>}
+        fallback={<div>Loading page for {CreateRoutePaths.CREATE_PAGE}</div>}
       />
     ),
   },
   {
-    path: CreateRoutePaths.CREATE_CHAT_ROBOT,
+    path: CreateRoutePaths.CREATE_CYBOT,
     element: (
       <LazyLoadComponent
-        factory={() => import("ai/pages/CreateChatRobot")}
-        fallback={<div>Loading Chat Robot...</div>}
+        factory={() => import("ai/cybot/CreateCybot")}
+        fallback={<div>Loading page for {CreateRoutePaths.CREATE_CYBOT}</div>}
       />
     ),
   },
-  // 其他路由...
+  {
+    path: CreateRoutePaths.CREATE_LLM,
+    element: (
+      <LazyLoadComponent
+        factory={() => import("ai/llm/Create")}
+        fallback={<div>Loading page for {CreateRoutePaths.CREATE_LLM}</div>}
+      />
+    ),
+  },
 ];

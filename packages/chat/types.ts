@@ -4,7 +4,6 @@ export interface ChatConfig {
   description?: string;
   type?: string;
   model?: string;
-  replyRule?: string;
   knowledge?: string;
   path?: string;
 }

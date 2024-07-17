@@ -1,10 +1,12 @@
 // types.ts
 
+import { MessageRole } from "chat/messages/types";
+
 export interface FrontEndRequestBody {
   type: "text" | "image" | "audio";
   model?: string;
   messages?: Array<{
-    role: string;
+    role: MessageRole;
     content: string;
   }>;
   prompt?: string;

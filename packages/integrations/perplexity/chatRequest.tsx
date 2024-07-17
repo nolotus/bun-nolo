@@ -36,7 +36,6 @@ export async function chatRequest(
   try {
     return await axios.request(config);
   } catch (error) {
-    console.error("Error making the request:", error.message);
     throw error;
   }
 }

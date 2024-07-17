@@ -1,62 +1,66 @@
-import { useAppSelector } from "app/hooks";
 import React, { useEffect, useRef } from "react";
-import Sizes from "open-props/src/sizes";
+import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
+import { Spinner } from "@primer/react";
+import OpenProps from "open-props";
 
-import { StreamingMessage } from "./StreamingMessage";
 import { MessageItem } from "./MessageItem";
-import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
-import {
-  selectMessageFailed,
-  selectMessageList,
-  selectMessage,
-} from "./selector";
+import { selectStreamMessages, selectMergedMessages } from "./selector";
 import { ChatContainerPaddingRight } from "../styles";
+import { initMessages } from "./messageSlice";
+import { reverse } from "rambda";
+
 interface MessagesDisplayProps {
-  scrollToBottom: () => void;
+  id: string;
+  source: string[];
 }
 
-const MessagesList: React.FC<MessagesDisplayProps> = () => {
-  const { tempMessage } = useAppSelector(selectMessage);
-  const messageList = useAppSelector(selectMessageList);
+const MessagesList: React.FC<MessagesDisplayProps> = ({ id, source }) => {
+  const dispatch = useAppDispatch();
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const messageFailed = useAppSelector(selectMessageFailed);
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
-    }
-  };
+  const { data, isLoading, error } = useFetchData(id, { source });
+  const streamingMessages = useAppSelector(selectStreamMessages);
+  const messages = useAppSelector(selectMergedMessages);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messageList, tempMessage]);
+    if (streamingMessages && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [streamingMessages, messages]);
+  //even useEffect still have order
+  useEffect(() => {
+    dispatch(initMessages());
+  }, [id, error]);
+
+  useEffect(() => {
+    if (data) {
+      dispatch(initMessages(reverse(data.array)));
+    }
+  }, [data]);
+
+  if (isLoading) {
+    return <Spinner size={"large"} />;
+  }
+  if (error) {
+    return <div style={{ height: "100vh" }}>{error.message}</div>;
+  }
   return (
     <div
-      className="flex  flex-grow flex-col space-y-4 overflow-y-auto break-words p-3"
-      ref={messagesEndRef}
+      ref={containerRef}
       style={{
+        display: "flex",
+        flexDirection: "column-reverse",
         paddingRight: ChatContainerPaddingRight,
-        paddingLeft: Sizes["--size-5"],
+        paddingLeft: OpenProps.size5,
+        gap: OpenProps.size2,
+        overflow: "auto",
+        height: "100vh",
+        position: "relative",
       }}
     >
-      {messageFailed ? (
-        "failed"
-      ) : (
-        <>
-          {messageList?.map((id: string) => {
-            return <MessageItem id={id} key={id} />;
-          })}
-          {tempMessage && (
-            <StreamingMessage
-              {...tempMessage}
-              key={tempMessage.id}
-              id={tempMessage.id}
-            />
-          )}
-        </>
-      )}
+      {messages.map((message) => (
+        <MessageItem key={message.id} message={message} />
+      ))}
     </div>
   );
 };

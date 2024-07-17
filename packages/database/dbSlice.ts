@@ -10,14 +10,16 @@ import {
 import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 import { ulid } from "ulid";
+import { requestServers } from "utils/request";
 
 import { API_ENDPOINTS } from "./config";
-import { noloReadRequest } from "./client/readRequest";
+import { noloReadRequest } from "database/read/readRequest";
 import { noloWriteRequest } from "./write/writeRequest";
 import { noloQueryRequest } from "./client/queryRequest";
-import { noloUpdateRequest } from "./client/updateRequest";
+import { noloPutRequest } from "./client/putRequest";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { selectCurrentUser } from "auth/authSlice";
+import { noloPatchRequest } from "./client/patchRequest";
 
 export const dbAdapter = createEntityAdapter();
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
@@ -72,10 +74,11 @@ const dbSlice = createSliceWithThunks({
     read: create.asyncThunk(
       async ({ id, source }, thunkApi) => {
         const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
 
         const token = state.auth.currentToken;
-
         if (source) {
+          //source 第一优先级
           const res = await noloReadRequest(source[0], id, token);
           if (res.status === 200) {
             const result = await res.json();
@@ -84,12 +87,14 @@ const dbSlice = createSliceWithThunks({
         } else {
           const isAutoSync = state.settings.syncSetting.isAutoSync;
           const currentServer = selectCurrentServer(state);
-
           if (!isAutoSync) {
+            //current 第二优先级
             const res = await noloReadRequest(currentServer, id, token);
             if (res.status === 200) {
               const result = await res.json();
               return result;
+            } else {
+              throw new Error(`Request failed with status code ${res.status}`);
             }
           } else {
             const syncServers = selectSyncServers(state);
@@ -101,40 +106,9 @@ const dbSlice = createSliceWithThunks({
             return raceRes;
           }
         }
-
-        async function makeRequest(server, id, token) {
-          try {
-            const res = await noloReadRequest(server, id, token);
-            if (res.status === 200) {
-              const result = await res.json();
-              return result;
-            } else {
-              throw new Error(`Request failed with status ${res.status}`);
-            }
-          } catch (error) {
-            throw error; // 继续抛出错误
-          }
-        }
-        async function requestServers(servers, id, token) {
-          const requests = servers.map((server) =>
-            makeRequest(server, id, token).catch((error) => error),
-          );
-
-          const results = await Promise.all(requests); // 等待所有请求完成
-          const validResults = results.filter(
-            (result) => !(result instanceof Error),
-          ); // 过滤出成功的响应
-
-          if (validResults.length > 0) {
-            return validResults[0]; // 返回第一个成功的结果
-          } else {
-            throw new Error(
-              "All servers failed to respond with a valid result.",
-            );
-          }
-        }
       },
       {
+        rejected: (state, action) => {},
         fulfilled: (state, action) => {
           if (action.payload) {
             dbAdapter.upsertOne(state, action.payload);
@@ -142,61 +116,40 @@ const dbSlice = createSliceWithThunks({
         },
       },
     ),
-    readServer: create.asyncThunk(() => {}, {}),
-    syncRead: create.asyncThunk(() => {}, {}),
-    deleteData: create.asyncThunk(
-      async (args, thunkApi) => {
-        const { id, body, source } = args;
-        const { dispatch, getState } = thunkApi;
-        const state = getState();
-        thunkApi.dispatch(removeOne(id));
+    deleteData: create.asyncThunk(async (args, thunkApi) => {
+      const { id, body, source } = args;
+      const { dispatch, getState } = thunkApi;
+      const state = getState();
+      thunkApi.dispatch(removeOne(id));
+      let headers = {
+        "Content-Type": "application/json",
+      };
+      if (state.auth) {
+        const token = state.auth.currentToken;
+        headers.Authorization = `Bearer ${token}`;
+      }
+      let url;
+      if (source) {
+        url = source[0] + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
+      } else {
         const currentServer = selectCurrentServer(state);
-        let headers = {
-          "Content-Type": "application/json",
-        };
-        if (state.auth) {
-          const token = state.auth.currentToken;
-          headers.Authorization = `Bearer ${token}`;
-        }
-        if (source) {
-          console.log("source");
-          const dynamicUrl =
-            source[0] + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
-          const res = await fetch(dynamicUrl, {
-            method: "DELETE",
-            headers,
-            body,
-          });
-          console.log("deleteData", res);
-          if (res.status === 200) {
-            const result = await res.json();
-            console.log("deleteData 200", result);
-            return result;
-          }
-        } else {
-          const dynamicUrl =
-            currentServer + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
-          const res = await fetch(dynamicUrl, {
-            method: "DELETE",
-            headers,
-            body,
-          });
-          console.log("deleteData", res);
-          if (res.status === 200) {
-            const result = await res.json();
-            console.log("deleteData 200", result);
-            return result;
-          }
-        }
-      },
-      {
-        fulfilled: (state, action) => {
-          console.log("deleteData fulfilled", action);
-          //double remove !
-          dbAdapter.removeOne(state, action.payload.id);
-        },
-      },
-    ),
+        url = currentServer + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
+      }
+      dispatch(deleteServerData({ url, headers, body }));
+    }, {}),
+    deleteServerData: create.asyncThunk(async (args, thunkApi) => {
+      const { url, headers, body } = args;
+      const res = await fetch(url, {
+        method: "DELETE",
+        headers,
+        body,
+      });
+      if (res.status === 200) {
+        const result = await res.json();
+        return result;
+      }
+    }, {}),
+
     write: create.asyncThunk(
       async (writeConfig, thunkApi) => {
         const state = thunkApi.getState();
@@ -214,21 +167,20 @@ const dbSlice = createSliceWithThunks({
         }
         const saveId = generateIdWithCustomId(userId, customId, flags);
         if (!!data.type) {
-          console.log("type", data.type);
         }
-        const saveData = { ...data, created: new Date().toISOString() };
+        const willSaveData = { ...data, created: new Date().toISOString() };
         //local save
         if (isJSON || isObject) {
           dispatch(
             addOne({
               id: saveId,
-              ...saveData,
+              ...willSaveData,
             }),
           );
           //server save
           const serverWriteConfig = {
             ...writeConfig,
-            data: saveData,
+            data: willSaveData,
             customId,
           };
           const writeRes = await noloWriteRequest(state, serverWriteConfig);
@@ -280,7 +232,7 @@ const dbSlice = createSliceWithThunks({
     //     fulfilled: () => {},
     //   },
     // ),
-    // updateData: create.reducer((state, action) => {
+    // upsertDatas: create.reducer((state, action) => {
     //   const updatedData = action.payload.data.map((item) => {
     //     const existingItem = state.entities[item.id];
     //     return {
@@ -290,22 +242,22 @@ const dbSlice = createSliceWithThunks({
     //   });
     //   dbAdapter.upsertMany(state, updatedData);
     // }),
-    updateData: create.asyncThunk(
+    setData: create.asyncThunk(
       async (updateConfig, thunkApi) => {
         const { id, data } = updateConfig;
         const state = thunkApi.getState();
-        const res = await noloUpdateRequest(state, id, data);
+        const res = await noloPutRequest(state, id, data);
         const result = await res.json();
         return result;
       },
       {
         fulfilled: (state, action) => {
           const one = action.payload.data;
-          dbAdapter.upsertOne(state, one);
+          dbAdapter.setOne(state, one);
         },
       },
     ),
-    saveData: create.asyncThunk(
+    upsertData: create.asyncThunk(
       async (saveConfig, thunkApi) => {
         const dispatch = thunkApi.dispatch;
         const id = saveConfig.id;
@@ -322,9 +274,8 @@ const dbSlice = createSliceWithThunks({
             id,
           };
           const writeRes = await dispatch(write(writeConfig));
-          console.log("writeRes", writeRes);
         } else {
-          const updateRes = await dispatch(updateData({ ...saveConfig, id }));
+          const updateRes = await dispatch(setData({ ...saveConfig, id }));
           return updateRes.payload.data;
         }
       },
@@ -355,21 +306,22 @@ const dbSlice = createSliceWithThunks({
       });
       dbAdapter.upsertMany(state, withSourceData);
     }),
+    patchData: create.asyncThunk(async ({ id, changes, source }, thunkApi) => {
+      updateOne(id, changes);
+      const state = thunkApi.getState();
+      const res = await noloPatchRequest(state, id, changes);
+    }, {}),
 
-    updateOne: create.reducer((state, action) => {
-      dbAdapter.updateOne(state, {
-        id: action.payload.id,
-        changes: action.payload.changes,
-      });
-    }),
+    updateOne: dbAdapter.updateOne,
     addOne: dbAdapter.addOne,
+    setOne: dbAdapter.setOne,
     addToList: create.asyncThunk(async ({ willAddId, updateId }, thunkApi) => {
       const state = thunkApi.getState();
       const currentServer = selectCurrentServer(state);
       const token = state.auth.currentToken;
 
       const res = await fetch(
-        `${currentServer}${API_ENDPOINTS.DATABASE}/update/${updateId}`,
+        `${currentServer}${API_ENDPOINTS.PUT}/${updateId}`,
         {
           method: "PUT",
           headers: {
@@ -395,17 +347,20 @@ createSelectorCreator;
 export const {
   removeOne,
   upsertOne,
+  updateOne,
+  setOne,
+
   mergeMany,
   deleteData,
-  updateOne,
+  patchData,
+  setData,
+  upsertData,
   read,
   syncQuery,
   write,
-  updateData,
-  saveData,
   addOne,
   queryServer,
-  readServer,
   addToList,
+  deleteServerData,
 } = dbSlice.actions;
 export default dbSlice.reducer;

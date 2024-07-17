@@ -4,14 +4,15 @@ import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { renderContentNode } from "render";
 
-import { markdownToMdast } from "../MarkdownProcessor";
+import { markdownToMdast } from "../processor/MarkdownProcessor";
 import SurfSpotPage from "../surf/web/SurfSpotPage";
 
 import { RenderJson } from "./RenderJson";
 import { ButtonGroup } from "./ButtonGroup";
 import { extractUserId } from "core";
 import { useDispatch } from "react-redux";
-import { removeOne } from "database/dbSlice";
+import { deleteData } from "database/dbSlice";
+import toast from "react-hot-toast";
 const RenderPage = ({ pageId, data }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -38,11 +39,10 @@ const RenderPage = ({ pageId, data }) => {
 
   const handleDelete = useCallback(async () => {
     try {
-      dispatch(removeOne(pageId));
-      alert("Page deleted successfully!");
+      await dispatch(deleteData({ id: pageId }));
+      toast.success("Page deleted successfully!");
       navigate("/");
     } catch (error) {
-      console.error("Failed to delete the page:", error);
       alert("Error deleting page. Please try again.");
     }
   }, [navigate, pageId]);

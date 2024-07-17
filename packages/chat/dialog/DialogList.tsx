@@ -2,6 +2,8 @@ import React from "react";
 import { useAuth } from "auth/useAuth";
 import { useSearchParams } from "react-router-dom";
 import { extractUserId } from "core/prefix";
+import OpenProps from "open-props";
+
 import { DialogGroup } from "./DialogGroup";
 
 export const DialogList = ({ dialogList, source }) => {
@@ -14,7 +16,7 @@ export const DialogList = ({ dialogList, source }) => {
     const dataUserId = extractUserId(id);
     return dataUserId === auth.user?.userId;
   };
-
+  //todo handle cybots
   const dialogGroups = dialogList.reduce((acc, dialog) => {
     const llmId = dialog.llmId;
     if (!acc[llmId]) {
@@ -25,17 +27,19 @@ export const DialogList = ({ dialogList, source }) => {
   }, {});
 
   return (
-    <>
+    <div
+      style={{ display: "flex", flexDirection: "column", gap: OpenProps.size2 }}
+    >
       {Object.entries(dialogGroups).map(([llmId, dialogs]) => (
         <DialogGroup
           key={llmId}
-          llmId={llmId}
+          cybotId={llmId}
           dialogs={dialogs}
           currentDialogId={currentDialogId}
           isCreator={isCreator}
-          source={source} // 传递source
+          source={source}
         />
       ))}
-    </>
+    </div>
   );
 };

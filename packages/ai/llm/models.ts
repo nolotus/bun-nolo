@@ -5,16 +5,21 @@ import { openAIModels } from "integrations/openAI/models";
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 import { mistralModels } from "integrations/mistral/models";
 import { deepSeekModels } from "integrations/deepSeek/models";
-import { zhipuModels } from "integrations/zhipu/models";
-export const modelPrice = {
+// import { zhipuModels } from "integrations/zhipu/models";
+import { ollamaModels } from "integrations/ollama/models";
+import { claudeModels } from "integrations/anthropic/models";
+
+export const allModels = {
   ...openAIModels,
   ...perplexityModelPrice,
   ...mistralModels,
   ...deepSeekModels,
-  ...zhipuModels,
+  ...ollamaModels,
+  ...claudeModels,
 };
 
-export const ModelPriceEnum = Object.keys(modelPrice).reduce(
+//todo add source from
+export const modelEnum = Object.keys(allModels).reduce(
   (acc, key) => {
     acc[key] = key;
     return acc;

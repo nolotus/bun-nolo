@@ -5,7 +5,6 @@ import { generateUserId } from "core/generateMainKey";
 import { hashPassword } from "core/password";
 import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
-import { storeTokens } from "auth/client/token";
 
 import { API_VERSION } from "database/config";
 
@@ -42,13 +41,13 @@ export const authSlice = createSliceWithThunks({
           const userId = generateUserId(publicKey, username, locale);
           const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
+
           const res = await loginRequest(currentServer, { userId, token });
-          if (res) {
-            storeTokens(res.token);
-            return res;
-          } else {
-            throw res;
+          if (res.status === 200) {
+            const result = await res.json();
+            return { token: result.token };
           }
+          return { status: res.status };
         } catch (error) {
           return thunkAPI.rejectWithValue(error);
         }
@@ -91,8 +90,6 @@ export const authSlice = createSliceWithThunks({
           remoteRecoveryPassword: null,
           locale,
         };
-        console.log("sendData", sendData);
-        console.log("sendData", sendData);
 
         // if (isStoreRecovery) {
         //   const recoveryPassword = generateAndSplitRecoveryPassword(answer, 3);
@@ -115,7 +112,6 @@ export const authSlice = createSliceWithThunks({
         });
 
         const { encryptedData } = await res.json();
-        console.log("encryptedData:", encryptedData);
 
         const decryptedData = await verifySignedMessage(
           encryptedData,
@@ -123,9 +119,7 @@ export const authSlice = createSliceWithThunks({
         );
 
         const remoteData = JSON.parse(decryptedData);
-        console.log("remoteData:", remoteData);
         const localUserId = generateUserId(publicKey, username, locale);
-        console.log("userId", localUserId);
         if (
           remoteData.username === sendData.username &&
           remoteData.publicKey === sendData.publicKey &&

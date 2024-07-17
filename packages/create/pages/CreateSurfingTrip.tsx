@@ -25,9 +25,7 @@ const CreateSurfingTrip = () => {
         // 如果成功，跳转到新创建的行程页面
         // navigate(`/${result.id}`); // 假设返回的对象中有一个id字段
       }
-    } catch (err) {
-      console.error("Failed to write surfing trip data:", err);
-    }
+    } catch (err) {}
   };
 
   return (

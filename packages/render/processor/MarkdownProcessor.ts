@@ -1,5 +1,6 @@
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 import { unified } from "unified";
@@ -24,6 +25,7 @@ const createProcessor = () =>
   unified()
     .use(remarkParse)
     .use(remarkGfm)
+    .use(remarkMath)
     .use(remarkStringify)
     .use(remarkFrontmatter, [
       "yaml",

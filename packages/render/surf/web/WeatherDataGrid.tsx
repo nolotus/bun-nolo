@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { calculateAverage, getQualityColor } from "../weatherUtils";
 import { format, parseISO } from "date-fns";
 import { zhCN } from "date-fns/locale";
@@ -152,7 +152,9 @@ const WeatherDataGrid: React.FC<WeatherDataGridProps> = ({
           );
         })}
       </div>
-      <SurfTideChart x={x} y={y} style={{ width: "2060px" }} />
+      <Suspense>
+        <SurfTideChart x={x} y={y} style={{ width: "2060px" }} />
+      </Suspense>
     </div>
   );
 };

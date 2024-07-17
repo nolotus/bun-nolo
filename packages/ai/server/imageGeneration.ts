@@ -53,7 +53,6 @@ export const handleImageGenerationsRequest = async (req, res) => {
       console.log("openAIResponse", openAIResponse);
       return res.status(200).json({ data: openAIResponse.data });
     } catch (error) {
-      console.error(error);
       // 返回一个错误响应
       return res.status(500).json({ message: "Internal Server Error" });
     }

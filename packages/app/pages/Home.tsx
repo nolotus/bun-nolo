@@ -1,44 +1,20 @@
-import { Link } from "render/ui";
+-import { Link } from "render/ui";
 import { nolotusId } from "core/init";
 
 import ChatAIList from "ai/blocks/ChatAIList";
-import { useAppSelector, useQueryData } from "app/hooks";
-import { DataType } from "create/types";
+import { useAppSelector } from "app/hooks";
 
 import {
   LocationIcon,
   PeopleIcon,
   DependabotIcon,
 } from "@primer/octicons-react";
-import { SpotCard } from "render/components/SpotCard";
 import React from "react";
-import { selectFilteredDataByUserAndType } from "database/selectors";
 import { selectCurrentUserId } from "auth/authSlice";
-
+import { SpotList } from "render/components/SpotList";
 const Home = () => {
   const userId = useAppSelector(selectCurrentUserId);
-  const options = {
-    isJSON: true,
-    condition: {
-      type: DataType.SurfSpot,
-    },
-    limit: 20,
-  };
-  const queryConfig = {
-    queryUserId: nolotusId,
-    options,
-  };
-  const data = useAppSelector(
-    selectFilteredDataByUserAndType(nolotusId, DataType.SurfSpot),
-  );
-  const { isSuccess, isLoading, error } = useQueryData(queryConfig);
-  const renderSpotList = (spots) => {
-    if (!spots) {
-      return null;
-    }
-    const filteredSpots = spots.filter((spot) => !spot.is_template);
-    return filteredSpots.map((spot) => <SpotCard key={spot.id} data={spot} />);
-  };
+
   return (
     <div>
       <div className="flex flex-col gap-6 lg:flex-row">
@@ -46,11 +22,11 @@ const Home = () => {
           className="text2 mb-6 w-full lg:mb-0 lg:w-1/2"
           style={{ display: "grid", gap: "var(--size-fluid-2)" }}
         >
-          <h2>嘿!你好呀，我是Nolotus！</h2>
+          <h2>嘿，你好,我是Nolotus！</h2>
           <p>
-            我在这里用AI记录我的一切。
+            我在这里用AI管理我的一切。
             <br />
-            从日常的todo，到旅途拍摄的美景。
+            从日常的Todos，到旅途拍摄的美景。
           </p>
           <p>
             <div className="py-3">
@@ -60,19 +36,19 @@ const Home = () => {
               <br />
               亦或是
               <Link to="/spots">各种兴趣爱好 </Link>
-              的经验和攻略。
+              的攻略。
               <br />
-              比如
+              例如
               <Link to="/spots">冲浪</Link>和<Link to="/spots">滑雪</Link>。
             </div>
             <div className="py-3">
-              甚至是管理这些兴趣爱好所涉及的
+              甚至是管理我的这些兴趣爱好的
               <Link to="/gears" className="text-blue-500">
                 装备
               </Link>
               。
               <br />
-              总之，我用它管理我的一切数据，并分享给来到这里的你。
+              总而言之我用它管理我的一切数据，并分享给来到这里的你。
             </div>
           </p>
         </div>
@@ -105,20 +81,6 @@ const Home = () => {
           </p>
         </aside>
       </div>
-      <h4>
-        <DependabotIcon size="medium" />
-        <span>AIs</span>
-      </h4>
-      <ChatAIList queryUserId={userId ? userId : nolotusId} />
-      <h4 className="">
-        <LocationIcon size="medium" />
-        浪点
-      </h4>
-      <div className="flex flex-wrap">{data && renderSpotList(data)}</div>
-      <h4 className="">
-        <PeopleIcon size="medium" />
-        游民
-      </h4>
     </div>
   );
 };

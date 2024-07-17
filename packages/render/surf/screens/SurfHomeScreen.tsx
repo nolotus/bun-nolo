@@ -5,7 +5,6 @@ import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 
 import { SurfSpotScreen } from "./SurfSpotScreen";
-import { useFetchData } from "app/hooks";
 
 // 创建顶部标签页导航器
 const Tab = createMaterialTopTabNavigator();

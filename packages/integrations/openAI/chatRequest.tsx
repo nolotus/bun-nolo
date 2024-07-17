@@ -3,6 +3,7 @@ import axios from "utils/axios";
 
 import { createOpenAIRequestConfig } from "./config";
 import { FrontEndRequestBody } from "./types";
+import { baseLogger } from "utils/logger";
 
 export const chatRequest = async (
   requestBody: FrontEndRequestBody,
@@ -21,11 +22,13 @@ export const chatRequest = async (
     responseType: isStream ? "stream" : "json",
     data,
   };
+
+  baseLogger.info(config);
   try {
     const response = await axios.request(config);
     return response;
   } catch (error) {
-    console.error(error.message);
+    baseLogger.error(error);
     return null;
   }
 };

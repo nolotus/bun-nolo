@@ -1,8 +1,8 @@
 import { createFieldsFromDSL } from "render/ui/Form/createFieldsFromDSL";
 import { createZodSchemaFromDSL } from "database/schema/createZodSchemaFromDSL";
-
-import { ModelPriceEnum } from "./models";
 import { DataType } from "create/types";
+
+import { modelEnum } from "./models";
 
 const baseFields = {
   name: {
@@ -15,12 +15,7 @@ const baseFields = {
   },
   model: {
     type: "enum",
-    values: Object.values(ModelPriceEnum),
-  },
-  replyRule: {
-    type: "textarea",
-    min: 1,
-    optional: true,
+    values: Object.values(modelEnum),
   },
   knowledge: {
     type: "textarea",

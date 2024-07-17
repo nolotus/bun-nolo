@@ -26,8 +26,6 @@ const Lab = () => {
   };
   const tokens = tokenizeMarkdown(markdownText);
 
-  console.log(tokens);
-
   const elements = renderTokens(tokens);
 
   return (

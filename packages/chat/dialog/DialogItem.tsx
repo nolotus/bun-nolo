@@ -1,22 +1,30 @@
 import { NavLink } from "react-router-dom";
 import { Alert, useDeleteAlert } from "render/ui";
-import { PencilIcon, TrashIcon } from "@primer/octicons-react";
+import {
+  CheckIcon,
+  PencilIcon,
+  TrashIcon,
+  XIcon,
+} from "@primer/octicons-react";
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { useNavigate } from "react-router-dom";
-import { deleteDialog, initDialog } from "./dialogSlice";
-import IconButton from "render/ui/IconButton";
-import Colors from "open-props/src/colors";
-import { format } from "date-fns";
+import { useCouldEdit } from "auth/useCouldEdit";
+import { useEffect, useState } from "react";
+import OpenProps from "open-props";
 
-export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
-  const { data: dialog } = useFetchData(id, source);
-  const { data: llm } = useFetchData(dialog.llmId, source);
+import { deleteDialog, initDialog } from "./dialogSlice";
+import { patchData } from "database/dbSlice";
+
+export const DialogItem = ({ id, isSelected, source }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { data: dialog } = useFetchData(id, { source });
+
+  const [isEditing, setEditing] = useState(false);
+  const [title, setTitle] = useState(id);
+
   const onDeleteDialog = async (dialog) => {
-    dispatch(deleteDialog(dialog)).then((result) => {
-      console.log("result", result);
-    });
+    dispatch(deleteDialog(dialog));
     navigate("/chat");
   };
   const {
@@ -28,51 +36,84 @@ export const DialogItem = ({ id, isSelected, allowEdit, source }) => {
   } = useDeleteAlert(() => {
     onDeleteDialog(dialog);
   });
+  const allowEdit = useCouldEdit(id);
 
+  useEffect(() => {
+    setTitle(dialog?.title || dialog.id);
+  }, [dialog]);
+
+  const saveTitle = async () => {
+    dispatch(patchData({ id, changes: { title }, source: dialog.source }));
+    setEditing(false);
+  };
+  const cancleEdit = () => {
+    setEditing(false);
+  };
   return (
     <div
       className={`group flex cursor-pointer items-center transition duration-150 ease-in-out`}
     >
-      <NavLink
-        to={`/chat?dialogId=${dialog.id}`}
-        onClick={() =>
-          dispatch(initDialog({ dialogId: dialog.id, source: dialog.source }))
-        }
-        className={`${isSelected && " surface2"} px-4 py-1`}
-        style={{}}
-      >
-        <span>
-          {dialog.title
-            ? format(new Date(dialog.title), "MM-dd HH:mm")
-            : llm?.name}
-        </span>
-      </NavLink>
+      {!isEditing && (
+        <NavLink
+          to={`/chat?dialogId=${dialog.id}`}
+          onClick={() =>
+            dispatch(initDialog({ dialogId: dialog.id, source: dialog.source }))
+          }
+          className={`${isSelected && " surface2"} px-4 py-1`}
+          style={{ maxWidth: OpenProps.size12 }}
+        >
+          <span>{title}</span>
+        </NavLink>
+      )}
 
-      {allowEdit && (
-        <div className="ml-auto flex space-x-2 opacity-0 transition duration-150 ease-in-out group-hover:opacity-100">
-          <IconButton
-            icon={PencilIcon}
-            style={{ color: Colors["--blue-5"] }}
+      {isEditing && (
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <input
+            placeholder={title}
+            style={{ width: "70%" }}
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+            }}
+          ></input>
+          <div style={{ display: "flex", gap: OpenProps.size2 }}>
+            <button onClick={saveTitle} style={{ padding: "1px" }}>
+              <CheckIcon />
+            </button>
+            <button onClick={cancleEdit} style={{ padding: "1px" }}>
+              <XIcon />
+            </button>
+          </div>
+        </div>
+      )}
+      {allowEdit && !isEditing && (
+        <div className="flex space-x-2 opacity-0 transition duration-150 ease-in-out group-hover:opacity-100">
+          <button
             onClick={(e) => {
               e.stopPropagation();
-              // could edit dialog title
+              setEditing(true);
             }}
-          />
+            style={{ padding: OpenProps.size1 }}
+          >
+            <PencilIcon />
+          </button>
 
-          <IconButton
-            icon={TrashIcon}
-            style={{ color: Colors["--red-5"] }}
+          <button
             onClick={(e) => {
               e.stopPropagation();
               confirmDelete(dialog);
             }}
-          />
+            style={{ padding: OpenProps.size1 }}
+          >
+            <TrashIcon />
+          </button>
+
           {deleteAlertVisible && (
             <Alert
               isOpen={deleteAlertVisible}
               onClose={closeAlert}
               onConfirm={doDelete}
-              title={`删除和${llm?.name}的对话？`}
+              title={`删除和${title}的对话？`}
               message={`你确定要删除对话吗？`}
             />
           )}

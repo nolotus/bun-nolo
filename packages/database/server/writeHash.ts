@@ -11,7 +11,6 @@ import { DataType } from "create/types";
 // import {WriteDataRequestBody} from '../types';
 
 export const handleError = (res, error) => {
-  console.error(error);
   const status = error.message === "Access denied" ? 401 : 500;
   return res.status(status).json({ error: error.message });
 };

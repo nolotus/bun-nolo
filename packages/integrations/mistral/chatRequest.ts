@@ -35,7 +35,6 @@ export async function chatRequest(
 
     return response;
   } catch (err) {
-    console.error("axios error:", err);
     throw err;
   }
 }

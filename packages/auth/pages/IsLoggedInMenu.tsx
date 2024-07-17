@@ -6,6 +6,7 @@ import OpenProps from "open-props";
 import { PersonIcon, SignOutIcon, GearIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import { flex } from "render/ui/styles";
+import { CircleButton } from "render/button/CircleButton";
 
 import { changeCurrentUser, selectUsers, signOut } from "../authSlice";
 import { getTokensFromLocalStorage, removeToken } from "../client/token";
@@ -26,6 +27,7 @@ export const IsLoggedInMenu = () => {
     dispatch(signOut());
     navigate("/");
   };
+
   const changeUser = (user) => {
     const tokens = getTokensFromLocalStorage();
     const updatedToken = tokens.find(
@@ -45,26 +47,21 @@ export const IsLoggedInMenu = () => {
     <DropDown
       direction="left"
       trigger={
-        <button
-          type="button"
-          className="p-[10px]"
-          style={{
-            borderRadius: OpenProps.radiusRound,
-          }}
-          onMouseDown={() => {
-            navigate("/life");
-          }}
-        >
-          <PersonIcon />
-        </button>
+        <CircleButton
+          tooltip="chat"
+          icon={<PersonIcon size="medium" />}
+          onClick={() => navigate("/life")}
+        />
       }
       triggerType="hover"
     >
       <div
         style={{
           ...flex,
-          width: "200px",
+          flexDirection: "row-reverse",
+          width: "120px",
           gap: OpenProps.sizeFluid1,
+          paddingRight: OpenProps.sizeFluid1,
         }}
       >
         {users.map(
@@ -81,28 +78,18 @@ export const IsLoggedInMenu = () => {
               </button>
             ),
         )}
-        <button
-          type="button"
-          onMouseDown={logout}
-          className="p-[10px]"
-          style={{
-            borderRadius: OpenProps.radiusRound,
-          }}
-        >
-          <SignOutIcon size={24} />
-          {/* {t("sign_out")} */}
-        </button>
-        <button
-          type="button"
-          onMouseDown={() => navigate("/settings")}
-          className="p-[10px]"
-          style={{
-            borderRadius: OpenProps.radiusRound,
-          }}
-        >
-          <GearIcon size={24} />
-          {/* {t("settings")} */}
-        </button>
+
+        <CircleButton
+          tooltip={t("settings")}
+          icon={<GearIcon size="medium" />}
+          onClick={() => navigate("/settings")}
+        />
+
+        <CircleButton
+          tooltip={t("sign_out")}
+          icon={<SignOutIcon size="medium" />}
+          onClick={logout}
+        />
       </div>
     </DropDown>
   );

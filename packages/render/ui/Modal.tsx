@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useKey } from "react-use";
-import Shadows from "open-props/src/shadows";
-import ZIndex from "open-props/src/zindex";
+import OpenProps from "open-props";
 
 export const useModal = () => {
   const [visible, setVisible] = useState(false);
@@ -41,9 +40,15 @@ export const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
 
   return createPortal(
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
       style={{
-        zIndex: ZIndex["--layer-2"],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: OpenProps.layer2,
+        backdropFilter: "blur(5px)",
+        inset: 0,
+        position: "fixed",
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
       }}
       onClick={handleOverlayClick}
     >
@@ -51,7 +56,9 @@ export const Modal = ({ isOpen, onClose, children, className }: ModalProps) => {
         className={`m-auto w-full  
     transition-all sm:w-3/4 md:w-3/5 lg:w-2/3 xl:w-1/2 2xl:w-1/2 ${className}`}
         onClick={(e) => e.stopPropagation()}
-        style={{ boxShadow: Shadows["--shadow-6"] }}
+        style={{
+          boxShadow: OpenProps.shadow5,
+        }}
       >
         {children}
       </div>

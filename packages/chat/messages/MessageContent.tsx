@@ -1,14 +1,17 @@
+import OpenProps from "open-props";
+
 import { MessageText } from "./MessageText";
 import { MessageImage } from "./MessageImage";
 
 export const MessageContent = ({ content }) => {
   return (
     <div
-      className="surface1 rounded-lg p-2"
+      className="rounded-lg"
       style={{
         display: "flex",
         flexDirection: "column",
-        boxShadow: "var(--shadow-3)",
+        boxShadow: OpenProps.shadow3,
+        padding: OpenProps.size2,
       }}
     >
       {typeof content === "string" ? (

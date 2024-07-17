@@ -5,72 +5,55 @@ import {
   LocationIcon,
 } from "@primer/octicons-react";
 import { DropDown } from "render/ui";
-import Borders from "open-props/src/borders";
 import Sizes from "open-props/src/sizes";
 import React from "react";
-
 import { useNavigate } from "react-router-dom";
 
 import { CreateRoutePaths } from "../routes";
+import { CircleButton } from "render/button/CircleButton";
 
-export const CreateMenu = () => {
+const buttonItems = [
+  {
+    tooltip: "添加页面",
+    icon: <NoteIcon size="medium" />,
+    path: `/${CreateRoutePaths.CREATE_PAGE}`,
+  },
+  {
+    tooltip: "添加Cybot",
+    icon: <DependabotIcon size="medium" />,
+    path: `/${CreateRoutePaths.CREATE_CYBOT}`,
+  },
+  {
+    tooltip: "添加地点",
+    icon: <LocationIcon size="medium" />,
+    path: `/${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`,
+  },
+];
+
+export const CreateMenu: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <DropDown
       direction="left"
       trigger={
-        <button
-          type="button"
-          className="p-[10px]"
-          style={{
-            borderRadius: Borders["--radius-round"],
-          }}
-          onMouseDown={() => {
-            navigate("/create");
-          }}
-        >
-          <PlusIcon />
-        </button>
+        <CircleButton
+          tooltip="add new"
+          icon={<PlusIcon size="medium" />}
+          onClick={() => navigate("/create")}
+        />
       }
       triggerType="hover"
     >
       <div className="flex w-[200px]" style={{ gap: Sizes["--size-fluid-2"] }}>
-        <button
-          className="p-[10px]"
-          style={{
-            borderRadius: Borders["--radius-round"],
-          }}
-          onMouseDown={() => {
-            navigate(`/${CreateRoutePaths.CREATE_PAGE}`);
-          }}
-        >
-          <NoteIcon />
-        </button>
-        <button
-          className="p-[10px]"
-          style={{
-            borderRadius: Borders["--radius-round"],
-          }}
-          onMouseDown={() => {
-            navigate(`/${CreateRoutePaths.CREATE_CHAT_ROBOT}`);
-          }}
-        >
-          <DependabotIcon />
-        </button>
-        <button
-          className="p-[10px]"
-          style={{
-            borderRadius: Borders["--radius-round"],
-          }}
-          onMouseDown={() => {
-            navigate(
-              `/${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`,
-            );
-          }}
-        >
-          <LocationIcon />
-        </button>
+        {buttonItems.map((item, index) => (
+          <CircleButton
+            key={index}
+            tooltip={item.tooltip}
+            icon={item.icon}
+            onClick={() => navigate(item.path)}
+          />
+        ))}
       </div>
     </DropDown>
   );

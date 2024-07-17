@@ -16,11 +16,15 @@
     "react-syntax-highlighter": "^15.5.0",
     "react-use": "^17.5.0",
     "remark-frontmatter": "^5.0.0",
+    "remark-math": "^6.0.0",
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
     "unified": "^11.0.4",
     "unist-util-visit": "^5.0.0",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "@types/react-katex": "^3.0.4"
+
+    
   }
 }

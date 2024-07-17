@@ -6,7 +6,8 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
-import { editSchema, editFields } from "../schema";
+
+import { editSchema, editFields } from "../llm/schema";
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -21,10 +22,7 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
       }).unwrap();
 
       onClose(); // 关闭弹窗
-    } catch (error) {
-      // 这里可以处理错误，例如显示一个错误信息
-      console.error("Error updating entry:", error);
-    }
+    } catch (error) {}
   };
 
   const {

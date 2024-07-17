@@ -19,7 +19,6 @@ export async function runBuild() {
   // let json = {};
   try {
     const build = await Bun.build(config);
-    console.log("build", build);
     for (const output of build.outputs) {
       const result = await output;
       if (result.kind === "entry-point") {
@@ -32,11 +31,7 @@ export async function runBuild() {
     // await Bun.write("./public/test.json", JSON.stringify(...result));
 
     // await Bun.write("./public/output.json", JSON.stringify(json));
-
-    // console.log(result);
-  } catch (error) {
-    console.error(error);
-  }
+  } catch (error) {}
 }
 
 // runBuild();

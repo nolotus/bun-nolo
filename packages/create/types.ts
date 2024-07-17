@@ -10,4 +10,5 @@ export enum DataType {
   SurfInfo = "surf_info",
   Dialog = "dialog",
   Message = "message",
+  Cybot = "cybot",
 }

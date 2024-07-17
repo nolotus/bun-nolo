@@ -18,9 +18,7 @@ async function getIndexValues<TValue>(
     }
   };
 
-  request.onerror = () => {
-    console.error("Error getting index cursor:", request.error);
-  };
+  request.onerror = () => {};
 
   await new Promise<void>((resolve) => {
     request.oncomplete = () => {

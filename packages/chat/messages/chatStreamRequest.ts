@@ -5,14 +5,14 @@ const chatUrl = `${API_ENDPOINTS.AI}/chat`;
 interface ChatStreamRequestParams {
   currentServer: string;
   requestBody: Record<string, any>;
-  abortControllerRef: React.RefObject<AbortController>;
+  signal: AbortSignal;
   token: string;
 }
 
 export const chatStreamRequest = async ({
   currentServer,
   requestBody,
-  abortControllerRef,
+  signal,
   token,
 }: ChatStreamRequestParams): Promise<Response> => {
   const url = `${currentServer}${chatUrl}`;
@@ -20,7 +20,7 @@ export const chatStreamRequest = async ({
   const response = await fetch(url, {
     method: "POST",
     body: JSON.stringify(requestBody),
-    signal: abortControllerRef.current?.signal,
+    signal: signal,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

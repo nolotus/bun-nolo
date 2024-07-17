@@ -59,8 +59,8 @@ export const dbApi = api.injectEndpoints({
 
         // 构建URL和请求配置
         const url = domain
-          ? `${domain}${API_ENDPOINTS.DATABASE}/update/${entryId}`
-          : `${API_ENDPOINTS.DATABASE}/update/${entryId}`;
+          ? `${domain}${API_ENDPOINTS.PUT}/${entryId}`
+          : `${API_ENDPOINTS.PUT}/${entryId}`;
 
         // 使用baseQuery执行请求
         const result = await baseQuery({

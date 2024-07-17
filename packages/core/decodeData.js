@@ -24,11 +24,14 @@ const decodeData = (data, flags, id) => {
 
   const decodeOperations = {
     isBase64: (data) => (isBase64(data) ? Base64.atob(data) : data),
+    isObject: (data) => {
+      const result = noloToObject(data);
+      return result;
+    },
     isJSON: (data) => {
       try {
         return JSON.parse(data);
       } catch (error) {
-        console.error("Failed to decode isJSON data:", error);
         return data; // 返回原始数据，如果 JSON 解析失败
       }
     },
@@ -42,10 +45,6 @@ const decodeData = (data, flags, id) => {
     if (decodeOperations[flag] && flags[flag]) {
       decodedData = decodeOperations[flag](decodedData);
     }
-  }
-
-  if (flags.isObject) {
-    decodedData = noloToObject(decodedData);
   }
   return decodedData;
 };

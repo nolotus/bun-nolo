@@ -40,7 +40,7 @@ interface SurfSpotPageProps {
 }
 
 const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
-  const { data, isLoading } = useFetchData(id, source);
+  const { data, isLoading } = useFetchData(id, { source });
   // const mobile = useMediaQuery({ minWidth: 640 });
   // const tablet = useMediaQuery({ minWidth: 768 });
   // const monitor = useMediaQuery({ minWidth: 1281 });

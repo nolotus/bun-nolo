@@ -47,7 +47,6 @@ export const Database = () => {
 
   const changeType = (type) => {
     if (type === "All") {
-      console.log("type", type);
       setSearchParams({});
       setType(null);
     } else {

@@ -5,28 +5,17 @@ import { useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
 
 import { DataType } from "create/types";
-import aiTranslations from "ai/aiI18n";
+
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAuth } from "auth/useAuth";
 import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
-import OpenProps from "open-props";
 
-import chatTranslations from "./chatI18n";
 import DialogSidebar from "./dialog/DialogSideBar";
-import ChatWindow from "./messages/MessageWindow";
+import ChatWindow from "./MsgWindow";
 import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
 import { ChatGuide } from "./ChatGuide";
-
-for (const lang of Object.keys(chatTranslations)) {
-  const translations = chatTranslations[lang].translation;
-  i18n.addResourceBundle(lang, "translation", translations, true, true);
-}
-
-for (const lang of Object.keys(aiTranslations)) {
-  const translations = aiTranslations[lang].translation;
-  i18n.addResourceBundle(lang, "translation", translations, true, true);
-}
+import withTranslations from "i18n/withTranslations";
 
 const ChatPage = () => {
   const auth = useAuth();
@@ -58,17 +47,13 @@ const ChatPage = () => {
     //   options,
     //   domain: "https://nolotus.com",
     // }).unwrap();
-    // console.log("defaultTokenStatisticsList", defaultTokenStatisticsList);
-    // dispatch(updateData({ data: defaultTokenStatisticsList }));
-    // console.log("nolotusTokenStatisticsList", nolotusTokenStatisticsList);
-    // dispatch(updateData({ data: nolotusTokenStatisticsList }));
   };
 
   useEffect(() => {
     dialogId && dispatch(initDialog({ dialogId }));
   }, [dialogId]);
+
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const queryConfig = {
     queryUserId: currentUserId,
     options: {
@@ -80,6 +65,7 @@ const ChatPage = () => {
     },
   };
   const { isLoading, isSuccess } = useQueryData(queryConfig);
+  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const dialogList = useAppSelector(
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
@@ -88,16 +74,7 @@ const ChatPage = () => {
   }
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "row" }}>
-      {dialogList.length > 0 && (
-        <div
-          className="overflow-y-auto "
-          style={{
-            padding: OpenProps.sizeFluid2,
-          }}
-        >
-          <DialogSidebar dialogList={dialogList} />
-        </div>
-      )}
+      {dialogList.length > 0 && <DialogSidebar dialogList={dialogList} />}
 
       {currentDialogConfig && isSuccess && (
         <ChatWindow currentDialogConfig={currentDialogConfig} />
@@ -108,4 +85,4 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default withTranslations(ChatPage, ["chat"]);

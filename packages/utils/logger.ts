@@ -1,5 +1,5 @@
 import pino from "pino";
-const baseLogger = pino({ transport: { target: "pino-pretty" } });
+export const baseLogger = pino({ transport: { target: "pino-pretty" } });
 
 const defaultOptions = {
   activeLoggers: [
@@ -10,7 +10,6 @@ const defaultOptions = {
     "validation",
     "api",
     "form",
-    "update",
     "data-import",
     "Message",
     "TableComponent",

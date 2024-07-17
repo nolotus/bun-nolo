@@ -41,12 +41,8 @@ export const Alert: React.FC<AlertProps> = ({
           className="mt-4 flex space-x-4"
           style={{ justifyContent: "start" }}
         >
-          <Button variant="secondary" size="medium" onClick={onClose}>
-            取消
-          </Button>
-          <Button variant="primary" size="medium" onClick={onConfirm}>
-            确定
-          </Button>
+          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onConfirm}>确定</Button>
         </div>
       </div>
     </Modal>
