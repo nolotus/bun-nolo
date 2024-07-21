@@ -3,9 +3,10 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-import MessageInput from "./messages/MessageInput";
-import { handleSendMessage } from "./messages/messageSlice";
-import MessagesList from "./messages/MessageList";
+import MessageInput from "./MessageInput";
+import { handleSendMessage } from "./messageSlice";
+import MessagesList from "./MessageList";
+import { messageWindowStyle } from "./styles";
 
 const ChatWindow = ({ currentDialogConfig }) => {
   const { t } = useTranslation();
@@ -20,7 +21,7 @@ const ChatWindow = ({ currentDialogConfig }) => {
   };
 
   return (
-    <div className="flex w-full flex-col">
+    <div style={messageWindowStyle}>
       {currentDialogConfig.messageListId && (
         <MessagesList
           id={currentDialogConfig.messageListId}

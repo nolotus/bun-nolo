@@ -12,8 +12,10 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
 
 import DialogSidebar from "./dialog/DialogSideBar";
-import ChatWindow from "./MsgWindow";
 import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
+
+import ChatWindow from "./messages/MsgWindow";
+
 import { ChatGuide } from "./ChatGuide";
 import withTranslations from "i18n/withTranslations";
 

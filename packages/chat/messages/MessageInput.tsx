@@ -11,7 +11,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
-import { ChatContainerPaddingRight } from "../styles";
+import { ChatContainerPaddingRight } from "./styles";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
@@ -172,8 +172,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       className="flex items-start justify-center space-x-4 "
       style={{
         paddingTop: Sizes["--size-fluid-1"],
-        paddingLeft: Sizes["--size-8"],
-        paddingRight: ChatContainerPaddingRight,
         marginBottom: Sizes["--size-7"],
       }}
     >
