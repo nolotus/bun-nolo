@@ -49,6 +49,13 @@ export const DialogItem = ({ id, isSelected, source }) => {
   const cancleEdit = () => {
     setEditing(false);
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+      saveTitle();
+    }
+  };
+
   return (
     <div
       className={`group flex cursor-pointer items-center transition duration-150 ease-in-out`}
@@ -75,6 +82,7 @@ export const DialogItem = ({ id, isSelected, source }) => {
             onChange={(e) => {
               setTitle(e.target.value);
             }}
+            onKeyDown={handleKeyDown}
           ></input>
           <div style={{ display: "flex", gap: OpenProps.size2 }}>
             <button onClick={saveTitle} style={{ padding: "1px" }}>
