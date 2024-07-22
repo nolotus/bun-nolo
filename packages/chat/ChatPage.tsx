@@ -1,9 +1,9 @@
 import i18n from "i18n";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
-
+import { motion, AnimatePresence } from "framer-motion";
 import { DataType } from "create/types";
 
 import { selectFilteredDataByUserAndType } from "database/selectors";
@@ -71,18 +71,54 @@ const ChatPage = () => {
   const dialogList = useAppSelector(
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
   if (isLoading) {
     return <PageLoader />;
   }
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "row" }}>
-      {dialogList.length > 0 && <DialogSidebar dialogList={dialogList} />}
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "row",
+        overflow: "hidden",
+      }}
+    >
+      <motion.div
+        initial={{ width: 300 }}
+        animate={{ width: isSidebarOpen ? 300 : 0 }}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 30,
+        }}
+        style={{ overflow: "hidden" }}
+      >
+        {dialogList.length > 0 && <DialogSidebar dialogList={dialogList} />}
+      </motion.div>
 
-      {currentDialogConfig && isSuccess && (
-        <ChatWindow currentDialogConfig={currentDialogConfig} />
-      )}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        {currentDialogConfig && isSuccess && (
+          <ChatWindow
+            currentDialogConfig={currentDialogConfig}
+            toggleSidebar={toggleSidebar}
+            isSidebarOpen={isSidebarOpen}
+          />
+        )}
 
-      {isSuccess && dialogList.length == 0 && <ChatGuide />}
+        {isSuccess && dialogList.length == 0 && <ChatGuide />}
+      </div>
     </div>
   );
 };
