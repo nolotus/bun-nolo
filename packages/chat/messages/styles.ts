@@ -7,8 +7,6 @@ export const messageWindowStyle = {
   display: "flex",
   width: "100%",
   flexDirection: "column",
-  paddingLeft: OpenProps.size5,
-  paddingRight: ChatContainerPaddingRight,
 };
 export const messageListStyle = {
   display: "flex",
@@ -17,4 +15,12 @@ export const messageListStyle = {
   overflow: "auto",
   height: "100vh",
   position: "relative",
+  paddingLeft: OpenProps.size5,
+  paddingRight: ChatContainerPaddingRight,
+};
+export const messageInputStyle = {
+  paddingLeft: OpenProps.size5,
+  paddingRight: ChatContainerPaddingRight,
+  paddingTop: OpenProps.sizeFluid1,
+  marginBottom: OpenProps.size7,
 };
