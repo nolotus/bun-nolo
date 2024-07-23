@@ -2,21 +2,44 @@ import { createSlice } from "@reduxjs/toolkit";
 import OpenProps from "open-props";
 
 import { blues } from "../colors";
-import { lightTheme } from "./lightTheme";
 const mainColors = [...blues];
 
+export const lightTheme = {
+  link: OpenProps.indigo7,
+  linkVisited: OpenProps.purple7,
+  text1: OpenProps.gray12,
+  text2: OpenProps.gray7,
+  surface1: OpenProps.gray0,
+  surface2: OpenProps.gray2,
+  surface3: OpenProps.gray3,
+  surface4: OpenProps.gray4,
+  scrollthumbColor: OpenProps.gray7,
+  accentColor: OpenProps.indigo7,
+  backgroundColor: OpenProps.gray0,
+  caretColor: OpenProps.indigo7,
+  colorScheme: "light",
+};
+
+export const darkTheme = {
+  link: OpenProps.indigo3,
+  linkVisited: OpenProps.purple3,
+  text1: OpenProps.gray1,
+  text2: OpenProps.gray4,
+  surface1: OpenProps.gray9,
+  surface2: OpenProps.gray8,
+  surface3: OpenProps.gray7,
+  surface4: OpenProps.gray6,
+  scrollthumbColor: OpenProps.gray6,
+  accentColor: OpenProps.indigo3,
+  backgroundColor: OpenProps.gray9,
+  caretColor: OpenProps.indigo3,
+  colorScheme: "dark",
+  shadowStrength: "10%",
+  shadowColor: "220 40% 2%",
+};
 const initialState = {
   themeName: "light",
-  isDarkMode: false,
-  mainColor: lightTheme.mainActiveColor,
-  brandColor: OpenProps["--blue-5"],
-  statusBarColor: lightTheme.statusBarColor,
-  mainBackgroundColor: lightTheme.mainBackgroundColor,
-  textColor1: lightTheme.textColor1,
-  surface1: lightTheme.surface1,
-  surface2: lightTheme.surface2,
-  surface3: lightTheme.surface3,
-  surface4: lightTheme.surface4,
+  ...lightTheme,
 };
 
 const themeSlice = createSlice({
@@ -25,13 +48,12 @@ const themeSlice = createSlice({
   reducers: {
     toggleTheme: (state) => {
       state.themeName = state.themeName === "light" ? "dark" : "light";
+      state.isDarkMode = state.themeName === "dark";
     },
     setTheme: (state, action) => {
       const newName = action.payload;
       state.themeName = newName;
-      newName === "dark"
-        ? (state.isDarkMode = true)
-        : (state.isDarkMode = false);
+      state.isDarkMode = newName === "dark";
     },
     changeMainColor: (state, action) => {
       if (mainColors.includes(action.payload)) {
@@ -45,5 +67,8 @@ export const { toggleTheme, setTheme, changeMainColor } = themeSlice.actions;
 
 // 导出 mainColors 数组
 export const mainColorOptions = mainColors;
+
+export const selectTheme = (state) => state.theme;
+export const selectIsDarkMode = (state) => state.theme.themeName === "dark";
 
 export default themeSlice.reducer;

@@ -5,14 +5,12 @@ import { retrieveFirstToken } from "auth/client/token";
 import { generateFileID } from "database/fileUpload/generateFileID";
 import clsx from "clsx";
 import { useAuth } from "auth/useAuth";
-import Sizes from "open-props/src/sizes";
 import TextareaAutosize from "react-textarea-autosize";
 
 import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
-import { ChatContainerPaddingRight } from "../styles";
-
+import { messageInputStyle } from "./styles";
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
 }
@@ -170,12 +168,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   return (
     <div
       className="flex items-start justify-center space-x-4 "
-      style={{
-        paddingTop: Sizes["--size-fluid-1"],
-        paddingLeft: Sizes["--size-8"],
-        paddingRight: ChatContainerPaddingRight,
-        marginBottom: Sizes["--size-7"],
-      }}
+      style={messageInputStyle}
     >
       <div
         className={clsx(

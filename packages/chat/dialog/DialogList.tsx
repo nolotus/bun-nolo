@@ -18,11 +18,15 @@ export const DialogList = ({ dialogList, source }) => {
   };
   //todo handle cybots
   const dialogGroups = dialogList.reduce((acc, dialog) => {
-    const llmId = dialog.llmId;
-    if (!acc[llmId]) {
-      acc[llmId] = [];
+    const groupKey =
+      dialog.cybots && Array.isArray(dialog.cybots)
+        ? dialog.cybots.sort().join(",") // 使用排序后的 cybots 数组作为 key
+        : dialog.llmId; // 如果没有 cybots 或不是数组，则使用 llmId
+
+    if (!acc[groupKey]) {
+      acc[groupKey] = [];
     }
-    acc[llmId].push(dialog);
+    acc[groupKey].push(dialog);
     return acc;
   }, {});
 
@@ -30,10 +34,10 @@ export const DialogList = ({ dialogList, source }) => {
     <div
       style={{ display: "flex", flexDirection: "column", gap: OpenProps.size2 }}
     >
-      {Object.entries(dialogGroups).map(([llmId, dialogs]) => (
+      {Object.entries(dialogGroups).map(([groupKey, dialogs]) => (
         <DialogGroup
-          key={llmId}
-          cybotId={llmId}
+          key={groupKey}
+          cybotId={groupKey} // 这里可能需要根据实际情况调整
           dialogs={dialogs}
           currentDialogId={currentDialogId}
           isCreator={isCreator}

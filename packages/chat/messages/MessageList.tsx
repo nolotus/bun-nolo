@@ -1,14 +1,22 @@
 import React, { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { Spinner } from "@primer/react";
+import { reverse } from "rambda";
 import OpenProps from "open-props";
 
 import { MessageItem } from "./MessageItem";
 import { selectStreamMessages, selectMergedMessages } from "./selector";
-import { ChatContainerPaddingRight } from "../styles";
 import { initMessages } from "./messageSlice";
-import { reverse } from "rambda";
 
+export const messageListStyle = {
+  display: "flex",
+  flexDirection: "column-reverse",
+  gap: OpenProps.size2,
+  overflow: "auto",
+  height: "100vh",
+  position: "relative",
+  paddingRight: OpenProps.size12,
+};
 interface MessagesDisplayProps {
   id: string;
   source: string[];
@@ -45,19 +53,7 @@ const MessagesList: React.FC<MessagesDisplayProps> = ({ id, source }) => {
     return <div style={{ height: "100vh" }}>{error.message}</div>;
   }
   return (
-    <div
-      ref={containerRef}
-      style={{
-        display: "flex",
-        flexDirection: "column-reverse",
-        paddingRight: ChatContainerPaddingRight,
-        paddingLeft: OpenProps.size5,
-        gap: OpenProps.size2,
-        overflow: "auto",
-        height: "100vh",
-        position: "relative",
-      }}
-    >
+    <div ref={containerRef} style={messageListStyle}>
       {messages.map((message) => (
         <MessageItem key={message.id} message={message} />
       ))}

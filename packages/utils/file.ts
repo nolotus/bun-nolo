@@ -89,7 +89,7 @@ export const updateDataInFile = async (filePath, id: string, value: string) => {
   }
 };
 
-export const removeDataFromFile = async (filePath, ids: [string]) => {
+export const removeDataFromFile = async (filePath, ids: string[]) => {
   const tempFilePath = `${filePath}.tmp`;
   const readStream = Bun.file(filePath).stream();
   const tempWriter = Bun.file(tempFilePath).writer();

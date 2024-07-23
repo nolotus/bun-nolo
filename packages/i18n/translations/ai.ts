@@ -27,6 +27,13 @@ export default {
       imageRecognition: "Image Recognition",
       speechRecognition: "Speech Recognition",
       speechOutput: "Speech Output",
+      customizeYourAI: "Customize Your AI",
+      createDialogFromAI: "Create Dialog from AI",
+      createRobot: "Create Robot",
+      createDialog: "Create Dialog",
+      // 新添加的简化文本键
+      customizeAI: "Customize AI",
+      newDialog: "New Dialog",
     },
   },
   "zh-CN": {
@@ -57,6 +64,13 @@ export default {
       imageRecognition: "图像识别",
       speechRecognition: "语音识别",
       speechOutput: "语音输出",
+      customizeYourAI: "自定义您的AI",
+      createDialogFromAI: "从AI创建对话",
+      createRobot: "创建机器人",
+      createDialog: "创建对话",
+      // 新添加的简化文本键
+      customizeAI: "自定义AI",
+      newDialog: "新建对话",
     },
   },
   "zh-Hant": {
@@ -87,6 +101,13 @@ export default {
       imageRecognition: "圖像識別",
       speechRecognition: "語音識別",
       speechOutput: "語音輸出",
+      customizeYourAI: "自定義您的AI",
+      createDialogFromAI: "從AI創建對話",
+      createRobot: "創建機器人",
+      createDialog: "創建對話",
+      // 新添加的简化文本键
+      customizeAI: "自定義AI",
+      newDialog: "新建對話",
     },
   },
   ja: {
@@ -117,6 +138,13 @@ export default {
       imageRecognition: "画像認識",
       speechRecognition: "音声認識",
       speechOutput: "音声出力",
+      customizeYourAI: "AIをカスタマイズ",
+      createDialogFromAI: "AIから対話を作成",
+      createRobot: "ロボットを作成",
+      createDialog: "対話を作成",
+      // 新添加的简化文本键
+      customizeAI: "AIカスタマイズ",
+      newDialog: "新規対話",
     },
   },
 };

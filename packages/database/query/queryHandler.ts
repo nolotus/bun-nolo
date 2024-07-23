@@ -5,6 +5,7 @@ import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
 import { getDatabaseFilePath } from "../init";
 import { listToArray } from "core/noloToOther";
+import { isIdInCache } from "database/server/cache";
 
 const handleData = (
   data: string,
@@ -92,6 +93,10 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         );
 
         if (resultWithKey) {
+          if (isIdInCache(userId, resultWithKey.id)) {
+            continue; // 如果在缓存中，跳过这条数据
+          }
+
           if (count >= skip && results.length < limit) {
             results.push(resultWithKey);
           }
