@@ -1,6 +1,7 @@
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists, findDataInFile } from "utils/file";
+import { isIdInCache } from "database/server/cache";
 
 export const handleReadSingle = async (req, res) => {
   if (!req.params.id) {
@@ -9,6 +10,12 @@ export const handleReadSingle = async (req, res) => {
   const id = req.params.id;
   const { isFile, isList } = extractAndDecodePrefix(id);
   const userId = extractUserId(id);
+
+  // 检查ID是否在缓存中
+  if (isIdInCache(userId, id)) {
+    return res.status(404).json({ error: "Data not found (deleted)" });
+  }
+
   if (isFile) {
     const file = Bun.file(`nolodata/${userId}/${id}`);
     const headers = new Headers({
@@ -17,6 +24,7 @@ export const handleReadSingle = async (req, res) => {
     });
     return new Response(file.stream(), { headers });
   }
+
   try {
     const result = await serverGetData(id);
     if (result) {
