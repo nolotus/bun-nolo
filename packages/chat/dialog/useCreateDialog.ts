@@ -1,3 +1,4 @@
+// chat/dialog/useCreateDialog.ts
 import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
@@ -5,8 +6,15 @@ import { write } from "database/dbSlice";
 import { DataType } from "create/types";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { DialogConfig, CreateDialogParams } from "./type";
 
-export const useCreateDialog = () => {
+interface UseCreateDialogResult {
+  createDialog: (params: CreateDialogParams) => Promise<void>;
+  isLoading: boolean;
+  isSuccess: boolean;
+}
+
+export const useCreateDialog = (): UseCreateDialogResult => {
   const navigate = useNavigate();
 
   const currentUserId = useAppSelector(selectCurrentUserId);
@@ -15,11 +23,10 @@ export const useCreateDialog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const createDialog = async ({ cybots, users }) => {
+  const createDialog = async ({ cybots, users }: CreateDialogParams) => {
     setIsLoading(true);
     setIsSuccess(false);
     if (cybots) {
-      //todo greet
       const messageListConfig = {
         data: [],
         flags: { isList: true },
@@ -27,11 +34,10 @@ export const useCreateDialog = () => {
       };
 
       try {
-        //todo could write in local first
         const writeMessageAction = await dispatch(write(messageListConfig));
         const initMessageList = writeMessageAction.payload;
 
-        const dialogConfig = {
+        const dialogConfig: DialogConfig = {
           data: {
             type: DataType.Dialog,
             cybots,
@@ -46,6 +52,7 @@ export const useCreateDialog = () => {
         navigate(`/chat?dialogId=${result.payload.id}`);
         setIsSuccess(true);
       } catch (error) {
+        // 错误处理
       } finally {
         setIsLoading(false);
       }
