@@ -47,7 +47,6 @@ const MessageListContainer = styled.div`
 `;
 
 const InputContainer = styled.div`
-  padding: 20px;
   background-color: ${(props) => props.theme.surface1};
 `;
 

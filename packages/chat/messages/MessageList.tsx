@@ -15,7 +15,8 @@ export const messageListStyle = {
   overflow: "auto",
   height: "100vh",
   position: "relative",
-  paddingRight: OpenProps.size12,
+  paddingLeft: OpenProps.sizeFluid4,
+  paddingRight: OpenProps.sizeFluid4,
 };
 interface MessagesDisplayProps {
   id: string;
