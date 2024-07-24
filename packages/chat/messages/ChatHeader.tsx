@@ -1,39 +1,24 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 import { motion } from "framer-motion";
-import { useTranslation } from "react-i18next";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  PencilIcon,
   TrashIcon,
-  CheckIcon,
-  XIcon,
 } from "@primer/octicons-react";
-import { useAppDispatch } from "app/hooks";
-import { patchData } from "database/dbSlice";
+import EditableTitle from "./EditableTitle";
+import CybotNameChip from "./CybotNameChip";
 
 const HeaderBar = styled.div`
-  padding: 20px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   background-color: ${(props) => props.theme.surface1};
 `;
 
-const DialogTitle = styled.h1`
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: ${(props) => props.theme.text1};
-`;
-
 const ToggleSidebarButton = styled(motion.button)`
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 4px;
   background-color: transparent;
   border: none;
@@ -41,7 +26,7 @@ const ToggleSidebarButton = styled(motion.button)`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin-right: 15px;
+  margin-right: 12px;
   padding: 0;
   transition: all 0.2s ease-in-out;
   outline: none;
@@ -63,19 +48,25 @@ const ToggleSidebarButton = styled(motion.button)`
   }
 `;
 
-const EditContainer = styled.div`
+const ContentContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-grow: 1;
+  gap: 12px;
+  min-width: 0;
 `;
 
-const EditInput = styled.input`
-  padding: 4px 8px;
-  border: 1px solid ${(props) => props.theme.surface3};
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: ${(props) => props.theme.surface1};
-  color: ${(props) => props.theme.text1};
+const CybotNamesContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 80px;
+  max-width: 200px;
+`;
+
+const TitleContainer = styled.div`
+  flex-grow: 1;
+  min-width: 0;
 `;
 
 const IconButton = styled.button`
@@ -85,65 +76,33 @@ const IconButton = styled.button`
   padding: 4px;
   color: ${(props) => props.theme.text2};
   border-radius: 4px;
+  flex-shrink: 0;
 
   &:hover {
     background-color: ${(props) => props.theme.surface2};
   }
 `;
 
-const ChatHeader = ({
+interface ChatHeaderProps {
+  currentDialogConfig: {
+    id: string;
+    title?: string;
+    source: string;
+    cybots: string[];
+  };
+  toggleSidebar: () => void;
+  isSidebarOpen: boolean;
+  allowEdit: boolean;
+  onDeleteClick: () => void;
+}
+
+const ChatHeader: React.FC<ChatHeaderProps> = ({
   currentDialogConfig,
   toggleSidebar,
   isSidebarOpen,
   allowEdit,
   onDeleteClick,
 }) => {
-  const { t } = useTranslation();
-  const dispatch = useAppDispatch();
-
-  const [isEditing, setEditing] = useState(false);
-  const [title, setTitle] = useState(
-    currentDialogConfig.title || t("newDialog"),
-  );
-  const [isComposing, setIsComposing] = useState(false);
-  const editInputRef = useRef(null);
-
-  const saveTitle = useCallback(async () => {
-    if (title.trim() !== "") {
-      dispatch(
-        patchData({
-          id: currentDialogConfig.id,
-          changes: { title },
-          source: currentDialogConfig.source,
-        }),
-      );
-      setEditing(false);
-    }
-  }, [dispatch, title, currentDialogConfig]);
-
-  const cancelEdit = useCallback(() => {
-    setEditing(false);
-    setTitle(currentDialogConfig.title || t("newDialog"));
-  }, [currentDialogConfig.title, t]);
-
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === "Enter" && !isComposing) {
-        e.preventDefault();
-        saveTitle();
-      } else if (e.key === "Escape") {
-        cancelEdit();
-      }
-    },
-    [isComposing, saveTitle, cancelEdit],
-  );
-
-  useEffect(() => {
-    if (isEditing && editInputRef.current) {
-      editInputRef.current.focus();
-    }
-  }, [isEditing]);
-
   return (
     <HeaderBar>
       <ToggleSidebarButton
@@ -157,38 +116,28 @@ const ChatHeader = ({
           <ChevronRightIcon size={16} />
         )}
       </ToggleSidebarButton>
-      {!isEditing ? (
-        <>
-          <DialogTitle>{title}</DialogTitle>
-          {allowEdit && (
-            <EditContainer>
-              <IconButton onClick={() => setEditing(true)}>
-                <PencilIcon size={14} />
-              </IconButton>
-              <IconButton onClick={onDeleteClick}>
-                <TrashIcon size={14} />
-              </IconButton>
-            </EditContainer>
-          )}
-        </>
-      ) : (
-        <EditContainer>
-          <EditInput
-            ref={editInputRef}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onCompositionStart={() => setIsComposing(true)}
-            onCompositionEnd={() => setIsComposing(false)}
+      <ContentContainer>
+        <CybotNamesContainer>
+          {currentDialogConfig.cybots.map((cybotId) => (
+            <CybotNameChip
+              key={cybotId}
+              cybotId={cybotId}
+              source={currentDialogConfig.source}
+            />
+          ))}
+        </CybotNamesContainer>
+        <TitleContainer>
+          <EditableTitle
+            currentDialogConfig={currentDialogConfig}
+            allowEdit={allowEdit}
           />
-          <IconButton onClick={saveTitle}>
-            <CheckIcon size={14} />
+        </TitleContainer>
+        {allowEdit && (
+          <IconButton onClick={onDeleteClick}>
+            <TrashIcon size={14} />
           </IconButton>
-          <IconButton onClick={cancelEdit}>
-            <XIcon size={14} />
-          </IconButton>
-        </EditContainer>
-      )}
+        )}
+      </ContentContainer>
     </HeaderBar>
   );
 };
