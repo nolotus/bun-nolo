@@ -1,26 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PencilIcon,
-  TrashIcon,
-  CheckIcon,
-  XIcon,
-} from "@primer/octicons-react";
-import { selectCostByUserId } from "ai/selectors";
+import React, { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Alert, useDeleteAlert } from "render/ui";
 import { useCouldEdit } from "auth/useCouldEdit";
 import { deleteDialog } from "../dialog/dialogSlice";
-import { patchData } from "database/dbSlice";
+import { selectCostByUserId } from "ai/selectors";
 
 import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
 import MessagesList from "./MessageList";
+import ChatHeader from "./ChatHeader";
 
 const ChatContainer = styled.div`
   display: flex;
@@ -28,24 +19,6 @@ const ChatContainer = styled.div`
   height: 100vh;
   overflow: hidden;
   background-color: ${(props) => props.theme.surface1};
-`;
-
-const HeaderBar = styled.div`
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  background-color: ${(props) => props.theme.surface1};
-`;
-
-const DialogTitle = styled.h1`
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: ${(props) => props.theme.text1};
 `;
 
 const MessageListContainer = styled.div`
@@ -78,38 +51,6 @@ const InputContainer = styled.div`
   background-color: ${(props) => props.theme.surface1};
 `;
 
-const ToggleSidebarButton = styled(motion.button)`
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  background-color: transparent;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-right: 15px;
-  padding: 0;
-  transition: all 0.2s ease-in-out;
-  outline: none;
-
-  &:hover {
-    background-color: ${(props) => props.theme.surface2};
-  }
-
-  &:active {
-    background-color: ${(props) => props.theme.surface3};
-  }
-
-  &:focus {
-    box-shadow: 0 0 0 2px ${(props) => props.theme.link};
-  }
-
-  svg {
-    color: ${(props) => props.theme.text2};
-  }
-`;
-
 const ErrorMessage = styled.div`
   color: ${(props) => props.theme.error};
   font-size: 14px;
@@ -119,34 +60,6 @@ const ErrorMessage = styled.div`
   margin-top: 10px;
 `;
 
-const EditContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const EditInput = styled.input`
-  padding: 4px 8px;
-  border: 1px solid ${(props) => props.theme.surface3};
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: ${(props) => props.theme.surface1};
-  color: ${(props) => props.theme.text1};
-`;
-
-const IconButton = styled.button`
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  color: ${(props) => props.theme.text2};
-  border-radius: 4px;
-
-  &:hover {
-    background-color: ${(props) => props.theme.surface2};
-  }
-`;
-
 const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -154,13 +67,6 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
 
   const userCost = useAppSelector(selectCostByUserId);
   const allowSend = true; // 这里可以根据实际逻辑来设置
-
-  const [isEditing, setEditing] = useState(false);
-  const [title, setTitle] = useState(
-    currentDialogConfig.title || t("newDialog"),
-  );
-  const [isComposing, setIsComposing] = useState(false);
-  const editInputRef = useRef(null);
 
   const allowEdit = useCouldEdit(currentDialogConfig.id);
 
@@ -183,89 +89,15 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
     closeAlert,
   } = useDeleteAlert(onDeleteDialog);
 
-  const saveTitle = useCallback(async () => {
-    if (title.trim() !== "") {
-      dispatch(
-        patchData({
-          id: currentDialogConfig.id,
-          changes: { title },
-          source: currentDialogConfig.source,
-        }),
-      );
-      setEditing(false);
-    }
-  }, [dispatch, title, currentDialogConfig]);
-
-  const cancelEdit = useCallback(() => {
-    setEditing(false);
-    setTitle(currentDialogConfig.title || t("newDialog"));
-  }, [currentDialogConfig.title, t]);
-
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === "Enter" && !isComposing) {
-        e.preventDefault();
-        saveTitle();
-      } else if (e.key === "Escape") {
-        cancelEdit();
-      }
-    },
-    [isComposing, saveTitle, cancelEdit],
-  );
-
-  useEffect(() => {
-    if (isEditing && editInputRef.current) {
-      editInputRef.current.focus();
-    }
-  }, [isEditing]);
-
   return (
     <ChatContainer>
-      <HeaderBar>
-        <ToggleSidebarButton
-          onClick={toggleSidebar}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {isSidebarOpen ? (
-            <ChevronLeftIcon size={16} />
-          ) : (
-            <ChevronRightIcon size={16} />
-          )}
-        </ToggleSidebarButton>
-        {!isEditing ? (
-          <>
-            <DialogTitle>{title}</DialogTitle>
-            {allowEdit && (
-              <EditContainer>
-                <IconButton onClick={() => setEditing(true)}>
-                  <PencilIcon size={14} />
-                </IconButton>
-                <IconButton onClick={() => confirmDelete(currentDialogConfig)}>
-                  <TrashIcon size={14} />
-                </IconButton>
-              </EditContainer>
-            )}
-          </>
-        ) : (
-          <EditContainer>
-            <EditInput
-              ref={editInputRef}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onCompositionStart={() => setIsComposing(true)}
-              onCompositionEnd={() => setIsComposing(false)}
-            />
-            <IconButton onClick={saveTitle}>
-              <CheckIcon size={14} />
-            </IconButton>
-            <IconButton onClick={cancelEdit}>
-              <XIcon size={14} />
-            </IconButton>
-          </EditContainer>
-        )}
-      </HeaderBar>
+      <ChatHeader
+        currentDialogConfig={currentDialogConfig}
+        toggleSidebar={toggleSidebar}
+        isSidebarOpen={isSidebarOpen}
+        allowEdit={allowEdit}
+        onDeleteClick={() => confirmDelete(currentDialogConfig)}
+      />
       <MessageListContainer>
         {currentDialogConfig.messageListId && (
           <MessagesList
@@ -286,7 +118,7 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
           isOpen={deleteAlertVisible}
           onClose={closeAlert}
           onConfirm={doDelete}
-          title={t("deleteDialogTitle", { title })}
+          title={t("deleteDialogTitle", { title: currentDialogConfig.title })}
           message={t("deleteDialogConfirmation")}
         />
       )}
