@@ -5,10 +5,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   TrashIcon,
+  PlusIcon,
 } from "@primer/octicons-react";
 import EditableTitle from "./EditableTitle";
 import CybotNameChip from "./CybotNameChip";
-
+import { useCreateDialog } from "../dialog/useCreateDialog";
 const HeaderBar = styled.div`
   padding: 10px 16px;
   display: flex;
@@ -103,6 +104,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   allowEdit,
   onDeleteClick,
 }) => {
+  const { isLoading: creatingDialog, createDialog } = useCreateDialog();
+  const handleCreateClick = () => {
+    createDialog({ cybots: currentDialogConfig.cybots });
+  };
+
   return (
     <HeaderBar>
       <ToggleSidebarButton
@@ -118,7 +124,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
       </ToggleSidebarButton>
       <ContentContainer>
         <CybotNamesContainer>
-          {currentDialogConfig.cybots.map((cybotId) => (
+          {currentDialogConfig.cybots?.map((cybotId) => (
             <CybotNameChip
               key={cybotId}
               cybotId={cybotId}
@@ -133,9 +139,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           />
         </TitleContainer>
         {allowEdit && (
-          <IconButton onClick={onDeleteClick}>
-            <TrashIcon size={14} />
-          </IconButton>
+          <>
+            <IconButton onClick={handleCreateClick} disabled={creatingDialog}>
+              <PlusIcon size={14} />
+            </IconButton>
+            <IconButton onClick={onDeleteClick}>
+              <TrashIcon size={14} />
+            </IconButton>
+          </>
         )}
       </ContentContainer>
     </HeaderBar>

@@ -1,13 +1,12 @@
 import React from "react";
 import { useFetchData } from "app/hooks";
 import IconButton from "render/ui/IconButton";
-import { PlusIcon, PencilIcon } from "@primer/octicons-react";
+import { PencilIcon } from "@primer/octicons-react";
 import { useModal, Dialog } from "render/ui";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
 import { Spinner } from "@primer/react";
 import { useCouldEdit } from "auth/useCouldEdit";
 import { DialogItem } from "./DialogItem";
-import { useCreateDialog } from "./useCreateDialog";
 import { extractCustomId } from "core";
 import styled from "styled-components";
 import { useSelector } from "react-redux";
@@ -54,7 +53,6 @@ export const DialogGroup = ({ cybotId, dialogs, currentDialogId, source }) => {
   const theme = useSelector(selectTheme);
   const { isLoading, data: llm } = useFetchData(cybotId, { source });
   const { visible: editVisible, open, close: closeEdit } = useModal();
-  const { isLoading: creatingDialog, createDialog } = useCreateDialog();
   const allowEdit = useCouldEdit(cybotId);
 
   if (isLoading) {
@@ -69,11 +67,6 @@ export const DialogGroup = ({ cybotId, dialogs, currentDialogId, source }) => {
         </GroupTitle>
         {allowEdit && (
           <ButtonGroup>
-            <StyledIconButton
-              icon={PlusIcon}
-              isLoading={creatingDialog}
-              onClick={() => createDialog({ cybots: [cybotId] })}
-            />
             <StyledIconButton
               icon={PencilIcon}
               onClick={(e) => {
