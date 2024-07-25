@@ -14,21 +14,41 @@ const ChipContainer = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: ${(props) => props.theme.surface3};
+  }
 `;
 
 interface CybotNameChipProps {
   cybotId: string;
   source: string;
+  onEdit: (cybotId: string) => void;
 }
 
-const CybotNameChip: React.FC<CybotNameChipProps> = ({ cybotId, source }) => {
+const CybotNameChip: React.FC<CybotNameChipProps> = ({
+  cybotId,
+  source,
+  onEdit,
+}) => {
   const { isLoading, data: llm } = useFetchData(cybotId, { source });
 
   if (isLoading) return <Spinner size="small" />;
 
   const displayName = llm?.name || extractCustomId(cybotId);
 
-  return <ChipContainer title={displayName}>{displayName}</ChipContainer>;
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit(cybotId);
+  };
+
+  return (
+    <ChipContainer title={displayName} onClick={handleClick}>
+      {displayName}
+    </ChipContainer>
+  );
 };
 
 export default React.memo(CybotNameChip);

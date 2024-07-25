@@ -4,35 +4,38 @@ import { useAppDispatch, useFetchData } from "app/hooks";
 import styled from "styled-components";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-
 import { initDialog } from "./dialogSlice";
 
 const ItemContainer = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 
   &:hover {
-    background-color: ${(props) => props.theme.surface2};
+    background-color: ${({ theme }) => theme.surface2};
   }
 
-  ${(props) =>
-    props.isSelected &&
+  ${({ theme, isSelected }) =>
+    isSelected &&
     `
-    background-color: ${props.theme.surface3};
+    background-color: ${theme.surface3};
   `}
 `;
 
 const StyledNavLink = styled(NavLink)`
-  color: ${(props) => props.theme.text1};
+  display: block;
+  color: ${({ theme }) => theme.text1};
   text-decoration: none;
-  flex-grow: 1;
+  padding: 6px 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 14px;
+  font-size: 13px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.accentColor};
+  }
 `;
 
 export const DialogItem = ({ id, isSelected, source }) => {
@@ -49,6 +52,7 @@ export const DialogItem = ({ id, isSelected, source }) => {
         onClick={() =>
           dispatch(initDialog({ dialogId: dialog.id, source: dialog.source }))
         }
+        theme={theme}
       >
         {title}
       </StyledNavLink>

@@ -7,6 +7,10 @@ import {
   TrashIcon,
   PlusIcon,
 } from "@primer/octicons-react";
+import { useModal, Dialog } from "render/ui";
+import ChatConfigForm from "ai/blocks/ChatConfigForm";
+import { useFetchData } from "app/hooks";
+
 import EditableTitle from "./EditableTitle";
 import CybotNameChip from "./CybotNameChip";
 import { useCreateDialog } from "../dialog/useCreateDialog";
@@ -105,8 +109,20 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onDeleteClick,
 }) => {
   const { isLoading: creatingDialog, createDialog } = useCreateDialog();
+  const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
+  const [editingCybotId, setEditingCybotId] = React.useState<string | null>(
+    null,
+  );
+  const { data: editingLLM } = useFetchData(editingCybotId, {
+    source: currentDialogConfig.source,
+  });
+
   const handleCreateClick = () => {
     createDialog({ cybots: currentDialogConfig.cybots });
+  };
+  const handleEditCybot = (cybotId: string) => {
+    setEditingCybotId(cybotId);
+    openEdit();
   };
 
   return (
@@ -129,6 +145,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
               key={cybotId}
               cybotId={cybotId}
               source={currentDialogConfig.source}
+              onEdit={handleEditCybot}
             />
           ))}
         </CybotNamesContainer>
@@ -149,6 +166,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           </>
         )}
       </ContentContainer>
+      {editVisible && editingCybotId && editingLLM && (
+        <Dialog
+          isOpen={editVisible}
+          onClose={closeEdit}
+          title={`Edit ${editingLLM.name || "Cybot"}`}
+        >
+          <ChatConfigForm initialValues={editingLLM} onClose={closeEdit} />
+        </Dialog>
+      )}
     </HeaderBar>
   );
 };

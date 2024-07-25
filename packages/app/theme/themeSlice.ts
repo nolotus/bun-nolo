@@ -47,13 +47,23 @@ const themeSlice = createSlice({
   initialState,
   reducers: {
     toggleTheme: (state) => {
-      state.themeName = state.themeName === "light" ? "dark" : "light";
-      state.isDarkMode = state.themeName === "dark";
+      const newTheme = state.themeName === "light" ? darkTheme : lightTheme;
+      return {
+        ...state,
+        ...newTheme,
+        themeName: state.themeName === "light" ? "dark" : "light",
+        isDarkMode: state.themeName === "light",
+      };
     },
     setTheme: (state, action) => {
       const newName = action.payload;
-      state.themeName = newName;
-      state.isDarkMode = newName === "dark";
+      const newTheme = newName === "dark" ? darkTheme : lightTheme;
+      return {
+        ...state,
+        ...newTheme,
+        themeName: newName,
+        isDarkMode: newName === "dark",
+      };
     },
     changeMainColor: (state, action) => {
       if (mainColors.includes(action.payload)) {
