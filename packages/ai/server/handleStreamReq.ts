@@ -116,7 +116,6 @@ export const handleStreamReq = async (req: Request, res) => {
     ...pickAiRequstBody(req.body),
     messages: pickMessages(req.body.messages),
   };
-
   try {
     if (isModelInList(requestBody.model, openAIModels)) {
       return await processModelRequest(requestBody, "openai");
@@ -129,7 +128,6 @@ export const handleStreamReq = async (req: Request, res) => {
     } else if (isModelInList(requestBody.model, zhipuModels)) {
       return await processModelRequest(requestBody, "zhipu");
     } else if (isModelInList(requestBody.model, ollamaModels)) {
-      console.log("ollama");
       return await processModelRequest(requestBody, "ollama");
     } else if (isModelInList(requestBody.model, claudeModels)) {
       return await processModelRequest(requestBody, "claude");

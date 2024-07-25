@@ -31,6 +31,7 @@ import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
 import { getFilteredMessages } from "./utils";
 import { createRequestBody } from "../utils/createRequestBody";
+import { ollamaModelNames } from "integrations/ollama/models";
 
 const chatWindowLogger = getLogger("ChatWindow");
 
@@ -260,11 +261,9 @@ export const messageSlice = createSliceWithThunks({
         // after addUserMessage maybe multi cybot
         let prevMsgs = getFilteredMessages(state);
         const dialogConfig = selectCurrentDialogConfig(state);
-
         const cybotId = dialogConfig.cybots
           ? dialogConfig.cybots[0]
           : dialogConfig.llmId;
-
         const readAction = await dispatch(read({ id: cybotId }));
         const cybotConfig = readAction.payload;
         const model = cybotConfig.model;
@@ -352,12 +351,7 @@ export const messageSlice = createSliceWithThunks({
                   });
                 }
 
-                if (
-                  model === "llama3" ||
-                  model === "qwen2" ||
-                  model === "gemma2" ||
-                  model === "llava"
-                ) {
+                if (ollamaModelNames.includes(model)) {
                   let rawJSON = {};
                   try {
                     rawJSON = JSON.parse(text);
