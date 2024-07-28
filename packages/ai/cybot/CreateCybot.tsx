@@ -49,7 +49,7 @@ const CreateCybot = ({ onClose }) => {
 
   return (
     <div style={globalStyles.formStyle}>
-      <h2 style={{ textAlign: "center", color: "#333" }}>{t("createCybot")}</h2>
+      <h2 style={{ textAlign: "center" }}>{t("createCybot")}</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
           <label htmlFor="name" style={globalStyles.labelStyle}>

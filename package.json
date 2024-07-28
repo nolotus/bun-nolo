@@ -1,7 +1,9 @@
 {
   "name": "bun-nolo",
   "module": "index.ts",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
@@ -66,6 +68,8 @@
     "i18next": "^23.11.5",
     "js-base64": "^3.7.5",
     "katex": "^0.16.11",
+    "lodash-es": "^4.17.21",
+    "match-sorter": "^6.3.4",
     "open-props": "^1.7.4",
     "rambda": "^8.6.0",
     "re-reselect": "^5.1.0",
