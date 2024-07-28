@@ -50,7 +50,7 @@ export const createRoutes = [
     path: CreateRoutePaths.CREATE_PROMPT,
     element: (
       <LazyLoadComponent
-        factory={() => import("ai/prompt/xxxc")}
+        factory={() => import("ai/prompt/Create")}
         fallback={<div>Loading page for {CreateRoutePaths.CREATE_PROMPT}</div>}
       />
     ),

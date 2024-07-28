@@ -1,218 +1,162 @@
+import React from "react";
 import { useAppDispatch } from "app/hooks";
 import { extractCustomId } from "core";
 import { DataType } from "create/types";
 import { deleteData } from "database/dbSlice";
-import { omit } from "rambda";
 import { Link } from "react-router-dom";
 import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
 
-const AIThead = () => {
-  return (
-    <thead>
-      <tr>
-        <th>AI名字</th>
-        <th>AI所用模型</th>
-        <th>AI 定制描述</th>
-        <th>AI 知识</th>
-        <th>数据源</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-  );
+type FieldConfig = {
+  header: string;
+  key: string;
+  render?: (value: any, data: any) => React.ReactNode;
 };
 
-const PageThead = () => {
-  return (
-    <thead>
-      <tr>
-        <th>链接</th>
-        <th>标题</th>
+type RenderConfig = {
+  fields: FieldConfig[];
+  actions?: (data: any) => React.ReactNode;
+};
 
-        <th>数据源</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-  );
+const renderConfigs: Record<DataType, RenderConfig> = {
+  [DataType.ChatRobot]: {
+    fields: [
+      { header: "AI名字", key: "name" },
+      { header: "AI所用模型", key: "model" },
+      { header: "AI 定制描述", key: "description" },
+      { header: "AI 知识", key: "knowledge" },
+      { header: "数据源", key: "source" },
+    ],
+  },
+  [DataType.Cybot]: {
+    fields: [
+      { header: "AI名字", key: "name" },
+      { header: "AI所用模型", key: "model" },
+      { header: "AI 定制描述", key: "description" },
+      { header: "AI 知识", key: "knowledge" },
+      { header: "数据源", key: "source" },
+    ],
+  },
+  [DataType.Page]: {
+    fields: [
+      {
+        header: "链接",
+        key: "id",
+        render: (value) => (
+          <Link to={`/${value}`}>{extractCustomId(value)}</Link>
+        ),
+      },
+      { header: "标题", key: "title" },
+      { header: "数据源", key: "source" },
+    ],
+  },
+  [DataType.SurfSpot]: {
+    fields: [
+      {
+        header: "Id",
+        key: "id",
+        render: (value) => (
+          <Link to={`/${value}`}>{extractCustomId(value)}</Link>
+        ),
+      },
+      { header: "浪点名字", key: "title" },
+      { header: "数据源", key: "source" },
+    ],
+  },
+  [DataType.Prompt]: {
+    fields: [
+      { header: "名称", key: "name" },
+      {
+        header: "内容",
+        key: "content",
+        render: (value) => value.substring(0, 50) + "...",
+      },
+      { header: "分类", key: "category" },
+      { header: "标签", key: "tags", render: (value) => value.join(", ") },
+      { header: "数据源", key: "source" },
+    ],
+    actions: (data) => (
+      <Link to={`/${data.id}`}>
+        <button className="rounded p-2">查看</button>
+      </Link>
+    ),
+  },
 };
-const Thead = () => {
-  return (
-    <thead>
-      <tr>
-        <th>Id</th>
-        <th>数据类型</th>
-        <th>数据源</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-  );
+
+const defaultConfig: RenderConfig = {
+  fields: [
+    { header: "Id", key: "id" },
+    { header: "数据类型", key: "type" },
+    { header: "数据源", key: "source" },
+  ],
 };
-const SurfHead = () => {
-  return (
-    <thead>
-      <tr>
-        <th>Id</th>
-        <th>浪点名字</th>
-        <th>数据源</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-  );
-};
-export const DataTable = ({ dataList, type, pullData }) => {
+
+interface DataTableProps {
+  dataList: any[];
+  type?: DataType;
+  pullData: (id: string, data: any) => void;
+}
+
+export const DataTable: React.FC<DataTableProps> = ({
+  dataList,
+  type,
+  pullData,
+}) => {
   const dispatch = useAppDispatch();
 
-  // const formatValue = omit(
-  //   [
-  //     "id",
-  //     "name",
-  //     "description",
-  //     "model",
-  //     "type",
-  //     "path",
-  //     "knowledge",
-  //   ],
-  //   data,
-  // );
-  const AITR = ({ data }) => {
-    return (
-      <tr>
-        <td>{data.name}</td>
-        <td>{data.model}</td>
-        <td>{data.description}</td>
-        <td>{data.knowledge}</td>
-        <td>{data.source}</td>
-        <td>
-          <button
-            onClick={() => {
-              dispatch(deleteData({ id: data.id, source: data.source }));
-            }}
-          >
-            删除
-          </button>
-        </td>
-      </tr>
-    );
+  const config = type ? renderConfigs[type] : defaultConfig;
+
+  const renderCell = (data: any, field: FieldConfig) => {
+    if (field.render) {
+      return field.render(data[field.key], data);
+    }
+    return data[field.key];
   };
 
-  const TR = ({ data }) => {
-    return (
-      <tr>
-        <td className="w-full">
-          <Link to={`/${data.id}`}>{extractCustomId(data.id)}</Link>
-        </td>
-        <td>{data.type}</td>
+  const renderActions = (data: any) => (
+    <>
+      <button
+        onClick={() =>
+          dispatch(deleteData({ id: data.id, source: data.source }))
+        }
+      >
+        <TrashIcon size={16} />
+        删除
+      </button>
+      <button
+        type="button"
+        onClick={() => pullData(data.id, data)}
+        className="rounded p-2"
+      >
+        <RepoPullIcon size={16} />
+        拉取
+      </button>
+      {config.actions && config.actions(data)}
+    </>
+  );
 
-        <td>{data.source}</td>
-
-        <td>
-          <button
-            onClick={() => {
-              dispatch(deleteData({ id: data.id, source: data.source }));
-            }}
-          >
-            <TrashIcon size={16} />
-            删除
-          </button>
-          <button
-            type="button"
-            onClick={() => pullData(data.id, data)}
-            className="rounded  p-2 "
-          >
-            <RepoPullIcon size={16} />
-            拉取
-          </button>
-        </td>
-      </tr>
-    );
-  };
-  const SurfTR = ({ data }) => {
-    return (
-      <tr>
-        <td className="w-full">
-          <Link to={`/${data.id}`}>{extractCustomId(data.id)}</Link>
-        </td>
-        <td>{data.title}</td>
-
-        <td>{data.source}</td>
-
-        <td>
-          <button
-            onClick={() => {
-              dispatch(deleteData({ id: data.id, source: data.source }));
-            }}
-          >
-            <TrashIcon size={16} />
-            删除
-          </button>
-          <button
-            type="button"
-            onClick={() => pullData(data.id, data)}
-            className="rounded  p-2 "
-          >
-            <RepoPullIcon size={16} />
-            拉取
-          </button>
-        </td>
-      </tr>
-    );
-  };
-  const PageTR = ({ data }) => {
-    return (
-      <tr>
-        <td className="w-full">
-          <Link to={`/${data.id}`}>{extractCustomId(data.id)}</Link>
-        </td>
-
-        <td>{data.source}</td>
-        <td>{data.title}</td>
-
-        <td>
-          <button
-            onClick={() => {
-              dispatch(deleteData({ id: data.id, source: data.source }));
-            }}
-          >
-            删除
-          </button>
-        </td>
-      </tr>
-    );
-  };
   return (
-    <div>
-      {/* {dataList.map((data) => {
-        return <div>{JSON.stringify(data)}</div>;
-      })} */}
-      <table>
-        {(type === DataType.ChatRobot || type === DataType.Cybot) && (
-          <AIThead />
-        )}
-        {type === DataType.Page && <PageThead />}
-        {type === DataType.SurfSpot && <SurfHead />}
-
-        {!type && <Thead />}
-
-        {/* <tfoot>
+    <div className="overflow-x-auto">
+      <table className="min-w-full table-auto">
+        <thead>
           <tr>
-            <th>Table Footer 1</th>
-            <th>Table Footer 2</th>
-            <th>Table Footer 3</th>
-            <th>Table Footer 4</th>
-            <th>Table Footer 5</th>
+            {config.fields.map((field) => (
+              <th key={field.key} className="px-4 py-2 text-left">
+                {field.header}
+              </th>
+            ))}
+            <th className="px-4 py-2 text-left">操作</th>
           </tr>
-        </tfoot> */}
+        </thead>
         <tbody>
           {dataList.map((data) => (
-            <>
-              {(type === DataType.ChatRobot || type === DataType.Cybot) && (
-                <AITR data={data} key={data.id} />
-              )}
-              {type === DataType.Page && <PageTR data={data} key={data.id} />}
-              {type === DataType.SurfSpot && (
-                <SurfTR data={data} key={data.id} />
-              )}
-              {!type && <TR data={data} key={data.id} />}
-            </>
+            <tr key={data.id}>
+              {config.fields.map((field) => (
+                <td key={field.key} className="border px-4 py-2">
+                  {renderCell(data, field)}
+                </td>
+              ))}
+              <td className="border px-4 py-2">{renderActions(data)}</td>
+            </tr>
           ))}
         </tbody>
       </table>

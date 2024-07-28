@@ -7,6 +7,7 @@ import { useAuth } from "auth/useAuth";
 import withTranslations from "i18n/withTranslations";
 import styled from "styled-components";
 import { DataType } from "create/types";
+import { useNavigate } from "react-router-dom";
 
 const FormContainer = styled.div`
   max-width: 600px;
@@ -93,8 +94,17 @@ const Tag = styled.span`
   font-size: 0.9em;
 `;
 
+type PromptFormData = {
+  name: string;
+  content: string;
+  category?: string;
+  tags: string[];
+};
+
 const CreatePrompt: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
   const dispatch = useAppDispatch();
   const auth = useAuth();
 
@@ -105,7 +115,7 @@ const CreatePrompt: React.FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm<PromptFormData>();
 
   const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && currentTag.trim() !== "") {
@@ -127,6 +137,7 @@ const CreatePrompt: React.FC = () => {
         }),
       );
       const promptId = writePromptAction.payload.id;
+      navigate(`/${promptId}`);
       // 这里可以添加创建Prompt后的额外操作
     } catch (error) {
       // 错误处理
@@ -145,11 +156,6 @@ const CreatePrompt: React.FC = () => {
             {...register("name", { required: t("promptNameRequired") })}
           />
           {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
-        </FormField>
-
-        <FormField>
-          <Label htmlFor="description">{t("promptDescription")}:</Label>
-          <Input id="description" {...register("description")} />
         </FormField>
 
         <FormField>

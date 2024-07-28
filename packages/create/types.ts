@@ -1,10 +1,10 @@
 // src/types.ts
 export enum DataType {
-  ChatRobot = "chatRobot",
   Cybot = "cybot",
   Page = "page",
   Prompt = "prompt",
-
+  ChatRobot = "chatRobot",
+  LLM = "llm",
   TokenStatistics = "tokenStatistics",
   TokenStats = "token_stats",
   pay = "pay",

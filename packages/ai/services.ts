@@ -3,13 +3,6 @@ import { API_ENDPOINTS } from "database/config";
 
 export const aiApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    visionChat: builder.mutation({
-      query: (payload) => ({
-        url: `${API_ENDPOINTS.AI}/chat`,
-        method: "POST",
-        body: payload,
-      }),
-    }),
     generateImageEdit: builder.mutation({
       query: (payload) => ({
         url: `${API_ENDPOINTS.AI}/images/edits`,

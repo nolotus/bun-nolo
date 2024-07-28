@@ -30,7 +30,6 @@ import { Message, MessageSliceState } from "./types";
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
 import { getFilteredMessages } from "./utils";
-import { createRequestBody } from "../utils/createRequestBody";
 import { ollamaModelNames } from "integrations/ollama/models";
 
 const chatWindowLogger = getLogger("ChatWindow");
@@ -475,36 +474,6 @@ export const messageSlice = createSliceWithThunks({
               content: context.content,
             }),
           );
-        }
-
-        try {
-          if (mode === "vision") {
-            const currentDialogConfig = selectCurrentDialogConfig(state);
-
-            const requestBody = createRequestBody({
-              ...currentDialogConfig,
-              responseLanguage: navigator.language,
-              model,
-              prevMessages: prevMsgs,
-              message: { role: "user", content },
-            });
-
-            const visionChat = (body) => {
-              return fetch(`http://localhost:80${API_ENDPOINTS.AI}/chat`, {
-                method: "POST",
-                body: JSON.stringify(body),
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              });
-            };
-            const res = await visionChat(requestBody);
-            const result = await res.json();
-            const received = { ...result.choices[0].message, cybotId, id };
-            dispatch(messageStreamEnd(received));
-          }
-        } catch (error) {
-          // setRequestFailed(true);
         }
       },
       {
