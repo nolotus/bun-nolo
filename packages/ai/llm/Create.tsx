@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import withTranslations from "i18n/withTranslations";
 import groupBy from "lodash-es/groupBy.js";
 import { matchSorter } from "match-sorter";
-import styled, { ThemeProvider } from "styled-components";
+import styled from "styled-components";
 import {
   Combobox,
   ComboboxGroup,
@@ -17,7 +17,6 @@ import {
 } from "render/combobox";
 import { DataType } from "create/types";
 import { modelEnum } from "../llm/models";
-import { selectTheme } from "app/theme/themeSlice";
 
 const apiStyleOptions = ["ollama", "openai", "claude"];
 
@@ -90,7 +89,6 @@ const CreateLLM: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
-  const theme = useAppSelector(selectTheme);
 
   const {
     register,
@@ -146,94 +144,90 @@ const CreateLLM: React.FC = () => {
   }, [deferredModelValue, modelOptions]);
 
   return (
-    <ThemeProvider theme={theme}>
-      <FormContainer>
-        <FormTitle>{t("createLLM")}</FormTitle>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FormField>
-            <Label htmlFor="name">{t("llmName")}:</Label>
-            <Input
-              id="name"
-              {...register("name", { required: t("llmNameRequired") })}
-            />
-            {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
-          </FormField>
+    <FormContainer>
+      <FormTitle>{t("createLLM")}</FormTitle>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <FormField>
+          <Label htmlFor="name">{t("llmName")}:</Label>
+          <Input
+            id="name"
+            {...register("name", { required: t("llmNameRequired") })}
+          />
+          {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
+        </FormField>
 
-          <FormField>
-            <Label htmlFor="apiStyle">{t("llmAPIStyle")}:</Label>
-            <Select
-              id="apiStyle"
-              {...register("apiStyle", { required: t("llmAPIStyleRequired") })}
-            >
-              <option value="">{t("selectAPIStyle")}</option>
-              {apiStyleOptions.map((style) => (
-                <option key={style} value={style}>
-                  {style}
-                </option>
-              ))}
-            </Select>
-            {errors.apiStyle && (
-              <ErrorMessage>{errors.apiStyle.message}</ErrorMessage>
+        <FormField>
+          <Label htmlFor="apiStyle">{t("llmAPIStyle")}:</Label>
+          <Select
+            id="apiStyle"
+            {...register("apiStyle", { required: t("llmAPIStyleRequired") })}
+          >
+            <option value="">{t("selectAPIStyle")}</option>
+            {apiStyleOptions.map((style) => (
+              <option key={style} value={style}>
+                {style}
+              </option>
+            ))}
+          </Select>
+          {errors.apiStyle && (
+            <ErrorMessage>{errors.apiStyle.message}</ErrorMessage>
+          )}
+        </FormField>
+
+        <FormField>
+          <Label htmlFor="api">{t("llmAPI")}:</Label>
+          <Input
+            id="api"
+            {...register("api", { required: t("llmAPIRequired") })}
+          />
+          {errors.api && <ErrorMessage>{errors.api.message}</ErrorMessage>}
+        </FormField>
+
+        <FormField>
+          <Label htmlFor="keyName">{t("apiKeyName")}:</Label>
+          <Input id="keyName" {...register("keyName")} />
+        </FormField>
+
+        <FormField>
+          <Label htmlFor="model">{t("model")}:</Label>
+          <Controller
+            name="model"
+            control={control}
+            rules={{ required: t("modelRequired") }}
+            render={({ field }) => (
+              <Combobox
+                autoSelect
+                autoComplete="both"
+                placeholder={t("searchModels")}
+                value={modelValue}
+                onChange={(value) => {
+                  setModelValue(value);
+                  field.onChange(value);
+                }}
+              >
+                {matches.length ? (
+                  matches.map(([type, items], i) => (
+                    <React.Fragment key={type}>
+                      <ComboboxGroup label={type}>
+                        {items.map((item) => (
+                          <ComboboxItem key={item.name} value={item.name} />
+                        ))}
+                      </ComboboxGroup>
+                      {i < matches.length - 1 && <ComboboxSeparator />}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <NoResults>{t("noModelsFound")}</NoResults>
+                )}
+              </Combobox>
             )}
-          </FormField>
+          />
+          {errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
+        </FormField>
 
-          <FormField>
-            <Label htmlFor="api">{t("llmAPI")}:</Label>
-            <Input
-              id="api"
-              {...register("api", { required: t("llmAPIRequired") })}
-            />
-            {errors.api && <ErrorMessage>{errors.api.message}</ErrorMessage>}
-          </FormField>
-
-          <FormField>
-            <Label htmlFor="keyName">{t("apiKeyName")}:</Label>
-            <Input id="keyName" {...register("keyName")} />
-          </FormField>
-
-          <FormField>
-            <Label htmlFor="model">{t("model")}:</Label>
-            <Controller
-              name="model"
-              control={control}
-              rules={{ required: t("modelRequired") }}
-              render={({ field }) => (
-                <Combobox
-                  autoSelect
-                  autoComplete="both"
-                  placeholder={t("searchModels")}
-                  value={modelValue}
-                  onChange={(value) => {
-                    setModelValue(value);
-                    field.onChange(value);
-                  }}
-                >
-                  {matches.length ? (
-                    matches.map(([type, items], i) => (
-                      <React.Fragment key={type}>
-                        <ComboboxGroup label={type}>
-                          {items.map((item) => (
-                            <ComboboxItem key={item.name} value={item.name} />
-                          ))}
-                        </ComboboxGroup>
-                        {i < matches.length - 1 && <ComboboxSeparator />}
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    <NoResults>{t("noModelsFound")}</NoResults>
-                  )}
-                </Combobox>
-              )}
-            />
-            {errors.model && (
-              <ErrorMessage>{errors.model.message}</ErrorMessage>
-            )}
-          </FormField>
-
-          <SubmitButton type="submit">{t("createLLM")}</SubmitButton>
-        </form>
-      </FormContainer>
-    </ThemeProvider>
+        <SubmitButton type="submit">{t("createLLM")}</SubmitButton>
+      </form>
+    </FormContainer>
   );
 };
 

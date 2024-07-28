@@ -6,14 +6,15 @@ import React from "react";
 import { hydrateRoot, createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter, HashRouter } from "react-router-dom";
-
 import { WebSocketProvider } from "app/providers/WebSocketProvider";
+import { isProduction } from "utils/env";
+
 import App from "./App";
 import { browserStore } from "./store";
 import "./input.css";
-import { isProduction } from "utils/env";
 
 const hostname = window.location.hostname;
+
 const isDark =
   window.matchMedia &&
   window.matchMedia("(prefers-color-scheme: dark)").matches;

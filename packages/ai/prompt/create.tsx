@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import withTranslations from "i18n/withTranslations";
-import styled, { ThemeProvider } from "styled-components";
+import styled from "styled-components";
 import { DataType } from "create/types";
-import { selectTheme } from "app/theme/themeSlice";
 
 const FormContainer = styled.div`
   max-width: 600px;
@@ -98,7 +97,6 @@ const CreatePrompt: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
-  const theme = useAppSelector(selectTheme);
 
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState("");
@@ -137,60 +135,58 @@ const CreatePrompt: React.FC = () => {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <FormContainer>
-        <FormTitle>{t("createPrompt")}</FormTitle>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <FormField>
-            <Label htmlFor="name">{t("promptName")}:</Label>
-            <Input
-              id="name"
-              {...register("name", { required: t("promptNameRequired") })}
-            />
-            {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
-          </FormField>
+    <FormContainer>
+      <FormTitle>{t("createPrompt")}</FormTitle>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <FormField>
+          <Label htmlFor="name">{t("promptName")}:</Label>
+          <Input
+            id="name"
+            {...register("name", { required: t("promptNameRequired") })}
+          />
+          {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
+        </FormField>
 
-          <FormField>
-            <Label htmlFor="description">{t("promptDescription")}:</Label>
-            <Input id="description" {...register("description")} />
-          </FormField>
+        <FormField>
+          <Label htmlFor="description">{t("promptDescription")}:</Label>
+          <Input id="description" {...register("description")} />
+        </FormField>
 
-          <FormField>
-            <Label htmlFor="content">{t("promptContent")}:</Label>
-            <TextArea
-              id="content"
-              {...register("content", { required: t("promptContentRequired") })}
-            />
-            {errors.content && (
-              <ErrorMessage>{errors.content.message}</ErrorMessage>
-            )}
-          </FormField>
+        <FormField>
+          <Label htmlFor="content">{t("promptContent")}:</Label>
+          <TextArea
+            id="content"
+            {...register("content", { required: t("promptContentRequired") })}
+          />
+          {errors.content && (
+            <ErrorMessage>{errors.content.message}</ErrorMessage>
+          )}
+        </FormField>
 
-          <FormField>
-            <Label htmlFor="category">{t("category")}:</Label>
-            <Input id="category" {...register("category")} />
-          </FormField>
+        <FormField>
+          <Label htmlFor="category">{t("category")}:</Label>
+          <Input id="category" {...register("category")} />
+        </FormField>
 
-          <FormField>
-            <Label htmlFor="tags">{t("tags")}:</Label>
-            <TagInput
-              id="tags"
-              value={currentTag}
-              onChange={(e) => setCurrentTag(e.target.value)}
-              onKeyPress={addTag}
-              placeholder={t("addTagsPlaceholder")}
-            />
-            <TagContainer>
-              {tags.map((tag, index) => (
-                <Tag key={index}>{tag}</Tag>
-              ))}
-            </TagContainer>
-          </FormField>
+        <FormField>
+          <Label htmlFor="tags">{t("tags")}:</Label>
+          <TagInput
+            id="tags"
+            value={currentTag}
+            onChange={(e) => setCurrentTag(e.target.value)}
+            onKeyPress={addTag}
+            placeholder={t("addTagsPlaceholder")}
+          />
+          <TagContainer>
+            {tags.map((tag, index) => (
+              <Tag key={index}>{tag}</Tag>
+            ))}
+          </TagContainer>
+        </FormField>
 
-          <SubmitButton type="submit">{t("createPrompt")}</SubmitButton>
-        </form>
-      </FormContainer>
-    </ThemeProvider>
+        <SubmitButton type="submit">{t("createPrompt")}</SubmitButton>
+      </form>
+    </FormContainer>
   );
 };
 

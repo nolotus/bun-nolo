@@ -1,5 +1,5 @@
 import React from "react";
-import styled, { ThemeProvider } from "styled-components";
+import styled from "styled-components";
 import * as Ariakit from "@ariakit/react";
 import {
   UnmuteIcon,
@@ -7,14 +7,13 @@ import {
   CopyIcon,
   DuplicateIcon,
 } from "@primer/octicons-react";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import { deleteMessage } from "./messageSlice";
 import { useAuth } from "auth/useAuth";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import copyToClipboard from "utils/clipboard";
-import { selectTheme } from "app/theme/themeSlice";
 import { useTranslation } from "react-i18next";
 
 const StyledMenu = styled(Ariakit.Menu)`
@@ -74,7 +73,6 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const auth = useAuth();
-  const theme = useAppSelector(selectTheme);
   const { t } = useTranslation();
 
   const handleSaveContent = async () => {
@@ -136,21 +134,19 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <StyledMenu store={menu} modal getAnchorRect={() => anchorRect}>
-        <StyledMenuItem onClick={onPlayAudio}>
-          <UnmuteIcon size={16} /> {t("playAudio")}
-        </StyledMenuItem>
-        <StyledMenuItem onClick={handleCopyContent}>
-          <CopyIcon size={16} /> {t("copyContent")}
-        </StyledMenuItem>
-        <StyledMenuItem onClick={handleSaveContent}>
-          <DuplicateIcon size={16} /> {t("saveContent")}
-        </StyledMenuItem>
-        <StyledMenuItem onClick={handleDeleteMessage}>
-          <TrashIcon size={16} /> {t("deleteMessage")}
-        </StyledMenuItem>
-      </StyledMenu>
-    </ThemeProvider>
+    <StyledMenu store={menu} modal getAnchorRect={() => anchorRect}>
+      <StyledMenuItem onClick={onPlayAudio}>
+        <UnmuteIcon size={16} /> {t("playAudio")}
+      </StyledMenuItem>
+      <StyledMenuItem onClick={handleCopyContent}>
+        <CopyIcon size={16} /> {t("copyContent")}
+      </StyledMenuItem>
+      <StyledMenuItem onClick={handleSaveContent}>
+        <DuplicateIcon size={16} /> {t("saveContent")}
+      </StyledMenuItem>
+      <StyledMenuItem onClick={handleDeleteMessage}>
+        <TrashIcon size={16} /> {t("deleteMessage")}
+      </StyledMenuItem>
+    </StyledMenu>
   );
 };

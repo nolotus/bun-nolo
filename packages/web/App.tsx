@@ -7,6 +7,10 @@ import { Toaster } from "react-hot-toast";
 import { addHostToCurrentServer } from "setting/settingSlice";
 import { useAppDispatch } from "app/hooks";
 import { FloatMenu } from "app/FloatMenu";
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
+import { ThemeProvider } from "styled-components";
+
 // // import { generatorRoutes } from "./generatorRoutes";
 
 import { getTokensFromLocalStorage } from "auth/client/token";
@@ -16,19 +20,19 @@ import { setTheme } from "app/theme/themeSlice";
 export default function App({ hostname, lng = "en", theme = "light" }) {
   // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
   // let element = useRoutes(routes);
-
   const dispatch = useAppDispatch();
-
   dispatch(addHostToCurrentServer(hostname));
-  dispatch(setTheme(theme));
   const auth = useAuth();
   i18n.changeLanguage(lng);
+
   const init = async () => {
+    dispatch(setTheme(theme));
     const tokens = getTokensFromLocalStorage();
     if (tokens) {
       await dispatch(initAuth(tokens));
     }
   };
+
   useEffect(() => {
     init();
   }, []);
@@ -52,12 +56,13 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
   }, [dispatch]);
 
   const element = useRoutes(routes(auth.user));
+  const themeState = useAppSelector(selectTheme);
 
   return (
-    <>
+    <ThemeProvider theme={themeState}>
       <Toaster />
       {element}
       <FloatMenu />
-    </>
+    </ThemeProvider>
   );
 }

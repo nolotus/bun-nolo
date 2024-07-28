@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import styled, { ThemeProvider } from "styled-components";
+import styled from "styled-components";
 import { SquareIcon, SquareFillIcon } from "@primer/octicons-react";
 import { Avatar } from "render/ui";
 import * as Ariakit from "@ariakit/react";
-import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { Message } from "./types";
@@ -52,7 +50,6 @@ const RobotMessage: React.FC<Message> = ({
   const [hovered, setHovered] = useState(false);
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
-  const theme = useAppSelector(selectTheme);
 
   const handleContextMenu = (event) => {
     event.preventDefault();
@@ -65,41 +62,39 @@ const RobotMessage: React.FC<Message> = ({
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <MessageContainer>
-        <ContentWrapper>
-          <div>
-            <Avatar name="robot" />
+    <MessageContainer>
+      <ContentWrapper>
+        <div>
+          <Avatar name="robot" />
+        </div>
+        <div style={{ position: "relative" }}>
+          <div onContextMenu={handleContextMenu}>
+            <MessageContent content={content} role="other" />
           </div>
-          <div style={{ position: "relative" }}>
-            <div onContextMenu={handleContextMenu}>
-              <MessageContent content={content} role="other" />
-            </div>
-            {controller && (
-              <AbortButton
-                onClick={handleAbortController}
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
-              >
-                {hovered ? (
-                  <SquareFillIcon size={24} />
-                ) : (
-                  <SquareIcon size={24} />
-                )}
-              </AbortButton>
-            )}
-          </div>
-        </ContentWrapper>
-        {audioSrc && <audio src={audioSrc} />}
-        <MessageContextMenu
-          menu={menu}
-          anchorRect={anchorRect}
-          onPlayAudio={handlePlayClick}
-          content={content}
-          id={id}
-        />
-      </MessageContainer>
-    </ThemeProvider>
+          {controller && (
+            <AbortButton
+              onClick={handleAbortController}
+              onMouseEnter={() => setHovered(true)}
+              onMouseLeave={() => setHovered(false)}
+            >
+              {hovered ? (
+                <SquareFillIcon size={24} />
+              ) : (
+                <SquareIcon size={24} />
+              )}
+            </AbortButton>
+          )}
+        </div>
+      </ContentWrapper>
+      {audioSrc && <audio src={audioSrc} />}
+      <MessageContextMenu
+        menu={menu}
+        anchorRect={anchorRect}
+        onPlayAudio={handlePlayClick}
+        content={content}
+        id={id}
+      />
+    </MessageContainer>
   );
 };
 

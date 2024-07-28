@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import OpenProps from "open-props";
-
 import { blues } from "../colors";
+
 const mainColors = [...blues];
 
 export const lightTheme = {
@@ -18,6 +18,7 @@ export const lightTheme = {
   backgroundColor: OpenProps.gray0,
   caretColor: OpenProps.indigo7,
   colorScheme: "light",
+  chatListPadding: OpenProps.sizeFluid5, // 新增属性
 };
 
 export const darkTheme = {
@@ -36,7 +37,9 @@ export const darkTheme = {
   colorScheme: "dark",
   shadowStrength: "10%",
   shadowColor: "220 40% 2%",
+  chatListPadding: OpenProps.sizeFluid5, // 新增属性
 };
+
 const initialState = {
   themeName: "light",
   ...lightTheme,
