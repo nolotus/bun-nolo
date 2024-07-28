@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import copyToClipboard from "utils/clipboard";
 import { selectTheme } from "app/theme/themeSlice";
+import { useTranslation } from "react-i18next";
 
 const StyledMenu = styled(Ariakit.Menu)`
   background-color: ${(props) => props.theme.surface1};
@@ -74,6 +75,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const theme = useAppSelector(selectTheme);
+  const { t } = useTranslation();
 
   const handleSaveContent = async () => {
     if (content) {
@@ -90,19 +92,19 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
         }
         toast.success(
           <div>
-            保存成功
+            {t("saveSuccess")}
             <Link
               to={`/${response.id}`}
               target="_blank"
               rel="noopener noreferrer"
             >
-              点击我
+              {t("clickHere")}
             </Link>
-            查看详情。
+            {t("viewDetails")}
           </div>,
         );
       } catch (error) {
-        toast.error(`保存失败: ${(error as Error).message}`);
+        toast.error(`${t("saveFailed")}: ${(error as Error).message}`);
       }
     }
   };
@@ -128,8 +130,8 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
       textContent = JSON.stringify(content);
     }
     copyToClipboard(textContent, {
-      onSuccess: () => toast.success("复制成功"),
-      onError: (err) => toast.error(`复制失败: ${err.message}`),
+      onSuccess: () => toast.success(t("copySuccess")),
+      onError: (err) => toast.error(`${t("copyFailed")}: ${err.message}`),
     });
   };
 
@@ -137,19 +139,17 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
     <ThemeProvider theme={theme}>
       <StyledMenu store={menu} modal getAnchorRect={() => anchorRect}>
         <StyledMenuItem onClick={onPlayAudio}>
-          <UnmuteIcon size={16} /> Play Audio
+          <UnmuteIcon size={16} /> {t("playAudio")}
         </StyledMenuItem>
         <StyledMenuItem onClick={handleCopyContent}>
-          <CopyIcon size={16} /> Copy Content
+          <CopyIcon size={16} /> {t("copyContent")}
         </StyledMenuItem>
         <StyledMenuItem onClick={handleSaveContent}>
-          <DuplicateIcon size={16} /> Save Content
+          <DuplicateIcon size={16} /> {t("saveContent")}
         </StyledMenuItem>
         <StyledMenuItem onClick={handleDeleteMessage}>
-          <TrashIcon size={16} /> Delete Message
+          <TrashIcon size={16} /> {t("deleteMessage")}
         </StyledMenuItem>
-        <MenuSeparator />
-        <StyledMenuItem>View Details</StyledMenuItem>
       </StyledMenu>
     </ThemeProvider>
   );
