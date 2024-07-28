@@ -1,28 +1,23 @@
-import { useAppSelector } from "app/hooks";
 import React, { useMemo } from "react";
+import { useAppSelector } from "app/hooks";
 import { renderContentNode } from "render";
 import styled from "styled-components";
+import { messageProcessor } from "render/processor/messageProcessor";
 
 const MessageContainer = styled.div`
   max-width: 70vw;
   white-space: pre-wrap;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
+  margin: 0 0.5rem;
 `;
 
-export const MessageText: React.FC<{
-  content: string;
-  processor: { parse: (content: string) => any };
-}> = ({ content, processor }) => {
+export const MessageText = ({ content, role }) => {
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
 
-  const mdast = useMemo(() => {
-    return processor.parse(content);
-  }, [content, processor]);
-
   const renderedContent = useMemo(() => {
+    if (role === "self") return content;
+    const mdast = messageProcessor.parse(content);
     return renderContentNode(mdast, { isDarkMode });
-  }, [mdast, isDarkMode]);
+  }, [content, role, isDarkMode]);
 
   return <MessageContainer>{renderedContent}</MessageContainer>;
 };

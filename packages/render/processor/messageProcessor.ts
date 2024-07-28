@@ -8,5 +8,3 @@ export const messageProcessor = unified()
   .use(remarkParse)
   .use(remarkGfm)
   .use(remarkMath);
-
-export const selfProcessor = unified().use(remarkParse);
