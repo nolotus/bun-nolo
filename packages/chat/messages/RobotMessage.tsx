@@ -1,26 +1,16 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import styled, { ThemeProvider } from "styled-components";
-import {
-  UnmuteIcon,
-  TrashIcon,
-  DuplicateIcon,
-  SquareIcon,
-  SquareFillIcon,
-} from "@primer/octicons-react";
-import { useAuth } from "auth/useAuth";
+import { SquareIcon, SquareFillIcon } from "@primer/octicons-react";
 import { Avatar } from "render/ui";
-import { Link } from "react-router-dom";
-import toast from "react-hot-toast";
-import { useAppDispatch, useAppSelector } from "app/hooks";
-import { write } from "database/dbSlice";
 import * as Ariakit from "@ariakit/react";
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
-import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
 import { MessageContent } from "./MessageContent";
 import { messageContentWithAvatarGap } from "./styles";
-import { selectTheme } from "app/theme/themeSlice";
+import { MessageContextMenu } from "./MessageContextMenu";
 
 const MessageContainer = styled.div`
   display: flex;
@@ -52,90 +42,26 @@ const AbortButton = styled.div`
   transform: translate(50%, 50%);
 `;
 
-const StyledMenu = styled(Ariakit.Menu)`
-  background-color: ${(props) => props.theme.surface1};
-  color: ${(props) => props.theme.text1};
-  border: 1px solid ${(props) => props.theme.surface3};
-  border-radius: 4px;
-  padding: 0.5rem 0;
-  box-shadow: 0 2px 10px ${(props) => props.theme.shadowColor};
-`;
-
-const StyledMenuItem = styled(Ariakit.MenuItem)`
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  &:hover {
-    background-color: ${(props) => props.theme.surface2};
-  }
-  &[aria-disabled="true"] {
-    color: ${(props) => props.theme.text2};
-    cursor: not-allowed;
-  }
-`;
-
-const MenuSeparator = styled(Ariakit.MenuSeparator)`
-  height: 1px;
-  background-color: ${(props) => props.theme.surface3};
-  margin: 0.5rem 0;
-`;
-
 const RobotMessage: React.FC<Message> = ({
   id,
   content,
   image,
   controller,
 }) => {
-  const dispatch = useAppDispatch();
-  const theme = useAppSelector(selectTheme);
   const { audioSrc, handlePlayClick } = useAudioPlayer(content);
-  const auth = useAuth();
   const [hovered, setHovered] = useState(false);
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
-
-  const saveContent = async (content: string) => {
-    const writeData = {
-      data: { content, type: "page" },
-      flags: { isJSON: true },
-      userId: auth.user?.userId,
-    };
-    return await dispatch(write(writeData));
-  };
-
-  const handleSaveContent = useCallback(async () => {
-    if (content) {
-      const saveAction = await saveContent(content);
-      const response = saveAction.payload;
-      toast.success(
-        <div>
-          保存成功
-          <Link
-            to={`/${response.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            点击我
-          </Link>
-          查看详情。
-        </div>,
-      );
-    }
-  }, [content, dispatch, auth]);
-
-  const handleDeleteMessage = useCallback(() => {
-    dispatch(deleteMessage(id));
-  }, [dispatch, id]);
-
-  const handleAbortController = useCallback(() => {
-    controller?.abort();
-  }, [controller]);
+  const theme = useAppSelector(selectTheme);
 
   const handleContextMenu = (event) => {
     event.preventDefault();
     setAnchorRect({ x: event.clientX, y: event.clientY });
     menu.show();
+  };
+
+  const handleAbortController = () => {
+    controller?.abort();
   };
 
   return (
@@ -165,20 +91,13 @@ const RobotMessage: React.FC<Message> = ({
           </div>
         </ContentWrapper>
         {audioSrc && <audio src={audioSrc} />}
-
-        <StyledMenu store={menu} modal getAnchorRect={() => anchorRect}>
-          <StyledMenuItem onClick={handlePlayClick}>
-            <UnmuteIcon /> Play Audio
-          </StyledMenuItem>
-          <StyledMenuItem onClick={handleSaveContent}>
-            <DuplicateIcon /> Save Content
-          </StyledMenuItem>
-          <StyledMenuItem onClick={handleDeleteMessage}>
-            <TrashIcon /> Delete Message
-          </StyledMenuItem>
-          <MenuSeparator />
-          <StyledMenuItem>View Details</StyledMenuItem>
-        </StyledMenu>
+        <MessageContextMenu
+          menu={menu}
+          anchorRect={anchorRect}
+          onPlayAudio={handlePlayClick}
+          content={content}
+          id={id}
+        />
       </MessageContainer>
     </ThemeProvider>
   );
