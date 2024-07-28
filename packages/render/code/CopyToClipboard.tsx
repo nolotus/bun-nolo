@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { copyToClipboard } from "utils/clipboard";
+import copyToClipboard from "utils/clipboard";
 import clsx from "clsx";
 import OpenProps from "open-props";
 import { CheckIcon, CopyIcon } from "@primer/octicons-react";

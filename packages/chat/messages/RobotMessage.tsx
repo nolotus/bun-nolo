@@ -1,3 +1,5 @@
+import React, { useCallback, useState } from "react";
+import styled, { ThemeProvider } from "styled-components";
 import {
   UnmuteIcon,
   TrashIcon,
@@ -6,21 +8,78 @@ import {
   SquareFillIcon,
 } from "@primer/octicons-react";
 import { useAuth } from "auth/useAuth";
-import React, { useCallback, useState } from "react";
 import { Avatar } from "render/ui";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { write } from "database/dbSlice";
-import Sizes from "open-props/src/sizes";
-import OpenProps from "open-props";
+import * as Ariakit from "@ariakit/react";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { deleteMessage } from "./messageSlice";
 import { Message } from "./types";
 import { MessageContent } from "./MessageContent";
 import { messageContentWithAvatarGap } from "./styles";
-import IconButton from "render/ui/IconButton";
+import { selectTheme } from "app/theme/themeSlice";
+
+const MessageContainer = styled.div`
+  display: flex;
+  justify-content: start;
+  gap: 0.5rem;
+  margin-bottom: ${(props) => props.theme.size3};
+`;
+
+const ContentWrapper = styled.div`
+  display: flex;
+  gap: ${messageContentWithAvatarGap};
+  justify-items: start;
+`;
+
+const AbortButton = styled.div`
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: ${(props) => props.theme.accentColor};
+  border-radius: 50%;
+  color: ${(props) => props.theme.surface1};
+  font-size: 16px;
+  transform: translate(50%, 50%);
+`;
+
+const StyledMenu = styled(Ariakit.Menu)`
+  background-color: ${(props) => props.theme.surface1};
+  color: ${(props) => props.theme.text1};
+  border: 1px solid ${(props) => props.theme.surface3};
+  border-radius: 4px;
+  padding: 0.5rem 0;
+  box-shadow: 0 2px 10px ${(props) => props.theme.shadowColor};
+`;
+
+const StyledMenuItem = styled(Ariakit.MenuItem)`
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  &:hover {
+    background-color: ${(props) => props.theme.surface2};
+  }
+  &[aria-disabled="true"] {
+    color: ${(props) => props.theme.text2};
+    cursor: not-allowed;
+  }
+`;
+
+const MenuSeparator = styled(Ariakit.MenuSeparator)`
+  height: 1px;
+  background-color: ${(props) => props.theme.surface3};
+  margin: 0.5rem 0;
+`;
 
 const RobotMessage: React.FC<Message> = ({
   id,
@@ -29,9 +88,12 @@ const RobotMessage: React.FC<Message> = ({
   controller,
 }) => {
   const dispatch = useAppDispatch();
+  const theme = useAppSelector(selectTheme);
   const { audioSrc, handlePlayClick } = useAudioPlayer(content);
   const auth = useAuth();
   const [hovered, setHovered] = useState(false);
+  const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
+  const menu = Ariakit.useMenuStore();
 
   const saveContent = async (content: string) => {
     const writeData = {
@@ -70,74 +132,55 @@ const RobotMessage: React.FC<Message> = ({
     controller?.abort();
   }, [controller]);
 
+  const handleContextMenu = (event) => {
+    event.preventDefault();
+    setAnchorRect({ x: event.clientX, y: event.clientY });
+    menu.show();
+  };
+
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "start",
-        gap: "0.5rem",
-        marginBottom: OpenProps.size3,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          gap: messageContentWithAvatarGap,
-          justifyItems: "start",
-        }}
-      >
-        <div>
-          <Avatar name="robot" />
-        </div>
-        <div style={{ position: "relative" }}>
-          <MessageContent content={content} />
-          {controller && (
-            <div
-              onClick={handleAbortController}
-              onMouseEnter={() => setHovered(true)}
-              onMouseLeave={() => setHovered(false)}
-              style={{
-                // 使用绝对定位将其放置在右下角，并添加样式
-                position: "absolute",
-                bottom: "0",
-                right: "0",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "32px", // 调整大小
-                height: "32px", // 调整大小
-                backgroundColor: "red",
-                borderRadius: "50%",
-                color: "white",
-                fontSize: "16px",
-                transform: "translate(50%, 50%)", // 微调位置，使其完全在右下角
-              }}
-            >
-              {hovered ? (
-                <SquareFillIcon size={24} />
-              ) : (
-                <SquareIcon size={24} />
-              )}
+    <ThemeProvider theme={theme}>
+      <MessageContainer>
+        <ContentWrapper>
+          <div>
+            <Avatar name="robot" />
+          </div>
+          <div style={{ position: "relative" }}>
+            <div onContextMenu={handleContextMenu}>
+              <MessageContent content={content} />
             </div>
-          )}
-        </div>
-        <div
-          style={{
-            marginLeft: "0.5rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.2rem",
-            width: Sizes["--size-9"],
-          }}
-        >
-          <IconButton icon={UnmuteIcon} onClick={handlePlayClick} />
-          <IconButton icon={DuplicateIcon} onClick={handleSaveContent} />
-          <IconButton icon={TrashIcon} onClick={handleDeleteMessage} />
-        </div>
-      </div>
-      {audioSrc && <audio src={audioSrc} />}
-    </div>
+            {controller && (
+              <AbortButton
+                onClick={handleAbortController}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+              >
+                {hovered ? (
+                  <SquareFillIcon size={24} />
+                ) : (
+                  <SquareIcon size={24} />
+                )}
+              </AbortButton>
+            )}
+          </div>
+        </ContentWrapper>
+        {audioSrc && <audio src={audioSrc} />}
+
+        <StyledMenu store={menu} modal getAnchorRect={() => anchorRect}>
+          <StyledMenuItem onClick={handlePlayClick}>
+            <UnmuteIcon /> Play Audio
+          </StyledMenuItem>
+          <StyledMenuItem onClick={handleSaveContent}>
+            <DuplicateIcon /> Save Content
+          </StyledMenuItem>
+          <StyledMenuItem onClick={handleDeleteMessage}>
+            <TrashIcon /> Delete Message
+          </StyledMenuItem>
+          <MenuSeparator />
+          <StyledMenuItem>View Details</StyledMenuItem>
+        </StyledMenu>
+      </MessageContainer>
+    </ThemeProvider>
   );
 };
 
