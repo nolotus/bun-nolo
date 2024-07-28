@@ -25,6 +25,7 @@ const Create = () => {
       { text: "Cybot", route: `/${CreateRoutePaths.CREATE_CYBOT}` },
       { text: "大语言模型", route: `/${CreateRoutePaths.CREATE_LLM}` },
       { text: "空白页面", route: `/${CreateRoutePaths.CREATE_PAGE}` },
+      { text: "提示词", route: `/${CreateRoutePaths.CREATE_PROMPT}` },
     ],
     [],
   );

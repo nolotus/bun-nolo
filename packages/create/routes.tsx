@@ -6,6 +6,7 @@ export enum CreateRoutePaths {
   CREATE_PAGE = "create/page",
   CREATE_CYBOT = "create/cybot",
   CREATE_LLM = "create/llm",
+  CREATE_PROMPT = "create/prompt",
 }
 
 export const createRoutes = [
@@ -42,6 +43,15 @@ export const createRoutes = [
       <LazyLoadComponent
         factory={() => import("ai/llm/Create")}
         fallback={<div>Loading page for {CreateRoutePaths.CREATE_LLM}</div>}
+      />
+    ),
+  },
+  {
+    path: CreateRoutePaths.CREATE_PROMPT,
+    element: (
+      <LazyLoadComponent
+        factory={() => import("ai/prompt/Create")}
+        fallback={<div>Loading page for {CreateRoutePaths.CREATE_PROMPT}</div>}
       />
     ),
   },

@@ -1,7 +1,6 @@
 import { XIcon } from "@primer/octicons-react";
 import React from "react";
 import NavListItem from "./NavListItem";
-import IconButton from "render/ui/IconButton";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -49,11 +48,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   return (
     <div style={overlayStyle}>
       <div style={contentStyle}>
-        <IconButton
-          icon={XIcon}
-          onClick={toggleMenu}
-          style={buttonStyle}
-        ></IconButton>
+        <div onClick={toggleMenu} style={buttonStyle}>
+          <XIcon />
+        </div>
 
         <div style={listStyle}>
           {navItems.map((item) => (

@@ -1,10 +1,10 @@
-import IconButton from "render/ui/IconButton";
 import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useAppSelector, useFetchData } from "app/hooks";
 
-import { deleteMessage, deleteNotFound } from "./messageSlice";
+import { deleteNotFound } from "./messageSlice";
 import { selectCurrentUserId } from "auth/authSlice";
+
 import RobotMessage from "./RobotMessage";
 import { UserMessage } from "./UserMessage";
 import { SelfMessage } from "./SelfMessage";
@@ -17,9 +17,7 @@ export const MessageItem = ({ message }) => {
   const { data, isLoading, error } = useFetchData(id);
   const currentUserId = useAppSelector(selectCurrentUserId);
   const couldDelete = true;
-  const handleDeleteMessage = () => {
-    dispatch(deleteMessage(id));
-  };
+
   if (isLoading) {
     return <div>loading</div>;
   } else if (data) {
@@ -38,26 +36,16 @@ export const MessageItem = ({ message }) => {
         />
       );
     }
-    return (
-      <div className="flex">
-        <UserMessage content={content} />
-        <div>
-          {couldDelete && (
-            <IconButton icon={TrashIcon} onClick={handleDeleteMessage} />
-          )}
-        </div>
-      </div>
-    );
+    return <UserMessage content={content} />;
   } else if (error) {
     return (
       <div className="flex">
         {error.data?.error}
         <div>
           {couldDelete && (
-            <IconButton
-              icon={TrashIcon}
-              onClick={() => dispatch(deleteNotFound(id))}
-            />
+            <div onClick={() => dispatch(deleteNotFound(id))}>
+              <TrashIcon />
+            </div>
           )}
         </div>
       </div>
