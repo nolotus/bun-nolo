@@ -73,7 +73,7 @@ const RobotMessage: React.FC<Message> = ({
           </div>
           <div style={{ position: "relative" }}>
             <div onContextMenu={handleContextMenu}>
-              <MessageContent content={content} />
+              <MessageContent content={content} role="other" />
             </div>
             {controller && (
               <AbortButton

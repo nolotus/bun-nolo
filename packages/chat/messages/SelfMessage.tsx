@@ -48,7 +48,7 @@ export const SelfMessage: React.FC<Message> = ({ content, id }) => {
       <MessageContainer>
         <ContentWrapper>
           <div onContextMenu={handleContextMenu}>
-            <MessageContent content={content} />
+            <MessageContent content={content} role="self" />
           </div>
         </ContentWrapper>
 

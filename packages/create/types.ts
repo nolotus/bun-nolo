@@ -3,6 +3,7 @@ export enum DataType {
   ChatRobot = "chatRobot",
   Cybot = "cybot",
   Page = "page",
+  Prompt = "prompt",
 
   TokenStatistics = "tokenStatistics",
   TokenStats = "token_stats",

@@ -119,7 +119,7 @@ export const UserMessage: React.FC<Message> = ({ content, id }) => {
   return (
     <MessageContainer onContextMenu={handleContextMenu}>
       <ContentWrapper>
-        <MessageContent content={content} />
+        <MessageContent content={content} role="other" />
       </ContentWrapper>
 
       <AvatarWrapper>

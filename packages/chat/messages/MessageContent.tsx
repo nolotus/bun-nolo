@@ -1,9 +1,14 @@
 import OpenProps from "open-props";
+import {
+  messageProcessor,
+  selfProcessor,
+} from "render/processor/messageProcessor";
 
 import { MessageText } from "./MessageText";
 import { MessageImage } from "./MessageImage";
 
-export const MessageContent = ({ content }) => {
+export const MessageContent = ({ content, role }) => {
+  const processor = role === "self" ? selfProcessor : messageProcessor;
   return (
     <div
       className="rounded-lg"
@@ -15,11 +20,17 @@ export const MessageContent = ({ content }) => {
       }}
     >
       {typeof content === "string" ? (
-        <MessageText content={content} />
+        <MessageText content={content} processor={processor} />
       ) : (
         content.map((item) => {
           if (item.type === "text") {
-            return <MessageText key={item.text} content={item.text} />;
+            return (
+              <MessageText
+                key={item.text}
+                content={item.text}
+                processor={processor}
+              />
+            );
           }
           if (item.type === "image_url") {
             return (
