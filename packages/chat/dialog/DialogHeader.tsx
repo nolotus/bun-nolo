@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { TrashIcon, PlusIcon } from "@primer/octicons-react";
 import { useSelector } from "react-redux";
 
-import { selectCurrentDialogTokens } from "./dialogSlice";
+import { selectTotalDialogTokens } from "./dialogSlice";
 import EditableTitle from "./EditableTitle";
 import CybotNameChip from "./CybotNameChip";
 import { useCreateDialog } from "./useCreateDialog";
@@ -82,7 +82,7 @@ const DialogHeader: React.FC<DialogHeaderProps> = ({
   onDeleteClick,
 }) => {
   const { isLoading: creatingDialog, createDialog } = useCreateDialog();
-  const currentDialogTokens = useSelector(selectCurrentDialogTokens);
+  const currentDialogTokens = useSelector(selectTotalDialogTokens);
 
   const handleCreateClick = () => {
     createDialog({ cybots: currentDialogConfig.cybots });

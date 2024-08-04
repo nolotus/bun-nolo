@@ -1,6 +1,6 @@
 import { setOne } from "database/dbSlice";
 import { messageStreamEnd, messageStreaming } from "../messages/messageSlice";
-import { updateCurrentDialogTokens } from "../dialog/dialogSlice";
+import { updateInputTokens, updateOutputTokens } from "../dialog/dialogSlice";
 
 function parseMultipleJson(text) {
   console.log("text", text);
@@ -68,6 +68,16 @@ export function handleClaudeModelResponse(
 
   jsonArray.forEach((json) => {
     switch (json.type) {
+      case "message_start":
+        if (
+          json.message &&
+          json.message.usage &&
+          json.message.usage.input_tokens
+        ) {
+          thunkApi.dispatch(updateInputTokens(json.message.usage.input_tokens));
+        }
+        break;
+
       case "message_stop":
         thunkApi.dispatch(
           messageStreamEnd({
@@ -93,11 +103,10 @@ export function handleClaudeModelResponse(
 
       case "message_delta":
         if (json.usage && json.usage.output_tokens) {
-          thunkApi.dispatch(
-            updateCurrentDialogTokens(json.usage.output_tokens),
-          );
+          thunkApi.dispatch(updateOutputTokens(json.usage.output_tokens));
         }
         break;
+
       default:
         break;
     }
