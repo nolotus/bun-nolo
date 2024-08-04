@@ -1,4 +1,3 @@
-import { getLogger } from "utils/logger";
 import { noloRequest } from "utils/noloRequest";
 
 import { API_ENDPOINTS } from "../config";

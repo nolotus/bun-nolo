@@ -1,7 +1,7 @@
 // DialogHeader.tsx
 import React from "react";
 import styled from "styled-components";
-import { TrashIcon, PlusIcon } from "@primer/octicons-react";
+import { TrashIcon, PlusIcon, GearIcon } from "@primer/octicons-react";
 import { useSelector } from "react-redux";
 
 import { selectTotalDialogTokens } from "./dialogSlice";
@@ -9,6 +9,7 @@ import EditableTitle from "./EditableTitle";
 import CybotNameChip from "./CybotNameChip";
 import { useCreateDialog } from "./useCreateDialog";
 import ToggleSidebarButton from "./ToggleSidebarButton";
+import EditableCategory from "./EditableCategory";
 
 const HeaderBar = styled.div`
   padding: 10px 16px;
@@ -61,17 +62,25 @@ const TokenUsageContainer = styled.div`
   border-radius: 4px;
 `;
 
+const CategoryContainer = styled.div`
+  font-size: 12px;
+  color: ${(props) => props.theme.text2};
+  margin-right: 8px;
+`;
+
 interface DialogHeaderProps {
   currentDialogConfig: {
     id: string;
     title?: string;
     source: string;
     cybots: string[];
+    category?: string;
   };
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
   allowEdit: boolean;
   onDeleteClick: () => void;
+  onSettingsClick: () => void;
 }
 
 const DialogHeader: React.FC<DialogHeaderProps> = ({
@@ -80,6 +89,7 @@ const DialogHeader: React.FC<DialogHeaderProps> = ({
   isSidebarOpen,
   allowEdit,
   onDeleteClick,
+  onSettingsClick,
 }) => {
   const { isLoading: creatingDialog, createDialog } = useCreateDialog();
   const currentDialogTokens = useSelector(selectTotalDialogTokens);
@@ -107,11 +117,21 @@ const DialogHeader: React.FC<DialogHeaderProps> = ({
             allowEdit={allowEdit}
           />
         </TitleContainer>
+        <CategoryContainer>
+          <EditableCategory
+            category={currentDialogConfig.category}
+            dialogId={currentDialogConfig.id}
+            allowEdit={allowEdit}
+          />
+        </CategoryContainer>
         <TokenUsageContainer>Tokens: {currentDialogTokens}</TokenUsageContainer>
         {allowEdit && (
           <>
             <IconButton onClick={handleCreateClick} disabled={creatingDialog}>
               <PlusIcon size={14} />
+            </IconButton>
+            <IconButton onClick={onSettingsClick}>
+              <GearIcon size={14} />
             </IconButton>
             <IconButton onClick={onDeleteClick}>
               <TrashIcon size={14} />
