@@ -78,7 +78,7 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
 
   const onDeleteDialog = useCallback(async () => {
     dispatch(deleteDialog(currentDialogConfig));
-    navigate("/chat");
+    navigate(-1);
   }, [dispatch, currentDialogConfig, navigate]);
 
   const {

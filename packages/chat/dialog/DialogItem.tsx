@@ -46,14 +46,14 @@ export const DialogItem = ({ id, isSelected, source }) => {
   const title = dialog?.title || dialog.id;
 
   return (
-    <ItemContainer isSelected={isSelected} theme={theme}>
-      <StyledNavLink
-        to={`/chat?dialogId=${dialog.id}`}
-        onClick={() =>
-          dispatch(initDialog({ dialogId: dialog.id, source: dialog.source }))
-        }
-        theme={theme}
-      >
+    <ItemContainer
+      isSelected={isSelected}
+      theme={theme}
+      onClick={() =>
+        dispatch(initDialog({ dialogId: dialog.id, source: dialog.source }))
+      }
+    >
+      <StyledNavLink to={`/chat?dialogId=${dialog.id}`} theme={theme}>
         {title}
       </StyledNavLink>
     </ItemContainer>
