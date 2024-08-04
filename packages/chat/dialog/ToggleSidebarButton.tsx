@@ -19,10 +19,6 @@ const StyledButton = styled(motion.button)`
   transition: all 0.2s ease-in-out;
   outline: none;
 
-  &:hover {
-    background-color: ${(props) => props.theme.surface2};
-  }
-
   &:active {
     background-color: ${(props) => props.theme.surface3};
   }

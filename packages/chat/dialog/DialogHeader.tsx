@@ -1,53 +1,20 @@
+// DialogHeader.tsx
 import React from "react";
 import styled from "styled-components";
-import { motion } from "framer-motion";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  TrashIcon,
-  PlusIcon,
-} from "@primer/octicons-react";
+import { TrashIcon, PlusIcon } from "@primer/octicons-react";
+import { useSelector } from "react-redux";
 
+import { selectCurrentDialogTokens } from "./dialogSlice";
 import EditableTitle from "./EditableTitle";
 import CybotNameChip from "./CybotNameChip";
 import { useCreateDialog } from "./useCreateDialog";
+import ToggleSidebarButton from "./ToggleSidebarButton";
+
 const HeaderBar = styled.div`
   padding: 10px 16px;
   display: flex;
   align-items: center;
   background-color: ${(props) => props.theme.surface1};
-`;
-
-const ToggleSidebarButton = styled(motion.button)`
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  background-color: transparent;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-right: 12px;
-  padding: 0;
-  transition: all 0.2s ease-in-out;
-  outline: none;
-
-  &:hover {
-    background-color: ${(props) => props.theme.surface2};
-  }
-
-  &:active {
-    background-color: ${(props) => props.theme.surface3};
-  }
-
-  &:focus {
-    box-shadow: 0 0 0 2px ${(props) => props.theme.link};
-  }
-
-  svg {
-    color: ${(props) => props.theme.text2};
-  }
 `;
 
 const ContentContainer = styled.div`
@@ -85,7 +52,16 @@ const IconButton = styled.button`
   }
 `;
 
-interface ChatHeaderProps {
+const TokenUsageContainer = styled.div`
+  font-size: 12px;
+  color: ${(props) => props.theme.text2};
+  margin-left: auto;
+  padding: 4px 8px;
+  background-color: ${(props) => props.theme.surface2};
+  border-radius: 4px;
+`;
+
+interface DialogHeaderProps {
   currentDialogConfig: {
     id: string;
     title?: string;
@@ -98,7 +74,7 @@ interface ChatHeaderProps {
   onDeleteClick: () => void;
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({
+const DialogHeader: React.FC<DialogHeaderProps> = ({
   currentDialogConfig,
   toggleSidebar,
   isSidebarOpen,
@@ -106,6 +82,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onDeleteClick,
 }) => {
   const { isLoading: creatingDialog, createDialog } = useCreateDialog();
+  const currentDialogTokens = useSelector(selectCurrentDialogTokens);
 
   const handleCreateClick = () => {
     createDialog({ cybots: currentDialogConfig.cybots });
@@ -113,17 +90,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
 
   return (
     <HeaderBar>
-      <ToggleSidebarButton
-        onClick={toggleSidebar}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        {isSidebarOpen ? (
-          <ChevronLeftIcon size={16} />
-        ) : (
-          <ChevronRightIcon size={16} />
-        )}
-      </ToggleSidebarButton>
+      <ToggleSidebarButton onClick={toggleSidebar} isOpen={isSidebarOpen} />
       <ContentContainer>
         <CybotNamesContainer>
           {currentDialogConfig.cybots?.map((cybotId) => (
@@ -140,6 +107,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             allowEdit={allowEdit}
           />
         </TitleContainer>
+        <TokenUsageContainer>Tokens: {currentDialogTokens}</TokenUsageContainer>
         {allowEdit && (
           <>
             <IconButton onClick={handleCreateClick} disabled={creatingDialog}>
@@ -155,4 +123,4 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   );
 };
 
-export default React.memo(ChatHeader);
+export default React.memo(DialogHeader);
