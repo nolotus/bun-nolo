@@ -2,7 +2,6 @@ import { parseWeatherParams, formatDataSnippet } from "integrations/weather";
 import { getWeather } from "integrations/weather/getWeather";
 import generateImage from "integrations/image/generateImage";
 import { ModeType } from "ai/types";
-import { tokenStatic } from "ai/client/static";
 
 export const getContextFromMode = async (mode: ModeType, content: string) => {
   if (mode === "image") {
@@ -20,7 +19,6 @@ export const getContextFromMode = async (mode: ModeType, content: string) => {
     // 	username: auth?.user?.username,
     // 	date: new Date(),
     // };
-    // tokenStatic(staticData, auth, writeHashData);
     return { image: imageUrl };
   }
   if (mode === "surf") {

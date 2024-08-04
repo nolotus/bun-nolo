@@ -1,6 +1,7 @@
 // types.ts
 
 import { MessageRole } from "chat/messages/types";
+import { DataType } from "create/types";
 
 export interface FrontEndRequestBody {
   type: "text" | "image" | "audio";
@@ -58,4 +59,16 @@ export interface LLMFormData {
   api: string;
   keyName?: string;
   model: string;
+}
+
+export interface TokenStaticData {
+  type: DataType.TokenStats | DataType.TokenStatistics;
+  dialogType: "send" | "receive";
+  model: string;
+  length: number;
+  userId: string;
+  username: string;
+  dialogId?: string;
+  chatCreated?: string;
+  date: Date;
 }

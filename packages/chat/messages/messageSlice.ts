@@ -284,15 +284,14 @@ export const messageSlice = createSliceWithThunks({
         const context = await getContextFromMode(mode, textContent);
 
         if (mode === "stream") {
-          //   const staticData = {
-          //     dialogType: "send",
-          //     model: config?.model,
-          //     length: newMessage.length,
-          //     userId: auth?.user?.userId,
-          //     username: auth?.user?.username,
-          //     date: new Date(),
-          //   };
-          //   tokenStatic(staticData, auth, writeHashData);
+          // const staticData = {
+          //   dialogType: "send",
+          //   model: config?.model,
+          //   length: newMessage.length,
+          //   userId: auth?.user?.userId,
+          //   username: auth?.user?.username,
+          //   date: new Date(),
+          // };
 
           const streamChat = async (content) => {
             const userId = selectCurrentUserId(state);
@@ -411,11 +410,9 @@ export const messageSlice = createSliceWithThunks({
                             //   model: json.model,
                             //   length: tokenCount,
                             //   chatId: json.id,
-                            //   chatCreated: json.created,
                             //   userId: auth.user?.userId,
                             //   username: auth.user?.username,
                             // };
-                            // tokenStatic(staticData, auth, writeHashData);
 
                             // tokenCount = 0; // 重置计数器
                           } else if (
