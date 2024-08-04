@@ -95,6 +95,27 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       </Link>
     ),
   },
+
+  [DataType.TokenStats]: {
+    fields: [
+      { header: "消息类型", key: "messageType" },
+      { header: "模型", key: "model" },
+      { header: "Token 数量", key: "tokenCount" },
+      { header: "用户 ID", key: "userId" },
+      { header: "用户名", key: "username" },
+      {
+        header: "日期",
+        key: "date",
+        render: (value) => new Date(value).toLocaleString(),
+      },
+      { header: "数据源", key: "source" },
+    ],
+    actions: (data) => (
+      <Link to={`/token-stats/${data.id}`}>
+        <button className="rounded p-2">详情</button>
+      </Link>
+    ),
+  },
 };
 
 const defaultConfig: RenderConfig = {

@@ -5,6 +5,11 @@ import {
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
 import { deleteData, read, removeOne } from "database/dbSlice";
+import { write } from "database/dbSlice";
+
+import { DataType } from "create/types";
+import { nolotusId } from "core/init";
+
 import { clearMessages } from "../messages/messageSlice";
 
 const createSliceWithThunks = buildCreateSlice({
@@ -32,14 +37,74 @@ const DialogSlice = createSliceWithThunks({
         state.currentDialogId = action.payload;
       },
     ),
-    updateInputTokens: create.reducer(
-      (state, action: PayloadAction<number>) => {
-        state.currentDialogTokens.inputTokens += action.payload;
+    updateInputTokens: create.asyncThunk(
+      async (tokenCount: number, thunkApi) => {
+        const { dispatch } = thunkApi;
+        const state = thunkApi.getState();
+        const auth = state.auth;
+        const config = selectCurrentDialogConfig(state);
+        const model = config.model ? config.model : "xx";
+        const staticData = {
+          messageType: "send",
+          model,
+          tokenCount,
+          userId: auth?.user?.userId,
+          username: auth?.user?.username,
+          date: new Date(),
+        };
+
+        await dispatch(
+          write({
+            data: {
+              ...staticData,
+              type: DataType.TokenStats,
+            },
+            flags: { isJSON: true },
+            userId: nolotusId,
+          }),
+        );
+        return tokenCount;
+      },
+      {
+        fulfilled: (state, action: PayloadAction<number>) => {
+          state.currentDialogTokens.inputTokens += action.payload;
+        },
       },
     ),
-    updateOutputTokens: create.reducer(
-      (state, action: PayloadAction<number>) => {
-        state.currentDialogTokens.outputTokens += action.payload;
+    updateOutputTokens: create.asyncThunk(
+      async (tokenCount: number, thunkApi) => {
+        const { dispatch, getState } = thunkApi;
+        const state = getState() as NoloRootState;
+        const auth = state.auth;
+        const config = selectCurrentDialogConfig(state);
+        const model = config?.model || "xx";
+
+        const staticData = {
+          messageType: "receive",
+          model,
+          tokenCount,
+          userId: auth?.user?.userId,
+          username: auth?.user?.username,
+          date: new Date(),
+        };
+
+        await dispatch(
+          write({
+            data: {
+              ...staticData,
+              type: DataType.TokenStats,
+            },
+            flags: { isJSON: true },
+            userId: nolotusId,
+          }),
+        );
+
+        return tokenCount;
+      },
+      {
+        fulfilled: (state, action: PayloadAction<number>) => {
+          state.currentDialogTokens.outputTokens += action.payload;
+        },
       },
     ),
     resetCurrentDialogTokens: create.reducer((state) => {

@@ -3,7 +3,9 @@ import { generateKey } from "core/generateMainKey";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
 import { extractUserId } from "core";
+
 import { serverWrite } from "../write/serverWrite";
+
 // import {WriteDataRequestBody} from '../types';
 
 export const handleError = (res, error) => {
@@ -12,7 +14,7 @@ export const handleError = (res, error) => {
 };
 const allowIds = ["domain-list"];
 const allowType = {
-  [nolotusId]: [DataType.TokenStatistics],
+  [nolotusId]: [DataType.TokenStats],
 };
 export const handleWrite = async (req, res) => {
   const { user } = req;

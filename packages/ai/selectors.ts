@@ -6,9 +6,7 @@ import { selectAll } from "database/dbSlice";
 import { allModels } from "./llm/models";
 
 export const selectTokenStatisticsData = createSelector([selectAll], (data) => {
-  return data.filter(
-    (item) => item.type === DataType.TokenStatistics || DataType.TokenStats,
-  );
+  return data.filter((item) => item.type === DataType.TokenStats);
 });
 
 export const selectTotalCosts = createSelector(

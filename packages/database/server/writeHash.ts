@@ -18,7 +18,7 @@ export const handleError = (res, error) => {
 const pipelineAsync = promisify(pipeline);
 
 const allowType = {
-  [nolotusId]: [DataType.TokenStatistics],
+  [nolotusId]: [DataType.TokenStats],
 };
 
 export const writeDataToHash = async (dataKey, data, userId) => {

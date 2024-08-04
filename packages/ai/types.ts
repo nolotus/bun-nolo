@@ -16,12 +16,6 @@ export interface FrontEndRequestBody {
   file?: Buffer;
 }
 
-export type Dialog = {
-  dialogType: "send" | "receive";
-  model: string;
-  length: number;
-};
-
 export type ModeType =
   | "text"
   | "image"
@@ -62,13 +56,12 @@ export interface LLMFormData {
 }
 
 export interface TokenStaticData {
-  type: DataType.TokenStats | DataType.TokenStatistics;
-  dialogType: "send" | "receive";
+  type: DataType.TokenStats;
+  messageType: "send" | "receive";
   model: string;
-  length: number;
+  tokenCount: number;
   userId: string;
   username: string;
   dialogId?: string;
-  chatCreated?: string;
   date: Date;
 }

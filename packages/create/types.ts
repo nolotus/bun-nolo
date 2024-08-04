@@ -5,7 +5,6 @@ export enum DataType {
   Prompt = "prompt",
   ChatRobot = "chatRobot",
   LLM = "llm",
-  TokenStatistics = "tokenStatistics",
   TokenStats = "token_stats",
   pay = "pay",
   SurfProfile = "surf-profile",

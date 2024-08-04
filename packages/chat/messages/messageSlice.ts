@@ -235,15 +235,6 @@ export const messageSlice = createSliceWithThunks({
         const context = await getContextFromMode(mode, textContent);
 
         if (mode === "stream") {
-          // const staticData = {
-          //   dialogType: "send",
-          //   model: config?.model,
-          //   length: newMessage.length,
-          //   userId: auth?.user?.userId,
-          //   username: auth?.user?.username,
-          //   date: new Date(),
-          // };
-
           const streamChat = async (content) => {
             const userId = selectCurrentUserId(state);
             const id = generateIdWithCustomId(userId, ulid(), {
@@ -326,15 +317,6 @@ export const messageSlice = createSliceWithThunks({
                             };
 
                             thunkApi.dispatch(messageStreamEnd(message));
-                            //这里应该使用更精准的token计算方式 需要考虑各家token价格不一致
-                            // const staticData = {
-                            //   dialogType: "receive",
-                            //   model: json.model,
-                            //   length: tokenCount,
-                            //   chatId: json.id,
-                            //   userId: auth.user?.userId,
-                            //   username: auth.user?.username,
-                            // };
 
                             // tokenCount = 0; // 重置计数器
                           } else if (
