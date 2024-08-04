@@ -71,11 +71,14 @@ const settingSlice = createSliceWithThunks({
     },
     addHostToCurrentServer: (state, action) => {
       const hostname = action.payload;
-      const protocol =
-        hostname === "nolotus.local" || hostname.startsWith("192.168")
-          ? "http"
-          : "https";
-      const port = protocol === "http" ? "80" : "443";
+      const isHttp =
+        hostname === "nolotus.local" ||
+        hostname.startsWith("192.168") ||
+        hostname === "localhost";
+
+      const protocol = isHttp ? "http" : "https";
+      const port = isHttp ? "80" : "443";
+
       state.syncSetting.currentServer = `${protocol}://${hostname}:${port}`;
     },
   }),

@@ -3,7 +3,7 @@ import { mapLanguage } from "i18n/mapLanuage";
 
 import { Message } from "../types";
 
-const createPromotMessage = (config: any) => {
+export const createPromotMessage = (config: any) => {
   const { name, description, knowledge, responseLanguage } = config;
   const mappedLanguage = mapLanguage(responseLanguage);
 

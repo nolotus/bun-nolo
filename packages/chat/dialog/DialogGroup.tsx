@@ -27,7 +27,7 @@ const DialogList = styled.div`
 
 export const DialogGroup = ({ cybotId, dialogs, currentDialogId, source }) => {
   const theme = useSelector(selectTheme);
-  const { isLoading, data: llm } = useFetchData(cybotId, { source });
+  const { isLoading, data: cybot } = useFetchData(cybotId, { source });
 
   if (isLoading) {
     return <Spinner />;
@@ -37,7 +37,7 @@ export const DialogGroup = ({ cybotId, dialogs, currentDialogId, source }) => {
     <GroupContainer>
       <GroupHeader>
         <GroupTitle theme={theme}>
-          {llm?.name ? llm.name : extractCustomId(cybotId)}
+          {cybot?.name ? cybot.name : extractCustomId(cybotId)}
         </GroupTitle>
       </GroupHeader>
       <DialogList>

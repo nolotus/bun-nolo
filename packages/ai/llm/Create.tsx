@@ -1,3 +1,5 @@
+// CreateLLM.tsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -7,7 +9,6 @@ import { useAuth } from "auth/useAuth";
 import withTranslations from "i18n/withTranslations";
 import groupBy from "lodash-es/groupBy.js";
 import { matchSorter } from "match-sorter";
-import styled from "styled-components";
 import {
   Combobox,
   ComboboxGroup,
@@ -16,6 +17,17 @@ import {
   NoResults,
 } from "render/combobox";
 import { DataType } from "create/types";
+import { useNavigate } from "react-router-dom";
+import {
+  FormContainer,
+  FormTitle,
+  FormFieldComponent,
+  SubmitButton,
+  FormField,
+  Label,
+  ErrorMessage,
+} from "render/CommonFormComponents";
+import { LLMFormData } from "ai/types";
 import { modelEnum } from "../llm/models";
 
 const apiStyleOptions = ["ollama", "openai", "claude"];
@@ -26,67 +38,9 @@ const defaultAPIs = {
   claude: "https://api.anthropic.com/v1/complete",
 };
 
-const FormContainer = styled.div`
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: ${(props) => props.theme.surface1};
-  color: ${(props) => props.theme.text1};
-`;
-
-const FormTitle = styled.h2`
-  text-align: center;
-  color: ${(props) => props.theme.text1};
-`;
-
-const FormField = styled.div`
-  margin-bottom: 15px;
-`;
-
-const Label = styled.label`
-  display: block;
-  margin-bottom: 5px;
-  color: ${(props) => props.theme.text2};
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 8px;
-  border: 1px solid ${(props) => props.theme.surface3};
-  border-radius: 4px;
-  background-color: ${(props) => props.theme.surface2};
-  color: ${(props) => props.theme.text1};
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 8px;
-  border: 1px solid ${(props) => props.theme.surface3};
-  border-radius: 4px;
-  background-color: ${(props) => props.theme.surface2};
-  color: ${(props) => props.theme.text1};
-`;
-
-const ErrorMessage = styled.span`
-  color: ${(props) => props.theme.accentColor};
-  font-size: 0.8em;
-`;
-
-const SubmitButton = styled.button`
-  background-color: ${(props) => props.theme.accentColor};
-  color: ${(props) => props.theme.surface1};
-  padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
 const CreateLLM: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const auth = useAuth();
 
@@ -97,7 +51,7 @@ const CreateLLM: React.FC = () => {
     setValue,
     control,
     formState: { errors },
-  } = useForm();
+  } = useForm<LLMFormData>();
 
   const apiStyle = watch("apiStyle");
 
@@ -107,7 +61,7 @@ const CreateLLM: React.FC = () => {
     }
   }, [apiStyle, setValue]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: LLMFormData) => {
     console.log(data);
     try {
       const writeLLMAction = await dispatch(
@@ -118,14 +72,13 @@ const CreateLLM: React.FC = () => {
         }),
       );
       const llmId = writeLLMAction.payload.id;
-      // 这里可以添加创建LLM后的额外操作
+      navigate(`/${llmId}`);
     } catch (error) {
-      // 错误处理
       console.error("Error creating LLM:", error);
     }
   };
 
-  // Model 搜索功能
+  // Model search functionality
   const [modelValue, setModelValue] = useState("");
   const deferredModelValue = React.useDeferredValue(modelValue);
 
@@ -147,47 +100,38 @@ const CreateLLM: React.FC = () => {
     <FormContainer>
       <FormTitle>{t("createLLM")}</FormTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <FormField>
-          <Label htmlFor="name">{t("llmName")}:</Label>
-          <Input
-            id="name"
-            {...register("name", { required: t("llmNameRequired") })}
-          />
-          {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
-        </FormField>
-
-        <FormField>
-          <Label htmlFor="apiStyle">{t("llmAPIStyle")}:</Label>
-          <Select
-            id="apiStyle"
-            {...register("apiStyle", { required: t("llmAPIStyleRequired") })}
-          >
-            <option value="">{t("selectAPIStyle")}</option>
-            {apiStyleOptions.map((style) => (
-              <option key={style} value={style}>
-                {style}
-              </option>
-            ))}
-          </Select>
-          {errors.apiStyle && (
-            <ErrorMessage>{errors.apiStyle.message}</ErrorMessage>
-          )}
-        </FormField>
-
-        <FormField>
-          <Label htmlFor="api">{t("llmAPI")}:</Label>
-          <Input
-            id="api"
-            {...register("api", { required: t("llmAPIRequired") })}
-          />
-          {errors.api && <ErrorMessage>{errors.api.message}</ErrorMessage>}
-        </FormField>
-
-        <FormField>
-          <Label htmlFor="keyName">{t("apiKeyName")}:</Label>
-          <Input id="keyName" {...register("keyName")} />
-        </FormField>
-
+        <FormFieldComponent
+          label={t("llmName")}
+          name="name"
+          register={register}
+          errors={errors}
+          required
+        />
+        <FormFieldComponent
+          label={t("llmAPIStyle")}
+          name="apiStyle"
+          register={register}
+          errors={errors}
+          required
+          as="select"
+          options={apiStyleOptions.map((style) => ({
+            value: style,
+            label: style,
+          }))}
+        />
+        <FormFieldComponent
+          label={t("llmAPI")}
+          name="api"
+          register={register}
+          errors={errors}
+          required
+        />
+        <FormFieldComponent
+          label={t("apiKeyName")}
+          name="keyName"
+          register={register}
+          errors={errors}
+        />
         <FormField>
           <Label htmlFor="model">{t("model")}:</Label>
           <Controller
@@ -224,7 +168,6 @@ const CreateLLM: React.FC = () => {
           />
           {errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
         </FormField>
-
         <SubmitButton type="submit">{t("createLLM")}</SubmitButton>
       </form>
     </FormContainer>

@@ -33,11 +33,11 @@ const CybotNameChip: React.FC<CybotNameChipProps> = ({
   source,
   onEdit,
 }) => {
-  const { isLoading, data: llm } = useFetchData(cybotId, { source });
+  const { isLoading, data: cybot } = useFetchData(cybotId, { source });
 
   if (isLoading) return <Spinner size="small" />;
 
-  const displayName = llm?.name || extractCustomId(cybotId);
+  const displayName = cybot?.name || extractCustomId(cybotId);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();

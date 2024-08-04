@@ -9,7 +9,10 @@ import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { readChunks } from "ai/client/stream";
 import { getLogger } from "utils/logger";
-import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
+import {
+  createPromotMessage,
+  createStreamRequestBody,
+} from "ai/utils/createStreamRequestBody";
 import { noloRequest } from "utils/noloRequest";
 import { ulid } from "ulid";
 import { DataType } from "create/types";
@@ -23,6 +26,8 @@ import {
 } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { filter, reverse } from "rambda";
+import { prepareMsgs } from "ai/messages/prepareMsgs";
+
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
 
@@ -255,7 +260,6 @@ export const messageSlice = createSliceWithThunks({
         const { content } = args;
         const state = thunkApi.getState();
         const dispatch = thunkApi.dispatch;
-
         thunkApi.dispatch(addUserMessage({ content }));
         // after addUserMessage maybe multi cybot
         let prevMsgs = getFilteredMessages(state);
@@ -265,10 +269,11 @@ export const messageSlice = createSliceWithThunks({
           : dialogConfig.llmId;
         const readAction = await dispatch(read({ id: cybotId }));
         const cybotConfig = readAction.payload;
+
         const model = cybotConfig.model;
 
         /// todo multi cybot could reply multi msg
-        //for now just one gu
+        //for now just one
 
         // move to inside
         if (typeof content === "string") {
@@ -277,11 +282,7 @@ export const messageSlice = createSliceWithThunks({
 
         const mode = getModefromContent(textContent, content);
         const context = await getContextFromMode(mode, textContent);
-        const userId = selectCurrentUserId(state);
 
-        const id = generateIdWithCustomId(userId, ulid(), {
-          isJSON: true,
-        });
         if (mode === "stream") {
           //   const staticData = {
           //     dialogType: "send",
@@ -293,7 +294,11 @@ export const messageSlice = createSliceWithThunks({
           //   };
           //   tokenStatic(staticData, auth, writeHashData);
 
-          const streamChat = async (content, id) => {
+          const streamChat = async (content) => {
+            const userId = selectCurrentUserId(state);
+            const id = generateIdWithCustomId(userId, ulid(), {
+              isJSON: true,
+            });
             let temp: string;
             const controller = new AbortController();
             const signal = controller.signal;
@@ -455,7 +460,7 @@ export const messageSlice = createSliceWithThunks({
               return { error: { status: "FETCH_ERROR", data: error.message } };
             }
           };
-          await streamChat(content, id);
+          await streamChat(content);
         }
 
         if (mode === "image") {
@@ -567,17 +572,21 @@ export const messageSlice = createSliceWithThunks({
             cybotId,
           }),
         );
+
         const currentServer = selectCurrentServer(state);
         const token = state.auth.currentToken;
-        const requestBody = createStreamRequestBody(
-          {
-            ...cybotConfig,
-            responseLanguage: navigator.language,
-          },
-          content,
-          prevMsgs,
-        );
 
+        const config = {
+          ...cybotConfig,
+          responseLanguage: navigator.language,
+        };
+        const requestBody = createStreamRequestBody(config, content, prevMsgs);
+        if (cybotConfig.llmId) {
+          await dispatch(
+            streamLLmId({ cybotConfig, prevMsgs, content, signal, id }),
+          );
+          return;
+        }
         const response = await chatStreamRequest({
           currentServer,
           requestBody,
@@ -586,6 +595,106 @@ export const messageSlice = createSliceWithThunks({
         });
         const reader = response.body.getReader();
         return { reader, id };
+      },
+      {},
+    ),
+    streamLLmId: create.asyncThunk(
+      async ({ cybotConfig, prevMsgs, content, signal, id }, thunkApi) => {
+        const cybotId = cybotConfig.id;
+        const dispatch = thunkApi.dispatch;
+        const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
+        const llmConfig = readLLMAction.payload;
+        const { api, apiStyle, model } = llmConfig;
+
+        console.log("apiStyle", apiStyle);
+        console.log("model", model);
+        const config = {
+          ...cybotConfig,
+          responseLanguage: navigator.language,
+        };
+        const promotMessage = createPromotMessage(config);
+
+        const prepareMsgConfig = { model, promotMessage, prevMsgs, content };
+
+        const messages = prepareMsgs(prepareMsgConfig);
+
+        const body = JSON.stringify({
+          model: model,
+          messages,
+        });
+        console.log("body", body);
+        const result = await fetch(api, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body,
+        });
+        if (result.ok) {
+          const reader = result.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let temp;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+
+            // 处理缓冲区中的完整 JSON 对象
+            let newlineIndex;
+            while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+              const chunk = buffer.slice(0, newlineIndex);
+              buffer = buffer.slice(newlineIndex + 1);
+
+              if (chunk.trim().length > 0) {
+                try {
+                  const jsonData = JSON.parse(chunk);
+                  console.log("Received data:", jsonData);
+                  const { done } = jsonData;
+                  temp = (temp || "") + (jsonData.message.content || "");
+                  if (done) {
+                    thunkApi.dispatch(
+                      messageStreamEnd({
+                        id,
+                        content: temp,
+                        cybotId,
+                      }),
+                    );
+                  } else {
+                    const message = {
+                      role: "assistant",
+                      id,
+                      content: temp,
+                      cybotId,
+                    };
+                    thunkApi.dispatch(setOne(message));
+                    thunkApi.dispatch(
+                      messageStreaming({ ...message, controller }),
+                    );
+                  }
+                  // 在这里处理您的 JSON 数据
+                  // 例如：更新UI，存储数据等
+                } catch (error) {
+                  console.error("Error parsing JSON:", error);
+                }
+              }
+            }
+          }
+
+          // 处理最后可能剩余的数据
+          if (buffer.trim().length > 0) {
+            try {
+              const jsonData = JSON.parse(buffer);
+              console.log("Final data:", jsonData);
+              // 处理最后的 JSON 数据
+            } catch (error) {
+              console.error("Error parsing final JSON:", error);
+            }
+          }
+        } else {
+          console.error("HTTP-Error:", result.status);
+        }
       },
       {},
     ),
@@ -609,6 +718,7 @@ export const {
   addAIMessage,
   addUserMessage,
   streamRequest,
+  streamLLmId,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

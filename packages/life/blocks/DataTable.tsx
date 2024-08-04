@@ -80,6 +80,21 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       </Link>
     ),
   },
+  [DataType.LLM]: {
+    fields: [
+      { header: "名称", key: "name" },
+      { header: "API类型", key: "apiStyle" },
+      { header: "API", key: "api" },
+      { header: "API密钥名称", key: "keyName" },
+      { header: "模型", key: "model" },
+      { header: "数据源", key: "source" },
+    ],
+    actions: (data) => (
+      <Link to={`/${data.id}`}>
+        <button className="rounded p-2">查看</button>
+      </Link>
+    ),
+  },
 };
 
 const defaultConfig: RenderConfig = {
@@ -103,7 +118,8 @@ export const DataTable: React.FC<DataTableProps> = ({
 }) => {
   const dispatch = useAppDispatch();
 
-  const config = type ? renderConfigs[type] : defaultConfig;
+  const config =
+    type && type in renderConfigs ? renderConfigs[type] : defaultConfig;
 
   const renderCell = (data: any, field: FieldConfig) => {
     if (field.render) {

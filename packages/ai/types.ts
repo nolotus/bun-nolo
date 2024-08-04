@@ -45,3 +45,17 @@ export type RequestPayloadProperties = {
   temperature?: number;
   max_tokens?: number;
 };
+export interface PromptFormData {
+  name: string;
+  content: string;
+  category?: string;
+  tags?: string[];
+}
+
+export interface LLMFormData {
+  name: string;
+  apiStyle: string;
+  api: string;
+  keyName?: string;
+  model: string;
+}
