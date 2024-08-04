@@ -1,5 +1,6 @@
 import { setOne } from "database/dbSlice";
 import { messageStreamEnd, messageStreaming } from "../messages/messageSlice";
+import { updateCurrentDialogTokens } from "../dialog/dialogSlice";
 
 function parseMultipleJson(text) {
   console.log("text", text);
@@ -90,6 +91,13 @@ export function handleClaudeModelResponse(
         thunkApi.dispatch(messageStreaming({ ...message, controller }));
         break;
 
+      case "message_delta":
+        if (json.usage && json.usage.output_tokens) {
+          thunkApi.dispatch(
+            updateCurrentDialogTokens(json.usage.output_tokens),
+          );
+        }
+        break;
       default:
         break;
     }

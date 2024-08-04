@@ -135,9 +135,9 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
 
   return (
     <StyledMenu store={menu} modal getAnchorRect={() => anchorRect}>
-      <StyledMenuItem onClick={onPlayAudio}>
+      {/* <StyledMenuItem onClick={onPlayAudio}>
         <UnmuteIcon size={16} /> {t("playAudio")}
-      </StyledMenuItem>
+      </StyledMenuItem> */}
       <StyledMenuItem onClick={handleCopyContent}>
         <CopyIcon size={16} /> {t("copyContent")}
       </StyledMenuItem>

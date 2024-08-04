@@ -3,6 +3,8 @@ import styled from "styled-components";
 import { useFetchData } from "app/hooks";
 import { extractCustomId } from "core";
 import { Spinner } from "@primer/react";
+import { useModal, Dialog } from "render/ui";
+import ChatConfigForm from "ai/blocks/ChatConfigForm";
 
 const ChipContainer = styled.span`
   font-size: 12px;
@@ -25,15 +27,11 @@ const ChipContainer = styled.span`
 interface CybotNameChipProps {
   cybotId: string;
   source: string;
-  onEdit: (cybotId: string) => void;
 }
 
-const CybotNameChip: React.FC<CybotNameChipProps> = ({
-  cybotId,
-  source,
-  onEdit,
-}) => {
+const CybotNameChip: React.FC<CybotNameChipProps> = ({ cybotId, source }) => {
   const { isLoading, data: cybot } = useFetchData(cybotId, { source });
+  const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
 
   if (isLoading) return <Spinner size="small" />;
 
@@ -41,13 +39,24 @@ const CybotNameChip: React.FC<CybotNameChipProps> = ({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onEdit(cybotId);
+    openEdit();
   };
 
   return (
-    <ChipContainer title={displayName} onClick={handleClick}>
-      {displayName}
-    </ChipContainer>
+    <>
+      <ChipContainer title={displayName} onClick={handleClick}>
+        {displayName}
+      </ChipContainer>
+      {editVisible && cybot && (
+        <Dialog
+          isOpen={editVisible}
+          onClose={closeEdit}
+          title={`Edit ${cybot.name || "Cybot"}`}
+        >
+          <ChatConfigForm initialValues={cybot} onClose={closeEdit} />
+        </Dialog>
+      )}
+    </>
   );
 };
 

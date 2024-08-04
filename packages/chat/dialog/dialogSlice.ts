@@ -16,6 +16,7 @@ const DialogSlice = createSliceWithThunks({
   initialState: {
     currentDialogId: null,
     currentDialogConfig: null,
+    currentDialogTokens: 0, // 新增：当前对话的token总计
   },
   reducers: (create) => ({
     setCurrentDialogId: create.reducer(
@@ -23,17 +24,25 @@ const DialogSlice = createSliceWithThunks({
         state.currentDialogId = action.payload;
       },
     ),
+    updateCurrentDialogTokens: create.reducer(
+      (state, action: PayloadAction<number>) => {
+        state.currentDialogTokens += action.payload;
+      },
+    ),
+    resetCurrentDialogTokens: create.reducer((state) => {
+      state.currentDialogTokens = 0;
+    }),
     initDialog: create.asyncThunk(
       async (args, thunkApi) => {
         const { dialogId, source } = args;
         const { dispatch } = thunkApi;
         dispatch(setCurrentDialogId(dialogId));
+        dispatch(resetCurrentDialogTokens()); // 重置token计数
         const action = await dispatch(read({ id: dialogId, source }));
         return { ...action.payload, source };
       },
       {
         pending: (state) => {
-          // state.loading = true;
           state.currentDialogConfig = null;
         },
         rejected: (state, action) => {},
@@ -42,13 +51,13 @@ const DialogSlice = createSliceWithThunks({
         },
       },
     ),
-
     deleteDialog: create.asyncThunk(
       async (dialog, thunkApi) => {
         const { dispatch, getState } = thunkApi;
         const state = getState();
         dispatch(removeOne(dialog.id));
         dispatch(clearMessages());
+        dispatch(resetCurrentDialogTokens()); // 重置token计数
         const deleteConfig = { id: dialog.id, source: dialog.source };
 
         if (dialog.messageListId) {
@@ -74,10 +83,19 @@ const DialogSlice = createSliceWithThunks({
     ),
   }),
 });
-export const { initDialog, setCurrentDialogId, deleteDialog } =
-  DialogSlice.actions;
+
+export const {
+  initDialog,
+  setCurrentDialogId,
+  deleteDialog,
+  updateCurrentDialogTokens,
+  resetCurrentDialogTokens,
+} = DialogSlice.actions;
 
 export default DialogSlice.reducer;
 
 export const selectCurrentDialogConfig = (state: NoloRootState) =>
   state.dialog.currentDialogConfig;
+
+export const selectCurrentDialogTokens = (state: NoloRootState) =>
+  state.dialog.currentDialogTokens;

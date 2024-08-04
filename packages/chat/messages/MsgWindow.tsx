@@ -11,7 +11,7 @@ import { selectCostByUserId } from "ai/selectors";
 import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
 import MessagesList from "./MessageList";
-import ChatHeader from "./ChatHeader";
+import ChatHeader from "../dialog/DialogHeader";
 
 const ChatContainer = styled.div`
   display: flex;
