@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
-import { write } from "database/dbSlice";
+import { write, read } from "database/dbSlice";
 import { DataType } from "create/types";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -61,14 +61,18 @@ export const useCreateDialog = (): UseCreateDialogResult => {
       try {
         const writeMessageAction = await dispatch(write(messageListConfig));
         const initMessageList = writeMessageAction.payload;
-
+        const cybotId = cybots[0];
+        const readAction = await dispatch(read({ id: cybotId }));
+        const cybotConfig = readAction.payload;
+        const time = format(new Date(), "MM-dd HH:mm");
+        const title = cybotConfig.name + "  " + time;
         const dialogConfig: DialogConfig = {
           data: {
             type: DataType.Dialog,
             cybots,
             category,
             messageListId: initMessageList.id,
-            title: format(new Date(), "MM-dd HH:mm"),
+            title,
           },
           flags: { isJSON: true },
           userId: currentUserId,

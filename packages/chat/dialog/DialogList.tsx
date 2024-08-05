@@ -1,14 +1,34 @@
+// DialogList.jsx
 import React from "react";
 import { useAuth } from "auth/useAuth";
 import { useSearchParams } from "react-router-dom";
 import { extractUserId } from "core/prefix";
 import OpenProps from "open-props";
+import styled from "styled-components";
+import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
+import { DialogItem } from "./DialogItem";
 
-import { DialogGroup } from "./DialogGroup";
+const GroupContainer = styled.div`
+  margin-bottom: 24px;
+`;
+
+const GroupHeader = styled.div`
+  padding: 0 16px 8px;
+`;
+
+const GroupTitle = styled.div`
+  font-weight: 600;
+  color: ${({ theme }) => theme.text1};
+  font-size: 14px;
+`;
+
+const DialogListContainer = styled.div``;
 
 export const DialogList = ({ dialogList, source }) => {
   const [searchParams] = useSearchParams();
   const auth = useAuth();
+  const theme = useSelector(selectTheme);
 
   const currentDialogId = searchParams.get("dialogId");
 
@@ -16,17 +36,13 @@ export const DialogList = ({ dialogList, source }) => {
     const dataUserId = extractUserId(id);
     return dataUserId === auth.user?.userId;
   };
-  //todo handle cybots
-  const dialogGroups = dialogList.reduce((acc, dialog) => {
-    const groupKey =
-      dialog.cybots && Array.isArray(dialog.cybots)
-        ? dialog.cybots.sort().join(",") // 使用排序后的 cybots 数组作为 key
-        : dialog.llmId; // 如果没有 cybots 或不是数组，则使用 llmId
 
-    if (!acc[groupKey]) {
-      acc[groupKey] = [];
+  const categorizedDialogs = dialogList.reduce((acc, dialog) => {
+    const category = dialog.category || "未分类";
+    if (!acc[category]) {
+      acc[category] = [];
     }
-    acc[groupKey].push(dialog);
+    acc[category].push(dialog);
     return acc;
   }, {});
 
@@ -34,15 +50,23 @@ export const DialogList = ({ dialogList, source }) => {
     <div
       style={{ display: "flex", flexDirection: "column", gap: OpenProps.size2 }}
     >
-      {Object.entries(dialogGroups).map(([groupKey, dialogs]) => (
-        <DialogGroup
-          key={groupKey}
-          cybotId={groupKey} // 这里可能需要根据实际情况调整
-          dialogs={dialogs}
-          currentDialogId={currentDialogId}
-          isCreator={isCreator}
-          source={source}
-        />
+      {Object.entries(categorizedDialogs).map(([category, dialogs]) => (
+        <GroupContainer key={category}>
+          <GroupHeader>
+            <GroupTitle theme={theme}>{category}</GroupTitle>
+          </GroupHeader>
+          <DialogListContainer>
+            {dialogs.map((dialog) => (
+              <DialogItem
+                key={dialog.id}
+                id={dialog.id}
+                isSelected={currentDialogId === dialog.id}
+                isCreator={isCreator(dialog.id)}
+                source={source}
+              />
+            ))}
+          </DialogListContainer>
+        </GroupContainer>
       ))}
     </div>
   );
