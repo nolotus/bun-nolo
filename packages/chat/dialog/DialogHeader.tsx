@@ -95,7 +95,10 @@ const DialogHeader: React.FC<DialogHeaderProps> = ({
   const currentDialogTokens = useSelector(selectTotalDialogTokens);
 
   const handleCreateClick = () => {
-    createDialog({ cybots: currentDialogConfig.cybots });
+    createDialog({
+      cybots: currentDialogConfig.cybots,
+      category: currentDialogConfig.category,
+    });
   };
 
   return (

@@ -6,12 +6,33 @@ import { write } from "database/dbSlice";
 import { DataType } from "create/types";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { DialogConfig, CreateDialogParams } from "./type";
+
+export interface CreateDialogParams {
+  cybots: string[];
+  category?: string;
+  users?: string[];
+}
 
 interface UseCreateDialogResult {
   createDialog: (params: CreateDialogParams) => Promise<void>;
   isLoading: boolean;
   isSuccess: boolean;
+}
+
+interface DialogData {
+  type: DataType.Dialog;
+  cybots: string[];
+  messageListId: string;
+  title: string;
+  category: string;
+}
+
+interface DialogConfig {
+  data: DialogData;
+  flags: {
+    isJSON: boolean;
+  };
+  userId: string;
 }
 
 export const useCreateDialog = (): UseCreateDialogResult => {
@@ -23,7 +44,11 @@ export const useCreateDialog = (): UseCreateDialogResult => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const createDialog = async ({ cybots, users }: CreateDialogParams) => {
+  const createDialog = async ({
+    cybots,
+    users,
+    category,
+  }: CreateDialogParams) => {
     setIsLoading(true);
     setIsSuccess(false);
     if (cybots) {
@@ -41,6 +66,7 @@ export const useCreateDialog = (): UseCreateDialogResult => {
           data: {
             type: DataType.Dialog,
             cybots,
+            category,
             messageListId: initMessageList.id,
             title: format(new Date(), "MM-dd HH:mm"),
           },
