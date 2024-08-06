@@ -1,4 +1,4 @@
-import { ChatBotBlock } from "ai/blocks/ChatBotBlock";
+import CybotBlock from "ai/cybot/CybotBlock";
 import TokenStatisticsItem from "ai/blocks/TokenStatisticsItem";
 import { Link } from "react-router-dom";
 import { PencilIcon, EyeIcon } from "@primer/octicons-react";
@@ -9,7 +9,7 @@ import { DataType } from "create/types";
 const DataItem = ({ item }) => {
   const { id } = item;
   if (item?.type === DataType.ChatRobot) {
-    return <ChatBotBlock item={item} />;
+    return <CybotBlock item={item} />;
   }
   if (item?.type === "tokenStatistics") {
     return <TokenStatisticsItem id={id} content={item} />;

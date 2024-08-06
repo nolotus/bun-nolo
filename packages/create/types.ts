@@ -1,4 +1,4 @@
-// src/types.ts
+// create/types.ts
 export enum DataType {
   Cybot = "cybot",
   Page = "page",
@@ -12,4 +12,5 @@ export enum DataType {
   SurfInfo = "surf_info",
   Dialog = "dialog",
   Message = "message",
+  Category = "category",
 }

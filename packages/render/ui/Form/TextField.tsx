@@ -1,6 +1,8 @@
 import React from "react";
+import { getInputClassName } from "render/styles/form";
+
 import { FieldProps } from "./type";
-import { getInputClassName } from "app/styles/form";
+
 type Props = Partial<FieldProps & { placeholder?: string }>;
 export const TextField: React.FC<Props> = ({
   id,

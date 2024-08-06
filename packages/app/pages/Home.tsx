@@ -1,7 +1,8 @@
 import { Link } from "render/ui";
 import { nolotusId } from "core/init";
 
-import ChatAIList from "ai/blocks/ChatAIList";
+import Cybots from "ai/cybot/Cybots";
+
 import { useAppSelector } from "app/hooks";
 
 import {
@@ -28,7 +29,7 @@ const Home = () => {
           我在这里用AI <DependabotIcon size="medium" />
           管理我的一切,从日常的Todo，财务，到旅途拍摄的美景。
         </p>
-        <ChatAIList queryUserId={userId ? userId : nolotusId} limit={9} />
+        <Cybots queryUserId={userId ? userId : nolotusId} limit={9} />
         <h3>
           分享旅居路上各种信息
           <LocationIcon size="medium" />
