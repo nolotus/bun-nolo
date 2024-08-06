@@ -26,7 +26,6 @@ const MessageListContainer = styled.div`
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 0 20px;
 
   &::-webkit-scrollbar {
     width: 8px;
