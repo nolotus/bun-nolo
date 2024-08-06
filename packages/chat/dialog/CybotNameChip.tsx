@@ -2,7 +2,6 @@ import React from "react";
 import styled from "styled-components";
 import { useFetchData } from "app/hooks";
 import { extractCustomId } from "core";
-import { Spinner } from "@primer/react";
 import { useModal, Dialog } from "render/ui";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
 
@@ -33,7 +32,7 @@ const CybotNameChip: React.FC<CybotNameChipProps> = ({ cybotId, source }) => {
   const { isLoading, data: cybot } = useFetchData(cybotId, { source });
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
 
-  if (isLoading) return <Spinner size="small" />;
+  if (isLoading) return null;
 
   const displayName = cybot?.name || extractCustomId(cybotId);
 
