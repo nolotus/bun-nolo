@@ -122,7 +122,7 @@ const DialogHeader: React.FC<DialogHeaderProps> = ({
         </TitleContainer>
         <CategoryContainer>
           <EditableCategory
-            category={currentDialogConfig.category}
+            categoryId={currentDialogConfig.categoryId}
             dialogId={currentDialogConfig.id}
             allowEdit={allowEdit}
           />

@@ -3,8 +3,6 @@ import { extractUserId } from "core/prefix";
 import { selectCurrentUserId } from "./authSlice";
 
 export const useCouldEdit = (id?: string) => {
-  console.log("useCouldEdit", id);
-
   // 如果 id 不存在或为空字符串，直接返回 false
   if (!id) {
     return false;
