@@ -8,19 +8,23 @@ import { renderReactApp } from "./html/renderReactApp";
 import assets from "../../public/assets.json";
 import { htmlStart, htmlEnd } from "./html/template";
 import { serializeState } from "./html/serializeState";
+import handleRequest from "./next/handleRequest";
 export const handleRender = async (req) => {
+  const hostname = req.headers.get("host");
+  const url = new URL(req.url);
+  const sheet = new ServerStyleSheet();
+
+  if (hostname === "nolotus.local") {
+    return handleRequest(req);
+  }
   const startTime = performance.now();
 
   const bootstrapJs = `/${assets.js}`;
   const bootstrapCss = `/${assets.css}`;
-  const url = new URL(req.url);
   let didError = false;
 
   const acceptLanguage = req.headers.get("accept-language");
   const lng = acceptLanguage.split(",")[0];
-  const hostname = req.headers.get("host");
-
-  const sheet = new ServerStyleSheet();
 
   try {
     const renderStartTime = performance.now();
