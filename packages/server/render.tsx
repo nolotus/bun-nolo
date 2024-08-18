@@ -15,7 +15,7 @@ export const handleRender = async (req) => {
   const url = new URL(req.url);
   const sheet = new ServerStyleSheet();
 
-  if (hostname === "nolotus.local") {
+  if (hostname === "nolotus.local" || hostname === "cybot.one") {
     const url = new URL(req.url);
     if (url.pathname.startsWith("/js/")) {
       const filePath = path.join("./out", url.pathname.slice(4));

@@ -1,6 +1,9 @@
+// App.tsx
 import React from "react";
 import styled from "styled-components";
 import { routes, NotFound } from "./routes";
+import ErrorBoundary from "./components/ErrorBoundary";
+import PerformanceMonitor from "./components/PerformanceMonitor";
 
 const AppContainer = styled.div`
   max-width: 800px;
@@ -33,13 +36,20 @@ function App({ initialPath }: AppProps) {
   const Component = Route.component;
 
   return (
-    <AppContainer>
-      <Navigation>
-        <NavLink href="/">Home</NavLink>
-        <NavLink href="/writing">Writing</NavLink>
-      </Navigation>
-      <Component />
-    </AppContainer>
+    <ErrorBoundary>
+      {/* PerformanceMonitor 只在客户端渲染，服务器端会忽略它 */}
+      {typeof window !== "undefined" && <PerformanceMonitor />}
+      <AppContainer>
+        <Navigation>
+          <NavLink href="/">Home</NavLink>
+          <NavLink href="/writing">Writing</NavLink>
+        </Navigation>
+        <ErrorBoundary fallback={<div>Error loading this component</div>}>
+          {/* Component 是通过 routes 对象动态决定的 */}
+          <Component />
+        </ErrorBoundary>
+      </AppContainer>
+    </ErrorBoundary>
   );
 }
 
