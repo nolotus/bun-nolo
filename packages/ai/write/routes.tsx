@@ -1,9 +1,9 @@
 // routes.ts
 import withDynamicImport from "utils/withDynamicImport";
 
-const Home = withDynamicImport(() => import("./components/Home"));
-const Writing = withDynamicImport(() => import("ai/write"));
-const NotFound = withDynamicImport(() => import("./components/NotFound"));
+const Home = withDynamicImport(() => import("./Home"));
+const NotFound = withDynamicImport(() => import("./NotFound"));
+const Writing = withDynamicImport(() => import("./Index"));
 
 export const routes = {
   "/": { title: "Home", component: Home },

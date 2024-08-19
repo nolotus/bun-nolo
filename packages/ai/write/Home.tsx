@@ -1,11 +1,14 @@
 // components/Home.tsx
 import React, { useState } from "react";
-import LazyImage from "./LazyImage";
 import withDynamicImport from "utils/withDynamicImport";
+import LazyImage from "server/next/components/LazyImage";
 
-const BigChart = withDynamicImport(() => import("./BigChart"), {
-  fallback: <div>Loading chart...</div>,
-});
+const BigChart = withDynamicImport(
+  () => import("server/next/components/BigChart"),
+  {
+    fallback: <div>Loading chart...</div>,
+  },
+);
 
 const Home: React.FC = () => {
   const [showChart, setShowChart] = useState(false);

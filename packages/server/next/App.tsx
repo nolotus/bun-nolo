@@ -1,6 +1,6 @@
 // App.tsx
 import React from "react";
-import { routes, NotFound } from "./routes";
+import { routes, NotFound } from "ai/write/routes";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PerformanceMonitor from "./components/PerformanceMonitor";
 
