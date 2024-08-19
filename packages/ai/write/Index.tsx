@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { useRoute } from "server/next/RouteContext";
 
 const WritingAiPage = () => {
   const [selectedTheme, setSelectedTheme] = useState("");
   const [userInput, setUserInput] = useState("");
   const [hoveredButton, setHoveredButton] = useState(null);
+  const { navigate } = useRoute();
 
   const themes = [
     "Theme",
@@ -61,6 +63,14 @@ const WritingAiPage = () => {
   return (
     <div style={styles.pageContainer}>
       <div style={styles.sidebar}>
+        <button
+          onClick={() => navigate("/")}
+          style={getButtonStyle("home")}
+          onMouseEnter={() => handleMouseEnter("home")}
+          onMouseLeave={handleMouseLeave}
+        >
+          Back to Home
+        </button>
         {themes.map((theme) => (
           <button
             key={theme}
@@ -140,6 +150,7 @@ const styles = {
   pageContainer: {
     display: "flex",
     height: "100vh",
+    width: "100vw",
   },
   sidebar: {
     width: "200px",
