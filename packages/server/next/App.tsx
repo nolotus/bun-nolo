@@ -1,34 +1,31 @@
 // App.tsx
-import React, { useState, useEffect } from "react";
+import React from "react";
+import Layout from "ai/write/Layout";
 import { routes, NotFound } from "ai/write/routes";
+
 import ErrorBoundary from "./components/ErrorBoundary";
 import PerformanceMonitor from "./components/PerformanceMonitor";
-import Layout from "ai/write/Layout";
+import { RouteProvider, useRoute } from "./RouteContext";
 
 interface AppProps {
   initialPath: string;
 }
 
 function App({ initialPath }: AppProps) {
-  const [currentPath, setCurrentPath] = useState(initialPath);
+  return (
+    <ErrorBoundary>
+      {typeof window !== "undefined" && <PerformanceMonitor />}
+      <RouteProvider initialPath={initialPath}>
+        <Layout>
+          <Router />
+        </Layout>
+      </RouteProvider>
+    </ErrorBoundary>
+  );
+}
 
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
-
-  const navigate = (path: string) => {
-    window.history.pushState(null, "", path);
-    setCurrentPath(path);
-  };
-
+const Router: React.FC = () => {
+  const { currentPath } = useRoute();
   const Route = routes[currentPath] || {
     title: "Not Found",
     component: NotFound,
@@ -36,15 +33,10 @@ function App({ initialPath }: AppProps) {
   const Component = Route.component;
 
   return (
-    <ErrorBoundary>
-      {typeof window !== "undefined" && <PerformanceMonitor />}
-      <Layout navigate={navigate}>
-        <ErrorBoundary fallback={<div>Error loading this component</div>}>
-          <Component />
-        </ErrorBoundary>
-      </Layout>
+    <ErrorBoundary fallback={<div>Error loading this component</div>}>
+      <Component />
     </ErrorBoundary>
   );
-}
+};
 
 export default App;

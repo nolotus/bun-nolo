@@ -1,9 +1,10 @@
 // components/Layout.tsx
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRoute } from "server/next/RouteContext";
 
 const appContainerStyle = {
-  maxWidth: "800px",
+  maxWidth: "1200px", // 增加最大宽度
   margin: "0 auto",
   padding: "20px",
 };
@@ -20,11 +21,11 @@ const navLinkStyle = {
 
 interface LayoutProps {
   children: React.ReactNode;
-  navigate: (path: string) => void;
-  currentPath: string;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, navigate, currentPath }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const { currentPath, navigate } = useRoute();
+
   return (
     <div style={appContainerStyle}>
       <nav style={navigationStyle}>
