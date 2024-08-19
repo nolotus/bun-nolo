@@ -2,7 +2,7 @@
 import withDynamicImport from "utils/withDynamicImport";
 
 const Home = withDynamicImport(() => import("./components/Home"));
-const Writing = withDynamicImport(() => import("ai/Writing"));
+const Writing = withDynamicImport(() => import("ai/write"));
 const NotFound = withDynamicImport(() => import("./components/NotFound"));
 
 export const routes = {
