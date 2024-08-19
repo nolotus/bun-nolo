@@ -1,28 +1,24 @@
 // App.tsx
 import React from "react";
-import styled from "styled-components";
 import { routes, NotFound } from "./routes";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PerformanceMonitor from "./components/PerformanceMonitor";
 
-const AppContainer = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-`;
+const appContainerStyle = {
+  maxWidth: "800px",
+  margin: "0 auto",
+  padding: "20px",
+};
 
-const Navigation = styled.nav`
-  margin-bottom: 20px;
-`;
+const navigationStyle = {
+  marginBottom: "20px",
+};
 
-const NavLink = styled.a`
-  margin-right: 10px;
-  text-decoration: none;
-  color: #333;
-  &:hover {
-    text-decoration: underline;
-  }
-`;
+const navLinkStyle = {
+  marginRight: "10px",
+  textDecoration: "none",
+  color: "#333",
+};
 
 interface AppProps {
   initialPath: string;
@@ -37,18 +33,38 @@ function App({ initialPath }: AppProps) {
 
   return (
     <ErrorBoundary>
-      {/* PerformanceMonitor 只在客户端渲染，服务器端会忽略它 */}
       {typeof window !== "undefined" && <PerformanceMonitor />}
-      <AppContainer>
-        <Navigation>
-          <NavLink href="/">Home</NavLink>
-          <NavLink href="/writing">Writing</NavLink>
-        </Navigation>
+      <div style={appContainerStyle}>
+        <nav style={navigationStyle}>
+          <a
+            style={navLinkStyle}
+            href="/"
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.textDecoration = "underline")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.textDecoration = "none")
+            }
+          >
+            Home
+          </a>
+          <a
+            style={navLinkStyle}
+            href="/writing"
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.textDecoration = "underline")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.textDecoration = "none")
+            }
+          >
+            Writing
+          </a>
+        </nav>
         <ErrorBoundary fallback={<div>Error loading this component</div>}>
-          {/* Component 是通过 routes 对象动态决定的 */}
           <Component />
         </ErrorBoundary>
-      </AppContainer>
+      </div>
     </ErrorBoundary>
   );
 }

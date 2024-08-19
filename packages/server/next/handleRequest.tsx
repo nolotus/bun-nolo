@@ -15,8 +15,8 @@ async function handleRequest(request) {
   if (!buildCache) {
     console.log("Building...");
     const result = await Bun.build({
-      entrypoints: ["./packages/server/next/browser.tsx"],
-      outdir: "./out",
+      entrypoints: ["packages/server/next/browser.tsx"],
+      outdir: "out",
       splitting: true,
       naming: "[name].[hash].[ext]",
     });
