@@ -44,8 +44,8 @@ async function handleRequest(request) {
     new ReadableStream({
       async start(controller) {
         controller.enqueue(
-          new TextEncoder().encode(
-            `<!DOCTYPE html><html><head>${preloadTags}</head><body><div id="root">`,
+          new TextEncoder("utf-8").encode(
+            `<!DOCTYPE html><html><head><meta charset="utf-8">${preloadTags}</head><body><div id="root">`,
           ),
         );
 
@@ -56,23 +56,25 @@ async function handleRequest(request) {
           controller.enqueue(value);
         }
 
-        // 插入所有 JS 文件
+        // 手动插入所有 JS 文件
         for (const file of jsFiles) {
           const fileName = path.basename(file.path);
           controller.enqueue(
-            new TextEncoder().encode(
+            new TextEncoder("utf-8").encode(
               `<script type="module" src="/js/${fileName}"></script>`,
             ),
           );
         }
 
-        controller.enqueue(new TextEncoder().encode(`</div></body></html>`));
+        controller.enqueue(
+          new TextEncoder("utf-8").encode(`</div></body></html>`),
+        );
 
         controller.close();
       },
     }),
     {
-      headers: { "Content-Type": "text/html" },
+      headers: { "Content-Type": "text/html; charset=utf-8" },
     },
   );
 }
