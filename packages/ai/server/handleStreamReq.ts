@@ -43,7 +43,6 @@ const createStreamResponse = async (stream: AxiosResponse<any>) => {
           try {
             for await (const chunk of stream) {
               const value = new TextEncoder().encode(JSON.stringify(chunk));
-              baseLogger.info(value);
               controller.enqueue(value);
             }
             controller.close();

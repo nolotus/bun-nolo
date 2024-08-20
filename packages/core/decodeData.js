@@ -90,3 +90,10 @@ export function processLine(line) {
 
   return [id.trim(), decodedValue];
 }
+export const parseStrWithId = (id, str) => {
+  const flags = extractAndDecodePrefix(id);
+
+  const parsedValue = parseValue(str);
+  const decodedValue = decodeData(parsedValue, flags, id);
+  return decodedValue;
+};

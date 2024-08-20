@@ -10,7 +10,7 @@ import { promisify } from "util";
 import { createWriteStream } from "node:fs";
 
 import { withUserLock } from "./userLock.ts";
-
+import { mem } from "./mem";
 const pipelineAsync = promisify(pipeline);
 
 async function checkUserDirectory(userId: string): Promise<void> {
@@ -60,6 +60,7 @@ const serverWrite = async (
   await checkUserDirectory(userId);
   const result = processDataKey(dataKey, data);
   if (!result.isFile) {
+    mem.set(dataKey, data);
     await appendDataToIndex(userId, dataKey, data);
   }
 };
@@ -77,7 +78,7 @@ const allowType = {
 export const handleWrite = async (req, res) => {
   const { user } = req;
   const actionUserId = user.userId;
-
+  //for now  just for file
   if (req.body instanceof FormData) {
     const formData = req.body;
     const fileBlob = formData.get("file");
@@ -96,7 +97,7 @@ export const handleWrite = async (req, res) => {
   const saveUserId = userId;
   const isWriteSelf = actionUserId === saveUserId;
   const value = formatData(data, flags);
-
+  //error check
   if (value.includes("\n")) {
     return res.status(400).json({
       message: "Data contains newline character and is not allowed.",
