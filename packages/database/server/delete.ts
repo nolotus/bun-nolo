@@ -1,5 +1,5 @@
 import { extractUserId } from "core/prefix";
-import { cache } from "database/server/cache";
+import { deleteQueueCache } from "database/server/cache";
 import { unlink } from "node:fs/promises";
 import { readLines } from "utils/bun/readLines";
 
@@ -45,9 +45,9 @@ const processUserDeletion = async (userId: string, idsToDelete: string[]) => {
     removeDataFromFile(hashPath, idsToDelete),
   ]);
 
-  const userCache = cache.get(userId) || new Set();
+  const userCache = deleteQueueCache.get(userId) || new Set();
   idsToDelete.forEach((id) => userCache.add(id));
-  cache.set(userId, userCache);
+  deleteQueueCache.set(userId, userCache);
 
   console.log(
     `Successfully deleted ${idsToDelete.length} items for user ${userId}`,
@@ -127,7 +127,7 @@ export const handleDelete = async (req, res) => {
     await withUserLock(dataBelongUserId, async () => {
       const alreadyDeletedIds = allIds.filter(
         (id) =>
-          cache.get(dataBelongUserId)?.has(id) ||
+          deleteQueueCache.get(dataBelongUserId)?.has(id) ||
           isIdQueued(dataBelongUserId, id),
       );
 

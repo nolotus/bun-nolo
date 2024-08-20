@@ -1,7 +1,7 @@
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists, findDataInFile } from "utils/file";
-import { isIdInCache } from "database/server/cache";
+import { isIdInDeleteQueueCache } from "database/server/cache";
 
 export const handleReadSingle = async (req, res) => {
   if (!req.params.id) {
@@ -12,7 +12,7 @@ export const handleReadSingle = async (req, res) => {
   const userId = extractUserId(id);
 
   // 检查ID是否在缓存中
-  if (isIdInCache(userId, id)) {
+  if (isIdInDeleteQueueCache(userId, id)) {
     return res.status(404).json({ error: "Data not found (deleted)" });
   }
 
