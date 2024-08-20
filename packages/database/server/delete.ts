@@ -1,6 +1,35 @@
 import { extractUserId } from "core/prefix";
-import { removeDataFromFile } from "utils/file";
 import { cache } from "database/server/cache";
+import { unlink } from "node:fs/promises";
+import { readLines } from "utils/bun/readLines";
+
+export const removeDataFromFile = async (filePath, ids: string[]) => {
+  const tempFilePath = `${filePath}.tmp`;
+  const readStream = Bun.file(filePath).stream();
+  const tempWriter = Bun.file(tempFilePath).writer();
+
+  try {
+    for await (const line of readLines(readStream)) {
+      if (line.trim() === "") {
+        continue;
+      }
+      if (!line.startsWith("0") || !line.startsWith("1")) {
+        console.log("error line", line);
+      }
+      const lineId = line.split(" ")[0];
+      if (!ids.includes(lineId)) {
+        await tempWriter.write(`${line}\n`);
+      }
+    }
+    await tempWriter.end();
+    // 不论是否有ID被移除，始终替换原文件
+    await Bun.write(filePath, Bun.file(tempFilePath));
+    await unlink(tempFilePath);
+  } catch (error) {
+    await unlink(tempFilePath);
+    throw error;
+  }
+};
 
 // 删除队列
 const deleteQueue = new Map<string, Set<string>>();

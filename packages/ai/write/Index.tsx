@@ -2,32 +2,26 @@ import React, { useState } from "react";
 import { useRoute } from "server/next/RouteContext";
 
 const WritingAiPage = () => {
-  const [selectedTheme, setSelectedTheme] = useState("");
+  const [themeInput, setThemeInput] = useState("");
+  const [characterInput, setCharacterInput] = useState("");
   const [userInput, setUserInput] = useState("");
-  const [hoveredButton, setHoveredButton] = useState(null);
   const { navigate } = useRoute();
 
-  const themes = [
-    "Theme",
-    "Character",
-    "Plot",
-    "Conflict",
-    "Point of View",
-    "Imagine Story",
-  ];
-  const themeOptions = [
-    "Courage",
-    "Betrayal and Trust",
-    "Justice vs. Revenge",
-    "Friendship",
-  ];
+  const handleThemeInputChange = (e) => {
+    setThemeInput(e.target.value);
+  };
 
-  const handleThemeClick = (theme) => {
-    setSelectedTheme(theme);
+  const handleCharacterInputChange = (e) => {
+    setCharacterInput(e.target.value);
   };
 
   const handleGenerate = () => {
-    console.log("Generating with theme:", selectedTheme);
+    console.log(
+      "Generating with theme:",
+      themeInput,
+      "and character:",
+      characterInput,
+    );
   };
 
   const handleInputChange = (e) => {
@@ -39,106 +33,61 @@ const WritingAiPage = () => {
     setUserInput("");
   };
 
-  const handleMouseEnter = (buttonName) => {
-    setHoveredButton(buttonName);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredButton(null);
-  };
-
-  const getButtonStyle = (buttonName) => {
-    return {
-      ...styles.button,
-      ...(hoveredButton === buttonName ? styles.buttonHover : {}),
-      ...(buttonName === "generate" ? styles.generateButton : {}),
-      ...(buttonName === "send" ? styles.sendButton : {}),
-      ...(hoveredButton === buttonName &&
-      (buttonName === "generate" || buttonName === "send")
-        ? styles.blueButtonHover
-        : {}),
-    };
-  };
-
   return (
     <div style={styles.pageContainer}>
       <div style={styles.sidebar}>
-        <button
-          onClick={() => navigate("/")}
-          style={getButtonStyle("home")}
-          onMouseEnter={() => handleMouseEnter("home")}
-          onMouseLeave={handleMouseLeave}
-        >
-          Back to Home
-        </button>
-        {themes.map((theme) => (
-          <button
-            key={theme}
-            onClick={() => handleThemeClick(theme)}
-            style={getButtonStyle(theme)}
-            onMouseEnter={() => handleMouseEnter(theme)}
-            onMouseLeave={handleMouseLeave}
-          >
-            {theme}
-          </button>
-        ))}
-        <button
-          onClick={handleGenerate}
-          style={getButtonStyle("generate")}
-          onMouseEnter={() => handleMouseEnter("generate")}
-          onMouseLeave={handleMouseLeave}
-        >
-          Generate
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>输入主题提示词：</label>
+          <input
+            value={themeInput}
+            onChange={handleThemeInputChange}
+            style={styles.input}
+          />
+        </div>
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>输入角色提示词：</label>
+          <input
+            value={characterInput}
+            onChange={handleCharacterInputChange}
+            style={styles.input}
+          />
+        </div>
+        <button onClick={handleGenerate} style={styles.generateButton}>
+          AI 创作
         </button>
       </div>
       <div style={styles.mainContent}>
         <div style={styles.header}>
-          <h1 style={styles.title}>Writing AI</h1>
-          <button
-            style={getButtonStyle("close")}
-            onMouseEnter={() => handleMouseEnter("close")}
-            onMouseLeave={handleMouseLeave}
-          >
-            Close
+          <button onClick={() => navigate("/")} style={styles.closeButton}>
+            关闭 ✕
           </button>
         </div>
         <div style={styles.aiResponseContainer}>
-          <p style={styles.aiMessage}>
-            Start by adding a theme to your story. The theme or moral serves as
-            a framework for everything else, so it's a good idea to think of it
-            first.
-          </p>
-          <p style={styles.aiMessage}>
-            Sure, here are some theme options that could serve as the foundation
-            for a story:
-          </p>
-          <div style={styles.themeOptions}>
-            {themeOptions.map((option) => (
-              <button
-                key={option}
-                style={getButtonStyle(option)}
-                onMouseEnter={() => handleMouseEnter(option)}
-                onMouseLeave={handleMouseLeave}
-              >
-                {option}
-              </button>
-            ))}
+          <div style={styles.aiMessage}>
+            <img
+              src="/path-to-bot-avatar.png"
+              alt="Bot"
+              style={styles.botAvatar}
+            />
+            <p>
+              欢迎使用 Cybot！请在左侧输入您的主题和角色提示词，Cybot
+              将根据您的输入自动生成一个精彩的故事。
+            </p>
           </div>
         </div>
         <div style={styles.inputContainer}>
           <input
             value={userInput}
             onChange={handleInputChange}
-            placeholder="Type your message here..."
-            style={styles.input}
+            placeholder="/"
+            style={styles.userInput}
           />
-          <button
-            onClick={handleSend}
-            style={getButtonStyle("send")}
-            onMouseEnter={() => handleMouseEnter("send")}
-            onMouseLeave={handleMouseLeave}
-          >
-            Send
+          <button onClick={handleSend} style={styles.sendButton}>
+            <img
+              src="/path-to-send-icon.png"
+              alt="Send"
+              style={styles.sendIcon}
+            />
           </button>
         </div>
       </div>
@@ -151,79 +100,89 @@ const styles = {
     display: "flex",
     height: "100vh",
     width: "100vw",
+    backgroundColor: "#f5f5f5",
   },
   sidebar: {
-    width: "200px",
-    backgroundColor: "#f0f0f0",
+    width: "300px",
+    backgroundColor: "#ffffff",
     padding: "20px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px",
+    borderRight: "1px solid #e0e0e0",
+  },
+  inputGroup: {
     display: "flex",
     flexDirection: "column",
     gap: "10px",
   },
+  label: {
+    fontSize: "14px",
+    fontWeight: "bold",
+  },
+  input: {
+    padding: "10px",
+    border: "1px solid #e0e0e0",
+    borderRadius: "4px",
+  },
+  generateButton: {
+    padding: "10px",
+    backgroundColor: "#f0f0f0",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontWeight: "bold",
+  },
   mainContent: {
     flexGrow: 1,
-    padding: "20px",
     display: "flex",
     flexDirection: "column",
   },
   header: {
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "20px",
+    justifyContent: "flex-end",
+    padding: "20px",
   },
-  title: {
-    fontSize: "24px",
-    margin: 0,
-  },
-  button: {
-    padding: "8px 16px",
-    backgroundColor: "#f0f0f0",
+  closeButton: {
+    background: "none",
     border: "none",
-    borderRadius: "4px",
+    fontSize: "16px",
     cursor: "pointer",
   },
-  buttonHover: {
-    backgroundColor: "#e0e0e0",
-  },
   aiResponseContainer: {
-    backgroundColor: "#f0f0f0",
-    padding: "20px",
-    borderRadius: "8px",
-    marginBottom: "20px",
     flexGrow: 1,
+    padding: "20px",
     overflowY: "auto",
   },
   aiMessage: {
-    margin: "0 0 10px 0",
-  },
-  themeOptions: {
     display: "flex",
-    flexWrap: "wrap",
+    alignItems: "flex-start",
     gap: "10px",
-    marginTop: "10px",
   },
-  generateButton: {
-    backgroundColor: "#1a73e8",
-    color: "white",
+  botAvatar: {
+    width: "30px",
+    height: "30px",
+    borderRadius: "50%",
   },
   inputContainer: {
     display: "flex",
+    padding: "20px",
     gap: "10px",
-    marginTop: "20px",
   },
-  input: {
+  userInput: {
     flexGrow: 1,
-    padding: "8px",
-    border: "1px solid #ccc",
+    padding: "10px",
+    border: "1px solid #e0e0e0",
     borderRadius: "4px",
   },
   sendButton: {
-    backgroundColor: "#1a73e8",
-    color: "white",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
   },
-  blueButtonHover: {
-    backgroundColor: "#1765cc",
+  sendIcon: {
+    width: "20px",
+    height: "20px",
   },
 };
 

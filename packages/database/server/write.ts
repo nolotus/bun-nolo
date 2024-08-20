@@ -2,11 +2,69 @@ import { formatData } from "core/formatData";
 import { generateKey } from "core/generateMainKey";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import { extractUserId } from "core";
-
-import { serverWrite } from "../write/serverWrite";
+import { promises as fs } from "fs";
+import { dirname } from "path";
+import { extractAndDecodePrefix, extractUserId } from "core/prefix";
+import { pipeline, Readable } from "stream";
+import { promisify } from "util";
+import { createWriteStream } from "node:fs";
 
 // import {WriteDataRequestBody} from '../types';
+
+async function checkUserDirectory(userId: string): Promise<void> {
+  const path = `./nolodata/${userId}/index.nolo`;
+  try {
+    await fs.access(dirname(path));
+  } catch {
+    throw new Error("没有该用户");
+  }
+}
+
+async function processFile(dataKey: string, data: any): Promise<void> {
+  const mimeTypes: { [key: string]: string } = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "application/pdf": ".pdf",
+    //...其它MIME类型及对应后缀
+  };
+  const fileExtension = mimeTypes[data.type] || "";
+  const userId = extractUserId(dataKey);
+  await Bun.write(`nolodata/${userId}/${dataKey}${fileExtension}`, data); // 假设dataKey后也要追加fileExtension
+}
+function processDataKey(dataKey: string, data: any): { isFile: boolean } {
+  const result = extractAndDecodePrefix(dataKey);
+
+  // 确保isFile始终是一个boolean类型，如果是undefined则默认为false
+  const isFile = result.isFile || false;
+
+  if (isFile) {
+    processFile(dataKey, data); // 保证userId被正确地传递给processFile函数
+  }
+  return { isFile };
+}
+const pipelineAsync = promisify(pipeline);
+
+async function appendDataToIndex(
+  userId: string,
+  dataKey: string,
+  data: string | Blob,
+): Promise<void> {
+  const path = `./nolodata/${userId}/index.nolo`;
+  const output = createWriteStream(path, { flags: "a" });
+  await pipelineAsync(Readable.from(`${dataKey} ${data}\n`), output);
+}
+
+const serverWrite = async (
+  dataKey: string,
+  data: string | Blob,
+  userId: string,
+): Promise<void> => {
+  await checkUserDirectory(userId);
+  const result = processDataKey(dataKey, data);
+  if (!result.isFile) {
+    await appendDataToIndex(userId, dataKey, data);
+  }
+};
 
 export const handleError = (res, error) => {
   const status = error.message === "Access denied" ? 401 : 500;
