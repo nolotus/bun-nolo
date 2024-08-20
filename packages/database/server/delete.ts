@@ -3,7 +3,9 @@ import { cache } from "database/server/cache";
 import { unlink } from "node:fs/promises";
 import { readLines } from "utils/bun/readLines";
 
-export const removeDataFromFile = async (filePath, ids: string[]) => {
+import { withUserLock } from "./userLock.ts";
+
+const removeDataFromFile = async (filePath, ids: string[]) => {
   const tempFilePath = `${filePath}.tmp`;
   const readStream = Bun.file(filePath).stream();
   const tempWriter = Bun.file(tempFilePath).writer();
@@ -13,16 +15,12 @@ export const removeDataFromFile = async (filePath, ids: string[]) => {
       if (line.trim() === "") {
         continue;
       }
-      if (!line.startsWith("0") || !line.startsWith("1")) {
-        console.log("error line", line);
-      }
       const lineId = line.split(" ")[0];
       if (!ids.includes(lineId)) {
         await tempWriter.write(`${line}\n`);
       }
     }
     await tempWriter.end();
-    // 不论是否有ID被移除，始终替换原文件
     await Bun.write(filePath, Bun.file(tempFilePath));
     await unlink(tempFilePath);
   } catch (error) {
@@ -31,13 +29,12 @@ export const removeDataFromFile = async (filePath, ids: string[]) => {
   }
 };
 
-// 删除队列
 const deleteQueue = new Map<string, Set<string>>();
 let isProcessing = false;
 
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 5000; // 5 seconds
-const TIMEOUT = 30000; // 30 seconds
+const RETRY_DELAY = 5000;
+const TIMEOUT = 30000;
 
 const processUserDeletion = async (userId: string, idsToDelete: string[]) => {
   const indexPath = `./nolodata/${userId}/index.nolo`;
@@ -48,7 +45,6 @@ const processUserDeletion = async (userId: string, idsToDelete: string[]) => {
     removeDataFromFile(hashPath, idsToDelete),
   ]);
 
-  // 删除成功后，将这些 ID 添加到缓存中
   const userCache = cache.get(userId) || new Set();
   idsToDelete.forEach((id) => userCache.add(id));
   cache.set(userId, userCache);
@@ -57,6 +53,7 @@ const processUserDeletion = async (userId: string, idsToDelete: string[]) => {
     `Successfully deleted ${idsToDelete.length} items for user ${userId}`,
   );
 };
+
 const processDeleteQueue = async () => {
   if (isProcessing) return;
   isProcessing = true;
@@ -98,13 +95,13 @@ const retryOperation = async (operation: () => Promise<void>) => {
           setTimeout(() => reject(new Error("Operation timed out")), TIMEOUT),
         ),
       ]);
-      return; // 操作成功，直接返回
+      return;
     } catch (error) {
       console.error(
         `Operation failed (attempt ${attempt + 1}/${MAX_RETRIES}):`,
         error,
       );
-      if (attempt === MAX_RETRIES - 1) throw error; // 最后一次尝试失败，抛出错误
+      if (attempt === MAX_RETRIES - 1) throw error;
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
     }
   }
@@ -127,22 +124,26 @@ export const handleDelete = async (req, res) => {
     const { ids = [] } = req.body || {};
     const allIds = [id, ...ids];
 
-    const alreadyDeletedIds = allIds.filter(
-      (id) =>
-        cache.get(dataBelongUserId)?.has(id) ||
-        isIdQueued(dataBelongUserId, id),
-    );
+    await withUserLock(dataBelongUserId, async () => {
+      const alreadyDeletedIds = allIds.filter(
+        (id) =>
+          cache.get(dataBelongUserId)?.has(id) ||
+          isIdQueued(dataBelongUserId, id),
+      );
 
-    const idsToDelete = allIds.filter((id) => !alreadyDeletedIds.includes(id));
+      const idsToDelete = allIds.filter(
+        (id) => !alreadyDeletedIds.includes(id),
+      );
 
-    if (idsToDelete.length > 0) {
-      enqueueDelete(dataBelongUserId, idsToDelete);
-    }
+      if (idsToDelete.length > 0) {
+        enqueueDelete(dataBelongUserId, idsToDelete);
+      }
 
-    return res.status(200).json({
-      message: "Delete request processed",
-      deletedIds: alreadyDeletedIds,
-      processingIds: idsToDelete,
+      return res.status(200).json({
+        message: "Delete request processed",
+        deletedIds: alreadyDeletedIds,
+        processingIds: idsToDelete,
+      });
     });
   } catch (error) {
     console.error("Error in handleDelete:", error);
