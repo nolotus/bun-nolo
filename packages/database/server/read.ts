@@ -1,9 +1,11 @@
+// read.ts
+
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists, findDataInFile } from "utils/file";
-import { isIdInDeleteQueueCache } from "database/server/cache";
 import { mem } from "./mem";
 import { parseStrWithId } from "core/decodeData";
+import { checkReadPermission } from "./permissions";
 
 export const handleReadSingle = async (req, res) => {
   if (!req.params.id) {
@@ -13,10 +15,10 @@ export const handleReadSingle = async (req, res) => {
   const { isFile, isList } = extractAndDecodePrefix(id);
   const userId = extractUserId(id);
 
-  // 检查是否是删除数据
-  if (isIdInDeleteQueueCache(userId, id)) {
+  if (!checkReadPermission(userId, id)) {
     return res.status(404).json({ error: "Data not found (deleted)" });
   }
+
   //文件单独处理
   if (isFile) {
     const file = Bun.file(`nolodata/${userId}/${id}`);

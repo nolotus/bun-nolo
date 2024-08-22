@@ -1,9 +1,15 @@
+// delete.ts
+
 import { extractUserId } from "core/prefix";
 import { deleteQueueCache } from "database/server/cache";
 import { unlink } from "node:fs/promises";
 import { readLines } from "utils/bun/readLines";
+import { withUserLock } from "./userLock";
+import { checkDeletePermission } from "./permissions";
 
-import { withUserLock } from "./userLock.ts";
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 5000;
+const TIMEOUT = 30000;
 
 const removeDataFromFile = async (filePath, ids: string[]) => {
   const tempFilePath = `${filePath}.tmp`;
@@ -31,10 +37,6 @@ const removeDataFromFile = async (filePath, ids: string[]) => {
 
 const deleteQueue = new Map<string, Set<string>>();
 let isProcessing = false;
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 5000;
-const TIMEOUT = 30000;
 
 const processUserDeletion = async (userId: string, idsToDelete: string[]) => {
   const indexPath = `./nolodata/${userId}/index.nolo`;
@@ -80,12 +82,6 @@ const enqueueDelete = (userId: string, ids: string[]) => {
   }
 };
 
-const validateUserAction = (actionUserId: string, dataBelongUserId: string) => {
-  if (actionUserId !== dataBelongUserId) {
-    throw new Error("Unauthorized action.");
-  }
-};
-
 const retryOperation = async (operation: () => Promise<void>) => {
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
@@ -119,7 +115,10 @@ export const handleDelete = async (req, res) => {
       return res.status(400).json({ error: "ID parameter is missing." });
     }
     const dataBelongUserId = extractUserId(id);
-    validateUserAction(actionUserId, dataBelongUserId);
+
+    if (!checkDeletePermission(actionUserId, dataBelongUserId)) {
+      return res.status(403).json({ error: "Unauthorized action." });
+    }
 
     const { ids = [] } = req.body || {};
     const allIds = [id, ...ids];

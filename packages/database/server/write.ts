@@ -1,16 +1,18 @@
+// write.ts
+
 import { formatData } from "core/formatData";
 import { generateKey } from "core/generateMainKey";
-import { nolotusId } from "core/init";
-import { DataType } from "create/types";
+import { extractAndDecodePrefix, extractUserId } from "core/prefix";
 import { promises as fs } from "fs";
 import { dirname } from "path";
-import { extractAndDecodePrefix, extractUserId } from "core/prefix";
 import { pipeline, Readable } from "stream";
 import { promisify } from "util";
 import { createWriteStream } from "node:fs";
 
-import { withUserLock } from "./userLock.ts";
+import { withUserLock } from "./userLock";
 import { mem } from "./mem";
+import { checkPermission } from "./permissions";
+
 const pipelineAsync = promisify(pipeline);
 
 async function checkUserDirectory(userId: string): Promise<void> {
@@ -22,7 +24,7 @@ async function checkUserDirectory(userId: string): Promise<void> {
   }
 }
 
-async function processFile(dataKey: string, data: any): Promise<void> {
+async function processFile(dataKey: string, data: Blob): Promise<void> {
   const mimeTypes: { [key: string]: string } = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
@@ -65,24 +67,19 @@ const serverWrite = async (
   }
 };
 
-export const handleError = (res, error) => {
+export const handleError = (res: any, error: Error) => {
   const status = error.message === "Access denied" ? 401 : 500;
   return res.status(status).json({ error: error.message });
 };
 
-const allowIds = ["domain-list"];
-const allowType = {
-  [nolotusId]: [DataType.TokenStats],
-};
-
-export const handleWrite = async (req, res) => {
+export const handleWrite = async (req: any, res: any) => {
   const { user } = req;
   const actionUserId = user.userId;
-  //for now  just for file
+
   if (req.body instanceof FormData) {
     const formData = req.body;
-    const fileBlob = formData.get("file");
-    const clientGeneratedID = formData.get("id");
+    const fileBlob = formData.get("file") as Blob;
+    const clientGeneratedID = formData.get("id") as string;
     const saveUserId = extractUserId(clientGeneratedID);
 
     return await withUserLock(saveUserId, async () => {
@@ -95,10 +92,9 @@ export const handleWrite = async (req, res) => {
 
   const { userId, data, flags, customId } = req.body;
   const saveUserId = userId;
-  const isWriteSelf = actionUserId === saveUserId;
   const value = formatData(data, flags);
-  //error check
-  if (value.includes("\n")) {
+
+  if (typeof value === "string" && value.includes("\n")) {
     return res.status(400).json({
       message: "Data contains newline character and is not allowed.",
     });
@@ -107,7 +103,7 @@ export const handleWrite = async (req, res) => {
   const id = generateKey(value, saveUserId, flags, customId);
 
   return await withUserLock(saveUserId, async () => {
-    if (isWriteSelf) {
+    if (checkPermission(actionUserId, saveUserId, data, customId)) {
       try {
         await serverWrite(id, value, saveUserId);
         return res.status(200).json({
@@ -115,19 +111,12 @@ export const handleWrite = async (req, res) => {
           id,
         });
       } catch (error) {
-        return handleError(res, error);
+        return handleError(
+          res,
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     } else {
-      const userRule = allowType[saveUserId];
-      const isAllowType = userRule?.includes(data.type);
-      const isAllowId = allowIds.includes(customId);
-      if (isAllowType || isAllowId) {
-        await serverWrite(id, value, saveUserId);
-        return res.status(200).json({
-          message: "Data written to file successfully.",
-          id,
-        });
-      }
       return res.status(403).json({
         message: "操作不被允许.",
       });
