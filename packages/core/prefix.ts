@@ -36,7 +36,8 @@ export const decodeKeyPrefix = (prefix: string): Flags => {
   const lengthFlags = FLAGS_MAP[prefix.length];
 
   if (!lengthFlags) {
-    throw new Error(`No flags defined for prefix of length ${prefix.length}`);
+    console.warn(`No flags defined for prefix of length ${prefix.length}`);
+    return {};
   }
 
   // 添加结果到缓存

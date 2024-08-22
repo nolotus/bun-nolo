@@ -106,7 +106,7 @@ const MenuSeparator = styled(Ariakit.MenuSeparator)`
 
 export const UserMessage: React.FC<Message> = ({ content, id }) => {
   const dispatch = useAppDispatch();
-  const { audioSrc, handlePlayClick } = useAudioPlayer(content[0].text);
+  // const { audioSrc, handlePlayClick } = useAudioPlayer(content[0].text);
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
 
@@ -125,12 +125,12 @@ export const UserMessage: React.FC<Message> = ({ content, id }) => {
       <AvatarWrapper>
         <Avatar name="user" />
       </AvatarWrapper>
-      <AudioPlayer src={audioSrc} controls />
+      {/* <AudioPlayer src={audioSrc} controls /> */}
 
       <StyledMenu store={menu} modal getAnchorRect={() => anchorRect}>
-        <StyledMenuItem onClick={handlePlayClick}>
+        {/* <StyledMenuItem onClick={handlePlayClick}>
           <UnmuteIcon /> Play Audio
-        </StyledMenuItem>
+        </StyledMenuItem> */}
         <StyledMenuItem onClick={() => dispatch(deleteMessage(id))}>
           <TrashIcon /> Delete Message
         </StyledMenuItem>
