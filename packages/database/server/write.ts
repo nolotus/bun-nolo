@@ -44,19 +44,29 @@ async function appendDataToIndex(
   await pipelineAsync(Readable.from(`${dataKey} ${data}\n`), output);
 }
 
-const serverWrite = async (
+export const serverWrite = (
   dataKey: string,
   data: string | Blob,
   userId: string,
 ): Promise<void> => {
-  await checkUserDirectory(userId);
-  const result = processDataKey(dataKey, data);
-  if (!result.isFile) {
-    mem.set(dataKey, data);
-    await appendDataToIndex(userId, dataKey, data);
-  }
-};
+  return checkUserDirectory(userId).then(() => {
+    const result = processDataKey(dataKey, data);
+    if (!result.isFile) {
+      // 同步设置内存数据
+      mem.set(dataKey, data);
 
+      // 异步执行备份操作，不等待其完成
+      appendDataToIndex(userId, dataKey, data).catch((error) => {
+        console.error("Failed to append data to index:", error);
+        // 这里可以添加额外的错误处理逻辑，比如重试机制或报警
+      });
+
+      // 立即返回，不等待 appendDataToIndex 完成
+      return Promise.resolve();
+    }
+    return Promise.resolve();
+  });
+};
 export const handleError = (res: any, error: Error) => {
   const status = error.message === "Access denied" ? 401 : 500;
   return res.status(status).json({ error: error.message });

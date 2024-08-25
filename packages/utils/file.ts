@@ -1,10 +1,8 @@
 import fs from "fs";
-import readline from "readline";
-import { createWriteStream, createReadStream } from "node:fs";
+import { createWriteStream } from "node:fs";
 
 import { pipeline, Readable } from "stream";
 import { promisify } from "util";
-import { processLine } from "core/decodeData";
 import { readLines } from "utils/bun/readLines";
 import { unlink } from "node:fs/promises";
 
@@ -12,30 +10,6 @@ const pipelineAsync = promisify(pipeline);
 
 export const checkFileExists = (filePath) => {
   return fs.existsSync(filePath);
-};
-export const findDataInFile = (filePath, id: string) => {
-  return new Promise((resolve, reject) => {
-    let found = false;
-    const input = createReadStream(filePath);
-    input.on("error", (err) => reject(err));
-    const rl = readline.createInterface({ input });
-    rl.on("line", (line) => {
-      const [key, value] = processLine(line);
-      if (id === key) {
-        found = true;
-        resolve(value);
-        rl.close();
-      }
-    });
-
-    rl.on("close", () => {
-      if (!found) {
-        resolve(null);
-      }
-    });
-
-    rl.on("error", (err) => reject(err));
-  });
 };
 
 export async function appendDataToFile(

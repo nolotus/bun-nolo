@@ -1,6 +1,5 @@
 import { listToArray, noloToObject } from "./noloToOther";
 import { extractAndDecodePrefix } from "./prefix";
-import { getLogger } from "utils/logger";
 
 const exampleText = `
 number1 100
@@ -90,6 +89,7 @@ export function processLine(line) {
 
   return [id.trim(), decodedValue];
 }
+
 export const parseStrWithId = (id, str) => {
   const flags = extractAndDecodePrefix(id);
 

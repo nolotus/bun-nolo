@@ -2,10 +2,25 @@
 
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
-import { checkFileExists, findDataInFile } from "utils/file";
+import { checkFileExists } from "utils/file";
 import { mem } from "./mem";
 import { parseStrWithId } from "core/decodeData";
+import readline from "readline";
+import { processLine } from "core/decodeData";
+
+import { createReadStream } from "node:fs";
 import { checkReadPermission } from "./permissions";
+
+// 新增 findInMem 函数
+const findInMem = (id: string) => {
+  const cacheStr = mem.get(id);
+  if (cacheStr) {
+    const value = parseStrWithId(id, cacheStr);
+    console.log("cache hit", value);
+    return value;
+  }
+  return null;
+};
 
 export const handleReadSingle = async (req, res) => {
   if (!req.params.id) {
@@ -45,6 +60,31 @@ export const handleReadSingle = async (req, res) => {
   }
 };
 
+export const findDataInFile = (filePath, id: string) => {
+  return new Promise((resolve, reject) => {
+    let found = false;
+    const input = createReadStream(filePath);
+    input.on("error", (err) => reject(err));
+    const rl = readline.createInterface({ input });
+    rl.on("line", (line) => {
+      const [key, value] = processLine(line);
+      if (id === key) {
+        found = true;
+        resolve(value);
+        rl.close();
+      }
+    });
+
+    rl.on("close", () => {
+      if (!found) {
+        resolve(null);
+      }
+    });
+
+    rl.on("error", (err) => reject(err));
+  });
+};
+
 export const serverGetData = (id: string) => {
   if (!id) {
     return Promise.resolve(null);
@@ -60,18 +100,21 @@ export const serverGetData = (id: string) => {
   const indexPath = `./nolodata/${userId}/${DEFAULT_INDEX_FILE}`;
   const hashPath = `./nolodata/${userId}/${DEFAULT_HASH_FILE}`;
 
+  // 首先检查用户目录是否存在
   if (!checkFileExists(indexPath)) {
     return Promise.resolve(null);
   }
-  const cacheStr = mem.get(id);
-  if (cacheStr) {
-    const value = parseStrWithId(id, cacheStr);
-    console.log("cache hit", value);
-    return value;
+
+  // 用户目录存在，现在尝试从内存中查找
+  const memResult = findInMem(id);
+  if (memResult) {
+    return Promise.resolve(memResult);
   }
 
+  // 如果内存中没有，则从文件中查找
   return findDataInFile(indexPath, id).then((data) => {
     if (data) {
+      // 如果在文件中找到数据，将其缓存到内存中
       return data;
     }
     //is hash
@@ -82,7 +125,6 @@ export const serverGetData = (id: string) => {
 
       return findDataInFile(hashPath, id).then((hashData) => {
         if (hashData) {
-        } else {
         }
         return hashData;
       });
