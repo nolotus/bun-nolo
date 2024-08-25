@@ -3,26 +3,16 @@
 import { formatData } from "core/formatData";
 import { generateKey } from "core/generateMainKey";
 import { extractAndDecodePrefix, extractUserId } from "core/prefix";
-import { promises as fs } from "fs";
-import { dirname } from "path";
+
 import { pipeline, Readable } from "stream";
 import { promisify } from "util";
 import { createWriteStream } from "node:fs";
 
 import { withUserLock } from "./userLock";
 import { mem } from "./mem";
-import { checkPermission } from "./permissions";
+import { checkPermission, checkUserDirectory } from "./permissions";
 
 const pipelineAsync = promisify(pipeline);
-
-async function checkUserDirectory(userId: string): Promise<void> {
-  const path = `./nolodata/${userId}/index.nolo`;
-  try {
-    await fs.access(dirname(path));
-  } catch {
-    throw new Error("没有该用户");
-  }
-}
 
 async function processFile(dataKey: string, data: Blob): Promise<void> {
   const mimeTypes: { [key: string]: string } = {

@@ -3,6 +3,8 @@
 import { DataType } from "create/types";
 import { nolotusId } from "core/init";
 import { isIdInDeleteQueueCache } from "database/server/cache";
+import { promises as fs } from "fs";
+import { dirname } from "path";
 
 export const allowIds = ["domain-list"];
 export const allowType = {
@@ -52,3 +54,12 @@ export const checkDeletePermission = (
 ): boolean => {
   return actionUserId === dataBelongUserId;
 };
+
+export async function checkUserDirectory(userId: string): Promise<void> {
+  const path = `./nolodata/${userId}/index.nolo`;
+  try {
+    await fs.access(dirname(path));
+  } catch {
+    throw new Error("没有该用户");
+  }
+}

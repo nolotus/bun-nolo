@@ -56,7 +56,7 @@ const ChatPage = () => {
     queryUserId: currentUserId,
     options: {
       isJSON: true,
-      limit: 100,
+      limit: 200,
       condition: {
         type: DataType.Dialog,
       },
