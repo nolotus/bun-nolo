@@ -71,10 +71,9 @@ const settingSlice = createSliceWithThunks({
     },
     addHostToCurrentServer: (state, action) => {
       const hostname = action.payload;
+      const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
       const isHttp =
-        hostname === "nolotus.local" ||
-        hostname.startsWith("192.168") ||
-        hostname === "localhost";
+        hostname === "nolotus.local" || isIpAddress || hostname === "localhost";
 
       const protocol = isHttp ? "http" : "https";
       const port = isHttp ? "80" : "443";
