@@ -17,35 +17,73 @@ jobs:
       - run: bun run build
       - run: bun test
 
-  deploy:
+  deploy-main:
     needs: build-test
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - branch: main
-            host: nolotus.com
-          - branch: alpha
-            host: us.nolotus.com
-          - branch: alpha
-            host: tw.nolotus.com
-    if: github.ref == 'refs/heads/${{ matrix.branch }}'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Deploy to Server
+      - name: Deploy to nolotus.com
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ matrix.host }}
-          username: ${{ matrix.host == 'tw.nolotus.com' && 'nolotus' || secrets.SERVER_USERNAME }}
+          host: nolotus.com
+          username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /root/bun-nolo
             git fetch --all
-            git reset --hard origin/${{ github.ref_name }}
+            git reset --hard origin/main
+            /root/.bun/bin/bun install
+            rm -rf public/assets
+            /root/.bun/bin/bun run ./scripts/esBuild.js  
+            /root/.bun/bin/pm2 restart all
+
+  deploy-alpha-us:
+    needs: build-test
+    if: github.ref == 'refs/heads/alpha'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Deploy to us.nolotus.com
+        uses: appleboy/ssh-action@master
+        with:
+          host: us.nolotus.com
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /root/bun-nolo
+            git fetch --all
+            git reset --hard origin/alpha
+            /root/.bun/bin/bun install
+            rm -rf public/assets
+            /root/.bun/bin/bun run ./scripts/esBuild.js  
+            /root/.bun/bin/pm2 restart all
+
+  deploy-alpha-tw:
+    needs: build-test
+    if: github.ref == 'refs/heads/alpha'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Deploy to tw.nolotus.com
+        uses: appleboy/ssh-action@master
+        with:
+          host: tw.nolotus.com
+          username: nolotus
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /root/bun-nolo
+            git fetch --all
+            git reset --hard origin/alpha
             /root/.bun/bin/bun install
             rm -rf public/assets
             /root/.bun/bin/bun run ./scripts/esBuild.js  
