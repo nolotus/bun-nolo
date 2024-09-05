@@ -25,13 +25,10 @@ jobs:
         include:
           - branch: main
             host: nolotus.com
-            username: ${{ secrets.SERVER_USERNAME }}
           - branch: alpha
             host: us.nolotus.com
-            username: ${{ secrets.SERVER_USERNAME }}
           - branch: alpha
             host: tw.nolotus.com
-            username: nolotus
     if: github.ref == 'refs/heads/${{ matrix.branch }}'
     steps:
       - name: Checkout code
@@ -43,7 +40,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ matrix.host }}
-          username: ${{ matrix.username }}
+          username: ${{ matrix.host == 'tw.nolotus.com' && 'nolotus' || secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /root/bun-nolo
