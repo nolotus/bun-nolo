@@ -9,19 +9,30 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     steps:
-      # ...
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
-
-      # run any `bun` or `bunx` command
       - run: bun install
       - run: rm -rf public/assets
       - run: bun i
       - run: bun run build
       - run: bun test
+
   deploy:
     needs: build-test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - branch: main
+            host: nolotus.com
+            username: ${{ secrets.SERVER_USERNAME }}
+          - branch: alpha
+            host: us.nolotus.com
+            username: ${{ secrets.SERVER_USERNAME }}
+          - branch: alpha
+            host: tw.nolotus.com
+            username: nolotus
+    if: github.ref == 'refs/heads/${{ matrix.branch }}'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,8 +42,8 @@ jobs:
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ github.ref == 'refs/heads/alpha' && 'us.nolotus.com' || (github.ref == 'refs/heads/main' && 'nolotus.com') }}
-          username: ${{ secrets.SERVER_USERNAME }}
+          host: ${{ matrix.host }}
+          username: ${{ matrix.username }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /root/bun-nolo
