@@ -2,7 +2,7 @@ import i18n from "i18n";
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { DataType } from "create/types";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAuth } from "auth/useAuth";
@@ -13,32 +13,6 @@ import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
 import ChatWindow from "./messages/MsgWindow";
 import { ChatGuide } from "./ChatGuide";
 import withTranslations from "i18n/withTranslations";
-import styled from "styled-components";
-
-const PageContainer = styled.div`
-  height: 100vh;
-  display: flex;
-  overflow: hidden;
-  background-color: ${(props) => props.theme.surface1};
-`;
-
-const SidebarContainer = styled(motion.div)`
-  overflow: hidden;
-`;
-
-const MainContent = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-`;
-
-const LoginPrompt = styled.div`
-  margin-top: 4rem;
-  text-align: center;
-  font-size: 1.5rem;
-  color: ${(props) => props.theme.text1};
-`;
 
 const ChatPage = () => {
   const auth = useAuth();
@@ -48,8 +22,13 @@ const ChatPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
+    if (!auth.user) {
+      window.location.href = "/login";
+      return;
+    }
+
     dialogId && dispatch(initDialog({ dialogId }));
-  }, [dialogId]);
+  }, [auth.user, dialogId, dispatch]);
 
   const currentUserId = useAppSelector(selectCurrentUserId);
   const queryConfig = {
@@ -72,17 +51,36 @@ const ChatPage = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  if (!auth.user) {
-    return <LoginPrompt>{i18n.t("pleaseLogin")}</LoginPrompt>;
-  }
-
   if (isLoading) {
     return <PageLoader />;
   }
 
+  if (!auth.user) {
+    return null; // 返回 null，因为我们即将重定向
+  }
+
+  const pageContainerStyle = {
+    height: "100vh",
+    display: "flex",
+    overflow: "hidden",
+    backgroundColor: "var(--surface1)", // 假设你使用CSS变量来定义主题颜色
+  };
+
+  const sidebarContainerStyle = {
+    overflow: "hidden",
+  };
+
+  const mainContentStyle = {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+  };
+
   return (
-    <PageContainer>
-      <SidebarContainer
+    <div style={pageContainerStyle}>
+      <motion.div
+        style={sidebarContainerStyle}
         initial={{ width: 300 }}
         animate={{ width: isSidebarOpen ? 300 : 0 }}
         transition={{
@@ -92,9 +90,9 @@ const ChatPage = () => {
         }}
       >
         {dialogList.length > 0 && <DialogSidebar dialogList={dialogList} />}
-      </SidebarContainer>
+      </motion.div>
 
-      <MainContent>
+      <div style={mainContentStyle}>
         {currentDialogConfig && isSuccess && (
           <ChatWindow
             currentDialogConfig={currentDialogConfig}
@@ -103,9 +101,9 @@ const ChatPage = () => {
           />
         )}
 
-        {isSuccess && dialogList.length == 0 && <ChatGuide />}
-      </MainContent>
-    </PageContainer>
+        {isSuccess && dialogList.length === 0 && <ChatGuide />}
+      </div>
+    </div>
   );
 };
 
