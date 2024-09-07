@@ -1,12 +1,12 @@
 const path = require("path");
-const os = require("os");
 
 module.exports = {
   apps: [
     {
       name: "nolo",
       script: "packages/server/entry.ts",
-      interpreter: path.join(os.homedir(), ".bun/bin/bun"),
+      interpreter:
+        process.env.BUN_PATH || path.join(process.env.HOME, ".bun/bin/bun"),
     },
   ],
 };
