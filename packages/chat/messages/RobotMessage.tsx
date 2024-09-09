@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import styled from "styled-components";
 import { SquareIcon, SquareFillIcon } from "@primer/octicons-react";
 import { Avatar } from "render/ui";
 import * as Ariakit from "@ariakit/react";
@@ -9,37 +8,14 @@ import { Message } from "./types";
 import { MessageContent } from "./MessageContent";
 import { messageContentWithAvatarGap } from "./styles";
 import { MessageContextMenu } from "./MessageContextMenu";
-
-const MessageContainer = styled.div`
-  display: flex;
-  justify-content: start;
-  gap: 0.5rem;
-  margin-bottom: ${(props) => props.theme.size3};
-`;
-
-const ContentWrapper = styled.div`
-  display: flex;
-  gap: ${messageContentWithAvatarGap};
-  justify-items: start;
-`;
-
-const AbortButton = styled.div`
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background-color: ${(props) => props.theme.accentColor};
-  border-radius: 50%;
-  color: ${(props) => props.theme.surface1};
-  font-size: 16px;
-  transform: translate(50%, 50%);
-`;
-
+import {
+  messageContainerStyle,
+  contentWrapperStyle,
+  avatarWrapperStyle,
+  menuStyle,
+  menuItemStyle,
+  menuSeparatorStyle,
+} from "./styles";
 const RobotMessage: React.FC<Message> = ({
   id,
   content,
@@ -62,9 +38,9 @@ const RobotMessage: React.FC<Message> = ({
   };
 
   return (
-    <MessageContainer>
-      <ContentWrapper>
-        <div>
+    <div style={{ ...messageContainerStyle, justifyContent: "start" }}>
+      <div style={{ ...contentWrapperStyle, gap: messageContentWithAvatarGap }}>
+        <div style={avatarWrapperStyle}>
           <Avatar name="robot" />
         </div>
         <div style={{ position: "relative" }}>
@@ -72,20 +48,36 @@ const RobotMessage: React.FC<Message> = ({
             <MessageContent content={content} role="other" />
           </div>
           {controller && (
-            <AbortButton
+            <div
               onClick={handleAbortController}
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
+              style={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "32px",
+                height: "32px",
+                backgroundColor: "var(--accent-color)",
+                borderRadius: "50%",
+                color: "var(--surface-1)",
+                fontSize: "16px",
+                transform: "translate(50%, 50%)",
+              }}
             >
               {hovered ? (
                 <SquareFillIcon size={24} />
               ) : (
                 <SquareIcon size={24} />
               )}
-            </AbortButton>
+            </div>
           )}
         </div>
-      </ContentWrapper>
+      </div>
       {audioSrc && <audio src={audioSrc} />}
       <MessageContextMenu
         menu={menu}
@@ -94,7 +86,7 @@ const RobotMessage: React.FC<Message> = ({
         content={content}
         id={id}
       />
-    </MessageContainer>
+    </div>
   );
 };
 

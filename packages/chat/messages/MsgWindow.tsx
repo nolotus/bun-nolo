@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { Alert, useDeleteAlert } from "render/ui";
 import { useCouldEdit } from "auth/useCouldEdit";
@@ -12,51 +11,6 @@ import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
 import MessagesList from "./MessageList";
 import ChatHeader from "../dialog/DialogHeader";
-
-const ChatContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-  background-color: ${(props) => props.theme.surface1};
-`;
-
-const MessageListContainer = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.scrollthumbColor};
-    border-radius: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: ${(props) => props.theme.text2};
-  }
-`;
-
-const InputContainer = styled.div`
-  background-color: ${(props) => props.theme.surface1};
-`;
-
-const ErrorMessage = styled.div`
-  color: ${(props) => props.theme.error};
-  font-size: 14px;
-  padding: 10px;
-  background-color: ${(props) => props.theme.errorBg};
-  border-radius: 4px;
-  margin-top: 10px;
-`;
 
 const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
   const { t } = useTranslation();
@@ -87,8 +41,35 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
     closeAlert,
   } = useDeleteAlert(onDeleteDialog);
 
+  const chatContainerStyle = {
+    display: "flex",
+    flexDirection: "column",
+    height: "100vh",
+    overflow: "hidden",
+    backgroundColor: "var(--surface1)",
+  };
+
+  const messageListContainerStyle = {
+    flex: 1,
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+  };
+  const inputContainerStyle = {
+    backgroundColor: "var(--surface1)",
+  };
+
+  const errorMessageStyle = {
+    color: "var(--error)",
+    fontSize: "14px",
+    padding: "10px",
+    backgroundColor: "var(--errorBg)",
+    borderRadius: "4px",
+    marginTop: "10px",
+  };
+
   return (
-    <ChatContainer>
+    <div style={chatContainerStyle}>
       <ChatHeader
         currentDialogConfig={currentDialogConfig}
         toggleSidebar={toggleSidebar}
@@ -96,21 +77,21 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
         allowEdit={allowEdit}
         onDeleteClick={() => confirmDelete(currentDialogConfig)}
       />
-      <MessageListContainer>
+      <div style={messageListContainerStyle}>
         {currentDialogConfig.messageListId && (
           <MessagesList
             id={currentDialogConfig.messageListId}
             source={currentDialogConfig.source}
           />
         )}
-      </MessageListContainer>
-      <InputContainer>
+      </div>
+      <div style={inputContainerStyle}>
         {allowSend ? (
           <MessageInput onSendMessage={onSendMessage} />
         ) : (
-          <ErrorMessage>{t("overDueMessage")}</ErrorMessage>
+          <div style={errorMessageStyle}>{t("overDueMessage")}</div>
         )}
-      </InputContainer>
+      </div>
       {deleteAlertVisible && (
         <Alert
           isOpen={deleteAlertVisible}
@@ -120,7 +101,7 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
           message={t("deleteDialogConfirmation")}
         />
       )}
-    </ChatContainer>
+    </div>
   );
 };
 
