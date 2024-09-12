@@ -1,102 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useModal, Dialog } from "render/ui";
 import { NorthStarIcon, PlusIcon } from "@primer/octicons-react";
-import styled from "styled-components";
 import AI from "ai/blocks/AI";
 
 import { DialogList } from "./DialogList";
 import CreateCybot from "ai/cybot/CreateCybot";
 
-const SidebarContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: ${(props) => props.theme.surface1};
-`;
-
-const HeaderBar = styled.div`
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-`;
-
-const StyledButton = styled.button`
-  flex: 1;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.4;
-  border-radius: 6px;
-  padding: 8px 12px;
-  background-color: ${(props) => props.theme.surface2};
-  color: ${(props) => props.theme.text1};
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease-in-out;
-  outline: none;
-
-  &:hover {
-    background-color: ${(props) => props.theme.surface3};
-  }
-
-  &:active {
-    background-color: ${(props) => props.theme.surface4};
-  }
-
-  &:focus {
-    box-shadow: 0 0 0 2px ${(props) => props.theme.link};
-  }
-
-  svg {
-    color: ${(props) => props.theme.text2};
-  }
-`;
-
-const ButtonText = styled.span`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const ScrollableContent = styled.div`
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 0 16px 16px;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: ${(props) => props.theme.scrollthumbColor};
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: ${(props) => props.theme.text2};
-  }
-`;
-
-const DialogTitle = styled.h2`
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0 0 15px 0;
-  padding: 0;
-  line-height: 1.4;
-  color: ${(props) => props.theme.text1};
-`;
-
-const DialogSideBar = ({ dialogList }) => {
+const DialogSideBar = ({ dialogList, theme }) => {
   const { t } = useTranslation();
+  const [hoveredButton, setHoveredButton] = useState(null);
+  const [activeButton, setActiveButton] = useState(null);
   const {
     visible: configModalVisible,
     open: openConfigModal,
@@ -108,27 +22,109 @@ const DialogSideBar = ({ dialogList }) => {
     close: closeAIsModal,
   } = useModal();
 
-  return (
-    <SidebarContainer>
-      <HeaderBar>
-        <StyledButton onClick={openConfigModal}>
-          <PlusIcon size={14} />
-          <ButtonText>{t("customizeAI")}</ButtonText>
-        </StyledButton>
-        <StyledButton onClick={openAIsModal}>
-          <NorthStarIcon size={14} />
-          <ButtonText>{t("newDialog")}</ButtonText>
-        </StyledButton>
-      </HeaderBar>
+  const sidebarContainerStyle = {
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    backgroundColor: theme.surface1,
+  };
 
-      <ScrollableContent>
+  const headerBarStyle = {
+    padding: "16px",
+    display: "flex",
+    justifyContent: "space-between",
+    gap: "8px",
+  };
+
+  const getButtonStyle = (buttonId) => ({
+    flex: 1,
+    fontSize: "13px",
+    fontWeight: 500,
+    lineHeight: 1.4,
+    borderRadius: "6px",
+    padding: "8px 12px",
+    backgroundColor:
+      activeButton === buttonId
+        ? theme.surface4
+        : hoveredButton === buttonId
+          ? theme.surface3
+          : theme.surface2,
+    color: theme.text1,
+    border: "none",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "6px",
+    transition: "all 0.2s ease-in-out",
+    outline: "none",
+    boxShadow: hoveredButton === buttonId ? `0 0 0 2px ${theme.link}` : "none",
+  });
+
+  const buttonTextStyle = {
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  };
+
+  const scrollableContentStyle = {
+    flexGrow: 1,
+    overflowY: "auto",
+    padding: "0 16px 16px",
+  };
+
+  const dialogTitleStyle = {
+    fontSize: "18px",
+    fontWeight: 600,
+    margin: "0 0 15px 0",
+    padding: 0,
+    lineHeight: 1.4,
+    color: theme.text1,
+  };
+
+  return (
+    <div style={sidebarContainerStyle}>
+      <div style={headerBarStyle}>
+        <button
+          style={getButtonStyle("config")}
+          onClick={openConfigModal}
+          onMouseEnter={() => setHoveredButton("config")}
+          onMouseLeave={() => setHoveredButton(null)}
+          onMouseDown={() => setActiveButton("config")}
+          onMouseUp={() => setActiveButton(null)}
+          onBlur={() => {
+            setHoveredButton(null);
+            setActiveButton(null);
+          }}
+        >
+          <PlusIcon size={14} color={theme.text2} />
+          <span style={buttonTextStyle}>{t("customizeAI")}</span>
+        </button>
+        <button
+          style={getButtonStyle("ais")}
+          onClick={openAIsModal}
+          onMouseEnter={() => setHoveredButton("ais")}
+          onMouseLeave={() => setHoveredButton(null)}
+          onMouseDown={() => setActiveButton("ais")}
+          onMouseUp={() => setActiveButton(null)}
+          onBlur={() => {
+            setHoveredButton(null);
+            setActiveButton(null);
+          }}
+        >
+          <NorthStarIcon size={14} color={theme.text2} />
+          <span style={buttonTextStyle}>{t("newDialog")}</span>
+        </button>
+      </div>
+
+      <div style={scrollableContentStyle}>
         <DialogList dialogList={dialogList} />
-      </ScrollableContent>
+      </div>
 
       <Dialog
         isOpen={configModalVisible}
         onClose={closeConfigModal}
-        title={<DialogTitle>{t("createRobot")}</DialogTitle>}
+        title={<h2 style={dialogTitleStyle}>{t("createRobot")}</h2>}
       >
         <CreateCybot onClose={closeConfigModal} />
       </Dialog>
@@ -136,11 +132,11 @@ const DialogSideBar = ({ dialogList }) => {
       <Dialog
         isOpen={AIsModalVisible}
         onClose={closeAIsModal}
-        title={<DialogTitle>{t("createDialog")}</DialogTitle>}
+        title={<h2 style={dialogTitleStyle}>{t("createDialog")}</h2>}
       >
         <AI />
       </Dialog>
-    </SidebarContainer>
+    </div>
   );
 };
 

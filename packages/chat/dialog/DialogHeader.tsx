@@ -1,6 +1,4 @@
-// DialogHeader.tsx
 import React from "react";
-import styled from "styled-components";
 import { TrashIcon, PlusIcon, GearIcon } from "@primer/octicons-react";
 import { useSelector } from "react-redux";
 
@@ -11,79 +9,77 @@ import { useCreateDialog } from "./useCreateDialog";
 import ToggleSidebarButton from "./ToggleSidebarButton";
 import EditableCategory from "./EditableCategory";
 
-const HeaderBar = styled.div`
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  background-color: ${(props) => props.theme.surface1};
-`;
+const styles = {
+  headerBar: {
+    padding: "10px 16px",
+    display: "flex",
+    alignItems: "center",
+    backgroundColor: "var(--surface1)",
+  },
+  contentContainer: {
+    display: "flex",
+    alignItems: "center",
+    flexGrow: 1,
+    gap: "12px",
+    minWidth: 0,
+  },
+  cybotNamesContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "4px",
+    minWidth: "80px",
+    maxWidth: "200px",
+  },
+  titleContainer: {
+    flexGrow: 1,
+    minWidth: 0,
+  },
+  iconButton: {
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: "4px",
+    color: "var(--text2)",
+    borderRadius: "4px",
+    flexShrink: 0,
+  },
+  tokenUsageContainer: {
+    fontSize: "12px",
+    color: "var(--text2)",
+    marginLeft: "auto",
+    padding: "4px 8px",
+    backgroundColor: "var(--surface2)",
+    borderRadius: "4px",
+  },
+  categoryContainer: {
+    fontSize: "12px",
+    color: "var(--text2)",
+    marginRight: "8px",
+  },
+};
 
-const ContentContainer = styled.div`
-  display: flex;
-  align-items: center;
-  flex-grow: 1;
-  gap: 12px;
-  min-width: 0;
-`;
+const IconButton = ({ onClick, disabled, children }) => {
+  const [isHovered, setIsHovered] = React.useState(false);
 
-const CybotNamesContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  min-width: 80px;
-  max-width: 200px;
-`;
-
-const TitleContainer = styled.div`
-  flex-grow: 1;
-  min-width: 0;
-`;
-
-const IconButton = styled.button`
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  color: ${(props) => props.theme.text2};
-  border-radius: 4px;
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: ${(props) => props.theme.surface2};
-  }
-`;
-
-const TokenUsageContainer = styled.div`
-  font-size: 12px;
-  color: ${(props) => props.theme.text2};
-  margin-left: auto;
-  padding: 4px 8px;
-  background-color: ${(props) => props.theme.surface2};
-  border-radius: 4px;
-`;
-
-const CategoryContainer = styled.div`
-  font-size: 12px;
-  color: ${(props) => props.theme.text2};
-  margin-right: 8px;
-`;
-
-interface DialogHeaderProps {
-  currentDialogConfig: {
-    id: string;
-    title?: string;
-    source: string;
-    cybots: string[];
-    category?: string;
+  const buttonStyle = {
+    ...styles.iconButton,
+    backgroundColor: isHovered ? "var(--surface2)" : "transparent",
   };
-  toggleSidebar: () => void;
-  isSidebarOpen: boolean;
-  allowEdit: boolean;
-  onDeleteClick: () => void;
-  onSettingsClick: () => void;
-}
 
-const DialogHeader: React.FC<DialogHeaderProps> = ({
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={buttonStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {children}
+    </button>
+  );
+};
+
+const DialogHeader = ({
   currentDialogConfig,
   toggleSidebar,
   isSidebarOpen,
@@ -102,10 +98,10 @@ const DialogHeader: React.FC<DialogHeaderProps> = ({
   };
 
   return (
-    <HeaderBar>
+    <div style={styles.headerBar}>
       <ToggleSidebarButton onClick={toggleSidebar} isOpen={isSidebarOpen} />
-      <ContentContainer>
-        <CybotNamesContainer>
+      <div style={styles.contentContainer}>
+        <div style={styles.cybotNamesContainer}>
           {currentDialogConfig.cybots?.map((cybotId) => (
             <CybotNameChip
               key={cybotId}
@@ -113,21 +109,23 @@ const DialogHeader: React.FC<DialogHeaderProps> = ({
               source={currentDialogConfig.source}
             />
           ))}
-        </CybotNamesContainer>
-        <TitleContainer>
+        </div>
+        <div style={styles.titleContainer}>
           <EditableTitle
             currentDialogConfig={currentDialogConfig}
             allowEdit={allowEdit}
           />
-        </TitleContainer>
-        <CategoryContainer>
+        </div>
+        <div style={styles.categoryContainer}>
           <EditableCategory
             categoryId={currentDialogConfig.categoryId}
             dialogId={currentDialogConfig.id}
             allowEdit={allowEdit}
           />
-        </CategoryContainer>
-        <TokenUsageContainer>Tokens: {currentDialogTokens}</TokenUsageContainer>
+        </div>
+        <div style={styles.tokenUsageContainer}>
+          Tokens: {currentDialogTokens}
+        </div>
         {allowEdit && (
           <>
             <IconButton onClick={handleCreateClick} disabled={creatingDialog}>
@@ -141,8 +139,8 @@ const DialogHeader: React.FC<DialogHeaderProps> = ({
             </IconButton>
           </>
         )}
-      </ContentContainer>
-    </HeaderBar>
+      </div>
+    </div>
   );
 };
 
