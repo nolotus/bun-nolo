@@ -1,51 +1,51 @@
-import React from "react";
-import styled from "styled-components";
+import React, { useState } from "react";
 import { useFetchData } from "app/hooks";
 import { extractCustomId } from "core";
 import { useModal, Dialog } from "render/ui";
 import ChatConfigForm from "ai/blocks/ChatConfigForm";
+import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
 
-const ChipContainer = styled.span`
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 12px;
-  background-color: ${(props) => props.theme.surface2};
-  color: ${(props) => props.theme.text2};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: ${(props) => props.theme.surface3};
-  }
-`;
-
-interface CybotNameChipProps {
-  cybotId: string;
-  source: string;
-}
-
-const CybotNameChip: React.FC<CybotNameChipProps> = ({ cybotId, source }) => {
+const CybotNameChip = React.memo(({ cybotId, source }) => {
   const { isLoading, data: cybot } = useFetchData(cybotId, { source });
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
+  const theme = useSelector(selectTheme);
+  const [isHovered, setIsHovered] = useState(false);
 
   if (isLoading) return null;
 
   const displayName = cybot?.name || extractCustomId(cybotId);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e) => {
     e.stopPropagation();
     openEdit();
   };
 
+  const chipStyles = {
+    fontSize: theme.fontSize.small,
+    padding: `${theme.spacing.xsmall} ${theme.spacing.small}`,
+    borderRadius: "12px",
+    backgroundColor: isHovered ? theme.surface3 : theme.surface2,
+    color: theme.text2,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "100px",
+    cursor: "pointer",
+    transition: "background-color 0.2s",
+  };
+
   return (
     <>
-      <ChipContainer title={displayName} onClick={handleClick}>
+      <span
+        title={displayName}
+        onClick={handleClick}
+        style={chipStyles}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         {displayName}
-      </ChipContainer>
+      </span>
       {editVisible && cybot && (
         <Dialog
           isOpen={editVisible}
@@ -57,6 +57,6 @@ const CybotNameChip: React.FC<CybotNameChipProps> = ({ cybotId, source }) => {
       )}
     </>
   );
-};
+});
 
-export default React.memo(CybotNameChip);
+export default CybotNameChip;

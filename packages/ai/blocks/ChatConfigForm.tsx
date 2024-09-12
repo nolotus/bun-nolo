@@ -1,28 +1,45 @@
+// ChatConfigForm.js
+
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { FormField } from "render/ui/Form/FormField";
-import { useUpdateEntryMutation } from "database/services"; // 导入新的 mutation 钩子
-import React, { useEffect } from "react";
+import { useUpdateEntryMutation } from "database/services";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
+import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
 
 import { editSchema, editFields } from "../llm/schema";
+
 const ChatConfigForm = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [updateEntry] = useUpdateEntryMutation();
+  const theme = useSelector(selectTheme);
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const onSubmit = async (data) => {
     const chatRobotConfig = { ...data, type: "chatRobot" };
     try {
-      const result = await updateEntry({
+      await updateEntry({
         entryId: initialValues.id,
         data: chatRobotConfig,
       }).unwrap();
-
-      onClose(); // 关闭弹窗
-    } catch (error) {}
+      onClose();
+    } catch (error) {
+      // Handle error
+    }
   };
 
   const {
@@ -39,28 +56,42 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
     reset(initialValues);
   }, [reset, initialValues]);
 
+  const fieldContainerStyle = {
+    marginBottom: theme.form.fieldSpacing,
+    display: "flex",
+    flexDirection: screenWidth < theme.breakpoints[0] ? "column" : "row",
+    alignItems: screenWidth < theme.breakpoints[0] ? "flex-start" : "center",
+    gap: theme.spacing.small,
+  };
+
+  const labelStyle = {
+    marginBottom: screenWidth < theme.breakpoints[0] ? theme.spacing.small : 0,
+    width: theme.getResponsiveLabelWidth(screenWidth),
+  };
+
+  const inputContainerStyle = {
+    width: theme.getResponsiveInputWidth(screenWidth),
+  };
+
+  const buttonStyle = {
+    width: "100%",
+    padding: theme.button.padding,
+    marginTop: theme.button.marginTop,
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       {editFields.map((field) => (
-        <div
-          className="mb-4 flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-x-4 sm:space-y-0 md:space-x-6 lg:space-x-8 xl:space-x-10 2xl:space-x-12"
-          key={field.id}
-        >
-          <label
-            htmlFor={field.id}
-            className="mb-2 block  sm:mb-0 sm:w-1/3 lg:w-1/4 xl:w-1/5 2xl:w-1/6"
-          >
+        <div style={fieldContainerStyle} key={field.id}>
+          <label htmlFor={field.id} style={labelStyle}>
             {t(field.label)}
           </label>
-          <div className="w-full sm:w-2/3 lg:w-3/4 xl:w-4/5 2xl:w-5/6">
+          <div style={inputContainerStyle}>
             <FormField {...field} errors={errors} register={register} />
           </div>
         </div>
       ))}
-      <Button
-        type="submit"
-        className="w-full py-2  transition duration-300 ease-snappy sm:mt-3"
-      >
+      <Button type="submit" style={buttonStyle}>
         {t("update")}
       </Button>
     </form>

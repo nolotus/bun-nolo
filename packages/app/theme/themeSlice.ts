@@ -33,6 +33,26 @@ const commonThemeValues = {
       maxWidth: "200px",
     },
   },
+  form: {
+    fieldSpacing: "16px",
+    labelWidth: ["100%", "30%", "25%", "20%"],
+    inputWidth: ["100%", "70%", "75%", "80%"],
+  },
+  button: {
+    padding: "8px 0",
+    marginTop: "16px",
+  },
+  breakpoints: [640, 768, 1024, 1280],
+};
+
+// 辅助函数：根据断点生成响应式值
+const createResponsiveValue = (values) => {
+  return (screenWidth) => {
+    const breakpointIndex = commonThemeValues.breakpoints.findIndex(
+      (bp) => screenWidth < bp,
+    );
+    return values[breakpointIndex === -1 ? values.length - 1 : breakpointIndex];
+  };
 };
 
 export const lightTheme = {
@@ -51,6 +71,12 @@ export const lightTheme = {
   caretColor: OpenProps.indigo7,
   colorScheme: "light",
   chatListPadding: OpenProps.sizeFluid5,
+  getResponsiveLabelWidth: createResponsiveValue(
+    commonThemeValues.form.labelWidth,
+  ),
+  getResponsiveInputWidth: createResponsiveValue(
+    commonThemeValues.form.inputWidth,
+  ),
 };
 
 export const darkTheme = {
@@ -71,6 +97,12 @@ export const darkTheme = {
   shadowStrength: "10%",
   shadowColor: "220 40% 2%",
   chatListPadding: OpenProps.sizeFluid5,
+  getResponsiveLabelWidth: createResponsiveValue(
+    commonThemeValues.form.labelWidth,
+  ),
+  getResponsiveInputWidth: createResponsiveValue(
+    commonThemeValues.form.inputWidth,
+  ),
 };
 
 const initialState = {
