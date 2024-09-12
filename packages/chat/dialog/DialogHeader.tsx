@@ -1,83 +1,16 @@
+// chat/dialog/DialogHeader.tsx
+
 import React from "react";
 import { TrashIcon, PlusIcon, GearIcon } from "@primer/octicons-react";
 import { useSelector } from "react-redux";
 
 import { selectTotalDialogTokens } from "./dialogSlice";
+import { selectTheme } from "app/theme/themeSlice";
 import EditableTitle from "./EditableTitle";
 import CybotNameChip from "./CybotNameChip";
 import { useCreateDialog } from "./useCreateDialog";
 import ToggleSidebarButton from "./ToggleSidebarButton";
 import EditableCategory from "./EditableCategory";
-
-const styles = {
-  headerBar: {
-    padding: "10px 16px",
-    display: "flex",
-    alignItems: "center",
-    backgroundColor: "var(--surface1)",
-  },
-  contentContainer: {
-    display: "flex",
-    alignItems: "center",
-    flexGrow: 1,
-    gap: "12px",
-    minWidth: 0,
-  },
-  cybotNamesContainer: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "4px",
-    minWidth: "80px",
-    maxWidth: "200px",
-  },
-  titleContainer: {
-    flexGrow: 1,
-    minWidth: 0,
-  },
-  iconButton: {
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    padding: "4px",
-    color: "var(--text2)",
-    borderRadius: "4px",
-    flexShrink: 0,
-  },
-  tokenUsageContainer: {
-    fontSize: "12px",
-    color: "var(--text2)",
-    marginLeft: "auto",
-    padding: "4px 8px",
-    backgroundColor: "var(--surface2)",
-    borderRadius: "4px",
-  },
-  categoryContainer: {
-    fontSize: "12px",
-    color: "var(--text2)",
-    marginRight: "8px",
-  },
-};
-
-const IconButton = ({ onClick, disabled, children }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
-
-  const buttonStyle = {
-    ...styles.iconButton,
-    backgroundColor: isHovered ? "var(--surface2)" : "transparent",
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={buttonStyle}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {children}
-    </button>
-  );
-};
 
 const DialogHeader = ({
   currentDialogConfig,
@@ -87,8 +20,79 @@ const DialogHeader = ({
   onDeleteClick,
   onSettingsClick,
 }) => {
+  const theme = useSelector(selectTheme);
   const { isLoading: creatingDialog, createDialog } = useCreateDialog();
   const currentDialogTokens = useSelector(selectTotalDialogTokens);
+
+  const styles = {
+    headerBar: {
+      padding: theme.dialogHeader.padding,
+      display: "flex",
+      alignItems: "center",
+      backgroundColor: theme.surface1,
+    },
+    contentContainer: {
+      display: "flex",
+      alignItems: "center",
+      flexGrow: 1,
+      gap: theme.dialogHeader.gap,
+      minWidth: 0,
+    },
+    cybotNamesContainer: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: theme.spacing.xsmall,
+      minWidth: theme.dialogHeader.cybotNamesContainer.minWidth,
+      maxWidth: theme.dialogHeader.cybotNamesContainer.maxWidth,
+    },
+    titleContainer: {
+      flexGrow: 1,
+      minWidth: 0,
+    },
+    iconButton: {
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      padding: theme.spacing.xsmall,
+      color: theme.text2,
+      borderRadius: theme.borderRadius,
+      flexShrink: 0,
+    },
+    tokenUsageContainer: {
+      fontSize: theme.fontSize.small,
+      color: theme.text2,
+      marginLeft: "auto",
+      padding: `${theme.spacing.xsmall} ${theme.spacing.small}`,
+      backgroundColor: theme.surface2,
+      borderRadius: theme.borderRadius,
+    },
+    categoryContainer: {
+      fontSize: theme.fontSize.small,
+      color: theme.text2,
+      marginRight: theme.spacing.small,
+    },
+  };
+
+  const IconButton = ({ onClick, disabled, children }) => {
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    const buttonStyle = {
+      ...styles.iconButton,
+      backgroundColor: isHovered ? theme.surface2 : "transparent",
+    };
+
+    return (
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        style={buttonStyle}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {children}
+      </button>
+    );
+  };
 
   const handleCreateClick = () => {
     createDialog({
@@ -129,13 +133,13 @@ const DialogHeader = ({
         {allowEdit && (
           <>
             <IconButton onClick={handleCreateClick} disabled={creatingDialog}>
-              <PlusIcon size={14} />
+              <PlusIcon size={theme.iconSize.small} />
             </IconButton>
             <IconButton onClick={onSettingsClick}>
-              <GearIcon size={14} />
+              <GearIcon size={theme.iconSize.small} />
             </IconButton>
             <IconButton onClick={onDeleteClick}>
-              <TrashIcon size={14} />
+              <TrashIcon size={theme.iconSize.small} />
             </IconButton>
           </>
         )}

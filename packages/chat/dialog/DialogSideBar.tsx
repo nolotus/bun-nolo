@@ -1,16 +1,21 @@
+// chat/dialog/DialogSideBar.tsx
+
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useModal, Dialog } from "render/ui";
 import { NorthStarIcon, PlusIcon } from "@primer/octicons-react";
 import AI from "ai/blocks/AI";
+import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
 
 import { DialogList } from "./DialogList";
 import CreateCybot from "ai/cybot/CreateCybot";
 
-const DialogSideBar = ({ dialogList, theme }) => {
+const DialogSideBar = ({ dialogList }) => {
   const { t } = useTranslation();
   const [hoveredButton, setHoveredButton] = useState(null);
   const [activeButton, setActiveButton] = useState(null);
+  const theme = useSelector(selectTheme);
   const {
     visible: configModalVisible,
     open: openConfigModal,
@@ -30,19 +35,19 @@ const DialogSideBar = ({ dialogList, theme }) => {
   };
 
   const headerBarStyle = {
-    padding: "16px",
+    padding: theme.sidebarPadding,
     display: "flex",
     justifyContent: "space-between",
-    gap: "8px",
+    gap: theme.spacing.medium,
   };
 
   const getButtonStyle = (buttonId) => ({
     flex: 1,
-    fontSize: "13px",
+    fontSize: theme.fontSize.small,
     fontWeight: 500,
     lineHeight: 1.4,
-    borderRadius: "6px",
-    padding: "8px 12px",
+    borderRadius: theme.borderRadius,
+    padding: `${theme.spacing.small} ${theme.spacing.medium}`,
     backgroundColor:
       activeButton === buttonId
         ? theme.surface4
@@ -55,10 +60,10 @@ const DialogSideBar = ({ dialogList, theme }) => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "6px",
+    gap: theme.spacing.small,
     transition: "all 0.2s ease-in-out",
     outline: "none",
-    boxShadow: hoveredButton === buttonId ? `0 0 0 2px ${theme.link}` : "none",
+    boxShadow: hoveredButton === buttonId ? `0 0 0 1px ${theme.link}` : "none",
   });
 
   const buttonTextStyle = {
@@ -70,13 +75,13 @@ const DialogSideBar = ({ dialogList, theme }) => {
   const scrollableContentStyle = {
     flexGrow: 1,
     overflowY: "auto",
-    padding: "0 16px 16px",
+    padding: `0 ${theme.sidebarPadding} ${theme.sidebarPadding}`,
   };
 
   const dialogTitleStyle = {
-    fontSize: "18px",
+    fontSize: theme.fontSize.large,
     fontWeight: 600,
-    margin: "0 0 15px 0",
+    margin: `0 0 ${theme.spacing.large} 0`,
     padding: 0,
     lineHeight: 1.4,
     color: theme.text1,
@@ -97,7 +102,7 @@ const DialogSideBar = ({ dialogList, theme }) => {
             setActiveButton(null);
           }}
         >
-          <PlusIcon size={14} color={theme.text2} />
+          <PlusIcon size={theme.iconSize.small} color={theme.text2} />
           <span style={buttonTextStyle}>{t("customizeAI")}</span>
         </button>
         <button
@@ -112,7 +117,7 @@ const DialogSideBar = ({ dialogList, theme }) => {
             setActiveButton(null);
           }}
         >
-          <NorthStarIcon size={14} color={theme.text2} />
+          <NorthStarIcon size={theme.iconSize.small} color={theme.text2} />
           <span style={buttonTextStyle}>{t("newDialog")}</span>
         </button>
       </div>

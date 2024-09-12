@@ -1,10 +1,42 @@
+// app/theme/themeSlice.js
+
 import { createSlice } from "@reduxjs/toolkit";
 import OpenProps from "open-props";
 import { blues } from "../colors";
 
 const mainColors = [...blues];
 
+const commonThemeValues = {
+  sidebarPadding: "10px",
+  borderRadius: "5px",
+  fontSize: {
+    small: "12px",
+    medium: "14px",
+    large: "16px",
+  },
+  spacing: {
+    xsmall: "4px",
+    small: "8px",
+    medium: "12px",
+    large: "16px",
+  },
+  iconSize: {
+    small: 14,
+    medium: 16,
+    large: 20,
+  },
+  dialogHeader: {
+    padding: "10px 16px",
+    gap: "12px",
+    cybotNamesContainer: {
+      minWidth: "80px",
+      maxWidth: "200px",
+    },
+  },
+};
+
 export const lightTheme = {
+  ...commonThemeValues,
   link: OpenProps.indigo7,
   linkVisited: OpenProps.purple7,
   text1: OpenProps.gray12,
@@ -18,10 +50,11 @@ export const lightTheme = {
   backgroundColor: OpenProps.gray0,
   caretColor: OpenProps.indigo7,
   colorScheme: "light",
-  chatListPadding: OpenProps.sizeFluid5, // 新增属性
+  chatListPadding: OpenProps.sizeFluid5,
 };
 
 export const darkTheme = {
+  ...commonThemeValues,
   link: OpenProps.indigo3,
   linkVisited: OpenProps.purple3,
   text1: OpenProps.gray1,
@@ -37,7 +70,7 @@ export const darkTheme = {
   colorScheme: "dark",
   shadowStrength: "10%",
   shadowColor: "220 40% 2%",
-  chatListPadding: OpenProps.sizeFluid5, // 新增属性
+  chatListPadding: OpenProps.sizeFluid5,
 };
 
 const initialState = {
@@ -78,7 +111,6 @@ const themeSlice = createSlice({
 
 export const { toggleTheme, setTheme, changeMainColor } = themeSlice.actions;
 
-// 导出 mainColors 数组
 export const mainColorOptions = mainColors;
 
 export const selectTheme = (state) => state.theme;
