@@ -1,17 +1,18 @@
 import React, { useMemo } from "react";
 import { useAppSelector } from "app/hooks";
 import { renderContentNode } from "render";
-import styled from "styled-components";
 import { messageProcessor } from "render/processor/messageProcessor";
-
-const MessageContainer = styled.div`
-  max-width: 70vw;
-  white-space: pre-wrap;
-  margin: 0 0.5rem;
-`;
+import { selectTheme } from "app/theme/themeSlice";
 
 export const MessageText = ({ content, role }) => {
+  const theme = useAppSelector(selectTheme);
   const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
+
+  const messageContainerStyle = {
+    maxWidth: "70vw",
+    whiteSpace: "pre-wrap",
+    margin: "0 0.5rem",
+  };
 
   const renderedContent = useMemo(() => {
     if (role === "self") return content;
@@ -19,5 +20,5 @@ export const MessageText = ({ content, role }) => {
     return renderContentNode(mdast, { isDarkMode });
   }, [content, role, isDarkMode]);
 
-  return <MessageContainer>{renderedContent}</MessageContainer>;
+  return <div style={messageContainerStyle}>{renderedContent}</div>;
 };

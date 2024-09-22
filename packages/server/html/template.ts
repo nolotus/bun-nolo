@@ -1,4 +1,4 @@
-export const htmlStart = (bootstrapCss, styleTags) => `
+export const htmlStart = (bootstrapCss) => `
   <!DOCTYPE html>
   <html>
   <head>
@@ -7,7 +7,6 @@ export const htmlStart = (bootstrapCss, styleTags) => `
     <meta name="description" content="nolotus" />
     <title>nolotus</title>
     <link rel="stylesheet" href="${bootstrapCss}">
-    ${styleTags}
     <script>
       function $U(h, s) {
         document.getElementById(h)?.remove();

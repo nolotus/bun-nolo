@@ -2,7 +2,6 @@ import { api } from "app/api";
 import { store } from "app/store";
 import React from "react";
 import { renderToReadableStream } from "react-dom/server.browser";
-import { ServerStyleSheet } from "styled-components";
 import path from "path";
 
 import { renderReactApp } from "./html/renderReactApp";
@@ -13,7 +12,6 @@ import handleRequest from "./next/handleRequest";
 export const handleRender = async (req) => {
   const hostname = req.headers.get("host");
   const url = new URL(req.url);
-  const sheet = new ServerStyleSheet();
 
   if (hostname === "nolotus.local" || hostname === "cybot.one") {
     const url = new URL(req.url);
@@ -39,7 +37,7 @@ export const handleRender = async (req) => {
   try {
     const renderStartTime = performance.now();
     const stream = await renderToReadableStream(
-      sheet.collectStyles(renderReactApp(store, url, hostname, lng)),
+      renderReactApp(store, url, hostname, lng),
       {
         bootstrapModules: [bootstrapJs],
         onError(error) {
@@ -71,8 +69,7 @@ export const handleRender = async (req) => {
     };
 
     const writeHeaderStartTime = performance.now();
-    const styleTags = sheet.getStyleTags();
-    writer.write(new TextEncoder().encode(htmlStart(bootstrapCss, styleTags)));
+    writer.write(new TextEncoder().encode(htmlStart(bootstrapCss)));
     console.log(
       `Write header time: ${performance.now() - writeHeaderStartTime}ms`,
     );

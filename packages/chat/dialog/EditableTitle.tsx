@@ -1,82 +1,67 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import styled from "styled-components";
 import { useTranslation } from "react-i18next";
 import { PencilIcon, CheckIcon, XIcon } from "@primer/octicons-react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { patchData } from "database/dbSlice";
+import { selectTheme } from "app/theme/themeSlice";
 
-const TitleContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 100%;
-`;
-
-const DialogTitle = styled.h1`
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: ${(props) => props.theme.text1};
-`;
-
-const EditContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 100%;
-`;
-
-const EditInput = styled.input`
-  flex: 1;
-  min-width: 0;
-  max-width: 300px;
-  padding: 2px 6px;
-  border: 1px solid ${(props) => props.theme.surface3};
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: ${(props) => props.theme.surface1};
-  color: ${(props) => props.theme.text1};
-`;
-
-const IconButton = styled.button`
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 2px;
-  color: ${(props) => props.theme.text2};
-  border-radius: 4px;
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: ${(props) => props.theme.surface2};
-  }
-`;
-
-interface EditableTitleProps {
-  currentDialogConfig: {
-    id: string;
-    title?: string;
-    source: string;
-  };
-  allowEdit: boolean;
-}
-
-const EditableTitle: React.FC<EditableTitleProps> = ({
-  currentDialogConfig,
-  allowEdit,
-}) => {
+const EditableTitle = ({ currentDialogConfig, allowEdit }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const theme = useAppSelector(selectTheme);
 
   const [isEditing, setEditing] = useState(false);
   const [title, setTitle] = useState(
     currentDialogConfig.title || t("newDialog"),
   );
-  const editInputRef = useRef<HTMLInputElement>(null);
-  const [lastKeyPress, setLastKeyPress] = useState<number>(0);
+  const editInputRef = useRef(null);
+  const [lastKeyPress, setLastKeyPress] = useState(0);
+
+  const titleContainerStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    maxWidth: "100%",
+  };
+
+  const dialogTitleStyle = {
+    margin: 0,
+    fontSize: "16px",
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    color: theme.text1,
+  };
+
+  const editContainerStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    maxWidth: "100%",
+  };
+
+  const editInputStyle = {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: "300px",
+    padding: "2px 6px",
+    border: `1px solid ${theme.surface3}`,
+    borderRadius: "4px",
+    fontSize: "14px",
+    backgroundColor: theme.surface1,
+    color: theme.text1,
+  };
+
+  const iconButtonStyle = {
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: "2px",
+    color: theme.text2,
+    borderRadius: "4px",
+    flexShrink: 0,
+  };
 
   const saveTitle = useCallback(() => {
     if (title.trim() !== "" && title !== currentDialogConfig.title) {
@@ -97,7 +82,7 @@ const EditableTitle: React.FC<EditableTitleProps> = ({
   }, [currentDialogConfig.title, t]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e) => {
       const now = Date.now();
       if (e.key === "Enter" && now - lastKeyPress > 100) {
         e.preventDefault();
@@ -112,7 +97,6 @@ const EditableTitle: React.FC<EditableTitleProps> = ({
   );
 
   const handleBlur = useCallback(() => {
-    // 使用短暂的延迟来确保这不会与其他事件冲突
     setTimeout(() => {
       if (document.activeElement !== editInputRef.current) {
         saveTitle();
@@ -127,37 +111,47 @@ const EditableTitle: React.FC<EditableTitleProps> = ({
   }, [isEditing]);
 
   return (
-    <TitleContainer>
+    <div style={titleContainerStyle}>
       {!isEditing ? (
         <>
-          <DialogTitle>{title}</DialogTitle>
+          <h1 style={dialogTitleStyle}>{title}</h1>
           {allowEdit && (
-            <IconButton
+            <button
               onClick={() => setEditing(true)}
               aria-label="Edit title"
+              style={iconButtonStyle}
             >
               <PencilIcon size={12} />
-            </IconButton>
+            </button>
           )}
         </>
       ) : (
-        <EditContainer>
-          <EditInput
+        <div style={editContainerStyle}>
+          <input
             ref={editInputRef}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
+            style={editInputStyle}
           />
-          <IconButton onClick={saveTitle} aria-label="Save title">
+          <button
+            onClick={saveTitle}
+            aria-label="Save title"
+            style={iconButtonStyle}
+          >
             <CheckIcon size={12} />
-          </IconButton>
-          <IconButton onClick={cancelEdit} aria-label="Cancel editing">
+          </button>
+          <button
+            onClick={cancelEdit}
+            aria-label="Cancel editing"
+            style={iconButtonStyle}
+          >
             <XIcon size={12} />
-          </IconButton>
-        </EditContainer>
+          </button>
+        </div>
       )}
-    </TitleContainer>
+    </div>
   );
 };
 

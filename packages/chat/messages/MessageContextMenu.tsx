@@ -1,5 +1,4 @@
 import React from "react";
-import styled from "styled-components";
 import * as Ariakit from "@ariakit/react";
 import {
   UnmuteIcon,
@@ -7,7 +6,7 @@ import {
   CopyIcon,
   DuplicateIcon,
 } from "@primer/octicons-react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { write } from "database/dbSlice";
 import { deleteMessage } from "./messageSlice";
 import { useAuth } from "auth/useAuth";
@@ -15,56 +14,9 @@ import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import copyToClipboard from "utils/clipboard";
 import { useTranslation } from "react-i18next";
+import { selectTheme } from "app/theme/themeSlice";
 
-const StyledMenu = styled(Ariakit.Menu)`
-  background-color: ${(props) => props.theme.surface1};
-  color: ${(props) => props.theme.text1};
-  border: 1px solid ${(props) => props.theme.surface3};
-  border-radius: 8px;
-  padding: 0.5rem 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-`;
-
-const StyledMenuItem = styled(Ariakit.MenuItem)`
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  color: ${(props) => props.theme.text1};
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: ${(props) => props.theme.surface2};
-  }
-
-  &[aria-disabled="true"] {
-    color: ${(props) => props.theme.text2};
-    cursor: not-allowed;
-  }
-
-  svg {
-    margin-right: 0.5rem;
-    color: ${(props) => props.theme.text2};
-  }
-`;
-
-const MenuSeparator = styled(Ariakit.MenuSeparator)`
-  height: 1px;
-  background-color: ${(props) => props.theme.surface3};
-  margin: 0.25rem 0;
-`;
-
-interface MessageContextMenuProps {
-  menu: Ariakit.MenuStore;
-  anchorRect: { x: number; y: number };
-  onPlayAudio: () => void;
-  content:
-    | string
-    | Array<{ type: string; text?: string; image_url?: { url: string } }>;
-  id: string;
-}
-
-export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
+export const MessageContextMenu = ({
   menu,
   anchorRect,
   onPlayAudio,
@@ -74,6 +26,36 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const { t } = useTranslation();
+  const theme = useAppSelector(selectTheme);
+
+  const menuStyle = {
+    backgroundColor: theme.surface1,
+    color: theme.text1,
+    border: `1px solid ${theme.surface3}`,
+    borderRadius: "8px",
+    padding: "0.5rem 0",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+  };
+
+  const menuItemStyle = {
+    display: "flex",
+    alignItems: "center",
+    padding: "0.5rem 1rem",
+    cursor: "pointer",
+    color: theme.text1,
+    transition: "background-color 0.2s ease",
+  };
+
+  const iconStyle = {
+    marginRight: "0.5rem",
+    color: theme.text2,
+  };
+
+  const separatorStyle = {
+    height: "1px",
+    backgroundColor: theme.surface3,
+    margin: "0.25rem 0",
+  };
 
   const handleSaveContent = async () => {
     if (content) {
@@ -84,7 +66,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           userId: auth.user?.userId,
         };
         const saveAction = await dispatch(write(writeData));
-        const response = saveAction.payload as { id: string; error?: string };
+        const response = saveAction.payload;
         if (response.error) {
           throw new Error(response.error);
         }
@@ -102,7 +84,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           </div>,
         );
       } catch (error) {
-        toast.error(`${t("saveFailed")}: ${(error as Error).message}`);
+        toast.error(`${t("saveFailed")}: ${error.message}`);
       }
     }
   };
@@ -134,19 +116,21 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   };
 
   return (
-    <StyledMenu store={menu} modal getAnchorRect={() => anchorRect}>
-      {/* <StyledMenuItem onClick={onPlayAudio}>
-        <UnmuteIcon size={16} /> {t("playAudio")}
-      </StyledMenuItem> */}
-      <StyledMenuItem onClick={handleCopyContent}>
-        <CopyIcon size={16} /> {t("copyContent")}
-      </StyledMenuItem>
-      <StyledMenuItem onClick={handleSaveContent}>
-        <DuplicateIcon size={16} /> {t("saveContent")}
-      </StyledMenuItem>
-      <StyledMenuItem onClick={handleDeleteMessage}>
-        <TrashIcon size={16} /> {t("deleteMessage")}
-      </StyledMenuItem>
-    </StyledMenu>
+    <Ariakit.Menu
+      store={menu}
+      modal
+      getAnchorRect={() => anchorRect}
+      style={menuStyle}
+    >
+      <Ariakit.MenuItem onClick={handleCopyContent} style={menuItemStyle}>
+        <CopyIcon size={16} style={iconStyle} /> {t("copyContent")}
+      </Ariakit.MenuItem>
+      <Ariakit.MenuItem onClick={handleSaveContent} style={menuItemStyle}>
+        <DuplicateIcon size={16} style={iconStyle} /> {t("saveContent")}
+      </Ariakit.MenuItem>
+      <Ariakit.MenuItem onClick={handleDeleteMessage} style={menuItemStyle}>
+        <TrashIcon size={16} style={iconStyle} /> {t("deleteMessage")}
+      </Ariakit.MenuItem>
+    </Ariakit.Menu>
   );
 };

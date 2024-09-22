@@ -7,9 +7,6 @@ import { Toaster } from "react-hot-toast";
 import { addHostToCurrentServer } from "setting/settingSlice";
 import { useAppDispatch } from "app/hooks";
 import { FloatMenu } from "app/FloatMenu";
-import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
-import { ThemeProvider } from "styled-components";
 
 // // import { generatorRoutes } from "./generatorRoutes";
 
@@ -56,13 +53,12 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
   }, [dispatch]);
 
   const element = useRoutes(routes(auth.user));
-  const themeState = useAppSelector(selectTheme);
 
   return (
-    <ThemeProvider theme={themeState}>
+    <>
       <Toaster />
       {element}
       <FloatMenu />
-    </ThemeProvider>
+    </>
   );
 }
