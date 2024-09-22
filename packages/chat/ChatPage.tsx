@@ -1,5 +1,4 @@
-import i18n from "i18n";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
 import { motion } from "framer-motion";
@@ -20,6 +19,25 @@ const ChatPage = () => {
   const dialogId = searchParams.get("dialogId");
   const dispatch = useAppDispatch();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "b") {
+        event.preventDefault();
+        toggleSidebar();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [toggleSidebar]);
 
   useEffect(() => {
     if (!auth.user) {
@@ -47,23 +65,19 @@ const ChatPage = () => {
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
   if (isLoading) {
     return <PageLoader />;
   }
 
   if (!auth.user) {
-    return null; // 返回 null，因为我们即将重定向
+    return null;
   }
 
   const pageContainerStyle = {
     height: "100vh",
     display: "flex",
     overflow: "hidden",
-    backgroundColor: "var(--surface1)", // 假设你使用CSS变量来定义主题颜色
+    backgroundColor: "var(--surface1)",
   };
 
   const sidebarContainerStyle = {
