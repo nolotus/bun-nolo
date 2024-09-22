@@ -11,6 +11,9 @@ const startTasks = () => {
 };
 
 const httpServer = () => {
+  // 输出 isProduction 的值
+  console.log("isProduction:", isProduction);
+
   // 启动 http 服务器
   Bun.serve({
     port: 80,
@@ -26,6 +29,7 @@ const httpServer = () => {
     },
   });
   if (isProduction) {
+    console.log("Starting HTTPS server on port 443");
     Bun.serve({
       port: 443,
       hostname: "0.0.0.0",
@@ -43,6 +47,8 @@ const httpServer = () => {
         cert: Bun.file("./cert.pem"),
       },
     });
+  } else {
+    console.log("HTTPS server not started (not in production mode)");
   }
 };
 

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { DropDown } from "render/ui";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useNavigate } from "react-router-dom";
@@ -48,9 +49,9 @@ export const IsLoggedInMenu = () => {
       direction="left"
       trigger={
         <CircleButton
-          tooltip="chat"
-          icon={<PersonIcon size="medium" />}
-          onClick={() => navigate("/life")}
+          tooltip="个人中心"
+          icon={<PersonIcon size={24} />}
+          to="/life"
         />
       }
       triggerType="hover"
@@ -81,13 +82,13 @@ export const IsLoggedInMenu = () => {
 
         <CircleButton
           tooltip={t("settings")}
-          icon={<GearIcon size="medium" />}
-          onClick={() => navigate("/settings")}
+          icon={<GearIcon size={24} />}
+          to="/settings"
         />
 
         <CircleButton
           tooltip={t("sign_out")}
-          icon={<SignOutIcon size="medium" />}
+          icon={<SignOutIcon size={24} />}
           onClick={logout}
         />
       </div>
