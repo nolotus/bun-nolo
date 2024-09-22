@@ -39,7 +39,7 @@ jobs:
             git reset --hard origin/main
             /home/nolotus/.bun/bin/bun install
             rm -rf public/assets
-            /home/nolotus/.bun/bin/bun run build
+            /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
             sudo pm2 restart all
 
   deploy-alpha-us:
