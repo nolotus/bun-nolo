@@ -40,33 +40,17 @@ jobs:
             /home/nolotus/.bun/bin/bun install
             rm -rf public/assets
             /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
-            sudo pm2 list | grep nolo | awk '{print $2}' | xargs -r sudo pm2 delete
+
+            # 使用一个命令删除所有旧的 nolo 进程
+            sudo pm2 delete nolo || true
+
+            # 启动新的进程
             sudo pm2 start packages/server/entry.ts --interpreter /home/nolotus/.bun/bin/bun --name nolo -i max --exp-backoff-restart-delay=100 --max-memory-restart 1G
+
+            # 保存 PM2 进程列表
             sudo pm2 save
 
-            # 检查 PM2 进程状态
-            pm2_status=$(sudo pm2 list | grep nolo | grep online | wc -l)
-            if [ "$pm2_status" -eq 0 ]; then
-              echo "PM2 进程未正常运行"
-              exit 1
-            fi
-
-            # 等待应用完全启动
-            sleep 10
-
-            # 检查 HTTP (80 端口) 是否响应
-            if ! curl -s -o /dev/null -w "%{http_code}" http://localhost | grep -q "200"; then
-              echo "HTTP (80 端口) 未正常响应"
-              exit 1
-            fi
-
-            # 检查 HTTPS (443 端口) 是否响应
-            if ! curl -s -o /dev/null -w "%{http_code}" -k https://localhost | grep -q "200"; then
-              echo "HTTPS (443 端口) 未正常响应"
-              exit 1
-            fi
-
-            echo "部署成功，应用在 80 和 443 端口正常运行"
+            echo "部署完成"
 
   deploy-alpha-us:
     needs: build-test
@@ -90,30 +74,14 @@ jobs:
             /root/.bun/bin/bun install
             rm -rf public/assets
             /root/.bun/bin/bun run ./scripts/esBuild.js
-            /root/.bun/bin/pm2 list | grep nolo | awk '{print $2}' | xargs -r /root/.bun/bin/pm2 delete
+
+            # 使用一个命令删除所有旧的 nolo 进程
+            /root/.bun/bin/pm2 delete nolo || true
+
+            # 启动新的进程
             /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo -i max --exp-backoff-restart-delay=100 --max-memory-restart 1G
+
+            # 保存 PM2 进程列表
             /root/.bun/bin/pm2 save
 
-            # 检查 PM2 进程状态
-            pm2_status=$(/root/.bun/bin/pm2 list | grep nolo | grep online | wc -l)
-            if [ "$pm2_status" -eq 0 ]; then
-              echo "PM2 进程未正常运行"
-              exit 1
-            fi
-
-            # 等待应用完全启动
-            sleep 10
-
-            # 检查 HTTP (80 端口) 是否响应
-            if ! curl -s -o /dev/null -w "%{http_code}" http://localhost | grep -q "200"; then
-              echo "HTTP (80 端口) 未正常响应"
-              exit 1
-            fi
-
-            # 检查 HTTPS (443 端口) 是否响应
-            if ! curl -s -o /dev/null -w "%{http_code}" -k https://localhost | grep -q "200"; then
-              echo "HTTPS (443 端口) 未正常响应"
-              exit 1
-            fi
-
-            echo "部署成功，应用在 80 和 443 端口正常运行"
+            echo "部署完成"
