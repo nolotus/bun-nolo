@@ -34,12 +34,12 @@ jobs:
           username: nolotus
           key: ${{ secrets.SERVER_TW_KEY }}
           script: |
-            cd ～/bun-nolo
+            cd bun-nolo
             git fetch --all
             git reset --hard origin/main
             bun install
             rm -rf public/assets
-            sudo bun run ./scripts/esBuild.js  
+            bun run build
             sudo pm2 restart all
 
   deploy-alpha-us:
