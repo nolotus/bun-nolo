@@ -1,5 +1,4 @@
 // CreatePrompt.tsx
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -7,9 +6,10 @@ import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import withTranslations from "i18n/withTranslations";
-import styled from "styled-components";
 import { DataType } from "create/types";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
 import {
   FormContainer,
   FormTitle,
@@ -21,30 +21,12 @@ import {
 } from "render/CommonFormComponents";
 import { PromptFormData } from "ai/types";
 
-const TagInput = styled(Input)`
-  margin-bottom: 5px;
-`;
-
-const TagContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 5px;
-`;
-
-const Tag = styled.span`
-  background-color: ${(props) => props.theme.surface3};
-  color: ${(props) => props.theme.text2};
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.9em;
-`;
-
 const CreatePrompt: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const auth = useAuth();
+  const theme = useSelector(selectTheme);
 
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState("");
@@ -81,6 +63,25 @@ const CreatePrompt: React.FC = () => {
     }
   };
 
+  const styles = {
+    tagInput: {
+      marginBottom: "5px",
+    },
+    tagContainer: {
+      display: "flex",
+      flexWrap: "wrap" as "wrap",
+      gap: "5px",
+      marginTop: "5px",
+    },
+    tag: {
+      backgroundColor: theme.surface3,
+      color: theme.text2,
+      padding: "2px 8px",
+      borderRadius: "4px",
+      fontSize: "0.9em",
+    },
+  };
+
   return (
     <FormContainer>
       <FormTitle>{t("createPrompt")}</FormTitle>
@@ -108,18 +109,21 @@ const CreatePrompt: React.FC = () => {
         />
         <FormField>
           <Label htmlFor="tags">{t("tags")}:</Label>
-          <TagInput
+          <Input
             id="tags"
             value={currentTag}
             onChange={(e) => setCurrentTag(e.target.value)}
             onKeyPress={addTag}
             placeholder={t("addTagsPlaceholder")}
+            style={styles.tagInput}
           />
-          <TagContainer>
+          <div style={styles.tagContainer}>
             {tags.map((tag, index) => (
-              <Tag key={index}>{tag}</Tag>
+              <span key={index} style={styles.tag}>
+                {tag}
+              </span>
             ))}
-          </TagContainer>
+          </div>
         </FormField>
         <SubmitButton type="submit">{t("createPrompt")}</SubmitButton>
       </form>

@@ -1,20 +1,10 @@
 // Cybots.tsx
 import React from "react";
-import styled from "styled-components";
 import { useQueryData } from "app/hooks";
 import { DataType } from "create/types";
-import {
-  ResponsiveContainer,
-  ResponsiveItem,
-} from "render/styles/ResponsiveGrid";
-
+import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
 import CybotBlock from "./CybotBlock";
-
-const LoadingText = styled.div`
-  text-align: center;
-  padding: 1rem 0;
-  color: ${(props) => props.theme.text2};
-`;
 
 interface CybotsProps {
   queryUserId: string;
@@ -33,6 +23,8 @@ interface QueryConfig {
 }
 
 const Cybots: React.FC<CybotsProps> = ({ queryUserId, limit = 20 }) => {
+  const theme = useSelector(selectTheme);
+
   const queryConfig: QueryConfig = {
     queryUserId,
     options: {
@@ -61,25 +53,42 @@ const Cybots: React.FC<CybotsProps> = ({ queryUserId, limit = 20 }) => {
     isSuccess: isSuccess2,
   } = useQueryData(queryConfig2);
 
+  const styles = {
+    loadingText: {
+      textAlign: "center",
+      padding: "1rem 0",
+      color: theme.text2,
+    },
+    responsiveContainer: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+      gap: "1rem",
+      padding: "1rem",
+    },
+    responsiveItem: {
+      width: "100%",
+    },
+  };
+
   if (isLoading && isLoading2) {
-    return <LoadingText>加载 AI 列表中...</LoadingText>;
+    return <div style={styles.loadingText}>加载 AI 列表中...</div>;
   }
 
   return (
-    <ResponsiveContainer>
+    <div style={styles.responsiveContainer}>
       {isSuccess &&
         data?.map((item) => (
-          <ResponsiveItem key={item.id}>
+          <div key={item.id} style={styles.responsiveItem}>
             <CybotBlock item={item} />
-          </ResponsiveItem>
+          </div>
         ))}
       {isSuccess2 &&
         data2?.map((item) => (
-          <ResponsiveItem key={item.id}>
+          <div key={item.id} style={styles.responsiveItem}>
             <CybotBlock item={item} />
-          </ResponsiveItem>
+          </div>
         ))}
-    </ResponsiveContainer>
+    </div>
   );
 };
 
