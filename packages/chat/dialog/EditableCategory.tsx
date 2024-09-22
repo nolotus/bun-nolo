@@ -1,51 +1,41 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { patchData, write } from "database/dbSlice";
 import { useAppSelector, useQueryData } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { useAuth } from "auth/useAuth";
+import { selectTheme } from "app/theme/themeSlice";
 
-const CategoryContainer = styled.div<{ allowEdit: boolean }>`
-  display: inline-block;
-  font-size: 12px;
-  color: ${(props) => props.theme.text2};
-  cursor: ${(props) => (props.allowEdit ? "pointer" : "default")};
-`;
+const categoryContainerStyle = (allowEdit, theme) => ({
+  display: "inline-block",
+  fontSize: theme.fontSize.small,
+  color: theme.text2,
+  cursor: allowEdit ? "pointer" : "default",
+});
 
-const CategoryInput = styled.input`
-  font-size: 12px;
-  color: ${(props) => props.theme.text1};
-  background-color: ${(props) => props.theme.surface2};
-  border: 1px solid ${(props) => props.theme.border};
-  border-radius: 4px;
-  padding: 2px 4px;
-`;
+const categoryInputStyle = (theme) => ({
+  fontSize: theme.fontSize.small,
+  color: theme.text1,
+  backgroundColor: theme.surface2,
+  border: `1px solid ${theme.surface4}`,
+  borderRadius: theme.borderRadius,
+  padding: `${theme.spacing.xsmall} ${theme.spacing.small}`,
+});
 
-interface EditableCategoryProps {
-  categoryId?: string;
-  dialogId: string;
-  allowEdit: boolean;
-}
-
-const EditableCategory: React.FC<EditableCategoryProps> = ({
-  categoryId,
-  dialogId,
-  allowEdit,
-}) => {
+const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [localCategoryName, setLocalCategoryName] = useState("");
   const dispatch = useDispatch();
   const currentUserId = useAppSelector(selectCurrentUserId);
-  // 查询所有分类
+  const theme = useSelector(selectTheme);
   const auth = useAuth();
 
   const categoryQueryConfig = {
     queryUserId: auth.user?.userId,
     options: {
       isJSON: true,
-      limit: 100, // 或者您想要的其他限制
+      limit: 100,
       condition: {
         type: DataType.Category,
       },
@@ -53,10 +43,10 @@ const EditableCategory: React.FC<EditableCategoryProps> = ({
   };
 
   const { data: categories } = useQueryData(categoryQueryConfig);
+
   useEffect(() => {
     if (categories && categoryId) {
       const category = categories.find((cat) => cat.id === categoryId);
-
       setLocalCategoryName(category ? category.name : "");
     } else {
       setLocalCategoryName("");
@@ -77,7 +67,6 @@ const EditableCategory: React.FC<EditableCategoryProps> = ({
         localCategoryName !==
           categories?.find((cat) => cat.id === categoryId)?.name)
     ) {
-      // 创建新分类
       const categoryConfig = {
         data: {
           type: DataType.Category,
@@ -93,7 +82,6 @@ const EditableCategory: React.FC<EditableCategoryProps> = ({
       try {
         const result = await dispatch(write(categoryConfig));
         if (result.payload && result.payload.id) {
-          // 更新对话，关联新创建的分类
           await dispatch(
             patchData({
               id: dialogId,
@@ -107,7 +95,7 @@ const EditableCategory: React.FC<EditableCategoryProps> = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleBlur();
     }
@@ -115,7 +103,8 @@ const EditableCategory: React.FC<EditableCategoryProps> = ({
 
   if (isEditing && allowEdit) {
     return (
-      <CategoryInput
+      <input
+        style={categoryInputStyle(theme)}
         value={localCategoryName}
         onChange={(e) => setLocalCategoryName(e.target.value)}
         onBlur={handleBlur}
@@ -126,9 +115,9 @@ const EditableCategory: React.FC<EditableCategoryProps> = ({
   }
 
   return (
-    <CategoryContainer onClick={handleClick} allowEdit={allowEdit}>
+    <div onClick={handleClick} style={categoryContainerStyle(allowEdit, theme)}>
       {localCategoryName || "No Category"}
-    </CategoryContainer>
+    </div>
   );
 };
 
