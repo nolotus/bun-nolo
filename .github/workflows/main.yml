@@ -37,9 +37,9 @@ jobs:
             cd bun-nolo
             git fetch --all
             git reset --hard origin/main
-            bun install
+            /home/nolotus/.bun/bin/bun install
             rm -rf public/assets
-            bun run build
+            /home/nolotus/.bun/bin/bun run build
             sudo pm2 restart all
 
   deploy-alpha-us:
