@@ -7,9 +7,9 @@ import { NorthStarIcon, PlusIcon } from "@primer/octicons-react";
 import AI from "ai/blocks/AI";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
+import CreateCybot from "ai/cybot/CreateCybot";
 
 import { DialogList } from "./DialogList";
-import CreateCybot from "ai/cybot/CreateCybot";
 
 const DialogSideBar = ({ dialogList }) => {
   const { t } = useTranslation();

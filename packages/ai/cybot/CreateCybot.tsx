@@ -1,4 +1,6 @@
-import React, { useMemo } from "react";
+// CreateCybot.tsx
+
+import React, { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { DataType } from "create/types";
 import { useTranslation } from "react-i18next";
@@ -8,22 +10,25 @@ import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import withTranslations from "i18n/withTranslations";
+import { modelEnum } from "../llm/models";
 import {
   FormContainer,
   FormTitle,
-  FormFieldComponent,
-  SubmitButton,
   FormField,
   Label,
   Select,
+  ErrorMessage,
+  SubmitButton,
+  FormFieldComponent,
 } from "render/CommonFormComponents";
-import { modelEnum } from "../llm/models";
 
 interface CreateCybotProps {
   onClose: () => void;
 }
 
 const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
+  console.log("CreateCybot component rendered");
+
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
@@ -34,7 +39,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm();
 
   const isPrivate = watch("isPrivate");
@@ -52,10 +57,16 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
     },
   };
 
+  console.log("Query config:", queryConfig);
+
   const { data: llmData, isLoading: isLLMLoading } = useQueryData(queryConfig);
+
+  console.log("LLM data:", llmData);
+  console.log("Is LLM loading:", isLLMLoading);
 
   // Prepare combined model options
   const modelOptions = useMemo(() => {
+    console.log("Preparing model options");
     const predefinedOptions = Object.entries(modelEnum).map(([key, value]) => ({
       value: `predefined:${value}`,
       label: key,
@@ -68,44 +79,80 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
         }))
       : [];
 
+    console.log("Predefined options:", predefinedOptions);
+    console.log("User LLM options:", userLLMOptions);
+
     return [
       { label: t("predefinedModels"), options: predefinedOptions },
       { label: t("userLLMs"), options: userLLMOptions },
     ];
   }, [llmData, t]);
 
-  const onSubmit = async (data: any) => {
-    console.log(data);
-    const [modelType, modelValue] = data.model.split(":");
-    const modelData =
-      modelType === "predefined"
-        ? { model: modelValue }
-        : { llmId: modelValue };
+  console.log("Model options:", modelOptions);
 
-    try {
-      const writeChatRobotAction = await dispatch(
-        write({
-          data: {
-            type: DataType.Cybot,
-            ...data,
-            ...modelData,
-          },
-          flags: { isJSON: true },
-          userId: auth.user?.userId,
-        }),
-      );
-      const cybotId = writeChatRobotAction.payload.id;
-      await createDialog({ cybots: [cybotId] });
-      onClose();
-    } catch (error) {
-      console.error("Error creating Cybot:", error);
-    }
-  };
+  const onSubmit = useCallback(
+    async (data: any) => {
+      console.log("onSubmit function called");
+      console.log("Form data submitted:", data);
+      const [modelType, modelValue] = data.model.split(":");
+      const modelData =
+        modelType === "predefined"
+          ? { model: modelValue }
+          : { llmId: modelValue };
+
+      console.log("Model data:", modelData);
+
+      try {
+        console.log("Dispatching write action");
+        const writeChatRobotAction = await dispatch(
+          write({
+            data: {
+              type: DataType.Cybot,
+              ...data,
+              ...modelData,
+            },
+            flags: { isJSON: true },
+            userId: auth.user?.userId,
+          }),
+        );
+        console.log("Write action result:", writeChatRobotAction);
+        const cybotId = writeChatRobotAction.payload.id;
+        console.log("Created Cybot ID:", cybotId);
+
+        console.log("Creating dialog");
+        await createDialog({ cybots: [cybotId] });
+        console.log("Dialog created successfully");
+
+        onClose();
+      } catch (error) {
+        console.error("Error creating Cybot:", error);
+      }
+    },
+    [dispatch, auth.user?.userId, createDialog, onClose],
+  );
+
+  const handleFormSubmit = handleSubmit(
+    (data) => {
+      console.log("Form submission started");
+      onSubmit(data);
+    },
+    (errors) => {
+      console.log("Form validation failed", errors);
+    },
+  );
+
+  console.log("Current form errors:", errors);
+  console.log("Is form submitting?", isSubmitting);
 
   return (
     <FormContainer>
       <FormTitle>{t("createCybot")}</FormTitle>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form
+        onSubmit={(e) => {
+          console.log("Form onSubmit triggered");
+          handleFormSubmit(e);
+        }}
+      >
         <FormFieldComponent
           label={t("cybotName")}
           name="name"
@@ -178,7 +225,15 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           />
         </FormField>
 
-        <SubmitButton type="submit" disabled={isLLMLoading || isDialogLoading}>
+        <SubmitButton
+          type="submit"
+          disabled={isLLMLoading || isDialogLoading || isSubmitting}
+          onClick={(e) => {
+            e.preventDefault();
+            console.log("Submit button clicked");
+            handleFormSubmit();
+          }}
+        >
           {t("createCybot")}
         </SubmitButton>
       </form>

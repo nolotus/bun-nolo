@@ -8,6 +8,7 @@ import { deepSeekModels } from "integrations/deepSeek/models";
 // import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { claudeModels } from "integrations/anthropic/models";
+import { googleAIModels } from "integrations/google/ai/models";
 
 export const allModels = {
   ...openAIModels,
@@ -16,6 +17,7 @@ export const allModels = {
   ...deepSeekModels,
   ...ollamaModels,
   ...claudeModels,
+  ...googleAIModels,
 };
 
 //todo add source from

@@ -1,4 +1,6 @@
-import React from "react";
+// CommonFormComponents.tsx
+
+import React, { ReactNode } from "react";
 import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
@@ -65,17 +67,21 @@ const useCommonFormStyles = () => {
   };
 };
 
-export const FormContainer: React.FC = ({ children }) => {
+interface FormContainerProps {
+  children: ReactNode;
+}
+
+export const FormContainer: React.FC<FormContainerProps> = ({ children }) => {
   const styles = useCommonFormStyles();
   return <div style={styles.formContainer}>{children}</div>;
 };
 
-export const FormTitle: React.FC = ({ children }) => {
+export const FormTitle: React.FC<{ children: ReactNode }> = ({ children }) => {
   const styles = useCommonFormStyles();
   return <h2 style={styles.formTitle}>{children}</h2>;
 };
 
-export const FormField: React.FC = ({ children }) => {
+export const FormField: React.FC<{ children: ReactNode }> = ({ children }) => {
   const styles = useCommonFormStyles();
   return <div style={styles.formField}>{children}</div>;
 };
@@ -87,28 +93,33 @@ export const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = (
   return <label {...props} style={styles.label} />;
 };
 
-export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (
-  props,
-) => {
+export const Input = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>((props, ref) => {
   const styles = useCommonFormStyles();
-  return <input {...props} style={styles.input} />;
-};
+  return <input {...props} ref={ref} style={styles.input} />;
+});
 
-export const TextArea: React.FC<
+export const TextArea = React.forwardRef<
+  HTMLTextAreaElement,
   React.TextareaHTMLAttributes<HTMLTextAreaElement>
-> = (props) => {
+>((props, ref) => {
   const styles = useCommonFormStyles();
-  return <textarea {...props} style={styles.textArea} />;
-};
+  return <textarea {...props} ref={ref} style={styles.textArea} />;
+});
 
-export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement>> = (
-  props,
-) => {
+export const Select = React.forwardRef<
+  HTMLSelectElement,
+  React.SelectHTMLAttributes<HTMLSelectElement>
+>((props, ref) => {
   const styles = useCommonFormStyles();
-  return <select {...props} style={styles.select} />;
-};
+  return <select {...props} ref={ref} style={styles.select} />;
+});
 
-export const ErrorMessage: React.FC = ({ children }) => {
+export const ErrorMessage: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const styles = useCommonFormStyles();
   return <span style={styles.errorMessage}>{children}</span>;
 };
@@ -131,7 +142,7 @@ export const SubmitButton: React.FC<
   );
 };
 
-interface FormFieldProps {
+interface FormFieldComponentProps {
   label: string;
   name: string;
   register: UseFormRegister<any>;
@@ -142,7 +153,7 @@ interface FormFieldProps {
   options?: { value: string; label: string }[];
 }
 
-export const FormFieldComponent: React.FC<FormFieldProps> = ({
+export const FormFieldComponent: React.FC<FormFieldComponentProps> = ({
   label,
   name,
   register,
@@ -152,27 +163,32 @@ export const FormFieldComponent: React.FC<FormFieldProps> = ({
   as = "input",
   options = [],
 }) => {
-  const styles = useCommonFormStyles();
+  const renderField = () => {
+    switch (as) {
+      case "textarea":
+        return <TextArea id={name} {...register(name, { required })} />;
+      case "select":
+        return (
+          <Select id={name} {...register(name, { required })}>
+            <option value="">{`Select ${label}`}</option>
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        );
+      default:
+        return (
+          <Input id={name} type={type} {...register(name, { required })} />
+        );
+    }
+  };
 
   return (
     <FormField>
       <Label htmlFor={name}>{label}:</Label>
-      {as === "input" && (
-        <Input id={name} type={type} {...register(name, { required })} />
-      )}
-      {as === "textarea" && (
-        <TextArea id={name} {...register(name, { required })} />
-      )}
-      {as === "select" && (
-        <Select id={name} {...register(name, { required })}>
-          <option value="">{`Select ${label}`}</option>
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
-      )}
+      {renderField()}
       {errors[name] && <ErrorMessage>{errors[name].message}</ErrorMessage>}
     </FormField>
   );
