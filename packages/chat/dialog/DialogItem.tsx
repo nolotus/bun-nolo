@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import * as Ariakit from "@ariakit/react";
 import { selectTheme } from "app/theme/themeSlice";
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { initDialog } from "./dialogSlice";
+import { DialogContextMenu } from "./DialogContextMenu";
+import { useWorkspace } from "../contexts/WorkspaceContext";
 
 export const DialogItem = ({ id, isCreator, source, categoryId }) => {
   const dispatch = useAppDispatch();
@@ -11,6 +14,9 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
   const theme = useSelector(selectTheme);
   const [isHovered, setIsHovered] = useState(false);
   const location = useLocation();
+  const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
+  const menu = Ariakit.useMenuStore();
+  const { workspaces, currentWorkspace } = useWorkspace();
 
   const title = dialog?.title || dialog.id;
   const isSelected = location.search === `?dialogId=${dialog.id}`;
@@ -44,11 +50,31 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
     dispatch(initDialog({ dialogId: dialog.id, source: dialog.source }));
   };
 
+  const handleContextMenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setAnchorRect({ x: event.clientX, y: event.clientY });
+    menu.show();
+  };
+
+  const handleMoveToWorkspace = (workspaceId) => {
+    // Implement the logic to move the dialog to another workspace
+    console.log(`Moving dialog ${dialog.id} to workspace ${workspaceId}`);
+    menu.hide();
+  };
+
+  const handleDeleteDialog = () => {
+    // Implement the logic to delete the dialog
+    console.log(`Deleting dialog ${dialog.id}`);
+    menu.hide();
+  };
+
   return (
     <div
       style={styles.itemContainer}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onContextMenu={handleContextMenu}
     >
       <NavLink
         to={`/chat?dialogId=${dialog.id}`}
@@ -57,6 +83,16 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
       >
         {title}
       </NavLink>
+
+      <DialogContextMenu
+        menu={menu}
+        anchorRect={anchorRect}
+        dialogId={dialog.id}
+        onMoveToWorkspace={handleMoveToWorkspace}
+        onDeleteDialog={handleDeleteDialog}
+        workspaces={workspaces}
+        currentWorkspaceId={currentWorkspace?.id}
+      />
     </div>
   );
 };

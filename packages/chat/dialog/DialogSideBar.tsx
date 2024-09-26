@@ -1,18 +1,23 @@
-// chat/dialog/DialogSideBar.tsx
-
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useSelector } from "react-redux";
+import * as Ariakit from "@ariakit/react";
 import { selectTheme } from "app/theme/themeSlice";
 import CustomizeAIButton from "ai/cybot/CustomizeAIButton";
 import { Select } from "render/ui";
+import { FileIcon, FileDirectoryIcon } from "@primer/octicons-react";
+import { useTranslation } from "react-i18next";
 
 import NewDialogButton from "./NewDialogButton";
 import { DialogList } from "./DialogList";
 import { useWorkspace } from "../contexts/WorkspaceContext";
+import { ContextMenu, MenuItem } from "render/components/ContextMenu";
 
 const DialogSideBar = ({ dialogList }) => {
   const theme = useSelector(selectTheme);
   const { workspaces, currentWorkspace, setCurrentWorkspace } = useWorkspace();
+  const { t } = useTranslation();
+  const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
+  const menu = Ariakit.useMenuStore();
 
   const sidebarContainerStyle = {
     display: "flex",
@@ -47,10 +52,8 @@ const DialogSideBar = ({ dialogList }) => {
   const handleWorkspaceChange = useCallback(
     (event) => {
       const value = event.target.value;
-      console.log("Workspace changed to:", value);
       const selectedWorkspace = workspaces.find((ws) => ws.id === value);
       if (selectedWorkspace) {
-        console.log("Setting current workspace to:", selectedWorkspace);
         setCurrentWorkspace(selectedWorkspace);
       }
     },
@@ -62,8 +65,35 @@ const DialogSideBar = ({ dialogList }) => {
     label: ws.name,
   }));
 
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    setAnchorRect({ x: event.clientX, y: event.clientY });
+    menu.show();
+  };
+
+  const menuItems: MenuItem[] = [
+    {
+      id: "addFile",
+      label: t("addFile"),
+      icon: <FileIcon size={16} />,
+      onClick: () => {
+        console.log("Add file");
+        menu.hide();
+      },
+    },
+    {
+      id: "addProject",
+      label: t("addProject"),
+      icon: <FileDirectoryIcon size={16} />,
+      onClick: () => {
+        console.log("Add project");
+        menu.hide();
+      },
+    },
+  ];
+
   return (
-    <div style={sidebarContainerStyle}>
+    <div style={sidebarContainerStyle} onContextMenu={handleContextMenu}>
       <div style={headerBarStyle}>
         <Select
           options={workspaceOptions}
@@ -81,6 +111,8 @@ const DialogSideBar = ({ dialogList }) => {
       <div style={scrollableContentStyle}>
         <DialogList dialogList={dialogList} />
       </div>
+
+      <ContextMenu menu={menu} anchorRect={anchorRect} items={menuItems} />
     </div>
   );
 };

@@ -1,11 +1,8 @@
-// src/chat/dialog/DialogContextMenu.tsx
-
 import React from "react";
 import * as Ariakit from "@ariakit/react";
 import { ArrowSwitchIcon, TrashIcon } from "@primer/octicons-react";
-import { useSelector } from "react-redux";
-import { selectTheme } from "app/theme/themeSlice";
 import { useTranslation } from "react-i18next";
+import { ContextMenu, MenuItem } from "render/components/ContextMenu";
 
 interface DialogContextMenuProps {
   menu: Ariakit.MenuStore;
@@ -27,63 +24,34 @@ export const DialogContextMenu: React.FC<DialogContextMenuProps> = ({
   currentWorkspaceId,
 }) => {
   const { t } = useTranslation();
-  const theme = useSelector(selectTheme);
 
-  const menuStyle = {
-    backgroundColor: theme.surface1,
-    color: theme.text1,
-    border: `1px solid ${theme.surface3}`,
-    borderRadius: "8px",
-    padding: "0.5rem 0",
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+  const handleMoveToWorkspace = (workspaceId: string) => {
+    onMoveToWorkspace(workspaceId);
+    menu.hide();
   };
 
-  const menuItemStyle = {
-    display: "flex",
-    alignItems: "center",
-    padding: "0.5rem 1rem",
-    cursor: "pointer",
-    color: theme.text1,
-    transition: "background-color 0.2s ease",
+  const handleDeleteDialog = () => {
+    onDeleteDialog();
+    menu.hide();
   };
 
-  const iconStyle = {
-    marginRight: "0.5rem",
-    color: theme.text2,
-  };
+  const menuItems: MenuItem[] = [
+    ...workspaces.map((workspace) => ({
+      id: `move-${workspace.id}`,
+      label: workspace.name,
+      icon: <ArrowSwitchIcon size={16} />,
+      onClick: () => handleMoveToWorkspace(workspace.id),
+      disabled: workspace.id === currentWorkspaceId,
+    })),
+    {
+      id: "delete",
+      label: t("deleteDialog"),
+      icon: <TrashIcon size={16} />,
+      onClick: handleDeleteDialog,
+    },
+  ];
 
-  const separatorStyle = {
-    height: "1px",
-    backgroundColor: theme.surface3,
-    margin: "0.25rem 0",
-  };
-
-  return (
-    <Ariakit.Menu
-      store={menu}
-      modal
-      getAnchorRect={() => anchorRect}
-      style={menuStyle}
-    >
-      <Ariakit.MenuHeading style={menuItemStyle}>
-        {t("moveToWorkspace")}
-      </Ariakit.MenuHeading>
-      {workspaces.map((workspace) => (
-        <Ariakit.MenuItem
-          key={workspace.id}
-          onClick={() => onMoveToWorkspace(workspace.id)}
-          style={menuItemStyle}
-          disabled={workspace.id === currentWorkspaceId}
-        >
-          <ArrowSwitchIcon size={16} style={iconStyle} /> {workspace.name}
-        </Ariakit.MenuItem>
-      ))}
-      <Ariakit.MenuSeparator style={separatorStyle} />
-      <Ariakit.MenuItem onClick={onDeleteDialog} style={menuItemStyle}>
-        <TrashIcon size={16} style={iconStyle} /> {t("deleteDialog")}
-      </Ariakit.MenuItem>
-    </Ariakit.Menu>
-  );
+  return <ContextMenu menu={menu} anchorRect={anchorRect} items={menuItems} />;
 };
 
 export default DialogContextMenu;
