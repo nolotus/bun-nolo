@@ -155,6 +155,5 @@ export const handleRender = async (req) => {
       },
     );
   } finally {
-    sheet.seal();
   }
 };
