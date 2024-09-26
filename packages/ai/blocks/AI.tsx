@@ -1,5 +1,4 @@
 import React from "react";
-
 import { nolotusId } from "core/init";
 import Cybots from "ai/cybot/Cybots";
 import { useAuth } from "auth/useAuth";
@@ -10,12 +9,12 @@ const AI = () => {
     <>
       {isLoggedIn && (
         <>
-          <h3 className="mb-4  ">我的 AIs</h3>
+          <h3 style={{ marginBottom: "1rem" }}>我的 AIs</h3>
           <Cybots queryUserId={user?.userId} />
         </>
       )}
 
-      <h3 className="mb-4 ">公共 AIs</h3>
+      <h3 style={{ marginBottom: "1rem" }}>公共 AIs</h3>
       <Cybots queryUserId={nolotusId} />
     </>
   );

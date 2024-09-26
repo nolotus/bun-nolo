@@ -16,11 +16,19 @@ const CreateChatAIButton = () => {
       <Dialog
         isOpen={configModalVisible}
         onClose={closeConfigModal}
-        title={<h2 className="text-xl font-bold">{t("createRobot")}</h2>}
+        title={
+          <h2 style={{ fontSize: "1.25rem", fontWeight: "bold" }}>
+            {t("createRobot")}
+          </h2>
+        }
       >
         <CreateCybot onClose={closeConfigModal} />
       </Dialog>
-      <button type="button" onClick={openConfigModal} className="text-blue-400">
+      <button
+        type="button"
+        onClick={openConfigModal}
+        style={{ color: "#60a5fa" }}
+      >
         创建对话AI
       </button>
     </>
