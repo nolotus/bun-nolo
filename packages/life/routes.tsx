@@ -35,12 +35,6 @@ const Statistics = (
     fallback={<PageLoader />}
   />
 );
-const Notes = (
-  <LazyLoadComponent
-    factory={() => import("./web/Notes")}
-    fallback={<PageLoader />}
-  />
-);
 
 const Calendar = (
   <LazyLoadComponent
@@ -59,7 +53,6 @@ export const routes = {
         { path: "all", element: All },
         { path: "database", element: Database },
         { path: "statistics", element: Statistics },
-        { path: "notes", element: Notes },
         { path: "calendar", element: Calendar },
       ],
     },

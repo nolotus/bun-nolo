@@ -8,6 +8,10 @@ import { initDialog } from "./dialogSlice";
 import { DialogContextMenu } from "./DialogContextMenu";
 import { useWorkspace } from "../contexts/WorkspaceContext";
 
+// TasklistIcon
+//FileIcon
+//ArchiveIcon
+//FileMediaIcon
 export const DialogItem = ({ id, isCreator, source, categoryId }) => {
   const dispatch = useAppDispatch();
   const { data: dialog } = useFetchData(id, { source });

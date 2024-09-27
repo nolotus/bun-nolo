@@ -1,7 +1,7 @@
 import { useAppDispatch } from "app/hooks";
 import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, Select } from "render/ui";
+import { Select } from "render/ui";
 import { SortDescIcon } from "@primer/octicons-react";
 import { setSortKey, setSortOrder } from "../lifeSlice";
 
@@ -25,12 +25,33 @@ export const FilterPanel = () => {
   };
 
   return (
-    <Card className="my-4 p-4">
-      <div className="flex gap-4">
-        <div className="flex flex-col gap-2">
+    <div
+      style={{
+        padding: "16px",
+        marginTop: "16px",
+        marginBottom: "16px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
           <label
             htmlFor="sortKey"
-            className="text-sm font-medium text-gray-700"
+            style={{
+              fontSize: "14px",
+              fontWeight: "500",
+              color: "#374151",
+            }}
           >
             Sort Key:
           </label>
@@ -38,13 +59,34 @@ export const FilterPanel = () => {
             id="sortKey"
             onChange={handleSortKeyChange}
             placeholder="Enter key to sort"
-            className="w-full rounded border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            style={{
+              width: "100%",
+              borderRadius: "4px",
+              border: "1px solid #D1D5DB",
+              padding: "8px",
+              boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+              outline: "none",
+            }}
           />
         </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-700">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
+          <label
+            style={{
+              fontSize: "14px",
+              fontWeight: "500",
+              color: "#374151",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
+          >
             <SortDescIcon size={24} />
-            {/* <SortAscIcon size={24} /> */}
             Sort Order:
           </label>
           <Select
@@ -55,6 +97,6 @@ export const FilterPanel = () => {
           />
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
