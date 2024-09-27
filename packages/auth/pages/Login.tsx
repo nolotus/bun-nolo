@@ -1,24 +1,25 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PersonIcon, LockIcon } from "@primer/octicons-react";
-import { FormField } from "render/ui/Form/FormField";
-import { LifeRoutePaths } from "life/routes";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
+
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { NavLink, useNavigate } from "react-router-dom";
-import { Button } from "render/ui";
+import { NavLink } from "react-router-dom";
 import Sizes from "open-props/src/sizes";
-import { useAppDispatch } from "app/hooks";
-import { useSelector } from "react-redux";
+
 import { hashPassword } from "core/password";
 import { storeTokens } from "auth/client/token";
+
+import { FormField } from "render/ui/Form/FormField";
+import { Button } from "render/ui";
+import { useAppDispatch } from "app/hooks";
 
 import { signInFields } from "../schema";
 import { signIn } from "../authSlice";
 import { userFormSchema } from "../schema";
 
 const Login: React.FC = () => {
-  const navigate = useNavigate();
   const { isLoading } = useSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
@@ -41,7 +42,7 @@ const Login: React.FC = () => {
 
     if (action.payload.token) {
       storeTokens(action.payload.token);
-      navigate(`/${LifeRoutePaths.WELCOME}`);
+      window.location.href = "/"; // 使用普通 JavaScript 跳转
     }
     if (action.payload.status) {
       switch (action.payload.status) {
@@ -61,44 +62,66 @@ const Login: React.FC = () => {
       }
     }
   };
+
   return (
-    <div>
-      <div className="flex items-center justify-center">
-        <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-lg">
-          <h2 className="mb-6">{t("login")}</h2>
-          {signInFields.map((field) => (
-            <div key={field.id} className="mb-6">
-              <label htmlFor={field.id} className="mb-2 block">
-                {t(field.label)}
-              </label>
-              <FormField
-                {...field}
-                register={register}
-                errors={errors}
-                icon={field.id === "username" ? <PersonIcon /> : <LockIcon />}
-              />
-            </div>
-          ))}
-          {error && <p className="mb-2 mt-2 text-sm text-red-500">{error}</p>}
-          <Button
-            type="submit"
-            width="w-full" // 通过 props 传递宽度类
-            loading={isLoading}
-          >
-            {t("submit")}
-          </Button>
-          <div
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        style={{ width: "100%", maxWidth: "32rem" }}
+      >
+        <h2 style={{ marginBottom: "1.5rem" }}>{t("login")}</h2>
+        {signInFields.map((field) => (
+          <div key={field.id} style={{ marginBottom: "1.5rem" }}>
+            <label
+              htmlFor={field.id}
+              style={{ display: "block", marginBottom: "0.5rem" }}
+            >
+              {t(field.label)}
+            </label>
+            <FormField
+              {...field}
+              register={register}
+              errors={errors}
+              icon={field.id === "username" ? <PersonIcon /> : <LockIcon />}
+            />
+          </div>
+        ))}
+        {error && (
+          <p
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: Sizes["--size-fluid-1"],
+              marginTop: "0.5rem",
+              marginBottom: "0.5rem",
+              color: "red",
+              fontSize: "0.875rem",
             }}
           >
-            <NavLink to="/signup">注册</NavLink>
-            <NavLink to="/">忘记密码</NavLink>
-          </div>
-        </form>
-      </div>
+            {error}
+          </p>
+        )}
+        <Button
+          type="submit"
+          width="100%" // 通过 props 传递宽度样式
+          loading={isLoading}
+        >
+          {t("submit")}
+        </Button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: Sizes["--size-fluid-1"],
+          }}
+        >
+          <NavLink to="/signup">注册</NavLink>
+          <NavLink to="/">忘记密码</NavLink>
+        </div>
+      </form>
     </div>
   );
 };

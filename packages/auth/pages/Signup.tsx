@@ -4,17 +4,15 @@ import { useAppDispatch } from "app/hooks";
 import { signUp } from "auth/authSlice";
 import { storeTokens } from "auth/client/token";
 import { FormField } from "render/ui/Form/FormField";
-import { LifeRoutePaths } from "life/routes";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Button } from "render/ui";
 
 import { signUpfields, signUpSchema } from "../schema";
 
 const Signup: React.FC = () => {
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -22,10 +20,7 @@ const Signup: React.FC = () => {
 
   const onSubmit = async (user) => {
     try {
-      // setLoading(true);
-      // await handleSignup(user);
-
-      // Get the user's language setting
+      setLoading(true);
       const locale = navigator.language;
       dispatch(signUp({ ...user, locale })).then((action) => {
         const result = action.payload;
@@ -33,7 +28,7 @@ const Signup: React.FC = () => {
         if (token) {
           storeTokens(token);
         }
-        navigate(`/${LifeRoutePaths.WELCOME}`);
+        window.location.href = "/"; // 使用普通 JavaScript 跳转
       });
     } catch (error) {
       setError(error.message);

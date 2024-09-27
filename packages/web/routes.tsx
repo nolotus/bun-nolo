@@ -10,7 +10,6 @@ import { SurfTip } from "./SurfTip";
 import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
 const Page = lazy(() => import("render/page/PageIndex"));
-import People from "app/pages/People";
 
 export const routes = (currentUser) => [
   {
@@ -25,10 +24,7 @@ export const routes = (currentUser) => [
         path: "lab",
         element: <Lab />,
       },
-      {
-        path: "people",
-        element: <People />,
-      },
+
       ...authRoutes,
       ...createRoutes,
 

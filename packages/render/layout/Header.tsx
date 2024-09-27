@@ -3,15 +3,6 @@ import React, { useState, useCallback } from "react";
 import NavListItem from "render/layout/blocks/NavListItem";
 
 const nav = [
-  // { path: "/", label: "首页", icon: <HomeIcon size={24} /> },
-  // {
-  //   path: "/spots",
-  //   label: "兴趣点",
-  //   icon: <LocationIcon size={24} />,
-  // },
-  // { path: '/itineraries', label: '行程' },
-  // { path: "/people", label: "游民", icon: <PeopleIcon size={24} /> },
-  // { path: '/gears', label: '装备' },
   // {
   //   path: "/lab",
   //   label: "实验室",
