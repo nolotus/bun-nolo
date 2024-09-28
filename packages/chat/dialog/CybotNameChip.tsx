@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useFetchData } from "app/hooks";
 import { extractCustomId } from "core";
 import { useModal, Dialog } from "render/ui";
-import ChatConfigForm from "ai/blocks/ChatConfigForm";
+import EditCybot from "ai/cybot/EditCybot";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 
@@ -52,7 +52,7 @@ const CybotNameChip = React.memo(({ cybotId, source }) => {
           onClose={closeEdit}
           title={`Edit ${cybot.name || "Cybot"}`}
         >
-          <ChatConfigForm initialValues={cybot} onClose={closeEdit} />
+          <EditCybot initialValues={cybot} onClose={closeEdit} />
         </Dialog>
       )}
     </>

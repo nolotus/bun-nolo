@@ -13,7 +13,7 @@ import { selectTheme } from "app/theme/themeSlice";
 
 import { editSchema, editFields } from "../llm/schema";
 
-const ChatConfigForm = ({ initialValues, onClose }) => {
+const EditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [updateEntry] = useUpdateEntryMutation();
@@ -98,4 +98,4 @@ const ChatConfigForm = ({ initialValues, onClose }) => {
   );
 };
 
-export default ChatConfigForm;
+export default EditCybot;

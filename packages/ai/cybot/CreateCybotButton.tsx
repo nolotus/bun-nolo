@@ -2,7 +2,7 @@ import { useModal, Dialog } from "render/ui";
 import { useTranslation } from "react-i18next";
 import CreateCybot from "../cybot/CreateCybot";
 
-const CreateChatAIButton = () => {
+const CreateCybotButton = () => {
   const { t } = useTranslation();
 
   const {
@@ -34,4 +34,4 @@ const CreateChatAIButton = () => {
     </>
   );
 };
-export default CreateChatAIButton;
+export default CreateCybotButton;
