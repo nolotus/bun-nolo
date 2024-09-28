@@ -1,15 +1,11 @@
-import { TrashIcon, RepoPullIcon, RepoPushIcon } from "@primer/octicons-react";
 import { useAppDispatch } from "app/hooks";
-import { useAuth } from "auth/useAuth";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 import { omit } from "rambda";
-import React, { useState } from "react";
+import React from "react";
 
-import DataItem from "./DataItem";
 import { write } from "database/dbSlice";
-import { CardList } from "./CardList";
 import { DataTable } from "./DataTable";
-const DataDisplay = ({ data, type, viewMode = "table" }) => {
+const DataDisplay = ({ data, type }) => {
   const dispatch = useAppDispatch();
 
   const pullData = async (id, value) => {
@@ -50,99 +46,11 @@ const DataDisplay = ({ data, type, viewMode = "table" }) => {
     // refreshData(auth.user?.userId);
   };
 
-  const [selectedItems, setSelectedItems] = useState({});
-
-  const toggleSelectAll = () => {
-    const newSelectedItems = data.map((item) => item.id);
-
-    setSelectedItems(newSelectedItems);
-  };
-
-  const deleteSelectedItems = async () => {
-    await Promise.all(Object.keys(selectedItems).map((itemId) => {}));
-    // refreshData(auth.user?.userId);
-  };
-  const paySelectedItems = async () => {
-    const data = {
-      payIds: [],
-    };
-    // refreshData(auth.user?.userId);
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        {/* <div>
-          <input
-            type="checkbox"
-            checked={Object.keys(selectedItems).length === data.length}
-            onChange={toggleSelectAll}
-          />
-          <label>全选</label>
-        </div> */}
-        {/* <button
-          onClick={paySelectedItems}
-          className="rounded bg-red-500 p-2 text-white hover:bg-red-400"
-        >
-          支付
-        </button> */}
-        {/* <button
-          onClick={deleteSelectedItems}
-          className="rounded bg-red-500 p-2 text-white hover:bg-red-400"
-        >
-          删除选中
-        </button> */}
-      </div>
-      <div className="">
-        {viewMode === "table" ? (
-          <DataTable dataList={data} type={type} pullData={pullData} />
-        ) : (
-          <CardList dataList={data} />
-        )}
-        {/* {data
-          ? data.map((item) => (
-              <div
-                className=" group flex w-full  px-8 py-4  sm:w-full md:w-1/2 lg:w-1/3"
-                key={item.id}
-              >
-                <div className={`${} w-full p-4`}>
-                  <DataItem item={item} />
-                  <ul className="-m-1 flex flex-wrap">
-                    {item.source?.map((adderss) => (
-                      <li key={adderss} className="m-1">
-                        <span className="mr-2 inline-block rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
-                          {adderss}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="invisible ml-4 flex flex-col space-y-2 group-hover:visible">
-                  <button
-                    type="button"
-                    onClick={() => pullData(item.id, item)}
-                    className="rounded bg-yellow-500 p-2 text-white hover:bg-yellow-400"
-                  >
-                    <RepoPullIcon size={16} />
-                  </button>
-                  <button
-                    onClick={() => pushData(item.id, item)}
-                    className="rounded bg-green-500 p-2 text-white hover:bg-green-400"
-                  >
-                    <RepoPushIcon size={16} />
-                  </button>
-
-                  <button
-                    onClick={() => deleteItem(item.id)}
-                    className="rounded bg-red-500 p-2  hover:bg-red-400"
-                  >
-                    <TrashIcon size={16} />
-                  </button>
-                </div>
-              </div>
-            ))
-          : "Loading..."} */}
+      <div className="flex items-center justify-between"></div>
+      <div>
+        <DataTable dataList={data} type={type} pullData={pullData} />
       </div>
     </div>
   );
