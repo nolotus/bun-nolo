@@ -116,7 +116,7 @@ const DialogSlice = createSliceWithThunks({
         const { dispatch } = thunkApi;
         dispatch(setCurrentDialogId(dialogId));
         dispatch(resetCurrentDialogTokens());
-        const action = await dispatch(read({ id: dialogId, source }));
+        const action = await dispatch(read({ id: dialogId }));
         return { ...action.payload, source };
       },
       {
@@ -130,6 +130,34 @@ const DialogSlice = createSliceWithThunks({
       },
     ),
     deleteDialog: create.asyncThunk(
+      async (dialogId, thunkApi) => {
+        const { dispatch, getState } = thunkApi;
+        dispatch(removeOne(dialogId));
+        const state = getState();
+        const action = await dispatch(read({ id: dialogId }));
+        const dialog = action.payload;
+        const deleteConfig = { id: dialogId };
+        if (dialog.messageListId) {
+          const body = { ids: state.message.ids };
+          const deleteMesssagListAction = await dispatch(
+            deleteData({
+              id: dialog.messageListId,
+              body,
+            }),
+          );
+          await dispatch(deleteData(deleteConfig));
+        } else {
+          await dispatch(deleteData(deleteConfig));
+        }
+      },
+      {
+        fulfilled: (state) => {
+          state.currentDialogConfig = null;
+          state.currentDialogId = null;
+        },
+      },
+    ),
+    deleteCurrentDialog: create.asyncThunk(
       async (dialog, thunkApi) => {
         const { dispatch, getState } = thunkApi;
         const state = getState();
@@ -166,6 +194,7 @@ export const {
   initDialog,
   setCurrentDialogId,
   deleteDialog,
+  deleteCurrentDialog,
   updateInputTokens,
   updateOutputTokens,
   resetCurrentDialogTokens,

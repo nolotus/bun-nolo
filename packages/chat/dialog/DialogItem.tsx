@@ -67,12 +67,6 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
     menu.hide();
   };
 
-  const handleDeleteDialog = () => {
-    // Implement the logic to delete the dialog
-    console.log(`Deleting dialog ${dialog.id}`);
-    menu.hide();
-  };
-
   return (
     <div
       style={styles.itemContainer}
@@ -93,7 +87,6 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
         anchorRect={anchorRect}
         dialogId={dialog.id}
         onMoveToWorkspace={handleMoveToWorkspace}
-        onDeleteDialog={handleDeleteDialog}
         workspaces={workspaces}
         currentWorkspaceId={currentWorkspace?.id}
       />

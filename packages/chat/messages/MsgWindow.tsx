@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Alert, useDeleteAlert } from "render/ui";
 import { useCouldEdit } from "auth/useCouldEdit";
-import { deleteDialog } from "../dialog/dialogSlice";
+import { deleteCurrentDialog } from "../dialog/dialogSlice";
 import { selectCostByUserId } from "ai/selectors";
 
 import MessageInput from "./MessageInput";
@@ -30,7 +30,7 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
   );
 
   const onDeleteDialog = useCallback(async () => {
-    dispatch(deleteDialog(currentDialogConfig));
+    dispatch(deleteCurrentDialog(currentDialogConfig));
     navigate(-1);
   }, [dispatch, currentDialogConfig, navigate]);
 

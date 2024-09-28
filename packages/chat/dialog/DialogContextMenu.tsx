@@ -3,6 +3,9 @@ import * as Ariakit from "@ariakit/react";
 import { ArrowSwitchIcon, TrashIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import { ContextMenu, MenuItem } from "render/components/ContextMenu";
+import { useAppDispatch, useFetchData } from "app/hooks";
+
+import { deleteDialog } from "./dialogSlice";
 
 interface DialogContextMenuProps {
   menu: Ariakit.MenuStore;
@@ -19,11 +22,11 @@ export const DialogContextMenu: React.FC<DialogContextMenuProps> = ({
   anchorRect,
   dialogId,
   onMoveToWorkspace,
-  onDeleteDialog,
   workspaces,
   currentWorkspaceId,
 }) => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
 
   const handleMoveToWorkspace = (workspaceId: string) => {
     onMoveToWorkspace(workspaceId);
@@ -31,7 +34,7 @@ export const DialogContextMenu: React.FC<DialogContextMenuProps> = ({
   };
 
   const handleDeleteDialog = () => {
-    onDeleteDialog();
+    dispatch(deleteDialog(dialogId));
     menu.hide();
   };
 
