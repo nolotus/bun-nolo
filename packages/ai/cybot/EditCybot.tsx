@@ -14,6 +14,7 @@ import { selectTheme } from "app/theme/themeSlice";
 import { editSchema, editFields } from "../llm/schema";
 
 const EditCybot = ({ initialValues, onClose }) => {
+  console.log("initialValues", initialValues);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [updateEntry] = useUpdateEntryMutation();

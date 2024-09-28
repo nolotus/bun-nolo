@@ -70,7 +70,6 @@ const Page = ({ id }) => {
           <div className="max-w-8xl m-4 mx-auto w-full flex-grow">
             {renderContent()}
           </div>
-          {/* <Footer /> */}
         </div>
       );
     }

@@ -5,16 +5,9 @@ import { Layout } from "./Layout";
 import { PageLoader } from "render/blocks/PageLoader";
 
 export enum LifeRoutePaths {
-  ALL = "life/all",
   STATISTICS = "life/statistics",
 }
 
-const All = (
-  <LazyLoadComponent
-    factory={() => import("./web/All")}
-    fallback={<PageLoader />}
-  />
-);
 const Database = (
   <LazyLoadComponent
     factory={() => import("./web/Database")}
@@ -42,7 +35,6 @@ export const routes = {
       path: "life",
       children: [
         { index: true, element: Database },
-        { path: "all", element: All },
         { path: "statistics", element: Statistics },
         { path: "calendar", element: Calendar },
       ],

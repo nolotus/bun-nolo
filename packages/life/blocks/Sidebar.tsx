@@ -1,9 +1,4 @@
-import {
-  CalendarIcon,
-  DatabaseIcon,
-  GraphIcon,
-  NoteIcon,
-} from "@primer/octicons-react";
+import { CalendarIcon, DatabaseIcon, GraphIcon } from "@primer/octicons-react";
 import clsx from "clsx";
 import React from "react";
 
@@ -16,17 +11,10 @@ export const Sidebar = () => {
     clsx(buttonBaseClass, isActive && activeClass);
   return (
     <div className="flex flex-col  p-4" style={{ gap: "12px" }}>
-      <NavLink to="/life/database" className={getNavLinkClass}>
+      <NavLink to="/life" className={getNavLinkClass}>
         <button>
           <DatabaseIcon size={20} />
           <span>database</span>
-        </button>
-      </NavLink>
-
-      <NavLink to="/life/all" className={getNavLinkClass}>
-        <button>
-          <DatabaseIcon size={20} />
-          <span>All</span>
         </button>
       </NavLink>
 

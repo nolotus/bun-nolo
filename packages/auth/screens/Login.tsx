@@ -82,7 +82,6 @@ const LoginScreen = ({ navigation }) => {
     dispatch(signIn({ ...data, locale }))
       .then(() => {
         navigation.navigate("User"); // 跳转到 AuthStack 的 Login Screen
-        // navigate(`/${LifeRoutePaths.WELCOME}`);
       })
       .catch((error) => {
         // let message;

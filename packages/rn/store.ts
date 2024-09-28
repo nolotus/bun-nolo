@@ -1,7 +1,6 @@
 import authReducer from "auth/authSlice";
 import messageReducer from "chat/messages/messageSlice";
 import dbReducer from "database/dbSlice";
-import lifeReducer from "life/lifeSlice";
 import themeReducer from "app/theme/themeSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { api } from "app/api";
@@ -12,7 +11,6 @@ const preloadedState = {};
 
 export const mobileStore = configureStore({
   reducer: {
-    life: lifeReducer,
     message: messageReducer,
     auth: authReducer,
     db: dbReducer,
