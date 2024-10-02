@@ -1,4 +1,3 @@
-// CybotBlock.tsx
 import React from "react";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { Button } from "render/ui";
@@ -37,12 +36,14 @@ const CybotBlock = ({ item }) => {
       marginBottom: "1rem",
     },
     title: {
-      fontSize: "1.25rem",
+      fontSize: "1rem", // 缩小字体大小
       fontWeight: "bold",
       color: theme.text1,
       whiteSpace: "nowrap",
       overflow: "hidden",
       textOverflow: "ellipsis",
+      flexShrink: 0, // 防止标题缩小
+      maxWidth: "calc(100% - 100px)", // 预留按钮的空间
     },
     button: {
       backgroundColor: theme.accentColor,
@@ -51,6 +52,7 @@ const CybotBlock = ({ item }) => {
       padding: "0.5rem 1rem",
       borderRadius: "0.375rem",
       transition: "background-color 0.2s ease, color 0.2s ease",
+      minWidth: "80px", // 确保按钮有足够的宽度
     },
     infoContainer: {
       flexGrow: 1,

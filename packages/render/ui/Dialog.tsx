@@ -1,34 +1,65 @@
 import { XIcon } from "@primer/octicons-react";
 import React from "react";
-import OpenProps from "open-props";
+import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
 
 import { Modal } from "./index";
 
 export const Dialog = ({ isOpen, onClose, title, children }) => {
+  const theme = useSelector(selectTheme);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div
-        className="surface1"
         style={{
+          backgroundColor: theme.surface1,
           height: "auto",
           maxHeight: "80vh",
           display: "flex",
           flexDirection: "column",
-          borderRadius: OpenProps.radius1,
+          borderRadius: theme.borderRadius,
         }}
       >
-        <div className="flex items-center justify-between p-6">
-          <h2>{title}</h2>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: `${theme.spacing.large} ${theme.spacing.large}`,
+          }}
+        >
+          <h2 style={{ color: theme.text1, fontSize: theme.fontSize.large }}>
+            {title}
+          </h2>
           <button
-            className=" hover:text-red-500"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: theme.text1,
+            }}
             onClick={onClose}
             aria-label="Close"
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = theme.primaryColor)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = theme.textColor)
+            }
           >
-            <XIcon size={24} />
+            <XIcon size={theme.iconSize.medium} />
           </button>
         </div>
 
-        <div className="overflow-auto p-6">{children}</div>
+        <div
+          style={{
+            overflow: "auto",
+            padding: theme.spacing.large,
+            color: theme.text1,
+          }}
+        >
+          {children}
+        </div>
       </div>
     </Modal>
   );

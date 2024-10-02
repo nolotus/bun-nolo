@@ -1,6 +1,6 @@
 import React from "react";
 import { XIcon } from "@primer/octicons-react";
-import { Modal, useModal } from "render/ui/Modal"; // 假设 ModalComponent 是包含 useModal 的文件名
+import { Modal, useModal } from "render/ui/Modal";
 
 interface ImagePreviewProps {
   imageUrls: string[];

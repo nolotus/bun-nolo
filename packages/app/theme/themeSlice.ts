@@ -35,14 +35,19 @@ const commonThemeValues = {
   },
   form: {
     fieldSpacing: "16px",
-    labelWidth: ["100%", "30%", "25%", "20%"],
-    inputWidth: ["100%", "70%", "75%", "80%"],
+    labelWidth: ["100%", "100%", "30%", "25%", "20%", "20%"],
+    inputWidth: ["100%", "100%", "70%", "75%", "80%", "80%"],
   },
   button: {
     padding: "8px 0",
     marginTop: "16px",
   },
-  breakpoints: [640, 768, 1024, 1280],
+  breakpoints: [480, 640, 768, 1024, 1280, 1536],
+  zIndex: {
+    layer1: 1,
+    layer2: 2,
+    layer3: 3,
+  },
 };
 
 // 辅助函数：根据断点生成响应式值
