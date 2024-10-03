@@ -1,9 +1,13 @@
+// Layout.tsx
 import { AnimatePresence, motion } from "framer-motion";
 import React, { Suspense } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import Sizes from "open-props/src/sizes";
+import { Outlet, useLocation, Link } from "react-router-dom";
+import { CommentIcon, HomeIcon, SignInIcon } from "@primer/octicons-react";
+import Sidebar from "render/layout/Sidebar";
 
-const Layout = ({ disableAnimation = false }) => {
+const Layout: React.FC<{ disableAnimation?: boolean }> = ({
+  disableAnimation = false,
+}) => {
   const location = useLocation();
 
   const renderContent = () => {
@@ -26,21 +30,57 @@ const Layout = ({ disableAnimation = false }) => {
     );
   };
 
-  return (
-    <>
-      <div className="flex min-h-screen flex-col">
-        <div
-          className="mx-auto w-full flex-grow"
+  const sidebarContent = (
+    <ul style={{ listStyleType: "none", padding: 0 }}>
+      <li style={{ marginBottom: "16px" }}>
+        <Link
+          to="/"
           style={{
-            paddingTop: Sizes["--size-fluid-3"],
-            paddingLeft: Sizes["--size-fluid-7"],
-            paddingRight: Sizes["--size-fluid-7"],
+            color: "#2563eb",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
           }}
         >
-          <Suspense fallback={<div>loading</div>}>{renderContent()}</Suspense>
-        </div>
-      </div>
-    </>
+          <HomeIcon size={24} style={{ marginRight: "8px" }} />
+          <span>Home</span>
+        </Link>
+      </li>
+      <li style={{ marginBottom: "16px" }}>
+        <Link
+          to="/about"
+          style={{
+            color: "#2563eb",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <CommentIcon size={24} style={{ marginRight: "8px" }} />
+          <span>About</span>
+        </Link>
+      </li>
+      <li style={{ marginBottom: "16px" }}>
+        <Link
+          to="/contact"
+          style={{
+            color: "#2563eb",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <SignInIcon size={24} style={{ marginRight: "8px" }} />
+          <span>Contact</span>
+        </Link>
+      </li>
+    </ul>
+  );
+
+  return (
+    <Sidebar sidebarContent={sidebarContent}>
+      <Suspense fallback={<div>loading</div>}>{renderContent()}</Suspense>
+    </Sidebar>
   );
 };
 
