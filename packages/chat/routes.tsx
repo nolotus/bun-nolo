@@ -4,27 +4,38 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "render/layout/Sidebar";
 import CustomizeAIButton from "ai/cybot/CustomizeAIButton";
 import NewDialogButton from "chat/dialog/NewDialogButton";
-import { useSelector } from "react-redux";
-import { selectTheme } from "app/theme/themeSlice";
 import withTranslations from "i18n/withTranslations";
+import { styles } from "render/ui/styles";
+import { useAppSelector, useQueryData } from "app/hooks";
+import { DataType } from "create/types";
+import { selectCurrentUserId } from "auth/authSlice";
 
+import DialogSideBar from "./dialog/DialogSideBar";
 const ChatPage = lazy(() => import("./ChatPage"));
+const ChatGuide = lazy(() => import("./ChatGuide"));
 
 const Layout = () => {
-  const theme = useSelector(selectTheme);
+  const currentUserId = useAppSelector(selectCurrentUserId);
 
-  const buttonContainerStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: theme.spacing.medium,
+  const queryConfig = {
+    queryUserId: currentUserId,
+    options: {
+      isJSON: true,
+      limit: 200,
+      condition: {
+        type: DataType.Dialog,
+      },
+    },
   };
+  const { isLoading, isSuccess } = useQueryData(queryConfig);
 
   const sidebarContent = (
     <nav>
-      <div style={buttonContainerStyle}>
+      <div style={{ ...styles.flexBetween, ...styles.gap2 }}>
         <CustomizeAIButton />
         <NewDialogButton />
       </div>
+      <DialogSideBar />
     </nav>
   );
 
@@ -34,14 +45,23 @@ const Layout = () => {
     </Sidebar>
   );
 };
+
 const WithI18n = withTranslations(Layout, ["chat", "ai"]);
 
 export const routes = {
-  path: "/",
+  path: "/chat",
   element: <WithI18n />,
   children: [
     {
-      path: "chat",
+      index: true,
+      element: (
+        <Suspense fallback={<PageLoader />}>
+          <ChatGuide />
+        </Suspense>
+      ),
+    },
+    {
+      path: "/chat/:dialogId",
       element: (
         <Suspense fallback={<PageLoader />}>
           <ChatPage />

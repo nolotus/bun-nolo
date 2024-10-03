@@ -61,7 +61,7 @@ export const DialogList = ({ dialogList, source }) => {
 
   const handleDialogSelect = (dialogId) => {
     setSelectedDialogId(dialogId);
-    window.history.pushState({}, "", `/chat?dialogId=${dialogId}`);
+    window.history.pushState({}, "", `/chat/${dialogId}`);
   };
 
   if (isCategoriesLoading) {

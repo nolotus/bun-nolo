@@ -79,7 +79,7 @@ export const useCreateDialog = (): UseCreateDialogResult => {
         };
 
         const result = await dispatch(write(dialogConfig));
-        navigate(`/chat?dialogId=${result.payload.id}`);
+        navigate(`/chat/${result.payload.id}`);
         setIsSuccess(true);
       } catch (error) {
         // 错误处理

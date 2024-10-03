@@ -2,7 +2,7 @@ import CreateCybotButton from "ai/cybot/CreateCybotButton";
 import { nolotusId } from "core/init";
 import Cybots from "ai/cybot/Cybots";
 
-export const ChatGuide = () => {
+const ChatGuide = () => {
   return (
     <div className="container mt-16">
       <h3>创建自己的</h3>
@@ -12,3 +12,4 @@ export const ChatGuide = () => {
     </div>
   );
 };
+export default ChatGuide;

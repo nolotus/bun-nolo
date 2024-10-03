@@ -67,7 +67,7 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
       onContextMenu={handleContextMenu}
     >
       <NavLink
-        to={`/chat?dialogId=${dialog.id}`}
+        to={`/chat/${dialog.id}`}
         style={styles.link}
         onClick={handleClick}
       >

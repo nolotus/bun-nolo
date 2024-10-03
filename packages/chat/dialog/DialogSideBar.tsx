@@ -4,11 +4,21 @@ import * as Ariakit from "@ariakit/react";
 import { selectTheme } from "app/theme/themeSlice";
 import { FileIcon, FileDirectoryIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
+import { useAppSelector } from "app/hooks";
+import { selectFilteredDataByUserAndType } from "database/selectors";
+import { selectCurrentUserId } from "auth/authSlice";
+import { DataType } from "create/types";
 
 import { DialogList } from "./DialogList";
 import { ContextMenu, MenuItem } from "render/components/ContextMenu";
 
-const DialogSideBar = ({ dialogList }) => {
+const DialogSideBar = ({}) => {
+  const currentUserId = useAppSelector(selectCurrentUserId);
+
+  const dialogList = useAppSelector(
+    selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
+  );
+
   const theme = useSelector(selectTheme);
   const { t } = useTranslation();
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
