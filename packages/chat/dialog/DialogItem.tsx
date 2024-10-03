@@ -6,7 +6,6 @@ import { selectTheme } from "app/theme/themeSlice";
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { initDialog } from "./dialogSlice";
 import { DialogContextMenu } from "./DialogContextMenu";
-import { useWorkspace } from "../contexts/WorkspaceContext";
 
 // TasklistIcon
 //FileIcon
@@ -20,7 +19,6 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
   const location = useLocation();
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
-  const { workspaces, currentWorkspace } = useWorkspace();
 
   const title = dialog?.title || dialog.id;
   const isSelected = location.search === `?dialogId=${dialog.id}`;
@@ -61,12 +59,6 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
     menu.show();
   };
 
-  const handleMoveToWorkspace = (workspaceId) => {
-    // Implement the logic to move the dialog to another workspace
-    console.log(`Moving dialog ${dialog.id} to workspace ${workspaceId}`);
-    menu.hide();
-  };
-
   return (
     <div
       style={styles.itemContainer}
@@ -86,9 +78,6 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
         menu={menu}
         anchorRect={anchorRect}
         dialogId={dialog.id}
-        onMoveToWorkspace={handleMoveToWorkspace}
-        workspaces={workspaces}
-        currentWorkspaceId={currentWorkspace?.id}
       />
     </div>
   );

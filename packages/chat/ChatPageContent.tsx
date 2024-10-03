@@ -13,7 +13,6 @@ import DialogSidebar from "./dialog/DialogSideBar";
 import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
 import ChatWindow from "./messages/MsgWindow";
 import { ChatGuide } from "./ChatGuide";
-import { useWorkspace } from "./contexts/WorkspaceContext";
 
 const ChatPageContent = () => {
   const auth = useAuth();
@@ -21,8 +20,6 @@ const ChatPageContent = () => {
   const dialogId = searchParams.get("dialogId");
   const dispatch = useAppDispatch();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { currentWorkspace, setCurrentWorkspace, moveEntityToWorkspace } =
-    useWorkspace();
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
@@ -107,14 +104,7 @@ const ChatPageContent = () => {
           damping: 30,
         }}
       >
-        {dialogList.length > 0 && (
-          <DialogSidebar
-            dialogList={dialogList}
-            currentWorkspace={currentWorkspace}
-            setCurrentWorkspace={setCurrentWorkspace}
-            moveEntityToWorkspace={moveEntityToWorkspace}
-          />
-        )}
+        {dialogList.length > 0 && <DialogSidebar dialogList={dialogList} />}
       </motion.div>
 
       <div style={mainContentStyle}>
@@ -123,7 +113,6 @@ const ChatPageContent = () => {
             currentDialogConfig={currentDialogConfig}
             toggleSidebar={toggleSidebar}
             isSidebarOpen={isSidebarOpen}
-            currentWorkspace={currentWorkspace}
           />
         )}
 
