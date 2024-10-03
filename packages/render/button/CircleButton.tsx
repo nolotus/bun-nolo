@@ -1,11 +1,20 @@
 import React from "react";
 import { Tooltip } from "@primer/react/next";
 import { Link } from "react-router-dom";
-import { circleButtonStyle } from "render/button/style";
+import OpenProps from "open-props";
 
 export const CircleButton = ({ tooltip, icon, to, onClick }) => {
   const ButtonContent = (
-    <button style={{ ...circleButtonStyle, color: "inherit" }}>{icon}</button>
+    <button
+      style={{
+        padding: "10px",
+        borderRadius: OpenProps.radiusRound,
+        cursor: "pointer",
+        color: "inherit",
+      }}
+    >
+      {icon}
+    </button>
   );
 
   return (

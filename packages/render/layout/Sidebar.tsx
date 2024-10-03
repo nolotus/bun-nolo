@@ -1,4 +1,4 @@
-// render/layout/Sidebar
+// render/layout/Sidebar.tsx
 import React, { useState, useEffect, ReactNode, useCallback } from "react";
 import { SignOutIcon, SignInIcon, GearIcon } from "@primer/octicons-react";
 import { useSelector, useDispatch } from "react-redux";
@@ -7,10 +7,13 @@ import { selectTheme } from "app/theme/themeSlice";
 import { fixedLinks, bottomLinks, allowRule } from "auth/navPermissions";
 import { RoutePaths } from "auth/client/routes";
 import { useTranslation } from "react-i18next";
+import { styles, themeStyles } from "render/ui/styles";
+import OpenProps from "open-props";
 
 import { useAuth } from "auth/useAuth";
 import { signOut } from "auth/authSlice";
 import { removeToken } from "auth/client/token";
+import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
 
 import SidebarToggleButton from "./SidebarToggleButton";
 import NavListItem from "./blocks/NavListItem";
@@ -18,12 +21,18 @@ import NavListItem from "./blocks/NavListItem";
 interface SidebarProps {
   children: ReactNode;
   sidebarContent: ReactNode;
+  fullWidth?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  children,
+  sidebarContent,
+  fullWidth = false,
+}) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { isLoggedIn, user } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const theme = useSelector(selectTheme);
@@ -64,23 +73,55 @@ const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
   }, [toggleSidebar]);
 
   return (
-    <div style={styles.container(theme)}>
+    <div
+      style={{
+        ...styles.flex,
+        ...styles.h100vh,
+        ...themeStyles.bgColor1(theme),
+      }}
+    >
       <SidebarToggleButton
         onClick={toggleSidebar}
         isSidebarOpen={isSidebarOpen}
       />
-      <aside style={styles.sidebar(theme, isSidebarOpen)}>
-        <nav style={styles.nav}>
+      <aside style={sidebarStyles(theme, isSidebarOpen)}>
+        {isLoggedIn && (
+          <div style={{ marginBottom: OpenProps.size3 }}>
+            <IsLoggedInMenu />
+          </div>
+        )}
+
+        <nav style={{ marginBottom: OpenProps.size4 }}>
           {allowedFixedLinks.map((item) => (
             <NavListItem key={item.path} {...item} />
           ))}
         </nav>
-        <div style={styles.sidebarContentContainer}>{sidebarContent}</div>
-        <div style={styles.bottomSection(theme)}>
+        <div
+          style={{
+            ...styles.flexColumn,
+            ...styles.flexGrow1,
+            marginBottom: OpenProps.size4,
+          }}
+        >
+          {sidebarContent}
+        </div>
+        <div
+          style={{
+            borderTop: `1px solid ${theme.text3}`,
+            paddingTop: OpenProps.size3,
+            marginTop: "auto",
+          }}
+        >
           {allowedBottomLinks.map((item) => (
             <NavListItem key={item.path} {...item} />
           ))}
-          <div style={styles.authButtonsContainer}>
+          <div
+            style={{
+              ...styles.flexColumn,
+              ...styles.gap1,
+              marginTop: OpenProps.size3,
+            }}
+          >
             {auth?.isLoggedIn ? (
               <>
                 <NavListItem
@@ -104,70 +145,43 @@ const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
           </div>
         </div>
       </aside>
-      <main style={styles.content(theme, isSidebarOpen)}>
-        <div style={styles.innerContent(theme)}>{children}</div>
+      <main style={contentStyles(theme, isSidebarOpen)}>
+        <div style={innerContentStyles(theme, fullWidth)}>{children}</div>
       </main>
     </div>
   );
 };
 
-const styles = {
-  container: (theme) => ({
-    display: "flex",
-    minHeight: "100vh",
-    backgroundColor: theme.backgroundColor,
-  }),
-  sidebar: (theme, isSidebarOpen) => ({
-    width: "240px",
-    backgroundColor: theme.surface1,
-    height: "100vh",
-    position: "fixed",
-    left: isSidebarOpen ? 0 : "-240px",
-    top: 0,
-    overflowY: "auto",
-    transition: "left 0.3s ease-in-out",
-    zIndex: theme.zIndex.layer2,
-    color: theme.text1,
-    padding: "48px 16px 16px",
-    display: "flex",
-    flexDirection: "column",
-  }),
-  nav: {
-    marginBottom: "24px",
-  },
-  sidebarContentContainer: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    alignItems: "stretch",
-    marginBottom: "24px",
-  },
-  bottomSection: (theme) => ({
-    borderTop: `1px solid ${theme.text3}`,
-    paddingTop: "16px",
-    marginTop: "auto",
-  }),
-  authButtonsContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    marginTop: "16px",
-  },
-  content: (theme, isSidebarOpen) => ({
-    flexGrow: 1,
-    marginLeft: isSidebarOpen ? "240px" : 0,
-    transition: "margin-left 0.3s ease-in-out",
-    width: isSidebarOpen ? "calc(100% - 240px)" : "100%",
-    overflowX: "hidden",
-    backgroundColor: theme.backgroundColor,
-  }),
-  innerContent: (theme) => ({
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: "48px 24px 24px",
-    color: theme.text1,
-  }),
-};
+const sidebarStyles = (theme, isSidebarOpen) => ({
+  width: "240px",
+  ...themeStyles.bgColor1(theme),
+  height: "100vh",
+  position: "fixed",
+  left: isSidebarOpen ? 0 : "-240px",
+  top: 0,
+  overflowY: "auto",
+  transition: "left 0.3s ease-in-out",
+  zIndex: 2,
+  ...themeStyles.textColor1(theme),
+  padding: OpenProps.size3,
+  ...styles.flexColumn,
+});
+
+const contentStyles = (theme, isSidebarOpen) => ({
+  ...styles.flexGrow1,
+  marginLeft: isSidebarOpen ? "240px" : 0,
+  transition: "margin-left 0.3s ease-in-out",
+  width: isSidebarOpen ? "calc(100% - 240px)" : "100%",
+  overflowX: "hidden",
+  ...themeStyles.bgColor1(theme),
+});
+
+const innerContentStyles = (theme, fullWidth) => ({
+  width: fullWidth ? "100%" : "100%",
+  maxWidth: fullWidth ? "none" : "1200px",
+  margin: fullWidth ? 0 : "0 auto",
+  padding: fullWidth ? 0 : "48px 24px 24px",
+  ...themeStyles.textColor1(theme),
+});
 
 export default Sidebar;

@@ -2,12 +2,10 @@ import React, { useCallback, useState } from "react";
 import { useSelector } from "react-redux";
 import * as Ariakit from "@ariakit/react";
 import { selectTheme } from "app/theme/themeSlice";
-import CustomizeAIButton from "ai/cybot/CustomizeAIButton";
 import { Select } from "render/ui";
 import { FileIcon, FileDirectoryIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 
-import NewDialogButton from "./NewDialogButton";
 import { DialogList } from "./DialogList";
 import { useWorkspace } from "../contexts/WorkspaceContext";
 import { ContextMenu, MenuItem } from "render/components/ContextMenu";
@@ -35,12 +33,6 @@ const DialogSideBar = ({ dialogList }) => {
 
   const workspaceSelectStyle = {
     marginBottom: theme.spacing.medium,
-  };
-
-  const buttonContainerStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: theme.spacing.medium,
   };
 
   const scrollableContentStyle = {
@@ -102,10 +94,6 @@ const DialogSideBar = ({ dialogList }) => {
           style={workspaceSelectStyle}
           placeholder="Select a workspace"
         />
-        <div style={buttonContainerStyle}>
-          <CustomizeAIButton />
-          <NewDialogButton />
-        </div>
       </div>
 
       <div style={scrollableContentStyle}>

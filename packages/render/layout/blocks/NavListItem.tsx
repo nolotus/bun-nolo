@@ -3,6 +3,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
+import { styles } from "render/ui/styles";
 
 interface NavListItemProps {
   path?: string;
@@ -20,21 +21,22 @@ const NavListItem: React.FC<NavListItemProps> = ({
   const theme = useSelector(selectTheme);
 
   const defaultStyle: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    padding: `${theme.spacing.small} ${theme.spacing.medium}`,
-    fontWeight: "bold",
-    transition: "color 0.2s, background-color 0.2s",
+    ...styles.flex,
+    ...styles.flexStart,
+    ...styles.transition,
+    ...styles.clickable,
+    ...styles.py1,
+    ...styles.px2,
+    ...styles.mb1,
+    ...styles.fontSemiBold,
+    ...styles.roundedMd,
     color: theme.text1,
     textDecoration: "none",
-    borderRadius: theme.borderRadius,
-    marginBottom: theme.spacing.small,
-    cursor: "pointer",
   };
 
   const Content = () => (
     <>
-      {icon && <span style={{ marginRight: theme.spacing.small }}>{icon}</span>}
+      {icon && <span style={{ ...styles.mr2 }}>{icon}</span>}
       <span>{label}</span>
     </>
   );

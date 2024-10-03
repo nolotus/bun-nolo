@@ -1,20 +1,19 @@
 import React from "react";
 import { DropDown } from "render/ui";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import OpenProps from "open-props";
 import { PersonIcon } from "@primer/octicons-react";
-import { flex } from "render/ui/styles";
-import { CircleButton } from "render/button/CircleButton";
+import { Tooltip } from "@primer/react/next";
+import { Link } from "react-router-dom";
 
 import { changeCurrentUser, selectUsers } from "../authSlice";
 import { getTokensFromLocalStorage } from "../client/token";
 import { parseToken } from "../token";
 import { useAuth } from "../useAuth";
+import { styles } from "render/ui/styles";
 
 export const IsLoggedInMenu = () => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
-
   const users = useAppSelector(selectUsers);
 
   const changeUser = (user) => {
@@ -36,21 +35,42 @@ export const IsLoggedInMenu = () => {
     <DropDown
       direction="left"
       trigger={
-        <CircleButton
-          tooltip="个人中心"
-          icon={<PersonIcon size={24} />}
-          to="/life"
-        />
+        <div style={{ ...styles.flex, ...styles.flexStart, ...styles.gap1 }}>
+          <Tooltip text="个人中心" direction="n">
+            <Link
+              to="/life"
+              style={{ color: "inherit", textDecoration: "none" }}
+            >
+              <button
+                style={{
+                  ...styles.clickable,
+                  ...styles.transition,
+                  ...styles.roundedFull,
+                  padding: "8px", // 增加内边距以适应更大的图标
+                  color: "inherit",
+                  background: "none",
+                  border: "none",
+                }}
+              >
+                <PersonIcon size={36} /> {/* 将图标尺寸从 24 增加到 36 */}
+              </button>
+            </Link>
+          </Tooltip>
+          <span style={{ fontSize: "16px", fontWeight: "500" }}>
+            {" "}
+            {/* 增加字体大小 */}
+            {auth.user?.username}
+          </span>
+        </div>
       }
       triggerType="hover"
     >
       <div
         style={{
-          ...flex,
-          flexDirection: "row-reverse",
-          width: "120px",
-          gap: OpenProps.sizeFluid1,
-          paddingRight: OpenProps.sizeFluid1,
+          ...styles.flexColumn,
+          ...styles.gap1,
+          width: "160px",
+          ...styles.p1,
         }}
       >
         {users.map(
@@ -61,7 +81,16 @@ export const IsLoggedInMenu = () => {
                 key={user.userId}
                 type="button"
                 onClick={() => changeUser(user)}
-                className="px-2"
+                style={{
+                  ...styles.clickable,
+                  ...styles.transition,
+                  ...styles.p1,
+                  ...styles.rounded,
+                  textAlign: "left",
+                  background: "none",
+                  border: "none",
+                  width: "100%",
+                }}
               >
                 {user.username}
               </button>

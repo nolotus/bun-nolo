@@ -3,14 +3,11 @@ import { useMediaQuery } from "react-responsive";
 import Sizes from "open-props/src/sizes";
 
 import { useAuth } from "auth/useAuth";
-import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
 import { CreateMenu } from "create/blocks/CreateMenu";
 
 import OpenProps from "open-props";
-import { useTranslation } from "react-i18next";
 
 export const FloatMenu = () => {
-  const { t } = useTranslation();
   const laptop = useMediaQuery({ minWidth: 768, maxWidth: 1280 });
   const { isLoggedIn } = useAuth();
 
@@ -25,11 +22,7 @@ export const FloatMenu = () => {
         gap: Sizes["--size-relative-7"],
       }}
     >
-      {isLoggedIn && (
-        <>
-          <CreateMenu /> <IsLoggedInMenu />
-        </>
-      )}
+      {isLoggedIn && <CreateMenu />}
     </div>
   );
 };
