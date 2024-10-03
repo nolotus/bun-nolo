@@ -1,5 +1,5 @@
 // chat/ChatPageContent.tsx
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
 import { motion } from "framer-motion";
@@ -19,26 +19,6 @@ const ChatPageContent = () => {
   const [searchParams] = useSearchParams();
   const dialogId = searchParams.get("dialogId");
   const dispatch = useAppDispatch();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => !prev);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "b") {
-        event.preventDefault();
-        toggleSidebar();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [toggleSidebar]);
 
   useEffect(() => {
     if (!auth.user) {
@@ -97,7 +77,7 @@ const ChatPageContent = () => {
       <motion.div
         style={sidebarContainerStyle}
         initial={{ width: 300 }}
-        animate={{ width: isSidebarOpen ? 300 : 0 }}
+        animate={{ width: 300 }}
         transition={{
           type: "spring",
           stiffness: 300,
@@ -109,11 +89,7 @@ const ChatPageContent = () => {
 
       <div style={mainContentStyle}>
         {currentDialogConfig && isSuccess && (
-          <ChatWindow
-            currentDialogConfig={currentDialogConfig}
-            toggleSidebar={toggleSidebar}
-            isSidebarOpen={isSidebarOpen}
-          />
+          <ChatWindow currentDialogConfig={currentDialogConfig} />
         )}
 
         {isSuccess && dialogList.length === 0 && <ChatGuide />}

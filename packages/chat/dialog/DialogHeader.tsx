@@ -9,13 +9,10 @@ import { selectTheme } from "app/theme/themeSlice";
 import EditableTitle from "./EditableTitle";
 import CybotNameChip from "./CybotNameChip";
 import { useCreateDialog } from "./useCreateDialog";
-import ToggleSidebarButton from "./ToggleSidebarButton";
 import EditableCategory from "./EditableCategory";
 
 const DialogHeader = ({
   currentDialogConfig,
-  toggleSidebar,
-  isSidebarOpen,
   allowEdit,
   onDeleteClick,
   onSettingsClick,
@@ -103,7 +100,6 @@ const DialogHeader = ({
 
   return (
     <div style={styles.headerBar}>
-      <ToggleSidebarButton onClick={toggleSidebar} isOpen={isSidebarOpen} />
       <div style={styles.contentContainer}>
         <div style={styles.cybotNamesContainer}>
           {currentDialogConfig.cybots?.map((cybotId) => (

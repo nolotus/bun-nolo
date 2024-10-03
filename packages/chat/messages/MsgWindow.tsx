@@ -12,7 +12,7 @@ import { handleSendMessage } from "./messageSlice";
 import MessagesList from "./MessageList";
 import ChatHeader from "../dialog/DialogHeader";
 
-const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
+const ChatWindow = ({ currentDialogConfig }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -72,8 +72,6 @@ const ChatWindow = ({ currentDialogConfig, toggleSidebar, isSidebarOpen }) => {
     <div style={chatContainerStyle}>
       <ChatHeader
         currentDialogConfig={currentDialogConfig}
-        toggleSidebar={toggleSidebar}
-        isSidebarOpen={isSidebarOpen}
         allowEdit={allowEdit}
         onDeleteClick={() => confirmDelete(currentDialogConfig)}
       />
