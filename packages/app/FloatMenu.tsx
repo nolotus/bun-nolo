@@ -1,5 +1,4 @@
 import React from "react";
-import { SignInIcon } from "@primer/octicons-react";
 import { useMediaQuery } from "react-responsive";
 import Sizes from "open-props/src/sizes";
 
@@ -7,10 +6,8 @@ import { useAuth } from "auth/useAuth";
 import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
 import { CreateMenu } from "create/blocks/CreateMenu";
 
-import { RoutePaths } from "auth/client/routes";
 import OpenProps from "open-props";
 import { useTranslation } from "react-i18next";
-import { CircleButton } from "render/button/CircleButton";
 
 export const FloatMenu = () => {
   const { t } = useTranslation();
@@ -28,16 +25,10 @@ export const FloatMenu = () => {
         gap: Sizes["--size-relative-7"],
       }}
     >
-      {isLoggedIn && <CreateMenu />}
-
-      {isLoggedIn ? (
-        <IsLoggedInMenu />
-      ) : (
-        <CircleButton
-          tooltip={t("login")}
-          icon={<SignInIcon size="small" />}
-          to={RoutePaths.LOGIN}
-        />
+      {isLoggedIn && (
+        <>
+          <CreateMenu /> <IsLoggedInMenu />
+        </>
       )}
     </div>
   );

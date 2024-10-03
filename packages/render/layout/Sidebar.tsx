@@ -1,11 +1,16 @@
 // render/layout/Sidebar
 import React, { useState, useEffect, ReactNode, useCallback } from "react";
 import { SignOutIcon, SignInIcon, GearIcon } from "@primer/octicons-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { selectTheme } from "app/theme/themeSlice";
 import { fixedLinks, bottomLinks, allowRule } from "auth/navPermissions";
+import { RoutePaths } from "auth/client/routes";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "auth/useAuth";
+import { signOut } from "auth/authSlice";
+import { removeToken } from "auth/client/token";
 
 import SidebarToggleButton from "./SidebarToggleButton";
 import NavListItem from "./blocks/NavListItem";
@@ -13,23 +18,29 @@ import NavListItem from "./blocks/NavListItem";
 interface SidebarProps {
   children: ReactNode;
   sidebarContent: ReactNode;
-  onLogout: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
-  children,
-  sidebarContent,
-  onLogout,
-}) => {
+const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
+  const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const theme = useSelector(selectTheme);
   const auth = useAuth();
+  const currentToken = useSelector((state) => state.auth.currentToken);
   const allowedFixedLinks = allowRule(auth?.user, fixedLinks);
   const allowedBottomLinks = allowRule(auth?.user, bottomLinks);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
   }, []);
+
+  const logout = () => {
+    removeToken(currentToken);
+    dispatch(signOut());
+    navigate("/");
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -78,16 +89,16 @@ const Sidebar: React.FC<SidebarProps> = ({
                   path="/settings"
                 />
                 <NavListItem
-                  label="Log out"
+                  label={t("logout")}
                   icon={<SignOutIcon size={16} />}
-                  onClick={onLogout}
+                  onClick={logout}
                 />
               </>
             ) : (
               <NavListItem
-                label="Log in"
+                label={t("login")}
                 icon={<SignInIcon size={16} />}
-                path="/login"
+                path={RoutePaths.LOGIN}
               />
             )}
           </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useLocation, Link } from "react-router-dom";
-import { HomeIcon, SignInIcon } from "@primer/octicons-react";
+import { HomeIcon } from "@primer/octicons-react";
 import Sidebar from "render/layout/Sidebar";
 import Default from "render/layout/Default";
 import Sizes from "open-props/src/sizes";
@@ -50,20 +50,6 @@ const MainLayout: React.FC = () => {
         >
           <HomeIcon size={24} style={{ marginRight: "8px" }} />
           <span>Home</span>
-        </Link>
-      </li>
-      <li style={{ marginBottom: "16px" }}>
-        <Link
-          to="/contact"
-          style={{
-            color: "#2563eb",
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <SignInIcon size={24} style={{ marginRight: "8px" }} />
-          <span>Contact</span>
         </Link>
       </li>
     </ul>

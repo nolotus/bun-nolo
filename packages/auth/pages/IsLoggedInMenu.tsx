@@ -1,32 +1,21 @@
 import React from "react";
 import { DropDown } from "render/ui";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { useNavigate } from "react-router-dom";
 import OpenProps from "open-props";
-import { PersonIcon, SignOutIcon } from "@primer/octicons-react";
-import { useTranslation } from "react-i18next";
+import { PersonIcon } from "@primer/octicons-react";
 import { flex } from "render/ui/styles";
 import { CircleButton } from "render/button/CircleButton";
 
-import { changeCurrentUser, selectUsers, signOut } from "../authSlice";
-import { getTokensFromLocalStorage, removeToken } from "../client/token";
+import { changeCurrentUser, selectUsers } from "../authSlice";
+import { getTokensFromLocalStorage } from "../client/token";
 import { parseToken } from "../token";
 import { useAuth } from "../useAuth";
 
 export const IsLoggedInMenu = () => {
-  const { t } = useTranslation();
   const auth = useAuth();
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
   const users = useAppSelector(selectUsers);
-  const currentToken = useAppSelector((state) => state.auth.currentToken);
-
-  const logout = () => {
-    removeToken(currentToken);
-    dispatch(signOut());
-    navigate("/");
-  };
 
   const changeUser = (user) => {
     const tokens = getTokensFromLocalStorage();
@@ -78,12 +67,6 @@ export const IsLoggedInMenu = () => {
               </button>
             ),
         )}
-
-        <CircleButton
-          tooltip={t("sign_out")}
-          icon={<SignOutIcon size={24} />}
-          onClick={logout}
-        />
       </div>
     </DropDown>
   );
