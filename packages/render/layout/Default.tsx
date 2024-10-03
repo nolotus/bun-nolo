@@ -2,7 +2,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React, { Suspense } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
-import { CommentIcon, HomeIcon, SignInIcon } from "@primer/octicons-react";
+import { HomeIcon, SignInIcon } from "@primer/octicons-react";
 import Sidebar from "render/layout/Sidebar";
 
 const Layout: React.FC<{ disableAnimation?: boolean }> = ({
@@ -46,20 +46,7 @@ const Layout: React.FC<{ disableAnimation?: boolean }> = ({
           <span>Home</span>
         </Link>
       </li>
-      <li style={{ marginBottom: "16px" }}>
-        <Link
-          to="/about"
-          style={{
-            color: "#2563eb",
-            textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <CommentIcon size={24} style={{ marginRight: "8px" }} />
-          <span>About</span>
-        </Link>
-      </li>
+
       <li style={{ marginBottom: "16px" }}>
         <Link
           to="/contact"

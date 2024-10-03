@@ -1,5 +1,5 @@
 import React from "react";
-import { CommentIcon, HomeIcon, SignInIcon } from "@primer/octicons-react";
+import { SignInIcon } from "@primer/octicons-react";
 import { useMediaQuery } from "react-responsive";
 import Sizes from "open-props/src/sizes";
 
@@ -28,19 +28,7 @@ export const FloatMenu = () => {
         gap: Sizes["--size-relative-7"],
       }}
     >
-      <CircleButton
-        tooltip="回到首页"
-        icon={<HomeIcon size="medium" />}
-        to="/"
-      />
-
       {isLoggedIn && <CreateMenu />}
-
-      <CircleButton
-        tooltip="chat"
-        icon={<CommentIcon size="medium" />}
-        to="/chat"
-      />
 
       {isLoggedIn ? (
         <IsLoggedInMenu />
