@@ -1,5 +1,11 @@
 // render/layout/Sidebar.tsx
-import React, { useState, useEffect, ReactNode, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+  useRef,
+} from "react";
 import { SignOutIcon, SignInIcon, GearIcon } from "@primer/octicons-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -35,15 +41,41 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { isLoggedIn, user } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
   const theme = useSelector(selectTheme);
   const auth = useAuth();
-  const currentToken = useSelector((state) => state.auth.currentToken);
+  const currentToken = useSelector((state: any) => state.auth.currentToken);
   const allowedFixedLinks = allowRule(auth?.user, fixedLinks);
   const allowedBottomLinks = allowRule(auth?.user, bottomLinks);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
   }, []);
+
+  const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
+    setIsResizing(true);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback(
+    (mouseMoveEvent: MouseEvent) => {
+      if (isResizing && sidebarRef.current) {
+        const newWidth =
+          mouseMoveEvent.clientX -
+          sidebarRef.current.getBoundingClientRect().left;
+        if (newWidth > 200 && newWidth < 600) {
+          setSidebarWidth(newWidth);
+        }
+      }
+    },
+    [isResizing],
+  );
 
   const logout = () => {
     removeToken(currentToken);
@@ -66,11 +98,16 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
     window.addEventListener("keydown", handleKeyDown);
 
+    window.addEventListener("mousemove", resize);
+    window.addEventListener("mouseup", stopResizing);
+
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
     };
-  }, [toggleSidebar]);
+  }, [toggleSidebar, resize, stopResizing]);
 
   return (
     <div
@@ -84,104 +121,129 @@ const Sidebar: React.FC<SidebarProps> = ({
         onClick={toggleSidebar}
         isSidebarOpen={isSidebarOpen}
       />
-      <aside style={sidebarStyles(theme, isSidebarOpen)}>
-        {isLoggedIn && (
-          <div style={{ marginBottom: OpenProps.size3 }}>
-            <IsLoggedInMenu />
-          </div>
-        )}
+      <aside
+        ref={sidebarRef}
+        style={sidebarStyles(theme, isSidebarOpen, sidebarWidth)}
+      >
+        <div style={sidebarContentStyles}>
+          {isLoggedIn && (
+            <div style={{ marginBottom: OpenProps.size3 }}>
+              <IsLoggedInMenu />
+            </div>
+          )}
 
-        <nav style={{ marginBottom: OpenProps.size4 }}>
-          {allowedFixedLinks.map((item) => (
-            <NavListItem key={item.path} {...item} />
-          ))}
-        </nav>
-        <div
-          style={{
-            ...styles.flexColumn,
-            ...styles.flexGrow1,
-            marginBottom: OpenProps.size4,
-          }}
-        >
-          {sidebarContent}
-        </div>
-        <div
-          style={{
-            borderTop: `1px solid ${theme.text3}`,
-            paddingTop: OpenProps.size3,
-            marginTop: "auto",
-          }}
-        >
-          {allowedBottomLinks.map((item) => (
-            <NavListItem key={item.path} {...item} />
-          ))}
-          <div
-            style={{
-              ...styles.flexColumn,
-              ...styles.gap1,
-              marginTop: OpenProps.size3,
-            }}
-          >
-            {auth?.isLoggedIn ? (
-              <>
+          <nav style={{ marginBottom: OpenProps.size4 }}>
+            {allowedFixedLinks.map((item) => (
+              <NavListItem key={item.path} {...item} />
+            ))}
+          </nav>
+          <div style={scrollableContentStyles}>{sidebarContent}</div>
+          <div style={bottomContentStyles(theme)}>
+            {allowedBottomLinks.map((item) => (
+              <NavListItem key={item.path} {...item} />
+            ))}
+            <div
+              style={{
+                ...styles.flexColumn,
+                ...styles.gap1,
+                marginTop: OpenProps.size3,
+              }}
+            >
+              {auth?.isLoggedIn ? (
+                <>
+                  <NavListItem
+                    label="Settings"
+                    icon={<GearIcon size={16} />}
+                    path="/settings"
+                  />
+                  <NavListItem
+                    label={t("logout")}
+                    icon={<SignOutIcon size={16} />}
+                    onClick={logout}
+                  />
+                </>
+              ) : (
                 <NavListItem
-                  label="Settings"
-                  icon={<GearIcon size={16} />}
-                  path="/settings"
+                  label={t("login")}
+                  icon={<SignInIcon size={16} />}
+                  path={RoutePaths.LOGIN}
                 />
-                <NavListItem
-                  label={t("logout")}
-                  icon={<SignOutIcon size={16} />}
-                  onClick={logout}
-                />
-              </>
-            ) : (
-              <NavListItem
-                label={t("login")}
-                icon={<SignInIcon size={16} />}
-                path={RoutePaths.LOGIN}
-              />
-            )}
+              )}
+            </div>
           </div>
         </div>
+        <div style={resizeHandleStyles(theme)} onMouseDown={startResizing} />
       </aside>
-      <main style={contentStyles(theme, isSidebarOpen)}>
+      <main style={contentStyles(theme, isSidebarOpen, sidebarWidth)}>
         <div style={innerContentStyles(theme, fullWidth)}>{children}</div>
       </main>
     </div>
   );
 };
 
-const sidebarStyles = (theme, isSidebarOpen) => ({
-  width: "240px",
+const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
+  width: `${width}px`,
   ...themeStyles.bgColor1(theme),
   height: "100vh",
-  position: "fixed",
-  left: isSidebarOpen ? 0 : "-240px",
+  position: "fixed" as const,
+  left: isSidebarOpen ? 0 : `-${width}px`,
   top: 0,
-  overflowY: "auto",
   transition: "left 0.3s ease-in-out",
   zIndex: 2,
   ...themeStyles.textColor1(theme),
   padding: OpenProps.size3,
-  ...styles.flexColumn,
+  display: "flex",
+  flexDirection: "column" as const,
 });
 
-const contentStyles = (theme, isSidebarOpen) => ({
+const sidebarContentStyles = {
+  display: "flex",
+  flexDirection: "column" as const,
+  height: "100%",
+  overflow: "hidden",
+};
+
+const scrollableContentStyles = {
+  flexGrow: 1,
+  overflowY: "auto" as const,
+  marginBottom: OpenProps.size4,
+};
+
+const bottomContentStyles = (theme: any) => ({
+  borderTop: `1px solid ${theme.text3}`,
+  paddingTop: OpenProps.size3,
+  marginTop: "auto",
+});
+
+const contentStyles = (
+  theme: any,
+  isSidebarOpen: boolean,
+  sidebarWidth: number,
+) => ({
   ...styles.flexGrow1,
-  marginLeft: isSidebarOpen ? "240px" : 0,
+  marginLeft: isSidebarOpen ? `${sidebarWidth}px` : 0,
   transition: "margin-left 0.3s ease-in-out",
-  width: isSidebarOpen ? "calc(100% - 240px)" : "100%",
-  overflowX: "hidden",
+  width: isSidebarOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",
+  overflowX: "hidden" as const,
   ...themeStyles.bgColor1(theme),
 });
 
-const innerContentStyles = (theme, fullWidth) => ({
+const innerContentStyles = (theme: any, fullWidth: boolean) => ({
   width: fullWidth ? "100%" : "100%",
   maxWidth: fullWidth ? "none" : "1200px",
   margin: fullWidth ? 0 : "0 auto",
   padding: fullWidth ? 0 : "48px 24px 24px",
   ...themeStyles.textColor1(theme),
+});
+
+const resizeHandleStyles = (theme: any) => ({
+  width: "4px",
+  height: "100%",
+  position: "absolute" as const,
+  top: 0,
+  right: 0,
+  cursor: "col-resize",
+  backgroundColor: theme.border,
 });
 
 export default Sidebar;

@@ -14,7 +14,6 @@ import { ContextMenu, MenuItem } from "render/components/ContextMenu";
 
 const DialogSideBar = ({}) => {
   const currentUserId = useAppSelector(selectCurrentUserId);
-
   const dialogList = useAppSelector(
     selectFilteredDataByUserAndType(currentUserId, DataType.Dialog),
   );
@@ -25,16 +24,8 @@ const DialogSideBar = ({}) => {
   const menu = Ariakit.useMenuStore();
 
   const sidebarContainerStyle = {
-    display: "flex",
-    flexDirection: "column",
     height: "100%",
     backgroundColor: theme.surface1,
-  };
-
-  const scrollableContentStyle = {
-    flexGrow: 1,
-    overflowY: "auto",
-    padding: `0 ${theme.sidebarPadding} ${theme.sidebarPadding}`,
   };
 
   const handleContextMenu = (event: React.MouseEvent) => {
@@ -66,9 +57,7 @@ const DialogSideBar = ({}) => {
 
   return (
     <div style={sidebarContainerStyle} onContextMenu={handleContextMenu}>
-      <div style={scrollableContentStyle}>
-        <DialogList dialogList={dialogList} />
-      </div>
+      <DialogList dialogList={dialogList} />
       <ContextMenu menu={menu} anchorRect={anchorRect} items={menuItems} />
     </div>
   );

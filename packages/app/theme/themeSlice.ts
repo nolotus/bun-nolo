@@ -7,7 +7,6 @@ import { blues } from "../colors";
 const mainColors = [...blues];
 
 const commonThemeValues = {
-  sidebarPadding: "10px",
   borderRadius: "5px",
   fontSize: {
     small: "12px",
