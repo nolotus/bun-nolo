@@ -1,33 +1,66 @@
+// render/layout/blocks/NavListItem.tsx
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
 
 interface NavListItemProps {
-  path: string;
+  path?: string;
   label: string;
-  icon?: JSX.Element;
-  style?: React.CSSProperties; // 添加style属性
+  icon?: React.ReactNode;
+  onClick?: () => void;
 }
 
 const NavListItem: React.FC<NavListItemProps> = ({
   path,
   label,
   icon,
-  style,
+  onClick,
 }) => {
-  const brandColor = useSelector((state: any) => state.theme.brandColor);
+  const theme = useSelector(selectTheme);
 
-  // 默认样式，用于NavLink的基础样式
   const defaultStyle: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
-    padding: "8px 12px",
+    padding: `${theme.spacing.small} ${theme.spacing.medium}`,
     fontWeight: "bold",
     transition: "color 0.2s, background-color 0.2s",
-    color: "#444",
+    color: theme.text1,
     textDecoration: "none",
-    ...style, // 合并外部传入的style
+    borderRadius: theme.borderRadius,
+    marginBottom: theme.spacing.small,
+    cursor: "pointer",
   };
+
+  const Content = () => (
+    <>
+      {icon && <span style={{ marginRight: theme.spacing.small }}>{icon}</span>}
+      <span>{label}</span>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <div
+        onClick={onClick}
+        style={defaultStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.accentColor;
+          e.currentTarget.style.color = theme.surface1;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.color = theme.text1;
+        }}
+      >
+        <Content />
+      </div>
+    );
+  }
+
+  if (!path) {
+    return null;
+  }
 
   return (
     <NavLink
@@ -35,22 +68,21 @@ const NavListItem: React.FC<NavListItemProps> = ({
       className={({ isActive }) => (isActive ? "active" : "")}
       style={({ isActive }) => ({
         ...defaultStyle,
-        color: isActive ? "white" : defaultStyle.color,
-        backgroundColor: isActive ? brandColor : "transparent",
+        color: isActive ? theme.surface1 : theme.text1,
+        backgroundColor: isActive ? theme.accentColor : "transparent",
       })}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = brandColor;
-        e.currentTarget.style.color = "white";
+        e.currentTarget.style.backgroundColor = theme.accentColor;
+        e.currentTarget.style.color = theme.surface1;
       }}
       onMouseLeave={(e) => {
         if (!e.currentTarget.classList.contains("active")) {
           e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = "#444";
+          e.currentTarget.style.color = theme.text1;
         }
       }}
     >
-      {icon && <span style={{ marginRight: "8px" }}>{icon}</span>}
-      <span>{label}</span>
+      <Content />
     </NavLink>
   );
 };

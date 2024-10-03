@@ -6,7 +6,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { initPage } from "./pageSlice";
 import RenderPage from "./RenderPage";
 
-import { Header } from "../layout/Header";
+// import { Header } from "../layout/Header";
 
 import NoMatch from "../NoMatch";
 
@@ -59,14 +59,14 @@ const Page = ({ id }) => {
       if (layout === "full") {
         return (
           <div className="flex min-h-screen flex-col">
-            <Header />
+            {/* <Header /> */}
             <div className="w-full flex-grow">{renderEdit()}</div>
           </div>
         );
       }
       return (
         <div className="flex min-h-screen flex-col">
-          <Header />
+          {/* <Header /> */}
           <div className="max-w-8xl m-4 mx-auto w-full flex-grow">
             {renderContent()}
           </div>
