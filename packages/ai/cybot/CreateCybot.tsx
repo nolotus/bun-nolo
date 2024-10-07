@@ -9,8 +9,6 @@ import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import ToggleSwitch from "render/ui/ToggleSwitch";
-import withTranslations from "i18n/withTranslations";
-import { modelEnum } from "../llm/models";
 import {
   FormContainer,
   FormTitle,
@@ -21,6 +19,10 @@ import {
   SubmitButton,
   FormFieldComponent,
 } from "render/CommonFormComponents";
+
+import withTranslations from "i18n/withTranslations";
+
+import { modelEnum } from "../llm/models";
 
 interface CreateCybotProps {
   onClose: () => void;

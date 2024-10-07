@@ -551,7 +551,8 @@ export const messageSlice = createSliceWithThunks({
               if (chunk.trim().length > 0) {
                 try {
                   const jsonData = JSON.parse(chunk);
-                  console.log("Received data:", jsonData);
+                  //todo  add open or close
+                  // console.log("Received data:", jsonData);
                   const { done } = jsonData;
                   temp = (temp || "") + (jsonData.message.content || "");
                   if (done) {

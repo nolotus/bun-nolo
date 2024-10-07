@@ -42,7 +42,7 @@ export const DialogList = ({ dialogList, source }) => {
     },
   };
 
-  const { data: categories, isLoading: isCategoriesLoading } =
+  const { data: categories = [], isLoading: isCategoriesLoading } =
     useQueryData(categoryQueryConfig);
 
   const isCreator = (id) => {

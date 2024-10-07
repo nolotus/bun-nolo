@@ -4,6 +4,8 @@ import { useQueryData } from "app/hooks";
 import { DataType } from "create/types";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
+import { styles } from "render/ui/styles";
+
 import CybotBlock from "./CybotBlock";
 
 interface CybotsProps {
@@ -53,17 +55,17 @@ const Cybots: React.FC<CybotsProps> = ({ queryUserId, limit = 20 }) => {
     isSuccess: isSuccess2,
   } = useQueryData(queryConfig2);
 
-  const styles = {
+  const combinedStyles = {
     loadingText: {
-      textAlign: "center",
-      padding: "1rem 0",
+      ...styles.textCenter,
+      ...styles.py2,
       color: theme.text2,
     },
     responsiveContainer: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-      gap: "1rem",
-      padding: "1rem",
+      gap: theme.spacing.medium,
+      padding: theme.spacing.large,
     },
     responsiveItem: {
       width: "100%",
@@ -71,20 +73,20 @@ const Cybots: React.FC<CybotsProps> = ({ queryUserId, limit = 20 }) => {
   };
 
   if (isLoading && isLoading2) {
-    return <div style={styles.loadingText}>加载 AI 列表中...</div>;
+    return <div style={combinedStyles.loadingText}>加载 AI 列表中...</div>;
   }
 
   return (
-    <div style={styles.responsiveContainer}>
+    <div style={combinedStyles.responsiveContainer}>
       {isSuccess &&
         data?.map((item) => (
-          <div key={item.id} style={styles.responsiveItem}>
+          <div key={item.id} style={combinedStyles.responsiveItem}>
             <CybotBlock item={item} />
           </div>
         ))}
       {isSuccess2 &&
         data2?.map((item) => (
-          <div key={item.id} style={styles.responsiveItem}>
+          <div key={item.id} style={combinedStyles.responsiveItem}>
             <CybotBlock item={item} />
           </div>
         ))}
