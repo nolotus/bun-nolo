@@ -65,6 +65,7 @@ export const styles = {
     textOverflow: "ellipsis",
   },
   fontSemiBold: { fontWeight: OpenProps.fontWeight6 },
+  fontWeight600: { fontWeight: "600" },
 
   // 圆角
   roundedSm: { borderRadius: OpenProps.radius1 },

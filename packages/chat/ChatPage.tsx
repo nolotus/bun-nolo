@@ -12,6 +12,7 @@ const ChatPage = () => {
   const auth = useAuth();
   const { dialogId } = useParams();
   const dispatch = useAppDispatch();
+  //maybe not need login
   useEffect(() => {
     if (!auth.user) {
       window.location.href = "/login";
