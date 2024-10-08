@@ -1,8 +1,11 @@
+// render/layout/Modal.tsx
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useKey } from "react-use";
 import { useSelector } from "react-redux";
+
 import { selectTheme } from "app/theme/themeSlice";
+import { styles } from "render/ui/styles";
 
 export const useModal = () => {
   const [visible, setVisible] = useState(false);
@@ -52,7 +55,7 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: theme.zIndex.layer2,
+    ...styles.zIndex3, // 使用 styles.zIndex3
     backdropFilter: "blur(5px)",
     position: "fixed",
     top: 0,

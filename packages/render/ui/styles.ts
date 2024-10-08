@@ -79,6 +79,7 @@ export const styles = {
   // z-index
   zIndex1: { zIndex: 1 },
   zIndex2: { zIndex: 2 },
+  zIndex3: { zIndex: 3 },
 
   // 新添加的样式
   width160: { width: "160px" },

@@ -9,7 +9,7 @@ import React, {
 import { SignOutIcon, SignInIcon, GearIcon } from "@primer/octicons-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
 import { fixedLinks, bottomLinks, allowRule } from "auth/navPermissions";
 import { RoutePaths } from "auth/client/routes";
 import { useTranslation } from "react-i18next";
@@ -41,7 +41,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { isLoggedIn, user } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(300);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -70,11 +69,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           mouseMoveEvent.clientX -
           sidebarRef.current.getBoundingClientRect().left;
         if (newWidth > 200 && newWidth < 600) {
-          setSidebarWidth(newWidth);
+          dispatch(setSidebarWidth(newWidth));
         }
       }
     },
-    [isResizing],
+    [isResizing, dispatch],
   );
 
   const logout = () => {
@@ -123,7 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       />
       <aside
         ref={sidebarRef}
-        style={sidebarStyles(theme, isSidebarOpen, sidebarWidth)}
+        style={sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth)}
       >
         <div style={sidebarContentStyles}>
           {isLoggedIn && (
@@ -174,7 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div style={resizeHandleStyles(theme)} onMouseDown={startResizing} />
       </aside>
-      <main style={contentStyles(theme, isSidebarOpen, sidebarWidth)}>
+      <main style={contentStyles(theme, isSidebarOpen, theme.sidebarWidth)}>
         <div style={innerContentStyles(theme, fullWidth)}>{children}</div>
       </main>
     </div>
@@ -189,7 +188,7 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   left: isSidebarOpen ? 0 : `-${width}px`,
   top: 0,
   transition: "left 0.3s ease-in-out",
-  zIndex: 2,
+  zIndex: 2, // 使用 zIndex2
   ...themeStyles.textColor1(theme),
   padding: OpenProps.size3,
   display: "flex",

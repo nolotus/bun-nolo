@@ -42,11 +42,6 @@ const commonThemeValues = {
     marginTop: "16px",
   },
   breakpoints: [480, 640, 768, 1024, 1280, 1536],
-  zIndex: {
-    layer1: 1,
-    layer2: 2,
-    layer3: 3,
-  },
 };
 
 // 辅助函数：根据断点生成响应式值
@@ -81,6 +76,7 @@ export const lightTheme = {
   getResponsiveInputWidth: createResponsiveValue(
     commonThemeValues.form.inputWidth,
   ),
+  sidebarWidth: 300, // 添加初始侧边栏宽度
 };
 
 export const darkTheme = {
@@ -107,6 +103,7 @@ export const darkTheme = {
   getResponsiveInputWidth: createResponsiveValue(
     commonThemeValues.form.inputWidth,
   ),
+  sidebarWidth: 300, // 添加初始侧边栏宽度
 };
 
 const initialState = {
@@ -142,10 +139,14 @@ const themeSlice = createSlice({
         state.mainColor = action.payload;
       }
     },
+    setSidebarWidth: (state, action) => {
+      state.sidebarWidth = action.payload;
+    },
   },
 });
 
-export const { toggleTheme, setTheme, changeMainColor } = themeSlice.actions;
+export const { toggleTheme, setTheme, changeMainColor, setSidebarWidth } =
+  themeSlice.actions;
 
 export const mainColorOptions = mainColors;
 
