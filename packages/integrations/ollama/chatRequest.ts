@@ -1,10 +1,35 @@
 import axios from "utils/axios";
 
+// 默认的 tools 数组
+const defaultTools = [
+  {
+    type: "function",
+    function: {
+      name: "calculate_sum",
+      description: "计算两个数的和",
+      parameters: {
+        type: "object",
+        properties: {
+          num1: {
+            type: "number",
+            description: "第一个数",
+          },
+          num2: {
+            type: "number",
+            description: "第二个数",
+          },
+        },
+        required: ["num1", "num2"],
+      },
+    },
+  },
+];
+
 export async function chatRequest(
   requestBody,
   isStream: boolean,
 ): Promise<any> {
-  const { model, messages, max_tokens } = requestBody;
+  const { model, messages, max_tokens, tools = defaultTools } = requestBody;
   const axiosConfig = {
     method: "POST",
     url: "http://localhost:11434/api/chat",
@@ -18,6 +43,7 @@ export async function chatRequest(
       messages,
       stream: isStream,
       max_tokens,
+      tools,
     },
   };
 
