@@ -1,7 +1,8 @@
 // NewDialogButton.tsx
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useModal, Dialog } from "render/ui";
+import { Dialog } from "render/ui/Dialog";
+import { useModal } from "render/ui/Modal";
 import { NorthStarIcon } from "@primer/octicons-react";
 import AI from "ai/blocks/AI";
 import { useSelector } from "react-redux";

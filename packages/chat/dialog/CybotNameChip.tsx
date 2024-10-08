@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useFetchData } from "app/hooks";
 import { extractCustomId } from "core";
-import { useModal, Dialog } from "render/ui";
+
+import { Dialog } from "render/ui/Dialog";
+import { useModal } from "render/ui/Modal";
 import EditCybot from "ai/cybot/EditCybot";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";

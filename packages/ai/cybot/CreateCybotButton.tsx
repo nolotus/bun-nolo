@@ -1,5 +1,7 @@
-import { useModal, Dialog } from "render/ui";
+import { Dialog } from "render/ui/Dialog";
+import { useModal } from "render/ui/Modal";
 import { useTranslation } from "react-i18next";
+
 import CreateCybot from "../cybot/CreateCybot";
 
 const CreateCybotButton = () => {

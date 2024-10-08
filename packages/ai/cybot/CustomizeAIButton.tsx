@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useModal, Dialog } from "render/ui";
+import { Dialog } from "render/ui/Dialog";
+import { useModal } from "render/ui/Modal";
 import { PlusIcon } from "@primer/octicons-react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";

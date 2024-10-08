@@ -1,9 +1,11 @@
+// render/ui/styles.ts
+
 import OpenProps from "open-props";
 
 export const styles = {
   // Flex 相关样式
   flex: { display: "flex" },
-  flexColumn: { display: "flex", flexDirection: "column" },
+  flexColumn: { display: "flex", flexDirection: "column" as const },
   flexCenter: {
     display: "flex",
     justifyContent: "center",
@@ -44,28 +46,28 @@ export const styles = {
   flexGrow1: { flexGrow: 1 },
 
   // 定位
-  positionFixed: { position: "fixed" },
+  positionFixed: { position: "fixed" as const },
 
   // 溢出处理
-  overflowYAuto: { overflowY: "auto" },
-  overflowXHidden: { overflowX: "hidden" },
+  overflowYAuto: { overflowY: "auto" as const },
+  overflowXHidden: { overflowX: "hidden" as const },
 
   // 交互样式
   clickable: {
     cursor: "pointer",
-    userSelect: "none",
+    userSelect: "none" as const,
   },
   transition: { transition: "all 0.2s ease-in-out" },
 
   // 文本样式
-  textCenter: { textAlign: "center" },
+  textCenter: { textAlign: "center" as const },
   textEllipsis: {
-    whiteSpace: "nowrap",
+    whiteSpace: "nowrap" as const,
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
   fontSemiBold: { fontWeight: OpenProps.fontWeight6 },
-  fontWeight600: { fontWeight: "600" },
+  fontWeight600: { fontWeight: 600 },
 
   // 圆角
   roundedSm: { borderRadius: OpenProps.radius1 },
@@ -82,15 +84,42 @@ export const styles = {
   width160: { width: "160px" },
   fontSize14: { fontSize: "14px" },
   fontSize16: { fontSize: "16px" },
-  fontWeight500: { fontWeight: "500" },
-  textAlignLeft: { textAlign: "left" },
+  fontWeight500: { fontWeight: 500 },
+  textAlignLeft: { textAlign: "left" as const },
   bgNone: { background: "none" },
   borderNone: { border: "none" },
   colorInherit: { color: "inherit" },
   textDecorationNone: { textDecoration: "none" },
+
+  // 复合样式
+  flexCenterColumn: {
+    display: "flex",
+    flexDirection: "column" as const,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  buttonBase: {
+    padding: OpenProps.size2,
+    borderRadius: OpenProps.radius2,
+    cursor: "pointer",
+    transition: "all 0.2s ease-in-out",
+  },
+} as const;
+
+export type Theme = {
+  surface1: string;
+  text1: string;
+  // 添加其他主题相关的属性
 };
 
 export const themeStyles = {
-  bgColor1: (theme) => ({ backgroundColor: theme.surface1 }),
-  textColor1: (theme) => ({ color: theme.text1 }),
+  bgColor1: (theme: Theme) => ({ backgroundColor: theme.surface1 }),
+  textColor1: (theme: Theme) => ({ color: theme.text1 }),
+  // 可以添加更多主题相关的样式
+};
+
+export type Styles = typeof styles;
+export type ThemeStyles = {
+  [K in keyof typeof themeStyles]: ReturnType<(typeof themeStyles)[K]>;
 };

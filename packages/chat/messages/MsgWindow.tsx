@@ -1,9 +1,14 @@
-import React, { useCallback } from "react";
+// render/ui/ChatWindow.tsx
+
+import React, { useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Alert, useDeleteAlert } from "render/ui";
+import { Alert, useDeleteAlert } from "render/ui/Alert";
 import { useCouldEdit } from "auth/useCouldEdit";
+import { styles } from "render/ui/styles";
+import { selectTheme } from "app/theme/themeSlice";
+
 import { deleteCurrentDialog } from "../dialog/dialogSlice";
 import { selectCostByUserId } from "ai/selectors";
 
@@ -12,24 +17,34 @@ import { handleSendMessage } from "./messageSlice";
 import MessagesList from "./MessageList";
 import ChatHeader from "../dialog/DialogHeader";
 
-const ChatWindow = ({ currentDialogConfig }) => {
+interface ChatWindowProps {
+  currentDialogConfig: {
+    id: string;
+    title: string;
+    messageListId: string;
+    source: string;
+  };
+}
+
+const ChatWindow: React.FC<ChatWindowProps> = ({ currentDialogConfig }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const theme = useAppSelector(selectTheme);
 
   const userCost = useAppSelector(selectCostByUserId);
-  const allowSend = true; // 这里可以根据实际逻辑来设置
+  const allowSend = true; // 这里可以根据实际逻辑来设置，比如检查 userCost
 
   const allowEdit = useCouldEdit(currentDialogConfig.id);
 
   const onSendMessage = useCallback(
-    (content) => {
+    (content: string) => {
       dispatch(handleSendMessage({ content }));
     },
     [dispatch],
   );
 
-  const onDeleteDialog = useCallback(async () => {
+  const onDeleteDialog = useCallback(() => {
     dispatch(deleteCurrentDialog(currentDialogConfig));
     navigate(-1);
   }, [dispatch, currentDialogConfig, navigate]);
@@ -41,32 +56,43 @@ const ChatWindow = ({ currentDialogConfig }) => {
     closeAlert,
   } = useDeleteAlert(onDeleteDialog);
 
-  const chatContainerStyle = {
-    display: "flex",
-    flexDirection: "column",
-    height: "100vh",
-    overflow: "hidden",
-    backgroundColor: "var(--surface1)",
-  };
+  const chatContainerStyle = useMemo(
+    () => ({
+      ...styles.flexColumn,
+      ...styles.h100vh,
+      ...styles.overflowXHidden,
+      backgroundColor: theme.surface1,
+    }),
+    [theme.surface1],
+  );
 
-  const messageListContainerStyle = {
-    flex: 1,
-    overflowY: "auto",
-    display: "flex",
-    flexDirection: "column",
-  };
-  const inputContainerStyle = {
-    backgroundColor: "var(--surface1)",
-  };
+  const messageListContainerStyle = useMemo(
+    () => ({
+      ...styles.flexGrow1,
+      ...styles.overflowYAuto,
+      ...styles.flexColumn,
+    }),
+    [],
+  );
 
-  const errorMessageStyle = {
-    color: "var(--error)",
-    fontSize: "14px",
-    padding: "10px",
-    backgroundColor: "var(--errorBg)",
-    borderRadius: "4px",
-    marginTop: "10px",
-  };
+  const inputContainerStyle = useMemo(
+    () => ({
+      backgroundColor: theme.surface1,
+    }),
+    [theme.surface1],
+  );
+
+  const errorMessageStyle = useMemo(
+    () => ({
+      color: theme.error,
+      ...styles.fontSize14,
+      ...styles.p1,
+      backgroundColor: theme.errorBg,
+      ...styles.roundedSm,
+      ...styles.mt2,
+    }),
+    [theme.error, theme.errorBg],
+  );
 
   return (
     <div style={chatContainerStyle}>
@@ -90,15 +116,13 @@ const ChatWindow = ({ currentDialogConfig }) => {
           <div style={errorMessageStyle}>{t("overDueMessage")}</div>
         )}
       </div>
-      {deleteAlertVisible && (
-        <Alert
-          isOpen={deleteAlertVisible}
-          onClose={closeAlert}
-          onConfirm={doDelete}
-          title={t("deleteDialogTitle", { title: currentDialogConfig.title })}
-          message={t("deleteDialogConfirmation")}
-        />
-      )}
+      <Alert
+        isOpen={deleteAlertVisible}
+        onClose={closeAlert}
+        onConfirm={doDelete}
+        title={t("deleteDialogTitle", { title: currentDialogConfig.title })}
+        message={t("deleteDialogConfirmation")}
+      />
     </div>
   );
 };

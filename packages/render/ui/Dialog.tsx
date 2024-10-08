@@ -3,7 +3,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 
-import { Modal } from "./index";
+import { Modal } from "./Modal";
 
 export const Dialog = ({ isOpen, onClose, title, children }) => {
   const theme = useSelector(selectTheme);

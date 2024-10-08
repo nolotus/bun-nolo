@@ -1,8 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import errorMessagesSrc from "./errorMessages";
+import errorMessagesSrc from "./translations/errorMessages";
 import { Language } from "./types";
-import uiMessagesSrc from "./uiMessages";
+import uiMessagesSrc from "./translations/uiMessages";
 
 const mergeMessages = (errorMessages, uiMessages) => {
   const resources = {};
