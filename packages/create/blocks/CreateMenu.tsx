@@ -1,7 +1,5 @@
 // CreateMenu.jsx
-
 import React from "react";
-import { Link } from "react-router-dom";
 import {
   PlusIcon,
   NoteIcon,
@@ -38,7 +36,7 @@ export const CreateMenu = () => {
 
   return (
     <DropDown
-      direction="left"
+      direction="bottom"
       trigger={
         <CircleButton
           tooltip="add new"
@@ -48,7 +46,10 @@ export const CreateMenu = () => {
       }
       triggerType="hover"
     >
-      <div className="flex w-[200px]" style={{ gap: Sizes["--size-fluid-2"] }}>
+      <div
+        className="flex w-[200px] flex-col"
+        style={{ gap: Sizes["--size-fluid-2"] }}
+      >
         {buttonItems.map((item, index) => (
           <CircleButton
             key={index}

@@ -47,7 +47,7 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
               (e.currentTarget.style.color = theme.textColor)
             }
           >
-            <XIcon size={theme.iconSize.medium} />
+            <XIcon />
           </button>
         </div>
 

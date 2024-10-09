@@ -6,21 +6,54 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { SignInIcon } from "@primer/octicons-react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
-import { fixedLinks, bottomLinks, allowRule } from "auth/navPermissions";
+import { fixedLinks, allowRule } from "auth/navPermissions";
 import { RoutePaths } from "auth/client/routes";
 import { useTranslation } from "react-i18next";
 import { styles, themeStyles } from "render/ui/styles";
 import OpenProps from "open-props";
-
 import { useAuth } from "auth/useAuth";
 import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
-
-import SidebarToggleButton from "./SidebarToggleButton";
 import NavListItem from "./blocks/NavListItem";
+import { SignInIcon, ThreeBarsIcon, PlusIcon } from "@primer/octicons-react";
+import { CreateMenu } from "create/blocks/CreateMenu";
 
+// MenuButton Component
+interface MenuButtonProps {
+  onClick: () => void;
+  theme: any;
+}
+
+const MenuButton: React.FC<MenuButtonProps> = ({ onClick, theme }) => (
+  <button
+    onClick={onClick}
+    style={buttonStyle(theme)}
+    onMouseEnter={(e) => handleMouseEnter(e, theme)}
+    onMouseLeave={(e) => handleMouseLeave(e, theme)}
+  >
+    <ThreeBarsIcon size={theme.iconSize.medium} />
+  </button>
+);
+
+// PlusButton Component
+interface PlusButtonProps {
+  onClick: () => void;
+  theme: any;
+}
+
+const PlusButton: React.FC<PlusButtonProps> = ({ onClick, theme }) => (
+  <button
+    onClick={onClick}
+    style={buttonStyle(theme)}
+    onMouseEnter={(e) => handleMouseEnter(e, theme)}
+    onMouseLeave={(e) => handleMouseLeave(e, theme)}
+  >
+    <PlusIcon size={theme.iconSize.medium} />
+  </button>
+);
+
+// Sidebar Component
 interface SidebarProps {
   children: ReactNode;
   sidebarContent: ReactNode;
@@ -46,6 +79,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
+  }, []);
+
+  const handlePlusClick = useCallback(() => {
+    console.log("Plus icon clicked");
   }, []);
 
   const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
@@ -104,10 +141,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         ...themeStyles.bgColor1(theme),
       }}
     >
-      <SidebarToggleButton
-        onClick={toggleSidebar}
-        isSidebarOpen={isSidebarOpen}
-      />
+      <div style={buttonContainerStyles(theme, isSidebarOpen)}>
+        <MenuButton onClick={toggleSidebar} theme={theme} />
+        <CreateMenu />
+      </div>
       <aside
         ref={sidebarRef}
         style={sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth)}
@@ -141,6 +178,47 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
+// Shared styles and utilities
+const buttonStyle = (theme: any): React.CSSProperties => ({
+  ...themeStyles.bgColor1(theme),
+  border: "none",
+  cursor: "pointer",
+  transition: "background-color 0.2s",
+  padding: theme.spacing.small,
+  borderRadius: theme.borderRadius,
+  ...themeStyles.textColor1(theme),
+  boxShadow:
+    theme.themeName === "light"
+      ? "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)"
+      : "none",
+});
+
+const handleMouseEnter = (
+  e: React.MouseEvent<HTMLButtonElement>,
+  theme: any,
+) => {
+  e.currentTarget.style.backgroundColor =
+    theme.themeName === "dark" ? theme.surface4 : theme.surface2;
+};
+
+const handleMouseLeave = (
+  e: React.MouseEvent<HTMLButtonElement>,
+  theme: any,
+) => {
+  e.currentTarget.style.backgroundColor =
+    theme.themeName === "dark" ? theme.surface3 : "white";
+};
+
+const buttonContainerStyles = (theme: any, isSidebarOpen: boolean) => ({
+  ...styles.positionFixed,
+  left: isSidebarOpen ? `${theme.sidebarWidth + 10}px` : "10px",
+  top: "10px",
+  ...styles.zIndex3,
+  display: "flex",
+  gap: theme.spacing.small,
+  transition: "left 0.3s",
+});
+
 const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   width: `${width}px`,
   ...themeStyles.bgColor1(theme),
@@ -149,7 +227,7 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   left: isSidebarOpen ? 0 : `-${width}px`,
   top: 0,
   transition: "left 0.3s ease-in-out",
-  zIndex: 2, // 使用 zIndex2
+  zIndex: 2,
   ...themeStyles.textColor1(theme),
   padding: OpenProps.size3,
   display: "flex",
