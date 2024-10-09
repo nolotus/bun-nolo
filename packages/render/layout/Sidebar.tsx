@@ -6,9 +6,8 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { SignOutIcon, SignInIcon, GearIcon } from "@primer/octicons-react";
+import { SignInIcon } from "@primer/octicons-react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
 import { fixedLinks, bottomLinks, allowRule } from "auth/navPermissions";
 import { RoutePaths } from "auth/client/routes";
@@ -17,8 +16,6 @@ import { styles, themeStyles } from "render/ui/styles";
 import OpenProps from "open-props";
 
 import { useAuth } from "auth/useAuth";
-import { signOut } from "auth/authSlice";
-import { removeToken } from "auth/client/token";
 import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
 
 import SidebarToggleButton from "./SidebarToggleButton";
@@ -37,8 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -46,9 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const theme = useSelector(selectTheme);
   const auth = useAuth();
-  const currentToken = useSelector((state: any) => state.auth.currentToken);
   const allowedFixedLinks = allowRule(auth?.user, fixedLinks);
-  const allowedBottomLinks = allowRule(auth?.user, bottomLinks);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
@@ -75,12 +69,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     },
     [isResizing, dispatch],
   );
-
-  const logout = () => {
-    removeToken(currentToken);
-    dispatch(signOut());
-    navigate("/");
-  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -125,10 +113,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         style={sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth)}
       >
         <div style={sidebarContentStyles}>
-          {isLoggedIn && (
+          {isLoggedIn ? (
             <div style={{ marginBottom: OpenProps.size3 }}>
               <IsLoggedInMenu />
             </div>
+          ) : (
+            <NavListItem
+              label={t("login")}
+              icon={<SignInIcon size={16} />}
+              path={RoutePaths.LOGIN}
+            />
           )}
 
           <nav style={{ marginBottom: OpenProps.size4 }}>
@@ -137,39 +131,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             ))}
           </nav>
           <div style={scrollableContentStyles}>{sidebarContent}</div>
-          <div style={bottomContentStyles(theme)}>
-            {allowedBottomLinks.map((item) => (
-              <NavListItem key={item.path} {...item} />
-            ))}
-            <div
-              style={{
-                ...styles.flexColumn,
-                ...styles.gap1,
-                marginTop: OpenProps.size3,
-              }}
-            >
-              {auth?.isLoggedIn ? (
-                <>
-                  <NavListItem
-                    label="Settings"
-                    icon={<GearIcon size={16} />}
-                    path="/settings"
-                  />
-                  <NavListItem
-                    label={t("logout")}
-                    icon={<SignOutIcon size={16} />}
-                    onClick={logout}
-                  />
-                </>
-              ) : (
-                <NavListItem
-                  label={t("login")}
-                  icon={<SignInIcon size={16} />}
-                  path={RoutePaths.LOGIN}
-                />
-              )}
-            </div>
-          </div>
         </div>
         <div style={resizeHandleStyles(theme)} onMouseDown={startResizing} />
       </aside>
@@ -207,12 +168,6 @@ const scrollableContentStyles = {
   overflowY: "auto" as const,
   marginBottom: OpenProps.size4,
 };
-
-const bottomContentStyles = (theme: any) => ({
-  borderTop: `1px solid ${theme.text3}`,
-  paddingTop: OpenProps.size3,
-  marginTop: "auto",
-});
 
 const contentStyles = (
   theme: any,

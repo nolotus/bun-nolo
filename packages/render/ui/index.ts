@@ -1,7 +1,6 @@
 import { Avatar } from "./Avatar";
 import { Button } from "./Button";
 import { Dialog } from "./Dialog";
-import DropDown from "./DropDown";
 import Select from "./forms/Select";
 import { Link } from "./Link";
 import { Modal, useModal } from "./Modal";
@@ -12,7 +11,6 @@ export {
   Modal,
   useModal,
   // Table,
-  DropDown,
   Dialog,
   Link,
   Avatar,

@@ -8,7 +8,7 @@ import {
   DependabotIcon,
   LocationIcon,
 } from "@primer/octicons-react";
-import { DropDown } from "render/ui";
+import DropDown from "render/ui/DropDown";
 import Sizes from "open-props/src/sizes";
 import { useNavigate } from "react-router-dom";
 import { CircleButton } from "render/button/CircleButton";

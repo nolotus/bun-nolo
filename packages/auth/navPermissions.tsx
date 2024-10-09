@@ -3,11 +3,9 @@ import {
   HomeIcon,
   PlusIcon,
   CommentDiscussionIcon,
-  BeakerIcon,
 } from "@primer/octicons-react";
-import { nolotusId } from "core/init";
 
-interface NavItem {
+export interface NavItem {
   path: string;
   label: string;
   icon?: JSX.Element;
@@ -18,15 +16,6 @@ export const fixedLinks: NavItem[] = [
   { path: "/", label: "Home", icon: <HomeIcon size={16} /> },
   { path: "/create", label: "Add", icon: <PlusIcon size={16} /> },
   { path: "/chat", label: "Chat", icon: <CommentDiscussionIcon size={16} /> },
-];
-
-export const bottomLinks: NavItem[] = [
-  {
-    path: "/lab",
-    label: "Lab",
-    icon: <BeakerIcon size={16} />,
-    allow_users: [nolotusId],
-  },
 ];
 
 export const allowRule = (user, navItems: NavItem[]) => {
