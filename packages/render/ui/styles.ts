@@ -2,6 +2,23 @@
 
 import OpenProps from "open-props";
 
+export type Theme = {
+  surface1: string;
+  surface2: string;
+  surface3: string;
+  surface4: string;
+  text1: string;
+  text2: string;
+  link: string;
+  linkVisited: string;
+  scrollthumbColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  caretColor: string;
+  colorScheme: string;
+  // 可以根据需要添加更多主题属性
+};
+
 export const styles = {
   // Flex 相关样式
   flex: { display: "flex" },
@@ -22,6 +39,12 @@ export const styles = {
     justifyContent: "flex-end",
     alignItems: "center",
   },
+  flexCenterColumn: {
+    display: "flex",
+    flexDirection: "column" as const,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 
   // 间距相关
   gap1: { gap: OpenProps.size1 },
@@ -40,11 +63,12 @@ export const styles = {
   mr1: { marginRight: OpenProps.size1 },
   mr2: { marginRight: OpenProps.size2 },
 
-  // 其他常用样式
+  // 尺寸相关
   w100: { width: "100%" },
   h100: { height: "100%" },
   h100vh: { height: "100vh" },
   flexGrow1: { flexGrow: 1 },
+  width160: { width: "160px" },
 
   // 定位
   positionFixed: { position: "fixed" as const },
@@ -52,7 +76,7 @@ export const styles = {
   // 溢出处理
   overflowYAuto: { overflowY: "auto" as const },
   overflowXHidden: { overflowX: "hidden" as const },
-  overflowHidden: { overflow: "hidden" as const }, // 新添加的样式
+  overflowHidden: { overflow: "hidden" as const },
 
   // 交互样式
   clickable: {
@@ -69,7 +93,11 @@ export const styles = {
     textOverflow: "ellipsis",
   },
   fontSemiBold: { fontWeight: OpenProps.fontWeight6 },
+  fontWeight500: { fontWeight: 500 },
   fontWeight600: { fontWeight: 600 },
+  fontSize14: { fontSize: "14px" },
+  fontSize16: { fontSize: "16px" },
+  textAlignLeft: { textAlign: "left" as const },
 
   // 圆角
   roundedSm: { borderRadius: OpenProps.radius1 },
@@ -83,25 +111,13 @@ export const styles = {
   zIndex2: { zIndex: 2 },
   zIndex3: { zIndex: 3 },
 
-  // 新添加的样式
-  width160: { width: "160px" },
-  fontSize14: { fontSize: "14px" },
-  fontSize16: { fontSize: "16px" },
-  fontWeight500: { fontWeight: 500 },
-  textAlignLeft: { textAlign: "left" as const },
+  // 其他样式
   bgNone: { background: "none" },
   borderNone: { border: "none" },
   colorInherit: { color: "inherit" },
   textDecorationNone: { textDecoration: "none" },
 
-  // 复合样式
-  flexCenterColumn: {
-    display: "flex",
-    flexDirection: "column" as const,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
+  // 按钮基础样式
   buttonBase: {
     padding: OpenProps.size2,
     borderRadius: OpenProps.radius2,
@@ -110,16 +126,31 @@ export const styles = {
   },
 } as const;
 
-export type Theme = {
-  surface1: string;
-  text1: string;
-  // 添加其他主题相关的属性
-};
-
 export const themeStyles = {
-  bgColor1: (theme: Theme) => ({ backgroundColor: theme.surface1 }),
+  surface1: (theme: Theme) => ({
+    backgroundColor: theme.surface1,
+    color: theme.text2,
+  }),
+  surface2: (theme: Theme) => ({
+    backgroundColor: theme.surface2,
+    color: theme.text2,
+  }),
+  surface3: (theme: Theme) => ({
+    backgroundColor: theme.surface3,
+    color: theme.text1,
+  }),
+  surface4: (theme: Theme) => ({
+    backgroundColor: theme.surface4,
+    color: theme.text1,
+  }),
   textColor1: (theme: Theme) => ({ color: theme.text1 }),
-  // 可以添加更多主题相关的样式
+  textColor2: (theme: Theme) => ({ color: theme.text2 }),
+  link: (theme: Theme) => ({ color: theme.link }),
+  linkVisited: (theme: Theme) => ({ color: theme.linkVisited }),
+  scrollThumb: (theme: Theme) => ({ backgroundColor: theme.scrollthumbColor }),
+  accent: (theme: Theme) => ({ color: theme.accentColor }),
+  bgColorMain: (theme: Theme) => ({ backgroundColor: theme.backgroundColor }),
+  caret: (theme: Theme) => ({ caretColor: theme.caretColor }),
 };
 
 export type Styles = typeof styles;

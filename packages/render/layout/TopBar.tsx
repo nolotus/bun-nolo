@@ -3,7 +3,7 @@ import React, { ReactNode } from "react";
 import { themeStyles } from "render/ui/styles";
 import MenuButton from "./MenuButton";
 import { GearIcon } from "@primer/octicons-react";
-import { CreateMenu } from "create/blocks/CreateMenu";
+import { CreateMenu } from "create/CreateMenu";
 import { useAppSelector } from "app/hooks";
 import {
   selectCurrentDialogConfig,

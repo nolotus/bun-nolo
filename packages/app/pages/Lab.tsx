@@ -1,7 +1,7 @@
 import { tokenizeMarkdown } from "render/prase/tokenizeMarkdown";
 import { WebSocketContext } from "app/providers/WebSocketProvider";
 import React, { useContext, useState } from "react";
-
+import Button from "./Button";
 const markdownText = `
 # Title
 Here is an ![alt text](http://example.com/image.jpg "Title").
@@ -30,7 +30,6 @@ const Lab = () => {
 
   return (
     <div>
-      {" "}
       {elements}
       <>
         <h1>Received Data:</h1>
@@ -41,6 +40,13 @@ const Lab = () => {
           onChange={(e) => setMessage(e.target.value)}
         />
         <button onClick={sendMessage}>Send</button>
+
+        <Button type="button">Button</Button>
+        <Button type="submit">Submit</Button>
+        <Button type="reset">Reset</Button>
+        <Button type="button" disabled>
+          Disabled Button
+        </Button>
       </>
     </div>
   );

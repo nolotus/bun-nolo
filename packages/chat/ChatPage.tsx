@@ -40,7 +40,7 @@ const ChatPage = () => {
         ...styles.flex,
         ...styles.overflowXHidden,
         height: remainingHeight, // 使用计算后的剩余高度
-        ...themeStyles.bgColor1(theme),
+        ...themeStyles.surface1(theme),
       }}
     >
       <div

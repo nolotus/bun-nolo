@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useQueryData } from "app/hooks";
 import { Button } from "render/ui/Button";
 
-import { YourTemplates } from "./blocks/YourTemplates";
+import { YourTemplates } from "./YourTemplates";
 import { CreateRoutePaths } from "./routes";
 
 const ButtonGroup = ({ buttons, onButtonClick }) => (

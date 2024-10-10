@@ -25,12 +25,4 @@ module.exports = {
     "border",
     "rounded",
   ],
-  theme: {
-    extend: {
-      transitionTimingFunction: {
-        snappy: "cubic-bezier(0,1,0.5,1)",
-      },
-      display: ["group-hover"],
-    },
-  },
 };

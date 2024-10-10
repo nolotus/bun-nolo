@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       style={{
         ...styles.flex,
         ...styles.h100vh,
-        ...themeStyles.bgColor1(theme),
+        ...themeStyles.surface1(theme),
       }}
     >
       <aside
@@ -148,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
 const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   width: `${width}px`,
-  ...themeStyles.bgColor1(theme),
+  ...themeStyles.surface1(theme),
   height: "100vh",
   position: "fixed" as const,
   left: isSidebarOpen ? 0 : `-${width}px`,
@@ -184,7 +184,7 @@ const contentStyles = (
   transition: "margin-left 0.3s ease-in-out",
   width: isSidebarOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",
   overflowX: "hidden" as const,
-  ...themeStyles.bgColor1(theme),
+  ...themeStyles.surface1(theme),
 });
 
 const innerContentStyles = (theme: any, fullWidth: boolean) => ({

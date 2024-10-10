@@ -22,7 +22,7 @@ const CybotBlock = ({ item }) => {
     cybotCard: {
       ...styles.flexColumn,
       ...styles.p3,
-      ...themeStyles.bgColor1(theme),
+      ...themeStyles.surface1(theme),
       ...themeStyles.textColor1(theme),
       borderRadius: theme.borderRadius,
       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",

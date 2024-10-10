@@ -2,6 +2,7 @@ import { XIcon } from "@primer/octicons-react";
 import React from "react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
+import { styles, themeStyles } from "render/ui/styles";
 
 import { Modal } from "./Modal";
 
@@ -12,40 +13,40 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
     <Modal isOpen={isOpen} onClose={onClose}>
       <div
         style={{
-          backgroundColor: theme.surface1,
+          ...themeStyles.surface1(theme),
+          ...styles.flexColumn,
           height: "auto",
           maxHeight: "80vh",
-          display: "flex",
-          flexDirection: "column",
           borderRadius: theme.borderRadius,
         }}
       >
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            ...styles.flexBetween,
             padding: `${theme.spacing.large} ${theme.spacing.large}`,
           }}
         >
-          <h2 style={{ color: theme.text1, fontSize: theme.fontSize.large }}>
+          <h2
+            style={{
+              ...themeStyles.textColor1(theme),
+              fontSize: theme.fontSize.large,
+            }}
+          >
             {title}
           </h2>
           <button
             style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: theme.text1,
+              ...styles.bgNone,
+              ...styles.borderNone,
+              ...styles.clickable,
+              ...themeStyles.textColor1(theme),
             }}
             onClick={onClose}
             aria-label="Close"
             onMouseEnter={(e) =>
-              (e.currentTarget.style.color = theme.primaryColor)
+              (e.currentTarget.style.color = theme.accentColor)
             }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = theme.textColor)
-            }
+            onMouseLeave={(e) => (e.currentTarget.style.color = theme.text1)}
           >
             <XIcon />
           </button>
@@ -53,9 +54,9 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
 
         <div
           style={{
-            overflow: "auto",
+            ...styles.overflowYAuto,
             padding: theme.spacing.large,
-            color: theme.text1,
+            ...themeStyles.textColor1(theme),
           }}
         >
           {children}

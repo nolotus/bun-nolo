@@ -9,7 +9,7 @@ interface MenuButtonProps {
 }
 
 const buttonStyle = (theme: any): React.CSSProperties => ({
-  ...themeStyles.bgColor1(theme),
+  ...themeStyles.surface1(theme),
   border: "none",
   cursor: "pointer",
   transition: "background-color 0.2s",

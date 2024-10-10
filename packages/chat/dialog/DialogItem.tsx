@@ -25,7 +25,7 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
     ...styles.mb1,
     ...styles.rounded,
     ...styles.transition,
-    ...themeStyles.bgColor1(theme),
+    ...themeStyles.surface1(theme),
     backgroundColor: isSelected
       ? theme.surface3
       : isHovered
