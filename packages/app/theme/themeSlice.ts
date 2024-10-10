@@ -38,7 +38,7 @@ const baseTheme = {
   breakpoints: [480, 640, 768, 1024, 1280, 1536],
   topbarHeight: "40px",
   topBarMargin: "8px",
-  topBarPadding: "8px",
+  topBarPadding: "16px",
   topBarZIndex: 1,
   sidebarPadding: "8px",
   sidebarWidth: 300,

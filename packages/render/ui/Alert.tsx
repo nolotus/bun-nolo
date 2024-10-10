@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
 import { Modal, useModal } from "./Modal";
-import { styles } from "render/ui/styles";
+import { styles, themeStyles } from "render/ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
 import { useMediaQuery } from "react-responsive";
 
@@ -66,7 +66,7 @@ export const Alert: React.FC<AlertProps> = React.memo(
         <div
           style={{
             ...styles.rounded,
-            backgroundColor: theme.surface1,
+            ...themeStyles.surface3(theme),
             padding: responsiveStyles.padding,
             display: "flex",
             flexDirection: "column",
