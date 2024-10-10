@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  HomeIcon,
-  PlusIcon,
-  CommentDiscussionIcon,
-} from "@primer/octicons-react";
+import { HomeIcon, CommentDiscussionIcon } from "@primer/octicons-react";
 
 export interface NavItem {
   path: string;
@@ -14,7 +10,6 @@ export interface NavItem {
 
 export const fixedLinks: NavItem[] = [
   { path: "/", label: "Home", icon: <HomeIcon size={16} /> },
-  { path: "/create", label: "Add", icon: <PlusIcon size={16} /> },
   { path: "/chat", label: "Chat", icon: <CommentDiscussionIcon size={16} /> },
 ];
 

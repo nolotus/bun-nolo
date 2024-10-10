@@ -1,10 +1,11 @@
 import CreateCybotButton from "ai/cybot/CreateCybotButton";
 import { nolotusId } from "core/init";
 import Cybots from "ai/cybot/Cybots";
+import withTranslations from "i18n/withTranslations";
 
 const ChatGuide = () => {
   return (
-    <div style={{ padding: "20px", marginTop: "4rem" }}>
+    <div>
       <h3 style={{ marginBottom: "1rem" }}>创建自己的</h3>
       <p>
         这里添加具体的引导。 1如何使用已经建立好的 2如何自己新建一个
@@ -17,4 +18,4 @@ const ChatGuide = () => {
   );
 };
 
-export default ChatGuide;
+export default withTranslations(ChatGuide, ["chat", "ai"]);

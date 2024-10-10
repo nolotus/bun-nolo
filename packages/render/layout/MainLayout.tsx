@@ -4,12 +4,13 @@ import Sidebar from "render/layout/Sidebar";
 import Sizes from "open-props/src/sizes";
 import { USER_PROFILE_ROUTE, EDITOR_CONFIG } from "setting/config";
 import { nolotusId } from "core/init";
-import NavListItem from "./blocks/NavListItem";
 import { BeakerIcon } from "@primer/octicons-react";
 import { allowRule, NavItem } from "auth/navPermissions";
 import { useAuth } from "auth/useAuth";
 import ChatSidebarContent from "chat/ChatSidebarContent";
 import { AnimatePresence, motion } from "framer-motion";
+
+import NavListItem from "./blocks/NavListItem";
 
 export const bottomLinks: NavItem[] = [
   {

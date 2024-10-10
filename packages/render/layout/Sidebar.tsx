@@ -20,7 +20,6 @@ import { useAuth } from "auth/useAuth";
 import { fixedLinks, allowRule } from "auth/navPermissions";
 import { RoutePaths } from "auth/client/routes";
 import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
-
 import NavListItem from "./blocks/NavListItem";
 import TopBar from "./TopBar";
 
@@ -192,7 +191,7 @@ const innerContentStyles = (theme: any, fullWidth: boolean) => ({
   width: fullWidth ? "100%" : "100%",
   maxWidth: fullWidth ? "none" : "1200px",
   margin: fullWidth ? 0 : "0 auto",
-  padding: fullWidth ? 0 : "48px 24px 24px",
+  padding: 0,
   ...themeStyles.textColor1(theme),
 });
 
