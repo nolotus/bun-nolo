@@ -22,10 +22,11 @@ const CybotBlock = ({ item }) => {
     cybotCard: {
       ...styles.flexColumn,
       ...styles.p3,
-      ...themeStyles.surface1(theme),
+      ...themeStyles.surface2(theme),
       ...themeStyles.textColor1(theme),
+      ...styles.radShadow,
+      ...themeStyles.radShadow(theme),
       borderRadius: theme.borderRadius,
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
       height: "100%",
       transition: "background-color 0.3s ease, color 0.3s ease",
     },
@@ -40,7 +41,6 @@ const CybotBlock = ({ item }) => {
       flexShrink: 0,
       maxWidth: "calc(100% - 100px)",
     },
-
     infoContainer: {
       ...styles.flexGrow1,
       ...styles.flexColumn,

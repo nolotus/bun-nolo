@@ -2,12 +2,12 @@
 
 import { createSlice } from "@reduxjs/toolkit";
 import OpenProps from "open-props";
+
 import { blues } from "../colors";
 import { lightTheme } from "./lightTheme";
 import { darkTheme } from "./darkTheme";
 import { grapeTheme } from "./grapeTheme";
 import { dimTheme } from "./dimTheme";
-import { darkerTheme } from "./darkerTheme";
 import { chocoTheme } from "./chocoTheme";
 
 const mainColors = [...blues];
@@ -70,7 +70,6 @@ const extendedLightTheme = createExtendedTheme(baseTheme, lightTheme);
 const extendedDarkTheme = createExtendedTheme(baseTheme, darkTheme);
 const extendedGrapeTheme = createExtendedTheme(baseTheme, grapeTheme);
 const extendedDimTheme = createExtendedTheme(baseTheme, dimTheme);
-const extendedDarkerTheme = createExtendedTheme(baseTheme, darkerTheme);
 const extendedChocoTheme = createExtendedTheme(baseTheme, chocoTheme);
 
 const themes = {
@@ -78,7 +77,6 @@ const themes = {
   dark: extendedDarkTheme,
   grape: extendedGrapeTheme,
   dim: extendedDimTheme,
-  darker: extendedDarkerTheme,
   choco: extendedChocoTheme,
 };
 

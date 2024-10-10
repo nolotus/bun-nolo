@@ -14,6 +14,8 @@ export type Theme = {
   scrollthumbColor: string;
   brand: string;
   backgroundColor: string;
+  surfaceShadow: string;
+  shadowStrength: string;
 };
 
 export const styles = {
@@ -121,6 +123,20 @@ export const styles = {
     cursor: "pointer",
     transition: "all 0.2s ease-in-out",
   },
+
+  // 新添加的 radShadow 样式
+  radShadow: {
+    border: "1px solid",
+    boxShadow: `
+      0 1rem .5rem -.5rem,
+      0 2.8px 2.2px,
+      0 6.7px 5.3px,
+      0 12.5px 10px,
+      0 22.3px 17.9px,
+      0 41.8px 33.4px,
+      0 100px 80px
+    `,
+  },
 } as const;
 
 export const themeStyles = {
@@ -146,7 +162,20 @@ export const themeStyles = {
   linkVisited: (theme: Theme) => ({ color: theme.linkVisited }),
   scrollThumb: (theme: Theme) => ({ backgroundColor: theme.scrollthumbColor }),
   brand: (theme: Theme) => ({ color: theme.brand }),
-  bgColorMain: (theme: Theme) => ({ backgroundColor: theme.backgroundColor }),
+
+  // 新添加的 radShadow 主题样式
+  radShadow: (theme: Theme) => ({
+    borderColor: `${theme.brand}26`, // 使用 theme.brand 并设置透明度为 15% (26 in hex)
+    boxShadow: `
+      0 1rem .5rem -.5rem hsl(${theme.surfaceShadow} / calc(${theme.shadowStrength} + 3%)),
+      0 2.8px 2.2px hsl(${theme.surfaceShadow} / calc(${theme.shadowStrength} + 3%)),
+      0 6.7px 5.3px hsl(${theme.surfaceShadow} / calc(${theme.shadowStrength} + 1%)),
+      0 12.5px 10px hsl(${theme.surfaceShadow} / calc(${theme.shadowStrength} + 2%)),
+      0 22.3px 17.9px hsl(${theme.surfaceShadow} / calc(${theme.shadowStrength} + 2%)),
+      0 41.8px 33.4px hsl(${theme.surfaceShadow} / calc(${theme.shadowStrength} + 3%)),
+      0 100px 80px hsl(${theme.surfaceShadow} / ${theme.shadowStrength})
+    `,
+  }),
 };
 
 export type Styles = typeof styles;
