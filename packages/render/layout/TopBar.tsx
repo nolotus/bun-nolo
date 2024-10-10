@@ -44,13 +44,6 @@ const topBarActionsStyles = (theme: any) => ({
   gap: theme.spacing.small,
 });
 
-const iconButtonStyles = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-};
-
 const TopBar: React.FC<TopBarProps> = ({
   toggleSidebar,
   theme,
@@ -95,9 +88,6 @@ const TopBar: React.FC<TopBarProps> = ({
         </>
       )}
       <div style={topBarActionsStyles(theme)}>
-        <div style={iconButtonStyles}>
-          <GearIcon />
-        </div>
         <CreateMenu />
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
-import { Button } from "render/ui";
+import Button from "render/ui/Button";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { styles, themeStyles } from "render/ui/styles";
@@ -40,15 +40,7 @@ const CybotBlock = ({ item }) => {
       flexShrink: 0,
       maxWidth: "calc(100% - 100px)",
     },
-    button: {
-      backgroundColor: theme.brand,
-      color: theme.surface1,
-      fontWeight: "600",
-      padding: "0.5rem 1rem",
-      borderRadius: theme.borderRadius,
-      transition: "background-color 0.2s ease, color 0.2s ease",
-      minWidth: "80px",
-    },
+
     infoContainer: {
       ...styles.flexGrow1,
       ...styles.flexColumn,
@@ -81,11 +73,7 @@ const CybotBlock = ({ item }) => {
         <div style={combinedStyles.title} title={item.name}>
           {item.name}
         </div>
-        <Button
-          style={combinedStyles.button}
-          loading={isLoading}
-          onClick={createNewDialog}
-        >
+        <Button loading={isLoading} onClick={createNewDialog}>
           对话
         </Button>
       </div>

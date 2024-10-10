@@ -7,59 +7,51 @@ import {
   LocationIcon,
 } from "@primer/octicons-react";
 import DropDown from "render/ui/DropDown";
-import Sizes from "open-props/src/sizes";
 import { useNavigate } from "react-router-dom";
 import { Tooltip } from "@primer/react/next";
 import { Link } from "react-router-dom";
-import OpenProps from "open-props";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
+import { styles, themeStyles } from "render/ui/styles";
+import Button from "render/ui/Button";
 
 import { CreateRoutePaths } from "./routes";
 
-const buttonStyle = (theme: any): React.CSSProperties => ({
-  padding: "6px",
-  borderRadius: OpenProps.radiusRound,
-  cursor: "pointer",
-  color: "inherit",
-  backgroundColor: theme.backgroundColor,
-  border: `1px solid ${theme.surface2}`,
-  transition: "background-color 0.2s",
-});
-
-const handleMouseEnter = (
-  e: React.MouseEvent<HTMLButtonElement>,
-  theme: any,
-) => {
-  e.currentTarget.style.backgroundColor =
-    theme.themeName === "dark" ? theme.surface4 : theme.surface2;
-};
-
-const handleMouseLeave = (
-  e: React.MouseEvent<HTMLButtonElement>,
-  theme: any,
-) => {
-  e.currentTarget.style.backgroundColor =
-    theme.themeName === "dark" ? theme.surface3 : theme.backgroundColor;
-};
-
-export const CircleButton = ({ tooltip, icon, to, onClick }) => {
+const CircleButton = ({ tooltip, icon, to, onClick }) => {
   const theme = useSelector(selectTheme);
 
+  const buttonStyle = {
+    ...styles.flexCenter,
+    ...styles.roundedFull,
+    padding: theme.spacing.small,
+    minWidth: "auto",
+    backgroundColor: "transparent",
+    border: "none",
+  };
+
+  const hoverStyle = {
+    backgroundColor: theme.surface2,
+  };
+
+  const activeStyle = {
+    backgroundColor: theme.surface3,
+    transform: "scale(0.95)",
+  };
+
   const ButtonContent = (
-    <button
-      style={buttonStyle(theme)}
-      onMouseEnter={(e) => handleMouseEnter(e, theme)}
-      onMouseLeave={(e) => handleMouseLeave(e, theme)}
-    >
-      {icon}
-    </button>
+    <Button
+      style={buttonStyle}
+      hoverStyle={hoverStyle}
+      activeStyle={activeStyle}
+      icon={icon}
+      aria-label={tooltip}
+    />
   );
 
   return (
     <Tooltip text={tooltip} direction="n">
       {to ? (
-        <Link to={to} onClick={onClick} style={{ color: "inherit" }}>
+        <Link to={to} onClick={onClick} style={styles.textDecorationNone}>
           {ButtonContent}
         </Link>
       ) : (
@@ -72,23 +64,23 @@ export const CircleButton = ({ tooltip, icon, to, onClick }) => {
 const buttonItems = [
   {
     tooltip: "添加页面",
-    icon: <NoteIcon size={24} />,
+    icon: <NoteIcon size={16} />,
     path: `/${CreateRoutePaths.CREATE_PAGE}`,
   },
   {
     tooltip: "添加Cybot",
-    icon: <DependabotIcon size={24} />,
+    icon: <DependabotIcon size={16} />,
     path: `/${CreateRoutePaths.CREATE_CYBOT}`,
   },
   {
     tooltip: "添加地点",
-    icon: <LocationIcon size={24} />,
+    icon: <LocationIcon size={16} />,
     path: `/${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`,
   },
 ];
 
 export const CreateMenu = () => {
-  const navigate = useNavigate();
+  const theme = useSelector(selectTheme);
 
   return (
     <DropDown
@@ -96,13 +88,21 @@ export const CreateMenu = () => {
       trigger={
         <CircleButton
           tooltip="add new"
-          icon={<PlusIcon size={24} />}
+          icon={<PlusIcon size={16} />}
           to="/create"
         />
       }
       triggerType="hover"
     >
-      <div style={{ gap: Sizes["--size-fluid-1"] }}>
+      <div
+        style={{
+          ...styles.flexColumn,
+          ...styles.gap2,
+          ...styles.p2,
+          ...themeStyles.surface2(theme),
+          borderRadius: theme.borderRadius,
+        }}
+      >
         {buttonItems.map((item, index) => (
           <CircleButton
             key={index}
