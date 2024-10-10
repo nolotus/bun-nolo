@@ -1,7 +1,6 @@
-import React from "react";
-import { useLocation, Link } from "react-router-dom";
+import React, { Suspense } from "react";
+import { useLocation, Link, Outlet } from "react-router-dom";
 import Sidebar from "render/layout/Sidebar";
-import Default from "render/layout/Default";
 import Sizes from "open-props/src/sizes";
 import { USER_PROFILE_ROUTE, EDITOR_CONFIG } from "setting/config";
 import { nolotusId } from "core/init";
@@ -9,6 +8,8 @@ import NavListItem from "./blocks/NavListItem";
 import { BeakerIcon } from "@primer/octicons-react";
 import { allowRule, NavItem } from "auth/navPermissions";
 import { useAuth } from "auth/useAuth";
+import ChatSidebarContent from "chat/ChatSidebarContent";
+import { AnimatePresence, motion } from "framer-motion";
 
 export const bottomLinks: NavItem[] = [
   {
@@ -18,6 +19,7 @@ export const bottomLinks: NavItem[] = [
     allow_users: [nolotusId],
   },
 ];
+
 const navItems = [
   { path: `/settings/${USER_PROFILE_ROUTE}`, label: "个人资料" },
   { path: `/settings/${EDITOR_CONFIG}`, label: "编辑器设置" },
@@ -33,6 +35,8 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const auth = useAuth();
   const isSettingsPage = location.pathname.startsWith("/settings");
+  const isLifePage = location.pathname.startsWith("/life");
+  const isChatPage = location.pathname.startsWith("/chat");
   const allowedBottomLinks = allowRule(auth?.user, bottomLinks);
 
   const couldDisplay = (item: { label: string }) => {
@@ -79,13 +83,44 @@ const MainLayout: React.FC = () => {
     </nav>
   );
 
+  const getSidebarContent = () => {
+    if (isSettingsPage || isLifePage) {
+      return settingsSidebarContent;
+    }
+    if (isChatPage) {
+      return <ChatSidebarContent />;
+    }
+    return defaultSidebarContent;
+  };
+
+  const isChatDetailPage =
+    location.pathname.startsWith("/chat/") && location.pathname !== "/chat";
+
+  const renderContent = () => {
+    if (isChatDetailPage) {
+      return <Outlet />;
+    }
+
+    return (
+      <Suspense fallback={<div>loading</div>}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, visibility: "hidden" }}
+            animate={{ opacity: 1, visibility: "visible" }}
+            exit={{ opacity: 0, visibility: "hidden" }}
+            transition={{ duration: 0.3, when: "beforeChildren" }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
+      </Suspense>
+    );
+  };
+
   return (
-    <Sidebar
-      sidebarContent={
-        isSettingsPage ? settingsSidebarContent : defaultSidebarContent
-      }
-    >
-      <Default />
+    <Sidebar sidebarContent={getSidebarContent()} fullWidth={isChatDetailPage}>
+      {renderContent()}
     </Sidebar>
   );
 };

@@ -2,45 +2,15 @@ import React, { Suspense, lazy } from "react";
 import { PageLoader } from "render/blocks/PageLoader";
 import { Outlet } from "react-router-dom";
 import Sidebar from "render/layout/Sidebar";
-import CustomizeAIButton from "ai/cybot/CustomizeAIButton";
-import NewDialogButton from "chat/dialog/NewDialogButton";
-import withTranslations from "i18n/withTranslations";
-import { styles } from "render/ui/styles";
-import { useAppSelector, useQueryData } from "app/hooks";
-import { DataType } from "create/types";
-import { selectCurrentUserId } from "auth/authSlice";
 
-import DialogSideBar from "./dialog/DialogSideBar";
+import withTranslations from "i18n/withTranslations";
+import ChatSidebarContent from "./ChatSidebarContent";
 const ChatPage = lazy(() => import("./ChatPage"));
 const ChatGuide = lazy(() => import("./ChatGuide"));
 
 const Layout = () => {
-  const currentUserId = useAppSelector(selectCurrentUserId);
-
-  const queryConfig = {
-    queryUserId: currentUserId,
-    options: {
-      isJSON: true,
-      limit: 200,
-      condition: {
-        type: DataType.Dialog,
-      },
-    },
-  };
-  const { isLoading, isSuccess } = useQueryData(queryConfig);
-
-  const sidebarContent = (
-    <nav>
-      <div style={{ ...styles.flexBetween, ...styles.gap2 }}>
-        <CustomizeAIButton />
-        <NewDialogButton />
-      </div>
-      <DialogSideBar />
-    </nav>
-  );
-
   return (
-    <Sidebar sidebarContent={sidebarContent} fullWidth>
+    <Sidebar sidebarContent={<ChatSidebarContent />} fullWidth>
       <Outlet />
     </Sidebar>
   );

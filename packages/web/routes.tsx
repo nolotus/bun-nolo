@@ -1,12 +1,12 @@
 import React, { Suspense, lazy } from "react";
 import { authRoutes } from "auth/client/routes";
-import { routes as chatRoutes } from "chat/routes";
 import { createRoutes } from "create/routes";
 import { routes as lifeRoutes } from "life/routes";
 import { USER_PROFILE_ROUTE, EDITOR_CONFIG } from "setting/config";
 import MainLayout from "render/layout/MainLayout";
 import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
+import { PageLoader } from "render/blocks/PageLoader";
 import { SurfTip } from "./SurfTip";
 
 const Page = lazy(() => import("render/page/PageIndex"));
@@ -15,9 +15,11 @@ const AccountSettings = lazy(() => import("setting/pages/AccountSettings"));
 const UserProfile = lazy(() => import("setting/pages/UserProfile"));
 const EditorConfig = lazy(() => import("setting/pages/EditorConfig"));
 const Website = lazy(() => import("setting/pages/Website"));
+const ChatPage = lazy(() => import("chat/ChatPage"));
+const ChatGuide = lazy(() => import("chat/ChatGuide"));
 
 const LazyLoadWrapper = ({ component }: { component: React.ReactNode }) => (
-  <Suspense fallback={<>加载中...</>}>{component}</Suspense>
+  <Suspense fallback={<PageLoader />}>{component}</Suspense>
 );
 
 const createRoute = (path: string, component: React.ReactNode) => ({
@@ -58,9 +60,16 @@ export const routes = (currentUser: any) => [
           createRoute("website", <Website />),
         ],
       },
+      {
+        path: "/chat",
+        children: [
+          createRoute("/chat", <ChatGuide />),
+          createRoute("/chat/:dialogId", <ChatPage />),
+        ],
+      },
     ],
   },
-  chatRoutes,
+
   lifeRoutes,
   {
     path: ":pageId",
