@@ -1,4 +1,5 @@
 // render/layout/Sidebar.tsx
+
 import React, {
   useState,
   useEffect,
@@ -112,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         ref={sidebarRef}
         style={sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth)}
       >
-        <div style={sidebarContentStyles}>
+        <div style={sidebarContentStyles(theme)}>
           {isLoggedIn ? (
             <div style={{ marginBottom: OpenProps.size3 }}>
               <IsLoggedInMenu />
@@ -156,17 +157,17 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   transition: "left 0.3s ease-in-out",
   zIndex: 2,
   ...themeStyles.textColor1(theme),
-  padding: OpenProps.size3,
+  padding: theme.sidebarPadding, // 使用主题中的 padding 值
   display: "flex",
   flexDirection: "column" as const,
 });
 
-const sidebarContentStyles = {
+const sidebarContentStyles = (theme: any) => ({
   display: "flex",
   flexDirection: "column" as const,
   height: "100%",
   overflow: "hidden",
-};
+});
 
 const scrollableContentStyles = {
   flexGrow: 1,

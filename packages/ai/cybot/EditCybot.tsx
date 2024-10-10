@@ -1,5 +1,3 @@
-// ChatConfigForm.js
-
 import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
@@ -76,8 +74,8 @@ const EditCybot = ({ initialValues, onClose }) => {
 
   const buttonStyle = {
     width: "100%",
-    padding: theme.button.padding,
-    marginTop: theme.button.marginTop,
+    padding: "10px", // Directly write padding value
+    marginTop: "20px", // Directly write marginTop value
   };
 
   return (

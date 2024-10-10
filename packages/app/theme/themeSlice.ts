@@ -1,4 +1,4 @@
-// app/theme/themeSlice.js
+// app/theme/themeSlice.ts
 
 import { createSlice } from "@reduxjs/toolkit";
 import OpenProps from "open-props";
@@ -29,17 +29,13 @@ const commonThemeValues = {
     labelWidth: ["100%", "100%", "30%", "25%", "20%", "20%"],
     inputWidth: ["100%", "100%", "70%", "75%", "80%", "80%"],
   },
-  button: {
-    padding: "8px 0",
-    marginTop: "16px",
-  },
   breakpoints: [480, 640, 768, 1024, 1280, 1536],
-  topbarHeight: "60px", // 添加 topbar 的高度
-  topBarMargin: "16px", // 添加 topbar 的 margin
-  topBarPadding: "8px", // 添加 topbar 的 padding
-  topBarZIndex: 1, // 添加 topbar 的 zIndex
+  topbarHeight: "40px",
+  topBarMargin: "8px",
+  topBarPadding: "8px",
+  topBarZIndex: 1,
+  sidebarPadding: "8px",
 };
-
 // 辅助函数：根据断点生成响应式值
 const createResponsiveValue = (values) => {
   return (screenWidth) => {

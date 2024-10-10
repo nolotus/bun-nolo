@@ -9,9 +9,38 @@ import {
 import DropDown from "render/ui/DropDown";
 import Sizes from "open-props/src/sizes";
 import { useNavigate } from "react-router-dom";
-import { CircleButton } from "render/button/CircleButton";
+import { Tooltip } from "@primer/react/next";
+import { Link } from "react-router-dom";
+import OpenProps from "open-props";
 
 import { CreateRoutePaths } from "../routes";
+
+export const CircleButton = ({ tooltip, icon, to, onClick }) => {
+  const ButtonContent = (
+    <button
+      style={{
+        padding: "6px",
+        borderRadius: OpenProps.radiusRound,
+        cursor: "pointer",
+        color: "inherit",
+      }}
+    >
+      {icon}
+    </button>
+  );
+
+  return (
+    <Tooltip text={tooltip} direction="n">
+      {to ? (
+        <Link to={to} onClick={onClick} style={{ color: "inherit" }}>
+          {ButtonContent}
+        </Link>
+      ) : (
+        <div onClick={onClick}>{ButtonContent}</div>
+      )}
+    </Tooltip>
+  );
+};
 
 const buttonItems = [
   {
@@ -46,10 +75,7 @@ export const CreateMenu = () => {
       }
       triggerType="hover"
     >
-      <div
-        className="flex w-[200px] flex-col"
-        style={{ gap: Sizes["--size-fluid-2"] }}
-      >
+      <div style={{ gap: Sizes["--size-fluid-1"] }}>
         {buttonItems.map((item, index) => (
           <CircleButton
             key={index}
