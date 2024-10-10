@@ -43,9 +43,7 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
             }}
             onClick={onClose}
             aria-label="Close"
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.color = theme.accentColor)
-            }
+            onMouseEnter={(e) => (e.currentTarget.style.color = theme.brand)}
             onMouseLeave={(e) => (e.currentTarget.style.color = theme.text1)}
           >
             <XIcon />

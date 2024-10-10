@@ -41,7 +41,7 @@ const CybotBlock = ({ item }) => {
       maxWidth: "calc(100% - 100px)",
     },
     button: {
-      backgroundColor: theme.accentColor,
+      backgroundColor: theme.brand,
       color: theme.surface1,
       fontWeight: "600",
       padding: "0.5rem 1rem",

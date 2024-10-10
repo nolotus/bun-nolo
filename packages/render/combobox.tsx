@@ -19,7 +19,7 @@ const useComboboxStyles = () => {
       lineHeight: "1.5rem",
       outlineWidth: "1px",
       outlineOffset: "-1px",
-      outlineColor: theme.accentColor,
+      outlineColor: theme.brand,
       boxShadow: `inset 0 0 0 1px ${theme.surface3}, inset 0 2px 5px 0 rgba(0, 0, 0, 0.08)`,
     },
     comboboxHover: {
@@ -66,7 +66,7 @@ const useComboboxStyles = () => {
       backgroundColor: theme.surface2,
     },
     itemActive: {
-      backgroundColor: theme.accentColor,
+      backgroundColor: theme.brand,
       color: theme.surface1,
       paddingTop: "9px",
       paddingBottom: "7px",

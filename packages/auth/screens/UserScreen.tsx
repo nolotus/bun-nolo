@@ -21,9 +21,7 @@ const styles = StyleSheet.create({
 
 export function UserScreen({ navigation }) {
   const dispatch = useDispatch();
-  const mainBackgroundColor = useSelector(
-    (state) => state.theme.mainBackgroundColor,
-  ); // 从 Redux store 获取背景颜色
+  const mainBackgroundColor = useSelector((state) => state.theme.surface1); // 从 Redux store 获取背景颜色
   const goToLogin = () => {
     navigation.navigate("Auth", { screen: "Login" });
   };

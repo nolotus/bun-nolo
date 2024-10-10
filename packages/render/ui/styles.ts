@@ -12,11 +12,8 @@ export type Theme = {
   link: string;
   linkVisited: string;
   scrollthumbColor: string;
-  accentColor: string;
+  brand: string;
   backgroundColor: string;
-  caretColor: string;
-  colorScheme: string;
-  // 可以根据需要添加更多主题属性
 };
 
 export const styles = {
@@ -148,9 +145,8 @@ export const themeStyles = {
   link: (theme: Theme) => ({ color: theme.link }),
   linkVisited: (theme: Theme) => ({ color: theme.linkVisited }),
   scrollThumb: (theme: Theme) => ({ backgroundColor: theme.scrollthumbColor }),
-  accent: (theme: Theme) => ({ color: theme.accentColor }),
+  brand: (theme: Theme) => ({ color: theme.brand }),
   bgColorMain: (theme: Theme) => ({ backgroundColor: theme.backgroundColor }),
-  caret: (theme: Theme) => ({ caretColor: theme.caretColor }),
 };
 
 export type Styles = typeof styles;

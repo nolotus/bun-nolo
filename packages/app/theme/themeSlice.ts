@@ -3,10 +3,16 @@
 import { createSlice } from "@reduxjs/toolkit";
 import OpenProps from "open-props";
 import { blues } from "../colors";
+import { lightTheme } from "./lightTheme";
+import { darkTheme } from "./darkTheme";
+import { grapeTheme } from "./grapeTheme";
+import { dimTheme } from "./dimTheme";
+import { darkerTheme } from "./darkerTheme";
+import { chocoTheme } from "./chocoTheme";
 
 const mainColors = [...blues];
 
-const commonThemeValues = {
+const baseTheme = {
   borderRadius: "5px",
   fontSize: {
     small: "12px",
@@ -35,96 +41,67 @@ const commonThemeValues = {
   topBarPadding: "8px",
   topBarZIndex: 1,
   sidebarPadding: "8px",
+  sidebarWidth: 300,
 };
-// 辅助函数：根据断点生成响应式值
+
 const createResponsiveValue = (values) => {
   return (screenWidth) => {
-    const breakpointIndex = commonThemeValues.breakpoints.findIndex(
+    const breakpointIndex = baseTheme.breakpoints.findIndex(
       (bp) => screenWidth < bp,
     );
     return values[breakpointIndex === -1 ? values.length - 1 : breakpointIndex];
   };
 };
 
-export const lightTheme = {
-  ...commonThemeValues,
-  link: OpenProps.indigo7,
-  linkVisited: OpenProps.purple7,
-  text1: OpenProps.gray12,
-  text2: OpenProps.gray7,
-  surface1: OpenProps.gray0,
-  surface2: OpenProps.gray2,
-  surface3: OpenProps.gray3,
-  surface4: OpenProps.gray4,
-  scrollthumbColor: OpenProps.gray7,
-  accentColor: OpenProps.indigo7,
-  backgroundColor: OpenProps.gray0,
-  caretColor: OpenProps.indigo7,
-  colorScheme: "light",
-  chatListPadding: OpenProps.sizeFluid5,
-  getResponsiveLabelWidth: createResponsiveValue(
-    commonThemeValues.form.labelWidth,
-  ),
-  getResponsiveInputWidth: createResponsiveValue(
-    commonThemeValues.form.inputWidth,
-  ),
-  sidebarWidth: 300, // 添加初始侧边栏宽度
-};
+const createExtendedTheme = (baseTheme, themeColors) => ({
+  ...baseTheme,
+  ...themeColors,
+  link: themeColors.brand,
+  linkVisited: OpenProps.purple5,
+  scrollthumbColor: themeColors.text2,
+  accentColor: themeColors.brand,
+  backgroundColor: themeColors.surface1,
+  caretColor: themeColors.brand,
+  getResponsiveLabelWidth: createResponsiveValue(baseTheme.form.labelWidth),
+  getResponsiveInputWidth: createResponsiveValue(baseTheme.form.inputWidth),
+});
 
-export const darkTheme = {
-  ...commonThemeValues,
-  link: OpenProps.indigo3,
-  linkVisited: OpenProps.purple3,
-  text1: OpenProps.gray1,
-  text2: OpenProps.gray4,
-  surface1: OpenProps.gray9,
-  surface2: OpenProps.gray8,
-  surface3: OpenProps.gray7,
-  surface4: OpenProps.gray6,
-  scrollthumbColor: OpenProps.gray6,
-  accentColor: OpenProps.indigo3,
-  backgroundColor: OpenProps.gray9,
-  caretColor: OpenProps.indigo3,
-  colorScheme: "dark",
-  shadowStrength: "10%",
-  shadowColor: "220 40% 2%",
-  chatListPadding: OpenProps.sizeFluid5,
-  getResponsiveLabelWidth: createResponsiveValue(
-    commonThemeValues.form.labelWidth,
-  ),
-  getResponsiveInputWidth: createResponsiveValue(
-    commonThemeValues.form.inputWidth,
-  ),
-  sidebarWidth: 300, // 添加初始侧边栏宽度
+const extendedLightTheme = createExtendedTheme(baseTheme, lightTheme);
+const extendedDarkTheme = createExtendedTheme(baseTheme, darkTheme);
+const extendedGrapeTheme = createExtendedTheme(baseTheme, grapeTheme);
+const extendedDimTheme = createExtendedTheme(baseTheme, dimTheme);
+const extendedDarkerTheme = createExtendedTheme(baseTheme, darkerTheme);
+const extendedChocoTheme = createExtendedTheme(baseTheme, chocoTheme);
+
+const themes = {
+  light: extendedLightTheme,
+  dark: extendedDarkTheme,
+  grape: extendedGrapeTheme,
+  dim: extendedDimTheme,
+  darker: extendedDarkerTheme,
+  choco: extendedChocoTheme,
 };
 
 const initialState = {
   themeName: "light",
-  ...lightTheme,
+  ...extendedLightTheme,
 };
 
 const themeSlice = createSlice({
   name: "theme",
   initialState,
   reducers: {
-    toggleTheme: (state) => {
-      const newTheme = state.themeName === "light" ? darkTheme : lightTheme;
-      return {
-        ...state,
-        ...newTheme,
-        themeName: state.themeName === "light" ? "dark" : "light",
-        isDarkMode: state.themeName === "light",
-      };
-    },
     setTheme: (state, action) => {
       const newName = action.payload;
-      const newTheme = newName === "dark" ? darkTheme : lightTheme;
-      return {
-        ...state,
-        ...newTheme,
-        themeName: newName,
-        isDarkMode: newName === "dark",
-      };
+      if (themes[newName]) {
+        return {
+          ...state,
+          ...themes[newName],
+          themeName: newName,
+          isDarkMode: ["dark", "darker", "dim"].includes(newName),
+        };
+      }
+      return state;
     },
     changeMainColor: (state, action) => {
       if (mainColors.includes(action.payload)) {
@@ -137,12 +114,13 @@ const themeSlice = createSlice({
   },
 });
 
-export const { toggleTheme, setTheme, changeMainColor, setSidebarWidth } =
+export const { setTheme, changeMainColor, setSidebarWidth } =
   themeSlice.actions;
 
 export const mainColorOptions = mainColors;
 
 export const selectTheme = (state) => state.theme;
-export const selectIsDarkMode = (state) => state.theme.themeName === "dark";
+export const selectIsDarkMode = (state) =>
+  ["dark", "darker", "dim"].includes(state.theme.themeName);
 
 export default themeSlice.reducer;

@@ -47,7 +47,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
         onClick={onClick}
         style={defaultStyle}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = theme.accentColor;
+          e.currentTarget.style.backgroundColor = theme.brand;
           e.currentTarget.style.color = theme.surface1;
         }}
         onMouseLeave={(e) => {
@@ -71,10 +71,10 @@ const NavListItem: React.FC<NavListItemProps> = ({
       style={({ isActive }) => ({
         ...defaultStyle,
         color: isActive ? theme.surface1 : theme.text1,
-        backgroundColor: isActive ? theme.accentColor : "transparent",
+        backgroundColor: isActive ? theme.brand : "transparent",
       })}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = theme.accentColor;
+        e.currentTarget.style.backgroundColor = theme.brand;
         e.currentTarget.style.color = theme.surface1;
       }}
       onMouseLeave={(e) => {

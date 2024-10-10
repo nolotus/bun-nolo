@@ -41,7 +41,7 @@ export const DialogItem = ({ id, isCreator, source, categoryId }) => {
     ...styles.textDecorationNone,
     ...styles.colorInherit,
     ...styles.transition,
-    color: isHovered ? theme.accentColor : theme.text1,
+    color: isHovered ? theme.brand : theme.text1,
   };
 
   const handleContextMenu = (event) => {

@@ -11,9 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 
 export function HomeScreen() {
   const navigation = useNavigation();
-  const mainBackgroundColor = useSelector(
-    (state) => state.theme.mainBackgroundColor,
-  );
+  const mainBackgroundColor = useSelector((state) => state.theme.surface1);
 
   return (
     <ScrollView

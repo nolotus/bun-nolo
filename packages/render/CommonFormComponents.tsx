@@ -53,11 +53,11 @@ const useCommonFormStyles = () => {
       color: theme.text1,
     },
     errorMessage: {
-      color: theme.accentColor,
+      color: theme.brand,
       fontSize: "0.8em",
     },
     submitButton: {
-      backgroundColor: theme.accentColor,
+      backgroundColor: theme.brand,
       color: theme.surface1,
       padding: "10px 15px",
       border: "none",
