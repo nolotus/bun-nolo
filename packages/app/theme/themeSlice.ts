@@ -24,14 +24,6 @@ const commonThemeValues = {
     medium: 16,
     large: 20,
   },
-  dialogHeader: {
-    padding: "10px 16px",
-    gap: "12px",
-    cybotNamesContainer: {
-      minWidth: "80px",
-      maxWidth: "200px",
-    },
-  },
   form: {
     fieldSpacing: "16px",
     labelWidth: ["100%", "100%", "30%", "25%", "20%", "20%"],
@@ -42,6 +34,10 @@ const commonThemeValues = {
     marginTop: "16px",
   },
   breakpoints: [480, 640, 768, 1024, 1280, 1536],
+  topbarHeight: "60px", // 添加 topbar 的高度
+  topBarMargin: "16px", // 添加 topbar 的 margin
+  topBarPadding: "8px", // 添加 topbar 的 padding
+  topBarZIndex: 1, // 添加 topbar 的 zIndex
 };
 
 // 辅助函数：根据断点生成响应式值

@@ -42,6 +42,7 @@ export const styles = {
 
   // 其他常用样式
   w100: { width: "100%" },
+  h100: { height: "100%" },
   h100vh: { height: "100vh" },
   flexGrow1: { flexGrow: 1 },
 
@@ -51,6 +52,7 @@ export const styles = {
   // 溢出处理
   overflowYAuto: { overflowY: "auto" as const },
   overflowXHidden: { overflowX: "hidden" as const },
+  overflowHidden: { overflow: "hidden" as const }, // 新添加的样式
 
   // 交互样式
   clickable: {

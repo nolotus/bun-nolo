@@ -4,8 +4,11 @@ import { PencilIcon, CheckIcon, XIcon } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { patchData } from "database/dbSlice";
 import { selectTheme } from "app/theme/themeSlice";
+import { useCouldEdit } from "auth/useCouldEdit";
 
-const EditableTitle = ({ currentDialogConfig, allowEdit }) => {
+const EditableTitle = ({ currentDialogConfig }) => {
+  const allowEdit = useCouldEdit(currentDialogConfig?.id);
+
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const theme = useAppSelector(selectTheme);

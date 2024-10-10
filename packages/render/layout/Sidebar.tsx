@@ -8,61 +8,32 @@ import React, {
 } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
-import { fixedLinks, allowRule } from "auth/navPermissions";
-import { RoutePaths } from "auth/client/routes";
+
+import { SignInIcon } from "@primer/octicons-react";
+
 import { useTranslation } from "react-i18next";
 import { styles, themeStyles } from "render/ui/styles";
 import OpenProps from "open-props";
+
 import { useAuth } from "auth/useAuth";
+import { fixedLinks, allowRule } from "auth/navPermissions";
+import { RoutePaths } from "auth/client/routes";
 import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
+
 import NavListItem from "./blocks/NavListItem";
-import { SignInIcon, ThreeBarsIcon, PlusIcon } from "@primer/octicons-react";
-import { CreateMenu } from "create/blocks/CreateMenu";
+import TopBar from "./TopBar";
 
-// MenuButton Component
-interface MenuButtonProps {
-  onClick: () => void;
-  theme: any;
-}
-
-const MenuButton: React.FC<MenuButtonProps> = ({ onClick, theme }) => (
-  <button
-    onClick={onClick}
-    style={buttonStyle(theme)}
-    onMouseEnter={(e) => handleMouseEnter(e, theme)}
-    onMouseLeave={(e) => handleMouseLeave(e, theme)}
-  >
-    <ThreeBarsIcon size={theme.iconSize.medium} />
-  </button>
-);
-
-// PlusButton Component
-interface PlusButtonProps {
-  onClick: () => void;
-  theme: any;
-}
-
-const PlusButton: React.FC<PlusButtonProps> = ({ onClick, theme }) => (
-  <button
-    onClick={onClick}
-    style={buttonStyle(theme)}
-    onMouseEnter={(e) => handleMouseEnter(e, theme)}
-    onMouseLeave={(e) => handleMouseLeave(e, theme)}
-  >
-    <PlusIcon size={theme.iconSize.medium} />
-  </button>
-);
-
-// Sidebar Component
 interface SidebarProps {
   children: ReactNode;
   sidebarContent: ReactNode;
+  topbarContent?: ReactNode;
   fullWidth?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   children,
   sidebarContent,
+  topbarContent,
   fullWidth = false,
 }) => {
   const { t } = useTranslation();
@@ -79,10 +50,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
-  }, []);
-
-  const handlePlusClick = useCallback(() => {
-    console.log("Plus icon clicked");
   }, []);
 
   const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
@@ -141,10 +108,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         ...themeStyles.bgColor1(theme),
       }}
     >
-      <div style={buttonContainerStyles(theme, isSidebarOpen)}>
-        <MenuButton onClick={toggleSidebar} theme={theme} />
-        <CreateMenu />
-      </div>
       <aside
         ref={sidebarRef}
         style={sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth)}
@@ -172,52 +135,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div style={resizeHandleStyles(theme)} onMouseDown={startResizing} />
       </aside>
       <main style={contentStyles(theme, isSidebarOpen, theme.sidebarWidth)}>
+        <TopBar
+          toggleSidebar={toggleSidebar}
+          theme={theme}
+          topbarContent={topbarContent}
+        />
         <div style={innerContentStyles(theme, fullWidth)}>{children}</div>
       </main>
     </div>
   );
 };
-
-// Shared styles and utilities
-const buttonStyle = (theme: any): React.CSSProperties => ({
-  ...themeStyles.bgColor1(theme),
-  border: "none",
-  cursor: "pointer",
-  transition: "background-color 0.2s",
-  padding: theme.spacing.small,
-  borderRadius: theme.borderRadius,
-  ...themeStyles.textColor1(theme),
-  boxShadow:
-    theme.themeName === "light"
-      ? "0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)"
-      : "none",
-});
-
-const handleMouseEnter = (
-  e: React.MouseEvent<HTMLButtonElement>,
-  theme: any,
-) => {
-  e.currentTarget.style.backgroundColor =
-    theme.themeName === "dark" ? theme.surface4 : theme.surface2;
-};
-
-const handleMouseLeave = (
-  e: React.MouseEvent<HTMLButtonElement>,
-  theme: any,
-) => {
-  e.currentTarget.style.backgroundColor =
-    theme.themeName === "dark" ? theme.surface3 : "white";
-};
-
-const buttonContainerStyles = (theme: any, isSidebarOpen: boolean) => ({
-  ...styles.positionFixed,
-  left: isSidebarOpen ? `${theme.sidebarWidth + 10}px` : "10px",
-  top: "10px",
-  ...styles.zIndex3,
-  display: "flex",
-  gap: theme.spacing.small,
-  transition: "left 0.3s",
-});
 
 const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   width: `${width}px`,
