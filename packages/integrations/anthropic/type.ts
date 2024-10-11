@@ -16,7 +16,7 @@ export type ClaudeContent = Array<
     }
 >;
 
-// Zod schema 定义
+// Zod  定义
 export const ClaudeMessageSchema = z.object({
   role: z.enum(["system", "user", "assistant"]),
   content: z.union([

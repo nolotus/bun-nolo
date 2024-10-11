@@ -168,7 +168,6 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           name="greeting"
           register={register}
           errors={errors}
-          required={t("greetingRequired")}
         />
 
         <FormFieldComponent
@@ -176,7 +175,6 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           name="introduction"
           register={register}
           errors={errors}
-          required={t("introductionRequired")}
           as="textarea"
         />
 

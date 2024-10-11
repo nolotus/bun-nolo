@@ -1,15 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
-import { FormField } from "render/ui/Form/FormField";
 import { useUpdateEntryMutation } from "database/services";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-
-import { editSchema, editFields } from "../llm/schema";
 
 const EditCybot = ({ initialValues, onClose }) => {
   console.log("initialValues", initialValues);
@@ -47,12 +43,21 @@ const EditCybot = ({ initialValues, onClose }) => {
     formState: { errors },
     reset,
   } = useForm({
-    resolver: zodResolver(editSchema),
-    defaultValues: initialValues,
+    defaultValues: {
+      ...initialValues,
+      name: initialValues.name || "",
+      introduction: initialValues.introduction || "",
+      prompt: initialValues.prompt || "",
+    },
   });
 
   useEffect(() => {
-    reset(initialValues);
+    reset({
+      ...initialValues,
+      name: initialValues.name || "",
+      introduction: initialValues.introduction || "",
+      prompt: initialValues.prompt || "",
+    });
   }, [reset, initialValues]);
 
   const fieldContainerStyle = {
@@ -74,22 +79,54 @@ const EditCybot = ({ initialValues, onClose }) => {
 
   const buttonStyle = {
     width: "100%",
-    padding: "10px", // Directly write padding value
-    marginTop: "20px", // Directly write marginTop value
+    padding: "10px",
+    marginTop: "20px",
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      {editFields.map((field) => (
-        <div style={fieldContainerStyle} key={field.id}>
-          <label htmlFor={field.id} style={labelStyle}>
-            {t(field.label)}
-          </label>
-          <div style={inputContainerStyle}>
-            <FormField {...field} errors={errors} register={register} />
-          </div>
+      <div style={fieldContainerStyle}>
+        <label htmlFor="name" style={labelStyle}>
+          {t("name")}
+        </label>
+        <div style={inputContainerStyle}>
+          <input
+            id="name"
+            type="text"
+            {...register("name", { required: "Name is required" })}
+            style={{ width: "100%" }}
+          />
+          {errors.name && <span>{errors.name.message}</span>}
         </div>
-      ))}
+      </div>
+      <div style={fieldContainerStyle}>
+        <label htmlFor="introduction" style={labelStyle}>
+          {t("introduction")}
+        </label>
+        <div style={inputContainerStyle}>
+          <textarea
+            id="introduction"
+            {...register("introduction", {
+              required: "Introduction is required",
+            })}
+            style={{ width: "100%", minHeight: "100px" }}
+          />
+          {errors.introduction && <span>{errors.introduction.message}</span>}
+        </div>
+      </div>
+      <div style={fieldContainerStyle}>
+        <label htmlFor="prompt" style={labelStyle}>
+          {t("prompt")}
+        </label>
+        <div style={inputContainerStyle}>
+          <textarea
+            id="prompt"
+            {...register("prompt", { required: "Prompt is required" })}
+            style={{ width: "100%", minHeight: "100px" }}
+          />
+          {errors.prompt && <span>{errors.prompt.message}</span>}
+        </div>
+      </div>
       <Button type="submit" style={buttonStyle}>
         {t("update")}
       </Button>
