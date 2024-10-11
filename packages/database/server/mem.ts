@@ -96,7 +96,7 @@ export const mem = new EnhancedMap();
 
 export const checkMemoryForData = (id: string) => {
   const memValue = mem.get(id);
-  if (memValue === 0) {
+  if (memValue === "0" || memValue === 0) {
     return null; // 视为已删除
   }
   if (memValue) {

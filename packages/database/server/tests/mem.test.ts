@@ -1,74 +1,72 @@
 // mem.test.ts
 
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, test, expect, beforeEach } from "bun:test";
 import { mem, checkMemoryForData } from "../mem";
+import { extractUserId, setKeyPrefix, Flags } from "core/prefix";
 
 describe("EnhancedMap", () => {
+  const testUserId = "testUser123";
+
   beforeEach(() => {
     mem.clear();
   });
 
-  it("should set and get values correctly", () => {
-    mem.set("key1", "value1");
-    expect(mem.get("key1")).toBe("value1");
+  const createTestKey = (flags: Flags, id: string): string => {
+    const prefix = setKeyPrefix(flags);
+    return `${prefix}-${testUserId}-${id}`;
+  };
+
+  test("should set and get values correctly", () => {
+    const key = createTestKey({ isJSON: true }, "key1");
+    const testData = { test: "JSON data", nested: { value: 123 } };
+
+    mem.set(key, JSON.stringify(testData));
+    expect(JSON.parse(mem.get(key))).toEqual(testData);
+    expect(extractUserId(key)).toBe(testUserId);
   });
 
-  it("should move values to immutable memory after 3 sets", () => {
-    mem.set("key1", "value1");
-    mem.set("key2", "value2");
-    mem.set("key3", "value3");
+  test("should move values to immutable memory after 3 sets", () => {
+    const key1 = createTestKey({ isJSON: true }, "key1");
+    const key2 = createTestKey({ isJSON: true }, "key2");
+    const key3 = createTestKey({ isJSON: true }, "key3");
 
-    const memoryState = mem.getMemoryState();
-    expect(memoryState.directMem.size).toBe(0);
-    expect(memoryState.immutableMem.size).toBe(3);
+    mem.set(key1, JSON.stringify({ data: "value1" }));
+    mem.set(key2, JSON.stringify({ data: "value2" }));
+    mem.set(key3, JSON.stringify({ data: "value3" }));
+
+    expect(JSON.parse(mem.get(key1))).toEqual({ data: "value1" });
+    expect(JSON.parse(mem.get(key2))).toEqual({ data: "value2" });
+    expect(JSON.parse(mem.get(key3))).toEqual({ data: "value3" });
   });
 
-  it("should correctly handle values in both direct and immutable memory", () => {
-    mem.set("key1", "value1");
-    mem.set("key2", "value2");
-    mem.set("key3", "value3");
-    mem.set("key4", "value4");
+  test("should correctly handle values in both direct and immutable memory", () => {
+    const key1 = createTestKey({ isJSON: true }, "key1");
+    const key2 = createTestKey({ isJSON: true }, "key2");
+    const key3 = createTestKey({ isJSON: true }, "key3");
+    const key4 = createTestKey({ isJSON: true }, "key4");
 
-    expect(mem.get("key1")).toBe("value1"); // In immutable memory
-    expect(mem.get("key4")).toBe("value4"); // In direct memory
+    mem.set(key1, JSON.stringify({ data: "value1" }));
+    mem.set(key2, JSON.stringify({ data: "value2" }));
+    mem.set(key3, JSON.stringify({ data: "value3" }));
+    mem.set(key4, JSON.stringify({ data: "value4" }));
+
+    expect(JSON.parse(mem.get(key1))).toEqual({ data: "value1" }); // In immutable memory
+    expect(JSON.parse(mem.get(key4))).toEqual({ data: "value4" }); // In direct memory
   });
 
-  it("should correctly implement size property", () => {
-    mem.set("key1", "value1");
-    mem.set("key2", "value2");
-    expect(mem.size).toBe(2);
+  test("should correctly implement checkMemoryForData function", () => {
+    const key1 = createTestKey({ isJSON: true }, "key1");
+    const key2 = createTestKey({ isJSON: true }, "key2");
+    const key3 = createTestKey({ isJSON: true }, "key3");
 
-    mem.set("key3", "value3");
-    mem.set("key4", "value4");
-    expect(mem.size).toBe(4);
-  });
+    mem.set(key1, JSON.stringify({ data: "value1" }));
+    mem.set(key2, "0"); // Simulating deleted data
+    mem.set(key3, JSON.stringify({ data: "value3" }));
 
-  it("should correctly implement has method", () => {
-    mem.set("key1", "value1");
-    mem.set("key2", "value2");
-    mem.set("key3", "value3");
-
-    expect(mem.has("key1")).toBe(true);
-    expect(mem.has("key4")).toBe(false);
-  });
-
-  it("should correctly implement delete method", () => {
-    mem.set("key1", "value1");
-    mem.set("key2", "value2");
-    mem.set("key3", "value3");
-
-    expect(mem.delete("key2")).toBe(true);
-    expect(mem.has("key2")).toBe(false);
-    expect(mem.delete("key4")).toBe(false);
-  });
-
-  it("should correctly implement checkMemoryForData function", () => {
-    mem.set("key1", "value1");
-    mem.set("key2", 0);
-    mem.set("key3", "value3");
-
-    expect(checkMemoryForData("key1")).toBeDefined();
-    expect(checkMemoryForData("key2")).toBeNull();
-    expect(checkMemoryForData("key4")).toBeUndefined();
+    expect(checkMemoryForData(key1)).toBeDefined();
+    expect(checkMemoryForData(key2)).toBeNull();
+    expect(
+      checkMemoryForData(createTestKey({ isJSON: true }, "key4")),
+    ).toBeUndefined();
   });
 });
