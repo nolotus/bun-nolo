@@ -2,7 +2,8 @@
 
 import { extractUserId } from "core/prefix";
 import { deleteQueueCache } from "database/server/cache";
-import { unlink } from "node:fs/promises";
+import { unlink, mkdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { readLines } from "utils/bun/readLines";
 import { withUserLock } from "./userLock";
 import { checkDeletePermission } from "./permissions";
@@ -13,6 +14,11 @@ const RETRY_DELAY = 5000;
 const TIMEOUT = 30000;
 
 const removeDataFromFile = async (filePath, ids: string[]) => {
+  if (!existsSync(filePath)) {
+    console.log(`File ${filePath} does not exist. Skipping deletion.`);
+    return;
+  }
+
   const tempFilePath = `${filePath}.tmp`;
   const readStream = Bun.file(filePath).stream();
   const tempWriter = Bun.file(tempFilePath).writer();
@@ -31,7 +37,9 @@ const removeDataFromFile = async (filePath, ids: string[]) => {
     await Bun.write(filePath, Bun.file(tempFilePath));
     await unlink(tempFilePath);
   } catch (error) {
-    await unlink(tempFilePath);
+    if (existsSync(tempFilePath)) {
+      await unlink(tempFilePath);
+    }
     throw error;
   }
 };
@@ -40,13 +48,18 @@ const deleteQueue = new Map<string, Set<string>>();
 let isProcessing = false;
 
 const processUserDeletion = async (userId: string, idsToDelete: string[]) => {
-  const indexPath = `./nolodata/${userId}/index.nolo`;
-  const hashPath = `./nolodata/${userId}/hash.nolo`;
+  const userDataDir = `./nolodata/${userId}`;
+  const indexPath = `${userDataDir}/index.nolo`;
 
-  await Promise.all([
-    removeDataFromFile(indexPath, idsToDelete),
-    removeDataFromFile(hashPath, idsToDelete),
-  ]);
+  try {
+    await mkdir(userDataDir, { recursive: true });
+  } catch (error) {
+    if (error.code !== "EEXIST") {
+      throw error;
+    }
+  }
+
+  await removeDataFromFile(indexPath, idsToDelete);
 
   const userCache = deleteQueueCache.get(userId) || new Set();
   idsToDelete.forEach((id) => userCache.add(id));
