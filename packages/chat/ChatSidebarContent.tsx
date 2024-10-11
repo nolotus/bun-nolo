@@ -23,15 +23,14 @@ const ChatSidebarContent = () => {
       },
     },
   };
-  const { isLoading, isSuccess } = useQueryData(queryConfig);
-
+  const { data, isLoading, isSuccess } = useQueryData(queryConfig);
   return (
     <nav>
       <div style={{ ...styles.flexBetween, ...styles.gap2 }}>
         <CustomizeAIButton />
         <NewDialogButton />
       </div>
-      <DialogSideBar />
+      {isSuccess && <DialogSideBar />}
     </nav>
   );
 };
