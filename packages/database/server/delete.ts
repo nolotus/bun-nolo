@@ -6,6 +6,7 @@ import { unlink } from "node:fs/promises";
 import { readLines } from "utils/bun/readLines";
 import { withUserLock } from "./userLock";
 import { checkDeletePermission } from "./permissions";
+import { mem } from "./mem";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 5000;
@@ -122,7 +123,7 @@ export const handleDelete = async (req, res) => {
 
     const { ids = [] } = req.body || {};
     const allIds = [id, ...ids];
-
+    allIds.forEach((id) => mem.set(id, 0));
     await withUserLock(dataBelongUserId, async () => {
       const alreadyDeletedIds = allIds.filter(
         (id) =>

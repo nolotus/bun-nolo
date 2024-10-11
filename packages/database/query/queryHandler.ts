@@ -1,11 +1,11 @@
 import { noloToObject, getHeadTail, extractAndDecodePrefix } from "core";
 import { readLines } from "utils/bun/readLines";
-
 import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
 import { getDatabaseFilePath } from "../init";
 import { listToArray } from "core/noloToOther";
 import { isIdInDeleteQueueCache } from "database/server/cache";
+import { checkMemoryForData } from "database/server/mem";
 
 const handleData = (
   data: string,
@@ -27,11 +27,11 @@ const handleData = (
   return null;
 };
 
-// 创建数据流函数
 async function createDataStream(path: string) {
   const file = Bun.file(path);
   return file.stream();
 }
+
 function sortResults(results, sort) {
   if (sort) {
     results.sort((a, b) => {
@@ -78,7 +78,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     let isLimitReached = false;
 
     for (const path of paths) {
-      if (isLimitReached) break; // 如果已达到limit，中断循环
+      if (isLimitReached) break;
 
       const stream = await createDataStream(path);
       const reader = readLines(stream);
@@ -93,16 +93,23 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         );
 
         if (resultWithKey) {
-          if (isIdInDeleteQueueCache(userId, resultWithKey.id)) {
-            continue; // 如果在缓存中，跳过这条数据
+          // 检查内存中的数据状态
+          const memResult = checkMemoryForData(resultWithKey.id);
+
+          // 如果内存中标记为删除（值为0）或在删除队列缓存中，跳过这条数据
+          if (
+            memResult === null ||
+            isIdInDeleteQueueCache(userId, resultWithKey.id)
+          ) {
+            continue;
           }
 
           if (count >= skip && results.length < limit) {
-            results.push(resultWithKey);
+            // 如果内存中有非0的值，使用内存中的数据
+            results.push(memResult !== undefined ? memResult : resultWithKey);
           }
           count++;
 
-          // 如果达到limit，不再进行处理
           if (results.length >= limit) {
             isLimitReached = true;
             break;
@@ -111,10 +118,12 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
       }
     }
 
-    // 只在最后对所有结果进行排序
     sortResults(results, sort);
     return results;
-  } catch (e) {}
+  } catch (e) {
+    console.error("Error in queryData:", e);
+    return [];
+  }
 };
 
 function handleObjectData(data: string, condition: QueryConditions) {

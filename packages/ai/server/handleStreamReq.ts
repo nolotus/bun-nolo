@@ -28,7 +28,6 @@ function isModelInList(modelname, modelList) {
 }
 
 const createStreamResponse = async (stream: AxiosResponse<any>) => {
-  console.log("stream", stream);
   const responseHeaders = {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",

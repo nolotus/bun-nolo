@@ -23,7 +23,7 @@ const ChatPage = () => {
     }
 
     dialogId && dispatch(initDialog({ dialogId }));
-  }, [auth.user, dialogId, dispatch]);
+  }, [auth.user, dialogId]);
 
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
 

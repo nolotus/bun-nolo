@@ -3,24 +3,11 @@
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists } from "utils/file";
-import { mem } from "./mem";
-import { parseStrWithId } from "core/decodeData";
+import { checkMemoryForData } from "./mem";
 import readline from "readline";
 import { processLine } from "core/decodeData";
-
 import { createReadStream } from "node:fs";
 import { checkReadPermission } from "./permissions";
-
-// 新增 findInMem 函数
-const findInMem = (id: string) => {
-  const cacheStr = mem.get(id);
-  if (cacheStr) {
-    const value = parseStrWithId(id, cacheStr);
-    console.log("cache hit", value);
-    return value;
-  }
-  return null;
-};
 
 export const handleReadSingle = async (req, res) => {
   if (!req.params.id) {
@@ -105,9 +92,9 @@ export const serverGetData = (id: string) => {
     return Promise.resolve(null);
   }
 
-  // 用户目录存在，现在尝试从内存中查找
-  const memResult = findInMem(id);
-  if (memResult) {
+  // 检查内存中的数据
+  const memResult = checkMemoryForData(id);
+  if (memResult !== undefined) {
     return Promise.resolve(memResult);
   }
 
@@ -125,6 +112,7 @@ export const serverGetData = (id: string) => {
 
       return findDataInFile(hashPath, id).then((hashData) => {
         if (hashData) {
+          // 可能需要在这里添加一些处理逻辑
         }
         return hashData;
       });
