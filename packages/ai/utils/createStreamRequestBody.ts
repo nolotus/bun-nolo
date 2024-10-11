@@ -3,25 +3,23 @@ import { mapLanguage } from "i18n/mapLanuage";
 
 import { Message } from "../types";
 
-export const createPromotMessage = (config: any) => {
-  const { name, description, knowledge, responseLanguage } = config;
+export const createPromotMessage = (config) => {
+  const { name, responseLanguage, prompt } = config;
   const mappedLanguage = mapLanguage(responseLanguage);
 
   const nameSection = name ? `Your name is ${name}. ` : "";
-  const knowledgeSection = knowledge ? `You have mastered ${knowledge}. ` : "";
-  const descriptionSection = description
-    ? `For inquiries related to ${description}, `
-    : "";
-
   const languageSection = mappedLanguage
     ? `Response Language: ${mappedLanguage}`
     : "";
 
-  const content = `${nameSection}${knowledgeSection}${descriptionSection}${languageSection}`;
+  const metaContent = `${nameSection}${languageSection}`;
+  const content = `${metaContent}${prompt}`;
 
-  return { role: "system", content };
+  return {
+    role: "system",
+    content,
+  };
 };
-
 export const createStreamRequestBody = (
   config: any,
   content: string,

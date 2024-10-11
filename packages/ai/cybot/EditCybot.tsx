@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
+import { modelEnum } from "ai/llm/models";
 
 const EditCybot = ({ initialValues, onClose }) => {
   console.log("initialValues", initialValues);
@@ -48,6 +49,7 @@ const EditCybot = ({ initialValues, onClose }) => {
       name: initialValues.name || "",
       introduction: initialValues.introduction || "",
       prompt: initialValues.prompt || "",
+      model: initialValues.model || "",
     },
   });
 
@@ -57,6 +59,7 @@ const EditCybot = ({ initialValues, onClose }) => {
       name: initialValues.name || "",
       introduction: initialValues.introduction || "",
       prompt: initialValues.prompt || "",
+      model: initialValues.model || "",
     });
   }, [reset, initialValues]);
 
@@ -127,6 +130,27 @@ const EditCybot = ({ initialValues, onClose }) => {
           {errors.prompt && <span>{errors.prompt.message}</span>}
         </div>
       </div>
+      {initialValues.model && (
+        <div style={fieldContainerStyle}>
+          <label htmlFor="model" style={labelStyle}>
+            {t("model")}
+          </label>
+          <div style={inputContainerStyle}>
+            <select
+              id="model"
+              {...register("model", { required: "Model is required" })}
+              style={{ width: "100%" }}
+            >
+              {Object.entries(modelEnum).map(([key, value]) => (
+                <option key={key} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+            {errors.model && <span>{errors.model.message}</span>}
+          </div>
+        </div>
+      )}
       <Button type="submit" style={buttonStyle}>
         {t("update")}
       </Button>

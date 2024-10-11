@@ -22,7 +22,7 @@ import {
 
 import withTranslations from "i18n/withTranslations";
 
-import { modelEnum } from "../llm/models";
+import { modelEnum } from "ai/llm/models";
 
 interface CreateCybotProps {
   onClose: () => void;

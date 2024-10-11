@@ -481,13 +481,15 @@ export const messageSlice = createSliceWithThunks({
           ...cybotConfig,
           responseLanguage: navigator.language,
         };
-        const requestBody = createStreamRequestBody(config, content, prevMsgs);
         if (cybotConfig.llmId) {
           await dispatch(
             streamLLmId({ cybotConfig, prevMsgs, content, signal, id }),
           );
           return;
         }
+
+        const requestBody = createStreamRequestBody(config, content, prevMsgs);
+
         const response = await chatStreamRequest({
           currentServer,
           requestBody,
