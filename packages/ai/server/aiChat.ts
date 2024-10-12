@@ -1,11 +1,22 @@
-import { FrontEndRequestBody } from "../types";
+import { chatRequest } from "integrations/openAI/chatRequest";
+import { MessageRole } from "chat/messages/types";
 
 import { handleAudioReq } from "./handleAudioReq";
 import { handleStreamReq } from "./handleStreamReq";
-import { chatRequest } from "integrations/openAI/chatRequest";
-
+export interface ChatRequestBody {
+  type: "text" | "image" | "audio";
+  model?: string;
+  messages?: Array<{
+    role: MessageRole;
+    content: string;
+  }>;
+  prompt?: string;
+  n?: number;
+  size?: string;
+  file?: Buffer;
+}
 export const handleAIChatRequest = async (req, res) => {
-  const requestBody: FrontEndRequestBody = req.body;
+  const requestBody: ChatRequestBody = req.body;
   const type: string = requestBody.type || "text";
   try {
     if (type === "stream") {

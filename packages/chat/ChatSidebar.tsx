@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React from "react";
 
 import { useAppSelector, useQueryData } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
@@ -10,7 +10,7 @@ import CustomizeAIButton from "ai/cybot/CustomizeAIButton";
 import NewDialogButton from "chat/dialog/NewDialogButton";
 import DialogSideBar from "chat/dialog/DialogSideBar";
 
-const ChatSidebarContent = () => {
+const ChatSidebar = () => {
   const currentUserId = useAppSelector(selectCurrentUserId);
 
   const queryConfig = {
@@ -24,6 +24,7 @@ const ChatSidebarContent = () => {
     },
   };
   const { data, isLoading, isSuccess } = useQueryData(queryConfig);
+  console.log("ChatSidebar data", data);
   return (
     <nav>
       <div style={{ ...styles.flexBetween, ...styles.gap2 }}>
@@ -34,4 +35,4 @@ const ChatSidebarContent = () => {
     </nav>
   );
 };
-export default withTranslations(ChatSidebarContent, ["chat", "ai"]);
+export default withTranslations(ChatSidebar, ["chat", "ai"]);

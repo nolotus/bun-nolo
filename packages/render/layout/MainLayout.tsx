@@ -7,7 +7,7 @@ import { nolotusId } from "core/init";
 import { BeakerIcon } from "@primer/octicons-react";
 import { allowRule, NavItem } from "auth/navPermissions";
 import { useAuth } from "auth/useAuth";
-import ChatSidebarContent from "chat/ChatSidebarContent";
+import ChatSidebar from "chat/ChatSidebar";
 import { AnimatePresence, motion } from "framer-motion";
 
 import NavListItem from "./blocks/NavListItem";
@@ -89,7 +89,7 @@ const MainLayout: React.FC = () => {
       return settingsSidebarContent;
     }
     if (isChatPage) {
-      return <ChatSidebarContent />;
+      return <ChatSidebar />;
     }
     return defaultSidebarContent;
   };

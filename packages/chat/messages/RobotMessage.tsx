@@ -12,9 +12,6 @@ import {
   messageContainerStyle,
   contentWrapperStyle,
   avatarWrapperStyle,
-  menuStyle,
-  menuItemStyle,
-  menuSeparatorStyle,
 } from "./styles";
 const RobotMessage: React.FC<Message> = ({
   id,

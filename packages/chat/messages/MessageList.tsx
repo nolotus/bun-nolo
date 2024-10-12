@@ -1,5 +1,5 @@
 // chat/MessagesList.tsx
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { Spinner } from "@primer/react";
 import { reverse } from "rambda";
@@ -27,51 +27,49 @@ interface MessagesDisplayProps {
   source: string[];
 }
 
-const MessagesList: React.FC<MessagesDisplayProps> = React.memo(
-  ({ id, source }) => {
-    const dispatch = useAppDispatch();
-    const containerRef = useRef<HTMLDivElement | null>(null);
+const MessagesList: React.FC<MessagesDisplayProps> = ({ id, source }) => {
+  const dispatch = useAppDispatch();
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-    const { data, isLoading, error } = useFetchData(id, { source });
-    const streamingMessages = useAppSelector(selectStreamMessages);
-    const messages = useAppSelector(selectMergedMessages);
+  const { data, isLoading, error } = useFetchData(id, { source });
+  const streamingMessages = useAppSelector(selectStreamMessages);
+  const messages = useAppSelector(selectMergedMessages);
 
-    const scrollToBottom = useCallback(() => {
-      if (containerRef.current) {
-        containerRef.current.scrollTop = containerRef.current.scrollHeight;
-      }
-    }, []);
-
-    useEffect(() => {
-      if (streamingMessages || messages.length > 0) {
-        scrollToBottom();
-      }
-    }, [streamingMessages, messages, scrollToBottom]);
-
-    useEffect(() => {
-      dispatch(initMessages());
-    }, [id, error, dispatch]);
-
-    useEffect(() => {
-      if (data) {
-        dispatch(initMessages(reverse(data.array)));
-      }
-    }, [data, dispatch]);
-
-    if (isLoading) {
-      return <Spinner size={"large"} />;
+  const scrollToBottom = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-    if (error) {
-      return <div style={{ height: "100%" }}>{error.message}</div>;
+  };
+
+  useEffect(() => {
+    if (streamingMessages) {
+      scrollToBottom();
     }
-    return (
-      <div ref={containerRef} style={messageListStyle}>
-        {messages.map((message) => (
-          <MessageItem key={message.id} message={message} />
-        ))}
-      </div>
-    );
-  },
-);
+  }, [streamingMessages, messages]);
+
+  useEffect(() => {
+    dispatch(initMessages());
+  }, [id, error, dispatch]);
+
+  useEffect(() => {
+    if (data) {
+      dispatch(initMessages(reverse(data.array)));
+    }
+  }, [data, dispatch]);
+
+  if (isLoading) {
+    return <Spinner size={"large"} />;
+  }
+  if (error) {
+    return <div style={{ height: "100%" }}>{error.message}</div>;
+  }
+  return (
+    <div ref={containerRef} style={messageListStyle}>
+      {messages.map((message) => (
+        <MessageItem key={message.id} message={message} />
+      ))}
+    </div>
+  );
+};
 
 export default MessagesList;

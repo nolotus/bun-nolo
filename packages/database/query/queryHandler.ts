@@ -1,11 +1,11 @@
 import { noloToObject, getHeadTail, extractAndDecodePrefix } from "core";
 import { readLines } from "utils/bun/readLines";
+import { listToArray } from "core/noloToOther";
+import { checkMemoryForData } from "database/server/mem";
+
+import { getDatabaseFilePath } from "../init";
 import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
-import { getDatabaseFilePath } from "../init";
-import { listToArray } from "core/noloToOther";
-import { isIdInDeleteQueueCache } from "database/server/cache";
-import { checkMemoryForData } from "database/server/mem";
 
 const handleData = (
   data: string,
@@ -95,12 +95,9 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         if (resultWithKey) {
           // 检查内存中的数据状态
           const memResult = checkMemoryForData(resultWithKey.id);
-
-          // 如果内存中标记为删除（值为0）或在删除队列缓存中，跳过这条数据
-          if (
-            memResult === null ||
-            isIdInDeleteQueueCache(userId, resultWithKey.id)
-          ) {
+          console.log("memResult", memResult);
+          // 如果内存中标记为删除（值为0），跳过这条数据
+          if (memResult === null) {
             continue;
           }
 

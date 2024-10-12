@@ -2,7 +2,6 @@
 
 import { DataType } from "create/types";
 import { nolotusId } from "core/init";
-import { isIdInDeleteQueueCache } from "database/server/cache";
 import { promises as fs } from "fs";
 import { dirname } from "path";
 
@@ -30,11 +29,6 @@ export const checkPermission = (
 };
 
 export const checkReadPermission = (userId: string, id: string): boolean => {
-  // 检查是否是删除数据
-  if (isIdInDeleteQueueCache(userId, id)) {
-    return false;
-  }
-
   // 这里可以添加其他的权限检查逻辑
   return true;
 };

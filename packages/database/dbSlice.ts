@@ -56,6 +56,7 @@ const dbSlice = createSliceWithThunks({
         try {
           const res = await noloQueryRequest(queryConfig);
           const data = await res.json();
+          console.log("queryServer", data);
           if (res.status === 200) {
             dispatch(mergeMany({ data, server }));
             return data;

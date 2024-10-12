@@ -1,20 +1,6 @@
 // types.ts
 
-import { MessageRole } from "chat/messages/types";
 import { DataType } from "create/types";
-
-export interface FrontEndRequestBody {
-  type: "text" | "image" | "audio";
-  model?: string;
-  messages?: Array<{
-    role: MessageRole;
-    content: string;
-  }>;
-  prompt?: string;
-  n?: number;
-  size?: string;
-  file?: Buffer;
-}
 
 export type ModeType =
   | "text"

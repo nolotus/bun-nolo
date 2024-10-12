@@ -13,7 +13,7 @@ import { ollamaModels } from "integrations/ollama/models";
 import { claudeModels } from "integrations/anthropic/models";
 import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
 import { chatRequest as sendMistralRequest } from "integrations/mistral/chatRequest";
-import { chatRequest } from "integrations/openAI/chatRequest";
+import { chatRequest as sendOpenAIRequest } from "integrations/openAI/chatRequest";
 import { chatRequest as sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
 import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest";
 import { chatRequest as sendOllamaRequest } from "integrations/ollama/chatRequest";
@@ -79,7 +79,7 @@ async function processModelRequest(requestBody, modelType) {
       requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
         requestBody.frequency_penalty,
       );
-      response = await chatRequest(requestBody, true);
+      response = await sendOpenAIRequest(requestBody, true);
       break;
     case "perplexity":
       requestBody.frequency_penalty = adjustPerplexityFrequencyPenalty(
