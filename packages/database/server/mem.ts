@@ -2,69 +2,92 @@
 
 import { parseStrWithId } from "core/decodeData";
 import { extractUserId } from "core/prefix";
+import * as fs from "fs/promises";
 
 type MemoryStructure = {
-  directMem: Map<string, any>;
-  immutableMem: Map<string, Map<string, any>>; // 修改为嵌套Map结构
-  count: number;
+  directMem: Map<string, string>;
+  immutableMem: Array<Map<string, string>>;
 };
 
 const createMemory = (): MemoryStructure => ({
   directMem: new Map(),
-  immutableMem: new Map(),
-  count: 0,
+  immutableMem: [],
 });
 
-/**
- * 更新内存结构
- * @param memory 当前的内存结构
- * @param key 要设置的键
- * @param value 要设置的值
- * @returns 更新后的内存结构
- */
-const updateMemory = (
+const get = (memory: MemoryStructure, key: string): string | undefined => {
+  // 首先检查 directMem
+  const directValue = memory.directMem.get(key);
+  if (directValue !== undefined) return directValue;
+
+  // 然后从最新到最旧检查 immutableMem
+  for (let i = memory.immutableMem.length - 1; i >= 0; i--) {
+    const value = memory.immutableMem[i].get(key);
+    if (value !== undefined) return value;
+  }
+
+  return undefined;
+};
+
+const set = (
   memory: MemoryStructure,
   key: string,
-  value: any,
+  value: string,
 ): MemoryStructure => {
-  // 创建directMem的新副本并设置新值
   const newDirectMem = new Map(memory.directMem);
   newDirectMem.set(key, value);
 
-  // 增加计数器
-  const newCount = memory.count + 1;
-
-  // 每三次操作，将数据移动到immutableMem
-  if (newCount % 3 === 0) {
-    const newImmutableMem = new Map(memory.immutableMem);
-
-    // 遍历directMem中的所有项
-    for (const [id, val] of newDirectMem) {
-      const dataUserId = extractUserId(id);
-
-      // 如果该用户的Map不存在，则创建一个新的
-      if (!newImmutableMem.has(dataUserId)) {
-        newImmutableMem.set(dataUserId, new Map());
-      }
-
-      // 将数据添加到对应用户的Map中
-      newImmutableMem.get(dataUserId)!.set(id, val);
-    }
-
-    // 返回更新后的内存结构，清空directMem
+  if (newDirectMem.size > 3) {
     return {
       directMem: new Map(),
-      immutableMem: newImmutableMem,
-      count: newCount,
+      immutableMem: [...memory.immutableMem, newDirectMem],
     };
   }
 
-  // 如果不需要移动到immutableMem，直接返回更新后的结构
-  return {
-    ...memory,
-    directMem: newDirectMem,
-    count: newCount,
-  };
+  return { ...memory, directMem: newDirectMem };
+};
+
+const writeImmutableMemToFile = async (
+  immutableMem: Array<Map<string, string>>,
+) => {
+  try {
+    // 从最旧到最新写入
+    const data = JSON.stringify(immutableMem.map((m) => Object.fromEntries(m)));
+    await fs.writeFile(`immutableMem_${Date.now()}.json`, data);
+    console.log("ImmutableMem has been written to file");
+    return true;
+  } catch (error) {
+    console.error("Error writing immutableMem to file:", error);
+    return false;
+  }
+};
+
+const checkAndTriggerWrite = (memory: MemoryStructure): MemoryStructure => {
+  if (memory.immutableMem.length >= 3) {
+    const memToWrite = memory.immutableMem.slice(0, 3);
+
+    // 触发异步写入，但不等待它完成
+    writeImmutableMemToFile(memToWrite)
+      .then((writeSuccess) => {
+        if (writeSuccess) {
+          // 在写入成功后，异步更新内存状态
+          memory.immutableMem = memory.immutableMem.slice(3);
+        }
+      })
+      .catch(console.error);
+  }
+
+  return memory;
+};
+
+const prepareForFileWrite = (memory: MemoryStructure): string => {
+  // 从最旧到最新准备数据
+  const snapshot = new Map<string, string>();
+  for (const mem of memory.immutableMem) {
+    for (const [key, value] of mem) {
+      snapshot.set(key, value);
+    }
+  }
+  return JSON.stringify(Object.fromEntries(snapshot));
 };
 
 class EnhancedMap {
@@ -78,17 +101,18 @@ class EnhancedMap {
     this.memory = createMemory();
   }
 
-  get(key: string): any | undefined {
-    const userId = extractUserId(key);
-    return (
-      this.memory.directMem.get(key) ??
-      this.memory.immutableMem.get(userId)?.get(key)
-    );
+  get(key: string): string | undefined {
+    return get(this.memory, key);
   }
 
-  set(key: string, value: any): this {
-    this.memory = updateMemory(this.memory, key, value);
+  set(key: string, value: string): this {
+    this.memory = set(this.memory, key, value);
+    this.memory = checkAndTriggerWrite(this.memory);
     return this;
+  }
+
+  prepareForFileWrite(): string {
+    return prepareForFileWrite(this.memory);
   }
 }
 
@@ -96,7 +120,7 @@ export const mem = new EnhancedMap();
 
 export const checkMemoryForData = (id: string) => {
   const memValue = mem.get(id);
-  if (memValue === "0" || memValue === 0) {
+  if (memValue === "0") {
     return null; // 视为已删除
   }
   if (memValue) {
