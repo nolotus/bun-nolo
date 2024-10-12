@@ -138,16 +138,17 @@ export const handleDelete = async (req, res) => {
     const allIds = [id, ...ids];
     allIds.forEach((id) => mem.set(id, 0));
     await withUserLock(dataBelongUserId, async () => {
+      // 删除队列存在的id ，过滤
       const alreadyDeletedIds = allIds.filter(
         (id) =>
           deleteQueueCache.get(dataBelongUserId)?.has(id) ||
           isIdQueued(dataBelongUserId, id),
       );
-
+      //过滤之后的 是没删除的
       const idsToDelete = allIds.filter(
         (id) => !alreadyDeletedIds.includes(id),
       );
-
+      //加入删除队列
       if (idsToDelete.length > 0) {
         enqueueDelete(dataBelongUserId, idsToDelete);
       }

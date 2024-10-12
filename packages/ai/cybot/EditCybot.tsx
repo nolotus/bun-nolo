@@ -9,7 +9,6 @@ import { selectTheme } from "app/theme/themeSlice";
 import { modelEnum } from "ai/llm/models";
 
 const EditCybot = ({ initialValues, onClose }) => {
-  console.log("initialValues", initialValues);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [updateEntry] = useUpdateEntryMutation();

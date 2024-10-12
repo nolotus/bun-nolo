@@ -52,7 +52,7 @@ export const chatRequest = async (
   const openAIConfig: OpenAIConfig = {
     model: requestBody.model,
     messages: requestBody.messages || [],
-    stream: isStream,
+    stream: requestBody.model === "o1-mini" ? false : isStream,
     max_completion_tokens: requestBody.max_tokens,
   };
 
@@ -60,7 +60,7 @@ export const chatRequest = async (
     ...createOpenAIRequestConfig(),
     url: "https://api.openai.com/v1/chat/completions",
     method: "POST",
-    responseType: isStream ? "stream" : "json",
+    responseType: openAIConfig.stream ? "stream" : "json",
     data: openAIConfig,
   };
 
@@ -68,6 +68,7 @@ export const chatRequest = async (
 
   try {
     const response = await axios.request(config);
+    console.log("openai request response ", response);
     return response;
   } catch (error) {
     baseLogger.error(error);

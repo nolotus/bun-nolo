@@ -2,6 +2,7 @@ import postCssPlugin from "esbuild-style-plugin";
 import { isProduction } from "utils/env";
 
 const inputPath = "./packages/web/entry.tsx";
+
 // 定义公共配置
 export const commonConfig = {
   entryPoints: [inputPath],
@@ -26,7 +27,6 @@ export const commonConfig = {
   },
   metafile: true,
   // entryNames: "[dir]/[name]-[hash]",
-  // minify: true,
   sourcemap: true,
 };
 

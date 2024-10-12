@@ -53,6 +53,8 @@ export const serverWrite = (
     const result = processDataKey(dataKey, data);
     if (!result.isFile) {
       // 同步设置内存数据
+
+      //这里写入的是纯字符串
       mem.set(dataKey, data);
 
       // 异步执行备份操作，不等待其完成

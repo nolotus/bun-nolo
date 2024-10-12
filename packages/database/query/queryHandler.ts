@@ -1,8 +1,8 @@
 import { noloToObject, getHeadTail, extractAndDecodePrefix } from "core";
 import { readLines } from "utils/bun/readLines";
 import { listToArray } from "core/noloToOther";
-import { checkMemoryForData } from "database/server/mem";
 
+import { checkMemoryForData } from "../server/mem";
 import { getDatabaseFilePath } from "../init";
 import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
