@@ -1,25 +1,7 @@
 import { prepareMsgs } from "ai/messages/prepareMsgs";
-import { mapLanguage } from "i18n/mapLanuage";
-
+import { createPromotMessage } from "ai/prompt/createPromptMessage";
 import { Message } from "../types";
 
-export const createPromotMessage = (config) => {
-  const { name, responseLanguage, prompt } = config;
-  const mappedLanguage = mapLanguage(responseLanguage);
-
-  const nameSection = name ? `Your name is ${name}. ` : "";
-  const languageSection = mappedLanguage
-    ? `Response Language: ${mappedLanguage}`
-    : "";
-
-  const metaContent = `${nameSection}${languageSection}`;
-  const content = `${metaContent}${prompt}`;
-
-  return {
-    role: "system",
-    content,
-  };
-};
 export const createStreamRequestBody = (
   config: any,
   content: string,

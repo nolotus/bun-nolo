@@ -9,10 +9,8 @@ import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { readChunks } from "ai/client/stream";
 import { getLogger } from "utils/logger";
-import {
-  createPromotMessage,
-  createStreamRequestBody,
-} from "ai/utils/createStreamRequestBody";
+import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
+import { createPromotMessage } from "ai/prompt/createPromptMessage";
 import { noloRequest } from "utils/noloRequest";
 import { ulid } from "ulid";
 import { DataType } from "create/types";

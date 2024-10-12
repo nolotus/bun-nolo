@@ -17,6 +17,7 @@ export interface ChatRequestBody {
 }
 export const handleAIChatRequest = async (req, res) => {
   const requestBody: ChatRequestBody = req.body;
+  console.log("requestBody", requestBody);
   const type: string = requestBody.type || "text";
   try {
     if (type === "stream") {
