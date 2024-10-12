@@ -103,7 +103,11 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
           if (count >= skip && results.length < limit) {
             // 如果内存中有非0的值，使用内存中的数据
-            results.push(memResult !== undefined ? memResult : resultWithKey);
+            results.push(
+              memResult !== undefined
+                ? { id: resultWithKey.id, ...memResult }
+                : resultWithKey,
+            );
           }
           count++;
 

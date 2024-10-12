@@ -51,7 +51,6 @@ const TopBar: React.FC<TopBarProps> = ({
 }) => {
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  console.log("currentDialogConfig", currentDialogConfig);
   return (
     <div style={topBarStyles(theme)}>
       <MenuButton onClick={toggleSidebar} theme={theme} />

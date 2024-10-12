@@ -15,7 +15,7 @@ function handleStreamData(
   text: string,
   onStreamData: (id: string, chunk: string) => void,
 ) {
-  logStreamData(text);
+  // logStreamData(text);
   onStreamData(id, text);
 }
 

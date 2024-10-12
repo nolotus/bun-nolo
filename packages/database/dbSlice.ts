@@ -56,7 +56,7 @@ const dbSlice = createSliceWithThunks({
         try {
           const res = await noloQueryRequest(queryConfig);
           const data = await res.json();
-          console.log("queryServer", data);
+
           if (res.status === 200) {
             dispatch(mergeMany({ data, server }));
             return data;
@@ -294,7 +294,11 @@ const dbSlice = createSliceWithThunks({
     }),
     mergeMany: create.reducer((state, action) => {
       const { data, server } = action.payload;
+      console.log("data", data);
+      console.log("server", server);
+
       const withSourceData = data.map((item) => {
+        console.log("item", item);
         const exist = dbAdapter.selectId(item.id);
         if (exist) {
           const mergeBefore = {
@@ -350,7 +354,6 @@ export const {
   upsertOne,
   updateOne,
   setOne,
-
   mergeMany,
   deleteData,
   patchData,
