@@ -32,7 +32,7 @@ const ChatPage = () => {
   }
 
   // 计算剩余的空间
-  const remainingHeight = `calc(100vh - ${theme.topbarHeight} - ${theme.topBarMargin} - ${theme.topBarPadding} * 2)`;
+  const remainingHeight = `calc(100dvh - ${theme.topbarHeight} - ${theme.topBarMargin} - ${theme.topBarPadding} * 2)`;
 
   return (
     <div

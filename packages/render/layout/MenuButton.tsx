@@ -12,10 +12,7 @@ interface MenuButtonProps {
 const MenuButton: React.FC<MenuButtonProps> = ({ onClick, theme }) => {
   const buttonStyle = {
     ...styles.buttonBase,
-    ...themeStyles.textColor1(theme),
-    backgroundColor: "transparent",
-    border: "none",
-    padding: theme.spacing.small,
+    ...themeStyles.surface1(theme),
   };
 
   const hoverStyle = {
@@ -30,7 +27,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({ onClick, theme }) => {
   return (
     <Button
       onClick={onClick}
-      icon={<ThreeBarsIcon size={theme.iconSize.medium} />}
+      icon={<ThreeBarsIcon size={16} />}
       style={buttonStyle}
       hoverStyle={hoverStyle}
       activeStyle={activeStyle}

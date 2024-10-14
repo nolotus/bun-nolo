@@ -7,7 +7,6 @@ import {
   LocationIcon,
 } from "@primer/octicons-react";
 import DropDown from "render/ui/DropDown";
-import { useNavigate } from "react-router-dom";
 import { Tooltip } from "@primer/react/next";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -25,8 +24,7 @@ const CircleButton = ({ tooltip, icon, to, onClick }) => {
     ...styles.roundedFull,
     padding: theme.spacing.small,
     minWidth: "auto",
-    backgroundColor: "transparent",
-    border: "none",
+    ...themeStyles.surface1(theme),
   };
 
   const hoverStyle = {

@@ -16,8 +16,8 @@ export const messageListStyle = {
   overflowY: "auto",
   height: "100%",
   position: "relative",
-  paddingLeft: OpenProps.sizeFluid1,
-  paddingRight: OpenProps.sizeFluid1,
+  paddingLeft: OpenProps.sizeFluid2,
+  paddingRight: OpenProps.sizeFluid2,
   paddingBottom: OpenProps.size6,
   paddingTop: OpenProps.size6,
 };

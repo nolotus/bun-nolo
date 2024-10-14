@@ -21,9 +21,7 @@ export const handleGeminiModelResponse = async (
 ) => {
   const state = thunkApi.getState();
   const userId = selectCurrentUserId(state);
-
   const currentServer = selectCurrentServer(state);
-
   const dialogConfig = selectCurrentDialogConfig(state);
 
   const cybotId = dialogConfig.cybots
@@ -38,7 +36,7 @@ export const handleGeminiModelResponse = async (
     ...cybotConfig,
     responseLanguage: navigator.language,
   };
-
+  console.log("config", config);
   let prevMsgs = getFilteredMessages(state);
 
   const requestBody = createStreamRequestBody(config, content, prevMsgs);

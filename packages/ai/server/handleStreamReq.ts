@@ -85,6 +85,7 @@ export const handleStreamReq = async (req: Request, res) => {
   const requestBody = {
     ...pickAiRequstBody(req.body),
   };
+  console.log(requestBody);
   try {
     if (isModelInList(requestBody.model, openAIModels)) {
       return await processModelRequest(requestBody, "openai");

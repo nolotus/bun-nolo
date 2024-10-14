@@ -108,9 +108,6 @@ const EditCybot = ({ initialValues, onClose }) => {
         <div style={inputContainerStyle}>
           <textarea
             id="introduction"
-            {...register("introduction", {
-              required: "Introduction is required",
-            })}
             style={{ width: "100%", minHeight: "100px" }}
           />
           {errors.introduction && <span>{errors.introduction.message}</span>}

@@ -182,3 +182,8 @@ export type Styles = typeof styles;
 export type ThemeStyles = {
   [K in keyof typeof themeStyles]: ReturnType<(typeof themeStyles)[K]>;
 };
+
+export const glassOverlayStyle = {
+  backdropFilter: "blur(5px)",
+  backgroundColor: "rgba(0, 0, 0, 0.3)",
+};
