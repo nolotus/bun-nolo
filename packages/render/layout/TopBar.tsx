@@ -28,7 +28,7 @@ const topBarStyles = (theme: any) => ({
   position: "sticky" as const,
   top: 0,
   zIndex: theme.topBarZIndex, // 使用主题中的 topBarZIndex
-  backgroundColor: theme.surface1,
+  background: "transparent",
   padding: theme.topBarPadding, // 使用主题中的 topBarPadding
   borderBottom: `1px solid ${theme.border}`,
 });

@@ -222,7 +222,6 @@ export const messageSlice = createSliceWithThunks({
           : dialogConfig.llmId;
         const readAction = await dispatch(read({ id: cybotId }));
         const cybotConfig = readAction.payload;
-
         const model = cybotConfig.model;
 
         /// todo multi cybot could reply multi msg
@@ -236,7 +235,7 @@ export const messageSlice = createSliceWithThunks({
         const mode = getModefromContent(textContent, content);
         const context = await getContextFromMode(mode, textContent);
         if (model && geminiModelNames.includes(model)) {
-          handleGeminiModelResponse(content, thunkApi, dispatch);
+          handleGeminiModelResponse(dialogConfig, content, thunkApi, dispatch);
         }
         if (mode === "stream") {
           const userId = selectCurrentUserId(state);

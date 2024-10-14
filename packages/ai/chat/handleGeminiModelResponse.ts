@@ -15,6 +15,7 @@ import { ulid } from "ulid";
 import { selectCurrentUserId } from "auth/authSlice";
 
 export const handleGeminiModelResponse = async (
+  dialogConfig,
   content,
   thunkApi,
   dispatch,
@@ -22,7 +23,6 @@ export const handleGeminiModelResponse = async (
   const state = thunkApi.getState();
   const userId = selectCurrentUserId(state);
   const currentServer = selectCurrentServer(state);
-  const dialogConfig = selectCurrentDialogConfig(state);
 
   const cybotId = dialogConfig.cybots
     ? dialogConfig.cybots[0]

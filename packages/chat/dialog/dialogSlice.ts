@@ -187,6 +187,12 @@ const DialogSlice = createSliceWithThunks({
         },
       },
     ),
+    // 清空数据
+    clearDialogState: create.reducer((state) => {
+      state.currentDialogId = null;
+      state.currentDialogConfig = null;
+      state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
+    }),
   }),
 });
 
@@ -198,6 +204,8 @@ export const {
   updateInputTokens,
   updateOutputTokens,
   resetCurrentDialogTokens,
+  // 导出 clearDialogState action
+  clearDialogState,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;

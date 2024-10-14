@@ -7,7 +7,11 @@ import { useParams } from "react-router-dom";
 import { selectTheme } from "app/theme/themeSlice";
 import withTranslations from "i18n/withTranslations";
 
-import { initDialog, selectCurrentDialogConfig } from "./dialog/dialogSlice";
+import {
+  initDialog,
+  selectCurrentDialogConfig,
+  clearDialogState, // 导入 clearDialogState action
+} from "./dialog/dialogSlice";
 import ChatWindow from "./messages/MsgWindow";
 
 const ChatPage = () => {
@@ -23,7 +27,12 @@ const ChatPage = () => {
     }
 
     dialogId && dispatch(initDialog({ dialogId }));
-  }, [auth.user, dialogId]);
+
+    // 组件卸载时清空数据
+    return () => {
+      dispatch(clearDialogState());
+    };
+  }, [auth.user, dialogId, dispatch]); // 添加 dispatch 到依赖数组
 
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
 
