@@ -2,7 +2,7 @@ import { getLogger } from "utils/logger";
 
 const streamLogger = getLogger("stream");
 
-function decodeChunk(value: Uint8Array): string {
+export function decodeChunk(value: Uint8Array): string {
   return new TextDecoder("utf-8").decode(value);
 }
 

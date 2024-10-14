@@ -1,7 +1,21 @@
 // types.ts
 
 import { DataType } from "create/types";
+import { MessageRole } from "chat/messages/types";
 
+export interface NoloChatRequestBody {
+  type: "text" | "image" | "audio";
+  model?: string;
+  userInput: string;
+  previousMessages?: Array<{
+    role: MessageRole;
+    content: string;
+  }>;
+  prompt?: string;
+  n?: number;
+  size?: string;
+  file?: Buffer;
+}
 export type ModeType =
   | "text"
   | "image"

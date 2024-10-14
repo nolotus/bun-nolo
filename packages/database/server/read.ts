@@ -3,11 +3,25 @@
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists } from "utils/file";
-import { checkMemoryForData } from "./mem";
+import { parseStrWithId } from "core/decodeData";
+
 import readline from "readline";
 import { processLine } from "core/decodeData";
 import { createReadStream } from "node:fs";
 import { checkReadPermission } from "./permissions";
+import { mem } from "../server/mem";
+
+const checkMemoryForData = (id: string) => {
+  const memValue = mem.get(id);
+  if (memValue === "0") {
+    return null; // 视为已删除
+  }
+  if (memValue) {
+    const result = parseStrWithId(id, memValue);
+    return result;
+  }
+  return undefined; // 表示内存中没有找到数据
+};
 
 export const handleReadSingle = async (req, res) => {
   if (!req.params.id) {

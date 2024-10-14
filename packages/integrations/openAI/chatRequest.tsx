@@ -1,22 +1,11 @@
 import { AxiosResponse, AxiosRequestConfig } from "axios";
 import axios from "utils/axios";
+import { baseLogger } from "utils/logger";
+import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
+import { pick, map } from "rambda";
+import { createPromptMessage } from "ai/prompt/createPromptMessage";
 
 import { createOpenAIRequestConfig } from "./config";
-import { baseLogger } from "utils/logger";
-
-interface ChatRequestBody {
-  type: "text" | "image" | "audio";
-  model: string; // 确保 model 字段必须有值
-  messages?: Array<{
-    role: string;
-    content: string;
-  }>;
-  prompt?: string;
-  n?: number;
-  size?: string;
-  file?: Buffer;
-  max_tokens?: number;
-}
 
 interface OpenAIConfig {
   messages: Array<any>;
@@ -40,18 +29,39 @@ interface OpenAIConfig {
   parallel_tool_calls?: boolean; // Whether to enable parallel function calling during tool use.
 }
 
-export const chatRequest = async (
-  requestBody: ChatRequestBody,
+export const sendOpenAIRequest = async (
+  requestBody,
   isStream: boolean,
 ): Promise<AxiosResponse<any> | null> => {
   if (!requestBody.model) {
     baseLogger.error("Model is required.");
     return null;
   }
+  const promotMessage = createPromptMessage(
+    requestBody.model,
+    requestBody.prompt,
+  );
+
+  requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
+    requestBody.frequency_penalty,
+  );
+
+  const messages = [
+    promotMessage,
+    ...(requestBody.previousMessages || []), // 先添加之前的消息
+    {
+      role: "user", // 假设用户输入使用 "user" 角色
+      content: requestBody.userInput,
+    },
+  ];
+
+  const messagePropertiesToPick = ["content", "role", "images"];
+
+  const pickMessages = map(pick(messagePropertiesToPick));
 
   const openAIConfig: OpenAIConfig = {
     model: requestBody.model,
-    messages: requestBody.messages || [],
+    messages: pickMessages(messages),
     stream: requestBody.model === "o1-mini" ? false : isStream,
     max_completion_tokens: requestBody.max_tokens,
   };
@@ -68,7 +78,6 @@ export const chatRequest = async (
 
   try {
     const response = await axios.request(config);
-    console.log("openai request response ", response);
     return response;
   } catch (error) {
     baseLogger.error(error);

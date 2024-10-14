@@ -1,11 +1,24 @@
 import { noloToObject, getHeadTail, extractAndDecodePrefix } from "core";
 import { readLines } from "utils/bun/readLines";
 import { listToArray } from "core/noloToOther";
+import { parseStrWithId } from "core/decodeData";
 
-import { checkMemoryForData } from "../server/mem";
+import { mem } from "../server/mem";
 import { getDatabaseFilePath } from "../init";
 import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
+
+const checkMemoryForData = (id: string) => {
+  const memValue = mem.get(id);
+  if (memValue === "0") {
+    return null; // 视为已删除
+  }
+  if (memValue) {
+    const result = parseStrWithId(id, memValue);
+    return result;
+  }
+  return undefined; // 表示内存中没有找到数据
+};
 
 const handleData = (
   data: string,

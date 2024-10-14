@@ -1,3 +1,5 @@
+import { Message, MessageSliceState } from "./types";
+import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import {
   PayloadAction,
   buildCreateSlice,
@@ -10,7 +12,7 @@ import { generateIdWithCustomId } from "core/generateMainKey";
 import { readChunks } from "ai/client/stream";
 import { getLogger } from "utils/logger";
 import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
-import { createPromotMessage } from "ai/prompt/createPromptMessage";
+import { createPromptMessage } from "ai/prompt/createPromptMessage";
 import { noloRequest } from "utils/noloRequest";
 import { ulid } from "ulid";
 import { DataType } from "create/types";
@@ -26,15 +28,16 @@ import { selectCurrentServer } from "setting/settingSlice";
 import { filter, reverse } from "rambda";
 import { prepareMsgs } from "ai/messages/prepareMsgs";
 
+import { ollamaModelNames } from "integrations/ollama/models";
+import { geminiModelNames } from "integrations/google/ai/models";
+
+import { handleGeminiModelResponse } from "ai/chat/handleGeminiModelResponse";
+import { handleClaudeModelResponse } from "ai/chat/handleClaudeModelRespons";
+
+import { getFilteredMessages } from "./utils";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
-
-import { Message, MessageSliceState } from "./types";
-import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { chatStreamRequest } from "./chatStreamRequest";
-import { getFilteredMessages } from "./utils";
-import { ollamaModelNames } from "integrations/ollama/models";
-import { handleClaudeModelResponse } from "../stream/handleClaudeModelRespons";
 
 const chatWindowLogger = getLogger("ChatWindow");
 
@@ -95,6 +98,7 @@ export const messageSlice = createSliceWithThunks({
         state.streamMessages.unshift(message);
       }
     }),
+
     addMessageToUI: create.reducer((state, action: PayloadAction<string>) => {
       if (!state.ids.includes(action.payload)) {
         state.ids.unshift(action.payload);
@@ -231,10 +235,13 @@ export const messageSlice = createSliceWithThunks({
 
         const mode = getModefromContent(textContent, content);
         const context = await getContextFromMode(mode, textContent);
-
+        if (model && geminiModelNames.includes(model)) {
+          handleGeminiModelResponse(content, thunkApi, dispatch);
+        }
         if (mode === "stream") {
+          const userId = selectCurrentUserId(state);
+
           const streamChat = async (content) => {
-            const userId = selectCurrentUserId(state);
             const id = generateIdWithCustomId(userId, ulid(), {
               isJSON: true,
             });
@@ -513,7 +520,7 @@ export const messageSlice = createSliceWithThunks({
           ...cybotConfig,
           responseLanguage: navigator.language,
         };
-        const promotMessage = createPromotMessage(config);
+        const promotMessage = createPromptMessage(config.model, config.propmpt);
 
         const prepareMsgConfig = { model, promotMessage, prevMsgs, content };
 

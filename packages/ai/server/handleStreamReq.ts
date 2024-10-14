@@ -1,8 +1,4 @@
-import { AxiosResponse } from "axios";
-import { pickAiRequstBody } from "ai/utils/pickAiRequstBody";
-import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
 import { adjustPerplexityFrequencyPenalty } from "integrations/perplexity/adjust";
-
 import { openAIModels } from "integrations/openAI/models";
 
 import { mistralModels } from "integrations/mistral/models";
@@ -12,73 +8,27 @@ import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { claudeModels } from "integrations/anthropic/models";
 import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
-import { chatRequest as sendMistralRequest } from "integrations/mistral/chatRequest";
-import { chatRequest as sendOpenAIRequest } from "integrations/openAI/chatRequest";
+import { sendMistralRequest } from "integrations/mistral/chatRequest";
+import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
 import { chatRequest as sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
 import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest";
 import { chatRequest as sendOllamaRequest } from "integrations/ollama/chatRequest";
 import { chatRequest as sendAnthropicRequest } from "integrations/anthropic/chatRequest";
-
+import { googleAIModels } from "integrations/google/ai/models";
+import { pick } from "rambda";
+import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
 import { baseLogger } from "utils/logger";
-
-import { pickMessages } from "../messages/pickMessages";
+import { createStreamResponse } from "../chat/createStreamResponse";
 
 function isModelInList(modelname, modelList) {
   return modelList.hasOwnProperty(modelname);
 }
 
-const createStreamResponse = async (stream: AxiosResponse<any>) => {
-  const responseHeaders = {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-    Connection: "keep-alive",
-    "Access-Control-Allow-Origin": "*",
-  };
-
-  let readableStream;
-  if (stream.messages) {
-    readableStream = new ReadableStream({
-      start(controller) {
-        (async () => {
-          try {
-            for await (const chunk of stream) {
-              const value = new TextEncoder().encode(JSON.stringify(chunk));
-              controller.enqueue(value);
-            }
-            controller.close();
-          } catch (error) {
-            controller.error(error);
-          }
-        })();
-      },
-    });
-  } else {
-    readableStream = new ReadableStream({
-      start(controller) {
-        stream.data.on("data", (chunk) => {
-          const value = new TextEncoder().encode(chunk.toString());
-          controller.enqueue(value);
-        });
-        stream.data.on("end", () => {
-          controller.close();
-        });
-        stream.data.on("error", (error) => {
-          controller.error(error);
-        });
-      },
-    });
-  }
-
-  return new Response(readableStream, { headers: responseHeaders });
-};
 async function processModelRequest(requestBody, modelType) {
   let response;
 
   switch (modelType) {
     case "openai":
-      requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
-        requestBody.frequency_penalty,
-      );
       response = await sendOpenAIRequest(requestBody, true);
       break;
     case "perplexity":
@@ -102,6 +52,12 @@ async function processModelRequest(requestBody, modelType) {
     case "claude":
       response = await sendAnthropicRequest(requestBody);
       break;
+    case "google":
+      response = await sendGeminiChatRequest(
+        process.env.GOOGLE_API_KEY,
+        requestBody,
+      );
+      break;
     default:
       throw new Error(
         `processModelRequest Unknown model: ${requestBody.model}`,
@@ -109,11 +65,25 @@ async function processModelRequest(requestBody, modelType) {
   }
   return createStreamResponse(response);
 }
+export const pickAiRequstBody = (body) => {
+  const propertiesToPick = [
+    "model",
+    "presence_penalty",
+    "frequency_penalty",
+    "top_k",
+    "top_p",
+    "temperature",
+    "max_tokens",
+    "previousMessages",
+    "userInput",
+    "prompt",
+  ];
+  return pick(propertiesToPick, body);
+};
 
 export const handleStreamReq = async (req: Request, res) => {
   const requestBody = {
     ...pickAiRequstBody(req.body),
-    messages: pickMessages(req.body.messages),
   };
   try {
     if (isModelInList(requestBody.model, openAIModels)) {
@@ -130,8 +100,14 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "ollama");
     } else if (isModelInList(requestBody.model, claudeModels)) {
       return await processModelRequest(requestBody, "claude");
+    } else if (isModelInList(requestBody.model, googleAIModels)) {
+      return await processModelRequest(requestBody, "google");
     } else {
       throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }
-  } catch (error) {}
+  } catch (error) {
+    // 处理错误
+    console.error(`Error processing model request: ${error.message}`);
+    res.status(500).send("Internal Server Error");
+  }
 };

@@ -1,22 +1,15 @@
-import { mapLanguage } from "i18n/mapLanuage";
+type PromptMessage = {
+  role: "user" | "system";
+  content: string;
+};
 
-export const createPromotMessage = (config) => {
-  const { name, responseLanguage, prompt, model } = config;
-  console.log("config", config);
-  const mappedLanguage = mapLanguage(responseLanguage);
+// New function to create the content
 
-  const nameSection = name ? `Your name is ${name}. ` : "";
-  const languageSection = mappedLanguage
-    ? `Response Language: ${mappedLanguage}. `
-    : "";
-
-  const instruction = "Please follow the instructions below ";
-  const content = `${nameSection}${languageSection}${instruction} ${prompt}`;
-
+export const createPromptMessage = (model, prompt): PromptMessage => {
   const role = model === "o1-mini" ? "user" : "system";
 
   return {
     role,
-    content,
+    content: prompt,
   };
 };

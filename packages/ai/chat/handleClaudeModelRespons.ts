@@ -1,6 +1,6 @@
 import { setOne } from "database/dbSlice";
-import { messageStreamEnd, messageStreaming } from "../messages/messageSlice";
-import { updateInputTokens, updateOutputTokens } from "../dialog/dialogSlice";
+import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
+import { updateInputTokens, updateOutputTokens } from "chat/dialog/dialogSlice";
 
 function parseMultipleJson(text) {
   console.log("text", text);

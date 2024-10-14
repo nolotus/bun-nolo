@@ -294,11 +294,7 @@ const dbSlice = createSliceWithThunks({
     }),
     mergeMany: create.reducer((state, action) => {
       const { data, server } = action.payload;
-      console.log("data", data);
-      console.log("server", server);
-
       const withSourceData = data.map((item) => {
-        console.log("item", item);
         const exist = dbAdapter.selectId(item.id);
         if (exist) {
           const mergeBefore = {

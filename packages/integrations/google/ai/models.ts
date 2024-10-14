@@ -12,8 +12,17 @@ export const googleAIModels = {
       audio: true,
     },
     api: {
-      name: "gemini-1.5-pro",
+      name: "models/gemini-1.5-pro",
       format: "Gemini API",
+    },
+    tokenLimits: {
+      inputTokenLimit: 2097152, // 2,097,152 tokens
+      outputTokenLimit: 8192, // 8,192 tokens
+    },
+    audioVisualSpecs: {
+      maxImagesPerPrompt: 7200,
+      maxVideoLength: "2 hours",
+      maxAudioLength: "Approximately 19 hours",
     },
     performance: {
       latency: "medium",
@@ -26,64 +35,67 @@ export const googleAIModels = {
     input: 0.075, // $0.075 per 1M tokens
     output: 0.3, // $0.30 per 1M tokens
     limits: {
-      rpm: 1000, // Requests Per Minute
-      tpm: 4000000, // Tokens Per Minute
+      free: {
+        rpm: 2, // Requests Per Minute
+        tpm: 32000, // Tokens Per Minute
+        rpd: 50, // Requests Per Day
+      },
+      payAsYouGo: {
+        rpm: 1000, // Requests Per Minute
+        tpm: 4000000, // Tokens Per Minute
+      },
     },
   },
-  "gemini-1.0-pro": {
+  "gemini-1.5-flash": {
     provider: "google",
-    name: "Gemini 1.0 Pro",
-    description: "Balanced model for most tasks",
-    strengths: "Strong performance across a wide range of tasks",
+    name: "Gemini 1.5 Flash",
+    description: "High speed model with flexible pricing",
+    strengths: "Cost-effective for extended prompts",
     features: {
       multilingual: true,
       vision: true,
+      audio: true,
     },
     api: {
-      name: "gemini-1.0-pro",
+      name: "models/gemini-1.5-flash",
       format: "Gemini API",
     },
-    performance: {
-      latency: "fast",
-      contextWindow: 32768,
-      maxOutputTokens: 2048,
+    tokenLimits: {
+      inputTokenLimit: 1048576, // 1,048,576 tokens
+      outputTokenLimit: 8192, // 8,192 tokens
     },
-    training: {
-      dataCutoff: "2023-08",
-    },
-    input: 0.075, // $0.075 per 1M tokens
-    output: 0.3, // $0.30 per 1M tokens
-    limits: {
-      rpm: 1000, // Requests Per Minute
-      tpm: 4000000, // Tokens Per Minute
-    },
-  },
-  "gemini-1.0-pro-vision": {
-    provider: "google",
-    name: "Gemini 1.0 Pro Vision",
-    description: "Multimodal model for text and vision tasks",
-    strengths: "Strong performance in visual understanding and generation",
-    features: {
-      multilingual: true,
-      vision: true,
-    },
-    api: {
-      name: "gemini-1.0-pro-vision",
-      format: "Gemini API",
+    audioVisualSpecs: {
+      maxImagesPerPrompt: 3600,
+      maxVideoLength: "1 hour",
+      maxAudioLength: "Approximately 9.5 hours",
     },
     performance: {
       latency: "medium",
-      contextWindow: 32768,
-      maxOutputTokens: 2048,
+      contextWindow: 128000, // 128K tokens
     },
-    training: {
-      dataCutoff: "2023-08",
+    pricing: {
+      standard: {
+        input: 0.075, // $0.075 per 1M tokens
+        output: 0.3, // $0.30 per 1M tokens
+        contextCaching: 0.01875, // $0.01875 per 1M tokens
+      },
+      extended: {
+        input: 0.15, // $0.15 per 1M tokens
+        output: 0.6, // $0.60 per 1M tokens
+        contextCaching: 0.0375, // $0.0375 per 1M tokens
+      },
+      contextStorage: 1.0, // $1.00 per 1M tokens per hour
     },
-    input: 0.075, // $0.075 per 1M tokens
-    output: 0.3, // $0.30 per 1M tokens
+    tuning: {
+      available: true,
+      serviceCharge: "free",
+      inputOutputPrice: "same as standard",
+      productImprovement: "no",
+    },
     limits: {
-      rpm: 1000, // Requests Per Minute
+      rpm: 2000, // Requests Per Minute
       tpm: 4000000, // Tokens Per Minute
     },
   },
 };
+export const geminiModelNames = Object.keys(googleAIModels);

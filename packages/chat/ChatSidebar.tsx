@@ -24,7 +24,6 @@ const ChatSidebar = () => {
     },
   };
   const { data, isLoading, isSuccess } = useQueryData(queryConfig);
-  console.log("ChatSidebar data", data);
   return (
     <nav>
       <div style={{ ...styles.flexBetween, ...styles.gap2 }}>
