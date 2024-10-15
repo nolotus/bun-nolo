@@ -37,28 +37,26 @@ export const sendOpenAIRequest = async (
     baseLogger.error("Model is required.");
     return null;
   }
+
+  requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
+    requestBody.frequency_penalty,
+  );
   const promotMessage = createPromptMessage(
     requestBody.model,
     requestBody.prompt,
   );
 
-  requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
-    requestBody.frequency_penalty,
-  );
-
   const messages = [
     promotMessage,
-    ...(requestBody.previousMessages || []), // 先添加之前的消息
+    ...(requestBody.previousMessages || []),
     {
-      role: "user", // 假设用户输入使用 "user" 角色
+      role: "user",
       content: requestBody.userInput,
     },
   ];
 
   const messagePropertiesToPick = ["content", "role", "images"];
-
   const pickMessages = map(pick(messagePropertiesToPick));
-
   const openAIConfig: OpenAIConfig = {
     model: requestBody.model,
     messages: pickMessages(messages),

@@ -76,6 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   useEffect(() => {
     const handleResize = () => {
+      // 在小屏幕上默认关闭侧边栏
       setIsSidebarOpen(window.innerWidth >= 768);
     };
     handleResize();
@@ -108,11 +109,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         ...themeStyles.surface1(theme),
       }}
     >
+      {/* 侧边栏 */}
       <aside
         ref={sidebarRef}
         style={sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth)}
       >
         <div style={sidebarContentStyles(theme)}>
+          {/* 登录菜单或登录按钮 */}
           {isLoggedIn ? (
             <div style={{ marginBottom: OpenProps.size3 }}>
               <IsLoggedInMenu />
@@ -125,26 +128,38 @@ const Sidebar: React.FC<SidebarProps> = ({
             />
           )}
 
+          {/* 固定链接导航 */}
           <nav style={{ marginBottom: OpenProps.size4 }}>
             {allowedFixedLinks.map((item) => (
               <NavListItem key={item.path} {...item} />
             ))}
           </nav>
+
+          {/* 可滚动内容区域 */}
           <div style={scrollableContentStyles}>{sidebarContent}</div>
         </div>
+
+        {/* 调整大小手柄 */}
         <div style={resizeHandleStyles(theme)} onMouseDown={startResizing} />
       </aside>
+
+      {/* 主要内容区域 */}
       <main style={contentStyles(theme, isSidebarOpen, theme.sidebarWidth)}>
+        {/* 顶部栏 */}
         <TopBar
           toggleSidebar={toggleSidebar}
           theme={theme}
           topbarContent={topbarContent}
         />
+
+        {/* 内部内容区域 */}
         <div style={innerContentStyles(theme, fullWidth)}>{children}</div>
       </main>
     </div>
   );
 };
+
+// 样式函数
 
 const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   width: `${width}px`,
@@ -156,9 +171,14 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   transition: "left 0.3s ease-in-out",
   zIndex: 2,
   ...themeStyles.textColor1(theme),
-  padding: theme.sidebarPadding, // 使用主题中的 padding 值
+  padding: theme.sidebarPadding,
   display: "flex",
   flexDirection: "column" as const,
+
+  // 媒体查询，在大屏幕上默认打开侧边栏
+  "@media (min-width: 768px)": {
+    left: 0,
+  },
 });
 
 const sidebarContentStyles = (theme: any) => ({
@@ -191,7 +211,7 @@ const innerContentStyles = (theme: any, fullWidth: boolean) => ({
   width: fullWidth ? "100%" : "100%",
   maxWidth: fullWidth ? "none" : "1200px",
   margin: fullWidth ? 0 : "0 auto",
-  padding: 0,
+  padding: "0 20px", // 为内容区域添加 padding，使其与侧边栏之间留白
   ...themeStyles.textColor1(theme),
 });
 
