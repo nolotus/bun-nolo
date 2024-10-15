@@ -3,7 +3,7 @@ import { baseLogger } from "utils/logger";
 import { createPromptMessage } from "ai/prompt/createPromptMessage";
 import { pick, map } from "rambda";
 
-export async function chatRequest(
+export async function sendDeepSeekRequest(
   requestBody,
   isStream: boolean,
 ): Promise<any> {

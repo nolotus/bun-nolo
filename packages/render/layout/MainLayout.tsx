@@ -15,7 +15,25 @@ import NavListItem from "./blocks/NavListItem";
 export const bottomLinks: NavItem[] = [
   {
     path: "/lab",
-    label: "Lab",
+    label: "实验室",
+    icon: <BeakerIcon size={16} />,
+    allow_users: [nolotusId],
+  },
+  {
+    path: "/download",
+    label: "客户端下载",
+    icon: <BeakerIcon size={16} />,
+    allow_users: [nolotusId],
+  },
+  {
+    path: "/price",
+    label: "价格",
+    icon: <BeakerIcon size={16} />,
+    allow_users: [nolotusId],
+  },
+  {
+    path: "/about",
+    label: "关于",
     icon: <BeakerIcon size={16} />,
     allow_users: [nolotusId],
   },

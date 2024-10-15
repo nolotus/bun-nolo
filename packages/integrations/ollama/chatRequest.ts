@@ -25,11 +25,12 @@ const defaultTools = [
   },
 ];
 
-export async function chatRequest(
+export async function sendOllamaRequest(
   requestBody,
   isStream: boolean,
 ): Promise<any> {
   const { model, messages, max_tokens, tools = defaultTools } = requestBody;
+  console.log("requestBody", requestBody);
   const axiosConfig = {
     method: "POST",
     url: "http://localhost:11434/api/chat",

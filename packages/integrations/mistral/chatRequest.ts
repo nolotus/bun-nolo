@@ -1,16 +1,28 @@
 import axios from "utils/axios";
 import { getProxyConfig } from "utils/getProxyConfig";
+import { createPromptMessage } from "ai/prompt/createPromptMessage";
+import { pick, map } from "rambda";
+import { NoloChatRequestBody } from "ai/types";
+
 import { mistralModels } from "./models";
 
+const messagePropertiesToPick = ["content", "role", "images"];
+const pickMessages = map(pick(messagePropertiesToPick));
+
 export async function sendMistralRequest(
-  requestBody,
+  requestBody: NoloChatRequestBody,
   isStream: boolean,
 ): Promise<any> {
   const { model, userInput, previousMessages, max_tokens } = requestBody;
   const proxyConfig = getProxyConfig();
 
-  // 组合新的消息数组
+  const promotMessage = createPromptMessage(
+    requestBody.model,
+    requestBody.prompt,
+  );
+
   const messages = [
+    promotMessage,
     ...(previousMessages || []), // 先添加之前的消息
     {
       role: "user", // 假设用户输入使用 "user" 角色
@@ -32,7 +44,8 @@ export async function sendMistralRequest(
     },
     data: {
       model,
-      messages, // 使用新的消息列表
+      messages: pickMessages(messages),
+
       stream: isStream,
       max_tokens,
     },

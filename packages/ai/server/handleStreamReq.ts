@@ -1,3 +1,5 @@
+import { createStreamResponse } from "ai/chat/createStreamResponse";
+
 import { adjustPerplexityFrequencyPenalty } from "integrations/perplexity/adjust";
 import { openAIModels } from "integrations/openAI/models";
 
@@ -7,18 +9,19 @@ import { deepSeekModels } from "integrations/deepSeek/models";
 import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { claudeModels } from "integrations/anthropic/models";
-import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
 import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
-import { chatRequest as sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
+import { sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
+
+//todo  make it work
+import { sendOllamaRequest } from "integrations/ollama/chatRequest";
+import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
 import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest";
-import { chatRequest as sendOllamaRequest } from "integrations/ollama/chatRequest";
 import { chatRequest as sendAnthropicRequest } from "integrations/anthropic/chatRequest";
 import { googleAIModels } from "integrations/google/ai/models";
 import { pick } from "rambda";
 import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
 import { baseLogger } from "utils/logger";
-import { createStreamResponse } from "../chat/createStreamResponse";
 
 function isModelInList(modelname, modelList) {
   return modelList.hasOwnProperty(modelname);
@@ -26,7 +29,6 @@ function isModelInList(modelname, modelList) {
 
 async function processModelRequest(requestBody, modelType) {
   let response;
-
   switch (modelType) {
     case "openai":
       response = await sendOpenAIRequest(requestBody, true);

@@ -27,7 +27,7 @@ const ChatSidebar = () => {
   return (
     <nav>
       <div style={{ ...styles.flexBetween, ...styles.gap2 }}>
-        <CustomizeAIButton />
+        {/* <CustomizeAIButton /> */}
         <NewDialogButton />
       </div>
       {isSuccess && <DialogSideBar />}

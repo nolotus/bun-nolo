@@ -5,9 +5,6 @@ import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
 import { pick, map } from "rambda";
 import { createPromptMessage } from "ai/prompt/createPromptMessage";
 
-import { createOpenAIRequestConfig } from "./config";
-import { NoloChatRequestBody } from "ai/types";
-
 interface OpenAIConfig {
   messages: Array<any>;
   model: string;
@@ -31,7 +28,7 @@ interface OpenAIConfig {
 }
 
 export const sendOpenAIRequest = async (
-  requestBody: NoloChatRequestBody,
+  requestBody,
   isStream: boolean,
 ): Promise<AxiosResponse<any> | null> => {
   if (!requestBody.model) {
@@ -66,11 +63,13 @@ export const sendOpenAIRequest = async (
   };
 
   const config: AxiosRequestConfig = {
-    ...createOpenAIRequestConfig(),
-    url: "https://api.openai.com/v1/chat/completions",
+    url: "https://api.deepinfra.com/v1/openai/chat/completions",
     method: "POST",
     responseType: openAIConfig.stream ? "stream" : "json",
     data: openAIConfig,
+    headers: {
+      "Content-Type": "application/json",
+    },
   };
 
   baseLogger.info(config);
