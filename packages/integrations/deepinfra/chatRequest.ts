@@ -27,7 +27,8 @@ interface OpenAIConfig {
   parallel_tool_calls?: boolean; // Whether to enable parallel function calling during tool use.
 }
 
-export const sendOpenAIRequest = async (
+export const sendDeepinfraChatRequest = async (
+  apiKey,
   requestBody,
   isStream: boolean,
 ): Promise<AxiosResponse<any> | null> => {
@@ -58,7 +59,7 @@ export const sendOpenAIRequest = async (
   const openAIConfig: OpenAIConfig = {
     model: requestBody.model,
     messages: pickMessages(messages),
-    stream: requestBody.model === "o1-mini" ? false : isStream,
+    stream: isStream,
     max_completion_tokens: requestBody.max_tokens,
   };
 
@@ -69,6 +70,7 @@ export const sendOpenAIRequest = async (
     data: openAIConfig,
     headers: {
       "Content-Type": "application/json",
+      Authorization: apiKey,
     },
   };
 

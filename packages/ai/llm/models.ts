@@ -9,6 +9,7 @@ import { deepSeekModels } from "integrations/deepSeek/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { claudeModels } from "integrations/anthropic/models";
 import { googleAIModels } from "integrations/google/ai/models";
+import { deepinfraModels } from "integrations/deepinfra/models";
 
 export const allModels = {
   ...openAIModels,
@@ -18,6 +19,7 @@ export const allModels = {
   ...ollamaModels,
   ...claudeModels,
   ...googleAIModels,
+  ...deepinfraModels,
 };
 
 //todo add source from

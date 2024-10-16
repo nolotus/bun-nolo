@@ -12,6 +12,7 @@ import { claudeModels } from "integrations/anthropic/models";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
 import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
 import { sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
+import { sendDeepinfraChatRequest } from "integrations/deepinfra/chatRequest";
 
 //todo  make it work
 import { sendOllamaRequest } from "integrations/ollama/chatRequest";
@@ -22,6 +23,7 @@ import { googleAIModels } from "integrations/google/ai/models";
 import { pick } from "rambda";
 import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
 import { baseLogger } from "utils/logger";
+import { deepinfraModels } from "integrations/deepinfra/models";
 
 function isModelInList(modelname, modelList) {
   return modelList.hasOwnProperty(modelname);
@@ -58,6 +60,13 @@ async function processModelRequest(requestBody, modelType) {
       response = await sendGeminiChatRequest(
         process.env.GOOGLE_API_KEY,
         requestBody,
+      );
+      break;
+    case "deepinfra":
+      response = await sendDeepinfraChatRequest(
+        process.env.DEEPINFRA_API_KEY,
+        requestBody,
+        true,
       );
       break;
     default:
@@ -105,6 +114,8 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "claude");
     } else if (isModelInList(requestBody.model, googleAIModels)) {
       return await processModelRequest(requestBody, "google");
+    } else if (isModelInList(requestBody.model, deepinfraModels)) {
+      return await processModelRequest(requestBody, "deepinfra");
     } else {
       throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }
