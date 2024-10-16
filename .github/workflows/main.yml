@@ -76,7 +76,7 @@ jobs:
             /root/.bun/bin/bun run ./scripts/esBuild.js
 
             # 使用一个命令删除所有旧的 nolo 进程
-            /root/.bun/bin/pm2 delete nolo || true
+            /root/.bun/bin/pm2 delete all
 
             # 启动新的进程
             /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo -i max --exp-backoff-restart-delay=100 --max-memory-restart 1G
