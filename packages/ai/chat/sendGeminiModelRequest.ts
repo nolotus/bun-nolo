@@ -14,7 +14,7 @@ import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
 import { selectCurrentUserId } from "auth/authSlice";
 
-export const handleGeminiModelResponse = async (
+export const sendGeminiModelRequest = async (
   dialogConfig,
   content,
   thunkApi,
@@ -23,20 +23,23 @@ export const handleGeminiModelResponse = async (
   const state = thunkApi.getState();
   const userId = selectCurrentUserId(state);
   const currentServer = selectCurrentServer(state);
+  console.log("dialogConfig", dialogConfig);
 
   const cybotId = dialogConfig.cybots
     ? dialogConfig.cybots[0]
     : dialogConfig.llmId;
+  console.log("cybotId", cybotId);
 
   const readAction = await dispatch(read({ id: cybotId }));
+  console.log("readAction", readAction);
 
   const cybotConfig = readAction.payload;
+  console.log("cybotConfig", cybotConfig);
 
   const config = {
     ...cybotConfig,
     responseLanguage: navigator.language,
   };
-  console.log("config", config);
   let prevMsgs = getFilteredMessages(state);
 
   const requestBody = createStreamRequestBody(config, content, prevMsgs);

@@ -6,15 +6,15 @@ export const createStreamRequestBody = (
   userInput: string,
   previousMessages: Array<Message>,
 ) => {
-  const model = config.model;
   const prompt = generateContent(
     config.prompt,
     config.name,
     config.responseLanguage,
   );
+
   return {
     type: "stream",
-    model,
+    model: config.model,
     temperature: config.temperature || 0.8,
     max_tokens: config.max_tokens || 4096,
     top_p: config.top_p || 0.9,

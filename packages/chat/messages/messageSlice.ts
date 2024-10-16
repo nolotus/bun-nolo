@@ -31,7 +31,7 @@ import { prepareMsgs } from "ai/messages/prepareMsgs";
 import { ollamaModelNames } from "integrations/ollama/models";
 import { geminiModelNames } from "integrations/google/ai/models";
 
-import { handleGeminiModelResponse } from "ai/chat/handleGeminiModelResponse";
+import { sendGeminiModelRequest } from "ai/chat/sendGeminiModelRequest";
 import { handleClaudeModelResponse } from "ai/chat/handleClaudeModelRespons";
 
 import { getFilteredMessages } from "./utils";
@@ -235,7 +235,7 @@ export const messageSlice = createSliceWithThunks({
         const mode = getModefromContent(textContent, content);
         const context = await getContextFromMode(mode, textContent);
         if (model && geminiModelNames.includes(model)) {
-          handleGeminiModelResponse(dialogConfig, content, thunkApi, dispatch);
+          sendGeminiModelRequest(dialogConfig, content, thunkApi, dispatch);
         }
         if (mode === "stream") {
           const userId = selectCurrentUserId(state);

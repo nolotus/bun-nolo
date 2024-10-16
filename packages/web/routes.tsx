@@ -1,37 +1,28 @@
 import React, { Suspense, lazy } from "react";
 import { authRoutes } from "auth/client/routes";
-import { createRoutes } from "create/routes";
 import { routes as lifeRoutes } from "life/routes";
-import { USER_PROFILE_ROUTE, EDITOR_CONFIG } from "setting/config";
 import MainLayout from "render/layout/MainLayout";
 import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
-import { PageLoader } from "render/blocks/PageLoader";
+import { settingRoutes } from "setting/routes";
 import { SurfTip } from "./SurfTip";
+import { createRoutes } from "create/routes";
+import { createRoute } from "./createRoute";
 
 const Page = lazy(() => import("render/page/PageIndex"));
-const Sync = lazy(() => import("setting/pages/Sync"));
-const AccountSettings = lazy(() => import("setting/pages/AccountSettings"));
-const UserProfile = lazy(() => import("setting/pages/UserProfile"));
-const EditorConfig = lazy(() => import("setting/pages/EditorConfig"));
-const Website = lazy(() => import("setting/pages/Website"));
+
 const ChatPage = lazy(() => import("chat/ChatPage"));
 const ChatGuide = lazy(() => import("chat/ChatGuide"));
-
-const LazyLoadWrapper = ({ component }: { component: React.ReactNode }) => (
-  <Suspense fallback={<PageLoader />}>{component}</Suspense>
-);
-
-const createRoute = (path: string, component: React.ReactNode) => ({
-  path,
-  element: <LazyLoadWrapper component={component} />,
-});
+const PricePage = lazy(() => import("app/pages/Price"));
 
 export const routes = (currentUser: any) => [
   {
     path: "/",
     element: <MainLayout />,
     children: [
+      ...authRoutes,
+      ...createRoutes,
+      settingRoutes,
       {
         index: true,
         element: <Home />,
@@ -40,26 +31,13 @@ export const routes = (currentUser: any) => [
         path: "lab",
         element: <Lab />,
       },
-      ...authRoutes,
-      ...createRoutes,
+
       {
         path: "price",
-        element: (
-          <Page id="000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-v9ziDvBB6UkWgFM_S2PV6" />
-        ),
+        element: <PricePage />,
       },
       { path: "surfing-safety-tips", element: <SurfTip /> },
       // 设置路由
-      {
-        path: "settings",
-        children: [
-          createRoute(`${USER_PROFILE_ROUTE}`, <UserProfile />),
-          createRoute(EDITOR_CONFIG, <EditorConfig />),
-          createRoute("sync", <Sync />),
-          createRoute("account", <AccountSettings />),
-          createRoute("website", <Website />),
-        ],
-      },
       {
         path: "/chat",
         children: [

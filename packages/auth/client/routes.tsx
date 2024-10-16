@@ -1,7 +1,7 @@
 import React from "react";
 
-import Login from "../pages/Login";
-import Signup from "../pages/Signup";
+import Login from "auth/pages/Login";
+import Signup from "auth/pages/Signup";
 
 export enum RoutePaths {
   LOGIN = "/login",

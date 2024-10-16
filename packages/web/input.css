@@ -450,7 +450,9 @@ p.text1 {
 :where(sup) {
   font-size: 0.5em;
 }
-:where(table) {
+
+/* table */
+/* :where(table) {
   --nice-inner-radius: calc(var(--radius-3) - 2px);
   background: var(--surface-2);
   border: 1px solid var(--surface-2);
@@ -519,7 +521,8 @@ p.text1 {
 :where(tfoot button) {
   padding-block: var(--size-1);
   padding-inline: var(--size-3);
-}
+} */
+
 @media (prefers-color-scheme: dark) {
   :where(
       textarea,
