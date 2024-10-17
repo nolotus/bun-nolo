@@ -21,5 +21,5 @@ export const allowRule = (user, navItems: NavItem[]) => {
         }
         return item.allow_users.includes(user.userId);
       })
-    : navItems;
+    : navItems.filter((item) => !item.allow_users);
 };
