@@ -13,7 +13,7 @@ const ChatGuide = () => {
       </p>
       <CreateCybotButton />
       <h3 style={{ marginTop: "2rem", marginBottom: "1rem" }}>使用别人的</h3>
-      <Cybots queryUserId={nolotusId} limit={15} />
+      <Cybots queryUserId={nolotusId} limit={50} />
     </div>
   );
 };

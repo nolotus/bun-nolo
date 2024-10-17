@@ -5,7 +5,10 @@ const LazyLoadWrapper = ({ component }: { component: React.ReactNode }) => (
   <Suspense fallback={<PageLoader />}>{component}</Suspense>
 );
 
-export const createRoute = (path: string, component: React.ReactNode) => ({
-  path,
-  element: <LazyLoadWrapper component={component} />,
-});
+export const createLazyRoute = (path: string, importFn: () => Promise<any>) => {
+  const LazyComponent = lazy(importFn);
+  return {
+    path,
+    element: <LazyLoadWrapper component={<LazyComponent />} />,
+  };
+};

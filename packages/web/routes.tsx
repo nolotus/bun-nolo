@@ -1,18 +1,16 @@
 import React, { Suspense, lazy } from "react";
 import { authRoutes } from "auth/client/routes";
-import { routes as lifeRoutes } from "life/routes";
 import MainLayout from "render/layout/MainLayout";
 import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
 import { settingRoutes } from "setting/routes";
-import { SurfTip } from "./SurfTip";
 import { createRoutes } from "create/routes";
-import { createRoute } from "./createRoute";
+
+import { createLazyRoute } from "./createLazyRoute";
+import { SurfTip } from "./SurfTip";
 
 const Page = lazy(() => import("render/page/PageIndex"));
 
-const ChatPage = lazy(() => import("chat/ChatPage"));
-const ChatGuide = lazy(() => import("chat/ChatGuide"));
 const PricePage = lazy(() => import("app/pages/Price"));
 
 export const routes = (currentUser: any) => [
@@ -24,6 +22,17 @@ export const routes = (currentUser: any) => [
       ...createRoutes,
       settingRoutes,
       {
+        path: "/life",
+        children: [
+          createLazyRoute("/life", () => import("life/web/Database")),
+          createLazyRoute(
+            "/life/statistics",
+            () => import("life/web/Statistics"),
+          ),
+          createLazyRoute("/life/calendar", () => import("life/web/Calendar")),
+        ],
+      },
+      {
         index: true,
         element: <Home />,
       },
@@ -31,7 +40,6 @@ export const routes = (currentUser: any) => [
         path: "lab",
         element: <Lab />,
       },
-
       {
         path: "price",
         element: <PricePage />,
@@ -41,14 +49,12 @@ export const routes = (currentUser: any) => [
       {
         path: "/chat",
         children: [
-          createRoute("/chat", <ChatGuide />),
-          createRoute("/chat/:dialogId", <ChatPage />),
+          createLazyRoute("/chat", () => import("chat/ChatGuide")),
+          createLazyRoute("/chat/:dialogId", () => import("chat/ChatPage")),
         ],
       },
     ],
   },
-
-  lifeRoutes,
   {
     path: ":pageId",
     element: (

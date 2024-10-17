@@ -9,6 +9,11 @@ import React, {
 } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
+import {
+  HomeIcon,
+  CommentDiscussionIcon,
+  DatabaseIcon,
+} from "@primer/octicons-react";
 
 import { SignInIcon } from "@primer/octicons-react";
 
@@ -17,12 +22,17 @@ import { styles, themeStyles } from "render/ui/styles";
 import OpenProps from "open-props";
 
 import { useAuth } from "auth/useAuth";
-import { fixedLinks, allowRule } from "auth/navPermissions";
+import { allowRule, NavItem } from "auth/navPermissions";
 import { RoutePaths } from "auth/client/routes";
 import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
 import NavListItem from "./blocks/NavListItem";
 import TopBar from "./TopBar";
 
+export const fixedLinks: NavItem[] = [
+  { path: "/", label: "Home", icon: <HomeIcon size={24} /> },
+  { path: "/chat", label: "Chat", icon: <CommentDiscussionIcon size={24} /> },
+  { path: "/life", label: "Databse", icon: <DatabaseIcon size={24} /> },
+];
 interface SidebarProps {
   children: ReactNode;
   sidebarContent: ReactNode;

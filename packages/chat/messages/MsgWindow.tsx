@@ -10,16 +10,7 @@ import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
 import MessagesList from "./MessageList";
 
-interface ChatWindowProps {
-  currentDialogConfig: {
-    id: string;
-    title: string;
-    messageListId: string;
-    source: string;
-  };
-}
-
-const ChatWindow: React.FC<ChatWindowProps> = ({ currentDialogConfig }) => {
+const ChatWindow: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const theme = useAppSelector(selectTheme);
@@ -75,12 +66,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ currentDialogConfig }) => {
   return (
     <div style={chatContainerStyle}>
       <div style={messageListContainerStyle}>
-        {currentDialogConfig.messageListId && (
-          <MessagesList
-            id={currentDialogConfig.messageListId}
-            source={currentDialogConfig.source}
-          />
-        )}
+        <MessagesList />
       </div>
       <div style={inputContainerStyle}>
         {allowSend ? (

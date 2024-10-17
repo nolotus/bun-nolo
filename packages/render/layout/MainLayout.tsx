@@ -6,6 +6,7 @@ import ChatSidebar from "chat/ChatSidebar";
 import { AnimatePresence, motion } from "framer-motion";
 import SettingsSidebarContent from "setting/SettingsSidebarContent"; // 引入设置侧边栏组件
 import HomeSidebarContent from "app/pages/HomeSidebarContent"; // 引入新的 HomeSidebarContent
+import LifeSidebarContent from "life/LifeSidebarContent"; // 引入新的 LifeSidebarContent
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
@@ -14,8 +15,11 @@ const MainLayout: React.FC = () => {
   const isChatPage = location.pathname.startsWith("/chat");
 
   const getSidebarContent = () => {
-    if (isSettingsPage || isLifePage) {
+    if (isSettingsPage) {
       return <SettingsSidebarContent />;
+    }
+    if (isLifePage) {
+      return <LifeSidebarContent />;
     }
     if (isChatPage) {
       return <ChatSidebar />;

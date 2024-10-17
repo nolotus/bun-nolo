@@ -10,8 +10,8 @@ import withTranslations from "i18n/withTranslations";
 import {
   initDialog,
   selectCurrentDialogConfig,
-  clearDialogState, // 导入 clearDialogState action
-} from "./dialog/dialogSlice";
+  clearDialogState,
+} from "chat/dialog/dialogSlice";
 import ChatWindow from "./messages/MsgWindow";
 
 const ChatPage = () => {

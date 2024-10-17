@@ -8,6 +8,7 @@ import OpenProps from "open-props";
 import { MessageItem } from "./MessageItem";
 import { selectStreamMessages, selectMergedMessages } from "./selector";
 import { initMessages } from "./messageSlice";
+import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 
 export const messageListStyle = {
   display: "flex",
@@ -22,16 +23,18 @@ export const messageListStyle = {
   paddingTop: OpenProps.size6,
 };
 
-interface MessagesDisplayProps {
-  id: string;
-  source: string[];
-}
+const MessagesList: React.FC = () => {
+  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  const id = currentDialogConfig.messageListId;
 
-const MessagesList: React.FC<MessagesDisplayProps> = ({ id, source }) => {
+  if (!id) {
+    return <div>mei id</div>;
+  }
+
   const dispatch = useAppDispatch();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const { data, isLoading, error } = useFetchData(id, { source });
+  const { data, isLoading, error } = useFetchData(id);
   const streamingMessages = useAppSelector(selectStreamMessages);
   const messages = useAppSelector(selectMergedMessages);
 
