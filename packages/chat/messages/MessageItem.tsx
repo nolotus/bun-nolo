@@ -1,9 +1,9 @@
+import { useAppSelector, useFetchData, useAppDispatch } from "app/hooks";
+import { selectCurrentUserId } from "auth/authSlice";
+
 import { TrashIcon } from "@primer/octicons-react";
-import { useDispatch } from "react-redux";
-import { useAppSelector, useFetchData } from "app/hooks";
 
 import { deleteNotFound } from "./messageSlice";
-import { selectCurrentUserId } from "auth/authSlice";
 
 import RobotMessage from "./RobotMessage";
 import { UserMessage } from "./UserMessage";
@@ -13,7 +13,7 @@ export const MessageItem = ({ message }) => {
   const { id } = message;
   const streamContent = message.content;
   const controller = message.controller;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { data, isLoading, error } = useFetchData(id);
   const currentUserId = useAppSelector(selectCurrentUserId);
   const couldDelete = true;

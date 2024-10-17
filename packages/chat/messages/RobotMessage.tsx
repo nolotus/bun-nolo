@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { SquareIcon, SquareFillIcon } from "@primer/octicons-react";
 import { Avatar } from "render/ui";
 import * as Ariakit from "@ariakit/react";
+import { themeStyles } from "render/ui/styles";
+import { selectTheme } from "app/theme/themeSlice";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { Message } from "./types";
@@ -13,12 +15,15 @@ import {
   contentWrapperStyle,
   avatarWrapperStyle,
 } from "./styles";
+import { useAppSelector } from "app/hooks";
+
 const RobotMessage: React.FC<Message> = ({
   id,
   content,
   image,
   controller,
 }) => {
+  const theme = useAppSelector(selectTheme);
   const { audioSrc, handlePlayClick } = useAudioPlayer(content);
   const [hovered, setHovered] = useState(false);
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
@@ -50,6 +55,7 @@ const RobotMessage: React.FC<Message> = ({
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
               style={{
+                ...themeStyles.surface2(theme),
                 position: "absolute",
                 bottom: 0,
                 right: 0,
@@ -59,9 +65,7 @@ const RobotMessage: React.FC<Message> = ({
                 justifyContent: "center",
                 width: "32px",
                 height: "32px",
-                backgroundColor: "var(--accent-color)",
                 borderRadius: "50%",
-                color: "var(--surface-1)",
                 fontSize: "16px",
                 transform: "translate(50%, 50%)",
               }}

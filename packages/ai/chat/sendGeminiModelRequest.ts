@@ -1,13 +1,9 @@
 import { read, setOne } from "database/dbSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
-import {
-  selectCurrentDialogConfig,
-  updateInputTokens,
-  updateOutputTokens,
-} from "chat/dialog/dialogSlice";
-import { chatStreamRequest } from "chat/messages/chatStreamRequest";
+import { updateInputTokens, updateOutputTokens } from "chat/dialog/dialogSlice";
+import { sendNoloChatRequest } from "chat/messages/chatStreamRequest";
 import { selectCurrentServer } from "setting/settingSlice";
-import { createStreamRequestBody } from "../utils/createStreamRequestBody";
+import { createStreamRequestBody } from "./createStreamRequestBody";
 import { getFilteredMessages } from "chat/messages/utils";
 import { decodeChunk } from "ai/client/stream";
 import { generateIdWithCustomId } from "core/generateMainKey";
@@ -48,7 +44,7 @@ export const sendGeminiModelRequest = async (
   const signal = controller.signal;
   const token = state.auth.currentToken;
 
-  const response = await chatStreamRequest({
+  const response = await sendNoloChatRequest({
     currentServer,
     requestBody,
     signal,

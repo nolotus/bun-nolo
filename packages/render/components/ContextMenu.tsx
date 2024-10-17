@@ -34,6 +34,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
     boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
     minWidth: "180px",
     fontSize: "14px",
+    zIndex: 2,
   };
 
   const menuItemBaseStyle: React.CSSProperties = {

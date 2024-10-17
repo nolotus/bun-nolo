@@ -98,7 +98,6 @@ const CybotBlock = ({ item, closeModal }) => {
           style={{
             ...styles.buttonBase,
             ...styles.transition,
-            ...styles.deleteButton,
           }}
           onClick={handleDelete}
           loading={deleting} // 确保删除按钮能显示加载状态

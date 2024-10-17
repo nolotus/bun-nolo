@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import MessageInput from "./MessageInput"; // 导入 MessageInput 组件
+import MessageInput from "./MessageInput";
 import { DialogList } from "./DialogList";
 
 export function ChatScreen() {

@@ -13,9 +13,8 @@ import {
   HomeIcon,
   CommentDiscussionIcon,
   DatabaseIcon,
+  SignInIcon,
 } from "@primer/octicons-react";
-
-import { SignInIcon } from "@primer/octicons-react";
 
 import { useTranslation } from "react-i18next";
 import { styles, themeStyles } from "render/ui/styles";
@@ -25,6 +24,7 @@ import { useAuth } from "auth/useAuth";
 import { allowRule, NavItem } from "auth/navPermissions";
 import { RoutePaths } from "auth/client/routes";
 import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
+
 import NavListItem from "./blocks/NavListItem";
 import TopBar from "./TopBar";
 
@@ -175,7 +175,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   width: `${width}px`,
   ...themeStyles.surface1(theme),
-  height: "100vh",
+  height: "100dvh",
   position: "fixed" as const,
   left: isSidebarOpen ? 0 : `-${width}px`,
   top: 0,

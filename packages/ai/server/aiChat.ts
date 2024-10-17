@@ -14,6 +14,7 @@ export const handleAIChatRequest = async (req, res) => {
     if (type === "audio") {
       return handleAudioReq(req, res);
     }
+    console.log("handleAIChatRequest stream false");
     const result = await sendOpenAIRequest(req.body, false);
     return res.status(200).json(result.data);
   } catch (error) {

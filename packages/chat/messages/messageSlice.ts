@@ -11,7 +11,7 @@ import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { readChunks } from "ai/client/stream";
 import { getLogger } from "utils/logger";
-import { createStreamRequestBody } from "ai/utils/createStreamRequestBody";
+import { createStreamRequestBody } from "ai/chat/createStreamRequestBody";
 import { createPromptMessage } from "ai/prompt/createPromptMessage";
 import { noloRequest } from "utils/noloRequest";
 import { ulid } from "ulid";
@@ -37,7 +37,7 @@ import { handleClaudeModelResponse } from "ai/chat/handleClaudeModelRespons";
 import { getFilteredMessages } from "./utils";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
-import { chatStreamRequest } from "./chatStreamRequest";
+import { sendNoloChatRequest } from "./chatStreamRequest";
 
 const chatWindowLogger = getLogger("ChatWindow");
 
@@ -237,9 +237,14 @@ export const messageSlice = createSliceWithThunks({
         if (model && geminiModelNames.includes(model)) {
           sendGeminiModelRequest(dialogConfig, content, thunkApi, dispatch);
         }
+        //todo
+        if (model === "o1-mini") {
+          sendOpenAIRequest();
+          console.log("o1-mini");
+          return;
+        }
         if (mode === "stream") {
           const userId = selectCurrentUserId(state);
-
           const streamChat = async (content) => {
             const id = generateIdWithCustomId(userId, ulid(), {
               isJSON: true,
@@ -468,7 +473,6 @@ export const messageSlice = createSliceWithThunks({
         const dispatch = thunkApi.dispatch;
         const state = thunkApi.getState();
         const cybotId = cybotConfig.id;
-
         await dispatch(
           addAIMessage({
             content: "loading ...",
@@ -494,7 +498,7 @@ export const messageSlice = createSliceWithThunks({
 
         const requestBody = createStreamRequestBody(config, content, prevMsgs);
 
-        const response = await chatStreamRequest({
+        const response = await sendNoloChatRequest({
           currentServer,
           requestBody,
           signal,

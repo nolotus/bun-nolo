@@ -7,7 +7,6 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 
-// 新的 MessageInput 组件
 const MessageInput = ({}) => {
   const [text, setText] = useState(""); // 输入框的文本状态
 

@@ -9,7 +9,7 @@ interface ChatStreamRequestParams {
   token: string;
 }
 
-export const chatStreamRequest = async ({
+export const sendNoloChatRequest = async ({
   currentServer,
   requestBody,
   signal,
