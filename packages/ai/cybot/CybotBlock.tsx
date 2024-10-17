@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { styles, themeStyles } from "render/ui/styles";
 
-const CybotBlock = ({ item }) => {
+const CybotBlock = ({ item, closeModal }) => {
   const { isLoading, createDialog } = useCreateDialog();
   const theme = useSelector(selectTheme);
 
@@ -13,6 +13,9 @@ const CybotBlock = ({ item }) => {
     try {
       const cybotId = item.id;
       await createDialog({ cybots: [cybotId] });
+      if (closeModal) {
+        closeModal();
+      }
     } catch (error) {
       // 错误处理
     }

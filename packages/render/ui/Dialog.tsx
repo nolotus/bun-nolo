@@ -1,5 +1,6 @@
-import { XIcon } from "@primer/octicons-react";
 import React from "react";
+
+import { XIcon } from "@primer/octicons-react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { styles, themeStyles } from "render/ui/styles";
@@ -16,7 +17,7 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
           ...themeStyles.surface1(theme),
           ...styles.flexColumn,
           height: "auto",
-          maxHeight: "80vh",
+          maxHeight: "80dvh",
           borderRadius: theme.borderRadius,
         }}
       >

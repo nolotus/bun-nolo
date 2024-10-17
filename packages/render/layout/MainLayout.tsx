@@ -4,10 +4,9 @@ import { useLocation, Outlet } from "react-router-dom";
 import Sidebar from "render/layout/Sidebar";
 import ChatSidebar from "chat/ChatSidebar";
 import { AnimatePresence, motion } from "framer-motion";
-import SettingsSidebarContent from "setting/SettingsSidebarContent"; // 引入设置侧边栏组件
-import HomeSidebarContent from "app/pages/HomeSidebarContent"; // 引入新的 HomeSidebarContent
-import LifeSidebarContent from "life/LifeSidebarContent"; // 引入新的 LifeSidebarContent
-
+import SettingsSidebarContent from "setting/SettingsSidebarContent";
+import HomeSidebarContent from "app/pages/HomeSidebarContent";
+import LifeSidebarContent from "life/LifeSidebarContent";
 const MainLayout: React.FC = () => {
   const location = useLocation();
   const isSettingsPage = location.pathname.startsWith("/settings");

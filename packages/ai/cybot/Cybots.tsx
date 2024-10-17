@@ -1,4 +1,3 @@
-// Cybots.tsx
 import React from "react";
 import { useQueryData } from "app/hooks";
 import { DataType } from "create/types";
@@ -11,6 +10,7 @@ import CybotBlock from "./CybotBlock";
 interface CybotsProps {
   queryUserId: string;
   limit?: number;
+  closeModal?: () => void;
 }
 
 interface QueryConfig {
@@ -24,7 +24,11 @@ interface QueryConfig {
   };
 }
 
-const Cybots: React.FC<CybotsProps> = ({ queryUserId, limit = 20 }) => {
+const Cybots: React.FC<CybotsProps> = ({
+  queryUserId,
+  limit = 20,
+  closeModal,
+}) => {
   const theme = useSelector(selectTheme);
 
   const queryConfig: QueryConfig = {
@@ -81,13 +85,13 @@ const Cybots: React.FC<CybotsProps> = ({ queryUserId, limit = 20 }) => {
       {isSuccess &&
         data?.map((item) => (
           <div key={item.id} style={combinedStyles.responsiveItem}>
-            <CybotBlock item={item} />
+            <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}
       {isSuccess2 &&
         data2?.map((item) => (
           <div key={item.id} style={combinedStyles.responsiveItem}>
-            <CybotBlock item={item} />
+            <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}
     </div>

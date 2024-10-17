@@ -19,24 +19,6 @@ export const mistralModels: LLMModels = {
       contextWindow: 32000,
     },
   },
-  "mistral-medium-latest": {
-    provider: "mistral",
-    name: "Mistral Medium (Latest)",
-    api: {
-      name: "mistral-medium-latest",
-    },
-    pricing: {
-      input: 2.7,
-      output: 8.1,
-      unit: "per 1M tokens",
-    },
-    model: {
-      type: "language",
-    },
-    performance: {
-      contextWindow: 32000,
-    },
-  },
   "mistral-large-latest": {
     provider: "mistral",
     name: "Mistral Large (Latest)",
