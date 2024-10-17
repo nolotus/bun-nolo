@@ -160,6 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           toggleSidebar={toggleSidebar}
           theme={theme}
           topbarContent={topbarContent}
+          isExpanded={isSidebarOpen}
         />
 
         {/* 内部内容区域 */}

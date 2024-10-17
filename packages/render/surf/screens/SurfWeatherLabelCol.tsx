@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector, useQueryData } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 
 import { defaultDisplayConfig } from "../config";
 import { CELL_HEIGHT } from "./style";

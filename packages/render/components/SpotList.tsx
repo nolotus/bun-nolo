@@ -1,6 +1,8 @@
 import { SpotCard } from "render/components/SpotCard";
 import OpenProps from "open-props";
-import { useQueryData } from "app/hooks";
+
+import { useQueryData } from "app/hooks/useQueryData";
+
 import { DataType } from "create/types";
 import { Spinner } from "@primer/react";
 import React from "react";

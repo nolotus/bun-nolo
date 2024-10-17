@@ -4,7 +4,9 @@ import React, { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { DataType } from "create/types";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useQueryData } from "app/hooks";
+import { useAppDispatch } from "app/hooks";
+import { useQueryData } from "app/hooks/useQueryData";
+
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";

@@ -5,7 +5,7 @@ import OpenProps from "open-props";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
-import { useQueryData } from "app/hooks";
+import { useQueryData } from "app/hooks/useQueryData";
 
 import { DialogItem } from "./DialogItem";
 
@@ -91,7 +91,7 @@ export const DialogList = ({ dialogList, source }) => {
   return (
     <div style={styles.container}>
       {Object.entries(categorizedDialogs).map(([categoryId, dialogs]) => {
-        const category = categories.find((cat) => cat.id === categoryId) || {
+        const category = categories?.find((cat) => cat.id === categoryId) || {
           name: "未分类",
         };
         return (

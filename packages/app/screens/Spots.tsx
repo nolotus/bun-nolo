@@ -10,7 +10,8 @@ import { nolotusId } from "core/init";
 import { DataType } from "create/types";
 import { Loader } from "render/ui/screens/Loader";
 import Card from "./Card";
-import { useAppDispatch, useQueryData } from "../hooks";
+import { useAppDispatch } from "../hooks";
+import { useQueryData } from "app/hooks/useQueryData";
 
 export function SpotsScreen() {
   const dispath = useAppDispatch();

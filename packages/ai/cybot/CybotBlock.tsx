@@ -1,13 +1,26 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
+import { useModal } from "render/ui/Modal";
 import Button from "render/ui/Button";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { styles, themeStyles } from "render/ui/styles";
+import EditCybot from "ai/cybot/EditCybot";
+import { Dialog } from "render/ui/Dialog";
+import toast from "react-hot-toast"; // 确保导入路径正确
+import { deleteData } from "database/dbSlice"; // 确保导入路径正确
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next"; // 导入 i18n
 
 const CybotBlock = ({ item, closeModal }) => {
+  const { t } = useTranslation(); // 初始化 t 函数
   const { isLoading, createDialog } = useCreateDialog();
+  const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
+
   const theme = useSelector(selectTheme);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [deleting, setDeleting] = useState(false);
 
   const createNewDialog = async () => {
     try {
@@ -21,77 +34,87 @@ const CybotBlock = ({ item, closeModal }) => {
     }
   };
 
-  const combinedStyles = {
-    cybotCard: {
-      ...styles.flexColumn,
-      ...styles.p3,
-      ...themeStyles.surface2(theme),
-      ...themeStyles.textColor1(theme),
-      ...styles.radShadow,
-      ...themeStyles.radShadow(theme),
-      borderRadius: theme.borderRadius,
-      height: "100%",
-      transition: "background-color 0.3s ease, color 0.3s ease",
-    },
-    cardHeader: {
-      ...styles.flexBetween,
-      ...styles.mb2,
-    },
-    title: {
-      ...styles.textEllipsis,
-      fontSize: theme.fontSize.medium,
-      fontWeight: "bold",
-      flexShrink: 0,
-      maxWidth: "calc(100% - 100px)",
-    },
-    infoContainer: {
-      ...styles.flexGrow1,
-      ...styles.flexColumn,
-    },
-    infoText: {
-      color: theme.text2,
-      ...styles.mb2,
-      ...styles.flexStart,
-    },
-    label: {
-      fontWeight: "600",
-      minWidth: "70px",
-      marginRight: "0.5rem",
-      color: theme.text1,
-    },
-    modelName: {
-      ...styles.textEllipsis,
-    },
-    introduction: {
-      display: "-webkit-box",
-      WebkitLineClamp: 3,
-      WebkitBoxOrient: "vertical",
-      overflow: "hidden",
-    },
+  const handleEditClick = (e) => {
+    e.stopPropagation();
+    openEdit();
   };
 
+  const handleDelete = useCallback(async () => {
+    setDeleting(true);
+    try {
+      await dispatch(deleteData({ id: item.id })).unwrap(); // 确保 await dispatch 调用
+      toast.success(t("deleteSuccess")); // 用翻译字符串替换
+    } catch (error) {
+      toast.error(t("deleteError")); // 用翻译字符串替换
+    } finally {
+      setDeleting(false);
+    }
+  }, [dispatch, item.id, navigate, t]);
+
   return (
-    <div style={combinedStyles.cybotCard}>
-      <div style={combinedStyles.cardHeader}>
-        <div style={combinedStyles.title} title={item.name}>
+    <div
+      style={{
+        ...styles.flexColumn,
+        ...styles.p3,
+        ...themeStyles.surface2(theme),
+        ...themeStyles.radShadow(theme),
+        ...styles.roundedMd,
+      }}
+    >
+      <div style={{ ...styles.flexBetween, ...styles.mb2 }}>
+        <div
+          style={{
+            ...styles.textEllipsis,
+            ...styles.fontWeight600,
+            maxWidth: "60%",
+          }}
+          title={item.name}
+        >
           {item.name}
         </div>
-        <Button loading={isLoading} onClick={createNewDialog}>
-          对话
+      </div>
+      <div style={{ ...styles.flexGrow1, ...styles.mb2 }}>
+        <div style={{ ...styles.textEllipsis }}>
+          <span style={{ ...styles.fontWeight600 }}>{t("modelName")}：</span>
+          {item.model}
+        </div>
+        <div style={styles.textEllipsis}>
+          <span style={{ ...styles.fontWeight600 }}>{t("introduction")}：</span>
+          {item.introduction}
+        </div>
+      </div>
+      <div style={{ ...styles.flex, ...styles.gap1 }}>
+        <Button
+          style={styles.buttonBase}
+          loading={isLoading}
+          onClick={createNewDialog}
+        >
+          {t("dialog")}
+        </Button>
+        <Button style={styles.buttonBase} onClick={handleEditClick}>
+          {t("edit")}
+        </Button>
+        <Button
+          style={{
+            ...styles.buttonBase,
+            ...styles.transition,
+            ...styles.deleteButton,
+          }}
+          onClick={handleDelete}
+          loading={deleting} // 确保删除按钮能显示加载状态
+        >
+          {t("delete")}
         </Button>
       </div>
-      <div style={combinedStyles.infoContainer}>
-        <div style={combinedStyles.infoText}>
-          <span style={combinedStyles.label}>模型名：</span>
-          <span style={combinedStyles.modelName} title={item.model}>
-            {item.model}
-          </span>
-        </div>
-        <div style={combinedStyles.infoText}>
-          <span style={combinedStyles.label}>介绍：</span>
-          <span style={combinedStyles.introduction}>{item.introduction}</span>
-        </div>
-      </div>
+      {editVisible && (
+        <Dialog
+          isOpen={editVisible}
+          onClose={closeEdit}
+          title={`${t("edit")} ${item.name || t("cybot")}`}
+        >
+          <EditCybot initialValues={item} onClose={closeEdit} />
+        </Dialog>
+      )}
     </div>
   );
 };

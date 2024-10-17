@@ -10,7 +10,7 @@ import {
   isSameDay,
 } from "date-fns";
 import clsx from "clsx";
-import { useAppSelector, useQueryData } from "app/hooks";
+import { useQueryData } from "app/hooks/useQueryData";
 
 const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());

@@ -1,9 +1,12 @@
 import React from "react";
-import { useQueryData } from "app/hooks";
+import { useQueryData } from "app/hooks/useQueryData";
+
 import { DataType } from "create/types";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { styles } from "render/ui/styles";
+import { selectFilteredDataByUserAndType } from "database/selectors";
+import { useAppSelector } from "app/hooks";
 
 import CybotBlock from "./CybotBlock";
 
@@ -13,17 +16,6 @@ interface CybotsProps {
   closeModal?: () => void;
 }
 
-interface QueryConfig {
-  queryUserId: string;
-  options: {
-    isJSON: boolean;
-    limit: number;
-    condition: {
-      type: DataType;
-    };
-  };
-}
-
 const Cybots: React.FC<CybotsProps> = ({
   queryUserId,
   limit = 20,
@@ -31,7 +23,7 @@ const Cybots: React.FC<CybotsProps> = ({
 }) => {
   const theme = useSelector(selectTheme);
 
-  const queryConfig: QueryConfig = {
+  const queryConfig = {
     queryUserId,
     options: {
       isJSON: true,
@@ -41,7 +33,9 @@ const Cybots: React.FC<CybotsProps> = ({
       },
     },
   };
-  const queryConfig2: QueryConfig = {
+  const { isLoading, isSuccess } = useQueryData(queryConfig);
+
+  const queryConfig2 = {
     queryUserId,
     options: {
       isJSON: true,
@@ -51,46 +45,42 @@ const Cybots: React.FC<CybotsProps> = ({
       },
     },
   };
+  const { isLoading: isLoading2, isSuccess: isSuccess2 } =
+    useQueryData(queryConfig2);
+  const data = useAppSelector(
+    selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot),
+  );
 
-  const { data, isLoading, isSuccess } = useQueryData(queryConfig);
-  const {
-    data: data2,
-    isLoading: isLoading2,
-    isSuccess: isSuccess2,
-  } = useQueryData(queryConfig2);
-
-  const combinedStyles = {
-    loadingText: {
-      ...styles.textCenter,
-      ...styles.py2,
-      color: theme.text2,
-    },
-    responsiveContainer: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-      gap: theme.spacing.medium,
-      padding: theme.spacing.large,
-    },
-    responsiveItem: {
-      width: "100%",
-    },
-  };
+  const data2 = useAppSelector(
+    selectFilteredDataByUserAndType(queryUserId, DataType.Cybot),
+  );
 
   if (isLoading && isLoading2) {
-    return <div style={combinedStyles.loadingText}>加载 AI 列表中...</div>;
+    return (
+      <div style={{ ...styles.textCenter, ...styles.py2, color: theme.text2 }}>
+        加载 AI 列表中...
+      </div>
+    );
   }
 
   return (
-    <div style={combinedStyles.responsiveContainer}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+        gap: theme.spacing.small,
+        padding: theme.spacing.medium,
+      }}
+    >
       {isSuccess &&
         data?.map((item) => (
-          <div key={item.id} style={combinedStyles.responsiveItem}>
+          <div key={item.id} style={styles.w100}>
             <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}
       {isSuccess2 &&
         data2?.map((item) => (
-          <div key={item.id} style={combinedStyles.responsiveItem}>
+          <div key={item.id} style={styles.w100}>
             <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}

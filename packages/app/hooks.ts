@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 
-import { queryServer, selectById, read } from "database/dbSlice";
-import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
+import { selectById, read } from "database/dbSlice";
 
 import type { AppDispatch, NoloRootState } from "./store";
 
@@ -49,50 +48,6 @@ export function useFetchData(id: string, options?: any) {
   return { data: memdata, isLoading, error };
 }
 
-export const useQueryData = (queryConfig) => {
-  const dispatch = useDispatch();
-  const [data, setData] = useState(null);
-  const [isLoading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isSuccess, setSuccess] = useState(false);
-  const isAutoSync = useAppSelector(
-    (state) => state.settings.syncSetting.isAutoSync,
-  );
-  const syncServers = useAppSelector(selectSyncServers);
-  const curretnServer = useAppSelector(selectCurrentServer);
-  useEffect(() => {
-    if (!queryConfig) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchCurrentServerData = async () => {
-      try {
-        setLoading(true);
-        await dispatch(
-          queryServer({ server: curretnServer, ...queryConfig }),
-        ).then((action) => {
-          setSuccess(true);
-          setData(action.payload);
-        });
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCurrentServerData();
-    if (isAutoSync) {
-      syncServers.map((server) => {
-        dispatch(queryServer({ server, ...queryConfig }));
-        // return;
-      });
-    }
-  }, [isAutoSync]);
-
-  return { isLoading, error, data, isSuccess };
-};
 export const useWriteData = () => {
   const dispatch = useDispatch();
   const [isLoading, setLoading] = useState(true);

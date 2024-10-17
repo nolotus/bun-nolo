@@ -1,7 +1,7 @@
 // chat/dialog/CreateDialogButton.tsx
-
 import React from "react";
 import { CopyIcon } from "@primer/octicons-react";
+import { Spinner } from "@primer/react"; // 引入 Spinner
 import { useCreateDialog } from "./useCreateDialog";
 
 const CreateDialogButton = ({ dialogConfig }) => {
@@ -49,7 +49,11 @@ const CreateDialogButton = ({ dialogConfig }) => {
 
   return (
     <IconButton onClick={handleCreateClick} disabled={creatingDialog}>
-      <CopyIcon size={16} />
+      {creatingDialog ? (
+        <Spinner size="small" /> // 使用 Spinner 组件
+      ) : (
+        <CopyIcon size={16} />
+      )}
     </IconButton>
   );
 };

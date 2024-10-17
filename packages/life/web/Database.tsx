@@ -1,6 +1,7 @@
-import { useAppSelector, useQueryData } from "app/hooks";
+import { useAppSelector } from "app/hooks";
 import { useSearchParams } from "react-router-dom";
 import React, { useState } from "react";
+import { useQueryData } from "app/hooks/useQueryData";
 
 import DataDisplay from "../blocks/DataDisplay";
 import { selectFilteredDataByUserAndType } from "database/selectors";

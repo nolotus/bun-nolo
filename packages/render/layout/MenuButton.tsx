@@ -1,15 +1,20 @@
 // MenuButton.tsx
 import React from "react";
-import { ThreeBarsIcon } from "@primer/octicons-react";
+import { SidebarExpandIcon, SidebarCollapseIcon } from "@primer/octicons-react";
 import { styles, themeStyles } from "render/ui/styles";
 import Button from "render/ui/Button";
 
 interface MenuButtonProps {
   onClick: () => void;
   theme: any;
+  isExpanded: boolean;
 }
 
-const MenuButton: React.FC<MenuButtonProps> = ({ onClick, theme }) => {
+const MenuButton: React.FC<MenuButtonProps> = ({
+  onClick,
+  theme,
+  isExpanded,
+}) => {
   const buttonStyle = {
     ...styles.buttonBase,
     ...themeStyles.surface1(theme),
@@ -23,11 +28,16 @@ const MenuButton: React.FC<MenuButtonProps> = ({ onClick, theme }) => {
     backgroundColor: theme.surface3,
     transform: "scale(0.95)",
   };
-
   return (
     <Button
       onClick={onClick}
-      icon={<ThreeBarsIcon size={16} />}
+      icon={
+        isExpanded ? (
+          <SidebarExpandIcon size={16} />
+        ) : (
+          <SidebarCollapseIcon size={16} />
+        )
+      }
       style={buttonStyle}
       hoverStyle={hoverStyle}
       activeStyle={activeStyle}

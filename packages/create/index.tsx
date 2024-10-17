@@ -1,7 +1,8 @@
 import { nolotusId } from "core/init";
 import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryData } from "app/hooks";
+import { useQueryData } from "app/hooks/useQueryData";
+
 import { Button } from "render/ui/Button";
 
 import { YourTemplates } from "./YourTemplates";

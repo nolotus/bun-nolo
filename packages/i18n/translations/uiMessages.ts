@@ -1,3 +1,5 @@
+//i18n/translations/ui
+
 export default {
   en: {
     translation: {

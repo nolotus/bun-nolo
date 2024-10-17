@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { patchData, write } from "database/dbSlice";
-import { useAppSelector, useQueryData } from "app/hooks";
+import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { useAuth } from "auth/useAuth";
 import { selectTheme } from "app/theme/themeSlice";
+import { useQueryData } from "app/hooks/useQueryData";
 
 const categoryContainerStyle = (allowEdit, theme) => ({
   display: "inline-block",
