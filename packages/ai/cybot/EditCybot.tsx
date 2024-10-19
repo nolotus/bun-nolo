@@ -73,13 +73,27 @@ const EditCybot = ({ initialValues, onClose }) => {
 
   const labelStyle = {
     marginBottom: screenWidth < theme.breakpoints[0] ? theme.spacing.small : 0,
-    width: theme.getResponsiveLabelWidth(screenWidth),
+    width: (() => {
+      const values = ["100%", "100%", "30%", "25%", "20%", "20%"];
+      const breakpointIndex = theme.breakpoints.findIndex(
+        (bp) => screenWidth < bp,
+      );
+      return values[
+        breakpointIndex === -1 ? values.length - 1 : breakpointIndex
+      ];
+    })(),
   };
-
   const inputContainerStyle = {
-    width: theme.getResponsiveInputWidth(screenWidth),
+    width: (() => {
+      const values = ["100%", "100%", "70%", "75%", "80%", "80%"];
+      const breakpointIndex = theme.breakpoints.findIndex(
+        (bp) => screenWidth < bp,
+      );
+      return values[
+        breakpointIndex === -1 ? values.length - 1 : breakpointIndex
+      ];
+    })(),
   };
-
   const buttonStyle = {
     width: "100%",
     padding: "10px",

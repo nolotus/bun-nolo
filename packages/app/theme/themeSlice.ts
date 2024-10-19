@@ -32,8 +32,6 @@ const baseTheme = {
   },
   form: {
     fieldSpacing: "16px",
-    labelWidth: ["100%", "100%", "30%", "25%", "20%", "20%"],
-    inputWidth: ["100%", "100%", "70%", "75%", "80%", "80%"],
   },
   breakpoints: [480, 640, 768, 1024, 1280, 1536],
   topbarHeight: "40px",
@@ -42,15 +40,6 @@ const baseTheme = {
   topBarZIndex: 1,
   sidebarPadding: "8px",
   sidebarWidth: 300,
-};
-
-const createResponsiveValue = (values) => {
-  return (screenWidth) => {
-    const breakpointIndex = baseTheme.breakpoints.findIndex(
-      (bp) => screenWidth < bp,
-    );
-    return values[breakpointIndex === -1 ? values.length - 1 : breakpointIndex];
-  };
 };
 
 const createExtendedTheme = (baseTheme, themeColors) => ({
@@ -62,8 +51,6 @@ const createExtendedTheme = (baseTheme, themeColors) => ({
   accentColor: themeColors.brand,
   backgroundColor: themeColors.surface1,
   caretColor: themeColors.brand,
-  getResponsiveLabelWidth: createResponsiveValue(baseTheme.form.labelWidth),
-  getResponsiveInputWidth: createResponsiveValue(baseTheme.form.inputWidth),
 });
 
 const extendedLightTheme = createExtendedTheme(baseTheme, lightTheme);
