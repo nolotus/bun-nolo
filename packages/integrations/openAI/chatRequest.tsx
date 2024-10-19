@@ -2,7 +2,7 @@ import { AxiosResponse, AxiosRequestConfig } from "axios";
 import axios from "utils/axios";
 import { baseLogger } from "utils/logger";
 import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
-import { pick, map } from "rambda";
+import { pick, map, filter } from "rambda";
 import { createPromptMessage } from "ai/prompt/createPromptMessage";
 
 import { createOpenAIRequestConfig } from "./config";
@@ -58,13 +58,13 @@ export const sendOpenAIRequest = async (
 
   const messagePropertiesToPick = ["content", "role", "images"];
   const pickMessages = map(pick(messagePropertiesToPick));
-  const openAIConfig: OpenAIConfig = {
+
+  const openAIConfig: OpenAIConfig = filter((value) => value != null, {
     model: requestBody.model,
     messages: pickMessages(messages),
     stream: requestBody.model === "o1-mini" ? false : isStream,
     max_completion_tokens: requestBody.max_tokens,
-  };
-
+  });
   const config: AxiosRequestConfig = {
     ...createOpenAIRequestConfig(),
     url: "https://api.openai.com/v1/chat/completions",
@@ -73,7 +73,7 @@ export const sendOpenAIRequest = async (
     data: openAIConfig,
   };
 
-  baseLogger.info(config);
+  baseLogger.info(config, "config");
 
   try {
     const response = await axios.request(config);

@@ -56,6 +56,7 @@ export const sendDeepinfraChatRequest = async (
 
   const messagePropertiesToPick = ["content", "role", "images"];
   const pickMessages = map(pick(messagePropertiesToPick));
+
   const openAIConfig: OpenAIConfig = {
     model: requestBody.model,
     messages: pickMessages(messages),

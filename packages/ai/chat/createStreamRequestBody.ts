@@ -39,7 +39,7 @@ export const createChatRequestBody = (
 
   return {
     model: config.model,
-    max_tokens: config.max_tokens || 4096,
+    max_tokens: config.max_tokens || null,
     previousMessages,
     userInput,
     prompt,

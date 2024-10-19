@@ -41,12 +41,15 @@ const RobotMessage: React.FC<Message> = ({
 
   return (
     <div style={{ ...messageContainerStyle, justifyContent: "start" }}>
-      <div style={{ ...contentWrapperStyle, gap: messageContentWithAvatarGap }}>
+      <div
+        style={{ ...contentWrapperStyle, gap: messageContentWithAvatarGap }}
+        onContextMenu={handleContextMenu}
+      >
         <div style={avatarWrapperStyle}>
           <Avatar name="robot" />
         </div>
         <div style={{ position: "relative" }}>
-          <div onContextMenu={handleContextMenu}>
+          <div>
             <MessageContent content={content} role="other" />
           </div>
           {controller && (

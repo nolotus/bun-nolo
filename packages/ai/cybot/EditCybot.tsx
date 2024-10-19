@@ -7,6 +7,7 @@ import { Button } from "render/ui/Button";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { modelEnum } from "ai/llm/models";
+import { DataType } from "create/types";
 
 const EditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
@@ -25,7 +26,7 @@ const EditCybot = ({ initialValues, onClose }) => {
   }, []);
 
   const onSubmit = async (data) => {
-    const chatRobotConfig = { ...data, type: "chatRobot" };
+    const chatRobotConfig = { ...data, type: DataType.Cybot };
     try {
       await updateEntry({
         entryId: initialValues.id,

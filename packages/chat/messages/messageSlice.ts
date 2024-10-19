@@ -33,6 +33,7 @@ import { geminiModelNames } from "integrations/google/ai/models";
 
 import { sendGeminiModelRequest } from "ai/chat/sendGeminiModelRequest";
 import { handleClaudeModelResponse } from "ai/chat/handleClaudeModelRespons";
+import { sendOpenAIRequest } from "ai/chat/sendOpenAIRequest";
 
 import { getFilteredMessages } from "./utils";
 import { getModefromContent } from "../hooks/getModefromContent";
@@ -223,6 +224,10 @@ export const messageSlice = createSliceWithThunks({
         const readAction = await dispatch(read({ id: cybotId }));
         const cybotConfig = readAction.payload;
         const model = cybotConfig.model;
+        if (model === "o1-mini") {
+          sendOpenAIRequest(cybotId, content, thunkApi);
+          return;
+        }
 
         /// todo multi cybot could reply multi msg
         //for now just one
@@ -235,14 +240,11 @@ export const messageSlice = createSliceWithThunks({
         const mode = getModefromContent(textContent, content);
         const context = await getContextFromMode(mode, textContent);
         if (model && geminiModelNames.includes(model)) {
-          sendGeminiModelRequest(dialogConfig, content, thunkApi, dispatch);
-        }
-        //todo
-        if (model === "o1-mini") {
-          sendOpenAIRequest();
-          console.log("o1-mini");
+          sendGeminiModelRequest(dialogConfig, content, thunkApi);
           return;
         }
+        //todo
+
         if (mode === "stream") {
           const userId = selectCurrentUserId(state);
           const streamChat = async (content) => {
@@ -403,15 +405,10 @@ export const messageSlice = createSliceWithThunks({
     addUserMessage: create.asyncThunk(
       async ({ content, isSaveToServer = true }, thunkApi) => {
         const state = thunkApi.getState();
-
         const userId = selectCurrentUserId(state);
-
         const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
-
         const dispatch = thunkApi.dispatch;
-
         const currentDialogConfig = selectCurrentDialogConfig(state);
-
         const message = {
           id,
           role: "user",

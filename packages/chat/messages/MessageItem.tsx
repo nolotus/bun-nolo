@@ -22,11 +22,13 @@ export const MessageItem = ({ message }) => {
     return <div>loading</div>;
   } else if (data) {
     const isSelf = currentUserId === data.userId;
+    const isRobotMessage = data.llmId || data.cybotId;
+
     const { image } = data;
     let content = streamContent ? streamContent : data.content;
     if (isSelf) {
       return <SelfMessage content={content} id={id} />;
-    } else if (data.llmId || data.cybotId) {
+    } else if (isRobotMessage) {
       return (
         <RobotMessage
           id={id}

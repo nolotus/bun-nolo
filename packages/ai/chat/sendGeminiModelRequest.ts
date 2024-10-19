@@ -14,8 +14,8 @@ export const sendGeminiModelRequest = async (
   dialogConfig,
   content,
   thunkApi,
-  dispatch,
 ) => {
+  const dispatch = thunkApi.dispatch;
   const state = thunkApi.getState();
   const userId = selectCurrentUserId(state);
   const currentServer = selectCurrentServer(state);
@@ -36,9 +36,13 @@ export const sendGeminiModelRequest = async (
     ...cybotConfig,
     responseLanguage: navigator.language,
   };
-  let prevMsgs = getFilteredMessages(state);
+  let previousMessages = getFilteredMessages(state);
 
-  const requestBody = createStreamRequestBody(config, content, prevMsgs);
+  const requestBody = createStreamRequestBody(
+    config,
+    content,
+    previousMessages,
+  );
 
   const controller = new AbortController();
   const signal = controller.signal;
