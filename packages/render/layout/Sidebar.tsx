@@ -170,14 +170,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
-// 样式函数
-
 const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   width: `${width}px`,
   ...themeStyles.surface1(theme),
   height: "100dvh",
   position: "fixed" as const,
-  left: isSidebarOpen ? 0 : `-${width}px`,
+  left: isSidebarOpen || window.innerWidth >= 768 ? 0 : `-${width}px`, // 修改此行以根据屏幕宽度动态设置
   top: 0,
   transition: "left 0.3s ease-in-out",
   zIndex: 2,
@@ -185,11 +183,6 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   padding: theme.sidebarPadding,
   display: "flex",
   flexDirection: "column" as const,
-
-  // 媒体查询，在大屏幕上默认打开侧边栏
-  "@media (min-width: 768px)": {
-    left: 0,
-  },
 });
 
 const sidebarContentStyles = (theme: any) => ({
