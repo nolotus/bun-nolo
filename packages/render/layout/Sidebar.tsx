@@ -86,10 +86,12 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   useEffect(() => {
     const handleResize = () => {
-      // 在小屏幕上默认关闭侧边栏
-      setIsSidebarOpen(window.innerWidth >= 768);
+      if (typeof window !== "undefined") {
+        // 在小屏幕上默认关闭侧边栏
+        setIsSidebarOpen(window.innerWidth >= 768);
+      }
     };
-    handleResize();
+    handleResize(); // 初始判断
     window.addEventListener("resize", handleResize);
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -122,7 +124,10 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* 侧边栏 */}
       <aside
         ref={sidebarRef}
-        style={sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth)}
+        style={{
+          ...sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth),
+          left: isSidebarOpen ? 0 : `-${theme.sidebarWidth}px`,
+        }}
       >
         <div style={sidebarContentStyles(theme)}>
           {/* 登录菜单或登录按钮 */}
@@ -170,12 +175,14 @@ const Sidebar: React.FC<SidebarProps> = ({
   );
 };
 
+// 样式函数
+
 const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   width: `${width}px`,
   ...themeStyles.surface1(theme),
   height: "100dvh",
   position: "fixed" as const,
-  left: isSidebarOpen || window.innerWidth >= 768 ? 0 : `-${width}px`, // 修改此行以根据屏幕宽度动态设置
+  left: 0, // 默认在大屏幕打开
   top: 0,
   transition: "left 0.3s ease-in-out",
   zIndex: 2,

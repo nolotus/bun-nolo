@@ -7,10 +7,11 @@ import { selectTheme } from "app/theme/themeSlice";
 import { styles, themeStyles } from "render/ui/styles";
 import EditCybot from "ai/cybot/EditCybot";
 import { Dialog } from "render/ui/Dialog";
-import toast from "react-hot-toast"; // 确保导入路径正确
-import { deleteData } from "database/dbSlice"; // 确保导入路径正确
+import toast from "react-hot-toast";
+import { deleteData } from "database/dbSlice";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next"; // 导入 i18n
+import { useTranslation } from "react-i18next";
+import withTranslations from "i18n/withTranslations";
 
 const CybotBlock = ({ item, closeModal }) => {
   const { t } = useTranslation(); // 初始化 t 函数
@@ -118,4 +119,4 @@ const CybotBlock = ({ item, closeModal }) => {
   );
 };
 
-export default CybotBlock;
+export default withTranslations(CybotBlock, ["chat", "ai"]);
