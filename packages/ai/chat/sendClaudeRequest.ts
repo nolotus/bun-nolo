@@ -20,6 +20,7 @@ export const sendClaudeRequest = async (cybotId, userInput, thunkApi) => {
 
   console.log("cybotId", cybotId);
   const readAction = await dispatch(read({ id: cybotId }));
+  console.log("readAction", readAction);
   const cybotConfig = readAction.payload;
   console.log("cybotConfig", cybotConfig);
   const config = {
@@ -77,7 +78,6 @@ export const sendClaudeRequest = async (cybotId, userInput, thunkApi) => {
         return;
       }
       if (value) {
-        console.log(temp);
         const text = decodeChunk(value);
 
         // 调用 handleGeminiModelStreamResponse，并传入 temp

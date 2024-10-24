@@ -1,5 +1,8 @@
 // mem.ts
 
+import fs from "fs";
+import path from "path";
+
 type MemoryStructure = {
   memTable: Map<string, string>;
   immutableMem: Array<Map<string, string>>;
@@ -10,9 +13,24 @@ const createMemory = (): MemoryStructure => ({
   immutableMem: [],
 });
 
-const get = (memory: MemoryStructure, key: string): string | undefined => {
+const readFromFile = async (key: string): Promise<string | undefined> => {
+  try {
+    // 假设文件中以JSON格式存储数据
+    const data = fs.readFileSync(path.resolve(__dirname, "data.json"), "utf-8");
+    const jsonData = JSON.parse(data);
+    return jsonData[key];
+  } catch (error) {
+    console.error("Error reading from file", error);
+    return undefined;
+  }
+};
+
+const getFromMemory = (
+  memory: MemoryStructure,
+  key: string,
+): string | undefined => {
   if (!memory || !memory.memTable) {
-    console.error("Invalid memory structure in get function");
+    console.error("Invalid memory structure in getFromMemory function");
     return undefined;
   }
 
@@ -22,13 +40,33 @@ const get = (memory: MemoryStructure, key: string): string | undefined => {
   }
 
   for (let i = memory.immutableMem.length - 1; i >= 0; i--) {
-    const value = memory.immutableMem[i].get(key);
-    if (value !== undefined) {
-      return value;
+    const immutableValue = memory.immutableMem[i].get(key);
+    if (immutableValue !== undefined) {
+      return immutableValue;
     }
   }
 
   return undefined;
+};
+
+const get = async (
+  memory: MemoryStructure,
+  key: string,
+): Promise<string | undefined> => {
+  const memoryValue = getFromMemory(memory, key);
+  if (memoryValue !== undefined) {
+    return memoryValue;
+  }
+
+  // 如果内存区找不到，尝试从文件中读取
+  return await readFromFile(key);
+};
+
+const moveToImmutable = (memory: MemoryStructure): MemoryStructure => {
+  return {
+    memTable: new Map(),
+    immutableMem: [...memory.immutableMem, new Map(memory.memTable)],
+  };
 };
 
 const set = (
@@ -45,15 +83,10 @@ const set = (
   newMemTable.set(key, value);
 
   if (newMemTable.size > 3) {
-    const result = {
-      memTable: new Map(),
-      immutableMem: [...memory.immutableMem, newMemTable],
-    };
-    return result;
+    return moveToImmutable({ ...memory, memTable: newMemTable });
   }
 
-  const result = { ...memory, memTable: newMemTable };
-  return result;
+  return { ...memory, memTable: newMemTable };
 };
 
 class EnhancedMap {
@@ -67,11 +100,15 @@ class EnhancedMap {
     this.memory = createMemory();
   }
 
-  get(key: string): string | undefined {
-    return get(this.memory, key);
+  async get(key: string): Promise<string | undefined> {
+    return await get(this.memory, key);
   }
 
-  async set(key: string, value: string): Promise<this> {
+  getFromMemorySync(key: string): string | undefined {
+    return getFromMemory(this.memory, key);
+  }
+
+  set(key: string, value: string): this {
     this.memory = set(this.memory, key, value);
     return this;
   }

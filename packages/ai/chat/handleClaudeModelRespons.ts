@@ -63,7 +63,6 @@ export function handleClaudeModelResponse(
   controller,
 ) {
   const jsonResults = parseMultipleJson(text);
-  console.log("raw json xxx", jsonResults);
   const jsonArray = Array.isArray(jsonResults) ? jsonResults : [jsonResults];
 
   jsonArray.forEach((json) => {
@@ -89,7 +88,6 @@ export function handleClaudeModelResponse(
         break;
 
       case "content_block_delta":
-        console.log("json xxx", json);
         temp = (temp || "") + (json.delta?.text || "");
         const message = {
           role: "assistant",

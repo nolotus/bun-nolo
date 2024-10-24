@@ -82,7 +82,6 @@ export const sendGeminiModelRequest = async (
         return;
       }
       if (value) {
-        console.log(temp);
         const text = decodeChunk(value);
 
         // 调用 handleGeminiModelStreamResponse，并传入 temp

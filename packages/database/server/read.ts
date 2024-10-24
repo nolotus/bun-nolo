@@ -11,8 +11,8 @@ import { createReadStream } from "node:fs";
 import { checkReadPermission } from "./permissions";
 import { mem } from "../server/mem";
 
-const checkMemoryForData = (id: string) => {
-  const memValue = mem.get(id);
+const checkMemoryForData = async (id: string) => {
+  const memValue = await mem.get(id);
   if (memValue === "0") {
     return null; // 视为已删除
   }
@@ -86,7 +86,7 @@ export const findDataInFile = (filePath, id: string) => {
   });
 };
 
-export const serverGetData = (id: string) => {
+export const serverGetData = async (id: string) => {
   if (!id) {
     return Promise.resolve(null);
   }
@@ -107,7 +107,7 @@ export const serverGetData = (id: string) => {
   }
 
   // 检查内存中的数据
-  const memResult = checkMemoryForData(id);
+  const memResult = await checkMemoryForData(id);
   if (memResult !== undefined) {
     return Promise.resolve(memResult);
   }

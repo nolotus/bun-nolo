@@ -9,7 +9,7 @@ import { QueryCondition, QueryOptions } from "./types";
 import { checkQuery, QueryConditions } from "./checkQuery";
 
 const checkMemoryForData = (id: string) => {
-  const memValue = mem.get(id);
+  const memValue = mem.getFromMemorySync(id);
   if (memValue === "0") {
     return null; // 视为已删除
   }
