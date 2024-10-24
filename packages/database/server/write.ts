@@ -4,7 +4,6 @@ import { formatData } from "core/formatData";
 import { generateKey } from "core/generateMainKey";
 import { extractAndDecodePrefix, extractUserId } from "core/prefix";
 
-import { withUserLock } from "./userLock";
 import { mem } from "./mem";
 import { checkPermission, checkUserDirectory } from "./permissions";
 
@@ -42,6 +41,7 @@ export const serverWrite = (
     return Promise.resolve();
   });
 };
+
 export const handleError = (res: any, error: Error) => {
   const status = error.message === "Access denied" ? 401 : 500;
   return res.status(status).json({ error: error.message });
@@ -57,12 +57,17 @@ export const handleWrite = async (req: any, res: any) => {
     const clientGeneratedID = formData.get("id") as string;
     const saveUserId = extractUserId(clientGeneratedID);
 
-    return await withUserLock(saveUserId, async () => {
+    try {
       await serverWrite(clientGeneratedID, fileBlob, saveUserId);
       return res
         .status(200)
         .json({ message: "success", id: clientGeneratedID });
-    });
+    } catch (error) {
+      return handleError(
+        res,
+        error instanceof Error ? error : new Error(String(error)),
+      );
+    }
   }
 
   const { userId, data, flags, customId } = req.body;
@@ -77,24 +82,22 @@ export const handleWrite = async (req: any, res: any) => {
 
   const id = generateKey(value, saveUserId, flags, customId);
 
-  return await withUserLock(saveUserId, async () => {
-    if (checkPermission(actionUserId, saveUserId, data, customId)) {
-      try {
-        await serverWrite(id, value, saveUserId);
-        return res.status(200).json({
-          message: "Data written to file successfully.",
-          id,
-        });
-      } catch (error) {
-        return handleError(
-          res,
-          error instanceof Error ? error : new Error(String(error)),
-        );
-      }
-    } else {
-      return res.status(403).json({
-        message: "操作不被允许.",
+  if (checkPermission(actionUserId, saveUserId, data, customId)) {
+    try {
+      await serverWrite(id, value, saveUserId);
+      return res.status(200).json({
+        message: "Data written to file successfully.",
+        id,
       });
+    } catch (error) {
+      return handleError(
+        res,
+        error instanceof Error ? error : new Error(String(error)),
+      );
     }
-  });
+  } else {
+    return res.status(403).json({
+      message: "操作不被允许.",
+    });
+  }
 };

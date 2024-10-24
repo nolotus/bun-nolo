@@ -6,7 +6,6 @@ import { unlink, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { readLines } from "utils/bun/readLines";
 
-import { withUserLock } from "./userLock";
 import { checkDeletePermission } from "./permissions";
 import { mem } from "./mem";
 
@@ -138,27 +137,24 @@ export const handleDelete = async (req, res) => {
     const { ids = [] } = req.body || {};
     const allIds = [id, ...ids];
     allIds.forEach((id) => mem.set(id, 0));
-    await withUserLock(dataBelongUserId, async () => {
-      // 删除队列存在的id ，过滤
-      const alreadyDeletedIds = allIds.filter(
-        (id) =>
-          deleteQueueCache.get(dataBelongUserId)?.has(id) ||
-          isIdQueued(dataBelongUserId, id),
-      );
-      //过滤之后的 是没删除的
-      const idsToDelete = allIds.filter(
-        (id) => !alreadyDeletedIds.includes(id),
-      );
-      //加入删除队列
-      if (idsToDelete.length > 0) {
-        enqueueDelete(dataBelongUserId, idsToDelete);
-      }
 
-      return res.status(200).json({
-        message: "Delete request processed",
-        deletedIds: alreadyDeletedIds,
-        processingIds: idsToDelete,
-      });
+    // 删除队列存在的id ，过滤
+    const alreadyDeletedIds = allIds.filter(
+      (id) =>
+        deleteQueueCache.get(dataBelongUserId)?.has(id) ||
+        isIdQueued(dataBelongUserId, id),
+    );
+    // 过滤之后的 是没删除的
+    const idsToDelete = allIds.filter((id) => !alreadyDeletedIds.includes(id));
+    // 加入删除队列
+    if (idsToDelete.length > 0) {
+      enqueueDelete(dataBelongUserId, idsToDelete);
+    }
+
+    return res.status(200).json({
+      message: "Delete request processed",
+      deletedIds: alreadyDeletedIds,
+      processingIds: idsToDelete,
     });
   } catch (error) {
     console.error("Error in handleDelete:", error);

@@ -53,7 +53,6 @@ const processWeatherData = async (weatherData, collector) => {
     surfWeatherLogger.info(augmentedHour, "augmentedHour");
     const value = formatData(augmentedHour, flags);
     surfWeatherLogger.info(value, "value");
-    // 注意：这里假设 serverWrite 是异步函数，实际应用中需要根据实现情况决定是否使用 await
     const tableName = "surf_info";
     await serverCreateTable(nolotusId, "surf_info");
     await serverWriteDataInTable(nolotusId, tableName, hour.time, value);
