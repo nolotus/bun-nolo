@@ -20,11 +20,9 @@ export const checkPermission = (
   if (isWriteSelf) {
     return true;
   }
-
   const userRule = allowType[saveUserId];
   const isAllowType = userRule?.includes(data.type);
   const isAllowId = allowIds.includes(customId);
-
   return isAllowType || isAllowId;
 };
 

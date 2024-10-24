@@ -27,7 +27,7 @@ export const databaseRequest = async (req, res, url) => {
     switch (operation) {
       case "read":
         req.params = { id: getIdFromPath("/api/v1/db/read/") };
-        return handleReadSingle(req, res);
+        return await handleReadSingle(req, res);
       case "write":
         req.user = await handleToken(req, res);
         return handleWrite(req, res);

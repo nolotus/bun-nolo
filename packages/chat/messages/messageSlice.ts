@@ -224,7 +224,7 @@ export const messageSlice = createSliceWithThunks({
         const readAction = await dispatch(read({ id: cybotId }));
         const cybotConfig = readAction.payload;
         const model = cybotConfig.model;
-        if (model === "o1-mini") {
+        if (model === "o1-mini" || model === "o1-preview") {
           sendOpenAIRequest(cybotId, content, thunkApi);
           return;
         }

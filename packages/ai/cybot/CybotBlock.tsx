@@ -43,10 +43,10 @@ const CybotBlock = ({ item, closeModal }) => {
   const handleDelete = useCallback(async () => {
     setDeleting(true);
     try {
-      await dispatch(deleteData({ id: item.id })).unwrap(); // 确保 await dispatch 调用
-      toast.success(t("deleteSuccess")); // 用翻译字符串替换
+      await dispatch(deleteData({ id: item.id })).unwrap();
+      toast.success(t("deleteSuccess"));
     } catch (error) {
-      toast.error(t("deleteError")); // 用翻译字符串替换
+      toast.error(t("deleteError"));
     } finally {
       setDeleting(false);
     }
@@ -101,7 +101,7 @@ const CybotBlock = ({ item, closeModal }) => {
             ...styles.transition,
           }}
           onClick={handleDelete}
-          loading={deleting} // 确保删除按钮能显示加载状态
+          loading={deleting}
         >
           {t("delete")}
         </Button>

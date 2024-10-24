@@ -42,13 +42,13 @@ export const sendOpenAIRequest = async (
   requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
     requestBody.frequency_penalty,
   );
-  const promotMessage = createPromptMessage(
+  const promptMessage = createPromptMessage(
     requestBody.model,
     requestBody.prompt,
   );
 
   const messages = [
-    promotMessage,
+    promptMessage,
     ...(requestBody.previousMessages || []),
     {
       role: "user",
@@ -58,11 +58,12 @@ export const sendOpenAIRequest = async (
 
   const messagePropertiesToPick = ["content", "role", "images"];
   const pickMessages = map(pick(messagePropertiesToPick));
-
+  const isO1 =
+    requestBody.model === "o1-mini" || requestBody.model === "o1-preview";
   const openAIConfig: OpenAIConfig = filter((value) => value != null, {
     model: requestBody.model,
     messages: pickMessages(messages),
-    stream: requestBody.model === "o1-mini" ? false : isStream,
+    stream: isO1 ? false : isStream,
     max_completion_tokens: requestBody.max_tokens,
   });
   const config: AxiosRequestConfig = {
@@ -72,7 +73,6 @@ export const sendOpenAIRequest = async (
     responseType: openAIConfig.stream ? "stream" : "json",
     data: openAIConfig,
   };
-
   baseLogger.info(config, "config");
 
   try {

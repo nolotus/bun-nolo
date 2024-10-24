@@ -136,21 +136,17 @@ const dbSlice = createSliceWithThunks({
         const currentServer = selectCurrentServer(state);
         url = currentServer + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
       }
-      dispatch(deleteServerData({ url, headers, body }));
-    }, {}),
-    deleteServerData: create.asyncThunk(async (args, thunkApi) => {
-      const { url, headers, body } = args;
       const res = await fetch(url, {
         method: "DELETE",
         headers,
         body,
       });
+
       if (res.status === 200) {
         const result = await res.json();
         return result;
       }
     }, {}),
-
     write: create.asyncThunk(
       async (writeConfig, thunkApi) => {
         const state = thunkApi.getState();
@@ -361,6 +357,5 @@ export const {
   addOne,
   queryServer,
   addToList,
-  deleteServerData,
 } = dbSlice.actions;
 export default dbSlice.reducer;

@@ -1,5 +1,4 @@
 import { FLAGS_MAP } from "./flagsMap";
-const SEPARATOR = "-";
 
 // 添加一个缓存对象
 const decodeCache = {};
@@ -68,6 +67,8 @@ export const isUrlSafe = (prefix: string): boolean =>
 export const isFile = (prefix: string): boolean =>
   getDecodedFlag(prefix, "isFile");
 
+const SEPARATOR = "-";
+
 export const extractKeyPart = (key: string, index: number): string => {
   const parts = key.split(SEPARATOR);
   if (index < 2) {
@@ -76,8 +77,13 @@ export const extractKeyPart = (key: string, index: number): string => {
   return parts.slice(index).join(SEPARATOR);
 };
 
+export const extractUserId = (key: string): string => {
+  const userId = extractKeyPart(key, 1);
+  return userId;
+};
+
 const extractPrefix = (key: string): string => extractKeyPart(key, 0);
-export const extractUserId = (key: string): string => extractKeyPart(key, 1);
+
 export const extractCustomId = (key: string): string => extractKeyPart(key, 2);
 
 export const extractAndDecodePrefix = (id: string): Flags => {

@@ -10,7 +10,6 @@ const CreateDialogButton = ({ dialogConfig }) => {
   const handleCreateClick = () => {
     createDialog({
       cybots: dialogConfig.cybots,
-      category: dialogConfig.category,
     });
   };
 
