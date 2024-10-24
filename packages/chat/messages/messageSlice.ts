@@ -501,6 +501,7 @@ export const messageSlice = createSliceWithThunks({
       },
       {},
     ),
+    //for now only use in ollama
     streamLLmId: create.asyncThunk(
       async ({ cybotConfig, prevMsgs, content, signal, id }, thunkApi) => {
         const cybotId = cybotConfig.id;
