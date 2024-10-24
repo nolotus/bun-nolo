@@ -32,13 +32,15 @@ import { ollamaModelNames } from "integrations/ollama/models";
 import { geminiModelNames } from "integrations/google/ai/models";
 
 import { sendGeminiModelRequest } from "ai/chat/sendGeminiModelRequest";
-import { handleClaudeModelResponse } from "ai/chat/handleClaudeModelRespons";
 import { sendOpenAIRequest } from "ai/chat/sendOpenAIRequest";
+import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
 
 import { getFilteredMessages } from "./utils";
 import { getModefromContent } from "../hooks/getModefromContent";
 import { getContextFromMode } from "../hooks/getContextfromMode";
 import { sendNoloChatRequest } from "./chatStreamRequest";
+import { claudeModels } from "integrations/anthropic/models";
+import { isModelInList } from "ai/llm/isModelInList";
 
 const chatWindowLogger = getLogger("ChatWindow");
 
@@ -228,6 +230,10 @@ export const messageSlice = createSliceWithThunks({
           sendOpenAIRequest(cybotId, content, thunkApi);
           return;
         }
+        if (isModelInList(model, claudeModels)) {
+          sendClaudeRequest(cybotId, content, thunkApi);
+          return;
+        }
 
         /// todo multi cybot could reply multi msg
         //for now just one
@@ -267,17 +273,6 @@ export const messageSlice = createSliceWithThunks({
               const { reader } = action.payload;
 
               const handleStreamData = async (id: string, text: string) => {
-                if (cybotConfig.model.includes("claude")) {
-                  temp = handleClaudeModelResponse(
-                    text,
-                    id,
-                    cybotId,
-                    temp,
-                    thunkApi,
-                    controller,
-                  );
-                }
-
                 if (ollamaModelNames.includes(model)) {
                   let rawJSON = {};
                   try {

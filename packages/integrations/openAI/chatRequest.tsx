@@ -1,6 +1,5 @@
 import { AxiosResponse, AxiosRequestConfig } from "axios";
 import axios from "utils/axios";
-import { baseLogger } from "utils/logger";
 import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
 import { pick, map, filter } from "rambda";
 import { createPromptMessage } from "ai/prompt/createPromptMessage";
@@ -35,7 +34,6 @@ export const sendOpenAIRequest = async (
   isStream: boolean,
 ): Promise<AxiosResponse<any> | null> => {
   if (!requestBody.model) {
-    baseLogger.error("Model is required.");
     return null;
   }
 
@@ -73,13 +71,11 @@ export const sendOpenAIRequest = async (
     responseType: openAIConfig.stream ? "stream" : "json",
     data: openAIConfig,
   };
-  baseLogger.info(config, "config");
 
   try {
     const response = await axios.request(config);
     return response;
   } catch (error) {
-    baseLogger.error(error);
     return null;
   }
 };

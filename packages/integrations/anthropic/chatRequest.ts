@@ -1,24 +1,24 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { baseLogger } from "utils/logger";
+import { pick, map, filter } from "rambda";
 
 export async function chatRequest(requestBody: any): Promise<any> {
-  const { model, messages, max_tokens } = requestBody;
+  const { model, max_tokens } = requestBody;
 
-  const systemContents = messages
-    .filter((message) => message.role === "system")
-    .map((message) => message.content);
-  baseLogger.info(systemContents);
-
-  const filteredMessages = messages.filter(
-    (message) => message.role !== "system",
-  );
-
-  baseLogger.info(filteredMessages);
+  const messages = [
+    // promptMessage,
+    ...(requestBody.previousMessages || []),
+    {
+      role: "user",
+      content: requestBody.userInput,
+    },
+  ];
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const messagePropertiesToPick = ["content", "role", "images"];
+  const pickMessages = map(pick(messagePropertiesToPick));
 
   const response = client.messages.stream({
-    messages: filteredMessages,
+    messages: pickMessages(messages),
     model,
     max_tokens,
   });

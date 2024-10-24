@@ -3,12 +3,13 @@ import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { updateInputTokens, updateOutputTokens } from "chat/dialog/dialogSlice";
 import { sendNoloChatRequest } from "chat/messages/chatStreamRequest";
 import { selectCurrentServer } from "setting/settingSlice";
-import { createStreamRequestBody } from "./createStreamRequestBody";
 import { getFilteredMessages } from "chat/messages/utils";
 import { decodeChunk } from "ai/client/stream";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
 import { selectCurrentUserId } from "auth/authSlice";
+
+import { createStreamRequestBody } from "./createStreamRequestBody";
 
 export const sendGeminiModelRequest = async (
   dialogConfig,

@@ -1,5 +1,4 @@
 import axios from "utils/axios";
-import { baseLogger } from "utils/logger";
 import { createPromptMessage } from "ai/prompt/createPromptMessage";
 import { pick, map } from "rambda";
 
@@ -8,7 +7,6 @@ export async function sendDeepSeekRequest(
   isStream: boolean,
 ): Promise<any> {
   if (!requestBody.model) {
-    baseLogger.error("Model is required.");
     return null;
   }
   const promotMessage = createPromptMessage(

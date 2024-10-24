@@ -6,16 +6,11 @@ export function decodeChunk(value: Uint8Array): string {
   return new TextDecoder("utf-8").decode(value);
 }
 
-function logStreamData(text: string) {
-  streamLogger.info("Received stream x", text);
-}
-
 function handleStreamData(
   id: string,
   text: string,
   onStreamData: (id: string, chunk: string) => void,
 ) {
-  // logStreamData(text);
   onStreamData(id, text);
 }
 

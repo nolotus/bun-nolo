@@ -22,12 +22,8 @@ import { chatRequest as sendAnthropicRequest } from "integrations/anthropic/chat
 import { googleAIModels } from "integrations/google/ai/models";
 import { pick } from "rambda";
 import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
-import { baseLogger } from "utils/logger";
 import { deepinfraModels } from "integrations/deepinfra/models";
-
-function isModelInList(modelname, modelList) {
-  return modelList.hasOwnProperty(modelname);
-}
+import { isModelInList } from "ai/llm/isModelInList";
 
 async function processModelRequest(requestBody, modelType) {
   let response;
