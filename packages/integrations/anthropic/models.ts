@@ -1,5 +1,5 @@
 export const claudeModels = {
-  "claude-3-5-sonnet-20240620": {
+  "claude-3-5-sonnet-latest": {
     provider: "anthropic",
     name: "Claude 3.5 Sonnet (June 2024)",
     description: "Most intelligent model",
@@ -9,7 +9,7 @@ export const claudeModels = {
       vision: true,
     },
     api: {
-      name: "claude-3-5-sonnet-20240620",
+      name: "claude-3-5-sonnet-latest",
       format: "Messages API",
     },
     performance: {
@@ -19,30 +19,6 @@ export const claudeModels = {
     },
     training: {
       dataCutoff: "2024-04",
-    },
-    input: 3.0,
-    output: 15.0,
-  },
-  "claude-3-sonnet-20240229": {
-    provider: "anthropic",
-    name: "Claude 3 Sonnet (February 2024)",
-    description: "Balance of intelligence and speed",
-    strengths: "Strong utility, balanced for scaled deployments",
-    features: {
-      multilingual: true,
-      vision: true,
-    },
-    api: {
-      name: "claude-3-sonnet-20240229",
-      format: "Messages API",
-    },
-    performance: {
-      latency: "fast",
-      contextWindow: null,
-      maxOutputTokens: null,
-    },
-    training: {
-      dataCutoff: "2023-08",
     },
     input: 3.0,
     output: 15.0,
