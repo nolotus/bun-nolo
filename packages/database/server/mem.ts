@@ -116,7 +116,7 @@ const set = (
 
   writeMemoryLog(key, value);
 
-  if (newMemTable.size > 3) {
+  if (newMemTable.size > 6) {
     moveToImmutable({ ...memory, memTable: newMemTable });
   }
 

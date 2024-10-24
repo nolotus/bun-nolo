@@ -1,12 +1,13 @@
-import { noloToObject, getHeadTail, extractAndDecodePrefix } from "core";
+import { getHeadTail, extractAndDecodePrefix } from "core";
 import { readLines } from "utils/bun/readLines";
-import { listToArray } from "core/noloToOther";
 import { parseStrWithId } from "core/decodeData";
 
 import { mem } from "../server/mem";
 import { getDatabaseFilePath } from "../init";
 import { QueryCondition, QueryOptions } from "./types";
-import { checkQuery, QueryConditions } from "./checkQuery";
+import { handleListData } from "./handleLine/handleListData";
+import { handleJSONData } from "./handleLine/handleJSONData";
+import { handleObjectData } from "./handleLine/handleObject";
 
 const checkMemoryForData = (id: string) => {
   const memValue = mem.getFromMemorySync(id);
@@ -139,25 +140,3 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     return [];
   }
 };
-
-function handleObjectData(data: string, condition: QueryConditions) {
-  const objectData = noloToObject(data);
-  if (checkQuery(objectData, condition)) {
-    return objectData;
-  }
-  return null;
-}
-
-function handleJSONData(data: string, condition: QueryConditions) {
-  try {
-    const jsonData = JSON.parse(data);
-    if (checkQuery(jsonData, condition)) {
-      return jsonData;
-    }
-  } catch (error) {}
-  return null;
-}
-
-function handleListData(data: string, condition: QueryCondition) {
-  return listToArray(data);
-}
