@@ -1,53 +1,21 @@
-// mem.ts
-
 import fs from "fs";
 import path from "path";
+import { getFromMemory } from "./memoryUtils";
+import { extractUserId } from "core/prefix";
+import { writeDataToFile, readAllFilesForUser } from "./fileUtils";
+import { baseDir } from "./config";
 
 type MemoryStructure = {
   memTable: Map<string, string>;
   immutableMem: Array<Map<string, string>>;
+  sequenceNumber: number;
 };
 
 const createMemory = (): MemoryStructure => ({
   memTable: new Map(),
   immutableMem: [],
+  sequenceNumber: 0,
 });
-
-const readFromFile = async (key: string): Promise<string | undefined> => {
-  try {
-    // 假设文件中以JSON格式存储数据
-    const data = fs.readFileSync(path.resolve(__dirname, "data.json"), "utf-8");
-    const jsonData = JSON.parse(data);
-    return jsonData[key];
-  } catch (error) {
-    console.error("Error reading from file", error);
-    return undefined;
-  }
-};
-
-const getFromMemory = (
-  memory: MemoryStructure,
-  key: string,
-): string | undefined => {
-  if (!memory || !memory.memTable) {
-    console.error("Invalid memory structure in getFromMemory function");
-    return undefined;
-  }
-
-  const memTableValue = memory.memTable.get(key);
-  if (memTableValue !== undefined) {
-    return memTableValue;
-  }
-
-  for (let i = memory.immutableMem.length - 1; i >= 0; i--) {
-    const immutableValue = memory.immutableMem[i].get(key);
-    if (immutableValue !== undefined) {
-      return immutableValue;
-    }
-  }
-
-  return undefined;
-};
 
 const get = async (
   memory: MemoryStructure,
@@ -58,14 +26,78 @@ const get = async (
     return memoryValue;
   }
 
-  // 如果内存区找不到，尝试从文件中读取
-  return await readFromFile(key);
+  const userId = extractUserId(key);
+  const dataFromFiles = readAllFilesForUser(baseDir, userId);
+  return dataFromFiles.get(key);
+};
+
+const writeMemoryLog = (key: string, value: string): void => {
+  const logPath = path.resolve(baseDir, "default.log");
+  const logEntry = `${new Date().toISOString()} - Key: ${key}, Value: ${value}\n`;
+  fs.appendFileSync(logPath, logEntry, "utf-8");
+};
+
+const updateWalFromDefault = (
+  timestamp: string,
+  sequenceNumber: number,
+): void => {
+  const defaultLogPath = path.resolve(baseDir, "default.log");
+  const walPath = path.resolve(
+    baseDir,
+    `wal_${timestamp}_${sequenceNumber}.log`,
+  );
+
+  if (fs.existsSync(defaultLogPath)) {
+    fs.copyFileSync(defaultLogPath, walPath);
+    fs.writeFileSync(defaultLogPath, "", "utf-8");
+  }
+};
+
+const organizeDataByUserId = (
+  memory: Map<string, string>,
+): Map<string, Map<string, string>> => {
+  const userData: Map<string, Map<string, string>> = new Map();
+
+  memory.forEach((value, key) => {
+    const userId = extractUserId(key);
+    if (!userData.has(userId)) {
+      userData.set(userId, new Map());
+    }
+    userData.get(userId)?.set(key, value);
+  });
+
+  return userData;
+};
+
+const writeUserFiles = (
+  userData: Map<string, Map<string, string>>,
+  timestamp: string,
+  sequenceNumber: number,
+): void => {
+  userData.forEach((dataMap, userId) => {
+    writeDataToFile(baseDir, userId, dataMap, `${timestamp}_${sequenceNumber}`);
+  });
+
+  const walPath = path.resolve(
+    baseDir,
+    `wal_${timestamp}_${sequenceNumber}.log`,
+  );
+  if (fs.existsSync(walPath)) {
+    fs.unlinkSync(walPath);
+  }
 };
 
 const moveToImmutable = (memory: MemoryStructure): MemoryStructure => {
+  const timestamp = Date.now().toString();
+
+  updateWalFromDefault(timestamp, memory.sequenceNumber);
+  const userData = organizeDataByUserId(memory.memTable);
+  writeUserFiles(userData, timestamp, memory.sequenceNumber);
+
   return {
     memTable: new Map(),
     immutableMem: [...memory.immutableMem, new Map(memory.memTable)],
+    sequenceNumber: memory.sequenceNumber + 1,
   };
 };
 
@@ -82,8 +114,10 @@ const set = (
   const newMemTable = new Map(memory.memTable);
   newMemTable.set(key, value);
 
+  writeMemoryLog(key, value);
+
   if (newMemTable.size > 3) {
-    return moveToImmutable({ ...memory, memTable: newMemTable });
+    moveToImmutable({ ...memory, memTable: newMemTable });
   }
 
   return { ...memory, memTable: newMemTable };
@@ -94,6 +128,37 @@ class EnhancedMap {
 
   constructor() {
     this.memory = createMemory();
+    this.initializeFromAllLogs();
+  }
+
+  private initializeFromAllLogs(): void {
+    const logFiles = fs
+      .readdirSync(baseDir)
+      .filter((file) => /^(wal)_\d+_\d+\.log$/.test(file))
+      .sort((a, b) => {
+        const [aTimestamp, aSeq] = a.match(/\d+/g) || [];
+        const [bTimestamp, bSeq] = b.match(/\d+/g) || [];
+        if (aTimestamp === bTimestamp) {
+          return parseInt(aSeq || "0", 10) - parseInt(bSeq || "0", 10);
+        }
+        return (
+          parseInt(aTimestamp || "0", 10) - parseInt(bTimestamp || "0", 10)
+        );
+      });
+
+    logFiles.forEach((logFile) => {
+      const logPath = path.join(baseDir, logFile);
+      const logContent = fs.readFileSync(logPath, "utf-8");
+      const lines = logContent.split("\n").filter((line) => line.trim());
+
+      lines.forEach((line) => {
+        const [key, ...valueParts] = line.split(" ");
+        const value = valueParts.join(" ");
+        this.memory.memTable.set(key, value);
+      });
+
+      fs.unlinkSync(logPath);
+    });
   }
 
   clear(): void {

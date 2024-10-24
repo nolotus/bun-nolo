@@ -4,15 +4,9 @@ import { formatData } from "core/formatData";
 import { generateKey } from "core/generateMainKey";
 import { extractAndDecodePrefix, extractUserId } from "core/prefix";
 
-import { pipeline, Readable } from "stream";
-import { promisify } from "util";
-import { createWriteStream } from "node:fs";
-
 import { withUserLock } from "./userLock";
 import { mem } from "./mem";
 import { checkPermission, checkUserDirectory } from "./permissions";
-
-const pipelineAsync = promisify(pipeline);
 
 async function processFile(dataKey: string, data: Blob): Promise<void> {
   const mimeTypes: { [key: string]: string } = {
@@ -34,16 +28,6 @@ function processDataKey(dataKey: string, data: any): { isFile: boolean } {
   return { isFile };
 }
 
-async function appendDataToIndex(
-  userId: string,
-  dataKey: string,
-  data: string | Blob,
-): Promise<void> {
-  const path = `./nolodata/${userId}/index.nolo`;
-  const output = createWriteStream(path, { flags: "a" });
-  await pipelineAsync(Readable.from(`${dataKey} ${data}\n`), output);
-}
-
 export const serverWrite = (
   dataKey: string,
   data: string | Blob,
@@ -52,18 +36,7 @@ export const serverWrite = (
   return checkUserDirectory(userId).then(() => {
     const result = processDataKey(dataKey, data);
     if (!result.isFile) {
-      // 同步设置内存数据
-
-      //这里写入的是纯字符串
-      mem.set(dataKey, data);
-
-      // 异步执行备份操作，不等待其完成
-      appendDataToIndex(userId, dataKey, data).catch((error) => {
-        console.error("Failed to append data to index:", error);
-        // 这里可以添加额外的错误处理逻辑，比如重试机制或报警
-      });
-
-      // 立即返回，不等待 appendDataToIndex 完成
+      mem.set(dataKey, data as string);
       return Promise.resolve();
     }
     return Promise.resolve();

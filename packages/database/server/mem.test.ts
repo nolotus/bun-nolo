@@ -29,24 +29,20 @@ describe("EnhancedMap", () => {
     for (let i = 1; i <= 8; i++) {
       await mem.set(key, `value${i}`);
       // 每次写入后立即验证
-      const value = mem.get(key);
+      const value = await mem.get(key);
       expect(value).toBe(`value${i}`);
       console.log(`Iteration ${i}: wrote value${i}, read ${value}`);
     }
 
     // 最终验证
-    const finalValue = mem.get(key);
+    const finalValue = await mem.get(key);
     expect(finalValue).toBe("value8");
-
-    // 验证文件写入
-    const files = await fs.readdir(testDir);
-    console.log("Generated files:", files);
   });
 
   test("should handle multiple different keys", async () => {
     // 写入8个不同的key
     for (let i = 1; i <= 8; i++) {
-      await mem.set(`key${i}`, `value${i}`);
+      mem.set(`key${i}`, `value${i}`);
     }
 
     // 验证所有key都能读取到正确的值
@@ -55,13 +51,5 @@ describe("EnhancedMap", () => {
       expect(value).toBe(`value${i}`);
       console.log(`Verified key${i} => ${value}`);
     }
-
-    // 打印最终状态
-    mem.debugPrint();
-
-    // 验证文件状态
-    const files = await fs.readdir(testDir);
-    console.log("Total files created:", files.length);
-    console.log("Files:", files);
   });
 });

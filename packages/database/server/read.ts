@@ -123,13 +123,6 @@ export const serverGetData = async (id: string) => {
       if (!checkFileExists(hashPath)) {
         return Promise.resolve(null);
       }
-
-      return findDataInFile(hashPath, id).then((hashData) => {
-        if (hashData) {
-          // 可能需要在这里添加一些处理逻辑
-        }
-        return hashData;
-      });
     }
 
     return null;

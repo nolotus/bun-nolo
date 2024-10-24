@@ -1,11 +1,11 @@
-import { formatData, extractAndDecodePrefix, extractUserId } from "core";
+import { formatData, extractAndDecodePrefix } from "core";
+import { mem } from "./mem";
 
 export const handleError = (res, error) => {
   const status = error.message === "Access denied" ? 401 : 500;
   res.status(status).json({ error: error.message });
 };
 
-import { updateDataInFile } from "utils/file";
 import { serverGetData } from "./read";
 
 export const updateServerData = async (
@@ -13,9 +13,7 @@ export const updateServerData = async (
   id: string,
   value: string,
 ) => {
-  const userId = extractUserId(id);
-  const filePath = `./nolodata/${userId}/index.nolo`;
-  await updateDataInFile(filePath, id, value);
+  mem.set(id, value);
 };
 // allow update not exist array
 const updateList = async (actionUserId, dataKey, data, res) => {
@@ -62,6 +60,7 @@ export const handlePut = async (req, res) => {
     return updateList(actionUserId, id, data, res);
   } else {
     try {
+      //maybe merge
       const value = formatData(data, flags);
       await updateServerData(actionUserId, id, value);
       return res
