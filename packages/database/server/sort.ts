@@ -15,21 +15,30 @@ export const getSortedFilteredFiles = (
   }
 
   const filteredFiles = files.filter((file) => {
-    const isMatch = /^data_(\d+T\d+Z)(?:_(\d+))?_layer(\d+)\.nolo$/.test(file);
+    // 使用新的正则表达式能够兼容所有文件格式
+    const isMatch = /^data_(\d+)(?:T\d+Z)?(?:_(\d+))?_layer(\d+)\.nolo$/.test(
+      file,
+    );
     return isMatch;
   });
 
   const sortedFiles = sort((a, b) => {
-    const amatch = a.match(/^data_(\d+)T(\d+)Z(?:_(\d+))?_layer(\d+)\.nolo$/);
-    const bmatch = b.match(/^data_(\d+)T(\d+)Z(?:_(\d+))?_layer(\d+)\.nolo$/);
+    // 使用新的正则表达式来匹配文件
+    const amatch = a.match(
+      /^data_(\d+)(?:T(\d+))?Z?(?:_(\d+))?_layer(\d+)\.nolo$/,
+    );
+    const bmatch = b.match(
+      /^data_(\d+)(?:T(\d+))?Z?(?:_(\d+))?_layer(\d+)\.nolo$/,
+    );
 
     if (!amatch || !bmatch) {
       console.warn(`文件 '${a}' 或 '${b}' 无法正确匹配，保持原序`);
       return 0;
     }
 
-    const atimeStr = amatch[1] + amatch[2];
-    const btimeStr = bmatch[1] + bmatch[2];
+    // 当不包含 'T' 和 'Z' 时，只有一个数字部分，需要这样进行合并
+    const atimeStr = amatch[1] + (amatch[2] || "");
+    const btimeStr = bmatch[1] + (bmatch[2] || "");
 
     const atime = Number(atimeStr);
     const btime = Number(btimeStr);

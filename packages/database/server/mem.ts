@@ -1,11 +1,15 @@
+// main.ts
+
 import fs from "fs";
 import path from "path";
 import { getFromMemory } from "./memoryUtils";
 import { extractUserId } from "core/prefix";
 import { readAllFilesForUser } from "./fileUtils";
 import { writeDataToFile } from "./writeDataToFile";
+import { findLogFiles, getLogFileLines, writeMemoryLog } from "./logUtils";
 
 import { baseDir } from "database/server/config";
+import { getHeadTail } from "core";
 
 type MemoryStructure = {
   memTable: Map<string, string>;
@@ -23,7 +27,13 @@ const get = async (
   memory: MemoryStructure,
   key: string,
 ): Promise<string | undefined> => {
+  // console.log(
+  //   `Current memory.memTable:`,
+  //   Array.from(memory.memTable.entries()),
+  // );
+
   const memoryValue = getFromMemory(memory, key);
+
   if (memoryValue !== undefined) {
     return memoryValue;
   }
@@ -31,12 +41,6 @@ const get = async (
   const userId = extractUserId(key);
   const value = await readAllFilesForUser(baseDir, userId, key);
   return value;
-};
-
-const writeMemoryLog = (key: string, value: string): void => {
-  const logPath = path.resolve(baseDir, "default.log");
-  const logEntry = `${new Date().toISOString()} - Key: ${key}, Value: ${value}\n`;
-  fs.appendFileSync(logPath, logEntry, "utf-8");
 };
 
 const updateWalFromDefault = (
@@ -89,15 +93,16 @@ const writeUserFiles = (
   }
 };
 
+// 更新后的moveToImmutable函数
 const moveToImmutable = (memory: MemoryStructure): MemoryStructure => {
   const timestamp = Date.now().toString();
-
+  console.log("moveToImmutable", memory);
   updateWalFromDefault(timestamp, memory.sequenceNumber);
   const userData = organizeDataByUserId(memory.memTable);
   writeUserFiles(userData, timestamp, memory.sequenceNumber);
 
   return {
-    memTable: new Map(),
+    memTable: new Map(), // 清空 memTable
     immutableMem: [...memory.immutableMem, new Map(memory.memTable)],
     sequenceNumber: memory.sequenceNumber + 1,
   };
@@ -119,9 +124,9 @@ const set = (
   // Write to default.log
   writeMemoryLog(key, value);
 
-  // Correct size check
-  if (newMemTable.size > 2) {
-    memory = moveToImmutable({ ...memory, memTable: newMemTable });
+  // 如果 newMemTable 大于 6，调用 moveToImmutable
+  if (newMemTable.size > 6) {
+    return moveToImmutable({ ...memory, memTable: newMemTable });
   }
 
   return { ...memory, memTable: newMemTable };
@@ -132,37 +137,27 @@ class EnhancedMap {
 
   constructor() {
     this.memory = createMemory();
-    this.initializeFromAllLogs();
+    const logFiles = findLogFiles();
+    logFiles.forEach((logFile) => {
+      const lines = getLogFileLines(logFile);
+      this.applyLogData(lines);
+    });
   }
 
-  private initializeFromAllLogs(): void {
-    const logFiles = fs
-      .readdirSync(baseDir)
-      .filter((file) => /^(wal)_\d+_\d+\.log$/.test(file))
-      .sort((a, b) => {
-        const [aTimestamp, aSeq] = a.match(/\d+/g) || [];
-        const [bTimestamp, bSeq] = b.match(/\d+/g) || [];
-        if (aTimestamp === bTimestamp) {
-          return parseInt(aSeq || "0", 10) - parseInt(bSeq || "0", 10);
+  private applyLogData(lines: string[]): void {
+    lines.forEach((line) => {
+      try {
+        const { key, value } = getHeadTail(line);
+
+        if (key) {
+          this.memory.memTable.set(key, value);
+
+          console.log(`Newly added key: ${key}`);
+          console.log(this.memory.memTable.keys());
         }
-        return (
-          parseInt(aTimestamp || "0", 10) - parseInt(bTimestamp || "0", 10)
-        );
-      });
-
-    logFiles.forEach((logFile) => {
-      const logPath = path.join(baseDir, logFile);
-      const logContent = fs.readFileSync(logPath, "utf-8");
-      const lines = logContent.split("\n").filter((line) => line.trim());
-
-      lines.forEach((line) => {
-        const [, keyPart, valuePart] = line.split(" - ");
-        const key = keyPart.split(": ")[1].trim();
-        const value = valuePart.split(": ")[1].trim();
-        this.memory.memTable.set(key, value);
-      });
-
-      fs.unlinkSync(logPath);
+      } catch (error) {
+        console.error(`Failed to parse line with error: ${error.message}`);
+      }
     });
   }
 
@@ -179,6 +174,7 @@ class EnhancedMap {
   }
 
   set(key: string, value: string): this {
+    console.log("set", key);
     this.memory = set(this.memory, key, value);
     return this;
   }

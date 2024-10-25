@@ -13,7 +13,6 @@ import { clearMessages } from "../messages/messageSlice";
 
 const DeleteDialogButton = ({ dialogConfig }) => {
   const { dialogId } = useParams();
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();

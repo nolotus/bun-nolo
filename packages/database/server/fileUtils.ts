@@ -59,7 +59,6 @@ export const readAllFilesForUser = async (
 
   try {
     const files = getSortedFilteredFiles(userDir);
-
     for (const file of files) {
       const filePath = path.join(userDir, file);
       const value = await findKeyInFile(filePath, key);

@@ -59,8 +59,4 @@ export const processOldDeletion = async (userId, idsToDelete) => {
   }
 
   await removeDataFromFile(indexPath, idsToDelete);
-
-  console.log(
-    `Successfully deleted ${idsToDelete.length} items for user ${userId}`,
-  );
 };
