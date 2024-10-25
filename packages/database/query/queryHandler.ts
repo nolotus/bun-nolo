@@ -103,7 +103,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
     const userDir = path.join(baseDir, userId);
     const sortedFilteredFiles = getSortedFilteredFiles(userDir, false);
-    console.log("queryData sortedFilteredFiles", sortedFilteredFiles);
 
     const paths = [
       indexPath,

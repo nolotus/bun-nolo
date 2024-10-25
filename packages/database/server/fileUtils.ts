@@ -1,118 +1,60 @@
-import { getHeadTail } from "core";
-import fs from "fs";
-import path from "path";
+import fs from "fs"; // 导入文件系统模块，用于文件操作
+import path from "path"; // 导入路径模块，用于处理文件路径
+import { getHeadTail } from "core"; // 假设该函数用于获取行的键值对
+import { getSortedFilteredFiles } from "./sort"; // 导入排序和过滤文件的函数
 
-import { getSortedFilteredFiles } from "./sort";
+// 单独创建一个函数来逐行读取文件
+const findKeyInFile = (
+  filePath: string,
+  searchKey: string,
+): string | undefined => {
+  try {
+    const fileStream = fs.createReadStream(filePath, { encoding: "utf8" });
+    let remaining = "";
 
-export const writeDataToFile = (
-  baseDir: string,
-  userId: string,
-  dataMap: Map<string, string>,
-  timestamp: string,
-  layer: number = 0,
-): void => {
-  const userDir = path.join(baseDir, userId);
+    return new Promise<string | undefined>((resolve, reject) => {
+      fileStream.on("data", (chunk) => {
+        remaining += chunk;
+        let index = remaining.indexOf("\n");
 
-  if (!fs.existsSync(userDir)) {
-    fs.mkdirSync(userDir, { recursive: true });
-  }
+        while (index > -1) {
+          const line = remaining.substring(0, index).trim(); // 取得一整行
+          remaining = remaining.substring(index + 1);
 
-  const filePath = path.join(userDir, `data_${timestamp}_layer${layer}.nolo`);
-  const lines = Array.from(dataMap.entries()).map(
-    ([key, value]) => `${key} ${value}`,
-  );
-
-  fs.writeFileSync(filePath, lines.join("\n"), "utf-8");
-
-  mergeLayerFilesIfNeeded(baseDir, userId, layer);
-};
-
-const getHighestLayer = (userDir: string): number => {
-  const files = fs.readdirSync(userDir);
-  let highestLayer = 0;
-
-  files.forEach((file) => {
-    const match = file.match(/_layer(\d+)\.nolo$/);
-    if (match) {
-      const layer = Number(match[1]);
-      if (layer > highestLayer) {
-        highestLayer = layer;
-      }
-    }
-  });
-
-  return highestLayer;
-};
-
-const mergeLayerFilesIfNeeded = (
-  baseDir: string,
-  userId: string,
-  layer: number,
-): void => {
-  const userDir = path.join(baseDir, userId);
-
-  const layerFiles = fs
-    .readdirSync(userDir)
-    .filter((file) => file.endsWith(`_layer${layer}.nolo`));
-
-  if (layerFiles.length >= 3) {
-    const combinedDataMap = new Map<string, string>();
-
-    layerFiles.forEach((file) => {
-      const filePath = path.join(userDir, file);
-      const fileData = readFromFile(filePath);
-
-      fileData.forEach((value, key) => {
-        combinedDataMap.set(key, value);
-      });
-
-      fs.unlinkSync(filePath);
-    });
-
-    const highestLayer = getHighestLayer(userDir);
-    if (layer === highestLayer) {
-      combinedDataMap.forEach((value, key) => {
-        if (value === "0") {
-          combinedDataMap.delete(key);
+          if (line) {
+            const { key, value } = getHeadTail(line);
+            if (key === searchKey) {
+              fileStream.close(); // 找到后关闭流
+              resolve(value);
+              return;
+            }
+          }
+          index = remaining.indexOf("\n");
         }
       });
-    }
 
-    const nextLayer = layer + 1;
-    const newTimestamp = new Date().toISOString().replace(/[-:.]/g, "");
+      fileStream.on("end", () => {
+        resolve(undefined); // 未找到键返回undefined
+      });
 
-    writeDataToFile(baseDir, userId, combinedDataMap, newTimestamp, nextLayer);
-  }
-};
-
-const readFromFile = (filePath: string): Map<string, string> => {
-  const dataMap = new Map<string, string>();
-
-  try {
-    const data = fs.readFileSync(filePath, "utf-8");
-    const lines = data.split("\n");
-
-    for (const line of lines) {
-      if (line.trim()) {
-        const { key, value } = getHeadTail(line);
-        dataMap.set(key, value);
-      }
-    }
+      fileStream.on("error", reject);
+    });
   } catch (error) {
     console.error(`Error reading file ${filePath}`, error);
+    return undefined;
   }
-
-  return dataMap;
 };
 
-export const readAllFilesForUser = (
+// 读取用户目录中的所有文件并查找指定键值
+export const readAllFilesForUser = async (
   baseDir: string,
   userId: string,
-): Map<string, string> => {
+  key: string,
+): Promise<string | undefined> => {
   const userDir = path.join(baseDir, userId);
 
   if (!fs.existsSync(userDir)) {
-    return new Map();
+    return undefined;
   }
 
   try {
@@ -120,15 +62,15 @@ export const readAllFilesForUser = (
 
     for (const file of files) {
       const filePath = path.join(userDir, file);
-      const fileData = readFromFile(filePath);
+      const value = await findKeyInFile(filePath, key);
 
-      if (fileData.size > 0) {
-        return fileData;
+      if (value !== undefined) {
+        return value; // 找到值后立即返回
       }
     }
   } catch (error) {
     console.error("Error reading directory for user files", error);
   }
 
-  return new Map();
+  return undefined;
 };

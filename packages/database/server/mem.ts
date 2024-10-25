@@ -2,7 +2,9 @@ import fs from "fs";
 import path from "path";
 import { getFromMemory } from "./memoryUtils";
 import { extractUserId } from "core/prefix";
-import { writeDataToFile, readAllFilesForUser } from "./fileUtils";
+import { readAllFilesForUser } from "./fileUtils";
+import { writeDataToFile } from "./writeDataToFile";
+
 import { baseDir } from "database/server/config";
 
 type MemoryStructure = {
@@ -27,8 +29,8 @@ const get = async (
   }
 
   const userId = extractUserId(key);
-  const dataFromFiles = readAllFilesForUser(baseDir, userId);
-  return dataFromFiles.get(key);
+  const value = await readAllFilesForUser(baseDir, userId, key);
+  return value;
 };
 
 const writeMemoryLog = (key: string, value: string): void => {
