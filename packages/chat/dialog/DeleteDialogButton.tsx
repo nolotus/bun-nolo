@@ -3,16 +3,25 @@ import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { deleteCurrentDialog } from "chat/dialog/dialogSlice";
+import {
+  deleteDialog,
+  resetCurrentDialogTokens,
+} from "chat/dialog/dialogSlice";
 import { Alert, useDeleteAlert } from "render/ui/Alert";
+import { useParams } from "react-router-dom";
+import { clearMessages } from "../messages/messageSlice";
 
 const DeleteDialogButton = ({ dialogConfig }) => {
+  const { dialogId } = useParams();
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const onDeleteDialog = () => {
-    dispatch(deleteCurrentDialog(dialogConfig));
+    dispatch(deleteDialog(dialogId));
+    dispatch(clearMessages());
+    dispatch(resetCurrentDialogTokens());
     navigate(-1);
   };
 

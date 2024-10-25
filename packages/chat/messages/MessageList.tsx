@@ -4,11 +4,11 @@ import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { Spinner } from "@primer/react";
 import { reverse } from "rambda";
 import OpenProps from "open-props";
+import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 
 import { MessageItem } from "./MessageItem";
 import { selectStreamMessages, selectMergedMessages } from "./selector";
 import { initMessages } from "./messageSlice";
-import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 
 export const messageListStyle = {
   display: "flex",

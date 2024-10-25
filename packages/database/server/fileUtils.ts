@@ -2,6 +2,8 @@ import { getHeadTail } from "core";
 import fs from "fs";
 import path from "path";
 
+import { getSortedFilteredFiles } from "./sort";
+
 export const writeDataToFile = (
   baseDir: string,
   userId: string,
@@ -23,6 +25,23 @@ export const writeDataToFile = (
   fs.writeFileSync(filePath, lines.join("\n"), "utf-8");
 
   mergeLayerFilesIfNeeded(baseDir, userId, layer);
+};
+
+const getHighestLayer = (userDir: string): number => {
+  const files = fs.readdirSync(userDir);
+  let highestLayer = 0;
+
+  files.forEach((file) => {
+    const match = file.match(/_layer(\d+)\.nolo$/);
+    if (match) {
+      const layer = Number(match[1]);
+      if (layer > highestLayer) {
+        highestLayer = layer;
+      }
+    }
+  });
+
+  return highestLayer;
 };
 
 const mergeLayerFilesIfNeeded = (
@@ -50,10 +69,13 @@ const mergeLayerFilesIfNeeded = (
       fs.unlinkSync(filePath);
     });
 
-    for (let [key, value] of combinedDataMap.entries()) {
-      if (value === "0") {
-        combinedDataMap.delete(key);
-      }
+    const highestLayer = getHighestLayer(userDir);
+    if (layer === highestLayer) {
+      combinedDataMap.forEach((value, key) => {
+        if (value === "0") {
+          combinedDataMap.delete(key);
+        }
+      });
     }
 
     const nextLayer = layer + 1;
@@ -94,23 +116,7 @@ export const readAllFilesForUser = (
   }
 
   try {
-    const files = fs
-      .readdirSync(userDir)
-      .filter((file) => file.endsWith(".nolo"))
-      .sort((a, b) => {
-        const amatch = a.match(/data_(\d+)_layer(\d+)\.nolo/);
-        const bmatch = b.match(/data_(\d+)_layer(\d+)\.nolo/);
-
-        if (!amatch || !bmatch) {
-          return 0;
-        }
-
-        const [atime, alayer] = amatch.slice(1).map(Number);
-        const [btime, blayer] = bmatch.slice(1).map(Number);
-
-        if (alayer !== blayer) return alayer - blayer;
-        return btime - atime;
-      });
+    const files = getSortedFilteredFiles(userDir);
 
     for (const file of files) {
       const filePath = path.join(userDir, file);

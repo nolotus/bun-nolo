@@ -133,50 +133,27 @@ const DialogSlice = createSliceWithThunks({
       async (dialogId, thunkApi) => {
         const { dispatch, getState } = thunkApi;
         dispatch(removeOne(dialogId));
-        const state = getState();
-        const action = await dispatch(read({ id: dialogId }));
-        const dialog = action.payload;
-        const deleteConfig = { id: dialogId };
-        if (dialog.messageListId) {
-          const body = { ids: state.message.ids };
-          const deleteMesssagListAction = await dispatch(
-            deleteData({
-              id: dialog.messageListId,
-              body,
-            }),
-          );
-          await dispatch(deleteData(deleteConfig));
-        } else {
-          await dispatch(deleteData(deleteConfig));
-        }
-      },
-      {
-        fulfilled: (state) => {
-          state.currentDialogConfig = null;
-          state.currentDialogId = null;
-        },
-      },
-    ),
-    deleteCurrentDialog: create.asyncThunk(
-      async (dialog, thunkApi) => {
-        const { dispatch, getState } = thunkApi;
-        const state = getState();
-        dispatch(removeOne(dialog.id));
-        dispatch(clearMessages());
-        dispatch(resetCurrentDialogTokens());
-        const deleteConfig = { id: dialog.id, source: dialog.source };
 
-        if (dialog.messageListId) {
-          const body = { ids: state.message.ids };
-          const deleteMesssagListAction = await dispatch(
-            deleteData({
-              id: dialog.messageListId,
-              body,
-              source: dialog.source,
-            }),
-          );
-          await dispatch(deleteData(deleteConfig));
-        } else {
+        const deleteConfig = { id: dialogId };
+
+        try {
+          const action = await dispatch(read({ id: dialogId }));
+          const dialog = action.payload;
+
+          if (dialog && dialog.messageListId) {
+            const state = getState();
+            const body = { ids: state.message.ids };
+            const deleteMessageListAction = await dispatch(
+              deleteData({
+                id: dialog.messageListId,
+                body,
+              }),
+            );
+          }
+        } catch (error) {
+          console.error("Error reading dialog:", error);
+        } finally {
+          // 无论是否有异常，都会执行这个删除操作
           await dispatch(deleteData(deleteConfig));
         }
       },
@@ -187,6 +164,7 @@ const DialogSlice = createSliceWithThunks({
         },
       },
     ),
+
     // 清空数据
     clearDialogState: create.reducer((state) => {
       state.currentDialogId = null;
@@ -200,7 +178,6 @@ export const {
   initDialog,
   setCurrentDialogId,
   deleteDialog,
-  deleteCurrentDialog,
   updateInputTokens,
   updateOutputTokens,
   resetCurrentDialogTokens,

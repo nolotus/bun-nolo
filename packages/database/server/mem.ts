@@ -3,7 +3,7 @@ import path from "path";
 import { getFromMemory } from "./memoryUtils";
 import { extractUserId } from "core/prefix";
 import { writeDataToFile, readAllFilesForUser } from "./fileUtils";
-import { baseDir } from "./config";
+import { baseDir } from "database/server/config";
 
 type MemoryStructure = {
   memTable: Map<string, string>;
@@ -114,10 +114,12 @@ const set = (
   const newMemTable = new Map(memory.memTable);
   newMemTable.set(key, value);
 
+  // Write to default.log
   writeMemoryLog(key, value);
 
-  if (newMemTable.size > 12) {
-    moveToImmutable({ ...memory, memTable: newMemTable });
+  // Correct size check
+  if (newMemTable.size > 2) {
+    memory = moveToImmutable({ ...memory, memTable: newMemTable });
   }
 
   return { ...memory, memTable: newMemTable };
@@ -152,8 +154,9 @@ class EnhancedMap {
       const lines = logContent.split("\n").filter((line) => line.trim());
 
       lines.forEach((line) => {
-        const [key, ...valueParts] = line.split(" ");
-        const value = valueParts.join(" ");
+        const [, keyPart, valuePart] = line.split(" - ");
+        const key = keyPart.split(": ")[1].trim();
+        const value = valuePart.split(": ")[1].trim();
         this.memory.memTable.set(key, value);
       });
 

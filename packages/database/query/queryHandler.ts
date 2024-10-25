@@ -1,13 +1,15 @@
 import { getHeadTail, extractAndDecodePrefix } from "core";
 import { readLines } from "utils/bun/readLines";
 import { parseStrWithId } from "core/decodeData";
-
+import { baseDir } from "database/server/config";
+import path from "path";
 import { mem } from "../server/mem";
 import { getDatabaseFilePath } from "../init";
 import { QueryCondition, QueryOptions } from "./types";
 import { handleListData } from "./handleLine/handleListData";
 import { handleJSONData } from "./handleLine/handleJSONData";
 import { handleObjectData } from "./handleLine/handleObject";
+import { getSortedFilteredFiles } from "../server/sort";
 
 const checkMemoryForData = (id: string) => {
   const memValue = mem.getFromMemorySync(id);
@@ -60,6 +62,7 @@ function sortResults(results, sort) {
 function processLine(line, condition, isObject, isJSON, isList) {
   const { key: dataKey, value: data } = getHeadTail(line);
   const flags = extractAndDecodePrefix(dataKey);
+
   const result = handleData(
     data,
     condition || {},
@@ -68,9 +71,21 @@ function processLine(line, condition, isObject, isJSON, isList) {
     isJSON,
     isList,
   );
-  return result ? { id: dataKey, ...result } : null;
-}
 
+  // 创建返回值
+  const returnValue = result !== null ? { id: dataKey, ...result } : 0;
+
+  // 特定 ID
+  const targetId =
+    "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JAZGP4PESK3VCEKY9N6P25HD";
+  if (dataKey === targetId) {
+    // 输出返回值及其类型
+    console.log(`Final output for targetId: ${JSON.stringify(returnValue)}`);
+    console.log(`Type of returned value: ${typeof returnValue}`);
+  }
+
+  return returnValue;
+}
 export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   const {
     userId,
@@ -84,16 +99,20 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   } = options;
 
   try {
-    const { indexPath, hashPath } = getDatabaseFilePath(userId);
-    const paths = [indexPath, hashPath];
+    const { indexPath } = getDatabaseFilePath(userId);
 
-    const results: any[] = [];
-    let count = 0;
-    let isLimitReached = false;
+    const userDir = path.join(baseDir, userId);
+    const sortedFilteredFiles = getSortedFilteredFiles(userDir, false);
+    console.log("queryData sortedFilteredFiles", sortedFilteredFiles);
+
+    const paths = [
+      indexPath,
+      ...sortedFilteredFiles.map((file) => path.join(userDir, file)),
+    ];
+
+    const resultsMap: { [key: string]: any } = {};
 
     for (const path of paths) {
-      if (isLimitReached) break;
-
       const stream = await createDataStream(path);
       const reader = readLines(stream);
 
@@ -106,35 +125,35 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
           isList,
         );
 
+        if (typeof resultWithKey === "number" && resultWithKey === 0) {
+          const targetId = line.split(" ")[0]; // 假设 id 是行的第一个部分
+          if (resultsMap[targetId]) {
+            console.log(`Removing entry for deleted targetId: ${targetId}`);
+            delete resultsMap[targetId];
+          }
+          continue;
+        }
+
         if (resultWithKey) {
-          // 检查内存中的数据状态
           const memResult = checkMemoryForData(resultWithKey.id);
-          console.log("memResult", memResult);
-          // 如果内存中标记为删除（值为0），跳过这条数据
-          if (memResult === null) {
-            continue;
-          }
 
-          if (count >= skip && results.length < limit) {
-            // 如果内存中有非0的值，使用内存中的数据
-            results.push(
-              memResult !== undefined
-                ? { id: resultWithKey.id, ...memResult }
-                : resultWithKey,
-            );
-          }
-          count++;
+          // 将内存数据与文件数据结合，以内存为准（假设内存为最新）
+          const finalResult =
+            memResult !== undefined
+              ? { id: resultWithKey.id, ...memResult }
+              : resultWithKey;
 
-          if (results.length >= limit) {
-            isLimitReached = true;
-            break;
-          }
+          resultsMap[resultWithKey.id] = finalResult;
         }
       }
     }
 
-    sortResults(results, sort);
-    return results;
+    const allResults = Object.values(resultsMap);
+    sortResults(allResults, sort);
+
+    const paginatedResults = allResults.slice(skip, skip + limit);
+
+    return paginatedResults;
   } catch (e) {
     console.error("Error in queryData:", e);
     return [];

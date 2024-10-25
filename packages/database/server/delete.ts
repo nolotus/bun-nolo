@@ -1,11 +1,7 @@
-// delete.ts
-
 import { extractUserId } from "core/prefix";
-import { deleteQueueCache } from "database/server/cache";
 import { unlink, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { readLines } from "utils/bun/readLines";
-
 import { checkDeletePermission } from "./permissions";
 import { mem } from "./mem";
 
@@ -44,9 +40,6 @@ const removeDataFromFile = async (filePath, ids: string[]) => {
   }
 };
 
-const deleteQueue = new Map<string, Set<string>>();
-let isProcessing = false;
-
 const processUserDeletion = async (userId: string, idsToDelete: string[]) => {
   const userDataDir = `./nolodata/${userId}`;
   const indexPath = `${userDataDir}/index.nolo`;
@@ -61,39 +54,9 @@ const processUserDeletion = async (userId: string, idsToDelete: string[]) => {
 
   await removeDataFromFile(indexPath, idsToDelete);
 
-  const userCache = deleteQueueCache.get(userId) || new Set();
-  idsToDelete.forEach((id) => userCache.add(id));
-  deleteQueueCache.set(userId, userCache);
-
   console.log(
     `Successfully deleted ${idsToDelete.length} items for user ${userId}`,
   );
-};
-
-const processDeleteQueue = async () => {
-  if (isProcessing) return;
-  isProcessing = true;
-
-  try {
-    for (const [userId, ids] of deleteQueue.entries()) {
-      const idsToDelete = Array.from(ids);
-      deleteQueue.delete(userId);
-
-      await retryOperation(() => processUserDeletion(userId, idsToDelete));
-    }
-  } finally {
-    isProcessing = false;
-  }
-};
-
-const enqueueDelete = (userId: string, ids: string[]) => {
-  const userQueue = deleteQueue.get(userId) || new Set();
-  ids.forEach((id) => userQueue.add(id));
-  deleteQueue.set(userId, userQueue);
-
-  if (!isProcessing) {
-    processDeleteQueue().catch(console.error);
-  }
 };
 
 const retryOperation = async (operation: () => Promise<void>) => {
@@ -117,10 +80,6 @@ const retryOperation = async (operation: () => Promise<void>) => {
   }
 };
 
-const isIdQueued = (userId: string, id: string): boolean => {
-  return deleteQueue.get(userId)?.has(id) || false;
-};
-
 export const handleDelete = async (req, res) => {
   try {
     const { userId: actionUserId } = req.user;
@@ -136,25 +95,13 @@ export const handleDelete = async (req, res) => {
 
     const { ids = [] } = req.body || {};
     const allIds = [id, ...ids];
-    allIds.forEach((id) => mem.set(id, 0));
+    allIds.forEach((id) => mem.set(id, "0"));
 
-    // 删除队列存在的id ，过滤
-    const alreadyDeletedIds = allIds.filter(
-      (id) =>
-        deleteQueueCache.get(dataBelongUserId)?.has(id) ||
-        isIdQueued(dataBelongUserId, id),
-    );
-    // 过滤之后的 是没删除的
-    const idsToDelete = allIds.filter((id) => !alreadyDeletedIds.includes(id));
-    // 加入删除队列
-    if (idsToDelete.length > 0) {
-      enqueueDelete(dataBelongUserId, idsToDelete);
-    }
+    await retryOperation(() => processUserDeletion(dataBelongUserId, allIds));
 
     return res.status(200).json({
       message: "Delete request processed",
-      deletedIds: alreadyDeletedIds,
-      processingIds: idsToDelete,
+      processingIds: allIds,
     });
   } catch (error) {
     console.error("Error in handleDelete:", error);
