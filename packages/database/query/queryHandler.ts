@@ -80,8 +80,6 @@ function processLine(line, condition, isObject, isJSON, isList) {
     "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JAZGP4PESK3VCEKY9N6P25HD";
   if (dataKey === targetId) {
     // 输出返回值及其类型
-    console.log(`Final output for targetId: ${JSON.stringify(returnValue)}`);
-    console.log(`Type of returned value: ${typeof returnValue}`);
   }
 
   return returnValue;
@@ -127,7 +125,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         if (typeof resultWithKey === "number" && resultWithKey === 0) {
           const targetId = line.split(" ")[0]; // 假设 id 是行的第一个部分
           if (resultsMap[targetId]) {
-            console.log(`Removing entry for deleted targetId: ${targetId}`);
             delete resultsMap[targetId];
           }
           continue;

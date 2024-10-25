@@ -139,7 +139,7 @@ const dbSlice = createSliceWithThunks({
       const res = await fetch(url, {
         method: "DELETE",
         headers,
-        body,
+        body: JSON.stringify(body),
       });
 
       if (res.status === 200) {

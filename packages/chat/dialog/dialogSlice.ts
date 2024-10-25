@@ -132,6 +132,8 @@ const DialogSlice = createSliceWithThunks({
     deleteDialog: create.asyncThunk(
       async (dialogId, thunkApi) => {
         const { dispatch, getState } = thunkApi;
+        const state = getState();
+
         dispatch(removeOne(dialogId));
 
         const deleteConfig = { id: dialogId };
@@ -141,7 +143,6 @@ const DialogSlice = createSliceWithThunks({
           const dialog = action.payload;
 
           if (dialog && dialog.messageListId) {
-            const state = getState();
             const body = { ids: state.message.ids };
             const deleteMessageListAction = await dispatch(
               deleteData({
@@ -149,12 +150,13 @@ const DialogSlice = createSliceWithThunks({
                 body,
               }),
             );
+          } else {
+            await dispatch(deleteData(deleteConfig));
           }
         } catch (error) {
           console.error("Error reading dialog:", error);
         } finally {
           // 无论是否有异常，都会执行这个删除操作
-          await dispatch(deleteData(deleteConfig));
         }
       },
       {
