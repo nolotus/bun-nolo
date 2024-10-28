@@ -1,4 +1,5 @@
 import { extractUserId } from "core/prefix";
+
 import { checkDeletePermission } from "./permissions";
 import { mem } from "./mem";
 import { processOldDeletion } from "./deleteFromFile";

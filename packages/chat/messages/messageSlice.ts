@@ -246,6 +246,11 @@ export const messageSlice = createSliceWithThunks({
           sendGeminiModelRequest(dialogConfig, content, thunkApi);
           return;
         }
+
+        if (cybotConfig.llmId) {
+          await dispatch(streamLLmId({ cybotConfig, prevMsgs, content }));
+          return;
+        }
         const mode = "stream";
         if (mode === "stream") {
           const userId = selectCurrentUserId(state);
@@ -445,6 +450,7 @@ export const messageSlice = createSliceWithThunks({
         const token = state.auth.currentToken;
         const currentServer = selectCurrentServer(state);
         const cybotId = cybotConfig.id;
+
         await dispatch(
           addAIMessage({
             content: "loading ...",
@@ -453,12 +459,6 @@ export const messageSlice = createSliceWithThunks({
             cybotId,
           }),
         );
-        if (cybotConfig.llmId) {
-          await dispatch(
-            streamLLmId({ cybotConfig, prevMsgs, content, signal, id }),
-          );
-          return;
-        }
 
         const config = {
           ...cybotConfig,
@@ -480,13 +480,20 @@ export const messageSlice = createSliceWithThunks({
     ),
     //for now only use in ollama
     streamLLmId: create.asyncThunk(
-      async ({ cybotConfig, prevMsgs, content, signal, id }, thunkApi) => {
-        const cybotId = cybotConfig.id;
+      async ({ cybotConfig, prevMsgs, content }, thunkApi) => {
         const dispatch = thunkApi.dispatch;
+        const state = thunkApi.getState();
+        const controller = new AbortController();
+        const signal = controller.signal;
+        const cybotId = cybotConfig.id;
+        const userId = selectCurrentUserId(state);
+
+        const id = generateIdWithCustomId(userId, ulid(), {
+          isJSON: true,
+        });
         const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
         const llmConfig = readLLMAction.payload;
         const { api, apiStyle, model } = llmConfig;
-
         console.log("apiStyle", apiStyle);
         console.log("model", model);
         const config = {
@@ -494,11 +501,8 @@ export const messageSlice = createSliceWithThunks({
           responseLanguage: navigator.language,
         };
         const promotMessage = createPromptMessage(config.model, config.propmpt);
-
         const prepareMsgConfig = { model, promotMessage, prevMsgs, content };
-
         const messages = prepareMsgs(prepareMsgConfig);
-
         const body = JSON.stringify({
           model: model,
           messages,
@@ -510,6 +514,7 @@ export const messageSlice = createSliceWithThunks({
             "Content-Type": "application/json",
           },
           body,
+          signal,
         });
         console.log("result", result);
         if (result.ok) {
@@ -532,6 +537,7 @@ export const messageSlice = createSliceWithThunks({
               if (chunk.trim().length > 0) {
                 try {
                   const jsonData = JSON.parse(chunk);
+                  console.log("jsonData", jsonData);
                   //todo  add open or close
                   // console.log("Received data:", jsonData);
                   const { done } = jsonData;
