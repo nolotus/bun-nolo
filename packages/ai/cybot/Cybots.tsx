@@ -50,7 +50,6 @@ const Cybots: React.FC<CybotsProps> = ({
   const data = useAppSelector(
     selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot),
   );
-
   const data2 = useAppSelector(
     selectFilteredDataByUserAndType(queryUserId, DataType.Cybot),
   );

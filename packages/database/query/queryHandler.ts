@@ -1,89 +1,35 @@
 import { getHeadTail, extractAndDecodePrefix } from "core";
 import { readLines } from "utils/bun/readLines";
-import { parseStrWithId } from "core/decodeData";
 import { baseDir } from "database/server/config";
 import path from "path";
 import { mem } from "../server/mem";
 import { getDatabaseFilePath } from "../init";
 import { QueryCondition, QueryOptions } from "./types";
-import { handleListData } from "./handleLine/handleListData";
-import { handleJSONData } from "./handleLine/handleJSONData";
-import { handleObjectData } from "./handleLine/handleObject";
 import { getSortedFilteredFiles } from "../server/sort";
-
-const checkMemoryForData = (id: string) => {
-  const memValue = mem.getFromMemorySync(id);
-  if (memValue === "0") {
-    return null; // 视为已删除
-  }
-  if (memValue) {
-    const result = parseStrWithId(id, memValue);
-    return result;
-  }
-  return undefined; // 表示内存中没有找到数据
-};
-
-const handleData = (
-  data: string,
-  condition: QueryCondition,
-  flags: any,
-  isObject: boolean,
-  isJSON: boolean,
-  isList: boolean,
-) => {
-  if (flags.isList && isList) {
-    return handleListData(data, condition);
-  }
-  if (flags.isJSON && isJSON) {
-    return handleJSONData(data, condition);
-  }
-  if (flags.isObject && isObject) {
-    return handleObjectData(data, condition);
-  }
-  return null;
-};
+import { checkQuery } from "./checkQuery";
+import { listToArray, noloToObject } from "core/noloToOther";
+import { sortBy, prop } from "rambda"; // 使用 rambda 的排序方法
 
 async function createDataStream(path: string) {
-  const file = Bun.file(path);
-  return file.stream();
+  try {
+    const file = Bun.file(path);
+    return file.stream();
+  } catch (error) {
+    console.error(`Error creating data stream for ${path}:`, error);
+    throw error; // 或者根据需要处理错误
+  }
 }
 
 function sortResults(results, sort) {
   if (sort) {
-    results.sort((a, b) => {
-      if (sort.order === "asc") {
-        return a[sort.key] > b[sort.key] ? 1 : -1;
-      }
-      return a[sort.key] < b[sort.key] ? 1 : -1;
-    });
+    results =
+      sort.order === "asc"
+        ? sortBy(prop(sort.key), results)
+        : sortBy(prop(sort.key), results).reverse();
   }
+  return results;
 }
 
-function processLine(line, condition, isObject, isJSON, isList) {
-  const { key: dataKey, value: data } = getHeadTail(line);
-  const flags = extractAndDecodePrefix(dataKey);
-
-  const result = handleData(
-    data,
-    condition || {},
-    flags,
-    isObject,
-    isJSON,
-    isList,
-  );
-
-  // 创建返回值
-  const returnValue = result !== null ? { id: dataKey, ...result } : 0;
-
-  // 特定 ID
-  const targetId =
-    "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JAZGP4PESK3VCEKY9N6P25HD";
-  if (dataKey === targetId) {
-    // 输出返回值及其类型
-  }
-
-  return returnValue;
-}
 export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   const {
     userId,
@@ -96,62 +42,94 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     sort,
   } = options;
 
-  try {
-    const { indexPath } = getDatabaseFilePath(userId);
+  const memoryData = mem.getFromMemorySync();
 
-    const userDir = path.join(baseDir, userId);
-    const sortedFilteredFiles = getSortedFilteredFiles(userDir, false);
+  let resultsArray = [];
+  const deletedData = new Set();
 
-    const paths = [
-      indexPath,
-      ...sortedFilteredFiles.map((file) => path.join(userDir, file)),
-    ];
+  // 提取删除的数据
+  for (const { key, value } of memoryData) {
+    if (value === "0" && !deletedData.has(key)) {
+      deletedData.add(key);
+    }
+  }
 
-    const resultsMap: { [key: string]: any } = {};
+  const { indexPath } = getDatabaseFilePath(userId);
+  const userDir = path.join(baseDir, userId);
+  const sortedFilteredFiles = getSortedFilteredFiles(userDir);
+  const paths = [
+    ...sortedFilteredFiles.map((file) => path.join(userDir, file)),
+    indexPath,
+  ];
 
-    for (const path of paths) {
-      const stream = await createDataStream(path);
+  async function* fileDataGenerator(paths) {
+    console.log("userId", userId);
+    console.log("resultsArray", resultsArray);
+
+    for (const filePath of paths) {
+      console.log("filePath", filePath);
+
+      const stream = await createDataStream(filePath);
       const reader = readLines(stream);
 
-      for await (const line of reader) {
-        const resultWithKey = processLine(
-          line,
-          condition,
-          isObject,
-          isJSON,
-          isList,
-        );
-
-        if (typeof resultWithKey === "number" && resultWithKey === 0) {
-          const targetId = line.split(" ")[0]; // 假设 id 是行的第一个部分
-          if (resultsMap[targetId]) {
-            delete resultsMap[targetId];
+      try {
+        for await (const line of reader) {
+          if (
+            line.includes(
+              "000000100000-VzlmQmd5S1RBUlphQS1YUnEzalk5MmVnbldoQWNLS0VkbHdQc0kzNmJlYw-01JB8P5JDGNG40N39224TEZMVT",
+            )
+          ) {
+            console.log("line", line);
           }
-          continue;
+          yield line;
         }
-
-        if (resultWithKey) {
-          const memResult = checkMemoryForData(resultWithKey.id);
-
-          // 将内存数据与文件数据结合，以内存为准（假设内存为最新）
-          const finalResult =
-            memResult !== undefined
-              ? { id: resultWithKey.id, ...memResult }
-              : resultWithKey;
-
-          resultsMap[resultWithKey.id] = finalResult;
-        }
+      } catch (error) {
+        console.error("Error reading file:", error);
       }
     }
-
-    const allResults = Object.values(resultsMap);
-    sortResults(allResults, sort);
-
-    const paginatedResults = allResults.slice(skip, skip + limit);
-
-    return paginatedResults;
-  } catch (e) {
-    console.error("Error in queryData:", e);
-    return [];
   }
+
+  const dataGenerator = fileDataGenerator(paths);
+
+  for await (const line of dataGenerator) {
+    if (resultsArray.length >= limit) break;
+
+    const { key, value } = getHeadTail(line);
+
+    const flags = extractAndDecodePrefix(key);
+
+    // 新增逻辑，处理文件中的删除标记
+    if (value === "0") {
+      if (!deletedData.has(key)) {
+        deletedData.add(key);
+      }
+      continue;
+    }
+
+    if (deletedData.has(key)) continue;
+
+    if (isList && flags.isList) {
+      const result = listToArray(value);
+      resultsArray.push(result);
+    } else if (isJSON && flags.isJSON) {
+      try {
+        const jsonData = JSON.parse(value);
+
+        if (checkQuery(jsonData, condition)) {
+          const result = { id: key, ...jsonData };
+          resultsArray.push(result);
+        }
+      } catch (error) {
+        // console.error(`Error parsing JSON for key ${key}:`, error);
+        // 继续处理下一个数据
+      }
+    } else if (isObject && flags.isObject) {
+      const result = noloToObject(value);
+      if (checkQuery(result, condition)) {
+        resultsArray.push(result);
+      }
+    }
+  }
+  console.log("resultsArray", resultsArray);
+  return sortResults(resultsArray, sort);
 };

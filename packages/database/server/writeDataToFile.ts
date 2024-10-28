@@ -67,8 +67,10 @@ const mergeLayerFilesIfNeeded = (
     if (layer === highestLayer) {
       combinedDataMap.forEach((value, key) => {
         console.log("value", typeof value);
-        if (value === "0" || value === 0) {
+        if (value === "0") {
+          console.log("before value", combinedDataMap);
           combinedDataMap.delete(key);
+          console.log("after value", combinedDataMap);
         }
       });
     }

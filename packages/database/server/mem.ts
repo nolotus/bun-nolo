@@ -124,8 +124,7 @@ const set = (
   // Write to default.log
   writeMemoryLog(key, value);
 
-  // 如果 newMemTable 大于 6，调用 moveToImmutable
-  if (newMemTable.size > 6) {
+  if (newMemTable.size > 2) {
     return moveToImmutable({ ...memory, memTable: newMemTable });
   }
 
@@ -169,8 +168,27 @@ class EnhancedMap {
     return await get(this.memory, key);
   }
 
-  getFromMemorySync(key: string): string | undefined {
-    return getFromMemory(this.memory, key);
+  getFromMemorySync(): Array<{ key: string; value: string }> {
+    const finalArray: Array<{ key: string; value: string }> = [];
+    const seenKeys = new Set<string>();
+
+    // 先处理memTable
+    this.memory.memTable.forEach((value, key) => {
+      finalArray.push({ key, value });
+      seenKeys.add(key);
+    });
+
+    // 依次处理immutableMem
+    for (const map of this.memory.immutableMem.reverse()) {
+      map.forEach((value, key) => {
+        if (!seenKeys.has(key)) {
+          finalArray.push({ key, value });
+          seenKeys.add(key);
+        }
+      });
+    }
+
+    return finalArray;
   }
 
   set(key: string, value: string): this {

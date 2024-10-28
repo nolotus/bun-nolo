@@ -36,9 +36,8 @@ import { sendOpenAIRequest } from "ai/chat/sendOpenAIRequest";
 import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
 
 import { getFilteredMessages } from "./utils";
-import { getModefromContent } from "../hooks/getModefromContent";
-import { getContextFromMode } from "../hooks/getContextfromMode";
 import { sendNoloChatRequest } from "./chatStreamRequest";
+
 import { claudeModels } from "integrations/anthropic/models";
 import { isModelInList } from "ai/llm/isModelInList";
 
@@ -243,14 +242,11 @@ export const messageSlice = createSliceWithThunks({
           textContent = content;
         }
 
-        const mode = getModefromContent(textContent, content);
-        const context = await getContextFromMode(mode, textContent);
         if (model && geminiModelNames.includes(model)) {
           sendGeminiModelRequest(dialogConfig, content, thunkApi);
           return;
         }
-        //todo
-
+        const mode = "stream";
         if (mode === "stream") {
           const userId = selectCurrentUserId(state);
           const streamChat = async (content) => {
@@ -369,24 +365,6 @@ export const messageSlice = createSliceWithThunks({
           };
           await streamChat(content);
         }
-
-        if (mode === "image") {
-          thunkApi.dispatch(
-            receiveMessage({
-              role: "assistant",
-              content: "Here is your generated image:",
-              image: context.image,
-            }),
-          );
-        }
-        if (mode === "surf") {
-          thunkApi.dispatch(
-            receiveMessage({
-              role: "assistant",
-              content: context.content,
-            }),
-          );
-        }
       },
       {
         rejected: (state, action) => {},
@@ -464,6 +442,8 @@ export const messageSlice = createSliceWithThunks({
       async ({ content, prevMsgs, cybotConfig, signal, id }, thunkApi) => {
         const dispatch = thunkApi.dispatch;
         const state = thunkApi.getState();
+        const token = state.auth.currentToken;
+        const currentServer = selectCurrentServer(state);
         const cybotId = cybotConfig.id;
         await dispatch(
           addAIMessage({
@@ -473,20 +453,17 @@ export const messageSlice = createSliceWithThunks({
             cybotId,
           }),
         );
-
-        const currentServer = selectCurrentServer(state);
-        const token = state.auth.currentToken;
-
-        const config = {
-          ...cybotConfig,
-          responseLanguage: navigator.language,
-        };
         if (cybotConfig.llmId) {
           await dispatch(
             streamLLmId({ cybotConfig, prevMsgs, content, signal, id }),
           );
           return;
         }
+
+        const config = {
+          ...cybotConfig,
+          responseLanguage: navigator.language,
+        };
 
         const requestBody = createStreamRequestBody(config, content, prevMsgs);
 
@@ -534,6 +511,7 @@ export const messageSlice = createSliceWithThunks({
           },
           body,
         });
+        console.log("result", result);
         if (result.ok) {
           const reader = result.body.getReader();
           const decoder = new TextDecoder();

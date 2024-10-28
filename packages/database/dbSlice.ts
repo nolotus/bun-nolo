@@ -52,7 +52,6 @@ const dbSlice = createSliceWithThunks({
       async (queryConfig, thunkApi) => {
         const { dispatch } = thunkApi;
         const { server } = queryConfig;
-
         try {
           const res = await noloQueryRequest(queryConfig);
           const data = await res.json();

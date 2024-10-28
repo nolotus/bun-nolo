@@ -1,6 +1,7 @@
 import { API_ENDPOINTS } from "database/config";
 import { retrieveFirstToken } from "auth/client/token";
 
+//need delete
 async function generateImage(payload) {
   const token = retrieveFirstToken();
   const url = `${API_ENDPOINTS.AI}/images/generations`;

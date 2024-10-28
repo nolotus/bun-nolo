@@ -20,7 +20,6 @@ export const SpotList = ({ userId }) => {
     options,
   };
   const { data, isSuccess, isLoading, error } = useQueryData(queryConfig);
-
   if (isLoading) {
     return <Spinner />;
   }

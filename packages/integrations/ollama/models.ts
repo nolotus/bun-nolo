@@ -19,16 +19,6 @@ export const ollamaModels = {
     input: 0,
     output: 0,
   },
-  qwen2: {
-    provider: "ollama",
-    name: "Qwen 2",
-    description: "Advanced language model",
-    performance: {
-      contextWindow: 128000,
-    },
-    input: 0,
-    output: 0,
-  },
   gemma2: {
     provider: "ollama",
     name: "Gemma 2",
@@ -74,10 +64,30 @@ export const ollamaModels = {
     input: 0,
     output: 0,
   },
-  "deepseek-coder-v2": {
+  "qwen2.5:14b": {
     provider: "ollama",
-    name: "DeepSeek Coder V2",
-    description: "DeepSeek's advanced code-specialized model",
+    name: "qwen2.5:14b",
+    description: "Advanced language model",
+    performance: {
+      contextWindow: 128000,
+    },
+    input: 0,
+    output: 0,
+  },
+  "qwen2.5:32b": {
+    provider: "ollama",
+    name: "qwen2.5:32b",
+    description: "Advanced language model",
+    performance: {
+      contextWindow: 128000,
+    },
+    input: 0,
+    output: 0,
+  },
+  "gemma2:27b": {
+    provider: "ollama",
+    name: "ollama run gemma2:27b",
+    description: "Advanced language model",
     performance: {
       contextWindow: 128000,
     },
