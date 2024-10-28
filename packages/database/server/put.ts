@@ -5,16 +5,8 @@ export const handleError = (res, error) => {
   const status = error.message === "Access denied" ? 401 : 500;
   res.status(status).json({ error: error.message });
 };
-
 import { serverGetData } from "./read";
 
-export const updateServerData = async (
-  actionUserId: string,
-  id: string,
-  value: string,
-) => {
-  mem.set(id, value);
-};
 // allow update not exist array
 const updateList = async (actionUserId, dataKey, data, res) => {
   try {
@@ -35,7 +27,7 @@ const updateList = async (actionUserId, dataKey, data, res) => {
       });
     }
     const value = formatData(array, { isList: true });
-    await updateServerData(actionUserId, dataKey, value);
+    mem.set(dataKey, value);
 
     return res
       .status(200)
@@ -50,6 +42,7 @@ const updateList = async (actionUserId, dataKey, data, res) => {
 export const handlePut = async (req, res) => {
   const { user } = req;
   const actionUserId = user.userId;
+  //need check permission
   let id = req.params.id;
   const data = req.body;
   const flags = extractAndDecodePrefix(id);
@@ -62,7 +55,7 @@ export const handlePut = async (req, res) => {
     try {
       //maybe merge
       const value = formatData(data, flags);
-      await updateServerData(actionUserId, id, value);
+      mem.set(id, value);
       return res
         .status(200)
         .json({ data: { id, ...data }, message: "Data updated successfully." });
