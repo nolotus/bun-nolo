@@ -8,7 +8,7 @@ import reactotron from "../../ReactotronConfig";
 import settingReducer from "setting/settingSlice";
 
 const preloadedState = {};
-
+//maybe need delete api
 export const mobileStore = configureStore({
   reducer: {
     message: messageReducer,

@@ -144,7 +144,11 @@ class EnhancedMap {
   }
 
   private applyLogData(lines: string[]): void {
+    console.log(`applyLogData: ${lines}`);
+
     lines.forEach((line) => {
+      console.log(`applyLogData line: ${line}`);
+
       try {
         const { key, value } = getHeadTail(line);
 

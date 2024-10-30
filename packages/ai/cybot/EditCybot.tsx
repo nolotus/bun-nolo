@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useAppDispatch } from "app/hooks";
-import { useUpdateEntryMutation } from "database/services";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
@@ -8,11 +7,22 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { modelEnum } from "ai/llm/models";
 import { DataType } from "create/types";
+import {
+  FormField,
+  Label,
+  Select,
+  ErrorMessage,
+} from "render/CommonFormComponents";
+import { useQueryData } from "app/hooks/useQueryData";
+import { useAuth } from "auth/useAuth";
+import { setData } from "database/dbSlice";
 
 const EditCybot = ({ initialValues, onClose }) => {
+  console.log("initialValues", initialValues);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const [updateEntry] = useUpdateEntryMutation();
+  const auth = useAuth();
+
   const theme = useSelector(selectTheme);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
@@ -25,17 +35,50 @@ const EditCybot = ({ initialValues, onClose }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const queryConfig = {
+    queryUserId: auth.user?.userId,
+    options: {
+      isJSON: true,
+      limit: 100,
+      condition: {
+        type: DataType.LLM,
+      },
+    },
+  };
+  const { data: llmData, isLoading: isLLMLoading } = useQueryData(queryConfig);
+  const modelOptions = useMemo(() => {
+    console.log("Preparing model options");
+    const predefinedOptions = Object.entries(modelEnum).map(([key, value]) => ({
+      value: `predefined:${value}`,
+      label: key,
+    }));
+
+    const userLLMOptions = llmData
+      ? llmData.map((llm: any) => ({
+          value: `user:${llm.id}`,
+          label: `${llm.name} (${llm.model})`,
+        }))
+      : [];
+
+    console.log("Predefined options:", predefinedOptions);
+    console.log("User LLM options:", userLLMOptions);
+
+    return [
+      { label: t("predefinedModels"), options: predefinedOptions },
+      { label: t("userLLMs"), options: userLLMOptions },
+    ];
+  }, [llmData, t]);
   const onSubmit = async (data) => {
-    const chatRobotConfig = { ...data, type: DataType.Cybot };
-    try {
-      await updateEntry({
-        entryId: initialValues.id,
-        data: chatRobotConfig,
-      }).unwrap();
-      onClose();
-    } catch (error) {
-      // Handle error
-    }
+    const [modelType, modelValue] = data.model.split(":");
+    const modelData =
+      modelType === "user" ? { llmId: modelValue } : { model: data.model };
+    const submitData = { ...data, ...modelData, type: DataType.Cybot };
+    console.log("data", data);
+    const action = await dispatch(
+      setData({ id: initialValues.id, data: submitData }),
+    );
+    console.log("action", action);
+    onClose();
   };
 
   const {
@@ -143,25 +186,26 @@ const EditCybot = ({ initialValues, onClose }) => {
         </div>
       </div>
       {initialValues.model && (
-        <div style={fieldContainerStyle}>
-          <label htmlFor="model" style={labelStyle}>
-            {t("model")}
-          </label>
-          <div style={inputContainerStyle}>
-            <select
-              id="model"
-              {...register("model", { required: "Model is required" })}
-              style={{ width: "100%" }}
-            >
-              {Object.entries(modelEnum).map(([key, value]) => (
-                <option key={key} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            {errors.model && <span>{errors.model.message}</span>}
-          </div>
-        </div>
+        <FormField>
+          <Label htmlFor="model">{t("model")}:</Label>
+          <Select
+            id="model"
+            {...register("model", { required: t("modelRequired") })}
+            disabled={isLLMLoading}
+          >
+            <option value="">{t("selectModel")}</option>
+            {modelOptions.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </Select>
+          {errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
+        </FormField>
       )}
       <Button type="submit" style={buttonStyle}>
         {t("update")}

@@ -54,6 +54,7 @@ const mergeLayerFilesIfNeeded = (
 
     layerFiles.forEach((file) => {
       const filePath = path.join(userDir, file);
+      console.log("layerFiles filePath", filePath);
       const fileData = readFromFile(filePath);
 
       fileData.forEach((value, key) => {
@@ -63,17 +64,17 @@ const mergeLayerFilesIfNeeded = (
       fs.unlinkSync(filePath);
     });
 
-    const highestLayer = getHighestLayer(userDir);
-    if (layer === highestLayer) {
-      combinedDataMap.forEach((value, key) => {
-        console.log("value", typeof value);
-        if (value === "0") {
-          console.log("before value", combinedDataMap);
-          combinedDataMap.delete(key);
-          console.log("after value", combinedDataMap);
-        }
-      });
-    }
+    // const highestLayer = getHighestLayer(userDir);
+    // if (layer === highestLayer) {
+    //   combinedDataMap.forEach((value, key) => {
+    //     console.log("value", typeof value);
+    //     if (value === "0") {
+    //       console.log("before value", combinedDataMap);
+    //       combinedDataMap.delete(key);
+    //       console.log("after value", combinedDataMap);
+    //     }
+    //   });
+    // }
 
     const nextLayer = layer + 1;
     const newTimestamp = new Date().toISOString().replace(/[-:.]/g, "");

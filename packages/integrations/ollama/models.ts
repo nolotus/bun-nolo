@@ -54,12 +54,22 @@ export const ollamaModels = {
     input: 0,
     output: 0,
   },
-  "mistral-nemo": {
+  "mistral-nemo:latest": {
     provider: "ollama",
     name: "Mistral Nemo",
     description: "Mistral-based language model",
     performance: {
       contextWindow: 64000,
+    },
+    input: 0,
+    output: 0,
+  },
+  "mistral-small:latest": {
+    provider: "ollama",
+    name: "Mistral Small",
+    description: "Mistral-based language model",
+    performance: {
+      contextWindow: 128000,
     },
     input: 0,
     output: 0,

@@ -5,7 +5,7 @@ import { DataType } from "create/types";
 import { deleteData } from "database/dbSlice";
 import { Link } from "react-router-dom";
 import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
-
+import LLMNameButton from "ai/llm/EditLLMButton";
 type FieldConfig = {
   header: string;
   key: string;
@@ -90,9 +90,14 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       { header: "数据源", key: "source" },
     ],
     actions: (data) => (
-      <Link to={`/${data.id}`}>
-        <button className="rounded p-2">查看</button>
-      </Link>
+      <>
+        <Link to={`/${data.id}`}>
+          <button className="rounded p-2">查看</button>
+        </Link>
+        <div>
+          <LLMNameButton llmId={data.id} />
+        </div>
+      </>
     ),
   },
 

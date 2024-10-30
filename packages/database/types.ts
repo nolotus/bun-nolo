@@ -5,9 +5,3 @@ export type WriteDataRequestBody = {
   flags: Flags;
   customId?: string;
 };
-
-// ResponseData.ts
-export interface ResponseData {
-  message: string;
-  id: string;
-}

@@ -2,7 +2,7 @@ import { api } from "app/api";
 import { API_ENDPOINTS } from "database/config";
 
 import { WeatherQueryParams, WeatherApiResponse } from "./weatherTypes";
-
+//maybe need delete
 export const weatherApi = api.injectEndpoints({
   endpoints: (builder) => ({
     getWeather: builder.query<WeatherApiResponse, WeatherQueryParams>({

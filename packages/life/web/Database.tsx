@@ -51,7 +51,7 @@ export const Database = () => {
   return (
     <div className="p-4">
       <div className="flex justify-between">
-        <div className="flex w-3/5 gap-2 overflow-auto">
+        <div className="flex gap-2 overflow-auto">
           {typeArray.map((typeItem) => {
             const isActive = type === typeItem || (typeItem === "All" && !type);
             return (

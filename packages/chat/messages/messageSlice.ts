@@ -491,18 +491,29 @@ export const messageSlice = createSliceWithThunks({
         const id = generateIdWithCustomId(userId, ulid(), {
           isJSON: true,
         });
+
+        console.log("cybotConfig", cybotConfig);
+
         const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
+        console.log("readLLMAction", readLLMAction);
+
         const llmConfig = readLLMAction.payload;
         const { api, apiStyle, model } = llmConfig;
         console.log("apiStyle", apiStyle);
         console.log("model", model);
+        console.log("cybotConfig", cybotConfig);
         const config = {
           ...cybotConfig,
           responseLanguage: navigator.language,
         };
-        const promotMessage = createPromptMessage(config.model, config.propmpt);
+        console.log("config.prompt", config.prompt);
+        const promotMessage = createPromptMessage(config.model, config.prompt);
+        console.log("promotMessage", promotMessage);
         const prepareMsgConfig = { model, promotMessage, prevMsgs, content };
+        console.log("prepareMsgConfig", prepareMsgConfig);
         const messages = prepareMsgs(prepareMsgConfig);
+        console.log("messages", messages);
+
         const body = JSON.stringify({
           model: model,
           messages,
@@ -537,7 +548,6 @@ export const messageSlice = createSliceWithThunks({
               if (chunk.trim().length > 0) {
                 try {
                   const jsonData = JSON.parse(chunk);
-                  console.log("jsonData", jsonData);
                   //todo  add open or close
                   // console.log("Received data:", jsonData);
                   const { done } = jsonData;

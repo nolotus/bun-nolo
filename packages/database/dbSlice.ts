@@ -303,12 +303,11 @@ const dbSlice = createSliceWithThunks({
       dbAdapter.upsertMany(state, withSourceData);
     }),
     patchData: create.asyncThunk(async ({ id, changes, source }, thunkApi) => {
-      updateOne(id, changes);
+      dbAdapter.updateOne(id, changes);
       const state = thunkApi.getState();
       const res = await noloPatchRequest(state, id, changes);
     }, {}),
 
-    updateOne: dbAdapter.updateOne,
     addOne: dbAdapter.addOne,
     setOne: dbAdapter.setOne,
     addToList: create.asyncThunk(async ({ willAddId, updateId }, thunkApi) => {
@@ -343,7 +342,6 @@ createSelectorCreator;
 export const {
   removeOne,
   upsertOne,
-  updateOne,
   setOne,
   mergeMany,
   deleteData,

@@ -49,8 +49,25 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
   // 提取删除的数据
   for (const { key, value } of memoryData) {
+    const flags = extractAndDecodePrefix(key);
+
     if (value === "0" && !deletedData.has(key)) {
       deletedData.add(key);
+    }
+    if (isJSON && flags.isJSON) {
+      try {
+        const jsonData = JSON.parse(value);
+
+        if (checkQuery(jsonData, condition)) {
+          const result = { id: key, ...jsonData };
+          if (!deletedData.has(key)) {
+            resultsArray.push(result);
+          }
+        }
+      } catch (error) {
+        // console.error(`Error parsing JSON for key ${key}:`, error);
+        // 继续处理下一个数据
+      }
     }
   }
 
@@ -67,7 +84,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     console.log("resultsArray", resultsArray);
 
     for (const filePath of paths) {
-      console.log("filePath", filePath);
+      console.log("fileDataGenerator filePath", filePath);
 
       const stream = await createDataStream(filePath);
       const reader = readLines(stream);

@@ -1,7 +1,8 @@
+import React from "react";
+
 import { useAppDispatch } from "app/hooks";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 import { omit } from "rambda";
-import React from "react";
 
 import { write } from "database/dbSlice";
 import { DataTable } from "./DataTable";

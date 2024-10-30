@@ -1,5 +1,4 @@
 import { useAuth } from "auth/useAuth";
-import { useUpdateEntryMutation } from "database/services";
 import React from "react";
 import { useParams } from "react-router-dom";
 import OpenProps from "open-props";
@@ -12,6 +11,7 @@ import { setHasVersion, saveContentAndMdast, updateContent } from "./pageSlice";
 import { processContent } from "./processContent";
 import { EditTool } from "./EditTool";
 import { RichEdit } from "./RichEdit";
+import { setData } from "database/dbSlice";
 
 const EditPage = () => {
   const dispatch = useAppDispatch();
@@ -21,7 +21,6 @@ const EditPage = () => {
   const userId = auth.user?.userId;
 
   const pageState = useAppSelector((state) => state.page);
-  const [updateEntry] = useUpdateEntryMutation();
   const [currentEditText, setTextareaContent] = React.useState<string>("");
 
   //保存之前检查输入区内容
@@ -34,10 +33,10 @@ const EditPage = () => {
     try {
       const pageData = createPageData(pageState, userId);
 
-      const result = await updateEntry({
-        entryId: pageId, // 使用 pageId 作为 entryId
-        data: pageData, // 将页面数据作为更新内容
-      }).unwrap(); // 使用 unwrap 处理响应
+      const result = await setData({
+        id: pageId,
+        data: pageData,
+      });
 
       if (result) {
         toast.success("保存成功");

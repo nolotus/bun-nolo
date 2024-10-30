@@ -1,6 +1,6 @@
 import { api } from "app/api";
 import { API_ENDPOINTS } from "database/config";
-
+//maybe need delete
 export const aiApi = api.injectEndpoints({
   endpoints: (builder) => ({
     generateImageEdit: builder.mutation({
