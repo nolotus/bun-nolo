@@ -34,6 +34,7 @@ import { geminiModelNames } from "integrations/google/ai/models";
 import { sendGeminiModelRequest } from "ai/chat/sendGeminiModelRequest";
 import { sendOpenAIRequest } from "ai/chat/sendOpenAIRequest";
 import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
+import { handleOllamaResponse } from "ai/chat/handleOllamaResponse";
 
 import { getFilteredMessages } from "./utils";
 import { sendNoloChatRequest } from "./chatStreamRequest";
@@ -491,12 +492,9 @@ export const messageSlice = createSliceWithThunks({
         const id = generateIdWithCustomId(userId, ulid(), {
           isJSON: true,
         });
-
         console.log("cybotConfig", cybotConfig);
-
         const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
         console.log("readLLMAction", readLLMAction);
-
         const llmConfig = readLLMAction.payload;
         const { api, apiStyle, model } = llmConfig;
         console.log("apiStyle", apiStyle);
@@ -529,74 +527,17 @@ export const messageSlice = createSliceWithThunks({
         });
         console.log("result", result);
         if (result.ok) {
-          const reader = result.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
-          let temp;
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-
-            // 处理缓冲区中的完整 JSON 对象
-            let newlineIndex;
-            while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-              const chunk = buffer.slice(0, newlineIndex);
-              buffer = buffer.slice(newlineIndex + 1);
-
-              if (chunk.trim().length > 0) {
-                try {
-                  const jsonData = JSON.parse(chunk);
-                  //todo  add open or close
-                  // console.log("Received data:", jsonData);
-                  const { done } = jsonData;
-                  temp = (temp || "") + (jsonData.message.content || "");
-                  if (done) {
-                    thunkApi.dispatch(
-                      messageStreamEnd({
-                        id,
-                        content: temp,
-                        cybotId,
-                      }),
-                    );
-                  } else {
-                    const message = {
-                      role: "assistant",
-                      id,
-                      content: temp,
-                      cybotId,
-                    };
-                    thunkApi.dispatch(setOne(message));
-                    thunkApi.dispatch(
-                      messageStreaming({ ...message, controller }),
-                    );
-                  }
-                  // 在这里处理您的 JSON 数据
-                  // 例如：更新UI，存储数据等
-                } catch (error) {
-                  console.error("Error parsing JSON:", error);
-                }
-              }
-            }
-          }
-
-          // 处理最后可能剩余的数据
-          if (buffer.trim().length > 0) {
-            try {
-              const jsonData = JSON.parse(buffer);
-              console.log("Final data:", jsonData);
-              // 处理最后的 JSON 数据
-            } catch (error) {
-              console.error("Error parsing final JSON:", error);
-            }
-          }
+          handleOllamaResponse(id, cybotId, result, thunkApi, controller);
         } else {
           console.error("HTTP-Error:", result.status);
         }
       },
       {},
     ),
+    sendWithMessageId: create.asyncThunk(async (messageId, thunkApi) => {
+      console.log("messageId", messageId);
+      const state = thunkApi.getState();
+    }, {}),
   }),
 });
 
@@ -618,6 +559,7 @@ export const {
   addUserMessage,
   streamRequest,
   streamLLmId,
+  sendWithMessageId,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

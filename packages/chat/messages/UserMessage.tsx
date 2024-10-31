@@ -16,6 +16,7 @@ import {
   menuItemStyle,
   menuSeparatorStyle,
 } from "./styles";
+
 export const UserMessage: React.FC<Message> = ({ content, id }) => {
   const dispatch = useAppDispatch();
   // const { audioSrc, handlePlayClick } = useAudioPlayer(content[0].text);

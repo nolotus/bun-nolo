@@ -1,15 +1,21 @@
 import React from "react";
 import * as Ariakit from "@ariakit/react";
-import { CopyIcon, DuplicateIcon, TrashIcon } from "@primer/octicons-react";
+import {
+  CopyIcon,
+  DuplicateIcon,
+  TrashIcon,
+  IterationsIcon,
+} from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
-import { deleteMessage } from "./messageSlice";
 import { useAuth } from "auth/useAuth";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import copyToClipboard from "utils/clipboard";
 import { ContextMenu, MenuItem } from "render/components/ContextMenu";
+
+import { deleteMessage, sendWithMessageId } from "./messageSlice";
 
 interface MessageContextMenuProps {
   menu: Ariakit.MenuStore;
@@ -88,7 +94,9 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
     });
     menu.hide();
   };
-
+  const handleResendMessage = () => {
+    dispatch(sendWithMessageId(id));
+  };
   const menuItems: MenuItem[] = [
     {
       id: "copy",
@@ -107,6 +115,12 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
       label: t("deleteMessage"),
       icon: <TrashIcon size={16} />,
       onClick: handleDeleteMessage,
+    },
+    {
+      id: "resend",
+      label: t("resend"),
+      icon: <IterationsIcon size={16} />,
+      onClick: handleResendMessage,
     },
   ];
 
