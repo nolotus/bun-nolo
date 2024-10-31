@@ -1,38 +1,30 @@
 // CreateCybot.tsx
-
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { DataType } from "create/types";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch } from "app/hooks";
-import { useQueryData } from "app/hooks/useQueryData";
-
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import ToggleSwitch from "render/ui/ToggleSwitch";
+import ModelSelector from "ai/llm/ModelSelect";
+import withTranslations from "i18n/withTranslations";
 import {
   FormContainer,
   FormTitle,
   FormField,
   Label,
-  Select,
   ErrorMessage,
   SubmitButton,
   FormFieldComponent,
 } from "render/CommonFormComponents";
-
-import withTranslations from "i18n/withTranslations";
-
-import { modelEnum } from "ai/llm/models";
 
 interface CreateCybotProps {
   onClose: () => void;
 }
 
 const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
-  console.log("CreateCybot component rendered");
-
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
@@ -48,51 +40,6 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
 
   const isPrivate = watch("isPrivate");
   const isEncrypted = watch("isEncrypted");
-
-  // LLM query configuration
-  const queryConfig = {
-    queryUserId: auth.user?.userId,
-    options: {
-      isJSON: true,
-      limit: 100,
-      condition: {
-        type: DataType.LLM,
-      },
-    },
-  };
-
-  console.log("Query config:", queryConfig);
-
-  const { data: llmData, isLoading: isLLMLoading } = useQueryData(queryConfig);
-
-  console.log("LLM data:", llmData);
-  console.log("Is LLM loading:", isLLMLoading);
-
-  // Prepare combined model options
-  const modelOptions = useMemo(() => {
-    console.log("Preparing model options");
-    const predefinedOptions = Object.entries(modelEnum).map(([key, value]) => ({
-      value: `predefined:${value}`,
-      label: key,
-    }));
-
-    const userLLMOptions = llmData
-      ? llmData.map((llm: any) => ({
-          value: `user:${llm.id}`,
-          label: `${llm.name} (${llm.model})`,
-        }))
-      : [];
-
-    console.log("Predefined options:", predefinedOptions);
-    console.log("User LLM options:", userLLMOptions);
-
-    return [
-      { label: t("predefinedModels"), options: predefinedOptions },
-      { label: t("userLLMs"), options: userLLMOptions },
-    ];
-  }, [llmData, t]);
-
-  console.log("Model options:", modelOptions);
 
   const onSubmit = useCallback(
     async (data: any) => {
@@ -145,18 +92,10 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
     },
   );
 
-  console.log("Current form errors:", errors);
-  console.log("Is form submitting?", isSubmitting);
-
   return (
     <FormContainer>
       <FormTitle>{t("createCybot")}</FormTitle>
-      <form
-        onSubmit={(e) => {
-          console.log("Form onSubmit triggered");
-          handleFormSubmit(e);
-        }}
-      >
+      <form onSubmit={(e) => handleFormSubmit(e)}>
         <FormFieldComponent
           label={t("cybotName")}
           name="name"
@@ -180,26 +119,11 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           as="textarea"
         />
 
-        <FormField>
-          <Label htmlFor="model">{t("model")}:</Label>
-          <Select
-            id="model"
-            {...register("model", { required: t("modelRequired") })}
-            disabled={isLLMLoading}
-          >
-            <option value="">{t("selectModel")}</option>
-            {modelOptions.map((group) => (
-              <optgroup key={group.label} label={group.label}>
-                {group.options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </Select>
-          {errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
-        </FormField>
+        <ModelSelector
+          value={watch("model")}
+          onChange={(value) => setValue("model", value)}
+          disabled={isSubmitting}
+        />
 
         <FormFieldComponent
           label={t("prompt")}
@@ -229,7 +153,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
 
         <SubmitButton
           type="submit"
-          disabled={isLLMLoading || isDialogLoading || isSubmitting}
+          disabled={isSubmitting || isDialogLoading}
           onClick={(e) => {
             e.preventDefault();
             console.log("Submit button clicked");

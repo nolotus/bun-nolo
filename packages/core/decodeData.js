@@ -95,9 +95,23 @@ export function processLine(line) {
 }
 
 export const parseStrWithId = (id, str) => {
+  // if (id === testId) {
+  //   console.log("parseStrWithId", id, str);
+  // }
   const flags = extractAndDecodePrefix(id);
 
+  // if (id === testId) {
+  //   console.log("flags", flags);
+  // }
   const parsedValue = parseValue(str);
+  // if (id === testId) {
+  //   console.log("parsedValue", parsedValue);
+  // }
   const decodedValue = decodeData(parsedValue, flags, id);
+  // if (
+  //   id === testId
+  // ) {
+  //   console.log("decodedValue", decodedValue);
+  // }
   return decodedValue;
 };

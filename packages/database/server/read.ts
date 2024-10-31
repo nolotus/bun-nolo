@@ -10,14 +10,26 @@ import { processLine } from "core/decodeData";
 import { createReadStream } from "node:fs";
 import { checkReadPermission } from "./permissions";
 import { mem } from "../server/mem";
+import { testId } from "./config";
 
 const checkMemoryForData = async (id: string) => {
   const memValue = await mem.get(id);
+  // if (id === testId) {
+  //   console.log("memValue", memValue, typeof memValue);
+  // }
   if (memValue === "0") {
     return null; // 视为已删除
   }
-  if (memValue) {
+
+  if (memValue !== "0") {
+    // if (id === testId) {
+    //   console.log("result memValue", memValue, typeof memValue);
+    // }
     const result = parseStrWithId(id, memValue);
+
+    // if (id === testId) {
+    //   console.log("result", result, typeof result);
+    // }
     return result;
   }
   return undefined; // 表示内存中没有找到数据

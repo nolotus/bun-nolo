@@ -80,7 +80,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   ];
 
   async function* fileDataGenerator(paths) {
-    console.log("userId", userId);
     console.log("resultsArray", resultsArray);
 
     for (const filePath of paths) {
