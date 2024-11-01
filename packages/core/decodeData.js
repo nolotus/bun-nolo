@@ -25,6 +25,7 @@ export const decodeData = (data, flags, id) => {
   const decodeOperations = {
     isBase64: (data) => (isBase64(data) ? Base64.atob(data) : data),
     isObject: (data) => {
+      console.log("isObject id", id);
       const result = noloToObject(data);
       return result;
     },
