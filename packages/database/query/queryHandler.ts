@@ -1,4 +1,6 @@
-import { getHeadTail, extractAndDecodePrefix } from "core";
+import { extractAndDecodePrefix } from "core";
+import { getHeadTail } from "core/getHeadTail";
+
 import { readLines } from "utils/bun/readLines";
 import { baseDir } from "database/server/config";
 import path from "path";
@@ -142,9 +144,14 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         // 继续处理下一个数据
       }
     } else if (isObject && flags.isObject) {
+      console.log("isObject", isObject);
       const result = noloToObject(value);
+      console.log("result", result);
+
       if (checkQuery(result, condition)) {
-        resultsArray.push(result);
+        if (!deletedData.has(key) && !resultsArray.includes(key)) {
+          resultsArray.push(result);
+        }
       }
     }
   }

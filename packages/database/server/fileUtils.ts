@@ -1,6 +1,7 @@
 import fs from "fs"; // 导入文件系统模块，用于文件操作
 import path from "path"; // 导入路径模块，用于处理文件路径
-import { getHeadTail } from "core"; // 假设该函数用于获取行的键值对
+import { getHeadTail } from "core/getHeadTail";
+
 import { getSortedFilteredFiles } from "./sort"; // 导入排序和过滤文件的函数
 import { createReadStream } from "node:fs";
 import readline from "readline";

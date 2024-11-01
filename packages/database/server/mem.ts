@@ -9,7 +9,7 @@ import { writeDataToFile } from "./writeDataToFile";
 import { findLogFiles, getLogFileLines, writeMemoryLog } from "./logUtils";
 
 import { baseDir } from "database/server/config";
-import { getHeadTail } from "core";
+import { getHeadTail } from "core/getHeadTail";
 
 type MemoryStructure = {
   memTable: Map<string, string>;
