@@ -1,23 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { getHeadTail } from "core";
-
-const getHighestLayer = (userDir: string): number => {
-  const files = fs.readdirSync(userDir);
-  let highestLayer = 0;
-
-  files.forEach((file) => {
-    const match = file.match(/_layer(\d+)\.nolo$/);
-    if (match) {
-      const layer = Number(match[1]);
-      if (layer > highestLayer) {
-        highestLayer = layer;
-      }
-    }
-  });
-
-  return highestLayer;
-};
+import { getHeadTail } from "core/getHeadTail";
 
 const readFromFile = (filePath: string): Map<string, string> => {
   const dataMap = new Map<string, string>();
@@ -38,6 +21,7 @@ const readFromFile = (filePath: string): Map<string, string> => {
 
   return dataMap;
 };
+//need add test for merge result check
 const mergeLayerFilesIfNeeded = (
   baseDir: string,
   userId: string,
@@ -63,18 +47,6 @@ const mergeLayerFilesIfNeeded = (
 
       fs.unlinkSync(filePath);
     });
-
-    // const highestLayer = getHighestLayer(userDir);
-    // if (layer === highestLayer) {
-    //   combinedDataMap.forEach((value, key) => {
-    //     console.log("value", typeof value);
-    //     if (value === "0") {
-    //       console.log("before value", combinedDataMap);
-    //       combinedDataMap.delete(key);
-    //       console.log("after value", combinedDataMap);
-    //     }
-    //   });
-    // }
 
     const nextLayer = layer + 1;
     const newTimestamp = new Date().toISOString().replace(/[-:.]/g, "");
