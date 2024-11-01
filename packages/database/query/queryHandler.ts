@@ -133,7 +133,9 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
         if (checkQuery(jsonData, condition)) {
           const result = { id: key, ...jsonData };
-          resultsArray.push(result);
+          if (!deletedData.has(key) && !resultsArray.includes(key)) {
+            resultsArray.push(result);
+          }
         }
       } catch (error) {
         // console.error(`Error parsing JSON for key ${key}:`, error);
