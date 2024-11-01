@@ -3,14 +3,35 @@
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists } from "utils/file";
-import { parseStrWithId } from "core/decodeData";
 
 import readline from "readline";
-import { processLine } from "core/decodeData";
+import { parseValue, processLine, decodeData } from "core/decodeData";
 import { createReadStream } from "node:fs";
 import { checkReadPermission } from "./permissions";
 import { mem } from "../server/mem";
 import { testId } from "./config";
+
+const parseStrWithId = (id, str) => {
+  // if (id === testId) {
+  //   console.log("parseStrWithId", id, str);
+  // }
+  const flags = extractAndDecodePrefix(id);
+
+  // if (id === testId) {
+  //   console.log("flags", flags);
+  // }
+  const parsedValue = parseValue(str);
+  // if (id === testId) {
+  //   console.log("parsedValue", parsedValue);
+  // }
+  const decodedValue = decodeData(parsedValue, flags, id);
+  // if (
+  //   id === testId
+  // ) {
+  //   console.log("decodedValue", decodedValue);
+  // }
+  return decodedValue;
+};
 
 const checkMemoryForData = async (id: string) => {
   const memValue = await mem.get(id);

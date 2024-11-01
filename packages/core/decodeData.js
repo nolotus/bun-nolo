@@ -19,7 +19,7 @@ const isBase64 = (str) => {
     /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
   return regExp.test(str);
 };
-const decodeData = (data, flags, id) => {
+export const decodeData = (data, flags, id) => {
   let decodedData = data;
 
   const decodeOperations = {
@@ -49,7 +49,7 @@ const decodeData = (data, flags, id) => {
   return decodedData;
 };
 
-const parseValue = (value) => {
+export const parseValue = (value) => {
   if (value === "true") {
     return true;
   }
@@ -71,9 +71,7 @@ export function processLine(line) {
   if (line.trim() === "") {
     return [];
   }
-
   const { key: id, value } = getHeadTail(line, " ");
-
   const parsedValue = parseValue(value);
   const flags = extractAndDecodePrefix(id);
 
@@ -82,25 +80,3 @@ export function processLine(line) {
 
   return [id.trim(), decodedValue];
 }
-
-export const parseStrWithId = (id, str) => {
-  // if (id === testId) {
-  //   console.log("parseStrWithId", id, str);
-  // }
-  const flags = extractAndDecodePrefix(id);
-
-  // if (id === testId) {
-  //   console.log("flags", flags);
-  // }
-  const parsedValue = parseValue(str);
-  // if (id === testId) {
-  //   console.log("parsedValue", parsedValue);
-  // }
-  const decodedValue = decodeData(parsedValue, flags, id);
-  // if (
-  //   id === testId
-  // ) {
-  //   console.log("decodedValue", decodedValue);
-  // }
-  return decodedValue;
-};
