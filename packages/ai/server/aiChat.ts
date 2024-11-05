@@ -7,6 +7,7 @@ import { NoloChatRequestBody } from "../types";
 export const handleAIChatRequest = async (req, res) => {
   const requestBody: NoloChatRequestBody = req.body;
   const type: string = requestBody.type || "text";
+  console.log("type", type);
   try {
     if (type === "stream") {
       return handleStreamReq(req, res);

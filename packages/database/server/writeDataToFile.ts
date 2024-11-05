@@ -38,7 +38,7 @@ const mergeLayerFilesIfNeeded = (
 
     layerFiles.forEach((file) => {
       const filePath = path.join(userDir, file);
-      console.log("layerFiles filePath", filePath);
+      // console.log("layerFiles filePath", filePath);
       const fileData = readFromFile(filePath);
 
       fileData.forEach((value, key) => {

@@ -41,7 +41,7 @@ import { sendNoloChatRequest } from "./chatStreamRequest";
 
 import { claudeModels } from "integrations/anthropic/models";
 import { isModelInList } from "ai/llm/isModelInList";
-
+import { getWeather } from "ai/tools/getWeather";
 const chatWindowLogger = getLogger("ChatWindow");
 
 const createSliceWithThunks = buildCreateSlice({
@@ -260,6 +260,11 @@ export const messageSlice = createSliceWithThunks({
               isJSON: true,
             });
             let temp: string;
+
+            let functionTemp = "";
+            let argumentsStr = "";
+            let hasFunction = false;
+
             const controller = new AbortController();
             const signal = controller.signal;
             try {
@@ -275,66 +280,114 @@ export const messageSlice = createSliceWithThunks({
               const { reader } = action.payload;
 
               const handleStreamData = async (id: string, text: string) => {
-                if (ollamaModelNames.includes(model)) {
-                  let rawJSON = {};
-                  try {
-                    rawJSON = JSON.parse(text);
-                  } catch (error) {}
-                  const { done_reason, done } = rawJSON;
-                  temp = (temp || "") + (rawJSON.message.content || "");
+                const lines = text.trim().split("\n");
+                for (const line of lines) {
+                  const match = line.match(/data: (done|{.*}|)/);
+                  if (match && match[1] !== undefined) {
+                    const statusOrJson: string = match[1];
+                    if (statusOrJson === "" || statusOrJson === "done") {
+                    } else {
+                      try {
+                        const json = JSON.parse(statusOrJson);
+                        if (json.choices) {
+                          const delta = json.choices[0].delta;
+                          if (delta.tool_calls) {
+                            const callTools = delta.tool_calls[0];
 
-                  if (done) {
-                    thunkApi.dispatch(
-                      messageStreamEnd({
-                        id,
-                        content: temp,
-                        cybotId,
-                      }),
-                    );
-                  } else {
-                    const message = {
-                      role: "assistant",
-                      id,
-                      content: temp,
-                      cybotId,
-                    };
-                    thunkApi.dispatch(setOne(message));
-                    thunkApi.dispatch(
-                      messageStreaming({ ...message, controller }),
-                    );
-                  }
-                } else {
-                  const lines = text.trim().split("\n");
-                  for (const line of lines) {
-                    // 使用正则表达式匹配 "data:" 后面的内容
-                    const match = line.match(/data: (done|{.*}|)/);
+                            // 处理function调用
+                            if (callTools.function && callTools.function.name) {
+                              hasFunction = true;
+                              functionTemp = {
+                                index: callTools.index,
+                                id: callTools.id,
+                                type: callTools.type,
+                                function: {
+                                  name: callTools.function.name,
+                                  arguments: "",
+                                },
+                              };
 
-                    if (match && match[1] !== undefined) {
-                      const statusOrJson: string = match[1];
-                      if (statusOrJson === "" || statusOrJson === "done") {
-                      } else {
-                        try {
-                          const json = JSON.parse(statusOrJson);
+                              // 显示思考状态
+                              const message = {
+                                id,
+                                content: "思考中...",
+                                cybotId,
+                              };
+                              thunkApi.dispatch(setOne(message));
+                              thunkApi.dispatch(
+                                messageStreaming({ ...message, controller }),
+                              );
+                            }
+
+                            // 累积arguments
+                            if (
+                              callTools.function &&
+                              callTools.function.arguments
+                            ) {
+                              argumentsStr += callTools.function.arguments;
+
+                              try {
+                                JSON.parse(argumentsStr); // 验证是完整的JSON
+                                // 参数接收完整,可以执行function
+                                functionTemp.function.arguments = argumentsStr;
+
+                                // 这里执行function调用
+                                const functionName = functionTemp.function.name;
+                                const functionArgs = JSON.parse(
+                                  functionTemp.function.arguments,
+                                );
+
+                                // 方式1: 直接执行
+                                if (functionName === "get_current_weather") {
+                                  const result = await getWeather(functionArgs);
+                                  const message = {
+                                    content: result,
+                                    id,
+                                    cybotId,
+                                  };
+                                  console.log("function message", message);
+                                  thunkApi.dispatch(messageStreamEnd(message));
+                                }
+
+                                // 方式2: 通过dispatch触发
+                                // thunkApi.dispatch(
+                                //   executeFunctionCall({
+                                //     name: functionName,
+                                //     arguments: functionArgs,
+                                //   }),
+                                // );
+
+                                // 清理状态
+                                functionTemp = "";
+                                argumentsStr = "";
+                                hasFunction = false;
+                              } catch (e) {
+                                // 参数未接收完,继续等待
+                              }
+                            }
+                          }
+
                           const finishReason: string =
                             json.choices[0].finish_reason;
                           if (finishReason === "stop") {
-                            const message = {
-                              content: temp,
-                              id,
-                              cybotId,
-                            };
-
-                            thunkApi.dispatch(messageStreamEnd(message));
-
-                            // tokenCount = 0; // 重置计数器
+                            // 只有在没有执行过function的情况下,才发送stop消息
+                            if (!hasFunction) {
+                              const message = {
+                                content: temp,
+                                id,
+                                cybotId,
+                              };
+                              thunkApi.dispatch(messageStreamEnd(message));
+                            }
                           } else if (
                             finishReason === "length" ||
                             finishReason === "content_filter"
                           ) {
                             thunkApi.dispatch(messagesReachedMax());
                           } else if (finishReason === "function_call") {
-                            // nerver use just sign it
-                          } else {
+                            // function_call完成
+                          } else if (!hasFunction) {
+                            // 只在非function调用时更新消息
                             temp =
                               (temp || "") +
                               (json.choices[0]?.delta?.content || "");
@@ -349,15 +402,12 @@ export const messageSlice = createSliceWithThunks({
                               messageStreaming({ ...message, controller }),
                             );
                           }
-                          // if (json.choices[0]?.delta?.content) {
-                          //   tokenCount++; // 单次计数
-                          // }
-                        } catch (e) {
-                          chatWindowLogger.error(
-                            { error: e },
-                            "Error parsing JSON",
-                          );
                         }
+                      } catch (e) {
+                        chatWindowLogger.error(
+                          { error: e },
+                          "Error parsing JSON",
+                        );
                       }
                     }
                   }
@@ -465,12 +515,30 @@ export const messageSlice = createSliceWithThunks({
           ...cybotConfig,
           responseLanguage: navigator.language,
         };
-
+        const tools = [
+          {
+            type: "function",
+            function: {
+              name: "run_cybot",
+              description: "run cybot with id",
+              parameters: {
+                type: "object",
+                properties: {
+                  city: {
+                    type: "cybotId",
+                    description: "The Id of the Cybot",
+                  },
+                },
+                required: ["cybotId"],
+              },
+            },
+          },
+        ];
         const requestBody = createStreamRequestBody(config, content, prevMsgs);
-
+        console.log("requestBody", requestBody);
         const response = await sendNoloChatRequest({
           currentServer,
-          requestBody,
+          requestBody: { ...requestBody, tools },
           signal,
           token,
         });
@@ -512,10 +580,31 @@ export const messageSlice = createSliceWithThunks({
         const messages = prepareMsgs(prepareMsgConfig);
         console.log("messages", messages);
 
-        const body = JSON.stringify({
+        const tools = [
+          {
+            type: "function",
+            function: {
+              name: "run_cybot",
+              description: "根据对话可以找到合适的cybotId ，进行运行",
+              parameters: {
+                type: "object",
+                properties: {
+                  cybotId: {
+                    type: "string",
+                    description: "The Id of the Cybot",
+                  },
+                },
+                required: ["cybotId"],
+              },
+            },
+          },
+        ];
+        const bodyData = {
           model: model,
           messages,
-        });
+          tools,
+        };
+        const body = JSON.stringify(bodyData);
         console.log("body", body);
         const result = await fetch(api, {
           method: "POST",
@@ -526,6 +615,13 @@ export const messageSlice = createSliceWithThunks({
           signal,
         });
         console.log("result", result);
+        console.log("bodyData.tools", bodyData.tools);
+
+        // if (bodyData.tools) {
+        //   console.log("start json");
+        //   const json = await result.json();
+        //   console.log("json", json);
+        // }
         if (result.ok) {
           handleOllamaResponse(id, cybotId, result, thunkApi, controller);
         } else {

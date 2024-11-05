@@ -7,7 +7,7 @@ import { reverse } from "rambda";
  * 寻找日志文件，包括以 "wal" 和 "default" 开头的文件。
  */
 export const findLogFiles = (): string[] => {
-  console.log("开始查找日志文件...");
+  // console.log("开始查找日志文件...");
 
   const logFiles = fs
     .readdirSync(baseDir)
@@ -21,7 +21,7 @@ export const findLogFiles = (): string[] => {
       return parseInt(aTimestamp || "0", 10) - parseInt(bTimestamp || "0", 10);
     });
 
-  console.log(`找到 ${logFiles.length} 个日志文件`);
+  // console.log(`找到 ${logFiles.length} 个日志文件`);
 
   return logFiles;
 };
@@ -38,8 +38,8 @@ export const getLogFileLines = (logFile: string): string[] => {
   fs.unlinkSync(logPath); // 删除这个文件
   const lines = reverse(logContent.split("\n").filter((line) => line.trim())); // 使用 rambda 的 reverse
 
-  console.log(`读取文件内容 [${logFile}]:`);
-  console.log(lines); // 输出反转后的行数据
+  // console.log(`读取文件内容 [${logFile}]:`);
+  // console.log(lines); // 输出反转后的行数据
 
   return lines;
 };

@@ -96,7 +96,7 @@ const writeUserFiles = (
 // 更新后的moveToImmutable函数
 const moveToImmutable = (memory: MemoryStructure): MemoryStructure => {
   const timestamp = Date.now().toString();
-  console.log("moveToImmutable", memory);
+  // console.log("moveToImmutable", memory);
   updateWalFromDefault(timestamp, memory.sequenceNumber);
   const userData = organizeDataByUserId(memory.memTable);
   writeUserFiles(userData, timestamp, memory.sequenceNumber);
@@ -147,7 +147,7 @@ class EnhancedMap {
     console.log(`applyLogData: ${lines}`);
 
     lines.forEach((line) => {
-      console.log(`applyLogData line: ${line}`);
+      // console.log(`applyLogData line: ${line}`);
 
       try {
         const { key, value } = getHeadTail(line);

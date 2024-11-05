@@ -58,11 +58,13 @@ export const sendOpenAIRequest = async (
   const pickMessages = map(pick(messagePropertiesToPick));
   const isO1 =
     requestBody.model === "o1-mini" || requestBody.model === "o1-preview";
+  console.log("requestBody.tools", requestBody.tools);
   const openAIConfig: OpenAIConfig = filter((value) => value != null, {
     model: requestBody.model,
     messages: pickMessages(messages),
     stream: isO1 ? false : isStream,
     max_completion_tokens: requestBody.max_tokens,
+    tools: requestBody.tools,
   });
   const config: AxiosRequestConfig = {
     ...createOpenAIRequestConfig(),

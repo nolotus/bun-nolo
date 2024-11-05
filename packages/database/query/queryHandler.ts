@@ -82,10 +82,10 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   ];
 
   async function* fileDataGenerator(paths) {
-    console.log("resultsArray", resultsArray);
+    // console.log("resultsArray", resultsArray);
 
     for (const filePath of paths) {
-      console.log("fileDataGenerator filePath", filePath);
+      // console.log("fileDataGenerator filePath", filePath);
 
       const stream = await createDataStream(filePath);
       const reader = readLines(stream);
@@ -97,7 +97,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
               "000000100000-VzlmQmd5S1RBUlphQS1YUnEzalk5MmVnbldoQWNLS0VkbHdQc0kzNmJlYw-01JB8P5JDGNG40N39224TEZMVT",
             )
           ) {
-            console.log("line", line);
+            // console.log("line", line);
           }
           yield line;
         }
@@ -144,9 +144,9 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         // 继续处理下一个数据
       }
     } else if (isObject && flags.isObject) {
-      console.log("isObject", isObject);
+      // console.log("isObject", isObject);
       const result = noloToObject(value);
-      console.log("result", result);
+      // console.log("result", result);
 
       if (checkQuery(result, condition)) {
         if (!deletedData.has(key) && !resultsArray.includes(key)) {
@@ -155,6 +155,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
       }
     }
   }
-  console.log("resultsArray", resultsArray);
+  // console.log("resultsArray", resultsArray);
   return sortResults(resultsArray, sort);
 };

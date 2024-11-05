@@ -84,6 +84,7 @@ export const pickAiRequstBody = (body) => {
     "previousMessages",
     "userInput",
     "prompt",
+    "tools",
   ];
   return pick(propertiesToPick, body);
 };

@@ -16,6 +16,7 @@ export interface NoloChatRequestBody {
   size?: string;
   file?: Buffer;
   max_tokens: number;
+  tools: any;
 }
 export type ModeType =
   | "text"
