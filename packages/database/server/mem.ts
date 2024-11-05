@@ -5,11 +5,11 @@ import path from "path";
 import { getFromMemory } from "./memoryUtils";
 import { extractUserId } from "core/prefix";
 import { readAllFilesForUser } from "./fileUtils";
-import { writeDataToFile } from "./writeDataToFile";
 import { findLogFiles, getLogFileLines, writeMemoryLog } from "./logUtils";
 
 import { baseDir } from "database/server/config";
 import { getHeadTail } from "core/getHeadTail";
+import { writeUserFiles } from "./writeDataToFile";
 
 type MemoryStructure = {
   memTable: Map<string, string>;
@@ -73,24 +73,6 @@ const organizeDataByUserId = (
   });
 
   return userData;
-};
-
-const writeUserFiles = (
-  userData: Map<string, Map<string, string>>,
-  timestamp: string,
-  sequenceNumber: number,
-): void => {
-  userData.forEach((dataMap, userId) => {
-    writeDataToFile(baseDir, userId, dataMap, `${timestamp}_${sequenceNumber}`);
-  });
-
-  const walPath = path.resolve(
-    baseDir,
-    `wal_${timestamp}_${sequenceNumber}.log`,
-  );
-  if (fs.existsSync(walPath)) {
-    fs.unlinkSync(walPath);
-  }
 };
 
 // 更新后的moveToImmutable函数
