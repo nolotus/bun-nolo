@@ -128,7 +128,7 @@ class EnhancedMap {
   }
 
   private applyLogData(lines: string[]): void {
-    console.log(`applyLogData: ${lines}`);
+    // console.log(`applyLogData: ${lines}`);
 
     lines.forEach((line) => {
       // console.log(`applyLogData line: ${line}`);

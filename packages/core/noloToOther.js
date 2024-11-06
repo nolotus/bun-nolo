@@ -2,8 +2,8 @@ export const noloToObject = (text) => {
   if (text === "") {
     return {};
   }
-  console.log("text type ", typeof text);
-  console.log("text", text);
+  // console.log("text type ", typeof text);
+  // console.log("text", text);
 
   const array = text.split(/,(?=(?:[^']*'[^']*')*[^']*$)/g);
   const object = array.reduce((acc, cur) => {
