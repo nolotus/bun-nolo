@@ -1,10 +1,11 @@
-import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
+import { DEFAULT_INDEX_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists } from "utils/file";
 import readline from "readline";
-import { processLine } from "core/decodeData";
+import { processLine, decodeData } from "core/decodeData";
 
-import { createWriteStream, createReadStream } from "node:fs";
+import { createReadStream } from "node:fs";
+import { mem } from "./mem";
 
 const findDataInFile = (filePath, id: string) => {
   return new Promise((resolve, reject) => {
@@ -30,6 +31,7 @@ const findDataInFile = (filePath, id: string) => {
     rl.on("error", (err) => reject(err));
   });
 };
+
 export const handleReadSingle = async (req, res) => {
   if (!req.params.id) {
     return res.status(500).json({ error: "need id" });
@@ -61,7 +63,7 @@ export const handleReadSingle = async (req, res) => {
   }
 };
 
-export const serverGetData = (id: string) => {
+export const serverGetData = async (id: string) => {
   if (!id) {
     return Promise.resolve(null);
   }
@@ -73,8 +75,19 @@ export const serverGetData = (id: string) => {
     return Promise.resolve(null);
   }
 
+  const memValue = await mem.get(id);
+
+  if (memValue) {
+    console.log("memValue true", memValue);
+    const flags = extractAndDecodePrefix(id);
+    const decodedValue = decodeData(memValue, flags, id);
+    // console.log("decodedValue ", decodedValue);
+    return Promise.resolve(decodedValue);
+  } else {
+    console.log("id", id, memValue);
+  }
   const indexPath = `./nolodata/${userId}/${DEFAULT_INDEX_FILE}`;
-  const hashPath = `./nolodata/${userId}/${DEFAULT_HASH_FILE}`;
+  // const hashPath = `./nolodata/${userId}/${DEFAULT_HASH_FILE}`;
 
   if (!checkFileExists(indexPath)) {
     return Promise.resolve(null);
@@ -85,18 +98,11 @@ export const serverGetData = (id: string) => {
       return data;
     }
     //is hash
-    if (id.startsWith("1")) {
-      if (!checkFileExists(hashPath)) {
-        return Promise.resolve(null);
-      }
-
-      return findDataInFile(hashPath, id).then((hashData) => {
-        if (hashData) {
-        } else {
-        }
-        return hashData;
-      });
-    }
+    // if (id.startsWith("1")) {
+    //   if (!checkFileExists(hashPath)) {
+    //     return Promise.resolve(null);
+    //   }
+    // }
 
     return null;
   });

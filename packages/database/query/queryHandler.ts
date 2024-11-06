@@ -32,9 +32,9 @@ async function* fileDataGenerator(paths) {
 
     try {
       for await (const line of reader) {
-        if (line.includes("01JBKGZMFZYPCXD5CV6G8VENEQ")) {
-          console.log("line", filePath, line);
-        }
+        // if (line.includes("01JBKGZMFZYPCXD5CV6G8VENEQ")) {
+        //   console.log("line", filePath, line);
+        // }
         yield line;
       }
     } catch (error) {
@@ -107,7 +107,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     ...sortedFilteredFiles.map((file) => path.join(userDir, file)),
     indexPath,
   ];
-  console.log("paths", paths);
+  // console.log("paths", paths);
 
   const dataGenerator = fileDataGenerator(paths);
 

@@ -32,13 +32,10 @@ const get = async (
   //   `Current memory.memTable:`,
   //   Array.from(memory.memTable.entries()),
   // );
-
   const memoryValue = getFromMemory(memory, key);
-
   if (memoryValue !== undefined) {
     return memoryValue;
   }
-
   const userId = extractUserId(key);
   const value = await readAllFilesForUser(baseDir, userId, key);
   return value;
