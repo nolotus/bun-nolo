@@ -49,14 +49,14 @@ export const getSortedFilteredFiles = (
     const bindex = bmatch[3] ? Number(bmatch[3]) : 0;
     const blayer = Number(bmatch[4]);
 
+    // 比较时间戳
+    if (atime !== btime) {
+      return btime - atime; // 修改这里，新的文件在前
+    }
+
     // 比较层数
     if (alayer !== blayer) {
       return alayer - blayer;
-    }
-
-    // 比较时间戳
-    if (atime !== btime) {
-      return atime - btime;
     }
 
     // 比较序号

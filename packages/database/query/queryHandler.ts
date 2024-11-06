@@ -22,6 +22,27 @@ async function createDataStream(path: string) {
   }
 }
 
+async function* fileDataGenerator(paths) {
+  // console.log("resultsArray", resultsArray);
+
+  for (const filePath of paths) {
+    // console.log("fileDataGenerator filePath", filePath);
+    const stream = await createDataStream(filePath);
+    const reader = readLines(stream);
+
+    try {
+      for await (const line of reader) {
+        if (line.includes("01JBKGZMFZYPCXD5CV6G8VENEQ")) {
+          console.log("line", filePath, line);
+        }
+        yield line;
+      }
+    } catch (error) {
+      console.error("Error reading file:", error);
+    }
+  }
+}
+
 function sortResults(results, sort) {
   if (sort) {
     results =
@@ -47,6 +68,12 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   const memoryData = mem.getFromMemorySync();
 
   let resultsArray = [];
+  const addToResults = (item) => {
+    // if (item.id.includes("01JBKGZMFZYPCXD5CV6G8VENEQ")) {
+    //   console.log("addToResults", item);
+    // }
+    resultsArray.push(item);
+  };
   const deletedData = new Set();
 
   // 提取删除的数据
@@ -63,7 +90,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         if (checkQuery(jsonData, condition)) {
           const result = { id: key, ...jsonData };
           if (!deletedData.has(key)) {
-            resultsArray.push(result);
+            addToResults(result);
           }
         }
       } catch (error) {
@@ -80,32 +107,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     ...sortedFilteredFiles.map((file) => path.join(userDir, file)),
     indexPath,
   ];
-
-  async function* fileDataGenerator(paths) {
-    // console.log("resultsArray", resultsArray);
-
-    for (const filePath of paths) {
-      // console.log("fileDataGenerator filePath", filePath);
-
-      const stream = await createDataStream(filePath);
-      const reader = readLines(stream);
-
-      try {
-        for await (const line of reader) {
-          if (
-            line.includes(
-              "000000100000-VzlmQmd5S1RBUlphQS1YUnEzalk5MmVnbldoQWNLS0VkbHdQc0kzNmJlYw-01JB8P5JDGNG40N39224TEZMVT",
-            )
-          ) {
-            // console.log("line", line);
-          }
-          yield line;
-        }
-      } catch (error) {
-        console.error("Error reading file:", error);
-      }
-    }
-  }
+  console.log("paths", paths);
 
   const dataGenerator = fileDataGenerator(paths);
 
@@ -116,7 +118,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
     const flags = extractAndDecodePrefix(key);
 
-    // 新增逻辑，处理文件中的删除标记
     if (value === "0") {
       if (!deletedData.has(key)) {
         deletedData.add(key);
@@ -128,7 +129,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
     if (isList && flags.isList) {
       const result = listToArray(value);
-      resultsArray.push(result);
+      addToResults(result);
     } else if (isJSON && flags.isJSON) {
       try {
         const jsonData = JSON.parse(value);
@@ -136,7 +137,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         if (checkQuery(jsonData, condition)) {
           const result = { id: key, ...jsonData };
           if (!deletedData.has(key) && !resultsArray.includes(key)) {
-            resultsArray.push(result);
+            addToResults(result);
           }
         }
       } catch (error) {
@@ -150,11 +151,11 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
       if (checkQuery(result, condition)) {
         if (!deletedData.has(key) && !resultsArray.includes(key)) {
-          resultsArray.push(result);
+          addToResults(result);
         }
       }
     }
   }
-  // console.log("resultsArray", resultsArray);
+
   return sortResults(resultsArray, sort);
 };

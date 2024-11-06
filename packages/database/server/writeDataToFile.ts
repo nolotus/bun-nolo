@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { getHeadTail } from "core/getHeadTail";
 import { baseDir } from "database/server/config";
-
+import { generateTimestamp } from "./time";
 const readFromFile = (filePath: string): Map<string, string> => {
   const dataMap = new Map<string, string>();
 
@@ -88,7 +88,7 @@ const mergeLayerFilesIfNeeded = (
     });
 
     const nextLayer = layer + 1;
-    const newTimestamp = new Date().toISOString().replace(/[-:.]/g, "");
+    const newTimestamp = generateTimestamp();
 
     setTimeout(() => {
       writeDataToFile(

@@ -10,6 +10,7 @@ import { findLogFiles, getLogFileLines, writeMemoryLog } from "./logUtils";
 import { baseDir } from "database/server/config";
 import { getHeadTail } from "core/getHeadTail";
 import { writeUserFiles } from "./writeDataToFile";
+import { generateTimestamp } from "./time";
 
 type MemoryStructure = {
   memTable: Map<string, string>;
@@ -77,7 +78,8 @@ const organizeDataByUserId = (
 
 // 更新后的moveToImmutable函数
 const moveToImmutable = (memory: MemoryStructure): MemoryStructure => {
-  const timestamp = Date.now().toString();
+  const timestamp = generateTimestamp();
+
   // console.log("moveToImmutable", memory);
   updateWalFromDefault(timestamp, memory.sequenceNumber);
   const userData = organizeDataByUserId(memory.memTable);
@@ -106,7 +108,7 @@ const set = (
   // Write to default.log
   writeMemoryLog(key, value);
 
-  if (newMemTable.size > 2) {
+  if (newMemTable.size > 4) {
     return moveToImmutable({ ...memory, memTable: newMemTable });
   }
 
