@@ -61,10 +61,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Deploy to us.nolotus.com
+      - name: Deploy to us.cybot.run
         uses: appleboy/ssh-action@master
         with:
-          host: us.nolotus.com
+          host: us.cybot.run
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
