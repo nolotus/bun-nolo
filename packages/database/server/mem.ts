@@ -130,15 +130,12 @@ class EnhancedMap {
 
     lines.forEach((line) => {
       // console.log(`applyLogData line: ${line}`);
-
       try {
         const { key, value } = getHeadTail(line);
-
         if (key) {
           this.memory.memTable.set(key, value);
-
-          console.log(`Newly added key: ${key}`);
-          console.log(this.memory.memTable.keys());
+          // console.log(`Newly added key: ${key}`);
+          // console.log(this.memory.memTable.keys());
         }
       } catch (error) {
         console.error(`Failed to parse line with error: ${error.message}`);

@@ -101,20 +101,34 @@ const mergeLayerFilesIfNeeded = (
     }, 100);
   }
 };
+
 export const writeUserFiles = (
   userData: Map<string, Map<string, string>>,
   timestamp: string,
   sequenceNumber: number,
 ): void => {
-  userData.forEach((dataMap, userId) => {
-    writeDataToFile(baseDir, userId, dataMap, `${timestamp}_${sequenceNumber}`);
-  });
+  try {
+    // 写入用户数据
+    userData.forEach((dataMap, userId) => {
+      writeDataToFile(
+        baseDir,
+        userId,
+        dataMap,
+        `${timestamp}_${sequenceNumber}`,
+      );
+    });
 
-  const walPath = path.resolve(
-    baseDir,
-    `wal_${timestamp}_${sequenceNumber}.log`,
-  );
-  if (fs.existsSync(walPath)) {
-    fs.unlinkSync(walPath);
+    // 删除WAL日志
+    const walPath = path.resolve(
+      baseDir,
+      `wal_${timestamp}_${sequenceNumber}.log`,
+    );
+    if (fs.existsSync(walPath)) {
+      fs.unlinkSync(walPath);
+      console.log(`Successfully deleted WAL file: ${walPath}`);
+    }
+  } catch (error) {
+    console.error("Error in writeUserFiles:", error);
+    throw error; // 向上传递错误,让调用者知道写入失败
   }
 };

@@ -19,7 +19,10 @@ export const createRoutes = [
     CreateRoutePaths.CREATE_CYBOT,
     () => import("ai/cybot/CreateCybot"),
   ),
-  createLazyRoute(CreateRoutePaths.CREATE_LLM, () => import("ai/llm/Create")),
+  createLazyRoute(
+    CreateRoutePaths.CREATE_LLM,
+    () => import("ai/llm/CreateLLM"),
+  ),
   createLazyRoute(
     CreateRoutePaths.CREATE_PROMPT,
     () => import("ai/prompt/Create"),

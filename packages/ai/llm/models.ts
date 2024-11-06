@@ -10,6 +10,7 @@ import { ollamaModels } from "integrations/ollama/models";
 import { claudeModels } from "integrations/anthropic/models";
 import { googleAIModels } from "integrations/google/ai/models";
 import { deepinfraModels } from "integrations/deepinfra/models";
+import { fireworksmodels } from "integrations/fireworks/models";
 
 export const allModels = {
   ...openAIModels,
@@ -20,6 +21,7 @@ export const allModels = {
   ...claudeModels,
   ...googleAIModels,
   ...deepinfraModels,
+  ...fireworksmodels,
 };
 
 //todo add source from

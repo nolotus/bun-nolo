@@ -28,15 +28,8 @@ import {
   ErrorMessage,
 } from "render/CommonFormComponents";
 import { LLMFormData } from "ai/types";
-import { modelEnum } from "../llm/models";
-
-const apiStyleOptions = ["ollama", "openai", "claude"];
-
-const defaultAPIs = {
-  ollama: "http://localhost:11434/api/chat",
-  openai: "https://api.openai.com/v1/chat/completions",
-  claude: "https://api.anthropic.com/v1/complete",
-};
+import { modelEnum } from "./models";
+import { defaultAPIs, apiStyleOptions } from "./config";
 
 const CreateLLM: React.FC = () => {
   const { t } = useTranslation();
@@ -132,8 +125,16 @@ const CreateLLM: React.FC = () => {
           register={register}
           errors={errors}
         />
-        <FormField>
+        <FormFieldComponent
+          label={t("model")}
+          name="modelValue"
+          register={register}
+          errors={errors}
+          required
+        />
+        {/* <FormField>
           <Label htmlFor="model">{t("model")}:</Label>
+          <input {}></input>
           <Controller
             name="model"
             control={control}
@@ -167,7 +168,7 @@ const CreateLLM: React.FC = () => {
             )}
           />
           {errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
-        </FormField>
+        </FormField> */}
         <SubmitButton type="submit">{t("createLLM")}</SubmitButton>
       </form>
     </FormContainer>
