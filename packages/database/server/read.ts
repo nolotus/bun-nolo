@@ -1,100 +1,12 @@
-// read.ts
-
 import { DEFAULT_INDEX_FILE, DEFAULT_HASH_FILE } from "database/init";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { checkFileExists } from "utils/file";
-
 import readline from "readline";
-import { parseValue, processLine, decodeData } from "core/decodeData";
-import { createReadStream } from "node:fs";
-import { checkReadPermission } from "./permissions";
-import { mem } from "../server/mem";
-import { testId } from "./config";
+import { processLine } from "core/decodeData";
 
-const parseStrWithId = (id, str) => {
-  // if (id === testId) {
-  //   console.log("parseStrWithId", id, str);
-  // }
-  const flags = extractAndDecodePrefix(id);
+import { createWriteStream, createReadStream } from "node:fs";
 
-  // if (id === testId) {
-  //   console.log("flags", flags);
-  // }
-  const parsedValue = parseValue(str);
-  // if (id === testId) {
-  //   console.log("parsedValue", parsedValue);
-  // }
-  const decodedValue = decodeData(parsedValue, flags, id);
-  // if (
-  //   id === testId
-  // ) {
-  //   console.log("decodedValue", decodedValue);
-  // }
-  return decodedValue;
-};
-
-const checkMemoryForData = async (id: string) => {
-  const memValue = await mem.get(id);
-  // if (id === testId) {
-  //   console.log("memValue", memValue, typeof memValue);
-  // }
-  if (memValue === "0") {
-    return null; // 视为已删除
-  }
-
-  if (memValue !== "0") {
-    // if (id === testId) {
-    //   console.log("result memValue", memValue, typeof memValue);
-    // }
-    const result = parseStrWithId(id, memValue);
-
-    // if (id === testId) {
-    //   console.log("result", result, typeof result);
-    // }
-    return result;
-  }
-  return undefined; // 表示内存中没有找到数据
-};
-
-export const handleReadSingle = async (req, res) => {
-  if (!req.params.id) {
-    return res.status(500).json({ error: "need id" });
-  }
-  const id = req.params.id;
-  const { isFile, isList } = extractAndDecodePrefix(id);
-  const userId = extractUserId(id);
-
-  if (!checkReadPermission(userId, id)) {
-    return res.status(404).json({ error: "Data not found (deleted)" });
-  }
-
-  //文件单独处理
-  if (isFile) {
-    const file = Bun.file(`nolodata/${userId}/${id}`);
-    const headers = new Headers({
-      "Cache-Control": "max-age=3600",
-      "Content-Type": file.type,
-    });
-    return new Response(file.stream(), { headers });
-  }
-
-  try {
-    const result = await serverGetData(id);
-    if (result) {
-      if (isList) {
-        return res.status(200).json({ array: [...result], id });
-      }
-      return res.status(200).json({ ...result, id });
-    }
-    return res.status(404).json({ error: "Data not found" });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ error: "An error occurred while fetching data" });
-  }
-};
-
-export const findDataInFile = (filePath, id: string) => {
+const findDataInFile = (filePath, id: string) => {
   return new Promise((resolve, reject) => {
     let found = false;
     const input = createReadStream(filePath);
@@ -118,8 +30,38 @@ export const findDataInFile = (filePath, id: string) => {
     rl.on("error", (err) => reject(err));
   });
 };
+export const handleReadSingle = async (req, res) => {
+  if (!req.params.id) {
+    return res.status(500).json({ error: "need id" });
+  }
+  const id = req.params.id;
+  const { isFile, isList } = extractAndDecodePrefix(id);
+  const userId = extractUserId(id);
+  if (isFile) {
+    const file = Bun.file(`nolodata/${userId}/${id}`);
+    const headers = new Headers({
+      "Cache-Control": "max-age=3600",
+      "Content-Type": file.type,
+    });
+    return new Response(file.stream(), { headers });
+  }
+  try {
+    const result = await serverGetData(id);
+    if (result) {
+      if (isList) {
+        return res.status(200).json({ array: [...result], id });
+      }
+      return res.status(200).json({ ...result, id });
+    }
+    return res.status(404).json({ error: "Data not found" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "An error occurred while fetching data" });
+  }
+};
 
-export const serverGetData = async (id: string) => {
+export const serverGetData = (id: string) => {
   if (!id) {
     return Promise.resolve(null);
   }
@@ -134,21 +76,12 @@ export const serverGetData = async (id: string) => {
   const indexPath = `./nolodata/${userId}/${DEFAULT_INDEX_FILE}`;
   const hashPath = `./nolodata/${userId}/${DEFAULT_HASH_FILE}`;
 
-  // 首先检查用户目录是否存在
   if (!checkFileExists(indexPath)) {
     return Promise.resolve(null);
   }
 
-  // 检查内存中的数据
-  const memResult = await checkMemoryForData(id);
-  if (memResult !== undefined) {
-    return Promise.resolve(memResult);
-  }
-
-  // 如果内存中没有，则从文件中查找
   return findDataInFile(indexPath, id).then((data) => {
     if (data) {
-      // 如果在文件中找到数据，将其缓存到内存中
       return data;
     }
     //is hash
@@ -156,6 +89,13 @@ export const serverGetData = async (id: string) => {
       if (!checkFileExists(hashPath)) {
         return Promise.resolve(null);
       }
+
+      return findDataInFile(hashPath, id).then((hashData) => {
+        if (hashData) {
+        } else {
+        }
+        return hashData;
+      });
     }
 
     return null;
