@@ -1,11 +1,11 @@
 import { AxiosResponse, AxiosRequestConfig } from "axios";
 import axios from "utils/axios";
 import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
-import { pick, map, filter } from "rambda";
-import { createPromptMessage } from "ai/prompt/createPromptMessage";
+import { filter } from "rambda";
 
 import { createOpenAIRequestConfig } from "./config";
 import { NoloChatRequestBody } from "ai/types";
+import { createOpenAIMessages } from "ai/api/openai/createMessages";
 
 interface OpenAIConfig {
   messages: Array<any>;
@@ -40,28 +40,20 @@ export const sendOpenAIRequest = async (
   requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
     requestBody.frequency_penalty,
   );
-  const promptMessage = createPromptMessage(
+
+  const messages = createOpenAIMessages(
     requestBody.model,
+    requestBody.userInput,
+    requestBody.previousMessages,
     requestBody.prompt,
   );
-
-  const messages = [
-    promptMessage,
-    ...(requestBody.previousMessages || []),
-    {
-      role: "user",
-      content: requestBody.userInput,
-    },
-  ];
-
-  const messagePropertiesToPick = ["content", "role", "images"];
-  const pickMessages = map(pick(messagePropertiesToPick));
   const isO1 =
     requestBody.model === "o1-mini" || requestBody.model === "o1-preview";
   console.log("requestBody.tools", requestBody.tools);
+
   const openAIConfig: OpenAIConfig = filter((value) => value != null, {
     model: requestBody.model,
-    messages: pickMessages(messages),
+    messages: messages,
     stream: isO1 ? false : isStream,
     max_completion_tokens: requestBody.max_tokens,
     tools: requestBody.tools,

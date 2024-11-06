@@ -1,9 +1,7 @@
 import { AxiosResponse, AxiosRequestConfig } from "axios";
 import axios from "utils/axios";
 import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
-import { pick, map } from "rambda";
-import { createPromptMessage } from "ai/prompt/createPromptMessage";
-
+import { createOpenAIMessages } from "ai/api/openai/createMessages";
 interface OpenAIConfig {
   messages: Array<any>;
   model: string;
@@ -37,30 +35,19 @@ export const sendFireworksChatRequest = async (
   requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
     requestBody.frequency_penalty,
   );
-  const promotMessage = createPromptMessage(
+
+  const messages = createOpenAIMessages(
     requestBody.model,
+    requestBody.userInput,
+    requestBody.previousMessages,
     requestBody.prompt,
   );
-
-  const messages = [
-    promotMessage,
-    ...(requestBody.previousMessages || []),
-    {
-      role: "user",
-      content: requestBody.userInput,
-    },
-  ];
-
-  const messagePropertiesToPick = ["content", "role", "images"];
-  const pickMessages = map(pick(messagePropertiesToPick));
-
   const requestData: OpenAIConfig = {
     model: requestBody.model,
-    messages: pickMessages(messages),
+    messages,
     stream: isStream,
     max_completion_tokens: requestBody.max_tokens,
   };
-  console.log("requestData", requestData);
 
   const config: AxiosRequestConfig = {
     url: "https://api.fireworks.ai/inference/v1/chat/completions",
@@ -72,14 +59,11 @@ export const sendFireworksChatRequest = async (
       Authorization: `Bearer ${apiKey}`,
     },
   };
-  console.log("config", config);
 
   try {
     const response = await axios.request(config);
-    console.log("sendFireworksChatRequest response", response);
     return response;
   } catch (error) {
-    console.log("error", error);
     return null;
   }
 };

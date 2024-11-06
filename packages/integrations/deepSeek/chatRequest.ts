@@ -1,6 +1,5 @@
 import axios from "utils/axios";
-import { createPromptMessage } from "ai/prompt/createPromptMessage";
-import { pick, map } from "rambda";
+import { createOpenAIMessages } from "ai/api/openai/createMessages";
 
 export async function sendDeepSeekRequest(
   requestBody,
@@ -9,24 +8,18 @@ export async function sendDeepSeekRequest(
   if (!requestBody.model) {
     return null;
   }
-  const promotMessage = createPromptMessage(
+
+  const { model, max_tokens } = requestBody;
+
+  const messages = createOpenAIMessages(
     requestBody.model,
+    requestBody.userInput,
+    requestBody.previousMessages,
     requestBody.prompt,
   );
-  const messages = [
-    promotMessage,
-    ...(requestBody.previousMessages || []),
-    {
-      role: "user",
-      content: requestBody.userInput,
-    },
-  ];
-  const messagePropertiesToPick = ["content", "role", "images"];
-  const pickMessages = map(pick(messagePropertiesToPick));
-  const { model, max_tokens } = requestBody;
   const data = {
     model,
-    messages: pickMessages(messages),
+    messages: messages,
     stream: isStream,
     max_tokens,
   };

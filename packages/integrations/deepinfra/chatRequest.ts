@@ -1,8 +1,7 @@
 import { AxiosResponse, AxiosRequestConfig } from "axios";
 import axios from "utils/axios";
 import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
-import { pick, map } from "rambda";
-import { createPromptMessage } from "ai/prompt/createPromptMessage";
+import { createOpenAIMessages } from "ai/api/openai/createMessages";
 
 interface OpenAIConfig {
   messages: Array<any>;
@@ -38,26 +37,16 @@ export const sendDeepinfraChatRequest = async (
   requestBody.frequency_penalty = adjustOpenAIFrequencyPenalty(
     requestBody.frequency_penalty,
   );
-  const promotMessage = createPromptMessage(
+
+  const messages = createOpenAIMessages(
     requestBody.model,
+    requestBody.userInput,
+    requestBody.previousMessages,
     requestBody.prompt,
   );
-
-  const messages = [
-    promotMessage,
-    ...(requestBody.previousMessages || []),
-    {
-      role: "user",
-      content: requestBody.userInput,
-    },
-  ];
-
-  const messagePropertiesToPick = ["content", "role", "images"];
-  const pickMessages = map(pick(messagePropertiesToPick));
-
   const openAIConfig: OpenAIConfig = {
     model: requestBody.model,
-    messages: pickMessages(messages),
+    messages,
     stream: isStream,
     max_completion_tokens: requestBody.max_tokens,
   };
