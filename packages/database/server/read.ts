@@ -78,13 +78,16 @@ export const serverGetData = async (id: string) => {
   const memValue = await mem.get(id);
 
   if (memValue) {
-    console.log("memValue true", memValue);
     const flags = extractAndDecodePrefix(id);
     const decodedValue = decodeData(memValue, flags, id);
+    if (flags.isList) {
+      console.log("isList", id, memValue);
+      console.log("decodedValue", decodedValue);
+    }
     // console.log("decodedValue ", decodedValue);
     return Promise.resolve(decodedValue);
   } else {
-    console.log("id", id, memValue);
+    // console.log("old data", id, memValue);
   }
   const indexPath = `./nolodata/${userId}/${DEFAULT_INDEX_FILE}`;
   // const hashPath = `./nolodata/${userId}/${DEFAULT_HASH_FILE}`;
