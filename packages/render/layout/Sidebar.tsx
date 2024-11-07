@@ -13,7 +13,6 @@ import {
   HomeIcon,
   CommentDiscussionIcon,
   DatabaseIcon,
-  SignInIcon,
 } from "@primer/octicons-react";
 
 import { useTranslation } from "react-i18next";
@@ -22,8 +21,6 @@ import OpenProps from "open-props";
 
 import { useAuth } from "auth/useAuth";
 import { allowRule, NavItem } from "auth/navPermissions";
-import { RoutePaths } from "auth/client/routes";
-import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
 
 import NavListItem from "./blocks/NavListItem";
 import TopBar from "./TopBar";
@@ -48,7 +45,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
-  const { isLoggedIn } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -130,19 +126,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         }}
       >
         <div style={sidebarContentStyles(theme)}>
-          {/* 登录菜单或登录按钮 */}
-          {isLoggedIn ? (
-            <div style={{ marginBottom: OpenProps.size3 }}>
-              <IsLoggedInMenu />
-            </div>
-          ) : (
-            <NavListItem
-              label={t("login")}
-              icon={<SignInIcon size={16} />}
-              path={RoutePaths.LOGIN}
-            />
-          )}
-
           {/* 固定链接导航 */}
           <nav style={{ marginBottom: OpenProps.size4 }}>
             {allowedFixedLinks.map((item) => (

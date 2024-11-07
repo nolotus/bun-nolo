@@ -1,6 +1,11 @@
 import React from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { PersonIcon, GearIcon, SignOutIcon } from "@primer/octicons-react";
+import {
+  PersonIcon,
+  GearIcon,
+  SignOutIcon,
+  TriangleDownIcon,
+} from "@primer/octicons-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import DropDown from "render/ui/DropDown";
@@ -91,8 +96,7 @@ export const IsLoggedInMenu: React.FC = () => {
   const isLifeActive = location.pathname === "/life";
 
   const userTrigger = (
-    <NavLink
-      to="/life"
+    <div
       style={{
         display: "flex",
         alignItems: "center",
@@ -119,7 +123,7 @@ export const IsLoggedInMenu: React.FC = () => {
       <span style={{ fontSize: theme.fontSize.medium, fontWeight: "500" }}>
         {auth.user?.username}
       </span>
-    </NavLink>
+    </div>
   );
 
   return (
@@ -134,7 +138,25 @@ export const IsLoggedInMenu: React.FC = () => {
         boxShadow: `0 2px 10px ${theme.shadowColor}`,
       }}
     >
-      <DropDown trigger={userTrigger} direction="bottom" triggerType="click">
+      <NavLink
+        to="/life"
+        style={{
+          textDecoration: "none",
+          color: theme.text1,
+        }}
+      >
+        {userTrigger}
+      </NavLink>
+      <DropDown
+        trigger={
+          <IconButton
+            icon={<TriangleDownIcon size={24} />}
+            onClick={() => {}}
+          />
+        }
+        direction="bottom"
+        triggerType="click"
+      >
         <div
           style={{
             padding: theme.spacing.small,
@@ -174,25 +196,60 @@ export const IsLoggedInMenu: React.FC = () => {
                 </button>
               ),
           )}
+          <button
+            onClick={() => navigate("/settings")}
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              padding: theme.spacing.small,
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+              borderRadius: theme.borderRadius,
+              transition: "background-color 0.2s",
+              color: theme.text1,
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = theme.surface2)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
+          >
+            <GearIcon size={theme.iconSize.medium} />
+            <span style={{ marginLeft: theme.spacing.small }}>
+              {t("common:settings")}
+            </span>
+          </button>
+          <button
+            onClick={logout}
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              padding: theme.spacing.small,
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+              borderRadius: theme.borderRadius,
+              transition: "background-color 0.2s",
+              color: theme.text1,
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = theme.surface2)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
+          >
+            <SignOutIcon size={theme.iconSize.medium} />
+            <span style={{ marginLeft: theme.spacing.small }}>
+              {t("common:logout")}
+            </span>
+          </button>
         </div>
       </DropDown>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: theme.spacing.medium,
-        }}
-      >
-        <IconButton
-          icon={<GearIcon size={theme.iconSize.medium} />}
-          to="/settings"
-          isActive={location.pathname === "/settings"}
-        />
-        <IconButton
-          icon={<SignOutIcon size={theme.iconSize.medium} />}
-          onClick={logout}
-        />
-      </div>
     </div>
   );
 };

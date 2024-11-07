@@ -5,7 +5,11 @@ import MenuButton from "./MenuButton";
 import { CreateMenu } from "create/CreateMenu";
 import { useAppSelector } from "app/hooks";
 import CybotNameChip from "ai/cybot/CybotNameChip";
-
+import { useAuth } from "auth/useAuth";
+import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
+import NavListItem from "render/layout/blocks/NavListItem";
+import { useTranslation } from "react-i18next";
+import { SignInIcon } from "@primer/octicons-react";
 import {
   selectCurrentDialogConfig,
   selectTotalDialogTokens,
@@ -13,6 +17,7 @@ import {
 import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
 import CreateDialogButton from "chat/dialog/CreateDialogButton";
 import EditableTitle from "chat/dialog/EditableTitle";
+import { RoutePaths } from "auth/client/routes";
 
 import { motion } from "framer-motion";
 import useMediaQuery from "react-responsive"; // 用于检测移动设备
@@ -30,6 +35,10 @@ const TopBar: React.FC<TopBarProps> = ({
   topbarContent,
   isExpanded,
 }) => {
+  const { t } = useTranslation();
+
+  const { isLoggedIn } = useAuth();
+
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
@@ -95,6 +104,18 @@ const TopBar: React.FC<TopBarProps> = ({
       </div>
       <div style={styles.flexEnd}>
         <CreateMenu />
+        {/* 登录菜单或登录按钮 */}
+        {isLoggedIn ? (
+          <div>
+            <IsLoggedInMenu />
+          </div>
+        ) : (
+          <NavListItem
+            label={t("login")}
+            icon={<SignInIcon size={16} />}
+            path={RoutePaths.LOGIN}
+          />
+        )}
       </div>
     </div>
   );
