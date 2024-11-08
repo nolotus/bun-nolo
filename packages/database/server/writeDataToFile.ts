@@ -71,7 +71,6 @@ const mergeLayerFilesIfNeeded = (
   if (layerFiles.length >= 3) {
     const combinedDataMap = new Map<string, string>();
     const filesToMerge = layerFiles.slice(0, 3);
-    console.log("filesToMerge", filesToMerge);
     // 2. 由于已经按时间排序,只保留第一次出现的key的值
     filesToMerge.forEach((file) => {
       const filePath = path.join(userDir, file);

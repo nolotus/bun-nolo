@@ -1,28 +1,30 @@
 // chat/dialog/CreateDialogButton.tsx
+
 import React from "react";
 import { CopyIcon } from "@primer/octicons-react";
-import { Spinner } from "@primer/react"; // 引入 Spinner
+import { Spinner } from "@primer/react";
+
 import { useCreateDialog } from "./useCreateDialog";
 
+const styles = {
+  iconButton: {
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: "4px",
+    color: "inherit",
+    borderRadius: "4px",
+    flexShrink: 0,
+  },
+};
+
 const CreateDialogButton = ({ dialogConfig }) => {
-  const { isLoading: creatingDialog, createDialog } = useCreateDialog();
+  const { isLoading, createDialog } = useCreateDialog();
 
   const handleCreateClick = () => {
     createDialog({
       cybots: dialogConfig.cybots,
     });
-  };
-
-  const styles = {
-    iconButton: {
-      background: "transparent",
-      border: "none",
-      cursor: "pointer",
-      padding: "4px",
-      color: "inherit",
-      borderRadius: "4px",
-      flexShrink: 0,
-    },
   };
 
   const IconButton = ({ onClick, disabled, children }) => {
@@ -47,12 +49,8 @@ const CreateDialogButton = ({ dialogConfig }) => {
   };
 
   return (
-    <IconButton onClick={handleCreateClick} disabled={creatingDialog}>
-      {creatingDialog ? (
-        <Spinner size="small" /> // 使用 Spinner 组件
-      ) : (
-        <CopyIcon size={16} />
-      )}
+    <IconButton onClick={handleCreateClick} disabled={isLoading}>
+      {isLoading ? <Spinner size="small" /> : <CopyIcon size={16} />}
     </IconButton>
   );
 };

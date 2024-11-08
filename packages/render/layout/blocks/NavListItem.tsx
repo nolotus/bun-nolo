@@ -7,7 +7,7 @@ import { styles } from "render/ui/styles";
 
 interface NavListItemProps {
   path?: string;
-  label: string;
+  label?: string;
   icon?: React.ReactNode;
   onClick?: () => void;
 }
@@ -19,6 +19,14 @@ const NavListItem: React.FC<NavListItemProps> = ({
   onClick,
 }) => {
   const theme = useSelector(selectTheme);
+
+  if (!theme) {
+    throw new Error("Theme is not defined");
+  }
+
+  if (!styles) {
+    throw new Error("Styles is not defined");
+  }
 
   const defaultStyle: React.CSSProperties = {
     ...styles.flex,
@@ -34,12 +42,24 @@ const NavListItem: React.FC<NavListItemProps> = ({
     textDecoration: "none",
   };
 
-  const Content = () => (
-    <>
-      {icon && <span style={{ ...styles.mr2 }}>{icon}</span>}
-      <span>{label}</span>
-    </>
-  );
+  const Content = () => {
+    if (!icon && !label) {
+      return null;
+    }
+
+    if (icon && !label) {
+      return (
+        <span style={{ ...styles.flex, ...styles.justifyCenter }}>{icon}</span>
+      );
+    }
+
+    return (
+      <>
+        {icon && <span style={{ ...styles.mr2 }}>{icon}</span>}
+        {label && <span>{label}</span>}
+      </>
+    );
+  };
 
   if (onClick) {
     return (
@@ -61,7 +81,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
   }
 
   if (!path) {
-    return null;
+    return <div>没有路径</div>;
   }
 
   return (

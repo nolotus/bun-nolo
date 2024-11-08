@@ -81,8 +81,8 @@ export const serverGetData = async (id: string) => {
     const flags = extractAndDecodePrefix(id);
     const decodedValue = decodeData(memValue, flags, id);
     if (flags.isList) {
-      console.log("isList", id, memValue);
-      console.log("decodedValue", decodedValue);
+      // console.log("isList", id, memValue);
+      // console.log("decodedValue", decodedValue);
     }
     // console.log("decodedValue ", decodedValue);
     return Promise.resolve(decodedValue);

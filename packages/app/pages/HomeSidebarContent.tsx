@@ -32,6 +32,11 @@ const HomeSidebarContent: React.FC = () => {
       label: "关于",
       icon: <BeakerIcon size={16} />,
     },
+    {
+      path: "/help",
+      label: "帮助",
+      icon: <BeakerIcon size={16} />,
+    },
   ];
 
   const allowedBottomLinks = allowRule(auth?.user, bottomLinks);

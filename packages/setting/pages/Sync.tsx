@@ -23,8 +23,8 @@ const Sync = () => {
 
   const dispatch = useAppDispatch();
   const id = generateCustomId(userId, "sync-settings");
-
   const { data, isLoading } = useFetchData(id);
+
   const {
     control,
     register,
@@ -34,15 +34,18 @@ const Sync = () => {
   } = useForm({
     defaultValues: data,
   });
+
   useEffect(() => {
     const initValue = { ...data, currentServer };
     reset(initValue);
   }, [data, currentServer]);
+
   const onSubmit = async (data) => {
     try {
       await dispatch(upsertData({ id, data: data }));
     } catch (error) {}
   };
+
   if (isLoading) {
     return <PageLoader />;
   }

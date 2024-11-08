@@ -199,6 +199,8 @@ export const renderContentNode = (
       return <p> {node.children?.map(renderChild)}</p>;
     case "html":
       return <p>{node.value}</p>;
+    case "break":
+      return <br />;
     default:
       if (typeof node === "string") {
         return node;

@@ -1,5 +1,4 @@
 // render/layout/Sidebar.tsx
-
 import React, {
   useState,
   useEffect,
@@ -12,24 +11,16 @@ import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
 import {
   HomeIcon,
   CommentDiscussionIcon,
-  DatabaseIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@primer/octicons-react";
 
-import { useTranslation } from "react-i18next";
 import { styles, themeStyles } from "render/ui/styles";
 import OpenProps from "open-props";
-
-import { useAuth } from "auth/useAuth";
-import { allowRule, NavItem } from "auth/navPermissions";
 
 import NavListItem from "./blocks/NavListItem";
 import TopBar from "./TopBar";
 
-export const fixedLinks: NavItem[] = [
-  { path: "/", label: "Home", icon: <HomeIcon size={24} /> },
-  { path: "/chat", label: "Chat", icon: <CommentDiscussionIcon size={24} /> },
-  { path: "/life", label: "Databse", icon: <DatabaseIcon size={24} /> },
-];
 interface SidebarProps {
   children: ReactNode;
   sidebarContent: ReactNode;
@@ -43,7 +34,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   topbarContent,
   fullWidth = false,
 }) => {
-  const { t } = useTranslation();
   const dispatch = useDispatch();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -51,8 +41,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   const theme = useSelector(selectTheme);
-  const auth = useAuth();
-  const allowedFixedLinks = allowRule(auth?.user, fixedLinks);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
@@ -126,12 +114,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         }}
       >
         <div style={sidebarContentStyles(theme)}>
-          {/* 固定链接导航 */}
-          <nav style={{ marginBottom: OpenProps.size4 }}>
-            {allowedFixedLinks.map((item) => (
-              <NavListItem key={item.path} {...item} />
-            ))}
-          </nav>
+          <div style={{ display: "flex" }}>
+            <NavListItem path="/" icon={<HomeIcon size={24} />} />
+
+            <ChevronLeftIcon size={24} />
+            <NavListItem
+              path="/chat"
+              label="Chat"
+              icon={<CommentDiscussionIcon size={24} />}
+            />
+            <ChevronRightIcon size={24} />
+          </div>
 
           {/* 可滚动内容区域 */}
           <div style={scrollableContentStyles}>{sidebarContent}</div>

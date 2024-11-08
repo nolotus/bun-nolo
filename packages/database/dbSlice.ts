@@ -281,6 +281,7 @@ const dbSlice = createSliceWithThunks({
         },
       },
     ),
+
     removeOne: create.reducer((state, action) => {
       dbAdapter.removeOne(state, action.payload);
     }),
