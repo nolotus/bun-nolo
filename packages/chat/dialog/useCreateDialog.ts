@@ -37,8 +37,10 @@ interface DialogConfig {
 
 export const useCreateDialog = (): UseCreateDialogResult => {
   const navigate = useNavigate();
-  const currentUserId = useAppSelector(selectCurrentUserId);
   const dispatch = useAppDispatch();
+
+  const currentUserId = useAppSelector(selectCurrentUserId);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 

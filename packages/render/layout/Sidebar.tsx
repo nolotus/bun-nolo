@@ -1,11 +1,6 @@
 // render/layout/Sidebar.tsx
-import React, {
-  useState,
-  useEffect,
-  ReactNode,
-  useCallback,
-  useRef,
-} from "react";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
 import {
@@ -13,6 +8,7 @@ import {
   CommentDiscussionIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  PlusIcon,
 } from "@primer/octicons-react";
 
 import { styles, themeStyles } from "render/ui/styles";
@@ -20,11 +16,12 @@ import OpenProps from "open-props";
 
 import NavListItem from "./blocks/NavListItem";
 import TopBar from "./TopBar";
+import ResizeHandle from "./ResizeHandle";
 
 interface SidebarProps {
-  children: ReactNode;
-  sidebarContent: ReactNode;
-  topbarContent?: ReactNode;
+  children: React.ReactNode;
+  sidebarContent: React.ReactNode;
+  topbarContent?: React.ReactNode;
   fullWidth?: boolean;
 }
 
@@ -37,7 +34,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const dispatch = useDispatch();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   const theme = useSelector(selectTheme);
@@ -45,28 +41,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
   }, []);
-
-  const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
-    setIsResizing(true);
-  }, []);
-
-  const stopResizing = useCallback(() => {
-    setIsResizing(false);
-  }, []);
-
-  const resize = useCallback(
-    (mouseMoveEvent: MouseEvent) => {
-      if (isResizing && sidebarRef.current) {
-        const newWidth =
-          mouseMoveEvent.clientX -
-          sidebarRef.current.getBoundingClientRect().left;
-        if (newWidth > 200 && newWidth < 600) {
-          dispatch(setSidebarWidth(newWidth));
-        }
-      }
-    },
-    [isResizing, dispatch],
-  );
 
   useEffect(() => {
     const handleResize = () => {
@@ -86,16 +60,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
     window.addEventListener("keydown", handleKeyDown);
 
-    window.addEventListener("mousemove", resize);
-    window.addEventListener("mouseup", stopResizing);
-
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("mousemove", resize);
-      window.removeEventListener("mouseup", stopResizing);
     };
-  }, [toggleSidebar, resize, stopResizing]);
+  }, [toggleSidebar]);
 
   return (
     <div
@@ -124,6 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               icon={<CommentDiscussionIcon size={24} />}
             />
             <ChevronRightIcon size={24} />
+            <PlusIcon size={24} />
           </div>
 
           {/* 可滚动内容区域 */}
@@ -131,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* 调整大小手柄 */}
-        <div style={resizeHandleStyles(theme)} onMouseDown={startResizing} />
+        <ResizeHandle sidebarRef={sidebarRef} theme={theme} />
       </aside>
 
       {/* 主要内容区域 */}
@@ -200,16 +170,6 @@ const innerContentStyles = (theme: any, fullWidth: boolean) => ({
   margin: fullWidth ? 0 : "0 auto",
   padding: "0 20px", // 为内容区域添加 padding，使其与侧边栏之间留白
   ...themeStyles.textColor1(theme),
-});
-
-const resizeHandleStyles = (theme: any) => ({
-  width: "4px",
-  height: "100%",
-  position: "absolute" as const,
-  top: 0,
-  right: 0,
-  cursor: "col-resize",
-  backgroundColor: theme.border,
 });
 
 export default Sidebar;
