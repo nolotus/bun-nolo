@@ -184,6 +184,57 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       </Link>
     ),
   },
+  [DataType.CalendarEvent]: {
+    fields: [
+      {
+        header: "事件标题",
+        key: "summary",
+      },
+      {
+        header: "事件描述",
+        key: "description",
+      },
+      {
+        header: "开始时间",
+        key: "start",
+        render: (value) => {
+          if (!value?.dateTime) return "-";
+          return new Date(value.dateTime).toLocaleString("zh-CN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        },
+      },
+      {
+        header: "结束时间",
+        key: "end",
+        render: (value) => {
+          if (!value?.dateTime) return "-";
+          return new Date(value.dateTime).toLocaleString("zh-CN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        },
+      },
+      { header: "数据源", key: "source" },
+    ],
+    actions: (data) => (
+      <Link
+        to={`/calendar/${data.id}`}
+        style={{ textDecoration: "none", color: "blue" }}
+      >
+        <button style={{ borderRadius: "4px", padding: "4px" }}>
+          查看详情
+        </button>
+      </Link>
+    ),
+  },
 };
 
 const defaultConfig: RenderConfig = {

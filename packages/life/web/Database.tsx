@@ -1,13 +1,12 @@
 import { useAppSelector } from "app/hooks";
 import { useSearchParams } from "react-router-dom";
-import React, { useState } from "react";
-import { useQueryData } from "app/hooks/useQueryData";
+import React, { useEffect, useState } from "react";
 
 import DataDisplay from "../blocks/DataDisplay";
-import { selectFilteredDataByUserAndType } from "database/selectors";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { selectTotalCosts } from "ai/selectors";
+import { useQuery } from "app/hooks/useQuery";
 
 const typeArray = ["All", ...Object.values(DataType)];
 
@@ -19,24 +18,40 @@ export const Database = () => {
   let [searchParams, setSearchParams] = useSearchParams();
 
   const [type, setType] = useState(searchParams.get("type"));
+  const [data, setData] = useState(null);
+  console.log("data", data);
   const currentUserId = useAppSelector(selectCurrentUserId);
 
-  const data = useAppSelector(
-    selectFilteredDataByUserAndType(currentUserId, type),
-  );
+  // const data = useAppSelector(
+  //   selectFilteredDataByUserAndType(currentUserId, type),
+  // );
 
-  const queryConfig = {
-    queryUserId: currentUserId,
-    options: {
-      isJSON: true,
-      limit: 100,
-      condition: {},
-    },
+  const { fetchData } = useQuery();
+
+  const fetchAndSetData = async (queryConfig) => {
+    try {
+      setData(null);
+      const result = await fetchData(queryConfig);
+      setData(result);
+    } catch (err) {
+      // 错误处理
+    }
   };
-  if (type) {
-    queryConfig.options.condition.type = type;
-  }
-  const { isLoading } = useQueryData(queryConfig);
+
+  useEffect(() => {
+    const queryConfig = {
+      queryUserId: currentUserId,
+      options: {
+        isJSON: true,
+        limit: 100,
+        condition: {},
+      },
+    };
+    if (type) {
+      queryConfig.options.condition.type = type;
+    }
+    fetchAndSetData(queryConfig);
+  }, [type]);
 
   const changeType = (type) => {
     if (type === "All") {
@@ -74,8 +89,7 @@ export const Database = () => {
           })}
         </div>
       </div>
-
-      <DataDisplay data={data} type={type} />
+      {data && <DataDisplay datalist={data} type={type} />}
     </div>
   );
 };

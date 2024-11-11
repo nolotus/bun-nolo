@@ -17,6 +17,11 @@ import { useQueryData } from "app/hooks/useQueryData";
 import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
 
+const TOOL_OPTIONS = [
+  { id: "makeAppointment", name: "makeAppointmentTool" },
+  { id: "runCybot", name: "runcybot" },
+];
+
 const EditCybot = ({ initialValues, onClose }) => {
   console.log("initialValues", initialValues);
   const { t } = useTranslation();
@@ -68,6 +73,7 @@ const EditCybot = ({ initialValues, onClose }) => {
       { label: t("userLLMs"), options: userLLMOptions },
     ];
   }, [llmData, t]);
+
   const onSubmit = async (data) => {
     const [modelType, modelValue] = data.model.split(":");
     const modelData =
@@ -93,6 +99,7 @@ const EditCybot = ({ initialValues, onClose }) => {
       introduction: initialValues.introduction || "",
       prompt: initialValues.prompt || "",
       model: initialValues.model || "",
+      tools: initialValues.tools || [],
     },
   });
 
@@ -103,6 +110,7 @@ const EditCybot = ({ initialValues, onClose }) => {
       introduction: initialValues.introduction || "",
       prompt: initialValues.prompt || "",
       model: initialValues.model || "",
+      tools: initialValues.tools || [],
     });
   }, [reset, initialValues]);
 
@@ -126,6 +134,7 @@ const EditCybot = ({ initialValues, onClose }) => {
       ];
     })(),
   };
+
   const inputContainerStyle = {
     width: (() => {
       const values = ["100%", "100%", "70%", "75%", "80%", "80%"];
@@ -137,6 +146,7 @@ const EditCybot = ({ initialValues, onClose }) => {
       ];
     })(),
   };
+
   const buttonStyle = {
     width: "100%",
     padding: "10px",
@@ -207,6 +217,29 @@ const EditCybot = ({ initialValues, onClose }) => {
           {errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
         </FormField>
       )}
+
+      {/* Tools 多选框 */}
+      <div style={fieldContainerStyle}>
+        <label htmlFor="tools" style={labelStyle}>
+          {t("tools")}
+        </label>
+        <div style={inputContainerStyle}>
+          {TOOL_OPTIONS.map((tool) => (
+            <div key={tool.id} style={{ marginBottom: "8px" }}>
+              <input
+                type="checkbox"
+                id={`tool-${tool.id}`}
+                value={tool.id}
+                {...register("tools")}
+              />
+              <label htmlFor={`tool-${tool.id}`} style={{ marginLeft: "8px" }}>
+                {tool.name}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <Button type="submit" style={buttonStyle}>
         {t("update")}
       </Button>

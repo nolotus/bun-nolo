@@ -60,7 +60,7 @@ const EditLLM: React.FC<{
   const apiStyle = watch("apiStyle");
 
   useEffect(() => {
-    if (apiStyle && defaultAPIs[apiStyle]) {
+    if (apiStyle && defaultAPIs[apiStyle] && !initialValues) {
       setValue("api", defaultAPIs[apiStyle]);
     }
   }, [apiStyle, setValue]);

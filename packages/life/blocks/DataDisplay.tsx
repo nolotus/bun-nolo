@@ -6,7 +6,7 @@ import { omit } from "rambda";
 
 import { write } from "database/dbSlice";
 import { DataTable } from "./DataTable";
-const DataDisplay = ({ data, type }) => {
+const DataDisplay = ({ datalist, type }) => {
   const dispatch = useAppDispatch();
 
   const pullData = async (id, value) => {
@@ -50,7 +50,7 @@ const DataDisplay = ({ data, type }) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between"></div>
       <div>
-        <DataTable dataList={data} type={type} pullData={pullData} />
+        <DataTable dataList={datalist} type={type} pullData={pullData} />
       </div>
     </div>
   );

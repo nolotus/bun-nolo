@@ -42,6 +42,7 @@ import { sendNoloChatRequest } from "./chatStreamRequest";
 import { claudeModels } from "integrations/anthropic/models";
 import { isModelInList } from "ai/llm/isModelInList";
 import { getWeather } from "ai/tools/getWeather";
+import { prepareTools } from "ai/tools/prepareTools";
 const chatWindowLogger = getLogger("ChatWindow");
 
 const createSliceWithThunks = buildCreateSlice({
@@ -564,48 +565,26 @@ export const messageSlice = createSliceWithThunks({
         const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
         console.log("readLLMAction", readLLMAction);
         const llmConfig = readLLMAction.payload;
-        const { api, apiStyle, model } = llmConfig;
-        console.log("apiStyle", apiStyle);
-        console.log("model", model);
-        console.log("cybotConfig", cybotConfig);
+        const { api, apiStyle } = llmConfig;
+        const model = llmConfig.model || llmConfig.modelValue;
         const config = {
           ...cybotConfig,
           responseLanguage: navigator.language,
         };
-        console.log("config.prompt", config.prompt);
-        const promotMessage = createPromptMessage(config.model, config.prompt);
-        console.log("promotMessage", promotMessage);
+        const promotMessage = createPromptMessage(model, config.prompt);
         const prepareMsgConfig = { model, promotMessage, prevMsgs, content };
-        console.log("prepareMsgConfig", prepareMsgConfig);
         const messages = prepareMsgs(prepareMsgConfig);
-        console.log("messages", messages);
-
-        const tools = [
-          {
-            type: "function",
-            function: {
-              name: "run_cybot",
-              description: "根据对话可以找到合适的cybotId ，进行运行",
-              parameters: {
-                type: "object",
-                properties: {
-                  cybotId: {
-                    type: "string",
-                    description: "The Id of the Cybot",
-                  },
-                },
-                required: ["cybotId"],
-              },
-            },
-          },
-        ];
+        const tools = prepareTools(cybotConfig.tools);
+        const isStream = true;
         const bodyData = {
           model: model,
           messages,
           tools,
+          stream: isStream,
         };
+        console.log("bodyData", bodyData);
+
         const body = JSON.stringify(bodyData);
-        console.log("body", body);
         const result = await fetch(api, {
           method: "POST",
           headers: {
@@ -614,16 +593,16 @@ export const messageSlice = createSliceWithThunks({
           body,
           signal,
         });
-        console.log("result", result);
-        console.log("bodyData.tools", bodyData.tools);
 
-        // if (bodyData.tools) {
-        //   console.log("start json");
-        //   const json = await result.json();
-        //   console.log("json", json);
-        // }
         if (result.ok) {
-          handleOllamaResponse(id, cybotId, result, thunkApi, controller);
+          handleOllamaResponse(
+            id,
+            cybotId,
+            result,
+            thunkApi,
+            controller,
+            isStream,
+          );
         } else {
           console.error("HTTP-Error:", result.status);
         }

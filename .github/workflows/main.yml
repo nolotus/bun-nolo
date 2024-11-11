@@ -45,7 +45,7 @@ jobs:
             sudo pm2 delete nolo || true
 
             # 启动新的进程
-            sudo pm2 start packages/server/entry.ts --interpreter /home/nolotus/.bun/bin/bun --name nolo -i max --exp-backoff-restart-delay=100 --max-memory-restart 1G
+            sudo pm2 start packages/server/entry.ts --interpreter /home/nolotus/.bun/bin/bun --name nolo -i max 
 
             # 保存 PM2 进程列表
             sudo pm2 save
@@ -79,7 +79,7 @@ jobs:
             /root/.bun/bin/pm2 delete all
 
             # 启动新的进程
-            /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo -i max --exp-backoff-restart-delay=100 --max-memory-restart 1G
+            /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo -i max 
 
             # 保存 PM2 进程列表
             /root/.bun/bin/pm2 save

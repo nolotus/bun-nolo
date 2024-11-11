@@ -20,9 +20,7 @@ const ChatSidebar = () => {
 
   const { fetchData, isLoading, error, isSuccess } = useQuery();
 
-  // 在外面声明 newWorkspaceId
   const workspaceId = useAppSelector(selectCurrentWorkSpaceId);
-  console.log("workspaceId", workspaceId);
 
   useEffect(() => {
     let condition = {};

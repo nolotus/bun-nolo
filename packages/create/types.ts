@@ -14,4 +14,5 @@ export enum DataType {
   Message = "message",
   Category = "category",
   WorkSpace = "worksapce",
+  CalendarEvent = "calendar_event",
 }
