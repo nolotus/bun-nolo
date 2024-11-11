@@ -9,8 +9,12 @@ import { styles, themeStyles } from "render/ui/styles";
 import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
 
 export const DialogItem = ({ id, isCreator, categoryId }) => {
-  const dispatch = useAppDispatch();
   const { data: dialog } = useFetchData(id);
+
+  if (!dialog) {
+    return null;
+  }
+  const dispatch = useAppDispatch();
   const { dialogId } = useParams();
   const theme = useSelector(selectTheme);
   const [isHovered, setIsHovered] = useState(false);
@@ -18,7 +22,7 @@ export const DialogItem = ({ id, isCreator, categoryId }) => {
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
 
-  const title = dialog?.title || dialog.id;
+  const title = dialog.title || dialog.id;
   const isSelected = dialog.id === dialogId;
 
   const itemContainerStyle = {

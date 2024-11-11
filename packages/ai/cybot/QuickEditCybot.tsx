@@ -24,20 +24,15 @@ const TOOL_OPTIONS = [
   { id: "runCybot", name: "runcybot" },
 ];
 
-const EditCybot = ({ initialValues, onClose }) => {
-  console.log("initialValues", initialValues);
+const QuickEditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
-
   const theme = useSelector(selectTheme);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
   useEffect(() => {
-    const handleResize = () => {
-      setScreenWidth(window.innerWidth);
-    };
-
+    const handleResize = () => setScreenWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -47,9 +42,7 @@ const EditCybot = ({ initialValues, onClose }) => {
     options: {
       isJSON: true,
       limit: 100,
-      condition: {
-        type: DataType.LLM,
-      },
+      condition: { type: DataType.LLM },
     },
   };
 
@@ -62,7 +55,7 @@ const EditCybot = ({ initialValues, onClose }) => {
     }));
 
     const userLLMOptions = llmData
-      ? llmData.map((llm: any) => ({
+      ? llmData.map((llm) => ({
           value: `user:${llm.id}`,
           label: `${llm.name} (${llm.model})`,
         }))
@@ -85,8 +78,6 @@ const EditCybot = ({ initialValues, onClose }) => {
     defaultValues: {
       ...initialValues,
       name: initialValues.name || "",
-      introduction: initialValues.introduction || "",
-      greeting: initialValues.greeting || "",
       prompt: initialValues.prompt || "",
       model: initialValues.model || "",
       tools: initialValues.tools || [],
@@ -102,8 +93,6 @@ const EditCybot = ({ initialValues, onClose }) => {
     reset({
       ...initialValues,
       name: initialValues.name || "",
-      introduction: initialValues.introduction || "",
-      greeting: initialValues.greeting || "",
       prompt: initialValues.prompt || "",
       model: initialValues.model || "",
       tools: initialValues.tools || [],
@@ -117,14 +106,11 @@ const EditCybot = ({ initialValues, onClose }) => {
     const modelData =
       modelType === "user" ? { llmId: modelValue } : { model: modelValue };
     const submitData = { ...data, ...modelData, type: DataType.Cybot };
-    console.log("data", data);
-    const action = await dispatch(
-      setData({ id: initialValues.id, data: submitData }),
-    );
-    console.log("action", action);
+    await dispatch(setData({ id: initialValues.id, data: submitData }));
     onClose();
   };
 
+  // 样式部分保持不变
   const fieldContainerStyle = {
     marginBottom: theme.form.fieldSpacing,
     display: "flex",
@@ -158,12 +144,6 @@ const EditCybot = ({ initialValues, onClose }) => {
     })(),
   };
 
-  const buttonStyle = {
-    width: "100%",
-    padding: "10px",
-    marginTop: "20px",
-  };
-
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div style={fieldContainerStyle}>
@@ -178,35 +158,6 @@ const EditCybot = ({ initialValues, onClose }) => {
             style={{ width: "100%" }}
           />
           {errors.name && <span>{errors.name.message}</span>}
-        </div>
-      </div>
-
-      <div style={fieldContainerStyle}>
-        <label htmlFor="greeting" style={labelStyle}>
-          {t("greeting")}
-        </label>
-        <div style={inputContainerStyle}>
-          <input
-            id="greeting"
-            type="text"
-            {...register("greeting")}
-            style={{ width: "100%" }}
-          />
-          {errors.greeting && <span>{errors.greeting.message}</span>}
-        </div>
-      </div>
-
-      <div style={fieldContainerStyle}>
-        <label htmlFor="introduction" style={labelStyle}>
-          {t("introduction")}
-        </label>
-        <div style={inputContainerStyle}>
-          <textarea
-            id="introduction"
-            style={{ width: "100%", minHeight: "100px" }}
-            {...register("introduction")}
-          />
-          {errors.introduction && <span>{errors.introduction.message}</span>}
         </div>
       </div>
 
@@ -253,7 +204,6 @@ const EditCybot = ({ initialValues, onClose }) => {
         labelStyle={labelStyle}
         inputContainerStyle={inputContainerStyle}
       />
-
       <FormField>
         <Label>{t("private")}:</Label>
         <ToggleSwitch
@@ -272,11 +222,14 @@ const EditCybot = ({ initialValues, onClose }) => {
         />
       </FormField>
 
-      <Button type="submit" style={buttonStyle}>
+      <Button
+        type="submit"
+        style={{ width: "100%", padding: "10px", marginTop: "20px" }}
+      >
         {t("update")}
       </Button>
     </form>
   );
 };
 
-export default EditCybot;
+export default QuickEditCybot;

@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import { useFetchData } from "app/hooks";
 import { extractCustomId } from "core";
-
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
-import EditCybot from "ai/cybot/EditCybot";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
+
+import QuickEditCybot from "./QuickEditCybot";
 
 const CybotNameChip = React.memo(({ cybotId }) => {
   const { isLoading, data: cybot } = useFetchData(cybotId);
@@ -55,7 +55,7 @@ const CybotNameChip = React.memo(({ cybotId }) => {
           onClose={closeEdit}
           title={`Edit ${cybot.name || "Cybot"}`}
         >
-          <EditCybot initialValues={cybot} onClose={closeEdit} />
+          <QuickEditCybot initialValues={cybot} onClose={closeEdit} />
         </Dialog>
       )}
     </>

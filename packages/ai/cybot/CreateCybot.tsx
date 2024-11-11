@@ -19,6 +19,7 @@ import {
   SubmitButton,
   FormFieldComponent,
 } from "render/CommonFormComponents";
+import ToolSelector from "../tools/ToolSelector";
 
 interface CreateCybotProps {
   onClose: () => void;
@@ -36,7 +37,13 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
     watch,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      tools: [],
+      isPrivate: false,
+      isEncrypted: false,
+    },
+  });
 
   const isPrivate = watch("isPrivate");
   const isEncrypted = watch("isEncrypted");
@@ -132,6 +139,8 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           errors={errors}
           as="textarea"
         />
+
+        <ToolSelector register={register} />
 
         <FormField>
           <Label>{t("private")}:</Label>
