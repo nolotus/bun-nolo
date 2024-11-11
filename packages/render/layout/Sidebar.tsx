@@ -1,23 +1,15 @@
 // render/layout/Sidebar.tsx
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
-import {
-  HomeIcon,
-  CommentDiscussionIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PlusIcon,
-} from "@primer/octicons-react";
-
+import { useSelector } from "react-redux";
+import { selectTheme } from "app/theme/themeSlice";
+import { useAuth } from "auth/useAuth";
 import { styles, themeStyles } from "render/ui/styles";
 import OpenProps from "open-props";
 
-import NavListItem from "./blocks/NavListItem";
 import TopBar from "./TopBar";
 import ResizeHandle from "./ResizeHandle";
-
+import { SidebarTop } from "./SidebarTop";
 interface SidebarProps {
   children: React.ReactNode;
   sidebarContent: React.ReactNode;
@@ -31,8 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   topbarContent,
   fullWidth = false,
 }) => {
-  const dispatch = useDispatch();
-
+  const { isLoggedIn } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -82,19 +73,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           left: isSidebarOpen ? 0 : `-${theme.sidebarWidth}px`,
         }}
       >
-        <div style={sidebarContentStyles(theme)}>
-          <div style={{ display: "flex" }}>
-            <NavListItem path="/" icon={<HomeIcon size={24} />} />
-
-            <ChevronLeftIcon size={24} />
-            <NavListItem
-              path="/chat"
-              label="Chat"
-              icon={<CommentDiscussionIcon size={24} />}
-            />
-            <ChevronRightIcon size={24} />
-            <PlusIcon size={24} />
-          </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column" as const,
+            height: "100%",
+            overflow: "hidden",
+          }}
+        >
+          {isLoggedIn && <SidebarTop />}
 
           {/* 可滚动内容区域 */}
           <div style={scrollableContentStyles}>{sidebarContent}</div>
@@ -138,13 +125,6 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   flexDirection: "column" as const,
 });
 
-const sidebarContentStyles = (theme: any) => ({
-  display: "flex",
-  flexDirection: "column" as const,
-  height: "100%",
-  overflow: "hidden",
-});
-
 const scrollableContentStyles = {
   flexGrow: 1,
   overflowY: "auto" as const,
@@ -166,7 +146,7 @@ const contentStyles = (
 
 const innerContentStyles = (theme: any, fullWidth: boolean) => ({
   width: fullWidth ? "100%" : "100%",
-  maxWidth: fullWidth ? "none" : "1200px",
+  maxWidth: fullWidth ? "none" : "100%",
   margin: fullWidth ? 0 : "0 auto",
   padding: "0 20px", // 为内容区域添加 padding，使其与侧边栏之间留白
   ...themeStyles.textColor1(theme),

@@ -9,8 +9,8 @@ import EditCybot from "ai/cybot/EditCybot";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 
-const CybotNameChip = React.memo(({ cybotId, source }) => {
-  const { isLoading, data: cybot } = useFetchData(cybotId, { source });
+const CybotNameChip = React.memo(({ cybotId }) => {
+  const { isLoading, data: cybot } = useFetchData(cybotId);
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const theme = useSelector(selectTheme);
   const [isHovered, setIsHovered] = useState(false);

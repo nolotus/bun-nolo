@@ -68,11 +68,13 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   const memoryData = mem.getFromMemorySync();
 
   let resultsArray = [];
-  const addToResults = (item) => {
+  const addToResults = (key, item) => {
     // if (item.id.includes("01JBKGZMFZYPCXD5CV6G8VENEQ")) {
     //   console.log("addToResults", item);
     // }
-    resultsArray.push(item);
+    if (!resultsArray.includes(key)) {
+      resultsArray.push(item);
+    }
   };
   const deletedData = new Set();
 
@@ -90,7 +92,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
         if (checkQuery(jsonData, condition)) {
           const result = { id: key, ...jsonData };
           if (!deletedData.has(key)) {
-            addToResults(result);
+            addToResults(key, result);
           }
         }
       } catch (error) {
@@ -129,15 +131,15 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
     if (isList && flags.isList) {
       const result = listToArray(value);
-      addToResults(result);
+      addToResults(key, result);
     } else if (isJSON && flags.isJSON) {
       try {
         const jsonData = JSON.parse(value);
 
         if (checkQuery(jsonData, condition)) {
           const result = { id: key, ...jsonData };
-          if (!deletedData.has(key) && !resultsArray.includes(key)) {
-            addToResults(result);
+          if (!deletedData.has(key)) {
+            addToResults(key, result);
           }
         }
       } catch (error) {
@@ -150,8 +152,8 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
       // console.log("result", result);
 
       if (checkQuery(result, condition)) {
-        if (!deletedData.has(key) && !resultsArray.includes(key)) {
-          addToResults(result);
+        if (!deletedData.has(key)) {
+          addToResults(key, result);
         }
       }
     }

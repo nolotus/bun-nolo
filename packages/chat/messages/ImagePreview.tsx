@@ -42,7 +42,6 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
         ))}
       </div>
 
-      {/* 图片放大展示的模态 */}
       <Modal isOpen={visible} onClose={close}>
         <img
           src={modalState}

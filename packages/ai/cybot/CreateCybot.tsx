@@ -156,7 +156,6 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           disabled={isSubmitting || isDialogLoading}
           onClick={(e) => {
             e.preventDefault();
-            console.log("Submit button clicked");
             handleFormSubmit();
           }}
         >

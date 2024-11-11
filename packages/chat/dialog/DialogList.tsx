@@ -9,7 +9,7 @@ import { useQueryData } from "app/hooks/useQueryData";
 
 import { DialogItem } from "./DialogItem";
 
-export const DialogList = ({ dialogList, source }) => {
+export const DialogList = ({ dialogList }) => {
   const auth = useAuth();
   const theme = useSelector(selectTheme);
   const [selectedDialogId, setSelectedDialogId] = useState(null);
@@ -106,7 +106,6 @@ export const DialogList = ({ dialogList, source }) => {
                   id={dialog.id}
                   isSelected={selectedDialogId === dialog.id}
                   isCreator={isCreator(dialog.id)}
-                  source={source}
                   categoryId={categoryId}
                   onSelect={handleDialogSelect}
                 />

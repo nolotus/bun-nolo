@@ -10,8 +10,6 @@ import { write } from "database/dbSlice";
 import { DataType } from "create/types";
 import { nolotusId } from "core/init";
 
-import { clearMessages } from "../messages/messageSlice";
-
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });

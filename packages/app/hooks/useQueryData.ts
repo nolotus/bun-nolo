@@ -12,11 +12,11 @@ export const useQueryData = (queryConfig) => {
 
   const dispatch = useAppDispatch();
 
+  const syncServers = useAppSelector(selectSyncServers);
+  const curretnServer = useAppSelector(selectCurrentServer);
   const isAutoSync = useAppSelector(
     (state) => state.settings.syncSetting.isAutoSync,
   );
-  const syncServers = useAppSelector(selectSyncServers);
-  const curretnServer = useAppSelector(selectCurrentServer);
   useEffect(() => {
     if (!queryConfig) {
       setLoading(false);
@@ -26,6 +26,7 @@ export const useQueryData = (queryConfig) => {
     const fetchCurrentServerData = async () => {
       try {
         setLoading(true);
+
         await dispatch(
           queryServer({ server: curretnServer, ...queryConfig }),
         ).then((action) => {
@@ -40,6 +41,7 @@ export const useQueryData = (queryConfig) => {
     };
 
     fetchCurrentServerData();
+
     if (isAutoSync) {
       syncServers.map((server) => {
         dispatch(queryServer({ server, ...queryConfig }));

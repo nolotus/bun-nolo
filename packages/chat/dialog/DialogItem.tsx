@@ -8,9 +8,9 @@ import { styles, themeStyles } from "render/ui/styles";
 
 import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
 
-export const DialogItem = ({ id, isCreator, source, categoryId }) => {
+export const DialogItem = ({ id, isCreator, categoryId }) => {
   const dispatch = useAppDispatch();
-  const { data: dialog } = useFetchData(id, { source });
+  const { data: dialog } = useFetchData(id);
   const { dialogId } = useParams();
   const theme = useSelector(selectTheme);
   const [isHovered, setIsHovered] = useState(false);

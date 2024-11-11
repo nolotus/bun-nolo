@@ -31,8 +31,7 @@ const DataDisplay = ({ data, type }) => {
     const flags = extractAndDecodePrefix(id);
     const userId = extractUserId(id);
 
-    // 遍历所有域名并对每个执行 write 操作
-    const domains = ["https://nolotus.com", "https://us.nolotus.com"];
+    const domains = ["https://nolotus.com", "https://cybot.run"];
     await Promise.all(
       domains.map((domain) =>
         write({

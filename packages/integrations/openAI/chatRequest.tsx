@@ -27,7 +27,7 @@ export const sendOpenAIRequest = async (
   );
   const isO1 =
     requestBody.model === "o1-mini" || requestBody.model === "o1-preview";
-  console.log("requestBody.tools", requestBody.tools);
+  console.log("requestBody", requestBody);
 
   const openAIConfig = filter((value) => value != null, {
     model: requestBody.model,
@@ -36,6 +36,7 @@ export const sendOpenAIRequest = async (
     max_completion_tokens: requestBody.max_tokens,
     tools: requestBody.tools,
   });
+
   const config: AxiosRequestConfig = {
     ...createOpenAIRequestConfig(),
     url: "https://api.openai.com/v1/chat/completions",
@@ -48,6 +49,7 @@ export const sendOpenAIRequest = async (
     const response = await axios.request(config);
     return response;
   } catch (error) {
+    console.log("error", error.message);
     return null;
   }
 };

@@ -7,8 +7,9 @@ export interface MenuItem {
   id: string;
   label: string;
   icon?: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
   disabled?: boolean;
+  submenu?: MenuItem[];
 }
 
 interface ContextMenuProps {
@@ -45,6 +46,11 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
     color: theme.text1,
     transition: "background-color 0.2s ease",
     userSelect: "none",
+    width: "100%",
+    border: "none",
+    background: "none",
+    textAlign: "left",
+    fontSize: "inherit",
   };
 
   const menuItemStyle = (
@@ -64,6 +70,57 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
     flexShrink: 0,
   };
 
+  const arrowStyle: React.CSSProperties = {
+    marginLeft: "auto",
+    fontSize: "12px",
+    color: theme.text2,
+  };
+
+  const renderMenuItem = (item: MenuItem) => {
+    if (item.submenu) {
+      const submenuStore = Ariakit.useMenuStore({
+        placement: "right-start",
+        shift: 10,
+        gutter: 4,
+      });
+
+      return (
+        <React.Fragment key={item.id}>
+          <Ariakit.MenuButton
+            store={submenuStore}
+            className="menu-button"
+            style={menuItemStyle(item.id, !!item.disabled)}
+            onMouseEnter={() => setHoveredItem(item.id)}
+            onMouseLeave={() => setHoveredItem(null)}
+            disabled={item.disabled}
+          >
+            {item.icon && <span style={iconStyle}>{item.icon}</span>}
+            {item.label}
+            <span style={arrowStyle}>▶</span>
+          </Ariakit.MenuButton>
+
+          <Ariakit.Menu store={submenuStore} style={menuStyle}>
+            {item.submenu.map(renderMenuItem)}
+          </Ariakit.Menu>
+        </React.Fragment>
+      );
+    }
+
+    return (
+      <Ariakit.MenuItem
+        key={item.id}
+        onClick={item.disabled ? undefined : item.onClick}
+        style={menuItemStyle(item.id, !!item.disabled)}
+        onMouseEnter={() => setHoveredItem(item.id)}
+        onMouseLeave={() => setHoveredItem(null)}
+        disabled={item.disabled}
+      >
+        {item.icon && <span style={iconStyle}>{item.icon}</span>}
+        {item.label}
+      </Ariakit.MenuItem>
+    );
+  };
+
   return (
     <Ariakit.Menu
       store={menu}
@@ -71,19 +128,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       getAnchorRect={() => anchorRect}
       style={menuStyle}
     >
-      {items.map((item) => (
-        <Ariakit.MenuItem
-          key={item.id}
-          onClick={item.disabled ? undefined : item.onClick}
-          style={menuItemStyle(item.id, !!item.disabled)}
-          onMouseEnter={() => setHoveredItem(item.id)}
-          onMouseLeave={() => setHoveredItem(null)}
-          disabled={item.disabled}
-        >
-          {item.icon && <span style={iconStyle}>{item.icon}</span>}
-          {item.label}
-        </Ariakit.MenuItem>
-      ))}
+      {items.map(renderMenuItem)}
     </Ariakit.Menu>
   );
 };

@@ -66,18 +66,17 @@ const EditableTitle = ({ currentDialogConfig }) => {
     flexShrink: 0,
   };
 
-  const saveTitle = useCallback(() => {
+  const saveTitle = async () => {
     if (title.trim() !== "" && title !== currentDialogConfig.title) {
       dispatch(
         patchData({
           id: currentDialogConfig.id,
           changes: { title },
-          source: currentDialogConfig.source,
         }),
       );
     }
     setEditing(false);
-  }, [dispatch, title, currentDialogConfig]);
+  };
 
   const cancelEdit = useCallback(() => {
     setEditing(false);

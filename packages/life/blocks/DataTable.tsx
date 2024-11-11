@@ -6,6 +6,7 @@ import { deleteData } from "database/dbSlice";
 import { Link } from "react-router-dom";
 import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
 import LLMNameButton from "ai/llm/EditLLMButton";
+
 type FieldConfig = {
   header: string;
   key: string;
@@ -21,7 +22,22 @@ const renderConfigs: Record<DataType, RenderConfig> = {
   [DataType.ChatRobot]: {
     fields: [
       { header: "AI名字", key: "name" },
-      { header: "AI所用模型", key: "model" },
+      {
+        header: "AI所用模型",
+        key: "model",
+        render: (value) => (
+          <div
+            style={{
+              whiteSpace: "pre-wrap",
+              maxWidth: "100px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {value.split(",").join(",\n")}
+          </div>
+        ),
+      },
       { header: "AI 定制描述", key: "description" },
       { header: "AI 知识", key: "knowledge" },
       { header: "数据源", key: "source" },
@@ -30,7 +46,22 @@ const renderConfigs: Record<DataType, RenderConfig> = {
   [DataType.Cybot]: {
     fields: [
       { header: "AI名字", key: "name" },
-      { header: "AI所用模型", key: "model" },
+      {
+        header: "AI所用模型",
+        key: "model",
+        render: (value) => (
+          <div
+            style={{
+              whiteSpace: "pre-wrap",
+              maxWidth: "100px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {value.split(",").join(",\n")}
+          </div>
+        ),
+      },
       { header: "AI 定制描述", key: "description" },
       { header: "AI 知识", key: "knowledge" },
       { header: "数据源", key: "source" },
@@ -42,7 +73,12 @@ const renderConfigs: Record<DataType, RenderConfig> = {
         header: "链接",
         key: "id",
         render: (value) => (
-          <Link to={`/${value}`}>{extractCustomId(value)}</Link>
+          <Link
+            to={`/${value}`}
+            style={{ textDecoration: "none", color: "blue" }}
+          >
+            {extractCustomId(value)}
+          </Link>
         ),
       },
       { header: "标题", key: "title" },
@@ -55,7 +91,12 @@ const renderConfigs: Record<DataType, RenderConfig> = {
         header: "Id",
         key: "id",
         render: (value) => (
-          <Link to={`/${value}`}>{extractCustomId(value)}</Link>
+          <Link
+            to={`/${value}`}
+            style={{ textDecoration: "none", color: "blue" }}
+          >
+            {extractCustomId(value)}
+          </Link>
         ),
       },
       { header: "浪点名字", key: "title" },
@@ -75,8 +116,11 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       { header: "数据源", key: "source" },
     ],
     actions: (data) => (
-      <Link to={`/${data.id}`}>
-        <button className="rounded p-2">查看</button>
+      <Link
+        to={`/${data.id}`}
+        style={{ textDecoration: "none", color: "blue" }}
+      >
+        <button style={{ borderRadius: "4px", padding: "4px" }}>查看</button>
       </Link>
     ),
   },
@@ -86,13 +130,30 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       { header: "API类型", key: "apiStyle" },
       { header: "API", key: "api" },
       { header: "API密钥名称", key: "keyName" },
-      { header: "模型", key: "model" },
-      { header: "数据源", key: "source" },
+      {
+        header: "模型",
+        key: "model",
+        render: (value) => (
+          <div
+            style={{
+              whiteSpace: "pre-wrap",
+              maxWidth: "100px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {value?.split(",").join(",\n")}
+          </div>
+        ),
+      },
     ],
     actions: (data) => (
       <>
-        <Link to={`/${data.id}`}>
-          <button className="rounded p-2">查看</button>
+        <Link
+          to={`/${data.id}`}
+          style={{ textDecoration: "none", color: "blue" }}
+        >
+          <button style={{ borderRadius: "4px", padding: "4px" }}>查看</button>
         </Link>
         <div>
           <LLMNameButton llmId={data.id} />
@@ -100,7 +161,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       </>
     ),
   },
-
   [DataType.TokenStats]: {
     fields: [
       { header: "消息类型", key: "messageType" },
@@ -116,8 +176,11 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       { header: "数据源", key: "source" },
     ],
     actions: (data) => (
-      <Link to={`/token-stats/${data.id}`}>
-        <button className="rounded p-2">详情</button>
+      <Link
+        to={`/token-stats/${data.id}`}
+        style={{ textDecoration: "none", color: "blue" }}
+      >
+        <button style={{ borderRadius: "4px", padding: "4px" }}>详情</button>
       </Link>
     ),
   },
@@ -160,44 +223,78 @@ export const DataTable: React.FC<DataTableProps> = ({
         onClick={() =>
           dispatch(deleteData({ id: data.id, source: data.source }))
         }
+        style={{
+          borderRadius: "4px",
+          padding: "4px",
+          backgroundColor: "red",
+          color: "white",
+          border: "none",
+          cursor: "pointer",
+        }}
       >
-        <TrashIcon size={16} />
-        删除
+        <TrashIcon size={16} /> 删除
       </button>
       <button
         type="button"
         onClick={() => pullData(data.id, data)}
-        className="rounded p-2"
+        style={{
+          borderRadius: "4px",
+          padding: "4px",
+          backgroundColor: "blue",
+          color: "white",
+          border: "none",
+          cursor: "pointer",
+          marginLeft: "8px",
+        }}
       >
-        <RepoPullIcon size={16} />
-        拉取
+        <RepoPullIcon size={16} /> 拉取
       </button>
       {config.actions && config.actions(data)}
     </>
   );
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full table-auto">
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ minWidth: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
             {config.fields.map((field) => (
-              <th key={field.key} className="px-4 py-2 text-left">
+              <th
+                key={field.key}
+                style={{
+                  padding: "8px",
+                  textAlign: "left",
+                  borderBottom: "1px solid #ddd",
+                }}
+              >
                 {field.header}
               </th>
             ))}
-            <th className="px-4 py-2 text-left">操作</th>
+            <th
+              style={{
+                padding: "8px",
+                textAlign: "left",
+                borderBottom: "1px solid #ddd",
+              }}
+            >
+              操作
+            </th>
           </tr>
         </thead>
         <tbody>
           {dataList.map((data) => (
             <tr key={data.id}>
               {config.fields.map((field) => (
-                <td key={field.key} className="border px-4 py-2">
+                <td
+                  key={field.key}
+                  style={{ padding: "8px", borderBottom: "1px solid #ddd" }}
+                >
                   {renderCell(data, field)}
                 </td>
               ))}
-              <td className="border px-4 py-2">{renderActions(data)}</td>
+              <td style={{ padding: "8px", borderBottom: "1px solid #ddd" }}>
+                {renderActions(data)}
+              </td>
             </tr>
           ))}
         </tbody>

@@ -11,10 +11,3 @@ export interface User {
   username: string;
   email?: string;
 }
-export interface AuthState {
-  currentUser: User | null;
-  users: User[];
-  isLoggedIn: boolean;
-  currentToken: string | null;
-  isLoading: boolean;
-}

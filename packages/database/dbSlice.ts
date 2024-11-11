@@ -198,46 +198,6 @@ const dbSlice = createSliceWithThunks({
         fulfilled: (state, action) => {},
       },
     ),
-    // syncWrite: create.asyncThunk(
-    //   async (writeConfig, thunkApi) => {
-    //     const state = thunkApi.getState();
-    //     // const writeRes = await noloWriteRequest(state, writeConfig);
-    //     const makeRequest = async (server) => {
-    //       const url = `${API_ENDPOINTS.DATABASE}/write/`;
-    //       const fullUrl = server + url;
-    //       let headers = {
-    //         "Content-Type": "application/json",
-    //       };
-    //       const response = await fetch(fullUrl, {
-    //         method: "POST",
-    //         headers,
-    //         body,
-    //       });
-    //       const data = await response.json();
-    //       thunkApi.dispatch(upsertMany({ data, server }));
-    //       return data;
-    //     };
-
-    //     const results = await Promise.all(
-    //       syncServers.map((server) => makeRequest(server)),
-    //     );
-    //     return await writeRes.json();
-    //   },
-    //   {
-    //     pending: (state, action) => {},
-    //     fulfilled: () => {},
-    //   },
-    // ),
-    // upsertDatas: create.reducer((state, action) => {
-    //   const updatedData = action.payload.data.map((item) => {
-    //     const existingItem = state.entities[item.id];
-    //     return {
-    //       ...item,
-    //       source: mergeSource(existingItem, action.payload.source),
-    //     };
-    //   });
-    //   dbAdapter.upsertMany(state, updatedData);
-    // }),
     setData: create.asyncThunk(
       async (updateConfig, thunkApi) => {
         const { id, data } = updateConfig;
@@ -303,11 +263,21 @@ const dbSlice = createSliceWithThunks({
       });
       dbAdapter.upsertMany(state, withSourceData);
     }),
-    patchData: create.asyncThunk(async ({ id, changes, source }, thunkApi) => {
-      dbAdapter.updateOne(id, changes);
-      const state = thunkApi.getState();
-      const res = await noloPatchRequest(state, id, changes);
-    }, {}),
+    patchData: create.asyncThunk(
+      async ({ id, changes }, thunkApi) => {
+        const state = thunkApi.getState();
+        const res = await noloPatchRequest(state, id, changes);
+        const { data } = await res.json();
+        return data;
+      },
+      {
+        fulfilled: (state, action) => {
+          const { payload } = action;
+          const { id, ...changes } = payload;
+          dbAdapter.updateOne(state, { id, changes });
+        },
+      },
+    ),
 
     addOne: dbAdapter.addOne,
     setOne: dbAdapter.setOne,

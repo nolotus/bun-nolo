@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import SettingsSidebarContent from "setting/SettingsSidebarContent";
 import HomeSidebarContent from "app/pages/HomeSidebarContent";
 import LifeSidebarContent from "life/LifeSidebarContent";
+
 const MainLayout: React.FC = () => {
   const location = useLocation();
   const isSettingsPage = location.pathname.startsWith("/settings");
@@ -23,6 +24,7 @@ const MainLayout: React.FC = () => {
     if (isChatPage) {
       return <ChatSidebar />;
     }
+
     return <HomeSidebarContent />;
   };
 

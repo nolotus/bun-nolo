@@ -20,7 +20,7 @@ import EditableTitle from "chat/dialog/EditableTitle";
 import { RoutePaths } from "auth/client/routes";
 
 import { motion } from "framer-motion";
-import useMediaQuery from "react-responsive"; // 用于检测移动设备
+import useMediaQuery from "react-responsive";
 
 interface TopBarProps {
   toggleSidebar: () => void;
@@ -71,11 +71,7 @@ const TopBar: React.FC<TopBarProps> = ({
           <>
             <EditableTitle currentDialogConfig={currentDialogConfig} />
             {currentDialogConfig.cybots?.map((cybotId) => (
-              <CybotNameChip
-                key={cybotId}
-                cybotId={cybotId}
-                source={currentDialogConfig.source}
-              />
+              <CybotNameChip key={cybotId} cybotId={cybotId} />
             ))}
             {!isMobile && currentDialogTokens > 0 && (
               <motion.div

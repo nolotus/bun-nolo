@@ -5,17 +5,24 @@ import { generateUserId } from "core/generateMainKey";
 import { hashPassword } from "core/password";
 import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
-
 import { API_VERSION } from "database/config";
-
 import { noloRequest } from "utils/noloRequest";
 import { formatISO, addDays } from "date-fns";
 import { initSyncSetting, selectCurrentServer } from "setting/settingSlice";
 
 import { parseToken } from "./token";
-import { AuthState, User } from "./types";
+import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
 import { SignupData } from "./types";
+
+interface AuthState {
+  currentUser: User | null;
+  users: User[];
+  isLoggedIn: boolean;
+  currentToken: string | null;
+  isLoading: boolean;
+}
+
 const initialState: AuthState = {
   currentUser: null,
   users: [],
@@ -23,9 +30,11 @@ const initialState: AuthState = {
   currentToken: null,
   isLoading: false,
 };
+
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
+
 export const authSlice = createSliceWithThunks({
   name: "auth",
   initialState,
