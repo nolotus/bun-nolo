@@ -19,11 +19,6 @@ import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
 import ToolSelector from "../tools/ToolSelector";
 
-const TOOL_OPTIONS = [
-  { id: "makeAppointment", name: "makeAppointmentTool" },
-  { id: "runCybot", name: "runcybot" },
-];
-
 const QuickEditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();

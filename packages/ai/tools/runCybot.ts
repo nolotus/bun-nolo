@@ -16,7 +16,11 @@ export const runCybotTool = {
   },
 };
 
-export const runCybot = async (params) => {
-  console.log("runCybot", params);
-  return params.cybotId;
-};
+// export const runCybot = async (params, thunkApi, prevMsgs, userInput) => {
+//   console.log("runCybot", params);
+//   const actionResult = await thunkApi.dispatch(
+//     ,
+//   );
+//   console.log("runCybot actionResult", actionResult);
+//   return actionResult.payload;
+// };

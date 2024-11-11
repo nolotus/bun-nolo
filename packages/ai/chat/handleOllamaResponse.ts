@@ -1,10 +1,13 @@
-import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
+import {
+  messageStreamEnd,
+  messageStreaming,
+  runCybotId,
+} from "chat/messages/messageSlice";
 import { setOne } from "database/dbSlice";
 import { getHeadTail } from "core/getHeadTail";
 import { getWeather } from "../tools/getWeather";
-import { runCybot } from "../tools/runCybot";
 import { extractJsonFromXml } from "../tools/extractJsonFromXml";
-import { makeAppointment, makeAppointmentTool } from "../tools/appointment";
+import { makeAppointment } from "../tools/appointment";
 import { selectCurrentUserId } from "auth/authSlice";
 
 export const handleOllamaResponse = async (
@@ -14,7 +17,10 @@ export const handleOllamaResponse = async (
   thunkApi,
   controller,
   isStream,
+  prevMsgs,
+  userInput,
 ) => {
+  const dispatch = thunkApi.dispatch;
   if (!isStream) {
     const data = await result.json();
     console.log("data", data);
@@ -71,6 +77,7 @@ export const handleOllamaResponse = async (
                 const json = extractJsonFromXml(temp);
                 console.log("qwen2.5  json", json);
                 if (json.name === "run_cybot") {
+                  const cybotId = json.arguments.cybotId;
                   const message = {
                     role: "assistant",
                     id,
@@ -80,9 +87,30 @@ export const handleOllamaResponse = async (
                   thunkApi.dispatch(
                     messageStreaming({ ...message, controller }),
                   );
+                  console.log("cybotId", cybotId);
+                  const result = await dispatch(
+                    runCybotId({ cybotId, prevMsgs, userInput }),
+                  );
+                  console.log("runCybotId result", result);
+                  let endMessage;
+                  if (typeof result.payload === "string") {
+                    endMessage = {
+                      content: result.payload,
 
-                  const result = await runCybot(json.arguments);
-                  console.log("result", result);
+                      id,
+                      cybotId,
+                    };
+                  } else {
+                    endMessage = {
+                      ...result.payload,
+                      id,
+                      cybotId,
+                    };
+                  }
+
+                  console.log("endMessage ", endMessage);
+
+                  thunkApi.dispatch(messageStreamEnd(endMessage));
                   return;
                 }
                 if (json.name === "make_appointment") {
@@ -161,10 +189,10 @@ export const handleOllamaResponse = async (
                       messageStreaming({ ...message, controller }),
                     );
 
-                    const result = await runCybot(tool.arguments);
+                    // const result = await runCybot(tool.arguments);
                     const endMesssage = {
                       id,
-                      content: result,
+                      content: "x",
                       cybotId,
                     };
                     console.log("endMesssage", endMesssage);
@@ -172,6 +200,7 @@ export const handleOllamaResponse = async (
                   }
                 });
               } else {
+                /// not tool call
                 thunkApi.dispatch(
                   messageStreamEnd({
                     id,

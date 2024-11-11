@@ -19,11 +19,6 @@ import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
 import ToolSelector from "../tools/ToolSelector";
 
-const TOOL_OPTIONS = [
-  { id: "makeAppointment", name: "makeAppointmentTool" },
-  { id: "runCybot", name: "runcybot" },
-];
-
 const EditCybot = ({ initialValues, onClose }) => {
   console.log("initialValues", initialValues);
   const { t } = useTranslation();

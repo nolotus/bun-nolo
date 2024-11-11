@@ -1,5 +1,3 @@
-// runCybot.ts
-
 import { runTest } from "./testCybot";
 
 async function main() {

@@ -43,6 +43,7 @@ import { claudeModels } from "integrations/anthropic/models";
 import { isModelInList } from "ai/llm/isModelInList";
 import { getWeather } from "ai/tools/getWeather";
 import { prepareTools } from "ai/tools/prepareTools";
+import { makeAppointment } from "ai/tools/appointment";
 const chatWindowLogger = getLogger("ChatWindow");
 
 const createSliceWithThunks = buildCreateSlice({
@@ -516,30 +517,12 @@ export const messageSlice = createSliceWithThunks({
           ...cybotConfig,
           responseLanguage: navigator.language,
         };
-        const tools = [
-          {
-            type: "function",
-            function: {
-              name: "run_cybot",
-              description: "run cybot with id",
-              parameters: {
-                type: "object",
-                properties: {
-                  city: {
-                    type: "cybotId",
-                    description: "The Id of the Cybot",
-                  },
-                },
-                required: ["cybotId"],
-              },
-            },
-          },
-        ];
+
         const requestBody = createStreamRequestBody(config, content, prevMsgs);
         console.log("requestBody", requestBody);
         const response = await sendNoloChatRequest({
           currentServer,
-          requestBody: { ...requestBody, tools },
+          requestBody: { ...requestBody },
           signal,
           token,
         });
@@ -595,16 +578,89 @@ export const messageSlice = createSliceWithThunks({
         });
 
         if (result.ok) {
-          handleOllamaResponse(
+          await handleOllamaResponse(
             id,
             cybotId,
             result,
             thunkApi,
             controller,
             isStream,
+            prevMsgs,
+            content,
           );
         } else {
           console.error("HTTP-Error:", result.status);
+        }
+      },
+      {},
+    ),
+    //for tool call cybot
+    runCybotId: create.asyncThunk(
+      async ({ cybotId, prevMsgs, userInput }, thunkApi) => {
+        console.log("runCybotId cybotID", cybotId);
+        const state = thunkApi.getState();
+
+        const dispatch = thunkApi.dispatch;
+        const readAction = await dispatch(read({ id: cybotId }));
+        console.log("runCybotId readAction", readAction);
+        const cybotConfig = readAction.payload;
+        console.log("runCybotId cybotConfig", cybotConfig);
+        const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
+        const llmConfig = readLLMAction.payload;
+        console.log("runCybotId llmConfig", llmConfig);
+        if (ollamaModelNames.includes(llmConfig.modelValue)) {
+          const model = llmConfig.modelValue;
+          const promotMessage = createPromptMessage(model, cybotConfig.prompt);
+
+          const prepareMsgConfig = {
+            model,
+            promotMessage,
+            prevMsgs,
+            content: userInput,
+          };
+          const messages = prepareMsgs(prepareMsgConfig);
+          const tools = prepareTools(cybotConfig.tools);
+
+          const bodyData = {
+            model: model,
+            messages,
+            tools,
+            stream: false,
+          };
+          const body = JSON.stringify(bodyData);
+          const { api, apiStyle } = llmConfig;
+          const result = await fetch(api, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body,
+            // signal,
+          });
+          const json = await result.json();
+          const message = json.message;
+          const cybotTools = message.tool_calls;
+          console.log("message", message);
+          console.log("cybotTools", cybotTools);
+          if (!cybotTools) {
+            console.log("direct return");
+            return message;
+          } else {
+            const tool = cybotTools[0].function;
+            const toolName = tool.name;
+            if (toolName === "make_appointment") {
+              const currentUserId = selectCurrentUserId(state);
+              console.log("handle tool currentUserId", currentUserId);
+              const result = await makeAppointment(
+                tool.arguments,
+                thunkApi,
+                currentUserId,
+              );
+              console.log("handle tool result", result);
+              const message = { content: result };
+              return message;
+            }
+          }
         }
       },
       {},
@@ -635,6 +691,7 @@ export const {
   streamRequest,
   streamLLmId,
   sendWithMessageId,
+  runCybotId,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 import { FormField, Label } from "render/CommonFormComponents";
 
 export const TOOL_OPTIONS = [
-  { id: "makeAppointment", name: "makeAppointmentTool" },
-  { id: "runCybot", name: "runcybot" },
+  { id: "makeAppointment", name: "makeAppointment" },
+  { id: "runCybot", name: "runCybot" },
 ];
 
 interface ToolSelectorProps {
