@@ -4,10 +4,11 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
-import { Modal, useModal } from "./Modal";
 import { styles, themeStyles } from "render/ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
 import { useMediaQuery } from "react-responsive";
+
+import { Modal, useModal } from "./Modal";
 
 // 自定义 hook 用于响应式样式
 const useResponsiveStyles = () => {
@@ -35,7 +36,7 @@ const useResponsiveStyles = () => {
 export const useDeleteAlert = (deleteCallback: (item: any) => void) => {
   const { visible, open, close, modalState } = useModal();
 
-  const confirmDelete = (item: any) => {
+  const openAlert = (item: any) => {
     open(item);
   };
 
@@ -44,7 +45,7 @@ export const useDeleteAlert = (deleteCallback: (item: any) => void) => {
     close();
   };
 
-  return { visible, confirmDelete, doDelete, closeAlert: close, modalState };
+  return { visible, openAlert, doDelete, closeAlert: close, modalState };
 };
 
 interface AlertProps {
@@ -55,77 +56,81 @@ interface AlertProps {
   message: string;
 }
 
-export const Alert: React.FC<AlertProps> = React.memo(
-  ({ isOpen, onClose, onConfirm, message, title }) => {
-    const theme = useSelector(selectTheme);
-    const responsiveStyles = useResponsiveStyles();
-    const { t } = useTranslation();
+export const Alert: React.FC<AlertProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  message,
+  title,
+}) => {
+  const theme = useSelector(selectTheme);
+  const responsiveStyles = useResponsiveStyles();
+  const { t } = useTranslation();
 
-    return (
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <div
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <div
+        style={{
+          ...styles.rounded,
+          ...themeStyles.surface3(theme),
+          padding: responsiveStyles.padding,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        <h2
           style={{
-            ...styles.rounded,
-            ...themeStyles.surface3(theme),
-            padding: responsiveStyles.padding,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
+            fontSize: responsiveStyles.titleSize,
+            fontWeight: 600,
+            marginBottom: "1.5rem",
+            color: theme.text1,
           }}
         >
-          <h2
+          {title}
+        </h2>
+        <p
+          style={{
+            color: theme.text1,
+            marginBottom: "2rem",
+            maxWidth: "80%",
+            lineHeight: "1.5",
+            fontSize: responsiveStyles.messageSize,
+          }}
+        >
+          {message}
+        </p>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "1rem",
+            width: "100%",
+          }}
+        >
+          <Button
+            onClick={onClose}
             style={{
-              fontSize: responsiveStyles.titleSize,
-              fontWeight: 600,
-              marginBottom: "1.5rem",
-              color: theme.text1,
+              minWidth: responsiveStyles.buttonMinWidth,
+              padding: responsiveStyles.buttonPadding,
             }}
           >
-            {title}
-          </h2>
-          <p
+            {t("cancel")}
+          </Button>
+          <Button
+            onClick={onConfirm}
             style={{
-              color: theme.text1,
-              marginBottom: "2rem",
-              maxWidth: "80%",
-              lineHeight: "1.5",
-              fontSize: responsiveStyles.messageSize,
+              minWidth: responsiveStyles.buttonMinWidth,
+              padding: responsiveStyles.buttonPadding,
             }}
           >
-            {message}
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "1rem",
-              width: "100%",
-            }}
-          >
-            <Button
-              onClick={onClose}
-              style={{
-                minWidth: responsiveStyles.buttonMinWidth,
-                padding: responsiveStyles.buttonPadding,
-              }}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              onClick={onConfirm}
-              style={{
-                minWidth: responsiveStyles.buttonMinWidth,
-                padding: responsiveStyles.buttonPadding,
-              }}
-            >
-              {t("confirm")}
-            </Button>
-          </div>
+            {t("confirm")}
+          </Button>
         </div>
-      </Modal>
-    );
-  },
-);
+      </div>
+    </Modal>
+  );
+};
 
 export default Alert;

@@ -31,16 +31,10 @@ const CircleButton = ({ tooltip, icon, to, onClick }) => {
     backgroundColor: theme.surface2,
   };
 
-  const activeStyle = {
-    backgroundColor: theme.surface3,
-    transform: "scale(0.95)",
-  };
-
   const ButtonContent = (
     <Button
       style={buttonStyle}
       hoverStyle={hoverStyle}
-      activeStyle={activeStyle}
       icon={icon}
       aria-label={tooltip}
     />

@@ -43,7 +43,7 @@ const CybotBlock = ({ item, closeModal }) => {
   const handleDelete = useCallback(async () => {
     setDeleting(true);
     try {
-      await dispatch(deleteData({ id: item.id })).unwrap();
+      await dispatch(deleteData({ id: item.id }));
       toast.success(t("deleteSuccess"));
     } catch (error) {
       toast.error(t("deleteError"));

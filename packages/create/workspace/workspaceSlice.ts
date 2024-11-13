@@ -18,6 +18,7 @@ interface workspaceState {
   currentWorkspaceId: string | null;
   currentWorkspace: any;
   workspaces: [] | null;
+  dialogList: [] | null;
 }
 
 const initialState: workspaceState = {

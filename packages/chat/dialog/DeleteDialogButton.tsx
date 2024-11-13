@@ -3,13 +3,9 @@ import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  deleteDialog,
-  resetCurrentDialogTokens,
-} from "chat/dialog/dialogSlice";
 import { Alert, useDeleteAlert } from "render/ui/Alert";
 import { useParams } from "react-router-dom";
-import { clearMessages } from "../messages/messageSlice";
+import { deleteCurrentDialog } from "./dialogSlice";
 
 const DeleteDialogButton = ({ dialogConfig }) => {
   const { dialogId } = useParams();
@@ -17,22 +13,20 @@ const DeleteDialogButton = ({ dialogConfig }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const onDeleteDialog = () => {
-    dispatch(deleteDialog(dialogId));
-    dispatch(clearMessages());
-    dispatch(resetCurrentDialogTokens());
+  const onDeleteDialog = async () => {
+    await dispatch(deleteCurrentDialog(dialogId));
     navigate(-1);
   };
 
   const {
     visible: deleteAlertVisible,
-    confirmDelete,
+    openAlert,
     doDelete,
     closeAlert,
   } = useDeleteAlert(onDeleteDialog);
 
-  const onDeleteClick = () => {
-    confirmDelete(dialogConfig);
+  const openDeleteDialog = () => {
+    openAlert(dialogConfig);
   };
 
   const styles = {
@@ -69,7 +63,7 @@ const DeleteDialogButton = ({ dialogConfig }) => {
 
   return (
     <>
-      <IconButton onClick={onDeleteClick}>
+      <IconButton onClick={openDeleteDialog}>
         <TrashIcon size={16} />
       </IconButton>
       <Alert

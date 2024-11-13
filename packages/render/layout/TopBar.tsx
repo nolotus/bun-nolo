@@ -100,7 +100,6 @@ const TopBar: React.FC<TopBarProps> = ({
       </div>
       <div style={styles.flexEnd}>
         <CreateMenu />
-        {/* 登录菜单或登录按钮 */}
         {isLoggedIn ? (
           <div>
             <IsLoggedInMenu />

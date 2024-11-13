@@ -17,7 +17,6 @@ export type ButtonProps = {
   type?: "button" | "submit" | "reset";
   style?: React.CSSProperties;
   hoverStyle?: React.CSSProperties;
-  activeStyle?: React.CSSProperties;
 };
 
 export const Button: React.FC<ButtonProps> = ({
@@ -31,10 +30,8 @@ export const Button: React.FC<ButtonProps> = ({
   type = "button",
   style,
   hoverStyle,
-  activeStyle,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isActive, setIsActive] = useState(false);
   const theme = useSelector(selectTheme);
   const isDarkMode = useSelector(selectIsDarkMode);
   const { t } = useTranslation();
@@ -47,7 +44,9 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyles: React.CSSProperties = {
     alignItems: "center",
     background: isDarkMode ? theme.surface1 : "#fff",
-    border: `${OpenProps.borderSize2} solid ${theme.surface3}`,
+    borderWidth: OpenProps.borderSize2,
+    borderStyle: "solid",
+    borderColor: theme.surface3,
     borderRadius: OpenProps.radius2,
     boxShadow: `${OpenProps.shadow2}, 0 1px ${theme.surface3}, 0 0 0 ${
       isHovered ? OpenProps.size2 : "0"
@@ -77,35 +76,23 @@ export const Button: React.FC<ButtonProps> = ({
     ...hoverStyle,
   };
 
-  const activeStyles: React.CSSProperties = {
-    transform: "translateY(1px)",
-    ...activeStyle,
-  };
-
   const disabledStyles: React.CSSProperties = {
     background: "none",
     color: isDarkMode ? OpenProps.gray5 : OpenProps.gray6,
     boxShadow: OpenProps.shadow1,
+    borderColor: disabled ? theme.surface3 : "", // 或者你想要的其他颜色
   };
 
   const combinedStyles = {
     ...baseStyles,
     ...(disabled || loading ? disabledStyles : {}),
-    ...(isHovered && !disabled && !loading ? hoverStyles : {}),
-    ...(isActive && !disabled && !loading ? activeStyles : {}),
+    ...(isHovered ? hoverStyles : {}),
     ...style,
   };
 
   const handleMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (!disabled && !loading) {
-      setIsActive(true);
       onClick && onClick(event);
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (!disabled && !loading) {
-      setIsActive(false);
     }
   };
 
@@ -118,7 +105,6 @@ export const Button: React.FC<ButtonProps> = ({
   const handleMouseLeave = () => {
     if (!disabled && !loading) {
       setIsHovered(false);
-      setIsActive(false);
     }
   };
 
@@ -127,7 +113,6 @@ export const Button: React.FC<ButtonProps> = ({
       className={className}
       style={combinedStyles}
       onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       disabled={disabled || loading}

@@ -4,8 +4,9 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-import { deleteData, read, removeOne } from "database/dbSlice";
+import { deleteData, read } from "database/dbSlice";
 import { write } from "database/dbSlice";
+import { clearMessages } from "chat/messages/messageSlice";
 
 import { DataType } from "create/types";
 import { nolotusId } from "core/init";
@@ -114,6 +115,7 @@ const DialogSlice = createSliceWithThunks({
         const { dispatch } = thunkApi;
         dispatch(setCurrentDialogId(dialogId));
         dispatch(resetCurrentDialogTokens());
+
         const action = await dispatch(read({ id: dialogId }));
         return { ...action.payload, source };
       },
@@ -130,9 +132,8 @@ const DialogSlice = createSliceWithThunks({
     deleteDialog: create.asyncThunk(
       async (dialogId, thunkApi) => {
         const { dispatch, getState } = thunkApi;
+
         const state = getState();
-        dispatch(removeOne(dialogId));
-        const deleteConfig = { id: dialogId };
         try {
           const action = await dispatch(read({ id: dialogId }));
           const dialog = action.payload;
@@ -149,9 +150,7 @@ const DialogSlice = createSliceWithThunks({
         } catch (error) {
           console.error("Error reading dialog:", error);
         } finally {
-          await dispatch(deleteData(deleteConfig));
-
-          // 无论是否有异常，都会执行这个删除操作
+          dispatch(deleteData({ id: dialogId }));
         }
       },
       {
@@ -159,6 +158,17 @@ const DialogSlice = createSliceWithThunks({
           state.currentDialogConfig = null;
           state.currentDialogId = null;
         },
+      },
+    ),
+    deleteCurrentDialog: create.asyncThunk(
+      async (dialogId, thunkApi) => {
+        const dispatch = thunkApi.dispatch;
+        dispatch(deleteDialog(dialogId));
+        dispatch(clearMessages());
+        dispatch(resetCurrentDialogTokens());
+      },
+      {
+        fulfilled: (state, action) => {},
       },
     ),
 
@@ -180,6 +190,7 @@ export const {
   resetCurrentDialogTokens,
   // 导出 clearDialogState action
   clearDialogState,
+  deleteCurrentDialog,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;

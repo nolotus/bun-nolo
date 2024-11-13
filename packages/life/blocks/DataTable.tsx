@@ -271,9 +271,7 @@ export const DataTable: React.FC<DataTableProps> = ({
   const renderActions = (data: any) => (
     <>
       <button
-        onClick={() =>
-          dispatch(deleteData({ id: data.id, source: data.source }))
-        }
+        onClick={() => dispatch(deleteData({ id: data.id }))}
         style={{
           borderRadius: "4px",
           padding: "4px",

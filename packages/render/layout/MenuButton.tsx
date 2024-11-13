@@ -24,10 +24,6 @@ const MenuButton: React.FC<MenuButtonProps> = ({
     backgroundColor: theme.surface2,
   };
 
-  const activeStyle = {
-    backgroundColor: theme.surface3,
-    transform: "scale(0.95)",
-  };
   return (
     <Button
       onClick={onClick}
@@ -40,7 +36,6 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       }
       style={buttonStyle}
       hoverStyle={hoverStyle}
-      activeStyle={activeStyle}
       aria-label="Menu"
     />
   );
