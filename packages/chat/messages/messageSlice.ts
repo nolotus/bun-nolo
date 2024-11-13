@@ -549,7 +549,7 @@ export const messageSlice = createSliceWithThunks({
         console.log("readLLMAction", readLLMAction);
         const llmConfig = readLLMAction.payload;
         const { api, apiStyle } = llmConfig;
-        const model = llmConfig.model || llmConfig.modelValue;
+        const model = llmConfig.model;
         const config = {
           ...cybotConfig,
           responseLanguage: navigator.language,
@@ -608,8 +608,8 @@ export const messageSlice = createSliceWithThunks({
         const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
         const llmConfig = readLLMAction.payload;
         console.log("runCybotId llmConfig", llmConfig);
-        if (ollamaModelNames.includes(llmConfig.modelValue)) {
-          const model = llmConfig.modelValue;
+        if (ollamaModelNames.includes(llmConfig.model)) {
+          const model = llmConfig.model;
           const promotMessage = createPromptMessage(model, cybotConfig.prompt);
 
           const prepareMsgConfig = {

@@ -53,3 +53,11 @@ type LLMModel = {
 export type LLMModels = {
   [key: string]: LLMModel;
 };
+
+export interface LLMFormData {
+  name: string;
+  apiStyle: string;
+  api: string;
+  keyName?: string;
+  model: string;
+}

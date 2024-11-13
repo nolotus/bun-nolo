@@ -21,7 +21,7 @@ interface workspaceState {
 }
 
 const initialState: workspaceState = {
-  currentWorkspaceId: null,
+  currentWorkspaceId: "all",
   currentWorkspace: null,
   workspaces: null,
 };

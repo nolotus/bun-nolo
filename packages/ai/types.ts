@@ -49,14 +49,6 @@ export interface PromptFormData {
   tags?: string[];
 }
 
-export interface LLMFormData {
-  name: string;
-  apiStyle: string;
-  api: string;
-  keyName?: string;
-  model: string;
-}
-
 export interface TokenStaticData {
   type: DataType.TokenStats;
   messageType: "send" | "receive";

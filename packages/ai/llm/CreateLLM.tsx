@@ -1,21 +1,12 @@
 // CreateLLM.tsx
-
-import React, { useEffect, useMemo, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch } from "app/hooks";
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import withTranslations from "i18n/withTranslations";
-import groupBy from "lodash-es/groupBy.js";
-import { matchSorter } from "match-sorter";
-import {
-  Combobox,
-  ComboboxGroup,
-  ComboboxItem,
-  ComboboxSeparator,
-  NoResults,
-} from "render/combobox";
+
 import { DataType } from "create/types";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,12 +14,8 @@ import {
   FormTitle,
   FormFieldComponent,
   SubmitButton,
-  FormField,
-  Label,
-  ErrorMessage,
 } from "render/CommonFormComponents";
-import { LLMFormData } from "ai/types";
-import { modelEnum } from "./models";
+import { LLMFormData } from "./types";
 import { defaultAPIs, apiStyleOptions } from "./config";
 
 const CreateLLM: React.FC = () => {
@@ -67,27 +54,17 @@ const CreateLLM: React.FC = () => {
       const llmId = writeLLMAction.payload.id;
       navigate(`/${llmId}`);
     } catch (error) {
-      console.error("Error creating LLM:", error);
+      console.error("创建 LLM 时出错:", error);
     }
   };
 
-  // Model search functionality
-  const [modelValue, setModelValue] = useState("");
-  const deferredModelValue = React.useDeferredValue(modelValue);
-
-  const modelOptions = useMemo(() => {
-    return Object.entries(modelEnum).map(([key, value]) => ({
-      name: key,
-      type: "Models",
-    }));
-  }, []);
-
-  const matches = useMemo(() => {
-    const items = matchSorter(modelOptions, deferredModelValue, {
-      keys: ["name"],
-    });
-    return Object.entries(groupBy(items, "type"));
-  }, [deferredModelValue, modelOptions]);
+  const providerOptions = [
+    { value: "deepinfra", label: "DeepInfra" },
+    { value: "firework", label: "Firework" },
+    { value: "provider1", label: "提供商1" },
+    { value: "provider2", label: "提供商2" },
+    // 根据需要添加更多提供商
+  ];
 
   return (
     <FormContainer>
@@ -99,6 +76,15 @@ const CreateLLM: React.FC = () => {
           register={register}
           errors={errors}
           required
+        />
+        <FormFieldComponent
+          label={t("provider")}
+          name="provider"
+          register={register}
+          errors={errors}
+          required
+          as="select"
+          options={providerOptions}
         />
         <FormFieldComponent
           label={t("llmAPIStyle")}
@@ -127,48 +113,11 @@ const CreateLLM: React.FC = () => {
         />
         <FormFieldComponent
           label={t("model")}
-          name="modelValue"
+          name="model"
           register={register}
           errors={errors}
           required
         />
-        {/* <FormField>
-          <Label htmlFor="model">{t("model")}:</Label>
-          <input {}></input>
-          <Controller
-            name="model"
-            control={control}
-            rules={{ required: t("modelRequired") }}
-            render={({ field }) => (
-              <Combobox
-                autoSelect
-                autoComplete="both"
-                placeholder={t("searchModels")}
-                value={modelValue}
-                onChange={(value) => {
-                  setModelValue(value);
-                  field.onChange(value);
-                }}
-              >
-                {matches.length ? (
-                  matches.map(([type, items], i) => (
-                    <React.Fragment key={type}>
-                      <ComboboxGroup label={type}>
-                        {items.map((item) => (
-                          <ComboboxItem key={item.name} value={item.name} />
-                        ))}
-                      </ComboboxGroup>
-                      {i < matches.length - 1 && <ComboboxSeparator />}
-                    </React.Fragment>
-                  ))
-                ) : (
-                  <NoResults>{t("noModelsFound")}</NoResults>
-                )}
-              </Combobox>
-            )}
-          />
-          {errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
-        </FormField> */}
         <SubmitButton type="submit">{t("createLLM")}</SubmitButton>
       </form>
     </FormContainer>

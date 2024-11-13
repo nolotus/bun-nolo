@@ -1,31 +1,19 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch } from "app/hooks";
-import { useAuth } from "auth/useAuth";
 import withTranslations from "i18n/withTranslations";
-import groupBy from "lodash-es/groupBy.js";
-import { matchSorter } from "match-sorter";
+
+import { useAppDispatch } from "app/hooks";
+import { useForm } from "react-hook-form";
 import { Dialog } from "render/ui/Dialog";
 import {
   FormContainer,
   FormTitle,
   FormFieldComponent,
   SubmitButton,
-  FormField,
-  Label,
-  ErrorMessage,
 } from "render/CommonFormComponents";
-import { LLMFormData } from "ai/types";
-import { modelEnum } from "../llm/models";
+import { LLMFormData } from "./types";
 import { DataType } from "create/types";
-import {
-  Combobox,
-  ComboboxGroup,
-  ComboboxItem,
-  ComboboxSeparator,
-  NoResults,
-} from "render/combobox";
+
 import { setData } from "database/dbSlice";
 
 const apiStyleOptions = ["ollama", "openai", "claude"];
@@ -44,14 +32,12 @@ const EditLLM: React.FC<{
 
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const auth = useAuth();
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
-    control,
     formState: { errors },
   } = useForm<LLMFormData>({
     defaultValues: initialValues,
@@ -75,23 +61,6 @@ const EditLLM: React.FC<{
     );
     onClose();
   };
-
-  const [modelValue, setModelValue] = useState("");
-  const deferredModelValue = React.useDeferredValue(modelValue);
-
-  const modelOptions = useMemo(() => {
-    return Object.entries(modelEnum).map(([key, value]) => ({
-      name: key,
-      type: "Models",
-    }));
-  }, []);
-
-  const matches = useMemo(() => {
-    const items = matchSorter(modelOptions, deferredModelValue, {
-      keys: ["name"],
-    });
-    return Object.entries(groupBy(items, "type"));
-  }, [deferredModelValue, modelOptions]);
 
   return (
     <Dialog isOpen={!!llmId} onClose={onClose} title={t("editLLM")}>
@@ -130,44 +99,13 @@ const EditLLM: React.FC<{
             register={register}
             errors={errors}
           />
-          <FormField>
-            <Label htmlFor="model">{t("model")}:</Label>
-            <Controller
-              name="model"
-              control={control}
-              rules={{ required: t("modelRequired") }}
-              render={({ field }) => (
-                <Combobox
-                  autoSelect
-                  autoComplete="both"
-                  placeholder={t("searchModels")}
-                  value={modelValue}
-                  onChange={(value) => {
-                    setModelValue(value);
-                    field.onChange(value);
-                  }}
-                >
-                  {matches.length ? (
-                    matches.map(([type, items], i) => (
-                      <React.Fragment key={type}>
-                        <ComboboxGroup label={type}>
-                          {items.map((item) => (
-                            <ComboboxItem key={item.name} value={item.name} />
-                          ))}
-                        </ComboboxGroup>
-                        {i < matches.length - 1 && <ComboboxSeparator />}
-                      </React.Fragment>
-                    ))
-                  ) : (
-                    <NoResults>{t("noModelsFound")}</NoResults>
-                  )}
-                </Combobox>
-              )}
-            />
-            {errors.model && (
-              <ErrorMessage>{errors.model.message}</ErrorMessage>
-            )}
-          </FormField>
+          <FormFieldComponent
+            label={t("model")}
+            name="model"
+            register={register}
+            errors={errors}
+            required
+          />
           <SubmitButton type="submit">{t("saveChanges")}</SubmitButton>
         </form>
       </FormContainer>
