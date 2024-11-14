@@ -8,6 +8,7 @@ import {
 import { selectCurrentUserId } from "auth/authSlice";
 import { patchData, queryServer, write } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
+import { deleteData } from "database/dbSlice";
 import { DataType } from "../types";
 
 const createSliceWithThunks = buildCreateSlice({
@@ -105,6 +106,26 @@ const workspaceSlice = createSliceWithThunks({
         },
       },
     ),
+    deleteWorkspace: create.asyncThunk(
+      async (workspaceId: string, thunkAPI) => {
+        const dispatch = thunkAPI.dispatch;
+        const state = thunkAPI.getState();
+        const currentUserId = selectCurrentUserId(state);
+        await dispatch(deleteData({ id: workspaceId }));
+        return workspaceId;
+      },
+      {
+        fulfilled: (state, action) => {
+          const workspaceId = action.payload;
+          state.workspaces = state.workspaces.filter(
+            (workspace: any) => workspace.id !== workspaceId,
+          );
+          if (state.currentWorkspaceId === workspaceId) {
+            state.currentWorkspaceId = "all";
+          }
+        },
+      },
+    ),
   }),
 });
 
@@ -113,6 +134,7 @@ export const {
   fetchWorkspaces,
   changeWorkSpace,
   addWorkspace,
+  deleteWorkspace,
 } = workspaceSlice.actions;
 
 export const selectAllWorkspaces = (state: NoloRootState) =>

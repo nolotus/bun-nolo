@@ -8,8 +8,8 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import {
   changeWorkSpace,
   fetchWorkspaces,
+  deleteWorkspace,
   selectAllWorkspaces,
-  selectCurrentWorkSpaceId,
   selectCurrentWorkspaceName,
 } from "create/workspace/workspaceSlice";
 
@@ -18,7 +18,6 @@ export const SidebarTop = () => {
   const dispatch = useAppDispatch();
   const workspaces = useAppSelector(selectAllWorkspaces);
   const navigate = useNavigate();
-  const currentWorkspaceId = useAppSelector(selectCurrentWorkSpaceId);
   const currentWorkspaceName = useAppSelector(selectCurrentWorkspaceName);
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -38,6 +37,9 @@ export const SidebarTop = () => {
     navigate("/chat");
     dispatch(changeWorkSpace(workspaceId));
     setIsOpen(false);
+  };
+  const handleDeleteWorkspace = (workspaceId: string) => {
+    dispatch(deleteWorkspace(workspaceId));
   };
 
   return (
@@ -145,6 +147,9 @@ export const SidebarTop = () => {
                   }}
                 >
                   {workspace.name}
+                  <button onClick={() => handleDeleteWorkspace(workspace.id)}>
+                    删除
+                  </button>
                 </div>
               ))}
           </div>
