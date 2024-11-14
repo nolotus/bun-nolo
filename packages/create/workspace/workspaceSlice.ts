@@ -6,7 +6,7 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { selectCurrentUserId } from "auth/authSlice";
-import { patchData, queryServer, write } from "database/dbSlice";
+import { patchData, query, queryServer, write } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { deleteData } from "database/dbSlice";
 import { DataType } from "../types";
@@ -20,12 +20,14 @@ interface workspaceState {
   currentWorkspace: any;
   workspaces: [] | null;
   dialogList: [] | null;
+  loading: boolean;
 }
 
 const initialState: workspaceState = {
-  currentWorkspaceId: "all",
+  currentWorkspaceId: null,
   currentWorkspace: null,
   workspaces: null,
+  loading: true,
 };
 
 const workspaceSlice = createSliceWithThunks({
@@ -109,8 +111,6 @@ const workspaceSlice = createSliceWithThunks({
     deleteWorkspace: create.asyncThunk(
       async (workspaceId: string, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
-        const state = thunkAPI.getState();
-        const currentUserId = selectCurrentUserId(state);
         await dispatch(deleteData({ id: workspaceId }));
         return workspaceId;
       },
@@ -121,11 +121,36 @@ const workspaceSlice = createSliceWithThunks({
             (workspace: any) => workspace.id !== workspaceId,
           );
           if (state.currentWorkspaceId === workspaceId) {
-            state.currentWorkspaceId = "all";
+            state.currentWorkspaceId = "recent";
           }
         },
       },
     ),
+    queryDialogList: create.asyncThunk(async (workspaceId, thunkAPI) => {
+      const state = thunkAPI.getState();
+      const currentUserId = selectCurrentUserId(state);
+      let condition = {};
+      if (workspaceId) {
+        condition = {
+          type: DataType.Dialog,
+          workspaceId: state.workspaceId,
+        };
+      } else {
+        condition = {
+          type: DataType.Dialog,
+        };
+      }
+
+      const queryConfig = {
+        queryUserId: currentUserId,
+        options: {
+          isJSON: true,
+          limit: 200,
+          condition,
+        },
+      };
+      await thunkAPI.dispatch(query(queryConfig));
+    }, {}),
   }),
 });
 
@@ -135,6 +160,7 @@ export const {
   changeWorkSpace,
   addWorkspace,
   deleteWorkspace,
+  queryDialogList,
 } = workspaceSlice.actions;
 
 export const selectAllWorkspaces = (state: NoloRootState) =>
@@ -148,7 +174,7 @@ export const selectCurrentWorkspaceName = (state: NoloRootState) => {
   const workspaces = state.workspace.workspaces;
 
   if (!currentId) return "";
-  if (currentId === "all") return "allChats";
+  if (currentId === null) return "recent";
 
   if (!workspaces) return "";
 

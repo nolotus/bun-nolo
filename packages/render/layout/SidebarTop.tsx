@@ -11,6 +11,7 @@ import {
   deleteWorkspace,
   selectAllWorkspaces,
   selectCurrentWorkspaceName,
+  queryDialogList,
 } from "create/workspace/workspaceSlice";
 
 export const SidebarTop = () => {
@@ -36,6 +37,7 @@ export const SidebarTop = () => {
   const handleOptionClick = (workspaceId: string) => {
     navigate("/chat");
     dispatch(changeWorkSpace(workspaceId));
+    dispatch(queryDialogList(workspaceId));
     setIsOpen(false);
   };
   const handleDeleteWorkspace = (workspaceId: string) => {
@@ -112,8 +114,8 @@ export const SidebarTop = () => {
             }}
           >
             <div
-              onClick={() => handleOptionClick("all")}
-              onMouseEnter={() => setHoveredItem("all")}
+              onClick={() => handleOptionClick()}
+              onMouseEnter={() => setHoveredItem()}
               onMouseLeave={() => setHoveredItem(null)}
               style={{
                 padding: "10px 14px",
@@ -125,7 +127,7 @@ export const SidebarTop = () => {
                 color: "#3c4043",
               }}
             >
-              {t("allChats")}
+              {t("recent")}
             </div>
 
             {workspaces &&

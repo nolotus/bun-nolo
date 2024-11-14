@@ -22,26 +22,19 @@ import { selectCurrentUser } from "auth/authSlice";
 import { noloPatchRequest } from "./client/patchRequest";
 
 export const dbAdapter = createEntityAdapter();
+
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
   dbAdapter.getSelectors((state: NoloRootState) => state.db);
+
 export const makeSelectEntityById =
   (entityId: string) => (state: NoloRootState) =>
     selectById(state, entityId);
 
 const initialState = dbAdapter.getInitialState({});
+
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
-
-function mergeSource(existingItem, newSource) {
-  if (existingItem) {
-    const sourceSet = new Set(existingItem.source);
-    sourceSet.add(newSource);
-    return Array.from(sourceSet);
-  } else {
-    return [newSource];
-  }
-}
 
 // Slice
 const dbSlice = createSliceWithThunks({
@@ -246,7 +239,6 @@ const dbSlice = createSliceWithThunks({
         },
       },
     ),
-
     upsertOne: create.reducer((state, action) => {
       dbAdapter.upsertOne(state, action.payload);
     }),
@@ -305,6 +297,13 @@ const dbSlice = createSliceWithThunks({
       const result = await res.json();
       return result;
     }, {}),
+    query: create.asyncThunk(async (queryConfig, thunkAPI) => {
+      const state = thunkAPI.getState();
+      const currentServer = selectCurrentServer(state);
+      const config = { server: currentServer, ...queryConfig };
+
+      const actionResult = await thunkAPI.dispatch(queryServer(config));
+    }, {}),
   }),
 });
 export const selectEntitiesByIds = createSelector(
@@ -324,7 +323,8 @@ export const {
   syncQuery,
   write,
   addOne,
-  queryServer,
   addToList,
+  queryServer,
+  query,
 } = dbSlice.actions;
 export default dbSlice.reducer;
