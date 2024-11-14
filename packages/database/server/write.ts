@@ -88,6 +88,7 @@ export const handleWrite = async (req: any, res: any) => {
       return res.status(200).json({
         message: "Data written to file successfully.",
         id,
+        ...data,
       });
     } catch (error) {
       return handleError(

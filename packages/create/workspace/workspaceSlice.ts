@@ -78,24 +78,33 @@ const workspaceSlice = createSliceWithThunks({
       },
     ),
 
-    addWorkspace: create.asyncThunk(async (name: string, thunkAPI) => {
-      if (typeof name !== "string") {
-        return;
-      }
-      const dispatch = thunkAPI.dispatch;
-      const state = thunkAPI.getState();
-      const currentUserId = selectCurrentUserId(state);
-      const config = {
-        data: {
-          type: DataType.WorkSpace,
-          name,
+    addWorkspace: create.asyncThunk(
+      async (name: string, thunkAPI) => {
+        if (typeof name !== "string") {
+          return;
+        }
+        const dispatch = thunkAPI.dispatch;
+        const state = thunkAPI.getState();
+        const currentUserId = selectCurrentUserId(state);
+        const config = {
+          data: {
+            type: DataType.WorkSpace,
+            name,
+          },
+          flags: { isJSON: true },
+          userId: currentUserId,
+        };
+        const actionResult = await dispatch(write(config));
+        console.log("actionResult", actionResult);
+        return actionResult.payload;
+      },
+      {
+        fulfilled: (state, action) => {
+          console.log("action", action);
+          state.workspaces?.push(action.payload);
         },
-        flags: { isJSON: true },
-        userId: currentUserId,
-      };
-      const actionResult = await dispatch(write(config));
-      console.log("actionResult", actionResult);
-    }, {}),
+      },
+    ),
   }),
 });
 
