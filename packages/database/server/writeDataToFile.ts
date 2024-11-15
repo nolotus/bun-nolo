@@ -30,6 +30,7 @@ const writeDataToFile = (
   timestamp: string,
   layer: number = 0,
 ): void => {
+  console.log("userId", userId);
   const userDir = path.join(baseDir, userId);
 
   if (!fs.existsSync(userDir)) {

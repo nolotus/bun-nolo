@@ -26,7 +26,7 @@ const CybotBlock = ({ item, closeModal }) => {
   const createNewDialog = async () => {
     try {
       const cybotId = item.id;
-      await createDialog({ cybots: [cybotId] });
+      createDialog({ cybots: [cybotId] });
       if (closeModal) {
         closeModal();
       }
