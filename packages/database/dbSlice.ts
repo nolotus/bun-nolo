@@ -134,13 +134,15 @@ const dbSlice = createSliceWithThunks({
 
         if (res.status === 200) {
           const result = await res.json();
-          return result;
+          const { processingIds } = result;
+
+          return processingIds;
         }
       },
       {
         fulfilled: (state, action) => {
-          const id = action.payload.id;
-          dbAdapter.removeOne(state, id);
+          const ids = action.payload;
+          dbAdapter.removeMany(state, ids);
         },
       },
     ),

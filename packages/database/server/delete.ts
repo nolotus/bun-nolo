@@ -18,6 +18,7 @@ export const handleDelete = async (req, res) => {
     if (!checkDeletePermission(actionUserId, dataBelongUserId)) {
       return res.status(403).json({ error: "Unauthorized action." });
     }
+
     const { ids = [] } = req.body || {};
     const allIds = [id, ...ids];
 

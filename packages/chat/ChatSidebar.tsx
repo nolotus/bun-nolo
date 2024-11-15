@@ -24,7 +24,6 @@ const ChatSidebar = () => {
       workspaceId,
     ),
   );
-
   useEffect(() => {
     dispatch(queryDialogList());
   }, []);
