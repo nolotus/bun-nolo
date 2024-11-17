@@ -12,6 +12,10 @@ import { getHeadTail } from "core/getHeadTail";
 import { writeUserFiles } from "./writeDataToFile";
 import { generateTimestamp } from "./time";
 
+const CONFIG = {
+  MAX_MEM_TABLE_SIZE: Number(process.env.MAX_MEM_TABLE_SIZE || 8), // 强制转换为数字
+  LOG_DIR: process.env.LOG_DIR || "logs",
+};
 type MemoryStructure = {
   memTable: Map<string, string>;
   immutableMem: Array<Map<string, string>>;
@@ -45,15 +49,18 @@ const updateWalFromDefault = (
   timestamp: string,
   sequenceNumber: number,
 ): void => {
-  const defaultLogPath = path.resolve(baseDir, "default.log");
-  const walPath = path.resolve(
-    baseDir,
-    `wal_${timestamp}_${sequenceNumber}.log`,
-  );
-
-  if (fs.existsSync(defaultLogPath)) {
-    fs.copyFileSync(defaultLogPath, walPath);
-    fs.writeFileSync(defaultLogPath, "", "utf-8");
+  try {
+    const defaultLogPath = path.resolve(baseDir, "default.log");
+    const walPath = path.resolve(
+      baseDir,
+      `wal_${timestamp}_${sequenceNumber}.log`,
+    );
+    if (fs.existsSync(defaultLogPath)) {
+      fs.copyFileSync(defaultLogPath, walPath);
+      fs.writeFileSync(defaultLogPath, "", "utf-8");
+    }
+  } catch (error) {
+    console.error("Failed to update WAL:", error);
   }
 };
 
@@ -105,7 +112,7 @@ const set = (
   // Write to default.log
   writeMemoryLog(key, value);
 
-  if (newMemTable.size > 4) {
+  if (newMemTable.size > CONFIG.MAX_MEM_TABLE_SIZE) {
     return moveToImmutable({ ...memory, memTable: newMemTable });
   }
 
@@ -118,6 +125,7 @@ class EnhancedMap {
   constructor() {
     this.memory = createMemory();
     const logFiles = findLogFiles();
+    console.log("logFiles", logFiles);
     logFiles.forEach((logFile) => {
       const lines = getLogFileLines(logFile);
       this.applyLogData(lines);

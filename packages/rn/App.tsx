@@ -6,12 +6,16 @@ import "intl-pluralrules";
 
 import i18n from "i18n";
 import * as RNLocalize from "react-native-localize";
-
 import { Provider } from "react-redux";
+
 import { mobileStore } from "./store";
 import MainNavigation from "./MainNavigation";
-global._ISRN_ = true;
+import { fromMarkdown } from "mdast-util-from-markdown";
+const string = `## Hello, *World*!`;
+const tree = fromMarkdown(string);
+console.log("tree", tree);
 
+global._ISRN_ = true;
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === "dark";
   const systemLanguage = RNLocalize.getLocales()[0].languageCode;
