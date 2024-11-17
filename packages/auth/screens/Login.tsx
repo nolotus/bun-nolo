@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { View, StyleSheet, TextInput, Button, Text, Alert } from "react-native";
 import * as RNLocalize from "react-native-localize";
 import { storeTokens } from "auth/client/token";
-import { Picker } from "@react-native-picker/picker";
 import { useAppDispatch } from "app/hooks";
 import { signIn } from "../authSlice";
 import { useForm, Controller } from "react-hook-form";
