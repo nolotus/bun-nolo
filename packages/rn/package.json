@@ -1,17 +1,17 @@
 {
-	"name": "rn",
-	"module": "index.ts",
-	"type": "module",
-	"devDependencies": {
-		"bun-types": "latest"
-	},
-	"peerDependencies": {
-		"typescript": "^5.0.0"
-	},
-	"dependencies": {
-		"app": "workspace:app",
-		"render": "workspace:render",
-		"intl-pluralrules": "^2.0.1",
-		"@react-navigation/bottom-tabs": "^6.5.11"
-	}
+  "name": "rn",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "app": "workspace:app",
+    "render": "workspace:render",
+    "intl-pluralrules": "^2.0.1",
+    "@react-navigation/bottom-tabs": "^7.0.4"
+  }
 }
