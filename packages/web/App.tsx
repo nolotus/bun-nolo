@@ -15,7 +15,7 @@ import { getTokensFromLocalStorage } from "auth/client/token";
 import { routes } from "./routes";
 import { setTheme } from "app/theme/themeSlice";
 import PageOne from "lab/s-station/index";
-const generatorRoutes = (hostname) => {
+const generatorRoutes = (hostname, auth) => {
   if (hostname === "nolotus.local" || hostname === "cybot.me") {
     const localRoutes = [
       {
