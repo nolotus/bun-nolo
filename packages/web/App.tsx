@@ -14,8 +14,7 @@ import { Outlet } from "react-router-dom";
 import { getTokensFromLocalStorage } from "auth/client/token";
 import { routes } from "./routes";
 import { setTheme } from "app/theme/themeSlice";
-import PageOne from "lab/s-station/index.tsx";
-
+import PageOne from "lab/s-station/index";
 const generatorRoutes = (hostname) => {
   if (hostname === "nolotus.local" || hostname === "cybot.me") {
     const localRoutes = [
@@ -36,18 +35,20 @@ const generatorRoutes = (hostname) => {
     ];
     return localRoutes;
   } else {
-    return routes;
+    return routes(auth.user);
   }
 };
 export default function App({ hostname, lng = "en", theme = "light" }) {
-  console.log("hostname", hostname);
-  const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
-  console.log("routes", routes);
+  const auth = useAuth();
+
+  const routes = useMemo(
+    () => generatorRoutes(hostname, auth),
+    [hostname, auth],
+  );
 
   // let element = useRoutes(routes);
   const dispatch = useAppDispatch();
   dispatch(addHostToCurrentServer(hostname));
-  // const auth = useAuth();
   i18n.changeLanguage(lng);
 
   const init = async () => {
