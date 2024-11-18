@@ -9,17 +9,14 @@ import {
 } from "@reduxjs/toolkit";
 import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
-import { ulid } from "ulid";
 import { requestServers } from "utils/request";
 
 import { API_ENDPOINTS } from "./config";
 import { noloReadRequest } from "database/read/readRequest";
-import { noloWriteRequest } from "./write/writeRequest";
 import { noloQueryRequest } from "./client/queryRequest";
 import { noloPutRequest } from "./client/putRequest";
-import { generateIdWithCustomId } from "core/generateMainKey";
-import { selectCurrentUser } from "auth/authSlice";
 import { noloPatchRequest } from "./client/patchRequest";
+import { writeAction } from "./action/write";
 
 export const dbAdapter = createEntityAdapter();
 
@@ -146,58 +143,11 @@ const dbSlice = createSliceWithThunks({
         },
       },
     ),
-    write: create.asyncThunk(
-      async (writeConfig, thunkApi) => {
-        const state = thunkApi.getState();
-        const dispatch = thunkApi.dispatch;
-        // thunkApi.dispatch(syncWrite(state));
-        let userId;
-        const { id, flags, data } = writeConfig;
-        const customId = id ? id : ulid();
-        const { isJSON, isList, isObject } = flags;
-        if (writeConfig.userId) {
-          userId = writeConfig.userId;
-        } else {
-          const currenUserId = selectCurrentUser(state);
-          userId = currenUserId;
-        }
-        const saveId = generateIdWithCustomId(userId, customId, flags);
-        if (!!data.type) {
-        }
-        const willSaveData = { ...data, created: new Date().toISOString() };
-        //local save
-        if (isJSON || isObject) {
-          dispatch(
-            addOne({
-              id: saveId,
-              ...willSaveData,
-            }),
-          );
-          //server save
-          const serverWriteConfig = {
-            ...writeConfig,
-            data: willSaveData,
-            customId,
-          };
-          const writeRes = await noloWriteRequest(state, serverWriteConfig);
-          return await writeRes.json();
-        }
-        if (isList) {
-          dispatch(addOne({ id: saveId, array: data }));
-          //server save
-          const serverWriteConfig = {
-            ...writeConfig,
-            customId,
-          };
-          const writeRes = await noloWriteRequest(state, serverWriteConfig);
-          return await writeRes.json();
-        }
-      },
-      {
-        pending: (state, action) => {},
-        fulfilled: (state, action) => {},
-      },
-    ),
+    write: create.asyncThunk(writeAction, {
+      pending: (state, action) => {},
+      fulfilled: (state, action) => {},
+    }),
+
     setData: create.asyncThunk(
       async (updateConfig, thunkApi) => {
         const { id, data } = updateConfig;
