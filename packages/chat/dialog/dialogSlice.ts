@@ -4,12 +4,12 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-import { deleteData, read } from "database/dbSlice";
-import { write } from "database/dbSlice";
 import { clearMessages } from "chat/messages/messageSlice";
+import { write, read, deleteData } from "database/dbSlice";
 
 import { DataType } from "create/types";
 import { nolotusId } from "core/init";
+import { createDialogAction } from "./actions/createDialogAction";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -178,6 +178,7 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogConfig = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
     }),
+    createDialog: create.asyncThunk(createDialogAction, {}),
   }),
 });
 
@@ -191,6 +192,7 @@ export const {
   // 导出 clearDialogState action
   clearDialogState,
   deleteCurrentDialog,
+  createDialog,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;

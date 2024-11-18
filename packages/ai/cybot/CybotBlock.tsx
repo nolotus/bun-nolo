@@ -15,7 +15,7 @@ import withTranslations from "i18n/withTranslations";
 
 const CybotBlock = ({ item, closeModal }) => {
   const { t } = useTranslation(); // 初始化 t 函数
-  const { isLoading, createDialog } = useCreateDialog();
+  const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
 
   const theme = useSelector(selectTheme);
@@ -23,10 +23,10 @@ const CybotBlock = ({ item, closeModal }) => {
   const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
 
-  const createNewDialog = async () => {
+  const startDialog = async () => {
     try {
       const cybotId = item.id;
-      createDialog({ cybots: [cybotId] });
+      createNewDialog({ cybots: [cybotId] });
       if (closeModal) {
         closeModal();
       }
@@ -88,7 +88,7 @@ const CybotBlock = ({ item, closeModal }) => {
         <Button
           style={styles.buttonBase}
           loading={isLoading}
-          onClick={createNewDialog}
+          onClick={startDialog}
         >
           {t("dialog")}
         </Button>

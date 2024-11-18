@@ -29,7 +29,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
-  const { isLoading: isDialogLoading, createDialog } = useCreateDialog();
+  const { isLoading: isDialogLoading, createNewDialog } = useCreateDialog();
 
   const {
     register,
@@ -78,7 +78,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
         console.log("Created Cybot ID:", cybotId);
 
         console.log("Creating dialog");
-        await createDialog({ cybots: [cybotId] });
+        await createNewDialog({ cybots: [cybotId] });
         console.log("Dialog created successfully");
 
         onClose();
@@ -86,7 +86,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
         console.error("Error creating Cybot:", error);
       }
     },
-    [dispatch, auth.user?.userId, createDialog, onClose],
+    [dispatch, auth.user?.userId, createNewDialog, onClose],
   );
 
   const handleFormSubmit = handleSubmit(

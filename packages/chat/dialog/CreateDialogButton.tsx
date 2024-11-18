@@ -6,8 +6,10 @@ import { Spinner } from "@primer/react";
 
 import { useCreateDialog } from "./useCreateDialog";
 
-const styles = {
-  iconButton: {
+const IconButton = ({ onClick, disabled, children }) => {
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  const buttonStyle = {
     background: "transparent",
     border: "none",
     cursor: "pointer",
@@ -15,37 +17,29 @@ const styles = {
     color: "inherit",
     borderRadius: "4px",
     flexShrink: 0,
-  },
+    backgroundColor: isHovered ? "#f0f0f0" : "transparent",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={buttonStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {children}
+    </button>
+  );
 };
 
 const CreateDialogButton = ({ dialogConfig }) => {
-  const { isLoading, createDialog } = useCreateDialog();
+  const { isLoading, createNewDialog } = useCreateDialog();
 
   const handleCreateClick = () => {
-    createDialog({
+    createNewDialog({
       cybots: dialogConfig.cybots,
     });
-  };
-
-  const IconButton = ({ onClick, disabled, children }) => {
-    const [isHovered, setIsHovered] = React.useState(false);
-
-    const buttonStyle = {
-      ...styles.iconButton,
-      backgroundColor: isHovered ? "#f0f0f0" : "transparent",
-    };
-
-    return (
-      <button
-        onClick={onClick}
-        disabled={disabled}
-        style={buttonStyle}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {children}
-      </button>
-    );
   };
 
   return (
