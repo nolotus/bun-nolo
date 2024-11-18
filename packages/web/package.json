@@ -11,10 +11,12 @@
   "dependencies": {
     "app": "workspace:app",
     "chat": "workspace:chat",
+    "lab":"workspace:lab",
     "clsx": "^2.0.0",
     "database": "workspace:database",
     "framer-motion": "^10.16.4",
     "remark-gfm": "^4.0.0",
     "remark-parse": "^11.0.0"
   }
+
 }

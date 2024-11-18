@@ -14,9 +14,10 @@ import { Outlet } from "react-router-dom";
 import { getTokensFromLocalStorage } from "auth/client/token";
 import { routes } from "./routes";
 import { setTheme } from "app/theme/themeSlice";
+import PageOne from "lab/s-station/index.tsx";
 
 const generatorRoutes = (hostname) => {
-  if (hostname === "nolotus.local") {
+  if (hostname === "nolotus.local" || hostname === "cybot.me") {
     const localRoutes = [
       {
         path: "/",
@@ -28,7 +29,7 @@ const generatorRoutes = (hostname) => {
         children: [
           {
             index: true,
-            element: <div>test domain render</div>,
+            element: <PageOne />,
           },
         ],
       },
