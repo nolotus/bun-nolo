@@ -1,11 +1,13 @@
+import React, { useEffect, useMemo } from "react";
+
 import { useAuth } from "auth/useAuth";
 import i18n from "i18n";
-import React, { useEffect } from "react";
 import { useRoutes } from "react-router-dom";
 import { initAuth } from "auth/authSlice";
 import { Toaster } from "react-hot-toast";
 import { addHostToCurrentServer } from "setting/settingSlice";
 import { useAppDispatch } from "app/hooks";
+import { Outlet } from "react-router-dom";
 
 // // import { generatorRoutes } from "./generatorRoutes";
 
@@ -13,12 +15,38 @@ import { getTokensFromLocalStorage } from "auth/client/token";
 import { routes } from "./routes";
 import { setTheme } from "app/theme/themeSlice";
 
+const generatorRoutes = (hostname) => {
+  if (hostname === "nolotus.local") {
+    const localRoutes = [
+      {
+        path: "/",
+        element: (
+          <div>
+            <Outlet />;
+          </div>
+        ),
+        children: [
+          {
+            index: true,
+            element: <div>test domain render</div>,
+          },
+        ],
+      },
+    ];
+    return localRoutes;
+  } else {
+    return routes;
+  }
+};
 export default function App({ hostname, lng = "en", theme = "light" }) {
-  // const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
+  console.log("hostname", hostname);
+  const routes = useMemo(() => generatorRoutes(hostname), [hostname]);
+  console.log("routes", routes);
+
   // let element = useRoutes(routes);
   const dispatch = useAppDispatch();
   dispatch(addHostToCurrentServer(hostname));
-  const auth = useAuth();
+  // const auth = useAuth();
   i18n.changeLanguage(lng);
 
   const init = async () => {
@@ -51,7 +79,7 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
     };
   }, [dispatch]);
 
-  const element = useRoutes(routes(auth.user));
+  const element = useRoutes(routes);
 
   return (
     <>

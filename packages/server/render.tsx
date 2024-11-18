@@ -1,30 +1,16 @@
+import React from "react";
 import { api } from "app/api";
 import { store } from "app/store";
-import React from "react";
 import { renderToReadableStream } from "react-dom/server.browser";
-import path from "path";
 
 import { renderReactApp } from "./html/renderReactApp";
 import assets from "../../public/assets.json";
 import { htmlStart, htmlEnd } from "./html/template";
 import { serializeState } from "./html/serializeState";
-import handleRequest from "./next/handleRequest";
 export const handleRender = async (req) => {
   const hostname = req.headers.get("host");
   const url = new URL(req.url);
 
-  if (hostname === "nolotus.local" || hostname === "cybot.one") {
-    const url = new URL(req.url);
-    if (url.pathname.startsWith("/js/")) {
-      const filePath = path.join("./out", url.pathname.slice(4));
-      const file = Bun.file(filePath);
-      return new Response(file, {
-        headers: { "Content-Type": "application/javascript" },
-      });
-    }
-    // 处理其他路由
-    return handleRequest(req);
-  }
   const startTime = performance.now();
 
   const bootstrapJs = `/${assets.js}`;
