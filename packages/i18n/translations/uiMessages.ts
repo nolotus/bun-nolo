@@ -1,5 +1,3 @@
-//i18n/translations/ui
-
 export default {
   en: {
     translation: {
@@ -19,6 +17,7 @@ export default {
         "Are you sure you want to delete this dialog? This action cannot be undone.",
       confirm: "Confirm",
       cancel: "Cancel",
+      selectWorkspace: "Select Workspace",
       // ...
     },
   },
@@ -36,9 +35,10 @@ export default {
       content: "内容",
       title: "标题",
       deleteDialogTitle: '删除"{{title}}"',
-      deleteDialogConfirmation: "您确定要删除这个对话吗？此操作不可撤销。",
+      deleteDialogConfirmation: "确定要删除这个对话吗？此操作不可撤销。",
       confirm: "确认",
       cancel: "取消",
+      selectWorkspace: "选择工作区",
       // add more translation strings here
     },
   },
@@ -59,6 +59,7 @@ export default {
       deleteDialogConfirmation: "您確定要刪除這個對話嗎？此操作不可撤銷。",
       confirm: "確認",
       cancel: "取消",
+      selectWorkspace: "選擇工作區",
       // ... add more UI messages here
     },
   },
@@ -80,6 +81,7 @@ export default {
         "このダイアログを削除してもよろしいですか？この操作は取り消せません。",
       confirm: "確認",
       cancel: "キャンセル",
+      selectWorkspace: "ワークスペースを選択",
       // ... add more UI messages here
     },
   },
