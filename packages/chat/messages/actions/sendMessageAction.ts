@@ -38,6 +38,7 @@ export const sendMessageAction = async (args, thunkApi) => {
     : dialogConfig.llmId;
 
   const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
+  console.log("cybotConfig", cybotConfig);
   const model = cybotConfig.model;
   if (cybotConfig.provider && cybotConfig.provider === "xai") {
     sendXaiRequest({ model, content, prevMsgs, cybotConfig, thunkApi });
