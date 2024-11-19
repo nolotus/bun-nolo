@@ -25,7 +25,6 @@ import { getFilteredMessages } from "../utils";
 const chatWindowLogger = getLogger("ChatWindow");
 
 export const sendMessageAction = async (args, thunkApi) => {
-  let textContent;
   const { content } = args;
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
@@ -58,9 +57,6 @@ export const sendMessageAction = async (args, thunkApi) => {
   //for now just one
 
   // move to inside
-  if (typeof content === "string") {
-    textContent = content;
-  }
 
   if (model && geminiModelNames.includes(model)) {
     sendGeminiModelRequest(dialogConfig, content, thunkApi);

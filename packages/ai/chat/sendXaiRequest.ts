@@ -43,13 +43,14 @@ function parseMultilineSSE(rawText) {
 }
 
 // 创建请求配置
-const createRequestConfig = (cybotConfig, bodyData) => ({
+const createRequestConfig = (cybotConfig, bodyData, signal) => ({
   method: "POST",
   headers: {
     "Content-Type": "application/json",
     Authorization: `Bearer ${cybotConfig.apiKey}`,
   },
   body: JSON.stringify(bodyData),
+  signal,
 });
 
 // 处理流式响应
@@ -74,6 +75,7 @@ const handleStreamResponse = async (reader, decoder, messageHandler) => {
         }
       }
     }
+    return buffer; // 返回完整的消息内容
   } catch (error) {
     console.error("Stream processing error:", error);
     throw error;
@@ -89,6 +91,8 @@ export const sendXaiRequest = async ({
   thunkApi,
 }) => {
   const { dispatch, getState } = thunkApi;
+  const controller = new AbortController();
+  const signal = controller.signal;
 
   // 准备请求数据
   const messages = createMessages(model, content, prevMsgs, cybotConfig);
@@ -100,10 +104,21 @@ export const sendXaiRequest = async ({
   const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
 
   try {
+    // 使用 messageStreaming 来显示加载状态
+    const message = {
+      id: messageId,
+      content: "Loading...",
+      role: "assistant",
+      cybotId: cybotConfig.id,
+      controller,
+    };
+    dispatch(setOne(message));
+    dispatch(messageStreaming(message));
+
     // 发送请求
     const response = await fetch(
       API_ENDPOINT,
-      createRequestConfig(cybotConfig, bodyData),
+      createRequestConfig(cybotConfig, bodyData, signal),
     );
 
     if (!response.ok) {
@@ -114,22 +129,43 @@ export const sendXaiRequest = async ({
     const decoder = new TextDecoder();
 
     // 处理消息流
-    await handleStreamResponse(reader, decoder, async (buffer) => {
-      const message = {
-        role: "assistant",
+    const finalContent = await handleStreamResponse(
+      reader,
+      decoder,
+      async (buffer) => {
+        const message = {
+          id: messageId,
+          content: buffer,
+          role: "assistant",
+          cybotId: cybotConfig.id,
+          controller,
+        };
+
+        dispatch(setOne(message));
+        dispatch(messageStreaming(message));
+      },
+    );
+
+    // 完成处理 - 传递完整的消息内容
+    dispatch(
+      messageStreamEnd({
         id: messageId,
-        content: buffer,
+        content: finalContent,
+        role: "assistant",
         cybotId: cybotConfig.id,
-      };
-
-      dispatch(setOne(message));
-      dispatch(messageStreaming(message));
-    });
-
-    // 完成处理
-    dispatch(messageStreamEnd({ id: messageId }));
+      }),
+    );
   } catch (error) {
     console.error("Request failed:", error);
+    // 使用 messageStreaming 来显示错误状态
+    dispatch(
+      messageStreaming({
+        id: messageId,
+        content: "Error: " + error.message,
+        role: "assistant",
+        cybotId: cybotConfig.id,
+      }),
+    );
     throw error;
   }
 };
