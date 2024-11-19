@@ -126,7 +126,7 @@ const MoodNoteInput: React.FC<MoodNoteInputProps> = ({ onSend }) => {
           onChange={handleInputChange}
           placeholder="Hi, how's your day?"
           style={{
-            height: "45px",
+            height: "90px",
             padding: "0 20px",
             fontSize: "16px",
             border: "2px solid #7AB892",

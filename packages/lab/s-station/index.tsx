@@ -4,7 +4,6 @@ import MoodNoteList from "./MoodNoteList";
 
 const PageOne = () => {
   const [notes, setNotes] = useState([]);
-  const [content, setContent] = useState("");
 
   useEffect(() => {
     const storedNotes = localStorage.getItem("notes");
@@ -14,15 +13,21 @@ const PageOne = () => {
   }, []);
 
   const handleSend = (content: string, images: string[]) => {
-    const newNote = { content, createdAt: Date.now(), images: images || [] }; // 添加 images 属性
+    const newNote = { content, createdAt: Date.now(), images: images || [] };
     setNotes([newNote, ...notes]);
     localStorage.setItem("notes", JSON.stringify([newNote, ...notes]));
+  };
+
+  const handleDelete = (index: number) => {
+    const newNotes = notes.filter((_, i) => i !== index);
+    setNotes(newNotes);
+    localStorage.setItem("notes", JSON.stringify(newNotes));
   };
 
   return (
     <div style={{ padding: 20 }}>
       <MoodNoteInput onSend={handleSend} />
-      <MoodNoteList notes={notes} />
+      <MoodNoteList notes={notes} onDelete={handleDelete} />
     </div>
   );
 };
