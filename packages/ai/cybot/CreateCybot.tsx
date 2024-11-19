@@ -15,10 +15,11 @@ import {
   FormTitle,
   FormField,
   Label,
-  SubmitButton,
   FormFieldComponent,
   Select,
 } from "render/CommonFormComponents";
+import { Button } from "render/ui/Button";
+
 import ToolSelector from "../tools/ToolSelector";
 import { providerOptions, getModelsByProvider, Model } from "../llm/providers";
 
@@ -103,21 +104,6 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           required={t("cybotNameRequired")}
         />
 
-        <FormFieldComponent
-          label={t("greetingMessage")}
-          name="greeting"
-          register={register}
-          errors={errors}
-        />
-
-        <FormFieldComponent
-          label={t("selfIntroduction")}
-          name="introduction"
-          register={register}
-          errors={errors}
-          as="textarea"
-        />
-
         <FormField>
           <Label htmlFor="provider">{t("provider")}:</Label>
           <Select id="provider" {...register("provider")}>
@@ -157,6 +143,21 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           as="textarea"
         />
 
+        <FormFieldComponent
+          label={t("greetingMessage")}
+          name="greeting"
+          register={register}
+          errors={errors}
+        />
+
+        <FormFieldComponent
+          label={t("selfIntroduction")}
+          name="introduction"
+          register={register}
+          errors={errors}
+          as="textarea"
+        />
+
         <ToolSelector register={register} />
 
         <FormField>
@@ -177,9 +178,13 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           />
         </FormField>
 
-        <SubmitButton type="submit" disabled={isSubmitting || isDialogLoading}>
+        <Button
+          type="submit"
+          disabled={isSubmitting || isDialogLoading}
+          style={{ width: "100%", padding: "10px", marginTop: "20px" }}
+        >
           {t("createCybot")}
-        </SubmitButton>
+        </Button>
       </form>
     </FormContainer>
   );
