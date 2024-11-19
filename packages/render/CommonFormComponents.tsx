@@ -4,6 +4,7 @@ import React, { ReactNode } from "react";
 import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
+import PasswordInput from "./ui/PasswordInput";
 
 const useCommonFormStyles = () => {
   const theme = useAppSelector(selectTheme);
@@ -164,12 +165,18 @@ export const FormFieldComponent: React.FC<FormFieldComponentProps> = ({
   options = [],
 }) => {
   const renderField = () => {
+    const inputProps = {
+      id: name,
+      ...register(name, { required }),
+      error: !!errors[name],
+    };
+
     switch (as) {
       case "textarea":
-        return <TextArea id={name} {...register(name, { required })} />;
+        return <TextArea {...inputProps} />;
       case "select":
         return (
-          <Select id={name} {...register(name, { required })}>
+          <Select {...inputProps}>
             <option value="">{`Select ${label}`}</option>
             {options.map((option) => (
               <option key={option.value} value={option.value}>
@@ -179,9 +186,8 @@ export const FormFieldComponent: React.FC<FormFieldComponentProps> = ({
           </Select>
         );
       default:
-        return (
-          <Input id={name} type={type} {...register(name, { required })} />
-        );
+        const InputComponent = type === "password" ? PasswordInput : Input;
+        return <InputComponent {...inputProps} type={type} />;
     }
   };
 

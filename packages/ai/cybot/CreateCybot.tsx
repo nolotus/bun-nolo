@@ -1,5 +1,6 @@
 // CreateCybot.tsx
-import React, { useCallback } from "react";
+
+import React, { useCallback, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { DataType } from "create/types";
 import { useTranslation } from "react-i18next";
@@ -8,18 +9,18 @@ import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import ToggleSwitch from "render/ui/ToggleSwitch";
-import ModelSelector from "ai/llm/ModelSelect";
 import withTranslations from "i18n/withTranslations";
 import {
   FormContainer,
   FormTitle,
   FormField,
   Label,
-  ErrorMessage,
   SubmitButton,
   FormFieldComponent,
+  Select,
 } from "render/CommonFormComponents";
 import ToolSelector from "../tools/ToolSelector";
+import { providerOptions, getModelsByProvider, Model } from "../llm/providers";
 
 interface CreateCybotProps {
   onClose: () => void;
@@ -42,44 +43,41 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
       tools: [],
       isPrivate: false,
       isEncrypted: false,
+      provider: providerOptions[0],
     },
   });
+
+  const provider = watch("provider");
+  const [models, setModels] = useState<Model[]>([]);
+
+  useEffect(() => {
+    const modelsList = getModelsByProvider(provider);
+    setModels(modelsList);
+    if (modelsList.length > 0) {
+      setValue("model", modelsList[0].name);
+    }
+  }, [provider, setValue]);
 
   const isPrivate = watch("isPrivate");
   const isEncrypted = watch("isEncrypted");
 
   const onSubmit = useCallback(
     async (data: any) => {
-      console.log("onSubmit function called");
-      console.log("Form data submitted:", data);
-      const [modelType, modelValue] = data.model.split(":");
-      const modelData =
-        modelType === "predefined"
-          ? { model: modelValue }
-          : { llmId: modelValue };
-
-      console.log("Model data:", modelData);
-
+      console.log("Form data before submission:", data); // 添加这行来检查数据
       try {
-        console.log("Dispatching write action");
-        const writeChatRobotAction = await dispatch(
+        const writeResult = await dispatch(
           write({
             data: {
               type: DataType.Cybot,
               ...data,
-              ...modelData,
             },
             flags: { isJSON: true },
             userId: auth.user?.userId,
           }),
-        );
-        console.log("Write action result:", writeChatRobotAction);
-        const cybotId = writeChatRobotAction.payload.id;
-        console.log("Created Cybot ID:", cybotId);
+        ).unwrap();
+        const cybotId = writeResult.id;
 
-        console.log("Creating dialog");
         await createNewDialog({ cybots: [cybotId] });
-        console.log("Dialog created successfully");
 
         onClose();
       } catch (error) {
@@ -89,20 +87,14 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
     [dispatch, auth.user?.userId, createNewDialog, onClose],
   );
 
-  const handleFormSubmit = handleSubmit(
-    (data) => {
-      console.log("Form submission started");
-      onSubmit(data);
-    },
-    (errors) => {
-      console.log("Form validation failed", errors);
-    },
+  const handleFormSubmit = handleSubmit(onSubmit, (errors) =>
+    console.log("Form validation failed", errors),
   );
 
   return (
     <FormContainer>
       <FormTitle>{t("createCybot")}</FormTitle>
-      <form onSubmit={(e) => handleFormSubmit(e)}>
+      <form onSubmit={handleFormSubmit}>
         <FormFieldComponent
           label={t("cybotName")}
           name="name"
@@ -126,10 +118,35 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           as="textarea"
         />
 
-        <ModelSelector
-          value={watch("model")}
-          onChange={(value) => setValue("model", value)}
-          disabled={isSubmitting}
+        <FormField>
+          <Label htmlFor="provider">{t("provider")}:</Label>
+          <Select id="provider" {...register("provider")}>
+            {providerOptions.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </Select>
+        </FormField>
+
+        <FormField>
+          <Label htmlFor="model">{t("model")}:</Label>
+          <Select id="model" {...register("model")}>
+            {models.map((model) => (
+              <option key={model.name} value={model.name}>
+                {model.name}
+                {model.hasVision && ` (${t("supportsVision")})`}
+              </option>
+            ))}
+          </Select>
+        </FormField>
+
+        <FormFieldComponent
+          label={t("apiKeyField")}
+          name="apiKey"
+          type="password"
+          register={register}
+          errors={errors}
         />
 
         <FormFieldComponent
@@ -160,14 +177,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           />
         </FormField>
 
-        <SubmitButton
-          type="submit"
-          disabled={isSubmitting || isDialogLoading}
-          onClick={(e) => {
-            e.preventDefault();
-            handleFormSubmit();
-          }}
-        >
+        <SubmitButton type="submit" disabled={isSubmitting || isDialogLoading}>
           {t("createCybot")}
         </SubmitButton>
       </form>
