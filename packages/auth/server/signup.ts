@@ -75,6 +75,12 @@ export async function handleSignUp(req, res) {
     publicKey,
   });
   const secretKey = process.env.SECRET_KEY;
+  if (!secretKey) {
+    signUpLogger.error(
+      "Secret key is not defined in the environment variables.",
+    );
+    return res.status(500).json({ message: t("errors.secretKeyMissing") });
+  }
   signUpLogger.info({ message, secretKey }, "message,secretKey");
 
   const encryptedData = signMessage(message, secretKey);
