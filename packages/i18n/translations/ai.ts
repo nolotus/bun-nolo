@@ -50,6 +50,9 @@ export default {
       edit: "Edit",
       delete: "Delete",
       cybot: "Cybot",
+      apiKeyField: "API Key",
+      provider: "Provider",
+      tools:"Tools",
     },
   },
   "zh-CN": {
@@ -103,6 +106,9 @@ export default {
       edit: "编辑",
       delete: "删除",
       cybot: "Cybot",
+      apiKeyField: "API密钥",
+      provider: "提供商",
+      tools:"工具",
     },
   },
   "zh-Hant": {
@@ -156,6 +162,9 @@ export default {
       edit: "編輯",
       delete: "刪除",
       cybot: "Cybot",
+      apiKeyField: "API密鑰",
+      provider: "提供商",
+      tools:"工具",
     },
   },
   ja: {
@@ -209,6 +218,9 @@ export default {
       edit: "編集",
       delete: "削除",
       cybot: "Cybot",
+      apiKeyField: "APIキーフィールド",
+      provider: "プロバイダー",
+      tools:"道具",
     },
   },
 };

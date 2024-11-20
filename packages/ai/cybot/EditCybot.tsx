@@ -163,7 +163,7 @@ const EditCybot = ({ initialValues, onClose }) => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <div style={fieldContainerStyle}>
         <label htmlFor="name" style={labelStyle}>
-          {t("name")}
+          {t("cybotName")}
         </label>
         <div style={inputContainerStyle}>
           <input
@@ -178,7 +178,7 @@ const EditCybot = ({ initialValues, onClose }) => {
 
       <div style={fieldContainerStyle}>
         <label htmlFor="greeting" style={labelStyle}>
-          {t("greeting")}
+          {t("greetingMessage")}
         </label>
         <div style={inputContainerStyle}>
           <input
@@ -193,7 +193,7 @@ const EditCybot = ({ initialValues, onClose }) => {
 
       <div style={fieldContainerStyle}>
         <label htmlFor="introduction" style={labelStyle}>
-          {t("introduction")}
+          {t("selfIntroduction")}
         </label>
         <div style={inputContainerStyle}>
           <textarea

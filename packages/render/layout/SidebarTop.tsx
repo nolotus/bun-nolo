@@ -13,6 +13,7 @@ import {
   selectCurrentWorkspaceName,
   queryDialogList,
 } from "create/workspace/workspaceSlice";
+import { RxDropdownMenu } from "react-icons/rx";
 
 export const SidebarTop = () => {
   const { t } = useTranslation();
@@ -93,7 +94,7 @@ export const SidebarTop = () => {
               transition: "transform 0.2s ease",
             }}
           >
-            ▼
+            <RxDropdownMenu size={16} />
           </span>
         </div>
 

@@ -107,7 +107,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <div style={fieldContainerStyle}>
         <label htmlFor="name" style={labelStyle}>
-          {t("name")}
+          {t("cybotName")}
         </label>
         <div style={inputContainerStyle}>
           <input
