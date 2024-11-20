@@ -1,11 +1,51 @@
 import React, { useState } from "react";
-import { initialModels } from "./modelData";
+import { deepinfraModels } from "integrations/deepinfra/models";
+import {
+  mistralModels,
+  anthropicModels,
+  openaiModels,
+  googleModels,
+  deepseekModels,
+} from "./modelData";
+import TableCell from "render/blocks/TableCell";
+import TableRow from "render/blocks/TableRow";
+import Table from "render/blocks/Table";
 
 const ModelComparison = () => {
-  const [models, setModels] = useState(initialModels);
+  const combinedModels = [
+    ...deepinfraModels.map((model) => ({
+      ...model,
+      provider: "Deepinfra",
+      maxOutputTokens: model.maxOutputTokens || "未知",
+      humanEval: model.humanEval || "未知",
+      supportsTool: model.supportsTool || "未知",
+    })),
+    ...mistralModels.map((model) => ({
+      ...model,
+      provider: "Mistral",
+    })),
+    ...anthropicModels.map((model) => ({
+      ...model,
+      provider: "Anthropic",
+    })),
+    ...openaiModels.map((model) => ({
+      ...model,
+      provider: "OpenAI",
+    })),
+    ...googleModels.map((model) => ({
+      ...model,
+      provider: "Google",
+    })),
+    ...deepseekModels.map((model) => ({
+      ...model,
+      provider: "Deepseek",
+    })),
+  ];
+
+  const [models, setModels] = useState(combinedModels);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
 
-  const handleSort = (key) => {
+  const handleSort = (key: string) => {
     let direction = "ascending";
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
       direction = "descending";
@@ -13,9 +53,17 @@ const ModelComparison = () => {
     setSortConfig({ key, direction });
     setModels(
       [...models].sort((a, b) => {
-        if (a[key] < b[key]) return direction === "ascending" ? -1 : 1;
-        if (a[key] > b[key]) return direction === "ascending" ? 1 : -1;
-        return 0;
+        if (key === "price") {
+          if (a.price.output < b.price.output)
+            return direction === "ascending" ? -1 : 1;
+          if (a.price.output > b.price.output)
+            return direction === "ascending" ? 1 : -1;
+          return 0;
+        } else {
+          if (a[key] < b[key]) return direction === "ascending" ? -1 : 1;
+          if (a[key] > b[key]) return direction === "ascending" ? 1 : -1;
+          return 0;
+        }
       }),
     );
   };
@@ -23,16 +71,22 @@ const ModelComparison = () => {
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
       <h1 style={{ textAlign: "center" }}>大模型性能和价格对比</h1>
-      <table
-        style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}
-      >
-        <thead>
-          <tr style={{ backgroundColor: "#f2f2f2" }}>
+      <Table>
+        <thead
+          style={{
+            backgroundColor: "#f2f2f2",
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+          }}
+        >
+          <TableRow>
             <th
               style={{
                 border: "1px solid #ddd",
                 padding: "10px",
                 textAlign: "left",
+                whiteSpace: "nowrap",
               }}
             >
               模型名称
@@ -57,6 +111,7 @@ const ModelComparison = () => {
                 border: "1px solid #ddd",
                 padding: "10px",
                 textAlign: "left",
+                whiteSpace: "nowrap",
               }}
             >
               最大输出Token
@@ -81,6 +136,7 @@ const ModelComparison = () => {
                 border: "1px solid #ddd",
                 padding: "10px",
                 textAlign: "left",
+                whiteSpace: "nowrap",
               }}
             >
               上下文窗口
@@ -105,6 +161,7 @@ const ModelComparison = () => {
                 border: "1px solid #ddd",
                 padding: "10px",
                 textAlign: "left",
+                whiteSpace: "nowrap",
               }}
             >
               HumanEval
@@ -129,11 +186,12 @@ const ModelComparison = () => {
                 border: "1px solid #ddd",
                 padding: "10px",
                 textAlign: "left",
+                whiteSpace: "nowrap",
               }}
             >
-              输出价格
+              价格（输入/输出）
               <button
-                onClick={() => handleSort("outputPrice")}
+                onClick={() => handleSort("price")}
                 style={{
                   marginLeft: "5px",
                   background: "none",
@@ -141,7 +199,7 @@ const ModelComparison = () => {
                   cursor: "pointer",
                 }}
               >
-                {sortConfig.key === "outputPrice"
+                {sortConfig.key === "price"
                   ? sortConfig.direction === "ascending"
                     ? "↑"
                     : "↓"
@@ -153,30 +211,7 @@ const ModelComparison = () => {
                 border: "1px solid #ddd",
                 padding: "10px",
                 textAlign: "left",
-              }}
-            >
-              输入价格
-              <button
-                onClick={() => handleSort("inputPrice")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "inputPrice"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
+                whiteSpace: "nowrap",
               }}
             >
               支持工具
@@ -201,11 +236,12 @@ const ModelComparison = () => {
                 border: "1px solid #ddd",
                 padding: "10px",
                 textAlign: "left",
+                whiteSpace: "nowrap",
               }}
             >
               视觉能力
               <button
-                onClick={() => handleSort("visualCapability")}
+                onClick={() => handleSort("hasVision")}
                 style={{
                   marginLeft: "5px",
                   background: "none",
@@ -213,7 +249,7 @@ const ModelComparison = () => {
                   cursor: "pointer",
                 }}
               >
-                {sortConfig.key === "visualCapability"
+                {sortConfig.key === "hasVision"
                   ? sortConfig.direction === "ascending"
                     ? "↑"
                     : "↓"
@@ -225,11 +261,12 @@ const ModelComparison = () => {
                 border: "1px solid #ddd",
                 padding: "10px",
                 textAlign: "left",
+                whiteSpace: "nowrap",
               }}
             >
-              延迟
+              提供商
               <button
-                onClick={() => handleSort("latency")}
+                onClick={() => handleSort("provider")}
                 style={{
                   marginLeft: "5px",
                   background: "none",
@@ -237,49 +274,32 @@ const ModelComparison = () => {
                   cursor: "pointer",
                 }}
               >
-                {sortConfig.key === "latency"
+                {sortConfig.key === "provider"
                   ? sortConfig.direction === "ascending"
                     ? "↑"
                     : "↓"
                   : "↑↓"}
               </button>
             </th>
-          </tr>
+          </TableRow>
         </thead>
         <tbody>
           {models.map((model, index) => (
-            <tr key={index} style={{ borderBottom: "1px solid #ddd" }}>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.name}
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.maxOutputTokens}
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.contextWindow}
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.humanEval}
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.outputPrice}
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.inputPrice}
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.supportsTool}
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.visualCapability}
-              </td>
-              <td style={{ border: "1px solid #ddd", padding: "10px" }}>
-                {model.latency}
-              </td>
-            </tr>
+            <TableRow key={index}>
+              <TableCell title={model.name}>{model.name}</TableCell>
+              <TableCell>{model.maxOutputTokens}</TableCell>
+              <TableCell>{model.contextWindow}</TableCell>
+              <TableCell>{model.humanEval}</TableCell>
+              <TableCell>
+                {model.price.input} / {model.price.output}
+              </TableCell>
+              <TableCell>{model.supportsTool}</TableCell>
+              <TableCell>{model.hasVision ? "是" : "否"}</TableCell>
+              <TableCell>{model.provider}</TableCell>
+            </TableRow>
           ))}
         </tbody>
-      </table>
+      </Table>
     </div>
   );
 };

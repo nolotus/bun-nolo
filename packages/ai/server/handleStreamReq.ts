@@ -12,7 +12,6 @@ import { claudeModels } from "integrations/anthropic/models";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
 import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
 import { sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
-import { sendDeepinfraChatRequest } from "integrations/deepinfra/chatRequest";
 import { sendFireworksChatRequest } from "integrations/fireworks/chatRequest";
 //todo  make it work
 import { sendOllamaRequest } from "integrations/ollama/chatRequest";
@@ -59,13 +58,7 @@ async function processModelRequest(requestBody, modelType) {
         requestBody,
       );
       break;
-    case "deepinfra":
-      response = await sendDeepinfraChatRequest(
-        process.env.DEEPINFRA_API_KEY,
-        requestBody,
-        true,
-      );
-      break;
+
     case "fireworks":
       response = await sendFireworksChatRequest(
         process.env.FIREWORKS_API_KEY,
@@ -121,8 +114,6 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "google");
     } else if (isFireworksModel) {
       return await processModelRequest(requestBody, "fireworks");
-    } else if (isModelInList(requestBody.model, deepinfraModels)) {
-      return await processModelRequest(requestBody, "deepinfra");
     } else {
       throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }

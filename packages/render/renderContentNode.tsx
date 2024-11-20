@@ -13,7 +13,6 @@ import Link from "./blocks/Link";
 import List from "./blocks/List";
 import ListItem from "./blocks/ListItem";
 import Paragraph from "./blocks/Paragraph";
-import Section from "./blocks/Section";
 import Strikethrough from "./blocks/Strikethrough";
 import Strong from "./blocks/Strong";
 import Table from "./blocks/Table";
@@ -124,51 +123,31 @@ export const renderContentNode = (
         />
       );
     case "table":
-      return (
-        <Table className={classNames}>{node.children?.map(renderChild)}</Table>
-      );
+      return <Table>{node.children?.map(renderChild)}</Table>;
     case "tableRow":
-      return (
-        <TableRow className={classNames}>
-          {node.children?.map(renderChild)}
-        </TableRow>
-      );
+      return <TableRow>{node.children?.map(renderChild)}</TableRow>;
     case "tableCell":
-      return (
-        <TableCell className={classNames}>
-          {node.children?.map(renderChild)}
-        </TableCell>
-      );
+      return <TableCell>{node.children?.map(renderChild)}</TableCell>;
     case "inlineCode":
-      return <InlineCode className={classNames} value={node.value} />;
-    case "section":
-      return (
-        <Section className={classNames} title={node.title}>
-          {node.children?.map(renderChild)}
-        </Section>
-      );
-
+      return <InlineCode value={node.value} />;
     case "emphasis":
       return (
         <Emphasis className={classNames}>
           {node.children?.map(renderChild)}
         </Emphasis>
       );
-
     case "italics":
       return (
         <Italics className={classNames}>
           {node.children?.map(renderChild)}
         </Italics>
       );
-
     case "taskList":
       return (
         <TaskList className={classNames}>
           {node.children?.map(renderChild)}
         </TaskList>
       );
-
     case "taskListItem":
       return (
         <TaskListItem className={classNames} checked={node.checked}>
