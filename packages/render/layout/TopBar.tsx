@@ -64,7 +64,7 @@ const TopBar: React.FC<TopBarProps> = ({
         style={{
           flex: 1,
           ...styles.flexCenter,
-          ...styles.flexWrap, // 增加 flexWrap 以适应内容的自适应布局
+          ...styles.flexWrap,
         }}
       >
         {currentDialogConfig && (

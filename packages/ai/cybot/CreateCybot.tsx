@@ -45,6 +45,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
       isPrivate: false,
       isEncrypted: false,
       provider: providerOptions[0],
+      useServerProxy: false,
     },
   });
 
@@ -61,6 +62,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
 
   const isPrivate = watch("isPrivate");
   const isEncrypted = watch("isEncrypted");
+  const useServerProxy = watch("useServerProxy");
 
   const onSubmit = useCallback(
     async (data: any) => {
@@ -134,6 +136,14 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           register={register}
           errors={errors}
         />
+        <FormField>
+          <Label>{t("useServerProxy")}:</Label>
+          <ToggleSwitch
+            checked={useServerProxy}
+            onChange={(checked) => setValue("useServerProxy", checked)}
+            ariaLabelledby="server-proxy-label"
+          />
+        </FormField>
 
         <FormFieldComponent
           label={t("prompt")}
