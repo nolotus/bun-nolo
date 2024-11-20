@@ -45,7 +45,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
       isPrivate: false,
       isEncrypted: false,
       provider: providerOptions[0],
-      useServerProxy: false,
+      useServerProxy: true,
     },
   });
 

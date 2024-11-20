@@ -52,6 +52,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   const [models, setModels] = useState<Model[]>([]);
   const isPrivate = watch("isPrivate");
   const isEncrypted = watch("isEncrypted");
+  const useServerProxy = watch("useServerProxy");
 
   // 监听provider变化以更新models
   useEffect(() => {
@@ -159,6 +160,14 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
         register={register}
         errors={errors}
       />
+      <FormField>
+        <Label>{t("useServerProxy")}:</Label>
+        <ToggleSwitch
+          checked={useServerProxy}
+          onChange={(checked) => setValue("useServerProxy", checked)}
+          ariaLabelledby="server-proxy-label"
+        />
+      </FormField>
 
       <ToolSelector
         register={register}
