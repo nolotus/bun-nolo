@@ -8,6 +8,7 @@ import { weatherRouteHandler } from "integrations/weather";
 import { createResponse } from "./createResponse";
 import { handleRender } from "./render";
 import { handlePublicRequest } from "./publicRequestHandler"; // 确保路径正确
+import { proxyRoute } from "./proxyRoute";
 
 const res = createResponse();
 
@@ -64,6 +65,10 @@ export const handleRequest = async (request: Request, server) => {
       headers: request.headers,
       method: request.method,
     };
+    if (url.pathname.startsWith(API_ENDPOINTS.PROXY)) {
+      req.user = await handleToken(request, res);
+      return proxyRoute(req, res);
+    }
     if (url.pathname.startsWith(API_ENDPOINTS.AI)) {
       req.user = await handleToken(request, res);
       return aiServerRoute(req, res);

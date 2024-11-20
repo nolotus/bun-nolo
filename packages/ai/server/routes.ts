@@ -3,6 +3,7 @@ import { handleImageGenerationsRequest } from "./imageGeneration";
 import { handleImageVariationsRequest } from "./imageVariations";
 import { handleAudioSpeechRequest } from "./speech";
 import { handleAIChatRequest } from "./aiChat";
+
 export const aiServerRoute = async (req, res) => {
   const { url } = req;
 

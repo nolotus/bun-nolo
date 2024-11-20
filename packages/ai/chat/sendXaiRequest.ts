@@ -5,9 +5,11 @@ import { generateIdWithCustomId } from "core/generateMainKey";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { ulid } from "ulid";
 import { setOne } from "database/dbSlice";
+import { selectCurrentServer } from "setting/settingSlice";
+import { API_ENDPOINTS } from "database/config";
 
 // 配置常量
-const API_ENDPOINT = "https://api.x.ai/v1/chat/completions";
+const XAI_API_ENDPOINT = "https://api.x.ai/v1/chat/completions";
 
 // 解析多行 SSE 数据
 function parseMultilineSSE(rawText) {
@@ -102,7 +104,7 @@ export const sendXaiRequest = async ({
   // 生成消息ID
   const userId = selectCurrentUserId(getState());
   const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
-
+  const currentServer = selectCurrentServer(getState());
   try {
     // 使用 messageStreaming 来显示加载状态
     const message = {
@@ -116,10 +118,29 @@ export const sendXaiRequest = async ({
     dispatch(messageStreaming(message));
 
     // 发送请求
-    const response = await fetch(
-      API_ENDPOINT,
-      createRequestConfig(cybotConfig, bodyData, signal),
-    );
+    console.log("sendXaiRequest cybotConfig", cybotConfig);
+    console.log("useProxy", cybotConfig.useServerProxy);
+    let response;
+
+    if (!cybotConfig.useServerProxy) {
+      response = await fetch(
+        XAI_API_ENDPOINT,
+        createRequestConfig(cybotConfig, bodyData, signal),
+      );
+    } else {
+      response = await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...bodyData,
+          url: XAI_API_ENDPOINT,
+          KEY: cybotConfig.apiKey,
+        }),
+        signal,
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.statusText}`);
