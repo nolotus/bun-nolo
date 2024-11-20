@@ -1,17 +1,14 @@
-import { selectCurrentUserId } from "auth/authSlice";
-import { prepareTools } from "ai/tools/prepareTools";
 import { createMessages } from "ai/api/createMessages";
+import { prepareTools } from "ai/tools/prepareTools";
+import { selectCurrentUserId } from "auth/authSlice";
 import { generateIdWithCustomId } from "core/generateMainKey";
-import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { ulid } from "ulid";
 import { setOne } from "database/dbSlice";
-import { selectCurrentServer } from "setting/settingSlice";
-import { API_ENDPOINTS } from "database/config";
+import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 
-// 配置常量
-const XAI_API_ENDPOINT = "https://api.x.ai/v1/chat/completions";
+const DEEPINFRA_API_ENDPOINT =
+  "https://api.deepinfra.com/v1/openai/chat/completions";
 
-// 解析多行 SSE 数据
 function parseMultilineSSE(rawText) {
   const results = [];
   const lines = rawText.split("\n");
@@ -43,19 +40,6 @@ function parseMultilineSSE(rawText) {
 
   return results;
 }
-
-// 创建请求配置
-const createRequestConfig = (cybotConfig, bodyData, signal) => ({
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${cybotConfig.apiKey}`,
-  },
-  body: JSON.stringify(bodyData),
-  signal,
-});
-
-// 处理流式响应
 const handleStreamResponse = async (reader, decoder, messageHandler) => {
   let buffer = "";
 
@@ -66,6 +50,7 @@ const handleStreamResponse = async (reader, decoder, messageHandler) => {
       if (done) break;
 
       const result = decoder.decode(value);
+      console.log("result", result);
       const parsedResults = parseMultilineSSE(result);
 
       // 处理所有解析出的消息
@@ -84,8 +69,17 @@ const handleStreamResponse = async (reader, decoder, messageHandler) => {
   }
 };
 
-// 主函数
-export const sendXaiRequest = async ({
+const createRequestConfig = (cybotConfig, bodyData, signal) => ({
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${cybotConfig.apiKey}`,
+  },
+  body: JSON.stringify(bodyData),
+  signal,
+});
+
+export const sendCommonChatRequest = async ({
   model,
   content,
   prevMsgs,
@@ -104,7 +98,7 @@ export const sendXaiRequest = async ({
   // 生成消息ID
   const userId = selectCurrentUserId(getState());
   const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
-  const currentServer = selectCurrentServer(getState());
+
   try {
     // 使用 messageStreaming 来显示加载状态
     const message = {
@@ -116,31 +110,15 @@ export const sendXaiRequest = async ({
     };
     dispatch(setOne(message));
     dispatch(messageStreaming(message));
-
-    // 发送请求
-    console.log("sendXaiRequest cybotConfig", cybotConfig);
-    console.log("useProxy", cybotConfig.useServerProxy);
-    let response;
-
-    if (!cybotConfig.useServerProxy) {
-      response = await fetch(
-        XAI_API_ENDPOINT,
-        createRequestConfig(cybotConfig, bodyData, signal),
-      );
-    } else {
-      response = await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...bodyData,
-          url: XAI_API_ENDPOINT,
-          KEY: cybotConfig.apiKey,
-        }),
-        signal,
-      });
+    let api;
+    if (cybotConfig.provider === "deepinfra") {
+      api = DEEPINFRA_API_ENDPOINT;
     }
+    // 发送请求
+    const response = await fetch(
+      api,
+      createRequestConfig(cybotConfig, bodyData, signal),
+    );
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.statusText}`);

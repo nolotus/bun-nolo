@@ -14,7 +14,6 @@ import {
   FormFieldComponent,
   Select,
 } from "render/CommonFormComponents";
-import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
 
 import { providerOptions, getModelsByProvider, Model } from "../llm/providers";
@@ -24,7 +23,6 @@ import useMediaQuery from "react-responsive";
 const QuickEditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const auth = useAuth();
   const theme = useSelector(selectTheme);
 
   // 使用 useMediaQuery 来判断屏幕大小
@@ -54,6 +52,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   const [models, setModels] = useState<Model[]>([]);
   const isPrivate = watch("isPrivate");
   const isEncrypted = watch("isEncrypted");
+  const useServerProxy = watch("useServerProxy");
 
   // 监听provider变化以更新models
   useEffect(() => {
@@ -77,10 +76,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   }, [reset, initialValues]);
 
   const onSubmit = async (data) => {
-    const [modelType, modelValue] = data.model.split(":");
-    const modelData =
-      modelType === "user" ? { llmId: modelValue } : { model: modelValue };
-    const submitData = { ...data, ...modelData, type: DataType.Cybot };
+    const submitData = { ...data, type: DataType.Cybot };
     await dispatch(setData({ id: initialValues.id, data: submitData }));
     onClose();
   };
@@ -164,6 +160,14 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
         register={register}
         errors={errors}
       />
+      <FormField>
+        <Label>{t("useServerProxy")}:</Label>
+        <ToggleSwitch
+          checked={useServerProxy}
+          onChange={(checked) => setValue("useServerProxy", checked)}
+          ariaLabelledby="server-proxy-label"
+        />
+      </FormField>
 
       <ToolSelector
         register={register}

@@ -68,15 +68,10 @@ export const SidebarTop = () => {
           onClick={() => setIsOpen(!isOpen)}
           style={{
             padding: "10px 14px",
-            border: "1px solid #dfe1e5",
-            borderRadius: "8px",
             cursor: "pointer",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            background: "white",
-            boxShadow: isOpen ? "0 2px 5px rgba(0,0,0,0.1)" : "none",
-            transition: "all 0.2s ease",
           }}
         >
           <span

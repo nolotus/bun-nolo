@@ -13,6 +13,8 @@ import { getWeather } from "ai/tools/getWeather";
 import { getLogger } from "utils/logger";
 import { readChunks } from "ai/client/stream";
 import { sendXaiRequest } from "ai/chat/sendXaiRequest";
+import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
+
 import {
   addUserMessage,
   messagesReachedMax,
@@ -38,11 +40,25 @@ export const sendMessageAction = async (args, thunkApi) => {
     : dialogConfig.llmId;
 
   const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
+
   console.log("cybotConfig", cybotConfig);
+
   const model = cybotConfig.model;
-  if (cybotConfig.provider && cybotConfig.provider === "xai") {
-    sendXaiRequest({ model, content, prevMsgs, cybotConfig, thunkApi });
-    return;
+  if (cybotConfig.provider) {
+    if (cybotConfig.provider === "xai") {
+      sendXaiRequest({ model, content, prevMsgs, cybotConfig, thunkApi });
+      return;
+    }
+    if (cybotConfig.provider === "deepinfra") {
+      sendCommonChatRequest({
+        model,
+        content,
+        prevMsgs,
+        cybotConfig,
+        thunkApi,
+      });
+      return;
+    }
   }
 
   if (model === "o1-mini" || model === "o1-preview") {
@@ -70,6 +86,7 @@ export const sendMessageAction = async (args, thunkApi) => {
   }
   const mode = "stream";
   if (mode === "stream") {
+    console.log("here");
     const userId = selectCurrentUserId(state);
     const streamChat = async (content) => {
       const id = generateIdWithCustomId(userId, ulid(), {

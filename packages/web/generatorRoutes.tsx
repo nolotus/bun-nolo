@@ -7,11 +7,7 @@ import { settingRoutes } from "setting/route";
 // import { lifeRoutes } from "../domain/life/route";
 // import { createRoutes } from "../domain/create/route";
 
-// import { xlsxRoute } from "../domain/xlsx/route";
-
-// import { routes as uniqeicRoutes } from "../third/uniqeic/route";
 // import { routes as nolotusRoutes } from "../third/nolotus/route";
-// import { routes as yujierRoutes } from "../third/yujier/route";
 
 const hostRoutesMap = {
   // "nolotus.test": yujierRoutes,
