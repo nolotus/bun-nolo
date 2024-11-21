@@ -5,7 +5,6 @@ import { openAIModels } from "integrations/openAI/models";
 
 import { mistralModels } from "integrations/mistral/models";
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
-import { deepSeekModels } from "integrations/deepSeek/models";
 import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
@@ -83,8 +82,6 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "perplexity");
     } else if (isModelInList(requestBody.model, mistralModels)) {
       return await processModelRequest(requestBody, "mistral");
-    } else if (isModelInList(requestBody.model, deepSeekModels)) {
-      return await processModelRequest(requestBody, "deepSeek");
     } else if (isModelInList(requestBody.model, zhipuModels)) {
       return await processModelRequest(requestBody, "zhipu");
     } else if (isModelInList(requestBody.model, ollamaModels)) {
