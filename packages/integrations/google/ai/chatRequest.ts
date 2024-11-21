@@ -1,4 +1,3 @@
-import { NoloChatRequestBody } from "ai/types";
 import axios from "axios";
 import { IncomingMessage } from "http";
 import { getProxyConfig } from "utils/getProxyConfig"; // 导入 getProxyConfig
@@ -68,10 +67,7 @@ export async function streamGenerateGeminiContent(
   }
 }
 
-export function sendGeminiChatRequest(
-  apiKey: string,
-  noloRequestBody: NoloChatRequestBody,
-) {
+export function sendGeminiChatRequest(apiKey: string, noloRequestBody) {
   const { model, previousMessages, userInput, prompt } = noloRequestBody;
   const contents: Content[] = [];
 

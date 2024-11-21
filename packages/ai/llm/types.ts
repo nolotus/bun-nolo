@@ -39,4 +39,5 @@ export interface Model {
     input: number; // Price per 1 million tokens for input
     output: number; // Price per 1 million tokens for output
   };
+  speed?: number;
 }

@@ -21,8 +21,8 @@ import {
 import { Button } from "render/ui/Button";
 
 import ToolSelector from "../tools/ToolSelector";
-import { providerOptions, getModelsByProvider, Model } from "../llm/providers";
-
+import { providerOptions, getModelsByProvider } from "../llm/providers";
+import { Model } from "../llm/types";
 interface CreateCybotProps {
   onClose: () => void;
 }

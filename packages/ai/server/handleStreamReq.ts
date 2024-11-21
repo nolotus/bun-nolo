@@ -10,8 +10,6 @@ import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
 import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
-import { sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
-import { sendFireworksChatRequest } from "integrations/fireworks/chatRequest";
 //todo  make it work
 import { sendOllamaRequest } from "integrations/ollama/chatRequest";
 import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
@@ -21,7 +19,6 @@ import { pick } from "rambda";
 import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
 
 import { isModelInList } from "ai/llm/isModelInList";
-import { fireworksmodels } from "integrations/fireworks/models";
 
 async function processModelRequest(requestBody, modelType) {
   let response;
@@ -38,9 +35,6 @@ async function processModelRequest(requestBody, modelType) {
     case "mistral":
       response = await sendMistralRequest(requestBody, true);
       break;
-    case "deepSeek":
-      response = await sendDeepSeekRequest(requestBody, true);
-      break;
     case "zhipu":
       response = await sendZhihuRequest(requestBody, true);
       break;
@@ -54,13 +48,6 @@ async function processModelRequest(requestBody, modelType) {
       );
       break;
 
-    case "fireworks":
-      response = await sendFireworksChatRequest(
-        process.env.FIREWORKS_API_KEY,
-        requestBody,
-        true,
-      );
-      break;
     default:
       throw new Error(
         `processModelRequest Unknown model: ${requestBody.model}`,
@@ -89,7 +76,6 @@ export const handleStreamReq = async (req: Request, res) => {
   const requestBody = {
     ...pickAiRequstBody(req.body),
   };
-  const isFireworksModel = isModelInList(requestBody.model, fireworksmodels);
   try {
     if (isModelInList(requestBody.model, openAIModels)) {
       return await processModelRequest(requestBody, "openai");
@@ -105,8 +91,6 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "ollama");
     } else if (isModelInList(requestBody.model, googleAIModels)) {
       return await processModelRequest(requestBody, "google");
-    } else if (isFireworksModel) {
-      return await processModelRequest(requestBody, "fireworks");
     } else {
       throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }

@@ -2,10 +2,9 @@ import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
 
 import { handleAudioReq } from "./handleAudioReq";
 import { handleStreamReq } from "./handleStreamReq";
-import { NoloChatRequestBody } from "../types";
 
 export const handleAIChatRequest = async (req, res) => {
-  const requestBody: NoloChatRequestBody = req.body;
+  const requestBody = req.body;
   const type: string = requestBody.type || "text";
   console.log("type", type);
   try {

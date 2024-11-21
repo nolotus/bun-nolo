@@ -1,7 +1,7 @@
 import { mapLanguage } from "i18n/mapLanuage";
 
 //todo prompt will change to user difine
-export const generateContent = (
+export const generatePrompt = (
   prompt: string,
   name?: string,
   responseLanguage?: string,

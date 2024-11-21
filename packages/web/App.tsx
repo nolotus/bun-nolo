@@ -14,7 +14,11 @@ import { Outlet } from "react-router-dom";
 import { getTokensFromLocalStorage } from "auth/client/token";
 import { routes } from "./routes";
 import { setTheme } from "app/theme/themeSlice";
-import PageOne from "lab/s-station/index";
+import Moment from "lab/s-station/index";
+import Article from "lab/s-station/Article";
+import Collect from "lab/s-station/Collect";
+import NavbarComponent from "lab/s-station/Navbar";
+
 const generatorRoutes = (hostname, auth) => {
   if (hostname === "nolotus.local" || hostname === "cybot.me") {
     const localRoutes = [
@@ -22,13 +26,22 @@ const generatorRoutes = (hostname, auth) => {
         path: "/",
         element: (
           <div>
+            <NavbarComponent />
             <Outlet />;
           </div>
         ),
         children: [
           {
             index: true,
-            element: <PageOne />,
+            element: <Moment />,
+          },
+          {
+            path: "article",
+            element: <Article />,
+          },
+          {
+            path: "collect",
+            element: <Collect />,
           },
         ],
       },

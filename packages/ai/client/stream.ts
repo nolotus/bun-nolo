@@ -14,10 +14,6 @@ function handleStreamData(
   onStreamData(id, text);
 }
 
-function handleStreamEnd() {
-  streamLogger.info("Stream is done reading");
-}
-
 function logError(err: any) {
   console.error("Error type:", typeof err);
   console.error("Error details:", err);
@@ -84,7 +80,6 @@ export async function readChunks(
       const result = await reader.read();
       value = result.value;
       if (result.done) {
-        handleStreamEnd();
         return;
       }
       if (value) {

@@ -50,7 +50,7 @@ export const SidebarTop = () => {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "12px",
+        gap: "8px",
         padding: "12px",
         background: "#f8f9fa",
       }}
@@ -61,13 +61,13 @@ export const SidebarTop = () => {
       <div
         style={{
           position: "relative",
-          width: "220px",
+          width: "120px",
         }}
       >
         <div
           onClick={() => setIsOpen(!isOpen)}
           style={{
-            padding: "10px 14px",
+            padding: "10px 6px",
             cursor: "pointer",
             display: "flex",
             justifyContent: "space-between",
@@ -154,7 +154,7 @@ export const SidebarTop = () => {
         )}
       </div>
 
-      <div style={{ marginLeft: "auto" }}>
+      <div style={{ marginLeft: "0px" }}>
         <CreateWorkSpaceButton />
       </div>
     </div>

@@ -3,6 +3,8 @@ import { deepinfraModels } from "integrations/deepinfra/models";
 import { xaiModels } from "integrations/xai/models";
 import { anthropicModels } from "integrations/anthropic/models";
 import { Model } from "./types";
+import { fireworksmodels } from "integrations/fireworks/models";
+import { deepSeekModels } from "integrations/deepSeek/models";
 export const openaiModels: Model[] = [
   {
     name: "gpt-3.5-turbo",
@@ -22,19 +24,6 @@ export const ollamaModels: Model[] = [
   { name: "mistral", hasVision: false, price: { input: 0.003, output: 0.005 } },
 ];
 
-export const fireworksModels: Model[] = [
-  {
-    name: "fireworks-turbo",
-    hasVision: false,
-    price: { input: 0.001, output: 0.002 },
-  },
-  {
-    name: "fireworks-vision",
-    hasVision: true,
-    price: { input: 0.001, output: 0.002 },
-  },
-];
-
 export const providerOptions = [
   "openai",
   "xai",
@@ -42,6 +31,7 @@ export const providerOptions = [
   "ollama",
   "fireworks",
   "deepinfra",
+  "deepseek",
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
@@ -57,9 +47,11 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
     case "ollama":
       return ollamaModels;
     case "fireworks":
-      return fireworksModels;
+      return fireworksmodels;
     case "deepinfra":
       return deepinfraModels;
+    case "deepseek":
+      return deepSeekModels;
     default:
       return [];
   }
