@@ -4,6 +4,7 @@ import { xaiModels } from "integrations/xai/models";
 import { anthropicModels } from "integrations/anthropic/models";
 import { Model } from "./types";
 import { fireworksmodels } from "integrations/fireworks/models";
+import { deepSeekModels } from "integrations/deepSeek/models";
 export const openaiModels: Model[] = [
   {
     name: "gpt-3.5-turbo",
@@ -30,6 +31,7 @@ export const providerOptions = [
   "ollama",
   "fireworks",
   "deepinfra",
+  "deepseek",
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
@@ -48,6 +50,8 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
       return fireworksmodels;
     case "deepinfra":
       return deepinfraModels;
+    case "deepseek":
+      return deepSeekModels;
     default:
       return [];
   }

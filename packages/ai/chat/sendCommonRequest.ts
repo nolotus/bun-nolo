@@ -9,6 +9,8 @@ import { getFilteredMessages } from "chat/messages/utils";
 import { DEEPINFRA_API_ENDPOINT } from "integrations/deepinfra/chatRequest";
 import { FIREWORKS_API_ENDPOINT } from "integrations/fireworks/chatRequest";
 import { XAI_API_ENDPOINT } from "integrations/xai/chatRequest";
+import { DEEPSEEK__API_ENDPOINT } from "integrations/deepseek/chatRequest";
+
 import { selectCurrentServer } from "setting/settingSlice";
 import { API_ENDPOINTS } from "database/config";
 
@@ -68,10 +70,13 @@ export const sendCommonChatRequest = async ({
 
   // 准备请求数据
   const messages = createMessages(content, prevMsgs, cybotConfig);
-  const tools = prepareTools(cybotConfig.tools);
   const model = cybotConfig.model;
-  const bodyData = { model, messages, tools, stream: true };
 
+  let bodyData = { model, messages, stream: true };
+  if (cybotConfig.tools?.length > 0) {
+    const tools = prepareTools(cybotConfig.tools);
+    bodyData.tools = tools;
+  }
   // 生成消息ID
   const userId = selectCurrentUserId(getState());
   const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
@@ -100,6 +105,9 @@ export const sendCommonChatRequest = async ({
     }
     if (cybotConfig.provider === "xai") {
       api = XAI_API_ENDPOINT;
+    }
+    if (cybotConfig.provider === "deepseek") {
+      api = DEEPSEEK__API_ENDPOINT;
     }
 
     let response;

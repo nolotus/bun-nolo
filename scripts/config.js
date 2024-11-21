@@ -1,10 +1,13 @@
 import postCssPlugin from "esbuild-style-plugin";
 import { isProduction } from "utils/env";
-
+import rimraf from "rimraf";
 const inputPath = "./packages/web/entry.tsx";
 
 // 定义公共配置
 export const commonConfig = {
+  beforeBuild: () => {
+    rimraf.sync("public/assets");
+  },
   entryPoints: [inputPath],
   outdir: "public/assets",
   plugins: [
