@@ -1,8 +1,8 @@
 import { AxiosResponse, AxiosRequestConfig } from "axios";
 import axios from "utils/axios";
 import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
-import { createOpenAIMessages } from "ai/api/openai/createMessages";
 import { getProxyConfig } from "utils/getProxyConfig";
+import { createMessages } from "ai/api/createMessages";
 
 export const sendFireworksChatRequest = async (
   apiKey,
@@ -16,8 +16,7 @@ export const sendFireworksChatRequest = async (
     requestBody.frequency_penalty,
   );
 
-  const messages = createOpenAIMessages(
-    requestBody.model,
+  const messages = createMessages(
     requestBody.userInput,
     requestBody.previousMessages,
     requestBody.prompt,

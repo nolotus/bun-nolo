@@ -1,46 +1,24 @@
 import { selectCurrentServer } from "setting/settingSlice";
 import { selectCurrentUserId } from "auth/authSlice";
-import { setOne } from "database/dbSlice";
 import { getFilteredMessages } from "chat/messages/utils";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
-import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
+import { messageStreamEnd } from "chat/messages/messageSlice";
 import { decodeChunk } from "ai/client/stream";
 import { API_ENDPOINTS } from "database/config";
-import { updateInputTokens, updateOutputTokens } from "chat/dialog/dialogSlice";
-import { pickMessages } from "ai/api/pickMessages";
-import { handleClaudeModelResponse } from "ai/chat/handleClaudeModelRespons";
-
+import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
+import {
+  handlePing,
+  handleMessageStart,
+  handleContentBlockDelta,
+  handleMessageDelta,
+} from "integrations/anthropic/responseHandle";
 // 获取当前用户ID和服务器
 function getCurrentUserAndServer(thunkApi) {
   const state = thunkApi.getState();
   const userId = selectCurrentUserId(state);
   const currentServer = selectCurrentServer(state);
   return { userId, currentServer };
-}
-
-// 生成请求体数据
-function generateRequestBody(cybotConfig, content, prevMsgs) {
-  const model = cybotConfig.model;
-  const cybotId = cybotConfig.id;
-  console.log("prevMsgs", prevMsgs);
-  const messages = [
-    ...(prevMsgs || []),
-    {
-      role: "user",
-      content,
-    },
-  ];
-  console.log("messages", messages);
-
-  const bodyData = {
-    model,
-    max_tokens: 8000,
-    messages: pickMessages(messages),
-    stream: true,
-    system: "you are smart",
-  };
-  return JSON.stringify(bodyData);
 }
 
 // 发送请求
@@ -111,55 +89,6 @@ function handleLog(log, dispatch, id, cybotId, contentBuffer) {
     }
   }
   return contentBuffer;
-}
-
-// 处理消息开始的数据
-function handleMessageStart(data, dispatch, id, cybotId) {
-  console.log("消息开始的数据:", data);
-  const inputTokens = data.message.usage.input_tokens;
-  dispatch(updateInputTokens(inputTokens));
-
-  const message = {
-    id,
-    content: "Loading...",
-    role: "assistant",
-    cybotId,
-  };
-  dispatch(setOne(message));
-  dispatch(messageStreaming(message));
-  return "";
-}
-
-// 处理心跳数据
-function handlePing() {
-  console.log("心跳数据");
-  return "";
-}
-
-// 处理内容块更新的数据
-function handleContentBlockDelta(data, dispatch, id, cybotId, contentBuffer) {
-  console.log("内容块更新的数据:", data);
-  const contentBlockIndex = data.index;
-  const textDelta = data.delta.text;
-  contentBuffer += textDelta;
-
-  const message = {
-    id,
-    content: contentBuffer,
-    role: "assistant",
-    cybotId,
-  };
-  dispatch(setOne(message));
-  dispatch(messageStreaming(message));
-  return contentBuffer;
-}
-
-// 处理消息更新的数据
-function handleMessageDelta(data, dispatch) {
-  console.log("消息更新的数据:", data);
-  const outputTokens = data.delta.usage.output_tokens;
-  dispatch(updateOutputTokens(outputTokens));
-  return "";
 }
 
 // 主函数

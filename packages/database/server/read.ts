@@ -49,6 +49,7 @@ export const handleReadSingle = async (req, res) => {
   }
   try {
     const result = await serverGetData(id);
+
     if (result) {
       if (isList) {
         return res.status(200).json({ array: [...result], id });
@@ -76,14 +77,16 @@ export const serverGetData = async (id: string) => {
   }
 
   const memValue = await mem.get(id);
+  const flags = extractAndDecodePrefix(id);
+
+  if (flags.isList) {
+    const decodedValue = decodeData(memValue, flags, id);
+
+    return Promise.resolve(decodedValue);
+  }
 
   if (memValue) {
-    const flags = extractAndDecodePrefix(id);
     const decodedValue = decodeData(memValue, flags, id);
-    if (flags.isList) {
-      // console.log("isList", id, memValue);
-      // console.log("decodedValue", decodedValue);
-    }
     // console.log("decodedValue ", decodedValue);
     return Promise.resolve(decodedValue);
   } else {
