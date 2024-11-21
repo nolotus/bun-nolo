@@ -40,34 +40,6 @@ function parseMultilineSSE(rawText) {
 
   return results;
 }
-const handleStreamResponse = async (reader, decoder, messageHandler) => {
-  let buffer = "";
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-
-      if (done) break;
-
-      const result = decoder.decode(value);
-      console.log("result", result);
-      const parsedResults = parseMultilineSSE(result);
-
-      // 处理所有解析出的消息
-      for (const parsedData of parsedResults) {
-        const content = parsedData.choices?.[0]?.delta?.content || "";
-        if (content) {
-          buffer += content;
-          await messageHandler(buffer);
-        }
-      }
-    }
-    return buffer; // 返回完整的消息内容
-  } catch (error) {
-    console.error("Stream processing error:", error);
-    throw error;
-  }
-};
 
 const createRequestConfig = (cybotConfig, bodyData, signal) => ({
   method: "POST",
@@ -80,7 +52,6 @@ const createRequestConfig = (cybotConfig, bodyData, signal) => ({
 });
 
 export const sendCommonChatRequest = async ({
-  model,
   content,
   prevMsgs,
   cybotConfig,
@@ -91,16 +62,20 @@ export const sendCommonChatRequest = async ({
   const signal = controller.signal;
 
   // 准备请求数据
-  const messages = createMessages(model, content, prevMsgs, cybotConfig);
+  const messages = createMessages(content, prevMsgs, cybotConfig);
   const tools = prepareTools(cybotConfig.tools);
+  const model = cybotConfig.model;
   const bodyData = { model, messages, tools, stream: true };
 
   // 生成消息ID
   const userId = selectCurrentUserId(getState());
   const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
 
+  let contentBuffer = "";
+  let reader;
+
   try {
-    // 使用 messageStreaming 来显示加载状态
+    // 初始化加载状态
     const message = {
       id: messageId,
       content: "Loading...",
@@ -110,11 +85,12 @@ export const sendCommonChatRequest = async ({
     };
     dispatch(setOne(message));
     dispatch(messageStreaming(message));
+
     let api;
     if (cybotConfig.provider === "deepinfra") {
       api = DEEPINFRA_API_ENDPOINT;
     }
-    // 发送请求
+
     const response = await fetch(
       api,
       createRequestConfig(cybotConfig, bodyData, signal),
@@ -124,39 +100,55 @@ export const sendCommonChatRequest = async ({
       throw new Error(`API request failed: ${response.statusText}`);
     }
 
-    const reader = response.body.getReader();
+    reader = response.body.getReader();
     const decoder = new TextDecoder();
 
-    // 处理消息流
-    const finalContent = await handleStreamResponse(
-      reader,
-      decoder,
-      async (buffer) => {
-        const message = {
-          id: messageId,
-          content: buffer,
-          role: "assistant",
-          cybotId: cybotConfig.id,
-          controller,
-        };
+    while (true) {
+      const { done, value } = await reader.read();
 
-        dispatch(setOne(message));
-        dispatch(messageStreaming(message));
-      },
-    );
+      if (done) {
+        // 流结束时发送最终消息
+        dispatch(
+          messageStreamEnd({
+            id: messageId,
+            content: contentBuffer,
+            role: "assistant",
+            cybotId: cybotConfig.id,
+          }),
+        );
+        break;
+      }
 
-    // 完成处理 - 传递完整的消息内容
-    dispatch(
-      messageStreamEnd({
-        id: messageId,
-        content: finalContent,
-        role: "assistant",
-        cybotId: cybotConfig.id,
-      }),
-    );
+      const result = decoder.decode(value);
+      const parsedResults = parseMultilineSSE(result);
+
+      for (const parsedData of parsedResults) {
+        const content = parsedData.choices?.[0]?.delta?.content || "";
+        if (content) {
+          contentBuffer += content;
+          // 更新当前消息内容
+          dispatch(
+            setOne({
+              id: messageId,
+              content: contentBuffer,
+              role: "assistant",
+              cybotId: cybotConfig.id,
+              controller,
+            }),
+          );
+          dispatch(
+            messageStreaming({
+              id: messageId,
+              content: contentBuffer,
+              role: "assistant",
+              cybotId: cybotConfig.id,
+            }),
+          );
+        }
+      }
+    }
   } catch (error) {
     console.error("Request failed:", error);
-    // 使用 messageStreaming 来显示错误状态
     dispatch(
       messageStreaming({
         id: messageId,
@@ -166,5 +158,10 @@ export const sendCommonChatRequest = async ({
       }),
     );
     throw error;
+  } finally {
+    // 确保在结束时释放reader
+    if (reader) {
+      reader.releaseLock();
+    }
   }
 };

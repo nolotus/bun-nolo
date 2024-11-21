@@ -1,51 +1,42 @@
-export const claudeModels = {
-  "claude-3-5-sonnet-latest": {
-    provider: "anthropic",
-    name: "Claude 3.5 Sonnet (June 2024)",
+export const anthropicModels = [
+  {
+    name: "claude-3-5-sonnet-latest",
+    displayName: "Claude 3.5 Sonnet",
+    hasVision: true,
     description: "Most intelligent model",
     strengths: "Highest level of intelligence and capability",
-    features: {
-      multilingual: true,
-      vision: true,
+    contextWindow: 200000,
+    maxOutputTokens: 8192,
+    price: {
+      input: 3.0,
+      output: 15.0,
     },
-    api: {
-      name: "claude-3-5-sonnet-latest",
-      format: "Messages API",
-    },
-    performance: {
-      latency: "fast",
-      contextWindow: null,
-      maxOutputTokens: null,
-    },
-    training: {
-      dataCutoff: "2024-04",
-    },
-    input: 3.0,
-    output: 15.0,
   },
-  "claude-3-haiku-20240307": {
-    provider: "anthropic",
-    name: "Claude 3 Haiku (March 2024)",
+  {
+    name: "claude-3-haiku-20240307",
+    displayName: "Claude 3 Haiku",
+    hasVision: true,
     description:
       "Fastest and most compact model for near-instant responsiveness",
     strengths: "Quick and accurate targeted performance",
-    features: {
-      multilingual: true,
-      vision: true,
+    contextWindow: 200000,
+    maxOutputTokens: 4096,
+    price: {
+      input: 0.25,
+      output: 1.25,
     },
-    api: {
-      name: "claude-3-haiku-20240307",
-      format: "Messages API",
-    },
-    performance: {
-      latency: "fastest",
-      contextWindow: null,
-      maxOutputTokens: null,
-    },
-    training: {
-      dataCutoff: "2023-08",
-    },
-    input: 0.25,
-    output: 1.25,
   },
-};
+  {
+    name: "claude-3-5-haiku-20241022",
+    displayName: "Claude 3.5 Haiku",
+    hasVision: false,
+    description: "",
+    strengths: "",
+    contextWindow: 200000,
+    maxOutputTokens: 8192,
+    price: {
+      input: 1.0,
+      output: 5.0,
+    },
+  },
+];

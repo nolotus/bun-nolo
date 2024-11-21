@@ -6,11 +6,11 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { extractCustomId } from "core";
+import { ollamaHandler } from "integrations/ollama/ollamaHandler";
 
 import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { createStreamRequestBody } from "ai/chat/createStreamRequestBody";
-import { createPromptMessage } from "ai/prompt/createPromptMessage";
 import { noloRequest } from "utils/noloRequest";
 import { ulid } from "ulid";
 import { DataType } from "create/types";
@@ -18,7 +18,6 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { addToList, deleteData, read, upsertOne } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { filter, reverse } from "rambda";
-import { prepareMsgs } from "ai/messages/prepareMsgs";
 
 import { ollamaModelNames } from "integrations/ollama/models";
 
@@ -325,9 +324,14 @@ export const messageSlice = createSliceWithThunks({
           ...cybotConfig,
           responseLanguage: navigator.language,
         };
-        const promotMessage = createPromptMessage(model, config.prompt);
-        const prepareMsgConfig = { model, promotMessage, prevMsgs, content };
-        const messages = prepareMsgs(prepareMsgConfig);
+
+        const prepareMsgConfig = {
+          model,
+          promotMessage: { role: "system", content: config.prompt },
+          prevMsgs,
+          content,
+        };
+        const messages = ollamaHandler.prepareMsgs(prepareMsgConfig);
         const tools = prepareTools(cybotConfig.tools);
         const isStream = true;
         const bodyData = {
@@ -381,15 +385,14 @@ export const messageSlice = createSliceWithThunks({
         console.log("runCybotId llmConfig", llmConfig);
         if (ollamaModelNames.includes(llmConfig.model)) {
           const model = llmConfig.model;
-          const promotMessage = createPromptMessage(model, cybotConfig.prompt);
 
           const prepareMsgConfig = {
             model,
-            promotMessage,
+            promotMessage: { role: "system", content: cybotConfig.prompt },
             prevMsgs,
             content: userInput,
           };
-          const messages = prepareMsgs(prepareMsgConfig);
+          const messages = ollamaHandler.prepareMsgs(prepareMsgConfig);
           const tools = prepareTools(cybotConfig.tools);
 
           const bodyData = {

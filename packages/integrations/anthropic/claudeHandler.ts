@@ -32,9 +32,6 @@ export const claudeHandler = {
     };
   },
 
-  processPrompt: (promptMessage: InputMessage): OutputMessage =>
-    claudeHandler.transformSingleMessage(promptMessage),
-
   processPrevMessages: (prevMsgs: InputMessage[]): OutputMessage[] =>
     prevMsgs.map(claudeHandler.transformSingleMessage),
 
@@ -43,9 +40,8 @@ export const claudeHandler = {
   ): OutputMessage =>
     claudeHandler.transformSingleMessage({ role: "user", content }),
 
-  prepareMsgs: ({ promotMessage, prevMsgs, content }): OutputMessage[] => {
+  prepareMsgs: ({ prevMsgs, content }): OutputMessage[] => {
     const processedMessages = [
-      claudeHandler.processPrompt(promotMessage),
       ...claudeHandler.processPrevMessages(prevMsgs),
       claudeHandler.processCurrentInput(content),
     ];

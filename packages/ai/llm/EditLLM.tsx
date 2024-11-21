@@ -11,7 +11,6 @@ import {
   FormFieldComponent,
   SubmitButton,
 } from "render/CommonFormComponents";
-import { LLMFormData } from "./types";
 import { DataType } from "create/types";
 
 import { setData } from "database/dbSlice";
@@ -25,7 +24,7 @@ const defaultAPIs = {
 };
 
 const EditLLM: React.FC<{
-  initialValues: LLMFormData;
+  initialValues;
   onClose: () => void;
 }> = ({ initialValues, onClose }) => {
   const llmId = initialValues.id;
@@ -39,7 +38,7 @@ const EditLLM: React.FC<{
     watch,
     setValue,
     formState: { errors },
-  } = useForm<LLMFormData>({
+  } = useForm({
     defaultValues: initialValues,
   });
 
@@ -51,7 +50,7 @@ const EditLLM: React.FC<{
     }
   }, [apiStyle, setValue]);
 
-  const onSubmit = async (data: LLMFormData) => {
+  const onSubmit = async (data) => {
     const chatRobotConfig = { ...data, type: DataType.LLM };
     await dispatch(
       setData({

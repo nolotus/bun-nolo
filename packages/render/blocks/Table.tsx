@@ -6,18 +6,21 @@ interface TableProps {
 
 const Table: FC<TableProps> = ({ children }) => {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <tbody className="">
-          {React.Children.map(children, (child, index) =>
-            React.isValidElement(child)
-              ? cloneElement(child, {
-                  className: `${child.props.className || ""}`,
-                  key: index,
-                })
-              : child,
-          )}
-        </tbody>
+    <div style={{ overflowX: "auto", marginTop: "20px" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          tableLayout: "fixed",
+        }}
+      >
+        {React.Children.map(children, (child, index) =>
+          React.isValidElement(child)
+            ? cloneElement(child, {
+                key: index,
+              })
+            : child,
+        )}
       </table>
     </div>
   );

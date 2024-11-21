@@ -3,7 +3,7 @@ import { getProxyConfig } from "utils/getProxyConfig";
 import { NoloChatRequestBody } from "ai/types";
 
 import { mistralModels } from "./models";
-import { createOpenAIMessages } from "ai/api/openai/createMessages";
+import { createMessages } from "ai/api/createMessages";
 
 export async function sendMistralRequest(
   requestBody: NoloChatRequestBody,
@@ -12,8 +12,7 @@ export async function sendMistralRequest(
   const { model, max_tokens } = requestBody;
   const proxyConfig = getProxyConfig();
 
-  const messages = createOpenAIMessages(
-    requestBody.model,
+  const messages = createMessages(
     requestBody.userInput,
     requestBody.previousMessages,
     requestBody.prompt,

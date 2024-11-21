@@ -8,21 +8,18 @@ import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 import { deepSeekModels } from "integrations/deepSeek/models";
 import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
-import { claudeModels } from "integrations/anthropic/models";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
 import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
 import { sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
-import { sendDeepinfraChatRequest } from "integrations/deepinfra/chatRequest";
 import { sendFireworksChatRequest } from "integrations/fireworks/chatRequest";
 //todo  make it work
 import { sendOllamaRequest } from "integrations/ollama/chatRequest";
 import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
 import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest";
-import { chatRequest as sendAnthropicRequest } from "integrations/anthropic/chatRequest";
 import { googleAIModels } from "integrations/google/ai/models";
 import { pick } from "rambda";
 import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
-import { deepinfraModels } from "integrations/deepinfra/models";
+
 import { isModelInList } from "ai/llm/isModelInList";
 import { fireworksmodels } from "integrations/fireworks/models";
 
@@ -50,22 +47,13 @@ async function processModelRequest(requestBody, modelType) {
     case "ollama":
       response = await sendOllamaRequest(requestBody, true);
       break;
-    case "claude":
-      response = await sendAnthropicRequest(requestBody);
-      break;
     case "google":
       response = await sendGeminiChatRequest(
         process.env.GOOGLE_API_KEY,
         requestBody,
       );
       break;
-    case "deepinfra":
-      response = await sendDeepinfraChatRequest(
-        process.env.DEEPINFRA_API_KEY,
-        requestBody,
-        true,
-      );
-      break;
+
     case "fireworks":
       response = await sendFireworksChatRequest(
         process.env.FIREWORKS_API_KEY,
@@ -115,14 +103,10 @@ export const handleStreamReq = async (req: Request, res) => {
       return await processModelRequest(requestBody, "zhipu");
     } else if (isModelInList(requestBody.model, ollamaModels)) {
       return await processModelRequest(requestBody, "ollama");
-    } else if (isModelInList(requestBody.model, claudeModels)) {
-      return await processModelRequest(requestBody, "claude");
     } else if (isModelInList(requestBody.model, googleAIModels)) {
       return await processModelRequest(requestBody, "google");
     } else if (isFireworksModel) {
       return await processModelRequest(requestBody, "fireworks");
-    } else if (isModelInList(requestBody.model, deepinfraModels)) {
-      return await processModelRequest(requestBody, "deepinfra");
     } else {
       throw new Error(`handleStreamReq Unknown model: ${requestBody.model}`);
     }

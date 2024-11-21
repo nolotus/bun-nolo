@@ -5,17 +5,31 @@ export const proxyRoute = async (req, res) => {
   console.log("rawBody", rawBody);
 
   const body = omit("url,KEY", rawBody);
-  console.log("body", body);
+  console.log("body");
+  let headers;
+  if (rawBody.model.includes("claude")) {
+    console.log("it is claude");
+    headers = {
+      "Content-Type": "application/json",
+      "x-api-key": rawBody.KEY,
+      "anthropic-version": "2023-06-01",
+    };
+  } else {
+    headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${rawBody.KEY}`,
+    };
+  }
 
   const response = await fetch(rawBody.url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${rawBody.KEY}`,
-    },
+    headers,
     body: JSON.stringify({
       ...body,
     }),
   });
-  return response;
+  console.log("response", response);
+  return new Response(response.body, {
+    headers: { "Access-Control-Allow-Origin": "*" },
+  });
 };

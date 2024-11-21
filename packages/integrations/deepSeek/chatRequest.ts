@@ -1,5 +1,5 @@
 import axios from "utils/axios";
-import { createOpenAIMessages } from "ai/api/openai/createMessages";
+import { createMessages } from "ai/api/createMessages";
 
 export async function sendDeepSeekRequest(
   requestBody,
@@ -11,8 +11,7 @@ export async function sendDeepSeekRequest(
 
   const { model, max_tokens } = requestBody;
 
-  const messages = createOpenAIMessages(
-    requestBody.model,
+  const messages = createMessages(
     requestBody.userInput,
     requestBody.previousMessages,
     requestBody.prompt,

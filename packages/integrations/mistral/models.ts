@@ -1,6 +1,4 @@
-import { LLMModels } from "ai/llm/types";
-
-export const mistralModels: LLMModels = {
+export const mistralModels = {
   "mistral-small-latest": {
     provider: "mistral",
     name: "Mistral Small (Latest)",

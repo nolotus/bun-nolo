@@ -9,7 +9,6 @@ type LLMModel = {
   api: {
     name: string;
     format?: string;
-    [key: string]: any;
   };
 
   // 性能和能力
@@ -17,27 +16,11 @@ type LLMModel = {
     latency?: string;
     contextWindow?: number;
     maxOutputTokens?: number;
-    [key: string]: any;
   };
 
   // 特性
   features?: {
     vision?: boolean;
-    multilingual?: boolean;
-    [key: string]: boolean | undefined;
-  };
-
-  // 训练信息
-  training?: {
-    dataCutoff?: string;
-    [key: string]: any;
-  };
-
-  // 定价
-  pricing: {
-    input: number;
-    output: number;
-    unit?: string; // 例如 "per 1M tokens"
   };
 
   // 模型类型
@@ -45,19 +28,15 @@ type LLMModel = {
     type: string;
     [key: string]: any;
   };
-
-  // 其他可能的字段
-  [key: string]: any;
 };
 
-export type LLMModels = {
-  [key: string]: LLMModel;
-};
-
-export interface LLMFormData {
+export interface Model {
   name: string;
-  apiStyle: string;
-  api: string;
-  keyName?: string;
-  model: string;
+  displayName?: string; // 可选的displayName字段
+  hasVision: boolean;
+  contextWindow?: number; // For context window information
+  price?: {
+    input: number; // Price per 1 million tokens for input
+    output: number; // Price per 1 million tokens for output
+  };
 }

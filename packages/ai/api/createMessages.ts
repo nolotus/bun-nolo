@@ -1,13 +1,11 @@
-import { prepareMsgs } from "ai/messages/prepareMsgs";
-import { createPromptMessage } from "ai/prompt/createPromptMessage";
-
-export const createMessages = (model, content, prevMsgs, cybotConfig) => {
-  const config = {
-    ...cybotConfig,
-    responseLanguage: navigator.language,
-  };
-  const promotMessage = createPromptMessage(model, config.prompt);
-  const prepareMsgConfig = { model, promotMessage, prevMsgs, content };
-  const messages = prepareMsgs(prepareMsgConfig);
+export const createMessages = (content, prevMsgs, cybotConfig) => {
+  const messages = [
+    {
+      role: "system",
+      content: cybotConfig.prompt,
+    },
+    ...prevMsgs,
+    { role: "user", content },
+  ];
   return messages;
 };

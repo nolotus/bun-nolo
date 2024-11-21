@@ -15,7 +15,6 @@ import {
   FormFieldComponent,
   SubmitButton,
 } from "render/CommonFormComponents";
-import { LLMFormData } from "./types";
 import { defaultAPIs, apiStyleOptions } from "./config";
 
 const CreateLLM: React.FC = () => {
@@ -31,7 +30,7 @@ const CreateLLM: React.FC = () => {
     setValue,
     control,
     formState: { errors },
-  } = useForm<LLMFormData>();
+  } = useForm();
 
   const apiStyle = watch("apiStyle");
 
@@ -41,7 +40,7 @@ const CreateLLM: React.FC = () => {
     }
   }, [apiStyle, setValue]);
 
-  const onSubmit = async (data: LLMFormData) => {
+  const onSubmit = async (data) => {
     console.log(data);
     try {
       const writeLLMAction = await dispatch(
@@ -58,14 +57,6 @@ const CreateLLM: React.FC = () => {
     }
   };
 
-  const providerOptions = [
-    { value: "deepinfra", label: "DeepInfra" },
-    { value: "firework", label: "Firework" },
-    { value: "provider1", label: "提供商1" },
-    { value: "provider2", label: "提供商2" },
-    // 根据需要添加更多提供商
-  ];
-
   return (
     <FormContainer>
       <FormTitle>{t("createLLM")}</FormTitle>
@@ -77,15 +68,7 @@ const CreateLLM: React.FC = () => {
           errors={errors}
           required
         />
-        <FormFieldComponent
-          label={t("provider")}
-          name="provider"
-          register={register}
-          errors={errors}
-          required
-          as="select"
-          options={providerOptions}
-        />
+
         <FormFieldComponent
           label={t("llmAPIStyle")}
           name="apiStyle"
