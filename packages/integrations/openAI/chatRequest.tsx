@@ -2,10 +2,37 @@ import { AxiosResponse, AxiosRequestConfig } from "axios";
 import axios from "utils/axios";
 import { adjustOpenAIFrequencyPenalty } from "integrations/openAI/adjust";
 import { filter } from "rambda";
+import { pickMessages } from "ai/api/pickMessages";
 
 import { createOpenAIRequestConfig } from "./config";
 import { NoloChatRequestBody } from "ai/types";
-import { createOpenAIMessages } from "ai/api/openai/createMessages";
+export const createPromptMessage = (model, prompt) => {
+  const isO1 = model === "o1-mini" || model === "o1-preview";
+  const role = isO1 ? "user" : "system";
+  return {
+    role,
+    content: prompt,
+  };
+};
+
+export const createOpenAIMessages = (
+  model: string,
+  userInput: string,
+  previousMessages: [] | any,
+  prompt: string,
+) => {
+  const promotMessage = createPromptMessage(model, prompt);
+  const msgs = [
+    promotMessage,
+    ...(previousMessages || []),
+    {
+      role: "user",
+      content: userInput,
+    },
+  ];
+
+  return pickMessages(msgs);
+};
 
 export const sendOpenAIRequest = async (
   requestBody: NoloChatRequestBody,

@@ -1,13 +1,8 @@
-export const createMessages = (model, content, prevMsgs, cybotConfig) => {
-  const config = {
-    ...cybotConfig,
-    responseLanguage: navigator.language,
-  };
-
+export const createMessages = (content, prevMsgs, cybotConfig) => {
   const messages = [
     {
       role: "system",
-      content: prompt,
+      content: cybotConfig.prompt,
     },
     ...prevMsgs,
     { role: "user", content },

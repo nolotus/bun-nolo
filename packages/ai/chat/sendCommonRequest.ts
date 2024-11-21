@@ -90,7 +90,7 @@ export const sendCommonChatRequest = async ({
   const signal = controller.signal;
 
   // 准备请求数据
-  const messages = createMessages(model, content, prevMsgs, cybotConfig);
+  const messages = createMessages(content, prevMsgs, cybotConfig);
   const tools = prepareTools(cybotConfig.tools);
   const model = cybotConfig.model;
   const bodyData = { model, messages, tools, stream: true };
