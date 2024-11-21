@@ -9,4 +9,4 @@ export interface MessageSliceState {
   isStopped: boolean;
   streamMessages: Message[];
 }
-export type MessageRole = "user" | "system" | "assistant";
+type MessageRole = "user" | "system" | "assistant";

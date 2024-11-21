@@ -1,13 +1,23 @@
 import postCssPlugin from "esbuild-style-plugin";
 import { isProduction } from "utils/env";
-
+import rimraf from "rimraf";
 const inputPath = "./packages/web/entry.tsx";
 
 // 定义公共配置
+const cleanPlugin = {
+  name: "clean",
+  setup(build) {
+    build.onStart(() => {
+      rimraf.sync("public/assets");
+    });
+  },
+};
+
 export const commonConfig = {
   entryPoints: [inputPath],
   outdir: "public/assets",
   plugins: [
+    cleanPlugin,
     postCssPlugin({
       postcss: {
         plugins: [require("tailwindcss"), require("autoprefixer")],

@@ -5,9 +5,14 @@ import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
 import { setOne } from "database/dbSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
+import { getFilteredMessages } from "chat/messages/utils";
+import { DEEPINFRA_API_ENDPOINT } from "integrations/deepinfra/chatRequest";
+import { FIREWORKS_API_ENDPOINT } from "integrations/fireworks/chatRequest";
+import { XAI_API_ENDPOINT } from "integrations/xai/chatRequest";
+import { DEEPSEEK__API_ENDPOINT } from "integrations/deepseek/chatRequest";
 
-const DEEPINFRA_API_ENDPOINT =
-  "https://api.deepinfra.com/v1/openai/chat/completions";
+import { selectCurrentServer } from "setting/settingSlice";
+import { API_ENDPOINTS } from "database/config";
 
 function parseMultilineSSE(rawText) {
   const results = [];
@@ -53,20 +58,25 @@ const createRequestConfig = (cybotConfig, bodyData, signal) => ({
 
 export const sendCommonChatRequest = async ({
   content,
-  prevMsgs,
   cybotConfig,
   thunkApi,
 }) => {
   const { dispatch, getState } = thunkApi;
+
+  const prevMsgs = getFilteredMessages(thunkApi.getState());
   const controller = new AbortController();
   const signal = controller.signal;
+  const currentServer = selectCurrentServer(getState());
 
   // 准备请求数据
   const messages = createMessages(content, prevMsgs, cybotConfig);
-  const tools = prepareTools(cybotConfig.tools);
   const model = cybotConfig.model;
-  const bodyData = { model, messages, tools, stream: true };
 
+  let bodyData = { model, messages, stream: true };
+  if (cybotConfig.tools?.length > 0) {
+    const tools = prepareTools(cybotConfig.tools);
+    bodyData.tools = tools;
+  }
   // 生成消息ID
   const userId = selectCurrentUserId(getState());
   const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
@@ -90,11 +100,36 @@ export const sendCommonChatRequest = async ({
     if (cybotConfig.provider === "deepinfra") {
       api = DEEPINFRA_API_ENDPOINT;
     }
+    if (cybotConfig.provider === "fireworks") {
+      api = FIREWORKS_API_ENDPOINT;
+    }
+    if (cybotConfig.provider === "xai") {
+      api = XAI_API_ENDPOINT;
+    }
+    if (cybotConfig.provider === "deepseek") {
+      api = DEEPSEEK__API_ENDPOINT;
+    }
 
-    const response = await fetch(
-      api,
-      createRequestConfig(cybotConfig, bodyData, signal),
-    );
+    let response;
+    if (!cybotConfig.useServerProxy) {
+      response = await fetch(
+        api,
+        createRequestConfig(cybotConfig, bodyData, signal),
+      );
+    } else {
+      response = await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...bodyData,
+          url: api,
+          KEY: cybotConfig.apiKey,
+        }),
+        signal,
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`API request failed: ${response.statusText}`);

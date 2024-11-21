@@ -5,7 +5,7 @@ import { ulid } from "ulid";
 import { read, setOne } from "database/dbSlice";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { selectCurrentUserId } from "auth/authSlice";
-import { generateContent } from "../prompt/generateContent";
+import { generatePrompt } from "../prompt/generateContent";
 
 import { updateInputTokens, updateOutputTokens } from "chat/dialog/dialogSlice";
 
@@ -37,7 +37,7 @@ export const sendOpenAIRequest = async (cybotId, userInput, thunkApi) => {
     userInput: string,
     previousMessages: Array<Message>,
   ) => {
-    const prompt = generateContent(
+    const prompt = generatePrompt(
       config.prompt,
       config.name,
       config.responseLanguage,

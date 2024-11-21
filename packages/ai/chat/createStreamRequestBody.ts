@@ -1,12 +1,12 @@
 import { Message } from "../types";
-import { generateContent } from "../prompt/generateContent";
+import { generatePrompt } from "../prompt/generateContent";
 
 export const createStreamRequestBody = (
   config: any,
   userInput: string,
   previousMessages: Array<Message>,
 ) => {
-  const prompt = generateContent(
+  const prompt = generatePrompt(
     config.prompt,
     config.name,
     config.responseLanguage,
@@ -31,7 +31,7 @@ export const createChatRequestBody = (
   userInput: string,
   previousMessages: Array<Message>,
 ) => {
-  const prompt = generateContent(
+  const prompt = generatePrompt(
     config.prompt,
     config.name,
     config.responseLanguage,

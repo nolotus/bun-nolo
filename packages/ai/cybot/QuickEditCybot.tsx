@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
 import ToggleSwitch from "render/ui/ToggleSwitch";
+import useMediaQuery from "react-responsive";
 
 import {
   FormField,
@@ -16,9 +17,10 @@ import {
 } from "render/CommonFormComponents";
 import { setData } from "database/dbSlice";
 
-import { providerOptions, getModelsByProvider, Model } from "../llm/providers";
+import { providerOptions, getModelsByProvider } from "../llm/providers";
+import { Model } from "../llm/types";
+
 import ToolSelector from "../tools/ToolSelector";
-import useMediaQuery from "react-responsive";
 
 const QuickEditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();

@@ -1,4 +1,4 @@
-import { Model } from "ai/llm/providers.ts";
+import { Model } from "ai/llm/types";
 export const deepinfraModels: Model[] = [
   {
     name: "meta-llama/Meta-Llama-3.1-8B-Instruct",
