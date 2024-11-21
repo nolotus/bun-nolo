@@ -5,7 +5,6 @@ import { filter } from "rambda";
 import { pickMessages } from "ai/api/pickMessages";
 
 import { createOpenAIRequestConfig } from "./config";
-import { NoloChatRequestBody } from "ai/types";
 export const createPromptMessage = (model, prompt) => {
   const isO1 = model === "o1-mini" || model === "o1-preview";
   const role = isO1 ? "user" : "system";
@@ -35,7 +34,7 @@ export const createOpenAIMessages = (
 };
 
 export const sendOpenAIRequest = async (
-  requestBody: NoloChatRequestBody,
+  requestBody,
   isStream: boolean,
 ): Promise<AxiosResponse<any> | null> => {
   if (!requestBody.model) {

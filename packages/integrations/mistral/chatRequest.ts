@@ -1,12 +1,11 @@
 import axios from "utils/axios";
 import { getProxyConfig } from "utils/getProxyConfig";
-import { NoloChatRequestBody } from "ai/types";
 
 import { mistralModels } from "./models";
 import { createMessages } from "ai/api/createMessages";
 
 export async function sendMistralRequest(
-  requestBody: NoloChatRequestBody,
+  requestBody,
   isStream: boolean,
 ): Promise<any> {
   const { model, max_tokens } = requestBody;
