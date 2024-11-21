@@ -1,7 +1,5 @@
 import { read, setOne } from "database/dbSlice";
 import { sendOpenAIRequest } from "ai/chat/sendOpenAIRequest";
-import { isModelInList } from "ai/llm/isModelInList";
-import { claudeModels } from "integrations/anthropic/models";
 import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { geminiModelNames } from "integrations/google/ai/models";
@@ -51,7 +49,6 @@ export const sendMessageAction = async (args, thunkApi) => {
     }
     if (cybotConfig.provider === "deepinfra") {
       sendCommonChatRequest({
-        model,
         content,
         prevMsgs,
         cybotConfig,
@@ -60,13 +57,13 @@ export const sendMessageAction = async (args, thunkApi) => {
       return;
     }
   }
+  if (cybotConfig.provider === "anthropic") {
+    sendClaudeRequest({ cybotConfig, content, thunkApi });
+    return;
+  }
 
   if (model === "o1-mini" || model === "o1-preview") {
     sendOpenAIRequest(cybotId, content, thunkApi);
-    return;
-  }
-  if (isModelInList(model, claudeModels)) {
-    sendClaudeRequest(cybotId, content, thunkApi);
     return;
   }
 

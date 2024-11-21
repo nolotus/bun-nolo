@@ -7,7 +7,6 @@ export const googleAIModels = {
     description: "Most capable model for a wide range of tasks",
     strengths: "Highest level of intelligence and capability",
     features: {
-      multilingual: true,
       vision: true,
       audio: true,
     },
@@ -52,7 +51,6 @@ export const googleAIModels = {
     description: "High speed model with flexible pricing",
     strengths: "Cost-effective for extended prompts",
     features: {
-      multilingual: true,
       vision: true,
       audio: true,
     },

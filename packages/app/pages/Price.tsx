@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { deepinfraModels } from "integrations/deepinfra/models";
+
 import {
   mistralModels,
-  anthropicModels,
   openaiModels,
   googleModels,
   deepseekModels,
@@ -10,6 +10,7 @@ import {
 import TableCell from "render/blocks/TableCell";
 import TableRow from "render/blocks/TableRow";
 import Table from "render/blocks/Table";
+import { anthropicModels } from "integrations/anthropic/models";
 
 const ModelComparison = () => {
   const combinedModels = [
@@ -17,7 +18,6 @@ const ModelComparison = () => {
       ...model,
       provider: "Deepinfra",
       maxOutputTokens: model.maxOutputTokens || "未知",
-      humanEval: model.humanEval || "未知",
       supportsTool: model.supportsTool || "未知",
     })),
     ...mistralModels.map((model) => ({
@@ -156,31 +156,7 @@ const ModelComparison = () => {
                   : "↑↓"}
               </button>
             </th>
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
-              HumanEval
-              <button
-                onClick={() => handleSort("humanEval")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "humanEval"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
+
             <th
               style={{
                 border: "1px solid #ddd",
@@ -286,10 +262,11 @@ const ModelComparison = () => {
         <tbody>
           {models.map((model, index) => (
             <TableRow key={index}>
-              <TableCell title={model.name}>{model.name}</TableCell>
+              <TableCell title={model.displayName || model.name}>
+                {model.displayName || model.name}
+              </TableCell>
               <TableCell>{model.maxOutputTokens}</TableCell>
               <TableCell>{model.contextWindow}</TableCell>
-              <TableCell>{model.humanEval}</TableCell>
               <TableCell>
                 {model.price.input} / {model.price.output}
               </TableCell>

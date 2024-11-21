@@ -80,7 +80,6 @@ const createRequestConfig = (cybotConfig, bodyData, signal) => ({
 });
 
 export const sendCommonChatRequest = async ({
-  model,
   content,
   prevMsgs,
   cybotConfig,
@@ -93,6 +92,7 @@ export const sendCommonChatRequest = async ({
   // 准备请求数据
   const messages = createMessages(model, content, prevMsgs, cybotConfig);
   const tools = prepareTools(cybotConfig.tools);
+  const model = cybotConfig.model;
   const bodyData = { model, messages, tools, stream: true };
 
   // 生成消息ID

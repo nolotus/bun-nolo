@@ -16,6 +16,7 @@ const httpServer = () => {
 
   // 启动 http 服务器
   Bun.serve({
+    idleTimeout: 60,
     port: 80,
     hostname: "0.0.0.0",
     fetch: handleRequest,
@@ -31,6 +32,7 @@ const httpServer = () => {
   if (isProduction) {
     console.log("Starting HTTPS server on port 443");
     Bun.serve({
+      idleTimeout: 60,
       port: 443,
       hostname: "0.0.0.0",
       fetch: handleRequest,

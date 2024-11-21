@@ -1,15 +1,8 @@
 // ai/llm/providers.ts
 import { deepinfraModels } from "integrations/deepinfra/models";
-export interface Model {
-  name: string;
-  hasVision: boolean;
-  contextWindow?: number; // For context window information
-  price?: {
-    input: number; // Price per 1 million tokens for input
-    output: number; // Price per 1 million tokens for output
-  };
-}
-
+import { xaiModels } from "integrations/xai/models";
+import { anthropicModels } from "integrations/anthropic/models";
+import { Model } from "./types";
 export const openaiModels: Model[] = [
   {
     name: "gpt-3.5-turbo",
@@ -22,25 +15,6 @@ export const openaiModels: Model[] = [
     hasVision: true,
     price: { input: 0.03, output: 0.06 },
   },
-];
-
-export const xaiModels: Model[] = [
-  {
-    name: "grok-beta",
-    hasVision: false,
-    price: { input: 0.0005, output: 0.001 },
-  },
-  {
-    name: "grok-vision-beta",
-    hasVision: true,
-    price: { input: 0.0005, output: 0.001 },
-  },
-];
-
-export const anthropicModels: Model[] = [
-  { name: "claude-1", hasVision: false, price: { input: 0.01, output: 0.01 } },
-  { name: "claude-2", hasVision: false, price: { input: 0.01, output: 0.01 } },
-  { name: "claude-3", hasVision: true, price: { input: 0.01, output: 0.01 } },
 ];
 
 export const ollamaModels: Model[] = [
