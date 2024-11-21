@@ -10,7 +10,6 @@ import { ulid } from "ulid";
 import { getWeather } from "ai/tools/getWeather";
 import { getLogger } from "utils/logger";
 import { readChunks } from "ai/client/stream";
-import { sendXaiRequest } from "ai/chat/sendXaiRequest";
 import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 
 import {
@@ -43,14 +42,14 @@ export const sendMessageAction = async (args, thunkApi) => {
 
   const model = cybotConfig.model;
   if (cybotConfig.provider) {
-    if (cybotConfig.provider === "xai") {
-      sendXaiRequest({ model, content, prevMsgs, cybotConfig, thunkApi });
-      return;
-    }
-    if (cybotConfig.provider === "deepinfra") {
+    if (
+      cybotConfig.provider === "deepinfra" ||
+      cybotConfig.provider === "fireworks" ||
+      cybotConfig.provider === "deepseek" ||
+      cybotConfig.provider === "xai"
+    ) {
       sendCommonChatRequest({
         content,
-        prevMsgs,
         cybotConfig,
         thunkApi,
       });

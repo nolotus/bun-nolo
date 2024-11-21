@@ -11,7 +11,6 @@ import { ollamaModels } from "integrations/ollama/models";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
 import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
 import { sendDeepSeekRequest } from "integrations/deepSeek/chatRequest";
-import { sendFireworksChatRequest } from "integrations/fireworks/chatRequest";
 //todo  make it work
 import { sendOllamaRequest } from "integrations/ollama/chatRequest";
 import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
@@ -54,13 +53,6 @@ async function processModelRequest(requestBody, modelType) {
       );
       break;
 
-    case "fireworks":
-      response = await sendFireworksChatRequest(
-        process.env.FIREWORKS_API_KEY,
-        requestBody,
-        true,
-      );
-      break;
     default:
       throw new Error(
         `processModelRequest Unknown model: ${requestBody.model}`,
