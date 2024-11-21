@@ -1,3 +1,5 @@
+import { pickMessages } from "./pickMessages";
+
 export const createMessages = (content, prevMsgs, cybotConfig) => {
   const messages = [
     {
@@ -7,5 +9,5 @@ export const createMessages = (content, prevMsgs, cybotConfig) => {
     ...prevMsgs,
     { role: "user", content },
   ];
-  return messages;
+  return pickMessages(messages);
 };
