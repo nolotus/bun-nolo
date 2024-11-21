@@ -88,11 +88,11 @@ export const sendCommonChatRequest = async ({
   const { dispatch, getState } = thunkApi;
   const controller = new AbortController();
   const signal = controller.signal;
+  const model = cybotConfig.model;
 
   // 准备请求数据
   const messages = createMessages(model, content, prevMsgs, cybotConfig);
   const tools = prepareTools(cybotConfig.tools);
-  const model = cybotConfig.model;
   const bodyData = { model, messages, tools, stream: true };
 
   // 生成消息ID
