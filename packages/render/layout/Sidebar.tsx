@@ -140,7 +140,6 @@ const contentStyles = (
   marginLeft: isSidebarOpen ? `${sidebarWidth}px` : 0,
   transition: "margin-left 0.3s ease-in-out",
   width: isSidebarOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",
-  overflowX: "hidden" as const,
   ...themeStyles.surface1(theme),
 });
 
