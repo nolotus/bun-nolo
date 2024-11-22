@@ -48,9 +48,9 @@ const TopBar: React.FC<TopBarProps> = ({
       style={{
         ...styles.flex,
         ...styles.flexBetween,
-        ...themeStyles.surface1(theme),
         ...styles.p1,
         ...styles.zIndex2,
+        backgroundColor: "transparent",
         position: "sticky",
         top: 0,
       }}
