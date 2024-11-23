@@ -23,7 +23,7 @@ import {
 } from "./pageSlice";
 import { processContent } from "./processContent";
 import { MarkdownEdit } from "./MarkdownEdit";
-import { RichEdit } from "./RichEdit";
+import { RichEdit } from "create/editor/RichEdit";
 
 const CreatePage = () => {
   const [searchParams] = useSearchParams();
