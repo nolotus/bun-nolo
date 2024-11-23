@@ -17,7 +17,7 @@ export default {
         "Are you sure you want to delete this dialog? This action cannot be undone.",
       confirm: "Confirm",
       cancel: "Cancel",
-      selectWorkspace: "Select Workspace",
+      selectWorkspace: "Select Space",
       // ...
     },
   },
@@ -38,7 +38,7 @@ export default {
       deleteDialogConfirmation: "确定要删除这个对话吗？此操作不可撤销。",
       confirm: "确认",
       cancel: "取消",
-      selectWorkspace: "选择工作区",
+      selectWorkspace: "选择分区",
       // add more translation strings here
     },
   },
@@ -59,7 +59,7 @@ export default {
       deleteDialogConfirmation: "您確定要刪除這個對話嗎？此操作不可撤銷。",
       confirm: "確認",
       cancel: "取消",
-      selectWorkspace: "選擇工作區",
+      selectWorkspace: "選擇分區",
       // ... add more UI messages here
     },
   },
@@ -81,7 +81,7 @@ export default {
         "このダイアログを削除してもよろしいですか？この操作は取り消せません。",
       confirm: "確認",
       cancel: "キャンセル",
-      selectWorkspace: "ワークスペースを選択",
+      selectWorkspace: "区画を選択する",
       // ... add more UI messages here
     },
   },

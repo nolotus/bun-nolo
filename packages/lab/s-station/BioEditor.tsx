@@ -12,6 +12,7 @@ const BioEditor = () => {
 
   const handleSave = () => {
     setIsEditing(false);
+    localStorage.setItem("bio", bio); // 保存到本地存储
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
