@@ -177,6 +177,7 @@ export const sendCommonChatRequest = async ({
               content: contentBuffer,
               role: "assistant",
               cybotId: cybotConfig.id,
+              controller,
             }),
           );
         }
@@ -190,6 +191,7 @@ export const sendCommonChatRequest = async ({
         content: "Error: " + error.message,
         role: "assistant",
         cybotId: cybotConfig.id,
+        controller,
       }),
     );
     throw error;

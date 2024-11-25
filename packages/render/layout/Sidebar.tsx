@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { useAuth } from "auth/useAuth";
 import { styles, themeStyles } from "render/ui/styles";
 import OpenProps from "open-props";
 
@@ -23,7 +22,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   topbarContent,
   fullWidth = false,
 }) => {
-  const { isLoggedIn } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -81,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             overflow: "hidden",
           }}
         >
-          {isLoggedIn && <SidebarTop />}
+          <SidebarTop />
 
           {/* 可滚动内容区域 */}
           <div style={scrollableContentStyles}>{sidebarContent}</div>
@@ -147,8 +145,7 @@ const innerContentStyles = (theme: any, fullWidth: boolean) => ({
   width: fullWidth ? "100%" : "100%",
   maxWidth: fullWidth ? "none" : "100%",
   margin: fullWidth ? 0 : "0 auto",
-  padding: "0 20px", // 为内容区域添加 padding，使其与侧边栏之间留白
-  ...themeStyles.textColor1(theme),
+  ...themeStyles.surface1(theme),
 });
 
 export default Sidebar;

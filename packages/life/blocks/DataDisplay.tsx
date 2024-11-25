@@ -11,6 +11,7 @@ const DataDisplay = ({ datalist, type }) => {
 
   const pullData = async (id, value) => {
     // Define the logic for pulling data here
+
     const flags = extractAndDecodePrefix(id);
     const userId = extractUserId(id);
     const customId = extractCustomId(id);

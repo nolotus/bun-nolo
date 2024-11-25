@@ -31,19 +31,37 @@ export function handleContentBlockDelta(
   cybotId,
   contentBuffer,
 ) {
-  const contentBlockIndex = data.index;
-  const textDelta = data.delta.text;
-  contentBuffer += textDelta;
+  try {
+    const textDelta = data.delta.text;
+    if (!textDelta) {
+      console.warn("Empty delta text received");
+      return contentBuffer;
+    }
 
-  const message = {
-    id,
-    content: contentBuffer,
-    role: "assistant",
-    cybotId,
-  };
-  dispatch(setOne(message));
-  dispatch(messageStreaming(message));
-  return contentBuffer;
+    // 保存之前的长度用于调试
+    const previousLength = contentBuffer.length;
+    contentBuffer += textDelta;
+
+    console.debug(
+      `Buffer update: ${previousLength} -> ${contentBuffer.length}`,
+    );
+
+    const message = {
+      id,
+      content: contentBuffer,
+      role: "assistant",
+      cybotId,
+    };
+
+    // 确保消息内容被正确保存
+    dispatch(setOne(message));
+    dispatch(messageStreaming(message));
+
+    return contentBuffer;
+  } catch (error) {
+    console.error("Error in handleContentBlockDelta:", error);
+    return contentBuffer;
+  }
 }
 
 // 处理消息更新的数据

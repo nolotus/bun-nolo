@@ -97,6 +97,7 @@ const workspaceSlice = createSliceWithThunks({
           flags: { isJSON: true },
           userId: currentUserId,
         };
+
         const actionResult = await dispatch(write(config));
         console.log("actionResult", actionResult);
         return actionResult.payload;
