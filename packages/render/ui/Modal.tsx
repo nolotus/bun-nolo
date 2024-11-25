@@ -1,8 +1,8 @@
-// render/layout/Modal.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useKey } from "react-use";
 import { useSelector } from "react-redux";
+import { useMediaQuery } from "react-responsive";
 
 import { selectTheme } from "app/theme/themeSlice";
 import { styles } from "render/ui/styles";
@@ -31,15 +31,15 @@ interface ModalProps {
 
 export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
   const theme = useSelector(selectTheme);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // 使用 react-responsive 的 hooks 定义响应式断点
+  const is2xl = useMediaQuery({ minWidth: theme.breakpoints[5] });
+  const isXl = useMediaQuery({ minWidth: theme.breakpoints[4] });
+  const isLg = useMediaQuery({ minWidth: theme.breakpoints[3] });
+  const isMd = useMediaQuery({ minWidth: theme.breakpoints[2] });
+  const isSm = useMediaQuery({ minWidth: theme.breakpoints[1] });
 
   useKey("Escape", onClose);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   if (!isOpen) {
     return null;
@@ -55,7 +55,7 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    ...styles.zIndex3, // 使用 styles.zIndex3
+    ...styles.zIndex3,
     backdropFilter: "blur(5px)",
     position: "fixed",
     top: 0,
@@ -74,14 +74,13 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
       : "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
   };
 
-  const getResponsiveWidth = (screenWidth) => {
-    const { breakpoints } = theme;
-    if (screenWidth >= breakpoints[5]) return "50%"; // 2xl
-    if (screenWidth >= breakpoints[4]) return "50%"; // xl
-    if (screenWidth >= breakpoints[3]) return "66.666667%"; // lg
-    if (screenWidth >= breakpoints[2]) return "75%"; // md
-    if (screenWidth >= breakpoints[1]) return "83.333333%"; // sm
-    return "91.666667%"; // xs
+  // 根据响应式断点获取宽度
+  const getResponsiveWidth = () => {
+    if (is2xl || isXl) return "50%";
+    if (isLg) return "66.666667%";
+    if (isMd) return "75%";
+    if (isSm) return "83.333333%";
+    return "91.666667%";
   };
 
   return createPortal(
@@ -89,7 +88,7 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
       <div
         style={{
           ...contentStyle,
-          width: getResponsiveWidth(windowWidth),
+          width: getResponsiveWidth(),
         }}
         onClick={(e) => e.stopPropagation()}
       >

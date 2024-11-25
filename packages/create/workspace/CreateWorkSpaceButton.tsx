@@ -1,3 +1,4 @@
+import React from "react";
 import { PlusIcon } from "@primer/octicons-react";
 import { useModal } from "render/ui/Modal";
 import { Dialog } from "render/ui/Dialog";
