@@ -10,7 +10,7 @@ import { createPageData } from "./pageDataUtils";
 import { setHasVersion, saveContentAndMdast, updateContent } from "./pageSlice";
 import { processContent } from "./processContent";
 import { EditTool } from "./EditTool";
-import { RichEdit } from "./RichEdit";
+import { RichEdit } from "create/editor/RichEdit";
 import { setData } from "database/dbSlice";
 
 const EditPage = () => {

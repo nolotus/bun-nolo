@@ -1,4 +1,4 @@
-import { TextEdit } from "./TextEdit";
+import { TextEdit } from "render/page/TextEdit";
 import { renderContentNode } from "render";
 
 export const RichEdit = ({ mdast, value, onKeyDown, onChange }) => {

@@ -4,7 +4,7 @@ import { xaiModels } from "integrations/xai/models";
 import { anthropicModels } from "integrations/anthropic/models";
 import { Model } from "./types";
 import { fireworksmodels } from "integrations/fireworks/models";
-import { deepSeekModels } from "integrations/deepSeek/models";
+import { deepSeekModels } from "integrations/deepseek/models";
 export const openaiModels: Model[] = [
   {
     name: "gpt-3.5-turbo",

@@ -12,31 +12,26 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const isSettingsPage = location.pathname.startsWith("/settings");
   const isLifePage = location.pathname.startsWith("/life");
-  const isChatPage = location.pathname.startsWith("/chat");
 
   const getSidebarContent = () => {
+    if (location.pathname === "/") {
+      return <HomeSidebarContent />;
+    }
     if (isSettingsPage) {
       return <SettingsSidebarContent />;
     }
     if (isLifePage) {
       return <LifeSidebarContent />;
     }
-    if (isChatPage) {
-      return <ChatSidebar />;
-    }
 
-    return <HomeSidebarContent />;
+    return <ChatSidebar />;
   };
 
   const isChatDetailPage =
     location.pathname.startsWith("/chat/") && location.pathname !== "/chat";
 
-  const renderContent = () => {
-    if (isChatDetailPage) {
-      return <Outlet />;
-    }
-
-    return (
+  return (
+    <Sidebar sidebarContent={getSidebarContent()} fullWidth={isChatDetailPage}>
       <Suspense fallback={<div>loading</div>}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -50,12 +45,6 @@ const MainLayout: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </Suspense>
-    );
-  };
-
-  return (
-    <Sidebar sidebarContent={getSidebarContent()} fullWidth={isChatDetailPage}>
-      {renderContent()}
     </Sidebar>
   );
 };

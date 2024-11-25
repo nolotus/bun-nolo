@@ -36,5 +36,6 @@ export const createDialogAction = async (args, thunkApi) => {
     userId: currentUserId,
   };
   const result = await dispatch(write(dialogConfig)).unwrap();
+
   return result;
 };

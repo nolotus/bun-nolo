@@ -108,15 +108,34 @@ export const writeUserFiles = (
   sequenceNumber: number,
 ): void => {
   try {
+    // 记录失败的用户ID
+    const failedUsers: string[] = [];
+
     // 写入用户数据
     userData.forEach((dataMap, userId) => {
-      writeDataToFile(
-        baseDir,
-        userId,
-        dataMap,
-        `${timestamp}_${sequenceNumber}`,
-      );
+      try {
+        if (!userId) {
+          console.warn(`Skipping write for invalid userId`);
+          return;
+        }
+
+        writeDataToFile(
+          baseDir,
+          userId,
+          dataMap,
+          `${timestamp}_${sequenceNumber}`,
+        );
+      } catch (err) {
+        // 记录错误但继续处理其他用户
+        console.error(`Error writing data for user ${userId}:`, err);
+        failedUsers.push(userId);
+      }
     });
+
+    // 如果有失败的用户，记录警告信息
+    if (failedUsers.length > 0) {
+      console.warn(`Failed to write data for users: ${failedUsers.join(", ")}`);
+    }
 
     // 删除WAL日志
     const walPath = path.resolve(
@@ -124,11 +143,15 @@ export const writeUserFiles = (
       `wal_${timestamp}_${sequenceNumber}.log`,
     );
     if (fs.existsSync(walPath)) {
-      fs.unlinkSync(walPath);
-      console.log(`Successfully deleted WAL file: ${walPath}`);
+      try {
+        fs.unlinkSync(walPath);
+        console.log(`Successfully deleted WAL file: ${walPath}`);
+      } catch (err) {
+        console.error(`Error deleting WAL file ${walPath}:`, err);
+      }
     }
   } catch (error) {
     console.error("Error in writeUserFiles:", error);
-    throw error; // 向上传递错误,让调用者知道写入失败
+    throw error;
   }
 };

@@ -6,6 +6,7 @@ import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
+import { useCouldEdit } from "auth/useCouldEdit";
 
 import QuickEditCybot from "./QuickEditCybot";
 
@@ -14,6 +15,7 @@ const CybotNameChip = React.memo(({ cybotId }) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const theme = useSelector(selectTheme);
   const [isHovered, setIsHovered] = useState(false);
+  const allowEdit = useCouldEdit(cybotId);
 
   if (isLoading) return null;
 
@@ -49,7 +51,7 @@ const CybotNameChip = React.memo(({ cybotId }) => {
       >
         {displayName}
       </span>
-      {editVisible && cybot && (
+      {allowEdit && editVisible && cybot && (
         <Dialog
           isOpen={editVisible}
           onClose={closeEdit}

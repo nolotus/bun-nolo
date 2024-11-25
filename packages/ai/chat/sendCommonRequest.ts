@@ -9,7 +9,7 @@ import { getFilteredMessages } from "chat/messages/utils";
 import { DEEPINFRA_API_ENDPOINT } from "integrations/deepinfra/chatRequest";
 import { FIREWORKS_API_ENDPOINT } from "integrations/fireworks/chatRequest";
 import { XAI_API_ENDPOINT } from "integrations/xai/chatRequest";
-import { DEEPSEEK__API_ENDPOINT } from "integrations/deepseek/chatRequest";
+import { DEEPSEEK_API_ENDPOINT } from "integrations/deepseek/chatRequest";
 
 import { selectCurrentServer } from "setting/settingSlice";
 import { API_ENDPOINTS } from "database/config";
@@ -107,7 +107,7 @@ export const sendCommonChatRequest = async ({
       api = XAI_API_ENDPOINT;
     }
     if (cybotConfig.provider === "deepseek") {
-      api = DEEPSEEK__API_ENDPOINT;
+      api = DEEPSEEK_API_ENDPOINT;
     }
 
     let response;
@@ -177,6 +177,7 @@ export const sendCommonChatRequest = async ({
               content: contentBuffer,
               role: "assistant",
               cybotId: cybotConfig.id,
+              controller,
             }),
           );
         }
@@ -190,6 +191,7 @@ export const sendCommonChatRequest = async ({
         content: "Error: " + error.message,
         role: "assistant",
         cybotId: cybotConfig.id,
+        controller,
       }),
     );
     throw error;

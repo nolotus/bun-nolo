@@ -1,2 +1,2 @@
-export const DEEPSEEK__API_ENDPOINT =
+export const DEEPSEEK_API_ENDPOINT =
   "https://api.deepseek.com/chat/completions";
