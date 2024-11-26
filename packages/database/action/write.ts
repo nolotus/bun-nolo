@@ -37,7 +37,8 @@ export const writeAction = async (writeConfig, thunkApi) => {
   //local save
   if (!isLoggedIn) {
     console.log("addDataToIndexedDB", saveId, willSaveData);
-    addToIndexedDB(willSaveData, userId);
+    const result = await addToIndexedDB(willSaveData, userId);
+    return result;
     // dispatch(addOne(willSaveData));
   }
 
