@@ -1,12 +1,12 @@
-import { noloRequest } from "utils/noloRequest";
+import { noloRequest } from "./noloRequest";
 
 import { API_ENDPOINTS } from "../config";
 
-export const noloPutRequest = async (state, id, data) => {
+export const noloPatchRequest = async (state, id: string, changes) => {
   const config = {
-    url: `${API_ENDPOINTS.DATABASE}/put/${id}`,
-    method: "PUT",
-    body: JSON.stringify(data),
+    url: `${API_ENDPOINTS.DATABASE}/patch/${id}`,
+    method: "PATCH",
+    body: JSON.stringify(changes),
   };
   const response = await noloRequest(state, config);
   if (!response.ok) {

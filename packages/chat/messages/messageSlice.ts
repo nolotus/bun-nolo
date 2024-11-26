@@ -11,7 +11,8 @@ import { ollamaHandler } from "integrations/ollama/ollamaHandler";
 import { API_ENDPOINTS } from "database/config";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { createStreamRequestBody } from "ai/chat/createStreamRequestBody";
-import { noloRequest } from "utils/noloRequest";
+import { noloRequest } from "database/requests/noloRequest";
+
 import { ulid } from "ulid";
 import { DataType } from "create/types";
 import { selectCurrentUserId } from "auth/authSlice";

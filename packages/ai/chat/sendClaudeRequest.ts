@@ -70,7 +70,7 @@ function handleLog(log, dispatch, id, cybotId, contentBuffer) {
         case "message_start":
           return handleMessageStart(jsonData, dispatch, id, cybotId);
         case "ping":
-          return handlePing();
+          return handlePing(contentBuffer);
         case "content_block_delta":
           return handleContentBlockDelta(
             jsonData,

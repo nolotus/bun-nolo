@@ -5,7 +5,7 @@ export const proxyRoute = async (req, res) => {
   console.log("rawBody", rawBody);
 
   const body = omit("url,KEY", rawBody);
-  console.log("body");
+  console.log("body", body);
   let headers;
   if (rawBody.model.includes("claude")) {
     console.log("it is claude");

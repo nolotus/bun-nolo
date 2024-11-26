@@ -7,16 +7,17 @@ import {
   createSelector,
   createSelectorCreator,
 } from "@reduxjs/toolkit";
-import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
+import { selectCurrentServer } from "setting/settingSlice";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
-import { requestServers } from "utils/request";
 
 import { API_ENDPOINTS } from "./config";
-import { noloReadRequest } from "database/read/readRequest";
-import { noloQueryRequest } from "./client/queryRequest";
-import { noloPutRequest } from "./client/putRequest";
-import { noloPatchRequest } from "./client/patchRequest";
+import { noloPutRequest } from "./requests/putRequest";
+import { noloPatchRequest } from "./requests/patchRequest";
 import { writeAction } from "./action/write";
+import { readAction } from "./action/read";
+import { selectIsLoggedIn } from "auth/authSlice";
+import { queryServerAction } from "./action/queryServer";
+import { deleteAction } from "./action/delete";
 
 export const dbAdapter = createEntityAdapter();
 
@@ -38,111 +39,23 @@ const dbSlice = createSliceWithThunks({
   name: "db",
   initialState,
   reducers: (create) => ({
-    queryServer: create.asyncThunk(
-      async (queryConfig, thunkApi) => {
-        const { dispatch } = thunkApi;
-        const { server } = queryConfig;
-        try {
-          const res = await noloQueryRequest(queryConfig);
-          const data = await res.json();
-
-          if (res.status === 200) {
-            dispatch(mergeMany({ data, server }));
-            return data;
-          } else {
-            const { error } = result;
-            throw error;
-          }
-        } catch (error) {
-          throw error;
+    queryServer: create.asyncThunk(queryServerAction, {
+      fulfilled: (state, action) => {},
+    }),
+    read: create.asyncThunk(readAction, {
+      rejected: (state, action) => {},
+      fulfilled: (state, action) => {
+        if (action.payload) {
+          dbAdapter.upsertOne(state, action.payload);
         }
       },
-      {
-        fulfilled: (state, action) => {},
+    }),
+    deleteData: create.asyncThunk(deleteAction, {
+      fulfilled: (state, action) => {
+        const ids = action.payload;
+        dbAdapter.removeMany(state, ids);
       },
-    ),
-    read: create.asyncThunk(
-      async ({ id, source }, thunkApi) => {
-        const state = thunkApi.getState();
-        const dispatch = thunkApi.dispatch;
-
-        const token = state.auth.currentToken;
-        if (source) {
-          //source 第一优先级
-          const res = await noloReadRequest(source[0], id, token);
-          if (res.status === 200) {
-            const result = await res.json();
-            return result;
-          }
-        } else {
-          const isAutoSync = state.settings.syncSetting.isAutoSync;
-          const currentServer = selectCurrentServer(state);
-          if (!isAutoSync) {
-            //current 第二优先级
-            const res = await noloReadRequest(currentServer, id, token);
-            if (res.status === 200) {
-              const result = await res.json();
-              return result;
-            } else {
-              throw new Error(`Request failed with status code ${res.status}`);
-            }
-          } else {
-            const syncServers = selectSyncServers(state);
-            const raceRes = await requestServers(
-              [currentServer, ...syncServers],
-              id,
-              token,
-            );
-            return raceRes;
-          }
-        }
-      },
-      {
-        rejected: (state, action) => {},
-        fulfilled: (state, action) => {
-          if (action.payload) {
-            dbAdapter.upsertOne(state, action.payload);
-          }
-        },
-      },
-    ),
-    deleteData: create.asyncThunk(
-      async (args, thunkApi) => {
-        const { id, body } = args;
-        const { dispatch, getState } = thunkApi;
-        const state = getState();
-        const currentServer = selectCurrentServer(state);
-
-        //todo add delete from local
-        let headers = {
-          "Content-Type": "application/json",
-        };
-        if (state.auth) {
-          const token = state.auth.currentToken;
-          headers.Authorization = `Bearer ${token}`;
-        }
-        const url = currentServer + `${API_ENDPOINTS.DATABASE}/delete/${id}`;
-
-        const res = await fetch(url, {
-          method: "DELETE",
-          headers,
-          body: JSON.stringify(body),
-        });
-
-        if (res.status === 200) {
-          const result = await res.json();
-          const { processingIds } = result;
-
-          return processingIds;
-        }
-      },
-      {
-        fulfilled: (state, action) => {
-          const ids = action.payload;
-          dbAdapter.removeMany(state, ids);
-        },
-      },
-    ),
+    }),
     write: create.asyncThunk(writeAction, {
       pending: (state, action) => {},
       fulfilled: (state, action) => {},
@@ -253,8 +166,10 @@ const dbSlice = createSliceWithThunks({
       const state = thunkAPI.getState();
       const currentServer = selectCurrentServer(state);
       const config = { server: currentServer, ...queryConfig };
-
-      const actionResult = await thunkAPI.dispatch(queryServer(config));
+      const isLoggedIn = selectIsLoggedIn(state);
+      if (isLoggedIn) {
+        const actionResult = await thunkAPI.dispatch(queryServer(config));
+      }
     }, {}),
   }),
 });
