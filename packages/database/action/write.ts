@@ -3,7 +3,7 @@ import { ulid } from "ulid";
 import { generateIdWithCustomId } from "core/generateMainKey";
 
 import { addOne } from "../dbSlice";
-import { noloWriteRequest } from "../write/writeRequest";
+import { noloWriteRequest } from "../requests/writeRequest";
 import { addToIndexedDB } from "../browser/indexedDBActions";
 
 export const writeAction = async (writeConfig, thunkApi) => {

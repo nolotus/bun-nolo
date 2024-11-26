@@ -6,7 +6,7 @@ import { hashPassword } from "core/password";
 import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
 import { API_VERSION } from "database/config";
-import { noloRequest } from "utils/noloRequest";
+import { noloRequest } from "database/requests/noloRequest";
 import { formatISO, addDays } from "date-fns";
 import { initSyncSetting, selectCurrentServer } from "setting/settingSlice";
 
@@ -224,5 +224,5 @@ export const selectCurrentUser = (state: NoloRootState) =>
   state.auth.currentUser;
 export const selectUsers = (state: NoloRootState) => state.auth.users;
 export const selectCurrentUserId = (state: NoloRootState) =>
-  state.auth.currentUser?.userId;
+  state.auth.currentUser?.userId || "local";
 export const selectIsLoggedIn = (state: NoloRootState) => state.auth.isLoggedIn;

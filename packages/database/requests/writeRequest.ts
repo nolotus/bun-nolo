@@ -1,10 +1,9 @@
 import { API_ENDPOINTS } from "database/config";
-import { noloRequest } from "utils/noloRequest";
-import { NoloRootState } from "app/store";
-import { WriteConfigServer } from "./type";
+import { noloRequest } from "./noloRequest";
+import { WriteConfigServer } from "../write/type";
 
 export const noloWriteRequest = async (
-  state: NoloRootState,
+  state: any,
   writeConfig: WriteConfigServer,
 ) => {
   const { userId, data, flags, customId } = writeConfig;

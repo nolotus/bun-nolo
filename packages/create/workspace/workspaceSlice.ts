@@ -9,6 +9,8 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { patchData, query, queryServer, write } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { deleteData } from "database/dbSlice";
+import { queryFilteredFromIndexedDB } from "database/browser/indexedDBQuery";
+
 import { DataType } from "../types";
 
 const createSliceWithThunks = buildCreateSlice({
@@ -38,26 +40,42 @@ const workspaceSlice = createSliceWithThunks({
       async (input, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
         const state = thunkAPI.getState();
-        const currentServer = selectCurrentServer(state);
         const currentUserId = selectCurrentUserId(state);
-        const queryConfig = {
-          queryUserId: currentUserId,
-          options: {
-            isJSON: true,
-            limit: 20,
-            condition: {
-              type: DataType.WorkSpace,
+        if (currentUserId === "local") {
+          console.log("fetchWorkspaces local");
+          const jsonLogicRules = {
+            "===": [{ var: "type" }, "worksapce"],
+          };
+          const options = {
+            jsonLogicRules: jsonLogicRules,
+            limit: 10, // 例如限制结果数量为10
+          };
+          const reuslt = await queryFilteredFromIndexedDB(
+            currentUserId,
+            options,
+          );
+          console.log("fetchWorkspaces reuslt", reuslt);
+          return reuslt;
+        } else {
+          const queryConfig = {
+            queryUserId: currentUserId,
+            options: {
+              isJSON: true,
+              limit: 20,
+              condition: {
+                type: DataType.WorkSpace,
+              },
             },
-          },
-        };
-
-        const action = await dispatch(
-          queryServer({
-            server: currentServer,
-            ...queryConfig,
-          }),
-        );
-        return action.payload || [];
+          };
+          const currentServer = selectCurrentServer(state);
+          const action = await dispatch(
+            queryServer({
+              server: currentServer,
+              ...queryConfig,
+            }),
+          );
+          return action.payload || [];
+        }
       },
       {
         fulfilled: (state, action) => {

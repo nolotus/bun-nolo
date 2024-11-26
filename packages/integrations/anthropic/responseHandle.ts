@@ -3,8 +3,9 @@ import { setOne } from "database/dbSlice";
 import { messageStreaming } from "chat/messages/messageSlice";
 
 // 处理心跳数据
-export function handlePing() {
-  return "";
+export function handlePing(contentBuffer) {
+  // 直接返回入参contentBuffer，而不是返回空字符串
+  return contentBuffer;
 }
 
 // 处理消息开始的数据
