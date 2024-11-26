@@ -128,29 +128,35 @@ export const SidebarTop = () => {
               </div>
 
               {workspaces &&
-                workspaces.map((workspace: any) => (
-                  <div
-                    key={workspace.id}
-                    onClick={() => handleOptionClick(workspace.id)}
-                    onMouseEnter={() => setHoveredItem(workspace.id)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                    style={{
-                      padding: "10px 14px",
-                      cursor: "pointer",
-                      background:
-                        hoveredItem === workspace.id ? "#f1f3f4" : "white",
-                      transition: "background 0.2s ease",
-                      fontSize: "14px",
-                      color: "#3c4043",
-                      borderTop: "1px solid #f1f3f4",
-                    }}
-                  >
-                    {workspace.name}
-                    <button onClick={() => handleDeleteWorkspace(workspace.id)}>
-                      删除
-                    </button>
-                  </div>
-                ))}
+                workspaces.map((workspace: any) => {
+                  if (workspace) {
+                    return (
+                      <div
+                        key={workspace.id}
+                        onClick={() => handleOptionClick(workspace.id)}
+                        onMouseEnter={() => setHoveredItem(workspace.id)}
+                        onMouseLeave={() => setHoveredItem(null)}
+                        style={{
+                          padding: "10px 14px",
+                          cursor: "pointer",
+                          background:
+                            hoveredItem === workspace.id ? "#f1f3f4" : "white",
+                          transition: "background 0.2s ease",
+                          fontSize: "14px",
+                          color: "#3c4043",
+                          borderTop: "1px solid #f1f3f4",
+                        }}
+                      >
+                        {workspace.name}
+                        <button
+                          onClick={() => handleDeleteWorkspace(workspace.id)}
+                        >
+                          删除
+                        </button>
+                      </div>
+                    );
+                  }
+                })}
             </div>
           )}
         </div>

@@ -9,7 +9,8 @@ export const deleteAction = async (args, thunkApi) => {
   const state = getState();
   const currentUserId = selectCurrentUserId(state);
   if (currentUserId === "local") {
-    deleteFromIndexedDB(currentUserId, id);
+    const result = await deleteFromIndexedDB(currentUserId, id);
+    return [result];
   } else {
     const fetchConfig = {
       url: `${API_ENDPOINTS.DATABASE}/delete/${id}`,

@@ -1,7 +1,6 @@
 const DB_NAME = "nolo";
 const DB_VERSION = 1;
 
-// 通用的数据库操作函数
 export function dbOperation(userId, operation) {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -12,16 +11,15 @@ export function dbOperation(userId, operation) {
 
     request.onupgradeneeded = function (event) {
       const db = event.target.result;
-      // 如果之前没有这个用户的store，则创建一个新的
+      // 使用数据的 id 作为 keyPath
       if (!db.objectStoreNames.contains(userId)) {
-        db.createObjectStore(userId, { autoIncrement: true });
+        db.createObjectStore(userId, { keyPath: "id" });
       }
     };
 
     request.onsuccess = function (event) {
       const db = event.target.result;
 
-      // 检查是否存在这个用户的store
       if (!db.objectStoreNames.contains(userId)) {
         reject("User store does not exist");
         db.close();
@@ -50,10 +48,15 @@ export function dbOperation(userId, operation) {
   });
 }
 
-// 添加数据到 IndexedDB 的函数
+// 添加数据的函数 - 数据必须包含 id 字段
 export function addToIndexedDB(data, userId) {
   return dbOperation(userId, (store) => {
     return new Promise((resolve, reject) => {
+      if (!data.id) {
+        reject("Data must contain an id field");
+        return;
+      }
+
       const addRequest = store.add(data);
 
       addRequest.onerror = function (event) {
@@ -61,34 +64,34 @@ export function addToIndexedDB(data, userId) {
       };
 
       addRequest.onsuccess = function (event) {
-        resolve("Data added to IndexedDB successfully");
+        resolve({ ...data, message: "Data added to IndexedDB successfully" });
       };
     });
   });
 }
 
-// 从 IndexedDB 中删除数据的函数
-export function deleteFromIndexedDB(userId, key) {
+// 删除数据的函数
+export function deleteFromIndexedDB(userId, id) {
   return dbOperation(userId, (store) => {
     return new Promise((resolve, reject) => {
-      const deleteRequest = store.delete(key);
+      const deleteRequest = store.delete(id);
 
       deleteRequest.onerror = function (event) {
         reject("Error deleting data from IndexedDB: " + event.target.error);
       };
 
       deleteRequest.onsuccess = function (event) {
-        resolve("Data deleted from IndexedDB successfully");
+        resolve(id);
       };
     });
   });
 }
 
-// 从 IndexedDB 中获取数据的函数
-export function getFromIndexedDB(userId, key) {
+// 获取数据的函数
+export function getFromIndexedDB(userId, id) {
   return dbOperation(userId, (store) => {
     return new Promise((resolve, reject) => {
-      const getRequest = store.get(key);
+      const getRequest = store.get(id);
 
       getRequest.onerror = function (event) {
         reject("Error getting data from IndexedDB: " + event.target.error);
@@ -101,11 +104,16 @@ export function getFromIndexedDB(userId, key) {
   });
 }
 
-// 更新 IndexedDB 中数据的函数
-export function updateInIndexedDB(data, userId, key) {
+// 更新数据的函数
+export function updateInIndexedDB(data, userId) {
   return dbOperation(userId, (store) => {
     return new Promise((resolve, reject) => {
-      const putRequest = store.put(data, key);
+      if (!data.id) {
+        reject("Data must contain an id field");
+        return;
+      }
+
+      const putRequest = store.put(data);
 
       putRequest.onerror = function (event) {
         reject("Error updating data in IndexedDB: " + event.target.error);
