@@ -1,5 +1,17 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { useAuth } from "auth/useAuth";
+import { removeToken, getTokensFromLocalStorage } from "auth/client/token";
+import { useAppDispatch, useAppSelector } from "app/hooks";
+import { signOut, changeCurrentUser, selectUsers } from "auth/authSlice";
+import { selectTheme } from "app/theme/themeSlice";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import {
+  PersonIcon,
+  GearIcon,
+  SignOutIcon,
+  TriangleDownIcon,
+} from "@primer/octicons-react";
+import { useTranslation } from "react-i18next";
 
 const styles = {
   container: {
@@ -36,11 +48,61 @@ const styles = {
 };
 
 const NavbarComponent = () => {
+  const { t } = useTranslation();
+
+  const { isLoggedIn, user } = useAuth();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const theme = useAppSelector(selectTheme);
+  const currentToken = useAppSelector((state: any) => state.auth.currentToken);
+
+  console.log("isLoggedIn", isLoggedIn);
+  console.log("user", user);
+  const logout = () => {
+    removeToken(currentToken);
+    dispatch(signOut());
+    navigate("/");
+  };
   return (
     <div style={styles.container}>
-      <NavLink to="/login" style={styles.logo}>
-        Selfr
-      </NavLink>
+      {isLoggedIn ? (
+        <>
+          <NavLink to="/login" style={styles.logo}>
+            Selfr
+          </NavLink>
+          <button
+            onClick={logout}
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              padding: theme.spacing.small,
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+              borderRadius: theme.borderRadius,
+              transition: "background-color 0.2s",
+              color: theme.text1,
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = theme.surface2)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
+          >
+            <SignOutIcon size={theme.iconSize.medium} />
+            <span style={{ marginLeft: theme.spacing.small }}>
+              {t("common:logout")}
+            </span>
+          </button>
+        </>
+      ) : (
+        <NavLink to="/login" style={styles.logo}>
+          "not log"
+        </NavLink>
+      )}
+
       <ul style={styles.navList}>
         <li style={styles.navItem}>
           <NavLink

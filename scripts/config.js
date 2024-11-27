@@ -17,7 +17,6 @@ export const commonConfig = {
   entryPoints: [inputPath],
   outdir: "public/assets",
   plugins: [
-    cleanPlugin,
     postCssPlugin({
       postcss: {
         plugins: [require("tailwindcss"), require("autoprefixer")],
