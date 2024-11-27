@@ -38,7 +38,9 @@ const styles = {
 const NavbarComponent = () => {
   return (
     <div style={styles.container}>
-      <div style={styles.logo}>Selfr</div>
+      <NavLink to="/login" style={styles.logo}>
+        Selfr
+      </NavLink>
       <ul style={styles.navList}>
         <li style={styles.navItem}>
           <NavLink

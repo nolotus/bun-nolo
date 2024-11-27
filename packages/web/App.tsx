@@ -18,6 +18,7 @@ import Moment from "lab/s-station/index";
 import Article from "lab/s-station/Article";
 import Collect from "lab/s-station/Collect";
 import NavbarComponent from "lab/s-station/Navbar";
+import { authRoutes } from "auth/client/routes";
 
 const generatorRoutes = (hostname, auth) => {
   if (hostname === "nolotus.local" || hostname === "cybot.me") {
@@ -43,6 +44,7 @@ const generatorRoutes = (hostname, auth) => {
             path: "collect",
             element: <Collect />,
           },
+          ...authRoutes,
         ],
       },
     ];
