@@ -20,6 +20,7 @@ export default {
       selectWorkspace: "Select Space",
       CreateSpace:"Create Workspace",
       spacename:"spacename",
+      messageOrImageHere:"Type Message or drag and drop image here",
       // ...
     },
   },
@@ -43,7 +44,7 @@ export default {
       selectWorkspace: "选择空间",
       CreateSpace:"新建空间",
       spacename:"空间名称",
-
+      messageOrImageHere:"输入消息或拖放图片",
       // add more translation strings here
     },
   },
@@ -67,6 +68,7 @@ export default {
       selectWorkspace: "選擇空間",
       CreateSpace:"創建空間",
       spacename:"空间名",
+      messageOrImageHere:"輸入訊息或拖放圖片",
       // ... add more UI messages here
     },
   },
@@ -91,6 +93,7 @@ export default {
       selectWorkspace: "区画を選択する",
       CreateSpace:"スペースを作成する",
       spacename:"スペース名",
+      messageOrImageHere:"メッセージを入力またはここに画像をドラッグ＆ドロップ",
       // ... add more UI messages here
     },
   },

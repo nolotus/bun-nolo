@@ -28,11 +28,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
     <Button
       onClick={onClick}
       icon={
-        isExpanded ? (
-          <MoveToEndIcon size={16} />
-        ) : (
-          <MoveToStartIcon size={16} />
-        )
+        isExpanded ? <MoveToStartIcon size={16} /> : <MoveToEndIcon size={16} />
       }
       style={buttonStyle}
       hoverStyle={hoverStyle}
