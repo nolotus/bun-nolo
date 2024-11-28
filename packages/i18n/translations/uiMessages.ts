@@ -18,6 +18,8 @@ export default {
       confirm: "Confirm",
       cancel: "Cancel",
       selectWorkspace: "Select Space",
+      CreateSpace:"Create Workspace",
+      spacename:"spacename",
       // ...
     },
   },
@@ -38,7 +40,10 @@ export default {
       deleteDialogConfirmation: "确定要删除这个对话吗？此操作不可撤销。",
       confirm: "确认",
       cancel: "取消",
-      selectWorkspace: "选择分区",
+      selectWorkspace: "选择空间",
+      CreateSpace:"新建空间",
+      spacename:"空间名称",
+
       // add more translation strings here
     },
   },
@@ -59,7 +64,9 @@ export default {
       deleteDialogConfirmation: "您確定要刪除這個對話嗎？此操作不可撤銷。",
       confirm: "確認",
       cancel: "取消",
-      selectWorkspace: "選擇分區",
+      selectWorkspace: "選擇空間",
+      CreateSpace:"創建空間",
+      spacename:"空间名",
       // ... add more UI messages here
     },
   },
@@ -82,6 +89,8 @@ export default {
       confirm: "確認",
       cancel: "キャンセル",
       selectWorkspace: "区画を選択する",
+      CreateSpace:"スペースを作成する",
+      spacename:"スペース名",
       // ... add more UI messages here
     },
   },

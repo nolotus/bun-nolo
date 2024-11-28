@@ -56,10 +56,10 @@ export const CreateWorkSpaceForm = ({ onClose }) => {
   return (
     <>
       <FormContainer>
-        <FormTitle>{t("createCybot")}</FormTitle>
+        <FormTitle>{t("CreateSpace")}</FormTitle>
         <form onSubmit={(e) => handleFormSubmit(e)}>
           <FormFieldComponent
-            label={t("name")}
+            label={t("spacename")}
             name="name"
             register={register}
             errors={errors}
@@ -73,7 +73,7 @@ export const CreateWorkSpaceForm = ({ onClose }) => {
               handleFormSubmit();
             }}
           >
-            {t("createCybot")}
+            {t("CreateSpace")}
           </SubmitButton>
         </form>
       </FormContainer>
