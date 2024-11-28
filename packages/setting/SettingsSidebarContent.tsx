@@ -1,17 +1,17 @@
 // SettingsSidebarContent.tsx
 import React from "react";
-import { USER_PROFILE_ROUTE, EDITOR_CONFIG } from "setting/config";
 import { nolotusId } from "core/init";
 import { useAuth } from "auth/useAuth";
 import NavListItem from "render/layout/blocks/NavListItem";
+import { SettingRoutePaths } from "./config";
 
 const navItems = [
-  { path: `/settings/${USER_PROFILE_ROUTE}`, label: "个人资料" },
-  { path: `/settings/${EDITOR_CONFIG}`, label: "编辑器设置" },
-  { path: "/settings/sync", label: "同步设置" },
-  { path: "/settings/account", label: "账号设置" },
-  { path: "/settings/website", label: "网站设置" },
-  { path: "/settings/customize", label: "个性化设置" },
+  { path: SettingRoutePaths.SETTING_USER_PROFILE, label: "个人资料" },
+  { path: SettingRoutePaths.SETTING_EDITOR_CONFIG, label: "编辑器设置" },
+  { path: SettingRoutePaths.SETTING_SYNC, label: "同步设置" },
+  { path: SettingRoutePaths.SETTING_ACCOUNT, label: "账号设置" },
+  { path: SettingRoutePaths.SETTING_WEBSITE, label: "网站设置" },
+  { path: SettingRoutePaths.SETTING_CUSTOMIZE, label: "个性化设置" },
 ];
 
 const allowedUserIds = [nolotusId];

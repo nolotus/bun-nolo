@@ -16,6 +16,7 @@ import { removeToken, getTokensFromLocalStorage } from "auth/client/token";
 import { useAuth } from "auth/useAuth";
 import { parseToken } from "auth/token";
 import { selectTheme } from "app/theme/themeSlice";
+import { SettingRoutePaths } from "setting/config";
 
 const IconButton: React.FC<{
   icon: React.ReactNode;
@@ -197,7 +198,7 @@ export const IsLoggedInMenu: React.FC = () => {
               ),
           )}
           <button
-            onClick={() => navigate("/settings")}
+            onClick={() => navigate(SettingRoutePaths.SETTING)}
             style={{
               display: "block",
               width: "100%",

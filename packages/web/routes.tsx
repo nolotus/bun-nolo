@@ -1,13 +1,11 @@
 import React, { Suspense, lazy } from "react";
-import { authRoutes } from "auth/client/routes";
 import MainLayout from "render/layout/MainLayout";
 import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
-import { settingRoutes } from "setting/routes";
-import { createRoutes } from "create/routes";
 
 import { createLazyRoute } from "./createLazyRoute";
 import { SurfTip } from "./SurfTip";
+import { commonRoutes } from "./generatorRoutes";
 
 const Page = lazy(() => import("render/page/PageIndex"));
 
@@ -18,9 +16,7 @@ export const routes = (currentUser: any) => [
     path: "/",
     element: <MainLayout />,
     children: [
-      ...authRoutes,
-      ...createRoutes,
-      settingRoutes,
+      ...commonRoutes,
       {
         path: "/life",
         children: [

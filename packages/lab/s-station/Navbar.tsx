@@ -1,17 +1,13 @@
 import React from "react";
 import { useAuth } from "auth/useAuth";
-import { removeToken, getTokensFromLocalStorage } from "auth/client/token";
-import { useAppDispatch, useAppSelector } from "app/hooks";
-import { signOut, changeCurrentUser, selectUsers } from "auth/authSlice";
-import { selectTheme } from "app/theme/themeSlice";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import {
-  PersonIcon,
-  GearIcon,
-  SignOutIcon,
-  TriangleDownIcon,
-} from "@primer/octicons-react";
+import { NavLink } from "react-router-dom";
+
 import { useTranslation } from "react-i18next";
+import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
+import NavListItem from "render/layout/blocks/NavListItem";
+import { SignInIcon } from "@primer/octicons-react";
+import { RoutePaths } from "auth/client/routes";
+import { CreateMenu } from "create/CreateMenu";
 
 const styles = {
   container: {
@@ -50,58 +46,24 @@ const styles = {
 const NavbarComponent = () => {
   const { t } = useTranslation();
 
-  const { isLoggedIn, user } = useAuth();
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const theme = useAppSelector(selectTheme);
-  const currentToken = useAppSelector((state: any) => state.auth.currentToken);
+  const { isLoggedIn } = useAuth();
 
-  console.log("isLoggedIn", isLoggedIn);
-  console.log("user", user);
-  const logout = () => {
-    removeToken(currentToken);
-    dispatch(signOut());
-    navigate("/");
-  };
   return (
     <div style={styles.container}>
-      {isLoggedIn ? (
-        <>
-          <NavLink to="/login" style={styles.logo}>
-            Selfr
-          </NavLink>
-          <button
-            onClick={logout}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              padding: theme.spacing.small,
-              border: "none",
-              background: "none",
-              cursor: "pointer",
-              borderRadius: theme.borderRadius,
-              transition: "background-color 0.2s",
-              color: theme.text1,
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = theme.surface2)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
-          >
-            <SignOutIcon size={theme.iconSize.medium} />
-            <span style={{ marginLeft: theme.spacing.small }}>
-              {t("common:logout")}
-            </span>
-          </button>
-        </>
-      ) : (
-        <NavLink to="/login" style={styles.logo}>
-          "not log"
-        </NavLink>
-      )}
+      <div style={{ display: "flex", gap: "12px" }}>
+        <CreateMenu />
+        {isLoggedIn ? (
+          <div>
+            <IsLoggedInMenu />
+          </div>
+        ) : (
+          <NavListItem
+            label={t("login")}
+            icon={<SignInIcon size={16} />}
+            path={RoutePaths.LOGIN}
+          />
+        )}
+      </div>
 
       <ul style={styles.navList}>
         <li style={styles.navItem}>
