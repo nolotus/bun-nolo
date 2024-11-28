@@ -6,4 +6,5 @@ export const SettingRoutePaths = {
   SETTING_ACCOUNT: "setting/account",
   SETTING_WEBSITE: "setting/website",
   SETTING_CUSTOMIZE: "setting/customize",
+  SETTING_SERVICE_PROVIDER: "setting/service-provider",
 };

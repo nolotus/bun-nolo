@@ -15,7 +15,11 @@ import toast from "react-hot-toast";
 import copyToClipboard from "utils/clipboard";
 import { ContextMenu, MenuItem } from "render/components/ContextMenu";
 
-import { deleteMessage, sendWithMessageId } from "./messageSlice";
+import {
+  deleteMessage,
+  sendWithMessageId,
+  clearCurrentDialog,
+} from "./messageSlice";
 
 interface MessageContextMenuProps {
   menu: Ariakit.MenuStore;
@@ -94,9 +98,16 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
     });
     menu.hide();
   };
+
   const handleResendMessage = () => {
     dispatch(sendWithMessageId(id));
   };
+
+  const handleClearConversation = () => {
+    dispatch(clearCurrentDialog());
+    menu.hide();
+  };
+
   const menuItems: MenuItem[] = [
     {
       id: "copy",
@@ -121,6 +132,12 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
       label: t("resend"),
       icon: <IterationsIcon size={16} />,
       onClick: handleResendMessage,
+    },
+    {
+      id: "clear",
+      label: t("clearConversation"),
+      icon: <TrashIcon size={16} />,
+      onClick: handleClearConversation,
     },
   ];
 

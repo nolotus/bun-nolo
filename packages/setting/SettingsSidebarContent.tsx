@@ -12,6 +12,7 @@ const navItems = [
   { path: SettingRoutePaths.SETTING_ACCOUNT, label: "账号设置" },
   { path: SettingRoutePaths.SETTING_WEBSITE, label: "网站设置" },
   { path: SettingRoutePaths.SETTING_CUSTOMIZE, label: "个性化设置" },
+  { path: SettingRoutePaths.SETTING_SERVICE_PROVIDER, label: "服务商设置" },
 ];
 
 const allowedUserIds = [nolotusId];

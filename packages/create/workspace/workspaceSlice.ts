@@ -191,9 +191,6 @@ export const selectCurrentWorkSpaceId = (state: NoloRootState) =>
 export const selectCurrentWorkspaceName = (state: NoloRootState) => {
   const currentId = state.workspace.currentWorkspaceId;
   const workspaces = state.workspace.workspaces;
-  console.log("workspaces", workspaces);
-  console.log("currentId", currentId);
-
   if (!currentId) return "";
   if (currentId === null) return "recent";
 

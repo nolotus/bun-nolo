@@ -4,7 +4,7 @@ import {
   asyncThunkCreator,
 } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
-import { clearMessages } from "chat/messages/messageSlice";
+import { clearCurrentMessages } from "chat/messages/messageSlice";
 import { write, read, deleteData } from "database/dbSlice";
 
 import { DataType } from "create/types";
@@ -164,7 +164,7 @@ const DialogSlice = createSliceWithThunks({
       async (dialogId, thunkApi) => {
         const dispatch = thunkApi.dispatch;
         dispatch(deleteDialog(dialogId));
-        dispatch(clearMessages());
+        dispatch(clearCurrentMessages());
         dispatch(resetCurrentDialogTokens());
       },
       {

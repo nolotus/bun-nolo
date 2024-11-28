@@ -16,7 +16,13 @@ import { noloRequest } from "database/requests/noloRequest";
 import { ulid } from "ulid";
 import { DataType } from "create/types";
 import { selectCurrentUserId } from "auth/authSlice";
-import { addToList, deleteData, read, upsertOne } from "database/dbSlice";
+import {
+  addToList,
+  deleteData,
+  read,
+  removeFromList,
+  upsertOne,
+} from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { filter, reverse } from "rambda";
 
@@ -36,7 +42,6 @@ const createSliceWithThunks = buildCreateSlice({
 
 const initialState: MessageSliceState = {
   ids: null,
-  isStopped: false,
   streamMessages: [],
 };
 export const messageSlice = createSliceWithThunks({
@@ -115,8 +120,10 @@ export const messageSlice = createSliceWithThunks({
         const updateId = dialogConfig.messageListId;
 
         const actionResult = await dispatch(
-          addToList({ willAddId: saveMessage.id, updateId }),
+          addToList({ itemId: saveMessage.id, listId: updateId }),
         );
+        console.log("addMessageToServer", actionResult);
+
         return actionResult.payload;
       },
       {
@@ -137,24 +144,13 @@ export const messageSlice = createSliceWithThunks({
       async (messageId: string, thunkApi) => {
         thunkApi.dispatch(removeMessageFromUI(messageId));
         const state = thunkApi.getState();
-        const token = state.auth.currentToken;
         const dialogConfig = selectCurrentDialogConfig(state);
-        const currentServer = selectCurrentServer(state);
-        const deleteMessageFromList = await fetch(
-          `${currentServer}${API_ENDPOINTS.PUT}/${dialogConfig.messageListId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              id: messageId,
-              action: "remove",
-            }),
-          },
+        thunkApi.dispatch(
+          removeFromList({
+            itemId: messageId,
+            listId: dialogConfig.messageListId,
+          }),
         );
-
         thunkApi.dispatch(deleteData({ id: messageId }));
       },
 
@@ -165,26 +161,17 @@ export const messageSlice = createSliceWithThunks({
     ),
     deleteNotFound: create.asyncThunk(
       async (messageId: string, thunkApi) => {
-        thunkApi.dispatch(removeMessageFromUI(messageId));
+        const dispatch = thunkApi.dispatch;
         const state = thunkApi.getState();
-        const token = state.auth.currentToken;
         const dialogConfig = selectCurrentDialogConfig(state);
-        const currentServer = selectCurrentServer(state);
 
-        const deleteMessageFromList = await fetch(
-          `${currentServer}${API_ENDPOINTS.PUT}/${dialogConfig.messageListId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              id: messageId,
-              action: "remove",
-            }),
-          },
+        dispatch(
+          removeFromList({
+            itemId: messageId,
+            listId: dialogConfig.messageListId,
+          }),
         );
+        thunkApi.dispatch(removeMessageFromUI(messageId));
       },
 
       {
@@ -193,17 +180,37 @@ export const messageSlice = createSliceWithThunks({
       },
     ),
 
-    messagesReachedMax: create.reducer((state, action) => {
-      state.isStopped = true;
-    }),
     handleSendMessage: create.asyncThunk(sendMessageAction, {
       rejected: (state, action) => {},
       fulfilled: (state, action) => {},
     }),
-    clearMessages: create.reducer((state, action) => {
+    clearCurrentMessages: create.reducer((state, action) => {
       state.ids = null;
       state.streamMessages = [];
     }),
+    clearCurrentDialog: create.asyncThunk(
+      async (args, thunkApi) => {
+        const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
+        const currentDialogConfig = selectCurrentDialogConfig(state);
+        const { messageListId } = currentDialogConfig;
+        if (messageListId) {
+          const body = { ids: state.message.ids };
+          const deleteMessageListAction = await dispatch(
+            deleteData({
+              id: messageListId,
+              body,
+            }),
+          );
+        }
+      },
+      {
+        fulfilled: (state, action) => {
+          state.ids = [];
+          state.streamMessages = [];
+        },
+      },
+    ),
     addUserMessage: create.asyncThunk(
       async ({ content, isSaveToServer = true }, thunkApi) => {
         const state = thunkApi.getState();
@@ -459,7 +466,8 @@ export const {
   deleteNotFound,
   addMessageToUI,
   handleSendMessage,
-  clearMessages,
+  clearCurrentMessages,
+  clearCurrentDialog,
   addMessageToServer,
   addAIMessage,
   addUserMessage,
