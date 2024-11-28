@@ -24,19 +24,19 @@ export const messageListStyle = {
 };
 
 const MessagesList: React.FC = () => {
+  const dispatch = useAppDispatch();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  const messages = useAppSelector(selectMergedMessages);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   const id = currentDialogConfig.messageListId;
 
   if (!id) {
     return <div>mei id</div>;
   }
 
-  const dispatch = useAppDispatch();
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
   const { data, isLoading, error } = useFetchData(id);
   const streamingMessages = useAppSelector(selectStreamMessages);
-  const messages = useAppSelector(selectMergedMessages);
 
   const scrollToBottom = () => {
     if (containerRef.current) {
@@ -44,6 +44,7 @@ const MessagesList: React.FC = () => {
     }
   };
 
+  //todo change to when first streaming
   useEffect(() => {
     if (streamingMessages) {
       scrollToBottom();
@@ -51,21 +52,22 @@ const MessagesList: React.FC = () => {
   }, [streamingMessages, messages]);
 
   useEffect(() => {
-    dispatch(initMessages());
-  }, [id, error, dispatch]);
-
-  useEffect(() => {
     if (data) {
       dispatch(initMessages(reverse(data.array)));
     }
-  }, [data, dispatch]);
+    return () => {
+      dispatch(initMessages());
+    };
+  }, [data]);
 
   if (isLoading) {
     return <Spinner size={"large"} />;
   }
+
   if (error) {
     return <div style={{ height: "100%" }}>{error.message}</div>;
   }
+
   return (
     <div ref={containerRef} style={messageListStyle}>
       {messages.map((message) => (

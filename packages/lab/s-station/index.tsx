@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import MoodNoteInput from "./MoodNoteInput";
 import MoodNoteList from "./MoodNoteList";
-import BioEditor from './BioEditor';
+import BioEditor from "./BioEditor";
 
 const PageOne = () => {
   const [notes, setNotes] = useState([]);
@@ -31,7 +31,6 @@ const PageOne = () => {
       <BioEditor />
       <MoodNoteInput onSend={handleSend} />
       <MoodNoteList notes={notes} onDelete={handleDelete} />
-      
     </div>
   );
 };

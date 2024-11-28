@@ -11,14 +11,15 @@ export const createDialogAction = async (args, thunkApi) => {
   const currentUserId = selectCurrentUserId(state);
   const workspaceId = selectCurrentWorkSpaceId(state);
   const cybotId = cybots[0];
+
   const messageListConfig = {
     data: [],
     flags: { isList: true },
     userId: currentUserId,
   };
-  const writeMessageAction = await dispatch(write(messageListConfig));
+  //create MessageList
 
-  const initMessageList = writeMessageAction.payload;
+  const initMessageList = await dispatch(write(messageListConfig)).unwrap();
   const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
   const time = format(new Date(), "MM-dd HH:mm");
   const title = cybotConfig.name + "  " + time;

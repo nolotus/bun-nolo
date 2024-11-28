@@ -1,6 +1,6 @@
 // MenuButton.tsx
 import React from "react";
-import { SidebarExpandIcon, SidebarCollapseIcon } from "@primer/octicons-react";
+import { MoveToEndIcon, MoveToStartIcon } from "@primer/octicons-react";
 import { styles, themeStyles } from "render/ui/styles";
 import Button from "render/ui/Button";
 
@@ -28,11 +28,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
     <Button
       onClick={onClick}
       icon={
-        isExpanded ? (
-          <SidebarExpandIcon size={16} />
-        ) : (
-          <SidebarCollapseIcon size={16} />
-        )
+        isExpanded ? <MoveToStartIcon size={16} /> : <MoveToEndIcon size={16} />
       }
       style={buttonStyle}
       hoverStyle={hoverStyle}

@@ -6,7 +6,7 @@ export interface Message {
 }
 export interface MessageSliceState {
   ids: string[] | null;
-  isStopped: boolean;
   streamMessages: Message[];
 }
+
 type MessageRole = "user" | "system" | "assistant";

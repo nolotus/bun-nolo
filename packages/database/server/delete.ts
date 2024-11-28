@@ -9,9 +9,6 @@ export const handleDelete = async (req, res) => {
     const { userId: actionUserId } = req.user;
 
     const { id } = req.params;
-    if (!id) {
-      return res.status(400).json({ error: "ID parameter is missing." });
-    }
 
     const dataBelongUserId = extractUserId(id);
 
@@ -27,7 +24,6 @@ export const handleDelete = async (req, res) => {
     });
 
     processOldDeletion(dataBelongUserId, allIds);
-
     return res.status(200).json({
       message: "Delete request processed",
       processingIds: allIds,

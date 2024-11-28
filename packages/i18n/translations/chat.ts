@@ -18,6 +18,7 @@ export default {
       saveFailed: "Save failed",
       copySuccess: "Copy successful",
       copyFailed: "Copy failed",
+      useServerProxy: "Use Transit Service",
     },
   },
   "zh-CN": {
@@ -39,6 +40,7 @@ export default {
       saveFailed: "保存失败",
       copySuccess: "复制成功",
       copyFailed: "复制失败",
+      useServerProxy: "使用中转服务",
     },
   },
   "zh-Hant": {
@@ -60,6 +62,7 @@ export default {
       saveFailed: "保存失敗",
       copySuccess: "複製成功",
       copyFailed: "複製失敗",
+      useServerProxy: "使用中轉服務",
     },
   },
   ja: {
@@ -81,6 +84,7 @@ export default {
       saveFailed: "保存に失敗しました",
       copySuccess: "コピーに成功しました",
       copyFailed: "コピーに失敗しました",
+      useServerProxy: "中継サービスを使用する ",
     },
   },
 };

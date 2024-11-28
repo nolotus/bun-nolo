@@ -1,6 +1,6 @@
 // render/layout/TopBar.tsx
 import React, { ReactNode } from "react";
-import { styles, themeStyles } from "render/ui/styles";
+import { styles } from "render/ui/styles";
 import MenuButton from "./MenuButton";
 import { CreateMenu } from "create/CreateMenu";
 import { useAppSelector } from "app/hooks";

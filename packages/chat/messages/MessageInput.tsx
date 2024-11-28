@@ -202,7 +202,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
           maxRows={10}
           minRows={2}
           value={textContent}
-          placeholder={`${t("typeMessage")} ${t("orDragAndDropImageHere")}`}
+          placeholder={`${t("messageOrImageHere")}`}
           onChange={handleNewMessageChange}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}

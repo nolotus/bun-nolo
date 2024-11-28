@@ -1,5 +1,13 @@
 import React from "react";
+import { useAuth } from "auth/useAuth";
 import { NavLink } from "react-router-dom";
+
+import { useTranslation } from "react-i18next";
+import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
+import NavListItem from "render/layout/blocks/NavListItem";
+import { SignInIcon } from "@primer/octicons-react";
+import { RoutePaths } from "auth/client/routes";
+import { CreateMenu } from "create/CreateMenu";
 
 const styles = {
   container: {
@@ -36,9 +44,27 @@ const styles = {
 };
 
 const NavbarComponent = () => {
+  const { t } = useTranslation();
+
+  const { isLoggedIn } = useAuth();
+
   return (
     <div style={styles.container}>
-      <div style={styles.logo}>Selfr</div>
+      <div style={{ display: "flex", gap: "12px" }}>
+        <CreateMenu />
+        {isLoggedIn ? (
+          <div>
+            <IsLoggedInMenu />
+          </div>
+        ) : (
+          <NavListItem
+            label={t("login")}
+            icon={<SignInIcon size={16} />}
+            path={RoutePaths.LOGIN}
+          />
+        )}
+      </div>
+
       <ul style={styles.navList}>
         <li style={styles.navItem}>
           <NavLink

@@ -10,7 +10,6 @@ import {
 import { selectCurrentServer } from "setting/settingSlice";
 import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 
-import { API_ENDPOINTS } from "./config";
 import { noloPutRequest } from "./requests/putRequest";
 import { noloPatchRequest } from "./requests/patchRequest";
 import { writeAction } from "./action/write";
@@ -18,7 +17,7 @@ import { readAction } from "./action/read";
 import { selectIsLoggedIn } from "auth/authSlice";
 import { queryServerAction } from "./action/queryServer";
 import { deleteAction } from "./action/delete";
-
+import { addToListAction, removeFromListAction } from "./action/listAction";
 export const dbAdapter = createEntityAdapter();
 
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
@@ -140,28 +139,8 @@ const dbSlice = createSliceWithThunks({
 
     addOne: dbAdapter.addOne,
     setOne: dbAdapter.setOne,
-    addToList: create.asyncThunk(async ({ willAddId, updateId }, thunkApi) => {
-      const state = thunkApi.getState();
-      const currentServer = selectCurrentServer(state);
-      const token = state.auth.currentToken;
-
-      const res = await fetch(
-        `${currentServer}${API_ENDPOINTS.PUT}/${updateId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            id: willAddId,
-          }),
-        },
-      );
-
-      const result = await res.json();
-      return result;
-    }, {}),
+    addToList: create.asyncThunk(addToListAction, {}),
+    removeFromList: create.asyncThunk(removeFromListAction, {}),
     query: create.asyncThunk(async (queryConfig, thunkAPI) => {
       const state = thunkAPI.getState();
       const currentServer = selectCurrentServer(state);
@@ -191,6 +170,7 @@ export const {
   write,
   addOne,
   addToList,
+  removeFromList,
   queryServer,
   query,
 } = dbSlice.actions;

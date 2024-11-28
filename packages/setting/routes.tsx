@@ -1,18 +1,38 @@
 import React from "react";
-import { createLazyRoute } from "web/createLazyRoute";
+import SettingLayout from "./SettingLayout";
+import UserProfile from "setting/pages/UserProfile";
+import EditorConfig from "setting/pages/EditorConfig";
+import Sync from "setting/pages/Sync";
+import AccountSettings from "setting/pages/AccountSettings";
+import Website from "setting/pages/Website";
+import { SettingRoutePaths } from "./config";
 
-import { USER_PROFILE_ROUTE, EDITOR_CONFIG } from "setting/config";
+// routes.ts
 
 export const settingRoutes = {
-  path: "settings",
+  path: SettingRoutePaths.SETTING,
+  element: <SettingLayout />,
   children: [
-    createLazyRoute(
-      `${USER_PROFILE_ROUTE}`,
-      () => import("setting/pages/UserProfile"),
-    ),
-    createLazyRoute(EDITOR_CONFIG, () => import("setting/pages/EditorConfig")),
-    createLazyRoute("sync", () => import("setting/pages/Sync")),
-    createLazyRoute("account", () => import("setting/pages/AccountSettings")),
-    createLazyRoute("website", () => import("setting/pages/Website")),
+    {
+      index: true,
+      path: SettingRoutePaths.SETTING_USER_PROFILE,
+      element: <UserProfile />,
+    },
+    {
+      path: SettingRoutePaths.SETTING_EDITOR_CONFIG,
+      element: <EditorConfig />,
+    },
+    {
+      path: SettingRoutePaths.SETTING_SYNC,
+      element: <Sync />,
+    },
+    {
+      path: SettingRoutePaths.SETTING_ACCOUNT,
+      element: <AccountSettings />,
+    },
+    {
+      path: SettingRoutePaths.SETTING_WEBSITE,
+      element: <Website />,
+    },
   ],
 };

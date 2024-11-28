@@ -12,7 +12,6 @@ export const useItem = (id: string) => {
   return useAppSelector((state: NoloRootState) => selectById(state, id));
 };
 export function useFetchData(id: string, options?: any) {
-  const source = options?.source;
   const forceUpdate = options?.forceUpdate;
   const memdata = useAppSelector((state) => selectById(state, id));
   const dispatch = useDispatch();
@@ -24,7 +23,7 @@ export function useFetchData(id: string, options?: any) {
     const getData = async () => {
       try {
         setLoading(true);
-        const readAction = await dispatch(read({ id, source }));
+        const readAction = await dispatch(read({ id }));
         setError(null);
         if (readAction.error) {
           throw readAction.error;
