@@ -15,13 +15,12 @@ import OpenProps from "open-props";
 import { createPageData } from "./pageDataUtils";
 import {
   setHasVersion,
-  saveContentAndMdast,
   updateContent,
   setSaveAsTemplate,
   initPageFromTemplate,
 } from "./pageSlice";
 import { processContent } from "./processContent";
-import { RichEdit } from "create/editor/RichEdit";
+import Editor from "create/editor/Editor";
 
 const CreatePage = () => {
   const [searchParams] = useSearchParams();
@@ -33,7 +32,6 @@ const CreatePage = () => {
   const auth = useAuth();
   const userId = auth.user?.userId;
   const pageState = useAppSelector((state) => state.page);
-  const mdastFromSlice = pageState.mdast;
   const navigate = useNavigate();
   const [textareaContent, setTextareaContent] = React.useState<string>("");
 
@@ -79,9 +77,6 @@ const CreatePage = () => {
           textareaContent,
         title: getH1TextFromMdast(newMdast) || updatedPageState.title,
       };
-
-      // 清空 textarea
-      setTextareaContent("");
     }
 
     save(updatedPageState);
@@ -89,13 +84,6 @@ const CreatePage = () => {
 
   const handleToggleTemplateChange = (value: boolean) => {
     dispatch(setSaveAsTemplate(value));
-  };
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // 阻止默认换行行为
-      dispatch(saveContentAndMdast(textareaContent));
-      setTextareaContent(""); // 清空 textarea
-    }
   };
 
   const handleContentChange = (changeValue: string) => {
@@ -108,12 +96,7 @@ const CreatePage = () => {
       <div className="container mx-auto flex flex-grow">
         <div className="w-full flex-shrink-0">
           <div className="flex w-full flex-col">
-            <RichEdit
-              mdast={mdastFromSlice}
-              onKeyDown={handleKeyDown}
-              value={textareaContent}
-              onChange={setTextareaContent}
-            />
+            <Editor />
           </div>
         </div>
       </div>

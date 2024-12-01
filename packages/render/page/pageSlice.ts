@@ -1,10 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
-import { pick } from "rambda";
 import {
   markdownToMdast,
   getH1TextFromMdast,
-  getYamlValueFromMdast,
 } from "render/processor/MarkdownProcessor";
 import { parse } from "yaml";
 
@@ -34,45 +32,6 @@ export const pageSlice = createSlice({
       state.creator = action.payload;
     },
 
-    saveContentAndMdast: (state, action: PayloadAction<string>) => {
-      // Convert markdown text to mdast
-      return;
-      const mdast = markdownToMdast(action.payload);
-
-      // Update the mdast state
-      state.mdast.children = [...state.mdast.children, ...mdast.children];
-      state.content += state.content ? "\n\n" + action.payload : action.payload;
-      // Optionally, extract and set the title from mdast
-      const newTitle = getH1TextFromMdast(mdast);
-      if (newTitle) {
-        state.meta.title = newTitle;
-      }
-      const newYamlValue = getYamlValueFromMdast(mdast);
-
-      if (newYamlValue) {
-        try {
-          const parsedYaml = parse(newYamlValue);
-          // const meta = extractFrontMatter(parsedYaml);
-          const meta = pick(
-            [
-              "type",
-              "lat",
-              "lng",
-              "title",
-              "tags",
-              "categories",
-              "country",
-              "province",
-              "state",
-              "city",
-              "country",
-            ],
-            parsedYaml,
-          );
-          state.meta.type = meta.type;
-        } catch (error) {}
-      }
-    },
     initPage: (state, action: PayloadAction<string>) => {
       // Update content with the incoming markdown
       state.saveAsTemplate = action.payload.is_template;
@@ -125,7 +84,6 @@ export const pageSlice = createSlice({
 
 export const {
   setHasVersion,
-  saveContentAndMdast,
   initPage,
   initPageFromTemplate,
   updateContent,

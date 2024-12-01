@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 
 import { createPageData } from "./pageDataUtils";
-import { setHasVersion, saveContentAndMdast, updateContent } from "./pageSlice";
+import { setHasVersion, updateContent } from "./pageSlice";
 import { processContent } from "./processContent";
 import { EditTool } from "./EditTool";
 import { setData } from "database/dbSlice";
@@ -24,14 +24,8 @@ const EditPage = () => {
 
   //保存之前检查输入区内容
   const handleSave = async () => {
-    const hasNoSubmitContent = !!currentEditText;
-    if (hasNoSubmitContent) {
-      dispatch(saveContentAndMdast(currentEditText));
-      setTextareaContent(""); // 清空 textarea
-    }
     try {
       const pageData = createPageData(pageState, userId);
-
       const result = await setData({
         id: pageId,
         data: pageData,
@@ -42,14 +36,6 @@ const EditPage = () => {
       }
     } catch (error) {
       // 错误处理逻辑
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // 阻止默认换行行为
-      dispatch(saveContentAndMdast(currentEditText));
-      setTextareaContent(""); // 清空 textarea
     }
   };
 
@@ -70,7 +56,6 @@ const EditPage = () => {
               isEdit={true}
               // onKeyDown={handleKeyDown}
               markdown={pageState.content}
-              // onChange={setTextareaContent}
             />
           </div>
         </div>
