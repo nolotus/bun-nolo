@@ -1,8 +1,7 @@
 import GaodeMap from "render/map/GaodeMap";
 import { APILoader } from "@uiw/react-amap";
 //be careful APILoader can't in entry or Map file, you could try will debug
-import { renderContentNode } from "render";
-import { useMediaQuery } from "react-responsive";
+
 import OpenProps from "open-props";
 import { WeatherRelate } from "./WeatherRelate";
 import Card from "./Card";
@@ -15,6 +14,7 @@ interface SurfSpotDescriptionProps {
 import { ShareIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
 import { PageLoader } from "../../blocks/PageLoader";
+import Editor from "create/editor/Editor";
 
 const SurfSpotDescription = ({
   title,
@@ -30,7 +30,7 @@ const SurfSpotDescription = ({
         </button>
       </Card.Actions>
     </div>
-    {description && <p>{renderContentNode(description)}</p>}
+    {description && <Editor markdown={description} />}
   </div>
 );
 

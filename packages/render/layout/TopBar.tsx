@@ -18,12 +18,12 @@ import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
 import CreateDialogButton from "chat/dialog/CreateDialogButton";
 import EditableTitle from "chat/dialog/EditableTitle";
 import { RoutePaths } from "auth/client/routes";
+import { HomeIcon } from "@primer/octicons-react";
 
 import { motion } from "framer-motion";
 import useMediaQuery from "react-responsive";
-
 interface TopBarProps {
-  toggleSidebar: () => void;
+  toggleSidebar?: () => void; // 改为可选
   theme: any;
   topbarContent?: ReactNode;
   isExpanded: boolean;
@@ -36,9 +36,7 @@ const TopBar: React.FC<TopBarProps> = ({
   isExpanded,
 }) => {
   const { t } = useTranslation();
-
   const { isLoggedIn } = useAuth();
-
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
@@ -55,16 +53,23 @@ const TopBar: React.FC<TopBarProps> = ({
         top: 0,
       }}
     >
-      <MenuButton
-        onClick={toggleSidebar}
-        theme={theme}
-        isExpanded={isExpanded}
-      />
+      {/* 只在有 toggleSidebar 时显示菜单按钮 */}
+      {toggleSidebar && (
+        <MenuButton
+          onClick={toggleSidebar}
+          theme={theme}
+          isExpanded={isExpanded}
+        />
+      )}
+      <NavListItem path="/" icon={<HomeIcon size={24} />} />
+
       <div
         style={{
           flex: 1,
           ...styles.flexCenter,
           ...styles.flexWrap,
+          // 当没有菜单按钮时调整左边距
+          marginLeft: toggleSidebar ? undefined : theme.spacing.md,
         }}
       >
         {currentDialogConfig && (
@@ -97,7 +102,9 @@ const TopBar: React.FC<TopBarProps> = ({
             <DeleteDialogButton dialogConfig={currentDialogConfig} />
           </>
         )}
+        {topbarContent}
       </div>
+
       <div style={styles.flexEnd}>
         <CreateMenu />
         {isLoggedIn ? (

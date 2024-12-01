@@ -15,7 +15,6 @@ export const pageSlice = createSlice({
     hasVersion: false,
     createdTime: "",
     mdast: { type: "root", children: [] },
-    showAsMarkdown: false,
     meta: {
       type: DataType.Page,
       creator: "",
@@ -34,12 +33,10 @@ export const pageSlice = createSlice({
     setCreator: (state, action) => {
       state.creator = action.payload;
     },
-    setShowAsMarkdown: (state, action: PayloadAction<boolean>) => {
-      state.showAsMarkdown = action.payload;
-    },
 
     saveContentAndMdast: (state, action: PayloadAction<string>) => {
       // Convert markdown text to mdast
+      return;
       const mdast = markdownToMdast(action.payload);
 
       // Update the mdast state
@@ -129,7 +126,6 @@ export const pageSlice = createSlice({
 export const {
   setHasVersion,
   saveContentAndMdast,
-  setShowAsMarkdown,
   initPage,
   initPageFromTemplate,
   updateContent,

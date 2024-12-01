@@ -4,11 +4,11 @@ import {
   ThumbsupIcon,
   HeartIcon,
 } from "@primer/octicons-react";
-import Sizes from "open-props/src/sizes";
+import { sizes } from "../ui/styles";
 
 export const ButtonGroup = ({ onEdit, onDelete, isDeleting, allowEdit }) => {
   return (
-    <div style={{ gap: Sizes["--size-3"], display: "flex" }}>
+    <div style={{ gap: sizes.size3, display: "flex" }}>
       <button type="button" onClick={onEdit} title="编辑页面">
         <HeartIcon size={16} />
       </button>

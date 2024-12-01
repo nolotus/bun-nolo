@@ -2,9 +2,9 @@ import { useAuth } from "auth/useAuth";
 import { DataType } from "create/types";
 import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { renderContentNode } from "render";
 
-import { markdownToMdast } from "../processor/MarkdownProcessor";
+import Editor from "create/editor/Editor";
+
 import SurfSpotPage from "../surf/web/SurfSpotPage";
 
 import { RenderJson } from "./RenderJson";
@@ -24,9 +24,7 @@ const RenderPage = ({ pageId, data }) => {
     if (data.type === "page") {
       return (
         <div>
-          {data.mdast
-            ? renderContentNode(data.mdast)
-            : renderContentNode(markdownToMdast(data.content))}
+          <Editor markdown={data.content} />
         </div>
       );
     }

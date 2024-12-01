@@ -16,13 +16,11 @@ import { createPageData } from "./pageDataUtils";
 import {
   setHasVersion,
   saveContentAndMdast,
-  setShowAsMarkdown,
   updateContent,
   setSaveAsTemplate,
   initPageFromTemplate,
 } from "./pageSlice";
 import { processContent } from "./processContent";
-import { MarkdownEdit } from "./MarkdownEdit";
 import { RichEdit } from "create/editor/RichEdit";
 
 const CreatePage = () => {
@@ -64,6 +62,7 @@ const CreatePage = () => {
 
   //保存之前检查输入区内容
   const handleSave = async () => {
+    return;
     let updatedPageState = createPageData(pageState, userId);
     if (textareaContent) {
       const newMdast = markdownToMdast(textareaContent);
@@ -88,9 +87,6 @@ const CreatePage = () => {
     save(updatedPageState);
   };
 
-  const toggleShowAsMarkdown = (value) => {
-    dispatch(setShowAsMarkdown(value));
-  };
   const handleToggleTemplateChange = (value: boolean) => {
     dispatch(setSaveAsTemplate(value));
   };
@@ -112,19 +108,12 @@ const CreatePage = () => {
       <div className="container mx-auto flex flex-grow">
         <div className="w-full flex-shrink-0">
           <div className="flex w-full flex-col">
-            {pageState.showAsMarkdown ? (
-              <MarkdownEdit
-                value={pageState.content}
-                onChange={handleContentChange}
-              />
-            ) : (
-              <RichEdit
-                mdast={mdastFromSlice}
-                onKeyDown={handleKeyDown}
-                value={textareaContent}
-                onChange={setTextareaContent}
-              />
-            )}
+            <RichEdit
+              mdast={mdastFromSlice}
+              onKeyDown={handleKeyDown}
+              value={textareaContent}
+              onChange={setTextareaContent}
+            />
           </div>
         </div>
       </div>
@@ -134,20 +123,7 @@ const CreatePage = () => {
           <VersionsIcon size={18} className="mr-2" />
           {pageState.hasVersion ? "Versioned" : "Not Versioned"}
         </div> */}
-        <div
-          style={{
-            display: "flex",
-            gap: OpenProps.sizeFluid1,
-            alignItems: "center",
-          }}
-        >
-          <span>按Markdown编辑</span>
-          <ToggleSwitch
-            aria-labelledby="toggle"
-            defaultChecked={pageState.showAsMarkdown}
-            onChange={toggleShowAsMarkdown}
-          />
-        </div>
+
         <div
           style={{
             display: "flex",

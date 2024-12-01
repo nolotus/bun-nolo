@@ -6,6 +6,8 @@ import { reducer } from "app/reducer";
 export const browserStore = configureStore({
   reducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware),
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }).concat(api.middleware),
   preloadedState: window.__PRELOADED_STATE__,
 });

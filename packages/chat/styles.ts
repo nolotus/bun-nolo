@@ -1,4 +1,4 @@
-import OpenProps from "open-props";
+import { sizes } from "render/ui/styles";
 
-export const ChatSidebarWidth = OpenProps.size14;
-export const ChatSidebarPadding = OpenProps.sizeFluid2;
+export const ChatSidebarWidth = sizes.size14;
+export const ChatSidebarPadding = sizes.sizeFluid2;

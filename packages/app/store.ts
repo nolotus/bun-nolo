@@ -9,7 +9,9 @@ const preloadedState =
 export const store = configureStore({
   reducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware),
+    getDefaultMiddleware({
+      serializableCheck: false, // 完全关闭序列化检查
+    }).concat(api.middleware),
   // 按照环境存在与否设置预加载状态
   preloadedState,
 });

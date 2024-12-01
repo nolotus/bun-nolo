@@ -60,9 +60,7 @@ export const Button: React.FC<ButtonProps> = ({
     paddingBlock: ".75ch",
     paddingInline: OpenProps.sizeRelative6,
     textAlign: "center",
-    textShadow: isDarkMode
-      ? `0 1px 0 ${theme.surface1}`
-      : `0 1px 0 ${OpenProps.gray3}`,
+    textShadow: isDarkMode ? `0 1px 0 ${theme.surface1}` : `0 1px 0 "#dee2e6"`,
     transition: `all 0.2s ${OpenProps.ease3}`,
     userSelect: "none",
     WebkitTapHighlightColor: "transparent",

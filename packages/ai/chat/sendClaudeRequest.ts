@@ -58,7 +58,7 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
 }
 
 // 处理日志数据
-function handleLog(log, dispatch, id, cybotId, contentBuffer) {
+function handleLog(log, dispatch, id, cybotId, contentBuffer, controller) {
   console.log("收到日志:", log);
   const logData = log.split("data: ")[1];
   if (logData) {
@@ -68,7 +68,13 @@ function handleLog(log, dispatch, id, cybotId, contentBuffer) {
 
       switch (jsonData.type) {
         case "message_start":
-          return handleMessageStart(jsonData, dispatch, id, cybotId);
+          return handleMessageStart(
+            jsonData,
+            dispatch,
+            id,
+            cybotId,
+            controller,
+          );
         case "ping":
           return handlePing(contentBuffer);
         case "content_block_delta":
@@ -78,6 +84,7 @@ function handleLog(log, dispatch, id, cybotId, contentBuffer) {
             id,
             cybotId,
             contentBuffer,
+            controller,
           );
         case "message_delta":
           return handleMessageDelta(jsonData, dispatch);
@@ -148,6 +155,7 @@ export const sendClaudeRequest = async ({ cybotConfig, content, thunkApi }) => {
             id,
             cybotConfig.id,
             contentBuffer,
+            controller,
           );
         });
       }

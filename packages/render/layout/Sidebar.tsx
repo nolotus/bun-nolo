@@ -9,9 +9,11 @@ import OpenProps from "open-props";
 import TopBar from "./TopBar";
 import ResizeHandle from "./ResizeHandle";
 import { SidebarTop } from "./SidebarTop";
+
+// 修改接口定义,使 sidebarContent 可选
 interface SidebarProps {
   children: React.ReactNode;
-  sidebarContent: React.ReactNode;
+  sidebarContent?: React.ReactNode; // 改为可选
   topbarContent?: React.ReactNode;
   fullWidth?: boolean;
 }
@@ -22,9 +24,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   topbarContent,
   fullWidth = false,
 }) => {
+  // 只在有 sidebarContent 时才初始化和处理侧边栏状态
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
-
   const theme = useSelector(selectTheme);
 
   const toggleSidebar = useCallback(() => {
@@ -32,13 +34,15 @@ const Sidebar: React.FC<SidebarProps> = ({
   }, []);
 
   useEffect(() => {
+    // 只在有侧边栏内容时才添加事件监听
+    if (!sidebarContent) return;
+
     const handleResize = () => {
       if (typeof window !== "undefined") {
-        // 在小屏幕上默认关闭侧边栏
         setIsSidebarOpen(window.innerWidth >= 768);
       }
     };
-    handleResize(); // 初始判断
+    handleResize();
     window.addEventListener("resize", handleResize);
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -53,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [toggleSidebar]);
+  }, [toggleSidebar, sidebarContent]);
 
   return (
     <div
@@ -63,43 +67,46 @@ const Sidebar: React.FC<SidebarProps> = ({
         ...themeStyles.surface1(theme),
       }}
     >
-      {/* 侧边栏 */}
-      <aside
-        ref={sidebarRef}
-        style={{
-          ...sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth),
-          left: isSidebarOpen ? 0 : `-${theme.sidebarWidth}px`,
-        }}
-      >
-        <div
+      {/* 只在有 sidebarContent 时渲染侧边栏 */}
+      {sidebarContent && (
+        <aside
+          ref={sidebarRef}
           style={{
-            display: "flex",
-            flexDirection: "column" as const,
-            height: "100%",
-            overflow: "hidden",
+            ...sidebarStyles(theme, isSidebarOpen, theme.sidebarWidth),
+            left: isSidebarOpen ? 0 : `-${theme.sidebarWidth}px`,
           }}
         >
-          <SidebarTop />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column" as const,
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            <SidebarTop />
+            <div style={scrollableContentStyles}>{sidebarContent}</div>
+          </div>
+          <ResizeHandle sidebarRef={sidebarRef} theme={theme} />
+        </aside>
+      )}
 
-          {/* 可滚动内容区域 */}
-          <div style={scrollableContentStyles}>{sidebarContent}</div>
-        </div>
-
-        {/* 调整大小手柄 */}
-        <ResizeHandle sidebarRef={sidebarRef} theme={theme} />
-      </aside>
-
-      {/* 主要内容区域 */}
-      <main style={contentStyles(theme, isSidebarOpen, theme.sidebarWidth)}>
-        {/* 顶部栏 */}
+      {/* 主要内容区域 - 根据是否有侧边栏调整样式 */}
+      <main
+        style={contentStyles(
+          theme,
+          sidebarContent ? isSidebarOpen : false,
+          theme.sidebarWidth,
+        )}
+      >
+        {/* 顶部栏 - 只在有侧边栏时显示切换按钮 */}
         <TopBar
-          toggleSidebar={toggleSidebar}
+          toggleSidebar={sidebarContent ? toggleSidebar : undefined}
           theme={theme}
           topbarContent={topbarContent}
           isExpanded={isSidebarOpen}
         />
 
-        {/* 内部内容区域 */}
         <div style={innerContentStyles(theme, fullWidth)}>{children}</div>
       </main>
     </div>

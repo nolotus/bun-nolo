@@ -7,13 +7,7 @@ import OpenProps from "open-props";
 import toast from "react-hot-toast";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 
-import {
-  setHasVersion,
-  saveContentAndMdast,
-  setShowAsMarkdown,
-  updateContent,
-  setSaveAsTemplate,
-} from "./pageSlice";
+import { setHasVersion, setSaveAsTemplate } from "./pageSlice";
 export const EditTool = ({ handleSave }) => {
   const { pageId } = useParams();
   const navigate = useNavigate();
@@ -22,9 +16,6 @@ export const EditTool = ({ handleSave }) => {
   const dispatch = useAppDispatch();
   const [isDeleting, setDeleting] = useState(false);
 
-  const toggleShowAsMarkdown = (value) => {
-    dispatch(setShowAsMarkdown(value));
-  };
   const handleToggleTemplateChange = (value: boolean) => {
     dispatch(setSaveAsTemplate(value));
   };
@@ -48,20 +39,6 @@ export const EditTool = ({ handleSave }) => {
         {pageState.createdTime} |{" "}
         {pageState.hasVersion ? "Versioned" : "Not Versioned"}
       </div> */}
-      <div
-        style={{
-          display: "flex",
-          gap: OpenProps.sizeFluid1,
-          alignItems: "center",
-        }}
-      >
-        <span>按Markdown编辑</span>
-        <ToggleSwitch
-          aria-labelledby="toggle"
-          defaultChecked={pageState.showAsMarkdown}
-          onChange={toggleShowAsMarkdown}
-        />
-      </div>
       <div
         style={{
           display: "flex",

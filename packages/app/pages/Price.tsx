@@ -1,18 +1,19 @@
 import React, { useState } from "react";
-import { deepinfraModels } from "integrations/deepinfra/models";
-
+import { Table, TableRow, TableCell } from "render/elements/Table";
 import {
   mistralModels,
   openaiModels,
   googleModels,
   deepseekModels,
 } from "./modelData";
-import TableCell from "render/blocks/TableCell";
-import TableRow from "render/blocks/TableRow";
-import Table from "render/blocks/Table";
 import { anthropicModels } from "integrations/anthropic/models";
+import { deepinfraModels } from "integrations/deepinfra/models";
+import { selectTheme } from "../theme/themeSlice";
+import { useAppSelector } from "../hooks";
 
 const ModelComparison = () => {
+  const theme = useAppSelector(selectTheme);
+
   const combinedModels = [
     ...deepinfraModels.map((model) => ({
       ...model,
@@ -68,211 +69,118 @@ const ModelComparison = () => {
     );
   };
 
+  const SortButton = ({ columnKey }: { columnKey: string }) => (
+    <button
+      onClick={() => handleSort(columnKey)}
+      style={{
+        marginLeft: "5px",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+      }}
+    >
+      {sortConfig.key === columnKey
+        ? sortConfig.direction === "ascending"
+          ? "↑"
+          : "↓"
+        : "↑↓"}
+    </button>
+  );
+
+  const headerCellProps = {
+    element: { header: true },
+    theme,
+    attributes: { style: { whiteSpace: "nowrap" } },
+  };
+
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
       <h1 style={{ textAlign: "center" }}>大模型性能和价格对比</h1>
-      <Table>
-        <thead
-          style={{
-            backgroundColor: "#f2f2f2",
-            position: "sticky",
-            top: 0,
-            zIndex: 1,
-          }}
-        >
-          <TableRow>
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
+      <Table theme={theme} attributes={{}}>
+        <thead>
+          <TableRow theme={theme} attributes={{}}>
+            <TableCell {...headerCellProps}>
               模型名称
-              <button
-                onClick={() => handleSort("name")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "name"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
+              <SortButton columnKey="name" />
+            </TableCell>
+            <TableCell {...headerCellProps}>
               最大输出Token
-              <button
-                onClick={() => handleSort("maxOutputTokens")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "maxOutputTokens"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
+              <SortButton columnKey="maxOutputTokens" />
+            </TableCell>
+            <TableCell {...headerCellProps}>
               上下文窗口
-              <button
-                onClick={() => handleSort("contextWindow")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "contextWindow"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
-
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
+              <SortButton columnKey="contextWindow" />
+            </TableCell>
+            <TableCell {...headerCellProps}>
               价格（输入/输出）
-              <button
-                onClick={() => handleSort("price")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "price"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
+              <SortButton columnKey="price" />
+            </TableCell>
+            <TableCell {...headerCellProps}>
               支持工具
-              <button
-                onClick={() => handleSort("supportsTool")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "supportsTool"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
+              <SortButton columnKey="supportsTool" />
+            </TableCell>
+            <TableCell {...headerCellProps}>
               视觉能力
-              <button
-                onClick={() => handleSort("hasVision")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "hasVision"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
-            <th
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-              }}
-            >
+              <SortButton columnKey="hasVision" />
+            </TableCell>
+            <TableCell {...headerCellProps}>
               提供商
-              <button
-                onClick={() => handleSort("provider")}
-                style={{
-                  marginLeft: "5px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {sortConfig.key === "provider"
-                  ? sortConfig.direction === "ascending"
-                    ? "↑"
-                    : "↓"
-                  : "↑↓"}
-              </button>
-            </th>
+              <SortButton columnKey="provider" />
+            </TableCell>
           </TableRow>
         </thead>
         <tbody>
           {models.map((model, index) => (
-            <TableRow key={index}>
-              <TableCell title={model.displayName || model.name}>
+            <TableRow key={index} theme={theme} attributes={{}}>
+              <TableCell
+                element={{ header: false }}
+                theme={theme}
+                attributes={{ title: model.displayName || model.name }}
+              >
                 {model.displayName || model.name}
               </TableCell>
-              <TableCell>{model.maxOutputTokens}</TableCell>
-              <TableCell>{model.contextWindow}</TableCell>
-              <TableCell>
+              <TableCell
+                element={{ header: false }}
+                theme={theme}
+                attributes={{}}
+              >
+                {model.maxOutputTokens}
+              </TableCell>
+              <TableCell
+                element={{ header: false }}
+                theme={theme}
+                attributes={{}}
+              >
+                {model.contextWindow}
+              </TableCell>
+              <TableCell
+                element={{ header: false }}
+                theme={theme}
+                attributes={{}}
+              >
                 {model.price.input} / {model.price.output}
               </TableCell>
-              <TableCell>{model.supportsTool}</TableCell>
-              <TableCell>{model.hasVision ? "是" : "否"}</TableCell>
-              <TableCell>{model.provider}</TableCell>
+              <TableCell
+                element={{ header: false }}
+                theme={theme}
+                attributes={{}}
+              >
+                {model.supportsTool}
+              </TableCell>
+              <TableCell
+                element={{ header: false }}
+                theme={theme}
+                attributes={{}}
+              >
+                {model.hasVision ? "是" : "否"}
+              </TableCell>
+              <TableCell
+                element={{ header: false }}
+                theme={theme}
+                attributes={{}}
+              >
+                {model.provider}
+              </TableCell>
             </TableRow>
           ))}
         </tbody>

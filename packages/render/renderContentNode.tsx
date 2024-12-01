@@ -3,7 +3,6 @@ import { isDevelopment } from "utils/env";
 import { InlineMath, BlockMath } from "react-katex";
 
 import Blockquote from "./blocks/Blockquote";
-import Card from "./blocks/Card";
 import Emphasis from "./blocks/Emphasis";
 import Heading from "./blocks/Heading";
 import Image from "./blocks/Image";
@@ -15,9 +14,6 @@ import ListItem from "./blocks/ListItem";
 import Paragraph from "./blocks/Paragraph";
 import Strikethrough from "./blocks/Strikethrough";
 import Strong from "./blocks/Strong";
-import Table from "./blocks/Table";
-import TableCell from "./blocks/TableCell";
-import TableRow from "./blocks/TableRow";
 import TaskList from "./blocks/TaskList";
 import TaskListItem from "./blocks/TaskListItem";
 import Yaml from "./blocks/Yaml";
@@ -58,8 +54,7 @@ export const renderContentNode = (
       return <InlineMath math={node.value} />;
     case "math":
       return <BlockMath math={node.value} />;
-    case "card":
-      return <Card>{node.children?.map(renderChild)}</Card>;
+
     case "heading":
       return (
         <Heading level={node.depth} className={classNames}>
@@ -114,20 +109,6 @@ export const renderContentNode = (
           {node.children?.map(renderChild)}
         </Blockquote>
       );
-    case "code":
-      return (
-        <Code
-          language={node.lang}
-          value={node.value}
-          isDarkMode={options?.isDarkMode}
-        />
-      );
-    case "table":
-      return <Table>{node.children?.map(renderChild)}</Table>;
-    case "tableRow":
-      return <TableRow>{node.children?.map(renderChild)}</TableRow>;
-    case "tableCell":
-      return <TableCell>{node.children?.map(renderChild)}</TableCell>;
     case "inlineCode":
       return <InlineCode value={node.value} />;
     case "emphasis":

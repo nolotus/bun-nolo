@@ -31,6 +31,11 @@ const createProcessor = () =>
       { type: "json", fence: { open: "{", close: "}" } },
     ]);
 
+export const markdownToMdast = (content: string) => {
+  const processor = createProcessor();
+  return processor.parse(content);
+};
+
 export const getH1TextFromMdast = (mdast: MdastNode): string | null => {
   let h1Text: string | null = null;
   visit(mdast, "heading", (node: MdastNode) => {
@@ -66,10 +71,7 @@ export const getYamlValueFromMdast = (mdast: MdastNode): string | null => {
 };
 
 // 主要的自定义Hook
-export const markdownToMdast = (content: string) => {
-  const processor = createProcessor();
-  return processor.parse(content);
-};
+
 export const mdastToMarkdown = (mdast) => {
   const processor = createProcessor();
   return processor.stringify(mdast);

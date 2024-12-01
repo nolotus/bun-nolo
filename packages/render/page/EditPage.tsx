@@ -5,13 +5,12 @@ import OpenProps from "open-props";
 import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 
-import { TextEdit } from "./TextEdit";
 import { createPageData } from "./pageDataUtils";
 import { setHasVersion, saveContentAndMdast, updateContent } from "./pageSlice";
 import { processContent } from "./processContent";
 import { EditTool } from "./EditTool";
-import { RichEdit } from "create/editor/RichEdit";
 import { setData } from "database/dbSlice";
+import Editor from "create/editor/Editor";
 
 const EditPage = () => {
   const dispatch = useAppDispatch();
@@ -58,7 +57,7 @@ const EditPage = () => {
     const { content, mdast, metaUpdates } = processContent(changeValue);
     dispatch(updateContent({ content, metaUpdates, mdast }));
   };
-
+  console.log("pageState", pageState);
   return (
     <>
       <div
@@ -67,19 +66,12 @@ const EditPage = () => {
       >
         <div className="flex flex-grow">
           <div className="w-full flex-shrink-0">
-            {pageState.showAsMarkdown ? (
-              <TextEdit
-                value={pageState.content}
-                onChange={handleContentChange}
-              />
-            ) : (
-              <RichEdit
-                mdast={pageState.mdast}
-                onKeyDown={handleKeyDown}
-                value={currentEditText}
-                onChange={setTextareaContent}
-              />
-            )}
+            <Editor
+              isEdit={true}
+              // onKeyDown={handleKeyDown}
+              markdown={pageState.content}
+              // onChange={setTextareaContent}
+            />
           </div>
         </div>
         <EditTool handleSave={handleSave} />

@@ -4,13 +4,12 @@ import { useLocation, Outlet } from "react-router-dom";
 import Sidebar from "render/layout/Sidebar";
 import ChatSidebar from "chat/ChatSidebar";
 import { AnimatePresence, motion } from "framer-motion";
-import SettingsSidebarContent from "setting/SettingsSidebarContent";
 import HomeSidebarContent from "app/pages/HomeSidebarContent";
 import LifeSidebarContent from "life/LifeSidebarContent";
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
-  const isSettingsPage = location.pathname.startsWith("/settings");
+  const isSettingsPage = location.pathname.startsWith("/setting");
   const isLifePage = location.pathname.startsWith("/life");
 
   const getSidebarContent = () => {
@@ -18,7 +17,7 @@ const MainLayout: React.FC = () => {
       return <HomeSidebarContent />;
     }
     if (isSettingsPage) {
-      return <SettingsSidebarContent />;
+      return null;
     }
     if (isLifePage) {
       return <LifeSidebarContent />;

@@ -9,7 +9,7 @@ export function handlePing(contentBuffer) {
 }
 
 // 处理消息开始的数据
-export function handleMessageStart(data, dispatch, id, cybotId) {
+export function handleMessageStart(data, dispatch, id, cybotId, controller) {
   const inputTokens = data.message.usage.input_tokens;
   dispatch(updateInputTokens(inputTokens));
 
@@ -18,6 +18,7 @@ export function handleMessageStart(data, dispatch, id, cybotId) {
     content: "Loading...",
     role: "assistant",
     cybotId,
+    controller,
   };
   dispatch(setOne(message));
   dispatch(messageStreaming(message));
@@ -31,6 +32,7 @@ export function handleContentBlockDelta(
   id,
   cybotId,
   contentBuffer,
+  controller,
 ) {
   try {
     const textDelta = data.delta.text;
@@ -52,6 +54,7 @@ export function handleContentBlockDelta(
       content: contentBuffer,
       role: "assistant",
       cybotId,
+      controller,
     };
 
     // 确保消息内容被正确保存

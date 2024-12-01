@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
-import Sizes from "open-props/src/sizes";
 
 import { hashPassword } from "core/password";
 import { storeTokens } from "auth/client/token";
@@ -18,6 +17,7 @@ import { useAppDispatch } from "app/hooks";
 import { signInFields } from "../schema";
 import { signIn } from "../authSlice";
 import { userFormSchema } from "../schema";
+import { sizes } from "render/ui/styles";
 
 const Login: React.FC = () => {
   const { isLoading } = useSelector((state) => state.auth);
@@ -115,7 +115,7 @@ const Login: React.FC = () => {
           style={{
             display: "flex",
             justifyContent: "space-between",
-            marginTop: Sizes["--size-fluid-1"],
+            marginTop: sizes.sizeFluid1,
           }}
         >
           <NavLink to="/signup">注册</NavLink>

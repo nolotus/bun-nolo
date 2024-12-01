@@ -73,6 +73,7 @@
     "jsdom": "^25.0.1",
     "json-logic-js": "^2.0.5",
     "katex": "^0.16.11",
+    "mdast-util-from-markdown": "^2.0.2",
     "open-props": "^1.7.4",
     "playwright": "^1.47.2",
     "rambda": "^8.6.0",
@@ -92,6 +93,10 @@
     "react-textarea-autosize": "^8.5.3",
     "reactotron-react-native": "^5.1.7",
     "reactotron-redux": "^3.1.9",
+    "slate": "^0.110.2",
+    "slate-history": "^0.110.3",
+    "slate-hyperscript": "^0.100.0",
+    "slate-react": "^0.111.0",
     "ulid": "^2.3.0",
     "zod": "^3.23.8"
   },
