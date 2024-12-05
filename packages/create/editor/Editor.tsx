@@ -13,7 +13,15 @@ import "prismjs/components/prism-yaml";
 import "prismjs/components/prism-mermaid";
 
 import React, { useCallback, useState } from "react";
-import { createEditor, Node, Editor, Element } from "slate";
+import {
+  createEditor,
+  Node,
+  Editor,
+  Element as SlateElement,
+  Point,
+  Range,
+  Transforms,
+} from "slate";
 import { withReact, Slate, Editable, useSlate } from "slate-react";
 import { withHistory } from "slate-history";
 import { normalizeTokens } from "./utils/normalize-tokens";
@@ -23,9 +31,12 @@ import { useOnKeydown } from "./useOnKeyDown";
 import { renderLeaf } from "./renderLeaf";
 import { ExampleToolbar } from "./ExampleToolbar";
 import { CodeLineType, CodeBlockType } from "./type";
+import { withShortcuts } from "./withShortcuts";
 
 const NoloEditor = ({ initialValue, readOnly }) => {
-  const [editor] = useState(() => withHistory(withReact(createEditor())));
+  const [editor] = useState(() =>
+    withShortcuts(withHistory(withReact(createEditor()))),
+  );
   const decorate = useDecorate(editor);
   const onKeyDown = useOnKeydown(editor);
   return (
@@ -47,7 +58,7 @@ const NoloEditor = ({ initialValue, readOnly }) => {
 const useDecorate = (editor) => {
   return useCallback(
     ([node, path]) => {
-      if (Element.isElement(node) && node.type === CodeLineType) {
+      if (SlateElement.isElement(node) && node.type === CodeLineType) {
         const ranges = editor.nodeToDecorations.get(node) || [];
         return ranges;
       }
@@ -99,7 +110,7 @@ const SetNodeToDecorations = () => {
     Editor.nodes(editor, {
       at: [],
       mode: "highest",
-      match: (n) => Element.isElement(n) && n.type === CodeBlockType,
+      match: (n) => SlateElement.isElement(n) && n.type === CodeBlockType,
     }),
   );
   const nodeToDecorations = mergeMaps(

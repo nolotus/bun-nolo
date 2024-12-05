@@ -160,8 +160,13 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
           break;
 
         case "heading":
+          function getHeadingText(depth: number): string {
+            const headings = ["one", "two", "three", "four", "five", "six"];
+            return headings[depth - 1] || "one";
+          }
           slateNodes.push({
-            type: `heading-${(node as any).depth || 1}`,
+            // 将 heading-${depth} 改为对应的英文表达
+            type: `heading-${getHeadingText((node as any).depth || 1)}`,
             children: node.children.length
               ? processInlineNodes(node.children)
               : [{ text: "" }],

@@ -1,7 +1,6 @@
 // markdownToSlate.test.ts
 
 import { markdownToSlate } from "../markdownToSlate";
-import { fromMarkdown } from "mdast-util-from-markdown";
 import { describe, test, expect } from "bun:test";
 
 describe("markdownToSlate - paragraphs and headings", () => {
@@ -9,7 +8,7 @@ describe("markdownToSlate - paragraphs and headings", () => {
     const markdown = "# Hello World";
     expect(markdownToSlate(markdown)).toEqual([
       {
-        type: "heading-1",
+        type: "heading-one",
         children: [{ text: "Hello World" }],
       },
     ]);
@@ -19,7 +18,7 @@ describe("markdownToSlate - paragraphs and headings", () => {
     const markdown = "## Hello World";
     expect(markdownToSlate(markdown)).toEqual([
       {
-        type: "heading-2",
+        type: "heading-two",
         children: [{ text: "Hello World" }],
       },
     ]);
@@ -29,11 +28,11 @@ describe("markdownToSlate - paragraphs and headings", () => {
     const markdown = "# Title\n## Subtitle";
     expect(markdownToSlate(markdown)).toEqual([
       {
-        type: "heading-1",
+        type: "heading-one",
         children: [{ text: "Title" }],
       },
       {
-        type: "heading-2",
+        type: "heading-two",
         children: [{ text: "Subtitle" }],
       },
     ]);
@@ -46,27 +45,27 @@ describe("markdownToSlate - paragraphs and headings", () => {
     const markdown = "# h1\n## h2\n### h3\n#### h4\n##### h5\n###### h6";
     expect(markdownToSlate(markdown)).toEqual([
       {
-        type: "heading-1",
+        type: "heading-one",
         children: [{ text: "h1" }],
       },
       {
-        type: "heading-2",
+        type: "heading-two",
         children: [{ text: "h2" }],
       },
       {
-        type: "heading-3",
+        type: "heading-three",
         children: [{ text: "h3" }],
       },
       {
-        type: "heading-4",
+        type: "heading-four",
         children: [{ text: "h4" }],
       },
       {
-        type: "heading-5",
+        type: "heading-five",
         children: [{ text: "h5" }],
       },
       {
-        type: "heading-6",
+        type: "heading-six",
         children: [{ text: "h6" }],
       },
     ]);
@@ -107,7 +106,7 @@ describe("markdownToSlate - paragraphs and headings", () => {
 
     expect(markdownToSlate(markdown)).toEqual([
       {
-        type: "heading-1",
+        type: "heading-one",
         children: [{ text: "Title" }],
       },
       {
@@ -115,7 +114,7 @@ describe("markdownToSlate - paragraphs and headings", () => {
         children: [{ text: "First paragraph" }],
       },
       {
-        type: "heading-2",
+        type: "heading-two",
         children: [{ text: "Subtitle" }],
       },
       {
@@ -192,7 +191,7 @@ describe("markdownToSlate - inline styles", () => {
 
     expect(markdownToSlate(markdown)).toEqual([
       {
-        type: "heading-1",
+        type: "heading-one",
         children: [
           {
             text: "Heading with ",
