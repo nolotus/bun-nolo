@@ -38,12 +38,9 @@ describe("markdownToSlate - paragraphs and headings", () => {
       },
     ]);
   });
-
   test("should handle empty string", () => {
     const markdown = "";
-    expect(markdownToSlate(markdown)).toEqual([
-      { type: "paragraph", children: [{ text: "" }] },
-    ]);
+    expect(markdownToSlate(markdown)).toBeNull();
   });
   test("should convert all heading levels (h1-h6)", () => {
     const markdown = "# h1\n## h2\n### h3\n#### h4\n##### h5\n###### h6";
@@ -78,7 +75,6 @@ describe("markdownToSlate - paragraphs and headings", () => {
   test("should convert single paragraph", () => {
     const markdown = "Hello World";
     // 调试输出
-    console.log("Markdown AST:", fromMarkdown(markdown));
 
     expect(markdownToSlate(markdown)).toEqual([
       {
@@ -91,7 +87,6 @@ describe("markdownToSlate - paragraphs and headings", () => {
   test("should convert multiple paragraphs", () => {
     const markdown = "First paragraph\n\nSecond paragraph";
     // 调试输出
-    console.log("Markdown AST:", fromMarkdown(markdown));
 
     expect(markdownToSlate(markdown)).toEqual([
       {
@@ -109,7 +104,6 @@ describe("markdownToSlate - paragraphs and headings", () => {
     const markdown =
       "# Title\nFirst paragraph\n\n## Subtitle\nSecond paragraph";
     // 调试输出
-    console.log("Markdown AST:", fromMarkdown(markdown));
 
     expect(markdownToSlate(markdown)).toEqual([
       {
@@ -134,7 +128,6 @@ describe("markdownToSlate - paragraphs and headings", () => {
 describe("markdownToSlate - inline styles", () => {
   test("should convert bold text", () => {
     const markdown = "**Bold text**";
-    console.log("Bold AST:", fromMarkdown(markdown));
 
     expect(markdownToSlate(markdown)).toEqual([
       {
@@ -151,7 +144,6 @@ describe("markdownToSlate - inline styles", () => {
 
   test("should convert italic text", () => {
     const markdown = "*Italic text*";
-    console.log("Italic AST:", fromMarkdown(markdown));
 
     expect(markdownToSlate(markdown)).toEqual([
       {
@@ -168,7 +160,6 @@ describe("markdownToSlate - inline styles", () => {
 
   test("should convert mixed inline styles", () => {
     const markdown = "Normal text with **bold** and *italic* words";
-    console.log("Mixed AST:", fromMarkdown(markdown));
 
     expect(markdownToSlate(markdown)).toEqual([
       {
@@ -348,21 +339,107 @@ describe("markdownToSlate - code", () => {
       {
         type: "code-block",
         language: "javascript",
-        children: [{ text: "const x = 1;\nconsole.log(x);" }],
+        children: [
+          {
+            type: "code-line",
+            children: [{ text: "const x = 1;" }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: "console.log(x);" }],
+          },
+        ],
       },
     ];
 
     expect(markdownToSlate(markdown)).toEqual(expected);
   });
 
-  test("should convert code blocks without language specification", () => {
-    const markdown = "```\nsome code\n```";
+  test("should handle various code block types", () => {
+    const markdown = `
+  \`\`\`tsx
+  const Component = () => {
+    return <div>Hello</div>;
+  }
+  \`\`\`
+  
+  \`\`\`yaml
+  name: workflow
+  on: 
+    push:
+      branches: main
+  \`\`\`
+  
+  \`\`\`json
+  {
+    "name": "test",
+    "version": "1.0.0"
+  }
+  \`\`\`
+  `;
 
     const expected = [
       {
         type: "code-block",
-        language: null,
-        children: [{ text: "some code" }],
+        language: "tsx",
+        children: [
+          {
+            type: "code-line",
+            children: [{ text: "const Component = () => {" }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: "  return <div>Hello</div>;" }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: "}" }],
+          },
+        ],
+      },
+      {
+        type: "code-block",
+        language: "yaml",
+        children: [
+          {
+            type: "code-line",
+            children: [{ text: "name: workflow" }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: "on: " }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: "  push:" }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: "    branches: main" }],
+          },
+        ],
+      },
+      {
+        type: "code-block",
+        language: "json",
+        children: [
+          {
+            type: "code-line",
+            children: [{ text: "{" }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: '  "name": "test",' }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: '  "version": "1.0.0"' }],
+          },
+          {
+            type: "code-line",
+            children: [{ text: "}" }],
+          },
+        ],
       },
     ];
 
@@ -860,7 +937,12 @@ Regular paragraph with <span style="color: red">styled</span> and <br/> mixed co
     {
       type: "code-block",
       language: "html",
-      children: [{ text: "<div>This is code, not HTML block</div>" }],
+      children: [
+        {
+          type: "code-line",
+          children: [{ text: "<div>This is code, not HTML block</div>" }],
+        },
+      ],
     },
   ]);
 });
@@ -895,7 +977,6 @@ describe("markdownToSlate - blockquotes", () => {
       },
     ];
     const actual = markdownToSlate(markdown);
-    logTestCase("Simple Blockquote", markdown, expected, actual);
     expect(actual).toEqual(expected);
   });
 
@@ -919,7 +1000,6 @@ describe("markdownToSlate - blockquotes", () => {
       },
     ];
     const actual = markdownToSlate(markdown);
-    logTestCase("Formatted Blockquote", markdown, expected, actual);
     expect(actual).toEqual(expected);
   });
 
@@ -946,7 +1026,6 @@ describe("markdownToSlate - blockquotes", () => {
       },
     ];
     const actual = markdownToSlate(markdown);
-    logTestCase("Nested Blockquote", markdown, expected, actual);
     expect(actual).toEqual(expected);
   });
 });
