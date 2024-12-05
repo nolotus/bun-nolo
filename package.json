@@ -74,6 +74,7 @@
     "json-logic-js": "^2.0.5",
     "katex": "^0.16.11",
     "mdast-util-from-markdown": "^2.0.2",
+    "mermaid": "^11.4.1",
     "open-props": "^1.7.4",
     "playwright": "^1.47.2",
     "rambda": "^8.6.0",

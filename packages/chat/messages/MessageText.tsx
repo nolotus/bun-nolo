@@ -1,5 +1,5 @@
 // MessageText.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Editor from "create/editor/Editor";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 
@@ -10,13 +10,7 @@ export const MessageText = ({ content, role }) => {
     margin: "0 0.5rem",
   };
 
-  const [slateData, setSlateData] = useState(markdownToSlate(content));
-  console.log("content", content);
-
-  console.log("slateData", slateData);
-  useEffect(() => {
-    setSlateData(markdownToSlate(content));
-  }, [content]);
+  const slateData = useMemo(() => markdownToSlate(content), [content]);
 
   return (
     <div style={messageContainerStyle}>
@@ -24,7 +18,7 @@ export const MessageText = ({ content, role }) => {
         content
       ) : (
         <Editor
-          key={content} // 添加key,content变化会强制重新渲染
+          key={content} // 保留 key 的方式
           initialValue={slateData}
           readOnly={true}
         />

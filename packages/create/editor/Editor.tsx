@@ -10,6 +10,7 @@ import "prismjs/components/prism-sql";
 import "prismjs/components/prism-java";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-mermaid";
 
 import React, { useCallback, useState } from "react";
 import { createEditor, Node, Editor, Element } from "slate";
@@ -29,7 +30,7 @@ const NoloEditor = ({ initialValue, readOnly }) => {
   const onKeyDown = useOnKeydown(editor);
   return (
     <Slate editor={editor} initialValue={initialValue}>
-      <ExampleToolbar />
+      {!readOnly && <ExampleToolbar />}
       <SetNodeToDecorations />
       <Editable
         readOnly={readOnly}
@@ -60,7 +61,8 @@ const getChildNodeToDecorations = ([block, blockPath]) => {
   const nodeToDecorations = new Map();
   const text = block.children.map((line) => Node.string(line)).join("\n");
   const language = block.language;
-  const tokens = Prism.tokenize(text, Prism.languages[language]);
+  const grammar = Prism.languages[language] || Prism.languages.plain;
+  const tokens = Prism.tokenize(text, grammar);
   const normalizedTokens = normalizeTokens(tokens); // make tokens flat and grouped by line
   const blockChildren = block.children;
   for (let index = 0; index < normalizedTokens.length; index++) {

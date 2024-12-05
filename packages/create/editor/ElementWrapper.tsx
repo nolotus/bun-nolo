@@ -7,6 +7,7 @@ import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { SafeLink } from "render/elements/SafeLink";
 import { ImageElement } from "render/elements/ImageElement";
+import { CodeBlock } from "render/elements/CodeBlock";
 
 export const ElementWrapper = (props) => {
   const { attributes, children, element, isDarkMode } = props;
@@ -15,21 +16,11 @@ export const ElementWrapper = (props) => {
   // 处理代码块
   if (element.type === CodeBlockType) {
     return (
-      <div
-        {...attributes}
-        style={{
-          position: "relative",
-          fontFamily: "monospace",
-          fontSize: "16px",
-          lineHeight: "20px",
-          marginTop: 0,
-          background: "rgba(0, 20, 60, .03)",
-          padding: "5px 13px",
-        }}
-        spellCheck={false}
-      >
-        {children}
-      </div>
+      <CodeBlock
+        attributes={attributes}
+        element={element}
+        children={children}
+      />
     );
   }
 
