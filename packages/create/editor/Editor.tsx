@@ -21,7 +21,7 @@ import { ElementWrapper } from "./ElementWrapper";
 import { useOnKeydown } from "./useOnKeyDown";
 import { renderLeaf } from "./renderLeaf";
 import { ExampleToolbar } from "./ExampleToolbar";
-import { CodeLineType, CodeBlockType, ParagraphType } from "./type";
+import { CodeLineType, CodeBlockType } from "./type";
 
 const NoloEditor = ({ initialValue, readOnly }) => {
   const [editor] = useState(() => withHistory(withReact(createEditor())));

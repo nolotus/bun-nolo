@@ -5,6 +5,8 @@ import { Table, TableRow, TableCell } from "render/elements/Table";
 import { List, ListItem } from "render/elements/List";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
+import { SafeLink } from "render/elements/SafeLink";
+import { ImageElement } from "render/elements/ImageElement";
 
 export const ElementWrapper = (props) => {
   const { attributes, children, element, isDarkMode } = props;
@@ -53,19 +55,12 @@ export const ElementWrapper = (props) => {
       return <blockquote {...attributes}>{children}</blockquote>;
     case "link":
       return (
-        <a href={element.url} {...attributes}>
+        <SafeLink href={element.url} {...attributes}>
           {children}
-        </a>
+        </SafeLink>
       );
     case "image":
-      return (
-        <img
-          src={element.url}
-          alt={element.alt || ""}
-          title={element.title}
-          {...attributes}
-        />
-      );
+      return <ImageElement {...props} />;
     case "list":
       return (
         <List attributes={attributes} element={element} theme={theme}>
