@@ -14,7 +14,6 @@ interface SurfSpotDescriptionProps {
 import { ShareIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
 import { PageLoader } from "../../blocks/PageLoader";
-import Editor from "create/editor/Editor";
 
 const SurfSpotDescription = ({
   title,
@@ -30,7 +29,7 @@ const SurfSpotDescription = ({
         </button>
       </Card.Actions>
     </div>
-    {description && <Editor markdown={description} />}
+    {description}
   </div>
 );
 

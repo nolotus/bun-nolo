@@ -150,8 +150,11 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
           if (!parent || parent.type !== "code") {
             slateNodes.push({
               type: "code-block",
-              language: node.lang || null,
-              children: [{ text: node.value || "" }],
+              language: node.lang || "text",
+              children: node.value.split("\n").map((line) => ({
+                type: "code-line",
+                children: [{ text: line }],
+              })),
             });
           }
           break;

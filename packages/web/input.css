@@ -49,20 +49,6 @@ body {
   color: var(--text-1);
 }
 
-.card {
-  border-radius: var(--radius-2);
-  padding: var(--size-fluid-3);
-  box-shadow: var(--shadow-2);
-
-  &:hover {
-    box-shadow: var(--shadow-3);
-  }
-
-  @media (--motionOK) {
-    animation: var(--animation-fade-in);
-  }
-}
-
 .text1 {
   color: var(--text-1);
 }
@@ -198,37 +184,11 @@ p.text1 {
 :where(body) {
   min-block-size: 100%;
 }
-:where(h1, h2, h3, h4, h5, h6) {
-  text-wrap: balance;
-  font-weight: var(--font-weight-9);
-  line-height: var(--font-lineheight-1);
-}
-:where(h1) {
-  font-size: var(--font-size-8);
-}
-:where(h2) {
-  font-size: var(--font-size-6);
-}
-:where(h3) {
-  font-size: var(--font-size-5);
-}
-:where(h4) {
-  font-size: var(--font-size-4);
-}
-:where(h5) {
-  font-size: var(--font-size-3);
-}
+
 :where(p, ul, ol, dl, h6) {
   font-size: var(--font-size-2);
 }
-:where(a, u, ins, abbr) {
-  text-underline-offset: 1px;
-}
-@supports (-moz-appearance: none) {
-  :where(a, u, ins, abbr) {
-    text-underline-offset: 2px;
-  }
-}
+
 :where(
     a[href],
     area,
@@ -416,10 +376,7 @@ p.text1 {
   border: var(--border-size-1) solid var(--surface-4);
   border-radius: var(--radius-2);
 }
-:where(del) {
-  background: var(--red-9);
-  color: var(--red-2);
-}
+
 :where(ins) {
   background: var(--green-9);
   color: var(--green-1);
@@ -427,101 +384,6 @@ p.text1 {
 :where(abbr) {
   text-decoration-color: var(--blue-5);
 }
-:where(dialog) {
-  background-color: var(--surface-1);
-  border-radius: var(--radius-3);
-  box-shadow: var(--shadow-6);
-  color: inherit;
-}
-:where(dialog)::backdrop {
-  backdrop-filter: blur(25px);
-}
-:where(html[\:has\(dialog\[open\]\)]) {
-  overflow: hidden;
-}
-:where(html:has(dialog[open])) {
-  overflow: hidden;
-}
-:where(menu) {
-  display: flex;
-  gap: var(--size-3);
-  padding-inline-start: 0;
-}
-:where(sup) {
-  font-size: 0.5em;
-}
-
-/* table */
-/* :where(table) {
-  --nice-inner-radius: calc(var(--radius-3) - 2px);
-  background: var(--surface-2);
-  border: 1px solid var(--surface-2);
-  border-radius: var(--radius-3);
-  width: fit-content;
-}
-:where(table[\:not-has\(tfoot\)] tr:last-child td:first-child) {
-  border-end-start-radius: var(--nice-inner-radius);
-}
-:where(table:not(:has(tfoot)) tr:last-child td:first-child) {
-  border-end-start-radius: var(--nice-inner-radius);
-}
-:where(table[\:not-has\(tfoot\)] tr:last-child td:last-child) {
-  border-end-end-radius: var(--nice-inner-radius);
-}
-:where(table:not(:has(tfoot)) tr:last-child td:last-child) {
-  border-end-end-radius: var(--nice-inner-radius);
-}
-:where(table thead tr:first-child th:first-child) {
-  border-start-start-radius: var(--nice-inner-radius);
-}
-:where(table thead tr:first-child th:last-child) {
-  border-start-end-radius: var(--nice-inner-radius);
-}
-:where(tfoot tr:last-child :is(th, td):first-of-type) {
-  border-end-start-radius: var(--nice-inner-radius);
-}
-:where(tfoot tr:last-child :is(th, td):last-of-type) {
-  border-end-end-radius: var(--nice-inner-radius);
-}
-:where(th) {
-  background-color: var(--surface-2);
-  color: var(--text-1);
-}
-:where(table :is(a, button, [contenteditable]):is(:focus-visible)) {
-  outline-offset: -2px;
-}
-:where(td) {
-  text-wrap: pretty;
-  background: var(--surface-1);
-  max-inline-size: var(--size-content-2);
-}
-:where(td, th) {
-  padding: var(--size-2);
-  text-align: left;
-}
-:where(:is(td, th):not([align])) {
-  text-align: center;
-}
-:where(thead) {
-  border-collapse: collapse;
-}
-:where(table tr:hover td),
-:where(tbody tr:nth-child(2n):hover td) {
-  background-color: var(--gray-10);
-}
-@media (prefers-color-scheme: light) {
-  :where(table tr:hover td),
-  :where(tbody tr:nth-child(2n):hover td) {
-    background-color: #fff;
-  }
-}
-:where(table > caption) {
-  margin: var(--size-3);
-}
-:where(tfoot button) {
-  padding-block: var(--size-1);
-  padding-inline: var(--size-3);
-} */
 
 @media (prefers-color-scheme: dark) {
   :where(

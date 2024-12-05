@@ -1,87 +1,120 @@
-import React, { useEffect } from "react";
-import { createEditor } from "slate";
-import { Slate, Editable, withReact } from "slate-react";
-import { renderElement } from "render/renderElements";
-import { renderLeaf } from "./renderLeafs";
-import { markdownToSlate } from "./markdownToSlate";
-import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import Prism from "prismjs";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-tsx";
+import "prismjs/components/prism-markdown";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-php";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-yaml";
+
+import React, { useCallback, useState } from "react";
+import { createEditor, Node, Editor, Element } from "slate";
+import { withReact, Slate, Editable, useSlate } from "slate-react";
 import { withHistory } from "slate-history";
+import { normalizeTokens } from "./utils/normalize-tokens";
+import { prismThemeCss } from "./theme/prismThemeCss";
+import { ElementWrapper } from "./ElementWrapper";
+import { useOnKeydown } from "./useOnKeyDown";
+import { renderLeaf } from "./renderLeaf";
+import { ExampleToolbar } from "./ExampleToolbar";
+import { CodeLineType, CodeBlockType, ParagraphType } from "./type";
 
-const VALID_VALUE = [
-  {
-    type: "paragraph",
-    children: [{ text: "" }],
-  },
-];
-
-interface EditorProps {
-  slateData?: any; // slate格式的数据
-  markdown?: string; // markdown字符串
-  isEdit?: boolean;
-}
-
-const Editor: React.FC<EditorProps> = ({ slateData, markdown, isEdit }) => {
-  const editor = withReact(withHistory(createEditor()));
-
-  useEffect(() => {
-    try {
-      if (slateData) {
-        // 优先使用 slateData
-        editor.children =
-          Array.isArray(slateData) && slateData.length > 0
-            ? slateData
-            : VALID_VALUE;
-      } else if (markdown) {
-        // 其次使用 markdown
-        const nodes = markdownToSlate(markdown);
-        editor.children =
-          Array.isArray(nodes) && nodes.length > 0 ? nodes : VALID_VALUE;
-      } else {
-        editor.children = VALID_VALUE;
-      }
-      editor.onChange();
-    } catch (error) {
-      console.error("Error parsing content:", error);
-      editor.children = VALID_VALUE;
-      editor.onChange();
-    }
-  }, [slateData, markdown, editor]);
-
-  const isDarkMode = useAppSelector((state) => state.theme.isDarkMode);
-  const theme = useAppSelector(selectTheme);
-
+const NoloEditor = ({ initialValue, readOnly }) => {
+  const [editor] = useState(() => withHistory(withReact(createEditor())));
+  const decorate = useDecorate(editor);
+  const onKeyDown = useOnKeydown(editor);
   return (
-    <Slate
-      editor={editor}
-      initialValue={VALID_VALUE}
-      onChange={(value) => {
-        console.log("value", value);
-        const isAstChange = editor.operations.some(
-          (op) => "set_selection" !== op.type,
-        );
-        if (isAstChange) {
-          console.log("save", value);
-
-          // Save the value to Local Storage.
-          // const content = JSON.stringify(value);
-          // localStorage.setItem("content", content);
-        }
-      }}
-    >
+    <Slate editor={editor} initialValue={initialValue}>
+      <ExampleToolbar />
+      <SetNodeToDecorations />
       <Editable
-        readOnly={!isEdit}
-        renderElement={(props) =>
-          renderElement({
-            ...props,
-            isDarkMode,
-            theme,
-          })
-        }
+        readOnly={readOnly}
+        decorate={decorate}
+        renderElement={ElementWrapper}
         renderLeaf={renderLeaf}
+        onKeyDown={onKeyDown}
       />
+      <style>{prismThemeCss}</style>
     </Slate>
   );
 };
 
-export default Editor;
+const useDecorate = (editor) => {
+  return useCallback(
+    ([node, path]) => {
+      if (Element.isElement(node) && node.type === CodeLineType) {
+        const ranges = editor.nodeToDecorations.get(node) || [];
+        return ranges;
+      }
+      return [];
+    },
+    [editor.nodeToDecorations],
+  );
+};
+
+const getChildNodeToDecorations = ([block, blockPath]) => {
+  const nodeToDecorations = new Map();
+  const text = block.children.map((line) => Node.string(line)).join("\n");
+  const language = block.language;
+  const tokens = Prism.tokenize(text, Prism.languages[language]);
+  const normalizedTokens = normalizeTokens(tokens); // make tokens flat and grouped by line
+  const blockChildren = block.children;
+  for (let index = 0; index < normalizedTokens.length; index++) {
+    const tokens = normalizedTokens[index];
+    const element = blockChildren[index];
+    if (!nodeToDecorations.has(element)) {
+      nodeToDecorations.set(element, []);
+    }
+    let start = 0;
+    for (const token of tokens) {
+      const length = token.content.length;
+      if (!length) {
+        continue;
+      }
+      const end = start + length;
+      const path = [...blockPath, index, 0];
+      const range = {
+        anchor: { path, offset: start },
+        focus: { path, offset: end },
+        token: true,
+        ...Object.fromEntries(token.types.map((type) => [type, true])),
+      };
+      nodeToDecorations.get(element).push(range);
+      start = end;
+    }
+  }
+  return nodeToDecorations;
+};
+// precalculate editor.nodeToDecorations map to use it inside decorate function then
+
+const SetNodeToDecorations = () => {
+  const editor = useSlate();
+  const blockEntries = Array.from(
+    Editor.nodes(editor, {
+      at: [],
+      mode: "highest",
+      match: (n) => Element.isElement(n) && n.type === CodeBlockType,
+    }),
+  );
+  const nodeToDecorations = mergeMaps(
+    ...blockEntries.map(getChildNodeToDecorations),
+  );
+  editor.nodeToDecorations = nodeToDecorations;
+  return null;
+};
+
+const mergeMaps = (...maps) => {
+  const map = new Map();
+  for (const m of maps) {
+    for (const item of m) {
+      map.set(...item);
+    }
+  }
+  return map;
+};
+
+export default NoloEditor;

@@ -2,12 +2,7 @@ import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  markdownToMdast,
-  getH1TextFromMdast,
-} from "render/processor/MarkdownProcessor";
 import { Button } from "render/ui";
-import { VersionsIcon } from "@primer/octicons-react";
 import { write } from "database/dbSlice";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import OpenProps from "open-props";
@@ -33,11 +28,11 @@ const CreatePage = () => {
   const userId = auth.user?.userId;
   const pageState = useAppSelector((state) => state.page);
   const navigate = useNavigate();
-  const [textareaContent, setTextareaContent] = React.useState<string>("");
 
   useEffect(() => {
     data && dispatch(initPageFromTemplate(data));
   }, [data]);
+
   const save = async (pageData) => {
     try {
       const writePageAction = await dispatch(
@@ -62,23 +57,6 @@ const CreatePage = () => {
   const handleSave = async () => {
     return;
     let updatedPageState = createPageData(pageState, userId);
-    if (textareaContent) {
-      const newMdast = markdownToMdast(textareaContent);
-      // 更新 pageState
-      updatedPageState = {
-        ...updatedPageState,
-        mdast: {
-          ...updatedPageState.mdast,
-          children: [...updatedPageState.mdast.children, ...newMdast.children],
-        },
-        content:
-          updatedPageState.content +
-          (updatedPageState.content ? "\n\n" : "") +
-          textareaContent,
-        title: getH1TextFromMdast(newMdast) || updatedPageState.title,
-      };
-    }
-
     save(updatedPageState);
   };
 

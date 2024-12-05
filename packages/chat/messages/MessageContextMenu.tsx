@@ -20,6 +20,7 @@ import {
   sendWithMessageId,
   clearCurrentDialog,
 } from "./messageSlice";
+import { markdownToSlate } from "create/editor/markdownToSlate";
 
 interface MessageContextMenuProps {
   menu: Ariakit.MenuStore;
@@ -41,8 +42,9 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   const handleSaveContent = async () => {
     if (content) {
       try {
+        const slateData = markdownToSlate(content);
         const writeData = {
-          data: { content, type: "page" },
+          data: { content, slateData, type: "page" },
           flags: { isJSON: true },
           userId: auth.user?.userId,
         };

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const NoMatch = () => {
   const navigate = useNavigate();
@@ -10,19 +10,19 @@ const NoMatch = () => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h2 className="text-2xl md:text-4xl lg:text-6xl font-semibold mb-8">
+      <h2 className="mb-8 text-2xl font-semibold md:text-4xl lg:text-6xl">
         Nothing to see here!
       </h2>
-      <p className="text-base md:text-lg lg:text-xl flex space-x-4">
+      <p className="flex space-x-4 text-base md:text-lg lg:text-xl">
         <Link
           to="/"
-          className="text-neutral-700 bg-neutral-300 hover:bg-neutral-400 p-4  shadow flex items-center space-x-4"
+          className="flex items-center space-x-4 bg-neutral-300  p-4 text-neutral-700 shadow hover:bg-neutral-400"
         >
           <span>Go to Home</span>
         </Link>
         <button
           onClick={goBack}
-          className="text-neutral-700 bg-neutral-200 hover:bg-neutral-300 p-4 shadow flex items-center space-x-4"
+          className="flex items-center space-x-4 bg-neutral-200 p-4 text-neutral-700 shadow hover:bg-neutral-300"
         >
           <span>Go Back</span>
         </button>

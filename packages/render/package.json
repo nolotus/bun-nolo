@@ -21,7 +21,6 @@
     "remark-stringify": "^11.0.0",
     "unified": "^11.0.4",
     "unist-util-visit": "^5.0.0",
-    "yaml": "^2.3.4",
-    "@types/react-katex": "^3.0.4"
+    "yaml": "^2.3.4"
   }
 }

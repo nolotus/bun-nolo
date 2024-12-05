@@ -83,7 +83,6 @@
     "react-hook-form": "^7.51.5",
     "react-hot-toast": "^2.4.1",
     "react-i18next": "^14.1.2",
-    "react-katex": "^3.0.1",
     "react-native-safe-area-context": "^4.14.0",
     "react-native-svg": "^15.9.0",
     "react-redux": "^9.0.1",
