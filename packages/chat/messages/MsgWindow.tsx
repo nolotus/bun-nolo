@@ -1,5 +1,5 @@
 import React from "react";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 
 import MessagesList from "./MessageList";
 import MessageInputContainer from "./MessageInputContainer";

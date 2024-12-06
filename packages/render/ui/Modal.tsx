@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
 
 import { selectTheme } from "app/theme/themeSlice";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 
 export const useModal = () => {
   const [visible, setVisible] = useState(false);

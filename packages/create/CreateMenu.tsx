@@ -12,8 +12,8 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { themeStyles } from "render/ui/styles";
-import { stylePresets } from "render/ui/stylePresets";
-import { sp } from "render/ui/sp";
+import { stylePresets } from "render/styles/stylePresets";
+import { sp } from "render/styles/sp";
 
 import Button from "render/ui/Button";
 

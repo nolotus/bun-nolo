@@ -5,10 +5,10 @@ import * as Ariakit from "@ariakit/react";
 import { selectTheme } from "app/theme/themeSlice";
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { themeStyles } from "render/ui/styles";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
-import { sp } from "render/ui/sp";
-import { txt } from "render/ui/txt";
+import { sp } from "render/styles/sp";
+import { txt } from "render/styles/txt";
 
 export const DialogItem = ({ id, isCreator, categoryId }) => {
   const { data: dialog } = useFetchData(id);

@@ -12,8 +12,8 @@ import {
 } from "create/workspace/workspaceSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
-import { sp } from "render/ui/sp";
-import { layout } from "render/ui/layout";
+import { sp } from "render/styles/sp";
+import { layout } from "render/styles/layout";
 
 const ChatSidebar = () => {
   const dispatch = useAppDispatch();

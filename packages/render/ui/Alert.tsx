@@ -10,7 +10,7 @@ import { selectTheme } from "app/theme/themeSlice";
 import { useMediaQuery } from "react-responsive";
 
 import { Modal, useModal } from "./Modal";
-import { stylePresets } from "./stylePresets";
+import { stylePresets } from "../styles/stylePresets";
 
 // 自定义 hook 用于响应式样式
 const useResponsiveStyles = () => {

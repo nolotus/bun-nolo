@@ -21,7 +21,7 @@ import { providerOptions, getModelsByProvider } from "../llm/providers";
 import { Model } from "../llm/types";
 
 import ToolSelector from "../tools/ToolSelector";
-import { layout } from "render/ui/layout";
+import { layout } from "render/styles/layout";
 
 const QuickEditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();

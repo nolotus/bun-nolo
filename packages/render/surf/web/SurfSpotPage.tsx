@@ -14,7 +14,7 @@ interface SurfSpotDescriptionProps {
 import { ShareIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
 import { PageLoader } from "../../blocks/PageLoader";
-import { sizes } from "../../ui/stylePresets";
+import { sizes } from "../../styles/stylePresets";
 
 const SurfSpotDescription = ({
   title,

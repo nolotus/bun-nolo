@@ -13,8 +13,8 @@ import { setKeyPrefix } from "core/prefix";
 import { messageInputStyle } from "./styles";
 import { useAppSelector } from "app/hooks";
 import { selectIsDarkMode } from "app/theme/themeSlice";
-import { stylePresets } from "render/ui/stylePresets";
-import { sp } from "render/ui/sp";
+import { stylePresets } from "render/styles/stylePresets";
+import { sp } from "render/styles/sp";
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
 }

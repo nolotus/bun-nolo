@@ -2,11 +2,11 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 
-import { sp } from "../../ui/sp";
-import { layout } from "../../ui/layout";
-import { txt } from "../../ui/txt";
+import { sp } from "render/styles/sp";
+import { layout } from "render/styles/layout";
+import { txt } from "render/styles/txt";
 
 interface NavListItemProps {
   path?: string;

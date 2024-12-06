@@ -19,8 +19,8 @@ import { Dialog } from "render/ui/Dialog";
 import { CreateWorkSpaceForm } from "create/workspace/CreateWorkSpaceForm";
 import { themeStyles } from "../ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
-import { sp } from "../ui/sp";
-import { layout } from "../ui/layout";
+import { sp } from "../styles/sp";
+import { layout } from "../styles/layout";
 
 export const SidebarTop = () => {
   const { t } = useTranslation();

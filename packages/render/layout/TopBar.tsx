@@ -1,6 +1,6 @@
 // render/layout/TopBar.tsx
 import React, { ReactNode } from "react";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 
 import { CreateMenu } from "create/CreateMenu";
 import { useAppSelector } from "app/hooks";
@@ -23,8 +23,8 @@ import { HomeIcon } from "@primer/octicons-react";
 import { motion } from "framer-motion";
 import useMediaQuery from "react-responsive";
 import MenuButton from "./MenuButton";
-import { sp } from "../ui/sp";
-import { layout } from "../ui/layout";
+import { sp } from "../styles/sp";
+import { layout } from "../styles/layout";
 
 interface TopBarProps {
   toggleSidebar?: () => void; // 改为可选

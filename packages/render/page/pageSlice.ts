@@ -17,10 +17,6 @@ export const pageSlice = createSlice({
     saveAsTemplate: false,
   },
   reducers: {
-    setCreator: (state, action) => {
-      state.creator = action.payload;
-    },
-
     initPage: (state, action: PayloadAction<string>) => {
       // Update content with the incoming markdown
       state.saveAsTemplate = action.payload.is_template;

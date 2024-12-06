@@ -20,7 +20,7 @@ import {
   Input,
 } from "render/CommonFormComponents";
 import { PromptFormData } from "ai/types";
-import { layout } from "render/ui/layout";
+import { layout } from "render/styles/layout";
 
 const CreatePrompt: React.FC = () => {
   const { t } = useTranslation();

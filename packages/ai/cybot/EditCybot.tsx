@@ -18,7 +18,7 @@ import { useQueryData } from "app/hooks/useQueryData";
 import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
 import ToolSelector from "../tools/ToolSelector";
-import { layout } from "render/ui/layout";
+import { layout } from "render/styles/layout";
 
 const EditCybot = ({ initialValues, onClose }) => {
   console.log("initialValues", initialValues);

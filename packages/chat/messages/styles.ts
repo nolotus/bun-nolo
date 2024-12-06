@@ -1,5 +1,5 @@
-import { layout } from "render/ui/layout";
-import { sizes } from "render/ui/stylePresets";
+import { layout } from "render/styles/layout";
+import { sizes } from "render/styles/stylePresets";
 // This file contains common styles used across different components in the chat interface.
 // It includes styles for message containers, content wrappers, avatars, and context menus.
 // These styles are exported as objects to be used with inline styling in React components.

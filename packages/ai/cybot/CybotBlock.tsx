@@ -12,10 +12,10 @@ import { deleteData } from "database/dbSlice";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import withTranslations from "i18n/withTranslations";
-import { stylePresets } from "render/ui/stylePresets";
-import { sp } from "render/ui/sp";
-import { layout } from "render/ui/layout";
-import { txt } from "render/ui/txt";
+import { stylePresets } from "render/styles/stylePresets";
+import { sp } from "render/styles/sp";
+import { layout } from "render/styles/layout";
+import { txt } from "render/styles/txt";
 
 const CybotBlock = ({ item, closeModal }) => {
   const { t } = useTranslation(); // 初始化 t 函数

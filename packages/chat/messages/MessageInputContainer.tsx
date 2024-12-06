@@ -2,15 +2,15 @@ import React from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTranslation } from "react-i18next";
 import { selectTheme } from "app/theme/themeSlice";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 
 import useCybotConfig from "ai/cybot/useCybotConfig";
 // import { selectCostByUserId } from "ai/selectors"; // 暂时注释掉
 
 import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
-import { sp } from "render/ui/sp";
-import { txt } from "render/ui/txt";
+import { sp } from "render/styles/sp";
+import { txt } from "render/styles/txt";
 
 const MessageInputContainer: React.FC = () => {
   const { t } = useTranslation();

@@ -12,8 +12,8 @@ import { EditTool } from "./EditTool";
 import { setData } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import Editor from "create/editor/Editor";
-import { sp } from "render/ui/sp";
-import { layout } from "../ui/layout";
+import { sp } from "render/styles/sp";
+import { layout } from "../styles/layout";
 const EditPage = () => {
   const dispatch = useAppDispatch();
   const { pageId } = useParams();
@@ -27,6 +27,7 @@ const EditPage = () => {
       console.log("pageState", pageState);
       const pageData = createPageData(pageState, userId);
       console.log("pageData", pageData);
+
       const result = await setData({
         Data: pageData,
       });

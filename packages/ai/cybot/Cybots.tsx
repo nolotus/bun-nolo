@@ -6,10 +6,10 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAppSelector } from "app/hooks";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 
 import CybotBlock from "./CybotBlock";
-import { sp } from "render/ui/sp";
+import { sp } from "render/styles/sp";
 
 interface CybotsProps {
   queryUserId: string;

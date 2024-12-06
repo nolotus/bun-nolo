@@ -5,7 +5,7 @@ import { useAuth } from "auth/useAuth";
 import { useParams } from "react-router-dom";
 import { selectTheme } from "app/theme/themeSlice";
 import withTranslations from "i18n/withTranslations";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 import { themeStyles } from "render/ui/styles";
 import {
   initDialog,

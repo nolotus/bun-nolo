@@ -2,7 +2,7 @@
 import React from "react";
 import { MoveToEndIcon, MoveToStartIcon } from "@primer/octicons-react";
 import { themeStyles } from "render/ui/styles";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 
 import Button from "render/ui/Button";
 

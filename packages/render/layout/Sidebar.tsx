@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { themeStyles } from "render/ui/styles";
-import { stylePresets } from "render/ui/stylePresets";
+import { stylePresets } from "render/styles/stylePresets";
 
 import OpenProps from "open-props";
 

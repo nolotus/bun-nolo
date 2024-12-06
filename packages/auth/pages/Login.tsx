@@ -13,7 +13,7 @@ import { storeTokens } from "auth/client/token";
 
 import { FormField } from "render/ui/Form/FormField";
 import { Button } from "render/ui";
-import { sizes } from "render/ui/stylePresets";
+import { sizes } from "render/styles/stylePresets";
 
 import { signInFields } from "../schema";
 import { signIn } from "../authSlice";
