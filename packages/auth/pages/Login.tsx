@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { PersonIcon, LockIcon } from "@primer/octicons-react";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
+import { useAppDispatch } from "app/hooks";
 
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -12,12 +13,11 @@ import { storeTokens } from "auth/client/token";
 
 import { FormField } from "render/ui/Form/FormField";
 import { Button } from "render/ui";
-import { useAppDispatch } from "app/hooks";
+import { sizes } from "render/ui/stylePresets";
 
 import { signInFields } from "../schema";
 import { signIn } from "../authSlice";
 import { userFormSchema } from "../schema";
-import { sizes } from "render/ui/styles";
 
 const Login: React.FC = () => {
   const { isLoading } = useSelector((state) => state.auth);

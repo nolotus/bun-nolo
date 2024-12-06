@@ -24,7 +24,6 @@ const EditPage = () => {
   const handleSave = async () => {
     try {
       console.log("pageState", pageState);
-
       const pageData = createPageData(pageState, userId);
       console.log("pageData", pageData);
       const result = await setData({

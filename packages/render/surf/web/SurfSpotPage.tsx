@@ -14,6 +14,7 @@ interface SurfSpotDescriptionProps {
 import { ShareIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
 import { PageLoader } from "../../blocks/PageLoader";
+import { sizes } from "../../ui/stylePresets";
 
 const SurfSpotDescription = ({
   title,
@@ -58,7 +59,7 @@ const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
           <div style={{ width: "45%" }}>
             <div
               className="surface2 h-64 overflow-hidden"
-              style={{ marginBottom: OpenProps["--size-fluid-2"] }}
+              style={{ marginBottom: sizes.sizeFluid2 }}
             >
               <APILoader
                 version="2.0.5"

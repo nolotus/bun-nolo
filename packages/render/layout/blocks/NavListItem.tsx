@@ -3,7 +3,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles } from "render/ui/styles";
+import { stylePresets } from "render/ui/stylePresets";
 
 interface NavListItemProps {
   path?: string;
@@ -24,20 +24,20 @@ const NavListItem: React.FC<NavListItemProps> = ({
     throw new Error("Theme is not defined");
   }
 
-  if (!styles) {
-    throw new Error("Styles is not defined");
+  if (!stylePresets) {
+    throw new Error("stylePresets is not defined");
   }
 
   const defaultStyle: React.CSSProperties = {
-    ...styles.flex,
-    ...styles.flexStart,
-    ...styles.transition,
-    ...styles.clickable,
-    ...styles.py1,
-    ...styles.px2,
-    ...styles.mb1,
-    ...styles.fontSemiBold,
-    ...styles.roundedMd,
+    ...stylePresets.flex,
+    ...stylePresets.flexStart,
+    ...stylePresets.transition,
+    ...stylePresets.clickable,
+    ...stylePresets.py1,
+    ...stylePresets.px2,
+    ...stylePresets.mb1,
+    ...stylePresets.fontSemiBold,
+    ...stylePresets.roundedMd,
     color: theme.text1,
     textDecoration: "none",
   };
@@ -49,13 +49,15 @@ const NavListItem: React.FC<NavListItemProps> = ({
 
     if (icon && !label) {
       return (
-        <span style={{ ...styles.flex, ...styles.justifyCenter }}>{icon}</span>
+        <span style={{ ...stylePresets.flex, ...stylePresets.justifyCenter }}>
+          {icon}
+        </span>
       );
     }
 
     return (
       <>
-        {icon && <span style={{ ...styles.mr2 }}>{icon}</span>}
+        {icon && <span style={{ ...stylePresets.mr2 }}>{icon}</span>}
         {label && <span>{label}</span>}
       </>
     );

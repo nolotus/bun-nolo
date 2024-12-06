@@ -2,6 +2,7 @@ import { StyleSheet, View, Text, Button } from "react-native";
 import { mainColorOptions, changeMainColor } from "app/theme/themeSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { flexStyles } from "render/styles/flexStyles";
+
 const styles = StyleSheet.create({
   bluesContainer: {
     flexDirection: "row",

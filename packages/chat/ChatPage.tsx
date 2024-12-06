@@ -2,11 +2,11 @@
 import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/useAuth";
-import { styles, themeStyles } from "render/ui/styles";
 import { useParams } from "react-router-dom";
 import { selectTheme } from "app/theme/themeSlice";
 import withTranslations from "i18n/withTranslations";
-
+import { stylePresets } from "render/ui/stylePresets";
+import { themeStyles } from "render/ui/styles";
 import {
   initDialog,
   selectCurrentDialogConfig,
@@ -46,17 +46,17 @@ const ChatPage = () => {
   return (
     <div
       style={{
-        ...styles.flex,
-        ...styles.overflowXHidden,
+        ...stylePresets.flex,
+        ...stylePresets.overflowXHidden,
         height: remainingHeight, // 使用计算后的剩余高度
         ...themeStyles.surface1(theme),
       }}
     >
       <div
         style={{
-          ...styles.flexColumn,
-          ...styles.flexGrow1,
-          ...styles.overflowXHidden,
+          ...stylePresets.flexColumn,
+          ...stylePresets.flexGrow1,
+          ...stylePresets.overflowXHidden,
         }}
       >
         {currentDialogConfig && (

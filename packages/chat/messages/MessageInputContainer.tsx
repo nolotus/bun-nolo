@@ -2,7 +2,8 @@ import React from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTranslation } from "react-i18next";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles } from "render/ui/styles";
+import { stylePresets } from "render/ui/stylePresets";
+
 import useCybotConfig from "ai/cybot/useCybotConfig";
 // import { selectCostByUserId } from "ai/selectors"; // 暂时注释掉
 
@@ -31,11 +32,11 @@ const MessageInputContainer: React.FC = () => {
 
   const errorMessageStyle = {
     color: theme.error,
-    ...styles.fontSize14,
-    ...styles.p1,
+    ...stylePresets.fontSize14,
+    ...stylePresets.p1,
     backgroundColor: theme.errorBg,
-    ...styles.roundedSm,
-    ...styles.mt2,
+    ...stylePresets.roundedSm,
+    ...stylePresets.mt2,
   };
 
   return (

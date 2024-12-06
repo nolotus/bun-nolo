@@ -3,7 +3,9 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles, themeStyles } from "render/ui/styles";
+import { themeStyles } from "render/ui/styles";
+import { stylePresets } from "render/ui/stylePresets";
+
 import OpenProps from "open-props";
 
 import TopBar from "./TopBar";
@@ -62,8 +64,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div
       style={{
-        ...styles.flex,
-        ...styles.h100vh,
+        ...stylePresets.flex,
+        ...stylePresets.h100vh,
         ...themeStyles.surface1(theme),
       }}
     >
@@ -141,7 +143,7 @@ const contentStyles = (
   isSidebarOpen: boolean,
   sidebarWidth: number,
 ) => ({
-  ...styles.flexGrow1,
+  ...stylePresets.flexGrow1,
   marginLeft: isSidebarOpen ? `${sidebarWidth}px` : 0,
   transition: "margin-left 0.3s ease-in-out",
   width: isSidebarOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",

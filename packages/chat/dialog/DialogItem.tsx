@@ -4,8 +4,8 @@ import { useSelector } from "react-redux";
 import * as Ariakit from "@ariakit/react";
 import { selectTheme } from "app/theme/themeSlice";
 import { useAppDispatch, useFetchData } from "app/hooks";
-import { styles, themeStyles } from "render/ui/styles";
-
+import { themeStyles } from "render/ui/styles";
+import { stylePresets } from "render/ui/stylePresets";
 import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
 
 export const DialogItem = ({ id, isCreator, categoryId }) => {
@@ -26,25 +26,25 @@ export const DialogItem = ({ id, isCreator, categoryId }) => {
   const isSelected = dialog.id === dialogId;
 
   const itemContainerStyle = {
-    ...styles.mb1,
-    ...styles.rounded,
-    ...styles.transition,
+    ...stylePresets.mb1,
+    ...stylePresets.rounded,
+    ...stylePresets.transition,
     ...themeStyles.surface1(theme),
     backgroundColor: isSelected
       ? theme.surface3
       : isHovered
         ? theme.surface2
         : "transparent",
-    ...styles.clickable,
+    ...stylePresets.clickable,
   };
 
   const linkStyle = {
-    ...styles.p2,
-    ...styles.textEllipsis,
-    ...styles.fontSize14,
-    ...styles.textDecorationNone,
-    ...styles.colorInherit,
-    ...styles.transition,
+    ...stylePresets.p2,
+    ...stylePresets.textEllipsis,
+    ...stylePresets.fontSize14,
+    ...stylePresets.textDecorationNone,
+    ...stylePresets.colorInherit,
+    ...stylePresets.transition,
     color: isHovered ? theme.brand : theme.text1,
   };
 

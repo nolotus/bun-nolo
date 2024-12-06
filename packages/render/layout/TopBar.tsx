@@ -1,7 +1,7 @@
 // render/layout/TopBar.tsx
 import React, { ReactNode } from "react";
-import { styles } from "render/ui/styles";
-import MenuButton from "./MenuButton";
+import { stylePresets } from "render/ui/stylePresets";
+
 import { CreateMenu } from "create/CreateMenu";
 import { useAppSelector } from "app/hooks";
 import CybotNameChip from "ai/cybot/CybotNameChip";
@@ -22,6 +22,8 @@ import { HomeIcon } from "@primer/octicons-react";
 
 import { motion } from "framer-motion";
 import useMediaQuery from "react-responsive";
+import MenuButton from "./MenuButton";
+
 interface TopBarProps {
   toggleSidebar?: () => void; // 改为可选
   theme: any;
@@ -44,10 +46,10 @@ const TopBar: React.FC<TopBarProps> = ({
   return (
     <div
       style={{
-        ...styles.flex,
-        ...styles.flexBetween,
-        ...styles.p1,
-        ...styles.zIndex2,
+        ...stylePresets.flex,
+        ...stylePresets.flexBetween,
+        ...stylePresets.p1,
+        ...stylePresets.zIndex2,
         backgroundColor: "transparent",
         position: "sticky",
         top: 0,
@@ -66,8 +68,8 @@ const TopBar: React.FC<TopBarProps> = ({
       <div
         style={{
           flex: 1,
-          ...styles.flexCenter,
-          ...styles.flexWrap,
+          ...stylePresets.flexCenter,
+          ...stylePresets.flexWrap,
           // 当没有菜单按钮时调整左边距
           marginLeft: toggleSidebar ? undefined : theme.spacing.md,
         }}
@@ -86,11 +88,11 @@ const TopBar: React.FC<TopBarProps> = ({
               >
                 <div
                   style={{
-                    ...styles.flexEnd,
+                    ...stylePresets.flexEnd,
                     fontSize: theme.fontSize.small,
                     color: theme.text2,
-                    ...styles.px2,
-                    ...styles.roundedMd,
+                    ...stylePresets.px2,
+                    ...stylePresets.roundedMd,
                     backgroundColor: theme.surface2,
                   }}
                 >
@@ -105,7 +107,7 @@ const TopBar: React.FC<TopBarProps> = ({
         {topbarContent}
       </div>
 
-      <div style={styles.flexEnd}>
+      <div style={stylePresets.flexEnd}>
         <CreateMenu />
         {isLoggedIn ? (
           <div>

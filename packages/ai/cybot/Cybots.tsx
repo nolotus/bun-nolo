@@ -4,9 +4,9 @@ import { useQueryData } from "app/hooks/useQueryData";
 import { DataType } from "create/types";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles } from "render/ui/styles";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAppSelector } from "app/hooks";
+import { stylePresets } from "render/ui/stylePresets";
 
 import CybotBlock from "./CybotBlock";
 
@@ -56,7 +56,13 @@ const Cybots: React.FC<CybotsProps> = ({
 
   if (isLoading && isLoading2) {
     return (
-      <div style={{ ...styles.textCenter, ...styles.py2, color: theme.text2 }}>
+      <div
+        style={{
+          ...stylePresets.textCenter,
+          ...stylePresets.py2,
+          color: theme.text2,
+        }}
+      >
         加载 AI 列表中...
       </div>
     );
@@ -73,13 +79,13 @@ const Cybots: React.FC<CybotsProps> = ({
     >
       {isSuccess &&
         data?.map((item) => (
-          <div key={item.id} style={styles.w100}>
+          <div key={item.id} style={stylePresets.w100}>
             <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}
       {isSuccess2 &&
         data2?.map((item) => (
-          <div key={item.id} style={styles.w100}>
+          <div key={item.id} style={stylePresets.w100}>
             <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}

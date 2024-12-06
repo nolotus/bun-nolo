@@ -17,8 +17,9 @@ import { GoPlus } from "react-icons/go";
 import { useModal } from "render/ui/Modal";
 import { Dialog } from "render/ui/Dialog";
 import { CreateWorkSpaceForm } from "create/workspace/CreateWorkSpaceForm";
-import { styles, themeStyles } from "../ui/styles";
+import { themeStyles } from "../ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
+import { stylePresets } from "render/ui/stylePresets";
 
 export const SidebarTop = () => {
   const { t } = useTranslation();
@@ -60,20 +61,20 @@ export const SidebarTop = () => {
   });
 
   return (
-    <div style={{ ...styles.flexStart, ...styles.p2 }}>
+    <div style={{ ...stylePresets.flexStart, ...stylePresets.p2 }}>
       <NavListItem path="/chat" icon={<CommentDiscussionIcon size={24} />} />
-      <div style={{ ...styles.width160, position: "relative" }}>
+      <div style={{ ...stylePresets.width160, position: "relative" }}>
         {/* 下拉触发器 */}
         <div
           onClick={() => setIsOpen(!isOpen)}
           onMouseEnter={() => setDropdownHover(true)}
           onMouseLeave={() => setDropdownHover(false)}
           style={{
-            ...styles.flexBetween,
-            ...styles.p2,
-            ...styles.rounded,
-            ...styles.clickable,
-            ...styles.transition,
+            ...stylePresets.flexBetween,
+            ...stylePresets.p2,
+            ...stylePresets.rounded,
+            ...stylePresets.clickable,
+            ...stylePresets.transition,
             ...themeStyles.surface1(theme),
             background:
               isOpen || dropdownHover ? theme.surface3 : theme.surface1,
@@ -83,9 +84,9 @@ export const SidebarTop = () => {
         >
           <span
             style={{
-              ...styles.textEllipsis,
-              ...styles.fontSize14,
-              ...styles.fontWeight500,
+              ...stylePresets.textEllipsis,
+              ...stylePresets.fontSize14,
+              ...stylePresets.fontWeight500,
               ...themeStyles.textColor1(theme),
             }}
           >
@@ -93,7 +94,7 @@ export const SidebarTop = () => {
           </span>
           <span
             style={{
-              ...styles.transition,
+              ...stylePresets.transition,
               marginLeft: "8px",
               ...themeStyles.textColor2(theme),
               transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
@@ -111,11 +112,11 @@ export const SidebarTop = () => {
               top: "calc(100% + 8px)", // 稍微增加间距
               left: 0,
               right: 0,
-              ...styles.rounded,
-              ...styles.overflowYAuto,
+              ...stylePresets.rounded,
+              ...stylePresets.overflowYAuto,
               ...themeStyles.surface1(theme),
               maxHeight: "320px",
-              zIndex: styles.zIndex3.zIndex,
+              zIndex: stylePresets.zIndex3.zIndex,
               boxShadow: "0 4px 12px rgba(0,0,0,0.15)", // 更明显的阴影
               border: `1px solid ${theme.surface2}`,
             }}
@@ -126,10 +127,10 @@ export const SidebarTop = () => {
               onMouseEnter={() => setHoveredItem("all")}
               onMouseLeave={() => setHoveredItem(null)}
               style={{
-                ...styles.p2,
-                ...styles.clickable,
-                ...styles.fontSize14,
-                ...styles.transition,
+                ...stylePresets.p2,
+                ...stylePresets.clickable,
+                ...stylePresets.fontSize14,
+                ...stylePresets.transition,
                 ...themeStyles.textColor1(theme),
                 ...getHoverStyle(hoveredItem === "all"),
                 margin: "4px",
@@ -152,15 +153,17 @@ export const SidebarTop = () => {
                   onMouseEnter={() => setHoveredItem(workspace.id)}
                   onMouseLeave={() => setHoveredItem(null)}
                   style={{
-                    ...styles.flexBetween,
-                    ...styles.p2,
-                    ...styles.fontSize14,
-                    ...styles.transition,
+                    ...stylePresets.flexBetween,
+                    ...stylePresets.p2,
+                    ...stylePresets.fontSize14,
+                    ...stylePresets.transition,
                     ...themeStyles.textColor1(theme),
                     ...getHoverStyle(hoveredItem === workspace.id),
                   }}
                 >
-                  <span style={styles.textEllipsis}>{workspace.name}</span>
+                  <span style={stylePresets.textEllipsis}>
+                    {workspace.name}
+                  </span>
                   {hoveredItem === workspace.id && (
                     <button
                       onClick={(e) => {
@@ -168,9 +171,9 @@ export const SidebarTop = () => {
                         handleDeleteWorkspace(workspace.id);
                       }}
                       style={{
-                        ...styles.buttonBase,
-                        ...styles.bgNone,
-                        ...styles.borderNone,
+                        ...stylePresets.buttonBase,
+                        ...stylePresets.bgNone,
+                        ...stylePresets.borderNone,
                         padding: "4px 8px",
                         fontSize: "12px",
                         color: theme.text2,
@@ -195,10 +198,10 @@ export const SidebarTop = () => {
             >
               <div
                 style={{
-                  ...styles.p2,
-                  ...styles.flexStart,
-                  ...styles.clickable,
-                  ...styles.transition,
+                  ...stylePresets.p2,
+                  ...stylePresets.flexStart,
+                  ...stylePresets.clickable,
+                  ...stylePresets.transition,
                   ...getHoverStyle(createHover),
                   color: theme.brand, // 使用主题的品牌色
                 }}
@@ -218,7 +221,7 @@ export const SidebarTop = () => {
                 />
                 <span
                   style={{
-                    ...styles.fontSize14,
+                    ...stylePresets.fontSize14,
                     fontWeight: 500,
                   }}
                 >

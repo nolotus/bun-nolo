@@ -82,7 +82,7 @@ export const ElementWrapper = (props) => {
       );
 
     // 引用
-    case "block-quote":
+    case "quote":
       return (
         <blockquote
           {...attributes}
@@ -90,7 +90,7 @@ export const ElementWrapper = (props) => {
             borderLeft: `4px solid ${theme.borderColor}`,
             margin: "1.5em 0",
             padding: "0.5em 0 0.5em 1em",
-            color: theme.textColorSecondary,
+            backgroundColor: theme.surface2,
             textAlign: element.align,
           }}
         >

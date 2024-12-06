@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
 
 import { selectTheme } from "app/theme/themeSlice";
-import { styles } from "render/ui/styles";
+import { stylePresets } from "render/ui/stylePresets";
 
 export const useModal = () => {
   const [visible, setVisible] = useState(false);
@@ -55,7 +55,7 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    ...styles.zIndex3,
+    ...stylePresets.zIndex3,
     backdropFilter: "blur(5px)",
     position: "fixed",
     top: 0,

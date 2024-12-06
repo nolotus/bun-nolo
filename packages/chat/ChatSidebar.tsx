@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { styles } from "render/ui/styles";
+import { stylePresets } from "render/ui/stylePresets";
+
 import withTranslations from "i18n/withTranslations";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectFilteredDataByUserAndTypeAndWorkspace } from "database/selectors";
@@ -30,7 +31,7 @@ const ChatSidebar = () => {
 
   return (
     <nav>
-      <div style={{ ...styles.flexBetween, ...styles.gap2 }}>
+      <div style={{ ...stylePresets.flexBetween, ...stylePresets.gap2 }}>
         {/* <CustomizeAIButton /> */}
         <NewDialogButton />
       </div>
