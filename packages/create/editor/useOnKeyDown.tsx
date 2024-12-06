@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { Editor } from "slate";
-import { toggleMark } from "./ExampleToolbar";
+import { toggleMark } from "./mark";
 
 const HOTKEYS = {
   "mod+b": "bold",

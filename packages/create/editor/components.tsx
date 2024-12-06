@@ -1,7 +1,8 @@
 import React from "react";
+import ReactDOM from "react-dom";
 
 export const Button = React.forwardRef(
-  ({ className, active, reversed, ...props }, ref) => (
+  ({ className, active, reversed, children, ...props }, ref) => (
     <span
       {...props}
       ref={ref}
@@ -16,7 +17,9 @@ export const Button = React.forwardRef(
             ? "black"
             : "#ccc",
       }}
-    />
+    >
+      {children} {/* 添加这行 */}
+    </span>
   ),
 );
 
@@ -49,3 +52,9 @@ export const Toolbar = React.forwardRef(
     />
   ),
 );
+
+export const Portal = ({ children }) => {
+  return typeof document === "object"
+    ? ReactDOM.createPortal(children, document.body)
+    : null;
+};

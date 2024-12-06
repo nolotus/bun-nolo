@@ -6,6 +6,7 @@ import {
   Point,
   Transforms,
 } from "slate";
+import { toggleMark } from "./mark";
 
 export const SHORTCUTS = {
   // 列表
@@ -178,18 +179,4 @@ const isHotkey = (hotkey): boolean => {
     console.warn("Error checking hotkey:", error);
     return false;
   }
-};
-
-const toggleMark = (editor: Editor, format: string) => {
-  const isActive = isMarkActive(editor, format);
-  if (isActive) {
-    Editor.removeMark(editor, format);
-  } else {
-    Editor.addMark(editor, format, true);
-  }
-};
-
-const isMarkActive = (editor: Editor, format: string) => {
-  const marks = Editor.marks(editor);
-  return marks ? marks[format] === true : false;
 };

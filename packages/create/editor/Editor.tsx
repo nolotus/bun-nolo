@@ -32,6 +32,8 @@ import { renderLeaf } from "./renderLeaf";
 import { ExampleToolbar } from "./ExampleToolbar";
 import { CodeLineType, CodeBlockType } from "./type";
 import { withShortcuts } from "./withShortcuts";
+import { HoveringToolbar } from "./HoveringToolbar";
+import { toggleMark } from "./mark";
 
 const NoloEditor = ({ initialValue, readOnly }) => {
   const [editor] = useState(() =>
@@ -41,7 +43,13 @@ const NoloEditor = ({ initialValue, readOnly }) => {
   const onKeyDown = useOnKeydown(editor);
   return (
     <Slate editor={editor} initialValue={initialValue}>
-      {!readOnly && <ExampleToolbar />}
+      {!readOnly && (
+        <>
+          <ExampleToolbar />
+          <HoveringToolbar />
+        </>
+      )}
+
       <SetNodeToDecorations />
       <Editable
         readOnly={readOnly}
@@ -49,6 +57,19 @@ const NoloEditor = ({ initialValue, readOnly }) => {
         renderElement={ElementWrapper}
         renderLeaf={renderLeaf}
         onKeyDown={onKeyDown}
+        onDOMBeforeInput={(event) => {
+          switch (event.inputType) {
+            case "formatBold":
+              event.preventDefault();
+              return toggleMark(editor, "bold");
+            case "formatItalic":
+              event.preventDefault();
+              return toggleMark(editor, "italic");
+            case "formatUnderline":
+              event.preventDefault();
+              return toggleMark(editor, "underlined");
+          }
+        }}
       />
       <style>{prismThemeCss}</style>
     </Slate>

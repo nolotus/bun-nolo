@@ -22,6 +22,7 @@ import {
   MdFormatAlignRight,
   MdFormatAlignJustify,
 } from "react-icons/md";
+import { isMarkActive, toggleMark } from "./mark";
 
 const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 const LIST_TYPE = "list";
@@ -75,15 +76,6 @@ const toggleBlock = (editor, format, ordered = undefined) => {
   }
 };
 
-export const toggleMark = (editor, format) => {
-  const isActive = isMarkActive(editor, format);
-  if (isActive) {
-    Editor.removeMark(editor, format);
-  } else {
-    Editor.addMark(editor, format, true);
-  }
-};
-
 const isBlockActive = (editor, format, blockType = "type") => {
   const { selection } = editor;
   if (!selection) return false;
@@ -99,11 +91,6 @@ const isBlockActive = (editor, format, blockType = "type") => {
   );
 
   return !!match;
-};
-
-const isMarkActive = (editor, format) => {
-  const marks = Editor.marks(editor);
-  return marks ? marks[format] === true : false;
 };
 
 const BlockButton = ({ format, Icon, ordered = undefined }) => {
