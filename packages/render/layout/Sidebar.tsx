@@ -65,8 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     <div
       style={{
         ...stylePresets.flex,
-        ...stylePresets.h100vh,
-        ...themeStyles.surface1(theme),
+        minHeight: "100vh",
       }}
     >
       {/* 只在有 sidebarContent 时渲染侧边栏 */}
@@ -154,7 +153,6 @@ const innerContentStyles = (theme: any, fullWidth: boolean) => ({
   width: fullWidth ? "100%" : "100%",
   maxWidth: fullWidth ? "none" : "100%",
   margin: fullWidth ? 0 : "0 auto",
-  ...themeStyles.surface1(theme),
 });
 
 export default Sidebar;
