@@ -1,18 +1,42 @@
 import { parse as parseYaml } from "yaml";
 import { parse as parseDate, format } from "date-fns";
 import { zonedTimeToUtc } from "date-fns-tz";
-import {
-  markdownToMdast,
-  getH1TextFromMdast,
-  getYamlValueFromMdast,
-} from "render/processor/MarkdownProcessor";
 import { pick } from "rambda";
+import { visit } from "unist-util-visit";
+import { markdownToMdast } from "create/editor/markdownToSlate";
+
 const location = ["lat", "lng", "country", "province", "state", "city"];
 const render = ["layout"];
 const artcile = ["title", "tags", "categories"];
 const todo = ["end_time", "start_time"];
-const pay = ["price", "payment_method", "pay_time"];
 
+const getH1TextFromMdast = (mdast: MdastNode): string | null => {
+  let h1Text: string | null = null;
+  visit(mdast, "heading", (node: MdastNode) => {
+    if (
+      node.type === "heading" &&
+      node.depth === 1 &&
+      node.children &&
+      node.children[0] &&
+      node.children[0].type === "text"
+    ) {
+      h1Text = node.children[0].value as string;
+      return false; // 停止访问
+    }
+  });
+  return h1Text;
+};
+
+export const getYamlValueFromMdast = (mdast: MdastNode): string | null => {
+  let yamlValue: string | null = null;
+  visit(mdast, "yaml", (node) => {
+    if (node.type === "yaml" && node.value) {
+      yamlValue = node.value;
+      return false; // 停止访问
+    }
+  });
+  return yamlValue;
+};
 export function processContent(content: string) {
   // 使用自定义的函数将内容转换为mdast对象
   const mdast = markdownToMdast(content);
@@ -25,7 +49,7 @@ export function processContent(content: string) {
     try {
       const parsedYaml = parseYaml(newYamlValue);
       metaUpdates = pick(
-        ["type", ...location, ...render, ...artcile, ...todo, ...pay, "date"],
+        ["type", ...location, ...render, ...artcile, ...todo, "date"],
         parsedYaml,
       );
 
