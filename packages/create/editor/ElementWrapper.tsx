@@ -13,6 +13,7 @@ export const ElementWrapper = (props) => {
   const { attributes, children, element, isDarkMode } = props;
   const editor = useSlateStatic();
   const theme = useAppSelector(selectTheme);
+  const style = { textAlign: element.align }; // 添加基础样式对象
 
   // 处理代码块
   if (element.type === CodeBlockType) {
@@ -27,7 +28,7 @@ export const ElementWrapper = (props) => {
 
   if (element.type === CodeLineType) {
     return (
-      <div {...attributes} style={{ position: "relative" }}>
+      <div {...attributes} style={{ position: "relative", ...style }}>
         {children}
       </div>
     );
@@ -36,21 +37,49 @@ export const ElementWrapper = (props) => {
   // 处理其他元素类型
   switch (element.type) {
     case "paragraph":
-      return <p {...attributes}>{children}</p>;
+      return (
+        <p {...attributes} style={style}>
+          {children}
+        </p>
+      );
 
     // 标题
     case "heading-one":
-      return <h1 {...attributes}>{children}</h1>;
+      return (
+        <h1 {...attributes} style={style}>
+          {children}
+        </h1>
+      );
     case "heading-two":
-      return <h2 {...attributes}>{children}</h2>;
+      return (
+        <h2 {...attributes} style={style}>
+          {children}
+        </h2>
+      );
     case "heading-three":
-      return <h3 {...attributes}>{children}</h3>;
+      return (
+        <h3 {...attributes} style={style}>
+          {children}
+        </h3>
+      );
     case "heading-four":
-      return <h4 {...attributes}>{children}</h4>;
+      return (
+        <h4 {...attributes} style={style}>
+          {children}
+        </h4>
+      );
     case "heading-five":
-      return <h5 {...attributes}>{children}</h5>;
+      return (
+        <h5 {...attributes} style={style}>
+          {children}
+        </h5>
+      );
     case "heading-six":
-      return <h6 {...attributes}>{children}</h6>;
+      return (
+        <h6 {...attributes} style={style}>
+          {children}
+        </h6>
+      );
 
     // 引用
     case "block-quote":
@@ -62,6 +91,7 @@ export const ElementWrapper = (props) => {
             margin: "1.5em 0",
             padding: "0.5em 0 0.5em 1em",
             color: theme.textColorSecondary,
+            textAlign: element.align,
           }}
         >
           {children}
@@ -71,17 +101,22 @@ export const ElementWrapper = (props) => {
     // 链接和图片
     case "link":
       return (
-        <SafeLink href={element.url} {...attributes}>
+        <SafeLink href={element.url} {...attributes} style={style}>
           {children}
         </SafeLink>
       );
     case "image":
-      return <ImageElement {...props} />;
+      return <ImageElement {...props} style={style} />;
 
     // 列表相关
     case "list":
       return (
-        <List attributes={attributes} element={element} theme={theme}>
+        <List
+          attributes={attributes}
+          element={element}
+          theme={theme}
+          style={style}
+        >
           {children}
         </List>
       );
@@ -93,26 +128,33 @@ export const ElementWrapper = (props) => {
           element={element}
           theme={theme}
           editor={editor}
+          style={style}
         >
           {children}
         </ListItem>
       );
+
     // 表格相关
     case "table":
       return (
-        <Table attributes={attributes} theme={theme}>
+        <Table attributes={attributes} theme={theme} style={style}>
           {children}
         </Table>
       );
     case "table-row":
       return (
-        <TableRow attributes={attributes} theme={theme}>
+        <TableRow attributes={attributes} theme={theme} style={style}>
           {children}
         </TableRow>
       );
     case "table-cell":
       return (
-        <TableCell attributes={attributes} element={element} theme={theme}>
+        <TableCell
+          attributes={attributes}
+          element={element}
+          theme={theme}
+          style={style}
+        >
           {children}
         </TableCell>
       );
@@ -126,6 +168,7 @@ export const ElementWrapper = (props) => {
             border: "none",
             borderBottom: `1px solid #000`,
             margin: "1em 0",
+            ...style,
           }}
         />
       );
@@ -136,6 +179,7 @@ export const ElementWrapper = (props) => {
       return (
         <div
           {...attributes}
+          style={style}
           dangerouslySetInnerHTML={{ __html: element.html }}
         />
       );
@@ -144,7 +188,7 @@ export const ElementWrapper = (props) => {
     default:
       const Tag = editor.isInline(element) ? "span" : "div";
       return (
-        <Tag {...attributes} style={{ position: "relative" }}>
+        <Tag {...attributes} style={{ position: "relative", ...style }}>
           {children}
         </Tag>
       );
