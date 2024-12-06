@@ -12,7 +12,8 @@ import { EditTool } from "./EditTool";
 import { setData } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import Editor from "create/editor/Editor";
-
+import { sp } from "render/ui/sp";
+import { layout } from "../ui/layout";
 const EditPage = () => {
   const dispatch = useAppDispatch();
   const { pageId } = useParams();
@@ -58,20 +59,17 @@ const EditPage = () => {
     >
       <main
         style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          overflow: "hidden",
+          ...layout.flexGrow1,
+          ...layout.flexColumn,
+          ...layout.h100,
+          ...layout.overflowHidden,
         }}
       >
         <div
           style={{
-            padding: "8px 24px",
+            ...layout.flexEnd,
+            ...sp.px2,
             backgroundColor: "#ffffff",
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
             borderBottom: "1px solid rgba(0,0,0,0.03)",
             transition: `all ${animations.duration.fast} ${animations.spring}`,
             position: "sticky",
@@ -84,9 +82,9 @@ const EditPage = () => {
 
         <div
           style={{
-            flex: 1,
-            padding: "24px",
-            overflowY: "auto",
+            ...layout.flexGrow1,
+            ...layout.overflowYAuto,
+            ...sp.p3,
           }}
         >
           <div
@@ -95,7 +93,7 @@ const EditPage = () => {
               margin: "0 auto",
               minHeight: "calc(100vh - 200px)",
               backgroundColor: "#ffffff",
-              padding: "20px",
+              ...sp.p2,
             }}
           >
             <Editor initialValue={slateData} onChange={handleContentChange} />
