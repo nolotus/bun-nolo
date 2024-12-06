@@ -8,6 +8,7 @@ import { Button } from "./components";
 
 export const CodeBlockButton = () => {
   const editor = useSlateStatic();
+
   const handleClick = () => {
     Transforms.wrapNodes(
       editor,
