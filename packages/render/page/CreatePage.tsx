@@ -9,7 +9,6 @@ import OpenProps from "open-props";
 
 import { createPageData } from "./pageDataUtils";
 import {
-  setHasVersion,
   updateContent,
   setSaveAsTemplate,
   initPageFromTemplate,
@@ -80,10 +79,6 @@ const CreatePage = () => {
       </div>
       <div className="mx-auto  items-center">
         {pageState.createdTime}
-        {/* <div className="text-gray-600">
-          <VersionsIcon size={18} className="mr-2" />
-          {pageState.hasVersion ? "Versioned" : "Not Versioned"}
-        </div> */}
 
         <div
           style={{

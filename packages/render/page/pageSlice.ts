@@ -5,7 +5,6 @@ export const pageSlice = createSlice({
   name: "page",
   initialState: {
     content: "",
-    hasVersion: false,
     createdTime: "",
     mdast: { type: "root", children: [] },
     meta: {
@@ -19,10 +18,6 @@ export const pageSlice = createSlice({
     saveAsTemplate: false,
   },
   reducers: {
-    setHasVersion: (state, action) => {
-      state.hasVersion = action.payload;
-    },
-
     setCreator: (state, action) => {
       state.creator = action.payload;
     },
@@ -63,7 +58,6 @@ export const pageSlice = createSlice({
 });
 
 export const {
-  setHasVersion,
   initPage,
   initPageFromTemplate,
   updateContent,

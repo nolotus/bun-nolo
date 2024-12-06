@@ -4,6 +4,19 @@ import { JsonView, allExpanded, defaultStyles } from "react-json-view-lite";
 import { EyeIcon, CopyIcon, CheckIcon, CodeIcon } from "@primer/octicons-react";
 import copyToClipboard from "utils/clipboard";
 
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-tsx";
+import "prismjs/components/prism-markdown";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-php";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-mermaid";
+
 // Mermaid 配置
 mermaid.initialize({
   startOnLoad: true,

@@ -1,16 +1,4 @@
 import Prism from "prismjs";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-php";
-import "prismjs/components/prism-sql";
-import "prismjs/components/prism-java";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-mermaid";
 
 import React, { useCallback, useState } from "react";
 import {
@@ -35,14 +23,25 @@ import { withShortcuts } from "./withShortcuts";
 import { HoveringToolbar } from "./HoveringToolbar";
 import { toggleMark } from "./mark";
 
-const NoloEditor = ({ initialValue, readOnly }) => {
+const NoloEditor = ({ initialValue, readOnly, onChange }) => {
   const [editor] = useState(() =>
     withShortcuts(withHistory(withReact(createEditor()))),
   );
   const decorate = useDecorate(editor);
   const onKeyDown = useOnKeydown(editor);
   return (
-    <Slate editor={editor} initialValue={initialValue}>
+    <Slate
+      editor={editor}
+      initialValue={initialValue}
+      onChange={(value) => {
+        const isAstChange = editor.operations.some(
+          (op) => "set_selection" !== op.type,
+        );
+        if (isAstChange) {
+          onChange?.(value);
+        }
+      }}
+    >
       {!readOnly && (
         <>
           <ExampleToolbar />

@@ -6,8 +6,8 @@ import { useAppSelector, useAppDispatch } from "app/hooks";
 import { animations } from "render/styles/theme";
 
 import { createPageData } from "./pageDataUtils";
-import { updateContent } from "./pageSlice";
-import { processContent } from "./processContent";
+// import { updateContent } from "./pageSlice";
+// import { processContent } from "./processContent";
 import { EditTool } from "./EditTool";
 import { setData } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
@@ -40,9 +40,10 @@ const EditPage = () => {
     }
   };
 
-  const handleContentChange = (changeValue: string) => {
-    const { content, mdast, metaUpdates } = processContent(changeValue);
-    dispatch(updateContent({ content, metaUpdates, mdast }));
+  const handleContentChange = (changeValue) => {
+    console.log("changeValue", changeValue);
+    // const { content, mdast, metaUpdates } = processContent(changeValue);
+    // dispatch(updateContent({ content, metaUpdates, mdast }));
   };
 
   const slateData = markdownToSlate(pageState.content);
