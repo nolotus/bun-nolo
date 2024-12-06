@@ -64,9 +64,9 @@ const CreatePage = () => {
   };
 
   const handleContentChange = (changeValue: string) => {
-    const { content, mdast, metaUpdates } = processContent(changeValue);
+    const { content, metaUpdates } = processContent(changeValue);
 
-    dispatch(updateContent({ content, metaUpdates, mdast }));
+    dispatch(updateContent({ content, metaUpdates }));
   };
   return (
     <div className="flex min-h-screen flex-row">

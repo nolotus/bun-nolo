@@ -42,8 +42,8 @@ const EditPage = () => {
 
   const handleContentChange = (changeValue) => {
     console.log("changeValue", changeValue);
-    // const { content, mdast, metaUpdates } = processContent(changeValue);
-    // dispatch(updateContent({ content, metaUpdates, mdast }));
+    // const { content,  metaUpdates } = processContent(changeValue);
+    // dispatch(updateContent({ content, metaUpdates, }));
   };
 
   const slateData = markdownToSlate(pageState.content);

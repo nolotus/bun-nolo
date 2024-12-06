@@ -52,10 +52,7 @@ const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
       <div style={{ marginTop: OpenProps.sizeFluid2 }}>
         <div style={{ display: "flex" }}>
           <div style={{ width: "45%", marginRight: "10%" }}>
-            <SurfSpotDescription
-              title={title}
-              description={data.mdast.children[2]}
-            />
+            <SurfSpotDescription title={title} description={"need update"} />
           </div>
 
           <div style={{ width: "45%" }}>

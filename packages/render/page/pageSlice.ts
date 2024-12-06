@@ -6,7 +6,6 @@ export const pageSlice = createSlice({
   initialState: {
     content: "",
     createdTime: "",
-    mdast: { type: "root", children: [] },
     meta: {
       type: DataType.Page,
       creator: "",
@@ -28,19 +27,16 @@ export const pageSlice = createSlice({
       state.content = action.payload.content;
       state.meta.type = action.payload.type;
       state.meta.title = action.payload.title;
-      // Convert markdown to mdast
-      // Update the mdast state
     },
     initPageFromTemplate: (state, action: PayloadAction<string>) => {
       // Update content with the incoming markdown
       state.content = action.payload.content;
       state.meta.type = action.payload.type;
       state.meta.title = action.payload.title;
-      // Convert markdown to mdast
     },
     updateContent: (
       state,
-      action: PayloadAction<{ content: string; metaUpdates: any; mdast?: any }>,
+      action: PayloadAction<{ content: string; metaUpdates: any }>,
     ) => {
       state.content = action.payload.content;
 

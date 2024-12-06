@@ -7,7 +7,6 @@ export const createPageData = (pageState, userId: string) => {
     title: pageState.meta.title,
     creator: userId,
     created_at: pageState.createdTime || nowISO, // 如果存在createdTime，使用它，否则使用当前时间
-    mdast: pageState.mdast,
     type: pageState.meta.type,
     lat: pageState.meta.lat,
     lng: pageState.meta.lng,
