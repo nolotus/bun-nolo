@@ -19,7 +19,8 @@ import { Dialog } from "render/ui/Dialog";
 import { CreateWorkSpaceForm } from "create/workspace/CreateWorkSpaceForm";
 import { themeStyles } from "../ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
-import { stylePresets } from "render/ui/stylePresets";
+import { sp } from "../ui/sp";
+import { layout } from "../ui/layout";
 
 export const SidebarTop = () => {
   const { t } = useTranslation();
@@ -31,6 +32,9 @@ export const SidebarTop = () => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const { visible, open, close } = useModal();
   const theme = useAppSelector(selectTheme);
+  const [dropdownHover, setDropdownHover] = useState(false);
+  const [createHover, setCreateHover] = useState(false);
+
   useEffect(() => {
     dispatch(fetchWorkspaces());
   }, [dispatch]);
@@ -52,29 +56,27 @@ export const SidebarTop = () => {
   const handleDeleteWorkspace = (workspaceId: string) => {
     dispatch(deleteWorkspace(workspaceId));
   };
-  const [dropdownHover, setDropdownHover] = useState(false);
-  const [createHover, setCreateHover] = useState(false);
+
   const getHoverStyle = (isHovered: boolean) => ({
-    background: isHovered ? theme.surface3 : theme.surface1, // 使用surface3提高对比度
-    transform: isHovered ? "translateX(4px)" : "translateX(0)", // 添加轻微位移效果
+    background: isHovered ? theme.surface3 : theme.surface1,
+    transform: isHovered ? "translateX(4px)" : "translateX(0)",
     borderRadius: "6px",
   });
 
   return (
-    <div style={{ ...stylePresets.flexStart, ...stylePresets.p2 }}>
+    <div style={{ ...layout.flexStart, ...sp.p2 }}>
       <NavListItem path="/chat" icon={<CommentDiscussionIcon size={24} />} />
-      <div style={{ ...stylePresets.width160, position: "relative" }}>
-        {/* 下拉触发器 */}
+      <div style={{ width: "160px", position: "relative" }}>
         <div
           onClick={() => setIsOpen(!isOpen)}
           onMouseEnter={() => setDropdownHover(true)}
           onMouseLeave={() => setDropdownHover(false)}
           style={{
-            ...stylePresets.flexBetween,
-            ...stylePresets.p2,
-            ...stylePresets.rounded,
-            ...stylePresets.clickable,
-            ...stylePresets.transition,
+            ...layout.flexBetween,
+            ...sp.p2,
+            borderRadius: "6px",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
             ...themeStyles.surface1(theme),
             background:
               isOpen || dropdownHover ? theme.surface3 : theme.surface1,
@@ -84,9 +86,11 @@ export const SidebarTop = () => {
         >
           <span
             style={{
-              ...stylePresets.textEllipsis,
-              ...stylePresets.fontSize14,
-              ...stylePresets.fontWeight500,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              fontSize: "14px",
+              fontWeight: 500,
               ...themeStyles.textColor1(theme),
             }}
           >
@@ -94,7 +98,7 @@ export const SidebarTop = () => {
           </span>
           <span
             style={{
-              ...stylePresets.transition,
+              transition: "all 0.2s ease",
               marginLeft: "8px",
               ...themeStyles.textColor2(theme),
               transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
@@ -104,33 +108,31 @@ export const SidebarTop = () => {
           </span>
         </div>
 
-        {/* 下拉菜单 */}
         {isOpen && (
           <div
             style={{
               position: "absolute",
-              top: "calc(100% + 8px)", // 稍微增加间距
+              top: "calc(100% + 8px)",
               left: 0,
               right: 0,
-              ...stylePresets.rounded,
-              ...stylePresets.overflowYAuto,
+              borderRadius: "6px",
+              ...layout.overflowYAuto,
               ...themeStyles.surface1(theme),
               maxHeight: "320px",
-              zIndex: stylePresets.zIndex3.zIndex,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)", // 更明显的阴影
+              ...layout.zIndex3,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
               border: `1px solid ${theme.surface2}`,
             }}
           >
-            {/* 最近会话选项 */}
             <div
               onClick={() => handleOptionClick()}
               onMouseEnter={() => setHoveredItem("all")}
               onMouseLeave={() => setHoveredItem(null)}
               style={{
-                ...stylePresets.p2,
-                ...stylePresets.clickable,
-                ...stylePresets.fontSize14,
-                ...stylePresets.transition,
+                ...sp.p2,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "all 0.2s ease",
                 ...themeStyles.textColor1(theme),
                 ...getHoverStyle(hoveredItem === "all"),
                 margin: "4px",
@@ -139,7 +141,6 @@ export const SidebarTop = () => {
               {t("recent")}
             </div>
 
-            {/* 工作区列表 */}
             {workspaces?.map((workspace: any) => (
               <div
                 key={workspace.id}
@@ -153,15 +154,21 @@ export const SidebarTop = () => {
                   onMouseEnter={() => setHoveredItem(workspace.id)}
                   onMouseLeave={() => setHoveredItem(null)}
                   style={{
-                    ...stylePresets.flexBetween,
-                    ...stylePresets.p2,
-                    ...stylePresets.fontSize14,
-                    ...stylePresets.transition,
+                    ...layout.flexBetween,
+                    ...sp.p2,
+                    fontSize: "14px",
+                    transition: "all 0.2s ease",
                     ...themeStyles.textColor1(theme),
                     ...getHoverStyle(hoveredItem === workspace.id),
                   }}
                 >
-                  <span style={stylePresets.textEllipsis}>
+                  <span
+                    style={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {workspace.name}
                   </span>
                   {hoveredItem === workspace.id && (
@@ -171,9 +178,7 @@ export const SidebarTop = () => {
                         handleDeleteWorkspace(workspace.id);
                       }}
                       style={{
-                        ...stylePresets.buttonBase,
-                        ...stylePresets.bgNone,
-                        ...stylePresets.borderNone,
+                        border: "none",
                         padding: "4px 8px",
                         fontSize: "12px",
                         color: theme.text2,
@@ -189,7 +194,6 @@ export const SidebarTop = () => {
               </div>
             ))}
 
-            {/* 新建工作区按钮 */}
             <div
               style={{
                 margin: "4px",
@@ -198,12 +202,12 @@ export const SidebarTop = () => {
             >
               <div
                 style={{
-                  ...stylePresets.p2,
-                  ...stylePresets.flexStart,
-                  ...stylePresets.clickable,
-                  ...stylePresets.transition,
+                  ...layout.flexStart,
+                  ...sp.p2,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
                   ...getHoverStyle(createHover),
-                  color: theme.brand, // 使用主题的品牌色
+                  color: theme.brand,
                 }}
                 onMouseEnter={() => setCreateHover(true)}
                 onMouseLeave={() => setCreateHover(false)}
@@ -213,18 +217,8 @@ export const SidebarTop = () => {
                   setIsOpen(false);
                 }}
               >
-                <GoPlus
-                  size={16}
-                  style={{
-                    marginRight: "8px",
-                  }}
-                />
-                <span
-                  style={{
-                    ...stylePresets.fontSize14,
-                    fontWeight: 500,
-                  }}
-                >
+                <GoPlus size={16} style={{ marginRight: "8px" }} />
+                <span style={{ fontSize: "14px", fontWeight: 500 }}>
                   {t("新建工作区")}
                 </span>
               </div>

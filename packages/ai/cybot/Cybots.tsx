@@ -9,6 +9,7 @@ import { useAppSelector } from "app/hooks";
 import { stylePresets } from "render/ui/stylePresets";
 
 import CybotBlock from "./CybotBlock";
+import { sp } from "render/ui/sp";
 
 interface CybotsProps {
   queryUserId: string;
@@ -59,7 +60,7 @@ const Cybots: React.FC<CybotsProps> = ({
       <div
         style={{
           ...stylePresets.textCenter,
-          ...stylePresets.py2,
+          ...sp.py2,
           color: theme.text2,
         }}
       >

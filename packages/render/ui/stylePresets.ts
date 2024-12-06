@@ -138,28 +138,11 @@ export const stylePresets = {
     alignItems: "center",
   },
 
-  gap1: { gap: sizes.size1 },
-  gap2: { gap: sizes.size2 },
-  p1: { padding: sizes.size1 },
-  p2: { padding: sizes.size2 },
-  p3: { padding: sizes.size3 },
-  py1: { paddingTop: sizes.size1, paddingBottom: sizes.size1 },
-  py2: { paddingTop: sizes.size2, paddingBottom: sizes.size2 },
-  px1: { paddingLeft: sizes.size1, paddingRight: sizes.size1 },
-  px2: { paddingLeft: sizes.size2, paddingRight: sizes.size2 },
-  m1: { margin: sizes.size1 },
-  m2: { margin: sizes.size2 },
-  mb1: { marginBottom: sizes.size1 },
-  mb2: { marginBottom: sizes.size2 },
-  mr1: { marginRight: sizes.size1 },
-  mr2: { marginRight: sizes.size2 },
-  mt2: { marginTop: sizes.size2 },
   flexWrap: { flexWrap: "wrap" as const },
   w100: { width: "100%" },
   h100: { height: "100%" },
   h100vh: { height: "100vh" },
   flexGrow1: { flexGrow: 1 },
-  width160: { width: "160px" },
 
   positionFixed: { position: "fixed" as const },
 
@@ -174,16 +157,7 @@ export const stylePresets = {
   transition: { transition: "all 0.2s ease-in-out" },
 
   textCenter: { textAlign: "center" as const },
-  textEllipsis: {
-    whiteSpace: "nowrap" as const,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  fontSemiBold: { fontWeight: 600 },
-  fontWeight500: { fontWeight: 500 },
-  fontWeight600: { fontWeight: 600 },
-  fontSize14: { fontSize: "14px" },
-  fontSize16: { fontSize: "16px" },
+
   textAlignLeft: { textAlign: "left" as const },
 
   roundedSm: { borderRadius: radii.radius1 },
@@ -198,7 +172,6 @@ export const stylePresets = {
 
   bgNone: { background: "none" },
   borderNone: { border: "none" },
-  colorInherit: { color: "inherit" },
   textDecorationNone: { textDecoration: "none" },
 
   buttonBase: {

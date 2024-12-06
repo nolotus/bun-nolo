@@ -51,9 +51,9 @@ const EditPage = () => {
   return (
     <div
       style={{
-        display: "flex",
-        height: "100vh",
-        overflow: "hidden",
+        ...layout.flex,
+        ...layout.h100vh,
+        ...layout.overflowHidden,
         backgroundColor: "#ffffff",
       }}
     >

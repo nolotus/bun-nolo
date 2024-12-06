@@ -25,7 +25,6 @@ export const layout = {
   w100: { width: "100%" },
   h100: { height: "100%" },
   h100vh: { height: "100vh" },
-  width160: { width: "160px" },
 
   // Position
   positionFixed: { position: "fixed" },

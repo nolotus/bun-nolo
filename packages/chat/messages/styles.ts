@@ -1,18 +1,19 @@
-import OpenProps from "open-props";
+import { layout } from "render/ui/layout";
 import { sizes } from "render/ui/stylePresets";
 // This file contains common styles used across different components in the chat interface.
 // It includes styles for message containers, content wrappers, avatars, and context menus.
 // These styles are exported as objects to be used with inline styling in React components.
 // Constants
-export const messageContentWithAvatarGap = OpenProps.size3;
+export const messageContentWithAvatarGap = sizes.size3;
 
 // Styles for message input
 export const messageInputStyle = {
-  paddingLeft: OpenProps.sizeFluid4,
-  paddingRight: OpenProps.sizeFluid4,
+  ...layout.flex,
+  paddingLeft: sizes.sizeFluid4,
+  paddingRight: sizes.sizeFluid4,
   maxWidth: "900px",
   margin: "auto",
-  marginBottom: OpenProps.sizeFluid2,
+  marginBottom: sizes.sizeFluid1,
 };
 
 // Common styles for message containers (both user and robot messages)

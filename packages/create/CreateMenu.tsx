@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { themeStyles } from "render/ui/styles";
 import { stylePresets } from "render/ui/stylePresets";
+import { sp } from "render/ui/sp";
 
 import Button from "render/ui/Button";
 
@@ -91,8 +92,8 @@ export const CreateMenu = () => {
       <div
         style={{
           ...stylePresets.flexColumn,
-          ...stylePresets.gap2,
-          ...stylePresets.p2,
+          ...sp.gap2,
+          ...sp.p2,
           ...themeStyles.surface2(theme),
           borderRadius: theme.borderRadius,
         }}

@@ -23,6 +23,8 @@ import { HomeIcon } from "@primer/octicons-react";
 import { motion } from "framer-motion";
 import useMediaQuery from "react-responsive";
 import MenuButton from "./MenuButton";
+import { sp } from "../ui/sp";
+import { layout } from "../ui/layout";
 
 interface TopBarProps {
   toggleSidebar?: () => void; // 改为可选
@@ -46,9 +48,9 @@ const TopBar: React.FC<TopBarProps> = ({
   return (
     <div
       style={{
-        ...stylePresets.flex,
-        ...stylePresets.flexBetween,
-        ...stylePresets.p1,
+        ...layout.flex,
+        ...layout.flexBetween,
+        ...sp.p1,
         ...stylePresets.zIndex2,
         backgroundColor: "transparent",
         position: "sticky",
@@ -91,7 +93,7 @@ const TopBar: React.FC<TopBarProps> = ({
                     ...stylePresets.flexEnd,
                     fontSize: theme.fontSize.small,
                     color: theme.text2,
-                    ...stylePresets.px2,
+                    ...sp.px2,
                     ...stylePresets.roundedMd,
                     backgroundColor: theme.surface2,
                   }}

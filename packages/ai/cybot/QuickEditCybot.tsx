@@ -21,6 +21,7 @@ import { providerOptions, getModelsByProvider } from "../llm/providers";
 import { Model } from "../llm/types";
 
 import ToolSelector from "../tools/ToolSelector";
+import { layout } from "render/ui/layout";
 
 const QuickEditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
@@ -86,7 +87,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   // 样式部分调整
   const fieldContainerStyle = {
     marginBottom: theme.form.fieldSpacing,
-    display: "flex",
+    ...layout.flex,
     flexDirection: isMobile ? "column" : "row",
     alignItems: isMobile ? "flex-start" : "center",
     gap: theme.spacing.small,

@@ -7,6 +7,8 @@ import { useAppDispatch, useFetchData } from "app/hooks";
 import { themeStyles } from "render/ui/styles";
 import { stylePresets } from "render/ui/stylePresets";
 import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
+import { sp } from "render/ui/sp";
+import { txt } from "render/ui/txt";
 
 export const DialogItem = ({ id, isCreator, categoryId }) => {
   const { data: dialog } = useFetchData(id);
@@ -26,7 +28,7 @@ export const DialogItem = ({ id, isCreator, categoryId }) => {
   const isSelected = dialog.id === dialogId;
 
   const itemContainerStyle = {
-    ...stylePresets.mb1,
+    ...sp.mb1,
     ...stylePresets.rounded,
     ...stylePresets.transition,
     ...themeStyles.surface1(theme),
@@ -39,11 +41,11 @@ export const DialogItem = ({ id, isCreator, categoryId }) => {
   };
 
   const linkStyle = {
-    ...stylePresets.p2,
-    ...stylePresets.textEllipsis,
-    ...stylePresets.fontSize14,
-    ...stylePresets.textDecorationNone,
-    ...stylePresets.colorInherit,
+    ...sp.p2,
+    ...txt.ellipsis,
+    ...txt.size14,
+    ...txt.decorationNone,
+    ...txt.colorInherit,
     ...stylePresets.transition,
     color: isHovered ? theme.brand : theme.text1,
   };

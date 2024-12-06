@@ -11,6 +11,10 @@ import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
 import { messageInputStyle } from "./styles";
+import { useAppSelector } from "app/hooks";
+import { selectIsDarkMode } from "app/theme/themeSlice";
+import { stylePresets } from "render/ui/stylePresets";
+import { sp } from "render/ui/sp";
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
 }
@@ -21,6 +25,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const [textContent, setTextContent] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const isDarkMode = useAppSelector(selectIsDarkMode);
 
   const handleNewMessageChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>,
@@ -167,7 +172,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   }, []);
   return (
     <div
-      className="flex items-start justify-center space-x-4 "
+      className=" items-start justify-center space-x-4"
       style={messageInputStyle}
     >
       <div
@@ -207,9 +212,17 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           className={clsx(
-            "w-full rounded-md border p-2 transition-colors duration-200",
+            "transition-colors duration-200",
             isDragOver ? "border-blue-500 bg-blue-50" : "",
           )}
+          style={{
+            backgroundColor: isDarkMode ? "#171a1c" : "",
+            color: isDarkMode ? "#868e96" : "",
+            ...stylePresets.roundedMd,
+            ...sp.p2,
+            border: "1px solid #000",
+            ...stylePresets.w100,
+          }}
         />
 
         <ActionButton onSend={beforeSend} />

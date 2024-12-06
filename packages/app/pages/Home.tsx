@@ -13,7 +13,6 @@ import {
 import React from "react";
 import { selectCurrentUserId } from "auth/authSlice";
 import { SpotList } from "render/components/SpotList";
-import { sizes } from "render/ui/stylePresets";
 
 const Home = () => {
   const userId = useAppSelector(selectCurrentUserId);
@@ -24,7 +23,6 @@ const Home = () => {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: sizes.sizeFluid1,
         }}
       >
         <h2>嘿，你好，我是Nolotus！</h2>

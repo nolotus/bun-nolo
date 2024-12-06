@@ -18,6 +18,7 @@ import { useQueryData } from "app/hooks/useQueryData";
 import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
 import ToolSelector from "../tools/ToolSelector";
+import { layout } from "render/ui/layout";
 
 const EditCybot = ({ initialValues, onClose }) => {
   console.log("initialValues", initialValues);
@@ -122,7 +123,7 @@ const EditCybot = ({ initialValues, onClose }) => {
 
   const fieldContainerStyle = {
     marginBottom: theme.form.fieldSpacing,
-    display: "flex",
+    ...layout.flex,
     flexDirection: screenWidth < theme.breakpoints[0] ? "column" : "row",
     alignItems: screenWidth < theme.breakpoints[0] ? "flex-start" : "center",
     gap: theme.spacing.small,

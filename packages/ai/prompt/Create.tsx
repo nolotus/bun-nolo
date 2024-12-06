@@ -20,6 +20,7 @@ import {
   Input,
 } from "render/CommonFormComponents";
 import { PromptFormData } from "ai/types";
+import { layout } from "render/ui/layout";
 
 const CreatePrompt: React.FC = () => {
   const { t } = useTranslation();
@@ -68,7 +69,7 @@ const CreatePrompt: React.FC = () => {
       marginBottom: "5px",
     },
     tagContainer: {
-      display: "flex",
+      ...layout.flex,
       flexWrap: "wrap" as "wrap",
       gap: "5px",
       marginTop: "5px",

@@ -13,6 +13,9 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import withTranslations from "i18n/withTranslations";
 import { stylePresets } from "render/ui/stylePresets";
+import { sp } from "render/ui/sp";
+import { layout } from "render/ui/layout";
+import { txt } from "render/ui/txt";
 
 const CybotBlock = ({ item, closeModal }) => {
   const { t } = useTranslation(); // 初始化 t 函数
@@ -56,18 +59,18 @@ const CybotBlock = ({ item, closeModal }) => {
   return (
     <div
       style={{
-        ...stylePresets.flexColumn,
-        ...stylePresets.p3,
+        ...layout.flexColumn,
+        ...sp.p3,
         ...themeStyles.surface2(theme),
         ...themeStyles.radShadow(theme),
         ...stylePresets.roundedMd,
       }}
     >
-      <div style={{ ...stylePresets.flexBetween, ...stylePresets.mb2 }}>
+      <div style={{ ...layout.flexBetween, ...sp.mb2 }}>
         <div
           style={{
-            ...stylePresets.textEllipsis,
-            ...stylePresets.fontWeight600,
+            ...txt.ellipsis,
+            ...txt.semiBold,
             maxWidth: "60%",
           }}
           title={item.name}
@@ -75,21 +78,17 @@ const CybotBlock = ({ item, closeModal }) => {
           {item.name}
         </div>
       </div>
-      <div style={{ ...stylePresets.flexGrow1, ...stylePresets.mb2 }}>
-        <div style={{ ...stylePresets.textEllipsis }}>
-          <span style={{ ...stylePresets.fontWeight600 }}>
-            {t("modelName")}：
-          </span>
+      <div style={{ ...layout.flexGrow1, ...sp.mb2 }}>
+        <div style={{ ...txt.ellipsis }}>
+          <span style={{ ...txt.semiBold }}>{t("modelName")}：</span>
           {item.model}
         </div>
-        <div style={stylePresets.textEllipsis}>
-          <span style={{ ...stylePresets.fontWeight600 }}>
-            {t("introduction")}：
-          </span>
+        <div style={txt.ellipsis}>
+          <span style={{ ...txt.semiBold }}>{t("introduction")}：</span>
           {item.introduction}
         </div>
       </div>
-      <div style={{ ...stylePresets.flex, ...stylePresets.gap1 }}>
+      <div style={{ ...layout.flex, ...sp.gap1 }}>
         <Button
           style={stylePresets.buttonBase}
           loading={isLoading}
