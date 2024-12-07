@@ -5,27 +5,10 @@ import { pick } from "rambda";
 import { visit } from "unist-util-visit";
 import { markdownToMdast } from "create/editor/markdownToSlate";
 
-const location = ["lat", "lng", "country", "province", "state", "city"];
+const location = ["lat", "lng"];
 const render = ["layout"];
 const artcile = ["title", "tags", "categories"];
 const todo = ["end_time", "start_time"];
-
-const getH1TextFromMdast = (mdast: MdastNode): string | null => {
-  let h1Text: string | null = null;
-  visit(mdast, "heading", (node: MdastNode) => {
-    if (
-      node.type === "heading" &&
-      node.depth === 1 &&
-      node.children &&
-      node.children[0] &&
-      node.children[0].type === "text"
-    ) {
-      h1Text = node.children[0].value as string;
-      return false; // 停止访问
-    }
-  });
-  return h1Text;
-};
 
 export const getYamlValueFromMdast = (mdast: MdastNode): string | null => {
   let yamlValue: string | null = null;
@@ -69,11 +52,5 @@ export function processContent(content: string) {
     }
   }
 
-  // 更新标题情况处理
-  const newTitle = getH1TextFromMdast(mdast); // 使用你的函数从mdast中获取标题
-  if (newTitle) {
-    metaUpdates.title = newTitle;
-  }
-
-  return { content, mdast, metaUpdates };
+  return { content, metaUpdates };
 }

@@ -4,16 +4,16 @@ import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { animations } from "render/styles/theme";
-
-import { createPageData } from "./pageDataUtils";
-// import { updateContent } from "./pageSlice";
-// import { processContent } from "./processContent";
-import { EditTool } from "./EditTool";
+import { formatISO } from "date-fns";
 import { setData } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import Editor from "create/editor/Editor";
 import { sp } from "render/styles/sp";
+
 import { layout } from "../styles/layout";
+import { updateSlate } from "./pageSlice";
+import { EditTool } from "./EditTool";
+
 const EditPage = () => {
   const dispatch = useAppDispatch();
   const { pageId } = useParams();
@@ -23,16 +23,23 @@ const EditPage = () => {
   const pageState = useAppSelector((state) => state.page);
 
   const handleSave = async () => {
+    const nowISO = formatISO(new Date());
     try {
-      console.log("pageState", pageState);
-      const pageData = createPageData(pageState, userId);
-      console.log("pageData", pageData);
+      // maybe need
+      // creator: userId,   title: pageState.meta.title,
 
-      const result = await setData({
-        Data: pageData,
-      });
+      const saveData = {
+        updated_at: nowISO,
+        slateData: pageState.slateData,
+      };
+      console.log("saveData", saveData);
+
+      const result = await dispatch(
+        setData({ id: pageId, data: saveData }),
+      ).unwrap();
 
       if (result) {
+        console.log("result", result);
         toast.success("保存成功");
       }
     } catch (error) {
@@ -42,12 +49,12 @@ const EditPage = () => {
   };
 
   const handleContentChange = (changeValue) => {
-    console.log("changeValue", changeValue);
-    // const { content,  metaUpdates } = processContent(changeValue);
-    // dispatch(updateContent({ content, metaUpdates, }));
+    dispatch(updateSlate(changeValue));
   };
 
-  const slateData = markdownToSlate(pageState.content);
+  const slateData = pageState.slateData
+    ? pageState.slateData
+    : markdownToSlate(pageState.slateData);
 
   return (
     <div

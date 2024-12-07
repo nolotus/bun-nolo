@@ -15,6 +15,7 @@ export const pageSlice = createSlice({
       tags: [],
     },
     saveAsTemplate: false,
+    slateData: [],
   },
   reducers: {
     initPage: (state, action: PayloadAction<string>) => {
@@ -23,6 +24,7 @@ export const pageSlice = createSlice({
       state.content = action.payload.content;
       state.meta.type = action.payload.type;
       state.meta.title = action.payload.title;
+      state.slateData = action.payload.slateData;
     },
     initPageFromTemplate: (state, action: PayloadAction<string>) => {
       // Update content with the incoming markdown
@@ -35,7 +37,6 @@ export const pageSlice = createSlice({
       action: PayloadAction<{ content: string; metaUpdates: any }>,
     ) => {
       state.content = action.payload.content;
-
       if (action.payload.metaUpdates) {
         state.meta = {
           ...state.meta,
@@ -46,6 +47,10 @@ export const pageSlice = createSlice({
     setSaveAsTemplate(state, action: PayloadAction<boolean>) {
       state.saveAsTemplate = action.payload;
     },
+    updateSlate: (state, action) => {
+      const value = action.payload;
+      state.slateData = value;
+    },
   },
 });
 
@@ -54,6 +59,7 @@ export const {
   initPageFromTemplate,
   updateContent,
   setSaveAsTemplate,
+  updateSlate,
 } = pageSlice.actions;
 
 export default pageSlice.reducer;

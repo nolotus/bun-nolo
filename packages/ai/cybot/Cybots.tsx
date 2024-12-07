@@ -72,10 +72,11 @@ const Cybots: React.FC<CybotsProps> = ({
   return (
     <div
       style={{
+        ...sp.m3,
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        gap: theme.spacing.small,
-        padding: theme.spacing.medium,
+        ...sp.gap3,
+        ...sp.p2,
       }}
     >
       {isSuccess &&
