@@ -34,7 +34,7 @@ export const pageSlice = createSlice({
     },
     updateContent: (
       state,
-      action: PayloadAction<{ content: string; metaUpdates: any }>,
+      action: PayloadAction<{ content: string; metaUpdates: any }>
     ) => {
       state.content = action.payload.content;
       if (action.payload.metaUpdates) {
@@ -51,6 +51,21 @@ export const pageSlice = createSlice({
       const value = action.payload;
       state.slateData = value;
     },
+    resetPage: (state) => {
+      // 重置回初始状态
+      state.content = "";
+      state.createdTime = "";
+      state.meta = {
+        type: DataType.Page,
+        creator: "",
+        title: "",
+        layout: "default",
+        categories: [],
+        tags: [],
+      };
+      state.saveAsTemplate = false;
+      state.slateData = [];
+    },
   },
 });
 
@@ -60,6 +75,7 @@ export const {
   updateContent,
   setSaveAsTemplate,
   updateSlate,
+  resetPage,
 } = pageSlice.actions;
 
 export default pageSlice.reducer;

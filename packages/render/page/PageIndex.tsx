@@ -1,9 +1,9 @@
 import { useAppDispatch, useFetchData } from "app/hooks";
 import { AnimatePresence, motion } from "framer-motion";
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
-import { initPage } from "./pageSlice";
+import { initPage, resetPage } from "./pageSlice";
 import RenderPage from "./RenderPage";
 import NoMatch from "../NoMatch";
 import EditPage from "./EditPage";
@@ -12,6 +12,11 @@ const Page = ({ id }) => {
   const { pageId: paramPageId } = useParams();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
+  useEffect(() => {
+    return () => {
+      dispatch(resetPage());
+    };
+  }, [dispatch]);
 
   const pageId = id || paramPageId;
   const isEditMode = searchParams.get("edit") === "true";

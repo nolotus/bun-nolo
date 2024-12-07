@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { animations } from "../styles/animations";
 import { formatISO } from "date-fns";
-import { setData } from "database/dbSlice";
+import { patchData } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import Editor from "create/editor/Editor";
 import { sp } from "render/styles/sp";
@@ -25,17 +25,20 @@ const EditPage = () => {
   const handleSave = async () => {
     const nowISO = formatISO(new Date());
     try {
-      // maybe need
-      // creator: userId,   title: pageState.meta.title,
+      // 从slateData中提取第一个heading-one作为标题
+      const title =
+        pageState.slateData.find((node) => node.type === "heading-one")
+          ?.children[0]?.text || "";
 
       const saveData = {
         updated_at: nowISO,
         slateData: pageState.slateData,
+        title,
       };
       console.log("saveData", saveData);
 
       const result = await dispatch(
-        setData({ id: pageId, data: saveData })
+        patchData({ id: pageId, changes: saveData })
       ).unwrap();
 
       if (result) {
@@ -47,7 +50,6 @@ const EditPage = () => {
       toast.error("保存失败");
     }
   };
-
   const handleContentChange = (changeValue) => {
     dispatch(updateSlate(changeValue));
   };

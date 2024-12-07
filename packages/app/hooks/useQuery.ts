@@ -13,7 +13,7 @@ export const useQuery = () => {
   const syncServers = useAppSelector(selectSyncServers); // 选择同步的服务器列表
   const currentServer = useAppSelector(selectCurrentServer); // 选择当前服务器
   const isAutoSync = useAppSelector(
-    (state) => state.settings.syncSetting.isAutoSync, // 选择是否开启自动同步
+    (state) => state.settings.syncSetting.isAutoSync // 选择是否开启自动同步
   );
 
   const fetchData = async (queryConfig) => {
@@ -27,7 +27,7 @@ export const useQuery = () => {
       setIsSuccess(false);
 
       const action = await dispatch(
-        queryServer({ server: currentServer, ...queryConfig }), // 查询当前服务器
+        queryServer({ server: currentServer, ...queryConfig }) // 查询当前服务器
       );
       setIsSuccess(true);
       return action.payload;
