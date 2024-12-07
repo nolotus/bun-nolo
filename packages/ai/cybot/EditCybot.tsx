@@ -115,14 +115,14 @@ const EditCybot = ({ initialValues, onClose }) => {
     const submitData = { ...data, ...modelData, type: DataType.Cybot };
     console.log("data", data);
     const action = await dispatch(
-      setData({ id: initialValues.id, data: submitData }),
+      setData({ id: initialValues.id, data: submitData })
     );
     console.log("action", action);
     onClose();
   };
 
   const fieldContainerStyle = {
-    marginBottom: theme.form.fieldSpacing,
+    marginBottom: "16px",
     ...layout.flex,
     flexDirection: screenWidth < theme.breakpoints[0] ? "column" : "row",
     alignItems: screenWidth < theme.breakpoints[0] ? "flex-start" : "center",
@@ -134,7 +134,7 @@ const EditCybot = ({ initialValues, onClose }) => {
     width: (() => {
       const values = ["100%", "100%", "30%", "25%", "20%", "20%"];
       const breakpointIndex = theme.breakpoints.findIndex(
-        (bp) => screenWidth < bp,
+        (bp) => screenWidth < bp
       );
       return values[
         breakpointIndex === -1 ? values.length - 1 : breakpointIndex
@@ -146,7 +146,7 @@ const EditCybot = ({ initialValues, onClose }) => {
     width: (() => {
       const values = ["100%", "100%", "70%", "75%", "80%", "80%"];
       const breakpointIndex = theme.breakpoints.findIndex(
-        (bp) => screenWidth < bp,
+        (bp) => screenWidth < bp
       );
       return values[
         breakpointIndex === -1 ? values.length - 1 : breakpointIndex

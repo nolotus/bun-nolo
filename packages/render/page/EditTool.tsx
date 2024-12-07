@@ -6,7 +6,8 @@ import { deleteData } from "database/dbSlice";
 import toast from "react-hot-toast";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import { setSaveAsTemplate } from "./pageSlice";
-import { colors, animations } from "render/styles/theme";
+import { colors } from "render/styles/theme";
+import { animations } from "../styles/animations";
 import {
   CheckIcon,
   EyeIcon,

@@ -1,5 +1,6 @@
 // button.ts
-import { colors, animations, shadows } from "./theme"; // 或 "./theme.dark"
+import { colors, shadows } from "./theme"; // 或 "./theme.dark"
+import { animations } from "./animations";
 
 export const iconStyle = {
   marginRight: "8px",
@@ -10,7 +11,7 @@ export const iconStyle = {
 
 export const createButtonStyle = (
   type: "default" | "primary" | "danger" | "chat",
-  isActive = false,
+  isActive = false
 ) => {
   const baseStyle = {
     padding: "0 16px",

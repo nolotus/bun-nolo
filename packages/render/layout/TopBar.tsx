@@ -1,4 +1,5 @@
 // render/layout/TopBar.tsx
+
 import React, { ReactNode } from "react";
 import { stylePresets } from "render/styles/stylePresets";
 
@@ -23,11 +24,10 @@ import { HomeIcon } from "@primer/octicons-react";
 import { motion } from "framer-motion";
 import useMediaQuery from "react-responsive";
 import MenuButton from "./MenuButton";
-import { sp } from "../styles/sp";
 import { layout } from "../styles/layout";
 
 interface TopBarProps {
-  toggleSidebar?: () => void; // 改为可选
+  toggleSidebar?: () => void;
   theme: any;
   topbarContent?: ReactNode;
   isExpanded: boolean;
@@ -50,14 +50,16 @@ const TopBar: React.FC<TopBarProps> = ({
       style={{
         ...layout.flex,
         ...layout.flexBetween,
-        ...sp.p1,
-        ...stylePresets.zIndex2,
         backgroundColor: "transparent",
-        position: "sticky",
+        position: "absolute",
         top: 0,
+        right: 0,
+        width: `calc(100% - ${theme.sidebarWidth}px)`,
+        padding: "12px 16px",
+        zIndex: 2,
+        height: "60px",
       }}
     >
-      {/* 只在有 toggleSidebar 时显示菜单按钮 */}
       {toggleSidebar && (
         <MenuButton
           onClick={toggleSidebar}
@@ -72,8 +74,7 @@ const TopBar: React.FC<TopBarProps> = ({
           flex: 1,
           ...stylePresets.flexCenter,
           ...stylePresets.flexWrap,
-          // 当没有菜单按钮时调整左边距
-          marginLeft: toggleSidebar ? undefined : theme.spacing.md,
+          marginLeft: toggleSidebar ? undefined : "16px",
         }}
       >
         {currentDialogConfig && (
@@ -91,10 +92,10 @@ const TopBar: React.FC<TopBarProps> = ({
                 <div
                   style={{
                     ...stylePresets.flexEnd,
-                    fontSize: theme.fontSize.small,
+                    fontSize: "14px",
                     color: theme.text2,
-                    ...sp.px2,
-                    ...stylePresets.roundedMd,
+                    padding: "0 16px",
+                    borderRadius: "8px",
                     backgroundColor: theme.surface2,
                   }}
                 >

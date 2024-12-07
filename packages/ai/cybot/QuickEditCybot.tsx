@@ -86,7 +86,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
   // 样式部分调整
   const fieldContainerStyle = {
-    marginBottom: theme.form.fieldSpacing,
+    marginBottom: "16px",
     ...layout.flex,
     flexDirection: isMobile ? "column" : "row",
     alignItems: isMobile ? "flex-start" : "center",

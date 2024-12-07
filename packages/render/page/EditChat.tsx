@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { XIcon, PaperAirplaneIcon } from "@primer/octicons-react";
-import { colors, animations, shadows } from "render/styles/theme";
+import { colors, shadows } from "render/styles/theme";
+import { animations } from "../styles/animations";
 import { createButtonStyle } from "render/styles/button";
 
 interface EditChatProps {

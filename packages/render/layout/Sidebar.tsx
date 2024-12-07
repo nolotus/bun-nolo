@@ -97,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         style={contentStyles(
           theme,
           sidebarContent ? isSidebarOpen : false,
-          theme.sidebarWidth,
+          theme.sidebarWidth
         )}
       >
         {/* 顶部栏 - 只在有侧边栏时显示切换按钮 */}
@@ -126,7 +126,6 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   transition: "left 0.3s ease-in-out",
   zIndex: 2,
   ...themeStyles.textColor1(theme),
-  padding: theme.sidebarPadding,
   display: "flex",
   flexDirection: "column" as const,
 });
@@ -140,7 +139,7 @@ const scrollableContentStyles = {
 const contentStyles = (
   theme: any,
   isSidebarOpen: boolean,
-  sidebarWidth: number,
+  sidebarWidth: number
 ) => ({
   ...stylePresets.flexGrow1,
   marginLeft: isSidebarOpen ? `${sidebarWidth}px` : 0,

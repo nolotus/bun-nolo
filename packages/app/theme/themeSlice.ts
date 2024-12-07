@@ -30,15 +30,8 @@ const baseTheme = {
     medium: 16,
     large: 20,
   },
-  form: {
-    fieldSpacing: "16px",
-  },
+
   breakpoints: [480, 640, 768, 1024, 1280, 1536],
-  topbarHeight: "40px",
-  topBarMargin: "8px",
-  topBarPadding: "16px",
-  topBarZIndex: 1,
-  sidebarPadding: "8px",
   sidebarWidth: 300,
 };
 

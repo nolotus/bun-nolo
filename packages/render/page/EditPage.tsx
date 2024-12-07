@@ -3,7 +3,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "app/hooks";
-import { animations } from "render/styles/theme";
+import { animations } from "../styles/animations";
 import { formatISO } from "date-fns";
 import { setData } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
@@ -35,7 +35,7 @@ const EditPage = () => {
       console.log("saveData", saveData);
 
       const result = await dispatch(
-        setData({ id: pageId, data: saveData }),
+        setData({ id: pageId, data: saveData })
       ).unwrap();
 
       if (result) {

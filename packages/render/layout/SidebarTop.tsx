@@ -19,7 +19,6 @@ import { Dialog } from "render/ui/Dialog";
 import { CreateWorkSpaceForm } from "create/workspace/CreateWorkSpaceForm";
 import { themeStyles } from "../ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
-import { sp } from "../styles/sp";
 import { layout } from "../styles/layout";
 
 export const SidebarTop = () => {
@@ -64,7 +63,12 @@ export const SidebarTop = () => {
   });
 
   return (
-    <div style={{ ...layout.flexStart, ...sp.p2 }}>
+    <div
+      style={{
+        ...layout.flexStart,
+        padding: "12px 16px",
+      }}
+    >
       <NavListItem path="/chat" icon={<CommentDiscussionIcon size={24} />} />
       <div style={{ width: "160px", position: "relative" }}>
         <div
@@ -73,7 +77,7 @@ export const SidebarTop = () => {
           onMouseLeave={() => setDropdownHover(false)}
           style={{
             ...layout.flexBetween,
-            ...sp.p2,
+            padding: "8px 12px",
             borderRadius: "6px",
             cursor: "pointer",
             transition: "all 0.2s ease",
@@ -129,7 +133,7 @@ export const SidebarTop = () => {
               onMouseEnter={() => setHoveredItem("all")}
               onMouseLeave={() => setHoveredItem(null)}
               style={{
-                ...sp.p2,
+                padding: "8px 12px",
                 cursor: "pointer",
                 fontSize: "14px",
                 transition: "all 0.2s ease",
@@ -155,7 +159,7 @@ export const SidebarTop = () => {
                   onMouseLeave={() => setHoveredItem(null)}
                   style={{
                     ...layout.flexBetween,
-                    ...sp.p2,
+                    padding: "8px 12px",
                     fontSize: "14px",
                     transition: "all 0.2s ease",
                     ...themeStyles.textColor1(theme),
@@ -203,7 +207,7 @@ export const SidebarTop = () => {
               <div
                 style={{
                   ...layout.flexStart,
-                  ...sp.p2,
+                  padding: "8px 12px",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                   ...getHoverStyle(createHover),
