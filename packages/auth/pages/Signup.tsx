@@ -8,15 +8,23 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
-import { Button } from "render/ui";
 
 import { signUpfields, signUpSchema } from "../schema";
+import { formStyles } from "render/styles/form";
 
 const Signup: React.FC = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(signUpSchema),
+  });
 
   const onSubmit = async (user) => {
     try {
@@ -27,8 +35,8 @@ const Signup: React.FC = () => {
         const { token } = result;
         if (token) {
           storeTokens(token);
+          window.location.href = "/";
         }
-        window.location.href = "/"; // 使用普通 JavaScript 跳转
       });
     } catch (error) {
       setError(error.message);
@@ -37,50 +45,46 @@ const Signup: React.FC = () => {
     }
   };
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(signUpSchema),
-  });
   return (
-    <div>
-      <div className="flex items-center justify-center">
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="w-full max-w-lg rounded-lg  p-10 "
-        >
-          <h2 className="mb-6 text-2xl font-bold ">{t("signup")}</h2>
-          {signUpfields.map((field) => (
-            <div key={field.id} className="mb-4 flex flex-col">
-              <label htmlFor={field.id} className="mb-2">
-                {t(field.label)}
-              </label>
-              <FormField
-                {...field}
-                register={register}
-                errors={errors}
-                icon={field.id === "username" ? <PersonIcon /> : <LockIcon />}
-              />
-            </div>
-          ))}
+    <div style={formStyles.container}>
+      <form onSubmit={handleSubmit(onSubmit)} style={formStyles.form}>
+        <h2 style={formStyles.title}>{t("signup")}</h2>
 
-          {error && <p className="mb-2 mt-2 ">{error}</p>}
-
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <Button
-              type="submit"
-              loading={loading}
-              variant="primary"
-              className="rounded-lg"
-            >
-              注册
-            </Button>
-            <NavLink to={"/login"}>登陆</NavLink>
+        {signUpfields.map((field) => (
+          <div key={field.id} style={formStyles.fieldWrapper}>
+            <label htmlFor={field.id} style={formStyles.label}>
+              {t(field.label)}
+            </label>
+            <FormField
+              {...field}
+              register={register}
+              errors={errors}
+              icon={
+                field.id === "username" ? (
+                  <PersonIcon size={20} />
+                ) : (
+                  <LockIcon size={20} />
+                )
+              }
+            />
           </div>
-        </form>
-      </div>
+        ))}
+
+        {error && <p style={formStyles.error}>{error}</p>}
+
+        <div style={formStyles.footer}>
+          <button type="submit" style={formStyles.button}>
+            {t("signup")}
+          </button>
+
+          <div>
+            <span style={formStyles.linkText}>已有账号？</span>
+            <NavLink to="/login" style={formStyles.link}>
+              立即登录
+            </NavLink>
+          </div>
+        </div>
+      </form>
     </div>
   );
 };

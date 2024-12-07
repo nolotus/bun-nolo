@@ -1,9 +1,20 @@
+// TextField.tsx
 import React from "react";
-import { getInputClassName } from "render/styles/form";
-
 import { FieldProps } from "./type";
+import {
+  baseStyles,
+  baseInputStyle,
+  iconBaseStyle,
+  containerStyle,
+} from "render/styles/input";
+
+const getInputStyle = (hasIcon: boolean) => ({
+  ...baseInputStyle,
+  padding: `0 ${hasIcon ? "42px" : "12px"}`,
+});
 
 type Props = Partial<FieldProps & { placeholder?: string }>;
+
 export const TextField: React.FC<Props> = ({
   id,
   register,
@@ -15,27 +26,30 @@ export const TextField: React.FC<Props> = ({
 }) => {
   if (readOnly) {
     return (
-      <div>
-        <p>{defaultValue}</p>
+      <div
+        style={{
+          height: "42px",
+          lineHeight: "42px",
+          padding: "0 12px",
+          color: COLORS.text,
+        }}
+      >
+        <p style={{ margin: 0 }}>{defaultValue}</p>
       </div>
     );
   }
+
   return (
-    <div className="relative">
-      {icon && (
-        <div className="focus:none pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          {icon}
-        </div>
-      )}
+    <div style={containerStyle}>
+      <style>{baseStyles}</style>
+      {icon && <div style={{ ...iconBaseStyle, left: "12px" }}>{icon}</div>}
       <input
         type="text"
         placeholder={placeholder}
         id={id}
-        {...(register &&
-          register(id, {
-            required: !optional,
-          }))}
-        className={getInputClassName(!!icon)}
+        className="input-field"
+        {...(register && register(id, { required: !optional }))}
+        style={getInputStyle(!!icon)}
         readOnly={readOnly}
         defaultValue={defaultValue}
       />

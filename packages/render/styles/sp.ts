@@ -1,4 +1,4 @@
-import { sizes } from "./stylePresets";
+import { sizes } from "./sizes";
 
 export const sp = {
   // padding all

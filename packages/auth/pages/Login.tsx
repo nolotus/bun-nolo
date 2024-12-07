@@ -3,18 +3,13 @@ import { PersonIcon, LockIcon } from "@primer/octicons-react";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "app/hooks";
-
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
-
 import { hashPassword } from "core/password";
 import { storeTokens } from "auth/client/token";
-
 import { FormField } from "render/ui/Form/FormField";
-import { Button } from "render/ui";
-import { sizes } from "render/styles/stylePresets";
-
+import { formStyles } from "render/styles/form";
 import { signInFields } from "../schema";
 import { signIn } from "../authSlice";
 import { userFormSchema } from "../schema";
@@ -22,7 +17,6 @@ import { userFormSchema } from "../schema";
 const Login: React.FC = () => {
   const { isLoading } = useSelector((state) => state.auth);
   const dispatch = useAppDispatch();
-
   const { t } = useTranslation();
   const [error, setError] = useState();
 
@@ -42,7 +36,7 @@ const Login: React.FC = () => {
 
     if (action.payload.token) {
       storeTokens(action.payload.token);
-      window.location.href = "/"; // 使用普通 JavaScript 跳转
+      window.location.href = "/";
     }
     if (action.payload.status) {
       switch (action.payload.status) {
@@ -64,62 +58,43 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        style={{ width: "100%", maxWidth: "32rem" }}
-      >
-        <h2 style={{ marginBottom: "1.5rem" }}>{t("login")}</h2>
+    <div style={formStyles.container}>
+      <form onSubmit={handleSubmit(onSubmit)} style={formStyles.form}>
+        <h2 style={formStyles.title}>{t("login")}</h2>
+
         {signInFields.map((field) => (
-          <div key={field.id} style={{ marginBottom: "1.5rem" }}>
-            <label
-              htmlFor={field.id}
-              style={{ display: "block", marginBottom: "0.5rem" }}
-            >
+          <div key={field.id} style={formStyles.fieldWrapper}>
+            <label htmlFor={field.id} style={formStyles.label}>
               {t(field.label)}
             </label>
             <FormField
               {...field}
               register={register}
               errors={errors}
-              icon={field.id === "username" ? <PersonIcon /> : <LockIcon />}
+              icon={
+                field.id === "username" ? (
+                  <PersonIcon size={20} />
+                ) : (
+                  <LockIcon size={20} />
+                )
+              }
             />
           </div>
         ))}
-        {error && (
-          <p
-            style={{
-              marginTop: "0.5rem",
-              marginBottom: "0.5rem",
-              color: "red",
-              fontSize: "0.875rem",
-            }}
-          >
-            {error}
-          </p>
-        )}
-        <Button
-          type="submit"
-          width="100%" // 通过 props 传递宽度样式
-          loading={isLoading}
-        >
-          {t("submit")}
-        </Button>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: sizes.sizeFluid1,
-          }}
-        >
-          <NavLink to="/signup">注册</NavLink>
-          <NavLink to="/">忘记密码</NavLink>
+
+        {error && <p style={formStyles.error}>{error}</p>}
+
+        <div style={formStyles.footer}>
+          <button type="submit" style={formStyles.button}>
+            {t("login")}
+          </button>
+
+          <div>
+            <span style={formStyles.linkText}>没有账号？</span>
+            <NavLink to="/signup" style={formStyles.link}>
+              立即注册
+            </NavLink>
+          </div>
         </div>
       </form>
     </div>

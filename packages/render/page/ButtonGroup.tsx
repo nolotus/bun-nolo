@@ -4,7 +4,7 @@ import {
   ThumbsupIcon,
   HeartIcon,
 } from "@primer/octicons-react";
-import { sizes } from "render/styles/stylePresets";
+import { sizes } from "../styles/sizes";
 
 export const ButtonGroup = ({ onEdit, onDelete, isDeleting, allowEdit }) => {
   return (
