@@ -3,18 +3,19 @@ import { stylePresets } from "render/styles/stylePresets";
 
 import MessagesList from "./MessageList";
 import MessageInputContainer from "./MessageInputContainer";
+import { layout } from "render/styles/layout";
 
 const ChatWindow: React.FC = () => {
   const chatContainerStyle = {
-    ...stylePresets.flexColumn,
+    ...layout.flexColumn,
     ...stylePresets.h100,
-    ...stylePresets.overflowXHidden,
+    ...layout.overflowXHidden,
   };
 
   const messageListContainerStyle = {
-    ...stylePresets.flexGrow1,
+    ...layout.flexGrow1,
     ...stylePresets.overflowYAuto,
-    ...stylePresets.flexColumn,
+    ...layout.flexColumn,
   };
 
   return (

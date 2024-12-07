@@ -40,7 +40,6 @@ export const radii = {
 
 export const stylePresets = {
   flex: { display: "flex" },
-  flexColumn: { display: "flex", flexDirection: "column" as const },
   flexCenter: {
     display: "flex",
     justifyContent: "center",
@@ -68,12 +67,10 @@ export const stylePresets = {
   w100: { width: "100%" },
   h100: { height: "100%" },
   h100vh: { height: "100vh" },
-  flexGrow1: { flexGrow: 1 },
 
   positionFixed: { position: "fixed" as const },
 
   overflowYAuto: { overflowY: "auto" as const },
-  overflowXHidden: { overflowX: "hidden" as const },
   overflowHidden: { overflow: "hidden" as const },
 
   clickable: {
@@ -86,16 +83,8 @@ export const stylePresets = {
 
   textAlignLeft: { textAlign: "left" as const },
 
-  roundedSm: { borderRadius: radii.radius1 },
   roundedMd: { borderRadius: radii.radius2 },
-  roundedLg: { borderRadius: radii.radius3 },
   rounded: { borderRadius: radii.radius2 },
-  roundedFull: { borderRadius: "9999px" },
-
-  zIndex1: { zIndex: 1 },
-  zIndex2: { zIndex: 2 },
-  zIndex3: { zIndex: 3 },
-
   bgNone: { background: "none" },
   borderNone: { border: "none" },
   textDecorationNone: { textDecoration: "none" },

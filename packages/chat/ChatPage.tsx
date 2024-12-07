@@ -5,7 +5,6 @@ import { useAuth } from "auth/useAuth";
 import { useParams } from "react-router-dom";
 import { selectTheme } from "app/theme/themeSlice";
 import withTranslations from "i18n/withTranslations";
-import { stylePresets } from "render/styles/stylePresets";
 import { themeStyles } from "render/ui/styles";
 import {
   initDialog,
@@ -13,6 +12,7 @@ import {
   clearDialogState,
 } from "chat/dialog/dialogSlice";
 import ChatWindow from "./messages/MsgWindow";
+import { layout } from "render/styles/layout";
 
 const ChatPage = () => {
   const auth = useAuth();
@@ -43,17 +43,17 @@ const ChatPage = () => {
   return (
     <div
       style={{
-        ...stylePresets.flex,
-        ...stylePresets.overflowXHidden,
+        ...layout.flex,
+        ...layout.overflowXHidden,
         height: "100dvh",
         ...themeStyles.surface1(theme),
       }}
     >
       <div
         style={{
-          ...stylePresets.flexColumn,
-          ...stylePresets.flexGrow1,
-          ...stylePresets.overflowXHidden,
+          ...layout.flexColumn,
+          ...layout.flexGrow1,
+          ...layout.overflowXHidden,
         }}
       >
         {currentDialogConfig && (

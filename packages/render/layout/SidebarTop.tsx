@@ -20,6 +20,7 @@ import { CreateWorkSpaceForm } from "create/workspace/CreateWorkSpaceForm";
 import { themeStyles } from "../ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
 import { layout } from "../styles/layout";
+import { zIndex } from "../styles/zIndex";
 
 export const SidebarTop = () => {
   const { t } = useTranslation();
@@ -123,7 +124,7 @@ export const SidebarTop = () => {
               ...layout.overflowYAuto,
               ...themeStyles.surface1(theme),
               maxHeight: "320px",
-              ...layout.zIndex3,
+              zIndex: zIndex.codeBlockActions,
               boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
               border: `1px solid ${theme.surface2}`,
             }}

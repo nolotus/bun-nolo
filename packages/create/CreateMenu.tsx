@@ -18,13 +18,14 @@ import { sp } from "render/styles/sp";
 import Button from "render/ui/Button";
 
 import { CreateRoutePaths } from "./routes";
+import { layout } from "render/styles/layout";
 
 const CircleButton = ({ tooltip, icon, to, onClick }) => {
   const theme = useSelector(selectTheme);
 
   const buttonStyle = {
     ...stylePresets.flexCenter,
-    ...stylePresets.roundedFull,
+    borderRadius: "9999px",
     padding: theme.spacing.small,
     minWidth: "auto",
     ...themeStyles.surface1(theme),
@@ -91,7 +92,7 @@ export const CreateMenu = () => {
     >
       <div
         style={{
-          ...stylePresets.flexColumn,
+          ...layout.flexColumn,
           ...sp.gap2,
           ...sp.p2,
           ...themeStyles.surface2(theme),

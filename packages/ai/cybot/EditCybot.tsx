@@ -17,11 +17,11 @@ import {
 import { useQueryData } from "app/hooks/useQueryData";
 import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
-import ToolSelector from "../tools/ToolSelector";
 import { layout } from "render/styles/layout";
 
+import ToolSelector from "../tools/ToolSelector";
+
 const EditCybot = ({ initialValues, onClose }) => {
-  console.log("initialValues", initialValues);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();

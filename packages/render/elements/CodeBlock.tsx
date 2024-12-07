@@ -16,6 +16,7 @@ import "prismjs/components/prism-java";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-yaml";
 import "prismjs/components/prism-mermaid";
+import { zIndex } from "../styles/zIndex";
 
 // Mermaid 配置
 mermaid.initialize({
@@ -47,7 +48,7 @@ const styles = {
     display: "flex",
     gap: "8px",
     alignItems: "center",
-    zIndex: 10,
+    zIndex: zIndex.codeBlockActions,
     background: "rgba(255,255,255,0.9)",
     padding: "4px 8px",
     borderRadius: "6px",
@@ -95,16 +96,25 @@ export const CodeBlock = ({ attributes, children, element }) => {
   const [showPreview, setShowPreview] = useState(false);
 
   const content = useMemo(() => {
-    const getTextContent = (nodes) =>
-      nodes
-        .map(
-          (node) =>
-            node.text || (node.children && getTextContent(node.children)) || "",
-        )
+    const getTextContent = (nodes) => {
+      return nodes
+        .map((node) => {
+          if (node.text) return node.text;
+          if (node.type === "code-line") {
+            return getTextContent(node.children) + "\n";
+          }
+          return node.children ? getTextContent(node.children) : "";
+        })
         .join("");
-    return getTextContent(element.children);
-  }, [element.children]);
+    };
 
+    try {
+      return getTextContent(element.children);
+    } catch (err) {
+      setError(err);
+      return "";
+    }
+  }, [element.children]);
   const handleCopy = () => {
     copyToClipboard(content, {
       onSuccess: () => {

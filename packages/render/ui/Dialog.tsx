@@ -7,6 +7,7 @@ import { themeStyles } from "render/ui/styles";
 import { stylePresets } from "render/styles/stylePresets";
 
 import { Modal } from "./Modal";
+import { layout } from "../styles/layout";
 
 export const Dialog = ({ isOpen, onClose, title, children }) => {
   const theme = useSelector(selectTheme);
@@ -16,7 +17,7 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
       <div
         style={{
           ...themeStyles.surface1(theme),
-          ...stylePresets.flexColumn,
+          ...layout.flexColumn,
           height: "auto",
           maxHeight: "80dvh",
           borderRadius: theme.borderRadius,

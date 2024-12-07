@@ -33,9 +33,4 @@ export const layout = {
   overflowYAuto: { overflowY: "auto" },
   overflowXHidden: { overflowX: "hidden" },
   overflowHidden: { overflow: "hidden" },
-
-  // z-index
-  zIndex1: { zIndex: 1 },
-  zIndex2: { zIndex: 2 },
-  zIndex3: { zIndex: 3 },
 } as const;

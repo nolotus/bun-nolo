@@ -11,6 +11,7 @@ import OpenProps from "open-props";
 import TopBar from "./TopBar";
 import ResizeHandle from "./ResizeHandle";
 import { SidebarTop } from "./SidebarTop";
+import { layout } from "../styles/layout";
 
 // 修改接口定义,使 sidebarContent 可选
 interface SidebarProps {
@@ -141,7 +142,7 @@ const contentStyles = (
   isSidebarOpen: boolean,
   sidebarWidth: number
 ) => ({
-  ...stylePresets.flexGrow1,
+  ...layout.flexGrow1,
   marginLeft: isSidebarOpen ? `${sidebarWidth}px` : 0,
   transition: "margin-left 0.3s ease-in-out",
   width: isSidebarOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",

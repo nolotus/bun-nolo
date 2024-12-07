@@ -2,7 +2,7 @@ import React from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTranslation } from "react-i18next";
 import { selectTheme } from "app/theme/themeSlice";
-import { stylePresets } from "render/styles/stylePresets";
+import { radii } from "render/styles/stylePresets";
 
 import useCybotConfig from "ai/cybot/useCybotConfig";
 // import { selectCostByUserId } from "ai/selectors"; // 暂时注释掉
@@ -37,7 +37,7 @@ const MessageInputContainer: React.FC = () => {
     ...txt.size14,
     ...sp.p1,
     backgroundColor: theme.errorBg,
-    ...stylePresets.roundedSm,
+    borderRadius: radii.radius1,
     ...sp.mt2,
   };
 
