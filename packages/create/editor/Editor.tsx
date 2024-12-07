@@ -12,6 +12,7 @@ import {
 } from "slate";
 import { withReact, Slate, Editable, useSlate } from "slate-react";
 import { withHistory } from "slate-history";
+
 import { normalizeTokens } from "./utils/normalize-tokens";
 import { prismThemeCss } from "./theme/prismThemeCss";
 import { ElementWrapper } from "./ElementWrapper";
@@ -22,10 +23,10 @@ import { CodeLineType, CodeBlockType } from "./type";
 import { withShortcuts } from "./withShortcuts";
 import { HoveringToolbar } from "./HoveringToolbar";
 import { toggleMark } from "./mark";
-
+import { withLayout } from "./withLayout";
 const NoloEditor = ({ initialValue, readOnly, onChange }) => {
   const [editor] = useState(() =>
-    withShortcuts(withHistory(withReact(createEditor()))),
+    withShortcuts(withLayout(withHistory(withReact(createEditor()))))
   );
   const decorate = useDecorate(editor);
   const onKeyDown = useOnKeydown(editor);
@@ -35,7 +36,7 @@ const NoloEditor = ({ initialValue, readOnly, onChange }) => {
       initialValue={initialValue}
       onChange={(value) => {
         const isAstChange = editor.operations.some(
-          (op) => "set_selection" !== op.type,
+          (op) => "set_selection" !== op.type
         );
         if (isAstChange) {
           onChange?.(value);
@@ -84,7 +85,7 @@ const useDecorate = (editor) => {
       }
       return [];
     },
-    [editor.nodeToDecorations],
+    [editor.nodeToDecorations]
   );
 };
 
@@ -131,10 +132,10 @@ const SetNodeToDecorations = () => {
       at: [],
       mode: "highest",
       match: (n) => SlateElement.isElement(n) && n.type === CodeBlockType,
-    }),
+    })
   );
   const nodeToDecorations = mergeMaps(
-    ...blockEntries.map(getChildNodeToDecorations),
+    ...blockEntries.map(getChildNodeToDecorations)
   );
   editor.nodeToDecorations = nodeToDecorations;
   return null;
