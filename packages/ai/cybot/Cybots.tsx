@@ -4,11 +4,12 @@ import { useQueryData } from "app/hooks/useQueryData";
 import { DataType } from "create/types";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles } from "render/ui/styles";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAppSelector } from "app/hooks";
+import { stylePresets } from "render/styles/stylePresets";
 
 import CybotBlock from "./CybotBlock";
+import { sizes } from "render/styles/sizes";
 
 interface CybotsProps {
   queryUserId: string;
@@ -48,15 +49,22 @@ const Cybots: React.FC<CybotsProps> = ({
   const { isLoading: isLoading2, isSuccess: isSuccess2 } =
     useQueryData(queryConfig2);
   const data = useAppSelector(
-    selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot),
+    selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot)
   );
   const data2 = useAppSelector(
-    selectFilteredDataByUserAndType(queryUserId, DataType.Cybot),
+    selectFilteredDataByUserAndType(queryUserId, DataType.Cybot)
   );
 
   if (isLoading && isLoading2) {
     return (
-      <div style={{ ...styles.textCenter, ...styles.py2, color: theme.text2 }}>
+      <div
+        style={{
+          ...stylePresets.textCenter,
+          paddingTop: sizes.size2,
+          paddingBottom: sizes.size2,
+          color: theme.text2,
+        }}
+      >
         加载 AI 列表中...
       </div>
     );
@@ -65,21 +73,22 @@ const Cybots: React.FC<CybotsProps> = ({
   return (
     <div
       style={{
+        margin: sizes.size3,
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        gap: theme.spacing.small,
-        padding: theme.spacing.medium,
+        gap: sizes.size3,
+        padding: sizes.size2,
       }}
     >
       {isSuccess &&
         data?.map((item) => (
-          <div key={item.id} style={styles.w100}>
+          <div key={item.id} style={stylePresets.w100}>
             <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}
       {isSuccess2 &&
         data2?.map((item) => (
-          <div key={item.id} style={styles.w100}>
+          <div key={item.id} style={stylePresets.w100}>
             <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}

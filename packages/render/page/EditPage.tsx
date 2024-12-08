@@ -1,17 +1,18 @@
 import { useAuth } from "auth/useAuth";
 import React from "react";
 import { useParams } from "react-router-dom";
-import OpenProps from "open-props";
 import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "app/hooks";
+import { animations } from "../styles/animations";
+import { formatISO } from "date-fns";
+import { patchData } from "database/dbSlice";
+import { markdownToSlate } from "create/editor/markdownToSlate";
+import Editor from "create/editor/Editor";
 
-import { TextEdit } from "./TextEdit";
-import { createPageData } from "./pageDataUtils";
-import { setHasVersion, saveContentAndMdast, updateContent } from "./pageSlice";
-import { processContent } from "./processContent";
+import { layout } from "../styles/layout";
+import { updateSlate } from "./pageSlice";
 import { EditTool } from "./EditTool";
-import { RichEdit } from "create/editor/RichEdit";
-import { setData } from "database/dbSlice";
+import { sizes } from "../styles/sizes";
 
 const EditPage = () => {
   const dispatch = useAppDispatch();
@@ -19,72 +20,117 @@ const EditPage = () => {
 
   const auth = useAuth();
   const userId = auth.user?.userId;
-
   const pageState = useAppSelector((state) => state.page);
-  const [currentEditText, setTextareaContent] = React.useState<string>("");
 
-  //保存之前检查输入区内容
   const handleSave = async () => {
-    const hasNoSubmitContent = !!currentEditText;
-    if (hasNoSubmitContent) {
-      dispatch(saveContentAndMdast(currentEditText));
-      setTextareaContent(""); // 清空 textarea
-    }
+    const nowISO = formatISO(new Date());
     try {
-      const pageData = createPageData(pageState, userId);
+      // 从slateData中提取第一个heading-one作为标题
+      const title =
+        pageState.slateData.find((node) => node.type === "heading-one")
+          ?.children[0]?.text || "";
 
-      const result = await setData({
-        id: pageId,
-        data: pageData,
-      });
+      const saveData = {
+        updated_at: nowISO,
+        slateData: pageState.slateData,
+        title,
+      };
+      console.log("saveData", saveData);
+
+      const result = await dispatch(
+        patchData({ id: pageId, changes: saveData })
+      ).unwrap();
 
       if (result) {
+        console.log("result", result);
         toast.success("保存成功");
       }
     } catch (error) {
-      // 错误处理逻辑
+      console.error(error);
+      toast.error("保存失败");
     }
   };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // 阻止默认换行行为
-      dispatch(saveContentAndMdast(currentEditText));
-      setTextareaContent(""); // 清空 textarea
-    }
+  const handleContentChange = (changeValue) => {
+    dispatch(updateSlate(changeValue));
   };
 
-  const handleContentChange = (changeValue: string) => {
-    const { content, mdast, metaUpdates } = processContent(changeValue);
-    dispatch(updateContent({ content, metaUpdates, mdast }));
-  };
+  const slateData = pageState.slateData
+    ? pageState.slateData
+    : markdownToSlate(pageState.slateData);
 
   return (
-    <>
-      <div
-        className="container mx-auto flex  min-h-screen"
-        style={{ gap: OpenProps.sizeFluid5 }}
+    <div
+      style={{
+        ...layout.flex,
+        ...layout.h100vh,
+        ...layout.overflowHidden,
+        backgroundColor: "#ffffff",
+      }}
+    >
+      <main
+        style={{
+          ...layout.flexGrow1,
+          ...layout.flexColumn,
+          ...layout.h100,
+          ...layout.overflowHidden,
+        }}
       >
-        <div className="flex flex-grow">
-          <div className="w-full flex-shrink-0">
-            {pageState.showAsMarkdown ? (
-              <TextEdit
-                value={pageState.content}
-                onChange={handleContentChange}
-              />
-            ) : (
-              <RichEdit
-                mdast={pageState.mdast}
-                onKeyDown={handleKeyDown}
-                value={currentEditText}
-                onChange={setTextareaContent}
-              />
-            )}
+        <div
+          style={{
+            ...layout.flexEnd,
+            paddingLeft: sizes.size2,
+            paddingRight: sizes.size2,
+            backgroundColor: "#ffffff",
+            borderBottom: "1px solid rgba(0,0,0,0.03)",
+            transition: `all ${animations.duration.fast} ${animations.spring}`,
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+          }}
+        >
+          <EditTool handleSave={handleSave} />
+        </div>
+
+        <div
+          style={{
+            ...layout.flexGrow1,
+            ...layout.overflowYAuto,
+            padding: sizes.size3,
+          }}
+        >
+          <div
+            style={{
+              maxWidth: "768px",
+              margin: "0 auto",
+              minHeight: "calc(100vh - 200px)",
+              backgroundColor: "#ffffff",
+              padding: sizes.size2,
+            }}
+          >
+            <Editor initialValue={slateData} onChange={handleContentChange} />
           </div>
         </div>
-        <EditTool handleSave={handleSave} />
-      </div>
-    </>
+      </main>
+
+      <style>
+        {`
+          ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          ::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.08);
+            border-radius: 3px;
+          }
+          ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.12);
+          }
+        `}
+      </style>
+    </div>
   );
 };
 

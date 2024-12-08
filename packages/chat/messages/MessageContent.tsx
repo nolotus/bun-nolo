@@ -10,12 +10,9 @@ export const MessageContent = ({ content, role }) => {
 
   return (
     <div
-      className="rounded-lg"
       style={{
         display: "flex",
         flexDirection: "column",
-        boxShadow: OpenProps.shadow3,
-        padding: OpenProps.size2,
       }}
     >
       {typeof content === "string" ? (

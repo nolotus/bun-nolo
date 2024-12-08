@@ -4,11 +4,13 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
-import { styles, themeStyles } from "render/ui/styles";
+import { themeStyles } from "render/ui/styles";
+
 import { selectTheme } from "app/theme/themeSlice";
 import { useMediaQuery } from "react-responsive";
 
 import { Modal, useModal } from "./Modal";
+import { stylePresets } from "../styles/stylePresets";
 
 // 自定义 hook 用于响应式样式
 const useResponsiveStyles = () => {
@@ -71,7 +73,7 @@ export const Alert: React.FC<AlertProps> = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <div
         style={{
-          ...styles.rounded,
+          ...stylePresets.rounded,
           ...themeStyles.surface3(theme),
           padding: responsiveStyles.padding,
           display: "flex",

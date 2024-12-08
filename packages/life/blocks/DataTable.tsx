@@ -40,7 +40,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       },
       { header: "AI 定制描述", key: "description" },
       { header: "AI 知识", key: "knowledge" },
-      { header: "数据源", key: "source" },
     ],
   },
   [DataType.Cybot]: {
@@ -64,7 +63,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       },
       { header: "AI 定制描述", key: "description" },
       { header: "AI 知识", key: "knowledge" },
-      { header: "数据源", key: "source" },
     ],
   },
   [DataType.Page]: {
@@ -82,7 +80,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
         ),
       },
       { header: "标题", key: "title" },
-      { header: "数据源", key: "source" },
     ],
   },
   [DataType.SurfSpot]: {
@@ -100,7 +97,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
         ),
       },
       { header: "浪点名字", key: "title" },
-      { header: "数据源", key: "source" },
     ],
   },
   [DataType.Prompt]: {
@@ -113,7 +109,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       },
       { header: "分类", key: "category" },
       { header: "标签", key: "tags", render: (value) => value.join(", ") },
-      { header: "数据源", key: "source" },
     ],
     actions: (data) => (
       <Link
@@ -173,7 +168,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
         key: "date",
         render: (value) => new Date(value).toLocaleString(),
       },
-      { header: "数据源", key: "source" },
     ],
     actions: (data) => (
       <Link
@@ -222,7 +216,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
           });
         },
       },
-      { header: "数据源", key: "source" },
     ],
     actions: (data) => (
       <Link
@@ -241,7 +234,6 @@ const defaultConfig: RenderConfig = {
   fields: [
     { header: "Id", key: "id" },
     { header: "数据类型", key: "type" },
-    { header: "数据源", key: "source" },
   ],
 };
 

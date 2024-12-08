@@ -11,6 +11,10 @@ import ActionButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
 import { messageInputStyle } from "./styles";
+import { useAppSelector } from "app/hooks";
+import { selectIsDarkMode } from "app/theme/themeSlice";
+import { stylePresets } from "render/styles/stylePresets";
+import { sizes } from "render/styles/sizes";
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
 }
@@ -21,9 +25,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const [textContent, setTextContent] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const isDarkMode = useAppSelector(selectIsDarkMode);
 
   const handleNewMessageChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement>,
+    event: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     setTextContent(event.target.value);
   };
@@ -90,7 +95,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       // 发送文件上传请求
       const response = await fetch(
         "http://localhost/api/v1/db/write",
-        requestOptions,
+        requestOptions
       );
 
       if (!response.ok) {
@@ -117,7 +122,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   };
   const handleRemoveImage = (indexToRemove: number) => {
     setImagePreviewUrls((prevUrls) =>
-      prevUrls.filter((_, index) => index !== indexToRemove),
+      prevUrls.filter((_, index) => index !== indexToRemove)
     );
   };
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -167,13 +172,13 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   }, []);
   return (
     <div
-      className="flex items-start justify-center space-x-4 "
+      className=" items-start justify-center space-x-4"
       style={messageInputStyle}
     >
       <div
         className={clsx(
           "relative flex flex-grow  items-end gap-2",
-          isDragOver ? "border-4 border-blue-500" : "",
+          isDragOver ? "border-4 border-blue-500" : ""
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -207,9 +212,17 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           className={clsx(
-            "w-full rounded-md border p-2 transition-colors duration-200",
-            isDragOver ? "border-blue-500 bg-blue-50" : "",
+            "transition-colors duration-200",
+            isDragOver ? "border-blue-500 bg-blue-50" : ""
           )}
+          style={{
+            backgroundColor: isDarkMode ? "#171a1c" : "",
+            color: isDarkMode ? "#868e96" : "",
+            ...stylePresets.roundedMd,
+            padding: sizes.size2,
+            border: "1px solid #000",
+            ...stylePresets.w100,
+          }}
         />
 
         <ActionButton onSend={beforeSend} />

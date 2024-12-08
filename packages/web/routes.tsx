@@ -23,7 +23,7 @@ export const routes = (currentUser: any) => [
           createLazyRoute("/life", () => import("life/web/Database")),
           createLazyRoute(
             "/life/statistics",
-            () => import("life/web/Statistics"),
+            () => import("life/web/Statistics")
           ),
           createLazyRoute("/life/calendar", () => import("life/web/Calendar")),
         ],
@@ -49,14 +49,14 @@ export const routes = (currentUser: any) => [
           createLazyRoute("/chat/:dialogId", () => import("chat/ChatPage")),
         ],
       },
+      {
+        path: ":pageId",
+        element: (
+          <Suspense>
+            <Page />
+          </Suspense>
+        ),
+      },
     ],
-  },
-  {
-    path: ":pageId",
-    element: (
-      <Suspense>
-        <Page />
-      </Suspense>
-    ),
   },
 ];

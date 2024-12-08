@@ -8,6 +8,7 @@ import { PlusIcon } from "@primer/octicons-react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import CreateCybot from "ai/cybot/CreateCybot";
+import { layout } from "render/styles/layout";
 
 const CustomizeAIButton = () => {
   const { t } = useTranslation();
@@ -35,7 +36,7 @@ const CustomizeAIButton = () => {
     color: theme.text1,
     border: "none",
     cursor: "pointer",
-    display: "flex",
+    ...layout.flex,
     alignItems: "center",
     justifyContent: "center",
     gap: theme.spacing.small,

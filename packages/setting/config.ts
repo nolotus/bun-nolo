@@ -1,10 +1,10 @@
 export const SettingRoutePaths = {
   SETTING: "setting",
-  SETTING_USER_PROFILE: "setting/user-profile",
-  SETTING_EDITOR_CONFIG: "setting/editor-config",
-  SETTING_SYNC: "setting/sync",
-  SETTING_ACCOUNT: "setting/account",
-  SETTING_WEBSITE: "setting/website",
-  SETTING_CUSTOMIZE: "setting/customize",
-  SETTING_SERVICE_PROVIDER: "setting/service-provider",
+  SETTING_USER_PROFILE: "user-profile",
+  SETTING_EDITOR_CONFIG: "editor-config",
+  SETTING_SYNC: "sync",
+  SETTING_ACCOUNT: "account",
+  SETTING_WEBSITE: "website",
+  SETTING_CUSTOMIZE: "customize",
+  SETTING_SERVICE_PROVIDER: "service-provider",
 };

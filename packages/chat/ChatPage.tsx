@@ -2,17 +2,17 @@
 import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/useAuth";
-import { styles, themeStyles } from "render/ui/styles";
 import { useParams } from "react-router-dom";
 import { selectTheme } from "app/theme/themeSlice";
 import withTranslations from "i18n/withTranslations";
-
+import { themeStyles } from "render/ui/styles";
 import {
   initDialog,
   selectCurrentDialogConfig,
   clearDialogState,
 } from "chat/dialog/dialogSlice";
 import ChatWindow from "./messages/MsgWindow";
+import { layout } from "render/styles/layout";
 
 const ChatPage = () => {
   const auth = useAuth();
@@ -40,23 +40,20 @@ const ChatPage = () => {
     return null;
   }
 
-  // 计算剩余的空间
-  const remainingHeight = `calc(100dvh - ${theme.topbarHeight} - ${theme.topBarMargin} - ${theme.topBarPadding} * 2)`;
-
   return (
     <div
       style={{
-        ...styles.flex,
-        ...styles.overflowXHidden,
-        height: remainingHeight, // 使用计算后的剩余高度
+        ...layout.flex,
+        ...layout.overflowXHidden,
+        height: "100dvh",
         ...themeStyles.surface1(theme),
       }}
     >
       <div
         style={{
-          ...styles.flexColumn,
-          ...styles.flexGrow1,
-          ...styles.overflowXHidden,
+          ...layout.flexColumn,
+          ...layout.flexGrow1,
+          ...layout.overflowXHidden,
         }}
       >
         {currentDialogConfig && (

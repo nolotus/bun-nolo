@@ -1,9 +1,12 @@
-// render/layout/blocks/NavListItem.tsx
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles } from "render/ui/styles";
+import { stylePresets } from "render/styles/stylePresets";
+
+import { layout } from "render/styles/layout";
+import { txt } from "render/styles/txt";
+import { sizes } from "../../styles/sizes";
 
 interface NavListItemProps {
   path?: string;
@@ -24,20 +27,22 @@ const NavListItem: React.FC<NavListItemProps> = ({
     throw new Error("Theme is not defined");
   }
 
-  if (!styles) {
-    throw new Error("Styles is not defined");
+  if (!stylePresets) {
+    throw new Error("stylePresets is not defined");
   }
 
   const defaultStyle: React.CSSProperties = {
-    ...styles.flex,
-    ...styles.flexStart,
-    ...styles.transition,
-    ...styles.clickable,
-    ...styles.py1,
-    ...styles.px2,
-    ...styles.mb1,
-    ...styles.fontSemiBold,
-    ...styles.roundedMd,
+    ...layout.flex,
+    ...layout.flexStart,
+    ...stylePresets.transition,
+    ...stylePresets.clickable,
+    paddingTop: sizes.size1,
+    paddingBottom: sizes.size1,
+    paddingLeft: sizes.size2,
+    paddingRight: sizes.size2,
+    marginBottom: sizes.size1,
+    ...txt.semiBold,
+    ...stylePresets.roundedMd,
     color: theme.text1,
     textDecoration: "none",
   };
@@ -49,63 +54,55 @@ const NavListItem: React.FC<NavListItemProps> = ({
 
     if (icon && !label) {
       return (
-        <span style={{ ...styles.flex, ...styles.justifyCenter }}>{icon}</span>
+        <span style={{ ...layout.flex, ...stylePresets.justifyCenter }}>
+          {icon}
+        </span>
       );
     }
 
     return (
       <>
-        {icon && <span style={{ ...styles.mr2 }}>{icon}</span>}
+        {icon && <span style={{ marginRight: sizes.size2 }}>{icon}</span>}
         {label && <span>{label}</span>}
       </>
     );
   };
 
-  if (onClick) {
-    return (
-      <div
-        onClick={onClick}
-        style={defaultStyle}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = theme.brand;
-          e.currentTarget.style.color = theme.surface1;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = theme.text1;
-        }}
-      >
-        <Content />
-      </div>
-    );
-  }
-
-  if (!path) {
-    return <div>没有路径</div>;
-  }
-
   return (
-    <NavLink
-      to={path}
-      className={({ isActive }) => (isActive ? "active" : "")}
-      style={({ isActive }) => ({
-        ...defaultStyle,
-        color: isActive ? theme.surface1 : theme.text1,
-        backgroundColor: isActive ? theme.brand : "transparent",
-      })}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = theme.brand;
-        e.currentTarget.style.color = theme.surface1;
-      }}
-      onMouseLeave={(e) => {
-        if (!e.currentTarget.classList.contains("active")) {
-          e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = theme.text1;
-        }
-      }}
-    >
-      <Content />
-    </NavLink>
+    <>
+      <style>
+        {`
+          .nav-item:hover {
+            background-color: ${theme.brand} !important;
+            color: ${theme.surface1} !important;
+          }
+          .nav-item.active {
+            background-color: ${theme.brand} !important;
+            color: ${theme.surface1} !important;
+          }
+        `}
+      </style>
+
+      {onClick ? (
+        <div onClick={onClick} className="nav-item" style={defaultStyle}>
+          <Content />
+        </div>
+      ) : path ? (
+        <NavLink
+          to={path}
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+          style={({ isActive }) => ({
+            ...defaultStyle,
+            color: isActive ? theme.surface1 : theme.text1,
+            backgroundColor: isActive ? theme.brand : "transparent",
+          })}
+        >
+          <Content />
+        </NavLink>
+      ) : (
+        <div>没有路径</div>
+      )}
+    </>
   );
 };
 

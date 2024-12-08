@@ -23,7 +23,6 @@ const Home = () => {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "var(--size-fluid-1)",
         }}
       >
         <h2>嘿，你好，我是Nolotus！</h2>

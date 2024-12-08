@@ -3,9 +3,11 @@ import React from "react";
 import { XIcon } from "@primer/octicons-react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles, themeStyles } from "render/ui/styles";
+import { themeStyles } from "render/ui/styles";
+import { stylePresets } from "render/styles/stylePresets";
 
 import { Modal } from "./Modal";
+import { layout } from "../styles/layout";
 
 export const Dialog = ({ isOpen, onClose, title, children }) => {
   const theme = useSelector(selectTheme);
@@ -15,7 +17,7 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
       <div
         style={{
           ...themeStyles.surface1(theme),
-          ...styles.flexColumn,
+          ...layout.flexColumn,
           height: "auto",
           maxHeight: "80dvh",
           borderRadius: theme.borderRadius,
@@ -23,7 +25,7 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
       >
         <div
           style={{
-            ...styles.flexBetween,
+            ...stylePresets.flexBetween,
             padding: `${theme.spacing.large} ${theme.spacing.large}`,
           }}
         >
@@ -37,9 +39,9 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
           </h2>
           <button
             style={{
-              ...styles.bgNone,
-              ...styles.borderNone,
-              ...styles.clickable,
+              ...stylePresets.bgNone,
+              ...stylePresets.borderNone,
+              ...stylePresets.clickable,
               ...themeStyles.textColor1(theme),
             }}
             onClick={onClose}
@@ -53,7 +55,7 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
 
         <div
           style={{
-            ...styles.overflowYAuto,
+            ...stylePresets.overflowYAuto,
             padding: theme.spacing.large,
             ...themeStyles.textColor1(theme),
           }}

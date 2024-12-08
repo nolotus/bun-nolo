@@ -1,7 +1,8 @@
 // render/layout/TopBar.tsx
+
 import React, { ReactNode } from "react";
-import { styles } from "render/ui/styles";
-import MenuButton from "./MenuButton";
+import { stylePresets } from "render/styles/stylePresets";
+
 import { CreateMenu } from "create/CreateMenu";
 import { useAppSelector } from "app/hooks";
 import CybotNameChip from "ai/cybot/CybotNameChip";
@@ -18,12 +19,15 @@ import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
 import CreateDialogButton from "chat/dialog/CreateDialogButton";
 import EditableTitle from "chat/dialog/EditableTitle";
 import { RoutePaths } from "auth/client/routes";
+import { HomeIcon } from "@primer/octicons-react";
 
 import { motion } from "framer-motion";
 import useMediaQuery from "react-responsive";
+import MenuButton from "./MenuButton";
+import { layout } from "../styles/layout";
 
 interface TopBarProps {
-  toggleSidebar: () => void;
+  toggleSidebar?: () => void;
   theme: any;
   topbarContent?: ReactNode;
   isExpanded: boolean;
@@ -36,9 +40,7 @@ const TopBar: React.FC<TopBarProps> = ({
   isExpanded,
 }) => {
   const { t } = useTranslation();
-
   const { isLoggedIn } = useAuth();
-
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
@@ -46,25 +48,33 @@ const TopBar: React.FC<TopBarProps> = ({
   return (
     <div
       style={{
-        ...styles.flex,
-        ...styles.flexBetween,
-        ...styles.p1,
-        ...styles.zIndex2,
+        ...layout.flex,
+        ...layout.flexBetween,
         backgroundColor: "transparent",
-        position: "sticky",
+        position: "absolute",
         top: 0,
+        right: 0,
+        width: `calc(100% - ${theme.sidebarWidth}px)`,
+        padding: "12px 16px",
+        zIndex: 2,
+        height: "60px",
       }}
     >
-      <MenuButton
-        onClick={toggleSidebar}
-        theme={theme}
-        isExpanded={isExpanded}
-      />
+      {toggleSidebar && (
+        <MenuButton
+          onClick={toggleSidebar}
+          theme={theme}
+          isExpanded={isExpanded}
+        />
+      )}
+      <NavListItem path="/" icon={<HomeIcon size={24} />} />
+
       <div
         style={{
           flex: 1,
-          ...styles.flexCenter,
-          ...styles.flexWrap,
+          ...layout.flexCenter,
+          ...layout.flexWrap,
+          marginLeft: toggleSidebar ? undefined : "16px",
         }}
       >
         {currentDialogConfig && (
@@ -81,11 +91,11 @@ const TopBar: React.FC<TopBarProps> = ({
               >
                 <div
                   style={{
-                    ...styles.flexEnd,
-                    fontSize: theme.fontSize.small,
+                    ...stylePresets.flexEnd,
+                    fontSize: "14px",
                     color: theme.text2,
-                    ...styles.px2,
-                    ...styles.roundedMd,
+                    padding: "0 16px",
+                    borderRadius: "8px",
                     backgroundColor: theme.surface2,
                   }}
                 >
@@ -97,8 +107,10 @@ const TopBar: React.FC<TopBarProps> = ({
             <DeleteDialogButton dialogConfig={currentDialogConfig} />
           </>
         )}
+        {topbarContent}
       </div>
-      <div style={styles.flexEnd}>
+
+      <div style={stylePresets.flexEnd}>
         <CreateMenu />
         {isLoggedIn ? (
           <div>

@@ -9,6 +9,7 @@ import { selectTheme } from "app/theme/themeSlice";
 import { useCouldEdit } from "auth/useCouldEdit";
 
 import QuickEditCybot from "./QuickEditCybot";
+import { txt } from "render/styles/txt";
 
 const CybotNameChip = React.memo(({ cybotId }) => {
   const { isLoading, data: cybot } = useFetchData(cybotId);
@@ -34,7 +35,7 @@ const CybotNameChip = React.memo(({ cybotId }) => {
     color: theme.text2,
     whiteSpace: "nowrap",
     overflow: "hidden",
-    textOverflow: "ellipsis",
+    ...txt.ellipsis,
     maxWidth: "100px",
     cursor: "pointer",
     transition: "background-color 0.2s",

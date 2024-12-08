@@ -81,8 +81,9 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   // 提取删除的数据
   for (const { key, value } of memoryData) {
     const flags = extractAndDecodePrefix(key);
+    const isDeleted = value === "0";
 
-    if (value === "0" && !deletedData.has(key)) {
+    if (isDeleted && !deletedData.has(key)) {
       deletedData.add(key);
     }
     if (isJSON && flags.isJSON) {
@@ -91,6 +92,9 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
         if (checkQuery(jsonData, condition)) {
           const result = { id: key, ...jsonData };
+          if (key.includes("01JEG03TSK60YT06CBK822ZRH9")) {
+            console.log("memory jsonData", jsonData);
+          }
           if (!deletedData.has(key)) {
             addToResults(key, result);
           }
@@ -135,7 +139,9 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
     } else if (isJSON && flags.isJSON) {
       try {
         const jsonData = JSON.parse(value);
-
+        if (key.includes("01JEG03TSK60YT06CBK822ZRH9")) {
+          console.log("file jsonData", jsonData.title);
+        }
         if (checkQuery(jsonData, condition)) {
           const result = { id: key, ...jsonData };
           if (!deletedData.has(key)) {

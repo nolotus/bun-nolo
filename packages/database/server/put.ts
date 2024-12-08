@@ -54,6 +54,11 @@ export const handlePut = async (req, res) => {
   } else {
     try {
       //maybe merge
+      if (id.includes("01JEG03TSK60YT06CBK822ZRH9")) {
+        console.log("id", id);
+
+        console.log("data", data);
+      }
       const value = formatData(data, flags);
       mem.set(id, value);
       return res

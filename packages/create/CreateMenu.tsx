@@ -11,17 +11,21 @@ import { Tooltip } from "@primer/react/next";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles, themeStyles } from "render/ui/styles";
+import { themeStyles } from "render/ui/styles";
+import { stylePresets } from "render/styles/stylePresets";
+
 import Button from "render/ui/Button";
 
 import { CreateRoutePaths } from "./routes";
+import { layout } from "render/styles/layout";
+import { sizes } from "render/styles/sizes";
 
 const CircleButton = ({ tooltip, icon, to, onClick }) => {
   const theme = useSelector(selectTheme);
 
   const buttonStyle = {
-    ...styles.flexCenter,
-    ...styles.roundedFull,
+    ...stylePresets.flexCenter,
+    borderRadius: "9999px",
     padding: theme.spacing.small,
     minWidth: "auto",
     ...themeStyles.surface1(theme),
@@ -43,7 +47,7 @@ const CircleButton = ({ tooltip, icon, to, onClick }) => {
   return (
     <Tooltip text={tooltip} direction="n">
       {to ? (
-        <Link to={to} onClick={onClick} style={styles.textDecorationNone}>
+        <Link to={to} onClick={onClick} style={stylePresets.textDecorationNone}>
           {ButtonContent}
         </Link>
       ) : (
@@ -88,9 +92,9 @@ export const CreateMenu = () => {
     >
       <div
         style={{
-          ...styles.flexColumn,
-          ...styles.gap2,
-          ...styles.p2,
+          ...layout.flexColumn,
+          gap: sizes.size2,
+          padding: sizes.size2,
           ...themeStyles.surface2(theme),
           borderRadius: theme.borderRadius,
         }}

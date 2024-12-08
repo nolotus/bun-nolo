@@ -1,8 +1,7 @@
 import GaodeMap from "render/map/GaodeMap";
 import { APILoader } from "@uiw/react-amap";
 //be careful APILoader can't in entry or Map file, you could try will debug
-import { renderContentNode } from "render";
-import { useMediaQuery } from "react-responsive";
+
 import OpenProps from "open-props";
 import { WeatherRelate } from "./WeatherRelate";
 import Card from "./Card";
@@ -15,6 +14,7 @@ interface SurfSpotDescriptionProps {
 import { ShareIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
 import { PageLoader } from "../../blocks/PageLoader";
+import { sizes } from "../../styles/sizes";
 
 const SurfSpotDescription = ({
   title,
@@ -30,7 +30,7 @@ const SurfSpotDescription = ({
         </button>
       </Card.Actions>
     </div>
-    {description && <p>{renderContentNode(description)}</p>}
+    {description}
   </div>
 );
 
@@ -53,16 +53,13 @@ const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
       <div style={{ marginTop: OpenProps.sizeFluid2 }}>
         <div style={{ display: "flex" }}>
           <div style={{ width: "45%", marginRight: "10%" }}>
-            <SurfSpotDescription
-              title={title}
-              description={data.mdast.children[2]}
-            />
+            <SurfSpotDescription title={title} description={"need update"} />
           </div>
 
           <div style={{ width: "45%" }}>
             <div
               className="surface2 h-64 overflow-hidden"
-              style={{ marginBottom: OpenProps["--size-fluid-2"] }}
+              style={{ marginBottom: sizes.sizeFluid2 }}
             >
               <APILoader
                 version="2.0.5"

@@ -17,7 +17,7 @@ const createAuthHeaders = (token: string) => ({
 // 使用 any 类型简化 thunkAPI
 export const addToListAction = async (
   { itemId, listId }: ListPayload,
-  thunkAPI: any,
+  thunkAPI: any
 ) => {
   const state = thunkAPI.getState();
   const baseUrl = selectCurrentServer(state);
@@ -38,7 +38,7 @@ export const addToListAction = async (
 
 export const removeFromListAction = async (
   { itemId, listId }: ListPayload,
-  thunkAPI: any,
+  thunkAPI: any
 ) => {
   const state = thunkAPI.getState();
   const baseUrl = selectCurrentServer(state);

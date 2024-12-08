@@ -4,7 +4,7 @@ import { useModal } from "render/ui/Modal";
 import Button from "render/ui/Button";
 import { useSelector, useDispatch } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles, themeStyles } from "render/ui/styles";
+import { themeStyles } from "render/ui/styles";
 import EditCybot from "ai/cybot/EditCybot";
 import { Dialog } from "render/ui/Dialog";
 import toast from "react-hot-toast";
@@ -12,6 +12,10 @@ import { deleteData } from "database/dbSlice";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import withTranslations from "i18n/withTranslations";
+import { stylePresets } from "render/styles/stylePresets";
+import { layout } from "render/styles/layout";
+import { txt } from "render/styles/txt";
+import { sizes } from "render/styles/sizes";
 
 const CybotBlock = ({ item, closeModal }) => {
   const { t } = useTranslation(); // 初始化 t 函数
@@ -55,18 +59,18 @@ const CybotBlock = ({ item, closeModal }) => {
   return (
     <div
       style={{
-        ...styles.flexColumn,
-        ...styles.p3,
+        ...layout.flexColumn,
+        padding: sizes.size3,
         ...themeStyles.surface2(theme),
         ...themeStyles.radShadow(theme),
-        ...styles.roundedMd,
+        ...stylePresets.roundedMd,
       }}
     >
-      <div style={{ ...styles.flexBetween, ...styles.mb2 }}>
+      <div style={{ ...layout.flexBetween, marginBottom: sizes.size2 }}>
         <div
           style={{
-            ...styles.textEllipsis,
-            ...styles.fontWeight600,
+            ...txt.ellipsis,
+            ...txt.semiBold,
             maxWidth: "60%",
           }}
           title={item.name}
@@ -74,31 +78,31 @@ const CybotBlock = ({ item, closeModal }) => {
           {item.name}
         </div>
       </div>
-      <div style={{ ...styles.flexGrow1, ...styles.mb2 }}>
-        <div style={{ ...styles.textEllipsis }}>
-          <span style={{ ...styles.fontWeight600 }}>{t("modelName")}：</span>
+      <div style={{ ...layout.flexGrow1, marginBottom: sizes.size2 }}>
+        <div style={{ ...txt.ellipsis }}>
+          <span style={{ ...txt.semiBold }}>{t("modelName")}：</span>
           {item.model}
         </div>
-        <div style={styles.textEllipsis}>
-          <span style={{ ...styles.fontWeight600 }}>{t("introduction")}：</span>
+        <div style={txt.ellipsis}>
+          <span style={{ ...txt.semiBold }}>{t("introduction")}：</span>
           {item.introduction}
         </div>
       </div>
-      <div style={{ ...styles.flex, ...styles.gap1 }}>
+      <div style={{ ...layout.flex, gap: sizes.size1 }}>
         <Button
-          style={styles.buttonBase}
+          style={stylePresets.buttonBase}
           loading={isLoading}
           onClick={startDialog}
         >
           {t("dialog")}
         </Button>
-        <Button style={styles.buttonBase} onClick={handleEditClick}>
+        <Button style={stylePresets.buttonBase} onClick={handleEditClick}>
           {t("edit")}
         </Button>
         <Button
           style={{
-            ...styles.buttonBase,
-            ...styles.transition,
+            ...stylePresets.buttonBase,
+            ...stylePresets.transition,
           }}
           onClick={handleDelete}
           loading={deleting}

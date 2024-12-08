@@ -1,7 +1,9 @@
 // MenuButton.tsx
 import React from "react";
 import { MoveToEndIcon, MoveToStartIcon } from "@primer/octicons-react";
-import { styles, themeStyles } from "render/ui/styles";
+import { themeStyles } from "render/ui/styles";
+import { stylePresets } from "render/styles/stylePresets";
+
 import Button from "render/ui/Button";
 
 interface MenuButtonProps {
@@ -16,7 +18,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   isExpanded,
 }) => {
   const buttonStyle = {
-    ...styles.buttonBase,
+    ...stylePresets.buttonBase,
     ...themeStyles.surface1(theme),
   };
 

@@ -73,7 +73,7 @@ const dbSlice = createSliceWithThunks({
           const one = action.payload.data;
           dbAdapter.setOne(state, one);
         },
-      },
+      }
     ),
     upsertData: create.asyncThunk(
       async (saveConfig, thunkApi) => {
@@ -101,7 +101,7 @@ const dbSlice = createSliceWithThunks({
         fulfilled: (state, action) => {
           dbAdapter.upsertOne(state, action);
         },
-      },
+      }
     ),
     upsertOne: create.reducer((state, action) => {
       dbAdapter.upsertOne(state, action.payload);
@@ -134,7 +134,7 @@ const dbSlice = createSliceWithThunks({
           const { id, ...changes } = payload;
           dbAdapter.updateOne(state, { id, changes });
         },
-      },
+      }
     ),
 
     addOne: dbAdapter.addOne,
@@ -154,7 +154,7 @@ const dbSlice = createSliceWithThunks({
 });
 export const selectEntitiesByIds = createSelector(
   [(state) => state, (state, ids) => ids],
-  (state, ids) => ids.map((id) => selectById(state, id)),
+  (state, ids) => ids.map((id) => selectById(state, id))
 );
 createSelectorCreator;
 export const {

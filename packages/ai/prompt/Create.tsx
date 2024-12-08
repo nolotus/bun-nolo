@@ -20,6 +20,7 @@ import {
   Input,
 } from "render/CommonFormComponents";
 import { PromptFormData } from "ai/types";
+import { layout } from "render/styles/layout";
 
 const CreatePrompt: React.FC = () => {
   const { t } = useTranslation();
@@ -54,7 +55,7 @@ const CreatePrompt: React.FC = () => {
           data: { type: DataType.Prompt, ...promptData },
           flags: { isJSON: true },
           userId: auth.user?.userId,
-        }),
+        })
       );
       const promptId = writePromptAction.payload.id;
       navigate(`/${promptId}`);
@@ -68,8 +69,8 @@ const CreatePrompt: React.FC = () => {
       marginBottom: "5px",
     },
     tagContainer: {
-      display: "flex",
-      flexWrap: "wrap" as "wrap",
+      ...layout.flex,
+      ...layout.flexWrap,
       gap: "5px",
       marginTop: "5px",
     },

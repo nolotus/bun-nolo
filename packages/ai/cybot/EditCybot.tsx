@@ -17,10 +17,11 @@ import {
 import { useQueryData } from "app/hooks/useQueryData";
 import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
+import { layout } from "render/styles/layout";
+
 import ToolSelector from "../tools/ToolSelector";
 
 const EditCybot = ({ initialValues, onClose }) => {
-  console.log("initialValues", initialValues);
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
@@ -114,15 +115,15 @@ const EditCybot = ({ initialValues, onClose }) => {
     const submitData = { ...data, ...modelData, type: DataType.Cybot };
     console.log("data", data);
     const action = await dispatch(
-      setData({ id: initialValues.id, data: submitData }),
+      setData({ id: initialValues.id, data: submitData })
     );
     console.log("action", action);
     onClose();
   };
 
   const fieldContainerStyle = {
-    marginBottom: theme.form.fieldSpacing,
-    display: "flex",
+    marginBottom: "16px",
+    ...layout.flex,
     flexDirection: screenWidth < theme.breakpoints[0] ? "column" : "row",
     alignItems: screenWidth < theme.breakpoints[0] ? "flex-start" : "center",
     gap: theme.spacing.small,
@@ -133,7 +134,7 @@ const EditCybot = ({ initialValues, onClose }) => {
     width: (() => {
       const values = ["100%", "100%", "30%", "25%", "20%", "20%"];
       const breakpointIndex = theme.breakpoints.findIndex(
-        (bp) => screenWidth < bp,
+        (bp) => screenWidth < bp
       );
       return values[
         breakpointIndex === -1 ? values.length - 1 : breakpointIndex
@@ -145,7 +146,7 @@ const EditCybot = ({ initialValues, onClose }) => {
     width: (() => {
       const values = ["100%", "100%", "70%", "75%", "80%", "80%"];
       const breakpointIndex = theme.breakpoints.findIndex(
-        (bp) => screenWidth < bp,
+        (bp) => screenWidth < bp
       );
       return values[
         breakpointIndex === -1 ? values.length - 1 : breakpointIndex

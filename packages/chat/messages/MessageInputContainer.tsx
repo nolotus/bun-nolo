@@ -2,12 +2,14 @@ import React from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTranslation } from "react-i18next";
 import { selectTheme } from "app/theme/themeSlice";
-import { styles } from "render/ui/styles";
+import { radii } from "render/styles/stylePresets";
+
 import useCybotConfig from "ai/cybot/useCybotConfig";
 // import { selectCostByUserId } from "ai/selectors"; // 暂时注释掉
 
 import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
+import { sizes } from "render/styles/sizes";
 
 const MessageInputContainer: React.FC = () => {
   const { t } = useTranslation();
@@ -31,13 +33,12 @@ const MessageInputContainer: React.FC = () => {
 
   const errorMessageStyle = {
     color: theme.error,
-    ...styles.fontSize14,
-    ...styles.p1,
+    fontSize: "14px",
+    padding: sizes.size1,
     backgroundColor: theme.errorBg,
-    ...styles.roundedSm,
-    ...styles.mt2,
+    borderRadius: radii.radius1,
+    marginTop: "16px",
   };
-
   return (
     <div style={inputContainerStyle}>
       {allowSend ? (
