@@ -14,6 +14,7 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 
 import { layout } from "render/styles/layout";
+import { sizes } from "render/styles/sizes";
 
 const ChatSidebar = () => {
   const dispatch = useAppDispatch();
@@ -32,7 +33,7 @@ const ChatSidebar = () => {
 
   return (
     <nav>
-      <div style={{ ...layout.flexBetween, ...sp.gap2 }}>
+      <div style={{ ...layout.flexBetween, gap: sizes.size2 }}>
         {/* <CustomizeAIButton /> */}
         <NewDialogButton />
       </div>
