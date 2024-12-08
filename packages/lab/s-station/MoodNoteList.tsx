@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import useMediaQuery from "react-responsive";
 import { RiDeleteBin5Line } from "react-icons/ri";
+import { layout } from "render/styles/layout";
 
 interface MoodNote {
   content: string;
@@ -183,7 +184,7 @@ const MoodNoteList: React.FC<MoodNoteListProps> = ({ notes, onDelete }) => {
                 <div
                   style={{
                     display: "flex",
-                    flexWrap: "wrap",
+                    ...layout.flexWrap,
                     gap: isMobile ? "10px" : isTablet ? "15px" : "20px",
                     marginTop: isMobile ? "15px" : isTablet ? "20px" : "25px",
                   }}

@@ -72,8 +72,8 @@ const TopBar: React.FC<TopBarProps> = ({
       <div
         style={{
           flex: 1,
-          ...stylePresets.flexCenter,
-          ...stylePresets.flexWrap,
+          ...layout.flexCenter,
+          ...layout.flexWrap,
           marginLeft: toggleSidebar ? undefined : "16px",
         }}
       >

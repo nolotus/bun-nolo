@@ -1,11 +1,12 @@
 import { SpotCard } from "render/components/SpotCard";
-import OpenProps from "open-props";
 
 import { useQueryData } from "app/hooks/useQueryData";
 
 import { DataType } from "create/types";
 import { Spinner } from "@primer/react";
 import React from "react";
+import { layout } from "../styles/layout";
+import { sizes } from "../styles/sizes";
 export const SpotList = ({ userId }) => {
   const queryConfig = {
     queryUserId: userId,
@@ -24,7 +25,7 @@ export const SpotList = ({ userId }) => {
   const filteredSpots = data?.filter((spot) => !spot.is_template) || [];
 
   return (
-    <div style={{ display: "flex", gap: OpenProps.size4, flexWrap: "wrap" }}>
+    <div style={{ gap: sizes.size4, ...layout.flexWrap, ...layout.flex }}>
       {filteredSpots.map((spot) => (
         <SpotCard key={spot.id} data={spot} />
       ))}

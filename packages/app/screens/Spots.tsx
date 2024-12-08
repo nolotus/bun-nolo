@@ -12,6 +12,7 @@ import { Loader } from "render/ui/screens/Loader";
 import Card from "./Card";
 import { useAppDispatch } from "../hooks";
 import { useQueryData } from "app/hooks/useQueryData";
+import { layout } from "render/styles/layout";
 
 export function SpotsScreen() {
   const dispath = useAppDispatch();
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    ...layout.flexWrap,
     justifyContent: "space-between",
     paddingHorizontal: 10,
   },

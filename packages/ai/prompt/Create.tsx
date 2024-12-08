@@ -55,7 +55,7 @@ const CreatePrompt: React.FC = () => {
           data: { type: DataType.Prompt, ...promptData },
           flags: { isJSON: true },
           userId: auth.user?.userId,
-        }),
+        })
       );
       const promptId = writePromptAction.payload.id;
       navigate(`/${promptId}`);
@@ -70,7 +70,7 @@ const CreatePrompt: React.FC = () => {
     },
     tagContainer: {
       ...layout.flex,
-      flexWrap: "wrap" as "wrap",
+      ...layout.flexWrap,
       gap: "5px",
       marginTop: "5px",
     },
