@@ -9,7 +9,7 @@ import { useAppSelector } from "app/hooks";
 import { stylePresets } from "render/styles/stylePresets";
 
 import CybotBlock from "./CybotBlock";
-import { sp } from "render/styles/sp";
+import { sizes } from "render/styles/sizes";
 
 interface CybotsProps {
   queryUserId: string;
@@ -49,10 +49,10 @@ const Cybots: React.FC<CybotsProps> = ({
   const { isLoading: isLoading2, isSuccess: isSuccess2 } =
     useQueryData(queryConfig2);
   const data = useAppSelector(
-    selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot),
+    selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot)
   );
   const data2 = useAppSelector(
-    selectFilteredDataByUserAndType(queryUserId, DataType.Cybot),
+    selectFilteredDataByUserAndType(queryUserId, DataType.Cybot)
   );
 
   if (isLoading && isLoading2) {
@@ -60,7 +60,8 @@ const Cybots: React.FC<CybotsProps> = ({
       <div
         style={{
           ...stylePresets.textCenter,
-          ...sp.py2,
+          paddingTop: sizes.size2,
+          paddingBottom: sizes.size2,
           color: theme.text2,
         }}
       >
@@ -72,11 +73,11 @@ const Cybots: React.FC<CybotsProps> = ({
   return (
     <div
       style={{
-        ...sp.m3,
+        margin: sizes.size3,
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        ...sp.gap3,
-        ...sp.p2,
+        gap: sizes.size3,
+        padding: sizes.size2,
       }}
     >
       {isSuccess &&

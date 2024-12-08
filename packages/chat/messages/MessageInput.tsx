@@ -14,7 +14,7 @@ import { messageInputStyle } from "./styles";
 import { useAppSelector } from "app/hooks";
 import { selectIsDarkMode } from "app/theme/themeSlice";
 import { stylePresets } from "render/styles/stylePresets";
-import { sp } from "render/styles/sp";
+import { sizes } from "render/styles/sizes";
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
 }
@@ -28,7 +28,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const isDarkMode = useAppSelector(selectIsDarkMode);
 
   const handleNewMessageChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement>,
+    event: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     setTextContent(event.target.value);
   };
@@ -95,7 +95,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       // 发送文件上传请求
       const response = await fetch(
         "http://localhost/api/v1/db/write",
-        requestOptions,
+        requestOptions
       );
 
       if (!response.ok) {
@@ -122,7 +122,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   };
   const handleRemoveImage = (indexToRemove: number) => {
     setImagePreviewUrls((prevUrls) =>
-      prevUrls.filter((_, index) => index !== indexToRemove),
+      prevUrls.filter((_, index) => index !== indexToRemove)
     );
   };
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -178,7 +178,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       <div
         className={clsx(
           "relative flex flex-grow  items-end gap-2",
-          isDragOver ? "border-4 border-blue-500" : "",
+          isDragOver ? "border-4 border-blue-500" : ""
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -213,13 +213,13 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
           onPaste={handlePaste}
           className={clsx(
             "transition-colors duration-200",
-            isDragOver ? "border-blue-500 bg-blue-50" : "",
+            isDragOver ? "border-blue-500 bg-blue-50" : ""
           )}
           style={{
             backgroundColor: isDarkMode ? "#171a1c" : "",
             color: isDarkMode ? "#868e96" : "",
             ...stylePresets.roundedMd,
-            ...sp.p2,
+            padding: sizes.size2,
             border: "1px solid #000",
             ...stylePresets.w100,
           }}

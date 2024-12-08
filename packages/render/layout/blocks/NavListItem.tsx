@@ -4,9 +4,9 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { stylePresets } from "render/styles/stylePresets";
 
-import { sp } from "render/styles/sp";
 import { layout } from "render/styles/layout";
 import { txt } from "render/styles/txt";
+import { sizes } from "../../styles/sizes";
 
 interface NavListItemProps {
   path?: string;
@@ -36,9 +36,11 @@ const NavListItem: React.FC<NavListItemProps> = ({
     ...layout.flexStart,
     ...stylePresets.transition,
     ...stylePresets.clickable,
-    ...sp.py1,
-    ...sp.px2,
-    ...sp.mb1,
+    paddingTop: sizes.size1,
+    paddingBottom: sizes.size1,
+    paddingLeft: sizes.size2,
+    paddingRight: sizes.size2,
+    marginBottom: sizes.size1,
     ...txt.semiBold,
     ...stylePresets.roundedMd,
     color: theme.text1,
@@ -60,7 +62,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
 
     return (
       <>
-        {icon && <span style={{ ...sp.mr2 }}>{icon}</span>}
+        {icon && <span style={{ marginRight: sizes.size2 }}>{icon}</span>}
         {label && <span>{label}</span>}
       </>
     );

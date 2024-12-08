@@ -12,7 +12,7 @@ import {
 } from "create/workspace/workspaceSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
-import { sp } from "render/styles/sp";
+
 import { layout } from "render/styles/layout";
 
 const ChatSidebar = () => {
@@ -23,8 +23,8 @@ const ChatSidebar = () => {
     selectFilteredDataByUserAndTypeAndWorkspace(
       currentUserId,
       DataType.Dialog,
-      workspaceId,
-    ),
+      workspaceId
+    )
   );
   useEffect(() => {
     dispatch(queryDialogList());

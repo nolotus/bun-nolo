@@ -13,9 +13,9 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import withTranslations from "i18n/withTranslations";
 import { stylePresets } from "render/styles/stylePresets";
-import { sp } from "render/styles/sp";
 import { layout } from "render/styles/layout";
 import { txt } from "render/styles/txt";
+import { sizes } from "render/styles/sizes";
 
 const CybotBlock = ({ item, closeModal }) => {
   const { t } = useTranslation(); // 初始化 t 函数
@@ -60,13 +60,13 @@ const CybotBlock = ({ item, closeModal }) => {
     <div
       style={{
         ...layout.flexColumn,
-        ...sp.p3,
+        padding: sizes.size3,
         ...themeStyles.surface2(theme),
         ...themeStyles.radShadow(theme),
         ...stylePresets.roundedMd,
       }}
     >
-      <div style={{ ...layout.flexBetween, ...sp.mb2 }}>
+      <div style={{ ...layout.flexBetween, marginBottom: sizes.size2 }}>
         <div
           style={{
             ...txt.ellipsis,
@@ -78,7 +78,7 @@ const CybotBlock = ({ item, closeModal }) => {
           {item.name}
         </div>
       </div>
-      <div style={{ ...layout.flexGrow1, ...sp.mb2 }}>
+      <div style={{ ...layout.flexGrow1, marginBottom: sizes.size2 }}>
         <div style={{ ...txt.ellipsis }}>
           <span style={{ ...txt.semiBold }}>{t("modelName")}：</span>
           {item.model}
@@ -88,7 +88,7 @@ const CybotBlock = ({ item, closeModal }) => {
           {item.introduction}
         </div>
       </div>
-      <div style={{ ...layout.flex, ...sp.gap1 }}>
+      <div style={{ ...layout.flex, gap: sizes.size1 }}>
         <Button
           style={stylePresets.buttonBase}
           loading={isLoading}

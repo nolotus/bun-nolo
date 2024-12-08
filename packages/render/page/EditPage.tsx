@@ -8,11 +8,11 @@ import { formatISO } from "date-fns";
 import { patchData } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import Editor from "create/editor/Editor";
-import { sp } from "render/styles/sp";
 
 import { layout } from "../styles/layout";
 import { updateSlate } from "./pageSlice";
 import { EditTool } from "./EditTool";
+import { sizes } from "../styles/sizes";
 
 const EditPage = () => {
   const dispatch = useAppDispatch();
@@ -78,7 +78,8 @@ const EditPage = () => {
         <div
           style={{
             ...layout.flexEnd,
-            ...sp.px2,
+            paddingLeft: sizes.size2,
+            paddingRight: sizes.size2,
             backgroundColor: "#ffffff",
             borderBottom: "1px solid rgba(0,0,0,0.03)",
             transition: `all ${animations.duration.fast} ${animations.spring}`,
@@ -94,7 +95,7 @@ const EditPage = () => {
           style={{
             ...layout.flexGrow1,
             ...layout.overflowYAuto,
-            ...sp.p3,
+            padding: sizes.size3,
           }}
         >
           <div
@@ -103,7 +104,7 @@ const EditPage = () => {
               margin: "0 auto",
               minHeight: "calc(100vh - 200px)",
               backgroundColor: "#ffffff",
-              ...sp.p2,
+              padding: sizes.size2,
             }}
           >
             <Editor initialValue={slateData} onChange={handleContentChange} />

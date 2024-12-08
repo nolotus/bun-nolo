@@ -13,12 +13,12 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { themeStyles } from "render/ui/styles";
 import { stylePresets } from "render/styles/stylePresets";
-import { sp } from "render/styles/sp";
 
 import Button from "render/ui/Button";
 
 import { CreateRoutePaths } from "./routes";
 import { layout } from "render/styles/layout";
+import { sizes } from "render/styles/sizes";
 
 const CircleButton = ({ tooltip, icon, to, onClick }) => {
   const theme = useSelector(selectTheme);
@@ -93,8 +93,8 @@ export const CreateMenu = () => {
       <div
         style={{
           ...layout.flexColumn,
-          ...sp.gap2,
-          ...sp.p2,
+          gap: sizes.size2,
+          padding: sizes.size2,
           ...themeStyles.surface2(theme),
           borderRadius: theme.borderRadius,
         }}

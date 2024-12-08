@@ -9,6 +9,7 @@ import useCybotConfig from "ai/cybot/useCybotConfig";
 
 import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
+import { sizes } from "render/styles/sizes";
 
 const MessageInputContainer: React.FC = () => {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ const MessageInputContainer: React.FC = () => {
   const errorMessageStyle = {
     color: theme.error,
     fontSize: "14px",
-    padding: "8px", // 替换 sp.p1
+    padding: sizes.size1,
     backgroundColor: theme.errorBg,
     borderRadius: radii.radius1,
     marginTop: "16px",
