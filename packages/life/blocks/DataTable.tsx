@@ -38,8 +38,6 @@ const renderConfigs: Record<DataType, RenderConfig> = {
           </div>
         ),
       },
-      { header: "AI 定制描述", key: "description" },
-      { header: "AI 知识", key: "knowledge" },
     ],
   },
   [DataType.Cybot]: {

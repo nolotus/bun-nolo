@@ -71,6 +71,7 @@ export const DialogList = ({ dialogList }) => {
   const styles = {
     container: {
       display: "flex",
+
       flexDirection: "column",
       gap: OpenProps.size2,
     },

@@ -1,20 +1,95 @@
 import React, { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { FileMediaIcon } from "@primer/octicons-react";
+import { UploadIcon } from "@primer/octicons-react";
 import { retrieveFirstToken } from "auth/client/token";
 import { generateFileID } from "database/fileUpload/generateFileID";
 import clsx from "clsx";
 import { useAuth } from "auth/useAuth";
-import TextareaAutosize from "react-textarea-autosize";
 
-import ActionButton from "./ActionButton";
+import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
-import { messageInputStyle } from "./styles";
 import { useAppSelector } from "app/hooks";
 import { selectIsDarkMode } from "app/theme/themeSlice";
-import { stylePresets } from "render/styles/stylePresets";
-import { sizes } from "render/styles/sizes";
+
+const COLORS = {
+  primary: "#7C3AED",
+  primaryLight: "#9F7AEA",
+  primaryGhost: "rgba(124, 58, 237, 0.1)",
+  background: "#FFFFFF",
+  backgroundGhost: "#F9FAFB",
+  text: "#111827",
+  textSecondary: "#4B5563",
+  placeholder: "#9CA3AF",
+  border: "#E5E7EB",
+  borderHover: "#D1D5DB",
+  dropZoneActive: "rgba(124, 58, 237, 0.08)",
+};
+const inputAreaStyle = {
+  position: "relative",
+  display: "flex",
+  gap: "8px",
+  padding: "10px 20%",
+  paddingBottom: "20px",
+  backgroundColor: COLORS.background,
+  borderTop: "none",
+};
+const inputStyle = {
+  flex: 1,
+  height: "48px",
+  padding: "12px 16px",
+  fontSize: "15px",
+  lineHeight: "1.5",
+  border: `1px solid ${COLORS.border}`,
+  borderRadius: "10px",
+  backgroundColor: COLORS.backgroundGhost,
+  resize: "none",
+  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto",
+  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+  outline: "none",
+  color: COLORS.text,
+};
+
+const uploadButtonStyle = {
+  width: "48px",
+  height: "48px",
+  borderRadius: "10px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: `1px solid ${COLORS.border}`,
+  backgroundColor: COLORS.background,
+  cursor: "pointer",
+  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+  color: COLORS.textSecondary,
+  "&:hover": {
+    backgroundColor: COLORS.backgroundGhost,
+    borderColor: COLORS.primary,
+    color: COLORS.primary,
+    transform: "scale(1.02)",
+  },
+  "&:active": {
+    transform: "scale(0.98)",
+  },
+};
+
+const filePreviewStyle = {
+  position: "absolute",
+  bottom: "100%",
+  left: "20%",
+  right: "20%",
+  padding: "12px 16px",
+  marginBottom: "8px",
+  backgroundColor: COLORS.backgroundGhost,
+  borderRadius: "12px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  fontSize: "14px",
+  color: COLORS.text,
+  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+  border: `1px solid ${COLORS.border}`,
+};
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
 }
@@ -28,9 +103,14 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const isDarkMode = useAppSelector(selectIsDarkMode);
 
   const handleNewMessageChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
-    setTextContent(event.target.value);
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    const newHeight = Math.min(textarea.scrollHeight, 140);
+    textarea.style.height = `${newHeight}px`;
+
+    setTextContent(e.target.value);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -170,20 +250,65 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       }
     }
   }, []);
+
+  const dropZoneStyle = {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: isDragOver ? COLORS.dropZoneActive : "transparent",
+    border: isDragOver ? `2px dashed ${COLORS.primary}` : "none",
+    borderRadius: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "15px",
+    color: COLORS.primary,
+    pointerEvents: isDragOver ? "all" : "none",
+    transition: "all 0.2s ease",
+  };
+
   return (
-    <div
-      className=" items-start justify-center space-x-4"
-      style={messageInputStyle}
-    >
+    <>
+      <style>
+        {`
+          .upload-button:hover {
+            background-color: ${COLORS.backgroundGhost} !important;
+            border-color: ${COLORS.primary} !important;
+            color: ${COLORS.primary} !important;
+            transform: scale(1.02);
+          }
+          .upload-button:active {
+            transform: scale(0.98);
+          }
+          
+          .send-button:hover {
+            background-color: ${COLORS.primaryLight} !important;
+            transform: scale(1.02);
+          }
+          .send-button:active {
+            transform: scale(0.98);
+          }
+          
+          .close-button:hover {
+            background-color: ${COLORS.border} !important;
+          }
+        `}
+      </style>
       <div
-        className={clsx(
-          "relative flex flex-grow  items-end gap-2",
-          isDragOver ? "border-4 border-blue-500" : ""
-        )}
+        style={inputAreaStyle}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
+        {isDragOver && (
+          <div style={dropZoneStyle}>
+            <UploadIcon size={24} />
+            <span style={{ marginLeft: "8px" }}>释放鼠标上传文件</span>
+          </div>
+        )}
+
         {imagePreviewUrls.length > 0 && (
           <div className="absolute -top-20 right-0 z-10">
             <ImagePreview
@@ -192,20 +317,17 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
             />
           </div>
         )}
-        <button onClick={handleFileButtonClick} title={t("uploadImage")}>
-          <FileMediaIcon size={24} />
+        <button
+          className="upload-button"
+          style={uploadButtonStyle}
+          onClick={handleFileButtonClick}
+          title={t("uploadImage")}
+        >
+          <UploadIcon size={20} />
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          accept="image/*"
-          onChange={handleFileChange}
-          multiple
-        />
-        <TextareaAutosize
-          maxRows={10}
-          minRows={2}
+
+        <textarea
+          style={inputStyle}
           value={textContent}
           placeholder={`${t("messageOrImageHere")}`}
           onChange={handleNewMessageChange}
@@ -215,19 +337,31 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
             "transition-colors duration-200",
             isDragOver ? "border-blue-500 bg-blue-50" : ""
           )}
-          style={{
-            backgroundColor: isDarkMode ? "#171a1c" : "",
-            color: isDarkMode ? "#868e96" : "",
-            ...stylePresets.roundedMd,
-            padding: sizes.size2,
-            border: "1px solid #000",
-            ...stylePresets.w100,
-          }}
+          // style={{
+          //   backgroundColor: isDarkMode ? "#171a1c" : "",
+          //   color: isDarkMode ? "#868e96" : "",
+          //   ...stylePresets.roundedMd,
+          //   padding: sizes.size2,
+          //   border: "1px solid #000",
+          //   ...stylePresets.w100,
+          // }}
         />
 
-        <ActionButton onSend={beforeSend} />
+        <SendButton
+          onClick={beforeSend}
+          // disabled={isLoading || (!input.trim() && !selectedFile)}
+        />
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileChange}
+          multiple
+        />
       </div>
-    </div>
+    </>
   );
 };
 

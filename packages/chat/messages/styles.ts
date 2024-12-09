@@ -1,4 +1,3 @@
-import { layout } from "render/styles/layout";
 import { sizes } from "render/styles/sizes";
 // This file contains common styles used across different components in the chat interface.
 // It includes styles for message containers, content wrappers, avatars, and context menus.
@@ -7,20 +6,12 @@ import { sizes } from "render/styles/sizes";
 export const messageContentWithAvatarGap = sizes.size3;
 
 // Styles for message input
-export const messageInputStyle = {
-  ...layout.flex,
-  paddingLeft: sizes.sizeFluid4,
-  paddingRight: sizes.sizeFluid4,
-  maxWidth: "900px",
-  margin: "auto",
-  marginBottom: sizes.sizeFluid1,
-};
 
 // Common styles for message containers (both user and robot messages)
 export const messageContainerStyle = {
   display: "flex",
   gap: "0.5rem",
-  marginBottom: sizes.size3,
+  marginBottom: "16px",
   paddingTop: "10px",
   paddingBottom: "10px",
 };

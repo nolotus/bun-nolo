@@ -1,18 +1,56 @@
 import React from "react";
-import { ArrowUpIcon } from "@primer/octicons-react";
+import { PaperAirplaneIcon } from "@primer/octicons-react";
 
-type ButtonProps = {
-  onSend: () => void;
+interface SendButtonProps {
+  onClick: () => void;
+  disabled: boolean;
+}
+
+const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
+  return (
+    <>
+      <style>
+        {`
+          .send-button {
+            padding: 0 24px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #7C3AED;
+            color: #FFFFFF;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+
+          .send-button:hover {
+            background-color: #9F7AEA;
+            transform: scale(1.02);
+          }
+
+          .send-button:active {
+            transform: scale(0.98);
+          }
+
+          .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        `}
+      </style>
+      <button onClick={onClick} className="send-button" disabled={disabled}>
+        <span>发送</span>
+        <PaperAirplaneIcon size={16} />
+      </button>
+    </>
+  );
 };
 
-const ActionButton: React.FC<ButtonProps> = ({ onSend }) => (
-  <button
-    type="button"
-    className={`flex items-center px-3 py-1 text-white ${"bg-blue-500 hover:bg-blue-600"} `}
-    onClick={onSend}
-  >
-    {<ArrowUpIcon />}
-  </button>
-);
-
-export default ActionButton;
+export default SendButton;

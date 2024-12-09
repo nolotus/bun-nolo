@@ -40,12 +40,12 @@ const Website = () => {
           data: {
             [data.domain]: userId,
           },
-        }),
+        })
       );
     } catch (error) {}
   };
   return (
-    <div style={{ gap: OpenProps.sizeFluid2, marginTop: OpenProps.size3 }}>
+    <div style={{ marginTop: OpenProps.size3 }}>
       <div>
         <form onSubmit={handleSubmit(onSubmit)}>
           网站域名

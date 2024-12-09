@@ -100,7 +100,6 @@ const Page = ({ id }) => {
         >
           <div
             style={{
-              maxWidth: "88rem",
               margin: "0 auto",
               width: "100%",
               flexGrow: 1,

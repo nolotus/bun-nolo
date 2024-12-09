@@ -147,7 +147,6 @@ const contentStyles = (
   transition: "margin-left 0.3s ease-in-out",
   width: isSidebarOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",
   ...themeStyles.surface1(theme),
-  paddingTop: "60px",
 });
 
 const innerContentStyles = (theme: any, fullWidth: boolean) => ({
