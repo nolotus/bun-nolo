@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Avatar } from "render/ui";
 import * as Ariakit from "@ariakit/react";
-import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
 
 import { messageContentWithAvatarGap } from "./styles";
 import { MessageContent } from "./MessageContent";
@@ -10,7 +8,6 @@ import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { MessageContextMenu } from "./MessageContextMenu";
 
 export const SelfMessage = ({ content, id }) => {
-  const theme = useAppSelector(selectTheme);
   const { audioSrc, handlePlayClick } = useAudioPlayer(content[0]?.text);
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
@@ -18,7 +15,7 @@ export const SelfMessage = ({ content, id }) => {
   const messageContainerStyle = {
     display: "flex",
     justifyContent: "flex-end",
-    marginBottom: theme.size3,
+    marginBottom: "16px",
   };
 
   const contentWrapperStyle = {

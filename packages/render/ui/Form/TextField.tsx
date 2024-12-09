@@ -8,6 +8,8 @@ import {
   containerStyle,
 } from "render/styles/input";
 
+import { COLORS } from "render/styles/colors";
+
 const getInputStyle = (hasIcon: boolean) => ({
   ...baseInputStyle,
   padding: `0 ${hasIcon ? "42px" : "12px"}`,

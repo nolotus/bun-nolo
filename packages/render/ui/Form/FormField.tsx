@@ -1,6 +1,9 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { getLogger } from "utils/logger";
+//new style
+import { TextField } from "./TextField";
+import { PasswordField } from "./PasswordField";
 
 import { ArrayField } from "./ArrayField";
 import { DateField } from "./DateField";
@@ -8,9 +11,7 @@ import { DatetimeField } from "./DatetimeField";
 import { DurationField } from "./DurationField";
 import { EnumField } from "./EnumField";
 import { NumberField } from "./NumberField";
-import { PasswordField } from "./PasswordField";
 import { TextAreaField } from "./TextAreaField";
-import { TextField } from "./TextField";
 import { TimestampField } from "./TimestampField";
 import { FormFieldProps } from "./type";
 import { WeekdayField } from "./WeekdayField";

@@ -40,14 +40,13 @@ const ChatPage = () => {
     return null;
   }
   // 计算剩余的空间
-  const remainingHeight = `calc(100dvh - 60px)`;
 
   return (
     <div
       style={{
         ...layout.flex,
         ...layout.overflowXHidden,
-        height: remainingHeight, // 使用计算后的剩余高度
+        height: "100dvh",
         ...themeStyles.surface1(theme),
       }}
     >

@@ -13,18 +13,18 @@ export const createRoutes = [
   createLazyRoute(CreateRoutePaths.CREATE, () => import("./index")),
   createLazyRoute(
     CreateRoutePaths.CREATE_PAGE,
-    () => import("render/page/CreatePage"),
+    () => import("render/page/CreatePage")
   ),
   createLazyRoute(
     CreateRoutePaths.CREATE_CYBOT,
-    () => import("ai/cybot/CreateCybot"),
+    () => import("ai/cybot/CreateCybot")
   ),
   createLazyRoute(
     CreateRoutePaths.CREATE_LLM,
-    () => import("ai/llm/CreateLLM"),
+    () => import("ai/llm/CreateLLM")
   ),
   createLazyRoute(
     CreateRoutePaths.CREATE_PROMPT,
-    () => import("ai/prompt/Create"),
+    () => import("ai/prompt/Create")
   ),
 ];

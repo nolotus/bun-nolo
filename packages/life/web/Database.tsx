@@ -64,7 +64,7 @@ export const Database = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 my-14">
       <div className="flex justify-between">
         <div className="flex gap-2 overflow-auto">
           {typeArray.map((typeItem) => {
