@@ -4,9 +4,8 @@ import { useSelector } from "react-redux";
 import * as Ariakit from "@ariakit/react";
 import { selectTheme } from "app/theme/themeSlice";
 import { useAppDispatch, useFetchData } from "app/hooks";
-import { themeStyles } from "render/ui/styles";
-import { stylePresets } from "render/styles/stylePresets";
 import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
+import { CommentIcon } from "@primer/octicons-react";
 
 import { txt } from "render/styles/txt";
 import { sizes } from "render/styles/sizes";
@@ -28,27 +27,37 @@ export const DialogItem = ({ id, isCreator, categoryId }) => {
   const title = dialog.title || dialog.id;
   const isSelected = dialog.id === dialogId;
 
+  // 注释大小：小中大
+  const commentSize = sizes.size3; // 默认中等大小
+
   const itemContainerStyle = {
     marginBottom: sizes.size1,
-    ...stylePresets.rounded,
-    ...stylePresets.transition,
-    ...themeStyles.surface1(theme),
+    padding: `${sizes.size1} ${sizes.size2}`,
+    borderRadius: sizes.size1,
+    transition: "background 0.2s",
     backgroundColor: isSelected
       ? theme.surface3
       : isHovered
         ? theme.surface2
         : "transparent",
-    ...stylePresets.clickable,
+    display: "flex",
+    alignItems: "center",
   };
 
   const linkStyle = {
-    padding: sizes.size2,
-    ...txt.ellipsis,
-    ...txt.size14,
-    ...txt.decorationNone,
-    ...txt.colorInherit,
-    ...stylePresets.transition,
+    padding: sizes.size1,
+    fontSize: "12px",
     color: isHovered ? theme.brand : theme.text1,
+    flexGrow: 1,
+    ...txt.decorationNone,
+    ...txt.ellipsis,
+  };
+
+  const iconStyle = {
+    width: sizes.size2,
+    height: sizes.size2,
+    marginRight: sizes.size1,
+    color: theme.text2,
   };
 
   const handleContextMenu = (event) => {
@@ -65,6 +74,7 @@ export const DialogItem = ({ id, isCreator, categoryId }) => {
       onMouseLeave={() => setIsHovered(false)}
       onContextMenu={handleContextMenu}
     >
+      <CommentIcon size={commentSize} style={iconStyle} />
       <NavLink to={`/chat/${dialog.id}`} style={linkStyle}>
         {title}
       </NavLink>
