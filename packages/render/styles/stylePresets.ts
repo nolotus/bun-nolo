@@ -82,8 +82,6 @@ export const stylePresets = {
 
   textAlignLeft: { textAlign: "left" as const },
 
-  roundedMd: { borderRadius: radii.radius2 },
-  rounded: { borderRadius: radii.radius2 },
   bgNone: { background: "none" },
   borderNone: { border: "none" },
   textDecorationNone: { textDecoration: "none" },

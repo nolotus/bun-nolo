@@ -21,6 +21,7 @@ import { themeStyles } from "../ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
 import { layout } from "../styles/layout";
 import { zIndex } from "../styles/zIndex";
+import NavIconItem from "./blocks/NavIconItem";
 
 export const SidebarTop = () => {
   const { t } = useTranslation();
@@ -70,7 +71,7 @@ export const SidebarTop = () => {
         padding: "12px 16px",
       }}
     >
-      <NavListItem path="/chat" icon={<CommentDiscussionIcon size={24} />} />
+      <NavIconItem path="/chat" icon={<CommentDiscussionIcon size={24} />} />
       <div style={{ width: "160px", position: "relative" }}>
         <div
           onClick={() => setIsOpen(!isOpen)}

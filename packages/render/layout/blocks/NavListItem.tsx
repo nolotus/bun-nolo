@@ -2,10 +2,7 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { stylePresets } from "render/styles/stylePresets";
 
-import { layout } from "render/styles/layout";
-import { txt } from "render/styles/txt";
 import { COLORS } from "../../styles/colors";
 
 interface NavListItemProps {
@@ -23,40 +20,26 @@ const NavListItem: React.FC<NavListItemProps> = ({
 }) => {
   const theme = useSelector(selectTheme);
 
-  if (!theme) {
-    throw new Error("Theme is not defined");
-  }
-
-  if (!stylePresets) {
-    throw new Error("stylePresets is not defined");
-  }
-
-  const defaultStyle: React.CSSProperties = {
-    ...layout.flex,
-    ...layout.flexStart,
-    ...stylePresets.transition,
-    ...stylePresets.clickable,
+  const baseStyles: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
     padding: "8px 16px",
     marginBottom: "8px",
-    ...txt.semiBold,
-    ...stylePresets.roundedMd,
+    borderRadius: "8px",
     color: "#2d3436",
     textDecoration: "none",
+    transition: "all 0.2s ease",
+    cursor: "pointer",
+    fontWeight: 600,
   };
 
   const Content = () => {
-    if (!icon && !label) {
-      return null;
-    }
-
-    if (icon && !label) {
-      return <span style={{ ...layout.flex }}>{icon}</span>;
-    }
+    if (!icon && !label) return null;
 
     return (
       <>
-        {icon && <span style={{ marginRight: "16px" }}>{icon}</span>}
-        {label && <span>{label}</span>}
+        {icon && <span className="nav-icon">{icon}</span>}
+        {label && <span className="nav-label">{label}</span>}
       </>
     );
   };
@@ -65,36 +48,45 @@ const NavListItem: React.FC<NavListItemProps> = ({
     <>
       <style>
         {`
-  .nav-item:hover {
-    background-color: ${COLORS.primary} !important;
-    color: "#ffffff" !important; 
-  }
-  .nav-item.active {
-    background-color: ${COLORS.primary} !important;
-    color: "#ffffff" !important;
-  }
-`}
+          .nav-icon {
+            margin-right: 16px;
+          }
+          
+          .nav-item:hover {
+            background-color: #f5f5f5;
+            color: ${COLORS.primary};
+          }
+          
+          .nav-item:hover .nav-icon,
+          .nav-item:hover .nav-label {
+            color: ${COLORS.primary};
+          }
+          
+          .nav-item.active {
+            background-color: ${COLORS.primary};
+            color: #ffffff;
+          }
+          
+          .nav-item.active .nav-icon,
+          .nav-item.active .nav-label {
+            color: #ffffff;
+          }
+        `}
       </style>
 
       {onClick ? (
-        <div onClick={onClick} className="nav-item" style={defaultStyle}>
+        <div onClick={onClick} className="nav-item" style={baseStyles}>
           <Content />
         </div>
       ) : path ? (
         <NavLink
           to={path}
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-          style={({ isActive }) => ({
-            ...defaultStyle,
-            color: isActive ? "#ffffff" : "#2d3436",
-            backgroundColor: isActive ? theme.brand : "transparent",
-          })}
+          style={baseStyles}
         >
           <Content />
         </NavLink>
-      ) : (
-        <div>没有路径</div>
-      )}
+      ) : null}
     </>
   );
 };

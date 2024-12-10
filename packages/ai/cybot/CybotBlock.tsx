@@ -12,7 +12,7 @@ import { deleteData } from "database/dbSlice";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import withTranslations from "i18n/withTranslations";
-import { stylePresets } from "render/styles/stylePresets";
+import { radii, stylePresets } from "render/styles/stylePresets";
 import { layout } from "render/styles/layout";
 import { txt } from "render/styles/txt";
 import { sizes } from "render/styles/sizes";
@@ -63,7 +63,7 @@ const CybotBlock = ({ item, closeModal }) => {
         padding: sizes.size3,
         ...themeStyles.surface2(theme),
         ...themeStyles.radShadow(theme),
-        ...stylePresets.roundedMd,
+        borderRadius: radii.radius2,
       }}
     >
       <div style={{ ...layout.flexBetween, marginBottom: sizes.size2 }}>

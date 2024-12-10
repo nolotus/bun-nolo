@@ -9,21 +9,28 @@ import LifeSidebarContent from "life/LifeSidebarContent";
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
-  const isSettingsPage = location.pathname.startsWith("/setting");
-  const isLifePage = location.pathname.startsWith("/life");
 
   const getSidebarContent = () => {
+    let currentSidebar = null;
+    const lastValidSidebarRef = React.useRef<React.ReactNode>(null);
+
+    // 明确的路由规则判断
     if (location.pathname === "/") {
-      return <HomeSidebarContent />;
-    }
-    if (isSettingsPage) {
-      return null;
-    }
-    if (isLifePage) {
-      return <LifeSidebarContent />;
+      currentSidebar = <HomeSidebarContent />;
+    } else if (location.pathname.startsWith("/life")) {
+      currentSidebar = <LifeSidebarContent />;
+    } else if (location.pathname.startsWith("/chat")) {
+      currentSidebar = <ChatSidebar />;
     }
 
-    return <ChatSidebar />;
+    // 如果当前有明确的 sidebar,更新 ref
+    if (currentSidebar) {
+      lastValidSidebarRef.current = currentSidebar;
+      return currentSidebar;
+    }
+
+    // 否则返回上一个有效的 sidebar
+    return lastValidSidebarRef.current;
   };
 
   const isChatDetailPage =

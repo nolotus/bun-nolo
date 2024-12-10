@@ -25,6 +25,7 @@ import { motion } from "framer-motion";
 import useMediaQuery from "react-responsive";
 import MenuButton from "./MenuButton";
 import { layout } from "../styles/layout";
+import NavIconItem from "./blocks/NavIconItem";
 
 interface TopBarProps {
   toggleSidebar?: () => void;
@@ -67,7 +68,7 @@ const TopBar: React.FC<TopBarProps> = ({
           isExpanded={isExpanded}
         />
       )}
-      <NavListItem path="/" icon={<HomeIcon size={24} />} />
+      <NavIconItem path="/" icon={<HomeIcon size={24} />} />
 
       <div
         style={{

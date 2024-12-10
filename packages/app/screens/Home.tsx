@@ -6,18 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 
 export function HomeScreen() {
   const navigation = useNavigation();
-  const mainBackgroundColor = useSelector((state) => state.theme.surface1);
 
   return (
-    <ScrollView
-      style={{ backgroundColor: mainBackgroundColor }}
-      contentContainerStyle={styles.container}
-    >
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.section}>
         <Text style={styles.textDescription}>nolotus.com 的移动端测试版!</Text>
       </View>

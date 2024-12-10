@@ -321,10 +321,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
           // style={{
           //   backgroundColor: isDarkMode ? "#171a1c" : "",
           //   color: isDarkMode ? "#868e96" : "",
-          //   ...stylePresets.roundedMd,
-          //   padding: sizes.size2,
-          //   border: "1px solid #000",
-          //   ...stylePresets.w100,
           // }}
         />
 
