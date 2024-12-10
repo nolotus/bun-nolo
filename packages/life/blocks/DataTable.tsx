@@ -5,7 +5,6 @@ import { DataType } from "create/types";
 import { deleteData } from "database/dbSlice";
 import { Link } from "react-router-dom";
 import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
-import LLMNameButton from "ai/llm/EditLLMButton";
 
 type FieldConfig = {
   header: string;
@@ -117,43 +116,7 @@ const renderConfigs: Record<DataType, RenderConfig> = {
       </Link>
     ),
   },
-  [DataType.LLM]: {
-    fields: [
-      { header: "名称", key: "name" },
-      { header: "API类型", key: "apiStyle" },
-      { header: "API", key: "api" },
-      { header: "API密钥名称", key: "keyName" },
-      {
-        header: "模型",
-        key: "model",
-        render: (value) => (
-          <div
-            style={{
-              whiteSpace: "pre-wrap",
-              maxWidth: "100px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {value?.split(",").join(",\n")}
-          </div>
-        ),
-      },
-    ],
-    actions: (data) => (
-      <>
-        <Link
-          to={`/${data.id}`}
-          style={{ textDecoration: "none", color: "blue" }}
-        >
-          <button style={{ borderRadius: "4px", padding: "4px" }}>查看</button>
-        </Link>
-        <div>
-          <LLMNameButton llmId={data.id} />
-        </div>
-      </>
-    ),
-  },
+
   [DataType.TokenStats]: {
     fields: [
       { header: "消息类型", key: "messageType" },

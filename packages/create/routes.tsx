@@ -5,7 +5,6 @@ export enum CreateRoutePaths {
   CREATE = "create",
   CREATE_PAGE = "create/page",
   CREATE_CYBOT = "create/cybot",
-  CREATE_LLM = "create/llm",
   CREATE_PROMPT = "create/prompt",
 }
 
@@ -18,10 +17,6 @@ export const createRoutes = [
   createLazyRoute(
     CreateRoutePaths.CREATE_CYBOT,
     () => import("ai/cybot/CreateCybot")
-  ),
-  createLazyRoute(
-    CreateRoutePaths.CREATE_LLM,
-    () => import("ai/llm/CreateLLM")
   ),
   createLazyRoute(
     CreateRoutePaths.CREATE_PROMPT,

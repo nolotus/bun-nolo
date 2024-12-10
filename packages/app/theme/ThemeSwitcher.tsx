@@ -7,10 +7,8 @@ import { setTheme, selectTheme } from "app/theme/themeSlice";
 const themes = [
   { name: "light", label: "Light" },
   { name: "dark", label: "Dark" },
-  { name: "grape", label: "Grape" },
   { name: "dim", label: "Dim" },
   { name: "darker", label: "Darker" },
-  { name: "choco", label: "Choco" },
 ];
 
 const ThemeSwitcher: React.FC = () => {

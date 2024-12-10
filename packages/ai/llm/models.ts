@@ -16,12 +16,3 @@ export const allModels = {
 
   ...googleAIModels,
 };
-
-//todo add source from
-export const modelEnum = Object.keys(allModels).reduce(
-  (acc, key) => {
-    acc[key] = key;
-    return acc;
-  },
-  {} as { [key: string]: string },
-);

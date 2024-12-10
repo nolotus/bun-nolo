@@ -13,7 +13,6 @@ const useCommonFormStyles = () => {
       maxWidth: "600px",
       margin: "0 auto",
       padding: "20px",
-      backgroundColor: theme.surface1,
       color: theme.text1,
     },
     formTitle: {
@@ -88,7 +87,7 @@ export const FormField: React.FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 export const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = (
-  props,
+  props
 ) => {
   const styles = useCommonFormStyles();
   return <label {...props} style={styles.label} />;

@@ -6,9 +6,7 @@ import OpenProps from "open-props";
 import { blues } from "../colors";
 import { lightTheme } from "./lightTheme";
 import { darkTheme } from "./darkTheme";
-import { grapeTheme } from "./grapeTheme";
 import { dimTheme } from "./dimTheme";
-import { chocoTheme } from "./chocoTheme";
 
 const mainColors = [...blues];
 
@@ -48,16 +46,12 @@ const createExtendedTheme = (baseTheme, themeColors) => ({
 
 const extendedLightTheme = createExtendedTheme(baseTheme, lightTheme);
 const extendedDarkTheme = createExtendedTheme(baseTheme, darkTheme);
-const extendedGrapeTheme = createExtendedTheme(baseTheme, grapeTheme);
 const extendedDimTheme = createExtendedTheme(baseTheme, dimTheme);
-const extendedChocoTheme = createExtendedTheme(baseTheme, chocoTheme);
 
 const themes = {
   light: extendedLightTheme,
   dark: extendedDarkTheme,
-  grape: extendedGrapeTheme,
   dim: extendedDimTheme,
-  choco: extendedChocoTheme,
 };
 
 const initialState = {

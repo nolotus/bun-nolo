@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { Button } from "render/ui/Button";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { modelEnum } from "ai/llm/models";
 import { DataType } from "create/types";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import {
@@ -20,6 +19,15 @@ import { setData } from "database/dbSlice";
 import { layout } from "render/styles/layout";
 
 import ToolSelector from "../tools/ToolSelector";
+import { allModels } from "../llm/models";
+
+export const modelEnum = Object.keys(allModels).reduce(
+  (acc, key) => {
+    acc[key] = key;
+    return acc;
+  },
+  {} as { [key: string]: string }
+);
 
 const EditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();

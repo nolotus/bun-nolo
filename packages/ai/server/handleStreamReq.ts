@@ -17,7 +17,9 @@ import { googleAIModels } from "integrations/google/ai/models";
 import { pick } from "rambda";
 import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
 
-import { isModelInList } from "ai/llm/isModelInList";
+function isModelInList(modelname, modelList) {
+  return modelList.hasOwnProperty(modelname);
+}
 
 async function processModelRequest(requestBody, modelType) {
   let response;
@@ -27,7 +29,7 @@ async function processModelRequest(requestBody, modelType) {
       break;
     case "perplexity":
       requestBody.frequency_penalty = adjustPerplexityFrequencyPenalty(
-        requestBody.frequency_penalty,
+        requestBody.frequency_penalty
       );
       response = await sendPerplexityRequest(requestBody);
       break;
@@ -43,13 +45,13 @@ async function processModelRequest(requestBody, modelType) {
     case "google":
       response = await sendGeminiChatRequest(
         process.env.GOOGLE_API_KEY,
-        requestBody,
+        requestBody
       );
       break;
 
     default:
       throw new Error(
-        `processModelRequest Unknown model: ${requestBody.model}`,
+        `processModelRequest Unknown model: ${requestBody.model}`
       );
   }
   return createStreamResponse(response);

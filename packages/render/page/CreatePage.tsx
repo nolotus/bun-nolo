@@ -39,7 +39,7 @@ const CreatePage = () => {
           data: pageData,
           flags: { isJSON: true },
           userId: auth.user?.userId,
-        }),
+        })
       );
 
       const result = writePageAction.payload;
@@ -73,7 +73,7 @@ const CreatePage = () => {
       <div className="container mx-auto flex flex-grow">
         <div className="w-full flex-shrink-0">
           <div className="flex w-full flex-col">
-            <Editor />
+            <Editor initialValue={[]} />
           </div>
         </div>
       </div>
