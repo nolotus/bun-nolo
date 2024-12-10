@@ -6,7 +6,7 @@ import { stylePresets } from "render/styles/stylePresets";
 
 import { layout } from "render/styles/layout";
 import { txt } from "render/styles/txt";
-import { sizes } from "../../styles/sizes";
+import { COLORS } from "../../styles/colors";
 
 interface NavListItemProps {
   path?: string;
@@ -36,14 +36,11 @@ const NavListItem: React.FC<NavListItemProps> = ({
     ...layout.flexStart,
     ...stylePresets.transition,
     ...stylePresets.clickable,
-    paddingTop: sizes.size1,
-    paddingBottom: sizes.size1,
-    paddingLeft: sizes.size2,
-    paddingRight: sizes.size2,
-    marginBottom: sizes.size1,
+    padding: "8px 16px",
+    marginBottom: "8px",
     ...txt.semiBold,
     ...stylePresets.roundedMd,
-    color: theme.text1,
+    color: "#2d3436",
     textDecoration: "none",
   };
 
@@ -53,16 +50,12 @@ const NavListItem: React.FC<NavListItemProps> = ({
     }
 
     if (icon && !label) {
-      return (
-        <span style={{ ...layout.flex, ...stylePresets.justifyCenter }}>
-          {icon}
-        </span>
-      );
+      return <span style={{ ...layout.flex }}>{icon}</span>;
     }
 
     return (
       <>
-        {icon && <span style={{ marginRight: sizes.size2 }}>{icon}</span>}
+        {icon && <span style={{ marginRight: "16px" }}>{icon}</span>}
         {label && <span>{label}</span>}
       </>
     );
@@ -72,15 +65,15 @@ const NavListItem: React.FC<NavListItemProps> = ({
     <>
       <style>
         {`
-          .nav-item:hover {
-            background-color: ${theme.brand} !important;
-            color: ${theme.surface1} !important;
-          }
-          .nav-item.active {
-            background-color: ${theme.brand} !important;
-            color: ${theme.surface1} !important;
-          }
-        `}
+  .nav-item:hover {
+    background-color: ${COLORS.primary} !important;
+    color: "#ffffff" !important; 
+  }
+  .nav-item.active {
+    background-color: ${COLORS.primary} !important;
+    color: "#ffffff" !important;
+  }
+`}
       </style>
 
       {onClick ? (
@@ -93,7 +86,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
           className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
           style={({ isActive }) => ({
             ...defaultStyle,
-            color: isActive ? theme.surface1 : theme.text1,
+            color: isActive ? "#ffffff" : "#2d3436",
             backgroundColor: isActive ? theme.brand : "transparent",
           })}
         >

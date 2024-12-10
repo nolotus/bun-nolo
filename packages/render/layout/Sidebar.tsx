@@ -146,7 +146,6 @@ const contentStyles = (
   marginLeft: isSidebarOpen ? `${sidebarWidth}px` : 0,
   transition: "margin-left 0.3s ease-in-out",
   width: isSidebarOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",
-  ...themeStyles.surface1(theme),
 });
 
 const innerContentStyles = (theme: any, fullWidth: boolean) => ({

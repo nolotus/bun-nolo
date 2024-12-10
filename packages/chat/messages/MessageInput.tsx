@@ -11,20 +11,8 @@ import ImagePreview from "./ImagePreview";
 import { setKeyPrefix } from "core/prefix";
 import { useAppSelector } from "app/hooks";
 import { selectIsDarkMode } from "app/theme/themeSlice";
+import { COLORS } from "render/styles/colors";
 
-const COLORS = {
-  primary: "#7C3AED",
-  primaryLight: "#9F7AEA",
-  primaryGhost: "rgba(124, 58, 237, 0.1)",
-  background: "#FFFFFF",
-  backgroundGhost: "#F9FAFB",
-  text: "#111827",
-  textSecondary: "#4B5563",
-  placeholder: "#9CA3AF",
-  border: "#E5E7EB",
-  borderHover: "#D1D5DB",
-  dropZoneActive: "rgba(124, 58, 237, 0.08)",
-};
 const inputAreaStyle = {
   position: "relative",
   display: "flex",
@@ -283,14 +271,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
             transform: scale(0.98);
           }
           
-          .send-button:hover {
-            background-color: ${COLORS.primaryLight} !important;
-            transform: scale(1.02);
-          }
-          .send-button:active {
-            transform: scale(0.98);
-          }
-          
+
           .close-button:hover {
             background-color: ${COLORS.border} !important;
           }
@@ -349,6 +330,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
 
         <SendButton
           onClick={beforeSend}
+
           // disabled={isLoading || (!input.trim() && !selectedFile)}
         />
 
