@@ -7,7 +7,6 @@ import { CELL_HEIGHT } from "./style";
 
 export const SurfWeatherLabelCol = () => {
   const { t } = useTranslation();
-  const surface1 = useAppSelector((state) => state.theme.surface1);
   const surface2 = useAppSelector((state) => state.theme.surface2);
   const styles = StyleSheet.create({
     labelsContainer: {
@@ -29,7 +28,7 @@ export const SurfWeatherLabelCol = () => {
             <View style={styles.label}>
               <Text key={config.key}>{t(config.key)}</Text>
             </View>
-          ),
+          )
       )}
     </View>
   );

@@ -5,7 +5,7 @@ export const formStyles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    minHeight: "100vh",
+    minHeight: "calc(100dvh - 60px)",
     padding: "20px",
   },
   form: {

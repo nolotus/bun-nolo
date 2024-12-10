@@ -16,10 +16,10 @@ export const Dialog = ({ isOpen, onClose, title, children }) => {
     <Modal isOpen={isOpen} onClose={onClose}>
       <div
         style={{
-          ...themeStyles.surface1(theme),
           ...layout.flexColumn,
+          background: "#fff",
           height: "auto",
-          maxHeight: "80dvh",
+          maxHeight: "90dvh",
           borderRadius: theme.borderRadius,
         }}
       >

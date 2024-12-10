@@ -46,7 +46,7 @@ const ChatPage = () => {
       style={{
         ...layout.flex,
         ...layout.overflowXHidden,
-        height: "100dvh",
+        height: "calc(100dvh - 60px)",
         ...themeStyles.surface1(theme),
       }}
     >

@@ -72,7 +72,6 @@ const RenderPage = ({ pageId, data }) => {
             style={{
               display: "flex",
               justifyContent: "space-between",
-              marginTop: "10ch",
             }}
           >
             <div>{createId}</div>

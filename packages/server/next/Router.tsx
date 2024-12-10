@@ -1,7 +1,7 @@
 // Router.tsx
 import React, { useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
-import { routes, NotFound } from "ai/write/routes";
+import { routes } from "ai/write/routes";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useRoute } from "./RouteContext";
 
@@ -27,10 +27,7 @@ const Router: React.FC = () => {
           transition={{ type: "spring", stiffness: 300, damping: 30, mass: 1 }}
         >
           {routeOrder.map((path, index) => {
-            const Route = routes[path] || {
-              title: "Not Found",
-              component: NotFound,
-            };
+            const Route = routes[path];
             const Component = Route.component;
             return (
               <motion.div

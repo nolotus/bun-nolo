@@ -1,5 +1,6 @@
 import React from "react";
 import { PaperAirplaneIcon } from "@primer/octicons-react";
+import { COLORS } from "render/styles/colors";
 
 interface SendButtonProps {
   onClick: () => void;
@@ -18,7 +19,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #7C3AED;
+            background-color: ${COLORS.primary};
             color: #FFFFFF;
             border: none;
             cursor: pointer;
@@ -29,15 +30,14 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             gap: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           }
-
           .send-button:hover {
-            background-color: #9F7AEA;
+            background-color: ${COLORS.primaryLight} !important;
             transform: scale(1.02);
           }
-
           .send-button:active {
             transform: scale(0.98);
           }
+          
 
           .send-button:disabled {
             opacity: 0.6;

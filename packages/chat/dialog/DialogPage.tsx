@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { PaperAirplaneIcon, UploadIcon, XIcon } from "@primer/octicons-react";
+import { COLORS } from "render/styles/colors";
 
 // 添加全局样式
 <style>
@@ -28,20 +29,6 @@ import { PaperAirplaneIcon, UploadIcon, XIcon } from "@primer/octicons-react";
     }
   `}
 </style>;
-
-const COLORS = {
-  primary: "#7C3AED",
-  primaryLight: "#9F7AEA",
-  primaryGhost: "rgba(124, 58, 237, 0.1)",
-  background: "#FFFFFF",
-  backgroundGhost: "#F9FAFB",
-  text: "#111827",
-  textSecondary: "#4B5563",
-  placeholder: "#9CA3AF",
-  border: "#E5E7EB",
-  borderHover: "#D1D5DB",
-  dropZoneActive: "rgba(124, 58, 237, 0.08)",
-};
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
