@@ -1,3 +1,5 @@
+// render/styles/color
+
 export const COLORS = {
   primary: "#4263eb",
   primaryLight: "#748fef",
