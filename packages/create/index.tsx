@@ -9,7 +9,7 @@ import { YourTemplates } from "./YourTemplates";
 import { CreateRoutePaths } from "./routes";
 
 const ButtonGroup = ({ buttons, onButtonClick }) => (
-  <div className="flex flex-wrap space-x-4">
+  <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
     {buttons.map((button) => (
       <Button key={button.text} onClick={() => onButtonClick(button.route)}>
         {button.text}
@@ -24,55 +24,56 @@ const Create = () => {
   const buttonsInfo = useMemo(
     () => [
       { text: "Cybot", route: `/${CreateRoutePaths.CREATE_CYBOT}` },
-      { text: "大语言模型", route: `/${CreateRoutePaths.CREATE_LLM}` },
       { text: "空白页面", route: `/${CreateRoutePaths.CREATE_PAGE}` },
       { text: "提示词", route: `/${CreateRoutePaths.CREATE_PROMPT}` },
     ],
-    [],
+    []
   );
 
-  const options = useMemo(
-    () => ({
-      isJSON: true,
-      condition: { is_template: true },
-      limit: 20,
-    }),
-    [],
-  );
+  const options = {
+    isJSON: true,
+    condition: { is_template: true },
+    limit: 20,
+  };
 
   const queryConfig = useMemo(
     () => ({
       queryUserId: nolotusId,
       options,
     }),
-    [options],
+    [options]
   );
 
   const { data: templates, isLoading, error } = useQueryData(queryConfig);
 
-  const handleButtonClick = useCallback(
-    (route) => {
-      navigate(route);
-    },
-    [navigate],
-  );
-
+  const handleButtonClick = (route) => {
+    navigate(route);
+  };
   const templateButtons = useMemo(
     () =>
       templates?.map((template) => ({
         text: template.title,
         route: `/create/page?id=${template.id}`,
       })) ?? [],
-    [templates],
+    [templates]
   );
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="container mx-auto space-y-8">
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold">从公共模板创建</h2>
+    <div
+      style={{
+        maxWidth: "1200px",
+        margin: "0 auto",
+        paddingTop: "2rem",
+        paddingBottom: "2rem",
+      }}
+    >
+      <div style={{ marginBottom: "1rem" }}>
+        <h2 style={{ fontSize: "1.5em", fontWeight: "bold" }}>
+          从公共模板创建
+        </h2>
         <ButtonGroup buttons={buttonsInfo} onButtonClick={handleButtonClick} />
         <ButtonGroup
           buttons={templateButtons}
