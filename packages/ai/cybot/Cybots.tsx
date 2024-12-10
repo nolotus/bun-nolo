@@ -6,10 +6,10 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAppSelector } from "app/hooks";
-import { stylePresets } from "render/styles/stylePresets";
 
 import CybotBlock from "./CybotBlock";
 import { sizes } from "render/styles/sizes";
+import { layout } from "render/styles/layout";
 
 interface CybotsProps {
   queryUserId: string;
@@ -59,7 +59,7 @@ const Cybots: React.FC<CybotsProps> = ({
     return (
       <div
         style={{
-          ...stylePresets.textCenter,
+          textAlign: "center",
           paddingTop: sizes.size2,
           paddingBottom: sizes.size2,
           color: theme.text2,
@@ -82,13 +82,13 @@ const Cybots: React.FC<CybotsProps> = ({
     >
       {isSuccess &&
         data?.map((item) => (
-          <div key={item.id} style={stylePresets.w100}>
+          <div key={item.id} style={layout.w100}>
             <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}
       {isSuccess2 &&
         data2?.map((item) => (
-          <div key={item.id} style={stylePresets.w100}>
+          <div key={item.id} style={layout.w100}>
             <CybotBlock item={item} closeModal={closeModal} />
           </div>
         ))}

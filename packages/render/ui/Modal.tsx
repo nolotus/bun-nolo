@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
 
 import { selectTheme } from "app/theme/themeSlice";
-import { stylePresets } from "render/styles/stylePresets";
 import { zIndex } from "../styles/zIndex";
 
 export const useModal = () => {

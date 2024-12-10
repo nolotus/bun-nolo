@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { SquareIcon, SquareFillIcon } from "@primer/octicons-react";
 import { Avatar } from "render/ui";
 import * as Ariakit from "@ariakit/react";
-import { themeStyles } from "render/ui/styles";
 import { selectTheme } from "app/theme/themeSlice";
 
 import { useAudioPlayer } from "../hooks/useAudioPlayer";
@@ -58,7 +57,6 @@ const RobotMessage: React.FC<Message> = ({
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => setHovered(false)}
               style={{
-                ...themeStyles.surface2(theme),
                 position: "absolute",
                 bottom: 0,
                 right: 0,

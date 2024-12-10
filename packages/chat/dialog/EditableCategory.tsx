@@ -19,7 +19,6 @@ const categoryInputStyle = (theme) => ({
   fontSize: theme.fontSize.small,
   color: theme.text1,
   backgroundColor: theme.surface2,
-  border: `1px solid ${theme.surface4}`,
   borderRadius: theme.borderRadius,
   padding: `${theme.spacing.xsmall} ${theme.spacing.small}`,
 });
@@ -87,7 +86,7 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
             patchData({
               id: dialogId,
               changes: { categoryId: result.payload.id },
-            }),
+            })
           );
         }
       } catch (error) {

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import NavListItem from "./blocks/NavListItem";
 import { CommentDiscussionIcon } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import {
@@ -97,7 +96,6 @@ export const SidebarTop = () => {
               whiteSpace: "nowrap",
               fontSize: "14px",
               fontWeight: 500,
-              ...themeStyles.textColor1(theme),
             }}
           >
             {getCurrentWorkspaceName()}
@@ -106,7 +104,6 @@ export const SidebarTop = () => {
             style={{
               transition: "all 0.2s ease",
               marginLeft: "8px",
-              ...themeStyles.textColor2(theme),
               transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
             }}
           >
@@ -139,7 +136,6 @@ export const SidebarTop = () => {
                 cursor: "pointer",
                 fontSize: "14px",
                 transition: "all 0.2s ease",
-                ...themeStyles.textColor1(theme),
                 ...getHoverStyle(hoveredItem === "all"),
                 margin: "4px",
               }}
@@ -164,7 +160,6 @@ export const SidebarTop = () => {
                     padding: "8px 12px",
                     fontSize: "14px",
                     transition: "all 0.2s ease",
-                    ...themeStyles.textColor1(theme),
                     ...getHoverStyle(hoveredItem === workspace.id),
                   }}
                 >
@@ -188,7 +183,6 @@ export const SidebarTop = () => {
                         padding: "4px 8px",
                         fontSize: "12px",
                         color: theme.text2,
-                        background: theme.surface4,
                         borderRadius: "4px",
                         transition: "all 0.2s ease",
                       }}

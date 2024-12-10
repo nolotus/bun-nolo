@@ -52,7 +52,7 @@ const EditCybot = ({ initialValues, onClose }) => {
       isJSON: true,
       limit: 100,
       condition: {
-        type: DataType.LLM,
+        type: "llm",
       },
     },
   };

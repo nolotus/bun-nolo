@@ -23,25 +23,15 @@ const baseTheme = {
     medium: "12px",
     large: "16px",
   },
-  iconSize: {
-    small: 14,
-    medium: 16,
-    large: 20,
-  },
 
   breakpoints: [480, 640, 768, 1024, 1280, 1536],
-  sidebarWidth: 300,
+  sidebarWidth: 260,
 };
 
 const createExtendedTheme = (baseTheme, themeColors) => ({
   ...baseTheme,
   ...themeColors,
   link: themeColors.brand,
-  linkVisited: OpenProps.purple5,
-  scrollthumbColor: themeColors.text2,
-  accentColor: themeColors.brand,
-  backgroundColor: themeColors.surface1,
-  caretColor: themeColors.brand,
 });
 
 const extendedLightTheme = createExtendedTheme(baseTheme, lightTheme);

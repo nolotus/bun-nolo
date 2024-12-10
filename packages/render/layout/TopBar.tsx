@@ -1,7 +1,6 @@
 // render/layout/TopBar.tsx
 
 import React, { ReactNode } from "react";
-import { stylePresets } from "render/styles/stylePresets";
 
 import { CreateMenu } from "create/CreateMenu";
 import { useAppSelector } from "app/hooks";
@@ -92,7 +91,7 @@ const TopBar: React.FC<TopBarProps> = ({
               >
                 <div
                   style={{
-                    ...stylePresets.flexEnd,
+                    ...layout.flexEnd,
                     fontSize: "14px",
                     color: theme.text2,
                     padding: "0 16px",
@@ -111,7 +110,7 @@ const TopBar: React.FC<TopBarProps> = ({
         {topbarContent}
       </div>
 
-      <div style={stylePresets.flexEnd}>
+      <div style={layout.flexEnd}>
         <CreateMenu />
         {isLoggedIn ? (
           <div>

@@ -5,7 +5,6 @@ import { useAuth } from "auth/useAuth";
 import { useParams } from "react-router-dom";
 import { selectTheme } from "app/theme/themeSlice";
 import withTranslations from "i18n/withTranslations";
-import { themeStyles } from "render/ui/styles";
 import {
   initDialog,
   selectCurrentDialogConfig,
@@ -47,7 +46,6 @@ const ChatPage = () => {
         ...layout.flex,
         ...layout.overflowXHidden,
         height: "calc(100dvh - 60px)",
-        ...themeStyles.surface1(theme),
       }}
     >
       <div

@@ -7,32 +7,27 @@ import {
   LocationIcon,
 } from "@primer/octicons-react";
 import DropDown from "render/ui/DropDown";
-import { Tooltip } from "@primer/react/next";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
-import { themeStyles } from "render/ui/styles";
-import { stylePresets } from "render/styles/stylePresets";
+
+import { layout } from "render/styles/layout";
+import { txt } from "render/styles/txt";
 
 import Button from "render/ui/Button";
-
+import { TooltipAnchor } from "render/ui/TooltipAnchor";
 import { CreateRoutePaths } from "./routes";
-import { layout } from "render/styles/layout";
-import { sizes } from "render/styles/sizes";
 
 const CircleButton = ({ tooltip, icon, to, onClick }) => {
-  const theme = useSelector(selectTheme);
-
   const buttonStyle = {
-    ...stylePresets.flexCenter,
+    ...layout.flexCenter,
     borderRadius: "9999px",
-    padding: theme.spacing.small,
+    padding: "8px",
     minWidth: "auto",
-    ...themeStyles.surface1(theme),
   };
 
   const hoverStyle = {
-    backgroundColor: theme.surface2,
+    backgroundColor: "#f6f8fa",
   };
 
   const ButtonContent = (
@@ -45,15 +40,23 @@ const CircleButton = ({ tooltip, icon, to, onClick }) => {
   );
 
   return (
-    <Tooltip text={tooltip} direction="n">
-      {to ? (
-        <Link to={to} onClick={onClick} style={stylePresets.textDecorationNone}>
-          {ButtonContent}
-        </Link>
-      ) : (
-        <div onClick={onClick}>{ButtonContent}</div>
-      )}
-    </Tooltip>
+    <>
+      <TooltipAnchor
+        className="link"
+        description={tooltip}
+        render={
+          to ? (
+            <Link to={to} onClick={onClick} style={txt.decorationNone}>
+              {ButtonContent}
+            </Link>
+          ) : (
+            <div onClick={onClick}>{ButtonContent}</div>
+          )
+        }
+      >
+        Tooltip with Framer Motion
+      </TooltipAnchor>
+    </>
   );
 };
 
@@ -93,10 +96,9 @@ export const CreateMenu = () => {
       <div
         style={{
           ...layout.flexColumn,
-          gap: sizes.size2,
-          padding: sizes.size2,
-          ...themeStyles.surface2(theme),
-          borderRadius: theme.borderRadius,
+          gap: "8px",
+          padding: "8px",
+          borderRadius: "6px",
         }}
       >
         {buttonItems.map((item, index) => (

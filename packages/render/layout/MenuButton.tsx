@@ -2,7 +2,6 @@
 import React from "react";
 import { MoveToEndIcon, MoveToStartIcon } from "@primer/octicons-react";
 import { themeStyles } from "render/ui/styles";
-import { stylePresets } from "render/styles/stylePresets";
 
 import Button from "render/ui/Button";
 
@@ -18,7 +17,10 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   isExpanded,
 }) => {
   const buttonStyle = {
-    ...stylePresets.buttonBase,
+    padding: ".5rem",
+    borderRadius: "5px",
+    cursor: "pointer",
+    transition: "all 0.2s ease-in-out",
     ...themeStyles.surface1(theme),
   };
 

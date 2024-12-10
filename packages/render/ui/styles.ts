@@ -2,12 +2,9 @@ export type Theme = {
   surface1: string;
   surface2: string;
   surface3: string;
-  surface4: string;
   text1: string;
   text2: string;
   link: string;
-  linkVisited: string;
-  scrollthumbColor: string;
   brand: string;
   backgroundColor: string;
   surfaceShadow: string;
@@ -27,15 +24,7 @@ export const themeStyles = {
     backgroundColor: theme.surface3,
     color: theme.text1,
   }),
-  surface4: (theme: Theme) => ({
-    backgroundColor: theme.surface4,
-    color: theme.text1,
-  }),
-  textColor1: (theme: Theme) => ({ color: theme.text1 }),
-  textColor2: (theme: Theme) => ({ color: theme.text2 }),
-  link: (theme: Theme) => ({ color: theme.link }),
-  linkVisited: (theme: Theme) => ({ color: theme.linkVisited }),
-  scrollThumb: (theme: Theme) => ({ backgroundColor: theme.scrollthumbColor }),
+
   brand: (theme: Theme) => ({ color: theme.brand }),
 
   radShadow: (theme: Theme) => ({

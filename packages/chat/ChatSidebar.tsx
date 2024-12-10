@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import withTranslations from "i18n/withTranslations";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectFilteredDataByUserAndTypeAndWorkspace } from "database/selectors";
-import CustomizeAIButton from "ai/cybot/CustomizeAIButton";
 import NewDialogButton from "chat/dialog/NewDialogButton";
 import DialogSideBar from "chat/dialog/DialogSideBar";
 import {
@@ -34,7 +33,6 @@ const ChatSidebar = () => {
   return (
     <nav>
       <div style={{ ...layout.flexBetween, gap: sizes.size2 }}>
-        {/* <CustomizeAIButton /> */}
         <NewDialogButton />
       </div>
       {data && <DialogSideBar dialogList={data} />}

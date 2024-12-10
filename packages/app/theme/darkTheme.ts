@@ -9,7 +9,6 @@ export const darkTheme = {
   surface1: OpenProps.gray12,
   surface2: OpenProps.gray11,
   surface3: OpenProps.gray10,
-  surface4: OpenProps.gray9,
   surfaceShadow: OpenProps.gray12Hsl,
   shadowStrength: "80%",
   table: {
@@ -30,16 +29,5 @@ export const darkTheme = {
     background: "#2d3748",
     color: "#f1f5f9",
     borderColor: "#334155",
-  },
-  codeBlock: {
-    headerBackground: "#1e1e1e",
-    buttonColor: "#989898",
-    buttonHoverBackground: "rgba(255,255,255,0.1)",
-    buttonHoverColor: "#ffffff",
-    iconColor: "#888",
-    copiedButtonBackground: "#1a4721",
-    copiedButtonColor: "white",
-    copiedButtonHoverBackground: "#205828",
-    languageLabelColor: "#989898",
   },
 };

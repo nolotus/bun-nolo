@@ -7,7 +7,6 @@ export const dimTheme = {
   surface1: OpenProps.gray8,
   surface2: OpenProps.gray7,
   surface3: OpenProps.gray6,
-  surface4: OpenProps.gray5,
   surfaceShadow: OpenProps.gray9Hsl,
   shadowStrength: "20%",
 };

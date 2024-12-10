@@ -26,9 +26,6 @@ export const layout = {
   h100: { height: "100%" },
   h100vh: { height: "100vh" },
 
-  // Position
-  positionFixed: { position: "fixed" },
-
   // Overflow
   overflowYAuto: { overflowY: "auto" },
   overflowXHidden: { overflowX: "hidden" },

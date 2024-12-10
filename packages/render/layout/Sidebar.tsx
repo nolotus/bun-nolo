@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { themeStyles } from "render/ui/styles";
-import { stylePresets } from "render/styles/stylePresets";
 
 import OpenProps from "open-props";
 
@@ -65,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div
       style={{
-        ...stylePresets.flex,
+        ...layout.flex,
         minHeight: "100vh",
       }}
     >
@@ -126,7 +125,6 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
   top: 0,
   transition: "left 0.3s ease-in-out",
   zIndex: 2,
-  ...themeStyles.textColor1(theme),
   display: "flex",
   flexDirection: "column" as const,
 });
