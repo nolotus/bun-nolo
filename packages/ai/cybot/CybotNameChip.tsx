@@ -33,8 +33,6 @@ const CybotNameChip = React.memo(({ cybotId }) => {
     borderRadius: "12px",
     backgroundColor: isHovered ? theme.surface3 : theme.surface2,
     color: theme.text2,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
     ...txt.ellipsis,
     maxWidth: "100px",
     cursor: "pointer",

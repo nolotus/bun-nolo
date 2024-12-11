@@ -1,14 +1,13 @@
 import React from "react";
 import { useQueryData } from "app/hooks/useQueryData";
-
 import { DataType } from "create/types";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAppSelector } from "app/hooks";
-
 import CybotBlock from "./CybotBlock";
-import { layout } from "render/styles/layout";
+import { motion } from "framer-motion";
+import { COLORS } from "render/styles/colors";
 
 interface CybotsProps {
   queryUserId: string;
@@ -29,69 +28,74 @@ const Cybots: React.FC<CybotsProps> = ({
       isJSON: true,
       limit,
       condition: {
-        type: DataType.ChatRobot,
-      },
-    },
-  };
-  const { isLoading, isSuccess } = useQueryData(queryConfig);
-
-  const queryConfig2 = {
-    queryUserId,
-    options: {
-      isJSON: true,
-      limit,
-      condition: {
         type: DataType.Cybot,
       },
     },
   };
-  const { isLoading: isLoading2, isSuccess: isSuccess2 } =
-    useQueryData(queryConfig2);
+
+  const { isLoading, isSuccess } = useQueryData(queryConfig);
 
   const data = useAppSelector(
-    selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot)
-  );
-  const data2 = useAppSelector(
     selectFilteredDataByUserAndType(queryUserId, DataType.Cybot)
   );
 
-  if (isLoading && isLoading2) {
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+  };
+
+  if (isLoading) {
     return (
       <div
         style={{
           textAlign: "center",
-          padding: "1rem",
-          color: theme.text2,
+          padding: "2rem",
+          color: COLORS.textSecondary,
+          fontSize: "1.1rem",
         }}
       >
-        加载 AI 列表中...
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          加载 AI 列表中...
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
       style={{
-        margin: "1.5rem",
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        gap: "1.5rem",
+        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+        gap: "2rem",
         padding: "1rem",
+        margin: "0 auto",
+        maxWidth: "1400px",
       }}
     >
       {isSuccess &&
         data?.map((item) => (
-          <div key={item.id} style={layout.w100}>
+          <motion.div key={item.id} variants={item}>
             <CybotBlock item={item} closeModal={closeModal} />
-          </div>
+          </motion.div>
         ))}
-      {isSuccess2 &&
-        data2?.map((item) => (
-          <div key={item.id} style={layout.w100}>
-            <CybotBlock item={item} closeModal={closeModal} />
-          </div>
-        ))}
-    </div>
+    </motion.div>
   );
 };
 

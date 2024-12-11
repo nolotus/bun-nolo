@@ -1,38 +1,13 @@
 import { nolotusId } from "core/init";
 import Cybots from "ai/cybot/Cybots";
-import { useAppSelector } from "app/hooks";
 import { DependabotIcon } from "@primer/octicons-react";
 import React from "react";
-import { selectCurrentUserId } from "auth/authSlice";
 import { SpotList } from "render/components/SpotList";
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-
-interface LinkProps {
-  to: string;
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-  target?: "_blank" | "_self" | "_parent" | "_top";
-}
-
-const Link: React.FC<LinkProps> = ({
-  to,
-  children,
-  className = "",
-  style = {},
-  target = "_self",
-}) => {
-  return (
-    <NavLink to={to} style={style} target={target} className={className}>
-      {children}
-    </NavLink>
-  );
-};
+import { COLORS, GRADIENTS } from "render/styles/colors";
 
 const Home = () => {
-  const userId = useAppSelector(selectCurrentUserId);
-
   const features = [
     {
       icon: "🤖",
@@ -78,14 +53,14 @@ const Home = () => {
           .feature-card {
             padding: 2rem;
             backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: ${COLORS.backgroundGhost};
+            border: 1px solid ${COLORS.borderLight};
             border-radius: 16px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 15px ${COLORS.shadowLight};
           }
 
           .welcome-text {
-            background: linear-gradient(45deg, #0062ff, #33ccff);
+            background: ${COLORS.primaryGradient};
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
@@ -94,25 +69,25 @@ const Home = () => {
 
           .intro-text {
             font-weight: 300;
-            color: #445;
+            color: ${COLORS.textSecondary};
           }
 
           .signup-link {
             display: inline-block;
             padding: 1rem 2.5rem;
-            background: linear-gradient(45deg, #0062ff, #33ccff);
-            color: white;
+            background: ${COLORS.primaryGradient};
+            color: ${COLORS.background};
             border-radius: 30px;
             text-decoration: none;
             font-weight: 500;
             margin-top: 2rem;
             font-size: 1.1rem;
-            box-shadow: 0 4px 15px rgba(0, 98, 255, 0.2);
+            box-shadow: 0 4px 15px ${COLORS.primaryGhost};
           }
 
           .section-title {
             font-size: 2.5rem;
-            color: #2a2a2a;
+            color: ${COLORS.text};
             margin: 4rem 0;
             font-weight: 600;
             letter-spacing: -0.5px;
@@ -149,7 +124,7 @@ const Home = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           style={{
-            background: "linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%)",
+            background: COLORS.backgroundGradient,
             borderRadius: "24px",
             padding: "4rem 2rem",
             marginBottom: "4rem",
@@ -205,9 +180,9 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <Link to="/signup" className="signup-link">
+              <NavLink to="/signup" className="signup-link">
                 开始体验
-              </Link>
+              </NavLink>
             </motion.div>
           </motion.div>
         </motion.section>
@@ -229,8 +204,8 @@ const Home = () => {
               variants={item}
               whileHover={{
                 y: -8,
-                boxShadow: "0 12px 30px rgba(0,0,0,0.1)",
-                borderColor: "rgba(0, 98, 255, 0.1)",
+                boxShadow: `0 12px 30px ${COLORS.shadowMedium}`,
+                borderColor: COLORS.primaryGhost,
               }}
               className="feature-card"
             >
@@ -246,7 +221,7 @@ const Home = () => {
                 style={{
                   fontSize: "1.2rem",
                   marginBottom: "0.8rem",
-                  color: "#2a2a2a",
+                  color: COLORS.text,
                   fontWeight: "600",
                 }}
               >
@@ -254,7 +229,7 @@ const Home = () => {
               </h3>
               <p
                 style={{
-                  color: "#666",
+                  color: COLORS.textTertiary,
                   fontSize: "1rem",
                   lineHeight: "1.6",
                 }}
@@ -277,7 +252,7 @@ const Home = () => {
         >
           <h2 className="section-title">看看其他人都在用 Cybot 做什么</h2>
           <div style={{ marginBottom: "4rem" }}>
-            <Cybots queryUserId={userId ? userId : nolotusId} limit={6} />
+            <Cybots queryUserId={nolotusId} limit={8} />
           </div>
         </motion.section>
 
@@ -301,19 +276,19 @@ const Home = () => {
           viewport={{ once: true }}
           style={{
             textAlign: "center",
-            color: "#888",
+            color: COLORS.textLight,
             fontSize: "1rem",
             padding: "3rem 0",
-            borderTop: "1px solid #eee",
+            borderTop: `1px solid ${COLORS.border}`,
           }}
         >
           <p style={{ marginBottom: "1rem" }}>本站正在测试中，欢迎反馈</p>
           <a
             href="mailto:s@nolotus.com"
             style={{
-              color: "#666",
+              color: COLORS.textTertiary,
               textDecoration: "none",
-              borderBottom: "1px dashed #666",
+              borderBottom: `1px dashed ${COLORS.textTertiary}`,
               padding: "0.2rem 0",
             }}
           >
