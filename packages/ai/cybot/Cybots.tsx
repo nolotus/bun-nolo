@@ -59,9 +59,9 @@ const Cybots: React.FC<CybotsProps> = ({
       <div
         style={{
           textAlign: "center",
-          padding: "2rem",
+          padding: "1.5rem",
           color: COLORS.textSecondary,
-          fontSize: "1.1rem",
+          fontSize: "1rem",
         }}
       >
         <motion.div
@@ -82,11 +82,11 @@ const Cybots: React.FC<CybotsProps> = ({
       animate="show"
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-        gap: "2rem",
-        padding: "1rem",
+        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+        gap: "1.5rem",
+        padding: "0.8rem",
         margin: "0 auto",
-        maxWidth: "1400px",
+        maxWidth: "1200px",
       }}
     >
       {isSuccess &&
