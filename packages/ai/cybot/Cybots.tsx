@@ -8,7 +8,6 @@ import { selectFilteredDataByUserAndType } from "database/selectors";
 import { useAppSelector } from "app/hooks";
 
 import CybotBlock from "./CybotBlock";
-import { sizes } from "render/styles/sizes";
 import { layout } from "render/styles/layout";
 
 interface CybotsProps {
@@ -48,6 +47,7 @@ const Cybots: React.FC<CybotsProps> = ({
   };
   const { isLoading: isLoading2, isSuccess: isSuccess2 } =
     useQueryData(queryConfig2);
+
   const data = useAppSelector(
     selectFilteredDataByUserAndType(queryUserId, DataType.ChatRobot)
   );
@@ -60,8 +60,7 @@ const Cybots: React.FC<CybotsProps> = ({
       <div
         style={{
           textAlign: "center",
-          paddingTop: sizes.size2,
-          paddingBottom: sizes.size2,
+          padding: "1rem",
           color: theme.text2,
         }}
       >
@@ -73,11 +72,11 @@ const Cybots: React.FC<CybotsProps> = ({
   return (
     <div
       style={{
-        margin: sizes.size3,
+        margin: "1.5rem",
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-        gap: sizes.size3,
-        padding: sizes.size2,
+        gap: "1.5rem",
+        padding: "1rem",
       }}
     >
       {isSuccess &&
