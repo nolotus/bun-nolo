@@ -25,7 +25,6 @@ export const routes = (currentUser: any) => [
             "/life/statistics",
             () => import("life/web/Statistics")
           ),
-          createLazyRoute("/life/calendar", () => import("life/web/Calendar")),
         ],
       },
       {

@@ -1,8 +1,7 @@
 // life/LifeSidebarContent.tsx
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { CalendarIcon, GraphIcon } from "@primer/octicons-react";
-
+import { GraphIcon } from "@primer/octicons-react";
 const LifeSidebarContent = () => {
   const navLinkStyle = {
     width: "100%",
@@ -21,13 +20,6 @@ const LifeSidebarContent = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
-      <NavLink
-        to="/life/calendar"
-        style={({ isActive }) => (isActive ? activeStyle : navLinkStyle)}
-      >
-        <CalendarIcon size={20} style={{ marginRight: "8px" }} />
-        <span>Calendar</span>
-      </NavLink>
       <NavLink
         to="/life/statistics"
         style={({ isActive }) => (isActive ? activeStyle : navLinkStyle)}

@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { UploadIcon } from "@primer/octicons-react";
 import { retrieveFirstToken } from "auth/client/token";
 import { generateFileID } from "database/fileUpload/generateFileID";
-import clsx from "clsx";
 import { useAuth } from "auth/useAuth";
 
 import SendButton from "./ActionButton";
@@ -314,10 +313,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
           onChange={handleNewMessageChange}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          className={clsx(
-            "transition-colors duration-200",
-            isDragOver ? "border-blue-500 bg-blue-50" : ""
-          )}
+
           // style={{
           //   backgroundColor: isDarkMode ? "#171a1c" : "",
           //   color: isDarkMode ? "#868e96" : "",
