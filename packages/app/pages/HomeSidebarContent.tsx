@@ -4,7 +4,7 @@ import { NavItem } from "auth/navPermissions";
 import NavListItem from "render/layout/blocks/NavListItem";
 import { allowRule } from "auth/navPermissions";
 import { useAuth } from "auth/useAuth";
-import { DesktopDownloadIcon, PeopleIcon } from "@primer/octicons-react"; 
+import { DesktopDownloadIcon, PeopleIcon } from "@primer/octicons-react";
 import { nolotusId } from "core/init"; // 确保引入 nolotusId
 import { ImLab } from "react-icons/im";
 import { RiMoneyCnyBoxLine } from "react-icons/ri";
@@ -30,7 +30,7 @@ const HomeSidebarContent: React.FC = () => {
       label: "价格",
       icon: <RiMoneyCnyBoxLine size={20} />,
     },
-    
+
     {
       path: "/help",
       label: "帮助",

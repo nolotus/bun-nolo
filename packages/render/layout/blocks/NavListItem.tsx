@@ -25,7 +25,6 @@ const NavListItem: React.FC<NavListItemProps> = ({
     alignItems: "center",
     padding: "8px 16px",
     marginBottom: "8px",
-    borderRadius: "8px",
     color: "#2d3436",
     textDecoration: "none",
     transition: "all 0.2s ease",

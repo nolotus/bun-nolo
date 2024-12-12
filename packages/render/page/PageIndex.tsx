@@ -1,17 +1,22 @@
 import { useAppDispatch, useFetchData } from "app/hooks";
-import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
 import { initPage, resetPage } from "./pageSlice";
-import RenderPage from "./RenderPage";
+import RenderPage from "render/page/RenderPage";
 import NoMatch from "../NoMatch";
 import EditPage from "./EditPage";
+import { DataType } from "create/types";
+import { SurfPage } from "../surf/web/SurfPage";
+import DialogPage from "chat/dialog/DialogPage";
+
+import { RenderJson } from "./RenderJson";
 
 const Page = ({ id }) => {
   const { pageId: paramPageId } = useParams();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
+
   useEffect(() => {
     return () => {
       dispatch(resetPage());
@@ -19,35 +24,17 @@ const Page = ({ id }) => {
   }, [dispatch]);
 
   const pageId = id || paramPageId;
+  //maybe need id from props
   const isEditMode = searchParams.get("edit") === "true";
 
   const { data, isLoading, error } = useFetchData(pageId);
 
-  const renderEdit = () => {
-    if (isEditMode) {
-      return <EditPage />;
-    }
-    if (!isEditMode) {
-      return <RenderPage pageId={pageId} data={data} />;
-    }
-  };
+  //edit page not need data
+  if (isEditMode) {
+    return <EditPage />;
+  }
 
-  const renderContent = () => {
-    return (
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={pageId}
-          initial={{ opacity: 0, visibility: "hidden" }}
-          animate={{ opacity: 1, visibility: "visible" }}
-          exit={{ opacity: 0, visibility: "hidden" }}
-          transition={{ duration: 0.3, when: "beforeChildren" }}
-        >
-          {renderEdit()}
-        </motion.div>
-      </AnimatePresence>
-    );
-  };
-
+  // render page need data
   if (isLoading) {
     return (
       <div
@@ -65,56 +52,20 @@ const Page = ({ id }) => {
         加载中 请稍等
       </div>
     );
-  } else {
-    if (data) {
-      dispatch(initPage(data));
-      const { layout } = data;
-      if (layout === "full") {
-        return (
-          <div
-            style={{
-              display: "flex",
-              minHeight: "100vh",
-              flexDirection: "column",
-            }}
-          >
-            <div
-              style={{
-                width: "100%",
-                flexGrow: 1,
-              }}
-            >
-              {renderEdit()}
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div
-          style={{
-            display: "flex",
-            minHeight: "100vh",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              margin: "0 auto",
-              width: "100%",
-              flexGrow: 1,
-            }}
-          >
-            {renderContent()}
-          </div>
-        </div>
-      );
+  } else if (data) {
+    dispatch(initPage(data));
+    if (data.type === DataType.Dialog) {
+      return <DialogPage dialogId={pageId} />;
     }
-
-    if (!data) {
-      return <NoMatch />;
+    if (data.type === DataType.SurfSpot) {
+      return <SurfPage pageId={pageId} data={data} />;
     }
+    if (data.type === DataType.Page) {
+      return <RenderPage pageId={pageId} data={data} />;
+    }
+    return <RenderJson data={data} />;
   }
+  return <NoMatch />;
 };
 
 export default Page;

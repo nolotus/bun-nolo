@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 import {
   JsonView,
   allExpanded,
   darkStyles,
   defaultStyles,
-} from 'react-json-view-lite';
-import 'react-json-view-lite/dist/index.css';
+} from "react-json-view-lite";
+import "react-json-view-lite/dist/index.css";
 
 export const RenderJson = ({ data }) => {
   return (
