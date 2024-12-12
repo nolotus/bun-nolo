@@ -9,6 +9,6 @@ export enum DataType {
   Dialog = "dialog",
   Message = "message",
   Category = "category",
-  WorkSpace = "worksapce",
+  Space = "space",
   CalendarEvent = "calendar_event",
 }

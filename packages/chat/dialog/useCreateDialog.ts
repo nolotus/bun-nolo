@@ -35,7 +35,7 @@ export const useCreateDialog = (): UseCreateDialogResult => {
       try {
         const result = await dispatch(createDialog({ cybots })).unwrap();
         console.log("result", result);
-        navigate(`/chat/${result.id}`);
+        navigate(`/${result.id}`);
         setIsSuccess(true);
       } catch (error) {
         // 错误处理

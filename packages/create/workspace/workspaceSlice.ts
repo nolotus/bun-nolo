@@ -52,7 +52,7 @@ const workspaceSlice = createSliceWithThunks({
           };
           const reuslt = await queryFilteredFromIndexedDB(
             currentUserId,
-            options,
+            options
           );
           console.log("fetchWorkspaces reuslt", reuslt);
           return reuslt;
@@ -63,7 +63,7 @@ const workspaceSlice = createSliceWithThunks({
               isJSON: true,
               limit: 20,
               condition: {
-                type: DataType.WorkSpace,
+                type: DataType.Space,
               },
             },
           };
@@ -72,7 +72,7 @@ const workspaceSlice = createSliceWithThunks({
             queryServer({
               server: currentServer,
               ...queryConfig,
-            }),
+            })
           );
           return action.payload || [];
         }
@@ -82,7 +82,7 @@ const workspaceSlice = createSliceWithThunks({
           const { payload } = action;
           state.workspaces = payload;
         },
-      },
+      }
     ),
     changeWorkSpace: create.reducer((state, action: PayloadAction<string>) => {
       state.currentWorkspaceId = action.payload;
@@ -96,7 +96,7 @@ const workspaceSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {},
-      },
+      }
     ),
 
     addWorkspace: create.asyncThunk(
@@ -109,7 +109,7 @@ const workspaceSlice = createSliceWithThunks({
         const currentUserId = selectCurrentUserId(state);
         const config = {
           data: {
-            type: DataType.WorkSpace,
+            type: DataType.Space,
             name,
           },
           flags: { isJSON: true },
@@ -125,7 +125,7 @@ const workspaceSlice = createSliceWithThunks({
           console.log("action", action);
           state.workspaces?.push(action.payload);
         },
-      },
+      }
     ),
     deleteWorkspace: create.asyncThunk(
       async (workspaceId: string, thunkAPI) => {
@@ -137,13 +137,13 @@ const workspaceSlice = createSliceWithThunks({
         fulfilled: (state, action) => {
           const workspaceId = action.payload;
           state.workspaces = state.workspaces.filter(
-            (workspace: any) => workspace.id !== workspaceId,
+            (workspace: any) => workspace.id !== workspaceId
           );
           if (state.currentWorkspaceId === workspaceId) {
             state.currentWorkspaceId = "recent";
           }
         },
-      },
+      }
     ),
     queryDialogList: create.asyncThunk(async (workspaceId, thunkAPI) => {
       const state = thunkAPI.getState();

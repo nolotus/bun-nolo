@@ -5,7 +5,6 @@ module.exports = {
     "./packages/ui/**/*",
     "./packages/user/**/*",
     "./packages/components/**/*",
-    "./packages/chat/**/*",
     "./packages/setting/**/*",
     "./packages/life/**/*",
     "./packages/render/**/*",

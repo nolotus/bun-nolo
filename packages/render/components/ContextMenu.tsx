@@ -55,7 +55,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
 
   const menuItemStyle = (
     id: string,
-    disabled: boolean,
+    disabled: boolean
   ): React.CSSProperties => ({
     ...menuItemBaseStyle,
     backgroundColor:

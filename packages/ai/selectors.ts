@@ -49,7 +49,7 @@ export const selectTotalCosts = createSelector(
       modelCosts,
       userCosts,
     };
-  },
+  }
 );
 export const selectCostByUserId = createSelector(
   [selectTokenStatisticsData, (state) => state.auth.currentUser.userId],
@@ -80,5 +80,5 @@ export const selectCostByUserId = createSelector(
       totalCost,
       modelCosts,
     };
-  },
+  }
 );
