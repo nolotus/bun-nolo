@@ -1,4 +1,4 @@
-import type { AppDispatch, NoloRootState } from "app/store";
+import type { NoloRootState } from "app/store";
 
 import {
   PayloadAction,
@@ -21,7 +21,6 @@ interface workspaceState {
   currentWorkspaceId: string | null;
   currentWorkspace: any;
   workspaces: [] | null;
-  dialogList: [] | null;
   loading: boolean;
 }
 

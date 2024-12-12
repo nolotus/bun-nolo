@@ -14,6 +14,7 @@ import { DataType } from "create/types";
 
 import { layout } from "render/styles/layout";
 import { sizes } from "render/styles/sizes";
+import { DialogList } from "./dialog/DialogList";
 
 const ChatSidebar = () => {
   const dispatch = useAppDispatch();
@@ -35,7 +36,7 @@ const ChatSidebar = () => {
       <div style={{ ...layout.flexBetween, gap: sizes.size2 }}>
         <NewDialogButton />
       </div>
-      {data && <DialogSideBar dialogList={data} />}
+      {data && <DialogList dialogList={data} />}
     </nav>
   );
 };
