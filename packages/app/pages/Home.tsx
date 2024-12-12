@@ -5,7 +5,7 @@ import React from "react";
 import { SpotList } from "render/components/SpotList";
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-import { COLORS, GRADIENTS } from "render/styles/colors";
+import { COLORS } from "render/styles/colors";
 
 const Home = () => {
   const features = [
@@ -51,7 +51,7 @@ const Home = () => {
       <style>
         {`
           .feature-card {
-            padding: 2rem;
+            padding: 1.5rem;
             backdrop-filter: blur(10px);
             background: ${COLORS.backgroundGhost};
             border: 1px solid ${COLORS.borderLight};
@@ -74,28 +74,28 @@ const Home = () => {
 
           .signup-link {
             display: inline-block;
-            padding: 1rem 2.5rem;
+            padding: 0.8rem 2rem;
             background: ${COLORS.primaryGradient};
             color: ${COLORS.background};
             border-radius: 30px;
             text-decoration: none;
             font-weight: 500;
-            margin-top: 2rem;
-            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            font-size: 1rem;
             box-shadow: 0 4px 15px ${COLORS.primaryGhost};
           }
 
           .section-title {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             color: ${COLORS.text};
-            margin: 4rem 0;
+            margin: 3rem 0;
             font-weight: 600;
             letter-spacing: -0.5px;
           }
 
           .features-grid {
-            gap: 2.5rem;
-            padding: 2rem;
+            gap: 2rem;
+            padding: 1.5rem;
           }
 
           @media (max-width: 768px) {
@@ -105,19 +105,13 @@ const Home = () => {
             
             .section-title {
               font-size: 2rem;
-              margin: 3rem 0;
+              margin: 2.5rem 0;
             }
           }
         `}
       </style>
 
-      <div
-        style={{
-          maxWidth: "1400px",
-          margin: "0 auto",
-          padding: "2rem",
-        }}
-      >
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.5rem" }}>
         <motion.section
           className="hero-section"
           initial={{ opacity: 0, y: 20 }}
@@ -126,24 +120,20 @@ const Home = () => {
           style={{
             background: COLORS.backgroundGradient,
             borderRadius: "24px",
-            padding: "4rem 2rem",
-            marginBottom: "4rem",
+            padding: "3rem 1.5rem",
+            marginBottom: "3rem",
           }}
         >
           <motion.div
-            style={{
-              textAlign: "center",
-              maxWidth: "900px",
-              margin: "0 auto",
-            }}
+            style={{ textAlign: "center", maxWidth: "800px", margin: "0 auto" }}
           >
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               style={{
-                fontSize: "3.8rem",
-                marginBottom: "2rem",
+                fontSize: "3.2rem",
+                marginBottom: "1.5rem",
                 fontWeight: "700",
                 lineHeight: "1.2",
               }}
@@ -157,19 +147,19 @@ const Home = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
               style={{
-                fontSize: "1.5rem",
-                lineHeight: "1.8",
-                marginBottom: "2rem",
+                fontSize: "1.3rem",
+                lineHeight: "1.6",
+                marginBottom: "1.5rem",
               }}
             >
-              <p style={{ marginBottom: "1rem" }}>
+              <p style={{ marginBottom: "0.8rem" }}>
                 作为程序员，我一直在寻找更智能的方式来管理数字生活
               </p>
-              <p style={{ marginBottom: "1rem" }}>
+              <p style={{ marginBottom: "0.8rem" }}>
                 所以我打造了这个AI助手，它能帮你整理笔记、规划日程、分析数据
                 <DependabotIcon
-                  size={24}
-                  style={{ margin: "0 8px", verticalAlign: "middle" }}
+                  size={20}
+                  style={{ margin: "0 6px", verticalAlign: "middle" }}
                 />
               </p>
               <p>要不要来试试看？</p>
@@ -195,7 +185,7 @@ const Home = () => {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
-            marginBottom: "5rem",
+            marginBottom: "3rem",
           }}
         >
           {features.map((feature, index) => (
@@ -209,18 +199,13 @@ const Home = () => {
               }}
               className="feature-card"
             >
-              <div
-                style={{
-                  fontSize: "2.2rem",
-                  marginBottom: "1rem",
-                }}
-              >
+              <div style={{ fontSize: "2rem", marginBottom: "0.8rem" }}>
                 {feature.icon}
               </div>
               <h3
                 style={{
-                  fontSize: "1.2rem",
-                  marginBottom: "0.8rem",
+                  fontSize: "1.1rem",
+                  marginBottom: "0.6rem",
                   color: COLORS.text,
                   fontWeight: "600",
                 }}
@@ -230,8 +215,8 @@ const Home = () => {
               <p
                 style={{
                   color: COLORS.textTertiary,
-                  fontSize: "1rem",
-                  lineHeight: "1.6",
+                  fontSize: "0.95rem",
+                  lineHeight: "1.5",
                 }}
               >
                 {feature.description}
@@ -245,13 +230,10 @@ const Home = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          style={{
-            marginBottom: "5rem",
-            textAlign: "center",
-          }}
+          style={{ marginBottom: "3rem", textAlign: "center" }}
         >
           <h2 className="section-title">看看其他人都在用 Cybot 做什么</h2>
-          <div style={{ marginBottom: "4rem" }}>
+          <div style={{ marginBottom: "3rem" }}>
             <Cybots queryUserId={nolotusId} limit={8} />
           </div>
         </motion.section>
@@ -261,10 +243,7 @@ const Home = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          style={{
-            marginBottom: "5rem",
-            textAlign: "center",
-          }}
+          style={{ marginBottom: "3rem", textAlign: "center" }}
         >
           <h2 className="section-title">我用 Cybot 记录的一些地方</h2>
           <SpotList userId={nolotusId} />
@@ -277,12 +256,12 @@ const Home = () => {
           style={{
             textAlign: "center",
             color: COLORS.textLight,
-            fontSize: "1rem",
-            padding: "3rem 0",
+            fontSize: "0.95rem",
+            padding: "2rem 0",
             borderTop: `1px solid ${COLORS.border}`,
           }}
         >
-          <p style={{ marginBottom: "1rem" }}>本站正在测试中，欢迎反馈</p>
+          <p style={{ marginBottom: "0.8rem" }}>本站正在测试中，欢迎反馈</p>
           <a
             href="mailto:s@nolotus.com"
             style={{

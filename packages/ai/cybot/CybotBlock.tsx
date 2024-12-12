@@ -116,11 +116,11 @@ const CybotBlock = ({ item, closeModal }) => {
         style={{
           background: COLORS.background,
           borderRadius: "12px",
-          padding: "1.2rem",
+          padding: "1rem",
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          gap: "1.2rem",
+          gap: "1rem",
           border: `1px solid ${COLORS.border}`,
           cursor: "pointer",
           boxShadow: `0 2px 8px ${COLORS.shadowLight}`,
@@ -130,20 +130,20 @@ const CybotBlock = ({ item, closeModal }) => {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "1rem",
+            gap: "0.8rem",
           }}
         >
           <div
             className="avatar"
             style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "12px",
+              width: "42px",
+              height: "42px",
+              borderRadius: "10px",
               background: avatarBackground,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "1.2rem",
+              fontSize: "1.1rem",
               color: COLORS.text,
             }}
           >
@@ -153,10 +153,10 @@ const CybotBlock = ({ item, closeModal }) => {
           <div style={{ flex: 1 }}>
             <h3
               style={{
-                fontSize: "1.1rem",
+                fontSize: "1rem",
                 fontWeight: 600,
                 margin: 0,
-                marginBottom: "0.4rem",
+                marginBottom: "0.3rem",
                 color: COLORS.text,
               }}
             >
@@ -165,9 +165,9 @@ const CybotBlock = ({ item, closeModal }) => {
             <div
               className="model-tag"
               style={{
-                fontSize: "0.85rem",
+                fontSize: "0.8rem",
                 color: COLORS.textSecondary,
-                padding: "0.2rem 0.6rem",
+                padding: "0.2rem 0.5rem",
                 background: COLORS.backgroundSecondary,
                 borderRadius: "4px",
                 display: "inline-block",
@@ -181,10 +181,10 @@ const CybotBlock = ({ item, closeModal }) => {
         <div
           style={{
             flex: 1,
-            fontSize: "0.9rem",
+            fontSize: "0.85rem",
             lineHeight: 1.6,
             color: COLORS.textTertiary,
-            padding: "0.8rem 0",
+            padding: "0.6rem 0",
             borderTop: `1px solid ${COLORS.border}`,
             borderBottom: `1px solid ${COLORS.border}`,
           }}
@@ -195,7 +195,7 @@ const CybotBlock = ({ item, closeModal }) => {
         <div
           style={{
             display: "flex",
-            gap: "0.8rem",
+            gap: "0.6rem",
             marginTop: "auto",
           }}
         >
@@ -205,7 +205,7 @@ const CybotBlock = ({ item, closeModal }) => {
             className="start-button"
             style={{
               flex: 2,
-              padding: "0.8rem",
+              padding: "0.6rem",
               borderRadius: "8px",
               border: "none",
               background: COLORS.primaryGradient,
@@ -224,7 +224,7 @@ const CybotBlock = ({ item, closeModal }) => {
                 className="edit-button"
                 style={{
                   flex: 1,
-                  padding: "0.8rem",
+                  padding: "0.6rem",
                   borderRadius: "8px",
                   border: `1px solid ${COLORS.border}`,
                   background: COLORS.background,
@@ -241,7 +241,7 @@ const CybotBlock = ({ item, closeModal }) => {
                 className="delete-button"
                 style={{
                   flex: 1,
-                  padding: "0.8rem",
+                  padding: "0.6rem",
                   borderRadius: "8px",
                   border: `1px solid ${COLORS.border}`,
                   background: COLORS.background,
