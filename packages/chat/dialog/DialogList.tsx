@@ -12,23 +12,6 @@ import { DialogItem } from "./DialogItem";
 export const DialogList = ({ dialogList }) => {
   const auth = useAuth();
   const theme = useSelector(selectTheme);
-  const [selectedDialogId, setSelectedDialogId] = useState(null);
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    setSelectedDialogId(searchParams.get("dialogId"));
-
-    const handlePopState = () => {
-      const searchParams = new URLSearchParams(window.location.search);
-      setSelectedDialogId(searchParams.get("dialogId"));
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
 
   // 查询分类数据
   const categoryQueryConfig = {
@@ -58,11 +41,6 @@ export const DialogList = ({ dialogList }) => {
     acc[categoryId].push(dialog);
     return acc;
   }, {});
-
-  const handleDialogSelect = (dialogId) => {
-    setSelectedDialogId(dialogId);
-    window.history.pushState({}, "", `/chat/${dialogId}`);
-  };
 
   if (isCategoriesLoading) {
     return <div>Loading categories...</div>;
@@ -105,10 +83,8 @@ export const DialogList = ({ dialogList }) => {
                 <DialogItem
                   key={dialog.id}
                   id={dialog.id}
-                  isSelected={selectedDialogId === dialog.id}
                   isCreator={isCreator(dialog.id)}
                   categoryId={categoryId}
-                  onSelect={handleDialogSelect}
                 />
               ))}
             </div>

@@ -76,7 +76,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
             },
             flags: { isJSON: true },
             userId: auth.user?.userId,
-          }),
+          })
         ).unwrap();
         const cybotId = writeResult.id;
 
@@ -87,11 +87,11 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
         console.error("Error creating Cybot:", error);
       }
     },
-    [dispatch, auth.user?.userId, createNewDialog, onClose],
+    [dispatch, auth.user?.userId, createNewDialog, onClose]
   );
 
   const handleFormSubmit = handleSubmit(onSubmit, (errors) =>
-    console.log("Form validation failed", errors),
+    console.log("Form validation failed", errors)
   );
 
   return (

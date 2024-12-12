@@ -43,10 +43,7 @@ export const routes = (currentUser: any) => [
       // 设置路由
       {
         path: "/chat",
-        children: [
-          createLazyRoute("/chat", () => import("chat/ChatGuide")),
-          createLazyRoute("/chat/:dialogId", () => import("chat/ChatPage")),
-        ],
+        children: [createLazyRoute("/chat", () => import("chat/ChatGuide"))],
       },
       {
         path: ":pageId",

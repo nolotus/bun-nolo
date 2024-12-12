@@ -6,12 +6,14 @@ import ChatSidebar from "chat/ChatSidebar";
 import { AnimatePresence, motion } from "framer-motion";
 import HomeSidebarContent from "app/pages/HomeSidebarContent";
 import LifeSidebarContent from "life/LifeSidebarContent";
+import { useAuth } from "auth/useAuth";
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
+  const { isLoggedIn, user } = useAuth();
 
   const getSidebarContent = () => {
-    let currentSidebar = null;
+    let currentSidebar = isLoggedIn ? <ChatSidebar /> : null;
     const lastValidSidebarRef = React.useRef<React.ReactNode>(null);
 
     // 明确的路由规则判断

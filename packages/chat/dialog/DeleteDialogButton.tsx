@@ -4,17 +4,15 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Alert, useDeleteAlert } from "render/ui/Alert";
-import { useParams } from "react-router-dom";
 import { deleteCurrentDialog } from "./dialogSlice";
 
 const DeleteDialogButton = ({ dialogConfig }) => {
-  const { dialogId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const onDeleteDialog = async () => {
-    await dispatch(deleteCurrentDialog(dialogId));
+    await dispatch(deleteCurrentDialog(dialogConfig.id));
     navigate(-1);
   };
 

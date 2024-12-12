@@ -1,4 +1,4 @@
-// chat/ChatPage.tsx
+//  chat/dialog/DialogPage
 import React, { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/useAuth";

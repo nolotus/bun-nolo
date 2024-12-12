@@ -22,7 +22,7 @@ const categoryInputStyle = (theme) => ({
   borderRadius: theme.borderRadius,
   padding: `${theme.spacing.xsmall} ${theme.spacing.small}`,
 });
-
+//todo dialogId change to id
 const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [localCategoryName, setLocalCategoryName] = useState("");

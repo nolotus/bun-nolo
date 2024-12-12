@@ -17,6 +17,7 @@ interface DialogContextMenuProps {
   anchorRect: { x: number; y: number };
   dialogId: string;
 }
+//todo change dialog Id to id
 
 export const DialogContextMenu: React.FC<DialogContextMenuProps> = ({
   menu,
@@ -26,6 +27,7 @@ export const DialogContextMenu: React.FC<DialogContextMenuProps> = ({
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const workspaces = useAppSelector(selectAllWorkspaces);
+
   const handleDeleteDialog = () => {
     dispatch(deleteDialog(dialogId));
     menu.hide();

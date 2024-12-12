@@ -3,7 +3,7 @@ import { NavLink, useLocation, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import * as Ariakit from "@ariakit/react";
 import { selectTheme } from "app/theme/themeSlice";
-import { useAppDispatch, useFetchData } from "app/hooks";
+import { useFetchData } from "app/hooks";
 import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
 import { CommentIcon } from "@primer/octicons-react";
 
@@ -12,12 +12,11 @@ import { sizes } from "render/styles/sizes";
 
 export const DialogItem = ({ id, isCreator, categoryId }) => {
   const { data: dialog } = useFetchData(id);
+  const { pageId } = useParams();
 
   if (!dialog) {
     return null;
   }
-  const dispatch = useAppDispatch();
-  const { dialogId } = useParams();
   const theme = useSelector(selectTheme);
   const [isHovered, setIsHovered] = useState(false);
   const location = useLocation();
@@ -25,7 +24,7 @@ export const DialogItem = ({ id, isCreator, categoryId }) => {
   const menu = Ariakit.useMenuStore();
 
   const title = dialog.title || dialog.id;
-  const isSelected = dialog.id === dialogId;
+  const isSelected = dialog.id === pageId;
 
   // 注释大小：小中大
   const commentSize = sizes.size3; // 默认中等大小
@@ -75,7 +74,7 @@ export const DialogItem = ({ id, isCreator, categoryId }) => {
       onContextMenu={handleContextMenu}
     >
       <CommentIcon size={commentSize} style={iconStyle} />
-      <NavLink to={`/chat/${dialog.id}`} style={linkStyle}>
+      <NavLink to={`/${dialog.id}`} style={linkStyle}>
         {title}
       </NavLink>
 
