@@ -39,29 +39,7 @@ const renderConfigs: Record<string, RenderConfig> = {
       },
     ],
   },
-  [DataType.Cybot]: {
-    fields: [
-      { header: "AI名字", key: "name" },
-      {
-        header: "AI所用模型",
-        key: "model",
-        render: (value) => (
-          <div
-            style={{
-              whiteSpace: "pre-wrap",
-              maxWidth: "100px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {value.split(",").join(",\n")}
-          </div>
-        ),
-      },
-      { header: "AI 定制描述", key: "description" },
-      { header: "AI 知识", key: "knowledge" },
-    ],
-  },
+
   [DataType.Page]: {
     fields: [
       {

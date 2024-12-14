@@ -4,7 +4,6 @@ import withTranslations from "i18n/withTranslations";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectFilteredDataByUserAndTypeAndWorkspace } from "database/selectors";
 import NewDialogButton from "chat/dialog/NewDialogButton";
-import DialogSideBar from "chat/dialog/DialogSideBar";
 import {
   queryDialogList,
   selectCurrentWorkSpaceId,

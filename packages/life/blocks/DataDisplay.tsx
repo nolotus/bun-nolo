@@ -6,12 +6,12 @@ import { omit } from "rambda";
 
 import { write } from "database/dbSlice";
 import { DataTable } from "./DataTable";
+
 const DataDisplay = ({ datalist, type }) => {
   const dispatch = useAppDispatch();
 
   const pullData = async (id, value) => {
     // Define the logic for pulling data here
-
     const flags = extractAndDecodePrefix(id);
     const userId = extractUserId(id);
     const customId = extractCustomId(id);
@@ -41,18 +41,15 @@ const DataDisplay = ({ datalist, type }) => {
           userId,
           customId,
           domain,
-        }).unwrap(),
-      ),
+        }).unwrap()
+      )
     );
     // refreshData(auth.user?.userId);
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between"></div>
-      <div>
-        <DataTable dataList={datalist} type={type} pullData={pullData} />
-      </div>
+    <div style={{ margin: "16px 0" }}>
+      <DataTable dataList={datalist} type={type} pullData={pullData} />
     </div>
   );
 };

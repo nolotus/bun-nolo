@@ -7,8 +7,11 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { selectTotalCosts } from "ai/selectors";
 import { useQuery } from "app/hooks/useQuery";
+import { omit } from "rambda";
 
-const typeArray = ["All", ...Object.values(DataType), "chatRobot"];
+const filteredDataType = omit(["Dialog", "Cybot"], DataType);
+
+const typeArray = ["All", ...Object.values(filteredDataType), "chatRobot"];
 
 export const Database = () => {
   // const costs = useAppSelector(selectTotalCosts);

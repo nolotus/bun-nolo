@@ -1,11 +1,9 @@
 export const sizes = {
-  size1: ".25rem",
   size2: ".5rem",
   size3: "1rem",
   size4: "1.25rem",
   sizeFluid1: "clamp(.5rem, 1vw, 1rem)",
   sizeFluid2: "clamp(1rem, 2vw, 1.5rem)",
-  sizeContent2: "45ch",
 
   sizeXxs: "240px",
   sizeXs: "360px",
