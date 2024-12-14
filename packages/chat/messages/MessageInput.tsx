@@ -12,15 +12,6 @@ import { useAppSelector } from "app/hooks";
 import { selectIsDarkMode } from "app/theme/themeSlice";
 import { COLORS } from "render/styles/colors";
 
-const inputAreaStyle = {
-  position: "relative",
-  display: "flex",
-  gap: "8px",
-  padding: "10px 20%",
-  paddingBottom: "20px",
-  backgroundColor: COLORS.background,
-  borderTop: "none",
-};
 const inputStyle = {
   flex: 1,
   height: "48px",
@@ -60,23 +51,6 @@ const uploadButtonStyle = {
   },
 };
 
-const filePreviewStyle = {
-  position: "absolute",
-  bottom: "100%",
-  left: "20%",
-  right: "20%",
-  padding: "12px 16px",
-  marginBottom: "8px",
-  backgroundColor: COLORS.backgroundGhost,
-  borderRadius: "12px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  fontSize: "14px",
-  color: COLORS.text,
-  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-  border: `1px solid ${COLORS.border}`,
-};
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
 }
@@ -260,24 +234,68 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     <>
       <style>
         {`
-          .upload-button:hover {
-            background-color: ${COLORS.backgroundGhost} !important;
-            border-color: ${COLORS.primary} !important;
-            color: ${COLORS.primary} !important;
-            transform: scale(1.02);
-          }
-          .upload-button:active {
-            transform: scale(0.98);
-          }
-          
+    .input-area {
+      position: relative;
+      display: flex;
+      gap: 8px;
+      padding: 10px 20%; 
+      padding-bottom: 20px;
+      background-color: ${COLORS.background};
+      container-type: inline-size;
+    }
 
-          .close-button:hover {
-            background-color: ${COLORS.border} !important;
-          }
-        `}
+    /* 容器查询 */
+    @container (max-width: 768px) {
+      .input-area {
+        padding: 8px 12px !important;
+        gap: 6px !important;
+      }
+
+      textarea {
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+      }
+
+      .upload-button {
+        width: 40px !important;
+        height: 40px !important;
+      }
+    }
+
+    @container (min-width: 769px) and (max-width: 1024px) {
+      .input-area {
+        padding: 10px 10% !important;
+      }
+    }
+
+    /* 媒体查询 */ 
+    @media screen and (max-width: 768px) {
+      .input-area {
+        padding: 8px 12px;
+        gap: 6px;
+      }
+
+      textarea {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+
+      .upload-button {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    @media screen and (min-width: 769px) and (max-width: 1024px) {
+      .input-area {
+        padding: 10px 10%;
+      }
+    }
+  `}
       </style>
+
       <div
-        style={inputAreaStyle}
+        className="input-area"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -322,7 +340,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
 
         <SendButton
           onClick={beforeSend}
-
           // disabled={isLoading || (!input.trim() && !selectedFile)}
         />
 

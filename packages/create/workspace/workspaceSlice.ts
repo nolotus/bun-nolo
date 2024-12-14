@@ -18,15 +18,15 @@ const createSliceWithThunks = buildCreateSlice({
 });
 
 interface workspaceState {
-  currentWorkspaceId: string | null;
-  currentWorkspace: any;
+  currentSpaceId: string | null;
+  currentSpace: any;
   workspaces: [] | null;
   loading: boolean;
 }
 
 const initialState: workspaceState = {
-  currentWorkspaceId: null,
-  currentWorkspace: null,
+  currentSpaceId: null,
+  currentSpace: null,
   workspaces: null,
   loading: true,
 };
@@ -43,7 +43,7 @@ const workspaceSlice = createSliceWithThunks({
         if (currentUserId === "local") {
           console.log("fetchWorkspaces local");
           const jsonLogicRules = {
-            "===": [{ var: "type" }, "worksapce"],
+            "===": [{ var: "type" }, DataType.Space],
           };
           const options = {
             jsonLogicRules: jsonLogicRules,
@@ -84,7 +84,7 @@ const workspaceSlice = createSliceWithThunks({
       }
     ),
     changeWorkSpace: create.reducer((state, action: PayloadAction<string>) => {
-      state.currentWorkspaceId = action.payload;
+      state.currentSpaceId = action.payload;
     }),
     addToWorkspace: create.asyncThunk(
       async (input, thunkAPI) => {
@@ -138,8 +138,8 @@ const workspaceSlice = createSliceWithThunks({
           state.workspaces = state.workspaces.filter(
             (workspace: any) => workspace.id !== workspaceId
           );
-          if (state.currentWorkspaceId === workspaceId) {
-            state.currentWorkspaceId = "recent";
+          if (state.currentSpaceId === workspaceId) {
+            state.currentSpaceId = "recent";
           }
         },
       }
@@ -185,10 +185,10 @@ export const selectAllWorkspaces = (state: NoloRootState) =>
   state.workspace.workspaces;
 
 export const selectCurrentWorkSpaceId = (state: NoloRootState) =>
-  state.workspace.currentWorkspaceId;
+  state.workspace.currentSpaceId;
 
 export const selectCurrentWorkspaceName = (state: NoloRootState) => {
-  const currentId = state.workspace.currentWorkspaceId;
+  const currentId = state.workspace.currentSpaceId;
   const workspaces = state.workspace.workspaces;
   if (!currentId) return "";
   if (currentId === null) return "recent";

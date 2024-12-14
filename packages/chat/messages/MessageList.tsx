@@ -1,29 +1,13 @@
 // chat/MessagesList.tsx
+
 import React, { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
-import { Spinner } from "@primer/react";
 import { reverse } from "rambda";
-import OpenProps from "open-props";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
-
 import { MessageItem } from "./MessageItem";
 import { selectStreamMessages, selectMergedMessages } from "./selector";
 import { initMessages } from "./messageSlice";
 import { COLORS } from "render/styles/colors";
-export const messageListStyle = {
-  display: "flex",
-  flexDirection: "column-reverse",
-  gap: OpenProps.size2,
-  overflowY: "auto",
-  padding: "20px 20%",
-  paddingBottom: "10px",
-  height: "100%",
-  position: "relative",
-  backgroundColor: COLORS.background,
-  scrollBehavior: "smooth",
-  scrollbarWidth: "thin",
-  scrollbarColor: `${COLORS.border} transparent`,
-};
 
 const MessagesList: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -46,7 +30,6 @@ const MessagesList: React.FC = () => {
     }
   };
 
-  //todo change to when first streaming
   useEffect(() => {
     if (streamingMessages) {
       scrollToBottom();
@@ -62,8 +45,36 @@ const MessagesList: React.FC = () => {
     };
   }, [data]);
 
+  // 加载状态显示改为:
   if (isLoading) {
-    return <Spinner size={"large"} />;
+    return (
+      <div
+        style={{
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "40px",
+            height: "40px",
+            border: `3px solid ${COLORS.border}`,
+            borderTop: `3px solid ${COLORS.primary}`,
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+          }}
+        >
+          <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -71,11 +82,72 @@ const MessagesList: React.FC = () => {
   }
 
   return (
-    <div ref={containerRef} style={messageListStyle}>
-      {messages.map((message) => (
-        <MessageItem key={message.id} message={message} />
-      ))}
-    </div>
+    <>
+      <style>
+        {`
+          .message-list {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 12px;
+            overflow-y: auto;
+            padding: 20px 15% 10px 15%;
+            height: 100%;
+            position: relative;
+            background-color: ${COLORS.background};
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: ${COLORS.border} transparent;
+            container-type: inline-size;
+          }
+  
+          /* 容器查询 */
+          @container (max-width: 768px) {
+            .message-list {
+              padding: 12px 8px 8px 8px !important;
+              gap: 8px !important;
+            }
+            
+            .message-list img {
+              max-width: 100% !important;
+              height: auto !important;
+            }
+            
+            .message-list pre {
+              max-width: 100% !important;
+              overflow-x: auto !important;
+              font-size: 14px !important;
+            }
+          }
+  
+          @container (min-width: 769px) and (max-width: 1024px) {
+            .message-list {
+              padding: 20px 10% 10px 10% !important;
+              gap: 10px !important;
+            }
+          }
+  
+          /* 媒体查询 */
+          @media screen and (max-width: 768px) {
+            .message-list {
+              padding: 12px 8px 8px 8px;
+              gap: 8px;
+            }
+          }
+  
+          @media screen and (min-width: 769px) and (max-width: 1024px) {
+            .message-list {
+              padding: 20px 10% 10px 10%;
+              gap: 10px;
+            }
+          }
+        `}
+      </style>
+      <div ref={containerRef} className="message-list">
+        {messages.map((message) => (
+          <MessageItem key={message.id} message={message} />
+        ))}
+      </div>
+    </>
   );
 };
 

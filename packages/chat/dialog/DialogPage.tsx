@@ -12,17 +12,6 @@ import { layout } from "render/styles/layout";
 import MessagesList from "chat/messages/MessageList";
 import MessageInputContainer from "chat/messages/MessageInputContainer";
 
-const chatContainerStyle = {
-  ...layout.flexColumn,
-  ...layout.h100,
-  ...layout.overflowXHidden,
-};
-
-const messageListContainerStyle = {
-  ...layout.flexGrow1,
-  ...layout.overflowYAuto,
-  ...layout.flexColumn,
-};
 const DialogPage = ({ dialogId }) => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
@@ -64,8 +53,20 @@ const DialogPage = ({ dialogId }) => {
         }}
       >
         {currentDialogConfig && (
-          <div style={chatContainerStyle}>
-            <div style={messageListContainerStyle}>
+          <div
+            style={{
+              ...layout.flexColumn,
+              ...layout.h100,
+              ...layout.overflowXHidden,
+            }}
+          >
+            <div
+              style={{
+                ...layout.flexGrow1,
+                ...layout.overflowYAuto,
+                ...layout.flexColumn,
+              }}
+            >
               <MessagesList />
             </div>
             <MessageInputContainer />
