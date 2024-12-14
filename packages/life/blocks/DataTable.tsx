@@ -17,8 +17,8 @@ type RenderConfig = {
   actions?: (data: any) => React.ReactNode;
 };
 
-const renderConfigs: Record<DataType, RenderConfig> = {
-  [DataType.ChatRobot]: {
+const renderConfigs: Record<string, RenderConfig> = {
+  chatRobot: {
     fields: [
       { header: "AI名字", key: "name" },
       {

@@ -8,7 +8,7 @@ import { DataType } from "create/types";
 import { selectTotalCosts } from "ai/selectors";
 import { useQuery } from "app/hooks/useQuery";
 
-const typeArray = ["All", ...Object.values(DataType)];
+const typeArray = ["All", ...Object.values(DataType), "chatRobot"];
 
 export const Database = () => {
   // const costs = useAppSelector(selectTotalCosts);
