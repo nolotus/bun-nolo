@@ -1,18 +1,14 @@
 import { createStreamResponse } from "ai/chat/createStreamResponse";
 
 import { adjustPerplexityFrequencyPenalty } from "integrations/perplexity/adjust";
-import { openAIModels } from "integrations/openAI/models";
 
 import { mistralModels } from "integrations/mistral/models";
 import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
-import { zhipuModels } from "integrations/zhipu/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
-import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
 //todo  make it work
 import { sendOllamaRequest } from "integrations/ollama/chatRequest";
 import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
-import { chatRequest as sendZhihuRequest } from "integrations/zhipu/chatRequest";
 import { googleAIModels } from "integrations/google/ai/models";
 import { pick } from "rambda";
 import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
@@ -24,9 +20,6 @@ function isModelInList(modelname, modelList) {
 async function processModelRequest(requestBody, modelType) {
   let response;
   switch (modelType) {
-    case "openai":
-      response = await sendOpenAIRequest(requestBody, true);
-      break;
     case "perplexity":
       requestBody.frequency_penalty = adjustPerplexityFrequencyPenalty(
         requestBody.frequency_penalty
@@ -36,8 +29,6 @@ async function processModelRequest(requestBody, modelType) {
     case "mistral":
       response = await sendMistralRequest(requestBody, true);
       break;
-    case "zhipu":
-      response = await sendZhihuRequest(requestBody, true);
       break;
     case "ollama":
       response = await sendOllamaRequest(requestBody, true);
@@ -78,14 +69,10 @@ export const handleStreamReq = async (req: Request, res) => {
     ...pickAiRequstBody(req.body),
   };
   try {
-    if (isModelInList(requestBody.model, openAIModels)) {
-      return await processModelRequest(requestBody, "openai");
-    } else if (isModelInList(requestBody.model, perplexityModelPrice)) {
+    if (isModelInList(requestBody.model, perplexityModelPrice)) {
       return await processModelRequest(requestBody, "perplexity");
     } else if (isModelInList(requestBody.model, mistralModels)) {
       return await processModelRequest(requestBody, "mistral");
-    } else if (isModelInList(requestBody.model, zhipuModels)) {
-      return await processModelRequest(requestBody, "zhipu");
     } else if (isModelInList(requestBody.model, ollamaModels)) {
       return await processModelRequest(requestBody, "ollama");
     } else if (isModelInList(requestBody.model, googleAIModels)) {

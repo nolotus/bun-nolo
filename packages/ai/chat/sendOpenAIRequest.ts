@@ -14,7 +14,7 @@ import {
   messageStreamEnd,
   messageStreaming,
 } from "chat/messages/messageSlice";
-
+//todo  maybe change it
 export const sendOpenAIRequest = async (cybotId, userInput, thunkApi) => {
   const dispatch = thunkApi.dispatch;
   const state = thunkApi.getState();
@@ -35,12 +35,12 @@ export const sendOpenAIRequest = async (cybotId, userInput, thunkApi) => {
   const createChatRequestBody = (
     config: any,
     userInput: string,
-    previousMessages: Array<Message>,
+    previousMessages: Array<Message>
   ) => {
     const prompt = generatePrompt(
       config.prompt,
       config.name,
-      config.responseLanguage,
+      config.responseLanguage
     );
     let max_tokens = config.max_tokens;
     if (model === "o1-mini" || model === "o1-preview") {
@@ -58,7 +58,7 @@ export const sendOpenAIRequest = async (cybotId, userInput, thunkApi) => {
   const requestBody = createChatRequestBody(
     config,
     userInput,
-    previousMessages,
+    previousMessages
   );
   const controller = new AbortController();
   const token = state.auth.currentToken;
@@ -102,7 +102,7 @@ export const sendOpenAIRequest = async (cybotId, userInput, thunkApi) => {
       id,
       content: receiveContent,
       cybotId,
-    }),
+    })
   );
 
   return result;

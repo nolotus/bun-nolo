@@ -1,5 +1,3 @@
-import { sendOpenAIRequest } from "integrations/openAI/chatRequest";
-
 import { handleAudioReq } from "./handleAudioReq";
 import { handleStreamReq } from "./handleStreamReq";
 
@@ -15,8 +13,7 @@ export const handleAIChatRequest = async (req, res) => {
       return handleAudioReq(req, res);
     }
     console.log("handleAIChatRequest stream false");
-    const result = await sendOpenAIRequest(req.body, false);
-    return res.status(200).json(result.data);
+    return res.status(200);
   } catch (error) {
     return res
       .status(500)

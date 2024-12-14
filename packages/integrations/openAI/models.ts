@@ -1,31 +1,40 @@
-export const openAIModels = {
-  "gpt-3.5-turbo": { input: 0.5, output: 1.5, tokens: 16385 },
-  "gpt-4-turbo": { input: 10, output: 30, tokens: 128000 },
-  "gpt-4o": { input: 5, output: 15, tokens: 128000 },
-  "gpt-4o-mini": { input: 0.15, output: 0.6, tokens: 128000 },
-  "o1-preview": {
-    input: 15,
-    output: 60,
-    tokens: 128000,
-    description:
-      "o1-preview is our new reasoning model for complex tasks. The model has 128K context and an October 2023 knowledge cutoff.",
-    pricing: {
-      input: "$15.00 / 1M input tokens",
-      cachedInput: "$7.50 / 1M cached* input tokens",
-      output: "$60.00 / 1M output** tokens",
-    },
-  },
+import { Model } from "ai/llm/types";
 
-  "o1-mini": {
-    input: 3,
-    output: 12,
-    tokens: 128000,
-    description:
-      "o1-mini is a fast, cost-efficient reasoning model tailored to coding, math, and science use cases. The model has 128K context and an October 2023 knowledge cutoff.",
-    pricing: {
-      input: "$3.00 / 1M input tokens",
-      cachedInput: "$1.50 / 1M cached* input tokens",
-      output: "$12.00 / 1M output* tokens",
-    },
+export const openAIModels: Model[] = [
+  {
+    name: "gpt-3.5-turbo",
+    displayName: "GPT-3.5 Turbo",
+    hasVision: false,
+    price: { input: 0.5, output: 1.5 },
   },
-};
+  {
+    name: "gpt-4-turbo",
+    displayName: "GPT-4 Turbo",
+    hasVision: false,
+    price: { input: 10, output: 30 },
+  },
+  {
+    name: "gpt-4o",
+    displayName: "GPT-4O",
+    hasVision: false,
+    price: { input: 5, output: 15 },
+  },
+  {
+    name: "gpt-4o-mini",
+    displayName: "GPT-4O Mini",
+    hasVision: false,
+    price: { input: 0.15, output: 0.6 },
+  },
+  {
+    name: "o1-preview",
+    displayName: "O1 Preview",
+    hasVision: false,
+    price: { input: 15, output: 60 },
+  },
+  {
+    name: "o1-mini",
+    displayName: "O1 Mini",
+    hasVision: false,
+    price: { input: 3, output: 12 },
+  },
+];

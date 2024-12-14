@@ -1,9 +1,10 @@
 import { nolotusId } from "core/init";
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryData } from "app/hooks/useQueryData";
 
 import { Button } from "render/ui/Button";
+import { COLORS, GRADIENTS } from "render/styles/colors";
 
 import { YourTemplates } from "./YourTemplates";
 import { CreateRoutePaths } from "./routes";
@@ -66,20 +67,58 @@ const Create = () => {
       style={{
         maxWidth: "1200px",
         margin: "0 auto",
-        paddingTop: "2rem",
-        paddingBottom: "2rem",
+        padding: "2rem",
       }}
     >
-      <div style={{ marginBottom: "1rem" }}>
-        <h2 style={{ fontSize: "1.5em", fontWeight: "bold" }}>
-          从公共模板创建
+      {/* 基础创建部分 */}
+      <section
+        style={{
+          background: COLORS.backgroundSecondary,
+          borderRadius: "8px",
+          padding: "24px",
+          marginBottom: "24px",
+          border: `1px solid ${COLORS.border}`,
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "1.5em",
+            fontWeight: "bold",
+            marginBottom: "16px",
+            color: COLORS.text,
+          }}
+        >
+          快速创建
         </h2>
         <ButtonGroup buttons={buttonsInfo} onButtonClick={handleButtonClick} />
+      </section>
+
+      {/* 模板创建部分 */}
+      <section
+        style={{
+          background: COLORS.backgroundSecondary,
+          borderRadius: "8px",
+          padding: "24px",
+          marginBottom: "24px",
+          border: `1px solid ${COLORS.border}`,
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "1.5em",
+            fontWeight: "bold",
+            marginBottom: "16px",
+            color: COLORS.text,
+          }}
+        >
+          从模板创建
+        </h2>
         <ButtonGroup
           buttons={templateButtons}
           onButtonClick={handleButtonClick}
         />
-      </div>
+      </section>
+
       <YourTemplates />
     </div>
   );

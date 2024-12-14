@@ -161,11 +161,13 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     };
     reader.readAsDataURL(file);
   };
+
   const handleRemoveImage = (indexToRemove: number) => {
     setImagePreviewUrls((prevUrls) =>
       prevUrls.filter((_, index) => index !== indexToRemove)
     );
   };
+
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragOver(true); // 当文件在组件上方时，设置高亮
@@ -175,6 +177,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     event.preventDefault();
     setIsDragOver(false); // 当文件离开组件时，取消高亮
   };
+
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     const { files } = event.dataTransfer;
@@ -202,6 +205,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       }
     }
   };
+
   const handlePaste = useCallback((event: React.ClipboardEvent) => {
     const items = event.clipboardData.items;
     for (let i = 0; i < items.length; i++) {

@@ -8,7 +8,6 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
 import { getWeather } from "ai/tools/getWeather";
-import { getLogger } from "utils/logger";
 import { readChunks } from "ai/client/stream";
 import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 
@@ -26,6 +25,7 @@ export const sendMessageAction = async (args, thunkApi) => {
   const { content } = args;
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
+  //add user Message
   thunkApi.dispatch(addUserMessage({ content }));
 
   // after addUserMessage maybe multi cybot
@@ -45,7 +45,8 @@ export const sendMessageAction = async (args, thunkApi) => {
       cybotConfig.provider === "deepinfra" ||
       cybotConfig.provider === "fireworks" ||
       cybotConfig.provider === "deepseek" ||
-      cybotConfig.provider === "xai"
+      cybotConfig.provider === "xai" ||
+      cybotConfig.provider === "openai"
     ) {
       sendCommonChatRequest({
         content,
@@ -80,6 +81,7 @@ export const sendMessageAction = async (args, thunkApi) => {
     return;
   }
   const mode = "stream";
+  //todo delete all
   if (mode === "stream") {
     console.log("here");
     const userId = selectCurrentUserId(state);

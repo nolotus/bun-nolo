@@ -10,7 +10,7 @@ import { DEEPINFRA_API_ENDPOINT } from "integrations/deepinfra/chatRequest";
 import { FIREWORKS_API_ENDPOINT } from "integrations/fireworks/chatRequest";
 import { XAI_API_ENDPOINT } from "integrations/xai/chatRequest";
 import { DEEPSEEK_API_ENDPOINT } from "integrations/deepseek/chatRequest";
-
+import { OPENAI_API_ENDPOINT } from "integrations/openai/chatRequest";
 import { selectCurrentServer } from "setting/settingSlice";
 import { API_ENDPOINTS } from "database/config";
 
@@ -97,6 +97,9 @@ export const sendCommonChatRequest = async ({
     dispatch(messageStreaming(message));
 
     let api;
+    if (cybotConfig.provider === "openai") {
+      api = OPENAI_API_ENDPOINT;
+    }
     if (cybotConfig.provider === "deepinfra") {
       api = DEEPINFRA_API_ENDPOINT;
     }
@@ -114,7 +117,7 @@ export const sendCommonChatRequest = async ({
     if (!cybotConfig.useServerProxy) {
       response = await fetch(
         api,
-        createRequestConfig(cybotConfig, bodyData, signal),
+        createRequestConfig(cybotConfig, bodyData, signal)
       );
     } else {
       response = await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
@@ -149,7 +152,7 @@ export const sendCommonChatRequest = async ({
             content: contentBuffer,
             role: "assistant",
             cybotId: cybotConfig.id,
-          }),
+          })
         );
         break;
       }
@@ -169,7 +172,7 @@ export const sendCommonChatRequest = async ({
               role: "assistant",
               cybotId: cybotConfig.id,
               controller,
-            }),
+            })
           );
           dispatch(
             messageStreaming({
@@ -178,7 +181,7 @@ export const sendCommonChatRequest = async ({
               role: "assistant",
               cybotId: cybotConfig.id,
               controller,
-            }),
+            })
           );
         }
       }
@@ -192,7 +195,7 @@ export const sendCommonChatRequest = async ({
         role: "assistant",
         cybotId: cybotConfig.id,
         controller,
-      }),
+      })
     );
     throw error;
   } finally {
