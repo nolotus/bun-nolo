@@ -1,4 +1,3 @@
-import { handleAudioReq } from "./handleAudioReq";
 import { handleStreamReq } from "./handleStreamReq";
 
 export const handleAIChatRequest = async (req, res) => {
@@ -8,9 +7,6 @@ export const handleAIChatRequest = async (req, res) => {
   try {
     if (type === "stream") {
       return handleStreamReq(req, res);
-    }
-    if (type === "audio") {
-      return handleAudioReq(req, res);
     }
     console.log("handleAIChatRequest stream false");
     return res.status(200);
