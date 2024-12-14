@@ -21,7 +21,6 @@ import {
   streamRequest,
 } from "../messageSlice";
 import { getFilteredMessages } from "../utils";
-const chatWindowLogger = getLogger("ChatWindow");
 
 export const sendMessageAction = async (args, thunkApi) => {
   const { content } = args;
@@ -104,7 +103,7 @@ export const sendMessageAction = async (args, thunkApi) => {
             cybotConfig,
             signal,
             id,
-          }),
+          })
         );
         const { reader } = action.payload;
 
@@ -144,7 +143,7 @@ export const sendMessageAction = async (args, thunkApi) => {
                         };
                         thunkApi.dispatch(setOne(message));
                         thunkApi.dispatch(
-                          messageStreaming({ ...message, controller }),
+                          messageStreaming({ ...message, controller })
                         );
                       }
 
@@ -160,7 +159,7 @@ export const sendMessageAction = async (args, thunkApi) => {
                           // 这里执行function调用
                           const functionName = functionTemp.function.name;
                           const functionArgs = JSON.parse(
-                            functionTemp.function.arguments,
+                            functionTemp.function.arguments
                           );
 
                           // 方式1: 直接执行
@@ -223,13 +222,11 @@ export const sendMessageAction = async (args, thunkApi) => {
                       };
                       thunkApi.dispatch(setOne(message));
                       thunkApi.dispatch(
-                        messageStreaming({ ...message, controller }),
+                        messageStreaming({ ...message, controller })
                       );
                     }
                   }
-                } catch (e) {
-                  chatWindowLogger.error({ error: e }, "Error parsing JSON");
-                }
+                } catch (e) {}
               }
             }
           }

@@ -13,7 +13,6 @@ const defaultOptions = {
     "data-import",
     "Message",
     "TableComponent",
-    "ChatWindow",
     "surfWeather",
     "default",
     "stream",

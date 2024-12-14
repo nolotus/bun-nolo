@@ -9,9 +9,20 @@ import {
   clearDialogState,
 } from "chat/dialog/dialogSlice";
 import { layout } from "render/styles/layout";
+import MessagesList from "chat/messages/MessageList";
+import MessageInputContainer from "chat/messages/MessageInputContainer";
 
-import ChatWindow from "../messages/MsgWindow";
+const chatContainerStyle = {
+  ...layout.flexColumn,
+  ...layout.h100,
+  ...layout.overflowXHidden,
+};
 
+const messageListContainerStyle = {
+  ...layout.flexGrow1,
+  ...layout.overflowYAuto,
+  ...layout.flexColumn,
+};
 const DialogPage = ({ dialogId }) => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
@@ -53,7 +64,12 @@ const DialogPage = ({ dialogId }) => {
         }}
       >
         {currentDialogConfig && (
-          <ChatWindow currentDialogConfig={currentDialogConfig} />
+          <div style={chatContainerStyle}>
+            <div style={messageListContainerStyle}>
+              <MessagesList />
+            </div>
+            <MessageInputContainer />
+          </div>
         )}
       </div>
     </div>
