@@ -70,7 +70,7 @@ const Sync = () => {
             return <ToggleSwitch {...field} />;
           }}
         />
-        <div className="">
+        <div>
           <label>
             <ServerIcon size={24} />
             主服务器

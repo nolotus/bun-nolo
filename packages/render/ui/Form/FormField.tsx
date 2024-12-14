@@ -1,27 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getLogger } from "utils/logger";
-//new style
+// new style
 import { TextField } from "./TextField";
-import { PasswordField } from "./PasswordField";
-
-import { FormFieldProps } from "./type";
+import {
+  baseStyles,
+  baseInputStyle,
+  iconBaseStyle,
+  containerStyle,
+} from "render/styles/input";
+import { EyeIcon, EyeClosedIcon } from "@primer/octicons-react";
 
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
 const i18nLogger = getLogger("i18n");
-//todos
-//deps ,setValueAs,valueAsDate,valueAsNumber,validate,pattern,min,max,minLength,maxLength
-export const FormField: React.FC<FormFieldProps> = ({
+
+export const FormField: React.FC = ({
   id,
   type,
   register,
   errors,
   label,
   options,
-  subtype,
   readOnly,
   optional,
   defaultValue,
@@ -31,6 +33,8 @@ export const FormField: React.FC<FormFieldProps> = ({
   const { t } = useTranslation();
   const translatedLabel = capitalizeFirstLetter(t(label));
   i18nLogger.info({ label, translatedLabel }, "Translated label");
+
+  const [showPassword, setShowPassword] = useState(false);
 
   let FieldComponent;
   switch (type) {
@@ -50,12 +54,36 @@ export const FormField: React.FC<FormFieldProps> = ({
 
     case "password":
       FieldComponent = (
-        <PasswordField
-          id={id}
-          register={register}
-          label={translatedLabel}
-          icon={icon}
-        />
+        <div style={containerStyle}>
+          <style>{baseStyles}</style>
+
+          {icon && <div style={{ ...iconBaseStyle, left: "12px" }}>{icon}</div>}
+
+          <input
+            type={showPassword ? "text" : "password"}
+            id={id}
+            className="input-field"
+            placeholder="Enter password"
+            {...register(id)}
+            style={{
+              ...baseInputStyle,
+              padding: `0 ${icon ? "42px" : "12px"}`,
+            }}
+            required
+          />
+
+          <div
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              ...iconBaseStyle,
+              right: "12px",
+              cursor: "pointer",
+              padding: "8px",
+            }}
+          >
+            {showPassword ? <EyeClosedIcon size={20} /> : <EyeIcon size={20} />}
+          </div>
+        </div>
       );
       break;
 
@@ -74,8 +102,3 @@ export const FormField: React.FC<FormFieldProps> = ({
     </div>
   );
 };
-// 考虑文本，数字  文件和媒体，地理信息，逻辑状态， 复杂类型
-// map: 键值对。
-// tuple: 元组。
-// union: 联合类型。
-// intersection: 交叉类型。

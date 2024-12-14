@@ -5,6 +5,7 @@ import { UseFormRegister, FieldErrors } from "react-hook-form";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import PasswordInput from "./ui/PasswordInput";
+import { COLORS } from "./styles/colors";
 
 const useCommonFormStyles = () => {
   const theme = useAppSelector(selectTheme);
@@ -25,8 +26,9 @@ const useCommonFormStyles = () => {
     label: {
       display: "block",
       marginBottom: "5px",
-      color: theme.text2,
+      color: COLORS.text,
     },
+
     input: {
       width: "100%",
       padding: "8px",

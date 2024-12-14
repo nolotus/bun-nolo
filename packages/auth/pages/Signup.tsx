@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { PersonIcon, LockIcon } from "@primer/octicons-react";
 import { useAppDispatch } from "app/hooks";
 import { signUp } from "auth/authSlice";
@@ -8,9 +7,28 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
-
-import { signUpfields, signUpSchema } from "../schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod"; // Import Zod here
 import { formStyles } from "render/styles/form";
+
+// Here we define the Zod schema with translation
+const schema = z.object({
+  username: z.string().min(1, { message: "用户名不能为空" }),
+  password: z.string().min(6, { message: "密码必须至少6个字符" }),
+});
+
+const signUpfields = [
+  {
+    id: "username",
+    label: "username",
+    type: "string",
+  },
+  {
+    id: "password",
+    label: "password",
+    type: "password",
+  },
+];
 
 const Signup: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -23,9 +41,8 @@ const Signup: React.FC = () => {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(signUpSchema),
+    resolver: zodResolver(schema), // Use the defined schema
   });
-
   const onSubmit = async (user) => {
     try {
       setLoading(true);

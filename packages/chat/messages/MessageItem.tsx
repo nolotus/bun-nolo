@@ -41,7 +41,7 @@ export const MessageItem = ({ message }) => {
     return <UserMessage content={content} />;
   } else if (error) {
     return (
-      <div className="flex">
+      <div style={{ display: "flex" }}>
         {error.data?.error}
         <div>
           {couldDelete && (

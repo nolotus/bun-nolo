@@ -106,29 +106,35 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           required={t("cybotNameRequired")}
         />
 
-        <FormField>
-          <Label htmlFor="provider">{t("provider")}:</Label>
-          <Select id="provider" {...register("provider")}>
-            {providerOptions.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </Select>
-        </FormField>
+        <div
+          style={{
+            display: "flex",
+            gap: "20px", // 设置间距
+          }}
+        >
+          <FormField style={{ flex: 1 }}>
+            <Label htmlFor="provider">{t("provider")}:</Label>
+            <Select id="provider" {...register("provider")}>
+              {providerOptions.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </Select>
+          </FormField>
 
-        <FormField>
-          <Label htmlFor="model">{t("model")}:</Label>
-          <Select id="model" {...register("model")}>
-            {models.map((model) => (
-              <option key={model.name} value={model.name}>
-                {model.name}
-                {model.hasVision && ` (${t("supportsVision")})`}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-
+          <FormField style={{ flex: 1 }}>
+            <Label htmlFor="model">{t("model")}:</Label>
+            <Select id="model" {...register("model")}>
+              {models.map((model) => (
+                <option key={model.name} value={model.name}>
+                  {model.name}
+                  {model.hasVision && ` (${t("supportsVision")})`}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        </div>
         <FormFieldComponent
           label={t("apiKeyField")}
           name="apiKey"
@@ -144,7 +150,6 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
             ariaLabelledby="server-proxy-label"
           />
         </FormField>
-
         <FormFieldComponent
           label={t("prompt")}
           name="prompt"
@@ -152,14 +157,12 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           errors={errors}
           as="textarea"
         />
-
         <FormFieldComponent
           label={t("greetingMessage")}
           name="greeting"
           register={register}
           errors={errors}
         />
-
         <FormFieldComponent
           label={t("selfIntroduction")}
           name="introduction"
@@ -167,9 +170,7 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           errors={errors}
           as="textarea"
         />
-
         <ToolSelector register={register} />
-
         <FormField>
           <Label>{t("private")}:</Label>
           <ToggleSwitch
@@ -178,7 +179,6 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
             ariaLabelledby="private-label"
           />
         </FormField>
-
         <FormField>
           <Label>{t("encrypted")}:</Label>
           <ToggleSwitch
@@ -187,7 +187,6 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
             ariaLabelledby="encrypted-label"
           />
         </FormField>
-
         <Button
           type="submit"
           disabled={isSubmitting || isDialogLoading}

@@ -5,7 +5,6 @@ export function createFieldsFromDSL(dsl) {
     type: dsl[key].type, // 从 DSL 中获取字段类型
     defaultValue: dsl[key].default, // 从 DSL 中获取默认值
     options: dsl[key].values, // 从 DSL 中获取选项（如果存在）
-    subtype: dsl[key].subtype,
     readOnly: dsl[key].readOnly,
     optional: dsl[key].optional,
   }));

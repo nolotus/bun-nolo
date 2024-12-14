@@ -1,6 +1,5 @@
 // TextField.tsx
 import React from "react";
-import { FieldProps } from "./type";
 import {
   baseStyles,
   baseInputStyle,
@@ -15,9 +14,7 @@ const getInputStyle = (hasIcon: boolean) => ({
   padding: `0 ${hasIcon ? "42px" : "12px"}`,
 });
 
-type Props = Partial<FieldProps & { placeholder?: string }>;
-
-export const TextField: React.FC<Props> = ({
+export const TextField: React.FC = ({
   id,
   register,
   optional,
