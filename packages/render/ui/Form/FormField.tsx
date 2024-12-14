@@ -5,17 +5,8 @@ import { getLogger } from "utils/logger";
 import { TextField } from "./TextField";
 import { PasswordField } from "./PasswordField";
 
-import { ArrayField } from "./ArrayField";
-import { DateField } from "./DateField";
-import { DatetimeField } from "./DatetimeField";
-import { DurationField } from "./DurationField";
-import { EnumField } from "./EnumField";
-import { NumberField } from "./NumberField";
-import { TextAreaField } from "./TextAreaField";
-import { TimestampField } from "./TimestampField";
 import { FormFieldProps } from "./type";
-import { WeekdayField } from "./WeekdayField";
-import { BooleanField } from "./BooleanField";
+
 const capitalizeFirstLetter = (string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
@@ -43,45 +34,6 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   let FieldComponent;
   switch (type) {
-    case "time":
-      switch (subtype) {
-        case "date":
-          FieldComponent = (
-            <DateField
-              id={id}
-              register={register}
-              label={translatedLabel}
-              readOnly={readOnly}
-            />
-          );
-          break;
-        case "timestamp":
-          FieldComponent = <TimestampField id={id} register={register} />;
-          break;
-        case "duration":
-          FieldComponent = <DurationField id={id} register={register} />;
-          break;
-        case "weekday":
-          FieldComponent = <WeekdayField id={id} register={register} />;
-          break;
-        case "datetime":
-          FieldComponent = <DatetimeField id={id} register={register} />;
-          break;
-        default:
-          FieldComponent = null;
-      }
-      break;
-    case "textarea":
-      FieldComponent = (
-        <TextAreaField
-          optional={optional}
-          id={id}
-          register={register}
-          label={translatedLabel}
-        />
-      );
-      break;
-
     case "string":
       FieldComponent = (
         <TextField
@@ -95,11 +47,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         />
       );
       break;
-    case "number":
-      FieldComponent = (
-        <NumberField id={id} register={register} label={translatedLabel} />
-      );
-      break;
+
     case "password":
       FieldComponent = (
         <PasswordField
@@ -110,35 +58,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         />
       );
       break;
-    case "enum":
-      FieldComponent = (
-        <EnumField
-          id={id}
-          register={register}
-          label={translatedLabel}
-          options={options}
-        />
-      );
-      break;
-    case "array":
-      FieldComponent = (
-        <ArrayField
-          id={id}
-          register={register}
-          label={translatedLabel}
-          options={options}
-        />
-      );
-    case "boolean":
-      FieldComponent = (
-        <BooleanField
-          id={id}
-          register={register}
-          label={translatedLabel}
-          options={options}
-        />
-      );
-      break;
+
     default:
       FieldComponent = null;
   }
