@@ -34,49 +34,6 @@ export const mistralModels: Model[] = [
   },
 ];
 
-export const openaiModels: Model[] = [
-  {
-    name: "GPT4-O",
-    maxOutputTokens: "8k",
-    contextWindow: "128k",
-    price: {
-      input: 2.5,
-      output: 10,
-    },
-  },
-  {
-    name: "GPT4-O Mini",
-    maxOutputTokens: "8k",
-    contextWindow: "128k",
-    price: {
-      input: 0.15,
-      output: 0.6,
-    },
-  },
-  {
-    name: "O1-Preview",
-    maxOutputTokens: "128k",
-    contextWindow: "128k",
-    price: {
-      input: 15.0,
-      output: 60.0,
-    },
-    supportsTool: true,
-    hasVision: false,
-  },
-  {
-    name: "O1-Mini",
-    maxOutputTokens: "128k",
-    contextWindow: "128k",
-    price: {
-      input: 3.0,
-      output: 12.0,
-    },
-    supportsTool: true,
-    hasVision: false,
-  },
-];
-
 export const googleModels: Model[] = [
   {
     name: "Gimini 1.5 Pro",

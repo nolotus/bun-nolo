@@ -1,13 +1,10 @@
 import React, { useState } from "react";
 import { Table, TableRow, TableCell } from "render/elements/Table";
-import {
-  mistralModels,
-  openaiModels,
-  googleModels,
-  deepseekModels,
-} from "./modelData";
+import { mistralModels, googleModels, deepseekModels } from "./modelData";
 import { anthropicModels } from "integrations/anthropic/models";
 import { deepinfraModels } from "integrations/deepinfra/models";
+import { openAIModels } from "integrations/openai/models";
+
 import { selectTheme } from "../theme/themeSlice";
 import { useAppSelector } from "../hooks";
 
@@ -29,7 +26,7 @@ const ModelComparison = () => {
       ...model,
       provider: "Anthropic",
     })),
-    ...openaiModels.map((model) => ({
+    ...openAIModels.map((model) => ({
       ...model,
       provider: "OpenAI",
     })),
@@ -65,7 +62,7 @@ const ModelComparison = () => {
           if (a[key] > b[key]) return direction === "ascending" ? 1 : -1;
           return 0;
         }
-      }),
+      })
     );
   };
 
