@@ -11,7 +11,7 @@ import { omit } from "rambda";
 
 const filteredDataType = omit(["Dialog", "Cybot"], DataType);
 
-const typeArray = ["All", ...Object.values(filteredDataType), "chatRobot"];
+const typeArray = ["All", ...Object.values(filteredDataType)];
 
 export const Database = () => {
   // const costs = useAppSelector(selectTotalCosts);

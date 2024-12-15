@@ -18,28 +18,6 @@ type RenderConfig = {
 };
 
 const renderConfigs: Record<string, RenderConfig> = {
-  chatRobot: {
-    fields: [
-      { header: "AI名字", key: "name" },
-      {
-        header: "AI所用模型",
-        key: "model",
-        render: (value) => (
-          <div
-            style={{
-              whiteSpace: "pre-wrap",
-              maxWidth: "100px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {value.split(",").join(",\n")}
-          </div>
-        ),
-      },
-    ],
-  },
-
   [DataType.Page]: {
     fields: [
       {
