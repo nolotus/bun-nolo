@@ -23,23 +23,19 @@ export const SpotList = ({ userId }) => {
         {`
           .spots-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 32px;
-            max-width: 1440px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 24px;
+            padding: 20px;
           }
 
           @media (max-width: 768px) {
             .spots-container {
-              gap: 20px;
-              padding: 16px;
+              grid-template-columns: 1fr;
+              gap: 16px;
+              padding: 12px;
             }
-          }
-
-          @keyframes wave {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
           }
 
           .loading-container {
@@ -47,34 +43,43 @@ export const SpotList = ({ userId }) => {
             align-items: center;
             justify-content: center;
             min-height: 200px;
-            background: linear-gradient(to bottom, #f0f9ff, #ffffff);
-            border-radius: 16px;
           }
 
-          .loading-wave {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #009ee7;
+          .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #eee;
+            border-top-color: #666;
             border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
           }
 
           @keyframes spin {
             to { transform: rotate(360deg); }
+          }
+
+          .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
           }
         `}
       </style>
 
       {isLoading ? (
         <div className="loading-container">
-          <div className="loading-wave"></div>
+          <div className="loading-spinner" />
         </div>
       ) : (
         <div className="spots-container">
           {data
             ?.filter((spot) => !spot.is_template)
             .map((spot) => <SpotCard key={spot.id} data={spot} />)}
+          {data?.length === 0 && (
+            <div className="empty-state">
+              <p>暂无冲浪点</p>
+            </div>
+          )}
         </div>
       )}
     </>

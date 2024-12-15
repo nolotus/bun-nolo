@@ -9,39 +9,29 @@ export const SpotCard = ({ data }) => {
         {`
           .spot-card {
             display: block;
-            box-shadow: 0 2px 16px rgba(0, 158, 231, 0.1);
-            width: 90%;
-            max-width: 380px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 360px; 
             margin: 0 auto;
-            margin-bottom: 24px;
-            border-radius: 20px;
+            border-radius: 12px;
             overflow: hidden;
-            transition: all 0.3s ease;
-            background: linear-gradient(to bottom, #ffffff, #f0f9ff);
+            transition: all 0.2s ease;
+            background: #fff;
             text-decoration: none;
-            border: 1px solid rgba(0, 158, 231, 0.1);
           }
           
-          @media (max-width: 768px) {
-            .spot-card {
-              width: 94%;
-              margin-bottom: 16px;
-              border-radius: 16px;
-            }
-          }
-
           @media (hover: hover) {
             .spot-card:hover {
-              transform: translateY(-6px);
-              box-shadow: 0 8px 24px rgba(0, 158, 231, 0.2);
+              transform: translateY(-4px);
+              box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
             }
           }
 
           .spot-image {
             position: relative;
             width: 100%;
-            padding-top: 66.67%; /* 3:2 比例 */
-            overflow: hidden;
+            padding-top: 75%; /* 4:3 ratio */
+            background: #f5f5f5;
           }
 
           .spot-image img {
@@ -53,14 +43,34 @@ export const SpotCard = ({ data }) => {
             object-fit: cover;
           }
 
-          .spot-image::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(to top, rgba(255,255,255,0.8), transparent);
+          .title {
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            min-width: 0;
+          }
+
+          .creator {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #666;
+          }
+
+          @media (max-width: 768px) {
+            .spot-card {
+              max-width: 100%;
+            }
+            .title {
+              font-size: 1rem;
+            }
+            .creator {
+              font-size: 0.85rem;
+            }
           }
         `}
       </style>
@@ -77,17 +87,16 @@ export const SpotCard = ({ data }) => {
                 left: 0,
                 width: "100%",
                 height: "100%",
-                background: "linear-gradient(135deg, #e0f7ff 0%, #87CEEB 100%)",
+                background: "#f5f5f5",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             />
           )}
         </div>
 
-        <div
-          style={{
-            padding: "clamp(16px, 4vw, 24px)",
-          }}
-        >
+        <div style={{ padding: "16px" }}>
           <div
             style={{
               display: "flex",
@@ -96,21 +105,7 @@ export const SpotCard = ({ data }) => {
               gap: "12px",
             }}
           >
-            <h3
-              style={{
-                margin: 0,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                fontSize: "clamp(1.1rem, 4vw, 1.5rem)",
-                fontWeight: "700",
-                color: "#006994",
-                flex: "1",
-                minWidth: 0,
-              }}
-            >
-              {data.title}
-            </h3>
+            <h3 className="title">{data.title}</h3>
 
             <div
               style={{
@@ -123,26 +118,12 @@ export const SpotCard = ({ data }) => {
               <Avatar
                 name={data.creator || "user"}
                 style={{
-                  width: "clamp(32px, 8vw, 38px)",
-                  height: "clamp(32px, 8vw, 38px)",
+                  width: "32px",
+                  height: "32px",
                   borderRadius: "50%",
-                  border: "2px solid #009ee7",
                 }}
               />
-              <p
-                style={{
-                  margin: 0,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  fontSize: "clamp(0.85rem, 3vw, 0.95rem)",
-                  color: "#4A90E2",
-                  fontWeight: "500",
-                  maxWidth: "80px",
-                }}
-              >
-                {data.creator || "未知"}
-              </p>
+              <p className="creator">{data.creator || "未知"}</p>
             </div>
           </div>
         </div>
