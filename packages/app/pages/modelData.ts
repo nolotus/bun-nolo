@@ -1,39 +1,5 @@
 import { Model } from "ai/llm/types";
 
-export const mistralModels: Model[] = [
-  {
-    name: "Mistral Large",
-    maxOutputTokens: "8k",
-    contextWindow: "128k",
-    price: {
-      input: 2,
-      output: 6,
-    },
-    supportsTool: true,
-    hasVision: false,
-  },
-  {
-    name: "mistral-nemo",
-    maxOutputTokens: "8k",
-    contextWindow: "128k",
-    price: {
-      input: 0.15,
-      output: 0.15,
-    },
-    supportsTool: true,
-  },
-  {
-    name: "Pixtral 12B",
-    maxOutputTokens: "8k",
-    contextWindow: "128k",
-    price: {
-      input: 0.15,
-      output: 0.15,
-    },
-    supportsTool: true,
-  },
-];
-
 export const googleModels: Model[] = [
   {
     name: "Gimini 1.5 Pro",

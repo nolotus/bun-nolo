@@ -1,8 +1,6 @@
 import { createStreamResponse } from "ai/chat/createStreamResponse";
 
-import { mistralModels } from "integrations/mistral/models";
 import { ollamaModels } from "integrations/ollama/models";
-import { sendMistralRequest } from "integrations/mistral/chatRequest";
 //todo  make it work
 import { sendOllamaRequest } from "integrations/ollama/chatRequest";
 import { googleAIModels } from "integrations/google/ai/models";
@@ -16,10 +14,6 @@ function isModelInList(modelname, modelList) {
 async function processModelRequest(requestBody, modelType) {
   let response;
   switch (modelType) {
-    case "mistral":
-      response = await sendMistralRequest(requestBody, true);
-      break;
-      break;
     case "ollama":
       response = await sendOllamaRequest(requestBody, true);
       break;
@@ -59,11 +53,7 @@ export const handleStreamReq = async (req: Request, res) => {
     ...pickAiRequstBody(req.body),
   };
   try {
-    if (isModelInList(requestBody.model, perplexityModelPrice)) {
-      return await processModelRequest(requestBody, "perplexity");
-    } else if (isModelInList(requestBody.model, mistralModels)) {
-      return await processModelRequest(requestBody, "mistral");
-    } else if (isModelInList(requestBody.model, ollamaModels)) {
+    if (isModelInList(requestBody.model, ollamaModels)) {
       return await processModelRequest(requestBody, "ollama");
     } else if (isModelInList(requestBody.model, googleAIModels)) {
       return await processModelRequest(requestBody, "google");

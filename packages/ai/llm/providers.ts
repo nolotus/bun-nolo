@@ -5,11 +5,12 @@ import { anthropicModels } from "integrations/anthropic/models";
 import { fireworksmodels } from "integrations/fireworks/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { openAIModels } from "integrations/openai/models";
+import { mistralModels } from "integrations/mistral/models";
+
 import { Model } from "./types";
 
 export const ollamaModels: Model[] = [
   { name: "llama2", hasVision: false, price: { input: 0.002, output: 0.004 } },
-  { name: "mistral", hasVision: false, price: { input: 0.003, output: 0.005 } },
 ];
 
 export const providerOptions = [
@@ -20,6 +21,7 @@ export const providerOptions = [
   "fireworks",
   "deepinfra",
   "deepseek",
+  "mistral",
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
@@ -40,6 +42,8 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
       return deepinfraModels;
     case "deepseek":
       return deepSeekModels;
+    case "mistral":
+      return mistralModels;
     default:
       return [];
   }

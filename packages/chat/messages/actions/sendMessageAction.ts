@@ -46,7 +46,8 @@ export const sendMessageAction = async (args, thunkApi) => {
       cybotConfig.provider === "fireworks" ||
       cybotConfig.provider === "deepseek" ||
       cybotConfig.provider === "xai" ||
-      cybotConfig.provider === "openai"
+      cybotConfig.provider === "openai" ||
+      cybotConfig.provider === "mistral"
     ) {
       sendCommonChatRequest({
         content,

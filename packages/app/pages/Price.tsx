@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Table, TableRow, TableCell } from "render/elements/Table";
-import { mistralModels, googleModels, deepseekModels } from "./modelData";
+import { googleModels, deepseekModels } from "./modelData";
 import { anthropicModels } from "integrations/anthropic/models";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { openAIModels } from "integrations/openai/models";
+import { mistralModels } from "integrations/mistral/models";
 
 import { selectTheme } from "../theme/themeSlice";
 import { useAppSelector } from "../hooks";

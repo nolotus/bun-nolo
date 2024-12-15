@@ -1,91 +1,67 @@
-export const mistralModels = {
-  "mistral-small-latest": {
-    provider: "mistral",
-    name: "Mistral Small (Latest)",
-    api: {
-      name: "mistral-small-latest",
-    },
-    pricing: {
-      input: 1,
-      output: 3,
-      unit: "per 1M tokens",
-    },
-    model: {
-      type: "language",
-    },
-    performance: {
-      contextWindow: 32000,
+export const mistralModels = [
+  {
+    name: "mistral-small-latest",
+    displayName: "Mistral Small (Latest)",
+    hasVision: false,
+    description: "",
+    strengths: "",
+    contextWindow: 32000,
+    maxOutputTokens: undefined, // 这里没有明确给出
+    price: {
+      input: 0.2,
+      output: 0.6,
     },
   },
-  "mistral-large-latest": {
-    provider: "mistral",
-    name: "Mistral Large (Latest)",
-    api: {
-      name: "mistral-large-latest",
-    },
-    pricing: {
+  {
+    name: "mistral-large-latest",
+    displayName: "Mistral Large (Latest)",
+    hasVision: false,
+    description: "",
+    strengths: "",
+    contextWindow: "128k",
+    maxOutputTokens: "128k",
+    price: {
       input: 4,
       output: 12,
-      unit: "per 1M tokens",
-    },
-    model: {
-      type: "language",
-    },
-    performance: {
-      contextWindow: 32000,
     },
   },
-  "codestral-latest": {
-    provider: "mistral",
-    name: "Codestral (Latest)",
-    api: {
-      name: "codestral-latest",
-    },
-    pricing: {
-      input: 1,
-      output: 3,
-      unit: "per 1M tokens",
-    },
-    model: {
-      type: "code",
+  {
+    name: "codestral-latest",
+    displayName: "Codestral (Latest)",
+    hasVision: false,
+    description: "",
+    strengths: "",
+    contextWindow: "32k", // 这里没有明确给出
+    maxOutputTokens: undefined, // 这里没有明确给出
+    price: {
+      input: 0.2,
+      output: 0.6,
     },
   },
-  "open-mistral-nemo": {
-    provider: "mistral",
-    name: "Open Mistral Nemo",
-    api: {
-      name: "open-mistral-nemo",
-    },
-    pricing: {
-      input: 0.3,
-      output: 0.3,
-      unit: "per 1M tokens",
-    },
-    model: {
-      type: "language",
-    },
-  },
-  "pixtral-12b-2409": {
-    provider: "mistral",
-    name: "Pixtral 12B",
-    description: "Vision-capable model",
-    strengths: "Image understanding and processing",
-    api: {
-      name: "pixtral-12b-2409",
-    },
-    features: {
-      vision: true,
-    },
-    pricing: {
+  {
+    name: "open-mistral-nemo",
+    displayName: "Open Mistral Nemo",
+    hasVision: false,
+    description: "",
+    strengths: "",
+    contextWindow: "128k", // 这里没有明确给出
+    maxOutputTokens: "128k", // 这里没有明确给出
+    price: {
       input: 0.15,
       output: 0.15,
-      unit: "per 1M tokens",
-    },
-    model: {
-      type: "multimodal",
-    },
-    performance: {
-      contextWindow: 128000,
     },
   },
-};
+  {
+    name: "Pixtral Large",
+    displayName: "Pixtral 12B",
+    hasVision: true,
+    description: "Vision-capable model",
+    strengths: "Image understanding and processing",
+    contextWindow: 128000,
+    maxOutputTokens: "128k", // 这里没有明确给出
+    price: {
+      input: 2,
+      output: 6,
+    },
+  },
+];

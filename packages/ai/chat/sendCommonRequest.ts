@@ -11,6 +11,8 @@ import { FIREWORKS_API_ENDPOINT } from "integrations/fireworks/chatRequest";
 import { XAI_API_ENDPOINT } from "integrations/xai/chatRequest";
 import { DEEPSEEK_API_ENDPOINT } from "integrations/deepseek/chatRequest";
 import { OPENAI_API_ENDPOINT } from "integrations/openai/chatRequest";
+import { MISTRAL_API_ENDPOINT } from "integrations/mistral/chatRequest";
+
 import { selectCurrentServer } from "setting/settingSlice";
 import { API_ENDPOINTS } from "database/config";
 
@@ -97,20 +99,24 @@ export const sendCommonChatRequest = async ({
     dispatch(messageStreaming(message));
 
     let api;
-    if (cybotConfig.provider === "openai") {
+    const provider = cybotConfig.provider;
+    if (provider === "openai") {
       api = OPENAI_API_ENDPOINT;
     }
-    if (cybotConfig.provider === "deepinfra") {
+    if (provider === "deepinfra") {
       api = DEEPINFRA_API_ENDPOINT;
     }
-    if (cybotConfig.provider === "fireworks") {
+    if (provider === "fireworks") {
       api = FIREWORKS_API_ENDPOINT;
     }
-    if (cybotConfig.provider === "xai") {
+    if (provider === "xai") {
       api = XAI_API_ENDPOINT;
     }
-    if (cybotConfig.provider === "deepseek") {
+    if (provider === "deepseek") {
       api = DEEPSEEK_API_ENDPOINT;
+    }
+    if (provider === "mistral") {
+      api = MISTRAL_API_ENDPOINT;
     }
 
     let response;
