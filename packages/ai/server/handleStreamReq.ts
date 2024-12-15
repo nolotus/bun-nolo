@@ -1,14 +1,10 @@
 import { createStreamResponse } from "ai/chat/createStreamResponse";
 
-import { adjustPerplexityFrequencyPenalty } from "integrations/perplexity/adjust";
-
 import { mistralModels } from "integrations/mistral/models";
-import { perplexityModelPrice } from "integrations/perplexity/modelPrice";
 import { ollamaModels } from "integrations/ollama/models";
 import { sendMistralRequest } from "integrations/mistral/chatRequest";
 //todo  make it work
 import { sendOllamaRequest } from "integrations/ollama/chatRequest";
-import { chatRequest as sendPerplexityRequest } from "integrations/perplexity/chatRequest";
 import { googleAIModels } from "integrations/google/ai/models";
 import { pick } from "rambda";
 import { sendGeminiChatRequest } from "integrations/google/ai/chatRequest";
@@ -20,12 +16,6 @@ function isModelInList(modelname, modelList) {
 async function processModelRequest(requestBody, modelType) {
   let response;
   switch (modelType) {
-    case "perplexity":
-      requestBody.frequency_penalty = adjustPerplexityFrequencyPenalty(
-        requestBody.frequency_penalty
-      );
-      response = await sendPerplexityRequest(requestBody);
-      break;
     case "mistral":
       response = await sendMistralRequest(requestBody, true);
       break;

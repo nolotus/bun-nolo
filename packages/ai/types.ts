@@ -16,16 +16,6 @@ export type Message = {
   role: string;
 };
 
-// 创建一个请求中应该被选取的属性类型
-export type RequestPayloadProperties = {
-  model: string;
-  presence_penalty?: number; // 如果是可选属性则添加`?`
-  frequency_penalty?: number;
-  top_k?: number;
-  top_p?: number;
-  temperature?: number;
-  max_tokens?: number;
-};
 export interface PromptFormData {
   name: string;
   content: string;
