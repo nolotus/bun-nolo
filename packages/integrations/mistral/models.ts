@@ -21,8 +21,8 @@ export const mistralModels = [
     contextWindow: "128k",
     maxOutputTokens: "128k",
     price: {
-      input: 4,
-      output: 12,
+      input: 2,
+      output: 6,
     },
   },
   {

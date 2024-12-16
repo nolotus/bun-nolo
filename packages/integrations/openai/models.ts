@@ -17,7 +17,7 @@ export const openAIModels: Model[] = [
     name: "gpt-4o",
     displayName: "GPT-4O",
     hasVision: false,
-    price: { input: 5, output: 15 },
+    price: { input: 2.5, output: 10 },
     maxOutputTokens: "8k",
     contextWindow: "128k",
   },

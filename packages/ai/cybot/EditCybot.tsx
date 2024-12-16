@@ -13,8 +13,6 @@ import {
   Select,
   ErrorMessage,
 } from "render/CommonFormComponents";
-import { useQueryData } from "app/hooks/useQueryData";
-import { useAuth } from "auth/useAuth";
 import { setData } from "database/dbSlice";
 import { layout } from "render/styles/layout";
 
@@ -32,7 +30,6 @@ export const modelEnum = Object.keys(allModels).reduce(
 const EditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const auth = useAuth();
 
   const theme = useSelector(selectTheme);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -46,37 +43,14 @@ const EditCybot = ({ initialValues, onClose }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const queryConfig = {
-    queryUserId: auth.user?.userId,
-    options: {
-      isJSON: true,
-      limit: 100,
-      condition: {
-        type: "llm",
-      },
-    },
-  };
-
-  const { data: llmData, isLoading: isLLMLoading } = useQueryData(queryConfig);
-
   const modelOptions = useMemo(() => {
     const predefinedOptions = Object.entries(modelEnum).map(([key, value]) => ({
       value: `predefined:${value}`,
       label: key,
     }));
 
-    const userLLMOptions = llmData
-      ? llmData.map((llm: any) => ({
-          value: `user:${llm.id}`,
-          label: `${llm.name} (${llm.model})`,
-        }))
-      : [];
-
-    return [
-      { label: t("predefinedModels"), options: predefinedOptions },
-      { label: t("userLLMs"), options: userLLMOptions },
-    ];
-  }, [llmData, t]);
+    return [{ label: t("predefinedModels"), options: predefinedOptions }];
+  }, [t]);
 
   const {
     register,
@@ -234,7 +208,6 @@ const EditCybot = ({ initialValues, onClose }) => {
           <Select
             id="model"
             {...register("model", { required: t("modelRequired") })}
-            disabled={isLLMLoading}
           >
             <option value="">{t("selectModel")}</option>
             {modelOptions.map((group) => (
