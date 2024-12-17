@@ -14,15 +14,15 @@ import {
   FormContainer,
   FormTitle,
   FormField,
-  Label,
   FormFieldComponent,
-  Select,
 } from "render/CommonFormComponents";
 import { Button } from "render/ui/Button";
+import { Label } from "render/form/Label";
 
 import ToolSelector from "../tools/ToolSelector";
 import { providerOptions, getModelsByProvider } from "../llm/providers";
 import { Model } from "../llm/types";
+import ModelSelector from "../llm/ModelSelector";
 interface CreateCybotProps {
   onClose: () => void;
 }
@@ -106,35 +106,8 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
           required={t("cybotNameRequired")}
         />
 
-        <div
-          style={{
-            display: "flex",
-            gap: "20px", // 设置间距
-          }}
-        >
-          <FormField style={{ flex: 1 }}>
-            <Label htmlFor="provider">{t("provider")}:</Label>
-            <Select id="provider" {...register("provider")}>
-              {providerOptions.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </Select>
-          </FormField>
+        <ModelSelector register={register} setValue={setValue} watch={watch} />
 
-          <FormField style={{ flex: 1 }}>
-            <Label htmlFor="model">{t("model")}:</Label>
-            <Select id="model" {...register("model")}>
-              {models.map((model) => (
-                <option key={model.name} value={model.name}>
-                  {model.name}
-                  {model.hasVision && ` (${t("supportsVision")})`}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-        </div>
         <FormFieldComponent
           label={t("apiKeyField")}
           name="apiKey"

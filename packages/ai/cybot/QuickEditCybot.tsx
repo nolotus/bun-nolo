@@ -9,12 +9,10 @@ import { DataType } from "create/types";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import useMediaQuery from "react-responsive";
 
-import {
-  FormField,
-  Label,
-  FormFieldComponent,
-  Select,
-} from "render/CommonFormComponents";
+import { FormField, FormFieldComponent } from "render/CommonFormComponents";
+import { Select } from "render/form/Select";
+import { Label } from "render/form/Label";
+
 import { setData } from "database/dbSlice";
 
 import { providerOptions, getModelsByProvider } from "../llm/providers";

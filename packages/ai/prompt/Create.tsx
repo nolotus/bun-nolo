@@ -16,9 +16,10 @@ import {
   FormFieldComponent,
   SubmitButton,
   FormField,
-  Label,
   Input,
 } from "render/CommonFormComponents";
+import { Label } from "render/form/Label";
+
 import { PromptFormData } from "ai/types";
 import { layout } from "render/styles/layout";
 

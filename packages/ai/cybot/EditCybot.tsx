@@ -7,12 +7,10 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
 import ToggleSwitch from "render/ui/ToggleSwitch";
-import {
-  FormField,
-  Label,
-  Select,
-  ErrorMessage,
-} from "render/CommonFormComponents";
+import { FormField, ErrorMessage } from "render/CommonFormComponents";
+import { Select } from "render/form/Select";
+import { Label } from "render/form/Label";
+
 import { setData } from "database/dbSlice";
 import { layout } from "render/styles/layout";
 

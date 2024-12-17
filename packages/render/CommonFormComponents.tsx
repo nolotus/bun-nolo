@@ -6,6 +6,7 @@ import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import PasswordInput from "./ui/PasswordInput";
 import { COLORS } from "./styles/colors";
+import { Label } from "render/form/Label";
 
 const useCommonFormStyles = () => {
   const theme = useAppSelector(selectTheme);
@@ -22,11 +23,6 @@ const useCommonFormStyles = () => {
     },
     formField: {
       marginBottom: "15px",
-    },
-    label: {
-      display: "block",
-      marginBottom: "5px",
-      color: COLORS.text,
     },
 
     input: {
@@ -46,14 +42,7 @@ const useCommonFormStyles = () => {
       color: theme.text1,
       minHeight: "100px",
     },
-    select: {
-      width: "100%",
-      padding: "8px",
-      border: `1px solid ${theme.surface3}`,
-      borderRadius: "4px",
-      backgroundColor: theme.surface2,
-      color: theme.text1,
-    },
+
     errorMessage: {
       color: theme.brand,
       fontSize: "0.8em",
@@ -83,16 +72,16 @@ export const FormTitle: React.FC<{ children: ReactNode }> = ({ children }) => {
   return <h2 style={styles.formTitle}>{children}</h2>;
 };
 
-export const FormField: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const FormField: React.FC<{ children: ReactNode; className }> = ({
+  children,
+  className,
+}) => {
   const styles = useCommonFormStyles();
-  return <div style={styles.formField}>{children}</div>;
-};
-
-export const Label: React.FC<React.LabelHTMLAttributes<HTMLLabelElement>> = (
-  props
-) => {
-  const styles = useCommonFormStyles();
-  return <label {...props} style={styles.label} />;
+  return (
+    <div style={styles.formField} className={className}>
+      {children}
+    </div>
+  );
 };
 
 export const Input = React.forwardRef<
@@ -109,14 +98,6 @@ export const TextArea = React.forwardRef<
 >((props, ref) => {
   const styles = useCommonFormStyles();
   return <textarea {...props} ref={ref} style={styles.textArea} />;
-});
-
-export const Select = React.forwardRef<
-  HTMLSelectElement,
-  React.SelectHTMLAttributes<HTMLSelectElement>
->((props, ref) => {
-  const styles = useCommonFormStyles();
-  return <select {...props} ref={ref} style={styles.select} />;
 });
 
 export const ErrorMessage: React.FC<{ children: ReactNode }> = ({

@@ -63,6 +63,7 @@
     "axios": "^1.7.2",
     "babel-plugin-syntax-hermes-parser": "^0.21.1",
     "croner": "^8.0.1",
+    "downshift": "^9.0.8",
     "echarts": "^5.5.0",
     "echarts-for-react": "^3.0.2",
     "google-map-react": "^2.2.1",

@@ -1,7 +1,8 @@
 // ai/tools/ToolSelector.tsx
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { FormField, Label } from "render/CommonFormComponents";
+import { FormField } from "render/CommonFormComponents";
+import { Label } from "render/form/Label";
 
 export const TOOL_OPTIONS = [
   { id: "makeAppointment", name: "makeAppointment" },
