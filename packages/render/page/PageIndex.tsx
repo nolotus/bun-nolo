@@ -30,9 +30,6 @@ const Page = ({ id }) => {
   const { data, isLoading, error } = useFetchData(pageId);
 
   //edit page not need data
-  if (isEditMode) {
-    return <EditPage />;
-  }
 
   // render page need data
   if (isLoading) {
@@ -54,6 +51,9 @@ const Page = ({ id }) => {
     );
   } else if (data) {
     dispatch(initPage(data));
+    if (isEditMode) {
+      return <EditPage />;
+    }
     if (data.type === DataType.Dialog) {
       return <DialogPage dialogId={pageId} />;
     }
