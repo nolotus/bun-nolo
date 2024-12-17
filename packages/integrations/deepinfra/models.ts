@@ -9,6 +9,8 @@ export const deepinfraModels: Model[] = [
       input: 0.055,
       output: 0.055,
     },
+    jsonOutput: true, // 是否支持 JSON 结构化输出
+    fnCall: true, // 是否支持函数调用
   },
   {
     name: "meta-llama/Meta-Llama-3.1-405B-Instruct",
@@ -19,6 +21,8 @@ export const deepinfraModels: Model[] = [
       input: 1.79,
       output: 1.79,
     },
+    jsonOutput: true,
+    fnCall: true,
   },
   {
     name: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
@@ -29,6 +33,8 @@ export const deepinfraModels: Model[] = [
       input: 0.04,
       output: 0.05,
     },
+    jsonOutput: true,
+    fnCall: true,
   },
   {
     name: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
@@ -39,6 +45,8 @@ export const deepinfraModels: Model[] = [
       input: 0.29,
       output: 0.4,
     },
+    jsonOutput: true,
+    fnCall: true,
   },
   {
     name: "Qwen/Qwen2.5-Coder-32B-Instruct",
@@ -49,6 +57,8 @@ export const deepinfraModels: Model[] = [
       input: 0.18,
       output: 0.18,
     },
+    jsonOutput: true,
+    fnCall: true,
   },
   {
     name: "Qwen/Qwen2.5-72B-Instruct",
@@ -59,6 +69,8 @@ export const deepinfraModels: Model[] = [
       input: 0.35,
       output: 0.4,
     },
+    jsonOutput: true,
+    fnCall: true,
   },
   {
     name: "meta-llama/Llama-3.2-90B-Vision-Instruct",
@@ -69,6 +81,8 @@ export const deepinfraModels: Model[] = [
       input: 0.35,
       output: 0.4,
     },
+    jsonOutput: true,
+    fnCall: true,
   },
   {
     name: "meta-llama/Llama-3.2-11B-Vision-Instruct",
@@ -79,5 +93,31 @@ export const deepinfraModels: Model[] = [
       input: 0.055,
       output: 0.055,
     },
+    jsonOutput: true,
+    fnCall: true,
+  },
+  {
+    name: "meta-llama/Llama-3.3-70B-Instruct",
+    displayName: "LLaMA 3.3 70B",
+    hasVision: false,
+    contextWindow: 131072,
+    price: {
+      input: 0.23,
+      output: 0.4,
+    },
+    jsonOutput: true,
+    fnCall: true,
+  },
+  {
+    name: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    displayName: "LLaMA 3.3 70B Turbo",
+    hasVision: false,
+    contextWindow: 131072,
+    price: {
+      input: 0.13,
+      output: 0.4,
+    },
+    jsonOutput: true,
+    fnCall: true,
   },
 ];
