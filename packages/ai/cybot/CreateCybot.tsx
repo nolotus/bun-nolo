@@ -12,10 +12,11 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
 	FormContainer,
-	FormField,
 	FormFieldComponent,
 	FormTitle,
 } from "render/CommonFormComponents";
+import { FormField } from "render/form/FormField";
+
 import { Label } from "render/form/Label";
 import { Button } from "render/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";

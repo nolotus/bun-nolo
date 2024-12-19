@@ -5,9 +5,10 @@ import { selectTheme } from "app/theme/themeSlice";
 import React, { type ReactNode } from "react";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { Label } from "render/form/Label";
+import { FormField } from "./form/FormField";
 import { BASE_COLORS } from "./styles/colors";
-import PasswordInput from "./ui/PasswordInput";
 
+import PasswordInput from "./ui/PasswordInput";
 const useCommonFormStyles = () => {
 	const theme = useAppSelector(selectTheme);
 	return {
@@ -70,18 +71,6 @@ export const FormContainer: React.FC<FormContainerProps> = ({ children }) => {
 export const FormTitle: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const styles = useCommonFormStyles();
 	return <h2 style={styles.formTitle}>{children}</h2>;
-};
-
-export const FormField: React.FC<{ children: ReactNode; className }> = ({
-	children,
-	className,
-}) => {
-	const styles = useCommonFormStyles();
-	return (
-		<div style={styles.formField} className={className}>
-			{children}
-		</div>
-	);
 };
 
 export const Input = React.forwardRef<

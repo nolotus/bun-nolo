@@ -3,9 +3,11 @@ import { useCombobox } from "downshift";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FormField } from "render/CommonFormComponents";
+import { FormField } from "render/form/FormField";
+
 import { Label } from "render/form/Label";
 import { defaultTheme } from "render/styles/colors";
+
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
 
@@ -76,7 +78,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 						providerOptions.map((item, index) => (
 							<li
 								{...getItemProps({
-									key: item,
+									key: `${item}-${index}`,
 									index,
 									item,
 									className: `select-option ${
