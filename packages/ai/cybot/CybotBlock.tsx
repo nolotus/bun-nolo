@@ -4,8 +4,8 @@ import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { deleteData } from "database/dbSlice";
 import withTranslations from "i18n/withTranslations";
 import debounce from "lodash/debounce";
-import PropTypes from "prop-types";
-import React, { useCallback, useState } from "react";
+import type React from "react";
+import { useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
@@ -13,13 +13,24 @@ import { GRADIENTS, defaultTheme } from "render/styles/colors";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 
+interface CybotBlockProps {
+	item: {
+		id: string;
+		name?: string;
+		model: string;
+		introduction?: string;
+		provider: string;
+	};
+	closeModal?: () => void;
+}
+
 const buttonBaseStyle = {
 	padding: "0.6rem",
 	borderRadius: "8px",
 	cursor: "pointer",
 };
 
-const CybotBlock = ({ item, closeModal }) => {
+const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 	const { t } = useTranslation();
 	const { isLoading, createNewDialog } = useCreateDialog();
 	const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
@@ -58,7 +69,7 @@ const CybotBlock = ({ item, closeModal }) => {
 		[dispatch, item.id, t, deleting],
 	);
 
-	const handleEdit = (e) => {
+	const handleEdit = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		openEdit();
 	};
@@ -154,18 +165,32 @@ const CybotBlock = ({ item, closeModal }) => {
 						>
 							{item.name || t("unnamed")}
 						</h3>
-						<div
-							className="model-tag"
-							style={{
-								fontSize: "0.8rem",
-								color: defaultTheme.textSecondary,
-								padding: "0.2rem 0.5rem",
-								background: defaultTheme.backgroundSecondary,
-								borderRadius: "4px",
-								display: "inline-block",
-							}}
-						>
-							{item.model}
+						<div style={{ display: "flex", gap: "0.4rem" }}>
+							<div
+								className="model-tag"
+								style={{
+									fontSize: "0.8rem",
+									color: defaultTheme.textSecondary,
+									padding: "0.2rem 0.5rem",
+									background: defaultTheme.backgroundSecondary,
+									borderRadius: "4px",
+								}}
+							>
+								{item.model}
+							</div>
+
+							<div
+								className="provider-tag"
+								style={{
+									fontSize: "0.8rem",
+									color: defaultTheme.textSecondary,
+									padding: "0.2rem 0.5rem",
+									background: defaultTheme.backgroundSecondary,
+									borderRadius: "4px",
+								}}
+							>
+								{item.provider}
+							</div>
 						</div>
 					</div>
 				</div>
@@ -254,14 +279,4 @@ const CybotBlock = ({ item, closeModal }) => {
 	);
 };
 
-CybotBlock.propTypes = {
-	item: PropTypes.shape({
-		id: PropTypes.string.isRequired,
-		name: PropTypes.string,
-		model: PropTypes.string.isRequired,
-		introduction: PropTypes.string,
-	}).isRequired,
-	closeModal: PropTypes.func,
-};
-
-export default withTranslations(CybotBlock, ["chat", "ai"]);
+export default withTranslations<CybotBlockProps>(CybotBlock, ["chat", "ai"]);

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { SpotList } from "render/components/SpotList";
-import { BASE_COLORS } from "render/styles/colors";
+import { defaultTheme } from "render/styles/colors";
 
 const Home = () => {
 	const features = [
@@ -53,14 +53,15 @@ const Home = () => {
           .feature-card {
             padding: 1.5rem;
             backdrop-filter: blur(10px);
-            background: ${BASE_COLORS.light.backgroundGhost};
-            border: 1px solid ${BASE_COLORS.light.borderLight};
+            background: ${defaultTheme.backgroundSecondary};
+            border: 1px solid ${defaultTheme.border};
             border-radius: 16px;
-            box-shadow: 0 2px 15px ${BASE_COLORS.light.shadowLight};
+            box-shadow: 0 2px 15px ${defaultTheme.shadowLight};
+            transition: all 0.3s ease;
           }
 
           .welcome-text {
-            background: ${BASE_COLORS.light.primaryGradient};
+            background: ${defaultTheme.primaryGradient};
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
@@ -68,26 +69,33 @@ const Home = () => {
           }
 
           .intro-text {
-            font-weight: 300;
-            color: ${BASE_COLORS.light.textSecondary};
+            font-weight: 400;
+            color: ${defaultTheme.textSecondary};
+            line-height: 1.6;
           }
 
           .signup-link {
             display: inline-block;
             padding: 0.8rem 2rem;
-            background: ${BASE_COLORS.light.primaryGradient};
-            color: ${BASE_COLORS.light.background};
+            background: ${defaultTheme.primary};
+            color: #FFFFFF;
             border-radius: 30px;
             text-decoration: none;
             font-weight: 500;
             margin-top: 1.5rem;
             font-size: 1rem;
-            box-shadow: 0 4px 15px ${BASE_COLORS.light.primaryGhost};
+            box-shadow: 0 4px 15px ${defaultTheme.primaryGhost};
+            transition: all 0.3s ease;
+          }
+
+          .signup-link:hover {
+            background: ${defaultTheme.primaryLight};
+            transform: translateY(-2px);
           }
 
           .section-title {
             font-size: 2.2rem;
-            color: ${BASE_COLORS.light.text};
+            color: ${defaultTheme.text};
             margin: 3rem 0;
             font-weight: 600;
             letter-spacing: -0.5px;
@@ -110,7 +118,6 @@ const Home = () => {
           }
         `}
 			</style>
-
 			<div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.5rem" }}>
 				<motion.section
 					className="hero-section"
@@ -118,10 +125,11 @@ const Home = () => {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.6 }}
 					style={{
-						background: BASE_COLORS.light.backgroundGradient,
+						background: defaultTheme.backgroundSecondary,
 						borderRadius: "24px",
 						padding: "3rem 1.5rem",
 						marginBottom: "3rem",
+						boxShadow: `0 4px 20px ${defaultTheme.shadowLight}`,
 					}}
 				>
 					<motion.div
@@ -136,6 +144,7 @@ const Home = () => {
 								marginBottom: "1.5rem",
 								fontWeight: "700",
 								lineHeight: "1.2",
+								color: defaultTheme.text,
 							}}
 						>
 							<span className="welcome-text">Hey，我是 Nolotus</span> 👋
@@ -148,7 +157,6 @@ const Home = () => {
 							transition={{ delay: 0.4 }}
 							style={{
 								fontSize: "1.3rem",
-								lineHeight: "1.6",
 								marginBottom: "1.5rem",
 							}}
 						>
@@ -159,7 +167,11 @@ const Home = () => {
 								所以我打造了这个AI助手，它能帮你整理笔记、规划日程、分析数据
 								<DependabotIcon
 									size={20}
-									style={{ margin: "0 6px", verticalAlign: "middle" }}
+									style={{
+										margin: "0 6px",
+										verticalAlign: "middle",
+										color: defaultTheme.primary,
+									}}
 								/>
 							</p>
 							<p>要不要来试试看？</p>
@@ -194,8 +206,9 @@ const Home = () => {
 							variants={item}
 							whileHover={{
 								y: -8,
-								boxShadow: `0 12px 30px ${BASE_COLORS.light.shadowMedium}`,
-								borderColor: BASE_COLORS.light.primaryGhost,
+								background: defaultTheme.background,
+								boxShadow: `0 12px 30px ${defaultTheme.shadowMedium}`,
+								borderColor: defaultTheme.primary,
 							}}
 							className="feature-card"
 						>
@@ -206,7 +219,7 @@ const Home = () => {
 								style={{
 									fontSize: "1.1rem",
 									marginBottom: "0.6rem",
-									color: BASE_COLORS.light.text,
+									color: defaultTheme.text,
 									fontWeight: "600",
 								}}
 							>
@@ -214,7 +227,7 @@ const Home = () => {
 							</h3>
 							<p
 								style={{
-									color: BASE_COLORS.light.textTertiary,
+									color: defaultTheme.textSecondary,
 									fontSize: "0.95rem",
 									lineHeight: "1.5",
 								}}
@@ -255,20 +268,27 @@ const Home = () => {
 					viewport={{ once: true }}
 					style={{
 						textAlign: "center",
-						color: BASE_COLORS.light.textLight,
+						color: defaultTheme.textSecondary,
 						fontSize: "0.95rem",
 						padding: "2rem 0",
-						borderTop: `1px solid ${BASE_COLORS.light.border}`,
+						borderTop: `1px solid ${defaultTheme.border}`,
 					}}
 				>
 					<p style={{ marginBottom: "0.8rem" }}>本站正在测试中，欢迎反馈</p>
 					<a
 						href="mailto:s@nolotus.com"
 						style={{
-							color: BASE_COLORS.light.textTertiary,
+							color: defaultTheme.primary,
 							textDecoration: "none",
-							borderBottom: `1px dashed ${BASE_COLORS.light.textTertiary}`,
+							borderBottom: `1px dashed ${defaultTheme.primary}`,
 							padding: "0.2rem 0",
+							transition: "color 0.3s ease",
+						}}
+						onMouseEnter={(e) => {
+							e.target.style.color = defaultTheme.primaryLight;
+						}}
+						onMouseLeave={(e) => {
+							e.target.style.color = defaultTheme.primary;
 						}}
 					>
 						s@nolotus.com

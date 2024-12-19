@@ -1,56 +1,33 @@
-// CommonFormComponents.tsx
-
-import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
-import React, { type ReactNode } from "react";
+import type React from "react";
+import type { ReactNode } from "react";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
+import { FormField } from "render/form/FormField";
+import { Input } from "render/form/Input";
 import { Label } from "render/form/Label";
-import { FormField } from "./form/FormField";
-import { BASE_COLORS } from "./styles/colors";
-
+import { TextArea } from "render/form/TextArea";
+import { defaultTheme } from "./styles/colors";
 import PasswordInput from "./ui/PasswordInput";
+
 const useCommonFormStyles = () => {
-	const theme = useAppSelector(selectTheme);
 	return {
 		formContainer: {
 			maxWidth: "600px",
 			margin: "0 auto",
 			padding: "20px",
-			color: theme.text1,
+			color: defaultTheme.text,
 		},
 		formTitle: {
 			textAlign: "center" as const,
-			color: theme.text1,
-		},
-		formField: {
-			marginBottom: "15px",
-		},
-
-		input: {
-			width: "100%",
-			padding: "8px",
-			border: `1px solid ${theme.surface3}`,
-			borderRadius: "4px",
-			backgroundColor: theme.surface2,
-			color: theme.text1,
-		},
-		textArea: {
-			width: "100%",
-			padding: "8px",
-			border: `1px solid ${theme.surface3}`,
-			borderRadius: "4px",
-			backgroundColor: theme.surface2,
-			color: theme.text1,
-			minHeight: "100px",
+			color: defaultTheme.text,
 		},
 
 		errorMessage: {
-			color: theme.brand,
+			color: defaultTheme.error,
 			fontSize: "0.8em",
 		},
 		submitButton: {
-			backgroundColor: theme.brand,
-			color: theme.surface1,
+			backgroundColor: defaultTheme.primary,
+			color: defaultTheme.background,
 			padding: "10px 15px",
 			border: "none",
 			borderRadius: "4px",
@@ -72,22 +49,6 @@ export const FormTitle: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const styles = useCommonFormStyles();
 	return <h2 style={styles.formTitle}>{children}</h2>;
 };
-
-export const Input = React.forwardRef<
-	HTMLInputElement,
-	React.InputHTMLAttributes<HTMLInputElement>
->((props, ref) => {
-	const styles = useCommonFormStyles();
-	return <input {...props} ref={ref} style={styles.input} />;
-});
-
-export const TextArea = React.forwardRef<
-	HTMLTextAreaElement,
-	React.TextareaHTMLAttributes<HTMLTextAreaElement>
->((props, ref) => {
-	const styles = useCommonFormStyles();
-	return <textarea {...props} ref={ref} style={styles.textArea} />;
-});
 
 export const ErrorMessage: React.FC<{ children: ReactNode }> = ({
 	children,

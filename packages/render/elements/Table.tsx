@@ -7,37 +7,10 @@ interface TableBaseProps {
 	style?: React.CSSProperties;
 }
 
-// 利用defaultTheme定义表格主题
-const tableTheme = {
-	table: {
-		background: defaultTheme.background,
-		color: defaultTheme.text,
-		borderRadius: "8px",
-		boxShadow: `0 1px 3px ${defaultTheme.shadowLight}`,
-	},
-	row: {
-		background: defaultTheme.background,
-		hoverBackground: defaultTheme.backgroundSecondary,
-		borderColor: defaultTheme.border,
-	},
-	header: {
-		background: defaultTheme.backgroundSecondary,
-		color: defaultTheme.textSecondary,
-		borderColor: defaultTheme.border,
-		fontSize: "0.9375rem",
-	},
-	cell: {
-		padding: "14px 16px",
-		borderColor: defaultTheme.borderLight,
-		color: defaultTheme.text,
-		fontSize: "0.875rem",
-	},
-};
-
 export const Table: React.FC<TableBaseProps> = ({
 	attributes,
 	children,
-	theme = tableTheme,
+	theme = defaultTheme,
 	style,
 }) => (
 	<table
@@ -46,10 +19,10 @@ export const Table: React.FC<TableBaseProps> = ({
 			borderSpacing: 0,
 			width: "100%",
 			margin: "1.5em 0",
-			background: theme.table.background,
-			color: theme.table.color,
-			borderRadius: theme.table.borderRadius,
-			boxShadow: `0 1px 3px ${defaultTheme.shadowLight}`,
+			background: theme.background,
+			color: theme.text,
+			borderRadius: "8px",
+			boxShadow: `0 1px 3px ${theme.shadowLight}`,
 			...style,
 		}}
 		{...attributes}
@@ -61,19 +34,19 @@ export const Table: React.FC<TableBaseProps> = ({
 export const TableRow: React.FC<TableBaseProps> = ({
 	attributes,
 	children,
-	theme = tableTheme,
+	theme = defaultTheme,
 	style,
 }) => (
 	<>
 		<style>
 			{`
         .table-row {
-          border-bottom: 1px solid ${defaultTheme.border};
-          background: ${defaultTheme.background};
+          border-bottom: 1px solid ${theme.border};
+          background: ${theme.background};
           transition: background-color 0.15s ease;
         }
         .table-row:hover {
-          background: ${defaultTheme.backgroundSecondary};
+          background: ${theme.backgroundSecondary};
         }
       `}
 		</style>
@@ -93,23 +66,23 @@ export const TableCell: React.FC<TableCellProps> = ({
 	attributes,
 	children,
 	element,
-	theme = tableTheme,
+	theme = defaultTheme,
 	style,
 }) => {
 	const Component = element.header ? "th" : "td";
 
 	const cellStyles = {
-		padding: theme.cell.padding,
-		fontSize: theme.cell.fontSize,
+		padding: "14px 16px",
+		fontSize: "0.875rem",
 		lineHeight: 1.6,
 		letterSpacing: "0.01em",
-		color: defaultTheme.text,
-		borderBottom: `1px solid ${defaultTheme.border}`,
+		color: theme.text,
+		borderBottom: `1px solid ${theme.border}`,
 		verticalAlign: "middle",
 		...(element.header && {
-			backgroundColor: defaultTheme.backgroundSecondary,
-			color: defaultTheme.textSecondary,
-			fontSize: theme.header.fontSize,
+			backgroundColor: theme.backgroundSecondary,
+			color: theme.textSecondary,
+			fontSize: "0.9375rem",
 			fontWeight: 600,
 			height: "48px",
 			textAlign: "left" as const,

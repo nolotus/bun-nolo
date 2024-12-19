@@ -25,9 +25,6 @@ export const BASE_COLORS = {
 		borderHover: "#D1D5DB",
 		borderLight: "rgba(255, 255, 255, 0.3)",
 
-		// 图标
-		icon: "#4a5568",
-
 		// 状态相关
 		error: "#ef4444",
 

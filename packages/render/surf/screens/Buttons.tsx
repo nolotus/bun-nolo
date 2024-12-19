@@ -1,6 +1,6 @@
 // ToggleButton.mobile.tsx
-import React from "react";
-import { TouchableOpacity, Text } from "react-native";
+import type React from "react";
+import { Text, TouchableOpacity } from "react-native";
 import { style as tw } from "twrnc";
 import * as styles from "../styles/ToggleButtonStyles"; // 导入共享的样式字符串
 
