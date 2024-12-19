@@ -1,5 +1,4 @@
 import { selectTheme } from "app/theme/themeSlice";
-import type React from "react";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { BASE_COLORS } from "../../styles/colors";
