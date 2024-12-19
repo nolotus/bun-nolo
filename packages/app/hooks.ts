@@ -46,12 +46,3 @@ export function useFetchData(id: string, options?: any) {
 
   return { data: memdata, isLoading, error };
 }
-
-export const useWriteData = () => {
-  const dispatch = useDispatch();
-  const [isLoading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const result = {};
-  useEffect(() => {}, []);
-  return { result, isLoading, error };
-};

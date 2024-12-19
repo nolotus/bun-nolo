@@ -53,10 +53,7 @@ const EditPage = () => {
   const handleContentChange = (changeValue) => {
     dispatch(updateSlate(changeValue));
   };
-
-  const slateData = pageState.slateData
-    ? pageState.slateData
-    : markdownToSlate(pageState.slateData);
+  const slateData = pageState.slateData;
 
   return (
     <div
