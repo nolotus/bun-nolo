@@ -4,7 +4,7 @@ import { BASE_COLORS } from "render/styles/colors";
 const labelStyles = {
 	display: "block",
 	marginBottom: "8px",
-	color: BASE_COLORS.textSecondary,
+	color: BASE_COLORS.light.textSecondary,
 	fontSize: "14px",
 	fontWeight: 500,
 };

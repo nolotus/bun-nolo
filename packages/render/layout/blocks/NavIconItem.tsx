@@ -20,7 +20,7 @@ const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
 		width: "42px",
 		height: "42px",
 		borderRadius: "12px",
-		color: BASE_COLORS.icon,
+		color: BASE_COLORS.light.icon,
 		textDecoration: "none",
 		transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
 		cursor: "pointer",
@@ -32,21 +32,21 @@ const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
 			<style>
 				{`
           .nav-icon-item:hover {
-            background-color: ${BASE_COLORS.primaryGhost};
-            color: ${BASE_COLORS.primary};
+            background-color: ${BASE_COLORS.light.primaryGhost};
+            color: ${BASE_COLORS.light.primary};
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px ${BASE_COLORS.primaryGhost};
+            box-shadow: 0 4px 12px ${BASE_COLORS.light.primaryGhost};
           }
           
           .nav-icon-item.active {
-            background-color: ${BASE_COLORS.primary};
-            color: ${BASE_COLORS.background} !important;
-            box-shadow: 0 4px 12px ${BASE_COLORS.primaryLight}33;
+            background-color: ${BASE_COLORS.light.primary};
+            color: ${BASE_COLORS.light.background} !important;
+            box-shadow: 0 4px 12px ${BASE_COLORS.light.primaryLight}33;
           }
 
           .nav-icon-item.active svg {
-            fill: ${BASE_COLORS.background};
-            color: ${BASE_COLORS.background};
+            fill: ${BASE_COLORS.light.background};
+            color: ${BASE_COLORS.light.background};
           }
         `}
 			</style>

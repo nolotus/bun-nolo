@@ -73,11 +73,11 @@ const Create = () => {
 			{/* 基础创建部分 */}
 			<section
 				style={{
-					background: BASE_COLORS.backgroundSecondary,
+					background: BASE_COLORS.light.backgroundSecondary,
 					borderRadius: "8px",
 					padding: "24px",
 					marginBottom: "24px",
-					border: `1px solid ${BASE_COLORS.border}`,
+					border: `1px solid ${BASE_COLORS.light.border}`,
 				}}
 			>
 				<h2
@@ -85,7 +85,7 @@ const Create = () => {
 						fontSize: "1.5em",
 						fontWeight: "bold",
 						marginBottom: "16px",
-						color: BASE_COLORS.text,
+						color: BASE_COLORS.light.text,
 					}}
 				>
 					快速创建
@@ -96,11 +96,11 @@ const Create = () => {
 			{/* 模板创建部分 */}
 			<section
 				style={{
-					background: BASE_COLORS.backgroundSecondary,
+					background: BASE_COLORS.light.backgroundSecondary,
 					borderRadius: "8px",
 					padding: "24px",
 					marginBottom: "24px",
-					border: `1px solid ${BASE_COLORS.border}`,
+					border: `1px solid ${BASE_COLORS.light.border}`,
 				}}
 			>
 				<h2
@@ -108,7 +108,7 @@ const Create = () => {
 						fontSize: "1.5em",
 						fontWeight: "bold",
 						marginBottom: "16px",
-						color: BASE_COLORS.text,
+						color: BASE_COLORS.light.text,
 					}}
 				>
 					从模板创建

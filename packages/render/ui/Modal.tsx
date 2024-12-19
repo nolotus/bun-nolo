@@ -1,100 +1,142 @@
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useKey } from "react-use";
-import { useSelector } from "react-redux";
-import { useMediaQuery } from "react-responsive";
+import { defaultTheme } from "render/styles/colors";
 
-import { selectTheme } from "app/theme/themeSlice";
-import { zIndex } from "../styles/zIndex";
+export const useModal = <T,>() => {
+	const [visible, setVisible] = useState(false);
+	const [modalState, setModalState] = useState<T | null>(null);
 
-export const useModal = () => {
-  const [visible, setVisible] = useState(false);
-  const [modalState, setModalState] = useState(null);
+	const open = (item: T) => {
+		setModalState(item);
+		setVisible(true);
+	};
 
-  const open = (item) => {
-    setModalState(item);
-    setVisible(true);
-  };
+	const close = () => {
+		setVisible(false);
+	};
 
-  const close = () => {
-    setVisible(false);
-  };
-
-  return { visible, open, close, modalState };
+	return { visible, open, close, modalState };
 };
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
+	isOpen: boolean;
+	onClose: () => void;
+	children: React.ReactNode;
 }
 
-export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
-  const theme = useSelector(selectTheme);
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
+	useKey("Escape", onClose);
 
-  // 使用 react-responsive 的 hooks 定义响应式断点
-  const is2xl = useMediaQuery({ minWidth: theme.breakpoints[5] });
-  const isXl = useMediaQuery({ minWidth: theme.breakpoints[4] });
-  const isLg = useMediaQuery({ minWidth: theme.breakpoints[3] });
-  const isMd = useMediaQuery({ minWidth: theme.breakpoints[2] });
-  const isSm = useMediaQuery({ minWidth: theme.breakpoints[1] });
+	if (!isOpen) return null;
 
-  useKey("Escape", onClose);
+	return createPortal(
+		<>
+			<style>
+				{`
+          .modal-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            animation: fadeIn 0.2s ease-out;
+            padding: 20px;
+          }
 
-  if (!isOpen) {
-    return null;
-  }
+          .modal-content {
+            width: 91.666667%;
+            max-width: 1200px;
+            margin: auto;
+            position: relative;
+            transition: all 0.3s ease-out;
+            box-shadow: 0 4px 24px ${defaultTheme.shadowMedium};
+            animation: slideUp 0.3s ease-out;
+          }
 
-  const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
+          .modal-image {
+            width: 100%;
+            height: auto;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 12px;
+            display: block;
+            background: ${defaultTheme.backgroundSecondary};
+          }
 
-  const overlayStyle = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: zIndex.modalZIndex,
-    backdropFilter: "blur(5px)",
-    position: "fixed",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-  };
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
 
-  const contentStyle = {
-    margin: "auto",
-    width: "100%",
-    transition: "all 0.3s ease",
-    boxShadow: theme.shadowStrength
-      ? `0 1px 2px 0 rgba(${theme.shadowColor}, ${theme.shadowStrength})`
-      : "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-  };
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
 
-  // 根据响应式断点获取宽度
-  const getResponsiveWidth = () => {
-    if (is2xl || isXl) return "50%";
-    if (isLg) return "66.666667%";
-    if (isMd) return "75%";
-    if (isSm) return "83.333333%";
-    return "91.666667%";
-  };
+          /* Responsive breakpoints */
+          @media (min-width: 640px) {
+            .modal-content {
+              width: 83.333333%;
+            }
+          }
 
-  return createPortal(
-    <div style={overlayStyle} onClick={handleOverlayClick}>
-      <div
-        style={{
-          ...contentStyle,
-          width: getResponsiveWidth(),
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body
-  );
+          @media (min-width: 768px) {
+            .modal-content {
+              width: 75%;
+            }
+          }
+
+          @media (min-width: 1024px) {
+            .modal-content {
+              width: 66.666667%;
+            }
+          }
+
+          @media (min-width: 1280px) {
+            .modal-content {
+              width: 50%;
+            }
+            
+            .modal-image {
+              max-width: 1100px;
+              max-height: 80vh;
+            }
+          }
+
+          /* Reduce motion preference */
+          @media (prefers-reduced-motion: reduce) {
+            .modal-overlay,
+            .modal-content {
+              animation: none;
+            }
+          }
+        `}
+			</style>
+
+			<div
+				className="modal-overlay"
+				onClick={(e) => {
+					if (e.target === e.currentTarget) {
+						onClose();
+					}
+				}}
+			>
+				<div className="modal-content" onClick={(e) => e.stopPropagation()}>
+					{children}
+				</div>
+			</div>
+		</>,
+		document.body,
+	);
 };

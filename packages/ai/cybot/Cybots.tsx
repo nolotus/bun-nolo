@@ -60,7 +60,7 @@ const Cybots: React.FC<CybotsProps> = ({
 				style={{
 					textAlign: "center",
 					padding: "1.5rem",
-					color: BASE_COLORS.textSecondary,
+					color: BASE_COLORS.light.textSecondary,
 					fontSize: "1rem",
 				}}
 			>

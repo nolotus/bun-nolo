@@ -37,13 +37,13 @@ const styles = {
 			justifyContent: "center",
 			borderRadius: "6px",
 			transition: "all 0.15s ease",
-			color: BASE_COLORS.text,
+			color: BASE_COLORS.light.text,
 		},
 		active: {
-			backgroundColor: BASE_COLORS.backgroundGhost,
+			backgroundColor: BASE_COLORS.light.backgroundGhost,
 		},
 		hover: {
-			backgroundColor: BASE_COLORS.backgroundGhost,
+			backgroundColor: BASE_COLORS.light.backgroundGhost,
 		},
 	},
 
@@ -53,16 +53,16 @@ const styles = {
 			alignItems: "center",
 			cursor: "pointer",
 			textDecoration: "none",
-			color: BASE_COLORS.text,
+			color: BASE_COLORS.light.text,
 			padding: "6px 10px",
 			borderRadius: "6px",
 			transition: "all 0.15s ease",
 		},
 		active: {
-			backgroundColor: BASE_COLORS.backgroundGhost,
+			backgroundColor: BASE_COLORS.light.backgroundGhost,
 		},
 		hover: {
-			backgroundColor: BASE_COLORS.backgroundGhost,
+			backgroundColor: BASE_COLORS.light.backgroundGhost,
 		},
 		text: {
 			fontSize: "14px",
@@ -75,10 +75,10 @@ const styles = {
 		wrapper: {
 			padding: "8px",
 			minWidth: "200px",
-			backgroundColor: BASE_COLORS.background,
+			backgroundColor: BASE_COLORS.light.background,
 			borderRadius: "10px",
 			boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-			border: `1px solid ${BASE_COLORS.border}`,
+			border: `1px solid ${BASE_COLORS.light.border}`,
 		},
 		item: {
 			display: "flex",
@@ -91,7 +91,7 @@ const styles = {
 			cursor: "pointer",
 			borderRadius: "6px",
 			transition: "all 0.15s ease",
-			color: BASE_COLORS.text,
+			color: BASE_COLORS.light.text,
 			fontSize: "13px",
 			fontWeight: 500,
 		},
@@ -192,7 +192,7 @@ export const IsLoggedInMenu: React.FC = () => {
 		<div style={styles.menu.wrapper}>
 			<NavLink
 				to="/life"
-				style={{ textDecoration: "none", color: BASE_COLORS.text }}
+				style={{ textDecoration: "none", color: BASE_COLORS.light.text }}
 			>
 				{userTrigger}
 			</NavLink>
@@ -218,7 +218,7 @@ export const IsLoggedInMenu: React.FC = () => {
 									style={styles.dropDown.item}
 									onMouseEnter={(e) =>
 										(e.currentTarget.style.backgroundColor =
-											BASE_COLORS.backgroundGhost)
+											BASE_COLORS.light.backgroundGhost)
 									}
 									onMouseLeave={(e) =>
 										(e.currentTarget.style.backgroundColor = "transparent")
@@ -234,7 +234,7 @@ export const IsLoggedInMenu: React.FC = () => {
 						style={styles.dropDown.item}
 						onMouseEnter={(e) =>
 							(e.currentTarget.style.backgroundColor =
-								BASE_COLORS.backgroundGhost)
+								BASE_COLORS.light.backgroundGhost)
 						}
 						onMouseLeave={(e) =>
 							(e.currentTarget.style.backgroundColor = "transparent")
@@ -242,7 +242,10 @@ export const IsLoggedInMenu: React.FC = () => {
 					>
 						<GearIcon
 							size={16}
-							style={{ marginRight: "6px", color: BASE_COLORS.textSecondary }}
+							style={{
+								marginRight: "6px",
+								color: BASE_COLORS.light.textSecondary,
+							}}
 						/>
 						<span>{t("common:settings")}</span>
 					</button>
@@ -252,7 +255,7 @@ export const IsLoggedInMenu: React.FC = () => {
 						style={styles.dropDown.item}
 						onMouseEnter={(e) =>
 							(e.currentTarget.style.backgroundColor =
-								BASE_COLORS.backgroundGhost)
+								BASE_COLORS.light.backgroundGhost)
 						}
 						onMouseLeave={(e) =>
 							(e.currentTarget.style.backgroundColor = "transparent")
@@ -260,7 +263,10 @@ export const IsLoggedInMenu: React.FC = () => {
 					>
 						<SignOutIcon
 							size={16}
-							style={{ marginRight: "6px", color: BASE_COLORS.textSecondary }}
+							style={{
+								marginRight: "6px",
+								color: BASE_COLORS.light.textSecondary,
+							}}
 						/>
 						<span>{t("common:logout")}</span>
 					</button>

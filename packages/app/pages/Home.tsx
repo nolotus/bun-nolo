@@ -53,14 +53,14 @@ const Home = () => {
           .feature-card {
             padding: 1.5rem;
             backdrop-filter: blur(10px);
-            background: ${BASE_COLORS.backgroundGhost};
-            border: 1px solid ${BASE_COLORS.borderLight};
+            background: ${BASE_COLORS.light.backgroundGhost};
+            border: 1px solid ${BASE_COLORS.light.borderLight};
             border-radius: 16px;
-            box-shadow: 0 2px 15px ${BASE_COLORS.shadowLight};
+            box-shadow: 0 2px 15px ${BASE_COLORS.light.shadowLight};
           }
 
           .welcome-text {
-            background: ${BASE_COLORS.primaryGradient};
+            background: ${BASE_COLORS.light.primaryGradient};
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
@@ -69,25 +69,25 @@ const Home = () => {
 
           .intro-text {
             font-weight: 300;
-            color: ${BASE_COLORS.textSecondary};
+            color: ${BASE_COLORS.light.textSecondary};
           }
 
           .signup-link {
             display: inline-block;
             padding: 0.8rem 2rem;
-            background: ${BASE_COLORS.primaryGradient};
-            color: ${BASE_COLORS.background};
+            background: ${BASE_COLORS.light.primaryGradient};
+            color: ${BASE_COLORS.light.background};
             border-radius: 30px;
             text-decoration: none;
             font-weight: 500;
             margin-top: 1.5rem;
             font-size: 1rem;
-            box-shadow: 0 4px 15px ${BASE_COLORS.primaryGhost};
+            box-shadow: 0 4px 15px ${BASE_COLORS.light.primaryGhost};
           }
 
           .section-title {
             font-size: 2.2rem;
-            color: ${BASE_COLORS.text};
+            color: ${BASE_COLORS.light.text};
             margin: 3rem 0;
             font-weight: 600;
             letter-spacing: -0.5px;
@@ -118,7 +118,7 @@ const Home = () => {
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.6 }}
 					style={{
-						background: BASE_COLORS.backgroundGradient,
+						background: BASE_COLORS.light.backgroundGradient,
 						borderRadius: "24px",
 						padding: "3rem 1.5rem",
 						marginBottom: "3rem",
@@ -194,8 +194,8 @@ const Home = () => {
 							variants={item}
 							whileHover={{
 								y: -8,
-								boxShadow: `0 12px 30px ${BASE_COLORS.shadowMedium}`,
-								borderColor: BASE_COLORS.primaryGhost,
+								boxShadow: `0 12px 30px ${BASE_COLORS.light.shadowMedium}`,
+								borderColor: BASE_COLORS.light.primaryGhost,
 							}}
 							className="feature-card"
 						>
@@ -206,7 +206,7 @@ const Home = () => {
 								style={{
 									fontSize: "1.1rem",
 									marginBottom: "0.6rem",
-									color: BASE_COLORS.text,
+									color: BASE_COLORS.light.text,
 									fontWeight: "600",
 								}}
 							>
@@ -214,7 +214,7 @@ const Home = () => {
 							</h3>
 							<p
 								style={{
-									color: BASE_COLORS.textTertiary,
+									color: BASE_COLORS.light.textTertiary,
 									fontSize: "0.95rem",
 									lineHeight: "1.5",
 								}}
@@ -255,19 +255,19 @@ const Home = () => {
 					viewport={{ once: true }}
 					style={{
 						textAlign: "center",
-						color: BASE_COLORS.textLight,
+						color: BASE_COLORS.light.textLight,
 						fontSize: "0.95rem",
 						padding: "2rem 0",
-						borderTop: `1px solid ${BASE_COLORS.border}`,
+						borderTop: `1px solid ${BASE_COLORS.light.border}`,
 					}}
 				>
 					<p style={{ marginBottom: "0.8rem" }}>本站正在测试中，欢迎反馈</p>
 					<a
 						href="mailto:s@nolotus.com"
 						style={{
-							color: BASE_COLORS.textTertiary,
+							color: BASE_COLORS.light.textTertiary,
 							textDecoration: "none",
-							borderBottom: `1px dashed ${BASE_COLORS.textTertiary}`,
+							borderBottom: `1px dashed ${BASE_COLORS.light.textTertiary}`,
 							padding: "0.2rem 0",
 						}}
 					>

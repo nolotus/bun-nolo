@@ -1,68 +1,91 @@
-import { BASE_COLORS } from "render/styles/colors";
+import { defaultTheme } from "render/styles/colors";
 import { MessageImage } from "./MessageImage";
 import { MessageText } from "./MessageText";
 
 export const MessageContent = ({ content, role }) => {
-	if (!content) {
-		return null; // 如果content不存在或为空，不渲染任何内容
-	}
+	if (!content) return null;
+
+	const isSelf = role === "self";
 
 	return (
-		<div
-			style={{
-				padding: "12px 16px",
-				display: "flex",
-				flexDirection: "column",
-				boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-				backdropFilter: "blur(8px)",
-				borderRadius: "12px",
-				border: "1px solid rgba(0,0,0,0.05)",
-				transition: "all 0.3s ease",
-				animation: "message-enter 0.3s ease forwards",
-				backgroundColor:
-					role === "self" ? BASE_COLORS.primary : BASE_COLORS.backgroundGhost,
-				color: role === "self" ? BASE_COLORS.background : BASE_COLORS.text,
-				whiteSpace: "pre-wrap",
-				// maxWidth: "85%",
-				minWidth: "100px",
-				fontSize: "15px",
-				lineHeight: "1.6",
-			}}
-		>
-			{typeof content === "string" ? (
-				<MessageText content={content} role={role} />
-			) : Array.isArray(content) ? (
-				content.map((item, index) => {
-					if (!item || typeof item !== "object") {
-						return null; // 跳过无效的项
-					}
+		<>
+			<style>
+				{`
+          @keyframes message-enter {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
 
-					if (item.type === "text" && item.text) {
+          .message-content {
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            transition: all 0.2s ease-out;
+            animation: message-enter 0.3s ease-out forwards;
+            white-space: pre-wrap;
+            min-width: 100px;
+            font-size: 15px;
+            line-height: 1.6;
+            gap: 8px;
+            position: relative;
+          }
+
+          .message-self {
+            background-color: ${defaultTheme.primary};
+            color: ${defaultTheme.background};
+            border: 1px solid ${defaultTheme.primaryLight}20;
+          }
+
+          .message-other {
+            background-color: ${defaultTheme.backgroundSecondary};
+            color: ${defaultTheme.text};
+            border: 1px solid ${defaultTheme.border};
+          }
+        `}
+			</style>
+
+			<div
+				className={`message-content ${isSelf ? "message-self" : "message-other"}`}
+			>
+				{typeof content === "string" ? (
+					<MessageText content={content} role={role} />
+				) : Array.isArray(content) ? (
+					content.map((item, index) => {
+						if (!item || typeof item !== "object") return null;
+
+						if (item.type === "text" && item.text) {
+							return (
+								<MessageText
+									key={`text-${index}`}
+									content={item.text}
+									role={role}
+								/>
+							);
+						}
+
+						if (item.type === "image_url" && item.image_url?.url) {
+							return (
+								<MessageImage key={`image-${index}`} url={item.image_url.url} />
+							);
+						}
+
 						return (
-							<MessageText
-								key={`${item.text}-${index}`}
-								content={item.text}
-								role={role}
-							/>
+							<div key={`unknown-${index}`} className="message-unknown">
+								Unknown message type
+							</div>
 						);
-					}
-					if (
-						item.type === "image_url" &&
-						item.image_url &&
-						item.image_url.url
-					) {
-						return (
-							<MessageImage
-								key={`${item.image_url.url}-${index}`}
-								url={item.image_url.url}
-							/>
-						);
-					}
-					return <div key={`unknown-${index}`}>Unknown message type</div>;
-				})
-			) : (
-				<div>Invalid content format</div>
-			)}
-		</div>
+					})
+				) : (
+					<div className="message-invalid">Invalid content format</div>
+				)}
+			</div>
+		</>
 	);
 };

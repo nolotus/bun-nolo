@@ -3,13 +3,21 @@ import { useCouldEdit } from "auth/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { deleteData } from "database/dbSlice";
 import withTranslations from "i18n/withTranslations";
+import debounce from "lodash/debounce";
+import PropTypes from "prop-types";
 import React, { useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { BASE_COLORS, GRADIENTS } from "render/styles/colors";
+import { GRADIENTS, defaultTheme } from "render/styles/colors";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
+
+const buttonBaseStyle = {
+	padding: "0.6rem",
+	borderRadius: "8px",
+	cursor: "pointer",
+};
 
 const CybotBlock = ({ item, closeModal }) => {
 	const { t } = useTranslation();
@@ -25,25 +33,30 @@ const CybotBlock = ({ item, closeModal }) => {
 		];
 
 	const startDialog = async () => {
+		if (isLoading) return;
 		try {
 			await createNewDialog({ cybots: [item.id] });
-			if (closeModal) closeModal();
+			closeModal?.();
 		} catch (error) {
-			toast.error("创建对话失败");
+			toast.error(t("createDialogError"));
 		}
 	};
 
-	const handleDelete = useCallback(async () => {
-		setDeleting(true);
-		try {
-			await dispatch(deleteData({ id: item.id }));
-			toast.success(t("deleteSuccess"));
-		} catch (error) {
-			toast.error(t("deleteError"));
-		} finally {
-			setDeleting(false);
-		}
-	}, [dispatch, item.id, t]);
+	const handleDelete = useCallback(
+		debounce(async () => {
+			if (deleting) return;
+			setDeleting(true);
+			try {
+				await dispatch(deleteData({ id: item.id }));
+				toast.success(t("deleteSuccess"));
+			} catch (error) {
+				toast.error(t("deleteError"));
+			} finally {
+				setDeleting(false);
+			}
+		}, 300),
+		[dispatch, item.id, t, deleting],
+	);
 
 	const handleEdit = (e) => {
 		e.stopPropagation();
@@ -57,14 +70,14 @@ const CybotBlock = ({ item, closeModal }) => {
           transition: all 0.2s ease;
         }
         .cybot-block:hover {
-          box-shadow: 0 4px 12px ${BASE_COLORS.shadowMedium};
+          box-shadow: 0 4px 12px ${defaultTheme.shadowMedium};
           transform: translateY(-2px);
         }
         
         .start-button {
           transition: all 0.2s;
         }
-        .start-button:hover {
+        .start-button:hover:not(:disabled) {
           opacity: 0.9;
           transform: translateY(-1px);
         }
@@ -78,61 +91,40 @@ const CybotBlock = ({ item, closeModal }) => {
           transition: all 0.2s;
         }
         .edit-button:hover {
-          border-color: ${BASE_COLORS.borderHover};
-          color: ${BASE_COLORS.text};
-          background: ${BASE_COLORS.backgroundSecondary};
+          border-color: ${defaultTheme.borderHover};
+          color: ${defaultTheme.text};
+          background: ${defaultTheme.backgroundSecondary};
         }
 
         .delete-button {
           transition: all 0.2s;
         }
         .delete-button:hover:not(:disabled) {
-          border-color: ${BASE_COLORS.error};
-          background: ${BASE_COLORS.error + "10"};
+          border-color: ${defaultTheme.error};
+          background: rgba(239, 68, 68, 0.1);
         }
         .delete-button:disabled {
           opacity: 0.7;
           cursor: not-allowed;
-        }
-
-        .avatar {
-          transition: all 0.2s;
-        }
-        .cybot-block:hover .avatar {
-          transform: scale(1.05);
-        }
-
-        .model-tag {
-          transition: all 0.2s;
-        }
-        .cybot-block:hover .model-tag {
-          background: ${BASE_COLORS.primaryGhost};
-          color: ${BASE_COLORS.primary};
         }
       `}</style>
 
 			<div
 				className="cybot-block"
 				style={{
-					background: BASE_COLORS.background,
+					background: defaultTheme.background,
 					borderRadius: "12px",
 					padding: "1rem",
 					height: "100%",
 					display: "flex",
 					flexDirection: "column",
 					gap: "1rem",
-					border: `1px solid ${BASE_COLORS.border}`,
+					border: `1px solid ${defaultTheme.border}`,
 					cursor: "pointer",
-					boxShadow: `0 2px 8px ${BASE_COLORS.shadowLight}`,
+					boxShadow: `0 2px 8px ${defaultTheme.shadowLight}`,
 				}}
 			>
-				<div
-					style={{
-						display: "flex",
-						alignItems: "center",
-						gap: "0.8rem",
-					}}
-				>
+				<div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
 					<div
 						className="avatar"
 						style={{
@@ -144,10 +136,10 @@ const CybotBlock = ({ item, closeModal }) => {
 							alignItems: "center",
 							justifyContent: "center",
 							fontSize: "1.1rem",
-							color: BASE_COLORS.text,
+							color: defaultTheme.text,
 						}}
 					>
-						{item.name.charAt(0).toUpperCase()}
+						{item.name?.[0]?.toUpperCase() || "?"}
 					</div>
 
 					<div style={{ flex: 1 }}>
@@ -157,18 +149,18 @@ const CybotBlock = ({ item, closeModal }) => {
 								fontWeight: 600,
 								margin: 0,
 								marginBottom: "0.3rem",
-								color: BASE_COLORS.text,
+								color: defaultTheme.text,
 							}}
 						>
-							{item.name}
+							{item.name || t("unnamed")}
 						</h3>
 						<div
 							className="model-tag"
 							style={{
 								fontSize: "0.8rem",
-								color: BASE_COLORS.textSecondary,
+								color: defaultTheme.textSecondary,
 								padding: "0.2rem 0.5rem",
-								background: BASE_COLORS.backgroundSecondary,
+								background: defaultTheme.backgroundSecondary,
 								borderRadius: "4px",
 								display: "inline-block",
 							}}
@@ -183,39 +175,31 @@ const CybotBlock = ({ item, closeModal }) => {
 						flex: 1,
 						fontSize: "0.85rem",
 						lineHeight: 1.6,
-						color: BASE_COLORS.textTertiary,
+						color: defaultTheme.textTertiary,
 						padding: "0.6rem 0",
-						borderTop: `1px solid ${BASE_COLORS.border}`,
-						borderBottom: `1px solid ${BASE_COLORS.border}`,
+						borderTop: `1px solid ${defaultTheme.border}`,
+						borderBottom: `1px solid ${defaultTheme.border}`,
 					}}
 				>
-					{item.introduction}
+					{item.introduction || t("noDescription")}
 				</div>
 
-				<div
-					style={{
-						display: "flex",
-						gap: "0.6rem",
-						marginTop: "auto",
-					}}
-				>
+				<div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
 					<button
 						type="button"
 						onClick={startDialog}
 						disabled={isLoading}
 						className="start-button"
 						style={{
+							...buttonBaseStyle,
 							flex: 2,
-							padding: "0.6rem",
-							borderRadius: "8px",
 							border: "none",
-							background: BASE_COLORS.primaryGradient,
-							color: BASE_COLORS.background,
+							background: defaultTheme.primaryGradient,
+							color: defaultTheme.background,
 							fontWeight: 500,
-							cursor: "pointer",
 						}}
 					>
-						{isLoading ? "启动中..." : "开始对话"}
+						{isLoading ? t("starting") : t("startChat")}
 					</button>
 
 					{allowEdit && (
@@ -225,13 +209,11 @@ const CybotBlock = ({ item, closeModal }) => {
 								onClick={handleEdit}
 								className="edit-button"
 								style={{
+									...buttonBaseStyle,
 									flex: 1,
-									padding: "0.6rem",
-									borderRadius: "8px",
-									border: `1px solid ${BASE_COLORS.border}`,
-									background: BASE_COLORS.background,
-									color: BASE_COLORS.textSecondary,
-									cursor: "pointer",
+									border: `1px solid ${defaultTheme.border}`,
+									background: defaultTheme.background,
+									color: defaultTheme.textSecondary,
 								}}
 							>
 								{t("edit")}
@@ -243,13 +225,13 @@ const CybotBlock = ({ item, closeModal }) => {
 								disabled={deleting}
 								className="delete-button"
 								style={{
+									...buttonBaseStyle,
 									flex: 1,
-									padding: "0.6rem",
-									borderRadius: "8px",
-									border: `1px solid ${BASE_COLORS.border}`,
-									background: BASE_COLORS.background,
-									color: deleting ? BASE_COLORS.placeholder : BASE_COLORS.error,
-									cursor: "pointer",
+									border: `1px solid ${defaultTheme.border}`,
+									background: defaultTheme.background,
+									color: deleting
+										? defaultTheme.placeholder
+										: defaultTheme.error,
 								}}
 							>
 								{deleting ? "..." : t("delete")}
@@ -270,6 +252,16 @@ const CybotBlock = ({ item, closeModal }) => {
 			</div>
 		</>
 	);
+};
+
+CybotBlock.propTypes = {
+	item: PropTypes.shape({
+		id: PropTypes.string.isRequired,
+		name: PropTypes.string,
+		model: PropTypes.string.isRequired,
+		introduction: PropTypes.string,
+	}).isRequired,
+	closeModal: PropTypes.func,
 };
 
 export default withTranslations(CybotBlock, ["chat", "ai"]);

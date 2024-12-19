@@ -53,16 +53,16 @@ const NavListItem: React.FC<NavListItemProps> = ({
           
           .nav-item:hover {
             background-color: #f5f5f5;
-            color: ${BASE_COLORS.primary};
+            color: ${BASE_COLORS.light.primary};
           }
           
           .nav-item:hover .nav-icon,
           .nav-item:hover .nav-label {
-            color: ${BASE_COLORS.primary};
+            color: ${BASE_COLORS.light.primary};
           }
           
           .nav-item.active {
-            background-color: ${BASE_COLORS.primary};
+            background-color: ${BASE_COLORS.light.primary};
             color: #ffffff;
           }
           

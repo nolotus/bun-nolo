@@ -30,7 +30,7 @@ export const TextField: React.FC = ({
 					height: "42px",
 					lineHeight: "42px",
 					padding: "0 12px",
-					color: BASE_COLORS.text,
+					color: BASE_COLORS.light.text,
 				}}
 			>
 				<p style={{ margin: 0 }}>{defaultValue}</p>
