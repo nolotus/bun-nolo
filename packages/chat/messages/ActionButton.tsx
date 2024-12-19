@@ -1,17 +1,17 @@
-import React from "react";
 import { PaperAirplaneIcon } from "@primer/octicons-react";
-import { COLORS } from "render/styles/colors";
+import type React from "react";
+import { BASE_COLORS } from "render/styles/colors";
 
 interface SendButtonProps {
-  onClick: () => void;
-  disabled: boolean;
+	onClick: () => void;
+	disabled: boolean;
 }
 
 const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
-  return (
-    <>
-      <style>
-        {`
+	return (
+		<>
+			<style>
+				{`
           .send-button {
             padding: 0 24px;
             height: 48px;
@@ -19,7 +19,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: ${COLORS.primary};
+            background-color: ${BASE_COLORS.primary};
             color: #FFFFFF;
             border: none;
             cursor: pointer;
@@ -31,7 +31,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           }
           .send-button:hover {
-            background-color: ${COLORS.primaryLight} !important;
+            background-color: ${BASE_COLORS.primaryLight} !important;
             transform: scale(1.02);
           }
           .send-button:active {
@@ -44,13 +44,13 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             cursor: not-allowed;
           }
         `}
-      </style>
-      <button onClick={onClick} className="send-button" disabled={disabled}>
-        <span>发送</span>
-        <PaperAirplaneIcon size={16} />
-      </button>
-    </>
-  );
+			</style>
+			<button onClick={onClick} className="send-button" disabled={disabled}>
+				<span>发送</span>
+				<PaperAirplaneIcon size={16} />
+			</button>
+		</>
+	);
 };
 
 export default SendButton;

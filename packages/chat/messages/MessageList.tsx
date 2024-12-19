@@ -1,90 +1,91 @@
 // chat/MessagesList.tsx
 
-import React, { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
-import { reverse } from "rambda";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
+import { reverse } from "rambda";
+import type React from "react";
+import { useEffect, useRef } from "react";
+import { BASE_COLORS } from "render/styles/colors";
 import { MessageItem } from "./MessageItem";
-import { selectStreamMessages, selectMergedMessages } from "./selector";
 import { initMessages } from "./messageSlice";
-import { COLORS } from "render/styles/colors";
+import { selectMergedMessages, selectStreamMessages } from "./selector";
 
 const MessagesList: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  const messages = useAppSelector(selectMergedMessages);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+	const dispatch = useAppDispatch();
+	const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+	const messages = useAppSelector(selectMergedMessages);
+	const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const id = currentDialogConfig.messageListId;
+	const id = currentDialogConfig.messageListId;
 
-  if (!id) {
-    return <div>mei id</div>;
-  }
+	if (!id) {
+		return <div>mei id</div>;
+	}
 
-  const { data, isLoading, error } = useFetchData(id);
-  const streamingMessages = useAppSelector(selectStreamMessages);
+	const { data, isLoading, error } = useFetchData(id);
+	const streamingMessages = useAppSelector(selectStreamMessages);
 
-  const scrollToBottom = () => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  };
+	const scrollToBottom = () => {
+		if (containerRef.current) {
+			containerRef.current.scrollTop = containerRef.current.scrollHeight;
+		}
+	};
 
-  useEffect(() => {
-    if (streamingMessages) {
-      scrollToBottom();
-    }
-  }, [streamingMessages, messages]);
+	useEffect(() => {
+		if (streamingMessages) {
+			scrollToBottom();
+		}
+	}, [streamingMessages, messages]);
 
-  useEffect(() => {
-    if (data) {
-      dispatch(initMessages(reverse(data.array)));
-    }
-    return () => {
-      dispatch(initMessages());
-    };
-  }, [data]);
+	useEffect(() => {
+		if (data) {
+			dispatch(initMessages(reverse(data.array)));
+		}
+		return () => {
+			dispatch(initMessages());
+		};
+	}, [data]);
 
-  // 加载状态显示改为:
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          height: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            width: "40px",
-            height: "40px",
-            border: `3px solid ${COLORS.border}`,
-            borderTop: `3px solid ${COLORS.primary}`,
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        >
-          <style>{`
+	// 加载状态显示改为:
+	if (isLoading) {
+		return (
+			<div
+				style={{
+					height: "100%",
+					display: "flex",
+					justifyContent: "center",
+					alignItems: "center",
+				}}
+			>
+				<div
+					style={{
+						width: "40px",
+						height: "40px",
+						border: `3px solid ${BASE_COLORS.border}`,
+						borderTop: `3px solid ${BASE_COLORS.primary}`,
+						borderRadius: "50%",
+						animation: "spin 1s linear infinite",
+					}}
+				>
+					<style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
         `}</style>
-        </div>
-      </div>
-    );
-  }
+				</div>
+			</div>
+		);
+	}
 
-  if (error) {
-    return <div style={{ height: "100%" }}>{error.message}</div>;
-  }
+	if (error) {
+		return <div style={{ height: "100%" }}>{error.message}</div>;
+	}
 
-  return (
-    <>
-      <style>
-        {`
+	return (
+		<>
+			<style>
+				{`
           .message-list {
             display: flex;
             flex-direction: column-reverse;
@@ -93,10 +94,10 @@ const MessagesList: React.FC = () => {
             padding: 20px 15% 10px 15%;
             height: 100%;
             position: relative;
-            background-color: ${COLORS.background};
+            background-color: ${BASE_COLORS.background};
             scroll-behavior: smooth;
             scrollbar-width: thin;
-            scrollbar-color: ${COLORS.border} transparent;
+            scrollbar-color: ${BASE_COLORS.border} transparent;
             container-type: inline-size;
           }
   
@@ -141,14 +142,14 @@ const MessagesList: React.FC = () => {
             }
           }
         `}
-      </style>
-      <div ref={containerRef} className="message-list">
-        {messages.map((message) => (
-          <MessageItem key={message.id} message={message} />
-        ))}
-      </div>
-    </>
-  );
+			</style>
+			<div ref={containerRef} className="message-list">
+				{messages.map((message) => (
+					<MessageItem key={message.id} message={message} />
+				))}
+			</div>
+		</>
+	);
 };
 
 export default MessagesList;
