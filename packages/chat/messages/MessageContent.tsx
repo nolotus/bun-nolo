@@ -1,5 +1,4 @@
 import { defaultTheme } from "render/styles/colors";
-import { MessageImage } from "./MessageImage";
 import { MessageText } from "./MessageText";
 
 export const MessageContent = ({ content, role }) => {
@@ -72,7 +71,18 @@ export const MessageContent = ({ content, role }) => {
 
 						if (item.type === "image_url" && item.image_url?.url) {
 							return (
-								<MessageImage key={`image-${index}`} url={item.image_url.url} />
+								<picture>
+									<source srcSet={item.image_url?.url} />
+									<img
+										src={item.image_url?.url}
+										alt="Message"
+										className="h-auto max-w-full"
+										style={{
+											blockSize: "480px",
+											aspectRatio: "var(--ratio-landscape)",
+										}}
+									/>
+								</picture>
 							);
 						}
 

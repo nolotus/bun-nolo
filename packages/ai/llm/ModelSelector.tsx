@@ -1,10 +1,11 @@
+import { CheckIcon, ChevronDownIcon } from "@primer/octicons-react";
 import { useCombobox } from "downshift";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FormField } from "render/CommonFormComponents";
 import { Label } from "render/form/Label";
-import { defaultTheme, themes } from "render/styles/colors";
+import { defaultTheme } from "render/styles/colors";
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
 
@@ -12,7 +13,7 @@ interface ModelSelectorProps {
 	register: any;
 	setValue: any;
 	watch: any;
-	theme?: keyof typeof themes;
+	theme?: string;
 }
 
 const ModelSelector: React.FC<ModelSelectorProps> = ({
@@ -24,7 +25,6 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 	const { t } = useTranslation();
 	const provider = watch("provider");
 	const [models, setModels] = useState<Model[]>([]);
-	const currentTheme = themes[theme] || defaultTheme;
 
 	useEffect(() => {
 		const modelsList = getModelsByProvider(provider);
@@ -64,7 +64,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 						{...getToggleButtonProps()}
 						className={`select-toggle ${isOpen ? "rotate-arrow" : ""}`}
 					>
-						▼
+						<ChevronDownIcon size={16} />
 					</button>
 				</div>
 				<ul
@@ -84,7 +84,12 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 									} ${selectedItem === item ? "selected" : ""}`,
 								})}
 							>
-								{item}
+								<span className="option-content">
+									{item}
+									{selectedItem === item && (
+										<CheckIcon size={16} className="check-icon" />
+									)}
+								</span>
 							</li>
 						))}
 				</ul>
@@ -122,7 +127,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 						{...getToggleButtonProps()}
 						className={`select-toggle ${isOpen ? "rotate-arrow" : ""}`}
 					>
-						▼
+						<ChevronDownIcon size={16} />
 					</button>
 				</div>
 				<ul
@@ -144,9 +149,16 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 							>
 								<div className="model-option">
 									<span className="model-name">{model.name}</span>
-									{model.hasVision && (
-										<span className="vision-badge">{t("supportsVision")}</span>
-									)}
+									<div className="model-indicators">
+										{model.hasVision && (
+											<span className="vision-badge">
+												{t("supportsVision")}
+											</span>
+										)}
+										{selectedItem === model && (
+											<CheckIcon size={16} className="check-icon" />
+										)}
+									</div>
 								</div>
 							</li>
 						))}
@@ -182,19 +194,19 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             height: 40px;
             padding: 0 12px;
             border-radius: 8px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid ${defaultTheme.border};
             font-size: 13px;
             font-weight: 500;
-            color: #374151;
-            background: white;
+            color: ${defaultTheme.text};
+            background: ${defaultTheme.background};
             cursor: pointer;
             outline: none;
             transition: all 0.15s ease;
           }
 
           .select-input:focus {
-            border-color: ${currentTheme.primary};
-            box-shadow: 0 0 0 3.5px ${currentTheme.focus};
+            border-color: ${defaultTheme.primary};
+            box-shadow: 0 0 0 3.5px ${defaultTheme.focus};
           }
 
           .select-toggle {
@@ -202,10 +214,11 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             right: 8px;
             background: none;
             border: none;
-            color: #9ca3af;
+            color: ${defaultTheme.placeholder};
             cursor: pointer;
             padding: 4px 8px;
-            font-size: 10px;
+            display: flex;
+            align-items: center;
             transition: transform 0.2s ease;
           }
 
@@ -216,11 +229,11 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
           .select-menu {
             position: absolute;
             width: 100%;
-            background: white;
+            background: ${defaultTheme.background};
             margin-top: 4px;
             border-radius: 8px;
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid ${defaultTheme.border};
+            box-shadow: 0 4px 8px ${defaultTheme.shadowLight};
             z-index: 10;
             padding: 6px;
             list-style: none;
@@ -232,38 +245,38 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
-            color: #374151;
+            color: ${defaultTheme.text};
             transition: background-color 0.15s ease;
             margin: 2px 0;
           }
 
           .select-option:hover {
-            background-color: ${currentTheme.primaryBg};
+            background-color: ${defaultTheme.primaryBg};
           }
 
           .select-option.highlighted {
-            background-color: ${currentTheme.primaryBg};
+            background-color: ${defaultTheme.primaryBg};
           }
 
           .select-option.selected {
-            background-color: ${currentTheme.primary};
+            background-color: ${defaultTheme.primary};
             color: white;
           }
 
           .select-option.selected:hover {
-            background-color: ${currentTheme.hover};
+            background-color: ${defaultTheme.hover};
           }
           
           .vision-badge {
             display: inline-flex;
             align-items: center;
             font-size: 12px;
-            background: ${currentTheme.primaryBg};
-            color: ${currentTheme.primary};
+            background: ${defaultTheme.primaryBg};
+            color: ${defaultTheme.primary};
             padding: 2px 8px;
             border-radius: 4px;
             margin-left: 8px;
-            border: 1px solid ${currentTheme.primaryLight};
+            border: 1px solid ${defaultTheme.primaryLight};
             transition: all 0.15s ease;
           }
           
@@ -271,6 +284,12 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             display: flex;
             align-items: center;
             justify-content: space-between;
+          }
+
+          .model-indicators {
+            display: flex;
+            align-items: center;
+            gap: 8px;
           }
 
           .model-name {
@@ -283,8 +302,23 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             margin-bottom: 6px;
             font-size: 13px;
             font-weight: 500;
-            color: #4b5563;
+            color: ${defaultTheme.textSecondary};
             letter-spacing: 0.01em;
+          }
+
+          .option-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+          }
+
+          .check-icon {
+            color: ${defaultTheme.background};
+          }
+
+          .select-option:not(.selected) .check-icon {
+            color: ${defaultTheme.primary};
           }
         `}
 			</style>

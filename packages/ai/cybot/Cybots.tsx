@@ -3,7 +3,6 @@ import { useQueryData } from "app/hooks/useQueryData";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
 import { selectFilteredDataByUserAndType } from "database/selectors";
-import { motion } from "framer-motion";
 import type React from "react";
 import { useSelector } from "react-redux";
 import { BASE_COLORS } from "render/styles/colors";
@@ -39,21 +38,6 @@ const Cybots: React.FC<CybotsProps> = ({
 		selectFilteredDataByUserAndType(queryUserId, DataType.Cybot),
 	);
 
-	const container = {
-		hidden: { opacity: 0 },
-		show: {
-			opacity: 1,
-			transition: {
-				staggerChildren: 0.1,
-			},
-		},
-	};
-
-	const item = {
-		hidden: { opacity: 0, y: 20 },
-		show: { opacity: 1, y: 0 },
-	};
-
 	if (isLoading) {
 		return (
 			<div
@@ -64,22 +48,14 @@ const Cybots: React.FC<CybotsProps> = ({
 					fontSize: "1rem",
 				}}
 			>
-				<motion.div
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ duration: 0.5 }}
-				>
-					加载 AI 列表中...
-				</motion.div>
+				<div className="fadeIn">加载 AI 列表中...</div>
 			</div>
 		);
 	}
 
 	return (
-		<motion.div
-			variants={container}
-			initial="hidden"
-			animate="show"
+		<div
+			className="fadeIn"
 			style={{
 				display: "grid",
 				gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
@@ -91,11 +67,11 @@ const Cybots: React.FC<CybotsProps> = ({
 		>
 			{isSuccess &&
 				data?.map((item) => (
-					<motion.div key={item.id} variants={item}>
+					<div key={item.id} className="slideInUp">
 						<CybotBlock item={item} closeModal={closeModal} />
-					</motion.div>
+					</div>
 				))}
-		</motion.div>
+		</div>
 	);
 };
 
