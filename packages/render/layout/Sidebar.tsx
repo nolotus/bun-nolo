@@ -4,10 +4,8 @@ import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { themeStyles } from "render/ui/styles";
 
-import OpenProps from "open-props";
-
+import { defaultTheme } from "../styles/colors";
 import { layout } from "../styles/layout";
 import ResizeHandle from "./ResizeHandle";
 import { SidebarTop } from "./SidebarTop";
@@ -119,7 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
 const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
 	width: `${width}px`,
-	...themeStyles.surface1(theme),
+	backgroundColor: defaultTheme.backgroundSecondary,
 	height: "100dvh",
 	position: "fixed" as const,
 	left: 0, // 默认在大屏幕打开
@@ -133,7 +131,7 @@ const sidebarStyles = (theme: any, isSidebarOpen: boolean, width: number) => ({
 const scrollableContentStyles = {
 	flexGrow: 1,
 	overflowY: "auto" as const,
-	marginBottom: OpenProps.size4,
+	marginBottom: "1.25rem",
 };
 
 const contentStyles = (
