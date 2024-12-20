@@ -1,6 +1,6 @@
 // render/styles/colors.ts
 
-export const BASE_COLORS = {
+const BASE_COLORS = {
 	light: {
 		// 主色调相关
 		primary: "#0062ff",
@@ -285,4 +285,4 @@ export const mergedThemes = Object.keys(themes).reduce((acc, themeKey) => {
 	return acc;
 }, {});
 
-export const defaultTheme = mergedThemes.green.light;
+export const defaultTheme = mergedThemes.yellow.light;

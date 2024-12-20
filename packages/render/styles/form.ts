@@ -1,4 +1,4 @@
-import { BASE_COLORS } from "./colors";
+import { defaultTheme } from "./colors";
 
 export const formStyles = {
 	container: {
@@ -15,7 +15,7 @@ export const formStyles = {
 	title: {
 		fontSize: "28px",
 		fontWeight: 600,
-		color: BASE_COLORS.light.text,
+		color: defaultTheme.text,
 		marginBottom: "36px",
 		textAlign: "center" as const,
 	},
@@ -26,13 +26,13 @@ export const formStyles = {
 		display: "block",
 		marginBottom: "8px",
 		fontSize: "14px",
-		color: BASE_COLORS.light.icon,
+		color: defaultTheme.textSecondary,
 		fontWeight: 500,
 	},
 	error: {
 		marginTop: "8px",
 		marginBottom: "8px",
-		color: BASE_COLORS.light.error,
+		color: defaultTheme.error,
 		fontSize: "14px",
 	},
 	footer: {
@@ -46,19 +46,19 @@ export const formStyles = {
 		height: "44px",
 		fontSize: "16px",
 		borderRadius: "8px",
-		backgroundColor: BASE_COLORS.light.primary,
-		color: BASE_COLORS.light.background,
+		backgroundColor: defaultTheme.primary,
+		color: defaultTheme.background,
 		border: "none",
 		cursor: "pointer",
 		width: "100%",
 		transition: "background-color 0.2s",
 	},
 	linkText: {
-		color: BASE_COLORS.light.textSecondary,
+		color: defaultTheme.textSecondary,
 		fontSize: "14px",
 	},
 	link: {
-		color: BASE_COLORS.light.primary,
+		color: defaultTheme.primary,
 		textDecoration: "none",
 		fontSize: "14px",
 		marginLeft: "4px",

@@ -1,7 +1,7 @@
 import { selectTheme } from "app/theme/themeSlice";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
-import { BASE_COLORS } from "../../styles/colors";
+import { defaultTheme } from "../../styles/colors";
 
 interface NavIconItemProps {
 	path?: string;
@@ -19,7 +19,7 @@ const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
 		width: "42px",
 		height: "42px",
 		borderRadius: "12px",
-		color: BASE_COLORS.light.icon,
+		color: defaultTheme.textSecondary,
 		textDecoration: "none",
 		transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
 		cursor: "pointer",
@@ -31,21 +31,21 @@ const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
 			<style>
 				{`
           .nav-icon-item:hover {
-            background-color: ${BASE_COLORS.light.primaryGhost};
-            color: ${BASE_COLORS.light.primary};
+            background-color: ${defaultTheme.primaryGhost};
+            color: ${defaultTheme.primary};
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px ${BASE_COLORS.light.primaryGhost};
+            box-shadow: 0 4px 12px ${defaultTheme.primaryGhost};
           }
           
           .nav-icon-item.active {
-            background-color: ${BASE_COLORS.light.primary};
-            color: ${BASE_COLORS.light.background} !important;
-            box-shadow: 0 4px 12px ${BASE_COLORS.light.primaryLight}33;
+            background-color: ${defaultTheme.primary}; 
+            color: ${defaultTheme.background} !important;
+            box-shadow: 0 4px 12px ${defaultTheme.primaryLight}33;
           }
 
           .nav-icon-item.active svg {
-            fill: ${BASE_COLORS.light.background};
-            color: ${BASE_COLORS.light.background};
+            fill: ${defaultTheme.background};
+            color: ${defaultTheme.background};
           }
         `}
 			</style>

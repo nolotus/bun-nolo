@@ -5,7 +5,7 @@ import { DataType } from "create/types";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import type React from "react";
 import { useSelector } from "react-redux";
-import { BASE_COLORS } from "render/styles/colors";
+import { defaultTheme } from "render/styles/colors";
 import CybotBlock from "./CybotBlock";
 
 interface CybotsProps {
@@ -13,6 +13,23 @@ interface CybotsProps {
 	limit?: number;
 	closeModal?: () => void;
 }
+
+const styles = {
+	loadingContainer: {
+		textAlign: "center" as const,
+		padding: "1.5rem",
+		color: defaultTheme.textSecondary,
+		fontSize: "1rem",
+	},
+	gridContainer: {
+		display: "grid",
+		gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+		gap: "1.5rem",
+		padding: "0.8rem",
+		margin: "0 auto",
+		maxWidth: "1200px",
+	},
+};
 
 const Cybots: React.FC<CybotsProps> = ({
 	queryUserId,
@@ -40,31 +57,14 @@ const Cybots: React.FC<CybotsProps> = ({
 
 	if (isLoading) {
 		return (
-			<div
-				style={{
-					textAlign: "center",
-					padding: "1.5rem",
-					color: BASE_COLORS.light.textSecondary,
-					fontSize: "1rem",
-				}}
-			>
+			<div style={styles.loadingContainer}>
 				<div className="fadeIn">加载 AI 列表中...</div>
 			</div>
 		);
 	}
 
 	return (
-		<div
-			className="fadeIn"
-			style={{
-				display: "grid",
-				gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-				gap: "1.5rem",
-				padding: "0.8rem",
-				margin: "0 auto",
-				maxWidth: "1200px",
-			}}
-		>
+		<div className="fadeIn" style={styles.gridContainer}>
 			{isSuccess &&
 				data?.map((item) => (
 					<div key={item.id} className="slideInUp">

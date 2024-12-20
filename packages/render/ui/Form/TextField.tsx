@@ -1,5 +1,6 @@
 // TextField.tsx
 import type React from "react";
+import { defaultTheme } from "render/styles/colors";
 import {
 	baseInputStyle,
 	baseStyles,
@@ -7,14 +8,22 @@ import {
 	iconBaseStyle,
 } from "render/styles/input";
 
-import { BASE_COLORS } from "render/styles/colors";
+interface TextFieldProps {
+	id: string;
+	register?: any;
+	optional?: boolean;
+	readOnly?: boolean;
+	defaultValue?: string;
+	icon?: React.ReactNode;
+	placeholder?: string;
+}
 
 const getInputStyle = (hasIcon: boolean) => ({
 	...baseInputStyle,
 	padding: `0 ${hasIcon ? "42px" : "12px"}`,
 });
 
-export const TextField: React.FC = ({
+export const TextField: React.FC<TextFieldProps> = ({
 	id,
 	register,
 	optional,
@@ -30,7 +39,7 @@ export const TextField: React.FC = ({
 					height: "42px",
 					lineHeight: "42px",
 					padding: "0 12px",
-					color: BASE_COLORS.light.text,
+					color: defaultTheme.text,
 				}}
 			>
 				<p style={{ margin: 0 }}>{defaultValue}</p>

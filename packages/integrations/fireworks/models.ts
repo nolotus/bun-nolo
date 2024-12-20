@@ -42,4 +42,14 @@ export const fireworksmodels: Model[] = [
 			output: 0.9,
 		},
 	},
+	{
+		name: "accounts/fireworks/models/llama-v3p1-8b-instruct",
+		displayName: "LLaMA V3.1 8B",
+		hasVision: false,
+		contextWindow: 131072,
+		price: {
+			input: 0.2,
+			output: 0.2,
+		},
+	},
 ];

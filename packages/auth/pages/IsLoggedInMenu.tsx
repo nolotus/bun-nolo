@@ -13,9 +13,16 @@ import type React from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { BASE_COLORS } from "render/styles/colors";
+import { defaultTheme } from "render/styles/colors";
 import DropDown from "render/ui/DropDown";
 import { SettingRoutePaths } from "setting/config";
+
+interface IconButtonProps {
+	icon: React.ReactNode;
+	to?: string;
+	onClick?: () => void;
+	isActive?: boolean;
+}
 
 const styles = {
 	menu: {
@@ -37,13 +44,13 @@ const styles = {
 			justifyContent: "center",
 			borderRadius: "6px",
 			transition: "all 0.15s ease",
-			color: BASE_COLORS.light.text,
+			color: defaultTheme.text,
 		},
 		active: {
-			backgroundColor: BASE_COLORS.light.backgroundGhost,
+			backgroundColor: defaultTheme.backgroundGhost,
 		},
 		hover: {
-			backgroundColor: BASE_COLORS.light.backgroundGhost,
+			backgroundColor: defaultTheme.backgroundGhost,
 		},
 	},
 
@@ -53,16 +60,16 @@ const styles = {
 			alignItems: "center",
 			cursor: "pointer",
 			textDecoration: "none",
-			color: BASE_COLORS.light.text,
+			color: defaultTheme.text,
 			padding: "6px 10px",
 			borderRadius: "6px",
 			transition: "all 0.15s ease",
 		},
 		active: {
-			backgroundColor: BASE_COLORS.light.backgroundGhost,
+			backgroundColor: defaultTheme.backgroundGhost,
 		},
 		hover: {
-			backgroundColor: BASE_COLORS.light.backgroundGhost,
+			backgroundColor: defaultTheme.backgroundGhost,
 		},
 		text: {
 			fontSize: "14px",
@@ -75,10 +82,10 @@ const styles = {
 		wrapper: {
 			padding: "8px",
 			minWidth: "200px",
-			backgroundColor: BASE_COLORS.light.background,
+			backgroundColor: defaultTheme.background,
 			borderRadius: "10px",
-			boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-			border: `1px solid ${BASE_COLORS.light.border}`,
+			boxShadow: `0 4px 12px ${defaultTheme.shadowLight}`,
+			border: `1px solid ${defaultTheme.border}`,
 		},
 		item: {
 			display: "flex",
@@ -91,19 +98,28 @@ const styles = {
 			cursor: "pointer",
 			borderRadius: "6px",
 			transition: "all 0.15s ease",
-			color: BASE_COLORS.light.text,
+			color: defaultTheme.text,
 			fontSize: "13px",
 			fontWeight: 500,
 		},
+		icon: {
+			marginRight: "6px",
+			color: defaultTheme.textSecondary,
+		},
+	},
+
+	navLink: {
+		textDecoration: "none",
+		color: defaultTheme.text,
 	},
 };
 
-const IconButton: React.FC<{
-	icon: React.ReactNode;
-	to?: string;
-	onClick?: () => void;
-	isActive?: boolean;
-}> = ({ icon, to, onClick, isActive }) => {
+const IconButton: React.FC<IconButtonProps> = ({
+	icon,
+	to,
+	onClick,
+	isActive,
+}) => {
 	const buttonStyle = {
 		...styles.iconButton.base,
 		...(isActive ? styles.iconButton.active : {}),
@@ -128,7 +144,7 @@ const IconButton: React.FC<{
 
 	if (to) {
 		return (
-			<NavLink to={to} style={{ color: "inherit", textDecoration: "none" }}>
+			<NavLink to={to} style={styles.navLink}>
 				{content}
 			</NavLink>
 		);
@@ -144,6 +160,7 @@ export const IsLoggedInMenu: React.FC = () => {
 	const users = useAppSelector(selectUsers);
 	const location = useLocation();
 	const isLifeActive = location.pathname === "/life";
+	const currentToken = useSelector((state: any) => state.auth.currentToken);
 
 	const changeUser = (user: any) => {
 		const tokens = getTokensFromLocalStorage();
@@ -159,8 +176,6 @@ export const IsLoggedInMenu: React.FC = () => {
 			window.localStorage.setItem("tokens", JSON.stringify(newTokens));
 		}
 	};
-
-	const currentToken = useSelector((state: any) => state.auth.currentToken);
 
 	const logout = () => {
 		removeToken(currentToken);
@@ -188,12 +203,29 @@ export const IsLoggedInMenu: React.FC = () => {
 		</div>
 	);
 
+	const renderDropdownItem = (
+		label: string,
+		icon?: React.ReactNode,
+		onClick?: () => void,
+	) => (
+		<button
+			onClick={onClick}
+			style={styles.dropDown.item}
+			onMouseEnter={(e) =>
+				(e.currentTarget.style.backgroundColor = defaultTheme.backgroundGhost)
+			}
+			onMouseLeave={(e) =>
+				(e.currentTarget.style.backgroundColor = "transparent")
+			}
+		>
+			{icon && <span style={styles.dropDown.icon}>{icon}</span>}
+			<span>{label}</span>
+		</button>
+	);
+
 	return (
 		<div style={styles.menu.wrapper}>
-			<NavLink
-				to="/life"
-				style={{ textDecoration: "none", color: BASE_COLORS.light.text }}
-			>
+			<NavLink to="/life" style={styles.navLink}>
 				{userTrigger}
 			</NavLink>
 
@@ -211,65 +243,21 @@ export const IsLoggedInMenu: React.FC = () => {
 					{users.map(
 						(user) =>
 							user !== auth.user &&
-							user && (
-								<button
-									key={user.userId}
-									onClick={() => changeUser(user)}
-									style={styles.dropDown.item}
-									onMouseEnter={(e) =>
-										(e.currentTarget.style.backgroundColor =
-											BASE_COLORS.light.backgroundGhost)
-									}
-									onMouseLeave={(e) =>
-										(e.currentTarget.style.backgroundColor = "transparent")
-									}
-								>
-									{user.username}
-								</button>
-							),
+							user &&
+							renderDropdownItem(user.username, null, () => changeUser(user)),
 					)}
 
-					<button
-						onClick={() => navigate(SettingRoutePaths.SETTING)}
-						style={styles.dropDown.item}
-						onMouseEnter={(e) =>
-							(e.currentTarget.style.backgroundColor =
-								BASE_COLORS.light.backgroundGhost)
-						}
-						onMouseLeave={(e) =>
-							(e.currentTarget.style.backgroundColor = "transparent")
-						}
-					>
-						<GearIcon
-							size={16}
-							style={{
-								marginRight: "6px",
-								color: BASE_COLORS.light.textSecondary,
-							}}
-						/>
-						<span>{t("common:settings")}</span>
-					</button>
+					{renderDropdownItem(
+						t("common:settings"),
+						<GearIcon size={16} />,
+						() => navigate(SettingRoutePaths.SETTING),
+					)}
 
-					<button
-						onClick={logout}
-						style={styles.dropDown.item}
-						onMouseEnter={(e) =>
-							(e.currentTarget.style.backgroundColor =
-								BASE_COLORS.light.backgroundGhost)
-						}
-						onMouseLeave={(e) =>
-							(e.currentTarget.style.backgroundColor = "transparent")
-						}
-					>
-						<SignOutIcon
-							size={16}
-							style={{
-								marginRight: "6px",
-								color: BASE_COLORS.light.textSecondary,
-							}}
-						/>
-						<span>{t("common:logout")}</span>
-					</button>
+					{renderDropdownItem(
+						t("common:logout"),
+						<SignOutIcon size={16} />,
+						logout,
+					)}
 				</div>
 			</DropDown>
 		</div>

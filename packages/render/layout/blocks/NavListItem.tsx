@@ -1,9 +1,9 @@
+// NavListItem.tsx
 import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
-
-import { BASE_COLORS } from "../../styles/colors";
+import { defaultTheme } from "../../styles/colors";
 
 interface NavListItemProps {
 	path?: string;
@@ -25,7 +25,7 @@ const NavListItem: React.FC<NavListItemProps> = ({
 		alignItems: "center",
 		padding: "8px 16px",
 		marginBottom: "8px",
-		color: "#2d3436",
+		color: defaultTheme.text,
 		textDecoration: "none",
 		transition: "all 0.2s ease",
 		cursor: "pointer",
@@ -52,23 +52,23 @@ const NavListItem: React.FC<NavListItemProps> = ({
           }
           
           .nav-item:hover {
-            background-color: #f5f5f5;
-            color: ${BASE_COLORS.light.primary};
+            background-color: ${defaultTheme.backgroundSecondary};
+            color: ${defaultTheme.primary};
           }
           
           .nav-item:hover .nav-icon,
           .nav-item:hover .nav-label {
-            color: ${BASE_COLORS.light.primary};
+            color: ${defaultTheme.primary};
           }
           
           .nav-item.active {
-            background-color: ${BASE_COLORS.light.primary};
-            color: #ffffff;
+            background-color: ${defaultTheme.primary};
+            color: ${defaultTheme.background};
           }
           
           .nav-item.active .nav-icon,
           .nav-item.active .nav-label {
-            color: #ffffff;
+            color: ${defaultTheme.background};
           }
         `}
 			</style>
