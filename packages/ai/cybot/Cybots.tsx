@@ -1,10 +1,8 @@
 import { useAppSelector } from "app/hooks";
 import { useQueryData } from "app/hooks/useQueryData";
-import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import type React from "react";
-import { useSelector } from "react-redux";
 import { defaultTheme } from "render/styles/colors";
 import CybotBlock from "./CybotBlock";
 
@@ -36,8 +34,6 @@ const Cybots: React.FC<CybotsProps> = ({
 	limit = 20,
 	closeModal,
 }) => {
-	const theme = useSelector(selectTheme);
-
 	const queryConfig = {
 		queryUserId,
 		options: {

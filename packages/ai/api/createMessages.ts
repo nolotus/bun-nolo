@@ -11,6 +11,7 @@ export const createMessages = (
 		cybotConfig.name,
 		navigator.language,
 	);
+
 	const messages = [
 		{
 			role: "system",

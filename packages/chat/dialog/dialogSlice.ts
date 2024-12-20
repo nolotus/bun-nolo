@@ -10,6 +10,7 @@ import { deleteData, read, write } from "database/dbSlice";
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
 import { createDialogAction } from "./actions/createDialogAction";
+import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
 
 const createSliceWithThunks = buildCreateSlice({
 	creators: { asyncThunk: asyncThunkCreator },
@@ -168,6 +169,7 @@ const DialogSlice = createSliceWithThunks({
 			state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
 		}),
 		createDialog: create.asyncThunk(createDialogAction, {}),
+		updateDialogTitle: create.asyncThunk(updateDialogTitleAction, {}),
 	}),
 });
 
@@ -181,6 +183,7 @@ export const {
 	clearDialogState,
 	deleteCurrentDialog,
 	createDialog,
+	updateDialogTitle,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;

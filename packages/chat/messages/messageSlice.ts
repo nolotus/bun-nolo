@@ -6,7 +6,7 @@ import {
 import { extractCustomId } from "core";
 import { ollamaHandler } from "integrations/ollama/ollamaHandler";
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
-import type { Message, MessageSliceState } from "./types";
+import type { Message } from "./types";
 
 import { createStreamRequestBody } from "ai/chat/createStreamRequestBody";
 import { generateIdWithCustomId } from "core/generateMainKey";
@@ -33,6 +33,10 @@ import { sendNoloChatRequest } from "./chatStreamRequest";
 import { prepareTools } from "ai/tools/prepareTools";
 import { sendMessageAction } from "./actions/sendMessageAction";
 
+export interface MessageSliceState {
+	ids: string[] | null;
+	streamMessages: Message[];
+}
 const createSliceWithThunks = buildCreateSlice({
 	creators: { asyncThunk: asyncThunkCreator },
 });
@@ -374,6 +378,7 @@ export const messageSlice = createSliceWithThunks({
 			},
 			{},
 		),
+		//not use yet
 		sendWithMessageId: create.asyncThunk(async (messageId, thunkApi) => {
 			console.log("messageId", messageId);
 			const state = thunkApi.getState();

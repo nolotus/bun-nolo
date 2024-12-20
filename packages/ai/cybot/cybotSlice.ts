@@ -18,11 +18,9 @@ export const cybotSlice = createSliceWithThunks({
 	initialState: initialState,
 	reducers: (create) => ({
 		runCybotId: create.asyncThunk(async ({ cybotId, userInput }, thunkApi) => {
-			console.log("runCybotId cybotID", cybotId);
 			const state = thunkApi.getState();
 			const dispatch = thunkApi.dispatch;
 			const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
-			console.log("runCybotId cybotConfig", cybotConfig);
 			if (cybotConfig.type === DataType.Cybot) {
 				const api = getApiEndpoint(cybotConfig.provider);
 				const currentServer = selectCurrentServer(state);
@@ -57,10 +55,8 @@ export const cybotSlice = createSliceWithThunks({
 						}),
 					});
 				}
-				console.log("response", response);
 				const result = await response.json();
 				const content = result.choices[0].message.content;
-				console.log("content", content);
 				return content;
 			}
 		}, {}),

@@ -15,7 +15,6 @@ import { layout } from "render/styles/layout";
 const DialogPage = ({ dialogId }) => {
 	const auth = useAuth();
 	const dispatch = useAppDispatch();
-	console.log("dialogId", dialogId);
 	if (!auth.user) {
 		window.location.href = "/login";
 	}

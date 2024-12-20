@@ -7,6 +7,7 @@ import { generateIdWithCustomId } from "core/generateMainKey";
 import { setOne } from "database/dbSlice";
 import { ulid } from "ulid";
 
+import { updateDialogTitle } from "chat/dialog/dialogSlice";
 import { API_ENDPOINTS } from "database/config";
 import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "../api/apiEndpoints";
@@ -53,20 +54,21 @@ const createRequestConfig = (cybotConfig, bodyData, signal) => ({
 	signal,
 });
 
+//prevMsgs is need outside ,if inside will include our message
 export const sendCommonChatRequest = async ({
 	content,
 	cybotConfig,
 	thunkApi,
+	prevMsgs,
+	dialogId,
 }) => {
 	const { dispatch, getState } = thunkApi;
 
-	const prevMsgs = getFilteredMessages(thunkApi.getState());
 	const controller = new AbortController();
 	const signal = controller.signal;
 	const currentServer = selectCurrentServer(getState());
 
 	// 准备请求数据
-
 	const messages = createMessages(content, prevMsgs, cybotConfig);
 	const model = cybotConfig.model;
 
@@ -129,12 +131,20 @@ export const sendCommonChatRequest = async ({
 
 			if (done) {
 				// 流结束时发送最终消息
+
 				dispatch(
 					messageStreamEnd({
 						id: messageId,
 						content: contentBuffer,
 						role: "assistant",
 						cybotId: cybotConfig.id,
+					}),
+				);
+				const currentMsgs = getFilteredMessages(thunkApi.getState());
+				dispatch(
+					updateDialogTitle({
+						dialogId,
+						currentMsgs,
 					}),
 				);
 				break;
