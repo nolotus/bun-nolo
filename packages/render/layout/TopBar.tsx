@@ -18,7 +18,6 @@ import { useTranslation } from "react-i18next";
 import useMediaQuery from "react-responsive";
 import NavListItem from "render/layout/blocks/NavListItem";
 import MenuButton from "./MenuButton";
-import { ICON_SIZES, commonStyles } from "./MenuButton";
 import NavIconItem from "./blocks/NavIconItem";
 
 interface TopBarProps {
@@ -27,6 +26,11 @@ interface TopBarProps {
 	topbarContent?: ReactNode;
 	isExpanded: boolean;
 }
+
+const styles = {
+	height: "60px",
+	spacing: "8px",
+};
 
 const TopBar: React.FC<TopBarProps> = ({
 	toggleSidebar,
@@ -55,16 +59,15 @@ const TopBar: React.FC<TopBarProps> = ({
             width: 100%;
             padding: 12px 16px;
             z-index: 2;
-            height: 60px;
+            height: ${styles.height};
             border-bottom: 1px solid ${theme.border};
           }
 
           .topbar-left {
             display: flex;
             align-items: center;
-            gap: ${commonStyles.spacing};
+            gap: ${styles.spacing};
             min-width: 90px;
-            height: ${commonStyles.buttonSize};
           }
 
           .topbar-center {
@@ -72,16 +75,15 @@ const TopBar: React.FC<TopBarProps> = ({
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: ${commonStyles.spacing};
+            gap: ${styles.spacing};
             padding: 0 24px;
-            height: ${commonStyles.buttonSize};
           }
 
           .topbar-content-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: ${commonStyles.spacing};
+            gap: ${styles.spacing};
             max-width: 800px;
             width: 100%;
           }
@@ -90,23 +92,19 @@ const TopBar: React.FC<TopBarProps> = ({
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            height: ${commonStyles.buttonSize};
-            font-size: 14px;
-            color: ${theme.text2};
             padding: 0 12px;
-            border-radius: ${commonStyles.borderRadius};
-            background-color: ${theme.surface2};
-            border: ${commonStyles.border} solid transparent;
-            opacity: 0.9;
+            border-radius: 6px;
+            background: ${theme.surface2};
+            color: ${theme.text2};
+            font-size: 14px;
           }
 
           .topbar-right {
             display: flex;
             align-items: center;
-            gap: ${commonStyles.spacing};
+            gap: ${styles.spacing};
             min-width: 90px;
             justify-content: flex-end;
-            height: ${commonStyles.buttonSize};
           }
 
           @media (max-width: 768px) {
@@ -129,13 +127,9 @@ const TopBar: React.FC<TopBarProps> = ({
 			<div className="topbar">
 				<div className="topbar-left">
 					{toggleSidebar && (
-						<MenuButton
-							onClick={toggleSidebar}
-							isExpanded={isExpanded}
-							iconSize={ICON_SIZES.medium}
-						/>
+						<MenuButton onClick={toggleSidebar} isExpanded={isExpanded} />
 					)}
-					<NavIconItem path="/" icon={<HomeIcon size={ICON_SIZES.medium} />} />
+					<NavIconItem path="/" icon={<HomeIcon size={16} />} />
 				</div>
 
 				<div className="topbar-center">
@@ -166,7 +160,7 @@ const TopBar: React.FC<TopBarProps> = ({
 					) : (
 						<NavListItem
 							label={t("login")}
-							icon={<SignInIcon size={ICON_SIZES.medium} />}
+							icon={<SignInIcon size={16} />}
 							path={RoutePaths.LOGIN}
 						/>
 					)}
