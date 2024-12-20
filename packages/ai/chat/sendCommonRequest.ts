@@ -66,6 +66,7 @@ export const sendCommonChatRequest = async ({
 	const currentServer = selectCurrentServer(getState());
 
 	// 准备请求数据
+
 	const messages = createMessages(content, prevMsgs, cybotConfig);
 	const model = cybotConfig.model;
 

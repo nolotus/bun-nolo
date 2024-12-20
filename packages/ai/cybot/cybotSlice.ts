@@ -1,14 +1,9 @@
-import {
-	type PayloadAction,
-	asyncThunkCreator,
-	buildCreateSlice,
-} from "@reduxjs/toolkit";
-import { makeAppointment } from "ai/tools/appointment";
-import { prepareTools } from "ai/tools/prepareTools";
-import { selectCurrentUserId } from "auth/authSlice";
+import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
+import { DataType } from "create/types";
+import { API_ENDPOINTS } from "database/config";
 import { read } from "database/dbSlice";
-import { ollamaModelNames } from "integrations/ollama/models";
-import { ollamaHandler } from "integrations/ollama/ollamaHandler";
+import { selectCurrentServer } from "setting/settingSlice";
+import { getApiEndpoint } from "../api/apiEndpoints";
 
 const createSliceWithThunks = buildCreateSlice({
 	creators: { asyncThunk: asyncThunkCreator },
@@ -22,70 +17,53 @@ export const cybotSlice = createSliceWithThunks({
 	name: "cybot",
 	initialState: initialState,
 	reducers: (create) => ({
-		runCybotId: create.asyncThunk(
-			async ({ cybotId, prevMsgs, userInput }, thunkApi) => {
-				console.log("runCybotId cybotID", cybotId);
-				const state = thunkApi.getState();
-				const dispatch = thunkApi.dispatch;
-				const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
-				console.log("runCybotId cybotConfig", cybotConfig);
-				// const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
-				// const llmConfig = readLLMAction.payload;
-				// console.log("runCybotId llmConfig", llmConfig);
-				// if (ollamaModelNames.includes(llmConfig.model)) {
-				//   const model = llmConfig.model;
-				//   const prepareMsgConfig = {
-				//     model,
-				//     promotMessage: { role: "system", content: cybotConfig.prompt },
-				//     prevMsgs,
-				//     content: userInput,
-				//   };
-				//   const messages = ollamaHandler.prepareMsgs(prepareMsgConfig);
-				//   const tools = prepareTools(cybotConfig.tools);
-				//   const bodyData = {
-				//     model: model,
-				//     messages,
-				//     tools,
-				//     stream: false,
-				//   };
-				//   const body = JSON.stringify(bodyData);
-				//   const { api, apiStyle } = llmConfig;
-				//   const result = await fetch(api, {
-				//     method: "POST",
-				//     headers: {
-				//       "Content-Type": "application/json",
-				//     },
-				//     body,
-				//     // signal,
-				//   });
-				//   const json = await result.json();
-				//   const message = json.message;
-				//   const cybotTools = message.tool_calls;
-				//   console.log("message", message);
-				//   console.log("cybotTools", cybotTools);
-				//   if (!cybotTools) {
-				//     console.log("direct return");
-				//     return message;
-				//   } else {
-				//     const tool = cybotTools[0].function;
-				//     const toolName = tool.name;
-				//     if (toolName === "make_appointment") {
-				//       const currentUserId = selectCurrentUserId(state);
-				//       console.log("handle tool currentUserId", currentUserId);
-				//       const result = await makeAppointment(
-				//         tool.arguments,
-				//         thunkApi,
-				//         currentUserId,
-				//       );
-				//       console.log("handle tool result", result);
-				//       const message = { content: result };
-				//       return message;
-				//     }
-				//   }
-				// }
-			},
-			{},
-		),
+		runCybotId: create.asyncThunk(async ({ cybotId, userInput }, thunkApi) => {
+			console.log("runCybotId cybotID", cybotId);
+			const state = thunkApi.getState();
+			const dispatch = thunkApi.dispatch;
+			const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
+			console.log("runCybotId cybotConfig", cybotConfig);
+			if (cybotConfig.type === DataType.Cybot) {
+				const api = getApiEndpoint(cybotConfig.provider);
+				const currentServer = selectCurrentServer(state);
+				const messages = [
+					{
+						role: "system",
+						content: cybotConfig.prompt,
+					},
+					{ role: "user", content: userInput },
+				];
+				const bodyData = { model: cybotConfig.model, messages, stream: false };
+				let response;
+				if (!cybotConfig.useServerProxy) {
+					response = await fetch(api, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer ${cybotConfig.apiKey}`,
+						},
+						body: JSON.stringify(bodyData),
+					});
+				} else {
+					response = await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							...bodyData,
+							url: api,
+							KEY: cybotConfig.apiKey,
+						}),
+					});
+				}
+				console.log("response", response);
+				const result = await response.json();
+				const content = result.choices[0].message.content;
+				console.log("content", content);
+				return content;
+			}
+		}, {}),
 	}),
 });
 

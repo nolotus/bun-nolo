@@ -11,9 +11,6 @@ export const MessageText = ({ content, role }) => {
 	};
 
 	const slateData = useMemo(() => markdownToSlate(content), [content]);
-	console.log("content", content);
-	console.log("slateData", slateData);
-
 	return (
 		<div style={messageContainerStyle} className="font-hei">
 			{role === "self" ? (
