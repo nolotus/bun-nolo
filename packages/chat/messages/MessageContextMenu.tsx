@@ -49,7 +49,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
 				const title = await dispatch(
 					runCybotId({
 						cybotId:
-							"000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JFJ0EP14G7JSDNN178K1NNG3",
+							"000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JFJ1CRD6MPQ8G8EJFBA0YY8J",
 						userInput: content,
 					}),
 				).unwrap();
