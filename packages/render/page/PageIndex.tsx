@@ -49,7 +49,8 @@ const Page = ({ id }) => {
 				加载中 请稍等
 			</div>
 		);
-	} else if (data) {
+	}
+	if (data) {
 		dispatch(initPage(data));
 		if (isEditMode) {
 			return <EditPage />;

@@ -9,32 +9,27 @@ import MessageInputContainer from "chat/messages/MessageInputContainer";
 import MessagesList from "chat/messages/MessageList";
 import withTranslations from "i18n/withTranslations";
 //  chat/dialog/DialogPage
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { layout } from "render/styles/layout";
 
 const DialogPage = ({ dialogId }) => {
 	const auth = useAuth();
 	const dispatch = useAppDispatch();
-
+	console.log("dialogId", dialogId);
+	if (!auth.user) {
+		window.location.href = "/login";
+	}
 	useEffect(() => {
-		if (!auth.user) {
-			window.location.href = "/login";
-			return;
-		}
-
 		dialogId && dispatch(initDialog({ dialogId }));
 
 		// 组件卸载时清空数据
 		return () => {
 			dispatch(clearDialogState());
 		};
-	}, [auth.user, dialogId, dispatch]); // 添加 dispatch 到依赖数组
+	}, [auth.user, dialogId]); // 添加 dispatch 到依赖数组
 
 	const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
 
-	if (!auth.user) {
-		return null;
-	}
 	// 计算剩余的空间
 
 	return (

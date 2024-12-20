@@ -4,7 +4,6 @@ import ChatSidebar from "chat/ChatSidebar";
 import LifeSidebarContent from "life/LifeSidebarContent";
 import React, { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { CSSTransition, TransitionGroup } from "react-transition-group";
 import Sidebar from "render/layout/Sidebar";
 
 const MainLayout: React.FC = () => {
@@ -32,45 +31,11 @@ const MainLayout: React.FC = () => {
 	};
 
 	return (
-		<>
-			<style>{`
-        .page-enter {
-          opacity: 0;
-          visibility: hidden;
-        }
-        .page-enter-active {
-          opacity: 1;
-          visibility: visible;
-          transition: opacity 300ms, visibility 300ms;
-        }
-        .page-exit {
-          opacity: 1;
-          visibility: visible;
-        }
-        .page-exit-active {
-          opacity: 0;
-          visibility: hidden;
-          transition: opacity 300ms, visibility 300ms;
-        }
-      `}</style>
-
-			<Sidebar sidebarContent={getSidebarContent()}>
-				<Suspense fallback={<div>Loading...</div>}>
-					<TransitionGroup>
-						<CSSTransition
-							key={location.pathname}
-							timeout={300}
-							classNames="page"
-							unmountOnExit
-						>
-							<div>
-								<Outlet />
-							</div>
-						</CSSTransition>
-					</TransitionGroup>
-				</Suspense>
-			</Sidebar>
-		</>
+		<Sidebar sidebarContent={getSidebarContent()}>
+			<Suspense fallback={<div>Loading...</div>}>
+				<Outlet />
+			</Suspense>
+		</Sidebar>
 	);
 };
 

@@ -23,7 +23,6 @@ interface TokenUsage {
 const DialogSlice = createSliceWithThunks({
 	name: "chat",
 	initialState: {
-		currentDialogId: null,
 		currentDialogConfig: null,
 		currentDialogTokens: {
 			inputTokens: 0,
@@ -31,11 +30,6 @@ const DialogSlice = createSliceWithThunks({
 		},
 	},
 	reducers: (create) => ({
-		setCurrentDialogId: create.reducer(
-			(state, action: PayloadAction<string>) => {
-				state.currentDialogId = action.payload;
-			},
-		),
 		updateInputTokens: create.asyncThunk(
 			async (tokenCount: number, thunkApi) => {
 				const { dispatch } = thunkApi;
@@ -113,9 +107,6 @@ const DialogSlice = createSliceWithThunks({
 			async (args, thunkApi) => {
 				const { dialogId, source } = args;
 				const { dispatch } = thunkApi;
-				dispatch(setCurrentDialogId(dialogId));
-				dispatch(resetCurrentDialogTokens());
-
 				const action = await dispatch(read({ id: dialogId }));
 				return { ...action.payload, source };
 			},
@@ -156,7 +147,6 @@ const DialogSlice = createSliceWithThunks({
 			{
 				fulfilled: (state) => {
 					state.currentDialogConfig = null;
-					state.currentDialogId = null;
 				},
 			},
 		),
@@ -174,7 +164,6 @@ const DialogSlice = createSliceWithThunks({
 
 		// 清空数据
 		clearDialogState: create.reducer((state) => {
-			state.currentDialogId = null;
 			state.currentDialogConfig = null;
 			state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
 		}),
@@ -184,7 +173,6 @@ const DialogSlice = createSliceWithThunks({
 
 export const {
 	initDialog,
-	setCurrentDialogId,
 	deleteDialog,
 	updateInputTokens,
 	updateOutputTokens,
