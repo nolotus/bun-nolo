@@ -5,7 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 import { clearCurrentMessages } from "chat/messages/messageSlice";
-import { deleteData, read, write } from "database/dbSlice";
+import { deleteData, read, selectById, write } from "database/dbSlice";
 
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
@@ -24,7 +24,7 @@ interface TokenUsage {
 const DialogSlice = createSliceWithThunks({
 	name: "chat",
 	initialState: {
-		currentDialogConfig: null,
+		currentDialogId: null,
 		currentDialogTokens: {
 			inputTokens: 0,
 			outputTokens: 0,
@@ -113,11 +113,11 @@ const DialogSlice = createSliceWithThunks({
 			},
 			{
 				pending: (state) => {
-					state.currentDialogConfig = null;
+					state.currentDialogId = null;
 				},
 				rejected: (state, action) => {},
 				fulfilled: (state, action) => {
-					state.currentDialogConfig = action.payload;
+					state.currentDialogId = action.payload.id;
 				},
 			},
 		),
@@ -147,7 +147,7 @@ const DialogSlice = createSliceWithThunks({
 			},
 			{
 				fulfilled: (state) => {
-					state.currentDialogConfig = null;
+					state.currentDialogId = null;
 				},
 			},
 		),
@@ -165,7 +165,7 @@ const DialogSlice = createSliceWithThunks({
 
 		// 清空数据
 		clearDialogState: create.reducer((state) => {
-			state.currentDialogConfig = null;
+			state.currentDialogId = null;
 			state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
 		}),
 		createDialog: create.asyncThunk(createDialogAction, {}),
@@ -189,7 +189,7 @@ export const {
 export default DialogSlice.reducer;
 
 export const selectCurrentDialogConfig = (state: NoloRootState) =>
-	state.dialog.currentDialogConfig;
+	selectById(state, state.dialog.currentDialogId);
 
 export const selectCurrentDialogTokens = (state: NoloRootState): TokenUsage =>
 	state.dialog.currentDialogTokens;

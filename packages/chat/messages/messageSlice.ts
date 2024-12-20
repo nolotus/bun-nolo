@@ -5,8 +5,6 @@ import {
 } from "@reduxjs/toolkit";
 import { extractCustomId } from "core";
 import { ollamaHandler } from "integrations/ollama/ollamaHandler";
-import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
-import type { Message } from "./types";
 
 import { createStreamRequestBody } from "ai/chat/createStreamRequestBody";
 import { generateIdWithCustomId } from "core/generateMainKey";
@@ -28,10 +26,12 @@ import { ulid } from "ulid";
 
 import { handleOllamaResponse } from "ai/chat/handleOllamaResponse";
 
+import { prepareTools } from "ai/tools/prepareTools";
 import { sendNoloChatRequest } from "./chatStreamRequest";
 
-import { prepareTools } from "ai/tools/prepareTools";
+import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
+import type { Message } from "./types";
 
 export interface MessageSliceState {
 	ids: string[] | null;
@@ -193,8 +193,8 @@ export const messageSlice = createSliceWithThunks({
 			async (args, thunkApi) => {
 				const state = thunkApi.getState();
 				const dispatch = thunkApi.dispatch;
-				const currentDialogConfig = selectCurrentDialogConfig(state);
-				const { messageListId } = currentDialogConfig;
+				const dialog = selectCurrentDialogConfig(state);
+				const { messageListId } = dialog;
 				if (messageListId) {
 					const body = { ids: state.message.ids };
 					const deleteMessageListAction = await dispatch(
@@ -218,12 +218,12 @@ export const messageSlice = createSliceWithThunks({
 				const userId = selectCurrentUserId(state);
 				const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
 				const dispatch = thunkApi.dispatch;
-				const currentDialogConfig = selectCurrentDialogConfig(state);
+				const dialog = selectCurrentDialogConfig(state);
 				const message = {
 					id,
 					role: "user",
 					content,
-					belongs: [currentDialogConfig.messageListId],
+					belongs: [dialog.messageListId],
 					userId,
 				};
 				dispatch(upsertOne(message));
@@ -248,13 +248,13 @@ export const messageSlice = createSliceWithThunks({
 				const state = thunkApi.getState();
 				const dispatch = thunkApi.dispatch;
 
-				const currentDialogConfig = selectCurrentDialogConfig(state);
+				const dialog = selectCurrentDialogConfig(state);
 
 				const message = {
 					role: "assistant",
 					id,
 					content,
-					belongs: [currentDialogConfig.messageListId],
+					belongs: [dialog.messageListId],
 					cybotId,
 				};
 				dispatch(upsertOne(message));
