@@ -52,9 +52,8 @@ const generatorRoutes = (hostname, auth) => {
 	}
 	if (hostname === "cybot.one" || hostname === "cybot.run") {
 		return routes(auth.user);
-	} else {
-		return routes(auth.user);
 	}
+	return routes(auth.user);
 };
 export default function App({ hostname, lng = "en", theme = "light" }) {
 	const auth = useAuth();

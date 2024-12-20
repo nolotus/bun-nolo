@@ -1,9 +1,7 @@
-// NavListItem.tsx
-import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
-import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { defaultTheme } from "../../styles/colors";
+import { commonStyles } from "../MenuButton"; // 引入共享样式
 
 interface NavListItemProps {
 	path?: string;
@@ -18,72 +16,92 @@ const NavListItem: React.FC<NavListItemProps> = ({
 	icon,
 	onClick,
 }) => {
-	const theme = useSelector(selectTheme);
-
-	const baseStyles: React.CSSProperties = {
-		display: "flex",
-		alignItems: "center",
-		padding: "8px 16px",
-		marginBottom: "8px",
-		color: defaultTheme.text,
-		textDecoration: "none",
-		transition: "all 0.2s ease",
-		cursor: "pointer",
-		fontWeight: 600,
-	};
-
-	const Content = () => {
-		if (!icon && !label) return null;
-
-		return (
-			<>
-				{icon && <span className="nav-icon">{icon}</span>}
-				{label && <span className="nav-label">{label}</span>}
-			</>
-		);
-	};
-
 	return (
 		<>
 			<style>
 				{`
-          .nav-icon {
-            margin-right: 16px;
+          .nav-list-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: ${commonStyles.borderRadius};
+            color: ${defaultTheme.text};
+            background: transparent;
+            border: ${commonStyles.border} solid transparent;
+            text-decoration: none;
+            transition: ${commonStyles.transition};
+            cursor: pointer;
+            font-weight: 500;
+            height: ${commonStyles.buttonSize};
+            box-sizing: border-box;
+            margin: 0;
+          }
+
+          .nav-list-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: ${defaultTheme.textSecondary};
+            transition: ${commonStyles.transition};
           }
           
-          .nav-item:hover {
-            background-color: ${defaultTheme.backgroundSecondary};
+          .nav-list-label {
+            font-size: 14px;
+            transition: ${commonStyles.transition};
+          }
+
+          .nav-list-item:hover {
+            color: ${defaultTheme.primary};
+            background: ${defaultTheme.primaryGhost}15;
+            border-color: ${defaultTheme.primary}20;
+            transform: translateY(-1px);
+          }
+          
+          .nav-list-item:hover .nav-list-icon {
             color: ${defaultTheme.primary};
           }
-          
-          .nav-item:hover .nav-icon,
-          .nav-item:hover .nav-label {
-            color: ${defaultTheme.primary};
+
+          .nav-list-item.active {
+            background: ${defaultTheme.primary};
+            color: ${defaultTheme.background};
+            border-color: ${defaultTheme.primary};
           }
           
-          .nav-item.active {
-            background-color: ${defaultTheme.primary};
+          .nav-list-item.active .nav-list-icon {
             color: ${defaultTheme.background};
           }
-          
-          .nav-item.active .nav-icon,
-          .nav-item.active .nav-label {
-            color: ${defaultTheme.background};
+
+          @media (hover: none) {
+            .nav-list-item:hover {
+              transform: none;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .nav-list-item,
+            .nav-list-icon,
+            .nav-list-label {
+              transition: none;
+            }
           }
         `}
 			</style>
 
 			{onClick ? (
-				<div onClick={onClick} className="nav-item" style={baseStyles}>
-					<Content />
+				<div onClick={onClick} className="nav-list-item">
+					{icon && <span className="nav-list-icon">{icon}</span>}
+					{label && <span className="nav-list-label">{label}</span>}
 				</div>
 			) : path ? (
 				<NavLink
 					to={path}
-					className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-					style={baseStyles}
+					className={({ isActive }) =>
+						`nav-list-item ${isActive ? "active" : ""}`
+					}
 				>
-					<Content />
+					{icon && <span className="nav-list-icon">{icon}</span>}
+					{label && <span className="nav-list-label">{label}</span>}
 				</NavLink>
 			) : null}
 		</>

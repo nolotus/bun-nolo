@@ -1,9 +1,8 @@
-import { sizes } from "render/styles/sizes";
 // This file contains common styles used across different components in the chat interface.
 // It includes styles for message containers, content wrappers, avatars, and context menus.
 // These styles are exported as objects to be used with inline styling in React components.
 // Constants
-export const messageContentWithAvatarGap = sizes.size3;
+export const messageContentWithAvatarGap = "1rem";
 
 // Styles for message input
 

@@ -1,68 +1,108 @@
-import { selectTheme } from "app/theme/themeSlice";
-import { useSelector } from "react-redux";
+import type React from "react";
 import { NavLink } from "react-router-dom";
-import { defaultTheme } from "../../styles/colors";
+import { defaultTheme } from "render/styles/colors";
+import { ICON_SIZES, commonStyles } from "../MenuButton"; // 引入共享配置
 
 interface NavIconItemProps {
 	path?: string;
 	icon: React.ReactNode;
 	onClick?: () => void;
+	iconSize?: number;
 }
 
-const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
-	const theme = useSelector(selectTheme);
-
-	const baseStyles: React.CSSProperties = {
-		display: "flex",
-		alignItems: "center",
-		justifyContent: "center",
-		width: "42px",
-		height: "42px",
-		borderRadius: "12px",
-		color: defaultTheme.textSecondary,
-		textDecoration: "none",
-		transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-		cursor: "pointer",
-		marginBottom: "12px",
-	};
-
+const NavIconItem: React.FC<NavIconItemProps> = ({
+	path,
+	icon,
+	onClick,
+	iconSize = ICON_SIZES.medium,
+}) => {
 	return (
 		<>
 			<style>
 				{`
-          .nav-icon-item:hover {
-            background-color: ${defaultTheme.primaryGhost};
-            color: ${defaultTheme.primary};
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px ${defaultTheme.primaryGhost};
-          }
-          
-          .nav-icon-item.active {
-            background-color: ${defaultTheme.primary}; 
-            color: ${defaultTheme.background} !important;
-            box-shadow: 0 4px 12px ${defaultTheme.primaryLight}33;
+          .nav-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: ${commonStyles.buttonSize};
+            height: ${commonStyles.buttonSize};
+            padding: ${commonStyles.padding};
+            border: ${commonStyles.border} solid transparent;
+            border-radius: ${commonStyles.borderRadius};
+            background: transparent;
+            color: ${defaultTheme.textSecondary};
+            cursor: pointer;
+            transition: ${commonStyles.transition};
+            position: relative;
+            box-sizing: border-box;
+            margin: 0;
+            text-decoration: none;
           }
 
-          .nav-icon-item.active svg {
-            fill: ${defaultTheme.background};
-            color: ${defaultTheme.background};
+          .icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+          }
+
+          .nav-icon:hover {
+            color: ${defaultTheme.primary};
+            background: ${defaultTheme.primaryGhost}15;
+            border-color: ${defaultTheme.primary}20;
+            transform: translateY(-1px);
+          }
+          
+          .nav-icon svg {
+            transition: ${commonStyles.transition};
+          }
+
+          .nav-icon:hover svg {
+            transform: scale(${commonStyles.hoverScale});
+          }
+
+          .nav-icon.active {
+            background: ${defaultTheme.primary};
+            color: white;
+            border-color: ${defaultTheme.primary};
+          }
+
+          .nav-icon.active::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: ${commonStyles.borderRadius};
+            background: ${defaultTheme.primary}20;
+            filter: blur(8px);
+            z-index: -1;
+          }
+
+          @media (hover: none) {
+            .nav-icon:hover {
+              transform: none;
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .nav-icon,
+            .nav-icon svg {
+              transition: none;
+            }
           }
         `}
 			</style>
 
 			{onClick ? (
-				<div onClick={onClick} className="nav-icon-item" style={baseStyles}>
-					{icon}
+				<div className="nav-icon">
+					<div className="icon-wrapper">{icon}</div>
 				</div>
 			) : path ? (
 				<NavLink
 					to={path}
-					className={({ isActive }) =>
-						`nav-icon-item ${isActive ? "active" : ""}`
-					}
-					style={baseStyles}
+					className={({ isActive }) => `nav-icon ${isActive ? "active" : ""}`}
 				>
-					{icon}
+					<div className="icon-wrapper">{icon}</div>
 				</NavLink>
 			) : null}
 		</>

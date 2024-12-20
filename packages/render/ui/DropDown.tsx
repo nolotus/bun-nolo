@@ -1,6 +1,5 @@
-//render/ui/DrowpDown
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 interface DropDownProps {
 	trigger: React.ReactNode;
@@ -15,78 +14,56 @@ const DropDown: React.FC<DropDownProps> = ({
 	triggerType = "hover",
 	direction = "bottom",
 }) => {
-	const node = useRef<HTMLDivElement | null>(null);
-	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [isOpen, setIsOpen] = useState(false);
 
-	const handleClickOutside = (e: MouseEvent) => {
-		if (!node.current || node.current.contains(e.target as Node)) {
-			return;
+	const handleMouseEnter = useCallback(() => {
+		if (triggerType === "hover") {
+			setIsOpen(true);
 		}
-		setIsOpen(false);
-	};
+	}, [triggerType]);
 
-	const handleEscapeKey = (e: KeyboardEvent) => {
-		if (e.key === "Escape") {
+	const handleMouseLeave = useCallback(() => {
+		if (triggerType === "hover") {
 			setIsOpen(false);
 		}
-	};
+	}, [triggerType]);
 
-	useEffect(() => {
-		if (isOpen) {
-			document.addEventListener("mousedown", handleClickOutside);
-			document.addEventListener("keydown", handleEscapeKey);
+	const handleClick = useCallback(() => {
+		if (triggerType === "click") {
+			setIsOpen(!isOpen);
 		}
+	}, [triggerType, isOpen]);
 
-		return () => {
-			document.removeEventListener("mousedown", handleClickOutside);
-			document.removeEventListener("keydown", handleEscapeKey);
-		};
-	}, [isOpen]);
+	const positionStyle = useMemo(() => {
+		switch (direction) {
+			case "top":
+				return { bottom: "100%", right: 0 };
+			case "right":
+				return { left: "100%", top: 0 };
+			case "left":
+				return { right: "100%", top: 0 };
+			default:
+				return { top: "100%", right: 0 };
+		}
+	}, [direction]);
 
-	const toggleDropDown = () => setIsOpen((prev) => !prev);
-
-	// 根据 triggerType 来设置不同的事件处理器
-	const eventHandlers =
-		triggerType === "click"
-			? {
-					onClick: toggleDropDown,
-				}
-			: {
-					onMouseEnter: () => setIsOpen(true),
-					onMouseLeave: () => setIsOpen(false),
-				};
-	let positionStyle = {};
-	switch (direction) {
-		case "top":
-			positionStyle = { bottom: "100%", right: 0 };
-			break;
-		case "right":
-			positionStyle = { left: "100%", top: 0 };
-			break;
-		case "left":
-			positionStyle = { right: "100%", top: 0 };
-			break;
-		case "bottom":
-		default:
-			positionStyle = { top: "100%", right: 0 };
-			break;
-	}
 	return (
-		<div className="relative" ref={node} {...eventHandlers}>
+		<div
+			style={{ position: "relative" }}
+			onMouseEnter={handleMouseEnter}
+			onMouseLeave={handleMouseLeave}
+			onClick={handleClick}
+		>
 			{trigger}
 			{isOpen && (
 				<div
-					className="absolute"
 					style={{
+						position: "absolute",
+						zIndex: 100,
 						...positionStyle,
-						transform: "scale(1)",
-						opacity: 1,
-						zIndex: 2,
-						width: "auto",
-						minWidth: "56px",
 					}}
 				>
-					<div className="py-1">{children}</div>
+					{children}
 				</div>
 			)}
 		</div>
