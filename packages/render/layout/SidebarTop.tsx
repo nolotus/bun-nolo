@@ -130,7 +130,7 @@ export const SidebarTop = () => {
 	};
 
 	const handleOptionClick = (workspaceId?: string) => {
-		navigate("/chat");
+		navigate("/create");
 		dispatch(changeWorkSpace(workspaceId));
 		dispatch(queryDialogList(workspaceId));
 		setIsOpen(false);
@@ -167,7 +167,7 @@ export const SidebarTop = () => {
 					transition: "background-color 0.15s ease",
 				}}
 			>
-				<NavIconItem path="/chat" icon={<ProjectIcon size={24} />} />
+				<NavIconItem path="/create" icon={<ProjectIcon size={24} />} />
 			</div>
 
 			<div style={{ position: "relative" }}>

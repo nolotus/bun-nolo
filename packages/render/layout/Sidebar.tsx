@@ -16,14 +16,12 @@ interface SidebarProps {
 	children: React.ReactNode;
 	sidebarContent?: React.ReactNode; // 改为可选
 	topbarContent?: React.ReactNode;
-	fullWidth?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
 	children,
 	sidebarContent,
 	topbarContent,
-	fullWidth = false,
 }) => {
 	// 只在有 sidebarContent 时才初始化和处理侧边栏状态
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -107,7 +105,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 					isExpanded={isSidebarOpen}
 				/>
 
-				<div style={innerContentStyles(theme, fullWidth)}>{children}</div>
+				<div style={{ width: "100%", maxWidth: "100%", margin: "0 auto" }}>
+					{children}
+				</div>
 			</main>
 		</div>
 	);
@@ -143,12 +143,6 @@ const contentStyles = (
 	marginLeft: isSidebarOpen ? `${sidebarWidth}px` : 0,
 	transition: "margin-left 0.3s ease-in-out",
 	width: isSidebarOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",
-});
-
-const innerContentStyles = (theme: any, fullWidth: boolean) => ({
-	width: fullWidth ? "100%" : "100%",
-	maxWidth: fullWidth ? "none" : "100%",
-	margin: fullWidth ? 0 : "0 auto",
 });
 
 export default Sidebar;

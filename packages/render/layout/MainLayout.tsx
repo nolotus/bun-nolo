@@ -19,7 +19,7 @@ const MainLayout: React.FC = () => {
 			currentSidebar = <HomeSidebarContent />;
 		} else if (location.pathname.startsWith("/life")) {
 			currentSidebar = <LifeSidebarContent />;
-		} else if (location.pathname.startsWith("/chat")) {
+		} else if (location.pathname.startsWith("/create")) {
 			currentSidebar = <ChatSidebar />;
 		}
 
@@ -30,9 +30,6 @@ const MainLayout: React.FC = () => {
 
 		return lastValidSidebarRef.current;
 	};
-
-	const isChatDetailPage =
-		location.pathname.startsWith("/chat/") && location.pathname !== "/chat";
 
 	return (
 		<>
@@ -57,10 +54,7 @@ const MainLayout: React.FC = () => {
         }
       `}</style>
 
-			<Sidebar
-				sidebarContent={getSidebarContent()}
-				fullWidth={isChatDetailPage}
-			>
+			<Sidebar sidebarContent={getSidebarContent()}>
 				<Suspense fallback={<div>Loading...</div>}>
 					<TransitionGroup>
 						<CSSTransition
