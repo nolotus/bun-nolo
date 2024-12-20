@@ -22,6 +22,7 @@ import {
 	sendWithMessageId,
 } from "./messageSlice";
 
+import { runCybotId } from "ai/cybot/cybotSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 
 interface MessageContextMenuProps {
@@ -45,6 +46,8 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
 		if (content) {
 			try {
 				const slateData = markdownToSlate(content);
+				const title = dispatch(runCybotId(id, content));
+				console.log("title", title);
 				const writeData = {
 					data: { content, slateData, type: "page" },
 					flags: { isJSON: true },

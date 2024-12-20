@@ -26,13 +26,10 @@ import { filter, reverse } from "rambda";
 import { selectCurrentServer } from "setting/settingSlice";
 import { ulid } from "ulid";
 
-import { ollamaModelNames } from "integrations/ollama/models";
-
 import { handleOllamaResponse } from "ai/chat/handleOllamaResponse";
 
 import { sendNoloChatRequest } from "./chatStreamRequest";
 
-import { makeAppointment } from "ai/tools/appointment";
 import { prepareTools } from "ai/tools/prepareTools";
 import { sendMessageAction } from "./actions/sendMessageAction";
 
@@ -377,71 +374,6 @@ export const messageSlice = createSliceWithThunks({
 			},
 			{},
 		),
-		//for tool call cybot
-		runCybotId: create.asyncThunk(
-			async ({ cybotId, prevMsgs, userInput }, thunkApi) => {
-				console.log("runCybotId cybotID", cybotId);
-				const state = thunkApi.getState();
-				const dispatch = thunkApi.dispatch;
-				const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
-				console.log("runCybotId cybotConfig", cybotConfig);
-				// const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
-				// const llmConfig = readLLMAction.payload;
-				// console.log("runCybotId llmConfig", llmConfig);
-				// if (ollamaModelNames.includes(llmConfig.model)) {
-				// 	const model = llmConfig.model;
-				// 	const prepareMsgConfig = {
-				// 		model,
-				// 		promotMessage: { role: "system", content: cybotConfig.prompt },
-				// 		prevMsgs,
-				// 		content: userInput,
-				// 	};
-				// 	const messages = ollamaHandler.prepareMsgs(prepareMsgConfig);
-				// 	const tools = prepareTools(cybotConfig.tools);
-				// 	const bodyData = {
-				// 		model: model,
-				// 		messages,
-				// 		tools,
-				// 		stream: false,
-				// 	};
-				// 	const body = JSON.stringify(bodyData);
-				// 	const { api, apiStyle } = llmConfig;
-				// 	const result = await fetch(api, {
-				// 		method: "POST",
-				// 		headers: {
-				// 			"Content-Type": "application/json",
-				// 		},
-				// 		body,
-				// 		// signal,
-				// 	});
-				// 	const json = await result.json();
-				// 	const message = json.message;
-				// 	const cybotTools = message.tool_calls;
-				// 	console.log("message", message);
-				// 	console.log("cybotTools", cybotTools);
-				// 	if (!cybotTools) {
-				// 		console.log("direct return");
-				// 		return message;
-				// 	} else {
-				// 		const tool = cybotTools[0].function;
-				// 		const toolName = tool.name;
-				// 		if (toolName === "make_appointment") {
-				// 			const currentUserId = selectCurrentUserId(state);
-				// 			console.log("handle tool currentUserId", currentUserId);
-				// 			const result = await makeAppointment(
-				// 				tool.arguments,
-				// 				thunkApi,
-				// 				currentUserId,
-				// 			);
-				// 			console.log("handle tool result", result);
-				// 			const message = { content: result };
-				// 			return message;
-				// 		}
-				// 	}
-				// }
-			},
-			{},
-		),
 		sendWithMessageId: create.asyncThunk(async (messageId, thunkApi) => {
 			console.log("messageId", messageId);
 			const state = thunkApi.getState();
@@ -469,7 +401,6 @@ export const {
 	streamRequest,
 	streamLLmId,
 	sendWithMessageId,
-	runCybotId,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;
