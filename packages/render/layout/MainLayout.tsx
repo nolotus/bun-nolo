@@ -1,60 +1,141 @@
 // MainLayout.tsx
-import React, { Suspense } from "react";
-import { useLocation, Outlet } from "react-router-dom";
-import Sidebar from "render/layout/Sidebar";
-import ChatSidebar from "chat/ChatSidebar";
-import { AnimatePresence, motion } from "framer-motion";
 import HomeSidebarContent from "app/pages/HomeSidebarContent";
-import LifeSidebarContent from "life/LifeSidebarContent";
 import { useAuth } from "auth/useAuth";
+import ChatSidebar from "chat/ChatSidebar";
+import LifeSidebarContent from "life/LifeSidebarContent";
+import React, { Suspense } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { CSSTransition, TransitionGroup } from "react-transition-group";
+import Sidebar from "render/layout/Sidebar";
 
 const MainLayout: React.FC = () => {
-  const location = useLocation();
-  const { isLoggedIn, user } = useAuth();
+	const location = useLocation();
+	const { isLoggedIn } = useAuth();
 
-  const getSidebarContent = () => {
-    let currentSidebar = isLoggedIn ? <ChatSidebar /> : null;
-    const lastValidSidebarRef = React.useRef<React.ReactNode>(null);
+	const pageTransitionConfig = {
+		timeout: 300,
+		classNames: {
+			enter: "page-enter",
+			enterActive: "page-enter-active",
+			exit: "page-exit",
+			exitActive: "page-exit-active",
+		},
+		onEnter: (node: HTMLElement) => {
+			window.scrollTo(0, 0);
+		},
+	};
 
-    // 明确的路由规则判断
-    if (location.pathname === "/") {
-      currentSidebar = <HomeSidebarContent />;
-    } else if (location.pathname.startsWith("/life")) {
-      currentSidebar = <LifeSidebarContent />;
-    } else if (location.pathname.startsWith("/chat")) {
-      currentSidebar = <ChatSidebar />;
-    }
+	const getSidebarContent = () => {
+		let currentSidebar = isLoggedIn ? <ChatSidebar /> : null;
+		const lastValidSidebarRef = React.useRef<React.ReactNode>(null);
 
-    // 如果当前有明确的 sidebar,更新 ref
-    if (currentSidebar) {
-      lastValidSidebarRef.current = currentSidebar;
-      return currentSidebar;
-    }
+		if (location.pathname === "/") {
+			currentSidebar = <HomeSidebarContent />;
+		} else if (location.pathname.startsWith("/life")) {
+			currentSidebar = <LifeSidebarContent />;
+		} else if (location.pathname.startsWith("/chat")) {
+			currentSidebar = <ChatSidebar />;
+		}
 
-    // 否则返回上一个有效的 sidebar
-    return lastValidSidebarRef.current;
-  };
+		if (currentSidebar) {
+			lastValidSidebarRef.current = currentSidebar;
+			return currentSidebar;
+		}
 
-  const isChatDetailPage =
-    location.pathname.startsWith("/chat/") && location.pathname !== "/chat";
+		return lastValidSidebarRef.current;
+	};
 
-  return (
-    <Sidebar sidebarContent={getSidebarContent()} fullWidth={isChatDetailPage}>
-      <Suspense fallback={<div>loading</div>}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, visibility: "hidden" }}
-            animate={{ opacity: 1, visibility: "visible" }}
-            exit={{ opacity: 0, visibility: "hidden" }}
-            transition={{ duration: 0.3, when: "beforeChildren" }}
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
-      </Suspense>
-    </Sidebar>
-  );
+	const isChatDetailPage =
+		location.pathname.startsWith("/chat/") && location.pathname !== "/chat";
+
+	return (
+		<>
+			<style>
+				{`
+          .page {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            will-change: transform, opacity;
+            transform-style: preserve-3d;
+            contain: layout style paint;
+          }
+
+          .page-enter {
+            opacity: 0;
+            transform: translateX(10px);
+          }
+
+          .page-enter-active {
+            opacity: 1;
+            transform: translateX(0);
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            backface-visibility: hidden;
+            perspective: 1000px;
+          }
+
+          .page-exit {
+            opacity: 1;
+            transform: translateX(0);
+          }
+
+          .page-exit-active {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            backface-visibility: hidden;
+            perspective: 1000px;
+          }
+
+          .page-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-size: 1.2rem;
+            color: #666;
+          }
+
+          .page > * {
+            max-width: 100%;
+            overflow-x: hidden;
+          }
+
+          @media (hover: none) {
+            .page {
+              transform: translateZ(0);
+              -webkit-transform: translateZ(0);
+            }
+          }
+
+          .page * {
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+          }
+        `}
+			</style>
+
+			<Sidebar
+				sidebarContent={getSidebarContent()}
+				fullWidth={isChatDetailPage}
+			>
+				<Suspense fallback={<div className="page-loading">Loading...</div>}>
+					<TransitionGroup>
+						<CSSTransition
+							key={location.pathname}
+							{...pageTransitionConfig}
+							unmountOnExit
+						>
+							<div className="page">
+								<Outlet />
+							</div>
+						</CSSTransition>
+					</TransitionGroup>
+				</Suspense>
+			</Sidebar>
+		</>
+	);
 };
 
 export default MainLayout;

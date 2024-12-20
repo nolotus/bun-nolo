@@ -1,8 +1,6 @@
 import { DependabotIcon } from "@primer/octicons-react";
 import Cybots from "ai/cybot/Cybots";
 import { nolotusId } from "core/init";
-import { motion } from "framer-motion";
-import React from "react";
 import { NavLink } from "react-router-dom";
 import { SpotList } from "render/components/SpotList";
 import { defaultTheme } from "render/styles/colors";
@@ -31,25 +29,38 @@ const Home = () => {
 		},
 	];
 
-	const container = {
-		hidden: { opacity: 0 },
-		show: {
-			opacity: 1,
-			transition: {
-				staggerChildren: 0.1,
-			},
-		},
-	};
-
-	const item = {
-		hidden: { opacity: 0, y: 20 },
-		show: { opacity: 1, y: 0 },
-	};
-
 	return (
 		<>
 			<style>
 				{`
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          .fade-in {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+          }
+
+          .fade-in-delay-1 {
+            animation-delay: 0.2s;
+          }
+
+          .fade-in-delay-2 {
+            animation-delay: 0.4s;
+          }
+
+          .fade-in-delay-3 {
+            animation-delay: 0.6s;
+          }
+
           .feature-card {
             padding: 1.5rem;
             backdrop-filter: blur(10px);
@@ -58,6 +69,15 @@ const Home = () => {
             border-radius: 16px;
             box-shadow: 0 2px 15px ${defaultTheme.shadowLight};
             transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+          }
+
+          .feature-card:hover {
+            transform: translateY(-8px);
+            background: ${defaultTheme.background};
+            box-shadow: 0 12px 30px ${defaultTheme.shadowMedium};
+            border-color: ${defaultTheme.primary};
           }
 
           .welcome-text {
@@ -99,11 +119,22 @@ const Home = () => {
             margin: 3rem 0;
             font-weight: 600;
             letter-spacing: -0.5px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
           }
 
           .features-grid {
             gap: 2rem;
             padding: 1.5rem;
+          }
+
+          .section {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+          }
+
+          .section.delay {
+            animation-delay: 0.2s;
           }
 
           @media (max-width: 768px) {
@@ -118,12 +149,10 @@ const Home = () => {
           }
         `}
 			</style>
+
 			<div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.5rem" }}>
-				<motion.section
-					className="hero-section"
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.6 }}
+				<section
+					className="hero-section fade-in"
 					style={{
 						background: defaultTheme.backgroundSecondary,
 						borderRadius: "24px",
@@ -132,13 +161,11 @@ const Home = () => {
 						boxShadow: `0 4px 20px ${defaultTheme.shadowLight}`,
 					}}
 				>
-					<motion.div
+					<div
 						style={{ textAlign: "center", maxWidth: "800px", margin: "0 auto" }}
 					>
-						<motion.h1
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.2 }}
+						<h1
+							className="fade-in fade-in-delay-1"
 							style={{
 								fontSize: "3.2rem",
 								marginBottom: "1.5rem",
@@ -148,13 +175,10 @@ const Home = () => {
 							}}
 						>
 							<span className="welcome-text">Hey，我是 Nolotus</span> 👋
-						</motion.h1>
+						</h1>
 
-						<motion.div
-							className="intro-text"
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.4 }}
+						<div
+							className="intro-text fade-in fade-in-delay-2"
 							style={{
 								fontSize: "1.3rem",
 								marginBottom: "1.5rem",
@@ -175,24 +199,17 @@ const Home = () => {
 								/>
 							</p>
 							<p>要不要来试试看？</p>
-						</motion.div>
+						</div>
 
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.6 }}
-						>
+						<div className="fade-in fade-in-delay-3">
 							<NavLink to="/signup" className="signup-link">
 								开始体验
 							</NavLink>
-						</motion.div>
-					</motion.div>
-				</motion.section>
+						</div>
+					</div>
+				</section>
 
-				<motion.div
-					variants={container}
-					initial="hidden"
-					animate="show"
+				<div
 					className="features-grid"
 					style={{
 						display: "grid",
@@ -201,16 +218,10 @@ const Home = () => {
 					}}
 				>
 					{features.map((feature, index) => (
-						<motion.div
+						<div
 							key={index}
-							variants={item}
-							whileHover={{
-								y: -8,
-								background: defaultTheme.background,
-								boxShadow: `0 12px 30px ${defaultTheme.shadowMedium}`,
-								borderColor: defaultTheme.primary,
-							}}
 							className="feature-card"
+							style={{ animationDelay: `${index * 0.1}s` }}
 						>
 							<div style={{ fontSize: "2rem", marginBottom: "0.8rem" }}>
 								{feature.icon}
@@ -234,38 +245,30 @@ const Home = () => {
 							>
 								{feature.description}
 							</p>
-						</motion.div>
+						</div>
 					))}
-				</motion.div>
+				</div>
 
-				<motion.section
-					initial={{ opacity: 0 }}
-					whileInView={{ opacity: 1 }}
-					viewport={{ once: true }}
-					transition={{ duration: 0.6 }}
+				<section
+					className="section"
 					style={{ marginBottom: "3rem", textAlign: "center" }}
 				>
 					<h2 className="section-title">看看其他人都在用 Cybot 做什么</h2>
 					<div style={{ marginBottom: "3rem" }}>
 						<Cybots queryUserId={nolotusId} limit={8} />
 					</div>
-				</motion.section>
+				</section>
 
-				<motion.section
-					initial={{ opacity: 0 }}
-					whileInView={{ opacity: 1 }}
-					viewport={{ once: true }}
-					transition={{ duration: 0.6 }}
+				<section
+					className="section delay"
 					style={{ marginBottom: "3rem", textAlign: "center" }}
 				>
 					<h2 className="section-title">我用 Cybot 记录的一些地方</h2>
 					<SpotList userId={nolotusId} />
-				</motion.section>
+				</section>
 
-				<motion.footer
-					initial={{ opacity: 0 }}
-					whileInView={{ opacity: 1 }}
-					viewport={{ once: true }}
+				<footer
+					className="section delay"
 					style={{
 						textAlign: "center",
 						color: defaultTheme.textSecondary,
@@ -293,7 +296,7 @@ const Home = () => {
 					>
 						s@nolotus.com
 					</a>
-				</motion.footer>
+				</footer>
 			</div>
 		</>
 	);

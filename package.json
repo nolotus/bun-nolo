@@ -92,6 +92,7 @@
 		"react-responsive": "^10.0.0",
 		"react-router": "^6.23.1",
 		"react-router-dom": "^6.23.1",
+		"react-transition-group": "^4.4.5",
 		"reactotron-react-native": "^5.1.7",
 		"reactotron-redux": "^3.1.9",
 		"slate": "^0.110.2",

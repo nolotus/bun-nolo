@@ -12,7 +12,6 @@ import {
 	selectTotalDialogTokens,
 } from "chat/dialog/dialogSlice";
 import { CreateMenu } from "create/CreateMenu";
-import { motion } from "framer-motion";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -57,7 +56,6 @@ const TopBar: React.FC<TopBarProps> = ({
             padding: 12px 16px;
             z-index: 2;
             height: 60px;
-            backdrop-filter: blur(8px);
             border-bottom: 1px solid ${theme.border};
           }
 
@@ -99,6 +97,7 @@ const TopBar: React.FC<TopBarProps> = ({
             border-radius: ${commonStyles.borderRadius};
             background-color: ${theme.surface2};
             border: ${commonStyles.border} solid transparent;
+            opacity: 0.9;
           }
 
           .topbar-right {
@@ -148,15 +147,9 @@ const TopBar: React.FC<TopBarProps> = ({
 									<CybotNameChip key={cybotId} cybotId={cybotId} />
 								))}
 								{!isMobile && currentDialogTokens > 0 && (
-									<motion.div
-										initial={{ opacity: 0 }}
-										animate={{ opacity: 1 }}
-										exit={{ opacity: 0 }}
-									>
-										<div className="token-counter">
-											Tokens: {currentDialogTokens}
-										</div>
-									</motion.div>
+									<div className="token-counter">
+										Tokens: {currentDialogTokens}
+									</div>
 								)}
 								<CreateDialogButton dialogConfig={currentDialogConfig} />
 								<DeleteDialogButton dialogConfig={currentDialogConfig} />
