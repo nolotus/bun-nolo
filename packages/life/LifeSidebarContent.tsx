@@ -27,6 +27,13 @@ const LifeSidebarContent = () => {
         <GraphIcon size={20} style={{ marginRight: "8px" }} />
         <span>统计</span>
       </NavLink>
+      <NavLink
+        to="/life/usage"
+        style={({ isActive }) => (isActive ? activeStyle : navLinkStyle)}
+      >
+        <GraphIcon size={20} style={{ marginRight: "8px" }} />
+        <span>使用</span>
+      </NavLink>
     </div>
   );
 };

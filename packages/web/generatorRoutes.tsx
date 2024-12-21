@@ -1,8 +1,7 @@
 import { authRoutes } from "auth/client/routes";
 import { createRoutes } from "create/routes";
-import React, { Suspense, lazy } from "react";
 import { settingRoutes } from "setting/routes";
-
+import { lifeRoutes } from "life/routes";
 // import { routes as UIRoutes } from "../ui/route";
 
 // import { lifeRoutes } from "../domain/life/route";
@@ -29,4 +28,4 @@ export const generatorRoutes = (host: string) => {
 	return routes;
 };
 
-export const commonRoutes = [...authRoutes, ...createRoutes, settingRoutes];
+export const commonRoutes = [...authRoutes, ...createRoutes, settingRoutes,...lifeRoutes];
