@@ -1,95 +1,107 @@
-//render/ui/DrowpDown
-import React, { useState, useRef, useEffect } from "react";
+import type React from "react";
+import { useCallback, useMemo, useState } from "react";
+import { CSSTransition } from "react-transition-group";
 
 interface DropDownProps {
-  trigger: React.ReactNode;
-  children: React.ReactNode;
-  triggerType?: "click" | "hover";
-  direction?: "top" | "bottom" | "left" | "right";
+	trigger: React.ReactNode;
+	children: React.ReactNode;
+	triggerType?: "click" | "hover";
+	direction?: "top" | "bottom" | "left" | "right";
 }
 
 const DropDown: React.FC<DropDownProps> = ({
-  trigger,
-  children,
-  triggerType = "hover",
-  direction = "bottom",
+	trigger,
+	children,
+	triggerType = "hover",
+	direction = "bottom",
 }) => {
-  const node = useRef<HTMLDivElement | null>(null);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [isOpen, setIsOpen] = useState(false);
 
-  const handleClickOutside = (e: MouseEvent) => {
-    if (!node.current || node.current.contains(e.target as Node)) {
-      return;
-    }
-    setIsOpen(false);
-  };
+	const handleMouseEnter = useCallback(() => {
+		if (triggerType === "hover") {
+			setIsOpen(true);
+		}
+	}, [triggerType]);
 
-  const handleEscapeKey = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setIsOpen(false);
-    }
-  };
+	const handleMouseLeave = useCallback(() => {
+		if (triggerType === "hover") {
+			setIsOpen(false);
+		}
+	}, [triggerType]);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscapeKey);
-    }
+	const handleClick = useCallback(() => {
+		if (triggerType === "click") {
+			setIsOpen(!isOpen);
+		}
+	}, [triggerType, isOpen]);
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscapeKey);
-    };
-  }, [isOpen]);
+	const positionStyle = useMemo(() => {
+		switch (direction) {
+			case "top":
+				return { bottom: "100%", right: 0 };
+			case "right":
+				return { left: "100%", top: 0 };
+			case "left":
+				return { right: "100%", top: 0 };
+			default:
+				return { top: "100%", right: 0 };
+		}
+	}, [direction]);
 
-  const toggleDropDown = () => setIsOpen((prev) => !prev);
+	return (
+		<>
+			<style>
+				{`
+          .dropdown-enter {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          
+          .dropdown-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 200ms, transform 200ms;
+          }
+          
+          .dropdown-exit {
+            opacity: 1;
+            transform: scale(1);
+          }
+          
+          .dropdown-exit-active {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 200ms, transform 200ms;
+          }
+        `}
+			</style>
 
-  // 根据 triggerType 来设置不同的事件处理器
-  const eventHandlers =
-    triggerType === "click"
-      ? {
-          onClick: toggleDropDown,
-        }
-      : {
-          onMouseEnter: () => setIsOpen(true),
-          onMouseLeave: () => setIsOpen(false),
-        };
-  let positionStyle = {};
-  switch (direction) {
-    case "top":
-      positionStyle = { bottom: "100%", right: 0 };
-      break;
-    case "right":
-      positionStyle = { left: "100%", top: 0 };
-      break;
-    case "left":
-      positionStyle = { right: "100%", top: 0 };
-      break;
-    case "bottom":
-    default:
-      positionStyle = { top: "100%", right: 0 };
-      break;
-  }
-  return (
-    <div className="relative" ref={node} {...eventHandlers}>
-      {trigger}
-      {isOpen && (
-        <div
-          className="absolute"
-          style={{
-            ...positionStyle,
-            transform: "scale(1)",
-            opacity: 1,
-            zIndex: 2,
-            width: "auto",
-            minWidth: "56px",
-          }}
-        >
-          <div className="py-1">{children}</div>
-        </div>
-      )}
-    </div>
-  );
+			<div
+				style={{ position: "relative" }}
+				onMouseEnter={handleMouseEnter}
+				onMouseLeave={handleMouseLeave}
+				onClick={handleClick}
+			>
+				{trigger}
+				<CSSTransition
+					in={isOpen}
+					timeout={200}
+					classNames="dropdown"
+					unmountOnExit
+				>
+					<div
+						style={{
+							position: "absolute",
+							zIndex: 100,
+							...positionStyle,
+						}}
+					>
+						{children}
+					</div>
+				</CSSTransition>
+			</div>
+		</>
+	);
 };
 
 export default DropDown;

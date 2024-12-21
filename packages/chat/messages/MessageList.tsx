@@ -1,154 +1,171 @@
-// chat/MessagesList.tsx
-
-import React, { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
-import { reverse } from "rambda";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
+import { reverse } from "rambda";
+import type React from "react";
+import { useEffect, useRef } from "react";
+import { defaultTheme } from "render/styles/colors";
 import { MessageItem } from "./MessageItem";
-import { selectStreamMessages, selectMergedMessages } from "./selector";
 import { initMessages } from "./messageSlice";
-import { COLORS } from "render/styles/colors";
+import { selectMergedMessages, selectStreamMessages } from "./selector";
 
 const MessagesList: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  const messages = useAppSelector(selectMergedMessages);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+	const dispatch = useAppDispatch();
+	const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+	const messages = useAppSelector(selectMergedMessages);
+	const streamingMessages = useAppSelector(selectStreamMessages);
+	const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const id = currentDialogConfig.messageListId;
+	const id = currentDialogConfig.messageListId;
+	if (!id) return <div>No message list ID</div>;
 
-  if (!id) {
-    return <div>mei id</div>;
-  }
+	const { data, isLoading, error } = useFetchData(id);
 
-  const { data, isLoading, error } = useFetchData(id);
-  const streamingMessages = useAppSelector(selectStreamMessages);
+	const scrollToBottom = () => {
+		if (containerRef.current) {
+			containerRef.current.scrollTop = containerRef.current.scrollHeight;
+		}
+	};
 
-  const scrollToBottom = () => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  };
+	useEffect(() => {
+		if (streamingMessages) scrollToBottom();
+	}, [streamingMessages, messages]);
 
-  useEffect(() => {
-    if (streamingMessages) {
-      scrollToBottom();
-    }
-  }, [streamingMessages, messages]);
+	useEffect(() => {
+		if (data) {
+			dispatch(initMessages(reverse(data.array)));
+		}
+		return () => {
+			dispatch(initMessages());
+		};
+	}, [data, dispatch]);
 
-  useEffect(() => {
-    if (data) {
-      dispatch(initMessages(reverse(data.array)));
-    }
-    return () => {
-      dispatch(initMessages());
-    };
-  }, [data]);
-
-  // 加载状态显示改为:
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          height: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            width: "40px",
-            height: "40px",
-            border: `3px solid ${COLORS.border}`,
-            borderTop: `3px solid ${COLORS.primary}`,
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        >
-          <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+	return (
+		<>
+			<style>
+				{`
+          .messages-container {
+            height: 100%;
+            background-color: ${defaultTheme.background};
+            position: relative;
           }
-        `}</style>
-        </div>
-      </div>
-    );
-  }
 
-  if (error) {
-    return <div style={{ height: "100%" }}>{error.message}</div>;
-  }
-
-  return (
-    <>
-      <style>
-        {`
           .message-list {
             display: flex;
             flex-direction: column-reverse;
-            gap: 12px;
-            overflow-y: auto;
-            padding: 20px 15% 10px 15%;
+            gap: 16px;
             height: 100%;
-            position: relative;
-            background-color: ${COLORS.background};
+            padding: 24px 15%;
+            overflow-y: auto;
             scroll-behavior: smooth;
-            scrollbar-width: thin;
-            scrollbar-color: ${COLORS.border} transparent;
-            container-type: inline-size;
+            position: relative;
+            background-color: ${defaultTheme.background};
           }
-  
-          /* 容器查询 */
+
+          .message-list::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          .message-list::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          .message-list::-webkit-scrollbar-thumb {
+            background-color: ${defaultTheme.border};
+            border-radius: 3px;
+          }
+
+          .message-list::-webkit-scrollbar-thumb:hover {
+            background-color: ${defaultTheme.borderHover};
+          }
+
+          .messages-loading-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+          }
+
+          .messages-loading-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid ${defaultTheme.backgroundSecondary};
+            border-top: 3px solid ${defaultTheme.primary};
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+          }
+
+          .messages-error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: ${defaultTheme.textSecondary};
+            text-align: center;
+            padding: 16px;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+          }
+
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+
+          @media (max-width: 768px) {
+            .message-list {
+              padding: 16px 12px;
+              gap: 12px;
+            }
+          }
+
+          @media (min-width: 769px) and (max-width: 1024px) {
+            .message-list {
+              padding: 20px 10%;
+              gap: 14px;
+            }
+          }
+
           @container (max-width: 768px) {
             .message-list {
-              padding: 12px 8px 8px 8px !important;
-              gap: 8px !important;
-            }
-            
-            .message-list img {
-              max-width: 100% !important;
-              height: auto !important;
-            }
-            
-            .message-list pre {
-              max-width: 100% !important;
-              overflow-x: auto !important;
-              font-size: 14px !important;
+              padding: 16px 12px;
+              gap: 12px;
             }
           }
-  
+
           @container (min-width: 769px) and (max-width: 1024px) {
             .message-list {
-              padding: 20px 10% 10px 10% !important;
-              gap: 10px !important;
-            }
-          }
-  
-          /* 媒体查询 */
-          @media screen and (max-width: 768px) {
-            .message-list {
-              padding: 12px 8px 8px 8px;
-              gap: 8px;
-            }
-          }
-  
-          @media screen and (min-width: 769px) and (max-width: 1024px) {
-            .message-list {
-              padding: 20px 10% 10px 10%;
-              gap: 10px;
+              padding: 20px 10%;
+              gap: 14px;
             }
           }
         `}
-      </style>
-      <div ref={containerRef} className="message-list">
-        {messages.map((message) => (
-          <MessageItem key={message.id} message={message} />
-        ))}
-      </div>
-    </>
-  );
+			</style>
+
+			<div className="messages-container">
+				{isLoading ? (
+					<div className="messages-loading-container">
+						<div className="messages-loading-spinner" />
+					</div>
+				) : error ? (
+					<div className="messages-error">
+						{error.message || "无法加载消息"}
+					</div>
+				) : (
+					<div ref={containerRef} className="message-list">
+						{messages.map((message) => (
+							<MessageItem key={message.id} message={message} />
+						))}
+					</div>
+				)}
+			</div>
+		</>
+	);
 };
 
 export default MessagesList;

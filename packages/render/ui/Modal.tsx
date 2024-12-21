@@ -1,100 +1,233 @@
-import React, { useState } from "react";
+// Modal.tsx
+import type React from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useKey } from "react-use";
-import { useSelector } from "react-redux";
-import { useMediaQuery } from "react-responsive";
+import { defaultTheme } from "render/styles/colors";
 
-import { selectTheme } from "app/theme/themeSlice";
-import { zIndex } from "../styles/zIndex";
+export const useModal = <T,>() => {
+	const [visible, setVisible] = useState(false);
+	const [modalState, setModalState] = useState<T | null>(null);
 
-export const useModal = () => {
-  const [visible, setVisible] = useState(false);
-  const [modalState, setModalState] = useState(null);
+	const open = (item: T) => {
+		setModalState(item);
+		setVisible(true);
+	};
 
-  const open = (item) => {
-    setModalState(item);
-    setVisible(true);
-  };
+	const close = () => {
+		setVisible(false);
+		// 动画结束后再清空状态
+		setTimeout(() => {
+			setModalState(null);
+		}, 300);
+	};
 
-  const close = () => {
-    setVisible(false);
-  };
-
-  return { visible, open, close, modalState };
+	return { visible, open, close, modalState };
 };
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
+	isOpen: boolean;
+	onClose: () => void;
+	children: React.ReactNode;
+	size?: "auto" | "small" | "medium" | "large" | "full";
+	className?: string;
+	overlayClassName?: string;
+	closeOnOverlayClick?: boolean;
+	closeOnEsc?: boolean;
+	disableScroll?: boolean;
+	centered?: boolean;
+	animation?: "none" | "fade" | "slide" | "scale";
 }
 
-export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
-  const theme = useSelector(selectTheme);
+export const Modal: React.FC<ModalProps> = ({
+	isOpen,
+	onClose,
+	children,
+	size = "medium",
+	className = "",
+	overlayClassName = "",
+	closeOnOverlayClick = true,
+	closeOnEsc = true,
+	disableScroll = true,
+	centered = true,
+	animation = "slide",
+}) => {
+	useEffect(() => {
+		if (disableScroll) {
+			if (isOpen) {
+				document.body.style.overflow = "hidden";
+			} else {
+				document.body.style.overflow = "";
+			}
+		}
+		return () => {
+			document.body.style.overflow = "";
+		};
+	}, [isOpen, disableScroll]);
 
-  // 使用 react-responsive 的 hooks 定义响应式断点
-  const is2xl = useMediaQuery({ minWidth: theme.breakpoints[5] });
-  const isXl = useMediaQuery({ minWidth: theme.breakpoints[4] });
-  const isLg = useMediaQuery({ minWidth: theme.breakpoints[3] });
-  const isMd = useMediaQuery({ minWidth: theme.breakpoints[2] });
-  const isSm = useMediaQuery({ minWidth: theme.breakpoints[1] });
+	useKey("Escape", () => {
+		if (closeOnEsc && isOpen) {
+			onClose();
+		}
+	});
 
-  useKey("Escape", onClose);
+	if (!isOpen) return null;
 
-  if (!isOpen) {
-    return null;
-  }
+	return createPortal(
+		<>
+			<style>
+				{`
+          .modal-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
 
-  const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
+          .modal-overlay.centered {
+            align-items: center;
+            justify-content: center;
+          }
 
-  const overlayStyle = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: zIndex.modalZIndex,
-    backdropFilter: "blur(5px)",
-    position: "fixed",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-  };
+          .modal-overlay.top {
+            align-items: flex-start;
+            justify-content: center;
+          }
 
-  const contentStyle = {
-    margin: "auto",
-    width: "100%",
-    transition: "all 0.3s ease",
-    boxShadow: theme.shadowStrength
-      ? `0 1px 2px 0 rgba(${theme.shadowColor}, ${theme.shadowStrength})`
-      : "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-  };
+          .modal-overlay.visible {
+            opacity: 1;
+          }
 
-  // 根据响应式断点获取宽度
-  const getResponsiveWidth = () => {
-    if (is2xl || isXl) return "50%";
-    if (isLg) return "66.666667%";
-    if (isMd) return "75%";
-    if (isSm) return "83.333333%";
-    return "91.666667%";
-  };
+          .modal-content {
+            position: relative;
+            margin: auto;
+            background: ${defaultTheme.background};
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+          }
 
-  return createPortal(
-    <div style={overlayStyle} onClick={handleOverlayClick}>
-      <div
-        style={{
-          ...contentStyle,
-          width: getResponsiveWidth(),
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body
-  );
+          .modal-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+          }
+
+          /* Modal sizes */
+          .modal-content.size-auto {
+            width: auto;
+            max-width: none;
+          }
+
+          .modal-content.size-small {
+            width: 90%;
+            max-width: 460px;
+          }
+
+          .modal-content.size-medium {
+            width: 90%;
+            max-width: 640px;
+          }
+
+          .modal-content.size-large {
+            width: 90%;
+            max-width: 1200px;
+          }
+
+          .modal-content.size-full {
+            width: 95%;
+            max-width: none;
+            min-height: 90vh;
+          }
+
+          /* Animations */
+          .modal-content.animation-fade {
+            transform: none;
+          }
+
+          .modal-content.animation-scale {
+            transform: scale(0.95);
+          }
+
+          .modal-content.animation-scale.visible {
+            transform: scale(1);
+          }
+
+          .modal-content.animation-slide {
+            transform: translateY(20px);
+          }
+
+          .modal-content.animation-slide.visible {
+            transform: translateY(0);
+          }
+
+          .modal-content.animation-none {
+            transition: none;
+            transform: none;
+            opacity: 1;
+          }
+
+          /* Mobile styles */
+          @media (max-width: 640px) {
+            .modal-overlay {
+              padding: 16px;
+            }
+
+            .modal-content {
+              width: 95%;
+              max-width: none;
+            }
+          }
+
+          /* Reduce motion */
+          @media (prefers-reduced-motion: reduce) {
+            .modal-overlay,
+            .modal-content {
+              animation: none;
+              transition: none;
+            }
+          }
+        `}
+			</style>
+
+			<div
+				className={`modal-overlay ${centered ? "centered" : "top"} ${
+					isOpen ? "visible" : ""
+				} ${overlayClassName}`}
+				onClick={(e) => {
+					if (closeOnOverlayClick && e.target === e.currentTarget) {
+						onClose();
+					}
+				}}
+				role="dialog"
+				aria-modal="true"
+			>
+				<div
+					className={`
+            modal-content 
+            size-${size} 
+            animation-${animation}
+            ${isOpen ? "visible" : ""} 
+            ${className}
+          `}
+					onClick={(e) => e.stopPropagation()}
+					role="document"
+				>
+					{children}
+				</div>
+			</div>
+		</>,
+		document.body,
+	);
 };
+
+// 为了更好的类型提示，导出类型
+export type ModalSize = "auto" | "small" | "medium" | "large" | "full";
+export type ModalAnimation = "none" | "fade" | "slide" | "scale";
+
+export default Modal;

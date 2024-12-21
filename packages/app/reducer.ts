@@ -1,22 +1,26 @@
 import authReducer from "auth/authSlice";
-import messageReducer from "chat/messages/messageSlice";
 import dialogSlice from "chat/dialog/dialogSlice";
+import messageReducer from "chat/messages/messageSlice";
 
+import cybotReducer from "ai/cybot/cybotSlice";
+import workspaceRecer from "create/workspace/workspaceSlice";
 import dbReducer from "database/dbSlice";
 import pageReducer from "render/page/pageSlice";
 import settingReducer from "setting/settingSlice";
-import workspaceRecer from "create/workspace/workspaceSlice";
+
 import { api } from "./api";
+
 import themeSliceReducer from "./theme/themeSlice";
 
 export const reducer = {
-  dialog: dialogSlice,
-  message: messageReducer,
-  auth: authReducer,
-  page: pageReducer,
-  db: dbReducer,
-  theme: themeSliceReducer,
-  settings: settingReducer,
-  workspace: workspaceRecer,
-  [api.reducerPath]: api.reducer,
+	dialog: dialogSlice,
+	message: messageReducer,
+	auth: authReducer,
+	page: pageReducer,
+	db: dbReducer,
+	theme: themeSliceReducer,
+	settings: settingReducer,
+	workspace: workspaceRecer,
+	cybot: cybotReducer,
+	[api.reducerPath]: api.reducer,
 };

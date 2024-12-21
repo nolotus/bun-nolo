@@ -2,9 +2,9 @@ import { mapLanguage } from "i18n/mapLanuage";
 
 //todo prompt will change to user difine
 export const generatePrompt = (
-  prompt: string,
-  name?: string,
-  responseLanguage?: string,
+	prompt: string,
+	name?: string,
+	responseLanguage?: string,
 ): string => {
   const mappedLanguage = mapLanguage(responseLanguage);
   const currentTime = new Date().toLocaleString('en-US', { timeZone: 'UTC' });

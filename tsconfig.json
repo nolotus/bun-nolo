@@ -4,7 +4,7 @@
       "ESNext",
       "dom"
     ],
-    "module": "esnext",
+    "module": "esnext", 
     "target": "esnext",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
@@ -14,15 +14,12 @@
     "strict": true,
     "downlevelIteration": true,
     "skipLibCheck": true,
-    "jsx": "react",
-    "jsxFactory": "React.createElement",
-    "jsxFragmentFactory": "React.Fragment",
+    "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
     "types": [
-      "bun-types" 
-    ],
-    
+      "bun-types"
+    ]
   }
 }

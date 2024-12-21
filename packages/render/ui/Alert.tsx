@@ -1,136 +1,217 @@
-// render/ui/Alert.tsx
-
-import React from "react";
-import { useSelector } from "react-redux";
+// Alert.tsx
+import type React from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "render/ui/Button";
-import { themeStyles } from "render/ui/styles";
-
-import { selectTheme } from "app/theme/themeSlice";
-import { useMediaQuery } from "react-responsive";
-
+import { defaultTheme } from "render/styles/colors";
 import { Modal, useModal } from "./Modal";
 
-// 自定义 hook 用于响应式样式
-const useResponsiveStyles = () => {
-  const theme = useSelector(selectTheme);
-
-  const isLarge = useMediaQuery({ minWidth: theme.breakpoints[3] });
-  const isMedium = useMediaQuery({
-    minWidth: theme.breakpoints[2],
-    maxWidth: theme.breakpoints[3] - 1,
-  });
-
-  return {
-    padding: isLarge ? "2.5rem" : isMedium ? "2rem" : "1.5rem",
-    titleSize: isLarge ? "24px" : isMedium ? "22px" : "20px",
-    messageSize: isLarge ? "16px" : isMedium ? "15px" : "14px",
-    buttonPadding: isLarge
-      ? "0.75rem 2rem"
-      : isMedium
-        ? "0.75rem 1.5rem"
-        : "0.5rem 1rem",
-    buttonMinWidth: isLarge ? "120px" : isMedium ? "110px" : "100px",
-  };
-};
-
 export const useDeleteAlert = (deleteCallback: (item: any) => void) => {
-  const { visible, open, close, modalState } = useModal();
+	const { visible, open, close, modalState } = useModal();
 
-  const openAlert = (item: any) => {
-    open(item);
-  };
-
-  const doDelete = () => {
-    deleteCallback(modalState);
-    close();
-  };
-
-  return { visible, openAlert, doDelete, closeAlert: close, modalState };
+	return {
+		visible,
+		openAlert: open,
+		closeAlert: close,
+		doDelete: () => {
+			deleteCallback(modalState);
+			close();
+		},
+		modalState,
+	};
 };
 
 interface AlertProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
+	isOpen: boolean;
+	onClose: () => void;
+	onConfirm: () => void;
+	title: string;
+	message: string;
+	type?: "info" | "warning" | "error" | "success";
+	confirmText?: string;
+	cancelText?: string;
+	showCancel?: boolean;
 }
 
 export const Alert: React.FC<AlertProps> = ({
-  isOpen,
-  onClose,
-  onConfirm,
-  message,
-  title,
+	isOpen,
+	onClose,
+	onConfirm,
+	message,
+	title,
+	type = "info",
+	confirmText,
+	cancelText,
+	showCancel = true,
 }) => {
-  const theme = useSelector(selectTheme);
-  const responsiveStyles = useResponsiveStyles();
-  const { t } = useTranslation();
+	const { t } = useTranslation();
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div
-        style={{
-          ...themeStyles.surface3(theme),
-          padding: responsiveStyles.padding,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          textAlign: "center",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: responsiveStyles.titleSize,
-            fontWeight: 600,
-            marginBottom: "1.5rem",
-            color: theme.text1,
-          }}
-        >
-          {title}
-        </h2>
-        <p
-          style={{
-            color: theme.text1,
-            marginBottom: "2rem",
-            maxWidth: "80%",
-            lineHeight: "1.5",
-            fontSize: responsiveStyles.messageSize,
-          }}
-        >
-          {message}
-        </p>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "1rem",
-            width: "100%",
-          }}
-        >
-          <Button
-            onClick={onClose}
-            style={{
-              minWidth: responsiveStyles.buttonMinWidth,
-              padding: responsiveStyles.buttonPadding,
-            }}
-          >
-            {t("cancel")}
-          </Button>
-          <Button
-            onClick={onConfirm}
-            style={{
-              minWidth: responsiveStyles.buttonMinWidth,
-              padding: responsiveStyles.buttonPadding,
-            }}
-          >
-            {t("confirm")}
-          </Button>
-        </div>
-      </div>
-    </Modal>
-  );
+	return (
+		<Modal isOpen={isOpen} onClose={onClose} size="small" animation="scale">
+			<style>
+				{`
+          .alert-container {
+            padding: 2.5rem;
+            width: 100%;
+            border-radius: 16px;
+            background-color: ${defaultTheme.backgroundSecondary};
+            overflow: hidden;
+          }
+
+          .alert-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            text-align: center;
+          }
+
+          .alert-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: ${defaultTheme.text};
+            margin: 0;
+            line-height: 1.3;
+          }
+
+          .alert-message {
+            color: ${defaultTheme.textSecondary};
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+            max-width: 85%;
+          }
+
+          .alert-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+          }
+
+          .alert-button {
+            min-width: 120px;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            transition: all 0.2s ease;
+          }
+
+          .alert-button:active {
+            transform: translateY(1px);
+          }
+
+          .alert-button-confirm {
+            background-color: ${defaultTheme.primary};
+            color: #fff;
+          }
+
+          .alert-button-confirm:hover {
+            background-color: ${defaultTheme.hover};
+            transform: translateY(-1px);
+          }
+
+          .alert-button-cancel {
+            background-color: ${defaultTheme.backgroundSecondary};
+            color: ${defaultTheme.text};
+            border: 1px solid ${defaultTheme.border};
+          }
+
+          .alert-button-cancel:hover {
+            border-color: ${defaultTheme.borderHover};
+            background-color: ${defaultTheme.backgroundGhost};
+            transform: translateY(-1px);
+          }
+
+          /* Type-specific styles */
+          .alert-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 0.5rem;
+          }
+
+          .alert-type-info .alert-button-confirm {
+            background-color: ${defaultTheme.primary};
+          }
+
+          .alert-type-warning .alert-button-confirm {
+            background-color: ${defaultTheme.error};
+          }
+
+          .alert-type-error .alert-button-confirm {
+            background-color: ${defaultTheme.error};
+          }
+
+          .alert-type-success .alert-button-confirm {
+            background-color: ${defaultTheme.primary};
+          }
+
+          /* Mobile styles */
+          @media (max-width: 640px) {
+            .alert-container {
+              padding: 2rem;
+            }
+
+            .alert-title {
+              font-size: 22px;
+            }
+
+            .alert-message {
+              font-size: 14px;
+              max-width: 95%;
+            }
+
+            .alert-button {
+              min-width: 100px;
+              padding: 8px 20px;
+            }
+          }
+
+          /* Reduce motion */
+          @media (prefers-reduced-motion: reduce) {
+            .alert-button {
+              transition: none;
+            }
+          }
+        `}
+			</style>
+
+			<div className={`alert-container alert-type-${type}`}>
+				<div className="alert-content">
+					{/* 可以根据type添加对应的图标 */}
+					{/* <div className="alert-icon">
+            {type === 'warning' && <WarningIcon />}
+            {type === 'error' && <ErrorIcon />}
+            {type === 'success' && <SuccessIcon />}
+            {type === 'info' && <InfoIcon />}
+          </div> */}
+
+					<h2 className="alert-title">{title}</h2>
+
+					<p className="alert-message">{message}</p>
+
+					<div className="alert-buttons">
+						{showCancel && (
+							<button
+								className="alert-button alert-button-cancel"
+								onClick={onClose}
+							>
+								{cancelText || t("cancel")}
+							</button>
+						)}
+						<button
+							className="alert-button alert-button-confirm"
+							onClick={onConfirm}
+						>
+							{confirmText || t("confirm")}
+						</button>
+					</div>
+				</div>
+			</div>
+		</Modal>
+	);
 };
 
 export default Alert;

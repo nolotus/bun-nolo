@@ -1,44 +1,70 @@
-// MenuButton.tsx
-import React from "react";
 import { MoveToEndIcon, MoveToStartIcon } from "@primer/octicons-react";
-import { themeStyles } from "render/ui/styles";
-
-import Button from "render/ui/Button";
+import type React from "react";
+import { defaultTheme } from "render/styles/colors";
 
 interface MenuButtonProps {
-  onClick: () => void;
-  theme: any;
-  isExpanded: boolean;
+	onClick: () => void;
+	isExpanded: boolean;
+	iconSize?: number;
 }
 
 const MenuButton: React.FC<MenuButtonProps> = ({
-  onClick,
-  theme,
-  isExpanded,
+	onClick,
+	isExpanded,
+	iconSize = 16,
 }) => {
-  const buttonStyle = {
-    padding: ".5rem",
-    borderRadius: "5px",
-    cursor: "pointer",
-    transition: "all 0.2s ease-in-out",
-    ...themeStyles.surface1(theme),
-  };
+	return (
+		<>
+			<style>
+				{`
+          .menu-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 1px solid ${defaultTheme.border};
+            border-radius: 6px;
+            background: transparent;
+            color: ${defaultTheme.textSecondary};
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+          }
 
-  const hoverStyle = {
-    backgroundColor: theme.surface2,
-  };
+          .menu-toggle:hover {
+            color: ${defaultTheme.primary};
+            border-color: ${defaultTheme.primary};
+            background: ${defaultTheme.primaryGhost};
+          }
 
-  return (
-    <Button
-      onClick={onClick}
-      icon={
-        isExpanded ? <MoveToStartIcon size={16} /> : <MoveToEndIcon size={16} />
-      }
-      style={buttonStyle}
-      hoverStyle={hoverStyle}
-      aria-label="Menu"
-    />
-  );
+          .menu-toggle:active {
+            transform: translateY(1px);
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .menu-toggle {
+              transition: none;
+            }
+          }
+        `}
+			</style>
+
+			<button
+				className="menu-toggle"
+				onClick={onClick}
+				aria-label={isExpanded ? "收起菜单" : "展开菜单"}
+				title={isExpanded ? "收起菜单" : "展开菜单"}
+			>
+				{isExpanded ? (
+					<MoveToStartIcon size={iconSize} />
+				) : (
+					<MoveToEndIcon size={iconSize} />
+				)}
+			</button>
+		</>
+	);
 };
 
 export default MenuButton;

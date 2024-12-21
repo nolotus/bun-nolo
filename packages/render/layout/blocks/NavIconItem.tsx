@@ -1,73 +1,71 @@
-import React from "react";
+import type React from "react";
 import { NavLink } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { selectTheme } from "app/theme/themeSlice";
-import { COLORS } from "../../styles/colors";
+import { defaultTheme } from "render/styles/colors";
 
 interface NavIconItemProps {
-  path?: string;
-  icon: React.ReactNode;
-  onClick?: () => void;
+	path?: string;
+	icon: React.ReactNode;
+	onClick?: () => void;
 }
 
+const styles = {
+	size: "32px",
+	borderRadius: "6px",
+	transition: "all 0.2s ease",
+};
+
 const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
-  const theme = useSelector(selectTheme);
-
-  const baseStyles: React.CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "42px",
-    height: "42px",
-    borderRadius: "12px",
-    color: COLORS.icon,
-    textDecoration: "none",
-    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-    cursor: "pointer",
-    marginBottom: "12px",
-  };
-
-  return (
-    <>
-      <style>
-        {`
-          .nav-icon-item:hover {
-            background-color: ${COLORS.primaryGhost};
-            color: ${COLORS.primary};
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px ${COLORS.primaryGhost};
-          }
-          
-          .nav-icon-item.active {
-            background-color: ${COLORS.primary};
-            color: ${COLORS.background} !important;
-            box-shadow: 0 4px 12px ${COLORS.primaryLight}33;
+	return (
+		<>
+			<style>
+				{`
+          .nav-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: ${styles.size};
+            height: ${styles.size};
+            padding: 0;
+            border-radius: ${styles.borderRadius};
+            background: transparent;
+            color: ${defaultTheme.textSecondary};
+            cursor: pointer;
+            transition: ${styles.transition};
+            text-decoration: none;
           }
 
-          .nav-icon-item.active svg {
-            fill: ${COLORS.background};
-            color: ${COLORS.background};
+          .nav-icon:hover {
+            color: ${defaultTheme.primary};
+            background: ${defaultTheme.primaryGhost};
+          }
+
+          .nav-icon.active {
+            background: ${defaultTheme.primary};
+            color: white;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .nav-icon {
+              transition: none;
+            }
           }
         `}
-      </style>
+			</style>
 
-      {onClick ? (
-        <div onClick={onClick} className="nav-icon-item" style={baseStyles}>
-          {icon}
-        </div>
-      ) : path ? (
-        <NavLink
-          to={path}
-          className={({ isActive }) =>
-            `nav-icon-item ${isActive ? "active" : ""}`
-          }
-          style={baseStyles}
-        >
-          {icon}
-        </NavLink>
-      ) : null}
-    </>
-  );
+			{onClick ? (
+				<div className="nav-icon" onClick={onClick}>
+					{icon}
+				</div>
+			) : path ? (
+				<NavLink
+					to={path}
+					className={({ isActive }) => `nav-icon ${isActive ? "active" : ""}`}
+				>
+					{icon}
+				</NavLink>
+			) : null}
+		</>
+	);
 };
 
 export default NavIconItem;

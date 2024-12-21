@@ -1,66 +1,68 @@
-// ai/cybot/CybotNameChip
-import React, { useState } from "react";
 import { useFetchData } from "app/hooks";
+import { useCouldEdit } from "auth/useCouldEdit";
 import { extractCustomId } from "core";
+import React from "react";
+import { defaultTheme } from "render/styles/colors";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
-import { useSelector } from "react-redux";
-import { selectTheme } from "app/theme/themeSlice";
-import { useCouldEdit } from "auth/useCouldEdit";
-
 import QuickEditCybot from "./QuickEditCybot";
-import { txt } from "render/styles/txt";
 
 const CybotNameChip = React.memo(({ cybotId }) => {
-  const { isLoading, data: cybot } = useFetchData(cybotId);
-  const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
-  const theme = useSelector(selectTheme);
-  const [isHovered, setIsHovered] = useState(false);
-  const allowEdit = useCouldEdit(cybotId);
+	const { isLoading, data: cybot } = useFetchData(cybotId);
+	const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
+	const allowEdit = useCouldEdit(cybotId);
 
-  if (isLoading) return null;
+	if (isLoading) return null;
 
-  const displayName = cybot?.name || extractCustomId(cybotId);
+	const displayName = cybot?.name || extractCustomId(cybotId);
 
-  const handleClick = (e) => {
-    e.stopPropagation();
-    openEdit();
-  };
+	const handleClick = (e) => {
+		e.stopPropagation();
+		openEdit();
+	};
 
-  const chipStyles = {
-    fontSize: theme.fontSize.small,
-    padding: `${theme.spacing.xsmall} ${theme.spacing.small}`,
-    borderRadius: "12px",
-    backgroundColor: isHovered ? theme.surface3 : theme.surface2,
-    color: theme.text2,
-    ...txt.ellipsis,
-    maxWidth: "100px",
-    cursor: "pointer",
-    transition: "background-color 0.2s",
-  };
+	return (
+		<>
+			<style>
+				{`
+          .cybot-chip {
+            font-size: 13px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background-color: ${defaultTheme.backgroundSecondary};
+            color: ${defaultTheme.textSecondary};
+            max-width: 100px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid ${defaultTheme.border};
+          }
 
-  return (
-    <>
-      <span
-        title={displayName}
-        onClick={handleClick}
-        style={chipStyles}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {displayName}
-      </span>
-      {allowEdit && editVisible && cybot && (
-        <Dialog
-          isOpen={editVisible}
-          onClose={closeEdit}
-          title={`Edit ${cybot.name || "Cybot"}`}
-        >
-          <QuickEditCybot initialValues={cybot} onClose={closeEdit} />
-        </Dialog>
-      )}
-    </>
-  );
+          .cybot-chip:hover {
+            background-color: ${defaultTheme.backgroundGhost};
+            border-color: ${defaultTheme.borderHover};
+            color: ${defaultTheme.text};
+          }
+        `}
+			</style>
+
+			<span className="cybot-chip" title={displayName} onClick={handleClick}>
+				{displayName}
+			</span>
+
+			{allowEdit && editVisible && cybot && (
+				<Dialog
+					isOpen={editVisible}
+					onClose={closeEdit}
+					title={`Edit ${cybot.name || "Cybot"}`}
+				>
+					<QuickEditCybot initialValues={cybot} onClose={closeEdit} />
+				</Dialog>
+			)}
+		</>
+	);
 });
 
 export default CybotNameChip;

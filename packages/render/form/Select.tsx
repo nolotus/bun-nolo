@@ -1,35 +1,35 @@
 import React from "react";
-import { COLORS } from "render/styles/colors";
+import { defaultTheme } from "render/styles/colors";
 
 const selectStyles = {
-  width: "100%",
-  padding: "10px 12px",
-  border: `1px solid ${COLORS.border}`,
-  borderRadius: "8px",
-  backgroundColor: COLORS.background,
-  color: COLORS.text,
-  fontSize: "14px",
-  transition: "all 0.2s ease",
-  cursor: "pointer",
-  outline: "none",
+	width: "100%",
+	padding: "10px 12px",
+	border: `1px solid ${defaultTheme.border}`,
+	borderRadius: "8px",
+	backgroundColor: defaultTheme.background,
+	color: defaultTheme.text,
+	fontSize: "14px",
+	transition: "all 0.2s ease",
+	cursor: "pointer",
+	outline: "none",
 };
 
 export const Select = React.forwardRef<
-  HTMLSelectElement,
-  React.SelectHTMLAttributes<HTMLSelectElement>
+	HTMLSelectElement,
+	React.SelectHTMLAttributes<HTMLSelectElement>
 >((props, ref) => (
-  <>
-    <style>
-      {`
+	<>
+		<style>
+			{`
         select:hover {
-          border-color: ${COLORS.borderHover};
+          border-color: ${defaultTheme.borderHover};
         }
         select:focus {
-          border-color: ${COLORS.primary};
-          box-shadow: 0 0 0 2px ${COLORS.primaryGhost};
+          border-color: ${defaultTheme.primary};
+          box-shadow: 0 0 0 2px ${defaultTheme.primaryGhost};
         }
       `}
-    </style>
-    <select {...props} ref={ref} style={selectStyles} />
-  </>
+		</style>
+		<select {...props} ref={ref} style={selectStyles} />
+	</>
 ));
