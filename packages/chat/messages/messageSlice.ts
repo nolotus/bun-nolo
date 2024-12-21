@@ -6,7 +6,6 @@ import {
 import { extractCustomId } from "core";
 import { ollamaHandler } from "integrations/ollama/ollamaHandler";
 
-import { createStreamRequestBody } from "ai/chat/createStreamRequestBody";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { API_ENDPOINTS } from "database/config";
 import { noloRequest } from "database/requests/noloRequest";
@@ -21,13 +20,11 @@ import {
 	upsertOne,
 } from "database/dbSlice";
 import { filter, reverse } from "rambda";
-import { selectCurrentServer } from "setting/settingSlice";
 import { ulid } from "ulid";
 
 import { handleOllamaResponse } from "ai/chat/handleOllamaResponse";
 
 import { prepareTools } from "ai/tools/prepareTools";
-import { sendNoloChatRequest } from "./chatStreamRequest";
 
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
@@ -275,41 +272,6 @@ export const messageSlice = createSliceWithThunks({
 			},
 		),
 
-		streamRequest: create.asyncThunk(
-			async ({ content, prevMsgs, cybotConfig, signal, id }, thunkApi) => {
-				const dispatch = thunkApi.dispatch;
-				const state = thunkApi.getState();
-				const token = state.auth.currentToken;
-				const currentServer = selectCurrentServer(state);
-				const cybotId = cybotConfig.id;
-
-				await dispatch(
-					addAIMessage({
-						content: "loading ...",
-						id,
-						isSaveToServer: false,
-						cybotId,
-					}),
-				);
-
-				const config = {
-					...cybotConfig,
-					responseLanguage: navigator.language,
-				};
-
-				const requestBody = createStreamRequestBody(config, content, prevMsgs);
-				console.log("requestBody", requestBody);
-				const response = await sendNoloChatRequest({
-					currentServer,
-					requestBody: { ...requestBody },
-					signal,
-					token,
-				});
-				const reader = response.body.getReader();
-				return { reader, id };
-			},
-			{},
-		),
 		//for now only use in ollama
 		streamLLmId: create.asyncThunk(
 			async ({ cybotConfig, prevMsgs, content }, thunkApi) => {
@@ -403,7 +365,6 @@ export const {
 	addMessageToServer,
 	addAIMessage,
 	addUserMessage,
-	streamRequest,
 	streamLLmId,
 	sendWithMessageId,
 } = messageSlice.actions;

@@ -1,8 +1,8 @@
 import { anthropicModels } from "integrations/anthropic/models";
-// ai/llm/providers.ts
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { fireworksmodels } from "integrations/fireworks/models";
+import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
 import { xaiModels } from "integrations/xai/models";
@@ -22,6 +22,7 @@ export const providerOptions = [
 	"deepinfra",
 	"deepseek",
 	"mistral",
+	"google",
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
@@ -44,6 +45,8 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
 			return deepSeekModels;
 		case "mistral":
 			return mistralModels;
+		case "google":
+			return googleModels;
 		default:
 			return [];
 	}
