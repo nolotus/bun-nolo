@@ -7,12 +7,13 @@ export const generatePrompt = (
   responseLanguage?: string,
 ): string => {
   const mappedLanguage = mapLanguage(responseLanguage);
+  const currentTime = new Date().toLocaleString('en-US', { timeZone: 'UTC' });
 
-  const nameSection = name ? `Your name is ${name}. ` : "";
+  const nameSection = name? `Your name is ${name}. ` : "";
   const languageSection = mappedLanguage
-    ? `Response Language: ${mappedLanguage}. `
+   ? `Response Language: ${mappedLanguage}. `
     : "";
-
+  const timeSection = `Current time is ${currentTime}. `;
   const instruction = "Please follow the instructions below ";
-  return `${nameSection}${languageSection}${instruction} ${prompt}`;
+  return `${nameSection}${languageSection}${timeSection}${instruction} ${prompt}`;
 };
