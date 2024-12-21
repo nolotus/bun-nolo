@@ -3,7 +3,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 import { blues } from "../colors";
-import { darkTheme } from "./darkTheme";
 import { dimTheme } from "./dimTheme";
 import { lightTheme } from "./lightTheme";
 
@@ -34,12 +33,10 @@ const createExtendedTheme = (baseTheme, themeColors) => ({
 });
 
 const extendedLightTheme = createExtendedTheme(baseTheme, lightTheme);
-const extendedDarkTheme = createExtendedTheme(baseTheme, darkTheme);
 const extendedDimTheme = createExtendedTheme(baseTheme, dimTheme);
 
 const themes = {
 	light: extendedLightTheme,
-	dark: extendedDarkTheme,
 	dim: extendedDimTheme,
 };
 
