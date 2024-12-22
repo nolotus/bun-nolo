@@ -14,7 +14,7 @@ interface ModelSelectorProps {
 	register: any;
 	setValue: any;
 	watch: any;
-	errors: any; // 新增错误对象
+	errors: any;
 	theme?: string;
 }
 
@@ -65,12 +65,19 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 			<div className="select-container">
 				<div className="select-input-container">
 					<input
-						{...getInputProps()}
+						{...getInputProps({
+							onKeyDown: (event) => {
+								if (event.key === "Enter") {
+									event.preventDefault(); // 阻止Enter键的默认提交行为
+								}
+							},
+						})}
 						className="select-input"
 						readOnly
 						value={selectedItem || ""}
 					/>
 					<button
+						type="button" // 确保这是一个普通按钮，而不是提交按钮
 						{...getToggleButtonProps()}
 						className={`select-toggle ${isOpen ? "rotate-arrow" : ""}`}
 					>
@@ -128,12 +135,19 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 			<div className="select-container">
 				<div className="select-input-container">
 					<input
-						{...getInputProps()}
+						{...getInputProps({
+							onKeyDown: (event) => {
+								if (event.key === "Enter") {
+									event.preventDefault(); // 阻止Enter键的默认提交行为
+								}
+							},
+						})}
 						className="select-input"
 						readOnly
 						value={selectedItem ? selectedItem.name : ""}
 					/>
 					<button
+						type="button" // 确保这是一个普通按钮，而不是提交按钮
 						{...getToggleButtonProps()}
 						className={`select-toggle ${isOpen ? "rotate-arrow" : ""}`}
 					>
