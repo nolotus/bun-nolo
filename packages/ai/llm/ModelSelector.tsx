@@ -1,14 +1,13 @@
 import { CheckIcon, ChevronDownIcon } from "@primer/octicons-react";
-import { useCombobox } from "downshift";
-import type React from "react";
 import { useEffect, useState } from "react";
+import type React from "react";
 import { useTranslation } from "react-i18next";
 import { FormField } from "render/form/FormField";
 import { Label } from "render/form/Label";
-import { defaultTheme } from "render/styles/colors";
 
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
+import Select from "./Select";
 
 interface ModelSelectorProps {
   register: any;
@@ -27,14 +26,21 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   const { t } = useTranslation();
   const provider = watch("provider");
   const [models, setModels] = useState<Model[]>([]);
+  const [providerInputValue, setProviderInputValue] = useState<string>(
+    provider || "",
+  );
 
   useEffect(() => {
-    const modelsList = getModelsByProvider(provider);
+    setProviderInputValue(provider || "");
+  }, [provider]);
+
+  useEffect(() => {
+    const modelsList = getModelsByProvider(providerInputValue);
     setModels(modelsList);
     if (modelsList.length > 0) {
       setValue("model", modelsList[0].name);
     }
-  }, [provider, setValue]);
+  }, [providerInputValue, setValue]);
 
   const renderError = (field: string) => {
     return errors[field] ? (
@@ -51,303 +57,46 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
     marginBottom: "16px",
   };
 
-  const ProviderSelect = () => {
-    const {
-      isOpen,
-      getMenuProps,
-      getInputProps,
-      getItemProps,
-      getToggleButtonProps,
-      selectedItem,
-      highlightedIndex,
-    } = useCombobox({
-      items: providerOptions,
-      onSelectedItemChange: ({ selectedItem }) =>
-        selectedItem && setValue("provider", selectedItem),
-      initialSelectedItem: provider,
-      defaultIsOpen: false,
-    });
-
-    return (
-      <div className="select-container">
-        <div className="select-input-container">
-          <input
-            {...getInputProps({
-              onKeyDown: (event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                }
-              },
-            })}
-            className="select-input"
-            readOnly
-            value={selectedItem || ""}
-          />
-          <button
-            type="button"
-            {...getToggleButtonProps()}
-            className={`select-toggle ${isOpen ? "rotate-arrow" : ""}`}
-          >
-            <ChevronDownIcon size={16} />
-          </button>
-        </div>
-        <ul
-          {...getMenuProps()}
-          className="select-menu"
-          style={{ display: !isOpen ? "none" : undefined }}
-        >
-          {isOpen &&
-            providerOptions.map((item, index) => (
-              <li
-                {...getItemProps({
-                  key: `${item}-${index}`,
-                  index,
-                  item,
-                  className: `select-option ${
-                    highlightedIndex === index ? "highlighted" : ""
-                  } ${selectedItem === item ? "selected" : ""}`,
-                })}
-              >
-                <span className="option-content">
-                  {item}
-                  {selectedItem === item && (
-                    <CheckIcon size={16} className="check-icon" />
-                  )}
-                </span>
-              </li>
-            ))}
-        </ul>
-      </div>
-    );
-  };
-
-  const ModelSelect = () => {
-    const {
-      isOpen,
-      getMenuProps,
-      getInputProps,
-      getItemProps,
-      getToggleButtonProps,
-      selectedItem,
-      highlightedIndex,
-    } = useCombobox({
-      items: models,
-      onSelectedItemChange: ({ selectedItem }) =>
-        selectedItem && setValue("model", selectedItem.name),
-      itemToString: (item) => (item ? item.name : ""),
-      defaultIsOpen: false,
-    });
-
-    return (
-      <div className="select-container">
-        <div className="select-input-container">
-          <input
-            {...getInputProps({
-              onKeyDown: (event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                }
-              },
-            })}
-            className="select-input"
-            readOnly
-            value={selectedItem ? selectedItem.name : ""}
-          />
-          <button
-            type="button"
-            {...getToggleButtonProps()}
-            className={`select-toggle ${isOpen ? "rotate-arrow" : ""}`}
-          >
-            <ChevronDownIcon size={16} />
-          </button>
-        </div>
-        <ul
-          {...getMenuProps()}
-          className="select-menu"
-          style={{ display: !isOpen ? "none" : undefined }}
-        >
-          {isOpen &&
-            models.map((model, index) => (
-              <li
-                {...getItemProps({
-                  key: model.name,
-                  index,
-                  item: model,
-                  className: `select-option ${
-                    highlightedIndex === index ? "highlighted" : ""
-                  } ${selectedItem === model ? "selected" : ""}`,
-                })}
-              >
-                <div className="model-option">
-                  <span className="model-name">{model.name}</span>
-                  <div className="model-indicators">
-                    {model.hasVision && (
-                      <span className="vision-badge">
-                        {t("supportsVision")}
-                      </span>
-                    )}
-                    {selectedItem === model && (
-                      <CheckIcon size={16} className="check-icon" />
-                    )}
-                  </div>
-                </div>
-              </li>
-            ))}
-        </ul>
-      </div>
-    );
-  };
-
   return (
     <>
-      <style>
-        {`
-          .select-container {
-            position: relative;
-            width: 100%;
-          }
-
-          .select-input-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-          }
-
-          .select-input {
-            width: 100%;
-            height: 40px;
-            padding: 0 12px;
-            border-radius: 8px;
-            border: 1px solid ${defaultTheme.border};
-            font-size: 13px;
-            font-weight: 500;
-            color: ${defaultTheme.text};
-            background: ${defaultTheme.background};
-            cursor: pointer;
-            outline: none;
-            transition: all 0.15s ease;
-          }
-
-          .select-input:focus {
-            border-color: ${defaultTheme.primary};
-            box-shadow: 0 0 0 3.5px ${defaultTheme.focus};
-          }
-
-          .select-toggle {
-            position: absolute;
-            right: 8px;
-            background: none;
-            border: none;
-            color: ${defaultTheme.placeholder};
-            cursor: pointer;
-            padding: 4px 8px;
-            display: flex;
-            align-items: center;
-            transition: transform 0.2s ease;
-          }
-
-          .select-toggle.rotate-arrow {
-            transform: rotate(180deg);
-          }
-
-          .select-menu {
-            position: absolute;
-            width: 100%;
-            background: ${defaultTheme.background};
-            margin-top: 4px;
-            border-radius: 8px;
-            border: 1px solid ${defaultTheme.border};
-            box-shadow: 0 4px 8px ${defaultTheme.shadowLight};
-            z-index: 10;
-            padding: 6px;
-            list-style: none;
-          }
-
-          .select-option {
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            color: ${defaultTheme.text};
-            transition: background-color 0.15s ease;
-            margin: 2px 0;
-          }
-
-          .select-option:hover {
-            background-color: ${defaultTheme.primaryBg};
-          }
-
-          .select-option.highlighted {
-            background-color: ${defaultTheme.primaryBg};
-          }
-
-          .select-option.selected {
-            background-color: ${defaultTheme.primary};
-            color: white;
-          }
-
-          .select-option.selected:hover {
-            background-color: ${defaultTheme.hover};
-          }
-          
-          .vision-badge {
-            display: inline-flex;
-            align-items: center;
-            font-size: 12px;
-            background: ${defaultTheme.primaryBg};
-            color: ${defaultTheme.primary};
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: 8px;
-            border: 1px solid ${defaultTheme.primaryLight};
-            transition: all 0.15s ease;
-          }
-          
-          .model-option {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-          }
-
-          .model-indicators {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          }
-
-          .model-name {
-            font-weight: 500;
-            font-size: 13px;
-          }
-          
-          .option-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-          }
-
-          .check-icon {
-            color: ${defaultTheme.background};
-          }
-
-           .select-option:not(.selected) .check-icon {
-            color: ${defaultTheme.primary};
-          }
-        `}
-      </style>
-
       <div style={sharedModelSelectorContainerStyle}>
         <FormField>
           <Label>{t("provider")}</Label>
-          <ProviderSelect />
+          <Select
+            items={providerOptions.map((item) => ({ name: item }))}
+            selectedItem={provider ? { name: provider } : undefined}
+            onSelectedItemChange={(item) => {
+              setValue("provider", item.name);
+              setProviderInputValue(item.name);
+            }}
+            itemToString={(item) => (item ? item.name : "")}
+            placeholder={t("selectProvider")}
+            allowInput={true}
+            onInputChange={(value) => setProviderInputValue(value)}
+          />
           {renderError("provider")}
         </FormField>
 
         <FormField>
           <Label>{t("model")}</Label>
-          <ModelSelect />
+          <Select
+            items={models}
+            selectedItem={models.find((model) => watch("model") === model.name)}
+            onSelectedItemChange={(item) => setValue("model", item.name)}
+            itemToString={(item) => (item ? item.name : "")}
+            renderOptionContent={(item, isHighlighted, isSelected) => (
+              <div className="model-option">
+                <span className="model-name">{item.name}</span>
+                <div className="model-indicators">
+                  {item.hasVision && (
+                    <span className="vision-badge">{t("supportsVision")}</span>
+                  )}
+                  {isSelected && <CheckIcon size={16} className="check-icon" />}
+                </div>
+              </div>
+            )}
+            placeholder={t("selectModel")}
+          />
           {renderError("model")}
         </FormField>
       </div>
