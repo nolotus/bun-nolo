@@ -4,7 +4,6 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FormField } from "render/form/FormField";
-
 import { Label } from "render/form/Label";
 import { defaultTheme } from "render/styles/colors";
 
@@ -15,6 +14,7 @@ interface ModelSelectorProps {
 	register: any;
 	setValue: any;
 	watch: any;
+	errors: any; // 新增错误对象
 	theme?: string;
 }
 
@@ -22,7 +22,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 	register,
 	setValue,
 	watch,
-	theme = "blue",
+	errors,
 }) => {
 	const { t } = useTranslation();
 	const provider = watch("provider");
@@ -35,6 +35,14 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 			setValue("model", modelsList[0].name);
 		}
 	}, [provider, setValue]);
+
+	const renderError = (field: string) => {
+		return errors[field] ? (
+			<div style={{ color: "red", marginTop: "4px", fontSize: "12px" }}>
+				{errors[field].message}
+			</div>
+		) : null;
+	};
 
 	const ProviderSelect = () => {
 		const {
@@ -329,11 +337,13 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 				<FormField>
 					<Label className="form-label">{t("provider")}</Label>
 					<ProviderSelect />
+					{renderError("provider")}
 				</FormField>
 
 				<FormField>
 					<Label className="form-label">{t("model")}</Label>
 					<ModelSelect />
+					{renderError("model")}
 				</FormField>
 			</div>
 		</>

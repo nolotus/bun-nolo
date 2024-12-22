@@ -1,5 +1,4 @@
-// CreateCybot.tsx
-
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
@@ -16,15 +15,32 @@ import {
 	FormTitle,
 } from "render/CommonFormComponents";
 import { FormField } from "render/form/FormField";
-
 import { Label } from "render/form/Label";
 import { Button } from "render/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
+import { z } from "zod";
 
 import ModelSelector from "../llm/ModelSelector";
-import { getModelsByProvider, providerOptions } from "../llm/providers";
+import { getModelsByProvider } from "../llm/providers"; // 假定 providerOptions 在这个文件中定义
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
+
+// 定义Zod模式
+const schema = z.object({
+	name: z.string().nonempty("Cybot name is required"),
+	provider: z.string().nonempty("Provider is required"),
+	model: z.string().nonempty("Model is required"),
+	apiKey: z.string().optional(),
+	tools: z.array(z.string()),
+	isPrivate: z.boolean(),
+	isEncrypted: z.boolean(),
+	useServerProxy: z.boolean(),
+	prompt: z.string().optional(),
+	greeting: z.string().optional(),
+	introduction: z.string().optional(),
+});
+
+type FormData = z.infer<typeof schema>;
 
 const CreateCybot: React.FC = () => {
 	const { t } = useTranslation();
@@ -38,12 +54,14 @@ const CreateCybot: React.FC = () => {
 		watch,
 		setValue,
 		formState: { errors, isSubmitting },
-	} = useForm({
+	} = useForm<FormData>({
+		resolver: zodResolver(schema),
 		defaultValues: {
 			tools: [],
 			isPrivate: false,
 			isEncrypted: false,
-			provider: providerOptions[0],
+			provider: "",
+			model: "",
 			useServerProxy: true,
 		},
 	});
@@ -64,8 +82,8 @@ const CreateCybot: React.FC = () => {
 	const useServerProxy = watch("useServerProxy");
 
 	const onSubmit = useCallback(
-		async (data: any) => {
-			console.log("Form data before submission:", data); // 添加这行来检查数据
+		async (data: FormData) => {
+			console.log("Form data before submission:", data);
 			try {
 				const writeResult = await dispatch(
 					write({
@@ -87,14 +105,10 @@ const CreateCybot: React.FC = () => {
 		[dispatch, auth.user?.userId, createNewDialog],
 	);
 
-	const handleFormSubmit = handleSubmit(onSubmit, (errors) =>
-		console.log("Form validation failed", errors),
-	);
-
 	return (
 		<FormContainer>
 			<FormTitle>{t("createCybot")}</FormTitle>
-			<form onSubmit={handleFormSubmit}>
+			<form onSubmit={handleSubmit(onSubmit)}>
 				<FormFieldComponent
 					label={t("cybotName")}
 					name="name"
@@ -103,7 +117,12 @@ const CreateCybot: React.FC = () => {
 					required={t("cybotNameRequired")}
 				/>
 
-				<ModelSelector register={register} setValue={setValue} watch={watch} />
+				<ModelSelector
+					register={register}
+					setValue={setValue}
+					watch={watch}
+					errors={errors}
+				/>
 
 				<FormFieldComponent
 					label={t("apiKeyField")}
