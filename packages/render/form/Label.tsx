@@ -6,6 +6,8 @@ const labelStyles = {
 	marginBottom: "8px",
 	color: defaultTheme.textSecondary,
 	fontSize: "14px",
+	letterSpacing: "0.01em",
+
 	fontWeight: 500,
 };
 
