@@ -124,6 +124,7 @@ export const sendCommonChatRequest = async ({
 					updateDialogTitle({
 						dialogId,
 						currentMsgs,
+						cybotConfig,
 					}),
 				);
 				break;
