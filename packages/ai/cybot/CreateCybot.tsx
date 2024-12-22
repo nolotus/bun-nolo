@@ -25,11 +25,8 @@ import ModelSelector from "../llm/ModelSelector";
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
-interface CreateCybotProps {
-	onClose: () => void;
-}
 
-const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
+const CreateCybot: React.FC = () => {
 	const { t } = useTranslation();
 	const dispatch = useAppDispatch();
 	const auth = useAuth();
@@ -83,13 +80,11 @@ const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
 				const cybotId = writeResult.id;
 
 				await createNewDialog({ cybots: [cybotId] });
-
-				onClose();
 			} catch (error) {
 				console.error("Error creating Cybot:", error);
 			}
 		},
-		[dispatch, auth.user?.userId, createNewDialog, onClose],
+		[dispatch, auth.user?.userId, createNewDialog],
 	);
 
 	const handleFormSubmit = handleSubmit(onSubmit, (errors) =>

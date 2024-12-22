@@ -28,8 +28,9 @@ export const sendMessageAction = async (args, thunkApi) => {
 			cybotConfig.provider === "deepseek" ||
 			cybotConfig.provider === "xai" ||
 			cybotConfig.provider === "openai" ||
-			cybotConfig.provider === "mistral"
-		) {
+			cybotConfig.provider === "mistral" ||
+			cybotConfig.provider === "google"
+		)
 			sendCommonChatRequest({
 				content,
 				cybotConfig,
@@ -37,8 +38,7 @@ export const sendMessageAction = async (args, thunkApi) => {
 				prevMsgs,
 				dialogId: dialogConfig.id,
 			});
-			return;
-		}
+		return;
 	}
 	if (cybotConfig.provider === "anthropic") {
 		sendClaudeRequest({ cybotConfig, content, thunkApi });
