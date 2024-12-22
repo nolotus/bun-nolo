@@ -120,7 +120,6 @@ export const messageSlice = createSliceWithThunks({
 				const actionResult = await dispatch(
 					addToList({ itemId: saveMessage.id, listId: updateId }),
 				);
-				console.log("addMessageToServer", actionResult);
 
 				return actionResult.payload;
 			},

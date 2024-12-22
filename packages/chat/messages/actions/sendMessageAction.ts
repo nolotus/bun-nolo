@@ -15,7 +15,6 @@ export const sendMessageAction = async (args, thunkApi) => {
 		read({ id: dialogConfig.cybots[0] }),
 	).unwrap();
 
-	console.log("cybotConfig", cybotConfig);
 	const { content } = args;
 	const prevMsgs = getFilteredMessages(state);
 	//need before add user message

@@ -1,18 +1,19 @@
+// chatRequest.ts
+
 import { createMessages } from "ai/api/createMessages";
 import { prepareTools } from "ai/tools/prepareTools";
 import { selectCurrentUserId } from "auth/authSlice";
+import { updateDialogTitle } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { getFilteredMessages } from "chat/messages/utils";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { setOne } from "database/dbSlice";
-import { ulid } from "ulid";
-
-import { updateDialogTitle } from "chat/dialog/dialogSlice";
-import { API_ENDPOINTS } from "database/config";
 import { selectCurrentServer } from "setting/settingSlice";
+import { ulid } from "ulid";
 import { getApiEndpoint } from "../api/apiEndpoints";
+import { performFetchRequest } from "./fetchUtils";
 
-function parseMultilineSSE(rawText) {
+function parseMultilineSSE(rawText: string) {
 	const results = [];
 	const lines = rawText.split("\n");
 	let currentData = "";
@@ -44,17 +45,6 @@ function parseMultilineSSE(rawText) {
 	return results;
 }
 
-const createRequestConfig = (cybotConfig, bodyData, signal) => ({
-	method: "POST",
-	headers: {
-		"Content-Type": "application/json",
-		Authorization: `Bearer ${cybotConfig.apiKey}`,
-	},
-	body: JSON.stringify(bodyData),
-	signal,
-});
-
-//prevMsgs is need outside ,if inside will include our message
 export const sendCommonChatRequest = async ({
 	content,
 	cybotConfig,
@@ -68,7 +58,9 @@ export const sendCommonChatRequest = async ({
 	const signal = controller.signal;
 	const currentServer = selectCurrentServer(getState());
 
-	// 准备请求数据
+	console.log("Preparing request with content:", content);
+	console.log("Configuration:", cybotConfig);
+
 	const messages = createMessages(content, prevMsgs, cybotConfig);
 	const model = cybotConfig.model;
 
@@ -77,7 +69,7 @@ export const sendCommonChatRequest = async ({
 		const tools = prepareTools(cybotConfig.tools);
 		bodyData.tools = tools;
 	}
-	// 生成消息ID
+
 	const userId = selectCurrentUserId(getState());
 	const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
 
@@ -85,7 +77,6 @@ export const sendCommonChatRequest = async ({
 	let reader;
 
 	try {
-		// 初始化加载状态
 		const message = {
 			id: messageId,
 			content: "Loading...",
@@ -97,27 +88,15 @@ export const sendCommonChatRequest = async ({
 		dispatch(messageStreaming(message));
 
 		const api = getApiEndpoint(cybotConfig.provider);
+		console.log("API Endpoint:", api);
 
-		let response;
-		if (!cybotConfig.useServerProxy) {
-			response = await fetch(
-				api,
-				createRequestConfig(cybotConfig, bodyData, signal),
-			);
-		} else {
-			response = await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					...bodyData,
-					url: api,
-					KEY: cybotConfig.apiKey,
-				}),
-				signal,
-			});
-		}
+		const response = await performFetchRequest(
+			cybotConfig,
+			api,
+			bodyData,
+			signal,
+			currentServer,
+		);
 
 		if (!response.ok) {
 			throw new Error(`API request failed: ${response.statusText}`);
@@ -128,10 +107,10 @@ export const sendCommonChatRequest = async ({
 
 		while (true) {
 			const { done, value } = await reader.read();
+			console.log("Read operation:", { done, value });
 
 			if (done) {
-				// 流结束时发送最终消息
-
+				console.log("end contentBuffer", contentBuffer);
 				dispatch(
 					messageStreamEnd({
 						id: messageId,
@@ -151,13 +130,34 @@ export const sendCommonChatRequest = async ({
 			}
 
 			const result = decoder.decode(value);
+			console.log("Decoded result:", result);
+
 			const parsedResults = parseMultilineSSE(result);
+			console.log("Parsed results:", parsedResults);
 
 			for (const parsedData of parsedResults) {
+				if (parsedData.error) {
+					// Log the error and handle it accordingly
+					console.error("Error received from API:", parsedData.error.message);
+					dispatch(
+						messageStreaming({
+							id: messageId,
+							content: "Error: " + parsedData.error.message,
+							role: "assistant",
+							cybotId: cybotConfig.id,
+							controller,
+						}),
+					);
+					break;
+				}
+
 				const content = parsedData.choices?.[0]?.delta?.content || "";
+				console.log("Parsed content:", content);
+
 				if (content) {
 					contentBuffer += content;
-					// 更新当前消息内容
+					console.log("streaming contentBuffer", contentBuffer);
+
 					dispatch(
 						setOne({
 							id: messageId,
@@ -192,7 +192,6 @@ export const sendCommonChatRequest = async ({
 		);
 		throw error;
 	} finally {
-		// 确保在结束时释放reader
 		if (reader) {
 			reader.releaseLock();
 		}
