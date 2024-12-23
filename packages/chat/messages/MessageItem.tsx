@@ -7,13 +7,7 @@ import { SelfMessage } from "./SelfMessage";
 import { UserMessage } from "./UserMessage";
 import { deleteNotFound } from "./messageSlice";
 
-interface MessageData {
-  userId: string;
-  llmId?: string;
-  cybotId?: string;
-  content: string;
-  image?: string;
-}
+import { defaultTheme } from "render/styles/colors";
 
 interface MessageProps {
   message: {
@@ -46,7 +40,20 @@ const ErrorMessage = React.memo(
 );
 
 // 加载组件
-const LoadingMessage = React.memo(() => <div>loading</div>);
+const LoadingMessage = React.memo(() => (
+  <div
+    style={{
+      background: defaultTheme.backgroundSecondary,
+      border: `1px solid ${defaultTheme.border}`,
+      borderRadius: "12px",
+      padding: "12px 16px",
+      minWidth: "100px",
+      width: `${Math.random() * 200 + 100}px`,
+      height: "20px",
+      animation: "message-enter 0.3s ease-out forwards",
+    }}
+  />
+));
 
 export const MessageItem = React.memo(
   ({ message }: MessageProps) => {

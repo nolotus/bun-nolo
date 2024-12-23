@@ -12,7 +12,6 @@ import { selectMergedMessages, selectStreamMessages } from "./selector";
 const MessagesList: React.FC = () => {
   const PAGE_SIZE = 8;
   const INITIAL_SIZE = PAGE_SIZE * 2;
-  const SCROLL_THRESHOLD = 0.2;
 
   const [displayCount, setDisplayCount] = useState(INITIAL_SIZE);
   const [hasMore, setHasMore] = useState(true);
@@ -32,12 +31,9 @@ const MessagesList: React.FC = () => {
     const container = containerRef.current;
     if (!container || !hasMore) return;
 
-    const scrollTop = container.scrollTop;
-    const scrollHeight = container.scrollHeight;
-    const clientHeight = container.clientHeight;
-
-    // 修改这里: 当滚动到顶部附近时加载更多
-    if ((scrollHeight - scrollTop - clientHeight) / scrollHeight > 0.8) {
+    // 改为检查距离顶部的距离
+    if (container.scrollTop < 100) {
+      // 距顶部100px时加载更多
       const newDisplayCount = displayCount + PAGE_SIZE;
       if (newDisplayCount >= messages.length) {
         setHasMore(false);
