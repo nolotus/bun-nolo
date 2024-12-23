@@ -1,10 +1,10 @@
 import {
-	CommentIcon,
-	DependabotIcon,
-	FileAddedIcon,
-	FileIcon,
-	PeopleIcon,
-	SearchIcon,
+  CommentIcon,
+  DependabotIcon,
+  FileAddedIcon,
+  FileIcon,
+  PeopleIcon,
+  SearchIcon,
 } from "@primer/octicons-react";
 import Cybots from "ai/cybot/Cybots";
 import { useAppSelector } from "app/hooks";
@@ -19,57 +19,57 @@ import { useNavigate } from "react-router-dom";
 import { defaultTheme } from "render/styles/colors";
 
 interface ButtonInfo {
-	text: string;
-	route: string;
-	icon?: React.ReactNode;
-	description?: string;
+  text: string;
+  route: string;
+  icon?: React.ReactNode;
+  description?: string;
 }
 
 const Dashboard = () => {
-	const navigate = useNavigate();
-	const userId = useAppSelector(selectCurrentUserId);
+  const navigate = useNavigate();
+  const userId = useAppSelector(selectCurrentUserId);
 
-	const buttonsInfo = useMemo(() => [
-		{
-			text: "Cybot",
-			route: `/${CreateRoutePaths.CREATE_CYBOT}`,
-			icon: <DependabotIcon size={24} />,
-			description: "创建智能对话机器人",
-		},
-		{
-			text: "空白页面",
-			route: `/${CreateRoutePaths.CREATE_PAGE}`,
-			icon: <FileAddedIcon size={24} />,
-			description: "从空白页面开始创作",
-		},
-		{
-			text: "提示词",
-			route: `/${CreateRoutePaths.CREATE_PROMPT}`,
-			icon: <CommentIcon size={24} />,
-			description: "管理和创建提示词模板",
-		},
-	]);
-	const { data: templates } = useQueryData({
-		queryUserId: nolotusId,
-		options: {
-			isJSON: true,
-			condition: { is_template: true },
-			limit: 20,
-		},
-	});
+  const buttonsInfo = useMemo(() => [
+    {
+      text: "Cybot",
+      route: `/${CreateRoutePaths.CREATE_CYBOT}`,
+      icon: <DependabotIcon size={24} />,
+      description: "创建智能对话机器人",
+    },
+    {
+      text: "空白页面",
+      route: `/${CreateRoutePaths.CREATE_PAGE}`,
+      icon: <FileAddedIcon size={24} />,
+      description: "从空白页面开始创作",
+    },
+    {
+      text: "提示词",
+      route: `/${CreateRoutePaths.CREATE_PROMPT}`,
+      icon: <CommentIcon size={24} />,
+      description: "管理和创建提示词模板",
+    },
+  ]);
+  const { data: templates } = useQueryData({
+    queryUserId: nolotusId,
+    options: {
+      isJSON: true,
+      condition: { is_template: true },
+      limit: 20,
+    },
+  });
 
-	const templateButtons =
-		templates?.map((template) => ({
-			text: template.title,
-			route: `/create/page?id=${template.id}`,
-			description: template.description || "使用此模板快速开始",
-			icon: <FileIcon size={20} />,
-		})) ?? [];
+  const templateButtons =
+    templates?.map((template) => ({
+      text: template.title,
+      route: `/create/page?id=${template.id}`,
+      description: template.description || "使用此模板快速开始",
+      icon: <FileIcon size={20} />,
+    })) ?? [];
 
-	return (
-		<>
-			<style>
-				{`
+  return (
+    <>
+      <style>
+        {`
 			.dashboard-container {
 			  max-width: 1200px;
 			  margin: 0 auto;
@@ -166,88 +166,88 @@ const Dashboard = () => {
 			  line-height: 1.5;
 			}
 		  `}
-			</style>
+      </style>
 
-			<div className="dashboard-container">
-				<header className="dashboard-header">
-					<h1 className="header-title">开始创建</h1>
-					<p className="header-subtitle">选择合适的工具开始你的创作之旅</p>
-				</header>
+      <div className="dashboard-container">
+        <header className="dashboard-header">
+          <h1 className="header-title">开始创建</h1>
+          <p className="header-subtitle">选择合适的工具开始你的创作之旅</p>
+        </header>
 
-				<section>
-					<h2 className="section-title">
-						<DependabotIcon size={24} className="icon" />
-						快速创建
-					</h2>
-					<div className="button-grid">
-						{buttonsInfo.map((button) => (
-							<button
-								key={button.text}
-								className="grid-button"
-								onClick={() => navigate(button.route)}
-							>
-								<div className="button-content">
-									{React.cloneElement(button.icon as React.ReactElement, {
-										className: "button-icon",
-									})}
-									<div className="button-text">
-										<div className="button-title">{button.text}</div>
-										<div className="button-description">
-											{button.description}
-										</div>
-									</div>
-								</div>
-							</button>
-						))}
-					</div>
-				</section>
+        <section>
+          <h2 className="section-title">
+            <DependabotIcon size={24} className="icon" />
+            快速创建
+          </h2>
+          <div className="button-grid">
+            {buttonsInfo.map((button) => (
+              <button
+                key={button.text}
+                className="grid-button"
+                onClick={() => navigate(button.route)}
+              >
+                <div className="button-content">
+                  {React.cloneElement(button.icon as React.ReactElement, {
+                    className: "button-icon",
+                  })}
+                  <div className="button-text">
+                    <div className="button-title">{button.text}</div>
+                    <div className="button-description">
+                      {button.description}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
 
-				<section>
-					<h2 className="section-title">
-						<FileIcon size={22} className="icon" />
-						从模板创建
-					</h2>
-					<div className="button-grid">
-						{templateButtons.map((button) => (
-							<button
-								key={button.text}
-								className="grid-button"
-								onClick={() => navigate(button.route)}
-							>
-								<div className="button-content">
-									{React.cloneElement(button.icon as React.ReactElement, {
-										className: "button-icon",
-									})}
-									<div className="button-text">
-										<div className="button-title">{button.text}</div>
-										<div className="button-description">
-											{button.description}
-										</div>
-									</div>
-								</div>
-							</button>
-						))}
-					</div>
-				</section>
+        <section>
+          <h2 className="section-title">
+            <FileIcon size={22} className="icon" />
+            从模板创建
+          </h2>
+          <div className="button-grid">
+            {templateButtons.map((button) => (
+              <button
+                key={button.text}
+                className="grid-button"
+                onClick={() => navigate(button.route)}
+              >
+                <div className="button-content">
+                  {React.cloneElement(button.icon as React.ReactElement, {
+                    className: "button-icon",
+                  })}
+                  <div className="button-text">
+                    <div className="button-title">{button.text}</div>
+                    <div className="button-description">
+                      {button.description}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
 
-				<section>
-					<h2 className="section-title">
-						<PeopleIcon size={22} className="icon" />
-						我的机器人
-					</h2>
-					{userId && <Cybots queryUserId={userId} limit={48} />}
-				</section>
+        <section>
+          <h2 className="section-title">
+            <PeopleIcon size={22} className="icon" />
+            我的机器人
+          </h2>
+          {userId && <Cybots queryUserId={userId} limit={48} />}
+        </section>
 
-				<section>
-					<h2 className="section-title">
-						<SearchIcon size={22} className="icon" />
-						探索社区
-					</h2>
-					<Cybots queryUserId={nolotusId} limit={12} />
-				</section>
-			</div>
-		</>
-	);
+        <section>
+          <h2 className="section-title">
+            <SearchIcon size={22} className="icon" />
+            探索社区
+          </h2>
+          <Cybots queryUserId={nolotusId} limit={18} />
+        </section>
+      </div>
+    </>
+  );
 };
 
 export default withTranslations(Dashboard, ["chat", "ai"]);

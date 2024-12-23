@@ -9,40 +9,40 @@ import { initMessages } from "./messageSlice";
 import { selectMergedMessages, selectStreamMessages } from "./selector";
 
 const MessagesList: React.FC = () => {
-	const dispatch = useAppDispatch();
-	const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-	const messages = useAppSelector(selectMergedMessages);
-	const streamingMessages = useAppSelector(selectStreamMessages);
-	const containerRef = useRef<HTMLDivElement | null>(null);
+  const dispatch = useAppDispatch();
+  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  const messages = useAppSelector(selectMergedMessages);
+  const streamingMessages = useAppSelector(selectStreamMessages);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-	const id = currentDialogConfig.messageListId;
-	if (!id) return <div>No message list ID</div>;
+  const id = currentDialogConfig.messageListId;
+  if (!id) return <div>No message list ID</div>;
 
-	const { data, isLoading, error } = useFetchData(id);
+  const { data, isLoading, error } = useFetchData(id);
 
-	const scrollToBottom = () => {
-		if (containerRef.current) {
-			containerRef.current.scrollTop = containerRef.current.scrollHeight;
-		}
-	};
+  const scrollToBottom = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  };
 
-	useEffect(() => {
-		if (streamingMessages) scrollToBottom();
-	}, [streamingMessages, messages]);
+  useEffect(() => {
+    if (streamingMessages) scrollToBottom();
+  }, [streamingMessages, messages]);
 
-	useEffect(() => {
-		if (data) {
-			dispatch(initMessages(reverse(data.array)));
-		}
-		return () => {
-			dispatch(initMessages());
-		};
-	}, [data, dispatch]);
+  useEffect(() => {
+    if (data) {
+      dispatch(initMessages(reverse(data.array)));
+    }
+    return () => {
+      dispatch(initMessages());
+    };
+  }, [data, dispatch]);
 
-	return (
-		<>
-			<style>
-				{`
+  return (
+    <>
+      <style>
+        {`
           .messages-container {
             height: 100%;
             background-color: ${defaultTheme.background};
@@ -145,27 +145,27 @@ const MessagesList: React.FC = () => {
             }
           }
         `}
-			</style>
+      </style>
 
-			<div className="messages-container">
-				{isLoading ? (
-					<div className="messages-loading-container">
-						<div className="messages-loading-spinner" />
-					</div>
-				) : error ? (
-					<div className="messages-error">
-						{error.message || "无法加载消息"}
-					</div>
-				) : (
-					<div ref={containerRef} className="message-list">
-						{messages.map((message) => (
-							<MessageItem key={message.id} message={message} />
-						))}
-					</div>
-				)}
-			</div>
-		</>
-	);
+      <div className="messages-container">
+        {isLoading ? (
+          <div className="messages-loading-container">
+            <div className="messages-loading-spinner" />
+          </div>
+        ) : error ? (
+          <div className="messages-error">
+            {error.message || "无法加载消息"}
+          </div>
+        ) : (
+          <div ref={containerRef} className="message-list">
+            {messages.map((message) => (
+              <MessageItem key={message.id} message={message} />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
 };
 
 export default MessagesList;
