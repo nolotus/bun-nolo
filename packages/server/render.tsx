@@ -1,12 +1,12 @@
-import React from "react";
 import { api } from "app/api";
 import { store } from "app/store";
-import { renderToReadableStream } from "react-dom/server.browser";
+import React from "react";
+import { renderToReadableStream } from "react-dom/server";
 
-import { renderReactApp } from "./html/renderReactApp";
 import assets from "../../public/assets.json";
-import { htmlStart, htmlEnd } from "./html/template";
+import { renderReactApp } from "./html/renderReactApp";
 import { serializeState } from "./html/serializeState";
+import { htmlEnd, htmlStart } from "./html/template";
 export const handleRender = async (req) => {
   const hostname = req.headers.get("host");
   const url = new URL(req.url);
