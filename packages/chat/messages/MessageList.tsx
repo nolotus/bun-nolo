@@ -10,11 +10,12 @@ import { initMessages } from "./messageSlice";
 import { selectMergedMessages, selectStreamMessages } from "./selector";
 
 const MessagesList: React.FC = () => {
-  const PAGE_SIZE = 8;
+  const PAGE_SIZE = 6;
   const INITIAL_SIZE = PAGE_SIZE * 2;
 
   const [displayCount, setDisplayCount] = useState(INITIAL_SIZE);
   const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const dispatch = useAppDispatch();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
@@ -27,49 +28,50 @@ const MessagesList: React.FC = () => {
 
   const { data, isLoading, error } = useFetchData(id);
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     const container = containerRef.current;
-    if (!container || !hasMore) return;
+    if (!container || !hasMore || isLoadingMore) return;
 
-    // 改为检查距离顶部的距离
-    if (container.scrollTop < 100) {
-      // 距顶部100px时加载更多
+    const scrollBuffer = 100;
+    const isNearTop = container.scrollTop < scrollBuffer;
+
+    if (isNearTop) {
+      setIsLoadingMore(true);
       const newDisplayCount = displayCount + PAGE_SIZE;
+      setDisplayCount(newDisplayCount);
+
       if (newDisplayCount >= messages.length) {
         setHasMore(false);
       }
-      setDisplayCount(newDisplayCount);
+      setIsLoadingMore(false);
     }
-  };
+  }, [hasMore, isLoadingMore, displayCount, messages.length]);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (streamingMessages) scrollToBottom();
-  }, [streamingMessages, messages]);
+  }, [streamingMessages, scrollToBottom]);
 
   useEffect(() => {
     if (data) {
-      // 加载所有消息而不是限制数量
       dispatch(initMessages(reverse(data.array)));
       setHasMore(data.array.length > INITIAL_SIZE);
-      setDisplayCount(INITIAL_SIZE); // 重置显示数量
+      setDisplayCount(INITIAL_SIZE);
     }
     return () => {
       dispatch(initMessages([]));
       setHasMore(true);
       setDisplayCount(INITIAL_SIZE);
     };
-  }, [data, dispatch]);
+  }, [data, dispatch, INITIAL_SIZE]);
 
   const throttledScroll = useCallback(throttle(handleScroll, 200), [
     handleScroll,
-    hasMore,
-    displayCount,
   ]);
 
   return (
@@ -77,20 +79,22 @@ const MessagesList: React.FC = () => {
       <style>
         {`
           .messages-container {
+            display: flex;
+            flex-direction: column;
             height: 100%;
-            background-color: ${defaultTheme.background};
             position: relative;
+            background-color: ${defaultTheme.background};
           }
 
           .message-list {
+            flex: 1;
             display: flex;
             flex-direction: column-reverse;
             gap: 16px;
-            height: 100%;
             padding: 24px 15%;
             overflow-y: auto;
             scroll-behavior: smooth;
-            position: relative;
+            -webkit-overflow-scrolling: touch;
             background-color: ${defaultTheme.background};
           }
 
@@ -111,6 +115,12 @@ const MessagesList: React.FC = () => {
             background-color: ${defaultTheme.borderHover};
           }
 
+          /* Firefox scrollbar */
+          .message-list {
+            scrollbar-width: thin;
+            scrollbar-color: ${defaultTheme.border} transparent;
+          }
+
           .message-item {
             opacity: 0;
             transform: translateY(10px);
@@ -128,43 +138,21 @@ const MessagesList: React.FC = () => {
             }
           }
 
-          .messages-loading-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            animation: fadeIn 0.2s ease forwards;
-          }
-
-          .messages-loading-spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid ${defaultTheme.backgroundSecondary};
-            border-top: 3px solid ${defaultTheme.primary};
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+          .messages-loading {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            color: ${defaultTheme.textSecondary};
           }
 
           .messages-error {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
             color: ${defaultTheme.textSecondary};
             text-align: center;
             padding: 16px;
-            opacity: 0;
-            animation: fadeIn 0.2s ease forwards;
-          }
-
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
           }
 
           @media (max-width: 768px) {
@@ -178,9 +166,7 @@ const MessagesList: React.FC = () => {
 
       <div className="messages-container">
         {isLoading ? (
-          <div className="messages-loading-container">
-            <div className="messages-loading-spinner" />
-          </div>
+          <div className="messages-loading">加载中...</div>
         ) : error ? (
           <div className="messages-error">
             {error.message || "无法加载消息"}
@@ -202,10 +188,9 @@ const MessagesList: React.FC = () => {
                 <MessageItem message={message} />
               </div>
             ))}
-            {/* 修改这里：只在还有更多消息且正在加载时显示 loading */}
-            {hasMore && displayCount < messages.length && !isLoading && (
-              <div style={{ padding: "20px", textAlign: "center" }}>
-                向上滚动加载更多
+            {hasMore && displayCount < messages.length && (
+              <div className="messages-loading">
+                {isLoadingMore ? "加载中..." : "向上滚动加载更多"}
               </div>
             )}
           </div>
