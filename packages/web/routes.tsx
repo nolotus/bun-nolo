@@ -12,42 +12,42 @@ const Page = lazy(() => import("render/page/PageIndex"));
 const PricePage = lazy(() => import("app/pages/Price"));
 
 export const routes = (currentUser: any) => [
-	{
-		path: "/",
-		element: <MainLayout />,
-		children: [
-			...commonRoutes,
-			{
-				path: "/life",
-				children: [
-					createLazyRoute("/life", () => import("life/web/Database")),
-					createLazyRoute(
-						"/life/statistics",
-						() => import("life/web/Statistics"),
-					),
-				],
-			},
-			{
-				index: true,
-				element: <Home />,
-			},
-			{
-				path: "lab",
-				element: <Lab />,
-			},
-			{
-				path: "price",
-				element: <PricePage />,
-			},
-			{ path: "surfing-safety-tips", element: <SurfTip /> },
-			{
-				path: ":pageId",
-				element: (
-					<Suspense>
-						<Page />
-					</Suspense>
-				),
-			},
-		],
-	},
+  {
+    path: "/",
+    element: <MainLayout />,
+    children: [
+      ...commonRoutes,
+      {
+        path: "/life",
+        children: [
+          createLazyRoute("/life", () => import("life/web/Database")),
+          createLazyRoute(
+            "/life/statistics",
+            () => import("life/web/Statistics"),
+          ),
+        ],
+      },
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: "lab",
+        element: <Lab />,
+      },
+      {
+        path: "price",
+        element: <PricePage />,
+      },
+      { path: "surfing-safety-tips", element: <SurfTip /> },
+      {
+        path: ":pageId",
+        element: (
+          <Suspense>
+            <Page />
+          </Suspense>
+        ),
+      },
+    ],
+  },
 ];

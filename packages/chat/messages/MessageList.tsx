@@ -1,14 +1,22 @@
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
+import { throttle } from "lodash";
 import { reverse } from "rambda";
 import type React from "react";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { defaultTheme } from "render/styles/colors";
 import { MessageItem } from "./MessageItem";
 import { initMessages } from "./messageSlice";
 import { selectMergedMessages, selectStreamMessages } from "./selector";
 
 const MessagesList: React.FC = () => {
+  const PAGE_SIZE = 8;
+  const INITIAL_SIZE = PAGE_SIZE * 2;
+  const SCROLL_THRESHOLD = 0.2;
+
+  const [displayCount, setDisplayCount] = useState(INITIAL_SIZE);
+  const [hasMore, setHasMore] = useState(true);
+
   const dispatch = useAppDispatch();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const messages = useAppSelector(selectMergedMessages);
@@ -19,6 +27,24 @@ const MessagesList: React.FC = () => {
   if (!id) return <div>No message list ID</div>;
 
   const { data, isLoading, error } = useFetchData(id);
+
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container || !hasMore) return;
+
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+
+    // 修改这里: 当滚动到顶部附近时加载更多
+    if ((scrollHeight - scrollTop - clientHeight) / scrollHeight > 0.8) {
+      const newDisplayCount = displayCount + PAGE_SIZE;
+      if (newDisplayCount >= messages.length) {
+        setHasMore(false);
+      }
+      setDisplayCount(newDisplayCount);
+    }
+  };
 
   const scrollToBottom = () => {
     if (containerRef.current) {
@@ -32,12 +58,23 @@ const MessagesList: React.FC = () => {
 
   useEffect(() => {
     if (data) {
+      // 加载所有消息而不是限制数量
       dispatch(initMessages(reverse(data.array)));
+      setHasMore(data.array.length > INITIAL_SIZE);
+      setDisplayCount(INITIAL_SIZE); // 重置显示数量
     }
     return () => {
-      dispatch(initMessages());
+      dispatch(initMessages([]));
+      setHasMore(true);
+      setDisplayCount(INITIAL_SIZE);
     };
   }, [data, dispatch]);
+
+  const throttledScroll = useCallback(throttle(handleScroll, 200), [
+    handleScroll,
+    hasMore,
+    displayCount,
+  ]);
 
   return (
     <>
@@ -78,13 +115,30 @@ const MessagesList: React.FC = () => {
             background-color: ${defaultTheme.borderHover};
           }
 
+          .message-item {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: messageAppear 0.2s ease forwards;
+          }
+
+          @keyframes messageAppear {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
           .messages-loading-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             opacity: 0;
-            animation: fadeIn 0.3s ease forwards;
+            animation: fadeIn 0.2s ease forwards;
           }
 
           .messages-loading-spinner {
@@ -105,7 +159,7 @@ const MessagesList: React.FC = () => {
             text-align: center;
             padding: 16px;
             opacity: 0;
-            animation: fadeIn 0.3s ease forwards;
+            animation: fadeIn 0.2s ease forwards;
           }
 
           @keyframes spin {
@@ -123,27 +177,6 @@ const MessagesList: React.FC = () => {
               gap: 12px;
             }
           }
-
-          @media (min-width: 769px) and (max-width: 1024px) {
-            .message-list {
-              padding: 20px 10%;
-              gap: 14px;
-            }
-          }
-
-          @container (max-width: 768px) {
-            .message-list {
-              padding: 16px 12px;
-              gap: 12px;
-            }
-          }
-
-          @container (min-width: 769px) and (max-width: 1024px) {
-            .message-list {
-              padding: 20px 10%;
-              gap: 14px;
-            }
-          }
         `}
       </style>
 
@@ -157,10 +190,28 @@ const MessagesList: React.FC = () => {
             {error.message || "无法加载消息"}
           </div>
         ) : (
-          <div ref={containerRef} className="message-list">
-            {messages.map((message) => (
-              <MessageItem key={message.id} message={message} />
+          <div
+            ref={containerRef}
+            className="message-list"
+            onScroll={throttledScroll}
+          >
+            {messages.slice(0, displayCount).map((message, index) => (
+              <div
+                key={message.id}
+                className="message-item"
+                style={{
+                  animationDelay: `${index * 0.05}s`,
+                }}
+              >
+                <MessageItem message={message} />
+              </div>
             ))}
+            {/* 修改这里：只在还有更多消息且正在加载时显示 loading */}
+            {hasMore && displayCount < messages.length && !isLoading && (
+              <div style={{ padding: "20px", textAlign: "center" }}>
+                向上滚动加载更多
+              </div>
+            )}
           </div>
         )}
       </div>
