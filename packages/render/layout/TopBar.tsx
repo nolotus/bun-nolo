@@ -8,8 +8,8 @@ import CreateDialogButton from "chat/dialog/CreateDialogButton";
 import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
 import EditableTitle from "chat/dialog/EditableTitle";
 import {
-	selectCurrentDialogConfig,
-	selectTotalDialogTokens,
+  selectCurrentDialogConfig,
+  selectTotalDialogTokens,
 } from "chat/dialog/dialogSlice";
 import { CreateMenu } from "create/CreateMenu";
 import type React from "react";
@@ -21,33 +21,33 @@ import MenuButton from "./MenuButton";
 import NavIconItem from "./blocks/NavIconItem";
 
 interface TopBarProps {
-	toggleSidebar?: () => void;
-	theme: any;
-	topbarContent?: ReactNode;
-	isExpanded: boolean;
+  toggleSidebar?: () => void;
+  theme: any;
+  topbarContent?: ReactNode;
+  isExpanded: boolean;
 }
 
 const styles = {
-	height: "60px",
-	spacing: "8px",
+  height: "60px",
+  spacing: "8px",
 };
 
 const TopBar: React.FC<TopBarProps> = ({
-	toggleSidebar,
-	theme,
-	topbarContent,
-	isExpanded,
+  toggleSidebar,
+  theme,
+  topbarContent,
+  isExpanded,
 }) => {
-	const { t } = useTranslation();
-	const { isLoggedIn } = useAuth();
-	const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
-	const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-	const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
+  const { t } = useTranslation();
+  const { isLoggedIn } = useAuth();
+  const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
+  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
 
-	return (
-		<>
-			<style>
-				{`
+  return (
+    <>
+      <style>
+        {`
           .topbar {
             display: flex;
             justify-content: space-between;
@@ -122,52 +122,52 @@ const TopBar: React.FC<TopBarProps> = ({
             }
           }
         `}
-			</style>
+      </style>
 
-			<div className="topbar">
-				<div className="topbar-left">
-					{toggleSidebar && (
-						<MenuButton onClick={toggleSidebar} isExpanded={isExpanded} />
-					)}
-					<NavIconItem path="/" icon={<HomeIcon size={16} />} />
-				</div>
+      <div className="topbar">
+        <div className="topbar-left">
+          {toggleSidebar && (
+            <MenuButton onClick={toggleSidebar} isExpanded={isExpanded} />
+          )}
+          <NavIconItem path="/" icon={<HomeIcon size={16} />} />
+        </div>
 
-				<div className="topbar-center">
-					<div className="topbar-content-wrapper">
-						{currentDialogConfig && (
-							<>
-								<EditableTitle currentDialogConfig={currentDialogConfig} />
-								{currentDialogConfig.cybots?.map((cybotId) => (
-									<CybotNameChip key={cybotId} cybotId={cybotId} />
-								))}
-								{!isMobile && currentDialogTokens > 0 && (
-									<div className="token-counter">
-										Tokens: {currentDialogTokens}
-									</div>
-								)}
-								<CreateDialogButton dialogConfig={currentDialogConfig} />
-								<DeleteDialogButton dialogConfig={currentDialogConfig} />
-							</>
-						)}
-						{topbarContent}
-					</div>
-				</div>
+        <div className="topbar-center">
+          <div className="topbar-content-wrapper">
+            {currentDialogConfig && (
+              <>
+                <EditableTitle currentDialogConfig={currentDialogConfig} />
+                {currentDialogConfig.cybots?.map((cybotId) => (
+                  <CybotNameChip key={cybotId} cybotId={cybotId} />
+                ))}
+                {!isMobile && currentDialogTokens > 0 && (
+                  <div className="token-counter">
+                    Tokens: {currentDialogTokens}
+                  </div>
+                )}
+                <CreateDialogButton dialogConfig={currentDialogConfig} />
+                <DeleteDialogButton dialogConfig={currentDialogConfig} />
+              </>
+            )}
+            {topbarContent}
+          </div>
+        </div>
 
-				<div className="topbar-right">
-					<CreateMenu />
-					{isLoggedIn ? (
-						<IsLoggedInMenu />
-					) : (
-						<NavListItem
-							label={t("login")}
-							icon={<SignInIcon size={16} />}
-							path={RoutePaths.LOGIN}
-						/>
-					)}
-				</div>
-			</div>
-		</>
-	);
+        <div className="topbar-right">
+          <CreateMenu />
+          {isLoggedIn ? (
+            <IsLoggedInMenu />
+          ) : (
+            <NavListItem
+              label={t("login")}
+              icon={<SignInIcon size={16} />}
+              path={RoutePaths.LOGIN}
+            />
+          )}
+        </div>
+      </div>
+    </>
+  );
 };
 
 export default TopBar;
