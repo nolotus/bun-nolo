@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, FC } from "react";
+import { type FC, createContext, useEffect, useState } from "react";
 
 interface WebSocketProviderProps {
   url: string;
@@ -23,11 +23,8 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({
 
   useEffect(() => {
     const newWebSocket = new WebSocket(url);
-
     newWebSocket.onopen = () => {};
-
     newWebSocket.onclose = () => {};
-
     newWebSocket.onmessage = (event) => {
       const message = event.data;
       setData(message);
@@ -45,9 +42,5 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({
     data,
   };
 
-  return (
-    <WebSocketContext.Provider value={contextValue}>
-      {children}
-    </WebSocketContext.Provider>
-  );
+  return <WebSocketContext value={contextValue}>{children}</WebSocketContext>;
 };
