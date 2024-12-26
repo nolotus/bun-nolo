@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import { StatusBar, useColorScheme } from "react-native";
 
 import { Colors } from "react-native/Libraries/NewAppScreen";
@@ -7,13 +7,8 @@ import "intl-pluralrules";
 import i18n from "i18n";
 import * as RNLocalize from "react-native-localize";
 import { Provider } from "react-redux";
-
-import { mobileStore } from "./store";
 import MainNavigation from "./MainNavigation";
-import { fromMarkdown } from "mdast-util-from-markdown";
-const string = `## Hello, *World*!`;
-const tree = fromMarkdown(string);
-console.log("tree", tree);
+import { mobileStore } from "./store";
 
 global._ISRN_ = true;
 function App(): React.JSX.Element {
