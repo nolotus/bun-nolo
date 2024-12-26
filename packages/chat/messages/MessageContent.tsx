@@ -2,14 +2,14 @@ import { defaultTheme } from "render/styles/colors";
 import { MessageText } from "./MessageText";
 
 export const MessageContent = ({ content, role }) => {
-	if (!content) return null;
+  if (!content) return null;
 
-	const isSelf = role === "self";
+  const isSelf = role === "self";
 
-	return (
-		<>
-			<style>
-				{`
+  return (
+    <>
+      <style href="message" precedence="default">
+        {`
           @keyframes message-enter {
             from {
               opacity: 0;
@@ -22,7 +22,6 @@ export const MessageContent = ({ content, role }) => {
           }
 
           .message-content {
-            padding: 12px 16px;
             display: flex;
             flex-direction: column;
             border-radius: 12px;
@@ -34,6 +33,9 @@ export const MessageContent = ({ content, role }) => {
             line-height: 1.6;
             gap: 8px;
             position: relative;
+            p{
+            margin: 12px 16px;
+            }
           }
 
           .message-self {
@@ -48,54 +50,54 @@ export const MessageContent = ({ content, role }) => {
             border: 1px solid ${defaultTheme.border};
           }
         `}
-			</style>
+      </style>
 
-			<div
-				className={`message-content ${isSelf ? "message-self" : "message-other"}`}
-			>
-				{typeof content === "string" ? (
-					<MessageText content={content} role={role} />
-				) : Array.isArray(content) ? (
-					content.map((item, index) => {
-						if (!item || typeof item !== "object") return null;
+      <div
+        className={`message-content ${isSelf ? "message-self" : "message-other"}`}
+      >
+        {typeof content === "string" ? (
+          <MessageText content={content} role={role} />
+        ) : Array.isArray(content) ? (
+          content.map((item, index) => {
+            if (!item || typeof item !== "object") return null;
 
-						if (item.type === "text" && item.text) {
-							return (
-								<MessageText
-									key={`text-${index}`}
-									content={item.text}
-									role={role}
-								/>
-							);
-						}
+            if (item.type === "text" && item.text) {
+              return (
+                <MessageText
+                  key={`text-${index}`}
+                  content={item.text}
+                  role={role}
+                />
+              );
+            }
 
-						if (item.type === "image_url" && item.image_url?.url) {
-							return (
-								<picture>
-									<source srcSet={item.image_url?.url} />
-									<img
-										src={item.image_url?.url}
-										alt="Message"
-										className="h-auto max-w-full"
-										style={{
-											blockSize: "480px",
-											aspectRatio: "var(--ratio-landscape)",
-										}}
-									/>
-								</picture>
-							);
-						}
+            if (item.type === "image_url" && item.image_url?.url) {
+              return (
+                <picture>
+                  <source srcSet={item.image_url?.url} />
+                  <img
+                    src={item.image_url?.url}
+                    alt="Message"
+                    className="h-auto max-w-full"
+                    style={{
+                      blockSize: "480px",
+                      aspectRatio: "var(--ratio-landscape)",
+                    }}
+                  />
+                </picture>
+              );
+            }
 
-						return (
-							<div key={`unknown-${index}`} className="message-unknown">
-								Unknown message type
-							</div>
-						);
-					})
-				) : (
-					<div className="message-invalid">Invalid content format</div>
-				)}
-			</div>
-		</>
-	);
+            return (
+              <div key={`unknown-${index}`} className="message-unknown">
+                Unknown message type
+              </div>
+            );
+          })
+        ) : (
+          <div className="message-invalid">Invalid content format</div>
+        )}
+      </div>
+    </>
+  );
 };

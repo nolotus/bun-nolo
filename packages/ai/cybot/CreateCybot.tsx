@@ -1,5 +1,4 @@
-// CreateCybot.tsx
-
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
@@ -11,167 +10,182 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
-	FormContainer,
-	FormFieldComponent,
-	FormTitle,
+  FormContainer,
+  FormFieldComponent,
+  FormTitle,
 } from "render/CommonFormComponents";
 import { FormField } from "render/form/FormField";
-
 import { Label } from "render/form/Label";
 import { Button } from "render/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
+import { z } from "zod";
 
 import ModelSelector from "../llm/ModelSelector";
-import { getModelsByProvider, providerOptions } from "../llm/providers";
+import { getModelsByProvider } from "../llm/providers"; // 假定 providerOptions 在这个文件中定义
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
-interface CreateCybotProps {
-	onClose: () => void;
-}
 
-const CreateCybot: React.FC<CreateCybotProps> = ({ onClose }) => {
-	const { t } = useTranslation();
-	const dispatch = useAppDispatch();
-	const auth = useAuth();
-	const { isLoading: isDialogLoading, createNewDialog } = useCreateDialog();
+// 定义Zod模式
+const schema = z.object({
+  name: z.string().nonempty("Cybot name is required"),
+  provider: z.string().nonempty("Provider is required"),
+  model: z.string().nonempty("Model is required"),
+  apiKey: z.string().optional(),
+  tools: z.array(z.string()),
+  isPrivate: z.boolean(),
+  isEncrypted: z.boolean(),
+  useServerProxy: z.boolean(),
+  prompt: z.string().optional(),
+  greeting: z.string().optional(),
+  introduction: z.string().optional(),
+});
 
-	const {
-		register,
-		handleSubmit,
-		watch,
-		setValue,
-		formState: { errors, isSubmitting },
-	} = useForm({
-		defaultValues: {
-			tools: [],
-			isPrivate: false,
-			isEncrypted: false,
-			provider: providerOptions[0],
-			useServerProxy: true,
-		},
-	});
+type FormData = z.infer<typeof schema>;
 
-	const provider = watch("provider");
-	const [models, setModels] = useState<Model[]>([]);
+const CreateCybot: React.FC = () => {
+  const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const auth = useAuth();
+  const { isLoading: isDialogLoading, createNewDialog } = useCreateDialog();
 
-	useEffect(() => {
-		const modelsList = getModelsByProvider(provider);
-		setModels(modelsList);
-		if (modelsList.length > 0) {
-			setValue("model", modelsList[0].name);
-		}
-	}, [provider, setValue]);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      tools: [],
+      isPrivate: false,
+      isEncrypted: false,
+      provider: "",
+      model: "",
+      useServerProxy: true,
+    },
+  });
 
-	const isPrivate = watch("isPrivate");
-	const isEncrypted = watch("isEncrypted");
-	const useServerProxy = watch("useServerProxy");
+  const provider = watch("provider");
+  const [models, setModels] = useState<Model[]>([]);
 
-	const onSubmit = useCallback(
-		async (data: any) => {
-			console.log("Form data before submission:", data); // 添加这行来检查数据
-			try {
-				const writeResult = await dispatch(
-					write({
-						data: {
-							type: DataType.Cybot,
-							...data,
-						},
-						flags: { isJSON: true },
-						userId: auth.user?.userId,
-					}),
-				).unwrap();
-				const cybotId = writeResult.id;
+  useEffect(() => {
+    const modelsList = getModelsByProvider(provider);
+    setModels(modelsList);
+    if (modelsList.length > 0) {
+      setValue("model", modelsList[0].name);
+    }
+  }, [provider, setValue]);
 
-				await createNewDialog({ cybots: [cybotId] });
+  const isPrivate = watch("isPrivate");
+  const isEncrypted = watch("isEncrypted");
+  const useServerProxy = watch("useServerProxy");
 
-				onClose();
-			} catch (error) {
-				console.error("Error creating Cybot:", error);
-			}
-		},
-		[dispatch, auth.user?.userId, createNewDialog, onClose],
-	);
+  const onSubmit = useCallback(
+    async (data: FormData) => {
+      console.log("Form data before submission:", data);
+      try {
+        const writeResult = await dispatch(
+          write({
+            data: {
+              type: DataType.Cybot,
+              ...data,
+            },
+            flags: { isJSON: true },
+            userId: auth.user?.userId,
+          }),
+        ).unwrap();
+        const cybotId = writeResult.id;
 
-	const handleFormSubmit = handleSubmit(onSubmit, (errors) =>
-		console.log("Form validation failed", errors),
-	);
+        await createNewDialog({ cybots: [cybotId] });
+      } catch (error) {
+        console.error("Error creating Cybot:", error);
+      }
+    },
+    [dispatch, auth.user?.userId, createNewDialog],
+  );
 
-	return (
-		<FormContainer>
-			<FormTitle>{t("createCybot")}</FormTitle>
-			<form onSubmit={handleFormSubmit}>
-				<FormFieldComponent
-					label={t("cybotName")}
-					name="name"
-					register={register}
-					errors={errors}
-					required={t("cybotNameRequired")}
-				/>
+  return (
+    <FormContainer>
+      <FormTitle>{t("createCybot")}</FormTitle>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <FormFieldComponent
+          label={t("cybotName")}
+          name="name"
+          register={register}
+          errors={errors}
+          required={t("cybotNameRequired")}
+        />
 
-				<ModelSelector register={register} setValue={setValue} watch={watch} />
+        <ModelSelector
+          register={register}
+          setValue={setValue}
+          watch={watch}
+          errors={errors}
+        />
 
-				<FormFieldComponent
-					label={t("apiKeyField")}
-					name="apiKey"
-					type="password"
-					register={register}
-					errors={errors}
-				/>
-				<FormField>
-					<Label>{t("useServerProxy")}:</Label>
-					<ToggleSwitch
-						checked={useServerProxy}
-						onChange={(checked) => setValue("useServerProxy", checked)}
-						ariaLabelledby="server-proxy-label"
-					/>
-				</FormField>
-				<FormFieldComponent
-					label={t("prompt")}
-					name="prompt"
-					register={register}
-					errors={errors}
-					as="textarea"
-				/>
-				<FormFieldComponent
-					label={t("greetingMessage")}
-					name="greeting"
-					register={register}
-					errors={errors}
-				/>
-				<FormFieldComponent
-					label={t("selfIntroduction")}
-					name="introduction"
-					register={register}
-					errors={errors}
-					as="textarea"
-				/>
-				<ToolSelector register={register} />
-				<FormField>
-					<Label>{t("private")}:</Label>
-					<ToggleSwitch
-						checked={isPrivate}
-						onChange={(checked) => setValue("isPrivate", checked)}
-						ariaLabelledby="private-label"
-					/>
-				</FormField>
-				<FormField>
-					<Label>{t("encrypted")}:</Label>
-					<ToggleSwitch
-						checked={isEncrypted}
-						onChange={(checked) => setValue("isEncrypted", checked)}
-						ariaLabelledby="encrypted-label"
-					/>
-				</FormField>
-				<Button
-					type="submit"
-					disabled={isSubmitting || isDialogLoading}
-					style={{ width: "100%", padding: "10px", marginTop: "20px" }}
-				>
-					{t("createCybot")}
-				</Button>
-			</form>
-		</FormContainer>
-	);
+        <FormFieldComponent
+          label={t("apiKeyField")}
+          name="apiKey"
+          type="password"
+          register={register}
+          errors={errors}
+        />
+        <FormField>
+          <Label>{t("useServerProxy")}:</Label>
+          <ToggleSwitch
+            checked={useServerProxy}
+            onChange={(checked) => setValue("useServerProxy", checked)}
+            ariaLabelledby="server-proxy-label"
+          />
+        </FormField>
+        <FormFieldComponent
+          label={t("prompt")}
+          name="prompt"
+          register={register}
+          errors={errors}
+          as="textarea"
+        />
+        <FormFieldComponent
+          label={t("greetingMessage")}
+          name="greeting"
+          register={register}
+          errors={errors}
+        />
+        <FormFieldComponent
+          label={t("selfIntroduction")}
+          name="introduction"
+          register={register}
+          errors={errors}
+          as="textarea"
+        />
+        <ToolSelector register={register} />
+        <FormField>
+          <Label>{t("private")}:</Label>
+          <ToggleSwitch
+            checked={isPrivate}
+            onChange={(checked) => setValue("isPrivate", checked)}
+            ariaLabelledby="private-label"
+          />
+        </FormField>
+        <FormField>
+          <Label>{t("encrypted")}:</Label>
+          <ToggleSwitch
+            checked={isEncrypted}
+            onChange={(checked) => setValue("isEncrypted", checked)}
+            ariaLabelledby="encrypted-label"
+          />
+        </FormField>
+        <Button
+          type="submit"
+          disabled={isSubmitting || isDialogLoading}
+          style={{ width: "100%", padding: "10px", marginTop: "20px" }}
+        >
+          {t("createCybot")}
+        </Button>
+      </form>
+    </FormContainer>
+  );
 };
 
 export default withTranslations(CreateCybot, ["ai"]);

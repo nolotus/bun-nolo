@@ -1,6 +1,6 @@
-import React, { useMemo, useRef, useEffect, useState } from "react";
-import { Slate, Editable, withReact, useSlate, useFocused } from "slate-react";
-import { Editor, createEditor, Range } from "slate";
+import React, { useRef, useEffect, useState } from "react";
+import { Editor, Range } from "slate";
+import { useFocused, useSlate } from "slate-react";
 import { Menu, Portal } from "./components";
 
 import {
@@ -9,40 +9,38 @@ import {
   MdFormatUnderlined,
 } from "react-icons/md";
 import { isMarkActive, toggleMark } from "./mark";
-export const Button = React.forwardRef(
-  ({ className, active, reversed, children, ...props }, ref) => {
-    const [isHovered, setIsHovered] = useState(false);
 
-    return (
-      <span
-        {...props}
-        ref={ref}
-        className={className}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{
-          cursor: "pointer",
-          color: reversed
-            ? active
-              ? "white"
-              : "#aaa"
-            : active
-              ? "black"
-              : "#ccc",
-          padding: "0 6px",
-          opacity: isHovered ? 0.85 : 1,
-          backgroundColor: isHovered ? "rgba(255,255,255,0.1)" : "transparent",
-          transition: "all 0.2s",
-          borderRadius: "2px",
-          display: "inline-flex",
-          alignItems: "center",
-        }}
-      >
-        {children}
-      </span>
-    );
-  },
-);
+export const Button = ({ className, active, reversed, children, ...props }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <span
+      {...props}
+      className={className}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        cursor: "pointer",
+        color: reversed
+          ? active
+            ? "white"
+            : "#aaa"
+          : active
+            ? "black"
+            : "#ccc",
+        padding: "0 6px",
+        opacity: isHovered ? 0.85 : 1,
+        backgroundColor: isHovered ? "rgba(255,255,255,0.1)" : "transparent",
+        transition: "all 0.2s",
+        borderRadius: "2px",
+        display: "inline-flex",
+        alignItems: "center",
+      }}
+    >
+      {children}
+    </span>
+  );
+};
 
 const FormatButton = ({ format, icon: Icon }) => {
   const editor = useSlate();

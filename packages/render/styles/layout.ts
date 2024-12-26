@@ -1,3 +1,4 @@
+// render/styles/layout.ts
 export const layout = {
   // Flex相关
   flex: { display: "flex" },
@@ -25,6 +26,11 @@ export const layout = {
   w100: { width: "100%" },
   h100: { height: "100%" },
   h100vh: { height: "100vh" },
+
+  // 常用尺寸和定位
+  relative: { position: "relative" },
+  absolute: { position: "absolute" },
+  fullWidth: { width: "100%" },
 
   // Overflow
   overflowYAuto: { overflowY: "auto" },

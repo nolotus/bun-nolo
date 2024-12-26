@@ -16,7 +16,6 @@ export const routes = (currentUser: any) => [
     element: <MainLayout />,
     children: [
       ...commonRoutes,
-
       {
         index: true,
         element: <Home />,

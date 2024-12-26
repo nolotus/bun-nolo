@@ -1,14 +1,14 @@
-import React from "react";
+import type React from "react";
 import { defaultTheme } from "render/styles/colors";
 
-export const TextArea = React.forwardRef<
-	HTMLTextAreaElement,
-	React.TextareaHTMLAttributes<HTMLTextAreaElement>
->((props, ref) => {
-	return (
-		<>
-			<style>
-				{`
+interface TextAreaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+
+const TextArea = (props: TextAreaProps) => {
+  return (
+    <>
+      <style>
+        {`
           .textarea-wrapper {
             position: relative;
             width: 100%;
@@ -48,14 +48,14 @@ export const TextArea = React.forwardRef<
             color: ${defaultTheme.placeholder};
           }
         `}
-			</style>
+      </style>
 
-			<div className="textarea-wrapper">
-				<textarea {...props} ref={ref} className="textarea" />
-			</div>
-		</>
-	);
-});
+      <div className="textarea-wrapper">
+        <textarea {...props} className="textarea" />
+      </div>
+    </>
+  );
+};
 
 TextArea.displayName = "TextArea";
 

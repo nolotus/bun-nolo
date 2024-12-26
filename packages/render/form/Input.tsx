@@ -1,19 +1,15 @@
-import React from "react";
 import { defaultTheme } from "render/styles/colors";
 
-export const Input = React.forwardRef<
-	HTMLInputElement,
-	React.InputHTMLAttributes<HTMLInputElement>
->((props, ref) => {
-	return (
-		<>
-			<style>
-				{`
+export const Input = (props) => {
+  return (
+    <>
+      <style>
+        {`
           .input-wrapper {
             position: relative;
             width: 100%;
           }
-          
+
           input {
             width: 100%;
             height: 40px;
@@ -46,10 +42,10 @@ export const Input = React.forwardRef<
             color: ${defaultTheme.placeholder};
           }
         `}
-			</style>
-			<div className="input-wrapper">
-				<input {...props} ref={ref} />
-			</div>
-		</>
-	);
-});
+      </style>
+      <div className="input-wrapper">
+        <input {...props} />
+      </div>
+    </>
+  );
+};

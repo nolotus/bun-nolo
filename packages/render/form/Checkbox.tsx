@@ -1,16 +1,22 @@
-import React from "react";
+import type React from "react";
 import { defaultTheme } from "render/styles/colors";
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
-	label?: string;
+  label?: string;
 }
 
-export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
-	({ label, className, style, disabled, checked, ...props }, ref) => {
-		return (
-			<>
-				<style>
-					{`
+export const Checkbox = ({
+  label,
+  className,
+  style,
+  disabled,
+  checked,
+  ...props
+}: CheckboxProps) => {
+  return (
+    <>
+      <style>
+        {`
             .checkbox-wrapper {
               display: inline-flex;
               align-items: center;
@@ -127,21 +133,21 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
               color: ${defaultTheme.textSecondary};
             }
           `}
-				</style>
+      </style>
 
-				<label className={`checkbox-wrapper ${className || ""}`} style={style}>
-					<input
-						type="checkbox"
-						className="checkbox-input"
-						ref={ref}
-						disabled={disabled}
-						checked={checked}
-						{...props}
-					/>
-					<span className="checkbox-box" />
-					{label && <span className="checkbox-label">{label}</span>}
-				</label>
-			</>
-		);
-	},
-);
+      <label className={`checkbox-wrapper ${className || ""}`} style={style}>
+        <input
+          type="checkbox"
+          className="checkbox-input"
+          disabled={disabled}
+          checked={checked}
+          {...props}
+        />
+        <span className="checkbox-box" />
+        {label && <span className="checkbox-label">{label}</span>}
+      </label>
+    </>
+  );
+};
+
+export default Checkbox;

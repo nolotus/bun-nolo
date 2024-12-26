@@ -11,47 +11,47 @@ import { RiMoneyCnyBoxLine } from "react-icons/ri";
 import NavListItem from "render/layout/blocks/NavListItem";
 
 const HomeSidebarContent: React.FC = () => {
-	const auth = useAuth();
+  const auth = useAuth();
 
-	const bottomLinks: NavItem[] = [
-		{
-			path: "/lab",
-			label: "实验室",
-			icon: <ImLab size={18} />,
-			allow_users: [nolotusId],
-		},
-		{
-			path: "/download",
-			label: "客户端下载",
-			icon: <DesktopDownloadIcon size={16} />,
-		},
-		{
-			path: "/price",
-			label: "价格",
-			icon: <RiMoneyCnyBoxLine size={20} />,
-		},
+  const bottomLinks: NavItem[] = [
+    {
+      path: "/lab",
+      label: "实验室",
+      icon: <ImLab size={18} />,
+      allow_users: [nolotusId],
+    },
+    {
+      path: "/download",
+      label: "客户端下载",
+      icon: <DesktopDownloadIcon size={16} />,
+    },
+    {
+      path: "/price",
+      label: "价格",
+      icon: <RiMoneyCnyBoxLine size={20} />,
+    },
 
-		{
-			path: "/help",
-			label: "帮助",
-			icon: <MdOutlineHelpCenter size={18} />,
-		},
-		{
-			path: "/about",
-			label: "关于",
-			icon: <PeopleIcon size={18} />,
-		},
-	];
+    {
+      path: "/help",
+      label: "帮助",
+      icon: <MdOutlineHelpCenter size={18} />,
+    },
+    {
+      path: "/about",
+      label: "关于",
+      icon: <PeopleIcon size={18} />,
+    },
+  ];
 
-	const allowedBottomLinks = allowRule(auth?.user, bottomLinks);
+  const allowedBottomLinks = allowRule(auth?.user, bottomLinks);
 
-	return (
-		<ul style={{ listStyleType: "none", padding: 0 }}>
-			{allowedBottomLinks.map((item) => (
-				<NavListItem key={item.path} {...item} />
-			))}
-		</ul>
-	);
+  return (
+    <ul style={{ listStyleType: "none", padding: 0 }}>
+      {allowedBottomLinks.map((item) => (
+        <NavListItem key={item.path} {...item} />
+      ))}
+    </ul>
+  );
 };
 
 export default HomeSidebarContent;

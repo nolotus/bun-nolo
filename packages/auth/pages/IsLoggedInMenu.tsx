@@ -1,8 +1,8 @@
 import {
-	GearIcon,
-	PersonIcon,
-	SignOutIcon,
-	TriangleDownIcon,
+  GearIcon,
+  PersonIcon,
+  SignOutIcon,
+  TriangleDownIcon,
 } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { changeCurrentUser, selectUsers, signOut } from "auth/authSlice";
@@ -17,8 +17,8 @@ import DropDown from "render/ui/DropDown";
 import { SettingRoutePaths } from "setting/config";
 
 const StyleSheet = () => (
-	<style>
-		{`
+  <style>
+    {`
 		.menu-wrapper {
 		  display: flex;
 		  align-items: center;
@@ -118,94 +118,94 @@ const StyleSheet = () => (
 		  color: ${defaultTheme.primary};
 		}
 	  `}
-	</style>
+  </style>
 );
 
 export const IsLoggedInMenu: React.FC = () => {
-	const { t } = useTranslation();
-	const navigate = useNavigate();
-	const auth = useAuth();
-	const dispatch = useAppDispatch();
-	const users = useAppSelector(selectUsers);
-	const currentToken = useSelector((state: any) => state.auth.currentToken);
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const dispatch = useAppDispatch();
+  const users = useAppSelector(selectUsers);
+  const currentToken = useSelector((state: any) => state.auth.currentToken);
 
-	const changeUser = (user: any) => {
-		const tokens = getTokensFromLocalStorage();
-		const updatedToken = tokens.find(
-			(t) => parseToken(t).userId === user.userId,
-		);
-		if (updatedToken) {
-			const newTokens = [
-				updatedToken,
-				...tokens.filter((t) => t !== updatedToken),
-			];
-			dispatch(changeCurrentUser({ user, token: updatedToken }));
-			window.localStorage.setItem("tokens", JSON.stringify(newTokens));
-		}
-	};
+  const changeUser = (user: any) => {
+    const tokens = getTokensFromLocalStorage();
+    const updatedToken = tokens.find(
+      (t) => parseToken(t).userId === user.userId,
+    );
+    if (updatedToken) {
+      const newTokens = [
+        updatedToken,
+        ...tokens.filter((t) => t !== updatedToken),
+      ];
+      dispatch(changeCurrentUser({ user, token: updatedToken }));
+      window.localStorage.setItem("tokens", JSON.stringify(newTokens));
+    }
+  };
 
-	const logout = () => {
-		removeToken(currentToken);
-		dispatch(signOut());
-		navigate("/");
-	};
+  const logout = () => {
+    removeToken(currentToken);
+    dispatch(signOut());
+    navigate("/");
+  };
 
-	const renderDropdownItem = (
-		label: string,
-		icon?: React.ReactNode,
-		onClick?: () => void,
-	) => (
-		<button onClick={onClick} className="dropdown-item">
-			{icon && <span className="dropdown-icon">{icon}</span>}
-			<span>{label}</span>
-		</button>
-	);
+  const renderDropdownItem = (
+    label: string,
+    icon?: React.ReactNode,
+    onClick?: () => void,
+  ) => (
+    <button onClick={onClick} className="dropdown-item">
+      {icon && <span className="dropdown-icon">{icon}</span>}
+      <span>{label}</span>
+    </button>
+  );
 
-	return (
-		<>
-			<StyleSheet />
-			<div className="menu-wrapper">
-				<NavLink
-					to="/life"
-					className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-				>
-					<div className="user-trigger">
-						<PersonIcon size={20} />
-						<span className="user-trigger-text">{auth.user?.username}</span>
-					</div>
-				</NavLink>
+  return (
+    <>
+      <StyleSheet />
+      <div className="menu-wrapper">
+        <NavLink
+          to="/life"
+          className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+        >
+          <div className="user-trigger">
+            <PersonIcon size={20} />
+            <span className="user-trigger-text">{auth.user?.username}</span>
+          </div>
+        </NavLink>
 
-				<DropDown
-					trigger={
-						<button className="icon-button">
-							<TriangleDownIcon size={20} />
-						</button>
-					}
-					direction="bottom"
-					triggerType="hover"
-				>
-					<div className="dropdown-wrapper">
-						{users.map(
-							(user) =>
-								user !== auth.user &&
-								user &&
-								renderDropdownItem(user.username, null, () => changeUser(user)),
-						)}
+        <DropDown
+          trigger={
+            <button className="icon-button">
+              <TriangleDownIcon size={20} />
+            </button>
+          }
+          direction="bottom"
+          triggerType="hover"
+        >
+          <div className="dropdown-wrapper">
+            {users.map(
+              (user) =>
+                user !== auth.user &&
+                user &&
+                renderDropdownItem(user.username, null, () => changeUser(user)),
+            )}
 
-						{renderDropdownItem(
-							t("common:settings"),
-							<GearIcon size={16} />,
-							() => navigate(SettingRoutePaths.SETTING),
-						)}
+            {renderDropdownItem(
+              t("common:settings"),
+              <GearIcon size={16} />,
+              () => navigate(SettingRoutePaths.SETTING),
+            )}
 
-						{renderDropdownItem(
-							t("common:logout"),
-							<SignOutIcon size={16} />,
-							logout,
-						)}
-					</div>
-				</DropDown>
-			</div>
-		</>
-	);
+            {renderDropdownItem(
+              t("common:logout"),
+              <SignOutIcon size={16} />,
+              logout,
+            )}
+          </div>
+        </DropDown>
+      </div>
+    </>
+  );
 };
