@@ -21,6 +21,8 @@ export default {
 			CreateSpace: "Create Workspace",
 			spacename: "spacename",
 			messageOrImageHere: "Type Message or drag and drop image here",
+			deleteDialog:"Delete Dialog",
+			addToWorkspace: "Add to Workspace",
 			// ...
 		},
 	},
@@ -45,6 +47,8 @@ export default {
 			CreateSpace: "新建空间",
 			spacename: "空间名称",
 			messageOrImageHere: "输入消息或拖放图片",
+			deleteDialog:"删除对话",
+			addToWorkspace: "添加到工作区",
 			// add more translation strings here
 		},
 	},
@@ -69,6 +73,8 @@ export default {
 			CreateSpace: "創建空間",
 			spacename: "空间名",
 			messageOrImageHere: "輸入訊息或拖放圖片",
+			deleteDialog:"刪除對話",
+			addToWorkspace: "添加到工作區",
 			// ... add more UI messages here
 		},
 	},
@@ -95,6 +101,8 @@ export default {
 			spacename: "スペース名",
 			messageOrImageHere:
 				"メッセージを入力またはここに画像をドラッグ＆ドロップ",
+			deleteDialog:"ダイアログを削除",
+			addToWorkspace: "ワークスペースに追加",
 			// ... add more UI messages here
 		},
 	},
