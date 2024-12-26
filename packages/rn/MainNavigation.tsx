@@ -7,7 +7,33 @@ import { View, Text } from "react-native";
 import { useSelector } from "react-redux";
 import { UserScreen } from "auth/screens/UserScreen";
 import { HomeScreen } from "app/screens/Home";
-import { ChatScreen } from "chat/screens/Chat";
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import DialogListScreen from 'chat/screens/DialogList';
+import DialogDetail from 'chat/screens/DialogDetail';
+
+const Stack = createNativeStackNavigator();
+
+
+function ChatStackNavigator() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="DialogList"
+        component={DialogListScreen}
+        options={{ title: '对话列表' }}
+      />
+      <Stack.Screen
+        name="DialogDetail"
+        component={DialogDetail}
+        options={({ route }) => ({ title: route.params.userName })}
+      />
+    </Stack.Navigator>
+  );
+}
+export function ChatScreen() {
+  return <ChatStackNavigator />;
+}
+
 
 import { AuthStackNavigator } from "auth/screens/AuthStackNavigator";
 function CreateScreen() {
@@ -46,6 +72,8 @@ function MainNavigation() {
           name="Chat"
           component={ChatScreen}
           options={{
+            headerShown: false,
+
             tabBarLabel: "Chat",
             tabBarIcon: ({ color, size }) => (
               <Octicons name="comment" size={size} color={color} />
