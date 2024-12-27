@@ -1,11 +1,9 @@
-import { Spinner } from "@primer/react";
-import { selectIsDarkMode, selectTheme } from "app/theme/themeSlice";
-import OpenProps from "open-props";
-// render/ui/Button.tsx
 import type React from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
+import { selectIsDarkMode, selectTheme } from "app/theme/themeSlice";
+import OpenProps from "open-props";
 
 export type ButtonProps = {
 	className?: string;
@@ -18,6 +16,36 @@ export type ButtonProps = {
 	type?: "button" | "submit" | "reset";
 	style?: React.CSSProperties;
 	hoverStyle?: React.CSSProperties;
+};
+
+const Spinner = () => {
+	const spinnerStyle: React.CSSProperties = {
+		display: "inline-block",
+		width: "16px",
+		height: "16px",
+		border: "2px solid currentColor",
+		borderTop: "2px solid transparent",
+		borderRadius: "50%",
+		animation: "spin 1s linear infinite",
+	};
+
+	return (
+		<>
+			<style>
+				{`
+					@keyframes spin {
+						0% {
+							transform: rotate(0deg);
+						}
+						100% {
+							transform: rotate(360deg);
+						}
+					}
+				`}
+			</style>
+			<div style={spinnerStyle} />
+		</>
+	);
 };
 
 export const Button: React.FC<ButtonProps> = ({
@@ -49,9 +77,8 @@ export const Button: React.FC<ButtonProps> = ({
 		borderStyle: "solid",
 		borderColor: theme.surface3,
 		borderRadius: OpenProps.radius2,
-		boxShadow: `${OpenProps.shadow2}, 0 1px ${theme.surface3}, 0 0 0 ${
-			isHovered ? OpenProps.size2 : "0"
-		} ${getHighlightColor()}`,
+		boxShadow: `${OpenProps.shadow2}, 0 1px ${theme.surface3}, 0 0 0 ${isHovered ? OpenProps.size2 : "0"
+			} ${getHighlightColor()}`,
 		color: theme.text2,
 		display: "inline-flex",
 		fontSize: theme.fontSize.medium,
@@ -79,7 +106,7 @@ export const Button: React.FC<ButtonProps> = ({
 		background: "none",
 		color: isDarkMode ? OpenProps.gray5 : OpenProps.gray6,
 		boxShadow: OpenProps.shadow1,
-		borderColor: disabled ? theme.surface3 : "", // 或者你想要的其他颜色
+		borderColor: disabled ? theme.surface3 : "",
 	};
 
 	const combinedStyles = {
@@ -117,7 +144,7 @@ export const Button: React.FC<ButtonProps> = ({
 			disabled={disabled || loading}
 			type={type}
 		>
-			{loading && <Spinner size="small" />}
+			{loading && <Spinner />}
 			{icon && !loading && icon}
 			{children}
 		</button>
