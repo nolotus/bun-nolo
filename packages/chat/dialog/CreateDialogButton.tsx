@@ -1,8 +1,5 @@
-// chat/dialog/CreateDialogButton.tsx
-
 import React from "react";
 import { CopyIcon } from "@primer/octicons-react";
-import { Spinner } from "@primer/react";
 
 import { useCreateDialog } from "./useCreateDialog";
 
@@ -33,6 +30,36 @@ const IconButton = ({ onClick, disabled, children }) => {
   );
 };
 
+const Spinner = () => {
+  const spinnerStyle = {
+    display: "inline-block",
+    width: "16px",
+    height: "16px",
+    border: "2px solid #ccc",
+    borderTop: "2px solid #333",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
+  };
+
+  return (
+    <>
+      <style>
+        {`
+          @keyframes spin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}
+      </style>
+      <div style={spinnerStyle} />
+    </>
+  );
+};
+
 const CreateDialogButton = ({ dialogConfig }) => {
   const { isLoading, createNewDialog } = useCreateDialog();
 
@@ -44,7 +71,7 @@ const CreateDialogButton = ({ dialogConfig }) => {
 
   return (
     <IconButton onClick={handleCreateClick} disabled={isLoading}>
-      {isLoading ? <Spinner size="small" /> : <CopyIcon size={16} />}
+      {isLoading ? <Spinner /> : <CopyIcon size={16} />}
     </IconButton>
   );
 };

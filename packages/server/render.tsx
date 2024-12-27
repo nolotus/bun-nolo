@@ -1,7 +1,6 @@
 import { api } from "app/api";
 import { store } from "app/store";
-import React from "react";
-import { renderToReadableStream } from "react-dom/server";
+import { renderToReadableStream } from "react-dom/server.browser";
 
 import assets from "../../public/assets.json";
 import { renderReactApp } from "./html/renderReactApp";
