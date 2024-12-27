@@ -93,7 +93,7 @@ const CreateCybot: React.FC = () => {
             },
             flags: { isJSON: true },
             userId: auth.user?.userId,
-          }),
+          })
         ).unwrap();
         const cybotId = writeResult.id;
 
@@ -102,7 +102,7 @@ const CreateCybot: React.FC = () => {
         console.error("Error creating Cybot:", error);
       }
     },
-    [dispatch, auth.user?.userId, createNewDialog],
+    [dispatch, auth.user?.userId, createNewDialog]
   );
 
   return (
