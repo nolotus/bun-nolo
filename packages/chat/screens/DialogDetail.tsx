@@ -1,62 +1,112 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import { dialogDetails } from "./mockData";
 
-const DialogDetail = ({ route }) => {
+const DialogDetail = ({ route, navigation }) => {
+  // 修正了拼写错误 navagation -> navigation
   const { dialogId, userName } = route.params;
+  const scrollViewRef = useRef();
 
-  // 模拟根据 dialogId 获取对话详情
-  const dialogDetails = {
-    '1': [
-      { sender: 'user', message: '你好，我想了解一下项目的进度。' },
-      { sender: 'ai', message: '你好！目前项目进展顺利，我们正在按计划进行。' },
-      { sender: 'user', message: '那太好了，有什么需要我帮忙的吗？' },
-      { sender: 'ai', message: '暂时没有，如果有需要我会及时通知你。' },
-    ],
-    '2': [
-      { sender: 'user', message: '下周三的会议安排好了吗？' },
-      { sender: 'ai', message: '是的，会议已经安排在下周三上午 10:00，地点是会议室 A。' },
-    ],
-    '3': [
-      { sender: 'user', message: '设计稿的反馈收到了吗？' },
-      { sender: 'ai', message: '收到了，我们已经审核完毕，请根据反馈意见进行修改。' },
-    ],
-  };
+  const [messages, setMessages] = useState([]); // 初始化为空数组
 
-  const [messages, setMessages] = useState(dialogDetails[dialogId]);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
+
+  useEffect(() => {
+    // 根据 dialogId 查找对应的消息列表
+    const selectedDialog = dialogDetails.find(
+      (dialog) => dialog.id === dialogId
+    );
+    if (selectedDialog) {
+      setMessages(selectedDialog.messages || []); // 如果找到，就设置消息，默认空数组
+    }
+  }, [dialogId]); // 依赖 dialogId 变化
 
   const handleSend = () => {
     if (inputText.trim()) {
-      const newMessage = { sender: 'user', message: inputText };
-      setMessages([...messages, newMessage]);
-      setInputText('');
+      const newMessage = {
+        sender: "user",
+        message: inputText,
+        avatar: require("./assets/user-avatar.png"),
+      };
+      // 使用函数式更新，避免引用旧的 messages 值
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages, newMessage];
 
-      // 模拟AI回复
-      setTimeout(() => {
-        const aiResponse = { sender: 'ai', message: '收到你的消息，我会尽快处理。' };
-        setMessages([...messages, newMessage, aiResponse]);
-      }, 1000);
+        // 模拟AI回复
+        setTimeout(() => {
+          const aiResponse = {
+            sender: "ai",
+            message: "收到你的消息，我会尽快处理。",
+            avatar: require("./assets/ai-avatar.png"),
+          };
+          setMessages((prev) => [...prev, aiResponse]);
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 1000);
+
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+        return updatedMessages;
+      });
+      setInputText("");
     }
+  };
+
+  const renderMessageBubble = (msg, index) => {
+    const isUser = msg.sender === "user";
+    return (
+      <View
+        key={index}
+        style={[
+          styles.messageContainer,
+          isUser ? styles.userMessageContainer : styles.aiMessageContainer,
+        ]}
+      >
+        <Image
+          source={msg.avatar}
+          style={[styles.avatar, isUser ? styles.userAvatar : styles.aiAvatar]}
+        />
+        <View
+          style={[
+            styles.messageBubble,
+            isUser ? styles.userBubble : styles.aiBubble,
+          ]}
+        >
+          <Text
+            style={[
+              styles.messageText,
+              isUser ? styles.userMessageText : styles.aiMessageText,
+            ]}
+          >
+            {msg.message}
+          </Text>
+        </View>
+      </View>
+    );
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 65}
     >
-      <ScrollView style={styles.messagesContainer}>
-        {messages.map((msg, index) => (
-          <View
-            key={index}
-            style={[
-              styles.messageBubble,
-              msg.sender === 'user' ? styles.userBubble : styles.aiBubble,
-            ]}
-          >
-            <Text style={styles.messageText}>{msg.message}</Text>
-          </View>
-        ))}
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.messagesContainer}
+        contentContainerStyle={styles.messagesContentContainer}
+      >
+        {messages.map(renderMessageBubble)}
       </ScrollView>
+
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -65,6 +115,9 @@ const DialogDetail = ({ route }) => {
           onChangeText={setInputText}
           onSubmitEditing={handleSend}
         />
+        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+          <Text style={styles.sendButtonText}>发送</Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -73,41 +126,87 @@ const DialogDetail = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: "#F5F5F5",
   },
-  messagesContainer: {
-    flex: 1,
+  messageContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginBottom: 12,
+    justifyContent: "space-between", // 添加这行
+  },
+
+  messagesContentContainer: {
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+  },
+  messageContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginBottom: 12,
+  },
+  userMessageContainer: {
+    flexDirection: "row-reverse", // 修改这行
+    alignItems: "flex-end",
+  },
+
+  aiMessageContainer: {
+    justifyContent: "flex-start",
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: 8,
+  },
+  userAvatar: {
+    alignSelf: "flex-end",
+    marginLeft: 8, // 调整左边距
+    marginRight: 0, // 右边距设为0
+  },
+
+  aiAvatar: {
+    alignSelf: "flex-start",
   },
   messageBubble: {
+    maxWidth: "75%",
     padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    maxWidth: '80%',
+    borderRadius: 16,
   },
   userBubble: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
+    alignSelf: "flex-end",
   },
   aiBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#E5E5EA',
+    backgroundColor: "#E5E5EA",
+    alignSelf: "flex-start",
   },
   messageText: {
     fontSize: 16,
-    color: '#fff',
+  },
+  userMessageText: {
+    color: "#FFFFFF",
+  },
+  aiMessageText: {
+    color: "#000000",
   },
   inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    paddingTop: 8,
+    borderTopColor: "#E0E0E0",
   },
   input: {
+    flex: 1,
     height: 40,
-    borderColor: '#ccc',
     borderWidth: 1,
+    borderColor: "#E0E0E0",
     borderRadius: 20,
     paddingHorizontal: 16,
+    marginRight: 8,
   },
 });
 
 export default DialogDetail;
+
