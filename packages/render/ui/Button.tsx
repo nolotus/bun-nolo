@@ -1,154 +1,187 @@
-import type React from "react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
-import { selectIsDarkMode, selectTheme } from "app/theme/themeSlice";
-import OpenProps from "open-props";
+import React from 'react';
+import { defaultTheme } from "render/styles/colors";
 
-export type ButtonProps = {
-	className?: string;
-	children?: React.ReactNode;
-	onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-	width?: string;
-	loading?: boolean;
-	icon?: React.ReactNode;
-	disabled?: boolean;
-	type?: "button" | "submit" | "reset";
-	style?: React.CSSProperties;
-	hoverStyle?: React.CSSProperties;
-};
-
-const Spinner = () => {
-	const spinnerStyle: React.CSSProperties = {
-		display: "inline-block",
-		width: "16px",
-		height: "16px",
-		border: "2px solid currentColor",
-		borderTop: "2px solid transparent",
-		borderRadius: "50%",
-		animation: "spin 1s linear infinite",
-	};
-
-	return (
-		<>
-			<style>
-				{`
-					@keyframes spin {
-						0% {
-							transform: rotate(0deg);
-						}
-						100% {
-							transform: rotate(360deg);
-						}
-					}
-				`}
-			</style>
-			<div style={spinnerStyle} />
-		</>
-	);
-};
+interface ButtonProps {
+  variant?: 'primary' | 'secondary';
+  status?: 'success' | 'warning' | 'error';
+  size?: 'small' | 'medium' | 'large';
+  type?: 'button' | 'submit' | 'reset';
+  icon?: React.ReactNode;
+  loading?: boolean;
+  disabled?: boolean;
+  block?: boolean;
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+}
 
 export const Button: React.FC<ButtonProps> = ({
-	className,
-	children,
-	onClick,
-	width = "auto",
-	loading = false,
-	icon,
-	disabled = false,
-	type = "button",
-	style,
-	hoverStyle,
+  variant = 'primary',
+  status,
+  size = 'medium',
+  type = 'button',
+  icon,
+  loading,
+  disabled,
+  block,
+  onClick,
+  className = '',
+  children,
 }) => {
-	const [isHovered, setIsHovered] = useState(false);
-	const theme = useSelector(selectTheme);
-	const isDarkMode = useSelector(selectIsDarkMode);
-	const { t } = useTranslation();
+  // 获取按钮颜色
+  const getButtonColor = () => {
+    if (variant === 'secondary') return defaultTheme.backgroundSecondary;
 
-	const getHighlightColor = () =>
-		isDarkMode
-			? `hsl(${OpenProps.gray12Hsl}/25%)`
-			: `hsl(${OpenProps.gray5Hsl}/25%)`;
+    if (status) {
+      return {
+        error: defaultTheme.error,
+        warning: defaultTheme.warning,
+        success: defaultTheme.success
+      }[status];
+    }
 
-	const baseStyles: React.CSSProperties = {
-		alignItems: "center",
-		background: isDarkMode ? theme.surface1 : "#fff",
-		borderWidth: OpenProps.borderSize2,
-		borderStyle: "solid",
-		borderColor: theme.surface3,
-		borderRadius: OpenProps.radius2,
-		boxShadow: `${OpenProps.shadow2}, 0 1px ${theme.surface3}, 0 0 0 ${isHovered ? OpenProps.size2 : "0"
-			} ${getHighlightColor()}`,
-		color: theme.text2,
-		display: "inline-flex",
-		fontSize: theme.fontSize.medium,
-		fontWeight: OpenProps.fontWeight7,
-		gap: OpenProps.size2,
-		justifyContent: "center",
-		paddingBlock: ".75ch",
-		paddingInline: OpenProps.sizeRelative6,
-		textAlign: "center",
-		textShadow: isDarkMode ? `0 1px 0 ${theme.surface1}` : `0 1px 0 "#dee2e6"`,
-		transition: `all 0.2s ${OpenProps.ease3}`,
-		userSelect: "none",
-		WebkitTapHighlightColor: "transparent",
-		WebkitTouchCallout: "none",
-		cursor: disabled || loading ? "not-allowed" : "pointer",
-		width,
-	};
+    return defaultTheme.primary;
+  };
 
-	const hoverStyles: React.CSSProperties = {
-		borderColor: "currentColor",
-		...hoverStyle,
-	};
+  return (
+    <button
+      className={`button ${variant} ${size} ${block ? 'block' : ''} ${className}`}
+      disabled={disabled || loading}
+      onClick={onClick}
+      type={type}
+    >
+      {loading ? (
+        <span className="loading-wrapper">
+          <LoadingSpinner />
+        </span>
+      ) : icon ? (
+        <span className="icon-wrapper">{icon}</span>
+      ) : null}
 
-	const disabledStyles: React.CSSProperties = {
-		background: "none",
-		color: isDarkMode ? OpenProps.gray5 : OpenProps.gray6,
-		boxShadow: OpenProps.shadow1,
-		borderColor: disabled ? theme.surface3 : "",
-	};
+      <span className="content">{children}</span>
 
-	const combinedStyles = {
-		...baseStyles,
-		...(disabled || loading ? disabledStyles : {}),
-		...(isHovered ? hoverStyles : {}),
-		...style,
-	};
+      <style href='button'>{`
+        .button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          border: none;
+          outline: none;
+          border-radius: 8px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+          cursor: pointer;
+          position: relative;
+          white-space: nowrap;
+        }
 
-	const handleMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
-		if (!disabled && !loading) {
-			onClick && onClick(event);
-		}
-	};
+        .button:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
 
-	const handleMouseEnter = () => {
-		if (!disabled && !loading) {
-			setIsHovered(true);
-		}
-	};
+        .button:focus-visible {
+          box-shadow: 0 0 0 2px ${defaultTheme.primary}40;
+        }
 
-	const handleMouseLeave = () => {
-		if (!disabled && !loading) {
-			setIsHovered(false);
-		}
-	};
+        .button:active:not(:disabled) {
+          transform: scale(0.98);
+        }
 
-	return (
-		<button
-			className={className}
-			style={combinedStyles}
-			onMouseDown={handleMouseDown}
-			onMouseEnter={handleMouseEnter}
-			onMouseLeave={handleMouseLeave}
-			disabled={disabled || loading}
-			type={type}
-		>
-			{loading && <Spinner />}
-			{icon && !loading && icon}
-			{children}
-		</button>
-	);
+        /* Size variants */
+        .small {
+          min-width: 80px;
+          height: 32px;
+          padding: 0 16px;
+          font-size: 13px;
+        }
+
+        .medium {
+          min-width: 120px;
+          height: 40px;
+          padding: 0 24px;
+          font-size: 14px;
+        }
+
+        .large {
+          min-width: 140px;
+          height: 48px;
+          padding: 0 32px;
+          font-size: 16px;
+        }
+
+        /* Style variants */
+        .primary {
+          background: ${getButtonColor()};
+          color: white;
+        }
+
+        .primary:hover:not(:disabled) {
+          opacity: 0.9;
+        }
+
+        .secondary {
+          background: ${defaultTheme.backgroundSecondary};
+          color: ${defaultTheme.text};
+          border: 1px solid ${defaultTheme.border};
+        }
+
+        .secondary:hover:not(:disabled) {
+          background: ${defaultTheme.backgroundGhost};
+          border-color: ${defaultTheme.borderHover};
+        }
+
+        /* Block mode */
+        .block {
+          width: 100%;
+        }
+
+        /* Icon & Loading */
+        .loading-wrapper,
+        .icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .loading-wrapper {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .content {
+          line-height: 1;
+        }
+      `}</style>
+    </button>
+  );
 };
+
+// LoadingSpinner 组件
+const LoadingSpinner = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 14 14"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M13 7A6 6 0 111 7"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
 
 export default Button;

@@ -2,19 +2,12 @@
 
 import { createSlice } from "@reduxjs/toolkit";
 
-import { blues } from "../colors";
 import { dimTheme } from "./dimTheme";
 import { lightTheme } from "./lightTheme";
 
-const mainColors = [...blues];
 
 const baseTheme = {
-	borderRadius: "5px",
-	fontSize: {
-		small: "12px",
-		medium: "14px",
-		large: "16px",
-	},
+
 	spacing: {
 		xsmall: "4px",
 		small: "8px",
@@ -61,21 +54,16 @@ const themeSlice = createSlice({
 			}
 			return state;
 		},
-		changeMainColor: (state, action) => {
-			if (mainColors.includes(action.payload)) {
-				state.mainColor = action.payload;
-			}
-		},
+
 		setSidebarWidth: (state, action) => {
 			state.sidebarWidth = action.payload;
 		},
 	},
 });
 
-export const { setTheme, changeMainColor, setSidebarWidth } =
+export const { setTheme,  setSidebarWidth } =
 	themeSlice.actions;
 
-export const mainColorOptions = mainColors;
 
 export const selectTheme = (state) => state.theme;
 export const selectIsDarkMode = (state) =>
