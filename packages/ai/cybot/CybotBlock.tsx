@@ -40,7 +40,7 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 
 	const avatarBackground =
 		Object.values(GRADIENTS)[
-			item.id.charCodeAt(0) % Object.values(GRADIENTS).length
+		item.id.charCodeAt(0) % Object.values(GRADIENTS).length
 		];
 
 	const startDialog = async () => {
