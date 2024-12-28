@@ -1,22 +1,56 @@
 import { XIcon } from "@primer/octicons-react";
-import type React from "react";
+import React, { useState } from "react";
 import { defaultTheme } from "render/styles/colors";
-import { Modal, useModal } from "render/ui/Modal";
+import { BaseModal } from 'render/ui/BaseModal';
 
 interface ImagePreviewProps {
-	imageUrls: string[];
-	onRemove: (index: number) => void;
+  imageUrls: string[];
+  onRemove: (index: number) => void;
 }
 
 const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
-	const { visible, open, close, modalState } = useModal();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-	if (imageUrls.length === 0) return null;
+  if (imageUrls.length === 0) return null;
 
-	return (
-		<>
-			<style>
-				{`
+  return (
+    <>
+      <div className="image-preview-container">
+        {imageUrls.map((url, index) => (
+          <div key={url + index} className="preview-item">
+            <img
+              src={url}
+              alt={`Preview ${index + 1}`}
+              className="preview-image"
+              onClick={() => setSelectedImage(url)}
+            />
+            <button
+              type="button"
+              onClick={() => onRemove(index)}
+              className="remove-button"
+              aria-label="Remove image"
+            >
+              <XIcon size={10} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <BaseModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        className="image-preview-modal"
+      >
+        <img
+          src={selectedImage || ''}
+          alt="Enlarged preview"
+          className="preview-modal-image"
+          onClick={e => e.stopPropagation()}
+        />
+      </BaseModal>
+
+      <style href="image-preview" >
+        {`
           .image-preview-container {
             display: flex;
             gap: 6px;
@@ -79,41 +113,24 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
             box-shadow: 0 0 0 2px ${defaultTheme.focus};
           }
 
-          .modal-image {
+          .preview-modal-image {
             max-width: 90vw;
             max-height: 90vh;
             object-fit: contain;
             border-radius: 12px;
           }
+
+          @media (prefers-reduced-motion: reduce) {
+            .preview-item,
+            .preview-image,
+            .remove-button {
+              transition: none;
+            }
+          }
         `}
-			</style>
-
-			<div className="image-preview-container">
-				{imageUrls.map((url, index) => (
-					<div key={url + index} className="preview-item">
-						<img
-							src={url}
-							alt={`Preview ${index + 1}`}
-							className="preview-image"
-							onClick={() => open(url)}
-						/>
-						<button
-							type="button"
-							onClick={() => onRemove(index)}
-							className="remove-button"
-							aria-label="Remove image"
-						>
-							<XIcon size={10} />
-						</button>
-					</div>
-				))}
-			</div>
-
-			<Modal isOpen={visible} onClose={close}>
-				<img src={modalState} alt="Enlarged preview" className="modal-image" />
-			</Modal>
-		</>
-	);
+      </style>
+    </>
+  );
 };
 
 export default ImagePreview;

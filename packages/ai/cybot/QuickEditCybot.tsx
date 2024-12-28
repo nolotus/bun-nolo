@@ -1,13 +1,16 @@
 import { useAppDispatch } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import useMediaQuery from "react-responsive";
 import { Button } from "render/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
+import {
+	SyncIcon, // 同步/更新
+} from "@primer/octicons-react";
 
 import { FormFieldComponent } from "render/CommonFormComponents";
 import { FormField } from "render/form/FormField";
@@ -36,7 +39,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 		handleSubmit,
 		watch,
 		setValue,
-		formState: { errors },
+		formState: { errors, isSubmitting },
 		reset,
 	} = useForm({
 		defaultValues: {
@@ -198,9 +201,14 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
 			<Button
 				type="submit"
-				style={{ width: "100%", padding: "10px", marginTop: "20px" }}
+				variant="primary"
+				block
+				size="large"
+				loading={isSubmitting}
+				disabled={isSubmitting}
+				icon={<SyncIcon />} // 这里使用 SyncIcon 最符合更新场景
 			>
-				{t("update")}
+				{isSubmitting ? t("updating") : t("update")}
 			</Button>
 		</form>
 	);

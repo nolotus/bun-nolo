@@ -24,6 +24,7 @@ import ModelSelector from "../llm/ModelSelector";
 import { getModelsByProvider } from "../llm/providers"; // 假定 providerOptions 在这个文件中定义
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
+import { PlusIcon } from "@primer/octicons-react";
 
 // 定义Zod模式
 const schema = z.object({
@@ -176,12 +177,18 @@ const CreateCybot: React.FC = () => {
             ariaLabelledby="encrypted-label"
           />
         </FormField>
+
+
         <Button
           type="submit"
-          disabled={isSubmitting || isDialogLoading}
-          style={{ width: "100%", padding: "10px", marginTop: "20px" }}
+          variant="primary"
+          block
+          size="large"
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          icon={<PlusIcon />} // 这里使用 SyncIcon 最符合更新场景
         >
-          {t("createCybot")}
+          {isSubmitting ? t("updating") : t("update")}
         </Button>
       </form>
     </FormContainer>
