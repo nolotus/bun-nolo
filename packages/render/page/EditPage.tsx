@@ -1,12 +1,10 @@
 import { useAuth } from "auth/useAuth";
-import React from "react";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "app/hooks";
-import { animations } from "../styles/animations";
+import { animations } from "render/styles/animations";
 import { formatISO } from "date-fns";
 import { patchData } from "database/dbSlice";
-import { markdownToSlate } from "create/editor/markdownToSlate";
 import Editor from "create/editor/Editor";
 
 import { layout } from "../styles/layout";

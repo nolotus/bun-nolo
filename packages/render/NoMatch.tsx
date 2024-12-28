@@ -1,20 +1,8 @@
-import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Button from "render/ui/Button";
 
 const NoMatch = () => {
   const navigate = useNavigate();
-
-  const buttonStyle = {
-    padding: "16px",
-    backgroundColor: "#f0f0f0",
-    color: "#333",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    margin: "0 8px",
-    transition: "all 0.2s",
-  };
 
   return (
     <div
@@ -32,17 +20,25 @@ const NoMatch = () => {
           fontSize: "3rem",
           marginBottom: "2rem",
           color: "#2d3748",
+          fontWeight: "500",
         }}
       >
         Nothing to see here!
       </h2>
-      <div>
-        <Link to="/" style={buttonStyle}>
-          Go to Home
+
+      <div style={{ display: "flex", gap: "12px" }}>
+        <Link to="/" style={{ textDecoration: "none" }}>
+          <Button variant="primary">
+            Go to Home
+          </Button>
         </Link>
-        <button onClick={() => navigate(-1)} style={buttonStyle}>
+
+        <Button
+          variant="secondary"
+          onClick={() => navigate(-1)}
+        >
           Go Back
-        </button>
+        </Button>
       </div>
     </div>
   );
