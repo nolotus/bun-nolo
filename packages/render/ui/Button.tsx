@@ -1,5 +1,8 @@
+// Button.tsx
 import React from 'react';
-import { defaultTheme } from "render/styles/colors";
+import { animations } from "../styles/animations";
+import { defaultTheme } from "../styles/colors";
+import { shadows } from '../styles/shadow';
 
 interface ButtonProps {
   variant?: 'primary' | 'secondary';
@@ -12,6 +15,7 @@ interface ButtonProps {
   block?: boolean;
   onClick?: () => void;
   className?: string;
+  style?: React.CSSProperties;
   children: React.ReactNode;
 }
 
@@ -26,147 +30,163 @@ export const Button: React.FC<ButtonProps> = ({
   block,
   onClick,
   className = '',
+  style,
   children,
 }) => {
-  // 获取按钮颜色
-  const getButtonColor = () => {
-    if (variant === 'secondary') return defaultTheme.backgroundSecondary;
-
-    if (status) {
-      return {
-        error: defaultTheme.error,
-        warning: defaultTheme.warning,
-        success: defaultTheme.success
-      }[status];
-    }
-
-    return defaultTheme.primary;
+  const getButtonType = () => {
+    if (status === 'error') return 'danger';
+    return variant === 'primary' ? 'primary' : 'default';
   };
+
+  const buttonType = getButtonType();
+  const buttonClassName = `btn btn-${buttonType}${disabled || loading ? ' disabled' : ''} ${size} ${block ? 'block' : ''} ${className}`.trim();
 
   return (
     <button
-      className={`button ${variant} ${size} ${block ? 'block' : ''} ${className}`}
+      className={buttonClassName}
       disabled={disabled || loading}
-      onClick={onClick}
+      onClick={disabled || loading ? undefined : onClick}
       type={type}
+      style={style}
     >
-      {loading ? (
-        <span className="loading-wrapper">
-          <LoadingSpinner />
-        </span>
-      ) : icon ? (
-        <span className="icon-wrapper">{icon}</span>
-      ) : null}
+      <span className="btn-inner-wrapper">
+        {icon && <span className="btn-icon">{icon}</span>}
+        {loading ? (
+          <span className="loading-wrapper">
+            <LoadingSpinner />
+          </span>
+        ) : (
+          <span className="btn-content">
+            {children}
+          </span>
+        )}
+      </span>
 
-      <span className="content">{children}</span>
-
-      <style href='button'>{`
-        .button {
+      <style jsx>{`
+        .btn {
+          font-size: 14px;
+          font-weight: 500;
+          border-radius: 8px;
+          cursor: pointer;
+          border: none;
+          height: 34px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          border: none;
-          outline: none;
-          border-radius: 8px;
-          font-weight: 500;
-          transition: all 0.2s ease;
-          cursor: pointer;
           position: relative;
-          white-space: nowrap;
+          backdrop-filter: blur(8px);
+          user-select: none;
+          transition: all ${animations.duration.normal} ${animations.spring};
+          padding: 0 20px;
         }
 
-        .button:disabled {
-          cursor: not-allowed;
-          opacity: 0.6;
-        }
-
-        .button:focus-visible {
-          box-shadow: 0 0 0 2px ${defaultTheme.primary}40;
-        }
-
-        .button:active:not(:disabled) {
-          transform: scale(0.98);
-        }
-
-        /* Size variants */
-        .small {
-          min-width: 80px;
-          height: 32px;
+        .btn.small {
+          height: 28px;
           padding: 0 16px;
           font-size: 13px;
         }
 
-        .medium {
-          min-width: 120px;
-          height: 40px;
-          padding: 0 24px;
+        .btn.medium {
+          height: 34px;
+          padding: 0 20px;
           font-size: 14px;
         }
 
-        .large {
-          min-width: 140px;
-          height: 48px;
-          padding: 0 32px;
-          font-size: 16px;
+        .btn.large {
+          height: 42px;
+          padding: 0 28px;
+          font-size: 15px;
         }
 
-        /* Style variants */
-        .primary {
-          background: ${getButtonColor()};
-          color: white;
+        .btn-inner-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          height: 100%;
+          width: 100%;
         }
 
-        .primary:hover:not(:disabled) {
-          opacity: 0.9;
+        .btn:hover:not(.disabled) {
+          transform: translateY(-1px);
         }
 
-        .secondary {
-          background: ${defaultTheme.backgroundSecondary};
+        .btn-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          margin-right: 8px;
+          transition: all ${animations.duration.normal} ${animations.spring};
+        }
+
+        .btn-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          white-space: nowrap;
+          transition: all ${animations.duration.normal} ${animations.spring};
+        }
+
+        .btn.disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .btn-primary {
+          background-color: ${defaultTheme.primary};
+          color: ${defaultTheme.background};
+          box-shadow: ${shadows.primary.default};
+        }
+
+        .btn-primary:hover:not(.disabled) {
+          background-color: ${defaultTheme.hover};
+          box-shadow: ${shadows.primary.hover};
+        }
+
+        .btn-danger {
+          background-color: rgba(220, 38, 38, 0.06);
+          color: ${defaultTheme.error};
+          box-shadow: ${shadows.danger.default};
+        }
+
+        .btn-danger:hover:not(.disabled) {
+          background-color: rgba(220, 38, 38, 0.06);
+          box-shadow: ${shadows.danger.hover};
+        }
+
+        .btn-default {
+          background-color: ${defaultTheme.backgroundSecondary};
           color: ${defaultTheme.text};
-          border: 1px solid ${defaultTheme.border};
+          box-shadow: ${shadows.subtle.default};
         }
 
-        .secondary:hover:not(:disabled) {
-          background: ${defaultTheme.backgroundGhost};
-          border-color: ${defaultTheme.borderHover};
+        .btn-default:hover:not(.disabled) {
+          background-color: ${defaultTheme.backgroundGhost};
+          box-shadow: ${shadows.subtle.hover};
         }
 
-        /* Block mode */
         .block {
           width: 100%;
         }
 
-        /* Icon & Loading */
-        .loading-wrapper,
-        .icon-wrapper {
+        .loading-wrapper {
           display: flex;
           align-items: center;
           justify-content: center;
-        }
-
-        .loading-wrapper {
           animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .content {
-          line-height: 1;
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </button>
   );
 };
 
-// LoadingSpinner 组件
 const LoadingSpinner = () => (
   <svg
     width="14"

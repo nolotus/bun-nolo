@@ -1,6 +1,3 @@
-import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
-import React from "react";
 import { CodeBlock } from "render/elements/CodeBlock";
 import { ImageElement } from "render/elements/ImageElement";
 import { List, ListItem } from "render/elements/List";

@@ -11,7 +11,7 @@ import { addHostToCurrentServer } from "setting/settingSlice";
 
 // // import { generatorRoutes } from "./generatorRoutes";
 
-import { setTheme } from "app/theme/themeSlice";
+import { setDarkMode, setTheme } from "app/theme/themeSlice";
 import { getTokensFromLocalStorage } from "auth/client/token";
 import Article from "lab/s-station/Article";
 import Collect from "lab/s-station/Collect";
@@ -55,7 +55,7 @@ const generatorRoutes = (hostname, auth) => {
   }
   return routes(auth.user);
 };
-export default function App({ hostname, lng = "en", theme = "light" }) {
+export default function App({ hostname, lng = "en", isDark = false }) {
   const auth = useAuth();
 
   const routes = useMemo(
@@ -69,7 +69,8 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
   i18n.changeLanguage(lng);
 
   const init = async () => {
-    dispatch(setTheme(theme));
+    // dispatch(setTheme(theme));
+    setDarkMode(isDark);
     const tokens = getTokensFromLocalStorage();
     if (tokens) {
       await dispatch(initAuth(tokens));
@@ -84,9 +85,9 @@ export default function App({ hostname, lng = "en", theme = "light" }) {
     const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event) => {
       if (event.matches) {
-        dispatch(setTheme("dark"));
+        setDarkMode(true);
       } else {
-        dispatch(setTheme("light"));
+        setDarkMode(false);
       }
     };
 

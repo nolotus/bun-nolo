@@ -1,9 +1,8 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import {
 	FormContainer,
 	FormFieldComponent,
 	FormTitle,
-	SubmitButton,
 } from "render/CommonFormComponents";
 
 import { useAppDispatch } from "app/hooks";
@@ -13,6 +12,8 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 
 import { addWorkspace } from "./workspaceSlice";
+import { Button } from "render/ui";
+import { PlusCircleIcon } from "@primer/octicons-react";
 
 export const CreateWorkSpaceForm = ({ onClose }) => {
 	const { t } = useTranslation();
@@ -61,17 +62,18 @@ export const CreateWorkSpaceForm = ({ onClose }) => {
 						register={register}
 						errors={errors}
 					/>
-					<SubmitButton
+
+					<Button
 						type="submit"
+						variant="primary"
+						block
+						size="large"
+						loading={isSubmitting}
 						disabled={isSubmitting}
-						onClick={(e) => {
-							e.preventDefault();
-							console.log("Submit button clicked");
-							handleFormSubmit();
-						}}
+						icon={<PlusCircleIcon />}
 					>
-						{t("CreateSpace")}
-					</SubmitButton>
+						{isSubmitting ? t("submiting") : t("CreateSpace")}
+					</Button>
 				</form>
 			</FormContainer>
 		</>
