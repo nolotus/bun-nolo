@@ -1,36 +1,25 @@
-import { changeMainColor, mainColorOptions } from "app/theme/themeSlice";
 import { Button, StyleSheet, View } from "react-native";
-import { useDispatch } from "react-redux";
-import { flexStyles } from "render/styles/flexStyles";
 
-const styles = StyleSheet.create({
-	bluesContainer: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		margin: 5,
+export const flexStyles = StyleSheet.create({
+	flex1: {
+		flex: 1,
 	},
-	blueBox: {
+	centerJustify: {
 		justifyContent: "center",
-		alignItems: "center",
-		margin: 5,
 	},
-	blueBoxText: {
-		color: "white",
-		fontWeight: "bold",
+	centerAlign: {
+		alignItems: "center",
 	},
 });
 
 export function UserScreen({ navigation }) {
-	const dispatch = useDispatch();
 	const goToLogin = () => {
 		navigation.navigate("Auth", { screen: "Login" });
 	};
 	const goToRegister = () => {
 		navigation.navigate("Auth", { screen: "Register" });
 	};
-	const selectColor = (color) => {
-		dispatch(changeMainColor(color));
-	};
+
 	return (
 		<View
 			style={{
@@ -39,17 +28,7 @@ export function UserScreen({ navigation }) {
 				...flexStyles.centerAlign,
 			}}
 		>
-			<View style={styles.bluesContainer}>
-				{mainColorOptions.map((blue, index) => (
-					<View key={index} style={[styles.blueBox, { backgroundColor: blue }]}>
-						<Button
-							title="选择颜色"
-							onPress={() => selectColor(blue)}
-							color={blue}
-						/>
-					</View>
-				))}
-			</View>
+
 			<Button title="登录" onPress={goToLogin} />
 			<Button title="注册" onPress={goToRegister} />
 		</View>
