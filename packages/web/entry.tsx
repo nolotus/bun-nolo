@@ -28,7 +28,7 @@ if (isProduction) {
     <React.StrictMode>
       <Provider store={browserStore}>
         <BrowserRouter>
-          <App hostname={hostname} lng={lng} theme={isDark ? "dim" : "light"} />
+          <App hostname={hostname} lng={lng} isDark={isDark} />
         </BrowserRouter>
       </Provider>
     </React.StrictMode>,
@@ -39,7 +39,7 @@ if (isProduction) {
     <React.StrictMode>
       <Provider store={browserStore}>
         <HashRouter>
-          <App hostname={hostname} lng={lng} theme={isDark ? "dim" : "light"} />
+          <App hostname={hostname} lng={lng} isDark={isDark} />
         </HashRouter>
       </Provider>
     </React.StrictMode>,

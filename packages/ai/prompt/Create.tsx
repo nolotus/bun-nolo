@@ -1,3 +1,4 @@
+import { PlusIcon } from "@primer/octicons-react";
 import type { PromptFormData } from "ai/types";
 import { useAppDispatch } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
@@ -16,13 +17,13 @@ import {
 	FormContainer,
 	FormFieldComponent,
 	FormTitle,
-	SubmitButton,
 } from "render/CommonFormComponents";
 import { FormField } from "render/form/FormField";
 
 import { Input } from "render/form/Input";
 import { Label } from "render/form/Label";
 import { layout } from "render/styles/layout";
+import { Button } from "render/ui/Button";
 
 const CreatePrompt: React.FC = () => {
 	const { t } = useTranslation();
@@ -37,7 +38,7 @@ const CreatePrompt: React.FC = () => {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors, isSubmitting },
 	} = useForm<PromptFormData>();
 
 	const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -128,7 +129,17 @@ const CreatePrompt: React.FC = () => {
 						))}
 					</div>
 				</FormField>
-				<SubmitButton type="submit">{t("createPrompt")}</SubmitButton>
+				<Button
+					type="submit"
+					variant="primary"
+					block
+					size="large"
+					loading={isSubmitting}
+					disabled={isSubmitting}
+					icon={<PlusIcon />}
+				>
+					{isSubmitting ? t("submiting") : t("createPrompt")}
+				</Button>
 			</form>
 		</FormContainer>
 	);

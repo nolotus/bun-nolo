@@ -10,8 +10,12 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { GRADIENTS, defaultTheme } from "render/styles/colors";
+import { animations } from "render/styles/animations";
+import Button from "render/ui/Button";
+import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
+import { CommentDiscussionIcon, PencilIcon, TrashIcon } from '@primer/octicons-react';
 
 interface CybotBlockProps {
 	item: {
@@ -24,12 +28,6 @@ interface CybotBlockProps {
 	closeModal?: () => void;
 }
 
-const buttonBaseStyle = {
-	padding: "0.6rem",
-	borderRadius: "8px",
-	cursor: "pointer",
-};
-
 const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 	const { t } = useTranslation();
 	const { isLoading, createNewDialog } = useCreateDialog();
@@ -38,10 +36,9 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 	const [deleting, setDeleting] = useState(false);
 	const allowEdit = useCouldEdit(item.id);
 
-	const avatarBackground =
-		Object.values(GRADIENTS)[
+	const avatarBackground = Object.values(GRADIENTS)[
 		item.id.charCodeAt(0) % Object.values(GRADIENTS).length
-		];
+	];
 
 	const startDialog = async () => {
 		if (isLoading) return;
@@ -76,192 +73,64 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 
 	return (
 		<>
-			<style>{`
-        .cybot-block {
-          transition: all 0.2s ease;
-        }
-        .cybot-block:hover {
-          box-shadow: 0 4px 12px ${defaultTheme.shadowMedium};
-          transform: translateY(-2px);
-        }
-        
-        .start-button {
-          transition: all 0.2s;
-        }
-        .start-button:hover:not(:disabled) {
-          opacity: 0.9;
-          transform: translateY(-1px);
-        }
-        .start-button:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .edit-button {
-          transition: all 0.2s;
-        }
-        .edit-button:hover {
-          border-color: ${defaultTheme.borderHover};
-          color: ${defaultTheme.text};
-          background: ${defaultTheme.backgroundSecondary};
-        }
-
-        .delete-button {
-          transition: all 0.2s;
-        }
-        .delete-button:hover:not(:disabled) {
-          border-color: ${defaultTheme.error};
-          background: rgba(239, 68, 68, 0.1);
-        }
-        .delete-button:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-      `}</style>
-
-			<div
-				className="cybot-block"
-				style={{
-					background: defaultTheme.background,
-					borderRadius: "12px",
-					padding: "1rem",
-					height: "100%",
-					display: "flex",
-					flexDirection: "column",
-					gap: "1rem",
-					border: `1px solid ${defaultTheme.border}`,
-					cursor: "pointer",
-					boxShadow: `0 2px 8px ${defaultTheme.shadowLight}`,
-				}}
-			>
-				<div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
-					<div
-						className="avatar"
-						style={{
-							width: "42px",
-							height: "42px",
-							borderRadius: "10px",
-							background: avatarBackground,
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							fontSize: "1.1rem",
-							color: defaultTheme.text,
-						}}
-					>
+			<div className="cybot-block">
+				<div className="header">
+					<div className="avatar" role="img" aria-label={item.name || t("unnamed")}>
 						{item.name?.[0]?.toUpperCase() || "?"}
 					</div>
 
-					<div style={{ flex: 1 }}>
-						<h3
-							style={{
-								fontSize: "1rem",
-								fontWeight: 600,
-								margin: 0,
-								marginBottom: "0.3rem",
-								color: defaultTheme.text,
-							}}
-						>
+					<div className="info">
+						<h3 className="title">
 							{item.name || t("unnamed")}
 						</h3>
-						<div style={{ display: "flex", gap: "0.4rem" }}>
-							<div
-								className="model-tag"
-								style={{
-									fontSize: "0.8rem",
-									color: defaultTheme.textSecondary,
-									padding: "0.2rem 0.5rem",
-									background: defaultTheme.backgroundSecondary,
-									borderRadius: "4px",
-								}}
-							>
+						<div className="tags">
+							<div className="tag model-tag">
 								{item.model}
 							</div>
-
-							<div
-								className="provider-tag"
-								style={{
-									fontSize: "0.8rem",
-									color: defaultTheme.textSecondary,
-									padding: "0.2rem 0.5rem",
-									background: defaultTheme.backgroundSecondary,
-									borderRadius: "4px",
-								}}
-							>
+							<div className="tag provider-tag">
 								{item.provider}
 							</div>
 						</div>
 					</div>
 				</div>
 
-				<div
-					style={{
-						flex: 1,
-						fontSize: "0.85rem",
-						lineHeight: 1.6,
-						color: defaultTheme.textTertiary,
-						padding: "0.6rem 0",
-						borderTop: `1px solid ${defaultTheme.border}`,
-						borderBottom: `1px solid ${defaultTheme.border}`,
-					}}
-				>
+				<div className="description">
 					{item.introduction || t("noDescription")}
 				</div>
 
-				<div style={{ display: "flex", gap: "0.6rem", marginTop: "auto" }}>
-					<button
-						type="button"
+				<div className="actions">
+					<Button
+						icon={<CommentDiscussionIcon size={16} />}
 						onClick={startDialog}
 						disabled={isLoading}
-						className="start-button"
-						style={{
-							...buttonBaseStyle,
-							flex: 2,
-							border: "none",
-							background: defaultTheme.primaryGradient,
-							color: defaultTheme.background,
-							fontWeight: 500,
-						}}
+						loading={isLoading}
+						size="medium"
+						style={{ flex: 2 }}
 					>
 						{isLoading ? t("starting") : t("startChat")}
-					</button>
+					</Button>
 
 					{allowEdit && (
-						<>
-							<button
-								type="button"
+						<div className="edit-actions">
+							<IconHoverButton
+								icon={<PencilIcon size={16} />}
+								variant="secondary"
 								onClick={handleEdit}
-								className="edit-button"
-								style={{
-									...buttonBaseStyle,
-									flex: 1,
-									border: `1px solid ${defaultTheme.border}`,
-									background: defaultTheme.background,
-									color: defaultTheme.textSecondary,
-								}}
+								size="medium"
 							>
 								{t("edit")}
-							</button>
+							</IconHoverButton>
 
-							<button
-								type="button"
+							<IconHoverButton
+								icon={<TrashIcon size={16} />}
+								variant="danger"
 								onClick={handleDelete}
 								disabled={deleting}
-								className="delete-button"
-								style={{
-									...buttonBaseStyle,
-									flex: 1,
-									border: `1px solid ${defaultTheme.border}`,
-									background: defaultTheme.background,
-									color: deleting
-										? defaultTheme.placeholder
-										: defaultTheme.error,
-								}}
+								size="medium"
 							>
-								{deleting ? "..." : t("delete")}
-							</button>
-						</>
+								{t("delete")}
+							</IconHoverButton>
+						</div>
 					)}
 				</div>
 
@@ -275,6 +144,108 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 					</Dialog>
 				)}
 			</div>
+
+			<style jsx>{`
+        .cybot-block {
+          background: ${defaultTheme.background};
+          border-radius: 12px;
+          padding: 1.25rem;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+          border: 1px solid ${defaultTheme.border};
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04),
+                      0 1px 4px rgba(0, 0, 0, 0.04);
+          transition: all ${animations.duration.normal} ${animations.spring};
+        }
+
+        .cybot-block:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06),
+                      0 2px 6px rgba(0, 0, 0, 0.04);
+          transform: translateY(-2px);
+        }
+
+        .header {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+        }
+
+        .avatar {
+          width: 42px;
+          height: 42px;
+          border-radius: 10px;
+          background: ${avatarBackground};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.1rem;
+          color: ${defaultTheme.text};
+          flex-shrink: 0;
+          transition: transform ${animations.duration.normal} ${animations.spring};
+        }
+
+        .cybot-block:hover .avatar {
+          transform: scale(1.05);
+        }
+
+        .info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .title {
+          font-size: 1rem;
+          font-weight: 600;
+          margin: 0;
+          margin-bottom: 0.3rem;
+          color: ${defaultTheme.text};
+        }
+
+        .tags {
+          display: flex;
+          gap: 0.4rem;
+          flex-wrap: wrap;
+        }
+
+        .tag {
+          font-size: 0.8rem;
+          color: ${defaultTheme.textSecondary};
+          padding: 0.2rem 0.5rem;
+          background: ${defaultTheme.backgroundSecondary};
+          border-radius: 4px;
+          white-space: nowrap;
+          transition: background ${animations.duration.fast} ${animations.spring};
+        }
+
+        .tag:hover {
+          background: ${defaultTheme.backgroundTertiary};
+        }
+
+        .description {
+          flex: 1;
+          font-size: 0.85rem;
+          line-height: 1.6;
+          color: ${defaultTheme.textTertiary};
+          padding: 0.6rem 0;
+          border-top: 1px solid ${defaultTheme.border};
+          border-bottom: 1px solid ${defaultTheme.border};
+        }
+
+        .actions {
+          display: flex;
+          gap: 0.75rem;
+          margin-top: auto;
+          align-items: center;
+        }
+
+        .edit-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+      `}</style>
 		</>
 	);
 };

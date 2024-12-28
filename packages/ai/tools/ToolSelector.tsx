@@ -1,4 +1,3 @@
-// ai/tools/ToolSelector.tsx
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { Checkbox } from "render/form/Checkbox";
@@ -14,17 +13,17 @@ export const TOOL_OPTIONS = [
 interface ToolSelectorProps {
 	register: any;
 	label?: string;
-	containerStyle?: React.CSSProperties;
-	labelStyle?: React.CSSProperties;
-	inputContainerStyle?: React.CSSProperties;
+	containerClassName?: string;
+	labelClassName?: string;
+	inputClassName?: string;
 }
 
 export const ToolSelector: React.FC<ToolSelectorProps> = ({
 	register,
 	label,
-	containerStyle,
-	labelStyle,
-	inputContainerStyle,
+	containerClassName,
+	labelClassName,
+	inputClassName,
 }) => {
 	const { t } = useTranslation();
 
@@ -38,7 +37,7 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
             gap: 12px;
           }
 
-          .form-label {
+          .tool-label {
             display: block;
             margin-bottom: 6px;
             font-size: 13px;
@@ -49,11 +48,11 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
         `}
 			</style>
 
-			<FormField style={containerStyle}>
-				<Label className="form-label" style={labelStyle}>
+			<FormField className={containerClassName}>
+				<Label className={`tool-label ${labelClassName}`}>
 					{label || t("tools")}
 				</Label>
-				<div className="checkbox-container" style={inputContainerStyle}>
+				<div className={`checkbox-container ${inputClassName}`}>
 					{TOOL_OPTIONS.map((tool) => (
 						<Checkbox
 							key={tool.id}
