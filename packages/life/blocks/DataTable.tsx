@@ -5,6 +5,7 @@ import { DataType } from "create/types";
 import { deleteData } from "database/dbSlice";
 import { Link } from "react-router-dom";
 import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
+import { Button } from 'render/ui/Button';
 
 type FieldConfig = {
   header: string;
@@ -178,37 +179,28 @@ export const DataTable: React.FC<DataTableProps> = ({
   };
 
   const renderActions = (data: any) => (
-    <>
-      <button
+    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      <Button
+        variant="secondary"
+        status="error"
+        size="small"
         onClick={() => dispatch(deleteData({ id: data.id }))}
-        style={{
-          borderRadius: "4px",
-          padding: "4px",
-          backgroundColor: "red",
-          color: "white",
-          border: "none",
-          cursor: "pointer",
-        }}
+        icon={<TrashIcon size={14} />}
       >
-        <TrashIcon size={16} /> 删除
-      </button>
-      <button
-        type="button"
+        删除
+      </Button>
+
+      <Button
+        variant="secondary"
+        size="small"
         onClick={() => pullData(data.id, data)}
-        style={{
-          borderRadius: "4px",
-          padding: "4px",
-          backgroundColor: "blue",
-          color: "white",
-          border: "none",
-          cursor: "pointer",
-          marginLeft: "8px",
-        }}
+        icon={<RepoPullIcon size={14} />}
       >
-        <RepoPullIcon size={16} /> 拉取
-      </button>
+        拉取
+      </Button>
+
       {config.actions && config.actions(data)}
-    </>
+    </div>
   );
 
   return (

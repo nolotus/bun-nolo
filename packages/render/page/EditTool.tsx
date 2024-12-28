@@ -1,24 +1,42 @@
-//EditTool.ts
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import React, { useCallback } from "react";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { deleteData } from "database/dbSlice";
 import toast from "react-hot-toast";
-import ToggleSwitch from "render/ui/ToggleSwitch";
 import { setSaveAsTemplate } from "./pageSlice";
-import { colors } from "render/styles/theme";
-import { animations } from "../styles/animations";
 import {
   CheckIcon,
   EyeIcon,
   TrashIcon,
   CommentDiscussionIcon,
 } from "@primer/octicons-react";
-import {
-  createButtonStyle,
-  iconStyle,
-  getHoverStyles,
-} from "render/styles/button";
+import { Button } from "render/ui/Button";
+import ToggleSwitch from "render/ui/ToggleSwitch";
+import { animations } from "render/styles/animations";
+
+const styles = {
+  container: {
+    display: "flex",
+    alignItems: "center",
+    padding: "4px",
+    gap: "8px",
+  },
+  templateSwitch: {
+    display: "flex",
+    alignItems: "center",
+    padding: "4px 12px",
+    borderRadius: "8px",
+    backgroundColor: "rgba(242, 243, 244, 0.45)",
+    backdropFilter: "blur(8px)",
+    transition: `all ${animations.duration.fast} ${animations.spring}`,
+  },
+  templateLabel: {
+    fontSize: "14px",
+    color: "rgba(102, 102, 102, 0.9)",
+    marginRight: "8px",
+    userSelect: "none",
+  }
+} as const;
 
 interface EditToolProps {
   handleSave: () => void;
@@ -38,9 +56,9 @@ export const EditTool: React.FC<EditToolProps> = ({
 
   const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
 
-  const handleToggleTemplateChange = (value: boolean) => {
+  const handleToggleTemplateChange = useCallback((value: boolean) => {
     dispatch(setSaveAsTemplate(value));
-  };
+  }, [dispatch]);
 
   const handleDelete = useCallback(async () => {
     if (!pageId) return;
@@ -58,64 +76,16 @@ export const EditTool: React.FC<EditToolProps> = ({
     }
   }, [pageId, dispatch, navigate]);
 
-  const createRipple = (event: React.MouseEvent<HTMLElement>) => {
-    const button = event.currentTarget;
-    const ripple = document.createElement("span");
-    const rect = button.getBoundingClientRect();
+  const handleChatToggle = useCallback(() => {
+    setShowChat(!showChat);
+  }, [showChat, setShowChat]);
 
-    const size = Math.max(rect.width, rect.height);
-    const x = event.clientX - rect.left - size / 2;
-    const y = event.clientY - rect.top - size / 2;
-
-    ripple.style.cssText = `
-      position: absolute;
-      border-radius: 50%;
-      width: ${size}px;
-      height: ${size}px;
-      left: ${x}px;
-      top: ${y}px;
-      background-color: rgba(255, 255, 255, 0.5);
-      transform: scale(0);
-      animation: ripple 0.4s linear;
-      pointer-events: none;
-    `;
-
-    button.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 400);
-  };
-
-  if (!pageId) {
-    return null;
-  }
+  if (!pageId) return null;
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "4px",
-        gap: "8px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          padding: "4px 12px",
-          borderRadius: "8px",
-          backgroundColor: colors.background.lighter,
-          backdropFilter: "blur(8px)",
-          transition: `all ${animations.duration.fast} ${animations.spring}`,
-        }}
-      >
-        <span
-          style={{
-            fontSize: "14px",
-            color: colors.text.secondary,
-            marginRight: "8px",
-            userSelect: "none",
-          }}
-        >
+    <div style={styles.container}>
+      <div style={styles.templateSwitch}>
+        <span style={styles.templateLabel}>
           按模板保存
         </span>
         <ToggleSwitch
@@ -124,118 +94,48 @@ export const EditTool: React.FC<EditToolProps> = ({
         />
       </div>
 
-      <button
-        onClick={(e) => {
-          createRipple(e);
-          handleSave();
-        }}
-        style={createButtonStyle("primary")}
-        onMouseEnter={(e) => {
-          Object.assign(e.currentTarget.style, getHoverStyles("primary"));
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow =
-            createButtonStyle("primary").boxShadow;
-        }}
+      {/* 保存按钮 */}
+      <Button
+        variant="primary"
+        icon={<CheckIcon size={16} />}
+        onClick={handleSave}
+        size="medium"
       >
-        <span style={iconStyle}>
-          <CheckIcon size={16} />
-        </span>
         保存
-      </button>
+      </Button>
 
-      <NavLink
-        to={`/${pageId}`}
-        style={({ isActive }) => ({
-          ...createButtonStyle("default"),
-          ...(isActive
-            ? {
-                backgroundColor: colors.background.active,
-                boxShadow: "none",
-              }
-            : {}),
-        })}
-        onMouseEnter={(e) => {
-          Object.assign(e.currentTarget.style, getHoverStyles("default"));
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow =
-            createButtonStyle("default").boxShadow;
-        }}
-        onClick={createRipple}
+      {/* 预览按钮 */}
+      <Button
+        variant="secondary"
+        icon={<EyeIcon size={16} />}
+        onClick={() => navigate(`/${pageId}`)}
+        size="medium"
       >
-        <span style={iconStyle}>
-          <EyeIcon size={16} />
-        </span>
         预览
-      </NavLink>
+      </Button>
 
-      <button
-        onClick={(e) => {
-          createRipple(e);
-          handleDelete();
-        }}
+      {/* 删除按钮 */}
+      <Button
+        variant="secondary"
+        status="error"
+        icon={<TrashIcon size={16} />}
+        onClick={handleDelete}
+        loading={isDeleting}
         disabled={isDeleting}
-        style={{
-          ...createButtonStyle("danger"),
-          ...(isDeleting
-            ? {
-                opacity: 0.7,
-                cursor: "not-allowed",
-                transform: "none",
-                boxShadow: "none",
-              }
-            : {}),
-        }}
-        onMouseEnter={(e) => {
-          if (!isDeleting) {
-            Object.assign(e.currentTarget.style, getHoverStyles("danger"));
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow =
-            createButtonStyle("danger").boxShadow;
-        }}
+        size="medium"
       >
-        <span style={iconStyle}>
-          <TrashIcon size={16} />
-        </span>
         {isDeleting ? "删除中..." : "删除"}
-      </button>
+      </Button>
 
-      <button
-        onClick={(e) => {
-          createRipple(e);
-          setShowChat(!showChat);
-        }}
-        style={createButtonStyle("chat", showChat)}
-        onMouseEnter={(e) => {
-          Object.assign(e.currentTarget.style, getHoverStyles("chat"));
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = createButtonStyle("chat").boxShadow;
-        }}
+      {/* 对话按钮 */}
+      <Button
+        variant="secondary"
+        icon={<CommentDiscussionIcon size={16} />}
+        onClick={handleChatToggle}
+        size="medium"
       >
-        <span style={iconStyle}>
-          <CommentDiscussionIcon size={16} />
-        </span>
         {showChat ? "关闭对话" : "打开对话"}
-      </button>
-
-      <style>
-        {`
-          @keyframes ripple {
-            to {
-              transform: scale(3);
-              opacity: 0;
-            }
-          }
-        `}
-      </style>
+      </Button>
     </div>
   );
 };

@@ -25,14 +25,6 @@ const useCommonFormStyles = () => {
       color: defaultTheme.error,
       fontSize: "0.8em",
     },
-    submitButton: {
-      backgroundColor: defaultTheme.primary,
-      color: defaultTheme.background,
-      padding: "10px 15px",
-      border: "none",
-      borderRadius: "4px",
-      cursor: "pointer",
-    },
   };
 };
 
@@ -57,23 +49,7 @@ export const ErrorMessage: React.FC<{ children: ReactNode }> = ({
   return <span style={styles.errorMessage}>{children}</span>;
 };
 
-export const SubmitButton: React.FC<
-  React.ButtonHTMLAttributes<HTMLButtonElement>
-> = (props) => {
-  const styles = useCommonFormStyles();
-  return (
-    <button
-      {...props}
-      style={styles.submitButton}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.opacity = "0.9";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.opacity = "1";
-      }}
-    />
-  );
-};
+
 
 interface FormFieldComponentProps {
   label: string;
@@ -94,7 +70,6 @@ export const FormFieldComponent: React.FC<FormFieldComponentProps> = ({
   type = "text",
   required = false,
   as = "input",
-  options = [],
 }) => {
   const renderField = () => {
     const inputProps = {
@@ -106,17 +81,6 @@ export const FormFieldComponent: React.FC<FormFieldComponentProps> = ({
     switch (as) {
       case "textarea":
         return <TextArea {...inputProps} />;
-      case "select":
-        return (
-          <Select {...inputProps}>
-            <option value="">{`Select ${label}`}</option>
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
-        );
       default:
         const InputComponent = type === "password" ? PasswordInput : Input;
         return <InputComponent {...inputProps} type={type} />;

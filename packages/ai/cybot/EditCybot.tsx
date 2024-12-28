@@ -1,22 +1,17 @@
 import { useAppDispatch } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
+
 import { ErrorMessage } from "render/CommonFormComponents";
 import { Label } from "render/form/Label";
 import { Select } from "render/form/Select";
 import { Button } from "render/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
-import {
-	SyncIcon, // 同步/更新
-} from "@primer/octicons-react";
+import { SyncIcon } from "@primer/octicons-react";
 
 import { setData } from "database/dbSlice";
-import { layout } from "render/styles/layout";
-
 import { FormField } from "render/form/FormField";
 import { allModels } from "../llm/models";
 import ToolSelector from "../tools/ToolSelector";
@@ -33,24 +28,11 @@ const EditCybot = ({ initialValues, onClose }) => {
 	const { t } = useTranslation();
 	const dispatch = useAppDispatch();
 
-	const theme = useSelector(selectTheme);
-	const [screenWidth, setScreenWidth] = useState(window.innerWidth);
-
-	useEffect(() => {
-		const handleResize = () => {
-			setScreenWidth(window.innerWidth);
-		};
-
-		window.addEventListener("resize", handleResize);
-		return () => window.removeEventListener("resize", handleResize);
-	}, []);
-
 	const modelOptions = useMemo(() => {
 		const predefinedOptions = Object.entries(modelEnum).map(([key, value]) => ({
 			value: `predefined:${value}`,
 			label: key,
 		}));
-
 		return [{ label: t("predefinedModels"), options: predefinedOptions }];
 	}, [t]);
 
@@ -105,160 +87,178 @@ const EditCybot = ({ initialValues, onClose }) => {
 		onClose();
 	};
 
-	const fieldContainerStyle = {
-		marginBottom: "16px",
-		...layout.flex,
-		flexDirection: screenWidth < theme.breakpoints[0] ? "column" : "row",
-		alignItems: screenWidth < theme.breakpoints[0] ? "flex-start" : "center",
-		gap: theme.spacing.small,
-	};
-
-	const labelStyle = {
-		marginBottom: screenWidth < theme.breakpoints[0] ? theme.spacing.small : 0,
-		width: (() => {
-			const values = ["100%", "100%", "30%", "25%", "20%", "20%"];
-			const breakpointIndex = theme.breakpoints.findIndex(
-				(bp) => screenWidth < bp,
-			);
-			return values[
-				breakpointIndex === -1 ? values.length - 1 : breakpointIndex
-			];
-		})(),
-	};
-
-	const inputContainerStyle = {
-		width: (() => {
-			const values = ["100%", "100%", "70%", "75%", "80%", "80%"];
-			const breakpointIndex = theme.breakpoints.findIndex(
-				(bp) => screenWidth < bp,
-			);
-			return values[
-				breakpointIndex === -1 ? values.length - 1 : breakpointIndex
-			];
-		})(),
-	};
-
-
 	return (
-		<form onSubmit={handleSubmit(onSubmit)}>
-			<div style={fieldContainerStyle}>
-				<label htmlFor="name" style={labelStyle}>
-					{t("cybotName")}
-				</label>
-				<div style={inputContainerStyle}>
-					<input
-						id="name"
-						type="text"
-						{...register("name", { required: "Name is required" })}
-						style={{ width: "100%" }}
-					/>
-					{errors.name && <span>{errors.name.message}</span>}
-				</div>
-			</div>
+		<>
+			<style>
+				{`
+          .field-container {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+          }
+          
+          .input-container {
+            width: 100%;
+          }
+          
+          .text-input {
+            width: 100%;
+          }
+          
+          .textarea-input {
+            width: 100%;
+            min-height: 100px;
+          }
+          
+          @media (max-width: 768px) {
+            .field-container {
+              flex-direction: column;
+              align-items: flex-start;
+            }
+            
+            .field-label {
+              width: 100%;
+              margin-bottom: 8px;
+            }
+          }
+          
+          @media (min-width: 769px) {
+            .field-container {
+              flex-direction: row;
+              align-items: center;
+            }
+            
+            .field-label {
+              width: 30%;
+              margin-bottom: 0;
+            }
+            
+            .input-container {
+              width: 70%;
+            }
+          }
+        `}
+			</style>
 
-			<div style={fieldContainerStyle}>
-				<label htmlFor="greeting" style={labelStyle}>
-					{t("greetingMessage")}
-				</label>
-				<div style={inputContainerStyle}>
-					<input
-						id="greeting"
-						type="text"
-						{...register("greeting")}
-						style={{ width: "100%" }}
-					/>
-					{errors.greeting && <span>{errors.greeting.message}</span>}
+			<form onSubmit={handleSubmit(onSubmit)}>
+				<div className="field-container">
+					<label htmlFor="name" className="field-label">
+						{t("cybotName")}
+					</label>
+					<div className="input-container">
+						<input
+							id="name"
+							type="text"
+							{...register("name", { required: "Name is required" })}
+							className="text-input"
+						/>
+						{errors.name && <span>{errors.name.message}</span>}
+					</div>
 				</div>
-			</div>
 
-			<div style={fieldContainerStyle}>
-				<label htmlFor="introduction" style={labelStyle}>
-					{t("selfIntroduction")}
-				</label>
-				<div style={inputContainerStyle}>
-					<textarea
-						id="introduction"
-						style={{ width: "100%", minHeight: "100px" }}
-						{...register("introduction")}
-					/>
-					{errors.introduction && <span>{errors.introduction.message}</span>}
+				<div className="field-container">
+					<label htmlFor="greeting" className="field-label">
+						{t("greetingMessage")}
+					</label>
+					<div className="input-container">
+						<input
+							id="greeting"
+							type="text"
+							{...register("greeting")}
+							className="text-input"
+						/>
+						{errors.greeting && <span>{errors.greeting.message}</span>}
+					</div>
 				</div>
-			</div>
 
-			<div style={fieldContainerStyle}>
-				<label htmlFor="prompt" style={labelStyle}>
-					{t("prompt")}
-				</label>
-				<div style={inputContainerStyle}>
-					<textarea
-						id="prompt"
-						{...register("prompt")}
-						style={{ width: "100%", minHeight: "100px" }}
-					/>
-					{errors.prompt && <span>{errors.prompt.message}</span>}
+				<div className="field-container">
+					<label htmlFor="introduction" className="field-label">
+						{t("selfIntroduction")}
+					</label>
+					<div className="input-container">
+						<textarea
+							id="introduction"
+							{...register("introduction")}
+							className="textarea-input"
+						/>
+						{errors.introduction && <span>{errors.introduction.message}</span>}
+					</div>
 				</div>
-			</div>
 
-			{initialValues.model && (
+				<div className="field-container">
+					<label htmlFor="prompt" className="field-label">
+						{t("prompt")}
+					</label>
+					<div className="input-container">
+						<textarea
+							id="prompt"
+							{...register("prompt")}
+							className="textarea-input"
+						/>
+						{errors.prompt && <span>{errors.prompt.message}</span>}
+					</div>
+				</div>
+
+				{initialValues.model && (
+					<FormField>
+						<Label htmlFor="model">{t("model")}:</Label>
+						<Select
+							id="model"
+							{...register("model", { required: t("modelRequired") })}
+						>
+							<option value="">{t("selectModel")}</option>
+							{modelOptions.map((group) => (
+								<optgroup key={group.label} label={group.label}>
+									{group.options.map((option) => (
+										<option key={option.value} value={option.value}>
+											{option.label}
+										</option>
+									))}
+								</optgroup>
+							))}
+						</Select>
+						{errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
+					</FormField>
+				)}
+
+				<ToolSelector
+					register={register}
+					containerClassName="field-container"
+					labelClassName="field-label"
+					inputClassName="input-container"
+				/>
+
 				<FormField>
-					<Label htmlFor="model">{t("model")}:</Label>
-					<Select
-						id="model"
-						{...register("model", { required: t("modelRequired") })}
-					>
-						<option value="">{t("selectModel")}</option>
-						{modelOptions.map((group) => (
-							<optgroup key={group.label} label={group.label}>
-								{group.options.map((option) => (
-									<option key={option.value} value={option.value}>
-										{option.label}
-									</option>
-								))}
-							</optgroup>
-						))}
-					</Select>
-					{errors.model && <ErrorMessage>{errors.model.message}</ErrorMessage>}
+					<Label>{t("private")}:</Label>
+					<ToggleSwitch
+						checked={isPrivate}
+						onChange={(checked) => setValue("isPrivate", checked)}
+						ariaLabelledby="private-label"
+					/>
 				</FormField>
-			)}
 
-			<ToolSelector
-				register={register}
-				containerStyle={fieldContainerStyle}
-				labelStyle={labelStyle}
-				inputContainerStyle={inputContainerStyle}
-			/>
+				<FormField>
+					<Label>{t("encrypted")}:</Label>
+					<ToggleSwitch
+						checked={isEncrypted}
+						onChange={(checked) => setValue("isEncrypted", checked)}
+						ariaLabelledby="encrypted-label"
+					/>
+				</FormField>
 
-			<FormField>
-				<Label>{t("private")}:</Label>
-				<ToggleSwitch
-					checked={isPrivate}
-					onChange={(checked) => setValue("isPrivate", checked)}
-					ariaLabelledby="private-label"
-				/>
-			</FormField>
-
-			<FormField>
-				<Label>{t("encrypted")}:</Label>
-				<ToggleSwitch
-					checked={isEncrypted}
-					onChange={(checked) => setValue("isEncrypted", checked)}
-					ariaLabelledby="encrypted-label"
-				/>
-			</FormField>
-
-
-			<Button
-				type="submit"
-				variant="primary"
-				block
-				size="large"
-				loading={isSubmitting}
-				disabled={isSubmitting}
-				icon={<SyncIcon />} // 这里使用 SyncIcon 最符合更新场景
-			>
-				{isSubmitting ? t("updating") : t("update")}
-			</Button>
-		</form>
+				<Button
+					type="submit"
+					variant="primary"
+					block
+					size="large"
+					loading={isSubmitting}
+					disabled={isSubmitting}
+					icon={<SyncIcon />}
+				>
+					{isSubmitting ? t("updating") : t("update")}
+				</Button>
+			</form>
+		</>
 	);
 };
 

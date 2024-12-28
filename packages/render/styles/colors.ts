@@ -285,4 +285,4 @@ export const mergedThemes = Object.keys(themes).reduce((acc, themeKey) => {
 	return acc;
 }, {});
 
-export const defaultTheme = mergedThemes.blue.light;
+export const defaultTheme = mergedThemes.green.light;

@@ -21,7 +21,7 @@ import ToggleSwitch from "render/ui/ToggleSwitch";
 import { z } from "zod";
 
 import ModelSelector from "../llm/ModelSelector";
-import { getModelsByProvider } from "../llm/providers"; // 假定 providerOptions 在这个文件中定义
+import { getModelsByProvider } from "../llm/providers";
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
 import { PlusIcon } from "@primer/octicons-react";

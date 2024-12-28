@@ -1,7 +1,6 @@
 import type React from "react";
 import { StatusBar, useColorScheme } from "react-native";
 
-import { Colors } from "react-native/Libraries/NewAppScreen";
 import "intl-pluralrules";
 
 import i18n from "i18n";
@@ -14,10 +13,9 @@ global._ISRN_ = true;
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === "dark";
   const systemLanguage = RNLocalize.getLocales()[0].languageCode;
+
   i18n.changeLanguage(systemLanguage);
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+
 
   return (
     <Provider store={mobileStore}>
