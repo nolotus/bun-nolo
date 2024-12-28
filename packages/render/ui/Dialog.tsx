@@ -1,148 +1,218 @@
 import { XIcon } from "@primer/octicons-react";
-import type React from "react";
+import React from "react";
 import { defaultTheme } from "render/styles/colors";
-import { Modal } from "./Modal";
+import { BaseModal } from './BaseModal';
 
 interface DialogProps {
-	isOpen: boolean;
-	onClose: () => void;
-	title: string;
-	children: React.ReactNode;
-	className?: string;
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export const Dialog: React.FC<DialogProps> = ({
-	isOpen,
-	onClose,
-	title,
-	children,
-	className = "",
+  isOpen,
+  onClose,
+  title,
+  children,
+  className = "",
 }) => {
-	return (
-		<Modal isOpen={isOpen} onClose={onClose} size="medium" animation="slide">
-			<style>
-				{`
-          .dialog-container {
-            display: flex;
-            flex-direction: column;
-            background: ${defaultTheme.background};
-            height: auto;
-            max-height: 90vh;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 24px ${defaultTheme.shadowMedium};
-          }
+  return (
+    <BaseModal isOpen={isOpen} onClose={onClose}>
+      <div className={`dialog-container ${className}`}>
+        <div className="dialog-header">
+          <h2 className="dialog-title">{title}</h2>
+          <button
+            className="dialog-close"
+            onClick={onClose}
+            aria-label="Close dialog"
+          >
+            <XIcon size={16} />
+          </button>
+        </div>
 
-          .dialog-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 24px;
-            border-bottom: 1px solid ${defaultTheme.border};
+        <div className="dialog-content">{children}</div>
+      </div>
+
+      <style href="dialog">{`
+        .dialog-container {
+          display: flex;
+          flex-direction: column;
+          background: ${defaultTheme.background};
+          width: 600px;
+          min-height: 200px;
+          max-height: 90vh;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 24px ${defaultTheme.shadowMedium};
+        }
+
+        .dialog-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 24px;
+          border-bottom: 1px solid ${defaultTheme.border};
+        }
+
+        .dialog-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: ${defaultTheme.text};
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        .dialog-close {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          padding: 0;
+          background: none;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          color: ${defaultTheme.textSecondary};
+          transition: all 0.2s ease;
+        }
+
+        .dialog-close:hover {
+          background-color: ${defaultTheme.backgroundGhost};
+          color: ${defaultTheme.text};
+        }
+
+        .dialog-close:active {
+          transform: scale(0.95);
+        }
+
+        .dialog-content {
+          flex: 1;
+          overflow-y: auto;
+          padding: 24px;
+        }
+
+        .dialog-content::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .dialog-content::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .dialog-content::-webkit-scrollbar-thumb {
+          background-color: ${defaultTheme.border};
+          border-radius: 4px;
+          border: 2px solid transparent;
+          background-clip: padding-box;
+        }
+
+        .dialog-content::-webkit-scrollbar-thumb:hover {
+          background-color: ${defaultTheme.borderHover};
+        }
+
+        @media (min-width: 1601px) {
+          .dialog-container {
+            width: 1100px;
+          }
+        }
+
+        @media (max-width: 1600px) {
+          .dialog-container {
+            width: 900px;
           }
 
           .dialog-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: ${defaultTheme.text};
-            margin: 0;
-            line-height: 1.4;
-          }
-
-          .dialog-close {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            background: none;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            color: ${defaultTheme.textSecondary};
-            transition: all 0.2s ease;
-          }
-
-          .dialog-close:hover {
-            background-color: ${defaultTheme.backgroundGhost};
-            color: ${defaultTheme.text};
-          }
-
-          .dialog-close:active {
-            transform: scale(0.95);
+            font-size: 20px;
           }
 
           .dialog-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
+            padding: 28px;
+          }
+        }
+
+        @media (max-width: 1200px) {
+          .dialog-container {
+            width: 800px;
+          }
+        }
+
+        @media (max-width: 1024px) {
+          .dialog-container {
+            width: 720px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .dialog-container {
+            width: 90%;
+            max-width: 600px;
           }
 
-          .dialog-content::-webkit-scrollbar {
-            width: 8px;
+          .dialog-header {
+            padding: 18px 20px;
           }
 
-          .dialog-content::-webkit-scrollbar-track {
-            background: transparent;
+          .dialog-content {
+            padding: 20px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .dialog-container {
+            width: 100%;
+            min-width: 320px;
+            height: 100%;
+            max-height: 100vh;
+            border-radius: 0;
           }
 
-          .dialog-content::-webkit-scrollbar-thumb {
-            background-color: ${defaultTheme.border};
-            border-radius: 4px;
-            border: 2px solid transparent;
-            background-clip: padding-box;
+          .dialog-header {
+            padding: 16px;
           }
 
-          .dialog-content::-webkit-scrollbar-thumb:hover {
-            background-color: ${defaultTheme.borderHover};
+          .dialog-title {
+            font-size: 16px;
           }
 
-          /* Mobile styles */
-          @media (max-width: 640px) {
-            .dialog-header {
-              padding: 16px 20px;
-            }
-
-            .dialog-title {
-              font-size: 16px;
-            }
-
-            .dialog-close {
-              width: 28px;
-              height: 28px;
-            }
-
-            .dialog-content {
-              padding: 20px;
-            }
+          .dialog-close {
+            width: 28px;
+            height: 28px;
           }
 
-          /* Reduce motion */
-          @media (prefers-reduced-motion: reduce) {
-            .dialog-close {
-              transition: none;
-            }
+          .dialog-content {
+            padding: 16px;
           }
-        `}
-			</style>
+        }
 
-			<div className={`dialog-container ${className}`}>
-				<div className="dialog-header">
-					<h2 className="dialog-title">{title}</h2>
-					<button
-						className="dialog-close"
-						onClick={onClose}
-						aria-label="Close dialog"
-					>
-						<XIcon size={16} />
-					</button>
-				</div>
+        /* 处理特别高的屏幕 */
+        @media (min-height: 1000px) {
+          .dialog-container {
+            max-height: 85vh;
+          }
+        }
 
-				<div className="dialog-content">{children}</div>
-			</div>
-		</Modal>
-	);
+        /* 处理特别矮的屏幕 */
+        @media (max-height: 600px) {
+          .dialog-header {
+            padding: 12px 16px;
+          }
+
+          .dialog-content {
+            padding: 16px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .dialog-close {
+            transition: none;
+          }
+        }
+      `}</style>
+    </BaseModal>
+  );
 };
 
 export default Dialog;
