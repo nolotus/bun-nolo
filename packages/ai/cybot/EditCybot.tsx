@@ -1,7 +1,7 @@
 import { useAppDispatch } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -10,6 +10,9 @@ import { Label } from "render/form/Label";
 import { Select } from "render/form/Select";
 import { Button } from "render/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
+import {
+	SyncIcon, // 同步/更新
+} from "@primer/octicons-react";
 
 import { setData } from "database/dbSlice";
 import { layout } from "render/styles/layout";
@@ -56,7 +59,7 @@ const EditCybot = ({ initialValues, onClose }) => {
 		handleSubmit,
 		watch,
 		setValue,
-		formState: { errors },
+		formState: { errors, isSubmitting },
 		reset,
 	} = useForm({
 		defaultValues: {
@@ -135,11 +138,6 @@ const EditCybot = ({ initialValues, onClose }) => {
 		})(),
 	};
 
-	const buttonStyle = {
-		width: "100%",
-		padding: "10px",
-		marginTop: "20px",
-	};
 
 	return (
 		<form onSubmit={handleSubmit(onSubmit)}>
@@ -248,8 +246,17 @@ const EditCybot = ({ initialValues, onClose }) => {
 				/>
 			</FormField>
 
-			<Button type="submit" style={buttonStyle}>
-				{t("update")}
+
+			<Button
+				type="submit"
+				variant="primary"
+				block
+				size="large"
+				loading={isSubmitting}
+				disabled={isSubmitting}
+				icon={<SyncIcon />} // 这里使用 SyncIcon 最符合更新场景
+			>
+				{isSubmitting ? t("updating") : t("update")}
 			</Button>
 		</form>
 	);

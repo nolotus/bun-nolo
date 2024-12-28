@@ -1,34 +1,32 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { patchData, write } from "database/dbSlice";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { useAuth } from "auth/useAuth";
-import { selectTheme } from "app/theme/themeSlice";
 import { useQueryData } from "app/hooks/useQueryData";
 
-const categoryContainerStyle = (allowEdit, theme) => ({
+const categoryContainerStyle = (allowEdit) => ({
   display: "inline-block",
-  fontSize: theme.fontSize.small,
-  color: theme.text2,
+  fontSize: "12px", // 硬编码字体大小
+  color: "#666", // 硬编码文本颜色
   cursor: allowEdit ? "pointer" : "default",
 });
 
-const categoryInputStyle = (theme) => ({
-  fontSize: theme.fontSize.small,
-  color: theme.text1,
-  backgroundColor: theme.surface2,
-  borderRadius: theme.borderRadius,
-  padding: `${theme.spacing.xsmall} ${theme.spacing.small}`,
-});
-//todo dialogId change to id
+const categoryInputStyle = {
+  fontSize: "12px", // 硬编码字体大小
+  color: "#333", // 硬编码文本颜色
+  backgroundColor: "#f0f0f0", // 硬编码背景颜色
+  borderRadius: "4px", // 硬编码边框半径
+  padding: "4px 8px", // 硬编码内边距
+};
+
 const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [localCategoryName, setLocalCategoryName] = useState("");
   const dispatch = useDispatch();
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const theme = useSelector(selectTheme);
   const auth = useAuth();
 
   const categoryQueryConfig = {
@@ -65,7 +63,7 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
       localCategoryName &&
       (!categoryId ||
         localCategoryName !==
-          categories?.find((cat) => cat.id === categoryId)?.name)
+        categories?.find((cat) => cat.id === categoryId)?.name)
     ) {
       const categoryConfig = {
         data: {
@@ -104,7 +102,7 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
   if (isEditing && allowEdit) {
     return (
       <input
-        style={categoryInputStyle(theme)}
+        style={categoryInputStyle}
         value={localCategoryName}
         onChange={(e) => setLocalCategoryName(e.target.value)}
         onBlur={handleBlur}
@@ -115,7 +113,7 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
   }
 
   return (
-    <div onClick={handleClick} style={categoryContainerStyle(allowEdit, theme)}>
+    <div onClick={handleClick} style={categoryContainerStyle(allowEdit)}>
       {localCategoryName || "No Category"}
     </div>
   );
