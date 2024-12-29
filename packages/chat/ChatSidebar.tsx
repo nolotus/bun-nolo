@@ -8,7 +8,6 @@ import {
 	selectCurrentWorkSpaceId,
 } from "create/workspace/workspaceSlice";
 import { selectFilteredDataByUserAndTypeAndWorkspace } from "database/selectors";
-import withTranslations from "i18n/withTranslations";
 
 import { DialogList } from "./dialog/DialogList";
 
@@ -30,4 +29,4 @@ const ChatSidebar = () => {
 	return <nav>{data && <DialogList dialogList={data} />}</nav>;
 };
 
-export default withTranslations(ChatSidebar, ["chat", "ai"]);
+export default ChatSidebar

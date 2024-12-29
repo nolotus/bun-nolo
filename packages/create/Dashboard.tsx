@@ -9,25 +9,20 @@ import {
 import Cybots from "ai/cybot/web/Cybots";
 import { useAppSelector } from "app/hooks";
 import { useQueryData } from "app/hooks/useQueryData";
+import { selectTheme } from "app/theme/themeSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { nolotusId } from "core/init";
 import { CreateRoutePaths } from "create/routePaths";
 
-import withTranslations from "i18n/withTranslations";
 import { useMemo } from "react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { defaultTheme } from "render/styles/colors";
 
-interface ButtonInfo {
-  text: string;
-  route: string;
-  icon?: React.ReactNode;
-  description?: string;
-}
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const theme = useAppSelector(selectTheme)
   const userId = useAppSelector(selectCurrentUserId);
 
   const buttonsInfo = useMemo(() => [
@@ -85,13 +80,13 @@ const Dashboard = () => {
 			.header-title {
 			  font-size: 2.4rem;
 			  font-weight: 600;
-			  color: ${defaultTheme.text};
+			  color: ${theme.text};
 			  margin-bottom: 1rem;
 			}
   
 			.header-subtitle {
 			  font-size: 1.1rem;
-			  color: ${defaultTheme.textSecondary};
+			  color: ${theme.textSecondary};
 			  max-width: 600px;
 			  margin: 0 auto;
 			}
@@ -99,7 +94,7 @@ const Dashboard = () => {
 			.section-title {
 			  font-size: 1.5rem;
 			  font-weight: 600;
-			  color: ${defaultTheme.text};
+			  color: ${theme.text};
 			  display: flex;
 			  align-items: center;
 			  gap: 0.75rem;
@@ -107,7 +102,7 @@ const Dashboard = () => {
 			}
   
 			.section-title .icon {
-			  color: ${defaultTheme.textSecondary};
+			  color: ${theme.textSecondary};
 			  opacity: 0.85;
 			}
   
@@ -131,21 +126,21 @@ const Dashboard = () => {
 			  display: flex;
 			  align-items: center;
 			  padding: 1.25rem;
-			  background: ${defaultTheme.background};
-			  border: 1px solid ${defaultTheme.border};
+			  background: ${theme.background};
+			  border: 1px solid ${theme.border};
 			  border-radius: 12px;
 			  gap: 1rem;
 			  transition: all 0.2s ease;
 			}
   
 			.button-content:hover {
-			  background: ${defaultTheme.backgroundHover};
+			  background: ${theme.backgroundHover};
 			  transform: translateY(-2px);
-			  box-shadow: 0 4px 12px ${defaultTheme.shadowLight};
+			  box-shadow: 0 4px 12px ${theme.shadowLight};
 			}
   
 			.button-icon {
-			  color: ${defaultTheme.textSecondary};
+			  color: ${theme.textSecondary};
 			  opacity: 0.85;
 			  flex-shrink: 0;
 			}
@@ -157,13 +152,13 @@ const Dashboard = () => {
 			.button-title {
 			  font-size: 1.1rem;
 			  font-weight: 500;
-			  color: ${defaultTheme.text};
+			  color: ${theme.text};
 			  margin-bottom: 0.35rem;
 			}
   
 			.button-description {
 			  font-size: 0.9rem;
-			  color: ${defaultTheme.textSecondary};
+			  color: ${theme.textSecondary};
 			  line-height: 1.5;
 			}
 		  `}
@@ -251,4 +246,4 @@ const Dashboard = () => {
   );
 };
 
-export default withTranslations(Dashboard, ["chat", "ai"]);
+export default Dashboard

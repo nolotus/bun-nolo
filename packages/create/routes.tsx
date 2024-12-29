@@ -1,4 +1,4 @@
-// import CreateCybot from "ai/cybot/CreateCybot";
+import CreateCybot from "ai/cybot/CreateCybot";
 import { createLazyRoute } from "web/createLazyRoute";
 import { CreateRoutePaths } from "./routePaths";
 
@@ -11,7 +11,7 @@ export const createRoutes = [
 
   {
     path: CreateRoutePaths.CREATE_CYBOT,
-    // element: <CreateCybot />,
+    element: <CreateCybot />,
   },
   createLazyRoute(
     CreateRoutePaths.CREATE_PROMPT,

@@ -23,7 +23,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   watch,
   errors,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai");
   const provider = watch("provider");
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState<string>(

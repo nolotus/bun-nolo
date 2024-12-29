@@ -4,7 +4,6 @@ import { useDispatch } from "react-redux";
 import { useCallback, useState } from "react";
 
 import { selectTheme } from "app/theme/themeSlice";
-import withTranslations from "i18n/withTranslations";
 import { useTranslation } from "react-i18next";
 import { animations } from "render/styles/animations";
 import { useAppSelector } from "app/hooks";
@@ -249,4 +248,4 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 	);
 };
 
-export default withTranslations<CybotBlockProps>(CybotBlock, ["chat", "ai"]);
+export default CybotBlock

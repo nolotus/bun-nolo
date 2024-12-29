@@ -7,7 +7,6 @@ import {
 } from "chat/dialog/dialogSlice";
 import MessageInputContainer from "chat/messages/MessageInputContainer";
 import MessagesList from "chat/messages/MessageList";
-import withTranslations from "i18n/withTranslations";
 //  chat/dialog/DialogPage
 import { useEffect } from "react";
 import { layout } from "render/styles/layout";
@@ -77,4 +76,4 @@ const DialogPage = ({ dialogId }) => {
   );
 };
 
-export default withTranslations(DialogPage, ["chat", "ai"]);
+export default DialogPage

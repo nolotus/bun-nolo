@@ -5,8 +5,6 @@ import { selectTheme } from "app/theme/themeSlice";
 import { useAuth } from "auth/useAuth";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
-import withTranslations from "i18n/withTranslations";
-// CreatePrompt.tsx
 import type React from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -26,7 +24,7 @@ import { layout } from "render/styles/layout";
 import { Button } from "web/ui/Button";
 
 const CreatePrompt: React.FC = () => {
-	const { t } = useTranslation();
+	const { t } = useTranslation('ai');
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 	const auth = useAuth();
@@ -145,4 +143,4 @@ const CreatePrompt: React.FC = () => {
 	);
 };
 
-export default withTranslations(CreatePrompt, ["ai"]);
+export default CreatePrompt
