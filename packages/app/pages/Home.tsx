@@ -3,9 +3,11 @@ import Cybots from "ai/cybot/Cybots";
 import { nolotusId } from "core/init";
 import { NavLink } from "react-router-dom";
 import { SpotList } from "render/components/SpotList";
-import { defaultTheme } from "render/styles/colors";
+import { useAppSelector } from "../hooks";
+import { selectTheme } from "../theme/themeSlice";
 
 const Home = () => {
+  const theme = useAppSelector(selectTheme)
   const features = [
     {
       icon: "🤖",
@@ -64,10 +66,10 @@ const Home = () => {
           .feature-card {
             padding: 1.5rem;
             backdrop-filter: blur(10px);
-            background: ${defaultTheme.backgroundSecondary};
-            border: 1px solid ${defaultTheme.border};
+            background: ${theme.backgroundSecondary};
+            border: 1px solid ${theme.border};
             border-radius: 16px;
-            box-shadow: 0 2px 15px ${defaultTheme.shadowLight};
+            box-shadow: 0 2px 15px ${theme.shadowLight};
             transition: all 0.3s ease;
             opacity: 0;
             animation: fadeInUp 0.6s ease forwards;
@@ -75,13 +77,13 @@ const Home = () => {
 
           .feature-card:hover {
             transform: translateY(-8px);
-            background: ${defaultTheme.background};
-            box-shadow: 0 12px 30px ${defaultTheme.shadowMedium};
-            border-color: ${defaultTheme.primary};
+            background: ${theme.background};
+            box-shadow: 0 12px 30px ${theme.shadowMedium};
+            border-color: ${theme.primary};
           }
 
           .welcome-text {
-            background: ${defaultTheme.primaryGradient};
+            background: ${theme.primaryGradient};
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
@@ -90,32 +92,32 @@ const Home = () => {
 
           .intro-text {
             font-weight: 400;
-            color: ${defaultTheme.textSecondary};
+            color: ${theme.textSecondary};
             line-height: 1.6;
           }
 
           .signup-link {
             display: inline-block;
             padding: 0.8rem 2rem;
-            background: ${defaultTheme.primary};
+            background: ${theme.primary};
             color: #FFFFFF;
             border-radius: 30px;
             text-decoration: none;
             font-weight: 500;
             margin-top: 1.5rem;
             font-size: 1rem;
-            box-shadow: 0 4px 15px ${defaultTheme.primaryGhost};
+            box-shadow: 0 4px 15px ${theme.primaryGhost};
             transition: all 0.3s ease;
           }
 
           .signup-link:hover {
-            background: ${defaultTheme.primaryLight};
+            background: ${theme.primaryLight};
             transform: translateY(-2px);
           }
 
           .section-title {
             font-size: 2.2rem;
-            color: ${defaultTheme.text};
+            color: ${theme.text};
             margin: 3rem 0;
             font-weight: 600;
             letter-spacing: -0.5px;
@@ -154,11 +156,11 @@ const Home = () => {
         <section
           className="hero-section fade-in"
           style={{
-            background: defaultTheme.backgroundSecondary,
+            background: theme.backgroundSecondary,
             borderRadius: "24px",
             padding: "3rem 1.5rem",
             marginBottom: "3rem",
-            boxShadow: `0 4px 20px ${defaultTheme.shadowLight}`,
+            boxShadow: `0 4px 20px ${theme.shadowLight}`,
           }}
         >
           <div
@@ -171,7 +173,7 @@ const Home = () => {
                 marginBottom: "1.5rem",
                 fontWeight: "700",
                 lineHeight: "1.2",
-                color: defaultTheme.text,
+                color: theme.text,
               }}
             >
               <span className="welcome-text">Hey，我是 Nolotus</span> 👋
@@ -194,7 +196,7 @@ const Home = () => {
                   style={{
                     margin: "0 6px",
                     verticalAlign: "middle",
-                    color: defaultTheme.primary,
+                    color: theme.primary,
                   }}
                 />
               </p>
@@ -230,7 +232,7 @@ const Home = () => {
                 style={{
                   fontSize: "1.1rem",
                   marginBottom: "0.6rem",
-                  color: defaultTheme.text,
+                  color: theme.text,
                   fontWeight: "600",
                 }}
               >
@@ -238,7 +240,7 @@ const Home = () => {
               </h3>
               <p
                 style={{
-                  color: defaultTheme.textSecondary,
+                  color: theme.textSecondary,
                   fontSize: "0.95rem",
                   lineHeight: "1.5",
                 }}
@@ -271,27 +273,27 @@ const Home = () => {
           className="section delay"
           style={{
             textAlign: "center",
-            color: defaultTheme.textSecondary,
+            color: theme.textSecondary,
             fontSize: "0.95rem",
             padding: "2rem 0",
-            borderTop: `1px solid ${defaultTheme.border}`,
+            borderTop: `1px solid ${theme.border}`,
           }}
         >
           <p style={{ marginBottom: "0.8rem" }}>本站正在测试中，欢迎反馈</p>
           <a
             href="mailto:s@nolotus.com"
             style={{
-              color: defaultTheme.primary,
+              color: theme.primary,
               textDecoration: "none",
-              borderBottom: `1px dashed ${defaultTheme.primary}`,
+              borderBottom: `1px dashed ${theme.primary}`,
               padding: "0.2rem 0",
               transition: "color 0.3s ease",
             }}
             onMouseEnter={(e) => {
-              e.target.style.color = defaultTheme.primaryLight;
+              e.target.style.color = theme.primaryLight;
             }}
             onMouseLeave={(e) => {
-              e.target.style.color = defaultTheme.primary;
+              e.target.style.color = theme.primary;
             }}
           >
             s@nolotus.com

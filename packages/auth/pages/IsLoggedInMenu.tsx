@@ -5,6 +5,7 @@ import {
   TriangleDownIcon,
 } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 import { changeCurrentUser, selectUsers, signOut } from "auth/authSlice";
 import { getTokensFromLocalStorage, removeToken } from "auth/client/token";
 import { parseToken } from "auth/token";
@@ -12,12 +13,12 @@ import { useAuth } from "auth/useAuth";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
-import { defaultTheme } from "render/styles/colors";
 import DropDown from "render/ui/DropDown";
 import { SettingRoutePaths } from "setting/config";
 
-const StyleSheet = () => (
-  <style>
+const StyleSheet = () => {
+  const theme = useAppSelector(selectTheme)
+  return <style>
     {`
 		.menu-wrapper {
 		  display: flex;
@@ -35,27 +36,27 @@ const StyleSheet = () => (
 		  align-items: center;
 		  justify-content: center;
 		  transition: all 0.2s ease;
-		  color: ${defaultTheme.textSecondary};
+		  color: ${theme.textSecondary};
 		}
   
 		.icon-button:hover {
-		  background-color: ${defaultTheme.primaryGhost};
-		  color: ${defaultTheme.primary};
+		  background-color: ${theme.primaryGhost};
+		  color: ${theme.primary};
 		}
   
 		.nav-link {
 		  text-decoration: none;
-		  color: ${defaultTheme.text};
+		  color: ${theme.text};
 		}
   
 		.nav-link.active .user-trigger {
-		  background-color: ${defaultTheme.primaryGhost};
-		  color: ${defaultTheme.primary};
+		  background-color: ${theme.primaryGhost};
+		  color: ${theme.primary};
 		}
   
 		.nav-link:hover .user-trigger {
-		  background-color: ${defaultTheme.primaryGhost};
-		  color: ${defaultTheme.primary};
+		  background-color: ${theme.primaryGhost};
+		  color: ${theme.primary};
 		}
   
 		.user-trigger {
@@ -64,7 +65,7 @@ const StyleSheet = () => (
 		  cursor: pointer;
 		  padding: 6px 10px;
 		  transition: all 0.2s ease;
-		  color: ${defaultTheme.textSecondary};
+		  color: ${theme.textSecondary};
 		}
   
 		.user-trigger-text {
@@ -76,10 +77,10 @@ const StyleSheet = () => (
 		.dropdown-wrapper {
 		  padding: 6px;
 		  min-width: 200px;
-		  background-color: ${defaultTheme.background};
+		  background-color: ${theme.background};
 		  border-radius: 6px;
-		  box-shadow: 0 4px 16px ${defaultTheme.shadowMedium};
-		  border: 1px solid ${defaultTheme.borderHover};
+		  box-shadow: 0 4px 16px ${theme.shadowMedium};
+		  border: 1px solid ${theme.borderHover};
 		}
   
 		.dropdown-item {
@@ -92,34 +93,34 @@ const StyleSheet = () => (
 		  background: none;
 		  cursor: pointer;
 		  transition: all 0.2s ease;
-		  color: ${defaultTheme.textSecondary};
+		  color: ${theme.textSecondary};
 		  font-size: 13px;
 		  font-weight: 500;
 		}
   
 		.dropdown-item:hover {
-		  background-color: ${defaultTheme.primaryGhost};
-		  color: ${defaultTheme.primary};
+		  background-color: ${theme.primaryGhost};
+		  color: ${theme.primary};
 		}
   
 		.dropdown-item:hover .dropdown-icon {
-		  color: ${defaultTheme.primary};
+		  color: ${theme.primary};
 		}
   
 		.dropdown-icon {
 		  margin-right: 8px;
-		  color: ${defaultTheme.textTertiary};
+		  color: ${theme.textTertiary};
 		  transition: all 0.2s ease;
 		}
   
 		/* 当username处于active状态时,让下拉按钮也融合进去 */
 		.nav-link.active + .icon-button {
-		  background-color: ${defaultTheme.primaryGhost};
-		  color: ${defaultTheme.primary};
+		  background-color: ${theme.primaryGhost};
+		  color: ${theme.primary};
 		}
 	  `}
   </style>
-);
+}
 
 export const IsLoggedInMenu: React.FC = () => {
   const { t } = useTranslation();
