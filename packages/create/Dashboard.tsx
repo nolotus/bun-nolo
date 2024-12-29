@@ -6,12 +6,13 @@ import {
   PeopleIcon,
   SearchIcon,
 } from "@primer/octicons-react";
-import Cybots from "ai/cybot/Cybots";
+import Cybots from "ai/cybot/web/Cybots";
 import { useAppSelector } from "app/hooks";
 import { useQueryData } from "app/hooks/useQueryData";
 import { selectCurrentUserId } from "auth/authSlice";
 import { nolotusId } from "core/init";
-import { CreateRoutePaths } from "create/routes";
+import { CreateRoutePaths } from "create/routePaths";
+
 import withTranslations from "i18n/withTranslations";
 import { useMemo } from "react";
 import React from "react";

@@ -10,7 +10,7 @@ import {
   TrashIcon,
   CommentDiscussionIcon,
 } from "@primer/octicons-react";
-import { Button } from "render/ui/Button";
+import { Button } from "web/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import { animations } from "render/styles/animations";
 

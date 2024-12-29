@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { ErrorMessage } from "render/CommonFormComponents";
 import { Label } from "render/form/Label";
 import { Select } from "render/form/Select";
-import { Button } from "render/ui/Button";
+import { Button } from "web/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import { SyncIcon } from "@primer/octicons-react";
 

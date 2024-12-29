@@ -1,5 +1,5 @@
 import React from 'react';
-import Button from 'render/ui/Button';
+import Button from 'web/ui/Button';
 import { SearchIcon, PlusIcon, ChevronRightIcon, HeartIcon, SyncIcon, TrashIcon } from '@primer/octicons-react';
 
 const Lab = () => {

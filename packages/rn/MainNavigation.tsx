@@ -10,6 +10,8 @@ import { HomeScreen } from "app/screens/Home";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import DialogListScreen from "chat/screens/DialogList";
 import DialogDetail from "chat/screens/DialogDetail";
+import Guide from "create/screens/Guide";
+
 const Stack = createNativeStackNavigator();
 
 // function ChatStackNavigator({ navigation, route }) {
@@ -18,7 +20,7 @@ const Stack = createNativeStackNavigator();
 //       <Stack.Screen
 //         name="DialogList"
 //         component={DialogListScreen}
-//         options={{ title: "对话列表" }}
+//        
 //       />
 //
 //     </Stack.Navigator>
@@ -59,8 +61,8 @@ function HomeTabs() {
         name="Chat"
         component={DialogListScreen}
         options={{
-          headerShown: false,
-          tabBarLabel: "Chat",
+          title: "对话列表",
+          tabBarLabel: "聊天",
           tabBarIcon: ({ color, size }) => (
             <Octicons name="comment" size={size} color={color} />
           ),
@@ -68,9 +70,9 @@ function HomeTabs() {
       />
       <Tab.Screen
         name="Create"
-        component={CreateScreen}
+        component={Guide}
         options={{
-          tabBarLabel: "Create",
+          tabBarLabel: "创建",
           tabBarIcon: ({ color, size }) => (
             <Octicons name="plus" size={size} color={color} />
           ),

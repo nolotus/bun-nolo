@@ -1,22 +1,26 @@
-import EditCybot from "ai/cybot/EditCybot";
+import debounce from "lodash/debounce";
+import type React from "react";
+import { useDispatch } from "react-redux";
+import { useCallback, useState } from "react";
+
+import { selectTheme } from "app/theme/themeSlice";
+import withTranslations from "i18n/withTranslations";
+import { useTranslation } from "react-i18next";
+import { animations } from "render/styles/animations";
+import { useAppSelector } from "app/hooks";
+
 import { useCouldEdit } from "auth/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { deleteData } from "database/dbSlice";
-import withTranslations from "i18n/withTranslations";
-import debounce from "lodash/debounce";
-import type React from "react";
-import { useCallback, useState } from "react";
+import { useModal } from "render/ui/Modal";
+
 import toast from "react-hot-toast";
-import { useTranslation } from "react-i18next";
-import { useDispatch } from "react-redux";
-import { animations } from "render/styles/animations";
-import Button from "render/ui/Button";
+import Button from "web/ui/Button";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/ui/Dialog";
-import { useModal } from "render/ui/Modal";
 import { CommentDiscussionIcon, PencilIcon, TrashIcon } from '@primer/octicons-react';
-import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+
+import EditCybot from "ai/cybot/EditCybot";
 
 interface CybotBlockProps {
 	item: {

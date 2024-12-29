@@ -1,5 +1,5 @@
 import { DependabotIcon } from "@primer/octicons-react";
-import Cybots from "ai/cybot/Cybots";
+import Cybots from "ai/cybot/web/Cybots";
 import { nolotusId } from "core/init";
 import { NavLink } from "react-router-dom";
 import { SpotList } from "render/components/SpotList";

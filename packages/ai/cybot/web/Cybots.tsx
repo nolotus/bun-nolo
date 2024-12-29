@@ -1,17 +1,21 @@
+import type React from "react";
+
 import { useAppSelector } from "app/hooks";
 import { useQueryData } from "app/hooks/useQueryData";
-import { DataType } from "create/types";
-import { selectFilteredDataByUserAndType } from "database/selectors";
-import type React from "react";
-import CybotBlock from "./CybotBlock";
 import { selectTheme } from "app/theme/themeSlice";
+
+import { DataType } from "create/types";
+
+import { selectFilteredDataByUserAndType } from "database/selectors";
+
+import CybotBlock from "./CybotBlock";
+
 
 interface CybotsProps {
 	queryUserId: string;
 	limit?: number;
 	closeModal?: () => void;
 }
-
 
 
 const Cybots: React.FC<CybotsProps> = ({

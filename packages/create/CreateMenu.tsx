@@ -13,7 +13,7 @@ import {
 	LocationIcon,
 	PlusIcon,
 } from "@primer/octicons-react";
-import Cybots from "ai/cybot/Cybots";
+import Cybots from "ai/cybot/web/Cybots";
 import { selectTheme } from "app/theme/themeSlice";
 import { useAuth } from "auth/useAuth";
 import { nolotusId } from "core/init";
@@ -24,7 +24,7 @@ import { Link } from "react-router-dom";
 import { defaultTheme } from "render/styles/colors";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
-import { CreateRoutePaths } from "./routes";
+import { CreateRoutePaths } from "create/routePaths";
 
 export const CreateMenu = () => {
 	const [isOpen, setIsOpen] = useState(false);

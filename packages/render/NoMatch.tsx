@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import Button from "render/ui/Button";
+import Button from "web/ui/Button";
 
 const NoMatch = () => {
   const navigate = useNavigate();
