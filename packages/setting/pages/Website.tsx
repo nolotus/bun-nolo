@@ -6,7 +6,7 @@ import { upsertData } from "database/dbSlice";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Input } from "web/form/Input";
-import { Button } from "web/ui/Button";
+import Button from "web/ui/Button";
 import { useTheme } from "app/theme";
 
 const Website = () => {

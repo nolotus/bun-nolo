@@ -5,7 +5,7 @@ import { upsertData } from "database/dbSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { PageLoader } from "render/blocks/PageLoader";
 import { Input } from "web/form/Input";
-import { Button } from "web/ui/Button";
+import Button from "web/ui/Button";
 import { generateCustomId } from "core/generateMainKey";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import { useForm, Controller } from "react-hook-form";

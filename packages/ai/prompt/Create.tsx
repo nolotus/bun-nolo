@@ -21,7 +21,7 @@ import { FormField } from "render/form/FormField";
 import { Input } from "web/form/Input";
 import { Label } from "web/form/Label";
 import { layout } from "render/styles/layout";
-import { Button } from "web/ui/Button";
+import Button from "web/ui/Button";
 
 const CreatePrompt: React.FC = () => {
 	const { t } = useTranslation('ai');
