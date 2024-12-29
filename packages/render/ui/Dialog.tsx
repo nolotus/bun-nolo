@@ -1,6 +1,6 @@
 import { XIcon } from "@primer/octicons-react";
 import React from "react";
-import { defaultTheme } from "render/styles/colors";
+import { useTheme } from "app/theme";
 import { BaseModal } from './BaseModal';
 
 interface DialogProps {
@@ -18,6 +18,8 @@ export const Dialog: React.FC<DialogProps> = ({
   children,
   className = "",
 }) => {
+  const theme = useTheme();
+
   return (
     <BaseModal isOpen={isOpen} onClose={onClose}>
       <div className={`dialog-container ${className}`}>
@@ -39,13 +41,13 @@ export const Dialog: React.FC<DialogProps> = ({
         .dialog-container {
           display: flex;
           flex-direction: column;
-          background: ${defaultTheme.background};
+          background: ${theme.background};
           width: 600px;
           min-height: 200px;
           max-height: 90vh;
           border-radius: 12px;
           overflow: hidden;
-          box-shadow: 0 4px 24px ${defaultTheme.shadowMedium};
+          box-shadow: 0 4px 24px ${theme.shadowMedium};
         }
 
         .dialog-header {
@@ -53,13 +55,13 @@ export const Dialog: React.FC<DialogProps> = ({
           align-items: center;
           justify-content: space-between;
           padding: 20px 24px;
-          border-bottom: 1px solid ${defaultTheme.border};
+          border-bottom: 1px solid ${theme.border};
         }
 
         .dialog-title {
           font-size: 18px;
           font-weight: 600;
-          color: ${defaultTheme.text};
+          color: ${theme.text};
           margin: 0;
           line-height: 1.4;
         }
@@ -75,13 +77,13 @@ export const Dialog: React.FC<DialogProps> = ({
           border: none;
           border-radius: 6px;
           cursor: pointer;
-          color: ${defaultTheme.textSecondary};
+          color: ${theme.textSecondary};
           transition: all 0.2s ease;
         }
 
         .dialog-close:hover {
-          background-color: ${defaultTheme.backgroundGhost};
-          color: ${defaultTheme.text};
+          background-color: ${theme.backgroundGhost};
+          color: ${theme.text};
         }
 
         .dialog-close:active {
@@ -103,14 +105,14 @@ export const Dialog: React.FC<DialogProps> = ({
         }
 
         .dialog-content::-webkit-scrollbar-thumb {
-          background-color: ${defaultTheme.border};
+          background-color: ${theme.border};
           border-radius: 4px;
           border: 2px solid transparent;
           background-clip: padding-box;
         }
 
         .dialog-content::-webkit-scrollbar-thumb:hover {
-          background-color: ${defaultTheme.borderHover};
+          background-color: ${theme.borderHover};
         }
 
         @media (min-width: 1601px) {
@@ -187,14 +189,12 @@ export const Dialog: React.FC<DialogProps> = ({
           }
         }
 
-        /* 处理特别高的屏幕 */
         @media (min-height: 1000px) {
           .dialog-container {
             max-height: 85vh;
           }
         }
 
-        /* 处理特别矮的屏幕 */
         @media (max-height: 600px) {
           .dialog-header {
             padding: 12px 16px;
