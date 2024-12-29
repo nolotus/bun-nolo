@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { FormField } from "render/form/FormField";
-import { Label } from "render/form/Label";
+import { Label } from "web/form/Label";
 
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";

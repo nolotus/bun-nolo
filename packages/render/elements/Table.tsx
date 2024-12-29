@@ -1,60 +1,65 @@
-import { defaultTheme } from "render/styles/colors";
+import { useTheme } from "app/theme";
 
 interface TableBaseProps {
 	attributes?: any;
 	children: React.ReactNode;
-	theme?: typeof defaultTheme;
 	style?: React.CSSProperties;
 }
 
 export const Table: React.FC<TableBaseProps> = ({
 	attributes,
 	children,
-	theme = defaultTheme,
 	style,
-}) => (
-	<table
-		style={{
-			borderCollapse: "separate",
-			borderSpacing: 0,
-			width: "100%",
-			margin: "1.5em 0",
-			background: theme.background,
-			color: theme.text,
-			borderRadius: "8px",
-			boxShadow: `0 1px 3px ${theme.shadowLight}`,
-			...style,
-		}}
-		{...attributes}
-	>
-		{children}
-	</table>
-);
+}) => {
+	const theme = useTheme();
+
+	return (
+		<table
+			style={{
+				borderCollapse: "separate",
+				borderSpacing: 0,
+				width: "100%",
+				margin: "1.5em 0",
+				background: theme.background,
+				color: theme.text,
+				borderRadius: "8px",
+				boxShadow: `0 1px 3px ${theme.shadowLight}`,
+				...style,
+			}}
+			{...attributes}
+		>
+			{children}
+		</table>
+	);
+};
 
 export const TableRow: React.FC<TableBaseProps> = ({
 	attributes,
 	children,
-	theme = defaultTheme,
 	style,
-}) => (
-	<>
-		<style>
-			{`
-        .table-row {
-          border-bottom: 1px solid ${theme.border};
-          background: ${theme.background};
-          transition: background-color 0.15s ease;
-        }
-        .table-row:hover {
-          background: ${theme.backgroundSecondary};
-        }
-      `}
-		</style>
-		<tr className="table-row" style={style} {...attributes}>
-			{children}
-		</tr>
-	</>
-);
+}) => {
+	const theme = useTheme();
+
+	return (
+		<>
+			<style>
+				{`
+          .table-row {
+            border-bottom: 1px solid ${theme.border};
+            background: ${theme.background};
+            transition: background-color 0.15s ease;
+          }
+          .table-row:hover {
+            background: ${theme.backgroundSecondary};
+          }
+        `}
+			</style>
+			<tr className="table-row" style={style} {...attributes}>
+				{children}
+			</tr>
+		</>
+	);
+};
 
 interface TableCellProps extends TableBaseProps {
 	element: {
@@ -66,9 +71,9 @@ export const TableCell: React.FC<TableCellProps> = ({
 	attributes,
 	children,
 	element,
-	theme = defaultTheme,
 	style,
 }) => {
+	const theme = useTheme();
 	const Component = element.header ? "th" : "td";
 
 	const cellStyles = {

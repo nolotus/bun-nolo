@@ -28,7 +28,6 @@ import { useTranslation } from "react-i18next";
 import { GoPlus } from "react-icons/go";
 import { RxDropdownMenu } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
-import { defaultTheme } from "render/styles/colors";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 
@@ -36,8 +35,10 @@ import { ProjectIcon } from "@primer/octicons-react";
 import { layout } from "../styles/layout";
 import { zIndex } from "../styles/zIndex";
 import NavIconItem from "./blocks/NavIconItem";
+import { useTheme } from "app/theme";
 
 export const SidebarTop = () => {
+	const theme = useTheme();
 	const { t } = useTranslation();
 	const dispatch = useAppDispatch();
 	const workspaces = useAppSelector(selectAllWorkspaces);
@@ -182,10 +183,10 @@ export const SidebarTop = () => {
 						borderRadius: "6px",
 						cursor: "pointer",
 						transition: "all 0.15s ease",
-						backgroundColor: defaultTheme.background,
-						border: `1px solid ${isOpen ? defaultTheme.borderHover : defaultTheme.border}`,
+						backgroundColor: theme.background,
+						border: `1px solid ${isOpen ? theme.borderHover : theme.border}`,
 						boxShadow: isOpen
-							? `0 2px 4px ${defaultTheme.shadowLight}`
+							? `0 2px 4px ${theme.shadowLight}`
 							: "none",
 					}}
 				>
@@ -196,7 +197,7 @@ export const SidebarTop = () => {
 							whiteSpace: "nowrap",
 							fontSize: "14px",
 							fontWeight: 500,
-							color: defaultTheme.text,
+							color: theme.text,
 						}}
 					>
 						{getCurrentWorkspaceName()}
@@ -207,7 +208,7 @@ export const SidebarTop = () => {
 							marginLeft: "8px",
 							transition: "transform 0.15s ease",
 							transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-							color: defaultTheme.textSecondary,
+							color: theme.textSecondary,
 						}}
 					/>
 				</div>
@@ -219,10 +220,10 @@ export const SidebarTop = () => {
 							style={{
 								...floatingStyles,
 								...transitionStyles,
-								backgroundColor: defaultTheme.background,
+								backgroundColor: theme.background,
 								borderRadius: "6px",
-								boxShadow: `0 4px 12px ${defaultTheme.shadowMedium}`,
-								border: `1px solid ${defaultTheme.border}`,
+								boxShadow: `0 4px 12px ${theme.shadowMedium}`,
+								border: `1px solid ${theme.border}`,
 								maxHeight: "320px",
 								overflowY: "auto",
 								zIndex: zIndex.dropdown,
@@ -241,9 +242,9 @@ export const SidebarTop = () => {
 									transition: "background-color 0.15s ease",
 									backgroundColor:
 										activeIndex === 0
-											? defaultTheme.backgroundSecondary
+											? theme.backgroundSecondary
 											: "transparent",
-									color: defaultTheme.text,
+									color: theme.text,
 									margin: "4px",
 									borderRadius: "4px",
 								}}
@@ -262,7 +263,7 @@ export const SidebarTop = () => {
 										padding: "8px 12px",
 										margin: "4px",
 										borderTop:
-											index === 0 ? `1px solid ${defaultTheme.border}` : "none",
+											index === 0 ? `1px solid ${theme.border}` : "none",
 									}}
 								>
 									<div
@@ -271,7 +272,7 @@ export const SidebarTop = () => {
 											transition: "background-color 0.15s ease",
 											backgroundColor:
 												activeIndex === index + 1
-													? defaultTheme.backgroundSecondary
+													? theme.backgroundSecondary
 													: "transparent",
 											borderRadius: "4px",
 											padding: "4px 8px",
@@ -283,7 +284,7 @@ export const SidebarTop = () => {
 												textOverflow: "ellipsis",
 												whiteSpace: "nowrap",
 												fontSize: "14px",
-												color: defaultTheme.text,
+												color: theme.text,
 											}}
 										>
 											{workspace.name}
@@ -295,7 +296,7 @@ export const SidebarTop = () => {
 													border: "none",
 													padding: "2px 8px",
 													fontSize: "12px",
-													color: defaultTheme.textSecondary,
+													color: theme.textSecondary,
 													backgroundColor: "transparent",
 													cursor: "pointer",
 													borderRadius: "4px",
@@ -317,7 +318,7 @@ export const SidebarTop = () => {
 								style={{
 									margin: "4px",
 									padding: "8px 12px",
-									borderTop: `1px solid ${defaultTheme.border}`,
+									borderTop: `1px solid ${theme.border}`,
 								}}
 							>
 								<div
@@ -328,9 +329,9 @@ export const SidebarTop = () => {
 										transition: "background-color 0.15s ease",
 										backgroundColor:
 											activeIndex === workspaces?.length + 1
-												? defaultTheme.backgroundSecondary
+												? theme.backgroundSecondary
 												: "transparent",
-										color: defaultTheme.primary,
+										color: theme.primary,
 										borderRadius: "4px",
 									}}
 								>

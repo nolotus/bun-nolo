@@ -6,39 +6,38 @@ import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
 import React from "react";
 import { useSelector } from "react-redux";
 import { NavLink, useParams } from "react-router-dom";
-import { defaultTheme } from "render/styles/colors";
 
 export const SIZES = {
-	small: 16,
-	medium: 20,
-	large: 24,
+  small: 16,
+  medium: 20,
+  large: 24,
 };
 
 export const DialogItem = ({ id, isCreator, categoryId, size = "medium" }) => {
-	const { data: dialog } = useFetchData(id);
-	const { pageId } = useParams();
-	const theme = useSelector(selectTheme);
+  const { data: dialog } = useFetchData(id);
+  const { pageId } = useParams();
+  const theme = useSelector(selectTheme);
 
-	const menu = Ariakit.useMenuStore();
-	const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
+  const menu = Ariakit.useMenuStore();
+  const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
 
-	if (!dialog) return null;
+  if (!dialog) return null;
 
-	const iconSize = SIZES[size];
-	const title = dialog.title || dialog.id;
-	const isSelected = dialog.id === pageId;
+  const iconSize = SIZES[size];
+  const title = dialog.title || dialog.id;
+  const isSelected = dialog.id === pageId;
 
-	const handleContextMenu = (event) => {
-		event.preventDefault();
-		event.stopPropagation();
-		setAnchorRect({ x: event.clientX, y: event.clientY });
-		menu.show();
-	};
+  const handleContextMenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setAnchorRect({ x: event.clientX, y: event.clientY });
+    menu.show();
+  };
 
-	return (
-		<>
-			<style>
-				{`
+  return (
+    <>
+      <style>
+        {`
           .dialog-item {
             margin: 2px 8px;
             padding: 8px 12px;
@@ -54,22 +53,22 @@ export const DialogItem = ({ id, isCreator, categoryId, size = "medium" }) => {
 
 
           .dialog-item:hover {
-            background-color: ${defaultTheme.backgroundGhost};
+            background-color: ${theme.backgroundGhost};
             transform: translateX(2px);
-            border-color: ${defaultTheme.borderLight};
+            border-color: ${theme.borderLight};
           }
 
 
           .dialog-item.selected {
-            background-color: ${defaultTheme.primaryGhost};
-            border-color: ${defaultTheme.primaryLight}30;
+            background-color: ${theme.primaryGhost};
+            border-color: ${theme.primaryLight}30;
           }
 
 
           .dialog-link {
             font-size: ${iconSize / 1.6}px;
             line-height: 1.4;
-            color: ${defaultTheme.textSecondary};
+            color: ${theme.textSecondary};
             flex-grow: 1;
             font-weight: 400;
             text-decoration: none;
@@ -81,29 +80,29 @@ export const DialogItem = ({ id, isCreator, categoryId, size = "medium" }) => {
 
 
           .dialog-item:hover .dialog-link {
-            color: ${defaultTheme.text};
+            color: ${theme.text};
           }
 
 
           .dialog-item.selected .dialog-link {
-            color: ${defaultTheme.primary};
+            color: ${theme.primary};
             font-weight: 500;
           }
 
 
           .dialog-icon {
-            color: ${defaultTheme.textTertiary};
+            color: ${theme.textTertiary};
             transition: all 0.2s ease-out;
           }
 
 
           .dialog-item:hover .dialog-icon {
-            color: ${defaultTheme.textSecondary};
+            color: ${theme.textSecondary};
           }
 
 
           .dialog-item.selected .dialog-icon {
-            color: ${defaultTheme.primary};
+            color: ${theme.primary};
           }
 
 
@@ -123,22 +122,22 @@ export const DialogItem = ({ id, isCreator, categoryId, size = "medium" }) => {
             animation: smoothFadeIn 0.2s ease-out;
           }
         `}
-			</style>
+      </style>
 
-			<div
-				className={`dialog-item ${isSelected ? "selected" : ""}`}
-				onContextMenu={handleContextMenu}
-			>
-				<CommentIcon size={iconSize} className="dialog-icon" />
-				<NavLink to={`/${dialog.id}`} className="dialog-link">
-					{title}
-				</NavLink>
-				<DialogContextMenu
-					menu={menu}
-					anchorRect={anchorRect}
-					dialogId={dialog.id}
-				/>
-			</div>
-		</>
-	);
+      <div
+        className={`dialog-item ${isSelected ? "selected" : ""}`}
+        onContextMenu={handleContextMenu}
+      >
+        <CommentIcon size={iconSize} className="dialog-icon" />
+        <NavLink to={`/${dialog.id}`} className="dialog-link">
+          {title}
+        </NavLink>
+        <DialogContextMenu
+          menu={menu}
+          anchorRect={anchorRect}
+          dialogId={dialog.id}
+        />
+      </div>
+    </>
+  );
 };

@@ -1,14 +1,14 @@
-import { useAppSelector, useFetchData } from "app/hooks";
+import { useFetchData } from "app/hooks";
 import { useCouldEdit } from "auth/useCouldEdit";
 import { extractCustomId } from "core";
 import React from "react";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
+import { useTheme } from "app/theme";
 import QuickEditCybot from "./QuickEditCybot";
-import { selectTheme } from "app/theme/themeSlice";
 
 const CybotNameChip = React.memo(({ cybotId }) => {
-	const theme = useAppSelector(selectTheme)
+	const theme = useTheme();
 	const { isLoading, data: cybot } = useFetchData(cybotId);
 	const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
 	const allowEdit = useCouldEdit(cybotId);

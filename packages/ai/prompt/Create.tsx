@@ -18,8 +18,8 @@ import {
 } from "render/CommonFormComponents";
 import { FormField } from "render/form/FormField";
 
-import { Input } from "render/form/Input";
-import { Label } from "render/form/Label";
+import { Input } from "web/form/Input";
+import { Label } from "web/form/Label";
 import { layout } from "render/styles/layout";
 import { Button } from "web/ui/Button";
 

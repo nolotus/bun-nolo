@@ -14,23 +14,22 @@ import {
 	PlusIcon,
 } from "@primer/octicons-react";
 import Cybots from "ai/cybot/web/Cybots";
-import { selectTheme } from "app/theme/themeSlice";
 import { useAuth } from "auth/useAuth";
 import { nolotusId } from "core/init";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { defaultTheme } from "render/styles/colors";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { CreateRoutePaths } from "create/routePaths";
+import { useTheme } from "app/theme";
 
 export const CreateMenu = () => {
+
 	const [isOpen, setIsOpen] = useState(false);
 	const { isLoggedIn, user } = useAuth();
 	const { t } = useTranslation();
-	const theme = useSelector(selectTheme);
+	const theme = useTheme();
 	const {
 		visible: AIsModalVisible,
 		open: openAIsModal,
@@ -74,12 +73,12 @@ export const CreateMenu = () => {
 
 	return (
 		<>
-			<style>
+			<style href='create-menu'>
 				{`
 			.create-menu {
 			  position: relative;
 			}
-	  
+
 			.menu-button {
 			  display: flex;
 			  align-items: center;
@@ -87,17 +86,17 @@ export const CreateMenu = () => {
 			  width: 30px;
 			  height: 30px;
 			  border-radius: 4px;
-			  border: 1px solid ${defaultTheme.border};
+			  border: 1px solid ${theme.border};
 			  background: transparent;
-			  color: ${defaultTheme.textSecondary};
+			  color: ${theme.textSecondary};
 			  cursor: pointer;
 			  transition: all 0.2s ease;
 			}
 	  
 			.menu-button:hover {
-			  color: ${defaultTheme.primary};
-			  border-color: ${defaultTheme.primary}80;
-			  background: ${defaultTheme.backgroundSecondary}40;
+			  color: ${theme.primary};
+			  border-color: ${theme.primary}80;
+			  background: ${theme.backgroundSecondary}40;
 			}
 	  
 			.menu-button svg {
@@ -109,8 +108,8 @@ export const CreateMenu = () => {
 			}
 	  
 			.dropdown {
-			  background: ${defaultTheme.background}; 
-			  border: 1px solid ${defaultTheme.border};
+			  background: ${theme.background}; 
+			  border: 1px solid ${theme.border};
 			  border-radius: 4px;
 			  padding: 4px;
 			  min-width: 160px;
@@ -121,7 +120,7 @@ export const CreateMenu = () => {
 			  display: flex;
 			  align-items: center;
 			  padding: 6px 10px;
-			  color: ${defaultTheme.textSecondary};
+			  color: ${theme.textSecondary};
 			  text-decoration: none;
 			  border-radius: 3px;
 			  transition: all 0.15s ease;
@@ -129,8 +128,8 @@ export const CreateMenu = () => {
 			}
 	  
 			.menu-item:hover {
-			  background: ${defaultTheme.backgroundSecondary}30;
-			  color: ${defaultTheme.primary};
+			  background: ${theme.backgroundSecondary}30;
+			  color: ${theme.primary};
 			}
 	  
 			.menu-item svg {

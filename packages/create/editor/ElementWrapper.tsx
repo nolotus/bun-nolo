@@ -1,16 +1,16 @@
-import { CodeBlock } from "render/elements/CodeBlock";
+import CodeBlock from "render/elements/CodeBlock";
 import { ImageElement } from "render/elements/ImageElement";
 import { List, ListItem } from "render/elements/List";
 import { SafeLink } from "render/elements/SafeLink";
 import { Table, TableCell, TableRow } from "render/elements/Table";
-import { defaultTheme } from "render/styles/colors";
 import { useSlateStatic } from "slate-react";
 import { CodeBlockType, CodeLineType } from "./type";
+import { useTheme } from "app/theme";
 
 export const ElementWrapper = (props) => {
-  const { attributes, children, element, isDarkMode } = props;
+  const { attributes, children, element } = props;
   const editor = useSlateStatic();
-  const theme = defaultTheme;
+  const theme = useTheme();
   const style = { textAlign: element.align }; // 添加基础样式对象
 
   // 处理代码块
