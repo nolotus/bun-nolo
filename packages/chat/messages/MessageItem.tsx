@@ -7,7 +7,7 @@ import { SelfMessage } from "./SelfMessage";
 import { UserMessage } from "./UserMessage";
 import { deleteNotFound } from "./messageSlice";
 
-import { defaultTheme } from "render/styles/colors";
+import { useTheme } from "app/theme";
 
 interface MessageProps {
   message: {
@@ -40,23 +40,27 @@ const ErrorMessage = React.memo(
 );
 
 // 加载组件
-const LoadingMessage = React.memo(() => (
-  <div
-    style={{
-      background: defaultTheme.backgroundSecondary,
-      border: `1px solid ${defaultTheme.border}`,
-      borderRadius: "12px",
-      padding: "12px 16px",
-      minWidth: "100px",
-      width: `${Math.random() * 200 + 100}px`,
-      height: "20px",
-      animation: "message-enter 0.3s ease-out forwards",
-    }}
-  />
-));
+const LoadingMessage = () => {
+  const theme = useTheme();
+  return (
+    <div
+      style={{
+        background: theme.backgroundSecondary,
+        border: `1px solid ${theme.border}`,
+        borderRadius: "12px",
+        padding: "12px 16px",
+        minWidth: "100px",
+        width: `${Math.random() * 200 + 100}px`,
+        height: "20px",
+        animation: "message-enter 0.3s ease-out forwards",
+      }}
+    />
+  )
+}
 
 export const MessageItem = React.memo(
   ({ message }: MessageProps) => {
+    const theme = useTheme();
     const { id, content: streamContent, controller } = message;
     const dispatch = useAppDispatch();
     const { data, isLoading, error } = useFetchData(id);

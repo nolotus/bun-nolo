@@ -6,15 +6,16 @@ import { generateFileID } from "database/fileUpload/generateFileID";
 import type React from "react";
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { defaultTheme } from "render/styles/colors";
 import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
+import { useTheme } from "app/theme";
 
 interface MessageInputProps {
   onSendMessage: (content: string) => void;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
+  const theme = useTheme();
   const { t } = useTranslation();
   const auth = useAuth();
   const [textContent, setTextContent] = useState("");
@@ -37,9 +38,9 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
 
     const content = imagePreviewUrls[0]
       ? [
-          { type: "text", text: textContent },
-          { type: "image_url", image_url: { url: imagePreviewUrls[0] } },
-        ]
+        { type: "text", text: textContent },
+        { type: "image_url", image_url: { url: imagePreviewUrls[0] } },
+      ]
       : textContent;
 
     onSendMessage(content);
@@ -113,7 +114,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       gap: 8px;
       padding: 16px 20%;
       margin: 0;
-      background: ${defaultTheme.background};
+      background: ${theme.background};
       container-type: inline-size;
     }
 
@@ -139,17 +140,17 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       margin: 0;
       font-size: 15px;
       line-height: 20px;
-      border: 1px solid ${defaultTheme.border};
+      border: 1px solid ${theme.border};
       border-radius: 10px;
-      background: ${defaultTheme.backgroundSecondary};
-      color: ${defaultTheme.text};
+      background: ${theme.backgroundSecondary};
+      color: ${theme.text};
       resize: none;
       font-family: -apple-system, system-ui, sans-serif;
       transition: border-color 0.2s ease-out;
     }
 
     .message-textarea:focus {
-      border-color: ${defaultTheme.primary};
+      border-color: ${theme.primary};
       outline: none;
     }
 
@@ -158,10 +159,10 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       height: 48px;
       margin: 0;
       padding: 0;
-      border: 1px solid ${defaultTheme.border};
+      border: 1px solid ${theme.border};
       border-radius: 10px;
-      background: ${defaultTheme.background};
-      color: ${defaultTheme.textSecondary};
+      background: ${theme.background};
+      color: ${theme.textSecondary};
       cursor: pointer;
       transition: all 0.2s ease-out;
       display: flex;
@@ -171,22 +172,22 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     }
 
     .upload-button:hover {
-      border-color: ${defaultTheme.primary};
-      color: ${defaultTheme.primary};
-      background: ${defaultTheme.backgroundSecondary};
+      border-color: ${theme.primary};
+      color: ${theme.primary};
+      background: ${theme.backgroundSecondary};
     }
 
     .drop-zone {
       position: absolute;
       inset: 0;
       border-radius: 12px;
-      background: ${defaultTheme.backgroundGhost};
-      border: 2px dashed ${defaultTheme.primary};
+      background: ${theme.backgroundGhost};
+      border: 2px dashed ${theme.primary};
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      color: ${defaultTheme.primary};
+      color: ${theme.primary};
       font-size: 15px;
       opacity: ${isDragOver ? 1 : 0};
       pointer-events: ${isDragOver ? "all" : "none"};
@@ -204,7 +205,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
         padding: 12px 8px;
         gap: 6px;
         z-index: 1000;
-        background: ${defaultTheme.background};
+        background: ${theme.background};
         box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
       }
 

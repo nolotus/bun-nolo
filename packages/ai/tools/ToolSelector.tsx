@@ -4,7 +4,7 @@ import type React from "react";
 import { useTranslation } from "react-i18next";
 import { Checkbox } from "render/form/Checkbox";
 import { FormField } from "render/form/FormField";
-import { Label } from "render/form/Label";
+import { Label } from "web/form/Label";
 
 export const TOOL_OPTIONS = [
 	{ id: "makeAppointment", name: "makeAppointment" },

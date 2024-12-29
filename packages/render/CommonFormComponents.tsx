@@ -2,27 +2,28 @@ import type React from "react";
 import type { ReactNode } from "react";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { FormField } from "render/form/FormField";
-import { Input } from "render/form/Input";
-import { Label } from "render/form/Label";
-import TextArea from "render/form/TextArea";
-import { defaultTheme } from "./styles/colors";
+import { Input } from "web/form/Input";
+import { Label } from "web/form/Label";
+import TextArea from "web/form/TextArea";
 import PasswordInput from "./ui/PasswordInput";
+import { useTheme } from "app/theme";
 
 const useCommonFormStyles = () => {
+  const theme = useTheme();
+
   return {
     formContainer: {
       maxWidth: "600px",
       margin: "0 auto",
       padding: "20px",
-      color: defaultTheme.text,
+      color: theme.text,
     },
     formTitle: {
       textAlign: "center" as const,
-      color: defaultTheme.text,
+      color: theme.text,
     },
-
     errorMessage: {
-      color: defaultTheme.error,
+      color: theme.error,
       fontSize: "0.8em",
     },
   };
@@ -49,8 +50,6 @@ export const ErrorMessage: React.FC<{ children: ReactNode }> = ({
   return <span style={styles.errorMessage}>{children}</span>;
 };
 
-
-
 interface FormFieldComponentProps {
   label: string;
   name: string;
@@ -71,6 +70,7 @@ export const FormFieldComponent: React.FC<FormFieldComponentProps> = ({
   required = false,
   as = "input",
 }) => {
+
   const renderField = () => {
     const inputProps = {
       id: name,

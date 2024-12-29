@@ -1,10 +1,11 @@
+import { useTheme } from "app/theme";
 import type React from "react";
-import { defaultTheme } from "render/styles/colors";
 
 interface TextAreaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> { }
 
 const TextArea = (props: TextAreaProps) => {
+  const theme = useTheme();
   return (
     <>
       <style>
@@ -19,11 +20,11 @@ const TextArea = (props: TextAreaProps) => {
             min-height: 100px;
             padding: 12px;
             border-radius: 8px;
-            border: 1px solid ${defaultTheme.border};
+            border: 1px solid ${theme.border};
             font-size: 13px;
             font-weight: 500;
-            color: ${defaultTheme.text};
-            background: ${defaultTheme.background};
+            color: ${theme.text};
+            background: ${theme.background};
             resize: vertical;
             outline: none;
             transition: all 0.15s ease;
@@ -31,21 +32,21 @@ const TextArea = (props: TextAreaProps) => {
           }
 
           .textarea:focus {
-            border-color: ${defaultTheme.primary};
-            box-shadow: 0 0 0 3.5px ${defaultTheme.focus};
+            border-color: ${theme.primary};
+            box-shadow: 0 0 0 3.5px ${theme.focus};
           }
 
           .textarea:hover {
-            border-color: ${defaultTheme.hover};
+            border-color: ${theme.hover};
           }
 
           .textarea:disabled {
-            background: ${defaultTheme.disabled};
+            background: ${theme.disabled};
             cursor: not-allowed;
           }
 
           .textarea::placeholder {
-            color: ${defaultTheme.placeholder};
+            color: ${theme.placeholder};
           }
         `}
       </style>

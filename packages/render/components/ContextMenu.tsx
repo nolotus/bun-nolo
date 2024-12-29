@@ -1,7 +1,6 @@
 import * as Ariakit from "@ariakit/react";
-import { defaultTheme } from "render/styles/colors";
-
 import React from "react";
+import { useTheme } from "app/theme";
 
 export interface MenuItem {
 	id: string;
@@ -16,22 +15,22 @@ interface ContextMenuProps {
 	menu: Ariakit.MenuStore;
 	anchorRect: { x: number; y: number };
 	items: MenuItem[];
-	theme?: typeof defaultTheme;
 }
 
 export const ContextMenu: React.FC<ContextMenuProps> = ({
 	menu,
 	anchorRect,
 	items,
-	theme = defaultTheme,
 }) => {
+	const theme = useTheme();
+
 	const menuStyle: React.CSSProperties = {
-		backgroundColor: "#ffffff",
-		color: "#000000",
-		border: "1px solid #e5e7eb",
+		backgroundColor: theme.background,
+		color: theme.text,
+		border: `1px solid ${theme.border}`,
 		borderRadius: "8px",
 		padding: "4px 0",
-		boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+		boxShadow: `0 2px 8px ${theme.shadowLight}`,
 		minWidth: "180px",
 		fontSize: "14px",
 		zIndex: 2,
@@ -98,8 +97,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             align-items: center;
             padding: 8px 12px;
             cursor: pointer;
-            color: #000000;
-            transition: background-color 0.2s ease;
+            color: ${theme.text};
+            transition: all 0.2s ease;
             user-select: none;
             width: 100%;
             border: none;
@@ -109,12 +108,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           }
 
           .menu-item:not(:disabled):hover {
-            background-color: ${theme.primaryBg};
+            background-color: ${theme.primaryGhost};
+            color: ${theme.primary};
           }
 
           .menu-item:disabled {
             opacity: 0.5;
             cursor: default;
+            color: ${theme.textLight};
           }
         `}
 			</style>

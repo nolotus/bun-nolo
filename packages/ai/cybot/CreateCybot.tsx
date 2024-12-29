@@ -4,7 +4,6 @@ import { useAuth } from "auth/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
-import withTranslations from "i18n/withTranslations";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -15,7 +14,7 @@ import {
   FormTitle,
 } from "render/CommonFormComponents";
 import { FormField } from "render/form/FormField";
-import { Label } from "render/form/Label";
+import { Label } from "web/form/Label";
 import { Button } from "web/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import { z } from "zod";
@@ -44,10 +43,10 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const CreateCybot: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai");
   const dispatch = useAppDispatch();
   const auth = useAuth();
-  const { isLoading: isDialogLoading, createNewDialog } = useCreateDialog();
+  const { createNewDialog } = useCreateDialog();
 
   const {
     register,
@@ -195,4 +194,4 @@ const CreateCybot: React.FC = () => {
   );
 };
 
-export default withTranslations(CreateCybot, ["ai"]);
+export default CreateCybot
