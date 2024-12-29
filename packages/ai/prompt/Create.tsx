@@ -23,7 +23,7 @@ import { FormField } from "render/form/FormField";
 import { Input } from "render/form/Input";
 import { Label } from "render/form/Label";
 import { layout } from "render/styles/layout";
-import { Button } from "render/ui/Button";
+import { Button } from "web/ui/Button";
 
 const CreatePrompt: React.FC = () => {
 	const { t } = useTranslation();

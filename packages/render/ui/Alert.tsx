@@ -2,8 +2,10 @@ import React from 'react';
 import { useTranslation } from "react-i18next";
 import { defaultTheme } from "render/styles/colors";
 import { BaseModal } from './BaseModal';
-import { Button } from 'render/ui/Button';
 import { animations } from '../styles/animations';
+
+
+import { Button } from 'web/ui/Button';
 import {
   XCircleIcon,
   AlertIcon,

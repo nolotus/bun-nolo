@@ -5,7 +5,7 @@ import { DataType } from "create/types";
 import { deleteData } from "database/dbSlice";
 import { Link } from "react-router-dom";
 import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
-import { Button } from 'render/ui/Button';
+import { Button } from 'web/ui/Button';
 
 type FieldConfig = {
   header: string;

@@ -3,7 +3,7 @@ import { DataType } from "create/types";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { Button } from "render/ui/Button";
+import { Button } from "web/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import { SyncIcon } from "@primer/octicons-react";
 import { FormFieldComponent } from "render/CommonFormComponents";

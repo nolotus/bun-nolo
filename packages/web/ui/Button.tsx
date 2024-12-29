@@ -5,7 +5,7 @@ import { useAppSelector } from 'app/hooks';
 import { selectTheme } from 'app/theme/themeSlice';
 import { createShadow } from "render/styles/createShadow";
 
-import { animations } from "../styles/animations";
+import { animations } from "render/styles/animations";
 
 
 
