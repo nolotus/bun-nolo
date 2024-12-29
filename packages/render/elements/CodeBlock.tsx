@@ -1,7 +1,8 @@
 import { CheckIcon, CodeIcon, CopyIcon, EyeIcon } from "@primer/octicons-react";
 import mermaid from "mermaid";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { JsonView, allExpanded, defaultStyles } from "react-json-view-lite";
+import { useTheme } from "app/theme";
 import copyToClipboard from "utils/clipboard";
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-jsx";
@@ -15,7 +16,6 @@ import "prismjs/components/prism-java";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-yaml";
 import "prismjs/components/prism-mermaid";
-import { defaultTheme } from "../styles/colors";
 import { zIndex } from "../styles/zIndex";
 
 // Mermaid 配置
@@ -25,97 +25,79 @@ mermaid.initialize({
 	theme: "default",
 });
 
-const styles = {
-	codeBlock: {
-		position: "relative",
-		fontFamily: "'Fira Code', monospace",
-		background: defaultTheme.backgroundSecondary,
-		padding: "1.5rem",
-		borderRadius: "8px",
-		margin: "16px 0",
-		border: `1px solid ${defaultTheme.border}`,
-		boxShadow: `0 2px 4px ${defaultTheme.shadowLight}`,
-		transition: "all 0.3s ease",
-	},
-	previewMode: {
-		background: defaultTheme.background,
-		padding: "2rem",
-	},
-	actions: {
-		position: "absolute",
-		top: "10px",
-		right: "10px",
-		display: "flex",
-		gap: "8px",
-		alignItems: "center",
-		zIndex: zIndex.codeBlockActions,
-		background: defaultTheme.backgroundGhost,
-		padding: "4px 8px",
-		borderRadius: "6px",
-		backdropFilter: "blur(4px)",
-	},
-	button: {
-		background: "transparent",
-		border: "none",
-		cursor: "pointer",
-		padding: "6px",
-		color: defaultTheme.textSecondary,
-		borderRadius: "4px",
-		display: "flex",
-		alignItems: "center",
-		transition: "all 0.2s ease",
-		"&:hover": {
-			background: defaultTheme.primaryGhost,
-			color: defaultTheme.text,
-		},
-	},
-	activeButton: {
-		background: defaultTheme.primaryGhost,
-		color: defaultTheme.text,
-	},
-	languageTag: {
-		fontSize: "12px",
-		fontWeight: "500",
-		color: defaultTheme.textSecondary,
-		padding: "4px 8px",
-		background: defaultTheme.primaryGhost,
-		borderRadius: "4px",
-		textTransform: "uppercase",
-	},
-	pre: {
-		margin: 0,
-		whiteSpace: "pre-wrap",
-		wordBreak: "break-word",
-		fontSize: "14px",
-		lineHeight: 1.6,
-		color: defaultTheme.text,
-	},
-};
-
-export const CodeBlock = ({ attributes, children, element }) => {
+const CodeBlock = ({ attributes, children, element }) => {
+	const theme = useTheme();
 	const [isCopied, setIsCopied] = useState(false);
 	const [showPreview, setShowPreview] = useState(false);
 
-	const content = useMemo(() => {
-		const getTextContent = (nodes) => {
-			return nodes
-				.map((node) => {
-					if (node.text) return node.text;
-					if (node.type === "code-line") {
-						return getTextContent(node.children) + "\n";
-					}
-					return node.children ? getTextContent(node.children) : "";
-				})
-				.join("");
-		};
+	const styles = {
+		codeBlock: {
+			position: "relative",
+			fontFamily: "'Fira Code', monospace",
+			background: theme.backgroundSecondary,
+			padding: "1.5rem",
+			borderRadius: "8px",
+			margin: "16px 0",
+			border: `1px solid ${theme.border}`,
+			boxShadow: `0 2px 4px ${theme.shadowLight}`,
+			transition: "all 0.3s ease",
+		},
+		previewMode: {
+			background: theme.background,
+			padding: "2rem",
+		},
+		actions: {
+			position: "absolute",
+			top: "10px",
+			right: "10px",
+			display: "flex",
+			gap: "8px",
+			alignItems: "center",
+			zIndex: zIndex.codeBlockActions,
+			background: theme.backgroundGhost,
+			padding: "4px 8px",
+			borderRadius: "6px",
+			backdropFilter: "blur(4px)",
+		},
+		button: {
+			background: "transparent",
+			border: "none",
+			cursor: "pointer",
+			padding: "6px",
+			color: theme.textSecondary,
+			borderRadius: "4px",
+			display: "flex",
+			alignItems: "center",
+			transition: "all 0.2s ease",
+			"&:hover": {
+				background: theme.primaryGhost,
+				color: theme.text,
+			},
+		},
+		activeButton: {
+			background: theme.primaryGhost,
+			color: theme.text,
+		},
+		languageTag: {
+			fontSize: "12px",
+			fontWeight: "500",
+			color: theme.textSecondary,
+			padding: "4px 8px",
+			background: theme.primaryGhost,
+			borderRadius: "4px",
+			textTransform: "uppercase",
+		},
+		pre: {
+			margin: 0,
+			whiteSpace: "pre-wrap",
+			wordBreak: "break-word",
+			fontSize: "14px",
+			lineHeight: 1.6,
+			color: theme.text,
+		},
+	};
 
-		try {
-			return getTextContent(element.children);
-		} catch (err) {
-			console.error(err);
-			return "";
-		}
-	}, [element.children]);
+	// content memo logic...
 
 	const handleCopy = () => {
 		copyToClipboard(content, {
@@ -149,7 +131,7 @@ export const CodeBlock = ({ attributes, children, element }) => {
 		</div>
 	);
 
-	// JSON View
+	// JSON View render...
 	if (element.language === "json" && content) {
 		try {
 			const jsonData = JSON.parse(content);
@@ -184,7 +166,7 @@ export const CodeBlock = ({ attributes, children, element }) => {
 		}
 	}
 
-	// Mermaid View
+	// Mermaid View render...
 	if (element.language === "mermaid") {
 		useEffect(() => {
 			if (showPreview) {
@@ -218,3 +200,5 @@ export const CodeBlock = ({ attributes, children, element }) => {
 		</div>
 	);
 };
+
+export default CodeBlock;

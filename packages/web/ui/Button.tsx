@@ -1,11 +1,10 @@
 // Button.tsx
 import React from 'react';
 
-import { useAppSelector } from 'app/hooks';
-import { selectTheme } from 'app/theme/themeSlice';
 import { createShadow } from "render/styles/createShadow";
 
 import { animations } from "render/styles/animations";
+import { useTheme } from 'app/theme';
 
 
 
@@ -38,7 +37,7 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   children,
 }) => {
-  const theme = useAppSelector(selectTheme)
+  const theme = useTheme();
 
   const shadows = {
     subtle: createShadow('#000000', {

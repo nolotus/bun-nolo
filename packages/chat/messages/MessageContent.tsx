@@ -1,7 +1,8 @@
-import { defaultTheme } from "render/styles/colors";
 import { MessageText } from "./MessageText";
+import { useTheme } from "app/theme";
 
 export const MessageContent = ({ content, role }) => {
+  const theme = useTheme()
   if (!content) return null;
 
   const isSelf = role === "self";
@@ -39,15 +40,15 @@ export const MessageContent = ({ content, role }) => {
           }
 
           .message-self {
-            background-color: ${defaultTheme.primary};
-            color: ${defaultTheme.background};
-            border: 1px solid ${defaultTheme.primaryLight}20;
+            background-color: ${theme.primary};
+            color: ${theme.background};
+            border: 1px solid ${theme.primaryLight}20;
           }
 
           .message-other {
-            background-color: ${defaultTheme.backgroundSecondary};
-            color: ${defaultTheme.text};
-            border: 1px solid ${defaultTheme.border};
+            background-color: ${theme.backgroundSecondary};
+            color: ${theme.text};
+            border: 1px solid ${theme.border};
           }
         `}
       </style>

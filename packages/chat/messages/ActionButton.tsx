@@ -1,17 +1,19 @@
 import { PaperAirplaneIcon } from "@primer/octicons-react";
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
-import { defaultTheme } from "render/styles/colors";
 
 interface SendButtonProps {
-	onClick: () => void;
-	disabled: boolean;
+  onClick: () => void;
+  disabled: boolean;
 }
 
 const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
-	return (
-		<>
-			<style>
-				{`
+  const theme = useAppSelector(selectTheme)
+  return (
+    <>
+      <style>
+        {`
           .send-button {
             padding: 0 20px;
             height: 40px;
@@ -19,7 +21,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: ${defaultTheme.primary};
+            background-color: ${theme.primary};
             color: #FFFFFF;
             border: 1px solid transparent;
             cursor: pointer;
@@ -33,8 +35,8 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           }
 
           .send-button:hover {
-            background-color: ${defaultTheme.hover};
-            border-color: ${defaultTheme.primaryLight}20;
+            background-color: ${theme.hover};
+            border-color: ${theme.primaryLight}20;
           }
 
           .send-button:active {
@@ -42,11 +44,11 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           }
 
           .send-button:focus {
-            box-shadow: 0 0 0 2px ${defaultTheme.focus};
+            box-shadow: 0 0 0 2px ${theme.focus};
           }
 
           .send-button:disabled {
-            background-color: ${defaultTheme.textLight};
+            background-color: ${theme.textLight};
             cursor: not-allowed;
             transform: none;
           }
@@ -70,13 +72,13 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             transform: none;
           }
         `}
-			</style>
-			<button onClick={onClick} className="send-button" disabled={disabled}>
-				<span>发送</span>
-				<PaperAirplaneIcon size={14} />
-			</button>
-		</>
-	);
+      </style>
+      <button onClick={onClick} className="send-button" disabled={disabled}>
+        <span>发送</span>
+        <PaperAirplaneIcon size={14} />
+      </button>
+    </>
+  );
 };
 
 export default SendButton;

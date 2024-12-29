@@ -4,12 +4,13 @@ import { throttle } from "lodash";
 import { reverse } from "rambda";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { defaultTheme } from "render/styles/colors";
 import { MessageItem } from "./MessageItem";
 import { initMessages } from "./messageSlice";
 import { selectMergedMessages, selectStreamMessages } from "./selector";
+import { useTheme } from "app/theme";
 
 const MessagesList: React.FC = () => {
+  const theme = useTheme();
   const PAGE_SIZE = 6;
   const INITIAL_SIZE = PAGE_SIZE * 2;
 
@@ -83,7 +84,7 @@ const MessagesList: React.FC = () => {
             flex-direction: column;
             height: 100%;
             position: relative;
-            background-color: ${defaultTheme.background};
+            background-color: ${theme.background};
           }
 
           .message-list {
@@ -95,7 +96,7 @@ const MessagesList: React.FC = () => {
             overflow-y: auto;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
-            background-color: ${defaultTheme.background};
+            background-color: ${theme.background};
           }
 
           .message-list::-webkit-scrollbar {
@@ -107,18 +108,18 @@ const MessagesList: React.FC = () => {
           }
 
           .message-list::-webkit-scrollbar-thumb {
-            background-color: ${defaultTheme.border};
+            background-color: ${theme.border};
             border-radius: 3px;
           }
 
           .message-list::-webkit-scrollbar-thumb:hover {
-            background-color: ${defaultTheme.borderHover};
+            background-color: ${theme.borderHover};
           }
 
           /* Firefox scrollbar */
           .message-list {
             scrollbar-width: thin;
-            scrollbar-color: ${defaultTheme.border} transparent;
+            scrollbar-color: ${theme.border} transparent;
           }
 
           .message-item {
@@ -142,7 +143,7 @@ const MessagesList: React.FC = () => {
             display: flex;
             justify-content: center;
             padding: 20px;
-            color: ${defaultTheme.textSecondary};
+            color: ${theme.textSecondary};
           }
 
           .messages-error {
@@ -150,7 +151,7 @@ const MessagesList: React.FC = () => {
             justify-content: center;
             align-items: center;
             height: 100%;
-            color: ${defaultTheme.textSecondary};
+            color: ${theme.textSecondary};
             text-align: center;
             padding: 16px;
           }

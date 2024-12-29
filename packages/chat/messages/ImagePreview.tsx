@@ -1,6 +1,6 @@
 import { XIcon } from "@primer/octicons-react";
+import { useTheme } from "app/theme";
 import React, { useState } from "react";
-import { defaultTheme } from "render/styles/colors";
 import { BaseModal } from 'render/ui/BaseModal';
 
 interface ImagePreviewProps {
@@ -9,6 +9,7 @@ interface ImagePreviewProps {
 }
 
 const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
+  const theme = useTheme()
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   if (imageUrls.length === 0) return null;
@@ -55,9 +56,9 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
             display: flex;
             gap: 6px;
             padding: 6px;
-            background: ${defaultTheme.backgroundSecondary};
+            background: ${theme.backgroundSecondary};
             border-radius: 8px;
-            border: 1px solid ${defaultTheme.border};
+            border: 1px solid ${theme.border};
             max-width: 240px;
             flex-wrap: wrap;
           }
@@ -77,12 +78,12 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
             border-radius: 6px;
             object-fit: cover;
             cursor: pointer;
-            border: 1px solid ${defaultTheme.border};
+            border: 1px solid ${theme.border};
             transition: border-color 0.2s ease-out;
           }
 
           .preview-image:hover {
-            border-color: ${defaultTheme.primary};
+            border-color: ${theme.primary};
           }
 
           .remove-button {
@@ -93,9 +94,9 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
             width: 14px;
             height: 14px;
             border-radius: 50%;
-            background: ${defaultTheme.primary};
+            background: ${theme.primary};
             color: white;
-            border: 1px solid ${defaultTheme.background};
+            border: 1px solid ${theme.background};
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -104,13 +105,13 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
           }
 
           .remove-button:hover {
-            background: ${defaultTheme.hover};
+            background: ${theme.hover};
             transform: scale(1.1);
           }
 
           .remove-button:focus-visible {
             outline: none;
-            box-shadow: 0 0 0 2px ${defaultTheme.focus};
+            box-shadow: 0 0 0 2px ${theme.focus};
           }
 
           .preview-modal-image {

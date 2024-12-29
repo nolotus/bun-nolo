@@ -1,24 +1,25 @@
+import { useTheme } from "app/theme";
 import type React from "react";
 import { NavLink } from "react-router-dom";
-import { defaultTheme } from "render/styles/colors";
 
 interface NavIconItemProps {
-	path?: string;
-	icon: React.ReactNode;
-	onClick?: () => void;
+  path?: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
 }
 
 const styles = {
-	size: "32px",
-	borderRadius: "6px",
-	transition: "all 0.2s ease",
+  size: "32px",
+  borderRadius: "6px",
+  transition: "all 0.2s ease",
 };
 
 const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
-	return (
-		<>
-			<style>
-				{`
+  const theme = useTheme();
+  return (
+    <>
+      <style>
+        {`
           .nav-icon {
             display: inline-flex;
             align-items: center;
@@ -28,19 +29,19 @@ const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
             padding: 0;
             border-radius: ${styles.borderRadius};
             background: transparent;
-            color: ${defaultTheme.textSecondary};
+            color: ${theme.textSecondary};
             cursor: pointer;
             transition: ${styles.transition};
             text-decoration: none;
           }
 
           .nav-icon:hover {
-            color: ${defaultTheme.primary};
-            background: ${defaultTheme.primaryGhost};
+            color: ${theme.primary};
+            background: ${theme.primaryGhost};
           }
 
           .nav-icon.active {
-            background: ${defaultTheme.primary};
+            background: ${theme.primary};
             color: white;
           }
 
@@ -50,22 +51,22 @@ const NavIconItem: React.FC<NavIconItemProps> = ({ path, icon, onClick }) => {
             }
           }
         `}
-			</style>
+      </style>
 
-			{onClick ? (
-				<div className="nav-icon" onClick={onClick}>
-					{icon}
-				</div>
-			) : path ? (
-				<NavLink
-					to={path}
-					className={({ isActive }) => `nav-icon ${isActive ? "active" : ""}`}
-				>
-					{icon}
-				</NavLink>
-			) : null}
-		</>
-	);
+      {onClick ? (
+        <div className="nav-icon" onClick={onClick}>
+          {icon}
+        </div>
+      ) : path ? (
+        <NavLink
+          to={path}
+          className={({ isActive }) => `nav-icon ${isActive ? "active" : ""}`}
+        >
+          {icon}
+        </NavLink>
+      ) : null}
+    </>
+  );
 };
 
 export default NavIconItem;

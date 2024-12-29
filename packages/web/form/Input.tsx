@@ -1,6 +1,7 @@
-import { defaultTheme } from "render/styles/colors";
+import { useTheme } from "app/theme";
 
 export const Input = (props) => {
+  const theme = useTheme();
   return (
     <>
       <style>
@@ -15,31 +16,31 @@ export const Input = (props) => {
             height: 40px;
             padding: 0 12px;
             border-radius: 8px;
-            border: 1px solid ${defaultTheme.border};
+            border: 1px solid ${theme.border};
             font-size: 13px;
             font-weight: 500;
-            color: ${defaultTheme.text};
-            background: ${defaultTheme.background};
+            color: ${theme.text};
+            background: ${theme.background};
             outline: none;
             transition: all 0.15s ease;
           }
 
           input:focus {
-            border-color: ${defaultTheme.primary};
-            box-shadow: 0 0 0 3.5px ${defaultTheme.focus};
+            border-color: ${theme.primary};
+            box-shadow: 0 0 0 3.5px ${theme.focus};
           }
 
           input:hover {
-            border-color: ${defaultTheme.hover};
+            border-color: ${theme.hover};
           }
 
           input:disabled {
-            background: ${defaultTheme.disabled};
+            background: ${theme.disabled};
             cursor: not-allowed;
           }
 
           input::placeholder {
-            color: ${defaultTheme.placeholder};
+            color: ${theme.placeholder};
           }
         `}
       </style>

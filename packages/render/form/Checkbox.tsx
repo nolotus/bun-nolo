@@ -1,5 +1,5 @@
+import { useTheme } from "app/theme";
 import type React from "react";
-import { defaultTheme } from "render/styles/colors";
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -13,6 +13,7 @@ export const Checkbox = ({
   checked,
   ...props
 }: CheckboxProps) => {
+  const theme = useTheme();
   return (
     <>
       <style>
@@ -42,12 +43,12 @@ export const Checkbox = ({
               margin-right: 12px;
               border-radius: 6px;
               transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-              box-shadow: inset 0 0 0 1.5px ${defaultTheme.border};
-              background: ${defaultTheme.background};
+              box-shadow: inset 0 0 0 1.5px ${theme.border};
+              background: ${theme.background};
             }
 
             .checkbox-input:checked ~ .checkbox-box {
-              background: ${defaultTheme.primary};
+              background: ${theme.primary};
               box-shadow: none;
               transform: scale(1.05);
             }
@@ -60,7 +61,7 @@ export const Checkbox = ({
               right: 0;
               bottom: 0;
               border-radius: 5px;
-              box-shadow: 0 2px 8px ${defaultTheme.primary}50;
+              box-shadow: 0 2px 8px ${theme.primary}50;
               transition: box-shadow 0.3s ease;
             }
 
@@ -91,7 +92,7 @@ export const Checkbox = ({
               right: -5px;
               bottom: -5px;
               border-radius: 8px;
-              background: ${defaultTheme.focus};
+              background: ${theme.focus};
               opacity: 0;
               transform: scale(0.8);
               transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -104,12 +105,12 @@ export const Checkbox = ({
             }
 
             .checkbox-wrapper:hover .checkbox-box:not(:disabled) {
-              box-shadow: inset 0 0 0 1.5px ${defaultTheme.hover};
+              box-shadow: inset 0 0 0 1.5px ${theme.hover};
               transform: scale(1.05);
             }
 
             .checkbox-wrapper:hover .checkbox-input:checked ~ .checkbox-box::before {
-              box-shadow: 0 2px 8px ${defaultTheme.primary}60;
+              box-shadow: 0 2px 8px ${theme.primary}60;
             }
 
             .checkbox-wrapper:active .checkbox-box {
@@ -119,18 +120,18 @@ export const Checkbox = ({
             .checkbox-label {
               font-size: 14px;
               font-weight: 600;
-              color: ${defaultTheme.text};
+              color: ${theme.text};
               letter-spacing: -0.1px;
               line-height: 1.4;
             }
 
             .checkbox-input:disabled ~ .checkbox-box {
-              background: ${defaultTheme.disabled};
+              background: ${theme.disabled};
               box-shadow: none;
             }
 
             .checkbox-input:disabled ~ .checkbox-label {
-              color: ${defaultTheme.textSecondary};
+              color: ${theme.textSecondary};
             }
           `}
       </style>

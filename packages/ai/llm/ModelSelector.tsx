@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { FormField } from "render/form/FormField";
-import { Label } from "render/form/Label";
+import { Label } from "web/form/Label";
 
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
@@ -23,7 +23,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   watch,
   errors,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai");
   const provider = watch("provider");
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState<string>(
