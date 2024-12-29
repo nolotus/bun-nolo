@@ -1,48 +1,49 @@
+import { useTheme } from "app/theme";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { defaultTheme } from "render/styles/colors";
 
 interface ToggleSwitchProps {
-	disabled?: boolean;
-	loading?: boolean;
-	checked?: boolean;
-	defaultChecked?: boolean;
-	onChange?: (checked: boolean) => void;
-	ariaLabelledby?: string;
-	ariaDescribedby?: string;
-	value?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
+  checked?: boolean;
+  defaultChecked?: boolean;
+  onChange?: (checked: boolean) => void;
+  ariaLabelledby?: string;
+  ariaDescribedby?: string;
+  value?: boolean;
 }
 
 const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
-	disabled = false,
-	loading = false,
-	checked,
-	defaultChecked = false,
-	onChange,
-	ariaLabelledby,
-	ariaDescribedby,
-	value,
+  disabled = false,
+  loading = false,
+  checked,
+  defaultChecked = false,
+  onChange,
+  ariaLabelledby,
+  ariaDescribedby,
+  value,
 }) => {
-	const [isChecked, setIsChecked] = useState<boolean>(value ?? defaultChecked);
+  const theme = useTheme();
+  const [isChecked, setIsChecked] = useState<boolean>(value ?? defaultChecked);
 
-	useEffect(() => {
-		if (checked !== undefined) {
-			setIsChecked(checked);
-		}
-	}, [checked]);
+  useEffect(() => {
+    if (checked !== undefined) {
+      setIsChecked(checked);
+    }
+  }, [checked]);
 
-	const handleToggle = () => {
-		if (!loading && !disabled) {
-			const newChecked = !isChecked;
-			setIsChecked(newChecked);
-			onChange?.(newChecked);
-		}
-	};
+  const handleToggle = () => {
+    if (!loading && !disabled) {
+      const newChecked = !isChecked;
+      setIsChecked(newChecked);
+      onChange?.(newChecked);
+    }
+  };
 
-	return (
-		<>
-			<style>
-				{`
+  return (
+    <>
+      <style>
+        {`
           .toggle-wrapper {
             display: inline-block;
             cursor: ${disabled ? "not-allowed" : "pointer"};
@@ -55,7 +56,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
             height: 30px;
             width: 51px;
             position: relative;
-            box-shadow: inset 0 0 0px 2px ${disabled ? defaultTheme.disabled : defaultTheme.border};
+            box-shadow: inset 0 0 0px 2px ${disabled ? theme.disabled : theme.border};
             border-radius: 60px;
             opacity: ${disabled ? 0.5 : 1};
             pointer-events: ${loading ? "none" : "auto"};
@@ -74,12 +75,12 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
             top: 0;
             left: 0;
             border-radius: 15px;
-            background: ${defaultTheme.border};
+            background: ${theme.border};
             transition: 0.2s cubic-bezier(.24,0,.5,1);
           }
 
           .toggle-switch.checked .toggle-background {
-            background: ${defaultTheme.primary};
+            background: ${theme.primary};
           }
 
           .toggle-handle {
@@ -92,7 +93,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
             margin-top: -14px;
             left: 1px;
             border-radius: 60px;
-            background: ${defaultTheme.background};
+            background: ${theme.background};
             box-shadow: 0 0 0 1px hsla(0, 0%, 0%, 0.1),
                        0 4px 0px 0 hsla(0, 0%, 0%, 0.04),
                        0 4px 9px hsla(0, 0%, 0%, 0.13),
@@ -110,7 +111,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: ${defaultTheme.textSecondary};
+            color: ${theme.textSecondary};
             font-size: 12px;
           }
 
@@ -121,31 +122,31 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
             height: 0;
           }
         `}
-			</style>
+      </style>
 
-			<label
-				className="toggle-wrapper"
-				aria-labelledby={ariaLabelledby}
-				aria-describedby={ariaDescribedby}
-			>
-				<input
-					type="checkbox"
-					className="toggle-input"
-					checked={isChecked}
-					onChange={handleToggle}
-					disabled={disabled || loading}
-				/>
-				<div className={`toggle-switch ${isChecked ? "checked" : ""}`}>
-					<span className="toggle-background"></span>
-					{!loading ? (
-						<span className="toggle-handle"></span>
-					) : (
-						<span className="toggle-loading">Loading...</span>
-					)}
-				</div>
-			</label>
-		</>
-	);
+      <label
+        className="toggle-wrapper"
+        aria-labelledby={ariaLabelledby}
+        aria-describedby={ariaDescribedby}
+      >
+        <input
+          type="checkbox"
+          className="toggle-input"
+          checked={isChecked}
+          onChange={handleToggle}
+          disabled={disabled || loading}
+        />
+        <div className={`toggle-switch ${isChecked ? "checked" : ""}`}>
+          <span className="toggle-background"></span>
+          {!loading ? (
+            <span className="toggle-handle"></span>
+          ) : (
+            <span className="toggle-loading">Loading...</span>
+          )}
+        </div>
+      </label>
+    </>
+  );
 };
 
 export default ToggleSwitch;

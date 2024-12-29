@@ -1,10 +1,7 @@
 import React from 'react';
 import { useTranslation } from "react-i18next";
-import { defaultTheme } from "render/styles/colors";
+import { useTheme } from "app/theme";
 import { BaseModal } from './BaseModal';
-import { animations } from '../styles/animations';
-
-
 import { Button } from 'web/ui/Button';
 import {
   XCircleIcon,
@@ -39,13 +36,14 @@ export const Alert: React.FC<AlertProps> = ({
   loading = false,
 }) => {
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const getIconConfig = () => {
     const configs = {
-      error: { Icon: XCircleIcon, color: defaultTheme.error },
-      warning: { Icon: AlertIcon, color: defaultTheme.warning },
-      success: { Icon: CheckCircleIcon, color: defaultTheme.success },
-      info: { Icon: InfoIcon, color: defaultTheme.primary }
+      error: { Icon: XCircleIcon, color: theme.error },
+      warning: { Icon: AlertIcon, color: "#F59E0B" },
+      success: { Icon: CheckCircleIcon, color: "#10B981" },
+      info: { Icon: InfoIcon, color: theme.primary }
     };
     return configs[type];
   };
@@ -89,8 +87,19 @@ export const Alert: React.FC<AlertProps> = ({
       </div>
 
       <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
         .alert-container {
-          background: ${defaultTheme.backgroundSecondary};
+          background: ${theme.backgroundSecondary};
           padding: 28px;
           border-radius: 16px;
           width: 400px;
@@ -99,8 +108,8 @@ export const Alert: React.FC<AlertProps> = ({
           flex-direction: column;
           align-items: center;
           gap: 20px;
-          animation: ${animations.fadeIn} ${animations.duration.normal} ${animations.easing};
-          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+          animation: fadeIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 24px ${theme.shadowLight};
         }
 
         .alert-icon {
@@ -112,7 +121,7 @@ export const Alert: React.FC<AlertProps> = ({
           justify-content: center;
           background: ${color}10;
           border-radius: 50%;
-          transition: transform ${animations.duration.fast} ${animations.spring};
+          transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .alert-container:hover .alert-icon {
@@ -126,13 +135,13 @@ export const Alert: React.FC<AlertProps> = ({
         .alert-title {
           font-size: 18px;
           font-weight: 600;
-          color: ${defaultTheme.text};
+          color: ${theme.text};
           margin: 0;
           line-height: 1.4;
         }
 
         .alert-message {
-          color: ${defaultTheme.textSecondary};
+          color: ${theme.textSecondary};
           font-size: 14px;
           line-height: 1.6;
           margin: 8px 0 0;
@@ -161,6 +170,8 @@ export const Alert: React.FC<AlertProps> = ({
     </BaseModal>
   );
 };
+
+// useDeleteAlert hook
 import { useState } from 'react';
 
 export interface UseAlertReturn<T> {
@@ -185,11 +196,9 @@ export function useDeleteAlert<T = any>(
   };
 
   const closeAlert = () => {
-    // 如果正在加载，不允许关闭
     if (loading) return;
 
     setVisible(false);
-    // 使用 setTimeout 确保关闭动画完成后再重置状态
     setTimeout(() => {
       setModalState(null);
       setLoading(false);
@@ -218,4 +227,3 @@ export function useDeleteAlert<T = any>(
     loading,
   };
 }
-
