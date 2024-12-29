@@ -1,9 +1,11 @@
 // Button.tsx
 import React from 'react';
-import { animations } from "../styles/animations";
-import { defaultTheme } from "../styles/colors";
-import { shadows } from '../styles/shadow';
 
+import { useAppSelector } from 'app/hooks';
+import { selectTheme } from 'app/theme/themeSlice';
+
+import { animations } from "../styles/animations";
+import { shadows } from '../styles/shadow';
 interface ButtonProps {
   variant?: 'primary' | 'secondary';
   status?: 'success' | 'warning' | 'error';
@@ -33,6 +35,7 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   children,
 }) => {
+  const theme = useAppSelector(selectTheme)
   const getButtonType = () => {
     if (status === 'error') return 'danger';
     return variant === 'primary' ? 'primary' : 'default';
@@ -135,19 +138,19 @@ export const Button: React.FC<ButtonProps> = ({
         }
 
         .btn-primary {
-          background-color: ${defaultTheme.primary};
-          color: ${defaultTheme.background};
+          background-color: ${theme.primary};
+          color: ${theme.background};
           box-shadow: ${shadows.primary.default};
         }
 
         .btn-primary:hover:not(.disabled) {
-          background-color: ${defaultTheme.hover};
+          background-color: ${theme.hover};
           box-shadow: ${shadows.primary.hover};
         }
 
         .btn-danger {
           background-color: rgba(220, 38, 38, 0.06);
-          color: ${defaultTheme.error};
+          color: ${theme.error};
           box-shadow: ${shadows.danger.default};
         }
 
@@ -157,13 +160,13 @@ export const Button: React.FC<ButtonProps> = ({
         }
 
         .btn-default {
-          background-color: ${defaultTheme.backgroundSecondary};
-          color: ${defaultTheme.text};
+          background-color: ${theme.backgroundSecondary};
+          color: ${theme.text};
           box-shadow: ${shadows.subtle.default};
         }
 
         .btn-default:hover:not(.disabled) {
-          background-color: ${defaultTheme.backgroundGhost};
+          background-color: ${theme.backgroundGhost};
           box-shadow: ${shadows.subtle.hover};
         }
 

@@ -9,13 +9,14 @@ import { useCallback, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { GRADIENTS, defaultTheme } from "render/styles/colors";
 import { animations } from "render/styles/animations";
 import Button from "render/ui/Button";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { CommentDiscussionIcon, PencilIcon, TrashIcon } from '@primer/octicons-react';
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 
 interface CybotBlockProps {
 	item: {
@@ -30,15 +31,12 @@ interface CybotBlockProps {
 
 const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 	const { t } = useTranslation();
+	const theme = useAppSelector(selectTheme);
 	const { isLoading, createNewDialog } = useCreateDialog();
 	const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
 	const dispatch = useDispatch();
 	const [deleting, setDeleting] = useState(false);
 	const allowEdit = useCouldEdit(item.id);
-
-	const avatarBackground = Object.values(GRADIENTS)[
-		item.id.charCodeAt(0) % Object.values(GRADIENTS).length
-	];
 
 	const startDialog = async () => {
 		if (isLoading) return;
@@ -145,25 +143,23 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 				)}
 			</div>
 
-			<style jsx>{`
+			<style herf="cybot-block">{`
         .cybot-block {
-          background: ${defaultTheme.background};
+          background: ${theme.background};
           border-radius: 12px;
           padding: 1.25rem;
           height: 100%;
           display: flex;
           flex-direction: column;
           gap: 1.25rem;
-          border: 1px solid ${defaultTheme.border};
+          border: 1px solid ${theme.border};
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04),
-                      0 1px 4px rgba(0, 0, 0, 0.04);
-          transition: all ${animations.duration.normal} ${animations.spring};
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+          transition: all ${animations.duration.normal} ease;
         }
 
         .cybot-block:hover {
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06),
-                      0 2px 6px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
           transform: translateY(-2px);
         }
 
@@ -177,14 +173,14 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
           width: 42px;
           height: 42px;
           border-radius: 10px;
-          background: ${avatarBackground};
+          background: ${theme.backgroundTertiary};
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 1.1rem;
-          color: ${defaultTheme.text};
+          color: ${theme.text};
           flex-shrink: 0;
-          transition: transform ${animations.duration.normal} ${animations.spring};
+          transition: transform ${animations.duration.normal} ease;
         }
 
         .cybot-block:hover .avatar {
@@ -201,7 +197,7 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
           font-weight: 600;
           margin: 0;
           margin-bottom: 0.3rem;
-          color: ${defaultTheme.text};
+          color: ${theme.text};
         }
 
         .tags {
@@ -212,26 +208,25 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 
         .tag {
           font-size: 0.8rem;
-          color: ${defaultTheme.textSecondary};
+          color: ${theme.textSecondary};
           padding: 0.2rem 0.5rem;
-          background: ${defaultTheme.backgroundSecondary};
+          background: ${theme.backgroundSecondary};
           border-radius: 4px;
           white-space: nowrap;
-          transition: background ${animations.duration.fast} ${animations.spring};
+          transition: background ${animations.duration.fast} ease;
         }
 
         .tag:hover {
-          background: ${defaultTheme.backgroundTertiary};
+          background: ${theme.backgroundTertiary};
         }
 
         .description {
           flex: 1;
           font-size: 0.85rem;
           line-height: 1.6;
-          color: ${defaultTheme.textTertiary};
+          color: ${theme.textTertiary};
           padding: 0.6rem 0;
-          border-top: 1px solid ${defaultTheme.border};
-          border-bottom: 1px solid ${defaultTheme.border};
+          min-height: 3rem;
         }
 
         .actions {
