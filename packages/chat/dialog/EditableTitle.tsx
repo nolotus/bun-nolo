@@ -1,10 +1,11 @@
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { defaultTheme } from "render/styles/colors";
 
 const EditableTitle = ({ currentDialogConfig }) => {
 	const { t } = useTranslation();
-
+	const theme = useAppSelector(selectTheme)
 	const title = currentDialogConfig.title || t("newDialog");
 
 	const titleContainerStyle = {
@@ -21,7 +22,7 @@ const EditableTitle = ({ currentDialogConfig }) => {
 		whiteSpace: "nowrap",
 		overflow: "hidden",
 		textOverflow: "ellipsis",
-		color: defaultTheme.text,
+		color: theme.text,
 	};
 
 	return (
