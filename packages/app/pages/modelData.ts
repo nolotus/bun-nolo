@@ -26,7 +26,7 @@ export const googleModels: Model[] = [
 
 export const deepseekModels: Model[] = [
   {
-    name: "DeepSeek 2.5",
+    name: "DeepSeek V3",
     maxOutputTokens: "8k",
     contextWindow: "128k",
     price: {
