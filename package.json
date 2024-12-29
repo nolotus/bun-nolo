@@ -44,6 +44,7 @@
     "@floating-ui/react": "^0.27.2",
     "@hookform/resolvers": "^3.3.2",
     "@primer/octicons-react": "^19.8.0",
+    "@react-native-picker/picker": "^2.10.2",
     "@reduxjs/toolkit": "^2.5.0",
     "@shopify/react-native-skia": "^1.7.6",
     "@types/bun": "^1.1.14",
