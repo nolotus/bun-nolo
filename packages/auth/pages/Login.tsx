@@ -14,12 +14,13 @@ import { NavLink } from "react-router-dom";
 import { signIn } from "../authSlice";
 import { signInFields, userFormSchema } from "../schema";
 import { FormField } from "web/form/FormField";
+import Button from "web/ui/Button";
 
 const Login: React.FC = () => {
 	const theme = useTheme();
 	const { isLoading } = useSelector((state) => state.auth);
 	const dispatch = useAppDispatch();
-	const { t } = useTranslation(); // 添加 errors 命名空间
+	const { t } = useTranslation();
 	const [error, setError] = useState<string | null>(null);
 
 	const loginStyles = `
@@ -72,28 +73,6 @@ const Login: React.FC = () => {
       align-items: center;
     }
     
-    .submit-button {
-      height: 44px;
-      font-size: 16px;
-      border-radius: 8px;
-      background-color: ${theme.primary};
-      color: ${theme.background};
-      border: none;
-      cursor: pointer;
-      width: 100%;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    
-    .submit-button:hover {
-      background-color: ${theme.primaryLight};
-    }
-    
-    .submit-button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-    
     .link-text {
       color: ${theme.textSecondary};
       font-size: 14px;
@@ -136,6 +115,10 @@ const Login: React.FC = () => {
 
     .forgot-password:hover {
       color: ${theme.primaryLight};
+    }
+
+    .button-container {
+      width: 100%;
     }
   `;
 
@@ -216,10 +199,7 @@ const Login: React.FC = () => {
 
 				<div className="remember-forgot">
 					<label className="remember-me">
-						<input
-							type="checkbox"
-							{...register("rememberMe")}
-						/>
+						<input type="checkbox" {...register("rememberMe")} />
 						{t("rememberMe")}
 					</label>
 					<NavLink to="/forgot-password" className="forgot-password">
@@ -230,13 +210,18 @@ const Login: React.FC = () => {
 				{error && <p className="error-message">{error}</p>}
 
 				<div className="form-footer">
-					<button
-						type="submit"
-						className="submit-button"
-						disabled={isLoading}
-					>
-						{isLoading ? t("loading") : t("login")}
-					</button>
+					<div className="button-container">
+						<Button
+							variant="primary"
+							size="large"
+							loading={isLoading}
+							disabled={isLoading}
+							onClick={handleSubmit(onSubmit)}
+							style={{ width: '100%' }}
+						>
+							{isLoading ? t("loading") : t("login")}
+						</Button>
+					</div>
 
 					<div>
 						<span className="link-text">{t("noAccount")}</span>
