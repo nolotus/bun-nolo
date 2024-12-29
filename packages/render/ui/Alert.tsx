@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { BaseModal } from './BaseModal';
-import { Button } from 'web/ui/Button';
+import Button from "web/ui/Button";
 import {
   XCircleIcon,
   AlertIcon,

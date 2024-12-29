@@ -123,7 +123,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             width: "100%",
             maxWidth: "100%",
             margin: "0 auto",
-            padding: "1rem",
           }}
         >
           {children}

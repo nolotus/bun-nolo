@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import { FormField } from "web/form/FormField";
+import Button from "web/ui/Button";
 import * as z from "zod";
 
 const schema = z.object({
@@ -116,27 +117,6 @@ const Signup: React.FC = () => {
             align-items: center;
           }
           
-          .submit-button {
-            height: 44px;
-            font-size: 16px;
-            border-radius: 8px;
-            background-color: ${theme.primary};
-            color: ${theme.background};
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.2s;
-          }
-          
-          .submit-button:hover {
-            background-color: ${theme.primaryLight};
-          }
-          
-          .submit-button:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-          }
-          
           .link-text {
             color: ${theme.textSecondary};
             font-size: 14px;
@@ -151,6 +131,10 @@ const Signup: React.FC = () => {
           
           .login-link:hover {
             color: ${theme.primaryLight};
+          }
+
+          .button-container {
+            width: 100%;
           }
         `}
 			</style>
@@ -182,13 +166,18 @@ const Signup: React.FC = () => {
 					{error && <p className="error-message">{error}</p>}
 
 					<div className="form-footer">
-						<button
-							type="submit"
-							className="submit-button"
-							disabled={loading}
-						>
-							{loading ? t("loading") : t("signup")}
-						</button>
+						<div className="button-container">
+							<Button
+								variant="primary"
+								size="large"
+								loading={loading}
+								disabled={loading}
+								onClick={handleSubmit(onSubmit)}
+								block
+							>
+								{loading ? t("loading") : t("signup")}
+							</Button>
+						</div>
 
 						<div>
 							<span className="link-text">已有账号？</span>
