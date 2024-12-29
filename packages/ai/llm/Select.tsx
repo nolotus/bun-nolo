@@ -1,8 +1,9 @@
 import { CheckIcon, ChevronDownIcon } from "@primer/octicons-react";
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 import { useCombobox } from "downshift";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { defaultTheme } from "render/styles/colors";
 
 interface SelectOption {
   name: string;
@@ -34,6 +35,7 @@ const Select: React.FC<SelectProps> = ({
   allowInput = false,
   onInputChange,
 }) => {
+  const theme = useAppSelector(selectTheme)
   const [inputValue, setInputValue] = useState<string>("");
   const [filteredItems, setFilteredItems] = useState<SelectOption[]>(items);
 
@@ -155,9 +157,8 @@ const Select: React.FC<SelectProps> = ({
                 key: item.name,
                 index,
                 item,
-                className: `select-option ${
-                  highlightedIndex === index ? "highlighted" : ""
-                } ${selectedItem === item ? "selected" : ""}`,
+                className: `select-option ${highlightedIndex === index ? "highlighted" : ""
+                  } ${selectedItem === item ? "selected" : ""}`,
               })}
             >
               {optionContentRenderer(
@@ -168,7 +169,7 @@ const Select: React.FC<SelectProps> = ({
             </li>
           ))}
       </ul>
-      <style>
+      <style href="select">
         {`
           .select-container {
             position: relative;
@@ -186,19 +187,19 @@ const Select: React.FC<SelectProps> = ({
             height: 40px;
             padding: 0 12px;
             border-radius: 8px;
-            border: 1px solid ${defaultTheme.border};
+            border: 1px solid ${theme.border};
             font-size: 13px;
             font-weight: 500;
-            color: ${defaultTheme.text};
-            background: ${defaultTheme.background};
+            color: ${theme.text};
+            background: ${theme.background};
             cursor: pointer;
             outline: none;
             transition: all 0.15s ease;
           }
 
           .select-input:focus {
-            border-color: ${defaultTheme.primary};
-            box-shadow: 0 0 0 3.5px ${defaultTheme.focus};
+            border-color: ${theme.primary};
+            box-shadow: 0 0 0 3.5px ${theme.focus};
           }
 
           .select-toggle {
@@ -206,7 +207,7 @@ const Select: React.FC<SelectProps> = ({
             right: 8px;
             background: none;
             border: none;
-            color: ${defaultTheme.placeholder};
+            color: ${theme.placeholder};
             cursor: pointer;
             padding: 4px 8px;
             display: flex;
@@ -221,11 +222,11 @@ const Select: React.FC<SelectProps> = ({
           .select-menu {
             position: absolute;
             width: 100%;
-            background: ${defaultTheme.background};
+            background: ${theme.background};
             margin-top: 4px;
             border-radius: 8px;
-            border: 1px solid ${defaultTheme.border};
-            box-shadow: 0 4px 8px ${defaultTheme.shadowLight};
+            border: 1px solid ${theme.border};
+            box-shadow: 0 4px 8px ${theme.shadowLight};
             z-index: 10;
             padding: 6px;
             list-style: none;
@@ -237,38 +238,38 @@ const Select: React.FC<SelectProps> = ({
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
-            color: ${defaultTheme.text};
+            color: ${theme.text};
             transition: background-color 0.15s ease;
             margin: 2px 0;
           }
 
           .select-option:hover {
-            background-color: ${defaultTheme.primaryBg};
+            background-color: ${theme.primaryBg};
           }
 
           .select-option.highlighted {
-            background-color: ${defaultTheme.primaryBg};
+            background-color: ${theme.primaryBg};
           }
 
           .select-option.selected {
-            background-color: ${defaultTheme.primary};
+            background-color: ${theme.primary};
             color: white;
           }
 
           .select-option.selected:hover {
-            background-color: ${defaultTheme.hover};
+            background-color: ${theme.hover};
           }
           
           .vision-badge {
             display: inline-flex;
             align-items: center;
             font-size: 12px;
-            background: ${defaultTheme.primaryBg};
-            color: ${defaultTheme.primary};
+            background: ${theme.primaryBg};
+            color: ${theme.primary};
             padding: 2px 8px;
             border-radius: 4px;
             margin-left: 8px;
-            border: 1px solid ${defaultTheme.primaryLight};
+            border: 1px solid ${theme.primaryLight};
             transition: all 0.15s ease;
           }
           
@@ -297,11 +298,11 @@ const Select: React.FC<SelectProps> = ({
           }
 
           .check-icon {
-            color: ${defaultTheme.background};
+            color: ${theme.background};
           }
 
           .select-option:not(.selected) .check-icon {
-            color: ${defaultTheme.primary};
+            color: ${theme.primary};
           }
         `}
       </style>

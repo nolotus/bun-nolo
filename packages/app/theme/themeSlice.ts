@@ -1,36 +1,23 @@
 // app/theme/themeSlice.ts
 import { createSlice } from "@reduxjs/toolkit";
-
+import { blue } from "./blue";
+import { purple } from "./purple";
+import { green } from "./green";
+import { orange } from "./orange";
+import { red } from "./red";
+import { yellow } from "./yellow";
+import { graphite } from "./graphite";
+import { pink } from "./pink";
 // 主题色系配置
 const THEME_COLORS = {
-  blue: {
-    light: {
-      primary: "#0062ff",
-      primaryLight: "#33ccff",
-      primaryGhost: "rgba(0, 98, 255, 0.1)",
-      primaryGradient: "linear-gradient(45deg, #0062ff, #33ccff)",
-    },
-    dark: {
-      primary: "#33ccff",
-      primaryLight: "#0062ff",
-      primaryGhost: "rgba(51, 204, 255, 0.1)",
-      primaryGradient: "linear-gradient(45deg, #33ccff, #0062ff)",
-    }
-  },
-  purple: {
-    light: {
-      primary: "#6B46C1",
-      primaryLight: "#9F7AEA",
-      primaryGhost: "rgba(107, 70, 193, 0.1)",
-      primaryGradient: "linear-gradient(45deg, #6B46C1, #9F7AEA)",
-    },
-    dark: {
-      primary: "#9F7AEA",
-      primaryLight: "#6B46C1",
-      primaryGhost: "rgba(159, 122, 234, 0.1)",
-      primaryGradient: "linear-gradient(45deg, #9F7AEA, #6B46C1)",
-    }
-  }
+  blue,
+  purple,
+  green,
+  orange,
+  red,
+  yellow,
+  graphite,
+  pink
 };
 
 // 明暗模式基础颜色

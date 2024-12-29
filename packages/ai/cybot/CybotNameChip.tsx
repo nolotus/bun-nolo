@@ -1,13 +1,14 @@
-import { useFetchData } from "app/hooks";
+import { useAppSelector, useFetchData } from "app/hooks";
 import { useCouldEdit } from "auth/useCouldEdit";
 import { extractCustomId } from "core";
 import React from "react";
-import { defaultTheme } from "render/styles/colors";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import QuickEditCybot from "./QuickEditCybot";
+import { selectTheme } from "app/theme/themeSlice";
 
 const CybotNameChip = React.memo(({ cybotId }) => {
+	const theme = useAppSelector(selectTheme)
 	const { isLoading, data: cybot } = useFetchData(cybotId);
 	const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
 	const allowEdit = useCouldEdit(cybotId);
@@ -29,21 +30,21 @@ const CybotNameChip = React.memo(({ cybotId }) => {
             font-size: 13px;
             padding: 4px 12px;
             border-radius: 12px;
-            background-color: ${defaultTheme.backgroundSecondary};
-            color: ${defaultTheme.textSecondary};
+            background-color: ${theme.backgroundSecondary};
+            color: ${theme.textSecondary};
             max-width: 100px;
             cursor: pointer;
             transition: all 0.2s ease;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            border: 1px solid ${defaultTheme.border};
+            border: 1px solid ${theme.border};
           }
 
           .cybot-chip:hover {
-            background-color: ${defaultTheme.backgroundGhost};
-            border-color: ${defaultTheme.borderHover};
-            color: ${defaultTheme.text};
+            background-color: ${theme.backgroundGhost};
+            border-color: ${theme.borderHover};
+            color: ${theme.text};
           }
         `}
 			</style>

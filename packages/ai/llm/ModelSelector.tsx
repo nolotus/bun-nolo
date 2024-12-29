@@ -1,4 +1,4 @@
-import { CheckIcon, ChevronDownIcon } from "@primer/octicons-react";
+import { CheckIcon, } from "@primer/octicons-react";
 import { useEffect, useState } from "react";
 import type React from "react";
 import { useTranslation } from "react-i18next";
