@@ -8,6 +8,7 @@ import { red } from "./red";
 import { yellow } from "./yellow";
 import { graphite } from "./graphite";
 import { pink } from "./pink";
+
 // 主题色系配置
 const THEME_COLORS = {
   blue,
@@ -17,8 +18,8 @@ const THEME_COLORS = {
   red,
   yellow,
   graphite,
-  pink
-};
+  pink,
+ };
 
 // 明暗模式基础颜色
 const MODE_COLORS = {
