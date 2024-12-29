@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Table, TableRow, TableCell } from "render/elements/Table";
-import { googleModels, deepseekModels } from "./modelData";
+import { deepseekModels } from "./modelData";
 import { anthropicModels } from "integrations/anthropic/models";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { openAIModels } from "integrations/openai/models";
 import { mistralModels } from "integrations/mistral/models";
+import { googleModels } from "integrations/google/models";
 
 import { selectTheme } from "../theme/themeSlice";
 import { useAppSelector } from "../hooks";
@@ -12,6 +13,7 @@ import { useAppSelector } from "../hooks";
 const ModelComparison = () => {
   const theme = useAppSelector(selectTheme);
 
+  // 统一处理数据格式
   const combinedModels = [
     ...deepinfraModels.map((model) => ({
       ...model,
@@ -34,6 +36,7 @@ const ModelComparison = () => {
     ...googleModels.map((model) => ({
       ...model,
       provider: "Google",
+      supportsTool: "未知", // Google模型数据中没有这个字段
     })),
     ...deepseekModels.map((model) => ({
       ...model,
@@ -53,9 +56,9 @@ const ModelComparison = () => {
     setModels(
       [...models].sort((a, b) => {
         if (key === "price") {
-          if (a.price.output < b.price.output)
+          if (a.price?.output < b.price?.output)
             return direction === "ascending" ? -1 : 1;
-          if (a.price.output > b.price.output)
+          if (a.price?.output > b.price?.output)
             return direction === "ascending" ? 1 : -1;
           return 0;
         } else {
@@ -99,7 +102,7 @@ const ModelComparison = () => {
           <TableRow theme={theme} attributes={{}}>
             <TableCell {...headerCellProps}>
               模型名称
-              <SortButton columnKey="name" />
+              <SortButton columnKey="displayName" />
             </TableCell>
             <TableCell {...headerCellProps}>
               最大输出Token
@@ -133,7 +136,7 @@ const ModelComparison = () => {
               <TableCell
                 element={{ header: false }}
                 theme={theme}
-                attributes={{ title: model.displayName || model.name }}
+                attributes={{ title: model.description }}
               >
                 {model.displayName || model.name}
               </TableCell>
@@ -156,14 +159,14 @@ const ModelComparison = () => {
                 theme={theme}
                 attributes={{}}
               >
-                {model.price.input} / {model.price.output}
+                {model.price?.input || "未知"} / {model.price?.output || "未知"}
               </TableCell>
               <TableCell
                 element={{ header: false }}
                 theme={theme}
                 attributes={{}}
               >
-                {model.supportsTool}
+                {model.supportsTool || "未知"}
               </TableCell>
               <TableCell
                 element={{ header: false }}
