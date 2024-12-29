@@ -1,7 +1,7 @@
+import { useTheme } from "app/theme";
 import type React from "react";
 import { useState } from "react";
 import { GoEye, GoEyeClosed } from "react-icons/go";
-import { defaultTheme } from "render/styles/colors";
 
 interface PasswordInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -10,7 +10,7 @@ interface PasswordInputProps
 
 const PasswordInput = ({ error, style, ...props }: PasswordInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
-
+  const theme = useTheme();
   return (
     <>
       <style>
@@ -25,35 +25,35 @@ const PasswordInput = ({ error, style, ...props }: PasswordInputProps) => {
             height: 40px;
             padding: 0 40px 0 12px;
             border-radius: 8px;
-            border: 1px solid ${defaultTheme.border};
+            border: 1px solid ${theme.border};
             font-size: 13px;
             font-weight: 500;
-            color: ${defaultTheme.text};
-            background: ${defaultTheme.background};
+            color: ${theme.text};
+            background: ${theme.background};
             outline: none;
             transition: all 0.15s ease;
           }
 
           .password-input:focus {
-            border-color: ${defaultTheme.primary};
-            box-shadow: 0 0 0 3.5px ${defaultTheme.focus};
+            border-color: ${theme.primary};
+            box-shadow: 0 0 0 3.5px ${theme.focus};
           }
 
           .password-input:hover {
-            border-color: ${defaultTheme.hover};
+            border-color: ${theme.hover};
           }
 
           .password-input:disabled {
-            background: ${defaultTheme.disabled};
+            background: ${theme.disabled};
             cursor: not-allowed;
           }
 
           .password-input::placeholder {
-            color: ${defaultTheme.placeholder};
+            color: ${theme.placeholder};
           }
 
           .password-input.error {
-            border-color: ${defaultTheme.error};
+            border-color: ${theme.error};
           }
 
           .toggle-button {
@@ -63,7 +63,7 @@ const PasswordInput = ({ error, style, ...props }: PasswordInputProps) => {
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: ${defaultTheme.placeholder};
+            color: ${theme.placeholder};
             cursor: pointer;
             padding: 8px;
             display: flex;
@@ -72,12 +72,12 @@ const PasswordInput = ({ error, style, ...props }: PasswordInputProps) => {
           }
 
           .toggle-button:hover {
-            color: ${defaultTheme.text};
+            color: ${theme.text};
           }
 
           .toggle-button:disabled {
             cursor: not-allowed;
-            color: ${defaultTheme.disabled};
+            color: ${theme.disabled};
           }
         `}
       </style>

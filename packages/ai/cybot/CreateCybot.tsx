@@ -15,7 +15,7 @@ import {
 } from "render/CommonFormComponents";
 import { FormField } from "render/form/FormField";
 import { Label } from "web/form/Label";
-import { Button } from "web/ui/Button";
+import Button from "web/ui/Button";
 import ToggleSwitch from "render/ui/ToggleSwitch";
 import { z } from "zod";
 
