@@ -29,7 +29,6 @@ const DialogPage = ({ dialogId }) => {
   }, [auth.user, dialogId]);
 
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  console.log("currentDialogConfig", currentDialogConfig);
   // 计算剩余的空间
 
   return (

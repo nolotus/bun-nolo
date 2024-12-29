@@ -60,7 +60,6 @@ const TopBar: React.FC<TopBarProps> = ({
             padding: 12px 16px;
             z-index: 2;
             height: ${styles.height};
-            border-bottom: 1px solid ${theme.border};
           }
 
           .topbar-left {
