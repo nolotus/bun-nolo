@@ -3,8 +3,8 @@ import { useQueryData } from "app/hooks/useQueryData";
 import { DataType } from "create/types";
 import { selectFilteredDataByUserAndType } from "database/selectors";
 import type React from "react";
-import { defaultTheme } from "render/styles/colors";
 import CybotBlock from "./CybotBlock";
+import { selectTheme } from "app/theme/themeSlice";
 
 interface CybotsProps {
 	queryUserId: string;
@@ -12,28 +12,30 @@ interface CybotsProps {
 	closeModal?: () => void;
 }
 
-const styles = {
-	loadingContainer: {
-		textAlign: "center" as const,
-		padding: "1.5rem",
-		color: defaultTheme.textSecondary,
-		fontSize: "1rem",
-	},
-	gridContainer: {
-		display: "grid",
-		gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-		gap: "1.5rem",
-		padding: "0.8rem",
-		margin: "0 auto",
-		maxWidth: "1200px",
-	},
-};
+
 
 const Cybots: React.FC<CybotsProps> = ({
 	queryUserId,
 	limit = 20,
 	closeModal,
 }) => {
+	const theme = useAppSelector(selectTheme)
+	const styles = {
+		loadingContainer: {
+			textAlign: "center" as const,
+			padding: "1.5rem",
+			color: theme.textSecondary,
+			fontSize: "1rem",
+		},
+		gridContainer: {
+			display: "grid",
+			gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+			gap: "1.5rem",
+			padding: "0.8rem",
+			margin: "0 auto",
+			maxWidth: "1200px",
+		},
+	};
 	const queryConfig = {
 		queryUserId,
 		options: {

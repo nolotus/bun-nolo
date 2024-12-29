@@ -3,9 +3,12 @@ import React from 'react';
 
 import { useAppSelector } from 'app/hooks';
 import { selectTheme } from 'app/theme/themeSlice';
+import { createShadow } from "render/styles/createShadow";
 
 import { animations } from "../styles/animations";
-import { shadows } from '../styles/shadow';
+
+
+
 interface ButtonProps {
   variant?: 'primary' | 'secondary';
   status?: 'success' | 'warning' | 'error';
@@ -36,6 +39,33 @@ export const Button: React.FC<ButtonProps> = ({
   children,
 }) => {
   const theme = useAppSelector(selectTheme)
+
+  const shadows = {
+    subtle: createShadow('#000000', {
+      border: 0.04,
+      blur1: 0.04,
+      blur2: 0.04,
+      borderHover: 0.04,
+      blur1Hover: 0.06,
+      blur2Hover: 0.05
+    }),
+    primary: createShadow(theme.primary, {
+      border: 0.1,
+      blur1: 0.08,
+      blur2: 0.06,
+      borderHover: 0.15,
+      blur1Hover: 0.12,
+      blur2Hover: 0.08
+    }),
+    danger: createShadow(theme.error, {
+      border: 0.1,
+      blur1: 0.08,
+      blur2: 0.06,
+      borderHover: 0.15,
+      blur1Hover: 0.12,
+      blur2Hover: 0.08
+    })
+  };
   const getButtonType = () => {
     if (status === 'error') return 'danger';
     return variant === 'primary' ? 'primary' : 'default';

@@ -10,10 +10,11 @@ import { FormFieldComponent } from "render/CommonFormComponents";
 import { FormField } from "render/form/FormField";
 import { Label } from "render/form/Label";
 import { Select } from "render/form/Select";
-import { setData } from "database/dbSlice";
+import { patchData } from "database/dbSlice";
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
+import { pick } from "rambda";
 
 const QuickEditCybot = ({ initialValues, onClose }) => {
 	const { t } = useTranslation();
@@ -66,7 +67,13 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
 	const onSubmit = async (data) => {
 		const submitData = { ...data, type: DataType.Cybot };
-		await dispatch(setData(submitData));
+		const allowedKeys = ["name", "prompt", "provider", "model", "apiKey", "useServerProxy", "isPrivate", "isEncrypted", "tools"];
+		const changes = pick(allowedKeys, submitData);
+
+		await dispatch(patchData({
+			id: initialValues.id,
+			changes,
+		}));
 		onClose();
 	};
 

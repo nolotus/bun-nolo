@@ -1,9 +1,10 @@
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { Checkbox } from "render/form/Checkbox";
 import { FormField } from "render/form/FormField";
 import { Label } from "render/form/Label";
-import { defaultTheme } from "render/styles/colors";
 
 export const TOOL_OPTIONS = [
 	{ id: "makeAppointment", name: "makeAppointment" },
@@ -25,6 +26,7 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
 	labelClassName,
 	inputClassName,
 }) => {
+	const theme = useAppSelector(selectTheme);
 	const { t } = useTranslation();
 
 	return (
@@ -42,7 +44,7 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
             margin-bottom: 6px;
             font-size: 13px;
             font-weight: 500;
-            color: ${defaultTheme.textSecondary};
+            color: ${theme.textSecondary};
             letter-spacing: 0.01em;
           }
         `}
