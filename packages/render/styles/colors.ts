@@ -76,21 +76,7 @@ const BASE_COLORS = {
 	},
 };
 
-// 头像等地方用的渐变色
-export const GRADIENTS = {
-	light: {
-		gray: "linear-gradient(135deg, #e6e9f0 0%, #eef1f5 100%)",
-		blue: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
-		purple: "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)",
-		white: "linear-gradient(135deg, #dfe9f3 0%, white 100%)",
-	},
-	dark: {
-		gray: "linear-gradient(135deg, #2d3436 0%, #2d3436 100%)",
-		blue: "linear-gradient(135deg, #2d3436 0%, #2d3436 100%)",
-		purple: "linear-gradient(135deg, #2d3436 0%, #2d3436 100%)",
-		white: "linear-gradient(135deg, #2d3436 0%, #2d3436 100%)",
-	},
-};
+
 
 export const themes = {
 	blue: {

@@ -66,9 +66,10 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
 	const onSubmit = async (data) => {
 		const submitData = { ...data, type: DataType.Cybot };
-		await dispatch(setData({ i }));
+		await dispatch(setData(submitData));
 		onClose();
 	};
+
 
 	return (
 		<>

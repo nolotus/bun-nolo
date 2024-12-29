@@ -1,27 +1,101 @@
 // app/theme/themeSlice.ts
-
 import { createSlice } from "@reduxjs/toolkit";
 
-import { dimTheme } from "./dimTheme";
-import { lightTheme } from "./lightTheme";
-
-const createExtendedTheme = (themeColors ) => ({
-  sidebarWidth: 260,
-  ...themeColors,
-});
-
-const extendedLightTheme = createExtendedTheme(lightTheme );
-const extendedDimTheme = createExtendedTheme(dimTheme);
-
-const themes = {
-  light: extendedLightTheme,
-  dim: extendedDimTheme,
+// 主题色系配置
+const THEME_COLORS = {
+  blue: {
+    light: {
+      primary: "#0062ff",
+      primaryLight: "#33ccff",
+      primaryGhost: "rgba(0, 98, 255, 0.1)",
+      primaryGradient: "linear-gradient(45deg, #0062ff, #33ccff)",
+    },
+    dark: {
+      primary: "#33ccff",
+      primaryLight: "#0062ff",
+      primaryGhost: "rgba(51, 204, 255, 0.1)",
+      primaryGradient: "linear-gradient(45deg, #33ccff, #0062ff)",
+    }
+  },
+  purple: {
+    light: {
+      primary: "#6B46C1",
+      primaryLight: "#9F7AEA",
+      primaryGhost: "rgba(107, 70, 193, 0.1)",
+      primaryGradient: "linear-gradient(45deg, #6B46C1, #9F7AEA)",
+    },
+    dark: {
+      primary: "#9F7AEA",
+      primaryLight: "#6B46C1",
+      primaryGhost: "rgba(159, 122, 234, 0.1)",
+      primaryGradient: "linear-gradient(45deg, #9F7AEA, #6B46C1)",
+    }
+  }
 };
 
+// 明暗模式基础颜色
+const MODE_COLORS = {
+  light: {
+    background: "#FFFFFF",
+    backgroundSecondary: "#F9FAFB",
+    backgroundGhost: "rgba(255, 255, 255, 0.9)",
+    text: "#111827",
+    textSecondary: "#4B5563",
+    textTertiary: "#666666",
+    textLight: "#888888",
+    placeholder: "#9CA3AF",
+    border: "#E5E7EB",
+    borderHover: "#D1D5DB",
+    borderLight: "rgba(255, 255, 255, 0.3)",
+    error: "#ef4444",
+    shadowLight: "rgba(0,0,0,0.06)",
+    shadowMedium: "rgba(0,0,0,0.08)",
+    shadowHeavy: "rgba(0,0,0,0.1)",
+    dropZoneActive: "rgba(0, 98, 255, 0.08)",
+  },
+  dark: {
+    background: "#1A1A1A",
+    backgroundSecondary: "#262626",
+    backgroundGhost: "rgba(26, 26, 26, 0.9)",
+    text: "#FFFFFF",
+    textSecondary: "#A3A3A3",
+    textTertiary: "#8C8C8C",
+    textLight: "#666666",
+    placeholder: "#595959",
+    border: "#333333",
+    borderHover: "#404040",
+    borderLight: "rgba(26, 26, 26, 0.3)",
+    icon: "#A3A3A3",
+    error: "#ff4d4f",
+    shadowLight: "rgba(0,0,0,0.15)",
+    shadowMedium: "rgba(0,0,0,0.2)",
+    shadowHeavy: "rgba(0,0,0,0.25)",
+    dropZoneActive: "rgba(51, 204, 255, 0.08)",
+  }
+};
+
+// 创建完整主题配置
+const createThemeConfig = (themeName: string, isDark: boolean) => {
+  const mode = isDark ? 'dark' : 'light';
+  return {
+    sidebarWidth: 260,
+    ...MODE_COLORS[mode],
+    ...THEME_COLORS[themeName][mode],
+  };
+};
+
+// 为主题预计算明暗版本
+const createThemeVariants = (themeName: string) => ({
+  light: createThemeConfig(themeName, false),
+  dark: createThemeConfig(themeName, true)
+});
+
 const initialState = {
-  themeName: "light",
+  themeName: 'blue',
   isDark: false,
-  ...extendedLightTheme,
+  // 预计算完整主题配置
+  current: createThemeVariants('blue'),
+  sidebarWidth: 260
 };
 
 const themeSlice = createSlice({
@@ -29,35 +103,32 @@ const themeSlice = createSlice({
   initialState,
   reducers: {
     setTheme: (state, action) => {
-      const newName = action.payload;
-      if (themes[newName]) {
-        return {
-          ...state,
-          ...themes[newName],
-          themeName: newName,
-        };
+      const newTheme = action.payload;
+      if (THEME_COLORS[newTheme]) {
+        state.themeName = newTheme;
+        state.current = createThemeVariants(newTheme);
       }
-      return state;
     },
 
     setSidebarWidth: (state, action) => {
-      state.sidebarWidth = action.payload;
+      const width = action.payload;
+      state.sidebarWidth = width;
+      state.current.light.sidebarWidth = width;
+      state.current.dark.sidebarWidth = width;
     },
 
     setDarkMode: (state, action) => {
       state.isDark = action.payload;
-      state.themeName = action.payload ? 'dim' : 'light';
-      return {
-        ...state,
-        ...themes[state.themeName],
-      };
-    },
-  },
+    }
+  }
 });
 
 export const { setTheme, setSidebarWidth, setDarkMode } = themeSlice.actions;
 
-export const selectTheme = (state) => state.theme;
+// 简化的选择器 - 直接返回预计算的主题配置
+export const selectTheme = (state) => 
+  state.theme.isDark ? state.theme.current.dark : state.theme.current.light;
+
 export const selectIsDark = (state) => state.theme.isDark;
 
 export default themeSlice.reducer;
