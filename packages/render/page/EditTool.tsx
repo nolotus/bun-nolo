@@ -1,9 +1,13 @@
-import { NavLink, useNavigate, useParams } from "react-router-dom";
 import React, { useCallback } from "react";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { deleteData } from "database/dbSlice";
-import toast from "react-hot-toast";
 import { setSaveAsTemplate } from "./pageSlice";
+
+
+// web imports
+import toast from "react-hot-toast";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
+
 import {
   CheckIcon,
   EyeIcon,
@@ -11,7 +15,7 @@ import {
   CommentDiscussionIcon,
 } from "@primer/octicons-react";
 import Button from "web/ui/Button";
-import ToggleSwitch from "render/ui/ToggleSwitch";
+import ToggleSwitch from "web/form/ToggleSwitch";
 import { animations } from "render/styles/animations";
 
 const styles = {

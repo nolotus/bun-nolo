@@ -1,16 +1,21 @@
+// web/form/PasswordInput.tsx
+import { EyeClosedIcon, EyeIcon } from "@primer/octicons-react";
 import { useTheme } from "app/theme";
 import type React from "react";
 import { useState } from "react";
-import { GoEye, GoEyeClosed } from "react-icons/go";
 
-interface PasswordInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+
+interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon?: React.ReactNode;
   error?: boolean;
 }
 
-const PasswordInput = ({ error, style, ...props }: PasswordInputProps) => {
+
+const PasswordInput = ({ icon, error, style, ...props }: PasswordInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const theme = useTheme();
+
+
   return (
     <>
       <style>
@@ -20,41 +25,45 @@ const PasswordInput = ({ error, style, ...props }: PasswordInputProps) => {
             width: 100%;
           }
 
+
           .password-input {
             width: 100%;
-            height: 40px;
-            padding: 0 40px 0 12px;
+            height: 42px;
+            padding: ${icon ? "0 42px 0 42px" : "0 42px 0 12px"};
             border-radius: 8px;
-            border: 1px solid ${theme.border};
-            font-size: 13px;
+            border: 1px solid ${error ? theme.error : theme.border};
+            font-size: 15px;
             font-weight: 500;
             color: ${theme.text};
             background: ${theme.background};
             outline: none;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen;
           }
+
 
           .password-input:focus {
-            border-color: ${theme.primary};
-            box-shadow: 0 0 0 3.5px ${theme.focus};
+            border-color: ${error ? theme.error : theme.primary};
+            box-shadow: 0 0 0 3px ${error ? `${theme.error}20` : theme.primaryGhost};
           }
+
 
           .password-input:hover {
-            border-color: ${theme.hover};
+            border-color: ${error ? theme.error : theme.hover};
           }
 
-          .password-input:disabled {
-            background: ${theme.disabled};
-            cursor: not-allowed;
+
+          .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: ${theme.textSecondary};
+            display: flex;
+            align-items: center;
+            pointer-events: none;
           }
 
-          .password-input::placeholder {
-            color: ${theme.placeholder};
-          }
-
-          .password-input.error {
-            border-color: ${theme.error};
-          }
 
           .toggle-button {
             position: absolute;
@@ -63,47 +72,42 @@ const PasswordInput = ({ error, style, ...props }: PasswordInputProps) => {
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: ${theme.placeholder};
+            color: ${theme.textSecondary};
             cursor: pointer;
             padding: 8px;
             display: flex;
             align-items: center;
-            transition: color 0.15s ease;
+            transition: color 0.2s ease;
           }
+
 
           .toggle-button:hover {
             color: ${theme.text};
           }
-
-          .toggle-button:disabled {
-            cursor: not-allowed;
-            color: ${theme.disabled};
-          }
         `}
       </style>
 
+
       <div className="password-input-wrapper">
+        {icon && <div className="input-icon">{icon}</div>}
         <input
           {...props}
           type={showPassword ? "text" : "password"}
-          className={`password-input ${error ? "error" : ""}`}
-          style={style}
+          className="password-input"
         />
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
           className="toggle-button"
-          disabled={props.disabled}
           tabIndex={-1}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
-          {showPassword ? <GoEye size={16} /> : <GoEyeClosed size={16} />}
+          {showPassword ? <EyeClosedIcon size={20} /> : <EyeIcon size={20} />}
         </button>
       </div>
     </>
   );
 };
 
-PasswordInput.displayName = "PasswordInput";
 
 export default PasswordInput;

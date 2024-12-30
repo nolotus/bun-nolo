@@ -1,6 +1,8 @@
-// i18n/translations.ts
+// i18n/translations/interface
+
 
 import { Language } from "../types";
+
 
 export default {
   [Language.EN]: {
@@ -10,6 +12,8 @@ export default {
       logout: "Logout",
       username: "Username",
       password: "Password",
+      usernameRequired: "Username is required",
+      passwordRequired: "Password is required",
       welcome: "Welcome, {{name}}!",
       signup: "Signup",
       submit: "Submit",
@@ -37,7 +41,9 @@ export default {
       delete: "Delete",
       add: "Add", 
       lightMode: "Light Mode",
-      darkMode: "Dark Mode"
+      darkMode: "Dark Mode",
+      haveAccount: "Already have an account?",
+      loginNow: "Login now"
     },
   },
   [Language.ZH_CN]: {
@@ -47,6 +53,8 @@ export default {
       logout: "登出", 
       username: "用户名",
       password: "密码",
+      usernameRequired: "请输入用户名",
+      passwordRequired: "请输入密码",
       welcome: "欢迎，{{name}}！",
       signup: "注册",
       submit: "提交",
@@ -74,7 +82,9 @@ export default {
       delete: "删除",
       add: "添加",
       lightMode: "浅色模式",
-      darkMode: "深色模式"
+      darkMode: "深色模式",
+      haveAccount: "已有账号？",
+      loginNow: "立即登录"
     },
   },
   [Language.ZH_HANT]: {
@@ -84,6 +94,8 @@ export default {
       logout: "登出",
       username: "用戶名",
       password: "密碼",
+      usernameRequired: "請輸入用戶名",
+      passwordRequired: "請輸入密碼",
       welcome: "歡迎，{{name}}！",
       signup: "註冊",
       submit: "提交",
@@ -111,7 +123,9 @@ export default {
       delete: "刪除", 
       add: "新增",
       lightMode: "淺色模式",
-      darkMode: "深色模式"
+      darkMode: "深色模式",
+      haveAccount: "已有帳號？",
+      loginNow: "立即登入"
     },
   },
   [Language.JA]: {
@@ -121,6 +135,8 @@ export default {
       logout: "ログアウト", 
       username: "ユーザーネーム",
       password: "パスワード",
+      usernameRequired: "ユーザーネームを入力してください",
+      passwordRequired: "パスワードを入力してください",
       welcome: "ようこそ、{{name}}！",
       signup: "サインアップ",
       submit: "送信",
@@ -148,8 +164,9 @@ export default {
       delete: "削除",
       add: "追加",
       lightMode: "ライトモード",
-      darkMode: "ダークモード"
+      darkMode: "ダークモード",
+      haveAccount: "アカウントをお持ちの方",
+      loginNow: "ログインする"
     },
   },
 };
-

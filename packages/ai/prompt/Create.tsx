@@ -1,4 +1,3 @@
-import { PlusIcon } from "@primer/octicons-react";
 import type { PromptFormData } from "ai/types";
 import { useAppDispatch } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
@@ -10,16 +9,16 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import {
-	FormContainer,
-	FormFieldComponent,
-	FormTitle,
-} from "render/CommonFormComponents";
-import { FormField } from "render/form/FormField";
 
+//web imports
+import { PlusIcon } from "@primer/octicons-react";
+import { useNavigate } from "react-router-dom";
+import { FormField } from "web/form/FormField";
+import FormContainer from 'web/form/FormContainer'
+import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
 import { Label } from "web/form/Label";
+import TextArea from "web/form/Textarea";
 import { layout } from "render/styles/layout";
 import Button from "web/ui/Button";
 
@@ -64,7 +63,6 @@ const CreatePrompt: React.FC = () => {
 			console.error("Error creating Prompt:", error);
 		}
 	};
-
 	const styles = {
 		tagInput: {
 			marginBottom: "5px",
@@ -76,8 +74,8 @@ const CreatePrompt: React.FC = () => {
 			marginTop: "5px",
 		},
 		tag: {
-			backgroundColor: theme.surface3,
-			color: theme.text2,
+			backgroundColor: theme.backgroundSecondary,
+			color: theme.textSecondary,
 			padding: "2px 8px",
 			borderRadius: "4px",
 			fontSize: "0.9em",
@@ -88,27 +86,34 @@ const CreatePrompt: React.FC = () => {
 		<FormContainer>
 			<FormTitle>{t("createPrompt")}</FormTitle>
 			<form onSubmit={handleSubmit(onSubmit)}>
-				<FormFieldComponent
-					label={t("promptName")}
-					name="name"
-					register={register}
-					errors={errors}
-					required
-				/>
-				<FormFieldComponent
-					label={t("promptContent")}
-					name="content"
-					register={register}
-					errors={errors}
-					required
-					as="textarea"
-				/>
-				<FormFieldComponent
-					label={t("category")}
-					name="category"
-					register={register}
-					errors={errors}
-				/>
+				<FormField>
+					<Label htmlFor="name">{t("promptName")}</Label>
+					<Input
+						id="name"
+						{...register("name", { required: true })}
+						error={errors.name}
+					/>
+				</FormField>
+
+				<FormField>
+					<Label htmlFor="content">{t("promptContent")}</Label>
+					<TextArea
+						id="content"
+						{...register("content", { required: true })}
+						error={errors.content}
+						rows={6}
+					/>
+				</FormField>
+
+				<FormField>
+					<Label htmlFor="category">{t("category")}</Label>
+					<Input
+						id="category"
+						{...register("category")}
+						error={errors.category}
+					/>
+				</FormField>
+
 				<FormField>
 					<Label htmlFor="tags">{t("tags")}:</Label>
 					<Input
@@ -127,6 +132,7 @@ const CreatePrompt: React.FC = () => {
 						))}
 					</div>
 				</FormField>
+
 				<Button
 					type="submit"
 					variant="primary"
@@ -143,4 +149,4 @@ const CreatePrompt: React.FC = () => {
 	);
 };
 
-export default CreatePrompt
+export default CreatePrompt;

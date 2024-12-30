@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 interface UploadComponentProps {
   onUpload: (file: File) => void;
 }
 
-const UploadComponent: React.FC<UploadComponentProps> = ({onUpload}) => {
+const UploadComponent: React.FC<UploadComponentProps> = ({ onUpload }) => {
   const [selectedFile, setSelectedFile] = useState<File>();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
