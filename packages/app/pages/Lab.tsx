@@ -1,83 +1,99 @@
 import React from 'react';
 import Button from 'web/ui/Button';
-import { SearchIcon, PlusIcon, ChevronRightIcon, HeartIcon, SyncIcon, TrashIcon } from '@primer/octicons-react';
+import { Combobox } from 'web/form/Combobox';
+import { SearchIcon } from '@primer/octicons-react';
 
 const Lab = () => {
+  // Combobox 示例数据
+  const fruits = [
+    { value: '1', label: 'Apple' },
+    { value: '2', label: 'Banana' },
+    { value: '3', label: 'Orange' },
+    { value: '4', label: 'Grape' },
+    { value: '5', label: 'Watermelon' },
+  ];
+
+  const countries = [
+    { id: 'us', name: 'United States' },
+    { id: 'uk', name: 'United Kingdom' },
+    { id: 'cn', name: 'China' },
+    { id: 'jp', name: 'Japan' },
+    { id: 'kr', name: 'Korea' },
+  ];
+
   return (
     <div className="container">
+      {/* Button Demo */}
+      <section>
+        <div className="section-header">
+          <h2>Button 示例</h2>
+        </div>
+        <div className="demo-grid">
+          <Button>Primary</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button icon={<SearchIcon size={16} />}>With Icon</Button>
+        </div>
+      </section>
+
+      {/* Combobox Demo */}
       <header>
-        <h1>Button</h1>
-        <p>可自定义的现代按钮组件</p>
+        <h1>Combobox</h1>
+        <p>可搜索的下拉选择器组件</p>
       </header>
 
       <main>
         <section>
           <div className="section-header">
             <h2>基础用法</h2>
-            <p>按钮支持多种变体样式</p>
+            <p>基础的 Combobox 用法展示</p>
           </div>
           <div className="demo-grid">
-            <Button>Primary</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="ghost">Ghost</Button>
+            <div style={{ width: '250px' }}>
+              <Combobox
+                items={fruits}
+                placeholder="Select a fruit..."
+                onChange={(item) => console.log('Selected:', item)}
+              />
+            </div>
           </div>
         </section>
 
         <section>
           <div className="section-header">
-            <h2>尺寸</h2>
-            <p>提供三种尺寸适应不同场景</p>
+            <h2>自定义字段</h2>
+            <p>使用自定义的标签和值字段</p>
           </div>
           <div className="demo-grid">
-            <Button size="small">Small</Button>
-            <Button size="medium">Medium</Button>
-            <Button size="large">Large</Button>
+            <div style={{ width: '250px' }}>
+              <Combobox
+                items={countries}
+                labelField="name"
+                valueField="id"
+                placeholder="Select a country..."
+                onChange={(item) => console.log('Selected:', item)}
+              />
+            </div>
           </div>
         </section>
 
         <section>
           <div className="section-header">
-            <h2>图标按钮</h2>
-            <p>支持在按钮中添加图标</p>
-          </div>
-          <div className="demo-grid">
-            <Button icon={<SearchIcon size={16} />}>搜索</Button>
-            <Button icon={<PlusIcon size={16} />}>新增</Button>
-            <Button icon={<SyncIcon size={16} />}>同步</Button>
-          </div>
-        </section>
-
-        <section>
-          <div className="section-header">
-            <h2>状态</h2>
-            <p>按钮的不同状态展示</p>
+            <h2>状态展示</h2>
+            <p>禁用状态和自定义样式</p>
           </div>
           <div className="demo-table">
             <div className="row">
-              <div className="label">加载中</div>
+              <div className="label">禁用态</div>
               <div className="content">
-                <Button loading>Loading</Button>
-                <Button loading variant="secondary">Loading</Button>
+                <div style={{ width: '250px' }}>
+                  <Combobox
+                    items={fruits}
+                    disabled
+                    placeholder="Disabled state..."
+                  />
+                </div>
               </div>
             </div>
-            <div className="row">
-              <div className="label">禁用</div>
-              <div className="content">
-                <Button disabled>Disabled</Button>
-                <Button disabled variant="secondary">Disabled</Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div className="section-header">
-            <h2>块级按钮</h2>
-            <p>适合独占一行的场景</p>
-          </div>
-          <div className="demo-block">
-            <Button block>Block Button</Button>
-            <Button block variant="secondary" className="mt-3">Block Button</Button>
           </div>
         </section>
       </main>
@@ -97,9 +113,7 @@ const Lab = () => {
           font-size: 36px;
           font-weight: 600;
           margin-bottom: 12px;
-          background: linear-gradient(to right, #000, #333);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: #111;
         }
 
         header p {
@@ -157,16 +171,10 @@ const Lab = () => {
         .content {
           display: flex;
           gap: 16px;
+          flex: 1;
         }
 
-        .demo-block {
-          max-width: 400px;
-        }
-
-        .mt-3 {
-          margin-top: 12px;
-        }
-
+        /* 响应式布局 */
         @media (max-width: 640px) {
           .container {
             padding: 24px 16px;
@@ -184,6 +192,10 @@ const Lab = () => {
 
           .label {
             margin-bottom: 8px;
+          }
+
+          .demo-grid > div {
+            width: 100% !important;
           }
         }
       `}</style>

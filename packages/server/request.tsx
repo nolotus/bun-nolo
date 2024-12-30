@@ -1,4 +1,3 @@
-import { aiServerRoute } from "ai/server/routes";
 import { authServerRoutes } from "auth/server/route";
 import { handleToken } from "auth/server/token";
 import { API_VERSION, API_ENDPOINTS } from "database/config";
@@ -48,14 +47,14 @@ export const handleRequest = async (request: Request, server) => {
     if (contentType.includes("multipart/form-data")) {
       try {
         body = await request.formData();
-      } catch (error) {}
+      } catch (error) { }
     } else if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
         if (!body) {
           body = {};
         }
-      } catch (error) {}
+      } catch (error) { }
     }
     let req = {
       url,
@@ -68,10 +67,6 @@ export const handleRequest = async (request: Request, server) => {
     if (url.pathname.startsWith(API_ENDPOINTS.PROXY)) {
       req.user = await handleToken(request, res);
       return proxyRoute(req, res);
-    }
-    if (url.pathname.startsWith(API_ENDPOINTS.AI)) {
-      req.user = await handleToken(request, res);
-      return aiServerRoute(req, res);
     }
     if (url.pathname.startsWith(API_ENDPOINTS.USERS)) {
       return authServerRoutes(req, res);

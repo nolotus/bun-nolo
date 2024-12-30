@@ -6,7 +6,6 @@ import { useState } from "react";
 import { Avatar } from "render/ui";
 
 import { useAppSelector } from "app/hooks";
-import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { MessageContent } from "./MessageContent";
 import { MessageContextMenu } from "./MessageContextMenu";
 import { messageContentWithAvatarGap } from "./styles";
@@ -24,7 +23,6 @@ const RobotMessage: React.FC<Message> = ({
   controller,
 }) => {
   const theme = useAppSelector(selectTheme);
-  const { audioSrc, handlePlayClick } = useAudioPlayer(content);
   const [hovered, setHovered] = useState(false);
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
@@ -81,11 +79,9 @@ const RobotMessage: React.FC<Message> = ({
           )}
         </div>
       </div>
-      {audioSrc && <audio src={audioSrc} />}
       <MessageContextMenu
         menu={menu}
         anchorRect={anchorRect}
-        onPlayAudio={handlePlayClick}
         content={content}
         id={id}
       />

@@ -59,21 +59,7 @@ const dbSlice = createSliceWithThunks({
 			fulfilled: (state, action) => {},
 		}),
 		// setData is a thunk that will update an entity in the database
-		setData: create.asyncThunk(
-			async (updateConfig, thunkApi) => {
-				const { id, data } = updateConfig;
-				const state = thunkApi.getState();
-				const res = await noloPutRequest(state, id, data);
-				const result = await res.json();
-				return result;
-			},
-			{
-				fulfilled: (state, action) => {
-					const one = action.payload.data;
-					dbAdapter.setOne(state, one);
-				},
-			},
-		),
+	
 		// upsertData is a thunk that will either create or update an entity in the database
 		upsertData: create.asyncThunk(
 			async (saveConfig, thunkApi) => {
@@ -163,7 +149,6 @@ export const {
 	mergeMany,
 	deleteData,
 	patchData,
-	setData,
 	upsertData,
 	read,
 	syncQuery,
