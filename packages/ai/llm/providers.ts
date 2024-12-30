@@ -10,7 +10,8 @@ import { xaiModels } from "integrations/xai/models";
 import type { Model } from "./types";
 
 export const ollamaModels: Model[] = [
-	{ name: "llama2", hasVision: false, price: { input: 0.002, output: 0.004 } },
+	{ name: "llama3.1:latest", hasVision: false,},
+
 ];
 
 export const providerOptions = [
