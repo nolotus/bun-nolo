@@ -4,28 +4,33 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { pick } from "rambda";
-
+import { useTheme } from "app/theme";
 
 import Button from "web/ui/Button";
 import ToggleSwitch from "web/form/ToggleSwitch";
-import { SyncIcon } from "@primer/octicons-react";
+import { SyncIcon, CheckIcon } from "@primer/octicons-react";
 import { FormField } from "web/form/FormField";
 import { Input } from "web/form/Input";
 import Textarea from "web/form/Textarea";
-import { Select } from "web/form/Select";
+import Select from "../llm/Select";
 import PasswordInput from "web/form/PasswordInput";
-
 
 import { patchData } from "database/dbSlice";
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
 
+const getOrderedProviderOptions = () => {
+	return [
+		{ name: "Custom" },
+		...providerOptions.map((item) => ({ name: item }))
+	];
+};
 
 const QuickEditCybot = ({ initialValues, onClose }) => {
 	const { t } = useTranslation();
 	const dispatch = useAppDispatch();
-
+	const theme = useTheme();
 
 	const {
 		register,
@@ -46,22 +51,31 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 		},
 	});
 
-
 	const provider = watch("provider");
 	const [models, setModels] = useState<Model[]>([]);
+	const [providerInputValue, setProviderInputValue] = useState<string>(provider || "");
+	const [showCustomUrl, setShowCustomUrl] = useState(false);
+	const [showCustomModel, setShowCustomModel] = useState(false);
+
 	const isPrivate = watch("isPrivate");
 	const isEncrypted = watch("isEncrypted");
 	const useServerProxy = watch("useServerProxy");
 
+	useEffect(() => {
+		setProviderInputValue(provider || "");
+		setShowCustomUrl(provider === "Custom");
+		setShowCustomModel(provider === "Custom");
+	}, [provider]);
 
 	useEffect(() => {
-		const modelsList = getModelsByProvider(provider);
-		setModels(modelsList);
-		if (modelsList.length > 0) {
-			setValue("model", modelsList[0].name);
+		if (provider !== "Custom") {
+			const modelsList = getModelsByProvider(providerInputValue);
+			setModels(modelsList);
+			if (modelsList.length > 0) {
+				setValue("model", modelsList[0].name);
+			}
 		}
-	}, [provider, setValue]);
-
+	}, [providerInputValue, setValue, provider]);
 
 	useEffect(() => {
 		reset({
@@ -75,13 +89,13 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 		});
 	}, [reset, initialValues]);
 
-
 	const onSubmit = async (data) => {
 		const submitData = { ...data, type: DataType.Cybot };
 		const allowedKeys = [
 			"name",
 			"prompt",
 			"provider",
+			"customProviderUrl",
 			"model",
 			"apiKey",
 			"useServerProxy",
@@ -90,7 +104,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 			"tools",
 		];
 		const changes = pick(allowedKeys, submitData);
-
 
 		await dispatch(
 			patchData({
@@ -101,9 +114,58 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 		onClose();
 	};
 
-
 	return (
 		<form onSubmit={handleSubmit(onSubmit)}>
+			<style>
+				{`
+          .provider-container {
+            display: grid;
+            grid-template-columns: ${showCustomUrl ? "1fr 1fr" : "1fr 1fr 1fr"};
+            gap: 16px;
+            margin-bottom: 16px;
+          }
+
+          .custom-url-field {
+            animation: fadeIn 0.3s ease-in-out;
+          }
+
+          .model-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .model-indicators {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .vision-badge {
+            background: ${theme.primaryGhost};
+            color: ${theme.primary};
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+          }
+
+          .check-icon {
+            color: ${theme.primary};
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1; 
+              transform: translateY(0);
+            }
+          }
+        `}
+			</style>
+
 			<FormField
 				label={t("cybotName")}
 				required
@@ -114,7 +176,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 				/>
 			</FormField>
 
-
 			<FormField
 				label={t("prompt")}
 				error={errors.prompt?.message}
@@ -124,33 +185,76 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 				/>
 			</FormField>
 
+			<div className="provider-container">
+				<FormField
+					label={t("provider")}
+					required
+					error={errors.provider?.message}
+				>
+					<Select
+						items={getOrderedProviderOptions()}
+						selectedItem={provider ? { name: provider } : undefined}
+						onSelectedItemChange={(item) => {
+							setValue("provider", item.name);
+							setProviderInputValue(item.name);
+							if (item.name !== "Custom") {
+								setValue("customProviderUrl", "");
+								setValue("model", "");
+							}
+						}}
+						itemToString={(item) => (item ? item.name : "")}
+						placeholder={t("selectProvider")}
+						allowInput={true}
+						onInputChange={(value) => setProviderInputValue(value)}
+					/>
+				</FormField>
 
-			<FormField
-				label={t("provider")}
-			>
-				<Select {...register("provider")}>
-					{providerOptions.map((p) => (
-						<option key={p} value={p}>
-							{p}
-						</option>
-					))}
-				</Select>
-			</FormField>
+				{showCustomUrl && (
+					<FormField
+						label={t("providerUrl")}
+						error={errors.customProviderUrl?.message}
+						className="custom-url-field"
+					>
+						<Input
+							{...register("customProviderUrl")}
+							placeholder={t("enterProviderUrl")}
+							type="url"
+						/>
+					</FormField>
+				)}
 
-
-			<FormField
-				label={t("model")}
-			>
-				<Select {...register("model")}>
-					{models.map((model) => (
-						<option key={model.name} value={model.name}>
-							{model.name}
-							{model.hasVision && ` (${t("supportsVision")})`}
-						</option>
-					))}
-				</Select>
-			</FormField>
-
+				<FormField
+					label={t("model")}
+					required
+					error={errors.model?.message}
+				>
+					{showCustomModel ? (
+						<Input
+							{...register("model")}
+							placeholder={t("enterModelName")}
+						/>
+					) : (
+						<Select
+							items={models}
+							selectedItem={models.find((model) => watch("model") === model.name)}
+							onSelectedItemChange={(item) => setValue("model", item.name)}
+							itemToString={(item) => (item ? item.name : "")}
+							renderOptionContent={(item, isHighlighted, isSelected) => (
+								<div className="model-option">
+									<span className="model-name">{item.name}</span>
+									<div className="model-indicators">
+										{item.hasVision && (
+											<span className="vision-badge">{t("supportsVision")}</span>
+										)}
+										{isSelected && <CheckIcon size={16} className="check-icon" />}
+									</div>
+								</div>
+							)}
+							placeholder={t("selectModel")}
+						/>
+					)}
+				</FormField>
+			</div>
 
 			<FormField
 				label={t("apiKeyField")}
@@ -162,7 +266,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 				/>
 			</FormField>
 
-
 			<FormField label={t("useServerProxy")}>
 				<ToggleSwitch
 					checked={useServerProxy}
@@ -171,13 +274,11 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 				/>
 			</FormField>
 
-
 			<FormField label={t("tools")}>
 				<ToolSelector
 					register={register}
 				/>
 			</FormField>
-
 
 			<FormField label={t("private")}>
 				<ToggleSwitch
@@ -187,7 +288,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 				/>
 			</FormField>
 
-
 			<FormField label={t("encrypted")}>
 				<ToggleSwitch
 					checked={isEncrypted}
@@ -195,7 +295,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 					ariaLabelledby="encrypted-label"
 				/>
 			</FormField>
-
 
 			<Button
 				type="submit"
@@ -211,6 +310,5 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 		</form>
 	);
 };
-
 
 export default QuickEditCybot;

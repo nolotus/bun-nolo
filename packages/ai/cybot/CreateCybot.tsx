@@ -13,7 +13,6 @@ import { useTheme } from "app/theme";
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
 
-
 // web imports
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
@@ -27,24 +26,32 @@ import ToolSelector from "../tools/ToolSelector";
 import FormContainer from 'web/form/FormContainer';
 import TextArea from "web/form/Textarea";
 
-
 const schema = z.object({
-  name: z.string().min(1, "Cybot name is required"),
-  provider: z.string().min(1, "Provider is required"),
-  model: z.string().min(1, "Model is required"),
+  name: z.string().trim().min(1, "Cybot name is required"),
+  provider: z.string().trim().min(1, "Provider is required"),
+  customProviderUrl: z.string().trim().optional(),
+  model: z.string().trim().min(1, "Model is required"),
   apiKey: z.string().optional(),
   tools: z.array(z.string()),
   isPrivate: z.boolean(),
   isEncrypted: z.boolean(),
   useServerProxy: z.boolean(),
-  prompt: z.string().optional(),
-  greeting: z.string().optional(),
-  introduction: z.string().optional(),
+  prompt: z.string().trim().optional(),
+  greeting: z.string().trim().optional(),
+  introduction: z.string().trim().optional(),
 });
 
 
 type FormData = z.infer<typeof schema>;
 
+const PROXY_DISABLED_PROVIDERS = ["Ollama", "Custom", "Deepseek"];
+
+const getOrderedProviderOptions = () => {
+  return [
+    { name: "Custom" },
+    ...providerOptions.map((item) => ({ name: item }))
+  ];
+};
 
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
@@ -52,7 +59,6 @@ const CreateCybot: React.FC = () => {
   const auth = useAuth();
   const { createNewDialog } = useCreateDialog();
   const theme = useTheme();
-
 
   const {
     register,
@@ -67,72 +73,82 @@ const CreateCybot: React.FC = () => {
       isPrivate: false,
       isEncrypted: false,
       provider: "",
+      customProviderUrl: "",
       model: "",
       useServerProxy: true,
     },
   });
 
-
   const provider = watch("provider");
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState<string>(provider || "");
-
+  const [showCustomUrl, setShowCustomUrl] = useState(false);
+  const [showCustomModel, setShowCustomModel] = useState(false);
 
   useEffect(() => {
     setProviderInputValue(provider || "");
+    setShowCustomUrl(provider === "Custom");
+    setShowCustomModel(provider === "Custom");
   }, [provider]);
 
-
   useEffect(() => {
-    const modelsList = getModelsByProvider(providerInputValue);
-    setModels(modelsList);
-    if (modelsList.length > 0) {
-      setValue("model", modelsList[0].name);
+    if (provider !== "Custom") {
+      const modelsList = getModelsByProvider(providerInputValue);
+      setModels(modelsList);
+      if (modelsList.length > 0) {
+        setValue("model", modelsList[0].name);
+      }
     }
-  }, [providerInputValue, setValue]);
+  }, [providerInputValue, setValue, provider]);
 
+  // 处理服务器中转的自动开关
+  useEffect(() => {
+    if (PROXY_DISABLED_PROVIDERS.includes(provider)) {
+      setValue("useServerProxy", false);
+    } else {
+      setValue("useServerProxy", true);
+    }
+  }, [provider, setValue]);
 
   const isPrivate = watch("isPrivate");
   const isEncrypted = watch("isEncrypted");
   const useServerProxy = watch("useServerProxy");
+  const isProxyDisabled = PROXY_DISABLED_PROVIDERS.includes(provider);
 
+  const onSubmit = async (data: FormData) => {
+    const writeResult = await dispatch(
+      write({
+        data: {
+          type: DataType.Cybot,
+          ...data,
+        },
+        flags: { isJSON: true },
+        userId: auth.user?.userId,
+      })
+    ).unwrap();
+    const cybotId = writeResult.id;
 
-
-  const onSubmit = useCallback(
-    async (data: FormData) => {
-      console.log("Form data before submission:", data);
-      try {
-        const writeResult = await dispatch(
-          write({
-            data: {
-              type: DataType.Cybot,
-              ...data,
-            },
-            flags: { isJSON: true },
-            userId: auth.user?.userId,
-          })
-        ).unwrap();
-        const cybotId = writeResult.id;
-
-        await createNewDialog({ cybots: [cybotId] });
-      } catch (error) {
-        console.error("Error creating Cybot:", error);
-      }
-    },
-    [dispatch, auth.user?.userId, createNewDialog]
-  );
+    await createNewDialog({ cybots: [cybotId] });
+  };
 
   return (
     <FormContainer>
       <style>
         {`
-          .model-selector-container {
+          .provider-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: ${showCustomUrl ? "1fr 1fr" : "1fr 1fr 1fr"};
             gap: 16px;
             margin-bottom: 16px;
           }
 
+          .url-input {
+            grid-column: 2 / -1;
+          }
+
+          .custom-url-field {
+            animation: fadeIn 0.3s ease-in-out;
+          }
 
           .model-option {
             display: flex;
@@ -140,13 +156,11 @@ const CreateCybot: React.FC = () => {
             align-items: center;
           }
 
-
           .model-indicators {
             display: flex;
             align-items: center;
             gap: 8px;
           }
-
 
           .vision-badge {
             background: ${theme.primaryGhost};
@@ -156,13 +170,22 @@ const CreateCybot: React.FC = () => {
             font-size: 12px;
           }
 
-
           .check-icon {
             color: ${theme.primary};
           }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
         `}
       </style>
-
 
       <FormTitle>{t("createCybot")}</FormTitle>
 
@@ -178,19 +201,22 @@ const CreateCybot: React.FC = () => {
           />
         </FormField>
 
-
-        <div className="model-selector-container">
+        <div className="provider-container">
           <FormField
             label={t("provider")}
             required
             error={errors.provider?.message}
           >
             <Select
-              items={providerOptions.map((item) => ({ name: item }))}
+              items={getOrderedProviderOptions()}
               selectedItem={provider ? { name: provider } : undefined}
               onSelectedItemChange={(item) => {
                 setValue("provider", item.name);
                 setProviderInputValue(item.name);
+                if (item.name !== "Custom") {
+                  setValue("customProviderUrl", "");
+                  setValue("model", "");
+                }
               }}
               itemToString={(item) => (item ? item.name : "")}
               placeholder={t("selectProvider")}
@@ -199,33 +225,52 @@ const CreateCybot: React.FC = () => {
             />
           </FormField>
 
+          {showCustomUrl && (
+            <FormField
+              label={t("providerUrl")}
+              error={errors.customProviderUrl?.message}
+              className="custom-url-field"
+            >
+              <Input
+                {...register("customProviderUrl")}
+                placeholder={t("enterProviderUrl")}
+                type="url"
+              />
+            </FormField>
+          )}
 
           <FormField
             label={t("model")}
             required
             error={errors.model?.message}
           >
-            <Select
-              items={models}
-              selectedItem={models.find((model) => watch("model") === model.name)}
-              onSelectedItemChange={(item) => setValue("model", item.name)}
-              itemToString={(item) => (item ? item.name : "")}
-              renderOptionContent={(item, isHighlighted, isSelected) => (
-                <div className="model-option">
-                  <span className="model-name">{item.name}</span>
-                  <div className="model-indicators">
-                    {item.hasVision && (
-                      <span className="vision-badge">{t("supportsVision")}</span>
-                    )}
-                    {isSelected && <CheckIcon size={16} className="check-icon" />}
+            {showCustomModel ? (
+              <Input
+                {...register("model")}
+                placeholder={t("enterModelName")}
+              />
+            ) : (
+              <Select
+                items={models}
+                selectedItem={models.find((model) => watch("model") === model.name)}
+                onSelectedItemChange={(item) => setValue("model", item.name)}
+                itemToString={(item) => (item ? item.name : "")}
+                renderOptionContent={(item, isHighlighted, isSelected) => (
+                  <div className="model-option">
+                    <span className="model-name">{item.name}</span>
+                    <div className="model-indicators">
+                      {item.hasVision && (
+                        <span className="vision-badge">{t("supportsVision")}</span>
+                      )}
+                      {isSelected && <CheckIcon size={16} className="check-icon" />}
+                    </div>
                   </div>
-                </div>
-              )}
-              placeholder={t("selectModel")}
-            />
+                )}
+                placeholder={t("selectModel")}
+              />
+            )}
           </FormField>
         </div>
-
 
         <FormField
           label={t("apiKeyField")}
@@ -237,15 +282,17 @@ const CreateCybot: React.FC = () => {
           />
         </FormField>
 
-
-        <FormField label={t("useServerProxy")}>
+        <FormField
+          label={t("useServerProxy")}
+          help={isProxyDisabled ? t("proxyNotAvailableForProvider") : undefined}
+        >
           <ToggleSwitch
             checked={useServerProxy}
             onChange={(checked) => setValue("useServerProxy", checked)}
             ariaLabelledby="server-proxy-label"
+            disabled={isProxyDisabled}
           />
         </FormField>
-
 
         <FormField
           label={t("prompt")}
@@ -257,7 +304,6 @@ const CreateCybot: React.FC = () => {
           />
         </FormField>
 
-
         <FormField
           label={t("greetingMessage")}
           error={errors.greeting?.message}
@@ -267,7 +313,6 @@ const CreateCybot: React.FC = () => {
             placeholder={t("enterGreetingMessage")}
           />
         </FormField>
-
 
         <FormField
           label={t("selfIntroduction")}
@@ -279,9 +324,7 @@ const CreateCybot: React.FC = () => {
           />
         </FormField>
 
-
         <ToolSelector register={register} />
-
 
         <FormField label={t("private")}>
           <ToggleSwitch
@@ -291,7 +334,6 @@ const CreateCybot: React.FC = () => {
           />
         </FormField>
 
-
         <FormField label={t("encrypted")}>
           <ToggleSwitch
             checked={isEncrypted}
@@ -299,7 +341,6 @@ const CreateCybot: React.FC = () => {
             ariaLabelledby="encrypted-label"
           />
         </FormField>
-
 
         <Button
           type="submit"
@@ -310,12 +351,11 @@ const CreateCybot: React.FC = () => {
           disabled={isSubmitting}
           icon={<PlusIcon />}
         >
-          {isSubmitting ? t("updating") : t("update")}
+          {isSubmitting ? t("creating") : t("create")}
         </Button>
       </form>
     </FormContainer>
   );
 };
-
 
 export default CreateCybot;

@@ -40,7 +40,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const auth = useAuth();
-  const { t } = useTranslation();
+  const { t } = useTranslation('chat');
 
   const handleSaveContent = async () => {
     if (content) {
