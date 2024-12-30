@@ -1,8 +1,7 @@
 import { useAppSelector } from "app/hooks";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { selectTotalCosts } from "ai/selectors";
 import { useQuery } from "app/hooks/useQuery";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
@@ -14,7 +13,6 @@ const filteredDataType = omit(["Dialog", "Cybot"], DataType);
 const typeArray = ["All", ...Object.values(filteredDataType)];
 
 export const Database = () => {
-	// const costs = useAppSelector(selectTotalCosts);
 
 	const mainColor = useAppSelector((state) => state.theme.mainColor);
 
@@ -22,7 +20,6 @@ export const Database = () => {
 
 	const [type, setType] = useState(searchParams.get("type"));
 	const [data, setData] = useState(null);
-	console.log("data", data);
 	const currentUserId = useAppSelector(selectCurrentUserId);
 
 	// const data = useAppSelector(
@@ -80,9 +77,9 @@ export const Database = () => {
 								style={
 									isActive
 										? {
-												borderBottom: "3px solid",
-												borderBottomColor: mainColor,
-											}
+											borderBottom: "3px solid",
+											borderBottomColor: mainColor,
+										}
 										: undefined
 								}
 							>
