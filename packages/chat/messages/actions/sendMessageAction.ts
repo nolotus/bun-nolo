@@ -3,7 +3,7 @@ import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { read } from "database/dbSlice";
 
-import { addUserMessage, streamLLmId } from "../messageSlice";
+import { addUserMessage } from "../messageSlice";
 import { getFilteredMessages } from "../utils";
 
 export const sendMessageAction = async (args, thunkApi) => {
@@ -17,7 +17,6 @@ export const sendMessageAction = async (args, thunkApi) => {
 
   const { content } = args;
   const prevMsgs = getFilteredMessages(state);
-  //need before add user message
 
   thunkApi.dispatch(addUserMessage({ content }));
 
@@ -28,7 +27,9 @@ export const sendMessageAction = async (args, thunkApi) => {
     cybotConfig.provider === "xai" ||
     cybotConfig.provider === "openai" ||
     cybotConfig.provider === "mistral" ||
-    cybotConfig.provider === "google"
+    cybotConfig.provider === "google" ||
+    cybotConfig.provider === "ollama" ||  // 添加 ollama
+    cybotConfig.provider === "Custom"     // 添加 Custom
   ) {
     sendCommonChatRequest({
       content,
@@ -39,6 +40,7 @@ export const sendMessageAction = async (args, thunkApi) => {
     });
     return;
   }
+
   if (cybotConfig.provider === "anthropic") {
     sendClaudeRequest({
       content,
@@ -49,12 +51,5 @@ export const sendMessageAction = async (args, thunkApi) => {
     });
     return;
   }
-  //add user Message
 
-  // after addUserMessage maybe multi cybot
-
-  if (cybotConfig.llmId) {
-    await dispatch(streamLLmId({ cybotConfig, prevMsgs, content }));
-    return;
-  }
 };
