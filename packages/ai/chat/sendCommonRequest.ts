@@ -5,11 +5,11 @@ import { prepareTools } from "ai/tools/prepareTools";
 import { selectCurrentUserId } from "auth/authSlice";
 import { updateDialogTitle } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
-import { getFilteredMessages } from "chat/messages/utils";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { setOne } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { ulid } from "ulid";
+
 import { getApiEndpoint } from "../api/apiEndpoints";
 import { performFetchRequest } from "./fetchUtils";
 
@@ -63,7 +63,6 @@ export const sendCommonChatRequest = async ({
 
   const messages = createMessages(content, prevMsgs, cybotConfig);
   const model = cybotConfig.model;
-
   const bodyData = { model, messages, stream: true };
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
@@ -86,8 +85,7 @@ export const sendCommonChatRequest = async ({
     };
     dispatch(setOne(message));
     dispatch(messageStreaming(message));
-
-    const api = getApiEndpoint(cybotConfig.provider);
+    const api = getApiEndpoint(cybotConfig);
     console.log("API Endpoint:", api);
 
     const response = await performFetchRequest(
