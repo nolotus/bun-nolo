@@ -3,8 +3,7 @@ import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 
-import useCybotConfig from "ai/cybot/useCybotConfig";
-// import { selectCostByUserId } from "ai/selectors"; // 暂时注释掉
+import useCybotConfig from "ai/cybot/hooks/useCybotConfig";
 
 import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
@@ -18,8 +17,6 @@ const MessageInputContainer: React.FC = () => {
   const cybotConfig = useCybotConfig();
   const allowSend = !!cybotConfig; // convert to boolean for check
 
-  // const userCost = useAppSelector(selectCostByUserId); // 暂时注释掉
-  // 可以在未来根据 userCost 的值显示费用相关的消息
 
   const onSendMessage = (content: string) => {
     dispatch(handleSendMessage({ content }));
@@ -39,7 +36,6 @@ const MessageInputContainer: React.FC = () => {
         <MessageInput onSendMessage={onSendMessage} />
       ) : (
         <div style={errorMessageStyle}>{t("noAvailableCybotMessage")}</div>
-        // 在翻译文件中添加 noAvailableCybotMessage 项目
       )}
     </div>
   );

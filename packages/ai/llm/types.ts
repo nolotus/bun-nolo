@@ -18,4 +18,5 @@ export interface Model {
 	performance?: {
 		latency: string; // 延迟
 	};
+	maxImageResolution?: string; // 最大图像分辨率
 }

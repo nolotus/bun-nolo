@@ -12,13 +12,13 @@ import { SyncIcon, CheckIcon } from "@primer/octicons-react";
 import { FormField } from "web/form/FormField";
 import { Input } from "web/form/Input";
 import Textarea from "web/form/Textarea";
-import Select from "../llm/Select";
 import PasswordInput from "web/form/PasswordInput";
 
 import { patchData } from "database/dbSlice";
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
+import Combobox from "web/form/Combobox";
 
 const getOrderedProviderOptions = () => {
 	return [
@@ -191,22 +191,30 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 					required
 					error={errors.provider?.message}
 				>
-					<Select
-						items={getOrderedProviderOptions()}
-						selectedItem={provider ? { name: provider } : undefined}
-						onSelectedItemChange={(item) => {
-							setValue("provider", item.name);
-							setProviderInputValue(item.name);
-							if (item.name !== "Custom") {
-								setValue("customProviderUrl", "");
-								setValue("model", "");
-							}
-						}}
-						itemToString={(item) => (item ? item.name : "")}
-						placeholder={t("selectProvider")}
-						allowInput={true}
-						onInputChange={(value) => setProviderInputValue(value)}
-					/>
+					<FormField
+						label={t("provider")}
+						required
+						error={errors.provider?.message}
+					>
+						<Combobox
+							items={getOrderedProviderOptions()}
+							selectedItem={provider ? { name: provider } : undefined}
+							onChange={(item) => {
+								setValue("provider", item?.name);
+								setProviderInputValue(item?.name || '');
+								if (item?.name !== "Custom") {
+									setValue("customProviderUrl", "");
+									setValue("model", "");
+								}
+							}}
+							labelField="name"
+							valueField="name"
+							placeholder={t("selectProvider")}
+							allowInput={true}
+							onInputChange={(value) => setProviderInputValue(value)}
+						/>
+					</FormField>
+
 				</FormField>
 
 				{showCustomUrl && (
@@ -234,11 +242,13 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 							placeholder={t("enterModelName")}
 						/>
 					) : (
-						<Select
+						<Combobox
 							items={models}
 							selectedItem={models.find((model) => watch("model") === model.name)}
-							onSelectedItemChange={(item) => setValue("model", item.name)}
-							itemToString={(item) => (item ? item.name : "")}
+							onChange={(item) => setValue("model", item?.name)}
+							labelField="name"
+							valueField="name"
+							placeholder={t("selectModel")}
 							renderOptionContent={(item, isHighlighted, isSelected) => (
 								<div className="model-option">
 									<span className="model-name">{item.name}</span>
@@ -250,9 +260,9 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 									</div>
 								</div>
 							)}
-							placeholder={t("selectModel")}
 						/>
 					)}
+
 				</FormField>
 			</div>
 

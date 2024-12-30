@@ -2,13 +2,11 @@ import * as Ariakit from "@ariakit/react";
 import React, { useState } from "react";
 import { Avatar } from "render/ui";
 
-import { useAudioPlayer } from "../hooks/useAudioPlayer";
 import { MessageContent } from "./MessageContent";
 import { MessageContextMenu } from "./MessageContextMenu";
 import { messageContentWithAvatarGap } from "./styles";
 
 export const SelfMessage = ({ content, id }) => {
-  const { audioSrc, handlePlayClick } = useAudioPlayer(content[0]?.text);
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
 
@@ -46,13 +44,10 @@ export const SelfMessage = ({ content, id }) => {
         <Avatar name="user" />
       </div>
 
-      {/* 只在有audioSrc时渲染audio元素 */}
-      {audioSrc && <audio src={audioSrc} controls />}
 
       <MessageContextMenu
         menu={menu}
         anchorRect={anchorRect}
-        onPlayAudio={handlePlayClick}
         content={content}
         id={id}
       />

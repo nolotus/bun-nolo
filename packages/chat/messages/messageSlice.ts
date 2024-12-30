@@ -4,8 +4,6 @@ import {
 	buildCreateSlice,
 } from "@reduxjs/toolkit";
 import { extractCustomId } from "core";
-import { ollamaHandler } from "integrations/ollama/ollamaHandler";
-
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { API_ENDPOINTS } from "database/config";
 import { noloRequest } from "database/requests/noloRequest";
@@ -15,16 +13,13 @@ import { DataType } from "create/types";
 import {
 	addToList,
 	deleteData,
-	read,
 	removeFromList,
 	upsertOne,
 } from "database/dbSlice";
 import { filter, reverse } from "rambda";
 import { ulid } from "ulid";
 
-import { handleOllamaResponse } from "ai/chat/handleOllamaResponse";
 
-import { prepareTools } from "ai/tools/prepareTools";
 
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
@@ -271,74 +266,6 @@ export const messageSlice = createSliceWithThunks({
 			},
 		),
 
-		//for now only use in ollama
-		streamLLmId: create.asyncThunk(
-			async ({ cybotConfig, prevMsgs, content }, thunkApi) => {
-				const dispatch = thunkApi.dispatch;
-				const state = thunkApi.getState();
-				const controller = new AbortController();
-				const signal = controller.signal;
-				const cybotId = cybotConfig.id;
-				const userId = selectCurrentUserId(state);
-
-				const id = generateIdWithCustomId(userId, ulid(), {
-					isJSON: true,
-				});
-				console.log("cybotConfig", cybotConfig);
-				const readLLMAction = await dispatch(read({ id: cybotConfig.llmId }));
-				console.log("readLLMAction", readLLMAction);
-				const llmConfig = readLLMAction.payload;
-				const { api, apiStyle } = llmConfig;
-				const model = llmConfig.model;
-				const config = {
-					...cybotConfig,
-					responseLanguage: navigator.language,
-				};
-
-				const prepareMsgConfig = {
-					model,
-					promotMessage: { role: "system", content: config.prompt },
-					prevMsgs,
-					content,
-				};
-				const messages = ollamaHandler.prepareMsgs(prepareMsgConfig);
-				const tools = prepareTools(cybotConfig.tools);
-				const isStream = true;
-				const bodyData = {
-					model: model,
-					messages,
-					tools,
-					stream: isStream,
-				};
-				console.log("bodyData", bodyData);
-
-				const body = JSON.stringify(bodyData);
-				const result = await fetch(api, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body,
-					signal,
-				});
-
-				if (result.ok) {
-					await handleOllamaResponse(
-						id,
-						cybotId,
-						result,
-						thunkApi,
-						controller,
-						isStream,
-						prevMsgs,
-						content,
-					);
-				} else {
-					console.error("HTTP-Error:", result.status);
-				}
-			},
-			{},
-		),
 		//not use yet
 		sendWithMessageId: create.asyncThunk(async (messageId, thunkApi) => {
 			console.log("messageId", messageId);

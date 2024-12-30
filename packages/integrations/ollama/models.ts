@@ -1,107 +1,70 @@
-export const ollamaModels = {
-	llama3: {
-		provider: "ollama",
-		name: "Llama 3",
-		description: "Large language model",
-		performance: {
-			contextWindow: 32000,
-		},
-		input: 0,
-		output: 0,
-	},
-	"llama3.1": {
-		provider: "ollama",
-		name: "Llama 3.1",
-		description: "Large language model with improved performance",
-		performance: {
-			contextWindow: 128000,
-		},
-		input: 0,
-		output: 0,
-	},
-	gemma2: {
-		provider: "ollama",
-		name: "Gemma 2",
-		description: "Efficient language model",
-		performance: {
-			contextWindow: 128000,
-		},
-		input: 0,
-		output: 0,
-	},
-	codestral: {
-		provider: "ollama",
-		name: "Codestral",
-		description: "Code-specialized language model",
-		performance: {
-			contextWindow: 128000,
-		},
-		input: 0,
-		output: 0,
-	},
-	llava: {
-		provider: "ollama",
-		name: "LLaVA 1.6",
-		description: "Large Language and Vision Assistant",
-		features: {
-			vision: true,
-		},
-		performance: {
-			contextWindow: null,
-			maxImageResolution: "1344x1344",
-			supportedResolutions: ["672x672", "336x1344", "1344x336"],
-		},
-		input: 0,
-		output: 0,
-	},
-	"mistral-nemo:latest": {
-		provider: "ollama",
-		name: "Mistral Nemo",
-		description: "Mistral-based language model",
-		performance: {
-			contextWindow: 64000,
-		},
-		input: 0,
-		output: 0,
-	},
-	"mistral-small:latest": {
-		provider: "ollama",
-		name: "Mistral Small",
-		description: "Mistral-based language model",
-		performance: {
-			contextWindow: 128000,
-		},
-		input: 0,
-		output: 0,
-	},
-	"qwen2.5:14b": {
-		provider: "ollama",
-		name: "qwen2.5:14b",
-		description: "Advanced language model",
-		performance: {
-			contextWindow: 128000,
-		},
-		input: 0,
-		output: 0,
-	},
-	"qwen2.5:32b": {
-		provider: "ollama",
-		name: "qwen2.5:32b",
-		description: "Advanced language model",
-		performance: {
-			contextWindow: 128000,
-		},
-		input: 0,
-		output: 0,
-	},
-	"gemma2:27b": {
-		provider: "ollama",
-		name: "ollama run gemma2:27b",
-		description: "Advanced language model",
-		performance: {
-			contextWindow: 128000,
-		},
-		input: 0,
-		output: 0,
-	},
-};
+import { Model } from "ai/llm/types";
+
+export const ollamaModels: Model[] = [
+  {
+    name: "nomic-embed-text:latest",
+    displayName: "Nomic Embed Text",
+    description: "Text embedding model",
+    hasVision: false,
+    contextWindow: 8192,
+    price: { input: 0, output: 0 }
+  },
+  {
+    name: "mistral-nemo:latest",
+    displayName: "Mistral Nemo",
+    description: "Mistral-based language model",
+    hasVision: false,
+    contextWindow: 64000,
+    price: { input: 0, output: 0 }
+  },
+  {
+    name: "llama3.1:latest",
+    displayName: "Llama 3.1",
+    description: "Large language model",
+    hasVision: false,
+    contextWindow: 128000,
+    price: { input: 0, output: 0 }
+  },
+  {
+    name: "llava:latest",
+    displayName: "LLaVA",
+    description: "Large Language and Vision Assistant",
+    hasVision: true,
+    contextWindow: null,
+    maxImageResolution: "1344x1344",
+    supportedResolutions: ["672x672", "336x1344", "1344x336"],
+    price: { input: 0, output: 0 }
+  },
+  {
+    name: "gemma2:latest",
+    displayName: "Gemma 2",
+    description: "Advanced language model",
+    hasVision: false,
+    contextWindow: 128000,
+    price: { input: 0, output: 0 }
+  },
+  {
+    name: "starling-lm:latest",
+    displayName: "Starling LM",
+    description: "Advanced language model",
+    hasVision: false,
+    contextWindow: 128000,
+    price: { input: 0, output: 0 }
+  },
+  {
+    name: "gemma:latest",
+    displayName: "Gemma",
+    description: "Efficient language model",
+    hasVision: false,
+    contextWindow: 128000,
+    price: { input: 0, output: 0 }
+  },
+  {
+    name: "mistral:latest",
+    displayName: "Mistral",
+    description: "Mistral-based language model",
+    hasVision: false,
+    contextWindow: 64000,
+    price: { input: 0, output: 0 }
+  }
+];

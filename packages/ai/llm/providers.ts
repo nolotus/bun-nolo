@@ -6,13 +6,9 @@ import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
 import { xaiModels } from "integrations/xai/models";
-
+import { ollamaModels } from "integrations/ollama/models";
 import type { Model } from "./types";
 
-export const ollamaModels: Model[] = [
-	{ name: "llama3.1:latest", hasVision: false,},
-
-];
 
 export const providerOptions = [
 	"openai",
