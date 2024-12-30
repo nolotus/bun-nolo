@@ -3,8 +3,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch, useSelector } from 'react-redux';
 import { setTheme, setDarkMode, selectIsDark } from 'app/theme/themeSlice';
 import { StyleSheet, Text, TouchableOpacity, View, Modal, Animated } from "react-native";
-
 import { useTheme } from 'app/theme';
+
 const styles = StyleSheet.create({
 
     themeControls: {

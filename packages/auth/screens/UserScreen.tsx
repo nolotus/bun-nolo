@@ -2,6 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from 'app/theme';
 import { ThemeSelector } from 'app/theme/ThemeSelector';
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -30,16 +31,19 @@ const styles = StyleSheet.create({
   }
 });
 
+
 export function UserScreen({ navigation }) {
   const theme = useTheme();
   
-  const goToLogin = () => {
-    navigation.navigate("Auth", { screen: "Login" });
+  const handleLogin = () => {
+    // 模拟登录成功
+    navigation.navigate("Profile");
   };
   
   const goToRegister = () => {
     navigation.navigate("Auth", { screen: "Register" });
   };
+
 
   return (
     <View style={[styles.container, {backgroundColor: theme.background}]}>
@@ -48,10 +52,11 @@ export function UserScreen({ navigation }) {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, {backgroundColor: theme.primary}]}
-          onPress={goToLogin}
+          onPress={handleLogin}
         >
           <Text style={[styles.buttonText, {color: '#fff'}]}>登录</Text>
         </TouchableOpacity>
+
 
         <TouchableOpacity
           style={[styles.button, {
