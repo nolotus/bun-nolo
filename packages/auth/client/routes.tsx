@@ -1,5 +1,3 @@
-import React from "react";
-
 import Login from "auth/pages/Login";
 import Signup from "auth/pages/Signup";
 

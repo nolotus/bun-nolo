@@ -1,6 +1,4 @@
-// components/auth/Login.tsx
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LockIcon, PersonIcon } from "@primer/octicons-react";
 import { useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
 import { storeTokens } from "auth/client/token";
@@ -10,11 +8,17 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
 import { signIn } from "../authSlice";
-import { signInFields, userFormSchema } from "../schema";
-import { FormField } from "web/form/FormField";
+import z from "zod";
+
+// web imports
+import { LockIcon, PersonIcon } from "@primer/octicons-react";
+import { NavLink } from "react-router-dom";
+import { Checkbox } from "web/form/Checkbox";
+import { Input } from "web/form/Input";
 import Button from "web/ui/Button";
+import PasswordInput from "web/form/PasswordInput";
+
 
 const Login: React.FC = () => {
 	const theme = useTheme();
@@ -23,104 +27,141 @@ const Login: React.FC = () => {
 	const { t } = useTranslation();
 	const [error, setError] = useState<string | null>(null);
 
+
+	const userFormSchema = z.object({
+		username: z.string().nonempty({ message: t("usernameRequired") || "" }),
+		password: z.string().nonempty({ message: t("passwordRequired") || "" }),
+	});
+
+
 	const loginStyles = `
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: calc(100dvh - 60px);
-      padding: 20px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen;
-    }
-    
-    .login-form {
-      width: 100%;
-      max-width: 380px;
-    }
-    
-    .login-title {
-      font-size: 28px;
-      font-weight: 600;
-      color: ${theme.text};
-      margin-bottom: 36px;
-      text-align: center;
-    }
-    
-    .field-wrapper {
-      margin-bottom: 20px;
-    }
-    
-    .field-label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: ${theme.textSecondary};
-      font-weight: 500;
-    }
-    
-    .error-message {
-      margin-top: 8px;
-      margin-bottom: 8px;
-      color: ${theme.error};
-      font-size: 14px;
-    }
-    
-    .form-footer {
-      margin-top: 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      align-items: center;
-    }
-    
-    .link-text {
-      color: ${theme.textSecondary};
-      font-size: 14px;
-    }
-    
-    .signup-link {
-      color: ${theme.primary};
-      text-decoration: none;
-      font-size: 14px;
-      margin-left: 4px;
-      transition: color 0.2s;
-    }
-    
-    .signup-link:hover {
-      color: ${theme.primaryLight};
-    }
-
-    .remember-forgot {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      margin-top: 12px;
-    }
-
-    .remember-me {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: ${theme.textSecondary};
-      font-size: 14px;
-    }
-
-    .forgot-password {
-      color: ${theme.primary};
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.2s;
-    }
-
-    .forgot-password:hover {
-      color: ${theme.primaryLight};
-    }
-
-    .button-container {
-      width: 100%;
-    }
+	.login-container {
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  min-height: calc(100dvh - 60px);
+	  padding: 24px;
+	}
+	
+	.login-form {
+	  width: 100%;
+	  max-width: 380px;
+	}
+	
+	.login-title {
+	  font-size: 32px;
+	  font-weight: 600;
+	  color: ${theme.text};
+	  margin-bottom: 48px;
+	  text-align: center;
+	  letter-spacing: -0.5px;
+	}
+	
+	.field-group {
+	  margin-bottom: 28px;
+	}
+	
+	.error-message {
+	  font-size: 14px;
+	  color: ${theme.error};
+	  margin-top: 8px;
+	}
+	
+	.remember-forgot {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  margin-bottom: 32px;
+	}
+  
+  
+	.forgot-password {
+	  color: ${theme.primary};
+	  text-decoration: none;
+	  font-size: 14px;
+	  font-weight: 500;
+	  transition: color 0.2s;
+	}
+  
+  
+	.forgot-password:hover {
+	  color: ${theme.primaryLight};
+	}
+  
+  
+	.form-footer {
+	  display: flex;
+	  flex-direction: column;
+	  gap: 32px;
+	  align-items: center;
+	}
+	
+	.signup-section {
+	  text-align: center;
+	}
+	
+	.link-text {
+	  color: ${theme.textSecondary};
+	  font-size: 15px;
+	}
+	
+	.signup-link {
+	  color: ${theme.primary};
+	  text-decoration: none;
+	  font-size: 15px;
+	  margin-left: 6px;
+	  font-weight: 500;
+	  transition: color 0.2s;
+	}
+	
+	.signup-link:hover {
+	  color: ${theme.primaryLight};
+	}
+  
+  
+	/* 响应式设计 */
+	@media (min-width: 768px) {
+	  .login-form {
+		max-width: 420px;
+	  }
+  
+  
+	  .login-title {
+		font-size: 36px;
+		margin-bottom: 56px;
+	  }
+  
+  
+	  .field-group {
+		margin-bottom: 32px;
+	  }
+	}
+  
+  
+	@media (min-width: 1200px) {
+	  .login-form {
+		max-width: 460px;
+	  }
+  
+  
+	  .login-title {
+		font-size: 40px;
+		margin-bottom: 64px;
+	  }
+  
+  
+	  .field-group {
+		margin-bottom: 36px;
+	  }
+  
+  
+	  .form-footer {
+		gap: 40px;
+	  }
+	}
   `;
+
+
 
 	const {
 		register,
@@ -130,6 +171,7 @@ const Login: React.FC = () => {
 		resolver: zodResolver(userFormSchema),
 	});
 
+
 	const onSubmit = async (data) => {
 		try {
 			const locale = navigator.language;
@@ -137,93 +179,105 @@ const Login: React.FC = () => {
 			const encryptionKey = await hashPassword(password);
 			const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
 
+
 			if (action.payload.token) {
 				storeTokens(action.payload.token);
 				window.location.href = "/";
 				return;
 			}
 
-			// 处理错误情况
+
 			switch (action.payload.status) {
 				case 404:
-					setError(t("errors:userNotFound"));
+					setError(t("userNotFound"));
 					break;
 				case 403:
-					setError(t("errors:invalidCredentials"));
+					setError(t("invalidCredentials"));
 					break;
 				case 401:
-					setError(t("errors:notAuthorized"));
+					setError(t("notAuthorized"));
 					break;
 				case 429:
-					setError(t("errors:tooManyAttempts"));
+					setError(t("tooManyAttempts"));
 					break;
 				case 400:
-					setError(t("errors:validationError"));
+					setError(t("validationError"));
 					break;
 				case 500:
-					setError(t("errors:serverError"));
+					setError(t("serverError"));
 					break;
 				default:
-					setError(t("errors:operationFailed"));
+					setError(t("operationFailed"));
 			}
 		} catch (err) {
-			setError(t("errors:networkError"));
+			setError(t("networkError"));
 		}
 	};
+
 
 	return (
 		<div className="login-container">
 			<style>{loginStyles}</style>
 			<form onSubmit={handleSubmit(onSubmit)} className="login-form">
-				<h2 className="login-title">{t("login")}</h2>
+				<h1 className="login-title">{t("login")}</h1>
 
-				{signInFields.map((field) => (
-					<div key={field.id} className="field-wrapper">
-						<label htmlFor={field.id} className="field-label">
-							{t(field.label)}
-						</label>
-						<FormField
-							{...field}
-							register={register}
-							errors={errors}
-							icon={
-								field.id === "username" ? (
-									<PersonIcon size={20} />
-								) : (
-									<LockIcon size={20} />
-								)
-							}
-						/>
-					</div>
-				))}
+
+				<div className="field-group">
+					<Input
+						placeholder={t("enterUsername")}
+						{...register("username")}
+						error={!!errors.username}
+						icon={<PersonIcon size={20} />}
+						autoComplete="username"
+					/>
+					{errors.username && (
+						<p className="error-message">{errors.username.message}</p>
+					)}
+				</div>
+
+
+				<div className="field-group">
+					<PasswordInput
+						placeholder={t("enterPassword")}
+						{...register("password")}
+						error={!!errors.password}
+						icon={<LockIcon size={20} />}
+						autoComplete="current-password"
+					/>
+					{errors.password && (
+						<p className="error-message">{errors.password.message}</p>
+					)}
+				</div>
+
 
 				<div className="remember-forgot">
-					<label className="remember-me">
-						<input type="checkbox" {...register("rememberMe")} />
-						{t("rememberMe")}
-					</label>
+					<Checkbox
+						label={t("rememberMe")}
+						{...register("rememberMe")}
+					/>
 					<NavLink to="/forgot-password" className="forgot-password">
 						{t("forgotPassword")}
 					</NavLink>
 				</div>
 
+
 				{error && <p className="error-message">{error}</p>}
 
-				<div className="form-footer">
-					<div className="button-container">
-						<Button
-							variant="primary"
-							size="large"
-							loading={isLoading}
-							disabled={isLoading}
-							onClick={handleSubmit(onSubmit)}
-							style={{ width: '100%' }}
-						>
-							{isLoading ? t("loading") : t("login")}
-						</Button>
-					</div>
 
-					<div>
+				<div className="form-footer">
+					<Button
+						variant="primary"
+						size="large"
+						loading={isLoading}
+						disabled={isLoading}
+						style={{ width: "100%" }}
+						type="submit"
+					>
+						{isLoading ? t("loading") : t("login")}
+					</Button>
+
+
+					<div className="signup-section">
 						<span className="link-text">{t("noAccount")}</span>
 						<NavLink to="/signup" className="signup-link">
 							{t("signUpNow")}
@@ -234,5 +288,6 @@ const Login: React.FC = () => {
 		</div>
 	);
 };
+
 
 export default Login;

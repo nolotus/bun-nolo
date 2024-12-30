@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { parseWeatherParams, useGetWeatherQuery } from "integrations/weather";
 import { Loader } from "render/ui/screens/Loader";
 import * as echarts from "echarts/core";
+
 import Chart from "./Chart";
 import WeatherTable from "./WeatherTable";
 
