@@ -1,11 +1,16 @@
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import React, { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "render/ui";
-import { write } from "database/dbSlice";
-import ToggleSwitch from "render/ui/ToggleSwitch";
 import OpenProps from "open-props";
+
+
+
+
+// web imports
+import { useNavigate, useSearchParams } from "react-router-dom";
+import Button from "web/ui/Button";
+import ToggleSwitch from "web/form/ToggleSwitch";
+import Editor from "create/editor/Editor";
 
 import { createPageData } from "./pageDataUtils";
 import {
@@ -14,7 +19,6 @@ import {
   initPageFromTemplate,
 } from "./pageSlice";
 import { processContent } from "./processContent";
-import Editor from "create/editor/Editor";
 
 const CreatePage = () => {
   const [searchParams] = useSearchParams();

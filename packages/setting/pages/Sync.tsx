@@ -1,17 +1,21 @@
-import { ServerIcon } from "@primer/octicons-react";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { upsertData } from "database/dbSlice";
 import { selectCurrentUserId } from "auth/authSlice";
+import { generateCustomId } from "core/generateMainKey";
+import { useTheme } from "app/theme";
+import { useForm, Controller } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+
+//web imports
+import ToggleSwitch from "web/form/ToggleSwitch";
 import { PageLoader } from "render/blocks/PageLoader";
 import { Input } from "web/form/Input";
 import Button from "web/ui/Button";
-import { generateCustomId } from "core/generateMainKey";
-import ToggleSwitch from "render/ui/ToggleSwitch";
-import { useForm, Controller } from "react-hook-form";
-import { useTranslation } from "react-i18next";
+import { ServerIcon } from "@primer/octicons-react";
+
+
 import { selectCurrentServer, selectSyncServers } from "../settingSlice";
-import { useTheme } from "app/theme";
 
 const Sync = () => {
   const theme = useTheme();

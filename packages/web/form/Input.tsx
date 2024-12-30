@@ -1,7 +1,18 @@
+// web/form/Input.tsx:
 import { useTheme } from "app/theme";
+import type React from "react";
 
-export const Input = (props) => {
+
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon?: React.ReactNode;
+  error?: boolean;
+}
+
+
+export const Input = ({ icon, error, style, ...props }: InputProps) => {
   const theme = useTheme();
+
+
   return (
     <>
       <style>
@@ -11,41 +22,49 @@ export const Input = (props) => {
             width: 100%;
           }
 
-          input {
+
+          .input-field {
             width: 100%;
-            height: 40px;
-            padding: 0 12px;
+            height: 42px;
+            padding: ${icon ? "0 12px 0 42px" : "0 12px"};
             border-radius: 8px;
-            border: 1px solid ${theme.border};
-            font-size: 13px;
+            border: 1px solid ${error ? theme.error : theme.border};
+            font-size: 15px;
             font-weight: 500;
             color: ${theme.text};
             background: ${theme.background};
             outline: none;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen;
           }
 
-          input:focus {
-            border-color: ${theme.primary};
-            box-shadow: 0 0 0 3.5px ${theme.focus};
+
+          .input-field:focus {
+            border-color: ${error ? theme.error : theme.primary};
+            box-shadow: 0 0 0 3px ${error ? `${theme.error}20` : theme.primaryGhost};
           }
 
-          input:hover {
-            border-color: ${theme.hover};
+
+          .input-field:hover {
+            border-color: ${error ? theme.error : theme.hover};
           }
 
-          input:disabled {
-            background: ${theme.disabled};
-            cursor: not-allowed;
-          }
 
-          input::placeholder {
-            color: ${theme.placeholder};
+          .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: ${theme.textSecondary};
+            display: flex;
+            align-items: center;
+            pointer-events: none;
           }
         `}
       </style>
       <div className="input-wrapper">
-        <input {...props} />
+        {icon && <div className="input-icon">{icon}</div>}
+        <input className="input-field" {...props} />
       </div>
     </>
   );
