@@ -202,10 +202,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         }
 
 
-        :global(.loading) {
-          animation: spin 0.6s linear infinite;
-          margin-right: 4px;
-        }
+  :global(.loading) {
+  animation: spin 1s linear infinite;
+  margin-right: 4px;
+}
+
       `}</style>
     </button>
   );
@@ -224,6 +225,15 @@ const LoadingSpinner = () => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
+    <circle
+      cx="7"
+      cy="7"
+      r="6"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      opacity="0.25"
+    />
     <path
       d="M13 7A6 6 0 111 7"
       stroke="currentColor"
@@ -232,6 +242,7 @@ const LoadingSpinner = () => (
     />
   </svg>
 );
+
 
 
 export default Button;
