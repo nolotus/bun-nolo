@@ -1,19 +1,15 @@
-import { decodeChunk } from "ai/client/stream";
+// import { decodeChunk } from "ai/client/stream";
 import { selectCurrentUserId } from "auth/authSlice";
-import { messageStreamEnd } from "chat/messages/messageSlice";
-import { generateIdWithCustomId } from "core/generateMainKey";
-import { API_ENDPOINTS } from "database/config";
-import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
-import {
-  handleContentBlockDelta,
-  handleMessageDelta,
-  handleMessageStart,
-  handlePing,
-} from "integrations/anthropic/responseHandle";
 import { selectCurrentServer } from "setting/settingSlice";
+
+import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
 
-import { updateDialogTitle } from "chat/dialog/dialogSlice";
+import { API_ENDPOINTS } from "database/config";
+import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
+import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
+import { setOne } from "database/dbSlice";
+import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 
 // 获取当前用户ID和服务器
 function getCurrentUserAndServer(thunkApi) {
@@ -59,50 +55,15 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
   }
 }
 
-// 处理日志数据
-function handleLog(log, dispatch, id, cybotId, contentBuffer, controller) {
-  console.log("收到日志:", log);
-  const logData = log.split("data: ")[1];
-  if (logData) {
-    try {
-      const jsonData = JSON.parse(logData);
-      console.log("解析后的数据:", jsonData);
+// // 主函数
 
-      switch (jsonData.type) {
-        case "message_start":
-          return handleMessageStart(
-            jsonData,
-            dispatch,
-            id,
-            cybotId,
-            controller,
-          );
-        case "ping":
-          return handlePing(contentBuffer);
-        case "content_block_delta":
-          return handleContentBlockDelta(
-            jsonData,
-            dispatch,
-            id,
-            cybotId,
-            contentBuffer,
-            controller,
-          );
-        case "message_delta":
-          return handleMessageDelta(jsonData, dispatch);
-        default:
-          console.log("未知类型的数据:", jsonData);
-      }
-    } catch (error) {
-      console.error("解析日志数据错误:", error);
-    }
+async function* streamAsyncIterable(reader) {
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    yield value;
   }
-  return contentBuffer;
 }
-
-// 主函数
-
-// 主函数
 export const sendClaudeRequest = async ({
   content,
   cybotConfig,
@@ -110,6 +71,10 @@ export const sendClaudeRequest = async ({
   prevMsgs,
   dialogId,
 }) => {
+  const cybotId = cybotConfig.id;
+  const model = cybotConfig.model;
+
+  const dispatch = thunkApi.dispatch;
   const { userId, currentServer } = getCurrentUserAndServer(thunkApi);
   const id = generateIdWithCustomId(userId, ulid(), {
     isJSON: true,
@@ -119,75 +84,123 @@ export const sendClaudeRequest = async ({
   const controller = new AbortController();
   const signal = controller.signal;
 
-  let contentBuffer = "";
+  let reader; // 在函数作用域中定义 reader 以便可以在任何地方访问它
+
+  signal.addEventListener("abort", () => {
+    console.log("Request was aborted");
+    if (reader) {
+      reader.cancel(); // 如果中止的话尝试取消读取
+      reader.releaseLock(); // 释放 reader 的锁
+    }
+    dispatch(
+      updateDialogTitle({
+        dialogId,
+        cybotConfig,
+      })
+    );
+  });
 
   try {
     const response = await sendRequest(
       cybotConfig,
       body,
       signal,
-      currentServer,
+      currentServer
     );
-    const reader = response.body.getReader();
 
-    let value;
+    reader = response.body.getReader();
+    let accumulatedContent = "";
 
-    while (true) {
-      const result = await reader.read();
-      value = result.value;
-      if (result.done && value === undefined) {
-        console.log("流已经结束");
-        thunkApi.dispatch(
-          messageStreamEnd({
-            id,
-            content: contentBuffer,
-            cybotId: cybotConfig.id,
-            role: "assistant", // 添加 role 属性
-          }),
-        );
+    for await (const chunk of streamAsyncIterable(reader)) {
+      const text = new TextDecoder().decode(chunk);
+      const lines = text.split("\n");
+      for (const line of lines) {
+        if (line.startsWith("data:")) {
+          const data = line.substring(6);
+          try {
+            const jsonData = JSON.parse(data);
+            console.log("Data:", jsonData);
+            switch (jsonData.type) {
+              case "message_start":
+                dispatch(
+                  updateTokens({
+                    cybotId,
+                    model,
+                    usage: jsonData.message.usage,
+                  })
+                );
+                const message = {
+                  id,
+                  content: "Loading...",
+                  role: "assistant",
+                  cybotId,
+                  controller,
+                };
+                dispatch(setOne(message));
+                dispatch(messageStreaming(message));
+                break;
 
-        return;
-      } else {
-        console.log("流还没有结束");
-      }
-      if (value) {
-        const text = decodeChunk(value);
-        const logArray = text.split("event:");
-        logArray.shift(); // 删除空字符串
+              case "content_block_delta":
+                const delta = jsonData.delta;
+                if (delta && delta.text) {
+                  accumulatedContent += delta.text;
+                  const message = {
+                    id,
+                    content: accumulatedContent,
+                    role: "assistant",
+                    cybotId: cybotConfig.id,
+                    controller,
+                  };
+                  dispatch(setOne(message));
+                  dispatch(messageStreaming(message));
+                }
+                break;
+              case "message_delta":
+                dispatch(
+                  updateTokens({
+                    cybotId,
+                    model,
+                    usage: jsonData.usage,
+                  })
+                );
+                break;
 
-        logArray.forEach((log) => {
-          contentBuffer = handleLog(
-            log,
-            thunkApi.dispatch,
-            id,
-            cybotConfig.id,
-            contentBuffer,
-            controller,
-          );
-        });
+              default:
+                console.log("Unhandled data type:", jsonData.type);
+            }
+          } catch (error) {
+            console.error("Failed to parse JSON data:", error);
+          }
+        }
       }
     }
-  } catch (error) {
-    console.error("发送请求失败:", error);
-  } finally {
-    console.log("流已经结束");
-    thunkApi.dispatch(
+
+    reader.releaseLock(); // 在数据处理完成后释放 reader 的锁
+
+    dispatch(
       messageStreamEnd({
         id,
-        content: contentBuffer,
+        content: accumulatedContent,
         cybotId: cybotConfig.id,
-        role: "assistant", // 添加 role 属性
-      }),
+        role: "assistant",
+      })
     );
 
-    // 更新对话标题
-    thunkApi.dispatch(
+    dispatch(
       updateDialogTitle({
         dialogId,
         cybotConfig,
-      }),
+      })
     );
-
+  } catch (error) {
+    if (error.name === "AbortError") {
+      console.log("Fetch aborted");
+    } else {
+      console.error("Request failed:", error);
+      // 其他类型的错误处理
+    }
+  } finally {
+    // 确保在任何情况下 reader 都能被释放
     if (reader) {
       reader.releaseLock();
     }
