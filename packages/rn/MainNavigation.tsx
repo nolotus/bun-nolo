@@ -22,15 +22,15 @@ const Stack = createNativeStackNavigator();
 // 用户相关的堆栈导航
 function UserStack() {
   return (
-    <Stack.Navigator 
-      screenOptions={{ 
+    <Stack.Navigator
+      screenOptions={{
         headerShown: false,  // UserMain 和 Profile 不显示头部
       }}
     >
       <Stack.Screen name="UserMain" component={UserScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Statistics" component={AccountStatisticsScreen} />
-       
+
     </Stack.Navigator>
   );
 }
@@ -39,7 +39,7 @@ function UserStack() {
 // 主标签导航
 function HomeTabs() {
   const mainColor = useSelector((state) => state.theme.mainColor);
-  
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -111,10 +111,10 @@ function MainNavigation() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={HomeTabs} />
         <Stack.Screen name="DialogDetail" component={DialogDetail} />
-        <Stack.Screen 
-          name="Auth" 
+        <Stack.Screen
+          name="Auth"
           component={AuthStackNavigator}
-          options={{ 
+          options={{
             headerShown: false,
             presentation: 'modal' // 可选，使其以模态方式呈现
           }}
