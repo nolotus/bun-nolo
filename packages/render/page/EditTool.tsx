@@ -1,12 +1,11 @@
 import React, { useCallback } from "react";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/hooks";
 import { deleteData } from "database/dbSlice";
-import { setSaveAsTemplate } from "./pageSlice";
 
 
 // web imports
 import toast from "react-hot-toast";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
   CheckIcon,
@@ -15,8 +14,6 @@ import {
   CommentDiscussionIcon,
 } from "@primer/octicons-react";
 import Button from "web/ui/Button";
-import ToggleSwitch from "web/form/ToggleSwitch";
-import { animations } from "render/styles/animations";
 
 const styles = {
   container: {
@@ -24,22 +21,8 @@ const styles = {
     alignItems: "center",
     padding: "4px",
     gap: "8px",
-  },
-  templateSwitch: {
-    display: "flex",
-    alignItems: "center",
-    padding: "4px 12px",
-    borderRadius: "8px",
-    backgroundColor: "rgba(242, 243, 244, 0.45)",
-    backdropFilter: "blur(8px)",
-    transition: `all ${animations.duration.fast} ${animations.spring}`,
-  },
-  templateLabel: {
-    fontSize: "14px",
-    color: "rgba(102, 102, 102, 0.9)",
-    marginRight: "8px",
-    userSelect: "none",
   }
+
 } as const;
 
 interface EditToolProps {
@@ -58,11 +41,6 @@ export const EditTool: React.FC<EditToolProps> = ({
   const dispatch = useAppDispatch();
   const [isDeleting, setDeleting] = React.useState(false);
 
-  const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
-
-  const handleToggleTemplateChange = useCallback((value: boolean) => {
-    dispatch(setSaveAsTemplate(value));
-  }, [dispatch]);
 
   const handleDelete = useCallback(async () => {
     if (!pageId) return;
@@ -88,16 +66,6 @@ export const EditTool: React.FC<EditToolProps> = ({
 
   return (
     <div style={styles.container}>
-      <div style={styles.templateSwitch}>
-        <span style={styles.templateLabel}>
-          按模板保存
-        </span>
-        <ToggleSwitch
-          checked={saveAsTemplate}
-          onChange={handleToggleTemplateChange}
-        />
-      </div>
-
       {/* 保存按钮 */}
       <Button
         variant="primary"

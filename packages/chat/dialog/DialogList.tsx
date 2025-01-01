@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
 import { useAuth } from "auth/useAuth";
 import { extractUserId } from "core/prefix";
-import OpenProps from "open-props";
 import { useSelector } from "react-redux";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
@@ -51,7 +49,7 @@ export const DialogList = ({ dialogList }) => {
       display: "flex",
 
       flexDirection: "column",
-      gap: OpenProps.size2,
+      gap: ".5rem",
     },
     groupContainer: {
       marginBottom: "24px",

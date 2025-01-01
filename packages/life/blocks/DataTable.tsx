@@ -167,7 +167,6 @@ export const DataTable: React.FC<DataTableProps> = ({
   pullData,
 }) => {
   const dispatch = useAppDispatch();
-
   const config =
     type && type in renderConfigs ? renderConfigs[type] : defaultConfig;
 

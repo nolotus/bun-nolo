@@ -23,7 +23,6 @@ const queryTopTenCollectors = async () => {
     isJSON: true,
     condition: {
       type: DataType.SurfSpot,
-      is_template: false,
     },
   });
   const collectors = result.map((item) => {

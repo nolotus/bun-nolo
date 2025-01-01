@@ -10,7 +10,6 @@ import {
 	CommentIcon,
 	DependabotIcon,
 	FileAddedIcon,
-	LocationIcon,
 	PlusIcon,
 } from "@primer/octicons-react";
 import Cybots from "ai/cybot/web/Cybots";
@@ -38,6 +37,11 @@ export const CreateMenu = () => {
 
 	const buttonItems = [
 		{
+			tooltip: "新建对话",
+			icon: <CommentIcon size={16} />,
+			onClick: openAIsModal,
+		},
+		{
 			tooltip: "新建页面",
 			icon: <FileAddedIcon size={16} />,
 			path: `/${CreateRoutePaths.CREATE_PAGE}`,
@@ -47,16 +51,7 @@ export const CreateMenu = () => {
 			icon: <DependabotIcon size={16} />,
 			path: `/${CreateRoutePaths.CREATE_CYBOT}`,
 		},
-		{
-			tooltip: "添加地点",
-			icon: <LocationIcon size={16} />,
-			path: `/${CreateRoutePaths.CREATE_PAGE}?id=000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-M0fHLuYH8TACclIi9dsWF`,
-		},
-		{
-			tooltip: "新建对话",
-			icon: <CommentIcon size={16} />,
-			onClick: openAIsModal,
-		},
+
 	];
 
 	const { x, y, strategy, refs, context } = useFloating({
