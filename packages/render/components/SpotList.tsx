@@ -1,7 +1,6 @@
 import { SpotCard } from "render/components/SpotCard";
 import { useQueryData } from "app/hooks/useQueryData";
 import { DataType } from "create/types";
-import React from "react";
 
 export const SpotList = ({ userId }) => {
   const queryConfig = {
@@ -72,9 +71,7 @@ export const SpotList = ({ userId }) => {
         </div>
       ) : (
         <div className="spots-container">
-          {data
-            ?.filter((spot) => !spot.is_template)
-            .map((spot) => <SpotCard key={spot.id} data={spot} />)}
+          {data.map((spot) => <SpotCard key={spot.id} data={spot} />)}
           {data?.length === 0 && (
             <div className="empty-state">
               <p>暂无冲浪点</p>

@@ -2,19 +2,9 @@
 	"name": "render",
 	"module": "index.ts",
 	"type": "module",
-	"devDependencies": {
-		"bun-types": "latest"
-	},
-	"peerDependencies": {
-		"typescript": "^5.0.0"
-	},
 	"dependencies": {
 		"app": "workspace:app",
 		"database": "workspace:database",
-		"react-json-view-lite": "^1.2.1",
-		"react-use": "^17.5.0",
-		"unified": "^11.0.4",
-		"unist-util-visit": "^5.0.0",
-		"yaml": "^2.3.4"
+		"react-json-view-lite": "^1.2.1"
 	}
 }

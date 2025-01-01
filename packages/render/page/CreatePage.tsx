@@ -1,40 +1,24 @@
-import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/useAuth";
-import React, { useEffect } from "react";
-import OpenProps from "open-props";
-
-
-
+import { useTheme } from "app/theme";
 
 // web imports
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Button from "web/ui/Button";
-import ToggleSwitch from "web/form/ToggleSwitch";
 import Editor from "create/editor/Editor";
 
-import { createPageData } from "./pageDataUtils";
-import {
-  updateContent,
-  setSaveAsTemplate,
-  initPageFromTemplate,
-} from "./pageSlice";
-import { processContent } from "./processContent";
 
 const CreatePage = () => {
-  const [searchParams] = useSearchParams();
-  const templateId = searchParams.get("id");
+  const theme = useTheme();
 
-  const { data, isLoading, error } = useFetchData(templateId);
   const dispatch = useAppDispatch();
-  const saveAsTemplate = useAppSelector((state) => state.page.saveAsTemplate);
   const auth = useAuth();
-  const userId = auth.user?.userId;
   const pageState = useAppSelector((state) => state.page);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    data && dispatch(initPageFromTemplate(data));
-  }, [data]);
+  const handleSave = () => {
+    console.log('test')
+  }
 
   const save = async (pageData) => {
     try {
@@ -56,51 +40,85 @@ const CreatePage = () => {
     }
   };
 
-  //保存之前检查输入区内容
-  const handleSave = async () => {
-    return;
-    let updatedPageState = createPageData(pageState, userId);
-    save(updatedPageState);
-  };
 
-  const handleToggleTemplateChange = (value: boolean) => {
-    dispatch(setSaveAsTemplate(value));
-  };
-
-  const handleContentChange = (changeValue: string) => {
-    const { content, metaUpdates } = processContent(changeValue);
-
-    dispatch(updateContent({ content, metaUpdates }));
-  };
   return (
-    <div className="flex min-h-screen flex-row">
-      <div className="container mx-auto flex flex-grow">
-        <div className="w-full flex-shrink-0">
-          <div className="flex w-full flex-col">
-            <Editor initialValue={[]} />
+    <>
+      <style>
+        {`
+          .create-page {
+            display: flex;
+            min-height: 100vh;
+            background-color: ${theme.background};
+          }
+
+          .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+          }
+
+          .editor-wrapper {
+            width: 100%;
+            max-width: 1200px;
+          }
+
+          .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .sidebar {
+            width: 280px;
+            padding: 24px;
+            background-color: ${theme.backgroundSecondary};
+            border-left: 1px solid ${theme.border};
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+          }
+
+
+          .timestamp {
+            color: ${theme.textSecondary};
+            font-size: 14px;
+          }
+
+
+          @media (max-width: 768px) {
+            .create-page {
+              flex-direction: column;
+            }
+            
+            .sidebar {
+              width: 100%;
+              border-left: none;
+              border-top: 1px solid ${theme.border};
+            }
+          }
+        `}
+      </style>
+
+
+      <div className="create-page">
+        <div className="main-content">
+          <div className="editor-wrapper">
+            <div className="editor-container">
+              <Editor initialValue={[]} />
+            </div>
           </div>
         </div>
-      </div>
-      <div className="mx-auto  items-center">
-        {pageState.createdTime}
 
-        <div
-          style={{
-            display: "flex",
-            gap: OpenProps.sizeFluid1,
-            alignItems: "center",
-          }}
-        >
-          <span>按模板保存</span>
-          <ToggleSwitch
-            defaultChecked={saveAsTemplate}
-            onChange={handleToggleTemplateChange}
-          />
+
+        <div className="sidebar">
+          <div className="timestamp">{pageState.createdTime}</div>
+          <Button onClick={handleSave}>Save</Button>
         </div>
-        <Button onClick={handleSave}>Save</Button>
       </div>
-    </div>
+    </>
   );
 };
+
 
 export default CreatePage;
