@@ -1,6 +1,8 @@
+import { CreateRoutePaths } from "./routePaths";
+
+//web imports
 import CreateCybot from "ai/cybot/CreateCybot";
 import { createLazyRoute } from "web/createLazyRoute";
-import { CreateRoutePaths } from "./routePaths";
 
 export const createRoutes = [
   createLazyRoute(CreateRoutePaths.CREATE, () => import("./Dashboard")),
@@ -8,7 +10,6 @@ export const createRoutes = [
     CreateRoutePaths.CREATE_PAGE,
     () => import("render/page/CreatePage"),
   ),
-
   {
     path: CreateRoutePaths.CREATE_CYBOT,
     element: <CreateCybot />,

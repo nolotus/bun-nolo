@@ -2,7 +2,6 @@ import GaodeMap from "render/map/GaodeMap";
 import { APILoader } from "@uiw/react-amap";
 //be careful APILoader can't in entry or Map file, you could try will debug
 
-import OpenProps from "open-props";
 import { WeatherRelate } from "./WeatherRelate";
 import Card from "./Card";
 // 定义SurfSpotDescription组件的props类型
@@ -14,7 +13,6 @@ interface SurfSpotDescriptionProps {
 import { ShareIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
 import { PageLoader } from "../../blocks/PageLoader";
-import { sizes } from "../../styles/sizes";
 
 const SurfSpotDescription = ({
   title,
@@ -50,7 +48,7 @@ const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
   if (data) {
     const { title, lat, lng } = data;
     return (
-      <div style={{ marginTop: OpenProps.sizeFluid2 }}>
+      <div style={{ marginTop: "clamp(1rem, 2vw, 1.5rem)" }}>
         <div style={{ display: "flex" }}>
           <div style={{ width: "45%", marginRight: "10%" }}>
             <SurfSpotDescription title={title} description={"need update"} />
@@ -59,7 +57,7 @@ const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
           <div style={{ width: "45%" }}>
             <div
               className="surface2 h-64 overflow-hidden"
-              style={{ marginBottom: sizes.sizeFluid2 }}
+              style={{ marginBottom: "clamp(1rem, 2vw, 1.5rem)" }}
             >
               <APILoader
                 version="2.0.5"

@@ -10,7 +10,6 @@ import Editor from "create/editor/Editor";
 import { layout } from "../styles/layout";
 import { updateSlate } from "./pageSlice";
 import { EditTool } from "./EditTool";
-import { sizes } from "../styles/sizes";
 
 const EditPage = () => {
   const dispatch = useAppDispatch();
@@ -73,8 +72,8 @@ const EditPage = () => {
         <div
           style={{
             ...layout.flexEnd,
-            paddingLeft: sizes.size2,
-            paddingRight: sizes.size2,
+            paddingLeft: ".5rem",
+            paddingRight: ".5rem",
             backgroundColor: "#ffffff",
             borderBottom: "1px solid rgba(0,0,0,0.03)",
             transition: `all ${animations.duration.fast} ${animations.spring}`,
@@ -90,7 +89,7 @@ const EditPage = () => {
           style={{
             ...layout.flexGrow1,
             ...layout.overflowYAuto,
-            padding: sizes.size3,
+            padding: '1rem',
           }}
         >
           <div
@@ -99,7 +98,7 @@ const EditPage = () => {
               margin: "0 auto",
               minHeight: "calc(100vh - 200px)",
               backgroundColor: "#ffffff",
-              padding: sizes.size2,
+              padding: ".5rem",
             }}
           >
             <Editor initialValue={slateData} onChange={handleContentChange} />

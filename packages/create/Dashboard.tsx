@@ -2,19 +2,16 @@ import {
   CommentIcon,
   DependabotIcon,
   FileAddedIcon,
-  FileIcon,
   PeopleIcon,
   SearchIcon,
 } from "@primer/octicons-react";
 import Cybots from "ai/cybot/web/Cybots";
 import { useAppSelector } from "app/hooks";
-import { useQueryData } from "app/hooks/useQueryData";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { nolotusId } from "core/init";
 import { CreateRoutePaths } from "create/routePaths";
 
-import { useMemo } from "react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,7 +22,7 @@ const Dashboard = () => {
   const theme = useAppSelector(selectTheme)
   const userId = useAppSelector(selectCurrentUserId);
 
-  const buttonsInfo = useMemo(() => [
+  const buttonsInfo = () => [
     {
       text: "Cybot",
       route: `/${CreateRoutePaths.CREATE_CYBOT}`,
@@ -44,23 +41,7 @@ const Dashboard = () => {
       icon: <CommentIcon size={24} />,
       description: "管理和创建提示词模板",
     },
-  ]);
-  const { data: templates } = useQueryData({
-    queryUserId: nolotusId,
-    options: {
-      isJSON: true,
-      condition: { is_template: true },
-      limit: 20,
-    },
-  });
-
-  const templateButtons =
-    templates?.map((template) => ({
-      text: template.title,
-      route: `/create/page?id=${template.id}`,
-      description: template.description || "使用此模板快速开始",
-      icon: <FileIcon size={20} />,
-    })) ?? [];
+  ]
 
   return (
     <>
@@ -197,35 +178,6 @@ const Dashboard = () => {
             ))}
           </div>
         </section>
-
-        <section>
-          <h2 className="section-title">
-            <FileIcon size={22} className="icon" />
-            从模板创建
-          </h2>
-          <div className="button-grid">
-            {templateButtons.map((button) => (
-              <button
-                key={button.text}
-                className="grid-button"
-                onClick={() => navigate(button.route)}
-              >
-                <div className="button-content">
-                  {React.cloneElement(button.icon as React.ReactElement, {
-                    className: "button-icon",
-                  })}
-                  <div className="button-text">
-                    <div className="button-title">{button.text}</div>
-                    <div className="button-description">
-                      {button.description}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
         <section>
           <h2 className="section-title">
             <PeopleIcon size={22} className="icon" />
