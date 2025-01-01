@@ -8,7 +8,7 @@ import { DataType } from "create/types";
 import { omit } from "rambda";
 import DataDisplay from "../blocks/DataDisplay";
 
-const filteredDataType = omit(["Dialog", "Cybot"], DataType);
+const filteredDataType = omit([DataType.Dialog, DataType.Cybot, DataType.Space], DataType);
 
 const typeArray = ["All", ...Object.values(filteredDataType)];
 

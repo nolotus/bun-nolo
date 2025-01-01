@@ -5,7 +5,6 @@ import { selectIsLoggedIn } from "auth/authSlice";
 
 export const readAction = async ({ id }, thunkApi) => {
   const state = thunkApi.getState();
-  const dispatch = thunkApi.dispatch;
   const isLoggedIn = selectIsLoggedIn(state);
 
   const token = state.auth.currentToken;
