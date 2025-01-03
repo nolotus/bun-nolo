@@ -8,24 +8,52 @@ import * as RNLocalize from "react-native-localize";
 import { Provider } from "react-redux";
 import MainNavigation from "./MainNavigation";
 import { mobileStore } from "./store";
+import { setDarkMode } from "app/theme/themeSlice";
+import { getTokensFromStorage } from "auth/rn/tokenStorage";
+import { initAuth } from "auth/authSlice";
+import { useAppDispatch } from "app/hooks";
+import { useEffect } from "react";
 
 global._ISRN_ = true;
+
 function App(): React.JSX.Element {
+  const dispatch = useAppDispatch();
   const isDarkMode = useColorScheme() === "dark";
-  const systemLanguage = RNLocalize.getLocales()[0].languageCode;
 
-  i18n.changeLanguage(systemLanguage);
+  useEffect(() => {
+    const systemLanguage = RNLocalize.getLocales()[0].languageCode;
+    i18n.changeLanguage(systemLanguage);
+  }, []);
 
-
+  const init = async () => {
+    // dispatch(setTheme(theme));
+    const tokens = await getTokensFromStorage();
+    setDarkMode(isDarkMode);
+    if (tokens) {
+      await dispatch(initAuth(tokens));
+    }
+  };
+  useEffect(() => {
+    init();
+  }, []);
   return (
-    <Provider store={mobileStore}>
+    <>
       <StatusBar
         barStyle={isDarkMode ? "light-content" : "dark-content"}
         backgroundColor={"#fff"}
       />
       <MainNavigation />
-    </Provider>
+    </>
+
   );
 }
 
-export default App;
+
+const AppWrapper = () => (
+  <Provider store={mobileStore}>
+    <App />
+  </Provider>
+);
+
+
+export default AppWrapper;

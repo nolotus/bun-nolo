@@ -8,25 +8,29 @@ export function base64UrlEncode(inputStr: string): string {
 }
 
 export function base64UrlDecode(base64Url: string | undefined): string | null {
+  console.log("Input base64Url:", base64Url);
+
   if (!base64Url) {
+    console.log("base64Url is empty");
     return null;
   }
 
   try {
     let paddedBase64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    console.log("After replace:", paddedBase64);
+
     while (paddedBase64.length % 4) {
       paddedBase64 += "=";
     }
+    console.log("After padding:", paddedBase64);
+
     const decodedString = Base64.atob(paddedBase64);
-    const uint8Array = new Uint8Array(decodedString.length);
+    console.log("After atob:", decodedString);
 
-    for (let i = 0; i < decodedString.length; i++) {
-      uint8Array[i] = decodedString.charCodeAt(i);
-    }
-
-    const decodedUtf8String = new TextDecoder().decode(uint8Array);
-    return decodedUtf8String;
+    // 直接返回decodedString，因为atob已经解码成可读字符串了
+    return decodedString;
   } catch (error) {
+    console.error("Error in base64UrlDecode:", error);
     throw error;
   }
 }

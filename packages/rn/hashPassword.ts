@@ -11,6 +11,5 @@ export const rnHashpasswordV1 = (password) => {
   );
 
   const result = buf.toString("base64");
-  console.log("rnHashpasswrod", result);
   return result;
 };

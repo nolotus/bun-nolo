@@ -1,5 +1,5 @@
 import { UploadIcon } from "@primer/octicons-react";
-import { retrieveFirstToken } from "auth/client/token";
+import { retrieveFirstToken } from "auth/web/token";
 import { useAuth } from "auth/useAuth";
 import { setKeyPrefix } from "core/prefix";
 import { generateFileID } from "database/fileUpload/generateFileID";

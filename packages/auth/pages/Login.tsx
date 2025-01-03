@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
-import { storeTokens } from "auth/client/token";
+import { storeTokens } from "auth/web/token";
 import { hashedPasswordV0, hashPasswordV1 } from "core/password";
 import type React from "react";
 import { useState } from "react";
@@ -53,7 +53,6 @@ const Login: React.FC = () => {
 				await hashPasswordV1(password);
 
 			const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
-			console.log(action)
 			if (action.payload.token) {
 				storeTokens(action.payload.token);
 				//maybe dashboard

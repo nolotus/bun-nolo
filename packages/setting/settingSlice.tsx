@@ -3,6 +3,8 @@ import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { read } from "database/dbSlice";
 import { generateCustomId } from "core/generateMainKey";
 import { selectCurrentUserId } from "auth/authSlice";
+import { isProduction } from "utils/env";
+console.log('isProduction', isProduction)
 
 interface SettingState {
   syncSetting: {
@@ -16,7 +18,7 @@ interface SettingState {
 const initialState: SettingState = {
   syncSetting: {
     isAutoSync: false,
-    currentServer: "https://nolotus.com",
+    currentServer: isProduction ? "https://cybot.one" : "https://cybot.run",
     officialServers: ["https://nolotus.com", "https://us.nolotus.com"],
     syncServers: ["https://nolotus.com", "https://us.nolotus.com"],
     thirdPartyServers: ["https://thirdparty.server.com"],

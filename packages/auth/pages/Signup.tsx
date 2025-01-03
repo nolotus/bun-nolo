@@ -1,18 +1,19 @@
+//common
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
 import { signUp } from "auth/authSlice";
-import { storeTokens } from "auth/client/token";
-import { hashPasswordV1 } from "core/password";
 import type React from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { NavLink, useNavigate } from "react-router-dom";
 import z from "zod";
 
 //web imports
+import { storeTokens } from "auth/web/token";
+import { hashPasswordV1 } from "core/password";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Input } from "web/form/Input";
 import PasswordInput from "web/form/PasswordInput";
 import Button from "web/ui/Button";

@@ -15,6 +15,15 @@ export const generateHash = (data: string) => {
   return uint8ArrayToBase64Url(bytes);
 };
 
+export const generateKeyPairFromSeedV1 = (seedData: string) => {
+  const seed = generateHash(seedData);
+  const keyPair = nacl.sign.keyPair.fromSeed(base64UrlToUint8Array(seed));
+  return {
+    publicKey: uint8ArrayToBase64Url(keyPair.publicKey),
+    secretKey: uint8ArrayToBase64Url(keyPair.secretKey),
+  };
+};
+
 export const generateKeyPairFromSeed = (seedData: string) => {
   const seed = generateHash(seedData);
   const keyPair = nacl.sign.keyPair.fromSeed(base64UrlToUint8Array(seed));
@@ -51,19 +60,38 @@ export const signMessage = (
  * @returns {string} - 解码后的消息
  * @throws {Error} - 当解码失败时抛出异常
  */
+
 export const verifySignedMessage = (
   signedMessageBase64: string,
   publicKeyBase64: string
 ): string => {
-  const signedMessage: Uint8Array = toUint8Array(signedMessageBase64);
-  const message: Uint8Array | null = nacl.sign.open(
-    signedMessage,
-    toUint8Array(publicKeyBase64)
+  console.log(
+    `Verifying signed message, length: ${signedMessageBase64.length}`
   );
-  if (message == null) {
-    throw new Error("Decoding failed, message is null");
+
+  const signedMessage: Uint8Array = toUint8Array(signedMessageBase64);
+  console.log(`Converted to Uint8Array, length: ${signedMessage.length}`);
+
+  try {
+    const message: Uint8Array | null = nacl.sign.open(
+      signedMessage,
+      toUint8Array(publicKeyBase64)
+    );
+
+    if (message == null) {
+      console.error("Message verification failed: decoded message is null");
+      throw new Error("Decoding failed, message is null");
+    }
+
+    // 使用 String.fromCharCode 替代 TextDecoder
+    const decodedMessage = String.fromCharCode.apply(null, message);
+    console.log("Message verified successfully");
+
+    return decodedMessage;
+  } catch (error) {
+    console.error("Error verifying message:", error);
+    throw error;
   }
-  return new TextDecoder().decode(message);
 };
 
 export const detachedSign = (message, secretKeyBase64Url) => {
