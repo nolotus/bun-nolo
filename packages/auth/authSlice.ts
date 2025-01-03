@@ -1,7 +1,7 @@
 import { PayloadAction } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
-import { generateUserId } from "core/generateMainKey";
+import { generateUserId, generateUserIdV1 } from "core/generateMainKey";
 import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
 import { API_VERSION } from "database/config";
@@ -42,15 +42,24 @@ export const authSlice = createSliceWithThunks({
       async (input, thunkAPI) => {
         const state = thunkAPI.getState();
         try {
-          const { username, encryptionKey, locale } = input;
+          const { username, encryptionKey, locale, version } = input;
+          console.log("version", version);
           const { publicKey, secretKey } = generateKeyPairFromSeed(
             username + encryptionKey + locale
           );
-          const userId = generateUserId(publicKey, username, locale);
+          let userId;
+          if (version === "v0") {
+            userId = generateUserId(publicKey, username, locale);
+          } else if (version === "v1") {
+            userId = generateUserIdV1(publicKey, username, locale);
+          }
           const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
-
-          const res = await loginRequest(currentServer, { userId, token });
+          const res = await loginRequest(currentServer, {
+            userId,
+            token,
+            version,
+          });
           if (res.status === 200) {
             const result = await res.json();
             return { token: result.token };
@@ -117,7 +126,7 @@ export const authSlice = createSliceWithThunks({
         });
 
         const { encryptedData } = await res.json();
-
+        console.log("encryptedData", encryptedData);
         const decryptedData = await verifySignedMessage(
           encryptedData,
           nolotusPubKey
@@ -125,7 +134,7 @@ export const authSlice = createSliceWithThunks({
 
         const remoteData = JSON.parse(decryptedData);
 
-        const localUserId = generateUserId(publicKey, username, locale);
+        const localUserId = generateUserIdV1(publicKey, username, locale);
 
         if (
           remoteData.username === sendData.username &&

@@ -10,8 +10,10 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { signIn } from "../authSlice";
 import z from "zod";
+
+
 import { LockIcon, PersonIcon } from "@primer/octicons-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Checkbox } from "web/form/Checkbox";
 import { Input } from "web/form/Input";
 import Button from "web/ui/Button";
@@ -19,6 +21,7 @@ import PasswordInput from "web/form/PasswordInput";
 import { RoutePaths } from "../client/routes";
 
 const Login: React.FC = () => {
+	const navigate = useNavigate();
 	const theme = useTheme();
 	const { isLoading } = useSelector((state) => state.auth);
 	const dispatch = useAppDispatch();
@@ -50,10 +53,11 @@ const Login: React.FC = () => {
 				await hashPasswordV1(password);
 
 			const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
-
+			console.log(action)
 			if (action.payload.token) {
 				storeTokens(action.payload.token);
-				window.location.href = "/";
+				//maybe dashboard
+				navigate('/')
 				return;
 			}
 
