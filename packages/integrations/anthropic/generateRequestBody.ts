@@ -4,8 +4,6 @@ import { pickMessages } from "ai/api/pickMessages";
 
 export function generateRequestBody(cybotConfig, content, prevMsgs) {
   const model = cybotConfig.model;
-  console.log("prevMsgs", prevMsgs);
-  console.log("cybotConfig", cybotConfig);
   const messages = [
     ...(prevMsgs || []),
     {

@@ -14,7 +14,7 @@ export const generateIdWithHashId = (userId, data, flags) => {
 export const generateIdWithCustomId = (
   userId: string,
   customId: string,
-  flags: object,
+  flags: object
 ) => {
   const idPrefix = setKeyPrefix(flags);
   return `${idPrefix}-${userId}-${customId}`;
@@ -22,12 +22,12 @@ export const generateIdWithCustomId = (
 export function generateCustomId(
   userId: string,
   customId: string,
-  flags?: Flags,
+  flags?: Flags
 ) {
   return generateIdWithCustomId(
     userId,
     customId,
-    flags ? flags : { isJSON: true },
+    flags ? flags : { isJSON: true }
   );
 }
 
@@ -35,7 +35,7 @@ export const generateKey = (
   data,
   userId: string,
   flags: Flags,
-  customId: string,
+  customId: string
 ) => {
   flags.isHash = !customId;
   return customId
@@ -47,7 +47,7 @@ export const generateUserId = (
   publicKey: string,
   username: string,
   language: string,
-  extra: string = "",
+  extra: string = ""
 ) => {
   try {
     const text = publicKey + username + language + extra;

@@ -29,68 +29,6 @@ const Signup: React.FC = () => {
 		password: z.string().nonempty({ message: t("passwordRequired") || "" }),
 	});
 
-	const signupStyles = `
-    .signup-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: calc(100dvh - 60px);
-      padding: 20px;
-    }
-    
-    .signup-form {
-      width: 100%;
-      max-width: 380px;
-    }
-    
-    .signup-title {
-      font-size: 24px;
-      font-weight: 600;
-      color: ${theme.text};
-      margin-bottom: 36px;
-      text-align: center;
-    }
-    
-    .field-group {
-      margin-bottom: 20px;
-    }
-    
-    .error-message {
-      font-size: 14px;
-      color: ${theme.error};
-      margin-top: 6px;
-    }
-    
-    .form-footer {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      align-items: center;
-      margin-top: 24px;
-    }
-    
-    .login-section {
-      text-align: center;
-    }
-    
-    .link-text {
-      color: ${theme.textSecondary};
-      font-size: 14px;
-    }
-    
-    .login-link {
-      color: ${theme.primary};
-      text-decoration: none;
-      font-size: 14px;
-      margin-left: 4px;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-    
-    .login-link:hover {
-      color: ${theme.primaryLight};
-    }
-  `;
 
 
 	const {
@@ -138,7 +76,123 @@ const Signup: React.FC = () => {
 
 	return (
 		<div className="signup-container">
-			<style>{signupStyles}</style>
+			<style>{`
+  .signup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100dvh - 60px);
+    padding: 24px;
+  }
+  
+  .signup-form {
+    width: 100%;
+    max-width: 380px;
+  }
+  
+  .signup-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: ${theme.text};
+    margin-bottom: 48px;
+    text-align: center;
+    letter-spacing: -0.5px;
+  }
+  
+  .field-group {
+    margin-bottom: 28px;
+  }
+  
+  .error-message {
+    font-size: 14px;
+    color: ${theme.error};
+    margin-top: 8px;
+  }
+  
+  .remember-forgot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+
+  .forgot-password {
+    color: ${theme.primary};
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .forgot-password:hover {
+    color: ${theme.primaryLight};
+  }
+
+  .form-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    align-items: center;
+  }
+  
+  .login-section {
+    text-align: center;
+  }
+  
+  .link-text {
+    color: ${theme.textSecondary};
+    font-size: 15px;
+  }
+  
+  .login-link {
+    color: ${theme.primary};
+    text-decoration: none;
+    font-size: 15px;
+    margin-left: 6px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  
+  .login-link:hover {
+    color: ${theme.primaryLight};
+  }
+
+  /* 响应式设计 */
+  @media (min-width: 768px) {
+    .signup-form {
+      max-width: 420px;
+    }
+
+    .signup-title {
+      font-size: 36px;
+      margin-bottom: 56px;
+    }
+
+    .field-group {
+      margin-bottom: 32px;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .signup-form {
+      max-width: 460px;
+    }
+
+    .signup-title {
+      font-size: 40px;
+      margin-bottom: 64px;
+    }
+
+    .field-group {
+      margin-bottom: 36px;
+    }
+
+    .form-footer {
+      gap: 40px;
+    }
+  }
+`}</style>
+
 			<form onSubmit={handleSubmit(onSubmit)} className="signup-form">
 				<h1 className="signup-title">{t("signup")}</h1>
 
