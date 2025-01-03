@@ -5,8 +5,12 @@ import { NavLink } from "react-router-dom";
 import { SpotList } from "render/components/SpotList";
 import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
+import { hashPasswordV1 } from "core/password";
 
 const Home = () => {
+  const result = hashPasswordV1('password').then((result) => {
+    console.log(result);
+  });
   const theme = useAppSelector(selectTheme)
   const features = [
     {

@@ -7,7 +7,6 @@ import { signIn } from "../authSlice";
 import { useForm, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 // import argon2 from "@sphereon/react-native-argon2";
-import { SALT } from "core/config";
 // const hashPassword = async (password: string) => {
 //   console.log("argon2", argon2);
 //   const result = await argon2(password, SALT, {

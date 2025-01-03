@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
 import { storeTokens } from "auth/client/token";
-import { hashPassword } from "core/password";
+import { hashedPasswordV0, hashPasswordV1 } from "core/password";
 import type React from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -18,6 +18,7 @@ import { Checkbox } from "web/form/Checkbox";
 import { Input } from "web/form/Input";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
+import { RoutePaths } from "../client/routes";
 
 
 const Login: React.FC = () => {
@@ -176,7 +177,9 @@ const Login: React.FC = () => {
 		try {
 			const locale = navigator.language;
 			const { password } = data;
-			const encryptionKey = await hashPassword(password);
+			// const encryptionKey = await hashPasswordV1(password);
+			//if v1 
+			const encryptionKey = await hashedPasswordV0(password);
 			const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
 
 
@@ -279,10 +282,11 @@ const Login: React.FC = () => {
 
 					<div className="signup-section">
 						<span className="link-text">{t("noAccount")}</span>
-						<NavLink to="/signup" className="signup-link">
+						<NavLink to={RoutePaths.INVITE_SIGNUP} className="signup-link">
 							{t("signUpNow")}
 						</NavLink>
 					</div>
+
 				</div>
 			</form>
 		</div>

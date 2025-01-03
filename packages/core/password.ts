@@ -1,8 +1,19 @@
 import { Argon2, Argon2Mode } from "@sphereon/isomorphic-argon2";
 import CryptoJS from "crypto-js";
-import { SALT } from "core/config";
+import { SALT, AUTH_VERSION } from "core/config";
 
-export const hashPassword = async (password: string) => {
+export const hashPasswordV1 = async (password: string): Promise<string> => {
+  const hash = CryptoJS.PBKDF2(password, SALT, {
+    keySize: 256 / AUTH_VERSION[1].keylen,
+    iterations: AUTH_VERSION[1].iterations,
+    hasher: CryptoJS.algo.SHA512,
+  });
+
+  // 将 salt 和 hash 组合存储
+  return hash.toString(CryptoJS.enc.Base64);
+};
+
+export const hashedPasswordV0 = async (password: string) => {
   const hashedPassword = await Argon2.hash(password, SALT, {
     hashLength: 32,
     memory: 1024,
