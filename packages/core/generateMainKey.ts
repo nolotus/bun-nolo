@@ -1,5 +1,6 @@
 import { getLogger } from "utils/logger";
 import { Base64 } from "js-base64";
+import { SHA1 } from "crypto-js";
 import { generateHash } from "./crypto";
 import { Flags, setKeyPrefix } from "./prefix";
 
@@ -43,6 +44,17 @@ export const generateKey = (
     : generateIdWithHashId(userId, data, flags);
 };
 
+export const generateUserIdV1 = (
+  publicKey: string,
+  username: string,
+  language: string,
+  extra: string = ""
+) => {
+  const text = publicKey + username + language + extra;
+  const hash = SHA1(text).toString();
+  return hash.slice(0, 10);
+};
+
 export const generateUserId = (
   publicKey: string,
   username: string,
@@ -51,9 +63,9 @@ export const generateUserId = (
 ) => {
   try {
     const text = publicKey + username + language + extra;
-    cryptoLogger.info(`text: ${text}`);
+    console.log(`text: ${text}`);
     let userId = generateHash(text);
-    cryptoLogger.info("before Base64 userId:", { userId });
+    console.log("before Base64 userId:", { userId });
 
     // 使用Base64 URL编码
     userId = Base64.btoa(userId)
@@ -61,8 +73,8 @@ export const generateUserId = (
       .replace(/\//g, "_")
       .replace(/[=]+$/, "");
 
-    cryptoLogger.info("Successfully generated unique userId.");
-    cryptoLogger.info("userId:", { userId });
+    console.log("Successfully generated unique userId.");
+    console.log("userId:", { userId });
     return userId;
   } catch (error) {
     cryptoLogger.error("Error generating unique userId:", error);
