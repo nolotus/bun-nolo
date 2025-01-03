@@ -2,7 +2,6 @@ import { PayloadAction } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { generateUserId } from "core/generateMainKey";
-import { hashPasswordV1 } from "core/password";
 import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
 import { API_VERSION } from "database/config";
@@ -83,17 +82,11 @@ export const authSlice = createSliceWithThunks({
     ),
     signUp: create.asyncThunk(
       async (user, thunkAPI) => {
-        const { username, password: brainPassword, answer, locale } = user;
-        // Generate encryption key
-        // hashpassword maybe v1 v2 v3  will add
-        // const encryptionKey = await hashedPasswordV0(brainPassword);
-        const encryptionKey = hashPasswordV1(brainPassword);
-
-        // Generate public and private key pair based on the encryption key
+        //will add answer and change password
+        const { username, answer, locale, encryptionKey } = user;
         const { publicKey, secretKey } = generateKeyPairFromSeed(
           username + encryptionKey + locale
         );
-
         const sendData: SignupData = {
           username,
           publicKey,
@@ -116,6 +109,7 @@ export const authSlice = createSliceWithThunks({
 
         const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
         const state = thunkAPI.getState();
+
         const res = await noloRequest(state, {
           url: `${API_VERSION}/users/signup`,
           body: JSON.stringify(sendData),
@@ -130,7 +124,9 @@ export const authSlice = createSliceWithThunks({
         );
 
         const remoteData = JSON.parse(decryptedData);
+
         const localUserId = generateUserId(publicKey, username, locale);
+
         if (
           remoteData.username === sendData.username &&
           remoteData.publicKey === sendData.publicKey &&
@@ -146,7 +142,9 @@ export const authSlice = createSliceWithThunks({
             { userId: localUserId, username, exp, iat, nbf },
             secretKey
           );
+
           const user = parseToken(token);
+          console.log("user", user);
           const result = { user, token };
           return result;
         } else {
@@ -179,9 +177,13 @@ export const authSlice = createSliceWithThunks({
         const parsedUsers = tokens.map((token) => parseToken(token));
         const exists = parsedUsers.length > 0;
         if (exists) {
+          const user = parsedUsers[0];
+          console.log("initAuth", user);
+          //should check if token is valid
+          // such as exp
           dispatch(
             restoreSession({
-              user: parsedUsers[0],
+              user,
               users: parsedUsers,
               token: tokens[0],
             })
@@ -206,6 +208,7 @@ export const authSlice = createSliceWithThunks({
       const updatedUsers = state.users.filter(
         (user) => user !== state.currentUser
       );
+      //delete accout maybe delete next user
       const nextUser = updatedUsers.length > 0 ? updatedUsers[0] : null;
       state.isLoggedIn = false;
       state.currentUser = nextUser;

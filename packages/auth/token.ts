@@ -17,14 +17,14 @@ export const signToken = (payload: any, secretKeyBase64: string): string => {
 
 export const verifyToken = (
   token: string,
-  publicKeyBase64Url: string,
+  publicKeyBase64Url: string
 ): Record<string, any> | null => {
   const [payloadBase64Url, signatureBase64Url] = token.split(".");
 
   const isValid = verifyDetachedSignature(
     payloadBase64Url,
     signatureBase64Url,
-    publicKeyBase64Url,
+    publicKeyBase64Url
   );
 
   if (!isValid) {
