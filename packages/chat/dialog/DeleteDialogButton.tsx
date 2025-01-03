@@ -3,7 +3,7 @@ import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Alert, useDeleteAlert } from "render/ui/Alert";
+import { Alert, useDeleteAlert } from "web/ui/Alert";
 import { deleteCurrentDialog } from "./dialogSlice";
 
 const DeleteDialogButton = ({ dialogConfig }) => {

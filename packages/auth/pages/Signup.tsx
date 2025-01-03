@@ -18,7 +18,6 @@ import PasswordInput from "web/form/PasswordInput";
 import Button from "web/ui/Button";
 import { LockIcon, PersonIcon } from "@primer/octicons-react";
 
-
 const Signup: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -45,10 +44,9 @@ const Signup: React.FC = () => {
     try {
       const locale = navigator.language;
       const { password } = data;
-      // if v0
+
       const encryptionKey = await hashPasswordV1(password);
       const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
-
 
       if (action.payload.token) {
         storeTokens(action.payload.token);
@@ -242,7 +240,6 @@ const Signup: React.FC = () => {
           >
             {isLoading ? t("loading") : t("signup")}
           </Button>
-
 
           <div className="login-section">
             <span className="link-text">{t("haveAccount")}</span>
