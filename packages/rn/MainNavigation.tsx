@@ -15,7 +15,7 @@ import { AuthStackNavigator } from "auth/screens/AuthStackNavigator";
 import { UserScreen } from "auth/screens/UserScreen";
 import { ProfileScreen } from "chat/screens/ProfileScreen"; // 新增的个人中心页面
 import AccountStatisticsScreen from "chat/screens/AccountStatisticsScreen";// 新增的账户统计页面
-
+import { LevelDBTestScreen } from "database/screens/LevelDBTestScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -108,9 +108,14 @@ function HomeTabs() {
 function MainNavigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{}}>
         <Stack.Screen name="MainTabs" component={HomeTabs} />
         <Stack.Screen name="DialogDetail" component={DialogDetail} />
+        <Stack.Screen name="LevelDBTest" component={LevelDBTestScreen}
+          options={{
+            title: 'LevelDB 性能测试'
+          }}
+        />
         <Stack.Screen
           name="Auth"
           component={AuthStackNavigator}

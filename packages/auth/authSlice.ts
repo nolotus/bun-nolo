@@ -2,7 +2,7 @@ import { PayloadAction } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { generateUserId } from "core/generateMainKey";
-import { hashPassword } from "core/password";
+import { hashPasswordV1 } from "core/password";
 import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
 import { API_VERSION } from "database/config";
@@ -85,7 +85,9 @@ export const authSlice = createSliceWithThunks({
       async (user, thunkAPI) => {
         const { username, password: brainPassword, answer, locale } = user;
         // Generate encryption key
-        const encryptionKey = await hashPassword(brainPassword);
+        // hashpassword maybe v1 v2 v3  will add
+        // const encryptionKey = await hashedPasswordV0(brainPassword);
+        const encryptionKey = hashPasswordV1(brainPassword);
 
         // Generate public and private key pair based on the encryption key
         const { publicKey, secretKey } = generateKeyPairFromSeed(
