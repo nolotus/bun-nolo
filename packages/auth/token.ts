@@ -42,8 +42,12 @@ export const verifyToken = (
 
 export const parseToken = (token: string) => {
   try {
+    console.log("parseToken token", token);
     const [payloadBase64Url] = token.split(".");
+    console.log("parseToken payloadBase64Url", payloadBase64Url);
     const decodedPayload = base64UrlDecode(payloadBase64Url);
+    console.log("parseToken decodedPayload", payloadBase64Url);
+
     if (!decodedPayload) {
       return null;
     }

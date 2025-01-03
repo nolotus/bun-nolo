@@ -13,8 +13,8 @@ import DialogDetail from "chat/screens/DialogDetail";
 import Guide from "create/screens/Guide";
 import { AuthStackNavigator } from "auth/screens/AuthStackNavigator";
 import { UserScreen } from "auth/screens/UserScreen";
-import { ProfileScreen } from "chat/screens/ProfileScreen"; // 新增的个人中心页面
-import AccountStatisticsScreen from "chat/screens/AccountStatisticsScreen";// 新增的账户统计页面
+import { ProfileScreen } from "chat/screens/ProfileScreen";
+import AccountStatisticsScreen from "chat/screens/AccountStatisticsScreen";
 import { LevelDBTestScreen } from "database/screens/LevelDBTestScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();

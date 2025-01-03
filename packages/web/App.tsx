@@ -12,7 +12,7 @@ import { addHostToCurrentServer } from "setting/settingSlice";
 // // import { generatorRoutes } from "./generatorRoutes";
 
 import { setDarkMode, setTheme } from "app/theme/themeSlice";
-import { getTokensFromLocalStorage } from "auth/client/token";
+import { getTokensFromLocalStorage } from "auth/web/token";
 import Article from "lab/s-station/Article";
 import Collect from "lab/s-station/Collect";
 import NavbarComponent from "lab/s-station/Navbar";

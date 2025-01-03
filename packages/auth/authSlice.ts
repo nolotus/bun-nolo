@@ -42,11 +42,13 @@ export const authSlice = createSliceWithThunks({
       async (input, thunkAPI) => {
         const state = thunkAPI.getState();
         try {
-          const { username, encryptionKey, locale, version } = input;
-          console.log("version", version);
+          //todo  change to auto version check
+          const { username, encryptionKey, locale, version = "v1" } = input;
           const { publicKey, secretKey } = generateKeyPairFromSeed(
             username + encryptionKey + locale
           );
+          console.log("publicKey", publicKey);
+
           let userId;
           if (version === "v0") {
             userId = generateUserId(publicKey, username, locale);
@@ -55,6 +57,7 @@ export const authSlice = createSliceWithThunks({
           }
           const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
+          console.log("currentServer", currentServer);
           const res = await loginRequest(currentServer, {
             userId,
             token,

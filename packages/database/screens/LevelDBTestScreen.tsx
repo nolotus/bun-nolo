@@ -10,7 +10,7 @@ import {
     ActivityIndicator,
     SafeAreaView,
 } from "react-native";
-import { Button } from 'rn/ui/Button';
+import Button from 'rn/ui/Button';
 
 // 设置常量
 const BASE_RECORDS_PER_USER = 5; // 大多数用户很少使用，只有少量记录
@@ -195,8 +195,7 @@ export function LevelDBTestScreen() {
                 <Button
                     onPress={runTests}
                     disabled={isRunning}
-                    title={isRunning ? "测试运行中..." : "开始性能测试"}
-                />
+                >{isRunning ? "测试运行中..." : "开始性能测试"}</Button>
 
                 {isRunning && (
                     <View style={styles.loadingContainer}>

@@ -7,7 +7,7 @@ import {
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { changeCurrentUser, selectUsers, signOut } from "auth/authSlice";
-import { getTokensFromLocalStorage, removeToken } from "auth/client/token";
+import { getTokensFromLocalStorage, removeToken } from "auth/web/token";
 import { parseToken } from "auth/token";
 import { useAuth } from "auth/useAuth";
 import { useTranslation } from "react-i18next";

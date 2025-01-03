@@ -8,14 +8,17 @@ import {
   ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { rnHashpasswordV1 } from 'rn/hashPassword'
+import { useAppSelector } from "../hooks";
+import { useAuth } from "auth/useAuth";
 
-rnHashpasswordV1('password')
 
 // Generate a hash asynchronously
 export function HomeScreen() {
-  const navigation = useNavigation();
+  const { user, isLoggedIn } = useAuth();
+  const auth = useAppSelector((state) => state.auth);
+  console.log(' auth', auth)
 
+  const navigation = useNavigation();
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.section}>

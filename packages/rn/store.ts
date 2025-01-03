@@ -4,8 +4,9 @@ import dbReducer from "database/dbSlice";
 import themeReducer from "app/theme/themeSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import { api } from "app/api";
-import reactotron from "../../ReactotronConfig";
 import settingReducer from "setting/settingSlice";
+
+import reactotron from "../../ReactotronConfig";
 
 const preloadedState = {};
 //maybe need delete api
