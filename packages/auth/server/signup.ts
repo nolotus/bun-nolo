@@ -20,7 +20,7 @@ const generateFileContent = (
   username,
   encryptedEncryptionKey,
   remoteRecoveryPassword,
-  userId,
+  userId
 ) => {
   const publicKeyId = `0-${userId}-publicKey`;
   const usernameId = `0-${userId}-username`;
@@ -64,7 +64,7 @@ export async function handleSignUp(req, res) {
     username,
     encryptedEncryptionKey,
     remoteRecoveryPassword,
-    userId,
+    userId
   );
   signUpLogger.info({ fileContent }, "fileContent");
   signUpLogger.info({ username, userId, publicKey }, "get message");
@@ -77,7 +77,7 @@ export async function handleSignUp(req, res) {
   const secretKey = process.env.SECRET_KEY;
   if (!secretKey) {
     signUpLogger.error(
-      "Secret key is not defined in the environment variables.",
+      "Secret key is not defined in the environment variables."
     );
     return res.status(500).json({ message: t("errors.secretKeyMissing") });
   }

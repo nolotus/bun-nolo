@@ -1,14 +1,12 @@
 // i18n/translations/interface
 
-
 import { Language } from "../types";
-
 
 export default {
   [Language.EN]: {
     translation: {
       languageName: "English",
-      login: "Login", 
+      login: "Login",
       logout: "Logout",
       username: "Username",
       password: "Password",
@@ -28,7 +26,8 @@ export default {
       content: "Content",
       title: "Title",
       deleteDialogTitle: 'Delete "{{title}}"',
-      deleteDialogConfirmation: "Are you sure you want to delete this dialog? This action cannot be undone.",
+      deleteDialogConfirmation:
+        "Are you sure you want to delete this dialog? This action cannot be undone.",
       confirm: "Confirm",
       cancel: "Cancel",
       selectSpace: "Select Space",
@@ -39,18 +38,31 @@ export default {
       addToWorkspace: "Add to Workspace",
       edit: "Edit",
       delete: "Delete",
-      add: "Add", 
+      add: "Add",
       lightMode: "Light Mode",
       darkMode: "Dark Mode",
       haveAccount: "Already have an account?",
-      loginNow: "Login now"
+      loginNow: "Login now",
+      betaAccess: "Apply for Beta Access",
+      betaDescription:
+        "We are currently in beta testing phase with limited spots available. Please leave your email and tell us how you would use our product.",
+      enterEmail: "Enter email",
+      emailRequired: "Email is required",
+      invalidEmail: "Please enter a valid email",
+      emailExists: "This email has already applied",
+      applyForAccess: "Apply for Access",
+      operationFailed: "Operation failed",
+      networkError: "Network error",
+      purposeHolder: "What would you like to use our product for?",
+      purposeRequired: "Please tell us your intended use",
+      purposeTooShort: "Please provide more details (at least 10 characters)",
     },
   },
   [Language.ZH_CN]: {
     translation: {
       languageName: "简体中文",
       login: "登录",
-      logout: "登出", 
+      logout: "登出",
       username: "用户名",
       password: "密码",
       usernameRequired: "请输入用户名",
@@ -84,12 +96,25 @@ export default {
       lightMode: "浅色模式",
       darkMode: "深色模式",
       haveAccount: "已有账号？",
-      loginNow: "立即登录"
+      loginNow: "立即登录",
+      betaAccess: "申请内测资格",
+      betaDescription:
+        "我们目前处于内测阶段，仅开放有限名额。请留下您的邮箱并告诉我们您的使用场景。",
+      enterEmail: "请输入邮箱",
+      emailRequired: "请输入邮箱",
+      invalidEmail: "请输入有效的邮箱",
+      emailExists: "该邮箱已申请",
+      applyForAccess: "申请内测资格",
+      operationFailed: "操作失败",
+      networkError: "网络错误",
+      purposeHolder: "您打算用我们的产品做什么？",
+      purposeRequired: "请告诉我们您的使用目的",
+      purposeTooShort: "请提供更多详细信息（至少10个字符）",
     },
   },
   [Language.ZH_HANT]: {
     translation: {
-      languageName: "繁體中文", 
+      languageName: "繁體中文",
       login: "登入",
       logout: "登出",
       username: "用戶名",
@@ -120,19 +145,32 @@ export default {
       deleteDialog: "刪除對話",
       addToWorkspace: "添加到工作區",
       edit: "編輯",
-      delete: "刪除", 
+      delete: "刪除",
       add: "新增",
       lightMode: "淺色模式",
       darkMode: "深色模式",
       haveAccount: "已有帳號？",
-      loginNow: "立即登入"
+      loginNow: "立即登入",
+      betaAccess: "申請內測資格",
+      betaDescription:
+        "我們目前處於內測階段，僅開放有限名額。請留下您的郵箱並告訴我們您的使用場景。",
+      enterEmail: "請輸入郵箱",
+      emailRequired: "請輸入郵箱",
+      invalidEmail: "請輸入有效的郵箱",
+      emailExists: "該郵箱已申請",
+      applyForAccess: "申請內測資格",
+      operationFailed: "操作失敗",
+      networkError: "網絡錯誤",
+      purposeHolder: "您打算用我們的產品做什麼？",
+      purposeRequired: "請告訴我們您的使用目的",
+      purposeTooShort: "請提供更多詳細信息（至少10個字符）",
     },
   },
   [Language.JA]: {
     translation: {
       languageName: "日本語",
       login: "ログイン",
-      logout: "ログアウト", 
+      logout: "ログアウト",
       username: "ユーザーネーム",
       password: "パスワード",
       usernameRequired: "ユーザーネームを入力してください",
@@ -151,13 +189,15 @@ export default {
       content: "コンテンツ",
       title: "タイトル",
       deleteDialogTitle: '"{{title}}"を削除',
-      deleteDialogConfirmation: "このダイアログを削除してもよろしいですか？この操作は取り消せません。",
+      deleteDialogConfirmation:
+        "このダイアログを削除してもよろしいですか？この操作は取り消せません。",
       confirm: "確認",
       cancel: "キャンセル",
       selectSpace: "区画を選択する",
       CreateSpace: "スペースを作成する",
       spacename: "スペース名",
-      messageOrImageHere: "メッセージを入力またはここに画像をドラッグ＆ドロップ",
+      messageOrImageHere:
+        "メッセージを入力またはここに画像をドラッグ＆ドロップ",
       deleteDialog: "ダイアログを削除",
       addToWorkspace: "ワークスペースに追加",
       edit: "編集",
@@ -166,7 +206,20 @@ export default {
       lightMode: "ライトモード",
       darkMode: "ダークモード",
       haveAccount: "アカウントをお持ちの方",
-      loginNow: "ログインする"
+      loginNow: "ログインする",
+      betaAccess: "ベータテスト参加申請",
+      betaDescription:
+        "現在ベータテスト段階で、参加枠に限りがございます。メールアドレスと使用目的をご記入ください。",
+      enterEmail: "メールアドレスを入力",
+      emailRequired: "メールアドレスを入力してください",
+      invalidEmail: "有効なメールアドレスを入力してください",
+      emailExists: "このメールアドレスは既に申請済みです",
+      applyForAccess: "テスト参加を申請",
+      operationFailed: "操作に失敗しました",
+      networkError: "ネットワークエラー",
+      purposeHolder: "当製品をどのように使用されたいですか？",
+      purposeRequired: "ご使用目的をお聞かせください",
+      purposeTooShort: "より詳しい情報をご記入ください（10文字以上）",
     },
   },
 };

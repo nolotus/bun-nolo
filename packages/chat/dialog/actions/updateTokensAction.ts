@@ -1,7 +1,3 @@
-import { DataType } from "create/types";
-import { write } from "database/dbSlice";
-import { nolotusId } from "core/init";
-
 // 定义 TokenCounts 接口
 interface TokenCounts {
   cache_creation_input_tokens: number;
@@ -10,17 +6,59 @@ interface TokenCounts {
   input_tokens: number;
 }
 
-// 异步 action 更新代币统计信息
+// 必须的数据类型
+interface RequiredData extends TokenCounts {
+  userId: string;
+  username: string;
+  cybotId: string;
+  model: string;
+  date: Date;
+}
+
+// 额外数据类型
+interface AdditionalData {
+  deviceType?: string;
+  operatingSystem?: string;
+  browser?: string;
+  language?: string;
+  screenResolution?: string;
+}
+
+// 合并数据类型
+type StaticData = RequiredData & AdditionalData;
+
+// 示例使用 updateTokensAction 函数时的数据结构
 export const updateTokensAction = async (
-  { cybotId, model, usage },
-  thunkApi
+  {
+    cybotId,
+    model,
+    usage,
+  }: { cybotId: string; model: string; usage: TokenCounts },
+  thunkApi,
+  shareAdditionalData = true
 ) => {
   const { dispatch } = thunkApi;
   const state = thunkApi.getState();
   const auth = state.auth;
-  console.log("usage", usage);
-  // 准备静态数据
-  const staticData = {
+
+  const additionalData: AdditionalData = shareAdditionalData
+    ? {
+        deviceType: navigator.userAgent.includes("Mobile")
+          ? "Mobile"
+          : "Desktop",
+        operatingSystem: navigator.platform || "Unknown",
+        browser: (() => {
+          if (navigator.userAgent.includes("Chrome")) return "Chrome";
+          if (navigator.userAgent.includes("Firefox")) return "Firefox";
+          if (navigator.userAgent.includes("Safari")) return "Safari";
+          return "Unknown";
+        })(),
+        language: navigator.language || "en-US",
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+      }
+    : {};
+
+  const requiredData: RequiredData = {
     ...usage,
     userId: auth?.currentUser?.userId,
     username: auth?.currentUser?.username,
@@ -29,11 +67,14 @@ export const updateTokensAction = async (
     date: new Date(),
   };
 
-  // 日志输出，调试用
+  const staticData: StaticData = {
+    ...requiredData,
+    ...additionalData,
+  };
+
   console.log("staticData", staticData);
 
   try {
-    // 写入数据库
     await dispatch(
       write({
         data: {
@@ -45,9 +86,8 @@ export const updateTokensAction = async (
       })
     );
   } catch (error) {
-    // 错误处理
     console.error("Error writing token stats:", error);
-    throw error; // 可以选择进一步传播错误
+    throw error;
   }
 
   return usage;

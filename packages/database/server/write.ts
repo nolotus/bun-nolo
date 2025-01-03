@@ -30,8 +30,11 @@ function processDataKey(dataKey: string, data: any): { isFile: boolean } {
 export const serverWrite = (
   dataKey: string,
   data: string | Blob,
-  userId: string,
+  userId: string
 ): Promise<void> => {
+  if (!dataKey.startsWith("0") || !dataKey.startsWith("1")) {
+    console.log("write new ", dataKey);
+  }
   return checkUserDirectory(userId).then(() => {
     const result = processDataKey(dataKey, data);
     if (!result.isFile) {
@@ -65,7 +68,7 @@ export const handleWrite = async (req: any, res: any) => {
     } catch (error) {
       return handleError(
         res,
-        error instanceof Error ? error : new Error(String(error)),
+        error instanceof Error ? error : new Error(String(error))
       );
     }
   }
@@ -93,7 +96,7 @@ export const handleWrite = async (req: any, res: any) => {
     } catch (error) {
       return handleError(
         res,
-        error instanceof Error ? error : new Error(String(error)),
+        error instanceof Error ? error : new Error(String(error))
       );
     }
   } else {

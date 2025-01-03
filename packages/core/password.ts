@@ -15,11 +15,11 @@ export const hashPassword = async (password: string) => {
 
 export const generateAndSplitRecoveryPassword = (
   securityAnswer: string,
-  localLength: number = 3,
+  localLength: number = 3
 ): [string, string] => {
   // 生成基于安全问题答案的恢复密码
   const hashedAnswer = CryptoJS.SHA256(securityAnswer).toString(
-    CryptoJS.enc.Base64,
+    CryptoJS.enc.Base64
   );
 
   // 拆分为本地和远程恢复密码

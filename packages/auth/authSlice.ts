@@ -45,7 +45,7 @@ export const authSlice = createSliceWithThunks({
         try {
           const { username, encryptionKey, locale } = input;
           const { publicKey, secretKey } = generateKeyPairFromSeed(
-            username + encryptionKey + locale,
+            username + encryptionKey + locale
           );
           const userId = generateUserId(publicKey, username, locale);
           const token = signToken({ userId, publicKey, username }, secretKey);
@@ -79,7 +79,7 @@ export const authSlice = createSliceWithThunks({
           state.users = [user, ...state.users];
           state.isLoading = false;
         },
-      },
+      }
     ),
     signUp: create.asyncThunk(
       async (user, thunkAPI) => {
@@ -89,7 +89,7 @@ export const authSlice = createSliceWithThunks({
 
         // Generate public and private key pair based on the encryption key
         const { publicKey, secretKey } = generateKeyPairFromSeed(
-          username + encryptionKey + locale,
+          username + encryptionKey + locale
         );
 
         const sendData: SignupData = {
@@ -124,7 +124,7 @@ export const authSlice = createSliceWithThunks({
 
         const decryptedData = await verifySignedMessage(
           encryptedData,
-          nolotusPubKey,
+          nolotusPubKey
         );
 
         const remoteData = JSON.parse(decryptedData);
@@ -142,7 +142,7 @@ export const authSlice = createSliceWithThunks({
           const exp = formatISO(expirationDate); // 过期时间
           const token = signToken(
             { userId: localUserId, username, exp, iat, nbf },
-            secretKey,
+            secretKey
           );
           const user = parseToken(token);
           const result = { user, token };
@@ -159,11 +159,14 @@ export const authSlice = createSliceWithThunks({
           state.users = [user, ...state.users];
           state.currentToken = token;
         },
-      },
+      }
     ),
+    inviteSignUp: create.asyncThunk(() => {
+      console.log("inviteSignUp");
+    }, {}),
     changeCurrentUser: (
       state,
-      action: PayloadAction<{ user: User; token: string }>,
+      action: PayloadAction<{ user: User; token: string }>
     ) => {
       state.currentUser = action.payload.user;
       state.currentToken = action.payload.token;
@@ -179,18 +182,18 @@ export const authSlice = createSliceWithThunks({
               user: parsedUsers[0],
               users: parsedUsers,
               token: tokens[0],
-            }),
+            })
           );
           await dispatch(initSyncSetting());
         }
       },
       {
         fulfilled: () => {},
-      },
+      }
     ),
     restoreSession: (
       state,
-      action: PayloadAction<{ user: User; users: User[]; token: string }>,
+      action: PayloadAction<{ user: User; users: User[]; token: string }>
     ) => {
       state.isLoggedIn = true;
       state.currentUser = action.payload.user;
@@ -199,7 +202,7 @@ export const authSlice = createSliceWithThunks({
     },
     signOut: create.reducer((state) => {
       const updatedUsers = state.users.filter(
-        (user) => user !== state.currentUser,
+        (user) => user !== state.currentUser
       );
       const nextUser = updatedUsers.length > 0 ? updatedUsers[0] : null;
       state.isLoggedIn = false;
@@ -216,6 +219,7 @@ export const {
   restoreSession,
   signIn,
   signUp,
+  inviteSignUp,
   signOut,
 } = authSlice.actions;
 

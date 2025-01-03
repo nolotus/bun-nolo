@@ -2,13 +2,13 @@
 export enum DataType {
   Cybot = "cybot",
   Page = "page",
-  Prompt = "prompt",
   Dialog = "dialog",
   Message = "message",
-  Space = "space",
-
   TokenStats = "token_stats",
-  SurfSpot = "surf-spot",
+  Space = "space",
+  Prompt = "prompt",
   Category = "category",
+
+  SurfSpot = "surf-spot",
   CalendarEvent = "calendar_event",
 }
