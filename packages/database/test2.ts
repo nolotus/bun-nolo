@@ -1,4 +1,3 @@
-const { Level } = require("level");
 import testb from "database/server/testDb";
 const db = testb;
 
