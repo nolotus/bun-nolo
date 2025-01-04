@@ -1,16 +1,8 @@
-import { getLogger } from "utils/logger";
 import { Base64 } from "js-base64";
-import { SHA1 } from "crypto-js";
-import { generateHash } from "./crypto";
+import nacl from "tweetnacl";
+
 import { Flags, setKeyPrefix } from "./prefix";
-
-const cryptoLogger = getLogger("crypto");
-
-export const generateIdWithHashId = (userId, data, flags) => {
-  const idPrefix = setKeyPrefix(flags);
-  const hashId = generateHash(data);
-  return `${idPrefix}-${userId}-${hashId}`;
-};
+import { generateHash } from "./generateKeyPairFromSeedV0";
 
 export const generateIdWithCustomId = (
   userId: string,
@@ -31,19 +23,6 @@ export function generateCustomId(
     flags ? flags : { isJSON: true }
   );
 }
-
-export const generateKey = (
-  data,
-  userId: string,
-  flags: Flags,
-  customId: string
-) => {
-  flags.isHash = !customId;
-  return customId
-    ? generateIdWithCustomId(userId, customId, flags)
-    : generateIdWithHashId(userId, data, flags);
-};
-
 export const generateUserIdV1 = (
   publicKey: string,
   username: string,
@@ -51,11 +30,22 @@ export const generateUserIdV1 = (
   extra: string = ""
 ) => {
   const text = publicKey + username + language + extra;
-  const hash = SHA1(text).toString();
-  return hash.slice(0, 10);
+  const encodedText = new TextEncoder().encode(text);
+  const hash = nacl.hash(encodedText);
+
+  // 方案1：使用Array.from和map
+  const hexString = Array.from(hash)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  // 方案2：更简洁的写法，用Uint8Array直接转
+  // const hexString = [...hash].map(x => x.toString(16).padStart(2,'0')).join('');
+
+  console.log("Hex string:", hexString);
+  return hexString.slice(0, 10);
 };
 
-export const generateUserId = (
+export const generateUserIdV0 = (
   publicKey: string,
   username: string,
   language: string,
@@ -77,7 +67,6 @@ export const generateUserId = (
     console.log("userId:", { userId });
     return userId;
   } catch (error) {
-    cryptoLogger.error("Error generating unique userId:", error);
     throw error;
   }
 };

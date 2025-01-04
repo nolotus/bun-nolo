@@ -9,13 +9,7 @@ import { getLogger } from "utils/logger";
 const signUpLogger = getLogger("signUp");
 
 export async function handleSignUp(req, res) {
-  const {
-    username,
-    publicKey,
-    encryptedEncryptionKey,
-    remoteRecoveryPassword,
-    locale,
-  } = req.body;
+  const { username, publicKey, locale } = req.body;
   const userId = generateUserIdV1(publicKey, username, locale);
 
   // 先检查用户是否存在
@@ -35,8 +29,6 @@ export async function handleSignUp(req, res) {
   const userData = reject((x) => x === null || x === undefined, {
     username,
     publicKey,
-    encryptedEncryptionKey,
-    remoteRecoveryPassword,
     locale,
     createdAt: Date.now(),
   });

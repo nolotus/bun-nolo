@@ -1,14 +1,15 @@
 import { PayloadAction } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
-import { generateUserId, generateUserIdV1 } from "core/generateMainKey";
-import { generateKeyPairFromSeed, verifySignedMessage } from "core/crypto";
+import { generateUserIdV0, generateUserIdV1 } from "core/generateMainKey";
+import { verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
 import { API_VERSION } from "database/config";
 import { noloRequest } from "database/requests/noloRequest";
 import { formatISO, addDays } from "date-fns";
 import { initSyncSetting, selectCurrentServer } from "setting/settingSlice";
-
+import { generateKeyPairFromSeedV0 } from "core/generateKeyPairFromSeedV0";
+import { generateKeyPairFromSeedV1 } from "core/crypto";
 import { parseToken } from "./token";
 import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
@@ -44,18 +45,22 @@ export const authSlice = createSliceWithThunks({
         try {
           //todo  change to auto version check
           const { username, encryptionKey, locale, version = "v1" } = input;
-          const { publicKey, secretKey } = generateKeyPairFromSeed(
-            username + encryptionKey + locale
-          );
-          console.log("publicKey", publicKey);
 
           let userId;
+          let token;
           if (version === "v0") {
-            userId = generateUserId(publicKey, username, locale);
+            const { publicKey, secretKey } = generateKeyPairFromSeedV0(
+              username + encryptionKey + locale
+            );
+            userId = generateUserIdV0(publicKey, username, locale);
+            token = signToken({ userId, publicKey, username }, secretKey);
           } else if (version === "v1") {
+            const { publicKey, secretKey } = generateKeyPairFromSeedV1(
+              username + encryptionKey + locale
+            );
             userId = generateUserIdV1(publicKey, username, locale);
+            token = signToken({ userId, publicKey, username }, secretKey);
           }
-          const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
           console.log("currentServer", currentServer);
           const res = await loginRequest(currentServer, {
@@ -94,30 +99,15 @@ export const authSlice = createSliceWithThunks({
     ),
     signUp: create.asyncThunk(
       async (user, thunkAPI) => {
-        //will add answer and change password
-        const { username, answer, locale, encryptionKey } = user;
-        const { publicKey, secretKey } = generateKeyPairFromSeed(
+        const { username, locale, encryptionKey } = user;
+        const { publicKey, secretKey } = generateKeyPairFromSeedV1(
           username + encryptionKey + locale
         );
         const sendData: SignupData = {
           username,
           publicKey,
-          encryptedEncryptionKey: null,
-          remoteRecoveryPassword: null,
           locale,
         };
-
-        // if (isStoreRecovery) {
-        //   const recoveryPassword = generateAndSplitRecoveryPassword(answer, 3);
-        //   const [localRecoveryPassword, remoteRecoveryPassword] =
-        //     recoveryPassword;
-
-        //   sendData.remoteRecoveryPassword = remoteRecoveryPassword;
-        //   sendData.encryptedEncryptionKey = encryptWithPassword(
-        //     encryptionKey,
-        //     recoveryPassword.join(""),
-        //   );
-        // }
 
         const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
         const state = thunkAPI.getState();
@@ -136,14 +126,16 @@ export const authSlice = createSliceWithThunks({
         );
 
         const remoteData = JSON.parse(decryptedData);
-
         const localUserId = generateUserIdV1(publicKey, username, locale);
+        const isPublicKeyRight = remoteData.publicKey === publicKey;
+        const isUsernameRight = remoteData.username === username;
 
-        if (
-          remoteData.username === sendData.username &&
-          remoteData.publicKey === sendData.publicKey &&
-          remoteData.userId === localUserId
-        ) {
+        const isUserIdRight = remoteData.userId === localUserId;
+
+        const isRemoteRight =
+          isPublicKeyRight && isUsernameRight && isUserIdRight;
+
+        if (isRemoteRight) {
           const now = new Date();
           // 计算7天后的时间
           const expirationDate = addDays(now, 7);
