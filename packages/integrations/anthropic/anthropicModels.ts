@@ -1,3 +1,4 @@
+// anthropicModels.ts
 export const anthropicModels = [
   {
     name: "claude-3-5-sonnet-latest",
@@ -8,10 +9,10 @@ export const anthropicModels = [
     contextWindow: 200000,
     maxOutputTokens: 8192,
     price: {
-      input: 24.0, // 3.0 * 8
-      output: 120.0, // 15.0 * 8
-      cachingWrite: 30.0, // 3.75 * 8
-      cachingRead: 2.4, // 0.3 * 8
+      input: 24.0,
+      output: 120.0,
+      cachingWrite: 30.0,
+      cachingRead: 2.4,
     },
   },
   {
@@ -23,10 +24,10 @@ export const anthropicModels = [
     contextWindow: 200000,
     maxOutputTokens: 8192,
     price: {
-      input: 6.4, // 0.8 * 8
-      output: 32.0, // 4.0 * 8
-      cachingWrite: 8.0, // 1.0 * 8
-      cachingRead: 0.64, // 0.08 * 8
+      input: 6.4,
+      output: 32.0,
+      cachingWrite: 8.0,
+      cachingRead: 0.64,
     },
   },
   {
@@ -38,10 +39,10 @@ export const anthropicModels = [
     contextWindow: 200000,
     maxOutputTokens: 8192,
     price: {
-      input: 120.0, // 15.0 * 8
-      output: 600.0, // 75.0 * 8
-      cachingWrite: 150.0, // 18.75 * 8
-      cachingRead: 12.0, // 1.5 * 8
+      input: 120.0,
+      output: 600.0,
+      cachingWrite: 150.0,
+      cachingRead: 12.0,
     },
   },
 ];

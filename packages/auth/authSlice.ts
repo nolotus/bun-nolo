@@ -190,7 +190,6 @@ export const authSlice = createSliceWithThunks({
         const exists = parsedUsers.length > 0;
         if (exists) {
           const user = parsedUsers[0];
-          console.log("initAuth", user);
           //should check if token is valid
           // such as exp
           dispatch(

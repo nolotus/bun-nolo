@@ -3,7 +3,7 @@
 import { createMessages } from "ai/api/createMessages";
 import { prepareTools } from "ai/tools/prepareTools";
 import { selectCurrentUserId } from "auth/authSlice";
-import { updateDialogTitle } from "chat/dialog/dialogSlice";
+import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { setOne } from "database/dbSlice";
@@ -93,7 +93,7 @@ export const sendCommonChatRequest = async ({
       api,
       bodyData,
       signal,
-      currentServer,
+      currentServer
     );
 
     if (!response.ok) {
@@ -105,32 +105,28 @@ export const sendCommonChatRequest = async ({
 
     while (true) {
       const { done, value } = await reader.read();
-      console.log("Read operation:", { done, value });
 
       if (done) {
-        console.log("end contentBuffer", contentBuffer);
         dispatch(
           messageStreamEnd({
             id: messageId,
             content: contentBuffer,
             role: "assistant",
             cybotId: cybotConfig.id,
-          }),
+          })
         );
         dispatch(
           updateDialogTitle({
             dialogId,
             cybotConfig,
-          }),
+          })
         );
         break;
       }
 
       const result = decoder.decode(value);
-      console.log("Decoded result:", result);
 
       const parsedResults = parseMultilineSSE(result);
-      console.log("Parsed results:", parsedResults);
 
       for (const parsedData of parsedResults) {
         if (parsedData.error) {
@@ -143,17 +139,21 @@ export const sendCommonChatRequest = async ({
               role: "assistant",
               cybotId: cybotConfig.id,
               controller,
-            }),
+            })
           );
           break;
         }
 
         const content = parsedData.choices?.[0]?.delta?.content || "";
-        console.log("Parsed content:", content);
+        let usage;
+        if (parsedData.usage) {
+          usage = parsedData.usage;
+          dispatch(updateTokens({ usage, cybotConfig }));
+          console.log("usage", usage);
+        }
 
         if (content) {
           contentBuffer += content;
-          console.log("streaming contentBuffer", contentBuffer);
 
           dispatch(
             setOne({
@@ -162,7 +162,7 @@ export const sendCommonChatRequest = async ({
               role: "assistant",
               cybotId: cybotConfig.id,
               controller,
-            }),
+            })
           );
           dispatch(
             messageStreaming({
@@ -171,7 +171,7 @@ export const sendCommonChatRequest = async ({
               role: "assistant",
               cybotId: cybotConfig.id,
               controller,
-            }),
+            })
           );
         }
       }
@@ -185,7 +185,7 @@ export const sendCommonChatRequest = async ({
         role: "assistant",
         cybotId: cybotConfig.id,
         controller,
-      }),
+      })
     );
     throw error;
   } finally {

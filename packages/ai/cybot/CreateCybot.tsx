@@ -50,7 +50,11 @@ const CreateCybot: React.FC = () => {
     onSubmit,
   } = useCreateCybotValidation();
 
-  const { inputPrice, outputPrice, setInputPrice, setOutputPrice } = useModelPricing(provider, watch("model"));
+  const { inputPrice, outputPrice, setInputPrice, setOutputPrice } = useModelPricing(
+    provider,
+    watch("model"),
+    setValue
+  );
 
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState<string>(provider || "");
