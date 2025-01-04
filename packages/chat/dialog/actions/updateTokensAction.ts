@@ -1,4 +1,11 @@
 // 定义 TokenCounts 接口
+import { nolotusId } from "core/init";
+import { DataType } from "create/types";
+import level from "level";
+import { calculatePrice } from "integrations/anthropic/calculatePrice";
+import { extractUserId } from "core";
+
+console.log("level", level);
 interface TokenCounts {
   cache_creation_input_tokens: number;
   cache_read_input_tokens: number;
@@ -28,19 +35,40 @@ interface AdditionalData {
 type StaticData = RequiredData & AdditionalData;
 
 // 示例使用 updateTokensAction 函数时的数据结构
-export const updateTokensAction = async (
-  {
-    cybotId,
-    model,
-    usage,
-  }: { cybotId: string; model: string; usage: TokenCounts },
-  thunkApi,
-  shareAdditionalData = true
-) => {
+export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
   const { dispatch } = thunkApi;
+
   const state = thunkApi.getState();
   const auth = state.auth;
+  const shareAdditionalData = true;
+  const cybotId = cybotConfig.id;
+  const modelName = cybotConfig.model;
+  const provider = cybotConfig.provider;
+  console.log("cybotConfig", cybotConfig);
+  const creatorId = extractUserId(cybotConfig.id);
+  console.log("creatorId", creatorId);
 
+  const externalPrice = {
+    input: cybotConfig.inputPrice,
+    output: cybotConfig.outputPrice,
+    creatorId,
+  };
+
+  console.log("externalPrice", externalPrice);
+
+  const result = calculatePrice({ provider, modelName, usage, externalPrice });
+  console.log("result", result);
+
+  return usage;
+  const requiredData: RequiredData = {
+    ...usage,
+    userId: auth?.currentUser?.userId,
+    username: auth?.currentUser?.username,
+    cybotId,
+    model,
+    provider,
+    date: new Date(),
+  };
   const additionalData: AdditionalData = shareAdditionalData
     ? {
         deviceType: navigator.userAgent.includes("Mobile")
@@ -58,37 +86,14 @@ export const updateTokensAction = async (
       }
     : {};
 
-  const requiredData: RequiredData = {
-    ...usage,
-    userId: auth?.currentUser?.userId,
-    username: auth?.currentUser?.username,
-    cybotId,
-    model,
-    date: new Date(),
-  };
-
   const staticData: StaticData = {
     ...requiredData,
     ...additionalData,
   };
 
   console.log("staticData", staticData);
-
-  try {
-    await dispatch(
-      write({
-        data: {
-          ...staticData,
-          type: DataType.TokenStats,
-        },
-        flags: { isJSON: true },
-        userId: nolotusId,
-      })
-    );
-  } catch (error) {
-    console.error("Error writing token stats:", error);
-    throw error;
-  }
-
-  return usage;
+  const saveData = {
+    ...staticData,
+    type: DataType.TokenStats,
+  };
 };

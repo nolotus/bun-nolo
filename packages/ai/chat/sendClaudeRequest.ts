@@ -1,4 +1,3 @@
-// import { decodeChunk } from "ai/client/stream";
 import { selectCurrentUserId } from "auth/authSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 
@@ -55,15 +54,6 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
   }
 }
 
-// // 主函数
-
-async function* streamAsyncIterable(reader) {
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    yield value;
-  }
-}
 export const sendClaudeRequest = async ({
   content,
   cybotConfig,
@@ -84,13 +74,13 @@ export const sendClaudeRequest = async ({
   const controller = new AbortController();
   const signal = controller.signal;
 
-  let reader; // 在函数作用域中定义 reader 以便可以在任何地方访问它
+  let reader;
 
   signal.addEventListener("abort", () => {
     console.log("Request was aborted");
     if (reader) {
-      reader.cancel(); // 如果中止的话尝试取消读取
-      reader.releaseLock(); // 释放 reader 的锁
+      reader.cancel();
+      reader.releaseLock();
     }
     dispatch(
       updateDialogTitle({
@@ -111,8 +101,28 @@ export const sendClaudeRequest = async ({
     reader = response.body.getReader();
     let accumulatedContent = "";
 
-    for await (const chunk of streamAsyncIterable(reader)) {
-      const text = new TextDecoder().decode(chunk);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        dispatch(
+          messageStreamEnd({
+            id,
+            content: accumulatedContent,
+            cybotId: cybotConfig.id,
+            role: "assistant",
+          })
+        );
+
+        dispatch(
+          updateDialogTitle({
+            dialogId,
+            cybotConfig,
+          })
+        );
+        break;
+      }
+
+      const text = new TextDecoder().decode(value);
       const lines = text.split("\n");
       for (const line of lines) {
         if (line.startsWith("data:")) {
@@ -124,8 +134,7 @@ export const sendClaudeRequest = async ({
               case "message_start":
                 dispatch(
                   updateTokens({
-                    cybotId,
-                    model,
+                    cybotConfig,
                     usage: jsonData.message.usage,
                   })
                 );
@@ -158,8 +167,7 @@ export const sendClaudeRequest = async ({
               case "message_delta":
                 dispatch(
                   updateTokens({
-                    cybotId,
-                    model,
+                    cybotConfig,
                     usage: jsonData.usage,
                   })
                 );
@@ -175,32 +183,14 @@ export const sendClaudeRequest = async ({
       }
     }
 
-    reader.releaseLock(); // 在数据处理完成后释放 reader 的锁
-
-    dispatch(
-      messageStreamEnd({
-        id,
-        content: accumulatedContent,
-        cybotId: cybotConfig.id,
-        role: "assistant",
-      })
-    );
-
-    dispatch(
-      updateDialogTitle({
-        dialogId,
-        cybotConfig,
-      })
-    );
+    reader.releaseLock();
   } catch (error) {
     if (error.name === "AbortError") {
       console.log("Fetch aborted");
     } else {
       console.error("Request failed:", error);
-      // 其他类型的错误处理
     }
   } finally {
-    // 确保在任何情况下 reader 都能被释放
     if (reader) {
       reader.releaseLock();
     }

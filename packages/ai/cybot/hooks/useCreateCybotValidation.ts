@@ -5,7 +5,6 @@ import { useAppDispatch } from "app/hooks";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
-
 import { createCybotSchema, FormData } from "../createCybotSchema";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 
