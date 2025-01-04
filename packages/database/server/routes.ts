@@ -7,7 +7,6 @@ import { handleDelete } from "./delete";
 import { handleReadSingle } from "./read";
 import { handlePut } from "./put";
 import { handleWrite } from "./write";
-import { handleWriteHash } from "./writeHash";
 import { handlePatch } from "./patch";
 export const databaseRequest = async (req, res, url) => {
   const pathname = url.pathname;
@@ -31,9 +30,7 @@ export const databaseRequest = async (req, res, url) => {
       case "write":
         req.user = await handleToken(req, res);
         return handleWrite(req, res);
-      case "writeHash":
-        req.user = await handleToken(req, res);
-        return handleWriteHash(req, res);
+
       case "put":
         req.user = await handleToken(req, res);
         req.params = { id: getIdFromPath("/api/v1/db/put/") };

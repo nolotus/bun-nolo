@@ -1,17 +1,17 @@
 import {
-  generateKeyPairFromSeed,
   signMessage,
   verifySignedMessage,
   detachedSign,
   verifyDetachedSignature,
 } from "./crypto";
+import { generateKeyPairFromSeedV0 } from "./generateKeyPairFromSeedV0";
 
 test("End-to-end test", () => {
   const seedData = "randomseed";
   const message = "randommessage";
 
   // Generate key pair from seed
-  const keyPair = generateKeyPairFromSeed(seedData);
+  const keyPair = generateKeyPairFromSeedV0(seedData);
 
   // Sign the message using the secret key
   const signedMessage = signMessage(message, keyPair.secretKey);

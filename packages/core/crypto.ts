@@ -1,36 +1,23 @@
-import { SHA3 } from "crypto-js";
 import nacl from "tweetnacl";
 import { uint8ArrayToBase64Url, base64UrlToUint8Array } from "./base64";
 import { fromUint8Array, toUint8Array } from "js-base64";
 
-export const generateHash = (data: string) => {
-  const hashWordArray = SHA3(data, { outputLength: 256 });
-  const words = hashWordArray.words;
-  const sigBytes = hashWordArray.sigBytes;
-  const bytes = new Uint8Array(sigBytes);
-  for (let i = 0; i < sigBytes; i++) {
-    const byte = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-    bytes[i] = byte;
-  }
-  return uint8ArrayToBase64Url(bytes);
-};
-
 export const generateKeyPairFromSeedV1 = (seedData: string) => {
-  const seed = generateHash(seedData);
-  const keyPair = nacl.sign.keyPair.fromSeed(base64UrlToUint8Array(seed));
-  return {
-    publicKey: uint8ArrayToBase64Url(keyPair.publicKey),
-    secretKey: uint8ArrayToBase64Url(keyPair.secretKey),
-  };
-};
+  const seed = new TextEncoder().encode(seedData);
 
-export const generateKeyPairFromSeed = (seedData: string) => {
-  const seed = generateHash(seedData);
-  const keyPair = nacl.sign.keyPair.fromSeed(base64UrlToUint8Array(seed));
-  return {
+  const hashSeed = nacl.hash(seed);
+
+  // 只取哈希后的前32字节
+  const seed32 = hashSeed.slice(0, 32);
+
+  const keyPair = nacl.sign.keyPair.fromSeed(seed32);
+
+  const result = {
     publicKey: uint8ArrayToBase64Url(keyPair.publicKey),
     secretKey: uint8ArrayToBase64Url(keyPair.secretKey),
   };
+
+  return result;
 };
 
 /**

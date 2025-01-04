@@ -1,7 +1,7 @@
 // write.ts
 
 import { formatData } from "core/formatData";
-import { generateKey } from "core/generateMainKey";
+import { generateCustomId } from "core/generateMainKey";
 import { extractAndDecodePrefix, extractUserId } from "core/prefix";
 
 import { mem } from "./mem";
@@ -83,7 +83,7 @@ export const handleWrite = async (req: any, res: any) => {
     });
   }
 
-  const id = generateKey(value, saveUserId, flags, customId);
+  const id = generateCustomId(saveUserId, customId, flags);
 
   if (checkPermission(actionUserId, saveUserId, data, customId)) {
     try {

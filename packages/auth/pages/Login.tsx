@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
 import { storeTokens } from "auth/web/token";
-import { hashedPasswordV0, hashPasswordV1 } from "core/password";
+import { hashPasswordV1 } from "core/password";
 import type React from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { signIn } from "../authSlice";
 import z from "zod";
-
+import { hashedPasswordV0 } from 'core/hashedPasswordV0'
 
 import { LockIcon, PersonIcon } from "@primer/octicons-react";
 import { NavLink, useNavigate } from "react-router-dom";

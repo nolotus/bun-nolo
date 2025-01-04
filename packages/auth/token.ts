@@ -20,7 +20,6 @@ export const verifyToken = (
   publicKeyBase64Url: string
 ): Record<string, any> | null => {
   const [payloadBase64Url, signatureBase64Url] = token.split(".");
-
   const isValid = verifyDetachedSignature(
     payloadBase64Url,
     signatureBase64Url,
@@ -30,7 +29,6 @@ export const verifyToken = (
   if (!isValid) {
     return null;
   }
-
   const decodedPayload = base64UrlDecode(payloadBase64Url);
 
   if (!decodedPayload) {

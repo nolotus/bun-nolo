@@ -1,11 +1,6 @@
-import CryptoJS, { SHA3 } from "crypto-js";
+import { hash } from "tweetnacl";
 
 export const generateFileID = (buffer) => {
-  // 假设buffer是Node.js Buffer类型
-  // 将Node.js Buffer转换为CryptoJS兼容的格式
-  const wordArray = CryptoJS.lib.WordArray.create(buffer);
-
-  // 使用SHA3并指定输出长度为256位
-  const id = SHA3(wordArray, { outputLength: 256 }).toString();
-  return id;
+  const hash_result = hash(buffer);
+  return Buffer.from(hash_result).toString("hex");
 };
