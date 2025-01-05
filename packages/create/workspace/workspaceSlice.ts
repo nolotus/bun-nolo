@@ -6,7 +6,6 @@ import {
   buildCreateSlice,
 } from "@reduxjs/toolkit";
 import { selectCurrentUserId } from "auth/authSlice";
-import { queryFilteredFromIndexedDB } from "database/browser/indexedDBQuery";
 import { patchData, query, queryServer, write } from "database/dbSlice";
 import { deleteData } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
@@ -41,20 +40,6 @@ const workspaceSlice = createSliceWithThunks({
         const state = thunkAPI.getState();
         const currentUserId = selectCurrentUserId(state);
         if (currentUserId === "local") {
-          console.log("fetchWorkspaces local");
-          const jsonLogicRules = {
-            "===": [{ var: "type" }, DataType.Space],
-          };
-          const options = {
-            jsonLogicRules: jsonLogicRules,
-            limit: 10, // 例如限制结果数量为10
-          };
-          const reuslt = await queryFilteredFromIndexedDB(
-            currentUserId,
-            options
-          );
-          console.log("fetchWorkspaces reuslt", reuslt);
-          return reuslt;
         } else {
           const queryConfig = {
             queryUserId: currentUserId,
@@ -67,13 +52,13 @@ const workspaceSlice = createSliceWithThunks({
             },
           };
           const currentServer = selectCurrentServer(state);
-          const action = await dispatch(
+          const result = await dispatch(
             queryServer({
               server: currentServer,
               ...queryConfig,
             })
-          );
-          return action.payload || [];
+          ).unwrap();
+          return result || [];
         }
       },
       {

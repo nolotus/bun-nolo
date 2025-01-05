@@ -22,9 +22,6 @@ export const Database = () => {
 	const [data, setData] = useState(null);
 	const currentUserId = useAppSelector(selectCurrentUserId);
 
-	// const data = useAppSelector(
-	//   selectFilteredDataByUserAndType(currentUserId, type),
-	// );
 
 	const { fetchData } = useQuery();
 

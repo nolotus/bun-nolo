@@ -30,9 +30,10 @@ interface CybotBlockProps {
 		provider: string;
 	};
 	closeModal?: () => void;
+	reload
 }
 
-const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
+const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
 	const { t } = useTranslation();
 	const theme = useAppSelector(selectTheme);
 	const { isLoading, createNewDialog } = useCreateDialog();
@@ -58,6 +59,7 @@ const CybotBlock = ({ item, closeModal }: CybotBlockProps) => {
 			try {
 				await dispatch(deleteData({ id: item.id }));
 				toast.success(t("deleteSuccess"));
+				reload()
 			} catch (error) {
 				toast.error(t("deleteError"));
 			} finally {
