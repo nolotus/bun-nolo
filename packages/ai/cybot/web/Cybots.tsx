@@ -1,16 +1,12 @@
 import type React from "react";
 
 import { useAppSelector } from "app/hooks";
-import { useQueryData } from "app/hooks/useQueryData";
 import { selectTheme } from "app/theme/themeSlice";
 
 import { DataType } from "create/types";
 
-import { selectFilteredDataByUserAndType } from "database/selectors";
-
 import CybotBlock from "./CybotBlock";
-
-
+import { useUserData } from "database/hooks/useUserData";
 interface CybotsProps {
 	queryUserId: string;
 	limit?: number;
@@ -24,6 +20,9 @@ const Cybots: React.FC<CybotsProps> = ({
 	closeModal,
 }) => {
 	const theme = useAppSelector(selectTheme)
+
+	const { data: cybots, loading, error, reload } = useUserData(DataType.Cybot, queryUserId, 20);
+
 	const styles = {
 		loadingContainer: {
 			textAlign: "center" as const,
@@ -40,24 +39,9 @@ const Cybots: React.FC<CybotsProps> = ({
 			maxWidth: "1200px",
 		},
 	};
-	const queryConfig = {
-		queryUserId,
-		options: {
-			isJSON: true,
-			limit,
-			condition: {
-				type: DataType.Cybot,
-			},
-		},
-	};
 
-	const { isLoading, isSuccess } = useQueryData(queryConfig);
 
-	const data = useAppSelector(
-		selectFilteredDataByUserAndType(queryUserId, DataType.Cybot),
-	);
-
-	if (isLoading) {
+	if (loading) {
 		return (
 			<div style={styles.loadingContainer}>
 				<div className="fadeIn">加载 AI 列表中...</div>
@@ -67,10 +51,10 @@ const Cybots: React.FC<CybotsProps> = ({
 
 	return (
 		<div className="fadeIn" style={styles.gridContainer}>
-			{isSuccess &&
-				data?.map((item) => (
+			{
+				cybots?.map((item) => (
 					<div key={item.id} className="slideInUp">
-						<CybotBlock item={item} closeModal={closeModal} />
+						<CybotBlock item={item} closeModal={closeModal} reload={reload} />
 					</div>
 				))}
 		</div>
