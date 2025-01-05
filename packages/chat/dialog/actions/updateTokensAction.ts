@@ -4,6 +4,7 @@ import { DataType } from "create/types";
 import level from "level";
 import { calculatePrice } from "integrations/anthropic/calculatePrice";
 import { extractUserId } from "core";
+import { write } from "database/dbSlice";
 
 console.log("level", level);
 interface TokenCounts {
@@ -15,85 +16,62 @@ interface TokenCounts {
 
 // 必须的数据类型
 interface RequiredData extends TokenCounts {
+  dialogId: string;
   userId: string;
   username: string;
   cybotId: string;
   model: string;
   date: Date;
+  provider: string;
 }
 
 // 额外数据类型
-interface AdditionalData {
-  deviceType?: string;
-  operatingSystem?: string;
-  browser?: string;
-  language?: string;
-  screenResolution?: string;
-}
-
-// 合并数据类型
-type StaticData = RequiredData & AdditionalData;
 
 // 示例使用 updateTokensAction 函数时的数据结构
 export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
   const { dispatch } = thunkApi;
-
   const state = thunkApi.getState();
   const auth = state.auth;
+
   const shareAdditionalData = true;
   const cybotId = cybotConfig.id;
   const modelName = cybotConfig.model;
   const provider = cybotConfig.provider;
   console.log("cybotConfig", cybotConfig);
-  const creatorId = extractUserId(cybotConfig.id);
-  console.log("creatorId", creatorId);
+  // const creatorId = extractUserId(cybotConfig.id);
+  // console.log("creatorId", creatorId);
 
-  const externalPrice = {
-    input: cybotConfig.inputPrice,
-    output: cybotConfig.outputPrice,
-    creatorId,
-  };
+  // const externalPrice = {
+  //   input: cybotConfig.inputPrice,
+  //   output: cybotConfig.outputPrice,
+  //   creatorId,
+  // };
 
-  console.log("externalPrice", externalPrice);
+  // console.log("externalPrice", externalPrice);
 
-  const result = calculatePrice({ provider, modelName, usage, externalPrice });
-  console.log("result", result);
+  // const result = calculatePrice({ provider, modelName, usage, externalPrice });
+  // console.log("result", result);
 
-  return usage;
-  const requiredData: RequiredData = {
+  const data: RequiredData = {
     ...usage,
     userId: auth?.currentUser?.userId,
     username: auth?.currentUser?.username,
     cybotId,
-    model,
+    modelName,
     provider,
     date: new Date(),
+    type: DataType.Token,
   };
-  const additionalData: AdditionalData = shareAdditionalData
-    ? {
-        deviceType: navigator.userAgent.includes("Mobile")
-          ? "Mobile"
-          : "Desktop",
-        operatingSystem: navigator.platform || "Unknown",
-        browser: (() => {
-          if (navigator.userAgent.includes("Chrome")) return "Chrome";
-          if (navigator.userAgent.includes("Firefox")) return "Firefox";
-          if (navigator.userAgent.includes("Safari")) return "Safari";
-          return "Unknown";
-        })(),
-        language: navigator.language || "en-US",
-        screenResolution: `${window.screen.width}x${window.screen.height}`,
-      }
-    : {};
+  console.log("data", data);
+  dispatch(
+    write({
+      data: {
+        type: DataType.Token,
+        ...data,
+      },
+      userId: auth.user?.userId,
+    })
+  );
 
-  const staticData: StaticData = {
-    ...requiredData,
-    ...additionalData,
-  };
-
-  console.log("staticData", staticData);
-  const saveData = {
-    ...staticData,
-    type: DataType.TokenStats,
-  };
+  return usage;
 };

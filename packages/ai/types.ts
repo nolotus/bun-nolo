@@ -1,7 +1,5 @@
 // types.ts
 
-import { DataType } from "create/types";
-
 export type ModeType =
   | "text"
   | "image"
@@ -21,15 +19,4 @@ export interface PromptFormData {
   content: string;
   category?: string;
   tags?: string[];
-}
-
-export interface TokenStaticData {
-  type: DataType.TokenStats;
-  messageType: "send" | "receive";
-  model: string;
-  tokenCount: number;
-  userId: string;
-  username: string;
-  dialogId?: string;
-  date: Date;
 }
