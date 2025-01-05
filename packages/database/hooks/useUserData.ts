@@ -11,14 +11,12 @@ export function useUserData(type, userId, limit) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 将加载数据逻辑抽取为可复用的函数
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
       const localResults = await fetchUserData(type, userId);
-
       const result = await noloQueryRequest({
         server: curretnServer,
         queryUserId: userId,
@@ -32,7 +30,14 @@ export function useUserData(type, userId, limit) {
       });
       const remoteData = await result.json();
 
-      const mergedData = [...localResults, ...remoteData];
+      // 使用Map去重，假设每个数据项都有id属性
+      const uniqueMap = new Map();
+      [...localResults, ...remoteData].forEach((item) => {
+        uniqueMap.set(item.id, item);
+      });
+
+      // 将Map转换回数组
+      const mergedData = Array.from(uniqueMap.values());
       setData(mergedData);
     } catch (err) {
       setError(err);
@@ -49,6 +54,6 @@ export function useUserData(type, userId, limit) {
     data,
     loading,
     error,
-    reload: loadData, // 暴露重新加载数据的方法
+    reload: loadData,
   };
 }
