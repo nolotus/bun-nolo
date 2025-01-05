@@ -19,23 +19,6 @@ type RenderConfig = {
 };
 
 const renderConfigs: Record<string, RenderConfig> = {
-  [DataType.Page]: {
-    fields: [
-      {
-        header: "链接",
-        key: "id",
-        render: (value) => (
-          <Link
-            to={`/${value}`}
-            style={{ textDecoration: "none", color: "blue" }}
-          >
-            {extractCustomId(value)}
-          </Link>
-        ),
-      },
-      { header: "标题", key: "title" },
-    ],
-  },
   [DataType.SurfSpot]: {
     fields: [
       {
