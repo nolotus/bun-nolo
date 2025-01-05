@@ -6,7 +6,7 @@ import {
   buildCreateSlice,
 } from "@reduxjs/toolkit";
 import { selectCurrentUserId } from "auth/authSlice";
-import { patchData, query, queryServer, write } from "database/dbSlice";
+import { patchData, queryServer, write } from "database/dbSlice";
 import { deleteData } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 
@@ -129,31 +129,6 @@ const workspaceSlice = createSliceWithThunks({
         },
       }
     ),
-    queryDialogList: create.asyncThunk(async (workspaceId, thunkAPI) => {
-      const state = thunkAPI.getState();
-      const currentUserId = selectCurrentUserId(state);
-      let condition = {};
-      if (workspaceId) {
-        condition = {
-          type: DataType.Dialog,
-          workspaceId: state.workspaceId,
-        };
-      } else {
-        condition = {
-          type: DataType.Dialog,
-        };
-      }
-
-      const queryConfig = {
-        queryUserId: currentUserId,
-        options: {
-          isJSON: true,
-          limit: 200,
-          condition,
-        },
-      };
-      await thunkAPI.dispatch(query(queryConfig));
-    }, {}),
   }),
 });
 
@@ -163,7 +138,6 @@ export const {
   changeWorkSpace,
   addWorkspace,
   deleteWorkspace,
-  queryDialogList,
 } = workspaceSlice.actions;
 
 export const selectAllWorkspaces = (state: NoloRootState) =>
