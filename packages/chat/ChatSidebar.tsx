@@ -1,32 +1,23 @@
-import React, { useEffect } from "react";
-
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
-import {
-	queryDialogList,
-	selectCurrentWorkSpaceId,
-} from "create/workspace/workspaceSlice";
-import { selectFilteredDataByUserAndTypeAndWorkspace } from "database/selectors";
+import { useUserData } from "database/hooks/useUserData";
 
 import { DialogList } from "./dialog/DialogList";
 
 const ChatSidebar = () => {
-	const dispatch = useAppDispatch();
 	const currentUserId = useAppSelector(selectCurrentUserId);
-	const workspaceId = useAppSelector(selectCurrentWorkSpaceId);
-	const data = useAppSelector(
-		selectFilteredDataByUserAndTypeAndWorkspace(
-			currentUserId,
-			DataType.Dialog,
-			workspaceId,
-		),
+	const { data: fullData } = useUserData(
+		[DataType.Dialog, DataType.Page],
+		currentUserId,
+		100
 	);
-	useEffect(() => {
-		dispatch(queryDialogList());
-	}, []);
-
-	return <nav>{data && <DialogList dialogList={data} />}</nav>;
+	if (fullData) {
+		const { dialog, page } = fullData;
+		console.log("dialog", dialog);
+		return <nav>{dialog && <DialogList dialogList={dialog} />}</nav>;
+	}
+	return null;
 };
 
-export default ChatSidebar
+export default ChatSidebar;

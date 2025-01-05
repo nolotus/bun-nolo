@@ -19,7 +19,6 @@ import {
 	changeWorkSpace,
 	deleteWorkspace,
 	fetchWorkspaces,
-	queryDialogList,
 	selectAllWorkspaces,
 	selectCurrentWorkspaceName,
 } from "create/workspace/workspaceSlice";
@@ -133,7 +132,8 @@ export const SidebarTop = () => {
 	const handleOptionClick = (workspaceId?: string) => {
 		navigate("/create");
 		dispatch(changeWorkSpace(workspaceId));
-		dispatch(queryDialogList(workspaceId));
+		//todo  new db need workspace
+		// dispatch(queryDialogList(workspaceId));
 		setIsOpen(false);
 	};
 

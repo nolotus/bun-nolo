@@ -5,55 +5,82 @@ import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import { noloQueryRequest } from "../client/queryRequest";
 
-export function useUserData(type, userId, limit) {
-  const curretnServer = useAppSelector(selectCurrentServer);
-  const [data, setData] = useState([]);
+export function useUserData(
+  types: DataType | DataType[],
+  userId: string,
+  limit: number
+) {
+  const currentServer = useAppSelector(selectCurrentServer);
+  const [data, setData] = useState<any>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // 将types转换为字符串来比较，避免数组引用变化
+  const typesKey = Array.isArray(types) ? types.join(",") : types;
 
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const localResults = await fetchUserData(type, userId);
-      const result = await noloQueryRequest({
-        server: curretnServer,
-        queryUserId: userId,
-        options: {
-          isJSON: true,
-          limit,
-          condition: {
-            type: DataType.Cybot,
-          },
-        },
-      });
-      const remoteData = await result.json();
+      const typeArray = Array.isArray(types) ? types : [types];
+      const localResults = await fetchUserData(typeArray, userId);
 
-      // 使用Map去重，假设每个数据项都有id属性
-      const uniqueMap = new Map();
-      [...localResults, ...remoteData].forEach((item) => {
-        uniqueMap.set(item.id, item);
-      });
+      const remoteResults = await Promise.all(
+        typeArray.map(async (type) => {
+          const result = await noloQueryRequest({
+            server: currentServer,
+            queryUserId: userId,
+            options: {
+              isJSON: true,
+              limit,
+              condition: { type },
+            },
+          });
+          return {
+            type,
+            data: await result.json(),
+          };
+        })
+      );
 
-      // 将Map转换回数组
-      const mergedData = Array.from(uniqueMap.values());
-      setData(mergedData);
+      if (Array.isArray(types)) {
+        const mergedData = typeArray.reduce((acc, type) => {
+          const uniqueMap = new Map();
+          const localTypeData = localResults[type] || [];
+          const remoteTypeData =
+            remoteResults.find((r) => r.type === type)?.data || [];
+
+          [...localTypeData, ...remoteTypeData].forEach((item) => {
+            uniqueMap.set(item.id, item);
+          });
+
+          acc[type] = Array.from(uniqueMap.values());
+          return acc;
+        }, {});
+
+        setData(mergedData);
+      } else {
+        const uniqueMap = new Map();
+        const localTypeData = localResults[types] || [];
+        const remoteTypeData = remoteResults[0]?.data || [];
+
+        [...localTypeData, ...remoteTypeData].forEach((item) => {
+          uniqueMap.set(item.id, item);
+        });
+
+        setData(Array.from(uniqueMap.values()));
+      }
     } catch (err) {
       setError(err);
     } finally {
       setLoading(false);
     }
-  }, [type, userId, curretnServer, limit]);
+  }, [typesKey, userId, currentServer, limit]); // 使用typesKey替代types
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  return {
-    data,
-    loading,
-    error,
-    reload: loadData,
-  };
+  return { data, loading, error, reload: loadData };
 }
