@@ -5,7 +5,8 @@ import { ulid } from "ulid";
 import { addOne } from "../dbSlice";
 import { noloWriteRequest } from "../requests/writeRequest";
 import { DataType } from "create/types";
-import { Level } from "level";
+import { db } from "../browser/db";
+
 export const writeAction = async (writeConfig, thunkApi) => {
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
@@ -15,7 +16,7 @@ export const writeAction = async (writeConfig, thunkApi) => {
   const isLoggedIn = selectIsLoggedIn(state);
   // thunkApi.dispatch(syncWrite(state));
   const { data } = writeConfig;
-  if (data.type === DataType.Cybot) {
+  if (data.type === DataType.Cybot || data.type === DataType.Page) {
     console.log("write cyot", data);
     const id = `${data.type}-${userId}-${ulid()}`;
     const willSaveData = {
@@ -23,7 +24,6 @@ export const writeAction = async (writeConfig, thunkApi) => {
       created: new Date().toISOString(),
       id,
     };
-    const db = new Level("nolo", { valueEncoding: "json" });
     const result = await db.put(id, willSaveData);
     console.log("result", result);
     return { id };
