@@ -22,7 +22,7 @@ export const cybotSlice = createSliceWithThunks({
       const dispatch = thunkApi.dispatch;
       const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
       if (cybotConfig.type === DataType.Cybot) {
-        const api = getApiEndpoint(cybotConfig.provider);
+        const api = getApiEndpoint(cybotConfig);
         const currentServer = selectCurrentServer(state);
         const messages = [
           {
