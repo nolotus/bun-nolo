@@ -57,28 +57,6 @@ const renderConfigs: Record<string, RenderConfig> = {
     ),
   },
 
-  [DataType.TokenStats]: {
-    fields: [
-      { header: "消息类型", key: "messageType" },
-      { header: "模型", key: "model" },
-      { header: "Token 数量", key: "tokenCount" },
-      { header: "用户 ID", key: "userId" },
-      { header: "用户名", key: "username" },
-      {
-        header: "日期",
-        key: "date",
-        render: (value) => new Date(value).toLocaleString(),
-      },
-    ],
-    actions: (data) => (
-      <Link
-        to={`/token-stats/${data.id}`}
-        style={{ textDecoration: "none", color: "blue" }}
-      >
-        <button style={{ borderRadius: "4px", padding: "4px" }}>详情</button>
-      </Link>
-    ),
-  },
   [DataType.CalendarEvent]: {
     fields: [
       {

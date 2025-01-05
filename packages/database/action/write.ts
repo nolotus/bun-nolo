@@ -16,9 +16,13 @@ export const writeAction = async (writeConfig, thunkApi) => {
   const isLoggedIn = selectIsLoggedIn(state);
   // thunkApi.dispatch(syncWrite(state));
   const { data } = writeConfig;
-  if (data.type === DataType.Cybot || data.type === DataType.Page) {
+  if (
+    data.type === DataType.Cybot ||
+    data.type === DataType.Page ||
+    data.type === DataType.Token
+  ) {
     console.log("write cyot", data);
-    const id = `${data.type}-${userId}-${ulid()}`;
+    const id: string = `${data.type}-${userId}-${ulid()}`;
     const willSaveData = {
       ...data,
       created: new Date().toISOString(),

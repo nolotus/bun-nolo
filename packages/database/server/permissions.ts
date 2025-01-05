@@ -7,14 +7,14 @@ import { dirname } from "path";
 
 export const allowIds = ["domain-list"];
 export const allowType = {
-  [nolotusId]: [DataType.TokenStats],
+  [nolotusId]: [DataType.Token],
 };
 
 export const checkPermission = (
   actionUserId: string,
   saveUserId: string,
   data: any,
-  customId?: string,
+  customId?: string
 ): boolean => {
   const isWriteSelf = actionUserId === saveUserId;
   if (isWriteSelf) {
@@ -33,7 +33,7 @@ export const checkReadPermission = (userId: string, id: string): boolean => {
 
 export const validateUserAction = (
   actionUserId: string,
-  dataBelongUserId: string,
+  dataBelongUserId: string
 ) => {
   if (actionUserId !== dataBelongUserId) {
     throw new Error("Unauthorized action.");
@@ -42,7 +42,7 @@ export const validateUserAction = (
 
 export const checkDeletePermission = (
   actionUserId: string,
-  dataBelongUserId: string,
+  dataBelongUserId: string
 ): boolean => {
   return actionUserId === dataBelongUserId;
 };
