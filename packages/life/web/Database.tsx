@@ -5,12 +5,10 @@ import { useSearchParams } from "react-router-dom";
 import { useQuery } from "app/hooks/useQuery";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
-import { omit } from "rambda";
 import DataDisplay from "../blocks/DataDisplay";
 
-const filteredDataType = omit([DataType.Dialog, DataType.Cybot, DataType.Space], DataType);
-
-const typeArray = ["All", ...Object.values(filteredDataType)];
+const typeArray = ["All", ...Object.values(DataType)
+	.filter(value => ![DataType.Dialog, DataType.Cybot, DataType.Space, DataType.Page].includes(value))];
 
 export const Database = () => {
 
