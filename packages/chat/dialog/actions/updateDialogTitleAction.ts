@@ -3,6 +3,7 @@ import { getFilteredMessages } from "chat/messages/utils";
 import { patchData } from "database/dbSlice";
 import { format } from "date-fns";
 import { selectCurrentServer } from "setting/settingSlice";
+import { isProduction } from "utils/env";
 
 export const updateDialogTitleAction = async (args, thunkApi) => {
   const { dialogId, cybotConfig } = args; //
@@ -16,9 +17,9 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
   console.log("currentServer", currentServer);
 
   // 根据服务器地址选择cybotId
-  const cybotId = currentServer.includes("localhost")
-    ? "000000100000-c1NvY0lIV2tudXVOY0xMY3gxRlVjX29yVUJUU3RsbnEwcmVQMUJSQm9XRQ-01JFHYXE5J7C31WK7X8EDT048Z"
-    : "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JFJ1CRD6MPQ8G8EJFBA0YY8J";
+  const cybotId = isProduction
+    ? "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGTFKJ7TRE78ZB1E1ZSJRAFJ"
+    : "cybot-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGV8AB85FP1GC3Z42W9ATSPG";
 
   let title;
   try {
@@ -27,7 +28,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
       runCybotId({
         cybotId,
         userInput: content,
-      }),
+      })
     ).unwrap();
   } catch (error) {
     console.error("Failed to get title from cybotId:", error);
@@ -39,7 +40,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
 
   // 更新数据库中的对话标题
   const result = await dispatch(
-    patchData({ id: dialogId, changes: { title } }),
+    patchData({ id: dialogId, changes: { title } })
   ).unwrap();
 
   return result;
