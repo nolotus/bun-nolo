@@ -3,7 +3,7 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";
 
-import { DialogList } from "./dialog/DialogList";
+import { SidebarItem } from "./dialog/SidebarItem";
 
 const ChatSidebar = () => {
 	const currentUserId = useAppSelector(selectCurrentUserId);
@@ -15,7 +15,13 @@ const ChatSidebar = () => {
 	if (fullData) {
 		const { dialog, page } = fullData;
 		console.log("dialog", dialog);
-		return <nav>{dialog && <DialogList dialogList={dialog} />}</nav>;
+		console.log("page", page)
+		console
+		return <nav>
+			{dialog?.map((dilogItem) => { return <SidebarItem {...dilogItem} /> })}
+			{page?.map((pageItem) => { return <SidebarItem {...pageItem} /> })}
+		</nav>
+
 	}
 	return null;
 };
