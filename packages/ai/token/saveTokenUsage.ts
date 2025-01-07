@@ -1,5 +1,5 @@
 import { DataType } from "create/types";
-import { db } from "database/browser/db";
+import { browserDb } from "database/browser/db";
 import { ulid } from "ulid";
 import { pipe, curry, prop } from "rambda";
 
@@ -141,11 +141,11 @@ const updateDayStats = curry(
 // DB operations
 const safeDbGet = curry(
   <T>(defaultValue: T, key: string): Promise<T> =>
-    db.get(key).catch(() => defaultValue)
+    browserDb.get(key).catch(() => defaultValue)
 );
 
 const dbPut = curry(async (key: string, value: any) => {
-  await db.put(key, value);
+  await browserDb.put(key, value);
   return value;
 });
 
@@ -205,7 +205,7 @@ const createFilter = curry(
 
 const iterateDb = curry(async (options: any, filter: Function) => {
   const records = [];
-  for await (const [_, value] of db.iterator(options)) {
+  for await (const [_, value] of browserDb.iterator(options)) {
     if (filter(value)) {
       records.push(value);
     }

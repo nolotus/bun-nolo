@@ -11,7 +11,6 @@ export function generateRequestBody(cybotConfig, content, prevMsgs) {
       content,
     },
   ];
-  console.log("messages", messages);
 
   const bodyData = {
     model,

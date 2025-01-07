@@ -86,7 +86,6 @@ export const sendCommonChatRequest = async ({
     dispatch(setOne(message));
     dispatch(messageStreaming(message));
     const api = getApiEndpoint(cybotConfig);
-    console.log("API Endpoint:", api);
 
     const response = await performFetchRequest(
       cybotConfig,

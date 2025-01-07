@@ -5,9 +5,8 @@ async function makeRequest(server: string, id: string, token: string) {
     const res = await noloReadRequest(server, id, token);
     if (res.status === 200) {
       const result = await res.json();
-      const withSourceResult = { ...result, source: [server] };
 
-      return withSourceResult;
+      return result;
     } else {
       throw new Error(`Request failed with status ${res.status}`);
     }
@@ -19,10 +18,10 @@ async function makeRequest(server: string, id: string, token: string) {
 export async function requestServers(
   servers: string[],
   id: string,
-  token: string,
+  token: string
 ) {
   const requests = servers.map((server) =>
-    makeRequest(server, id, token).catch((error) => error),
+    makeRequest(server, id, token).catch((error) => error)
   );
 
   const results = await Promise.all(requests); // 等待所有请求完成

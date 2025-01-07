@@ -44,6 +44,7 @@ export function useUserData(
         })
       );
 
+      // 修改mergedData部分的逻辑，使用updatedAt来决定保留哪条数据
       if (Array.isArray(types)) {
         const mergedData = typeArray.reduce((acc, type) => {
           const uniqueMap = new Map();
@@ -52,7 +53,13 @@ export function useUserData(
             remoteResults.find((r) => r.type === type)?.data || [];
 
           [...localTypeData, ...remoteTypeData].forEach((item) => {
-            uniqueMap.set(item.id, item);
+            const existing = uniqueMap.get(item.id);
+            if (
+              !existing ||
+              new Date(item.updatedAt) > new Date(existing.updatedAt)
+            ) {
+              uniqueMap.set(item.id, item);
+            }
           });
 
           acc[type] = Array.from(uniqueMap.values());
@@ -66,7 +73,13 @@ export function useUserData(
         const remoteTypeData = remoteResults[0]?.data || [];
 
         [...localTypeData, ...remoteTypeData].forEach((item) => {
-          uniqueMap.set(item.id, item);
+          const existing = uniqueMap.get(item.id);
+          if (
+            !existing ||
+            new Date(item.updatedAt) > new Date(existing.updatedAt)
+          ) {
+            uniqueMap.set(item.id, item);
+          }
         });
 
         setData(Array.from(uniqueMap.values()));

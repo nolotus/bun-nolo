@@ -2,7 +2,6 @@ import { useAppSelector, useFetchData } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { useAuth } from "auth/useAuth";
 import { generateIdWithCustomId } from "core/generateMainKey";
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { PageLoader } from "render/blocks/PageLoader";
 
@@ -25,7 +24,6 @@ const UserProfile = () => {
 			<div className="mb-4">
 				<p className="mb-2 ">用户名: {auth.user?.username}</p>
 				<p className="mb-2 ">用户Id: {auth.user?.userId}</p>
-				<p className="mb-2 ">当前语言: {navigator.language}</p>
 			</div>
 		</div>
 	);

@@ -2,28 +2,14 @@ import { FLAGS_MAP } from "./flagsMap";
 
 // 添加一个缓存对象
 const decodeCache = {};
-const DEFAULT_LENGTH = Math.max(...Object.keys(FLAGS_MAP).map(Number));
 
 // 使用 TypeScript 定义类型
 export interface Flags {
-  isHash?: boolean;
   isFile?: boolean;
-  isVersion?: boolean;
   isList?: boolean;
-  isObject?: boolean;
   isString?: boolean;
   isJSON?: boolean;
-  isUrlSafe?: boolean;
-  isOthersWritable?: boolean;
-  isReadableByOthers?: boolean;
 }
-export const setKeyPrefix = (flags: Flags = {}): string => {
-  const lengthFlags = FLAGS_MAP[DEFAULT_LENGTH];
-  if (!lengthFlags) {
-    throw new Error(`No flags defined for prefix of length ${DEFAULT_LENGTH}`);
-  }
-  return lengthFlags.map((flag) => Number(flags[flag] || false)).join("");
-};
 
 export const decodeKeyPrefix = (prefix: string): Flags => {
   // 检查缓存
@@ -56,14 +42,9 @@ export const getDecodedFlag = (prefix: string, flag: keyof Flags): boolean => {
   return decoded[flag] || false;
 };
 
-export const isHash = (prefix: string): boolean =>
-  getDecodedFlag(prefix, "isHash");
 export const isString = (prefix: string): boolean =>
   getDecodedFlag(prefix, "isString");
-export const isBase64 = (prefix: string): boolean =>
-  getDecodedFlag(prefix, "isBase64");
-export const isUrlSafe = (prefix: string): boolean =>
-  getDecodedFlag(prefix, "isUrlSafe");
+
 export const isFile = (prefix: string): boolean =>
   getDecodedFlag(prefix, "isFile");
 

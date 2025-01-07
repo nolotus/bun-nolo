@@ -24,7 +24,7 @@ export const selectMergedMessages = createSelector(
     });
 
     return mergedMessages;
-  },
+  }
 );
 
 export const selectEntitiesByIds = createSelector(
@@ -32,9 +32,9 @@ export const selectEntitiesByIds = createSelector(
     (state: NoloRootState, ids: string[]) =>
       ids.map((id) => selectById(state, id)),
   ],
-  (entities) => entities.filter((entity) => entity !== undefined),
+  (entities) => entities.filter((entity) => entity !== undefined)
 );
 export const selectEntitiesByMessageIds = createSelector(
   [selectMessageList, (state: NoloRootState) => state],
-  (messageIds, state) => selectEntitiesByIds(state, messageIds),
+  (messageIds, state) => selectEntitiesByIds(state, messageIds)
 );

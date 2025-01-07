@@ -19,7 +19,7 @@ const DialogPage = ({ dialogId }) => {
   }
 
   useEffect(() => {
-    dialogId && dispatch(initDialog({ dialogId }));
+    dialogId && dispatch(initDialog(dialogId));
 
     // 组件卸载时清空数据
     return () => {

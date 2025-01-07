@@ -63,7 +63,6 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
     type: DataType.Token,
   };
   console.log("data", data);
-  const userId = auth.user.userId;
 
   // dispatch(
   //   write({

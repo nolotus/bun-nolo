@@ -40,7 +40,7 @@ export const SurfPage = ({ pageId, data }) => {
           allowEdit={allowEdit}
         />
       </div>
-      <SurfSpotPage id={pageId} source={data.source} />
+      <SurfSpotPage id={pageId} />
     </>
   );
 };

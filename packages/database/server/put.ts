@@ -47,18 +47,12 @@ export const handlePut = async (req, res) => {
   const data = req.body;
   const flags = extractAndDecodePrefix(id);
 
-  const { isList, isHash, isFile } = flags;
+  const { isList, isFile } = flags;
   //如果是isHash  isFile 则不允许更新
   if (isList) {
     return updateList(actionUserId, id, data, res);
   } else {
     try {
-      //maybe merge
-      if (id.includes("01JEG03TSK60YT06CBK822ZRH9")) {
-        console.log("id", id);
-
-        console.log("data", data);
-      }
       const value = formatData(data, flags);
       mem.set(id, value);
       return res
