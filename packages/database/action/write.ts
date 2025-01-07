@@ -37,10 +37,10 @@ export const writeAction = async (writeConfig, thunkApi) => {
     const { id, flags } = writeConfig;
     const customId = id ? id : ulid();
     const { isJSON, isList, isObject } = flags;
+    userId = currenUserId;
     if (writeConfig.userId) {
       userId = writeConfig.userId;
     }
-    userId = currenUserId;
     if (isLoggedIn) {
       //here id should similar ulid
       const saveId = generateIdWithCustomId(userId, customId, flags);

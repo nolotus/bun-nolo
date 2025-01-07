@@ -2,6 +2,7 @@ import { selectCurrentServer, selectSyncServers } from "setting/settingSlice";
 import { noloReadRequest } from "database/read/readRequest";
 import { requestServers } from "utils/request";
 import { selectIsLoggedIn } from "auth/authSlice";
+import { isV0Id } from "core/id";
 import { db } from "../browser/db";
 
 export const readAction = async ({ id }, thunkApi) => {
@@ -9,8 +10,7 @@ export const readAction = async ({ id }, thunkApi) => {
   const state = thunkApi.getState();
   const isLoggedIn = selectIsLoggedIn(state);
   const token = state.auth.currentToken;
-  const isOldId = id.startsWith("0") || id.startsWith("1");
-  if (!isOldId) {
+  if (!isV0Id) {
     const result = await db.get(id);
     return result;
   } else {

@@ -1,4 +1,3 @@
-import { api } from "app/api";
 import { store } from "app/store";
 import { renderToReadableStream } from "react-dom/server.browser";
 
@@ -79,7 +78,6 @@ export const handleRender = async (req) => {
       //   writer.write(new TextEncoder().encode(content));
       // }
       //maybe need delete api relate
-      await Promise.all(store.dispatch(api.util.getRunningQueriesThunk()));
       console.log(`Dispatch time: ${performance.now() - dispatchStartTime}ms`);
 
       const preloadedState = store.getState();
