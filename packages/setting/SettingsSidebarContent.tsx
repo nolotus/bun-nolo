@@ -8,8 +8,6 @@ import { SettingRoutePaths } from "./config";
 const navItems = [
   { path: SettingRoutePaths.SETTING_USER_PROFILE, label: "个人资料" },
   { path: SettingRoutePaths.SETTING_EDITOR_CONFIG, label: "编辑器设置" },
-  { path: SettingRoutePaths.SETTING_SYNC, label: "同步设置" },
-  { path: SettingRoutePaths.SETTING_WEBSITE, label: "网站设置" },
   { path: SettingRoutePaths.SETTING_CUSTOMIZE, label: "个性化设置" },
   { path: SettingRoutePaths.SETTING_SERVICE_PROVIDER, label: "服务商设置" },
 ];

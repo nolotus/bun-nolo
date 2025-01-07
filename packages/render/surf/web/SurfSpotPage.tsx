@@ -32,13 +32,9 @@ const SurfSpotDescription = ({
   </div>
 );
 
-interface SurfSpotPageProps {
-  id: string;
-  source: string;
-}
 
-const SurfSpotPage = ({ id, source }: SurfSpotPageProps) => {
-  const { data, isLoading } = useFetchData(id, { source });
+const SurfSpotPage = ({ id }) => {
+  const { data, isLoading } = useFetchData(id);
   // const mobile = useMediaQuery({ minWidth: 640 });
   // const tablet = useMediaQuery({ minWidth: 768 });
   // const monitor = useMediaQuery({ minWidth: 1281 });

@@ -3,15 +3,15 @@ import { noloReadRequest } from "database/read/readRequest";
 import { requestServers } from "utils/request";
 import { selectIsLoggedIn } from "auth/authSlice";
 import { isV0Id } from "core/id";
-import { db } from "../browser/db";
+import { browserDb } from "../browser/db";
 
 export const readAction = async ({ id }, thunkApi) => {
-  console.log("readAction id", id);
   const state = thunkApi.getState();
   const isLoggedIn = selectIsLoggedIn(state);
   const token = state.auth.currentToken;
-  if (!isV0Id) {
-    const result = await db.get(id);
+  if (!isV0Id(id)) {
+    const result = await browserDb.get(id);
+    console.log("readAction v1 result", result);
     return result;
   } else {
     const isAutoSync = state.settings.syncSetting.isAutoSync;

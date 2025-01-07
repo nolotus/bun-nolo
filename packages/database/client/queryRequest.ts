@@ -5,7 +5,6 @@ export const noloQueryRequest = async (queryConfig: any) => {
   const { queryUserId, options } = queryConfig;
 
   const queryParams = new URLSearchParams({
-    isObject: (options.isObject ?? false).toString(),
     isJSON: (options.isJSON ?? false).toString(),
     limit: options.limit?.toString() ?? "",
   });

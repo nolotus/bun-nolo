@@ -33,7 +33,6 @@ interface QueryConditions {
 }
 export interface QueryOptions {
   userId?: string;
-  isObject?: boolean;
   isJSON?: boolean;
   isList?: boolean;
   skip?: number; // 分页开始的位置

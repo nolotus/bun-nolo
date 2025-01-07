@@ -6,7 +6,6 @@ export const handleQuery = async (req, res) => {
   try {
     const options: QueryOptions = {
       userId: req.params.userId,
-      isObject: req.query.isObject === "true",
       isJSON: req.query.isJSON === "true",
       condition: req.body,
       limit: Number(req.query.limit),

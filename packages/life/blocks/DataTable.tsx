@@ -4,7 +4,7 @@ import { extractCustomId } from "core";
 import { DataType } from "create/types";
 import { deleteData } from "database/dbSlice";
 import { Link } from "react-router-dom";
-import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
+import { TrashIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 
 type FieldConfig = {
@@ -119,13 +119,11 @@ const defaultConfig: RenderConfig = {
 interface DataTableProps {
   dataList: any[];
   type?: DataType;
-  pullData: (id: string, data: any) => void;
 }
 
 export const DataTable: React.FC<DataTableProps> = ({
   dataList,
   type,
-  pullData,
 }) => {
   const dispatch = useAppDispatch();
   const config =
@@ -150,14 +148,7 @@ export const DataTable: React.FC<DataTableProps> = ({
         删除
       </Button>
 
-      <Button
-        variant="secondary"
-        size="small"
-        onClick={() => pullData(data.id, data)}
-        icon={<RepoPullIcon size={14} />}
-      >
-        拉取
-      </Button>
+
 
       {config.actions && config.actions(data)}
     </div>

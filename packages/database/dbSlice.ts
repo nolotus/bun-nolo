@@ -6,7 +6,6 @@ import {
   createSelectorCreator,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
-import { extractAndDecodePrefix, extractCustomId, extractUserId } from "core";
 import { selectCurrentServer } from "setting/settingSlice";
 
 import { selectIsLoggedIn } from "auth/authSlice";
@@ -15,7 +14,7 @@ import { addToListAction, removeFromListAction } from "./action/listAction";
 import { queryServerAction } from "./action/queryServer";
 import { readAction } from "./action/read";
 import { writeAction } from "./action/write";
-import { noloPatchRequest } from "./requests/patchRequest";
+import { patchAction } from "./action/patch";
 export const dbAdapter = createEntityAdapter();
 
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
@@ -53,74 +52,22 @@ const dbSlice = createSliceWithThunks({
         dbAdapter.removeMany(state, ids);
       },
     }),
-    write: create.asyncThunk(writeAction, {
-      pending: (state, action) => {},
-      fulfilled: (state, action) => {},
-    }),
-    // setData is a thunk that will update an entity in the database
+    write: create.asyncThunk(writeAction),
 
-    // upsertData is a thunk that will either create or update an entity in the database
-    upsertData: create.asyncThunk(
-      async (saveConfig, thunkApi) => {
-        const dispatch = thunkApi.dispatch;
-        const id = saveConfig.id;
-        const readAction = await dispatch(read({ id }));
-        if (readAction.error) {
-          const { data } = saveConfig;
-          const dataBelongUserId = extractUserId(saveConfig.id);
-          const id = extractCustomId(saveConfig.id);
-          const flags = extractAndDecodePrefix(saveConfig.id);
-          const writeConfig = {
-            userId: dataBelongUserId,
-            data: { ...data },
-            flags,
-            id,
-          };
-          const writeRes = await dispatch(write(writeConfig));
-        } else {
-          const updateRes = await dispatch(setData({ ...saveConfig, id }));
-          return updateRes.payload.data;
-        }
-      },
-      {
-        fulfilled: (state, action) => {
-          dbAdapter.upsertOne(state, action);
-        },
-      }
-    ),
     upsertOne: create.reducer((state, action) => {
       dbAdapter.upsertOne(state, action.payload);
     }),
     mergeMany: create.reducer((state, action) => {
-      const { data, server } = action.payload;
-      const withSourceData = data.map((item) => {
-        const exist = dbAdapter.selectId(item.id);
-        if (exist) {
-          const mergeBefore = {
-            ...item,
-            source: [...exist.server, server],
-          };
-          return mergeBefore;
-        }
-        return { ...item, source: [server] };
-      });
-      dbAdapter.upsertMany(state, withSourceData);
+      const { data } = action.payload;
+      dbAdapter.upsertMany(state, data);
     }),
-    patchData: create.asyncThunk(
-      async ({ id, changes }, thunkApi) => {
-        const state = thunkApi.getState();
-        const res = await noloPatchRequest(state, id, changes);
-        const { data } = await res.json();
-        return data;
+    patchData: create.asyncThunk(patchAction, {
+      fulfilled: (state, action) => {
+        const { payload } = action;
+        const { id, ...changes } = payload;
+        dbAdapter.updateOne(state, { id, changes });
       },
-      {
-        fulfilled: (state, action) => {
-          const { payload } = action;
-          const { id, ...changes } = payload;
-          dbAdapter.updateOne(state, { id, changes });
-        },
-      }
-    ),
+    }),
 
     addOne: dbAdapter.addOne,
     setOne: dbAdapter.setOne,
@@ -148,7 +95,6 @@ export const {
   mergeMany,
   deleteData,
   patchData,
-  upsertData,
   read,
   syncQuery,
   write,

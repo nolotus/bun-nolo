@@ -1,47 +1,21 @@
 // write.ts
 
 import { formatData } from "core/formatData";
-import { generateCustomId } from "core/generateMainKey";
-import { extractAndDecodePrefix, extractUserId } from "core/prefix";
+import { generateIdWithCustomId } from "core/generateMainKey";
 
 import { mem } from "./mem";
 import { checkPermission, checkUserDirectory } from "./permissions";
-import { isV0Id } from "core/id";
-
-async function processFile(dataKey: string, data: Blob): Promise<void> {
-  const mimeTypes: { [key: string]: string } = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "application/pdf": ".pdf",
-  };
-  const fileExtension = mimeTypes[data.type] || "";
-  const userId = extractUserId(dataKey);
-  await Bun.write(`nolodata/${userId}/${dataKey}${fileExtension}`, data);
-}
-
-function processDataKey(dataKey: string, data: any): { isFile: boolean } {
-  const result = extractAndDecodePrefix(dataKey);
-  const isFile = result.isFile || false;
-  if (isFile) {
-    processFile(dataKey, data);
-  }
-  return { isFile };
-}
+import { DataType } from "create/types";
+import serverDb from "./db";
+import { ulid } from "ulid";
 
 export const serverWrite = (
   dataKey: string,
   data: string | Blob,
   userId: string
 ): Promise<void> => {
-  if (isV0Id(dataKey)) {
-    console.log("write new ", dataKey);
-  }
   return checkUserDirectory(userId).then(() => {
-    const result = processDataKey(dataKey, data);
-    if (!result.isFile) {
-      mem.set(dataKey, data as string);
-      return Promise.resolve();
-    }
+    mem.set(dataKey, data as string);
     return Promise.resolve();
   });
 };
@@ -55,32 +29,33 @@ export const handleWrite = async (req: any, res: any) => {
   const { user } = req;
   const actionUserId = user.userId;
 
-  if (req.body instanceof FormData) {
-    const formData = req.body;
-    const fileBlob = formData.get("file") as Blob;
-    const clientGeneratedID = formData.get("id") as string;
-    const saveUserId = extractUserId(clientGeneratedID);
-
-    try {
-      await serverWrite(clientGeneratedID, fileBlob, saveUserId);
-      return res
-        .status(200)
-        .json({ message: "success", id: clientGeneratedID });
-    } catch (error) {
-      return handleError(
-        res,
-        error instanceof Error ? error : new Error(String(error))
-      );
-    }
-  }
   const { userId, data, flags, customId } = req.body;
+  console.log("data", data);
+  if (
+    data.type === DataType.Dialog ||
+    data.type === DataType.Cybot ||
+    data.type === DataType.Page
+  ) {
+    const hasUser = await serverDb.get(`${user}:${userId}`);
+    const hasV0User = await checkUserDirectory(userId);
+    console.log("write check", hasV0User, hasUser);
+    const id: string = `${data.type}-${userId}-${ulid()}`;
+    await serverDb.put(id, data);
 
+    const returnJson = {
+      message: "Data written to file successfully.",
+      id,
+      ...data,
+    };
+    return res.status(200).json(returnJson);
+  }
   const saveUserId = userId;
   if (saveUserId === "local") {
     return res.status(400).json({
       message: "local data is not allowed.",
     });
   }
+
   const value = formatData(data, flags);
 
   if (typeof value === "string" && value.includes("\n")) {
@@ -89,6 +64,13 @@ export const handleWrite = async (req: any, res: any) => {
     });
   }
 
+  function generateCustomId(userId: string, customId: string, flags) {
+    return generateIdWithCustomId(
+      userId,
+      customId,
+      flags ? flags : { isJSON: true }
+    );
+  }
   const id = generateCustomId(saveUserId, customId, flags);
 
   if (checkPermission(actionUserId, saveUserId, data, customId)) {

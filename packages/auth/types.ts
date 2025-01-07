@@ -6,6 +6,6 @@ export interface SignupData {
 }
 export interface User {
   userId: string;
-  username: string;
+  username?: string;
   email?: string;
 }
