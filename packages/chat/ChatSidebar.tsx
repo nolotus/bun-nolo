@@ -7,6 +7,7 @@ import { SidebarItem } from "./dialog/SidebarItem";
 
 const ChatSidebar = () => {
 	const currentUserId = useAppSelector(selectCurrentUserId);
+	console.log('currentUserId', currentUserId)
 	const { data: fullData } = useUserData(
 		[DataType.Dialog, DataType.Page],
 		currentUserId,
@@ -14,8 +15,6 @@ const ChatSidebar = () => {
 	);
 	if (fullData) {
 		const { dialog, page } = fullData;
-		console.log("dialog", dialog);
-		console.log("page", page)
 		console
 		return <nav>
 			{dialog?.map((dilogItem) => { return <SidebarItem {...dilogItem} /> })}

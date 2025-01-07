@@ -6,6 +6,7 @@ import { extractAndDecodePrefix, extractUserId } from "core/prefix";
 
 import { mem } from "./mem";
 import { checkPermission, checkUserDirectory } from "./permissions";
+import { isV0Id } from "core/id";
 
 async function processFile(dataKey: string, data: Blob): Promise<void> {
   const mimeTypes: { [key: string]: string } = {
@@ -32,7 +33,7 @@ export const serverWrite = (
   data: string | Blob,
   userId: string
 ): Promise<void> => {
-  if (!dataKey.startsWith("0") || !dataKey.startsWith("1")) {
+  if (isV0Id(dataKey)) {
     console.log("write new ", dataKey);
   }
   return checkUserDirectory(userId).then(() => {
@@ -72,9 +73,14 @@ export const handleWrite = async (req: any, res: any) => {
       );
     }
   }
-
   const { userId, data, flags, customId } = req.body;
+
   const saveUserId = userId;
+  if (saveUserId === "local") {
+    return res.status(400).json({
+      message: "local data is not allowed.",
+    });
+  }
   const value = formatData(data, flags);
 
   if (typeof value === "string" && value.includes("\n")) {

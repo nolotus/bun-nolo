@@ -1,4 +1,4 @@
-import levelDb, { DB_PREFIX } from "database/server/db.js";
+import serverDb, { DB_PREFIX } from "database/server/db.js";
 import { reject } from "rambda";
 
 import { signMessage } from "core/crypto";
@@ -14,7 +14,7 @@ export async function handleSignUp(req, res) {
 
   // 先检查用户是否存在
   try {
-    const existingUser = await levelDb.get(DB_PREFIX.USER + userId);
+    const existingUser = await serverDb.get(DB_PREFIX.USER + userId);
     if (existingUser) {
       return res
         .status(409)
@@ -33,11 +33,11 @@ export async function handleSignUp(req, res) {
     createdAt: Date.now(),
   });
 
-  await levelDb.put(DB_PREFIX.USER + userId, JSON.stringify(userData));
+  await serverDb.put(DB_PREFIX.USER + userId, JSON.stringify(userData));
 
   // 验证数据是否写入成功
   try {
-    const savedUser = await levelDb.get(DB_PREFIX.USER + userId);
+    const savedUser = await serverDb.get(DB_PREFIX.USER + userId);
     console.log("Saved user data:", savedUser);
   } catch (err) {
     console.error("Failed to verify saved user:", err);

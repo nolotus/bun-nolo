@@ -4,7 +4,7 @@ import { WriteConfigServer } from "../write/type";
 
 export const noloWriteRequest = async (
   state: any,
-  writeConfig: WriteConfigServer,
+  writeConfig: WriteConfigServer
 ) => {
   const { userId, data, flags, customId } = writeConfig;
   // const userId = selectCurrentUserId(state);

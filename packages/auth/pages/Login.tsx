@@ -52,15 +52,18 @@ const Login: React.FC = () => {
 				await hashedPasswordV0(password) :
 				await hashPasswordV1(password);
 
-			const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
-			if (action.payload.token) {
-				storeTokens(action.payload.token);
+			const result = await dispatch(signIn({ ...data, locale, encryptionKey })).unwrap()
+			console.log('login result', result)
+
+			if (result.token) {
+				console.log('login success')
+				storeTokens(result.token);
 				//maybe dashboard
 				navigate('/')
 				return;
 			}
 
-			switch (action.payload.status) {
+			switch (result.status) {
 				case 404:
 					setError(t("userNotFound"));
 					break;
@@ -157,7 +160,7 @@ const Login: React.FC = () => {
 
 					<div className="signup-section">
 						<span className="link-text">{t("noAccount")}</span>
-						<NavLink to={RoutePaths.INVITE_SIGNUP} className="signup-link">
+						<NavLink to={RoutePaths.SIGNUP} className="signup-link">
 							{t("signUpNow")}
 						</NavLink>
 					</div>
