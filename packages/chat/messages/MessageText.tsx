@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 export const MessageText = ({ content, role }) => {
   const messageContainerStyle = {
-    maxWidth: "70vw",
+    maxWidth: "70%",
     whiteSpace: "pre-wrap",
     margin: "0 0.5rem",
   };

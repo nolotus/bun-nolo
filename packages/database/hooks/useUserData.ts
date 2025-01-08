@@ -1,21 +1,21 @@
 import { useEffect, useState, useCallback } from "react";
 import { fetchUserData } from "../browser/fetchUserData";
 import { DataType } from "create/types";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector, useAppDispatch } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import { noloQueryRequest } from "../client/queryRequest";
+import { upsertMany } from "database/dbSlice";
 
 export function useUserData(
   types: DataType | DataType[],
   userId: string,
   limit: number
 ) {
+  const dispatch = useAppDispatch();
   const currentServer = useAppSelector(selectCurrentServer);
-  const [data, setData] = useState<any>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 将types转换为字符串来比较，避免数组引用变化
   const typesKey = Array.isArray(types) ? types.join(",") : types;
 
   const loadData = useCallback(async () => {
@@ -44,35 +44,19 @@ export function useUserData(
         })
       );
 
-      // 修改mergedData部分的逻辑，使用updatedAt来决定保留哪条数据
-      if (Array.isArray(types)) {
-        const mergedData = typeArray.reduce((acc, type) => {
-          const uniqueMap = new Map();
-          const localTypeData = localResults[type] || [];
-          const remoteTypeData =
-            remoteResults.find((r) => r.type === type)?.data || [];
+      const uniqueMap = new Map();
 
-          [...localTypeData, ...remoteTypeData].forEach((item) => {
-            const existing = uniqueMap.get(item.id);
-            if (
-              !existing ||
-              new Date(item.updatedAt) > new Date(existing.updatedAt)
-            ) {
-              uniqueMap.set(item.id, item);
-            }
-          });
+      // 处理本地数据
+      typeArray.forEach((type) => {
+        const localTypeData = localResults[type] || [];
+        localTypeData.forEach((item) => {
+          uniqueMap.set(item.id, item);
+        });
+      });
 
-          acc[type] = Array.from(uniqueMap.values());
-          return acc;
-        }, {});
-
-        setData(mergedData);
-      } else {
-        const uniqueMap = new Map();
-        const localTypeData = localResults[types] || [];
-        const remoteTypeData = remoteResults[0]?.data || [];
-
-        [...localTypeData, ...remoteTypeData].forEach((item) => {
+      // 处理远程数据
+      remoteResults.forEach(({ data: remoteTypeData }) => {
+        remoteTypeData.forEach((item) => {
           const existing = uniqueMap.get(item.id);
           if (
             !existing ||
@@ -81,19 +65,20 @@ export function useUserData(
             uniqueMap.set(item.id, item);
           }
         });
+      });
 
-        setData(Array.from(uniqueMap.values()));
-      }
+      const mergedData = Array.from(uniqueMap.values());
+      dispatch(upsertMany(mergedData));
     } catch (err) {
       setError(err);
     } finally {
       setLoading(false);
     }
-  }, [typesKey, userId, currentServer, limit]); // 使用typesKey替代types
+  }, [typesKey, userId, currentServer, limit, dispatch]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  return { data, loading, error, reload: loadData };
+  return { loading, error, reload: loadData };
 }

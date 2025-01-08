@@ -31,5 +31,5 @@ export const deleteAction = async (args, thunkApi) => {
   deleteRemote();
 
   // 本地删除后立即返回
-  return { success: true };
+  return { ids: [id] };
 };

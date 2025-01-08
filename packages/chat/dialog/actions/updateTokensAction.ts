@@ -6,7 +6,6 @@ import { calculatePrice } from "integrations/anthropic/calculatePrice";
 import { extractUserId } from "core";
 import { write } from "database/dbSlice";
 
-console.log("level", level);
 interface TokenCounts {
   cache_creation_input_tokens: number;
   cache_read_input_tokens: number;

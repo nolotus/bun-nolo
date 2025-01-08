@@ -1,27 +1,32 @@
 import type React from "react";
-
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
-
 import { DataType } from "create/types";
-
 import CybotBlock from "./CybotBlock";
 import { useUserData } from "database/hooks/useUserData";
+import { selectByType } from "database/dbSlice";
+
 interface CybotsProps {
 	queryUserId: string;
 	limit?: number;
 	closeModal?: () => void;
 }
 
-
 const Cybots: React.FC<CybotsProps> = ({
 	queryUserId,
 	limit = 20,
 	closeModal,
 }) => {
-	const theme = useAppSelector(selectTheme)
+	const theme = useAppSelector(selectTheme);
+	const cybots = useAppSelector(state =>
+		selectByType(state, DataType.Cybot)
+	);
 
-	const { data: cybots, loading, error, reload } = useUserData(DataType.Cybot, queryUserId, 20);
+	const { loading, reload } = useUserData(
+		DataType.Cybot,
+		queryUserId,
+		limit
+	);
 
 	const styles = {
 		loadingContainer: {
@@ -40,7 +45,6 @@ const Cybots: React.FC<CybotsProps> = ({
 		},
 	};
 
-
 	if (loading) {
 		return (
 			<div style={styles.loadingContainer}>
@@ -49,16 +53,22 @@ const Cybots: React.FC<CybotsProps> = ({
 		);
 	}
 
+	if (!cybots?.length) return null;
+
 	return (
 		<div className="fadeIn" style={styles.gridContainer}>
-			{
-				cybots?.map((item) => (
-					<div key={item.id} className="slideInUp">
-						<CybotBlock item={item} closeModal={closeModal} reload={reload} />
-					</div>
-				))}
+			{cybots.map((item) => (
+				<div key={item.id} className="slideInUp">
+					<CybotBlock
+						item={item}
+						closeModal={closeModal}
+						reload={reload}
+					/>
+				</div>
+			))}
 		</div>
 	);
 };
 
 export default Cybots;
+

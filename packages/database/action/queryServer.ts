@@ -1,15 +1,14 @@
 import { noloQueryRequest } from "../client/queryRequest";
-import { mergeMany } from "../dbSlice";
+import { upsertMany } from "../dbSlice";
 
 export const queryServerAction = async (queryConfig, thunkApi) => {
   const { dispatch } = thunkApi;
-  const { server } = queryConfig;
   try {
     const res = await noloQueryRequest(queryConfig);
     const data = await res.json();
 
     if (res.status === 200) {
-      dispatch(mergeMany({ data, server }));
+      dispatch(upsertMany(data));
       return data;
     } else {
       const { error } = result;

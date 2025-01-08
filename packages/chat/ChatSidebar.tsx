@@ -2,27 +2,40 @@ import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";
-
 import { SidebarItem } from "./dialog/SidebarItem";
+import { selectByTypes } from "database/dbSlice";
+
 
 const ChatSidebar = () => {
 	const currentUserId = useAppSelector(selectCurrentUserId);
-	console.log('currentUserId', currentUserId)
-	const { data: fullData } = useUserData(
-		[DataType.Dialog, DataType.Page],
+	const targetTypes = [DataType.Dialog, DataType.Page];
+
+	// 只选择需要的类型数据
+	const sidebarData = useAppSelector(state =>
+		selectByTypes(state, targetTypes)
+	);
+
+	const { loading } = useUserData(
+		targetTypes,
 		currentUserId,
 		100
 	);
-	if (fullData) {
-		const { dialog, page } = fullData;
-		console
-		return <nav>
-			{dialog?.map((dilogItem) => { return <SidebarItem {...dilogItem} /> })}
-			{page?.map((pageItem) => { return <SidebarItem {...pageItem} /> })}
-		</nav>
 
-	}
-	return null;
+
+	if (loading) return null;
+	if (!sidebarData?.length) return null;
+
+
+	return (
+		<nav>
+			{sidebarData.map((item) => (
+				<SidebarItem key={item.id} {...item} />
+			))}
+		</nav>
+	);
 };
 
+
 export default ChatSidebar;
+
+

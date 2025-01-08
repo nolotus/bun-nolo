@@ -68,17 +68,15 @@ const DialogSlice = createSliceWithThunks({
     deleteDialog: create.asyncThunk(
       async (id, thunkApi) => {
         const { dispatch, getState } = thunkApi;
-
         const state = getState();
-        try {
-          const action = await dispatch(read({ id }));
-          const dialog = action.payload;
 
-          if (dialog && dialog.messageListId) {
+        try {
+          const dialogConfig = await dispatch(read({ id })).unwrap();
+          if (dialogConfig?.messageListId) {
             const body = { ids: state.message.ids };
             const deleteMessageListAction = await dispatch(
               deleteData({
-                id: dialog.messageListId,
+                id: dialogConfig.messageListId,
                 body,
               })
             );

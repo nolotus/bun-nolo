@@ -1,6 +1,5 @@
 import { NoloRootState } from "app/store";
 import { createSelector } from "@reduxjs/toolkit";
-import { selectById } from "database/dbSlice";
 import { uniqBy, prop } from "rambda";
 
 export const selectMessageList = (state: NoloRootState) => state.message.ids;
@@ -25,16 +24,4 @@ export const selectMergedMessages = createSelector(
 
     return mergedMessages;
   }
-);
-
-export const selectEntitiesByIds = createSelector(
-  [
-    (state: NoloRootState, ids: string[]) =>
-      ids.map((id) => selectById(state, id)),
-  ],
-  (entities) => entities.filter((entity) => entity !== undefined)
-);
-export const selectEntitiesByMessageIds = createSelector(
-  [selectMessageList, (state: NoloRootState) => state],
-  (messageIds, state) => selectEntitiesByIds(state, messageIds)
 );

@@ -8,6 +8,7 @@ import { handleReadSingle } from "./read";
 import { handlePut } from "./put";
 import { handleWrite } from "./write";
 import { handlePatch } from "./patch";
+
 export const databaseRequest = async (req, res, url) => {
   const pathname = url.pathname;
   const getIdFromPath = (prefix) => {
