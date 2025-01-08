@@ -62,7 +62,6 @@ export const sendClaudeRequest = async ({
   dialogId,
 }) => {
   const cybotId = cybotConfig.id;
-  const model = cybotConfig.model;
 
   const dispatch = thunkApi.dispatch;
   const { userId, currentServer } = getCurrentUserAndServer(thunkApi);

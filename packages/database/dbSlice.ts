@@ -3,7 +3,6 @@ import {
   buildCreateSlice,
   createEntityAdapter,
   createSelector,
-  createSelectorCreator,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 import { selectCurrentServer } from "setting/settingSlice";
@@ -48,7 +47,7 @@ const dbSlice = createSliceWithThunks({
     }),
     deleteData: create.asyncThunk(deleteAction, {
       fulfilled: (state, action) => {
-        const ids = action.payload;
+        const { ids } = action.payload;
         dbAdapter.removeMany(state, ids);
       },
     }),
@@ -57,10 +56,7 @@ const dbSlice = createSliceWithThunks({
     upsertOne: create.reducer((state, action) => {
       dbAdapter.upsertOne(state, action.payload);
     }),
-    mergeMany: create.reducer((state, action) => {
-      const { data } = action.payload;
-      dbAdapter.upsertMany(state, data);
-    }),
+    upsertMany: dbAdapter.upsertMany,
     patchData: create.asyncThunk(patchAction, {
       fulfilled: (state, action) => {
         const { payload } = action;
@@ -88,11 +84,10 @@ export const selectEntitiesByIds = createSelector(
   [(state) => state, (state, ids) => ids],
   (state, ids) => ids.map((id) => selectById(state, id))
 );
-createSelectorCreator;
 export const {
   upsertOne,
   setOne,
-  mergeMany,
+  upsertMany,
   deleteData,
   patchData,
   read,
@@ -105,3 +100,11 @@ export const {
   query,
 } = dbSlice.actions;
 export default dbSlice.reducer;
+
+export const selectByTypes = (state, types: DataType[]) => {
+  return selectAll(state).filter((item) => types.includes(item.type));
+};
+
+export const selectByType = (state, type: DataType) => {
+  return selectAll(state).filter((item) => item.type === type);
+};

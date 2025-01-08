@@ -53,7 +53,7 @@ const MessagesList: React.FC = () => {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, []);
-
+  //todo  change to message start
   useEffect(() => {
     if (streamingMessages) scrollToBottom();
   }, [streamingMessages, scrollToBottom]);
@@ -77,6 +77,40 @@ const MessagesList: React.FC = () => {
 
   return (
     <>
+
+
+      <div className="messages-container">
+        {isLoading ? (
+          <div className="messages-loading">加载中...</div>
+        ) : error ? (
+          <div className="messages-error">
+            {error.message || "无法加载消息"}
+          </div>
+        ) : (
+          <div
+            ref={containerRef}
+            className="message-list"
+            onScroll={throttledScroll}
+          >
+            {messages.slice(0, displayCount).map((message, index) => (
+              <div
+                key={message.id}
+                className="message-item"
+                style={{
+                  animationDelay: `${index * 0.05}s`,
+                }}
+              >
+                <MessageItem message={message} />
+              </div>
+            ))}
+            {hasMore && displayCount < messages.length && (
+              <div className="messages-loading">
+                {isLoadingMore ? "加载中..." : "向上滚动加载更多"}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       <style>
         {`
           .messages-container {
@@ -164,39 +198,6 @@ const MessagesList: React.FC = () => {
           }
         `}
       </style>
-
-      <div className="messages-container">
-        {isLoading ? (
-          <div className="messages-loading">加载中...</div>
-        ) : error ? (
-          <div className="messages-error">
-            {error.message || "无法加载消息"}
-          </div>
-        ) : (
-          <div
-            ref={containerRef}
-            className="message-list"
-            onScroll={throttledScroll}
-          >
-            {messages.slice(0, displayCount).map((message, index) => (
-              <div
-                key={message.id}
-                className="message-item"
-                style={{
-                  animationDelay: `${index * 0.05}s`,
-                }}
-              >
-                <MessageItem message={message} />
-              </div>
-            ))}
-            {hasMore && displayCount < messages.length && (
-              <div className="messages-loading">
-                {isLoadingMore ? "加载中..." : "向上滚动加载更多"}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </>
   );
 };

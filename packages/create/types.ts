@@ -4,6 +4,7 @@ export enum DataType {
   Page = "page",
   Dialog = "dialog",
   Message = "message",
+  Msg = "msg",
   Token = "token",
   Space = "space",
   Prompt = "prompt",

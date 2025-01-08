@@ -2,7 +2,9 @@ import { isV0Id } from "core/id";
 import { browserDb } from "../browser/db";
 import { API_ENDPOINTS } from "../config";
 import { selectCurrentServer } from "setting/settingSlice";
-import { selectById, write } from "../dbSlice";
+import { deleteData, selectById, write } from "../dbSlice";
+import { DataType } from "create/types";
+import { isProduction } from "utils/env";
 
 const makeRequest = async (state, { url, method = "GET", body }) => {
   const headers = {
@@ -58,6 +60,9 @@ export const patchAction = async ({ id, changes }, thunkApi) => {
     };
 
     dispatch(write({ data: newData }));
+    if (memData.type === DataType.Dialog) {
+      // isProduction && dispatch(deleteData(id));
+    }
     return newData;
   }
 };

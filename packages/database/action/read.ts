@@ -11,7 +11,6 @@ export const readAction = async ({ id }, thunkApi) => {
   const token = state.auth.currentToken;
   if (!isV0Id(id)) {
     const result = await browserDb.get(id);
-    console.log("readAction v1 result", result);
     return result;
   } else {
     const isAutoSync = state.settings.syncSetting.isAutoSync;

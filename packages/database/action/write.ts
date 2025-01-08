@@ -2,6 +2,7 @@ import { selectCurrentUserId, selectIsLoggedIn } from "auth/authSlice";
 import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
 import { API_ENDPOINTS } from "database/config";
+import { selectCurrentWorkSpaceId } from "create/workspace/workspaceSlice";
 
 import { addOne } from "../dbSlice";
 import { DataType } from "create/types";
@@ -36,6 +37,8 @@ export const writeAction = async (writeConfig, thunkApi) => {
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
   const currenUserId = selectCurrentUserId(state);
+  //todo write
+  const workspaceId = selectCurrentWorkSpaceId(state);
   let userId = currenUserId;
   if (writeConfig.userId) {
     userId = writeConfig.userId;
@@ -58,10 +61,11 @@ export const writeAction = async (writeConfig, thunkApi) => {
     const serverWriteConfig = {
       ...writeConfig,
       data: willSaveData,
+      customId: id,
     };
+    console.log("serverWriteConfig", serverWriteConfig);
     const writeRes = await noloWriteRequest(state, serverWriteConfig);
     const json = await writeRes.json();
-    console.log("json", json);
     return json;
   } else {
     //id maybe exist
