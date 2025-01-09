@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { pipe } from "rambda";
-import { getLatestMessages } from "../getLatestMessages";
+import { getLatestMessages } from "../dialogMessageOperations";
 import { useAppDispatch } from "app/hooks";
 import { upsertMany } from "database/dbSlice";
 

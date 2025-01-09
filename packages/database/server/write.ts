@@ -46,15 +46,12 @@ export const handleWrite = async (req: any, res: any) => {
     data.type === DataType.CYBOT ||
     data.type === DataType.DIALOG
   ) {
-    console.log("actionUserId", actionUserId);
     const hasUser = await serverDb.get(`user:${actionUserId}`);
     const hasV0User = await doesUserDirectoryExist(userId);
     const userExist = hasUser || hasV0User;
-    console.log("userExist", userExist);
     const id = customId;
 
     if (userExist) {
-      console.log("server write data", data);
       await serverDb.put(id, data);
       const returnJson = {
         message: "Data written to file successfully.",

@@ -2,7 +2,7 @@ import readline from "node:readline";
 import { extractAndDecodePrefix, extractUserId } from "core";
 import { decodeData, processLine } from "core/decodeData";
 import { DEFAULT_INDEX_FILE } from "database/init";
-import { checkFileExists } from "utils/file";
+import fs from "fs";
 
 import { createReadStream } from "node:fs";
 import { mem } from "./mem";
@@ -94,7 +94,7 @@ export const serverGetData = async (id: string) => {
 
   const indexPath = `./nolodata/${userId}/${DEFAULT_INDEX_FILE}`;
 
-  if (!checkFileExists(indexPath)) {
+  if (!fs.existsSync(indexPath)) {
     return Promise.resolve(null);
   }
 

@@ -98,6 +98,7 @@ export const messageSlice = createSliceWithThunks({
     handleSendMessage: create.asyncThunk(sendMessageAction),
     clearCurrentMessages: create.reducer((state, action) => {
       state.ids = null;
+      state.msgs = [];
       state.streamMessages = [];
     }),
     clearCurrentDialog: create.asyncThunk(
