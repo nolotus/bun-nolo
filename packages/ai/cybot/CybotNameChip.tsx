@@ -1,6 +1,5 @@
 import { useFetchData } from "app/hooks";
 import { useCouldEdit } from "auth/useCouldEdit";
-import { extractCustomId } from "core";
 import React from "react";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
@@ -15,7 +14,7 @@ const CybotNameChip = React.memo(({ cybotId }) => {
 
 	if (isLoading) return null;
 
-	const displayName = cybot?.name || extractCustomId(cybotId);
+	const displayName = cybot?.name
 
 	const handleClick = (e) => {
 		e.stopPropagation();

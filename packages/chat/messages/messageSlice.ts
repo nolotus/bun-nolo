@@ -3,14 +3,11 @@ import {
   asyncThunkCreator,
   buildCreateSlice,
 } from "@reduxjs/toolkit";
-import { extractCustomId } from "core";
 import { API_ENDPOINTS } from "database/config";
-import { noloRequest } from "database/requests/noloRequest";
 
-import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
-import { deleteData, removeFromList, upsertOne, write } from "database/dbSlice";
-import { filter, reverse } from "rambda";
+import { deleteData, removeFromList, write } from "database/dbSlice";
+import { filter } from "rambda";
 
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
@@ -40,20 +37,17 @@ export const messageSlice = createSliceWithThunks({
       async ({ id, content, cybotId }, thunkApi) => {
         const { dispatch } = thunkApi;
         const message = {
+          role: "assistant",
           id,
           content,
           cybotId,
         };
-        const action = await dispatch(addAIMessage(message));
-        const { array } = action.payload;
-
-        return { array, id };
+        await dispatch(addMsg(message)).unwrap();
+        return { id };
       },
       {
-        rejected: (state, action) => {},
         fulfilled: (state, action) => {
-          const { id, array } = action.payload;
-          state.ids = reverse(array);
+          const { id } = action.payload;
           state.streamMessages = filter(
             (msg) => msg.id !== id,
             state.streamMessages
@@ -128,67 +122,28 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
-    addUserMessage: create.asyncThunk(async (message, thunkApi) => {
+    addMsg: create.asyncThunk(async (msg, thunkApi) => {
       const state = thunkApi.getState();
-
       const dispatch = thunkApi.dispatch;
-
       await dispatch(
         write({
-          data: { ...message, type: DataType.Msg },
-          customId: message.id,
+          data: { ...msg, type: DataType.Msg },
+          customId: msg.id,
         })
       );
-      dispatch(addMessageToUI(message.id));
+      dispatch(addMessageToUI(msg.id));
 
       const dialogConfig = selectCurrentDialogConfig(state);
       if (dialogConfig?.messageListId) {
         await dispatch(
           addMsgToList({
-            itemId: message.id,
+            itemId: msg.id,
             listId: dialogConfig?.messageListId,
           })
         );
       }
     }),
-    addAIMessage: create.asyncThunk(
-      async ({ content, id, cybotId }, thunkApi) => {
-        const dispatch = thunkApi.dispatch;
-        const message = {
-          role: "assistant",
-          id,
-          content,
-          cybotId,
-        };
-        dispatch(upsertOne(message));
-        dispatch(addMessageToUI(message.id));
-        const state = thunkApi.getState();
-        const userId = selectCurrentUserId(state);
-        const customId = extractCustomId(message.id);
-        const config = {
-          url: `${API_ENDPOINTS.DATABASE}/write/`,
-          method: "POST",
-          body: JSON.stringify({
-            data: { type: DataType.Message, ...message },
-            flags: { isJSON: true },
-            customId,
-            userId,
-          }),
-        };
-        await noloRequest(state, config);
 
-        const dialogConfig = selectCurrentDialogConfig(state);
-        if (dialogConfig?.messageListId) {
-          const result = await dispatch(
-            addMsgToList({
-              itemId: message.id,
-              listId: dialogConfig?.messageListId,
-            })
-          ).unwrap();
-          return result;
-        }
-      }
-    ),
     addMsgToList: create.asyncThunk(async ({ itemId, listId }, thunkApi) => {
       const state = thunkApi.getState();
       const baseUrl = selectCurrentServer(state);
@@ -220,7 +175,6 @@ export const {
   sendMessage,
   messageStreamEnd,
   messageStreaming,
-  messagesReachedMax,
   deleteMessage,
   initMessages,
   removeMessageFromUI,
@@ -228,12 +182,9 @@ export const {
   handleSendMessage,
   clearCurrentMessages,
   clearCurrentDialog,
-  addMessageToServer,
-  addAIMessage,
-  addUserMessage,
-  streamLLmId,
   sendWithMessageId,
   addMsgToList,
+  addMsg,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

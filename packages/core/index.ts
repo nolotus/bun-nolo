@@ -1,8 +1,4 @@
 import { formatData } from "./formatData";
-import {
-  extractAndDecodePrefix,
-  extractUserId,
-  extractCustomId,
-} from "./prefix";
+import { extractAndDecodePrefix, extractUserId } from "./prefix";
 
-export { formatData, extractAndDecodePrefix, extractUserId, extractCustomId };
+export { formatData, extractAndDecodePrefix, extractUserId };

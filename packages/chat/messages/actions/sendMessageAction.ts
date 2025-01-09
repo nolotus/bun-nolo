@@ -2,10 +2,10 @@ import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
 import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { read } from "database/dbSlice";
-import { extractCustomId } from "core";
+import { extractCustomId } from "core/prefix";
 import { selectCurrentUserId } from "auth/authSlice";
 
-import { addUserMessage } from "../messageSlice";
+import { addMsg } from "../messageSlice";
 import { getFilteredMessages } from "../utils";
 import { ulid } from "ulid";
 
@@ -27,13 +27,13 @@ export const sendMessageAction = async (args, thunkApi) => {
 
   const id = `dialog-${dialogId}-msg-${ulid()}`;
 
-  const message = {
+  const msg = {
     id,
     role: "user",
     content,
     userId,
   };
-  thunkApi.dispatch(addUserMessage(message));
+  thunkApi.dispatch(addMsg(msg));
 
   if (
     cybotConfig.provider === "deepinfra" ||

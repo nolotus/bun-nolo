@@ -2,10 +2,8 @@
 
 import { createMessages } from "ai/api/createMessages";
 import { prepareTools } from "ai/tools/prepareTools";
-import { selectCurrentUserId } from "auth/authSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
-import { generateIdWithCustomId } from "core/generateMainKey";
 import { setOne } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { ulid } from "ulid";
@@ -69,8 +67,7 @@ export const sendCommonChatRequest = async ({
     bodyData.tools = tools;
   }
 
-  const userId = selectCurrentUserId(getState());
-  const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
+  const messageId = `dialog-${dialogId}-msg-${ulid}`;
 
   let contentBuffer = "";
   let reader;
