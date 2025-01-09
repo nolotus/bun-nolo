@@ -36,7 +36,6 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
   const cybotId = cybotConfig.id;
   const modelName = cybotConfig.model;
   const provider = cybotConfig.provider;
-  console.log("cybotConfig", cybotConfig);
   // const creatorId = extractUserId(cybotConfig.id);
   // console.log("creatorId", creatorId);
 
@@ -61,8 +60,6 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
     date: new Date(),
     type: DataType.Token,
   };
-  console.log("data", data);
-
   // dispatch(
   //   write({
   //     data: {

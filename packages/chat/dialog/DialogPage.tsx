@@ -7,34 +7,52 @@ import {
 } from "chat/dialog/dialogSlice";
 import MessageInputContainer from "chat/messages/MessageInputContainer";
 import MessagesList from "chat/messages/MessageList";
-//  chat/dialog/DialogPage
 import { useEffect } from "react";
 import { layout } from "render/styles/layout";
+import { useMessages } from "../messages/hooks/useMessages";
+import { browserDb } from "database/browser/db";
+import { extractCustomId } from "core/prefix";
+import { initMsgs } from "../messages/messageSlice";
 
-const DialogPage = ({ dialogId }) => {
-  const auth = useAuth();
+// Loading组件
+const LoadingSpinner = () => (
+  <div
+    style={{
+      ...layout.flex,
+      ...layout.justifyCenter,
+      ...layout.alignCenter,
+      height: "100%",
+    }}
+  >
+    <div>Loading...</div>
+  </div>
+);
+
+const DialogPage = ({ pageId }) => {
   const dispatch = useAppDispatch();
+
+  const dialogId = extractCustomId(pageId);
+  const { messages, loading } = useMessages(browserDb, dialogId);
+  !loading && dispatch(initMsgs(messages));
+
+  const auth = useAuth();
+
   if (!auth.user) {
     window.location.href = "/login";
   }
 
   useEffect(() => {
-    dialogId && dispatch(initDialog(dialogId));
+    pageId && dispatch(initDialog(pageId));
 
-    // 组件卸载时清空数据
     return () => {
       dispatch(clearDialogState());
     };
-  }, [auth.user, dialogId]);
+  }, [auth.user, pageId]);
 
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  // 计算剩余的空间
 
   return (
     <>
-      {/* <meta name="author" content="Josh" />
-      <link rel="author" href="https://twitter.com/joshcstory/" />
-      <meta name="keywords" content={post.keywords} /> */}
       {currentDialogConfig?.title && <title>{currentDialogConfig.title}</title>}
       <div
         style={{
@@ -50,25 +68,29 @@ const DialogPage = ({ dialogId }) => {
             ...layout.overflowXHidden,
           }}
         >
-          {currentDialogConfig && (
-            <div
-              style={{
-                ...layout.flexColumn,
-                ...layout.h100,
-                ...layout.overflowXHidden,
-              }}
-            >
+          {loading ? (
+            <LoadingSpinner />
+          ) : (
+            currentDialogConfig && (
               <div
                 style={{
-                  ...layout.flexGrow1,
-                  ...layout.overflowYAuto,
                   ...layout.flexColumn,
+                  ...layout.h100,
+                  ...layout.overflowXHidden,
                 }}
               >
-                <MessagesList />
+                <div
+                  style={{
+                    ...layout.flexGrow1,
+                    ...layout.overflowYAuto,
+                    ...layout.flexColumn,
+                  }}
+                >
+                  <MessagesList />
+                </div>
+                <MessageInputContainer />
               </div>
-              <MessageInputContainer />
-            </div>
+            )
           )}
         </div>
       </div>
@@ -76,4 +98,4 @@ const DialogPage = ({ dialogId }) => {
   );
 };
 
-export default DialogPage
+export default DialogPage;

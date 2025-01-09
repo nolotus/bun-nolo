@@ -72,6 +72,7 @@ const DialogSlice = createSliceWithThunks({
 
         try {
           const dialogConfig = await dispatch(read({ id })).unwrap();
+
           if (dialogConfig?.messageListId) {
             const body = { ids: state.message.ids };
             const deleteMessageListAction = await dispatch(

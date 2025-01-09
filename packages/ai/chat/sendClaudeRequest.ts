@@ -1,22 +1,11 @@
-import { selectCurrentUserId } from "auth/authSlice";
 import { selectCurrentServer } from "setting/settingSlice";
-
-import { generateIdWithCustomId } from "core/generateMainKey";
-import { ulid } from "ulid";
+import { generateDialogMessageKey } from "database/generateKey";
 
 import { API_ENDPOINTS } from "database/config";
 import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { setOne } from "database/dbSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
-
-// 获取当前用户ID和服务器
-function getCurrentUserAndServer(thunkApi) {
-  const state = thunkApi.getState();
-  const userId = selectCurrentUserId(state);
-  const currentServer = selectCurrentServer(state);
-  return { userId, currentServer };
-}
 
 // 发送请求
 async function sendRequest(cybotConfig, body, signal, currentServer) {
@@ -62,12 +51,11 @@ export const sendClaudeRequest = async ({
   dialogId,
 }) => {
   const cybotId = cybotConfig.id;
-
+  const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
-  const { userId, currentServer } = getCurrentUserAndServer(thunkApi);
-  const id = generateIdWithCustomId(userId, ulid(), {
-    isJSON: true,
-  });
+  const currentServer = selectCurrentServer(state);
+
+  const messageId = generateDialogMessageKey(dialogId);
 
   const body = generateRequestBody(cybotConfig, content, prevMsgs);
   const controller = new AbortController();
@@ -81,12 +69,6 @@ export const sendClaudeRequest = async ({
       reader.cancel();
       reader.releaseLock();
     }
-    dispatch(
-      updateDialogTitle({
-        dialogId,
-        cybotConfig,
-      })
-    );
   });
 
   try {
@@ -102,15 +84,15 @@ export const sendClaudeRequest = async ({
 
     while (true) {
       const { done, value } = await reader.read();
+      console.log("accumulatedContent", accumulatedContent);
       if (done) {
-        dispatch(
-          messageStreamEnd({
-            id,
-            content: accumulatedContent,
-            cybotId: cybotConfig.id,
-            role: "assistant",
-          })
-        );
+        const final = {
+          id: messageId,
+          content: accumulatedContent,
+          cybotId: cybotConfig.id,
+          role: "assistant",
+        };
+        dispatch(messageStreamEnd(final));
 
         dispatch(
           updateDialogTitle({
@@ -138,7 +120,7 @@ export const sendClaudeRequest = async ({
                   })
                 );
                 const message = {
-                  id,
+                  id: messageId,
                   content: "Loading...",
                   role: "assistant",
                   cybotId,
@@ -153,7 +135,7 @@ export const sendClaudeRequest = async ({
                 if (delta && delta.text) {
                   accumulatedContent += delta.text;
                   const message = {
-                    id,
+                    id: messageId,
                     content: accumulatedContent,
                     role: "assistant",
                     cybotId: cybotConfig.id,

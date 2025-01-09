@@ -1,10 +1,10 @@
 // create/types.ts
 export enum DataType {
-  Cybot = "cybot",
-  Page = "page",
-  Dialog = "dialog",
+  CYBOT = "cybot",
+  PAGE = "page",
+  DIALOG = "dialog",
   Message = "message",
-  Msg = "msg",
+  MSG = "msg",
   Token = "token",
   Space = "space",
   Prompt = "prompt",

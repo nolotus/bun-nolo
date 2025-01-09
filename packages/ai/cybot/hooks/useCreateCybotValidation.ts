@@ -7,6 +7,7 @@ import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import { createCybotSchema, FormData } from "../createCybotSchema";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
+import { generateCybotKey } from "database/generateKey";
 
 export const useCreateCybotValidation = () => {
   const dispatch = useAppDispatch();
@@ -33,19 +34,20 @@ export const useCreateCybotValidation = () => {
   const useServerProxy = watch("useServerProxy");
 
   const onSubmit = async (data: FormData) => {
-    const writeResult = await dispatch(
+    const id = generateCybotKey(auth.user?.userId);
+    await dispatch(
       write({
         data: {
-          type: DataType.Cybot,
           ...data,
+          id,
+          type: DataType.CYBOT,
+          userId: auth.user?.userId,
         },
-        flags: { isJSON: true },
-        userId: auth.user?.userId,
+        customId: id,
       })
     ).unwrap();
-    const cybotId = writeResult.id;
 
-    await createNewDialog({ cybots: [cybotId] });
+    await createNewDialog({ cybots: [id] });
   };
   return {
     form,

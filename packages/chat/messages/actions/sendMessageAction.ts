@@ -19,12 +19,10 @@ export const sendMessageAction = async (args, thunkApi) => {
   ).unwrap();
 
   const { content } = args;
+
   const prevMsgs = getFilteredMessages(state);
-  const dialog = selectCurrentDialogConfig(state);
-
-  const dialogId = extractCustomId(dialog.id);
+  const dialogId = extractCustomId(dialogConfig.id);
   const userId = selectCurrentUserId(state);
-
   const id = `dialog-${dialogId}-msg-${ulid()}`;
 
   const msg = {
@@ -33,7 +31,7 @@ export const sendMessageAction = async (args, thunkApi) => {
     content,
     userId,
   };
-  thunkApi.dispatch(addMsg(msg));
+  await thunkApi.dispatch(addMsg(msg));
 
   if (
     cybotConfig.provider === "deepinfra" ||
@@ -51,7 +49,7 @@ export const sendMessageAction = async (args, thunkApi) => {
       cybotConfig,
       thunkApi,
       prevMsgs,
-      dialogId: dialogConfig.id,
+      dialogId,
     });
     return;
   }

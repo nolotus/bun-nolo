@@ -45,8 +45,13 @@ export const writeAction = async (writeConfig, thunkApi) => {
   }
   const isLoggedIn = selectIsLoggedIn(state);
   const { data } = writeConfig;
-  if (data.type === DataType.Msg) {
-    const id = writeConfig.customId;
+
+  if (
+    data.type === DataType.MSG ||
+    data.type === DataType.CYBOT ||
+    data.type === DataType.PAGE ||
+    data.type === DataType.DIALOG
+  ) {
     const willSaveData = {
       ...data,
       createdAt: new Date().toISOString(),
@@ -55,36 +60,12 @@ export const writeAction = async (writeConfig, thunkApi) => {
     const serverWriteConfig = {
       ...writeConfig,
       data: willSaveData,
-      customId: id,
+      customId: writeConfig.customId,
     };
-    console.log("serverWriteConfig", serverWriteConfig);
 
     noloWriteRequest(state, serverWriteConfig);
-    await browserDb.put(id, willSaveData);
+    await browserDb.put(writeConfig.customId, willSaveData);
     return willSaveData;
-  }
-  if (
-    data.type === DataType.Cybot ||
-    data.type === DataType.Page ||
-    data.type === DataType.Token ||
-    data.type === DataType.Dialog
-  ) {
-    const id: string = `${data.type}-${userId}-${ulid()}`;
-    const willSaveData = {
-      ...data,
-      created: new Date().toISOString(),
-      id,
-    };
-    await browserDb.put(id, willSaveData);
-    const serverWriteConfig = {
-      ...writeConfig,
-      data: willSaveData,
-      customId: id,
-    };
-    console.log("serverWriteConfig", serverWriteConfig);
-    const writeRes = await noloWriteRequest(state, serverWriteConfig);
-    const json = await writeRes.json();
-    return json;
   } else {
     //id maybe exist
     // pulldata upsertdata

@@ -40,18 +40,15 @@ export const validateUserAction = (
   }
 };
 
-export const checkDeletePermission = (
-  actionUserId: string,
-  dataBelongUserId: string
-): boolean => {
-  return actionUserId === dataBelongUserId;
-};
-
-export async function checkUserDirectory(userId: string): Promise<void> {
+export const doesUserDirectoryExist = async (
+  userId: string
+): Promise<boolean> => {
   const path = `./nolodata/${userId}/index.nolo`;
+
   try {
     await fs.access(dirname(path));
+    return true;
   } catch {
-    throw new Error("没有该用户");
+    return false;
   }
-}
+};
