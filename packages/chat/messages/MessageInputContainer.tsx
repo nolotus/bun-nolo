@@ -58,7 +58,9 @@ const MessageInputContainer: React.FC = () => {
     const maxPrice = getFinalPrice(prices);
 
     const hasEnoughBalance = userBalance >= maxPrice;
+    console.log("userBalance", userBalance);
 
+    console.log("maxPrice", maxPrice);
     return {
       allowed: hasEnoughBalance,
       reason: hasEnoughBalance ? undefined : "INSUFFICIENT_BALANCE",
