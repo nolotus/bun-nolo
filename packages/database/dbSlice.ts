@@ -53,9 +53,6 @@ const dbSlice = createSliceWithThunks({
     }),
     write: create.asyncThunk(writeAction),
 
-    upsertOne: create.reducer((state, action) => {
-      dbAdapter.upsertOne(state, action.payload);
-    }),
     upsertMany: dbAdapter.upsertMany,
     patchData: create.asyncThunk(patchAction, {
       fulfilled: (state, action) => {
@@ -84,7 +81,6 @@ export const selectEntitiesByIds = createSelector(
   (state, ids) => ids.map((id) => selectById(state, id))
 );
 export const {
-  upsertOne,
   setOne,
   upsertMany,
   deleteData,

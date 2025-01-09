@@ -51,12 +51,14 @@ export const writeAction = async (writeConfig, thunkApi) => {
       ...data,
       createdAt: new Date().toISOString(),
     };
-    console.log("writeConfig", writeConfig);
+
     const serverWriteConfig = {
       ...writeConfig,
       data: willSaveData,
       customId: id,
     };
+    console.log("serverWriteConfig", serverWriteConfig);
+
     noloWriteRequest(state, serverWriteConfig);
     await browserDb.put(id, willSaveData);
     return willSaveData;

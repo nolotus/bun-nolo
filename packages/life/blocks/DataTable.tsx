@@ -1,6 +1,6 @@
 import React from "react";
 import { useAppDispatch } from "app/hooks";
-import { extractCustomId } from "core";
+import { extractCustomId } from "core/prefix";
 import { DataType } from "create/types";
 import { deleteData } from "database/dbSlice";
 import { Link } from "react-router-dom";
