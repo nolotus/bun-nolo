@@ -1,5 +1,5 @@
 import { extractUserId } from "core/prefix";
-import { pipe, isNil } from "rambda";
+import { isNil } from "rambda";
 
 import { mem } from "./mem";
 import { processOldDeletion } from "./deleteFromFile";
@@ -37,6 +37,13 @@ export const handleDelete = async (req, res) => {
     // 检查权限
     if (!checkDeletePermission(actionUserId, dataBelongUserId)) {
       return res.status(403).json({ error: "Unauthorized action." });
+    }
+    if (deleteData) {
+      await serverDb.del(id);
+      return res.status(200).json({
+        message: "Delete request processed for unknown owner",
+        processingIds: [id],
+      });
     }
 
     const allIds = [id, ...ids];

@@ -47,7 +47,7 @@ export const handleWrite = async (req: any, res: any) => {
     data.type === DataType.DIALOG
   ) {
     const hasUser = await serverDb.get(`user:${actionUserId}`);
-    const hasV0User = await doesUserDirectoryExist(userId);
+    const hasV0User = await doesUserDirectoryExist(actionUserId);
     const userExist = hasUser || hasV0User;
     console.log("userExist", userExist);
     const id = customId;
