@@ -7,4 +7,4 @@ export const generateCybotKey = (userId: string) =>
   `${DataType.CYBOT}-${userId}-${ulid()}`;
 
 export const generateDialogMessageKey = (dialogId: string) =>
-  `${DataType.PAGE}-${dialogId}-msg-${ulid()}`;
+  `${DataType.DIALOG}-${dialogId}-msg-${ulid()}`;
