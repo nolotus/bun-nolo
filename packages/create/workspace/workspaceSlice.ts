@@ -91,16 +91,17 @@ const workspaceSlice = createSliceWithThunks({
         const dispatch = thunkAPI.dispatch;
         const state = thunkAPI.getState();
         const currentUserId = selectCurrentUserId(state);
-        const config = {
-          data: {
-            type: DataType.Space,
-            name,
-          },
-          flags: { isJSON: true },
-          userId: currentUserId,
-        };
 
-        const actionResult = await dispatch(write(config));
+        const actionResult = await dispatch(
+          write({
+            data: {
+              type: DataType.Space,
+              name,
+            },
+            flags: { isJSON: true },
+            userId: currentUserId,
+          })
+        );
         console.log("addWorkspace", actionResult);
         return actionResult.payload;
       },

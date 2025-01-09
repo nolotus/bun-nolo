@@ -19,11 +19,8 @@ export const getModelPricing = (
   modelName: string
 ): ModelPricing | null => {
   const models = getModelsByProvider(provider);
-  console.log("models", models);
-  console.log("modelName", modelName);
 
   const selectedModel = models.find((model) => model.name === modelName);
-  console.log("selectedModel", selectedModel);
 
   if (!selectedModel?.price) {
     return null;

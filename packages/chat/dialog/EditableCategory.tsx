@@ -63,22 +63,22 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
       localCategoryName &&
       (!categoryId ||
         localCategoryName !==
-        categories?.find((cat) => cat.id === categoryId)?.name)
+          categories?.find((cat) => cat.id === categoryId)?.name)
     ) {
-      const categoryConfig = {
-        data: {
-          type: DataType.Category,
-          name: localCategoryName,
-          parentId: null,
-          isCollapsed: false,
-          order: 0,
-        },
-        flags: { isJSON: true },
-        userId: currentUserId,
-      };
-
       try {
-        const result = await dispatch(write(categoryConfig));
+        const result = await dispatch(
+          write({
+            data: {
+              type: DataType.Category,
+              name: localCategoryName,
+              parentId: null,
+              isCollapsed: false,
+              order: 0,
+            },
+            flags: { isJSON: true },
+            userId: currentUserId,
+          })
+        );
         if (result.payload && result.payload.id) {
           await dispatch(
             patchData({
