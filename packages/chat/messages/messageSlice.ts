@@ -9,19 +9,13 @@ import { noloRequest } from "database/requests/noloRequest";
 
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
-import {
-  addToList,
-  deleteData,
-  removeFromList,
-  upsertOne,
-  write,
-} from "database/dbSlice";
+import { deleteData, removeFromList, upsertOne, write } from "database/dbSlice";
 import { filter, reverse } from "rambda";
-import { ulid } from "ulid";
 
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
 import type { Message } from "./types";
+import { selectCurrentServer } from "setting/settingSlice";
 
 export interface MessageSliceState {
   ids: string[] | null;
@@ -85,89 +79,26 @@ export const messageSlice = createSliceWithThunks({
         state.ids.unshift(action.payload);
       }
     }),
-    addMessageToServer: create.asyncThunk(
-      async (message, thunkApi) => {
-        const state = thunkApi.getState();
-        const dispatch = thunkApi.dispatch;
-        const userId = selectCurrentUserId(state);
-        const customId = extractCustomId(message.id);
-        const config = {
-          url: `${API_ENDPOINTS.DATABASE}/write/`,
-          method: "POST",
-          body: JSON.stringify({
-            data: { type: DataType.Message, ...message },
-            flags: { isJSON: true },
-            customId,
-            userId,
-          }),
-        };
-        const writeMessage = await noloRequest(state, config);
-        const saveMessage = await writeMessage.json();
-        console.log("saveMessage", saveMessage);
 
-        const dialogConfig = selectCurrentDialogConfig(state);
-        const updateId = dialogConfig.messageListId;
-        console.log("updateId", updateId);
-
-        const actionResult = await dispatch(
-          addToList({ itemId: saveMessage.id, listId: updateId })
-        );
-
-        return actionResult.payload;
-      },
-      {
-        rejected: (state, action) => {
-          // state.error = action.payload ?? action.error;
-        },
-        fulfilled: (state, action) => {
-          state.ids = reverse(action.payload.array);
-        },
-      }
-    ),
     removeMessageFromUI: create.reducer(
       (state, action: PayloadAction<string>) => {
         state.ids = state.ids.filter((id) => id !== action.payload);
       }
     ),
-    deleteMessage: create.asyncThunk(
-      async (messageId: string, thunkApi) => {
-        thunkApi.dispatch(removeMessageFromUI(messageId));
-        const state = thunkApi.getState();
-        const dialogConfig = selectCurrentDialogConfig(state);
+    deleteMessage: create.asyncThunk(async (messageId: string, thunkApi) => {
+      const state = thunkApi.getState();
+      const dialogConfig = selectCurrentDialogConfig(state);
+      thunkApi.dispatch(deleteData({ id: messageId }));
+      if (dialogConfig.messageListId) {
         thunkApi.dispatch(
           removeFromList({
             itemId: messageId,
             listId: dialogConfig.messageListId,
           })
         );
-        thunkApi.dispatch(deleteData({ id: messageId }));
-      },
-
-      {
-        pending: () => {},
-        fulfilled: () => {},
       }
-    ),
-    deleteNotFound: create.asyncThunk(
-      async (messageId: string, thunkApi) => {
-        const dispatch = thunkApi.dispatch;
-        const state = thunkApi.getState();
-        const dialogConfig = selectCurrentDialogConfig(state);
-
-        dispatch(
-          removeFromList({
-            itemId: messageId,
-            listId: dialogConfig.messageListId,
-          })
-        );
-        thunkApi.dispatch(removeMessageFromUI(messageId));
-      },
-
-      {
-        pending: () => {},
-        fulfilled: () => {},
-      }
-    ),
+      thunkApi.dispatch(removeMessageFromUI(messageId));
+    }),
 
     handleSendMessage: create.asyncThunk(sendMessageAction),
     clearCurrentMessages: create.reducer((state, action) => {
@@ -197,73 +128,84 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
-    addUserMessage: create.asyncThunk(async ({ content }, thunkApi) => {
+    addUserMessage: create.asyncThunk(async (message, thunkApi) => {
       const state = thunkApi.getState();
-      const userId = selectCurrentUserId(state);
-      const dialog = selectCurrentDialogConfig(state);
-      const dialogId = extractCustomId(dialog.id);
-      const id = `dialog-${dialogId}-msg-${ulid()}`;
-      console.log("msg key", id);
+
       const dispatch = thunkApi.dispatch;
-      const message = {
-        id,
-        role: "user",
-        content,
-        userId,
-      };
-      dispatch(upsertOne(message));
-      dispatch(addMessageToUI(message.id));
 
       await dispatch(
         write({
           data: { ...message, type: DataType.Msg },
-          customId: id,
+          customId: message.id,
         })
       );
+      dispatch(addMessageToUI(message.id));
 
       const dialogConfig = selectCurrentDialogConfig(state);
-
       if (dialogConfig?.messageListId) {
         await dispatch(
           addMsgToList({
-            itemId: id,
+            itemId: message.id,
             listId: dialogConfig?.messageListId,
           })
         );
       }
     }),
     addAIMessage: create.asyncThunk(
-      async ({ content, id, isSaveToServer = true, cybotId }, thunkApi) => {
-        const state = thunkApi.getState();
+      async ({ content, id, cybotId }, thunkApi) => {
         const dispatch = thunkApi.dispatch;
-        const dialog = selectCurrentDialogConfig(state);
         const message = {
           role: "assistant",
           id,
           content,
-          belongs: [dialog.messageListId],
           cybotId,
         };
         dispatch(upsertOne(message));
         dispatch(addMessageToUI(message.id));
-        if (isSaveToServer) {
-          const actionResult = await dispatch(addMessageToServer(message));
-          return actionResult.payload;
-        }
-      },
-      {
-        fulfilled: (state, action) => {
-          console.log("addAIMessage fulfilled", action);
+        const state = thunkApi.getState();
+        const userId = selectCurrentUserId(state);
+        const customId = extractCustomId(message.id);
+        const config = {
+          url: `${API_ENDPOINTS.DATABASE}/write/`,
+          method: "POST",
+          body: JSON.stringify({
+            data: { type: DataType.Message, ...message },
+            flags: { isJSON: true },
+            customId,
+            userId,
+          }),
+        };
+        await noloRequest(state, config);
 
-          if (action.payload) {
-            state.ids = reverse(action.payload.array);
-          }
-        },
+        const dialogConfig = selectCurrentDialogConfig(state);
+        if (dialogConfig?.messageListId) {
+          const result = await dispatch(
+            addMsgToList({
+              itemId: message.id,
+              listId: dialogConfig?.messageListId,
+            })
+          ).unwrap();
+          return result;
+        }
       }
     ),
-    addMsgToList: create.asyncThunk(({ itemId, listId }, thunkApi) => {
-      const dispatch = thunkApi.dispatch;
-      dispatch(addToList({ itemId, listId }));
+    addMsgToList: create.asyncThunk(async ({ itemId, listId }, thunkApi) => {
+      const state = thunkApi.getState();
+      const baseUrl = selectCurrentServer(state);
+      const token = state.auth.currentToken;
+      const createAuthHeaders = (token: string) => ({
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const response = await fetch(`${baseUrl}${API_ENDPOINTS.PUT}/${listId}`, {
+        method: "PUT",
+        ...createAuthHeaders(token),
+        body: JSON.stringify({ id: itemId }),
+      });
+      const json = await response.json();
+      return json;
     }),
 
     //not use yet
@@ -282,7 +224,6 @@ export const {
   deleteMessage,
   initMessages,
   removeMessageFromUI,
-  deleteNotFound,
   addMessageToUI,
   handleSendMessage,
   clearCurrentMessages,

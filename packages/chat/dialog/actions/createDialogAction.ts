@@ -6,7 +6,6 @@ export const createDialogAction = async (args, thunkApi) => {
   const { cybots, category } = args;
   const dispatch = thunkApi.dispatch;
   const cybotId = cybots[0];
-
   const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
   const time = format(new Date(), "MM-dd HH:mm");
   const title = cybotConfig.name + "  " + time;
@@ -16,8 +15,6 @@ export const createDialogAction = async (args, thunkApi) => {
     category,
     title,
   };
-
   const result = await dispatch(write({ data })).unwrap();
-
   return result;
 };

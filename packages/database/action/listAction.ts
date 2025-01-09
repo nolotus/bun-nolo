@@ -14,28 +14,6 @@ const createAuthHeaders = (token: string) => ({
   },
 });
 
-// 使用 any 类型简化 thunkAPI
-export const addToListAction = async (
-  { itemId, listId }: ListPayload,
-  thunkAPI: any
-) => {
-  const state = thunkAPI.getState();
-  const baseUrl = selectCurrentServer(state);
-  const token = state.auth.currentToken;
-
-  const response = await fetch(`${baseUrl}${API_ENDPOINTS.PUT}/${listId}`, {
-    method: "PUT",
-    ...createAuthHeaders(token),
-    body: JSON.stringify({ id: itemId }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to add item to list");
-  }
-
-  return response.json();
-};
-
 export const removeFromListAction = async (
   { itemId, listId }: ListPayload,
   thunkAPI: any
