@@ -69,7 +69,7 @@ export const handleQuery = async (req, res) => {
         options.userId
       );
       console.log("result", result);
-      return res.status(200).json({ data });
+      return res.status(200).json({ result });
     }
     const isValid = validateQueryOptions(options);
 
