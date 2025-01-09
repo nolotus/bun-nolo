@@ -48,7 +48,7 @@ export const DialogContextMenu: React.FC<DialogContextMenuProps> = ({
     {
       id: "addToWorkspace",
       label: t("addToWorkspace"),
-      submenu: workspaces.map((ws) => ({
+      submenu: workspaces?.map((ws) => ({
         id: ws.id,
         label: ws.name,
         onClick: () => handleAddToWorkspace(ws.id),

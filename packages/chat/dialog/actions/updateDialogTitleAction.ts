@@ -2,7 +2,6 @@ import { runCybotId } from "ai/cybot/cybotSlice";
 import { getFilteredMessages } from "chat/messages/utils";
 import { patchData } from "database/dbSlice";
 import { format } from "date-fns";
-import { selectCurrentServer } from "setting/settingSlice";
 import { isProduction } from "utils/env";
 
 export const updateDialogTitleAction = async (args, thunkApi) => {
@@ -13,7 +12,6 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
   // 在这里获取currentMsgs
   const currentMsgs = getFilteredMessages(state);
   const content = JSON.stringify(currentMsgs);
-  const currentServer = selectCurrentServer(state);
 
   // 根据服务器地址选择cybotId
   const cybotId = isProduction
