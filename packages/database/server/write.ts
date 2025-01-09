@@ -37,6 +37,14 @@ export const handleWrite = async (req: any, res: any) => {
   const actionUserId = user.userId;
 
   const { userId, data, flags, customId } = req.body;
+  const saveUserId = userId;
+
+  if (saveUserId === "local") {
+    console.log("local write");
+    return res.status(400).json({
+      message: "local data is not allowed.",
+    });
+  }
   console.log("data", data);
   if (
     data.type === DataType.Dialog ||
@@ -55,14 +63,6 @@ export const handleWrite = async (req: any, res: any) => {
       ...data,
     };
     return res.status(200).json(returnJson);
-  }
-  const saveUserId = userId;
-
-  if (saveUserId === "local") {
-    console.log("local write");
-    return res.status(400).json({
-      message: "local data is not allowed.",
-    });
   }
 
   //todo  maybe not need

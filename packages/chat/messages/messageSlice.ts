@@ -4,7 +4,6 @@ import {
   buildCreateSlice,
 } from "@reduxjs/toolkit";
 import { extractCustomId } from "core";
-import { generateIdWithCustomId } from "core/generateMainKey";
 import { API_ENDPOINTS } from "database/config";
 import { noloRequest } from "database/requests/noloRequest";
 
@@ -15,6 +14,7 @@ import {
   deleteData,
   removeFromList,
   upsertOne,
+  write,
 } from "database/dbSlice";
 import { filter, reverse } from "rambda";
 import { ulid } from "ulid";
@@ -200,42 +200,36 @@ export const messageSlice = createSliceWithThunks({
     addUserMessage: create.asyncThunk(async ({ content }, thunkApi) => {
       const state = thunkApi.getState();
       const userId = selectCurrentUserId(state);
-      const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
-      const dispatch = thunkApi.dispatch;
       const dialog = selectCurrentDialogConfig(state);
+      const dialogId = extractCustomId(dialog.id);
+      const id = `dialog-${dialogId}-msg-${ulid()}`;
+      console.log("msg key", id);
+      const dispatch = thunkApi.dispatch;
       const message = {
         id,
         role: "user",
         content,
-        belongs: [dialog.messageListId],
         userId,
       };
       dispatch(upsertOne(message));
       dispatch(addMessageToUI(message.id));
-      const customId = extractCustomId(message.id);
-      const config = {
-        url: `${API_ENDPOINTS.DATABASE}/write/`,
-        method: "POST",
-        body: JSON.stringify({
-          data: { type: DataType.Message, ...message },
-          flags: { isJSON: true },
-          customId,
-          userId,
-        }),
-      };
-      const writeMessage = await noloRequest(state, config);
-      const saveMessage = await writeMessage.json();
-      console.log("saveMessage", saveMessage);
+
+      await dispatch(
+        write({
+          data: { ...message, type: DataType.Msg },
+          customId: id,
+        })
+      );
 
       const dialogConfig = selectCurrentDialogConfig(state);
 
       if (dialogConfig?.messageListId) {
-        const updateId = dialogConfig?.messageListId;
-        console.log("updateId", updateId);
-        const actionResult = await dispatch(
-          addToList({ itemId: saveMessage.id, listId: updateId })
+        await dispatch(
+          addMsgToList({
+            itemId: id,
+            listId: dialogConfig?.messageListId,
+          })
         );
-        return actionResult.payload;
       }
     }),
     addAIMessage: create.asyncThunk(
@@ -267,6 +261,10 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
+    addMsgToList: create.asyncThunk(({ itemId, listId }, thunkApi) => {
+      const dispatch = thunkApi.dispatch;
+      dispatch(addToList({ itemId, listId }));
+    }),
 
     //not use yet
     sendWithMessageId: create.asyncThunk(async (messageId, thunkApi) => {
@@ -294,6 +292,7 @@ export const {
   addUserMessage,
   streamLLmId,
   sendWithMessageId,
+  addMsgToList,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;
