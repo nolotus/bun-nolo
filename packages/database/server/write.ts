@@ -49,8 +49,8 @@ export const handleWrite = async (req: any, res: any) => {
     const hasUser = await serverDb.get(`user:${actionUserId}`);
     const hasV0User = await doesUserDirectoryExist(userId);
     const userExist = hasUser || hasV0User;
+    console.log("userExist", userExist);
     const id = customId;
-
     if (userExist) {
       await serverDb.put(id, data);
       const returnJson = {
