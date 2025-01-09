@@ -4,10 +4,10 @@ import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { read } from "database/dbSlice";
 import { extractCustomId } from "core/prefix";
 import { selectCurrentUserId } from "auth/authSlice";
+import { generateDialogMessageKey } from "database/generateKey";
 
 import { addMsg } from "../messageSlice";
 import { getFilteredMessages } from "../utils";
-import { ulid } from "ulid";
 
 export const sendMessageAction = async (args, thunkApi) => {
   const state = thunkApi.getState();
@@ -23,10 +23,10 @@ export const sendMessageAction = async (args, thunkApi) => {
   const prevMsgs = getFilteredMessages(state);
   const dialogId = extractCustomId(dialogConfig.id);
   const userId = selectCurrentUserId(state);
-  const id = `dialog-${dialogId}-msg-${ulid()}`;
+  const msgId = generateDialogMessageKey(dialogId);
 
   const msg = {
-    id,
+    id: msgId,
     role: "user",
     content,
     userId,
@@ -60,7 +60,7 @@ export const sendMessageAction = async (args, thunkApi) => {
       cybotConfig,
       thunkApi,
       prevMsgs,
-      dialogId: dialogConfig.id,
+      dialogId,
     });
     return;
   }

@@ -71,7 +71,7 @@ export const SpotList = ({ userId }) => {
         </div>
       ) : (
         <div className="spots-container">
-          {data.map((spot) => <SpotCard key={spot.id} data={spot} />)}
+          {data?.map((spot) => <SpotCard key={spot.id} data={spot} />)}
           {data?.length === 0 && (
             <div className="empty-state">
               <p>暂无冲浪点</p>
