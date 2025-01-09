@@ -45,15 +45,15 @@ export const DialogContextMenu: React.FC<DialogContextMenuProps> = ({
       icon: <TrashIcon size={16} />,
       onClick: handleDeleteDialog,
     },
-    {
-      id: "addToWorkspace",
-      label: t("addToWorkspace"),
-      submenu: workspaces?.map((ws) => ({
-        id: ws.id,
-        label: ws.name,
-        onClick: () => handleAddToWorkspace(ws.id),
-      })),
-    },
+    // {
+    //   id: "addToWorkspace",
+    //   label: t("addToWorkspace"),
+    //   submenu: workspaces?.map((ws) => ({
+    //     id: ws.id,
+    //     label: ws.name,
+    //     onClick: () => handleAddToWorkspace(ws.id),
+    //   })),
+    // },
   ];
 
   return <ContextMenu menu={menu} anchorRect={anchorRect} items={menuItems} />;
