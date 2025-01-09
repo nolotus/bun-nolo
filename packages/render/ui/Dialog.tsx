@@ -1,7 +1,7 @@
 import { XIcon } from "@primer/octicons-react";
 import React from "react";
 import { useTheme } from "app/theme";
-import { BaseModal } from './BaseModal';
+import { BaseModal } from "./BaseModal";
 
 interface DialogProps {
   isOpen: boolean;
