@@ -4,38 +4,120 @@ import type React from "react";
 import { useTranslation } from "react-i18next";
 
 import useCybotConfig from "ai/cybot/hooks/useCybotConfig";
-
+import { getModelPricing, getFinalPrice, getPrices } from "ai/llm/getPricing";
 import MessageInput from "./MessageInput";
 import { handleSendMessage } from "./messageSlice";
+import { nolotusId } from "core/init";
+import { selectCurrentUserId } from "auth/authSlice";
+
+export interface SendPermissionCheck {
+  allowed: boolean;
+  reason?: "NO_CONFIG" | "NO_MODEL_PRICING" | "INSUFFICIENT_BALANCE";
+  requiredAmount?: number;
+}
 
 const MessageInputContainer: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const theme = useAppSelector(selectTheme);
-
-  // 使用 cybot 配置来判断是否允许发送消息
+  const userId = useAppSelector(selectCurrentUserId);
   const cybotConfig = useCybotConfig();
-  const allowSend = !!cybotConfig; // convert to boolean for check
+  const userBalance = 0; // TODO: 从实际状态获取用户余额
 
+  // 获取模型价格配置
+  const serverPrices = cybotConfig
+    ? getModelPricing(cybotConfig.provider, cybotConfig.model)
+    : null;
+
+  const checkAllowSend = ({
+    userId,
+    nolotusId,
+    cybotConfig,
+    serverPrices,
+    userBalance,
+  }: {
+    userId: string;
+    nolotusId: string;
+    cybotConfig: any;
+    serverPrices: any;
+    userBalance: number;
+  }): SendPermissionCheck => {
+    if (!cybotConfig) {
+      return { allowed: false, reason: "NO_CONFIG" };
+    }
+
+    if (!serverPrices) {
+      return { allowed: false, reason: "NO_MODEL_PRICING" };
+    }
+
+    if (userId === nolotusId) {
+      return { allowed: true };
+    }
+
+    const prices = getPrices(cybotConfig, serverPrices);
+    const maxPrice = getFinalPrice(prices);
+
+    const hasEnoughBalance = userBalance >= maxPrice;
+
+    return {
+      allowed: hasEnoughBalance,
+      reason: hasEnoughBalance ? undefined : "INSUFFICIENT_BALANCE",
+      requiredAmount: hasEnoughBalance ? undefined : maxPrice,
+    };
+  };
+
+  const sendPermission = checkAllowSend({
+    userId,
+    nolotusId,
+    cybotConfig,
+    serverPrices,
+    userBalance,
+  });
+
+  console.log("[MessageInput] Final permission check:", sendPermission);
 
   const onSendMessage = (content: string) => {
     dispatch(handleSendMessage({ content }));
   };
 
+  const getErrorMessage = (reason?: string, requiredAmount?: number) => {
+    switch (reason) {
+      case "NO_CONFIG":
+        return t("cybotConfigMissing");
+      case "NO_MODEL_PRICING":
+        return t("modelPricingMissing");
+      case "INSUFFICIENT_BALANCE":
+        return t("insufficientBalance", { amount: requiredAmount });
+      default:
+        return t("noAvailableCybotMessage");
+    }
+  };
+
   const errorMessageStyle = {
     color: theme.error,
     fontSize: "14px",
-    padding: ".25rem",
+    padding: ".5rem 1rem",
     backgroundColor: theme.errorBg,
-    borderRadius: "2px",
+    borderRadius: "4px",
     marginTop: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: `0 1px 3px ${theme.shadowColor}`,
+    border: `1px solid ${theme.error}20`,
   };
+
   return (
     <div>
-      {allowSend ? (
+      {sendPermission.allowed ? (
         <MessageInput onSendMessage={onSendMessage} />
       ) : (
-        <div style={errorMessageStyle}>{t("noAvailableCybotMessage")}</div>
+        <div style={errorMessageStyle}>
+          {getErrorMessage(
+            sendPermission.reason,
+            sendPermission.requiredAmount
+          )}
+        </div>
       )}
     </div>
   );
