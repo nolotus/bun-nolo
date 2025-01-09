@@ -1,4 +1,5 @@
-import { extractUserId } from "core";
+import { extractUserId } from "core/prefix";
+
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "app/hooks";
 import { deleteData } from "database/dbSlice";

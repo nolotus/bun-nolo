@@ -1,11 +1,13 @@
 import readline from "node:readline";
-import { extractAndDecodePrefix, extractUserId } from "core";
+import { extractAndDecodePrefix } from "core";
 import { decodeData, processLine } from "core/decodeData";
 import { DEFAULT_INDEX_FILE } from "database/init";
 import fs from "fs";
 
 import { createReadStream } from "node:fs";
 import { mem } from "./mem";
+import { isV0Id } from "core/id";
+import serverDb from "./db";
 
 const findDataInFile = (filePath, id: string) => {
   return new Promise((resolve, reject) => {
@@ -36,17 +38,15 @@ export const handleReadSingle = async (req, res) => {
   if (!req.params.id) {
     return res.status(500).json({ error: "need id" });
   }
+
   const id = req.params.id;
-  const { isFile, isList } = extractAndDecodePrefix(id);
-  const userId = extractUserId(id);
-  if (isFile) {
-    const file = Bun.file(`nolodata/${userId}/${id}`);
-    const headers = new Headers({
-      "Cache-Control": "max-age=3600",
-      "Content-Type": file.type,
-    });
-    return new Response(file.stream(), { headers });
+  if (!isV0Id(id)) {
+    const result = serverDb.get(id);
+    console.log("read result", result);
+    return res.status(200).json({ ...result, id });
   }
+  const { isList } = extractAndDecodePrefix(id);
+
   try {
     const result = await serverGetData(id);
 

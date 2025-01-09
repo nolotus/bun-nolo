@@ -5,7 +5,6 @@ const decodeCache = {};
 
 // 使用 TypeScript 定义类型
 export interface Flags {
-  isFile?: boolean;
   isList?: boolean;
   isString?: boolean;
   isJSON?: boolean;
@@ -44,9 +43,6 @@ export const getDecodedFlag = (prefix: string, flag: keyof Flags): boolean => {
 
 export const isString = (prefix: string): boolean =>
   getDecodedFlag(prefix, "isString");
-
-export const isFile = (prefix: string): boolean =>
-  getDecodedFlag(prefix, "isFile");
 
 const SEPARATOR = "-";
 

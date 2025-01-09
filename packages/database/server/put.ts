@@ -47,8 +47,8 @@ export const handlePut = async (req, res) => {
   const data = req.body;
   const flags = extractAndDecodePrefix(id);
 
-  const { isList, isFile } = flags;
-  //如果是isHash  isFile 则不允许更新
+  const { isList } = flags;
+  //如果是isHash   则不允许更新
   if (isList) {
     return updateList(actionUserId, id, data, res);
   } else {

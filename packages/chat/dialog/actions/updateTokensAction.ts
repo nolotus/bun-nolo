@@ -3,7 +3,8 @@ import { nolotusId } from "core/init";
 import { DataType } from "create/types";
 import level from "level";
 import { calculatePrice } from "integrations/anthropic/calculatePrice";
-import { extractUserId } from "core";
+import { extractUserId } from "core/prefix";
+
 import { write } from "database/dbSlice";
 
 interface TokenCounts {

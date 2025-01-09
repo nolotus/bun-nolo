@@ -6,7 +6,6 @@ import DialogPage from "chat/dialog/DialogPage";
 import { DataType } from "create/types";
 import RenderPage from "render/page/RenderPage";
 import NoMatch from "../NoMatch";
-import { SurfPage } from "../surf/web/SurfPage";
 import EditPage from "./EditPage";
 import { initPage, resetPage } from "./pageSlice";
 
@@ -57,9 +56,6 @@ const Page = ({ id }) => {
     }
     if (data.type === DataType.DIALOG) {
       return <DialogPage pageId={pageId} />;
-    }
-    if (data.type === DataType.SurfSpot) {
-      return <SurfPage pageId={pageId} data={data} />;
     }
     if (data.type === DataType.PAGE) {
       return <RenderPage pageId={pageId} data={data} />;
