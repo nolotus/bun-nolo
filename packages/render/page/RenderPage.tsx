@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { deleteData } from "database/dbSlice";
-import { extractUserId } from "core";
+import { extractUserId } from "core/prefix";
+
 import Editor from "create/editor/Editor";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 
