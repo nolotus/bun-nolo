@@ -2,9 +2,12 @@ import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
 import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { read } from "database/dbSlice";
+import { extractCustomId } from "core";
+import { selectCurrentUserId } from "auth/authSlice";
 
 import { addUserMessage } from "../messageSlice";
 import { getFilteredMessages } from "../utils";
+import { ulid } from "ulid";
 
 export const sendMessageAction = async (args, thunkApi) => {
   const state = thunkApi.getState();
@@ -12,13 +15,25 @@ export const sendMessageAction = async (args, thunkApi) => {
   const dialogConfig = selectCurrentDialogConfig(state);
 
   const cybotConfig = await dispatch(
-    read({ id: dialogConfig.cybots[0] }),
+    read({ id: dialogConfig.cybots[0] })
   ).unwrap();
 
   const { content } = args;
   const prevMsgs = getFilteredMessages(state);
+  const dialog = selectCurrentDialogConfig(state);
 
-  thunkApi.dispatch(addUserMessage({ content }));
+  const dialogId = extractCustomId(dialog.id);
+  const userId = selectCurrentUserId(state);
+
+  const id = `dialog-${dialogId}-msg-${ulid()}`;
+
+  const message = {
+    id,
+    role: "user",
+    content,
+    userId,
+  };
+  thunkApi.dispatch(addUserMessage(message));
 
   if (
     cybotConfig.provider === "deepinfra" ||
@@ -28,8 +43,8 @@ export const sendMessageAction = async (args, thunkApi) => {
     cybotConfig.provider === "openai" ||
     cybotConfig.provider === "mistral" ||
     cybotConfig.provider === "google" ||
-    cybotConfig.provider === "ollama" ||  // 添加 ollama
-    cybotConfig.provider === "Custom"     // 添加 Custom
+    cybotConfig.provider === "ollama" || // 添加 ollama
+    cybotConfig.provider === "Custom" // 添加 Custom
   ) {
     sendCommonChatRequest({
       content,
@@ -51,5 +66,4 @@ export const sendMessageAction = async (args, thunkApi) => {
     });
     return;
   }
-
 };

@@ -5,7 +5,7 @@ import React from "react";
 import RobotMessage from "./RobotMessage";
 import { SelfMessage } from "./SelfMessage";
 import { UserMessage } from "./UserMessage";
-import { deleteNotFound } from "./messageSlice";
+import { deleteMessage } from "./messageSlice";
 
 import { useTheme } from "app/theme";
 
@@ -67,7 +67,7 @@ export const MessageItem = React.memo(
     const currentUserId = useAppSelector(selectCurrentUserId);
 
     const handleDelete = React.useCallback(() => {
-      dispatch(deleteNotFound(id));
+      dispatch(deleteMessage(id));
     }, [dispatch, id]);
 
     if (isLoading) {
