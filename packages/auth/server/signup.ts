@@ -9,7 +9,7 @@ import { getLogger } from "utils/logger";
 const signUpLogger = getLogger("signUp");
 
 export async function handleSignUp(req, res) {
-  const { username, publicKey, locale } = req.body;
+  const { username, publicKey, locale, email } = req.body;
   const userId = generateUserIdV1(publicKey, username, locale);
 
   // 先检查用户是否存在
@@ -31,6 +31,9 @@ export async function handleSignUp(req, res) {
     publicKey,
     locale,
     createdAt: Date.now(),
+    email,
+    balance: 0,
+    balanceUpdatedAt: Date.now(),
   });
 
   await serverDb.put(DB_PREFIX.USER + userId, JSON.stringify(userData));

@@ -89,7 +89,7 @@ const EditPage = () => {
           style={{
             ...layout.flexGrow1,
             ...layout.overflowYAuto,
-            padding: '1rem',
+            padding: "1rem",
           }}
         >
           <div

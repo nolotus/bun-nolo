@@ -17,7 +17,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Input } from "web/form/Input";
 import PasswordInput from "web/form/PasswordInput";
 import Button from "web/ui/Button";
-import { LockIcon, PersonIcon } from "@primer/octicons-react";
+import { LockIcon, PersonIcon, MailIcon } from "@primer/octicons-react";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +30,11 @@ const Signup: React.FC = () => {
   const userFormSchema = z.object({
     username: z.string().nonempty({ message: t("usernameRequired") || "" }),
     password: z.string().nonempty({ message: t("passwordRequired") || "" }),
+    email: z
+      .string()
+      .email({ message: t("invalidEmail") || "" })
+      .optional()
+      .or(z.literal("")), // 允许空字符串
   });
 
   const {
@@ -40,12 +45,10 @@ const Signup: React.FC = () => {
     resolver: zodResolver(userFormSchema),
   });
 
-
   const onSubmit = async (data) => {
     try {
       const locale = navigator.language;
       const { password } = data;
-
       const encryptionKey = await hashPasswordV1(password);
       const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
 
@@ -55,7 +58,6 @@ const Signup: React.FC = () => {
         navigate("/");
         return;
       }
-
 
       switch (action.payload.status) {
         case 409:
@@ -74,7 +76,6 @@ const Signup: React.FC = () => {
       setError(t("networkError"));
     }
   };
-
 
   return (
     <div className="signup-container">
@@ -198,7 +199,6 @@ const Signup: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)} className="signup-form">
         <h1 className="signup-title">{t("signup")}</h1>
 
-
         <div className="field-group">
           <Input
             placeholder={t("enterUsername")}
@@ -211,7 +211,19 @@ const Signup: React.FC = () => {
             <p className="error-message">{errors.username.message}</p>
           )}
         </div>
-
+        <div className="field-group">
+          <Input
+            placeholder={t("enterEmail")}
+            {...register("email")}
+            error={!!errors.email}
+            icon={<MailIcon size={20} />} // 需要从 @primer/octicons-react 引入 MailIcon
+            type="email"
+            autoComplete="email"
+          />
+          {errors.email && (
+            <p className="error-message">{errors.email.message}</p>
+          )}
+        </div>
 
         <div className="field-group">
           <PasswordInput
@@ -226,9 +238,7 @@ const Signup: React.FC = () => {
           )}
         </div>
 
-
         {error && <p className="error-message">{error}</p>}
-
 
         <div className="form-footer">
           <Button
@@ -253,6 +263,5 @@ const Signup: React.FC = () => {
     </div>
   );
 };
-
 
 export default Signup;
