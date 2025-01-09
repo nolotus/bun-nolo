@@ -67,11 +67,6 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
-    receiveMessage: create.reducer((state, action) => {
-      if (!state.ids.includes(action.payload)) {
-        state.ids.unshift(action.payload);
-      }
-    }),
 
     messageStreaming: create.reducer<Message>((state, action) => {
       const message = action.payload;
@@ -174,10 +169,7 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    handleSendMessage: create.asyncThunk(sendMessageAction, {
-      rejected: (state, action) => {},
-      fulfilled: (state, action) => {},
-    }),
+    handleSendMessage: create.asyncThunk(sendMessageAction),
     clearCurrentMessages: create.reducer((state, action) => {
       state.ids = null;
       state.streamMessages = [];
@@ -205,39 +197,47 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
-    addUserMessage: create.asyncThunk(
-      async ({ content, isSaveToServer = true }, thunkApi) => {
-        const state = thunkApi.getState();
-        const userId = selectCurrentUserId(state);
-        const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
-        const dispatch = thunkApi.dispatch;
-        const dialog = selectCurrentDialogConfig(state);
-        const message = {
-          id,
-          role: "user",
-          content,
-          belongs: [dialog.messageListId],
+    addUserMessage: create.asyncThunk(async ({ content }, thunkApi) => {
+      const state = thunkApi.getState();
+      const userId = selectCurrentUserId(state);
+      const id = generateIdWithCustomId(userId, ulid(), { isJSON: true });
+      const dispatch = thunkApi.dispatch;
+      const dialog = selectCurrentDialogConfig(state);
+      const message = {
+        id,
+        role: "user",
+        content,
+        belongs: [dialog.messageListId],
+        userId,
+      };
+      dispatch(upsertOne(message));
+      dispatch(addMessageToUI(message.id));
+      const customId = extractCustomId(message.id);
+      const config = {
+        url: `${API_ENDPOINTS.DATABASE}/write/`,
+        method: "POST",
+        body: JSON.stringify({
+          data: { type: DataType.Message, ...message },
+          flags: { isJSON: true },
+          customId,
           userId,
-        };
-        dispatch(upsertOne(message));
-        dispatch(addMessageToUI(message.id));
-        if (isSaveToServer) {
-          const actionResult = await dispatch(addMessageToServer(message));
-          return actionResult.payload;
-        }
-      },
-      {
-        pending: () => {},
-        rejected: (state, action) => {},
-        fulfilled: (state, action) => {
-          console.log("addUserMessage fulfilled", action);
+        }),
+      };
+      const writeMessage = await noloRequest(state, config);
+      const saveMessage = await writeMessage.json();
+      console.log("saveMessage", saveMessage);
 
-          if (action.payload) {
-            state.ids = reverse(action.payload.array);
-          }
-        },
+      const dialogConfig = selectCurrentDialogConfig(state);
+
+      if (dialogConfig?.messageListId) {
+        const updateId = dialogConfig?.messageListId;
+        console.log("updateId", updateId);
+        const actionResult = await dispatch(
+          addToList({ itemId: saveMessage.id, listId: updateId })
+        );
+        return actionResult.payload;
       }
-    ),
+    }),
     addAIMessage: create.asyncThunk(
       async ({ content, id, isSaveToServer = true, cybotId }, thunkApi) => {
         const state = thunkApi.getState();
@@ -278,7 +278,6 @@ export const messageSlice = createSliceWithThunks({
 
 export const {
   sendMessage,
-  receiveMessage,
   messageStreamEnd,
   messageStreaming,
   messagesReachedMax,
