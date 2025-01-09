@@ -13,7 +13,6 @@ import { generateKeyPairFromSeedV1 } from "core/crypto";
 import { parseToken } from "./token";
 import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
-import { SignupData } from "./types";
 
 interface AuthState {
   currentUser: User;
@@ -98,14 +97,15 @@ export const authSlice = createSliceWithThunks({
     ),
     signUp: create.asyncThunk(
       async (user, thunkAPI) => {
-        const { username, locale, encryptionKey } = user;
+        const { username, locale, encryptionKey, email } = user;
         const { publicKey, secretKey } = generateKeyPairFromSeedV1(
           username + encryptionKey + locale
         );
-        const sendData: SignupData = {
+        const sendData = {
           username,
           publicKey,
           locale,
+          email,
         };
 
         const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
