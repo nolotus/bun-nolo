@@ -55,12 +55,12 @@ const MessageInputContainer: React.FC = () => {
     }
 
     const prices = getPrices(cybotConfig, serverPrices);
+    console.log("prices", prices);
+
     const maxPrice = getFinalPrice(prices);
-
-    const hasEnoughBalance = userBalance >= maxPrice;
-    console.log("userBalance", userBalance);
-
     console.log("maxPrice", maxPrice);
+    const hasEnoughBalance = userBalance >= maxPrice;
+
     return {
       allowed: hasEnoughBalance,
       reason: hasEnoughBalance ? undefined : "INSUFFICIENT_BALANCE",
