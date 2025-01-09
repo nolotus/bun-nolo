@@ -45,6 +45,22 @@ export const writeAction = async (writeConfig, thunkApi) => {
   }
   const isLoggedIn = selectIsLoggedIn(state);
   const { data } = writeConfig;
+  if (data.type === DataType.Msg) {
+    const id = writeConfig.customId;
+    const willSaveData = {
+      ...data,
+      createdAt: new Date().toISOString(),
+    };
+    console.log("writeConfig", writeConfig);
+    const serverWriteConfig = {
+      ...writeConfig,
+      data: willSaveData,
+      customId: id,
+    };
+    noloWriteRequest(state, serverWriteConfig);
+    await browserDb.put(id, willSaveData);
+    return willSaveData;
+  }
   if (
     data.type === DataType.Cybot ||
     data.type === DataType.Page ||
