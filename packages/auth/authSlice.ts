@@ -62,7 +62,6 @@ export const authSlice = createSliceWithThunks({
             token = signToken({ userId, publicKey, username }, secretKey);
           }
           const currentServer = selectCurrentServer(state);
-          console.log("currentServer", currentServer);
           const res = await loginRequest(currentServer, {
             userId,
             token,

@@ -60,7 +60,7 @@ export const patchAction = async ({ id, changes }, thunkApi) => {
     };
 
     dispatch(write({ data: newData }));
-    if (memData.type === DataType.Dialog) {
+    if (memData.type === DataType.DIALOG) {
       // isProduction && dispatch(deleteData(id));
     }
     return newData;

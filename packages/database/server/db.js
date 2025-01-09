@@ -2,7 +2,7 @@
 import { Level } from "level";
 
 const dbPath = "../../nolodata/nolodb";
-const serverDb = new Level(dbPath);
+const serverDb = new Level(dbPath, { valueEncoding: "json" });
 
 
 export const DB_PREFIX = {

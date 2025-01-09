@@ -14,7 +14,6 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
   const currentMsgs = getFilteredMessages(state);
   const content = JSON.stringify(currentMsgs);
   const currentServer = selectCurrentServer(state);
-  console.log("currentServer", currentServer);
 
   // 根据服务器地址选择cybotId
   const cybotId = isProduction

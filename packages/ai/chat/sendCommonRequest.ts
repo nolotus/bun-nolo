@@ -6,10 +6,9 @@ import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { setOne } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
-import { ulid } from "ulid";
-
 import { getApiEndpoint } from "../api/apiEndpoints";
 import { performFetchRequest } from "./fetchUtils";
+import { generateDialogMessageKey } from "database/generateKey";
 
 function parseMultilineSSE(rawText: string) {
   const results = [];
@@ -56,9 +55,6 @@ export const sendCommonChatRequest = async ({
   const signal = controller.signal;
   const currentServer = selectCurrentServer(getState());
 
-  console.log("Preparing request with content:", content);
-  console.log("Configuration:", cybotConfig);
-
   const messages = createMessages(content, prevMsgs, cybotConfig);
   const model = cybotConfig.model;
   const bodyData = { model, messages, stream: true };
@@ -66,8 +62,7 @@ export const sendCommonChatRequest = async ({
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;
   }
-
-  const messageId = `dialog-${dialogId}-msg-${ulid}`;
+  const messageId = generateDialogMessageKey(dialogId);
 
   let contentBuffer = "";
   let reader;

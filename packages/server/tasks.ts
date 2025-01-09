@@ -2,7 +2,6 @@ import { nolotusId } from "core/init";
 import { DataType } from "create/types";
 import { queryData } from "database/query/queryHandler";
 import { parseWeatherParams, fetchWeatherData } from "integrations/weather";
-import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
 import { extractAndDecodePrefix, formatData } from "core";
 import { getLogger } from "utils/logger";
@@ -37,9 +36,7 @@ const processWeatherData = async (weatherData, collector) => {
     const specificTime = new Date(hour.time).getTime();
     const ulidForSpecificTime = ulid(specificTime);
     const customId = ulidForSpecificTime;
-    const id = generateIdWithCustomId(nolotusId, customId, {
-      isJSON: true,
-    });
+    const id = customId;
     // 在这里添加 lat 和 lng 到 hour 数据中
     const augmentedHour = {
       ...hour,
@@ -60,7 +57,7 @@ const processWeatherData = async (weatherData, collector) => {
 
 const sendRequestsToTopTenCollectors = async (
   collectors,
-  shouldFetchAll = false,
+  shouldFetchAll = false
 ) => {
   let promises = [];
 

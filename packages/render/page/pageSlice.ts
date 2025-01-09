@@ -7,7 +7,7 @@ export const pageSlice = createSlice({
     content: "",
     createdTime: "",
     meta: {
-      type: DataType.Page,
+      type: DataType.PAGE,
       creator: "",
       title: "",
       layout: "default",
@@ -25,7 +25,6 @@ export const pageSlice = createSlice({
       state.slateData = action.payload.slateData;
     },
 
-
     updateSlate: (state, action) => {
       const value = action.payload;
       state.slateData = value;
@@ -35,7 +34,7 @@ export const pageSlice = createSlice({
       state.content = "";
       state.createdTime = "";
       state.meta = {
-        type: DataType.Page,
+        type: DataType.PAGE,
         creator: "",
         title: "",
         layout: "default",
@@ -47,10 +46,6 @@ export const pageSlice = createSlice({
   },
 });
 
-export const {
-  initPage,
-  updateSlate,
-  resetPage,
-} = pageSlice.actions;
+export const { initPage, updateSlate, resetPage } = pageSlice.actions;
 
 export default pageSlice.reducer;

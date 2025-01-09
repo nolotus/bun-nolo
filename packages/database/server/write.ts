@@ -4,27 +4,21 @@ import { formatData } from "core/formatData";
 import { generateIdWithCustomId } from "core/generateMainKey";
 
 import { mem } from "./mem";
-import { checkPermission, checkUserDirectory } from "./permissions";
+import { checkPermission, doesUserDirectoryExist } from "./permissions";
 import { DataType } from "create/types";
 import serverDb from "./db";
-import { ulid } from "ulid";
 
-export const serverWrite = (
+const serverWrite = async (
   dataKey: string,
   data: string | Blob,
   userId: string
 ): Promise<void> => {
   console.log("userId", userId);
-
-  if (userId.length < 12) {
-    console.log("server write userId", userId);
-
-    // serverDb.put();
-  }
-  return checkUserDirectory(userId).then(() => {
+  const isExist = await doesUserDirectoryExist(userId);
+  if (isExist) {
     mem.set(dataKey, data as string);
     return Promise.resolve();
-  });
+  }
 };
 
 export const handleError = (res: any, error: Error) => {
@@ -47,22 +41,28 @@ export const handleWrite = async (req: any, res: any) => {
   }
   console.log("data", data);
   if (
-    data.type === DataType.Dialog ||
-    data.type === DataType.Cybot ||
-    data.type === DataType.Page
+    data.type === DataType.MSG ||
+    data.type === DataType.PAGE ||
+    data.type === DataType.CYBOT ||
+    data.type === DataType.DIALOG
   ) {
-    const hasUser = await serverDb.get(`user:${userId}`);
-    // const hasV0User = await checkUserDirectory(userId);
-    console.log("hasUser", hasUser);
-    const id: string = `${data.type}-${userId}-${ulid()}`;
-    await serverDb.put(id, data);
+    console.log("actionUserId", actionUserId);
+    const hasUser = await serverDb.get(`user:${actionUserId}`);
+    const hasV0User = await doesUserDirectoryExist(userId);
+    const userExist = hasUser || hasV0User;
+    console.log("userExist", userExist);
+    const id = customId;
 
-    const returnJson = {
-      message: "Data written to file successfully.",
-      id,
-      ...data,
-    };
-    return res.status(200).json(returnJson);
+    if (userExist) {
+      console.log("server write data", data);
+      await serverDb.put(id, data);
+      const returnJson = {
+        message: "Data written to file successfully.",
+        id,
+        ...data,
+      };
+      return res.status(200).json(returnJson);
+    }
   }
 
   //todo  maybe not need

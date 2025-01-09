@@ -25,6 +25,8 @@ import {
 import { runCybotId } from "ai/cybot/cybotSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import { isProduction } from "utils/env";
+import { DataType } from "create/types";
+import { ulid } from "ulid";
 
 interface MessageContextMenuProps {
   menu: Ariakit.MenuStore;
@@ -41,26 +43,28 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const auth = useAuth();
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation("chat");
 
   const handleSaveContent = async () => {
     if (content) {
       try {
         const slateData = markdownToSlate(content);
-        const cybotId = isProduction ? "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGTFKJ7TRE78ZB1E1ZSJRAFJ" : "cybot-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGV8AB85FP1GC3Z42W9ATSPG"
+        const cybotId = isProduction
+          ? "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGTFKJ7TRE78ZB1E1ZSJRAFJ"
+          : "cybot-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGV8AB85FP1GC3Z42W9ATSPG";
         const title = await dispatch(
           runCybotId({
             cybotId,
             userInput: content,
-          }),
+          })
         ).unwrap();
 
-        const writeData = {
-          data: { content, slateData, type: "page", title },
-          flags: { isJSON: true },
-          userId: auth.user?.userId,
-        };
-        const saveAction = await dispatch(write(writeData));
+        const saveAction = await dispatch(
+          write({
+            data: { content, slateData, type: DataType.PAGE, title },
+            customId: `${DataType.PAGE}-${auth.user.userId}-${ulid()}`,
+          })
+        );
         const response = saveAction.payload;
         if (response.error) {
           throw new Error(response.error);
@@ -76,7 +80,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
               {t("clickHere")}
             </Link>
             {t("viewDetails")}
-          </div>,
+          </div>
         );
       } catch (error) {
         toast.error(`${t("saveFailed")}: ${error.message}`);
