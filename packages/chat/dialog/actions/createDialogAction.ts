@@ -1,7 +1,7 @@
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { read, write } from "database/dbSlice";
-import { generateDialogKey } from "database/generateKey";
+import { createDialogKey } from "database/keys";
 import { format } from "date-fns";
 
 export const createDialogAction = async (args, thunkApi) => {
@@ -12,7 +12,7 @@ export const createDialogAction = async (args, thunkApi) => {
   const time = format(new Date(), "MM-dd HH:mm");
   const title = cybotConfig.name + "  " + time;
   const userId = selectCurrentUserId(thunkApi.getState());
-  const id = generateDialogKey(userId);
+  const id = createDialogKey(userId);
   const data = {
     cybots,
     category,

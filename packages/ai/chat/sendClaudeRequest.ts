@@ -1,5 +1,5 @@
 import { selectCurrentServer } from "setting/settingSlice";
-import { generateDialogMessageKey } from "database/generateKey";
+import { createDialogMessageKey } from "database/keys";
 
 import { API_ENDPOINTS } from "database/config";
 import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
@@ -55,7 +55,7 @@ export const sendClaudeRequest = async ({
   const dispatch = thunkApi.dispatch;
   const currentServer = selectCurrentServer(state);
 
-  const messageId = generateDialogMessageKey(dialogId);
+  const messageId = createDialogMessageKey(dialogId);
 
   const body = generateRequestBody(cybotConfig, content, prevMsgs);
   const controller = new AbortController();

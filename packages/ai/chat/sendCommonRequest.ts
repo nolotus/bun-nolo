@@ -8,7 +8,7 @@ import { setOne } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "../api/apiEndpoints";
 import { performFetchRequest } from "./fetchUtils";
-import { generateDialogMessageKey } from "database/generateKey";
+import { createDialogMessageKey } from "database/keys";
 
 function parseMultilineSSE(rawText: string) {
   const results = [];
@@ -62,7 +62,7 @@ export const sendCommonChatRequest = async ({
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;
   }
-  const messageId = generateDialogMessageKey(dialogId);
+  const messageId = createDialogMessageKey(dialogId);
 
   let contentBuffer = "";
   let reader;

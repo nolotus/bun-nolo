@@ -4,7 +4,7 @@ import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { read } from "database/dbSlice";
 import { extractCustomId } from "core/prefix";
 import { selectCurrentUserId } from "auth/authSlice";
-import { generateDialogMessageKey } from "database/generateKey";
+import { createDialogMessageKey } from "database/keys";
 
 import { addMsg } from "../messageSlice";
 import { getFilteredMessages } from "../utils";
@@ -23,7 +23,7 @@ export const sendMessageAction = async (args, thunkApi) => {
   const prevMsgs = getFilteredMessages(state);
   const dialogId = extractCustomId(dialogConfig.id);
   const userId = selectCurrentUserId(state);
-  const msgId = generateDialogMessageKey(dialogId);
+  const msgId = createDialogMessageKey(dialogId);
 
   const msg = {
     id: msgId,
