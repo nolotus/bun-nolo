@@ -1,59 +1,53 @@
 // database/keys.ts
 import { ulid } from "ulid";
-import { DataType } from "create/types";
 import { curry } from "rambda";
+import { pino } from "pino";
+
+const logger = pino({ name: "db-keys" });
+
+// 基础key创建保持不变
+const createKey = (...parts: string[]) => parts.join("-");
 
 /**
- * 基础 key 创建函数,使用'-'作为分隔符
- */
-export const createKey = (...parts: string[]) => parts.join("-");
-
-/**
- * Token 记录的 key
- * 格式: token-{userId}-{recordId}
- * 用途: 存储用户的 token 使用记录
- * 示例: token-user123-01ARZ3NDEKTSV4RRFFQ69G5FAV
- * TODO:
+ * Token记录相关key
+ * 格式: token-{userId}-{timestamp}
+ *  * TODO:
  * 1. 需要增加按 cybotId 查询的支持: token-cybot-{cybotId}-{recordId}
  * 2. 需要增加全站统计支持: token-stats-day-site-{dateKey}
  */
-export const createTokenRecordKey = curry((userId: string, id: string) =>
-  createKey("token", userId, id)
-);
+export const createTokenKey = {
+  // 创建单条记录key
+  record: curry((userId: string, timestamp: number) => {
+    const key = createKey("token", userId, timestamp.toString());
+    logger.debug({ userId, timestamp, key }, "Created token record key");
+    return key;
+  }),
+
+  // 创建查询范围
+  range: (userId: string, timestamp: number) => {
+    const start = createKey("token", userId, timestamp.toString());
+    const end = createKey("token", userId, (timestamp + 86400000).toString());
+    logger.debug({ userId, start, end }, "Created token range keys");
+    return { start, end };
+  },
+};
 
 /**
- * Token 统计的 key
- * 格式: token-stats-day-user-{userId}-{dateKey}
- * 用途: 存储用户每日 token 使用统计
- * 示例: token-stats-day-user-user123-2023-05-20
+ * Token统计key - 保持原有格式
+ * token-stats-day-user-{userId}-{dateKey}
  */
-export const createTokenStatsKey = curry((userId: string, dateKey: string) =>
-  createKey("token", "stats", "day", "user", userId, dateKey)
-);
+export const createTokenStatsKey = curry((userId: string, dateKey: string) => {
+  const key = createKey("token", "stats", "day", "user", userId, dateKey);
+  logger.debug({ userId, dateKey, key }, "Created token stats key");
+  return key;
+});
 
-/**
- * 对话的 key
- * 格式: dialog-{userId}-{ulid}
- * 用途: 存储用户的对话记录
- * 示例: dialog-user123-01ARZ3NDEKTSV4RRFFQ69G5FAV
- */
+// 其他key保持不变
 export const createDialogKey = (userId: string) =>
-  createKey(DataType.DIALOG, userId, ulid());
+  createKey("dialog", userId, ulid());
 
-/**
- * 对话消息的 key
- * 格式: dialog-{dialogId}-msg-{ulid}
- * 用途: 存储对话中的具体消息
- * 示例: dialog-01ARZ3NDEKTSV4RRFFQ69G5FAV-msg-01ARZ3NDEKTSV4RRFFQ69G5FAV
- */
 export const createDialogMessageKey = (dialogId: string) =>
-  createKey(DataType.DIALOG, dialogId, "msg", ulid());
+  createKey("dialog", dialogId, "msg", ulid());
 
-/**
- * Cybot的 key
- * 格式: cybot-{userId}-{ulid}
- * 用途: 存储用户创建的 AI 助手信息
- * 示例: cybot-user123-01ARZ3NDEKTSV4RRFFQ69G5FAV
- */
 export const createCybotKey = (userId: string) =>
-  createKey(DataType.CYBOT, userId, ulid());
+  createKey("cybot", userId, ulid());

@@ -49,24 +49,6 @@ export interface TokenRecord {
   createdAt: number;
 }
 
-export interface ModelStats {
-  count: number;
-  tokens: number;
-  cost: number;
-}
-
-export interface DayStats {
-  userId: string;
-  period: "day";
-  timeKey: string;
-  total_input_tokens: number;
-  total_output_tokens: number;
-  total_cost: number;
-  models: Record<string, ModelStats>;
-  providers: Record<string, ModelStats>;
-  count: number;
-}
-
 export interface QueryParams {
   userId: string;
   startTime?: number;

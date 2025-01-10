@@ -1,14 +1,34 @@
-import React, { useEffect, useState } from "react";
-import { useTheme } from "app/theme";
-import { queryUserTokens } from "ai/token/db";
+// UsageRecord.tsx
+import React, { useState } from "react";
 import { format } from "date-fns";
+import { useTheme } from "app/theme";
+import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
+import { TokenRecord } from "ai/token/types";
+import { selectCurrentUserId } from "auth/authSlice";
+import { useAppSelector } from "app/hooks";
+import { pino } from "pino";
 
-interface UsageRecordProps {
-  userId: string; // 添加必要的props
-}
+const logger = pino({ name: "usage-record" });
 
-const UsageRecord: React.FC<UsageRecordProps> = ({ userId }) => {
+const initialFilter: RecordsFilter = {
+  date: format(new Date(), "yyyy-MM-dd"),
+  model: "全部模型",
+  currentPage: 1,
+};
+
+const formatTokens = (record: TokenRecord) => {
+  const input =
+    record.input_tokens +
+    (record.cache_creation_input_tokens || 0) +
+    (record.cache_read_input_tokens || 0);
+  return `输入:${input} 输出:${record.output_tokens}`;
+};
+
+const UsageRecord: React.FC = () => {
   const theme = useTheme();
+  const [filter, setFilter] = useState(initialFilter);
+  const userId = useAppSelector(selectCurrentUserId);
+  const { records, loading, totalCount } = useRecords(userId, filter);
 
   const styles = {
     card: {
@@ -16,7 +36,52 @@ const UsageRecord: React.FC<UsageRecordProps> = ({ userId }) => {
       borderRadius: "12px",
       boxShadow: `0 2px 8px ${theme.shadowLight}`,
       padding: "24px",
-      marginBottom: "24px",
+    },
+    header: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "1rem",
+    },
+    title: {
+      fontSize: "1.25rem",
+      fontWeight: 500,
+      color: theme.text,
+    },
+    filters: {
+      display: "flex",
+      gap: "1rem",
+    },
+    input: {
+      padding: "8px",
+      border: `1px solid ${theme.border}`,
+      borderRadius: "6px",
+      color: theme.text,
+      background: theme.background,
+    },
+    table: {
+      width: "100%",
+      borderCollapse: "collapse" as const,
+    },
+    row: {
+      borderBottom: `1px solid ${theme.border}`,
+    },
+    cell: {
+      padding: "12px",
+      color: theme.text,
+    },
+    footer: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: "1rem",
+    },
+    count: {
+      color: theme.textSecondary,
+    },
+    pagination: {
+      display: "flex",
+      gap: "0.5rem",
     },
     button: {
       background: theme.primary,
@@ -27,97 +92,40 @@ const UsageRecord: React.FC<UsageRecordProps> = ({ userId }) => {
       cursor: "pointer",
       transition: "all 0.2s",
     },
-    table: {
-      width: "100%",
-      borderCollapse: "collapse",
-    },
-    tableHeader: {
-      backgroundColor: theme.backgroundSecondary,
-      borderBottom: `1px solid ${theme.border}`,
-    },
-    tableRow: {
-      borderBottom: `1px solid ${theme.border}`,
-    },
-    input: {
-      padding: "8px",
-      border: `1px solid ${theme.border}`,
-      borderRadius: "6px",
-      color: theme.text,
-      background: theme.background,
-    },
   };
 
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState({
-    date: format(new Date(), "yyyy-MM-dd"),
-    model: "",
-    currentPage: 1,
-  });
-
-  const ITEMS_PER_PAGE = 10;
-
-  // 数据获取
-  const fetchRecords = async () => {
-    try {
-      setLoading(true);
-      const startTime = new Date(filter.date).getTime();
-      const endTime = startTime + 24 * 60 * 60 * 1000; // 当天结束
-
-      const data = await queryUserTokens({
-        userId,
-        startTime,
-        endTime,
-        model: filter.model === "全部模型" ? undefined : filter.model,
-        limit: ITEMS_PER_PAGE * filter.currentPage,
-      });
-
-      setRecords(data);
-    } catch (error) {
-      console.error("Failed to fetch records:", error);
-      // 这里可以添加错误提示
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRecords();
-  }, [filter]);
-
-  // 处理筛选变化
+  // Handlers
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilter((prev) => ({ ...prev, date: e.target.value, currentPage: 1 }));
+    const newDate = e.target.value;
+    logger.debug({ newDate }, "Date filter changed");
+    setFilter((prev) => ({ ...prev, date: newDate, currentPage: 1 }));
   };
 
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilter((prev) => ({ ...prev, model: e.target.value, currentPage: 1 }));
+    const newModel = e.target.value;
+    logger.debug({ newModel }, "Model filter changed");
+    setFilter((prev) => ({ ...prev, model: newModel, currentPage: 1 }));
   };
 
-  // 处理分页
-  const handlePageChange = (page: number) => {
-    setFilter((prev) => ({ ...prev, currentPage: page }));
-  };
-
-  const formatDate = (timestamp: number) =>
-    format(new Date(timestamp), "yyyy-MM-dd HH:mm");
-
-  // 保持原有的styles...
+  // Render methods
+  const renderTableRow = (record: TokenRecord) => (
+    <tr key={record.id} style={styles.row}>
+      <td style={styles.cell}>
+        {format(record.createdAt, "yyyy-MM-dd HH:mm:ss")}
+      </td>
+      <td style={styles.cell}>{record.cybotId || "-"}</td>
+      <td style={styles.cell}>{formatTokens(record)}</td>
+      <td style={styles.cell}>{record.model}</td>
+      <td style={styles.cell}>{record.cost.toFixed(4)}</td>
+    </tr>
+  );
 
   return (
     <div style={styles.card}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1rem",
-        }}
-      >
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 500, color: theme.text }}>
-          使用记录 {loading && "(加载中...)"}
-        </h2>
-        <div style={{ display: "flex", gap: "1rem" }}>
+      <div style={styles.header}>
+        <h2 style={styles.title}>使用记录 {loading && "(加载中...)"}</h2>
+
+        <div style={styles.filters}>
           <input
             type="date"
             style={styles.input}
@@ -129,80 +137,57 @@ const UsageRecord: React.FC<UsageRecordProps> = ({ userId }) => {
             value={filter.model}
             onChange={handleModelChange}
           >
-            <option>全部模型</option>
-            <option>GPT-3.5</option>
-            <option>GPT-4</option>
+            <option value="全部模型">全部模型</option>
+            <option value="gpt-3.5-turbo">GPT-3.5</option>
+            <option value="gpt-4">GPT-4</option>
+            <option value="claude">Claude</option>
           </select>
         </div>
       </div>
 
       <div style={{ overflowX: "auto" }}>
         <table style={styles.table}>
-          {/* 保持表头不变 */}
+          <thead>
+            <tr style={styles.row}>
+              <th style={styles.cell}>时间</th>
+              <th style={styles.cell}>机器人</th>
+              <th style={styles.cell}>Tokens</th>
+              <th style={styles.cell}>模型</th>
+              <th style={styles.cell}>费用($)</th>
+            </tr>
+          </thead>
           <tbody>
-            {records.map((record) => (
-              <tr key={record.id} style={styles.tableRow}>
-                <td style={{ padding: "12px", color: theme.text }}>
-                  {formatDate(record.timestamp)}
-                </td>
-                <td style={{ padding: "12px", color: theme.text }}>
-                  {record.name}
-                </td>
-                <td style={{ padding: "12px", color: theme.text }}>
-                  {record.tokens}
-                </td>
-                <td style={{ padding: "12px", color: theme.text }}>
-                  {record.model}
-                </td>
-                <td style={{ padding: "12px", color: theme.text }}>
-                  {formatDate(record.endTimestamp)}
+            {records.length > 0 ? (
+              records.map(renderTableRow)
+            ) : (
+              <tr>
+                <td colSpan={5} style={{ ...styles.cell, textAlign: "center" }}>
+                  {loading ? "加载中..." : "暂无数据"}
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "1rem",
-        }}
-      >
-        <span style={{ color: theme.textSecondary }}>
-          共 {records.length} 条记录
-        </span>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          {/* 分页按钮逻辑 */}
+      <div style={styles.footer}>
+        <span style={styles.count}>共 {totalCount} 条记录</span>
+        <div style={styles.pagination}>
           <button
-            style={{
-              ...styles.button,
-              background:
-                filter.currentPage === 1
-                  ? theme.backgroundSecondary
-                  : theme.primary,
-            }}
-            onClick={() => handlePageChange(filter.currentPage - 1)}
+            style={styles.button}
+            onClick={() =>
+              setFilter((prev) => ({
+                ...prev,
+                currentPage: prev.currentPage - 1,
+              }))
+            }
             disabled={filter.currentPage === 1}
           >
             上一页
           </button>
-          {/* 可以根据实际需求动态生成页码按钮 */}
-          <button
-            style={{
-              ...styles.button,
-              background:
-                filter.currentPage === 1
-                  ? theme.primary
-                  : theme.backgroundSecondary,
-            }}
-            onClick={() => handlePageChange(1)}
-          >
-            1
-          </button>
-          {/* ... 其他页码按钮 */}
+          <span style={{ ...styles.cell, padding: "8px" }}>
+            第 {filter.currentPage} 页
+          </span>
         </div>
       </div>
     </div>

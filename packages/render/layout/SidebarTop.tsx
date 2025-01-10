@@ -40,7 +40,7 @@ export const SidebarTop = () => {
   const theme = useTheme();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const workspaces = useAppSelector(selectAllWorkspaces);
+  // const workspaces = useAppSelector(selectAllWorkspaces);
   const navigate = useNavigate();
   const currentWorkspaceName = useAppSelector(selectCurrentWorkspaceName);
   const [isOpen, setIsOpen] = useState(false);
