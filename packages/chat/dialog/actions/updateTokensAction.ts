@@ -11,9 +11,8 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
   const state = thunkApi.getState();
   const auth = state.auth;
 
-  const shareAdditionalData = true;
   const cybotId = cybotConfig.id;
-  const modelName = cybotConfig.model;
+  const model = cybotConfig.model;
   const provider = cybotConfig.provider;
   // const creatorId = extractUserId(cybotConfig.id);
   // console.log("creatorId", creatorId);
@@ -43,7 +42,7 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
     userId: auth?.currentUser?.userId,
     username: auth?.currentUser?.username,
     cybotId,
-    modelName,
+    model,
     provider,
     date: new Date(),
     type: DataType.Token,

@@ -42,7 +42,6 @@ export const messageSlice = createSliceWithThunks({
     messageStreamEnd: create.asyncThunk(
       async (msg, thunkApi) => {
         const { dispatch } = thunkApi;
-        console.log("messageStreamEnd start ", msg);
         await dispatch(addMsg(msg)).unwrap();
         return { id: msg.id };
       },
