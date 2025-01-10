@@ -1,4 +1,4 @@
-import { MoveToEndIcon, MoveToStartIcon } from "@primer/octicons-react";
+import { MdMenuOpen, MdMenu } from "react-icons/md";
 import { useTheme } from "app/theme";
 import type React from "react";
 
@@ -59,9 +59,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
         title={isExpanded ? "收起菜单" : "展开菜单"}
       >
         {isExpanded ? (
-          <MoveToStartIcon size={iconSize} />
+          <MdMenuOpen size={iconSize} />
         ) : (
-          <MoveToEndIcon size={iconSize} />
+          <MdMenu size={iconSize} />
         )}
       </button>
     </>
