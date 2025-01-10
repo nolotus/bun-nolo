@@ -137,7 +137,6 @@ export const messageSlice = createSliceWithThunks({
       dispatch(addMessageToUI(msg));
       const dialogConfig = selectCurrentDialogConfig(state);
       const hasMessageListId = dialogConfig?.messageListId;
-      console.log("hasMessageListId", hasMessageListId);
       if (hasMessageListId) {
         await dispatch(
           addMsgToList({

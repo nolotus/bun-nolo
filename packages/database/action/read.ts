@@ -26,7 +26,6 @@ export const readAction = async ({ id }, thunkApi) => {
   const token = state.auth.currentToken;
   if (!isV0Id(id)) {
     const result = await browserDb.get(id);
-    console.log("local read result", result);
     return result;
   } else {
     const currentServer = selectCurrentServer(state);
