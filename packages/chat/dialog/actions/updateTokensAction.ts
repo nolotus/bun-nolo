@@ -1,31 +1,9 @@
-// 定义 TokenCounts 接口
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import level from "level";
 import { calculatePrice } from "integrations/anthropic/calculatePrice";
 import { extractUserId } from "core/prefix";
 
-import { write } from "database/dbSlice";
-
-interface TokenCounts {
-  cache_creation_input_tokens: number;
-  cache_read_input_tokens: number;
-  output_tokens: number;
-  input_tokens: number;
-}
-
-// 必须的数据类型
-interface RequiredData extends TokenCounts {
-  dialogId: string;
-  userId: string;
-  username: string;
-  cybotId: string;
-  model: string;
-  date: Date;
-  provider: string;
-}
-
-// 额外数据类型
+import { saveTokenUsage } from "ai/token/db";
 
 // 示例使用 updateTokensAction 函数时的数据结构
 export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
@@ -50,9 +28,18 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
 
   // const result = calculatePrice({ provider, modelName, usage, externalPrice });
   // console.log("result", result);
+  console.log("usage", usage);
+  const normalizedUsage = {
+    input_tokens: usage.prompt_tokens,
+    output_tokens: usage.completion_tokens,
+    cache_creation_input_tokens: usage.prompt_cache_miss_tokens || 0,
+    cache_read_input_tokens: usage.prompt_cache_hit_tokens || 0,
+    // 计算 cost 的逻辑可以在这里添加
+    cost: 0, // TODO: 添加成本计算
+  };
 
-  const data: RequiredData = {
-    ...usage,
+  const data = {
+    ...normalizedUsage, // 使用转换后的 usage
     userId: auth?.currentUser?.userId,
     username: auth?.currentUser?.username,
     cybotId,
@@ -61,15 +48,15 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
     date: new Date(),
     type: DataType.Token,
   };
-  // dispatch(
-  //   write({
-  //     data: {
-  //       type: DataType.Token,
-  //       ...data,
-  //     },
-  //     userId: auth.user?.userId,
-  //   })
-  // );
+
+  try {
+    // 存储 token 使用记录
+    const result = await saveTokenUsage(data);
+    return result;
+  } catch (error) {
+    console.error("Failed to save token usage:", error);
+    throw error;
+  }
 
   return usage;
 };
