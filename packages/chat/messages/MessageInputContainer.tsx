@@ -76,8 +76,6 @@ const MessageInputContainer: React.FC = () => {
     userBalance,
   });
 
-  console.log("[MessageInput] Final permission check:", sendPermission);
-
   const onSendMessage = (content: string) => {
     dispatch(handleSendMessage({ content }));
   };

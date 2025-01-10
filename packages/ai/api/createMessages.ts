@@ -4,10 +4,9 @@ import { pickMessages } from "./pickMessages";
 export const createMessages = (
   userInput: string | any,
   prevMsgs,
-  cybotConfig,
+  cybotConfig
 ) => {
   const messages = [...prevMsgs, { role: "user", content: userInput }];
-
   // 检查是否包含 "o1-mini"
   if (cybotConfig.model.includes("o1-mini")) {
     // 不添加 promptContent 消息
@@ -21,7 +20,7 @@ export const createMessages = (
   const promptContent = generatePrompt(
     cybotConfig.prompt,
     cybotConfig.name,
-    navigator.language,
+    navigator.language
   );
 
   // 将提示内容添加到消息列表的开始
@@ -30,5 +29,6 @@ export const createMessages = (
     content: promptContent,
   });
 
-  return pickMessages(messages);
+  const finallyMsgs = pickMessages(messages);
+  return finallyMsgs;
 };
