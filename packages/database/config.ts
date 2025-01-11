@@ -8,5 +8,5 @@ export const API_ENDPOINTS = {
   WEATHER: `${API_VERSION}/weather`,
   HI: `${API_VERSION}/hi`,
   PUT: `${API_VERSION}/db/put`,
-  PROXY: `${API_VERSION}/proxy`,
+  CHAT: `${API_VERSION}/chat`,
 };
