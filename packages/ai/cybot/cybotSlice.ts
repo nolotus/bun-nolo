@@ -43,7 +43,7 @@ export const cybotSlice = createSliceWithThunks({
             body: JSON.stringify(bodyData),
           });
         } else {
-          response = await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
+          response = await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

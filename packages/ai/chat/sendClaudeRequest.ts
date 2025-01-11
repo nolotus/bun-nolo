@@ -24,7 +24,7 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
         signal,
       });
     } else {
-      return await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
+      return await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

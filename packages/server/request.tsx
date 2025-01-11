@@ -47,14 +47,14 @@ export const handleRequest = async (request: Request, server) => {
     if (contentType.includes("multipart/form-data")) {
       try {
         body = await request.formData();
-      } catch (error) { }
+      } catch (error) {}
     } else if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
         if (!body) {
           body = {};
         }
-      } catch (error) { }
+      } catch (error) {}
     }
     let req = {
       url,
@@ -64,7 +64,7 @@ export const handleRequest = async (request: Request, server) => {
       headers: request.headers,
       method: request.method,
     };
-    if (url.pathname.startsWith(API_ENDPOINTS.PROXY)) {
+    if (url.pathname.startsWith(API_ENDPOINTS.CHAT)) {
       req.user = await handleToken(request, res);
       return proxyRoute(req, res);
     }
