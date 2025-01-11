@@ -140,7 +140,7 @@ export const sendCommonChatRequest = async ({
         if (parsedData.usage) {
           usage = parsedData.usage;
           console.log("usage", usage);
-          dispatch(updateTokens({ usage, cybotConfig }));
+          dispatch(updateTokens({ dialogId, usage, cybotConfig }));
         }
 
         if (content) {

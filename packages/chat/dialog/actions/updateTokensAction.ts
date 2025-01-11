@@ -6,7 +6,10 @@ import { extractUserId } from "core/prefix";
 import { saveTokenUsage } from "ai/token/db";
 
 // 示例使用 updateTokensAction 函数时的数据结构
-export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
+export const updateTokensAction = async (
+  { dialogId, usage, cybotConfig },
+  thunkApi
+) => {
   const { dispatch } = thunkApi;
   const state = thunkApi.getState();
   const auth = state.auth;
@@ -40,12 +43,12 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
   const data = {
     ...normalizedUsage, // 使用转换后的 usage
     userId: auth?.currentUser?.userId,
-    username: auth?.currentUser?.username,
     cybotId,
     model,
     provider,
     date: new Date(),
     type: DataType.Token,
+    dialogId,
   };
 
   try {
@@ -56,6 +59,4 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
     console.error("Failed to save token usage:", error);
     throw error;
   }
-
-  return usage;
 };

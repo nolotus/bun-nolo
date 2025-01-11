@@ -115,6 +115,7 @@ export const sendClaudeRequest = async ({
               case "message_start":
                 dispatch(
                   updateTokens({
+                    dialogId,
                     cybotConfig,
                     usage: jsonData.message.usage,
                   })
