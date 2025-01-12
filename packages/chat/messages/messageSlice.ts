@@ -68,13 +68,6 @@ export const messageSlice = createSliceWithThunks({
       }
     }),
 
-    addMessageToUI: create.reducer((state, action) => {
-      const hasTheMsg = state.msgs.includes(action.payload.id);
-      if (!hasTheMsg) {
-        state.msgs.unshift(action.payload);
-      }
-    }),
-
     removeMessageFromUI: create.reducer((state, action) => {
       state.msgs = state.msgs.filter((msg) => msg.id !== action.payload);
     }),
@@ -106,6 +99,7 @@ export const messageSlice = createSliceWithThunks({
         const dispatch = thunkApi.dispatch;
         const dialog = selectCurrentDialogConfig(state);
         const { messageListId } = dialog;
+
         if (messageListId) {
           const body = { ids: state.message.ids };
           const deleteMessageListAction = await dispatch(
@@ -123,28 +117,41 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
-    addMsg: create.asyncThunk(async (msg, thunkApi) => {
-      const state = thunkApi.getState();
-      const dispatch = thunkApi.dispatch;
-      await dispatch(
-        write({
-          data: { ...msg, type: DataType.MSG },
-          customId: msg.id,
-        })
-      );
-
-      dispatch(addMessageToUI(msg));
-      const dialogConfig = selectCurrentDialogConfig(state);
-      const hasMessageListId = dialogConfig?.messageListId;
-      if (hasMessageListId) {
+    addMsg: create.asyncThunk(
+      async (msg, thunkApi) => {
+        const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
         await dispatch(
-          addMsgToList({
-            itemId: msg.id,
-            listId: dialogConfig?.messageListId,
+          write({
+            data: { ...msg, type: DataType.MSG },
+            customId: msg.id,
           })
         );
+
+        const dialogConfig = selectCurrentDialogConfig(state);
+        const hasMessageListId = dialogConfig?.messageListId;
+        if (hasMessageListId) {
+          dispatch(
+            addMsgToList({
+              itemId: msg.id,
+              listId: dialogConfig?.messageListId,
+            })
+          );
+        }
+        return msg;
+      },
+      {
+        fulfilled: (state, action) => {
+          console.log("action.payload", action.payload);
+
+          const hasTheMsg = state.msgs.includes(action.payload.id);
+          console.log("hasTheMsg", hasTheMsg);
+          if (!hasTheMsg) {
+            state.msgs.unshift(action.payload);
+          }
+        },
       }
-    }),
+    ),
 
     addMsgToList: create.asyncThunk(async ({ itemId, listId }, thunkApi) => {
       const state = thunkApi.getState();
@@ -179,7 +186,6 @@ export const {
   deleteMessage,
   initMessages,
   removeMessageFromUI,
-  addMessageToUI,
   handleSendMessage,
   clearCurrentMessages,
   clearCurrentDialog,
