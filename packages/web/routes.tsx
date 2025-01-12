@@ -1,6 +1,6 @@
 import Home from "app/pages/Home";
 import Lab from "app/pages/Lab";
-import React, { Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import MainLayout from "render/layout/MainLayout";
 
 import { SurfTip } from "./SurfTip";
@@ -40,4 +40,3 @@ export const routes = (currentUser: any) => [
     ],
   },
 ];
-

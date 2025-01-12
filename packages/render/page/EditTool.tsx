@@ -2,7 +2,6 @@ import React, { useCallback } from "react";
 import { useAppDispatch } from "app/hooks";
 import { deleteData } from "database/dbSlice";
 
-
 // web imports
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
@@ -21,8 +20,7 @@ const styles = {
     alignItems: "center",
     padding: "4px",
     gap: "8px",
-  }
-
+  },
 } as const;
 
 interface EditToolProps {
@@ -41,13 +39,12 @@ export const EditTool: React.FC<EditToolProps> = ({
   const dispatch = useAppDispatch();
   const [isDeleting, setDeleting] = React.useState(false);
 
-
   const handleDelete = useCallback(async () => {
     if (!pageId) return;
 
     setDeleting(true);
     try {
-      await dispatch(deleteData({ id: pageId })).unwrap();
+      await dispatch(deleteData(pageId)).unwrap();
       toast.success("删除成功");
       navigate(-1);
     } catch (error) {

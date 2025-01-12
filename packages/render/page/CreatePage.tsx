@@ -106,7 +106,6 @@ const CreatePage = () => {
         </div>
 
         <div className="sidebar">
-          <div className="timestamp">{pageState.createdTime}</div>
           <Button onClick={handleSave}>Save</Button>
         </div>
       </div>

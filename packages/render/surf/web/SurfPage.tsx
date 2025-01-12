@@ -24,7 +24,7 @@ export const SurfPage = ({ pageId, data }) => {
 
   const handleDelete = async () => {
     try {
-      await dispatch(deleteData({ id: pageId }));
+      await dispatch(deleteData(pageId));
       toast.success("Page deleted successfully!");
       navigate("/");
     } catch (error) {
