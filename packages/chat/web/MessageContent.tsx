@@ -2,7 +2,7 @@ import { MessageText } from "./MessageText";
 import { useTheme } from "app/theme";
 
 export const MessageContent = ({ content, role }) => {
-  const theme = useTheme()
+  const theme = useTheme();
   if (!content) return null;
 
   const isSelf = role === "self";

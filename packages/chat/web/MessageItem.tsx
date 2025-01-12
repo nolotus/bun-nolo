@@ -5,7 +5,7 @@ import React from "react";
 import RobotMessage from "./RobotMessage";
 import { SelfMessage } from "./SelfMessage";
 import { UserMessage } from "./UserMessage";
-import { deleteMessage } from "./messageSlice";
+import { deleteMessage } from "../messages/messageSlice";
 
 import { useTheme } from "app/theme";
 
@@ -36,7 +36,7 @@ const ErrorMessage = React.memo(
         </div>
       </div>
     </div>
-  ),
+  )
 );
 
 // 加载组件
@@ -55,8 +55,8 @@ const LoadingMessage = () => {
         animation: "message-enter 0.3s ease-out forwards",
       }}
     />
-  )
-}
+  );
+};
 
 export const MessageItem = React.memo(
   ({ message }: MessageProps) => {
@@ -113,7 +113,7 @@ export const MessageItem = React.memo(
       prev.content === next.content &&
       prev.controller === next.controller
     );
-  },
+  }
 );
 
 // 添加显示名称，方便调试
