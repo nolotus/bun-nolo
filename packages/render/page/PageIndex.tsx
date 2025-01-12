@@ -11,8 +11,8 @@ import { initPage, resetPage } from "./pageSlice";
 
 import { RenderJson } from "./RenderJson";
 
-const Page = ({ id }) => {
-  const { pageId: paramPageId } = useParams();
+const Page = () => {
+  const { pageId } = useParams();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
 
@@ -22,7 +22,6 @@ const Page = ({ id }) => {
     };
   }, [dispatch]);
 
-  const pageId = id || paramPageId;
   //maybe need id from props
   const isEditMode = searchParams.get("edit") === "true";
 

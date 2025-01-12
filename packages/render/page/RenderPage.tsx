@@ -21,7 +21,7 @@ const RenderPage = ({ pageId, data }) => {
 
   const handleDelete = useCallback(async () => {
     try {
-      await dispatch(deleteData({ id: pageId }));
+      await dispatch(deleteData(pageId));
       toast.success("Page deleted successfully!");
       navigate("/");
     } catch (error) {

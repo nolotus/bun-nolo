@@ -121,10 +121,7 @@ interface DataTableProps {
   type?: DataType;
 }
 
-export const DataTable: React.FC<DataTableProps> = ({
-  dataList,
-  type,
-}) => {
+export const DataTable: React.FC<DataTableProps> = ({ dataList, type }) => {
   const dispatch = useAppDispatch();
   const config =
     type && type in renderConfigs ? renderConfigs[type] : defaultConfig;
@@ -137,18 +134,16 @@ export const DataTable: React.FC<DataTableProps> = ({
   };
 
   const renderActions = (data: any) => (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
       <Button
         variant="secondary"
         status="error"
         size="small"
-        onClick={() => dispatch(deleteData({ id: data.id }))}
+        onClick={() => dispatch(deleteData(data.id))}
         icon={<TrashIcon size={14} />}
       >
         删除
       </Button>
-
-
 
       {config.actions && config.actions(data)}
     </div>
