@@ -1,26 +1,7 @@
 import { Base64 } from "js-base64";
 import nacl from "tweetnacl";
-import { FLAGS_MAP } from "./flagsMap";
 
 import { generateHash } from "./generateKeyPairFromSeedV0";
-
-const DEFAULT_LENGTH = Math.max(...Object.keys(FLAGS_MAP).map(Number));
-
-const setKeyPrefix = (flags = {}): string => {
-  const lengthFlags = FLAGS_MAP[DEFAULT_LENGTH];
-  if (!lengthFlags) {
-    throw new Error(`No flags defined for prefix of length ${DEFAULT_LENGTH}`);
-  }
-  return lengthFlags.map((flag) => Number(flags[flag] || false)).join("");
-};
-export const generateIdWithCustomId = (
-  userId: string,
-  customId: string,
-  flags: object
-) => {
-  const idPrefix = setKeyPrefix(flags);
-  return `${idPrefix}-${userId}-${customId}`;
-};
 
 export const generateUserIdV1 = (
   publicKey: string,

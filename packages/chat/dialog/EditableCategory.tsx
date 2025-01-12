@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { patchData, write } from "database/dbSlice";
-import { useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { useAuth } from "auth/useAuth";
 import { useQueryData } from "app/hooks/useQueryData";
@@ -26,7 +24,6 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [localCategoryName, setLocalCategoryName] = useState("");
   const dispatch = useDispatch();
-  const currentUserId = useAppSelector(selectCurrentUserId);
   const auth = useAuth();
 
   const categoryQueryConfig = {
@@ -75,8 +72,6 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
               isCollapsed: false,
               order: 0,
             },
-            flags: { isJSON: true },
-            userId: currentUserId,
           })
         );
         if (result.payload && result.payload.id) {
