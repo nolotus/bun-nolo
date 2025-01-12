@@ -8,13 +8,13 @@ import { Avatar } from "render/ui";
 import { useAppSelector } from "app/hooks";
 import { MessageContent } from "./MessageContent";
 import { MessageContextMenu } from "./MessageContextMenu";
-import { messageContentWithAvatarGap } from "./styles";
+import { messageContentWithAvatarGap } from "../messages/styles";
 import {
   avatarWrapperStyle,
   contentWrapperStyle,
   messageContainerStyle,
-} from "./styles";
-import type { Message } from "./types";
+} from "../messages/styles";
+import type { Message } from "../messages/types";
 
 const RobotMessage: React.FC<Message> = ({
   id,

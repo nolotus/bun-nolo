@@ -4,7 +4,7 @@ import { Avatar } from "render/ui";
 
 import { MessageContent } from "./MessageContent";
 import { MessageContextMenu } from "./MessageContextMenu";
-import { messageContentWithAvatarGap } from "./styles";
+import { messageContentWithAvatarGap } from "../messages/styles";
 
 export const SelfMessage = ({ content, id }) => {
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
@@ -43,7 +43,6 @@ export const SelfMessage = ({ content, id }) => {
       <div style={avatarWrapperStyle}>
         <Avatar name="user" />
       </div>
-
 
       <MessageContextMenu
         menu={menu}

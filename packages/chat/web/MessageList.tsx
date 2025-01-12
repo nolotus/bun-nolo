@@ -4,8 +4,11 @@ import { reverse } from "rambda";
 import type React from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { MessageItem } from "./MessageItem";
-import { initMessages } from "./messageSlice";
-import { selectMergedMessages, selectStreamMessages } from "./selector";
+import { initMessages } from "../messages/messageSlice";
+import {
+  selectMergedMessages,
+  selectStreamMessages,
+} from "../messages/selector";
 import { useTheme } from "app/theme";
 
 const MessagesList: React.FC = () => {

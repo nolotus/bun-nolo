@@ -5,8 +5,8 @@ import {
   initDialog,
   selectCurrentDialogConfig,
 } from "chat/dialog/dialogSlice";
-import MessageInputContainer from "chat/messages/MessageInputContainer";
-import MessagesList from "chat/messages/MessageList";
+import MessageInputContainer from "chat/web/MessageInputContainer";
+import MessagesList from "chat/web/MessageList";
 import { useEffect } from "react";
 import { layout } from "render/styles/layout";
 import { useMessages } from "../messages/hooks/useMessages";

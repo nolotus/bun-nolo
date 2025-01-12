@@ -29,7 +29,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       textarea.style.height = `${Math.min(textarea.scrollHeight, 140)}px`;
       setTextContent(e.target.value);
     },
-    [],
+    []
   );
 
   const handleSend = useCallback(() => {
@@ -37,9 +37,9 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
 
     const content = imagePreviewUrls[0]
       ? [
-        { type: "text", text: textContent },
-        { type: "image_url", image_url: { url: imagePreviewUrls[0] } },
-      ]
+          { type: "text", text: textContent },
+          { type: "image_url", image_url: { url: imagePreviewUrls[0] } },
+        ]
       : textContent;
 
     onSendMessage(content);
@@ -99,7 +99,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       });
       setIsDragOver(false);
     },
-    [previewImage],
+    [previewImage]
   );
 
   return (
@@ -262,7 +262,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
               imageUrls={imagePreviewUrls}
               onRemove={(index) => {
                 setImagePreviewUrls((prev) =>
-                  prev.filter((_, i) => i !== index),
+                  prev.filter((_, i) => i !== index)
                 );
               }}
             />

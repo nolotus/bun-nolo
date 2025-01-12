@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import useCybotConfig from "ai/cybot/hooks/useCybotConfig";
 import { getModelPricing, getFinalPrice, getPrices } from "ai/llm/getPricing";
 import MessageInput from "./MessageInput";
-import { handleSendMessage } from "./messageSlice";
+import { handleSendMessage } from "../messages/messageSlice";
 import { nolotusId } from "core/init";
 import { selectCurrentUserId } from "auth/authSlice";
 

@@ -6,13 +6,13 @@ import { Avatar } from "render/ui";
 
 import { useAppDispatch } from "app/hooks";
 import { MessageContent } from "./MessageContent";
-import { deleteMessage } from "./messageSlice";
+import { deleteMessage } from "../messages/messageSlice";
 import {
   avatarWrapperStyle,
   contentWrapperStyle,
   messageContainerStyle,
-} from "./styles";
-import type { Message } from "./types";
+} from "../messages/styles";
+import type { Message } from "../messages/types";
 
 export const UserMessage: React.FC<Message> = ({ content, id }) => {
   const dispatch = useAppDispatch();

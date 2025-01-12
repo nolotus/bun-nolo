@@ -20,7 +20,7 @@ import {
   clearCurrentDialog,
   deleteMessage,
   sendWithMessageId,
-} from "./messageSlice";
+} from "../messages/messageSlice";
 
 import { runCybotId } from "ai/cybot/cybotSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
