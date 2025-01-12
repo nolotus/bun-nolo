@@ -3,7 +3,6 @@ import { DataType } from "create/types";
 import { queryData } from "database/query/queryHandler";
 import { parseWeatherParams, fetchWeatherData } from "integrations/weather";
 import { ulid } from "ulid";
-import { extractAndDecodePrefix, formatData } from "core";
 import { getLogger } from "utils/logger";
 
 const surfWeatherLogger = getLogger("surfWeather");
@@ -41,10 +40,10 @@ const processWeatherData = async (weatherData, collector) => {
       created_at: Date.now(),
       type: DataType.SurfInfo,
     };
-    const flags = extractAndDecodePrefix(id);
+    // const flags = extractAndDecodePrefix(id);
     surfWeatherLogger.info(augmentedHour, "augmentedHour");
-    const value = formatData(augmentedHour, flags);
-    surfWeatherLogger.info(value, "value");
+    // const value = formatData(augmentedHour, flags);
+    // surfWeatherLogger.info(value, "value");
     const tableName = "surf_info";
     // await serverCreateTable(nolotusId, "surf_info");
     // await serverWriteDataInTable(nolotusId, tableName, hour.time, value);

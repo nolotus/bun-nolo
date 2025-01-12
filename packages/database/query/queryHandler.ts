@@ -1,4 +1,4 @@
-import { extractAndDecodePrefix } from "core";
+import { extractAndDecodePrefix } from "core/prefix";
 import { getHeadTail } from "core/getHeadTail";
 
 import { readLines } from "utils/bun/readLines";
@@ -9,7 +9,6 @@ import { getDatabaseFilePath } from "../init";
 import { QueryOptions } from "./types";
 import { getSortedFilteredFiles } from "../server/sort";
 import { checkQuery } from "./checkQuery";
-import { listToArray } from "core/noloToOther";
 import { sortBy, prop } from "rambda"; // 使用 rambda 的排序方法
 
 async function createDataStream(path: string) {
@@ -54,15 +53,7 @@ function sortResults(results, sort) {
 }
 
 export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
-  const {
-    userId,
-    condition,
-    isJSON = false,
-    isList = false,
-    skip = 0,
-    limit = 10,
-    sort,
-  } = options;
+  const { userId, condition, isJSON = false, limit = 10, sort } = options;
 
   const memoryData = mem.getFromMemorySync();
 
@@ -132,10 +123,7 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
     if (deletedData.has(key)) continue;
 
-    if (isList && flags.isList) {
-      const result = listToArray(value);
-      addToResults(key, result);
-    } else if (isJSON && flags.isJSON) {
+    if (isJSON && flags.isJSON) {
       try {
         const jsonData = JSON.parse(value);
 

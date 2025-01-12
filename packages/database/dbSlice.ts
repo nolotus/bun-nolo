@@ -38,7 +38,6 @@ const dbSlice = createSliceWithThunks({
       fulfilled: (state, action) => {},
     }),
     read: create.asyncThunk(readAction, {
-      rejected: (state, action) => {},
       fulfilled: (state, action) => {
         if (action.payload) {
           dbAdapter.upsertOne(state, action.payload);
@@ -52,7 +51,6 @@ const dbSlice = createSliceWithThunks({
       },
     }),
     write: create.asyncThunk(writeAction),
-
     upsertMany: dbAdapter.upsertMany,
     patchData: create.asyncThunk(patchAction, {
       fulfilled: (state, action) => {
@@ -62,7 +60,6 @@ const dbSlice = createSliceWithThunks({
       },
     }),
 
-    addOne: dbAdapter.addOne,
     setOne: dbAdapter.setOne,
     removeFromList: create.asyncThunk(removeFromListAction, {}),
     query: create.asyncThunk(async (queryConfig, thunkAPI) => {
@@ -88,7 +85,6 @@ export const {
   read,
   syncQuery,
   write,
-  addOne,
   removeFromList,
   queryServer,
   query,

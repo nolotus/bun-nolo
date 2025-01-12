@@ -1,5 +1,5 @@
 import readline from "node:readline";
-import { extractAndDecodePrefix } from "core";
+import { extractAndDecodePrefix } from "core/prefix";
 import { decodeData, processLine } from "core/decodeData";
 import { DEFAULT_INDEX_FILE } from "database/init";
 import fs from "fs";

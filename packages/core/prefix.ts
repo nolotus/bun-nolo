@@ -5,7 +5,6 @@ const decodeCache = {};
 
 // 使用 TypeScript 定义类型
 export interface Flags {
-  isList?: boolean;
   isString?: boolean;
   isJSON?: boolean;
 }

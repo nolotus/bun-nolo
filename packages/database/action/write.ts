@@ -4,7 +4,6 @@ import { ulid } from "ulid";
 import { API_ENDPOINTS } from "database/config";
 import { selectCurrentWorkSpaceId } from "create/workspace/workspaceSlice";
 
-import { addOne } from "../dbSlice";
 import { DataType } from "create/types";
 import { browserDb } from "../browser/db";
 import { Flags } from "core/prefix";
@@ -35,7 +34,6 @@ const noloWriteRequest = async (state: any, writeConfig: WriteConfigServer) => {
 //data flagas userId id
 export const writeAction = async (writeConfig, thunkApi) => {
   const state = thunkApi.getState();
-  const dispatch = thunkApi.dispatch;
   const currenUserId = selectCurrentUserId(state);
   //todo write
   const workspaceId = selectCurrentWorkSpaceId(state);
@@ -71,7 +69,7 @@ export const writeAction = async (writeConfig, thunkApi) => {
     // pulldata upsertdata
     const { id, flags } = writeConfig;
     const customId = id ? id : ulid();
-    const { isJSON, isList } = flags;
+    const { isJSON } = flags;
 
     if (isLoggedIn) {
       //here id should similar ulid
@@ -90,19 +88,6 @@ export const writeAction = async (writeConfig, thunkApi) => {
         const serverWriteConfig = {
           ...writeConfig,
           data: willSaveData,
-          customId,
-        };
-        if (isLoggedIn) {
-          const writeRes = await noloWriteRequest(state, serverWriteConfig);
-          return await writeRes.json();
-        }
-      }
-      if (isList) {
-        dispatch(addOne({ id: saveId, array: data }));
-        //server save
-        //just default is empty list?
-        const serverWriteConfig = {
-          ...writeConfig,
           customId,
         };
         if (isLoggedIn) {
