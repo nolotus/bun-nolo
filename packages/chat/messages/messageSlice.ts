@@ -3,7 +3,6 @@ import {
   asyncThunkCreator,
   buildCreateSlice,
 } from "@reduxjs/toolkit";
-import { API_ENDPOINTS } from "database/config";
 
 import { DataType } from "create/types";
 import { deleteData, removeFromList, write } from "database/dbSlice";
@@ -12,7 +11,6 @@ import { filter } from "rambda";
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
 import type { Message } from "./types";
-import { selectCurrentServer } from "setting/settingSlice";
 
 export interface MessageSliceState {
   ids: string[] | null;
@@ -75,7 +73,7 @@ export const messageSlice = createSliceWithThunks({
     deleteMessage: create.asyncThunk(async (messageId: string, thunkApi) => {
       const state = thunkApi.getState();
       const dialogConfig = selectCurrentDialogConfig(state);
-      thunkApi.dispatch(deleteData({ id: messageId }));
+      thunkApi.dispatch(deleteData(messageId));
       if (dialogConfig.messageListId) {
         thunkApi.dispatch(
           removeFromList({
@@ -93,30 +91,12 @@ export const messageSlice = createSliceWithThunks({
       state.msgs = [];
       state.streamMessages = [];
     }),
-    clearCurrentDialog: create.asyncThunk(
-      async (args, thunkApi) => {
-        const state = thunkApi.getState();
-        const dispatch = thunkApi.dispatch;
-        const dialog = selectCurrentDialogConfig(state);
-        const { messageListId } = dialog;
-
-        if (messageListId) {
-          const body = { ids: state.message.ids };
-          const deleteMessageListAction = await dispatch(
-            deleteData({
-              id: messageListId,
-              body,
-            })
-          );
-        }
+    clearCurrentDialog: create.asyncThunk(async (args, thunkApi) => {}, {
+      fulfilled: (state, action) => {
+        state.ids = [];
+        state.streamMessages = [];
       },
-      {
-        fulfilled: (state, action) => {
-          state.ids = [];
-          state.streamMessages = [];
-        },
-      }
-    ),
+    }),
     addMsg: create.asyncThunk(
       async (msg, thunkApi) => {
         await thunkApi.dispatch(
