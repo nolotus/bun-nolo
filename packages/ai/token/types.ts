@@ -41,21 +41,21 @@ export interface TokenRecord {
   cybotId: string;
   model: string;
   provider: string;
-  cache_creation_input_tokens: number;
-  cache_read_input_tokens: number;
-  output_tokens: number;
-  input_tokens: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+  output_tokens?: number;
+  input_tokens?: number;
   cost: number;
   createdAt: number;
 }
 
 export interface QueryParams {
   userId: string;
-  startTime?: number;
-  endTime?: number;
+  startTime?: number; // 可选,开始时间戳
+  endTime?: number; // 可选,结束时间戳
   model?: string;
-  provider?: string;
   limit?: number;
+  offset?: number;
 }
 
 export interface StatsParams {
