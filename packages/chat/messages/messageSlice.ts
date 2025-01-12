@@ -119,58 +119,23 @@ export const messageSlice = createSliceWithThunks({
     ),
     addMsg: create.asyncThunk(
       async (msg, thunkApi) => {
-        const state = thunkApi.getState();
-        const dispatch = thunkApi.dispatch;
-        await dispatch(
+        await thunkApi.dispatch(
           write({
             data: { ...msg, type: DataType.MSG },
             customId: msg.id,
           })
         );
-
-        const dialogConfig = selectCurrentDialogConfig(state);
-        const hasMessageListId = dialogConfig?.messageListId;
-        if (hasMessageListId) {
-          dispatch(
-            addMsgToList({
-              itemId: msg.id,
-              listId: dialogConfig?.messageListId,
-            })
-          );
-        }
         return msg;
       },
       {
         fulfilled: (state, action) => {
-          console.log("action.payload", action.payload);
-
           const hasTheMsg = state.msgs.includes(action.payload.id);
-          console.log("hasTheMsg", hasTheMsg);
           if (!hasTheMsg) {
             state.msgs.unshift(action.payload);
           }
         },
       }
     ),
-
-    addMsgToList: create.asyncThunk(async ({ itemId, listId }, thunkApi) => {
-      const state = thunkApi.getState();
-      const baseUrl = selectCurrentServer(state);
-      const token = state.auth.currentToken;
-      const createAuthHeaders = (token: string) => ({
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const response = await fetch(`${baseUrl}${API_ENDPOINTS.PUT}/${listId}`, {
-        method: "PUT",
-        ...createAuthHeaders(token),
-        body: JSON.stringify({ id: itemId }),
-      });
-      const json = await response.json();
-      return json;
-    }),
 
     //not use yet
     sendWithMessageId: create.asyncThunk(async (messageId, thunkApi) => {
@@ -190,7 +155,6 @@ export const {
   clearCurrentMessages,
   clearCurrentDialog,
   sendWithMessageId,
-  addMsgToList,
   addMsg,
   initMsgs,
 } = messageSlice.actions;
