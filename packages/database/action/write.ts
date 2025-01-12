@@ -1,16 +1,12 @@
-import { selectCurrentUserId, selectIsLoggedIn } from "auth/authSlice";
-import { generateIdWithCustomId } from "core/generateMainKey";
-import { ulid } from "ulid";
+import { selectCurrentUserId } from "auth/authSlice";
 import { API_ENDPOINTS } from "database/config";
 import { selectCurrentWorkSpaceId } from "create/workspace/workspaceSlice";
 
 import { DataType } from "create/types";
 import { browserDb } from "../browser/db";
-import { Flags } from "core/prefix";
 import { noloRequest } from "../requests/noloRequest";
 interface WriteConfigServer {
   customId: string;
-  flags: Flags;
   data: Record<string, any>;
   userId: string;
 }
@@ -41,7 +37,6 @@ export const writeAction = async (writeConfig, thunkApi) => {
   if (writeConfig.userId) {
     userId = writeConfig.userId;
   }
-  const isLoggedIn = selectIsLoggedIn(state);
   const { data } = writeConfig;
 
   if (
@@ -64,37 +59,5 @@ export const writeAction = async (writeConfig, thunkApi) => {
     noloWriteRequest(state, serverWriteConfig);
     await browserDb.put(writeConfig.customId, willSaveData);
     return willSaveData;
-  } else {
-    //id maybe exist
-    // pulldata upsertdata
-    const { id, flags } = writeConfig;
-    const customId = id ? id : ulid();
-    const { isJSON } = flags;
-
-    if (isLoggedIn) {
-      //here id should similar ulid
-      const saveId = generateIdWithCustomId(userId, customId, flags);
-      // maybe need limit with type
-      // if (!!data.type) {
-      // }
-      const willSaveData = {
-        ...data,
-        created: new Date().toISOString(),
-        id: saveId,
-      };
-
-      if (isJSON) {
-        //server save
-        const serverWriteConfig = {
-          ...writeConfig,
-          data: willSaveData,
-          customId,
-        };
-        if (isLoggedIn) {
-          const writeRes = await noloWriteRequest(state, serverWriteConfig);
-          return await writeRes.json();
-        }
-      }
-    }
   }
 };

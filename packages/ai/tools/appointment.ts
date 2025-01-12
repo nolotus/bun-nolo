@@ -61,9 +61,7 @@ export const makeAppointment = (args, thunkApi, currentUserId) => {
           type: DataType.CalendarEvent,
           ...calendarEvent,
         },
-        flags: { isJSON: true },
-        userId: currentUserId,
-      }),
+      })
     );
     return `预约成功 ${JSON.stringify(calendarEvent)}`;
   } catch (error) {

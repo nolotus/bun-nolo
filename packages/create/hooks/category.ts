@@ -16,9 +16,6 @@ interface Category {
 
 interface CategoryConfig {
   data: Category;
-  flags: {
-    isJSON: boolean;
-  };
   userId: string;
 }
 
@@ -48,7 +45,6 @@ export const useCategories = (): UseCategoriesResult => {
           isCollapsed: false,
           order: 0, // You might want to determine this based on existing categories
         },
-        flags: { isJSON: true },
         userId: currentUserId,
       };
       const result = await dispatch(write(categoryConfig));

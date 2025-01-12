@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import Button from "web/ui/Button";
 import Editor from "create/editor/Editor";
 
-
 const CreatePage = () => {
   const theme = useTheme();
 
@@ -17,16 +16,14 @@ const CreatePage = () => {
   const navigate = useNavigate();
 
   const handleSave = () => {
-    console.log('test')
-  }
+    console.log("test");
+  };
 
   const save = async (pageData) => {
     try {
       const writePageAction = await dispatch(
         write({
           data: pageData,
-          flags: { isJSON: true },
-          userId: auth.user?.userId,
         })
       );
 
@@ -39,7 +36,6 @@ const CreatePage = () => {
       // 错误处理逻辑
     }
   };
-
 
   return (
     <>
@@ -100,7 +96,6 @@ const CreatePage = () => {
         `}
       </style>
 
-
       <div className="create-page">
         <div className="main-content">
           <div className="editor-wrapper">
@@ -110,7 +105,6 @@ const CreatePage = () => {
           </div>
         </div>
 
-
         <div className="sidebar">
           <div className="timestamp">{pageState.createdTime}</div>
           <Button onClick={handleSave}>Save</Button>
@@ -119,6 +113,5 @@ const CreatePage = () => {
     </>
   );
 };
-
 
 export default CreatePage;
