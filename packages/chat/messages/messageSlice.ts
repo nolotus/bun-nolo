@@ -5,10 +5,9 @@ import {
 } from "@reduxjs/toolkit";
 
 import { DataType } from "create/types";
-import { deleteData, removeFromList, write } from "database/dbSlice";
+import { deleteData, write } from "database/dbSlice";
 import { filter } from "rambda";
 
-import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
 import type { Message } from "./types";
 
@@ -66,24 +65,17 @@ export const messageSlice = createSliceWithThunks({
       }
     }),
 
-    removeMessageFromUI: create.reducer((state, action) => {
-      state.msgs = state.msgs.filter((msg) => msg.id !== action.payload);
-    }),
-
-    deleteMessage: create.asyncThunk(async (messageId: string, thunkApi) => {
-      const state = thunkApi.getState();
-      const dialogConfig = selectCurrentDialogConfig(state);
-      thunkApi.dispatch(deleteData(messageId));
-      if (dialogConfig.messageListId) {
-        thunkApi.dispatch(
-          removeFromList({
-            itemId: messageId,
-            listId: dialogConfig.messageListId,
-          })
-        );
+    deleteMessage: create.asyncThunk(
+      async (messageId: string, thunkApi) => {
+        await thunkApi.dispatch(deleteData(messageId));
+        return messageId;
+      },
+      {
+        fulfilled: (state, action) => {
+          state.msgs = state.msgs.filter((msg) => msg.id !== action.payload);
+        },
       }
-      thunkApi.dispatch(removeMessageFromUI(messageId));
-    }),
+    ),
 
     handleSendMessage: create.asyncThunk(sendMessageAction),
     clearCurrentMessages: create.reducer((state, action) => {
@@ -130,7 +122,6 @@ export const {
   messageStreaming,
   deleteMessage,
   initMessages,
-  removeMessageFromUI,
   handleSendMessage,
   clearCurrentMessages,
   clearCurrentDialog,

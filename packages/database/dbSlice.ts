@@ -9,7 +9,6 @@ import { selectCurrentServer } from "setting/settingSlice";
 
 import { selectIsLoggedIn } from "auth/authSlice";
 import { deleteAction } from "./action/delete";
-import { removeFromListAction } from "./action/listAction";
 import { queryServerAction } from "./action/queryServer";
 import { readAction } from "./action/read";
 import { writeAction } from "./action/write";
@@ -61,7 +60,6 @@ const dbSlice = createSliceWithThunks({
     }),
 
     setOne: dbAdapter.setOne,
-    removeFromList: create.asyncThunk(removeFromListAction, {}),
     query: create.asyncThunk(async (queryConfig, thunkAPI) => {
       const state = thunkAPI.getState();
       const currentServer = selectCurrentServer(state);
@@ -85,7 +83,6 @@ export const {
   read,
   syncQuery,
   write,
-  removeFromList,
   queryServer,
   query,
 } = dbSlice.actions;
