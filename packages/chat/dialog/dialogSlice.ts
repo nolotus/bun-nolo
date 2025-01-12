@@ -85,7 +85,7 @@ const DialogSlice = createSliceWithThunks({
         } catch (error) {
           console.error("Error reading dialog:", error);
         } finally {
-          dispatch(deleteData({ id }));
+          dispatch(deleteData(id));
         }
       },
       {

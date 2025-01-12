@@ -111,7 +111,7 @@ const workspaceSlice = createSliceWithThunks({
     deleteWorkspace: create.asyncThunk(
       async (workspaceId: string, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
-        await dispatch(deleteData({ id: workspaceId }));
+        await dispatch(deleteData(workspaceId));
         return workspaceId;
       },
       {

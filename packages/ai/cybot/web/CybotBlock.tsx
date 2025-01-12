@@ -17,138 +17,140 @@ import toast from "react-hot-toast";
 import Button from "web/ui/Button";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/ui/Dialog";
-import { CommentDiscussionIcon, PencilIcon, TrashIcon } from '@primer/octicons-react';
+import {
+  CommentDiscussionIcon,
+  PencilIcon,
+  TrashIcon,
+} from "@primer/octicons-react";
 
 import EditCybot from "ai/cybot/EditCybot";
 
 interface CybotBlockProps {
-	item: {
-		id: string;
-		name?: string;
-		model: string;
-		introduction?: string;
-		provider: string;
-	};
-	closeModal?: () => void;
-	reload
+  item: {
+    id: string;
+    name?: string;
+    model: string;
+    introduction?: string;
+    provider: string;
+  };
+  closeModal?: () => void;
+  reload;
 }
 
 const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
-	const { t } = useTranslation();
-	const theme = useAppSelector(selectTheme);
-	const { isLoading, createNewDialog } = useCreateDialog();
-	const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
-	const dispatch = useDispatch();
-	const [deleting, setDeleting] = useState(false);
-	const allowEdit = useCouldEdit(item.id);
+  const { t } = useTranslation();
+  const theme = useAppSelector(selectTheme);
+  const { isLoading, createNewDialog } = useCreateDialog();
+  const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
+  const dispatch = useDispatch();
+  const [deleting, setDeleting] = useState(false);
+  const allowEdit = useCouldEdit(item.id);
 
-	const startDialog = async () => {
-		if (isLoading) return;
-		try {
-			await createNewDialog({ cybots: [item.id] });
-			closeModal?.();
-		} catch (error) {
-			toast.error(t("createDialogError"));
-		}
-	};
+  const startDialog = async () => {
+    if (isLoading) return;
+    try {
+      await createNewDialog({ cybots: [item.id] });
+      closeModal?.();
+    } catch (error) {
+      toast.error(t("createDialogError"));
+    }
+  };
 
-	const handleDelete = useCallback(
-		debounce(async () => {
-			if (deleting) return;
-			setDeleting(true);
-			try {
-				await dispatch(deleteData({ id: item.id }));
-				toast.success(t("deleteSuccess"));
-				reload()
-			} catch (error) {
-				toast.error(t("deleteError"));
-			} finally {
-				setDeleting(false);
-			}
-		}, 300),
-		[dispatch, item.id, t, deleting],
-	);
+  const handleDelete = useCallback(
+    debounce(async () => {
+      if (deleting) return;
+      setDeleting(true);
+      try {
+        await dispatch(deleteData(item.id));
+        toast.success(t("deleteSuccess"));
+        reload();
+      } catch (error) {
+        toast.error(t("deleteError"));
+      } finally {
+        setDeleting(false);
+      }
+    }, 300),
+    [dispatch, item.id, t, deleting]
+  );
 
-	const handleEdit = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		openEdit();
-	};
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    openEdit();
+  };
 
-	return (
-		<>
-			<div className="cybot-block">
-				<div className="header">
-					<div className="avatar" role="img" aria-label={item.name || t("unnamed")}>
-						{item.name?.[0]?.toUpperCase() || "?"}
-					</div>
+  return (
+    <>
+      <div className="cybot-block">
+        <div className="header">
+          <div
+            className="avatar"
+            role="img"
+            aria-label={item.name || t("unnamed")}
+          >
+            {item.name?.[0]?.toUpperCase() || "?"}
+          </div>
 
-					<div className="info">
-						<h3 className="title">
-							{item.name || t("unnamed")}
-						</h3>
-						<div className="tags">
-							<div className="tag model-tag">
-								{item.model}
-							</div>
-							<div className="tag provider-tag">
-								{item.provider}
-							</div>
-						</div>
-					</div>
-				</div>
+          <div className="info">
+            <h3 className="title">{item.name || t("unnamed")}</h3>
+            <div className="tags">
+              <div className="tag model-tag">{item.model}</div>
+              <div className="tag provider-tag">{item.provider}</div>
+            </div>
+          </div>
+        </div>
 
-				<div className="description">
-					{item.introduction || t("noDescription")}
-				</div>
+        <div className="description">
+          {item.introduction || t("noDescription")}
+        </div>
 
-				<div className="actions">
-					<Button
-						icon={<CommentDiscussionIcon size={16} />}
-						onClick={startDialog}
-						disabled={isLoading}
-						loading={isLoading}
-						size="medium"
-						style={{ flex: 2 }}
-					>
-						{isLoading ? t("starting") : t("startChat")}
-					</Button>
+        <div className="actions">
+          <Button
+            icon={<CommentDiscussionIcon size={16} />}
+            onClick={startDialog}
+            disabled={isLoading}
+            loading={isLoading}
+            size="medium"
+            style={{ flex: 2 }}
+          >
+            {isLoading ? t("starting") : t("startChat")}
+          </Button>
 
-					{allowEdit && (
-						<div className="edit-actions">
-							<IconHoverButton
-								icon={<PencilIcon size={16} />}
-								variant="secondary"
-								onClick={handleEdit}
-								size="medium"
-							>
-								{t("edit")}
-							</IconHoverButton>
+          {allowEdit && (
+            <div className="edit-actions">
+              <IconHoverButton
+                icon={<PencilIcon size={16} />}
+                variant="secondary"
+                onClick={handleEdit}
+                size="medium"
+              >
+                {t("edit")}
+              </IconHoverButton>
 
-							<IconHoverButton
-								icon={<TrashIcon size={16} />}
-								variant="danger"
-								onClick={handleDelete}
-								disabled={deleting}
-								size="medium"
-							>
-								{t("delete")}
-							</IconHoverButton>
-						</div>
-					)}
-				</div>
+              <IconHoverButton
+                icon={<TrashIcon size={16} />}
+                variant="danger"
+                onClick={handleDelete}
+                disabled={deleting}
+                size="medium"
+              >
+                {t("delete")}
+              </IconHoverButton>
+            </div>
+          )}
+        </div>
 
-				{editVisible && (
-					<Dialog
-						isOpen={editVisible}
-						onClose={closeEdit}
-						title={`${t("edit")} ${item.name || t("cybot")}`}
-					>
-						<EditCybot initialValues={item} onClose={closeEdit} />
-					</Dialog>
-				)}
-			</div>
+        {editVisible && (
+          <Dialog
+            isOpen={editVisible}
+            onClose={closeEdit}
+            title={`${t("edit")} ${item.name || t("cybot")}`}
+          >
+            <EditCybot initialValues={item} onClose={closeEdit} />
+          </Dialog>
+        )}
+      </div>
 
-			<style herf="cybot-block">{`
+      <style herf="cybot-block">{`
         .cybot-block {
           background: ${theme.background};
           border-radius: 12px;
@@ -246,8 +248,8 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           gap: 0.5rem;
         }
       `}</style>
-		</>
-	);
+    </>
+  );
 };
 
-export default CybotBlock
+export default CybotBlock;

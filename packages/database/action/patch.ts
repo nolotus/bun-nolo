@@ -2,9 +2,6 @@ import { isV0Id } from "core/id";
 import { browserDb } from "../browser/db";
 import { API_ENDPOINTS } from "../config";
 import { selectCurrentServer } from "setting/settingSlice";
-import { deleteData, selectById, write } from "../dbSlice";
-import { DataType } from "create/types";
-import { isProduction } from "utils/env";
 import { pipe } from "rambda";
 
 const makeRequest = async (state, { url, method = "GET", body }) => {

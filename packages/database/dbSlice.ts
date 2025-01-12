@@ -46,8 +46,8 @@ const dbSlice = createSliceWithThunks({
     }),
     deleteData: create.asyncThunk(deleteAction, {
       fulfilled: (state, action) => {
-        const { ids } = action.payload;
-        dbAdapter.removeMany(state, ids);
+        const { id } = action.payload;
+        dbAdapter.removeOne(state, id);
       },
     }),
     write: create.asyncThunk(writeAction),
