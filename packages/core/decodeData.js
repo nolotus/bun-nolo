@@ -1,7 +1,13 @@
 import { getHeadTail } from "./getHeadTail";
-import { listToArray } from "./noloToOther";
 import { extractAndDecodePrefix } from "./prefix";
 
+const listToArray = (data) => {
+  if (!data) return [];
+  const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+  return data.split(regex).map((item) => {
+    return item.replace(/^"|"$/g, "");
+  });
+};
 
 
 export const decodeData = (data, flags, id) => {

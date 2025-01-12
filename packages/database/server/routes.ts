@@ -5,7 +5,6 @@ import { handleQuery } from "../query";
 
 import { handleDelete } from "./delete";
 import { handleReadSingle } from "./read";
-import { handlePut } from "./put";
 import { handleWrite } from "./write";
 import { handlePatch } from "./patch";
 
@@ -32,10 +31,6 @@ export const databaseRequest = async (req, res, url) => {
         req.user = await handleToken(req, res);
         return handleWrite(req, res);
 
-      case "put":
-        req.user = await handleToken(req, res);
-        req.params = { id: getIdFromPath("/api/v1/db/put/") };
-        return handlePut(req, res);
       case "patch":
         req.user = await handleToken(req, res);
         req.params = { id: getIdFromPath("/api/v1/db/patch/") };
