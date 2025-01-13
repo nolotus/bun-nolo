@@ -2,12 +2,23 @@
 import { browserDb } from "database/browser/db";
 import { curry } from "rambda";
 import { createTokenStatsKey } from "database/keys";
-import { enrichData } from "./utils";
 import { RequiredData, StatsParams } from "./types";
 import { saveTokenRecord } from "./record";
 import { saveDayStats } from "./stats";
+import { ulid } from "ulid";
 
-// Main functions
+const formatDateKey = (date: Date): string => date.toISOString().split("T")[0];
+
+const enrichData = (data) => {
+  const timestamp = data.date.getTime();
+  return {
+    ...data,
+    timestamp,
+    id: ulid(timestamp),
+    dateKey: formatDateKey(data.date),
+  };
+};
+
 export const saveTokenUsage = async (data: RequiredData) => {
   try {
     const enrichedData = enrichData(data);
@@ -26,6 +37,7 @@ export const saveTokenUsage = async (data: RequiredData) => {
     throw error;
   }
 };
+
 const iterateDb = curry(async (options: any, filter: Function) => {
   const records = [];
   for await (const [_, value] of browserDb.iterator(options)) {
