@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import DialogPage from "chat/dialog/DialogPage";
 import { DataType } from "create/types";
 import NoMatch from "../NoMatch";
-import EditPage from "./EditPage";
+import RenderPage from "./RenderPage";
 import { initPage, resetPage } from "./pageSlice";
 
 import { RenderJson } from "./RenderJson";
@@ -24,6 +24,7 @@ const Page = () => {
   const isEditMode = searchParams.get("edit") === "true";
 
   const { data, isLoading } = useFetchData(pageId);
+
   dispatch(initPage({ ...data, isReadOnly: !isEditMode }));
 
   //edit page not need data
@@ -49,7 +50,7 @@ const Page = () => {
   }
   if (data) {
     if (data.type === DataType.PAGE) {
-      return <EditPage isReadOnly={!isEditMode} />;
+      return <RenderPage isReadOnly={!isEditMode} />;
     }
     if (data.type === DataType.DIALOG) {
       return <DialogPage pageId={pageId} />;

@@ -9,7 +9,7 @@ import { updateSlate } from "./pageSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import { useMemo } from "react";
 
-const EditPage = ({ isReadOnly = true }) => {
+const RenderPage = ({ isReadOnly = true }) => {
   const dispatch = useAppDispatch();
   const { pageId } = useParams();
 
@@ -60,7 +60,7 @@ const EditPage = ({ isReadOnly = true }) => {
           >
             <Editor
               key={pageId}
-              initialValue={initialValue}
+              initialValue={initialValue || []}
               onChange={handleContentChange}
               readOnly={isReadOnly}
             />
@@ -90,4 +90,4 @@ const EditPage = ({ isReadOnly = true }) => {
   );
 };
 
-export default EditPage;
+export default RenderPage;

@@ -49,6 +49,7 @@ export const writeAction = async (writeConfig, thunkApi) => {
       ...data,
       id: writeConfig.customId,
       createdAt: new Date().toISOString(),
+      userId: currenUserId,
     };
 
     const serverWriteConfig = {

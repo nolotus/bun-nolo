@@ -2,6 +2,7 @@
 import { ulid } from "ulid";
 import { curry } from "rambda";
 import { pino } from "pino";
+import { DataType } from "create/types";
 
 const logger = pino({ name: "db-keys" });
 
@@ -44,10 +45,12 @@ export const createTokenStatsKey = curry((userId: string, dateKey: string) => {
 
 // 其他key保持不变
 export const createDialogKey = (userId: string) =>
-  createKey("dialog", userId, ulid());
+  createKey(DataType.DIALOG, userId, ulid());
 
 export const createDialogMessageKey = (dialogId: string) =>
-  createKey("dialog", dialogId, "msg", ulid());
+  createKey(DataType.DIALOG, dialogId, "msg", ulid());
 
 export const createCybotKey = (userId: string) =>
-  createKey("cybot", userId, ulid());
+  createKey(DataType.CYBOT, userId, ulid());
+export const createPageKey = (userId: string) =>
+  createKey(DataType.PAGE, userId, ulid());
