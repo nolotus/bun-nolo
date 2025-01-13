@@ -6,15 +6,24 @@ import { TokenRecord } from "ai/token/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { useAppSelector } from "app/hooks";
 import { pino } from "pino";
-import { format, isValid, parseISO } from "date-fns";
+import { format, formatISO, parseISO } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
 import { createStyles } from "./styles/UsageRecord.styles.tsx";
 
 const logger = pino({ name: "usage-record" });
-const DATE_FORMAT = "yyyy-MM-dd";
+
+// 获取用户时区
+const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+// 获取当前用户时区的今天日期（YYYY-MM-DD格式）
+const getTodayInUserTZ = () => {
+  const today = new Date();
+  const todayInUserTZ = utcToZonedTime(today, userTimeZone);
+  return formatISO(todayInUserTZ, { representation: "date" });
+};
 
 const initialFilter: RecordsFilter = {
-  // 初始显示用户本地时间今天
-  date: format(new Date(), "yyyy-MM-dd"),
+  date: getTodayInUserTZ(),
   model: "全部模型",
   currentPage: 1,
 };
@@ -27,6 +36,14 @@ const formatTokens = (record: TokenRecord) => {
   return `输入:${input} 输出:${record.output_tokens}`;
 };
 
+// 将UTC时间转换为用户时区时间字符串
+const formatLocalTime = (utcTime: string | number | Date) => {
+  const date =
+    typeof utcTime === "string" ? parseISO(utcTime) : new Date(utcTime);
+  const localDate = utcToZonedTime(date, userTimeZone);
+  return format(localDate, "yyyy-MM-dd HH:mm:ss");
+};
+
 const UsageRecord: React.FC = () => {
   const theme = useTheme();
   const [filter, setFilter] = useState(initialFilter);
@@ -34,7 +51,15 @@ const UsageRecord: React.FC = () => {
   const { records, loading, totalCount } = useRecords(userId, filter);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = e.target.value; // 格式: "2024-01-15"
+    const newDate = e.target.value;
+    logger.debug(
+      {
+        newDate,
+        currentDate: filter.date,
+        timeZone: userTimeZone,
+      },
+      "Date filter changed"
+    );
     setFilter((prev) => ({ ...prev, date: newDate }));
   };
 
@@ -46,8 +71,7 @@ const UsageRecord: React.FC = () => {
 
   const renderTableRow = (record: TokenRecord) => (
     <tr key={record.id} className="table-row">
-      <td>{format(record.createdAt, "yyyy-MM-dd HH:mm:ss")}</td>
-
+      <td>{formatLocalTime(record.createdAt)}</td>
       <td>{record.cybotId || "-"}</td>
       <td>{formatTokens(record)}</td>
       <td>{record.model}</td>
@@ -61,7 +85,12 @@ const UsageRecord: React.FC = () => {
 
       <div className="usage-card">
         <div className="header">
-          <h2 className="title">使用记录 {loading && "(加载中...)"}</h2>
+          <h2 className="title">
+            使用记录 {loading && "(加载中...)"}
+            <span style={{ fontSize: "0.8em", color: "#666" }}>
+              ({userTimeZone})
+            </span>
+          </h2>
 
           <div className="filters">
             <input
@@ -69,6 +98,7 @@ const UsageRecord: React.FC = () => {
               className="input"
               value={filter.date}
               onChange={handleDateChange}
+              title={`选择日期 (${userTimeZone})`}
             />
             <select
               className="input"
@@ -119,11 +149,23 @@ const UsageRecord: React.FC = () => {
                   currentPage: prev.currentPage - 1,
                 }))
               }
-              disabled={filter.currentPage === 1}
+              disabled={filter.currentPage === 1 || loading}
             >
               上一页
             </button>
             <span style={{ padding: "8px" }}>第 {filter.currentPage} 页</span>
+            <button
+              className="button"
+              onClick={() =>
+                setFilter((prev) => ({
+                  ...prev,
+                  currentPage: prev.currentPage + 1,
+                }))
+              }
+              disabled={records.length < 10 || loading}
+            >
+              下一页
+            </button>
           </div>
         </div>
       </div>

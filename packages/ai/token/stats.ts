@@ -1,6 +1,4 @@
 import { RequiredData } from "./types";
-import { createTokenStatsKey } from "database/keys";
-import { browserDb } from "database/browser/db";
 import pino from "pino";
 
 const logger = pino({
@@ -62,7 +60,10 @@ function updateModelStats(
   return updated;
 }
 
-function createInitialDayStats(userId: string, dateKey: string): DayStats {
+export function createInitialDayStats(
+  userId: string,
+  dateKey: string
+): DayStats {
   const initial = {
     userId,
     period: "day",
@@ -86,7 +87,7 @@ function createInitialDayStats(userId: string, dateKey: string): DayStats {
   return initial;
 }
 
-function updateDayStats(data: RequiredData, stats: DayStats): DayStats {
+export function updateDayStats(data: RequiredData, stats: DayStats): DayStats {
   logger.debug({
     msg: "Updating day stats",
     input: { data, stats },
@@ -137,41 +138,4 @@ function updateDayStats(data: RequiredData, stats: DayStats): DayStats {
     output: updated,
   });
   return updated;
-}
-
-export async function saveDayStats(data: RequiredData, enrichedData) {
-  const key = createTokenStatsKey(data.userId, enrichedData.dateKey);
-
-  try {
-    if (!data.model) {
-      logger.warn({ msg: "Model is undefined, using unknown", data });
-    }
-    if (!data.provider) {
-      logger.warn({ msg: "Provider is undefined, using unknown", data });
-    }
-
-    // 获取或创建当天统计
-    const currentStats = await browserDb
-      .get(key)
-      .then((stats) => {
-        if (!stats.total) {
-          logger.info({ msg: "Found old format stats, creating new one" });
-          return createInitialDayStats(data.userId, enrichedData.dateKey);
-        }
-        return stats;
-      })
-      .catch(() => createInitialDayStats(data.userId, enrichedData.dateKey));
-
-    const updatedStats = updateDayStats(data, currentStats);
-    await browserDb.put(key, updatedStats);
-    return updatedStats;
-  } catch (err) {
-    logger.error({
-      msg: "Error saving stats",
-      error: err,
-      data,
-      enrichedData,
-    });
-    throw err;
-  }
 }

@@ -2,25 +2,40 @@
 import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { format, subDays, eachDayOfInterval } from "date-fns";
+import { utcToZonedTime, zonedTimeToUtc, formatInTimeZone } from "date-fns-tz";
 import { pino } from "pino";
-import { getTokenStats } from "ai/token/db";
+import { getTokenStats } from "ai/token/query";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 
 const logger = pino({ name: "usage-chart" });
 
+// 获取用户时区
+const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 type TimeRange = "7days" | "30days" | "90days";
 type DataType = "tokens" | "cost";
 
 const processDateRange = (timeRange: TimeRange) => {
-  const end = new Date();
+  // 获取用户时区的当前时间
+  const endLocal = utcToZonedTime(new Date(), userTimeZone);
   const days = timeRange === "7days" ? 7 : timeRange === "30days" ? 30 : 90;
-  const start = subDays(end, days - 1); // -1因为包含今天
+  const startLocal = subDays(endLocal, days - 1);
+
+  // 生成用户时区的日期数组
+  const dateArray = eachDayOfInterval({ start: startLocal, end: endLocal });
+
+  // 转换为UTC时间用于API查询
+  const startUTC = zonedTimeToUtc(startLocal, userTimeZone);
+  const endUTC = zonedTimeToUtc(endLocal, userTimeZone);
 
   return {
-    start,
-    end,
-    dateArray: eachDayOfInterval({ start, end }).map((date) => ({
+    startUTC,
+    endUTC,
+    dateArray: dateArray.map((date) => ({
+      // UTC格式用于API查询
+      utc: format(zonedTimeToUtc(date, userTimeZone), "yyyy-MM-dd"),
+      // 本地格式用于显示
       full: format(date, "yyyy-MM-dd"),
       short: format(date, "MM-dd"),
     })),
@@ -39,10 +54,17 @@ const UsageChart: React.FC<any> = ({ theme }) => {
       try {
         setLoading(true);
         const { dateArray } = processDateRange(timeRange);
-        const startDate = dateArray[0].full;
-        const endDate = dateArray[dateArray.length - 1].full;
+        const startDate = dateArray[0].utc;
+        const endDate = dateArray[dateArray.length - 1].utc;
 
-        logger.info({ startDate, endDate }, "Fetching stats");
+        logger.info(
+          {
+            startDate,
+            endDate,
+            timeZone: userTimeZone,
+          },
+          "Fetching stats"
+        );
 
         const stats = await getTokenStats({
           userId,
@@ -73,7 +95,13 @@ const UsageChart: React.FC<any> = ({ theme }) => {
 
     // 处理统计数据
     statsData.forEach((stat) => {
-      const dateIndex = dateArray.findIndex((d) => d.full === stat.timeKey);
+      // 将UTC时间转换为用户时区时间进行匹配
+      const localDate = formatInTimeZone(
+        new Date(stat.timeKey),
+        userTimeZone,
+        "yyyy-MM-dd"
+      );
+      const dateIndex = dateArray.findIndex((d) => d.full === localDate);
       if (dateIndex === -1) return;
 
       // 更新总量
@@ -107,6 +135,17 @@ const UsageChart: React.FC<any> = ({ theme }) => {
       tooltip: {
         trigger: "axis",
         axisPointer: { type: "cross" },
+        formatter: (params: any) => {
+          const date =
+            processDateRange(timeRange).dateArray[params[0].dataIndex].full;
+          let result = `${date}<br/>`;
+          params.forEach((param: any) => {
+            const value =
+              dataType === "cost" ? param.value.toFixed(4) : param.value;
+            result += `${param.seriesName}: ${value}<br/>`;
+          });
+          return result;
+        },
       },
       legend: {
         data: ["总量", ...modelNames],
@@ -171,7 +210,12 @@ const UsageChart: React.FC<any> = ({ theme }) => {
           marginBottom: "20px",
         }}
       >
-        <h2>使用量统计 {loading && "(加载中...)"}</h2>
+        <h2>
+          使用量统计 {loading && "(加载中...)"}
+          <span style={{ fontSize: "0.8em", color: "#666" }}>
+            ({userTimeZone})
+          </span>
+        </h2>
         <div style={{ display: "flex", gap: "12px" }}>
           <select
             value={timeRange}

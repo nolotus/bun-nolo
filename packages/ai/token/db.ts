@@ -1,22 +1,71 @@
-// 3. ai/token/db.ts - 数据库操作和查询相关
+// ai/token/db.ts
 import { browserDb } from "database/browser/db";
 import { curry } from "rambda";
-import { createTokenStatsKey } from "database/keys";
-import { RequiredData, StatsParams } from "./types";
-import { saveTokenRecord } from "./record";
-import { saveDayStats } from "./stats";
+import { createTokenStatsKey, createTokenKey } from "database/keys";
+import { RequiredData, StatsParams, TokenRecord, TokenStats } from "./types";
 import { ulid } from "ulid";
+import { createTokenRecord } from "./record";
+import { createInitialDayStats, updateDayStats } from "./stats";
+import { format } from "date-fns";
 
-const formatDateKey = (date: Date): string => date.toISOString().split("T")[0];
+// 统一错误处理
+const handleDbError = (error: unknown, context: string) => {
+  console.error({ error, context }, "Database operation failed");
+  throw error;
+};
 
-const enrichData = (data) => {
-  const timestamp = data.date.getTime();
+// 提取公共的数据扩充逻辑
+const enrichData = (data: RequiredData) => {
+  const timestamp = Date.now();
   return {
     ...data,
     timestamp,
     id: ulid(timestamp),
-    dateKey: formatDateKey(data.date),
+    dateKey: format(timestamp, "yyyy-MM-dd"),
   };
+};
+
+const saveTokenRecord = async (data: RequiredData): Promise<TokenRecord> => {
+  try {
+    const enrichedData = enrichData(data);
+    const record = createTokenRecord(enrichedData);
+    const recordTimestamp = new Date(record.createdAt).getTime();
+    const key = createTokenKey.record(data.userId, recordTimestamp);
+
+    console.info(
+      { key, timestamp: enrichedData.timestamp },
+      "Saving token record"
+    );
+    await browserDb.put(key, record);
+
+    return record;
+  } catch (error) {
+    handleDbError(error, "saveTokenRecord");
+  }
+};
+
+const saveDayStats = async (
+  data: RequiredData,
+  enrichedData: ReturnType<typeof enrichData>
+): Promise<TokenStats> => {
+  const key = createTokenStatsKey(data.userId, enrichedData.dateKey);
+
+  try {
+    const currentStats = await browserDb
+      .get(key)
+      .then((stats: TokenStats) =>
+        stats?.total
+          ? stats
+          : createInitialDayStats(data.userId, enrichedData.dateKey)
+      )
+      .catch(() => createInitialDayStats(data.userId, enrichedData.dateKey));
+
+    const updatedStats = updateDayStats(data, currentStats);
+    await browserDb.put(key, updatedStats);
+    return updatedStats;
+  } catch (error) {
+    handleDbError(error, "saveDayStats");
+  }
 };
 
 export const saveTokenUsage = async (data: RequiredData) => {
@@ -33,35 +82,27 @@ export const saveTokenUsage = async (data: RequiredData) => {
       record,
     };
   } catch (error) {
-    console.error("Error saving token usage:", error);
-    throw error;
+    handleDbError(error, "saveTokenUsage");
   }
 };
 
-const iterateDb = curry(async (options: any, filter: Function) => {
-  const records = [];
-  for await (const [_, value] of browserDb.iterator(options)) {
-    if (filter(value)) {
-      records.push(value);
+// 简化数据库遍历逻辑
+const iterateDb = curry(
+  async <T>(
+    options: { gte: string; lte: string },
+    filter: (value: T) => boolean
+  ): Promise<T[]> => {
+    const records: T[] = [];
+
+    try {
+      for await (const [_, value] of browserDb.iterator(options)) {
+        if (filter(value)) {
+          records.push(value);
+        }
+      }
+      return records;
+    } catch (error) {
+      handleDbError(error, "iterateDb");
     }
   }
-  return records;
-});
-
-export const getTokenStats = async (params: StatsParams) => {
-  const { userId, startDate, endDate } = params;
-
-  try {
-    const startKey = createTokenStatsKey(userId, startDate);
-    const endKey = createTokenStatsKey(userId, endDate);
-
-    const records = await iterateDb({
-      gte: startKey,
-      lte: endKey,
-    })(() => true);
-
-    return records.filter((record) => record.total); // 确保只返回有效的统计记录
-  } catch (error) {
-    throw error;
-  }
-};
+);

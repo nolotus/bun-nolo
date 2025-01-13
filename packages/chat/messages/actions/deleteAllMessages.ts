@@ -85,7 +85,7 @@ export const deleteAllMessages = async (dialogId, thunkApi) => {
 
     // 异步执行远程删除
     remoteDelete(dialogId, thunkApi.getState);
-    thunkApi(resetMsgs());
+    await thunkApi.dispatch(resetMsgs());
     return { ids: deletedIds };
   } catch (err) {
     logger.error({ dialogId, err }, "Failed to delete messages");
