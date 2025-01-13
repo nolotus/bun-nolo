@@ -2,12 +2,9 @@ import {
   asyncThunkCreator,
   buildCreateSlice,
   createEntityAdapter,
-  createSelector,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
-import { selectCurrentServer } from "setting/settingSlice";
 
-import { selectIsLoggedIn } from "auth/authSlice";
 import { deleteAction } from "./action/delete";
 import { queryServerAction } from "./action/queryServer";
 import { readAction } from "./action/read";
@@ -33,9 +30,7 @@ const dbSlice = createSliceWithThunks({
   name: "db",
   initialState,
   reducers: (create) => ({
-    queryServer: create.asyncThunk(queryServerAction, {
-      fulfilled: (state, action) => {},
-    }),
+    queryServer: create.asyncThunk(queryServerAction),
     read: create.asyncThunk(readAction, {
       fulfilled: (state, action) => {
         if (action.payload) {
@@ -62,34 +57,11 @@ const dbSlice = createSliceWithThunks({
         dbAdapter.updateOne(state, { id, changes });
       },
     }),
-
-    setOne: dbAdapter.setOne,
-    query: create.asyncThunk(async (queryConfig, thunkAPI) => {
-      const state = thunkAPI.getState();
-      const currentServer = selectCurrentServer(state);
-      const config = { server: currentServer, ...queryConfig };
-      const isLoggedIn = selectIsLoggedIn(state);
-      if (isLoggedIn) {
-        const actionResult = await thunkAPI.dispatch(queryServer(config));
-      }
-    }, {}),
   }),
 });
-export const selectEntitiesByIds = createSelector(
-  [(state) => state, (state, ids) => ids],
-  (state, ids) => ids.map((id) => selectById(state, id))
-);
-export const {
-  setOne,
-  upsertMany,
-  deleteData,
-  patchData,
-  read,
-  syncQuery,
-  write,
-  queryServer,
-  query,
-} = dbSlice.actions;
+
+export const { upsertMany, deleteData, patchData, read, write, queryServer } =
+  dbSlice.actions;
 export default dbSlice.reducer;
 
 export const selectByTypes = (state, types: DataType[]) => {

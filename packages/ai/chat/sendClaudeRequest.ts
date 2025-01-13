@@ -4,7 +4,6 @@ import { createDialogMessageKey } from "database/keys";
 import { API_ENDPOINTS } from "database/config";
 import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
-import { setOne } from "database/dbSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { extractCustomId } from "core/prefix";
 
@@ -129,7 +128,6 @@ export const sendClaudeRequest = async ({
                   cybotId,
                   controller,
                 };
-                dispatch(setOne(message));
                 dispatch(messageStreaming(message));
                 break;
 
@@ -144,7 +142,6 @@ export const sendClaudeRequest = async ({
                     cybotId: cybotConfig.id,
                     controller,
                   };
-                  dispatch(setOne(message));
                   dispatch(messageStreaming(message));
                 }
                 break;

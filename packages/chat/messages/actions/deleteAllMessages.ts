@@ -5,6 +5,7 @@ import { browserDb } from "database/browser/db";
 import { API_ENDPOINTS } from "database/config";
 import { selectCurrentServer } from "setting/settingSlice";
 import { createKey } from "database/keys";
+import { resetMsgs } from "../messageSlice";
 
 const logger = pino({ name: "messages-api" });
 
@@ -84,7 +85,7 @@ export const deleteAllMessages = async (dialogId, thunkApi) => {
 
     // 异步执行远程删除
     remoteDelete(dialogId, thunkApi.getState);
-
+    thunkApi(resetMsgs());
     return { ids: deletedIds };
   } catch (err) {
     logger.error({ dialogId, err }, "Failed to delete messages");

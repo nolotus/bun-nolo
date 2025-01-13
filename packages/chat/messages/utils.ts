@@ -1,17 +1,15 @@
-import type { NoloRootState } from "app/store";
-import { selectEntitiesByIds } from "database/dbSlice";
-import { filter, reverse, pipe, isEmpty, tap, flatten } from "rambda";
+import { NoloRootState } from "app/store";
+import { pipe, flatten, filter, reverse } from "rambda";
 
 export const getFilteredMessages = (state: NoloRootState) => {
-  const originMessages = selectEntitiesByIds(state, state.message.ids);
   const msgs = state.message.msgs;
 
   return pipe(
-    // 先把两个数组合并拍平
+    // 直接处理单个数组
     flatten,
-    // 过滤掉 null/undefined/空值
-    filter((x) => x !== null && x !== undefined && !isEmpty(x)),
+    // 过滤掉 null/undefined
+    filter((x) => x != null),
     // 倒序排列
     reverse
-  )([originMessages, msgs]);
+  )([msgs]);
 };

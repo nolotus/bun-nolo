@@ -4,7 +4,6 @@ import { createMessages } from "ai/api/createMessages";
 import { prepareTools } from "ai/tools/prepareTools";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
-import { setOne } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "../api/apiEndpoints";
 import { performFetchRequest } from "./fetchUtils";
@@ -64,6 +63,7 @@ export const sendCommonChatRequest = async ({
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;
   }
+
   const messageId = createDialogMessageKey(dialogId);
 
   let contentBuffer = "";
@@ -77,7 +77,7 @@ export const sendCommonChatRequest = async ({
       cybotId: cybotConfig.id,
       controller,
     };
-    dispatch(setOne(message));
+
     dispatch(messageStreaming(message));
     const api = getApiEndpoint(cybotConfig);
 
@@ -148,15 +148,6 @@ export const sendCommonChatRequest = async ({
         if (content) {
           contentBuffer += content;
 
-          dispatch(
-            setOne({
-              id: messageId,
-              content: contentBuffer,
-              role: "assistant",
-              cybotId: cybotConfig.id,
-              controller,
-            })
-          );
           dispatch(
             messageStreaming({
               id: messageId,

@@ -1,4 +1,4 @@
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import {
   clearDialogState,
@@ -13,6 +13,7 @@ import { useMessages } from "../messages/hooks/useMessages";
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
 import { initMsgs, resetMsgs } from "../messages/messageSlice";
+import { reverse } from "rambda";
 
 const LoadingSpinner = () => (
   <div
@@ -35,6 +36,12 @@ const DialogPage = ({ pageId }) => {
 
   // 使用 useMessages hook
   const { messages, loading } = useMessages(browserDb, dialogId);
+  const { data } = useFetchData(currentDialogConfig?.messageListId);
+  if (data) {
+    console.log("data", data);
+    const ids = reverse(data?.array);
+    console.log("ids", ids);
+  }
 
   // 处理消息初始化
   useEffect(() => {

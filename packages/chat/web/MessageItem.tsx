@@ -25,7 +25,6 @@ export const MessageItem = ({ message }: MessageProps) => {
   }
 
   if (cybotId) {
-    console.log("cybotId", cybotId);
     return <RobotMessage id={id} content={content} controller={controller} />;
   }
 
