@@ -89,7 +89,7 @@ export const CreateTool = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .tools-container {
           position: sticky;
           top: 0;

@@ -24,6 +24,7 @@ const Page = () => {
   const isEditMode = searchParams.get("edit") === "true";
 
   const { data, isLoading } = useFetchData(pageId);
+  dispatch(initPage({ ...data, isReadOnly: !isEditMode }));
 
   //edit page not need data
 
@@ -47,7 +48,6 @@ const Page = () => {
     );
   }
   if (data) {
-    dispatch(initPage({ ...data, isReadOnly: !isEditMode }));
     if (data.type === DataType.PAGE) {
       return <EditPage isReadOnly={!isEditMode} />;
     }

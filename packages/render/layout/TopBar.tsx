@@ -56,10 +56,13 @@ const TopBar: React.FC<TopBarProps> = ({
   const dataCreator = pageId ? extractUserId(pageId) : undefined;
 
   const isCreator = dataCreator === auth.user?.userId;
-  // const isNotBelongAnyone = !data.creator;
+  const isNotBelongAnyone = !pageData.creator;
 
-  const allowEdit = isCreator;
-  const hasPageData = pageData.conetent || pageData.slateData;
+  const allowEdit = isCreator || isNotBelongAnyone;
+  console.log("allowEdit", allowEdit);
+  const hasPageData = pageData.content || pageData.slateData;
+  console.log("hasPageData", hasPageData);
+
   const displayEditTool = allowEdit && hasPageData;
 
   return (
