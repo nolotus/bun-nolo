@@ -1,10 +1,7 @@
-import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
-import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
-import { reverse } from "rambda";
+import { useAppSelector } from "app/hooks";
 import type React from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { MessageItem } from "./MessageItem";
-import { initMessages } from "../messages/messageSlice";
 import {
   selectMergedMessages,
   selectStreamMessages,
@@ -13,14 +10,10 @@ import { useTheme } from "app/theme";
 
 const MessagesList: React.FC = () => {
   const theme = useTheme();
-  const dispatch = useAppDispatch();
 
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const messages = useAppSelector(selectMergedMessages);
   const streamingMessages = useAppSelector(selectStreamMessages);
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const { data } = useFetchData(currentDialogConfig?.messageListId);
 
   const scrollToBottom = useCallback(() => {
     if (containerRef.current) {
@@ -31,15 +24,6 @@ const MessagesList: React.FC = () => {
   useEffect(() => {
     if (streamingMessages) scrollToBottom();
   }, [streamingMessages, scrollToBottom]);
-
-  useEffect(() => {
-    if (data?.array) {
-      dispatch(initMessages(reverse(data.array)));
-    }
-    return () => {
-      dispatch(initMessages([]));
-    };
-  }, [data, dispatch]);
 
   return (
     <>

@@ -13,13 +13,11 @@ export const sendMessageAction = async (args, thunkApi) => {
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
   const dialogConfig = selectCurrentDialogConfig(state);
-
   const cybotConfig = await dispatch(read(dialogConfig.cybots[0])).unwrap();
-
   const { content } = args;
-
   const prevMsgs = getFilteredMessages(state);
   const dialogKey = dialogConfig.id;
+
   const dialogId = extractCustomId(dialogKey);
   const userId = selectCurrentUserId(state);
   const msgId = createDialogMessageKey(dialogId);

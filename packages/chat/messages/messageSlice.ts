@@ -13,7 +13,6 @@ import type { Message } from "./types";
 import { deleteAllMessages } from "./actions/deleteAllMessages";
 
 export interface MessageSliceState {
-  ids: string[] | null;
   msgs: Message[];
   streamMessages: Message[];
 }
@@ -22,7 +21,6 @@ const createSliceWithThunks = buildCreateSlice({
 });
 
 const initialState: MessageSliceState = {
-  ids: [],
   msgs: [],
   streamMessages: [],
 };
@@ -30,9 +28,6 @@ export const messageSlice = createSliceWithThunks({
   name: "message",
   initialState: initialState as MessageSliceState,
   reducers: (create) => ({
-    initMessages: create.reducer((state, action) => {
-      state.ids = action.payload;
-    }),
     initMsgs: create.reducer((state, action) => {
       state.msgs = action.payload;
     }),
@@ -80,17 +75,7 @@ export const messageSlice = createSliceWithThunks({
 
     handleSendMessage: create.asyncThunk(sendMessageAction),
 
-    clearCurrentDialog: create.asyncThunk(deleteAllMessages, {
-      fulfilled: (state, action) => {
-        const { ids } = action.payload;
-        // 清空当前对话ID列表
-        state.ids = [];
-        // 过滤掉已删除的消息
-        state.msgs = state.msgs.filter((msg) => !ids.includes(msg.id));
-        // 清空流消息
-        state.streamMessages = [];
-      },
-    }),
+    clearCurrentDialog: create.asyncThunk(deleteAllMessages),
 
     addMsg: create.asyncThunk(
       async (msg, thunkApi) => {
@@ -119,6 +104,7 @@ export const messageSlice = createSliceWithThunks({
     }, {}),
     resetMsgs: create.reducer((state) => {
       state.msgs = [];
+      state.streamMessages = [];
     }),
   }),
 });
@@ -127,7 +113,6 @@ export const {
   messageStreamEnd,
   messageStreaming,
   deleteMessage,
-  initMessages,
   handleSendMessage,
   clearCurrentDialog,
   sendWithMessageId,
