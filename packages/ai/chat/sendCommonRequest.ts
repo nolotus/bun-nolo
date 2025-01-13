@@ -100,14 +100,14 @@ export const sendCommonChatRequest = async ({
       const { done, value } = await reader.read();
 
       if (done) {
-        dispatch(
-          messageStreamEnd({
-            id: messageId,
-            content: contentBuffer,
-            role: "assistant",
-            cybotId: cybotConfig.id,
-          })
-        );
+        const final = {
+          id: messageId,
+          content: contentBuffer,
+          role: "assistant",
+          cybotId: cybotConfig.id,
+        };
+
+        dispatch(messageStreamEnd(final));
         dispatch(
           updateDialogTitle({
             dialogKey,

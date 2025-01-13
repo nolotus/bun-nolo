@@ -12,7 +12,7 @@ import { layout } from "render/styles/layout";
 import { useMessages } from "../messages/hooks/useMessages";
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
-import { initMsgs } from "../messages/messageSlice";
+import { initMsgs, resetMsgs } from "../messages/messageSlice";
 
 const LoadingSpinner = () => (
   <div
@@ -41,6 +41,9 @@ const DialogPage = ({ pageId }) => {
     if (!loading && messages.length > 0) {
       dispatch(initMsgs(messages));
     }
+    return () => {
+      dispatch(resetMsgs());
+    };
   }, [loading, messages, dispatch]);
 
   // 处理对话初始化和清理

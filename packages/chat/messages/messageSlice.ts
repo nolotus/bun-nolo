@@ -117,6 +117,9 @@ export const messageSlice = createSliceWithThunks({
       console.log("messageId", messageId);
       const state = thunkApi.getState();
     }, {}),
+    resetMsgs: create.reducer((state) => {
+      state.msgs = [];
+    }),
   }),
 });
 
@@ -130,6 +133,7 @@ export const {
   sendWithMessageId,
   addMsg,
   initMsgs,
+  resetMsgs,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

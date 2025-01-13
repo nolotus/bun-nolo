@@ -8,13 +8,8 @@ import { Avatar } from "render/ui";
 import { useAppSelector } from "app/hooks";
 import { MessageContent } from "./MessageContent";
 import { MessageContextMenu } from "./MessageContextMenu";
-import { messageContentWithAvatarGap } from "../messages/styles";
-import {
-  avatarWrapperStyle,
-  contentWrapperStyle,
-  messageContainerStyle,
-} from "../messages/styles";
 import type { Message } from "../messages/types";
+import { MessageStyles } from "./MessageStyles";
 
 const RobotMessage: React.FC<Message> = ({
   id,
@@ -27,65 +22,47 @@ const RobotMessage: React.FC<Message> = ({
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
 
-  const handleContextMenu = (event) => {
-    event.preventDefault();
-    setAnchorRect({ x: event.clientX, y: event.clientY });
-    menu.show();
-  };
-
-  const handleAbortController = () => {
-    controller?.abort();
-  };
-
   return (
-    <div style={{ ...messageContainerStyle, justifyContent: "start" }}>
-      <div
-        style={{ ...contentWrapperStyle, gap: messageContentWithAvatarGap }}
-        onContextMenu={handleContextMenu}
-      >
-        <div style={avatarWrapperStyle}>
-          <Avatar name="robot" />
-        </div>
-        <div style={{ position: "relative" }}>
-          <div>
-            <MessageContent content={content} role="other" />
+    <>
+      <MessageStyles />
+      <div className="message-container other">
+        <div
+          className="content-wrapper"
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setAnchorRect({ x: e.clientX, y: e.clientY });
+            menu.show();
+          }}
+        >
+          <div className="avatar-wrapper">
+            <Avatar name="robot" />
           </div>
-          {controller && (
-            <div
-              onClick={handleAbortController}
-              onMouseEnter={() => setHovered(true)}
-              onMouseLeave={() => setHovered(false)}
-              style={{
-                position: "absolute",
-                bottom: 0,
-                right: 0,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                fontSize: "16px",
-                transform: "translate(50%, 50%)",
-              }}
-            >
-              {hovered ? (
-                <SquareFillIcon size={24} />
-              ) : (
-                <SquareIcon size={24} />
-              )}
-            </div>
-          )}
+          <div style={{ position: "relative" }}>
+            <MessageContent content={content} role="other" />
+            {controller && (
+              <div
+                className="controller-button"
+                onClick={() => controller.abort()}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
+              >
+                {hovered ? (
+                  <SquareFillIcon size={24} />
+                ) : (
+                  <SquareIcon size={24} />
+                )}
+              </div>
+            )}
+          </div>
         </div>
+        <MessageContextMenu
+          menu={menu}
+          anchorRect={anchorRect}
+          content={content}
+          id={id}
+        />
       </div>
-      <MessageContextMenu
-        menu={menu}
-        anchorRect={anchorRect}
-        content={content}
-        id={id}
-      />
-    </div>
+    </>
   );
 };
 

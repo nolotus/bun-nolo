@@ -7,44 +7,41 @@ import { Avatar } from "render/ui";
 import { useAppDispatch } from "app/hooks";
 import { MessageContent } from "./MessageContent";
 import { deleteMessage } from "../messages/messageSlice";
-import {
-  avatarWrapperStyle,
-  contentWrapperStyle,
-  messageContainerStyle,
-} from "../messages/styles";
+
 import type { Message } from "../messages/types";
+import { MessageStyles } from "./MessageStyles";
 
 export const UserMessage: React.FC<Message> = ({ content, id }) => {
   const dispatch = useAppDispatch();
   const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
   const menu = Ariakit.useMenuStore();
 
-  const handleContextMenu = (event) => {
-    event.preventDefault();
-    setAnchorRect({ x: event.clientX, y: event.clientY });
-    menu.show();
-  };
-
   return (
-    <div
-      style={{ ...messageContainerStyle, justifyContent: "flex-end" }}
-      onContextMenu={handleContextMenu}
-    >
-      <div style={contentWrapperStyle}>
-        <MessageContent content={content} role="other" />
-      </div>
+    <>
+      <MessageStyles />
+      <div className="message-container other">
+        <div
+          className="content-wrapper"
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setAnchorRect({ x: e.clientX, y: e.clientY });
+            menu.show();
+          }}
+        >
+          <div className="avatar-wrapper">
+            <Avatar name="user" />
+          </div>
+          <MessageContent content={content} role="other" />
+        </div>
 
-      <div style={avatarWrapperStyle}>
-        <Avatar name="user" />
+        <Ariakit.Menu store={menu} modal getAnchorRect={() => anchorRect}>
+          <Ariakit.MenuItem onClick={() => dispatch(deleteMessage(id))}>
+            <TrashIcon /> Delete Message
+          </Ariakit.MenuItem>
+          <Ariakit.MenuSeparator />
+          <Ariakit.MenuItem>View Details</Ariakit.MenuItem>
+        </Ariakit.Menu>
       </div>
-
-      <Ariakit.Menu store={menu} modal getAnchorRect={() => anchorRect}>
-        <Ariakit.MenuItem onClick={() => dispatch(deleteMessage(id))}>
-          <TrashIcon /> Delete Message
-        </Ariakit.MenuItem>
-        <Ariakit.MenuSeparator />
-        <Ariakit.MenuItem>View Details</Ariakit.MenuItem>
-      </Ariakit.Menu>
-    </div>
+    </>
   );
 };
