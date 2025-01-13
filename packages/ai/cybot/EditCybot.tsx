@@ -18,7 +18,7 @@ import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
 import Textarea from "web/form/Textarea";
 import Button from "web/ui/Button";
-import ToggleSwitch from "web/form/ToggleSwitch";
+import ToggleSwitch from "web/ui/ToggleSwitch";
 import { SyncIcon, CheckIcon } from "@primer/octicons-react";
 import ToolSelector from "../tools/ToolSelector";
 import PasswordInput from "web/form/PasswordInput";

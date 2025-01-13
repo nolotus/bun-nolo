@@ -47,7 +47,7 @@ const Page = () => {
     );
   }
   if (data) {
-    dispatch(initPage(data));
+    dispatch(initPage({ ...data, isReadOnly: !isEditMode }));
     if (data.type === DataType.PAGE) {
       return <EditPage isReadOnly={!isEditMode} />;
     }
