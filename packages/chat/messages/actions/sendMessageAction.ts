@@ -21,7 +21,8 @@ export const sendMessageAction = async (args, thunkApi) => {
   const { content } = args;
 
   const prevMsgs = getFilteredMessages(state);
-  const dialogId = extractCustomId(dialogConfig.id);
+  const dialogKey = dialogConfig.id;
+  const dialogId = extractCustomId(dialogKey);
   const userId = selectCurrentUserId(state);
   const msgId = createDialogMessageKey(dialogId);
 
@@ -49,7 +50,7 @@ export const sendMessageAction = async (args, thunkApi) => {
       cybotConfig,
       thunkApi,
       prevMsgs,
-      dialogId,
+      dialogKey,
     });
     return;
   }
@@ -60,7 +61,7 @@ export const sendMessageAction = async (args, thunkApi) => {
       cybotConfig,
       thunkApi,
       prevMsgs,
-      dialogId,
+      dialogKey,
     });
     return;
   }

@@ -3,8 +3,6 @@ import { omit } from "rambda";
 export const proxyRoute = async (req, res) => {
   try {
     const rawBody = req.body;
-    console.log("rawBody", rawBody);
-    console.log("rawBody.KEY");
 
     const body = omit("url,KEY", rawBody);
 

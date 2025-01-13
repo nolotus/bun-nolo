@@ -6,6 +6,7 @@ import { generateRequestBody } from "integrations/anthropic/generateRequestBody"
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { setOne } from "database/dbSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
+import { extractCustomId } from "core/prefix";
 
 // 发送请求
 async function sendRequest(cybotConfig, body, signal, currentServer) {
@@ -48,9 +49,10 @@ export const sendClaudeRequest = async ({
   cybotConfig,
   thunkApi,
   prevMsgs,
-  dialogId,
+  dialogKey,
 }) => {
   const cybotId = cybotConfig.id;
+  const dialogId = extractCustomId(dialogKey);
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
   const currentServer = selectCurrentServer(state);
@@ -96,7 +98,7 @@ export const sendClaudeRequest = async ({
 
         dispatch(
           updateDialogTitle({
-            dialogId,
+            dialogKey,
             cybotConfig,
           })
         );
