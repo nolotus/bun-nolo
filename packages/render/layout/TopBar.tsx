@@ -58,7 +58,7 @@ const TopBar: React.FC<TopBarProps> = ({
     navigate(`/${pageId}?edit=true`);
   };
   const auth = useAuth();
-  const dataCreator = extractUserId(pageId);
+  const dataCreator = pageId ? extractUserId(pageId) : undefined;
 
   const isCreator = dataCreator === auth.user?.userId;
   // const isNotBelongAnyone = !data.creator;
