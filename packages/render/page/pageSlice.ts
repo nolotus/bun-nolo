@@ -3,8 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 export const pageSlice = createSlice({
   name: "page",
   initialState: {
-    content: "",
-    slateData: [],
+    content: null,
+    slateData: null,
     title: null,
     isReadOnly: true,
   },
@@ -32,8 +32,8 @@ export const pageSlice = createSlice({
     },
 
     resetPage: (state) => {
-      state.content = "";
-      state.slateData = [];
+      state.content = null;
+      state.slateData = null;
     },
   },
 });
