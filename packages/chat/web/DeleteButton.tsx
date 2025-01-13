@@ -1,18 +1,19 @@
-import React from "react";
 import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Alert, useDeleteAlert } from "web/ui/Alert";
-import { deleteCurrentDialog } from "./dialogSlice";
+import { deleteData } from "database/dbSlice";
+import toast from "react-hot-toast";
 
-const DeleteDialogButton = ({ dialogConfig }) => {
+const DeleteButton = ({ id }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   const onDeleteDialog = async () => {
-    await dispatch(deleteCurrentDialog(dialogConfig.id));
+    await dispatch(deleteData(id));
+    toast.success("Page deleted successfully!");
     navigate(-1);
   };
 
@@ -24,7 +25,7 @@ const DeleteDialogButton = ({ dialogConfig }) => {
   } = useDeleteAlert(onDeleteDialog);
 
   const openDeleteDialog = () => {
-    openAlert(dialogConfig);
+    openAlert(id);
   };
 
   return (
@@ -52,11 +53,11 @@ const DeleteDialogButton = ({ dialogConfig }) => {
         isOpen={deleteAlertVisible}
         onClose={closeAlert}
         onConfirm={doDelete}
-        title={t("deleteDialogTitle", { title: dialogConfig.title })}
+        title={t("deleteDialogTitle", { title: id })}
         message={t("deleteDialogConfirmation")}
       />
     </>
   );
 };
 
-export default DeleteDialogButton;
+export default DeleteButton;

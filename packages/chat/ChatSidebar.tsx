@@ -18,7 +18,6 @@ const ChatSidebar = () => {
 
   if (loading) return null;
   if (!sidebarData?.length) return null;
-
   return (
     <nav>
       {sidebarData.map((item) => (

@@ -47,6 +47,7 @@ export const writeAction = async (writeConfig, thunkApi) => {
   ) {
     const willSaveData = {
       ...data,
+      id: writeConfig.customId,
       createdAt: new Date().toISOString(),
     };
 
