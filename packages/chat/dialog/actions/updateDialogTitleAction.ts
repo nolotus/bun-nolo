@@ -19,21 +19,17 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
     : "cybot-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGV8AB85FP1GC3Z42W9ATSPG";
 
   let title;
-  try {
-    // 调用runCybotId以获取标题
-    title = await dispatch(
-      runCybotId({
-        cybotId,
-        userInput: content,
-      })
-    ).unwrap();
-  } catch (error) {
-    console.error("Failed to get title from cybotId:", error);
+  const generateitle = await dispatch(
+    runCybotId({
+      cybotId,
+      userInput: content,
+    })
+  ).unwrap();
+  const formattedDate = format(new Date(), "MM-dd");
 
-    // 失败时使用当前日期生成备用标题
-    const formattedDate = format(new Date(), "MM-dd");
-    title = `${cybotConfig.name}_${formattedDate}`;
-  }
+  generateitle
+    ? (title = generateitle)
+    : `${cybotConfig.name}_${formattedDate}`;
 
   // 更新数据库中的对话标题
   const result = await dispatch(

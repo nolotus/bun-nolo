@@ -57,31 +57,31 @@ export const CreateTool = () => {
   return (
     <>
       <div className="tools-container">
-        <div className="left-group">
-          <DeleteButton id={pageId} />
-          <div className="mode-switch">
-            <ToggleSwitch
-              checked={!isReadOnly}
-              onChange={handleToggleEdit}
-              ariaLabelledby="edit-mode-toggle"
-            />
-            <span id="edit-mode-toggle" className="mode-label">
-              {isReadOnly ? "阅读模式" : "编辑模式"}
-            </span>
-          </div>
-        </div>
+        <div className="title">{pageData.title}</div>
 
-        <div className="right-group">
-          <div className="save-button-wrapper">
+        <div className="controls">
+          <div className="left-group">
+            <DeleteButton id={pageId} />
+            <div className="mode-switch">
+              <ToggleSwitch
+                checked={!isReadOnly}
+                onChange={handleToggleEdit}
+                ariaLabelledby="edit-mode-toggle"
+              />
+              <span id="edit-mode-toggle" className="mode-label">
+                {isReadOnly ? "阅读模式" : "编辑模式"}
+              </span>
+            </div>
+          </div>
+
+          <div className="right-group">
             <Button
               variant="primary"
               icon={<CheckIcon size={16} />}
               onClick={handleSave}
               size="medium"
-              style={{
-                opacity: isReadOnly ? 0 : 1,
-                pointerEvents: isReadOnly ? "none" : "auto",
-              }}
+              disabled={isReadOnly}
+              className={isReadOnly ? "hidden" : ""}
             >
               保存
             </Button>
@@ -91,13 +91,33 @@ export const CreateTool = () => {
 
       <style jsx>{`
         .tools-container {
+          position: sticky;
+          top: 0;
+          z-index: 100;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 8px 16px;
-          border-bottom: 1px solid ${theme.border};
+          padding: 12px 24px;
           background: ${theme.background};
-          min-height: 48px;
+          border-bottom: 1px solid ${theme.border};
+          backdrop-filter: blur(8px);
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 500;
+          color: ${theme.textPrimary};
+          margin-right: 24px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .controls {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+          flex-shrink: 0;
         }
 
         .left-group,
@@ -111,9 +131,14 @@ export const CreateTool = () => {
           display: flex;
           align-items: center;
           gap: 8px;
-          padding: 4px 8px;
-          border-radius: 6px;
+          padding: 6px 12px;
+          border-radius: 8px;
           background: ${theme.backgroundSecondary};
+          transition: background-color 0.2s ease;
+        }
+
+        .mode-switch:hover {
+          background: ${theme.backgroundTertiary};
         }
 
         .mode-label {
@@ -123,20 +148,33 @@ export const CreateTool = () => {
           min-width: 56px;
         }
 
-        .save-button-wrapper {
-          min-width: 88px; /* 保存按钮的固定宽度 */
-        }
-
         :global(.tools-container button) {
           transition: all 0.2s ease;
         }
 
-        :global(.save-button-wrapper button) {
-          transition: opacity 0.2s ease;
+        :global(.tools-container button:hover:not(:disabled)) {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px ${theme.shadowLight};
         }
 
-        :global(.tools-container button:hover) {
-          transform: translateY(-1px);
+        :global(.tools-container .hidden) {
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        @media (max-width: 640px) {
+          .tools-container {
+            padding: 8px 16px;
+          }
+
+          .title {
+            display: none;
+          }
+
+          .controls {
+            width: 100%;
+            justify-content: space-between;
+          }
         }
       `}</style>
     </>

@@ -14,7 +14,6 @@ import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
 import { initMsgs } from "../messages/messageSlice";
 
-// Loading组件
 const LoadingSpinner = () => (
   <div
     style={{
@@ -30,26 +29,30 @@ const LoadingSpinner = () => (
 
 const DialogPage = ({ pageId }) => {
   const dispatch = useAppDispatch();
-
+  const { user } = useAuth();
   const dialogId = extractCustomId(pageId);
+  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+
+  // 使用 useMessages hook
   const { messages, loading } = useMessages(browserDb, dialogId);
-  !loading && dispatch(initMsgs(messages));
 
-  const auth = useAuth();
-
-  if (!auth.user) {
-    window.location.href = "/login";
-  }
-
+  // 处理消息初始化
   useEffect(() => {
-    pageId && dispatch(initDialog(pageId));
+    if (!loading && messages.length > 0) {
+      dispatch(initMsgs(messages));
+    }
+  }, [loading, messages, dispatch]);
+
+  // 处理对话初始化和清理
+  useEffect(() => {
+    if (pageId && user) {
+      dispatch(initDialog(pageId));
+    }
 
     return () => {
       dispatch(clearDialogState());
     };
-  }, [auth.user, pageId]);
-
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  }, [user, pageId, dispatch]);
 
   return (
     <>

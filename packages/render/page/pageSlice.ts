@@ -13,6 +13,7 @@ export const pageSlice = createSlice({
       state.content = action.payload.content;
       state.slateData = action.payload.slateData;
       state.isReadOnly = action.payload.isReadOnly;
+      state.title = action.payload.title;
     },
 
     updateSlate: (state, action) => {

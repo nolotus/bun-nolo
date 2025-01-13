@@ -1,7 +1,6 @@
 import { useAuth } from "auth/useAuth";
 import { useParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
-import { animations } from "render/styles/animations";
 
 import Editor from "create/editor/Editor";
 
@@ -30,8 +29,8 @@ const EditPage = ({ isReadOnly = true }) => {
     <div
       style={{
         ...layout.flex,
-        ...layout.h100vh,
         ...layout.overflowHidden,
+        height: "calc(100dvh - 60px)",
         backgroundColor: "#ffffff",
       }}
     >
