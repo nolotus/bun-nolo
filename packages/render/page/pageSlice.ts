@@ -5,6 +5,7 @@ export const pageSlice = createSlice({
   initialState: {
     content: "",
     slateData: [],
+    title: null,
   },
   reducers: {
     initPage: (state, action) => {
@@ -25,6 +26,7 @@ export const pageSlice = createSlice({
 
 // 选择器
 export const selectSlateData = (state) => state.page.slateData;
+export const selectPageData = (state) => state.page;
 
 export const { initPage, updateSlate, resetPage } = pageSlice.actions;
 

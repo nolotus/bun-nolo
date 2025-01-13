@@ -19,10 +19,11 @@ import useMediaQuery from "react-responsive";
 import NavListItem from "render/layout/blocks/NavListItem";
 import MenuButton from "./MenuButton";
 import NavIconItem from "./blocks/NavIconItem";
-import { selectSlateData } from "../page/pageSlice";
+import { selectPageData } from "../page/pageSlice";
 import DeleteButton from "chat/web/DeleteButton";
 import { useNavigate, useParams } from "react-router";
 import { PencilIcon } from "@primer/octicons-react";
+import { extractUserId } from "core/prefix";
 
 interface TopBarProps {
   toggleSidebar?: () => void;
@@ -48,8 +49,8 @@ const TopBar: React.FC<TopBarProps> = ({
   const { isLoggedIn } = useAuth();
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  const pageData = useAppSelector(selectSlateData);
-  console.log("pageData", pageData);
+  const pageData = useAppSelector(selectPageData);
+
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const { pageId } = useParams();
 
@@ -57,11 +58,12 @@ const TopBar: React.FC<TopBarProps> = ({
     navigate(`/${pageId}?edit=true`);
   };
   const auth = useAuth();
+  const dataCreator = extractUserId(pageId);
 
-  // const isCreator = data.creator === auth.user?.userId;
+  const isCreator = dataCreator === auth.user?.userId;
   // const isNotBelongAnyone = !data.creator;
 
-  const allowEdit = false;
+  const allowEdit = isCreator;
 
   return (
     <>
@@ -167,7 +169,7 @@ const TopBar: React.FC<TopBarProps> = ({
                 <DeleteDialogButton dialogConfig={currentDialogConfig} />
               </>
             )}
-            {pageData && (
+            {(pageData.slateData || pageData.content) && (
               <>
                 <DeleteButton id={pageId} />
                 {allowEdit && (
