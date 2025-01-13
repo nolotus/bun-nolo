@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { isProduction } from "utils/env";
 
 export const updateDialogTitleAction = async (args, thunkApi) => {
-  const { dialogId, cybotConfig } = args; //
+  const { dialogKey, cybotConfig } = args; //
   const dispatch = thunkApi.dispatch;
   const state = thunkApi.getState();
 
@@ -37,7 +37,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
 
   // 更新数据库中的对话标题
   const result = await dispatch(
-    patchData({ id: dialogId, changes: { title } })
+    patchData({ id: dialogKey, changes: { title } })
   ).unwrap();
 
   return result;

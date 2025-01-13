@@ -9,6 +9,7 @@ import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "../api/apiEndpoints";
 import { performFetchRequest } from "./fetchUtils";
 import { createDialogMessageKey } from "database/keys";
+import { extractCustomId } from "core/prefix";
 
 function parseMultilineSSE(rawText: string) {
   const results = [];
@@ -47,9 +48,10 @@ export const sendCommonChatRequest = async ({
   cybotConfig,
   thunkApi,
   prevMsgs,
-  dialogId,
+  dialogKey,
 }) => {
   const { dispatch, getState } = thunkApi;
+  const dialogId = extractCustomId(dialogKey);
 
   const controller = new AbortController();
   const signal = controller.signal;
@@ -108,7 +110,7 @@ export const sendCommonChatRequest = async ({
         );
         dispatch(
           updateDialogTitle({
-            dialogId,
+            dialogKey,
             cybotConfig,
           })
         );
