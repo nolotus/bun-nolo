@@ -19,6 +19,10 @@ import useMediaQuery from "react-responsive";
 import NavListItem from "render/layout/blocks/NavListItem";
 import MenuButton from "./MenuButton";
 import NavIconItem from "./blocks/NavIconItem";
+import { selectSlateData } from "../page/pageSlice";
+import DeleteButton from "chat/web/DeleteButton";
+import { useNavigate, useParams } from "react-router";
+import { PencilIcon } from "@primer/octicons-react";
 
 interface TopBarProps {
   toggleSidebar?: () => void;
@@ -39,10 +43,25 @@ const TopBar: React.FC<TopBarProps> = ({
   isExpanded,
 }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
   const { isLoggedIn } = useAuth();
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  const pageData = useAppSelector(selectSlateData);
+  console.log("pageData", pageData);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
+  const { pageId } = useParams();
+
+  const onEdit = () => {
+    navigate(`/${pageId}?edit=true`);
+  };
+  const auth = useAuth();
+
+  // const isCreator = data.creator === auth.user?.userId;
+  // const isNotBelongAnyone = !data.creator;
+
+  const allowEdit = false;
 
   return (
     <>
@@ -146,6 +165,16 @@ const TopBar: React.FC<TopBarProps> = ({
                 )}
                 <CreateDialogButton dialogConfig={currentDialogConfig} />
                 <DeleteDialogButton dialogConfig={currentDialogConfig} />
+              </>
+            )}
+            {pageData && (
+              <>
+                <DeleteButton id={pageId} />
+                {allowEdit && (
+                  <button type="button" onClick={onEdit} title="编辑页面">
+                    <PencilIcon size={16} />
+                  </button>
+                )}
               </>
             )}
             {topbarContent}

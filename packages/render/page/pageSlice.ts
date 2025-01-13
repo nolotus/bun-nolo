@@ -8,7 +8,6 @@ export const pageSlice = createSlice({
   },
   reducers: {
     initPage: (state, action) => {
-      // Update content with the incoming markdown
       state.content = action.payload.content;
       state.slateData = action.payload.slateData;
     },
@@ -18,12 +17,14 @@ export const pageSlice = createSlice({
       state.slateData = value;
     },
     resetPage: (state) => {
-      // 重置回初始状态
       state.content = "";
       state.slateData = [];
     },
   },
 });
+
+// 选择器
+export const selectSlateData = (state) => state.page.slateData;
 
 export const { initPage, updateSlate, resetPage } = pageSlice.actions;
 
