@@ -1,6 +1,27 @@
+import { selectCurrentServer } from "setting/settingSlice";
 import { API_ENDPOINTS } from "../config";
-import { noloRequest } from "../requests/noloRequest";
 import { browserDb } from "database/browser/db";
+
+const noloRequest = async (state, config) => {
+  const currentServer = selectCurrentServer(state);
+  const dynamicUrl = currentServer + config.url;
+  const method = config.method ? config.method : "GET";
+  const body = config.body;
+  let headers = {
+    "Content-Type": "application/json",
+  };
+
+  if (state.auth) {
+    const token = state.auth.currentToken;
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return fetch(dynamicUrl, {
+    method,
+    headers,
+    body,
+  });
+};
 
 export const deleteAction = async (id, thunkApi) => {
   const { getState } = thunkApi;

@@ -6,7 +6,7 @@ import {
   TrashIcon,
 } from "@primer/octicons-react";
 
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import { write } from "database/dbSlice";
 import type React from "react";
@@ -27,6 +27,8 @@ import { markdownToSlate } from "create/editor/markdownToSlate";
 import { isProduction } from "utils/env";
 import { DataType } from "create/types";
 import { ulid } from "ulid";
+import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
+import { extractCustomId } from "core/prefix";
 
 interface MessageContextMenuProps {
   menu: Ariakit.MenuStore;
@@ -44,6 +46,9 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const { t } = useTranslation("chat");
+  const dialogKey = useAppSelector(selectCurrentDialogConfig).id;
+
+  const dialogId = extractCustomId(dialogKey);
 
   const handleSaveContent = async () => {
     if (content) {
@@ -122,7 +127,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   };
 
   const handleClearConversation = () => {
-    dispatch(clearCurrentDialog());
+    dispatch(clearCurrentDialog(dialogId));
     menu.hide();
   };
 

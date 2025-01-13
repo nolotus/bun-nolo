@@ -5,6 +5,7 @@ import assets from "../../public/assets.json";
 import { renderReactApp } from "./html/renderReactApp";
 import { serializeState } from "./html/serializeState";
 import { htmlEnd, htmlStart } from "./html/template";
+
 export const handleRender = async (req) => {
   const hostname = req.headers.get("host");
   const url = new URL(req.url);
@@ -28,10 +29,10 @@ export const handleRender = async (req) => {
           didError = true;
           console.error(error);
         },
-      },
+      }
     );
     console.log(
-      `Render to stream time: ${performance.now() - renderStartTime}ms`,
+      `Render to stream time: ${performance.now() - renderStartTime}ms`
     );
 
     const [reactStream, copyReactStream] = stream.tee();
@@ -55,7 +56,7 @@ export const handleRender = async (req) => {
     const writeHeaderStartTime = performance.now();
     writer.write(new TextEncoder().encode(htmlStart(bootstrapCss)));
     console.log(
-      `Write header time: ${performance.now() - writeHeaderStartTime}ms`,
+      `Write header time: ${performance.now() - writeHeaderStartTime}ms`
     );
 
     async function writeToStreamAsync() {
@@ -105,7 +106,7 @@ export const handleRender = async (req) => {
         writer.write(value);
       }
       console.log(
-        `Proxy React stream time: ${performance.now() - proxyStartTime}ms`,
+        `Proxy React stream time: ${performance.now() - proxyStartTime}ms`
       );
     };
 
@@ -136,7 +137,7 @@ export const handleRender = async (req) => {
       {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
-      },
+      }
     );
   } finally {
   }

@@ -4,12 +4,13 @@ import {
   buildCreateSlice,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
-import { clearCurrentMessages } from "chat/messages/messageSlice";
+import { clearCurrentDialog } from "chat/messages/messageSlice";
 import { deleteData, read, selectById } from "database/dbSlice";
 
 import { createDialogAction } from "./actions/createDialogAction";
 import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
 import { updateTokensAction } from "./actions/updateTokensAction";
+import { extractCustomId } from "core/prefix";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -72,7 +73,6 @@ const DialogSlice = createSliceWithThunks({
 
         try {
           const dialogConfig = await dispatch(read({ id })).unwrap();
-
           if (dialogConfig?.messageListId) {
             const body = { ids: state.message.ids };
             const deleteMessageListAction = await dispatch(
@@ -95,10 +95,11 @@ const DialogSlice = createSliceWithThunks({
       }
     ),
     deleteCurrentDialog: create.asyncThunk(
-      async (dialogId, thunkApi) => {
+      async (dialogKey, thunkApi) => {
         const dispatch = thunkApi.dispatch;
-        dispatch(deleteDialog(dialogId));
-        dispatch(clearCurrentMessages());
+        dispatch(deleteDialog(dialogKey));
+        const dialogId = extractCustomId(dialogKey);
+        dispatch(clearCurrentDialog(dialogId));
         dispatch(resetCurrentDialogTokens());
       },
       {
