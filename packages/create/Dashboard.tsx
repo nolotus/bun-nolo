@@ -1,12 +1,12 @@
 import {
-	CommentIcon,
-	DependabotIcon,
-	FileAddedIcon,
-	PeopleIcon,
-	SearchIcon,
+  CommentIcon,
+  DependabotIcon,
+  FileAddedIcon,
+  PeopleIcon,
+  SearchIcon,
 } from "@primer/octicons-react";
 import Cybots from "ai/cybot/web/Cybots";
-import { useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { nolotusId } from "core/init";
@@ -14,39 +14,95 @@ import { CreateRoutePaths } from "create/routePaths";
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
-
+import { createPage } from "render/page/pageSlice";
 
 const Dashboard = () => {
-	const navigate = useNavigate();
-	const theme = useAppSelector(selectTheme)
-	const userId = useAppSelector(selectCurrentUserId);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const theme = useAppSelector(selectTheme);
+  const userId = useAppSelector(selectCurrentUserId);
+  const createNewPage = async () => {
+    const id = await dispatch(createPage()).unwrap();
+    console.log("id", id);
+    navigate(`/${id}?edit=true`);
+  };
 
-	const buttonsInfo = [
-		{
-			text: "Cybot",
-			route: `/${CreateRoutePaths.CREATE_CYBOT}`,
-			icon: <DependabotIcon size={24} />,
-			description: "创建智能对话机器人",
-		},
-		{
-			text: "空白页面",
-			route: `/${CreateRoutePaths.CREATE_PAGE}`,
-			icon: <FileAddedIcon size={24} />,
-			description: "从空白页面开始创作",
-		},
-		{
-			text: "提示词",
-			route: `/${CreateRoutePaths.CREATE_PROMPT}`,
-			icon: <CommentIcon size={24} />,
-			description: "管理和创建提示词模板",
-		},
-	]
+  const buttonsInfo = [
+    {
+      text: "Cybot",
+      route: `/${CreateRoutePaths.CREATE_CYBOT}`,
+      icon: <DependabotIcon size={24} />,
+      description: "创建智能对话机器人",
+    },
+    {
+      text: "空白页面",
+      icon: <CommentIcon size={24} />,
+      description: "从空白页面开始创作",
+      action: createNewPage,
+    },
 
-	return (
-		<>
-			<style>
-				{`
+    {
+      text: "提示词",
+      route: `/${CreateRoutePaths.CREATE_PROMPT}`,
+      icon: <CommentIcon size={24} />,
+      description: "管理和创建提示词模板",
+    },
+  ];
+
+  return (
+    <>
+      <div className="dashboard-container">
+        <header className="dashboard-header">
+          <h1 className="header-title">开始创建</h1>
+          <p className="header-subtitle">选择合适的工具开始你的创作之旅</p>
+        </header>
+
+        <section>
+          <h2 className="section-title">
+            <DependabotIcon size={24} className="icon" />
+            快速创建
+          </h2>
+          <div className="button-grid">
+            {buttonsInfo.map((button) => (
+              <button
+                key={button.text}
+                className="grid-button"
+                onClick={button.action}
+              >
+                <div className="button-content">
+                  {React.cloneElement(button.icon as React.ReactElement, {
+                    className: "button-icon",
+                  })}
+                  <div className="button-text">
+                    <div className="button-title">{button.text}</div>
+                    <div className="button-description">
+                      {button.description}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="section-title">
+            <PeopleIcon size={22} className="icon" />
+            我的机器人
+          </h2>
+          {userId && <Cybots queryUserId={userId} limit={48} />}
+        </section>
+
+        <section>
+          <h2 className="section-title">
+            <SearchIcon size={22} className="icon" />
+            探索社区
+          </h2>
+          <Cybots queryUserId={nolotusId} limit={18} />
+        </section>
+      </div>
+      <style>
+        {`
 			.dashboard-container {
 			  max-width: 1200px;
 			  margin: 0 auto;
@@ -143,59 +199,9 @@ const Dashboard = () => {
 			  line-height: 1.5;
 			}
 		  `}
-			</style>
-
-			<div className="dashboard-container">
-				<header className="dashboard-header">
-					<h1 className="header-title">开始创建</h1>
-					<p className="header-subtitle">选择合适的工具开始你的创作之旅</p>
-				</header>
-
-				<section>
-					<h2 className="section-title">
-						<DependabotIcon size={24} className="icon" />
-						快速创建
-					</h2>
-					<div className="button-grid">
-						{buttonsInfo.map((button) => (
-							<button
-								key={button.text}
-								className="grid-button"
-								onClick={() => navigate(button.route)}
-							>
-								<div className="button-content">
-									{React.cloneElement(button.icon as React.ReactElement, {
-										className: "button-icon",
-									})}
-									<div className="button-text">
-										<div className="button-title">{button.text}</div>
-										<div className="button-description">
-											{button.description}
-										</div>
-									</div>
-								</div>
-							</button>
-						))}
-					</div>
-				</section>
-				<section>
-					<h2 className="section-title">
-						<PeopleIcon size={22} className="icon" />
-						我的机器人
-					</h2>
-					{userId && <Cybots queryUserId={userId} limit={48} />}
-				</section>
-
-				<section>
-					<h2 className="section-title">
-						<SearchIcon size={22} className="icon" />
-						探索社区
-					</h2>
-					<Cybots queryUserId={nolotusId} limit={18} />
-				</section>
-			</div>
-		</>
-	);
+      </style>
+    </>
+  );
 };
 
-export default Dashboard
+export default Dashboard;

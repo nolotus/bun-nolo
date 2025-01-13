@@ -14,9 +14,7 @@ export const sendMessageAction = async (args, thunkApi) => {
   const dispatch = thunkApi.dispatch;
   const dialogConfig = selectCurrentDialogConfig(state);
 
-  const cybotConfig = await dispatch(
-    read({ id: dialogConfig.cybots[0] })
-  ).unwrap();
+  const cybotConfig = await dispatch(read(dialogConfig.cybots[0])).unwrap();
 
   const { content } = args;
 

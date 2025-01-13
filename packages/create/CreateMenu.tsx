@@ -1,75 +1,84 @@
 import {
-	flip,
-	offset,
-	shift,
-	useFloating,
-	useHover,
-	useInteractions,
+  flip,
+  offset,
+  shift,
+  useFloating,
+  useHover,
+  useInteractions,
 } from "@floating-ui/react";
 import {
-	CommentIcon,
-	DependabotIcon,
-	FileAddedIcon,
-	PlusIcon,
+  CommentIcon,
+  DependabotIcon,
+  FileAddedIcon,
+  PlusIcon,
 } from "@primer/octicons-react";
 import Cybots from "ai/cybot/web/Cybots";
 import { useAuth } from "auth/useAuth";
 import { nolotusId } from "core/init";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { CreateRoutePaths } from "create/routePaths";
 import { useTheme } from "app/theme";
+import { useAppDispatch } from "app/hooks";
+import { createPage } from "render/page/pageSlice";
 
 export const CreateMenu = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const { isLoggedIn, user } = useAuth();
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const {
+    visible: AIsModalVisible,
+    open: openAIsModal,
+    close: closeAIsModal,
+  } = useModal();
 
-	const [isOpen, setIsOpen] = useState(false);
-	const { isLoggedIn, user } = useAuth();
-	const { t } = useTranslation();
-	const theme = useTheme();
-	const {
-		visible: AIsModalVisible,
-		open: openAIsModal,
-		close: closeAIsModal,
-	} = useModal();
+  const createNewPage = async () => {
+    const id = await dispatch(createPage()).unwrap();
+    navigate(`/${id}?edit=true`);
+    setIsOpen(false);
+  };
 
-	const buttonItems = [
-		{
-			tooltip: "新建对话",
-			icon: <CommentIcon size={16} />,
-			onClick: openAIsModal,
-		},
-		{
-			tooltip: "新建页面",
-			icon: <FileAddedIcon size={16} />,
-			path: `/${CreateRoutePaths.CREATE_PAGE}`,
-		},
-		{
-			tooltip: "添加Cybot",
-			icon: <DependabotIcon size={16} />,
-			path: `/${CreateRoutePaths.CREATE_CYBOT}`,
-		},
+  const buttonItems = [
+    {
+      tooltip: "新建对话",
+      icon: <CommentIcon size={16} />,
+      onClick: openAIsModal,
+    },
+    {
+      tooltip: "新建页面",
+      icon: <CommentIcon size={16} />,
+      onClick: createNewPage,
+    },
 
-	];
+    {
+      tooltip: "添加Cybot",
+      icon: <DependabotIcon size={16} />,
+      path: `/${CreateRoutePaths.CREATE_CYBOT}`,
+    },
+  ];
 
-	const { x, y, strategy, refs, context } = useFloating({
-		open: isOpen,
-		onOpenChange: setIsOpen,
-		middleware: [offset(8), flip(), shift()],
-	});
+  const { x, y, strategy, refs, context } = useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+    middleware: [offset(8), flip(), shift()],
+  });
 
-	const hover = useHover(context, {
-		delay: { open: 0, close: 100 },
-	});
+  const hover = useHover(context, {
+    delay: { open: 0, close: 100 },
+  });
 
-	const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
-	return (
-		<>
-			<style href='create-menu'>
-				{`
+  return (
+    <>
+      <style href="create-menu">
+        {`
 			.create-menu {
 			  position: relative;
 			}
@@ -139,72 +148,72 @@ export const CreateMenu = () => {
 			  letter-spacing: 0.1px;
 			}
 		  `}
-			</style>
+      </style>
 
-			<div className="create-menu">
-				<button
-					ref={refs.setReference}
-					className={`menu-button ${isOpen ? "open" : ""}`}
-					{...getReferenceProps()}
-				>
-					<PlusIcon size={16} />
-				</button>
+      <div className="create-menu">
+        <button
+          ref={refs.setReference}
+          className={`menu-button ${isOpen ? "open" : ""}`}
+          {...getReferenceProps()}
+        >
+          <PlusIcon size={16} />
+        </button>
 
-				{isOpen && (
-					<div
-						className="dropdown"
-						ref={refs.setFloating}
-						style={{
-							position: strategy,
-							top: y ?? 0,
-							left: x ?? 0,
-							zIndex: 1000,
-						}}
-						{...getFloatingProps()}
-					>
-						{buttonItems.map((item, index) =>
-							item.path ? (
-								<Link
-									key={index}
-									to={item.path}
-									className="menu-item"
-									onClick={() => setIsOpen(false)}
-								>
-									{item.icon}
-									<span>{item.tooltip}</span>
-								</Link>
-							) : (
-								<div
-									key={index}
-									className="menu-item"
-									onClick={() => {
-										item.onClick();
-										setIsOpen(false);
-									}}
-								>
-									{item.icon}
-									<span>{item.tooltip}</span>
-								</div>
-							),
-						)}
-					</div>
-				)}
+        {isOpen && (
+          <div
+            className="dropdown"
+            ref={refs.setFloating}
+            style={{
+              position: strategy,
+              top: y ?? 0,
+              left: x ?? 0,
+              zIndex: 1000,
+            }}
+            {...getFloatingProps()}
+          >
+            {buttonItems.map((item, index) =>
+              item.path ? (
+                <Link
+                  key={index}
+                  to={item.path}
+                  className="menu-item"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.icon}
+                  <span>{item.tooltip}</span>
+                </Link>
+              ) : (
+                <div
+                  key={index}
+                  className="menu-item"
+                  onClick={() => {
+                    item.onClick();
+                    setIsOpen(false);
+                  }}
+                >
+                  {item.icon}
+                  <span>{item.tooltip}</span>
+                </div>
+              )
+            )}
+          </div>
+        )}
 
-				<Dialog
-					isOpen={AIsModalVisible}
-					onClose={closeAIsModal}
-					title={<h2>{t("createDialog")}</h2>}
-				>
-					{isLoggedIn && (
-						<>
-							<h3 style={{ marginBottom: "1rem" }}>我的 AIs</h3>
-							<Cybots queryUserId={user?.userId} closeModal={closeAIsModal} />
-						</>
-					)}
-					<h3 style={{ marginBottom: "1rem" }}>公共 AIs</h3>
-					<Cybots queryUserId={nolotusId} closeModal={closeAIsModal} />
-				</Dialog>
-			</div>
-		</>
-	);
+        <Dialog
+          isOpen={AIsModalVisible}
+          onClose={closeAIsModal}
+          title={<h2>{t("createDialog")}</h2>}
+        >
+          {isLoggedIn && (
+            <>
+              <h3 style={{ marginBottom: "1rem" }}>我的 AIs</h3>
+              <Cybots queryUserId={user?.userId} closeModal={closeAIsModal} />
+            </>
+          )}
+          <h3 style={{ marginBottom: "1rem" }}>公共 AIs</h3>
+          <Cybots queryUserId={nolotusId} closeModal={closeAIsModal} />
+        </Dialog>
+      </div>
+    </>
+  );
 };

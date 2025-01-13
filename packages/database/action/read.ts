@@ -20,10 +20,11 @@ const noloReadRequest = async (server: string, id: string, token?: string) => {
   return res;
 };
 
-export const readAction = async ({ id }, thunkApi) => {
+export const readAction = async (id: string, thunkApi) => {
   const state = thunkApi.getState();
   const isLoggedIn = selectIsLoggedIn(state);
   const token = state.auth.currentToken;
+
   if (!isV0Id(id)) {
     const result = await browserDb.get(id);
     return result;

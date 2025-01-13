@@ -48,7 +48,6 @@ const TopBar: React.FC<TopBarProps> = ({
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const pageData = useAppSelector(selectPageData);
-  console.log("pageData", pageData);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const { pageId } = useParams();
 
@@ -59,9 +58,7 @@ const TopBar: React.FC<TopBarProps> = ({
   const isNotBelongAnyone = !pageData.creator;
 
   const allowEdit = isCreator || isNotBelongAnyone;
-  console.log("allowEdit", allowEdit);
   const hasPageData = pageData.content || pageData.slateData;
-  console.log("hasPageData", hasPageData);
 
   const displayEditTool = allowEdit && hasPageData;
 

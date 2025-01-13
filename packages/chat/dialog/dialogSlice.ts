@@ -53,7 +53,7 @@ const DialogSlice = createSliceWithThunks({
     initDialog: create.asyncThunk(
       async (id, thunkApi) => {
         const { dispatch } = thunkApi;
-        const action = await dispatch(read({ id }));
+        const action = await dispatch(read(id));
         return { ...action.payload };
       },
       {
@@ -72,7 +72,7 @@ const DialogSlice = createSliceWithThunks({
         const state = getState();
 
         try {
-          const dialogConfig = await dispatch(read({ id })).unwrap();
+          const dialogConfig = await dispatch(read(id)).unwrap();
           if (dialogConfig?.messageListId) {
             const body = { ids: state.message.ids };
             const deleteMessageListAction = await dispatch(
