@@ -94,7 +94,7 @@ export const sendClaudeRequest = async ({
           cybotId: cybotConfig.id,
           role: "assistant",
         };
-        dispatch(messageStreamEnd(final));
+        await dispatch(messageStreamEnd(final));
 
         dispatch(
           updateDialogTitle({

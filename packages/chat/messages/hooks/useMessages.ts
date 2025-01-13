@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { pipe } from "rambda";
 import { getLatestMessages } from "../dialogMessageOperations";
 import { useAppDispatch } from "app/hooks";
@@ -6,47 +6,48 @@ import { upsertMany } from "database/dbSlice";
 
 export const useMessages = (db, dialogId, limit = 20) => {
   const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        setLoading(true);
-        const result = await getLatestMessages(db, dialogId, limit);
+  const fetchMessages = useCallback(async () => {
+    if (!db || !dialogId) return;
 
-        const processMessages = pipe(
-          // 按时间排序
-          (messages) => [...messages].sort((a, b) => a.timestamp - b.timestamp),
-          // 过滤空值
-          (messages) => messages.filter(Boolean)
-        );
+    try {
+      setLoading(true);
+      const result = await getLatestMessages(db, dialogId, limit);
 
-        setMessages(processMessages(result));
-        dispatch(upsertMany(result));
+      const processMessages = pipe(
+        (messages) => [...messages].sort((a, b) => a.timestamp - b.timestamp),
+        (messages) => messages.filter(Boolean)
+      );
 
-        setError(null);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (db && dialogId) {
-      fetchMessages();
+      const processedMessages = processMessages(result);
+      setMessages(processedMessages);
+      dispatch(upsertMany(result));
+      setError(null);
+    } catch (err) {
+      setError(err);
+      console.error("Error fetching messages:", err);
+    } finally {
+      setLoading(false);
     }
+  }, [db, dialogId, limit, dispatch]);
+
+  // 初始加载
+  useEffect(() => {
+    fetchMessages();
 
     return () => {
       setMessages([]);
       setError(null);
     };
-  }, [db, dialogId, limit]);
+  }, [dialogId, limit]);
 
   return {
     messages,
     loading,
     error,
+    refresh: fetchMessages, // 暴露刷新方法
   };
 };
