@@ -6,7 +6,7 @@ import { pino } from "pino";
 const logger = pino({ name: "db-keys" });
 
 // 基础key创建保持不变
-const createKey = (...parts: string[]) => parts.join("-");
+export const createKey = (...parts: string[]) => parts.join("-");
 
 /**
  * Token记录相关key

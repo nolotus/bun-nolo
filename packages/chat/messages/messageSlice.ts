@@ -10,6 +10,7 @@ import { filter } from "rambda";
 
 import { sendMessageAction } from "./actions/sendMessageAction";
 import type { Message } from "./types";
+import { deleteAllMessages } from "./actions/deleteAllMessages";
 
 export interface MessageSliceState {
   ids: string[] | null;
@@ -78,17 +79,19 @@ export const messageSlice = createSliceWithThunks({
     ),
 
     handleSendMessage: create.asyncThunk(sendMessageAction),
-    clearCurrentMessages: create.reducer((state, action) => {
-      state.ids = null;
-      state.msgs = [];
-      state.streamMessages = [];
-    }),
-    clearCurrentDialog: create.asyncThunk(async (args, thunkApi) => {}, {
+
+    clearCurrentDialog: create.asyncThunk(deleteAllMessages, {
       fulfilled: (state, action) => {
+        const { ids } = action.payload;
+        // 清空当前对话ID列表
         state.ids = [];
+        // 过滤掉已删除的消息
+        state.msgs = state.msgs.filter((msg) => !ids.includes(msg.id));
+        // 清空流消息
         state.streamMessages = [];
       },
     }),
+
     addMsg: create.asyncThunk(
       async (msg, thunkApi) => {
         await thunkApi.dispatch(
@@ -123,7 +126,6 @@ export const {
   deleteMessage,
   initMessages,
   handleSendMessage,
-  clearCurrentMessages,
   clearCurrentDialog,
   sendWithMessageId,
   addMsg,
