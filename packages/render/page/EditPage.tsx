@@ -10,8 +10,10 @@ import Editor from "create/editor/Editor";
 import { layout } from "../styles/layout";
 import { updateSlate } from "./pageSlice";
 import { EditTool } from "./EditTool";
+import { markdownToSlate } from "create/editor/markdownToSlate";
+import { useMemo } from "react";
 
-const EditPage = () => {
+const EditPage = ({ isReadOnly = true }) => {
   const dispatch = useAppDispatch();
   const { pageId } = useParams();
 
@@ -50,8 +52,11 @@ const EditPage = () => {
   const handleContentChange = (changeValue) => {
     dispatch(updateSlate(changeValue));
   };
-  const slateData = pageState.slateData;
-
+  const initialValue = useMemo(() => {
+    return pageState.slateData
+      ? pageState.slateData
+      : markdownToSlate(pageState.content);
+  }, [pageId, pageState.slateData, pageState.content]);
   return (
     <div
       style={{
@@ -101,7 +106,12 @@ const EditPage = () => {
               padding: ".5rem",
             }}
           >
-            <Editor initialValue={slateData} onChange={handleContentChange} />
+            <Editor
+              key={pageId}
+              initialValue={initialValue}
+              onChange={handleContentChange}
+              readOnly={isReadOnly}
+            />
           </div>
         </div>
       </main>

@@ -49,7 +49,11 @@ const dbSlice = createSliceWithThunks({
         dbAdapter.removeOne(state, id);
       },
     }),
-    write: create.asyncThunk(writeAction),
+    write: create.asyncThunk(writeAction, {
+      fulfilled: (state, action) => {
+        dbAdapter.addOne(state, action.payload);
+      },
+    }),
     upsertMany: dbAdapter.upsertMany,
     patchData: create.asyncThunk(patchAction, {
       fulfilled: (state, action) => {
