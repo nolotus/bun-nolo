@@ -3,13 +3,14 @@ import { useState, useCallback, useEffect } from "react";
 import { pino } from "pino";
 import { queryUserTokens } from "ai/token/query";
 import { TokenRecord } from "ai/token/types";
+import { startOfDay, addDays, parseISO } from "date-fns";
 
 const logger = pino({ name: "use-records" });
 
 const ITEMS_PER_PAGE = 10;
 
 export interface RecordsFilter {
-  date: string;
+  date: string; // 格式: YYYY-MM-DD
   model: string;
   currentPage: number;
 }
@@ -30,8 +31,21 @@ export const useRecords = (
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
-      const startTime = new Date(filter.date).getTime();
-      const endTime = startTime + 24 * 60 * 60 * 1000;
+      // 将日期字符串解析为UTC时间
+      const date = parseISO(filter.date);
+      // 获取UTC日期的开始时间
+      const startTime = startOfDay(date).getTime();
+      // 获取下一天的UTC开始时间
+      const endTime = startOfDay(addDays(date, 1)).getTime();
+
+      logger.debug(
+        {
+          startTime: new Date(startTime).toISOString(),
+          endTime: new Date(endTime).toISOString(),
+          filter,
+        },
+        "Fetching records"
+      );
 
       const data = await queryUserTokens({
         userId,
@@ -41,7 +55,14 @@ export const useRecords = (
         limit: ITEMS_PER_PAGE * filter.currentPage,
       });
 
-      logger.info({ userId, records: data.length }, "Records fetched");
+      logger.info(
+        {
+          userId,
+          recordCount: data.length,
+          dateRange: `${new Date(startTime).toISOString()} - ${new Date(endTime).toISOString()}`,
+        },
+        "Records fetched"
+      );
 
       setRecords(data);
     } catch (err) {
