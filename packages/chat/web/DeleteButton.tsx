@@ -5,16 +5,27 @@ import { useTranslation } from "react-i18next";
 import { Alert, useDeleteAlert } from "web/ui/Alert";
 import { deleteData } from "database/dbSlice";
 import toast from "react-hot-toast";
+import { IconHoverButton } from "render/ui/IconHoverButton";
 
-const DeleteButton = ({ id }) => {
+interface DeleteButtonProps {
+  id: string;
+}
+
+const DeleteButton = ({ id }: DeleteButtonProps) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const onDeleteDialog = async () => {
-    await dispatch(deleteData(id));
-    toast.success("Page deleted successfully!");
-    navigate(-1);
+  // 处理删除确认后的操作
+  const onDelete = async () => {
+    try {
+      await dispatch(deleteData(id));
+      toast.success("Page deleted successfully!");
+      navigate(-1);
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      toast.error("Failed to delete page");
+    }
   };
 
   const {
@@ -22,33 +33,20 @@ const DeleteButton = ({ id }) => {
     openAlert,
     doDelete,
     closeAlert,
-  } = useDeleteAlert(onDeleteDialog);
-
-  const openDeleteDialog = () => {
-    openAlert(id);
-  };
+  } = useDeleteAlert(onDelete);
 
   return (
     <>
-      <style>
-        {`
-          .icon-button {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 4px;
-            color: inherit;
-            border-radius: 4px;
-            flex-shrink: 0;
-          }
-          .icon-button:hover {
-            background-color: #f0f0f0;
-          }
-        `}
-      </style>
-      <button className="icon-button" onClick={openDeleteDialog}>
-        <TrashIcon size={16} />
-      </button>
+      <IconHoverButton
+        variant="danger"
+        size="small"
+        icon={<TrashIcon size={16} />}
+        onClick={() => openAlert(id)}
+        aria-label="Delete item"
+      >
+        {t("delete")}
+      </IconHoverButton>
+
       <Alert
         isOpen={deleteAlertVisible}
         onClose={closeAlert}

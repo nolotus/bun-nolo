@@ -17,7 +17,7 @@ import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
 import TextArea from "web/form/Textarea";
-import ToggleSwitch from "web/form/ToggleSwitch";
+import ToggleSwitch from "web/ui/ToggleSwitch";
 import { PlusIcon, CheckIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
@@ -50,14 +50,13 @@ const CreateCybot: React.FC = () => {
     onSubmit,
   } = useCreateCybotValidation();
 
-  const { inputPrice, outputPrice, setInputPrice, setOutputPrice } = useModelPricing(
-    provider,
-    watch("model"),
-    setValue
-  );
+  const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
+    useModelPricing(provider, watch("model"), setValue);
 
   const [models, setModels] = useState<Model[]>([]);
-  const [providerInputValue, setProviderInputValue] = useState<string>(provider || "");
+  const [providerInputValue, setProviderInputValue] = useState<string>(
+    provider || ""
+  );
   const [showCustomUrl, setShowCustomUrl] = useState(false);
   const [showCustomModel, setShowCustomModel] = useState(false);
 
@@ -134,7 +133,9 @@ const CreateCybot: React.FC = () => {
             ) : (
               <Combobox
                 items={models}
-                selectedItem={models.find((model) => watch("model") === model.name) || null}
+                selectedItem={
+                  models.find((model) => watch("model") === model.name) || null
+                }
                 onChange={(item) => setValue("model", item?.name || "")}
                 labelField="name"
                 valueField="name"
@@ -144,9 +145,13 @@ const CreateCybot: React.FC = () => {
                     <span>{item.name}</span>
                     <div className="model-indicators">
                       {item.hasVision && (
-                        <span className="vision-badge">{t("supportsVision")}</span>
+                        <span className="vision-badge">
+                          {t("supportsVision")}
+                        </span>
                       )}
-                      {isSelected && <CheckIcon size={16} className="check-icon" />}
+                      {isSelected && (
+                        <CheckIcon size={16} className="check-icon" />
+                      )}
                     </div>
                   </div>
                 )}
@@ -170,7 +175,9 @@ const CreateCybot: React.FC = () => {
 
           <FormField
             label={t("useServerProxy")}
-            help={isProxyDisabled ? t("proxyNotAvailableForProvider") : undefined}
+            help={
+              isProxyDisabled ? t("proxyNotAvailableForProvider") : undefined
+            }
             horizontal
             labelWidth="120px"
           >
@@ -187,15 +194,14 @@ const CreateCybot: React.FC = () => {
             error={errors.apiKey?.message}
             horizontal
           >
-            <PasswordInput {...register("apiKey")} placeholder={t("enterApiKey")} />
+            <PasswordInput
+              {...register("apiKey")}
+              placeholder={t("enterApiKey")}
+            />
           </FormField>
 
           <div className="price-fields">
-            <FormField
-              label={t("inputPrice")}
-              horizontal
-              labelWidth="100px"
-            >
+            <FormField label={t("inputPrice")} horizontal labelWidth="100px">
               <Input
                 type="number"
                 value={inputPrice}
@@ -203,11 +209,7 @@ const CreateCybot: React.FC = () => {
               />
             </FormField>
 
-            <FormField
-              label={t("outputPrice")}
-              horizontal
-              labelWidth="100px"
-            >
+            <FormField label={t("outputPrice")} horizontal labelWidth="100px">
               <Input
                 type="number"
                 value={outputPrice}
@@ -220,10 +222,7 @@ const CreateCybot: React.FC = () => {
         <div className="section prompt-section">
           <div className="section-title">{t("behaviorSettings")}</div>
 
-          <FormField
-            label={t("prompt")}
-            error={errors.prompt?.message}
-          >
+          <FormField label={t("prompt")} error={errors.prompt?.message}>
             <TextArea {...register("prompt")} placeholder={t("enterPrompt")} />
           </FormField>
 
@@ -232,14 +231,20 @@ const CreateCybot: React.FC = () => {
             error={errors.greeting?.message}
             horizontal
           >
-            <Input {...register("greeting")} placeholder={t("enterGreetingMessage")} />
+            <Input
+              {...register("greeting")}
+              placeholder={t("enterGreetingMessage")}
+            />
           </FormField>
 
           <FormField
             label={t("selfIntroduction")}
             error={errors.introduction?.message}
           >
-            <TextArea {...register("introduction")} placeholder={t("enterSelfIntroduction")} />
+            <TextArea
+              {...register("introduction")}
+              placeholder={t("enterSelfIntroduction")}
+            />
           </FormField>
         </div>
 
@@ -251,11 +256,7 @@ const CreateCybot: React.FC = () => {
         <div className="section">
           <div className="section-title">{t("privacy")}</div>
           <div className="toggle-fields">
-            <FormField
-              label={t("private")}
-              horizontal
-              labelWidth="120px"
-            >
+            <FormField label={t("private")} horizontal labelWidth="120px">
               <ToggleSwitch
                 checked={isPrivate}
                 onChange={(checked) => setValue("isPrivate", checked)}
@@ -263,11 +264,7 @@ const CreateCybot: React.FC = () => {
               />
             </FormField>
 
-            <FormField
-              label={t("encrypted")}
-              horizontal
-              labelWidth="120px"
-            >
+            <FormField label={t("encrypted")} horizontal labelWidth="120px">
               <ToggleSwitch
                 checked={isEncrypted}
                 onChange={(checked) => setValue("isEncrypted", checked)}
@@ -414,7 +411,6 @@ const CreateCybot: React.FC = () => {
             }
           `}
         </style>
-
       </form>
     </div>
   );

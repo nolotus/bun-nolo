@@ -1,4 +1,4 @@
-// web/form/ToggleSwitch.tsx
+// web/ui/ToggleSwitch.tsx
 
 import { useTheme } from "app/theme";
 import type React from "react";
@@ -44,6 +44,27 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
 
   return (
     <>
+      <label
+        className="toggle-wrapper"
+        aria-labelledby={ariaLabelledby}
+        aria-describedby={ariaDescribedby}
+      >
+        <input
+          type="checkbox"
+          className="toggle-input"
+          checked={isChecked}
+          onChange={handleToggle}
+          disabled={disabled || loading}
+        />
+        <div className={`toggle-switch ${isChecked ? "checked" : ""}`}>
+          <span className="toggle-background"></span>
+          {!loading ? (
+            <span className="toggle-handle"></span>
+          ) : (
+            <span className="toggle-loading">Loading...</span>
+          )}
+        </div>
+      </label>
       <style>
         {`
           .toggle-wrapper {
@@ -125,28 +146,6 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
           }
         `}
       </style>
-
-      <label
-        className="toggle-wrapper"
-        aria-labelledby={ariaLabelledby}
-        aria-describedby={ariaDescribedby}
-      >
-        <input
-          type="checkbox"
-          className="toggle-input"
-          checked={isChecked}
-          onChange={handleToggle}
-          disabled={disabled || loading}
-        />
-        <div className={`toggle-switch ${isChecked ? "checked" : ""}`}>
-          <span className="toggle-background"></span>
-          {!loading ? (
-            <span className="toggle-handle"></span>
-          ) : (
-            <span className="toggle-loading">Loading...</span>
-          )}
-        </div>
-      </label>
     </>
   );
 };
