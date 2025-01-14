@@ -8,8 +8,8 @@ export const mistralModels = [
     contextWindow: 32000,
     maxOutputTokens: undefined, // 这里没有明确给出
     price: {
-      input: 0.2,
-      output: 0.6,
+      input: 1.6,
+      output: 4.8,
     },
   },
   {
@@ -21,8 +21,8 @@ export const mistralModels = [
     contextWindow: "128k",
     maxOutputTokens: "128k",
     price: {
-      input: 2,
-      output: 6,
+      input: 16,
+      output: 48,
     },
   },
   {
@@ -31,11 +31,11 @@ export const mistralModels = [
     hasVision: false,
     description: "",
     strengths: "",
-    contextWindow: "32k", // 这里没有明确给出
-    maxOutputTokens: undefined, // 这里没有明确给出
+    contextWindow: "256k",
+    maxOutputTokens: undefined,
     price: {
-      input: 0.2,
-      output: 0.6,
+      input: 2.4,
+      output: 7.2,
     },
   },
   {
@@ -47,8 +47,8 @@ export const mistralModels = [
     contextWindow: "128k", // 这里没有明确给出
     maxOutputTokens: "128k", // 这里没有明确给出
     price: {
-      input: 0.15,
-      output: 0.15,
+      input: 1.2,
+      output: 1.2,
     },
   },
   {
@@ -60,8 +60,8 @@ export const mistralModels = [
     contextWindow: 128000,
     maxOutputTokens: "128k", // 这里没有明确给出
     price: {
-      input: 2,
-      output: 6,
+      input: 16,
+      output: 48,
     },
   },
 ];
