@@ -33,7 +33,6 @@ const syncWithRemote = async (state, id, updates) => {
       method: "PATCH",
       body: JSON.stringify(updates),
     });
-    console.log(`Remote sync successful for id: ${id}`);
   } catch (error) {
     console.error(`Remote sync failed for id: ${id}:`, error);
     // 这里可以将失败的更新存入队列以便后续重试
@@ -61,7 +60,6 @@ export const patchAction = async ({ id, changes }, thunkApi) => {
         };
 
         await browserDb.put(id, newData);
-        console.log(`Local update successful for id: ${id}`);
         return newData;
       } catch (error) {
         console.error(`Local update failed for id: ${id}:`, error);

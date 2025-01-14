@@ -57,12 +57,9 @@ const DialogSlice = createSliceWithThunks({
         return { ...action.payload };
       },
       {
-        pending: (state) => {
-          state.currentDialogId = null;
-        },
-        rejected: (state, action) => {},
-        fulfilled: (state, action) => {
-          state.currentDialogId = action.payload.id;
+        pending: (state, action) => {
+          console.log("pending action ", action.meta.arg);
+          state.currentDialogId = action.meta.arg;
         },
       }
     ),
