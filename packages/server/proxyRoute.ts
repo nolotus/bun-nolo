@@ -3,18 +3,32 @@ import { omit } from "rambda";
 export const proxyRoute = async (req, res) => {
   try {
     const rawBody = req.body;
-
     const body = omit("url,KEY", rawBody);
+    let apiKey;
+    const userKey = rawBody.KEY?.trim(); // 添加trim()去除可能的空格
 
-    const headers = rawBody.model.includes("claude")
+    const getNoloKey = (model) => {
+      if (model?.includes("codestral")) {
+        return process.env.MISTRAL_KEY;
+      }
+      return null;
+    };
+
+    apiKey = Boolean(userKey) ? userKey : getNoloKey(rawBody.model);
+
+    if (!apiKey) {
+      throw new Error("API key is required but not provided");
+    }
+
+    const headers = rawBody.model?.includes("claude")
       ? {
           "Content-Type": "application/json",
-          "x-api-key": rawBody.KEY,
+          "x-api-key": apiKey,
           "anthropic-version": "2023-06-01",
         }
       : {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${rawBody.KEY}`,
+          Authorization: `Bearer ${apiKey}`,
         };
 
     const controller = new AbortController();

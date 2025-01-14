@@ -28,6 +28,13 @@ const Dashboard = () => {
     console.log("id", id);
     navigate(`/${id}?edit=true`);
   };
+  const handleButtonClick = (button) => {
+    if (button.action) {
+      button.action();
+    } else if (button.route) {
+      navigate(button.route);
+    }
+  };
 
   const buttonsInfo = [
     {
@@ -69,7 +76,7 @@ const Dashboard = () => {
               <button
                 key={button.text}
                 className="grid-button"
-                onClick={button.action}
+                onClick={() => handleButtonClick(button)}
               >
                 <div className="button-content">
                   {React.cloneElement(button.icon as React.ReactElement, {

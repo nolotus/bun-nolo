@@ -18,8 +18,7 @@ export const useCreateCybotValidation = () => {
     resolver: zodResolver(createCybotSchema),
     defaultValues: {
       tools: [],
-      isPrivate: false,
-      isEncrypted: false,
+      isPublicInCommunity: false,
       provider: "",
       customProviderUrl: "",
       model: "",
@@ -29,9 +28,8 @@ export const useCreateCybotValidation = () => {
 
   const { watch } = form;
   const provider = watch("provider");
-  const isPrivate = watch("isPrivate");
-  const isEncrypted = watch("isEncrypted");
   const useServerProxy = watch("useServerProxy");
+  const isPublicInCommunity = watch("isPublicInCommunity");
 
   const onSubmit = async (data: FormData) => {
     const id = createCybotKey(auth.user?.userId);
@@ -41,7 +39,6 @@ export const useCreateCybotValidation = () => {
           ...data,
           id,
           type: DataType.CYBOT,
-          userId: auth.user?.userId,
         },
         customId: id,
       })
@@ -49,12 +46,12 @@ export const useCreateCybotValidation = () => {
 
     await createNewDialog({ cybots: [id] });
   };
+
   return {
     form,
     provider,
-    isPrivate,
-    isEncrypted,
     useServerProxy,
+    isPublicInCommunity,
     onSubmit,
   };
 };
