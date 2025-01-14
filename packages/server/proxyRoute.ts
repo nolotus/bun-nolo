@@ -1,20 +1,14 @@
 import { omit } from "rambda";
+import { getNoloKey } from "ai/llm/getNoloKey";
 
 export const proxyRoute = async (req, res) => {
   try {
     const rawBody = req.body;
-    const body = omit("url,KEY", rawBody);
+    const body = omit("url,KEY,provider", rawBody);
     let apiKey;
     const userKey = rawBody.KEY?.trim(); // 添加trim()去除可能的空格
 
-    const getNoloKey = (model) => {
-      if (model?.includes("codestral")) {
-        return process.env.MISTRAL_KEY;
-      }
-      return null;
-    };
-
-    apiKey = Boolean(userKey) ? userKey : getNoloKey(rawBody.model);
+    apiKey = Boolean(userKey) ? userKey : getNoloKey(rawBody.provider);
 
     if (!apiKey) {
       throw new Error("API key is required but not provided");

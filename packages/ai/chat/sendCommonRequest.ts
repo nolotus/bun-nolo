@@ -85,8 +85,8 @@ export const sendCommonChatRequest = async ({
       cybotConfig,
       api,
       bodyData,
-      signal,
-      currentServer
+      currentServer,
+      signal
     );
 
     if (!response.ok) {

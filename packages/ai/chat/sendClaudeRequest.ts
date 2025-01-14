@@ -33,6 +33,7 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
           ...JSON.parse(body),
           url: CLAUDE_API_ENDPOINT,
           KEY: cybotConfig.apiKey,
+          provider: cybotConfig.provider,
         }),
         signal,
       });
