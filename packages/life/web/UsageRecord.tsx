@@ -29,10 +29,8 @@ const initialFilter: RecordsFilter = {
 };
 
 const formatTokens = (record: TokenRecord) => {
-  const input =
-    record.input_tokens +
-    (record.cache_creation_input_tokens || 0) +
-    (record.cache_read_input_tokens || 0);
+  // 只计算实际的输入 tokens
+  const input = record.input_tokens;
   return `输入:${input} 输出:${record.output_tokens}`;
 };
 

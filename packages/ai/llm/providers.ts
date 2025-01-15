@@ -11,7 +11,6 @@ import type { Model } from "./types";
 
 export const providerOptions = [
   "openai",
-  "xai",
   "anthropic",
   "ollama",
   "fireworks",

@@ -1,4 +1,5 @@
 import { Model } from "ai/llm/types";
+
 export const deepinfraModels: Model[] = [
   {
     name: "meta-llama/Meta-Llama-3.1-8B-Instruct",
@@ -6,11 +7,11 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 128000,
     price: {
-      input: 0.055,
-      output: 0.055,
+      input: 0.44, // 0.055 * 8
+      output: 0.44, // 0.055 * 8
     },
-    jsonOutput: true, // 是否支持 JSON 结构化输出
-    fnCall: true, // 是否支持函数调用
+    jsonOutput: true,
+    fnCall: true,
   },
   {
     name: "meta-llama/Meta-Llama-3.1-405B-Instruct",
@@ -18,8 +19,8 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 32000,
     price: {
-      input: 1.79,
-      output: 1.79,
+      input: 14.32, // 1.79 * 8
+      output: 14.32, // 1.79 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -30,8 +31,8 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 128000,
     price: {
-      input: 0.04,
-      output: 0.05,
+      input: 0.32, // 0.04 * 8
+      output: 0.4, // 0.05 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -42,8 +43,8 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 128000,
     price: {
-      input: 0.29,
-      output: 0.4,
+      input: 2.32, // 0.29 * 8
+      output: 3.2, // 0.4 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -54,8 +55,8 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 32000,
     price: {
-      input: 0.18,
-      output: 0.18,
+      input: 1.44, // 0.18 * 8
+      output: 1.44, // 0.18 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -66,8 +67,8 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 32000,
     price: {
-      input: 0.35,
-      output: 0.4,
+      input: 2.8, // 0.35 * 8
+      output: 3.2, // 0.4 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -78,8 +79,8 @@ export const deepinfraModels: Model[] = [
     hasVision: true,
     contextWindow: 32000,
     price: {
-      input: 0.35,
-      output: 0.4,
+      input: 2.8, // 0.35 * 8
+      output: 3.2, // 0.4 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -90,8 +91,8 @@ export const deepinfraModels: Model[] = [
     hasVision: true,
     contextWindow: 128000,
     price: {
-      input: 0.055,
-      output: 0.055,
+      input: 0.44, // 0.055 * 8
+      output: 0.44, // 0.055 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -102,8 +103,8 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 131072,
     price: {
-      input: 0.23,
-      output: 0.4,
+      input: 1.84, // 0.23 * 8
+      output: 3.2, // 0.4 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -114,8 +115,8 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 131072,
     price: {
-      input: 0.13,
-      output: 0.4,
+      input: 1.04, // 0.13 * 8
+      output: 3.2, // 0.4 * 8
     },
     jsonOutput: true,
     fnCall: true,

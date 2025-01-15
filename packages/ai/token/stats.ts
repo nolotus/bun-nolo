@@ -1,4 +1,4 @@
-import { RequiredData } from "./types";
+import { TokenUsageData } from "./types";
 import pino from "pino";
 
 const logger = pino({
@@ -32,7 +32,7 @@ interface DayStats {
 }
 
 function updateModelStats(
-  data: RequiredData,
+  data: TokenUsageData,
   stats: ModelStats = {
     count: 0,
     tokens: { input: 0, output: 0 },
@@ -87,7 +87,10 @@ export function createInitialDayStats(
   return initial;
 }
 
-export function updateDayStats(data: RequiredData, stats: DayStats): DayStats {
+export function updateDayStats(
+  data: TokenUsageData,
+  stats: DayStats
+): DayStats {
   logger.debug({
     msg: "Updating day stats",
     input: { data, stats },

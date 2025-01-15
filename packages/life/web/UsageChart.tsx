@@ -1,46 +1,19 @@
 // UsageChart.tsx
 import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
-import { format, subDays, eachDayOfInterval } from "date-fns";
-import { utcToZonedTime, zonedTimeToUtc, formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone } from "date-fns-tz";
+
 import { pino } from "pino";
 import { getTokenStats } from "ai/token/query";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
-
+import { TimeRange, processDateRange } from "utils/processDateRange";
 const logger = pino({ name: "usage-chart" });
 
 // 获取用户时区
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-type TimeRange = "7days" | "30days" | "90days";
 type DataType = "tokens" | "cost";
-
-const processDateRange = (timeRange: TimeRange) => {
-  // 获取用户时区的当前时间
-  const endLocal = utcToZonedTime(new Date(), userTimeZone);
-  const days = timeRange === "7days" ? 7 : timeRange === "30days" ? 30 : 90;
-  const startLocal = subDays(endLocal, days - 1);
-
-  // 生成用户时区的日期数组
-  const dateArray = eachDayOfInterval({ start: startLocal, end: endLocal });
-
-  // 转换为UTC时间用于API查询
-  const startUTC = zonedTimeToUtc(startLocal, userTimeZone);
-  const endUTC = zonedTimeToUtc(endLocal, userTimeZone);
-
-  return {
-    startUTC,
-    endUTC,
-    dateArray: dateArray.map((date) => ({
-      // UTC格式用于API查询
-      utc: format(zonedTimeToUtc(date, userTimeZone), "yyyy-MM-dd"),
-      // 本地格式用于显示
-      full: format(date, "yyyy-MM-dd"),
-      short: format(date, "MM-dd"),
-    })),
-  };
-};
 
 const UsageChart: React.FC<any> = ({ theme }) => {
   const userId = useAppSelector(selectCurrentUserId);
@@ -53,7 +26,7 @@ const UsageChart: React.FC<any> = ({ theme }) => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const { dateArray } = processDateRange(timeRange);
+        const { dateArray } = processDateRange(timeRange, userTimeZone);
         const startDate = dateArray[0].utc;
         const endDate = dateArray[dateArray.length - 1].utc;
 
@@ -84,7 +57,7 @@ const UsageChart: React.FC<any> = ({ theme }) => {
   }, [userId, timeRange]);
 
   const getChartData = () => {
-    const { dateArray } = processDateRange(timeRange);
+    const { dateArray } = processDateRange(timeRange, userTimeZone);
 
     // 初始化数据结构
     const series = {
@@ -136,8 +109,9 @@ const UsageChart: React.FC<any> = ({ theme }) => {
         trigger: "axis",
         axisPointer: { type: "cross" },
         formatter: (params: any) => {
-          const date =
-            processDateRange(timeRange).dateArray[params[0].dataIndex].full;
+          const date = processDateRange(timeRange, userTimeZone).dateArray[
+            params[0].dataIndex
+          ].full;
           let result = `${date}<br/>`;
           params.forEach((param: any) => {
             const value =

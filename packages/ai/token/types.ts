@@ -1,5 +1,3 @@
-import { DataType } from "create/types";
-
 // 1. ai/token/types.ts - 包含所有类型定义和常量
 export const DEFAULT_QUERY_LIMIT = 100;
 
@@ -32,25 +30,6 @@ export interface RawUsageType2 {
 
 export type RawUsage = RawUsageType1 | RawUsageType2;
 
-export interface TokenUsage {
-  cache_creation_input_tokens: number;
-  cache_read_input_tokens: number;
-  output_tokens: number;
-  input_tokens: number;
-  cost: number;
-}
-
-export interface RequiredData extends TokenUsage {
-  dialogId: string;
-  userId: string;
-  username: string;
-  cybotId: string;
-  model: string;
-  provider: string;
-  date: Date;
-  type: DataType.Token;
-}
-
 export interface NormalizedUsage {
   input_tokens: number;
   output_tokens: number;
@@ -67,6 +46,7 @@ export interface TokenUsageData extends NormalizedUsage {
   date: Date;
   type: string;
   dialogId: string;
+  pay: any;
 }
 
 export interface TokenRecord {

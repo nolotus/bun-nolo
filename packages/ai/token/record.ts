@@ -1,4 +1,4 @@
-import { RequiredData, TokenRecord } from "./types";
+import { TokenRecord } from "./types";
 /**
  * Convert enriched data to token record format
  */
