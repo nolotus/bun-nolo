@@ -15,6 +15,23 @@ export const TOKEN_SCOPES = {
   SITE: "site",
 } as const;
 
+export interface RawUsageType1 {
+  output_tokens?: number;
+  input_tokens?: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+}
+
+export interface RawUsageType2 {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  prompt_cache_hit_tokens: number;
+  prompt_cache_miss_tokens: number;
+}
+
+export type RawUsage = RawUsageType1 | RawUsageType2;
+
 export interface TokenUsage {
   cache_creation_input_tokens: number;
   cache_read_input_tokens: number;
@@ -34,6 +51,24 @@ export interface RequiredData extends TokenUsage {
   type: DataType.Token;
 }
 
+export interface NormalizedUsage {
+  input_tokens: number;
+  output_tokens: number;
+  cache_creation_input_tokens: number;
+  cache_read_input_tokens: number;
+  cost: number;
+}
+
+export interface TokenUsageData extends NormalizedUsage {
+  userId?: string;
+  cybotId: string;
+  model: string;
+  provider: string;
+  date: Date;
+  type: string;
+  dialogId: string;
+}
+
 export interface TokenRecord {
   id: string;
   userId: string;
@@ -47,20 +82,4 @@ export interface TokenRecord {
   input_tokens?: number;
   cost: number;
   createdAt: number;
-}
-
-export interface QueryParams {
-  userId: string;
-  startTime?: number; // 可选,开始时间戳
-  endTime?: number; // 可选,结束时间戳
-  model?: string;
-  limit?: number;
-  offset?: number;
-}
-
-export interface StatsParams {
-  userId: string;
-  period: "day";
-  startDate: string;
-  endDate: string;
 }

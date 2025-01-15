@@ -2,7 +2,7 @@
 import { browserDb } from "database/browser/db";
 import { curry } from "rambda";
 import { createTokenStatsKey, createTokenKey } from "database/keys";
-import { RequiredData, StatsParams, TokenRecord, TokenStats } from "./types";
+import { RequiredData, TokenRecord, TokenStats } from "./types";
 import { ulid } from "ulid";
 import { createTokenRecord } from "./record";
 import { createInitialDayStats, updateDayStats } from "./stats";

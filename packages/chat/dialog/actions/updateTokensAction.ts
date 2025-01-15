@@ -4,15 +4,18 @@ import { calculatePrice } from "integrations/anthropic/calculatePrice";
 import { extractUserId } from "core/prefix";
 
 import { saveTokenUsage } from "ai/token/db";
-
+import { TokenUsageData } from "ai/token/types";
+import { normalizeUsage } from "ai/token/normalizeUsage";
 // 示例使用 updateTokensAction 函数时的数据结构
+
 export const updateTokensAction = async (
-  { dialogId, usage, cybotConfig },
+  { dialogId, usage: usageRaw, cybotConfig },
   thunkApi
 ) => {
   const { dispatch } = thunkApi;
   const state = thunkApi.getState();
   const auth = state.auth;
+  console.log("usageRaw", usageRaw);
 
   const cybotId = cybotConfig.id;
   const model = cybotConfig.model;
@@ -30,22 +33,15 @@ export const updateTokensAction = async (
 
   // const result = calculatePrice({ provider, modelName, usage, externalPrice });
   // console.log("result", result);
-  console.log("usage", usage);
-  const normalizedUsage = {
-    input_tokens: usage.prompt_tokens,
-    output_tokens: usage.completion_tokens,
-    cache_creation_input_tokens: usage.prompt_cache_miss_tokens || 0,
-    cache_read_input_tokens: usage.prompt_cache_hit_tokens || 0,
-    // 计算 cost 的逻辑可以在这里添加
-    cost: 0, // TODO: 添加成本计算
-  };
 
-  const data = {
-    ...normalizedUsage, // 使用转换后的 usage
+  const usage = normalizeUsage(usageRaw);
+
+  const data: TokenUsageData = {
+    ...usage,
     userId: auth?.currentUser?.userId,
-    cybotId,
-    model,
-    provider,
+    cybotId: cybotConfig.id,
+    model: cybotConfig.model,
+    provider: cybotConfig.provider,
     date: new Date(),
     type: DataType.Token,
     dialogId,
@@ -54,9 +50,12 @@ export const updateTokensAction = async (
   try {
     // 存储 token 使用记录
     const result = await saveTokenUsage(data);
-    return result;
   } catch (error) {
     console.error("Failed to save token usage:", error);
     throw error;
   }
+  return {
+    input_tokens: usage.input_tokens,
+    output_tokens: usage.output_tokens,
+  };
 };
