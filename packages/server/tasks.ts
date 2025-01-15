@@ -2,14 +2,8 @@ import { nolotusId } from "core/init";
 import { DataType } from "create/types";
 import { queryData } from "database/query/queryHandler";
 import { parseWeatherParams, fetchWeatherData } from "integrations/weather";
-import { generateIdWithCustomId } from "core/generateMainKey";
 import { ulid } from "ulid";
-import { extractAndDecodePrefix, formatData } from "core";
 import { getLogger } from "utils/logger";
-import {
-  serverCreateTable,
-  serverWriteDataInTable,
-} from "database/write/table";
 
 const surfWeatherLogger = getLogger("surfWeather");
 
@@ -37,9 +31,7 @@ const processWeatherData = async (weatherData, collector) => {
     const specificTime = new Date(hour.time).getTime();
     const ulidForSpecificTime = ulid(specificTime);
     const customId = ulidForSpecificTime;
-    const id = generateIdWithCustomId(nolotusId, customId, {
-      isJSON: true,
-    });
+    const id = customId;
     // 在这里添加 lat 和 lng 到 hour 数据中
     const augmentedHour = {
       ...hour,
@@ -48,19 +40,16 @@ const processWeatherData = async (weatherData, collector) => {
       created_at: Date.now(),
       type: DataType.SurfInfo,
     };
-    const flags = extractAndDecodePrefix(id);
     surfWeatherLogger.info(augmentedHour, "augmentedHour");
-    const value = formatData(augmentedHour, flags);
-    surfWeatherLogger.info(value, "value");
     const tableName = "surf_info";
-    await serverCreateTable(nolotusId, "surf_info");
-    await serverWriteDataInTable(nolotusId, tableName, hour.time, value);
+    // await serverCreateTable(nolotusId, "surf_info");
+    // await serverWriteDataInTable(nolotusId, tableName, hour.time, augmentedHour);
   });
 };
 
 const sendRequestsToTopTenCollectors = async (
   collectors,
-  shouldFetchAll = false,
+  shouldFetchAll = false
 ) => {
   let promises = [];
 

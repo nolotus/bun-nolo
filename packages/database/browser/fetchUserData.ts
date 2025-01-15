@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { browserDb } from "./db";
 // 支持单类型或多类型查询
 export async function fetchUserData(types: string | string[], userId: string) {
   const results: Record<string, any[]> = {};
@@ -15,7 +15,7 @@ export async function fetchUserData(types: string | string[], userId: string) {
     }));
 
     // 只需要一次迭代，在迭代过程中分类
-    for await (const [key, value] of db.iterator({
+    for await (const [key, value] of browserDb.iterator({
       gte: ranges[0].gte,
       lte: ranges[ranges.length - 1].lte,
     })) {

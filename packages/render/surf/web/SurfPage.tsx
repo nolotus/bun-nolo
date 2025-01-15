@@ -1,4 +1,5 @@
-import { extractUserId } from "core";
+import { extractUserId } from "core/prefix";
+
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "app/hooks";
 import { deleteData } from "database/dbSlice";
@@ -23,7 +24,7 @@ export const SurfPage = ({ pageId, data }) => {
 
   const handleDelete = async () => {
     try {
-      await dispatch(deleteData({ id: pageId }));
+      await dispatch(deleteData(pageId));
       toast.success("Page deleted successfully!");
       navigate("/");
     } catch (error) {
@@ -40,7 +41,7 @@ export const SurfPage = ({ pageId, data }) => {
           allowEdit={allowEdit}
         />
       </div>
-      <SurfSpotPage id={pageId} source={data.source} />
+      <SurfSpotPage id={pageId} />
     </>
   );
 };

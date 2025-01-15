@@ -4,12 +4,13 @@ import {
   buildCreateSlice,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
-import { clearCurrentMessages } from "chat/messages/messageSlice";
+import { clearCurrentDialog } from "chat/messages/messageSlice";
 import { deleteData, read, selectById } from "database/dbSlice";
 
 import { createDialogAction } from "./actions/createDialogAction";
 import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
 import { updateTokensAction } from "./actions/updateTokensAction";
+import { extractCustomId } from "core/prefix";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -50,36 +51,30 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
     }),
     initDialog: create.asyncThunk(
-      async (args, thunkApi) => {
-        const { dialogId, source } = args;
+      async (id, thunkApi) => {
         const { dispatch } = thunkApi;
-        const action = await dispatch(read({ id: dialogId }));
-        return { ...action.payload, source };
+        const action = await dispatch(read(id));
+        return { ...action.payload };
       },
       {
-        pending: (state) => {
-          state.currentDialogId = null;
-        },
-        rejected: (state, action) => {},
-        fulfilled: (state, action) => {
-          state.currentDialogId = action.payload.id;
+        pending: (state, action) => {
+          console.log("pending action ", action.meta.arg);
+          state.currentDialogId = action.meta.arg;
         },
       }
     ),
     deleteDialog: create.asyncThunk(
-      async (dialogId, thunkApi) => {
+      async (id, thunkApi) => {
         const { dispatch, getState } = thunkApi;
-
         const state = getState();
-        try {
-          const action = await dispatch(read({ id: dialogId }));
-          const dialog = action.payload;
 
-          if (dialog && dialog.messageListId) {
+        try {
+          const dialogConfig = await dispatch(read(id)).unwrap();
+          if (dialogConfig?.messageListId) {
             const body = { ids: state.message.ids };
             const deleteMessageListAction = await dispatch(
               deleteData({
-                id: dialog.messageListId,
+                id: dialogConfig.messageListId,
                 body,
               })
             );
@@ -87,7 +82,7 @@ const DialogSlice = createSliceWithThunks({
         } catch (error) {
           console.error("Error reading dialog:", error);
         } finally {
-          dispatch(deleteData({ id: dialogId }));
+          dispatch(deleteData(id));
         }
       },
       {
@@ -97,10 +92,11 @@ const DialogSlice = createSliceWithThunks({
       }
     ),
     deleteCurrentDialog: create.asyncThunk(
-      async (dialogId, thunkApi) => {
+      async (dialogKey, thunkApi) => {
         const dispatch = thunkApi.dispatch;
-        dispatch(deleteDialog(dialogId));
-        dispatch(clearCurrentMessages());
+        dispatch(deleteDialog(dialogKey));
+        const dialogId = extractCustomId(dialogKey);
+        dispatch(clearCurrentDialog(dialogId));
         dispatch(resetCurrentDialogTokens());
       },
       {
@@ -113,8 +109,8 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogId = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
     }),
-    createDialog: create.asyncThunk(createDialogAction, {}),
-    updateDialogTitle: create.asyncThunk(updateDialogTitleAction, {}),
+    createDialog: create.asyncThunk(createDialogAction),
+    updateDialogTitle: create.asyncThunk(updateDialogTitleAction),
   }),
 });
 

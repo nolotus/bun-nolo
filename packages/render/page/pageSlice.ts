@@ -1,56 +1,87 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
+import { selectCurrentUserId } from "auth/authSlice";
+import { ParagraphType } from "create/editor/type";
 import { DataType } from "create/types";
+import { write } from "database/dbSlice";
+import { createPageKey } from "database/keys";
 
-export const pageSlice = createSlice({
+const createSliceWithThunks = buildCreateSlice({
+  creators: { asyncThunk: asyncThunkCreator },
+});
+
+export const pageSlice = createSliceWithThunks({
   name: "page",
   initialState: {
-    content: "",
-    createdTime: "",
-    meta: {
-      type: DataType.Page,
-      creator: "",
-      title: "",
-      layout: "default",
-      categories: [],
-      tags: [],
-    },
-    slateData: [],
+    content: null,
+    slateData: null,
+    title: null,
+    isReadOnly: true,
   },
-  reducers: {
-    initPage: (state, action: PayloadAction<string>) => {
-      // Update content with the incoming markdown
+  reducers: (create) => ({
+    createPage: create.asyncThunk(async (args, thunkApi) => {
+      const state = thunkApi.getState();
+      const userId = selectCurrentUserId(state);
+      const id = createPageKey(userId);
+      await thunkApi.dispatch(
+        write({
+          data: {
+            id,
+            type: DataType.PAGE,
+            title: "新页面",
+            slateData: [
+              {
+                type: ParagraphType,
+                children: [{ text: "hi please write something" }],
+              },
+            ],
+            created: new Date().toISOString(),
+          },
+          customId: id,
+        })
+      );
+      return id;
+    }),
+    initPage: create.reducer((state, action) => {
       state.content = action.payload.content;
-      state.meta.type = action.payload.type;
-      state.meta.title = action.payload.title;
       state.slateData = action.payload.slateData;
-    },
+      state.isReadOnly = action.payload.isReadOnly;
+      state.title = action.payload.title;
+    }),
 
-
-    updateSlate: (state, action) => {
+    updateSlate: create.reducer((state, action) => {
       const value = action.payload;
       state.slateData = value;
-    },
-    resetPage: (state) => {
-      // 重置回初始状态
-      state.content = "";
-      state.createdTime = "";
-      state.meta = {
-        type: DataType.Page,
-        creator: "",
-        title: "",
-        layout: "default",
-        categories: [],
-        tags: [],
-      };
-      state.slateData = [];
-    },
-  },
+    }),
+
+    // 添加切换 readonly 的 reducer
+    toggleReadOnly: create.reducer((state) => {
+      state.isReadOnly = !state.isReadOnly;
+    }),
+
+    // 直接设置 readonly 状态的 reducer
+    setReadOnly: create.reducer((state, action) => {
+      state.isReadOnly = action.payload;
+    }),
+
+    resetPage: create.reducer((state) => {
+      state.content = null;
+      state.slateData = null;
+    }),
+  }),
 });
+
+// 选择器
+export const selectSlateData = (state) => state.page.slateData;
+export const selectPageData = (state) => state.page;
+export const selectIsReadOnly = (state) => state.page.isReadOnly;
 
 export const {
   initPage,
+  createPage,
   updateSlate,
   resetPage,
+  toggleReadOnly,
+  setReadOnly,
 } = pageSlice.actions;
 
 export default pageSlice.reducer;

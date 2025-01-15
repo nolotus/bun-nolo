@@ -1,20 +1,25 @@
 import { handleLogin } from "./login";
 import { handleSignUp } from "./signup";
 import { handleDeleteUser } from "./delete";
+import { handleListUsers } from "./listusers";
 
 export const authServerRoutes = (req, res) => {
   const { url, method } = req;
 
   switch (true) {
-    case url.pathname.endsWith("/login"):
+    // 认证相关
+    case url.pathname.endsWith("/login") && method === "POST":
       return handleLogin(req, res);
-    case url.pathname.endsWith("/signup"):
+    case url.pathname.endsWith("/signup") && method === "POST":
       return handleSignUp(req, res);
-    case url.pathname.match(/\/users\/delete\/\w+$/) && method === "DELETE":
-      // 注意，这里使用match方法和正则表达式来匹配路径，
-      // \w+ 用于匹配用户ID，确保只有DELETE方法时才会执行删除操作
+
+    // 用户管理
+    case url.pathname.endsWith("/users") && method === "GET":
+      return handleListUsers(req, res);
+    case url.pathname.match(/\/users\/\w+$/) && method === "DELETE":
       return handleDeleteUser(req, res);
+
     default:
-      return new Response("user");
+      return new Response("Not Found", { status: 404 });
   }
 };

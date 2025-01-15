@@ -1,10 +1,10 @@
 import React from "react";
 import { useAppDispatch } from "app/hooks";
-import { extractCustomId } from "core";
+import { extractCustomId } from "core/prefix";
 import { DataType } from "create/types";
 import { deleteData } from "database/dbSlice";
 import { Link } from "react-router-dom";
-import { TrashIcon, RepoPullIcon } from "@primer/octicons-react";
+import { TrashIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 
 type FieldConfig = {
@@ -119,14 +119,9 @@ const defaultConfig: RenderConfig = {
 interface DataTableProps {
   dataList: any[];
   type?: DataType;
-  pullData: (id: string, data: any) => void;
 }
 
-export const DataTable: React.FC<DataTableProps> = ({
-  dataList,
-  type,
-  pullData,
-}) => {
+export const DataTable: React.FC<DataTableProps> = ({ dataList, type }) => {
   const dispatch = useAppDispatch();
   const config =
     type && type in renderConfigs ? renderConfigs[type] : defaultConfig;
@@ -139,24 +134,15 @@ export const DataTable: React.FC<DataTableProps> = ({
   };
 
   const renderActions = (data: any) => (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
       <Button
         variant="secondary"
         status="error"
         size="small"
-        onClick={() => dispatch(deleteData({ id: data.id }))}
+        onClick={() => dispatch(deleteData(data.id))}
         icon={<TrashIcon size={14} />}
       >
         删除
-      </Button>
-
-      <Button
-        variant="secondary"
-        size="small"
-        onClick={() => pullData(data.id, data)}
-        icon={<RepoPullIcon size={14} />}
-      >
-        拉取
       </Button>
 
       {config.actions && config.actions(data)}

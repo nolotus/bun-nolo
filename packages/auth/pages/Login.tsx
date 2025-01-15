@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { signIn } from "../authSlice";
 import z from "zod";
-import { hashedPasswordV0 } from 'core/hashedPasswordV0'
+import { hashedPasswordV0 } from "core/hashedPasswordV0";
 
 import { LockIcon, PersonIcon } from "@primer/octicons-react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -21,151 +21,153 @@ import PasswordInput from "web/form/PasswordInput";
 import { RoutePaths } from "../client/routes";
 
 const Login: React.FC = () => {
-	const navigate = useNavigate();
-	const theme = useTheme();
-	const { isLoading } = useSelector((state) => state.auth);
-	const dispatch = useAppDispatch();
-	const { t } = useTranslation();
-	const [error, setError] = useState<string | null>(null);
-	const [version, setVersion] = useState("v1");
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const { isLoading } = useSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const { t } = useTranslation();
+  const [error, setError] = useState<string | null>(null);
+  const [version, setVersion] = useState("v1");
 
-	const userFormSchema = z.object({
-		username: z.string().nonempty({ message: t("usernameRequired") || "" }),
-		password: z.string().nonempty({ message: t("passwordRequired") || "" }),
-		version: z.string()
-	});
+  const userFormSchema = z.object({
+    username: z.string().nonempty({ message: t("usernameRequired") || "" }),
+    password: z.string().nonempty({ message: t("passwordRequired") || "" }),
+    version: z.string(),
+  });
 
-	const {
-		register,
-		handleSubmit,
-		formState: { errors },
-	} = useForm({
-		resolver: zodResolver(userFormSchema),
-	});
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(userFormSchema),
+  });
 
-	const onSubmit = async (data) => {
-		try {
-			const locale = navigator.language;
-			const { password, version } = data;
+  const onSubmit = async (data) => {
+    try {
+      const locale = navigator.language;
+      const { password, version } = data;
 
-			const encryptionKey = version === "v0" ?
-				await hashedPasswordV0(password) :
-				await hashPasswordV1(password);
+      const encryptionKey =
+        version === "v0"
+          ? await hashedPasswordV0(password)
+          : await hashPasswordV1(password);
 
-			const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
-			if (action.payload.token) {
-				storeTokens(action.payload.token);
-				//maybe dashboard
-				navigate('/')
-				return;
-			}
+      const result = await dispatch(
+        signIn({ ...data, locale, encryptionKey })
+      ).unwrap();
+      console.log("login result", result);
 
-			switch (action.payload.status) {
-				case 404:
-					setError(t("userNotFound"));
-					break;
-				case 403:
-					setError(t("invalidCredentials"));
-					break;
-				case 401:
-					setError(t("notAuthorized"));
-					break;
-				case 429:
-					setError(t("tooManyAttempts"));
-					break;
-				case 400:
-					setError(t("validationError"));
-					break;
-				case 500:
-					setError(t("serverError"));
-					break;
-				default:
-					setError(t("operationFailed"));
-			}
-		} catch (err) {
-			setError(t("networkError"));
-		}
-	};
+      if (result.token) {
+        console.log("login success");
+        storeTokens(result.token);
+        //maybe dashboard
+        navigate("/");
+        return;
+      }
 
-	return (
-		<div className="login-container">
-			<form onSubmit={handleSubmit(onSubmit)} className="login-form">
-				<h1 className="login-title">{t("login")}</h1>
+      switch (result.status) {
+        case 404:
+          setError(t("userNotFound"));
+          break;
+        case 403:
+          setError(t("invalidCredentials"));
+          break;
+        case 401:
+          setError(t("notAuthorized"));
+          break;
+        case 429:
+          setError(t("tooManyAttempts"));
+          break;
+        case 400:
+          setError(t("validationError"));
+          break;
+        case 500:
+          setError(t("serverError"));
+          break;
+        default:
+          setError(t("operationFailed"));
+      }
+    } catch (err) {
+      setError(t("networkError"));
+    }
+  };
 
-				<div className="field-group">
-					<Input
-						placeholder={t("enterUsername")}
-						{...register("username")}
-						error={!!errors.username}
-						icon={<PersonIcon size={20} />}
-						autoComplete="username"
-					/>
-					{errors.username && (
-						<p className="error-message">{errors.username.message}</p>
-					)}
-				</div>
+  return (
+    <div className="login-container">
+      <form onSubmit={handleSubmit(onSubmit)} className="login-form">
+        <h1 className="login-title">{t("login")}</h1>
 
-				<div className="field-group">
-					<PasswordInput
-						placeholder={t("enterPassword")}
-						{...register("password")}
-						error={!!errors.password}
-						icon={<LockIcon size={20} />}
-						autoComplete="current-password"
-					/>
-					{errors.password && (
-						<p className="error-message">{errors.password.message}</p>
-					)}
-				</div>
+        <div className="field-group">
+          <Input
+            placeholder={t("enterUsername")}
+            {...register("username")}
+            error={!!errors.username}
+            icon={<PersonIcon size={20} />}
+            autoComplete="username"
+          />
+          {errors.username && (
+            <p className="error-message">{errors.username.message}</p>
+          )}
+        </div>
 
-				<div className="version-select-wrapper">
-					<select
-						{...register("version")}
-						onChange={e => setVersion(e.target.value)}
-						className="version-select"
-						value={version}
-					>
-						<option value="v1">V1</option>
-						<option value="v0">V0</option>
-					</select>
-				</div>
+        <div className="field-group">
+          <PasswordInput
+            placeholder={t("enterPassword")}
+            {...register("password")}
+            error={!!errors.password}
+            icon={<LockIcon size={20} />}
+            autoComplete="current-password"
+          />
+          {errors.password && (
+            <p className="error-message">{errors.password.message}</p>
+          )}
+        </div>
 
+        <div className="version-select-wrapper">
+          <select
+            {...register("version")}
+            onChange={(e) => setVersion(e.target.value)}
+            className="version-select"
+            value={version}
+          >
+            <option value="v1">V1</option>
+            <option value="v0">V0</option>
+          </select>
+        </div>
 
-				<div className="remember-forgot">
-					<Checkbox
-						label={t("rememberMe")}
-						{...register("rememberMe")}
-					/>
-					<NavLink to="/forgot-password" className="forgot-password">
-						{t("forgotPassword")}
-					</NavLink>
-				</div>
+        <div className="remember-forgot">
+          <Checkbox label={t("rememberMe")} {...register("rememberMe")} />
+          <NavLink to="/forgot-password" className="forgot-password">
+            {t("forgotPassword")}
+          </NavLink>
+        </div>
 
-				{error && <p className="error-message">{error}</p>}
+        {error && <p className="error-message">{error}</p>}
 
-				<div className="form-footer">
-					<Button
-						variant="primary"
-						size="large"
-						loading={isLoading}
-						disabled={isLoading}
-						style={{ width: "100%" }}
-						type="submit"
-					>
-						{isLoading ? t("loading") : t("login")}
-					</Button>
+        <div className="form-footer">
+          <Button
+            variant="primary"
+            size="large"
+            loading={isLoading}
+            disabled={isLoading}
+            style={{ width: "100%" }}
+            type="submit"
+          >
+            {isLoading ? t("loading") : t("login")}
+          </Button>
 
-					<div className="signup-section">
-						<span className="link-text">{t("noAccount")}</span>
-						<NavLink to={RoutePaths.INVITE_SIGNUP} className="signup-link">
-							{t("signUpNow")}
-						</NavLink>
-					</div>
-				</div>
-			</form>
+          <div className="signup-section">
+            <span className="link-text">{t("noAccount")}</span>
+            <NavLink to={RoutePaths.SIGNUP} className="signup-link">
+              {t("signUpNow")}
+            </NavLink>
+          </div>
+        </div>
+      </form>
 
-			<style>
-				{`
+      <style>
+        {`
           .login-container {
             display: flex;
             justify-content: center;
@@ -302,9 +304,9 @@ const Login: React.FC = () => {
             }
           }
         `}
-			</style>
-		</div>
-	);
+      </style>
+    </div>
+  );
 };
 
 export default Login;

@@ -89,18 +89,15 @@ const workspaceSlice = createSliceWithThunks({
           return;
         }
         const dispatch = thunkAPI.dispatch;
-        const state = thunkAPI.getState();
-        const currentUserId = selectCurrentUserId(state);
-        const config = {
-          data: {
-            type: DataType.Space,
-            name,
-          },
-          flags: { isJSON: true },
-          userId: currentUserId,
-        };
 
-        const actionResult = await dispatch(write(config));
+        const actionResult = await dispatch(
+          write({
+            data: {
+              type: DataType.Space,
+              name,
+            },
+          })
+        );
         console.log("addWorkspace", actionResult);
         return actionResult.payload;
       },
@@ -114,7 +111,7 @@ const workspaceSlice = createSliceWithThunks({
     deleteWorkspace: create.asyncThunk(
       async (workspaceId: string, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
-        await dispatch(deleteData({ id: workspaceId }));
+        await dispatch(deleteData(workspaceId));
         return workspaceId;
       },
       {

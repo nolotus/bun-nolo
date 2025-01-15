@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { patchData, write } from "database/dbSlice";
-import { useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { useAuth } from "auth/useAuth";
 import { useQueryData } from "app/hooks/useQueryData";
@@ -26,7 +24,6 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [localCategoryName, setLocalCategoryName] = useState("");
   const dispatch = useDispatch();
-  const currentUserId = useAppSelector(selectCurrentUserId);
   const auth = useAuth();
 
   const categoryQueryConfig = {
@@ -63,22 +60,20 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
       localCategoryName &&
       (!categoryId ||
         localCategoryName !==
-        categories?.find((cat) => cat.id === categoryId)?.name)
+          categories?.find((cat) => cat.id === categoryId)?.name)
     ) {
-      const categoryConfig = {
-        data: {
-          type: DataType.Category,
-          name: localCategoryName,
-          parentId: null,
-          isCollapsed: false,
-          order: 0,
-        },
-        flags: { isJSON: true },
-        userId: currentUserId,
-      };
-
       try {
-        const result = await dispatch(write(categoryConfig));
+        const result = await dispatch(
+          write({
+            data: {
+              type: DataType.Category,
+              name: localCategoryName,
+              parentId: null,
+              isCollapsed: false,
+              order: 0,
+            },
+          })
+        );
         if (result.payload && result.payload.id) {
           await dispatch(
             patchData({

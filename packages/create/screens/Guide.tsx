@@ -10,7 +10,7 @@ import {
   StyleSheet,
   Platform,
   SafeAreaView,
-  Dimensions
+  Dimensions,
 } from "react-native";
 
 import { selectCurrentUserId } from "auth/authSlice";
@@ -23,13 +23,12 @@ import { selectTheme } from "app/theme/themeSlice";
 
 import Octicons from "react-native-vector-icons/Octicons";
 
-
 const { width } = Dimensions.get("window");
 
 const IconButton = ({
   name,
   size = 24,
-  style
+  style,
 }: {
   name: string;
   size?: number;
@@ -37,12 +36,7 @@ const IconButton = ({
 }) => {
   const theme = useAppSelector(selectTheme);
   return (
-    <Octicons
-      name={name}
-      size={size}
-      color={theme.primary}
-      style={style}
-    />
+    <Octicons name={name} size={size} color={theme.primary} style={style} />
   );
 };
 
@@ -60,11 +54,7 @@ const GuideButton = ({
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[
-        styles.button,
-        { backgroundColor: theme.background },
-        style
-      ]}
+      style={[styles.button, { backgroundColor: theme.background }, style]}
       activeOpacity={0.7}
     >
       {children}
@@ -86,7 +76,7 @@ interface ButtonGroupProps {
 
 const ButtonGroup: React.FC<ButtonGroupProps> = ({
   buttons,
-  onButtonPress
+  onButtonPress,
 }) => {
   const theme = useAppSelector(selectTheme);
 
@@ -98,7 +88,7 @@ const ButtonGroup: React.FC<ButtonGroupProps> = ({
           onPress={() => onButtonPress(button.route)}
           style={[
             styles.groupButton,
-            { backgroundColor: theme.backgroundSecondary }
+            { backgroundColor: theme.backgroundSecondary },
           ]}
         >
           <View style={styles.buttonContent}>
@@ -108,7 +98,12 @@ const ButtonGroup: React.FC<ButtonGroupProps> = ({
                 {button.text}
               </Text>
               {button.description && (
-                <Text style={[styles.buttonDescription, { color: theme.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.buttonDescription,
+                    { color: theme.textSecondary },
+                  ]}
+                >
                   {button.description}
                 </Text>
               )}
@@ -135,7 +130,6 @@ const ChatGuide = () => {
       },
       {
         text: "空白页面",
-        route: CreateRoutePaths.CREATE_PAGE,
         icon: <IconButton name="file-added" />,
         description: "从空白页面开始创作",
       },
@@ -146,7 +140,7 @@ const ChatGuide = () => {
         description: "管理和创建提示词模板",
       },
     ],
-    [],
+    []
   );
 
   useQueryData({
@@ -165,19 +159,22 @@ const ChatGuide = () => {
       limit: 20,
     },
   });
-  const templateButtons = templates?.map((template) => ({
-    text: template.title,
-    route: `create/page?id=${template.id}`,
-    description: template.description || "使用此模板快速开始",
-    icon: <IconButton name="file-code" size={16} />,
-  })) ?? [];
+  const templateButtons =
+    templates?.map((template) => ({
+      text: template.title,
+      route: `create/page?id=${template.id}`,
+      description: template.description || "使用此模板快速开始",
+      icon: <IconButton name="file-code" size={16} />,
+    })) ?? [];
 
   const handleNavigation = (route: string) => {
     navigation.navigate(route);
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -196,7 +193,10 @@ const ChatGuide = () => {
                 快速创建
               </Text>
             </View>
-            <ButtonGroup buttons={buttonsInfo} onButtonPress={handleNavigation} />
+            <ButtonGroup
+              buttons={buttonsInfo}
+              onButtonPress={handleNavigation}
+            />
           </View>
 
           <View style={styles.section}>
@@ -206,10 +206,18 @@ const ChatGuide = () => {
                 从模板创建
               </Text>
             </View>
-            <Text style={[styles.sectionDescription, { color: theme.textSecondary }]}>
+            <Text
+              style={[
+                styles.sectionDescription,
+                { color: theme.textSecondary },
+              ]}
+            >
               使用精心设计的模板，快速开始你的项目
             </Text>
-            <ButtonGroup buttons={templateButtons} onButtonPress={handleNavigation} />
+            <ButtonGroup
+              buttons={templateButtons}
+              onButtonPress={handleNavigation}
+            />
           </View>
 
           <View style={styles.section}>
@@ -253,20 +261,20 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   section: {
     marginBottom: 32,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
     paddingHorizontal: 4,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: "500",
     marginLeft: 8,
   },
   sectionDescription: {
@@ -275,13 +283,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   buttonGroup: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginHorizontal: -8,
   },
   button: {
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   groupButton: {
     width: (width - 48) / 2,
@@ -290,7 +298,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
@@ -301,8 +309,8 @@ const styles = StyleSheet.create({
     }),
   },
   buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   buttonTextContainer: {
     marginLeft: 12,
@@ -310,7 +318,7 @@ const styles = StyleSheet.create({
   },
   buttonTitle: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 4,
   },
   buttonDescription: {
@@ -318,4 +326,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChatGuide
+export default ChatGuide;

@@ -27,43 +27,27 @@ const DeleteDialogButton = ({ dialogConfig }) => {
     openAlert(dialogConfig);
   };
 
-  const styles = {
-    iconButton: {
-      background: "transparent",
-      border: "none",
-      cursor: "pointer",
-      padding: "4px",
-      color: "inherit",
-      borderRadius: "4px",
-      flexShrink: 0,
-    },
-  };
-
-  const IconButton = ({ onClick, children }) => {
-    const [isHovered, setIsHovered] = React.useState(false);
-
-    const buttonStyle = {
-      ...styles.iconButton,
-      backgroundColor: isHovered ? "#f0f0f0" : "transparent",
-    };
-
-    return (
-      <button
-        onClick={onClick}
-        style={buttonStyle}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {children}
-      </button>
-    );
-  };
-
   return (
     <>
-      <IconButton onClick={openDeleteDialog}>
+      <style>
+        {`
+          .icon-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: inherit;
+            border-radius: 4px;
+            flex-shrink: 0;
+          }
+          .icon-button:hover {
+            background-color: #f0f0f0;
+          }
+        `}
+      </style>
+      <button className="icon-button" onClick={openDeleteDialog}>
         <TrashIcon size={16} />
-      </IconButton>
+      </button>
       <Alert
         isOpen={deleteAlertVisible}
         onClose={closeAlert}

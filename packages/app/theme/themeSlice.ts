@@ -19,7 +19,7 @@ const THEME_COLORS = {
   yellow,
   graphite,
   pink,
- };
+};
 
 // 明暗模式基础颜色
 const MODE_COLORS = {
@@ -59,12 +59,12 @@ const MODE_COLORS = {
     shadowMedium: "rgba(0,0,0,0.2)",
     shadowHeavy: "rgba(0,0,0,0.25)",
     dropZoneActive: "rgba(51, 204, 255, 0.08)",
-  }
+  },
 };
 
 // 创建完整主题配置
 const createThemeConfig = (themeName: string, isDark: boolean) => {
-  const mode = isDark ? 'dark' : 'light';
+  const mode = isDark ? "dark" : "light";
   return {
     sidebarWidth: 260,
     ...MODE_COLORS[mode],
@@ -75,15 +75,15 @@ const createThemeConfig = (themeName: string, isDark: boolean) => {
 // 为主题预计算明暗版本
 const createThemeVariants = (themeName: string) => ({
   light: createThemeConfig(themeName, false),
-  dark: createThemeConfig(themeName, true)
+  dark: createThemeConfig(themeName, true),
 });
 
 const initialState = {
-  themeName: 'blue',
+  themeName: "blue",
   isDark: false,
   // 预计算完整主题配置
-  current: createThemeVariants('blue'),
-  sidebarWidth: 260
+  current: createThemeVariants("blue"),
+  sidebarWidth: 260,
 };
 
 const themeSlice = createSlice({
@@ -107,14 +107,14 @@ const themeSlice = createSlice({
 
     setDarkMode: (state, action) => {
       state.isDark = action.payload;
-    }
-  }
+    },
+  },
 });
 
 export const { setTheme, setSidebarWidth, setDarkMode } = themeSlice.actions;
 
 // 简化的选择器 - 直接返回预计算的主题配置
-export const selectTheme = (state) => 
+export const selectTheme = (state) =>
   state.theme.isDark ? state.theme.current.dark : state.theme.current.light;
 
 export const selectIsDark = (state) => state.theme.isDark;

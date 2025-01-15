@@ -1,40 +1,71 @@
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
 import { useAuth } from "auth/useAuth";
 import {
   clearDialogState,
   initDialog,
   selectCurrentDialogConfig,
 } from "chat/dialog/dialogSlice";
-import MessageInputContainer from "chat/messages/MessageInputContainer";
-import MessagesList from "chat/messages/MessageList";
-//  chat/dialog/DialogPage
+import MessageInputContainer from "chat/web/MessageInputContainer";
+import MessagesList from "chat/web/MessageList";
 import { useEffect } from "react";
 import { layout } from "render/styles/layout";
+import { useMessages } from "../messages/hooks/useMessages";
+import { browserDb } from "database/browser/db";
+import { extractCustomId } from "core/prefix";
+import { initMsgs, resetMsgs } from "../messages/messageSlice";
+import { reverse } from "rambda";
 
-const DialogPage = ({ dialogId }) => {
-  const auth = useAuth();
+const LoadingSpinner = () => (
+  <div
+    style={{
+      ...layout.flex,
+      ...layout.justifyCenter,
+      ...layout.alignCenter,
+      height: "100%",
+    }}
+  >
+    <div>Loading...</div>
+  </div>
+);
+
+const DialogPage = ({ pageId }) => {
   const dispatch = useAppDispatch();
-  if (!auth.user) {
-    window.location.href = "/login";
+  const { user } = useAuth();
+  const dialogId = extractCustomId(pageId);
+  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+
+  // 使用 useMessages hook
+  const { messages, loading } = useMessages(browserDb, dialogId);
+  const { data } = useFetchData(currentDialogConfig?.messageListId);
+  if (data) {
+    console.log("data", data);
+    const ids = reverse(data?.array);
+    console.log("ids", ids);
   }
 
+  // 处理消息初始化
   useEffect(() => {
-    dialogId && dispatch(initDialog({ dialogId }));
+    if (!loading && messages.length > 0) {
+      dispatch(initMsgs(messages));
+    }
+    return () => {
+      dispatch(resetMsgs());
+    };
+  }, [loading, messages, dispatch]);
 
-    // 组件卸载时清空数据
+  // 处理对话初始化和清理
+  useEffect(() => {
+    if (pageId && user) {
+      dispatch(initDialog(pageId));
+    }
+
     return () => {
       dispatch(clearDialogState());
     };
-  }, [auth.user, dialogId]);
-
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  // 计算剩余的空间
+  }, [user, pageId, dispatch]);
 
   return (
     <>
-      {/* <meta name="author" content="Josh" />
-      <link rel="author" href="https://twitter.com/joshcstory/" />
-      <meta name="keywords" content={post.keywords} /> */}
       {currentDialogConfig?.title && <title>{currentDialogConfig.title}</title>}
       <div
         style={{
@@ -50,25 +81,29 @@ const DialogPage = ({ dialogId }) => {
             ...layout.overflowXHidden,
           }}
         >
-          {currentDialogConfig && (
-            <div
-              style={{
-                ...layout.flexColumn,
-                ...layout.h100,
-                ...layout.overflowXHidden,
-              }}
-            >
+          {loading ? (
+            <LoadingSpinner />
+          ) : (
+            currentDialogConfig && (
               <div
                 style={{
-                  ...layout.flexGrow1,
-                  ...layout.overflowYAuto,
                   ...layout.flexColumn,
+                  ...layout.h100,
+                  ...layout.overflowXHidden,
                 }}
               >
-                <MessagesList />
+                <div
+                  style={{
+                    ...layout.flexGrow1,
+                    ...layout.overflowYAuto,
+                    ...layout.flexColumn,
+                  }}
+                >
+                  <MessagesList />
+                </div>
+                <MessageInputContainer />
               </div>
-              <MessageInputContainer />
-            </div>
+            )
           )}
         </div>
       </div>
@@ -76,4 +111,4 @@ const DialogPage = ({ dialogId }) => {
   );
 };
 
-export default DialogPage
+export default DialogPage;

@@ -17,9 +17,10 @@ import DropDown from "render/ui/DropDown";
 import { SettingRoutePaths } from "setting/config";
 
 const StyleSheet = () => {
-  const theme = useAppSelector(selectTheme)
-  return <style>
-    {`
+  const theme = useAppSelector(selectTheme);
+  return (
+    <style>
+      {`
 		.menu-wrapper {
 		  display: flex;
 		  align-items: center;
@@ -119,8 +120,9 @@ const StyleSheet = () => {
 		  color: ${theme.primary};
 		}
 	  `}
-  </style>
-}
+    </style>
+  );
+};
 
 export const IsLoggedInMenu: React.FC = () => {
   const { t } = useTranslation();
@@ -133,7 +135,7 @@ export const IsLoggedInMenu: React.FC = () => {
   const changeUser = (user: any) => {
     const tokens = getTokensFromLocalStorage();
     const updatedToken = tokens.find(
-      (t) => parseToken(t).userId === user.userId,
+      (t) => parseToken(t).userId === user.userId
     );
     if (updatedToken) {
       const newTokens = [
@@ -155,8 +157,9 @@ export const IsLoggedInMenu: React.FC = () => {
     label: string,
     icon?: React.ReactNode,
     onClick?: () => void,
+    key: string // 改为必需参数
   ) => (
-    <button onClick={onClick} className="dropdown-item">
+    <button key={key} onClick={onClick} className="dropdown-item">
       {icon && <span className="dropdown-icon">{icon}</span>}
       <span>{label}</span>
     </button>
@@ -164,7 +167,6 @@ export const IsLoggedInMenu: React.FC = () => {
 
   return (
     <>
-      <StyleSheet />
       <div className="menu-wrapper">
         <NavLink
           to="/life"
@@ -190,23 +192,31 @@ export const IsLoggedInMenu: React.FC = () => {
               (user) =>
                 user !== auth.user &&
                 user &&
-                renderDropdownItem(user.username, null, () => changeUser(user)),
+                renderDropdownItem(
+                  user.username,
+                  null,
+                  () => changeUser(user),
+                  `user-${user.userId}` // 确保key的唯一性
+                )
             )}
 
             {renderDropdownItem(
               t("common:settings"),
               <GearIcon size={16} />,
               () => navigate(SettingRoutePaths.SETTING),
+              "settings" // 添加唯一key
             )}
 
             {renderDropdownItem(
               t("common:logout"),
               <SignOutIcon size={16} />,
               logout,
+              "logout" // 添加唯一key
             )}
           </div>
         </DropDown>
       </div>
+      <StyleSheet />
     </>
   );
 };

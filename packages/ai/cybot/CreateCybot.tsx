@@ -3,26 +3,28 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 
-//type relate
+// types
 import type { Model } from "../llm/types";
 import { useCreateCybotValidation } from "./hooks/useCreateCybotValidation";
 
-//data relate
+// data & hooks
 import { getModelsByProvider, providerOptions } from "../llm/providers";
 import useModelPricing from "./hooks/useModelPricing";
 import { useProxySetting } from "./hooks/useProxySetting";
 
-// web imports
+// components
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
 import TextArea from "web/form/Textarea";
-import ToggleSwitch from "web/form/ToggleSwitch";
+import ToggleSwitch from "web/ui/ToggleSwitch";
 import { PlusIcon, CheckIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import ToolSelector from "../tools/ToolSelector";
 import { Combobox } from "web/form/Combobox";
+
+type ApiSource = "platform" | "custom";
 
 const getOrderedProviderOptions = () => {
   return [
@@ -30,11 +32,11 @@ const getOrderedProviderOptions = () => {
     ...providerOptions.map((item) => ({ name: item })),
   ];
 };
-
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
 
+  // form hooks
   const {
     form: {
       register,
@@ -44,239 +46,297 @@ const CreateCybot: React.FC = () => {
       formState: { errors, isSubmitting },
     },
     provider,
-    isPrivate,
-    isEncrypted,
     useServerProxy,
+    isPublicInCommunity,
     onSubmit,
   } = useCreateCybotValidation();
 
-  const { inputPrice, outputPrice, setInputPrice, setOutputPrice } = useModelPricing(
-    provider,
-    watch("model"),
-    setValue
-  );
-
+  // 主要状态
+  const [apiSource, setApiSource] = useState<ApiSource>("platform");
   const [models, setModels] = useState<Model[]>([]);
-  const [providerInputValue, setProviderInputValue] = useState<string>(provider || "");
-  const [showCustomUrl, setShowCustomUrl] = useState(false);
-  const [showCustomModel, setShowCustomModel] = useState(false);
 
+  // provider相关状态
+  const [providerInputValue, setProviderInputValue] = useState<string>(
+    provider || ""
+  );
+  const isCustomProvider = provider === "Custom";
+
+  // 价格和代理hooks
+  const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
+    useModelPricing(provider, watch("model"), setValue);
+  const isProxyDisabled = useProxySetting(provider, setValue);
+
+  // 监听API来源变化
+  useEffect(() => {
+    if (apiSource === "platform") {
+      setValue("apiKey", "");
+      setValue("useServerProxy", true);
+    }
+  }, [apiSource, setValue]);
+
+  // 监听Provider变化
   useEffect(() => {
     setProviderInputValue(provider || "");
-    setShowCustomUrl(provider === "Custom");
-    setShowCustomModel(provider === "Custom");
-  }, [provider]);
-
-  useEffect(() => {
-    if (provider !== "Custom") {
-      const modelsList = getModelsByProvider(providerInputValue);
+    if (!isCustomProvider) {
+      setValue("customProviderUrl", "");
+      const modelsList = getModelsByProvider(provider || "");
       setModels(modelsList);
       if (modelsList.length > 0) {
         setValue("model", modelsList[0].name);
       }
     }
-  }, [providerInputValue, setValue, provider]);
-
-  const isProxyDisabled = useProxySetting(provider, setValue);
-
+  }, [provider, setValue, isCustomProvider]);
   return (
     <div className="create-cybot-container">
       <FormTitle>{t("createCybot")}</FormTitle>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="section basic-info">
-          <FormField
-            label={t("cybotName")}
-            required
-            error={errors.name?.message}
-            horizontal
-          >
-            <Input {...register("name")} placeholder={t("enterCybotName")} />
-          </FormField>
-        </div>
+        {/* 基础信息部分 */}
+        <div className="form-section">
+          <div className="section-title">{t("basicInfo")}</div>
+          <div className="section-content">
+            <FormField
+              label={t("cybotName")}
+              required
+              error={errors.name?.message}
+            >
+              <Input {...register("name")} placeholder={t("enterCybotName")} />
+            </FormField>
 
-        <div className="section model-config">
-          <div className="section-title">{t("modelConfiguration")}</div>
-
-          <FormField
-            label={t("provider")}
-            required
-            error={errors.provider?.message}
-            horizontal
-          >
-            <Combobox
-              items={getOrderedProviderOptions()}
-              selectedItem={provider ? { name: provider } : null}
-              onChange={(item) => {
-                setValue("provider", item?.name || "");
-                setProviderInputValue(item?.name || "");
-                if (!item || item.name !== "Custom") {
-                  setValue("customProviderUrl", "");
-                  setValue("model", "");
-                }
-              }}
-              labelField="name"
-              valueField="name"
-              placeholder={t("selectProvider")}
-              allowInput={true}
-              onInputChange={(value) => setProviderInputValue(value)}
-            />
-          </FormField>
-
-          <FormField
-            label={t("model")}
-            required
-            error={errors.model?.message}
-            horizontal
-          >
-            {showCustomModel ? (
-              <Input {...register("model")} placeholder={t("enterModelName")} />
-            ) : (
-              <Combobox
-                items={models}
-                selectedItem={models.find((model) => watch("model") === model.name) || null}
-                onChange={(item) => setValue("model", item?.name || "")}
-                labelField="name"
-                valueField="name"
-                placeholder={t("selectModel")}
-                renderOptionContent={(item, isHighlighted, isSelected) => (
-                  <div className="model-option">
-                    <span>{item.name}</span>
-                    <div className="model-indicators">
-                      {item.hasVision && (
-                        <span className="vision-badge">{t("supportsVision")}</span>
-                      )}
-                      {isSelected && <CheckIcon size={16} className="check-icon" />}
-                    </div>
-                  </div>
+            <FormField
+              label={t("apiSource")}
+              help={
+                apiSource === "platform"
+                  ? t("platformApiHelp")
+                  : t("customApiHelp")
+              }
+            >
+              <ToggleSwitch
+                checked={apiSource === "custom"}
+                onChange={(checked) => {
+                  const newSource = checked ? "custom" : "platform";
+                  setApiSource(newSource);
+                  // 重置相关字段
+                  if (newSource === "platform") {
+                    setValue("apiKey", "");
+                    setValue("useServerProxy", true);
+                  }
+                }}
+                label={t(
+                  apiSource === "custom" ? "useCustomApi" : "usePlatformApi"
                 )}
               />
+            </FormField>
+          </div>
+        </div>
+        {/* 模型配置部分 */}
+        <div className="form-section">
+          <div className="section-title">{t("modelConfiguration")}</div>
+          <div className="section-content">
+            {/* Provider 选择 */}
+            <FormField
+              label={t("provider")}
+              required
+              error={errors.provider?.message}
+            >
+              <Combobox
+                items={getOrderedProviderOptions()}
+                selectedItem={provider ? { name: provider } : null}
+                onChange={(item) => {
+                  const newProvider = item?.name || "";
+                  setValue("provider", newProvider);
+                  setProviderInputValue(newProvider);
+
+                  // 重置相关字段
+                  if (newProvider !== "Custom") {
+                    setValue("customProviderUrl", "");
+                    setValue("model", "");
+                  }
+                }}
+                labelField="name"
+                valueField="name"
+                placeholder={t("selectProvider")}
+                allowInput={true}
+                onInputChange={(value) => setProviderInputValue(value)}
+              />
+            </FormField>
+
+            {/* 自定义 Provider URL */}
+            {(isCustomProvider || apiSource === "custom") && (
+              <FormField
+                label={t("providerUrl")}
+                error={errors.customProviderUrl?.message}
+                help={t("providerUrlHelp")}
+              >
+                <Input
+                  {...register("customProviderUrl")}
+                  placeholder={t("enterProviderUrl")}
+                  type="url"
+                />
+              </FormField>
             )}
-          </FormField>
 
-          {showCustomUrl && (
+            {/* 模型选择或输入 */}
             <FormField
-              label={t("providerUrl")}
-              error={errors.customProviderUrl?.message}
-              horizontal
+              label={t("model")}
+              required
+              error={errors.model?.message}
             >
-              <Input
-                {...register("customProviderUrl")}
-                placeholder={t("enterProviderUrl")}
-                type="url"
-              />
-            </FormField>
-          )}
-
-          <FormField
-            label={t("useServerProxy")}
-            help={isProxyDisabled ? t("proxyNotAvailableForProvider") : undefined}
-            horizontal
-            labelWidth="120px"
-          >
-            <ToggleSwitch
-              checked={useServerProxy}
-              onChange={(checked) => setValue("useServerProxy", checked)}
-              ariaLabelledby="server-proxy-label"
-              disabled={isProxyDisabled}
-            />
-          </FormField>
-
-          <FormField
-            label={t("apiKeyField")}
-            error={errors.apiKey?.message}
-            horizontal
-          >
-            <PasswordInput {...register("apiKey")} placeholder={t("enterApiKey")} />
-          </FormField>
-
-          <div className="price-fields">
-            <FormField
-              label={t("inputPrice")}
-              horizontal
-              labelWidth="100px"
-            >
-              <Input
-                type="number"
-                value={inputPrice}
-                onChange={(e) => setInputPrice(Number(e.target.value))}
-              />
+              {isCustomProvider ? (
+                <Input
+                  {...register("model")}
+                  placeholder={t("enterModelName")}
+                />
+              ) : (
+                <Combobox
+                  items={models}
+                  selectedItem={
+                    models.find((model) => watch("model") === model.name) ||
+                    null
+                  }
+                  onChange={(item) => setValue("model", item?.name || "")}
+                  labelField="name"
+                  valueField="name"
+                  placeholder={t("selectModel")}
+                  renderOptionContent={(item, isHighlighted, isSelected) => (
+                    <div className="model-option">
+                      <span>{item.name}</span>
+                      <div className="model-indicators">
+                        {item.hasVision && (
+                          <span className="vision-badge">
+                            {t("supportsVision")}
+                          </span>
+                        )}
+                        {isSelected && (
+                          <CheckIcon size={16} className="check-icon" />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                />
+              )}
             </FormField>
 
+            {/* API Key 输入 */}
+            {apiSource === "custom" && (
+              <FormField
+                label={t("apiKey")}
+                required
+                error={errors.apiKey?.message}
+                help={t("apiKeyHelp")}
+              >
+                <PasswordInput
+                  {...register("apiKey")}
+                  placeholder={t("enterApiKey")}
+                />
+              </FormField>
+            )}
+
+            {/* 代理设置 */}
             <FormField
-              label={t("outputPrice")}
-              horizontal
-              labelWidth="100px"
+              label={t("useServerProxy")}
+              help={
+                isProxyDisabled
+                  ? t("proxyNotAvailableForProvider")
+                  : t("proxyHelp")
+              }
             >
-              <Input
-                type="number"
-                value={outputPrice}
-                onChange={(e) => setOutputPrice(Number(e.target.value))}
+              <ToggleSwitch
+                checked={useServerProxy}
+                onChange={(checked) => setValue("useServerProxy", checked)}
+                disabled={isProxyDisabled || apiSource === "platform"}
               />
             </FormField>
           </div>
         </div>
-
-        <div className="section prompt-section">
+        {/* 行为设置部分 */}
+        <div className="form-section">
           <div className="section-title">{t("behaviorSettings")}</div>
-
-          <FormField
-            label={t("prompt")}
-            error={errors.prompt?.message}
-          >
-            <TextArea {...register("prompt")} placeholder={t("enterPrompt")} />
-          </FormField>
-
-          <FormField
-            label={t("greetingMessage")}
-            error={errors.greeting?.message}
-            horizontal
-          >
-            <Input {...register("greeting")} placeholder={t("enterGreetingMessage")} />
-          </FormField>
-
-          <FormField
-            label={t("selfIntroduction")}
-            error={errors.introduction?.message}
-          >
-            <TextArea {...register("introduction")} placeholder={t("enterSelfIntroduction")} />
-          </FormField>
-        </div>
-
-        <div className="section">
-          <div className="section-title">{t("capabilities")}</div>
-          <ToolSelector register={register} />
-        </div>
-
-        <div className="section">
-          <div className="section-title">{t("privacy")}</div>
-          <div className="toggle-fields">
+          <div className="section-content">
             <FormField
-              label={t("private")}
-              horizontal
-              labelWidth="120px"
+              label={t("prompt")}
+              error={errors.prompt?.message}
+              help={t("promptHelp")}
             >
-              <ToggleSwitch
-                checked={isPrivate}
-                onChange={(checked) => setValue("isPrivate", checked)}
-                ariaLabelledby="private-label"
+              <TextArea
+                {...register("prompt")}
+                placeholder={t("enterPrompt")}
               />
             </FormField>
 
-            <FormField
-              label={t("encrypted")}
-              horizontal
-              labelWidth="120px"
-            >
-              <ToggleSwitch
-                checked={isEncrypted}
-                onChange={(checked) => setValue("isEncrypted", checked)}
-                ariaLabelledby="encrypted-label"
-              />
-            </FormField>
+            <ToolSelector register={register} />
           </div>
         </div>
 
+        {/* 社区设置部分 */}
+        <div className="form-section">
+          <div className="section-title">{t("communitySettings")}</div>
+          <div className="section-content">
+            <FormField
+              label={t("shareInCommunity")}
+              help={
+                apiSource === "platform"
+                  ? t("shareInCommunityHelp")
+                  : t("shareInCommunityCustomApiHelp")
+              }
+            >
+              <ToggleSwitch
+                checked={isPublicInCommunity}
+                onChange={(checked) => setValue("isPublicInCommunity", checked)}
+              />
+            </FormField>
+
+            {isPublicInCommunity && (
+              <>
+                <FormField
+                  label={t("greetingMessage")}
+                  error={errors.greeting?.message}
+                  help={t("greetingMessageHelp")}
+                >
+                  <Input
+                    {...register("greeting")}
+                    placeholder={t("enterGreetingMessage")}
+                  />
+                </FormField>
+
+                <FormField
+                  label={t("selfIntroduction")}
+                  error={errors.introduction?.message}
+                  help={t("selfIntroductionHelp")}
+                >
+                  <TextArea
+                    {...register("introduction")}
+                    placeholder={t("enterSelfIntroduction")}
+                  />
+                </FormField>
+
+                <div className="price-settings">
+                  <FormField label={t("inputPrice")} help={t("inputPriceHelp")}>
+                    <Input
+                      type="number"
+                      value={inputPrice}
+                      onChange={(e) => setInputPrice(Number(e.target.value))}
+                      placeholder="0.00"
+                    />
+                  </FormField>
+
+                  <FormField
+                    label={t("outputPrice")}
+                    help={t("outputPriceHelp")}
+                  >
+                    <Input
+                      type="number"
+                      value={outputPrice}
+                      onChange={(e) => setOutputPrice(Number(e.target.value))}
+                      placeholder="0.00"
+                    />
+                  </FormField>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        {/* 提交按钮 */}
         <Button
           type="submit"
           variant="primary"
@@ -289,132 +349,86 @@ const CreateCybot: React.FC = () => {
           {isSubmitting ? t("creating") : t("create")}
         </Button>
 
-        <style>
-          {`
+        <style jsx>{`
+          .create-cybot-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+          }
+
+          .form-section {
+            margin-bottom: 32px;
+            padding: 24px;
+            border: 1px solid ${theme.border};
+            border-radius: 8px;
+            background: ${theme.backgroundSecondary};
+          }
+
+          .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: ${theme.textDim};
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid ${theme.border};
+          }
+
+          .section-content {
+            display: grid;
+            gap: 20px;
+          }
+
+          .price-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+          }
+
+          .model-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+          }
+
+          .model-indicators {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .vision-badge {
+            background: ${theme.primaryGhost};
+            color: ${theme.primary};
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+          }
+
+          @media (max-width: 640px) {
             .create-cybot-container {
-              max-width: 900px;
-              margin: 0 auto;
-              padding: 32px;
-              background: ${theme.background};
-              border-radius: 12px;
+              padding: 16px;
             }
 
-
-            .section {
-              margin-bottom: 40px;
-              padding-bottom: 32px;
-              border-bottom: 1px solid ${theme.border};
-            }
-
-
-            .section:last-child {
-              border-bottom: none;
+            .form-section {
+              padding: 16px;
               margin-bottom: 24px;
             }
 
+            .section-content {
+              gap: 16px;
+            }
+
+            .price-settings {
+              grid-template-columns: 1fr;
+            }
 
             .section-title {
-              font-size: 16px;
-              font-weight: 600;
-              color: ${theme.textDim};
-              margin-bottom: 24px;
+              font-size: 15px;
+              margin-bottom: 20px;
             }
-
-
-            .price-fields {
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-              gap: 16px;
-              margin: 16px 0;
-            }
-
-
-            .toggle-fields {
-              display: grid;
-              gap: 16px;
-              max-width: 400px;
-            }
-
-
-            .model-option {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              width: 100%;
-            }
-
-
-            .model-indicators {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-            }
-
-
-            .vision-badge {
-              background: ${theme.primaryGhost};
-              color: ${theme.primary};
-              padding: 2px 6px;
-              border-radius: 4px;
-              font-size: 12px;
-            }
-
-
-            .check-icon {
-              color: ${theme.primary};
-            }
-
-
-            @media (max-width: 768px) {
-              .create-cybot-container {
-                padding: 20px;
-                margin: 0;
-                border-radius: 0;
-              }
-
-
-              .section {
-                margin-bottom: 32px;
-                padding-bottom: 24px;
-              }
-
-
-              .section-title {
-                margin-bottom: 20px;
-              }
-
-
-              .price-fields {
-                grid-template-columns: 1fr;
-              }
-
-
-              .toggle-fields {
-                max-width: 100%;
-              }
-            }
-
-
-            @media (max-width: 480px) {
-              .create-cybot-container {
-                padding: 16px;
-              }
-
-
-              .section {
-                margin-bottom: 24px;
-                padding-bottom: 20px;
-              }
-
-
-              .section-title {
-                font-size: 15px;
-                margin-bottom: 16px;
-              }
-            }
-          `}
-        </style>
-
+          }
+        `}</style>
       </form>
     </div>
   );

@@ -1,4 +1,4 @@
-import { extractAndDecodePrefix } from "core";
+import { extractAndDecodePrefix } from "core/prefix";
 import { getHeadTail } from "core/getHeadTail";
 
 import { readLines } from "utils/bun/readLines";
@@ -6,10 +6,9 @@ import { baseDir } from "database/server/config";
 import path from "path";
 import { mem } from "../server/mem";
 import { getDatabaseFilePath } from "../init";
-import { QueryCondition, QueryOptions } from "./types";
+import { QueryOptions } from "./types";
 import { getSortedFilteredFiles } from "../server/sort";
 import { checkQuery } from "./checkQuery";
-import { listToArray, noloToObject } from "core/noloToOther";
 import { sortBy, prop } from "rambda"; // 使用 rambda 的排序方法
 
 async function createDataStream(path: string) {
@@ -54,16 +53,7 @@ function sortResults(results, sort) {
 }
 
 export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
-  const {
-    userId,
-    condition,
-    isObject = false,
-    isJSON = false,
-    isList = false,
-    skip = 0,
-    limit = 10,
-    sort,
-  } = options;
+  const { userId, condition, isJSON = false, limit = 10, sort } = options;
 
   const memoryData = mem.getFromMemorySync();
 
@@ -133,15 +123,10 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
 
     if (deletedData.has(key)) continue;
 
-    if (isList && flags.isList) {
-      const result = listToArray(value);
-      addToResults(key, result);
-    } else if (isJSON && flags.isJSON) {
+    if (isJSON && flags.isJSON) {
       try {
         const jsonData = JSON.parse(value);
-        if (key.includes("01JEG03TSK60YT06CBK822ZRH9")) {
-          console.log("file jsonData", jsonData.title);
-        }
+
         if (checkQuery(jsonData, condition)) {
           const result = { id: key, ...jsonData };
           if (!deletedData.has(key)) {
@@ -151,16 +136,6 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
       } catch (error) {
         // console.error(`Error parsing JSON for key ${key}:`, error);
         // 继续处理下一个数据
-      }
-    } else if (isObject && flags.isObject) {
-      // console.log("isObject", isObject);
-      const result = noloToObject(value);
-      // console.log("result", result);
-
-      if (checkQuery(result, condition)) {
-        if (!deletedData.has(key)) {
-          addToResults(key, result);
-        }
       }
     }
   }

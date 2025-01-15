@@ -7,6 +7,7 @@ import { write } from "database/dbSlice";
 import { useAuth } from "auth/useAuth";
 import { createCybotSchema, FormData } from "../createCybotSchema";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
+import { createCybotKey } from "database/keys";
 
 export const useCreateCybotValidation = () => {
   const dispatch = useAppDispatch();
@@ -17,8 +18,7 @@ export const useCreateCybotValidation = () => {
     resolver: zodResolver(createCybotSchema),
     defaultValues: {
       tools: [],
-      isPrivate: false,
-      isEncrypted: false,
+      isPublicInCommunity: false,
       provider: "",
       customProviderUrl: "",
       model: "",
@@ -28,31 +28,30 @@ export const useCreateCybotValidation = () => {
 
   const { watch } = form;
   const provider = watch("provider");
-  const isPrivate = watch("isPrivate");
-  const isEncrypted = watch("isEncrypted");
   const useServerProxy = watch("useServerProxy");
+  const isPublicInCommunity = watch("isPublicInCommunity");
 
   const onSubmit = async (data: FormData) => {
-    const writeResult = await dispatch(
+    const id = createCybotKey(auth.user?.userId);
+    await dispatch(
       write({
         data: {
-          type: DataType.Cybot,
           ...data,
+          id,
+          type: DataType.CYBOT,
         },
-        flags: { isJSON: true },
-        userId: auth.user?.userId,
+        customId: id,
       })
     ).unwrap();
-    const cybotId = writeResult.id;
 
-    await createNewDialog({ cybots: [cybotId] });
+    await createNewDialog({ cybots: [id] });
   };
+
   return {
     form,
     provider,
-    isPrivate,
-    isEncrypted,
     useServerProxy,
+    isPublicInCommunity,
     onSubmit,
   };
 };

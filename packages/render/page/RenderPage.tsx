@@ -1,67 +1,91 @@
 import { useAuth } from "auth/useAuth";
-import React, { useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
-import { deleteData } from "database/dbSlice";
-import { extractUserId } from "core";
+import { useParams } from "react-router-dom";
+import { useAppSelector, useAppDispatch } from "app/hooks";
+
 import Editor from "create/editor/Editor";
+
+import { layout } from "../styles/layout";
+import { updateSlate } from "./pageSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
+import { useMemo } from "react";
 
-import { ButtonGroup } from "./ButtonGroup";
-
-const RenderPage = ({ pageId, data }) => {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const createId = extractUserId(pageId);
-  const handleEdit = useCallback(() => {
-    navigate(`/${pageId}?edit=true`);
-  }, [navigate, pageId]);
-
-  const handleDelete = useCallback(async () => {
-    try {
-      await dispatch(deleteData({ id: pageId }));
-      toast.success("Page deleted successfully!");
-      navigate("/");
-    } catch (error) {
-      alert("Error deleting page. Please try again.");
-    }
-  }, [navigate, pageId]);
+const RenderPage = ({ isReadOnly = true }) => {
+  const dispatch = useAppDispatch();
+  const { pageId } = useParams();
 
   const auth = useAuth();
+  const userId = auth.user?.userId;
+  const pageState = useAppSelector((state) => state.page);
 
-  const isCreator = data.creator === auth.user?.userId;
-  const isNotBelongAnyone = !data.creator;
-  const allowEdit = isCreator || isNotBelongAnyone;
-
+  const handleContentChange = (changeValue) => {
+    dispatch(updateSlate(changeValue));
+  };
   const initialValue = useMemo(() => {
-    return data.slateData ? data.slateData : markdownToSlate(data.content);
-  }, [data.slateData, data.content]);
-
+    return pageState.slateData
+      ? pageState.slateData
+      : markdownToSlate(pageState.content);
+  }, [pageId, pageState.slateData, pageState.content]);
   return (
-    <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
-      <div
+    <div
+      style={{
+        ...layout.flex,
+        ...layout.overflowHidden,
+        height: "calc(100dvh - 60px)",
+        backgroundColor: "#ffffff",
+      }}
+    >
+      <main
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-          padding: "10px",
-          borderBottom: "1px solid #eee",
+          ...layout.flexGrow1,
+          ...layout.flexColumn,
+          ...layout.h100,
+          ...layout.overflowHidden,
         }}
       >
-        <div style={{ fontSize: "16px", color: "#666" }}>{createId}</div>
-        <ButtonGroup
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          allowEdit={allowEdit}
-        />
-      </div>
-      <Editor
-        initialValue={initialValue}
-        readOnly={true}
-        style={{ minHeight: "300px" }}
-      />
+        <div
+          style={{
+            ...layout.flexGrow1,
+            ...layout.overflowYAuto,
+            padding: "1rem",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: "768px",
+              margin: "0 auto",
+              minHeight: "calc(100vh - 200px)",
+              backgroundColor: "#ffffff",
+              padding: ".5rem",
+            }}
+          >
+            <Editor
+              key={pageId}
+              initialValue={initialValue || []}
+              onChange={handleContentChange}
+              readOnly={isReadOnly}
+            />
+          </div>
+        </div>
+      </main>
+
+      <style>
+        {`
+          ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          ::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.08);
+            border-radius: 3px;
+          }
+          ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.12);
+          }
+        `}
+      </style>
     </div>
   );
 };
