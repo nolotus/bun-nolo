@@ -12,7 +12,6 @@ import { SyncIcon, CheckIcon } from "@primer/octicons-react";
 import { FormField } from "web/form/FormField";
 import { Input } from "web/form/Input";
 import Textarea from "web/form/Textarea";
-import PasswordInput from "web/form/PasswordInput";
 
 import { patchData } from "database/dbSlice";
 import { getModelsByProvider, providerOptions } from "../llm/providers";
@@ -46,8 +45,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
       prompt: initialValues.prompt || "",
       model: initialValues.model || "",
       tools: initialValues.tools || [],
-      isPrivate: initialValues.isPrivate || false,
-      isEncrypted: initialValues.isEncrypted || false,
     },
   });
 
@@ -59,8 +56,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   const [showCustomUrl, setShowCustomUrl] = useState(false);
   const [showCustomModel, setShowCustomModel] = useState(false);
 
-  const isPrivate = watch("isPrivate");
-  const isEncrypted = watch("isEncrypted");
   const useServerProxy = watch("useServerProxy");
 
   useEffect(() => {
@@ -86,8 +81,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
       prompt: initialValues.prompt || "",
       model: initialValues.model || "",
       tools: initialValues.tools || [],
-      isPrivate: initialValues.isPrivate || false,
-      isEncrypted: initialValues.isEncrypted || false,
     });
   }, [reset, initialValues]);
 
@@ -101,8 +94,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
       "model",
       "apiKey",
       "useServerProxy",
-      "isPrivate",
-      "isEncrypted",
       "tools",
     ];
     const changes = pick(allowedKeys, submitData);
@@ -254,10 +245,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
         </FormField>
       </div>
 
-      <FormField label={t("apiKeyField")} error={errors.apiKey?.message}>
-        <PasswordInput {...register("apiKey")} placeholder={t("enterApiKey")} />
-      </FormField>
-
       <FormField label={t("useServerProxy")}>
         <ToggleSwitch
           checked={useServerProxy}
@@ -268,22 +255,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
       <FormField label={t("tools")}>
         <ToolSelector register={register} />
-      </FormField>
-
-      <FormField label={t("private")}>
-        <ToggleSwitch
-          checked={isPrivate}
-          onChange={(checked) => setValue("isPrivate", checked)}
-          ariaLabelledby="private-label"
-        />
-      </FormField>
-
-      <FormField label={t("encrypted")}>
-        <ToggleSwitch
-          checked={isEncrypted}
-          onChange={(checked) => setValue("isEncrypted", checked)}
-          ariaLabelledby="encrypted-label"
-        />
       </FormField>
 
       <Button

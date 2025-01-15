@@ -1,40 +1,39 @@
-import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import { calculatePrice } from "integrations/anthropic/calculatePrice";
 import { extractUserId } from "core/prefix";
 
 import { saveTokenUsage } from "ai/token/db";
 import { TokenUsageData } from "ai/token/types";
 import { normalizeUsage } from "ai/token/normalizeUsage";
+import { calculatePrice } from "ai/token/calculatePrice";
+
 // 示例使用 updateTokensAction 函数时的数据结构
 
 export const updateTokensAction = async (
   { dialogId, usage: usageRaw, cybotConfig },
   thunkApi
 ) => {
-  const { dispatch } = thunkApi;
   const state = thunkApi.getState();
   const auth = state.auth;
-  console.log("usageRaw", usageRaw);
 
-  const cybotId = cybotConfig.id;
-  const model = cybotConfig.model;
   const provider = cybotConfig.provider;
-  // const creatorId = extractUserId(cybotConfig.id);
-  // console.log("creatorId", creatorId);
+  const creatorId = extractUserId(cybotConfig.id);
 
-  // const externalPrice = {
-  //   input: cybotConfig.inputPrice,
-  //   output: cybotConfig.outputPrice,
-  //   creatorId,
-  // };
+  const externalPrice = {
+    input: cybotConfig.inputPrice,
+    output: cybotConfig.outputPrice,
+    creatorId,
+  };
 
-  // console.log("externalPrice", externalPrice);
-
-  // const result = calculatePrice({ provider, modelName, usage, externalPrice });
-  // console.log("result", result);
-
+  console.log("externalPrice", externalPrice);
   const usage = normalizeUsage(usageRaw);
+
+  const result = calculatePrice({
+    provider,
+    modelName: cybotConfig.model,
+    usage,
+    externalPrice,
+  });
+  console.log("result", result);
 
   const data: TokenUsageData = {
     ...usage,
@@ -45,11 +44,12 @@ export const updateTokensAction = async (
     date: new Date(),
     type: DataType.Token,
     dialogId,
+    cost: result.cost,
+    pay: result.pay,
   };
 
   try {
-    // 存储 token 使用记录
-    const result = await saveTokenUsage(data);
+    await saveTokenUsage(data);
   } catch (error) {
     console.error("Failed to save token usage:", error);
     throw error;

@@ -1,8 +1,7 @@
 // ai/token/db.ts
 import { browserDb } from "database/browser/db";
-import { curry } from "rambda";
 import { createTokenStatsKey, createTokenKey } from "database/keys";
-import { RequiredData, TokenRecord, TokenStats } from "./types";
+import { TokenUsageData, TokenRecord } from "./types";
 import { ulid } from "ulid";
 import { createTokenRecord } from "./record";
 import { createInitialDayStats, updateDayStats } from "./stats";
@@ -15,7 +14,7 @@ const handleDbError = (error: unknown, context: string) => {
 };
 
 // 提取公共的数据扩充逻辑
-const enrichData = (data: RequiredData) => {
+const enrichData = (data: TokenUsageData) => {
   const timestamp = Date.now();
   return {
     ...data,
@@ -25,7 +24,7 @@ const enrichData = (data: RequiredData) => {
   };
 };
 
-const saveTokenRecord = async (data: RequiredData): Promise<TokenRecord> => {
+const saveTokenRecord = async (data: TokenUsageData): Promise<TokenRecord> => {
   try {
     const enrichedData = enrichData(data);
     const record = createTokenRecord(enrichedData);
@@ -45,15 +44,15 @@ const saveTokenRecord = async (data: RequiredData): Promise<TokenRecord> => {
 };
 
 const saveDayStats = async (
-  data: RequiredData,
+  data: TokenUsageData,
   enrichedData: ReturnType<typeof enrichData>
-): Promise<TokenStats> => {
+) => {
   const key = createTokenStatsKey(data.userId, enrichedData.dateKey);
 
   try {
     const currentStats = await browserDb
       .get(key)
-      .then((stats: TokenStats) =>
+      .then((stats) =>
         stats?.total
           ? stats
           : createInitialDayStats(data.userId, enrichedData.dateKey)
@@ -68,7 +67,7 @@ const saveDayStats = async (
   }
 };
 
-export const saveTokenUsage = async (data: RequiredData) => {
+export const saveTokenUsage = async (data: TokenUsageData) => {
   try {
     const enrichedData = enrichData(data);
     const [record] = await Promise.all([
@@ -85,24 +84,3 @@ export const saveTokenUsage = async (data: RequiredData) => {
     handleDbError(error, "saveTokenUsage");
   }
 };
-
-// 简化数据库遍历逻辑
-const iterateDb = curry(
-  async <T>(
-    options: { gte: string; lte: string },
-    filter: (value: T) => boolean
-  ): Promise<T[]> => {
-    const records: T[] = [];
-
-    try {
-      for await (const [_, value] of browserDb.iterator(options)) {
-        if (filter(value)) {
-          records.push(value);
-        }
-      }
-      return records;
-    } catch (error) {
-      handleDbError(error, "iterateDb");
-    }
-  }
-);

@@ -58,7 +58,6 @@ const DialogSlice = createSliceWithThunks({
       },
       {
         pending: (state, action) => {
-          console.log("pending action ", action.meta.arg);
           state.currentDialogId = action.meta.arg;
         },
       }
@@ -119,7 +118,6 @@ export const {
   deleteDialog,
   resetCurrentDialogTokens,
   updateTokens,
-  // 导出 clearDialogState action
   clearDialogState,
   deleteCurrentDialog,
   createDialog,

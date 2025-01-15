@@ -139,6 +139,7 @@ export const sendCommonChatRequest = async ({
 
         const content = parsedData.choices?.[0]?.delta?.content || "";
         let usage;
+
         if (parsedData.usage) {
           usage = parsedData.usage;
           console.log("usage", usage);
