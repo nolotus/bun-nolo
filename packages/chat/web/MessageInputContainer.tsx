@@ -50,7 +50,10 @@ const MessageInputContainer: React.FC = () => {
       return { allowed: false, reason: "NO_MODEL_PRICING" };
     }
 
-    if (userId === nolotusId) {
+    if (
+      userId === nolotusId ||
+      userId === "Y25UeEg1VlNTanIwN2N0d1Mzb3NLRUQ3dWhzWl9hdTc0R0JoYXREeWxSbw"
+    ) {
       return { allowed: true };
     }
 

@@ -2,9 +2,23 @@
 import { pino } from "pino";
 import { curry } from "rambda";
 import { browserDb } from "database/browser/db";
-import { QueryParams } from "./types";
-import { RequiredData, StatsParams, TokenRecord, TokenStats } from "./types";
+import { TokenRecord } from "./types";
 import { createTokenStatsKey, createTokenKey } from "database/keys";
+export interface QueryParams {
+  userId: string;
+  startTime?: number; // 可选,开始时间戳
+  endTime?: number; // 可选,结束时间戳
+  model?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface StatsParams {
+  userId: string;
+  period: "day";
+  startDate: string;
+  endDate: string;
+}
 
 const logger = pino({
   name: "token-db",
