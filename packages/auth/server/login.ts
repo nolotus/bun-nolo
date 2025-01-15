@@ -2,7 +2,7 @@ import path from "path";
 
 import { t } from "i18next";
 import { verifyToken } from "auth/token";
-import levelDb, { DB_PREFIX } from "database/server/db.js";
+import serverDb, { DB_PREFIX } from "database/server/db.js";
 import { serverGetData } from "database/server/read";
 import { DATABASE_DIR, DEFAULT_INDEX_FILE } from "database/init";
 
@@ -11,7 +11,7 @@ export async function handleLogin(req, res) {
 
   if (version === "v1") {
     try {
-      const userData = await levelDb.get(DB_PREFIX.USER + userId);
+      const userData = await serverDb.get(DB_PREFIX.USER + userId);
       if (!userData) {
         return res
           .status(404)

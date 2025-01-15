@@ -9,12 +9,11 @@ export const createCybotSchema = z.object({
   inputPrice: z.number().optional(),
   outputPrice: z.number().optional(),
   tools: z.array(z.string()),
-  isPrivate: z.boolean(),
-  isEncrypted: z.boolean(),
   useServerProxy: z.boolean(),
   prompt: z.string().trim().optional(),
   greeting: z.string().trim().optional(),
   introduction: z.string().trim().optional(),
+  isPublicInCommunity: z.boolean().optional(),
 });
 
 export type FormData = z.infer<typeof createCybotSchema>;

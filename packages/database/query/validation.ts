@@ -17,13 +17,12 @@ const QueryCondition = z.lazy(() =>
       $add: z.record(z.number()).optional(),
       $subtract: z.record(z.number()).optional(),
     }),
-  ]),
+  ])
 );
 
 // 定义 QueryOptions 类型
 const QueryOptionsSchema = z.object({
   userId: z.string().optional(),
-  isObject: z.boolean().optional(),
   condition: QueryCondition.optional(),
 });
 

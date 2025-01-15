@@ -1,43 +1,25 @@
-// 定义 TokenCounts 接口
 import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import level from "level";
 import { calculatePrice } from "integrations/anthropic/calculatePrice";
-import { extractUserId } from "core";
-import { write } from "database/dbSlice";
+import { extractUserId } from "core/prefix";
 
-console.log("level", level);
-interface TokenCounts {
-  cache_creation_input_tokens: number;
-  cache_read_input_tokens: number;
-  output_tokens: number;
-  input_tokens: number;
-}
-
-// 必须的数据类型
-interface RequiredData extends TokenCounts {
-  dialogId: string;
-  userId: string;
-  username: string;
-  cybotId: string;
-  model: string;
-  date: Date;
-  provider: string;
-}
-
-// 额外数据类型
-
+import { saveTokenUsage } from "ai/token/db";
+import { TokenUsageData } from "ai/token/types";
+import { normalizeUsage } from "ai/token/normalizeUsage";
 // 示例使用 updateTokensAction 函数时的数据结构
-export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
+
+export const updateTokensAction = async (
+  { dialogId, usage: usageRaw, cybotConfig },
+  thunkApi
+) => {
   const { dispatch } = thunkApi;
   const state = thunkApi.getState();
   const auth = state.auth;
+  console.log("usageRaw", usageRaw);
 
-  const shareAdditionalData = true;
   const cybotId = cybotConfig.id;
-  const modelName = cybotConfig.model;
+  const model = cybotConfig.model;
   const provider = cybotConfig.provider;
-  console.log("cybotConfig", cybotConfig);
   // const creatorId = extractUserId(cybotConfig.id);
   // console.log("creatorId", creatorId);
 
@@ -52,26 +34,28 @@ export const updateTokensAction = async ({ usage, cybotConfig }, thunkApi) => {
   // const result = calculatePrice({ provider, modelName, usage, externalPrice });
   // console.log("result", result);
 
-  const data: RequiredData = {
+  const usage = normalizeUsage(usageRaw);
+
+  const data: TokenUsageData = {
     ...usage,
     userId: auth?.currentUser?.userId,
-    username: auth?.currentUser?.username,
-    cybotId,
-    modelName,
-    provider,
+    cybotId: cybotConfig.id,
+    model: cybotConfig.model,
+    provider: cybotConfig.provider,
     date: new Date(),
     type: DataType.Token,
+    dialogId,
   };
-  console.log("data", data);
-  dispatch(
-    write({
-      data: {
-        type: DataType.Token,
-        ...data,
-      },
-      userId: auth.user?.userId,
-    })
-  );
 
-  return usage;
+  try {
+    // 存储 token 使用记录
+    const result = await saveTokenUsage(data);
+  } catch (error) {
+    console.error("Failed to save token usage:", error);
+    throw error;
+  }
+  return {
+    input_tokens: usage.input_tokens,
+    output_tokens: usage.output_tokens,
+  };
 };

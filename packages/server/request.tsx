@@ -33,9 +33,7 @@ export const handleRequest = async (request: Request, server) => {
     // 这里确保url是URL类型，如果不是需要先进行转换
     return handlePublicRequest(url);
   }
-  if (url.pathname.startsWith("/api/v2/db")) {
-    return new Response("Hello v2!");
-  }
+
   if (url.pathname.startsWith(API_VERSION)) {
     if (url.pathname.startsWith(API_ENDPOINTS.HI)) {
       return res.status(200).json({ API_VERSION: API_VERSION });
@@ -47,14 +45,14 @@ export const handleRequest = async (request: Request, server) => {
     if (contentType.includes("multipart/form-data")) {
       try {
         body = await request.formData();
-      } catch (error) { }
+      } catch (error) {}
     } else if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
         if (!body) {
           body = {};
         }
-      } catch (error) { }
+      } catch (error) {}
     }
     let req = {
       url,
@@ -64,7 +62,7 @@ export const handleRequest = async (request: Request, server) => {
       headers: request.headers,
       method: request.method,
     };
-    if (url.pathname.startsWith(API_ENDPOINTS.PROXY)) {
+    if (url.pathname.startsWith(API_ENDPOINTS.CHAT)) {
       req.user = await handleToken(request, res);
       return proxyRoute(req, res);
     }

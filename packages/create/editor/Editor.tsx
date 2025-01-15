@@ -19,7 +19,7 @@ import { withShortcuts } from "./withShortcuts";
 
 const NoloEditor = ({ initialValue, readOnly, onChange }) => {
   const [editor] = useState(() =>
-    withShortcuts(withLayout(withHistory(withReact(createEditor())))),
+    withShortcuts(withLayout(withHistory(withReact(createEditor()))))
   );
   const decorate = useDecorate(editor);
   const onKeyDown = useOnKeydown(editor);
@@ -29,7 +29,7 @@ const NoloEditor = ({ initialValue, readOnly, onChange }) => {
       initialValue={initialValue}
       onChange={(value) => {
         const isAstChange = editor.operations.some(
-          (op) => "set_selection" !== op.type,
+          (op) => "set_selection" !== op.type
         );
         if (isAstChange) {
           onChange?.(value);
@@ -78,7 +78,7 @@ const useDecorate = (editor) => {
       }
       return [];
     },
-    [editor.nodeToDecorations],
+    [editor.nodeToDecorations]
   );
 };
 
@@ -126,10 +126,10 @@ const SetNodeToDecorations = () => {
       at: [],
       mode: "highest",
       match: (n) => SlateElement.isElement(n) && n.type === CodeBlockType,
-    }),
+    })
   );
   const nodeToDecorations = mergeMaps(
-    ...blockEntries.map(getChildNodeToDecorations),
+    ...blockEntries.map(getChildNodeToDecorations)
   );
   editor.nodeToDecorations = nodeToDecorations;
   return null;

@@ -2,16 +2,13 @@
 
 import { createMessages } from "ai/api/createMessages";
 import { prepareTools } from "ai/tools/prepareTools";
-import { selectCurrentUserId } from "auth/authSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
-import { generateIdWithCustomId } from "core/generateMainKey";
-import { setOne } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
-import { ulid } from "ulid";
-
 import { getApiEndpoint } from "../api/apiEndpoints";
 import { performFetchRequest } from "./fetchUtils";
+import { createDialogMessageKey } from "database/keys";
+import { extractCustomId } from "core/prefix";
 
 function parseMultilineSSE(rawText: string) {
   const results = [];
@@ -50,16 +47,14 @@ export const sendCommonChatRequest = async ({
   cybotConfig,
   thunkApi,
   prevMsgs,
-  dialogId,
+  dialogKey,
 }) => {
   const { dispatch, getState } = thunkApi;
+  const dialogId = extractCustomId(dialogKey);
 
   const controller = new AbortController();
   const signal = controller.signal;
   const currentServer = selectCurrentServer(getState());
-
-  console.log("Preparing request with content:", content);
-  console.log("Configuration:", cybotConfig);
 
   const messages = createMessages(content, prevMsgs, cybotConfig);
   const model = cybotConfig.model;
@@ -69,8 +64,7 @@ export const sendCommonChatRequest = async ({
     bodyData.tools = tools;
   }
 
-  const userId = selectCurrentUserId(getState());
-  const messageId = generateIdWithCustomId(userId, ulid(), { isJSON: true });
+  const messageId = createDialogMessageKey(dialogId);
 
   let contentBuffer = "";
   let reader;
@@ -83,17 +77,16 @@ export const sendCommonChatRequest = async ({
       cybotId: cybotConfig.id,
       controller,
     };
-    dispatch(setOne(message));
+
     dispatch(messageStreaming(message));
     const api = getApiEndpoint(cybotConfig);
-    console.log("API Endpoint:", api);
 
     const response = await performFetchRequest(
       cybotConfig,
       api,
       bodyData,
-      signal,
-      currentServer
+      currentServer,
+      signal
     );
 
     if (!response.ok) {
@@ -107,17 +100,17 @@ export const sendCommonChatRequest = async ({
       const { done, value } = await reader.read();
 
       if (done) {
-        dispatch(
-          messageStreamEnd({
-            id: messageId,
-            content: contentBuffer,
-            role: "assistant",
-            cybotId: cybotConfig.id,
-          })
-        );
+        const final = {
+          id: messageId,
+          content: contentBuffer,
+          role: "assistant",
+          cybotId: cybotConfig.id,
+        };
+
+        dispatch(messageStreamEnd(final));
         dispatch(
           updateDialogTitle({
-            dialogId,
+            dialogKey,
             cybotConfig,
           })
         );
@@ -149,21 +142,12 @@ export const sendCommonChatRequest = async ({
         if (parsedData.usage) {
           usage = parsedData.usage;
           console.log("usage", usage);
-          dispatch(updateTokens({ usage, cybotConfig }));
+          dispatch(updateTokens({ dialogId, usage, cybotConfig }));
         }
 
         if (content) {
           contentBuffer += content;
 
-          dispatch(
-            setOne({
-              id: messageId,
-              content: contentBuffer,
-              role: "assistant",
-              cybotId: cybotConfig.id,
-              controller,
-            })
-          );
           dispatch(
             messageStreaming({
               id: messageId,

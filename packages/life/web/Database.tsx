@@ -5,10 +5,10 @@ import { useSearchParams } from "react-router-dom";
 import { useQuery } from "app/hooks/useQuery";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
-import DataDisplay from "../blocks/DataDisplay";
+import { DataTable } from "../blocks/DataTable";
 
 const typeArray = ["All", ...Object.values(DataType)
-	.filter(value => ![DataType.Dialog, DataType.Cybot, DataType.Space, DataType.Page].includes(value))];
+	.filter(value => ![DataType.Dialog, DataType.Cybot, DataType.Space, DataType.Page, DataType.Token].includes(value))];
 
 export const Database = () => {
 
@@ -84,7 +84,9 @@ export const Database = () => {
 					})}
 				</div>
 			</div>
-			{data && <DataDisplay datalist={data} type={type} />}
+			{data && <div style={{ margin: "16px 0" }}>
+				<DataTable dataList={data} type={type} />
+			</div>}
 		</div>
 	);
 };

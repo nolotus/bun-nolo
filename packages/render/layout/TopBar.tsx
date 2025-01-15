@@ -19,7 +19,11 @@ import useMediaQuery from "react-responsive";
 import NavListItem from "render/layout/blocks/NavListItem";
 import MenuButton from "./MenuButton";
 import NavIconItem from "./blocks/NavIconItem";
-
+import { selectPageData } from "../page/pageSlice";
+import { useParams } from "react-router";
+import { extractUserId } from "core/prefix";
+//web
+import { CreateTool } from "create/CreateTool";
 interface TopBarProps {
   toggleSidebar?: () => void;
   theme: any;
@@ -39,13 +43,70 @@ const TopBar: React.FC<TopBarProps> = ({
   isExpanded,
 }) => {
   const { t } = useTranslation();
+
   const { isLoggedIn } = useAuth();
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  const pageData = useAppSelector(selectPageData);
   const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
+  const { pageId } = useParams();
+
+  const auth = useAuth();
+  const dataCreator = pageId ? extractUserId(pageId) : undefined;
+
+  const isCreator = dataCreator === auth.user?.userId;
+  const isNotBelongAnyone = !pageData.creator;
+
+  const allowEdit = isCreator || isNotBelongAnyone;
+  const hasPageData = pageData.content || pageData.slateData;
+
+  const displayEditTool = allowEdit && hasPageData;
 
   return (
     <>
+      <div className="topbar">
+        <div className="topbar-left">
+          {toggleSidebar && (
+            <MenuButton onClick={toggleSidebar} isExpanded={isExpanded} />
+          )}
+          <NavIconItem path="/" icon={<HomeIcon size={16} />} />
+        </div>
+
+        <div className="topbar-center">
+          <div className="topbar-content-wrapper">
+            {currentDialogConfig && (
+              <>
+                <EditableTitle currentDialogConfig={currentDialogConfig} />
+                {currentDialogConfig.cybots?.map((cybotId) => (
+                  <CybotNameChip key={cybotId} cybotId={cybotId} />
+                ))}
+                {!isMobile && currentDialogTokens > 0 && (
+                  <div className="token-counter">
+                    Tokens: {currentDialogTokens}
+                  </div>
+                )}
+                <CreateDialogButton dialogConfig={currentDialogConfig} />
+                <DeleteDialogButton dialogConfig={currentDialogConfig} />
+              </>
+            )}
+            {displayEditTool && <CreateTool />}
+            {topbarContent}
+          </div>
+        </div>
+
+        <div className="topbar-right">
+          <CreateMenu />
+          {isLoggedIn ? (
+            <IsLoggedInMenu />
+          ) : (
+            <NavListItem
+              label={t("login")}
+              icon={<SignInIcon size={16} />}
+              path={RoutePaths.LOGIN}
+            />
+          )}
+        </div>
+      </div>
       <style>
         {`
           .topbar {
@@ -122,49 +183,6 @@ const TopBar: React.FC<TopBarProps> = ({
           }
         `}
       </style>
-
-      <div className="topbar">
-        <div className="topbar-left">
-          {toggleSidebar && (
-            <MenuButton onClick={toggleSidebar} isExpanded={isExpanded} />
-          )}
-          <NavIconItem path="/" icon={<HomeIcon size={16} />} />
-        </div>
-
-        <div className="topbar-center">
-          <div className="topbar-content-wrapper">
-            {currentDialogConfig && (
-              <>
-                <EditableTitle currentDialogConfig={currentDialogConfig} />
-                {currentDialogConfig.cybots?.map((cybotId) => (
-                  <CybotNameChip key={cybotId} cybotId={cybotId} />
-                ))}
-                {!isMobile && currentDialogTokens > 0 && (
-                  <div className="token-counter">
-                    Tokens: {currentDialogTokens}
-                  </div>
-                )}
-                <CreateDialogButton dialogConfig={currentDialogConfig} />
-                <DeleteDialogButton dialogConfig={currentDialogConfig} />
-              </>
-            )}
-            {topbarContent}
-          </div>
-        </div>
-
-        <div className="topbar-right">
-          <CreateMenu />
-          {isLoggedIn ? (
-            <IsLoggedInMenu />
-          ) : (
-            <NavListItem
-              label={t("login")}
-              icon={<SignInIcon size={16} />}
-              path={RoutePaths.LOGIN}
-            />
-          )}
-        </div>
-      </div>
     </>
   );
 };

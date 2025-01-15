@@ -1,22 +1,11 @@
-import { selectCurrentUserId } from "auth/authSlice";
 import { selectCurrentServer } from "setting/settingSlice";
-
-import { generateIdWithCustomId } from "core/generateMainKey";
-import { ulid } from "ulid";
+import { createDialogMessageKey } from "database/keys";
 
 import { API_ENDPOINTS } from "database/config";
 import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
-import { setOne } from "database/dbSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
-
-// 获取当前用户ID和服务器
-function getCurrentUserAndServer(thunkApi) {
-  const state = thunkApi.getState();
-  const userId = selectCurrentUserId(state);
-  const currentServer = selectCurrentServer(state);
-  return { userId, currentServer };
-}
+import { extractCustomId } from "core/prefix";
 
 // 发送请求
 async function sendRequest(cybotConfig, body, signal, currentServer) {
@@ -35,7 +24,7 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
         signal,
       });
     } else {
-      return await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
+      return await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,6 +33,7 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
           ...JSON.parse(body),
           url: CLAUDE_API_ENDPOINT,
           KEY: cybotConfig.apiKey,
+          provider: cybotConfig.provider,
         }),
         signal,
       });
@@ -59,16 +49,15 @@ export const sendClaudeRequest = async ({
   cybotConfig,
   thunkApi,
   prevMsgs,
-  dialogId,
+  dialogKey,
 }) => {
   const cybotId = cybotConfig.id;
-  const model = cybotConfig.model;
-
+  const dialogId = extractCustomId(dialogKey);
+  const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
-  const { userId, currentServer } = getCurrentUserAndServer(thunkApi);
-  const id = generateIdWithCustomId(userId, ulid(), {
-    isJSON: true,
-  });
+  const currentServer = selectCurrentServer(state);
+
+  const messageId = createDialogMessageKey(dialogId);
 
   const body = generateRequestBody(cybotConfig, content, prevMsgs);
   const controller = new AbortController();
@@ -82,12 +71,6 @@ export const sendClaudeRequest = async ({
       reader.cancel();
       reader.releaseLock();
     }
-    dispatch(
-      updateDialogTitle({
-        dialogId,
-        cybotConfig,
-      })
-    );
   });
 
   try {
@@ -103,19 +86,19 @@ export const sendClaudeRequest = async ({
 
     while (true) {
       const { done, value } = await reader.read();
+      console.log("accumulatedContent", accumulatedContent);
       if (done) {
-        dispatch(
-          messageStreamEnd({
-            id,
-            content: accumulatedContent,
-            cybotId: cybotConfig.id,
-            role: "assistant",
-          })
-        );
+        const final = {
+          id: messageId,
+          content: accumulatedContent,
+          cybotId: cybotConfig.id,
+          role: "assistant",
+        };
+        await dispatch(messageStreamEnd(final));
 
         dispatch(
           updateDialogTitle({
-            dialogId,
+            dialogKey,
             cybotConfig,
           })
         );
@@ -134,18 +117,18 @@ export const sendClaudeRequest = async ({
               case "message_start":
                 dispatch(
                   updateTokens({
+                    dialogId,
                     cybotConfig,
                     usage: jsonData.message.usage,
                   })
                 );
                 const message = {
-                  id,
+                  id: messageId,
                   content: "Loading...",
                   role: "assistant",
                   cybotId,
                   controller,
                 };
-                dispatch(setOne(message));
                 dispatch(messageStreaming(message));
                 break;
 
@@ -154,13 +137,12 @@ export const sendClaudeRequest = async ({
                 if (delta && delta.text) {
                   accumulatedContent += delta.text;
                   const message = {
-                    id,
+                    id: messageId,
                     content: accumulatedContent,
                     role: "assistant",
                     cybotId: cybotConfig.id,
                     controller,
                   };
-                  dispatch(setOne(message));
                   dispatch(messageStreaming(message));
                 }
                 break;

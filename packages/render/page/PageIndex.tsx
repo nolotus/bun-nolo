@@ -1,72 +1,64 @@
 import { useAppDispatch, useFetchData } from "app/hooks";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
 import DialogPage from "chat/dialog/DialogPage";
 import { DataType } from "create/types";
-import RenderPage from "render/page/RenderPage";
 import NoMatch from "../NoMatch";
-import { SurfPage } from "../surf/web/SurfPage";
-import EditPage from "./EditPage";
+import RenderPage from "./RenderPage";
 import { initPage, resetPage } from "./pageSlice";
 
 import { RenderJson } from "./RenderJson";
 
-const Page = ({ id }) => {
-	const { pageId: paramPageId } = useParams();
-	const [searchParams] = useSearchParams();
-	const dispatch = useAppDispatch();
+const Page = () => {
+  const { pageId } = useParams();
+  const [searchParams] = useSearchParams();
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    return () => {
+      dispatch(resetPage());
+    };
+  }, [dispatch]);
 
-	useEffect(() => {
-		return () => {
-			dispatch(resetPage());
-		};
-	}, [dispatch]);
+  //maybe need id from props
+  const isEditMode = searchParams.get("edit") === "true";
 
-	const pageId = id || paramPageId;
-	//maybe need id from props
-	const isEditMode = searchParams.get("edit") === "true";
+  const { data, isLoading } = useFetchData(pageId);
 
-	const { data, isLoading, error } = useFetchData(pageId);
+  dispatch(initPage({ ...data, isReadOnly: !isEditMode }));
 
-	//edit page not need data
+  //edit page not need data
 
-	// render page need data
-	if (isLoading) {
-		return (
-			<div
-				style={{
-					display: "flex",
-					height: "100vh",
-					width: "100%",
-					alignItems: "center",
-					justifyContent: "center",
-					backgroundColor: "white",
-					fontSize: "1.125rem",
-					color: "rgb(31, 41, 55)",
-				}}
-			>
-				加载中 请稍等
-			</div>
-		);
-	}
-	if (data) {
-		dispatch(initPage(data));
-		if (isEditMode) {
-			return <EditPage />;
-		}
-		if (data.type === DataType.Dialog) {
-			return <DialogPage dialogId={pageId} />;
-		}
-		if (data.type === DataType.SurfSpot) {
-			return <SurfPage pageId={pageId} data={data} />;
-		}
-		if (data.type === DataType.Page) {
-			return <RenderPage pageId={pageId} data={data} />;
-		}
-		return <RenderJson data={data} />;
-	}
-	return <NoMatch />;
+  // render page need data
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          height: "100vh",
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "white",
+          fontSize: "1.125rem",
+          color: "rgb(31, 41, 55)",
+        }}
+      >
+        加载中 请稍等
+      </div>
+    );
+  }
+  if (data) {
+    if (data.type === DataType.PAGE) {
+      return <RenderPage isReadOnly={!isEditMode} />;
+    }
+    if (data.type === DataType.DIALOG) {
+      return <DialogPage pageId={pageId} />;
+    }
+
+    return <RenderJson data={data} />;
+  }
+  return <NoMatch />;
 };
 
 export default Page;

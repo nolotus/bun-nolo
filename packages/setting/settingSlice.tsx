@@ -1,8 +1,5 @@
 import type { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
-import { read } from "database/dbSlice";
-import { generateCustomId } from "core/generateMainKey";
-import { selectCurrentUserId } from "auth/authSlice";
 import { isProduction } from "utils/env";
 console.log('isProduction', isProduction)
 
@@ -36,21 +33,7 @@ const settingSlice = createSliceWithThunks({
   initialState,
   // 包含reducer函数的对象
   reducers: (create) => ({
-    initSyncSetting: create.asyncThunk(
-      async (payload, thunkAPI) => {
-        const { dispatch } = thunkAPI;
-        const state = thunkAPI.getState();
-        const userId = selectCurrentUserId(state);
-        const id = generateCustomId(userId, "sync-settings");
-        const action = await dispatch(read({ id }));
-        return action.payload;
-      },
-      {
-        fulfilled: (state, action) => {
-          state.syncSetting = { ...state.syncSetting, ...action.payload };
-        },
-      },
-    ),
+
     updateCurrentServer: (state, action) => {
       state.syncSetting.currentServer = action.payload;
     },
@@ -92,7 +75,6 @@ export const {
   addThirdPartyServer,
   removeThirdPartyServer,
   addHostToCurrentServer,
-  initSyncSetting,
 } = settingSlice.actions;
 
 export const selectCurrentServer = (state: NoloRootState): string =>

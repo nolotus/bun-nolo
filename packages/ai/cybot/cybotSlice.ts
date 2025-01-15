@@ -1,9 +1,9 @@
 import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
-import { API_ENDPOINTS } from "database/config";
 import { read } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "../api/apiEndpoints";
+import { performFetchRequest } from "../chat/fetchUtils";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -20,8 +20,8 @@ export const cybotSlice = createSliceWithThunks({
     runCybotId: create.asyncThunk(async ({ cybotId, userInput }, thunkApi) => {
       const state = thunkApi.getState();
       const dispatch = thunkApi.dispatch;
-      const cybotConfig = await dispatch(read({ id: cybotId })).unwrap();
-      if (cybotConfig.type === DataType.Cybot) {
+      const cybotConfig = await dispatch(read(cybotId)).unwrap();
+      if (cybotConfig.type === DataType.CYBOT) {
         const api = getApiEndpoint(cybotConfig);
         const currentServer = selectCurrentServer(state);
         const messages = [
@@ -32,29 +32,13 @@ export const cybotSlice = createSliceWithThunks({
           { role: "user", content: userInput },
         ];
         const bodyData = { model: cybotConfig.model, messages, stream: false };
-        let response;
-        if (!cybotConfig.useServerProxy) {
-          response = await fetch(api, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${cybotConfig.apiKey}`,
-            },
-            body: JSON.stringify(bodyData),
-          });
-        } else {
-          response = await fetch(`${currentServer}${API_ENDPOINTS.PROXY}`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              ...bodyData,
-              url: api,
-              KEY: cybotConfig.apiKey,
-            }),
-          });
-        }
+        const response = await performFetchRequest(
+          cybotConfig,
+          api,
+          bodyData,
+          currentServer
+        );
+
         const result = await response.json();
         const content = result.choices[0].message.content;
         return content;

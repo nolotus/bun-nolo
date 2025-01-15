@@ -63,5 +63,3 @@ export const FLAGS_MAP = {
 //isHash use for nerver change
 //isJSON is for most of use
 //isList use for merge .add ,remove something
-
-//isObject maybe could merge or search

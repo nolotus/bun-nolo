@@ -1,174 +1,250 @@
 // UsageChart.tsx
-import React from 'react';
-import ReactECharts from 'echarts-for-react';
+import React, { useState, useEffect } from "react";
+import ReactECharts from "echarts-for-react";
+import { format, subDays, eachDayOfInterval } from "date-fns";
+import { utcToZonedTime, zonedTimeToUtc, formatInTimeZone } from "date-fns-tz";
+import { pino } from "pino";
+import { getTokenStats } from "ai/token/query";
+import { useAppSelector } from "app/hooks";
+import { selectCurrentUserId } from "auth/authSlice";
 
-interface UsageChartProps {
-    theme?: any; // 如果使用主题系统,可以传入theme
-}
+const logger = pino({ name: "usage-chart" });
 
-const UsageChart: React.FC<UsageChartProps> = ({ theme }) => {
-    const btnPrimaryStyle: React.CSSProperties = {
-        background: theme?.primary || '#1a73e8',
-        color: 'white',
-        padding: '8px 16px',
-        borderRadius: '6px',
-        border: 'none',
-        cursor: 'pointer',
-        transition: 'all 0.2s'
+// 获取用户时区
+const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+type TimeRange = "7days" | "30days" | "90days";
+type DataType = "tokens" | "cost";
+
+const processDateRange = (timeRange: TimeRange) => {
+  // 获取用户时区的当前时间
+  const endLocal = utcToZonedTime(new Date(), userTimeZone);
+  const days = timeRange === "7days" ? 7 : timeRange === "30days" ? 30 : 90;
+  const startLocal = subDays(endLocal, days - 1);
+
+  // 生成用户时区的日期数组
+  const dateArray = eachDayOfInterval({ start: startLocal, end: endLocal });
+
+  // 转换为UTC时间用于API查询
+  const startUTC = zonedTimeToUtc(startLocal, userTimeZone);
+  const endUTC = zonedTimeToUtc(endLocal, userTimeZone);
+
+  return {
+    startUTC,
+    endUTC,
+    dateArray: dateArray.map((date) => ({
+      // UTC格式用于API查询
+      utc: format(zonedTimeToUtc(date, userTimeZone), "yyyy-MM-dd"),
+      // 本地格式用于显示
+      full: format(date, "yyyy-MM-dd"),
+      short: format(date, "MM-dd"),
+    })),
+  };
+};
+
+const UsageChart: React.FC<any> = ({ theme }) => {
+  const userId = useAppSelector(selectCurrentUserId);
+  const [timeRange, setTimeRange] = useState<TimeRange>("7days");
+  const [dataType, setDataType] = useState<DataType>("tokens");
+  const [statsData, setStatsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const { dateArray } = processDateRange(timeRange);
+        const startDate = dateArray[0].utc;
+        const endDate = dateArray[dateArray.length - 1].utc;
+
+        logger.info(
+          {
+            startDate,
+            endDate,
+            timeZone: userTimeZone,
+          },
+          "Fetching stats"
+        );
+
+        const stats = await getTokenStats({
+          userId,
+          startDate,
+          endDate,
+        });
+
+        setStatsData(stats);
+      } catch (err) {
+        logger.error({ err }, "Failed to fetch stats");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const getChartOption = () => ({
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'line',
-                lineStyle: {
-                    color: theme?.border || '#ddd',
-                    width: 1,
-                    type: 'dashed'
-                }
-            }
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            boundaryGap: false,
-            data: ['3月', '4月', '5月', '6月'],
-            axisLine: {
-                lineStyle: {
-                    color: theme?.border || '#ddd'
-                }
-            },
-            axisLabel: {
-                color: theme?.textSecondary || '#666'
-            }
-        },
-        yAxis: {
-            type: 'value',
-            axisLine: {
-                show: false
-            },
-            axisTick: {
-                show: false
-            },
-            axisLabel: {
-                color: theme?.textSecondary || '#666'
-            },
-            splitLine: {
-                lineStyle: {
-                    color: theme?.borderLight || '#eee'
-                }
-            }
-        },
-        series: [{
-            name: 'Token使用量',
-            type: 'line',
-            smooth: true,
-            symbol: 'circle',
-            symbolSize: 8,
-            data: [12, 19, 3, 5, 2, 3],
-            itemStyle: {
-                color: theme?.primary || '#1a73e8'
-            },
-            lineStyle: {
-                width: 3
-            },
-            areaStyle: {
-                color: {
-                    type: 'linear',
-                    x: 0,
-                    y: 0,
-                    x2: 0,
-                    y2: 1,
-                    colorStops: [{
-                        offset: 0,
-                        color: theme?.primaryGhost || 'rgba(26, 115, 232, 0.3)'
-                    }, {
-                        offset: 1,
-                        color: 'rgba(26, 115, 232, 0.05)'
-                    }]
-                }
-            }
-        }]
+    fetchStats();
+  }, [userId, timeRange]);
+
+  const getChartData = () => {
+    const { dateArray } = processDateRange(timeRange);
+
+    // 初始化数据结构
+    const series = {
+      dates: dateArray.map((d) => d.short),
+      total: new Array(dateArray.length).fill(0),
+      models: {} as Record<string, number[]>,
+    };
+
+    // 处理统计数据
+    statsData.forEach((stat) => {
+      // 将UTC时间转换为用户时区时间进行匹配
+      const localDate = formatInTimeZone(
+        new Date(stat.timeKey),
+        userTimeZone,
+        "yyyy-MM-dd"
+      );
+      const dateIndex = dateArray.findIndex((d) => d.full === localDate);
+      if (dateIndex === -1) return;
+
+      // 更新总量
+      series.total[dateIndex] =
+        dataType === "tokens"
+          ? (stat.total?.tokens?.input || 0) + (stat.total?.tokens?.output || 0)
+          : stat.total?.cost || 0;
+
+      // 更新各模型数据
+      Object.entries(stat.models || {}).forEach(
+        ([model, data]: [string, any]) => {
+          if (!series.models[model]) {
+            series.models[model] = new Array(dateArray.length).fill(0);
+          }
+          series.models[model][dateIndex] =
+            dataType === "tokens"
+              ? (data.tokens?.input || 0) + (data.tokens?.output || 0)
+              : data.cost || 0;
+        }
+      );
     });
 
-    return (
-        <div style={{
-            background: theme?.background || 'white',
-            borderRadius: '12px',
-            boxShadow: `0 2px 8px ${theme?.shadowLight || 'rgba(0,0,0,0.05)'}`,
-            padding: '24px',
-            marginBottom: '24px'
-        }}>
-            <style>
-                {`
-          .btn-primary:hover {
-            background: ${theme?.primaryLight || '#1557b0'} !important;
-            transform: translateY(-1px);
-          }
-          .dropdown-content {
-            display: none;
-            position: absolute;
-            background: ${theme?.background || 'white'};
-            box-shadow: 0 2px 8px ${theme?.shadowLight || 'rgba(0,0,0,0.1)'};
-            border-radius: 6px;
-            padding: 8px 0;
-            z-index: 1;
-          }
-          .dropdown:hover .dropdown-content {
-            display: block;
-          }
-          .dropdown-item {
-            display: block;
-            padding: 8px 16px;
-            color: ${theme?.text || '#333'};
-            text-decoration: none;
-          }
-          .dropdown-item:hover {
-            background-color: ${theme?.backgroundSecondary || '#f8f9fa'};
-          }
-        `}
-            </style>
+    return series;
+  };
 
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1rem'
-            }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 500 }}>使用量统计</h2>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <div className="dropdown">
-                        <button style={btnPrimaryStyle}>时间维度</button>
-                        <div className="dropdown-content">
-                            <a href="#" className="dropdown-item">按天</a>
-                            <a href="#" className="dropdown-item">按周</a>
-                            <a href="#" className="dropdown-item">按月</a>
-                        </div>
-                    </div>
-                    <div className="dropdown">
-                        <button style={btnPrimaryStyle}>模型类型</button>
-                        <div className="dropdown-content">
-                            <a href="#" className="dropdown-item">全部模型</a>
-                            <a href="#" className="dropdown-item">GPT-3.5</a>
-                            <a href="#" className="dropdown-item">GPT-4</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  const getChartOption = () => {
+    const data = getChartData();
+    const modelNames = Object.keys(data.models);
 
-            <ReactECharts
-                option={getChartOption()}
-                style={{ height: '300px' }}
-                opts={{ renderer: 'svg' }}
-            />
+    return {
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "cross" },
+        formatter: (params: any) => {
+          const date =
+            processDateRange(timeRange).dateArray[params[0].dataIndex].full;
+          let result = `${date}<br/>`;
+          params.forEach((param: any) => {
+            const value =
+              dataType === "cost" ? param.value.toFixed(4) : param.value;
+            result += `${param.seriesName}: ${value}<br/>`;
+          });
+          return result;
+        },
+      },
+      legend: {
+        data: ["总量", ...modelNames],
+        textStyle: { color: theme?.text },
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "3%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category",
+        data: data.dates,
+        axisLine: { lineStyle: { color: theme?.border } },
+        axisLabel: { color: theme?.textSecondary },
+      },
+      yAxis: {
+        type: "value",
+        name: dataType === "tokens" ? "Tokens" : "Cost ($)",
+        axisLabel: {
+          color: theme?.textSecondary,
+          formatter:
+            dataType === "cost"
+              ? (value: number) => value.toFixed(4)
+              : undefined,
+        },
+        splitLine: { lineStyle: { color: theme?.borderLight } },
+      },
+      series: [
+        {
+          name: "总量",
+          type: "line",
+          smooth: true,
+          data: data.total,
+          itemStyle: { color: theme?.primary },
+        },
+        ...modelNames.map((model) => ({
+          name: model,
+          type: "bar",
+          stack: "models",
+          data: data.models[model],
+          emphasis: { focus: "series" },
+        })),
+      ],
+    };
+  };
+
+  return (
+    <div
+      style={{
+        background: theme?.background,
+        borderRadius: "12px",
+        padding: "24px",
+        boxShadow: `0 2px 8px ${theme?.shadowLight}`,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "20px",
+        }}
+      >
+        <h2>
+          使用量统计 {loading && "(加载中...)"}
+          <span style={{ fontSize: "0.8em", color: "#666" }}>
+            ({userTimeZone})
+          </span>
+        </h2>
+        <div style={{ display: "flex", gap: "12px" }}>
+          <select
+            value={timeRange}
+            onChange={(e) => setTimeRange(e.target.value as TimeRange)}
+            style={{ padding: "8px" }}
+          >
+            <option value="7days">近7天</option>
+            <option value="30days">近30天</option>
+            <option value="90days">近90天</option>
+          </select>
+          <select
+            value={dataType}
+            onChange={(e) => setDataType(e.target.value as DataType)}
+            style={{ padding: "8px" }}
+          >
+            <option value="tokens">Tokens</option>
+            <option value="cost">Cost</option>
+          </select>
         </div>
-    );
+      </div>
+
+      <ReactECharts
+        option={getChartOption()}
+        style={{ height: "400px" }}
+        opts={{ renderer: "svg" }}
+        showLoading={loading}
+      />
+    </div>
+  );
 };
 
 export default UsageChart;

@@ -3,7 +3,6 @@ import messageReducer from "chat/messages/messageSlice";
 import dbReducer from "database/dbSlice";
 import themeReducer from "app/theme/themeSlice";
 import { configureStore } from "@reduxjs/toolkit";
-import { api } from "app/api";
 import settingReducer from "setting/settingSlice";
 
 import reactotron from "../../ReactotronConfig";
@@ -17,8 +16,6 @@ export const mobileStore = configureStore({
     db: dbReducer,
     theme: themeReducer,
     settings: settingReducer,
-
-    [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(api.middleware),

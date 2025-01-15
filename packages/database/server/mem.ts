@@ -30,7 +30,7 @@ const createMemory = (): MemoryStructure => ({
 
 const get = async (
   memory: MemoryStructure,
-  key: string,
+  key: string
 ): Promise<string | undefined> => {
   // console.log(
   //   `Current memory.memTable:`,
@@ -47,13 +47,13 @@ const get = async (
 
 const updateWalFromDefault = (
   timestamp: string,
-  sequenceNumber: number,
+  sequenceNumber: number
 ): void => {
   try {
     const defaultLogPath = path.resolve(baseDir, "default.log");
     const walPath = path.resolve(
       baseDir,
-      `wal_${timestamp}_${sequenceNumber}.log`,
+      `wal_${timestamp}_${sequenceNumber}.log`
     );
     if (fs.existsSync(defaultLogPath)) {
       fs.copyFileSync(defaultLogPath, walPath);
@@ -65,7 +65,7 @@ const updateWalFromDefault = (
 };
 
 const organizeDataByUserId = (
-  memory: Map<string, string>,
+  memory: Map<string, string>
 ): Map<string, Map<string, string>> => {
   const userData: Map<string, Map<string, string>> = new Map();
 
@@ -99,7 +99,7 @@ const moveToImmutable = (memory: MemoryStructure): MemoryStructure => {
 const set = (
   memory: MemoryStructure,
   key: string,
-  value: string,
+  value: string
 ): MemoryStructure => {
   if (!memory || !memory.memTable) {
     console.error("Invalid memory structure in set function");
@@ -125,7 +125,6 @@ class EnhancedMap {
   constructor() {
     this.memory = createMemory();
     const logFiles = findLogFiles();
-    console.log("logFiles", logFiles);
     logFiles.forEach((logFile) => {
       const lines = getLogFileLines(logFile);
       this.applyLogData(lines);

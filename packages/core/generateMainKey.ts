@@ -1,28 +1,8 @@
 import { Base64 } from "js-base64";
 import nacl from "tweetnacl";
 
-import { Flags, setKeyPrefix } from "./prefix";
 import { generateHash } from "./generateKeyPairFromSeedV0";
 
-export const generateIdWithCustomId = (
-  userId: string,
-  customId: string,
-  flags: object
-) => {
-  const idPrefix = setKeyPrefix(flags);
-  return `${idPrefix}-${userId}-${customId}`;
-};
-export function generateCustomId(
-  userId: string,
-  customId: string,
-  flags?: Flags
-) {
-  return generateIdWithCustomId(
-    userId,
-    customId,
-    flags ? flags : { isJSON: true }
-  );
-}
 export const generateUserIdV1 = (
   publicKey: string,
   username: string,

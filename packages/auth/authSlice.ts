@@ -7,16 +7,15 @@ import { signToken } from "auth/token";
 import { API_VERSION } from "database/config";
 import { noloRequest } from "database/requests/noloRequest";
 import { formatISO, addDays } from "date-fns";
-import { initSyncSetting, selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "setting/settingSlice";
 import { generateKeyPairFromSeedV0 } from "core/generateKeyPairFromSeedV0";
 import { generateKeyPairFromSeedV1 } from "core/crypto";
 import { parseToken } from "./token";
 import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
-import { SignupData } from "./types";
 
 interface AuthState {
-  currentUser: User | null;
+  currentUser: User;
   users: User[];
   isLoggedIn: boolean;
   currentToken: string | null;
@@ -24,7 +23,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  currentUser: null,
+  currentUser: { userId: "local" },
   users: [],
   isLoggedIn: false,
   currentToken: null,
@@ -62,7 +61,6 @@ export const authSlice = createSliceWithThunks({
             token = signToken({ userId, publicKey, username }, secretKey);
           }
           const currentServer = selectCurrentServer(state);
-          console.log("currentServer", currentServer);
           const res = await loginRequest(currentServer, {
             userId,
             token,
@@ -99,14 +97,15 @@ export const authSlice = createSliceWithThunks({
     ),
     signUp: create.asyncThunk(
       async (user, thunkAPI) => {
-        const { username, locale, encryptionKey } = user;
+        const { username, locale, encryptionKey, email } = user;
         const { publicKey, secretKey } = generateKeyPairFromSeedV1(
           username + encryptionKey + locale
         );
-        const sendData: SignupData = {
+        const sendData = {
           username,
           publicKey,
           locale,
+          email,
         };
 
         const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
@@ -191,7 +190,6 @@ export const authSlice = createSliceWithThunks({
               token: tokens[0],
             })
           );
-          await dispatch(initSyncSetting());
         }
       },
       {

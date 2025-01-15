@@ -2,14 +2,11 @@ import { DependabotIcon } from "@primer/octicons-react";
 import Cybots from "ai/cybot/web/Cybots";
 import { nolotusId } from "core/init";
 import { NavLink } from "react-router-dom";
-import { SpotList } from "render/components/SpotList";
 import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 
 const Home = () => {
-
-
-  const theme = useAppSelector(selectTheme)
+  const theme = useAppSelector(selectTheme);
   const features = [
     {
       icon: "🤖",
@@ -261,14 +258,6 @@ const Home = () => {
           <div style={{ marginBottom: "3rem" }}>
             <Cybots queryUserId={nolotusId} limit={8} />
           </div>
-        </section>
-
-        <section
-          className="section delay"
-          style={{ marginBottom: "3rem", textAlign: "center" }}
-        >
-          <h2 className="section-title">我用 Cybot 记录的一些地方</h2>
-          <SpotList userId={nolotusId} />
         </section>
 
         <footer
