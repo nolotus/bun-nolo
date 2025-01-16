@@ -51,10 +51,10 @@ export const sendCommonChatRequest = async ({
 }) => {
   const { dispatch, getState } = thunkApi;
   const dialogId = extractCustomId(dialogKey);
-
   const controller = new AbortController();
   const signal = controller.signal;
   const currentServer = selectCurrentServer(getState());
+  const messageId = createDialogMessageKey(dialogId);
 
   const messages = createMessages(content, prevMsgs, cybotConfig);
   const model = cybotConfig.model;
@@ -64,23 +64,21 @@ export const sendCommonChatRequest = async ({
     bodyData.tools = tools;
   }
 
-  const messageId = createDialogMessageKey(dialogId);
-
   let contentBuffer = "";
   let reader;
 
   try {
-    const message = {
-      id: messageId,
-      content: "Loading...",
-      role: "assistant",
-      cybotId: cybotConfig.id,
-      controller,
-    };
+    dispatch(
+      messageStreaming({
+        id: messageId,
+        content: "Loading...",
+        role: "assistant",
+        cybotId: cybotConfig.id,
+        controller,
+      })
+    );
 
-    dispatch(messageStreaming(message));
     const api = getApiEndpoint(cybotConfig);
-
     const response = await performFetchRequest(
       cybotConfig,
       api,
@@ -102,53 +100,41 @@ export const sendCommonChatRequest = async ({
       if (done) {
         const final = {
           id: messageId,
-          content: contentBuffer,
+          content: contentBuffer || "Empty response",
           role: "assistant",
           cybotId: cybotConfig.id,
         };
-
         dispatch(messageStreamEnd(final));
-        dispatch(
-          updateDialogTitle({
-            dialogKey,
-            cybotConfig,
-          })
-        );
+        dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
         break;
       }
 
       const result = decoder.decode(value);
-
       const parsedResults = parseMultilineSSE(result);
 
       for (const parsedData of parsedResults) {
         if (parsedData.error) {
-          // Log the error and handle it accordingly
-          console.error("Error received from API:", parsedData.error.message);
+          const errorMsg = `Error: ${parsedData.error.message}`;
           dispatch(
-            messageStreaming({
+            messageStreamEnd({
               id: messageId,
-              content: "Error: " + parsedData.error.message,
+              content: contentBuffer || errorMsg,
               role: "assistant",
               cybotId: cybotConfig.id,
-              controller,
             })
           );
-          break;
+          throw new Error(errorMsg);
         }
 
         const content = parsedData.choices?.[0]?.delta?.content || "";
-        let usage;
-
         if (parsedData.usage) {
-          usage = parsedData.usage;
-          console.log("usage", usage);
-          dispatch(updateTokens({ dialogId, usage, cybotConfig }));
+          dispatch(
+            updateTokens({ dialogId, usage: parsedData.usage, cybotConfig })
+          );
         }
 
         if (content) {
           contentBuffer += content;
-
           dispatch(
             messageStreaming({
               id: messageId,
@@ -163,16 +149,23 @@ export const sendCommonChatRequest = async ({
     }
   } catch (error) {
     console.error("Request failed:", error);
+    const errorContent =
+      error.name === "AbortError"
+        ? `${contentBuffer}\n[Interrupted]`
+        : `${contentBuffer || "Error"}: ${error.message}`;
+
     dispatch(
-      messageStreaming({
+      messageStreamEnd({
         id: messageId,
-        content: "Error: " + error.message,
+        content: errorContent,
         role: "assistant",
         cybotId: cybotConfig.id,
-        controller,
       })
     );
-    throw error;
+
+    if (error.name !== "AbortError") {
+      throw error;
+    }
   } finally {
     if (reader) {
       reader.releaseLock();

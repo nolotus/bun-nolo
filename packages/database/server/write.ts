@@ -22,7 +22,7 @@ export const handleWrite = async (req: any, res: any) => {
   const { user } = req;
   const actionUserId = user.userId;
 
-  const { userId, data, flags, customId } = req.body;
+  const { userId, data, customId } = req.body;
   const saveUserId = userId;
 
   if (saveUserId === "local") {
