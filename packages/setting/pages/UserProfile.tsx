@@ -1,4 +1,4 @@
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 
 const UserProfile = () => {

@@ -9,14 +9,13 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppSelector } from "../hooks";
-import { useAuth } from "auth/useAuth";
-
+import { useAuth } from "auth/hooks/useAuth";
 
 // Generate a hash asynchronously
 export function HomeScreen() {
   const { user, isLoggedIn } = useAuth();
   const auth = useAppSelector((state) => state.auth);
-  console.log(' auth', auth)
+  console.log(" auth", auth);
 
   const navigation = useNavigation();
   return (
@@ -83,22 +82,22 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   section: {
     marginBottom: 20,
     borderRadius: 8,
     padding: 15,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
   },
   navButton: {
     padding: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     marginVertical: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 1,
@@ -109,15 +108,15 @@ const styles = StyleSheet.create({
   },
   textDescription: {
     fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
     marginVertical: 4,
   },
   linkText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#3B82F6',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "#3B82F6",
+    textAlign: "center",
     marginBottom: 4,
   },
 });

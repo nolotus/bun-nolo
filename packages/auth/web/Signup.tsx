@@ -79,6 +79,70 @@ const Signup: React.FC = () => {
 
   return (
     <div className="signup-container">
+      <form onSubmit={handleSubmit(onSubmit)} className="signup-form">
+        <h1 className="signup-title">{t("signup")}</h1>
+
+        <div className="field-group">
+          <Input
+            placeholder={t("enterUsername")}
+            {...register("username")}
+            error={!!errors.username}
+            icon={<PersonIcon size={20} />}
+            autoComplete="username"
+          />
+          {errors.username && (
+            <p className="error-message">{errors.username.message}</p>
+          )}
+        </div>
+        <div className="field-group">
+          <Input
+            placeholder={t("enterEmail")}
+            {...register("email")}
+            error={!!errors.email}
+            icon={<MailIcon size={20} />} // 需要从 @primer/octicons-react 引入 MailIcon
+            type="email"
+            autoComplete="email"
+          />
+          {errors.email && (
+            <p className="error-message">{errors.email.message}</p>
+          )}
+        </div>
+
+        <div className="field-group">
+          <PasswordInput
+            placeholder={t("enterPassword")}
+            {...register("password")}
+            error={!!errors.password}
+            icon={<LockIcon size={20} />}
+            autoComplete="new-password"
+          />
+          {errors.password && (
+            <p className="error-message">{errors.password.message}</p>
+          )}
+        </div>
+
+        {error && <p className="error-message">{error}</p>}
+
+        <div className="form-footer">
+          <Button
+            variant="primary"
+            size="large"
+            loading={isLoading}
+            disabled={isLoading}
+            style={{ width: "100%" }}
+            type="submit"
+          >
+            {isLoading ? t("loading") : t("signup")}
+          </Button>
+
+          <div className="login-section">
+            <span className="link-text">{t("haveAccount")}</span>
+            <NavLink to="/login" className="login-link">
+              {t("loginNow")}
+            </NavLink>
+          </div>
+        </div>
+      </form>
       <style>{`
   .signup-container {
     display: flex;
@@ -195,71 +259,6 @@ const Signup: React.FC = () => {
     }
   }
 `}</style>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="signup-form">
-        <h1 className="signup-title">{t("signup")}</h1>
-
-        <div className="field-group">
-          <Input
-            placeholder={t("enterUsername")}
-            {...register("username")}
-            error={!!errors.username}
-            icon={<PersonIcon size={20} />}
-            autoComplete="username"
-          />
-          {errors.username && (
-            <p className="error-message">{errors.username.message}</p>
-          )}
-        </div>
-        <div className="field-group">
-          <Input
-            placeholder={t("enterEmail")}
-            {...register("email")}
-            error={!!errors.email}
-            icon={<MailIcon size={20} />} // 需要从 @primer/octicons-react 引入 MailIcon
-            type="email"
-            autoComplete="email"
-          />
-          {errors.email && (
-            <p className="error-message">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="field-group">
-          <PasswordInput
-            placeholder={t("enterPassword")}
-            {...register("password")}
-            error={!!errors.password}
-            icon={<LockIcon size={20} />}
-            autoComplete="new-password"
-          />
-          {errors.password && (
-            <p className="error-message">{errors.password.message}</p>
-          )}
-        </div>
-
-        {error && <p className="error-message">{error}</p>}
-
-        <div className="form-footer">
-          <Button
-            variant="primary"
-            size="large"
-            loading={isLoading}
-            disabled={isLoading}
-            style={{ width: "100%" }}
-            type="submit"
-          >
-            {isLoading ? t("loading") : t("signup")}
-          </Button>
-
-          <div className="login-section">
-            <span className="link-text">{t("haveAccount")}</span>
-            <NavLink to="/login" className="login-link">
-              {t("loginNow")}
-            </NavLink>
-          </div>
-        </div>
-      </form>
     </div>
   );
 };

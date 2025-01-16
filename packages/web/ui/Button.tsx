@@ -1,64 +1,62 @@
 // web/ui/Button.tsx
-import React from 'react';
-import { useTheme } from 'app/theme';
-
+import React from "react";
+import { useTheme } from "app/theme";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary';
-  status?: 'error';
-  size?: 'small' | 'medium' | 'large';
+  variant?: "primary" | "secondary";
+  status?: "error";
+  size?: "small" | "medium" | "large";
   icon?: React.ReactNode;
   loading?: boolean;
   block?: boolean;
-  type?: 'button' | 'submit' | 'reset';
+  type?: "button" | "submit" | "reset";
 }
 
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      variant = "primary",
+      status,
+      size = "medium",
+      icon,
+      loading,
+      disabled,
+      block,
+      type = "button",
+      className,
+      children,
+      style,
+      onClick,
+      ...rest
+    },
+    ref
+  ) => {
+    const theme = useTheme();
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
-  variant = 'primary',
-  status,
-  size = 'medium',
-  icon,
-  loading,
-  disabled,
-  block,
-  type = 'button',
-  className,
-  children,
-  style,
-  onClick,
-  ...rest
-}, ref) => {
-  const theme = useTheme();
+    const buttonType = status === "error" ? "danger" : variant;
+    const buttonClassName = `btn btn-${buttonType}${disabled || loading ? " disabled" : ""} ${size}${block ? " block" : ""} ${className || ""}`;
 
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (loading || disabled) return;
+      onClick?.(e);
+    };
 
-  const buttonType = status === 'error' ? 'danger' : variant;
-  const buttonClassName = `btn btn-${buttonType}${disabled || loading ? ' disabled' : ''} ${size}${block ? ' block' : ''} ${className || ''}`;
+    return (
+      <button
+        {...rest}
+        ref={ref}
+        className={buttonClassName}
+        disabled={disabled || loading}
+        onClick={handleClick}
+        style={style}
+        type={type}
+      >
+        <span className="btn-content">
+          {icon && !loading && <span className="btn-icon">{icon}</span>}
+          {loading ? <LoadingSpinner /> : children}
+        </span>
 
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (loading || disabled) return;
-    onClick?.(e);
-  };
-
-
-  return (
-    <button
-      {...rest}
-      ref={ref}
-      className={buttonClassName}
-      disabled={disabled || loading}
-      onClick={handleClick}
-      style={style}
-      type={type}
-    >
-      <span className="btn-content">
-        {icon && !loading && <span className="btn-icon">{icon}</span>}
-        {loading ? <LoadingSpinner /> : children}
-      </span>
-
-
-      <style href="button">{`
+        <style href="button">{`
         .btn {
           position: relative;
           font-size: 14px;
@@ -208,13 +206,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
 }
 
       `}</style>
-    </button>
-  );
-});
+      </button>
+    );
+  }
+);
 
-
-Button.displayName = 'Button';
-
+Button.displayName = "Button";
 
 const LoadingSpinner = () => (
   <svg
@@ -242,7 +239,5 @@ const LoadingSpinner = () => (
     />
   </svg>
 );
-
-
 
 export default Button;

@@ -13,7 +13,7 @@ import {
   PlusIcon,
 } from "@primer/octicons-react";
 import Cybots from "ai/cybot/web/Cybots";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { nolotusId } from "core/init";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

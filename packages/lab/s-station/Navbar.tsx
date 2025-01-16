@@ -1,12 +1,12 @@
 import React from "react";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { NavLink } from "react-router-dom";
 
 import { useTranslation } from "react-i18next";
-import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
+import { IsLoggedInMenu } from "auth/web/IsLoggedInMenu";
 import NavListItem from "render/layout/blocks/NavListItem";
 import { SignInIcon } from "@primer/octicons-react";
-import { RoutePaths } from "auth/client/routes";
+import { RoutePaths } from "auth/web/routes";
 import { CreateMenu } from "create/CreateMenu";
 
 const styles = {

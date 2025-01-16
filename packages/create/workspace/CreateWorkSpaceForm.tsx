@@ -2,7 +2,7 @@
 import { useCallback } from "react";
 import { useTheme } from "app/theme";
 import { useAppDispatch } from "app/hooks";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 

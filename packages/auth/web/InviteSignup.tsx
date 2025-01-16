@@ -29,7 +29,7 @@ const InviteSignup: React.FC = () => {
     purpose: z
       .string()
       .nonempty({ message: t("purposeRequired") || "" })
-      .min(10, { message: t("purposeTooShort") || "" })
+      .min(10, { message: t("purposeTooShort") || "" }),
   });
 
   const {
@@ -186,9 +186,7 @@ const InviteSignup: React.FC = () => {
           <span className="beta-tag">Beta</span>
         </h1>
 
-        <p className="description">
-          {t("betaDescription")}
-        </p>
+        <p className="description">{t("betaDescription")}</p>
 
         <div className="field-group">
           <Input

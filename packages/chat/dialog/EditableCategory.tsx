@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { patchData, write } from "database/dbSlice";
 import { DataType } from "create/types";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { useQueryData } from "app/hooks/useQueryData";
 
 const categoryContainerStyle = (allowEdit) => ({

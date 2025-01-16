@@ -3,7 +3,7 @@ import { extractUserId } from "core/prefix";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "app/hooks";
 import { deleteData } from "database/dbSlice";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import toast from "react-hot-toast";
 
 import { ButtonGroup } from "../../page/ButtonGroup";

@@ -1,7 +1,7 @@
 import type { PromptFormData } from "ai/types";
 import { useAppDispatch } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
 import type React from "react";

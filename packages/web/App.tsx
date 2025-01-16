@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from "react";
 
 import { useAppDispatch } from "app/hooks";
 import { initAuth } from "auth/authSlice";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import i18n from "i18n";
 import { Toaster } from "react-hot-toast";
 import { useRoutes } from "react-router-dom";
@@ -60,7 +60,7 @@ export default function App({ hostname, lng = "en", isDark = false }) {
 
   const routes = useMemo(
     () => generatorRoutes(hostname, auth),
-    [hostname, auth],
+    [hostname, auth]
   );
 
   // let element = useRoutes(routes);

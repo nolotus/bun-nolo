@@ -1,7 +1,7 @@
-import { useAppSelector } from "../hooks"
-import { selectTheme } from "./themeSlice"
+import { useAppSelector } from "../hooks";
+import { selectTheme } from "./themeSlice";
 
 export const useTheme = () => {
-    const theme = useAppSelector(selectTheme)
-    return theme
-}
+  const theme = useAppSelector(selectTheme);
+  return theme;
+};

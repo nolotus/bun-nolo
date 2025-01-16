@@ -1,6 +1,6 @@
 import { UploadIcon } from "@primer/octicons-react";
 import { retrieveFirstToken } from "auth/web/token";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { generateFileID } from "database/fileUpload/generateFileID";
 import type React from "react";
 import { useCallback, useRef, useState } from "react";

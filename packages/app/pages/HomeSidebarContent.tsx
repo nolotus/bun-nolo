@@ -1,7 +1,7 @@
 import { DesktopDownloadIcon, PeopleIcon } from "@primer/octicons-react";
 import type { NavItem } from "auth/navPermissions";
 import { allowRule } from "auth/navPermissions";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { nolotusId } from "core/init"; // 确保引入 nolotusId
 // app/pages/HomeSidebarContent.tsx
 import type React from "react";

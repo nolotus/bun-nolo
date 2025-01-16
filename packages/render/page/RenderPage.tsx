@@ -1,4 +1,4 @@
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { useParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 

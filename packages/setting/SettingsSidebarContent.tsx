@@ -1,7 +1,7 @@
 // SettingsSidebarContent.tsx
 import React from "react";
 import { nolotusId } from "core/init";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import NavListItem from "render/layout/blocks/NavListItem";
 import { SettingRoutePaths } from "./config";
 
