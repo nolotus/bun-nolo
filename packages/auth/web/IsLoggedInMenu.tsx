@@ -9,7 +9,7 @@ import { selectTheme } from "app/theme/themeSlice";
 import { changeCurrentUser, selectUsers, signOut } from "auth/authSlice";
 import { getTokensFromLocalStorage, removeToken } from "auth/web/token";
 import { parseToken } from "auth/token";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";

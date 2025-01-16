@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import {
   clearDialogState,
   initDialog,

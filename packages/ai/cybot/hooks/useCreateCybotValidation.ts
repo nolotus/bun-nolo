@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import { createCybotSchema, FormData } from "../createCybotSchema";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { createCybotKey } from "database/keys";

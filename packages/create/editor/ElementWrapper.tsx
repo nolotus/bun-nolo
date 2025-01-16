@@ -2,7 +2,7 @@ import CodeBlock from "render/elements/CodeBlock";
 import { ImageElement } from "render/elements/ImageElement";
 import { List, ListItem } from "render/elements/List";
 import { SafeLink } from "render/elements/SafeLink";
-import { Table, TableCell, TableRow } from "render/elements/Table";
+import { Table, TableCell, TableRow } from "web/ui/Table";
 import { useSlateStatic } from "slate-react";
 import { CodeBlockType, CodeLineType } from "./type";
 import { useTheme } from "app/theme";

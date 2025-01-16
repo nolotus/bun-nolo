@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, TableRow, TableCell } from "render/elements/Table";
+import { Table, TableRow, TableCell } from "web/ui/Table";
 import { deepseekModels } from "./modelData";
 import { anthropicModels } from "integrations/anthropic/models";
 import { deepinfraModels } from "integrations/deepinfra/models";

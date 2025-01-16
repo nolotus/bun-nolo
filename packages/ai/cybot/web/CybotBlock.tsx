@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { animations } from "render/styles/animations";
 import { useAppSelector } from "app/hooks";
 
-import { useCouldEdit } from "auth/useCouldEdit";
+import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { deleteData } from "database/dbSlice";
 import { useModal } from "render/ui/Modal";

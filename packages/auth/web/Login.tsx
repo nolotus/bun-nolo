@@ -18,7 +18,7 @@ import { Checkbox } from "web/form/Checkbox";
 import { Input } from "web/form/Input";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
-import { RoutePaths } from "../client/routes";
+import { RoutePaths } from "./routes";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import { useFetchData } from "app/hooks";
-import { useCouldEdit } from "auth/useCouldEdit";
+import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import React from "react";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";

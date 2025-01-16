@@ -1,9 +1,9 @@
 import { HomeIcon, SignInIcon } from "@primer/octicons-react";
 import CybotNameChip from "ai/cybot/CybotNameChip";
 import { useAppSelector } from "app/hooks";
-import { RoutePaths } from "auth/client/routes";
-import { IsLoggedInMenu } from "auth/pages/IsLoggedInMenu";
-import { useAuth } from "auth/useAuth";
+import { RoutePaths } from "auth/web/routes";
+import { IsLoggedInMenu } from "auth/web/IsLoggedInMenu";
+import { useAuth } from "auth/hooks/useAuth";
 import CreateDialogButton from "chat/dialog/CreateDialogButton";
 import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
 import EditableTitle from "chat/dialog/EditableTitle";

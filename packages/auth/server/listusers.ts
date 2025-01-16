@@ -1,153 +1,119 @@
 import serverDb, { DB_PREFIX } from "database/server/db";
+import pino from "pino";
+
+const logger = pino();
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Content-Type": "application/json",
+};
 
 /**
  * 处理获取用户列表请求
- * @param {Request} req 请求对象
- * @returns {Promise<Response>}
  */
-/**
- * 处理获取用户列表请求
- * @param {Request} req 请求对象
- * @returns {Promise<Response>}
- */
+// database/server/handlers.ts
 export async function handleListUsers(req) {
-  const startTime = Date.now();
-  const requestId = Math.random().toString(36).substring(7);
-
-  // 添加 CORS 响应头
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": "*", // 允许所有来源，生产环境建议设置具体域名
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json",
-  };
-
-  // 处理 OPTIONS 预检请求
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  console.log({
-    level: "info",
-    event: "list_users_start",
-    requestId,
-    message: "Starting to process list users request",
-    url: req.url,
-  });
+  const requestId = Math.random().toString(36).slice(7);
+  logger.info({ requestId, url: req.url }, "Processing list users request");
 
   try {
-    const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get("page")) || 1;
-    const pageSize = parseInt(url.searchParams.get("pageSize")) || 10;
-
-    console.log({
-      level: "debug",
-      event: "list_users_params",
-      requestId,
-      message: "Processing with parameters",
-      page,
-      pageSize,
-    });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const pageSize = Math.min(
+      50,
+      Math.max(1, parseInt(req.query.pageSize) || 10)
+    );
 
     const result = await listUsers({ page, pageSize });
-    const duration = Date.now() - startTime;
 
-    console.log({
-      level: "info",
-      event: "list_users_success",
-      requestId,
-      message: "Successfully retrieved user list",
-      duration,
-      totalUsers: result.total,
-      page: result.currentPage,
-    });
+    logger.info(
+      {
+        requestId,
+        total: result.total,
+        page: result.currentPage,
+        pageSize,
+        returnedCount: result.list.length,
+      },
+      "Users retrieved successfully"
+    );
 
     return new Response(JSON.stringify(result), {
       status: 200,
-      headers: corsHeaders,
+      headers: CORS_HEADERS,
     });
   } catch (error) {
-    const duration = Date.now() - startTime;
-
-    console.error({
-      level: "error",
-      event: "list_users_error",
-      requestId,
-      message: "Failed to fetch users",
-      error: error.message,
-      stack: error.stack,
-      duration,
-    });
-
-    return new Response(JSON.stringify({ error: "Failed to fetch users" }), {
-      status: 500,
-      headers: corsHeaders,
-    });
+    // ... error handling
   }
 }
 
 /**
  * 分页查询用户列表
- * @param {Object} options 查询选项
- * @param {number} options.page 页码，从1开始
- * @param {number} options.pageSize 每页数量
- * @returns {Promise<{total: number, list: Array, currentPage: number}>}
+ * @returns {Promise<{total: number, list: Array<{id: string, ...rest}>, currentPage: number}>}
  */
+// database/server/users.ts
 async function listUsers({ page = 1, pageSize = 10 } = {}) {
-  const startTime = Date.now();
-  const operationId = Math.random().toString(36).substring(7);
-
-  console.log({
-    level: "debug",
-    event: "db_query_start",
-    operationId,
-    message: "Starting database query",
-    page,
-    pageSize,
-  });
-
-  const prefix = DB_PREFIX.USER;
+  let totalCount = 0;
   const users = [];
-  let count = 0;
-  const start = (page - 1) * pageSize;
+  const prefix = DB_PREFIX.USER;
 
-  const iterator = serverDb.iterator({
+  // 首先获取总数
+  const countIterator = serverDb.iterator({
     gt: prefix,
     lt: prefix + "\xFF",
+    values: false, // 只获取keys以提升性能
   });
 
   try {
-    for await (const [key, value] of iterator) {
-      if (count >= start && users.length < pageSize) {
-        users.push(JSON.parse(value));
-      }
-      count++;
+    for await (const key of countIterator) {
+      totalCount++;
+    }
+  } finally {
+    await countIterator.close();
+  }
 
-      if (users.length >= pageSize) {
-        break;
-      }
+  // 然后获取分页数据
+  const dataIterator = serverDb.iterator({
+    gt: prefix,
+    lt: prefix + "\xFF",
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
+  });
+
+  try {
+    for await (const [key, value] of dataIterator) {
+      const userId = key.slice(prefix.length);
+      users.push({
+        id: userId,
+        username: value.username,
+        email: value.email || "",
+        balance: value.balance || 0,
+        createdAt: value.createdAt,
+        ...value,
+      });
     }
 
-    const duration = Date.now() - startTime;
-    console.log({
-      level: "debug",
-      event: "db_query_complete",
-      operationId,
-      message: "Database query completed",
-      duration,
-      recordsFound: count,
-      recordsReturned: users.length,
-    });
+    logger.debug(
+      {
+        page,
+        pageSize,
+        totalCount,
+        returnedCount: users.length,
+      },
+      "Users query completed"
+    );
 
     return {
-      total: count,
+      total: totalCount,
       list: users,
       currentPage: page,
+      totalPages: Math.ceil(totalCount / pageSize),
+      hasMore: totalCount > page * pageSize,
     };
   } finally {
-    await iterator.close();
+    await dataIterator.close();
   }
 }

@@ -1,5 +1,5 @@
 import HomeSidebarContent from "app/pages/HomeSidebarContent";
-import { useAuth } from "auth/useAuth";
+import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/ChatSidebar";
 import LifeSidebarContent from "life/LifeSidebarContent";
 import React, { Suspense } from "react";
