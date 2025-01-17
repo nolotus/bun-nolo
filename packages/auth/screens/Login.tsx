@@ -4,14 +4,19 @@ import { useAppDispatch } from "app/hooks";
 import { signIn } from "../authSlice";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { rnHashpasswordV1 } from 'rn/hashPassword';
-import { useTheme } from 'app/theme';
-import { SafeAreaView, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { rnHashpasswordV1 } from "rn/hashPassword";
+import { useTheme } from "app/theme";
+import {
+  SafeAreaView,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+} from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-import { Input } from 'rn/form/Input';
-import PasswordInput from 'rn/form/PasswordInput';
-import Button from 'rn/ui/Button';
-import { storeTokens } from "../rn/tokenStorage";
+import { Input } from "rn/form/Input";
+import PasswordInput from "rn/form/PasswordInput";
+import Button from "rn/ui/Button";
+import { tokenManager } from "../tokenManager";
 
 const LoginScreen = ({ navigation }) => {
   const theme = useTheme();
@@ -37,7 +42,7 @@ const LoginScreen = ({ navigation }) => {
     const encryptionKey = await rnHashpasswordV1(password);
     const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
     if (action.payload.token) {
-      storeTokens(action.payload.token);
+      tokenManager.storeToken(action.payload.token);
       navigation.navigate("MainTabs");
       return;
     }
@@ -51,14 +56,14 @@ const LoginScreen = ({ navigation }) => {
     content: {
       flex: 1,
       paddingHorizontal: 24,
-      justifyContent: 'center',
+      justifyContent: "center",
     },
     title: {
       fontSize: 32,
-      fontWeight: '600',
+      fontWeight: "600",
       color: theme.text,
       marginBottom: 48,
-      textAlign: 'center',
+      textAlign: "center",
       letterSpacing: -0.5,
     },
     fieldGroup: {
@@ -68,7 +73,7 @@ const LoginScreen = ({ navigation }) => {
       fontSize: 14,
       color: theme.error,
       marginTop: 8,
-    }
+    },
   });
 
   return (
@@ -89,7 +94,9 @@ const LoginScreen = ({ navigation }) => {
               name="username"
               placeholder={t("enterUsername")}
               error={!!errors.username}
-              icon={<Icon name="person" size={20} color={theme.textSecondary} />}
+              icon={
+                <Icon name="person" size={20} color={theme.textSecondary} />
+              }
               autoComplete="username"
             />
             {errors.username && (
@@ -103,7 +110,13 @@ const LoginScreen = ({ navigation }) => {
               name="password"
               placeholder={t("enterPassword")}
               error={!!errors.password}
-              icon={<Icon name="lock-closed" size={20} color={theme.textSecondary} />}
+              icon={
+                <Icon
+                  name="lock-closed"
+                  size={20}
+                  color={theme.textSecondary}
+                />
+              }
               autoComplete="password"
             />
             {errors.password && (

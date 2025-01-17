@@ -1,14 +1,19 @@
-import { API_VERSION } from "database/config";
+// auth/api.ts
+import { authRoutes } from "auth/routes";
 
-export const loginRequest = async (currentServer: string, data) => {
-  const url = `${currentServer}${API_VERSION}/users/login`;
-  const res = await fetch(url, {
-    method: "POST",
+export interface LoginData {
+  username: string;
+  password: string;
+}
+
+export const loginRequest = async (currentServer: string, data: LoginData) => {
+  const path = authRoutes.login.createPath();
+
+  return fetch(`${currentServer}${path}`, {
+    method: authRoutes.login.method,
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
-
-  return res;
 };

@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
-import { storeTokens } from "auth/web/token";
 import { hashPasswordV1 } from "core/password";
 import type React from "react";
 import { useState } from "react";
@@ -19,6 +18,7 @@ import { Input } from "web/form/Input";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import { RoutePaths } from "./routes";
+import { tokenManager } from "../tokenManager";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ const Login: React.FC = () => {
       ).unwrap();
 
       if (result.token) {
-        storeTokens(result.token);
+        tokenManager.storeToken(result.token);
         //maybe dashboard
         navigate("/");
         return;

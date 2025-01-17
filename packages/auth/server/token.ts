@@ -10,9 +10,7 @@ const getPublicKey = async (userId) => {
   // 先尝试获取新用户的公钥
   try {
     const newUser = await serverDb.get(`user:${userId}`);
-    console.log("newUser", typeof newUser);
     if (newUser?.publicKey) {
-      console.log("is newUser");
       return {
         publicKey: newUser.publicKey,
         isNewUser: true,

@@ -1,10 +1,10 @@
 // hooks/useDeleteUser.ts
 import { useCallback } from "react";
-import { API_ENDPOINTS } from "database/config";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import pino from "pino";
+import { authRoutes } from "auth/routes";
 
 const logger = pino({ name: "useDeleteUser" });
 
@@ -23,15 +23,14 @@ export function useDeleteUser(onSuccess?: () => void) {
       try {
         logger.info({ userId }, "Attempting to delete user");
 
-        const response = await fetch(
-          `${serverUrl}${API_ENDPOINTS.USERS}/users/${userId}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const path = authRoutes.users.delete.createPath({ userId });
+
+        const response = await fetch(`${serverUrl}${path}`, {
+          method: authRoutes.users.delete.method,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`Delete failed with status: ${response.status}`);
