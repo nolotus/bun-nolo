@@ -119,7 +119,7 @@ const UsageRecord: React.FC = () => {
                 <th>机器人</th>
                 <th>Tokens</th>
                 <th>模型</th>
-                <th>费用($)</th>
+                <th>费用(￥)</th>
               </tr>
             </thead>
             <tbody>

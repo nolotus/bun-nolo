@@ -1,4 +1,5 @@
-// 1. ai/token/types.ts - 包含所有类型定义和常量
+// ai/token/types.ts
+
 export const DEFAULT_QUERY_LIMIT = 100;
 
 export const TOKEN_PERIODS = {
@@ -13,6 +14,7 @@ export const TOKEN_SCOPES = {
   SITE: "site",
 } as const;
 
+// 原始用量类型
 export interface RawUsageType1 {
   output_tokens?: number;
   input_tokens?: number;
@@ -30,6 +32,7 @@ export interface RawUsageType2 {
 
 export type RawUsage = RawUsageType1 | RawUsageType2;
 
+// 标准化后的用量数据
 export interface NormalizedUsage {
   input_tokens: number;
   output_tokens: number;
@@ -38,17 +41,17 @@ export interface NormalizedUsage {
   cost: number;
 }
 
+// Token使用数据
 export interface TokenUsageData extends NormalizedUsage {
   userId?: string;
   cybotId: string;
   model: string;
   provider: string;
-  date: Date;
-  type: string;
   dialogId: string;
-  pay: any;
+  pay: any; // TODO: 明确支付数据类型
 }
 
+// Token记录
 export interface TokenRecord {
   id: string;
   userId: string;
@@ -56,10 +59,25 @@ export interface TokenRecord {
   cybotId: string;
   model: string;
   provider: string;
-  cache_creation_input_tokens?: number;
-  cache_read_input_tokens?: number;
-  output_tokens?: number;
-  input_tokens?: number;
+  dialogId: string;
+  cache_creation_input_tokens: number;
+  cache_read_input_tokens: number;
+  output_tokens: number;
+  input_tokens: number;
   cost: number;
-  createdAt: number;
+  pay: any;
+  createdAt: number; // UTC timestamp
+  type: string;
+}
+
+// Token统计数据
+export interface TokenStats {
+  total: number;
+  date: string; // YYYY-MM-DD in UTC
+  inputTokens: number;
+  outputTokens: number;
+  cost: number;
+  userId: string;
+  createdAt: number; // UTC timestamp
+  type: string;
 }

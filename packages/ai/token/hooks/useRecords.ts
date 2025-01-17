@@ -15,10 +15,11 @@ export interface RecordsFilter {
   currentPage: number;
 }
 
+// 应该从后端获取总数，而不是用当前加载的记录数
 interface UseRecordsReturn {
   records: TokenRecord[];
   loading: boolean;
-  totalCount: number;
+  totalCount: number; // 这个值现在只反映了已加载的数量
 }
 
 export const useRecords = (
@@ -43,6 +44,8 @@ export const useRecords = (
           startTime: new Date(startTime).toISOString(),
           endTime: new Date(endTime).toISOString(),
           filter,
+          page: filter.currentPage,
+          pageSize: ITEMS_PER_PAGE,
         },
         "Fetching records"
       );
@@ -52,7 +55,9 @@ export const useRecords = (
         startTime,
         endTime,
         model: filter.model === "全部模型" ? undefined : filter.model,
-        limit: ITEMS_PER_PAGE * filter.currentPage,
+        // 应该使用 offset 而不是获取所有之前页的数据
+        offset: ITEMS_PER_PAGE * (filter.currentPage - 1),
+        limit: ITEMS_PER_PAGE,
       });
 
       logger.info(

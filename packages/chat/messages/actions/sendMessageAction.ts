@@ -38,8 +38,8 @@ export const sendMessageAction = async (args, thunkApi) => {
     cybotConfig.provider === "openai" ||
     cybotConfig.provider === "mistral" ||
     cybotConfig.provider === "google" ||
-    cybotConfig.provider === "ollama" || // 添加 ollama
-    cybotConfig.provider === "Custom" // 添加 Custom
+    cybotConfig.provider === "ollama" ||
+    cybotConfig.provider === "Custom"
   ) {
     sendCommonChatRequest({
       content,
