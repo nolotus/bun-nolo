@@ -122,6 +122,7 @@ interface DataTableProps {
 }
 
 export const DataTable: React.FC<DataTableProps> = ({ dataList, type }) => {
+  console.log("dataList", dataList);
   const dispatch = useAppDispatch();
   const config =
     type && type in renderConfigs ? renderConfigs[type] : defaultConfig;
@@ -178,21 +179,22 @@ export const DataTable: React.FC<DataTableProps> = ({ dataList, type }) => {
           </tr>
         </thead>
         <tbody>
-          {dataList.map((data) => (
-            <tr key={data.id}>
-              {config.fields.map((field) => (
-                <td
-                  key={field.key}
-                  style={{ padding: "8px", borderBottom: "1px solid #ddd" }}
-                >
-                  {renderCell(data, field)}
+          {dataList &&
+            dataList?.map((data) => (
+              <tr key={data.id}>
+                {config.fields.map((field) => (
+                  <td
+                    key={field.key}
+                    style={{ padding: "8px", borderBottom: "1px solid #ddd" }}
+                  >
+                    {renderCell(data, field)}
+                  </td>
+                ))}
+                <td style={{ padding: "8px", borderBottom: "1px solid #ddd" }}>
+                  {renderActions(data)}
                 </td>
-              ))}
-              <td style={{ padding: "8px", borderBottom: "1px solid #ddd" }}>
-                {renderActions(data)}
-              </td>
-            </tr>
-          ))}
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

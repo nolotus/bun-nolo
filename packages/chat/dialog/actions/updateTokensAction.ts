@@ -33,7 +33,6 @@ export const updateTokensAction = async (
     usage,
     externalPrice,
   });
-  console.log("result", result);
 
   const data: TokenUsageData = {
     ...usage,
@@ -42,7 +41,7 @@ export const updateTokensAction = async (
     model: cybotConfig.model,
     provider: cybotConfig.provider,
     date: new Date(),
-    type: DataType.Token,
+    type: DataType.TOKEN,
     dialogId,
     cost: result.cost,
     pay: result.pay,

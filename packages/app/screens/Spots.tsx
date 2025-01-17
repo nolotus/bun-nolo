@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -6,31 +5,13 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { nolotusId } from "core/init";
-import { DataType } from "create/types";
 import { Loader } from "render/ui/screens/Loader";
 import Card from "./Card";
-import { useAppDispatch } from "../hooks";
-import { useQueryData } from "app/hooks/useQueryData";
 import { layout } from "render/styles/layout";
 
 export function SpotsScreen() {
-  const dispath = useAppDispatch();
-
-  const options = {
-    isJSON: true,
-    condition: {
-      type: DataType.SurfSpot,
-    },
-    limit: 20,
-  };
-  const queryConfig = {
-    queryUserId: nolotusId,
-    options,
-  };
-
-  const { data, isLoading, isSuccess } = useQueryData(queryConfig);
-
+  const data = [];
+  const isLoading = false;
   if (isLoading) {
     return <Loader />;
   }

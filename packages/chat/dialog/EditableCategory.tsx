@@ -3,7 +3,6 @@ import { useDispatch } from "react-redux";
 import { patchData, write } from "database/dbSlice";
 import { DataType } from "create/types";
 import { useAuth } from "auth/hooks/useAuth";
-import { useQueryData } from "app/hooks/useQueryData";
 
 const categoryContainerStyle = (allowEdit) => ({
   display: "inline-block",
@@ -37,8 +36,7 @@ const EditableCategory = ({ categoryId, dialogId, allowEdit }) => {
     },
   };
 
-  const { data: categories } = useQueryData(categoryQueryConfig);
-
+  const categories = [];
   useEffect(() => {
     if (categories && categoryId) {
       const category = categories.find((cat) => cat.id === categoryId);

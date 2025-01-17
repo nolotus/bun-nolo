@@ -104,9 +104,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       <main
         style={{
           flexGrow: 1,
-          marginLeft: isSidebarOpen && sidebarContent ? `${theme.sidebarWidth}px` : 0,
+          marginLeft:
+            isSidebarOpen && sidebarContent ? `${theme.sidebarWidth}px` : 0,
           transition: "margin-left 0.3s ease-in-out",
-          width: isSidebarOpen && sidebarContent ? `calc(100% - ${theme.sidebarWidth}px)` : "100%",
+          width:
+            isSidebarOpen && sidebarContent
+              ? `calc(100% - ${theme.sidebarWidth}px)`
+              : "100%",
           background: theme.background,
           color: theme.text,
         }}

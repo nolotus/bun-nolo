@@ -68,7 +68,7 @@ export const handleQuery = async (req, res) => {
         [options.condition.type],
         options.userId
       );
-      console.log("result", result);
+      console.log("new user query result", result);
       return res.status(200).json({ result });
     }
     const isValid = validateQueryOptions(options);

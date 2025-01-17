@@ -11,16 +11,15 @@ export async function handleLogin(req, res) {
 
   if (version === "v1") {
     try {
-      const userData = await serverDb.get(DB_PREFIX.USER + userId);
-      if (!userData) {
+      const user = await serverDb.get(DB_PREFIX.USER + userId);
+      if (!user) {
         return res
           .status(404)
           .json({ message: t("errors.dataNotFound", { id: userId }) });
       }
-
-      const user = JSON.parse(userData);
+      console.log("user", user);
       const storedPublicKey = user.publicKey;
-
+      console.log("storedPublicKey", storedPublicKey);
       const verification = await verifyToken(token, storedPublicKey);
       if (verification) {
         return res.status(200).json({ message: t("User logged in"), token });

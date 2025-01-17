@@ -2,8 +2,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
-import { API_ENDPOINTS } from "database/config";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import Button from "web/ui/Button";
@@ -12,6 +12,7 @@ import { useDeleteUser } from "auth/hooks/useDeleteUser";
 import { useRechargeUser } from "auth/hooks/useRechargeUser";
 import { Table, TableRow, TableCell } from "web/ui/Table";
 import pino from "pino";
+import { useFetchUsers } from "../hooks/useFetchUsers";
 
 const logger = pino({ name: "UsersPage" });
 const PAGE_SIZE = 10;
@@ -23,62 +24,47 @@ interface User {
   balance: number;
 }
 
-interface PaginationState {
-  currentPage: number;
-  total: number;
-  totalPages: number;
-}
-
 export default function UsersPage() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const currentServer = useAppSelector(selectCurrentServer);
+
   const [state, setState] = useState({
     users: [] as User[],
-    loading: true,
+    loading: false,
     error: null as string | null,
-    pagination: {
-      currentPage: 1,
-      total: 0,
-      totalPages: 0,
-    } as PaginationState,
+    currentPage: parseInt(searchParams.get("page") || "1"),
+    total: 0,
+    totalPages: 0,
   });
 
-  const { users, loading, error, pagination } = state;
+  const { users, loading, error, currentPage, total } = state;
 
-  const fetchUsers = useCallback(
+  const fetchUsers = useFetchUsers();
+  const handleFetch = useCallback(
     async (page: number) => {
       if (!currentServer) return;
 
-      logger.info({ page, pageSize: PAGE_SIZE }, "Fetching users");
       setState((prev) => ({ ...prev, loading: true, error: null }));
-
       try {
-        const response = await fetch(
-          `${currentServer}${API_ENDPOINTS.USERS}/users?page=${page}&pageSize=${PAGE_SIZE}`
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await fetchUsers(page);
+        if (!data?.list) {
+          setState((prev) => ({
+            ...prev,
+            loading: false,
+            error: "无法获取数据",
+            users: [],
+          }));
+          return;
         }
-
-        const data = await response.json();
-        logger.info(
-          {
-            recordsReceived: data.list.length,
-            total: data.total,
-            page: data.currentPage,
-          },
-          "Users fetched successfully"
-        );
 
         setState((prev) => ({
           ...prev,
           users: data.list,
-          pagination: {
-            currentPage: page,
-            total: data.total,
-            totalPages: Math.ceil(data.total / PAGE_SIZE),
-          },
+          currentPage: page,
+          total: data.total,
+          totalPages: data.totalPages,
           loading: false,
         }));
       } catch (err) {
@@ -91,78 +77,30 @@ export default function UsersPage() {
         }));
       }
     },
-    [currentServer]
+    [fetchUsers, currentServer]
   );
 
   useEffect(() => {
-    fetchUsers(1);
-  }, [fetchUsers]);
+    if (currentServer) {
+      const page = parseInt(searchParams.get("page") || "1");
+      handleFetch(page);
+    }
+  }, [handleFetch, searchParams, currentServer]);
 
-  const deleteUser = useDeleteUser(currentServer, () =>
-    fetchUsers(pagination.currentPage)
-  );
-  const rechargeUser = useRechargeUser(currentServer, () =>
-    fetchUsers(pagination.currentPage)
-  );
+  const deleteUser = useDeleteUser(() => handleFetch(currentPage));
+  const rechargeUser = useRechargeUser(() => handleFetch(currentPage));
 
   const handlePageChange = useCallback(
     (newPage: number) => {
-      logger.debug(
-        { from: pagination.currentPage, to: newPage },
-        "Page change requested"
-      );
-      fetchUsers(newPage);
+      logger.debug({ from: currentPage, to: newPage }, "Page change requested");
+      navigate(`?page=${newPage}`);
     },
-    [fetchUsers, pagination.currentPage]
+    [navigate, currentPage]
   );
 
   if (!currentServer) {
     return <div className="no-server">请先选择服务器以查看用户列表</div>;
   }
-
-  const renderTable = () => (
-    <div className="table-container">
-      <Table>
-        <thead>
-          <TableRow>
-            <TableCell element={{ header: true }}>用户名</TableCell>
-            <TableCell element={{ header: true }}>邮箱</TableCell>
-            <TableCell element={{ header: true }}>余额</TableCell>
-            <TableCell element={{ header: true }}>操作</TableCell>
-          </TableRow>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell element={{}}>{user.username}</TableCell>
-              <TableCell element={{}}>{user.email || "-"}</TableCell>
-              <TableCell element={{}}>
-                {user.balance?.toFixed(2) || "0.00"}
-              </TableCell>
-              <TableCell element={{}}>
-                <div className="action-buttons">
-                  <Button
-                    onClick={() => rechargeUser(user.id)}
-                    variant="primary"
-                    size="small"
-                  >
-                    充值
-                  </Button>
-                  <Button
-                    onClick={() => deleteUser(user.id)}
-                    status="error"
-                    size="small"
-                  >
-                    删除
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </tbody>
-      </Table>
-    </div>
-  );
 
   return (
     <div className="users-page">
@@ -172,7 +110,7 @@ export default function UsersPage() {
         <div className="error-container">
           <span className="error-message">{error}</span>
           <Button
-            onClick={() => fetchUsers(pagination.currentPage)}
+            onClick={() => handleFetch(currentPage)}
             variant="secondary"
             size="small"
           >
@@ -189,11 +127,51 @@ export default function UsersPage() {
         </div>
       ) : users.length > 0 ? (
         <>
-          {renderTable()}
+          <div className="table-container">
+            <Table>
+              <thead>
+                <TableRow>
+                  <TableCell element={{ header: true }}>用户名</TableCell>
+                  <TableCell element={{ header: true }}>邮箱</TableCell>
+                  <TableCell element={{ header: true }}>余额</TableCell>
+                  <TableCell element={{ header: true }}>操作</TableCell>
+                </TableRow>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell element={{}}>{user.username}</TableCell>
+                    <TableCell element={{}}>{user.email || "-"}</TableCell>
+                    <TableCell element={{}}>
+                      {user.balance?.toFixed(2) || "0.00"}
+                    </TableCell>
+                    <TableCell element={{}}>
+                      <div className="action-buttons">
+                        <Button
+                          onClick={() => rechargeUser(user.id)}
+                          variant="primary"
+                          size="small"
+                        >
+                          充值
+                        </Button>
+                        <Button
+                          onClick={() => deleteUser(user.id)}
+                          status="error"
+                          size="small"
+                        >
+                          删除
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </tbody>
+            </Table>
+          </div>
           <Pagination
             className="pagination-container"
-            currentPage={pagination.currentPage}
-            totalItems={pagination.total}
+            currentPage={currentPage}
+            totalItems={total}
             pageSize={PAGE_SIZE}
             onPageChange={handlePageChange}
           />
@@ -209,26 +187,22 @@ export default function UsersPage() {
           display: flex;
           flex-direction: column;
         }
-
         .page-title {
           font-size: 24px;
           font-weight: bold;
           margin-bottom: 24px;
           color: ${theme.text};
         }
-
         .table-container {
           flex: 1;
           overflow: auto;
           margin-bottom: 24px;
         }
-
         .action-buttons {
           display: flex;
           gap: 8px;
           white-space: nowrap;
         }
-
         .error-container {
           margin-bottom: 24px;
           padding: 16px;
@@ -239,11 +213,9 @@ export default function UsersPage() {
           align-items: center;
           justify-content: space-between;
         }
-
         .error-message {
           color: ${theme.error};
         }
-
         .loading-container {
           display: flex;
           justify-content: center;
@@ -251,35 +223,29 @@ export default function UsersPage() {
           flex: 1;
           min-height: 200px;
         }
-
         .pagination-container {
           margin-top: auto;
           padding-top: 24px;
         }
-
         .empty-container {
           flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
-          text-align: center;
           color: ${theme.textSecondary};
           padding: 48px;
           background: ${theme.backgroundSecondary};
           border-radius: 8px;
         }
-
         .no-server {
           padding: 16px;
           text-align: center;
           color: ${theme.textSecondary};
         }
-
         @media (max-width: 640px) {
           .users-page {
             padding: 16px;
           }
-
           .table-container {
             margin: -16px;
           }

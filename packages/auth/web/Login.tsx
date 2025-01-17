@@ -56,10 +56,8 @@ const Login: React.FC = () => {
       const result = await dispatch(
         signIn({ ...data, locale, encryptionKey })
       ).unwrap();
-      console.log("login result", result);
 
       if (result.token) {
-        console.log("login success");
         storeTokens(result.token);
         //maybe dashboard
         navigate("/");

@@ -232,7 +232,13 @@ export const {
 export default authSlice.reducer;
 export const selectCurrentUser = (state: NoloRootState) =>
   state.auth.currentUser;
+
 export const selectUsers = (state: NoloRootState) => state.auth.users;
+
 export const selectCurrentUserId = (state: NoloRootState) =>
   state.auth.currentUser?.userId || "local";
+
 export const selectIsLoggedIn = (state: NoloRootState) => state.auth.isLoggedIn;
+
+export const selectCurrentToken = (state: NoloRootState) =>
+  state.auth.currentToken;
