@@ -64,8 +64,11 @@ export const { upsertMany, deleteData, patchData, read, write, queryServer } =
   dbSlice.actions;
 export default dbSlice.reducer;
 
-export const selectByTypes = (state, types: DataType[]) => {
-  return selectAll(state).filter((item) => types.includes(item.type));
+export const selectByTypes = (state, types: DataType[], userId?: string) => {
+  return selectAll(state).filter((item) => {
+    const matchType = types.includes(item.type);
+    return userId ? matchType && item.userId === userId : matchType;
+  });
 };
 
 export const selectByType = (state, type: DataType) => {
