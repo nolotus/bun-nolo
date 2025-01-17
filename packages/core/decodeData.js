@@ -10,7 +10,7 @@ const listToArray = (data) => {
 };
 
 
-export const decodeData = (data, flags, id) => {
+ const decodeData = (data, flags, id) => {
   let decodedData = data;
 
   const decodeOperations = {

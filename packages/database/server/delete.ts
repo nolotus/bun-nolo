@@ -3,7 +3,6 @@ import { isNil } from "rambda";
 import { pino } from "pino";
 import { createKey } from "database/keys";
 
-import { mem } from "./mem";
 import serverDb from "./db";
 
 const logger = pino({ name: "handle-delete" });
@@ -65,7 +64,6 @@ export const handleDelete = async (req, res) => {
       : extractUserId(id);
 
     if (isNil(dataBelongUserId)) {
-      mem.set(id, "0");
       serverDb.del(id);
       return res.status(200).json({
         message: "Delete request processed for unknown owner",
@@ -79,10 +77,7 @@ export const handleDelete = async (req, res) => {
 
     if (willDeleteData) {
       await serverDb.del(id);
-    } else {
-      mem.set(id, "0");
     }
-
     return res.status(200).json({
       message: "Delete request processed",
       processingIds: [id],

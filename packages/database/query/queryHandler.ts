@@ -4,7 +4,6 @@ import { getHeadTail } from "core/getHeadTail";
 import { readLines } from "utils/bun/readLines";
 import { baseDir } from "database/server/config";
 import path from "path";
-import { mem } from "../server/mem";
 import { getDatabaseFilePath } from "../init";
 import { QueryOptions } from "./types";
 import { getSortedFilteredFiles } from "../server/sort";
@@ -55,46 +54,13 @@ function sortResults(results, sort) {
 export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   const { userId, condition, isJSON = false, limit = 10, sort } = options;
 
-  const memoryData = mem.getFromMemorySync();
-
   let resultsArray = [];
   const addToResults = (key, item) => {
-    // if (item.id.includes("01JBKGZMFZYPCXD5CV6G8VENEQ")) {
-    //   console.log("addToResults", item);
-    // }
     if (!resultsArray.includes(key)) {
       resultsArray.push(item);
     }
   };
   const deletedData = new Set();
-
-  // 提取删除的数据
-  for (const { key, value } of memoryData) {
-    const flags = extractAndDecodePrefix(key);
-    const isDeleted = value === "0";
-
-    if (isDeleted && !deletedData.has(key)) {
-      deletedData.add(key);
-    }
-    if (isJSON && flags.isJSON) {
-      try {
-        const jsonData = JSON.parse(value);
-
-        if (checkQuery(jsonData, condition)) {
-          const result = { id: key, ...jsonData };
-          if (key.includes("01JEG03TSK60YT06CBK822ZRH9")) {
-            console.log("memory jsonData", jsonData);
-          }
-          if (!deletedData.has(key)) {
-            addToResults(key, result);
-          }
-        }
-      } catch (error) {
-        // console.error(`Error parsing JSON for key ${key}:`, error);
-        // 继续处理下一个数据
-      }
-    }
-  }
 
   const { indexPath } = getDatabaseFilePath(userId);
   const userDir = path.join(baseDir, userId);

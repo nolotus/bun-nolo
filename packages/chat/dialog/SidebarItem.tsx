@@ -48,6 +48,16 @@ export const SidebarItem = ({
 
   return (
     <>
+      <div
+        className={`sidebar-item ${isSelected ? "selected" : ""}`}
+        onContextMenu={handleContextMenu}
+      >
+        <IconComponent size={ICON_SIZE} className="sidebar-icon" />
+        <NavLink to={`/${id}`} className="sidebar-link">
+          {displayTitle}
+        </NavLink>
+        <DialogContextMenu menu={menu} anchorRect={anchorRect} dialogId={id} />
+      </div>
       <style>
         {`
           .sidebar-item {
@@ -122,17 +132,6 @@ export const SidebarItem = ({
           }
         `}
       </style>
-
-      <div
-        className={`sidebar-item ${isSelected ? "selected" : ""}`}
-        onContextMenu={handleContextMenu}
-      >
-        <IconComponent size={ICON_SIZE} className="sidebar-icon" />
-        <NavLink to={`/${id}`} className="sidebar-link">
-          {displayTitle}
-        </NavLink>
-        <DialogContextMenu menu={menu} anchorRect={anchorRect} dialogId={id} />
-      </div>
     </>
   );
 };
