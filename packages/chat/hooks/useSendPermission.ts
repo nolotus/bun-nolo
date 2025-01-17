@@ -6,6 +6,12 @@ import useCybotConfig from "ai/cybot/hooks/useCybotConfig";
 import { getModelPricing, getFinalPrice, getPrices } from "ai/llm/getPricing";
 import { nolotusId } from "core/init";
 
+// 定义完全跳过所有检查的ID列表
+const SKIP_ALL_CHECKS_IDS = [
+  nolotusId,
+  "Y25UeEg1VlNTanIwN2N0d1Mzb3NLRUQ3dWhzWl9hdTc0R0JoYXREeWxSbw",
+];
+
 export interface SendPermissionCheck {
   allowed: boolean;
   reason?: "NO_CONFIG" | "NO_MODEL_PRICING" | "INSUFFICIENT_BALANCE";
@@ -22,6 +28,12 @@ export const useSendPermission = (userBalance: number = 0) => {
     : null;
 
   const checkAllowSend = (): SendPermissionCheck => {
+    // 首先检查是否在完全跳过检查的列表中
+    if (SKIP_ALL_CHECKS_IDS.includes(userId)) {
+      console.log("Send permission granted: Special user");
+      return { allowed: true };
+    }
+
     if (!cybotConfig) {
       return { allowed: false, reason: "NO_CONFIG" };
     }
@@ -29,14 +41,6 @@ export const useSendPermission = (userBalance: number = 0) => {
     if (!serverPrices) {
       console.log("Send permission denied: No model pricing");
       return { allowed: false, reason: "NO_MODEL_PRICING" };
-    }
-
-    if (
-      userId === nolotusId ||
-      userId === "Y25UeEg1VlNTanIwN2N0d1Mzb3NLRUQ3dWhzWl9hdTc0R0JoYXREeWxSbw"
-    ) {
-      console.log("Send permission granted: Special user");
-      return { allowed: true };
     }
 
     const prices = getPrices(cybotConfig, serverPrices);
