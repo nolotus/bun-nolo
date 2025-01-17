@@ -68,13 +68,6 @@ export function useUserProfile() {
         }
 
         const data = await response.json();
-        logger.info(
-          {
-            userId,
-            username: data.username,
-          },
-          "User profile fetched successfully"
-        );
 
         return data;
       } catch (err) {

@@ -42,7 +42,8 @@ export const writeAction = async (writeConfig, thunkApi) => {
     data.type === DataType.MSG ||
     data.type === DataType.CYBOT ||
     data.type === DataType.PAGE ||
-    data.type === DataType.DIALOG
+    data.type === DataType.DIALOG ||
+    data.type === DataType.TOKEN
   ) {
     const willSaveData = {
       ...data,

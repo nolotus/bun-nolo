@@ -41,12 +41,8 @@ export const getPrices = (config: any, serverPrices: any): Prices => ({
 
 export const getFinalPrice = (prices: Prices): number =>
   pipe(
-    tap((input) => console.log("Input prices:", input)),
     Object.values,
-    tap((values) => console.log("After Object.values:", values)),
     (values) => values.filter((v) => !isNaN(v) && v !== null),
-    tap((filtered) => console.log("After filter:", filtered)),
     (values) =>
-      values.length ? values.reduce((acc, curr) => Math.max(acc, curr), 0) : 0,
-    tap((result) => console.log("Final result:", result))
+      values.length ? values.reduce((acc, curr) => Math.max(acc, curr), 0) : 0
   )(prices);
