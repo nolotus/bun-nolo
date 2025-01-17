@@ -1,28 +1,14 @@
 // write.ts
 
-import { mem } from "./mem";
 import { checkPermission, doesUserDirectoryExist } from "./permissions";
 import { DataType } from "create/types";
 import serverDb from "./db";
-
-const serverWrite = async (
-  dataKey: string,
-  data: string | Blob,
-  userId: string
-): Promise<void> => {
-  console.log("userId", userId);
-  const isExist = await doesUserDirectoryExist(userId);
-  if (isExist) {
-    mem.set(dataKey, data as string);
-    return Promise.resolve();
-  }
-};
 
 export const handleWrite = async (req: any, res: any) => {
   const { user } = req;
   const actionUserId = user.userId;
 
-  const { userId, data, flags, customId } = req.body;
+  const { userId, data, customId } = req.body;
   const saveUserId = userId;
 
   if (saveUserId === "local") {
@@ -55,7 +41,6 @@ export const handleWrite = async (req: any, res: any) => {
   }
 
   //todo  maybe not need
-  // here is need flags
 
   if (checkPermission(actionUserId, saveUserId, data, customId)) {
   } else {

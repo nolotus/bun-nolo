@@ -1,11 +1,10 @@
 import readline from "node:readline";
 import { extractAndDecodePrefix } from "core/prefix";
-import { decodeData, processLine } from "core/decodeData";
+import { processLine } from "core/decodeData";
 import { DEFAULT_INDEX_FILE } from "database/init";
 import fs from "fs";
 
 import { createReadStream } from "node:fs";
-import { mem } from "./mem";
 import { isV0Id } from "core/id";
 import serverDb from "./db";
 
@@ -73,22 +72,6 @@ export const serverGetData = async (id: string) => {
 
   if (!userId) {
     return Promise.resolve(null);
-  }
-
-  const memValue = await mem.get(id);
-  const flags = extractAndDecodePrefix(id);
-
-  if (memValue) {
-    const decodedValue = decodeData(memValue, flags, id);
-    // console.log("decodedValue ", decodedValue);
-    return Promise.resolve(decodedValue);
-  }
-  //maybe empty string
-  if (memValue === "") {
-    if (flags.isList) {
-      const decodedValue = decodeData(memValue, flags, id);
-      return Promise.resolve(decodedValue);
-    }
   }
 
   const indexPath = `./nolodata/${userId}/${DEFAULT_INDEX_FILE}`;
