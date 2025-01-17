@@ -1,49 +1,33 @@
-import { nolotusId } from "core/init";
+// auth/server/listusers.ts
 import serverDb, { DB_PREFIX } from "database/server/db";
+import {
+  logger,
+  createErrorResponse,
+  createSuccessResponse,
+  handleOptionsRequest,
+  checkAdminPermission,
+} from "./shared";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  "Content-Type": "application/json",
-};
-
-export async function handleListUsers(req) {
-  if (req.user.userId !== nolotusId) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized: Admin access required" }),
-      { status: 403, headers: CORS_HEADERS }
-    );
-  }
-
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
-  }
-
-  try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const pageSize = Math.min(
-      50,
-      Math.max(1, parseInt(req.query.pageSize) || 10)
-    );
-
-    const result = await listUsers({ page, pageSize });
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: CORS_HEADERS,
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: CORS_HEADERS,
-    });
-  }
+interface ListUsersOptions {
+  page?: number;
+  pageSize?: number;
 }
 
-async function listUsers({ page = 1, pageSize = 10 } = {}) {
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  balance: number;
+  createdAt: string;
+  [key: string]: any;
+}
+
+async function listUsers({ page = 1, pageSize = 10 }: ListUsersOptions = {}) {
   const prefix = DB_PREFIX.USER;
   let totalCount = 0;
-  const users = [];
+  const users: User[] = [];
+
+  logger.debug({ page, pageSize }, "Starting users list fetch");
 
   // Count total users
   const countIterator = serverDb.iterator({
@@ -87,6 +71,15 @@ async function listUsers({ page = 1, pageSize = 10 } = {}) {
       });
     }
 
+    logger.debug(
+      {
+        totalUsers: totalCount,
+        fetchedUsers: users.length,
+        page,
+      },
+      "Users list fetch completed"
+    );
+
     return {
       total: totalCount,
       list: users,
@@ -96,5 +89,41 @@ async function listUsers({ page = 1, pageSize = 10 } = {}) {
     };
   } finally {
     await dataIterator.close();
+  }
+}
+
+export async function handleListUsers(req: Request) {
+  if (req.method === "OPTIONS") {
+    return handleOptionsRequest();
+  }
+
+  const permissionError = checkAdminPermission(req);
+  if (permissionError) return permissionError;
+
+  try {
+    // 从查询参数中获取分页信息
+    const url = new URL(req.url);
+    const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
+    const pageSize = Math.min(
+      50,
+      Math.max(1, parseInt(url.searchParams.get("pageSize") || "10"))
+    );
+
+    logger.info({
+      event: "fetching_users_list",
+      page,
+      pageSize,
+    });
+
+    const result = await listUsers({ page, pageSize });
+
+    return createSuccessResponse(result);
+  } catch (error) {
+    logger.error({
+      event: "list_users_failed",
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return createErrorResponse("Internal server error");
   }
 }

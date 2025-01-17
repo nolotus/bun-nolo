@@ -1,9 +1,10 @@
+// hooks/useFetchUsers.ts
 import { useCallback } from "react";
-import { API_ENDPOINTS } from "database/config";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import pino from "pino";
+import { authRoutes } from "auth/routes";
 
 const logger = pino({ name: "useFetchUsers" });
 const PAGE_SIZE = 10;
@@ -34,7 +35,8 @@ export function useFetchUsers() {
         return null;
       }
 
-      const url = new URL(`${serverUrl}${API_ENDPOINTS.USERS}`);
+      const path = authRoutes.users.list.createPath();
+      const url = new URL(`${serverUrl}${path}`);
       url.searchParams.append("page", page.toString());
       url.searchParams.append("pageSize", PAGE_SIZE.toString());
 
@@ -49,13 +51,22 @@ export function useFetchUsers() {
 
       try {
         const response = await fetch(url.toString(), {
+          method: authRoutes.users.list.method,
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorMessage = `HTTP error! status: ${response.status}`;
+          logger.error(
+            {
+              status: response.status,
+              error: errorMessage,
+            },
+            "Failed to fetch users"
+          );
+          throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -71,7 +82,13 @@ export function useFetchUsers() {
 
         return data;
       } catch (err) {
-        logger.error({ err }, "Failed to fetch users");
+        logger.error(
+          {
+            error: err instanceof Error ? err.message : String(err),
+            page,
+          },
+          "Failed to fetch users"
+        );
         throw err;
       }
     },

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 
 import { useAppDispatch } from "app/hooks";
-import { initAuth } from "auth/authSlice";
+import { initializeAuth } from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import i18n from "i18n";
 import { Toaster } from "react-hot-toast";
@@ -12,7 +12,6 @@ import { addHostToCurrentServer } from "setting/settingSlice";
 // // import { generatorRoutes } from "./generatorRoutes";
 
 import { setDarkMode, setTheme } from "app/theme/themeSlice";
-import { getTokensFromLocalStorage } from "auth/web/token";
 import Article from "lab/s-station/Article";
 import Collect from "lab/s-station/Collect";
 import NavbarComponent from "lab/s-station/Navbar";
@@ -55,49 +54,38 @@ const generatorRoutes = (hostname, auth) => {
   }
   return routes(auth.user);
 };
+// App.tsx
 export default function App({ hostname, lng = "en", isDark = false }) {
   const auth = useAuth();
-
+  const dispatch = useAppDispatch();
   const routes = useMemo(
     () => generatorRoutes(hostname, auth),
     [hostname, auth]
   );
 
-  // let element = useRoutes(routes);
-  const dispatch = useAppDispatch();
-  dispatch(addHostToCurrentServer(hostname));
-  i18n.changeLanguage(lng);
-
-  const init = async () => {
-    // dispatch(setTheme(theme));
-    setDarkMode(isDark);
-    const tokens = getTokensFromLocalStorage();
-    if (tokens) {
-      await dispatch(initAuth(tokens));
-    }
-  };
-
   useEffect(() => {
+    // 初始化
+    const init = async () => {
+      dispatch(addHostToCurrentServer(hostname));
+      setDarkMode(isDark);
+      await dispatch(initializeAuth());
+    };
+
     init();
-  }, []);
 
-  useEffect(() => {
+    // 监听系统主题变化
     const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event) => {
-      if (event.matches) {
-        setDarkMode(true);
-      } else {
-        setDarkMode(false);
-      }
+      setDarkMode(event.matches);
     };
 
     colorSchemeQuery.addEventListener("change", handleThemeChange);
+    i18n.changeLanguage(lng);
 
-    // Clean up the event listener when the component unmounts
     return () => {
       colorSchemeQuery.removeEventListener("change", handleThemeChange);
     };
-  }, [dispatch]);
+  }, [dispatch, hostname, lng, isDark]);
 
   const element = useRoutes(routes);
 

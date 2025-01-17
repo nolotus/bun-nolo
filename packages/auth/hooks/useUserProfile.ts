@@ -1,19 +1,12 @@
+// hooks/useUserProfile.ts
 import { useCallback } from "react";
-import { API_ENDPOINTS } from "database/config";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import pino from "pino";
+import { authRoutes } from "auth/routes";
 
 const logger = pino({ name: "useUserProfile" });
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  balance: number;
-  createdAt: string;
-}
 
 interface User {
   id: string;
@@ -42,18 +35,20 @@ export function useUserProfile() {
         throw error;
       }
 
-      const url = new URL(`${serverUrl}${API_ENDPOINTS.USERS}/${userId}`);
+      const path = authRoutes.users.detail.createPath({ userId });
+      const url = `${serverUrl}${path}`;
 
       logger.debug(
         {
-          requestUrl: url.toString(),
+          requestUrl: url,
           userId,
         },
         "Fetching user profile"
       );
 
       try {
-        const response = await fetch(url.toString(), {
+        const response = await fetch(url, {
+          method: authRoutes.users.detail.method,
           headers: {
             Authorization: `Bearer ${token}`,
           },

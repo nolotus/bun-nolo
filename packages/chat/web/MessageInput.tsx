@@ -1,5 +1,4 @@
 import { UploadIcon } from "@primer/octicons-react";
-import { retrieveFirstToken } from "auth/web/token";
 import { useAuth } from "auth/hooks/useAuth";
 import { generateFileID } from "database/fileUpload/generateFileID";
 import type React from "react";
@@ -57,7 +56,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     const fileID = generateFileID(buffer);
     formData.append("id", `${prefix}-${auth.user?.userId}-${fileID}`);
 
-    const token = await retrieveFirstToken();
 
     try {
       const response = await fetch("http://localhost/api/v1/db/write", {

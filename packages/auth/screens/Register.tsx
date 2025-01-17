@@ -16,16 +16,16 @@ import {
   Text,
   StyleSheet,
   Platform,
-  Pressable
-} from 'react-native';
-import { Input } from 'rn/form/Input';
-import PasswordInput from 'rn/form/PasswordInput';
-import Button from 'rn/ui/Button';
-import { useNavigation } from '@react-navigation/native';
+  Pressable,
+} from "react-native";
+import { Input } from "rn/form/Input";
+import PasswordInput from "rn/form/PasswordInput";
+import Button from "rn/ui/Button";
+import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { rnHashpasswordV1 } from "rn/hashPassword";
 import * as RNLocalize from "react-native-localize";
-import { storeTokens } from "../rn/tokenStorage";
+import { tokenManager } from "../tokenManager";
 
 const Signup = () => {
   const navigation = useNavigation();
@@ -55,18 +55,16 @@ const Signup = () => {
       const locale = `${deviceLanguage}-${deviceCountry}`;
       const { password } = data;
 
-
       const encryptionKey = await rnHashpasswordV1(password);
       const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
       console.log("action", action);
 
       if (action.payload.token) {
         console.log("action.payload.token", action.payload.token);
-        await storeTokens(action.payload.token);
-        navigation.navigate('MainTabs'); // 改为与Login一致的导航目标
+        await tokenManager.storeToken(action.payload.token);
+        navigation.navigate("MainTabs"); // 改为与Login一致的导航目标
         return;
       }
-
 
       switch (action.payload.status) {
         case 409:
@@ -86,7 +84,6 @@ const Signup = () => {
     }
   };
 
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -95,14 +92,14 @@ const Signup = () => {
     content: {
       flex: 1,
       paddingHorizontal: 24,
-      justifyContent: 'center',
+      justifyContent: "center",
     },
     title: {
       fontSize: 32,
-      fontWeight: '600',
+      fontWeight: "600",
       color: theme.text,
       marginBottom: 48,
-      textAlign: 'center',
+      textAlign: "center",
       letterSpacing: -0.5,
     },
     fieldGroup: {
@@ -116,12 +113,12 @@ const Signup = () => {
     footer: {
       marginTop: 32,
       gap: 32,
-      alignItems: 'center',
+      alignItems: "center",
     },
     loginSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
     },
     loginText: {
       color: theme.textSecondary,
@@ -131,8 +128,8 @@ const Signup = () => {
       color: theme.primary,
       fontSize: 15,
       marginLeft: 6,
-      fontWeight: '500',
-    }
+      fontWeight: "500",
+    },
   });
 
   return (
@@ -153,7 +150,9 @@ const Signup = () => {
               name="username"
               placeholder={t("enterUsername")}
               error={!!errors.username}
-              icon={<Icon name="person" size={20} color={theme.textSecondary} />}
+              icon={
+                <Icon name="person" size={20} color={theme.textSecondary} />
+              }
               autoComplete="username"
             />
             {errors.username && (
@@ -167,7 +166,13 @@ const Signup = () => {
               name="password"
               placeholder={t("enterPassword")}
               error={!!errors.password}
-              icon={<Icon name="lock-closed" size={20} color={theme.textSecondary} />}
+              icon={
+                <Icon
+                  name="lock-closed"
+                  size={20}
+                  color={theme.textSecondary}
+                />
+              }
               autoComplete="password"
             />
             {errors.password && (
@@ -191,7 +196,7 @@ const Signup = () => {
 
             <View style={styles.loginSection}>
               <Text style={styles.loginText}>{t("haveAccount")}</Text>
-              <Pressable onPress={() => navigation.navigate('Login')}>
+              <Pressable onPress={() => navigation.navigate("Login")}>
                 <Text style={styles.loginLink}>{t("loginNow")}</Text>
               </Pressable>
             </View>
