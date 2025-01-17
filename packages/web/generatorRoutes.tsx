@@ -2,12 +2,6 @@ import { authRoutes } from "auth/web/routes";
 import { createRoutes } from "create/routes";
 import { settingRoutes } from "setting/routes";
 import { lifeRoutes } from "life/routes";
-// import { routes as UIRoutes } from "../ui/route";
-
-// import { lifeRoutes } from "../domain/life/route";
-// import { createRoutes } from "../domain/create/route";
-
-// import { routes as nolotusRoutes } from "../third/nolotus/route";
 
 const hostRoutesMap = {
   // "nolotus.test": yujierRoutes,

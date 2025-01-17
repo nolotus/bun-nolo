@@ -66,13 +66,16 @@ export const handleRequest = async (request: Request, server) => {
       req.user = await handleToken(request, res);
       return proxyRoute(req, res);
     }
+
     if (url.pathname.startsWith(API_ENDPOINTS.USERS)) {
+      req.user = await handleToken(request, res);
       return authServerRoutes(req, res);
     }
 
     if (url.pathname.startsWith(API_ENDPOINTS.DATABASE)) {
       return databaseRequest(req, res, url);
     }
+
     if (url.pathname.startsWith(API_ENDPOINTS.WEATHER)) {
       return weatherRouteHandler(req, res);
     }

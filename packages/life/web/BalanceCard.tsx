@@ -1,60 +1,64 @@
 import { useTheme } from "app/theme";
-const BalanceCard: React.FC = () => {
-    const theme = useTheme();
+import { useEffect, useState } from "react";
+import { useUserProfile } from "auth/hooks/useUserProfile";
+import { useAppSelector } from "app/hooks";
+import { selectCurrentUser } from "auth/authSlice";
 
-    const cardStyle: React.CSSProperties = {
-        background: theme.background,
-        borderRadius: '12px',
-        boxShadow: `0 2px 8px ${theme.shadowLight}`,
-        padding: '24px',
-        marginBottom: '24px'
+const BalanceCard: React.FC = () => {
+  const theme = useTheme();
+  const currentUser = useAppSelector(selectCurrentUser);
+  console.log("currentUser", currentUser);
+  const fetchUserProfile = useUserProfile();
+  const [balance, setBalance] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUserBalance = async () => {
+      if (!currentUser?.userId) {
+        setError("请先登录");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const profile = await fetchUserProfile(currentUser.userId);
+        if (profile) {
+          setBalance(profile.balance);
+        } else {
+          setError("未找到用户信息");
+        }
+      } catch (error) {
+        const profileError = error as { message: string };
+        setError(profileError.message || "加载失败，请稍后重试");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    return (
-        <div style={cardStyle}>
-            <h2 style={{
-                fontSize: '1.25rem',
-                fontWeight: 500,
-                marginBottom: '0.5rem',
-                textAlign: 'center',
-                color: theme.text
-            }}>
-                当前余额
-            </h2>
-            <div style={{
-                fontSize: '1.875rem',
-                fontWeight: 700,
-                color: theme.primary,
-                marginBottom: '1rem',
-                textAlign: 'center'
-            }}>
-                ¥ 1,280.00
-            </div>
-            <div style={{
-                textAlign: 'center',
-                color: theme.textSecondary,
-                fontSize: '0.875rem'
-            }}>
-                如需充值请联系：
-                <a
-                    href="mailto:s@nolotus.com"
-                    style={{
-                        color: theme.primary,
-                        textDecoration: 'none',
-                        fontWeight: 500
-                    }}
-                    onMouseOver={(e) => {
-                        e.currentTarget.style.textDecoration = 'underline';
-                    }}
-                    onMouseOut={(e) => {
-                        e.currentTarget.style.textDecoration = 'none';
-                    }}
-                >
-                    s@nolotus.com
-                </a>
-            </div>
-        </div>
-    );
+    loadUserBalance();
+  }, [currentUser?.userId, fetchUserProfile]);
+
+  return (
+    <div className="balance-card">
+      <h2 className="balance-title">当前余额</h2>
+      <div className="balance-amount">
+        {loading ? (
+          "加载中..."
+        ) : error ? (
+          <span style={{ color: theme.error }}>{error}</span>
+        ) : (
+          `¥ ${balance.toFixed(2)}`
+        )}
+      </div>
+      <div className="balance-contact">
+        如需充值请联系：
+        <a href="mailto:s@nolotus.com" className="balance-link">
+          s@nolotus.com
+        </a>
+      </div>
+    </div>
+  );
 };
 
 export default BalanceCard;

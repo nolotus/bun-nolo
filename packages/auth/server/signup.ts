@@ -36,7 +36,7 @@ export async function handleSignUp(req, res) {
     balanceUpdatedAt: Date.now(),
   });
 
-  await serverDb.put(DB_PREFIX.USER + userId, JSON.stringify(userData));
+  await serverDb.put(DB_PREFIX.USER + userId, userData);
 
   // 验证数据是否写入成功
   try {
@@ -53,6 +53,7 @@ export async function handleSignUp(req, res) {
   });
 
   const secretKey = process.env.SECRET_KEY;
+
   if (!secretKey) {
     signUpLogger.error(
       "Secret key is not defined in the environment variables."

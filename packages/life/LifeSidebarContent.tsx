@@ -1,9 +1,10 @@
 import type React from "react";
-import { GraphIcon, PeopleIcon } from "@primer/octicons-react";
 import { allowRule, type NavItem } from "auth/navPermissions";
-import NavListItem from "render/layout/blocks/NavListItem";
 import { nolotusId } from "core/init";
 import { useAuth } from "auth/hooks/useAuth";
+
+import NavListItem from "render/layout/blocks/NavListItem";
+import { GraphIcon, PeopleIcon } from "@primer/octicons-react";
 
 const LifeSidebarContent: React.FC = () => {
   const auth = useAuth();

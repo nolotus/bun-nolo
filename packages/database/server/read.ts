@@ -42,7 +42,6 @@ export const handleReadSingle = async (req, res) => {
   const id = req.params.id;
   if (!isV0Id(id)) {
     const result = serverDb.get(id);
-    console.log("read result", result);
     return res.status(200).json({ ...result, id });
   }
   const { isList } = extractAndDecodePrefix(id);

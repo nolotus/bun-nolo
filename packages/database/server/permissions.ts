@@ -7,7 +7,7 @@ import { dirname } from "path";
 
 export const allowIds = ["domain-list"];
 export const allowType = {
-  [nolotusId]: [DataType.Token],
+  [nolotusId]: [DataType.TOKEN],
 };
 
 export const checkPermission = (
