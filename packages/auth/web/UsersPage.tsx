@@ -1,7 +1,5 @@
 // pages/UsersPage.tsx
-"use client";
-
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
@@ -11,6 +9,7 @@ import Pagination from "web/ui/Pagination";
 import { useDeleteUser } from "auth/hooks/useDeleteUser";
 import { useRechargeUser } from "auth/hooks/useRechargeUser";
 import { Table, TableRow, TableCell } from "web/ui/Table";
+import { ConfirmModal } from "web/ui/ConfirmModal";
 import pino from "pino";
 import { useFetchUsers } from "../hooks/useFetchUsers";
 
@@ -25,8 +24,9 @@ interface User {
 }
 
 export default function UsersPage() {
-  const theme = useTheme();
   const navigate = useNavigate();
+  const theme = useTheme();
+
   const [searchParams] = useSearchParams();
   const currentServer = useAppSelector(selectCurrentServer);
 
@@ -39,17 +39,28 @@ export default function UsersPage() {
     totalPages: 0,
   });
 
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    userId: "",
+  });
+
   const { users, loading, error, currentPage, total } = state;
 
   const fetchUsers = useFetchUsers();
   const handleFetch = useCallback(
     async (page: number) => {
-      if (!currentServer) return;
+      if (!currentServer) {
+        logger.debug("No server selected, skipping fetch");
+        return;
+      }
 
+      logger.debug({ page }, "Fetching users");
       setState((prev) => ({ ...prev, loading: true, error: null }));
+
       try {
         const data = await fetchUsers(page);
         if (!data?.list) {
+          logger.warn("No data returned from fetchUsers");
           setState((prev) => ({
             ...prev,
             loading: false,
@@ -58,6 +69,11 @@ export default function UsersPage() {
           }));
           return;
         }
+
+        logger.debug(
+          { userCount: data.list.length, total: data.total },
+          "Users fetched successfully"
+        );
 
         setState((prev) => ({
           ...prev,
@@ -87,7 +103,32 @@ export default function UsersPage() {
     }
   }, [handleFetch, searchParams, currentServer]);
 
-  const deleteUser = useDeleteUser(() => handleFetch(currentPage));
+  const handleDeleteSuccess = useCallback(() => {
+    logger.debug({ page: currentPage }, "Delete success, refreshing");
+    handleFetch(currentPage);
+  }, [currentPage, handleFetch]);
+
+  const deleteUser = useDeleteUser(handleDeleteSuccess);
+
+  const handleDeleteClick = useCallback((userId: string) => {
+    logger.debug({ userId }, "Delete button clicked");
+    setDeleteModal({ isOpen: true, userId });
+  }, []);
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteUser(deleteModal.userId);
+      setDeleteModal({ isOpen: false, userId: "" });
+    } catch (err) {
+      logger.error({ err }, "Delete failed");
+      alert("删除失败，请重试");
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({ isOpen: false, userId: "" });
+  };
+
   const rechargeUser = useRechargeUser(() => handleFetch(currentPage));
 
   const handlePageChange = useCallback(
@@ -155,7 +196,7 @@ export default function UsersPage() {
                           充值
                         </Button>
                         <Button
-                          onClick={() => deleteUser(user.id)}
+                          onClick={() => handleDeleteClick(user.id)}
                           status="error"
                           size="small"
                         >
@@ -180,7 +221,16 @@ export default function UsersPage() {
         <div className="empty-container">暂无用户数据</div>
       )}
 
-      <style jsx>{`
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="删除用户"
+        message="确定要删除此用户吗？此操作无法撤销。"
+        status="error"
+      />
+
+      <style>{`
         .users-page {
           padding: 24px;
           min-height: calc(100vh - 48px);

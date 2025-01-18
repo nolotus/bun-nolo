@@ -1,7 +1,8 @@
-import { XIcon } from "@primer/octicons-react";
 import { useTheme } from "app/theme";
 import React, { useState } from "react";
-import { BaseModal } from 'render/ui/BaseModal';
+
+import { BaseModal } from "web/ui/BaseModal";
+import { XIcon } from "@primer/octicons-react";
 
 interface ImagePreviewProps {
   imageUrls: string[];
@@ -9,7 +10,7 @@ interface ImagePreviewProps {
 }
 
 const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
-  const theme = useTheme()
+  const theme = useTheme();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   if (imageUrls.length === 0) return null;
@@ -43,14 +44,14 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrls, onRemove }) => {
         className="image-preview-modal"
       >
         <img
-          src={selectedImage || ''}
+          src={selectedImage || ""}
           alt="Enlarged preview"
           className="preview-modal-image"
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         />
       </BaseModal>
 
-      <style href="image-preview" >
+      <style href="image-preview">
         {`
           .image-preview-container {
             display: flex;
