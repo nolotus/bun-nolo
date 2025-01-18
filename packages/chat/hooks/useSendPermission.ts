@@ -17,12 +17,11 @@ export interface SendPermissionCheck {
   pricing?: {
     modelName: string;
     pricePerMessage: number;
-    estimatedTotal: number;
   };
 }
 
 export const useSendPermission = (userBalance: number = 0) => {
-  const { t } = useTranslation("ai");
+  const { t } = useTranslation();
   const userId = useAppSelector(selectCurrentUserId);
   const cybotConfig = useCybotConfig();
   const serverPrices = cybotConfig
@@ -53,7 +52,6 @@ export const useSendPermission = (userBalance: number = 0) => {
       pricing: {
         modelName: cybotConfig.model,
         pricePerMessage: maxPrice,
-        estimatedTotal: maxPrice * 3,
       },
     };
   };
@@ -66,7 +64,6 @@ export const useSendPermission = (userBalance: number = 0) => {
       return t("insufficientBalanceDetailed", {
         modelName: pricing.modelName,
         pricePerMessage: pricing.pricePerMessage.toFixed(2),
-        estimatedTotal: pricing.estimatedTotal.toFixed(2),
         balance: userBalance.toFixed(2),
       });
     }

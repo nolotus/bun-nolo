@@ -1,4 +1,3 @@
-// ai/llm/getPrice.ts
 import { getModelsByProvider } from "ai/llm/providers";
 import { pipe } from "rambda";
 
@@ -15,7 +14,7 @@ interface Prices {
   serverOutput: number;
 }
 
-const MAX_OUTPUT_TOKENS = 8192 * 3; // Maximum tokens for single output
+const MAX_OUTPUT_TOKENS = 8192; // Single response maximum tokens
 
 export const getModelPricing = (
   provider: string,
@@ -53,6 +52,6 @@ export const getFinalPrice = (prices: Prices): number => {
   // Convert price from per 1M tokens to per token
   const maxPricePerToken = maxPricePerMillion / 1_000_000;
 
-  // Calculate final price for maximum output tokens (8192 * 3)
+  // Calculate final price for maximum output tokens (8192)
   return maxPricePerToken * MAX_OUTPUT_TOKENS;
 };
