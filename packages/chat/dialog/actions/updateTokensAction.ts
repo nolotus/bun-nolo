@@ -1,12 +1,12 @@
 import { DataType } from "create/types";
 import { extractUserId } from "core/prefix";
-
 import { saveTokenUsage } from "ai/token/db";
 import { TokenUsageData } from "ai/token/types";
 import { normalizeUsage } from "ai/token/normalizeUsage";
 import { calculatePrice } from "ai/token/calculatePrice";
+import { pino } from "pino";
 
-// 示例使用 updateTokensAction 函数时的数据结构
+const logger = pino({ name: "token-action" });
 
 export const updateTokensAction = async (
   { dialogId, usage: usageRaw, cybotConfig },
@@ -24,7 +24,8 @@ export const updateTokensAction = async (
     creatorId,
   };
 
-  console.log("externalPrice", externalPrice);
+  logger.debug({ externalPrice }, "Calculating token price");
+
   const usage = normalizeUsage(usageRaw);
 
   const result = calculatePrice({
@@ -33,7 +34,6 @@ export const updateTokensAction = async (
     usage,
     externalPrice,
   });
-  console.log("result", result);
 
   const data: TokenUsageData = {
     ...usage,
@@ -41,19 +41,31 @@ export const updateTokensAction = async (
     cybotId: cybotConfig.id,
     model: cybotConfig.model,
     provider: cybotConfig.provider,
-    date: new Date(),
-    type: DataType.Token,
+    // 移除date字段，让db层处理时间戳
+    type: DataType.TOKEN,
     dialogId,
     cost: result.cost,
     pay: result.pay,
   };
 
   try {
-    await saveTokenUsage(data);
+    await saveTokenUsage(data, thunkApi);
+    logger.info(
+      {
+        dialogId,
+        model: cybotConfig.model,
+        tokens: {
+          input: usage.input_tokens,
+          output: usage.output_tokens,
+        },
+      },
+      "Token usage saved"
+    );
   } catch (error) {
-    console.error("Failed to save token usage:", error);
+    logger.error({ error }, "Failed to save token usage");
     throw error;
   }
+
   return {
     input_tokens: usage.input_tokens,
     output_tokens: usage.output_tokens,

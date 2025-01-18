@@ -1,66 +1,138 @@
-// write.ts
-
-import { mem } from "./mem";
-import { checkPermission, doesUserDirectoryExist } from "./permissions";
-import { DataType } from "create/types";
+import { promises as fs } from "fs";
+import { dirname } from "path";
 import serverDb from "./db";
+import { logger } from "auth/server/shared";
+import { deductUserBalance } from "auth/server/deduct";
+import { DataType } from "create/types";
 
-const serverWrite = async (
-  dataKey: string,
-  data: string | Blob,
+export const doesUserDirectoryExist = async (
   userId: string
-): Promise<void> => {
-  console.log("userId", userId);
-  const isExist = await doesUserDirectoryExist(userId);
-  if (isExist) {
-    mem.set(dataKey, data as string);
-    return Promise.resolve();
+): Promise<boolean> => {
+  const path = `./nolodata/${userId}/index.nolo`;
+
+  try {
+    await fs.access(dirname(path));
+    return true;
+  } catch {
+    return false;
   }
 };
+
+interface TokenData {
+  type: DataType.TOKEN;
+  userId: string;
+  cost?: number;
+  pay?: number;
+}
 
 export const handleWrite = async (req: any, res: any) => {
   const { user } = req;
   const actionUserId = user.userId;
 
   const { userId, data, customId } = req.body;
-  const saveUserId = userId;
+  const saveUserId = userId || data.userId;
 
   if (saveUserId === "local") {
-    console.log("local write");
+    logger.warn({
+      event: "local_write_rejected",
+      actionUserId,
+    });
     return res.status(400).json({
       message: "local data is not allowed.",
     });
   }
-  // category
-  // workspace?
-  if (
-    data.type === DataType.MSG ||
-    data.type === DataType.PAGE ||
-    data.type === DataType.CYBOT ||
-    data.type === DataType.DIALOG
-  ) {
-    const hasUser = await serverDb.get(`user:${actionUserId}`);
-    const hasV0User = await doesUserDirectoryExist(actionUserId);
-    const userExist = hasUser || hasV0User;
+
+  const isWriteSelf = actionUserId === saveUserId;
+  const hasUser = await serverDb.get(`user:${actionUserId}`);
+  const hasV0User = await doesUserDirectoryExist(actionUserId);
+  const userExist = hasUser || hasV0User;
+  const allowWrite = isWriteSelf && userExist;
+
+  if (!allowWrite) {
+    logger.warn({
+      event: "write_permission_denied",
+      actionUserId,
+      targetUserId: saveUserId,
+      dataType: data.type,
+    });
+    return res.status(403).json({
+      message: "操作不被允许.",
+    });
+  }
+
+  try {
     const id = customId;
-    if (userExist) {
+
+    // Token类型特殊处理
+    if (data.type === DataType.TOKEN) {
+      const tokenData = data as TokenData;
+      const isStatsKey = id.includes("token-stats");
+
+      // 非统计数据尝试扣费
+      if (!isStatsKey && tokenData.cost && tokenData.cost > 0) {
+        try {
+          const deductResult = await deductUserBalance(
+            tokenData.userId,
+            tokenData.cost,
+            `Token generation cost: ${id}`
+          );
+
+          if (deductResult.success) {
+            logger.info({
+              event: "token_cost_deducted",
+              userId: tokenData.userId,
+              cost: tokenData.cost,
+              tokenId: id,
+              remainingBalance: deductResult.balance,
+            });
+          } else {
+            logger.warn({
+              event: "token_cost_deduction_failed",
+              userId: tokenData.userId,
+              cost: tokenData.cost,
+              tokenId: id,
+              error: deductResult.error,
+            });
+          }
+        } catch (deductError) {
+          logger.error({
+            event: "token_cost_deduction_error",
+            error: deductError,
+            userId: tokenData.userId,
+            tokenId: id,
+          });
+        }
+      }
+    }
+
+    // 无论扣费是否成功，都保存数据
+    if (
+      data.type === DataType.TOKEN ||
+      data.type === DataType.MSG ||
+      data.type === DataType.PAGE ||
+      data.type === DataType.CYBOT ||
+      data.type === DataType.DIALOG
+    ) {
       await serverDb.put(id, data);
-      const returnJson = {
+      return res.status(200).json({
         message: "Data written to file successfully.",
         id,
         ...data,
-      };
-      return res.status(200).json(returnJson);
+      });
     }
-  }
 
-  //todo  maybe not need
-  // here is need flags
-
-  if (checkPermission(actionUserId, saveUserId, data, customId)) {
-  } else {
-    return res.status(403).json({
-      message: "操作不被允许.",
+    return res.status(400).json({
+      message: "Invalid data type",
+    });
+  } catch (error) {
+    logger.error({
+      event: "write_failed",
+      error,
+      data: { id: customId, type: data.type },
+    });
+    return res.status(500).json({
+      message: "Failed to write data",
+      error,
     });
   }
 };

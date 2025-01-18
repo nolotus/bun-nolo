@@ -1,99 +1,30 @@
+// chat/web/MessageInputContainer.tsx
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
+import { selectCurrentUserId } from "auth/authSlice";
 import type React from "react";
-import { useTranslation } from "react-i18next";
-
-import useCybotConfig from "ai/cybot/hooks/useCybotConfig";
-import { getModelPricing, getFinalPrice, getPrices } from "ai/llm/getPricing";
+import { useSendPermission } from "../hooks/useSendPermission";
 import MessageInput from "./MessageInput";
 import { handleSendMessage } from "../messages/messageSlice";
+import { useBalance } from "auth/hooks/useBalance";
 import { nolotusId } from "core/init";
-import { selectCurrentUserId } from "auth/authSlice";
 
-export interface SendPermissionCheck {
-  allowed: boolean;
-  reason?: "NO_CONFIG" | "NO_MODEL_PRICING" | "INSUFFICIENT_BALANCE";
-  requiredAmount?: number;
-}
+const SKIP_BALANCE_CHECK_IDS = [
+  nolotusId,
+  "Y25UeEg1VlNTanIwN2N0d1Mzb3NLRUQ3dWhzWl9hdTc0R0JoYXREeWxSbw",
+];
 
 const MessageInputContainer: React.FC = () => {
-  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const theme = useAppSelector(selectTheme);
   const userId = useAppSelector(selectCurrentUserId);
-  const cybotConfig = useCybotConfig();
-  const userBalance = 0; // TODO: 从实际状态获取用户余额
+  const shouldSkipBalanceCheck = SKIP_BALANCE_CHECK_IDS.includes(userId);
 
-  // 获取模型价格配置
-  const serverPrices = cybotConfig
-    ? getModelPricing(cybotConfig.provider, cybotConfig.model)
-    : null;
-
-  const checkAllowSend = ({
-    userId,
-    nolotusId,
-    cybotConfig,
-    serverPrices,
-    userBalance,
-  }: {
-    userId: string;
-    nolotusId: string;
-    cybotConfig: any;
-    serverPrices: any;
-    userBalance: number;
-  }): SendPermissionCheck => {
-    if (!cybotConfig) {
-      return { allowed: false, reason: "NO_CONFIG" };
-    }
-
-    if (!serverPrices) {
-      return { allowed: false, reason: "NO_MODEL_PRICING" };
-    }
-
-    if (
-      userId === nolotusId ||
-      userId === "Y25UeEg1VlNTanIwN2N0d1Mzb3NLRUQ3dWhzWl9hdTc0R0JoYXREeWxSbw"
-    ) {
-      return { allowed: true };
-    }
-
-    const prices = getPrices(cybotConfig, serverPrices);
-    console.log("prices", prices);
-
-    const maxPrice = getFinalPrice(prices);
-    console.log("maxPrice", maxPrice);
-    const hasEnoughBalance = userBalance >= maxPrice;
-
-    return {
-      allowed: hasEnoughBalance,
-      reason: hasEnoughBalance ? undefined : "INSUFFICIENT_BALANCE",
-      requiredAmount: hasEnoughBalance ? undefined : maxPrice,
-    };
-  };
-
-  const sendPermission = checkAllowSend({
-    userId,
-    nolotusId,
-    cybotConfig,
-    serverPrices,
-    userBalance,
-  });
+  const { balance, loading, error: balanceError } = useBalance();
+  const { sendPermission, getErrorMessage } = useSendPermission(balance);
 
   const onSendMessage = (content: string) => {
     dispatch(handleSendMessage({ content }));
-  };
-
-  const getErrorMessage = (reason?: string, requiredAmount?: number) => {
-    switch (reason) {
-      case "NO_CONFIG":
-        return t("cybotConfigMissing");
-      case "NO_MODEL_PRICING":
-        return t("modelPricingMissing");
-      case "INSUFFICIENT_BALANCE":
-        return t("insufficientBalance", { amount: requiredAmount });
-      default:
-        return t("noAvailableCybotMessage");
-    }
   };
 
   const errorMessageStyle = {
@@ -110,16 +41,25 @@ const MessageInputContainer: React.FC = () => {
     border: `1px solid ${theme.error}20`,
   };
 
+  if (shouldSkipBalanceCheck) {
+    return <MessageInput onSendMessage={onSendMessage} />;
+  }
+
+  if (loading) {
+    return <div style={errorMessageStyle}>加载中...</div>;
+  }
+
+  if (balanceError) {
+    return <div style={errorMessageStyle}>{balanceError}</div>;
+  }
+
   return (
     <div>
       {sendPermission.allowed ? (
         <MessageInput onSendMessage={onSendMessage} />
       ) : (
         <div style={errorMessageStyle}>
-          {getErrorMessage(
-            sendPermission.reason,
-            sendPermission.requiredAmount
-          )}
+          {getErrorMessage(sendPermission.reason, sendPermission.pricing)}
         </div>
       )}
     </div>

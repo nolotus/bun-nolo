@@ -1,6 +1,5 @@
-// ai/llm/getPrice
 import { getModelsByProvider } from "ai/llm/providers";
-import { pipe, tap } from "rambda";
+import { pipe } from "rambda";
 
 interface ModelPricing {
   inputPrice: number;
@@ -15,23 +14,24 @@ interface Prices {
   serverOutput: number;
 }
 
+const MAX_OUTPUT_TOKENS = 8192; // Single response maximum tokens
+
 export const getModelPricing = (
   provider: string,
   modelName: string
 ): ModelPricing | null => {
   const models = getModelsByProvider(provider);
+  const model = models.find((m) => m.name === modelName);
 
-  const selectedModel = models.find((model) => model.name === modelName);
+  if (!model?.price) return null;
 
-  if (!selectedModel?.price) {
-    return null;
-  }
   return {
-    inputPrice: selectedModel.price.input,
-    inputCacheHitPrice: selectedModel.price.inputCacheHit,
-    outputPrice: selectedModel.price.output,
+    inputPrice: model.price.input,
+    inputCacheHitPrice: model.price.inputCacheHit,
+    outputPrice: model.price.output,
   };
 };
+
 export const getPrices = (config: any, serverPrices: any): Prices => ({
   cybotInput: Number(config?.inputPrice ?? 0),
   cybotOutput: Number(config?.outputPrice ?? 0),
@@ -39,14 +39,19 @@ export const getPrices = (config: any, serverPrices: any): Prices => ({
   serverOutput: Number(serverPrices?.outputPrice ?? 0),
 });
 
-export const getFinalPrice = (prices: Prices): number =>
-  pipe(
-    tap((input) => console.log("Input prices:", input)),
+export const getFinalPrice = (prices: Prices): number => {
+  // Find the highest price per token among all valid prices
+  // These prices are originally based on 1M tokens cost
+  const maxPricePerMillion = pipe(
     Object.values,
-    tap((values) => console.log("After Object.values:", values)),
     (values) => values.filter((v) => !isNaN(v) && v !== null),
-    tap((filtered) => console.log("After filter:", filtered)),
     (values) =>
-      values.length ? values.reduce((acc, curr) => Math.max(acc, curr), 0) : 0,
-    tap((result) => console.log("Final result:", result))
+      values.length ? values.reduce((acc, curr) => Math.max(acc, curr), 0) : 0
   )(prices);
+
+  // Convert price from per 1M tokens to per token
+  const maxPricePerToken = maxPricePerMillion / 1_000_000;
+
+  // Calculate final price for maximum output tokens (8192)
+  return maxPricePerToken * MAX_OUTPUT_TOKENS;
+};

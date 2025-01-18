@@ -11,13 +11,13 @@ import { useSelector } from "react-redux";
 import z from "zod";
 
 //web imports
-import { storeTokens } from "auth/web/token";
 import { hashPasswordV1 } from "core/password";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Input } from "web/form/Input";
 import PasswordInput from "web/form/PasswordInput";
 import Button from "web/ui/Button";
 import { LockIcon, PersonIcon, MailIcon } from "@primer/octicons-react";
+import { tokenManager } from "../tokenManager";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
@@ -53,7 +53,7 @@ const Signup: React.FC = () => {
       const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
 
       if (action.payload.token) {
-        storeTokens(action.payload.token);
+        tokenManager.storeToken(action.payload.token);
         //maybe welcome page
         navigate("/");
         return;

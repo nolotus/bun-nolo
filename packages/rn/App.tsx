@@ -10,7 +10,6 @@ import MainNavigation from "./MainNavigation";
 import { mobileStore } from "./store";
 import { setDarkMode } from "app/theme/themeSlice";
 import { getTokensFromStorage } from "auth/rn/tokenStorage";
-import { initAuth } from "auth/authSlice";
 import { useAppDispatch } from "app/hooks";
 import { useEffect } from "react";
 
@@ -44,16 +43,13 @@ function App(): React.JSX.Element {
       />
       <MainNavigation />
     </>
-
   );
 }
-
 
 const AppWrapper = () => (
   <Provider store={mobileStore}>
     <App />
   </Provider>
 );
-
 
 export default AppWrapper;

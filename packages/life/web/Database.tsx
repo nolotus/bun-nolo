@@ -1,94 +1,122 @@
-import { useAppSelector } from "app/hooks";
-import { useEffect, useState } from "react";
+import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-
-import { useQuery } from "app/hooks/useQuery";
 import { selectCurrentUserId } from "auth/authSlice";
+import { selectCurrentServer } from "setting/settingSlice";
+import { queryServer } from "database/dbSlice";
 import { DataType } from "create/types";
 import { DataTable } from "../blocks/DataTable";
 
-const typeArray = ["All", ...Object.values(DataType)
-	.filter(value => ![DataType.Dialog, DataType.Cybot, DataType.Space, DataType.Page, DataType.Token].includes(value))];
+const EXCLUDED_TYPES = [
+  DataType.DIALOG,
+  DataType.CYBOT,
+  DataType.Space,
+  DataType.PAGE,
+  DataType.TOKEN,
+  DataType.MSG,
+];
+
+const typeArray = [
+  "All",
+  ...Object.values(DataType).filter((type) => !EXCLUDED_TYPES.includes(type)),
+];
 
 export const Database = () => {
+  const dispatch = useAppDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [type, setType] = useState(searchParams.get("type"));
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-	const mainColor = useAppSelector((state) => state.theme.mainColor);
+  const currentUserId = useAppSelector(selectCurrentUserId);
+  const currentServer = useAppSelector(selectCurrentServer);
 
-	const [searchParams, setSearchParams] = useSearchParams();
+  // 使用 useMemo 缓存查询配置
+  const queryConfig = useMemo(
+    () => ({
+      queryUserId: currentUserId,
+      server: currentServer,
+      options: {
+        isJSON: true,
+        limit: 100,
+        condition: type ? { type } : {},
+      },
+    }),
+    [currentUserId, currentServer, type]
+  );
 
-	const [type, setType] = useState(searchParams.get("type"));
-	const [data, setData] = useState(null);
-	const currentUserId = useAppSelector(selectCurrentUserId);
+  const fetchData = useCallback(async () => {
+    if (!currentServer || !currentUserId) return;
 
+    setIsLoading(true);
+    setError(null);
 
-	const { fetchData } = useQuery();
+    try {
+      const action = await dispatch(queryServer(queryConfig));
+      const result = action.payload;
+      setData(Array.isArray(result) ? result : []);
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+      setError(err);
+      setData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentServer, currentUserId, dispatch, queryConfig]);
 
-	const fetchAndSetData = async (queryConfig) => {
-		try {
-			setData(null);
-			const result = await fetchData(queryConfig);
-			setData(result);
-		} catch (err) {
-			// 错误处理
-		}
-	};
+  // 只在必要时更新数据
+  useEffect(() => {
+    fetchData();
+  }, [type, currentUserId, currentServer]);
 
-	useEffect(() => {
-		const queryConfig = {
-			queryUserId: currentUserId,
-			options: {
-				isJSON: true,
-				limit: 100,
-				condition: {},
-			},
-		};
-		if (type) {
-			queryConfig.options.condition.type = type;
-		}
-		fetchAndSetData(queryConfig);
-	}, [type]);
+  const handleTypeChange = useCallback(
+    (newType) => {
+      if (newType === "All") {
+        setSearchParams({});
+        setType(null);
+      } else {
+        setType(newType);
+        setSearchParams({ type: newType });
+      }
+    },
+    [setSearchParams]
+  );
 
-	const changeType = (type) => {
-		if (type === "All") {
-			setSearchParams({});
-			setType(null);
-		} else {
-			setType(type);
-			setSearchParams({ type });
-		}
-	};
+  return (
+    <div className="p-4 my-14">
+      <div className="flex justify-between">
+        <div className="flex gap-2 overflow-auto">
+          {typeArray.map((typeItem) => {
+            const isActive = type === typeItem || (typeItem === "All" && !type);
+            return (
+              <div
+                key={typeItem}
+                onClick={() => handleTypeChange(typeItem)}
+                className={`
+                  relative flex cursor-pointer items-center justify-center p-2 
+                  transition-all duration-200 hover:bg-blue-100
+                  ${isActive ? "border-b-3 border-solid border-blue-500" : ""}
+                `}
+              >
+                {typeItem}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-	return (
-		<div className="p-4 my-14">
-			<div className="flex justify-between">
-				<div className="flex gap-2 overflow-auto">
-					{typeArray.map((typeItem) => {
-						const isActive = type === typeItem || (typeItem === "All" && !type);
-						return (
-							<div
-								key={typeItem}
-								onClick={() => changeType(typeItem)}
-								className="relative flex cursor-pointer items-center justify-center p-2 transition-all duration-200 hover:bg-blue-100"
-								style={
-									isActive
-										? {
-											borderBottom: "3px solid",
-											borderBottomColor: mainColor,
-										}
-										: undefined
-								}
-							>
-								{typeItem}
-							</div>
-						);
-					})}
-				</div>
-			</div>
-			{data && <div style={{ margin: "16px 0" }}>
-				<DataTable dataList={data} type={type} />
-			</div>}
-		</div>
-	);
+      {isLoading ? (
+        <div className="mt-4">Loading...</div>
+      ) : error ? (
+        <div className="mt-4 text-red-500">Error: {error.message}</div>
+      ) : (
+        <div className="mt-4">
+          <DataTable dataList={data} type={type} />
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Database;

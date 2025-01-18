@@ -17,7 +17,13 @@ export const Table: React.FC<TableBaseProps> = ({
 
   return (
     <>
-      <style>{`
+      <style href="table-container">{`
+        .table-container {
+          overflow-x: auto;
+          border-radius: 8px;
+          margin-top: 1rem;
+        }
+
         .data-table {
           width: 100%;
           border-collapse: collapse;
@@ -26,11 +32,20 @@ export const Table: React.FC<TableBaseProps> = ({
           box-shadow: 0 1px 3px ${theme.shadowLight};
           border: 1px solid ${theme.border};
           overflow: hidden;
+          font-size: 0.875rem;
+        }
+
+        @media (max-width: 640px) {
+          .table-container {
+            margin-top: 0.75rem;
+          }
         }
       `}</style>
-      <table className="data-table" style={style} {...attributes}>
-        {children}
-      </table>
+      <div className="table-container">
+        <table className="data-table" style={style} {...attributes}>
+          {children}
+        </table>
+      </div>
     </>
   );
 };
@@ -44,7 +59,7 @@ export const TableRow: React.FC<TableBaseProps> = ({
 
   return (
     <>
-      <style>{`
+      <style href="table-row">{`
         .table-row {
           border-bottom: 1px solid ${theme.border};
           background: ${theme.background};
@@ -81,16 +96,16 @@ export const TableCell: React.FC<TableCellProps> = ({
 
   return (
     <>
-      <style>{`
+      <style href="table-cell">{`
         .table-cell {
-          padding: ${element.header ? "12px 24px" : "16px 24px"};
+          padding: ${element.header ? "0.875rem 1rem" : "1rem"};
           text-align: left;
           color: ${element.header ? theme.textSecondary : theme.text};
-          font-size: ${element.header ? "13px" : "14px"};
+          font-size: ${element.header ? "0.813rem" : "0.875rem"};
           line-height: 1.5;
           white-space: nowrap;
         }
-        
+
         .table-header {
           position: sticky;
           top: 0;
@@ -102,9 +117,19 @@ export const TableCell: React.FC<TableCellProps> = ({
           z-index: 1;
         }
 
+        .status-badge {
+          display: inline-block;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          background: ${theme.backgroundSecondary};
+          color: ${theme.primary};
+          font-size: 0.75rem;
+          font-weight: 500;
+        }
+
         @media (max-width: 640px) {
           .table-cell {
-            padding: 12px 16px;
+            padding: 0.75rem;
           }
         }
       `}</style>

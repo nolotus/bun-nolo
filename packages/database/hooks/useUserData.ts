@@ -1,3 +1,5 @@
+// database/hooks/useUserData.ts
+
 import { useEffect, useState, useCallback } from "react";
 import { fetchUserData } from "../browser/fetchUserData";
 import { DataType } from "create/types";
@@ -6,26 +8,49 @@ import { selectCurrentServer } from "setting/settingSlice";
 import { noloQueryRequest } from "../client/queryRequest";
 import { upsertMany } from "database/dbSlice";
 
+interface FetchState {
+  loading: boolean;
+  error: Error | null;
+}
+
+interface UseUserDataReturn extends FetchState {
+  reload: () => Promise<void>;
+}
+
+function normalizeRemoteData(remoteResult: any) {
+  if (remoteResult?.data && Array.isArray(remoteResult.data)) {
+    return remoteResult.data;
+  }
+  return [];
+}
+
+function normalizeTimestamp(date: string | number) {
+  if (typeof date === "number") {
+    return new Date(date);
+  }
+  return new Date(date);
+}
+
 export function useUserData(
   types: DataType | DataType[],
   userId: string,
   limit: number
-) {
+): UseUserDataReturn {
   const dispatch = useAppDispatch();
   const currentServer = useAppSelector(selectCurrentServer);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [{ loading, error }, setState] = useState<FetchState>({
+    loading: true,
+    error: null,
+  });
 
-  const typesKey = Array.isArray(types) ? types.join(",") : types;
+  const typeArray = Array.isArray(types) ? types : [types];
+  const typesKey = typeArray.join(",");
 
   const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    setState({ loading: true, error: null });
 
     try {
-      const typeArray = Array.isArray(types) ? types : [types];
       const localResults = await fetchUserData(typeArray, userId);
-
       const remoteResults = await Promise.all(
         typeArray.map(async (type) => {
           const result = await noloQueryRequest({
@@ -46,33 +71,51 @@ export function useUserData(
 
       const uniqueMap = new Map();
 
-      // 处理本地数据
-      typeArray.forEach((type) => {
-        const localTypeData = localResults[type] || [];
-        localTypeData.forEach((item) => {
-          uniqueMap.set(item.id, item);
+      Object.entries(localResults).forEach(([type, items]) => {
+        (items as any[]).forEach((item) => {
+          if (item?.id) {
+            uniqueMap.set(item.id, item);
+          }
         });
       });
 
-      // 处理远程数据
-      remoteResults.forEach(({ data: remoteTypeData }) => {
-        remoteTypeData.forEach((item) => {
+      remoteResults.forEach((result) => {
+        const normalizedItems = normalizeRemoteData(result);
+        normalizedItems.forEach((item) => {
+          if (!item?.id) return;
+
           const existing = uniqueMap.get(item.id);
-          if (
-            !existing ||
-            new Date(item.updatedAt) > new Date(existing.updatedAt)
-          ) {
+          if (!existing) {
+            uniqueMap.set(item.id, item);
+            return;
+          }
+
+          const existingDate = existing.updatedAt
+            ? normalizeTimestamp(existing.updatedAt)
+            : normalizeTimestamp(existing.created || "");
+
+          const newDate = item.updatedAt
+            ? normalizeTimestamp(item.updatedAt)
+            : normalizeTimestamp(item.created || "");
+
+          if (newDate > existingDate) {
             uniqueMap.set(item.id, item);
           }
         });
       });
 
       const mergedData = Array.from(uniqueMap.values());
-      dispatch(upsertMany(mergedData));
+
+      if (mergedData.length > 0) {
+        dispatch(upsertMany(mergedData));
+      }
+
+      setState({ loading: false, error: null });
     } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
+      setState({
+        loading: false,
+        error: err instanceof Error ? err : new Error("Unknown error occurred"),
+      });
     }
   }, [typesKey, userId, currentServer, limit, dispatch]);
 

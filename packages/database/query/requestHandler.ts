@@ -1,7 +1,6 @@
 import serverDb from "../server/db";
 import { queryData } from "./queryHandler";
 import { QueryOptions } from "./types";
-import { validateQueryOptions } from "./validation";
 
 async function fetchUserData(types: string | string[], userId: string) {
   const results: Record<string, any[]> = {};
@@ -62,19 +61,13 @@ export const handleQuery = async (req, res) => {
     }
 
     if (options.userId.length < 11) {
-      console.log("options.userId", options.userId);
-      console.log("condition", options.condition);
+      console.log("newuser options", options);
       const result = await fetchUserData(
         [options.condition.type],
         options.userId
       );
-      console.log("result", result);
+      console.log("new user query result", result);
       return res.status(200).json({ result });
-    }
-    const isValid = validateQueryOptions(options);
-
-    if (!isValid) {
-      return res.status(400).json({ error: "Invalid query parameters" });
     }
 
     const data = await queryData(options);

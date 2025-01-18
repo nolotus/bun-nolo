@@ -1,5 +1,6 @@
 import { serverGetData } from "database/server/read";
 import { verifyToken } from "../token";
+import serverDb from "database/server/db";
 
 const handleError = (res, error, status = 500) => {
   return res.status(status).json({ error: error.message });
@@ -53,6 +54,7 @@ export async function handleToken(req, res) {
 
     // 获取公钥并判断用户类型
     const { publicKey, isNewUser } = await getPublicKey(tempPayload.userId);
+
     if (!publicKey) {
       return handleError(res, new Error("Public key not found"), 401);
     }

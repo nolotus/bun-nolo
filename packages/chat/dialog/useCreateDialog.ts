@@ -34,7 +34,6 @@ export const useCreateDialog = (): UseCreateDialogResult => {
     if (cybots) {
       try {
         const result = await dispatch(createDialog({ cybots })).unwrap();
-        console.log("result", result);
         navigate(`/${result.id}`);
         setIsSuccess(true);
       } catch (error) {

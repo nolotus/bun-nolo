@@ -36,7 +36,7 @@ const findKeyInFile = (filePath: string, id: string): string | undefined => {
 export const readAllFilesForUser = async (
   baseDir: string,
   userId: string,
-  key: string,
+  key: string
 ): Promise<string | undefined> => {
   const userDir = path.join(baseDir, userId);
 
@@ -49,12 +49,6 @@ export const readAllFilesForUser = async (
     for (const file of files) {
       const filePath = path.join(userDir, file);
       const value = await findKeyInFile(filePath, key);
-      if (
-        key ===
-        "000000100000-VzlmQmd5S1RBUlphQS1YUnEzalk5MmVnbldoQWNLS0VkbHdQc0kzNmJlYw-01JB8PMVPRBRHQN0P88R87C2SG"
-      ) {
-        // console.log("file value", key, filePath, value);
-      }
       if (value !== undefined) {
         return value; // 找到值后立即返回
       }

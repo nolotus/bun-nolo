@@ -1,5 +1,4 @@
 import { useAppSelector } from "app/hooks";
-import { useQueryData } from "app/hooks/useQueryData";
 import { useNavigation } from "@react-navigation/native";
 
 import {
@@ -15,7 +14,6 @@ import {
 
 import { selectCurrentUserId } from "auth/authSlice";
 
-import { nolotusId } from "core/init";
 import { CreateRoutePaths } from "create/routePaths";
 
 import { useMemo } from "react";
@@ -133,32 +131,17 @@ const ChatGuide = () => {
         icon: <IconButton name="file-added" />,
         description: "从空白页面开始创作",
       },
-      {
-        text: "提示词",
-        route: CreateRoutePaths.CREATE_PROMPT,
-        icon: <IconButton name="comment-discussion" />,
-        description: "管理和创建提示词模板",
-      },
+      // {
+      //   text: "提示词",
+      //   route: CreateRoutePaths.CREATE_PROMPT,
+      //   icon: <IconButton name="comment-discussion" />,
+      //   description: "管理和创建提示词模板",
+      // },
     ],
     []
   );
 
-  useQueryData({
-    queryUserId: nolotusId,
-    options: {
-      isJSON: true,
-      condition: { is_template: true },
-      limit: 20,
-    },
-  });
-  const { data: templates } = useQueryData({
-    queryUserId: nolotusId,
-    options: {
-      isJSON: true,
-      condition: { is_template: true },
-      limit: 20,
-    },
-  });
+  const templates = [];
   const templateButtons =
     templates?.map((template) => ({
       text: template.title,
