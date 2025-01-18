@@ -108,8 +108,15 @@ export const selectByTypes = createSelector(
 );
 
 export const selectByType = createSelector(
-  [selectAll, (state, type: DataType) => type],
-  (items, type) => {
-    return items.filter((item) => item.type === type);
+  [
+    selectAll,
+    (state, type: DataType) => type,
+    (state, type: DataType, userId?: string) => userId,
+  ],
+  (items, type, userId) => {
+    return items.filter((item) => {
+      const matchType = item.type === type;
+      return userId ? matchType && item.userId === userId : matchType;
+    });
   }
 );

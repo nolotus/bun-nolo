@@ -18,7 +18,9 @@ const Cybots: React.FC<CybotsProps> = ({
   closeModal,
 }) => {
   const theme = useAppSelector(selectTheme);
-  const cybots = useAppSelector((state) => selectByType(state, DataType.CYBOT));
+  const cybots = useAppSelector((state) =>
+    selectByType(state, DataType.CYBOT, queryUserId)
+  );
 
   const { loading, reload } = useUserData(DataType.CYBOT, queryUserId, limit);
 
