@@ -20,7 +20,7 @@ const LifeSidebarContent: React.FC = () => {
       icon: <GraphIcon size={20} />,
     },
     {
-      path: "/users",
+      path: "/life/users",
       label: "用户",
       icon: <PeopleIcon size={20} />,
       allow_users: [nolotusId],

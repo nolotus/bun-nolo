@@ -1,4 +1,4 @@
-// hooks/useDeleteUser.ts
+// auth/hooks/useDeleteUser.ts
 import { useCallback } from "react";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
@@ -14,33 +14,34 @@ export function useDeleteUser(onSuccess?: () => void) {
 
   return useCallback(
     async (userId: string) => {
-      if (!confirm("确认删除该用户?")) return;
       if (!serverUrl || !token) {
-        logger.error("No server URL or token available");
+        logger.error("Missing serverUrl or token");
         return;
       }
 
       try {
-        logger.info({ userId }, "Attempting to delete user");
-
         const path = authRoutes.users.delete.createPath({ userId });
+        const url = `${serverUrl}${path}`;
 
-        const response = await fetch(`${serverUrl}${path}`, {
+        logger.info({ userId, url }, "Deleting user");
+
+        const response = await fetch(url, {
           method: authRoutes.users.delete.method,
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         });
 
         if (!response.ok) {
-          throw new Error(`Delete failed with status: ${response.status}`);
+          throw new Error(`HTTP ${response.status}`);
         }
 
-        logger.info({ userId }, "User deleted successfully");
+        logger.info({ userId }, "User deleted");
         onSuccess?.();
       } catch (err) {
-        logger.error({ err, userId }, "Failed to delete user");
-        alert("删除用户失败，请重试");
+        logger.error({ err, userId }, "Delete failed");
+        throw err;
       }
     },
     [serverUrl, token, onSuccess]
