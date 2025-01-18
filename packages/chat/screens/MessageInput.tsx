@@ -1,32 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
-  TextInput, 
+  TextInput,
   StyleSheet,
   TouchableOpacity,
   Text,
   KeyboardAvoidingView,
-  Platform
-} from 'react-native';
-import { useTheme } from 'app/theme';
+  Platform,
+} from "react-native";
+import { useTheme } from "app/theme";
 
 const MessageInput = ({ onSend }) => {
   const theme = useTheme();
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
 
   const handleSend = () => {
     if (inputText.trim()) {
       onSend(inputText);
-      setInputText('');
+      setInputText("");
     }
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <View style={[styles.inputWrapper, {backgroundColor: theme.background}]}>
+      <View
+        style={[styles.inputWrapper, { backgroundColor: theme.background }]}
+      >
         <View style={styles.inputContainer}>
           <TextInput
             style={[
@@ -34,8 +36,8 @@ const MessageInput = ({ onSend }) => {
               {
                 backgroundColor: theme.backgroundSecondary,
                 color: theme.text,
-                maxHeight: 100 // 限制最大高度
-              }
+                maxHeight: 100, // 限制最大高度
+              },
             ]}
             placeholder="输入消息..."
             placeholderTextColor={theme.placeholder}
@@ -46,11 +48,11 @@ const MessageInput = ({ onSend }) => {
             blurOnSubmit={false} // 提交时不失去焦点
           />
           <TouchableOpacity
-            style={[styles.sendButton, {backgroundColor: theme.primary}]}
+            style={[styles.sendButton, { backgroundColor: theme.primary }]}
             onPress={handleSend}
             activeOpacity={0.7}
           >
-            <Text style={[styles.sendButtonText, {color: theme.background}]}>
+            <Text style={[styles.sendButtonText, { color: theme.background }]}>
               发送
             </Text>
           </TouchableOpacity>
@@ -63,11 +65,11 @@ const MessageInput = ({ onSend }) => {
 const styles = StyleSheet.create({
   inputWrapper: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: "#E0E0E0",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end', // 改为底部对齐
+    flexDirection: "row",
+    alignItems: "flex-end", // 改为底部对齐
     padding: 12,
   },
   input: {
@@ -88,8 +90,8 @@ const styles = StyleSheet.create({
   },
   sendButtonText: {
     fontSize: 16,
-    fontWeight: '500',
-  }
+    fontWeight: "500",
+  },
 });
 
 export default MessageInput;
