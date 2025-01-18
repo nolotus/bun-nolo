@@ -1,14 +1,15 @@
-import React from 'react';
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { BaseModal } from 'render/ui/BaseModal';
+
+import { BaseModal } from "web/ui/BaseModal";
 import Button from "web/ui/Button";
 import {
   XCircleIcon,
   AlertIcon,
   CheckCircleIcon,
   InfoIcon,
-} from '@primer/octicons-react';
+} from "@primer/octicons-react";
 
 interface AlertProps {
   isOpen: boolean;
@@ -43,7 +44,7 @@ export const Alert: React.FC<AlertProps> = ({
       error: { Icon: XCircleIcon, color: theme.error },
       warning: { Icon: AlertIcon, color: "#F59E0B" },
       success: { Icon: CheckCircleIcon, color: "#10B981" },
-      info: { Icon: InfoIcon, color: theme.primary }
+      info: { Icon: InfoIcon, color: theme.primary },
     };
     return configs[type];
   };
@@ -75,7 +76,7 @@ export const Alert: React.FC<AlertProps> = ({
           )}
           <Button
             variant="primary"
-            status={type === 'error' ? 'error' : undefined}
+            status={type === "error" ? "error" : undefined}
             onClick={onConfirm}
             loading={loading}
             disabled={loading}
@@ -172,7 +173,7 @@ export const Alert: React.FC<AlertProps> = ({
 };
 
 // useDeleteAlert hook
-import { useState } from 'react';
+import { useState } from "react";
 
 export interface UseAlertReturn<T> {
   visible: boolean;
@@ -213,7 +214,7 @@ export function useDeleteAlert<T = any>(
       await Promise.resolve(deleteCallback(modalState));
       closeAlert();
     } catch (error) {
-      console.error('Delete operation failed:', error);
+      console.error("Delete operation failed:", error);
       setLoading(false);
     }
   };

@@ -6,66 +6,51 @@ import { deepinfraModels } from "integrations/deepinfra/models";
 import { openAIModels } from "integrations/openai/models";
 import { mistralModels } from "integrations/mistral/models";
 import { googleModels } from "integrations/google/models";
-
 import { selectTheme } from "../theme/themeSlice";
 import { useAppSelector } from "../hooks";
 
 const ModelComparison = () => {
   const theme = useAppSelector(selectTheme);
 
-  // 统一处理数据格式
-  const combinedModels = [
-    ...deepinfraModels.map((model) => ({
-      ...model,
-      provider: "Deepinfra",
-      maxOutputTokens: model.maxOutputTokens || "未知",
-      supportsTool: model.supportsTool || "未知",
-    })),
-    ...mistralModels.map((model) => ({
-      ...model,
-      provider: "Mistral",
-    })),
-    ...anthropicModels.map((model) => ({
-      ...model,
-      provider: "Anthropic",
-    })),
-    ...openAIModels.map((model) => ({
-      ...model,
-      provider: "OpenAI",
-    })),
-    ...googleModels.map((model) => ({
-      ...model,
-      provider: "Google",
-      supportsTool: "未知", // Google模型数据中没有这个字段
-    })),
-    ...deepseekModels.map((model) => ({
-      ...model,
-      provider: "Deepseek",
-    })),
+  // 统一处理各提供商的模型数据
+  const normalizeModel = (model: any, provider: string) => ({
+    ...model,
+    provider,
+    maxOutputTokens: model.maxOutputTokens || "未知",
+    supportsTool: model.supportsTool || "未知",
+  });
+
+  const modelProviders = [
+    { models: deepinfraModels, name: "Deepinfra" },
+    { models: mistralModels, name: "Mistral" },
+    { models: anthropicModels, name: "Anthropic" },
+    { models: openAIModels, name: "OpenAI" },
+    { models: googleModels, name: "Google" },
+    { models: deepseekModels, name: "Deepseek" },
   ];
+
+  const combinedModels = modelProviders.flatMap(({ models, name }) =>
+    models.map((model) => normalizeModel(model, name))
+  );
 
   const [models, setModels] = useState(combinedModels);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
 
   const handleSort = (key: string) => {
-    let direction = "ascending";
-    if (sortConfig.key === key && sortConfig.direction === "ascending") {
-      direction = "descending";
-    }
+    const direction =
+      sortConfig.key === key && sortConfig.direction === "ascending"
+        ? "descending"
+        : "ascending";
+
     setSortConfig({ key, direction });
     setModels(
       [...models].sort((a, b) => {
-        if (key === "price") {
-          if (a.price?.output < b.price?.output)
-            return direction === "ascending" ? -1 : 1;
-          if (a.price?.output > b.price?.output)
-            return direction === "ascending" ? 1 : -1;
-          return 0;
-        } else {
-          if (a[key] < b[key]) return direction === "ascending" ? -1 : 1;
-          if (a[key] > b[key]) return direction === "ascending" ? 1 : -1;
-          return 0;
-        }
+        const compareValue =
+          key === "price"
+            ? (a.price?.output || 0) - (b.price?.output || 0)
+            : String(a[key]).localeCompare(String(b[key]));
+
+        return direction === "ascending" ? compareValue : -compareValue;
       })
     );
   };
@@ -113,7 +98,9 @@ const ModelComparison = () => {
               <SortButton columnKey="contextWindow" />
             </TableCell>
             <TableCell {...headerCellProps}>
-              价格（输入/输出）
+              价格（每100万token）
+              <br />
+              输入/输出
               <SortButton columnKey="price" />
             </TableCell>
             <TableCell {...headerCellProps}>

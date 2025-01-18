@@ -1,6 +1,6 @@
 // render/ui/BaseModal.tsx
-import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -13,18 +13,18 @@ export const BaseModal: React.FC<BaseModalProps> = ({
   isOpen,
   onClose,
   children,
-  className = ''
+  className = "",
 }) => {
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose();
+      if (e.key === "Escape") handleClose();
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEsc);
-      return () => document.removeEventListener('keydown', handleEsc);
+      document.addEventListener("keydown", handleEsc);
+      return () => document.removeEventListener("keydown", handleEsc);
     }
   }, [isOpen]);
 
@@ -40,12 +40,12 @@ export const BaseModal: React.FC<BaseModalProps> = ({
 
   return ReactDOM.createPortal(
     <div
-      className={`modal-backdrop ${isClosing ? 'closing' : ''}`}
+      className={`modal-backdrop ${isClosing ? "closing" : ""}`}
       onClick={handleClose}
     >
       <div
-        className={`modal-content ${className} ${isClosing ? 'closing' : ''}`}
-        onClick={e => e.stopPropagation()}
+        className={`modal-content ${className} ${isClosing ? "closing" : ""}`}
+        onClick={(e) => e.stopPropagation()}
       >
         {children}
       </div>

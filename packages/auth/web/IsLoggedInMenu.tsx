@@ -6,12 +6,14 @@ import {
 } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
-import { changeCurrentUser, selectUsers, signOut } from "auth/authSlice";
-import { getTokensFromLocalStorage, removeToken } from "auth/web/token";
-import { parseToken } from "auth/token";
+import {
+  selectUsers,
+  signOut,
+  selectCurrentToken,
+  changeUser,
+} from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router-dom";
 import DropDown from "render/ui/DropDown";
 import { SettingRoutePaths } from "setting/config";
@@ -127,37 +129,26 @@ const StyleSheet = () => {
 export const IsLoggedInMenu: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const auth = useAuth();
   const dispatch = useAppDispatch();
+  const auth = useAuth();
   const users = useAppSelector(selectUsers);
-  const currentToken = useSelector((state: any) => state.auth.currentToken);
+  const currentToken = useAppSelector(selectCurrentToken);
 
-  const changeUser = (user: any) => {
-    const tokens = getTokensFromLocalStorage();
-    const updatedToken = tokens.find(
-      (t) => parseToken(t).userId === user.userId
-    );
-    if (updatedToken) {
-      const newTokens = [
-        updatedToken,
-        ...tokens.filter((t) => t !== updatedToken),
-      ];
-      dispatch(changeCurrentUser({ user, token: updatedToken }));
-      window.localStorage.setItem("tokens", JSON.stringify(newTokens));
-    }
+  const handleUserChange = (user: User) => {
+    dispatch(changeUser(user));
   };
 
-  const logout = () => {
-    removeToken(currentToken);
-    dispatch(signOut());
-    navigate("/");
+  const handleLogout = () => {
+    dispatch(signOut())
+      .unwrap()
+      .then(() => navigate("/"));
   };
 
   const renderDropdownItem = (
     label: string,
     icon?: React.ReactNode,
     onClick?: () => void,
-    key: string // 改为必需参数
+    key: string
   ) => (
     <button key={key} onClick={onClick} className="dropdown-item">
       {icon && <span className="dropdown-icon">{icon}</span>}
@@ -195,8 +186,8 @@ export const IsLoggedInMenu: React.FC = () => {
                 renderDropdownItem(
                   user.username,
                   null,
-                  () => changeUser(user),
-                  `user-${user.userId}` // 确保key的唯一性
+                  () => handleUserChange(user),
+                  `user-${user.userId}`
                 )
             )}
 
@@ -204,14 +195,14 @@ export const IsLoggedInMenu: React.FC = () => {
               t("common:settings"),
               <GearIcon size={16} />,
               () => navigate(SettingRoutePaths.SETTING),
-              "settings" // 添加唯一key
+              "settings"
             )}
 
             {renderDropdownItem(
               t("common:logout"),
               <SignOutIcon size={16} />,
-              logout,
-              "logout" // 添加唯一key
+              handleLogout,
+              "logout"
             )}
           </div>
         </DropDown>

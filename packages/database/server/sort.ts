@@ -3,7 +3,7 @@ import { sort, reverse } from "rambda";
 
 export const getSortedFilteredFiles = (
   userDir: string,
-  isDescending: boolean = true,
+  isDescending: boolean = true
 ): string[] => {
   let files: string[] = [];
 
@@ -17,7 +17,7 @@ export const getSortedFilteredFiles = (
   const filteredFiles = files.filter((file) => {
     // 使用新的正则表达式能够兼容所有文件格式
     const isMatch = /^data_(\d+)(?:T\d+Z)?(?:_(\d+))?_layer(\d+)\.nolo$/.test(
-      file,
+      file
     );
     return isMatch;
   });
@@ -25,10 +25,10 @@ export const getSortedFilteredFiles = (
   const sortedFiles = sort((a, b) => {
     // 使用新的正则表达式来匹配文件
     const amatch = a.match(
-      /^data_(\d+)(?:T(\d+))?Z?(?:_(\d+))?_layer(\d+)\.nolo$/,
+      /^data_(\d+)(?:T(\d+))?Z?(?:_(\d+))?_layer(\d+)\.nolo$/
     );
     const bmatch = b.match(
-      /^data_(\d+)(?:T(\d+))?Z?(?:_(\d+))?_layer(\d+)\.nolo$/,
+      /^data_(\d+)(?:T(\d+))?Z?(?:_(\d+))?_layer(\d+)\.nolo$/
     );
 
     if (!amatch || !bmatch) {

@@ -1,90 +1,65 @@
+// auth/server/listusers.ts
 import serverDb, { DB_PREFIX } from "database/server/db";
-import pino from "pino";
+import {
+  logger,
+  createErrorResponse,
+  createSuccessResponse,
+  handleOptionsRequest,
+  checkAdminPermission,
+} from "./shared";
 
-const logger = pino();
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Content-Type": "application/json",
-};
-
-/**
- * 处理获取用户列表请求
- */
-// database/server/handlers.ts
-export async function handleListUsers(req) {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
-  }
-
-  const requestId = Math.random().toString(36).slice(7);
-  logger.info({ requestId, url: req.url }, "Processing list users request");
-
-  try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const pageSize = Math.min(
-      50,
-      Math.max(1, parseInt(req.query.pageSize) || 10)
-    );
-
-    const result = await listUsers({ page, pageSize });
-
-    logger.info(
-      {
-        requestId,
-        total: result.total,
-        page: result.currentPage,
-        pageSize,
-        returnedCount: result.list.length,
-      },
-      "Users retrieved successfully"
-    );
-
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: CORS_HEADERS,
-    });
-  } catch (error) {
-    // ... error handling
-  }
+interface ListUsersOptions {
+  page?: number;
+  pageSize?: number;
 }
 
-/**
- * 分页查询用户列表
- * @returns {Promise<{total: number, list: Array<{id: string, ...rest}>, currentPage: number}>}
- */
-// database/server/users.ts
-async function listUsers({ page = 1, pageSize = 10 } = {}) {
-  let totalCount = 0;
-  const users = [];
-  const prefix = DB_PREFIX.USER;
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  balance: number;
+  createdAt: string;
+  [key: string]: any;
+}
 
-  // 首先获取总数
+async function listUsers({ page = 1, pageSize = 10 }: ListUsersOptions = {}) {
+  const prefix = DB_PREFIX.USER;
+  let totalCount = 0;
+  const users: User[] = [];
+
+  logger.debug({ page, pageSize }, "Starting users list fetch");
+
+  // Count total users
   const countIterator = serverDb.iterator({
     gt: prefix,
     lt: prefix + "\xFF",
-    values: false, // 只获取keys以提升性能
+    values: false,
   });
 
   try {
-    for await (const key of countIterator) {
-      totalCount++;
-    }
+    for await (const key of countIterator) totalCount++;
   } finally {
     await countIterator.close();
   }
 
-  // 然后获取分页数据
+  // Get paginated users
   const dataIterator = serverDb.iterator({
     gt: prefix,
     lt: prefix + "\xFF",
-    limit: pageSize,
-    offset: (page - 1) * pageSize,
   });
 
   try {
+    let skipped = 0;
+    const skip = (page - 1) * pageSize;
+
     for await (const [key, value] of dataIterator) {
+      if (skipped < skip) {
+        skipped++;
+        continue;
+      }
+
+      if (users.length >= pageSize) break;
+
       const userId = key.slice(prefix.length);
       users.push({
         id: userId,
@@ -98,12 +73,11 @@ async function listUsers({ page = 1, pageSize = 10 } = {}) {
 
     logger.debug(
       {
+        totalUsers: totalCount,
+        fetchedUsers: users.length,
         page,
-        pageSize,
-        totalCount,
-        returnedCount: users.length,
       },
-      "Users query completed"
+      "Users list fetch completed"
     );
 
     return {
@@ -115,5 +89,41 @@ async function listUsers({ page = 1, pageSize = 10 } = {}) {
     };
   } finally {
     await dataIterator.close();
+  }
+}
+
+export async function handleListUsers(req: Request) {
+  if (req.method === "OPTIONS") {
+    return handleOptionsRequest();
+  }
+
+  const permissionError = checkAdminPermission(req);
+  if (permissionError) return permissionError;
+
+  try {
+    // 从查询参数中获取分页信息
+    const url = new URL(req.url);
+    const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
+    const pageSize = Math.min(
+      50,
+      Math.max(1, parseInt(url.searchParams.get("pageSize") || "10"))
+    );
+
+    logger.info({
+      event: "fetching_users_list",
+      page,
+      pageSize,
+    });
+
+    const result = await listUsers({ page, pageSize });
+
+    return createSuccessResponse(result);
+  } catch (error) {
+    logger.error({
+      event: "list_users_failed",
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return createErrorResponse("Internal server error");
   }
 }

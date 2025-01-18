@@ -1,20 +1,8 @@
 import { SpotCard } from "render/components/SpotCard";
-import { useQueryData } from "app/hooks/useQueryData";
-import { DataType } from "create/types";
 
-export const SpotList = ({ userId }) => {
-  const queryConfig = {
-    queryUserId: userId,
-    options: {
-      isJSON: true,
-      condition: {
-        type: DataType.SurfSpot,
-      },
-      limit: 20,
-    },
-  };
-
-  const { data, isLoading } = useQueryData(queryConfig);
+export const SpotList = () => {
+  const data = [];
+  const isLoading = false;
 
   return (
     <>

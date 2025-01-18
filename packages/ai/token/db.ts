@@ -1,19 +1,15 @@
-// ai/token/db.ts
-import { browserDb } from "database/browser/db";
 import { createTokenStatsKey, createTokenKey } from "database/keys";
 import { TokenUsageData, TokenRecord } from "./types";
 import { ulid } from "ulid";
 import { createTokenRecord } from "./record";
 import { createInitialDayStats, updateDayStats } from "./stats";
 import { format } from "date-fns";
+import { pino } from "pino";
+import { DataType } from "create/types";
+import { read, write } from "database/dbSlice";
 
-// 统一错误处理
-const handleDbError = (error: unknown, context: string) => {
-  console.error({ error, context }, "Database operation failed");
-  throw error;
-};
+const logger = pino({ name: "token-db" });
 
-// 提取公共的数据扩充逻辑
 const enrichData = (data: TokenUsageData) => {
   const timestamp = Date.now();
   return {
@@ -24,34 +20,48 @@ const enrichData = (data: TokenUsageData) => {
   };
 };
 
-const saveTokenRecord = async (data: TokenUsageData): Promise<TokenRecord> => {
+const saveTokenRecord = async (
+  data: TokenUsageData,
+  thunkApi
+): Promise<TokenRecord> => {
   try {
     const enrichedData = enrichData(data);
     const record = createTokenRecord(enrichedData);
-    const recordTimestamp = new Date(record.createdAt).getTime();
-    const key = createTokenKey.record(data.userId, recordTimestamp);
+    const key = createTokenKey.record(data.userId, enrichedData.timestamp);
 
-    console.info(
+    logger.info(
       { key, timestamp: enrichedData.timestamp },
       "Saving token record"
     );
-    await browserDb.put(key, record);
+
+    await thunkApi.dispatch(
+      write({
+        data: {
+          ...record,
+          id: key,
+          type: DataType.TOKEN,
+        },
+        customId: key,
+      })
+    );
 
     return record;
   } catch (error) {
-    handleDbError(error, "saveTokenRecord");
+    logger.error({ error }, "Failed to save token record");
+    throw error;
   }
 };
 
 const saveDayStats = async (
   data: TokenUsageData,
-  enrichedData: ReturnType<typeof enrichData>
+  enrichedData: ReturnType<typeof enrichData>,
+  thunkApi
 ) => {
   const key = createTokenStatsKey(data.userId, enrichedData.dateKey);
 
   try {
-    const currentStats = await browserDb
-      .get(key)
+    const currentStats = await thunkApi
+      .dispatch(read(key))
       .then((stats) =>
         stats?.total
           ? stats
@@ -60,19 +70,31 @@ const saveDayStats = async (
       .catch(() => createInitialDayStats(data.userId, enrichedData.dateKey));
 
     const updatedStats = updateDayStats(data, currentStats);
-    await browserDb.put(key, updatedStats);
+
+    await thunkApi.dispatch(
+      write({
+        data: {
+          ...updatedStats,
+          id: key,
+          type: DataType.TOKEN,
+        },
+        customId: key,
+      })
+    );
+
     return updatedStats;
   } catch (error) {
-    handleDbError(error, "saveDayStats");
+    logger.error({ error }, "Failed to save day stats");
+    throw error;
   }
 };
 
-export const saveTokenUsage = async (data: TokenUsageData) => {
+export const saveTokenUsage = async (data: TokenUsageData, thunkApi) => {
   try {
     const enrichedData = enrichData(data);
     const [record] = await Promise.all([
-      saveTokenRecord(data),
-      saveDayStats(data, enrichedData),
+      saveTokenRecord(data, thunkApi),
+      saveDayStats(data, enrichedData, thunkApi),
     ]);
 
     return {
@@ -81,6 +103,7 @@ export const saveTokenUsage = async (data: TokenUsageData) => {
       record,
     };
   } catch (error) {
-    handleDbError(error, "saveTokenUsage");
+    logger.error({ error }, "Failed to save token usage");
+    throw error;
   }
 };

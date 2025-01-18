@@ -13,6 +13,7 @@ import { generateKeyPairFromSeedV1 } from "core/crypto";
 import { parseToken } from "./token";
 import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
+import { tokenManager } from "./tokenManager";
 
 interface AuthState {
   currentUser: User;
@@ -167,35 +168,26 @@ export const authSlice = createSliceWithThunks({
     inviteSignUp: create.asyncThunk(() => {
       console.log("inviteSignUp");
     }, {}),
-    changeCurrentUser: (
-      state,
-      action: PayloadAction<{ user: User; token: string }>
-    ) => {
-      state.currentUser = action.payload.user;
-      state.currentToken = action.payload.token;
-    },
-    initAuth: create.asyncThunk(
-      async (tokens, thunkAPI) => {
-        const { dispatch } = thunkAPI;
-        const parsedUsers = tokens.map((token) => parseToken(token));
-        const exists = parsedUsers.length > 0;
-        if (exists) {
-          const user = parsedUsers[0];
-          //should check if token is valid
-          // such as exp
-          dispatch(
-            restoreSession({
-              user,
-              users: parsedUsers,
-              token: tokens[0],
-            })
-          );
-        }
+
+    initializeAuth: create.asyncThunk(
+      async (_, thunkAPI) => {
+        const tokens = await tokenManager.initTokens();
+        return { tokens };
       },
       {
-        fulfilled: () => {},
+        fulfilled: (state, action) => {
+          const { tokens } = action.payload;
+          if (tokens.length > 0) {
+            const user = parseToken(tokens[0]);
+            state.currentUser = user;
+            state.currentToken = tokens[0];
+            state.isLoggedIn = true;
+            state.users = tokens.map(parseToken);
+          }
+        },
       }
     ),
+
     restoreSession: (
       state,
       action: PayloadAction<{ user: User; users: User[]; token: string }>
@@ -205,34 +197,96 @@ export const authSlice = createSliceWithThunks({
       state.users = action.payload.users;
       state.currentToken = action.payload.token;
     },
-    signOut: create.reducer((state) => {
-      const updatedUsers = state.users.filter(
-        (user) => user !== state.currentUser
-      );
-      //delete accout maybe delete next user
-      const nextUser = updatedUsers.length > 0 ? updatedUsers[0] : null;
-      state.isLoggedIn = false;
-      state.currentUser = nextUser;
-      state.users = updatedUsers;
-      state.currentToken = null;
-    }),
+    signOut: create.asyncThunk(
+      async (_, thunkAPI) => {
+        const state = thunkAPI.getState().auth;
+
+        if (state.currentToken) {
+          await tokenManager.removeToken(state.currentToken);
+        }
+
+        const otherUsers = state.users.filter(
+          (user) => user.userId !== state.currentUser.userId
+        );
+
+        if (otherUsers.length > 0) {
+          const tokens = await tokenManager.getTokens();
+          return {
+            otherUsers,
+            nextToken: tokens[0] || null,
+          };
+        }
+
+        return { otherUsers: [] };
+      },
+      {
+        fulfilled: (state, action) => {
+          const { otherUsers, nextToken } = action.payload;
+
+          if (otherUsers.length > 0) {
+            state.currentUser = otherUsers[0];
+            state.users = otherUsers;
+            state.currentToken = nextToken;
+          } else {
+            state.isLoggedIn = false;
+            state.currentUser = { userId: "local" };
+            state.users = [];
+            state.currentToken = null;
+          }
+        },
+      }
+    ),
+    changeUser: create.asyncThunk(
+      async (user: User, thunkAPI) => {
+        const tokens = await tokenManager.getTokens();
+        const updatedToken = tokens.find(
+          (t) => parseToken(t).userId === user.userId
+        );
+
+        if (!updatedToken) {
+          return thunkAPI.rejectWithValue("Token not found for user");
+        }
+
+        // 更新 token 顺序
+        await tokenManager.removeToken(updatedToken);
+        await tokenManager.storeToken(updatedToken);
+
+        return {
+          user,
+          token: updatedToken,
+        };
+      },
+      {
+        fulfilled: (state, action) => {
+          const { user, token } = action.payload;
+          state.currentUser = user;
+          state.currentToken = token;
+        },
+      }
+    ),
   }),
 });
 
 export const {
-  changeCurrentUser,
-  initAuth,
   restoreSession,
   signIn,
   signUp,
   inviteSignUp,
   signOut,
+  changeUser,
+  initializeAuth,
 } = authSlice.actions;
 
 export default authSlice.reducer;
 export const selectCurrentUser = (state: NoloRootState) =>
   state.auth.currentUser;
+
 export const selectUsers = (state: NoloRootState) => state.auth.users;
+
 export const selectCurrentUserId = (state: NoloRootState) =>
   state.auth.currentUser?.userId || "local";
+
 export const selectIsLoggedIn = (state: NoloRootState) => state.auth.isLoggedIn;
+
+export const selectCurrentToken = (state: NoloRootState) =>
+  state.auth.currentToken;

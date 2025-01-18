@@ -12,14 +12,13 @@ interface WriteConfigServer {
 }
 
 const noloWriteRequest = async (state: any, writeConfig: WriteConfigServer) => {
-  const { userId, data, flags, customId } = writeConfig;
+  const { userId, data, customId } = writeConfig;
 
   const fetchConfig = {
     url: `${API_ENDPOINTS.DATABASE}/write/`,
     method: "POST",
     body: JSON.stringify({
       data,
-      flags,
       customId,
       userId,
     }),
@@ -43,7 +42,8 @@ export const writeAction = async (writeConfig, thunkApi) => {
     data.type === DataType.MSG ||
     data.type === DataType.CYBOT ||
     data.type === DataType.PAGE ||
-    data.type === DataType.DIALOG
+    data.type === DataType.DIALOG ||
+    data.type === DataType.TOKEN
   ) {
     const willSaveData = {
       ...data,
