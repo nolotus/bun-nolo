@@ -2,6 +2,7 @@ import {
   asyncThunkCreator,
   buildCreateSlice,
   createEntityAdapter,
+  createSelector,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 
@@ -10,14 +11,11 @@ import { queryServerAction } from "./action/queryServer";
 import { readAction } from "./action/read";
 import { writeAction } from "./action/write";
 import { patchAction } from "./action/patch";
+import { DataType } from "create/types";
 export const dbAdapter = createEntityAdapter();
 
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
   dbAdapter.getSelectors((state: NoloRootState) => state.db);
-
-export const makeSelectEntityById =
-  (entityId: string) => (state: NoloRootState) =>
-    selectById(state, entityId);
 
 const initialState = dbAdapter.getInitialState({});
 
@@ -26,6 +24,7 @@ const createSliceWithThunks = buildCreateSlice({
 });
 
 // Slice
+// 在 reducer 的相关操作处添加日志检查
 const dbSlice = createSliceWithThunks({
   name: "db",
   initialState,
@@ -34,6 +33,12 @@ const dbSlice = createSliceWithThunks({
     read: create.asyncThunk(readAction, {
       fulfilled: (state, action) => {
         if (action.payload) {
+          if (!action.payload.id || Object.keys(action.payload).length === 0) {
+            console.warn("Empty or invalid data detected in read action:", {
+              payload: action.payload,
+              stack: new Error().stack,
+            });
+          }
           dbAdapter.upsertOne(state, action.payload);
         }
       },
@@ -46,13 +51,37 @@ const dbSlice = createSliceWithThunks({
     }),
     write: create.asyncThunk(writeAction, {
       fulfilled: (state, action) => {
+        if (!action.payload.id || Object.keys(action.payload).length === 0) {
+          console.warn("Empty or invalid data detected in write action:", {
+            payload: action.payload,
+            stack: new Error().stack,
+          });
+        }
         dbAdapter.addOne(state, action.payload);
       },
     }),
-    upsertMany: dbAdapter.upsertMany,
+    upsertMany: (state, action) => {
+      if (
+        action.payload.some(
+          (item) => !item.id || Object.keys(item).length === 0
+        )
+      ) {
+        console.warn("Empty or invalid data detected in upsertMany:", {
+          payload: action.payload,
+          stack: new Error().stack,
+        });
+      }
+      dbAdapter.upsertMany(state, action.payload);
+    },
     patchData: create.asyncThunk(patchAction, {
       fulfilled: (state, action) => {
         const { payload } = action;
+        if (!payload.id || Object.keys(payload).length <= 1) {
+          console.warn("Empty or invalid data detected in patch action:", {
+            payload,
+            stack: new Error().stack,
+          });
+        }
         const { id, ...changes } = payload;
         dbAdapter.updateOne(state, { id, changes });
       },
@@ -64,13 +93,23 @@ export const { upsertMany, deleteData, patchData, read, write, queryServer } =
   dbSlice.actions;
 export default dbSlice.reducer;
 
-export const selectByTypes = (state, types: DataType[], userId?: string) => {
-  return selectAll(state).filter((item) => {
-    const matchType = types.includes(item.type);
-    return userId ? matchType && item.userId === userId : matchType;
-  });
-};
+export const selectByTypes = createSelector(
+  [
+    selectAll,
+    (state, types: DataType[]) => types,
+    (state, types: DataType[], userId?: string) => userId,
+  ],
+  (items, types, userId) => {
+    return items.filter((item) => {
+      const matchType = types.includes(item.type);
+      return userId ? matchType && item.userId === userId : matchType;
+    });
+  }
+);
 
-export const selectByType = (state, type: DataType) => {
-  return selectAll(state).filter((item) => item.type === type);
-};
+export const selectByType = createSelector(
+  [selectAll, (state, type: DataType) => type],
+  (items, type) => {
+    return items.filter((item) => item.type === type);
+  }
+);

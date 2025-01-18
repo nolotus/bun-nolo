@@ -1,4 +1,5 @@
-// src/hooks/useUserData.ts
+// database/hooks/useUserData.ts
+
 import { useEffect, useState, useCallback } from "react";
 import { fetchUserData } from "../browser/fetchUserData";
 import { DataType } from "create/types";
@@ -17,7 +18,6 @@ interface UseUserDataReturn extends FetchState {
 }
 
 function normalizeRemoteData(remoteResult: any) {
-  // 远程数据是 {type, data: any[]} 结构
   if (remoteResult?.data && Array.isArray(remoteResult.data)) {
     return remoteResult.data;
   }
@@ -69,21 +69,8 @@ export function useUserData(
         })
       );
 
-      console.log(
-        "[useUserData] Debug info:",
-        JSON.stringify(
-          {
-            inputs: { types: typeArray, userId, limit, currentServer },
-            results: { localResults, remoteResults },
-          },
-          null,
-          2
-        )
-      );
-
       const uniqueMap = new Map();
 
-      // 处理本地数据
       Object.entries(localResults).forEach(([type, items]) => {
         (items as any[]).forEach((item) => {
           if (item?.id) {
@@ -92,7 +79,6 @@ export function useUserData(
         });
       });
 
-      // 处理远程数据
       remoteResults.forEach((result) => {
         const normalizedItems = normalizeRemoteData(result);
         normalizedItems.forEach((item) => {
@@ -104,7 +90,6 @@ export function useUserData(
             return;
           }
 
-          // 比较更新时间
           const existingDate = existing.updatedAt
             ? normalizeTimestamp(existing.updatedAt)
             : normalizeTimestamp(existing.created || "");
@@ -120,7 +105,6 @@ export function useUserData(
       });
 
       const mergedData = Array.from(uniqueMap.values());
-      console.log("[useUserData] Final merged data:", mergedData);
 
       if (mergedData.length > 0) {
         dispatch(upsertMany(mergedData));
@@ -128,7 +112,6 @@ export function useUserData(
 
       setState({ loading: false, error: null });
     } catch (err) {
-      console.error("[useUserData] Error:", err);
       setState({
         loading: false,
         error: err instanceof Error ? err : new Error("Unknown error occurred"),

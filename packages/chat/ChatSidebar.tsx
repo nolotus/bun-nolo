@@ -16,13 +16,6 @@ const ChatSidebar = () => {
 
   const { loading } = useUserData(targetTypes, currentUserId, 100);
 
-  // 添加日志记录数据加载状态
-  console.log("[ChatSidebar] Data:", {
-    loading,
-    itemCount: sidebarData?.length,
-    userId: currentUserId,
-  });
-
   if (loading) return null;
   if (!sidebarData?.length) return null;
 

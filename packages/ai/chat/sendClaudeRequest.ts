@@ -86,7 +86,6 @@ export const sendClaudeRequest = async ({
 
     while (true) {
       const { done, value } = await reader.read();
-      console.log("accumulatedContent", accumulatedContent);
       if (done) {
         const final = {
           id: messageId,
@@ -112,7 +111,6 @@ export const sendClaudeRequest = async ({
           const data = line.substring(6);
           try {
             const jsonData = JSON.parse(data);
-            console.log("Data:", jsonData);
             switch (jsonData.type) {
               case "message_start":
                 dispatch(
@@ -149,6 +147,7 @@ export const sendClaudeRequest = async ({
               case "message_delta":
                 dispatch(
                   updateTokens({
+                    dialogId,
                     cybotConfig,
                     usage: jsonData.usage,
                   })

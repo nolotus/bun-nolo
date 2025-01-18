@@ -62,10 +62,7 @@ const MessageInputContainer: React.FC = () => {
         <MessageInput onSendMessage={onSendMessage} />
       ) : (
         <div style={errorMessageStyle}>
-          {getErrorMessage(
-            sendPermission.reason,
-            sendPermission.requiredAmount
-          )}
+          {getErrorMessage(sendPermission.reason, sendPermission.pricing)}
         </div>
       )}
     </div>
