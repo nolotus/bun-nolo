@@ -22,7 +22,7 @@ export interface SendPermissionCheck {
 }
 
 export const useSendPermission = (userBalance: number = 0) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai");
   const userId = useAppSelector(selectCurrentUserId);
   const cybotConfig = useCybotConfig();
   const serverPrices = cybotConfig
