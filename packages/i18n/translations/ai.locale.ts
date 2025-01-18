@@ -70,7 +70,7 @@ export default {
       create: "Create",
       enterModelName: "Enter model name",
       insufficientBalanceDetailed:
-        "Insufficient balance. Current model: {{modelName}}, estimated cost per message: {{pricePerMessage}} credits, estimated cost for 3 messages: {{estimatedTotal}} credits. Your current balance: {{balance}} credits.",
+        "Insufficient balance. Current model: {{modelName}}, maximum cost per message: up to {{pricePerMessage}} credits. Your current balance: {{balance}} credits.",
       insufficientBalance: "Insufficient balance",
       cybotConfigMissing: "Cybot configuration is missing",
       modelPricingMissing: "Model pricing information is missing",
@@ -147,7 +147,7 @@ export default {
       create: "创建",
       enterModelName: "输入模型名称",
       insufficientBalanceDetailed:
-        "余额不足。当前使用的模型为 {{modelName}}，每次对话预计花费 {{pricePerMessage}} 积分，预计3次对话需要 {{estimatedTotal}} 积分。您当前的余额为 {{balance}} 积分。",
+        "余额不足。当前使用的模型为 {{modelName}}，单次对话最多可能需要 {{pricePerMessage}} 积分。您当前的余额为 {{balance}} 积分。",
       insufficientBalance: "余额不足",
       cybotConfigMissing: "Cybot配置缺失",
       modelPricingMissing: "模型定价信息缺失",
@@ -224,7 +224,7 @@ export default {
       create: "創建",
       enterModelName: "輸入模型名稱",
       insufficientBalanceDetailed:
-        "餘額不足。當前使用的模型為 {{modelName}}，每次對話預計花費 {{pricePerMessage}} 積分，預計3次對話需要 {{estimatedTotal}} 積分。您當前的餘額為 {{balance}} 積分。",
+        "餘額不足。當前使用的模型為 {{modelName}}，單次對話最多可能需要 {{pricePerMessage}} 積分。您當前的餘額為 {{balance}} 積分。",
       insufficientBalance: "餘額不足",
       cybotConfigMissing: "Cybot配置缺失",
       modelPricingMissing: "模型定價信息缺失",
@@ -302,7 +302,7 @@ export default {
       create: "作成",
       enterModelName: "モデル名を入力",
       insufficientBalanceDetailed:
-        "残高が不足しています。現在のモデル：{{modelName}}、1メッセージあたりの予想コスト：{{pricePerMessage}}ポイント、3メッセージの予想コスト：{{estimatedTotal}}ポイント。現在の残高：{{balance}}ポイント。",
+        "残高が不足しています。現在のモデル：{{modelName}}、1回の応答の最大コスト：{{pricePerMessage}}ポイントまで。現在の残高：{{balance}}ポイント。",
       insufficientBalance: "残高不足",
       cybotConfigMissing: "Cybotの設定が見つかりません",
       modelPricingMissing: "モデルの価格情報が見つかりません",

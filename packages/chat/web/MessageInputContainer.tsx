@@ -9,7 +9,6 @@ import { handleSendMessage } from "../messages/messageSlice";
 import { useBalance } from "auth/hooks/useBalance";
 import { nolotusId } from "core/init";
 
-// 定义跳过余额检查的用户ID
 const SKIP_BALANCE_CHECK_IDS = [
   nolotusId,
   "Y25UeEg1VlNTanIwN2N0d1Mzb3NLRUQ3dWhzWl9hdTc0R0JoYXREeWxSbw",
@@ -21,7 +20,6 @@ const MessageInputContainer: React.FC = () => {
   const userId = useAppSelector(selectCurrentUserId);
   const shouldSkipBalanceCheck = SKIP_BALANCE_CHECK_IDS.includes(userId);
 
-  // 只有不需要跳过检查的用户才调用 useBalance
   const { balance, loading, error: balanceError } = useBalance();
   const { sendPermission, getErrorMessage } = useSendPermission(balance);
 
@@ -43,7 +41,6 @@ const MessageInputContainer: React.FC = () => {
     border: `1px solid ${theme.error}20`,
   };
 
-  // 特权用户直接显示输入框
   if (shouldSkipBalanceCheck) {
     return <MessageInput onSendMessage={onSendMessage} />;
   }
