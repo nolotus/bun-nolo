@@ -1,86 +1,133 @@
 // components/RechargeRecord.tsx
-import React from 'react';
+import { useTheme } from "app/theme";
+import { ChevronDownIcon, ChevronUpIcon } from "@primer/octicons-react";
+import { Table, TableRow, TableCell } from "web/ui/Table";
 
 interface RechargeRecordProps {
-    isVisible: boolean;
-    onToggleVisibility: () => void;
+  isVisible: boolean;
+  onToggleVisibility: () => void;
 }
 
-const RechargeRecord: React.FC<RechargeRecordProps> = ({ isVisible, onToggleVisibility }) => {
-    const cardStyle: React.CSSProperties = {
-        background: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-        padding: '24px',
-        marginBottom: '24px'
-    };
+const RechargeRecord: React.FC<RechargeRecordProps> = ({
+  isVisible,
+  onToggleVisibility,
+}) => {
+  const theme = useTheme();
 
-    const btnPrimaryStyle: React.CSSProperties = {
-        background: '#1a73e8',
-        color: 'white',
-        padding: '8px 16px',
-        borderRadius: '6px',
-        border: 'none',
-        cursor: 'pointer',
-        transition: 'all 0.2s'
-    };
+  const records = [
+    {
+      id: 1,
+      date: "2024-02-20 14:30",
+      amount: 500.0,
+      method: "信用卡",
+      status: "成功",
+    },
+  ];
 
-    const tableStyle: React.CSSProperties = {
-        width: '100%',
-        borderCollapse: 'collapse'
-    };
+  return (
+    <div className="card">
+      <div className="card-header">
+        <h2 className="title">充值记录</h2>
+        <button className="toggle-button" onClick={onToggleVisibility}>
+          {isVisible ? (
+            <>
+              <span>收起</span>
+              <ChevronUpIcon size={16} />
+            </>
+          ) : (
+            <>
+              <span>展开</span>
+              <ChevronDownIcon size={16} />
+            </>
+          )}
+        </button>
+      </div>
 
-    const tableHeaderStyle: React.CSSProperties = {
-        backgroundColor: '#f9fafb',
-        borderBottom: '1px solid #eee'
-    };
+      {isVisible && (
+        <Table>
+          <thead>
+            <TableRow>
+              <TableCell element={{ header: true }}>充值时间</TableCell>
+              <TableCell element={{ header: true }}>充值金额</TableCell>
+              <TableCell element={{ header: true }}>支付方式</TableCell>
+              <TableCell element={{ header: true }}>交易状态</TableCell>
+            </TableRow>
+          </thead>
+          <tbody>
+            {records.map((record) => (
+              <TableRow key={record.id}>
+                <TableCell element={{}}>{record.date}</TableCell>
+                <TableCell element={{}}>¥ {record.amount.toFixed(2)}</TableCell>
+                <TableCell element={{}}>{record.method}</TableCell>
+                <TableCell element={{}}>
+                  <span className="status-badge">{record.status}</span>
+                </TableCell>
+              </TableRow>
+            ))}
+          </tbody>
+        </Table>
+      )}
 
-    const tableRowStyle: React.CSSProperties = {
-        borderBottom: '1px solid #eee'
-    };
+      <style jsx>{`
+        .card {
+          background: ${theme.background};
+          border-radius: 12px;
+          box-shadow: 0 2px 8px ${theme.shadowLight};
+          padding: 24px;
+          margin-bottom: 24px;
+          transition: box-shadow 0.2s ease;
+        }
 
-    return (
-        <div style={cardStyle}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '1rem'
-            }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 500 }}>充值记录</h2>
-                <button
-                    className="btn-primary"
-                    style={btnPrimaryStyle}
-                    onClick={onToggleVisibility}
-                >
-                    {isVisible ? '折叠' : '展开'}
-                </button>
-            </div>
+        .card:hover {
+          box-shadow: 0 4px 12px ${theme.shadowMedium};
+        }
 
-            {isVisible && (
-                <div style={{ overflowX: 'auto' }}>
-                    <table style={tableStyle}>
-                        <thead>
-                            <tr style={tableHeaderStyle}>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>充值时间</th>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>充值金额</th>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>支付方式</th>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>交易状态</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style={tableRowStyle}>
-                                <td style={{ padding: '12px' }}>2024-02-20 14:30</td>
-                                <td style={{ padding: '12px' }}>¥500.00</td>
-                                <td style={{ padding: '12px' }}>信用卡</td>
-                                <td style={{ padding: '12px', color: 'green' }}>成功</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            )}
-        </div>
-    );
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        .title {
+          font-size: 1.25rem;
+          font-weight: 500;
+          color: ${theme.text};
+          margin: 0;
+        }
+
+        .toggle-button {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: ${theme.primary};
+          background: transparent;
+          border: 1px solid ${theme.border};
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .toggle-button:hover {
+          background: ${theme.backgroundSecondary};
+          border-color: ${theme.borderHover};
+        }
+
+        @media (max-width: 640px) {
+          .card {
+            padding: 16px;
+          }
+
+          .toggle-button {
+            padding: 0.375rem 0.75rem;
+          }
+        }
+      `}</style>
+    </div>
+  );
 };
 
 export default RechargeRecord;

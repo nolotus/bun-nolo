@@ -2,7 +2,6 @@
 import { useTheme } from "app/theme";
 import { useBalance } from "auth/hooks/useBalance";
 import toast from "react-hot-toast";
-import { MailIcon } from "@primer/octicons-react";
 
 const BalanceCard: React.FC = () => {
   const theme = useTheme();
@@ -14,86 +13,114 @@ const BalanceCard: React.FC = () => {
   };
 
   return (
-    <div className="balance-card">
-      <h2>当前余额</h2>
-      <div className="balance-amount">
+    <div className="card">
+      <h2 className="title">当前余额</h2>
+
+      <div className="balance">
         {loading ? (
           <span className="loading">加载中...</span>
         ) : error ? (
           <span className="error">{error}</span>
         ) : (
-          <span className="amount">¥ {balance.toFixed(2)}</span>
+          <span>¥ {balance.toFixed(2)}</span>
         )}
       </div>
 
-      <div className="balance-contact">
+      <div className="contact">
         <span>如需充值请联系：</span>
-        <button className="email-btn" onClick={copyEmail}>
-          <MailIcon size={14} />
-          <span>s@nolotus.com</span>
-        </button>
+        <a
+          href="mailto:s@nolotus.com"
+          className="email-link"
+          onClick={(e) => {
+            e.preventDefault();
+            copyEmail();
+          }}
+        >
+          s@nolotus.com
+        </a>
       </div>
 
-      <style>{`
-        .balance-card {
-          background: ${theme.cardBg};
+      <style jsx>{`
+        .card {
+          background: ${theme.background};
           border-radius: 12px;
-          padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          margin-bottom: 1.5rem;
+          box-shadow: 0 2px 8px ${theme.shadowLight};
+          padding: 24px;
+          margin-bottom: 24px;
+          transition: box-shadow 0.2s ease;
         }
 
-        h2 {
-          margin: 0 0 1rem;
+        .card:hover {
+          box-shadow: 0 4px 12px ${theme.shadowMedium};
+        }
+
+        .title {
           font-size: 1.25rem;
-          color: ${theme.textPrimary};
-          font-weight: 600;
+          font-weight: 500;
+          margin: 0 0 0.5rem;
+          text-align: center;
+          color: ${theme.text};
         }
 
-        .balance-amount {
-          font-size: 2rem;
+        .balance {
+          font-size: 1.875rem;
           font-weight: 700;
-          margin-bottom: 1.25rem;
-        }
-
-        .amount {
           color: ${theme.primary};
+          margin: 1rem 0;
+          text-align: center;
         }
 
         .loading {
           color: ${theme.textSecondary};
-          font-size: 1.5rem;
+          font-size: 1.25rem;
+          font-weight: normal;
         }
 
         .error {
           color: ${theme.error};
           font-size: 1rem;
+          font-weight: normal;
         }
 
-        .balance-contact {
-          font-size: 0.875rem;
+        .contact {
+          text-align: center;
           color: ${theme.textSecondary};
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
+          font-size: 0.875rem;
         }
 
-        .email-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 0.75rem;
-          border: 1px solid ${theme.borderColor};
-          border-radius: 6px;
-          background: transparent;
+        .email-link {
           color: ${theme.primary};
+          text-decoration: none;
+          font-weight: 500;
+          margin-left: 0.5rem;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
         }
 
-        .email-btn:hover {
-          background: ${theme.primaryLight};
-          border-color: ${theme.primary};
+        .email-link:hover {
+          text-decoration: underline;
+          opacity: 0.9;
+        }
+
+        @media (max-width: 640px) {
+          .card {
+            padding: 20px;
+          }
+
+          .balance {
+            font-size: 1.5rem;
+          }
+
+          .contact {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+          }
+
+          .email-link {
+            margin-left: 0;
+          }
         }
       `}</style>
     </div>
