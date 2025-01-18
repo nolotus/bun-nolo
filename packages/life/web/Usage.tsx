@@ -15,24 +15,6 @@ const Usage: React.FC = () => {
   const [clearing, setClearing] = useState(false);
   const userId = useAppSelector(selectCurrentUserId);
 
-  const containerStyle: React.CSSProperties = {
-    backgroundColor: "#f9fafb",
-    padding: "2rem",
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    padding: "8px 16px",
-    margin: "0 8px",
-    borderRadius: "6px",
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    cursor: "pointer",
-    transition: "all 0.2s",
-    ":hover": {
-      background: "#f3f4f6",
-    },
-  };
-
   const handleClearTokens = async (type: "today" | "all") => {
     if (
       !confirm(
@@ -52,8 +34,6 @@ const Usage: React.FC = () => {
 
       logger.info({ result }, "Tokens cleared successfully");
       alert("清除成功");
-
-      // 可以触发刷新
       window.location.reload();
     } catch (err) {
       logger.error({ err }, "Failed to clear tokens");
@@ -64,29 +44,17 @@ const Usage: React.FC = () => {
   };
 
   return (
-    <div style={containerStyle}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: "1rem",
-        }}
-      >
+    <div className="usage-container">
+      <div className="button-group">
         <button
-          style={{
-            ...buttonStyle,
-            opacity: clearing ? 0.5 : 1,
-          }}
+          className={`clear-button ${clearing ? "disabled" : ""}`}
           onClick={() => handleClearTokens("today")}
           disabled={clearing}
         >
           {clearing ? "清除中..." : "清除今日记录"}
         </button>
         <button
-          style={{
-            ...buttonStyle,
-            opacity: clearing ? 0.5 : 1,
-          }}
+          className={`clear-button ${clearing ? "disabled" : ""}`}
           onClick={() => handleClearTokens("all")}
           disabled={clearing}
         >
@@ -103,6 +71,38 @@ const Usage: React.FC = () => {
       />
       <UsageChart />
       <UsageRecord />
+
+      <style>{`
+        .usage-container {
+          background-color: #f9fafb;
+          padding: 2rem;
+        }
+
+        .button-group {
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 1rem;
+        }
+
+        .clear-button {
+          padding: 8px 16px;
+          margin: 0 8px;
+          border-radius: 6px;
+          border: 1px solid #d1d5db;
+          background: #fff;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .clear-button:hover:not(.disabled) {
+          background: #f3f4f6;
+        }
+
+        .clear-button.disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      `}</style>
     </div>
   );
 };
