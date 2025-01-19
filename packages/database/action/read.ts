@@ -4,6 +4,8 @@ import { API_ENDPOINTS } from "database/config";
 import { toast } from "react-hot-toast";
 import { browserDb } from "../browser/db";
 
+const CYBOT_SERVER = "https://cybot.one";
+
 const noloReadRequest = async (server: string, id: string, token?: string) => {
   const url = `${API_ENDPOINTS.DATABASE}/read/${id}`;
   const headers: Record<string, string> = {
@@ -70,11 +72,33 @@ export const readAction = async (id: string, thunkApi) => {
 
   // 本地没有数据,等待远程数据
   const remoteResult = await remotePromise;
-  if (!remoteResult) {
-    throw new Error("Failed to fetch data");
+  if (remoteResult) {
+    await browserDb.put(id, remoteResult);
+    return remoteResult;
   }
 
-  // 存储远程数据到本地
-  await browserDb.put(id, remoteResult);
-  return remoteResult;
+  // 尝试从cybot获取
+  console.log("Trying to fetch from cybot.one");
+  const cybotPromise = noloReadRequest(CYBOT_SERVER, id)
+    .then(async (res) => {
+      if (res.status === 200) {
+        return await res.json();
+      }
+      console.warn(`Cybot fetch failed with status ${res.status}`);
+      return null;
+    })
+    .catch((err) => {
+      console.error("Cybot fetch error:", err);
+      return null;
+    });
+
+  const cybotResult = await cybotPromise;
+  if (!cybotResult) {
+    throw new Error("Failed to fetch data from all sources");
+  }
+
+  // 存储cybot数据到本地
+  await browserDb.put(id, cybotResult);
+  toast.success("Data fetched from cybot.one");
+  return cybotResult;
 };
