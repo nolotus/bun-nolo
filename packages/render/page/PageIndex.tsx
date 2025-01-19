@@ -14,6 +14,7 @@ const Page = () => {
   const { pageId } = useParams();
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
+
   useEffect(() => {
     return () => {
       dispatch(resetPage());
