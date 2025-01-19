@@ -55,15 +55,17 @@ export const readAction = async (id: string, thunkApi) => {
     remotePromise.then(async (remoteResult) => {
       if (!remoteResult) return;
 
-      // 检查更新时间
-      const shouldUpdate =
-        remoteResult.updatedAt && localResult.updatedAt
-          ? new Date(remoteResult.updatedAt) > new Date(localResult.updatedAt)
-          : false;
+      // 如果远程有更新时间，直接更新本地
+      if (remoteResult.updatedAt) {
+        // 本地没有更新时间或远程更新时间更新
+        const shouldUpdate =
+          !localResult.updatedAt ||
+          new Date(remoteResult.updatedAt) > new Date(localResult.updatedAt);
 
-      if (shouldUpdate) {
-        await browserDb.put(id, remoteResult);
-        toast.success("Data updated from server");
+        if (shouldUpdate) {
+          await browserDb.put(id, remoteResult);
+          toast.success("Data updated from server");
+        }
       }
     });
 
