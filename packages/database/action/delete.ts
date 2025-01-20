@@ -1,11 +1,29 @@
-import { selectCurrentServer } from "setting/settingSlice";
+import { browserDb } from "../browser/db";
 import { API_ENDPOINTS } from "../config";
-import { browserDb } from "database/browser/db";
+import { selectCurrentServer } from "setting/settingSlice";
 import { toast } from "react-hot-toast";
+import pino from "pino";
 
-const CYBOT_SERVER = "https://cybot.one";
+const logger = pino({
+  level: "info",
+  transport: {
+    target: "pino-pretty",
+  },
+});
 
-const noloRequest = async (server: string, config, state: any) => {
+const CYBOT_SERVERS = {
+  ONE: "https://cybot.one",
+  RUN: "https://cybot.run",
+};
+
+const TIMEOUT = 5000;
+
+const noloRequest = async (
+  server: string,
+  config,
+  state: any,
+  signal?: AbortSignal
+) => {
   const headers = {
     "Content-Type": "application/json",
     ...(state.auth?.currentToken && {
@@ -17,10 +35,18 @@ const noloRequest = async (server: string, config, state: any) => {
     method: config.method || "GET",
     headers,
     body: config.body,
+    signal,
   });
 };
 
-const noloDeleteRequest = async (server: string, id: string, state: any) => {
+const noloDeleteRequest = async (
+  server: string,
+  id: string,
+  state: any,
+  signal?: AbortSignal
+) => {
+  logger.info({ server, id }, "Starting delete request");
+
   try {
     const response = await noloRequest(
       server,
@@ -28,43 +54,74 @@ const noloDeleteRequest = async (server: string, id: string, state: any) => {
         url: `${API_ENDPOINTS.DATABASE}/delete/${id}`,
         method: "DELETE",
       },
-      state
+      state,
+      signal
     );
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    console.log(`Delete from ${server} successful`);
-    return response;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    logger.info({ server, id }, "Delete request successful");
+    return true;
   } catch (error) {
-    console.error(`Failed to delete from ${server}:`, error);
-    return null;
+    if (error.name === "AbortError") {
+      logger.warn({ server, id }, "Delete request timeout");
+    } else {
+      logger.error({ error, server, id }, "Failed to delete from server");
+    }
+    return false;
   }
+};
+
+const syncWithServers = (servers: string[], id: string, state: any) => {
+  servers.forEach((server) => {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, TIMEOUT);
+
+    noloDeleteRequest(server, id, state, abortController.signal)
+      .then((success) => {
+        clearTimeout(timeoutId);
+        if (!success) {
+          toast.error(`Failed to delete from ${server}`);
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeoutId);
+      });
+  });
 };
 
 export const deleteAction = async (id: string, thunkApi) => {
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
 
-  // 本地删除
-  await browserDb.del(id);
-  console.log("Data deleted locally");
+  logger.info({ id }, "Starting delete action");
 
-  // 后台删除远程数据
-  const deletePromises = [
-    noloDeleteRequest(currentServer, id, state).then(
-      (result) => !result && toast.error("Failed to delete from default server")
-    ),
-  ];
+  try {
+    const existingData = await browserDb.get(id);
+    if (!existingData) {
+      logger.warn({ id }, "Data not found locally");
+      return { id };
+    }
 
-  // 如果默认服务器不是cybot.one，也从cybot.one删除
-  if (currentServer !== CYBOT_SERVER) {
-    deletePromises.push(
-      noloDeleteRequest(CYBOT_SERVER, id, state).then(
-        (result) => !result && toast.error("Failed to delete from cybot.one")
-      )
+    await browserDb.del(id);
+    logger.info({ id }, "Data deleted locally");
+
+    const servers = Array.from(
+      new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
     );
+
+    // 后台同步
+    Promise.resolve().then(() => {
+      syncWithServers(servers, id, state);
+    });
+
+    return { id };
+  } catch (error) {
+    logger.error({ error, id }, "Delete action failed");
+    throw error;
   }
-
-  Promise.all(deletePromises).catch(console.error);
-
-  return { id };
 };

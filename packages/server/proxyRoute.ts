@@ -9,7 +9,6 @@ export const proxyRoute = async (req, res) => {
     const userKey = rawBody.KEY?.trim(); // 添加trim()去除可能的空格
 
     apiKey = Boolean(userKey) ? userKey : getNoloKey(rawBody.provider);
-
     if (!apiKey) {
       throw new Error("API key is required but not provided");
     }

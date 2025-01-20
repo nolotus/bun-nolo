@@ -1,6 +1,5 @@
 import { selectCurrentUserId } from "auth/authSlice";
 import { API_ENDPOINTS } from "database/config";
-import { selectCurrentWorkSpaceId } from "create/workspace/workspaceSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { DataType } from "create/types";
 import { browserDb } from "../browser/db";
@@ -14,19 +13,19 @@ const logger = pino({
   },
 });
 
-const CYBOT_SERVER = "https://cybot.one";
+const CYBOT_SERVERS = {
+  ONE: "https://cybot.one",
+  RUN: "https://cybot.run",
+};
 
-const normalizeTimeFields = (data: Record<string, any>) => ({
-  ...data,
-  createdAt: data.createdAt || new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  updated_at: undefined,
-  created_at: undefined,
-});
+const TIMEOUT = 5000;
 
-const noloRequest = async (server: string, config, state: any) => {
-  logger.debug({ server, url: config.url }, "Making request to server");
-
+const noloRequest = async (
+  server: string,
+  config,
+  state: any,
+  signal?: AbortSignal
+) => {
   const headers = {
     "Content-Type": "application/json",
     ...(state.auth?.currentToken && {
@@ -38,13 +37,15 @@ const noloRequest = async (server: string, config, state: any) => {
     method: config.method || "GET",
     headers,
     body: config.body,
+    signal,
   });
 };
 
 const noloWriteRequest = async (
   server: string,
   { userId, data, customId },
-  state: any
+  state: any,
+  signal?: AbortSignal
 ) => {
   logger.info({ server, userId, customId }, "Starting write request");
 
@@ -56,40 +57,66 @@ const noloWriteRequest = async (
         method: "POST",
         body: JSON.stringify({ data, customId, userId }),
       },
-      state
+      state,
+      signal
     );
 
     if (!response.ok) {
-      logger.error({ status: response.status }, "Write request failed");
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     logger.info({ server }, "Write request successful");
-    return response;
+    return true;
   } catch (error) {
-    logger.error({ error, server }, "Failed to write to server");
-    return null;
+    if (error.name === "AbortError") {
+      logger.warn({ server, customId }, "Write request timeout");
+    } else {
+      logger.error({ error, server }, "Failed to write to server");
+    }
+    return false;
   }
 };
+
+const syncWithServers = (servers: string[], writeConfig: any, state: any) => {
+  servers.forEach((server) => {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, TIMEOUT);
+
+    noloWriteRequest(server, writeConfig, state, abortController.signal)
+      .then((success) => {
+        clearTimeout(timeoutId);
+        if (!success) {
+          toast.error(`Failed to save to ${server}`);
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeoutId);
+      });
+  });
+};
+
+const normalizeTimeFields = (data: Record<string, any>) => ({
+  ...data,
+  createdAt: data.createdAt || new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  updated_at: undefined,
+  created_at: undefined,
+});
 
 export const writeAction = async (writeConfig, thunkApi) => {
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
   const currentUserId = selectCurrentUserId(state);
-  const userId = writeConfig.userId || currentUserId;
   const { data, customId } = writeConfig;
+  const userId = writeConfig.userId || currentUserId;
 
-  logger.info(
-    {
-      dataType: data.type,
-      customId,
-      currentServer,
-    },
-    "Starting write action"
-  );
+  logger.info({ dataType: data.type, customId }, "Starting write action");
 
+  // 验证数据类型
   if (
-    [
+    ![
       DataType.MSG,
       DataType.CYBOT,
       DataType.PAGE,
@@ -97,52 +124,40 @@ export const writeAction = async (writeConfig, thunkApi) => {
       DataType.TOKEN,
     ].includes(data.type)
   ) {
+    logger.warn({ dataType: data.type }, "Unsupported data type");
+    return null;
+  }
+
+  try {
+    // 准备保存数据
     const willSaveData = normalizeTimeFields({
       ...data,
       id: customId,
       userId: currentUserId,
     });
 
-    const serverWriteConfig = { ...writeConfig, data: willSaveData, userId };
+    // 本地存储
+    await browserDb.put(customId, willSaveData);
+    logger.info({ customId }, "Data saved locally");
 
-    try {
-      await browserDb.put(customId, willSaveData);
-      logger.info({ customId }, "Data saved locally");
+    // 获取去重后的服务器列表
+    const servers = Array.from(
+      new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
+    );
+    const serverWriteConfig = {
+      ...writeConfig,
+      data: willSaveData,
+      userId,
+    };
 
-      const writePromises = [
-        noloWriteRequest(currentServer, serverWriteConfig, state).then(
-          (result) => {
-            if (!result) {
-              logger.error("Failed to save to default server");
-              toast.error("Failed to save to default server");
-            }
-          }
-        ),
-      ];
+    // 后台同步
+    Promise.resolve().then(() => {
+      syncWithServers(servers, serverWriteConfig, state);
+    });
 
-      if (currentServer !== CYBOT_SERVER) {
-        writePromises.push(
-          noloWriteRequest(CYBOT_SERVER, serverWriteConfig, state).then(
-            (result) => {
-              if (!result) {
-                logger.error("Failed to save to cybot.one");
-                toast.error("Failed to save to cybot.one");
-              }
-            }
-          )
-        );
-      }
-
-      await Promise.all(writePromises);
-      logger.info("All write operations completed");
-
-      return willSaveData;
-    } catch (error) {
-      logger.error({ error }, "Write action failed");
-      throw error;
-    }
+    return willSaveData;
+  } catch (error) {
+    logger.error({ error }, "Write action failed");
+    throw error;
   }
-
-  logger.warn({ dataType: data.type }, "Unsupported data type");
-  return null;
 };

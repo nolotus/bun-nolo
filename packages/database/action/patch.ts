@@ -1,10 +1,29 @@
 import { browserDb } from "../browser/db";
 import { API_ENDPOINTS } from "../config";
 import { selectCurrentServer } from "setting/settingSlice";
-import { pipe } from "rambda";
+import { toast } from "react-hot-toast";
+import pino from "pino";
 
-// 抽离请求逻辑
-const makeRequest = async (state, { url, method = "GET", body }) => {
+const logger = pino({
+  level: "info",
+  transport: {
+    target: "pino-pretty",
+  },
+});
+
+const CYBOT_SERVERS = {
+  ONE: "https://cybot.one",
+  RUN: "https://cybot.run",
+};
+
+const TIMEOUT = 5000;
+
+const noloRequest = async (
+  server: string,
+  config,
+  state: any,
+  signal?: AbortSignal
+) => {
   const headers = {
     "Content-Type": "application/json",
     ...(state.auth?.currentToken && {
@@ -12,77 +31,118 @@ const makeRequest = async (state, { url, method = "GET", body }) => {
     }),
   };
 
-  const response = await fetch(selectCurrentServer(state) + url, {
-    method,
+  return fetch(server + config.url, {
+    method: config.method || "GET",
     headers,
-    body,
+    body: config.body,
+    signal,
   });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return response;
 };
 
-// 处理远程同步
-const syncWithRemote = async (state, id, updates) => {
+const noloPatchRequest = async (
+  server: string,
+  id: string,
+  updates: any,
+  state: any,
+  signal?: AbortSignal
+) => {
+  logger.info({ server, id }, "Starting patch request");
+
   try {
-    await makeRequest(state, {
-      url: `${API_ENDPOINTS.DATABASE}/patch/${id}`,
-      method: "PATCH",
-      body: JSON.stringify(updates),
-    });
+    const response = await noloRequest(
+      server,
+      {
+        url: `${API_ENDPOINTS.DATABASE}/patch/${id}`,
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      },
+      state,
+      signal
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    logger.info({ server, id }, "Patch request successful");
+    return true;
   } catch (error) {
-    console.error(`Remote sync failed for id: ${id}:`, error);
-    // 这里可以将失败的更新存入队列以便后续重试
-    throw error; // 向上传递错误但不影响本地操作
+    if (error.name === "AbortError") {
+      logger.warn({ server, id }, "Patch request timeout");
+    } else {
+      logger.error({ error, server, id }, "Failed to patch on server");
+    }
+    return false;
   }
+};
+
+const syncWithServers = (
+  servers: string[],
+  id: string,
+  updates: any,
+  state: any
+) => {
+  servers.forEach((server) => {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      abortController.abort();
+    }, TIMEOUT);
+
+    noloPatchRequest(server, id, updates, state, abortController.signal)
+      .then((success) => {
+        clearTimeout(timeoutId);
+        if (!success) {
+          toast.error(`Failed to update on ${server}`);
+        }
+      })
+      .catch(() => {
+        clearTimeout(timeoutId);
+      });
+  });
 };
 
 export const patchAction = async ({ id, changes }, thunkApi) => {
   const state = thunkApi.getState();
+  const currentServer = selectCurrentServer(state);
 
-  // 准备更新数据
-  const updatedChanges = {
-    ...changes,
-    updatedAt: new Date().toISOString(),
-  };
+  logger.info({ id }, "Starting patch action");
 
-  return pipe(
-    // 1. 读取并更新本地数据
-    async () => {
-      try {
-        const local = await browserDb.get(id);
-        const newData = {
-          ...local,
-          ...updatedChanges,
-        };
-
-        await browserDb.put(id, newData);
-        return newData;
-      } catch (error) {
-        console.error(`Local update failed for id: ${id}:`, error);
-        throw error; // 本地更新失败需要立即返回错误
-      }
-    },
-    // 2. 异步更新远程
-    async (newData) => {
-      // 使用 Promise.race 来设置超时
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Remote sync timeout")), 5000)
-      );
-
-      // 后台进行远程更新，不阻塞主流程
-      Promise.race([
-        syncWithRemote(state, id, updatedChanges),
-        timeoutPromise,
-      ]).catch((error) => {
-        console.warn("Remote sync issue:", error.message);
-        // 可以将失败的同步存入重试队列
-      });
-
-      return newData; // 无论远程同步是否成功都返回更新后的数据
+  try {
+    // 读取当前数据
+    const currentData = await browserDb.get(id);
+    if (!currentData) {
+      logger.warn({ id }, "Data not found locally");
+      throw new Error("Data not found");
     }
-  )();
+
+    // 准备更新数据
+    const updatedChanges = {
+      ...changes,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const newData = {
+      ...currentData,
+      ...updatedChanges,
+    };
+
+    // 本地更新
+    await browserDb.put(id, newData);
+    logger.info({ id }, "Data updated locally");
+
+    // 准备服务器列表
+    const servers = Array.from(
+      new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
+    );
+
+    // 后台同步
+    Promise.resolve().then(() => {
+      syncWithServers(servers, id, updatedChanges, state);
+    });
+
+    return newData;
+  } catch (error) {
+    logger.error({ error, id }, "Patch action failed");
+    throw error;
+  }
 };
