@@ -45,7 +45,7 @@ const Dashboard = () => {
     },
     {
       text: "空白页面",
-      icon: <CommentIcon size={24} />,
+      icon: <FileAddedIcon size={24} />,
       description: "从空白页面开始创作",
       action: createNewPage,
     },

@@ -56,16 +56,3 @@ export const config = isProduction
   ? { ...commonConfig, ...prodConfig }
   : commonConfig;
 
-// 可选的构建验证
-export const validateBuild = async (result) => {
-  if (result.metafile) {
-    const outputs = Object.keys(result.metafile.outputs);
-    const hasRNCode = outputs.some(file => 
-      file.includes('react-native') || file.includes('/rn/')
-    );
-    
-    if (hasRNCode) {
-      console.warn('Warning: Build contains React Native code!');
-    }
-  }
-};
