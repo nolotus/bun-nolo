@@ -42,7 +42,6 @@ export const handleReadSingle = async (req, res) => {
   if (!isV0Id(id)) {
     try {
       const result = await serverDb.get(id);
-
       if (!result) {
         return res.status(404).json({
           error: "Not Found",

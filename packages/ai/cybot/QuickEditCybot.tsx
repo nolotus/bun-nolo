@@ -27,7 +27,7 @@ const getOrderedProviderOptions = () => {
 };
 
 const QuickEditCybot = ({ initialValues, onClose }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai");
   const dispatch = useAppDispatch();
   const theme = useTheme();
 

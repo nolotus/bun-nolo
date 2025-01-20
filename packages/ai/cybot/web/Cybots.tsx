@@ -41,10 +41,10 @@ const Cybots: React.FC<CybotsProps> = ({
     },
   };
 
-  if (loading) {
+  if (loading && !cybots?.length) {
     return (
       <div style={styles.loadingContainer}>
-        <div className="fadeIn">加载 AI 列表中...</div>
+        <div>加载 AI 列表中...</div>
       </div>
     );
   }
@@ -52,9 +52,9 @@ const Cybots: React.FC<CybotsProps> = ({
   if (!cybots?.length) return null;
 
   return (
-    <div className="fadeIn" style={styles.gridContainer}>
+    <div style={styles.gridContainer}>
       {cybots.map((item) => (
-        <div key={item.id} className="slideInUp">
+        <div key={item.id}>
           <CybotBlock item={item} closeModal={closeModal} reload={reload} />
         </div>
       ))}
