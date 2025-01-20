@@ -15,7 +15,7 @@ import { NavLink, useParams } from "react-router-dom";
 
 const ITEM_ICONS = {
   dialog: CommentIcon,
-  page: BookIcon,
+  page: FileIcon,
   image: ImageIcon,
   // pdf: FilePdfIcon,
   doc: FileIcon,
