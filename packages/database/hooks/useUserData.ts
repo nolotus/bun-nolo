@@ -7,10 +7,17 @@ import { useAppSelector, useAppDispatch } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import { noloQueryRequest } from "../client/queryRequest";
 import { upsertMany } from "database/dbSlice";
+import pino from "pino";
+
+const logger = pino({
+  name: "useUserData",
+  level: "debug",
+});
 
 interface FetchState {
   loading: boolean;
   error: Error | null;
+  data: any[];
 }
 
 interface UseUserDataReturn extends FetchState {
@@ -38,19 +45,32 @@ export function useUserData(
 ): UseUserDataReturn {
   const dispatch = useAppDispatch();
   const currentServer = useAppSelector(selectCurrentServer);
-  const [{ loading, error }, setState] = useState<FetchState>({
+  const [{ loading, error, data }, setState] = useState<FetchState>({
     loading: true,
     error: null,
+    data: [],
   });
 
   const typeArray = Array.isArray(types) ? types : [types];
   const typesKey = typeArray.join(",");
 
   const loadData = useCallback(async () => {
-    setState({ loading: true, error: null });
+    setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
+      // 首先加载本地数据
       const localResults = await fetchUserData(typeArray, userId);
+      const localData = Object.values(localResults).flat();
+
+      setState((prev) => ({
+        ...prev,
+        data: localData,
+        loading: true, // 保持loading状态因为还在获取远程数据
+      }));
+
+      logger.debug("Local data loaded", { count: localData.length });
+
+      // 然后获取远程数据
       const remoteResults = await Promise.all(
         typeArray.map(async (type) => {
           const result = await noloQueryRequest({
@@ -71,14 +91,14 @@ export function useUserData(
 
       const uniqueMap = new Map();
 
-      Object.entries(localResults).forEach(([type, items]) => {
-        (items as any[]).forEach((item) => {
-          if (item?.id) {
-            uniqueMap.set(item.id, item);
-          }
-        });
+      // 先添加本地数据
+      localData.forEach((item) => {
+        if (item?.id) {
+          uniqueMap.set(item.id, item);
+        }
       });
 
+      // 合并远程数据
       remoteResults.forEach((result) => {
         const normalizedItems = normalizeRemoteData(result);
         normalizedItems.forEach((item) => {
@@ -110,12 +130,22 @@ export function useUserData(
         dispatch(upsertMany(mergedData));
       }
 
-      setState({ loading: false, error: null });
-    } catch (err) {
+      logger.debug("Remote data merged", { count: mergedData.length });
+
       setState({
         loading: false,
-        error: err instanceof Error ? err : new Error("Unknown error occurred"),
+        error: null,
+        data: mergedData,
       });
+    } catch (err) {
+      const error =
+        err instanceof Error ? err : new Error("Unknown error occurred");
+      logger.error("Failed to load user data", { error });
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error,
+      }));
     }
   }, [typesKey, userId, currentServer, limit, dispatch]);
 
@@ -123,5 +153,5 @@ export function useUserData(
     loadData();
   }, [loadData]);
 
-  return { loading, error, reload: loadData };
+  return { loading, error, data, reload: loadData };
 }

@@ -1,15 +1,21 @@
-// components/BalanceCard.tsx
+// life/web/BalanceCard.tsx
 import { useTheme } from "app/theme";
 import { useBalance } from "auth/hooks/useBalance";
 import toast from "react-hot-toast";
+import copyToClipboard from "utils/clipboard";
+import { CopyIcon } from "@primer/octicons-react";
+
+const EMAIL = "s@nolotus.com";
 
 const BalanceCard: React.FC = () => {
   const theme = useTheme();
   const { balance, loading, error } = useBalance();
 
-  const copyEmail = () => {
-    navigator.clipboard.writeText("s@nolotus.com");
-    toast.success("邮箱已复制");
+  const handleCopyEmail = () => {
+    copyToClipboard(EMAIL, {
+      onSuccess: () => toast.success("邮箱已复制"),
+      onError: () => toast.error("复制失败,请重试"),
+    });
   };
 
   return (
@@ -28,16 +34,10 @@ const BalanceCard: React.FC = () => {
 
       <div className="contact">
         <span>如需充值请联系：</span>
-        <a
-          href="mailto:s@nolotus.com"
-          className="email-link"
-          onClick={(e) => {
-            e.preventDefault();
-            copyEmail();
-          }}
-        >
-          s@nolotus.com
-        </a>
+        <button className="email-button" onClick={handleCopyEmail}>
+          {EMAIL}
+          <CopyIcon size={14} />
+        </button>
       </div>
 
       <style jsx>{`
@@ -79,7 +79,6 @@ const BalanceCard: React.FC = () => {
         .error {
           color: ${theme.error};
           font-size: 1rem;
-          font-weight: normal;
         }
 
         .contact {
@@ -88,18 +87,25 @@ const BalanceCard: React.FC = () => {
           font-size: 0.875rem;
         }
 
-        .email-link {
+        .email-button {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
           color: ${theme.primary};
-          text-decoration: none;
+          background: none;
+          border: none;
+          font-size: 0.875rem;
           font-weight: 500;
           margin-left: 0.5rem;
+          padding: 4px 8px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: opacity 0.2s;
+          border-radius: 4px;
         }
 
-        .email-link:hover {
-          text-decoration: underline;
+        .email-button:hover {
           opacity: 0.9;
+          background: ${theme.backgroundLight};
         }
 
         @media (max-width: 640px) {
@@ -118,7 +124,7 @@ const BalanceCard: React.FC = () => {
             align-items: center;
           }
 
-          .email-link {
+          .email-button {
             margin-left: 0;
           }
         }
