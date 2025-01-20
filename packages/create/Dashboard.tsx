@@ -5,13 +5,13 @@ import { nolotusId } from "core/init";
 import { CreateRoutePaths } from "create/routePaths";
 
 import React from "react";
-import { createPage } from "render/page/pageSlice";
+
 //web
+import { createPage } from "render/page/pageSlice";
 
 import { useNavigate } from "react-router-dom";
 import Cybots from "ai/cybot/web/Cybots";
 import {
-  CommentIcon,
   DependabotIcon,
   FileAddedIcon,
   PeopleIcon,
@@ -48,13 +48,6 @@ const Dashboard = () => {
       icon: <FileAddedIcon size={24} />,
       description: "从空白页面开始创作",
       action: createNewPage,
-    },
-
-    {
-      text: "提示词",
-      route: `/${CreateRoutePaths.CREATE_PROMPT}`,
-      icon: <CommentIcon size={24} />,
-      description: "管理和创建提示词模板",
     },
   ];
 

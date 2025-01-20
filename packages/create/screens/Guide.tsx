@@ -131,12 +131,6 @@ const ChatGuide = () => {
         icon: <IconButton name="file-added" />,
         description: "从空白页面开始创作",
       },
-      // {
-      //   text: "提示词",
-      //   route: CreateRoutePaths.CREATE_PROMPT,
-      //   icon: <IconButton name="comment-discussion" />,
-      //   description: "管理和创建提示词模板",
-      // },
     ],
     []
   );
