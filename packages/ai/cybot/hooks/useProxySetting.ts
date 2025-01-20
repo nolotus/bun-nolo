@@ -5,7 +5,7 @@ export const useProxySetting = (
   provider: string,
   setValue: (field: string, value: any) => void
 ) => {
-  const PROXY_DISABLED_PROVIDERS = ["ollama", "custom", "deepseek"];
+  const PROXY_DISABLED_PROVIDERS = ["ollama", "custom"];
 
   useEffect(() => {
     if (PROXY_DISABLED_PROVIDERS.includes(provider)) {
