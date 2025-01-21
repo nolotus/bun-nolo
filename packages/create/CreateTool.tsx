@@ -11,8 +11,8 @@ import { useNavigate, useParams } from "react-router";
 import { CheckIcon } from "@primer/octicons-react";
 import DeleteButton from "chat/web/DeleteButton";
 import Button from "web/ui/Button";
-import ToggleSwitch from "web/ui/ToggleSwitch";
 import { useTheme } from "app/theme";
+import ModeToggle from "web/ui/ModeToggle";
 
 export const CreateTool = () => {
   const theme = useTheme();
@@ -63,14 +63,7 @@ export const CreateTool = () => {
           <div className="left-group">
             <DeleteButton id={pageId} />
             <div className="mode-switch">
-              <ToggleSwitch
-                checked={!isReadOnly}
-                onChange={handleToggleEdit}
-                ariaLabelledby="edit-mode-toggle"
-              />
-              <span id="edit-mode-toggle" className="mode-label">
-                {isReadOnly ? "阅读模式" : "编辑模式"}
-              </span>
+              <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
             </div>
           </div>
 
@@ -127,19 +120,15 @@ export const CreateTool = () => {
           gap: 16px;
         }
 
-        .mode-switch {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 12px;
-          border-radius: 8px;
-          background: ${theme.backgroundSecondary};
-          transition: background-color 0.2s ease;
-        }
-
-        .mode-switch:hover {
+.mode-switch {
+  display: flex;
+  align-items: center;
+}
+      .mode-switch:hover {
           background: ${theme.backgroundTertiary};
         }
+
+
 
         .mode-label {
           font-size: 14px;
