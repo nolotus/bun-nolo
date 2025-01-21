@@ -55,7 +55,7 @@ const Signup: React.FC = () => {
       if (action.payload.token) {
         tokenManager.storeToken(action.payload.token);
         //maybe welcome page
-        navigate("/");
+        navigate("/create");
         return;
       }
 

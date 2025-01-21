@@ -59,8 +59,8 @@ const Login: React.FC = () => {
 
       if (result.token) {
         tokenManager.storeToken(result.token);
-        //maybe dashboard
-        navigate("/");
+        // maybe add welcome
+        navigate("/create");
         return;
       }
 
