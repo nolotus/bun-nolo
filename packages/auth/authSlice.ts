@@ -2,11 +2,7 @@ import { PayloadAction } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { generateUserIdV0, generateUserIdV1 } from "core/generateMainKey";
-import { verifySignedMessage } from "core/crypto";
 import { signToken } from "auth/token";
-import { API_VERSION } from "database/config";
-import { noloRequest } from "database/requests/noloRequest";
-import { formatISO, addDays } from "date-fns";
 import { selectCurrentServer } from "setting/settingSlice";
 import { generateKeyPairFromSeedV0 } from "core/generateKeyPairFromSeedV0";
 import { generateKeyPairFromSeedV1 } from "core/crypto";
@@ -14,6 +10,7 @@ import { parseToken } from "./token";
 import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
 import { tokenManager } from "./tokenManager";
+import { signUpAction } from "./action/signUpAction";
 
 interface AuthState {
   currentUser: User;
@@ -96,75 +93,15 @@ export const authSlice = createSliceWithThunks({
         },
       }
     ),
-    signUp: create.asyncThunk(
-      async (user, thunkAPI) => {
-        const { username, locale, encryptionKey, email } = user;
-        const { publicKey, secretKey } = generateKeyPairFromSeedV1(
-          username + encryptionKey + locale
-        );
-        const sendData = {
-          username,
-          publicKey,
-          locale,
-          email,
-        };
-
-        const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
-        const state = thunkAPI.getState();
-
-        const res = await noloRequest(state, {
-          url: `${API_VERSION}/users/signup`,
-          body: JSON.stringify(sendData),
-          method: "POST",
-        });
-
-        const { encryptedData } = await res.json();
-        console.log("encryptedData", encryptedData);
-        const decryptedData = await verifySignedMessage(
-          encryptedData,
-          nolotusPubKey
-        );
-
-        const remoteData = JSON.parse(decryptedData);
-        const localUserId = generateUserIdV1(publicKey, username, locale);
-        const isPublicKeyRight = remoteData.publicKey === publicKey;
-        const isUsernameRight = remoteData.username === username;
-
-        const isUserIdRight = remoteData.userId === localUserId;
-
-        const isRemoteRight =
-          isPublicKeyRight && isUsernameRight && isUserIdRight;
-
-        if (isRemoteRight) {
-          const now = new Date();
-          // 计算7天后的时间
-          const expirationDate = addDays(now, 7);
-          const iat = formatISO(now); // 签发时间
-          const nbf = formatISO(now); // 生效时间
-          const exp = formatISO(expirationDate); // 过期时间
-          const token = signToken(
-            { userId: localUserId, username, exp, iat, nbf },
-            secretKey
-          );
-
-          const user = parseToken(token);
-          console.log("user", user);
-          const result = { user, token };
-          return result;
-        } else {
-          throw new Error("Server data does not match local data.");
-        }
+    signUp: create.asyncThunk(signUpAction, {
+      fulfilled: (state, action) => {
+        const { user, token } = action.payload;
+        state.currentUser = user;
+        state.isLoggedIn = true;
+        state.users = [user, ...state.users];
+        state.currentToken = token;
       },
-      {
-        fulfilled: (state, action) => {
-          const { user, token } = action.payload;
-          state.currentUser = user;
-          state.isLoggedIn = true;
-          state.users = [user, ...state.users];
-          state.currentToken = token;
-        },
-      }
-    ),
+    }),
     inviteSignUp: create.asyncThunk(() => {
       console.log("inviteSignUp");
     }, {}),

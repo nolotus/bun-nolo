@@ -1,8 +1,8 @@
 import { browserDb } from "../browser/db";
-import { API_ENDPOINTS } from "../config";
 import { selectCurrentServer } from "setting/settingSlice";
 import { toast } from "react-hot-toast";
 import pino from "pino";
+import { noloPatchRequest } from "../requests";
 
 const logger = pino({
   level: "info",
@@ -17,64 +17,6 @@ const CYBOT_SERVERS = {
 };
 
 const TIMEOUT = 5000;
-
-const noloRequest = async (
-  server: string,
-  config,
-  state: any,
-  signal?: AbortSignal
-) => {
-  const headers = {
-    "Content-Type": "application/json",
-    ...(state.auth?.currentToken && {
-      Authorization: `Bearer ${state.auth.currentToken}`,
-    }),
-  };
-
-  return fetch(server + config.url, {
-    method: config.method || "GET",
-    headers,
-    body: config.body,
-    signal,
-  });
-};
-
-const noloPatchRequest = async (
-  server: string,
-  id: string,
-  updates: any,
-  state: any,
-  signal?: AbortSignal
-) => {
-  logger.info({ server, id }, "Starting patch request");
-
-  try {
-    const response = await noloRequest(
-      server,
-      {
-        url: `${API_ENDPOINTS.DATABASE}/patch/${id}`,
-        method: "PATCH",
-        body: JSON.stringify(updates),
-      },
-      state,
-      signal
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    logger.info({ server, id }, "Patch request successful");
-    return true;
-  } catch (error) {
-    if (error.name === "AbortError") {
-      logger.warn({ server, id }, "Patch request timeout");
-    } else {
-      logger.error({ error, server, id }, "Failed to patch on server");
-    }
-    return false;
-  }
-};
 
 const syncWithServers = (
   servers: string[],
