@@ -15,6 +15,7 @@ import {
   DependabotIcon,
   FileAddedIcon,
   PeopleIcon,
+  PlusIcon,
   SearchIcon,
 } from "@primer/octicons-react";
 
@@ -61,7 +62,7 @@ const Dashboard = () => {
 
         <section>
           <h2 className="section-title">
-            <DependabotIcon size={24} className="icon" />
+            <PlusIcon size={24} className="icon" />
             快速创建
           </h2>
           <div className="button-grid">
@@ -89,7 +90,7 @@ const Dashboard = () => {
 
         <section>
           <h2 className="section-title">
-            <PeopleIcon size={22} className="icon" />
+            <DependabotIcon size={22} className="icon" />
             我的机器人
           </h2>
           {userId && <Cybots queryUserId={userId} limit={48} />}
