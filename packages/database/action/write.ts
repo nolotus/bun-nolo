@@ -12,7 +12,7 @@ const logger = pino({
     target: "pino-pretty",
   },
 });
-
+// selectSyncServers
 const CYBOT_SERVERS = {
   ONE: "https://cybot.one",
   RUN: "https://cybot.run",
