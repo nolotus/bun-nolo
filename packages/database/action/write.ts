@@ -5,6 +5,7 @@ import { DataType } from "create/types";
 import { browserDb } from "../browser/db";
 import { toast } from "react-hot-toast";
 import pino from "pino";
+import { noloWriteRequest } from "../requests";
 
 const logger = pino({
   level: "info",
@@ -19,63 +20,6 @@ const CYBOT_SERVERS = {
 };
 
 const TIMEOUT = 5000;
-
-const noloRequest = async (
-  server: string,
-  config,
-  state: any,
-  signal?: AbortSignal
-) => {
-  const headers = {
-    "Content-Type": "application/json",
-    ...(state.auth?.currentToken && {
-      Authorization: `Bearer ${state.auth.currentToken}`,
-    }),
-  };
-
-  return fetch(server + config.url, {
-    method: config.method || "GET",
-    headers,
-    body: config.body,
-    signal,
-  });
-};
-
-const noloWriteRequest = async (
-  server: string,
-  { userId, data, customId },
-  state: any,
-  signal?: AbortSignal
-) => {
-  logger.info({ server, userId, customId }, "Starting write request");
-
-  try {
-    const response = await noloRequest(
-      server,
-      {
-        url: `${API_ENDPOINTS.DATABASE}/write/`,
-        method: "POST",
-        body: JSON.stringify({ data, customId, userId }),
-      },
-      state,
-      signal
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    logger.info({ server }, "Write request successful");
-    return true;
-  } catch (error) {
-    if (error.name === "AbortError") {
-      logger.warn({ server, customId }, "Write request timeout");
-    } else {
-      logger.error({ error, server }, "Failed to write to server");
-    }
-    return false;
-  }
-};
 
 const syncWithServers = (servers: string[], writeConfig: any, state: any) => {
   servers.forEach((server) => {

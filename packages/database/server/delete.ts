@@ -1,37 +1,11 @@
+// src/server/handlers/delete.ts
 import { extractUserId } from "core/prefix";
 import { isNil } from "rambda";
-import { pino } from "pino";
 import { createKey } from "database/keys";
-
 import serverDb from "./db";
+import pino from "pino";
 
 const logger = pino({ name: "handle-delete" });
-
-const checkDeletePermission = (
-  actionUserId: string,
-  dataBelongUserId: string
-): boolean => actionUserId === dataBelongUserId;
-
-const batchDeleteMessages = async (db, dialogId) => {
-  const prefix = createKey("dialog", dialogId, "msg");
-  const batch = db.batch();
-  const deletedKeys = [];
-
-  try {
-    for await (const [key] of db.iterator({
-      gte: prefix,
-      lte: prefix + "\uffff",
-    })) {
-      batch.del(key);
-      deletedKeys.push(key);
-    }
-    await batch.write();
-    return deletedKeys;
-  } catch (err) {
-    logger.error({ err, dialogId }, "Failed to batch delete messages");
-    throw err;
-  }
-};
 
 export const handleDelete = async (req, res) => {
   try {
@@ -40,52 +14,48 @@ export const handleDelete = async (req, res) => {
     const type = new URL(req.url).searchParams.get("type");
 
     if (type === "messages") {
-      const dialogId = id;
-      const deletedKeys = await batchDeleteMessages(serverDb, dialogId);
+      const prefix = createKey("dialog", id, "msg");
+      const batch = serverDb.batch();
+      const deletedKeys = [];
 
-      logger.info(
-        {
-          dialogId,
-          count: deletedKeys.length,
-        },
-        "Batch deleted messages"
-      );
+      for await (const [key] of serverDb.iterator({
+        gte: prefix,
+        lte: prefix + "\uffff",
+      })) {
+        batch.del(key);
+        deletedKeys.push(key);
+      }
 
-      return res.status(200).json({
+      await batch.write();
+      logger.info({ id, count: deletedKeys.length }, "Batch deleted messages");
+
+      return res.json({
         message: "Messages deleted successfully",
         processingIds: deletedKeys,
       });
     }
 
-    // 常规单条数据删除逻辑
-    const willDeleteData = await serverDb.get(id);
-    const dataBelongUserId = willDeleteData
-      ? willDeleteData.userId
-      : extractUserId(id);
+    const data = await serverDb.get(id);
+    const ownerId = data?.userId || extractUserId(id);
 
-    if (isNil(dataBelongUserId)) {
-      serverDb.del(id);
-      return res.status(200).json({
-        message: "Delete request processed for unknown owner",
+    if (isNil(ownerId) || ownerId === actionUserId) {
+      if (data) await serverDb.del(id);
+
+      return res.json({
+        message: "Delete request processed",
         processingIds: [id],
       });
     }
 
-    if (!checkDeletePermission(actionUserId, dataBelongUserId)) {
-      return res.status(403).json({ error: "Unauthorized action." });
-    }
-
-    if (willDeleteData) {
-      await serverDb.del(id);
-    }
-    return res.status(200).json({
-      message: "Delete request processed",
-      processingIds: [id],
+    return res.status(403).json({
+      error: "Unauthorized action",
+      processingIds: [],
     });
   } catch (error) {
-    logger.error({ error }, "Error in handleDelete");
-    return res
-      .status(500)
-      .json({ error: "An internal server error occurred." });
+    logger.error({ error }, "Delete handler error");
+    return res.status(500).json({
+      error: "Internal server error",
+      processingIds: [],
+    });
   }
 };
