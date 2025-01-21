@@ -13,4 +13,16 @@ export const deepSeekModels: Model[] = [
       output: 8, // $1.10 per 1M tokens
     },
   },
+  {
+    name: "deepseek-reasoner",
+    displayName: "DeepSeek Reasoner",
+    hasVision: false,
+    contextWindow: 65536, // 64k
+    maxOutputTokens: 32768, // 32k tokens
+    price: {
+      input: 4, // 4元 per 1M tokens
+      inputCacheHit: 1, // 1元 per 1M tokens (cache hit)
+      output: 16, // 16元 per 1M tokens
+    },
+  },
 ];
