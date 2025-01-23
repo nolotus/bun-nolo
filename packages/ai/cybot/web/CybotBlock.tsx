@@ -1,4 +1,4 @@
-import debounce from "lodash/debounce";
+// ai/cybot/web/CybotBlock
 import type React from "react";
 import { useDispatch } from "react-redux";
 import { useCallback, useState } from "react";
@@ -36,7 +36,7 @@ interface CybotBlockProps {
     provider: string;
   };
   closeModal?: () => void;
-  reload;
+  reload: () => Promise<void>;
 }
 
 const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
@@ -46,6 +46,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const dispatch = useDispatch();
   const [deleting, setDeleting] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const allowEdit = useCouldEdit(item.id);
 
   const startDialog = async () => {
@@ -58,22 +59,26 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
     }
   };
 
-  const handleDelete = useCallback(
-    debounce(async () => {
-      if (deleting) return;
-      setDeleting(true);
-      try {
-        await dispatch(deleteData(item.id));
-        toast.success(t("deleteSuccess"));
-        reload();
-      } catch (error) {
-        toast.error(t("deleteError"));
-      } finally {
-        setDeleting(false);
-      }
-    }, 300),
-    [dispatch, item.id, t, deleting]
-  );
+  const handleDelete = useCallback(async () => {
+    if (deleting) return;
+    setDeleting(true);
+
+    try {
+      setIsRemoving(true);
+      await dispatch(deleteData(item.id)).unwrap();
+
+      // 等待动画完成
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      toast.success(t("deleteSuccess"));
+      await reload(); // 使用 clearCache 并重新加载
+    } catch (error) {
+      setIsRemoving(false);
+      toast.error(t("deleteError"));
+    } finally {
+      setDeleting(false);
+    }
+  }, [dispatch, item.id, t, deleting, reload]);
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -82,7 +87,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
 
   return (
     <>
-      <div className="cybot-block">
+      <div className={`cybot-block ${isRemoving ? "removing" : ""}`}>
         <div className="header">
           <div
             className="avatar"
@@ -155,7 +160,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
         )}
       </div>
 
-      <style herf="cybot-block">{`
+      <style>{`
         .cybot-block {
           background: ${theme.background};
           border-radius: 12px;
@@ -168,6 +173,14 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           cursor: pointer;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
           transition: all ${animations.duration.normal} ease;
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+
+        .cybot-block.removing {
+          opacity: 0;
+          transform: scale(0.95) translateY(-10px);
+          transition: all 300ms ease-out;
         }
 
         .cybot-block:hover {
