@@ -17,6 +17,8 @@ import toast from "react-hot-toast";
 import Button from "web/ui/Button";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/ui/Dialog";
+import { Tooltip } from "web/ui/Tooltip";
+
 import {
   CommentDiscussionIcon,
   PencilIcon,
@@ -91,7 +93,10 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           </div>
 
           <div className="info">
-            <h3 className="title">{item.name || t("unnamed")}</h3>
+            <Tooltip content={`ID: ${item.id}`}>
+              <h3 className="title">{item.name || t("unnamed")}</h3>
+            </Tooltip>
+
             <div className="tags">
               <div className="tag model-tag">{item.model}</div>
               <div className="tag provider-tag">{item.provider}</div>
