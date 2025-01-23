@@ -1,30 +1,24 @@
-// ai/cybot/web/CybotBlock
-import type React from "react";
+// ai/cybot/web/CybotBlock.tsx
 import { useDispatch } from "react-redux";
 import { useCallback, useState } from "react";
-
 import { selectTheme } from "app/theme/themeSlice";
 import { useTranslation } from "react-i18next";
 import { animations } from "render/styles/animations";
 import { useAppSelector } from "app/hooks";
-
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { deleteData } from "database/dbSlice";
 import { useModal } from "render/ui/Modal";
-
 import toast from "react-hot-toast";
 import Button from "web/ui/Button";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/ui/Dialog";
 import { Tooltip } from "web/ui/Tooltip";
-
 import {
   CommentDiscussionIcon,
   PencilIcon,
   TrashIcon,
 } from "@primer/octicons-react";
-
 import EditCybot from "ai/cybot/EditCybot";
 
 interface CybotBlockProps {
@@ -46,7 +40,6 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const dispatch = useDispatch();
   const [deleting, setDeleting] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
   const allowEdit = useCouldEdit(item.id);
 
   const startDialog = async () => {
@@ -64,38 +57,30 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
     setDeleting(true);
 
     try {
-      setIsRemoving(true);
+      const element = document.getElementById(`cybot-${item.id}`);
+      element?.classList.add("item-exit");
+
+      await new Promise((r) => setTimeout(r, 50));
       await dispatch(deleteData(item.id)).unwrap();
-
-      // 等待动画完成
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
       toast.success(t("deleteSuccess"));
-      await reload(); // 使用 clearCache 并重新加载
+      await reload();
     } catch (error) {
-      setIsRemoving(false);
-      toast.error(t("deleteError"));
-    } finally {
       setDeleting(false);
+      toast.error(t("deleteError"));
     }
-  }, [dispatch, item.id, t, deleting, reload]);
-
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    openEdit();
-  };
+  }, [dispatch, item.id, deleting, reload, t]);
 
   return (
     <>
-      <div className={`cybot-block ${isRemoving ? "removing" : ""}`}>
+      <div
+        id={`cybot-${item.id}`}
+        className="cybot-block"
+        style={{
+          transition: "all 0.3s ease-out",
+        }}
+      >
         <div className="header">
-          <div
-            className="avatar"
-            role="img"
-            aria-label={item.name || t("unnamed")}
-          >
-            {item.name?.[0]?.toUpperCase() || "?"}
-          </div>
+          <div className="avatar">{item.name?.[0]?.toUpperCase() || "?"}</div>
 
           <div className="info">
             <Tooltip content={`ID: ${item.id}`}>
@@ -103,8 +88,8 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
             </Tooltip>
 
             <div className="tags">
-              <div className="tag model-tag">{item.model}</div>
-              <div className="tag provider-tag">{item.provider}</div>
+              <div className="tag">{item.model}</div>
+              <div className="tag">{item.provider}</div>
             </div>
           </div>
         </div>
@@ -130,7 +115,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
               <IconHoverButton
                 icon={<PencilIcon size={16} />}
                 variant="secondary"
-                onClick={handleEdit}
+                onClick={openEdit}
                 size="medium"
               >
                 {t("edit")}
@@ -170,17 +155,8 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           flex-direction: column;
           gap: 1.25rem;
           border: 1px solid ${theme.border};
-          cursor: pointer;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
           transition: all ${animations.duration.normal} ease;
-          opacity: 1;
-          transform: scale(1) translateY(0);
-        }
-
-        .cybot-block.removing {
-          opacity: 0;
-          transform: scale(0.95) translateY(-10px);
-          transition: all 300ms ease-out;
         }
 
         .cybot-block:hover {
@@ -205,11 +181,6 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           font-size: 1.1rem;
           color: ${theme.text};
           flex-shrink: 0;
-          transition: transform ${animations.duration.normal} ease;
-        }
-
-        .cybot-block:hover .avatar {
-          transform: scale(1.05);
         }
 
         .info {
@@ -220,8 +191,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
         .title {
           font-size: 1rem;
           font-weight: 600;
-          margin: 0;
-          margin-bottom: 0.3rem;
+          margin: 0 0 0.3rem;
           color: ${theme.text};
         }
 
@@ -238,11 +208,6 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           background: ${theme.backgroundSecondary};
           border-radius: 4px;
           white-space: nowrap;
-          transition: background ${animations.duration.fast} ease;
-        }
-
-        .tag:hover {
-          background: ${theme.backgroundTertiary};
         }
 
         .description {
