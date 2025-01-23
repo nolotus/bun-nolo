@@ -1,39 +1,73 @@
+// components/chat/ChatSidebar.tsx
+import { memo, useState, useEffect, useRef } from "react";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";
 import { SidebarItem } from "./dialog/SidebarItem";
 import { selectByTypes } from "database/dbSlice";
-import { useState, useEffect, useRef } from "react";
 import { compareDesc } from "date-fns";
+
+// 提取排序逻辑
+const sortByUpdateTime = (a: any, b: any) => {
+  const dateA = new Date(a.updatedAt || a.createdAt);
+  const dateB = new Date(b.updatedAt || b.createdAt);
+  return compareDesc(dateA, dateB);
+};
+
+// 提取动画样式组件
+const AnimatedItem = memo(
+  ({
+    item,
+    shouldAnimate,
+    index,
+  }: {
+    item: any;
+    shouldAnimate: boolean;
+    index: number;
+  }) => (
+    <div
+      className={shouldAnimate ? "animate-slide-in" : undefined}
+      style={
+        shouldAnimate
+          ? {
+              animationDelay: `${index * 0.05}s`,
+              animationDuration: "0.3s",
+            }
+          : undefined
+      }
+    >
+      <SidebarItem {...item} />
+    </div>
+  )
+);
+
+AnimatedItem.displayName = "AnimatedItem";
 
 const ChatSidebar = () => {
   const currentUserId = useAppSelector(selectCurrentUserId);
   const targetTypes = [DataType.DIALOG, DataType.PAGE];
+  const [shouldAnimate, setShouldAnimate] = useState(false);
 
   const sidebarData = useAppSelector((state) =>
     selectByTypes(state, targetTypes, currentUserId)
   );
 
   const firstRenderRef = useRef(true);
-  const previousDataRef = useRef<typeof sidebarData>([]);
-  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const previousDataRef = useRef<string>("");
 
-  const { data } = useUserData(targetTypes, currentUserId, 100);
+  // 使用useUserData加载远程数据
+  useUserData(targetTypes, currentUserId, 100);
 
   useEffect(() => {
-    // 首次渲染不执行动画
     if (firstRenderRef.current) {
       firstRenderRef.current = false;
       return;
     }
 
-    // 只在数据真正变化时触发动画
-    if (
-      sidebarData?.length &&
-      JSON.stringify(previousDataRef.current) !== JSON.stringify(sidebarData)
-    ) {
-      previousDataRef.current = sidebarData;
+    const currentDataString = JSON.stringify(sidebarData);
+    if (sidebarData?.length && previousDataRef.current !== currentDataString) {
+      previousDataRef.current = currentDataString;
       setShouldAnimate(true);
 
       const timer = setTimeout(() => {
@@ -50,6 +84,9 @@ const ChatSidebar = () => {
     <>
       <style>
         {`
+          .animate-slide-in {
+            animation: slideInLeft both;
+          }
           @keyframes slideInLeft {
             from {
               opacity: 0;
@@ -62,28 +99,18 @@ const ChatSidebar = () => {
           }
         `}
       </style>
-      <nav>
-        {sidebarData
-          .sort((a, b) => {
-            const dateA = new Date(a.updatedAt || a.createdAt);
-            const dateB = new Date(b.updatedAt || b.createdAt);
-            return compareDesc(dateA, dateB);
-          })
-          .map((item, index) => (
-            <div
-              key={item.id}
-              style={{
-                animation: shouldAnimate
-                  ? `slideInLeft 0.3s ease-out ${index * 0.05}s both`
-                  : "none",
-              }}
-            >
-              <SidebarItem {...item} />
-            </div>
-          ))}
+      <nav className="chat-sidebar">
+        {sidebarData.sort(sortByUpdateTime).map((item, index) => (
+          <AnimatedItem
+            key={item.id}
+            item={item}
+            shouldAnimate={shouldAnimate}
+            index={index}
+          />
+        ))}
       </nav>
     </>
   );
 };
 
-export default ChatSidebar;
+export default memo(ChatSidebar);
