@@ -85,7 +85,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   }, [reset, initialValues]);
 
   const onSubmit = async (data) => {
-    const submitData = { ...data, type: DataType.Cybot };
+    const submitData = { ...data, type: DataType.CYBOT };
     const allowedKeys = [
       "name",
       "prompt",
