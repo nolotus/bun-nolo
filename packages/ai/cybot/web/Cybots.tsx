@@ -1,5 +1,5 @@
-// ai/cybots/Cybots.tsx
-import { memo, useEffect, useState } from "react";
+// components/cybots/Cybots.tsx
+import { memo, useEffect, useState, useCallback } from "react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
@@ -39,20 +39,22 @@ const Cybots = memo(({ queryUserId, limit = 20, closeModal }: CybotsProps) => {
     data: cybots = [],
     error,
     reload,
+    clearCache,
   } = useUserData(DataType.CYBOT, queryUserId, limit);
 
-  // 添加本地状态管理
+  // 添加本地状态来管理显示的数据
   const [items, setItems] = useState(cybots);
 
-  // 当cybots改变时更新本地状态
+  // 当 cybots 改变时更新本地状态
   useEffect(() => {
     setItems(cybots);
   }, [cybots]);
 
-  // 处理删除回调
-  const handleDelete = (deletedId: string) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== deletedId));
-  };
+  // 处理删除后的重新加载
+  const handleReload = useCallback(async () => {
+    clearCache();
+    await reload();
+  }, [clearCache, reload]);
 
   if (error) {
     toast.error("加载AI列表失败");
@@ -69,6 +71,16 @@ const Cybots = memo(({ queryUserId, limit = 20, closeModal }: CybotsProps) => {
 
   return (
     <>
+      <GridContainer>
+        {items.map((item) => (
+          <CybotBlock
+            key={item.id}
+            item={item}
+            closeModal={closeModal}
+            reload={handleReload}
+          />
+        ))}
+      </GridContainer>
       <style>
         {`
           .loading-container {
@@ -106,35 +118,8 @@ const Cybots = memo(({ queryUserId, limit = 20, closeModal }: CybotsProps) => {
           .loading-text {
             margin-left: 0.5rem;
           }
-
-          /* 添加网格项的进入动画 */
-          .cybots-grid > * {
-            animation: itemEnter 0.3s ease-out;
-          }
-
-          @keyframes itemEnter {
-            from {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
         `}
       </style>
-      <GridContainer>
-        {items.map((item) => (
-          <CybotBlock
-            key={item.id}
-            item={item}
-            closeModal={closeModal}
-            reload={reload}
-            onDelete={handleDelete}
-          />
-        ))}
-      </GridContainer>
     </>
   );
 });
