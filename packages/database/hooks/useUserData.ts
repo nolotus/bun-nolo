@@ -29,6 +29,7 @@ interface FetchState {
 
 interface UseUserDataReturn extends FetchState {
   reload: () => Promise<void>;
+  clearCache: () => void;
 }
 
 // 提取数据合并逻辑
@@ -94,6 +95,10 @@ export function useUserData(
     }
     return userId;
   }, [userId, auth.isLoggedIn, auth.user?.id]);
+
+  const clearCache = useCallback(() => {
+    previousParamsRef.current = { typesKey: "", userId: "", server: "" };
+  }, []);
 
   const loadData = useCallback(async () => {
     const currentParams = {
@@ -194,5 +199,5 @@ export function useUserData(
     loadData();
   }, [loadData]);
 
-  return { loading, error, data, reload: loadData };
+  return { loading, error, data, reload: loadData, clearCache };
 }

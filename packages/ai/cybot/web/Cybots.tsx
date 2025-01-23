@@ -1,5 +1,5 @@
-// components/cybots/Cybots.tsx
-import { memo } from "react";
+// ai/cybots/Cybots.tsx
+import { memo, useEffect, useState } from "react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { DataType } from "create/types";
@@ -41,26 +41,31 @@ const Cybots = memo(({ queryUserId, limit = 20, closeModal }: CybotsProps) => {
     reload,
   } = useUserData(DataType.CYBOT, queryUserId, limit);
 
+  // 添加本地状态管理
+  const [items, setItems] = useState(cybots);
+
+  // 当cybots改变时更新本地状态
+  useEffect(() => {
+    setItems(cybots);
+  }, [cybots]);
+
+  // 处理删除回调
+  const handleDelete = (deletedId: string) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== deletedId));
+  };
+
   if (error) {
     toast.error("加载AI列表失败");
     return null;
   }
 
-  if (loading && !cybots.length) {
+  if (loading && !items.length) {
     return <LoadingState />;
   }
 
-  if (!cybots.length) {
+  if (!items.length) {
     return null;
   }
-
-  const handleReload = async () => {
-    try {
-      await reload();
-    } catch (err) {
-      toast.error("刷新失败，请稍后重试");
-    }
-  };
 
   return (
     <>
@@ -101,15 +106,32 @@ const Cybots = memo(({ queryUserId, limit = 20, closeModal }: CybotsProps) => {
           .loading-text {
             margin-left: 0.5rem;
           }
+
+          /* 添加网格项的进入动画 */
+          .cybots-grid > * {
+            animation: itemEnter 0.3s ease-out;
+          }
+
+          @keyframes itemEnter {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
         `}
       </style>
       <GridContainer>
-        {cybots.map((item) => (
+        {items.map((item) => (
           <CybotBlock
             key={item.id}
             item={item}
             closeModal={closeModal}
-            reload={handleReload}
+            reload={reload}
+            onDelete={handleDelete}
           />
         ))}
       </GridContainer>
