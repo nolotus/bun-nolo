@@ -190,24 +190,56 @@ const UsageChart: React.FC<any> = ({ theme }) => {
             ({userTimeZone})
           </span>
         </h2>
-        <div style={{ display: "flex", gap: "12px" }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          backgroundColor: theme?.backgroundLight, 
+          borderRadius: '20px', 
+          padding: '4px' 
+        }}>
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-            style={{ padding: "8px" }}
+            style={{ 
+              padding: "8px", 
+              borderRadius: '8px',
+              border: `1px solid ${theme?.border}` 
+            }}
           >
             <option value="7days">近7天</option>
             <option value="30days">近30天</option>
             <option value="90days">近90天</option>
           </select>
-          <select
-            value={dataType}
-            onChange={(e) => setDataType(e.target.value as DataType)}
-            style={{ padding: "8px" }}
-          >
-            <option value="tokens">Tokens</option>
-            <option value="cost">Cost</option>
-          </select>
+          
+          <div style={{
+            display: 'flex',
+            backgroundColor: theme?.backgroundLight,
+            borderRadius: '16px',
+            overflow: 'hidden',
+            border: `1px solid ${theme?.border}`
+          }}>
+            {(['tokens', 'cost'] as DataType[]).map((type) => (
+              <button
+                key={type}
+                onClick={() => setDataType(type)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: dataType === type 
+                    ? theme?.primary 
+                    : 'transparent',
+                  color: dataType === type 
+                    ? theme?.background 
+                    : theme?.textSecondary,
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {type === 'tokens' ? 'Tokens' : 'Cost'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
