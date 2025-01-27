@@ -1,13 +1,13 @@
-// hooks/useCreateCybotValidation.ts
+// ai/hooks/useCreateCybotValidation.ts
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";
-import { createCybotSchema, FormData } from "../createCybotSchema";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { createCybotKey } from "database/keys";
+import { createCybotSchema, FormData } from "../createCybotSchema";
 
 export const useCreateCybotValidation = () => {
   const dispatch = useAppDispatch();
@@ -18,7 +18,7 @@ export const useCreateCybotValidation = () => {
     resolver: zodResolver(createCybotSchema),
     defaultValues: {
       tools: [],
-      isPublicInCommunity: false,
+      isPublic: false,
       provider: "",
       customProviderUrl: "",
       model: "",
@@ -29,10 +29,11 @@ export const useCreateCybotValidation = () => {
   const { watch } = form;
   const provider = watch("provider");
   const useServerProxy = watch("useServerProxy");
-  const isPublicInCommunity = watch("isPublicInCommunity");
+  const isPublic = watch("isPublic");
 
   const onSubmit = async (data: FormData) => {
     const id = createCybotKey(auth.user?.userId);
+
     await dispatch(
       write({
         data: {
@@ -51,7 +52,7 @@ export const useCreateCybotValidation = () => {
     form,
     provider,
     useServerProxy,
-    isPublicInCommunity,
+    isPublic,
     onSubmit,
   };
 };

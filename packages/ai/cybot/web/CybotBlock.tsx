@@ -34,7 +34,7 @@ interface CybotBlockProps {
 }
 
 const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
