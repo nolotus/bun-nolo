@@ -9,50 +9,6 @@ export const MessageContent = ({ content, role }) => {
 
   return (
     <>
-      <style href="message" precedence="default">
-        {`
-          @keyframes message-enter {
-            from {
-              opacity: 0;
-              transform: translateY(10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-
-          .message-content {
-            display: flex;
-            flex-direction: column;
-            border-radius: 12px;
-            transition: all 0.2s ease-out;
-            animation: message-enter 0.3s ease-out forwards;
-            white-space: pre-wrap;
-            min-width: 100px;
-            font-size: 15px;
-            line-height: 1.6;
-            gap: 8px;
-            position: relative;
-            p{
-            margin: 12px 16px;
-            }
-          }
-
-          .message-self {
-            background-color: ${theme.primary};
-            color: ${theme.background};
-            border: 1px solid ${theme.primaryLight}20;
-          }
-
-          .message-other {
-            background-color: ${theme.backgroundSecondary};
-            color: ${theme.text};
-            border: 1px solid ${theme.border};
-          }
-        `}
-      </style>
-
       <div
         className={`message-content ${isSelf ? "message-self" : "message-other"}`}
       >
@@ -99,6 +55,49 @@ export const MessageContent = ({ content, role }) => {
           <div className="message-invalid">Invalid content format</div>
         )}
       </div>
+      <style href="message" precedence="default">
+        {`
+          @keyframes message-enter {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          .message-content {
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            transition: all 0.2s ease-out;
+            animation: message-enter 0.3s ease-out forwards;
+            white-space: pre-wrap;
+            min-width: 100px;
+            font-size: 15px;
+            line-height: 1.6;
+            gap: 8px;
+            position: relative;
+            p{
+            margin: 12px 16px;
+            }
+          }
+
+          .message-self {
+            background-color: ${theme.primary};
+            color: ${theme.background};
+            border: 1px solid ${theme.primaryLight}20;
+          }
+
+          .message-other {
+            background-color: ${theme.backgroundSecondary};
+            color: ${theme.text};
+            border: 1px solid ${theme.border};
+          }
+        `}
+      </style>
     </>
   );
 };

@@ -8,6 +8,7 @@ import {
 import pino from "pino";
 import { browserDb } from "database/browser/db";
 import { createKey } from "database/keys";
+import { resetMsgs } from "../messageSlice";
 
 const logger = pino({
   level: "info",
@@ -64,7 +65,7 @@ export const deleteAllMessages = async (dialogId: string, thunkApi) => {
         state
       );
     });
-
+    await thunkApi.dispatch(resetMsgs());
     return { ids: deletedIds };
   } catch (error) {
     logger.error({ dialogId, error }, "Failed to delete messages");

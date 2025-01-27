@@ -5,12 +5,10 @@ import { fireworksmodels } from "integrations/fireworks/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
-import { xaiModels } from "integrations/xai/models";
 import { ollamaModels } from "integrations/ollama/models";
 import type { Model } from "./types";
 
 export const providerOptions = [
-  "openai",
   "anthropic",
   "ollama",
   "fireworks",
@@ -24,10 +22,6 @@ export type Provider = (typeof providerOptions)[number];
 
 export const getModelsByProvider = (provider: Provider): Model[] => {
   switch (provider) {
-    case "openai":
-      return openAIModels;
-    case "xai":
-      return xaiModels;
     case "anthropic":
       return anthropicModels;
     case "ollama":
