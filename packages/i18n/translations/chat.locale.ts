@@ -16,6 +16,8 @@ export default {
       copySuccess: "Copy successful",
       copyFailed: "Copy failed",
       useServerProxy: "Use Transit Service",
+      resend: "Resend",
+      clearConversation: "Clear Conversation",
     },
   },
   "zh-CN": {
@@ -35,6 +37,8 @@ export default {
       copySuccess: "复制成功",
       copyFailed: "复制失败",
       useServerProxy: "使用中转服务",
+      resend: "重新发送",
+      clearConversation: "清除对话",
     },
   },
   "zh-Hant": {
@@ -54,6 +58,8 @@ export default {
       copySuccess: "複製成功",
       copyFailed: "複製失敗",
       useServerProxy: "使用中轉服務",
+      resend: "重新發送",
+      clearConversation: "清除對話",
     },
   },
   ja: {
@@ -73,6 +79,8 @@ export default {
       copySuccess: "コピーに成功しました",
       copyFailed: "コピーに失敗しました",
       useServerProxy: "中継サービスを使用する ",
+      resend: "再送信",
+      clearConversation: "会話をクリア",
     },
   },
 };
