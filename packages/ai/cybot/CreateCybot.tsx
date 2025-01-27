@@ -47,7 +47,7 @@ const CreateCybot: React.FC = () => {
     },
     provider,
     useServerProxy,
-    isPublicInCommunity,
+    isPublic,
     onSubmit,
   } = useCreateCybotValidation();
 
@@ -281,12 +281,12 @@ const CreateCybot: React.FC = () => {
               }
             >
               <ToggleSwitch
-                checked={isPublicInCommunity}
-                onChange={(checked) => setValue("isPublicInCommunity", checked)}
+                checked={isPublic}
+                onChange={(checked) => setValue("isPublic", checked)}
               />
             </FormField>
 
-            {isPublicInCommunity && (
+            {isPublic && (
               <>
                 <FormField
                   label={t("greetingMessage")}

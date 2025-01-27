@@ -1,3 +1,4 @@
+// ai/cybot/types
 interface Cybot {
   id: string;
   userId: string;
@@ -9,7 +10,7 @@ interface Cybot {
   useServerProxy: boolean;
   prompt?: string;
   tools?: string[];
-  isPublicInCommunity: boolean;
+  isPublic: boolean;
   greeting?: string;
   introduction?: string;
   pricing?: {
