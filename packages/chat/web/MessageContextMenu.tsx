@@ -1,10 +1,5 @@
 import type * as Ariakit from "@ariakit/react";
-import {
-  CopyIcon,
-  DuplicateIcon,
-  IterationsIcon,
-  TrashIcon,
-} from "@primer/octicons-react";
+import { CopyIcon, DuplicateIcon, TrashIcon } from "@primer/octicons-react";
 
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/hooks/useAuth";
@@ -16,11 +11,7 @@ import { Link } from "react-router-dom";
 import { ContextMenu, type MenuItem } from "render/components/ContextMenu";
 import copyToClipboard from "utils/clipboard";
 
-import {
-  clearCurrentDialog,
-  deleteMessage,
-  sendWithMessageId,
-} from "../messages/messageSlice";
+import { clearCurrentDialog, deleteMessage } from "../messages/messageSlice";
 
 import { runCybotId } from "ai/cybot/cybotSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
@@ -122,10 +113,6 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
     menu.hide();
   };
 
-  const handleResendMessage = () => {
-    dispatch(sendWithMessageId(id));
-  };
-
   const handleClearConversation = () => {
     dispatch(clearCurrentDialog(dialogId));
     menu.hide();
@@ -150,12 +137,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
       icon: <TrashIcon size={16} />,
       onClick: handleDeleteMessage,
     },
-    {
-      id: "resend",
-      label: t("resend"),
-      icon: <IterationsIcon size={16} />,
-      onClick: handleResendMessage,
-    },
+
     {
       id: "clear",
       label: t("clearConversation"),

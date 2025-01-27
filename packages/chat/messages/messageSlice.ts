@@ -97,11 +97,6 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    //not use yet
-    sendWithMessageId: create.asyncThunk(async (messageId, thunkApi) => {
-      console.log("messageId", messageId);
-      const state = thunkApi.getState();
-    }, {}),
     resetMsgs: create.reducer((state) => {
       state.msgs = [];
       state.streamMessages = [];
@@ -115,7 +110,6 @@ export const {
   deleteMessage,
   handleSendMessage,
   clearCurrentDialog,
-  sendWithMessageId,
   addMsg,
   initMsgs,
   resetMsgs,
