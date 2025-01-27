@@ -45,7 +45,7 @@ const NoloEditor = ({ initialValue, readOnly, onChange }) => {
 
       <SetNodeToDecorations />
       <Editable
-        style={{ padding: "20px" }}
+        style={!readOnly ? { padding: "20px" } : {}}
         readOnly={readOnly}
         decorate={decorate}
         renderElement={ElementWrapper}

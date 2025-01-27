@@ -1,16 +1,18 @@
 import { selectCurrentServer } from "setting/settingSlice";
 import { createDialogMessageKey } from "database/keys";
-
 import { API_ENDPOINTS } from "database/config";
 import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { extractCustomId } from "core/prefix";
+import pino from "pino";
 
-// 发送请求
+const logger = pino({ name: "claude-request" });
+
 async function sendRequest(cybotConfig, body, signal, currentServer) {
+  const CLAUDE_API_ENDPOINT = "https://api.anthropic.com/v1/messages";
+
   try {
-    const CLAUDE_API_ENDPOINT = "https://api.anthropic.com/v1/messages";
     if (!cybotConfig.useServerProxy) {
       return await fetch(CLAUDE_API_ENDPOINT, {
         method: "POST",
@@ -23,23 +25,23 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
         body,
         signal,
       });
-    } else {
-      return await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...JSON.parse(body),
-          url: CLAUDE_API_ENDPOINT,
-          KEY: cybotConfig.apiKey,
-          provider: cybotConfig.provider,
-        }),
-        signal,
-      });
     }
+
+    return await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...JSON.parse(body),
+        url: CLAUDE_API_ENDPOINT,
+        KEY: cybotConfig.apiKey,
+        provider: cybotConfig.provider,
+      }),
+      signal,
+    });
   } catch (error) {
-    console.error("发送请求失败:", error);
+    logger.error({ err: error }, "Failed to send request");
     throw error;
   }
 }
@@ -56,7 +58,6 @@ export const sendClaudeRequest = async ({
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
   const currentServer = selectCurrentServer(state);
-
   const messageId = createDialogMessageKey(dialogId);
 
   const body = generateRequestBody(cybotConfig, content, prevMsgs);
@@ -64,13 +65,41 @@ export const sendClaudeRequest = async ({
   const signal = controller.signal;
 
   let reader;
+  let accumulatedContent = "";
+
+  const cleanup = () => {
+    if (reader) {
+      try {
+        reader.cancel();
+        reader.releaseLock();
+      } catch (e) {
+        logger.error({ err: e }, "Error during reader cleanup");
+      }
+    }
+  };
+
+  const handleStreamEnd = async (
+    content = accumulatedContent,
+    error = null
+  ) => {
+    const final = {
+      id: messageId,
+      content: error ? `Error: ${error.message}` : content,
+      cybotId: cybotConfig.id,
+      role: "assistant",
+      error: !!error,
+    };
+
+    await dispatch(messageStreamEnd(final));
+
+    if (!error) {
+      dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
+    }
+  };
 
   signal.addEventListener("abort", () => {
-    console.log("Request was aborted");
-    if (reader) {
-      reader.cancel();
-      reader.releaseLock();
-    }
+    logger.info("Request aborted");
+    cleanup();
   });
 
   try {
@@ -81,99 +110,88 @@ export const sendClaudeRequest = async ({
       currentServer
     );
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     reader = response.body.getReader();
-    let accumulatedContent = "";
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) {
-        const final = {
-          id: messageId,
-          content: accumulatedContent,
-          cybotId: cybotConfig.id,
-          role: "assistant",
-        };
-        await dispatch(messageStreamEnd(final));
 
-        dispatch(
-          updateDialogTitle({
-            dialogKey,
-            cybotConfig,
-          })
-        );
+      if (done) {
+        await handleStreamEnd();
         break;
       }
 
       const text = new TextDecoder().decode(value);
       const lines = text.split("\n");
+
       for (const line of lines) {
-        if (line.startsWith("data:")) {
+        if (!line.startsWith("data:")) continue;
+
+        try {
           const data = line.substring(6);
-          try {
-            const jsonData = JSON.parse(data);
-            switch (jsonData.type) {
-              case "message_start":
-                dispatch(
-                  updateTokens({
-                    dialogId,
-                    cybotConfig,
-                    usage: jsonData.message.usage,
-                  })
-                );
-                const message = {
+          const jsonData = JSON.parse(data);
+
+          switch (jsonData.type) {
+            case "message_start":
+              dispatch(
+                updateTokens({
+                  dialogId,
+                  cybotConfig,
+                  usage: jsonData.message.usage,
+                })
+              );
+              dispatch(
+                messageStreaming({
                   id: messageId,
                   content: "Loading...",
                   role: "assistant",
                   cybotId,
                   controller,
-                };
-                dispatch(messageStreaming(message));
-                break;
+                })
+              );
+              break;
 
-              case "content_block_delta":
-                const delta = jsonData.delta;
-                if (delta && delta.text) {
-                  accumulatedContent += delta.text;
-                  const message = {
+            case "content_block_delta":
+              if (jsonData.delta?.text) {
+                accumulatedContent += jsonData.delta.text;
+                dispatch(
+                  messageStreaming({
                     id: messageId,
                     content: accumulatedContent,
                     role: "assistant",
                     cybotId: cybotConfig.id,
                     controller,
-                  };
-                  dispatch(messageStreaming(message));
-                }
-                break;
-              case "message_delta":
-                dispatch(
-                  updateTokens({
-                    dialogId,
-                    cybotConfig,
-                    usage: jsonData.usage,
                   })
                 );
-                break;
+              }
+              break;
 
-              default:
-                console.log("Unhandled data type:", jsonData.type);
-            }
-          } catch (error) {
-            console.error("Failed to parse JSON data:", error);
+            case "message_delta":
+              dispatch(
+                updateTokens({
+                  dialogId,
+                  cybotConfig,
+                  usage: jsonData.usage,
+                })
+              );
+              break;
+
+            default:
+              logger.info({ type: jsonData.type }, "Unhandled data type");
           }
+        } catch (error) {
+          logger.error({ err: error, line }, "Failed to parse stream data");
+          throw error;
         }
       }
     }
-
-    reader.releaseLock();
   } catch (error) {
-    if (error.name === "AbortError") {
-      console.log("Fetch aborted");
-    } else {
-      console.error("Request failed:", error);
-    }
+    logger.error({ err: error }, "Stream processing failed");
+    await handleStreamEnd(accumulatedContent, error);
   } finally {
-    if (reader) {
-      reader.releaseLock();
-    }
+    cleanup();
   }
 };
