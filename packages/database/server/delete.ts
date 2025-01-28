@@ -7,34 +7,47 @@ import pino from "pino";
 
 const logger = pino({ name: "handle-delete" });
 
+// 新增的独立删除消息函数
+async function deleteMessages(dialogId: string) {
+  const prefix = createKey("dialog", dialogId, "msg");
+  const batch = serverDb.batch();
+  const deletedKeys: string[] = [];
+
+  // 遍历并收集所有消息键
+  for await (const [key] of serverDb.iterator({
+    gte: prefix,
+    lte: prefix + "\uffff",
+  })) {
+    batch.del(key);
+    deletedKeys.push(key);
+  }
+
+  // 批量执行删除操作
+  await batch.write();
+  logger.info(
+    { id: dialogId, count: deletedKeys.length },
+    "Batch deleted messages"
+  );
+
+  return {
+    message: "Messages deleted successfully",
+    processingIds: deletedKeys,
+  };
+}
+
 export const handleDelete = async (req, res) => {
   try {
     const { userId: actionUserId } = req.user;
     const { id } = req.params;
     const type = new URL(req.url).searchParams.get("type");
 
+    // 调用独立的删除消息函数
     if (type === "messages") {
-      const prefix = createKey("dialog", id, "msg");
-      const batch = serverDb.batch();
-      const deletedKeys = [];
-
-      for await (const [key] of serverDb.iterator({
-        gte: prefix,
-        lte: prefix + "\uffff",
-      })) {
-        batch.del(key);
-        deletedKeys.push(key);
-      }
-
-      await batch.write();
-      logger.info({ id, count: deletedKeys.length }, "Batch deleted messages");
-
-      return res.json({
-        message: "Messages deleted successfully",
-        processingIds: deletedKeys,
-      });
+      const result = await deleteMessages(id);
+      return res.json(result);
     }
 
+    // 原有其他类型删除逻辑保持不变
     const data = await serverDb.get(id);
     const ownerId = data?.userId || extractUserId(id);
 
@@ -49,6 +62,8 @@ export const handleDelete = async (req, res) => {
 
     return res.status(403).json({
       error: "Unauthorized action",
+      ownerId,
+      actionUserId,
       processingIds: [],
     });
   } catch (error) {
