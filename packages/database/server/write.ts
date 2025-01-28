@@ -43,21 +43,36 @@ export const handleWrite = async (req: any, res: any) => {
   }
 
   const isWriteSelf = actionUserId === saveUserId;
-  const hasUser = await serverDb.get(`user:${actionUserId}`);
-  const hasV0User = await doesUserDirectoryExist(actionUserId);
-  const userExist = hasUser || hasV0User;
+
+  const userExist = await serverDb.get(`user:${actionUserId}`);
   const allowWrite = isWriteSelf && userExist;
 
   if (!allowWrite) {
-    logger.warn({
-      event: "write_permission_denied",
-      actionUserId,
-      targetUserId: saveUserId,
-      dataType: data.type,
-    });
-    return res.status(403).json({
-      message: "操作不被允许.",
-    });
+    if (!userExist) {
+      logger.warn({
+        event: "write_permission_denied",
+        actionUserId,
+        targetUserId: saveUserId,
+        dataType: data.type,
+        error: "用户不存在",
+      });
+      return res.status(403).json({
+        message: "操作不被允许：用户不存在",
+        error: "用户不存在",
+      });
+    } else if (!isWriteSelf) {
+      logger.warn({
+        event: "write_permission_denied",
+        actionUserId,
+        targetUserId: saveUserId,
+        dataType: data.type,
+        error: `用户 ${actionUserId} 无权写入用户 ${saveUserId} 的数据`,
+      });
+      return res.status(403).json({
+        message: `操作不被允许：用户 ${actionUserId} 无权写入用户 ${saveUserId} 的数据`,
+        error: `无权写入，当前用户：${actionUserId}，写入目标用户：${saveUserId}`,
+      });
+    }
   }
 
   try {
