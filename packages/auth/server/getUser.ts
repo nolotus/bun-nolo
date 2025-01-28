@@ -6,6 +6,7 @@ import {
   createSuccessResponse,
   handleOptionsRequest,
 } from "./shared";
+import { nolotusId } from "core/init";
 
 interface User {
   id: string;
