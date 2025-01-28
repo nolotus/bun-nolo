@@ -6,6 +6,7 @@ import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
+import { groqModels } from "integrations/groq/models"; // 添加groq的模型导入
 import type { Model } from "./types";
 
 export const providerOptions = [
@@ -16,6 +17,7 @@ export const providerOptions = [
   "deepseek",
   "mistral",
   "google",
+  "groq", // 添加groq到providerOptions数组中
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
@@ -36,10 +38,13 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
       return mistralModels;
     case "google":
       return googleModels;
+    case "groq": // 添加groq的case语句
+      return groqModels;
     default:
       return [];
   }
 };
+
 /**
  * 获取指定供应商和模型名称的模型配置
  * @param provider - 供应商名称 (anthropic/openai/deepseek)
