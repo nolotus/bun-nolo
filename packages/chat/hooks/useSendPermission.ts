@@ -3,12 +3,6 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
 import useCybotConfig from "ai/cybot/hooks/useCybotConfig";
 import { getModelPricing, getFinalPrice, getPrices } from "ai/llm/getPricing";
-import { nolotusId } from "core/init";
-
-const SKIP_ALL_CHECKS_IDS = [
-  nolotusId,
-  "Y25UeEg1VlNTanIwN2N0d1Mzb3NLRUQ3dWhzWl9hdTc0R0JoYXREeWxSbw",
-];
 
 export interface SendPermissionCheck {
   allowed: boolean;
@@ -29,10 +23,6 @@ export const useSendPermission = (userBalance: number = 0) => {
     : null;
 
   const checkAllowSend = (): SendPermissionCheck => {
-    if (SKIP_ALL_CHECKS_IDS.includes(userId)) {
-      return { allowed: true };
-    }
-
     if (!cybotConfig) {
       return { allowed: false, reason: "NO_CONFIG" };
     }
