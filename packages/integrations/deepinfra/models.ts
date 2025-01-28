@@ -121,4 +121,28 @@ export const deepinfraModels: Model[] = [
     jsonOutput: true,
     fnCall: true,
   },
+  {
+    name: "deepseek-ai/DeepSeek-R1",
+    displayName: "DeepSeek R1",
+    hasVision: false,
+    contextWindow: 16000,
+    price: {
+      input: 6.8, // 0.85 * 8 (保持与原有注释计算方式一致)
+      output: 20.0, // 2.50 * 8 (保持与原有注释计算方式一致)
+    },
+    jsonOutput: true,
+    fnCall: true,
+  },
+  {
+    name: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+    displayName: "DeepSeek-R1-Distill-Llama-70B",
+    hasVision: false,
+    contextWindow: 131072,
+    price: {
+      input: 1.84, // 0.23 * 8
+      output: 5.52, // 0.69 * 8
+    },
+    jsonOutput: true,
+    fnCall: true,
+  },
 ];
