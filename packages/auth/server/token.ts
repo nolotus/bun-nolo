@@ -1,4 +1,3 @@
-import { serverGetData } from "database/server/read";
 import { verifyToken } from "../token";
 import serverDb from "database/server/db";
 
@@ -16,23 +15,7 @@ const getPublicKey = async (userId) => {
         isNewUser: true,
       };
     }
-  } catch (err) {
-    // 如果不是新用户，继续尝试老用户的方式
-  }
-
-  // 尝试获取老用户的公钥
-  try {
-    const id = `0-${userId}-publicKey`;
-    const oldUserKey = await serverGetData(id);
-    if (oldUserKey) {
-      return {
-        publicKey: oldUserKey,
-        isNewUser: false,
-      };
-    }
-  } catch (err) {
-    throw new Error("Public key not found");
-  }
+  } catch (err) {}
 };
 
 export async function handleToken(req, res) {
