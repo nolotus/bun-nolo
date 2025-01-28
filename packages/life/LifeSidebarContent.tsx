@@ -23,7 +23,7 @@ const LifeSidebarContent: React.FC = () => {
       path: "/life/users",
       label: "用户",
       icon: <PeopleIcon size={20} />,
-      allow_users: [nolotusId],
+      allow_users: [nolotusId, "0e95801d90"],
     },
   ];
   const allowedLinks = allowRule(auth?.user, links);
