@@ -1,67 +1,76 @@
+// server/handleRequest.ts
+import { pino } from "pino";
 import { authServerRoutes } from "auth/server/route";
 import { handleToken } from "auth/server/token";
 import { API_VERSION, API_ENDPOINTS } from "database/config";
 import { databaseRequest } from "database/server/routes";
 import { weatherRouteHandler } from "integrations/weather";
-
 import { createResponse } from "./createResponse";
 import { handleRender } from "./render";
-import { handlePublicRequest } from "./publicRequestHandler"; // 确保路径正确
+import { handlePublicRequest } from "./publicRequestHandler";
 import { proxyRoute } from "./proxyRoute";
+import { handleRPCRequest } from "./handleRPCRequest";
 
+const logger = pino({ name: "server:request" });
 const res = createResponse();
 
 export const handleRequest = async (request: Request, server) => {
-  // const cookies = request.headers.get("Cookie");
-  // const token = cookies["X-Token"];
-  // const user = await getUserFromToken(token);
   const upgraded = server.upgrade(request, {
     data: {
       createdAt: Date.now(),
-      // token: cookies["X-Token"],
-      // userId: user.id,
     },
   });
 
   if (upgraded) return undefined;
 
   const url = new URL(request.url);
+
   if (request.method === "OPTIONS") {
     return res.status(200).json({ ok: true });
   }
+
   if (url.pathname.startsWith("/public")) {
-    // 这里确保url是URL类型，如果不是需要先进行转换
     return handlePublicRequest(url);
   }
 
+  // RPC请求处理
+  if (url.pathname.startsWith("/rpc/")) {
+    return handleRPCRequest(request);
+  }
+
+  // 以下是原有API处理逻辑
   if (url.pathname.startsWith(API_VERSION)) {
     if (url.pathname.startsWith(API_ENDPOINTS.HI)) {
-      return res.status(200).json({ API_VERSION: API_VERSION });
+      return res.status(200).json({ API_VERSION });
     }
+
     const contentType = request.headers.get("content-type") || "";
     let body;
 
-    // 如果是'formdata'类型，则使用formData()方法解析
     if (contentType.includes("multipart/form-data")) {
       try {
         body = await request.formData();
-      } catch (error) {}
+      } catch (error) {
+        logger.warn({ error }, "Failed to parse form data");
+      }
     } else if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
-        if (!body) {
-          body = {};
-        }
-      } catch (error) {}
+        if (!body) body = {};
+      } catch (error) {
+        logger.warn({ error }, "Failed to parse JSON body");
+      }
     }
+
     let req = {
       url,
-      body, // 这里赋值可能是FormData对象或者是JSON对象，视请求而定
+      body,
       query: Object.fromEntries(new URLSearchParams(url.search)),
       params: {},
       headers: request.headers,
       method: request.method,
     };
+
     if (url.pathname.startsWith(API_ENDPOINTS.CHAT)) {
       req.user = await handleToken(request, res);
       return proxyRoute(req, res);
@@ -84,6 +93,7 @@ export const handleRequest = async (request: Request, server) => {
   try {
     return await handleRender(request);
   } catch (error) {
+    logger.error({ error }, "Render failed");
     return new Response("<h1>服务器发生错误，请稍后重试</h1>", {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },

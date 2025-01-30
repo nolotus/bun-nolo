@@ -33,12 +33,20 @@ export async function fetchPubCybots(options: FetchPubCybotsOptions = {}) {
     results.sort((a, b) => {
       switch (sortBy) {
         case "popular":
-          return (b.metrics?.useCount || 0) - (a.metrics?.useCount || 0);
+          return (b.dialogCount || 0) - (a.dialogCount || 0);
         case "rating":
-          return (b.metrics?.rating || 0) - (a.metrics?.rating || 0);
+          return (b.messageCount || 0) - (a.messageCount || 0);
         case "newest":
         default:
-          return (b.createTime || 0) - (a.createTime || 0);
+          const timeA =
+            typeof a.createdAt === "string"
+              ? Date.parse(a.createdAt)
+              : a.createdAt;
+          const timeB =
+            typeof b.createdAt === "string"
+              ? Date.parse(b.createdAt)
+              : b.createdAt;
+          return timeB - timeA;
       }
     });
 
@@ -49,7 +57,9 @@ export async function fetchPubCybots(options: FetchPubCybotsOptions = {}) {
       {
         total: results.length,
         returned: paginatedResults.length,
-        options,
+        sortBy,
+        limit,
+        firstItemCreatedAt: paginatedResults[0]?.createdAt,
       },
       "Fetched public cybots"
     );

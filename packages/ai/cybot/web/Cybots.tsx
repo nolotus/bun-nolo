@@ -1,4 +1,4 @@
-// components/cybots/Cybots.tsx
+// ai/cybots/web/Cybots.tsx
 import { memo, useEffect, useState, useCallback } from "react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";

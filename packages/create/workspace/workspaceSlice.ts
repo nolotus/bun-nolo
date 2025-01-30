@@ -7,7 +7,7 @@ import {
 } from "@reduxjs/toolkit";
 import { selectCurrentUserId } from "auth/authSlice";
 import { patchData, queryServer, write } from "database/dbSlice";
-import { deleteData } from "database/dbSlice";
+import { remove } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 
 import { DataType } from "../types";
@@ -111,7 +111,7 @@ const workspaceSlice = createSliceWithThunks({
     deleteWorkspace: create.asyncThunk(
       async (workspaceId: string, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
-        await dispatch(deleteData(workspaceId));
+        await dispatch(remove(workspaceId));
         return workspaceId;
       },
       {

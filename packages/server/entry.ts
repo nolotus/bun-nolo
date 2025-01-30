@@ -1,5 +1,5 @@
 import { isProduction } from "utils/env";
-import { handleRequest } from "./request";
+import { handleRequest } from "./handleRequest";
 import { Cron } from "croner";
 import { tasks } from "./tasks";
 

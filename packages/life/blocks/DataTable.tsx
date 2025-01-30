@@ -2,7 +2,7 @@ import React from "react";
 import { useAppDispatch } from "app/hooks";
 import { extractCustomId } from "core/prefix";
 import { DataType } from "create/types";
-import { deleteData } from "database/dbSlice";
+import { remove } from "database/dbSlice";
 import { Link } from "react-router-dom";
 import { TrashIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
@@ -140,7 +140,7 @@ export const DataTable: React.FC<DataTableProps> = ({ dataList, type }) => {
         variant="secondary"
         status="error"
         size="small"
-        onClick={() => dispatch(deleteData(data.id))}
+        onClick={() => dispatch(remove(data.id))}
         icon={<TrashIcon size={14} />}
       >
         删除
