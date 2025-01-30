@@ -50,7 +50,37 @@ export const createDialogKey = (userId: string) =>
 export const createDialogMessageKey = (dialogId: string) =>
   createKey(DataType.DIALOG, dialogId, "msg", ulid());
 
-export const createCybotKey = (userId: string) =>
-  createKey(DataType.CYBOT, userId, ulid());
 export const createPageKey = (userId: string) =>
   createKey(DataType.PAGE, userId, ulid());
+
+export const createCybotKey = {
+  // 创建私有版本key
+  private: curry((userId: string, cybotId: string) => {
+    const key = createKey(DataType.CYBOT, userId, cybotId);
+    logger.debug({ userId, cybotId, key }, "Created private cybot key");
+    return key;
+  }),
+
+  // 创建公开版本key
+  public: (cybotId: string) => {
+    const key = createKey(DataType.CYBOT, "pub", cybotId);
+    logger.debug({ cybotId, key }, "Created public cybot key");
+    return key;
+  },
+};
+export const pubCybotKeys = {
+  // 获取单个公开cybot
+  single: (cybotId: string) => {
+    const key = createKey(DataType.CYBOT, "pub", cybotId);
+    logger.debug({ cybotId, key }, "Created pub cybot key");
+    return key;
+  },
+
+  // 获取公开cybot列表范围
+  list: () => {
+    const start = createKey(DataType.CYBOT, "pub", "");
+    const end = createKey(DataType.CYBOT, "pub", "\uffff");
+    logger.debug({ start, end }, "Created pub cybot list range");
+    return { start, end };
+  },
+};

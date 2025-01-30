@@ -1,12 +1,10 @@
 import { DependabotIcon, MailIcon } from "@primer/octicons-react";
-import Cybots from "ai/cybot/web/Cybots";
-import { nolotusId } from "core/init";
 import { NavLink } from "react-router-dom";
 import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import copyToClipboard from "utils/clipboard";
 import toast from "react-hot-toast";
-
+import PubCybots from "ai/cybot/web/PubCybots";
 const EMAIL = "s@nolotus.com";
 
 const Home = () => {
@@ -86,7 +84,7 @@ const Home = () => {
         <section className="section">
           <h2 className="section-title">看看其他人都在用 Cybot 做什么</h2>
           <div className="cybots-container">
-            <Cybots queryUserId={nolotusId} limit={8} />
+            <PubCybots limit={4} />
           </div>
         </section>
 

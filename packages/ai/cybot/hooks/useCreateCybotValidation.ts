@@ -1,4 +1,3 @@
-// ai/hooks/useCreateCybotValidation.ts
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
@@ -8,6 +7,7 @@ import { useAuth } from "auth/hooks/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { createCybotKey } from "database/keys";
 import { createCybotSchema, FormData } from "../createCybotSchema";
+import { ulid } from "ulid";
 
 export const useCreateCybotValidation = () => {
   const dispatch = useAppDispatch();
@@ -17,12 +17,17 @@ export const useCreateCybotValidation = () => {
   const form = useForm<FormData>({
     resolver: zodResolver(createCybotSchema),
     defaultValues: {
+      name: "",
       tools: [],
       isPublic: false,
       provider: "",
       customProviderUrl: "",
       model: "",
       useServerProxy: true,
+      greeting: "",
+      introduction: "",
+      inputPrice: 0,
+      outputPrice: 0,
     },
   });
 
@@ -32,20 +37,55 @@ export const useCreateCybotValidation = () => {
   const isPublic = watch("isPublic");
 
   const onSubmit = async (data: FormData) => {
-    const id = createCybotKey(auth.user?.userId);
+    if (!auth.user?.userId) return;
 
+    const now = Date.now();
+    const id = ulid();
+    const userCybotPath = createCybotKey.private(auth.user.userId, id);
+    const publicCybotPath = createCybotKey.public(id);
+
+    // 构建基础数据
+    const cybotData = {
+      ...data,
+      id,
+      type: DataType.CYBOT,
+      userId: auth.user.userId,
+      createdAt: now,
+      updatedAt: now,
+      dialogCount: 0,
+      messageCount: 0,
+      tokenCount: 0,
+      tags: [],
+    };
+
+    // 保存私有版本
     await dispatch(
       write({
         data: {
-          ...data,
-          id,
-          type: DataType.CYBOT,
+          ...cybotData,
+          isPublic: data.isPublic,
         },
-        customId: id,
+        customId: userCybotPath,
       })
     ).unwrap();
 
-    await createNewDialog({ cybots: [id] });
+    // 如果是公开的，保存公开版本
+    if (data.isPublic) {
+      await dispatch(
+        write({
+          data: {
+            ...cybotData,
+            isPublic: true,
+          },
+          customId: publicCybotPath,
+        })
+      ).unwrap();
+    }
+
+    // 创建对话时使用公开路径，这样其他用户也可以访问
+    await createNewDialog({
+      cybots: [data.isPublic ? publicCybotPath : userCybotPath],
+    });
   };
 
   return {

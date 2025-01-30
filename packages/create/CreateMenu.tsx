@@ -12,9 +12,7 @@ import {
   FileAddedIcon,
   PlusIcon,
 } from "@primer/octicons-react";
-import Cybots from "ai/cybot/web/Cybots";
 import { useAuth } from "auth/hooks/useAuth";
-import { nolotusId } from "core/init";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
@@ -24,6 +22,9 @@ import { CreateRoutePaths } from "create/routePaths";
 import { useTheme } from "app/theme";
 import { useAppDispatch } from "app/hooks";
 import { createPage } from "render/page/pageSlice";
+
+import PubCybots from "ai/cybot/web/PubCybots";
+import Cybots from "ai/cybot/web/Cybots";
 
 export const CreateMenu = () => {
   const dispatch = useAppDispatch();
@@ -210,8 +211,8 @@ export const CreateMenu = () => {
               <Cybots queryUserId={user?.userId} closeModal={closeAIsModal} />
             </>
           )}
-          <h3 style={{ marginBottom: "1rem" }}>公共 AIs</h3>
-          <Cybots queryUserId={nolotusId} closeModal={closeAIsModal} />
+          <h3>公共 AIs</h3>
+          <PubCybots limit={8} closeModal={closeAIsModal} compact />
         </Dialog>
       </div>
     </>
