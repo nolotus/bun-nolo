@@ -43,7 +43,7 @@ const dbSlice = createSliceWithThunks({
         }
       },
     }),
-    deleteData: create.asyncThunk(deleteAction, {
+    remove: create.asyncThunk(deleteAction, {
       fulfilled: (state, action) => {
         const { id } = action.payload;
         dbAdapter.removeOne(state, id);
@@ -89,7 +89,7 @@ const dbSlice = createSliceWithThunks({
   }),
 });
 
-export const { upsertMany, deleteData, patchData, read, write, queryServer } =
+export const { upsertMany, remove, patchData, read, write, queryServer } =
   dbSlice.actions;
 export default dbSlice.reducer;
 

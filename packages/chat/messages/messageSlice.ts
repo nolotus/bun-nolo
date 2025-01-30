@@ -5,7 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 
 import { DataType } from "create/types";
-import { deleteData, write } from "database/dbSlice";
+import { remove, write } from "database/dbSlice";
 import { filter } from "rambda";
 
 import { sendMessageAction } from "./actions/sendMessageAction";
@@ -63,7 +63,7 @@ export const messageSlice = createSliceWithThunks({
 
     deleteMessage: create.asyncThunk(
       async (messageId: string, thunkApi) => {
-        await thunkApi.dispatch(deleteData(messageId));
+        await thunkApi.dispatch(remove(messageId));
         return messageId;
       },
       {

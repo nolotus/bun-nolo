@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Alert, useDeleteAlert } from "web/ui/Alert";
-import { deleteData } from "database/dbSlice";
+import { remove } from "database/dbSlice";
 import toast from "react-hot-toast";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 
@@ -19,7 +19,7 @@ const DeleteButton = ({ id }: DeleteButtonProps) => {
   // 处理删除确认后的操作
   const onDelete = async () => {
     try {
-      await dispatch(deleteData(id));
+      await dispatch(remove(id));
       toast.success("Page deleted successfully!");
       navigate(-1);
     } catch (error) {

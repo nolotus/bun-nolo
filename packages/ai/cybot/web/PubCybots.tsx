@@ -33,6 +33,19 @@ const LoadingState = memo(() => {
           gap: 0.5rem;
           font-size: 0.9rem;
         }
+
+        :global(.icon-spin) {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
       `}</style>
     </div>
   );
@@ -74,10 +87,11 @@ const PubCybots = memo(
     });
 
     if (error) {
-      toast.error("加载公开AI列表失败");
+      toast.error("加载AI列表失败");
       return null;
     }
 
+    // 只在完全没有数据时显示加载状态
     if (loading && !data.length) {
       return <LoadingState />;
     }
@@ -111,19 +125,6 @@ const PubCybots = memo(
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 1rem;
             padding: 0.25rem;
-          }
-
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
-          }
-
-          :global(.icon-spin) {
-            animation: spin 1s linear infinite;
           }
 
           @media (max-width: 768px) {

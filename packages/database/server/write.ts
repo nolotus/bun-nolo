@@ -121,11 +121,51 @@ export const handleWrite = async (req: any, res: any) => {
     }
 
     // 无论扣费是否成功，都保存数据
+    // CYBOT数据保存部分的代码
+    if (data.type === DataType.CYBOT) {
+      try {
+        logger.info({
+          event: "cybot_save",
+          id,
+          name: data.name,
+          userId: data.userId,
+          isPublic: data.isPublic,
+        });
+
+        await serverDb.put(id, data);
+        const savedData = await serverDb.get(id);
+
+        // 仅在数据不一致时记录详细日志
+        const isDataMatch = JSON.stringify(data) === JSON.stringify(savedData);
+        if (!isDataMatch) {
+          logger.error({
+            event: "cybot_data_mismatch",
+            id,
+            name: data.name,
+          });
+          throw new Error("Data validation failed");
+        }
+
+        return res.status(200).json({
+          message: "Data written successfully",
+          id,
+          ...data,
+        });
+      } catch (error) {
+        logger.error({
+          event: "cybot_save_failed",
+          error: error.message,
+          id,
+          name: data.name,
+        });
+        throw error;
+      }
+    }
+
     if (
       data.type === DataType.TOKEN ||
       data.type === DataType.MSG ||
       data.type === DataType.PAGE ||
-      data.type === DataType.CYBOT ||
       data.type === DataType.DIALOG
     ) {
       await serverDb.put(id, data);

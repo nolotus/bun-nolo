@@ -5,7 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 import { clearCurrentDialog } from "chat/messages/messageSlice";
-import { deleteData, read, selectById } from "database/dbSlice";
+import { remove, read, selectById } from "database/dbSlice";
 
 import { createDialogAction } from "./actions/createDialogAction";
 import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
@@ -72,7 +72,7 @@ const DialogSlice = createSliceWithThunks({
           if (dialogConfig?.messageListId) {
             const body = { ids: state.message.ids };
             const deleteMessageListAction = await dispatch(
-              deleteData({
+              remove({
                 id: dialogConfig.messageListId,
                 body,
               })
@@ -81,7 +81,7 @@ const DialogSlice = createSliceWithThunks({
         } catch (error) {
           console.error("Error reading dialog:", error);
         } finally {
-          dispatch(deleteData(id));
+          dispatch(remove(id));
         }
       },
       {

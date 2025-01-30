@@ -7,7 +7,7 @@ import { animations } from "render/styles/animations";
 import { useAppSelector } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
-import { deleteData } from "database/dbSlice";
+import { remove } from "database/dbSlice";
 import { useModal } from "render/ui/Modal";
 import toast from "react-hot-toast";
 import Button from "web/ui/Button";
@@ -20,15 +20,10 @@ import {
   TrashIcon,
 } from "@primer/octicons-react";
 import EditCybot from "ai/cybot/EditCybot";
+import { Cybot } from "../types";
 
 interface CybotBlockProps {
-  item: {
-    id: string;
-    name?: string;
-    model: string;
-    introduction?: string;
-    provider: string;
-  };
+  item: Cybot;
   closeModal?: () => void;
   reload: () => Promise<void>;
 }
@@ -61,7 +56,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
       element?.classList.add("item-exit");
 
       await new Promise((r) => setTimeout(r, 50));
-      await dispatch(deleteData(item.id)).unwrap();
+      await dispatch(remove(item.id)).unwrap();
       toast.success(t("deleteSuccess"));
       await reload();
     } catch (error) {
@@ -90,6 +85,9 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
             <div className="tags">
               <div className="tag">{item.model}</div>
               <div className="tag">{item.provider}</div>
+              {item.dialogCount !== undefined && (
+                <div className="tag">对话: {item.dialogCount}</div>
+              )}
             </div>
           </div>
         </div>
