@@ -1,5 +1,6 @@
-// ai/cybot/types
-interface Cybot {
+// ai/cybot/types.ts
+
+export interface Cybot {
   id: string;
   userId: string;
   name: string;

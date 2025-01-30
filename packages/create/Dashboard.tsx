@@ -1,8 +1,8 @@
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectCurrentUserId } from "auth/authSlice";
-import { nolotusId } from "core/init";
 import { CreateRoutePaths } from "create/routePaths";
+import PubCybots from "ai/cybot/web/PubCybots";
 
 import React from "react";
 
@@ -101,7 +101,7 @@ const Dashboard = () => {
             <SearchIcon size={22} className="icon" />
             探索社区
           </h2>
-          <Cybots queryUserId={nolotusId} limit={18} />
+          <PubCybots limit={18} />
         </section>
       </div>
       <style>
