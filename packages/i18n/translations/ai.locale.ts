@@ -99,6 +99,9 @@ export default {
     edit: "Edit",
     delete: "Delete",
     createDialogError: "Failed to create dialog",
+    input: "Input",
+    output: "Output",
+    dialogCount: "Dialogs",
   },
   "zh-CN": {
     translation: {
@@ -196,6 +199,9 @@ export default {
       edit: "编辑",
       delete: "删除",
       createDialogError: "创建对话失败",
+      input: "输入",
+      output: "输出",
+      dialogCount: "对话",
     },
   },
   "zh-Hant": {
@@ -294,6 +300,9 @@ export default {
       edit: "編輯",
       delete: "刪除",
       createDialogError: "創建對話失敗",
+      input: "輸入",
+      output: "輸出",
+      dialogCount: "對話",
     },
   },
   ja: {
@@ -394,6 +403,9 @@ export default {
       edit: "編集",
       delete: "削除",
       createDialogError: "対話の作成に失敗しました",
+      input: "入力",
+      output: "出力",
+      dialogCount: "対話数",
     },
   },
 };

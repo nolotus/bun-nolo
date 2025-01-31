@@ -65,6 +65,29 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
     }
   }, [dispatch, item.id, deleting, reload, t]);
 
+  const renderPricing = () => {
+    if (!item.inputPrice && !item.outputPrice) return null;
+
+    return (
+      <div className="pricing">
+        {item.inputPrice ? (
+          <div className="price-tag">
+            <span>
+              {t("input")}: {item.inputPrice.toFixed(4)}
+            </span>
+          </div>
+        ) : null}
+        {item.outputPrice ? (
+          <div className="price-tag">
+            <span>
+              {t("output")}: {item.outputPrice.toFixed(4)}
+            </span>
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   return (
     <>
       <div
@@ -86,8 +109,11 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
               <div className="tag">{item.model}</div>
               <div className="tag">{item.provider}</div>
               {item.dialogCount !== undefined && (
-                <div className="tag">对话: {item.dialogCount}</div>
+                <div className="tag">
+                  {t("dialogCount")}: {item.dialogCount}
+                </div>
               )}
+              {renderPricing()}
             </div>
           </div>
         </div>
@@ -227,6 +253,25 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
         .edit-actions {
           display: flex;
           gap: 0.5rem;
+        }
+
+        .pricing {
+          display: flex;
+          gap: 0.4rem;
+        }
+        
+        .price-tag {
+          font-size: 0.8rem;
+          color: ${theme.textSecondary};
+          padding: 0.2rem 0.5rem;
+          background: ${theme.backgroundTertiary};
+          border-radius: 4px;
+          white-space: nowrap;
+          border: 1px solid ${theme.border};
+        }
+        
+        .price-tag span {
+          color: ${theme.accent};
         }
       `}</style>
     </>
