@@ -1,7 +1,7 @@
 import { CreateRoutePaths } from "./routePaths";
 
 //web imports
-import CreateCybot from "ai/cybot/CreateCybot";
+import CreateCybot from "ai/cybot/web/CreateCybot";
 import Dashboard from "./Dashboard";
 export const createRoutes = [
   {

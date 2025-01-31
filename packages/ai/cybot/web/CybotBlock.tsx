@@ -19,7 +19,7 @@ import {
   PencilIcon,
   TrashIcon,
 } from "@primer/octicons-react";
-import EditCybot from "ai/cybot/EditCybot";
+import EditCybot from "ai/cybot/web/EditCybot";
 import { Cybot } from "../types";
 
 interface CybotBlockProps {
