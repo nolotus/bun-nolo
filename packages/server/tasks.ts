@@ -3,9 +3,6 @@ import { DataType } from "create/types";
 import { queryData } from "database/query/queryHandler";
 import { parseWeatherParams, fetchWeatherData } from "integrations/weather";
 import { ulid } from "ulid";
-import { getLogger } from "utils/logger";
-
-const surfWeatherLogger = getLogger("surfWeather");
 
 // 任务 1 - 查询收藏的人最多前十的浪点
 // const TOP_COLLECTORS_QUERY_INTERVAL = "0 0 * * *"; // 每天凌晨 0 点执行一次
@@ -40,7 +37,6 @@ const processWeatherData = async (weatherData, collector) => {
       created_at: Date.now(),
       type: DataType.SurfInfo,
     };
-    surfWeatherLogger.info(augmentedHour, "augmentedHour");
     const tableName = "surf_info";
     // await serverCreateTable(nolotusId, "surf_info");
     // await serverWriteDataInTable(nolotusId, tableName, hour.time, augmentedHour);

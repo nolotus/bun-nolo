@@ -351,17 +351,36 @@ const CreateCybot: React.FC = () => {
 
         <style jsx>{`
           .create-cybot-container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 24px;
           }
 
+          form {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: 1fr;
+
+            @media (min-width: 1024px) {
+              grid-template-columns: 1fr 1fr;
+              align-items: start;
+            }
+          }
+
+          form > :global(.form-section:nth-child(1)),
+          form > :global(.form-section:last-child),
+          form > :global(.form-section:nth-last-child(2)) {
+            @media (min-width: 1024px) {
+              grid-column: 1 / -1;
+            }
+          }
+
           .form-section {
-            margin-bottom: 32px;
             padding: 24px;
             border: 1px solid ${theme.border};
             border-radius: 8px;
             background: ${theme.backgroundSecondary};
+            height: fit-content;
           }
 
           .section-title {
@@ -405,6 +424,63 @@ const CreateCybot: React.FC = () => {
             font-size: 12px;
           }
 
+          .check-icon {
+            color: ${theme.primary};
+          }
+
+          :global(.model-option span) {
+            font-size: 14px;
+            color: ${theme.text};
+          }
+
+          :global(.section-content .input),
+          :global(.section-content .textarea) {
+            width: 100%;
+            background: ${theme.background};
+            border: 1px solid ${theme.border};
+            border-radius: 6px;
+            color: ${theme.text};
+          }
+
+          :global(.section-content .input:focus),
+          :global(.section-content .textarea:focus) {
+            border-color: ${theme.primary};
+            outline: none;
+          }
+
+          :global(.section-content .combobox) {
+            width: 100%;
+          }
+
+          :global(.form-field-help) {
+            font-size: 13px;
+            color: ${theme.textDim};
+            margin-top: 4px;
+          }
+
+          :global(.form-field-error) {
+            font-size: 13px;
+            color: ${theme.danger};
+            margin-top: 4px;
+          }
+
+          :global(.form-field-label) {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: ${theme.textDim};
+          }
+
+          @media (max-width: 1024px) {
+            .create-cybot-container {
+              padding: 20px;
+            }
+
+            form {
+              gap: 20px;
+            }
+          }
+
           @media (max-width: 640px) {
             .create-cybot-container {
               padding: 16px;
@@ -412,7 +488,6 @@ const CreateCybot: React.FC = () => {
 
             .form-section {
               padding: 16px;
-              margin-bottom: 24px;
             }
 
             .section-content {
@@ -426,6 +501,10 @@ const CreateCybot: React.FC = () => {
             .section-title {
               font-size: 15px;
               margin-bottom: 20px;
+            }
+
+            :global(.form-field-label) {
+              font-size: 13px;
             }
           }
         `}</style>
