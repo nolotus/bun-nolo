@@ -4,7 +4,7 @@ import { useTheme } from "app/theme";
 import type React from "react";
 
 interface TextAreaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> { }
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
 const TextArea = (props: TextAreaProps) => {
   const theme = useTheme();
