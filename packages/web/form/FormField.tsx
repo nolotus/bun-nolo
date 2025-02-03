@@ -5,49 +5,52 @@ import { useTheme } from "app/theme";
 import { Label } from "./Label";
 
 interface FormFieldProps {
-	children: ReactNode;
-	className?: string;
-	label?: string;
-	required?: boolean;
-	error?: string;
-	horizontal?: boolean;
-	labelWidth?: number | string;
-	help?: string;
-	disabled?: boolean;
-	hideLabel?: boolean;
-	style?: React.CSSProperties;
+  children: ReactNode;
+  className?: string;
+  label?: string;
+  required?: boolean;
+  error?: string;
+  horizontal?: boolean;
+  labelWidth?: number | string;
+  help?: string;
+  disabled?: boolean;
+  hideLabel?: boolean;
+  style?: React.CSSProperties;
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
-	children,
-	className,
-	label,
-	required,
-	error,
-	horizontal,
-	labelWidth,
-	help,
-	disabled,
-	hideLabel,
-	style
+  children,
+  className,
+  label,
+  required,
+  error,
+  horizontal,
+  labelWidth,
+  help,
+  disabled,
+  hideLabel,
+  style,
 }) => {
-	const theme = useTheme();
+  const theme = useTheme();
 
-	return (
-		<div className={`form-field ${horizontal ? 'horizontal' : ''} ${disabled ? 'disabled' : ''} ${className || ''}`} style={style}>
-			{!hideLabel && label && (
-				<Label required={required} className="form-label">
-					{label}
-				</Label>
-			)}
+  return (
+    <div
+      className={`form-field ${horizontal ? "horizontal" : ""} ${disabled ? "disabled" : ""} ${className || ""}`}
+      style={style}
+    >
+      {!hideLabel && label && (
+        <Label required={required} className="form-label">
+          {label}
+        </Label>
+      )}
 
-			<div className="form-control">
-				{children}
-				{help && <div className="form-help">{help}</div>}
-				{error && <div className="form-error">{error}</div>}
-			</div>
+      <div className="form-control">
+        {children}
+        {help && <div className="form-help">{help}</div>}
+        {error && <div className="form-error">{error}</div>}
+      </div>
 
-			<style jsx>{`
+      <style jsx>{`
         .form-field {
           display: flex;
           flex-direction: column;
@@ -68,7 +71,7 @@ export const FormField: React.FC<FormFieldProps> = ({
         }
 
         .form-field.horizontal .form-label {
-          flex: 0 0 ${labelWidth || '140px'};
+          flex: 0 0 ${labelWidth || "140px"};
           flex-shrink: 0;
           white-space: nowrap;
           text-align: right;
@@ -123,6 +126,6 @@ export const FormField: React.FC<FormFieldProps> = ({
           }
         }
       `}</style>
-		</div>
-	);
+    </div>
+  );
 };
