@@ -1,7 +1,7 @@
 import { UploadIcon } from "@primer/octicons-react";
 import { useAuth } from "auth/hooks/useAuth";
 import type React from "react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
@@ -19,20 +19,32 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const [textContent, setTextContent] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragEnabled, setIsDragEnabled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // 延迟加载拖拽功能
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsDragEnabled(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleMessageChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const textarea = e.target;
       textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 140)}px`;
+      const maxHeight = window.innerWidth > 768 ? 140 : 100;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
       setTextContent(e.target.value);
     },
     []
   );
 
   const handleSend = useCallback(() => {
-    if (!textContent.trim()) return;
+    if (!textContent.trim() && !imagePreviewUrls.length) return;
 
     const content: Content = imagePreviewUrls[0]
       ? [
@@ -44,9 +56,16 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     onSendMessage(content);
     setTextContent("");
     setImagePreviewUrls([]);
+
+    // 重置输入框高度
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   }, [textContent, imagePreviewUrls, onSendMessage]);
 
   const previewImage = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) return;
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreviewUrls((prev) => [...prev, reader.result as string]);
@@ -57,49 +76,58 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
+      if (!isDragEnabled) return;
+
       const files = Array.from(e.dataTransfer.files);
-      files.forEach((file) => {
-        if (file.type.startsWith("image/")) {
-          previewImage(file);
-        }
-      });
+      files.forEach(previewImage);
       setIsDragOver(false);
     },
+    [isDragEnabled, previewImage]
+  );
+
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      const items = Array.from(e.clipboardData.items);
+      items.forEach((item) => {
+        if (item.type.indexOf("image") !== -1) {
+          const file = item.getAsFile();
+          if (file) previewImage(file);
+        }
+      });
+    },
     [previewImage]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend]
   );
 
   return (
     <div
       className="message-input-container"
       style={{
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        padding: "16px 20%",
-        margin: 0,
         background: theme.background,
-        containerType: "inline-size",
       }}
       onDragOver={(e) => {
+        if (!isDragEnabled) return;
         e.preventDefault();
         setIsDragOver(true);
       }}
       onDragLeave={(e) => {
+        if (!isDragEnabled) return;
         e.preventDefault();
         setIsDragOver(false);
       }}
       onDrop={handleDrop}
     >
       {imagePreviewUrls.length > 0 && (
-        <div
-          className="message-preview-wrapper"
-          style={{
-            position: "relative",
-            width: "100%",
-            margin: 0,
-          }}
-        >
+        <div className="message-preview-wrapper">
           <ImagePreview
             imageUrls={imagePreviewUrls}
             onRemove={(index) => {
@@ -109,74 +137,31 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
         </div>
       )}
 
-      <div
-        className="input-controls"
-        style={{
-          display: "flex",
-          gap: "8px",
-          width: "100%",
-          margin: 0,
-          padding: 0,
-        }}
-      >
+      <div className="input-controls">
         <button
           className="upload-button"
           onClick={() => fileInputRef.current?.click()}
           title={t("uploadImage")}
+          aria-label={t("uploadImage")}
         >
           <UploadIcon size={20} />
         </button>
 
         <textarea
+          ref={textareaRef}
           className="message-textarea"
           value={textContent}
           placeholder={t("messageOrImageHere")}
           onChange={handleMessageChange}
-          onKeyDown={(e) => {
-            if (
-              e.key === "Enter" &&
-              !e.shiftKey &&
-              !e.nativeEvent.isComposing
-            ) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          onPaste={(e) => {
-            const items = Array.from(e.clipboardData.items);
-            items.forEach((item) => {
-              if (item.type.indexOf("image") !== -1) {
-                const file = item.getAsFile();
-                if (file) previewImage(file);
-              }
-            });
-          }}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
         />
 
         <SendButton onClick={handleSend} />
       </div>
 
-      {isDragOver && (
-        <div
-          className="drop-zone"
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "12px",
-            background: theme.backgroundGhost,
-            border: `2px dashed ${theme.primary}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-            color: theme.primary,
-            fontSize: "15px",
-            opacity: isDragOver ? 1 : 0,
-            pointerEvents: isDragOver ? "all" : "none",
-            transition: "opacity 0.2s ease-out",
-            margin: 0,
-          }}
-        >
+      {isDragOver && isDragEnabled && (
+        <div className="drop-zone">
           <UploadIcon size={24} />
           <span>{t("dropToUpload")}</span>
         </div>
@@ -190,48 +175,122 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
         multiple
         onChange={(e) => {
           Array.from(e.target.files || []).forEach(previewImage);
+          e.target.value = ""; // Reset input
         }}
       />
 
-      <style>
-        {`
-          .message-textarea {
-            flex: 1;
-            height: 48px;
-            max-height: 120px;
-            padding: 14px 16px;
-            margin: 0;
-            font-size: 15px;
-            line-height: 20px;
-            border: 1px solid ${theme.border};
-            border-radius: 10px;
-            background: ${theme.backgroundSecondary};
-            color: ${theme.text};
-            resize: none;
-            font-family: -apple-system, system-ui, sans-serif;
-            transition: border-color 0.2s ease-out;
+      <style jsx>{`
+        /* 移动端基础样式 */
+        .message-input-container {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
+          padding: 8px 12px;
+          padding-bottom: calc(8px + env(safe-area-inset-bottom));
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          z-index: 1000;
+          box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
+          transition: all 0.2s ease;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .message-preview-wrapper {
+          position: relative;
+          width: 100%;
+          margin: 0;
+        }
+
+        .input-controls {
+          display: flex;
+          gap: 6px;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          align-items: flex-end;
+        }
+
+        .message-textarea {
+          flex: 1;
+          height: 36px;
+          max-height: 100px;
+          padding: 8px 10px;
+          margin: 0;
+          font-size: 14px;
+          line-height: 1.4;
+          border: 1px solid ${theme.border};
+          border-radius: 8px;
+          resize: none;
+          font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+          background: ${theme.backgroundSecondary};
+          color: ${theme.text};
+          -webkit-appearance: none;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .message-textarea:focus {
+          outline: none;
+          border-color: ${theme.primary};
+        }
+
+        .upload-button {
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          border: 1px solid ${theme.border};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${theme.background};
+          color: ${theme.textSecondary};
+          -webkit-tap-highlight-color: transparent;
+          padding: 0;
+          margin: 0;
+        }
+
+        .drop-zone {
+          position: absolute;
+          inset: 0;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-size: 14px;
+          background: ${theme.backgroundGhost};
+          border: 2px dashed ${theme.primary};
+          color: ${theme.primary};
+          pointer-events: none;
+        }
+
+        /* 桌面端样式 */
+        @media screen and (min-width: 769px) {
+          .message-input-container {
+            position: relative;
+            padding: 16px 20%;
+            box-shadow: none;
           }
 
-          .message-textarea:focus {
-            border-color: ${theme.primary};
-            outline: none;
+          .input-controls {
+            gap: 8px;
+          }
+
+          .message-textarea {
+            height: 48px;
+            max-height: 120px;
+            padding: 12px 16px;
+            font-size: 15px;
+            border-radius: 10px;
           }
 
           .upload-button {
             width: 48px;
             height: 48px;
-            margin: 0;
-            padding: 0;
-            border: 1px solid ${theme.border};
             border-radius: 10px;
-            background: ${theme.background};
-            color: ${theme.textSecondary};
             cursor: pointer;
-            transition: all 0.2s ease-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
           }
 
           .upload-button:hover {
@@ -240,55 +299,56 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
             background: ${theme.backgroundSecondary};
           }
 
-          @media screen and (max-width: 768px) {
-            .message-input-container {
-              position: fixed;
-              bottom: 0;
-              left: 0;
-              right: 0;
-              width: 100%;
-              padding: 12px 8px;
-              gap: 6px;
-              z-index: 1000;
-              background: ${theme.background};
-              box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
-            }
-
-            .input-controls {
-              gap: 6px;
-              min-height: 44px;
-            }
-
-            .message-textarea {
-              height: 44px;
-              max-height: 100px;
-              padding: 12px;
-              font-size: 16px;
-              line-height: 20px;
-              border-radius: 8px;
-            }
-
-            .upload-button {
-              width: 44px;
-              height: 44px;
-              border-radius: 8px;
-              padding: 12px;
-            }
-
-            .upload-button, 
-            .send-button {
-              min-width: 44px;
-              min-height: 44px;
-            }
+          .drop-zone {
+            border-radius: 12px;
+            font-size: 15px;
           }
+        }
 
-          @media screen and (max-width: 768px) and (supports: padding-bottom: env(safe-area-inset-bottom)) {
-            .message-input-container {
-              padding-bottom: calc(12px + env(safe-area-inset-bottom));
-            }
+        /* 大屏幕优化 */
+        @media screen and (min-width: 1201px) {
+          .message-input-container {
+            padding: 16px 20%;
           }
-        `}
-      </style>
+        }
+
+        /* 中等屏幕优化 */
+        @media screen and (min-width: 993px) and (max-width: 1200px) {
+          .message-input-container {
+            padding: 16px 15%;
+          }
+        }
+
+        /* 小屏幕优化 */
+        @media screen and (min-width: 769px) and (max-width: 992px) {
+          .message-input-container {
+            padding: 16px 10%;
+          }
+        }
+
+        /* 处理安全区域 */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+          .message-input-container {
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+          }
+        }
+
+        /* 深色模式优化 */
+        @media (prefers-color-scheme: dark) {
+          .message-textarea {
+            background: ${theme.backgroundSecondary};
+          }
+        }
+
+        /* 减少动画，提升性能 */
+        @media (prefers-reduced-motion: reduce) {
+          .message-input-container,
+          .message-textarea,
+          .upload-button {
+            transition: none;
+          }
+        }
+      `}</style>
     </div>
   );
 };
