@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 
-// types
+// types & validations
 import type { Model } from "../../llm/types";
 import { useEditCybotValidation } from "../hooks/useEditCybotValidation";
 
@@ -16,6 +16,7 @@ import { useProxySetting } from "../hooks/useProxySetting";
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
+import { NumberInput } from "web/form/NumberInput";
 import TextArea from "web/form/Textarea";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { SyncIcon, CheckIcon } from "@primer/octicons-react";
@@ -26,6 +27,25 @@ import { Combobox } from "web/form/Combobox";
 
 type ApiSource = "platform" | "custom";
 
+interface EditCybotProps {
+  initialValues: {
+    name: string;
+    prompt: string;
+    provider: string;
+    model: string;
+    apiKey?: string;
+    useServerProxy: boolean;
+    isPublic: boolean;
+    greeting?: string;
+    introduction?: string;
+    tools?: string[];
+    customProviderUrl?: string;
+    inputPrice?: number;
+    outputPrice?: number;
+  };
+  onClose: () => void;
+}
+
 const getOrderedProviderOptions = () => {
   return [
     { name: "custom" },
@@ -33,10 +53,7 @@ const getOrderedProviderOptions = () => {
   ];
 };
 
-const EditCybot: React.FC<{
-  initialValues: any;
-  onClose: () => void;
-}> = ({ initialValues, onClose }) => {
+const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
 
@@ -46,6 +63,7 @@ const EditCybot: React.FC<{
       handleSubmit,
       watch,
       setValue,
+      reset,
       formState: { errors, isSubmitting },
     },
     provider,
@@ -58,14 +76,20 @@ const EditCybot: React.FC<{
     initialValues.apiKey ? "custom" : "platform"
   );
   const [models, setModels] = useState<Model[]>([]);
-  const [providerInputValue, setProviderInputValue] = useState<string>(
-    provider || ""
-  );
-  const isCustomProvider = provider === "Custom";
+  const [providerInputValue, setProviderInputValue] = useState(provider || "");
 
+  const isCustomProvider = provider === "Custom";
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
+
+  // Initialize form with initial values
+  useEffect(() => {
+    reset({
+      ...initialValues,
+      prompt: initialValues.prompt || "",
+    });
+  }, [initialValues, reset]);
 
   useEffect(() => {
     if (apiSource === "platform") {
@@ -80,16 +104,29 @@ const EditCybot: React.FC<{
       setValue("customProviderUrl", "");
       const modelsList = getModelsByProvider(provider || "");
       setModels(modelsList);
-      if (modelsList.length > 0) {
+      if (modelsList.length > 0 && !watch("model")) {
         setValue("model", modelsList[0].name);
       }
     }
-  }, [provider, setValue, isCustomProvider]);
+  }, [provider, setValue, isCustomProvider, watch]);
 
-  const handleFormSubmit = async (data) => {
+  // Debug logging
+  useEffect(() => {
+    console.log("Form State:", {
+      initialValues,
+      currentValues: watch(),
+      prompt: watch("prompt"),
+      provider: watch("provider"),
+      model: watch("model"),
+    });
+  }, [watch, initialValues]);
+
+  const handleFormSubmit = async (data: any) => {
     await onSubmit(data);
     onClose();
   };
+
+  const promptValue = watch("prompt");
 
   return (
     <div className="edit-cybot-container">
@@ -97,7 +134,8 @@ const EditCybot: React.FC<{
 
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="form-layout">
-          <div className="form-section basic-section">
+          {/* 基础信息与行为设置部分 */}
+          <div className="form-section">
             <div className="section-title">{t("basicInfoAndBehavior")}</div>
             <div className="section-content">
               <FormField
@@ -105,10 +143,11 @@ const EditCybot: React.FC<{
                 required
                 error={errors.name?.message}
                 horizontal
-                labelWidth="120px"
+                labelWidth="140px"
               >
                 <Input
                   {...register("name")}
+                  defaultValue={initialValues.name}
                   placeholder={t("enterCybotName")}
                 />
               </FormField>
@@ -118,26 +157,28 @@ const EditCybot: React.FC<{
                 error={errors.prompt?.message}
                 help={t("promptHelp")}
                 horizontal
-                labelWidth="120px"
+                labelWidth="140px"
               >
                 <TextArea
                   {...register("prompt")}
+                  value={promptValue}
+                  onChange={(e) => setValue("prompt", e.target.value)}
                   placeholder={t("enterPrompt")}
+                  rows={6}
                 />
               </FormField>
 
-              <FormField
-                label={t("tools")}
-                help={t("toolsHelp")}
-                horizontal
-                labelWidth="120px"
-              >
-                <ToolSelector register={register} />
+              <FormField label={t("tools")} horizontal labelWidth="140px">
+                <ToolSelector
+                  register={register}
+                  defaultValue={initialValues.tools}
+                />
               </FormField>
             </div>
           </div>
 
-          <div className="form-section model-section">
+          {/* 模型配置部分 */}
+          <div className="form-section">
             <div className="section-title">{t("modelConfiguration")}</div>
             <div className="section-content">
               <FormField
@@ -148,14 +189,13 @@ const EditCybot: React.FC<{
                     : t("customApiHelp")
                 }
                 horizontal
-                labelWidth="120px"
+                labelWidth="140px"
               >
                 <ToggleSwitch
                   checked={apiSource === "custom"}
                   onChange={(checked) => {
-                    const newSource = checked ? "custom" : "platform";
-                    setApiSource(newSource);
-                    if (newSource === "platform") {
+                    setApiSource(checked ? "custom" : "platform");
+                    if (!checked) {
                       setValue("apiKey", "");
                       setValue("useServerProxy", true);
                     }
@@ -171,7 +211,7 @@ const EditCybot: React.FC<{
                 required
                 error={errors.provider?.message}
                 horizontal
-                labelWidth="120px"
+                labelWidth="140px"
               >
                 <Combobox
                   items={getOrderedProviderOptions()}
@@ -180,37 +220,50 @@ const EditCybot: React.FC<{
                     const newProvider = item?.name || "";
                     setValue("provider", newProvider);
                     setProviderInputValue(newProvider);
-                    if (newProvider !== "Custom") {
-                      setValue("customProviderUrl", "");
-                      setValue("model", "");
-                    }
                   }}
                   labelField="name"
                   valueField="name"
                   placeholder={t("selectProvider")}
                   allowInput={true}
-                  onInputChange={(value) => setProviderInputValue(value)}
+                  onInputChange={setProviderInputValue}
                 />
               </FormField>
+
+              {(isCustomProvider || apiSource === "custom") && (
+                <FormField
+                  label={t("providerUrl")}
+                  error={errors.customProviderUrl?.message}
+                  help={t("providerUrlHelp")}
+                  horizontal
+                  labelWidth="140px"
+                >
+                  <Input
+                    {...register("customProviderUrl")}
+                    defaultValue={initialValues.customProviderUrl}
+                    placeholder={t("enterProviderUrl")}
+                    type="url"
+                  />
+                </FormField>
+              )}
 
               <FormField
                 label={t("model")}
                 required
                 error={errors.model?.message}
                 horizontal
-                labelWidth="120px"
+                labelWidth="140px"
               >
                 {isCustomProvider ? (
                   <Input
                     {...register("model")}
+                    defaultValue={initialValues.model}
                     placeholder={t("enterModelName")}
                   />
                 ) : (
                   <Combobox
                     items={models}
                     selectedItem={
-                      models.find((model) => watch("model") === model.name) ||
-                      null
+                      models.find((m) => watch("model") === m.name) || null
                     }
                     onChange={(item) => setValue("model", item?.name || "")}
                     labelField="name"
@@ -242,10 +295,11 @@ const EditCybot: React.FC<{
                   error={errors.apiKey?.message}
                   help={t("apiKeyHelp")}
                   horizontal
-                  labelWidth="120px"
+                  labelWidth="140px"
                 >
                   <PasswordInput
                     {...register("apiKey")}
+                    defaultValue={initialValues.apiKey}
                     placeholder={t("enterApiKey")}
                   />
                 </FormField>
@@ -259,7 +313,7 @@ const EditCybot: React.FC<{
                     : t("proxyHelp")
                 }
                 horizontal
-                labelWidth="120px"
+                labelWidth="140px"
               >
                 <ToggleSwitch
                   checked={useServerProxy}
@@ -270,89 +324,77 @@ const EditCybot: React.FC<{
             </div>
           </div>
 
-          <div className="form-section tools-community-section">
+          {/* 社区设置部分 */}
+          <div className="form-section">
+            <div className="section-title">{t("communitySettings")}</div>
             <div className="section-content">
-              <div className="community-section">
-                <FormField
-                  label={t("shareInCommunity")}
-                  help={
-                    apiSource === "platform"
-                      ? t("shareInCommunityHelp")
-                      : t("shareInCommunityCustomApiHelp")
-                  }
-                  horizontal
-                  labelWidth="120px"
-                >
-                  <ToggleSwitch
-                    checked={isPublic}
-                    onChange={(checked) => setValue("isPublic", checked)}
-                  />
-                </FormField>
+              <FormField
+                label={t("shareInCommunity")}
+                help={
+                  apiSource === "platform"
+                    ? t("shareInCommunityHelp")
+                    : t("shareInCommunityCustomApiHelp")
+                }
+                horizontal
+                labelWidth="140px"
+              >
+                <ToggleSwitch
+                  checked={isPublic}
+                  onChange={(checked) => setValue("isPublic", checked)}
+                />
+              </FormField>
 
-                {isPublic && (
-                  <div className="community-fields">
-                    <FormField
-                      label={t("greetingMessage")}
-                      error={errors.greeting?.message}
-                      help={t("greetingMessageHelp")}
-                      horizontal
-                      labelWidth="120px"
-                    >
-                      <Input
-                        {...register("greeting")}
-                        placeholder={t("enterGreetingMessage")}
+              {isPublic && (
+                <>
+                  <FormField
+                    label={t("greetingMessage")}
+                    error={errors.greeting?.message}
+                    help={t("greetingMessageHelp")}
+                    horizontal
+                    labelWidth="140px"
+                  >
+                    <Input
+                      {...register("greeting")}
+                      defaultValue={initialValues.greeting}
+                      placeholder={t("enterGreetingMessage")}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label={t("selfIntroduction")}
+                    error={errors.introduction?.message}
+                    help={t("selfIntroductionHelp")}
+                    horizontal
+                    labelWidth="140px"
+                  >
+                    <TextArea
+                      {...register("introduction")}
+                      defaultValue={initialValues.introduction}
+                      placeholder={t("enterSelfIntroduction")}
+                      rows={4}
+                    />
+                  </FormField>
+
+                  <FormField label={t("pricing")} horizontal labelWidth="140px">
+                    <div className="price-inputs">
+                      <NumberInput
+                        value={inputPrice}
+                        onChange={setInputPrice}
+                        decimal={4}
+                        placeholder={t("inputPrice")}
+                        aria-label={t("inputPricePerThousand")}
                       />
-                    </FormField>
-
-                    <FormField
-                      label={t("selfIntroduction")}
-                      error={errors.introduction?.message}
-                      help={t("selfIntroductionHelp")}
-                      horizontal
-                      labelWidth="120px"
-                    >
-                      <TextArea
-                        {...register("introduction")}
-                        placeholder={t("enterSelfIntroduction")}
+                      <NumberInput
+                        value={outputPrice}
+                        onChange={setOutputPrice}
+                        decimal={4}
+                        placeholder={t("outputPrice")}
+                        aria-label={t("outputPricePerThousand")}
                       />
-                    </FormField>
-
-                    <div className="price-settings">
-                      <FormField
-                        label={t("inputPrice")}
-                        help={t("inputPriceHelp")}
-                        horizontal
-                        labelWidth="120px"
-                      >
-                        <Input
-                          type="number"
-                          value={inputPrice}
-                          onChange={(e) =>
-                            setInputPrice(Number(e.target.value))
-                          }
-                          placeholder="0.00"
-                        />
-                      </FormField>
-
-                      <FormField
-                        label={t("outputPrice")}
-                        help={t("outputPriceHelp")}
-                        horizontal
-                        labelWidth="120px"
-                      >
-                        <Input
-                          type="number"
-                          value={outputPrice}
-                          onChange={(e) =>
-                            setOutputPrice(Number(e.target.value))
-                          }
-                          placeholder="0.00"
-                        />
-                      </FormField>
                     </div>
-                  </div>
-                )}
-              </div>
+                  </FormField>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -369,52 +411,52 @@ const EditCybot: React.FC<{
           {isSubmitting ? t("updating") : t("update")}
         </Button>
       </form>
+
       <style jsx>{`
+        /* Layout Constants */
         .edit-cybot-container {
-          max-width: 1200px;
+          max-width: 800px;
           margin: 0 auto;
-          padding: 24px;
+          padding: 20px;
         }
 
+        /* Form Structure */
         form {
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 20px;
         }
 
         .form-layout {
-          display: grid;
-          grid-template-columns: 1.2fr 0.8fr;
-          gap: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
         }
 
+        /* Section Styling */
         .form-section {
+          padding: 20px;
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.border};
           border-radius: 8px;
-          padding: 24px;
-        }
-
-        .basic-section {
-          grid-row: span 2;
-          height: calc(100% - 24px);
         }
 
         .section-title {
+          color: ${theme.textDim};
           font-size: 15px;
           font-weight: 600;
-          color: ${theme.textDim};
           margin-bottom: 20px;
-          padding-bottom: 12px;
+          padding-bottom: 10px;
           border-bottom: 1px solid ${theme.border};
         }
 
         .section-content {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 16px;
         }
 
+        /* Model Option & Indicators */
         .model-option {
           display: flex;
           justify-content: space-between;
@@ -431,82 +473,51 @@ const EditCybot: React.FC<{
         .vision-badge {
           background: ${theme.primaryGhost};
           color: ${theme.primary};
+          font-size: 12px;
           padding: 2px 6px;
           border-radius: 4px;
-          font-size: 12px;
         }
 
-        .community-fields {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
+        .check-icon {
+          color: ${theme.primary};
         }
 
-        .price-settings {
+        /* Price Inputs Grid */
+        .price-inputs {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 16px;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
         }
 
-        /* 新增工具选择器样式 */
-        :global(.tool-selector) {
-          border: 1px solid ${theme.border};
-          border-radius: 8px;
-          padding: 12px;
-          margin-top: 8px;
-        }
-
-        :global(.tool-item) {
-          padding: 8px 12px;
-          border-radius: 6px;
-          transition: background 0.2s;
-        }
-
-        :global(.tool-item:hover) {
-          background: ${theme.backgroundHover};
-        }
-
-        @media (max-width: 1024px) {
-          .form-layout {
-            grid-template-columns: 1fr;
-          }
-
-          .basic-section {
-            grid-row: auto;
-            height: auto;
-          }
-
-          .price-settings {
-            grid-template-columns: 1fr;
-          }
-        }
-
+        /* Mobile Responsive */
         @media (max-width: 640px) {
           .edit-cybot-container {
             padding: 16px;
           }
 
-          .form-layout {
-            gap: 16px;
-          }
-
-          .form-section {
-            padding: 16px;
-          }
-
+          .form-section,
           .section-content {
-            gap: 16px;
+            padding: 16px;
+            gap: 12px;
           }
 
-          /* 调整水平表单字段的标签宽度 */
+          .section-title {
+            font-size: 14px;
+            margin-bottom: 16px;
+          }
+
+          .price-inputs {
+            grid-template-columns: 1fr;
+          }
+
           :global(.form-field.horizontal) {
-            align-items: flex-start;
             flex-direction: column;
+            gap: 8px;
           }
 
           :global(.form-field.horizontal .form-label) {
             width: 100% !important;
-            margin-bottom: 8px;
+            text-align: left;
           }
         }
       `}</style>

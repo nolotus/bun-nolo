@@ -2,16 +2,14 @@
 import { useTheme } from "app/theme";
 import type React from "react";
 
-
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: React.ReactNode;
   error?: boolean;
 }
 
-
 export const Input = ({ icon, error, style, ...props }: InputProps) => {
   const theme = useTheme();
-
 
   return (
     <>
