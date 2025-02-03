@@ -182,7 +182,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       <style jsx>{`
         /* 移动端基础样式 */
         .message-input-container {
-          position: fixed;
           bottom: 0;
           left: 0;
           right: 0;
