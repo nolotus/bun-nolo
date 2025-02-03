@@ -93,7 +93,6 @@ export const noloWriteRequest = async (
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    logger.info({ server }, "Write request successful");
     return true;
   } catch (error) {
     if (error.name === "AbortError") {
