@@ -10,7 +10,6 @@ export const fireworksmodels: Model[] = [
       input: 24, // 3 * 8
       output: 24, // 3 * 8
     },
-    speed: 73,
   },
   {
     name: "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
@@ -50,6 +49,16 @@ export const fireworksmodels: Model[] = [
     price: {
       input: 1.6, // 0.2 * 8
       output: 1.6, // 0.2 * 8
+    },
+  },
+  {
+    name: "accounts/fireworks/models/deepseek-r1",
+    displayName: "DeepSeek R1",
+    hasVision: false,
+    contextWindow: 160000, // 160k
+    price: {
+      input: 64, // 8 * 8
+      output: 64, // 8 * 8
     },
   },
 ];
