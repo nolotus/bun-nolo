@@ -15,7 +15,6 @@ import { clearCurrentDialog, deleteMessage } from "../messages/messageSlice";
 
 import { runCybotId } from "ai/cybot/cybotSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
-import { isProduction } from "utils/env";
 import { DataType } from "create/types";
 import { ulid } from "ulid";
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
@@ -45,9 +44,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
     if (content) {
       try {
         const slateData = markdownToSlate(content);
-        const cybotId = isProduction
-          ? "000000100000-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGTFKJ7TRE78ZB1E1ZSJRAFJ"
-          : "cybot-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JGV8AB85FP1GC3Z42W9ATSPG";
+        const cybotId = "cybot-pub-01JK56SHZ7MK58QB98BK4VJ963";
         const title = await dispatch(
           runCybotId({
             cybotId,
