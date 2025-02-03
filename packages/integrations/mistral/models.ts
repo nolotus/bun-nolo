@@ -33,8 +33,8 @@ export const mistralModels: Model[] = [
       "Cost-efficient, fast, and reliable option for use cases such as translation, summarization, and sentiment analysis",
     contextWindow: 32000,
     price: {
-      input: 1.6, // $0.2 * 8
-      output: 4.8, // $0.6 * 8
+      input: 0.8, // $0.1 * 8
+      output: 2.4, // $0.3 * 8
     },
   },
   {
@@ -47,51 +47,6 @@ export const mistralModels: Model[] = [
     price: {
       input: 2.4, // $0.3 * 8
       output: 7.2, // $0.9 * 8
-    },
-  },
-  {
-    name: "ministral-8b-latest",
-    displayName: "Ministral 8B 24.10",
-    hasVision: false,
-    description: "Powerful model for on-device use cases",
-    contextWindow: 128000,
-    price: {
-      input: 0.8, // $0.1 * 8
-      output: 0.8, // $0.1 * 8
-    },
-  },
-  {
-    name: "ministral-3b-latest",
-    displayName: "Ministral 3B 24.10",
-    hasVision: false,
-    description: "Most efficient edge model",
-    contextWindow: 128000,
-    price: {
-      input: 0.32, // $0.04 * 8
-      output: 0.32, // $0.04 * 8
-    },
-  },
-  {
-    name: "mistral-embed",
-    displayName: "Mistral Embed",
-    hasVision: false,
-    description:
-      "State-of-the-art semantic for extracting representation of text extracts",
-    contextWindow: 128000,
-    price: {
-      input: 0.8, // $0.1 * 8
-      output: 0, // embedding model 没有输出价格
-    },
-  },
-  {
-    name: "mistral-moderation-latest",
-    displayName: "Mistral Moderation 24.11",
-    hasVision: false,
-    description: "A classifier service for text content moderation",
-    contextWindow: 128000,
-    price: {
-      input: 0.8, // $0.1 * 8
-      output: 0, // moderation model 没有输出价格
     },
   },
 ];

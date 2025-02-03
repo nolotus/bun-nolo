@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Table, TableRow, TableCell } from "web/ui/Table";
 import { deepseekModels } from "./modelData";
-import { anthropicModels } from "integrations/anthropic/models";
+import { fireworksmodels } from "integrations/fireworks/models";
+import { anthropicModels } from "integrations/anthropic/anthropicModels";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { openAIModels } from "integrations/openai/models";
 import { mistralModels } from "integrations/mistral/models";
@@ -27,6 +28,7 @@ const ModelComparison = () => {
     { models: openAIModels, name: "OpenAI" },
     { models: googleModels, name: "Google" },
     { models: deepseekModels, name: "Deepseek" },
+    { models: fireworksmodels, name: "Fireworks" },
   ];
 
   const combinedModels = modelProviders.flatMap(({ models, name }) =>

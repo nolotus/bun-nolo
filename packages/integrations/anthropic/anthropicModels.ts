@@ -32,19 +32,4 @@ export const anthropicModels: Model[] = [
       cachingRead: 0.64, // $0.08/MTok * 8
     },
   },
-  {
-    name: "claude-3-opus-20240229",
-    displayName: "Claude 3 Opus",
-    hasVision: true,
-    description: "Powerful model for complex tasks",
-    strengths: "Best for complex reasoning and specialized tasks",
-    contextWindow: 200000,
-    maxOutputTokens: 8192,
-    price: {
-      input: 120.0, // $15/MTok * 8
-      output: 600.0, // $75/MTok * 8
-      cachingWrite: 150.0, // $18.75/MTok * 8
-      cachingRead: 12.0, // $1.50/MTok * 8
-    },
-  },
 ];
