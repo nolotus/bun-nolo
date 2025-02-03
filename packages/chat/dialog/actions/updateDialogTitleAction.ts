@@ -2,7 +2,6 @@ import { runCybotId } from "ai/cybot/cybotSlice";
 import { getFilteredMessages } from "chat/messages/utils";
 import { patchData, selectById } from "database/dbSlice";
 import { format, differenceInHours } from "date-fns";
-import { isProduction } from "utils/env";
 
 const TITLE_UPDATE_INTERVAL_HOURS = 6;
 // 设置为 true 将跳过时间检查，始终更新标题
@@ -43,8 +42,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
   const currentMsgs = getFilteredMessages(state);
   const content = JSON.stringify(currentMsgs);
 
-  const cybotId =
-    "cybot-UWJFNG1GZUwzLVMzaWhjTzdnWmdrLVJ6d1d6Rm9FTnhYRUNXeFgyc3h6VQ-01JJ20PMEKTBH3CPTQPYD848KA";
+  const cybotId = "cybot-pub-01JK56SHZ7MK58QB98BK4VJ963";
 
   const generateTitle = await dispatch(
     runCybotId({
