@@ -79,6 +79,11 @@ export default {
     input: "Input",
     output: "Output",
     dialogCount: "Dialogs",
+    basicInfoAndBehavior: "Basic Info & Behavior",
+    editCybot: "Edit Cybot", // 原来只有createCybot
+    pricing: "Pricing",
+    inputPricePerThousand: "Input price per 1M tokens",
+    outputPricePerThousand: "Output price per 1M tokens",
   },
   "zh-CN": {
     translation: {
@@ -155,6 +160,11 @@ export default {
       input: "输入",
       output: "输出",
       dialogCount: "对话",
+      basicInfoAndBehavior: "基本信息与行为设置",
+      editCybot: "编辑 Cybot",
+      pricing: "价格设置",
+      inputPricePerThousand: "每百万输入词元价格",
+      outputPricePerThousand: "每百万输出词元价格",
     },
   },
   "zh-Hant": {
@@ -232,6 +242,11 @@ export default {
       input: "輸入",
       output: "輸出",
       dialogCount: "對話",
+      basicInfoAndBehavior: "基本信息與行為設置",
+      editCybot: "編輯 Cybot",
+      pricing: "價格設置",
+      inputPricePerThousand: "每百萬輸入詞元價格",
+      outputPricePerThousand: "每百萬輸出詞元價格",
     },
   },
   ja: {
@@ -311,6 +326,11 @@ export default {
       input: "入力",
       output: "出力",
       dialogCount: "対話数",
+      basicInfoAndBehavior: "基本情報と動作設定",
+      editCybot: "Cybot を編集",
+      pricing: "価格設定",
+      inputPricePerThousand: "百万入力トークンあたりの価格",
+      outputPricePerThousand: "百万出力トークンあたりの価格",
     },
   },
 };

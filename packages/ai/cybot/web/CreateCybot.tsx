@@ -1,4 +1,3 @@
-// ai/cybot/web/CreateCybot
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,10 +12,11 @@ import { getModelsByProvider, providerOptions } from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 
-// components
+// web
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
+import { NumberInput } from "web/form/NumberInput";
 import TextArea from "web/form/Textarea";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { PlusIcon, CheckIcon } from "@primer/octicons-react";
@@ -88,274 +88,260 @@ const CreateCybot: React.FC = () => {
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-layout">
-          <div className="form-main">
-            {/* 基础信息与行为设置部分 */}
-            <div className="form-section">
-              <div className="section-title">{t("basicInfoAndBehavior")}</div>
-              <div className="section-content">
+          {/* 基础信息与行为设置部分 */}
+          <div className="form-section">
+            <div className="section-title">{t("basicInfoAndBehavior")}</div>
+            <div className="section-content">
+              <FormField
+                label={t("cybotName")}
+                required
+                error={errors.name?.message}
+                horizontal
+                labelWidth="140px"
+              >
+                <Input
+                  {...register("name")}
+                  placeholder={t("enterCybotName")}
+                />
+              </FormField>
+
+              <FormField
+                label={t("prompt")}
+                error={errors.prompt?.message}
+                help={t("promptHelp")}
+                horizontal
+                labelWidth="140px"
+              >
+                <TextArea
+                  {...register("prompt")}
+                  placeholder={t("enterPrompt")}
+                />
+              </FormField>
+
+              <FormField label={t("tools")} horizontal labelWidth="140px">
+                <ToolSelector register={register} />
+              </FormField>
+            </div>
+          </div>
+
+          {/* 模型配置部分 */}
+          <div className="form-section">
+            <div className="section-title">{t("modelConfiguration")}</div>
+            <div className="section-content">
+              <FormField
+                label={t("apiSource")}
+                help={
+                  apiSource === "platform"
+                    ? t("platformApiHelp")
+                    : t("customApiHelp")
+                }
+                horizontal
+                labelWidth="140px"
+              >
+                <ToggleSwitch
+                  checked={apiSource === "custom"}
+                  onChange={(checked) => {
+                    const newSource = checked ? "custom" : "platform";
+                    setApiSource(newSource);
+                    if (newSource === "platform") {
+                      setValue("apiKey", "");
+                      setValue("useServerProxy", true);
+                    }
+                  }}
+                  label={t(
+                    apiSource === "custom" ? "useCustomApi" : "usePlatformApi"
+                  )}
+                />
+              </FormField>
+
+              <FormField
+                label={t("provider")}
+                required
+                error={errors.provider?.message}
+                horizontal
+                labelWidth="140px"
+              >
+                <Combobox
+                  items={getOrderedProviderOptions()}
+                  selectedItem={provider ? { name: provider } : null}
+                  onChange={(item) => {
+                    const newProvider = item?.name || "";
+                    setValue("provider", newProvider);
+                    setProviderInputValue(newProvider);
+                    if (newProvider !== "Custom") {
+                      setValue("customProviderUrl", "");
+                      setValue("model", "");
+                    }
+                  }}
+                  labelField="name"
+                  valueField="name"
+                  placeholder={t("selectProvider")}
+                  allowInput={true}
+                  onInputChange={(value) => setProviderInputValue(value)}
+                />
+              </FormField>
+
+              {(isCustomProvider || apiSource === "custom") && (
                 <FormField
-                  label={t("cybotName")}
-                  required
-                  error={errors.name?.message}
+                  label={t("providerUrl")}
+                  error={errors.customProviderUrl?.message}
+                  help={t("providerUrlHelp")}
                   horizontal
                   labelWidth="140px"
                 >
                   <Input
-                    {...register("name")}
-                    placeholder={t("enterCybotName")}
+                    {...register("customProviderUrl")}
+                    placeholder={t("enterProviderUrl")}
+                    type="url"
                   />
                 </FormField>
+              )}
 
-                <FormField
-                  label={t("prompt")}
-                  error={errors.prompt?.message}
-                  help={t("promptHelp")}
-                  horizontal
-                  labelWidth="140px"
-                >
-                  <TextArea
-                    {...register("prompt")}
-                    placeholder={t("enterPrompt")}
+              <FormField
+                label={t("model")}
+                required
+                error={errors.model?.message}
+                horizontal
+                labelWidth="140px"
+              >
+                {isCustomProvider ? (
+                  <Input
+                    {...register("model")}
+                    placeholder={t("enterModelName")}
                   />
-                </FormField>
-
-                <FormField label={t("tools")} horizontal labelWidth="140px">
-                  <ToolSelector register={register} />
-                </FormField>
-              </div>
-            </div>
-
-            {/* 模型配置部分 */}
-            <div className="form-section">
-              <div className="section-title">{t("modelConfiguration")}</div>
-              <div className="section-content">
-                <FormField
-                  label={t("apiSource")}
-                  help={
-                    apiSource === "platform"
-                      ? t("platformApiHelp")
-                      : t("customApiHelp")
-                  }
-                  horizontal
-                  labelWidth="140px"
-                >
-                  <ToggleSwitch
-                    checked={apiSource === "custom"}
-                    onChange={(checked) => {
-                      const newSource = checked ? "custom" : "platform";
-                      setApiSource(newSource);
-                      if (newSource === "platform") {
-                        setValue("apiKey", "");
-                        setValue("useServerProxy", true);
-                      }
-                    }}
-                    label={t(
-                      apiSource === "custom" ? "useCustomApi" : "usePlatformApi"
-                    )}
-                  />
-                </FormField>
-
-                <FormField
-                  label={t("provider")}
-                  required
-                  error={errors.provider?.message}
-                  horizontal
-                  labelWidth="140px"
-                >
+                ) : (
                   <Combobox
-                    items={getOrderedProviderOptions()}
-                    selectedItem={provider ? { name: provider } : null}
-                    onChange={(item) => {
-                      const newProvider = item?.name || "";
-                      setValue("provider", newProvider);
-                      setProviderInputValue(newProvider);
-                      if (newProvider !== "Custom") {
-                        setValue("customProviderUrl", "");
-                        setValue("model", "");
-                      }
-                    }}
+                    items={models}
+                    selectedItem={
+                      models.find((model) => watch("model") === model.name) ||
+                      null
+                    }
+                    onChange={(item) => setValue("model", item?.name || "")}
                     labelField="name"
                     valueField="name"
-                    placeholder={t("selectProvider")}
-                    allowInput={true}
-                    onInputChange={(value) => setProviderInputValue(value)}
-                  />
-                </FormField>
-
-                {(isCustomProvider || apiSource === "custom") && (
-                  <FormField
-                    label={t("providerUrl")}
-                    error={errors.customProviderUrl?.message}
-                    help={t("providerUrlHelp")}
-                    horizontal
-                    labelWidth="140px"
-                  >
-                    <Input
-                      {...register("customProviderUrl")}
-                      placeholder={t("enterProviderUrl")}
-                      type="url"
-                    />
-                  </FormField>
-                )}
-
-                <FormField
-                  label={t("model")}
-                  required
-                  error={errors.model?.message}
-                  horizontal
-                  labelWidth="140px"
-                >
-                  {isCustomProvider ? (
-                    <Input
-                      {...register("model")}
-                      placeholder={t("enterModelName")}
-                    />
-                  ) : (
-                    <Combobox
-                      items={models}
-                      selectedItem={
-                        models.find((model) => watch("model") === model.name) ||
-                        null
-                      }
-                      onChange={(item) => setValue("model", item?.name || "")}
-                      labelField="name"
-                      valueField="name"
-                      placeholder={t("selectModel")}
-                      renderOptionContent={(
-                        item,
-                        isHighlighted,
-                        isSelected
-                      ) => (
-                        <div className="model-option">
-                          <span>{item.name}</span>
-                          <div className="model-indicators">
-                            {item.hasVision && (
-                              <span className="vision-badge">
-                                {t("supportsVision")}
-                              </span>
-                            )}
-                            {isSelected && (
-                              <CheckIcon size={16} className="check-icon" />
-                            )}
-                          </div>
+                    placeholder={t("selectModel")}
+                    renderOptionContent={(item, isHighlighted, isSelected) => (
+                      <div className="model-option">
+                        <span>{item.name}</span>
+                        <div className="model-indicators">
+                          {item.hasVision && (
+                            <span className="vision-badge">
+                              {t("supportsVision")}
+                            </span>
+                          )}
+                          {isSelected && (
+                            <CheckIcon size={16} className="check-icon" />
+                          )}
                         </div>
-                      )}
-                    />
-                  )}
-                </FormField>
-
-                {apiSource === "custom" && (
-                  <FormField
-                    label={t("apiKey")}
-                    required
-                    error={errors.apiKey?.message}
-                    help={t("apiKeyHelp")}
-                    horizontal
-                    labelWidth="140px"
-                  >
-                    <PasswordInput
-                      {...register("apiKey")}
-                      placeholder={t("enterApiKey")}
-                    />
-                  </FormField>
+                      </div>
+                    )}
+                  />
                 )}
+              </FormField>
 
+              {apiSource === "custom" && (
                 <FormField
-                  label={t("useServerProxy")}
-                  help={
-                    isProxyDisabled
-                      ? t("proxyNotAvailableForProvider")
-                      : t("proxyHelp")
-                  }
+                  label={t("apiKey")}
+                  required
+                  error={errors.apiKey?.message}
+                  help={t("apiKeyHelp")}
                   horizontal
                   labelWidth="140px"
                 >
-                  <ToggleSwitch
-                    checked={useServerProxy}
-                    onChange={(checked) => setValue("useServerProxy", checked)}
-                    disabled={isProxyDisabled || apiSource === "platform"}
+                  <PasswordInput
+                    {...register("apiKey")}
+                    placeholder={t("enterApiKey")}
                   />
                 </FormField>
-              </div>
+              )}
+
+              <FormField
+                label={t("useServerProxy")}
+                help={
+                  isProxyDisabled
+                    ? t("proxyNotAvailableForProvider")
+                    : t("proxyHelp")
+                }
+                horizontal
+                labelWidth="140px"
+              >
+                <ToggleSwitch
+                  checked={useServerProxy}
+                  onChange={(checked) => setValue("useServerProxy", checked)}
+                  disabled={isProxyDisabled || apiSource === "platform"}
+                />
+              </FormField>
             </div>
           </div>
 
           {/* 社区设置部分 */}
-          <div className="form-side">
-            <div className="form-section">
-              <div className="section-title">{t("communitySettings")}</div>
-              <div className="section-content">
-                <FormField
-                  label={t("shareInCommunity")}
-                  help={
-                    apiSource === "platform"
-                      ? t("shareInCommunityHelp")
-                      : t("shareInCommunityCustomApiHelp")
-                  }
-                  horizontal
-                  labelWidth="140px"
-                >
-                  <ToggleSwitch
-                    checked={isPublic}
-                    onChange={(checked) => setValue("isPublic", checked)}
-                  />
-                </FormField>
+          <div className="form-section">
+            <div className="section-title">{t("communitySettings")}</div>
+            <div className="section-content">
+              <FormField
+                label={t("shareInCommunity")}
+                help={
+                  apiSource === "platform"
+                    ? t("shareInCommunityHelp")
+                    : t("shareInCommunityCustomApiHelp")
+                }
+                horizontal
+                labelWidth="140px"
+              >
+                <ToggleSwitch
+                  checked={isPublic}
+                  onChange={(checked) => setValue("isPublic", checked)}
+                />
+              </FormField>
 
-                {isPublic && (
-                  <>
-                    <FormField
-                      label={t("greetingMessage")}
-                      error={errors.greeting?.message}
-                      help={t("greetingMessageHelp")}
-                      horizontal
-                      labelWidth="140px"
-                    >
-                      <Input
-                        {...register("greeting")}
-                        placeholder={t("enterGreetingMessage")}
+              {isPublic && (
+                <>
+                  <FormField
+                    label={t("greetingMessage")}
+                    error={errors.greeting?.message}
+                    help={t("greetingMessageHelp")}
+                    horizontal
+                    labelWidth="140px"
+                  >
+                    <Input
+                      {...register("greeting")}
+                      placeholder={t("enterGreetingMessage")}
+                    />
+                  </FormField>
+
+                  <FormField
+                    label={t("selfIntroduction")}
+                    error={errors.introduction?.message}
+                    help={t("selfIntroductionHelp")}
+                    horizontal
+                    labelWidth="140px"
+                  >
+                    <TextArea
+                      {...register("introduction")}
+                      placeholder={t("enterSelfIntroduction")}
+                    />
+                  </FormField>
+
+                  <FormField label={t("pricing")} horizontal labelWidth="140px">
+                    <div className="price-inputs">
+                      <NumberInput
+                        value={inputPrice}
+                        onChange={setInputPrice}
+                        decimal={4}
+                        placeholder={t("inputPrice")}
+                        aria-label="每千字输入单价"
                       />
-                    </FormField>
-
-                    <FormField
-                      label={t("selfIntroduction")}
-                      error={errors.introduction?.message}
-                      help={t("selfIntroductionHelp")}
-                      horizontal
-                      labelWidth="140px"
-                    >
-                      <TextArea
-                        {...register("introduction")}
-                        placeholder={t("enterSelfIntroduction")}
+                      <NumberInput
+                        value={outputPrice}
+                        onChange={setOutputPrice}
+                        decimal={4}
+                        placeholder={t("outputPrice")}
+                        aria-label="每千字输出单价"
                       />
-                    </FormField>
-
-                    <FormField
-                      label={t("pricing")}
-                      horizontal
-                      labelWidth="140px"
-                    >
-                      <div className="price-inputs">
-                        <Input
-                          type="number"
-                          value={inputPrice}
-                          onChange={(e) =>
-                            setInputPrice(Number(e.target.value))
-                          }
-                          placeholder={t("inputPrice")}
-                        />
-                        <Input
-                          type="number"
-                          value={outputPrice}
-                          onChange={(e) =>
-                            setOutputPrice(Number(e.target.value))
-                          }
-                          placeholder={t("outputPrice")}
-                        />
-                      </div>
-                    </FormField>
-                  </>
-                )}
-              </div>
+                    </div>
+                  </FormField>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -372,9 +358,10 @@ const CreateCybot: React.FC = () => {
           {isSubmitting ? t("creating") : t("create")}
         </Button>
       </form>
+
       <style jsx>{`
         .create-cybot-container {
-          max-width: 1200px;
+          max-width: 800px;
           margin: 0 auto;
           padding: 20px;
         }
@@ -386,21 +373,9 @@ const CreateCybot: React.FC = () => {
         }
 
         .form-layout {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 380px;
-          gap: 20px;
-          align-items: start;
-        }
-
-        .form-main {
           display: flex;
           flex-direction: column;
           gap: 20px;
-        }
-
-        .form-side {
-          position: sticky;
-          top: 20px;
         }
 
         .form-section {
@@ -486,23 +461,9 @@ const CreateCybot: React.FC = () => {
         }
 
         /* Responsive Layout */
-        @media (max-width: 1024px) {
-          .form-layout {
-            grid-template-columns: 1fr;
-          }
-
-          .form-side {
-            position: static;
-          }
-        }
-
         @media (max-width: 640px) {
           .create-cybot-container {
             padding: 16px;
-          }
-
-          .form-layout {
-            gap: 16px;
           }
 
           .form-section {
