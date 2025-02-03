@@ -42,16 +42,6 @@ export const fireworksmodels: Model[] = [
     },
   },
   {
-    name: "accounts/fireworks/models/llama-v3p1-8b-instruct",
-    displayName: "LLaMA V3.1 8B",
-    hasVision: false,
-    contextWindow: 131072,
-    price: {
-      input: 1.6, // 0.2 * 8
-      output: 1.6, // 0.2 * 8
-    },
-  },
-  {
     name: "accounts/fireworks/models/deepseek-r1",
     displayName: "DeepSeek R1",
     hasVision: false,

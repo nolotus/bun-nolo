@@ -1,4 +1,4 @@
-import { anthropicModels } from "integrations/anthropic/models";
+import { anthropicModels } from "integrations/anthropic/anthropicModels";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { fireworksmodels } from "integrations/fireworks/models";
