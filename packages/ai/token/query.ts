@@ -89,23 +89,26 @@ export const queryUserTokens = async (params: QueryParams) => {
     const records = await iterateDb<TokenRecord>({
       gte: start,
       lte: end,
-      limit,
-      offset,
+      limit: limit + offset, // 修改 limit 来包含 offset
+      offset: 0, // 修改 offset 来从头开始查询
       reverse: true,
     })((record) => !model || record.model === model);
+
+    // 返回 offset 之后的记录
+    const result = records.slice(offset, offset + limit);
 
     logger.debug(
       {
         startKey: start,
         endKey: end,
-        count: records.length,
+        count: result.length,
         offset,
         limit,
       },
       "Query completed"
     );
 
-    return records;
+    return result;
   } catch (err) {
     logger.error({ err }, "Query failed");
     throw err;
