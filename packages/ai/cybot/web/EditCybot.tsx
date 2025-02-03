@@ -353,7 +353,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                     horizontal
                     labelWidth="140px"
                   >
-                    <Input
+                    <TextArea
                       {...register("greeting")}
                       defaultValue={initialValues.greeting}
                       placeholder={t("enterGreetingMessage")}

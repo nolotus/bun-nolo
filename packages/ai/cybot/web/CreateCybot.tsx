@@ -303,7 +303,7 @@ const CreateCybot: React.FC = () => {
                     horizontal
                     labelWidth="140px"
                   >
-                    <Input
+                    <TextArea
                       {...register("greeting")}
                       placeholder={t("enterGreetingMessage")}
                     />

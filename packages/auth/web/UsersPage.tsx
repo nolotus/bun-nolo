@@ -307,7 +307,7 @@ export default function UsersPage() {
         username={rechargeModal.username}
       />
 
-      <style jsx>{`
+      <style href="users-page">{`
         .users-page {
           padding: 24px;
           min-height: calc(100dvh - 60px);
@@ -359,7 +359,6 @@ export default function UsersPage() {
         .table-container {
           flex: 1;
           overflow: auto;
-          border: 1px solid ${theme.border};
           border-radius: 8px;
           background: ${theme.background};
         }
