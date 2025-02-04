@@ -4,9 +4,21 @@ import { saveTokenUsage } from "ai/token/db";
 import { TokenUsageData } from "ai/token/types";
 import { normalizeUsage } from "ai/token/normalizeUsage";
 import { calculatePrice } from "ai/token/calculatePrice";
-import { pino } from "pino";
+import { createTokenRecord } from "ai/token/record";
+import { createTokenKey } from "database/keys";
+import { ulid } from "ulid";
+import { format } from "date-fns";
+import { write } from "database/dbSlice";
 
-const logger = pino({ name: "token-action" });
+const enrichData = (data: TokenUsageData) => {
+  const timestamp = Date.now();
+  return {
+    ...data,
+    timestamp,
+    id: ulid(timestamp),
+    dateKey: format(timestamp, "yyyy-MM-dd"),
+  };
+};
 
 export const updateTokensAction = async (
   { dialogId, usage: usageRaw, cybotConfig },
@@ -24,8 +36,6 @@ export const updateTokensAction = async (
     creatorId,
   };
 
-  logger.debug({ externalPrice }, "Calculating token price");
-
   const usage = normalizeUsage(usageRaw);
 
   const result = calculatePrice({
@@ -41,7 +51,6 @@ export const updateTokensAction = async (
     cybotId: cybotConfig.id,
     model: cybotConfig.model,
     provider: cybotConfig.provider,
-    // 移除date字段，让db层处理时间戳
     type: DataType.TOKEN,
     dialogId,
     cost: result.cost,
@@ -49,20 +58,24 @@ export const updateTokensAction = async (
   };
 
   try {
-    await saveTokenUsage(data, thunkApi);
-    logger.info(
-      {
-        dialogId,
-        model: cybotConfig.model,
-        tokens: {
-          input: usage.input_tokens,
-          output: usage.output_tokens,
+    const enrichedData = enrichData(data);
+    const record = createTokenRecord(enrichedData);
+
+    const key = createTokenKey.record(data.userId, enrichedData.timestamp);
+
+    await thunkApi.dispatch(
+      write({
+        data: {
+          ...record,
+          id: key,
+          type: DataType.TOKEN,
         },
-      },
-      "Token usage saved"
+        customId: key,
+      })
     );
+
+    await saveTokenUsage(data, thunkApi);
   } catch (error) {
-    logger.error({ error }, "Failed to save token usage");
     throw error;
   }
 

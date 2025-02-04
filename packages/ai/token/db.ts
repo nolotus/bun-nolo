@@ -1,7 +1,6 @@
-import { createTokenStatsKey, createTokenKey } from "database/keys";
-import { TokenUsageData, TokenRecord } from "./types";
+import { createTokenStatsKey } from "database/keys";
+import { TokenUsageData } from "./types";
 import { ulid } from "ulid";
-import { createTokenRecord } from "./record";
 import { createInitialDayStats, updateDayStats } from "./stats";
 import { format } from "date-fns";
 import { pino } from "pino";
@@ -18,38 +17,6 @@ const enrichData = (data: TokenUsageData) => {
     id: ulid(timestamp),
     dateKey: format(timestamp, "yyyy-MM-dd"),
   };
-};
-
-const saveTokenRecord = async (
-  data: TokenUsageData,
-  thunkApi
-): Promise<TokenRecord> => {
-  try {
-    const enrichedData = enrichData(data);
-    const record = createTokenRecord(enrichedData);
-    const key = createTokenKey.record(data.userId, enrichedData.timestamp);
-
-    logger.info(
-      { key, timestamp: enrichedData.timestamp },
-      "Saving token record"
-    );
-
-    await thunkApi.dispatch(
-      write({
-        data: {
-          ...record,
-          id: key,
-          type: DataType.TOKEN,
-        },
-        customId: key,
-      })
-    );
-
-    return record;
-  } catch (error) {
-    logger.error({ error }, "Failed to save token record");
-    throw error;
-  }
 };
 
 const saveDayStats = async (
@@ -92,10 +59,7 @@ const saveDayStats = async (
 export const saveTokenUsage = async (data: TokenUsageData, thunkApi) => {
   try {
     const enrichedData = enrichData(data);
-    const [record] = await Promise.all([
-      saveTokenRecord(data, thunkApi),
-      saveDayStats(data, enrichedData, thunkApi),
-    ]);
+    const record = await saveDayStats(data, enrichedData, thunkApi);
 
     return {
       success: true,
