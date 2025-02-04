@@ -1,22 +1,18 @@
-// UsageRecord.tsx
 import { format, formatISO, parseISO } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { TokenRecord } from "ai/token/types";
-
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTheme } from "app/theme";
 import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
 import { selectCurrentUserId } from "auth/authSlice";
 import { useAppSelector } from "app/hooks";
 import { pino } from "pino";
-import { createStyles } from "./styles/UsageRecord.styles.tsx";
+import Pagination from "web/ui/Pagination";
 
 const logger = pino({ name: "usage-record" });
-
-// 获取用户时区
+const ITEMS_PER_PAGE = 10;
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-// 获取当前用户时区的今天日期（YYYY-MM-DD格式）
 const getTodayInUserTZ = () => {
   const today = new Date();
   const todayInUserTZ = utcToZonedTime(today, userTimeZone);
@@ -30,12 +26,10 @@ const initialFilter: RecordsFilter = {
 };
 
 const formatTokens = (record: TokenRecord) => {
-  // 只计算实际的输入 tokens
   const input = record.input_tokens;
   return `输入:${input} 输出:${record.output_tokens}`;
 };
 
-// 将UTC时间转换为用户时区时间字符串
 const formatLocalTime = (utcTime: string | number | Date) => {
   const date =
     typeof utcTime === "string" ? parseISO(utcTime) : new Date(utcTime);
@@ -49,6 +43,10 @@ const UsageRecord: React.FC = () => {
   const userId = useAppSelector(selectCurrentUserId);
   const { records, loading, totalCount } = useRecords(userId, filter);
 
+  const handlePageChange = (page: number) => {
+    setFilter((prev) => ({ ...prev, currentPage: page }));
+  };
+
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
     logger.debug(
@@ -59,7 +57,7 @@ const UsageRecord: React.FC = () => {
       },
       "Date filter changed"
     );
-    setFilter((prev) => ({ ...prev, date: newDate }));
+    setFilter((prev) => ({ ...prev, date: newDate, currentPage: 1 }));
   };
 
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -80,7 +78,50 @@ const UsageRecord: React.FC = () => {
 
   return (
     <>
-      <style>{createStyles(theme)}</style>
+      <style>{`
+        .usage-card {
+          background: ${theme.background};
+          border-radius: 12px;
+          box-shadow: 0 2px 8px ${theme.shadowLight};
+          padding: 24px;
+        }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+        .title {
+          font-size: 1.25rem;
+          font-weight: 500;
+          color: ${theme.text};
+        }
+        .filters {
+          display: flex;
+          gap: 1rem;
+        }
+        .input {
+          padding: 8px;
+          border: 1px solid ${theme.border};
+          border-radius: 6px;
+          color: ${theme.text};
+          background: ${theme.background};
+        }
+        .table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .table-row {
+          border-bottom: 1px solid ${theme.border};
+        }
+        .table td, .table th {
+          padding: 12px;
+          color: ${theme.text};
+        }
+        .footer {
+          margin-top: 1rem;
+        }
+      `}</style>
 
       <div className="usage-card">
         <div className="header">
@@ -138,34 +179,12 @@ const UsageRecord: React.FC = () => {
         </div>
 
         <div className="footer">
-          <span className="count">共 {totalCount} 条记录</span>
-          <div className="pagination">
-            <button
-              className="button"
-              onClick={() =>
-                setFilter((prev) => ({
-                  ...prev,
-                  currentPage: prev.currentPage - 1,
-                }))
-              }
-              disabled={filter.currentPage === 1 || loading}
-            >
-              上一页
-            </button>
-            <span style={{ padding: "8px" }}>第 {filter.currentPage} 页</span>
-            <button
-              className="button"
-              onClick={() =>
-                setFilter((prev) => ({
-                  ...prev,
-                  currentPage: prev.currentPage + 1,
-                }))
-              }
-              disabled={records.length < 10 || loading}
-            >
-              下一页
-            </button>
-          </div>
+          <Pagination
+            currentPage={filter.currentPage}
+            totalItems={totalCount}
+            pageSize={ITEMS_PER_PAGE}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
     </>
