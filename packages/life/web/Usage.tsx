@@ -43,7 +43,7 @@ const Usage: React.FC = () => {
 
   return (
     <div className="container">
-      <div className="actions">
+      {/* <div className="actions">
         <Button
           variant="primary"
           status="error"
@@ -64,7 +64,7 @@ const Usage: React.FC = () => {
         >
           {clearing ? "清除中..." : "清除所有记录"}
         </Button>
-      </div>
+      </div> */}
 
       <BalanceCard />
 
