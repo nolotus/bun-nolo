@@ -1,7 +1,6 @@
-// hooks/useRecords.ts
 import { useState, useCallback, useEffect } from "react";
 import { pino } from "pino";
-import { queryUserTokens } from "ai/token/query";
+import { queryUserTokens } from "ai/token/queryUserTokens";
 import { TokenRecord } from "ai/token/types";
 import { startOfDay, addDays, parseISO } from "date-fns";
 
@@ -15,11 +14,10 @@ export interface RecordsFilter {
   currentPage: number;
 }
 
-// 应该从后端获取总数，而不是用当前加载的记录数
 interface UseRecordsReturn {
   records: TokenRecord[];
   loading: boolean;
-  totalCount: number; // 这个值现在只反映了已加载的数量
+  totalCount: number; // 现在使用后端返回的总数
 }
 
 export const useRecords = (
@@ -27,6 +25,7 @@ export const useRecords = (
   filter: RecordsFilter
 ): UseRecordsReturn => {
   const [records, setRecords] = useState<TokenRecord[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const fetchRecords = useCallback(async () => {
@@ -36,13 +35,10 @@ export const useRecords = (
       const date = parseISO(filter.date);
       // 获取UTC日期的开始时间
       const startTime = startOfDay(date).getTime();
-      // 获取下一天的UTC开始时间
-      const endTime = startOfDay(addDays(date, 1)).getTime();
 
       logger.debug(
         {
           startTime: new Date(startTime).toISOString(),
-          endTime: new Date(endTime).toISOString(),
           filter,
           page: filter.currentPage,
           pageSize: ITEMS_PER_PAGE,
@@ -50,26 +46,26 @@ export const useRecords = (
         "Fetching records"
       );
 
-      const data = await queryUserTokens({
+      const result = await queryUserTokens({
         userId,
         startTime,
-        endTime,
         model: filter.model === "全部模型" ? undefined : filter.model,
-        // 应该使用 offset 而不是获取所有之前页的数据
         offset: ITEMS_PER_PAGE * (filter.currentPage - 1),
-        limit: ITEMS_PER_PAGE,
+        pageSize: ITEMS_PER_PAGE,
       });
 
       logger.info(
         {
           userId,
-          recordCount: data.length,
-          dateRange: `${new Date(startTime).toISOString()} - ${new Date(endTime).toISOString()}`,
+          recordCount: result.records.length,
+          totalCount: result.total,
+          date: new Date(startTime).toISOString(),
         },
         "Records fetched"
       );
 
-      setRecords(data);
+      setRecords(result.records);
+      setTotalCount(result.total);
     } catch (err) {
       logger.error({ err }, "Failed to fetch records");
     } finally {
@@ -84,6 +80,6 @@ export const useRecords = (
   return {
     records,
     loading,
-    totalCount: records.length,
+    totalCount,
   };
 };
