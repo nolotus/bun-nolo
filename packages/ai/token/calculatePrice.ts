@@ -1,5 +1,3 @@
-// calculatePrice.ts
-import { pipe } from "rambda";
 import { anthropicModels } from "integrations/anthropic/anthropicModels";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { openAIModels } from "integrations/openai/models";
@@ -35,6 +33,8 @@ interface CalculatePriceParams {
   usage: Usage;
   externalPrice?: ExternalPrice;
   provider?: string;
+  // 添加分成等级参数
+  sharingLevel?: "default" | "split" | "full";
 }
 
 interface PriceResult {
@@ -78,12 +78,6 @@ const getModelConfig = (provider: string, modelName: string): Model => {
 
   const model = models.find((m) => m.name === modelName);
   if (!model) throw new Error(`Model ${modelName} not found`);
-
-  console.log("[getModelConfig]", {
-    provider,
-    modelName,
-    price: model.price,
-  });
 
   return model;
 };
@@ -130,19 +124,6 @@ const calculateAnthropicCost = (
   // 使用实际价格（包含外部价格）计算收费
   const chargeInputCost = (regularInputTokens * effectiveInputPrice) / 1000000;
   const chargeOutputCost = (output_tokens * effectiveOutputPrice) / 1000000;
-
-  console.log("[calculateAnthropicCost]", {
-    regularInputTokens,
-    output_tokens,
-    cache_creation_input_tokens,
-    cache_read_input_tokens,
-    costs: {
-      regularInput: regularInputCost,
-      regularOutput: regularOutputCost,
-      cachingWrite: cachingWriteCost,
-      cachingRead: cachingReadCost,
-    },
-  });
 
   return {
     regular:
@@ -206,25 +187,6 @@ const calculateCacheBasedCost = (
   const chargeTotal =
     chargeCacheMissPrice + chargeCacheHitPrice + chargeOutputPrice;
 
-  console.log("[calculateCacheBasedCost]", {
-    provider: model.name.includes("gpt") ? "openai" : "deepseek",
-    cacheMissTokens,
-    cache_read_input_tokens,
-    output_tokens,
-    regular: {
-      cacheMiss: regularCacheMissPrice,
-      cacheHit: regularCacheHitPrice,
-      output: regularOutputPrice,
-      total: regularTotal,
-    },
-    charge: {
-      cacheMiss: chargeCacheMissPrice,
-      cacheHit: chargeCacheHitPrice,
-      output: chargeOutputPrice,
-      total: chargeTotal,
-    },
-  });
-
   return {
     regular: regularTotal,
     charge: chargeTotal,
@@ -264,22 +226,6 @@ const calculateSimpleCost = (
   const chargeOutputCost = (output_tokens * effectiveOutputPrice) / 1000000;
   const chargeTotal = chargeInputCost + chargeOutputCost;
 
-  console.log("[calculateSimpleCost]", {
-    provider: model.name,
-    input_tokens,
-    output_tokens,
-    regular: {
-      input: regularInputCost,
-      output: regularOutputCost,
-      total: regularTotal,
-    },
-    charge: {
-      input: chargeInputCost,
-      output: chargeOutputCost,
-      total: chargeTotal,
-    },
-  });
-
   return {
     regular: regularTotal,
     charge: chargeTotal,
@@ -297,7 +243,6 @@ const calculateSimpleCost = (
  * Anthropic: 使用独立的缓存写入和读取价格
  * OpenAI/DeepSeek: 使用统一的缓存命中价格
  */
-
 const calculateBasicCost = (
   model: Model,
   usage: Usage,
@@ -325,61 +270,6 @@ const calculateBasicCost = (
 };
 
 /**
- * 计算最终的支付分配
- * 不同provider有不同的分成规则：
- * - Anthropic: 创建者获得超出基础价格的部分
- * - OpenAI/DeepSeek: 固定80/20分成
- */
-const calculatePayment = (
-  costs: CostBreakdown,
-  provider: string,
-  externalPrice?: ExternalPrice
-): PriceResult => {
-  const pay: Record<string, number> = {};
-  const totalCost =
-    costs.regular +
-    (costs.details?.cachingWriteCost || 0) +
-    (costs.details?.cachingReadCost || 0);
-
-  console.log("[calculatePayment] Input:", {
-    costs,
-    provider,
-    creatorId: externalPrice?.creatorId,
-    totalCost,
-  });
-
-  if (provider === "anthropic") {
-    // Anthropic的分成规则：创建者获得超出基础价格的部分
-    if (externalPrice?.creatorId && costs.charge > costs.regular) {
-      pay[nolotusId] = costs.regular;
-      pay[externalPrice.creatorId] = costs.charge - costs.regular;
-    } else {
-      pay[nolotusId] = costs.charge;
-    }
-  } else {
-    // OpenAI/DeepSeek的分成规则：固定80/20
-    if (externalPrice?.creatorId) {
-      pay[nolotusId] = totalCost * 0.8;
-      pay[externalPrice.creatorId] = totalCost * 0.2;
-    } else {
-      pay[nolotusId] = totalCost;
-    }
-  }
-
-  // 将所有金额四舍五入到6位小数
-  const roundedPay = Object.fromEntries(
-    Object.entries(pay).map(([key, value]) => [key, Number(value.toFixed(6))])
-  );
-
-  console.log("[calculatePayment] Final payment distribution:", roundedPay);
-
-  return {
-    cost: Number(totalCost.toFixed(6)),
-    pay: roundedPay,
-  };
-};
-
-/**
  * 主函数：计算token使用的价格和分配
  * 步骤：
  * 1. 获取模型配置
@@ -391,17 +281,57 @@ export const calculatePrice = ({
   usage,
   externalPrice,
   provider = "anthropic",
+  sharingLevel = "default", // 默认分成等级为 'default'
 }: CalculatePriceParams): PriceResult => {
-  console.log("[calculatePrice] Input params:", {
-    modelName,
-    usage,
-    externalPrice,
-    provider,
-  });
+  // 获取模型配置
+  const model = getModelConfig(provider, modelName);
 
-  return pipe(
-    () => getModelConfig(provider, modelName),
-    (model) => calculateBasicCost(model, usage, provider, externalPrice),
-    (costs) => calculatePayment(costs, provider, externalPrice)
-  )();
+  // 计算基础成本
+  const costs = calculateBasicCost(model, usage, provider, externalPrice);
+
+  // 计算支付分配
+  const pay: Record<string, number> = {};
+  const totalCost =
+    costs.regular +
+    (costs.details?.cachingWriteCost || 0) +
+    (costs.details?.cachingReadCost || 0);
+
+  // 确保 nolotusId 获得总成本
+  pay[nolotusId] = totalCost;
+
+  // 定义分成规则
+  const sharingRatios = {
+    default: 0,
+    split: 0.5, // 可以根据实际情况调整
+    full: 1,
+  };
+
+  // 根据分成等级调整支付分配
+  switch (sharingLevel) {
+    case "split":
+      if (externalPrice?.creatorId) {
+        const profit = costs.charge - totalCost;
+        pay[externalPrice.creatorId] = profit * sharingRatios.split;
+      }
+      break;
+    case "full":
+      if (externalPrice?.creatorId) {
+        pay[externalPrice.creatorId] = costs.charge;
+      }
+      break;
+    case "default":
+    default:
+      // 默认情况，所有利润归我们所有
+      break;
+  }
+
+  // 将所有金额四舍五入到6位小数
+  const roundedPay = Object.fromEntries(
+    Object.entries(pay).map(([key, value]) => [key, Number(value.toFixed(6))])
+  );
+
+  return {
+    cost: Number(totalCost.toFixed(6)),
+    pay: roundedPay,
+  };
 };

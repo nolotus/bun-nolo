@@ -103,6 +103,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             label={t("cybotName")}
             required
             error={errors.name?.message}
+            horizontal // 明确设置为水平布局
           >
             <Input {...register("name")} placeholder={t("enterCybotName")} />
           </FormField>
@@ -111,6 +112,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             label={t("prompt")}
             error={errors.prompt?.message}
             help={t("promptHelp")}
+            horizontal // 明确设置为水平布局
           >
             <Textarea {...register("prompt")} placeholder={t("enterPrompt")} />
           </FormField>
@@ -122,6 +124,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             label={t("provider")}
             required
             error={errors.provider?.message}
+            horizontal // 明确设置为水平布局
           >
             <Combobox
               items={getOrderedProviderOptions()}
@@ -143,6 +146,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             <FormField
               label={t("providerUrl")}
               error={errors.customProviderUrl?.message}
+              horizontal // 明确设置为水平布局
             >
               <Input
                 {...register("customProviderUrl")}
@@ -152,7 +156,12 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             </FormField>
           )}
 
-          <FormField label={t("model")} required error={errors.model?.message}>
+          <FormField
+            label={t("model")}
+            required
+            error={errors.model?.message}
+            horizontal // 明确设置为水平布局
+          >
             {isCustomProvider ? (
               <Input {...register("model")} placeholder={t("enterModelName")} />
             ) : (
@@ -184,7 +193,11 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             )}
           </FormField>
 
-          <FormField label={t("useServerProxy")} help={t("proxyHelp")}>
+          <FormField
+            label={t("useServerProxy")}
+            help={t("proxyHelp")}
+            horizontal // 明确设置为水平布局
+          >
             <ToggleSwitch
               checked={useServerProxy}
               onChange={(checked) => setValue("useServerProxy", checked)}
@@ -194,7 +207,11 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
         {/* 工具设置 */}
         <div className="form-section">
-          <FormField label={t("tools")} help={t("toolsHelp")}>
+          <FormField
+            label={t("tools")}
+            help={t("toolsHelp")}
+            horizontal // 明确设置为水平布局
+          >
             <ToolSelector register={register} />
           </FormField>
         </div>
