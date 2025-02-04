@@ -73,6 +73,8 @@ const UsageRecord: React.FC = () => {
       <td>{formatTokens(record)}</td>
       <td>{record.model}</td>
       <td>{record.cost.toFixed(4)}</td>
+      <td>{record.inputPrice?.toFixed(4) || "N/A"}</td>
+      <td>{record.outputPrice?.toFixed(4) || "N/A"}</td>
     </tr>
   );
 
@@ -162,6 +164,8 @@ const UsageRecord: React.FC = () => {
                 <th>Tokens</th>
                 <th>模型</th>
                 <th>费用(￥)</th>
+                <th>输入价格(￥)</th>
+                <th>输出价格(￥)</th>
               </tr>
             </thead>
             <tbody>
@@ -169,7 +173,7 @@ const UsageRecord: React.FC = () => {
                 records.map(renderTableRow)
               ) : (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center" }}>
+                  <td colSpan={7} style={{ textAlign: "center" }}>
                     {loading ? "加载中..." : "暂无数据"}
                   </td>
                 </tr>

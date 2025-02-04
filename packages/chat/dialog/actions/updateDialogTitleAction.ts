@@ -9,7 +9,6 @@ const FORCE_UPDATE_FOR_TEST = true;
 
 const shouldUpdateTitle = (lastUpdatedAt: string): boolean => {
   if (FORCE_UPDATE_FOR_TEST) {
-    console.log("Force update mode: skipping time check");
     return true;
   }
 
@@ -17,7 +16,6 @@ const shouldUpdateTitle = (lastUpdatedAt: string): boolean => {
     new Date(),
     new Date(lastUpdatedAt)
   );
-  console.log("Hours since last title update:", hoursSinceLastUpdate);
 
   const shouldUpdate = hoursSinceLastUpdate >= TITLE_UPDATE_INTERVAL_HOURS;
   if (!shouldUpdate) {
@@ -50,7 +48,6 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
       userInput: content,
     })
   ).unwrap();
-  console.log("Generated title:", generateTitle);
 
   const formattedDate = format(new Date(), "MM-dd");
   const title = generateTitle || `${cybotConfig.name}_${formattedDate}`;
