@@ -24,7 +24,6 @@ const RobotMessage: React.FC<Message> = ({
 
   return (
     <>
-      <MessageStyles />
       <div className="message-container other">
         <div
           className="content-wrapper"
@@ -62,6 +61,7 @@ const RobotMessage: React.FC<Message> = ({
           id={id}
         />
       </div>
+      <MessageStyles />
     </>
   );
 };

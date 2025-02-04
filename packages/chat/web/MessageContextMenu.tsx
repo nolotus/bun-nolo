@@ -17,9 +17,9 @@ import { runCybotId } from "ai/cybot/cybotSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import { DataType } from "create/types";
 import { ulid } from "ulid";
-import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 import { extractCustomId } from "core/prefix";
 
+import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
 interface MessageContextMenuProps {
   menu: Ariakit.MenuStore;
   anchorRect: { x: number; y: number };
