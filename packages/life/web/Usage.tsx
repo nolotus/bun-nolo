@@ -1,16 +1,13 @@
-// components/Usage.tsx
 import React, { useState } from "react";
-import { pino } from "pino";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { clearTodayTokens, clearAllTokens } from "ai/token/clear";
+import Button from "web/ui/Button"; // 导入新的 Button 组件
 import BalanceCard from "./BalanceCard";
 import RechargeRecord from "./RechargeRecord";
 import UsageRecord from "./UsageRecord";
 import UsageChart from "./UsageChart";
-
-const logger = pino({ name: "usage-page" });
 
 const Usage: React.FC = () => {
   const theme = useTheme();
@@ -30,17 +27,14 @@ const Usage: React.FC = () => {
 
     try {
       setClearing(true);
-      logger.info({ type }, "Starting to clear tokens");
 
       const clearFunction =
         type === "today" ? clearTodayTokens : clearAllTokens;
       const result = await clearFunction(userId);
 
-      logger.info({ result }, "Tokens cleared successfully");
       alert("清除成功");
       window.location.reload();
     } catch (err) {
-      logger.error({ err }, "Failed to clear tokens");
       alert("清除失败，请查看控制台日志");
     } finally {
       setClearing(false);
@@ -50,20 +44,26 @@ const Usage: React.FC = () => {
   return (
     <div className="container">
       <div className="actions">
-        <button
-          className="clear-button"
+        <Button
+          variant="primary"
+          status="error"
+          size="medium"
           onClick={() => handleClearTokens("today")}
           disabled={clearing}
+          loading={clearing}
         >
           {clearing ? "清除中..." : "清除今日记录"}
-        </button>
-        <button
-          className="clear-button"
+        </Button>
+        <Button
+          variant="primary"
+          status="error"
+          size="medium"
           onClick={() => handleClearTokens("all")}
           disabled={clearing}
+          loading={clearing}
         >
           {clearing ? "清除中..." : "清除所有记录"}
-        </button>
+        </Button>
       </div>
 
       <BalanceCard />
@@ -83,7 +83,6 @@ const Usage: React.FC = () => {
           max-width: 1200px;
           margin: 0 auto;
           padding: 2rem;
-          background: ${theme.backgroundSecondary};
           min-height: 100vh;
         }
 
@@ -94,35 +93,6 @@ const Usage: React.FC = () => {
           margin-bottom: 1.5rem;
         }
 
-        .clear-button {
-          padding: 0.625rem 1rem;
-          border-radius: 6px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: ${theme.error};
-          background: ${theme.background};
-          border: 1px solid ${theme.border};
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .clear-button:hover:not(:disabled) {
-          background: ${theme.backgroundGhost};
-          border-color: ${theme.error};
-        }
-
-        .clear-button:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .clear-button:active:not(:disabled) {
-          transform: translateY(1px);
-        }
-
         @media (max-width: 768px) {
           .container {
             padding: 1rem;
@@ -130,11 +100,6 @@ const Usage: React.FC = () => {
 
           .actions {
             flex-direction: column;
-          }
-
-          .clear-button {
-            width: 100%;
-            justify-content: center;
           }
         }
 

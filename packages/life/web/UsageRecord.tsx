@@ -1,7 +1,7 @@
 import { format, formatISO, parseISO } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { TokenRecord } from "ai/token/types";
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useTheme } from "app/theme";
 import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
 import { selectCurrentUserId } from "auth/authSlice";
@@ -27,7 +27,8 @@ const initialFilter: RecordsFilter = {
 
 const formatTokens = (record: TokenRecord) => {
   const input = record.input_tokens;
-  return `输入:${input} 输出:${record.output_tokens}`;
+  const output = record.output_tokens;
+  return `输入:${input} 输出:${output}`;
 };
 
 const formatLocalTime = (utcTime: string | number | Date) => {
@@ -35,6 +36,18 @@ const formatLocalTime = (utcTime: string | number | Date) => {
     typeof utcTime === "string" ? parseISO(utcTime) : new Date(utcTime);
   const localDate = utcToZonedTime(date, userTimeZone);
   return format(localDate, "yyyy-MM-dd HH:mm:ss");
+};
+
+const formatPrices = (
+  inputPrice: number | undefined,
+  outputPrice: number | undefined
+) => {
+  const inputPriceStr = inputPrice !== undefined ? inputPrice.toFixed(2) : "";
+  const outputPriceStr =
+    outputPrice !== undefined ? outputPrice.toFixed(2) : "";
+  return inputPriceStr && outputPriceStr
+    ? `${inputPriceStr}/${outputPriceStr}`
+    : "";
 };
 
 const UsageRecord: React.FC = () => {
@@ -69,12 +82,11 @@ const UsageRecord: React.FC = () => {
   const renderTableRow = (record: TokenRecord) => (
     <tr key={record.id} className="table-row">
       <td>{formatLocalTime(record.createdAt)}</td>
-      <td>{record.cybotId || "-"}</td>
+      <td className="cybot-id">{record.cybotId || "-"}</td>
       <td>{formatTokens(record)}</td>
       <td>{record.model}</td>
       <td>{record.cost.toFixed(4)}</td>
-      <td>{record.inputPrice?.toFixed(4) || "N/A"}</td>
-      <td>{record.outputPrice?.toFixed(4) || "N/A"}</td>
+      <td>{formatPrices(record.inputPrice, record.outputPrice)}</td>
     </tr>
   );
 
@@ -82,9 +94,7 @@ const UsageRecord: React.FC = () => {
     <>
       <style>{`
         .usage-card {
-          background: ${theme.background};
-          border-radius: 12px;
-          box-shadow: 0 2px 8px ${theme.shadowLight};
+          border-radius: 0px;
           padding: 24px;
         }
         .header {
@@ -107,7 +117,6 @@ const UsageRecord: React.FC = () => {
           border: 1px solid ${theme.border};
           border-radius: 6px;
           color: ${theme.text};
-          background: ${theme.background};
         }
         .table {
           width: 100%;
@@ -119,6 +128,12 @@ const UsageRecord: React.FC = () => {
         .table td, .table th {
           padding: 12px;
           color: ${theme.text};
+        }
+        .cybot-id {
+          width: 150px; /* 限制机器人列的宽度 */
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .footer {
           margin-top: 1rem;
@@ -164,8 +179,7 @@ const UsageRecord: React.FC = () => {
                 <th>Tokens</th>
                 <th>模型</th>
                 <th>费用(￥)</th>
-                <th>输入价格(￥)</th>
-                <th>输出价格(￥)</th>
+                <th>输入/输出价格(￥)</th>
               </tr>
             </thead>
             <tbody>
@@ -173,7 +187,7 @@ const UsageRecord: React.FC = () => {
                 records.map(renderTableRow)
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center" }}>
+                  <td colSpan={6} style={{ textAlign: "center" }}>
                     {loading ? "加载中..." : "暂无数据"}
                   </td>
                 </tr>
