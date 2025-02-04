@@ -8,6 +8,7 @@ import { handleSendMessage } from "../messages/messageSlice";
 import { useBalance } from "auth/hooks/useBalance";
 import toast from "react-hot-toast";
 import { Content } from "../messages/types";
+import { zIndex } from "render/styles/zIndex"; // 引入 zIndex
 
 interface ErrorMessageProps {
   message: string;
@@ -17,7 +18,10 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => {
   const theme = useAppSelector(selectTheme);
 
   return (
-    <div className="error-message">
+    <div
+      className="error-message"
+      style={{ zIndex: zIndex.messageInputContainerZIndex }}
+    >
       {message}
       <style jsx>{`
         .error-message {

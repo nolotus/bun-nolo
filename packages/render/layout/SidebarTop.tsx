@@ -32,7 +32,6 @@ import { useModal } from "render/ui/Modal";
 
 import { ProjectIcon } from "@primer/octicons-react";
 import { layout } from "../styles/layout";
-import { zIndex } from "../styles/zIndex";
 import NavIconItem from "./blocks/NavIconItem";
 import { useTheme } from "app/theme";
 

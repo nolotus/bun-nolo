@@ -1,3 +1,4 @@
+// chat/web/MessageInput.tsx
 import { UploadIcon } from "@primer/octicons-react";
 import { useAuth } from "auth/hooks/useAuth";
 import type React from "react";
@@ -7,6 +8,7 @@ import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { useTheme } from "app/theme";
 import { Content } from "../messages/types";
+import { zIndex } from "render/styles/zIndex"; // 引入 zIndex
 
 interface MessageInputProps {
   onSendMessage: (content: Content) => void;
@@ -113,6 +115,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
       className="message-input-container"
       style={{
         background: theme.background,
+        zIndex: zIndex.messageInputContainerZIndex, // 应用 zIndex
       }}
       onDragOver={(e) => {
         if (!isDragEnabled) return;
@@ -191,7 +194,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
           display: flex;
           flex-direction: column;
           gap: 6px;
-          z-index: 1000;
           box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
           transition: all 0.2s ease;
           -webkit-overflow-scrolling: touch;
