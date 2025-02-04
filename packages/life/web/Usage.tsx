@@ -49,7 +49,7 @@ const Usage: React.FC = () => {
 
   return (
     <div className="container">
-      {/* <div className="actions">
+      <div className="actions">
         <button
           className="clear-button"
           onClick={() => handleClearTokens("today")}
@@ -64,7 +64,7 @@ const Usage: React.FC = () => {
         >
           {clearing ? "清除中..." : "清除所有记录"}
         </button>
-      </div> */}
+      </div>
 
       <BalanceCard />
 
