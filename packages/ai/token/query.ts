@@ -1,7 +1,6 @@
 import { pino } from "pino";
 import { curry } from "rambda";
 import { browserDb } from "database/browser/db";
-import { TokenRecord } from "./types";
 import { createTokenStatsKey, createTokenKey } from "database/keys";
 
 export interface QueryParams {
