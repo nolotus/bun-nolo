@@ -33,7 +33,6 @@ const DialogSlice = createSliceWithThunks({
     },
   },
   reducers: (create) => ({
-    // 重命名为通用的 updateTokens
     updateTokens: create.asyncThunk(updateTokensAction, {
       fulfilled: (state, action: PayloadAction<TokenMetrics>) => {
         // 分别更新输入和输出token
