@@ -1,14 +1,6 @@
 // src/database/requests.ts
 import { API_ENDPOINTS } from "./config";
-import pino from "pino";
 import { toast } from "react-hot-toast";
-
-const logger = pino({
-  level: "info",
-  transport: {
-    target: "pino-pretty",
-  },
-});
 
 export const CYBOT_SERVERS = {
   ONE: "https://cybot.one",
@@ -75,8 +67,6 @@ export const noloWriteRequest = async (
   state: any,
   signal?: AbortSignal
 ) => {
-  logger.info({ server, userId, customId }, "Starting write request");
-
   try {
     const response = await noloRequest(
       server,
@@ -96,9 +86,7 @@ export const noloWriteRequest = async (
     return true;
   } catch (error) {
     if (error.name === "AbortError") {
-      logger.warn({ server, customId }, "Write request timeout");
     } else {
-      logger.error({ error, server }, "Failed to write to server");
     }
     return false;
   }
@@ -112,8 +100,6 @@ export const noloPatchRequest = async (
   state: any,
   signal?: AbortSignal
 ) => {
-  logger.info({ server, id }, "Starting patch request");
-
   try {
     const response = await noloRequest(
       server,
@@ -130,13 +116,10 @@ export const noloPatchRequest = async (
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    logger.info({ server, id }, "Patch request successful");
     return true;
   } catch (error) {
     if (error.name === "AbortError") {
-      logger.warn({ server, id }, "Patch request timeout");
     } else {
-      logger.error({ error, server, id }, "Failed to patch on server");
     }
     return false;
   }
@@ -153,7 +136,6 @@ export const noloDeleteRequest = async (
   signal?: AbortSignal
 ) => {
   const { type = "single" } = options;
-  logger.info({ server, id, type }, "Starting delete request");
 
   try {
     const url =
@@ -176,13 +158,10 @@ export const noloDeleteRequest = async (
     }
 
     const result = await response.json();
-    logger.info({ server, id, result }, "Delete request successful");
     return true;
   } catch (error) {
     if (error.name === "AbortError") {
-      logger.warn({ server, id }, "Delete request timeout");
     } else {
-      logger.error({ error, server, id }, "Failed to delete from server");
     }
     return false;
   }

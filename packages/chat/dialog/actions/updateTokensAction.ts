@@ -10,16 +10,6 @@ import { ulid } from "ulid";
 import { format } from "date-fns";
 import { write } from "database/dbSlice";
 
-const enrichData = (data: TokenUsageData) => {
-  const timestamp = Date.now();
-  return {
-    ...data,
-    timestamp,
-    id: ulid(timestamp),
-    dateKey: format(timestamp, "yyyy-MM-dd"),
-  };
-};
-
 export const updateTokensAction = async (
   { dialogId, usage: usageRaw, cybotConfig },
   thunkApi
@@ -44,7 +34,9 @@ export const updateTokensAction = async (
     usage,
     externalPrice,
   });
+  console.log("calculatePrice result", result);
 
+  const timestamp = Date.now();
   const data: TokenUsageData = {
     ...usage,
     userId: auth?.currentUser?.userId,
@@ -55,13 +47,15 @@ export const updateTokensAction = async (
     dialogId,
     cost: result.cost,
     pay: result.pay,
+    timestamp,
+    id: ulid(timestamp),
+    dateKey: format(timestamp, "yyyy-MM-dd"),
   };
 
   try {
-    const enrichedData = enrichData(data);
-    const record = createTokenRecord(enrichedData);
+    const record = createTokenRecord(data);
 
-    const key = createTokenKey.record(data.userId, enrichedData.timestamp);
+    const key = createTokenKey.record(data.userId, data.timestamp);
 
     await thunkApi.dispatch(
       write({
