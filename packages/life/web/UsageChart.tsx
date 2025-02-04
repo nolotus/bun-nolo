@@ -2,15 +2,13 @@
 import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { formatInTimeZone } from "date-fns-tz";
-
 import { pino } from "pino";
 import { getTokenStats } from "ai/token/query";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { TimeRange, processDateRange } from "utils/processDateRange";
-const logger = pino({ name: "usage-chart" });
 
-// 获取用户时区
+const logger = pino({ name: "usage-chart" });
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 type DataType = "tokens" | "cost";
@@ -31,11 +29,7 @@ const UsageChart: React.FC<any> = ({ theme }) => {
         const endDate = dateArray[dateArray.length - 1].utc;
 
         logger.info(
-          {
-            startDate,
-            endDate,
-            timeZone: userTimeZone,
-          },
+          { startDate, endDate, timeZone: userTimeZone },
           "Fetching stats"
         );
 
@@ -59,16 +53,13 @@ const UsageChart: React.FC<any> = ({ theme }) => {
   const getChartData = () => {
     const { dateArray } = processDateRange(timeRange, userTimeZone);
 
-    // 初始化数据结构
     const series = {
       dates: dateArray.map((d) => d.short),
       total: new Array(dateArray.length).fill(0),
       models: {} as Record<string, number[]>,
     };
 
-    // 处理统计数据
     statsData.forEach((stat) => {
-      // 将UTC时间转换为用户时区时间进行匹配
       const localDate = formatInTimeZone(
         new Date(stat.timeKey),
         userTimeZone,
@@ -77,13 +68,11 @@ const UsageChart: React.FC<any> = ({ theme }) => {
       const dateIndex = dateArray.findIndex((d) => d.full === localDate);
       if (dateIndex === -1) return;
 
-      // 更新总量
       series.total[dateIndex] =
         dataType === "tokens"
           ? (stat.total?.tokens?.input || 0) + (stat.total?.tokens?.output || 0)
           : stat.total?.cost || 0;
 
-      // 更新各模型数据
       Object.entries(stat.models || {}).forEach(
         ([model, data]: [string, any]) => {
           if (!series.models[model]) {
@@ -139,7 +128,7 @@ const UsageChart: React.FC<any> = ({ theme }) => {
       },
       yAxis: {
         type: "value",
-        name: dataType === "tokens" ? "Tokens" : "Cost ($)",
+        name: dataType === "tokens" ? "Tokens" : "Cost",
         axisLabel: {
           color: theme?.textSecondary,
           formatter:
@@ -190,53 +179,57 @@ const UsageChart: React.FC<any> = ({ theme }) => {
             ({userTimeZone})
           </span>
         </h2>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '12px', 
-          backgroundColor: theme?.backgroundLight, 
-          borderRadius: '20px', 
-          padding: '4px' 
-        }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            backgroundColor: theme?.backgroundLight,
+            borderRadius: "20px",
+            padding: "4px",
+          }}
+        >
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-            style={{ 
-              padding: "8px", 
-              borderRadius: '8px',
-              border: `1px solid ${theme?.border}` 
+            style={{
+              padding: "8px",
+              borderRadius: "8px",
+              border: `1px solid ${theme?.border}`,
             }}
           >
             <option value="7days">近7天</option>
             <option value="30days">近30天</option>
             <option value="90days">近90天</option>
           </select>
-          
-          <div style={{
-            display: 'flex',
-            backgroundColor: theme?.backgroundLight,
-            borderRadius: '16px',
-            overflow: 'hidden',
-            border: `1px solid ${theme?.border}`
-          }}>
-            {(['tokens', 'cost'] as DataType[]).map((type) => (
+
+          <div
+            style={{
+              display: "flex",
+              backgroundColor: theme?.backgroundLight,
+              borderRadius: "16px",
+              overflow: "hidden",
+              border: `1px solid ${theme?.border}`,
+            }}
+          >
+            {(["tokens", "cost"] as DataType[]).map((type) => (
               <button
                 key={type}
                 onClick={() => setDataType(type)}
                 style={{
-                  padding: '8px 16px',
-                  backgroundColor: dataType === type 
-                    ? theme?.primary 
-                    : 'transparent',
-                  color: dataType === type 
-                    ? theme?.background 
-                    : theme?.textSecondary,
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
+                  padding: "8px 16px",
+                  backgroundColor:
+                    dataType === type ? theme?.primary : "transparent",
+                  color:
+                    dataType === type
+                      ? theme?.background
+                      : theme?.textSecondary,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
                 }}
               >
-                {type === 'tokens' ? 'Tokens' : 'Cost'}
+                {type === "tokens" ? "Tokens" : "Cost"}
               </button>
             ))}
           </div>

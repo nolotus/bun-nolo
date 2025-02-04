@@ -17,19 +17,19 @@ export const anthropicModels: Model[] = [
       cachingRead: 2.4, // $0.30/MTok * 8
     },
   },
-  {
-    name: "claude-3-5-haiku-20241022",
-    displayName: "Claude 3.5 Haiku",
-    hasVision: false,
-    description: "Fastest, most cost-effective model",
-    strengths: "Quick and accurate targeted performance",
-    contextWindow: 200000,
-    maxOutputTokens: 8192,
-    price: {
-      input: 6.4, // $0.80/MTok * 8
-      output: 32.0, // $4/MTok * 8
-      cachingWrite: 8.0, // $1/MTok * 8
-      cachingRead: 0.64, // $0.08/MTok * 8
-    },
-  },
+  // {
+  //   name: "claude-3-5-haiku-20241022",
+  //   displayName: "Claude 3.5 Haiku",
+  //   hasVision: false,
+  //   description: "Fastest, most cost-effective model",
+  //   strengths: "Quick and accurate targeted performance",
+  //   contextWindow: 200000,
+  //   maxOutputTokens: 8192,
+  //   price: {
+  //     input: 6.4, // $0.80/MTok * 8
+  //     output: 32.0, // $4/MTok * 8
+  //     cachingWrite: 8.0, // $1/MTok * 8
+  //     cachingRead: 0.64, // $0.08/MTok * 8
+  //   },
+  // },
 ];

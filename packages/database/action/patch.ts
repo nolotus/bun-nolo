@@ -1,15 +1,7 @@
 import { browserDb } from "../browser/db";
 import { selectCurrentServer } from "setting/settingSlice";
 import { toast } from "react-hot-toast";
-import pino from "pino";
 import { noloPatchRequest } from "../requests";
-
-const logger = pino({
-  level: "info",
-  transport: {
-    target: "pino-pretty",
-  },
-});
 
 const CYBOT_SERVERS = {
   ONE: "https://cybot.one",
@@ -47,13 +39,11 @@ export const patchAction = async ({ id, changes }, thunkApi) => {
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
 
-  logger.info({ id }, "Starting patch action");
-
   try {
     // 读取当前数据
     const currentData = await browserDb.get(id);
     if (!currentData) {
-      logger.warn({ id }, "Data not found locally");
+      toast.error(`Data not found locally`);
       throw new Error("Data not found");
     }
 
@@ -70,7 +60,6 @@ export const patchAction = async ({ id, changes }, thunkApi) => {
 
     // 本地更新
     await browserDb.put(id, newData);
-    logger.info({ id }, "Data updated locally");
 
     // 准备服务器列表
     const servers = Array.from(
@@ -84,7 +73,7 @@ export const patchAction = async ({ id, changes }, thunkApi) => {
 
     return newData;
   } catch (error) {
-    logger.error({ error, id }, "Patch action failed");
+    toast.error(`Patch action failed: ${error.message}`);
     throw error;
   }
 };
