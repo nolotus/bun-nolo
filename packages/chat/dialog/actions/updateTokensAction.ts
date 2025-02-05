@@ -1,80 +1,151 @@
 import { DataType } from "create/types";
 import { extractUserId } from "core/prefix";
-import { saveTokenUsage } from "ai/token/db";
-import { TokenUsageData } from "ai/token/types";
-import { TokenRecord } from "ai/token/types";
+import { TokenUsageData, TokenRecord } from "ai/token/types";
 import { normalizeUsage } from "ai/token/normalizeUsage";
 import { calculatePrice } from "ai/token/calculatePrice";
-import { createTokenKey } from "database/keys";
+import { createTokenStatsKey } from "database/keys";
 import { ulid } from "ulid";
 import { format } from "date-fns";
-import { write } from "database/dbSlice";
+import { write, read } from "database/dbSlice";
+import toast from "react-hot-toast";
+import { saveTokenRecord } from "ai/token/saveTokenRecord";
 
-/**
- * 创建Token记录
- */
-export const createTokenRecord = (
+type TokenCount = { input: number; output: number };
+
+interface ModelStats {
+  count: number;
+  tokens: TokenCount;
+  cost: number;
+}
+
+interface DayStats {
+  userId: string;
+  period: "day";
+  timeKey: string;
+  total: ModelStats;
+  models: Record<string, ModelStats>;
+  providers: Record<string, ModelStats>;
+}
+
+const createTokenRecord = (
   data: TokenUsageData,
-  additionalData?: {
-    cost?: number;
-    inputPrice?: number;
-    outputPrice?: number;
-    inputTokens?: number;
-    outputTokens?: number;
-  }
+  { cost, inputPrice, outputPrice }: Partial<TokenRecord> = {}
 ): TokenRecord => ({
-  id: data.id,
-  userId: data.userId,
-  username: data.username,
-  cybotId: data.cybotId,
-  model: data.model,
-  provider: data.provider,
-  dialogId: data.dialogId,
-  cache_creation_input_tokens: data.cache_creation_input_tokens,
-  cache_read_input_tokens: data.cache_read_input_tokens,
-  output_tokens: data.output_tokens,
-  input_tokens: data.input_tokens,
-  cost: additionalData?.cost || data.cost,
-  pay: data.pay,
-  createdAt: data.timestamp,
-  type: data.type,
-  inputPrice: additionalData?.inputPrice,
-  outputPrice: additionalData?.outputPrice,
+  ...data,
+  cost: cost || data.cost,
+  inputPrice,
+  outputPrice,
 });
 
-/**
- * 更新tokens的action
- */
+const updateStatsCounter = (
+  data: TokenUsageData,
+  stats: ModelStats = { count: 0, tokens: { input: 0, output: 0 }, cost: 0 }
+): ModelStats => ({
+  count: stats.count + 1,
+  tokens: {
+    input: stats.tokens.input + data.input_tokens,
+    output: stats.tokens.output + data.output_tokens,
+  },
+  cost: stats.cost + data.cost,
+});
+
+// 更新统计数据
+const updateStats = async (
+  data: TokenUsageData,
+  existingStats: DayStats | null,
+  key: string,
+  thunkApi
+) => {
+  try {
+    const stats: DayStats = existingStats ?? {
+      userId: data.userId,
+      period: "day",
+      timeKey: format(Date.now(), "yyyy-MM-dd"),
+      total: { count: 0, tokens: { input: 0, output: 0 }, cost: 0 },
+      models: {},
+      providers: {},
+    };
+
+    const modelName = data.model || "unknown";
+    const providerName = data.provider || "unknown";
+
+    const cleanModels = Object.fromEntries(
+      Object.entries(stats.models).filter(
+        ([key]) => !["unknown", "undefined"].includes(key)
+      )
+    );
+
+    const updatedStats = {
+      ...stats,
+      total: updateStatsCounter(data, stats.total),
+      models: {
+        ...cleanModels,
+        [modelName]: updateStatsCounter(data, cleanModels[modelName]),
+      },
+      providers: {
+        ...stats.providers,
+        [providerName]: updateStatsCounter(data, stats.providers[providerName]),
+      },
+    };
+
+    await thunkApi.dispatch(
+      write({
+        data: { ...updatedStats, id: key, type: DataType.TOKEN },
+        customId: key,
+      })
+    );
+
+    return updatedStats;
+  } catch (error) {
+    toast.error("Failed to update token stats");
+    throw error;
+  }
+};
+
+export const saveTokenUsage = async (data: TokenUsageData, thunkApi) => {
+  const dateKey = format(Date.now(), "yyyy-MM-dd");
+  const key = createTokenStatsKey(data.userId, dateKey);
+
+  try {
+    const currentStats = await thunkApi.dispatch(read(key)).unwrap();
+    const updatedStats = await updateStats(data, currentStats, key, thunkApi);
+
+    return {
+      success: true,
+      id: ulid(Date.now()),
+      record: updatedStats,
+    };
+  } catch (error) {
+    toast.error("Failed to process token usage");
+    throw error;
+  }
+};
+
 export const updateTokensAction = async (
   { dialogId, usage: usageRaw, cybotConfig },
   thunkApi
 ) => {
   const state = thunkApi.getState();
-  const auth = state.auth;
-
-  const provider = cybotConfig.provider;
-  const creatorId = extractUserId(cybotConfig.id);
-
-  const externalPrice = {
-    input: cybotConfig.inputPrice,
-    output: cybotConfig.outputPrice,
-    creatorId,
-  };
+  const { currentUser } = state.auth;
 
   const usage = normalizeUsage(usageRaw);
+  const timestamp = Date.now();
 
   const result = calculatePrice({
-    provider,
+    provider: cybotConfig.provider,
     modelName: cybotConfig.model,
     usage,
-    externalPrice,
+    externalPrice: {
+      input: cybotConfig.inputPrice,
+      output: cybotConfig.outputPrice,
+      creatorId: extractUserId(cybotConfig.id),
+    },
   });
 
-  const timestamp = Date.now();
-  const data: TokenUsageData = {
+  const tokenData: TokenUsageData = {
     ...usage,
-    userId: auth?.currentUser?.userId,
-    username: auth?.currentUser?.username, // 假设 auth 对象中有 username 属性
+    userId: currentUser?.userId,
+    username: currentUser?.username,
     cybotId: cybotConfig.id,
     model: cybotConfig.model,
     provider: cybotConfig.provider,
@@ -87,31 +158,14 @@ export const updateTokensAction = async (
     dateKey: format(timestamp, "yyyy-MM-dd"),
   };
 
-  try {
-    const record = createTokenRecord(data, {
-      cost: result.cost,
-      inputPrice: cybotConfig.inputPrice,
-      outputPrice: cybotConfig.outputPrice,
-      inputTokens: usage.input_tokens,
-      outputTokens: usage.output_tokens,
-    });
-    const key = createTokenKey.record(data.userId, data.timestamp);
+  const record = createTokenRecord(tokenData, {
+    cost: result.cost,
+    inputPrice: cybotConfig.inputPrice,
+    outputPrice: cybotConfig.outputPrice,
+  });
 
-    await thunkApi.dispatch(
-      write({
-        data: {
-          ...record,
-          id: key,
-          type: DataType.TOKEN,
-        },
-        customId: key,
-      })
-    );
-
-    await saveTokenUsage(data, thunkApi);
-  } catch (error) {
-    throw error;
-  }
+  await saveTokenRecord(tokenData, record, thunkApi);
+  await saveTokenUsage(tokenData, thunkApi);
 
   return {
     input_tokens: usage.input_tokens,

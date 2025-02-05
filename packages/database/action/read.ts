@@ -3,104 +3,76 @@ import { selectIsLoggedIn } from "auth/authSlice";
 import { API_ENDPOINTS } from "database/config";
 import { toast } from "react-hot-toast";
 import { browserDb } from "../browser/db";
+import { pino } from "pino";
 
+const logger = pino({ name: "data-fetch" });
 const CYBOT_SERVER = "https://cybot.one";
 
-const noloReadRequest = async (server: string, id: string, token?: string) => {
-  const url = `${API_ENDPOINTS.DATABASE}/read/${id}`;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
+const fetchData = async (server: string, id: string, token?: string) => {
+  try {
+    const res = await fetch(`${server}${API_ENDPOINTS.DATABASE}/read/${id}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
 
-  const res = await fetch(server + url, {
-    headers,
-  });
-  return res;
+    if (res.status === 200) {
+      return await res.json();
+    }
+    logger.warn({ status: res.status }, "Fetch failed");
+    return null;
+  } catch (err) {
+    logger.error({ err }, "Fetch error");
+    return null;
+  }
+};
+
+const updateLocalData = async (id: string, remoteData: any, localData: any) => {
+  if (!remoteData?.updatedAt) return;
+
+  const shouldUpdate =
+    !localData?.updatedAt ||
+    new Date(remoteData.updatedAt) > new Date(localData.updatedAt);
+
+  if (shouldUpdate) {
+    await browserDb.put(id, remoteData);
+    toast.success("Data updated from server");
+  }
 };
 
 export const readAction = async (id: string, thunkApi) => {
   const state = thunkApi.getState();
   const token = state.auth.currentToken;
-  const isLoggedIn = selectIsLoggedIn(state);
   const currentServer = selectCurrentServer(state);
 
-  // 同时发起本地和远程请求
-  const localPromise = browserDb.get(id);
-  const remotePromise = noloReadRequest(
-    currentServer,
-    id,
-    isLoggedIn ? token : undefined
-  )
-    .then(async (res) => {
-      if (res.status === 200) {
-        return await res.json();
-      }
-      console.warn(`Remote fetch failed with status ${res.status}`);
-      return null;
-    })
-    .catch((err) => {
-      console.error("Remote fetch error:", err);
-      return null;
-    });
+  // 并行请求本地和远程数据
+  const [localData, remoteData] = await Promise.all([
+    browserDb.get(id),
+    fetchData(currentServer, id, selectIsLoggedIn(state) ? token : undefined),
+  ]);
 
-  // 等待本地数据
-  const localResult = await localPromise;
-
-  // 如果本地有数据,先返回本地数据
-  if (localResult) {
-    // 后台继续处理远程数据
-    remotePromise.then(async (remoteResult) => {
-      if (!remoteResult) return;
-
-      // 如果远程有更新时间，直接更新本地
-      if (remoteResult.updatedAt) {
-        // 本地没有更新时间或远程更新时间更新
-        const shouldUpdate =
-          !localResult.updatedAt ||
-          new Date(remoteResult.updatedAt) > new Date(localResult.updatedAt);
-
-        if (shouldUpdate) {
-          await browserDb.put(id, remoteResult);
-          toast.success("Data updated from server");
-        }
-      }
-    });
-
-    return localResult;
+  // 有本地数据则先返回，异步更新
+  if (localData) {
+    updateLocalData(id, remoteData, localData);
+    return localData;
   }
 
-  // 本地没有数据,等待远程数据
-  const remoteResult = await remotePromise;
-  if (remoteResult) {
-    await browserDb.put(id, remoteResult);
-    return remoteResult;
+  // 远程数据可用则保存并返回
+  if (remoteData) {
+    await browserDb.put(id, remoteData);
+    return remoteData;
   }
 
-  // 尝试从cybot获取
-  console.log("Trying to fetch from cybot.one");
-  const cybotPromise = noloReadRequest(CYBOT_SERVER, id)
-    .then(async (res) => {
-      if (res.status === 200) {
-        return await res.json();
-      }
-      console.warn(`Cybot fetch failed with status ${res.status}`);
-      return null;
-    })
-    .catch((err) => {
-      console.error("Cybot fetch error:", err);
-      return null;
-    });
+  // 尝试从 cybot 获取
+  logger.info("Fetching from cybot.one");
+  const cybotData = await fetchData(CYBOT_SERVER, id);
 
-  const cybotResult = await cybotPromise;
-  if (!cybotResult) {
+  if (!cybotData) {
     throw new Error("Failed to fetch data from all sources");
   }
 
-  // 存储cybot数据到本地
-  await browserDb.put(id, cybotResult);
+  await browserDb.put(id, cybotData);
   toast.success("Data fetched from cybot.one");
-  return cybotResult;
+  return cybotData;
 };
