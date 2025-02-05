@@ -24,17 +24,15 @@ function UserStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false,  // UserMain 和 Profile 不显示头部
+        headerShown: false, // UserMain 和 Profile 不显示头部
       }}
     >
       <Stack.Screen name="UserMain" component={UserScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="Statistics" component={AccountStatisticsScreen} />
-
     </Stack.Navigator>
   );
 }
-
 
 // 主标签导航
 function HomeTabs() {
@@ -79,17 +77,7 @@ function HomeTabs() {
           ),
         }}
       />
-      <Tab.Screen
-        name="Location"
-        component={SpotsStackScreen}
-        options={{
-          headerShown: false,
-          tabBarLabel: "Spots",
-          tabBarIcon: ({ color, size }) => (
-            <Octicons name="location" size={size} color={color} />
-          ),
-        }}
-      />
+
       <Tab.Screen
         name="User"
         component={UserStack} // 改用UserStack
@@ -111,9 +99,11 @@ function MainNavigation() {
       <Stack.Navigator screenOptions={{}}>
         <Stack.Screen name="MainTabs" component={HomeTabs} />
         <Stack.Screen name="DialogDetail" component={DialogDetail} />
-        <Stack.Screen name="LevelDBTest" component={LevelDBTestScreen}
+        <Stack.Screen
+          name="LevelDBTest"
+          component={LevelDBTestScreen}
           options={{
-            title: 'LevelDB 性能测试'
+            title: "LevelDB 性能测试",
           }}
         />
         <Stack.Screen
@@ -121,7 +111,7 @@ function MainNavigation() {
           component={AuthStackNavigator}
           options={{
             headerShown: false,
-            presentation: 'modal' // 可选，使其以模态方式呈现
+            presentation: "modal", // 可选，使其以模态方式呈现
           }}
         />
       </Stack.Navigator>

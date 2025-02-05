@@ -31,17 +31,6 @@ export function HomeScreen() {
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate("Location")}
-        >
-          <Text style={styles.linkText}>浪点功能</Text>
-          <Text style={styles.textDescription}>待优化：数据展示</Text>
-          <Text style={styles.textDescription}>待优化：涨落潮数据</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
         <Text style={styles.textDescription}>下一步增加</Text>
         <TouchableOpacity
           style={styles.navButton}
