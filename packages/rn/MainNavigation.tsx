@@ -7,10 +7,8 @@ import { useSelector } from "react-redux";
 
 // 导入screens
 import { HomeScreen } from "app/screens/Home";
-import { SpotsStackScreen } from "app/screens/SpotsStack";
 import DialogListScreen from "chat/screens/DialogList";
 import DialogDetail from "chat/screens/DialogDetail";
-import Guide from "create/screens/Guide";
 import { AuthStackNavigator } from "auth/screens/AuthStackNavigator";
 import { UserScreen } from "auth/screens/UserScreen";
 import { ProfileScreen } from "chat/screens/ProfileScreen";
@@ -64,16 +62,6 @@ function HomeTabs() {
           tabBarLabel: "聊天",
           tabBarIcon: ({ color, size }) => (
             <Octicons name="comment" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Create"
-        component={Guide}
-        options={{
-          tabBarLabel: "创建",
-          tabBarIcon: ({ color, size }) => (
-            <Octicons name="plus" size={size} color={color} />
           ),
         }}
       />
