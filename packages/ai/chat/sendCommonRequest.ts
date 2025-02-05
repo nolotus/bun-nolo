@@ -66,6 +66,8 @@ export const sendCommonChatRequest = async ({
 
   let contentBuffer = "";
   let reader;
+  // 用于累积所有usage信息
+  let totalUsage = null;
 
   try {
     dispatch(
@@ -105,6 +107,10 @@ export const sendCommonChatRequest = async ({
           cybotId: cybotConfig.id,
         };
         dispatch(messageStreamEnd(final));
+        // 在结束时更新累积的usage
+        if (totalUsage) {
+          dispatch(updateTokens({ dialogId, usage: totalUsage, cybotConfig }));
+        }
         dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
         break;
       }
@@ -127,10 +133,26 @@ export const sendCommonChatRequest = async ({
         }
 
         const content = parsedData.choices?.[0]?.delta?.content || "";
+
+        // 更新usage累积值
         if (parsedData.usage) {
-          dispatch(
-            updateTokens({ dialogId, usage: parsedData.usage, cybotConfig })
-          );
+          if (!totalUsage) {
+            totalUsage = { ...parsedData.usage };
+          } else {
+            // 如果是增量更新,取最大值
+            totalUsage.completion_tokens = Math.max(
+              totalUsage.completion_tokens || 0,
+              parsedData.usage.completion_tokens || 0
+            );
+            totalUsage.prompt_tokens = Math.max(
+              totalUsage.prompt_tokens || 0,
+              parsedData.usage.prompt_tokens || 0
+            );
+            totalUsage.total_tokens = Math.max(
+              totalUsage.total_tokens || 0,
+              parsedData.usage.total_tokens || 0
+            );
+          }
         }
 
         if (content) {
