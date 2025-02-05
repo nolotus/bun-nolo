@@ -9,7 +9,7 @@ import { Provider } from "react-redux";
 import MainNavigation from "./MainNavigation";
 import { mobileStore } from "./store";
 import { setDarkMode } from "app/theme/themeSlice";
-import { getTokensFromStorage } from "auth/rn/tokenStorage";
+import { rnTokenManager } from "auth/rn/tokenManager";
 import { useAppDispatch } from "app/hooks";
 import { useEffect } from "react";
 
@@ -26,11 +26,11 @@ function App(): React.JSX.Element {
 
   const init = async () => {
     // dispatch(setTheme(theme));
-    const tokens = await getTokensFromStorage();
+    const tokens = await rnTokenManager.getTokens();
     setDarkMode(isDarkMode);
-    if (tokens) {
-      await dispatch(initAuth(tokens));
-    }
+    // if (tokens) {
+    //   await dispatch(initAuth(tokens));
+    // }
   };
   useEffect(() => {
     init();

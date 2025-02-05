@@ -17,8 +17,7 @@ export const mobileStore = configureStore({
     theme: themeReducer,
     settings: settingReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
   enhancers: (getDefaultEnhancers) => {
     return getDefaultEnhancers().concat(reactotron.createEnhancer!());
   },
