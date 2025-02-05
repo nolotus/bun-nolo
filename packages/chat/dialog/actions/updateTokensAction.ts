@@ -1,6 +1,6 @@
+import { TokenUsageData } from "ai/token/types";
 import { DataType } from "create/types";
 import { extractUserId } from "core/prefix";
-import { TokenUsageData, TokenRecord } from "ai/token/types";
 import { normalizeUsage } from "ai/token/normalizeUsage";
 import { calculatePrice } from "ai/token/calculatePrice";
 import { createTokenStatsKey } from "database/keys";
@@ -8,15 +8,14 @@ import { ulid } from "ulid";
 import { format } from "date-fns";
 import { write, read } from "database/dbSlice";
 import toast from "react-hot-toast";
-import { saveTokenRecord } from "ai/token/saveTokenRecord";
+import {
+  createTokenRecord,
+  saveTokenRecord,
+  ModelStats,
+} from "ai/token/saveTokenRecord";
+import { pino } from "pino";
 
-type TokenCount = { input: number; output: number };
-
-interface ModelStats {
-  count: number;
-  tokens: TokenCount;
-  cost: number;
-}
+const logger = pino({ name: "token-usage", level: "info" });
 
 interface DayStats {
   userId: string;
@@ -26,16 +25,6 @@ interface DayStats {
   models: Record<string, ModelStats>;
   providers: Record<string, ModelStats>;
 }
-
-const createTokenRecord = (
-  data: TokenUsageData,
-  { cost, inputPrice, outputPrice }: Partial<TokenRecord> = {}
-): TokenRecord => ({
-  ...data,
-  cost: cost || data.cost,
-  inputPrice,
-  outputPrice,
-});
 
 const updateStatsCounter = (
   data: TokenUsageData,
@@ -49,7 +38,6 @@ const updateStatsCounter = (
   cost: stats.cost + data.cost,
 });
 
-// 更新统计数据
 const updateStats = async (
   data: TokenUsageData,
   existingStats: DayStats | null,
@@ -57,7 +45,7 @@ const updateStats = async (
   thunkApi
 ) => {
   try {
-    const stats: DayStats = existingStats ?? {
+    const stats = existingStats ?? {
       userId: data.userId,
       period: "day",
       timeKey: format(Date.now(), "yyyy-MM-dd"),
@@ -97,6 +85,10 @@ const updateStats = async (
 
     return updatedStats;
   } catch (error) {
+    logger.error(
+      { key, userId: data.userId, error: error.message },
+      "Failed to update token stats"
+    );
     toast.error("Failed to update token stats");
     throw error;
   }
@@ -107,7 +99,13 @@ export const saveTokenUsage = async (data: TokenUsageData, thunkApi) => {
   const key = createTokenStatsKey(data.userId, dateKey);
 
   try {
-    const currentStats = await thunkApi.dispatch(read(key)).unwrap();
+    let currentStats = null;
+    try {
+      currentStats = await thunkApi.dispatch(read(key)).unwrap();
+    } catch (err) {
+      logger.warn({ key }, "No existing stats found");
+    }
+
     const updatedStats = await updateStats(data, currentStats, key, thunkApi);
 
     return {
@@ -116,6 +114,20 @@ export const saveTokenUsage = async (data: TokenUsageData, thunkApi) => {
       record: updatedStats,
     };
   } catch (error) {
+    logger.error(
+      {
+        key,
+        userId: data.userId,
+        error: error.message,
+        tokenData: {
+          input: data.input_tokens,
+          output: data.output_tokens,
+          model: data.model,
+        },
+      },
+      "Failed to process token usage"
+    );
+
     toast.error("Failed to process token usage");
     throw error;
   }
@@ -125,9 +137,7 @@ export const updateTokensAction = async (
   { dialogId, usage: usageRaw, cybotConfig },
   thunkApi
 ) => {
-  const state = thunkApi.getState();
-  const { currentUser } = state.auth;
-
+  const { currentUser } = thunkApi.getState().auth;
   const usage = normalizeUsage(usageRaw);
   const timestamp = Date.now();
 
