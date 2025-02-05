@@ -2,6 +2,7 @@ import { write } from "bun";
 import * as esbuild from "esbuild";
 
 import { config } from "./config";
+
 const measureTime = async (operation, action) => {
   const startTime = performance.now();
   const result = await action();
