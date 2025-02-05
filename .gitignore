@@ -211,7 +211,7 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
-
+.kotlin/
 # node.js
 #
 node_modules/
