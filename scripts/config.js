@@ -1,5 +1,6 @@
 import postCssPlugin from "esbuild-style-plugin";
-import { isProduction } from "utils/env";
+import { isProduction } from "../packages/utils/env";
+
 const inputPath = "./packages/web/entry.tsx";
 
 // 定义公共配置
