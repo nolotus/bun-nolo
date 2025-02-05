@@ -109,5 +109,8 @@
   "peerDependencies": {
     "typescript": "^5.5.0"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "packageManager": "yarn@3.6.4"
 }
