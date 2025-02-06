@@ -1,3 +1,5 @@
+// integrations/deepinfra/models
+
 import { Model } from "ai/llm/types";
 
 export const deepinfraModels: Model[] = [
@@ -14,30 +16,6 @@ export const deepinfraModels: Model[] = [
     fnCall: true,
   },
 
-  {
-    name: "Qwen/Qwen2.5-Coder-32B-Instruct",
-    displayName: "Qwen 2.5 32B",
-    hasVision: false,
-    contextWindow: 32000,
-    price: {
-      input: 1.44, // 0.18 * 8
-      output: 1.44, // 0.18 * 8
-    },
-    jsonOutput: true,
-    fnCall: true,
-  },
-  {
-    name: "Qwen/Qwen2.5-72B-Instruct",
-    displayName: "Qwen 2.5 72B",
-    hasVision: false,
-    contextWindow: 32000,
-    price: {
-      input: 2.8, // 0.35 * 8
-      output: 3.2, // 0.4 * 8
-    },
-    jsonOutput: true,
-    fnCall: true,
-  },
   {
     name: "meta-llama/Llama-3.2-90B-Vision-Instruct",
     displayName: "LLaMA 3.2 90B Vision",
@@ -92,8 +70,8 @@ export const deepinfraModels: Model[] = [
     hasVision: false,
     contextWindow: 16000,
     price: {
-      input: 6.8, // 0.85 * 8 (保持与原有注释计算方式一致)
-      output: 20.0, // 2.50 * 8 (保持与原有注释计算方式一致)
+      input: 6.8, // 0.85 * 8
+      output: 20.0, // 2.50 * 8
     },
     jsonOutput: true,
     fnCall: true,
@@ -106,6 +84,54 @@ export const deepinfraModels: Model[] = [
     price: {
       input: 1.84, // 0.23 * 8
       output: 5.52, // 0.69 * 8
+    },
+    jsonOutput: true,
+    fnCall: true,
+  },
+  {
+    name: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+    displayName: "DeepSeek-R1-Distill-Qwen-32B",
+    hasVision: false,
+    contextWindow: 32768,
+    price: {
+      input: 0.96, // 0.12 * 8
+      output: 1.44, // 0.18 * 8
+    },
+    jsonOutput: true,
+    fnCall: true,
+  },
+  {
+    name: "QwQ-32B-Preview",
+    displayName: "QwQ-32B-Preview",
+    hasVision: false,
+    contextWindow: 32768,
+    price: {
+      input: 0.96, // 0.12 * 8
+      output: 1.44, // 0.18 * 8
+    },
+    jsonOutput: true,
+    fnCall: true,
+  },
+  {
+    name: "Qwen/Qwen2.5-Coder-32B-Instruct",
+    displayName: "Qwen 2.5 Coder 32B",
+    hasVision: false,
+    contextWindow: 32768,
+    price: {
+      input: 0.56, // 0.07 * 8
+      output: 1.28, // 0.16 * 8
+    },
+    jsonOutput: true,
+    fnCall: true,
+  },
+  {
+    name: "Qwen/Qwen2.5-72B-Instruct",
+    displayName: "Qwen 2.5 72B",
+    hasVision: false,
+    contextWindow: 32768,
+    price: {
+      input: 1.84, // 0.23 * 8
+      output: 3.2, // 0.4 * 8
     },
     jsonOutput: true,
     fnCall: true,

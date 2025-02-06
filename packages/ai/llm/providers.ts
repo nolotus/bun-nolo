@@ -6,7 +6,8 @@ import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
-import { groqModels } from "integrations/groq/models"; // 添加groq的模型导入
+import { groqModels } from "integrations/groq/models";
+import { sambanovaModels } from "integrations/sambanova/models"; // 添加 Sambanova 模型列表导入
 import type { Model } from "./types";
 
 export const providerOptions = [
@@ -17,7 +18,8 @@ export const providerOptions = [
   "deepseek",
   "mistral",
   "google",
-  "groq", // 添加groq到providerOptions数组中
+  "groq",
+  "sambanova",
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
@@ -38,8 +40,10 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
       return mistralModels;
     case "google":
       return googleModels;
-    case "groq": // 添加groq的case语句
+    case "groq":
       return groqModels;
+    case "sambanova":
+      return sambanovaModels;
     default:
       return [];
   }

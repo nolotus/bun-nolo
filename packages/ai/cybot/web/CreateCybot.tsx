@@ -121,6 +121,16 @@ const CreateCybot: React.FC = () => {
               <FormField label={t("tools")} horizontal labelWidth="140px">
                 <ToolSelector register={register} />
               </FormField>
+
+              <FormField
+                label={t("tags")}
+                error={errors.tags?.message}
+                help={t("tagsHelp")}
+                horizontal
+                labelWidth="140px"
+              >
+                <Input {...register("tags")} placeholder={t("enterTags")} />
+              </FormField>
             </div>
           </div>
 
