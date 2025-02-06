@@ -1,3 +1,5 @@
+// database/server/write.ts
+
 import { promises as fs } from "fs";
 import { dirname } from "path";
 import serverDb from "./db";
@@ -17,13 +19,6 @@ export const doesUserDirectoryExist = async (
     return false;
   }
 };
-
-interface TokenData {
-  type: DataType.TOKEN;
-  userId: string;
-  cost?: number;
-  pay?: number;
-}
 
 export const handleWrite = async (req: any, res: any) => {
   const { user } = req;
@@ -78,50 +73,62 @@ export const handleWrite = async (req: any, res: any) => {
   try {
     const id = customId;
 
-    // Token类型特殊处理
+    // Token类型的处理
     if (data.type === DataType.TOKEN) {
-      const tokenData = data as TokenData;
       const isStatsKey = id.includes("token-stats");
 
-      // 非统计数据尝试扣费
-      if (!isStatsKey && tokenData.cost && tokenData.cost > 0) {
+      // 1. 先保存 token 使用记录
+      await serverDb.put(id, data);
+
+      // 2. 非统计类数据且有 cost 时进行扣费
+      if (!isStatsKey && data.cost && data.cost > 0) {
         try {
+          const txId = `token-${id}`;
           const deductResult = await deductUserBalance(
-            tokenData.userId,
-            tokenData.cost,
-            `Token generation cost: ${id}`
+            data.userId,
+            data.cost,
+            `Token generation cost: ${id}`,
+            txId
           );
 
-          if (deductResult.success) {
-            logger.info({
-              event: "token_cost_deducted",
-              userId: tokenData.userId,
-              cost: tokenData.cost,
-              tokenId: id,
-              remainingBalance: deductResult.balance,
-            });
-          } else {
+          if (!deductResult.success) {
             logger.warn({
-              event: "token_cost_deduction_failed",
-              userId: tokenData.userId,
-              cost: tokenData.cost,
-              tokenId: id,
+              event: "token_deduct_failed",
+              error: deductResult.error,
+              userId: data.userId,
+              cost: data.cost,
+              txId,
+            });
+
+            return res.status(402).json({
+              message: "Token usage recorded but payment failed",
               error: deductResult.error,
             });
           }
-        } catch (deductError) {
+        } catch (error) {
           logger.error({
-            event: "token_cost_deduction_error",
-            error: deductError,
-            userId: tokenData.userId,
-            tokenId: id,
+            event: "token_deduct_error",
+            error: error.message,
+            userId: data.userId,
+            id,
+          });
+
+          return res.status(500).json({
+            message: "Token usage recorded but payment system error",
+            error: "Internal server error",
           });
         }
       }
+
+      // 3. Token数据保存成功的响应
+      return res.status(200).json({
+        message: "Token usage recorded successfully",
+        id,
+        ...data,
+      });
     }
 
-    // 无论扣费是否成功，都保存数据
-    // CYBOT数据保存部分的代码
+    // CYBOT 类型的处理
     if (data.type === DataType.CYBOT) {
       try {
         logger.info({
@@ -135,7 +142,6 @@ export const handleWrite = async (req: any, res: any) => {
         await serverDb.put(id, data);
         const savedData = await serverDb.get(id);
 
-        // 仅在数据不一致时记录详细日志
         const isDataMatch = JSON.stringify(data) === JSON.stringify(savedData);
         if (!isDataMatch) {
           logger.error({
@@ -162,8 +168,8 @@ export const handleWrite = async (req: any, res: any) => {
       }
     }
 
+    // 其他数据类型的处理
     if (
-      data.type === DataType.TOKEN ||
       data.type === DataType.MSG ||
       data.type === DataType.PAGE ||
       data.type === DataType.DIALOG
