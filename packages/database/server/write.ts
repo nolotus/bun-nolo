@@ -84,12 +84,25 @@ export const handleWrite = async (req: any, res: any) => {
       if (!isStatsKey && data.cost && data.cost > 0) {
         try {
           const txId = `token-${id}`;
+          logger.info({
+            event: "token_deduct_start",
+            userId: data.userId,
+            cost: data.cost,
+            txId,
+          });
           const deductResult = await deductUserBalance(
             data.userId,
             data.cost,
             `Token generation cost: ${id}`,
             txId
           );
+          logger.info({
+            event: "token_deduct_result",
+            userId: data.userId,
+            cost: data.cost,
+            txId,
+            deductResult,
+          });
 
           if (!deductResult.success) {
             logger.warn({

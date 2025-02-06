@@ -5,7 +5,7 @@ import { createKey } from "database/keys";
 import serverDb from "./db";
 import pino from "pino";
 
-const logger = pino({ name: "handle-delete" });
+// const logger = pino({ name: "handle-delete" });
 
 // 新增的独立删除消息函数
 async function deleteMessages(dialogId: string) {
@@ -24,10 +24,6 @@ async function deleteMessages(dialogId: string) {
 
   // 批量执行删除操作
   await batch.write();
-  logger.info(
-    { id: dialogId, count: deletedKeys.length },
-    "Batch deleted messages"
-  );
 
   return {
     message: "Messages deleted successfully",
@@ -67,7 +63,7 @@ export const handleDelete = async (req, res) => {
       processingIds: [],
     });
   } catch (error) {
-    logger.error({ error }, "Delete handler error");
+    // logger.error({ error }, "Delete handler error");
     return res.status(500).json({
       error: "Internal server error",
       processingIds: [],

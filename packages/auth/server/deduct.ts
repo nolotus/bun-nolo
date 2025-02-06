@@ -1,8 +1,10 @@
+// auth/server/deduct.ts
 import { ulid } from "ulid";
-import { Mutex } from "async-mutex";
 import serverDb, { DB_PREFIX } from "database/server/db";
 import { createTransactionKey } from "database/keys";
 import { logger } from "auth/server/shared";
+import { balanceLockManager } from "./locks";
+import { withRetry } from "./utils";
 
 interface DeductResult {
   success: boolean;
@@ -11,50 +13,9 @@ interface DeductResult {
   txId?: string;
 }
 
-const balanceLocks = new Map<string, Mutex>();
-
-function getBalanceLock(userId: string): Mutex {
-  let lock = balanceLocks.get(userId);
-  if (!lock) {
-    lock = new Mutex();
-    balanceLocks.set(userId, lock);
-  }
-  return lock;
-}
-
-async function withRetry(
-  operation: () => Promise<any>,
-  options: { maxAttempts: number; delayMs: number; backoff?: boolean }
-) {
-  let lastError = null;
-
-  for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
-    try {
-      return await operation();
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-
-      if (attempt === options.maxAttempts) {
-        break;
-      }
-
-      const delay = options.backoff
-        ? options.delayMs * Math.pow(2, attempt - 1)
-        : options.delayMs;
-
-      logger.warn({
-        event: "operation_retry",
-        attempt,
-        nextDelay: delay,
-        error: lastError.message,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-
-  throw lastError;
-}
+// 日志格式化helper
+const formatLogMsg = (event: string, txId: string) =>
+  `[Deduct] ${event} (txId: ${txId})`;
 
 export async function deductUserBalance(
   userId: string,
@@ -62,31 +23,28 @@ export async function deductUserBalance(
   reason: string,
   txId: string = ulid()
 ): Promise<DeductResult> {
-  const lock = getBalanceLock(userId);
+  const lock = balanceLockManager.getLock(userId);
 
   return await lock.runExclusive(async () => {
     try {
       const numericAmount = Number(amount);
 
       logger.info({
-        event: "deduct_attempt",
+        msg: formatLogMsg("Deduction attempt", txId),
         userId,
         amount: numericAmount,
         reason,
-        txId,
       });
 
       if (!numericAmount || isNaN(numericAmount) || numericAmount <= 0) {
         logger.warn({
-          event: "deduct_invalid_amount",
+          msg: formatLogMsg("Invalid amount", txId),
           userId,
           amount,
-          txId,
         });
         return { success: false, error: "Invalid amount" };
       }
 
-      // 检查交易是否已存在
       const txIndexKey = createTransactionKey.index(txId);
       let existingTx = null;
 
@@ -100,10 +58,9 @@ export async function deductUserBalance(
 
       if (existingTx) {
         logger.warn({
-          event: "deduct_duplicate_transaction",
-          txId,
+          msg: formatLogMsg("Duplicate transaction", txId),
           existingUserId: existingTx.userId,
-          timestamp: existingTx.timestamp,
+          timestamp: new Date(existingTx.timestamp).toISOString(),
         });
         return {
           success: false,
@@ -112,7 +69,6 @@ export async function deductUserBalance(
         };
       }
 
-      // 获取并验证用户数据
       const userKey = `${DB_PREFIX.USER}${userId}`;
       let userData = null;
 
@@ -121,9 +77,8 @@ export async function deductUserBalance(
       } catch (err) {
         if (err instanceof Error && "notFound" in err) {
           logger.warn({
-            event: "deduct_user_not_found",
+            msg: formatLogMsg("User not found", txId),
             userId,
-            txId,
           });
           return { success: false, error: "User not found" };
         }
@@ -131,6 +86,10 @@ export async function deductUserBalance(
       }
 
       if (!userData?.balance) {
+        logger.warn({
+          msg: formatLogMsg("Invalid user data", txId),
+          userId,
+        });
         return { success: false, error: "User data invalid" };
       }
 
@@ -138,11 +97,10 @@ export async function deductUserBalance(
 
       if (currentBalance < numericAmount) {
         logger.warn({
-          event: "deduct_insufficient_balance",
+          msg: formatLogMsg("Insufficient balance", txId),
           userId,
           currentBalance,
           requestedAmount: numericAmount,
-          txId,
         });
         return { success: false, error: "Insufficient balance" };
       }
@@ -159,7 +117,6 @@ export async function deductUserBalance(
         status: "completed",
       };
 
-      // 使用重试包装批量操作
       await withRetry(
         async () => {
           await serverDb.batch([
@@ -195,11 +152,10 @@ export async function deductUserBalance(
       );
 
       logger.info({
-        event: "deduct_success",
+        msg: formatLogMsg("Deduction successful", txId),
         userId,
-        amount: numericAmount,
+        deductedAmount: numericAmount,
         newBalance,
-        txId,
       });
 
       return {
@@ -210,14 +166,13 @@ export async function deductUserBalance(
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       logger.error({
-        event: "deduct_error",
+        msg: formatLogMsg("Deduction failed", txId),
         userId,
         amount,
         error: error.message,
-        txId,
+        stack: error.stack,
       });
 
-      // 如果出错，尝试记录交易失败状态
       try {
         await withRetry(
           async () => {
@@ -247,10 +202,12 @@ export async function deductUserBalance(
         );
       } catch (updateError) {
         logger.error({
-          event: "deduct_error_status_update_failed",
+          msg: formatLogMsg("Failed to update error status", txId),
           userId,
-          txId,
-          error: updateError,
+          error:
+            updateError instanceof Error
+              ? updateError.message
+              : String(updateError),
         });
       }
 
