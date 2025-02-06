@@ -1,3 +1,9 @@
+// 定义 cybotConfig 的类型
+interface CybotConfig {
+  provider: string;
+  customProviderUrl?: string;
+}
+
 const CHAT_COMPLETION_URLS = {
   openai: "https://api.openai.com/v1/chat/completions",
   deepinfra: "https://api.deepinfra.com/v1/openai/chat/completions",
@@ -8,12 +14,18 @@ const CHAT_COMPLETION_URLS = {
   google:
     "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
   ollama: "http://localhost:11434/v1/chat/completions",
+  sambanova: "https://api.sambanova.ai/v1/chat/completions", // 新添加的端点
 };
 
-export function getApiEndpoint(cybotConfig) {
+export function getApiEndpoint(cybotConfig: CybotConfig): string {
   const provider = cybotConfig.provider.toLowerCase();
 
   if (provider === "custom") {
+    if (!cybotConfig.customProviderUrl) {
+      throw new Error(
+        "Custom provider URL is required when provider is 'custom'."
+      );
+    }
     return cybotConfig.customProviderUrl;
   }
 
