@@ -6,6 +6,6 @@ export enum DataType {
   MSG = "msg",
   TOKEN = "token",
   Space = "space",
-  TRANSFER = "transfer",
+  TRANSACTION = "transaction",
   // CalendarEvent = "calendar_event",
 }

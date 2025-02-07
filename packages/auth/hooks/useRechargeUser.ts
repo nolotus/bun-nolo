@@ -1,49 +1,42 @@
 // hooks/useRechargeUser.ts
+import { ulid } from "ulid";
 import { useCallback } from "react";
-import { useAppSelector } from "app/hooks";
-import { selectCurrentServer } from "setting/settingSlice";
-import { selectCurrentToken } from "auth/authSlice";
-import { authRoutes } from "auth/routes";
-import pino from "pino";
-
-const logger = pino({ name: "useRechargeUser" });
+import { useAppDispatch } from "app/hooks";
+import { write } from "database/dbSlice";
+import { DataType } from "create/types";
 
 export function useRechargeUser(onSuccess?: () => void) {
-  const serverUrl = useAppSelector(selectCurrentServer);
-  const token = useAppSelector(selectCurrentToken);
+  const dispatch = useAppDispatch();
 
   return useCallback(
     async (userId: string, amount: number) => {
-      if (!serverUrl || !token) {
-        logger.warn("Missing serverUrl or token");
-        throw new Error("配置错误");
-      }
-
-      const path = authRoutes.users.transfer.createPath({ userId });
-
-      logger.debug({ userId, amount }, "Attempting to recharge user");
+      const txId = ulid();
 
       try {
-        const response = await fetch(`${serverUrl}${path}`, {
-          method: authRoutes.users.transfer.method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ amount }),
-        });
+        const result = await dispatch(
+          write({
+            data: {
+              type: DataType.TRANSACTION,
+              transactionType: "recharge",
+              userId,
+              amount,
+              reason: "admin_recharge",
+              timestamp: Date.now(),
+            },
+            customId: txId,
+          })
+        ).unwrap();
 
-        if (!response.ok) {
-          throw new Error("充值请求失败");
+        if (!result.success) {
+          throw new Error(result.error || "充值失败");
         }
 
-        logger.info({ userId, amount }, "Recharge successful");
         onSuccess?.();
+        return result;
       } catch (err) {
-        logger.error({ err }, "Recharge failed");
         throw err;
       }
     },
-    [serverUrl, token, onSuccess]
+    [dispatch, onSuccess]
   );
 }
