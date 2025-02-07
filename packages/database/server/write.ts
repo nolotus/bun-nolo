@@ -5,13 +5,8 @@ import { dirname } from "path";
 import { logger } from "auth/server/shared";
 import { DataType } from "create/types";
 import serverDb from "./db";
-import {
-  handleTransaction,
-  handleToken,
-  handleCybot,
-  handleOtherDataTypes,
-} from "./dataHandlers";
-
+import { handleToken, handleCybot, handleOtherDataTypes } from "./dataHandlers";
+import { handleTransaction } from "./handleTransaction";
 export const doesUserDirectoryExist = async (
   userId: string
 ): Promise<boolean> => {
@@ -83,13 +78,7 @@ export const handleWrite = async (req: any, res: any) => {
 
     switch (dataType) {
       case DataType.TRANSACTION:
-        result = await handleTransaction(
-          data,
-          res,
-          userId,
-          customId,
-          actionUserId
-        );
+        result = await handleTransaction(data, res, customId, actionUserId);
         break;
       case DataType.TOKEN:
         result = await handleToken(data, res, userId, customId, actionUserId);

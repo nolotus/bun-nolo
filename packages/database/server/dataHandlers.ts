@@ -1,48 +1,7 @@
 import { logger } from "auth/server/shared";
-import { rechargeUserBalance } from "auth/server/recharge";
 import { deductUserBalance } from "auth/server/deduct";
 import { DataType } from "create/types";
 import serverDb from "./db";
-import { nolotusId } from "core/init";
-
-export const handleTransaction = async (
-  data: any,
-  res: any,
-  userId: string,
-  customId: string,
-  actionUserId: string
-) => {
-  const { transactionType, amount } = data;
-
-  if (transactionType === "recharge") {
-    const isAdmin = actionUserId === nolotusId;
-
-    if (!isAdmin) {
-      return res.status(403).json({
-        message: "Need admin permission",
-      });
-    }
-
-    const result = await rechargeUserBalance(
-      userId,
-      amount,
-      data.reason,
-      customId
-    );
-
-    if (!result.success) {
-      return res.status(400).json({
-        message: result.error,
-        error: result.error,
-      });
-    }
-
-    return res.status(200).json({
-      message: "Transaction completed",
-      ...result,
-    });
-  }
-};
 
 export const handleToken = async (
   data: any,

@@ -1,10 +1,12 @@
 // auth/server/recharge.ts
-
 import { ulid } from "ulid";
 import serverDb, { DB_PREFIX } from "database/server/db";
 import { createTransactionKey } from "database/keys";
 import { balanceLockManager } from "./locks";
 import { withRetry } from "./utils";
+import pino from "pino";
+
+const logger = pino({ name: "recharge" });
 
 interface RechargeResult {
   success: boolean;
@@ -13,19 +15,41 @@ interface RechargeResult {
   txId?: string;
 }
 
+interface TransactionRecord {
+  txId: string;
+  toUserId: string;
+  type: "recharge";
+  amount: number;
+  reason: string;
+  timestamp: number;
+  status: "completed" | "failed";
+}
+
+interface UserData {
+  username: string;
+  publicKey: string;
+  locale: string;
+  createdAt: number;
+  email: string;
+  balance: number;
+  balanceUpdatedAt: number;
+  [key: string]: any;
+}
+
 export async function rechargeUserBalance(
-  userId: string,
+  toUserId: string,
   amount: number,
   reason: string = "admin_recharge",
   txId: string = ulid()
 ): Promise<RechargeResult> {
-  const lock = balanceLockManager.getLock(userId);
+  const lock = balanceLockManager.getLock(toUserId);
 
   return await lock.runExclusive(async () => {
     try {
       const numericAmount = Number(amount);
 
       if (!numericAmount || isNaN(numericAmount) || numericAmount <= 0) {
+        logger.warn({ toUserId, amount }, "Invalid recharge amount");
         return { success: false, error: "Invalid amount" };
       }
 
@@ -41,6 +65,7 @@ export async function rechargeUserBalance(
       }
 
       if (existingTx) {
+        logger.warn({ txId, toUserId }, "Duplicate transaction detected");
         return {
           success: false,
           error: "Duplicate transaction",
@@ -48,28 +73,34 @@ export async function rechargeUserBalance(
         };
       }
 
-      const userKey = `${DB_PREFIX.USER}${userId}`;
-      let userData = null;
+      const userKey = `${DB_PREFIX.USER}${toUserId}`;
+      let userData: UserData | null = null;
 
       try {
         userData = await serverDb.get(userKey);
+        logger.debug({ toUserId, userData, userKey }, "Retrieved user data");
       } catch (err) {
         if (err instanceof Error && "notFound" in err) {
+          logger.error({ toUserId, userKey }, "User not found");
           return { success: false, error: "User not found" };
         }
         throw err;
       }
 
-      if (!userData?.balance) {
+      if (typeof userData?.balance !== "number") {
+        logger.error(
+          { toUserId, userData, userKey },
+          "Invalid user data - balance must be a number"
+        );
         return { success: false, error: "User data invalid" };
       }
 
       const currentBalance = userData.balance;
       const newBalance = currentBalance + numericAmount;
 
-      const txRecord = {
+      const txRecord: TransactionRecord = {
         txId,
-        userId,
+        toUserId,
         type: "recharge",
         amount: numericAmount,
         reason,
@@ -82,14 +113,14 @@ export async function rechargeUserBalance(
           await serverDb.batch([
             {
               type: "put",
-              key: createTransactionKey.record(userId, txId),
+              key: createTransactionKey.record(toUserId, txId),
               value: txRecord,
             },
             {
               type: "put",
               key: txIndexKey,
               value: {
-                userId,
+                toUserId,
                 timestamp: Date.now(),
               },
             },
@@ -99,7 +130,7 @@ export async function rechargeUserBalance(
               value: {
                 ...userData,
                 balance: newBalance,
-                lastRechargeAt: Date.now(),
+                balanceUpdatedAt: Date.now(),
               },
             },
           ]);
@@ -111,19 +142,27 @@ export async function rechargeUserBalance(
         }
       );
 
+      logger.info(
+        { toUserId, amount: numericAmount, newBalance, txId },
+        "Recharge completed successfully"
+      );
+
       return {
         success: true,
         balance: newBalance,
         txId,
       };
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error(
+        { err, toUserId, amount, txId },
+        "Error during recharge process"
+      );
 
       try {
         await withRetry(
           async () => {
-            const txKey = createTransactionKey.record(userId, txId);
-            let txRecord = null;
+            const txKey = createTransactionKey.record(toUserId, txId);
+            let txRecord: TransactionRecord | null = null;
 
             try {
               txRecord = await serverDb.get(txKey);
@@ -147,7 +186,10 @@ export async function rechargeUserBalance(
           }
         );
       } catch (updateError) {
-        // 删除错误日志
+        logger.error(
+          { updateError, toUserId, txId },
+          "Failed to update transaction status"
+        );
       }
 
       return {
