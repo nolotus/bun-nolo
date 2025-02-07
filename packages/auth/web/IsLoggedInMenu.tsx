@@ -6,12 +6,7 @@ import {
 } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
-import {
-  selectUsers,
-  signOut,
-  selectCurrentToken,
-  changeUser,
-} from "auth/authSlice";
+import { selectUsers, signOut, changeUser } from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -132,7 +127,6 @@ export const IsLoggedInMenu: React.FC = () => {
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const users = useAppSelector(selectUsers);
-  const currentToken = useAppSelector(selectCurrentToken);
 
   const handleUserChange = (user: User) => {
     dispatch(changeUser(user));
@@ -192,14 +186,14 @@ export const IsLoggedInMenu: React.FC = () => {
             )}
 
             {renderDropdownItem(
-              t("common:settings"),
+              t("settings"),
               <GearIcon size={16} />,
               () => navigate(SettingRoutePaths.SETTING),
               "settings"
             )}
 
             {renderDropdownItem(
-              t("common:logout"),
+              t("logout"),
               <SignOutIcon size={16} />,
               handleLogout,
               "logout"
