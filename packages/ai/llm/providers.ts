@@ -1,3 +1,39 @@
+interface CybotConfig {
+  provider: string;
+  customProviderUrl?: string;
+}
+
+const CHAT_COMPLETION_URLS = {
+  openai: "https://api.openai.com/v1/chat/completions",
+  deepinfra: "https://api.deepinfra.com/v1/openai/chat/completions",
+  fireworks: "https://api.fireworks.ai/inference/v1/chat/completions",
+  xai: "https://api.x.ai/v1/chat/completions",
+  deepseek: "https://api.deepseek.com/chat/completions",
+  mistral: "https://api.mistral.ai/v1/chat/completions",
+  google:
+    "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+  ollama: "http://localhost:11434/v1/chat/completions",
+  sambanova: "https://api.sambanova.ai/v1/chat/completions",
+  groq: "https://api.groq.com/openai/v1/chat/completions",
+};
+
+export function getApiEndpoint(cybotConfig: CybotConfig): string {
+  const provider = cybotConfig.provider.toLowerCase();
+  if (provider === "custom") {
+    if (!cybotConfig.customProviderUrl) {
+      throw new Error(
+        "Custom provider URL is required when provider is 'custom'."
+      );
+    }
+    return cybotConfig.customProviderUrl;
+  }
+  const endpoint = CHAT_COMPLETION_URLS[provider];
+  if (!endpoint) {
+    throw new Error(`Unsupported provider: ${cybotConfig.provider}`);
+  }
+  return endpoint;
+}
+
 import { anthropicModels } from "integrations/anthropic/anthropicModels";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { deepSeekModels } from "integrations/deepseek/models";
@@ -7,10 +43,10 @@ import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { groqModels } from "integrations/groq/models";
-import { sambanovaModels } from "integrations/sambanova/models"; // 添加 Sambanova 模型列表导入
+import { sambanovaModels } from "integrations/sambanova/models";
 import type { Model } from "./types";
 
-export const providerOptions = [
+const providerOptions = [
   "anthropic",
   "ollama",
   "fireworks",
@@ -20,41 +56,37 @@ export const providerOptions = [
   "google",
   "groq",
   "sambanova",
+  "openai",
+  "xai",
+  "custom",
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
 
+// 增加availableProviderOptions
+export const availableProviderOptions = providerOptions.filter(
+  (provider) => !["openai", "xai", "custom"].includes(provider)
+);
+
 export const getModelsByProvider = (provider: Provider): Model[] => {
-  switch (provider) {
-    case "anthropic":
-      return anthropicModels;
-    case "ollama":
-      return ollamaModels;
-    case "fireworks":
-      return fireworksmodels;
-    case "deepinfra":
-      return deepinfraModels;
-    case "deepseek":
-      return deepSeekModels;
-    case "mistral":
-      return mistralModels;
-    case "google":
-      return googleModels;
-    case "groq":
-      return groqModels;
-    case "sambanova":
-      return sambanovaModels;
-    default:
-      return [];
-  }
+  const modelsMap: Record<Provider, Model[]> = {
+    anthropic: anthropicModels,
+    ollama: ollamaModels,
+    fireworks: fireworksmodels,
+    deepinfra: deepinfraModels,
+    deepseek: deepSeekModels,
+    mistral: mistralModels,
+    google: googleModels,
+    groq: groqModels,
+    sambanova: sambanovaModels,
+    openai: openAIModels,
+    xai: [],
+    custom: [],
+  };
+  return modelsMap[provider] || [];
 };
 
-/**
- * 获取指定供应商和模型名称的模型配置
- * @param provider - 供应商名称 (anthropic/openai/deepseek)
- * @param modelName - 模型名称
- */
-export const getModel = (provider: Provider, modelName: string) => {
+export const getModel = (provider: Provider, modelName: string): Model => {
   const models = getModelsByProvider(provider);
   const model = models.find((m) => m.name === modelName);
   if (!model) {

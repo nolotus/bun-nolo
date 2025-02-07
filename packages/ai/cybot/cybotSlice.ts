@@ -2,7 +2,7 @@ import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
 import { read } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
-import { getApiEndpoint } from "../api/apiEndpoints";
+import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "../chat/fetchUtils";
 
 const createSliceWithThunks = buildCreateSlice({

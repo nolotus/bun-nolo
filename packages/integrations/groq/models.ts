@@ -8,10 +8,10 @@ export const groqModels = [
     contextWindow: 0,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0, // 原始价格: 0
+      output: 0, // 原始价格: 0
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -23,10 +23,10 @@ export const groqModels = [
     contextWindow: 8192,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 1.6, // 原始价格: 0.2
+      output: 1.6, // 原始价格: 0.2
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -38,10 +38,10 @@ export const groqModels = [
     contextWindow: 131072,
     maxOutputTokens: 32768,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 4.72, // 原始价格: 0.59
+      output: 6.32, // 原始价格: 0.79
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -53,10 +53,10 @@ export const groqModels = [
     contextWindow: 131072,
     maxOutputTokens: 8192,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0.4, // 原始价格: 0.05
+      output: 0.64, // 原始价格: 0.08
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -68,10 +68,10 @@ export const groqModels = [
     contextWindow: 8192,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 1.6, // 原始价格: 0.2
+      output: 1.6, // 原始价格: 0.2
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -83,10 +83,10 @@ export const groqModels = [
     contextWindow: 8192,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 4.72, // 原始价格: 0.59
+      output: 6.32, // 原始价格: 0.79
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -98,10 +98,10 @@ export const groqModels = [
     contextWindow: 8192,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0.4, // 原始价格: 0.05
+      output: 0.64, // 原始价格: 0.08
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -113,10 +113,10 @@ export const groqModels = [
     contextWindow: 32768,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 1.92, // 原始价格: 0.24
+      output: 1.92, // 原始价格: 0.24
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -128,10 +128,10 @@ export const groqModels = [
     contextWindow: 0,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0, // 原始价格: 0
+      output: 0, // 原始价格: 0
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -144,10 +144,10 @@ export const groqModels = [
     contextWindow: 0,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0, // 原始价格: 0
+      output: 0, // 原始价格: 0
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   // Preview Models
@@ -160,10 +160,10 @@ export const groqModels = [
     contextWindow: 131072,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 6, // 原始价格: 0.75
+      output: 7.92, // 原始价格: 0.99
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -175,10 +175,10 @@ export const groqModels = [
     contextWindow: 8192,
     maxOutputTokens: 0,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 24, // 原始价格: 3
+      output: 24, // 原始价格: 3
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -190,10 +190,10 @@ export const groqModels = [
     contextWindow: 131072,
     maxOutputTokens: 8192,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0.32, // 原始价格: 0.04
+      output: 0.32, // 原始价格: 0.04
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -205,10 +205,10 @@ export const groqModels = [
     contextWindow: 131072,
     maxOutputTokens: 8192,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0.48, // 原始价格: 0.06
+      output: 0.48, // 原始价格: 0.06
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -220,10 +220,10 @@ export const groqModels = [
     contextWindow: 131072,
     maxOutputTokens: 8192,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0.32, // 原始价格: 0.04
+      output: 0.32, // 原始价格: 0.04
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
   {
@@ -236,10 +236,10 @@ export const groqModels = [
     contextWindow: 131072,
     maxOutputTokens: 8192,
     price: {
-      input: 0,
-      output: 0,
-      cachingWrite: 0,
-      cachingRead: 0,
+      input: 0.32, // 原始价格: 0.04
+      output: 0.32, // 原始价格: 0.04
+      cachingWrite: 0, // 原始价格: 0
+      cachingRead: 0, // 原始价格: 0
     },
   },
 ];

@@ -18,14 +18,17 @@ import FormTitle from "web/form/FormTitle";
 
 // data & types
 import { patchData } from "database/dbSlice";
-import { getModelsByProvider, providerOptions } from "../llm/providers";
+import {
+  getModelsByProvider,
+  availableProviderOptions,
+} from "../llm/providers";
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
 
 const getOrderedProviderOptions = () => {
   return [
     { name: "Custom" },
-    ...providerOptions.map((item) => ({ name: item })),
+    ...availableProviderOptions.map((item) => ({ name: item })),
   ];
 };
 

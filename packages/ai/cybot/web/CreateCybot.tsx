@@ -8,7 +8,10 @@ import type { Model } from "../../llm/types";
 import { useCreateCybotValidation } from "../hooks/useCreateCybotValidation";
 
 // data & hooks
-import { getModelsByProvider, providerOptions } from "../../llm/providers";
+import {
+  getModelsByProvider,
+  availableProviderOptions,
+} from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 
@@ -30,7 +33,7 @@ type ApiSource = "platform" | "custom";
 const getOrderedProviderOptions = () => {
   return [
     { name: "custom" },
-    ...providerOptions.map((item) => ({ name: item })),
+    ...availableProviderOptions.map((item) => ({ name: item })),
   ];
 };
 
