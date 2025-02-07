@@ -8,7 +8,10 @@ import type { Model } from "../../llm/types";
 import { useEditCybotValidation } from "../hooks/useEditCybotValidation";
 
 // data & hooks
-import { getModelsByProvider, providerOptions } from "../../llm/providers";
+import {
+  getModelsByProvider,
+  availableProviderOptions,
+} from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 
@@ -49,7 +52,7 @@ interface EditCybotProps {
 const getOrderedProviderOptions = () => {
   return [
     { name: "custom" },
-    ...providerOptions.map((item) => ({ name: item })),
+    ...availableProviderOptions.map((item) => ({ name: item })),
   ];
 };
 

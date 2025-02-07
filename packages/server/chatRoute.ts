@@ -1,13 +1,12 @@
 import { omit } from "rambda";
 import { getNoloKey } from "ai/llm/getNoloKey";
 
-export const proxyRoute = async (req, res) => {
+export const chatRoute = async (req) => {
   try {
     const rawBody = req.body;
     const body = omit("url,KEY,provider", rawBody);
     let apiKey;
     const userKey = rawBody.KEY?.trim();
-
     apiKey = Boolean(userKey) ? userKey : getNoloKey(rawBody.provider);
     if (!apiKey) {
       throw new Error("API key is required but not provided");
