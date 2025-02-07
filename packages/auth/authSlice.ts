@@ -1,10 +1,9 @@
 import { PayloadAction } from "@reduxjs/toolkit";
 import { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
-import { generateUserIdV0, generateUserIdV1 } from "core/generateMainKey";
+import { generateUserIdV1 } from "core/generateMainKey";
 import { signToken } from "auth/token";
 import { selectCurrentServer } from "setting/settingSlice";
-import { generateKeyPairFromSeedV0 } from "core/generateKeyPairFromSeedV0";
 import { generateKeyPairFromSeedV1 } from "core/crypto";
 import { parseToken } from "./token";
 import { User } from "./types";
@@ -45,19 +44,11 @@ export const authSlice = createSliceWithThunks({
 
           let userId;
           let token;
-          if (version === "v0") {
-            const { publicKey, secretKey } = generateKeyPairFromSeedV0(
-              username + encryptionKey + locale
-            );
-            userId = generateUserIdV0(publicKey, username, locale);
-            token = signToken({ userId, publicKey, username }, secretKey);
-          } else if (version === "v1") {
-            const { publicKey, secretKey } = generateKeyPairFromSeedV1(
-              username + encryptionKey + locale
-            );
-            userId = generateUserIdV1(publicKey, username, locale);
-            token = signToken({ userId, publicKey, username }, secretKey);
-          }
+          const { publicKey, secretKey } = generateKeyPairFromSeedV1(
+            username + encryptionKey + locale
+          );
+          userId = generateUserIdV1(publicKey, username, locale);
+          token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
           const res = await loginRequest(currentServer, {
             userId,
@@ -119,7 +110,9 @@ export const authSlice = createSliceWithThunks({
             state.currentUser = user;
             state.currentToken = tokens[0];
             state.isLoggedIn = true;
-            state.users = tokens.map(parseToken);
+            const users = tokens.map(parseToken);
+            console.log("users", users);
+            state.users = users;
           }
         },
       }

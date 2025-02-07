@@ -1,4 +1,3 @@
-// auth/server/signup.ts
 import { t } from "i18next";
 import serverDb, { DB_PREFIX } from "database/server/db.js";
 import { reject } from "rambda";
@@ -18,6 +17,10 @@ export async function handleSignUp(req: Request) {
 
   try {
     const { username, publicKey, locale, email } = req.body;
+
+    // 记录接收到的用户名和公钥
+    logger.info({ username, publicKey }, "Received signup request");
+
     const userId = generateUserIdV1(publicKey, username, locale);
 
     // 检查用户是否存在
@@ -49,6 +52,8 @@ export async function handleSignUp(req: Request) {
 
       // 验证数据写入
       const savedUser = await serverDb.get(DB_PREFIX.USER + userId);
+
+      // 记录保存的用户数据
       logger.debug("Saved user data:", savedUser);
 
       const message = JSON.stringify({
@@ -65,12 +70,6 @@ export async function handleSignUp(req: Request) {
       }
 
       const encryptedData = signMessage(message, secretKey);
-
-      logger.info({
-        event: "user_signup_success",
-        userId,
-        username,
-      });
 
       return createSuccessResponse({ encryptedData });
     } catch (error) {
