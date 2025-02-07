@@ -85,8 +85,8 @@ const UsageRecord: React.FC = () => {
       <td className="cybot-id">{record.cybotId || "-"}</td>
       <td>{formatTokens(record)}</td>
       <td>{record.model}</td>
-      <td>{record.cost.toFixed(4)}</td>
       <td>{formatPrices(record.inputPrice, record.outputPrice)}</td>
+      <td>{record.cost.toFixed(4)}</td>
     </tr>
   );
 
@@ -138,6 +138,14 @@ const UsageRecord: React.FC = () => {
         .footer {
           margin-top: 1rem;
         }
+        .total {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid ${theme.border};
+          display: flex;
+          justify-content: flex-end;
+          font-weight: bold;
+        }
       `}</style>
 
       <div className="usage-card">
@@ -178,8 +186,8 @@ const UsageRecord: React.FC = () => {
                 <th>机器人</th>
                 <th>Tokens</th>
                 <th>模型</th>
-                <th>费用(￥)</th>
                 <th>输入/输出价格(￥)</th>
+                <th>费用(￥)</th>
               </tr>
             </thead>
             <tbody>
@@ -195,6 +203,16 @@ const UsageRecord: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {records.length > 0 && (
+          <div className="total">
+            当页合计：
+            {records
+              .reduce((sum, record) => sum + record.cost, 0)
+              .toFixed(4)}{" "}
+            ￥
+          </div>
+        )}
 
         <div className="footer">
           <Pagination
