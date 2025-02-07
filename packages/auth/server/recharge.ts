@@ -1,12 +1,6 @@
 // auth/server/recharge.ts
 import { ulid } from "ulid";
-import {
-  logger,
-  createErrorResponse,
-  createSuccessResponse,
-  checkAdminPermission,
-  handleOptionsRequest,
-} from "./shared";
+import { logger } from "./shared";
 import serverDb, { DB_PREFIX } from "database/server/db";
 import { createTransactionKey } from "database/keys";
 import { balanceLockManager } from "./locks";
@@ -19,8 +13,7 @@ interface RechargeResult {
   txId?: string;
 }
 
-// 核心业务逻辑
-async function rechargeUserBalance(
+export async function rechargeUserBalance(
   userId: string,
   amount: number,
   reason: string = "admin_recharge",
@@ -210,36 +203,4 @@ async function rechargeUserBalance(
       };
     }
   });
-}
-
-// HTTP 处理层
-export async function handleRechargeUser(req: Request, userId: string) {
-  if (req.method === "OPTIONS") {
-    return handleOptionsRequest();
-  }
-
-  const permissionError = checkAdminPermission(req);
-  if (permissionError) return permissionError;
-
-  try {
-    const { amount } = req.body;
-    const result = await rechargeUserBalance(userId, amount);
-
-    if (!result.success) {
-      return createErrorResponse(result.error || "Recharge failed", 400);
-    }
-
-    return createSuccessResponse({
-      success: true,
-      balance: result.balance,
-      txId: result.txId,
-    });
-  } catch (error) {
-    logger.error({
-      event: "http_recharge_failed",
-      userId,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return createErrorResponse("Internal server error");
-  }
 }
