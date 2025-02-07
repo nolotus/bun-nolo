@@ -11,8 +11,9 @@ export async function handleTransferUser(req: Request, userId: string) {
   if (req.method === "OPTIONS") {
     return handleOptionsRequest();
   }
+  const { userId: actionUserId } = req.user;
 
-  const permissionError = checkAdminPermission(req);
+  const permissionError = checkAdminPermission(actionUserId);
   if (permissionError) return permissionError;
 
   try {

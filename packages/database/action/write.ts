@@ -48,6 +48,7 @@ export const writeAction = async (writeConfig, thunkApi) => {
       DataType.PAGE,
       DataType.DIALOG,
       DataType.TOKEN,
+      DataType.TRANSACTION,
     ].includes(data.type)
   ) {
     return null;

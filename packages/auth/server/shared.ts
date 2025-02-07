@@ -43,8 +43,8 @@ export function handleOptionsRequest() {
   });
 }
 
-export function checkAdminPermission(req: Request) {
-  if (!req.user?.userId || req.user.userId !== nolotusId) {
+export function checkAdminPermission(actionUserId: string) {
+  if (!actionUserId || actionUserId !== nolotusId) {
     return createErrorResponse("Unauthorized: Admin access required", 403);
   }
   return null;

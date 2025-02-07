@@ -1,6 +1,6 @@
 // auth/server/recharge.ts
+
 import { ulid } from "ulid";
-import { logger } from "./shared";
 import serverDb, { DB_PREFIX } from "database/server/db";
 import { createTransactionKey } from "database/keys";
 import { balanceLockManager } from "./locks";
@@ -25,25 +25,10 @@ export async function rechargeUserBalance(
     try {
       const numericAmount = Number(amount);
 
-      logger.info({
-        event: "recharge_attempt",
-        userId,
-        amount: numericAmount,
-        reason,
-        txId,
-      });
-
       if (!numericAmount || isNaN(numericAmount) || numericAmount <= 0) {
-        logger.warn({
-          event: "recharge_invalid_amount",
-          userId,
-          amount,
-          txId,
-        });
         return { success: false, error: "Invalid amount" };
       }
 
-      // 检查交易是否已存在
       const txIndexKey = createTransactionKey.index(txId);
       let existingTx = null;
 
@@ -56,12 +41,6 @@ export async function rechargeUserBalance(
       }
 
       if (existingTx) {
-        logger.warn({
-          event: "recharge_duplicate_transaction",
-          txId,
-          existingUserId: existingTx.userId,
-          timestamp: existingTx.timestamp,
-        });
         return {
           success: false,
           error: "Duplicate transaction",
@@ -76,11 +55,6 @@ export async function rechargeUserBalance(
         userData = await serverDb.get(userKey);
       } catch (err) {
         if (err instanceof Error && "notFound" in err) {
-          logger.warn({
-            event: "recharge_user_not_found",
-            userId,
-            txId,
-          });
           return { success: false, error: "User not found" };
         }
         throw err;
@@ -137,14 +111,6 @@ export async function rechargeUserBalance(
         }
       );
 
-      logger.info({
-        event: "recharge_success",
-        userId,
-        amount: numericAmount,
-        newBalance,
-        txId,
-      });
-
       return {
         success: true,
         balance: newBalance,
@@ -152,13 +118,6 @@ export async function rechargeUserBalance(
       };
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      logger.error({
-        event: "recharge_error",
-        userId,
-        amount,
-        error: error.message,
-        txId,
-      });
 
       try {
         await withRetry(
@@ -188,12 +147,7 @@ export async function rechargeUserBalance(
           }
         );
       } catch (updateError) {
-        logger.error({
-          event: "recharge_error_status_update_failed",
-          userId,
-          txId,
-          error: updateError,
-        });
+        // 删除错误日志
       }
 
       return {
