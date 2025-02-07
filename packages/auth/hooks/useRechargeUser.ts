@@ -19,13 +19,13 @@ export function useRechargeUser(onSuccess?: () => void) {
         throw new Error("配置错误");
       }
 
-      const path = authRoutes.users.recharge.createPath({ userId });
+      const path = authRoutes.users.transfer.createPath({ userId });
 
       logger.debug({ userId, amount }, "Attempting to recharge user");
 
       try {
         const response = await fetch(`${serverUrl}${path}`, {
-          method: authRoutes.users.recharge.method,
+          method: authRoutes.users.transfer.method,
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
