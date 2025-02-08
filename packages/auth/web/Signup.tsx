@@ -57,19 +57,6 @@ const Signup: React.FC = () => {
             <p className="error-message">{errors.username.message}</p>
           )}
         </div>
-        <div className="field-group">
-          <Input
-            placeholder={t("enterEmail")}
-            {...register("email")}
-            error={!!errors.email}
-            icon={<MailIcon size={20} />} // 需要从 @primer/octicons-react 引入 MailIcon
-            type="email"
-            autoComplete="email"
-          />
-          {errors.email && (
-            <p className="error-message">{errors.email.message}</p>
-          )}
-        </div>
 
         <div className="field-group">
           <PasswordInput
@@ -83,7 +70,19 @@ const Signup: React.FC = () => {
             <p className="error-message">{errors.password.message}</p>
           )}
         </div>
-
+        <div className="field-group">
+          <Input
+            placeholder={t("enterEmail")}
+            {...register("email")}
+            error={!!errors.email}
+            icon={<MailIcon size={20} />} // 需要从 @primer/octicons-react 引入 MailIcon
+            type="email"
+            autoComplete="email"
+          />
+          {errors.email && (
+            <p className="error-message">{errors.email.message}</p>
+          )}
+        </div>
         {error && <p className="error-message">{error}</p>}
 
         <div className="form-footer">
