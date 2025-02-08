@@ -61,7 +61,6 @@ export async function handleSignUp(req: Request) {
         userId,
         publicKey,
       });
-
       const secretKey = process.env.SECRET_KEY;
 
       if (!secretKey) {

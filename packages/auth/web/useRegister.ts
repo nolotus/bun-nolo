@@ -14,11 +14,9 @@ const useRegister = () => {
 
   const handleRegister = async (data) => {
     try {
-      console.log("Register attempt with data:", data); // 日志1: 记录注册尝试的数据
       const locale = navigator.language;
       const { password } = data;
       const encryptionKey = await hashPasswordV1(password);
-      console.log("Encryption key generated:", encryptionKey); // 日志2: 记录生成的加密密钥
 
       const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
       console.log("Dispatch result:", action); // 日志3: 记录dispatch的结果
