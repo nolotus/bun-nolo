@@ -13,7 +13,6 @@ import { AuthStackNavigator } from "auth/screens/AuthStackNavigator";
 import { UserScreen } from "auth/screens/UserScreen";
 import { ProfileScreen } from "chat/screens/ProfileScreen";
 import AccountStatisticsScreen from "chat/screens/AccountStatisticsScreen";
-import { LevelDBTestScreen } from "database/screens/LevelDBTestScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -87,13 +86,6 @@ function MainNavigation() {
       <Stack.Navigator screenOptions={{}}>
         <Stack.Screen name="MainTabs" component={HomeTabs} />
         <Stack.Screen name="DialogDetail" component={DialogDetail} />
-        <Stack.Screen
-          name="LevelDBTest"
-          component={LevelDBTestScreen}
-          options={{
-            title: "LevelDB 性能测试",
-          }}
-        />
         <Stack.Screen
           name="Auth"
           component={AuthStackNavigator}

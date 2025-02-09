@@ -4,7 +4,8 @@ import {
   detachedSign,
   verifyDetachedSignature,
 } from "./crypto";
-import { generateKeyPairFromSeedV1 } from "core/crypto";
+import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
+
 import { describe, beforeAll, test, expect } from "bun:test";
 
 describe("Crypto Message Tests", () => {

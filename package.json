@@ -39,7 +39,6 @@
     "eslint": "^9.17.0",
     "google-map-react": "^2.2.1",
     "i18next": "^23.11.5",
-    "js-base64": "^3.7.5",
     "jsdom": "^25.0.1",
     "mdast-util-from-markdown": "^2.0.2",
     "mdast-util-gfm": "^3.0.0",

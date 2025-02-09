@@ -4,7 +4,7 @@ import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { generateUserIdV1 } from "core/generateMainKey";
 import { signToken } from "auth/token";
 import { selectCurrentServer } from "setting/settingSlice";
-import { generateKeyPairFromSeedV1 } from "core/crypto";
+import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
 import { parseToken } from "./token";
 import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
