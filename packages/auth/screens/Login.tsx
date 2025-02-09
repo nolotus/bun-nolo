@@ -4,7 +4,6 @@ import { useAppDispatch } from "app/hooks";
 import { signIn } from "../authSlice";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { rnHashpasswordV1 } from "rn/hashPassword";
 import { useTheme } from "app/theme";
 import {
   SafeAreaView,
@@ -17,6 +16,7 @@ import { Input } from "rn/form/Input";
 import PasswordInput from "rn/form/PasswordInput";
 import Button from "rn/ui/Button";
 import { tokenManager } from "../tokenManager";
+import { hashPasswordV1 } from "core/password";
 
 const LoginScreen = ({ navigation }) => {
   const theme = useTheme();
@@ -39,7 +39,8 @@ const LoginScreen = ({ navigation }) => {
     const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
     const deviceCountry = RNLocalize.getCountry();
     const locale = `${deviceLanguage}-${deviceCountry}`;
-    const encryptionKey = await rnHashpasswordV1(password);
+    const encryptionKey = await hashPasswordV1(password);
+    console.log("encryptionKey", encryptionKey);
     const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
     if (action.payload.token) {
       tokenManager.storeToken(action.payload.token);
