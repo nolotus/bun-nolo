@@ -1,10 +1,12 @@
+// database/server/write.ts
+
 import { promises as fs } from "fs";
 import { dirname } from "path";
-import serverDb from "./db";
 import { logger } from "auth/server/shared";
-import { deductUserBalance } from "auth/server/deduct";
 import { DataType } from "create/types";
-
+import serverDb from "./db";
+import { handleToken, handleCybot, handleOtherDataTypes } from "./dataHandlers";
+import { handleTransaction } from "./handleTransaction";
 export const doesUserDirectoryExist = async (
   userId: string
 ): Promise<boolean> => {
@@ -17,13 +19,6 @@ export const doesUserDirectoryExist = async (
     return false;
   }
 };
-
-interface TokenData {
-  type: DataType.TOKEN;
-  userId: string;
-  cost?: number;
-  pay?: number;
-}
 
 export const handleWrite = async (req: any, res: any) => {
   const { user } = req;
@@ -77,104 +72,26 @@ export const handleWrite = async (req: any, res: any) => {
 
   try {
     const id = customId;
+    const dataType = data.type;
 
-    // Token类型特殊处理
-    if (data.type === DataType.TOKEN) {
-      const tokenData = data as TokenData;
-      const isStatsKey = id.includes("token-stats");
+    let result;
 
-      // 非统计数据尝试扣费
-      if (!isStatsKey && tokenData.cost && tokenData.cost > 0) {
-        try {
-          const deductResult = await deductUserBalance(
-            tokenData.userId,
-            tokenData.cost,
-            `Token generation cost: ${id}`
-          );
-
-          if (deductResult.success) {
-            logger.info({
-              event: "token_cost_deducted",
-              userId: tokenData.userId,
-              cost: tokenData.cost,
-              tokenId: id,
-              remainingBalance: deductResult.balance,
-            });
-          } else {
-            logger.warn({
-              event: "token_cost_deduction_failed",
-              userId: tokenData.userId,
-              cost: tokenData.cost,
-              tokenId: id,
-              error: deductResult.error,
-            });
-          }
-        } catch (deductError) {
-          logger.error({
-            event: "token_cost_deduction_error",
-            error: deductError,
-            userId: tokenData.userId,
-            tokenId: id,
-          });
-        }
-      }
+    switch (dataType) {
+      case DataType.TRANSACTION:
+        result = await handleTransaction(data, res, customId, actionUserId);
+        break;
+      case DataType.TOKEN:
+        result = await handleToken(data, res, userId, customId, actionUserId);
+        break;
+      case DataType.CYBOT:
+        result = await handleCybot(data, res, customId);
+        break;
+      default:
+        result = await handleOtherDataTypes(data, res, customId);
+        break;
     }
 
-    // 无论扣费是否成功，都保存数据
-    // CYBOT数据保存部分的代码
-    if (data.type === DataType.CYBOT) {
-      try {
-        logger.info({
-          event: "cybot_save",
-          id,
-          name: data.name,
-          userId: data.userId,
-          isPublic: data.isPublic,
-        });
-
-        await serverDb.put(id, data);
-        const savedData = await serverDb.get(id);
-
-        // 仅在数据不一致时记录详细日志
-        const isDataMatch = JSON.stringify(data) === JSON.stringify(savedData);
-        if (!isDataMatch) {
-          logger.error({
-            event: "cybot_data_mismatch",
-            id,
-            name: data.name,
-          });
-          throw new Error("Data validation failed");
-        }
-
-        return res.status(200).json({
-          message: "Data written successfully",
-          id,
-          ...data,
-        });
-      } catch (error) {
-        logger.error({
-          event: "cybot_save_failed",
-          error: error.message,
-          id,
-          name: data.name,
-        });
-        throw error;
-      }
-    }
-
-    if (
-      data.type === DataType.TOKEN ||
-      data.type === DataType.MSG ||
-      data.type === DataType.PAGE ||
-      data.type === DataType.DIALOG
-    ) {
-      await serverDb.put(id, data);
-      return res.status(200).json({
-        message: "Data written to file successfully.",
-        id,
-        ...data,
-      });
-    }
+    if (result) return result;
 
     return res.status(400).json({
       message: "Invalid data type",

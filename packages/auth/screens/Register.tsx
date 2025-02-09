@@ -53,6 +53,11 @@ const Signup = () => {
       const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
       const deviceCountry = RNLocalize.getCountry();
       const locale = `${deviceLanguage}-${deviceCountry}`;
+      console.log("localce", locale);
+      if (!locale) {
+        setError("locale is empty");
+        return;
+      }
       const { password } = data;
 
       const encryptionKey = await hashPasswordV1(password);

@@ -8,6 +8,19 @@ import { createDialogMessageKey } from "database/keys";
 
 import { addMsg } from "../messageSlice";
 import { getFilteredMessages } from "../utils";
+const requestHandlers = {
+  deepinfra: sendCommonChatRequest,
+  fireworks: sendCommonChatRequest,
+  deepseek: sendCommonChatRequest,
+  xai: sendCommonChatRequest,
+  openai: sendCommonChatRequest,
+  mistral: sendCommonChatRequest,
+  google: sendCommonChatRequest,
+  ollama: sendCommonChatRequest,
+  groq: sendCommonChatRequest,
+  anthropic: sendClaudeRequest,
+  // 添加其他provider的处理函数
+};
 
 export const sendMessageAction = async (args, thunkApi) => {
   const state = thunkApi.getState();
@@ -30,35 +43,17 @@ export const sendMessageAction = async (args, thunkApi) => {
   };
   await thunkApi.dispatch(addMsg(msg));
 
-  if (
-    cybotConfig.provider === "deepinfra" ||
-    cybotConfig.provider === "fireworks" ||
-    cybotConfig.provider === "deepseek" ||
-    cybotConfig.provider === "xai" ||
-    cybotConfig.provider === "openai" ||
-    cybotConfig.provider === "mistral" ||
-    cybotConfig.provider === "google" ||
-    cybotConfig.provider === "ollama" ||
-    cybotConfig.provider === "Custom"
-  ) {
-    sendCommonChatRequest({
-      content,
-      cybotConfig,
-      thunkApi,
-      prevMsgs,
-      dialogKey,
-    });
-    return;
-  }
+  const handler = requestHandlers[cybotConfig.provider.toLowerCase()];
 
-  if (cybotConfig.provider === "anthropic") {
-    sendClaudeRequest({
+  if (handler) {
+    handler({
       content,
       cybotConfig,
       thunkApi,
       prevMsgs,
       dialogKey,
     });
-    return;
+  } else {
+    throw new Error(`Unsupported provider: ${cybotConfig.provider}`);
   }
 };

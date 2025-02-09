@@ -28,11 +28,11 @@ export const authRoutes = {
       createPath: (params: RouteParams) =>
         `${API_VERSION}/users/${params.userId}`,
     },
-    recharge: {
-      path: `${API_VERSION}/users/:userId/recharge`,
+    transfer: {
+      path: `${API_VERSION}/users/:userId/transfer`,
       method: "POST" as const,
       createPath: (params: RouteParams) =>
-        `${API_VERSION}/users/${params.userId}/recharge`,
+        `${API_VERSION}/users/${params.userId}/transfer`,
     },
     delete: {
       path: `${API_VERSION}/users/:userId`,

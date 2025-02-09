@@ -12,27 +12,21 @@ const CYBOT_SERVERS = {
 
 const TIMEOUT = 5000;
 
-const syncWithServers = (servers: string[], writeConfig: any, state: any) => {
+const syncWithServers = (servers, writeConfig, state) => {
   servers.forEach((server) => {
     const abortController = new AbortController();
-    const timeoutId = setTimeout(() => {
-      abortController.abort();
-    }, TIMEOUT);
+    const timeoutId = setTimeout(() => abortController.abort(), TIMEOUT);
 
     noloWriteRequest(server, writeConfig, state, abortController.signal)
       .then((success) => {
         clearTimeout(timeoutId);
-        if (!success) {
-          toast.error(`Failed to save to ${server}`);
-        }
+        if (!success) toast.error(`Failed to save to ${server}`);
       })
-      .catch(() => {
-        clearTimeout(timeoutId);
-      });
+      .catch(() => clearTimeout(timeoutId));
   });
 };
 
-const normalizeTimeFields = (data: Record<string, any>) => ({
+const normalizeTimeFields = (data) => ({
   ...data,
   createdAt: data.createdAt || new Date().toISOString(),
   updatedAt: new Date().toISOString(),
@@ -54,6 +48,7 @@ export const writeAction = async (writeConfig, thunkApi) => {
       DataType.PAGE,
       DataType.DIALOG,
       DataType.TOKEN,
+      DataType.TRANSACTION,
     ].includes(data.type)
   ) {
     return null;
@@ -71,15 +66,11 @@ export const writeAction = async (writeConfig, thunkApi) => {
     const servers = Array.from(
       new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
     );
-    const serverWriteConfig = {
-      ...writeConfig,
-      data: willSaveData,
-      userId,
-    };
+    const serverWriteConfig = { ...writeConfig, data: willSaveData, userId };
 
-    Promise.resolve().then(() => {
-      syncWithServers(servers, serverWriteConfig, state);
-    });
+    Promise.resolve().then(() =>
+      syncWithServers(servers, serverWriteConfig, state)
+    );
 
     return willSaveData;
   } catch (error) {

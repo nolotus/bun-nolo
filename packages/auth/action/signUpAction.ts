@@ -105,7 +105,6 @@ export const signUpAction = async (user, thunkAPI) => {
   if (!remoteData) {
     throw new Error("Failed to register on current server");
   }
-
   const localUserId = generateUserIdV1(publicKey, username, locale);
 
   // 验证返回数据

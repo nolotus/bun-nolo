@@ -5,7 +5,7 @@ import { handleSignUp } from "./signup";
 import { handleDeleteUser } from "./delete";
 import { handleListUsers } from "./listusers";
 import { handleGetUser } from "./getUser";
-import { handleRechargeUser } from "./recharge";
+import { handleTransferUser } from "./transfer";
 
 const routeHandlers = [
   {
@@ -24,14 +24,14 @@ const routeHandlers = [
     handler: (req) => handleListUsers(req),
   },
   {
-    ...authRoutes.users.recharge,
+    ...authRoutes.users.transfer,
     match: (path: string) => {
-      const matcher = createPathMatcher(authRoutes.users.recharge.path);
+      const matcher = createPathMatcher(authRoutes.users.transfer.path);
       const match = path.match(matcher);
       return match ? { userId: match[1] } : false;
     },
     handler: (req, params: RouteParams) =>
-      handleRechargeUser(req, params.userId!),
+      handleTransferUser(req, params.userId!),
   },
   {
     ...authRoutes.users.detail,
@@ -56,7 +56,7 @@ const routeHandlers = [
 
 export const authServerRoutes = (req: Request) => {
   const { url, method } = req;
-  const pathname = url.pathname;
+  const pathname = new URL(url).pathname; // Corrected URL parsing
 
   const route = routeHandlers.find((route) => {
     const matchResult = route.match(pathname);
@@ -68,11 +68,5 @@ export const authServerRoutes = (req: Request) => {
     return route.handler(req, params);
   }
 
-  console.log({
-    level: "warn",
-    event: "route_not_found",
-    pathname,
-    method,
-  });
   return new Response("Not Found", { status: 404 });
 };

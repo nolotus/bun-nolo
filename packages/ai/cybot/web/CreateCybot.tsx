@@ -8,7 +8,10 @@ import type { Model } from "../../llm/types";
 import { useCreateCybotValidation } from "../hooks/useCreateCybotValidation";
 
 // data & hooks
-import { getModelsByProvider, providerOptions } from "../../llm/providers";
+import {
+  getModelsByProvider,
+  availableProviderOptions,
+} from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 
@@ -30,7 +33,7 @@ type ApiSource = "platform" | "custom";
 const getOrderedProviderOptions = () => {
   return [
     { name: "custom" },
-    ...providerOptions.map((item) => ({ name: item })),
+    ...availableProviderOptions.map((item) => ({ name: item })),
   ];
 };
 
@@ -120,6 +123,16 @@ const CreateCybot: React.FC = () => {
 
               <FormField label={t("tools")} horizontal labelWidth="140px">
                 <ToolSelector register={register} />
+              </FormField>
+
+              <FormField
+                label={t("tags")}
+                error={errors.tags?.message}
+                help={t("tagsHelp")}
+                horizontal
+                labelWidth="140px"
+              >
+                <Input {...register("tags")} placeholder={t("enterTags")} />
               </FormField>
             </div>
           </div>
