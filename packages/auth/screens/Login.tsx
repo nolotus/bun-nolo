@@ -16,7 +16,6 @@ import { Input } from "rn/form/Input";
 import PasswordInput from "rn/form/PasswordInput";
 import Button from "rn/ui/Button";
 import { tokenManager } from "../tokenManager";
-import { hashPasswordV1 } from "core/password";
 
 const LoginScreen = ({ navigation }) => {
   const theme = useTheme();
@@ -39,9 +38,7 @@ const LoginScreen = ({ navigation }) => {
     const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
     const deviceCountry = RNLocalize.getCountry();
     const locale = `${deviceLanguage}-${deviceCountry}`;
-    const encryptionKey = await hashPasswordV1(password);
-    console.log("encryptionKey", encryptionKey);
-    const action = await dispatch(signIn({ ...data, locale, encryptionKey }));
+    const action = await dispatch(signIn({ ...data, locale, password }));
     if (action.payload.token) {
       tokenManager.storeToken(action.payload.token);
       navigation.navigate("MainTabs");

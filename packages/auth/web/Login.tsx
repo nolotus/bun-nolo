@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
-import { hashPasswordV1 } from "core/password";
 import type React from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -45,12 +44,8 @@ const Login: React.FC = () => {
   const onSubmit = async (data) => {
     try {
       const locale = navigator.language;
-      const { password } = data;
 
-      const encryptionKey = await hashPasswordV1(password);
-      const result = await dispatch(
-        signIn({ ...data, locale, encryptionKey })
-      ).unwrap();
+      const result = await dispatch(signIn({ ...data, locale })).unwrap();
 
       if (result.token) {
         tokenManager.storeToken(result.token);
