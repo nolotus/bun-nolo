@@ -5,7 +5,7 @@ import { prepareTools } from "ai/tools/prepareTools";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { selectCurrentServer } from "setting/settingSlice";
-import { getApiEndpoint } from "../api/apiEndpoints";
+import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "./fetchUtils";
 import { createDialogMessageKey } from "database/keys";
 import { extractCustomId } from "core/prefix";

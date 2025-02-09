@@ -30,6 +30,8 @@ export const createCybotSchema = z.object({
   inputPrice: z.number().min(0).default(0),
 
   outputPrice: z.number().min(0).default(0),
+
+  tags: z.string().trim().optional().or(z.string().length(0)), // 添加对tags的验证
 });
 
 export type FormData = z.infer<typeof createCybotSchema>;

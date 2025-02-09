@@ -1,49 +1,78 @@
 // hooks/useRechargeUser.ts
+import { ulid } from "ulid";
 import { useCallback } from "react";
-import { useAppSelector } from "app/hooks";
-import { selectCurrentServer } from "setting/settingSlice";
-import { selectCurrentToken } from "auth/authSlice";
-import { authRoutes } from "auth/routes";
+import { useAppDispatch } from "app/hooks";
+import { write } from "database/dbSlice";
+import { DataType } from "create/types";
 import pino from "pino";
 
 const logger = pino({ name: "useRechargeUser" });
 
+interface Transaction {
+  type: DataType.TRANSACTION;
+  transactionType: "recharge";
+  toUserId: string; // 改为 toUserId
+  amount: number;
+  reason: string;
+  timestamp: number;
+}
+
+export class RechargeError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: unknown
+  ) {
+    super(message);
+    this.name = "RechargeError";
+  }
+}
+
 export function useRechargeUser(onSuccess?: () => void) {
-  const serverUrl = useAppSelector(selectCurrentServer);
-  const token = useAppSelector(selectCurrentToken);
+  const dispatch = useAppDispatch();
 
   return useCallback(
-    async (userId: string, amount: number) => {
-      if (!serverUrl || !token) {
-        logger.warn("Missing serverUrl or token");
-        throw new Error("配置错误");
+    async (toUserId: string, amount: number): Promise<void> => {
+      // 参数名改为 toUserId
+      // 参数验证
+      if (!toUserId?.trim()) {
+        throw new RechargeError("Invalid target user ID");
       }
 
-      const path = authRoutes.users.recharge.createPath({ userId });
+      if (typeof amount !== "number" || amount <= 0) {
+        throw new RechargeError("Invalid amount");
+      }
 
-      logger.debug({ userId, amount }, "Attempting to recharge user");
+      const txId = ulid();
+
+      logger.debug({ toUserId, amount, txId }, "Starting recharge transaction");
 
       try {
-        const response = await fetch(`${serverUrl}${path}`, {
-          method: authRoutes.users.recharge.method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ amount }),
-        });
+        const transaction: Transaction = {
+          type: DataType.TRANSACTION,
+          transactionType: "recharge",
+          toUserId, // 字段名改为 toUserId
+          amount,
+          reason: "admin_recharge",
+          timestamp: Date.now(),
+        };
 
-        if (!response.ok) {
-          throw new Error("充值请求失败");
-        }
+        await dispatch(
+          write({
+            data: transaction,
+            customId: txId,
+          })
+        ).unwrap();
 
-        logger.info({ userId, amount }, "Recharge successful");
+        logger.info({ toUserId, amount, txId }, "Recharge successful");
         onSuccess?.();
       } catch (err) {
-        logger.error({ err }, "Recharge failed");
-        throw err;
+        logger.error(
+          { err, toUserId, amount, txId },
+          "Recharge transaction failed"
+        );
+        throw new RechargeError("充值失败，请重试", err);
       }
     },
-    [serverUrl, token, onSuccess]
+    [dispatch, onSuccess]
   );
 }

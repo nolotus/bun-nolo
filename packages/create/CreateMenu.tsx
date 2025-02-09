@@ -53,7 +53,7 @@ export const CreateMenu = () => {
     },
     {
       tooltip: "新建页面",
-      icon: <CommentIcon size={16} />,
+      icon: <FileAddedIcon size={16} />,
       onClick: createNewPage,
     },
 

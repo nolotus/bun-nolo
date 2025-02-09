@@ -30,6 +30,7 @@ export const useCreateCybotValidation = () => {
       introduction: "",
       inputPrice: 0,
       outputPrice: 0,
+      tags: "", // 添加默认值
     },
   });
 
@@ -57,7 +58,7 @@ export const useCreateCybotValidation = () => {
       dialogCount: 0,
       messageCount: 0,
       tokenCount: 0,
-      tags: [],
+      tags: data.tags ? data.tags.split(",") : [], // 处理tags字段
     };
 
     // 保存私有版本

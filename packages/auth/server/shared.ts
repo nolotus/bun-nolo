@@ -2,7 +2,19 @@
 import { nolotusId } from "core/init";
 import pino from "pino";
 
-export const logger = pino({ name: "auth-server" });
+export const logger = pino({
+  transport: {
+    target: "pino-pretty",
+    options: {
+      colorize: true,
+      translateTime: "SYS:standard",
+      ignore: "pid,hostname",
+      messageFormat: "{msg}",
+      levelFirst: true,
+    },
+  },
+  level: process.env.NODE_ENV === "production" ? "info" : "debug",
+});
 
 export const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -31,8 +43,8 @@ export function handleOptionsRequest() {
   });
 }
 
-export function checkAdminPermission(req: Request) {
-  if (!req.user?.userId || req.user.userId !== nolotusId) {
+export function checkAdminPermission(actionUserId: string) {
+  if (!actionUserId || actionUserId !== nolotusId) {
     return createErrorResponse("Unauthorized: Admin access required", 403);
   }
   return null;

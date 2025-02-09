@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Table, TableRow, TableCell } from "web/ui/Table";
-import { deepseekModels } from "./modelData";
 import { fireworksmodels } from "integrations/fireworks/models";
 import { anthropicModels } from "integrations/anthropic/anthropicModels";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { openAIModels } from "integrations/openai/models";
 import { mistralModels } from "integrations/mistral/models";
 import { googleModels } from "integrations/google/models";
+import { deepSeekModels } from "integrations/deepseek/models";
+
 import { selectTheme } from "../theme/themeSlice";
 import { useAppSelector } from "../hooks";
 
@@ -27,7 +28,7 @@ const ModelComparison = () => {
     { models: anthropicModels, name: "Anthropic" },
     { models: openAIModels, name: "OpenAI" },
     { models: googleModels, name: "Google" },
-    { models: deepseekModels, name: "Deepseek" },
+    { models: deepSeekModels, name: "Deepseek" },
     { models: fireworksmodels, name: "Fireworks" },
   ];
 

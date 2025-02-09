@@ -18,14 +18,17 @@ import FormTitle from "web/form/FormTitle";
 
 // data & types
 import { patchData } from "database/dbSlice";
-import { getModelsByProvider, providerOptions } from "../llm/providers";
+import {
+  getModelsByProvider,
+  availableProviderOptions,
+} from "../llm/providers";
 import type { Model } from "../llm/types";
 import ToolSelector from "../tools/ToolSelector";
 
 const getOrderedProviderOptions = () => {
   return [
     { name: "Custom" },
-    ...providerOptions.map((item) => ({ name: item })),
+    ...availableProviderOptions.map((item) => ({ name: item })),
   ];
 };
 
@@ -53,24 +56,42 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
   const provider = watch("provider");
   const useServerProxy = watch("useServerProxy");
-
   const [models, setModels] = useState<Model[]>([]);
+
   const isCustomProvider = provider === "Custom";
 
-  // 监听 Provider 变化更新模型列表
+  // 处理 Provider 变更
+  const handleProviderChange = (item) => {
+    const newProvider = item?.name || "";
+    setValue("provider", newProvider);
+    setValue("customProviderUrl", "");
+    setValue("model", "");
+
+    if (newProvider && newProvider !== "Custom") {
+      const modelsList = getModelsByProvider(newProvider);
+      console.log("Provider changed to:", newProvider, "Models:", modelsList);
+      setModels(modelsList);
+      if (modelsList.length > 0) {
+        setValue("model", modelsList[0].name);
+      }
+    } else {
+      setModels([]);
+    }
+  };
+
+  // 初始化加载模型列表
   useEffect(() => {
-    if (!isCustomProvider) {
-      const modelsList = getModelsByProvider(provider || "");
+    if (provider && !isCustomProvider) {
+      const modelsList = getModelsByProvider(provider);
       setModels(modelsList);
       if (modelsList.length > 0 && !initialValues.model) {
         setValue("model", modelsList[0].name);
       }
     }
-  }, [provider, setValue, isCustomProvider, initialValues.model]);
+  }, []); // 仅在组件挂载时执行一次
 
   const onSubmit = async (data) => {
     const submitData = { ...data, type: DataType.CYBOT };
-    // 只更新核心字段
     const allowedKeys = [
       "name",
       "prompt",
@@ -103,7 +124,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             label={t("cybotName")}
             required
             error={errors.name?.message}
-            horizontal // 明确设置为水平布局
+            horizontal
           >
             <Input {...register("name")} placeholder={t("enterCybotName")} />
           </FormField>
@@ -112,7 +133,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             label={t("prompt")}
             error={errors.prompt?.message}
             help={t("promptHelp")}
-            horizontal // 明确设置为水平布局
+            horizontal
           >
             <Textarea {...register("prompt")} placeholder={t("enterPrompt")} />
           </FormField>
@@ -124,18 +145,12 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             label={t("provider")}
             required
             error={errors.provider?.message}
-            horizontal // 明确设置为水平布局
+            horizontal
           >
             <Combobox
               items={getOrderedProviderOptions()}
               selectedItem={provider ? { name: provider } : null}
-              onChange={(item) => {
-                setValue("provider", item?.name || "");
-                if (!isCustomProvider) {
-                  setValue("customProviderUrl", "");
-                  setValue("model", "");
-                }
-              }}
+              onChange={handleProviderChange}
               labelField="name"
               valueField="name"
               placeholder={t("selectProvider")}
@@ -146,7 +161,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             <FormField
               label={t("providerUrl")}
               error={errors.customProviderUrl?.message}
-              horizontal // 明确设置为水平布局
+              horizontal
             >
               <Input
                 {...register("customProviderUrl")}
@@ -160,7 +175,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             label={t("model")}
             required
             error={errors.model?.message}
-            horizontal // 明确设置为水平布局
+            horizontal
           >
             {isCustomProvider ? (
               <Input {...register("model")} placeholder={t("enterModelName")} />
@@ -196,7 +211,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
           <FormField
             label={t("useServerProxy")}
             help={t("proxyHelp")}
-            horizontal // 明确设置为水平布局
+            horizontal
           >
             <ToggleSwitch
               checked={useServerProxy}
@@ -207,11 +222,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
         {/* 工具设置 */}
         <div className="form-section">
-          <FormField
-            label={t("tools")}
-            help={t("toolsHelp")}
-            horizontal // 明确设置为水平布局
-          >
+          <FormField label={t("tools")} help={t("toolsHelp")} horizontal>
             <ToolSelector register={register} />
           </FormField>
         </div>

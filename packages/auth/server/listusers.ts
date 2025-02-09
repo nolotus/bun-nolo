@@ -1,7 +1,6 @@
 // auth/server/listusers.ts
 import serverDb, { DB_PREFIX } from "database/server/db";
 import {
-  logger,
   createErrorResponse,
   createSuccessResponse,
   handleOptionsRequest,
@@ -26,8 +25,6 @@ async function listUsers({ page = 1, pageSize = 10 }: ListUsersOptions = {}) {
   const prefix = DB_PREFIX.USER;
   let totalCount = 0;
   const users: User[] = [];
-
-  logger.debug({ page, pageSize }, "Starting users list fetch");
 
   // Count total users
   const countIterator = serverDb.iterator({
@@ -71,15 +68,6 @@ async function listUsers({ page = 1, pageSize = 10 }: ListUsersOptions = {}) {
       });
     }
 
-    logger.debug(
-      {
-        totalUsers: totalCount,
-        fetchedUsers: users.length,
-        page,
-      },
-      "Users list fetch completed"
-    );
-
     return {
       total: totalCount,
       list: users,
@@ -96,8 +84,9 @@ export async function handleListUsers(req: Request) {
   if (req.method === "OPTIONS") {
     return handleOptionsRequest();
   }
+  const { userId: actionUserId } = req.user;
 
-  const permissionError = checkAdminPermission(req);
+  const permissionError = checkAdminPermission(actionUserId);
   if (permissionError) return permissionError;
 
   try {
@@ -109,21 +98,10 @@ export async function handleListUsers(req: Request) {
       Math.max(1, parseInt(url.searchParams.get("pageSize") || "10"))
     );
 
-    logger.info({
-      event: "fetching_users_list",
-      page,
-      pageSize,
-    });
-
     const result = await listUsers({ page, pageSize });
 
     return createSuccessResponse(result);
   } catch (error) {
-    logger.error({
-      event: "list_users_failed",
-      error: error instanceof Error ? error.message : String(error),
-    });
-
     return createErrorResponse("Internal server error");
   }
 }

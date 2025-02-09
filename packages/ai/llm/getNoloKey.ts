@@ -1,9 +1,9 @@
-import { providerOptions } from "./providers";
+import { availableProviderOptions } from "./providers";
 
-export const getNoloKey = (provider: (typeof providerOptions)[number]) => {
+export const getNoloKey = (
+  provider: (typeof availableProviderOptions)[number]
+) => {
   switch (provider) {
-    case "openai":
-      return process.env.OPENAI_KEY;
     case "mistral":
       return process.env.MISTRAL_KEY;
     case "anthropic":
@@ -16,6 +16,10 @@ export const getNoloKey = (provider: (typeof providerOptions)[number]) => {
       return process.env.DEEPINFRA_API_KEY;
     case "deepseek":
       return process.env.DEEPSEEK_API_KEY;
+    case "groq":
+      return process.env.GROQ_API_KEY;
+    // case "openai":
+    //   return process.env.OPENAI_KEY;
     default:
       return null;
   }

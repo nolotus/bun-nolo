@@ -24,4 +24,5 @@ export interface Model {
     latency: string; // 延迟
   };
   maxImageResolution?: string; // 最大图像分辨率
+  canFineTune?: boolean; // 是否可以微调
 }
