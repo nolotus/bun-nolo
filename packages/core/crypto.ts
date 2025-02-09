@@ -1,6 +1,7 @@
 import nacl from "tweetnacl";
 import { uint8ArrayToBase64Url, base64UrlToUint8Array } from "./base64";
 import { fromUint8Array, toUint8Array } from "js-base64";
+import { Buffer } from "buffer";
 
 export const generateKeyPairFromSeedV1 = (seedData: string) => {
   const seed = new TextEncoder().encode(seedData);
@@ -41,14 +42,14 @@ export const signMessage = (
 };
 
 /**
- * 验证已签名的消息并解码
+ * 验证已签名的消息并解码。使用 Buffer 处理编码，完整支持所有 Unicode 字符。
+ * 适用于 React Native 环境，面向全球用户。
  *
  * @param {string} signedMessageBase64 - base64 编码的已签名消息
  * @param {string} publicKeyBase64 - base64 编码的公钥
  * @returns {string} - 解码后的消息
  * @throws {Error} - 当解码失败时抛出异常
  */
-
 export const verifySignedMessage = (
   signedMessageBase64: string,
   publicKeyBase64: string
@@ -65,12 +66,7 @@ export const verifySignedMessage = (
       throw new Error("Decoding failed, message is null");
     }
 
-    const bytes: number[] = Array.from(message);
-    const decodedMessage = bytes
-      .map((byte) => String.fromCharCode(byte))
-      .join("");
-
-    return decodeURIComponent(encodeURIComponent(decodedMessage));
+    return Buffer.from(message).toString("utf8");
   } catch (error) {
     throw error;
   }
