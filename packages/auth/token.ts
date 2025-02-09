@@ -1,53 +1,35 @@
-import { base64UrlDecode, base64UrlEncode } from "core/base64";
 import { detachedSign, verifyDetachedSignature } from "core/crypto";
+import { Base64 } from "js-base64";
 
-export const signToken = (payload: any, secretKeyBase64: string): string => {
-  // Convert payload to a string then to base64Url
-  const payloadStr = JSON.stringify(payload);
-  const payloadBase64Url = base64UrlEncode(payloadStr);
-
-  // Sign the payload
-  const signature = detachedSign(payloadBase64Url, secretKeyBase64);
-
-  // Create the token
-  const token = `${payloadBase64Url}.${signature}`;
-
-  return token;
+export const signToken = (payload: any, secretKey: string) => {
+  const encodedPayload = Base64.encode(JSON.stringify(payload));
+  const signature = detachedSign(encodedPayload, secretKey);
+  return `${encodedPayload}.${signature}`;
 };
 
-export const verifyToken = (
-  token: string,
-  publicKeyBase64Url: string
-): Record<string, any> | null => {
-  const [payloadBase64Url, signatureBase64Url] = token.split(".");
-  const isValid = verifyDetachedSignature(
-    payloadBase64Url,
-    signatureBase64Url,
-    publicKeyBase64Url
-  );
+export const verifyToken = (token: string, publicKey: string) => {
+  const [encodedPayload, signature] = token.split(".");
 
-  if (!isValid) {
-    return null;
-  }
-  const decodedPayload = base64UrlDecode(payloadBase64Url);
-
-  if (!decodedPayload) {
-    return null;
+  if (!verifyDetachedSignature(encodedPayload, signature, publicKey)) {
+    throw new Error("Invalid signature");
   }
 
-  return JSON.parse(decodedPayload);
+  const payload = JSON.parse(Base64.decode(encodedPayload));
+
+  if (payload.exp && typeof payload.exp === "number") {
+    if (Math.floor(Date.now() / 1000) > payload.exp) {
+      throw new Error("Token has expired");
+    }
+  }
+
+  return payload;
 };
 
 export const parseToken = (token: string) => {
   try {
-    const [payloadBase64Url] = token.split(".");
-    const decodedPayload = base64UrlDecode(payloadBase64Url);
-    if (!decodedPayload) {
-      return null;
-    }
-    const result = JSON.parse(decodedPayload);
-    return result;
-  } catch (error) {
+    const [payloadBase64] = token.split(".");
+    return JSON.parse(Base64.decode(payloadBase64));
+  } catch {
     return null;
   }
 };

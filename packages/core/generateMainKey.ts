@@ -18,6 +18,5 @@ export const generateUserIdV1 = (
   // 方案2：更简洁的写法，用Uint8Array直接转
   // const hexString = [...hash].map(x => x.toString(16).padStart(2,'0')).join('');
 
-  console.log("Hex string:", hexString);
   return hexString.slice(0, 10);
 };

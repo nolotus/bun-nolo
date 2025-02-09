@@ -1,11 +1,12 @@
 import { selectCurrentServer } from "setting/settingSlice";
 import { addDays, formatISO } from "date-fns";
 import pino from "pino";
-import { verifySignedMessage, generateKeyPairFromSeedV1 } from "core/crypto";
+import { verifySignedMessage } from "core/crypto";
 import { generateUserIdV1 } from "core/generateMainKey";
 import { signToken, parseToken } from "auth/token";
 import { API_VERSION } from "database/config";
 import { hashPasswordV1 } from "core/password";
+import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
 
 const logger = pino({
   level: "info",
