@@ -5,6 +5,7 @@ import { verifySignedMessage, generateKeyPairFromSeedV1 } from "core/crypto";
 import { generateUserIdV1 } from "core/generateMainKey";
 import { signToken, parseToken } from "auth/token";
 import { API_VERSION } from "database/config";
+import { hashPasswordV1 } from "core/password";
 
 const logger = pino({
   level: "info",
@@ -77,7 +78,9 @@ const signUpToBackupServers = (
 };
 
 export const signUpAction = async (user, thunkAPI) => {
-  const { username, locale, encryptionKey, email } = user;
+  const { username, locale, password, email } = user;
+  const encryptionKey = await hashPasswordV1(password);
+
   logger.info({ username, locale }, "Starting signup process");
 
   const { publicKey, secretKey } = generateKeyPairFromSeedV1(

@@ -10,6 +10,7 @@ import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
 import { tokenManager } from "./tokenManager";
 import { signUpAction } from "./action/signUpAction";
+import { hashPasswordV1 } from "core/password";
 
 interface AuthState {
   currentUser: User;
@@ -39,8 +40,8 @@ export const authSlice = createSliceWithThunks({
       async (input, thunkAPI) => {
         const state = thunkAPI.getState();
         try {
-          //todo  change to auto version check
-          const { username, encryptionKey, locale, version = "v1" } = input;
+          const { username, locale, password } = input;
+          const encryptionKey = await hashPasswordV1(password);
 
           let userId;
           let token;
@@ -53,7 +54,6 @@ export const authSlice = createSliceWithThunks({
           const res = await loginRequest(currentServer, {
             userId,
             token,
-            version,
           });
           if (res.status === 200) {
             const result = await res.json();

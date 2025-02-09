@@ -15,7 +15,7 @@ export async function handleLogin(req: Request) {
   }
 
   try {
-    const { userId, token, version } = req.body;
+    const { userId, token } = req.body;
 
     try {
       const user = await serverDb.get(DB_PREFIX.USER + userId);

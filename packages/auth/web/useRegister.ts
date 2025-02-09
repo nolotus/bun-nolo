@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAppDispatch } from "app/hooks";
 import { signUp } from "auth/authSlice";
-import { hashPasswordV1 } from "core/password";
 import { tokenManager } from "../tokenManager";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -15,10 +14,8 @@ const useRegister = () => {
   const handleRegister = async (data) => {
     try {
       const locale = navigator.language;
-      const { password } = data;
-      const encryptionKey = await hashPasswordV1(password);
 
-      const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
+      const action = await dispatch(signUp({ ...data, locale }));
       console.log("Dispatch result:", action); // 日志3: 记录dispatch的结果
 
       if (action.payload.token) {

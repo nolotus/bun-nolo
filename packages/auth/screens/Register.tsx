@@ -60,7 +60,6 @@ const Signup = () => {
       }
       const { password } = data;
 
-      const encryptionKey = await hashPasswordV1(password);
       const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
       console.log("action", action);
 
