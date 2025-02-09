@@ -53,14 +53,12 @@ const Signup = () => {
       const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
       const deviceCountry = RNLocalize.getCountry();
       const locale = `${deviceLanguage}-${deviceCountry}`;
-      console.log("localce", locale);
       if (!locale) {
         setError("locale is empty");
         return;
       }
-      const { password } = data;
 
-      const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
+      const action = await dispatch(signUp({ ...data, locale }));
       console.log("action", action);
 
       if (action.payload.token) {
@@ -118,6 +116,7 @@ const Signup = () => {
       marginTop: 32,
       gap: 32,
       alignItems: "center",
+      justifyContent: "center",
     },
     loginSection: {
       flexDirection: "row",
@@ -157,7 +156,7 @@ const Signup = () => {
               icon={
                 <Icon name="person" size={20} color={theme.textSecondary} />
               }
-              autoComplete="username"
+              autoComplete="off"
             />
             {errors.username && (
               <Text style={styles.errorText}>{errors.username.message}</Text>
@@ -177,7 +176,7 @@ const Signup = () => {
                   color={theme.textSecondary}
                 />
               }
-              autoComplete="password"
+              autoComplete="off"
             />
             {errors.password && (
               <Text style={styles.errorText}>{errors.password.message}</Text>
