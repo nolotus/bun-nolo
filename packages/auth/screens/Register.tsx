@@ -23,9 +23,9 @@ import PasswordInput from "rn/form/PasswordInput";
 import Button from "rn/ui/Button";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
-import { rnHashpasswordV1 } from "rn/hashPassword";
 import * as RNLocalize from "react-native-localize";
 import { tokenManager } from "../tokenManager";
+import { hashPasswordV1 } from "core/password";
 
 const Signup = () => {
   const navigation = useNavigation();
@@ -55,7 +55,7 @@ const Signup = () => {
       const locale = `${deviceLanguage}-${deviceCountry}`;
       const { password } = data;
 
-      const encryptionKey = await rnHashpasswordV1(password);
+      const encryptionKey = await hashPasswordV1(password);
       const action = await dispatch(signUp({ ...data, locale, encryptionKey }));
       console.log("action", action);
 

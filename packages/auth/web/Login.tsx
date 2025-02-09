@@ -9,7 +9,6 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { signIn } from "../authSlice";
 import z from "zod";
-import { hashedPasswordV0 } from "core/hashedPasswordV0";
 
 import { LockIcon, PersonIcon } from "@primer/octicons-react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -46,13 +45,9 @@ const Login: React.FC = () => {
   const onSubmit = async (data) => {
     try {
       const locale = navigator.language;
-      const { password, version } = data;
+      const { password } = data;
 
-      const encryptionKey =
-        version === "v0"
-          ? await hashedPasswordV0(password)
-          : await hashPasswordV1(password);
-
+      const encryptionKey = await hashPasswordV1(password);
       const result = await dispatch(
         signIn({ ...data, locale, encryptionKey })
       ).unwrap();
