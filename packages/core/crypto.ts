@@ -27,6 +27,7 @@ export const generateKeyPairFromSeedV1 = (seedData: string) => {
  * @param {string} secretKeyBase64 - base64 编码的密钥，由 tweetnaclgh生成
  * @returns {string} - 签名后的消息
  */
+
 export const signMessage = (
   message: string,
   secretKeyBase64: string
@@ -52,12 +53,7 @@ export const verifySignedMessage = (
   signedMessageBase64: string,
   publicKeyBase64: string
 ): string => {
-  console.log(
-    `Verifying signed message, length: ${signedMessageBase64.length}`
-  );
-
   const signedMessage: Uint8Array = toUint8Array(signedMessageBase64);
-  console.log(`Converted to Uint8Array, length: ${signedMessage.length}`);
 
   try {
     const message: Uint8Array | null = nacl.sign.open(
@@ -66,17 +62,16 @@ export const verifySignedMessage = (
     );
 
     if (message == null) {
-      console.error("Message verification failed: decoded message is null");
       throw new Error("Decoding failed, message is null");
     }
 
-    // 使用 String.fromCharCode 替代 TextDecoder
-    const decodedMessage = String.fromCharCode.apply(null, message);
-    console.log("Message verified successfully");
+    const bytes: number[] = Array.from(message);
+    const decodedMessage = bytes
+      .map((byte) => String.fromCharCode(byte))
+      .join("");
 
-    return decodedMessage;
+    return decodeURIComponent(encodeURIComponent(decodedMessage));
   } catch (error) {
-    console.error("Error verifying message:", error);
     throw error;
   }
 };

@@ -69,6 +69,7 @@ export async function handleSignUp(req: Request) {
       }
 
       const encryptedData = signMessage(message, secretKey);
+      console.log("sign up encryptedData", encryptedData);
 
       return createSuccessResponse({ encryptedData });
     } catch (error) {

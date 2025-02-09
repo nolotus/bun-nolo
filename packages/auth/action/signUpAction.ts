@@ -47,7 +47,9 @@ const signUpToServer = async (
       encryptedData,
       nolotusPubKey
     );
-    return JSON.parse(decryptedData);
+    const result = JSON.parse(decryptedData);
+    console.log("result", result);
+    return result;
   } catch (error) {
     logger.error({ error, server }, "SignUp request failed");
     return null;
@@ -80,9 +82,6 @@ const signUpToBackupServers = (
 export const signUpAction = async (user, thunkAPI) => {
   const { username, locale, password, email } = user;
   const encryptionKey = await hashPasswordV1(password);
-
-  logger.info({ username, locale }, "Starting signup process");
-
   const { publicKey, secretKey } = generateKeyPairFromSeedV1(
     username + encryptionKey + locale
   );
@@ -104,6 +103,7 @@ export const signUpAction = async (user, thunkAPI) => {
     sendData,
     nolotusPubKey
   );
+  console.log("remoteData", remoteData);
 
   if (!remoteData) {
     throw new Error("Failed to register on current server");
