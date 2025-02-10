@@ -1,12 +1,12 @@
 // auth/server/getUser.ts
-import serverDb, { DB_PREFIX } from "database/server/db";
+import serverDb from "database/server/db";
 import {
-  logger,
   createErrorResponse,
   createSuccessResponse,
   handleOptionsRequest,
 } from "./shared";
 import { nolotusId } from "core/init";
+import { DB_PREFIX } from "database/keys";
 
 interface User {
   id: string;
@@ -42,11 +42,6 @@ async function getUser(userId: string): Promise<User | null> {
       ...userData,
     };
   } catch (error) {
-    logger.error({
-      event: "fetch_user_failed",
-      userId,
-      error: error instanceof Error ? error.message : String(error),
-    });
     throw new Error(
       `Failed to fetch user: ${error instanceof Error ? error.message : String(error)}`
     );
@@ -69,20 +64,8 @@ export async function handleGetUser(req: Request, userId: string) {
       return createErrorResponse("User not found", 404);
     }
 
-    logger.debug({
-      event: "user_fetched",
-      userId,
-      requestedBy: req.user?.userId,
-    });
-
     return createSuccessResponse(user);
   } catch (error) {
-    logger.error({
-      event: "get_user_error",
-      userId,
-      error: error instanceof Error ? error.message : String(error),
-    });
-
     return createErrorResponse("Internal server error");
   }
 }

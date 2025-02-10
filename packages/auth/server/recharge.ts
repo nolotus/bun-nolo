@@ -1,10 +1,11 @@
 // auth/server/recharge.ts
 import { ulid } from "ulid";
-import serverDb, { DB_PREFIX } from "database/server/db";
+import serverDb from "database/server/db";
 import { createTransactionKey } from "database/keys";
 import { balanceLockManager } from "./locks";
 import { withRetry } from "./utils";
 import pino from "pino";
+import { DB_PREFIX } from "database/keys";
 
 const logger = pino({ name: "recharge" });
 

@@ -6,8 +6,4 @@ const serverDb = new Level(dbPath, { valueEncoding: "json" }) as Level<
   any
 >;
 
-export const DB_PREFIX = {
-  USER: "user:",
-} as const;
-
 export default serverDb;

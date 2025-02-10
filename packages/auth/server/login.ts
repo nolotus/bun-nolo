@@ -1,13 +1,14 @@
 // auth/server/login.ts
 import { t } from "i18next";
 import { verifyToken } from "auth/token";
-import serverDb, { DB_PREFIX } from "database/server/db.js";
+import serverDb from "database/server/db.js";
 import {
   logger,
   createErrorResponse,
   createSuccessResponse,
   handleOptionsRequest,
 } from "./shared";
+import { DB_PREFIX } from "database/keys";
 
 export async function handleLogin(req: Request) {
   if (req.method === "OPTIONS") {
