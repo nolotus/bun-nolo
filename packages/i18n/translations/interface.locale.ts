@@ -56,6 +56,7 @@ export default {
       purposeHolder: "What would you like to use our product for?",
       purposeRequired: "Please tell us your intended use",
       purposeTooShort: "Please provide more details (at least 10 characters)",
+      settings: "Settings",
     },
   },
   [Language.ZH_CN]: {
@@ -110,6 +111,7 @@ export default {
       purposeHolder: "您打算用我们的产品做什么？",
       purposeRequired: "请告诉我们您的使用目的",
       purposeTooShort: "请提供更多详细信息（至少10个字符）",
+      settings: "设置",
     },
   },
   [Language.ZH_HANT]: {
@@ -164,6 +166,7 @@ export default {
       purposeHolder: "您打算用我們的產品做什麼？",
       purposeRequired: "請告訴我們您的使用目的",
       purposeTooShort: "請提供更多詳細信息（至少10個字符）",
+      settings: "設置",
     },
   },
   [Language.JA]: {
@@ -220,6 +223,7 @@ export default {
       purposeHolder: "当製品をどのように使用されたいですか？",
       purposeRequired: "ご使用目的をお聞かせください",
       purposeTooShort: "より詳しい情報をご記入ください（10文字以上）",
+      settings: "設定",
     },
   },
 };
