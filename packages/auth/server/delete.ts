@@ -1,4 +1,5 @@
-import serverDb, { DB_PREFIX } from "database/server/db";
+import serverDb from "database/server/db";
+import { DB_PREFIX } from "database/keys";
 
 import { DataType } from "create/types";
 import { createTokenKey, createTokenStatsKey, createKey } from "database/keys";

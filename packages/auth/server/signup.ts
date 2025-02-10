@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import serverDb, { DB_PREFIX } from "database/server/db.js";
+import serverDb from "database/server/db.js";
 import { reject } from "rambda";
 import { signMessage } from "core/crypto";
 import { generateUserIdV1 } from "core/generateMainKey";
@@ -9,6 +9,7 @@ import {
   createSuccessResponse,
   handleOptionsRequest,
 } from "./shared";
+import { DB_PREFIX } from "database/keys";
 
 export async function handleSignUp(req: Request) {
   if (req.method === "OPTIONS") {

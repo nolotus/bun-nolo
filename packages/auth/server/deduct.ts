@@ -1,11 +1,11 @@
 // auth/server/deduct.ts
 import { ulid } from "ulid";
-import serverDb, { DB_PREFIX } from "database/server/db";
+import serverDb from "database/server/db";
 import { createTransactionKey } from "database/keys";
 import { logger } from "auth/server/shared";
 import { balanceLockManager } from "./locks";
 import { withRetry } from "./utils";
-
+import { DB_PREFIX } from "database/keys";
 interface DeductResult {
   success: boolean;
   balance?: number;

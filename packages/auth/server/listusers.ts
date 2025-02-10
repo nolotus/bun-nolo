@@ -1,11 +1,12 @@
 // auth/server/listusers.ts
-import serverDb, { DB_PREFIX } from "database/server/db";
+import serverDb from "database/server/db";
 import {
   createErrorResponse,
   createSuccessResponse,
   handleOptionsRequest,
   checkAdminPermission,
 } from "./shared";
+import { DB_PREFIX } from "database/keys";
 
 interface ListUsersOptions {
   page?: number;
