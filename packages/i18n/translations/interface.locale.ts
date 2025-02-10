@@ -6,7 +6,7 @@ export default {
   [Language.EN]: {
     translation: {
       languageName: "English",
-      login: "Login", 
+      login: "Login",
       logout: "Logout",
       username: "Username",
       password: "Password",
@@ -24,7 +24,8 @@ export default {
       content: "Content",
       title: "Title",
       deleteDialogTitle: 'Delete "{{title}}"',
-      deleteDialogConfirmation: "Are you sure you want to delete this dialog? This action cannot be undone.",
+      deleteDialogConfirmation:
+        "Are you sure you want to delete this dialog? This action cannot be undone.",
       confirm: "Confirm",
       cancel: "Cancel",
       selectSpace: "Select Space",
@@ -35,16 +36,17 @@ export default {
       addToWorkspace: "Add to Workspace",
       edit: "Edit",
       delete: "Delete",
-      add: "Add", 
+      add: "Add",
       lightMode: "Light Mode",
-      darkMode: "Dark Mode"
+      darkMode: "Dark Mode",
+      settings: "Settings",
     },
   },
   [Language.ZH_CN]: {
     translation: {
       languageName: "简体中文",
       login: "登录",
-      logout: "登出", 
+      logout: "登出",
       username: "用户名",
       password: "密码",
       welcome: "欢迎，{{name}}！",
@@ -74,12 +76,13 @@ export default {
       delete: "删除",
       add: "添加",
       lightMode: "浅色模式",
-      darkMode: "深色模式"
+      darkMode: "深色模式",
+      settings: "设置",
     },
   },
   [Language.ZH_HANT]: {
     translation: {
-      languageName: "繁體中文", 
+      languageName: "繁體中文",
       login: "登入",
       logout: "登出",
       username: "用戶名",
@@ -108,17 +111,18 @@ export default {
       deleteDialog: "刪除對話",
       addToWorkspace: "添加到工作區",
       edit: "編輯",
-      delete: "刪除", 
+      delete: "刪除",
       add: "新增",
       lightMode: "淺色模式",
-      darkMode: "深色模式"
+      darkMode: "深色模式",
+      settings: "設置",
     },
   },
   [Language.JA]: {
     translation: {
       languageName: "日本語",
       login: "ログイン",
-      logout: "ログアウト", 
+      logout: "ログアウト",
       username: "ユーザーネーム",
       password: "パスワード",
       welcome: "ようこそ、{{name}}！",
@@ -135,20 +139,23 @@ export default {
       content: "コンテンツ",
       title: "タイトル",
       deleteDialogTitle: '"{{title}}"を削除',
-      deleteDialogConfirmation: "このダイアログを削除してもよろしいですか？この操作は取り消せません。",
+      deleteDialogConfirmation:
+        "このダイアログを削除してもよろしいですか？この操作は取り消せません。",
       confirm: "確認",
       cancel: "キャンセル",
       selectSpace: "区画を選択する",
       CreateSpace: "スペースを作成する",
       spacename: "スペース名",
-      messageOrImageHere: "メッセージを入力またはここに画像をドラッグ＆ドロップ",
+      messageOrImageHere:
+        "メッセージを入力またはここに画像をドラッグ＆ドロップ",
       deleteDialog: "ダイアログを削除",
       addToWorkspace: "ワークスペースに追加",
       edit: "編集",
       delete: "削除",
       add: "追加",
       lightMode: "ライトモード",
-      darkMode: "ダークモード"
+      darkMode: "ダークモード",
+      settings: "設定",
     },
   },
 };

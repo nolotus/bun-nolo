@@ -194,13 +194,13 @@ export const IsLoggedInMenu: React.FC = () => {
             )}
 
             {renderDropdownItem(
-              t("common:settings"),
+              t("settings"),
               <GearIcon size={16} />,
               () => navigate(SettingRoutePaths.SETTING),
             )}
 
             {renderDropdownItem(
-              t("common:logout"),
+              t("logout"),
               <SignOutIcon size={16} />,
               logout,
             )}
