@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import { pino } from "pino";
-import { deletePubCybot as deleteLocal } from "ai/cybot/web/deletePubCybot"; // 导入本地删除函数
+import { deletePubCybot as deleteLocal } from "ai/cybot/web/deletePubCybot";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentToken } from "auth/authSlice";
 
 const logger = pino({ name: "useDeletePubCybot" });
 
@@ -18,6 +19,7 @@ interface DeletePubCybotsState {
 
 export function useDeletePubCybot() {
   const currentServer = useAppSelector(selectCurrentServer);
+  const currentToken = useAppSelector(selectCurrentToken);
   const [state, setState] = useState<DeletePubCybotsState>({
     loading: false,
     error: null,
@@ -38,12 +40,13 @@ export function useDeletePubCybot() {
         // 删除本地 Cybot
         await deleteLocal({ id });
 
-        if (currentServer) {
+        if (currentServer && currentToken) {
           // 删除远程 Cybot
           const response = await fetch(`${currentServer}/rpc/deletePubCybot`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${currentToken}`, // 将 Token 添加到请求头中
             },
             body: JSON.stringify({ id }),
           });
@@ -70,7 +73,7 @@ export function useDeletePubCybot() {
         });
       }
     },
-    [currentServer]
+    [currentServer, currentToken] // 确保在依赖中包含 currentToken
   );
 
   return { ...state, delete: deleteCybot };
