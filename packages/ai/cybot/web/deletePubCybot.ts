@@ -1,6 +1,7 @@
 import { browserDb } from "database/browser/db";
 import { pino } from "pino";
 import { pubCybotKeys } from "database/keys";
+import { extractCustomId } from "core/prefix";
 
 const logger = pino({ name: "deletePubCybot" });
 
@@ -10,19 +11,20 @@ interface DeletePubCybotOptions {
 
 export async function deletePubCybot(options: DeletePubCybotOptions) {
   const { id } = options;
+  const cybotId = extractCustomId(id);
 
   try {
     // 构建公开 Cybot 的键
-    const key = pubCybotKeys.single(id);
+    const key = pubCybotKeys.single(cybotId);
 
     // 检查 Cybot 是否存在
     const value = await browserDb.get(key);
 
     if (!value || !value.isPublic) {
-      logger.warn(`未找到 ID 为 ${id} 的公共 Cybot。`);
+      logger.warn(`未找到 ID 为 ${key} 的公共 Cybot。`);
       return {
         success: false,
-        message: `未找到 ID 为 ${id} 的公共 Cybot。`,
+        message: `未找到 ID 为 ${key} 的公共 Cybot。`,
       };
     }
 
