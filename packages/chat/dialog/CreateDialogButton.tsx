@@ -1,29 +1,13 @@
 import React from "react";
-import { CopyIcon } from "@primer/octicons-react";
-
+import { TbMessageCirclePlus } from "react-icons/tb";
 import { useCreateDialog } from "./useCreateDialog";
 
 const IconButton = ({ onClick, disabled, children }) => {
-  const [isHovered, setIsHovered] = React.useState(false);
-
-  const buttonStyle = {
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    padding: "4px",
-    color: "inherit",
-    borderRadius: "4px",
-    flexShrink: 0,
-    backgroundColor: isHovered ? "#f0f0f0" : "transparent",
-  };
-
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      style={buttonStyle}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="icon-button"
     >
       {children}
     </button>
@@ -70,9 +54,27 @@ const CreateDialogButton = ({ dialogConfig }) => {
   };
 
   return (
-    <IconButton onClick={handleCreateClick} disabled={isLoading}>
-      {isLoading ? <Spinner /> : <CopyIcon size={16} />}
-    </IconButton>
+    <>
+      <style>
+        {`
+          .icon-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: inherit;
+            border-radius: 4px;
+            flex-shrink: 0;
+          }
+          .icon-button:hover {
+            background-color: #f0f0f0;
+          }
+        `}
+      </style>
+      <IconButton onClick={handleCreateClick} disabled={isLoading}>
+        {isLoading ? <Spinner /> : <TbMessageCirclePlus size={16} />}
+      </IconButton>
+    </>
   );
 };
 
