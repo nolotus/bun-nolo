@@ -1,4 +1,3 @@
-// ai/cybot/web/CybotBlock.tsx
 import { useDispatch } from "react-redux";
 import { useCallback, useState } from "react";
 import { selectTheme } from "app/theme/themeSlice";
@@ -7,7 +6,6 @@ import { animations } from "render/styles/animations";
 import { useAppSelector } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
-import { remove } from "database/dbSlice";
 import { useModal } from "render/ui/Modal";
 import toast from "react-hot-toast";
 import Button from "web/ui/Button";
@@ -21,6 +19,7 @@ import {
 } from "@primer/octicons-react";
 import EditCybot from "ai/cybot/web/EditCybot";
 import { Cybot } from "../types";
+import { useDeletePubCybot } from "ai/cybot/hooks/useDeletePubCybot"; // 导入新的删除钩子
 
 interface CybotBlockProps {
   item: Cybot;
@@ -36,6 +35,12 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
   const dispatch = useDispatch();
   const [deleting, setDeleting] = useState(false);
   const allowEdit = useCouldEdit(item.id);
+  const {
+    delete: deleteCybot,
+    loading: deleteLoading,
+    error: deleteError,
+    success: deleteSuccess,
+  } = useDeletePubCybot();
 
   const startDialog = async () => {
     if (isLoading) return;
@@ -56,14 +61,14 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
       element?.classList.add("item-exit");
 
       await new Promise((r) => setTimeout(r, 50));
-      await dispatch(remove(item.id)).unwrap();
+      await deleteCybot({ id: item.id });
       toast.success(t("deleteSuccess"));
       await reload();
     } catch (error) {
       setDeleting(false);
       toast.error(t("deleteError"));
     }
-  }, [dispatch, item.id, deleting, reload, t]);
+  }, [deleteCybot, item.id, deleting, reload, t]);
 
   const renderPricing = () => {
     if (!item.inputPrice && !item.outputPrice) return null;
@@ -259,7 +264,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           display: flex;
           gap: 0.4rem;
         }
-        
+
         .price-tag {
           font-size: 0.8rem;
           color: ${theme.textSecondary};
@@ -269,7 +274,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           white-space: nowrap;
           border: 1px solid ${theme.border};
         }
-        
+
         .price-tag span {
           color: ${theme.accent};
         }
