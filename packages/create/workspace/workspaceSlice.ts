@@ -47,7 +47,7 @@ const workspaceSlice = createSliceWithThunks({
               isJSON: true,
               limit: 20,
               condition: {
-                type: DataType.Space,
+                type: DataType.SPACE,
               },
             },
           };
@@ -93,7 +93,7 @@ const workspaceSlice = createSliceWithThunks({
         const actionResult = await dispatch(
           write({
             data: {
-              type: DataType.Space,
+              type: DataType.SPACE,
               name,
             },
           })

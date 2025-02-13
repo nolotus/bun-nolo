@@ -8,6 +8,7 @@ export const createKey = (...parts: string[]) => parts.join("-");
 export const DB_PREFIX = {
   USER: "user:",
 } as const;
+
 /**
  * 交易记录相关key
  * 格式:
@@ -97,6 +98,28 @@ export const pubCybotKeys = {
   list: () => {
     const start = createKey(DataType.CYBOT, "pub", "");
     const end = createKey(DataType.CYBOT, "pub", "\uffff");
+    return { start, end };
+  },
+};
+
+/**
+ * Space相关key
+ * - space主文档: space-{spaceId}
+ * - 成员索引: space-member-{userId}-{spaceId}
+ */
+export const createSpaceKey = {
+  space: (spaceId: string) => {
+    return createKey(DataType.SPACE, spaceId);
+  },
+
+  member: curry((userId: string, spaceId: string) => {
+    return createKey(DataType.SPACE, "member", userId, spaceId);
+  }),
+
+  // 获取用户参与的space范围
+  memberRange: (userId: string) => {
+    const start = createKey(DataType.SPACE, "member", userId, "");
+    const end = createKey(DataType.SPACE, "member", userId, "\uffff");
     return { start, end };
   },
 };
