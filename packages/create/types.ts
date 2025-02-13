@@ -5,7 +5,7 @@ export enum DataType {
   DIALOG = "dialog",
   MSG = "msg",
   TOKEN = "token",
-  Space = "space",
+  SPACE = "space",
   TRANSACTION = "transaction",
   // CalendarEvent = "calendar_event",
 }

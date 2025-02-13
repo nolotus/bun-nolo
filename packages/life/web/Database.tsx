@@ -9,7 +9,7 @@ import { DataTable } from "../blocks/DataTable";
 
 const EXCLUDED_TYPES = [
   DataType.DIALOG,
-  DataType.Space,
+  DataType.SPACE,
   DataType.PAGE,
   DataType.TOKEN,
   DataType.MSG,
