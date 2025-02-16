@@ -17,7 +17,7 @@ import { normalizeTokens } from "./utils/normalize-tokens";
 import { withLayout } from "./withLayout";
 import { withShortcuts } from "./withShortcuts";
 
-const NoloEditor = ({ initialValue, readOnly, onChange }) => {
+const NoloEditor = ({ initialValue, readOnly, onChange, placeholder }) => {
   const [editor] = useState(() =>
     withShortcuts(withLayout(withHistory(withReact(createEditor()))))
   );
@@ -45,6 +45,7 @@ const NoloEditor = ({ initialValue, readOnly, onChange }) => {
 
       <SetNodeToDecorations />
       <Editable
+        placeholder={placeholder}
         style={!readOnly ? { padding: "20px" } : {}}
         readOnly={readOnly}
         decorate={decorate}
@@ -147,3 +148,4 @@ const mergeMaps = (...maps) => {
 };
 
 export default NoloEditor;
+

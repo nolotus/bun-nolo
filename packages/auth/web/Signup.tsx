@@ -103,6 +103,10 @@ const Signup: React.FC = () => {
               {t("loginNow")}
             </NavLink>
           </div>
+
+          <div className="hint-section">
+            <p className="hint-text">{t("hintofKey")}</p>
+          </div>
         </div>
       </form>
       <style>{`
@@ -184,6 +188,16 @@ const Signup: React.FC = () => {
 
   .login-link:hover {
     color: ${theme.primaryLight};
+  }
+
+  .hint-section {
+    text-align: center;
+    margin-top: 16px;
+  }
+
+  .hint-text {
+    font-size: 14px;
+    color: ${theme.textSecondary};
   }
 
   /* 响应式设计 */

@@ -4,7 +4,7 @@ import { ParagraphType } from "create/editor/type";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
 import { createPageKey } from "database/keys";
-
+import { t } from "i18next";
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -31,7 +31,7 @@ export const pageSlice = createSliceWithThunks({
             slateData: [
               {
                 type: ParagraphType,
-                children: [{ text: "hi please write something" }],
+                children: [{ text: t("introtext") }],
               },
             ],
             created: new Date().toISOString(),
@@ -85,3 +85,4 @@ export const {
 } = pageSlice.actions;
 
 export default pageSlice.reducer;
+
