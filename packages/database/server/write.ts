@@ -24,7 +24,7 @@ export const handleWrite = async (req: any, res: any) => {
   const { user } = req;
   const actionUserId = user.userId;
 
-  const { userId, data, customId } = req.body;
+  const { userId, data, customKey } = req.body;
   const saveUserId = userId || data.userId;
 
   if (saveUserId === "local") {
@@ -71,23 +71,23 @@ export const handleWrite = async (req: any, res: any) => {
   }
 
   try {
-    const id = customId;
+    const id = customKey;
     const dataType = data.type;
 
     let result;
 
     switch (dataType) {
       case DataType.TRANSACTION:
-        result = await handleTransaction(data, res, customId, actionUserId);
+        result = await handleTransaction(data, res, customKey, actionUserId);
         break;
       case DataType.TOKEN:
-        result = await handleToken(data, res, userId, customId, actionUserId);
+        result = await handleToken(data, res, userId, customKey, actionUserId);
         break;
       case DataType.CYBOT:
-        result = await handleCybot(data, res, customId);
+        result = await handleCybot(data, res, customKey);
         break;
       default:
-        result = await handleOtherDataTypes(data, res, customId);
+        result = await handleOtherDataTypes(data, res, customKey);
         break;
     }
 
@@ -100,7 +100,7 @@ export const handleWrite = async (req: any, res: any) => {
     logger.error({
       event: "write_failed",
       error,
-      data: { id: customId, type: data.type },
+      data: { id: customKey, dbKey: customKey, type: data.type },
     });
     return res.status(500).json({
       message: "Failed to write data",

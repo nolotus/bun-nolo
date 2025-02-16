@@ -30,7 +30,7 @@ const Home = () => {
         <section className="section">
           <h2 className="section-title">看看其他人都建立了什么样的cybot</h2>
           <div className="cybots-container">
-            <PubCybots limit={4} />
+            <PubCybots limit={8} />
           </div>
         </section>
         <footer className="footer section delay">

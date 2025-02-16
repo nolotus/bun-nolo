@@ -10,7 +10,7 @@ import { filter } from "rambda";
 
 import { sendMessageAction } from "./actions/sendMessageAction";
 import type { Message } from "./types";
-import { deleteAllMessages } from "./actions/deleteAllMessages";
+import { deleteDialogMsgsAction } from "./actions/deleteDialogMsgsAction";
 
 export interface MessageSliceState {
   msgs: Message[];
@@ -74,15 +74,14 @@ export const messageSlice = createSliceWithThunks({
     ),
 
     handleSendMessage: create.asyncThunk(sendMessageAction),
-
-    clearCurrentDialog: create.asyncThunk(deleteAllMessages),
-
+    deleteDialogMsgs: create.asyncThunk(deleteDialogMsgsAction),
     addMsg: create.asyncThunk(
       async (msg, thunkApi) => {
         await thunkApi.dispatch(
           write({
             data: { ...msg, type: DataType.MSG },
-            customId: msg.id,
+            customKey: msg.id,
+            //must change
           })
         );
         return msg;
@@ -109,7 +108,8 @@ export const {
   messageStreaming,
   deleteMessage,
   handleSendMessage,
-  clearCurrentDialog,
+  deleteDialogMsgs,
+
   addMsg,
   initMsgs,
   resetMsgs,

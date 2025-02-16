@@ -1,17 +1,23 @@
 import { t } from "i18next";
+import { ulid } from "ulid";
 import serverDb from "database/server/db.js";
 import { reject } from "rambda";
 import { signMessage } from "core/crypto";
 import { generateUserIdV1 } from "core/generateMainKey";
 import {
-  logger,
   createErrorResponse,
   createSuccessResponse,
   handleOptionsRequest,
 } from "./shared";
-import { DB_PREFIX } from "database/keys";
+import { DB_PREFIX, createUserKey, createSpaceKey } from "database/keys";
+import {
+  SpaceData,
+  SpaceVisibility,
+  MemberRole,
+  SpaceMember,
+} from "create/space/types";
 
-export async function handleSignUp(req: Request) {
+export async function handleSignUp(req) {
   if (req.method === "OPTIONS") {
     return handleOptionsRequest();
   }
@@ -19,10 +25,8 @@ export async function handleSignUp(req: Request) {
   try {
     const { username, publicKey, locale, email } = req.body;
 
-    // 记录接收到的用户名和公钥
-    logger.info({ username, publicKey }, "Received signup request");
-
     const userId = generateUserIdV1(publicKey, username, locale);
+    const defaultSpaceId = ulid();
 
     // 检查用户是否存在
     try {
@@ -36,7 +40,7 @@ export async function handleSignUp(req: Request) {
       }
     }
 
-    // 准备用户数据
+    // 准备用户基础数据
     const userData = reject((x) => x === null || x === undefined, {
       username,
       publicKey,
@@ -47,45 +51,94 @@ export async function handleSignUp(req: Request) {
       balanceUpdatedAt: Date.now(),
     });
 
+    // 准备用户设置数据
+    const userSettings = {
+      defaultSpaceId,
+      theme: "system",
+      language: locale,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    // 准备用户档案数据
+    const userProfile = {
+      nickname: username,
+      avatar: "",
+      bio: "",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    // 准备默认space数据
+    const spaceData: SpaceData = {
+      id: defaultSpaceId,
+      name: `${username}'s Space`,
+      description: "",
+      ownerId: userId,
+      visibility: SpaceVisibility.PRIVATE,
+      members: [userId],
+      categories: {},
+      contents: {},
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    // space成员数据
+    const spaceMemberData: SpaceMember = {
+      role: MemberRole.OWNER,
+      joinedAt: Date.now(),
+    };
+
     try {
-      // 保存用户数据
-      await serverDb.put(DB_PREFIX.USER + userId, userData);
-
-      // 验证数据写入
-      const savedUser = await serverDb.get(DB_PREFIX.USER + userId);
-
-      // 记录保存的用户数据
-      logger.debug("Saved user data:", savedUser);
+      // 使用batch操作同时保存所有数据
+      await serverDb.batch([
+        {
+          type: "put",
+          key: DB_PREFIX.USER + userId,
+          value: userData,
+        },
+        {
+          type: "put",
+          key: createUserKey.settings(userId),
+          value: userSettings,
+        },
+        {
+          type: "put",
+          key: createUserKey.profile(userId),
+          value: userProfile,
+        },
+        {
+          type: "put",
+          key: createSpaceKey.space(defaultSpaceId),
+          value: spaceData,
+        },
+        {
+          type: "put",
+          key: createSpaceKey.member(userId, defaultSpaceId),
+          value: spaceMemberData,
+        },
+      ]);
 
       const message = JSON.stringify({
         username,
         userId,
         publicKey,
+        defaultSpaceId,
       });
-      const secretKey = process.env.SECRET_KEY;
 
+      const secretKey = process.env.SECRET_KEY;
       if (!secretKey) {
-        logger.error("Secret key is not defined in the environment variables.");
         return createErrorResponse(t("errors.secretKeyMissing"), 500);
       }
 
       const encryptedData = signMessage(message, secretKey);
-      console.log("sign up encryptedData", encryptedData);
 
       return createSuccessResponse({ encryptedData });
     } catch (error) {
-      logger.error({
-        event: "signup_database_error",
-        error: error instanceof Error ? error.message : String(error),
-        userId,
-      });
       throw error;
     }
   } catch (error) {
-    logger.error({
-      event: "signup_failed",
-      error: error instanceof Error ? error.message : String(error),
-    });
+    console.error("Signup error:", error);
     return createErrorResponse("Internal server error");
   }
 }

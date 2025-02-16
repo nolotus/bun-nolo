@@ -63,7 +63,7 @@ export const syncWithServers = <T>(
 // 写入请求
 export const noloWriteRequest = async (
   server: string,
-  { userId, data, customId },
+  { userId, data, customKey },
   state: any,
   signal?: AbortSignal
 ) => {
@@ -73,7 +73,7 @@ export const noloWriteRequest = async (
       {
         url: `${API_ENDPOINTS.DATABASE}/write/`,
         method: "POST",
-        body: JSON.stringify({ data, customId, userId }),
+        body: JSON.stringify({ data, customKey, userId }),
       },
       state,
       signal
