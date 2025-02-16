@@ -79,7 +79,7 @@ const updateStats = async (
     await thunkApi.dispatch(
       write({
         data: { ...updatedStats, id: key, type: DataType.TOKEN },
-        customId: key,
+        customKey: key,
       })
     );
 

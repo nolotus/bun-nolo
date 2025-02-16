@@ -5,7 +5,7 @@ import MainLayout from "render/layout/MainLayout";
 
 import { SurfTip } from "./SurfTip";
 import { commonRoutes } from "./generatorRoutes";
-
+import SpaceSettings from "create/space/SpaceSettings";
 const Page = lazy(() => import("render/page/PageIndex"));
 
 const PricePage = lazy(() => import("app/pages/Price"));
@@ -28,7 +28,16 @@ export const routes = (currentUser: any) => [
         path: "price",
         element: <PricePage />,
       },
-      { path: "surfing-safety-tips", element: <SurfTip /> },
+      {
+        path: "surfing-safety-tips",
+        element: <SurfTip />,
+      },
+      // space设置页面直接放在顶层
+      {
+        path: "space/:spaceId/settings",
+        element: <SpaceSettings />,
+      },
+      // 动态页面放最后
       {
         path: ":pageId",
         element: (

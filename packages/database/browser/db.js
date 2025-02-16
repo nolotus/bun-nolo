@@ -1,3 +1,4 @@
+// database/browser/db.js   
 import { Level } from 'level';
 
 

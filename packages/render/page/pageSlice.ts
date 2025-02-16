@@ -1,6 +1,10 @@
 import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
 import { selectCurrentUserId } from "auth/authSlice";
 import { ParagraphType } from "create/editor/type";
+import {
+  addContentToSpace,
+  selectCurrentSpaceId,
+} from "create/space/spaceSlice";
 import { DataType } from "create/types";
 import { write } from "database/dbSlice";
 import { createPageKey } from "database/keys";
@@ -19,15 +23,18 @@ export const pageSlice = createSliceWithThunks({
   },
   reducers: (create) => ({
     createPage: create.asyncThunk(async (args, thunkApi) => {
+      const dispatch = thunkApi.dispatch;
       const state = thunkApi.getState();
       const userId = selectCurrentUserId(state);
-      const id = createPageKey(userId);
-      await thunkApi.dispatch(
+      const { dbKey, id } = createPageKey.create(userId);
+      const title = "新页面";
+      await dispatch(
         write({
           data: {
+            dbKey,
             id,
             type: DataType.PAGE,
-            title: "新页面",
+            title,
             slateData: [
               {
                 type: ParagraphType,
@@ -36,10 +43,20 @@ export const pageSlice = createSliceWithThunks({
             ],
             created: new Date().toISOString(),
           },
-          customId: id,
+          customKey: dbKey,
         })
       );
-      return id;
+      const currentSpaceId = selectCurrentSpaceId(state);
+      dispatch(
+        addContentToSpace({
+          contentKey: dbKey,
+          type: DataType.PAGE,
+          spaceId: currentSpaceId,
+          title,
+        })
+      );
+
+      return dbKey;
     }),
     initPage: create.reducer((state, action) => {
       state.content = action.payload.content;

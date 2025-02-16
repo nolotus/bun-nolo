@@ -31,7 +31,7 @@ if (isProduction) {
           <App hostname={hostname} lng={lng} isDark={isDark} />
         </BrowserRouter>
       </Provider>
-    </React.StrictMode>,
+    </React.StrictMode>
   );
 } else {
   const root = createRoot(domNode);
@@ -42,6 +42,6 @@ if (isProduction) {
           <App hostname={hostname} lng={lng} isDark={isDark} />
         </HashRouter>
       </Provider>
-    </React.StrictMode>,
+    </React.StrictMode>
   );
 }

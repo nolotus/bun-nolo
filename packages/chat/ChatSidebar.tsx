@@ -1,115 +1,93 @@
-// components/chat/ChatSidebar.tsx
-import { memo, useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useMemo, useCallback } from "react";
 import { useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
-import { DataType } from "create/types";
-import { useUserData } from "database/hooks/useUserData";
+import { selectCurrentSpace } from "create/space/spaceSlice";
+import { SpaceContent } from "create/space/types";
 import { SidebarItem } from "./dialog/SidebarItem";
-import { selectByTypes } from "database/dbSlice";
-import { compareDesc } from "date-fns";
 
-// 提取排序逻辑
-const sortByUpdateTime = (a: any, b: any) => {
-  const dateA = new Date(a.updatedAt || a.createdAt);
-  const dateB = new Date(b.updatedAt || b.createdAt);
-  return compareDesc(dateA, dateB);
+// 1. 将样式提取到外部CSS文件或公共样式中
+const ANIMATION_STYLES = {
+  slideIn: {
+    animationName: "slideInLeft",
+    animationDuration: "0.2s", // 缩短动画时间
+    animationFillMode: "both",
+  },
+} as const;
+
+// 2. 优化排序函数
+const sortByUpdateTime = (a: SpaceContent, b: SpaceContent) => {
+  // 使用时间戳比较替代Date对象创建
+  const timeA = new Date(a.updatedAt || a.createdAt).getTime();
+  const timeB = new Date(b.updatedAt || b.createdAt).getTime();
+  return timeB - timeA;
 };
 
-// 提取动画样式组件
+// 3. 优化动画组件
 const AnimatedItem = memo(
   ({
     item,
     shouldAnimate,
     index,
   }: {
-    item: any;
+    item: SpaceContent;
     shouldAnimate: boolean;
     index: number;
   }) => (
     <div
-      className={shouldAnimate ? "animate-slide-in" : undefined}
       style={
         shouldAnimate
           ? {
-              animationDelay: `${index * 0.05}s`,
-              animationDuration: "0.3s",
+              ...ANIMATION_STYLES.slideIn,
+              animationDelay: `${index * 0.03}s`, // 减少延迟间隔
             }
           : undefined
       }
     >
       <SidebarItem {...item} />
     </div>
-  )
+  ),
+  // 4. 添加性能优化的比较函数
+  (prevProps, nextProps) => {
+    return (
+      prevProps.shouldAnimate === nextProps.shouldAnimate &&
+      prevProps.item.contentKey === nextProps.item.contentKey
+    );
+  }
 );
 
-AnimatedItem.displayName = "AnimatedItem";
-
 const ChatSidebar = () => {
-  const currentUserId = useAppSelector(selectCurrentUserId);
-  const targetTypes = [DataType.DIALOG, DataType.PAGE];
   const [shouldAnimate, setShouldAnimate] = useState(false);
 
-  const sidebarData = useAppSelector((state) =>
-    selectByTypes(state, targetTypes, currentUserId)
-  );
+  // 只需要获取space数据,不需要额外的初始化操作
+  const space = useAppSelector(selectCurrentSpace);
 
-  const firstRenderRef = useRef(true);
-  const previousDataRef = useRef<string>("");
+  const sidebarDataArray = useMemo(() => {
+    if (!space?.contents) return [];
+    return Object.values(space.contents).sort(sortByUpdateTime);
+  }, [space?.contents]);
 
-  // 使用useUserData加载远程数据
-  useUserData(targetTypes, currentUserId, 100);
+  const handleAnimationEnd = useCallback(() => {
+    setShouldAnimate(false);
+  }, []);
 
   useEffect(() => {
-    if (firstRenderRef.current) {
-      firstRenderRef.current = false;
-      return;
-    }
-
-    const currentDataString = JSON.stringify(sidebarData);
-    if (sidebarData?.length && previousDataRef.current !== currentDataString) {
-      previousDataRef.current = currentDataString;
+    if (sidebarDataArray.length) {
       setShouldAnimate(true);
-
-      const timer = setTimeout(() => {
-        setShouldAnimate(false);
-      }, 500);
-
-      return () => clearTimeout(timer);
     }
-  }, [sidebarData]);
+  }, [sidebarDataArray]);
 
-  if (!sidebarData?.length) return null;
+  if (!sidebarDataArray.length) return null;
 
   return (
-    <>
-      <style>
-        {`
-          .animate-slide-in {
-            animation: slideInLeft both;
-          }
-          @keyframes slideInLeft {
-            from {
-              opacity: 0;
-              transform: translateX(-10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-        `}
-      </style>
-      <nav className="chat-sidebar">
-        {sidebarData.sort(sortByUpdateTime).map((item, index) => (
-          <AnimatedItem
-            key={item.id}
-            item={item}
-            shouldAnimate={shouldAnimate}
-            index={index}
-          />
-        ))}
-      </nav>
-    </>
+    <nav className="chat-sidebar" onAnimationEnd={handleAnimationEnd}>
+      {sidebarDataArray.map((item, index) => (
+        <AnimatedItem
+          key={item.contentKey}
+          item={item}
+          shouldAnimate={shouldAnimate}
+          index={index}
+        />
+      ))}
+    </nav>
   );
 };
 

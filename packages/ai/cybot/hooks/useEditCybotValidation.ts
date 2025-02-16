@@ -84,7 +84,7 @@ export const useEditCybotValidation = (
               tokenCount: initialValues.tokenCount || 0,
               tags: initialValues.tags || [],
             },
-            customId: publicCybotPath,
+            customKey: publicCybotPath,
           })
         ).unwrap();
       }

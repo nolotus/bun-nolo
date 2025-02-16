@@ -59,7 +59,7 @@ export function useRechargeUser(onSuccess?: () => void) {
         await dispatch(
           write({
             data: transaction,
-            customId: txId,
+            customKey: txId,
           })
         ).unwrap();
 

@@ -14,34 +14,42 @@ import Button from "web/ui/Button";
 import { PlusIcon } from "@primer/octicons-react";
 import FormContainer from "web/form/FormContainer";
 
-import { addWorkspace } from "./workspaceSlice";
+//common imports保持不变
+import { CreateSpaceRequest, SpaceVisibility } from "./types"; // 添加类型导入
+import { addSpace, changeSpace } from "./spaceSlice";
 
-export const CreateWorkSpaceForm = ({ onClose }) => {
+export const CreateSpaceForm = ({ onClose }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const theme = useTheme();
 
   const onSubmit = useCallback(
-    async (data: any) => {
-      console.log("CreateWorkSpaceForm data submitted:", data);
+    async (data: CreateSpaceRequest) => {
       try {
-        const result = await dispatch(addWorkspace(data.name));
-        console.log("CreateWorkSpaceForm created successfully", result);
-        toast.success("add space success");
+        const result = await dispatch(
+          addSpace({
+            name: data.name,
+            description: data.description,
+            visibility: data.visibility || SpaceVisibility.PRIVATE,
+          })
+        ).unwrap();
+        dispatch(changeSpace(result.spaceId));
+        toast.success(t("space.createSuccess"));
         onClose();
       } catch (error) {
-        console.error("Error creating ", error);
+        console.error("Error creating space:", error);
+        toast.error(t("space.createError"));
       }
     },
-    [dispatch, auth.user?.userId, onClose]
+    [dispatch, onClose, t]
   );
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm();
+  } = useForm<CreateSpaceRequest>(); // 使用类型
 
   const handleFormSubmit = handleSubmit(
     (data) => {
@@ -78,23 +86,46 @@ export const CreateWorkSpaceForm = ({ onClose }) => {
       </style>
 
       <FormContainer>
-        <FormTitle>{t("CreateSpace")}</FormTitle>
+        <FormTitle>{t("space.create")}</FormTitle>
         <form onSubmit={handleFormSubmit}>
           <div className="form-field">
-            <label className="field-label">{t("spacename")}</label>
+            <label className="field-label">{t("space.name")}</label>
             <Input
               {...register("name", {
-                required: "Space name is required",
+                required: t("space.nameRequired"),
                 minLength: {
                   value: 2,
-                  message: "Name must be at least 2 characters",
+                  message: t("space.nameMinLength"),
                 },
               })}
-              placeholder={t("Enter space name")}
+              placeholder={t("space.namePlaceholder")}
             />
             {errors.name && (
               <div className="error-message">{errors.name.message}</div>
             )}
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">{t("space.description")}</label>
+            <Input
+              {...register("description")}
+              placeholder={t("space.descriptionPlaceholder")}
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">{t("space.visibility")}</label>
+            <select
+              {...register("visibility")}
+              defaultValue={SpaceVisibility.PRIVATE}
+            >
+              <option value={SpaceVisibility.PRIVATE}>
+                {t("space.private")}
+              </option>
+              <option value={SpaceVisibility.PUBLIC}>
+                {t("space.public")}
+              </option>
+            </select>
           </div>
 
           <Button
@@ -106,7 +137,7 @@ export const CreateWorkSpaceForm = ({ onClose }) => {
             disabled={isSubmitting}
             icon={<PlusIcon />}
           >
-            {isSubmitting ? t("submiting") : t("CreateSpace")}
+            {isSubmitting ? t("common.submitting") : t("space.create")}
           </Button>
         </form>
       </FormContainer>
