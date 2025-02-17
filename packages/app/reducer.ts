@@ -3,7 +3,7 @@ import dialogSlice from "chat/dialog/dialogSlice";
 import messageReducer from "chat/messages/messageSlice";
 
 import cybotReducer from "ai/cybot/cybotSlice";
-import workspaceRecer from "create/workspace/workspaceSlice";
+import spaceRecer from "create/space/spaceSlice";
 import dbReducer from "database/dbSlice";
 import pageReducer from "render/page/pageSlice";
 import settingReducer from "setting/settingSlice";
@@ -18,6 +18,6 @@ export const reducer = {
   db: dbReducer,
   theme: themeSliceReducer,
   settings: settingReducer,
-  workspace: workspaceRecer,
+  space: spaceRecer,
   cybot: cybotReducer,
 };

@@ -1,5 +1,9 @@
 import { selectCurrentUserId } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
+import {
+  addContentToSpace,
+  selectCurrentSpaceId,
+} from "create/space/spaceSlice";
 import { DataType } from "create/types";
 import { read, write } from "database/dbSlice";
 import { createDialogKey, createDialogMessageKey } from "database/keys";
@@ -24,7 +28,18 @@ export const createDialogAction = async (args, thunkApi) => {
     type: DataType.DIALOG,
   };
 
-  const result = await dispatch(write({ data, customId: dialogPath })).unwrap();
+  const result = await dispatch(
+    write({ data, customKey: dialogPath })
+  ).unwrap();
+  const spaceId = selectCurrentSpaceId(thunkApi.getState());
+  await dispatch(
+    addContentToSpace({
+      spaceId,
+      contentKey: dialogPath,
+      type: DataType.DIALOG,
+      title,
+    })
+  );
   const dialogId = extractCustomId(dialogPath);
 
   const msgPath = createDialogMessageKey(dialogId);
@@ -38,7 +53,7 @@ export const createDialogAction = async (args, thunkApi) => {
   };
 
   const msgResult = await dispatch(
-    write({ data: msgData, customId: msgPath })
+    write({ data: msgData, customKey: msgPath })
   ).unwrap();
   return result;
 };

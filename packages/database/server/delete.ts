@@ -3,11 +3,7 @@ import { extractUserId } from "core/prefix";
 import { isNil } from "rambda";
 import { createKey } from "database/keys";
 import serverDb from "./db";
-import pino from "pino";
 
-// const logger = pino({ name: "handle-delete" });
-
-// 新增的独立删除消息函数
 async function deleteMessages(dialogId: string) {
   const prefix = createKey("dialog", dialogId, "msg");
   const batch = serverDb.batch();
@@ -40,7 +36,7 @@ export const handleDelete = async (req, res) => {
     // 调用独立的删除消息函数
     if (type === "messages") {
       const result = await deleteMessages(id);
-      return res.json(result);
+      return res.status(200).json(result);
     }
 
     // 原有其他类型删除逻辑保持不变

@@ -38,7 +38,7 @@ export const writeAction = async (writeConfig, thunkApi) => {
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
   const currentUserId = selectCurrentUserId(state);
-  const { data, customId } = writeConfig;
+  const { data, customKey } = writeConfig;
   const userId = writeConfig.userId || currentUserId;
 
   if (
@@ -49,6 +49,7 @@ export const writeAction = async (writeConfig, thunkApi) => {
       DataType.DIALOG,
       DataType.TOKEN,
       DataType.TRANSACTION,
+      DataType.SPACE,
     ].includes(data.type)
   ) {
     return null;
@@ -57,11 +58,11 @@ export const writeAction = async (writeConfig, thunkApi) => {
   try {
     const willSaveData = normalizeTimeFields({
       ...data,
-      id: customId,
+      dbKey: customKey,
       userId: currentUserId,
     });
 
-    await browserDb.put(customId, willSaveData);
+    await browserDb.put(customKey, willSaveData);
 
     const servers = Array.from(
       new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])

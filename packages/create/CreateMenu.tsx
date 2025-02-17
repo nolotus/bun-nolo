@@ -40,8 +40,8 @@ export const CreateMenu = () => {
   } = useModal();
 
   const createNewPage = async () => {
-    const id = await dispatch(createPage()).unwrap();
-    navigate(`/${id}?edit=true`);
+    const dbkey = await dispatch(createPage()).unwrap();
+    navigate(`/${dbkey}?edit=true`);
     setIsOpen(false);
   };
 

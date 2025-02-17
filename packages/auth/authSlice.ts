@@ -11,6 +11,7 @@ import { loginRequest } from "./client/loginRequest";
 import { tokenManager } from "./tokenManager";
 import { signUpAction } from "./action/signUpAction";
 import { hashPasswordV1 } from "core/password";
+import { initializeSpace } from "create/space/spaceSlice";
 
 interface AuthState {
   currentUser: User;
@@ -100,20 +101,19 @@ export const authSlice = createSliceWithThunks({
     initializeAuth: create.asyncThunk(
       async (_, thunkAPI) => {
         const tokens = await tokenManager.initTokens();
-        return { tokens };
+        if (tokens) {
+          const user = parseToken(tokens[0]);
+          return { tokens, user };
+        }
       },
       {
         fulfilled: (state, action) => {
-          const { tokens } = action.payload;
-          if (tokens.length > 0) {
-            const user = parseToken(tokens[0]);
-            state.currentUser = user;
-            state.currentToken = tokens[0];
-            state.isLoggedIn = true;
-            const users = tokens.map(parseToken);
-            console.log("users", users);
-            state.users = users;
-          }
+          const { tokens, user } = action.payload;
+          state.currentUser = user;
+          state.currentToken = tokens[0];
+          state.isLoggedIn = true;
+          const users = tokens.map(parseToken);
+          state.users = users;
         },
       }
     ),
@@ -168,6 +168,18 @@ export const authSlice = createSliceWithThunks({
     ),
     changeUser: create.asyncThunk(
       async (user: User, thunkAPI) => {
+        const dispatch = thunkAPI.dispatch;
+
+        // 1. 先初始化新用户的space
+        try {
+          await dispatch(initializeSpace(user.userId)).unwrap();
+        } catch (error) {
+          console.warn("Failed to initialize user settings:", error);
+          // 确保space被初始化,即使失败也要初始化一个默认space
+          await dispatch(initializeSpace(undefined)).unwrap();
+        }
+
+        // 2. 处理token
         const tokens = await tokenManager.getTokens();
         const updatedToken = tokens.find(
           (t) => parseToken(t).userId === user.userId
@@ -186,9 +198,11 @@ export const authSlice = createSliceWithThunks({
           token: updatedToken,
         };
       },
+
       {
         fulfilled: (state, action) => {
-          const { user, token } = action.payload;
+          const { user, token, settings } = action.payload;
+          // 更新认证状态
           state.currentUser = user;
           state.currentToken = token;
         },

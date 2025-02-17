@@ -27,8 +27,8 @@ const processWeatherData = async (weatherData, collector) => {
   weatherData.hours.forEach(async (hour) => {
     const specificTime = new Date(hour.time).getTime();
     const ulidForSpecificTime = ulid(specificTime);
-    const customId = ulidForSpecificTime;
-    const id = customId;
+    const customKey = ulidForSpecificTime;
+    const id = customKey;
     // 在这里添加 lat 和 lng 到 hour 数据中
     const augmentedHour = {
       ...hour,

@@ -1,3 +1,5 @@
+// setting/config.tx
+
 export const SettingRoutePaths = {
   SETTING: "setting",
   SETTING_USER_PROFILE: "user-profile",
