@@ -5,6 +5,8 @@ import { Cybot } from "../types";
 import { fetchPubCybots as fetchLocal } from "ai/cybot/web/fetchPubCybots";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
+import { useDispatch } from "react-redux";
+import { remove } from "database/dbSlice";
 
 interface UsePubCybotsOptions {
   limit?: number;
@@ -17,25 +19,69 @@ interface PubCybotsState {
   data: Cybot[];
 }
 
-function mergeCybots(localData: Cybot[], remoteData: Cybot[]): Cybot[] {
-  const merged = [...localData];
-  const ids = new Set(localData.map((bot) => bot.id));
+function mergeCybots(localData: Cybot[], remoteData: Cybot[]): MergeResult {
+  // 创建远程数据的id集合用于快速查找
+  const remoteIds = new Set(remoteData.map((bot) => bot.id));
 
-  let addedCount = 0;
-  remoteData.forEach((bot) => {
-    if (!ids.has(bot.id)) {
-      merged.push(bot);
-      addedCount++;
+  // 最终结果数组
+  let merged: Cybot[] = [];
+  // 需要删除的本地bot id
+  let toDelete: string[] = [];
+
+  // 遍历本地数据
+  localData.forEach((localBot) => {
+    if (remoteIds.has(localBot.id)) {
+      // 如果远程也有这个bot,保留本地的
+      merged.push(localBot);
+    } else {
+      // 如果远程没有,加入待删除列表
+      toDelete.push(localBot.id);
     }
   });
 
-  return merged.sort((a, b) => {
+  // 添加远程独有的
+  remoteData.forEach((remoteBot) => {
+    if (!merged.some((bot) => bot.id === remoteBot.id)) {
+      merged.push(remoteBot);
+    }
+  });
+
+  // 按时间排序
+  merged.sort((a, b) => {
     const timeA =
       typeof a.createdAt === "string" ? Date.parse(a.createdAt) : a.createdAt;
     const timeB =
       typeof b.createdAt === "string" ? Date.parse(b.createdAt) : b.createdAt;
     return timeB - timeA;
   });
+
+  return {
+    merged,
+    toDelete,
+  };
+}
+
+async function fetchRemoteCybots(
+  currentServer: string,
+  limit: number,
+  sortBy: string
+) {
+  const response = await fetch(`${currentServer}/rpc/getPubCybots`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      limit,
+      sortBy,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Remote fetch failed with status ${response.status}`);
+  }
+
+  return response.json();
 }
 
 export function usePubCybots({
@@ -43,6 +89,7 @@ export function usePubCybots({
   sortBy = "newest",
 }: UsePubCybotsOptions = {}) {
   const currentServer = useAppSelector(selectCurrentServer);
+  const dispatch = useDispatch();
   const [state, setState] = useState<PubCybotsState>({
     loading: true,
     error: null,
@@ -81,29 +128,26 @@ export function usePubCybots({
       }));
 
       try {
-        const response = await fetch(`${currentServer}/rpc/getPubCybots`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            limit,
-            sortBy,
-          }),
+        const remoteResult = await fetchRemoteCybots(
+          currentServer,
+          limit,
+          sortBy
+        );
+
+        const { merged, toDelete } = mergeCybots(
+          localResult.data,
+          remoteResult.data
+        );
+
+        // TODO: 改为批量同时删除,提高性能
+        toDelete.forEach((id) => {
+          dispatch(remove(id));
         });
-
-        if (!response.ok) {
-          throw new Error(`Remote fetch failed with status ${response.status}`);
-        }
-
-        const remoteResult = await response.json();
-
-        const mergedData = mergeCybots(localResult.data, remoteResult.data);
 
         setState({
           loading: false,
           error: null,
-          data: mergedData,
+          data: merged,
         });
       } catch (err) {
         setState((prev) => ({
@@ -119,7 +163,7 @@ export function usePubCybots({
         data: [],
       });
     }
-  }, [limit, sortBy, currentServer]);
+  }, [limit, sortBy, currentServer, dispatch]);
 
   useEffect(() => {
     fetchData();

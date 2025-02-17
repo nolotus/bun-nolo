@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
   changeSpace,
-  fetchSpaceMemberships,
+  fetchUserSpaceMemberships,
   selectAllMemberSpaces,
   selectCurrentSpace,
 } from "create/space/spaceSlice";
@@ -33,7 +33,8 @@ import { zIndex } from "../styles/zIndex";
 import NavIconItem from "./blocks/NavIconItem";
 import { CreateSpaceButton } from "create/space/CreateSpaceButton";
 import { selectCurrentUserId } from "auth/authSlice";
-import { createSpaceKey } from "database/keys";
+import { createSpaceKey } from "create/space/spaceKeys";
+
 import { SpaceItem } from "create/space/SpaceItem";
 
 export const SidebarTop = () => {
@@ -94,7 +95,7 @@ export const SidebarTop = () => {
   );
 
   useEffect(() => {
-    dispatch(fetchSpaceMemberships(currentUserId));
+    dispatch(fetchUserSpaceMemberships(currentUserId));
   }, [dispatch, currentUserId]);
 
   const handleOptionClick = (spaceId?: string) => {
