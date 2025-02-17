@@ -5,61 +5,71 @@ import {
   ImageIcon,
   BookIcon,
   FileCodeIcon,
-  // FilePdfIcon
 } from "@primer/octicons-react";
 import { selectTheme } from "app/theme/themeSlice";
-import { DialogContextMenu } from "chat/dialog/DialogContextMenu";
+import { ContentContextMenu } from "./ContentContextMenu";
 import React from "react";
 import { useSelector } from "react-redux";
 import { NavLink, useParams } from "react-router-dom";
+
+// 类型定义
+interface SidebarItemProps {
+  contentKey: string;
+  type: "dialog" | "page" | "image" | "doc" | "code" | "file";
+  title: string;
+}
 
 const ITEM_ICONS = {
   dialog: CommentIcon,
   page: FileIcon,
   image: ImageIcon,
-  // pdf: FilePdfIcon,
   doc: FileIcon,
   code: FileCodeIcon,
   file: FileIcon,
-};
+} as const;
 
 const ICON_SIZE = 20;
 
-// 明确标注必需的props
-export const SidebarItem = ({
-  id, // required
-  type, // required
-  title, // optional
-}) => {
-  const { pageId } = useParams();
-  const theme = useSelector(selectTheme);
-  const menu = Ariakit.useMenuStore();
-  const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
+export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
+  ({ contentKey, type, title }) => {
+    const { pageId } = useParams();
+    const theme = useSelector(selectTheme);
+    const menu = Ariakit.useMenuStore();
+    const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
 
-  const IconComponent = ITEM_ICONS[type] || FileIcon;
-  const displayTitle = title || id;
-  const isSelected = id === pageId;
-  const handleContextMenu = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setAnchorRect({ x: event.clientX, y: event.clientY });
-    menu.show();
-  };
+    const IconComponent = ITEM_ICONS[type] || FileIcon;
+    const displayTitle = title || contentKey;
+    const isSelected = contentKey === pageId;
 
-  return (
-    <>
-      <div
-        className={`sidebar-item ${isSelected ? "selected" : ""}`}
-        onContextMenu={handleContextMenu}
-      >
-        <IconComponent size={ICON_SIZE} className="sidebar-icon" />
-        <NavLink to={`/${id}`} className="sidebar-link">
-          {displayTitle}
-        </NavLink>
-        <DialogContextMenu menu={menu} anchorRect={anchorRect} dialogId={id} />
-      </div>
-      <style>
-        {`
+    const handleContextMenu = React.useCallback(
+      (event: React.MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setAnchorRect({ x: event.clientX, y: event.clientY });
+        menu.show();
+      },
+      [menu]
+    );
+
+    return (
+      <>
+        <div
+          className={`sidebar-item ${isSelected ? "selected" : ""}`}
+          onContextMenu={handleContextMenu}
+        >
+          <IconComponent size={ICON_SIZE} className="sidebar-icon" />
+          <NavLink to={`/${contentKey}`} className="sidebar-link">
+            {displayTitle}
+          </NavLink>
+
+          <ContentContextMenu
+            menu={menu}
+            anchorRect={anchorRect}
+            contentKey={contentKey}
+          />
+        </div>
+        <style>
+          {`
           .sidebar-item {
             margin: 2px 8px;
             padding: 8px 12px;
@@ -131,7 +141,13 @@ export const SidebarItem = ({
             }
           }
         `}
-      </style>
-    </>
-  );
-};
+        </style>
+      </>
+    );
+  }
+);
+
+// 添加displayName以便调试
+SidebarItem.displayName = "SidebarItem";
+
+export default SidebarItem;
