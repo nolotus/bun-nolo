@@ -49,7 +49,9 @@ import { openrouterModels } from "integrations/openrouter/models";
 import type { Model } from "./types";
 
 const providerOptions = [
+  "openrouter",
   "anthropic",
+  "custom",
   "ollama",
   "fireworks",
   "deepinfra",
@@ -60,8 +62,6 @@ const providerOptions = [
   "sambanova",
   "openai",
   "xai",
-  "custom",
-  "openrouter",
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
