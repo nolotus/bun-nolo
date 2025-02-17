@@ -1,4 +1,3 @@
-import { useDispatch } from "react-redux";
 import { useCallback, useState } from "react";
 import { selectTheme } from "app/theme/themeSlice";
 import { useTranslation } from "react-i18next";
@@ -30,9 +29,10 @@ interface CybotBlockProps {
 const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
   const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
+
+  const cybotKey = item.dbKey || item.id;
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
-  const dispatch = useDispatch();
   const [deleting, setDeleting] = useState(false);
   const allowEdit = useCouldEdit(item.id);
   const {
@@ -45,7 +45,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
   const startDialog = async () => {
     if (isLoading) return;
     try {
-      await createNewDialog({ cybots: [item.id] });
+      await createNewDialog({ cybots: [cybotKey] });
       closeModal?.();
     } catch (error) {
       toast.error(t("createDialogError"));
