@@ -7,6 +7,7 @@ export const MemberList = ({
   onRemove,
   removingId,
 }) => {
+  console.log("members", members);
   return (
     <div className="member-list">
       {members.map((member) => (

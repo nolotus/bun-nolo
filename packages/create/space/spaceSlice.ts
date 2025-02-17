@@ -5,24 +5,23 @@ import {
   asyncThunkCreator,
   buildCreateSlice,
 } from "@reduxjs/toolkit";
-import { selectCurrentUserId } from "auth/authSlice";
-import { read, write } from "database/dbSlice";
+import { read } from "database/dbSlice";
 
 import { createSpaceKey } from "create/space/spaceKeys";
 
 import {
   SpaceData,
   MemberRole,
-  SpaceId,
   SpaceMemberWithSpaceInfo,
 } from "create/space/types";
-import { browserDb } from "database/browser/db";
 import { getSettings } from "setting/settingSlice";
 
 import { deleteSpaceAction } from "./action/deleteSpaceAction";
 import { addContentAction } from "./action/addContentAction";
 import { deleteContentFromSpaceAction } from "./action/deleteContentFromSpaceAction";
 import { addSpaceAction } from "./action/addSpace";
+import { updateSpaceAction } from "./action/updateSpaceAction";
+import { fetchUserSpaceMembershipsAction } from "./action/fetchUserSpaceMemberships";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -91,32 +90,11 @@ const spaceSlice = createSliceWithThunks({
         }
       },
     }),
-    fetchSpaceMemberships: create.asyncThunk(
-      async (userId, thunkAPI) => {
-        const dispatch = thunkAPI.dispatch;
-        const state = thunkAPI.getState();
-
-        try {
-          const memberships: SpaceMemberWithSpaceInfo[] = [];
-
-          // 查询用户的所有space-member记录
-          const memberPrefix = `space-member-${userId}-`;
-          for await (const [key, memberData] of browserDb.iterator({
-            gte: memberPrefix,
-            lte: memberPrefix + "\xff",
-          })) {
-            const membership = memberData;
-
-            memberships.push(membership);
-          }
-          // 按加入时间排序
-          const result = memberships.sort((a, b) => b.joinedAt - a.joinedAt);
-          return result;
-        } catch (error) {
-          console.error("Error fetching space memberships:", error);
-          throw error;
-        }
-      },
+    fetchSpaceMemberships: create.asyncThunk(async () => {}, {
+      fulfilled: () => {},
+    }),
+    fetchUserSpaceMemberships: create.asyncThunk(
+      fetchUserSpaceMembershipsAction,
       {
         fulfilled: (state, action) => {
           state.memberSpaces = action.payload;
@@ -131,6 +109,7 @@ const spaceSlice = createSliceWithThunks({
         },
       }
     ),
+
     deleteSpace: create.asyncThunk(deleteSpaceAction, {
       fulfilled: (state, action) => {
         const { spaceId } = action.payload;
@@ -150,83 +129,25 @@ const spaceSlice = createSliceWithThunks({
       },
     }),
 
-    updateSpace: create.asyncThunk(
-      async (input: { spaceId: string; spaceName: string }, thunkAPI) => {
-        const { spaceId, spaceName } = input;
-        const dispatch = thunkAPI.dispatch;
-        const state = thunkAPI.getState();
-        const userId = selectCurrentUserId(state);
-
-        // 获取space数据
-        const spaceKey = createSpaceKey.space(spaceId);
-        const spaceData = await dispatch(read(spaceKey)).unwrap();
-
-        if (!spaceData) {
-          throw new Error("Space not found");
+    updateSpace: create.asyncThunk(updateSpaceAction, {
+      fulfilled: (state, action) => {
+        const { updatedSpace, spaceId } = action.payload;
+        const isCurrentSpace = spaceId === state.currentSpaceId;
+        // 只有在更新的是当前space时才更新currentSpace
+        if (isCurrentSpace) {
+          state.currentSpace = updatedSpace;
         }
 
-        if (!spaceData.members.includes(userId)) {
-          throw new Error("User is not a member of this space");
+        // 更新memberSpaces列表中的space名称
+        if (state.memberSpaces) {
+          state.memberSpaces = state.memberSpaces.map((space) =>
+            space.spaceId === updatedSpace.id
+              ? { ...space, spaceName: updatedSpace.name }
+              : space
+          );
         }
-
-        // 更新space数据
-        const updatedSpaceData = {
-          ...spaceData,
-          name: spaceName,
-          updatedAt: Date.now(),
-        };
-
-        // 写入更新后的space数据
-        await dispatch(
-          write({
-            data: updatedSpaceData,
-            customKey: spaceKey,
-          })
-        ).unwrap();
-
-        // 更新space-member数据
-        const memberKey = createSpaceKey.member(userId, spaceId);
-        const memberData = await dispatch(read(memberKey)).unwrap();
-
-        if (memberData) {
-          const updatedMemberData = {
-            ...memberData,
-            spaceName,
-          };
-
-          await dispatch(
-            write({
-              data: updatedMemberData,
-              customKey: memberKey,
-            })
-          ).unwrap();
-        }
-
-        return {
-          updatedSpace: updatedSpaceData,
-          spaceId,
-        };
       },
-      {
-        fulfilled: (state, action) => {
-          const { updatedSpace, spaceId } = action.payload;
-          const isCurrentSpace = spaceId === state.currentSpaceId;
-          // 只有在更新的是当前space时才更新currentSpace
-          if (isCurrentSpace) {
-            state.currentSpace = updatedSpace;
-          }
-
-          // 更新memberSpaces列表中的space名称
-          if (state.memberSpaces) {
-            state.memberSpaces = state.memberSpaces.map((space) =>
-              space.spaceId === updatedSpace.id
-                ? { ...space, spaceName: updatedSpace.name }
-                : space
-            );
-          }
-        },
-      }
-    ),
+    }),
     deleteContentFromSpace: create.asyncThunk(deleteContentFromSpaceAction, {
       fulfilled: (state, action) => {
         const { spaceId, updatedSpaceData } = action.payload;
@@ -312,6 +233,7 @@ export const {
   deleteContentFromSpace,
   initializeSpace,
   fetchSpaceMemberships,
+  fetchUserSpaceMemberships,
 } = spaceSlice.actions;
 
 export const selectCurrentSpaceId = (state: NoloRootState) =>
