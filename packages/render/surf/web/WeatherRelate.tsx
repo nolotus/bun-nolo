@@ -1,17 +1,12 @@
 import { parseWeatherParams, useGetWeatherQuery } from "integrations/weather";
 
-import ToggleButton from "./Buttons";
 import { WeatherDisplay } from "./WeatherDisplay";
 import { modes, intervals } from "../config";
-import useSurfSpot from "../useSurfSpot";
 
 export const WeatherRelate = ({ lat, lng }) => {
   const queryParams = parseWeatherParams({ lat, lng });
 
-  const { data, error, isLoading, isSuccess } = useGetWeatherQuery(queryParams);
-
-  const { mode, interval, handleModeChange, handleIntervalChange } =
-    useSurfSpot();
+  const { data, isLoading } = useGetWeatherQuery(queryParams);
 
   if (isLoading) {
     return (
@@ -23,33 +18,11 @@ export const WeatherRelate = ({ lat, lng }) => {
   if (data) {
     return (
       <>
-        <div className="mb-4 mt-4 flex w-full flex-row items-center justify-between">
-          <div className="flex-frow flex flex-row" style={{ flex: "0.2" }}>
-            {intervals.map((intervalItem) => (
-              <ToggleButton
-                key={intervalItem.value}
-                value={intervalItem.value}
-                title={intervalItem.title}
-                isActive={interval === intervalItem.value}
-                onPress={() => handleIntervalChange(intervalItem.value)}
-              />
-            ))}
-          </div>
-
-          <div className="flex flex-row" style={{ flex: 0.6 }}>
-            {modes.map((item) => (
-              <ToggleButton
-                key={item.value}
-                value={item.value}
-                title={item.title}
-                isActive={mode === item.value}
-                onPress={handleModeChange}
-              />
-            ))}
-          </div>
-        </div>
-
-        <WeatherDisplay mode={mode} interval={interval} hours={data.hours} />
+        <WeatherDisplay
+          mode={modes[0].value}
+          interval={intervals[0].value}
+          hours={data.hours}
+        />
       </>
     );
   }
