@@ -8,11 +8,11 @@ export function createResponse() {
     headers.set("Access-Control-Allow-Origin", "*");
     headers.set(
       "Access-Control-Allow-Methods",
-      "OPTIONS, GET, POST, PUT, DELETE,PATCH",
+      "OPTIONS, GET, POST, PUT, DELETE,PATCH"
     );
     headers.set(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, Accept, X-Requested-With",
+      "Content-Type, Authorization, Accept, X-Requested-With"
     );
     headers.set("Access-Control-Max-Age", "1800");
     headers.set("X-Frame-Options", "DENY");

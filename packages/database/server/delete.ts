@@ -18,12 +18,13 @@ export const handleDelete = async (req, res) => {
 
     // 原有其他类型删除逻辑保持不变
     const data = await serverDb.get(id);
+
     const ownerId = data?.userId || extractUserId(id);
 
     if (isNil(ownerId) || ownerId === actionUserId) {
       if (data) await serverDb.del(id);
 
-      return res.state(200).json({
+      return res.status(200).json({
         message: "Delete request processed",
         processingIds: [id],
       });
