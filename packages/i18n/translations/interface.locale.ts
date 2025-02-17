@@ -57,7 +57,7 @@ export default {
       purposeRequired: "Please tell us your intended use",
       purposeTooShort: "Please provide more details (at least 10 characters)",
       settings: "Settings",
-      hintofkey:"Hint: There are no restrictions on the number of characters and symbols for usernames and passwords. Password reset is not provided for the time being, so it is recommended to use a complex password combination and remember the password"
+      hintofKey:"Hint: There are no restrictions on the number of characters and symbols for usernames and passwords. Password reset is not provided for the time being, so it is recommended to use a complex password combination and remember the password"
     },
   },
   [Language.ZH_CN]: {
@@ -113,7 +113,7 @@ export default {
       purposeRequired: "请告诉我们您的使用目的",
       purposeTooShort: "请提供更多详细信息（至少10个字符）",
       settings: "设置",
-      hintofkey:"提示：用户名密码不作字数和符号限制，暂不提供找回密码，建议使用复杂的密码组合，并牢记密码"
+      hintofKey:"提示：用户名密码不作字数和符号限制，暂不提供找回密码，建议使用复杂的密码组合，并牢记密码"
     },
   },
   [Language.ZH_HANT]: {
@@ -169,7 +169,7 @@ export default {
       purposeRequired: "請告訴我們您的使用目的",
       purposeTooShort: "請提供更多詳細信息（至少10個字符）",
       settings: "設置",
-      hintofkey:"提示：用戶名密碼不作字數和符號限制，暫不提供找回密碼，建議使用複雜的密碼組合，並牢記密碼"
+      hintofKey:"提示：用戶名密碼不作字數和符號限制，暫不提供找回密碼，建議使用複雜的密碼組合，並牢記密碼"
     },
   },
   [Language.JA]: {
@@ -227,7 +227,7 @@ export default {
       purposeRequired: "ご使用目的をお聞かせください",
       purposeTooShort: "より詳しい情報をご記入ください（10文字以上）",
       settings: "設定",
-      hintofkey:"ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雑なパスワードの組み合わせを使用し、パスワードを覚えておいてください"
+      hintofKey:"ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雑なパスワードの組み合わせを使用し、パスワードを覚えておいてください"
     },
   },
 };
