@@ -1,6 +1,7 @@
 import { AddContentRequest, SpaceId, SpaceContent } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
-import { createSpaceKey } from "database/keys";
+import { createSpaceKey } from "create/space/spaceKeys";
+
 import { read, write } from "database/dbSlice";
 
 export const addContentAction = async (

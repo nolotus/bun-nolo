@@ -120,34 +120,3 @@ export const pubCybotKeys = {
     return { start, end };
   },
 };
-
-/**
- * Space相关key
- * - space主文档: space-{spaceId}
- * - 成员索引: space-member-{userId}-{spaceId}
- */
-export const createSpaceKey = {
-  space: (spaceId: string) => {
-    return createKey(DataType.SPACE, spaceId);
-  },
-
-  member: curry((userId: string, spaceId: string) => {
-    return createKey(DataType.SPACE, "member", userId, spaceId);
-  }),
-
-  memberRange: (userId: string) => {
-    const start = createKey(DataType.SPACE, "member", userId, "");
-    const end = createKey(DataType.SPACE, "member", userId, "\uffff");
-    return { start, end };
-  },
-
-  spaceFromMember: (memberKey: string) => {
-    const parts = memberKey.split("-");
-    const spaceId = parts[parts.length - 1]; // 获取最后一部分作为spaceId
-    return createKey(DataType.SPACE, spaceId);
-  },
-  spaceIdFromMember: (memberKey: string) => {
-    const parts = memberKey.split("-");
-    return parts[parts.length - 1]; // 获取最后一部分作为spaceId
-  },
-};

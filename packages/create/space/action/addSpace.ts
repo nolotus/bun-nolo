@@ -11,7 +11,8 @@ import { DataType } from "create/types";
 import { getUserDataOnce } from "database/utils/getUserDataOnce";
 import { ulid } from "ulid";
 import { patchData, write } from "database/dbSlice";
-import { createSpaceKey } from "database/keys";
+import { createSpaceKey } from "create/space/spaceKeys";
+
 import { selectAllMemberSpaces } from "../spaceSlice";
 
 export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
