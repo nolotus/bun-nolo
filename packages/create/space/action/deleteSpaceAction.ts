@@ -1,5 +1,6 @@
 import { selectCurrentUserId } from "auth/authSlice";
-import { createSpaceKey } from "database/keys";
+import { createSpaceKey } from "create/space/spaceKeys";
+
 import { read, remove } from "database/dbSlice";
 
 export const deleteSpaceAction = async (spaceId: string, thunkAPI) => {
@@ -21,10 +22,6 @@ export const deleteSpaceAction = async (spaceId: string, thunkAPI) => {
 
   // 删除space数据
   await dispatch(remove(spaceKey)).unwrap();
-
-  await dispatch(
-    remove("space-member-0e95801d90-space-01JM1JQN2ADNGGGZBETDW6WGXQ")
-  ).unwrap();
 
   // 删除所有成员的space-member数据
   for (const memberId of spaceData.members) {

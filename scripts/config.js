@@ -1,4 +1,3 @@
-import postCssPlugin from "esbuild-style-plugin";
 import { isProduction } from "../packages/utils/env";
 
 const inputPath = "./packages/web/entry.tsx";
@@ -13,13 +12,6 @@ export const commonConfig = {
       isProduction ? 'production' : 'development'
     ),
   },
-  plugins: [
-    postCssPlugin({
-      postcss: {
-        plugins: [require("tailwindcss")],
-      },
-    }),
-  ],
   bundle: true,
   splitting: true,
   treeShaking: true,

@@ -20,6 +20,7 @@ const requestHandlers = {
   groq: sendCommonChatRequest,
   anthropic: sendClaudeRequest,
   sambanova: sendCommonChatRequest,
+  openrouter: sendCommonChatRequest,
   // 添加其他provider的处理函数
 };
 

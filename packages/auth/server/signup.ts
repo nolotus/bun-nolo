@@ -9,14 +9,14 @@ import {
   createSuccessResponse,
   handleOptionsRequest,
 } from "./shared";
-import { DB_PREFIX, createUserKey, createSpaceKey } from "database/keys";
+import { DB_PREFIX, createUserKey } from "database/keys";
 import {
   SpaceData,
   SpaceVisibility,
   MemberRole,
   SpaceMember,
 } from "create/space/types";
-
+import { createSpaceKey } from "create/space/spaceKeys";
 export async function handleSignUp(req) {
   if (req.method === "OPTIONS") {
     return handleOptionsRequest();
