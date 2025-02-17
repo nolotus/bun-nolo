@@ -1,5 +1,6 @@
 import { browserDb } from "database/browser/db";
 import { SpaceMemberWithSpaceInfo } from "create/space/types";
+
 export const fetchUserSpaceMembershipsAction = () => {
   async (userId, thunkAPI) => {
     const dispatch = thunkAPI.dispatch;
