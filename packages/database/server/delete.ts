@@ -1,5 +1,4 @@
 // src/server/handlers/delete.ts
-import { extractUserId } from "core/prefix";
 import { isNil } from "rambda";
 import serverDb from "./db";
 import { deleteMessages } from "chat/messages/server/deleteMessages";
@@ -19,7 +18,7 @@ export const handleDelete = async (req, res) => {
     // 原有其他类型删除逻辑保持不变
     const data = await serverDb.get(id);
 
-    const ownerId = data?.userId || extractUserId(id);
+    const ownerId = data?.userId;
 
     if (isNil(ownerId) || ownerId === actionUserId) {
       if (data) await serverDb.del(id);
