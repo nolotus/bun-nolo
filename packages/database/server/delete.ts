@@ -1,31 +1,8 @@
 // src/server/handlers/delete.ts
 import { extractUserId } from "core/prefix";
 import { isNil } from "rambda";
-import { createKey } from "database/keys";
 import serverDb from "./db";
-
-async function deleteMessages(dialogId: string) {
-  const prefix = createKey("dialog", dialogId, "msg");
-  const batch = serverDb.batch();
-  const deletedKeys: string[] = [];
-
-  // 遍历并收集所有消息键
-  for await (const [key] of serverDb.iterator({
-    gte: prefix,
-    lte: prefix + "\uffff",
-  })) {
-    batch.del(key);
-    deletedKeys.push(key);
-  }
-
-  // 批量执行删除操作
-  await batch.write();
-
-  return {
-    message: "Messages deleted successfully",
-    processingIds: deletedKeys,
-  };
-}
+import { deleteMessages } from "chat/messages/server/deleteMessages";
 
 export const handleDelete = async (req, res) => {
   try {
@@ -46,7 +23,7 @@ export const handleDelete = async (req, res) => {
     if (isNil(ownerId) || ownerId === actionUserId) {
       if (data) await serverDb.del(id);
 
-      return res.json({
+      return res.state(200).json({
         message: "Delete request processed",
         processingIds: [id],
       });

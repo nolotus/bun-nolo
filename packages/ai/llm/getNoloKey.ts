@@ -20,6 +20,8 @@ export const getNoloKey = (
       return process.env.GROQ_API_KEY;
     case "sambanova":
       return process.env.SAMBA_API_KEY;
+    case "openrouter":
+      return process.env.OPENROUTER_API_KEY;
     // case "openai":
     //   return process.env.OPENAI_KEY;
     default:
