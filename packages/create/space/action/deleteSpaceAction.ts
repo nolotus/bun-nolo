@@ -1,5 +1,6 @@
 import { selectCurrentUserId } from "auth/authSlice";
-import { createSpaceKey } from "database/keys";
+import { createSpaceKey } from "create/space/spaceKeys";
+
 import { read, remove } from "database/dbSlice";
 
 export const deleteSpaceAction = async (spaceId: string, thunkAPI) => {

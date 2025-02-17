@@ -8,7 +8,8 @@ import {
 import { selectCurrentUserId } from "auth/authSlice";
 import { read, write } from "database/dbSlice";
 
-import { createSpaceKey } from "database/keys";
+import { createSpaceKey } from "create/space/spaceKeys";
+
 import {
   SpaceData,
   MemberRole,
