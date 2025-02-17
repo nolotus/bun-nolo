@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
   changeSpace,
-  fetchSpaceMemberships,
+  fetchUserSpaceMemberships,
   selectAllMemberSpaces,
   selectCurrentSpace,
 } from "create/space/spaceSlice";
@@ -95,7 +95,7 @@ export const SidebarTop = () => {
   );
 
   useEffect(() => {
-    dispatch(fetchSpaceMemberships(currentUserId));
+    dispatch(fetchUserSpaceMemberships(currentUserId));
   }, [dispatch, currentUserId]);
 
   const handleOptionClick = (spaceId?: string) => {

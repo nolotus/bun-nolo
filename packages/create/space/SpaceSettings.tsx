@@ -3,17 +3,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { useAppDispatch } from "app/hooks";
 import { useEffect, useState } from "react";
-import { read } from "database/dbSlice";
 import { updateSpace, deleteSpace } from "create/space/spaceSlice";
 import { PlusIcon, TrashIcon, PencilIcon } from "@primer/octicons-react";
-import toast from "react-hot-toast";
 
+//web
 import Button from "web/ui/Button";
 import { ConfirmModal } from "web/ui/ConfirmModal";
-import { createSpaceKey } from "create/space/spaceKeys";
+import toast from "react-hot-toast";
 
 import { InviteModal } from "./InviteModal";
 import { MemberList } from "./MemberList";
+import { useSpaceData } from "./hooks/useSpaceData";
 
 interface SpaceData {
   name: string;
@@ -32,35 +32,6 @@ interface Member {
   joinedAt: string;
   avatar?: string;
 }
-
-export const useSpaceData = (spaceId: string) => {
-  const dispatch = useAppDispatch();
-  const [spaceData, setSpaceData] = useState<SpaceData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const spaceKey = createSpaceKey.space(spaceId);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const result = await dispatch(read(spaceKey)).unwrap();
-        setSpaceData(result);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (spaceId) {
-      fetchData();
-    }
-  }, [spaceId, dispatch]);
-
-  return { spaceData, loading, error };
-};
 
 const SpaceSettings = () => {
   const theme = useTheme();
@@ -91,18 +62,12 @@ const SpaceSettings = () => {
   // 获取成员列表
   useEffect(() => {
     const fetchMembers = async () => {
-      try {
-        const response = await dispatch(read(`${spaceId}/members`)).unwrap();
-        setMembers(response);
-      } catch (err) {
-        toast.error("获取成员列表失败");
-      }
+      setMembers(spaceData?.members);
     };
-
     if (spaceData) {
       fetchMembers();
     }
-  }, [spaceData, dispatch, spaceId]);
+  }, [spaceData]);
 
   if (loading) return <div className="loading">加载中...</div>;
   if (error) return <div className="error">错误: {error.message}</div>;
@@ -151,7 +116,7 @@ const SpaceSettings = () => {
       setShowInviteModal(false);
 
       // 刷新成员列表
-      const response = await dispatch(read(`${spaceId}/members`)).unwrap();
+      // const response = await dispatch(read(`${spaceId}/members`)).unwrap();
       setMembers(response);
     } catch (err) {
       toast.error("邀请失败");
