@@ -9,7 +9,7 @@ export const openrouterModels = [
     supportsTool: true,
   },
   {
-    name: "cognitivecomputations/dolphin3.0-mistral-24b",
+    name: "cognitivecomputations/dolphin3.0-mistral-24b:free",
     displayName: "Dolphin 3.0 Mistral 24b",
     hasVision: false,
     price: { input: 0, output: 0 },
@@ -18,7 +18,7 @@ export const openrouterModels = [
     supportsTool: true,
   },
   {
-    name: "cognitivecomputations/dolphin3.0-r1-mistral-24b",
+    name: "cognitivecomputations/dolphin3.0-r1-mistral-24b:free",
     displayName: "Dolphin 3.0 R1 Mistral 24b",
     hasVision: false,
     price: { input: 0, output: 0 },
