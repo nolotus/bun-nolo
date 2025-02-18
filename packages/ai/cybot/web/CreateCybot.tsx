@@ -22,11 +22,9 @@ import ToggleSwitch from "web/ui/ToggleSwitch";
 import { PlusIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
-// import ToolSelector from "../../tools/ToolSelector";
+// import ToolSelector from "web/tools/ToolSelector";
 import ModelSelector from "ai/llm/ModelSelector";
 import ProviderSelector from "ai/llm/ProviderSelector";
-
-type ApiSource = "platform" | "custom";
 
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
@@ -46,7 +44,7 @@ const CreateCybot: React.FC = () => {
     onSubmit,
   } = useCreateCybotValidation();
 
-  const [apiSource, setApiSource] = useState<ApiSource>("platform");
+  const [apiSource, setApiSource] = useState<"platform" | "custom">("platform");
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState<string>(
     provider || ""
@@ -79,9 +77,9 @@ const CreateCybot: React.FC = () => {
   return (
     <div className="create-cybot-container">
       <FormTitle>{t("createCybot")}</FormTitle>
-
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-layout">
+          {/* 基本信息与行为 */}
           <section className="form-section">
             <div className="section-title">{t("basicInfoAndBehavior")}</div>
             <div className="section-content">
@@ -97,7 +95,6 @@ const CreateCybot: React.FC = () => {
                   placeholder={t("enterCybotName")}
                 />
               </FormField>
-
               <FormField
                 label={t("prompt")}
                 error={errors.prompt?.message}
@@ -110,29 +107,11 @@ const CreateCybot: React.FC = () => {
                   placeholder={t("enterPrompt")}
                 />
               </FormField>
-
-              {/* Tools section commented out temporarily
-              <FormField
-                label={t("tools")}
-                horizontal
-                labelWidth="140px"
-              >
-                <ToolSelector register={register} />
-              </FormField>
-              */}
-
-              <FormField
-                label={t("tags")}
-                error={errors.tags?.message}
-                help={t("tagsHelp")}
-                horizontal
-                labelWidth="140px"
-              >
-                <Input {...register("tags")} placeholder={t("enterTags")} />
-              </FormField>
+              {/* 其他基础字段可按需求添加 */}
             </div>
           </section>
 
+          {/* 模型配置 */}
           <section className="form-section">
             <div className="section-title">{t("modelConfiguration")}</div>
             <div className="section-content">
@@ -160,16 +139,22 @@ const CreateCybot: React.FC = () => {
                   )}
                 />
               </FormField>
-
-              <ProviderSelector
-                provider={provider}
-                setValue={setValue}
-                providerInputValue={providerInputValue}
-                setProviderInputValue={setProviderInputValue}
-                t={t}
+              <FormField
+                label={t("provider")}
+                required
                 error={errors.provider?.message}
-              />
-
+                horizontal
+                labelWidth="140px"
+              >
+                <ProviderSelector
+                  provider={provider}
+                  setValue={setValue}
+                  providerInputValue={providerInputValue}
+                  setProviderInputValue={setProviderInputValue}
+                  t={t}
+                  error={errors.provider?.message}
+                />
+              </FormField>
               {(isCustomProvider || apiSource === "custom") && (
                 <FormField
                   label={t("providerUrl")}
@@ -185,7 +170,6 @@ const CreateCybot: React.FC = () => {
                   />
                 </FormField>
               )}
-
               <FormField
                 label={t("model")}
                 required
@@ -203,7 +187,6 @@ const CreateCybot: React.FC = () => {
                   t={t}
                 />
               </FormField>
-
               {apiSource === "custom" && (
                 <FormField
                   label={t("apiKey")}
@@ -219,7 +202,6 @@ const CreateCybot: React.FC = () => {
                   />
                 </FormField>
               )}
-
               <FormField
                 label={t("useServerProxy")}
                 help={
@@ -239,6 +221,7 @@ const CreateCybot: React.FC = () => {
             </div>
           </section>
 
+          {/* 社区设置 */}
           <section className="form-section">
             <div className="section-title">{t("communitySettings")}</div>
             <div className="section-content">
@@ -257,7 +240,6 @@ const CreateCybot: React.FC = () => {
                   onChange={(checked) => setValue("isPublic", checked)}
                 />
               </FormField>
-
               {isPublic && (
                 <>
                   <FormField
@@ -272,7 +254,6 @@ const CreateCybot: React.FC = () => {
                       placeholder={t("enterGreetingMessage")}
                     />
                   </FormField>
-
                   <FormField
                     label={t("selfIntroduction")}
                     error={errors.introduction?.message}
@@ -285,7 +266,6 @@ const CreateCybot: React.FC = () => {
                       placeholder={t("enterSelfIntroduction")}
                     />
                   </FormField>
-
                   <FormField label={t("pricing")} horizontal labelWidth="140px">
                     <div className="price-inputs">
                       <NumberInput
@@ -327,19 +307,16 @@ const CreateCybot: React.FC = () => {
           margin: 24px auto;
           padding: 0 24px;
         }
-
         .form-layout {
           display: flex;
           flex-direction: column;
           gap: 40px;
           margin-bottom: 32px;
         }
-
         .form-section {
           position: relative;
           padding-left: 16px;
         }
-
         .form-section::before {
           content: "";
           position: absolute;
@@ -350,7 +327,6 @@ const CreateCybot: React.FC = () => {
           background: ${theme.borderLight};
           opacity: 0.5;
         }
-
         .section-title {
           font-size: 15px;
           font-weight: 600;
@@ -361,7 +337,6 @@ const CreateCybot: React.FC = () => {
           height: 24px;
           line-height: 24px;
         }
-
         .section-title::before {
           content: "";
           position: absolute;
@@ -372,37 +347,30 @@ const CreateCybot: React.FC = () => {
           background: ${theme.primary};
           opacity: 0.7;
         }
-
         .section-content {
           display: flex;
           flex-direction: column;
         }
-
         .price-inputs {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 16px;
         }
-
         @media (max-width: 640px) {
           .create-cybot-container {
             padding: 16px;
             margin: 16px auto;
           }
-
           .form-layout {
             gap: 32px;
           }
-
           .form-section {
             padding-left: 12px;
           }
-
           .section-title {
             font-size: 14px;
             margin-bottom: 20px;
           }
-
           .price-inputs {
             grid-template-columns: 1fr;
           }

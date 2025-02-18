@@ -95,7 +95,7 @@ export const noloWriteRequest = async (
 // 更新请求
 export const noloPatchRequest = async (
   server: string,
-  id: string,
+  dbKey: string,
   updates: any,
   state: any,
   signal?: AbortSignal
@@ -104,7 +104,7 @@ export const noloPatchRequest = async (
     const response = await noloRequest(
       server,
       {
-        url: `${API_ENDPOINTS.DATABASE}/patch/${id}`,
+        url: `${API_ENDPOINTS.DATABASE}/patch/${dbKey}`,
         method: "PATCH",
         body: JSON.stringify(updates),
       },
@@ -128,7 +128,7 @@ export const noloPatchRequest = async (
 // 删除请求
 export const noloDeleteRequest = async (
   server: string,
-  id: string,
+  dbKey: string,
   options: {
     type?: "messages" | "single";
   },
@@ -140,8 +140,8 @@ export const noloDeleteRequest = async (
   try {
     const url =
       type === "messages"
-        ? `${API_ENDPOINTS.DATABASE}/delete/${id}?type=messages`
-        : `${API_ENDPOINTS.DATABASE}/delete/${id}`;
+        ? `${API_ENDPOINTS.DATABASE}/delete/${dbKey}?type=messages`
+        : `${API_ENDPOINTS.DATABASE}/delete/${dbKey}`;
 
     const response = await noloRequest(
       server,
