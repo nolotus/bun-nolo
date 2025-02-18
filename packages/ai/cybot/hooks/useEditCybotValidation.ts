@@ -43,6 +43,7 @@ export const useEditCybotValidation = (
   const isPublic = watch("isPublic");
 
   const onSubmit = async (data: FormData) => {
+    console.log("onSubmit", data);
     if (!auth.user?.userId) return;
 
     const now = Date.now();
@@ -59,7 +60,7 @@ export const useEditCybotValidation = (
       // 1. 更新私有版本
       await dispatch(
         patchData({
-          id: userCybotPath,
+          dbKey: userCybotPath,
           changes: {
             ...updateData,
             isPublic: data.isPublic,
@@ -84,7 +85,7 @@ export const useEditCybotValidation = (
               tokenCount: initialValues.tokenCount || 0,
               tags: initialValues.tags || [],
             },
-            customId: publicCybotPath,
+            customKey: publicCybotPath,
           })
         ).unwrap();
       }

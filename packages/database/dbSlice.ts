@@ -2,7 +2,6 @@ import {
   asyncThunkCreator,
   buildCreateSlice,
   createEntityAdapter,
-  createSelector,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 
@@ -11,7 +10,6 @@ import { queryServerAction } from "./action/queryServer";
 import { readAction } from "./action/read";
 import { writeAction } from "./action/write";
 import { patchAction } from "./action/patch";
-import { DataType } from "create/types";
 export const dbAdapter = createEntityAdapter();
 
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
@@ -91,32 +89,5 @@ const dbSlice = createSliceWithThunks({
 
 export const { upsertMany, remove, patchData, read, write, queryServer } =
   dbSlice.actions;
+
 export default dbSlice.reducer;
-
-export const selectByTypes = createSelector(
-  [
-    selectAll,
-    (state, types: DataType[]) => types,
-    (state, types: DataType[], userId?: string) => userId,
-  ],
-  (items, types, userId) => {
-    return items.filter((item) => {
-      const matchType = types.includes(item.type);
-      return userId ? matchType && item.userId === userId : matchType;
-    });
-  }
-);
-
-export const selectByType = createSelector(
-  [
-    selectAll,
-    (state, type: DataType) => type,
-    (state, type: DataType, userId?: string) => userId,
-  ],
-  (items, type, userId) => {
-    return items.filter((item) => {
-      const matchType = item.type === type;
-      return userId ? matchType && item.userId === userId : matchType;
-    });
-  }
-);

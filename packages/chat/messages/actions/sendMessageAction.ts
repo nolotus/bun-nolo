@@ -19,6 +19,8 @@ const requestHandlers = {
   ollama: sendCommonChatRequest,
   groq: sendCommonChatRequest,
   anthropic: sendClaudeRequest,
+  sambanova: sendCommonChatRequest,
+  openrouter: sendCommonChatRequest,
   // 添加其他provider的处理函数
 };
 

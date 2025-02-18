@@ -1,15 +1,18 @@
 import { DependabotIcon, MailIcon } from "@primer/octicons-react";
 import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
+import { selectIsLoggedIn } from "../../auth/authSlice"; // 更新路径
 import copyToClipboard from "utils/clipboard";
 import toast from "react-hot-toast";
 import PubCybots from "ai/cybot/web/PubCybots";
 import WelcomeSection from "./WelcomeSection"; // 导入新的 WelcomeSection 组件
+import GuideSection from "./GuideSection"; // 导入新的 GuideSection 组件
 
 const EMAIL = "s@nolotus.com";
 
 const Home = () => {
   const theme = useAppSelector(selectTheme);
+  const isLoggedIn = useAppSelector(selectIsLoggedIn); // 获取用户的登录状态
 
   const handleEmailClick = (e: React.MouseEvent) => {
     if (e.ctrlKey || e.metaKey) {
@@ -26,11 +29,11 @@ const Home = () => {
   return (
     <>
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.5rem" }}>
-        <WelcomeSection /> {/* 使用新的 WelcomeSection 组件 */}
+        {isLoggedIn ? <GuideSection /> : <WelcomeSection />}{" "}
         <section className="section">
           <h2 className="section-title">看看其他人都建立了什么样的cybot</h2>
           <div className="cybots-container">
-            <PubCybots limit={4} />
+            <PubCybots limit={9} />
           </div>
         </section>
         <footer className="footer section delay">

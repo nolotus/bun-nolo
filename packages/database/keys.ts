@@ -2,32 +2,40 @@ import { ulid } from "ulid";
 import { curry } from "rambda";
 import { DataType } from "create/types";
 
-// 基础key创建保持不变
-export const createKey = (...parts: string[]) => parts.join("-");
-// 用户key
 export const DB_PREFIX = {
   USER: "user:",
 } as const;
+
+// 基础key创建
+export const createKey = (...parts: string[]) => parts.join("-");
+
+/**
+ * 用户相关数据key (采用userId前缀)
+ */
+export const createUserKey = {
+  // 用户设置 {userId}-settings
+  settings: (userId: string) => createKey(userId, "settings"),
+
+  // 用户档案 {userId}-profile
+  profile: (userId: string) => createKey(userId, "profile"),
+};
+
 /**
  * 交易记录相关key
- * 格式:
  * - 交易记录: tx-{userId}-{txId}
  * - 交易ID索引: tx-index-{txId}
  */
 export const createTransactionKey = {
-  // 创建交易记录key
   record: curry((userId: string, txId: string) => {
     const key = createKey("tx", userId, txId);
     return key;
   }),
 
-  // 创建交易ID索引key
   index: (txId: string) => {
     const key = createKey("tx", "index", txId);
     return key;
   },
 
-  // 获取用户交易记录范围
   range: (userId: string) => {
     const start = createKey("tx", userId, "");
     const end = createKey("tx", userId, "\uffff");
@@ -40,13 +48,11 @@ export const createTransactionKey = {
  * 格式: token-{userId}-{timestamp}
  */
 export const createTokenKey = {
-  // 创建单条记录key
   record: curry((userId: string, timestamp: number) => {
     const key = createKey("token", userId, timestamp.toString());
     return key;
   }),
 
-  // 创建查询范围
   range: (userId: string, timestamp: number) => {
     const start = createKey("token", userId, timestamp.toString());
     const end = createKey("token", userId, (timestamp + 86400000).toString());
@@ -63,23 +69,39 @@ export const createTokenStatsKey = curry((userId: string, dateKey: string) => {
   return key;
 });
 
+/**
+ * Dialog相关key (采用type前缀)
+ * - dialog-{userId}-{dialogId}
+ * - dialog-{dialogId}-msg-{messageId}
+ */
 export const createDialogKey = (userId: string) =>
   createKey(DataType.DIALOG, userId, ulid());
 
 export const createDialogMessageKey = (dialogId: string) =>
   createKey(DataType.DIALOG, dialogId, "msg", ulid());
 
-export const createPageKey = (userId: string) =>
-  createKey(DataType.PAGE, userId, ulid());
-
+/**
+ * Page相关key
+ * page-{userId}-{pageId}
+ */
+export const createPageKey = {
+  create: (userId: string) => {
+    const id = ulid();
+    return {
+      dbKey: createKey(DataType.PAGE, userId, id),
+      id,
+    };
+  },
+};
+/**
+ * Cybot相关key
+ */
 export const createCybotKey = {
-  // 创建私有版本key
   private: curry((userId: string, cybotId: string) => {
     const key = createKey(DataType.CYBOT, userId, cybotId);
     return key;
   }),
 
-  // 创建公开版本key
   public: (cybotId: string) => {
     const key = createKey(DataType.CYBOT, "pub", cybotId);
     return key;
@@ -87,13 +109,11 @@ export const createCybotKey = {
 };
 
 export const pubCybotKeys = {
-  // 获取单个公开cybot
   single: (cybotId: string) => {
     const key = createKey(DataType.CYBOT, "pub", cybotId);
     return key;
   },
 
-  // 获取公开cybot列表范围
   list: () => {
     const start = createKey(DataType.CYBOT, "pub", "");
     const end = createKey(DataType.CYBOT, "pub", "\uffff");

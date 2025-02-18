@@ -2,7 +2,6 @@ import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-
 import ResizeHandle from "./ResizeHandle";
 import { SidebarTop } from "./SidebarTop";
 import TopBar from "./TopBar";
@@ -18,31 +17,28 @@ const Sidebar: React.FC<SidebarProps> = ({
   sidebarContent,
   topbarContent,
 }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const theme = useSelector(selectTheme);
 
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => !prev);
-  }, []);
+  const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
 
   useEffect(() => {
     if (!sidebarContent) return;
 
     const handleResize = () => {
-      if (typeof window !== "undefined") {
-        setIsSidebarOpen(window.innerWidth >= 768);
-      }
+      setIsOpen(window?.innerWidth >= 768);
     };
-    handleResize();
-    window.addEventListener("resize", handleResize);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "b") {
-        event.preventDefault();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+        e.preventDefault();
         toggleSidebar();
       }
     };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
@@ -50,6 +46,32 @@ const Sidebar: React.FC<SidebarProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [toggleSidebar, sidebarContent]);
+
+  const sidebarStyle = {
+    width: `${theme.sidebarWidth}px`,
+    height: "100dvh",
+    position: "fixed" as const,
+    left: isOpen ? 0 : `-${theme.sidebarWidth}px`,
+    transition: "left 0.3s ease-in-out",
+    zIndex: 2,
+    display: "flex",
+    flexDirection: "column" as const,
+    background: theme.backgroundSecondary,
+    borderRight: `1px solid ${theme.border}`,
+    boxShadow: `0 0 10px ${theme.shadowLight}`,
+  };
+
+  const mainStyle = {
+    flexGrow: 1,
+    marginLeft: isOpen && sidebarContent ? `${theme.sidebarWidth}px` : 0,
+    transition: "margin-left 0.3s ease-in-out",
+    width:
+      isOpen && sidebarContent
+        ? `calc(100% - ${theme.sidebarWidth}px)`
+        : "100%",
+    background: theme.background,
+    color: theme.text,
+  };
 
   return (
     <div
@@ -60,77 +82,23 @@ const Sidebar: React.FC<SidebarProps> = ({
       }}
     >
       {sidebarContent && (
-        <aside
-          ref={sidebarRef}
-          style={{
-            width: `${theme.sidebarWidth}px`,
-            backgroundColor: theme.backgroundSecondary,
-            height: "100dvh",
-            position: "fixed",
-            left: isSidebarOpen ? 0 : `-${theme.sidebarWidth}px`,
-            top: 0,
-            transition: "left 0.3s ease-in-out",
-            zIndex: 2,
-            display: "flex",
-            flexDirection: "column",
-            borderRight: `1px solid ${theme.border}`,
-            boxShadow: `0 0 10px ${theme.shadowLight}`,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              height: "100%",
-              overflow: "hidden",
-            }}
-          >
-            <SidebarTop />
-            <div
-              style={{
-                flexGrow: 1,
-                overflowY: "auto",
-                marginBottom: "1.25rem",
-                color: theme.text,
-              }}
-            >
-              {sidebarContent}
-            </div>
+        <aside ref={sidebarRef} style={sidebarStyle}>
+          <SidebarTop />
+          <div style={{ flexGrow: 1, overflowY: "auto", color: theme.text }}>
+            {sidebarContent}
           </div>
           <ResizeHandle sidebarRef={sidebarRef} theme={theme} />
         </aside>
       )}
 
-      <main
-        style={{
-          flexGrow: 1,
-          marginLeft:
-            isSidebarOpen && sidebarContent ? `${theme.sidebarWidth}px` : 0,
-          transition: "margin-left 0.3s ease-in-out",
-          width:
-            isSidebarOpen && sidebarContent
-              ? `calc(100% - ${theme.sidebarWidth}px)`
-              : "100%",
-          background: theme.background,
-          color: theme.text,
-        }}
-      >
+      <main style={mainStyle}>
         <TopBar
           toggleSidebar={sidebarContent ? toggleSidebar : undefined}
           theme={theme}
           topbarContent={topbarContent}
-          isExpanded={isSidebarOpen}
+          isExpanded={isOpen}
         />
-
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "100%",
-            margin: "0 auto",
-          }}
-        >
-          {children}
-        </div>
+        <div style={{ width: "100%", maxWidth: "100%" }}>{children}</div>
       </main>
     </div>
   );

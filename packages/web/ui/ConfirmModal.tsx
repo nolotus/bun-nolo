@@ -1,8 +1,12 @@
-// render/ui/ConfirmModal.tsx
 import React from "react";
 import Button from "web/ui/Button";
 import { BaseActionModal } from "./BaseActionModal";
-import { AlertIcon, AlertFillIcon, InfoIcon } from "@primer/octicons-react";
+import {
+  XCircleIcon,
+  AlertIcon,
+  CheckCircleIcon,
+  InfoIcon,
+} from "@primer/octicons-react";
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -12,7 +16,9 @@ interface ConfirmModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  status?: "warning" | "error" | "info";
+  type?: "info" | "warning" | "error" | "success";
+  loading?: boolean;
+  showCancel?: boolean;
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -23,45 +29,58 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   message,
   confirmText = "确认",
   cancelText = "取消",
-  status = "warning",
+  type = "warning",
+  loading = false,
+  showCancel = true,
 }) => {
-  const handleConfirm = () => {
-    onConfirm();
-    onClose();
-  };
-
   const getStatusIcon = () => {
-    // Primer的图标默认就是16px
-    switch (status) {
+    const size = 16;
+    switch (type) {
       case "error":
-        return <AlertFillIcon size={16} />; // 错误用实心图标
+        return <XCircleIcon size={size} />;
       case "warning":
-        return <AlertIcon size={16} />; // 警告用描边图标
+        return <AlertIcon size={size} />;
+      case "success":
+        return <CheckCircleIcon size={size} />;
       case "info":
-        return <InfoIcon size={16} />;
       default:
-        return null;
+        return <InfoIcon size={size} />;
     }
   };
+
+  const actions = (
+    <>
+      {showCancel && (
+        <Button
+          onClick={onClose}
+          variant="secondary"
+          size="small"
+          disabled={loading}
+        >
+          {cancelText}
+        </Button>
+      )}
+      <Button
+        onClick={onConfirm}
+        status={type === "error" ? "error" : undefined}
+        size="small"
+        loading={loading}
+        disabled={loading}
+      >
+        {confirmText}
+      </Button>
+    </>
+  );
 
   return (
     <BaseActionModal
       isOpen={isOpen}
       onClose={onClose}
       title={title}
-      status={status}
       titleIcon={getStatusIcon()}
+      status={type}
+      actions={actions}
       width={400}
-      actions={
-        <>
-          <Button onClick={onClose} variant="secondary" size="small">
-            {cancelText}
-          </Button>
-          <Button onClick={handleConfirm} status={status} size="small">
-            {confirmText}
-          </Button>
-        </>
-      }
     >
       <p className="confirm-message">{message}</p>
 

@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import { ContextMenu, type MenuItem } from "render/components/ContextMenu";
 import copyToClipboard from "utils/clipboard";
 
-import { clearCurrentDialog, deleteMessage } from "../messages/messageSlice";
+import { deleteDialogMsgs, deleteMessage } from "../messages/messageSlice";
 
 import { runCybotId } from "ai/cybot/cybotSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
@@ -20,6 +20,10 @@ import { ulid } from "ulid";
 import { extractCustomId } from "core/prefix";
 
 import { selectCurrentDialogConfig } from "../dialog/dialogSlice";
+import {
+  selectCurrentSpaceId,
+  addContentToSpace,
+} from "create/space/spaceSlice";
 interface MessageContextMenuProps {
   menu: Ariakit.MenuStore;
   anchorRect: { x: number; y: number };
@@ -36,10 +40,9 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const { t } = useTranslation("chat");
-  const dialogKey = useAppSelector(selectCurrentDialogConfig).id;
-
+  const dialog = useAppSelector(selectCurrentDialogConfig);
+  const dialogKey = dialog.dbKey || dialog.id;
   const dialogId = extractCustomId(dialogKey);
-
   const handleSaveContent = async () => {
     if (content) {
       try {
@@ -52,21 +55,38 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
           })
         ).unwrap();
 
+        // 保存content
+
+        const customKey = `${DataType.MSG}-${auth.user.userId}-${ulid()}`;
         const saveAction = await dispatch(
           write({
             data: { content, slateData, type: DataType.PAGE, title },
-            customId: `${DataType.PAGE}-${auth.user.userId}-${ulid()}`,
+            customKey,
           })
         );
-        const response = saveAction.payload;
-        if (response.error) {
-          throw new Error(response.error);
+        const contentData = saveAction.payload;
+        if (contentData.error) {
+          throw new Error(contentData.error);
         }
+
+        // 添加到当前space
+        const currentSpaceId = useAppSelector(selectCurrentSpaceId);
+        if (currentSpaceId) {
+          await dispatch(
+            addContentToSpace({
+              contentKey: customKey,
+              type: DataType.PAGE,
+              spaceId: currentSpaceId,
+              title,
+            })
+          ).unwrap();
+        }
+
         toast.success(
           <div>
             {t("saveSuccess")}
             <Link
-              to={`/${response.id}`}
+              to={`/${contentData.id}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -111,7 +131,7 @@ export const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   };
 
   const handleClearConversation = () => {
-    dispatch(clearCurrentDialog(dialogId));
+    dispatch(deleteDialogMsgs(dialogId));
     menu.hide();
   };
 

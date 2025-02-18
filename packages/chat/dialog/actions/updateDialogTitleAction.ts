@@ -51,9 +51,9 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
 
   const formattedDate = format(new Date(), "MM-dd");
   const title = generateTitle || `${cybotConfig.name}_${formattedDate}`;
-
+  //todo  update space is need
   const result = await dispatch(
-    patchData({ id: dialogKey, changes: { title } })
+    patchData({ dbKey: dialogKey, changes: { title } })
   ).unwrap();
 
   return result;

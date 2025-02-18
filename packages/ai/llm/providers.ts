@@ -15,6 +15,7 @@ const CHAT_COMPLETION_URLS = {
   ollama: "http://localhost:11434/v1/chat/completions",
   sambanova: "https://api.sambanova.ai/v1/chat/completions",
   groq: "https://api.groq.com/openai/v1/chat/completions",
+  openrouter: "https://openrouter.ai/api/v1/chat/completions",
 };
 
 export function getApiEndpoint(cybotConfig: CybotConfig): string {
@@ -44,10 +45,13 @@ import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
 import { groqModels } from "integrations/groq/models";
 import { sambanovaModels } from "integrations/sambanova/models";
+import { openrouterModels } from "integrations/openrouter/models";
 import type { Model } from "./types";
 
 const providerOptions = [
+  "openrouter",
   "anthropic",
+  "custom",
   "ollama",
   "fireworks",
   "deepinfra",
@@ -58,7 +62,6 @@ const providerOptions = [
   "sambanova",
   "openai",
   "xai",
-  "custom",
 ] as const;
 
 export type Provider = (typeof providerOptions)[number];
@@ -80,6 +83,7 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
     groq: groqModels,
     sambanova: sambanovaModels,
     openai: openAIModels,
+    openrouter: openrouterModels,
     xai: [],
     custom: [],
   };

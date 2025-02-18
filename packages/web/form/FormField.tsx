@@ -35,7 +35,9 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   return (
     <div
-      className={`form-field ${horizontal ? "horizontal" : ""} ${disabled ? "disabled" : ""} ${className || ""}`}
+      className={`form-field ${horizontal ? "horizontal" : ""} ${
+        disabled ? "disabled" : ""
+      } ${className || ""}`}
       style={style}
     >
       {!hideLabel && label && (
@@ -74,9 +76,8 @@ export const FormField: React.FC<FormFieldProps> = ({
           flex: 0 0 ${labelWidth || "140px"};
           flex-shrink: 0;
           white-space: nowrap;
-          text-align: right;
+          text-align: left
           padding-top: 6px;
-          margin-right: 16px;
         }
 
         .form-field.horizontal .form-control {
@@ -118,7 +119,6 @@ export const FormField: React.FC<FormFieldProps> = ({
             text-align: left;
             width: 100%;
             padding-top: 0;
-            margin-right: 0;
           }
 
           .form-label {

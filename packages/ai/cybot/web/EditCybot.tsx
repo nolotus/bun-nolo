@@ -8,10 +8,7 @@ import type { Model } from "../../llm/types";
 import { useEditCybotValidation } from "../hooks/useEditCybotValidation";
 
 // data & hooks
-import {
-  getModelsByProvider,
-  availableProviderOptions,
-} from "../../llm/providers";
+import { getModelsByProvider } from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 
@@ -22,11 +19,12 @@ import { Input } from "web/form/Input";
 import { NumberInput } from "web/form/NumberInput";
 import TextArea from "web/form/Textarea";
 import ToggleSwitch from "web/ui/ToggleSwitch";
-import { SyncIcon, CheckIcon } from "@primer/octicons-react";
+import { SyncIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
-import ToolSelector from "../../tools/ToolSelector";
-import { Combobox } from "web/form/Combobox";
+// import ToolSelector from "../../tools/ToolSelector";
+import ModelSelector from "ai/llm/ModelSelector";
+import ProviderSelector from "ai/llm/ProviderSelector";
 
 type ApiSource = "platform" | "custom";
 
@@ -41,20 +39,13 @@ interface EditCybotProps {
     isPublic: boolean;
     greeting?: string;
     introduction?: string;
-    tools?: string[];
+    // tools?: string[]; // 工具部分暂时停用
     customProviderUrl?: string;
     inputPrice?: number;
     outputPrice?: number;
   };
   onClose: () => void;
 }
-
-const getOrderedProviderOptions = () => {
-  return [
-    { name: "custom" },
-    ...availableProviderOptions.map((item) => ({ name: item })),
-  ];
-};
 
 const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
   const { t } = useTranslation("ai");
@@ -86,7 +77,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
 
-  // Initialize form with initial values
   useEffect(() => {
     reset({
       ...initialValues,
@@ -113,17 +103,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     }
   }, [provider, setValue, isCustomProvider, watch]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("Form State:", {
-      initialValues,
-      currentValues: watch(),
-      prompt: watch("prompt"),
-      provider: watch("provider"),
-      model: watch("model"),
-    });
-  }, [watch, initialValues]);
-
   const handleFormSubmit = async (data: any) => {
     await onSubmit(data);
     onClose();
@@ -134,11 +113,10 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
   return (
     <div className="edit-cybot-container">
       <FormTitle>{t("editCybot")}</FormTitle>
-
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="form-layout">
-          {/* 基础信息与行为设置部分 */}
-          <div className="form-section">
+          {/* 基本信息与行为 */}
+          <section className="form-section">
             <div className="section-title">{t("basicInfoAndBehavior")}</div>
             <div className="section-content">
               <FormField
@@ -154,7 +132,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                   placeholder={t("enterCybotName")}
                 />
               </FormField>
-
               <FormField
                 label={t("prompt")}
                 error={errors.prompt?.message}
@@ -170,18 +147,11 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                   rows={6}
                 />
               </FormField>
-
-              <FormField label={t("tools")} horizontal labelWidth="140px">
-                <ToolSelector
-                  register={register}
-                  defaultValue={initialValues.tools}
-                />
-              </FormField>
             </div>
-          </div>
+          </section>
 
-          {/* 模型配置部分 */}
-          <div className="form-section">
+          {/* 模型配置 */}
+          <section className="form-section">
             <div className="section-title">{t("modelConfiguration")}</div>
             <div className="section-content">
               <FormField
@@ -216,19 +186,13 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 horizontal
                 labelWidth="140px"
               >
-                <Combobox
-                  items={getOrderedProviderOptions()}
-                  selectedItem={provider ? { name: provider } : null}
-                  onChange={(item) => {
-                    const newProvider = item?.name || "";
-                    setValue("provider", newProvider);
-                    setProviderInputValue(newProvider);
-                  }}
-                  labelField="name"
-                  valueField="name"
-                  placeholder={t("selectProvider")}
-                  allowInput={true}
-                  onInputChange={setProviderInputValue}
+                <ProviderSelector
+                  provider={provider}
+                  setValue={setValue}
+                  providerInputValue={providerInputValue}
+                  setProviderInputValue={setProviderInputValue}
+                  t={t}
+                  error={errors.provider?.message}
                 />
               </FormField>
 
@@ -256,39 +220,15 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 horizontal
                 labelWidth="140px"
               >
-                {isCustomProvider ? (
-                  <Input
-                    {...register("model")}
-                    defaultValue={initialValues.model}
-                    placeholder={t("enterModelName")}
-                  />
-                ) : (
-                  <Combobox
-                    items={models}
-                    selectedItem={
-                      models.find((m) => watch("model") === m.name) || null
-                    }
-                    onChange={(item) => setValue("model", item?.name || "")}
-                    labelField="name"
-                    valueField="name"
-                    placeholder={t("selectModel")}
-                    renderOptionContent={(item, isHighlighted, isSelected) => (
-                      <div className="model-option">
-                        <span>{item.name}</span>
-                        <div className="model-indicators">
-                          {item.hasVision && (
-                            <span className="vision-badge">
-                              {t("supportsVision")}
-                            </span>
-                          )}
-                          {isSelected && (
-                            <CheckIcon size={16} className="check-icon" />
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  />
-                )}
+                <ModelSelector
+                  isCustomProvider={isCustomProvider}
+                  models={models}
+                  watch={watch}
+                  setValue={setValue}
+                  register={register}
+                  defaultModel={watch("model") || initialValues.model}
+                  t={t}
+                />
               </FormField>
 
               {apiSource === "custom" && (
@@ -325,10 +265,10 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 />
               </FormField>
             </div>
-          </div>
+          </section>
 
-          {/* 社区设置部分 */}
-          <div className="form-section">
+          {/* 社区设置 */}
+          <section className="form-section">
             <div className="section-title">{t("communitySettings")}</div>
             <div className="section-content">
               <FormField
@@ -399,9 +339,8 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 </>
               )}
             </div>
-          </div>
+          </section>
         </div>
-
         <Button
           type="submit"
           variant="primary"
@@ -415,112 +354,25 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
         </Button>
       </form>
 
-      <style jsx>{`
-        /* Layout Constants */
+      <style>{`
         .edit-cybot-container {
           max-width: 800px;
           margin: 0 auto;
           padding: 20px;
         }
-
-        /* Form Structure */
         form {
           display: flex;
           flex-direction: column;
           gap: 20px;
         }
-
         .form-layout {
           display: flex;
           flex-direction: column;
           gap: 20px;
         }
-
-        /* Section Styling */
-        .form-section {
-          padding: 20px;
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.border};
-          border-radius: 8px;
-        }
-
-        .section-title {
-          color: ${theme.textDim};
-          font-size: 15px;
-          font-weight: 600;
-          margin-bottom: 20px;
-          padding-bottom: 10px;
-          border-bottom: 1px solid ${theme.border};
-        }
-
-        .section-content {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        /* Model Option & Indicators */
-        .model-option {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 6px 0;
-        }
-
-        .model-indicators {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .vision-badge {
-          background: ${theme.primaryGhost};
-          color: ${theme.primary};
-          font-size: 12px;
-          padding: 2px 6px;
-          border-radius: 4px;
-        }
-
-        .check-icon {
-          color: ${theme.primary};
-        }
-
-        /* Price Inputs Grid */
-        .price-inputs {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-
-        /* Mobile Responsive */
         @media (max-width: 640px) {
           .edit-cybot-container {
             padding: 16px;
-          }
-
-          .form-section,
-          .section-content {
-            padding: 16px;
-            gap: 12px;
-          }
-
-          .section-title {
-            font-size: 14px;
-            margin-bottom: 16px;
-          }
-
-          .price-inputs {
-            grid-template-columns: 1fr;
-          }
-
-          :global(.form-field.horizontal) {
-            flex-direction: column;
-            gap: 8px;
-          }
-
-          :global(.form-field.horizontal .form-label) {
-            width: 100% !important;
-            text-align: left;
           }
         }
       `}</style>

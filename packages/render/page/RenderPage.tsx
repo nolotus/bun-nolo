@@ -59,6 +59,7 @@ const RenderPage = ({ isReadOnly = true }) => {
             }}
           >
             <Editor
+              placeholder="开始编辑..."
               key={pageId}
               initialValue={initialValue || []}
               onChange={handleContentChange}
@@ -91,3 +92,4 @@ const RenderPage = ({ isReadOnly = true }) => {
 };
 
 export default RenderPage;
+

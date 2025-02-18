@@ -78,7 +78,7 @@ export const saveTokenUsage = async (data: TokenUsageData, thunkApi) => {
     await thunkApi.dispatch(
       write({
         data: { ...updatedStats, id: key, type: DataType.TOKEN },
-        customId: key,
+        customKey: key,
       })
     );
 

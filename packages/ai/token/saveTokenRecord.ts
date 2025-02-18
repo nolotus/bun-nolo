@@ -36,7 +36,7 @@ export const saveTokenRecord = async (
     await thunkApi.dispatch(
       write({
         data: { ...record, id: key, type: DataType.TOKEN },
-        customId: key,
+        customKey: key,
       })
     );
     return true;
