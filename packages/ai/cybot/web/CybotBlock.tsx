@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { selectTheme } from "app/theme/themeSlice";
 import { useTranslation } from "react-i18next";
 import { animations } from "render/styles/animations";
-import { useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";
@@ -19,7 +19,7 @@ import {
 } from "@primer/octicons-react";
 import EditCybot from "ai/cybot/web/EditCybot";
 import { Cybot } from "../types";
-import { useDeletePubCybot } from "ai/cybot/hooks/useDeletePubCybot";
+import { remove } from "database/dbSlice";
 
 interface CybotBlockProps {
   item: Cybot;
@@ -30,18 +30,12 @@ interface CybotBlockProps {
 const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
   const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
-
+  const dispatch = useAppDispatch();
   const cybotKey = item.dbKey || item.id;
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const [deleting, setDeleting] = useState(false);
   const allowEdit = useCouldEdit(item.id);
-  const {
-    delete: deleteCybot,
-    loading: deleteLoading,
-    error: deleteError,
-    success: deleteSuccess,
-  } = useDeletePubCybot();
 
   const startDialog = async () => {
     if (isLoading) return;
@@ -62,14 +56,14 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
       element?.classList.add("item-exit");
 
       await new Promise((r) => setTimeout(r, 50));
-      await deleteCybot({ id: item.id });
+      await dispatch(remove(cybotKey));
       toast.success(t("deleteSuccess"));
       await reload();
     } catch (error) {
       setDeleting(false);
       toast.error(t("deleteError"));
     }
-  }, [deleteCybot, item.id, deleting, reload, t]);
+  }, [item.id, deleting, reload, t]);
 
   const renderPricing = () => {
     if (!item.inputPrice && !item.outputPrice) return null;
