@@ -8,34 +8,25 @@ import type { Model } from "../../llm/types";
 import { useCreateCybotValidation } from "../hooks/useCreateCybotValidation";
 
 // data & hooks
-import {
-  getModelsByProvider,
-  availableProviderOptions,
-} from "../../llm/providers";
+import { getModelsByProvider } from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 
-// web
+// components
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
 import { NumberInput } from "web/form/NumberInput";
 import TextArea from "web/form/Textarea";
 import ToggleSwitch from "web/ui/ToggleSwitch";
-import { PlusIcon, CheckIcon } from "@primer/octicons-react";
+import { PlusIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
-import ToolSelector from "../../tools/ToolSelector";
-import { Combobox } from "web/form/Combobox";
+// import ToolSelector from "../../tools/ToolSelector";
+import ModelSelector from "ai/llm/ModelSelector";
+import ProviderSelector from "ai/llm/ProviderSelector";
 
 type ApiSource = "platform" | "custom";
-
-const getOrderedProviderOptions = () => {
-  return [
-    { name: "custom" },
-    ...availableProviderOptions.map((item) => ({ name: item })),
-  ];
-};
 
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
@@ -91,8 +82,7 @@ const CreateCybot: React.FC = () => {
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-layout">
-          {/* 基础信息与行为设置部分 */}
-          <div className="form-section">
+          <section className="form-section">
             <div className="section-title">{t("basicInfoAndBehavior")}</div>
             <div className="section-content">
               <FormField
@@ -121,9 +111,15 @@ const CreateCybot: React.FC = () => {
                 />
               </FormField>
 
-              <FormField label={t("tools")} horizontal labelWidth="140px">
+              {/* Tools section commented out temporarily
+              <FormField
+                label={t("tools")}
+                horizontal
+                labelWidth="140px"
+              >
                 <ToolSelector register={register} />
               </FormField>
+              */}
 
               <FormField
                 label={t("tags")}
@@ -135,10 +131,9 @@ const CreateCybot: React.FC = () => {
                 <Input {...register("tags")} placeholder={t("enterTags")} />
               </FormField>
             </div>
-          </div>
+          </section>
 
-          {/* 模型配置部分 */}
-          <div className="form-section">
+          <section className="form-section">
             <div className="section-title">{t("modelConfiguration")}</div>
             <div className="section-content">
               <FormField
@@ -154,9 +149,8 @@ const CreateCybot: React.FC = () => {
                 <ToggleSwitch
                   checked={apiSource === "custom"}
                   onChange={(checked) => {
-                    const newSource = checked ? "custom" : "platform";
-                    setApiSource(newSource);
-                    if (newSource === "platform") {
+                    setApiSource(checked ? "custom" : "platform");
+                    if (!checked) {
                       setValue("apiKey", "");
                       setValue("useServerProxy", true);
                     }
@@ -167,32 +161,14 @@ const CreateCybot: React.FC = () => {
                 />
               </FormField>
 
-              <FormField
-                label={t("provider")}
-                required
+              <ProviderSelector
+                provider={provider}
+                setValue={setValue}
+                providerInputValue={providerInputValue}
+                setProviderInputValue={setProviderInputValue}
+                t={t}
                 error={errors.provider?.message}
-                horizontal
-                labelWidth="140px"
-              >
-                <Combobox
-                  items={getOrderedProviderOptions()}
-                  selectedItem={provider ? { name: provider } : null}
-                  onChange={(item) => {
-                    const newProvider = item?.name || "";
-                    setValue("provider", newProvider);
-                    setProviderInputValue(newProvider);
-                    if (newProvider !== "Custom") {
-                      setValue("customProviderUrl", "");
-                      setValue("model", "");
-                    }
-                  }}
-                  labelField="name"
-                  valueField="name"
-                  placeholder={t("selectProvider")}
-                  allowInput={true}
-                  onInputChange={(value) => setProviderInputValue(value)}
-                />
-              </FormField>
+              />
 
               {(isCustomProvider || apiSource === "custom") && (
                 <FormField
@@ -217,39 +193,15 @@ const CreateCybot: React.FC = () => {
                 horizontal
                 labelWidth="140px"
               >
-                {isCustomProvider ? (
-                  <Input
-                    {...register("model")}
-                    placeholder={t("enterModelName")}
-                  />
-                ) : (
-                  <Combobox
-                    items={models}
-                    selectedItem={
-                      models.find((model) => watch("model") === model.name) ||
-                      null
-                    }
-                    onChange={(item) => setValue("model", item?.name || "")}
-                    labelField="name"
-                    valueField="name"
-                    placeholder={t("selectModel")}
-                    renderOptionContent={(item, isHighlighted, isSelected) => (
-                      <div className="model-option">
-                        <span>{item.name}</span>
-                        <div className="model-indicators">
-                          {item.hasVision && (
-                            <span className="vision-badge">
-                              {t("supportsVision")}
-                            </span>
-                          )}
-                          {isSelected && (
-                            <CheckIcon size={16} className="check-icon" />
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  />
-                )}
+                <ModelSelector
+                  isCustomProvider={isCustomProvider}
+                  models={models}
+                  watch={watch}
+                  setValue={setValue}
+                  register={register}
+                  defaultModel={watch("model")}
+                  t={t}
+                />
               </FormField>
 
               {apiSource === "custom" && (
@@ -285,10 +237,9 @@ const CreateCybot: React.FC = () => {
                 />
               </FormField>
             </div>
-          </div>
+          </section>
 
-          {/* 社区设置部分 */}
-          <div className="form-section">
+          <section className="form-section">
             <div className="section-title">{t("communitySettings")}</div>
             <div className="section-content">
               <FormField
@@ -342,21 +293,19 @@ const CreateCybot: React.FC = () => {
                         onChange={setInputPrice}
                         decimal={4}
                         placeholder={t("inputPrice")}
-                        aria-label="每千字输入单价"
                       />
                       <NumberInput
                         value={outputPrice}
                         onChange={setOutputPrice}
                         decimal={4}
                         placeholder={t("outputPrice")}
-                        aria-label="每千字输出单价"
                       />
                     </div>
                   </FormField>
                 </>
               )}
             </div>
-          </div>
+          </section>
         </div>
 
         <Button
@@ -375,135 +324,87 @@ const CreateCybot: React.FC = () => {
       <style jsx>{`
         .create-cybot-container {
           max-width: 800px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-
-        form {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
+          margin: 24px auto;
+          padding: 0 24px;
         }
 
         .form-layout {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 40px;
+          margin-bottom: 32px;
         }
 
         .form-section {
-          padding: 20px;
-          border: 1px solid ${theme.border};
-          border-radius: 8px;
-          background: ${theme.backgroundSecondary};
+          position: relative;
+          padding-left: 16px;
+        }
+
+        .form-section::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 2px;
+          background: ${theme.borderLight};
+          opacity: 0.5;
         }
 
         .section-title {
           font-size: 15px;
           font-weight: 600;
           color: ${theme.textDim};
-          margin-bottom: 20px;
-          padding-bottom: 10px;
-          border-bottom: 1px solid ${theme.border};
+          margin: 0 0 24px;
+          padding-left: 16px;
+          position: relative;
+          height: 24px;
+          line-height: 24px;
+        }
+
+        .section-title::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 50%;
+          width: 8px;
+          height: 2px;
+          background: ${theme.primary};
+          opacity: 0.7;
         }
 
         .section-content {
           display: flex;
           flex-direction: column;
-          gap: 16px;
-        }
-
-        .model-option {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 6px 0;
-        }
-
-        .model-indicators {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .vision-badge {
-          background: ${theme.primaryGhost};
-          color: ${theme.primary};
-          padding: 2px 6px;
-          border-radius: 4px;
-          font-size: 12px;
-        }
-
-        .check-icon {
-          color: ${theme.primary};
         }
 
         .price-inputs {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 12px;
+          gap: 16px;
         }
 
-        /* Form Input Global Styles */
-        :global(.input),
-        :global(.textarea) {
-          width: 100%;
-          background: ${theme.background};
-          border: 1px solid ${theme.border};
-          border-radius: 6px;
-          color: ${theme.text};
-          font-size: 14px;
-          transition: all 0.2s;
-        }
-
-        :global(.input:hover),
-        :global(.textarea:hover) {
-          border-color: ${theme.borderHover};
-        }
-
-        :global(.input:focus),
-        :global(.textarea:focus) {
-          border-color: ${theme.primary};
-          outline: none;
-          box-shadow: 0 0 0 2px ${theme.primaryGhost};
-        }
-
-        :global(.textarea) {
-          min-height: 80px;
-          resize: vertical;
-        }
-
-        /* Responsive Layout */
         @media (max-width: 640px) {
           .create-cybot-container {
             padding: 16px;
+            margin: 16px auto;
+          }
+
+          .form-layout {
+            gap: 32px;
           }
 
           .form-section {
-            padding: 16px;
-          }
-
-          .section-content {
-            gap: 12px;
+            padding-left: 12px;
           }
 
           .section-title {
             font-size: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
           }
 
           .price-inputs {
             grid-template-columns: 1fr;
-          }
-
-          :global(.form-field.horizontal) {
-            flex-direction: column;
-            gap: 8px;
-          }
-
-          :global(.form-field.horizontal .form-label) {
-            width: 100% !important;
-            text-align: left;
           }
         }
       `}</style>

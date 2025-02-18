@@ -177,7 +177,7 @@ const spaceSlice = createSliceWithThunks({
           }
           try {
             const memberships = await dispatch(
-              fetchSpaceMemberships(userId)
+              fetchUserSpaceMemberships(userId)
             ).unwrap();
             if (memberships && memberships.length > 0) {
               return memberships[0].spaceId;

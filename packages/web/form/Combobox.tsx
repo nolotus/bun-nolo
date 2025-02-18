@@ -1,8 +1,7 @@
-// web/form/Combobox.tsx
-import React, { useState } from 'react';
-import { useCombobox } from 'downshift';
-import { useTheme } from 'app/theme';
-import { XIcon } from '@primer/octicons-react';
+import React, { useState } from "react";
+import { useCombobox } from "downshift";
+import { useTheme } from "app/theme";
+import { XIcon } from "@primer/octicons-react";
 
 interface ComboboxProps {
   items: any[];
@@ -12,7 +11,11 @@ interface ComboboxProps {
   valueField?: string;
   disabled?: boolean;
   selectedItem?: any;
-  renderOptionContent?: (item: any, isHighlighted: boolean, isSelected: boolean) => React.ReactNode;
+  renderOptionContent?: (
+    item: any,
+    isHighlighted: boolean,
+    isSelected: boolean
+  ) => React.ReactNode;
   onInputChange?: (value: string) => void;
   allowInput?: boolean;
   allowClear?: boolean;
@@ -22,9 +25,9 @@ interface ComboboxProps {
 export const Combobox: React.FC<ComboboxProps> = ({
   items = [],
   onChange,
-  placeholder = 'Select...',
-  labelField = 'label',
-  valueField = 'value',
+  placeholder = "Select...",
+  labelField = "label",
+  valueField = "value",
   disabled = false,
   selectedItem,
   renderOptionContent,
@@ -50,13 +53,13 @@ export const Combobox: React.FC<ComboboxProps> = ({
     onSelectedItemChange: ({ selectedItem }) => {
       onChange?.(selectedItem);
     },
-    itemToString: (item) => item ? item[labelField] : '',
+    itemToString: (item) => (item ? item[labelField] : ""),
     onInputValueChange: ({ inputValue }) => {
       if (allowInput) {
-        onInputChange?.(inputValue || '');
+        onInputChange?.(inputValue || "");
       }
-      const filteredItems = items.filter(item =>
-        item[labelField].toLowerCase().includes(inputValue?.toLowerCase() || '')
+      const filteredItems = items.filter((item) =>
+        item[labelField].toLowerCase().includes(inputValue?.toLowerCase() || "")
       );
       setInputItems(filteredItems);
     },
@@ -76,12 +79,11 @@ export const Combobox: React.FC<ComboboxProps> = ({
     position: relative;
     width: 100%;
 }
-
 .combobox-input {
     width: 100%;
     height: 36px;
     padding: 8px 12px;
-    padding-right: ${allowClear ? '32px' : '12px'};
+    padding-right: ${allowClear ? "32px" : "12px"};
     border: 1px solid ${error ? theme.error : theme.border};
     border-radius: 6px;
     background: ${theme.background};
@@ -90,29 +92,21 @@ export const Combobox: React.FC<ComboboxProps> = ({
     outline: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.15s ease-in-out;
 }
-
 .combobox-input::placeholder {
     color: ${theme.placeholder};
 }
-
 .combobox-input:hover {
     border-color: ${error ? theme.error : theme.borderHover};
 }
-
 .combobox-input:focus {
     border-color: ${error ? theme.error : theme.primary};
-    box-shadow: 0 0 0 4px ${error ?
-            `${theme.error}12` :
-            `${theme.primary}12`
-          };
+    box-shadow: 0 0 0 4px ${error ? `${theme.error}12` : `${theme.primary}12`};
 }
-
 .combobox-input:disabled {
     background: ${theme.backgroundSecondary};
     cursor: not-allowed;
     opacity: 0.6;
 }
-
 .clear-button {
     position: absolute;
     right: 8px;
@@ -129,11 +123,9 @@ export const Combobox: React.FC<ComboboxProps> = ({
     align-items: center;
     justify-content: center;
 }
-
 .clear-button:hover {
     opacity: 1;
 }
-
 .combobox-menu {
     position: absolute;
     z-index: 1000;
@@ -149,7 +141,6 @@ export const Combobox: React.FC<ComboboxProps> = ({
     overflow-y: auto;
     animation: slideIn 0.2s ease-out;
 }
-
 @keyframes slideIn {
     from {
         opacity: 0;
@@ -160,7 +151,6 @@ export const Combobox: React.FC<ComboboxProps> = ({
         transform: translateY(0);
     }
 }
-
 .combobox-item {
     padding: 8px 10px;
     margin: 2px 0;
@@ -172,23 +162,19 @@ export const Combobox: React.FC<ComboboxProps> = ({
     display: flex;
     align-items: center;
 }
-
 .combobox-item:hover {
     background: ${theme.backgroundSecondary};
 }
-
 .combobox-item[data-highlighted="true"] {
     background: ${theme.primaryGhost};
     color: ${theme.primary};
 }
-
 .combobox-selected {
     background: ${theme.primaryGhost};
     color: ${theme.primary};
     font-weight: 500;
     position: relative;
 }
-
 .combobox-selected::before {
     content: '';
     position: absolute;
@@ -201,32 +187,26 @@ export const Combobox: React.FC<ComboboxProps> = ({
     border-radius: 1px;
     opacity: 0.8;
 }
-
 .combobox-empty {
     padding: 12px;
     color: ${theme.textTertiary};
     font-size: 13px;
     text-align: center;
 }
-
 .combobox-menu::-webkit-scrollbar {
     width: 6px;
 }
-
 .combobox-menu::-webkit-scrollbar-track {
     background: transparent;
 }
-
 .combobox-menu::-webkit-scrollbar-thumb {
     background: ${theme.borderHover};
     border-radius: 3px;
     border: 1px solid ${theme.background};
 }
-
 .combobox-menu::-webkit-scrollbar-thumb:hover {
     background: ${theme.textTertiary};
 }
-
 @media (prefers-reduced-motion: reduce) {
     .combobox-menu {
         animation: none;
@@ -237,7 +217,7 @@ export const Combobox: React.FC<ComboboxProps> = ({
         transition: none;
     }
 }
-`}
+        `}
       </style>
 
       <div className="combobox-wrapper">
@@ -259,13 +239,17 @@ export const Combobox: React.FC<ComboboxProps> = ({
           </button>
         )}
 
-        {isOpen && (
-          <ul className="combobox-menu" {...getMenuProps()}>
-            {inputItems.length > 0 ? (
+        {/* 始终渲染菜单容器，并根据 isOpen 控制显示 */}
+        <ul
+          className="combobox-menu"
+          {...getMenuProps()}
+          style={{ display: isOpen ? "block" : "none" }}
+        >
+          {isOpen &&
+            (inputItems.length > 0 ? (
               inputItems.map((item, index) => (
                 <li
-                  className={`combobox-item ${internalSelectedItem === item ? 'combobox-selected' : ''
-                    }`}
+                  className={`combobox-item ${internalSelectedItem === item ? "combobox-selected" : ""}`}
                   key={item[valueField] || index}
                   {...getItemProps({ item, index })}
                   data-highlighted={highlightedIndex === index}
@@ -279,9 +263,8 @@ export const Combobox: React.FC<ComboboxProps> = ({
               ))
             ) : (
               <li className="combobox-empty">No results found</li>
-            )}
-          </ul>
-        )}
+            ))}
+        </ul>
       </div>
     </>
   );
