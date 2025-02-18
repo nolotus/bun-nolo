@@ -18,7 +18,7 @@ interface TransactionResponse {
 export const handleTransaction = async (
   data: TransactionData,
   res: Response,
-  customId: string,
+  customKey: string,
   actionUserId: string
 ): Promise<Response> => {
   const { transactionType, amount, toUserId } = data;
@@ -27,7 +27,7 @@ export const handleTransaction = async (
     type: transactionType,
     toUserId,
     amount,
-    customId,
+    customKey,
   });
 
   if (transactionType === "recharge") {
@@ -53,7 +53,7 @@ export const handleTransaction = async (
       toUserId, // 修改参数名
       amount,
       data.reason,
-      customId
+      customKey
     );
 
     if (!result.success) {

@@ -1,11 +1,5 @@
-/* @tailwind base; */
-@import "./animations.css";
 
-@tailwind components;
-@tailwind utilities;
-body {
-	margin: 0;
-}
+
 
 .font-hei {
 	font-family:

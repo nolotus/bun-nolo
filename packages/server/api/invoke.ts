@@ -1,9 +1,19 @@
-// server/api/invoke.ts
 import { pino } from "pino";
-import { apiMethods, type MethodName } from "./methods";
 import type { ApiError, ApiContext } from "./types";
+import { apiMethods, type MethodName } from "./methods";
 
-const logger = pino({ name: "api:invoke" });
+const logger = pino({
+  name: "api:invoke",
+  transport: {
+    target: "pino-pretty",
+    options: {
+      colorize: true,
+      levelFirst: true,
+      translateTime: "SYS:standard",
+      ignore: "pid,hostname",
+    },
+  },
+});
 
 export async function invoke<T = unknown>(
   method: MethodName,

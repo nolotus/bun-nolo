@@ -2,38 +2,50 @@ import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Alert, useDeleteAlert } from "web/ui/Alert";
 import { remove } from "database/dbSlice";
 import toast from "react-hot-toast";
 import { IconHoverButton } from "render/ui/IconHoverButton";
+import {
+  deleteContentFromSpace,
+  selectCurrentSpaceId,
+} from "create/space/spaceSlice";
+import { useAppSelector } from "app/hooks";
+import { ConfirmModal } from "web/ui/ConfirmModal";
+import { useState } from "react";
 
 interface DeleteButtonProps {
-  id: string;
+  dbKey: string;
 }
 
-const DeleteButton = ({ id }: DeleteButtonProps) => {
+const DeleteButton = ({ dbKey }: DeleteButtonProps) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const spaceId = useAppSelector(selectCurrentSpaceId);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const deleteKey = dbKey;
+  console.log("deleteKey", deleteKey);
 
   // 处理删除确认后的操作
-  const onDelete = async () => {
+  const handleDelete = async () => {
+    setIsDeleting(true);
     try {
-      await dispatch(remove(id));
+      dispatch(remove(deleteKey));
+
+      await dispatch(
+        deleteContentFromSpace({ contentKey: deleteKey, spaceId })
+      );
       toast.success("Page deleted successfully!");
       navigate(-1);
     } catch (error) {
       console.error("Failed to delete:", error);
       toast.error("Failed to delete page");
+    } finally {
+      setIsDeleting(false);
+      setIsOpen(false);
     }
   };
-
-  const {
-    visible: deleteAlertVisible,
-    openAlert,
-    doDelete,
-    closeAlert,
-  } = useDeleteAlert(onDelete);
 
   return (
     <>
@@ -41,18 +53,23 @@ const DeleteButton = ({ id }: DeleteButtonProps) => {
         variant="danger"
         size="small"
         icon={<TrashIcon size={16} />}
-        onClick={() => openAlert(id)}
+        onClick={() => setIsOpen(true)}
         aria-label="Delete item"
+        disabled={isDeleting}
       >
         {t("delete")}
       </IconHoverButton>
 
-      <Alert
-        isOpen={deleteAlertVisible}
-        onClose={closeAlert}
-        onConfirm={doDelete}
-        title={t("deleteDialogTitle", { title: id })}
+      <ConfirmModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onConfirm={handleDelete}
+        title={t("deleteDialogTitle", { title: dbKey })}
         message={t("deleteDialogConfirmation")}
+        confirmText={t("delete")}
+        cancelText={t("cancel")}
+        type="error"
+        loading={isDeleting}
       />
     </>
   );

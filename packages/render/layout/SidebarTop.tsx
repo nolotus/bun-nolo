@@ -14,38 +14,45 @@ import {
   useTransitionStyles,
 } from "@floating-ui/react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { CreateWorkSpaceForm } from "create/workspace/CreateWorkSpaceForm";
+import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
-  changeWorkSpace,
-  deleteWorkspace,
-  fetchWorkspaces,
-  selectAllWorkspaces,
-  selectCurrentWorkspaceName,
-} from "create/workspace/workspaceSlice";
+  changeSpace,
+  fetchUserSpaceMemberships,
+  selectAllMemberSpaces,
+  selectCurrentSpace,
+} from "create/space/spaceSlice";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { GoPlus } from "react-icons/go";
 import { RxDropdownMenu } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
-
 import { ProjectIcon } from "@primer/octicons-react";
-import { layout } from "../styles/layout";
-import NavIconItem from "./blocks/NavIconItem";
 import { useTheme } from "app/theme";
+import { zIndex } from "../styles/zIndex";
+import NavIconItem from "./blocks/NavIconItem";
+import { CreateSpaceButton } from "create/space/CreateSpaceButton";
+import { selectCurrentUserId } from "auth/authSlice";
+import { createSpaceKey } from "create/space/spaceKeys";
+
+import { SpaceItem } from "create/space/SpaceItem";
 
 export const SidebarTop = () => {
   const theme = useTheme();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  // const workspaces = useAppSelector(selectAllWorkspaces);
   const navigate = useNavigate();
-  const currentWorkspaceName = useAppSelector(selectCurrentWorkspaceName);
+  const currentUserId = useAppSelector(selectCurrentUserId);
+  const spaces = useAppSelector(selectAllMemberSpaces);
+  const space = useAppSelector(selectCurrentSpace);
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const { visible, open: openModal, close: closeModal } = useModal();
-  const listRef = React.useRef<Array<HTMLElement | null>>([]);
+
+  const listRef = React.useRef<Array<HTMLElement | null>>(
+    new Array(spaces?.length || 0 + 1).fill(null)
+  );
 
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
@@ -53,59 +60,29 @@ export const SidebarTop = () => {
     placement: "bottom-start",
     whileElementsMounted: autoUpdate,
     middleware: [
-      offset({
-        mainAxis: 4,
-        alignmentAxis: 0,
-      }),
-      flip({
-        fallbackPlacements: ["top-start"],
-        padding: 8,
-      }),
-      shift({
-        padding: 8,
-      }),
+      offset(4),
+      flip(),
+      shift(),
       size({
         apply({ rects, elements }) {
           Object.assign(elements.floating.style, {
             width: `${rects.reference.width}px`,
-            maxWidth: `${rects.reference.width}px`,
           });
         },
-        padding: 8,
       }),
     ],
   });
 
   const { isMounted, styles: transitionStyles } = useTransitionStyles(context, {
-    initial: {
-      opacity: 0,
-      transform: "translateY(-8px)",
-    },
-    open: {
-      opacity: 1,
-      transform: "translateY(0)",
-    },
-    close: {
-      opacity: 0,
-      transform: "translateY(-8px)",
-    },
-    duration: {
-      open: 150,
-      close: 100,
-    },
+    initial: { opacity: 0, transform: "translateY(-4px)" },
+    open: { opacity: 1, transform: "translateY(0)" },
+    close: { opacity: 0, transform: "translateY(-4px)" },
+    duration: { open: 150, close: 100 },
   });
 
-  const click = useClick(context, {
-    toggle: true,
-    ignoreMouse: false,
-  });
-
-  const dismiss = useDismiss(context, {
-    outsidePress: true,
-  });
-
+  const click = useClick(context);
+  const dismiss = useDismiss(context);
   const role = useRole(context);
-
   const listNavigation = useListNavigation(context, {
     listRef,
     activeIndex,
@@ -118,97 +95,44 @@ export const SidebarTop = () => {
   );
 
   useEffect(() => {
-    dispatch(fetchWorkspaces());
-  }, [dispatch]);
+    dispatch(fetchUserSpaceMemberships(currentUserId));
+  }, [dispatch, currentUserId]);
 
-  const getCurrentWorkspaceName = () => {
-    if (!currentWorkspaceName) return t("selectSpace");
-    return currentWorkspaceName === "allChats"
-      ? t("allChats")
-      : currentWorkspaceName;
-  };
-
-  const handleOptionClick = (workspaceId?: string) => {
-    navigate("/create");
-    dispatch(changeWorkSpace(workspaceId));
-    //todo  new db need workspace
-    // dispatch(queryDialogList(workspaceId));
+  const handleOptionClick = (spaceId?: string) => {
+    if (!spaceId) return;
+    dispatch(changeSpace(spaceId));
     setIsOpen(false);
   };
 
-  const handleDeleteWorkspace = (workspaceId: string, e: React.MouseEvent) => {
+  const handleSettingsClick = (
+    e: React.MouseEvent,
+    spaceMemberpath: string
+  ) => {
     e.stopPropagation();
-    dispatch(deleteWorkspace(workspaceId));
-  };
-
-  const handleCreateWorkspace = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    openModal();
+    const spaceId = createSpaceKey.spaceIdFromMember(spaceMemberpath);
+    navigate(`/space/${spaceId}/settings`);
     setIsOpen(false);
   };
+
+  const isCurrentSpace = (spaceId: string) => space?.id === spaceId;
 
   return (
-    <div
-      style={{
-        ...layout.flexStart,
-        padding: "12px 16px",
-        position: "relative",
-        gap: "12px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "32px",
-          height: "32px",
-          borderRadius: "6px",
-          transition: "background-color 0.15s ease",
-        }}
-      >
-        <NavIconItem path="/create" icon={<ProjectIcon size={24} />} />
-      </div>
+    <div className="space-sidebar-top" role="navigation">
+      <NavIconItem path="/create" icon={<ProjectIcon size={22} />} />
 
-      {/* <div style={{ position: "relative" }}>
-        <div
+      <div className="space-dropdown">
+        <button
           ref={refs.setReference}
           {...getReferenceProps()}
-          style={{
-            ...layout.flexBetween,
-            width: "160px",
-            height: "32px",
-            padding: "0 12px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-            backgroundColor: theme.background,
-            border: `1px solid ${isOpen ? theme.borderHover : theme.border}`,
-            boxShadow: isOpen ? `0 2px 4px ${theme.shadowLight}` : "none",
-          }}
+          className="space-dropdown__trigger"
+          aria-label={t("选择空间")}
+          aria-expanded={isOpen}
         >
-          <span
-            style={{
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              fontSize: "14px",
-              fontWeight: 500,
-              color: theme.text,
-            }}
-          >
-            {getCurrentWorkspaceName()}
+          <span className="space-dropdown__name" title={space?.name}>
+            {space?.name || t("选择空间")}
           </span>
-          <RxDropdownMenu
-            size={16}
-            style={{
-              marginLeft: "8px",
-              transition: "transform 0.15s ease",
-              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-              color: theme.textSecondary,
-            }}
-          />
-        </div>
+          <RxDropdownMenu size={14} className="space-dropdown__icon" />
+        </button>
 
         {isMounted && (
           <FloatingFocusManager context={context} modal={false}>
@@ -217,135 +141,149 @@ export const SidebarTop = () => {
               style={{
                 ...floatingStyles,
                 ...transitionStyles,
-                backgroundColor: theme.background,
-                borderRadius: "6px",
-                boxShadow: `0 4px 12px ${theme.shadowMedium}`,
-                border: `1px solid ${theme.border}`,
-                maxHeight: "320px",
-                overflowY: "auto",
-                zIndex: zIndex.dropdown,
               }}
               {...getFloatingProps()}
+              className="space-dropdown__menu"
+              role="listbox"
+              aria-label={t("空间列表")}
             >
-              <div
-                ref={(node) => (listRef.current[0] = node)}
-                {...getItemProps({
-                  onClick: () => handleOptionClick(),
-                })}
-                style={{
-                  padding: "8px 12px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  transition: "background-color 0.15s ease",
-                  backgroundColor:
-                    activeIndex === 0
-                      ? theme.backgroundSecondary
-                      : "transparent",
-                  color: theme.text,
-                  margin: "4px",
-                  borderRadius: "4px",
-                }}
-              >
-                {t("recent")}
-              </div>
-
-              {workspaces?.map((workspace: any, index: number) => (
-                <div
-                  key={workspace.id}
-                  ref={(node) => (listRef.current[index + 1] = node)}
-                  {...getItemProps({
-                    onClick: () => handleOptionClick(workspace.id),
-                  })}
-                  style={{
-                    padding: "8px 12px",
-                    margin: "4px",
-                    borderTop:
-                      index === 0 ? `1px solid ${theme.border}` : "none",
-                  }}
-                >
-                  <div
-                    style={{
-                      ...layout.flexBetween,
-                      transition: "background-color 0.15s ease",
-                      backgroundColor:
-                        activeIndex === index + 1
-                          ? theme.backgroundSecondary
-                          : "transparent",
-                      borderRadius: "4px",
-                      padding: "4px 8px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        fontSize: "14px",
-                        color: theme.text,
-                      }}
-                    >
-                      {workspace.name}
-                    </span>
-                    {activeIndex === index + 1 && (
-                      <button
-                        onClick={(e) => handleDeleteWorkspace(workspace.id, e)}
-                        style={{
-                          border: "none",
-                          padding: "2px 8px",
-                          fontSize: "12px",
-                          color: theme.textSecondary,
-                          backgroundColor: "transparent",
-                          cursor: "pointer",
-                          borderRadius: "4px",
-                          transition: "background-color 0.15s ease",
-                        }}
-                      >
-                        {t("删除")}
-                      </button>
-                    )}
+              <div className="space-dropdown__content">
+                {spaces?.length > 0 && (
+                  <div className="space-dropdown__section">
+                    {spaces?.map((spaceItem: any, index: number) => (
+                      <SpaceItem
+                        key={spaceItem.dbKey}
+                        spaceItem={spaceItem}
+                        isCurrentSpace={isCurrentSpace(spaceItem.spaceId)}
+                        index={index}
+                        listRef={(node) => (listRef.current[index] = node)}
+                        getItemProps={getItemProps}
+                        onSelect={handleOptionClick}
+                        onSettingsClick={handleSettingsClick}
+                      />
+                    ))}
                   </div>
-                </div>
-              ))}
+                )}
 
-              <div
-                ref={(node) => (listRef.current[workspaces?.length + 1] = node)}
-                {...getItemProps({
-                  onClick: handleCreateWorkspace,
-                })}
-                style={{
-                  margin: "4px",
-                  padding: "8px 12px",
-                  borderTop: `1px solid ${theme.border}`,
-                }}
-              >
-                <div
-                  style={{
-                    ...layout.flexStart,
-                    padding: "4px 8px",
-                    cursor: "pointer",
-                    transition: "background-color 0.15s ease",
-                    backgroundColor:
-                      activeIndex === workspaces?.length + 1
-                        ? theme.backgroundSecondary
-                        : "transparent",
-                    color: theme.primary,
-                    borderRadius: "4px",
-                  }}
-                >
-                  <GoPlus size={16} style={{ marginRight: "8px" }} />
-                  <span style={{ fontSize: "14px", fontWeight: 500 }}>
-                    {t("新建工作区")}
-                  </span>
-                </div>
+                <CreateSpaceButton
+                  onClick={openModal}
+                  getItemProps={getItemProps}
+                  listRef={(node) =>
+                    (listRef.current[spaces?.length || 0] = node)
+                  }
+                  index={spaces?.length || 0}
+                />
               </div>
             </div>
           </FloatingFocusManager>
         )}
-      </div> */}
+      </div>
 
       <Dialog isOpen={visible} onClose={closeModal}>
-        <CreateWorkSpaceForm onClose={closeModal} />
+        <CreateSpaceForm onClose={closeModal} />
       </Dialog>
+
+      <style jsx>{`
+        .space-sidebar-top {
+          display: flex;
+          padding: 12px 16px;
+          gap: 12px;
+          align-items: center;
+          border-bottom: 1px solid ${theme.border};
+        }
+
+        .space-dropdown {
+          flex: 1;
+          min-width: 0;
+          position: relative;
+        }
+
+        .space-dropdown__trigger {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          height: 28px;
+          padding: 0 10px;
+          border-radius: 4px;
+          cursor: pointer;
+          background: ${theme.background};
+          border: 1px solid ${isOpen ? theme.borderHover : theme.border};
+          transition: all 0.2s ease;
+          box-shadow: ${isOpen ? `0 1px 4px ${theme.shadowLight}` : "none"};
+        }
+
+        .space-dropdown__trigger:hover {
+          border-color: ${theme.borderHover};
+        }
+
+        .space-dropdown__trigger:focus-visible {
+          outline: 2px solid ${theme.primary};
+          outline-offset: -1px;
+        }
+
+        .space-dropdown__name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: 13px;
+          font-weight: 500;
+          color: ${theme.text};
+          flex: 1;
+          min-width: 0;
+        }
+
+        .space-dropdown__icon {
+          margin-left: 6px;
+          transition: transform 0.2s ease;
+          transform: ${isOpen ? "rotate(180deg)" : "rotate(0deg)"};
+          color: ${theme.textSecondary};
+          flex-shrink: 0;
+        }
+
+        .space-dropdown__menu {
+          background: ${theme.background};
+          border-radius: 6px;
+          border: 1px solid ${theme.border};
+          box-shadow: 0 4px 12px ${theme.shadowMedium};
+          overflow: hidden;
+          z-index: ${zIndex.spaceDropdownZIndex};
+          margin-top: 4px;
+        }
+
+        .space-dropdown__content {
+          max-height: 320px;
+          overflow-y: auto;
+          padding: 4px;
+        }
+
+        .space-dropdown__section {
+          position: relative;
+        }
+
+        .space-dropdown__content::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+
+        .space-dropdown__content::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .space-dropdown__content::-webkit-scrollbar-thumb {
+          background: ${theme.border};
+          border-radius: 4px;
+          border: 2px solid ${theme.background};
+        }
+
+        .space-dropdown__content::-webkit-scrollbar-thumb:hover {
+          background: ${theme.borderHover};
+        }
+
+        .space-dropdown__content {
+          scrollbar-width: thin;
+          scrollbar-color: ${theme.border} transparent;
+        }
+      `}</style>
     </div>
   );
 };

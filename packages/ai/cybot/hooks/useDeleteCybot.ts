@@ -9,6 +9,7 @@ import { pino } from "pino";
 
 const logger = pino({ name: "useDeleteCybot" });
 
+//maybe delete ,maybe change
 export const useDeleteCybot = () => {
   const dispatch = useAppDispatch();
   const auth = useAuth();

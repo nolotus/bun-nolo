@@ -12,7 +12,7 @@ const TIMEOUT = 5000;
 
 const syncWithServers = (
   servers: string[],
-  id: string,
+  dbKey: string,
   updates: any,
   state: any
 ) => {
@@ -22,7 +22,7 @@ const syncWithServers = (
       abortController.abort();
     }, TIMEOUT);
 
-    noloPatchRequest(server, id, updates, state, abortController.signal)
+    noloPatchRequest(server, dbKey, updates, state, abortController.signal)
       .then((success) => {
         clearTimeout(timeoutId);
         if (!success) {
@@ -35,13 +35,13 @@ const syncWithServers = (
   });
 };
 
-export const patchAction = async ({ id, changes }, thunkApi) => {
+export const patchAction = async ({ dbKey, changes }, thunkApi) => {
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
 
   try {
     // 读取当前数据
-    const currentData = await browserDb.get(id);
+    const currentData = await browserDb.get(dbKey);
     if (!currentData) {
       toast.error(`Data not found locally`);
       throw new Error("Data not found");
@@ -59,7 +59,7 @@ export const patchAction = async ({ id, changes }, thunkApi) => {
     };
 
     // 本地更新
-    await browserDb.put(id, newData);
+    await browserDb.put(dbKey, newData);
 
     // 准备服务器列表
     const servers = Array.from(
@@ -68,7 +68,7 @@ export const patchAction = async ({ id, changes }, thunkApi) => {
 
     // 后台同步
     Promise.resolve().then(() => {
-      syncWithServers(servers, id, updatedChanges, state);
+      syncWithServers(servers, dbKey, updatedChanges, state);
     });
 
     return newData;

@@ -35,7 +35,6 @@ export default {
       spacename: "spacename",
       messageOrImageHere: "Type Message or drag and drop image here",
       deleteDialog: "Delete Dialog",
-      addToWorkspace: "Add to Workspace",
       edit: "Edit",
       delete: "Delete",
       add: "Add",
@@ -57,6 +56,7 @@ export default {
       purposeRequired: "Please tell us your intended use",
       purposeTooShort: "Please provide more details (at least 10 characters)",
       settings: "Settings",
+      hintofKey:"Hint: There are no restrictions on the number of characters and symbols for usernames and passwords. Password reset is not provided for the time being, so it is recommended to use a complex password combination and remember the password"
     },
   },
   [Language.ZH_CN]: {
@@ -90,7 +90,6 @@ export default {
       spacename: "空间名称",
       messageOrImageHere: "输入消息或拖放图片",
       deleteDialog: "删除对话",
-      addToWorkspace: "添加到工作区",
       edit: "编辑",
       delete: "删除",
       add: "添加",
@@ -112,6 +111,7 @@ export default {
       purposeRequired: "请告诉我们您的使用目的",
       purposeTooShort: "请提供更多详细信息（至少10个字符）",
       settings: "设置",
+      hintofKey:"提示：用户名密码不作字数和符号限制，暂不提供找回密码，建议使用复杂的密码组合，并牢记密码"
     },
   },
   [Language.ZH_HANT]: {
@@ -145,7 +145,6 @@ export default {
       spacename: "空间名",
       messageOrImageHere: "輸入訊息或拖放圖片",
       deleteDialog: "刪除對話",
-      addToWorkspace: "添加到工作區",
       edit: "編輯",
       delete: "刪除",
       add: "新增",
@@ -167,6 +166,7 @@ export default {
       purposeRequired: "請告訴我們您的使用目的",
       purposeTooShort: "請提供更多詳細信息（至少10個字符）",
       settings: "設置",
+      hintofKey:"提示：用戶名密碼不作字數和符號限制，暫不提供找回密碼，建議使用複雜的密碼組合，並牢記密碼"
     },
   },
   [Language.JA]: {
@@ -202,7 +202,6 @@ export default {
       messageOrImageHere:
         "メッセージを入力またはここに画像をドラッグ＆ドロップ",
       deleteDialog: "ダイアログを削除",
-      addToWorkspace: "ワークスペースに追加",
       edit: "編集",
       delete: "削除",
       add: "追加",
@@ -224,6 +223,7 @@ export default {
       purposeRequired: "ご使用目的をお聞かせください",
       purposeTooShort: "より詳しい情報をご記入ください（10文字以上）",
       settings: "設定",
+      hintofKey:"ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雑なパスワードの組み合わせを使用し、パスワードを覚えておいてください"
     },
   },
 };

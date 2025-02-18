@@ -20,11 +20,11 @@ export const CreateTool = () => {
   const navigate = useNavigate();
   const pageData = useAppSelector(selectPageData);
   const isReadOnly = useAppSelector(selectIsReadOnly);
-  const { pageId } = useParams();
+  const { pageId: dbKey } = useParams();
 
   const handleToggleEdit = (checked: boolean) => {
     dispatch(toggleReadOnly());
-    navigate(`/${pageId}${!checked ? "" : "?edit=true"}`);
+    navigate(`/${dbKey}${!checked ? "" : "?edit=true"}`);
   };
 
   const handleSave = async () => {
@@ -41,7 +41,7 @@ export const CreateTool = () => {
       };
 
       const result = await dispatch(
-        patchData({ id: pageId, changes: saveData })
+        patchData({ dbKey, changes: saveData })
       ).unwrap();
 
       if (result) {
@@ -61,7 +61,7 @@ export const CreateTool = () => {
 
         <div className="controls">
           <div className="left-group">
-            <DeleteButton id={pageId} />
+            <DeleteButton dbKey={dbKey} />
             <div className="mode-switch">
               <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
             </div>

@@ -1,9 +1,14 @@
 import type { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { isProduction } from "utils/env";
-console.log('isProduction', isProduction)
+import { read } from "database/dbSlice";
+import { createUserKey } from "database/keys";
+import { selectCurrentUserId } from "auth/authSlice";
 
 interface SettingState {
+  userSetting?: {
+    defaultSpaceId?: string;
+  };
   syncSetting: {
     isAutoSync: boolean;
     currentServer: string;
@@ -20,6 +25,7 @@ const initialState: SettingState = {
     syncServers: ["https://nolotus.com", "https://us.nolotus.com"],
     thirdPartyServers: ["https://thirdparty.server.com"],
   },
+  userSetting: {},
 };
 
 const createSliceWithThunks = buildCreateSlice({
@@ -33,6 +39,21 @@ const settingSlice = createSliceWithThunks({
   initialState,
   // 包含reducer函数的对象
   reducers: (create) => ({
+    getSettings: create.asyncThunk(
+      // 添加 userId 参数
+      async (userId: string, thunkAPI) => {
+        const dispatch = thunkAPI.dispatch;
+        // 使用传入的 userId 参数替代从 state 获取
+        const id = createUserKey.settings(userId);
+        const settings = await dispatch(read(id)).unwrap();
+        return settings;
+      },
+      {
+        fulfilled: (state, action) => {
+          state.userSetting = action.payload;
+        },
+      }
+    ),
 
     updateCurrentServer: (state, action) => {
       state.syncSetting.currentServer = action.payload;
@@ -42,7 +63,7 @@ const settingSlice = createSliceWithThunks({
     },
     removeSyncServer: (state, action) => {
       state.syncSetting.syncServers = state.syncSetting.syncServers.filter(
-        (server) => server !== action.payload,
+        (server) => server !== action.payload
       );
     },
     addThirdPartyServer: (state, action) => {
@@ -51,7 +72,7 @@ const settingSlice = createSliceWithThunks({
     removeThirdPartyServer: (state, action) => {
       state.syncSetting.thirdPartyServers =
         state.syncSetting.thirdPartyServers.filter(
-          (server) => server !== action.payload,
+          (server) => server !== action.payload
         );
     },
     addHostToCurrentServer: (state, action) => {
@@ -75,10 +96,12 @@ export const {
   addThirdPartyServer,
   removeThirdPartyServer,
   addHostToCurrentServer,
+  getSettings,
 } = settingSlice.actions;
 
 export const selectCurrentServer = (state: NoloRootState): string =>
   state.settings.syncSetting.currentServer;
 export const selectSyncServers = (state: NoloRootState): string =>
   state.settings.syncSetting.syncServers;
+
 export default settingSlice.reducer;

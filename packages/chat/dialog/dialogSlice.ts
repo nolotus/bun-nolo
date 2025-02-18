@@ -4,13 +4,18 @@ import {
   buildCreateSlice,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
-import { clearCurrentDialog } from "chat/messages/messageSlice";
-import { remove, read, selectById } from "database/dbSlice";
+import { deleteDialogMsgs } from "chat/messages/messageSlice";
+import { read, selectById } from "database/dbSlice";
 
 import { createDialogAction } from "./actions/createDialogAction";
 import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
 import { updateTokensAction } from "./actions/updateTokensAction";
 import { extractCustomId } from "core/prefix";
+import { deleteDialogAction } from "./actions/deleteDialogAction";
+import {
+  deleteContentFromSpace,
+  selectCurrentSpaceId,
+} from "create/space/spaceSlice";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -61,40 +66,20 @@ const DialogSlice = createSliceWithThunks({
         },
       }
     ),
-    deleteDialog: create.asyncThunk(
-      async (id, thunkApi) => {
-        const { dispatch, getState } = thunkApi;
-        const state = getState();
-
-        try {
-          const dialogConfig = await dispatch(read(id)).unwrap();
-          if (dialogConfig?.messageListId) {
-            const body = { ids: state.message.ids };
-            const deleteMessageListAction = await dispatch(
-              remove({
-                id: dialogConfig.messageListId,
-                body,
-              })
-            );
-          }
-        } catch (error) {
-          console.error("Error reading dialog:", error);
-        } finally {
-          dispatch(remove(id));
-        }
+    deleteDialog: create.asyncThunk(deleteDialogAction, {
+      fulfilled: (state) => {
+        state.currentDialogId = null;
       },
-      {
-        fulfilled: (state) => {
-          state.currentDialogId = null;
-        },
-      }
-    ),
+    }),
     deleteCurrentDialog: create.asyncThunk(
       async (dialogKey, thunkApi) => {
         const dispatch = thunkApi.dispatch;
+        const state = thunkApi.getState();
         dispatch(deleteDialog(dialogKey));
+        const spaceId = selectCurrentSpaceId(state);
+        dispatch(deleteContentFromSpace({ contentKey: dialogKey, spaceId }));
         const dialogId = extractCustomId(dialogKey);
-        dispatch(clearCurrentDialog(dialogId));
+        dispatch(deleteDialogMsgs(dialogId));
         dispatch(resetCurrentDialogTokens());
       },
       {

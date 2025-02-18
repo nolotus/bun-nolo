@@ -74,7 +74,6 @@
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
-    "@biomejs/biome": "^1.9.4",
     "@react-native-community/cli": "15.0.1",
     "@react-native-community/cli-platform-android": "15.0.1",
     "@react-native-community/cli-platform-ios": "15.0.1",
@@ -90,8 +89,6 @@
     "concurrently": "^8.2.2",
     "date-fns": "^2.30.0",
     "esbuild": "^0.24.2",
-    "esbuild-style-plugin": "^1.6.2",
-    "postcss": "^8.4.31",
     "react-native": "0.78.0-rc.4",
     "react-native-localize": "^3.0.4",
     "react-native-maps": "^1.8.3",
@@ -101,8 +98,6 @@
     "react-native-tab-view": "^3.5.2",
     "react-native-vector-icons": "10.1.0",
     "react-test-renderer": "19.0.0",
-    "tailwind-merge": "^2.2.0",
-    "tailwindcss": "^3.3.3",
     "twrnc": "^3.6.7"
   },
   "peerDependencies": {

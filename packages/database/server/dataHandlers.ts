@@ -7,16 +7,17 @@ export const handleToken = async (
   data: any,
   res: any,
   userId: string,
-  customId: string,
+  customKey: string,
   actionUserId: string
 ) => {
-  const isStatsKey = customId.includes("token-stats");
+  const isStatsKey = customKey.includes("token-stats");
 
-  await serverDb.put(customId, data);
+  await serverDb.put(customKey, data);
 
   if (!isStatsKey && data.cost && data.cost > 0) {
     try {
-      const txId = `token-${customId}`;
+      //must change
+      const txId = `token-${customKey}`;
       logger.info({
         event: "token_deduct_start",
         userId: data.userId,
@@ -26,7 +27,7 @@ export const handleToken = async (
       const deductResult = await deductUserBalance(
         data.userId,
         data.cost,
-        `Token generation cost: ${customId}`,
+        `Token generation cost: ${customKey}`,
         txId
       );
       logger.info({
@@ -56,7 +57,7 @@ export const handleToken = async (
         event: "token_deduct_error",
         error: error.message,
         userId: data.userId,
-        id: customId,
+        dbKey: customKey,
       });
 
       return res.status(500).json({
@@ -68,29 +69,30 @@ export const handleToken = async (
 
   return res.status(200).json({
     message: "Token usage recorded successfully",
-    id: customId,
+    id: customKey,
+    dbKey: customKey,
     ...data,
   });
 };
 
-export const handleCybot = async (data: any, res: any, customId: string) => {
+export const handleCybot = async (data: any, res: any, customKey: string) => {
   try {
     logger.info({
       event: "cybot_save",
-      id: customId,
+      id: customKey,
       name: data.name,
       userId: data.userId,
       isPublic: data.isPublic,
     });
 
-    await serverDb.put(customId, data);
-    const savedData = await serverDb.get(customId);
+    await serverDb.put(customKey, data);
+    const savedData = await serverDb.get(customKey);
 
     const isDataMatch = JSON.stringify(data) === JSON.stringify(savedData);
     if (!isDataMatch) {
       logger.error({
         event: "cybot_data_mismatch",
-        id: customId,
+        dbKey: customKey,
         name: data.name,
       });
       throw new Error("Data validation failed");
@@ -98,14 +100,15 @@ export const handleCybot = async (data: any, res: any, customId: string) => {
 
     return res.status(200).json({
       message: "Data written successfully",
-      id: customId,
+      id: customKey,
+      dbKey: customKey,
       ...data,
     });
   } catch (error) {
     logger.error({
       event: "cybot_save_failed",
       error: error.message,
-      id: customId,
+      dbKey: customKey,
       name: data.name,
     });
     throw error;
@@ -115,17 +118,19 @@ export const handleCybot = async (data: any, res: any, customId: string) => {
 export const handleOtherDataTypes = async (
   data: any,
   res: any,
-  customId: string
+  customKey: string
 ) => {
   if (
     data.type === DataType.MSG ||
     data.type === DataType.PAGE ||
-    data.type === DataType.DIALOG
+    data.type === DataType.DIALOG ||
+    data.type === DataType.SPACE
   ) {
-    await serverDb.put(customId, data);
+    await serverDb.put(customKey, data);
     return res.status(200).json({
       message: "Data written to file successfully.",
-      id: customId,
+      id: customKey,
+      dbKey: customKey,
       ...data,
     });
   }

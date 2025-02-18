@@ -4,7 +4,7 @@ import React from "react";
 import { Dialog } from "render/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { useTheme } from "app/theme";
-import QuickEditCybot from "./QuickEditCybot";
+import QuickEditCybot from "./web/QuickEditCybot";
 
 const CybotNameChip = React.memo(({ cybotId }) => {
   const theme = useTheme();

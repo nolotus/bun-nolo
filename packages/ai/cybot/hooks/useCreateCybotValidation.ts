@@ -68,7 +68,7 @@ export const useCreateCybotValidation = () => {
           ...cybotData,
           isPublic: data.isPublic,
         },
-        customId: userCybotPath,
+        customKey: userCybotPath,
       })
     ).unwrap();
 
@@ -80,7 +80,7 @@ export const useCreateCybotValidation = () => {
             ...cybotData,
             isPublic: true,
           },
-          customId: publicCybotPath,
+          customKey: publicCybotPath,
         })
       ).unwrap();
     }

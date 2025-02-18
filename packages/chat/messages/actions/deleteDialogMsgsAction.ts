@@ -37,7 +37,7 @@ const collectKeys = async (prefix: string) => {
 };
 
 // 删除对话消息
-export const deleteAllMessages = async (dialogId: string, thunkApi) => {
+export const deleteDialogMsgsAction = async (dialogId: string, thunkApi) => {
   const prefix = createKey("dialog", dialogId, "msg");
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);

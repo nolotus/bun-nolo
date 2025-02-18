@@ -1,35 +1,7 @@
 // src/server/handlers/delete.ts
-import { extractUserId } from "core/prefix";
 import { isNil } from "rambda";
-import { createKey } from "database/keys";
 import serverDb from "./db";
-import pino from "pino";
-
-// const logger = pino({ name: "handle-delete" });
-
-// 新增的独立删除消息函数
-async function deleteMessages(dialogId: string) {
-  const prefix = createKey("dialog", dialogId, "msg");
-  const batch = serverDb.batch();
-  const deletedKeys: string[] = [];
-
-  // 遍历并收集所有消息键
-  for await (const [key] of serverDb.iterator({
-    gte: prefix,
-    lte: prefix + "\uffff",
-  })) {
-    batch.del(key);
-    deletedKeys.push(key);
-  }
-
-  // 批量执行删除操作
-  await batch.write();
-
-  return {
-    message: "Messages deleted successfully",
-    processingIds: deletedKeys,
-  };
-}
+import { deleteMessages } from "chat/messages/server/deleteMessages";
 
 export const handleDelete = async (req, res) => {
   try {
@@ -40,17 +12,18 @@ export const handleDelete = async (req, res) => {
     // 调用独立的删除消息函数
     if (type === "messages") {
       const result = await deleteMessages(id);
-      return res.json(result);
+      return res.status(200).json(result);
     }
 
     // 原有其他类型删除逻辑保持不变
     const data = await serverDb.get(id);
-    const ownerId = data?.userId || extractUserId(id);
+
+    const ownerId = data?.userId;
 
     if (isNil(ownerId) || ownerId === actionUserId) {
       if (data) await serverDb.del(id);
 
-      return res.json({
+      return res.status(200).json({
         message: "Delete request processed",
         processingIds: [id],
       });
