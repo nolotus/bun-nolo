@@ -43,6 +43,7 @@ export const useEditCybotValidation = (
   const isPublic = watch("isPublic");
 
   const onSubmit = async (data: FormData) => {
+    console.log("onSubmit", data);
     if (!auth.user?.userId) return;
 
     const now = Date.now();

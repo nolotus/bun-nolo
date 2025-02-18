@@ -77,7 +77,7 @@ const SpaceSettings = () => {
     try {
       await dispatch(deleteSpace(spaceId!)).unwrap();
       toast.success("空间已删除");
-      navigate("/spaces");
+      navigate("/create");
     } catch (err) {
       toast.error("删除失败");
     }
