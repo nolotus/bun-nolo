@@ -1,5 +1,4 @@
 import { fetchPubCybots } from "ai/cybot/server/fetchPubCybots";
-import { deletePubCybot } from "ai/cybot/server/deletePubCybot";
 import { fetchUserSpaceMemberships } from "create/space/server/fetchUserSpaceMemberships";
 import { type ApiMethod } from "./types";
 
@@ -9,13 +8,6 @@ export const apiMethods = {
   getPubCybots: {
     handler: fetchPubCybots,
     auth: false,
-  },
-
-  deletePubCybot: {
-    // 更改方法名称以匹配函数
-    // 添加删除方法
-    handler: deletePubCybot,
-    auth: true, // 假设需要权限
   },
 
   // 用户空间成员相关
