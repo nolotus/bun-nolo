@@ -60,7 +60,7 @@ export const useEditCybotValidation = (
       // 1. 更新私有版本
       await dispatch(
         patchData({
-          id: userCybotPath,
+          dbKey: userCybotPath,
           changes: {
             ...updateData,
             isPublic: data.isPublic,

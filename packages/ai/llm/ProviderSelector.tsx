@@ -1,6 +1,5 @@
 import { Combobox } from "web/form/Combobox";
 import { availableProviderOptions } from "./providers";
-import { FormField } from "web/form/FormField";
 
 const getOrderedProviderOptions = () => {
   return [
@@ -27,32 +26,25 @@ const ProviderSelector = ({
   error,
 }: ProviderSelectorProps) => {
   return (
-    <FormField
-      label={t("provider")}
-      required
+    <Combobox
+      items={getOrderedProviderOptions()}
+      selectedItem={provider ? { name: provider } : null}
+      onChange={(item) => {
+        const newProvider = item?.name || "";
+        setValue("provider", newProvider);
+        setProviderInputValue(newProvider);
+        if (newProvider !== "Custom") {
+          setValue("customProviderUrl", "");
+          setValue("model", "");
+        }
+      }}
+      labelField="name"
+      valueField="name"
+      placeholder={t("selectProvider")}
+      allowInput={true}
+      onInputChange={(value) => setProviderInputValue(value)}
       error={error}
-      horizontal
-      labelWidth="140px"
-    >
-      <Combobox
-        items={getOrderedProviderOptions()}
-        selectedItem={provider ? { name: provider } : null}
-        onChange={(item) => {
-          const newProvider = item?.name || "";
-          setValue("provider", newProvider);
-          setProviderInputValue(newProvider);
-          if (newProvider !== "Custom") {
-            setValue("customProviderUrl", "");
-            setValue("model", "");
-          }
-        }}
-        labelField="name"
-        valueField="name"
-        placeholder={t("selectProvider")}
-        allowInput={true}
-        onInputChange={(value) => setProviderInputValue(value)}
-      />
-    </FormField>
+    />
   );
 };
 

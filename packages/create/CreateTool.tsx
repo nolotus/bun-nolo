@@ -41,7 +41,7 @@ export const CreateTool = () => {
       };
 
       const result = await dispatch(
-        patchData({ id: dbKey, changes: saveData })
+        patchData({ dbKey, changes: saveData })
       ).unwrap();
 
       if (result) {

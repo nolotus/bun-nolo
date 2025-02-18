@@ -114,7 +114,7 @@ export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
     const updatePromises = sidebarData.data.map((item) =>
       dispatch(
         patchData({
-          id: item.id,
+          dbKey: item.id,
           changes: {
             spaceId: spaceId,
             updatedAt: now,
