@@ -29,11 +29,11 @@ const Home = () => {
   return (
     <>
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.5rem" }}>
-        {isLoggedIn ? <GuideSection /> : <WelcomeSection />} {/* 根据登录状态显示不同的组件 */}
+        {isLoggedIn ? <GuideSection /> : <WelcomeSection />}{" "}
         <section className="section">
           <h2 className="section-title">看看其他人都建立了什么样的cybot</h2>
           <div className="cybots-container">
-            <PubCybots limit={8} />
+            <PubCybots limit={9} />
           </div>
         </section>
         <footer className="footer section delay">
