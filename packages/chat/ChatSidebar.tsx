@@ -1,6 +1,3 @@
-//────────────────────────────
-// Imports
-//────────────────────────────
 import React, { memo, useState, useEffect, useMemo, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import {
@@ -26,7 +23,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 //────────────────────────────
-// Types
+// 分组数据：将 space 中的内容按分类分组
 //────────────────────────────
 interface CategoryItem {
   id: string;
@@ -39,33 +36,26 @@ interface GroupedContent {
   uncategorized: SpaceContent[];
 }
 
-//────────────────────────────
-// Hooks
-//────────────────────────────
 const useGroupedContent = (space: Space | null) => {
   return useMemo(() => {
     if (!space) {
       return {
-        groupedData: {
-          categorized: {},
-          uncategorized: [],
-        } as GroupedContent,
+        groupedData: { categorized: {}, uncategorized: [] } as GroupedContent,
         sortedCategories: [] as CategoryItem[],
       };
     }
-
     const { contents, categories } = space;
     const categorized: Record<string, SpaceContent[]> = {};
     const uncategorized: SpaceContent[] = [];
 
-    // Initialize categories
+    // 初始化分类（用于保存内容）
     if (categories) {
       Object.keys(categories).forEach((categoryId) => {
         categorized[categoryId] = [];
       });
     }
 
-    // Sort and group contents
+    // 将内容按更新时间排序，并放入对应分类
     if (contents) {
       Object.values(contents)
         .sort((a, b) => {
@@ -81,8 +71,7 @@ const useGroupedContent = (space: Space | null) => {
           }
         });
     }
-
-    // Sort categories by order
+    // 对分类按顺序排序
     const sortedCategories = categories
       ? Object.entries(categories)
           .map(([id, category]) => ({
@@ -91,26 +80,23 @@ const useGroupedContent = (space: Space | null) => {
           }))
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       : [];
-
-    return {
-      groupedData: { categorized, uncategorized },
-      sortedCategories,
-    };
+    return { groupedData: { categorized, uncategorized }, sortedCategories };
   }, [space]);
 };
 
+//────────────────────────────
+// 拖拽排序相关 Hook
+//────────────────────────────
 const useCategoryDragAndDrop = (
   sortedCategories: CategoryItem[],
   space: Space | null,
-  dispatch: AppDispatch
+  dispatch: any
 ) => {
   return useCallback(
     (activeId: string, overId: string) => {
       if (!space?.id) return;
-
       const oldIndex = sortedCategories.findIndex((cat) => cat.id === activeId);
       const newIndex = sortedCategories.findIndex((cat) => cat.id === overId);
-
       if (oldIndex !== newIndex) {
         const newOrder = arrayMove(
           sortedCategories.map((cat) => cat.id),
@@ -129,11 +115,10 @@ const useCategoryDragAndDrop = (
   );
 };
 
-const useItemDragAndDrop = (space: Space | null, dispatch: AppDispatch) => {
+const useItemDragAndDrop = (space: Space | null, dispatch: any) => {
   return useCallback(
     (itemId: string, sourceContainer: string, targetContainer: string) => {
       if (!space?.id || sourceContainer === targetContainer) return;
-
       dispatch(
         updateContentCategory({
           spaceId: space.id,
@@ -148,7 +133,7 @@ const useItemDragAndDrop = (space: Space | null, dispatch: AppDispatch) => {
 };
 
 //────────────────────────────
-// Draggable Category Components
+// 可拖拽的 分类（用于排序分类）组件
 //────────────────────────────
 interface CategoryDraggableProps {
   id: string;
@@ -170,7 +155,6 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
     id,
     data: { type: "CATEGORY" },
   });
-
   const style = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
@@ -181,9 +165,9 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
       boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
     }),
   };
-
   return (
     <div ref={setNodeRef} style={style}>
+      {/* 注入拖拽句柄属性给子组件 */}
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
           return React.cloneElement(child, {
@@ -197,7 +181,7 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
 };
 
 //────────────────────────────
-// Draggable Item Components
+// 可拖拽的 Item 组件（包装 SidebarItem）
 //────────────────────────────
 interface ItemDraggableProps {
   id: string;
@@ -223,7 +207,6 @@ const ItemDraggable: React.FC<ItemDraggableProps> = ({
     id,
     data: { type: "ITEM", containerId },
   });
-
   const style = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
@@ -236,7 +219,6 @@ const ItemDraggable: React.FC<ItemDraggableProps> = ({
       boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
     }),
   };
-
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       {children}
@@ -245,40 +227,7 @@ const ItemDraggable: React.FC<ItemDraggableProps> = ({
 };
 
 //────────────────────────────
-// Container Components
-//────────────────────────────
-interface CategoryContentContainerProps {
-  containerId: string;
-  children: React.ReactNode;
-}
-
-const CategoryContentContainer: React.FC<CategoryContentContainerProps> = ({
-  containerId,
-  children,
-}) => {
-  const { isOver, setNodeRef } = useDroppable({
-    id: containerId,
-    data: { containerId },
-  });
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        padding: "4px 0",
-        borderRadius: "4px",
-        transition: "all 0.2s ease",
-        backgroundColor: isOver ? "rgba(0,150,250,0.1)" : "transparent",
-        outline: isOver ? "1px dashed rgba(0,150,250,0.5)" : "none",
-      }}
-    >
-      {children}
-    </div>
-  );
-};
-
-//────────────────────────────
-// Category Section Components
+// 分类区域组件（包含 header 和 items）
 //────────────────────────────
 interface CategorySectionProps {
   category: CategoryItem;
@@ -287,21 +236,26 @@ interface CategorySectionProps {
   dragHandleProps?: any;
 }
 
-const CategorySection = memo(
-  ({
-    category,
-    items,
-    shouldAnimate,
-    dragHandleProps,
-  }: CategorySectionProps) => {
+const CategorySection: React.FC<CategorySectionProps> = memo(
+  ({ category, items, shouldAnimate, dragHandleProps }) => {
+    // 用 droppable 包裹整个分类区域
+    const { isOver, setNodeRef } = useDroppable({
+      id: category.id,
+      data: { containerId: category.id },
+    });
     return (
-      <div className="category-section">
+      <div
+        ref={setNodeRef}
+        className={`category-section ${isOver ? "drag-over" : ""}`}
+      >
+        {/* 注意：传递给 CategoryHeader 的仅是拖拽句柄属性，不传 isDragOver，
+            这样 header 自身不再有额外变化 */}
         <CategoryHeader
           categoryId={category.id}
           categoryName={category.name}
           handleProps={dragHandleProps}
         />
-        <CategoryContentContainer containerId={category.id}>
+        <div className="category-content">
           <SortableContext
             items={items.map((item) => item.contentKey)}
             strategy={verticalListSortingStrategy}
@@ -317,27 +271,33 @@ const CategorySection = memo(
               </ItemDraggable>
             ))}
           </SortableContext>
-        </CategoryContentContainer>
+        </div>
       </div>
     );
   }
 );
 
+//────────────────────────────
+// 未分类区域组件，同理使用 droppable 包裹整个区域
+//────────────────────────────
 interface UncategorizedSectionProps {
   items: SpaceContent[];
   shouldAnimate: boolean;
 }
 
-const UncategorizedSection = memo(
-  ({ items, shouldAnimate }: UncategorizedSectionProps) => {
+const UncategorizedSection: React.FC<UncategorizedSectionProps> = memo(
+  ({ items, shouldAnimate }) => {
+    const { isOver, setNodeRef } = useDroppable({
+      id: "uncategorized",
+      data: { containerId: "uncategorized" },
+    });
     return (
-      <div className="category-section">
-        <CategoryHeader
-          categoryId="uncategorized"
-          categoryName="未分类"
-          isDragOver={false}
-        />
-        <CategoryContentContainer containerId="uncategorized">
+      <div
+        ref={setNodeRef}
+        className={`category-section ${isOver ? "drag-over" : ""}`}
+      >
+        <CategoryHeader categoryId="uncategorized" categoryName="未分类" />
+        <div className="category-content">
           <SortableContext
             items={items.map((item) => item.contentKey)}
             strategy={verticalListSortingStrategy}
@@ -353,16 +313,16 @@ const UncategorizedSection = memo(
               </ItemDraggable>
             ))}
           </SortableContext>
-        </CategoryContentContainer>
+        </div>
       </div>
     );
   }
 );
 
 //────────────────────────────
-// Main Component
+// ChatSidebar 主组件
 //────────────────────────────
-const ChatSidebar = () => {
+const ChatSidebar: React.FC = () => {
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const dispatch = useAppDispatch();
@@ -380,18 +340,14 @@ const ChatSidebar = () => {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active.data.current || !over) return;
-
     const type = active.data.current.type;
     if (type === "CATEGORY") {
       handleCategoryDragEnd(active.id as string, over.id as string);
     } else if (type === "ITEM") {
       const sourceContainer = active.data.current.containerId;
-      const targetContainer = over.data.current?.containerId || over.id;
-      handleItemDragEnd(
-        active.id as string,
-        sourceContainer as string,
-        targetContainer as string
-      );
+      const targetContainer = (over.data.current?.containerId ||
+        over.id) as string;
+      handleItemDragEnd(active.id as string, sourceContainer, targetContainer);
     }
   };
 
@@ -435,7 +391,6 @@ const ChatSidebar = () => {
               ))}
             </SortableContext>
           )}
-
           <UncategorizedSection
             items={groupedData.uncategorized}
             shouldAnimate={shouldAnimate}
@@ -484,19 +439,33 @@ const ChatSidebar = () => {
               background: ${theme.border};
               border-radius: 3px;
             }
+            /* 分类区域整体样式 */
             .category-section {
               position: relative;
               margin-bottom: 12px;
               padding: 4px;
-              transition: all 0.2s ease-out;
               background: ${theme.backgroundSecondary};
               border-radius: 6px;
+              transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+            }
+            /* 当拖拽进入任一区域时，整个分类区域显示蓝色线框 */
+            .category-section.drag-over {
+              background: rgba(0,150,250,0.1);
+              box-shadow: 0 0 0 2px rgba(0,150,250,0.5);
+            }
+            /* 如果分类区域处于拖拽状态，强制 header 保持原状（不产生额外效果） */
+            .category-section.drag-over .category-header {
+              background: inherit;
+              border: none;
+            }
+            .category-content {
+              margin-top: 4px;
             }
             .button-container {
               padding: 8px 16px;
             }
             .add-category-button {
-              transition: all 0.2s ease-out;
+              transition: background-color 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out;
               background: ${theme.backgroundSecondary};
               border: 1px solid ${theme.border};
               color: ${theme.textSecondary};

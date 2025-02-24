@@ -91,11 +91,16 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {isHovered && (
-          <span className="drag-handle" {...handleProps}>
-            <GrabberIcon size={16} />
-          </span>
-        )}
+        {/* 始终渲染拖拽图标容器，并通过 opacity 控制显示 */}
+        <span className="drag-handle" {...handleProps}>
+          <GrabberIcon
+            size={16}
+            style={{
+              opacity: isHovered ? 1 : 0,
+              transition: "opacity 0.2s ease-out",
+            }}
+          />
+        </span>
         <span className="category-name">{categoryName}</span>
         {isHovered && (
           <div className="category-actions">
@@ -177,114 +182,116 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
 
       <style>
         {`
-          .category-header {
-            margin: 2px 8px;
-            padding: 6px 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-radius: 6px;
-            background-color: transparent;
-            border: 1px solid transparent;
-            transition: all 0.2s ease-out;
-            user-select: none;
-            cursor: default;
-          }
+    .category-header {
+      box-sizing: border-box; /* 确保边框宽度包含在元素宽度内 */
+      margin: 2px 8px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 6px;
+      background-color: transparent;
+      border: 1px solid transparent;
+      /* 仅对背景色和边框色做过渡，不使用 all */
+      transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
+      user-select: none;
+      cursor: default;
+    }
 
-          .category-header:hover {
-            background-color: ${theme.backgroundGhost};
-            border-color: ${theme.borderLight}30;
-          }
+    .category-header:hover {
+      background-color: ${theme.backgroundGhost};
+      border-color: ${theme.borderLight}30;
+    }
 
-          .category-header.drag-over {
-            background-color: ${theme.primaryGhost};
-            border-color: ${theme.primary}30;
-          }
+    .category-header.drag-over {
+      background-color: ${theme.primaryGhost};
+      border-color: ${theme.primary}30;
+    }
 
-          .drag-handle {
-            cursor: grab;
-            color: ${theme.textTertiary};
-            display: flex;
-            align-items: center;
-            padding: 2px;
-            border-radius: 4px;
-          }
+    .drag-handle {
+      cursor: grab;
+      color: ${theme.textTertiary};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px; /* 固定宽度占位 */
+    }
 
-          .drag-handle:hover {
-            color: ${theme.textSecondary};
-            background-color: ${theme.backgroundGhost};
-          }
+    .drag-handle:hover {
+      color: ${theme.textSecondary};
+      background-color: ${theme.backgroundGhost};
+    }
 
-          .category-name {
-            font-size: 13px;
-            font-weight: 500;
-            color: ${theme.textSecondary};
-            flex-grow: 1;
-            margin-left: 4px;
-          }
+    .category-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: ${theme.textSecondary};
+      flex-grow: 1;
+      margin-left: 4px;
+    }
 
-          .category-actions {
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.2s ease-out;
-          }
+    .category-actions {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+    }
 
-          .category-header:hover .category-actions {
-            opacity: 1;
-          }
+    .category-header:hover .category-actions {
+      opacity: 1;
+    }
 
-          .action-button {
-            padding: 2px;
-            background: none;
-            border: none;
-            color: ${theme.textTertiary};
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-          }
+    .action-button {
+      padding: 2px;
+      background: none;
+      border: none;
+      color: ${theme.textTertiary};
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background-color 0.2s ease-out, color 0.2s ease-out;
+    }
 
-          .action-button:hover {
-            background-color: ${theme.backgroundGhost};
-          }
+    .action-button:hover {
+      background-color: ${theme.backgroundGhost};
+    }
 
-          .edit-button:hover {
-            color: ${theme.primary};
-          }
+    .edit-button:hover {
+      color: ${theme.primary};
+    }
 
-          .delete-button:hover {
-            color: ${theme.error};
-          }
+    .delete-button:hover {
+      color: ${theme.error};
+    }
 
-          .close-button {
-            background: none;
-            border: none;
-            color: ${theme.textSecondary};
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            align-items: center;
-          }
+    .close-button {
+      background: none;
+      border: none;
+      color: ${theme.textSecondary};
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
 
-          .edit-input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid ${theme.border};
-            border-radius: 4px;
-            background: ${theme.backgroundSecondary};
-            color: ${theme.text};
-            outline: none;
-            font-size: 14px;
-          }
+    .edit-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid ${theme.border};
+      border-radius: 4px;
+      background: ${theme.backgroundSecondary};
+      color: ${theme.text};
+      outline: none;
+      font-size: 14px;
+    }
 
-          .edit-input:focus {
-            border-color: ${theme.primary};
-          }
-        `}
+    .edit-input:focus {
+      border-color: ${theme.primary};
+    }
+  `}
       </style>
     </>
   );
