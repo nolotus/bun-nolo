@@ -17,8 +17,8 @@ const useCybotConfig = () => {
         ? currentDialogConfig.cybots[0]
         : currentDialogConfig.llmId;
 
-      const readAction = await dispatch(read(cybotId));
-      setCybotConfig(readAction.payload);
+      const result = await dispatch(read(cybotId)).unwrap();
+      setCybotConfig(result);
     };
 
     fetchCybotConfig();

@@ -65,7 +65,6 @@ export const readAction = async (id: string, thunkApi) => {
   }
 
   // 尝试从 cybot 获取
-  logger.info("Fetching from cybot.one");
   const cybotData = await fetchData(CYBOT_SERVER, id);
 
   if (!cybotData) {

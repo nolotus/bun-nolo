@@ -5,6 +5,7 @@ import {
   ImageIcon,
   BookIcon,
   FileCodeIcon,
+  GrabberIcon,
 } from "@primer/octicons-react";
 import { selectTheme } from "app/theme/themeSlice";
 import { ContentContextMenu } from "./ContentContextMenu";
@@ -12,11 +13,12 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { NavLink, useParams } from "react-router-dom";
 
-// 类型定义
 interface SidebarItemProps {
   contentKey: string;
   type: "dialog" | "page" | "image" | "doc" | "code" | "file";
   title: string;
+  categoryId?: string;
+  handleProps?: any;
 }
 
 const ITEM_ICONS = {
@@ -31,12 +33,11 @@ const ITEM_ICONS = {
 const ICON_SIZE = 20;
 
 export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
-  ({ contentKey, type, title }) => {
+  ({ contentKey, type, title, handleProps }) => {
     const { pageId } = useParams();
     const theme = useSelector(selectTheme);
     const menu = Ariakit.useMenuStore();
     const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
-
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
     const isSelected = contentKey === pageId;
@@ -57,6 +58,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           className={`sidebar-item ${isSelected ? "selected" : ""}`}
           onContextMenu={handleContextMenu}
         >
+          <span className="drag-handle" {...handleProps}>
+            <GrabberIcon size={16} />
+          </span>
           <IconComponent size={ICON_SIZE} className="sidebar-icon" />
           <NavLink to={`/${contentKey}`} className="sidebar-link">
             {displayTitle}
@@ -81,18 +85,28 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             border-radius: 6px;
             background-color: transparent;
             border: 1px solid transparent;
-            animation: smoothFadeIn 0.2s ease-out;
+            user-select: none;
           }
 
           .sidebar-item:hover {
             background-color: ${theme.backgroundGhost};
-            transform: translateX(2px);
-            border-color: ${theme.borderLight};
+            border-color: ${theme.borderLight}30;
           }
 
           .sidebar-item.selected {
             background-color: ${theme.primaryGhost};
-            border-color: ${theme.primaryLight}30;
+            border-color: ${theme.primary}30;
+          }
+
+          .drag-handle {
+            /* 默认隐藏已在全局样式中处理 */
+            color: ${theme.textTertiary};
+            display: flex;
+            align-items: center;
+          }
+
+          .drag-handle:hover {
+            color: ${theme.textSecondary};
           }
 
           .sidebar-link {
@@ -120,6 +134,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           .sidebar-icon {
             color: ${theme.textTertiary};
             transition: all 0.2s ease-out;
+            flex-shrink: 0;
           }
 
           .sidebar-item:hover .sidebar-icon {
@@ -129,17 +144,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           .sidebar-item.selected .sidebar-icon {
             color: ${theme.primary};
           }
-
-          @keyframes smoothFadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(2px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
         `}
         </style>
       </>
@@ -147,7 +151,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
   }
 );
 
-// 添加displayName以便调试
 SidebarItem.displayName = "SidebarItem";
 
 export default SidebarItem;

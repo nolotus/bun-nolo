@@ -35,7 +35,7 @@ import { CreateSpaceButton } from "create/space/CreateSpaceButton";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 
-import { SpaceItem } from "create/space/SpaceItem";
+import { SpaceItem } from "create/space/components/SpaceItem";
 
 export const SidebarTop = () => {
   const theme = useTheme();

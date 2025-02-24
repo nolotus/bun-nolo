@@ -1,27 +1,33 @@
 import type { NoloRootState } from "app/store";
-
 import {
   type PayloadAction,
   asyncThunkCreator,
   buildCreateSlice,
 } from "@reduxjs/toolkit";
-import { read } from "database/dbSlice";
-
-import { createSpaceKey } from "create/space/spaceKeys";
-
 import {
   SpaceData,
   MemberRole,
   SpaceMemberWithSpaceInfo,
 } from "create/space/types";
-import { getSettings } from "setting/settingSlice";
 
+// Actions
 import { deleteSpaceAction } from "./action/deleteSpaceAction";
 import { addContentAction } from "./action/addContentAction";
 import { deleteContentFromSpaceAction } from "./action/deleteContentFromSpaceAction";
 import { addSpaceAction } from "./action/addSpace";
 import { updateSpaceAction } from "./action/updateSpaceAction";
 import { fetchUserSpaceMembershipsAction } from "./action/fetchUserSpaceMemberships";
+import { addMemberAction } from "./action/addMemberAction";
+import { removeMemberAction } from "./action/removeMemberAction";
+import { addCategoryAction } from "./action/addCategoryAction";
+import { deleteCategoryAction } from "./action/deleteCategoryAction";
+import { updateCategoryNameAction } from "./action/updateCategoryNameAction";
+import { reorderCategoriesAction } from "./action/reorderCategoriesAction";
+import { fetchSpaceMembershipsAction } from "./action/fetchSpaceMembershipsAction";
+import { updateContentCategoryAction } from "./action/updateContentCategoryAction";
+import { initializeSpaceAction } from "./action/initializeSpaceAction";
+import { read } from "database/dbSlice";
+import { createSpaceKey } from "./spaceKeys";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -73,6 +79,7 @@ const spaceSlice = createSliceWithThunks({
         },
       }
     ),
+
     addSpace: create.asyncThunk(addSpaceAction, {
       fulfilled: (state, action) => {
         if (state.memberSpaces) {
@@ -82,6 +89,7 @@ const spaceSlice = createSliceWithThunks({
         }
       },
     }),
+
     addContentToSpace: create.asyncThunk(addContentAction, {
       fulfilled: (state, action) => {
         const { spaceId, updatedSpaceData } = action.payload;
@@ -90,9 +98,7 @@ const spaceSlice = createSliceWithThunks({
         }
       },
     }),
-    fetchSpaceMemberships: create.asyncThunk(async () => {}, {
-      fulfilled: () => {},
-    }),
+
     fetchUserSpaceMemberships: create.asyncThunk(
       fetchUserSpaceMembershipsAction,
       {
@@ -113,16 +119,12 @@ const spaceSlice = createSliceWithThunks({
     deleteSpace: create.asyncThunk(deleteSpaceAction, {
       fulfilled: (state, action) => {
         const { spaceId } = action.payload;
-
-        // 从memberSpaces中移除
         if (state.memberSpaces) {
           state.memberSpaces = state.memberSpaces.filter(
             (space) => space.spaceId !== spaceId
           );
         }
-        const isCurrentSpace = spaceId === state.currentSpaceId;
-        // 只有在删除的是当前space时才清除currentSpace相关状态
-        if (isCurrentSpace) {
+        if (spaceId === state.currentSpaceId) {
           state.currentSpace = null;
           state.currentSpaceId = null;
         }
@@ -132,13 +134,9 @@ const spaceSlice = createSliceWithThunks({
     updateSpace: create.asyncThunk(updateSpaceAction, {
       fulfilled: (state, action) => {
         const { updatedSpace, spaceId } = action.payload;
-        const isCurrentSpace = spaceId === state.currentSpaceId;
-        // 只有在更新的是当前space时才更新currentSpace
-        if (isCurrentSpace) {
+        if (spaceId === state.currentSpaceId) {
           state.currentSpace = updatedSpace;
         }
-
-        // 更新memberSpaces列表中的space名称
         if (state.memberSpaces) {
           state.memberSpaces = state.memberSpaces.map((space) =>
             space.spaceId === updatedSpace.id
@@ -148,79 +146,99 @@ const spaceSlice = createSliceWithThunks({
         }
       },
     }),
+
     deleteContentFromSpace: create.asyncThunk(deleteContentFromSpaceAction, {
       fulfilled: (state, action) => {
         const { spaceId, updatedSpaceData } = action.payload;
-        const isCurrentSpace = spaceId === state.currentSpaceId;
-        if (isCurrentSpace && state.currentSpace) {
+        if (spaceId === state.currentSpaceId) {
           state.currentSpace = updatedSpaceData;
         }
       },
     }),
-    initializeSpace: create.asyncThunk(
-      async (userId: string | undefined, thunkAPI) => {
-        const dispatch = thunkAPI.dispatch;
-        const state = thunkAPI.getState() as NoloRootState;
 
-        // 尝试按顺序从不同来源获取空间ID
-        const getSpaceId = async (): Promise<string | null> => {
-          // 1. 从用户设置中获取
-          try {
-            const settings = await dispatch(getSettings(userId)).unwrap();
-            const defaultSpaceId = settings?.userSetting?.defaultSpaceId;
-            if (defaultSpaceId) {
-              console.log("Using space ID from settings");
-              return defaultSpaceId;
-            }
-          } catch (error) {
-            console.warn("Failed to load settings:", error);
-          }
-          try {
-            const memberships = await dispatch(
-              fetchUserSpaceMemberships(userId)
-            ).unwrap();
-            if (memberships && memberships.length > 0) {
-              return memberships[0].spaceId;
-            }
-          } catch (error) {
-            console.warn("Failed to fetch memberships:", error);
-          }
+    initializeSpace: create.asyncThunk(initializeSpaceAction, {
+      fulfilled: (state) => {
+        state.loading = false;
+        state.initialized = true;
+      },
+      pending: (state) => {
+        state.loading = true;
+        state.currentSpaceId = null;
+        state.currentSpace = null;
+      },
+      rejected: (state, action) => {
+        state.loading = false;
+        state.initialized = true;
+        state.error = action.error.message;
+      },
+    }),
 
-          return null;
-        };
-
-        try {
-          const spaceId = await getSpaceId();
-
-          if (spaceId) {
-            await dispatch(changeSpace(spaceId)).unwrap();
-            return spaceId;
-          }
-
-          console.log("No space available to initialize");
-          return null;
-        } catch (error) {
-          console.error("Space initialization failed:", error);
-          throw error;
+    addMember: create.asyncThunk(addMemberAction, {
+      fulfilled: (state, action) => {
+        if (state.currentSpaceId === action.payload.spaceId) {
+          state.currentSpace = action.payload.updatedSpaceData;
         }
       },
-      {
-        fulfilled: (state, action) => {
-          state.loading = false;
-          state.initialized = true;
-        },
-        pending: (state) => {
-          state.loading = true;
-          state.currentSpaceId = null;
-          state.currentSpace = null;
-        },
-        rejected: (state, action) => {
-          state.loading = false;
-          state.initialized = true;
-          state.error = action.error.message;
-        },
-      }
-    ),
+    }),
+
+    removeMember: create.asyncThunk(removeMemberAction, {
+      fulfilled: (state, action) => {
+        if (state.currentSpaceId === action.payload.spaceId) {
+          state.currentSpace = action.payload.updatedSpaceData;
+        }
+      },
+    }),
+
+    addCategory: create.asyncThunk(addCategoryAction, {
+      fulfilled: (state, action) => {
+        if (state.currentSpaceId === action.payload.spaceId) {
+          state.currentSpace = action.payload.updatedSpaceData;
+        }
+      },
+    }),
+
+    deleteCategory: create.asyncThunk(deleteCategoryAction, {
+      fulfilled: (state, action) => {
+        if (state.currentSpaceId === action.payload.spaceId) {
+          state.currentSpace = action.payload.updatedSpaceData;
+        }
+      },
+    }),
+
+    updateCategoryName: create.asyncThunk(updateCategoryNameAction, {
+      fulfilled: (state, action) => {
+        if (state.currentSpaceId === action.payload.spaceId) {
+          state.currentSpace = action.payload.updatedSpaceData;
+        }
+      },
+    }),
+
+    updateContentCategory: create.asyncThunk(updateContentCategoryAction, {
+      fulfilled: (state, action) => {
+        if (state.currentSpaceId === action.payload.spaceId) {
+          state.currentSpace = action.payload.updatedSpaceData;
+        }
+      },
+    }),
+
+    reorderCategories: create.asyncThunk(reorderCategoriesAction, {
+      fulfilled: (state, action) => {
+        if (state.currentSpaceId === action.payload.spaceId) {
+          state.currentSpace = action.payload.updatedSpaceData;
+        }
+      },
+    }),
+
+    fetchSpaceMemberships: create.asyncThunk(fetchSpaceMembershipsAction, {
+      fulfilled: (state, action) => {
+        if (
+          state.currentSpaceId === action.payload.spaceId &&
+          state.currentSpace
+        ) {
+          state.currentSpace.members = action.payload.members;
+        }
+      },
+    }),
   }),
 });
 
@@ -232,18 +250,24 @@ export const {
   addContentToSpace,
   deleteContentFromSpace,
   initializeSpace,
-  fetchSpaceMemberships,
   fetchUserSpaceMemberships,
+  addMember,
+  removeMember,
+  addCategory,
+  deleteCategory,
+  updateCategoryName,
+  updateContentCategory,
+  reorderCategories,
+  fetchSpaceMemberships,
 } = spaceSlice.actions;
 
+// Selectors
 export const selectCurrentSpaceId = (state: NoloRootState) =>
   state.space.currentSpaceId;
 export const selectCurrentSpace = (state: NoloRootState) =>
   state.space.currentSpace;
-
 export const selectAllMemberSpaces = (state: NoloRootState) =>
   state.space.memberSpaces || [];
-
 export const selectOwnedMemberSpaces = (state: NoloRootState) =>
   (state.space.memberSpaces || []).filter(
     (space) => space.role === MemberRole.OWNER

@@ -12,10 +12,6 @@ export const deleteSpaceAction = async (spaceId: string, thunkAPI) => {
   const spaceKey = createSpaceKey.space(spaceId);
   const spaceData = await dispatch(read(spaceKey)).unwrap();
 
-  if (!spaceData) {
-    throw new Error("Space not found");
-  }
-
   if (spaceData.ownerId !== userId) {
     throw new Error("Only owner can delete space");
   }

@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@ariakit/react": "^0.4.15",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@floating-ui/react": "^0.27.2",
     "@hookform/resolvers": "^3.3.2",
     "@primer/octicons-react": "^19.8.0",

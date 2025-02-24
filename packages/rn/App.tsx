@@ -28,7 +28,7 @@ function App(): React.JSX.Element {
     // dispatch(setTheme(theme));
     const tokens = await rnTokenManager.getTokens();
     setDarkMode(isDarkMode);
-    // if (tokens) {
+    dispatch(setDarkMode(isDarkMode)); // if (tokens) {
     //   await dispatch(initAuth(tokens));
     // }
   };
