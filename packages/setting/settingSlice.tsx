@@ -3,6 +3,7 @@ import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { isProduction } from "utils/env";
 import { read, write } from "database/dbSlice";
 import { createUserKey } from "database/keys";
+import { selectCurrentUserId } from "auth/authSlice";
 
 interface SettingState {
   isAutoSync: boolean;
@@ -34,11 +35,15 @@ const settingSlice = createSliceWithThunks({
         // 使用传入的 userId 参数替代从 state 获取
         const id = createUserKey.settings(userId);
         const settings = await dispatch(read(id)).unwrap();
-        return settings;
+        if (settings) {
+          return settings;
+        }
       },
       {
         fulfilled: (state, action) => {
-          state = action.payload;
+          const newSettings = action.payload;
+          state.defaultSpaceId = newSettings.defaultSpaceId;
+          state.isAutoSync = newSettings.isAutoSync;
         },
       }
     ),
@@ -52,19 +57,20 @@ const settingSlice = createSliceWithThunks({
       const port = isHttp ? "80" : "443";
       state.currentServer = `${protocol}://${hostname}:${port}`;
     },
-    setSettings: create.asyncThunk(({ updateConfig }, thunkAPI) => {
+    setSettings: create.asyncThunk(async (args, thunkAPI) => {
       const dispatch = thunkAPI.dispatch;
       const state = thunkAPI.getState();
       const currentSettings = state.settings;
-      console.log("currentSettings", currentSettings);
-      const updatedSettings = { ...currentSettings, ...updateConfig };
-      console.log("updatedSettings", updatedSettings);
-      dispatch(
+      const userId = selectCurrentUserId(state);
+      const updatedSettings = { ...currentSettings, ...args };
+      const customKey = createUserKey.settings(userId);
+      const result = await dispatch(
         write({
           data: updatedSettings,
-          customKey: createUserKey.settings(state.auth.user.userId),
+          customKey,
         })
-      );
+      ).unwrap();
+      console.log("result", result);
     }),
   }),
 });

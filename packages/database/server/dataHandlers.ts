@@ -124,7 +124,8 @@ export const handleOtherDataTypes = async (
     data.type === DataType.MSG ||
     data.type === DataType.PAGE ||
     data.type === DataType.DIALOG ||
-    data.type === DataType.SPACE
+    data.type === DataType.SPACE ||
+    data.type === DataType.SETTING
   ) {
     await serverDb.put(customKey, data);
     return res.status(200).json({

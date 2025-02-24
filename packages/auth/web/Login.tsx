@@ -16,7 +16,6 @@ import { Input } from "web/form/Input";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import { RoutePaths } from "./routes";
-import { tokenManager } from "../tokenManager";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -48,10 +47,8 @@ const Login: React.FC = () => {
       const result = await dispatch(signIn({ ...data, locale })).unwrap();
 
       if (result.token) {
-        tokenManager.storeToken(result.token);
         // maybe add welcome
         navigate("/create");
-        return;
       }
 
       switch (result.status) {

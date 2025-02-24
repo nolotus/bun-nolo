@@ -8,7 +8,6 @@ import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
 import { parseToken } from "./token";
 import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
-import { tokenManager } from "./tokenManager";
 import { signUpAction } from "./action/signUpAction";
 import { hashPasswordV1 } from "core/password";
 import { initializeSpace } from "create/space/spaceSlice";
@@ -40,6 +39,7 @@ export const authSlice = createSliceWithThunks({
     signIn: create.asyncThunk(
       async (input, thunkAPI) => {
         const state = thunkAPI.getState();
+        const tokenManager = state.auth.tokenManager;
         try {
           const { username, locale, password } = input;
           const encryptionKey = await hashPasswordV1(password);
@@ -58,6 +58,7 @@ export const authSlice = createSliceWithThunks({
           });
           if (res.status === 200) {
             const result = await res.json();
+            tokenManager.storeToken(result.token);
             return { token: result.token };
           }
           return { status: res.status };
@@ -99,16 +100,18 @@ export const authSlice = createSliceWithThunks({
     }, {}),
 
     initializeAuth: create.asyncThunk(
-      async (_, thunkAPI) => {
+      async (tokenManager, thunkAPI) => {
         const tokens = await tokenManager.initTokens();
+
         if (tokens) {
           const user = parseToken(tokens[0]);
-          return { tokens, user };
+          return { tokens, user, tokenManager };
         }
       },
       {
         fulfilled: (state, action) => {
-          const { tokens, user } = action.payload;
+          const { tokens, user, tokenManager } = action.payload;
+          state.tokenManager = tokenManager;
           if (user) {
             state.currentUser = user;
             state.isLoggedIn = true;
@@ -134,6 +137,7 @@ export const authSlice = createSliceWithThunks({
     signOut: create.asyncThunk(
       async (_, thunkAPI) => {
         const state = thunkAPI.getState().auth;
+        const tokenManager = state.auth.tokenManager;
 
         if (state.currentToken) {
           await tokenManager.removeToken(state.currentToken);
@@ -173,6 +177,8 @@ export const authSlice = createSliceWithThunks({
     changeUser: create.asyncThunk(
       async (user: User, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
+        const state = thunkAPI.getState();
+        const tokenManager = state.auth.tokenManager;
 
         // 1. 先初始化新用户的space
         try {
@@ -232,7 +238,7 @@ export const selectCurrentUser = (state: NoloRootState) =>
 export const selectUsers = (state: NoloRootState) => state.auth.users;
 
 export const selectCurrentUserId = (state: NoloRootState) =>
-  state.auth.currentUser?.userId || "local";
+  state.auth.currentUser?.userId;
 
 export const selectIsLoggedIn = (state: NoloRootState) => state.auth.isLoggedIn;
 

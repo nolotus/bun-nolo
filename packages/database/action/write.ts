@@ -50,9 +50,10 @@ export const writeAction = async (writeConfig, thunkApi) => {
       DataType.TOKEN,
       DataType.TRANSACTION,
       DataType.SPACE,
+      DataType.SETTING,
     ].includes(data.type)
   ) {
-    return null;
+    throw new Error("无效的数据类型");
   }
 
   try {

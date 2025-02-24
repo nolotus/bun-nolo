@@ -3,6 +3,7 @@ import { SpaceMemberWithSpaceInfo } from "create/space/types";
 import { selectCurrentServer, setSettings } from "setting/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import { addSpace } from "../spaceSlice";
+import { DataType } from "../../types";
 
 const clientfetchUserSpaceMembers = async (userId) => {
   const memberships: SpaceMemberWithSpaceInfo[] = [];
@@ -62,7 +63,12 @@ export const fetchUserSpaceMembershipsAction = async (userId, thunkAPI) => {
           name: "Default Space",
         })
       ).unwrap();
-      dispatch(setSettings({ defaultSpaceId: newSpace.id }));
+      dispatch(
+        setSettings({
+          defaultSpaceId: newSpace.spaceId,
+          type: DataType.SETTING,
+        })
+      );
       mergedMemberships.push(newSpace);
     }
 
