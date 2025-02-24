@@ -42,6 +42,9 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const theme = useTheme();
   const spaceId = useAppSelector(selectCurrentSpaceId);
 
+  // 若分类名称为“未分类”，则不允许编辑和删除
+  const isUncategorized = categoryName === "未分类";
+
   const handleEdit = () => {
     setNewCategoryName(categoryName);
     setIsEditModalOpen(true);
@@ -102,7 +105,8 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           />
         </span>
         <span className="category-name">{categoryName}</span>
-        {isHovered && (
+        {/* 如果不是“未分类”，则显示编辑和删除按钮 */}
+        {isHovered && !isUncategorized && (
           <div className="category-actions">
             <button
               className="action-button edit-button"
@@ -122,63 +126,69 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         )}
       </div>
 
-      <BaseActionModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title="编辑分类名称"
-        status="info"
-        headerExtra={
-          <button
-            className="close-button"
-            onClick={() => setIsEditModalOpen(false)}
-          >
-            <XIcon size={16} />
-          </button>
-        }
-        actions={
-          <>
-            <Button
-              variant="secondary"
-              size="small"
+      {/* 仅在允许编辑的情况下才渲染编辑弹窗 */}
+      {!isUncategorized && (
+        <BaseActionModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title="编辑分类名称"
+          status="info"
+          headerExtra={
+            <button
+              className="close-button"
               onClick={() => setIsEditModalOpen(false)}
             >
-              取消
-            </Button>
-            <Button
-              variant="primary"
-              size="small"
-              onClick={handleConfirmEdit}
-              disabled={!newCategoryName || newCategoryName === categoryName}
-            >
-              确认
-            </Button>
-          </>
-        }
-        width={400}
-      >
-        <input
-          type="text"
-          value={newCategoryName}
-          onChange={(e) => setNewCategoryName(e.target.value)}
-          className="edit-input"
-          placeholder="请输入新的分类名称"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleConfirmEdit();
-          }}
-        />
-      </BaseActionModal>
+              <XIcon size={16} />
+            </button>
+          }
+          actions={
+            <>
+              <Button
+                variant="secondary"
+                size="small"
+                onClick={() => setIsEditModalOpen(false)}
+              >
+                取消
+              </Button>
+              <Button
+                variant="primary"
+                size="small"
+                onClick={handleConfirmEdit}
+                disabled={!newCategoryName || newCategoryName === categoryName}
+              >
+                确认
+              </Button>
+            </>
+          }
+          width={400}
+        >
+          <input
+            type="text"
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            className="edit-input"
+            placeholder="请输入新的分类名称"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleConfirmEdit();
+            }}
+          />
+        </BaseActionModal>
+      )}
 
-      <ConfirmModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="删除分类"
-        message={`确定要删除分类 "${categoryName}" 吗？`}
-        confirmText="删除"
-        cancelText="取消"
-        type="error"
-        showCancel={true}
-      />
+      {/* 仅在允许删除的情况下才渲染删除确认弹窗 */}
+      {!isUncategorized && (
+        <ConfirmModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          title="删除分类"
+          message={`确定要删除分类 "${categoryName}" 吗？`}
+          confirmText="删除"
+          cancelText="取消"
+          type="error"
+          showCancel={true}
+        />
+      )}
 
       <style>
         {`
