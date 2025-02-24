@@ -6,10 +6,12 @@ import { useEffect, useState } from "react";
 import { updateSpace, deleteSpace } from "create/space/spaceSlice";
 import { PlusIcon, TrashIcon, PencilIcon } from "@primer/octicons-react";
 
-//web
+// web
 import Button from "web/ui/Button";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
+import { Input } from "web/form/Input"; // 导入 Input 组件
+import TextArea from "web/form/TextArea"; // 导入 TextArea 组件
 
 import { InviteModal } from "../InviteModal";
 import { MemberList } from "../MemberList";
@@ -163,7 +165,7 @@ const SpaceSettings = () => {
           <div className="settings-form">
             <div className="form-group">
               <label>空间名称</label>
-              <input
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setSpaceName(e.target.value)}
@@ -173,11 +175,10 @@ const SpaceSettings = () => {
 
             <div className="form-group">
               <label>空间描述</label>
-              <textarea
+              <TextArea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="描述这个空间..."
-                rows={3}
               />
             </div>
 
@@ -271,9 +272,7 @@ const SpaceSettings = () => {
 
         .settings-section {
           background: ${theme.background};
-          border: 1px solid ${theme.border};
           border-radius: 8px;
-          padding: 24px;
           margin-bottom: 24px;
         }
 
@@ -317,8 +316,6 @@ const SpaceSettings = () => {
           font-size: 14px;
         }
 
-        input,
-        textarea,
         select {
           padding: 8px 12px;
           border: 1px solid ${theme.border};
@@ -329,19 +326,10 @@ const SpaceSettings = () => {
           transition: all 0.2s ease;
         }
 
-        textarea {
-          resize: vertical;
-          min-height: 80px;
-        }
-
-        input:hover,
-        textarea:hover,
         select:hover {
           border-color: ${theme.borderHover};
         }
 
-        input:focus,
-        textarea:focus,
         select:focus {
           border-color: ${theme.primary};
           outline: none;
