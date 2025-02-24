@@ -79,7 +79,6 @@ export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
   }
 
   // 写入space数据
-  console.log("Creating space with data:", spaceData);
   const result = await dispatch(
     write({
       data: {

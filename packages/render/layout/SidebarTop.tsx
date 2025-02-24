@@ -17,7 +17,6 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
   changeSpace,
-  fetchUserSpaceMemberships,
   selectAllMemberSpaces,
   selectCurrentSpace,
 } from "create/space/spaceSlice";

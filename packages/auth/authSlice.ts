@@ -186,7 +186,6 @@ export const authSlice = createSliceWithThunks({
         } catch (error) {
           console.warn("Failed to initialize user settings:", error);
           // 确保space被初始化,即使失败也要初始化一个默认space
-          await dispatch(initializeSpace(undefined)).unwrap();
         }
 
         // 2. 处理token

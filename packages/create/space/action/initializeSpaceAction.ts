@@ -1,8 +1,12 @@
 // create/space/action/initializeSpaceAction.ts
 
 import { NoloRootState } from "app/store";
-import { changeSpace } from "../spaceSlice";
+import { addSpace, changeSpace } from "../spaceSlice";
 import { fetchUserSpaceMemberships } from "../spaceSlice";
+import { setSettings } from "setting/settingSlice";
+import { DataType } from "../../types";
+import { read } from "database/dbSlice";
+import { createSpaceKey } from "../spaceKeys";
 
 export const initializeSpaceAction = async (
   userId: string | undefined,
@@ -11,32 +15,76 @@ export const initializeSpaceAction = async (
   const dispatch = thunkAPI.dispatch;
   const state = thunkAPI.getState() as NoloRootState;
 
-  // 尝试按顺序从不同来源获取空间ID
   const getSpaceId = async (): Promise<string | null> => {
-    // 1. 从用户设置中获取
-    const memberships = await dispatch(
-      fetchUserSpaceMemberships(userId)
-    ).unwrap();
     try {
-      const defaultSpaceId = state.settings.defaultSpaceId;
-      if (defaultSpaceId) {
-        return defaultSpaceId;
+      // 获取用户空间成员资格
+      const memberships = await dispatch(
+        fetchUserSpaceMemberships(userId)
+      ).unwrap();
+
+      // 处理空成员的情况
+      if (memberships.length === 0) {
+        try {
+          const newSpace = await dispatch(
+            addSpace({
+              name: "Default Space",
+            })
+          ).unwrap();
+
+          await dispatch(
+            setSettings({
+              defaultSpaceId: newSpace.spaceId,
+              type: DataType.SETTING,
+            })
+          );
+
+          return newSpace.spaceId;
+        } catch (error) {
+          console.error("Failed to create default space:", error);
+          throw new Error("Failed to create default space");
+        }
       }
+
+      // 处理有成员的情况
       if (memberships && memberships.length > 0) {
-        return memberships[0].spaceId;
+        const defaultSpaceId = state.settings.defaultSpaceId;
+
+        if (defaultSpaceId) {
+          try {
+            const result = await dispatch(
+              read(createSpaceKey.space(defaultSpaceId))
+            ).unwrap();
+
+            if (result) {
+              return defaultSpaceId;
+            }
+          } catch (error) {
+            console.error("Failed to read default space:", error);
+          }
+
+          // 如果默认空间不存在,返回第一个成员空间
+          return memberships[0].spaceId;
+        }
       }
+
+      return null;
     } catch (error) {
-      console.warn("Failed to load settings:", error);
+      console.error("Failed to get space ID:", error);
+      throw error;
     }
-    return null;
   };
 
   try {
     const spaceId = await getSpaceId();
 
     if (spaceId) {
-      await dispatch(changeSpace(spaceId)).unwrap();
-      return spaceId;
+      try {
+        await dispatch(changeSpace(spaceId)).unwrap();
+        return spaceId;
+      } catch (error) {
+        console.error("Failed to change space:", error);
+        throw new Error("Failed to change space");
+      }
     }
 
     console.log("No space available to initialize");

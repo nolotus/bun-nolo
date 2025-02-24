@@ -76,6 +76,7 @@ export default function App({
 
   // 系统初始化
   useEffect(() => {
+    console.log("App init");
     const initializeSystem = async () => {
       try {
         // 1. 基础设置初始化
