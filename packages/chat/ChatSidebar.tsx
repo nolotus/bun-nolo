@@ -364,12 +364,12 @@ const ChatSidebar: React.FC = () => {
     setIsAddModalOpen(false);
   };
 
+  // 移除了在没有数据时返回 null 的判断，
+  // 即使没有内容也依然展示侧边栏，让用户可以点击“添加分类”
   const hasAnyContent =
     (sortedCategories.length > 0 &&
       Object.values(groupedData.categorized).some((list) => list.length > 0)) ||
     groupedData.uncategorized.length > 0;
-
-  if (!hasAnyContent) return null;
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
