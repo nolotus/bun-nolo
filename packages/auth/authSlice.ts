@@ -22,7 +22,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  currentUser: { userId: "local" },
+  currentUser: {},
   users: [],
   isLoggedIn: false,
   currentToken: null,
@@ -109,11 +109,15 @@ export const authSlice = createSliceWithThunks({
       {
         fulfilled: (state, action) => {
           const { tokens, user } = action.payload;
-          state.currentUser = user;
-          state.currentToken = tokens[0];
-          state.isLoggedIn = true;
-          const users = tokens.map(parseToken);
-          state.users = users;
+          if (user) {
+            state.currentUser = user;
+            state.isLoggedIn = true;
+          }
+          if (tokens) {
+            state.currentToken = tokens[0];
+            const users = tokens.map(parseToken);
+            state.users = users;
+          }
         },
       }
     ),

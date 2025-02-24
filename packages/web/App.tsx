@@ -79,7 +79,7 @@ export default function App({
       try {
         // 1. 基础设置初始化
         dispatch(addHostToCurrentServer(hostname));
-        setDarkMode(isDark);
+        dispatch(setDarkMode(isDark));
 
         // 2. 初始化认证
         const { user } = await dispatch(initializeAuth()).unwrap();

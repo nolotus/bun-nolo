@@ -1,4 +1,4 @@
-// render/ui/BaseActionModal.tsx
+// web/ui/BaseActionModal.tsx
 import React from "react";
 import { BaseModal } from "./BaseModal";
 import { useTheme } from "app/theme";

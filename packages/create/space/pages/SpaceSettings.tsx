@@ -11,18 +11,9 @@ import Button from "web/ui/Button";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
 
-import { InviteModal } from "./InviteModal";
-import { MemberList } from "./MemberList";
-import { useSpaceData } from "./hooks/useSpaceData";
-
-interface SpaceData {
-  name: string;
-  spaceId: string;
-  createdAt: string;
-  visibility: "public" | "private";
-  ownerId: string;
-  description?: string;
-}
+import { InviteModal } from "../InviteModal";
+import { MemberList } from "../MemberList";
+import { useSpaceData } from "../hooks/useSpaceData";
 
 interface Member {
   id: string;
