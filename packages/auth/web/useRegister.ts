@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAppDispatch } from "app/hooks";
 import { signUp } from "auth/authSlice";
-import { tokenManager } from "../tokenManager";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -19,9 +18,7 @@ const useRegister = () => {
       console.log("Dispatch result:", action); // 日志3: 记录dispatch的结果
 
       if (action.payload.token) {
-        tokenManager.storeToken(action.payload.token);
         navigate("/create");
-        return;
       }
 
       switch (action.payload.status) {

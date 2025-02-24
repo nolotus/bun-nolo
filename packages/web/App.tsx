@@ -5,7 +5,7 @@ import { useAuth } from "auth/hooks/useAuth";
 import i18n from "i18n";
 import { Toaster } from "react-hot-toast";
 import { useRoutes, Outlet } from "react-router-dom";
-import { addHostToCurrentServer } from "setting/settingSlice";
+import { addHostToCurrentServer, getSettings } from "setting/settingSlice";
 import { setDarkMode } from "app/theme/themeSlice";
 import { initializeSpace } from "create/space/spaceSlice";
 
@@ -64,6 +64,7 @@ export default function App({
   hostname,
   lng = "en",
   isDark = false,
+  tokenManager,
 }: AppProps) {
   const auth = useAuth();
   const dispatch = useAppDispatch();
@@ -82,8 +83,8 @@ export default function App({
         dispatch(setDarkMode(isDark));
 
         // 2. 初始化认证
-        const { user } = await dispatch(initializeAuth()).unwrap();
-
+        const { user } = await dispatch(initializeAuth(tokenManager)).unwrap();
+        await dispatch(getSettings(user.userId)).unwrap();
         await dispatch(initializeSpace(user.userId)).unwrap();
       } catch (error) {
         console.error("System initialization failed:", error);
@@ -91,7 +92,7 @@ export default function App({
     };
 
     initializeSystem();
-  }, [dispatch, hostname, isDark]);
+  }, []);
 
   // 主题和语言初始化
   useEffect(() => {

@@ -7,6 +7,7 @@ import { createRoot, hydrateRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 import { isProduction } from "utils/env";
+import { webTokenManager } from "auth/web/tokenManager";
 
 import App from "./App";
 import { browserStore } from "./store";
@@ -28,7 +29,12 @@ if (isProduction) {
     <React.StrictMode>
       <Provider store={browserStore}>
         <BrowserRouter>
-          <App hostname={hostname} lng={lng} isDark={isDark} />
+          <App
+            hostname={hostname}
+            lng={lng}
+            isDark={isDark}
+            tokenManager={webTokenManager}
+          />
         </BrowserRouter>
       </Provider>
     </React.StrictMode>
@@ -39,7 +45,12 @@ if (isProduction) {
     <React.StrictMode>
       <Provider store={browserStore}>
         <HashRouter>
-          <App hostname={hostname} lng={lng} isDark={isDark} />
+          <App
+            hostname={hostname}
+            lng={lng}
+            isDark={isDark}
+            tokenManager={webTokenManager}
+          />
         </HashRouter>
       </Provider>
     </React.StrictMode>

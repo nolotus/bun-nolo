@@ -11,7 +11,7 @@ import Button from "web/ui/Button";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
 import { Input } from "web/form/Input"; // 导入 Input 组件
-import TextArea from "web/form/TextArea"; // 导入 TextArea 组件
+import TextArea from "web/form/Textarea";
 
 import { InviteModal } from "../InviteModal";
 import { MemberList } from "../MemberList";

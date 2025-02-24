@@ -82,6 +82,8 @@ const signUpToBackupServers = (
 
 export const signUpAction = async (user, thunkAPI) => {
   const { username, locale, password, email } = user;
+  const state = thunkAPI.getState();
+  const tokenManager = state.tokenManager;
   const encryptionKey = await hashPasswordV1(password);
   const { publicKey, secretKey } = generateKeyPairFromSeedV1(
     username + encryptionKey + locale
@@ -95,7 +97,7 @@ export const signUpAction = async (user, thunkAPI) => {
   };
 
   const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
-  const state = thunkAPI.getState();
+
   const currentServer = selectCurrentServer(state);
 
   // 首先在当前服务器注册
@@ -142,7 +144,7 @@ export const signUpAction = async (user, thunkAPI) => {
     { userId: localUserId, username, exp, iat, nbf },
     secretKey
   );
-
+  tokenManager.storeToken(token);
   const parsedUser = parseToken(token);
   logger.info({ username }, "Signup successful");
 

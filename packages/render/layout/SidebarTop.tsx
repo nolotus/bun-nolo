@@ -94,10 +94,6 @@ export const SidebarTop = () => {
     [click, dismiss, role, listNavigation]
   );
 
-  useEffect(() => {
-    dispatch(fetchUserSpaceMemberships(currentUserId));
-  }, [dispatch, currentUserId]);
-
   const handleOptionClick = (spaceId?: string) => {
     if (!spaceId) return;
     dispatch(changeSpace(spaceId));
