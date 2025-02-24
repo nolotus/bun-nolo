@@ -99,6 +99,7 @@ export default function App({
     const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent) => {
       setDarkMode(event.matches);
+      dispatch(setDarkMode(event.matches));
     };
 
     colorSchemeQuery.addEventListener("change", handleThemeChange);

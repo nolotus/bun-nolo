@@ -19,59 +19,54 @@ import "prismjs/components/prism-mermaid";
 
 // Mermaid 配置保持不变
 mermaid.initialize({
-    startOnLoad: true,
-    securityLevel: "loose",
-    theme: "default",
+  startOnLoad: true,
+  securityLevel: "loose",
+  theme: "default",
 });
 
-
 const CodeBlock = ({ attributes, children, element }) => {
-    const theme = useTheme();
-    const [isCopied, setIsCopied] = useState(false);
-    const [showPreview, setShowPreview] = useState(false);
+  const theme = useTheme();
+  const [isCopied, setIsCopied] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-
-    const content = useMemo(() => {
-        const getTextContent = (nodes) => {
-            return nodes
-                .map((node) => {
-                    if (node.text) return node.text;
-                    if (node.type === "code-line") {
-                        return getTextContent(node.children) + "\n";
-                    }
-                    return node.children ? getTextContent(node.children) : "";
-                })
-                .join("");
-        };
-
-
-        try {
-            return getTextContent(element.children);
-        } catch (err) {
-            console.error(err);
-            return "";
-        }
-    }, [element.children]);
-
-
-    const handleCopy = () => {
-        copyToClipboard(content, {
-            onSuccess: () => {
-                setIsCopied(true);
-                setTimeout(() => setIsCopied(false), 2000);
-            },
-        });
+  const content = useMemo(() => {
+    const getTextContent = (nodes) => {
+      return nodes
+        .map((node) => {
+          if (node.text) return node.text;
+          if (node.type === "code-line") {
+            return getTextContent(node.children) + "\n";
+          }
+          return node.children ? getTextContent(node.children) : "";
+        })
+        .join("");
     };
 
+    try {
+      return getTextContent(element.children);
+    } catch (err) {
+      console.error(err);
+      return "";
+    }
+  }, [element.children]);
 
-    // JSON View
-    if (element.language === "json" && content) {
-        try {
-            const jsonData = JSON.parse(content);
-            return (
-                <>
-                    <style>
-                        {`
+  const handleCopy = () => {
+    copyToClipboard(content, {
+      onSuccess: () => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      },
+    });
+  };
+
+  // JSON View
+  if (element.language === "json" && content) {
+    try {
+      const jsonData = JSON.parse(content);
+      return (
+        <>
+          <style>
+            {`
                             .code-block {
                                 position: relative;
                                 font-family: 'Fira Code', monospace;
@@ -99,55 +94,53 @@ const CodeBlock = ({ attributes, children, element }) => {
                                 color: ${theme.text};
                             }
                         `}
-                    </style>
-                    <div
-                        {...attributes}
-                        className={`code-block ${showPreview ? 'preview-mode' : ''}`}
-                    >
-                        <CodeBlockActions
-                            language={element.language}
-                            showPreview={showPreview}
-                            setShowPreview={setShowPreview}
-                            isCopied={isCopied}
-                            onCopy={handleCopy}
-                        />
-                        {showPreview ? (
-                            <JsonView
-                                data={jsonData}
-                                shouldExpandNode={allExpanded}
-                                style={{
-                                    ...defaultStyles,
-                                    container: {
-                                        ...defaultStyles.container,
-                                        backgroundColor: "transparent",
-                                    },
-                                }}
-                            />
-                        ) : (
-                            <pre className="code-content">{content}</pre>
-                        )}
-                    </div>
-                </>
-            );
-        } catch (e) {
-            console.error("JSON parse error:", e);
-        }
+          </style>
+          <div
+            {...attributes}
+            className={`code-block ${showPreview ? "preview-mode" : ""}`}
+          >
+            <CodeBlockActions
+              language={element.language}
+              showPreview={showPreview}
+              setShowPreview={setShowPreview}
+              isCopied={isCopied}
+              onCopy={handleCopy}
+            />
+            {showPreview ? (
+              <JsonView
+                data={jsonData}
+                shouldExpandNode={allExpanded}
+                style={{
+                  ...defaultStyles,
+                  container: {
+                    ...defaultStyles.container,
+                    backgroundColor: "transparent",
+                  },
+                }}
+              />
+            ) : (
+              <pre className="code-content">{content}</pre>
+            )}
+          </div>
+        </>
+      );
+    } catch (e) {
+      console.error("JSON parse error:", e);
     }
+  }
 
+  // Mermaid View
+  if (element.language === "mermaid") {
+    useEffect(() => {
+      if (showPreview) {
+        mermaid.contentLoaded();
+      }
+    }, [showPreview]);
 
-    // Mermaid View
-    if (element.language === "mermaid") {
-        useEffect(() => {
-            if (showPreview) {
-                mermaid.contentLoaded();
-            }
-        }, [showPreview]);
-
-
-        return (
-            <>
-                <style>
-                    {`
+    return (
+      <>
+        <style>
+          {`
                         .code-block {
                             position: relative;
                             font-family: 'Fira Code', monospace;
@@ -175,34 +168,33 @@ const CodeBlock = ({ attributes, children, element }) => {
                             color: ${theme.text};
                         }
                     `}
-                </style>
-                <div
-                    {...attributes}
-                    className={`code-block ${showPreview ? 'preview-mode' : ''}`}
-                >
-                    <CodeBlockActions
-                        language={element.language}
-                        showPreview={showPreview}
-                        setShowPreview={setShowPreview}
-                        isCopied={isCopied}
-                        onCopy={handleCopy}
-                    />
-                    {showPreview ? (
-                        <div className="mermaid">{content}</div>
-                    ) : (
-                        <pre className="code-content">{content}</pre>
-                    )}
-                </div>
-            </>
-        );
-    }
+        </style>
+        <div
+          {...attributes}
+          className={`code-block ${showPreview ? "preview-mode" : ""}`}
+        >
+          <CodeBlockActions
+            language={element.language}
+            showPreview={showPreview}
+            setShowPreview={setShowPreview}
+            isCopied={isCopied}
+            onCopy={handleCopy}
+          />
+          {showPreview ? (
+            <div className="mermaid">{content}</div>
+          ) : (
+            <pre className="code-content">{content}</pre>
+          )}
+        </div>
+      </>
+    );
+  }
 
-
-    // Default Code Block
-    return (
-        <>
-            <style>
-                {`
+  // Default Code Block
+  return (
+    <>
+      <style>
+        {`
                     .code-block {
                         position: relative;
                         font-family: 'Fira Code', monospace;
@@ -225,20 +217,19 @@ const CodeBlock = ({ attributes, children, element }) => {
                         color: ${theme.text};
                     }
                 `}
-            </style>
-            <div {...attributes} className="code-block">
-                <CodeBlockActions
-                    language={element.language}
-                    showPreview={showPreview}
-                    setShowPreview={setShowPreview}
-                    isCopied={isCopied}
-                    onCopy={handleCopy}
-                />
-                <pre className="code-content">{children}</pre>
-            </div>
-        </>
-    );
+      </style>
+      <div {...attributes} className="code-block">
+        <CodeBlockActions
+          language={element.language}
+          showPreview={showPreview}
+          setShowPreview={setShowPreview}
+          isCopied={isCopied}
+          onCopy={handleCopy}
+        />
+        <pre className="code-content">{children}</pre>
+      </div>
+    </>
+  );
 };
-
 
 export default CodeBlock;
