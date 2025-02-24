@@ -38,6 +38,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const theme = useSelector(selectTheme);
     const menu = Ariakit.useMenuStore();
     const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
+    // 用于检测图标区域是否悬停
+    const [isIconHover, setIsIconHover] = React.useState(false);
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
     const isSelected = contentKey === pageId;
@@ -58,10 +60,19 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           className={`sidebar-item ${isSelected ? "selected" : ""}`}
           onContextMenu={handleContextMenu}
         >
-          <span className="drag-handle" {...handleProps}>
-            <GrabberIcon size={16} />
+          {/* 合并拖拽和图标区域 */}
+          <span
+            className="combined-drag-icon"
+            {...handleProps}
+            onMouseEnter={() => setIsIconHover(true)}
+            onMouseLeave={() => setIsIconHover(false)}
+          >
+            {isIconHover ? (
+              <GrabberIcon size={ICON_SIZE} />
+            ) : (
+              <IconComponent size={ICON_SIZE} className="sidebar-icon" />
+            )}
           </span>
-          <IconComponent size={ICON_SIZE} className="sidebar-icon" />
           <NavLink to={`/${contentKey}`} className="sidebar-link">
             {displayTitle}
           </NavLink>
@@ -98,14 +109,14 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             border-color: ${theme.primary}30;
           }
 
-          .drag-handle {
-            /* 默认隐藏已在全局样式中处理 */
+          .combined-drag-icon {
             color: ${theme.textTertiary};
             display: flex;
             align-items: center;
+            transition: color 0.2s ease-out;
           }
 
-          .drag-handle:hover {
+          .combined-drag-icon:hover {
             color: ${theme.textSecondary};
           }
 
@@ -132,17 +143,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           }
 
           .sidebar-icon {
-            color: ${theme.textTertiary};
             transition: all 0.2s ease-out;
             flex-shrink: 0;
-          }
-
-          .sidebar-item:hover .sidebar-icon {
-            color: ${theme.textSecondary};
-          }
-
-          .sidebar-item.selected .sidebar-icon {
-            color: ${theme.primary};
           }
         `}
         </style>
