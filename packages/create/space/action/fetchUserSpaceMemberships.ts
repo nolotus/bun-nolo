@@ -1,9 +1,7 @@
 import { browserDb } from "database/browser/db";
 import { SpaceMemberWithSpaceInfo } from "create/space/types";
-import { selectCurrentServer, setSettings } from "setting/settingSlice";
+import { selectCurrentServer } from "setting/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
-import { addSpace } from "../spaceSlice";
-import { DataType } from "../../types";
 
 const clientfetchUserSpaceMembers = async (userId) => {
   const memberships: SpaceMemberWithSpaceInfo[] = [];
@@ -54,23 +52,6 @@ export const fetchUserSpaceMembershipsAction = async (userId, thunkAPI) => {
     });
 
     const mergedMemberships = Array.from(membershipMap.values());
-
-    // 如果结果为0，创建默认空间
-
-    if (mergedMemberships.length === 0) {
-      const newSpace = await dispatch(
-        addSpace({
-          name: "Default Space",
-        })
-      ).unwrap();
-      dispatch(
-        setSettings({
-          defaultSpaceId: newSpace.spaceId,
-          type: DataType.SETTING,
-        })
-      );
-      mergedMemberships.push(newSpace);
-    }
 
     const result = mergedMemberships.sort((a, b) => b.joinedAt - a.joinedAt);
     return result;
