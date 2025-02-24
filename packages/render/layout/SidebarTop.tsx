@@ -184,7 +184,6 @@ export const SidebarTop = () => {
           padding: 12px 16px;
           gap: 12px;
           align-items: center;
-          border-bottom: 1px solid ${theme.border};
         }
 
         .space-dropdown {
