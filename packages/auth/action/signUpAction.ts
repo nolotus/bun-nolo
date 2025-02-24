@@ -83,7 +83,7 @@ const signUpToBackupServers = (
 export const signUpAction = async (user, thunkAPI) => {
   const { username, locale, password, email } = user;
   const state = thunkAPI.getState();
-  const tokenManager = state.tokenManager;
+  const tokenManager = state.auth.tokenManager;
   const encryptionKey = await hashPasswordV1(password);
   const { publicKey, secretKey } = generateKeyPairFromSeedV1(
     username + encryptionKey + locale

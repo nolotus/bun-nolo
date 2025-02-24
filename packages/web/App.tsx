@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useAppDispatch } from "app/hooks";
 import { initializeAuth } from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
@@ -58,6 +58,7 @@ interface AppProps {
   hostname: string;
   lng?: string;
   isDark?: boolean;
+  tokenManager?: any;
 }
 
 export default function App({
@@ -69,6 +70,9 @@ export default function App({
   const auth = useAuth();
   const dispatch = useAppDispatch();
 
+  // 使用 useRef 来标记是否已初始化，防止因 StrictMode 重复调用
+  const initializedRef = useRef(false);
+
   const appRoutes = useMemo(
     () => generatorRoutes(hostname, auth),
     [hostname, auth]
@@ -76,6 +80,9 @@ export default function App({
 
   // 系统初始化
   useEffect(() => {
+    // 如果已经初始化，则直接返回
+    if (initializedRef.current) return;
+    initializedRef.current = true;
     console.log("App init");
     const initializeSystem = async () => {
       try {
@@ -88,19 +95,18 @@ export default function App({
         await dispatch(getSettings(user.userId)).unwrap();
         await dispatch(initializeSpace(user.userId)).unwrap();
       } catch (error) {
-        console.error("System initialization failed:", error);
+        console.error("系统初始化失败：", error);
       }
     };
 
     initializeSystem();
-  }, []);
+  }, [dispatch, hostname, isDark, tokenManager]);
 
   // 主题和语言初始化
   useEffect(() => {
     // 监听系统主题变化
     const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent) => {
-      setDarkMode(event.matches);
       dispatch(setDarkMode(event.matches));
     };
 
@@ -115,7 +121,7 @@ export default function App({
     return () => {
       colorSchemeQuery.removeEventListener("change", handleThemeChange);
     };
-  }, [lng]);
+  }, [dispatch, lng]);
 
   // 渲染路由
   const element = useRoutes(appRoutes);

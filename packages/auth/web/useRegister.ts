@@ -4,39 +4,29 @@ import { signUp } from "auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+interface RegisterData {
+  username: string;
+  password: string;
+  // 根据需要添加其它字段
+}
+
 const useRegister = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
 
-  const handleRegister = async (data) => {
+  const handleRegister = async (data: RegisterData) => {
     try {
       const locale = navigator.language;
-
-      const action = await dispatch(signUp({ ...data, locale }));
-      console.log("Dispatch result:", action); // 日志3: 记录dispatch的结果
-
-      if (action.payload.token) {
+      const result = await dispatch(signUp({ ...data, locale })).unwrap();
+      console.log("Dispatch result:", result);
+      if (result.token) {
         navigate("/create");
       }
-
-      switch (action.payload.status) {
-        case 409:
-          setError(t("userExists"));
-          break;
-        case 400:
-          setError(t("validationError"));
-          break;
-        case 500:
-          setError(t("serverError"));
-          break;
-        default:
-          setError(t("operationFailed"));
-      }
     } catch (err) {
-      console.error("Network error:", err); // 日志4: 记录网络错误
-      setError(t("networkError"));
+      console.error("Register error:", err);
+      setError(typeof err === "string" ? err : t("networkError"));
     }
   };
 

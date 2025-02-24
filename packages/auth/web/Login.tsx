@@ -1,8 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
-import type React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -11,7 +10,6 @@ import z from "zod";
 
 import { LockIcon, PersonIcon } from "@primer/octicons-react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Checkbox } from "web/form/Checkbox";
 import { Input } from "web/form/Input";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
@@ -24,57 +22,28 @@ const Login: React.FC = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState("v1");
 
   const userFormSchema = z.object({
     username: z.string().nonempty({ message: t("usernameRequired") || "" }),
     password: z.string().nonempty({ message: t("passwordRequired") || "" }),
-    version: z.string(),
   });
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(userFormSchema),
-  });
+  } = useForm({ resolver: zodResolver(userFormSchema) });
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: any) => {
     try {
       const locale = navigator.language;
-
       const result = await dispatch(signIn({ ...data, locale })).unwrap();
-
       if (result.token) {
-        // maybe add welcome
+        // 登录成功后跳转到 /create 页面
         navigate("/create");
       }
-
-      switch (result.status) {
-        case 404:
-          setError(t("userNotFound"));
-          break;
-        case 403:
-          setError(t("invalidCredentials"));
-          break;
-        case 401:
-          setError(t("notAuthorized"));
-          break;
-        case 429:
-          setError(t("tooManyAttempts"));
-          break;
-        case 400:
-          setError(t("validationError"));
-          break;
-        case 500:
-          setError(t("serverError"));
-          break;
-        default:
-          setError(t("operationFailed"));
-      }
     } catch (err) {
-      setError(t("networkError"));
+      setError(typeof err === "string" ? err : t("networkError"));
     }
   };
 
@@ -109,20 +78,7 @@ const Login: React.FC = () => {
           )}
         </div>
 
-        <div className="version-select-wrapper">
-          <select
-            {...register("version")}
-            onChange={(e) => setVersion(e.target.value)}
-            className="version-select"
-            value={version}
-          >
-            <option value="v1">V1</option>
-            <option value="v0">V0</option>
-          </select>
-        </div>
-
-        <div className="remember-forgot">
-          <Checkbox label={t("rememberMe")} {...register("rememberMe")} />
+        <div className="forgot-password-wrapper">
           <NavLink to="/forgot-password" className="forgot-password">
             {t("forgotPassword")}
           </NavLink>
@@ -185,10 +141,8 @@ const Login: React.FC = () => {
             margin-top: 8px;
           }
 
-          .remember-forgot {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+          .forgot-password-wrapper {
+            text-align: right;
             margin-bottom: 32px;
           }
 
@@ -233,57 +187,35 @@ const Login: React.FC = () => {
             color: ${theme.primaryLight};
           }
 
-.version-select-wrapper {
-  margin-bottom: 20px;
-  text-align: right;
-}
-
-
-.version-select {
-  padding: 4px 8px;
-  border: 1px solid ${theme.border};
-  border-radius: 4px;
-  background-color: ${theme.background};
-  color: ${theme.textSecondary};
-  font-size: 13px;
-  cursor: pointer;
-  opacity: 0.7;
-}
-
-
-.version-select:hover {
-  opacity: 1;
-}
-
           @media (min-width: 768px) {
             .login-form {
               max-width: 420px;
             }
-
+  
             .login-title {
               font-size: 36px;
               margin-bottom: 56px;
             }
-
+  
             .field-group {
               margin-bottom: 32px;
             }
           }
-
+  
           @media (min-width: 1200px) {
             .login-form {
               max-width: 460px;
             }
-
+  
             .login-title {
               font-size: 40px;
               margin-bottom: 64px;
             }
-
+  
             .field-group {
               margin-bottom: 36px;
             }
-
+  
             .form-footer {
               gap: 40px;
             }
