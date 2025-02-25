@@ -8,13 +8,14 @@ import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
 import { parseToken } from "./token";
 import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
-import { tokenManager } from "./tokenManager";
 import { signUpAction } from "./action/signUpAction";
 import { hashPasswordV1 } from "core/password";
 import { initializeSpace } from "create/space/spaceSlice";
 
+// 优化初始状态和类型定义
 interface AuthState {
-  currentUser: User;
+  tokenManager?: any;
+  currentUser: User | null;
   users: User[];
   isLoggedIn: boolean;
   currentToken: string | null;
@@ -22,7 +23,8 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  currentUser: { userId: "local" },
+  tokenManager: undefined,
+  currentUser: null,
   users: [],
   isLoggedIn: false,
   currentToken: null,
@@ -39,28 +41,25 @@ export const authSlice = createSliceWithThunks({
   reducers: (create) => ({
     signIn: create.asyncThunk(
       async (input, thunkAPI) => {
-        const state = thunkAPI.getState();
+        const state: NoloRootState = thunkAPI.getState();
+        const tokenManager = state.auth.tokenManager;
         try {
           const { username, locale, password } = input;
           const encryptionKey = await hashPasswordV1(password);
-
-          let userId;
-          let token;
           const { publicKey, secretKey } = generateKeyPairFromSeedV1(
             username + encryptionKey + locale
           );
-          userId = generateUserIdV1(publicKey, username, locale);
-          token = signToken({ userId, publicKey, username }, secretKey);
+          const userId = generateUserIdV1(publicKey, username, locale);
+          const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
-          const res = await loginRequest(currentServer, {
-            userId,
-            token,
-          });
-          if (res.status === 200) {
-            const result = await res.json();
-            return { token: result.token };
+          const res = await loginRequest(currentServer, { userId, token });
+          if (res.status !== 200) {
+            const errorMessage = `服务器响应状态码：${res.status}`;
+            return thunkAPI.rejectWithValue(errorMessage);
           }
-          return { status: res.status };
+          const result = await res.json();
+          tokenManager.storeToken(result.token);
+          return { token: result.token };
         } catch (error) {
           return thunkAPI.rejectWithValue(error);
         }
@@ -69,51 +68,56 @@ export const authSlice = createSliceWithThunks({
         pending: (state) => {
           state.isLoading = true;
         },
-        rejected: (state, error) => {
+        rejected: (state, action) => {
           state.isLoading = false;
         },
         fulfilled: (state, action) => {
-          const { payload } = action;
-          state.isLoggedIn = true;
-          const token = payload.token;
-          state.currentToken = token;
-          const user = parseToken(payload.token);
+          const { token } = action.payload;
+          const user = parseToken(token);
           state.currentUser = user;
+          state.currentToken = token;
           state.isLoggedIn = true;
-          state.users = [user, ...state.users];
+          // 使用 Immer 内置方法直接在原数组头部插入
+          state.users.unshift(user);
           state.isLoading = false;
         },
       }
     ),
+
     signUp: create.asyncThunk(signUpAction, {
       fulfilled: (state, action) => {
         const { user, token } = action.payload;
         state.currentUser = user;
         state.isLoggedIn = true;
-        state.users = [user, ...state.users];
+        state.users.unshift(user);
         state.currentToken = token;
       },
     }),
+
     inviteSignUp: create.asyncThunk(() => {
-      console.log("inviteSignUp");
+      console.log("inviteSignUp - 该功能暂未实现");
     }, {}),
 
     initializeAuth: create.asyncThunk(
-      async (_, thunkAPI) => {
+      async (tokenManager, thunkAPI) => {
         const tokens = await tokenManager.initTokens();
         if (tokens) {
           const user = parseToken(tokens[0]);
-          return { tokens, user };
+          return { tokens, user, tokenManager };
         }
       },
       {
         fulfilled: (state, action) => {
-          const { tokens, user } = action.payload;
-          state.currentUser = user;
-          state.currentToken = tokens[0];
-          state.isLoggedIn = true;
-          const users = tokens.map(parseToken);
-          state.users = users;
+          const { tokens, user, tokenManager } = action.payload;
+          state.tokenManager = tokenManager;
+          if (user) {
+            state.currentUser = user;
+            state.isLoggedIn = true;
+          }
+          if (tokens) {
+            state.currentToken = tokens[0];
+            state.users = tokens.map(parseToken);
+          }
         },
       }
     ),
@@ -127,59 +131,51 @@ export const authSlice = createSliceWithThunks({
       state.users = action.payload.users;
       state.currentToken = action.payload.token;
     },
+
     signOut: create.asyncThunk(
       async (_, thunkAPI) => {
-        const state = thunkAPI.getState().auth;
-
-        if (state.currentToken) {
-          await tokenManager.removeToken(state.currentToken);
+        const state: NoloRootState = thunkAPI.getState();
+        const tokenManager = state.auth.tokenManager;
+        const tokens = await tokenManager.getTokens();
+        const token = selectCurrentToken(state);
+        if (token) {
+          await tokenManager.removeToken(token);
         }
-
-        const otherUsers = state.users.filter(
-          (user) => user.userId !== state.currentUser.userId
-        );
-
-        if (otherUsers.length > 0) {
-          const tokens = await tokenManager.getTokens();
-          return {
-            otherUsers,
-            nextToken: tokens[0] || null,
-          };
-        }
-
-        return { otherUsers: [] };
+        return { tokens };
       },
       {
         fulfilled: (state, action) => {
-          const { otherUsers, nextToken } = action.payload;
-
+          const { tokens } = action.payload;
+          const otherUsers = state.users.filter(
+            (user) => user.userId !== state.currentUser?.userId
+          );
           if (otherUsers.length > 0) {
             state.currentUser = otherUsers[0];
             state.users = otherUsers;
-            state.currentToken = nextToken;
+            state.currentToken = tokens[0] || null;
           } else {
             state.isLoggedIn = false;
-            state.currentUser = { userId: "local" };
+            state.currentUser = null;
             state.users = [];
             state.currentToken = null;
           }
         },
       }
     ),
+
     changeUser: create.asyncThunk(
       async (user: User, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
+        const state: NoloRootState = thunkAPI.getState();
+        const tokenManager = state.auth.tokenManager;
 
-        // 1. 先初始化新用户的space
+        // 尝试初始化新用户的 space，如果出错也不阻断流程
         try {
           await dispatch(initializeSpace(user.userId)).unwrap();
         } catch (error) {
           console.warn("Failed to initialize user settings:", error);
-          // 确保space被初始化,即使失败也要初始化一个默认space
-          await dispatch(initializeSpace(undefined)).unwrap();
         }
 
-        // 2. 处理token
         const tokens = await tokenManager.getTokens();
         const updatedToken = tokens.find(
           (t) => parseToken(t).userId === user.userId
@@ -189,7 +185,6 @@ export const authSlice = createSliceWithThunks({
           return thunkAPI.rejectWithValue("Token not found for user");
         }
 
-        // 更新 token 顺序
         await tokenManager.removeToken(updatedToken);
         await tokenManager.storeToken(updatedToken);
 
@@ -198,11 +193,9 @@ export const authSlice = createSliceWithThunks({
           token: updatedToken,
         };
       },
-
       {
         fulfilled: (state, action) => {
-          const { user, token, settings } = action.payload;
-          // 更新认证状态
+          const { user, token } = action.payload;
           state.currentUser = user;
           state.currentToken = token;
         },
@@ -222,15 +215,13 @@ export const {
 } = authSlice.actions;
 
 export default authSlice.reducer;
+
+// 选择器
 export const selectCurrentUser = (state: NoloRootState) =>
   state.auth.currentUser;
-
 export const selectUsers = (state: NoloRootState) => state.auth.users;
-
 export const selectCurrentUserId = (state: NoloRootState) =>
-  state.auth.currentUser?.userId || "local";
-
+  state.auth.currentUser?.userId;
 export const selectIsLoggedIn = (state: NoloRootState) => state.auth.isLoggedIn;
-
 export const selectCurrentToken = (state: NoloRootState) =>
   state.auth.currentToken;

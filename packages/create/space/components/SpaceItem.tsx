@@ -53,7 +53,7 @@ export const SpaceItem = ({
         </button>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .space-list-item {
           position: relative;
           padding: 1px 4px;

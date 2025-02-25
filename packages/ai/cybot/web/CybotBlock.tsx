@@ -240,7 +240,6 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           padding: 0.15rem 0.4rem;
           background: ${theme.backgroundTertiary};
           border-radius: 4px;
-          border: 1px solid ${theme.border};
           white-space: nowrap;
         }
 
