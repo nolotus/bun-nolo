@@ -17,7 +17,6 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
   changeSpace,
-  fetchUserSpaceMemberships,
   selectAllMemberSpaces,
   selectCurrentSpace,
 } from "create/space/spaceSlice";
@@ -35,7 +34,7 @@ import { CreateSpaceButton } from "create/space/CreateSpaceButton";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 
-import { SpaceItem } from "create/space/SpaceItem";
+import { SpaceItem } from "create/space/components/SpaceItem";
 
 export const SidebarTop = () => {
   const theme = useTheme();
@@ -93,10 +92,6 @@ export const SidebarTop = () => {
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(
     [click, dismiss, role, listNavigation]
   );
-
-  useEffect(() => {
-    dispatch(fetchUserSpaceMemberships(currentUserId));
-  }, [dispatch, currentUserId]);
 
   const handleOptionClick = (spaceId?: string) => {
     if (!spaceId) return;
@@ -189,7 +184,6 @@ export const SidebarTop = () => {
           padding: 12px 16px;
           gap: 12px;
           align-items: center;
-          border-bottom: 1px solid ${theme.border};
         }
 
         .space-dropdown {

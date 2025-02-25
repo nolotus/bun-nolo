@@ -5,7 +5,7 @@ import MainLayout from "render/layout/MainLayout";
 
 import { SurfTip } from "./SurfTip";
 import { commonRoutes } from "./generatorRoutes";
-import SpaceSettings from "create/space/SpaceSettings";
+import SpaceSettings from "create/space/pages/SpaceSettings";
 const Page = lazy(() => import("render/page/PageIndex"));
 
 const PricePage = lazy(() => import("app/pages/Price"));

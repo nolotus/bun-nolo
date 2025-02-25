@@ -17,7 +17,6 @@ const requestHandlers = {
   mistral: sendCommonChatRequest,
   google: sendCommonChatRequest,
   ollama: sendCommonChatRequest,
-  groq: sendCommonChatRequest,
   anthropic: sendClaudeRequest,
   sambanova: sendCommonChatRequest,
   openrouter: sendCommonChatRequest,

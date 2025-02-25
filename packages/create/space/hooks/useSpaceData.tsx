@@ -7,7 +7,6 @@ import { read } from "database/dbSlice";
 export const useSpaceData = (spaceId: string) => {
   const dispatch = useAppDispatch();
   const [spaceData, setSpaceData] = useState<SpaceData | null>(null);
-  console.log("spaceData", spaceData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 

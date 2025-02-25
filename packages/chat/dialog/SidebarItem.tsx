@@ -5,6 +5,7 @@ import {
   ImageIcon,
   BookIcon,
   FileCodeIcon,
+  GrabberIcon,
 } from "@primer/octicons-react";
 import { selectTheme } from "app/theme/themeSlice";
 import { ContentContextMenu } from "./ContentContextMenu";
@@ -12,11 +13,12 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { NavLink, useParams } from "react-router-dom";
 
-// 类型定义
 interface SidebarItemProps {
   contentKey: string;
   type: "dialog" | "page" | "image" | "doc" | "code" | "file";
   title: string;
+  categoryId?: string;
+  handleProps?: any;
 }
 
 const ITEM_ICONS = {
@@ -31,12 +33,13 @@ const ITEM_ICONS = {
 const ICON_SIZE = 20;
 
 export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
-  ({ contentKey, type, title }) => {
+  ({ contentKey, type, title, handleProps }) => {
     const { pageId } = useParams();
     const theme = useSelector(selectTheme);
     const menu = Ariakit.useMenuStore();
     const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
-
+    // 用于检测图标区域是否悬停
+    const [isIconHover, setIsIconHover] = React.useState(false);
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
     const isSelected = contentKey === pageId;
@@ -57,7 +60,19 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           className={`sidebar-item ${isSelected ? "selected" : ""}`}
           onContextMenu={handleContextMenu}
         >
-          <IconComponent size={ICON_SIZE} className="sidebar-icon" />
+          {/* 合并拖拽和图标区域 */}
+          <span
+            className="combined-drag-icon"
+            {...handleProps}
+            onMouseEnter={() => setIsIconHover(true)}
+            onMouseLeave={() => setIsIconHover(false)}
+          >
+            {isIconHover ? (
+              <GrabberIcon size={ICON_SIZE} />
+            ) : (
+              <IconComponent size={ICON_SIZE} className="sidebar-icon" />
+            )}
+          </span>
           <NavLink to={`/${contentKey}`} className="sidebar-link">
             {displayTitle}
           </NavLink>
@@ -81,18 +96,28 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             border-radius: 6px;
             background-color: transparent;
             border: 1px solid transparent;
-            animation: smoothFadeIn 0.2s ease-out;
+            user-select: none;
           }
 
           .sidebar-item:hover {
             background-color: ${theme.backgroundGhost};
-            transform: translateX(2px);
-            border-color: ${theme.borderLight};
+            border-color: ${theme.borderLight}30;
           }
 
           .sidebar-item.selected {
             background-color: ${theme.primaryGhost};
-            border-color: ${theme.primaryLight}30;
+            border-color: ${theme.primary}30;
+          }
+
+          .combined-drag-icon {
+            color: ${theme.textTertiary};
+            display: flex;
+            align-items: center;
+            transition: color 0.2s ease-out;
+          }
+
+          .combined-drag-icon:hover {
+            color: ${theme.textSecondary};
           }
 
           .sidebar-link {
@@ -118,27 +143,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           }
 
           .sidebar-icon {
-            color: ${theme.textTertiary};
             transition: all 0.2s ease-out;
-          }
-
-          .sidebar-item:hover .sidebar-icon {
-            color: ${theme.textSecondary};
-          }
-
-          .sidebar-item.selected .sidebar-icon {
-            color: ${theme.primary};
-          }
-
-          @keyframes smoothFadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(2px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
+            flex-shrink: 0;
           }
         `}
         </style>
@@ -147,7 +153,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
   }
 );
 
-// 添加displayName以便调试
 SidebarItem.displayName = "SidebarItem";
 
 export default SidebarItem;
