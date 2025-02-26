@@ -114,7 +114,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             color: ${theme.textSecondary};
           }
           .sidebar-link {
-            font-size: ${ICON_SIZE / 1.6}px;
+            font-size: ${ICON_SIZE / 1.5}px; /* 略微增大字体 */
             line-height: 1.4;
             color: ${theme.textSecondary};
             flex-grow: 1;

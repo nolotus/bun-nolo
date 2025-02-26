@@ -17,7 +17,6 @@ import "prismjs/components/prism-json";
 import "prismjs/components/prism-yaml";
 import "prismjs/components/prism-mermaid";
 
-// Mermaid 配置保持不变
 mermaid.initialize({
   startOnLoad: true,
   securityLevel: "loose",
@@ -59,42 +58,47 @@ const CodeBlock = ({ attributes, children, element }) => {
     });
   };
 
+  // 通用代码块样式
+  const codeBlockStyles = `
+    .code-block {
+      position: relative;
+      font-family: 'Fira Code', monospace;
+      background: ${theme.backgroundSecondary};
+      padding: 16px 18px;
+      border-radius: 6px;
+      margin: 18px 0;
+      border: 1px solid ${theme.border};
+      box-shadow: 0 1px 2px ${theme.shadowLight};
+      transition: all 0.2s ease-out;
+    }
+    
+    .preview-mode {
+      background: ${theme.backgroundGhost};
+      padding: 18px;
+    }
+
+    .code-content {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 14px; /* 略微增大 */
+      line-height: 1.6;
+      color: ${theme.text};
+      overflow-x: auto;
+    }
+    
+    .code-block:hover {
+      border-color: ${theme.borderHover};
+    }
+  `;
+
   // JSON View
   if (element.language === "json" && content) {
     try {
       const jsonData = JSON.parse(content);
       return (
         <>
-          <style>
-            {`
-                            .code-block {
-                                position: relative;
-                                font-family: 'Fira Code', monospace;
-                                background: ${theme.backgroundSecondary};
-                                padding: 1.5rem;
-                                border-radius: 8px;
-                                margin: 16px 0;
-                                border: 1px solid ${theme.border};
-                                box-shadow: 0 2px 4px ${theme.shadowLight};
-                                transition: all 0.3s ease;
-                            }
-                            
-                            .preview-mode {
-                                background: ${theme.background};
-                                padding: 2rem;
-                            }
-
-
-                            .code-content {
-                                margin: 0;
-                                white-space: pre-wrap;
-                                word-break: break-word;
-                                font-size: 14px;
-                                line-height: 1.6;
-                                color: ${theme.text};
-                            }
-                        `}
-          </style>
+          <style>{codeBlockStyles}</style>
           <div
             {...attributes}
             className={`code-block ${showPreview ? "preview-mode" : ""}`}
@@ -139,36 +143,7 @@ const CodeBlock = ({ attributes, children, element }) => {
 
     return (
       <>
-        <style>
-          {`
-                        .code-block {
-                            position: relative;
-                            font-family: 'Fira Code', monospace;
-                            background: ${theme.backgroundSecondary};
-                            padding: 1.5rem;
-                            border-radius: 8px;
-                            margin: 16px 0;
-                            border: 1px solid ${theme.border};
-                            box-shadow: 0 2px 4px ${theme.shadowLight};
-                            transition: all 0.3s ease;
-                        }
-                        
-                        .preview-mode {
-                            background: ${theme.background};
-                            padding: 2rem;
-                        }
-
-
-                        .code-content {
-                            margin: 0;
-                            white-space: pre-wrap;
-                            word-break: break-word;
-                            font-size: 14px;
-                            line-height: 1.6;
-                            color: ${theme.text};
-                        }
-                    `}
-        </style>
+        <style>{codeBlockStyles}</style>
         <div
           {...attributes}
           className={`code-block ${showPreview ? "preview-mode" : ""}`}
@@ -193,31 +168,7 @@ const CodeBlock = ({ attributes, children, element }) => {
   // Default Code Block
   return (
     <>
-      <style>
-        {`
-                    .code-block {
-                        position: relative;
-                        font-family: 'Fira Code', monospace;
-                        background: ${theme.backgroundSecondary};
-                        padding: 1.5rem;
-                        border-radius: 8px;
-                        margin: 16px 0;
-                        border: 1px solid ${theme.border};
-                        box-shadow: 0 2px 4px ${theme.shadowLight};
-                        transition: all 0.3s ease;
-                    }
-
-
-                    .code-content {
-                        margin: 0;
-                        white-space: pre-wrap;
-                        word-break: break-word;
-                        font-size: 14px;
-                        line-height: 1.6;
-                        color: ${theme.text};
-                    }
-                `}
-      </style>
+      <style>{codeBlockStyles}</style>
       <div {...attributes} className="code-block">
         <CodeBlockActions
           language={element.language}

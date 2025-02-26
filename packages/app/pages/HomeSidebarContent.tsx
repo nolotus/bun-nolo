@@ -36,11 +36,6 @@ const HomeSidebarContent: React.FC = () => {
       label: "帮助",
       icon: <MdOutlineHelpCenter size={18} />,
     },
-    {
-      path: "/about",
-      label: "关于",
-      icon: <PeopleIcon size={18} />,
-    },
   ];
 
   const allowedBottomLinks = allowRule(auth?.user, bottomLinks);

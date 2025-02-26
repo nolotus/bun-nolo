@@ -22,43 +22,74 @@ const THEME_COLORS = {
 };
 
 // 明暗模式基础颜色
+// app/theme/themeSlice.ts (MODE_COLORS 优化版)
 const MODE_COLORS = {
   light: {
+    // 中性色系 - 适用于所有主题
     background: "#FFFFFF",
-    backgroundSecondary: "#F9FAFB", // 更柔和的次级背景
-    backgroundGhost: "rgba(255, 255, 255, 0.95)", // 更高的不透明度更舒适
-    text: "#1A1F36", // 柔和但仍保持清晰的文本色
-    textSecondary: "#4F566B", // 适中的次要文本
-    textTertiary: "#697386", // 温和的第三级文本
-    textLight: "#8792A2", // 柔和的浅色文本
-    placeholder: "#A3ACB9", // 舒适的占位符颜色
-    border: "#E9EBF0", // 非常柔和的边框色
-    borderHover: "#D8DCE3", // 明显但不刺眼的悬停边框
-    borderLight: "rgba(255, 255, 255, 0.4)",
-    error: "#F05151", // 温和但清晰的错误色
-    shadowLight: "rgba(0,0,0,0.04)",
-    shadowMedium: "rgba(0,0,0,0.06)",
-    shadowHeavy: "rgba(0,0,0,0.08)",
-    dropZoneActive: "rgba(0, 102, 255, 0.06)",
+    backgroundSecondary: "#F9FAFB",
+    backgroundTertiary: "#F3F4F6",
+    backgroundGhost: "rgba(249, 250, 251, 0.97)",
+    backgroundHover: "#F3F4F6",
+    backgroundSelected: "#EAECF0",
+
+    // 文本色系 - 微调为冷暖中性
+    text: "#111827", // 接近黑色但带微弱蓝调
+    textSecondary: "#374151", // 中深灰色
+    textTertiary: "#6B7280", // 中灰色
+    textQuaternary: "#9CA3AF", // 浅灰色
+    textLight: "#D1D5DB", // 更浅的灰色
+    placeholder: "#9CA3AF",
+
+    // 边框系统 - 更加中性
+    border: "#E5E7EB",
+    borderHover: "#D1D5DB",
+    borderLight: "#F3F4F6",
+
+    // 状态颜色 - 保持不变
+    error: "#EF4444",
+
+    // 阴影系统
+    shadowLight: "rgba(0, 0, 0, 0.05)",
+    shadowMedium: "rgba(0, 0, 0, 0.07)",
+    shadowHeavy: "rgba(0, 0, 0, 0.09)",
+    shadow1: "rgba(0, 0, 0, 0.05)",
+    shadow2: "rgba(0, 0, 0, 0.07)",
+    shadow3: "rgba(0, 0, 0, 0.09)",
+
+    // 内容区域背景 - 更加中性
+    messageBackground: "#FFFFFF",
+    codeBackground: "#F9FAFB",
   },
   dark: {
-    background: "#141822", // 柔和的深色背景
-    backgroundSecondary: "#1E2330", // 优雅的次级背景
-    backgroundGhost: "rgba(20, 24, 34, 0.95)",
-    text: "#E6E8ED", // 舒适的文本色
-    textSecondary: "#B2B7C3", // 清晰但不刺眼
-    textTertiary: "#8E95A3", // 恰到好处的第三级
-    textLight: "#6B7280",
-    placeholder: "#525A6B",
-    border: "#2A303C", // 自然的边框
-    borderHover: "#363D4B", // 明显的悬停状态
-    borderLight: "rgba(20, 24, 34, 0.4)",
-    icon: "#B2B7C3",
-    error: "#FF5A5A", // 醒目但不刺眼
-    shadowLight: "rgba(0,0,0,0.15)",
-    shadowMedium: "rgba(0,0,0,0.2)",
-    shadowHeavy: "rgba(0,0,0,0.25)",
-    dropZoneActive: "rgba(102, 178, 255, 0.06)",
+    // 基础背景系统 - 更加中性
+    background: "#111827", // 深蓝灰色
+    backgroundSecondary: "#1F2937", // 次级背景
+    backgroundTertiary: "#374151", // 三级背景
+    backgroundGhost: "rgba(31, 41, 55, 0.97)",
+    backgroundHover: "#283547", // 悬停色
+    backgroundSelected: "#374151", // 选中色
+
+    // 文本色系 - 微调以减少与主题色冲突
+    text: "#F9FAFB", // 几乎白色
+    textSecondary: "#E5E7EB", // 浅灰白色
+    textTertiary: "#9CA3AF", // 中灰色
+    textQuaternary: "#6B7280", // 深灰色
+    textLight: "#4B5563", // 更深的灰色
+    placeholder: "#6B7280",
+
+    // 边框系统 - 更精确的暗色边框
+    border: "#374151",
+    borderHover: "#4B5563",
+    borderLight: "#1F2937",
+
+    // 状态颜色 - 保持不变
+    error: "#F87171",
+
+    // 阴影系统 - 更深更明确
+    shadowLight: "rgba(0, 0, 0, 0.2)",
+    shadowMedium: "rgba(0, 0, 0, 0.25)",
+    shadowHeavy: "rgba(0, 0, 0, 0.3)",
   },
 };
 
