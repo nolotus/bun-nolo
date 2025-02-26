@@ -24,8 +24,6 @@ import Button from "rn/ui/Button";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
 import * as RNLocalize from "react-native-localize";
-import { tokenManager } from "../tokenManager";
-import { hashPasswordV1 } from "core/password";
 
 const Signup = () => {
   const navigation = useNavigation();
@@ -58,12 +56,9 @@ const Signup = () => {
         return;
       }
 
-      const action = await dispatch(signUp({ ...data, locale }));
-      console.log("action", action);
+      const result = await dispatch(signUp({ ...data, locale })).unwrap();
 
-      if (action.payload.token) {
-        console.log("action.payload.token", action.payload.token);
-        await tokenManager.storeToken(action.payload.token);
+      if (result.token) {
         navigation.navigate("MainTabs"); // 改为与Login一致的导航目标
         return;
       }
