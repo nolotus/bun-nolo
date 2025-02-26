@@ -1,6 +1,5 @@
 // create/space/CreateSpaceButton.tsx
 import { GoPlus } from "react-icons/go";
-
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 
@@ -18,7 +17,7 @@ export const CreateSpaceButton = ({
   index,
 }: CreateSpaceButtonProps) => {
   const theme = useTheme();
-  const { t } = useTranslation();
+  const { t } = useTranslation("space"); // 指定 space 命名空间
 
   return (
     <div
@@ -28,11 +27,11 @@ export const CreateSpaceButton = ({
       })}
       className="space-create-button"
       role="button"
-      aria-label={t("CreateSpace")}
+      aria-label={t("create")} // 使用扁平键 "create"
     >
       <div className="space-create-button__content">
         <GoPlus size={12} />
-        <span>{t("CreateSpace")}</span>
+        <span>{t("create")}</span> {/* 使用扁平键 "create" */}
       </div>
 
       <style jsx>{`

@@ -1,25 +1,20 @@
-//common imports
 import { useCallback } from "react";
 import { useTheme } from "app/theme";
 import { useAppDispatch } from "app/hooks";
 import { useAuth } from "auth/hooks/useAuth";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
-//web imports
 import toast from "react-hot-toast";
 import { Input } from "web/form/Input";
 import FormTitle from "web/form/FormTitle";
 import Button from "web/ui/Button";
 import { PlusIcon } from "@primer/octicons-react";
 import FormContainer from "web/form/FormContainer";
-
-//common imports保持不变
-import { CreateSpaceRequest, SpaceVisibility } from "./types"; // 添加类型导入
+import { CreateSpaceRequest, SpaceVisibility } from "./types";
 import { addSpace, changeSpace } from "./spaceSlice";
 
 export const CreateSpaceForm = ({ onClose }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("space"); // 指定 space 命名空间
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const theme = useTheme();
@@ -35,11 +30,11 @@ export const CreateSpaceForm = ({ onClose }) => {
           })
         ).unwrap();
         dispatch(changeSpace(result.spaceId));
-        toast.success(t("space.createSuccess"));
+        toast.success(t("create_success"));
         onClose();
       } catch (error) {
         console.error("Error creating space:", error);
-        toast.error(t("space.createError"));
+        toast.error(t("create_error"));
       }
     },
     [dispatch, onClose, t]
@@ -49,7 +44,7 @@ export const CreateSpaceForm = ({ onClose }) => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<CreateSpaceRequest>(); // 使用类型
+  } = useForm<CreateSpaceRequest>();
 
   const handleFormSubmit = handleSubmit(
     (data) => {
@@ -65,40 +60,26 @@ export const CreateSpaceForm = ({ onClose }) => {
     <>
       <style>
         {`
-          .form-field {
-            margin-bottom: 20px;
-          }
-          
-          .field-label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: ${theme.text};
-          }
-
-          .error-message {
-            margin-top: 6px;
-            color: ${theme.error};
-            font-size: 12px;
-          }
+          .form-field { margin-bottom: 20px; }
+          .field-label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: ${theme.text}; }
+          .error-message { margin-top: 6px; color: ${theme.error}; font-size: 12px; }
         `}
       </style>
 
       <FormContainer>
-        <FormTitle>{t("space.create")}</FormTitle>
+        <FormTitle>{t("create")}</FormTitle>
         <form onSubmit={handleFormSubmit}>
           <div className="form-field">
-            <label className="field-label">{t("space.name")}</label>
+            <label className="field-label">{t("name")}</label>
             <Input
               {...register("name", {
-                required: t("space.nameRequired"),
+                required: t("name_required"),
                 minLength: {
                   value: 2,
-                  message: t("space.nameMinLength"),
+                  message: t("name_min_length"),
                 },
               })}
-              placeholder={t("space.namePlaceholder")}
+              placeholder={t("name_placeholder")}
             />
             {errors.name && (
               <div className="error-message">{errors.name.message}</div>
@@ -106,25 +87,21 @@ export const CreateSpaceForm = ({ onClose }) => {
           </div>
 
           <div className="form-field">
-            <label className="field-label">{t("space.description")}</label>
+            <label className="field-label">{t("description")}</label>
             <Input
               {...register("description")}
-              placeholder={t("space.descriptionPlaceholder")}
+              placeholder={t("description_placeholder")}
             />
           </div>
 
           <div className="form-field">
-            <label className="field-label">{t("space.visibility")}</label>
+            <label className="field-label">{t("visibility")}</label>
             <select
               {...register("visibility")}
               defaultValue={SpaceVisibility.PRIVATE}
             >
-              <option value={SpaceVisibility.PRIVATE}>
-                {t("space.private")}
-              </option>
-              <option value={SpaceVisibility.PUBLIC}>
-                {t("space.public")}
-              </option>
+              <option value={SpaceVisibility.PRIVATE}>{t("private")}</option>
+              <option value={SpaceVisibility.PUBLIC}>{t("public")}</option>
             </select>
           </div>
 
@@ -137,7 +114,7 @@ export const CreateSpaceForm = ({ onClose }) => {
             disabled={isSubmitting}
             icon={<PlusIcon />}
           >
-            {isSubmitting ? t("common.submitting") : t("space.create")}
+            {isSubmitting ? t("submitting", { ns: "common" }) : t("create")}
           </Button>
         </form>
       </FormContainer>
