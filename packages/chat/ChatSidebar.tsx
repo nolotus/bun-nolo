@@ -22,9 +22,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-//────────────────────────────
 // 分组数据：将 space 中的内容按分类分组
-//────────────────────────────
 interface CategoryItem {
   id: string;
   name: string;
@@ -48,14 +46,12 @@ const useGroupedContent = (space: Space | null) => {
     const categorized: Record<string, SpaceContent[]> = {};
     const uncategorized: SpaceContent[] = [];
 
-    // 初始化分类（用于保存内容）
     if (categories) {
       Object.keys(categories).forEach((categoryId) => {
         categorized[categoryId] = [];
       });
     }
 
-    // 将内容按更新时间排序，并放入对应分类
     if (contents) {
       Object.values(contents)
         .sort((a, b) => {
@@ -71,7 +67,7 @@ const useGroupedContent = (space: Space | null) => {
           }
         });
     }
-    // 对分类按顺序排序
+
     const sortedCategories = categories
       ? Object.entries(categories)
           .map(([id, category]) => ({
@@ -84,9 +80,7 @@ const useGroupedContent = (space: Space | null) => {
   }, [space]);
 };
 
-//────────────────────────────
 // 拖拽排序相关 Hook
-//────────────────────────────
 const useCategoryDragAndDrop = (
   sortedCategories: CategoryItem[],
   space: Space | null,
@@ -132,9 +126,7 @@ const useItemDragAndDrop = (space: Space | null, dispatch: any) => {
   );
 };
 
-//────────────────────────────
-// 可拖拽的 分类（用于排序分类）组件
-//────────────────────────────
+// 可拖拽的分类组件
 interface CategoryDraggableProps {
   id: string;
   children: React.ReactNode;
@@ -166,23 +158,13 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
     }),
   };
   return (
-    <div ref={setNodeRef} style={style}>
-      {/* 注入拖拽句柄属性给子组件 */}
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          return React.cloneElement(child, {
-            dragHandleProps: { ...attributes, ...listeners },
-          });
-        }
-        return child;
-      })}
+    <div ref={setNodeRef} style={style} {...attributes}>
+      {React.cloneElement(children, { handleProps: listeners })}
     </div>
   );
 };
 
-//────────────────────────────
-// 可拖拽的 Item 组件（包装 SidebarItem）
-//────────────────────────────
+// 可拖拽的 Item 组件
 interface ItemDraggableProps {
   id: string;
   containerId: string;
@@ -220,25 +202,22 @@ const ItemDraggable: React.FC<ItemDraggableProps> = ({
     }),
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {children}
+    <div ref={setNodeRef} style={style} {...attributes}>
+      {React.cloneElement(children, { handleProps: listeners })}
     </div>
   );
 };
 
-//────────────────────────────
-// 分类区域组件（包含 header 和 items）
-//────────────────────────────
+// 分类区域组件
 interface CategorySectionProps {
   category: CategoryItem;
   items: SpaceContent[];
   shouldAnimate: boolean;
-  dragHandleProps?: any;
+  handleProps?: any;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = memo(
-  ({ category, items, shouldAnimate, dragHandleProps }) => {
-    // 用 droppable 包裹整个分类区域
+  ({ category, items, shouldAnimate, handleProps }) => {
     const { isOver, setNodeRef } = useDroppable({
       id: category.id,
       data: { containerId: category.id },
@@ -248,12 +227,10 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
         ref={setNodeRef}
         className={`category-section ${isOver ? "drag-over" : ""}`}
       >
-        {/* 注意：传递给 CategoryHeader 的仅是拖拽句柄属性，不传 isDragOver，
-            这样 header 自身不再有额外变化 */}
         <CategoryHeader
           categoryId={category.id}
           categoryName={category.name}
-          handleProps={dragHandleProps}
+          handleProps={handleProps}
         />
         <div className="category-content">
           <SortableContext
@@ -277,9 +254,7 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
   }
 );
 
-//────────────────────────────
-// 未分类区域组件，同理使用 droppable 包裹整个区域
-//────────────────────────────
+// 未分类区域组件
 interface UncategorizedSectionProps {
   items: SpaceContent[];
   shouldAnimate: boolean;
@@ -319,9 +294,7 @@ const UncategorizedSection: React.FC<UncategorizedSectionProps> = memo(
   }
 );
 
-//────────────────────────────
-// ChatSidebar 主组件
-//────────────────────────────
+// 主组件
 const ChatSidebar: React.FC = () => {
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -364,8 +337,6 @@ const ChatSidebar: React.FC = () => {
     setIsAddModalOpen(false);
   };
 
-  // 移除了在没有数据时返回 null 的判断，
-  // 即使没有内容也依然展示侧边栏，让用户可以点击“添加分类”
   const hasAnyContent =
     (sortedCategories.length > 0 &&
       Object.values(groupedData.categorized).some((list) => list.length > 0)) ||
@@ -439,7 +410,6 @@ const ChatSidebar: React.FC = () => {
               background: ${theme.border};
               border-radius: 3px;
             }
-            /* 分类区域整体样式 */
             .category-section {
               position: relative;
               margin-bottom: 12px;
@@ -448,12 +418,10 @@ const ChatSidebar: React.FC = () => {
               border-radius: 6px;
               transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
             }
-            /* 当拖拽进入任一区域时，整个分类区域显示蓝色线框 */
             .category-section.drag-over {
               background: rgba(0,150,250,0.1);
               box-shadow: 0 0 0 2px rgba(0,150,250,0.5);
             }
-            /* 如果分类区域处于拖拽状态，强制 header 保持原状（不产生额外效果） */
             .category-section.drag-over .category-header {
               background: inherit;
               border: none;
