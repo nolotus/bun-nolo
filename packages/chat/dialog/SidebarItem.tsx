@@ -38,7 +38,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const theme = useSelector(selectTheme);
     const menu = Ariakit.useMenuStore();
     const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
-    // 用于检测图标区域是否悬停
     const [isIconHover, setIsIconHover] = React.useState(false);
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
@@ -60,7 +59,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           className={`sidebar-item ${isSelected ? "selected" : ""}`}
           onContextMenu={handleContextMenu}
         >
-          {/* 合并拖拽和图标区域 */}
           <span
             className="combined-drag-icon"
             {...handleProps}
@@ -98,28 +96,23 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             border: 1px solid transparent;
             user-select: none;
           }
-
           .sidebar-item:hover {
             background-color: ${theme.backgroundGhost};
             border-color: ${theme.borderLight}30;
           }
-
           .sidebar-item.selected {
             background-color: ${theme.primaryGhost};
             border-color: ${theme.primary}30;
           }
-
           .combined-drag-icon {
             color: ${theme.textTertiary};
             display: flex;
             align-items: center;
             transition: color 0.2s ease-out;
           }
-
           .combined-drag-icon:hover {
             color: ${theme.textSecondary};
           }
-
           .sidebar-link {
             font-size: ${ICON_SIZE / 1.6}px;
             line-height: 1.4;
@@ -132,16 +125,13 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             text-overflow: ellipsis;
             transition: color 0.2s ease-out;
           }
-
           .sidebar-item:hover .sidebar-link {
             color: ${theme.text};
           }
-
           .sidebar-item.selected .sidebar-link {
             color: ${theme.primary};
             font-weight: 500;
           }
-
           .sidebar-icon {
             transition: all 0.2s ease-out;
             flex-shrink: 0;
