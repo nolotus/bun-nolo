@@ -100,7 +100,7 @@ export default function App({
     };
 
     initializeSystem();
-  }, [dispatch, hostname, isDark, tokenManager]);
+  }, []);
 
   // 主题和语言初始化
   useEffect(() => {
