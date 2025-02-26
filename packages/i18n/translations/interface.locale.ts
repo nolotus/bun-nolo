@@ -1,5 +1,4 @@
-// i18n/translations/interface
-
+// i18n/translations/interface.locale.ts
 import { Language } from "../types";
 
 export default {
@@ -30,9 +29,6 @@ export default {
         "Are you sure you want to delete this dialog? This action cannot be undone.",
       confirm: "Confirm",
       cancel: "Cancel",
-      selectSpace: "Select Space",
-      CreateSpace: "Create Workspace",
-      spacename: "spacename",
       messageOrImageHere: "Type Message or drag and drop image here",
       deleteDialog: "Delete Dialog",
       edit: "Edit",
@@ -56,8 +52,9 @@ export default {
       purposeRequired: "Please tell us your intended use",
       purposeTooShort: "Please provide more details (at least 10 characters)",
       settings: "Settings",
-      introtext:"click here to start editing",
-      hintofKey:"Hint: There are no restrictions on the number of characters and symbols for usernames and passwords. Password reset is not provided for the time being, so it is recommended to use a complex password combination and remember the password"
+      introtext: "click here to start editing",
+      hintofKey:
+        "Hint: There are no restrictions on the number of characters and symbols for usernames and passwords. Password reset is not provided for the time being, so it is recommended to use a complex password combination and remember the password",
     },
   },
   [Language.ZH_CN]: {
@@ -86,9 +83,6 @@ export default {
       deleteDialogConfirmation: "确定要删除这个对话吗？此操作不可撤销。",
       confirm: "确认",
       cancel: "取消",
-      selectSpace: "选择空间",
-      CreateSpace: "新建空间",
-      spacename: "空间名称",
       messageOrImageHere: "输入消息或拖放图片",
       deleteDialog: "删除对话",
       edit: "编辑",
@@ -112,8 +106,9 @@ export default {
       purposeRequired: "请告诉我们您的使用目的",
       purposeTooShort: "请提供更多详细信息（至少10个字符）",
       settings: "设置",
-      introtext:"点击这里开始编辑",
-      hintofKey:"提示：用户名密码不作字数和符号限制，暂不提供找回密码，建议使用复杂的密码组合，并牢记密码"
+      introtext: "点击这里开始编辑",
+      hintofKey:
+        "提示：用户名密码不作字数和符号限制，暂不提供找回密码，建议使用复杂的密码组合，并牢记密码",
     },
   },
   [Language.ZH_HANT]: {
@@ -142,9 +137,6 @@ export default {
       deleteDialogConfirmation: "您確定要刪除這個對話嗎？此操作不可撤銷。",
       confirm: "確認",
       cancel: "取消",
-      selectSpace: "選擇空間",
-      CreateSpace: "創建空間",
-      spacename: "空间名",
       messageOrImageHere: "輸入訊息或拖放圖片",
       deleteDialog: "刪除對話",
       edit: "編輯",
@@ -168,8 +160,9 @@ export default {
       purposeRequired: "請告訴我們您的使用目的",
       purposeTooShort: "請提供更多詳細信息（至少10個字符）",
       settings: "設置",
-      introtext:"點擊這裡開始編輯",
-      hintofKey:"提示：用戶名密碼不作字數和符號限制，暫不提供找回密碼，建議使用複雜的密碼組合，並牢記密碼"
+      introtext: "點擊這裡開始編輯",
+      hintofKey:
+        "提示：用戶名密碼不作字數和符號限制，暫不提供找回密碼，建議使用複雜的密碼組合，並牢記密碼",
     },
   },
   [Language.JA]: {
@@ -199,9 +192,6 @@ export default {
         "このダイアログを削除してもよろしいですか？この操作は取り消せません。",
       confirm: "確認",
       cancel: "キャンセル",
-      selectSpace: "区画を選択する",
-      CreateSpace: "スペースを作成する",
-      spacename: "スペース名",
       messageOrImageHere:
         "メッセージを入力またはここに画像をドラッグ＆ドロップ",
       deleteDialog: "ダイアログを削除",
@@ -226,8 +216,9 @@ export default {
       purposeRequired: "ご使用目的をお聞かせください",
       purposeTooShort: "より詳しい情報をご記入ください（10文字以上）",
       settings: "設定",
-      introtext:"編集を開始するにはここをクリック",
-      hintofKey:"ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雑なパスワードの組み合わせを使用し、パスワードを覚えておいてください"
+      introtext: "編集を開始するにはここをクリック",
+      hintofKey:
+        "ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雑なパスワードの組み合わせを使用し、パスワードを覚えておいてください",
     },
   },
 };
