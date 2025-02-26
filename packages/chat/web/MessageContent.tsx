@@ -30,16 +30,12 @@ export const MessageContent = ({ content, role }) => {
 
             if (item.type === "image_url" && item.image_url?.url) {
               return (
-                <picture>
+                <picture key={`image-${index}`}>
                   <source srcSet={item.image_url?.url} />
                   <img
                     src={item.image_url?.url}
-                    alt="Message"
-                    className="h-auto max-w-full"
-                    style={{
-                      blockSize: "480px",
-                      aspectRatio: "var(--ratio-landscape)",
-                    }}
+                    alt="Generated content"
+                    className="message-image"
                   />
                 </picture>
               );
@@ -55,43 +51,83 @@ export const MessageContent = ({ content, role }) => {
           <div className="message-invalid">Invalid content format</div>
         )}
       </div>
-      <style href="message" precedence="default">
-        {`
-          @keyframes message-enter {
-            from {
-              opacity: 0;
-              transform: translateY(10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
+      <style jsx global>{`
+        @keyframes message-enter {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
           }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-          .message-content {
-            display: flex;
-            flex-direction: column;
-            transition: all 0.2s ease-out;
-            animation: message-enter 0.3s ease-out forwards;
-            white-space: pre-wrap;
-            min-width: 100px;
-            font-size: 15px;
-            line-height: 1.6;
-            gap: 8px;
-            position: relative;
-            p{margin:1px}
-       
-          }
+        .message-content {
+          display: flex;
+          flex-direction: column;
+          transition: all 0.2s ease-out;
+          animation: message-enter 0.3s ease-out forwards;
+          white-space: pre-wrap;
+          min-width: 100px;
+          font-size: 15px; /* 增大字体 */
+          line-height: 1.6;
+          gap: 14px; /* 增加间距 */
+          position: relative;
+        }
 
-          .message-self {
-            color: ${theme.primary};
-          }
+        .message-content p {
+          margin: 0;
+          margin-bottom: 0.85em;
+        }
 
-          .message-other {
-            color: ${theme.text};
-          }
-        `}
-      </style>
+        .message-content p:last-child {
+          margin-bottom: 0;
+        }
+
+        .message-content ul,
+        .message-content ol {
+          margin-top: 0.25em;
+          margin-bottom: 0.85em;
+          padding-left: 1.5em;
+        }
+
+        .message-content li {
+          margin-bottom: 0.5em;
+        }
+
+        .message-content li:last-child {
+          margin-bottom: 0;
+        }
+
+        .message-image {
+          border-radius: 6px;
+          max-width: 100%;
+          height: auto;
+          max-height: 480px;
+          object-fit: contain;
+          box-shadow: 0 1px 2px ${theme.shadowLight};
+          border: 1px solid ${theme.border};
+        }
+
+        .message-self {
+          color: ${theme.text};
+        }
+
+        .message-other {
+          color: ${theme.text};
+        }
+
+        .message-unknown,
+        .message-invalid {
+          padding: 10px 14px;
+          background-color: ${theme.backgroundGhost};
+          border-radius: 6px;
+          color: ${theme.textSecondary};
+          font-size: 14px;
+          border: 1px solid ${theme.borderLight};
+        }
+      `}</style>
     </>
   );
 };
