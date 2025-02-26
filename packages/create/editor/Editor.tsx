@@ -148,4 +148,3 @@ const mergeMaps = (...maps) => {
 };
 
 export default NoloEditor;
-
