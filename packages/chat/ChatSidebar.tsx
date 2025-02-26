@@ -337,11 +337,6 @@ const ChatSidebar: React.FC = () => {
     setIsAddModalOpen(false);
   };
 
-  const hasAnyContent =
-    (sortedCategories.length > 0 &&
-      Object.values(groupedData.categorized).some((list) => list.length > 0)) ||
-    groupedData.uncategorized.length > 0;
-
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <nav className="chat-sidebar">
