@@ -32,7 +32,7 @@ export const ContentContextMenu: React.FC<ContentContextMenuProps> = ({
       console.error("No current space selected");
       return;
     }
-
+    console.log("delete content", contentKey);
     dispatch(remove(contentKey)).unwrap();
 
     dispatch(

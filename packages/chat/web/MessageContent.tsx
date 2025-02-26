@@ -71,7 +71,6 @@ export const MessageContent = ({ content, role }) => {
           .message-content {
             display: flex;
             flex-direction: column;
-            border-radius: 12px;
             transition: all 0.2s ease-out;
             animation: message-enter 0.3s ease-out forwards;
             white-space: pre-wrap;
@@ -80,21 +79,16 @@ export const MessageContent = ({ content, role }) => {
             line-height: 1.6;
             gap: 8px;
             position: relative;
-            p{
-            margin: 12px 16px;
-            }
+            p{margin:1px}
+       
           }
 
           .message-self {
-            background-color: ${theme.primary};
-            color: ${theme.background};
-            border: 1px solid ${theme.primaryLight}20;
+            color: ${theme.primary};
           }
 
           .message-other {
-            background-color: ${theme.backgroundSecondary};
             color: ${theme.text};
-            border: 1px solid ${theme.border};
           }
         `}
       </style>

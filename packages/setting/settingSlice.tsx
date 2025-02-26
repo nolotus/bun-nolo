@@ -1,31 +1,20 @@
 import type { NoloRootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { isProduction } from "utils/env";
-import { read } from "database/dbSlice";
+import { read, write } from "database/dbSlice";
 import { createUserKey } from "database/keys";
 import { selectCurrentUserId } from "auth/authSlice";
 
 interface SettingState {
-  userSetting?: {
-    defaultSpaceId?: string;
-  };
-  syncSetting: {
-    isAutoSync: boolean;
-    currentServer: string;
-    officialServers: string[];
-    syncServers: string[];
-    thirdPartyServers: string[];
-  };
+  isAutoSync: boolean;
+  currentServer: string;
+  defaultSpaceId?: string;
+  syncServers: string[];
 }
 const initialState: SettingState = {
-  syncSetting: {
-    isAutoSync: false,
-    currentServer: isProduction ? "https://cybot.one" : "https://cybot.run",
-    officialServers: ["https://nolotus.com", "https://us.nolotus.com"],
-    syncServers: ["https://nolotus.com", "https://us.nolotus.com"],
-    thirdPartyServers: ["https://thirdparty.server.com"],
-  },
-  userSetting: {},
+  isAutoSync: false,
+  currentServer: isProduction ? "https://cybot.one" : "https://cybot.run",
+  syncServers: ["https://nolotus.com", "https://us.nolotus.com"],
 };
 
 const createSliceWithThunks = buildCreateSlice({
@@ -46,62 +35,52 @@ const settingSlice = createSliceWithThunks({
         // 使用传入的 userId 参数替代从 state 获取
         const id = createUserKey.settings(userId);
         const settings = await dispatch(read(id)).unwrap();
-        return settings;
+        if (settings) {
+          return settings;
+        }
       },
       {
         fulfilled: (state, action) => {
-          state.userSetting = action.payload;
+          const newSettings = action.payload;
+          state.defaultSpaceId = newSettings.defaultSpaceId;
+          state.isAutoSync = newSettings.isAutoSync;
         },
       }
     ),
 
-    updateCurrentServer: (state, action) => {
-      state.syncSetting.currentServer = action.payload;
-    },
-    addSyncServer: (state, action) => {
-      state.syncSetting.syncServers.push(action.payload);
-    },
-    removeSyncServer: (state, action) => {
-      state.syncSetting.syncServers = state.syncSetting.syncServers.filter(
-        (server) => server !== action.payload
-      );
-    },
-    addThirdPartyServer: (state, action) => {
-      state.syncSetting.thirdPartyServers.push(action.payload);
-    },
-    removeThirdPartyServer: (state, action) => {
-      state.syncSetting.thirdPartyServers =
-        state.syncSetting.thirdPartyServers.filter(
-          (server) => server !== action.payload
-        );
-    },
     addHostToCurrentServer: (state, action) => {
       const hostname = action.payload;
       const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
       const isHttp =
         hostname === "nolotus.local" || isIpAddress || hostname === "localhost";
-
       const protocol = isHttp ? "http" : "https";
       const port = isHttp ? "80" : "443";
-
-      state.syncSetting.currentServer = `${protocol}://${hostname}:${port}`;
+      state.currentServer = `${protocol}://${hostname}:${port}`;
     },
+    setSettings: create.asyncThunk(async (args, thunkAPI) => {
+      const dispatch = thunkAPI.dispatch;
+      const state = thunkAPI.getState();
+      const currentSettings = state.settings;
+      const userId = selectCurrentUserId(state);
+      const updatedSettings = { ...currentSettings, ...args };
+      const customKey = createUserKey.settings(userId);
+      const result = await dispatch(
+        write({
+          data: updatedSettings,
+          customKey,
+        })
+      ).unwrap();
+      console.log("result", result);
+    }),
   }),
 });
 
-export const {
-  updateCurrentServer,
-  addSyncServer,
-  removeSyncServer,
-  addThirdPartyServer,
-  removeThirdPartyServer,
-  addHostToCurrentServer,
-  getSettings,
-} = settingSlice.actions;
+export const { addHostToCurrentServer, getSettings, setSettings } =
+  settingSlice.actions;
 
 export const selectCurrentServer = (state: NoloRootState): string =>
-  state.settings.syncSetting.currentServer;
+  state.settings.currentServer;
 export const selectSyncServers = (state: NoloRootState): string =>
-  state.settings.syncSetting.syncServers;
+  state.settings.syncServers;
 
 export default settingSlice.reducer;

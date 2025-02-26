@@ -17,6 +17,21 @@ export const anthropicModels: Model[] = [
       cachingRead: 2.4, // $0.30/MTok * 8
     },
   },
+  {
+    name: "claude-3-7-sonnet-latest",
+    displayName: "Claude 3.7 Sonnet",
+    hasVision: true,
+    description: "Our most intelligent model to date",
+    strengths: "Highest level of intelligence and capability",
+    contextWindow: 200000,
+    maxOutputTokens: 8192,
+    price: {
+      input: 24.0, // $3/MTok * 8
+      output: 120.0, // $15/MTok * 8
+      cachingWrite: 30.0, // $3.75/MTok * 8
+      cachingRead: 2.4, // $0.30/MTok * 8
+    },
+  },
   // {
   //   name: "claude-3-5-haiku-20241022",
   //   displayName: "Claude 3.5 Haiku",

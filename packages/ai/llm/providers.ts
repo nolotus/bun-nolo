@@ -14,7 +14,6 @@ const CHAT_COMPLETION_URLS = {
     "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
   ollama: "http://localhost:11434/v1/chat/completions",
   sambanova: "https://api.sambanova.ai/v1/chat/completions",
-  groq: "https://api.groq.com/openai/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
 };
 
@@ -43,7 +42,6 @@ import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
 import { ollamaModels } from "integrations/ollama/models";
-import { groqModels } from "integrations/groq/models";
 import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import type { Model } from "./types";
@@ -58,7 +56,6 @@ const providerOptions = [
   "deepseek",
   "mistral",
   "google",
-  "groq",
   "sambanova",
   "openai",
   "xai",
@@ -80,7 +77,6 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
     deepseek: deepSeekModels,
     mistral: mistralModels,
     google: googleModels,
-    groq: groqModels,
     sambanova: sambanovaModels,
     openai: openAIModels,
     openrouter: openrouterModels,

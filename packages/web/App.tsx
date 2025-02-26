@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useAppDispatch } from "app/hooks";
 import { initializeAuth } from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import i18n from "i18n";
 import { Toaster } from "react-hot-toast";
 import { useRoutes, Outlet } from "react-router-dom";
-import { addHostToCurrentServer } from "setting/settingSlice";
+import { addHostToCurrentServer, getSettings } from "setting/settingSlice";
 import { setDarkMode } from "app/theme/themeSlice";
 import { initializeSpace } from "create/space/spaceSlice";
 
@@ -58,15 +58,20 @@ interface AppProps {
   hostname: string;
   lng?: string;
   isDark?: boolean;
+  tokenManager?: any;
 }
 
 export default function App({
   hostname,
   lng = "en",
   isDark = false,
+  tokenManager,
 }: AppProps) {
   const auth = useAuth();
   const dispatch = useAppDispatch();
+
+  // 使用 useRef 来标记是否已初始化，防止因 StrictMode 重复调用
+  const initializedRef = useRef(false);
 
   const appRoutes = useMemo(
     () => generatorRoutes(hostname, auth),
@@ -75,30 +80,34 @@ export default function App({
 
   // 系统初始化
   useEffect(() => {
+    // 如果已经初始化，则直接返回
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+    console.log("App init");
     const initializeSystem = async () => {
       try {
         // 1. 基础设置初始化
         dispatch(addHostToCurrentServer(hostname));
-        setDarkMode(isDark);
+        dispatch(setDarkMode(isDark));
 
         // 2. 初始化认证
-        const { user } = await dispatch(initializeAuth()).unwrap();
-
+        const { user } = await dispatch(initializeAuth(tokenManager)).unwrap();
+        await dispatch(getSettings(user.userId)).unwrap();
         await dispatch(initializeSpace(user.userId)).unwrap();
       } catch (error) {
-        console.error("System initialization failed:", error);
+        console.error("系统初始化失败：", error);
       }
     };
 
     initializeSystem();
-  }, [dispatch, hostname, isDark]);
+  }, []);
 
   // 主题和语言初始化
   useEffect(() => {
     // 监听系统主题变化
     const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent) => {
-      setDarkMode(event.matches);
+      dispatch(setDarkMode(event.matches));
     };
 
     colorSchemeQuery.addEventListener("change", handleThemeChange);
@@ -112,7 +121,7 @@ export default function App({
     return () => {
       colorSchemeQuery.removeEventListener("change", handleThemeChange);
     };
-  }, [lng]);
+  }, [dispatch, lng]);
 
   // 渲染路由
   const element = useRoutes(appRoutes);

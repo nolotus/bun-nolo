@@ -1,5 +1,4 @@
 import { t } from "i18next";
-import { ulid } from "ulid";
 import serverDb from "database/server/db.js";
 import { reject } from "rambda";
 import { signMessage } from "core/crypto";
@@ -10,13 +9,7 @@ import {
   handleOptionsRequest,
 } from "./shared";
 import { DB_PREFIX, createUserKey } from "database/keys";
-import {
-  SpaceData,
-  SpaceVisibility,
-  MemberRole,
-  SpaceMember,
-} from "create/space/types";
-import { createSpaceKey } from "create/space/spaceKeys";
+
 export async function handleSignUp(req) {
   if (req.method === "OPTIONS") {
     return handleOptionsRequest();
@@ -26,7 +19,6 @@ export async function handleSignUp(req) {
     const { username, publicKey, locale, email } = req.body;
 
     const userId = generateUserIdV1(publicKey, username, locale);
-    const defaultSpaceId = ulid();
 
     // 检查用户是否存在
     try {
@@ -51,9 +43,8 @@ export async function handleSignUp(req) {
       balanceUpdatedAt: Date.now(),
     });
 
-    // 准备用户设置数据
+    // 准备用户设置数据（移除defaultSpaceId）
     const userSettings = {
-      defaultSpaceId,
       theme: "system",
       language: locale,
       createdAt: Date.now(),
@@ -69,28 +60,8 @@ export async function handleSignUp(req) {
       updatedAt: Date.now(),
     };
 
-    // 准备默认space数据
-    const spaceData: SpaceData = {
-      id: defaultSpaceId,
-      name: `${username}'s Space`,
-      description: "",
-      ownerId: userId,
-      visibility: SpaceVisibility.PRIVATE,
-      members: [userId],
-      categories: {},
-      contents: {},
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-
-    // space成员数据
-    const spaceMemberData: SpaceMember = {
-      role: MemberRole.OWNER,
-      joinedAt: Date.now(),
-    };
-
     try {
-      // 使用batch操作同时保存所有数据
+      // 使用batch操作保存数据（移除space相关数据）
       await serverDb.batch([
         {
           type: "put",
@@ -107,23 +78,12 @@ export async function handleSignUp(req) {
           key: createUserKey.profile(userId),
           value: userProfile,
         },
-        {
-          type: "put",
-          key: createSpaceKey.space(defaultSpaceId),
-          value: spaceData,
-        },
-        {
-          type: "put",
-          key: createSpaceKey.member(userId, defaultSpaceId),
-          value: spaceMemberData,
-        },
       ]);
 
       const message = JSON.stringify({
         username,
         userId,
         publicKey,
-        defaultSpaceId,
       });
 
       const secretKey = process.env.SECRET_KEY;
