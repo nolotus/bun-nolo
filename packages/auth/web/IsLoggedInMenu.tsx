@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import DropDown from "render/ui/DropDown";
 import { SettingRoutePaths } from "setting/config";
+import { Tooltip } from "web/ui/Tooltip";
 
 const StyleSheet = () => {
   const theme = useAppSelector(selectTheme);
@@ -153,15 +154,17 @@ export const IsLoggedInMenu: React.FC = () => {
   return (
     <>
       <div className="menu-wrapper">
-        <NavLink
-          to="/life"
-          className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-        >
-          <div className="user-trigger">
-            <PersonIcon size={20} />
-            <span className="user-trigger-text">{auth.user?.username}</span>
-          </div>
-        </NavLink>
+        <Tooltip content="xxx" placement="bottom">
+          <NavLink
+            to="/life"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
+          >
+            <div className="user-trigger">
+              <PersonIcon size={20} />
+              <span className="user-trigger-text">{auth.user?.username}</span>
+            </div>
+          </NavLink>
+        </Tooltip>
 
         <DropDown
           trigger={

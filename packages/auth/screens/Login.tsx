@@ -15,7 +15,6 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { Input } from "rn/form/Input";
 import PasswordInput from "rn/form/PasswordInput";
 import Button from "rn/ui/Button";
-import { tokenManager } from "../tokenManager";
 
 const LoginScreen = ({ navigation }) => {
   const theme = useTheme();
@@ -38,9 +37,10 @@ const LoginScreen = ({ navigation }) => {
     const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
     const deviceCountry = RNLocalize.getCountry();
     const locale = `${deviceLanguage}-${deviceCountry}`;
-    const action = await dispatch(signIn({ ...data, locale, password }));
-    if (action.payload.token) {
-      tokenManager.storeToken(action.payload.token);
+    const result = await dispatch(
+      signIn({ ...data, locale, password })
+    ).unwrap();
+    if (result.token) {
       navigation.navigate("MainTabs");
       return;
     }
