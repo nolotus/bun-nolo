@@ -154,7 +154,7 @@ export const IsLoggedInMenu: React.FC = () => {
   return (
     <>
       <div className="menu-wrapper">
-        <Tooltip content="xxx" placement="bottom">
+        <Tooltip content="当前登录账户" placement="bottom">
           <NavLink
             to="/life"
             className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
