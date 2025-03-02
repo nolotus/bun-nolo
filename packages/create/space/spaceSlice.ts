@@ -26,6 +26,7 @@ import { reorderCategoriesAction } from "./action/reorderCategoriesAction";
 import { fetchSpaceMembershipsAction } from "./action/fetchSpaceMembershipsAction";
 import { updateContentCategoryAction } from "./action/updateContentCategoryAction";
 import { initializeSpaceAction } from "./action/initializeSpaceAction";
+import { moveContentAction } from "./action/moveContentAction";
 import { read } from "database/dbSlice";
 import { createSpaceKey } from "./spaceKeys";
 
@@ -98,6 +99,14 @@ const spaceSlice = createSliceWithThunks({
         }
       },
     }),
+    moveContentToSpace: create.asyncThunk(moveContentAction, {
+      fulfilled: (state, action) => {
+        const { spaceId, updatedSpaceData } = action.payload;
+        if (state.currentSpaceId === spaceId) {
+          state.currentSpace = updatedSpaceData;
+        }
+      },
+    }),
 
     fetchUserSpaceMemberships: create.asyncThunk(
       fetchUserSpaceMembershipsAction,
@@ -137,7 +146,7 @@ const spaceSlice = createSliceWithThunks({
         if (spaceId === state.currentSpaceId) {
           state.currentSpace = updatedSpace;
         }
-        if (state.memberSpaces) {
+        if (state.memberSpaces && updatedSpace.name) {
           state.memberSpaces = state.memberSpaces.map((space) =>
             space.spaceId === updatedSpace.id
               ? { ...space, spaceName: updatedSpace.name }

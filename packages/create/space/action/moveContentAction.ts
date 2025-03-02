@@ -1,9 +1,10 @@
 import { AddContentRequest, SpaceId, SpaceContent } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-import { patchData, read } from "database/dbSlice";
 
-export const addContentAction = async (
+import { read, write } from "database/dbSlice";
+
+export const moveContentAction = async (
   input: AddContentRequest & { spaceId: SpaceId },
   thunkAPI
 ) => {
@@ -40,21 +41,23 @@ export const addContentAction = async (
     categoryId: categoryId || "",
     pinned,
     createdAt: Date.now(),
-    updatedAt: Date.now(), // 初始设置，后续由 patchAction 统一更新
   };
 
-  // 准备增量更新
-  const changes = {
+  // 更新space数据
+  const updatedSpaceData = {
+    ...spaceData,
     contents: {
+      ...spaceData.contents,
       [contentKey]: spaceContent,
     },
+    updatedAt: Date.now(),
   };
 
   // 写入更新后的space数据
-  const updatedSpaceData = await dispatch(
-    patchData({
-      dbKey: spaceKey,
-      changes,
+  await dispatch(
+    write({
+      data: updatedSpaceData,
+      customKey: spaceKey,
     })
   ).unwrap();
 
