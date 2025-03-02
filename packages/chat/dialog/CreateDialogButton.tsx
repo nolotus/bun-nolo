@@ -1,6 +1,9 @@
 import React from "react";
 import { TbMessageCirclePlus } from "react-icons/tb";
 import { useCreateDialog } from "./useCreateDialog";
+import { Tooltip } from "web/ui/Tooltip";// 导入 Tooltip 组件
+import { useTranslation } from "react-i18next"; // 导入 useTranslation 钩子
+
 
 const IconButton = ({ onClick, disabled, children }) => {
   return (
@@ -46,6 +49,7 @@ const Spinner = () => {
 
 const CreateDialogButton = ({ dialogConfig }) => {
   const { isLoading, createNewDialog } = useCreateDialog();
+  const { t } = useTranslation(); // 使用 useTranslation 钩子
 
   const handleCreateClick = () => {
     createNewDialog({
@@ -72,10 +76,17 @@ const CreateDialogButton = ({ dialogConfig }) => {
         `}
       </style>
       <IconButton onClick={handleCreateClick} disabled={isLoading}>
-        {isLoading ? <Spinner /> : <TbMessageCirclePlus size={16} />}
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <Tooltip content={t("newchat")} placement="bottom">
+            <TbMessageCirclePlus size={16} />
+          </Tooltip>
+        )}
       </IconButton>
     </>
   );
 };
 
 export default CreateDialogButton;
+

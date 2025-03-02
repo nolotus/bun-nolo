@@ -18,6 +18,7 @@ export default {
       useServerProxy: "Use Transit Service",
       resend: "Resend",
       clearConversation: "Clear Conversation",
+      newchat: "New chat",
     },
   },
   "zh-CN": {
@@ -39,6 +40,7 @@ export default {
       useServerProxy: "使用中转服务",
       resend: "重新发送",
       clearConversation: "清除对话",
+      newchat: "新对话",
     },
   },
   "zh-Hant": {
@@ -60,6 +62,7 @@ export default {
       useServerProxy: "使用中轉服務",
       resend: "重新發送",
       clearConversation: "清除對話",
+      newchat: "新對話",
     },
   },
   ja: {
@@ -81,6 +84,7 @@ export default {
       useServerProxy: "中継サービスを使用する ",
       resend: "再送信",
       clearConversation: "会話をクリア",
+      newchat: "新しいチャット",
     },
   },
 };

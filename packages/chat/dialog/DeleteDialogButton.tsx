@@ -6,13 +6,13 @@ import { useTranslation } from "react-i18next";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import { deleteCurrentDialog } from "./dialogSlice";
 import toast from "react-hot-toast"; // 添加 toast 提示
+import { Tooltip } from "web/ui/Tooltip";
 
 const DeleteDialogButton = ({ dialogConfig }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -45,36 +45,22 @@ const DeleteDialogButton = ({ dialogConfig }) => {
             flex-shrink: 0;
             position: relative;
           }
-          
+
           .icon-button:hover {
             background-color: #f0f0f0;
-          }
-
-          .tooltip {
-            position: absolute;
-            bottom: -25px;
-            right: -10px;
-            background-color: #f0f0f0;
-            color: black;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            z-index: 1;
           }
         `}
       </style>
 
-      <button
-        className="icon-button"
-        onClick={() => setIsOpen(true)}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-        disabled={isDeleting}
-      >
-        <TrashIcon size={16} />
-        {showTooltip && <div className="tooltip">{t("delete")}</div>}
-      </button>
+      <Tooltip content={t("delete")} placement="bottom">
+        <button
+          className="icon-button"
+          onClick={() => setIsOpen(true)}
+          disabled={isDeleting}
+        >
+          <TrashIcon size={16} />
+        </button>
+      </Tooltip>
 
       <ConfirmModal
         isOpen={isOpen}
