@@ -41,37 +41,41 @@ const updateLocalData = async (id: string, remoteData: any, localData: any) => {
   }
 };
 
-export const readAction = async (id: string, thunkApi) => {
+export const readAction = async (dbKey: string, thunkApi) => {
   const state = thunkApi.getState();
   const token = state.auth.currentToken;
   const currentServer = selectCurrentServer(state);
 
   // 并行请求本地和远程数据
   const [localData, remoteData] = await Promise.all([
-    browserDb.get(id),
-    fetchData(currentServer, id, selectIsLoggedIn(state) ? token : undefined),
+    browserDb.get(dbKey),
+    fetchData(
+      currentServer,
+      dbKey,
+      selectIsLoggedIn(state) ? token : undefined
+    ),
   ]);
 
   // 有本地数据则先返回，异步更新
   if (localData) {
-    updateLocalData(id, remoteData, localData);
+    updateLocalData(dbKey, remoteData, localData);
     return localData;
   }
 
   // 远程数据可用则保存并返回
   if (remoteData) {
-    await browserDb.put(id, remoteData);
+    await browserDb.put(dbKey, remoteData);
     return remoteData;
   }
 
   // 尝试从 cybot 获取
-  const cybotData = await fetchData(CYBOT_SERVER, id);
+  const cybotData = await fetchData(CYBOT_SERVER, dbKey);
 
   if (!cybotData) {
     throw new Error("Failed to fetch data from all sources");
   }
 
-  await browserDb.put(id, cybotData);
+  await browserDb.put(dbKey, cybotData);
   toast.success("Data fetched from cybot.one");
   return cybotData;
 };
