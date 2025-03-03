@@ -3,11 +3,11 @@ import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patchData } from "database/dbSlice";
 
-export const updateContentCategoryAction = async (
-  input: { spaceId: SpaceId; contentKey: string; categoryId: string | null },
+export const updateContentTitleAction = async (
+  input: { spaceId: SpaceId; contentKey: string; title: string },
   thunkAPI: any
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
-  const { spaceId, contentKey, categoryId } = input;
+  const { spaceId, contentKey, title } = input;
   const { dispatch } = thunkAPI;
   const state = thunkAPI.getState();
   const userId = selectCurrentUserId(state);
@@ -27,15 +27,11 @@ export const updateContentCategoryAction = async (
     throw new Error("Content not found");
   }
 
-  if (categoryId && !spaceData.categories?.[categoryId]) {
-    throw new Error("Category not found");
-  }
-
   const changes = {
     contents: {
       [contentKey]: {
         ...spaceData.contents[contentKey],
-        categoryId: categoryId || "",
+        title,
       },
     },
   };

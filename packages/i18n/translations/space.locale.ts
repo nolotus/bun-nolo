@@ -16,6 +16,7 @@ export default {
       description_placeholder: "Enter space description (optional)",
       create_success: "Space created successfully",
       create_error: "Failed to create space",
+      default_space: "Default Space",
     },
   },
   [Language.ZH_CN]: {
@@ -32,6 +33,7 @@ export default {
       description_placeholder: "输入空间描述（可选）",
       create_success: "空间创建成功",
       create_error: "创建空间失败",
+      default_space: "默认空间",
     },
   },
   [Language.ZH_HANT]: {
@@ -48,6 +50,7 @@ export default {
       description_placeholder: "輸入空間描述（可選）",
       create_success: "空間創建成功",
       create_error: "創建空間失敗",
+      default_space: "默認空間",
     },
   },
   [Language.JA]: {
@@ -64,6 +67,7 @@ export default {
       description_placeholder: "スペースの説明を入力（任意）",
       create_success: "スペースが正常に作成されました",
       create_error: "スペースの作成に失敗しました",
+      default_space: "デフォルトスペース",
     },
   },
 };

@@ -9,6 +9,7 @@ import { DataType } from "create/types";
 import { write } from "database/dbSlice";
 import { createPageKey } from "database/keys";
 import { t } from "i18next";
+
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -19,6 +20,7 @@ export const pageSlice = createSliceWithThunks({
     content: null,
     slateData: null,
     title: null,
+    spaceId: null, // 新增 spaceId 字段
     isReadOnly: true,
   },
   reducers: (create) => ({
@@ -28,6 +30,9 @@ export const pageSlice = createSliceWithThunks({
       const userId = selectCurrentUserId(state);
       const { dbKey, id } = createPageKey.create(userId);
       const title = "新页面";
+      const currentSpaceId = selectCurrentSpaceId(state); // 获取当前空间 ID
+
+      // 写入页面数据，包含 spaceId
       await dispatch(
         write({
           data: {
@@ -35,6 +40,7 @@ export const pageSlice = createSliceWithThunks({
             id,
             type: DataType.PAGE,
             title,
+            spaceId: currentSpaceId, // 添加 spaceId
             slateData: [
               {
                 type: ParagraphType,
@@ -46,23 +52,28 @@ export const pageSlice = createSliceWithThunks({
           customKey: dbKey,
         })
       );
-      const currentSpaceId = selectCurrentSpaceId(state);
-      dispatch(
-        addContentToSpace({
-          contentKey: dbKey,
-          type: DataType.PAGE,
-          spaceId: currentSpaceId,
-          title,
-        })
-      );
+
+      // 如果有空间，添加内容到空间
+      if (currentSpaceId) {
+        dispatch(
+          addContentToSpace({
+            contentKey: dbKey,
+            type: DataType.PAGE,
+            spaceId: currentSpaceId,
+            title,
+          })
+        );
+      }
 
       return dbKey;
     }),
+
     initPage: create.reducer((state, action) => {
       state.content = action.payload.content;
       state.slateData = action.payload.slateData;
       state.isReadOnly = action.payload.isReadOnly;
       state.title = action.payload.title;
+      state.spaceId = action.payload.spaceId; // 保存 spaceId
     }),
 
     updateSlate: create.reducer((state, action) => {
@@ -70,12 +81,10 @@ export const pageSlice = createSliceWithThunks({
       state.slateData = value;
     }),
 
-    // 添加切换 readonly 的 reducer
     toggleReadOnly: create.reducer((state) => {
       state.isReadOnly = !state.isReadOnly;
     }),
 
-    // 直接设置 readonly 状态的 reducer
     setReadOnly: create.reducer((state, action) => {
       state.isReadOnly = action.payload;
     }),
@@ -83,13 +92,14 @@ export const pageSlice = createSliceWithThunks({
     resetPage: create.reducer((state) => {
       state.content = null;
       state.slateData = null;
+      state.spaceId = null; // 重置时清空 spaceId
     }),
   }),
 });
 
 // 选择器
 export const selectSlateData = (state) => state.page.slateData;
-export const selectPageData = (state) => state.page;
+export const selectPageData = (state) => state.page; // 已包含 spaceId
 export const selectIsReadOnly = (state) => state.page.isReadOnly;
 
 export const {
@@ -102,4 +112,3 @@ export const {
 } = pageSlice.actions;
 
 export default pageSlice.reducer;
-

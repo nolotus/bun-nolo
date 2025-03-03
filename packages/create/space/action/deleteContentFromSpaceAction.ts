@@ -1,13 +1,12 @@
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-
-import { read, write } from "database/dbSlice";
+import { patchData, read } from "database/dbSlice";
 
 export const deleteContentFromSpaceAction = async (
   input: { contentKey: string; spaceId: string },
   thunkAPI
 ) => {
-  const { contentKey, spaceId } = input; // 修改默认值为 true
+  const { contentKey, spaceId } = input;
   const dispatch = thunkAPI.dispatch;
   const state = thunkAPI.getState();
   const userId = selectCurrentUserId(state);
@@ -29,21 +28,21 @@ export const deleteContentFromSpaceAction = async (
     throw new Error("Content not found in space");
   }
 
-  // 创建更新后的 space 数据（移除 content 引用）
-  const { [contentKey]: removedContent, ...remainingContents } =
-    spaceData.contents;
-  const updatedSpaceData = {
-    ...spaceData,
-    contents: remainingContents,
-    updatedAt: Date.now(),
+  // 保存被删除的内容以返回
+  const removedContent = spaceData.contents[contentKey];
+
+  // 准备增量更新：删除指定 contentKey
+  const changes = {
+    contents: {
+      [contentKey]: null, // 使用 null 表示删除该键
+    },
   };
 
   // 更新 space 数据
-
-  await dispatch(
-    write({
-      data: updatedSpaceData,
-      customKey: spaceKey,
+  const updatedSpaceData = await dispatch(
+    patchData({
+      dbKey: spaceKey,
+      changes,
     })
   ).unwrap();
 

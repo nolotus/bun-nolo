@@ -6,6 +6,7 @@ import {
   selectIsReadOnly,
   toggleReadOnly,
 } from "render/page/pageSlice";
+import { updateContentTitle } from "create/space/spaceSlice"; // 导入 updateContentCategory
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router";
 import { CheckIcon } from "@primer/octicons-react";
@@ -26,7 +27,6 @@ export const CreateTool = () => {
     dispatch(toggleReadOnly());
     navigate(`/${dbKey}${!checked ? "" : "?edit=true"}`);
   };
-
   const handleSave = async () => {
     const nowISO = formatISO(new Date());
     try {
@@ -34,26 +34,31 @@ export const CreateTool = () => {
         pageData.slateData.find((node) => node.type === "heading-one")
           ?.children[0]?.text || "";
 
-      const saveData = {
-        updated_at: nowISO,
-        slateData: pageData.slateData,
-        title,
-      };
-
-      const result = await dispatch(
-        patchData({ dbKey, changes: saveData })
+      await dispatch(
+        patchData({
+          dbKey,
+          changes: { updated_at: nowISO, slateData: pageData.slateData, title },
+        })
       ).unwrap();
 
-      if (result) {
-        toast.success("保存成功");
-        handleToggleEdit(false);
+      const spaceId = (pageData as any).spaceId;
+      if (spaceId) {
+        await dispatch(
+          updateContentTitle({
+            spaceId,
+            contentKey: dbKey,
+            title,
+          })
+        ).unwrap();
       }
+
+      toast.success("保存成功");
+      handleToggleEdit(false);
     } catch (error) {
       console.error(error);
       toast.error("保存失败");
     }
   };
-
   return (
     <>
       <div className="tools-container">
@@ -120,21 +125,13 @@ export const CreateTool = () => {
           gap: 16px;
         }
 
-.mode-switch {
-  display: flex;
-  align-items: center;
-}
-      .mode-switch:hover {
-          background: ${theme.backgroundTertiary};
+        .mode-switch {
+          display: flex;
+          align-items: center;
         }
 
-
-
-        .mode-label {
-          font-size: 14px;
-          color: ${theme.textSecondary};
-          user-select: none;
-          min-width: 56px;
+        .mode-switch:hover {
+          background: ${theme.backgroundTertiary};
         }
 
         :global(.tools-container button) {

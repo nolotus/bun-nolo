@@ -10,6 +10,26 @@ const CYBOT_SERVERS = {
 
 const TIMEOUT = 5000;
 
+// 深度合并工具函数，支持删除（null 值）
+const deepMerge = (target: any, source: any): any => {
+  const output = { ...target };
+  for (const key in source) {
+    if (source[key] === null && key in output) {
+      // 如果值为 null，则删除该键
+      delete output[key];
+    } else if (
+      source[key] &&
+      typeof source[key] === "object" &&
+      !Array.isArray(source[key])
+    ) {
+      output[key] = deepMerge(output[key] || {}, source[key]);
+    } else {
+      output[key] = source[key];
+    }
+  }
+  return output;
+};
+
 const syncWithServers = (
   servers: string[],
   dbKey: string,
@@ -47,16 +67,14 @@ export const patchAction = async ({ dbKey, changes }, thunkApi) => {
       throw new Error("Data not found");
     }
 
-    // 准备更新数据
+    // 准备更新数据，统一设置 updatedAt
     const updatedChanges = {
       ...changes,
       updatedAt: new Date().toISOString(),
     };
 
-    const newData = {
-      ...currentData,
-      ...updatedChanges,
-    };
+    // 深度合并当前数据和更新数据
+    const newData = deepMerge(currentData, updatedChanges);
 
     // 本地更新
     await browserDb.put(dbKey, newData);
@@ -66,7 +84,7 @@ export const patchAction = async ({ dbKey, changes }, thunkApi) => {
       new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
     );
 
-    // 后台同步
+    // 后台同步（只发送增量更新）
     Promise.resolve().then(() => {
       syncWithServers(servers, dbKey, updatedChanges, state);
     });

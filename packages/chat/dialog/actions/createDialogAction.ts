@@ -32,6 +32,7 @@ export const createDialogAction = async (args, thunkApi) => {
     write({ data, customKey: dialogPath })
   ).unwrap();
   const spaceId = selectCurrentSpaceId(thunkApi.getState());
+
   await dispatch(
     addContentToSpace({
       spaceId,
