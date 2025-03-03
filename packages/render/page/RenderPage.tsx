@@ -20,11 +20,13 @@ const RenderPage = ({ isReadOnly = true }) => {
   const handleContentChange = (changeValue) => {
     dispatch(updateSlate(changeValue));
   };
+
   const initialValue = useMemo(() => {
     return pageState.slateData
       ? pageState.slateData
       : markdownToSlate(pageState.content);
   }, [pageId, pageState.slateData, pageState.content]);
+
   return (
     <div
       style={{
@@ -92,4 +94,3 @@ const RenderPage = ({ isReadOnly = true }) => {
 };
 
 export default RenderPage;
-
