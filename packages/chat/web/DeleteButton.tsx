@@ -25,7 +25,6 @@ const DeleteButton = ({ dbKey }: DeleteButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const deleteKey = dbKey;
-  console.log("deleteKey", deleteKey);
 
   // 处理删除确认后的操作
   const handleDelete = async () => {
@@ -37,7 +36,7 @@ const DeleteButton = ({ dbKey }: DeleteButtonProps) => {
         deleteContentFromSpace({ contentKey: deleteKey, spaceId })
       );
       toast.success("Page deleted successfully!");
-      navigate(-1);
+      navigate("/create");
     } catch (error) {
       console.error("Failed to delete:", error);
       toast.error("Failed to delete page");

@@ -80,8 +80,8 @@ const dbSlice = createSliceWithThunks({
             stack: new Error().stack,
           });
         }
-        const { id, ...changes } = payload;
-        dbAdapter.updateOne(state, { id, changes });
+        const { id, dbKey, ...changes } = payload;
+        dbAdapter.updateOne(state, { id: dbKey, changes });
       },
     }),
   }),
