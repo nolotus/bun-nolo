@@ -1,21 +1,7 @@
-import React from "react";
 import { TbMessageCirclePlus } from "react-icons/tb";
 import { useCreateDialog } from "./useCreateDialog";
-import { Tooltip } from "web/ui/Tooltip";// 导入 Tooltip 组件
-import { useTranslation } from "react-i18next"; // 导入 useTranslation 钩子
-
-
-const IconButton = ({ onClick, disabled, children }) => {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="icon-button"
-    >
-      {children}
-    </button>
-  );
-};
+import { Tooltip } from "web/ui/Tooltip";
+import { useTranslation } from "react-i18next";
 
 const Spinner = () => {
   const spinnerStyle = {
@@ -49,8 +35,7 @@ const Spinner = () => {
 
 const CreateDialogButton = ({ dialogConfig }) => {
   const { isLoading, createNewDialog } = useCreateDialog();
-  const { t } = useTranslation(); // 使用 useTranslation 钩子
-
+  const { t } = useTranslation("chat");
   const handleCreateClick = () => {
     createNewDialog({
       cybots: dialogConfig.cybots,
@@ -75,18 +60,17 @@ const CreateDialogButton = ({ dialogConfig }) => {
           }
         `}
       </style>
-      <IconButton onClick={handleCreateClick} disabled={isLoading}>
-        {isLoading ? (
-          <Spinner />
-        ) : (
-          <Tooltip content={t("newchat")} placement="bottom">
-            <TbMessageCirclePlus size={16} />
-          </Tooltip>
-        )}
-      </IconButton>
+      <Tooltip content={t("newchat")} placement="bottom">
+        <button
+          onClick={handleCreateClick}
+          disabled={isLoading}
+          className="icon-button"
+        >
+          {isLoading ? <Spinner /> : <TbMessageCirclePlus size={16} />}
+        </button>
+      </Tooltip>
     </>
   );
 };
 
 export default CreateDialogButton;
-
