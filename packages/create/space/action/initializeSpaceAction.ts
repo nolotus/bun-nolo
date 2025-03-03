@@ -1,5 +1,3 @@
-// create/space/action/initializeSpaceAction.ts
-
 import { NoloRootState } from "app/store";
 import { addSpace, changeSpace } from "../spaceSlice";
 import { fetchUserSpaceMemberships } from "../spaceSlice";
@@ -7,6 +5,7 @@ import { setSettings } from "setting/settingSlice";
 import { DataType } from "../../types";
 import { read } from "database/dbSlice";
 import { createSpaceKey } from "../spaceKeys";
+import i18next from "i18next"; // 直接导入 i18next 实例
 
 export const initializeSpaceAction = async (
   userId: string | undefined,
@@ -25,9 +24,16 @@ export const initializeSpaceAction = async (
       // 处理空成员的情况
       if (memberships.length === 0) {
         try {
+          // 使用 i18next.t，指定 "space" 命名空间
+          const defaultSpaceName = i18next.t("default_space", {
+            ns: "space", // 指定命名空间，与组件中一致
+            defaultValue: "Default Space", // 默认值
+          });
+          console.log("defaultSpaceName", defaultSpaceName);
+
           const newSpace = await dispatch(
             addSpace({
-              name: "Default Space",
+              name: defaultSpaceName,
             })
           ).unwrap();
 
