@@ -41,7 +41,7 @@ export const SidebarTop = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const spaces = []; // Fallback to empty array if undefined
+  const spaces = useAppSelector(selectAllMemberSpaces) || []; // Fallback to empty array if undefined
   const space = useAppSelector(selectCurrentSpace);
 
   const [isOpen, setIsOpen] = useState(false);
