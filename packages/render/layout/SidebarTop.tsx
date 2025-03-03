@@ -20,7 +20,7 @@ import {
   selectAllMemberSpaces,
   selectCurrentSpace,
 } from "create/space/spaceSlice";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RxDropdownMenu } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
@@ -33,7 +33,6 @@ import NavIconItem from "./blocks/NavIconItem";
 import { CreateSpaceButton } from "create/space/CreateSpaceButton";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-
 import { SpaceItem } from "create/space/components/SpaceItem";
 
 export const SidebarTop = () => {
@@ -42,15 +41,16 @@ export const SidebarTop = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const spaces = useAppSelector(selectAllMemberSpaces);
+  const spaces = []; // Fallback to empty array if undefined
   const space = useAppSelector(selectCurrentSpace);
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const { visible, open: openModal, close: closeModal } = useModal();
 
+  const spacesLength = spaces.length; // Safe because spaces defaults to []
   const listRef = React.useRef<Array<HTMLElement | null>>(
-    new Array(spaces?.length || 0 + 1).fill(null)
+    new Array(spacesLength + 1).fill(null) // +1 for CreateSpaceButton
   );
 
   const { refs, floatingStyles, context } = useFloating({
@@ -143,9 +143,9 @@ export const SidebarTop = () => {
               aria-label={t("空间列表")}
             >
               <div className="space-dropdown__content">
-                {spaces?.length > 0 && (
+                {spaces.length > 0 ? (
                   <div className="space-dropdown__section">
-                    {spaces?.map((spaceItem: any, index: number) => (
+                    {spaces.map((spaceItem: any, index: number) => (
                       <SpaceItem
                         key={spaceItem.dbKey}
                         spaceItem={spaceItem}
@@ -158,15 +158,15 @@ export const SidebarTop = () => {
                       />
                     ))}
                   </div>
+                ) : (
+                  <div className="space-dropdown__empty">{t("暂无空间")}</div>
                 )}
 
                 <CreateSpaceButton
                   onClick={openModal}
                   getItemProps={getItemProps}
-                  listRef={(node) =>
-                    (listRef.current[spaces?.length || 0] = node)
-                  }
-                  index={spaces?.length || 0}
+                  listRef={(node) => (listRef.current[spacesLength] = node)}
+                  index={spacesLength}
                 />
               </div>
             </div>
@@ -252,6 +252,13 @@ export const SidebarTop = () => {
 
         .space-dropdown__section {
           position: relative;
+        }
+
+        .space-dropdown__empty {
+          padding: 8px 12px;
+          font-size: 13px;
+          color: ${theme.textSecondary};
+          text-align: center;
         }
 
         .space-dropdown__content::-webkit-scrollbar {
