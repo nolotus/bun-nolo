@@ -35,13 +35,11 @@ export const commonConfig = {
   ],
   resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
   conditions: ['browser', 'default'],
+  entryNames: "[dir]/[name]-[hash]",
 };
 
 // 定义生产环境特有配置
 const prodConfig = {
-  entryNames: "[dir]/[name]-[hash]",
-  minify: true,
-  sourcemap: false,
   drop: ['console', 'debugger'],
 };
 
