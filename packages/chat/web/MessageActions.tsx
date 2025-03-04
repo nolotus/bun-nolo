@@ -190,30 +190,21 @@ export const MessageActions = ({
           padding: 0;
           cursor: pointer;
           color: ${theme.textSecondary || "#555"};
-          background-color: ${theme.elevation1 ||
-          theme.backgroundTertiary ||
-          "rgba(0, 0, 0, 0.04)"};
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-          backdrop-filter: blur(4px);
+          background-color: transparent;
           transition: all 0.15s ease;
         }
 
         .chat-action-button:hover {
           color: ${theme.textPrimary || "#333"};
-          background-color: ${theme.backgroundHover || "rgba(0, 0, 0, 0.06)"};
           transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
         }
 
         .chat-action-button:active {
           transform: translateY(0);
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .chat-action-button-danger:hover {
           color: ${theme.textDanger || "#e53935"};
-          background-color: ${theme.backgroundDangerHover ||
-          "rgba(229, 57, 53, 0.08)"};
         }
       `}</style>
     </>
