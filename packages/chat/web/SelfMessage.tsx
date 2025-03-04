@@ -1,55 +1,48 @@
-import * as Ariakit from "@ariakit/react";
-import React, { useState } from "react";
+// SelfMessage.jsx
+import React, { useRef } from "react";
 import { useSelector } from "react-redux";
 import { Avatar } from "render/ui";
 import { selectTheme } from "app/theme/themeSlice";
-
 import { MessageContent } from "./MessageContent";
-import { MessageContextMenu } from "./MessageContextMenu";
+import { MessageActions } from "./MessageActions";
 
 export const SelfMessage = ({ content, id }) => {
-  const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
-  const menu = Ariakit.useMenuStore();
   const theme = useSelector(selectTheme);
+  const messageRef = useRef(null);
 
   return (
     <>
-      <div className="message-container self">
-        <div className="content-wrapper self">
-          <div className="avatar-wrapper">
+      <div className="chat-message-container chat-message-self">
+        <div
+          className="chat-message-content-wrapper chat-message-self"
+          ref={messageRef}
+        >
+          <div className="chat-message-avatar-wrapper">
             <Avatar name="user" />
           </div>
-          <div
-            className="message-bubble"
-            onContextMenu={(e) => {
-              e.preventDefault();
-              setAnchorRect({ x: e.clientX, y: e.clientY });
-              menu.show();
-            }}
-          >
-            <MessageContent content={content} role="self" />
+          <div className="chat-message-content-container">
+            <div className="chat-message-bubble">
+              <MessageContent content={content} role="self" />
+            </div>
+
+            {/* 使用共享的MessageActions组件 */}
+            <MessageActions content={content} id={id} showSave={false} />
           </div>
         </div>
-        <MessageContextMenu
-          menu={menu}
-          anchorRect={anchorRect}
-          content={content}
-          id={id}
-        />
       </div>
 
       <style jsx>{`
-        .message-container {
+        .chat-message-container {
           display: flex;
           margin-bottom: 18px;
           padding: 0 16px;
         }
 
-        .message-container.self {
+        .chat-message-container.chat-message-self {
           justify-content: flex-end;
         }
 
-        .content-wrapper {
+        .chat-message-content-wrapper {
           display: flex;
           align-items: flex-start;
           gap: 12px;
@@ -57,16 +50,23 @@ export const SelfMessage = ({ content, id }) => {
           max-width: 88%;
         }
 
-        .content-wrapper.self {
+        .chat-message-content-wrapper.chat-message-self {
           flex-direction: row-reverse;
         }
 
-        .avatar-wrapper {
+        .chat-message-avatar-wrapper {
           flex-shrink: 0;
           margin-top: 2px;
         }
 
-        .message-bubble {
+        .chat-message-content-container {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 6px;
+        }
+
+        .chat-message-bubble {
           background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"};
           border-radius: 8px;
           padding: 14px 16px;
@@ -74,7 +74,7 @@ export const SelfMessage = ({ content, id }) => {
           box-shadow: 0 1px 2px ${theme.shadowLight};
         }
 
-        .message-bubble:hover {
+        .chat-message-bubble:hover {
           background-color: ${theme.primaryHover || "rgba(22, 119, 255, 0.12)"};
         }
       `}</style>
