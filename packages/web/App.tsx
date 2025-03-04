@@ -91,16 +91,30 @@ export default function App({
         dispatch(setDarkMode(isDark));
 
         // 2. 初始化认证
-        const { user } = await dispatch(initializeAuth(tokenManager)).unwrap();
-        await dispatch(getSettings(user.userId)).unwrap();
-        await dispatch(initializeSpace(user.userId)).unwrap();
+        await dispatch(initializeAuth(tokenManager)).unwrap();
       } catch (error) {
         console.error("系统初始化失败：", error);
       }
     };
 
     initializeSystem();
-  }, []);
+  }, [dispatch, hostname, isDark, tokenManager]);
+
+  // 用户相关的初始化（支持切换用户）
+  useEffect(() => {
+    const initializeUserData = async () => {
+      if (auth.user?.userId) {
+        try {
+          await dispatch(getSettings(auth.user.userId)).unwrap();
+          await dispatch(initializeSpace(auth.user.userId)).unwrap();
+        } catch (error) {
+          console.error("用户数据初始化失败：", error);
+        }
+      }
+    };
+
+    initializeUserData();
+  }, [dispatch, auth.user]); // 监听 auth.user 变化
 
   // 主题和语言初始化
   useEffect(() => {

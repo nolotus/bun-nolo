@@ -5,7 +5,7 @@ import { setSettings } from "setting/settingSlice";
 import { DataType } from "../../types";
 import { read } from "database/dbSlice";
 import { createSpaceKey } from "../spaceKeys";
-import i18next from "i18next"; // 直接导入 i18next 实例
+import i18next from "i18next";
 
 export const initializeSpaceAction = async (
   userId: string | undefined,
