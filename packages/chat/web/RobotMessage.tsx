@@ -1,78 +1,59 @@
-import * as Ariakit from "@ariakit/react";
-import { SquareFillIcon, SquareIcon } from "@primer/octicons-react";
+// RobotMessage.jsx
+import { StopIcon } from "@primer/octicons-react";
 import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
-import { useState } from "react";
+import { useRef } from "react";
 import { Avatar } from "render/ui";
+import { useTranslation } from "react-i18next";
 
 import { useAppSelector } from "app/hooks";
 import { MessageContent } from "./MessageContent";
-import { MessageContextMenu } from "./MessageContextMenu";
 import type { Message } from "../messages/types";
+import { MessageActions } from "./MessageActions";
 
-const RobotMessage: React.FC<Message> = ({
-  id,
-  content,
-  image,
-  controller,
-}) => {
+const RobotMessage: React.FC<Message> = ({ id, content, controller }) => {
   const theme = useAppSelector(selectTheme);
-  const [hovered, setHovered] = useState(false);
-  const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
-  const menu = Ariakit.useMenuStore();
+  const { t } = useTranslation("chat");
+  const messageRef = useRef(null);
 
   return (
     <>
-      <div className="message-container other">
-        <div
-          className="content-wrapper"
-          onContextMenu={(e) => {
-            e.preventDefault();
-            setAnchorRect({ x: e.clientX, y: e.clientY });
-            menu.show();
-          }}
-        >
-          <div className="avatar-wrapper">
+      <div className="chat-message-container chat-message-other">
+        <div className="chat-message-content-wrapper">
+          <div className="chat-message-avatar-wrapper">
             <Avatar name="robot" />
           </div>
-          <div className="robot-message-content">
-            <MessageContent content={content} role="other" />
+          <div className="chat-robot-message-content" ref={messageRef}>
             {controller && (
               <div
-                className="controller-button"
+                className="chat-stop-generation-button"
                 onClick={() => controller.abort()}
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
               >
-                {hovered ? (
-                  <SquareFillIcon size={14} />
-                ) : (
-                  <SquareIcon size={14} />
-                )}
+                <StopIcon size={14} />
+                <span>{t("stopGeneration")}</span>
               </div>
             )}
+
+            <MessageContent content={content} role="other" />
+
+            {/* 使用共享的MessageActions组件 */}
+            <MessageActions content={content} id={id} />
           </div>
         </div>
-        <MessageContextMenu
-          menu={menu}
-          anchorRect={anchorRect}
-          content={content}
-          id={id}
-        />
       </div>
 
-      <style jsx>{`
-        .message-container {
+      <style href="robot-msg">{`
+        .chat-message-container {
           display: flex;
           margin-bottom: 18px;
           padding: 0 16px;
         }
 
-        .message-container.other {
+        .chat-message-container.chat-message-other {
           justify-content: flex-start;
         }
 
-        .content-wrapper {
+        .chat-message-content-wrapper {
           display: flex;
           align-items: flex-start;
           gap: 12px;
@@ -80,39 +61,40 @@ const RobotMessage: React.FC<Message> = ({
           max-width: 88%;
         }
 
-        .avatar-wrapper {
+        .chat-message-avatar-wrapper {
           flex-shrink: 0;
           margin-top: 2px;
         }
 
-        .robot-message-content {
+        .chat-robot-message-content {
           color: ${theme.text};
           position: relative;
           padding: 4px 0;
+          width: 100%;
         }
 
-        .controller-button {
-          position: absolute;
-          bottom: 0;
-          right: -8px;
-          cursor: pointer;
-          display: flex;
+        .chat-stop-generation-button {
+          display: inline-flex;
           align-items: center;
-          justify-content: center;
-          width: 24px;
-          height: 24px;
+          gap: 6px;
+          position: relative;
+          margin-bottom: 8px;
+          font-size: 13px;
+          padding: 6px 12px;
           border-radius: 4px;
-          background-color: ${theme.background};
-          color: ${theme.textTertiary};
-          box-shadow: 0 1px 2px ${theme.shadowLight};
-          border: 1px solid ${theme.border};
-          z-index: 5;
-          transition: color 0.2s ease;
+          background-color: ${theme.backgroundDanger};
+          color: ${theme.textDanger};
+          cursor: pointer;
+          transition: all 0.2s ease;
+          user-select: none;
+          font-weight: 500;
         }
 
-        .controller-button:hover {
-          color: ${theme.textSecondary};
-          background-color: ${theme.backgroundHover};
+        .chat-stop-generation-button:hover {
+          background-color: ${
+            theme.backgroundDangerHover || theme.backgroundDanger
+          };
+          box-shadow: 0 1px 3px ${theme.shadowLight};
         }
       `}</style>
     </>

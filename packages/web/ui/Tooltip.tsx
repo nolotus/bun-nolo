@@ -1,6 +1,7 @@
+//web/ui/Tooltip.tsx
+
 import React from "react";
-import { useEffect, useState } from "react";
-import { animations } from "render/styles/animations";
+import { useState } from "react";
 import { selectTheme } from "app/theme/themeSlice";
 import { useAppSelector } from "app/hooks";
 import {
