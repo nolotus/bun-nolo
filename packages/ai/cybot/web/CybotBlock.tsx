@@ -35,7 +35,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const [deleting, setDeleting] = useState(false);
-  const allowEdit = useCouldEdit(item.id);
+  const allowEdit = useCouldEdit(cybotKey);
 
   const startDialog = async () => {
     if (isLoading) return;
