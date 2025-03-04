@@ -17,10 +17,11 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
   changeSpace,
+  fetchUserSpaceMemberships,
   selectAllMemberSpaces,
   selectCurrentSpace,
 } from "create/space/spaceSlice";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RxDropdownMenu } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
@@ -41,17 +42,31 @@ export const SidebarTop = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const spaces = useAppSelector(selectAllMemberSpaces) || []; // Fallback to empty array if undefined
+  const spaces = useAppSelector(selectAllMemberSpaces);
   const space = useAppSelector(selectCurrentSpace);
+
+  useEffect(() => {
+    const fetchMemberships = async () => {
+      try {
+        await dispatch(fetchUserSpaceMemberships(currentUserId)).unwrap();
+      } catch (error) {
+        console.error("Failed to fetch memberships:", error);
+      }
+    };
+
+    if (currentUserId) {
+      fetchMemberships();
+    }
+  }, [currentUserId, dispatch]);
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const { visible, open: openModal, close: closeModal } = useModal();
 
-  const spacesLength = spaces.length; // Safe because spaces defaults to []
-  const listRef = React.useRef<Array<HTMLElement | null>>(
-    new Array(spacesLength + 1).fill(null) // +1 for CreateSpaceButton
-  );
+  const listRef = React.useRef<Array<HTMLElement | null>>([]);
+  useEffect(() => {
+    listRef.current = Array(spaces.length + 1).fill(null);
+  }, [spaces.length]);
 
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
@@ -120,11 +135,11 @@ export const SidebarTop = () => {
           ref={refs.setReference}
           {...getReferenceProps()}
           className="space-dropdown__trigger"
-          aria-label={t("选择空间")}
+          aria-label={t("select_space")}
           aria-expanded={isOpen}
         >
           <span className="space-dropdown__name" title={space?.name}>
-            {space?.name || t("选择空间")}
+            {space?.name || t("select_space")}
           </span>
           <RxDropdownMenu size={14} className="space-dropdown__icon" />
         </button>
@@ -140,7 +155,7 @@ export const SidebarTop = () => {
               {...getFloatingProps()}
               className="space-dropdown__menu"
               role="listbox"
-              aria-label={t("空间列表")}
+              aria-label={t("space_list")}
             >
               <div className="space-dropdown__content">
                 {spaces.length > 0 ? (
@@ -159,14 +174,14 @@ export const SidebarTop = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="space-dropdown__empty">{t("暂无空间")}</div>
+                  <div className="space-dropdown__empty">{t("no_spaces")}</div>
                 )}
 
                 <CreateSpaceButton
                   onClick={openModal}
                   getItemProps={getItemProps}
-                  listRef={(node) => (listRef.current[spacesLength] = node)}
-                  index={spacesLength}
+                  listRef={(node) => (listRef.current[spaces.length] = node)}
+                  index={spaces.length}
                 />
               </div>
             </div>
