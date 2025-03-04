@@ -8,7 +8,7 @@ import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { useTheme } from "app/theme";
 import { Content } from "../messages/types";
-import { zIndex } from "render/styles/zIndex"; // 引入 zIndex
+import { zIndex } from "render/styles/zIndex";
 
 interface MessageInputProps {
   onSendMessage: (content: Content) => void;
@@ -113,10 +113,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
   return (
     <div
       className="message-input-container"
-      style={{
-        background: theme.background,
-        zIndex: zIndex.messageInputContainerZIndex, // 应用 zIndex
-      }}
       onDragOver={(e) => {
         if (!isDragEnabled) return;
         e.preventDefault();
@@ -182,54 +178,55 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
         }}
       />
 
-      <style jsx>{`
-        /* 移动端基础样式 */
+      <style>{`
         .message-input-container {
+          position: relative;
           bottom: 0;
           left: 0;
           right: 0;
           width: 100%;
-          padding: 8px 12px;
-          padding-bottom: calc(8px + env(safe-area-inset-bottom));
+          padding: 10px 16px;
+          padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
           display: flex;
           flex-direction: column;
-          gap: 6px;
-          box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
+          gap: 8px;
+          background: ${theme.background};
+          border-top: 1px solid ${theme.borderLight};
+          box-shadow: 0 -2px 10px ${theme.shadowLight};
+          z-index: ${zIndex.messageInputContainerZIndex};
           transition: all 0.2s ease;
-          -webkit-overflow-scrolling: touch;
         }
 
         .message-preview-wrapper {
-          position: relative;
           width: 100%;
-          margin: 0;
+          margin-bottom: 4px;
         }
 
         .input-controls {
           display: flex;
-          gap: 6px;
+          gap: 8px;
           width: 100%;
-          margin: 0;
-          padding: 0;
           align-items: flex-end;
         }
 
         .message-textarea {
           flex: 1;
-          height: 36px;
+          height: 40px;
           max-height: 100px;
-          padding: 8px 10px;
-          margin: 0;
+          padding: 10px 12px;
           font-size: 14px;
           line-height: 1.4;
           border: 1px solid ${theme.border};
-          border-radius: 8px;
+          border-radius: 10px;
           resize: none;
           font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
           background: ${theme.backgroundSecondary};
           color: ${theme.text};
-          -webkit-appearance: none;
-          -webkit-tap-highlight-color: transparent;
+          transition: border-color 0.2s ease;
+        }
+
+        .message-textarea::placeholder {
+          color: ${theme.textTertiary};
         }
 
         .message-textarea:focus {
@@ -238,29 +235,32 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
         }
 
         .upload-button {
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
           border: 1px solid ${theme.border};
           display: flex;
           align-items: center;
           justify-content: center;
           background: ${theme.background};
           color: ${theme.textSecondary};
-          -webkit-tap-highlight-color: transparent;
-          padding: 0;
-          margin: 0;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .upload-button:active {
+          transform: scale(0.96);
         }
 
         .drop-zone {
           position: absolute;
           inset: 0;
-          border-radius: 8px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          font-size: 14px;
+          gap: 10px;
+          font-size: 15px;
           background: ${theme.backgroundGhost};
           border: 2px dashed ${theme.primary};
           color: ${theme.primary};
@@ -271,82 +271,37 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
         @media screen and (min-width: 769px) {
           .message-input-container {
             position: relative;
-            padding: 16px 20%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            border-top: none;
             box-shadow: none;
           }
 
-          .input-controls {
-            gap: 8px;
-          }
-
           .message-textarea {
-            height: 48px;
-            max-height: 120px;
+            height: 44px;
+            max-height: 140px;
             padding: 12px 16px;
             font-size: 15px;
-            border-radius: 10px;
           }
 
           .upload-button {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            cursor: pointer;
+            width: 44px;
+            height: 44px;
           }
 
           .upload-button:hover {
-            border-color: ${theme.primary};
-            color: ${theme.primary};
-            background: ${theme.backgroundSecondary};
-          }
-
-          .drop-zone {
-            border-radius: 12px;
-            font-size: 15px;
+            background: ${theme.backgroundHover};
+            border-color: ${theme.borderHover};
+            color: ${theme.text};
           }
         }
 
         /* 大屏幕优化 */
-        @media screen and (min-width: 1201px) {
+        @media screen and (min-width: 1400px) {
           .message-input-container {
-            padding: 16px 20%;
-          }
-        }
-
-        /* 中等屏幕优化 */
-        @media screen and (min-width: 993px) and (max-width: 1200px) {
-          .message-input-container {
-            padding: 16px 15%;
-          }
-        }
-
-        /* 小屏幕优化 */
-        @media screen and (min-width: 769px) and (max-width: 992px) {
-          .message-input-container {
-            padding: 16px 10%;
-          }
-        }
-
-        /* 处理安全区域 */
-        @supports (padding-bottom: env(safe-area-inset-bottom)) {
-          .message-input-container {
-            padding-bottom: calc(8px + env(safe-area-inset-bottom));
-          }
-        }
-
-        /* 深色模式优化 */
-        @media (prefers-color-scheme: dark) {
-          .message-textarea {
-            background: ${theme.backgroundSecondary};
-          }
-        }
-
-        /* 减少动画，提升性能 */
-        @media (prefers-reduced-motion: reduce) {
-          .message-input-container,
-          .message-textarea,
-          .upload-button {
-            transition: none;
+            max-width: 1000px;
           }
         }
       `}</style>
