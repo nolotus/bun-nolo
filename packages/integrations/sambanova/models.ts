@@ -59,8 +59,8 @@ export const sambanovaModels: Model[] = [
     },
   },
   {
-    name: "Llama-Guard-3-8B",
-    displayName: "Llama-Guard-3-8B",
+    name: "Meta-Llama-Guard-3-8B",
+    displayName: "Meta-Llama-Guard-3-8B",
     hasVision: false,
     price: {
       input: 2.4, // 0.30 * 8
@@ -93,6 +93,15 @@ export const sambanovaModels: Model[] = [
     price: {
       input: 5.6, // 0.70 * 8
       output: 11.2, // 1.40 * 8
+    },
+  },
+  {
+    name: "DeepSeek-R1",
+    displayName: "DeepSeek-R1",
+    hasVision: false,
+    price: {
+      input: 40, // 5 * 8
+      output: 56, // 7 * 8
     },
   },
 ];
