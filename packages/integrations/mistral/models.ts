@@ -49,4 +49,12 @@ export const mistralModels: Model[] = [
       output: 7.2, // $0.9 * 8
     },
   },
+  {
+    name: "mistral-ocr-latest",
+    displayName: "Mistral OCR",
+    hasVision: true,
+    description: "OCR-capable model for extracting text from images",
+    contextWindow: 32000,
+    price: {},
+  },
 ];
