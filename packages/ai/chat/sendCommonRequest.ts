@@ -58,7 +58,13 @@ export const sendCommonChatRequest = async ({
 
   const messages = createMessages(content, prevMsgs, cybotConfig);
   const model = cybotConfig.model;
-  const bodyData = { model, messages, stream: true };
+  /// maybe need for other providers
+  const bodyData = {
+    model,
+    messages,
+    stream: true,
+    stream_options: { include_usage: true },
+  };
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;
@@ -135,6 +141,7 @@ export const sendCommonChatRequest = async ({
         const content = parsedData.choices?.[0]?.delta?.content || "";
 
         // 更新usage累积值
+        console.log("parsedData", parsedData);
         if (parsedData.usage) {
           if (!totalUsage) {
             totalUsage = { ...parsedData.usage };
