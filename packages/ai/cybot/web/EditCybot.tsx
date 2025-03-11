@@ -2,6 +2,8 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
+import { useAppSelector } from "app/hooks";
+import { selectCurrentSpace } from "create/space/spaceSlice";
 
 // types & validations
 import type { Model } from "../../llm/types";
@@ -25,7 +27,8 @@ import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import ModelSelector from "ai/llm/ModelSelector";
 import ProviderSelector from "ai/llm/ProviderSelector";
-import { TagsInput } from "web/form/TagsInput"; // 新增导入
+import { TagsInput } from "web/form/TagsInput";
+import ReferencesSelector from "./ReferencesSelector";
 
 interface EditCybotProps {
   initialValues: {
@@ -42,6 +45,7 @@ interface EditCybotProps {
     inputPrice?: number;
     outputPrice?: number;
     tags?: string[] | string;
+    references?: any[];
   };
   onClose: () => void;
 }
@@ -49,7 +53,7 @@ interface EditCybotProps {
 const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
-
+  const space = useAppSelector(selectCurrentSpace);
   const {
     form: {
       register,
@@ -57,7 +61,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
       watch,
       setValue,
       reset,
-      control, // 新增 control 用于 TagsInput
+      control,
       formState: { errors, isSubmitting },
     },
     provider,
@@ -72,6 +76,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
   );
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState(provider || "");
+  const [references, setReferences] = useState(initialValues.references || []);
 
   const isCustomProvider = provider === "Custom";
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
@@ -87,6 +92,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
       tags: Array.isArray(initialValues.tags)
         ? initialValues.tags.join(", ")
         : initialValues.tags || "",
+      references: initialValues.references || [],
     });
     setApiSource(
       initialValues.apiKey || initialValues.provider === "ollama"
@@ -103,6 +109,11 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
       setValue("model", modelsList[0].name);
     }
   }, [provider, setValue, watch]);
+
+  // 当 references 更新时，同步到表单数据
+  useEffect(() => {
+    setValue("references", references);
+  }, [references, setValue]);
 
   const handleFormSubmit = async (data: any) => {
     console.log("[EditCybot] handleFormSubmit triggered with data:", data);
@@ -298,6 +309,27 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                   checked={useServerProxy}
                   onChange={(checked) => setValue("useServerProxy", checked)}
                   disabled={isProxyDisabled || apiSource === "platform"}
+                />
+              </FormField>
+            </div>
+          </section>
+
+          {/* 参考资料选择 */}
+          <section className="form-section">
+            <div className="section-title">{t("references")}</div>
+            <div className="section-content">
+              <FormField
+                label={t("selectReferences")}
+                help={t("selectReferencesHelp", "Select pages to reference")}
+                horizontal
+                labelWidth="140px"
+                error={errors.references?.message}
+              >
+                <ReferencesSelector
+                  space={space}
+                  references={references}
+                  onChange={setReferences}
+                  t={t}
                 />
               </FormField>
             </div>

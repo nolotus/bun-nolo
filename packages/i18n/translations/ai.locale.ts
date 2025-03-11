@@ -85,6 +85,11 @@ export default {
       pricing: "Pricing",
       inputPricePerThousand: "Input price per 1M tokens",
       outputPricePerThousand: "Output price per 1M tokens",
+      // 新增的翻译键
+      references: "References",
+      selectReferences: "Select References",
+      selectReferencesHelp: "Select pages to reference",
+      noPagesAvailable: "No pages available",
     },
   },
   "zh-CN": {
@@ -170,6 +175,11 @@ export default {
       pricing: "价格设置",
       inputPricePerThousand: "每百万输入词元价格",
       outputPricePerThousand: "每百万输出词元价格",
+      // 新增的翻译键
+      references: "参考资料",
+      selectReferences: "选择参考资料",
+      selectReferencesHelp: "选择要引用的页面",
+      noPagesAvailable: "暂无可用页面",
     },
   },
   "zh-Hant": {
@@ -255,6 +265,11 @@ export default {
       pricing: "價格設置",
       inputPricePerThousand: "每百萬輸入詞元價格",
       outputPricePerThousand: "每百萬輸出詞元價格",
+      // 新增的翻译键
+      references: "參考資料",
+      selectReferences: "選擇參考資料",
+      selectReferencesHelp: "選擇要引用的頁面",
+      noPagesAvailable: "暫無可用頁面",
     },
   },
   ja: {
@@ -342,6 +357,11 @@ export default {
       pricing: "価格設定",
       inputPricePerThousand: "百万入力トークンあたりの価格",
       outputPricePerThousand: "百万出力トークンあたりの価格",
+      // 新增的翻译键
+      references: "参照資料",
+      selectReferences: "参照資料を選択",
+      selectReferencesHelp: "参照するページを選択してください",
+      noPagesAvailable: "利用可能なページがありません",
     },
   },
 };
