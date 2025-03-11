@@ -41,7 +41,7 @@ const GuideSection = () => {
               <BookIcon size={24} />
             </div>
             <h3>知识库管理</h3>
-            <p>上传资料构建专属知识库，让AI掌握您需要的专业知识</p>
+            <p>上传并管理您的专业资料，让AI掌握您需要的专业知识</p>
             <NavLink to="/knowledge-base" className="action-button">
               查看详情
             </NavLink>
@@ -52,7 +52,7 @@ const GuideSection = () => {
               <PeopleIcon size={24} />
             </div>
             <h3>多场景应用</h3>
-            <p>学习、工作、生活，在不同场景中灵活运用AI助手</p>
+            <p>根据不同场景、学习、工作、生活，创建多个独立空间</p>
             <NavLink to="/scenarios" className="action-button">
               了解更多
             </NavLink>
