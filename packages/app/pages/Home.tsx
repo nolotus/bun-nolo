@@ -32,31 +32,7 @@ const Home = () => {
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.5rem" }}>
         {isLoggedIn ? <GuideSection /> : <WelcomeSection />}
 
-        {/* 添加登录/注册区域 */}
-        <section className="auth-section fade-in">
-          <div className="auth-content">
-            <h2 className="auth-title">
-              <PersonAddIcon size={24} className="auth-title-icon" />
-              多账户管理
-            </h2>
-            <p className="auth-subtitle">
-              本站支持多账户使用，您可以点击
-              <NavLink to="/login" className="auth-link">
-                登录
-              </NavLink>
-              /
-              <NavLink to="/signup" className="auth-link">
-                注册
-              </NavLink>
-              添加新账户，或在右上角点击
-              <ChevronDownIcon size={16} />
-              切换账户
-            </p>
-          </div>
-        </section>
-
         <section className="section">
-
           <h2 className="section-title">
             <GlobeIcon size={24} className="section-title-icon" />
             社区发布的cybot
@@ -95,19 +71,16 @@ const Home = () => {
         .section {
           opacity: 0;
           animation: fadeInUp 0.6s ease forwards;
-         
         }
 
         .section.delay {
-          animation-delay: 0.2s;
-        }
+          animation-delay: 0.2s        }
 
         .section-title {
           font-size: 2rem;
           color: ${theme.text};
           margin: 3rem 0;
-          font-weight: 600;
-          letter-spacing: -0.5px;
+          font-weight: 600          letter-spacing: -0.5px;
           text-align: center;
           display: flex;
           align-items: center;
@@ -153,66 +126,6 @@ const Home = () => {
         .email-hint {
           font-size: 0.8rem;
           color: ${theme.textSecondary};
-        }
-        
-        /* 新增样式 */
-        .auth-section {
-          background: ${theme.backgroundSecondary};
-          border-radius: 24px;
-          padding: 1rem;
-          padding-bottom: 4rem;
-          margin: 1.5rem auto;
-          max-width: 1200px;
-          box-shadow: 0 8px 30px ${theme.shadowLight};
-          opacity: 0;
-          animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          text-align: center; /* 中心对齐 */
-        }
-
-        .auth-content {
-          margin: 0 auto; /* 使内容居中 */
-        }
-
-        .auth-title {
-          font-size: 1.5rem;
-          color: ${theme.text};
-          margin-bottom: 0.5rem;
-          text-align: center;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-        }
-
-        .auth-title-icon {
-          color: ${theme.primary}; /* 图标颜色 */
-        }
-
-        .auth-subtitle {
-          font-size: 1rem;
-          color: ${theme.textSecondary};
-          margin-bottom: 0;
-          text-align: center;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .auth-subtitle-icon {
-          color: ${theme.primary};
-          margin-right: 0.3rem;
-        }
-
-        .auth-link {
-          color: ${theme.primary};
-          text-decoration: none;
-          font-weight: 500;
-          transition: color 0.2s ease;
-          padding: 0 0.3rem;
-        }
-
-        .auth-link:hover {
-          color: ${theme.primaryDark};
         }
       `}</style>
     </>
