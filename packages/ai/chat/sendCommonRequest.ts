@@ -9,6 +9,7 @@ import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "./fetchUtils";
 import { createDialogMessageKey } from "database/keys";
 import { extractCustomId } from "core/prefix";
+import { buildReferenceContext } from "../context/buildReferenceContext";
 
 function parseMultilineSSE(rawText: string) {
   const results = [];
@@ -34,7 +35,7 @@ function parseMultilineSSE(rawText: string) {
         results.push(parsedData);
         currentData = "";
       } catch (e) {
-        // 继续累积数据
+        // Continue accumulating data
       }
     }
   }
@@ -43,7 +44,7 @@ function parseMultilineSSE(rawText: string) {
 }
 
 export const sendCommonChatRequest = async ({
-  content,
+  content, // userInput
   cybotConfig,
   thunkApi,
   prevMsgs,
@@ -56,14 +57,15 @@ export const sendCommonChatRequest = async ({
   const currentServer = selectCurrentServer(getState());
   const messageId = createDialogMessageKey(dialogId);
 
-  const messages = createMessages(content, prevMsgs, cybotConfig);
+  // Replaced context construction with function call
+  const context = await buildReferenceContext(cybotConfig, dispatch);
+
+  const messages = createMessages(content, prevMsgs, cybotConfig, context);
   const model = cybotConfig.model;
-  /// maybe need for other providers
   const bodyData = {
     model,
     messages,
     stream: true,
-    stream_options: { include_usage: true },
   };
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
@@ -72,7 +74,6 @@ export const sendCommonChatRequest = async ({
 
   let contentBuffer = "";
   let reader;
-  // 用于累积所有usage信息
   let totalUsage = null;
 
   try {
@@ -104,7 +105,6 @@ export const sendCommonChatRequest = async ({
 
     while (true) {
       const { done, value } = await reader.read();
-
       if (done) {
         const final = {
           id: messageId,
@@ -113,7 +113,6 @@ export const sendCommonChatRequest = async ({
           cybotId: cybotConfig.id,
         };
         dispatch(messageStreamEnd(final));
-        // 在结束时更新累积的usage
         if (totalUsage) {
           dispatch(updateTokens({ dialogId, usage: totalUsage, cybotConfig }));
         }
@@ -139,14 +138,10 @@ export const sendCommonChatRequest = async ({
         }
 
         const content = parsedData.choices?.[0]?.delta?.content || "";
-
-        // 更新usage累积值
-        console.log("parsedData", parsedData);
         if (parsedData.usage) {
           if (!totalUsage) {
             totalUsage = { ...parsedData.usage };
           } else {
-            // 如果是增量更新,取最大值
             totalUsage.completion_tokens = Math.max(
               totalUsage.completion_tokens || 0,
               parsedData.usage.completion_tokens || 0

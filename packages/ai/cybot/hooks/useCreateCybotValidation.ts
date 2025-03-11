@@ -32,6 +32,7 @@ export const useCreateCybotValidation = () => {
       inputPrice: 0,
       outputPrice: 0,
       tags: "",
+      references: [], // 添加 references 默认值，类型由 FormData 定义
     },
   });
 
@@ -60,6 +61,7 @@ export const useCreateCybotValidation = () => {
       messageCount: 0,
       tokenCount: 0,
       tags: data.tags ? data.tags.split(",").map((tag) => tag.trim()) : [],
+      references: data.references || [], // 确保 references 被包含
     };
 
     // 保存私有版本

@@ -33,6 +33,16 @@ export const createCybotSchema = z
     inputPrice: z.number().min(0).default(0),
     outputPrice: z.number().min(0).default(0),
     tags: z.string().trim().optional().or(z.string().length(0)),
+    references: z
+      .array(
+        z.object({
+          type: z.string(), // 例如 "PAGE"
+          dbKey: z.string(), // 页面标识符
+          title: z.string(), // 页面标题
+        })
+      )
+      .optional()
+      .default([]), // 添加 references 字段，默认为空数组
   })
   .refine(
     (data) => {

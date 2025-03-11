@@ -14,15 +14,16 @@ const extractCybotId = (path: string) => {
   return matches ? matches[1] : path;
 };
 
-export const useEditCybotValidation = (
-  initialValues: FormData & {
-    id: string;
-    createdAt?: number;
-    dialogCount?: number;
-    messageCount?: number;
-    tokenCount?: number;
-  }
-) => {
+// 更新 ExtendedFormData 接口以匹配 createCybotSchema 中的 references 类型
+interface ExtendedFormData extends FormData {
+  id: string;
+  createdAt?: number;
+  dialogCount?: number;
+  messageCount?: number;
+  tokenCount?: number;
+}
+
+export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
   const dispatch = useAppDispatch();
   const auth = useAuth();
 
@@ -44,7 +45,8 @@ export const useEditCybotValidation = (
       outputPrice: initialValues.outputPrice ?? 0,
       tags: Array.isArray(initialValues.tags)
         ? initialValues.tags.join(", ")
-        : initialValues.tags || "", // 确保初始值是字符串
+        : initialValues.tags || "",
+      references: initialValues.references || [], // 类型由 FormData 定义
     },
   });
 
@@ -74,7 +76,8 @@ export const useEditCybotValidation = (
             .split(",")
             .map((tag) => tag.trim())
             .filter(Boolean)
-        : [], // 转换为数组
+        : [],
+      references: data.references || [], // 类型由 FormData 定义
     };
 
     try {

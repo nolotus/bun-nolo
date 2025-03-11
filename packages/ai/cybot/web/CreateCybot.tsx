@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-
 import type { Model } from "../../llm/types";
 import { getModelsByProvider } from "../../llm/providers";
-
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 import { useOllamaSettings } from "../hooks/useOllamaSettings";
 import { useCreateCybotValidation } from "../hooks/useCreateCybotValidation";
-
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
@@ -21,7 +18,10 @@ import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import ModelSelector from "ai/llm/ModelSelector";
 import ProviderSelector from "ai/llm/ProviderSelector";
-import { TagsInput } from "web/form/TagsInput"; // 新增导入
+import { TagsInput } from "web/form/TagsInput";
+import ReferencesSelector from "./ReferencesSelector";
+import { useAppSelector } from "app/hooks";
+import { selectCurrentSpace } from "create/space/spaceSlice";
 
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
@@ -33,7 +33,7 @@ const CreateCybot: React.FC = () => {
       handleSubmit,
       watch,
       setValue,
-      control, // 新增 control 用于 TagsInput
+      control,
       formState: { errors, isSubmitting },
     },
     provider,
@@ -50,8 +50,10 @@ const CreateCybot: React.FC = () => {
   const [providerInputValue, setProviderInputValue] = useState<string>(
     provider || ""
   );
+  const [references, setReferences] = useState([]); // 用于存储选中的参考资料
   const isCustomProvider = provider === "Custom";
 
+  const space = useAppSelector(selectCurrentSpace);
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
@@ -64,6 +66,11 @@ const CreateCybot: React.FC = () => {
       setValue("model", modelsList[0].name);
     }
   }, [provider, setValue, watch]);
+
+  // 当 references 更新时，同步到表单数据
+  useEffect(() => {
+    setValue("references", references);
+  }, [references, setValue]);
 
   return (
     <div className="create-cybot-container">
@@ -219,6 +226,27 @@ const CreateCybot: React.FC = () => {
                   checked={useServerProxy}
                   onChange={(checked) => setValue("useServerProxy", checked)}
                   disabled={isProxyDisabled || apiSource === "platform"}
+                />
+              </FormField>
+            </div>
+          </section>
+
+          {/* 参考资料选择 */}
+          <section className="form-section">
+            <div className="section-title">{t("references")}</div>
+            <div className="section-content">
+              <FormField
+                label={t("selectReferences")}
+                help={t("selectReferencesHelp", "Select pages to reference")}
+                horizontal
+                labelWidth="140px"
+                error={errors.references?.message}
+              >
+                <ReferencesSelector
+                  space={space}
+                  references={references}
+                  onChange={setReferences}
+                  t={t}
                 />
               </FormField>
             </div>

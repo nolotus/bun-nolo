@@ -6,6 +6,7 @@ import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { extractCustomId } from "core/prefix";
 import pino from "pino";
+import { buildReferenceContext } from "../context/buildReferenceContext";
 
 const logger = pino({ name: "claude-request" });
 
@@ -59,8 +60,9 @@ export const sendClaudeRequest = async ({
   const dispatch = thunkApi.dispatch;
   const currentServer = selectCurrentServer(state);
   const messageId = createDialogMessageKey(dialogId);
+  const context = await buildReferenceContext(cybotConfig, dispatch);
 
-  const body = generateRequestBody(cybotConfig, content, prevMsgs);
+  const body = generateRequestBody(cybotConfig, content, prevMsgs, context);
   const controller = new AbortController();
   const signal = controller.signal;
 
