@@ -4,7 +4,6 @@ import { getHeadTail } from "core/getHeadTail";
 import { readLines } from "utils/bun/readLines";
 import { baseDir } from "database/server/config";
 import path from "path";
-import { getDatabaseFilePath } from "../init";
 import { QueryOptions } from "./types";
 import { getSortedFilteredFiles } from "../server/sort";
 import { checkQuery } from "./checkQuery";
@@ -21,23 +20,15 @@ async function createDataStream(path: string) {
 }
 
 async function* fileDataGenerator(paths) {
-  // console.log("resultsArray", resultsArray);
-
   for (const filePath of paths) {
-    // console.log("fileDataGenerator filePath", filePath);
     const stream = await createDataStream(filePath);
     const reader = readLines(stream);
 
     try {
       for await (const line of reader) {
-        // if (line.includes("01JBKGZMFZYPCXD5CV6G8VENEQ")) {
-        //   console.log("line", filePath, line);
-        // }
         yield line;
       }
-    } catch (error) {
-      console.error("Error reading file:", error);
-    }
+    } catch (error) {}
   }
 }
 
@@ -62,12 +53,10 @@ export const queryData = async (options: QueryOptions): Promise<Array<any>> => {
   };
   const deletedData = new Set();
 
-  const { indexPath } = getDatabaseFilePath(userId);
   const userDir = path.join(baseDir, userId);
   const sortedFilteredFiles = getSortedFilteredFiles(userDir);
   const paths = [
     ...sortedFilteredFiles.map((file) => path.join(userDir, file)),
-    indexPath,
   ];
   // console.log("paths", paths);
 

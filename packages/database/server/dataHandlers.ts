@@ -127,6 +127,9 @@ export const handleOtherDataTypes = async (
     data.type === DataType.SPACE ||
     data.type === DataType.SETTING
   ) {
+    if (data.type === DataType.SPACE) {
+      console.log("Creating space with key:", customKey);
+    }
     await serverDb.put(customKey, data);
     return res.status(200).json({
       message: "Data written to file successfully.",
