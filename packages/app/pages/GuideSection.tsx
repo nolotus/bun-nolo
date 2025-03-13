@@ -1,11 +1,12 @@
 import React from 'react';
 import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
-import { 
-  LightBulbIcon, 
+import {
+  LightBulbIcon,
   BookIcon,
   RocketIcon,
-  PeopleIcon
+  PeopleIcon,
+  ChevronDownIcon
 } from "@primer/octicons-react";
 import { NavLink } from 'react-router-dom';
 
@@ -74,6 +75,22 @@ const GuideSection = () => {
             <div className="step">
               <span className="step-number">3</span>
               <p>开始对话，享受AI带来的效率提升</p>
+            </div>
+            <div className="step">
+              <span className="step-number">4</span>
+              <p>
+                多账户使用，点击
+                <NavLink to="/login" className="auth-link">
+                  登录
+                </NavLink>
+                /
+                <NavLink to="/signup" className="auth-link">
+                  注册
+                </NavLink>
+                添加新账户
+              
+              
+              </p>
             </div>
           </div>
         </div>
@@ -236,6 +253,18 @@ const GuideSection = () => {
             align-items: center;
             gap: 1rem;
           }
+        }
+
+        .auth-link {
+          color: ${theme.primary};
+          text-decoration: none;
+          font-weight: 500;
+          transition: color 0.2s ease;
+          padding: 0 0.3rem;
+        }
+
+        .auth-link:hover {
+          color: ${theme.primaryDark};
         }
       `}</style>
     </section>
