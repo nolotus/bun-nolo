@@ -25,27 +25,9 @@ export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
   const dispatch = thunkAPI.dispatch;
   const state = thunkAPI.getState();
   const userId = selectCurrentUserId(state);
-
-  // 获取需要迁移的数据
-  const sidebarData = await getUserDataOnce({
-    types: targetTypes,
-    userId,
-    limit: 100,
-  });
-
-  const hasOldSideData =
-    Array.isArray(sidebarData.data) && sidebarData.data.length > 0;
-
-  const spaces = selectAllMemberSpaces(state);
-  const hasSpace = spaces.length > 0;
-
-  const needsMigration = hasOldSideData && !hasSpace;
-
-  // 创建新的space
   const spaceId = ulid();
   const now = Date.now();
-
-  const spaceData: SpaceData = {
+  let spaceData: SpaceData = {
     id: spaceId,
     name,
     description,
@@ -57,40 +39,57 @@ export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
     createdAt: now,
     updatedAt: now,
   };
-
-  // 如果需要迁移，将现有数据添加到space的contents中
-  if (needsMigration && sidebarData.data) {
-    const contents: Record<string, SpaceContent> = {};
-
-    for (const item of sidebarData.data) {
-      contents[item.id] = {
-        title: item.title || "",
-        type: item.type,
-        contentKey: item.id,
-        categoryId: "", // 默认无分类
-        pinned: false,
-        createdAt: item.createdAt || now,
-        updatedAt: item.updatedAt || now,
-        order: item.order, // 如果原数据有order则保留
-      };
+  const spaces = selectAllMemberSpaces(state);
+  const hasSpace = spaces.length > 0;
+  let sidebarData;
+  let needsMigration;
+  if (!hasSpace) {
+    let hasOldSideData = false;
+    // 获取需要迁移的数据
+    sidebarData = await getUserDataOnce({
+      types: targetTypes,
+      userId,
+      limit: 100,
+    });
+    if (sidebarData.data) {
+      hasOldSideData =
+        Array.isArray(sidebarData.data) && sidebarData.data.length > 0;
     }
+    needsMigration = hasOldSideData && !hasSpace;
+    // 如果需要迁移，将现有数据添加到space的contents中
+    if (needsMigration && sidebarData.data) {
+      const contents: Record<string, SpaceContent> = {};
 
-    spaceData.contents = contents;
+      for (const item of sidebarData.data) {
+        contents[item.id] = {
+          title: item.title || "",
+          type: item.type,
+          contentKey: item.id,
+          categoryId: "", // 默认无分类
+          pinned: false,
+          createdAt: item.createdAt || now,
+          updatedAt: item.updatedAt || now,
+          order: item.order, // 如果原数据有order则保留
+        };
+      }
 
-    // 如果有迁移的数据，更新这些数据的spaceId
-    const updatePromises = sidebarData.data.map((item) =>
-      dispatch(
-        patchData({
-          dbKey: item.dbKey,
-          changes: {
-            spaceId: spaceId,
-            updatedAt: now,
-          },
-        })
-      )
-    );
+      spaceData.contents = contents;
 
-    Promise.all(updatePromises);
+      // 如果有迁移的数据，更新这些数据的spaceId
+      const updatePromises = sidebarData.data.map((item) =>
+        dispatch(
+          patchData({
+            dbKey: item.dbKey,
+            changes: {
+              spaceId: spaceId,
+              updatedAt: now,
+            },
+          })
+        )
+      );
+
+      Promise.all(updatePromises);
+    }
   }
 
   // 写入space数据
@@ -127,9 +126,7 @@ export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
       customKey: spaceMemberKey,
     })
   ).unwrap();
-
   console.log("SpaceMember ", spaceMemberResult);
-
   console.log("Space created successfully:", spaceMemberData);
   return spaceMemberData;
 };
