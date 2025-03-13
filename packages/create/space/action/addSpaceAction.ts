@@ -14,6 +14,7 @@ import { patchData, write } from "database/dbSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 
 import { selectAllMemberSpaces } from "../spaceSlice";
+const targetTypes = [DataType.DIALOG, DataType.PAGE];
 
 export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
   const {
@@ -26,7 +27,6 @@ export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
   const userId = selectCurrentUserId(state);
 
   // 获取需要迁移的数据
-  const targetTypes = [DataType.DIALOG, DataType.PAGE];
   const sidebarData = await getUserDataOnce({
     types: targetTypes,
     userId,
@@ -76,18 +76,36 @@ export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
     }
 
     spaceData.contents = contents;
+
+    // 如果有迁移的数据，更新这些数据的spaceId
+    const updatePromises = sidebarData.data.map((item) =>
+      dispatch(
+        patchData({
+          dbKey: item.dbKey,
+          changes: {
+            spaceId: spaceId,
+            updatedAt: now,
+          },
+        })
+      )
+    );
+
+    Promise.all(updatePromises);
   }
 
   // 写入space数据
-  const result = await dispatch(
+  const spaceKey = createSpaceKey.space(spaceId);
+  console.log("Creating space with key:", spaceKey);
+  const spaceResult = await dispatch(
     write({
       data: {
         ...spaceData,
         type: DataType.SPACE,
       },
-      customKey: createSpaceKey.space(spaceId),
+      customKey: spaceKey,
     })
   ).unwrap();
+  console.log("Space created successfully:", spaceResult);
 
   // 创建space成员数据
   const spaceMemberData: SpaceMemberWithSpaceInfo = {
@@ -101,29 +119,16 @@ export const addSpaceAction = async (input: CreateSpaceRequest, thunkAPI) => {
   };
 
   // 写入成员数据
-  await dispatch(
+  const spaceMemberKey = createSpaceKey.member(userId, spaceId);
+  console.log("Creating space member with key:", spaceMemberKey);
+  const spaceMemberResult = await dispatch(
     write({
       data: spaceMemberData,
-      customKey: createSpaceKey.member(userId, spaceId),
+      customKey: spaceMemberKey,
     })
   ).unwrap();
 
-  // 如果有迁移的数据，更新这些数据的spaceId
-  if (needsMigration && sidebarData.data) {
-    const updatePromises = sidebarData.data.map((item) =>
-      dispatch(
-        patchData({
-          dbKey: item.id,
-          changes: {
-            spaceId: spaceId,
-            updatedAt: now,
-          },
-        })
-      )
-    );
-
-    await Promise.all(updatePromises);
-  }
+  console.log("SpaceMember ", spaceMemberResult);
 
   console.log("Space created successfully:", spaceMemberData);
   return spaceMemberData;
