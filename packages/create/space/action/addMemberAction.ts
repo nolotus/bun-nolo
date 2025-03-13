@@ -1,8 +1,9 @@
-import type { SpaceId, SpaceData } from "create/space/types";
-import { MemberRole } from "create/space/types";
+import type { SpaceId, SpaceData, MemberRole } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, write } from "database/dbSlice";
+import { SpaceMemberWithSpaceInfo } from "create/space/types";
+import { DataType } from "create/types";
 
 /**
  * 添加成员到空间
@@ -10,14 +11,13 @@ import { read, write } from "database/dbSlice";
  * 说明：
  * 1. 当前用户必须为空间现有成员，才可以添加新成员；
  * 2. 如果成员已存在则直接报错；
- * 3. 这里仅更新 SpaceData.members（成员ID 数组），如果需要记录更多信息（例如角色），
- *    可进一步扩展数据结构或同步写入专门的成员信息表。
+ * 3. 更新 SpaceData.members 数组，同时为新成员创建 SpaceMemberWithSpaceInfo 数据。
  */
 export const addMemberAction = async (
   input: { spaceId: SpaceId; memberId: string; role?: MemberRole },
   thunkAPI: any
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
-  const { spaceId, memberId, role = MemberRole.MEMBER } = input;
+  const { spaceId, memberId, role = MemberRole.MEMBER } = input; // 默认角色为 MEMBER
   const { dispatch, getState } = thunkAPI;
   const state = getState();
   const currentUserId = selectCurrentUserId(state);
@@ -37,14 +37,38 @@ export const addMemberAction = async (
     throw new Error("成员已存在");
   }
 
+  // 更新 SpaceData
   const updatedSpaceData: SpaceData = {
     ...spaceData,
     members: [...spaceData.members, memberId],
     updatedAt: Date.now(),
   };
 
+  // 写入更新后的 SpaceData
   await dispatch(
     write({ data: updatedSpaceData, customKey: spaceKey })
   ).unwrap();
+
+  // 创建并写入新成员的 SpaceMemberWithSpaceInfo 数据
+  const now = Date.now();
+  const spaceMemberData: SpaceMemberWithSpaceInfo = {
+    role: role, // 使用传入的 role，默认为 MEMBER
+    joinedAt: now,
+    updatedAt: now, // 可选字段，初始化时设置为当前时间
+    spaceId: spaceId,
+    spaceName: spaceData.name,
+    ownerId: spaceData.ownerId,
+    visibility: spaceData.visibility,
+    type: DataType.SPACE, // 添加 type 字段
+  };
+
+  const spaceMemberKey = createSpaceKey.member(memberId, spaceId);
+  await dispatch(
+    write({
+      data: spaceMemberData,
+      customKey: spaceMemberKey,
+    })
+  ).unwrap();
+
   return { spaceId, updatedSpaceData };
 };

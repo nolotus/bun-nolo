@@ -34,7 +34,6 @@ export function useUserProfile() {
         logger.error("No server URL or token available");
         throw error;
       }
-
       const path = authRoutes.users.detail.createPath({ userId });
       const url = `${serverUrl}${path}`;
 

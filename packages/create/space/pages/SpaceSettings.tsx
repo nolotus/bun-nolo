@@ -1,27 +1,31 @@
-// create/space/SpaceSettings.tsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { useAppDispatch } from "app/hooks";
 import { useEffect, useState } from "react";
-import { updateSpace, deleteSpace } from "create/space/spaceSlice";
+import {
+  updateSpace,
+  deleteSpace,
+  addMember,
+  removeMember,
+} from "create/space/spaceSlice";
 import { PlusIcon, TrashIcon, PencilIcon } from "@primer/octicons-react";
-
-// web
 import Button from "web/ui/Button";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
-import { Input } from "web/form/Input"; // 导入 Input 组件
+import { Input } from "web/form/Input";
 import TextArea from "web/form/Textarea";
-
 import { InviteModal } from "../InviteModal";
 import { MemberList } from "../MemberList";
 import { useSpaceData } from "../hooks/useSpaceData";
+import { MemberRole } from "create/space/types";
+import { createUserKey } from "database/keys";
+import { read } from "database/dbSlice";
 
 interface Member {
   id: string;
   name: string;
   email: string;
-  role: "owner" | "editor" | "viewer";
+  role: MemberRole;
   joinedAt: string;
   avatar?: string;
 }
@@ -32,7 +36,6 @@ const SpaceSettings = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  // 状态管理
   const { spaceData, loading, error } = useSpaceData(spaceId!);
   const [name, setSpaceName] = useState("");
   const [description, setDescription] = useState("");
@@ -43,22 +46,12 @@ const SpaceSettings = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
 
-  // 初始化表单数据
   useEffect(() => {
     if (spaceData) {
       setSpaceName(spaceData.name);
       setDescription(spaceData.description || "");
       setVisibility(spaceData.visibility);
-    }
-  }, [spaceData]);
-
-  // 获取成员列表
-  useEffect(() => {
-    const fetchMembers = async () => {
-      setMembers(spaceData?.members);
-    };
-    if (spaceData) {
-      fetchMembers();
+      setMembers(spaceData.members);
     }
   }, [spaceData]);
 
@@ -95,22 +88,40 @@ const SpaceSettings = () => {
     }
   };
 
-  const handleInviteMember = async (email: string, role: string) => {
+  const handleInviteMember = async (userId: string, role: string) => {
     try {
+      const mappedRole =
+        role === "viewer" ? MemberRole.GUEST : MemberRole.MEMBER;
+
       await dispatch(
-        updateSpace({
+        addMember({
           spaceId: spaceId!,
-          action: "inviteMember",
-          data: { email, role },
+          memberId: userId,
+          role: mappedRole,
         })
       ).unwrap();
 
       toast.success("邀请已发送");
       setShowInviteModal(false);
 
-      // 刷新成员列表
-      // const response = await dispatch(read(`${spaceId}/members`)).unwrap();
-      setMembers(response);
+      let userProfile;
+      try {
+        const profileKey = createUserKey.profile(userId);
+        userProfile = await dispatch(read(profileKey)).unwrap();
+      } catch (err) {
+        console.warn(`Failed to fetch userProfile for ${userId}:`, err);
+        userProfile = null;
+      }
+
+      const newMember: Member = {
+        id: userId,
+        name: userProfile?.nickname || userId,
+        email: userProfile?.email || "",
+        role: mappedRole,
+        joinedAt: new Date().toISOString(),
+        avatar: userProfile?.avatar || undefined,
+      };
+      setMembers([...members, newMember]);
     } catch (err) {
       toast.error("邀请失败");
     }
@@ -120,17 +131,16 @@ const SpaceSettings = () => {
     try {
       setRemovingMemberId(memberId);
       await dispatch(
-        updateSpace({
+        removeMember({
           spaceId: spaceId!,
-          action: "removeMember",
-          data: { memberId },
+          memberId,
         })
       ).unwrap();
 
       setMembers(members.filter((m) => m.id !== memberId));
       toast.success("成员已移除");
     } catch (err) {
-      toast.error("移除失败");
+      toast.error("移除失败: " + (err.message || "未知错误"));
     } finally {
       setRemovingMemberId(null);
     }
@@ -153,6 +163,7 @@ const SpaceSettings = () => {
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
         onInvite={handleInviteMember}
+        loading={false}
       />
 
       <div className="settings-header">
@@ -197,7 +208,7 @@ const SpaceSettings = () => {
 
             <div className="form-group">
               <label>空间ID</label>
-              <div className="readonly-value">{spaceData.spaceId}</div>
+              <div className="readonly-value">{spaceData.id}</div>
             </div>
 
             <div className="form-group">
@@ -246,7 +257,7 @@ const SpaceSettings = () => {
 
           <MemberList
             members={members}
-            currentUserId={spaceData.ownerId}
+            ownerId={spaceData.ownerId} // 仅传递 ownerId
             onRemove={handleRemoveMember}
             removingId={removingMemberId}
           />
