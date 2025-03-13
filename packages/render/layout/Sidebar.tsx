@@ -47,59 +47,123 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
   }, [toggleSidebar, sidebarContent]);
 
-  const sidebarStyle = {
-    width: `${theme.sidebarWidth}px`,
-    height: "100dvh",
-    position: "fixed" as const,
-    left: isOpen ? 0 : `-${theme.sidebarWidth}px`,
-    transition: "left 0.3s ease-in-out",
-    zIndex: 2,
-    display: "flex",
-    flexDirection: "column" as const,
-    background: theme.backgroundSecondary,
-    borderRight: `1px solid ${theme.border}`,
-    boxShadow: `0 0 10px ${theme.shadowLight}`,
-  };
-
-  const mainStyle = {
-    flexGrow: 1,
-    marginLeft: isOpen && sidebarContent ? `${theme.sidebarWidth}px` : 0,
-    transition: "margin-left 0.3s ease-in-out",
-    width:
-      isOpen && sidebarContent
-        ? `calc(100% - ${theme.sidebarWidth}px)`
-        : "100%",
-    background: theme.background,
-    color: theme.text,
-  };
-
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: theme.background,
-      }}
-    >
+    <div className="app-layout">
       {sidebarContent && (
-        <aside ref={sidebarRef} style={sidebarStyle}>
+        <aside
+          ref={sidebarRef}
+          className={`app-sidebar ${isOpen ? "sidebar-open" : "sidebar-closed"}`}
+        >
           <SidebarTop />
-          <div style={{ flexGrow: 1, overflowY: "auto", color: theme.text }}>
-            {sidebarContent}
-          </div>
+          <div className="sidebar-content">{sidebarContent}</div>
           <ResizeHandle sidebarRef={sidebarRef} theme={theme} />
         </aside>
       )}
 
-      <main style={mainStyle}>
+      <main
+        className={`app-main ${isOpen && sidebarContent ? "with-sidebar" : ""}`}
+      >
         <TopBar
           toggleSidebar={sidebarContent ? toggleSidebar : undefined}
           theme={theme}
           topbarContent={topbarContent}
           isExpanded={isOpen}
         />
-        <div style={{ width: "100%", maxWidth: "100%" }}>{children}</div>
+        <div className="main-content">{children}</div>
       </main>
+
+      <style jsx>{`
+        .app-layout {
+          display: flex;
+          min-height: 100vh;
+          background: ${theme.background};
+          position: relative;
+          overflow: hidden;
+        }
+
+        .app-sidebar {
+          width: ${theme.sidebarWidth}px;
+          height: 100dvh;
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          background: ${theme.background};
+          border-right: 1px solid ${theme.border};
+          transition:
+            transform 0.25s cubic-bezier(0.17, 0.67, 0.26, 0.99),
+            box-shadow 0.25s ease;
+        }
+
+        .sidebar-closed {
+          transform: translateX(-${theme.sidebarWidth}px);
+          box-shadow: none;
+        }
+
+        .sidebar-open {
+          transform: translateX(0);
+          box-shadow: 0 0 20px ${theme.shadowMedium};
+        }
+
+        .sidebar-content {
+          flex-grow: 1;
+          overflow-y: auto;
+          overflow-x: hidden;
+          color: ${theme.text};
+          scrollbar-width: thin;
+          scrollbar-color: ${theme.textLight} transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+          background: ${theme.textLight};
+          border-radius: 10px;
+        }
+
+        .app-main {
+          flex-grow: 1;
+          margin-left: 0;
+          width: 100%;
+          background: ${theme.background};
+          color: ${theme.text};
+          transition:
+            margin-left 0.25s cubic-bezier(0.17, 0.67, 0.26, 0.99),
+            width 0.25s cubic-bezier(0.17, 0.67, 0.26, 0.99);
+          position: relative;
+          min-height: 100vh;
+        }
+
+        .app-main.with-sidebar {
+          margin-left: ${theme.sidebarWidth}px;
+          width: calc(100% - ${theme.sidebarWidth}px);
+        }
+
+        .main-content {
+          width: 100%;
+          max-width: 100%;
+          position: relative;
+        }
+
+        @media (max-width: 768px) {
+          .app-main.with-sidebar {
+            margin-left: 0;
+            width: 100%;
+          }
+
+          .sidebar-open {
+            box-shadow: 0 0 40px ${theme.shadowHeavy};
+          }
+        }
+      `}</style>
     </div>
   );
 };

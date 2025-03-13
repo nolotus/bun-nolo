@@ -42,7 +42,6 @@ const prodConfig = {
   entryNames: "[dir]/[name]-[hash]",
   minify: true,
   sourcemap: false,
-  drop: ['console', 'debugger'],
 };
 
 export const config = isProduction

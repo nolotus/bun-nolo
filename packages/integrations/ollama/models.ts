@@ -7,15 +7,15 @@ export const ollamaModels: Model[] = [
     description: "Text embedding model",
     hasVision: false,
     contextWindow: 8192,
-    price: { input: 0, output: 0 }
+    price: { input: 0, output: 0 },
   },
   {
-    name: "mistral-nemo:latest",
-    displayName: "Mistral Nemo",
-    description: "Mistral-based language model",
+    name: "mistral-small:latest",
+    displayName: "Mistral Small",
+    description: "Mistral-small language model",
     hasVision: false,
-    contextWindow: 64000,
-    price: { input: 0, output: 0 }
+    contextWindow: 32000,
+    price: { input: 0, output: 0 },
   },
   {
     name: "llama3.1:latest",
@@ -23,7 +23,7 @@ export const ollamaModels: Model[] = [
     description: "Large language model",
     hasVision: false,
     contextWindow: 128000,
-    price: { input: 0, output: 0 }
+    price: { input: 0, output: 0 },
   },
   {
     name: "llava:latest",
@@ -33,38 +33,6 @@ export const ollamaModels: Model[] = [
     contextWindow: null,
     maxImageResolution: "1344x1344",
     supportedResolutions: ["672x672", "336x1344", "1344x336"],
-    price: { input: 0, output: 0 }
+    price: { input: 0, output: 0 },
   },
-  {
-    name: "gemma2:latest",
-    displayName: "Gemma 2",
-    description: "Advanced language model",
-    hasVision: false,
-    contextWindow: 128000,
-    price: { input: 0, output: 0 }
-  },
-  {
-    name: "starling-lm:latest",
-    displayName: "Starling LM",
-    description: "Advanced language model",
-    hasVision: false,
-    contextWindow: 128000,
-    price: { input: 0, output: 0 }
-  },
-  {
-    name: "gemma:latest",
-    displayName: "Gemma",
-    description: "Efficient language model",
-    hasVision: false,
-    contextWindow: 128000,
-    price: { input: 0, output: 0 }
-  },
-  {
-    name: "mistral:latest",
-    displayName: "Mistral",
-    description: "Mistral-based language model",
-    hasVision: false,
-    contextWindow: 64000,
-    price: { input: 0, output: 0 }
-  }
 ];

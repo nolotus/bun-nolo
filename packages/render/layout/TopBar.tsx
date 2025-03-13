@@ -15,7 +15,7 @@ import { CreateMenu } from "create/CreateMenu";
 import type React from "react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import useMediaQuery from "react-responsive";
+
 import NavListItem from "render/layout/blocks/NavListItem";
 import MenuButton from "./MenuButton";
 import NavIconItem from "./blocks/NavIconItem";
@@ -24,6 +24,7 @@ import { useParams } from "react-router";
 import { extractUserId } from "core/prefix";
 //web
 import { CreateTool } from "create/CreateTool";
+
 interface TopBarProps {
   toggleSidebar?: () => void;
   theme: any;
@@ -48,7 +49,6 @@ const TopBar: React.FC<TopBarProps> = ({
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const pageData = useAppSelector(selectPageData);
-  const isMobile = useMediaQuery({ query: "(max-width: 768px)" });
   const { pageId } = useParams();
 
   const auth = useAuth();
@@ -80,11 +80,9 @@ const TopBar: React.FC<TopBarProps> = ({
                 {currentDialogConfig.cybots?.map((cybotId) => (
                   <CybotNameChip key={cybotId} cybotId={cybotId} />
                 ))}
-                {!isMobile && currentDialogTokens > 0 && (
-                  <div className="token-counter">
-                    Tokens: {currentDialogTokens}
-                  </div>
-                )}
+                <div className="token-counter">
+                  Tokens: {currentDialogTokens}
+                </div>
                 <CreateDialogButton dialogConfig={currentDialogConfig} />
                 <DeleteDialogButton dialogConfig={currentDialogConfig} />
               </>
@@ -179,6 +177,10 @@ const TopBar: React.FC<TopBarProps> = ({
 
             .topbar-right {
               gap: 4px;
+            }
+            
+            .token-counter {
+              display: none;
             }
           }
         `}

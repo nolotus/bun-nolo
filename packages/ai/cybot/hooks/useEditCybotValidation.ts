@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { DataType } from "create/types";
-import { patchData, write } from "database/dbSlice"; // 添加 write
+import { patchData, write } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { createCybotKey } from "database/keys";
 import { createCybotSchema, FormData } from "../createCybotSchema";
@@ -14,9 +14,16 @@ const extractCybotId = (path: string) => {
   return matches ? matches[1] : path;
 };
 
-export const useEditCybotValidation = (
-  initialValues: FormData & { id: string }
-) => {
+// 更新 ExtendedFormData 接口以匹配 createCybotSchema 中的 references 类型
+interface ExtendedFormData extends FormData {
+  id: string;
+  createdAt?: number;
+  dialogCount?: number;
+  messageCount?: number;
+  tokenCount?: number;
+}
+
+export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
   const dispatch = useAppDispatch();
   const auth = useAuth();
 
@@ -24,27 +31,37 @@ export const useEditCybotValidation = (
     resolver: zodResolver(createCybotSchema),
     defaultValues: {
       name: initialValues.name || "",
+      provider: initialValues.provider || "",
+      model: initialValues.model || "",
+      customProviderUrl: initialValues.customProviderUrl || "",
+      apiKey: initialValues.apiKey || "",
+      useServerProxy: initialValues.useServerProxy ?? true,
+      prompt: initialValues.prompt || "",
       tools: initialValues.tools || [],
       isPublic: initialValues.isPublic ?? false,
-      provider: initialValues.provider || "",
-      customProviderUrl: initialValues.customProviderUrl || "",
-      model: initialValues.model || "",
-      useServerProxy: initialValues.useServerProxy ?? true,
       greeting: initialValues.greeting || "",
       introduction: initialValues.introduction || "",
       inputPrice: initialValues.inputPrice ?? 0,
       outputPrice: initialValues.outputPrice ?? 0,
+      tags: Array.isArray(initialValues.tags)
+        ? initialValues.tags.join(", ")
+        : initialValues.tags || "",
+      references: initialValues.references || [], // 类型由 FormData 定义
     },
   });
 
   const { watch } = form;
+
   const provider = watch("provider");
   const useServerProxy = watch("useServerProxy");
   const isPublic = watch("isPublic");
 
   const onSubmit = async (data: FormData) => {
-    console.log("onSubmit", data);
-    if (!auth.user?.userId) return;
+    console.log("[useEditCybotValidation] onSubmit triggered with data:", data);
+    if (!auth.user?.userId) {
+      console.log("[useEditCybotValidation] No userId, aborting submission");
+      return;
+    }
 
     const now = Date.now();
     const cybotId = extractCybotId(initialValues.id);
@@ -54,10 +71,20 @@ export const useEditCybotValidation = (
     const updateData = {
       ...data,
       updatedAt: now,
+      tags: data.tags
+        ? data.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        : [],
+      references: data.references || [], // 类型由 FormData 定义
     };
 
     try {
-      // 1. 更新私有版本
+      console.log(
+        "[useEditCybotValidation] Updating private version at:",
+        userCybotPath
+      );
       await dispatch(
         patchData({
           dbKey: userCybotPath,
@@ -68,9 +95,11 @@ export const useEditCybotValidation = (
         })
       ).unwrap();
 
-      // 2. 处理公开版本
       if (data.isPublic) {
-        // 如果变更为公开,使用 write 而不是 patch
+        console.log(
+          "[useEditCybotValidation] Writing public version at:",
+          publicCybotPath
+        );
         await dispatch(
           write({
             data: {
@@ -83,14 +112,17 @@ export const useEditCybotValidation = (
               dialogCount: initialValues.dialogCount || 0,
               messageCount: initialValues.messageCount || 0,
               tokenCount: initialValues.tokenCount || 0,
-              tags: initialValues.tags || [],
             },
             customKey: publicCybotPath,
           })
         ).unwrap();
       }
-      // 注: 如果从公开改为私有,不需要特殊处理,因为访问时会优先查看私有版本
+      console.log("[useEditCybotValidation] Submission completed successfully");
     } catch (error) {
+      console.error(
+        "[useEditCybotValidation] Submission failed with error:",
+        error
+      );
       throw error;
     }
   };

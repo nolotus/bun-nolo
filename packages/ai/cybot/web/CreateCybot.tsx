@@ -1,18 +1,12 @@
-import type React from "react";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-
-// types
 import type { Model } from "../../llm/types";
-import { useCreateCybotValidation } from "../hooks/useCreateCybotValidation";
-
-// data & hooks
 import { getModelsByProvider } from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
-
-// components
+import { useOllamaSettings } from "../hooks/useOllamaSettings";
+import { useCreateCybotValidation } from "../hooks/useCreateCybotValidation";
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
@@ -22,9 +16,12 @@ import ToggleSwitch from "web/ui/ToggleSwitch";
 import { PlusIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
-// import ToolSelector from "web/tools/ToolSelector";
 import ModelSelector from "ai/llm/ModelSelector";
 import ProviderSelector from "ai/llm/ProviderSelector";
+import { TagsInput } from "web/form/TagsInput";
+import ReferencesSelector from "./ReferencesSelector";
+import { useAppSelector } from "app/hooks";
+import { selectCurrentSpace } from "create/space/spaceSlice";
 
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
@@ -36,6 +33,7 @@ const CreateCybot: React.FC = () => {
       handleSubmit,
       watch,
       setValue,
+      control,
       formState: { errors, isSubmitting },
     },
     provider,
@@ -44,35 +42,35 @@ const CreateCybot: React.FC = () => {
     onSubmit,
   } = useCreateCybotValidation();
 
-  const [apiSource, setApiSource] = useState<"platform" | "custom">("platform");
+  const { apiSource, setApiSource, isOllama } = useOllamaSettings(
+    provider,
+    setValue
+  );
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState<string>(
     provider || ""
   );
+  const [references, setReferences] = useState([]); // 用于存储选中的参考资料
   const isCustomProvider = provider === "Custom";
 
+  const space = useAppSelector(selectCurrentSpace);
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
 
   useEffect(() => {
-    if (apiSource === "platform") {
-      setValue("apiKey", "");
-      setValue("useServerProxy", true);
-    }
-  }, [apiSource, setValue]);
-
-  useEffect(() => {
     setProviderInputValue(provider || "");
-    if (!isCustomProvider) {
-      setValue("customProviderUrl", "");
-      const modelsList = getModelsByProvider(provider || "");
-      setModels(modelsList);
-      if (modelsList.length > 0) {
-        setValue("model", modelsList[0].name);
-      }
+    const modelsList = getModelsByProvider(provider || "");
+    setModels(modelsList);
+    if (modelsList.length > 0 && !watch("model")) {
+      setValue("model", modelsList[0].name);
     }
-  }, [provider, setValue, isCustomProvider]);
+  }, [provider, setValue, watch]);
+
+  // 当 references 更新时，同步到表单数据
+  useEffect(() => {
+    setValue("references", references);
+  }, [references, setValue]);
 
   return (
     <div className="create-cybot-container">
@@ -107,7 +105,22 @@ const CreateCybot: React.FC = () => {
                   placeholder={t("enterPrompt")}
                 />
               </FormField>
-              {/* 其他基础字段可按需求添加 */}
+              <FormField
+                label={t("tags")}
+                error={errors.tags?.message}
+                help={t(
+                  "tagsHelp",
+                  "Enter tags separated by commas (e.g., tag1, tag2)"
+                )}
+                horizontal
+                labelWidth="140px"
+              >
+                <TagsInput
+                  name="tags"
+                  control={control}
+                  placeholder={t("enterTags")}
+                />
+              </FormField>
             </div>
           </section>
 
@@ -127,13 +140,10 @@ const CreateCybot: React.FC = () => {
               >
                 <ToggleSwitch
                   checked={apiSource === "custom"}
-                  onChange={(checked) => {
-                    setApiSource(checked ? "custom" : "platform");
-                    if (!checked) {
-                      setValue("apiKey", "");
-                      setValue("useServerProxy", true);
-                    }
-                  }}
+                  onChange={(checked) =>
+                    setApiSource(checked ? "custom" : "platform")
+                  }
+                  disabled={isOllama}
                   label={t(
                     apiSource === "custom" ? "useCustomApi" : "usePlatformApi"
                   )}
@@ -187,10 +197,10 @@ const CreateCybot: React.FC = () => {
                   t={t}
                 />
               </FormField>
-              {apiSource === "custom" && (
+              {apiSource === "custom" && !isOllama && (
                 <FormField
                   label={t("apiKey")}
-                  required
+                  required={!isOllama}
                   error={errors.apiKey?.message}
                   help={t("apiKeyHelp")}
                   horizontal
@@ -216,6 +226,27 @@ const CreateCybot: React.FC = () => {
                   checked={useServerProxy}
                   onChange={(checked) => setValue("useServerProxy", checked)}
                   disabled={isProxyDisabled || apiSource === "platform"}
+                />
+              </FormField>
+            </div>
+          </section>
+
+          {/* 参考资料选择 */}
+          <section className="form-section">
+            <div className="section-title">{t("references")}</div>
+            <div className="section-content">
+              <FormField
+                label={t("selectReferences")}
+                help={t("selectReferencesHelp", "Select pages to reference")}
+                horizontal
+                labelWidth="140px"
+                error={errors.references?.message}
+              >
+                <ReferencesSelector
+                  space={space}
+                  references={references}
+                  onChange={setReferences}
+                  t={t}
                 />
               </FormField>
             </div>
@@ -301,7 +332,7 @@ const CreateCybot: React.FC = () => {
         </Button>
       </form>
 
-      <style jsx>{`
+      <style>{`
         .create-cybot-container {
           max-width: 800px;
           margin: 24px auto;
@@ -316,16 +347,6 @@ const CreateCybot: React.FC = () => {
         .form-section {
           position: relative;
           padding-left: 16px;
-        }
-        .form-section::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          width: 2px;
-          background: ${theme.borderLight};
-          opacity: 0.5;
         }
         .section-title {
           font-size: 15px;

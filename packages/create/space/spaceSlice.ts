@@ -14,7 +14,7 @@ import {
 import { deleteSpaceAction } from "./action/deleteSpaceAction";
 import { addContentAction } from "./action/addContentAction";
 import { deleteContentFromSpaceAction } from "./action/deleteContentFromSpaceAction";
-import { addSpaceAction } from "./action/addSpace";
+import { addSpaceAction } from "./action/addSpaceAction";
 import { updateSpaceAction } from "./action/updateSpaceAction";
 import { fetchUserSpaceMembershipsAction } from "./action/fetchUserSpaceMemberships";
 import { addMemberAction } from "./action/addMemberAction";
@@ -48,7 +48,7 @@ const initialState: SpaceState = {
   currentSpaceId: null,
   currentSpace: null,
   memberSpaces: null,
-  loading: true,
+  loading: false,
   initialized: false,
 };
 
@@ -100,6 +100,7 @@ const spaceSlice = createSliceWithThunks({
         }
       },
     }),
+
     moveContentToSpace: create.asyncThunk(moveContentAction, {
       fulfilled: (state, action) => {
         const { spaceId, updatedSpaceData } = action.payload;
@@ -112,12 +113,12 @@ const spaceSlice = createSliceWithThunks({
     fetchUserSpaceMemberships: create.asyncThunk(
       fetchUserSpaceMembershipsAction,
       {
+        pending: (state) => {
+          state.loading = true;
+        },
         fulfilled: (state, action) => {
           state.memberSpaces = action.payload;
           state.loading = false;
-        },
-        pending: (state) => {
-          state.loading = true;
         },
         rejected: (state, action) => {
           state.loading = false;
@@ -167,14 +168,13 @@ const spaceSlice = createSliceWithThunks({
     }),
 
     initializeSpace: create.asyncThunk(initializeSpaceAction, {
+      pending: (state) => {
+        state.loading = true;
+        state.initialized = false;
+      },
       fulfilled: (state) => {
         state.loading = false;
         state.initialized = true;
-      },
-      pending: (state) => {
-        state.loading = true;
-        state.currentSpaceId = null;
-        state.currentSpace = null;
       },
       rejected: (state, action) => {
         state.loading = false;
@@ -249,6 +249,7 @@ const spaceSlice = createSliceWithThunks({
         }
       },
     }),
+
     updateContentTitle: create.asyncThunk(updateContentTitleAction, {
       fulfilled: (state, action) => {
         if (state.currentSpaceId === action.payload.spaceId) {
@@ -277,6 +278,7 @@ export const {
   reorderCategories,
   fetchSpaceMemberships,
   updateContentTitle,
+  moveContentToSpace,
 } = spaceSlice.actions;
 
 // Selectors
@@ -290,5 +292,8 @@ export const selectOwnedMemberSpaces = (state: NoloRootState) =>
   (state.space.memberSpaces || []).filter(
     (space) => space.role === MemberRole.OWNER
   );
+export const selectSpaceLoading = (state: NoloRootState) => state.space.loading;
+export const selectSpaceInitialized = (state: NoloRootState) =>
+  state.space.initialized;
 
 export default spaceSlice.reducer;

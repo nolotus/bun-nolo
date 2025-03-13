@@ -1,5 +1,21 @@
 // ai/cybot/types.ts
 
+// 参考资料项类型
+export enum ReferenceItemType {
+  PAGE = "page",
+  SPACE = "space",
+  // 以下为将来扩展预留
+  // URL = 'url',
+  // FILE = 'file',
+}
+
+// 参考资料项结构
+export interface ReferenceItem {
+  type: ReferenceItemType;
+  dbKey: string;
+  title: string;
+}
+
 export interface Cybot {
   id: string;
   userId: string;
@@ -14,18 +30,18 @@ export interface Cybot {
   isPublic: boolean;
   greeting?: string;
   introduction?: string;
-  inputPrice?: number; // 替换 pricing.input
-  outputPrice?: number; // 替换 pricing.output
-  dialogCount?: number; // 替换 metrics.useCount
-  messageCount?: number; // 替换 metrics.messageCount
-  tokenCount?: number; // 新增
-  tags?: string[]; // 新增
+  inputPrice?: number;
+  outputPrice?: number;
+  dialogCount?: number;
+  messageCount?: number;
+  tokenCount?: number;
+  tags?: string[];
+  references?: ReferenceItem[];
   spaceId?: string;
   categoryId?: string;
-  createdAt: number; // 替换 createTime
-  updatedAt: string; // 替换 updateTime，使用 ISO 字符串
+  createdAt: number;
+  updatedAt: string;
 }
-
 // 如果需要请求参数的类型
 export interface FetchPubCybotsParams {
   limit?: number;

@@ -18,6 +18,9 @@ const CHAT_COMPLETION_URLS = {
 };
 
 export function getApiEndpoint(cybotConfig: CybotConfig): string {
+  if (cybotConfig.customProviderUrl) {
+    return cybotConfig.customProviderUrl;
+  }
   const provider = cybotConfig.provider.toLowerCase();
   if (provider === "custom") {
     if (!cybotConfig.customProviderUrl) {
