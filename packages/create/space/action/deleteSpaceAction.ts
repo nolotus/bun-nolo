@@ -18,6 +18,7 @@ export const deleteSpaceAction = async (spaceId: string, thunkAPI) => {
   // 删除所有成员的space-member数据
   for (const memberId of spaceData.members) {
     const memberKey = createSpaceKey.member(memberId, spaceId);
+    console.log("memberKey,memberKey");
     await dispatch(remove(memberKey)).unwrap();
   }
   return {

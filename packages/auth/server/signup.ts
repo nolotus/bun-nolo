@@ -58,6 +58,7 @@ export async function handleSignUp(req) {
       bio: "",
       createdAt: Date.now(),
       updatedAt: Date.now(),
+      email,
     };
 
     try {

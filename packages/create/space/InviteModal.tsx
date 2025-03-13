@@ -6,7 +6,7 @@ import { InfoIcon } from "@primer/octicons-react";
 interface InviteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onInvite: (email: string, role: string) => void;
+  onInvite: (userId: string, role: string) => void;
   loading?: boolean;
 }
 
@@ -16,11 +16,11 @@ export const InviteModal: React.FC<InviteModalProps> = ({
   onInvite,
   loading = false,
 }) => {
-  const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
   const [role, setRole] = useState("viewer");
 
   const handleInvite = () => {
-    onInvite(email, role);
+    onInvite(userId, role);
   };
 
   const actions = (
@@ -56,13 +56,13 @@ export const InviteModal: React.FC<InviteModalProps> = ({
     >
       <div className="invite-form">
         <div className="form-group">
-          <label htmlFor="email">邮箱地址</label>
+          <label htmlFor="userId">用户ID</label>
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="输入邮箱地址"
+            id="userId"
+            type="text" // 修改了type，从email改为text
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="输入用户ID"
           />
         </div>
         <div className="form-group">
