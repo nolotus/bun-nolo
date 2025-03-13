@@ -1,5 +1,7 @@
 // create/space/types.ts
 
+import { DataType } from "../types";
+
 // 基础枚举保持不变
 export enum SpaceVisibility {
   PRIVATE = "private",
