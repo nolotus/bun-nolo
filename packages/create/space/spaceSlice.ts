@@ -23,7 +23,7 @@ import { addCategoryAction } from "./action/addCategoryAction";
 import { deleteCategoryAction } from "./action/deleteCategoryAction";
 import { updateCategoryNameAction } from "./action/updateCategoryNameAction";
 import { reorderCategoriesAction } from "./action/reorderCategoriesAction";
-import { fetchSpaceMembershipsAction } from "./action/fetchSpaceMembershipsAction";
+import { fetchSpaceAction } from "./action/fetchSpaceAction";
 import { updateContentCategoryAction } from "./action/updateContentCategoryAction";
 import { initializeSpaceAction } from "./action/initializeSpaceAction";
 import { moveContentAction } from "./action/moveContentAction";
@@ -239,13 +239,10 @@ const spaceSlice = createSliceWithThunks({
       },
     }),
 
-    fetchSpaceMemberships: create.asyncThunk(fetchSpaceMembershipsAction, {
+    fetchSpace: create.asyncThunk(fetchSpaceAction, {
       fulfilled: (state, action) => {
-        if (
-          state.currentSpaceId === action.payload.spaceId &&
-          state.currentSpace
-        ) {
-          state.currentSpace.members = action.payload.members;
+        if (state.currentSpaceId === action.payload.spaceId) {
+          // 直接更新整个 currentSpace
         }
       },
     }),
@@ -276,7 +273,7 @@ export const {
   updateCategoryName,
   updateContentCategory,
   reorderCategories,
-  fetchSpaceMemberships,
+  fetchSpace,
   updateContentTitle,
   moveContentToSpace,
 } = spaceSlice.actions;
