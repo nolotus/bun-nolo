@@ -1,47 +1,73 @@
-import * as Ariakit from "@ariakit/react";
-import { TrashIcon } from "@primer/octicons-react";
+// UserMessage.jsx
 import type React from "react";
-import { useState } from "react";
+import { useRef } from "react";
 import { Avatar } from "render/ui";
 
-import { useAppDispatch } from "app/hooks";
 import { MessageContent } from "./MessageContent";
-import { deleteMessage } from "../messages/messageSlice";
+import { MessageActions } from "./MessageActions";
 
 import type { Message } from "../messages/types";
-import { MessageStyles } from "./MessageStyles";
+import { useTheme } from "app/theme";
 
 export const UserMessage: React.FC<Message> = ({ content, id }) => {
-  const dispatch = useAppDispatch();
-  const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
-  const menu = Ariakit.useMenuStore();
+  const messageRef = useRef(null);
+  const theme = useTheme();
 
   return (
     <>
-      <MessageStyles />
-      <div className="message-container other">
-        <div
-          className="content-wrapper"
-          onContextMenu={(e) => {
-            e.preventDefault();
-            setAnchorRect({ x: e.clientX, y: e.clientY });
-            menu.show();
-          }}
-        >
-          <div className="avatar-wrapper">
+      <div className="chat-message-container chat-message-other">
+        <div className="chat-message-content-wrapper" ref={messageRef}>
+          <div className="chat-message-avatar-wrapper">
             <Avatar name="user" />
           </div>
-          <MessageContent content={content} role="other" />
-        </div>
+          <div className="chat-message-content-container">
+            <div className="chat-user-message-content">
+              <MessageContent content={content} role="other" />
+            </div>
 
-        <Ariakit.Menu store={menu} modal getAnchorRect={() => anchorRect}>
-          <Ariakit.MenuItem onClick={() => dispatch(deleteMessage(id))}>
-            <TrashIcon /> Delete Message
-          </Ariakit.MenuItem>
-          <Ariakit.MenuSeparator />
-          <Ariakit.MenuItem>View Details</Ariakit.MenuItem>
-        </Ariakit.Menu>
+            {/* Action buttons - using the shared component */}
+            <MessageActions content={content} id={id} showDelete={false} />
+          </div>
+        </div>
       </div>
+
+      <style jsx>{`
+        .chat-message-container {
+          display: flex;
+          margin-bottom: 18px;
+          padding: 0 16px;
+        }
+
+        .chat-message-container.chat-message-other {
+          justify-content: flex-start;
+        }
+
+        .chat-message-content-wrapper {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          position: relative;
+          max-width: 88%;
+        }
+
+        .chat-message-avatar-wrapper {
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        .chat-message-content-container {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .chat-user-message-content {
+          background-color: ${theme.backgroundSecondary || "#f0f2f5"};
+          border-radius: 8px;
+          padding: 14px 16px;
+          color: ${theme.text};
+        }
+      `}</style>
     </>
   );
 };

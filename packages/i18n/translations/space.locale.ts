@@ -1,4 +1,5 @@
 // i18n/translations/space.locale.ts
+
 import { Language } from "../types";
 
 export default {
@@ -17,6 +18,9 @@ export default {
       create_success: "Space created successfully",
       create_error: "Failed to create space",
       default_space: "Default Space",
+      select_space: "Select Space",
+      no_spaces: "No Spaces Available",
+      space_list: "Space List",
     },
   },
   [Language.ZH_CN]: {
@@ -34,6 +38,9 @@ export default {
       create_success: "空间创建成功",
       create_error: "创建空间失败",
       default_space: "默认空间",
+      select_space: "选择空间",
+      no_spaces: "暂无空间",
+      space_list: "空间列表",
     },
   },
   [Language.ZH_HANT]: {
@@ -51,6 +58,9 @@ export default {
       create_success: "空間創建成功",
       create_error: "創建空間失敗",
       default_space: "默認空間",
+      select_space: "選擇空間",
+      no_spaces: "暫無空間",
+      space_list: "空間列表",
     },
   },
   [Language.JA]: {
@@ -68,6 +78,9 @@ export default {
       create_success: "スペースが正常に作成されました",
       create_error: "スペースの作成に失敗しました",
       default_space: "デフォルトスペース",
+      select_space: "スペースを選択",
+      no_spaces: "スペースがありません",
+      space_list: "スペースリスト",
     },
   },
 };

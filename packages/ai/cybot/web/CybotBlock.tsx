@@ -35,7 +35,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const [deleting, setDeleting] = useState(false);
-  const allowEdit = useCouldEdit(item.id);
+  const allowEdit = useCouldEdit(cybotKey);
 
   const startDialog = async () => {
     if (isLoading) return;
@@ -83,6 +83,19 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
     );
   };
 
+  const renderTags = () => {
+    // 如果 item.tags 存在且是数组，渲染每个标签
+    if (!item.tags || !Array.isArray(item.tags) || item.tags.length === 0) {
+      return null;
+    }
+
+    return item.tags.map((tag, index) => (
+      <div key={index} className="tag">
+        {tag}
+      </div>
+    ));
+  };
+
   return (
     <>
       <div id={`cybot-${item.id}`} className="cybot-block">
@@ -105,6 +118,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
                   {t("dialogCount")}: {item.dialogCount}
                 </div>
               )}
+              {renderTags()} {/* 添加 tags 渲染 */}
             </div>
           </div>
         </div>

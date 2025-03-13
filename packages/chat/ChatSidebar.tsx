@@ -42,22 +42,29 @@ const useGroupedContent = (space: Space | null) => {
         sortedCategories: [] as CategoryItem[],
       };
     }
+
     const { contents, categories } = space;
     const categorized: Record<string, SpaceContent[]> = {};
     const uncategorized: SpaceContent[] = [];
 
+    // Initialize categorized arrays for each category
     if (categories) {
       Object.keys(categories).forEach((categoryId) => {
         categorized[categoryId] = [];
       });
     }
 
+    // Safely process contents
     if (contents) {
       Object.values(contents)
+        .filter(
+          (item): item is SpaceContent => item !== null && item !== undefined
+        ) // Filter out null/undefined items
         .sort((a, b) => {
-          const timeA = new Date(a.updatedAt || a.createdAt).getTime();
-          const timeB = new Date(b.updatedAt || b.createdAt).getTime();
-          return timeB - timeA;
+          // Use a fallback timestamp (e.g., 0) if updatedAt or createdAt is missing
+          const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+          const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+          return timeB - timeA; // Sort descending (newest first)
         })
         .forEach((item) => {
           if (categories && item.categoryId && categories[item.categoryId]) {
@@ -68,6 +75,7 @@ const useGroupedContent = (space: Space | null) => {
         });
     }
 
+    // Sort categories by order
     const sortedCategories = categories
       ? Object.entries(categories)
           .map(([id, category]) => ({
@@ -76,6 +84,7 @@ const useGroupedContent = (space: Space | null) => {
           }))
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       : [];
+
     return { groupedData: { categorized, uncategorized }, sortedCategories };
   }, [space]);
 };
@@ -150,11 +159,12 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
   const style = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
-    zIndex: isDragging ? 1 : 0,
+    zIndex: isDragging ? 2 : 0,
     position: isDragging ? ("relative" as const) : ("static" as const),
     ...(isDragging && {
       backgroundColor: "var(--background-secondary)",
-      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+      boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+      opacity: 0.9,
     }),
   };
   return (
@@ -192,13 +202,13 @@ const ItemDraggable: React.FC<ItemDraggableProps> = ({
   const style = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
-    opacity: isDragging ? 0.7 : 1,
+    opacity: isDragging ? 0.8 : 1,
     position: isDragging ? ("relative" as const) : ("static" as const),
-    zIndex: isDragging ? 1 : 0,
-    animation: animate ? "slideInLeft 0.2s ease-out both" : "none",
-    margin: "4px 0",
+    zIndex: isDragging ? 2 : 0,
+    animation: animate ? "fadeIn 0.3s ease-out" : "none",
+    margin: "3px 0",
     ...(isDragging && {
-      boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
     }),
   };
   return (
@@ -381,75 +391,108 @@ const ChatSidebar: React.FC = () => {
           onAddCategory={handleAddCategoryConfirm}
         />
 
-        <style>
-          {`
-            .chat-sidebar {
-              display: flex;
-              flex-direction: column;
-              height: 100%;
-              background: ${theme.backgroundSecondary};
-              padding: 8px 0;
+        <style jsx>{`
+          .chat-sidebar {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: ${theme.background};
+            padding: 12px 4px;
+          }
+
+          .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 8px 12px;
+            margin-right: -4px;
+          }
+
+          .scroll-area::-webkit-scrollbar {
+            width: 4px;
+          }
+
+          .scroll-area::-webkit-scrollbar-track {
+            background: transparent;
+          }
+
+          .scroll-area::-webkit-scrollbar-thumb {
+            background: ${theme.textLight};
+            border-radius: 10px;
+            opacity: 0.5;
+          }
+
+          .scroll-area::-webkit-scrollbar-thumb:hover {
+            background: ${theme.textQuaternary};
+          }
+
+          .category-section {
+            position: relative;
+            margin-bottom: 16px;
+            padding: 4px 0;
+            border-radius: 8px;
+            transition:
+              background-color 0.2s ease,
+              transform 0.15s ease;
+          }
+
+          .category-section.drag-over {
+            background: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
+            transform: translateY(2px);
+          }
+
+          .category-section.drag-over::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 8px;
+            box-shadow: 0 0 0 2px ${theme.primaryLight};
+            pointer-events: none;
+          }
+
+          .category-content {
+            margin-top: 2px;
+            padding: 0 2px;
+          }
+
+          .button-container {
+            padding: 4px 12px 4px;
+            margin-top: 4px;
+          }
+
+          .add-category-button {
+            transition: all 0.2s ease;
+            background: ${theme.backgroundSecondary};
+            border: none;
+            border-radius: 8px;
+            color: ${theme.textSecondary};
+            font-weight: 500;
+            height: 36px;
+          }
+
+          .add-category-button:hover {
+            background: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
+            color: ${theme.primary};
+            transform: translateY(-1px);
+          }
+
+          .add-category-button:active {
+            transform: translateY(0);
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(6px);
             }
-            .scroll-area {
-              flex: 1;
-              overflow-y: auto;
-              padding-bottom: 8px;
+            to {
+              opacity: 1;
+              transform: translateY(0);
             }
-            .scroll-area::-webkit-scrollbar {
-              width: 6px;
-            }
-            .scroll-area::-webkit-scrollbar-track {
-              background: transparent;
-            }
-            .scroll-area::-webkit-scrollbar-thumb {
-              background: ${theme.border};
-              border-radius: 3px;
-            }
-            .category-section {
-              position: relative;
-              margin-bottom: 12px;
-              padding: 4px;
-              background: ${theme.backgroundSecondary};
-              border-radius: 6px;
-              transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
-            }
-            .category-section.drag-over {
-              background: rgba(0,150,250,0.1);
-              box-shadow: 0 0 0 2px rgba(0,150,250,0.5);
-            }
-            .category-section.drag-over .category-header {
-              background: inherit;
-              border: none;
-            }
-            .category-content {
-              margin-top: 4px;
-            }
-            .button-container {
-              padding: 8px 16px;
-            }
-            .add-category-button {
-              transition: background-color 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out;
-              background: ${theme.backgroundSecondary};
-              border: 1px solid ${theme.border};
-              color: ${theme.textSecondary};
-            }
-            .add-category-button:hover {
-              background: ${theme.backgroundHover};
-              border-color: ${theme.border};
-              color: ${theme.text};
-            }
-            @keyframes slideInLeft {
-              from {
-                opacity: 0;
-                transform: translateX(-10px);
-              }
-              to {
-                opacity: 1;
-                transform: translateX(0);
-              }
-            }
-          `}
-        </style>
+          }
+        `}</style>
       </nav>
     </DndContext>
   );

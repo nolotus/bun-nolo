@@ -17,8 +17,10 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
   changeSpace,
+  fetchUserSpaceMemberships,
   selectAllMemberSpaces,
   selectCurrentSpace,
+  selectSpaceLoading, // 新增导入
 } from "create/space/spaceSlice";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,7 +35,6 @@ import NavIconItem from "./blocks/NavIconItem";
 import { CreateSpaceButton } from "create/space/CreateSpaceButton";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-
 import { SpaceItem } from "create/space/components/SpaceItem";
 
 export const SidebarTop = () => {
@@ -42,16 +43,36 @@ export const SidebarTop = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const spaces = useAppSelector(selectAllMemberSpaces);
+  const spaces = useAppSelector(selectAllMemberSpaces) || [];
   const space = useAppSelector(selectCurrentSpace);
+  const loading = useAppSelector(selectSpaceLoading);
+
+  useEffect(() => {
+    const fetchSpaces = async () => {
+      if (currentUserId && !loading && (!spaces || spaces.length === 0)) {
+        try {
+          await dispatch(fetchUserSpaceMemberships(currentUserId)).unwrap();
+        } catch (error) {
+          console.error("Failed to fetch spaces in SidebarTop:", error);
+        }
+      }
+    };
+
+    fetchSpaces();
+  }, [currentUserId, spaces, loading, dispatch]);
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const { visible, open: openModal, close: closeModal } = useModal();
 
+  const spacesLength = spaces.length;
   const listRef = React.useRef<Array<HTMLElement | null>>(
-    new Array(spaces?.length || 0 + 1).fill(null)
+    new Array(spacesLength + 1).fill(null)
   );
+
+  useEffect(() => {
+    listRef.current = Array(spaces.length + 1).fill(null);
+  }, [spaces.length]);
 
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
@@ -119,17 +140,18 @@ export const SidebarTop = () => {
         <button
           ref={refs.setReference}
           {...getReferenceProps()}
-          className="space-dropdown__trigger"
-          aria-label={t("选择空间")}
+          className={`space-dropdown__trigger ${isOpen ? "is-open" : ""} ${loading ? "is-loading" : ""}`}
+          aria-label={t("select_space")}
           aria-expanded={isOpen}
+          disabled={loading}
         >
           <span className="space-dropdown__name" title={space?.name}>
-            {space?.name || t("选择空间")}
+            {loading ? t("loading") : space?.name || t("select_space")}
           </span>
           <RxDropdownMenu size={14} className="space-dropdown__icon" />
         </button>
 
-        {isMounted && (
+        {isMounted && !loading && (
           <FloatingFocusManager context={context} modal={false}>
             <div
               ref={refs.setFloating}
@@ -140,12 +162,12 @@ export const SidebarTop = () => {
               {...getFloatingProps()}
               className="space-dropdown__menu"
               role="listbox"
-              aria-label={t("空间列表")}
+              aria-label={t("space_list")}
             >
               <div className="space-dropdown__content">
-                {spaces?.length > 0 && (
+                {spaces.length > 0 ? (
                   <div className="space-dropdown__section">
-                    {spaces?.map((spaceItem: any, index: number) => (
+                    {spaces.map((spaceItem: any, index: number) => (
                       <SpaceItem
                         key={spaceItem.dbKey}
                         spaceItem={spaceItem}
@@ -158,15 +180,15 @@ export const SidebarTop = () => {
                       />
                     ))}
                   </div>
+                ) : (
+                  <div className="space-dropdown__empty">{t("no_spaces")}</div>
                 )}
 
                 <CreateSpaceButton
                   onClick={openModal}
                   getItemProps={getItemProps}
-                  listRef={(node) =>
-                    (listRef.current[spaces?.length || 0] = node)
-                  }
-                  index={spaces?.length || 0}
+                  listRef={(node) => (listRef.current[spacesLength] = node)}
+                  index={spacesLength}
                 />
               </div>
             </div>
@@ -181,9 +203,10 @@ export const SidebarTop = () => {
       <style jsx>{`
         .space-sidebar-top {
           display: flex;
-          padding: 12px 16px;
+          padding: 16px;
           gap: 12px;
           align-items: center;
+          background: ${theme.background};
         }
 
         .space-dropdown {
@@ -195,24 +218,38 @@ export const SidebarTop = () => {
         .space-dropdown__trigger {
           display: flex;
           align-items: center;
+          justify-content: space-between;
           width: 100%;
-          height: 28px;
-          padding: 0 10px;
-          border-radius: 4px;
+          height: 32px;
+          padding: 0 12px;
+          border-radius: 6px;
           cursor: pointer;
-          background: ${theme.background};
-          border: 1px solid ${isOpen ? theme.borderHover : theme.border};
-          transition: all 0.2s ease;
-          box-shadow: ${isOpen ? `0 1px 4px ${theme.shadowLight}` : "none"};
+          background: ${theme.backgroundSecondary};
+          border: 1px solid transparent;
+          transition: all 0.15s ease;
+          font-weight: 500;
+          color: ${theme.text};
         }
 
         .space-dropdown__trigger:hover {
-          border-color: ${theme.borderHover};
+          background: ${theme.backgroundHover};
+        }
+
+        .space-dropdown__trigger.is-open {
+          background: ${theme.backgroundActive || theme.backgroundHover};
+          border-color: ${theme.primary};
+          box-shadow: 0 0 0 1px ${theme.primaryLight};
+        }
+
+        .space-dropdown__trigger.is-loading {
+          opacity: 0.7;
+          cursor: default;
         }
 
         .space-dropdown__trigger:focus-visible {
-          outline: 2px solid ${theme.primary};
-          outline-offset: -1px;
+          outline: none;
+          box-shadow: 0 0 0 2px ${theme.primaryLight};
+          border-color: ${theme.primary};
         }
 
         .space-dropdown__name {
@@ -220,43 +257,54 @@ export const SidebarTop = () => {
           text-overflow: ellipsis;
           white-space: nowrap;
           font-size: 13px;
-          font-weight: 500;
           color: ${theme.text};
           flex: 1;
           min-width: 0;
+          margin-right: 8px;
         }
 
         .space-dropdown__icon {
-          margin-left: 6px;
-          transition: transform 0.2s ease;
+          transition:
+            transform 0.2s ease,
+            color 0.2s ease;
           transform: ${isOpen ? "rotate(180deg)" : "rotate(0deg)"};
-          color: ${theme.textSecondary};
+          color: ${isOpen ? theme.primary : theme.textTertiary};
           flex-shrink: 0;
         }
 
         .space-dropdown__menu {
           background: ${theme.background};
-          border-radius: 6px;
-          border: 1px solid ${theme.border};
-          box-shadow: 0 4px 12px ${theme.shadowMedium};
+          border-radius: 10px;
+          box-shadow:
+            0 6px 20px ${theme.shadowMedium},
+            0 0 0 1px ${theme.border};
           overflow: hidden;
           z-index: ${zIndex.spaceDropdownZIndex};
-          margin-top: 4px;
+          margin-top: 6px;
+          backdrop-filter: blur(8px);
         }
 
         .space-dropdown__content {
-          max-height: 320px;
+          max-height: 340px;
           overflow-y: auto;
-          padding: 4px;
+          padding: 6px;
         }
 
         .space-dropdown__section {
           position: relative;
         }
 
+        .space-dropdown__empty {
+          padding: 12px;
+          font-size: 13px;
+          color: ${theme.textSecondary};
+          text-align: center;
+          margin: 4px 0;
+        }
+
         .space-dropdown__content::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
+          width: 5px;
+          height: 5px;
         }
 
         .space-dropdown__content::-webkit-scrollbar-track {
@@ -264,18 +312,17 @@ export const SidebarTop = () => {
         }
 
         .space-dropdown__content::-webkit-scrollbar-thumb {
-          background: ${theme.border};
-          border-radius: 4px;
-          border: 2px solid ${theme.background};
+          background: ${theme.textLight};
+          border-radius: 10px;
         }
 
         .space-dropdown__content::-webkit-scrollbar-thumb:hover {
-          background: ${theme.borderHover};
+          background: ${theme.textQuaternary};
         }
 
         .space-dropdown__content {
           scrollbar-width: thin;
-          scrollbar-color: ${theme.border} transparent;
+          scrollbar-color: ${theme.textLight} transparent;
         }
       `}</style>
     </div>

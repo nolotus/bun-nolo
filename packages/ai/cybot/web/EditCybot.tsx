@@ -2,6 +2,8 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
+import { useAppSelector } from "app/hooks";
+import { selectCurrentSpace } from "create/space/spaceSlice";
 
 // types & validations
 import type { Model } from "../../llm/types";
@@ -11,6 +13,7 @@ import { useEditCybotValidation } from "../hooks/useEditCybotValidation";
 import { getModelsByProvider } from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
+import { useOllamaSettings } from "../hooks/useOllamaSettings";
 
 // components
 import { FormField } from "web/form/FormField";
@@ -22,11 +25,10 @@ import ToggleSwitch from "web/ui/ToggleSwitch";
 import { SyncIcon } from "@primer/octicons-react";
 import Button from "web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
-// import ToolSelector from "../../tools/ToolSelector";
 import ModelSelector from "ai/llm/ModelSelector";
 import ProviderSelector from "ai/llm/ProviderSelector";
-
-type ApiSource = "platform" | "custom";
+import { TagsInput } from "web/form/TagsInput";
+import ReferencesSelector from "./ReferencesSelector";
 
 interface EditCybotProps {
   initialValues: {
@@ -39,10 +41,11 @@ interface EditCybotProps {
     isPublic: boolean;
     greeting?: string;
     introduction?: string;
-    // tools?: string[]; // 工具部分暂时停用
     customProviderUrl?: string;
     inputPrice?: number;
     outputPrice?: number;
+    tags?: string[] | string;
+    references?: any[];
   };
   onClose: () => void;
 }
@@ -50,7 +53,7 @@ interface EditCybotProps {
 const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
-
+  const space = useAppSelector(selectCurrentSpace);
   const {
     form: {
       register,
@@ -58,6 +61,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
       watch,
       setValue,
       reset,
+      control,
       formState: { errors, isSubmitting },
     },
     provider,
@@ -66,11 +70,13 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     onSubmit,
   } = useEditCybotValidation(initialValues);
 
-  const [apiSource, setApiSource] = useState<ApiSource>(
-    initialValues.apiKey ? "custom" : "platform"
+  const { apiSource, setApiSource, isOllama } = useOllamaSettings(
+    provider,
+    setValue
   );
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState(provider || "");
+  const [references, setReferences] = useState(initialValues.references || []);
 
   const isCustomProvider = provider === "Custom";
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
@@ -81,39 +87,67 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     reset({
       ...initialValues,
       prompt: initialValues.prompt || "",
+      customProviderUrl: initialValues.customProviderUrl || "",
+      apiKey: initialValues.apiKey || "",
+      tags: Array.isArray(initialValues.tags)
+        ? initialValues.tags.join(", ")
+        : initialValues.tags || "",
+      references: initialValues.references || [],
     });
-  }, [initialValues, reset]);
-
-  useEffect(() => {
-    if (apiSource === "platform") {
-      setValue("apiKey", "");
-      setValue("useServerProxy", true);
-    }
-  }, [apiSource, setValue]);
+    setApiSource(
+      initialValues.apiKey || initialValues.provider === "ollama"
+        ? "custom"
+        : "platform"
+    );
+  }, [initialValues, reset, setApiSource]);
 
   useEffect(() => {
     setProviderInputValue(provider || "");
-    if (!isCustomProvider) {
-      setValue("customProviderUrl", "");
-      const modelsList = getModelsByProvider(provider || "");
-      setModels(modelsList);
-      if (modelsList.length > 0 && !watch("model")) {
-        setValue("model", modelsList[0].name);
-      }
+    const modelsList = getModelsByProvider(provider || "");
+    setModels(modelsList);
+    if (modelsList.length > 0 && !watch("model")) {
+      setValue("model", modelsList[0].name);
     }
-  }, [provider, setValue, isCustomProvider, watch]);
+  }, [provider, setValue, watch]);
+
+  // 当 references 更新时，同步到表单数据
+  useEffect(() => {
+    setValue("references", references);
+  }, [references, setValue]);
 
   const handleFormSubmit = async (data: any) => {
+    console.log("[EditCybot] handleFormSubmit triggered with data:", data);
     await onSubmit(data);
+    console.log("[EditCybot] handleFormSubmit completed");
     onClose();
   };
+
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log("[EditCybot] Form validation errors:", errors);
+    }
+  }, [errors]);
 
   const promptValue = watch("prompt");
 
   return (
     <div className="edit-cybot-container">
       <FormTitle>{t("editCybot")}</FormTitle>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <form
+        onSubmit={(e) => {
+          console.log("[EditCybot] Form submission triggered");
+          const submitHandler = handleSubmit(
+            (data) => {
+              console.log("[EditCybot] handleSubmit success, data:", data);
+              handleFormSubmit(data);
+            },
+            (err) => {
+              console.log("[EditCybot] handleSubmit failed with errors:", err);
+            }
+          );
+          submitHandler(e);
+        }}
+      >
         <div className="form-layout">
           {/* 基本信息与行为 */}
           <section className="form-section">
@@ -147,6 +181,22 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                   rows={6}
                 />
               </FormField>
+              <FormField
+                label={t("tags")}
+                error={errors.tags?.message}
+                help={t(
+                  "tagsHelp",
+                  "Enter tags separated by commas (e.g., tag1, tag2)"
+                )}
+                horizontal
+                labelWidth="140px"
+              >
+                <TagsInput
+                  name="tags"
+                  control={control}
+                  placeholder={t("enterTags")}
+                />
+              </FormField>
             </div>
           </section>
 
@@ -166,13 +216,10 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
               >
                 <ToggleSwitch
                   checked={apiSource === "custom"}
-                  onChange={(checked) => {
-                    setApiSource(checked ? "custom" : "platform");
-                    if (!checked) {
-                      setValue("apiKey", "");
-                      setValue("useServerProxy", true);
-                    }
-                  }}
+                  onChange={(checked) =>
+                    setApiSource(checked ? "custom" : "platform")
+                  }
+                  disabled={isOllama}
                   label={t(
                     apiSource === "custom" ? "useCustomApi" : "usePlatformApi"
                   )}
@@ -231,10 +278,10 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 />
               </FormField>
 
-              {apiSource === "custom" && (
+              {apiSource === "custom" && !isOllama && (
                 <FormField
                   label={t("apiKey")}
-                  required
+                  required={!isOllama && !useServerProxy}
                   error={errors.apiKey?.message}
                   help={t("apiKeyHelp")}
                   horizontal
@@ -262,6 +309,27 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                   checked={useServerProxy}
                   onChange={(checked) => setValue("useServerProxy", checked)}
                   disabled={isProxyDisabled || apiSource === "platform"}
+                />
+              </FormField>
+            </div>
+          </section>
+
+          {/* 参考资料选择 */}
+          <section className="form-section">
+            <div className="section-title">{t("references")}</div>
+            <div className="section-content">
+              <FormField
+                label={t("selectReferences")}
+                help={t("selectReferencesHelp", "Select pages to reference")}
+                horizontal
+                labelWidth="140px"
+                error={errors.references?.message}
+              >
+                <ReferencesSelector
+                  space={space}
+                  references={references}
+                  onChange={setReferences}
+                  t={t}
                 />
               </FormField>
             </div>
@@ -360,19 +428,61 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
           margin: 0 auto;
           padding: 20px;
         }
-        form {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
         .form-layout {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 40px;
+          margin-bottom: 32px;
+        }
+        .form-section {
+          position: relative;
+          padding-left: 16px;
+        }
+        .section-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: ${theme.textDim};
+          margin: 0 0 24px;
+          padding-left: 16px;
+          position: relative;
+          height: 24px;
+          line-height: 24px;
+        }
+        .section-title::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 50%;
+          width: 8px;
+          height: 2px;
+          background: ${theme.primary};
+          opacity: 0.7;
+        }
+        .section-content {
+          display: flex;
+          flex-direction: column;
+        }
+        .price-inputs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
         }
         @media (max-width: 640px) {
           .edit-cybot-container {
             padding: 16px;
+          }
+          .form-layout {
+            gap: 32px;
+          }
+          .form-section {
+            padding-left: 12px;
+          }
+          .section-title {
+            font-size: 14px;
+            margin-bottom: 20px;
+          }
+          .price-inputs {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
