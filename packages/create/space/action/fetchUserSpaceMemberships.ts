@@ -14,7 +14,6 @@ const SERVERS = ["https://cybot.one", "https://cybot.run"];
  */
 const fetchLocalSpaceMembers = async (userId) => {
   try {
-    console.debug(`Fetching local space members for user ${userId}`);
     const memberships: SpaceMemberWithSpaceInfo[] = [];
     const memberPrefix = `space-member-${userId}`;
 
@@ -25,13 +24,8 @@ const fetchLocalSpaceMembers = async (userId) => {
       memberships.push(memberData);
     }
 
-    console.debug(`Found ${memberships.length} local memberships`);
     return memberships;
   } catch (error) {
-    console.error(
-      `Failed to fetch local space members for user ${userId}:`,
-      error
-    );
     return []; // 返回空数组而不是抛出错误
   }
 };
@@ -69,7 +63,6 @@ const fetchWithTimeout = async (url, options, timeout = SERVER_TIMEOUT) => {
  */
 const fetchRemoteSpaceMembers = async (server, userId, token) => {
   try {
-    console.debug(`Fetching from ${server} for user ${userId}`);
     const response = await fetchWithTimeout(
       `${server}/rpc/getUserSpaceMemberships`,
       {
@@ -83,10 +76,8 @@ const fetchRemoteSpaceMembers = async (server, userId, token) => {
     );
 
     const data = await response.json();
-    console.debug(`Received ${data.length} memberships from ${server}`);
     return data;
   } catch (error) {
-    console.warn(`Failed to fetch from ${server}:`, error);
     return [];
   }
 };
@@ -98,7 +89,6 @@ const fetchRemoteSpaceMembers = async (server, userId, token) => {
  * @returns {Promise<SpaceMemberWithSpaceInfo[]>} 合并后的成员数据
  */
 export const fetchUserSpaceMembershipsAction = async (userId, thunkAPI) => {
-  console.info(`Starting fetchUserSpaceMembershipsAction for user ${userId}`);
   const state = thunkAPI.getState();
   const currentServer = selectCurrentServer(state);
   const token = selectCurrentToken(state);
@@ -135,9 +125,17 @@ export const fetchUserSpaceMembershipsAction = async (userId, thunkAPI) => {
       (a, b) => b.joinedAt - a.joinedAt
     );
 
-    console.info(
-      `Successfully fetched ${sortedMemberships.length} total memberships for user ${userId}`
-    );
+    // 详细显示获取到的数据
+    console.info(`Successfully fetched memberships for user ${userId}:`, {
+      totalCount: sortedMemberships.length,
+      membershipDetails: sortedMemberships.map((m) => ({
+        spaceId: m.spaceId,
+        joinedAt: new Date(m.joinedAt).toISOString(),
+        spaceName: m.spaceName || "Unknown",
+        role: m.role || "member",
+      })),
+    });
+
     return sortedMemberships;
   } catch (error) {
     console.error(

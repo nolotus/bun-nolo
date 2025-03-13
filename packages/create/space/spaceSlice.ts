@@ -17,12 +17,17 @@ import { deleteContentFromSpaceAction } from "./action/deleteContentFromSpaceAct
 import { addSpaceAction } from "./action/addSpaceAction";
 import { updateSpaceAction } from "./action/updateSpaceAction";
 import { fetchUserSpaceMembershipsAction } from "./action/fetchUserSpaceMemberships";
+
+//member
 import { addMemberAction } from "./action/addMemberAction";
 import { removeMemberAction } from "./action/removeMemberAction";
+
+// category
 import { addCategoryAction } from "./action/addCategoryAction";
 import { deleteCategoryAction } from "./action/deleteCategoryAction";
 import { updateCategoryNameAction } from "./action/updateCategoryNameAction";
 import { reorderCategoriesAction } from "./action/reorderCategoriesAction";
+
 import { fetchSpaceAction } from "./action/fetchSpaceAction";
 import { updateContentCategoryAction } from "./action/updateContentCategoryAction";
 import { initializeSpaceAction } from "./action/initializeSpaceAction";
@@ -59,8 +64,8 @@ const spaceSlice = createSliceWithThunks({
     changeSpace: create.asyncThunk(
       async (spaceId: string, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
-        const id = createSpaceKey.space(spaceId);
-        const spaceData = await dispatch(read(id)).unwrap();
+        const spaceKey = createSpaceKey.space(spaceId);
+        const spaceData = await dispatch(read(spaceKey)).unwrap();
         if (!spaceData) {
           throw new Error("Space not found");
         }
