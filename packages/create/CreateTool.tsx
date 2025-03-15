@@ -6,7 +6,7 @@ import {
   selectIsReadOnly,
   toggleReadOnly,
 } from "render/page/pageSlice";
-import { updateContentTitle } from "create/space/spaceSlice"; // 导入 updateContentCategory
+import { updateContentTitle } from "create/space/spaceSlice";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router";
 import { CheckIcon } from "@primer/octicons-react";
