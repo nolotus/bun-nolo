@@ -5,7 +5,7 @@ import {
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 
-import { deleteAction } from "./action/delete";
+import { removeAction } from "./action/remove";
 import { queryServerAction } from "./action/queryServer";
 import { readAction } from "./action/read";
 import { writeAction } from "./action/write";
@@ -41,10 +41,10 @@ const dbSlice = createSliceWithThunks({
         }
       },
     }),
-    remove: create.asyncThunk(deleteAction, {
+    remove: create.asyncThunk(removeAction, {
       fulfilled: (state, action) => {
-        const { id } = action.payload;
-        dbAdapter.removeOne(state, id);
+        const { dbKey } = action.payload;
+        dbAdapter.removeOne(state, dbKey);
       },
     }),
     write: create.asyncThunk(writeAction, {
