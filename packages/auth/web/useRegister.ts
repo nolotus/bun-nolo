@@ -22,7 +22,7 @@ const useRegister = () => {
       const result = await dispatch(signUp({ ...data, locale })).unwrap();
       console.log("Dispatch result:", result);
       if (result.token) {
-        navigate("/create");
+        navigate("/");
       }
     } catch (err) {
       console.error("Register error:", err);
