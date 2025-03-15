@@ -17,6 +17,13 @@ const httpServer = () => {
 
   // 启动 http 服务器
   Bun.serve({
+    routes: {
+      "/api/status": new Response("OK"),
+      "/remove/:dbKey": (req) => {
+        const { orgId, repoId } = req.params;
+        return Response.json({ orgId, repoId });
+      },
+    },
     idleTimeout: 60,
     port: 80,
     hostname: "0.0.0.0",
