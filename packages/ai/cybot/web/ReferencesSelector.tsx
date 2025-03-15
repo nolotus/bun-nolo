@@ -14,7 +14,7 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
         .map(([key, value]) => ({
           type: ReferenceItemType.PAGE,
           dbKey: key,
-          title: value.title,
+          title: value?.title,
         }));
       setAvailableContents(contents);
     }
