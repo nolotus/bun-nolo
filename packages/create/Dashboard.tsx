@@ -16,6 +16,7 @@ import {
   FileAddedIcon,
   PlusIcon,
   SearchIcon,
+  GearIcon, // 新增 GearIcon 用于自定义 Cybot
 } from "@primer/octicons-react";
 
 const Dashboard = () => {
@@ -44,6 +45,12 @@ const Dashboard = () => {
       route: `/${CreateRoutePaths.CREATE_CYBOT}`,
       icon: <DependabotIcon size={20} />,
       description: "创建智能对话机器人",
+    },
+    {
+      text: "自定义 Cybot",
+      route: `/${CreateRoutePaths.CREATE_CUSTOM_CYBOT}`, // 新增自定义 Cybot 按钮
+      icon: <GearIcon size={20} />, // 使用 GearIcon 表示自定义设置
+      description: "创建自定义模型的机器人",
     },
     {
       text: "空白页面",

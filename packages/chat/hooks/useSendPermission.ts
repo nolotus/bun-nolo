@@ -27,6 +27,17 @@ export const useSendPermission = (userBalance: number = 0) => {
       return { allowed: false, reason: "NO_CONFIG" };
     }
 
+    // 如果 provider 是 "Custom"，直接允许发送，不验证定价
+    if (cybotConfig.provider === "Custom") {
+      return {
+        allowed: true,
+        pricing: {
+          modelName: cybotConfig.model,
+          pricePerMessage: 0, // Custom 不需要定价，设为 0
+        },
+      };
+    }
+
     if (!serverPrices) {
       return { allowed: false, reason: "NO_MODEL_PRICING" };
     }

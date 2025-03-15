@@ -20,6 +20,7 @@ const requestHandlers = {
   anthropic: sendClaudeRequest,
   sambanova: sendCommonChatRequest,
   openrouter: sendCommonChatRequest,
+  custom: sendCommonChatRequest,
   // 添加其他provider的处理函数
 };
 
@@ -43,8 +44,9 @@ export const sendMessageAction = async (args, thunkApi) => {
     userId,
   };
   await thunkApi.dispatch(addMsg(msg));
-
-  const handler = requestHandlers[cybotConfig.provider.toLowerCase()];
+  const providerName = cybotConfig.provider.toLowerCase();
+  console.log("providerName", providerName);
+  const handler = requestHandlers[providerName];
 
   if (handler) {
     handler({
