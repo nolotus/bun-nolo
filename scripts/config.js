@@ -39,7 +39,7 @@ export const commonConfig = {
 
 // 定义生产环境特有配置
 const prodConfig = {
-  // entryNames: "[dir]/[name]-[hash]",
+  entryNames: "[dir]/[name]-[hash]",
   minify: true,
   // sourcemap: false,
 };
