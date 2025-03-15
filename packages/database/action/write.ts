@@ -1,10 +1,42 @@
 import { selectCurrentUserId } from "auth/authSlice";
 import { selectCurrentServer } from "setting/settingSlice";
+import { API_ENDPOINTS } from "database/config";
+
 import { DataType } from "create/types";
 import { browserDb } from "../browser/db";
 import { toast } from "react-hot-toast";
-import { noloWriteRequest } from "../requests";
+import { noloRequest } from "../requests";
+// 写入请求
+export const noloWriteRequest = async (
+  server: string,
+  { userId, data, customKey },
+  state: any,
+  signal?: AbortSignal
+) => {
+  try {
+    const response = await noloRequest(
+      server,
+      {
+        url: `${API_ENDPOINTS.DATABASE}/write/`,
+        method: "POST",
+        body: JSON.stringify({ data, customKey, userId }),
+      },
+      state,
+      signal
+    );
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return true;
+  } catch (error) {
+    if (error.name === "AbortError") {
+    } else {
+    }
+    return false;
+  }
+};
 const CYBOT_SERVERS = {
   ONE: "https://cybot.one",
   RUN: "https://cybot.run",

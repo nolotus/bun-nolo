@@ -54,9 +54,9 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
     try {
       const element = document.getElementById(`cybot-${item.id}`);
       element?.classList.add("item-exit");
-
       await new Promise((r) => setTimeout(r, 50));
-      await dispatch(remove(cybotKey));
+      const result = await dispatch(remove(cybotKey));
+      console.log("result", result);
       toast.success(t("deleteSuccess"));
       await reload();
     } catch (error) {

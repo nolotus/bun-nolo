@@ -2,11 +2,19 @@
 import { isNil } from "rambda";
 import serverDb from "./db";
 import { deleteMessages } from "chat/messages/server/deleteMessages";
+import { nolotusId } from "core/init"; // 导入 nolotusId
+
+// 处理 cybot-pub 开头数据的权限检查
+const canDeleteCybotPubData = (id: string, actionUserId: string): boolean => {
+  const isCybotPubData = id.startsWith("cybot-pub");
+  const isNolotusUser = actionUserId === nolotusId;
+  return isCybotPubData && isNolotusUser;
+};
 
 export const handleDelete = async (req, res) => {
   try {
-    const { userId: actionUserId } = req.user;
-    const { id } = req.params;
+    const { userId: actionUserId } = req.user; // 操作人的 userId
+    const { id } = req.params; // 要删除的数据的 id
     const type = new URL(req.url).searchParams.get("type");
 
     // 调用独立的删除消息函数
@@ -15,13 +23,19 @@ export const handleDelete = async (req, res) => {
       return res.status(200).json(result);
     }
 
-    // 原有其他类型删除逻辑保持不变
+    // 获取数据
     const data = await serverDb.get(id);
+    const ownerId = data?.userId; // 数据的所有者 userId
 
-    const ownerId = data?.userId;
-
-    if (isNil(ownerId) || ownerId === actionUserId) {
-      if (data) await serverDb.del(id);
+    // 权限检查逻辑
+    if (
+      isNil(ownerId) || // 数据无主
+      ownerId === actionUserId || // 操作人是所有者
+      canDeleteCybotPubData(id, actionUserId) // cybot-pub 数据且操作人是 nolotusId
+    ) {
+      if (data) {
+        await serverDb.del(id); // 如果数据存在，删除
+      }
 
       return res.status(200).json({
         message: "Delete request processed",
@@ -29,6 +43,7 @@ export const handleDelete = async (req, res) => {
       });
     }
 
+    // 未授权的情况
     return res.status(403).json({
       error: "Unauthorized action",
       ownerId,
