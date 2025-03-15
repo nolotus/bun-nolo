@@ -98,7 +98,7 @@ const GuideSection = () => {
         {/* 帮助链接 */}
         <div className="help-links">
           <NavLink to="/tutorial" className="help-link">使用教程</NavLink>
-          <NavLink to="/faq" className="help-link">常见问题</NavLink>
+          <NavLink to="/faq" className="help-link">最近更新</NavLink>
           <a href="mailto:s@nolotus.com" className="help-link">联系我们</a>
         </div>
       </div>
