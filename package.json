@@ -12,7 +12,8 @@
     "version": "npm version patch",
     "release": "npm version minor",
     "release-major": "npm version major",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "migrate-db": "bun ./scripts/migration.ts"
   },
   "dependencies": {
     "@ariakit/react": "^0.4.15",

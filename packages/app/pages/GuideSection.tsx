@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import {
@@ -6,9 +6,9 @@ import {
   BookIcon,
   RocketIcon,
   PeopleIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
 } from "@primer/octicons-react";
-import { NavLink } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 
 const GuideSection = () => {
   const theme = useAppSelector(selectTheme);
@@ -32,7 +32,7 @@ const GuideSection = () => {
             </div>
             <h3>创建AI助手</h3>
             <p>为不同场景创建定制化AI助手，让AI更懂你的需求</p>
-            <NavLink to="/create-bot" className="action-button">
+            <NavLink to="/create" className="action-button">
               开始创建
             </NavLink>
           </div>
@@ -88,8 +88,6 @@ const GuideSection = () => {
                   注册
                 </NavLink>
                 添加新账户
-              
-              
               </p>
             </div>
           </div>
@@ -103,7 +101,7 @@ const GuideSection = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style >{`
         .fade-in {
           opacity: 0;
           animation: fadeInUp 0.6s ease forwards;

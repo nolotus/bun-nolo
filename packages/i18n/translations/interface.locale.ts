@@ -1,4 +1,5 @@
 // i18n/translations/interface.locale.ts
+
 import { Language } from "../types";
 
 export default {
@@ -55,6 +56,9 @@ export default {
       introtext: "click here to start editing",
       hintofKey:
         "Hint: There are no restrictions on the number of characters and symbols for usernames and passwords. Password reset is not provided for the time being, so it is recommended to use a complex password combination and remember the password",
+      "Nothing to see here!": "Nothing to see here!",
+      "Go to Home": "Go to Home",
+      "Go Back": "Go Back",
     },
   },
   [Language.ZH_CN]: {
@@ -109,6 +113,9 @@ export default {
       introtext: "点击这里开始编辑",
       hintofKey:
         "提示：用户名密码不作字数和符号限制，暂不提供找回密码，建议使用复杂的密码组合，并牢记密码",
+      "Nothing to see here!": "这里没有内容！",
+      "Go to Home": "返回首页",
+      "Go Back": "返回",
     },
   },
   [Language.ZH_HANT]: {
@@ -163,6 +170,9 @@ export default {
       introtext: "點擊這裡開始編輯",
       hintofKey:
         "提示：用戶名密碼不作字數和符號限制，暫不提供找回密碼，建議使用複雜的密碼組合，並牢記密碼",
+      "Nothing to see here!": "這裡沒有內容！",
+      "Go to Home": "返回首頁",
+      "Go Back": "返回",
     },
   },
   [Language.JA]: {
@@ -218,7 +228,10 @@ export default {
       settings: "設定",
       introtext: "編集を開始するにはここをクリック",
       hintofKey:
-        "ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雑なパスワードの組み合わせを使用し、パスワードを覚えておいてください",
+        "ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雜なパスワードの組み合わせを使用し、パスワードを覚えておいてください",
+      "Nothing to see here!": "ここには何もありません！",
+      "Go to Home": "ホームに戻る",
+      "Go Back": "戻る",
     },
   },
 };
