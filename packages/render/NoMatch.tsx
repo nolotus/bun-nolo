@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import Button from "web/ui/Button";
+import { useTranslation } from "react-i18next";
 
 const NoMatch = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div
@@ -23,21 +25,16 @@ const NoMatch = () => {
           fontWeight: "500",
         }}
       >
-        Nothing to see here!
+        {t("Nothing to see here!")}
       </h2>
 
       <div style={{ display: "flex", gap: "12px" }}>
         <Link to="/" style={{ textDecoration: "none" }}>
-          <Button variant="primary">
-            Go to Home
-          </Button>
+          <Button variant="primary">{t("Go to Home")}</Button>
         </Link>
 
-        <Button
-          variant="secondary"
-          onClick={() => navigate(-1)}
-        >
-          Go Back
+        <Button variant="secondary" onClick={() => navigate(-1)}>
+          {t("Go Back")}
         </Button>
       </div>
     </div>
