@@ -7,6 +7,67 @@ import { read } from "database/dbSlice";
 import { createSpaceKey } from "../spaceKeys";
 import i18next from "i18next";
 
+// 处理空成员情况
+const handleEmptyMembership = async (dispatch: any) => {
+  try {
+    const defaultSpaceName = i18next.t("default_space", {
+      ns: "space",
+      defaultValue: "Default Space",
+    });
+    console.log("defaultSpaceName", defaultSpaceName);
+
+    const newSpace = await dispatch(
+      addSpace({
+        name: defaultSpaceName,
+      })
+    ).unwrap();
+
+    await dispatch(
+      setSettings({
+        defaultSpaceId: newSpace.spaceId,
+        type: DataType.SETTING,
+      })
+    );
+
+    return newSpace.spaceId;
+  } catch (error) {
+    console.error("Failed to create default space:", error);
+    throw new Error("Failed to create default space");
+  }
+};
+
+// 处理有成员情况
+const handleNonEmptyMembership = async (
+  dispatch: any,
+  memberships: any[],
+  state: NoloRootState
+) => {
+  try {
+    const defaultSpaceId = state.settings.defaultSpaceId;
+
+    if (defaultSpaceId) {
+      try {
+        const result = await dispatch(
+          read(createSpaceKey.space(defaultSpaceId))
+        ).unwrap();
+
+        if (result) {
+          return defaultSpaceId;
+        }
+      } catch (error) {
+        console.error("Failed to read default space:", error);
+      }
+
+      // 如果默认空间不存在,返回第一个成员空间
+      return memberships[0].spaceId;
+    }
+    return memberships[0].spaceId; // 如果没有defaultSpaceId，直接返回第一个空间
+  } catch (error) {
+    console.error("Failed to handle non-empty membership:", error);
+    throw error;
+  }
+};
+
 export const initializeSpaceAction = async (
   userId: string | undefined,
   thunkAPI
@@ -21,59 +82,12 @@ export const initializeSpaceAction = async (
         fetchUserSpaceMemberships(userId)
       ).unwrap();
 
-      // 处理空成员的情况
+      // 根据成员情况选择处理方式
       if (memberships.length === 0) {
-        try {
-          // 使用 i18next.t，指定 "space" 命名空间
-          const defaultSpaceName = i18next.t("default_space", {
-            ns: "space", // 指定命名空间，与组件中一致
-            defaultValue: "Default Space", // 默认值
-          });
-          console.log("defaultSpaceName", defaultSpaceName);
-
-          const newSpace = await dispatch(
-            addSpace({
-              name: defaultSpaceName,
-            })
-          ).unwrap();
-
-          await dispatch(
-            setSettings({
-              defaultSpaceId: newSpace.spaceId,
-              type: DataType.SETTING,
-            })
-          );
-
-          return newSpace.spaceId;
-        } catch (error) {
-          console.error("Failed to create default space:", error);
-          throw new Error("Failed to create default space");
-        }
+        return await handleEmptyMembership(dispatch);
+      } else {
+        return await handleNonEmptyMembership(dispatch, memberships, state);
       }
-
-      // 处理有成员的情况
-      if (memberships && memberships.length > 0) {
-        const defaultSpaceId = state.settings.defaultSpaceId;
-
-        if (defaultSpaceId) {
-          try {
-            const result = await dispatch(
-              read(createSpaceKey.space(defaultSpaceId))
-            ).unwrap();
-
-            if (result) {
-              return defaultSpaceId;
-            }
-          } catch (error) {
-            console.error("Failed to read default space:", error);
-          }
-
-          // 如果默认空间不存在,返回第一个成员空间
-          return memberships[0].spaceId;
-        }
-      }
-
-      return null;
     } catch (error) {
       console.error("Failed to get space ID:", error);
       throw error;

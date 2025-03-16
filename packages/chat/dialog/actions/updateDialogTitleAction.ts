@@ -1,5 +1,6 @@
 import { runCybotId } from "ai/cybot/cybotSlice";
 import { getFilteredMessages } from "chat/messages/utils";
+import { titleCybotId } from "core/init";
 import { patchData, selectById } from "database/dbSlice";
 import { format, differenceInHours } from "date-fns";
 
@@ -40,11 +41,9 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
   const currentMsgs = getFilteredMessages(state);
   const content = JSON.stringify(currentMsgs);
 
-  const cybotId = "cybot-pub-01JK56SHZ7MK58QB98BK4VJ963";
-
   const generateTitle = await dispatch(
     runCybotId({
-      cybotId,
+      cybotId: titleCybotId,
       userInput: content,
     })
   ).unwrap();
