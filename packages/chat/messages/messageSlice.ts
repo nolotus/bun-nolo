@@ -109,7 +109,6 @@ export const {
   deleteMessage,
   handleSendMessage,
   deleteDialogMsgs,
-
   addMsg,
   initMsgs,
   resetMsgs,

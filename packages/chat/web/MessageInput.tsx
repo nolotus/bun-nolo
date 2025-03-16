@@ -1,20 +1,30 @@
 // chat/web/MessageInput.tsx
-import { UploadIcon } from "@primer/octicons-react";
 import { useAuth } from "auth/hooks/useAuth";
 import type React from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import SendButton from "./ActionButton";
-import ImagePreview from "./ImagePreview";
 import { useTheme } from "app/theme";
 import { Content } from "../messages/types";
 import { zIndex } from "render/styles/zIndex";
+import { useAppDispatch } from "app/hooks";
+import { handleSendMessage } from "../messages/messageSlice";
 
-interface MessageInputProps {
-  onSendMessage: (content: Content) => void;
-}
+//web part
+import { UploadIcon } from "@primer/octicons-react";
+import SendButton from "./ActionButton";
+import ImagePreview from "./ImagePreview";
+import toast from "react-hot-toast";
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
+const MessageInput: React.FC = () => {
+  const dispatch = useAppDispatch();
+
+  const handleMessageSend = (content: Content) => {
+    try {
+      dispatch(handleSendMessage({ content }));
+    } catch (err) {
+      toast.error("Failed to send message");
+    }
+  };
   const theme = useTheme();
   const { t } = useTranslation();
   const auth = useAuth();
@@ -55,7 +65,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
         ]
       : textContent;
 
-    onSendMessage(content);
+    handleMessageSend(content);
     setTextContent("");
     setImagePreviewUrls([]);
 
@@ -63,7 +73,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
-  }, [textContent, imagePreviewUrls, onSendMessage]);
+  }, [textContent, imagePreviewUrls, handleMessageSend]);
 
   const previewImage = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) return;

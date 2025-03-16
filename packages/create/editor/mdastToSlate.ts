@@ -1,3 +1,5 @@
+// create/editor/mdastToSlate
+
 import { visit } from "unist-util-visit";
 import { processInlineNodes } from "./processInlineNodes";
 
@@ -189,7 +191,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
             children: (node.children || []).map((item: any) => {
               processedNodes.add(item);
               (item.children || []).forEach((child: any) =>
-                processedNodes.add(child),
+                processedNodes.add(child)
               );
 
               const listItemNode: SlateNode = {
@@ -217,7 +219,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
                   ...(rowIndex === 0 ? { header: true } : {}),
                   children: processInlineNodes(cell.children || []),
                 })),
-              }),
+              })
             ),
           });
           break;
