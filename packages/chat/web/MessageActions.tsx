@@ -19,6 +19,7 @@ import {
 } from "create/space/spaceSlice";
 import { Link } from "react-router-dom";
 import { selectTheme } from "app/theme/themeSlice";
+import { titleCybotId } from "core/init";
 
 export const MessageActions = ({
   content,
@@ -63,10 +64,10 @@ export const MessageActions = ({
     if (content) {
       try {
         const slateData = markdownToSlate(content);
-        const cybotId = "cybot-pub-01JK56SHZ7MK58QB98BK4VJ963";
+
         const title = await dispatch(
           runCybotId({
-            cybotId,
+            cybotId: titleCybotId,
             userInput: content,
           })
         ).unwrap();
