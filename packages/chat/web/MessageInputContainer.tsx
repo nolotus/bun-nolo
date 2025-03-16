@@ -1,14 +1,11 @@
 // chat/web/MessageInputContainer.tsx
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import type React from "react";
 import { useSendPermission } from "../hooks/useSendPermission";
 import MessageInput from "./MessageInput";
-import { handleSendMessage } from "../messages/messageSlice";
 import { useBalance } from "auth/hooks/useBalance";
-import toast from "react-hot-toast";
-import { Content } from "../messages/types";
-import { zIndex } from "render/styles/zIndex"; // 引入 zIndex
+import { zIndex } from "render/styles/zIndex";
 
 interface ErrorMessageProps {
   message: string;
@@ -23,7 +20,7 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => {
       style={{ zIndex: zIndex.messageInputContainerZIndex }}
     >
       {message}
-      <style jsx>{`
+      <style>{`
         .error-message {
           color: ${theme.error};
           font-size: 14px;
@@ -43,18 +40,8 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => {
 };
 
 const MessageInputContainer: React.FC = () => {
-  const dispatch = useAppDispatch();
-
   const { balance, loading, error: balanceError } = useBalance();
   const { sendPermission, getErrorMessage } = useSendPermission(balance);
-
-  const handleMessageSend = (content: Content) => {
-    try {
-      dispatch(handleSendMessage({ content }));
-    } catch (err) {
-      toast.error("Failed to send message");
-    }
-  };
 
   if (loading) {
     return <ErrorMessage message="Loading..." />;
@@ -72,7 +59,7 @@ const MessageInputContainer: React.FC = () => {
     );
   }
 
-  return <MessageInput onSendMessage={handleMessageSend} />;
+  return <MessageInput />;
 };
 
 export default MessageInputContainer;
