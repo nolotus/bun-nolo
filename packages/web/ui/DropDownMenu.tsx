@@ -1,14 +1,14 @@
 import type React from "react";
 import { useCallback, useMemo, useState } from "react";
 
-interface DropDownProps {
+interface DropdownMenuProps {
   trigger: React.ReactNode;
   children: React.ReactNode;
   triggerType?: "click" | "hover";
   direction?: "top" | "bottom" | "left" | "right";
 }
 
-const DropDown: React.FC<DropDownProps> = ({
+const DropdownMenu: React.FC<DropdownMenuProps> = ({
   trigger,
   children,
   triggerType = "hover",
@@ -47,24 +47,24 @@ const DropDown: React.FC<DropDownProps> = ({
     }
   }, [direction]);
 
-  const dropdownClass = isOpen ? "dropdown-open" : "dropdown-closed";
+  const menuClass = isOpen ? "ddmenu-open" : "ddmenu-closed";
 
   return (
     <>
       <style>
         {`
-          .dropdown-content {
+          .ddmenu-content {
             opacity: 0;
             transform: scale(0.9);
             transition: opacity 200ms, transform 200ms;
           }
 
-          .dropdown-open .dropdown-content {
+          .ddmenu-open .ddmenu-content {
             opacity: 1;
             transform: scale(1);
           }
 
-          .dropdown-closed .dropdown-content {
+          .ddmenu-closed .ddmenu-content {
             opacity: 0;
             transform: scale(0.9);
           }
@@ -79,19 +79,19 @@ const DropDown: React.FC<DropDownProps> = ({
       >
         {trigger}
         <div
-          className={dropdownClass}
+          className={menuClass}
           style={{
             position: "absolute",
             zIndex: 100,
             ...positionStyle,
-            pointerEvents: isOpen ? "auto" : "none", // 防止关闭时遮挡鼠标事件
+            pointerEvents: isOpen ? "auto" : "none",
           }}
         >
-          <div className="dropdown-content">{children}</div>
+          <div className="ddmenu-content">{children}</div>
         </div>
       </div>
     </>
   );
 };
 
-export default DropDown;
+export default DropdownMenu;

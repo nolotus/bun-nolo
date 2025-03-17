@@ -3,7 +3,7 @@ import { useAuth } from "auth/hooks/useAuth";
 import { NavLink } from "react-router-dom";
 
 import { useTranslation } from "react-i18next";
-import { IsLoggedInMenu } from "auth/web/IsLoggedInMenu";
+import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 import NavListItem from "render/layout/blocks/NavListItem";
 import { SignInIcon } from "@primer/octicons-react";
 import { RoutePaths } from "auth/web/routes";
@@ -54,7 +54,7 @@ const NavbarComponent = () => {
         <CreateMenu />
         {isLoggedIn ? (
           <div>
-            <IsLoggedInMenu />
+            <LoggedInMenu />
           </div>
         ) : (
           <NavListItem
