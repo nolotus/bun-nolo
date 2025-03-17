@@ -1,6 +1,6 @@
 // ai/llm/modelSelector.tsx
 import React from "react";
-import { Combobox } from "web/form/Combobox";
+import { Dropdown } from "web/form/Dropdown"; // 更新引入组件
 import { CheckIcon } from "@primer/octicons-react";
 import type { Model } from "./types";
 
@@ -23,7 +23,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 }) => {
   return (
     <>
-      <Combobox
+      <Dropdown // 使用新的Dropdown组件
         items={models}
         selectedItem={models.find((m) => watch("model") === m.name) || null}
         onChange={(item) => setValue("model", item?.name || "")}
