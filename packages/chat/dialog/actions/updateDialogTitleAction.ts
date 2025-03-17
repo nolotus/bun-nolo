@@ -1,6 +1,10 @@
 import { runCybotId } from "ai/cybot/cybotSlice";
 import { getFilteredMessages } from "chat/messages/utils";
 import { titleCybotId } from "core/init";
+import {
+  selectCurrentSpaceId,
+  updateContentTitle,
+} from "create/space/spaceSlice";
 import { patchData, selectById } from "database/dbSlice";
 import { format, differenceInHours } from "date-fns";
 
@@ -51,6 +55,11 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
   const formattedDate = format(new Date(), "MM-dd");
   const title = generateTitle || `${cybotConfig.name}_${formattedDate}`;
   //todo  update space is need
+
+  const spaceId = selectCurrentSpaceId(state);
+  const spaceUpdateResult = dispatch(
+    updateContentTitle({ spaceId, contentKey: dialogKey, title })
+  );
   const result = await dispatch(
     patchData({ dbKey: dialogKey, changes: { title } })
   ).unwrap();
