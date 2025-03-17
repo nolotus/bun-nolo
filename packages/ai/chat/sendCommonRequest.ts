@@ -1,6 +1,5 @@
 // chatRequest.ts
 
-import { createMessages } from "ai/api/createMessages";
 import { prepareTools } from "ai/tools/prepareTools";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
@@ -9,7 +8,6 @@ import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "./fetchUtils";
 import { createDialogMessageKey } from "database/keys";
 import { extractCustomId } from "core/prefix";
-import { buildReferenceContext } from "../context/buildReferenceContext";
 
 function parseMultilineSSE(rawText: string) {
   const results = [];
@@ -44,10 +42,9 @@ function parseMultilineSSE(rawText: string) {
 }
 
 export const sendCommonChatRequest = async ({
-  content, // userInput
+  bodyData,
   cybotConfig,
   thunkApi,
-  prevMsgs,
   dialogKey,
 }) => {
   const { dispatch, getState } = thunkApi;
@@ -58,15 +55,7 @@ export const sendCommonChatRequest = async ({
   const messageId = createDialogMessageKey(dialogId);
 
   // Replaced context construction with function call
-  const context = await buildReferenceContext(cybotConfig, dispatch);
 
-  const messages = createMessages(content, prevMsgs, cybotConfig, context);
-  const model = cybotConfig.model;
-  const bodyData = {
-    model,
-    messages,
-    stream: true,
-  };
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;

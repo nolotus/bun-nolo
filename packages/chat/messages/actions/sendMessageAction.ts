@@ -5,9 +5,13 @@ import { read } from "database/dbSlice";
 import { extractCustomId } from "core/prefix";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createDialogMessageKey } from "database/keys";
+import { createMessages } from "ai/api/createMessages";
+import { buildReferenceContext } from "ai/context/buildReferenceContext";
+import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
 
 import { addMsg } from "../messageSlice";
 import { getFilteredMessages } from "../utils";
+
 const requestHandlers = {
   deepinfra: sendCommonChatRequest,
   fireworks: sendCommonChatRequest,
@@ -21,7 +25,6 @@ const requestHandlers = {
   sambanova: sendCommonChatRequest,
   openrouter: sendCommonChatRequest,
   custom: sendCommonChatRequest,
-  // 添加其他provider的处理函数
 };
 
 export const sendMessageAction = async (args, thunkApi) => {
@@ -43,17 +46,33 @@ export const sendMessageAction = async (args, thunkApi) => {
     content,
     userId,
   };
-  await thunkApi.dispatch(addMsg(msg));
+  await dispatch(addMsg(msg));
   const providerName = cybotConfig.provider.toLowerCase();
   console.log("providerName", providerName);
   const handler = requestHandlers[providerName];
+  const model = cybotConfig.model;
+  const context = await buildReferenceContext(cybotConfig, dispatch);
+
+  let bodyData;
+  if (providerName === "anthropic") {
+    bodyData = generateRequestBody(cybotConfig, content, prevMsgs, context);
+  } else {
+    const messages = createMessages(content, prevMsgs, cybotConfig, context);
+    bodyData = {
+      model,
+      messages,
+      stream: true,
+    };
+    if (providerName === "google" || providerName === "openai") {
+      bodyData.stream_options = { include_usage: true };
+    }
+  }
 
   if (handler) {
     handler({
-      content,
+      bodyData,
       cybotConfig,
       thunkApi,
-      prevMsgs,
       dialogKey,
     });
   } else {

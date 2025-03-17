@@ -126,15 +126,15 @@ export const fetchUserSpaceMembershipsAction = async (userId, thunkAPI) => {
     );
 
     // 详细显示获取到的数据
-    console.info(`Successfully fetched memberships for user ${userId}:`, {
-      totalCount: sortedMemberships.length,
-      membershipDetails: sortedMemberships.map((m) => ({
-        spaceId: m.spaceId,
-        joinedAt: new Date(m.joinedAt).toISOString(),
-        spaceName: m.spaceName || "Unknown",
-        role: m.role || "member",
-      })),
-    });
+    // console.info(`Successfully fetched memberships for user ${userId}:`, {
+    //   totalCount: sortedMemberships.length,
+    //   membershipDetails: sortedMemberships.map((m) => ({
+    //     spaceId: m.spaceId,
+    //     joinedAt: new Date(m.joinedAt).toISOString(),
+    //     spaceName: m.spaceName || "Unknown",
+    //     role: m.role || "member",
+    //   })),
+    // });
 
     return sortedMemberships;
   } catch (error) {

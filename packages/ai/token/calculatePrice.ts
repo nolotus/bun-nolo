@@ -214,6 +214,7 @@ const calculateBasicCost = (
     case "deepinfra":
     case "fireworks":
     case "mistral":
+    case "google":
       return calculateSimpleCost(model, usage, externalPrice);
     default:
       throw new Error(`Unsupported provider: ${provider}`);
@@ -273,7 +274,11 @@ export const calculatePrice = ({
   sharingLevel = "default",
 }: CalculatePriceParams): PriceResult => {
   const model = getModelConfig(provider, modelName);
+  console.log("model", model);
+
   const costs = calculateBasicCost(model, usage, provider, externalPrice);
+  console.log("costs", costs);
+
   const pay = calculatePayDistribution(costs, externalPrice, sharingLevel);
 
   return {

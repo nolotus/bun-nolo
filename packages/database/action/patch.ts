@@ -1,7 +1,41 @@
-import { browserDb } from "../browser/db";
 import { selectCurrentServer } from "setting/settingSlice";
+import { browserDb } from "../browser/db";
 import { toast } from "react-hot-toast";
-import { noloPatchRequest } from "../requests";
+import { noloRequest } from "../requests";
+import { API_ENDPOINTS } from "../config";
+
+// 更新请求
+export const noloPatchRequest = async (
+  server: string,
+  dbKey: string,
+  updates: any,
+  state: any,
+  signal?: AbortSignal
+) => {
+  try {
+    const response = await noloRequest(
+      server,
+      {
+        url: `${API_ENDPOINTS.DATABASE}/patch/${dbKey}`,
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      },
+      state,
+      signal
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+
+    return true;
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw new Error("Request timed out");
+    }
+    throw error; // 重新抛出错误以便上层处理
+  }
+};
 
 const CYBOT_SERVERS = {
   ONE: "https://cybot.one",
@@ -15,7 +49,6 @@ const deepMerge = (target: any, source: any): any => {
   const output = { ...target };
   for (const key in source) {
     if (source[key] === null && key in output) {
-      // 如果值为 null，则删除该键
       delete output[key];
     } else if (
       source[key] &&
@@ -46,11 +79,15 @@ const syncWithServers = (
       .then((success) => {
         clearTimeout(timeoutId);
         if (!success) {
-          toast.error(`Failed to update on ${server}`);
+          toast.error(`Sync failed with ${server}: Request unsuccessful`);
         }
       })
-      .catch(() => {
+      .catch((error) => {
         clearTimeout(timeoutId);
+        const errorMessage = `Sync failed with ${server}: ${
+          error.message || "Unknown error"
+        }`;
+        toast.error(errorMessage);
       });
   });
 };
@@ -63,8 +100,7 @@ export const patchAction = async ({ dbKey, changes }, thunkApi) => {
     // 读取当前数据
     const currentData = await browserDb.get(dbKey);
     if (!currentData) {
-      toast.error(`Data not found locally`);
-      throw new Error("Data not found");
+      throw new Error(`Data not found locally for key: ${dbKey}`);
     }
 
     // 准备更新数据，统一设置 updatedAt
@@ -91,7 +127,10 @@ export const patchAction = async ({ dbKey, changes }, thunkApi) => {
 
     return newData;
   } catch (error) {
-    toast.error(`Patch action failed: ${error.message}`);
+    const errorMessage = `Patch action failed for ${dbKey}: ${
+      error.message || "Unknown error"
+    }`;
+    toast.error(errorMessage);
     throw error;
   }
 };

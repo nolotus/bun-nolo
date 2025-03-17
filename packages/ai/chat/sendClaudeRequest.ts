@@ -1,12 +1,10 @@
 import { selectCurrentServer } from "setting/settingSlice";
 import { createDialogMessageKey } from "database/keys";
 import { API_ENDPOINTS } from "database/config";
-import { generateRequestBody } from "integrations/anthropic/generateRequestBody";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { extractCustomId } from "core/prefix";
 import pino from "pino";
-import { buildReferenceContext } from "../context/buildReferenceContext";
 
 const logger = pino({ name: "claude-request" });
 
@@ -48,10 +46,9 @@ async function sendRequest(cybotConfig, body, signal, currentServer) {
 }
 
 export const sendClaudeRequest = async ({
-  content,
+  bodyData,
   cybotConfig,
   thunkApi,
-  prevMsgs,
   dialogKey,
 }) => {
   const cybotId = cybotConfig.id;
@@ -60,9 +57,7 @@ export const sendClaudeRequest = async ({
   const dispatch = thunkApi.dispatch;
   const currentServer = selectCurrentServer(state);
   const messageId = createDialogMessageKey(dialogId);
-  const context = await buildReferenceContext(cybotConfig, dispatch);
 
-  const body = generateRequestBody(cybotConfig, content, prevMsgs, context);
   const controller = new AbortController();
   const signal = controller.signal;
 
@@ -107,7 +102,7 @@ export const sendClaudeRequest = async ({
   try {
     const response = await sendRequest(
       cybotConfig,
-      body,
+      bodyData,
       signal,
       currentServer
     );

@@ -1,12 +1,10 @@
 // ai/llm/modelSelector.tsx
 import React from "react";
-import { Input } from "web/form/Input";
 import { Combobox } from "web/form/Combobox";
 import { CheckIcon } from "@primer/octicons-react";
 import type { Model } from "./types";
 
 interface ModelSelectorProps {
-  isCustomProvider: boolean;
   models: Model[];
   watch: (name: string) => any;
   setValue: (name: string, value: any) => void;
@@ -16,7 +14,6 @@ interface ModelSelectorProps {
 }
 
 const ModelSelector: React.FC<ModelSelectorProps> = ({
-  isCustomProvider,
   models,
   watch,
   setValue,
@@ -24,16 +21,6 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
   defaultModel,
   t,
 }) => {
-  if (isCustomProvider) {
-    return (
-      <Input
-        {...register("model")}
-        defaultValue={defaultModel}
-        placeholder={t("enterModelName")}
-      />
-    );
-  }
-
   return (
     <>
       <Combobox

@@ -268,7 +268,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 labelWidth="140px"
               >
                 <ModelSelector
-                  isCustomProvider={isCustomProvider}
                   models={models}
                   watch={watch}
                   setValue={setValue}
