@@ -54,7 +54,7 @@ const Page = () => {
       return <RenderPage isReadOnly={!isEditMode} />;
     }
     if (data.type === DataType.DIALOG) {
-      return <DialogPage pageId={pageId} />;
+      return <DialogPage pageKey={pageId} />;
     }
 
     return <RenderJson data={data} />;

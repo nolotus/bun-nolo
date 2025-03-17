@@ -1,4 +1,4 @@
-import { useAppDispatch, useAppSelector, useFetchData } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/hooks/useAuth";
 import {
   clearDialogState,
@@ -13,7 +13,6 @@ import { useMessages } from "../messages/hooks/useMessages";
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
 import { initMsgs, resetMsgs } from "../messages/messageSlice";
-import { reverse } from "rambda";
 
 const LoadingSpinner = () => (
   <div
@@ -28,20 +27,14 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const DialogPage = ({ pageId }) => {
+const DialogPage = ({ pageKey }) => {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
-  const dialogId = extractCustomId(pageId);
+  const dialogId = extractCustomId(pageKey);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
 
   // 使用 useMessages hook
   const { messages, loading } = useMessages(browserDb, dialogId);
-  const { data } = useFetchData(currentDialogConfig?.messageListId);
-  if (data) {
-    console.log("data", data);
-    const ids = reverse(data?.array);
-    console.log("ids", ids);
-  }
 
   // 处理消息初始化
   useEffect(() => {
@@ -55,14 +48,14 @@ const DialogPage = ({ pageId }) => {
 
   // 处理对话初始化和清理
   useEffect(() => {
-    if (pageId && user) {
-      dispatch(initDialog(pageId));
+    if (pageKey && user) {
+      dispatch(initDialog(pageKey));
     }
 
     return () => {
       dispatch(clearDialogState());
     };
-  }, [user, pageId, dispatch]);
+  }, [user, pageKey, dispatch]);
 
   return (
     <>
