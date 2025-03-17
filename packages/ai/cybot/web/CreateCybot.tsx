@@ -188,7 +188,6 @@ const CreateCybot: React.FC = () => {
                 labelWidth="140px"
               >
                 <ModelSelector
-                  isCustomProvider={isCustomProvider}
                   models={models}
                   watch={watch}
                   setValue={setValue}

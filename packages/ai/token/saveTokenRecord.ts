@@ -31,7 +31,7 @@ export const saveTokenRecord = async (
   thunkApi
 ) => {
   const key = createTokenKey.record(tokenData.userId, tokenData.timestamp);
-
+  console.log("token record id ", key);
   try {
     await thunkApi.dispatch(
       write({

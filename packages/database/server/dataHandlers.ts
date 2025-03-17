@@ -11,7 +11,6 @@ export const handleToken = async (
   actionUserId: string
 ) => {
   const isStatsKey = customKey.includes("token-stats");
-
   await serverDb.put(customKey, data);
 
   if (!isStatsKey && data.cost && data.cost > 0) {

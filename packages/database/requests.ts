@@ -60,39 +60,6 @@ export const syncWithServers = <T>(
   });
 };
 
-// 更新请求
-export const noloPatchRequest = async (
-  server: string,
-  dbKey: string,
-  updates: any,
-  state: any,
-  signal?: AbortSignal
-) => {
-  try {
-    const response = await noloRequest(
-      server,
-      {
-        url: `${API_ENDPOINTS.DATABASE}/patch/${dbKey}`,
-        method: "PATCH",
-        body: JSON.stringify(updates),
-      },
-      state,
-      signal
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return true;
-  } catch (error) {
-    if (error.name === "AbortError") {
-    } else {
-    }
-    return false;
-  }
-};
-
 // 删除请求
 export const noloDeleteRequest = async (
   server: string,

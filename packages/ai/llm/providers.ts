@@ -52,7 +52,6 @@ import type { Model } from "./types";
 const providerOptions = [
   "openrouter",
   "anthropic",
-  "custom",
   "ollama",
   "fireworks",
   "deepinfra",
@@ -68,7 +67,7 @@ export type Provider = (typeof providerOptions)[number];
 
 // 增加availableProviderOptions
 export const availableProviderOptions = providerOptions.filter(
-  (provider) => !["openai", "xai", "custom"].includes(provider)
+  (provider) => !["xai"].includes(provider)
 );
 
 export const getModelsByProvider = (provider: Provider): Model[] => {
