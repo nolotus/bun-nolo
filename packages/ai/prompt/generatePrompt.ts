@@ -22,10 +22,10 @@ export const generatePrompt = (
     contextSection =
       `Context Information:\n${context}\n\n` +
       `INSTRUCTIONS FOR USING CONTEXT:\n` +
-      `- Use the context to answer questions when possible.\n` +
+      `- Prioritize using the context to answer questions when applicable.\n` +
       `- If the context has exact numbers or facts, use them as they are.\n` +
-      `- Do not change or guess numbers or details not in the context.\n` +
-      `- If information is missing, say: "This is not in the context."\n` +
+      `- Do not change or guess numbers or details provided in the context.\n` +
+      `- If information is not found in the context, feel free to use your knowledge to provide a helpful response.\n` +
       `- If context has conflicting details, note it clearly.\n`;
   }
 
