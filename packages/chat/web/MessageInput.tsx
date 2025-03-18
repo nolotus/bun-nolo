@@ -18,9 +18,9 @@ import toast from "react-hot-toast";
 const MessageInput: React.FC = () => {
   const dispatch = useAppDispatch();
 
-  const handleMessageSend = (content: Content) => {
+  const handleMessageSend = (userInput: Content) => {
     try {
-      dispatch(handleSendMessage({ content }));
+      dispatch(handleSendMessage({ userInput }));
     } catch (err) {
       toast.error("Failed to send message");
     }
