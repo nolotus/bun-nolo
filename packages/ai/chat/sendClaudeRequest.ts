@@ -102,7 +102,7 @@ export const sendClaudeRequest = async ({
   try {
     const response = await sendRequest(
       cybotConfig,
-      bodyData,
+      JSON.stringify(bodyData),
       signal,
       currentServer
     );

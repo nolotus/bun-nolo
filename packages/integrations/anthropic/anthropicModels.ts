@@ -1,4 +1,4 @@
-// anthropicModels.ts
+// integrations/anthropic/anthropicModels.ts
 import { Model } from "ai/llm/types";
 
 export const anthropicModels: Model[] = [

@@ -1,5 +1,4 @@
 import { runCybotId } from "ai/cybot/cybotSlice";
-import { getFilteredMessages } from "chat/messages/utils";
 import { titleCybotId } from "core/init";
 import {
   selectCurrentSpaceId,
@@ -7,6 +6,24 @@ import {
 } from "create/space/spaceSlice";
 import { patchData, selectById } from "database/dbSlice";
 import { format, differenceInHours } from "date-fns";
+
+import { NoloRootState } from "app/store";
+import { pipe, flatten, filter, reverse } from "rambda";
+
+export const getFilteredMessages = (state: NoloRootState) => {
+  const msgs = state.message.msgs;
+
+  return pipe(
+    flatten,
+    // 过滤掉 null/undefined 和 content 为空的消息
+    filter((msg) => {
+      if (!msg) return false;
+      const content = msg.content;
+      return content != null && content.trim() !== "";
+    }),
+    reverse
+  )([msgs]);
+};
 
 const TITLE_UPDATE_INTERVAL_HOURS = 6;
 // 设置为 true 将跳过时间检查，始终更新标题
