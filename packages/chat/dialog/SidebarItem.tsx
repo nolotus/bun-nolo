@@ -7,6 +7,7 @@ import {
   FileCodeIcon,
   GrabberIcon,
 } from "@primer/octicons-react";
+import { FaFileLines } from "react-icons/fa6";
 import { selectTheme } from "app/theme/themeSlice";
 import { ContentContextMenu } from "./ContentContextMenu";
 import React from "react";
@@ -23,7 +24,7 @@ interface SidebarItemProps {
 
 const ITEM_ICONS = {
   dialog: CommentIcon,
-  page: FileIcon,
+  page: FaFileLines,
   image: ImageIcon,
   doc: BookIcon,
   code: FileCodeIcon,

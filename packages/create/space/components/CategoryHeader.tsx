@@ -198,7 +198,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           .category-header {
             box-sizing: border-box;
             margin: 2px 8px;
-            padding: 6px 12px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -208,6 +208,9 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
             user-select: none;
             cursor: default;
+            font-weight: 600;
+            font-size: 15px;
+            color: #444;
           }
 
           .category-header:hover {
@@ -240,8 +243,8 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           }
 
           .category-name {
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 600;
             color: ${theme.textSecondary};
             flex-grow: 1;
             margin-left: 4px;
