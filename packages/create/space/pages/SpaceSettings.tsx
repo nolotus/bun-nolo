@@ -55,10 +55,6 @@ const SpaceSettings = () => {
     }
   }, [spaceData]);
 
-  if (loading) return <div className="loading">加载中...</div>;
-  if (error) return <div className="error">错误: {error.message}</div>;
-  if (!spaceData) return <div className="not-found">未找到空间数据</div>;
-
   const handleDelete = async () => {
     try {
       await dispatch(deleteSpace(spaceId!)).unwrap();
@@ -70,6 +66,7 @@ const SpaceSettings = () => {
   };
 
   const handleUpdate = async () => {
+    if (!spaceData) return; // 如果没有spaceData，不允许更新
     try {
       setUpdating(true);
       await dispatch(
@@ -89,6 +86,7 @@ const SpaceSettings = () => {
   };
 
   const handleInviteMember = async (userId: string, role: string) => {
+    if (!spaceData) return; // 如果没有spaceData，不允许邀请
     try {
       const mappedRole =
         role === "viewer" ? MemberRole.GUEST : MemberRole.MEMBER;
@@ -128,6 +126,7 @@ const SpaceSettings = () => {
   };
 
   const handleRemoveMember = async (memberId: string) => {
+    if (!spaceData) return; // 如果没有spaceData，不允许移除
     try {
       setRemovingMemberId(memberId);
       await dispatch(
@@ -145,6 +144,8 @@ const SpaceSettings = () => {
       setRemovingMemberId(null);
     }
   };
+
+  if (loading) return <div className="loading">加载中...</div>;
 
   return (
     <div className="space-settings">
@@ -173,66 +174,74 @@ const SpaceSettings = () => {
       <div className="settings-content">
         <div className="settings-section">
           <h2>基本信息</h2>
-          <div className="settings-form">
-            <div className="form-group">
-              <label>空间名称</label>
-              <Input
-                type="text"
-                value={name}
-                onChange={(e) => setSpaceName(e.target.value)}
-                placeholder="输入空间名称"
-              />
+          {error || !spaceData ? (
+            <div className="not-found">
+              {error ? `错误: ${error.message}` : "未找到空间数据"}
             </div>
+          ) : (
+            <div className="settings-form">
+              <div className="form-group">
+                <label>空间名称</label>
+                <Input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setSpaceName(e.target.value)}
+                  placeholder="输入空间名称"
+                />
+              </div>
 
-            <div className="form-group">
-              <label>空间描述</label>
-              <TextArea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="描述这个空间..."
-              />
-            </div>
+              <div className="form-group">
+                <label>空间描述</label>
+                <TextArea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="描述这个空间..."
+                />
+              </div>
 
-            <div className="form-group">
-              <label>访问权限</label>
-              <select
-                value={visibility}
-                onChange={(e) =>
-                  setVisibility(e.target.value as "public" | "private")
-                }
-              >
-                <option value="private">私有</option>
-                <option value="public">公开</option>
-              </select>
-            </div>
+              <div className="form-group">
+                <label>访问权限</label>
+                <select
+                  value={visibility}
+                  onChange={(e) =>
+                    setVisibility(e.target.value as "public" | "private")
+                  }
+                >
+                  <option value="private">私有</option>
+                  <option value="public">公开</option>
+                </select>
+              </div>
 
-            <div className="form-group">
-              <label>空间ID</label>
-              <div className="readonly-value">{spaceData.id}</div>
-            </div>
+              <div className="form-group">
+                <label>空间ID</label>
+                <div className="readonly-value">{spaceData.id}</div>
+              </div>
 
-            <div className="form-group">
-              <label>创建时间</label>
-              <div className="readonly-value">
-                {new Date(spaceData.createdAt).toLocaleString()}
+              <div className="form-group">
+                <label>创建时间</label>
+                <div className="readonly-value">
+                  {new Date(spaceData.createdAt).toLocaleString()}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="action-buttons">
-            <Button
-              onClick={handleUpdate}
-              loading={updating}
-              disabled={
-                !name ||
-                (name === spaceData.name &&
-                  description === spaceData.description &&
-                  visibility === spaceData.visibility)
-              }
-              icon={<PencilIcon />}
-            >
-              保存修改
-            </Button>
+            {spaceData && (
+              <Button
+                onClick={handleUpdate}
+                loading={updating}
+                disabled={
+                  !name ||
+                  (name === spaceData.name &&
+                    description === spaceData.description &&
+                    visibility === spaceData.visibility)
+                }
+                icon={<PencilIcon />}
+              >
+                保存修改
+              </Button>
+            )}
 
             <Button
               status="error"
@@ -244,27 +253,29 @@ const SpaceSettings = () => {
           </div>
         </div>
 
-        <div className="settings-section">
-          <div className="section-header">
-            <h2>成员管理</h2>
-            <Button
-              onClick={() => setShowInviteModal(true)}
-              icon={<PlusIcon />}
-            >
-              邀请成员
-            </Button>
-          </div>
+        {spaceData && (
+          <div className="settings-section">
+            <div className="section-header">
+              <h2>成员管理</h2>
+              <Button
+                onClick={() => setShowInviteModal(true)}
+                icon={<PlusIcon />}
+              >
+                邀请成员
+              </Button>
+            </div>
 
-          <MemberList
-            members={members}
-            ownerId={spaceData.ownerId} // 仅传递 ownerId
-            onRemove={handleRemoveMember}
-            removingId={removingMemberId}
-          />
-        </div>
+            <MemberList
+              members={members}
+              ownerId={spaceData.ownerId}
+              onRemove={handleRemoveMember}
+              removingId={removingMemberId}
+            />
+          </div>
+        )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .space-settings {
           max-width: 800px;
           margin: 0 auto;
