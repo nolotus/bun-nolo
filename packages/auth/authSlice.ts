@@ -53,6 +53,7 @@ export const authSlice = createSliceWithThunks({
           const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
           const res = await loginRequest(currentServer, { userId, token });
+          console.log("res", res);
           if (res.status !== 200) {
             const errorMessage = `服务器响应状态码：${res.status}`;
             return thunkAPI.rejectWithValue(errorMessage);
