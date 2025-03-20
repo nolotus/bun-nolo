@@ -1,10 +1,12 @@
-import { View, StyleSheet, Text } from "react-native";
-import * as RNLocalize from "react-native-localize";
 import { useAppDispatch } from "app/hooks";
 import { signIn } from "../authSlice";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
+//rn part
+import * as RNLocalize from "react-native-localize";
+import { View, StyleSheet, Text } from "react-native";
+
 import {
   SafeAreaView,
   KeyboardAvoidingView,
@@ -34,6 +36,7 @@ const LoginScreen = ({ navigation }) => {
 
   const onSubmit = async (data) => {
     const { password } = data;
+    console.log("data", data);
     const deviceLanguage = RNLocalize.getLocales()[0].languageCode;
     const deviceCountry = RNLocalize.getCountry();
     const locale = `${deviceLanguage}-${deviceCountry}`;
