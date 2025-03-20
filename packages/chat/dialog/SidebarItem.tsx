@@ -1,6 +1,6 @@
 import * as Ariakit from "@ariakit/react";
 import {
-  CommentIcon,
+  DiscussionOutdatedIcon,
   FileIcon,
   ImageIcon,
   BookIcon,
@@ -23,7 +23,7 @@ interface SidebarItemProps {
 }
 
 const ITEM_ICONS = {
-  dialog: CommentIcon,
+  dialog: DiscussionOutdatedIcon,
   page: FaFileLines,
   image: ImageIcon,
   doc: BookIcon,
