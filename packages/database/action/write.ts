@@ -4,7 +4,6 @@ import { selectCurrentServer } from "setting/settingSlice";
 import { API_ENDPOINTS } from "database/config";
 import { DataType } from "create/types";
 import { browserDb } from "../browser/db";
-import { toast } from "react-hot-toast";
 import { getAllServers, normalizeTimeFields, logger } from "./common";
 
 const TIMEOUT = 5000;
