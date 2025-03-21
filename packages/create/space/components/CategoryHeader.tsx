@@ -9,13 +9,16 @@ import {
   PencilIcon,
   TrashIcon,
   GrabberIcon,
+  PlusIcon, // 添加 PlusIcon
 } from "@primer/octicons-react";
 import {
   updateCategoryName,
   deleteCategory,
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
-import { DraggableSyntheticListeners } from "@dnd-kit/core"; // 引入类型
+import { createPage } from "render/page/pageSlice"; // 导入 createPage
+import { DraggableSyntheticListeners } from "@dnd-kit/core";
+import { useNavigate } from "react-router-dom"; // 导入 useNavigate
 
 interface CategoryHeaderProps {
   categoryId: string;
@@ -23,7 +26,7 @@ interface CategoryHeaderProps {
   onEdit?: (categoryId: string, newName: string) => void;
   onDelete?: (categoryId: string) => void;
   isDragOver?: boolean;
-  handleProps?: DraggableSyntheticListeners; // 使用更明确的类型
+  handleProps?: DraggableSyntheticListeners;
 }
 
 const CategoryHeader: React.FC<CategoryHeaderProps> = ({
@@ -42,8 +45,8 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const dispatch = useAppDispatch();
   const theme = useTheme();
   const spaceId = useAppSelector(selectCurrentSpaceId);
+  const navigate = useNavigate(); // 用于导航到新页面
 
-  // 若分类名称为“未分类”，则不允许编辑、删除和拖拽
   const isUncategorized = categoryName === "未分类";
 
   const handleEdit = () => {
@@ -88,6 +91,11 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
     setIsDeleteModalOpen(false);
   };
 
+  const handleAddPage = async () => {
+    const dbKey = await dispatch(createPage({ categoryId })).unwrap();
+    navigate(`/${dbKey}?edit=true`);
+  };
+
   return (
     <>
       <div
@@ -95,7 +103,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* 仅在非“未分类”时渲染拖拽图标 */}
         {!isUncategorized && (
           <span className="drag-handle" {...handleProps} title="拖拽以移动">
             <GrabberIcon
@@ -108,28 +115,37 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           </span>
         )}
         <span className="category-name">{categoryName}</span>
-        {/* 如果不是“未分类”，则显示编辑和删除按钮 */}
-        {isHovered && !isUncategorized && (
+        {isHovered && (
           <div className="category-actions">
             <button
-              className="action-button edit-button"
-              onClick={handleEdit}
-              title="编辑分类"
+              className="action-button add-button"
+              onClick={handleAddPage}
+              title="新建页面"
             >
-              <PencilIcon size={14} />
+              <PlusIcon size={14} />
             </button>
-            <button
-              className="action-button delete-button"
-              onClick={handleDelete}
-              title="删除分类"
-            >
-              <TrashIcon size={14} />
-            </button>
+            {!isUncategorized && (
+              <>
+                <button
+                  className="action-button edit-button"
+                  onClick={handleEdit}
+                  title="编辑分类"
+                >
+                  <PencilIcon size={14} />
+                </button>
+                <button
+                  className="action-button delete-button"
+                  onClick={handleDelete}
+                  title="删除分类"
+                >
+                  <TrashIcon size={14} />
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
 
-      {/* 仅在允许编辑的情况下才渲染编辑弹窗 */}
       {!isUncategorized && (
         <BaseActionModal
           isOpen={isEditModalOpen}
@@ -178,7 +194,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         </BaseActionModal>
       )}
 
-      {/* 仅在允许删除的情况下才渲染删除确认弹窗 */}
       {!isUncategorized && (
         <ConfirmModal
           isOpen={isDeleteModalOpen}
@@ -277,6 +292,10 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
 
           .action-button:hover {
             background-color: ${theme.backgroundGhost};
+          }
+
+          .add-button:hover {
+            color: ${theme.success};
           }
 
           .edit-button:hover {
