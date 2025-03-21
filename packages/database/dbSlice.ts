@@ -10,7 +10,11 @@ import { queryServerAction } from "./action/queryServer";
 import { readAction } from "./action/read";
 import { writeAction } from "./action/write";
 import { patchAction } from "./action/patch";
-export const dbAdapter = createEntityAdapter();
+
+// 使用 dbKey 作为实体的唯一标识符
+export const dbAdapter = createEntityAdapter({
+  selectId: (entity) => entity.dbKey, // 指定 dbKey 作为 ID
+});
 
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
   dbAdapter.getSelectors((state: NoloRootState) => state.db);
@@ -31,7 +35,7 @@ const dbSlice = createSliceWithThunks({
     read: create.asyncThunk(readAction, {
       fulfilled: (state, action) => {
         if (action.payload) {
-          if (!action.payload.id || Object.keys(action.payload).length === 0) {
+          if (Object.keys(action.payload).length === 0) {
             console.warn("Empty or invalid data detected in read action:", {
               payload: action.payload,
               stack: new Error().stack,
@@ -44,12 +48,13 @@ const dbSlice = createSliceWithThunks({
     remove: create.asyncThunk(removeAction, {
       fulfilled: (state, action) => {
         const { dbKey } = action.payload;
-        dbAdapter.removeOne(state, dbKey);
+        dbAdapter.removeOne(state, dbKey); // 使用 dbKey 移除
       },
     }),
     write: create.asyncThunk(writeAction, {
       fulfilled: (state, action) => {
-        if (!action.payload.id || Object.keys(action.payload).length === 0) {
+        if (!action.payload.dbKey || Object.keys(action.payload).length === 0) {
+          // 检查 dbKey
           console.warn("Empty or invalid data detected in write action:", {
             payload: action.payload,
             stack: new Error().stack,
@@ -61,7 +66,7 @@ const dbSlice = createSliceWithThunks({
     upsertMany: (state, action) => {
       if (
         action.payload.some(
-          (item) => !item.id || Object.keys(item).length === 0
+          (item) => !item.dbKey || Object.keys(item).length === 0 // 检查 dbKey
         )
       ) {
         console.warn("Empty or invalid data detected in upsertMany:", {
@@ -74,14 +79,15 @@ const dbSlice = createSliceWithThunks({
     patchData: create.asyncThunk(patchAction, {
       fulfilled: (state, action) => {
         const { payload } = action;
-        if (!payload.id || Object.keys(payload).length <= 1) {
+        if (!payload.dbKey || Object.keys(payload).length <= 1) {
+          // 检查 dbKey
           console.warn("Empty or invalid data detected in patch action:", {
             payload,
             stack: new Error().stack,
           });
         }
-        const { id, dbKey, ...changes } = payload;
-        dbAdapter.updateOne(state, { id: dbKey, changes });
+        const { dbKey, ...changes } = payload; // 使用 dbKey 而不是 id
+        dbAdapter.updateOne(state, { id: dbKey, changes }); // 使用 dbKey 作为 ID
       },
     }),
   }),

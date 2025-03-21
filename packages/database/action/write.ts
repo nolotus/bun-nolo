@@ -1,72 +1,73 @@
+// src/database/actions/write.ts
 import { selectCurrentUserId } from "auth/authSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { API_ENDPOINTS } from "database/config";
-
 import { DataType } from "create/types";
 import { browserDb } from "../browser/db";
 import { toast } from "react-hot-toast";
-import { noloRequest } from "../requests";
-// 写入请求
-export const noloWriteRequest = async (
-  server: string,
-  { userId, data, customKey },
-  state: any,
-  signal?: AbortSignal
-) => {
-  try {
-    const response = await noloRequest(
-      server,
-      {
-        url: `${API_ENDPOINTS.DATABASE}/write/`,
-        method: "POST",
-        body: JSON.stringify({ data, customKey, userId }),
-      },
-      state,
-      signal
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return true;
-  } catch (error) {
-    if (error.name === "AbortError") {
-    } else {
-    }
-    return false;
-  }
-};
-const CYBOT_SERVERS = {
-  ONE: "https://cybot.one",
-  RUN: "https://cybot.run",
-};
+import { getAllServers, normalizeTimeFields, logger } from "./common";
 
 const TIMEOUT = 5000;
 
-const syncWithServers = (servers, writeConfig, state) => {
+// 保存数据到客户端数据库
+const saveToClientDb = async (
+  clientDb: any,
+  dbKey: string,
+  data: any
+): Promise<void> => {
+  if (!clientDb) {
+    logger.error({ dbKey }, "Client database is undefined in saveToClientDb");
+    throw new Error("Client database is undefined");
+  }
+  try {
+    await clientDb.put(dbKey, data);
+  } catch (err) {
+    logger.error({ err, dbKey }, "Failed to save data to local database");
+    throw err;
+  }
+};
+
+// 异步并行写入服务器
+const syncWithServers = (
+  servers: string[],
+  writeConfig: any,
+  state: any
+): void => {
+  const { userId, data, customKey } = writeConfig;
+
   servers.forEach((server) => {
     const abortController = new AbortController();
     const timeoutId = setTimeout(() => abortController.abort(), TIMEOUT);
 
-    noloWriteRequest(server, writeConfig, state, abortController.signal)
-      .then((success) => {
+    const headers = {
+      "Content-Type": "application/json",
+      ...(state.auth?.currentToken && {
+        Authorization: `Bearer ${state.auth.currentToken}`,
+      }),
+    };
+
+    fetch(`${server}${API_ENDPOINTS.DATABASE}/write/`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ data, customKey, userId }),
+      signal: abortController.signal,
+    })
+      .then((response) => {
         clearTimeout(timeoutId);
-        if (!success) toast.error(`Failed to save to ${server}`);
+        if (!response.ok) {
+          toast.error(`Failed to save to ${server}`);
+        }
       })
       .catch(() => clearTimeout(timeoutId));
   });
 };
 
-const normalizeTimeFields = (data) => ({
-  ...data,
-  createdAt: data.createdAt || new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  updated_at: undefined,
-  created_at: undefined,
-});
-
-export const writeAction = async (writeConfig, thunkApi) => {
+// 主写入动作函数
+export const writeAction = async (
+  writeConfig: any,
+  thunkApi: any,
+  clientDb: any = browserDb
+): Promise<any> => {
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
   const currentUserId = selectCurrentUserId(state);
@@ -95,11 +96,9 @@ export const writeAction = async (writeConfig, thunkApi) => {
       userId: currentUserId,
     });
 
-    await browserDb.put(customKey, willSaveData);
+    await saveToClientDb(clientDb, customKey, willSaveData);
 
-    const servers = Array.from(
-      new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
-    );
+    const servers = getAllServers(currentServer);
     const serverWriteConfig = { ...writeConfig, data: willSaveData, userId };
 
     Promise.resolve().then(() =>

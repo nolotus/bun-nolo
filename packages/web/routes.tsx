@@ -6,9 +6,11 @@ import MainLayout from "render/layout/MainLayout";
 import { SurfTip } from "./SurfTip";
 import { commonRoutes } from "./generatorRoutes";
 import SpaceSettings from "create/space/pages/SpaceSettings";
+import SpaceHome from "create/space/pages/SpaceHome";
 const Page = lazy(() => import("render/page/PageIndex"));
-
 const PricePage = lazy(() => import("app/pages/Price"));
+// 修改 Models 页面导入路径
+const Models = lazy(() => import("ai/cybot/web/Models"));
 
 export const routes = (currentUser: any) => [
   {
@@ -32,10 +34,24 @@ export const routes = (currentUser: any) => [
         path: "surfing-safety-tips",
         element: <SurfTip />,
       },
-      // space设置页面直接放在顶层
+      // 空间首页
+      {
+        path: "space/:spaceId",
+        element: <SpaceHome />,
+      },
+      // 空间设置页面
       {
         path: "space/:spaceId/settings",
         element: <SpaceSettings />,
+      },
+      // 添加独立的 models 页面
+      {
+        path: "models",
+        element: (
+          <Suspense>
+            <Models />
+          </Suspense>
+        ),
       },
       // 动态页面放最后
       {

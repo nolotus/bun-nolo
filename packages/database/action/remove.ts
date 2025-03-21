@@ -2,7 +2,8 @@
 import { browserDb } from "../browser/db";
 import { selectCurrentServer } from "setting/settingSlice";
 import pino from "pino";
-import { noloDeleteRequest, syncWithServers, CYBOT_SERVERS } from "../requests";
+import { noloDeleteRequest } from "../requests";
+import { getAllServers, fetchFromClientDb } from "./common";
 
 const logger = pino({
   level: "info",
@@ -11,74 +12,71 @@ const logger = pino({
   },
 });
 
-// 检查本地数据是否存在
-const checkLocalData = async (dbKey: string): Promise<any> => {
-  const data = await browserDb.get(dbKey);
-  if (!data) {
-    logger.warn({ dbKey }, "Data not found locally");
+// 从本地数据库删除数据
+const removeFromLocalDb = async (
+  clientDb: any,
+  dbKey: string
+): Promise<void> => {
+  if (!clientDb) {
+    logger.error(
+      { dbKey },
+      "Client database is undefined in removeFromLocalDb"
+    );
+    return;
   }
-  return data;
+  try {
+    await clientDb.del(dbKey);
+    logger.info({ dbKey }, "Data deleted locally");
+  } catch (err) {
+    logger.error({ err, dbKey }, "Failed to delete local data");
+  }
 };
 
-// 执行本地删除
-const deleteLocalData = async (dbKey: string): Promise<void> => {
-  await browserDb.del(dbKey);
-  logger.info({ dbKey }, "Data deleted locally");
-};
-
-// 获取同步服务器列表
-const getSyncServers = (currentServer: string): string[] => {
-  return Array.from(
-    new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
-  );
-};
-
-// 执行远程删除（异步，不等待结果）
-const deleteRemoteData = (
+// 在远程服务器上异步并行删除数据
+const triggerParallelRemoteDeletion = (
   servers: string[],
   dbKey: string,
   state: any
 ): void => {
-  Promise.resolve()
-    .then(() =>
-      syncWithServers(
-        servers,
-        noloDeleteRequest,
-        "Failed to delete from",
-        dbKey,
-        { type: "single" },
-        state
-      )
-    )
-    .catch((error) => {
-      logger.error({ error, dbKey }, "Failed to sync delete with servers");
-    });
+  const deletePromises = servers.map((server) =>
+    noloDeleteRequest(server, dbKey, { type: "single" }, state).catch((err) => {
+      logger.error({ err, server, dbKey }, "Failed to delete from server");
+    })
+  );
+  Promise.allSettled(deletePromises); // 异步执行，不等待
 };
 
 // 主删除动作函数
 export const removeAction = async (
   dbKey: string,
-  thunkApi
+  thunkApi: any,
+  clientDb: any = browserDb
 ): Promise<{ dbKey: string }> => {
+  if (!clientDb) {
+    const errorMsg = "Client database is undefined in removeAction";
+    logger.error({ dbKey }, errorMsg);
+    throw new Error(errorMsg);
+  }
+
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
 
   try {
-    // 1. 检查本地数据（串行）
-    const existingData = await checkLocalData(dbKey);
+    // 1. 检查并获取本地数据
+    const localData = await fetchFromClientDb(clientDb, dbKey);
 
-    // 2. 获取同步服务器列表（串行）
-    const servers = getSyncServers(currentServer);
+    // 2. 获取所有服务器列表（去重）
+    const servers = getAllServers(currentServer);
 
-    // 3. 如果本地有数据，删除本地数据（串行）
-    if (existingData) {
-      await deleteLocalData(dbKey);
+    // 3. 如果本地数据存在，则删除
+    if (localData) {
+      await removeFromLocalDb(clientDb, dbKey);
     }
 
-    // 4. 异步触发远程删除（并行，不等待结果）
-    deleteRemoteData(servers, dbKey, state);
+    // 4. 触发远程服务器并行删除（异步，不等待）
+    triggerParallelRemoteDeletion(servers, dbKey, state);
 
-    // 5. 直接返回结果（不等待远程删除）
+    // 5. 返回删除结果
     return { dbKey };
   } catch (error) {
     logger.error({ error, dbKey }, "Delete action failed");

@@ -1,4 +1,4 @@
-// src/database/requests.ts
+// database/requests.ts
 import { API_ENDPOINTS } from "./config";
 import { toast } from "react-hot-toast";
 
