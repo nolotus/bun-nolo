@@ -10,41 +10,22 @@ import { write } from "database/dbSlice";
 import { createPageKey } from "database/keys";
 import { t } from "i18next";
 
-// 创建带 thunk 的 slice
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
 
-// 定义状态类型
-interface PageState {
-  content: any | null;
-  slateData: any | null;
-  title: string | null;
-  spaceId: string | null;
-  isReadOnly: boolean;
-}
-
-// 定义 createPage 的参数类型
-interface CreatePageArgs {
-  categoryId?: string;
-}
-
-// 初始化状态
-const initialState: PageState = {
-  content: null,
-  slateData: null,
-  title: null,
-  spaceId: null,
-  isReadOnly: true,
-};
-
-// 创建 page slice
+// pageSlice.js
 export const pageSlice = createSliceWithThunks({
   name: "page",
-  initialState,
+  initialState: {
+    content: null,
+    slateData: null,
+    title: null,
+    spaceId: null,
+    isReadOnly: true,
+  },
   reducers: (create) => ({
-    // 创建新页面
-    createPage: create.asyncThunk<string, CreatePageArgs>(
+    createPage: create.asyncThunk(
       async ({ categoryId }, { dispatch, getState }) => {
         const state = getState();
         const userId = selectCurrentUserId(state);
@@ -88,37 +69,40 @@ export const pageSlice = createSliceWithThunks({
       }
     ),
 
-    // 初始化页面
-    initPage: create.reducer((state, action: { payload: PageState }) => {
-      return { ...state, ...action.payload };
+    // 以下保持完全不变
+    initPage: create.reducer((state, action) => {
+      state.content = action.payload.content;
+      state.slateData = action.payload.slateData;
+      state.isReadOnly = action.payload.isReadOnly;
+      state.title = action.payload.title;
+      state.spaceId = action.payload.spaceId;
     }),
 
-    // 更新 Slate 数据
-    updateSlate: create.reducer((state, action: { payload: any }) => {
+    updateSlate: create.reducer((state, action) => {
       state.slateData = action.payload;
     }),
 
-    // 切换只读模式
     toggleReadOnly: create.reducer((state) => {
       state.isReadOnly = !state.isReadOnly;
     }),
 
-    // 设置只读模式
-    setReadOnly: create.reducer((state, action: { payload: boolean }) => {
+    setReadOnly: create.reducer((state, action) => {
       state.isReadOnly = action.payload;
     }),
 
-    // 重置页面状态
-    resetPage: create.reducer(() => initialState),
+    resetPage: create.reducer((state) => {
+      state.content = null;
+      state.slateData = null;
+      state.spaceId = null;
+    }),
   }),
 });
 
 // 选择器
-export const selectSlateData = (state: any) => state.page.slateData;
-export const selectPageData = (state: any) => state.page;
-export const selectIsReadOnly = (state: any) => state.page.isReadOnly;
+export const selectSlateData = (state) => state.page.slateData;
+export const selectPageData = (state) => state.page; // 已包含 spaceId
+export const selectIsReadOnly = (state) => state.page.isReadOnly;
 
-// 导出 actions
 export const {
   initPage,
   createPage,
