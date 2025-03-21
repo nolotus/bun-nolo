@@ -5,7 +5,7 @@ import { noloRequest } from "../requests";
 import { API_ENDPOINTS } from "../config";
 
 // 更新请求
-export const noloPatchRequest = async (
+const noloPatchRequest = async (
   server: string,
   dbKey: string,
   updates: any,
@@ -79,7 +79,7 @@ const syncWithServers = (
       .then((success) => {
         clearTimeout(timeoutId);
         if (!success) {
-          toast.error(`Sync failed with ${server}: Request unsuccessful`);
+          console.error(`Sync failed with ${server}: Request unsuccessful`);
         }
       })
       .catch((error) => {

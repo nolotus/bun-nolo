@@ -64,7 +64,6 @@ export const MessageActions = ({
     if (content) {
       try {
         const slateData = markdownToSlate(content);
-
         const title = await dispatch(
           runCybotId({
             cybotId: titleCybotId,
@@ -73,17 +72,16 @@ export const MessageActions = ({
         ).unwrap();
 
         // 保存content
-        const customKey = `${DataType.MSG}-${auth.user.userId}-${ulid()}`;
-        const saveAction = await dispatch(
+        const customKey = `${DataType.PAGE}-${auth.user.userId}-${ulid()}`;
+
+        const saveResult = await dispatch(
           write({
             data: { content, slateData, type: DataType.PAGE, title },
             customKey,
           })
-        );
-        const contentData = saveAction.payload;
-        if (contentData.error) {
-          throw new Error(contentData.error);
-        }
+        ).unwrap();
+
+        console.log("currentSpaceId", currentSpaceId);
 
         // 添加到当前space
         if (currentSpaceId) {
@@ -101,7 +99,7 @@ export const MessageActions = ({
           <div>
             {t("saveSuccess")}
             <Link
-              to={`/${contentData.id}`}
+              to={`/${saveResult.id}`}
               target="_blank"
               rel="noopener noreferrer"
             >
