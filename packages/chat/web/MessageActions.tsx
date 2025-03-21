@@ -64,15 +64,17 @@ export const MessageActions = ({
     if (content) {
       try {
         const slateData = markdownToSlate(content);
-        const title = await dispatch(
-          runCybotId({
-            cybotId: titleCybotId,
-            userInput: content,
-          })
-        ).unwrap();
+        const customKey = `${DataType.PAGE}-${auth.user.userId}-${ulid()}`;
+
+        const title =
+          (await dispatch(
+            runCybotId({
+              cybotId: titleCybotId,
+              userInput: content,
+            })
+          ).unwrap()) || customKey;
 
         // 保存content
-        const customKey = `${DataType.PAGE}-${auth.user.userId}-${ulid()}`;
 
         const saveResult = await dispatch(
           write({
