@@ -55,7 +55,7 @@ const syncWithServers = (
       .then((response) => {
         clearTimeout(timeoutId);
         if (!response.ok) {
-          toast.error(`Failed to save to ${server}`);
+          // toast.error(`Failed to save to ${server}`);
         }
       })
       .catch(() => clearTimeout(timeoutId));
