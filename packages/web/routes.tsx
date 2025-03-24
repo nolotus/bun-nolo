@@ -7,7 +7,6 @@ import { SurfTip } from "./SurfTip";
 import { commonRoutes } from "./generatorRoutes";
 import SpaceSettings from "create/space/pages/SpaceSettings";
 import SpaceHome from "create/space/pages/SpaceHome";
-const Page = lazy(() => import("render/page/PageIndex"));
 const PricePage = lazy(() => import("app/pages/Price"));
 // 修改 Models 页面导入路径
 const Models = lazy(() => import("ai/cybot/web/Models"));
@@ -50,15 +49,6 @@ export const routes = (currentUser: any) => [
         element: (
           <Suspense>
             <Models />
-          </Suspense>
-        ),
-      },
-      // 动态页面放最后
-      {
-        path: ":pageId",
-        element: (
-          <Suspense>
-            <Page />
           </Suspense>
         ),
       },

@@ -1,7 +1,10 @@
+import { Suspense, lazy } from "react";
+
 import { authRoutes } from "auth/web/routes";
 import { createRoutes } from "create/routes";
 import { settingRoutes } from "setting/routes";
 import { lifeRoutes } from "life/routes";
+const Page = lazy(() => import("render/page/PageIndex"));
 
 const hostRoutesMap = {
   // "nolotus.test": yujierRoutes,
@@ -27,4 +30,13 @@ export const commonRoutes = [
   ...createRoutes,
   settingRoutes,
   ...lifeRoutes,
+  // 动态页面放最后
+  {
+    path: ":pageId",
+    element: (
+      <Suspense>
+        <Page />
+      </Suspense>
+    ),
+  },
 ];

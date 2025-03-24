@@ -26,11 +26,15 @@ export const pageSlice = createSliceWithThunks({
   },
   reducers: (create) => ({
     createPage: create.asyncThunk(
-      async ({ categoryId } = {}, { dispatch, getState }) => {
-        // Modified: made categoryId optional with default empty object
+      async (
+        { categoryId, spaceId: customSpaceId } = {},
+        { dispatch, getState }
+      ) => {
+        // Modified: Added spaceId as an optional parameter alongside categoryId
         const state = getState();
         const userId = selectCurrentUserId(state);
-        const spaceId = selectCurrentSpaceId(state);
+        // Use provided spaceId if available, otherwise fall back to current spaceId from state
+        const effectiveSpaceId = customSpaceId || selectCurrentSpaceId(state);
         const { dbKey, id } = createPageKey.create(userId);
         const title = t("newPageTitle", { defaultValue: "新页面" });
 
@@ -40,7 +44,7 @@ export const pageSlice = createSliceWithThunks({
           id,
           type: DataType.PAGE,
           title,
-          spaceId,
+          spaceId: effectiveSpaceId,
           slateData: [
             {
               type: ParagraphType,
@@ -53,13 +57,13 @@ export const pageSlice = createSliceWithThunks({
         // 写入数据库
         await dispatch(write({ data: pageData, customKey: dbKey })).unwrap();
 
-        // 如果有空间ID，将页面添加到空间
-        if (spaceId) {
+        // 如果有有效的spaceId，将页面添加到空间
+        if (effectiveSpaceId) {
           dispatch(
             addContentToSpace({
               contentKey: dbKey,
               type: DataType.PAGE,
-              spaceId,
+              spaceId: effectiveSpaceId,
               title,
               categoryId, // Will be undefined if not provided
             })
