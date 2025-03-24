@@ -20,7 +20,7 @@ import {
   fetchUserSpaceMemberships,
   selectAllMemberSpaces,
   selectCurrentSpace,
-  selectSpaceLoading, // 新增导入
+  selectSpaceLoading,
 } from "create/space/spaceSlice";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -117,6 +117,7 @@ export const SidebarTop = () => {
   const handleOptionClick = (spaceId?: string) => {
     if (!spaceId) return;
     dispatch(changeSpace(spaceId));
+    navigate(`/space/${spaceId}`);
     setIsOpen(false);
   };
 
@@ -200,7 +201,7 @@ export const SidebarTop = () => {
         <CreateSpaceForm onClose={closeModal} />
       </Dialog>
 
-      <style jsx>{`
+      <style>{`
         .space-sidebar-top {
           display: flex;
           padding: 16px;
