@@ -10,7 +10,6 @@ import { setDarkMode } from "app/theme/themeSlice";
 import { initializeSpace } from "create/space/spaceSlice";
 
 import Article from "lab/s-station/Article";
-import Collect from "lab/s-station/Collect";
 import NavbarComponent from "lab/s-station/Navbar";
 import Moment from "lab/s-station/index";
 import { commonRoutes } from "./generatorRoutes";
@@ -37,10 +36,7 @@ const generatorRoutes = (hostname: string, auth: any) => {
             path: "article",
             element: <Article />,
           },
-          {
-            path: "collect",
-            element: <Collect />,
-          },
+
           ...commonRoutes,
         ],
       },

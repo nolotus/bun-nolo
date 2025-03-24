@@ -90,18 +90,6 @@ const NavbarComponent = () => {
             Article
           </NavLink>
         </li>
-        <li style={styles.navItem}>
-          <NavLink
-            to="/collect"
-            style={({ isActive }) => ({
-              ...styles.link,
-              fontSize: "20px",
-              ...(isActive && styles.activeLink),
-            })}
-          >
-            Collect
-          </NavLink>
-        </li>
       </ul>
     </div>
   );
