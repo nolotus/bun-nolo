@@ -26,7 +26,8 @@ export const pageSlice = createSliceWithThunks({
   },
   reducers: (create) => ({
     createPage: create.asyncThunk(
-      async ({ categoryId }, { dispatch, getState }) => {
+      async ({ categoryId } = {}, { dispatch, getState }) => {
+        // Modified: made categoryId optional with default empty object
         const state = getState();
         const userId = selectCurrentUserId(state);
         const spaceId = selectCurrentSpaceId(state);
@@ -60,7 +61,7 @@ export const pageSlice = createSliceWithThunks({
               type: DataType.PAGE,
               spaceId,
               title,
-              categoryId,
+              categoryId, // Will be undefined if not provided
             })
           );
         }
