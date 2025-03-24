@@ -1,40 +1,53 @@
 import React, { useState, useEffect } from "react";
 import { FiEdit, FiClock, FiChevronRight, FiSearch } from "react-icons/fi";
 import Pagination from "web/ui/Pagination";
+import { useAppDispatch } from "app/hooks";
+import { read } from "database/dbSlice";
+import { useGroupedContent } from "chat/hooks/useGroupedContent";
+import { createSpaceKey } from "create/space/spaceKeys";
 
-const WriteArticle = () => {
-  const articles = [
-    { id: 1, date: "2025-03-24", title: "React 基础教程" },
-    { id: 2, date: "2025-03-23", title: "JavaScript 性能优化" },
-    { id: 3, date: "2025-03-22", title: "CSS 现代布局技巧" },
-    { id: 4, date: "2025-03-21", title: "前端开发最佳实践" },
-    { id: 5, date: "2025-03-20", title: "TypeScript 入门" },
-    { id: 6, date: "2025-03-19", title: "Webpack 配置指南" },
-    { id: 7, date: "2025-03-18", title: "Node.js 基础" },
-    { id: 8, date: "2025-03-17", title: "Vue.js 进阶" },
-    { id: 9, date: "2025-03-16", title: "HTML5 新特性" },
-    { id: 10, date: "2025-03-15", title: "CSS 动画技巧" },
-    { id: 11, date: "2025-03-14", title: "React Hooks 详解" },
-    { id: 12, date: "2025-03-13", title: "前端调试技巧" },
-    { id: 13, date: "2025-03-12", title: "Git 使用指南" },
-    { id: 14, date: "2025-03-11", title: "ES6 核心特性" },
-    { id: 15, date: "2025-03-10", title: "Web 性能优化" },
-  ];
+const WriteArticle = ({}) => {
+  // 假设 spaceKey 作为 prop 传入
+  const spaceId = "01JQ3MSPCFXQDAJVPCX0F1ZJY5";
+  const spaceKey = createSpaceKey.space(spaceId);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredArticles, setFilteredArticles] = useState(articles);
+  const [spaceData, setSpaceData] = useState(null); // 用于存储异步获取的 spaceData
   const pageSize = 10;
 
-  // 当搜索词变化时过滤文章
+  const dispatch = useAppDispatch();
+
+  // 异步获取 spaceData
   useEffect(() => {
-    const results = articles.filter((article) =>
+    const fetchSpaceData = async () => {
+      try {
+        const result = await dispatch(read(spaceKey)).unwrap();
+        setSpaceData(result);
+      } catch (error) {
+        console.error("Failed to fetch space data:", error);
+      }
+    };
+    fetchSpaceData();
+  }, [dispatch, spaceKey]);
+
+  // 使用 useGroupedContent hook
+  const { groupedData, sortedCategories } = useGroupedContent(spaceData);
+
+  // 将分类和未分类的内容合并为一个数组用于显示
+  const allArticles = React.useMemo(() => {
+    if (!groupedData) return [];
+    const categorizedItems = Object.values(groupedData.categorized).flat();
+    return [...categorizedItems, ...groupedData.uncategorized];
+  }, [groupedData]);
+
+  // 当搜索词变化时过滤文章
+  const filteredArticles = React.useMemo(() => {
+    return allArticles.filter((article) =>
       article.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setFilteredArticles(results);
-    setCurrentPage(1); // 重置到第一页
-  }, [searchTerm]);
+  }, [allArticles, searchTerm]);
 
   const indexOfLastItem = currentPage * pageSize;
   const indexOfFirstItem = indexOfLastItem - pageSize;
@@ -45,7 +58,6 @@ const WriteArticle = () => {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    // 滚动到顶部，提升用户体验
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -82,19 +94,23 @@ const WriteArticle = () => {
         </div>
 
         <div className="timeline-list">
-          {currentArticles.length > 0 ? (
+          {spaceData === null ? (
+            <div className="loading-state">
+              <p>加载中...</p>
+            </div>
+          ) : currentArticles.length > 0 ? (
             <div className="articles-wrapper">
               {currentArticles.map((article, index) => (
                 <div
-                  key={article.id}
-                  className={`timeline-item ${hoveredItem === article.id ? "hovered" : ""}`}
-                  onMouseEnter={() => setHoveredItem(article.id)}
+                  key={article.contentKey}
+                  className={`timeline-item ${hoveredItem === article.contentKey ? "hovered" : ""}`}
+                  onMouseEnter={() => setHoveredItem(article.contentKey)}
                   onMouseLeave={() => setHoveredItem(null)}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="time-section">
                     <FiClock className="time-icon" />
-                    <span className="time">{article.date}</span>
+                    <span className="time">{article.updatedAt}</span>
                   </div>
                   <div className="title-section">
                     <span className="title">{article.title}</span>
@@ -122,7 +138,7 @@ const WriteArticle = () => {
       </div>
 
       <style jsx>{`
-        /* 容器样式 */
+        /* 原有样式保持不变，添加加载状态样式 */
         .article-container {
           max-width: 800px;
           margin: 0 auto;
@@ -132,8 +148,6 @@ const WriteArticle = () => {
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
           animation: fadeIn 0.5s ease-out;
         }
-
-        /* 标题区域 */
         .header-section {
           display: flex;
           justify-content: space-between;
@@ -142,19 +156,15 @@ const WriteArticle = () => {
           padding-bottom: 16px;
           border-bottom: 1px solid #eaeaea;
         }
-
         .page-title {
           font-size: 24px;
           font-weight: 600;
           color: #333333;
           margin: 0;
         }
-
-        /* 搜索区域 */
         .search-container {
           margin-bottom: 20px;
         }
-
         .search-wrapper {
           display: flex;
           align-items: center;
@@ -162,14 +172,12 @@ const WriteArticle = () => {
           max-width: 500px;
           margin: 0 auto;
         }
-
         .search-icon {
           position: absolute;
           left: 12px;
           color: #777;
           font-size: 18px;
         }
-
         .search-input {
           width: 100%;
           padding: 10px 40px 10px 40px;
@@ -178,13 +186,11 @@ const WriteArticle = () => {
           font-size: 15px;
           transition: all 0.2s ease;
         }
-
         .search-input:focus {
           outline: none;
           border-color: #007bff;
           box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
         }
-
         .clear-button {
           position: absolute;
           right: 12px;
@@ -201,12 +207,9 @@ const WriteArticle = () => {
           height: 20px;
           border-radius: 50%;
         }
-
         .clear-button:hover {
           background-color: #f0f0f0;
         }
-
-        /* 写文章按钮 */
         .write-button {
           display: flex;
           align-items: center;
@@ -223,17 +226,13 @@ const WriteArticle = () => {
           transition: all 0.2s ease;
           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-
         .write-button:hover {
           background-color: #0069d9;
           transform: scale(1.05);
         }
-
         .write-button:active {
           transform: scale(0.95);
         }
-
-        /* 文章列表区域 */
         .timeline-list {
           max-width: 700px;
           margin: 0 auto 24px;
@@ -241,12 +240,9 @@ const WriteArticle = () => {
           border-radius: 6px;
           overflow: hidden;
         }
-
         .articles-wrapper {
           animation: slideUp 0.4s ease-out;
         }
-
-        /* 文章列表项 */
         .timeline-item {
           display: flex;
           justify-content: space-between;
@@ -258,38 +254,29 @@ const WriteArticle = () => {
           animation: fadeInUp 0.5s ease-out both;
           transform-origin: center;
         }
-
         .timeline-item:last-child {
           border-bottom: none;
         }
-
         .timeline-item:hover {
           background-color: #f8f9fa;
           transform: translateX(5px);
         }
-
         .timeline-item.hovered {
           background-color: #f8f9fa;
         }
-
-        /* 时间区域 */
         .time-section {
           display: flex;
           align-items: center;
           flex: 0 0 130px;
           color: #666666;
         }
-
         .time-icon {
           margin-right: 8px;
           opacity: 0.6;
         }
-
         .time {
           font-size: 14px;
         }
-
-        /* 标题区域 */
         .title-section {
           flex: 1;
           display: flex;
@@ -297,19 +284,15 @@ const WriteArticle = () => {
           align-items: center;
           padding-left: 16px;
         }
-
         .title {
           font-size: 15px;
           color: #333333;
           font-weight: 500;
           transition: color 0.2s ease;
         }
-
         .timeline-item:hover .title {
           color: #007bff;
         }
-
-        /* 箭头图标 */
         .arrow-icon {
           color: #007bff;
           display: flex;
@@ -318,26 +301,25 @@ const WriteArticle = () => {
           transform: translateX(-10px);
           transition: all 0.3s ease;
         }
-
         .timeline-item:hover .arrow-icon {
           opacity: 1;
           transform: translateX(0);
         }
-
-        /* 空状态 */
         .empty-state {
           padding: 40px 0;
           text-align: center;
           color: #666666;
           font-size: 15px;
         }
-
-        /* 分页器自定义样式 */
+        .loading-state {
+          padding: 40px 0;
+          text-align: center;
+          color: #666666;
+          font-size: 15px;
+        }
         :global(.custom-pagination) {
           margin-top: 16px;
         }
-
-        /* 动画定义 */
         @keyframes fadeIn {
           from {
             opacity: 0;
@@ -346,7 +328,6 @@ const WriteArticle = () => {
             opacity: 1;
           }
         }
-
         @keyframes slideUp {
           from {
             opacity: 0;
@@ -357,7 +338,6 @@ const WriteArticle = () => {
             transform: translateY(0);
           }
         }
-
         @keyframes fadeInUp {
           from {
             opacity: 0;
@@ -368,8 +348,6 @@ const WriteArticle = () => {
             transform: translateY(0);
           }
         }
-
-        /* 悬停效果 */
         .timeline-item::after {
           content: "";
           position: absolute;
@@ -381,50 +359,38 @@ const WriteArticle = () => {
           opacity: 0.05;
           transition: width 0.3s ease;
         }
-
         .timeline-item:hover::after {
           width: 4px;
         }
-
-        /* 响应式样式 */
         @media (max-width: 640px) {
           .article-container {
             padding: 16px 12px;
           }
-
           .header-section {
             flex-direction: column;
             align-items: flex-start;
             gap: 16px;
           }
-
           .write-button {
             align-self: flex-end;
           }
-
           .timeline-item {
             flex-direction: column;
             gap: 8px;
           }
-
           .time-section {
             flex: unset;
           }
-
           .title-section {
             padding-left: 0;
           }
-
-          /* 调整在移动设备上的悬停效果 */
           .timeline-item:hover {
             transform: none;
           }
-
           .timeline-item::after {
             width: 0;
             height: 0;
           }
-
           .timeline-item:hover::after {
             width: 100%;
             height: 4px;

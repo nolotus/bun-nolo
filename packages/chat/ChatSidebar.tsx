@@ -21,6 +21,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useGroupedContent } from "./hooks/useGroupedContent";
 
 // 分组数据：将 space 中的内容按分类分组
 interface CategoryItem {
@@ -28,66 +29,6 @@ interface CategoryItem {
   name: string;
   order?: number;
 }
-
-interface GroupedContent {
-  categorized: Record<string, SpaceContent[]>;
-  uncategorized: SpaceContent[];
-}
-
-const useGroupedContent = (space: Space | null) => {
-  return useMemo(() => {
-    if (!space) {
-      return {
-        groupedData: { categorized: {}, uncategorized: [] } as GroupedContent,
-        sortedCategories: [] as CategoryItem[],
-      };
-    }
-
-    const { contents, categories } = space;
-    const categorized: Record<string, SpaceContent[]> = {};
-    const uncategorized: SpaceContent[] = [];
-
-    // Initialize categorized arrays for each category
-    if (categories) {
-      Object.keys(categories).forEach((categoryId) => {
-        categorized[categoryId] = [];
-      });
-    }
-
-    // Safely process contents
-    if (contents) {
-      Object.values(contents)
-        .filter(
-          (item): item is SpaceContent => item !== null && item !== undefined
-        ) // Filter out null/undefined items
-        .sort((a, b) => {
-          // Use a fallback timestamp (e.g., 0) if updatedAt or createdAt is missing
-          const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
-          const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
-          return timeB - timeA; // Sort descending (newest first)
-        })
-        .forEach((item) => {
-          if (categories && item.categoryId && categories[item.categoryId]) {
-            categorized[item.categoryId].push(item);
-          } else {
-            uncategorized.push(item);
-          }
-        });
-    }
-
-    // Sort categories by order
-    const sortedCategories = categories
-      ? Object.entries(categories)
-          .map(([id, category]) => ({
-            id,
-            ...category,
-          }))
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      : [];
-
-    return { groupedData: { categorized, uncategorized }, sortedCategories };
-  }, [space]);
-};
 
 // 拖拽排序相关 Hook
 const useCategoryDragAndDrop = (
