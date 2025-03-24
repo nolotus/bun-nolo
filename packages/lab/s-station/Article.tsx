@@ -5,21 +5,38 @@ import { useAppDispatch } from "app/hooks";
 import { read } from "database/dbSlice";
 import { useGroupedContent } from "chat/hooks/useGroupedContent";
 import { createSpaceKey } from "create/space/spaceKeys";
+import { createPage } from "render/page/pageSlice";
+import { useNavigate } from "react-router-dom";
 
 const WriteArticle = ({}) => {
-  // 假设 spaceKey 作为 prop 传入
   const spaceId = "01JQ3MSPCFXQDAJVPCX0F1ZJY5";
   const spaceKey = createSpaceKey.space(spaceId);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [spaceData, setSpaceData] = useState(null); // 用于存储异步获取的 spaceData
+  const [spaceData, setSpaceData] = useState(null);
   const pageSize = 10;
 
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
-  // 异步获取 spaceData
+  // Function to create a new page and navigate to it using contentKey
+  const createNewPage = async () => {
+    try {
+      const contentKey = await dispatch(createPage({ spaceId })).unwrap();
+      navigate(`/${contentKey}?edit=true`);
+    } catch (error) {
+      console.error("Failed to create page:", error);
+    }
+  };
+
+  // Function to handle article click and navigate to its contentKey
+  const handleArticleClick = (contentKey) => {
+    navigate(`/${contentKey}`); // 点击文章时跳转到对应 contentKey 的页面
+  };
+
+  // Fetch spaceData
   useEffect(() => {
     const fetchSpaceData = async () => {
       try {
@@ -32,17 +49,14 @@ const WriteArticle = ({}) => {
     fetchSpaceData();
   }, [dispatch, spaceKey]);
 
-  // 使用 useGroupedContent hook
   const { groupedData, sortedCategories } = useGroupedContent(spaceData);
 
-  // 将分类和未分类的内容合并为一个数组用于显示
   const allArticles = React.useMemo(() => {
     if (!groupedData) return [];
     const categorizedItems = Object.values(groupedData.categorized).flat();
     return [...categorizedItems, ...groupedData.uncategorized];
   }, [groupedData]);
 
-  // 当搜索词变化时过滤文章
   const filteredArticles = React.useMemo(() => {
     return allArticles.filter((article) =>
       article.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -66,7 +80,7 @@ const WriteArticle = ({}) => {
       <div className="article-container">
         <div className="header-section">
           <h1 className="page-title">我的文章</h1>
-          <button className="write-button">
+          <button className="write-button" onClick={createNewPage}>
             <FiEdit size={18} />
             <span>写文章</span>
           </button>
@@ -106,6 +120,7 @@ const WriteArticle = ({}) => {
                   className={`timeline-item ${hoveredItem === article.contentKey ? "hovered" : ""}`}
                   onMouseEnter={() => setHoveredItem(article.contentKey)}
                   onMouseLeave={() => setHoveredItem(null)}
+                  onClick={() => handleArticleClick(article.contentKey)} // 添加点击事件
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="time-section">
@@ -137,15 +152,15 @@ const WriteArticle = ({}) => {
         />
       </div>
 
+      {/* Styles remain unchanged */}
       <style jsx>{`
-        /* 原有样式保持不变，添加加载状态样式 */
         .article-container {
           max-width: 800px;
           margin: 0 auto;
           padding: 24px 16px;
-          background-color: #ffffff;
+          background-color: #f8fbf9; /* 修改背景色 */
           border-radius: 8px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 2px 10px rgba(122, 184, 146, 0.1); /* 修改阴影 */
           animation: fadeIn 0.5s ease-out;
         }
         .header-section {
@@ -154,7 +169,7 @@ const WriteArticle = ({}) => {
           align-items: center;
           margin-bottom: 24px;
           padding-bottom: 16px;
-          border-bottom: 1px solid #eaeaea;
+          border-bottom: 1px solid #e6ece8; /* 调整为更浅的绿色调 */
         }
         .page-title {
           font-size: 24px;
@@ -175,21 +190,22 @@ const WriteArticle = ({}) => {
         .search-icon {
           position: absolute;
           left: 12px;
-          color: #777;
+          color: #666666;
           font-size: 18px;
         }
         .search-input {
           width: 100%;
           padding: 10px 40px 10px 40px;
-          border: 1px solid #ddd;
+          border: 2px solid #7ab892; /* 修改边框颜色 */
           border-radius: 6px;
           font-size: 15px;
+          background-color: #f8fbf9; /* 修改背景色 */
           transition: all 0.2s ease;
         }
         .search-input:focus {
           outline: none;
-          border-color: #007bff;
-          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+          border-color: #5f9475; /* 深化的主色调 */
+          box-shadow: 0 0 0 2px rgba(122, 184, 146, 0.2); /* 修改阴影 */
         }
         .clear-button {
           position: absolute;
@@ -197,7 +213,7 @@ const WriteArticle = ({}) => {
           background: none;
           border: none;
           font-size: 18px;
-          color: #777;
+          color: #666666;
           cursor: pointer;
           padding: 0;
           display: flex;
@@ -208,7 +224,7 @@ const WriteArticle = ({}) => {
           border-radius: 50%;
         }
         .clear-button:hover {
-          background-color: #f0f0f0;
+          background-color: #e6ece8; /* 浅绿色悬浮背景 */
         }
         .write-button {
           display: flex;
@@ -216,18 +232,18 @@ const WriteArticle = ({}) => {
           gap: 8px;
           padding: 0 16px;
           height: 38px;
-          background-color: #007bff;
-          color: white;
+          background-color: #7ab892; /* 修改按钮颜色 */
+          color: #fff;
           border: none;
           border-radius: 6px;
           cursor: pointer;
           font-size: 14px;
           font-weight: 500;
           transition: all 0.2s ease;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 8px rgba(122, 184, 146, 0.2); /* 修改阴影 */
         }
         .write-button:hover {
-          background-color: #0069d9;
+          background-color: #5f9475; /* 深化的主色调 */
           transform: scale(1.05);
         }
         .write-button:active {
@@ -236,7 +252,7 @@ const WriteArticle = ({}) => {
         .timeline-list {
           max-width: 700px;
           margin: 0 auto 24px;
-          background-color: #ffffff;
+          background-color: #f8fbf9; /* 修改背景色 */
           border-radius: 6px;
           overflow: hidden;
         }
@@ -247,7 +263,7 @@ const WriteArticle = ({}) => {
           display: flex;
           justify-content: space-between;
           padding: 16px;
-          border-bottom: 1px solid #eaeaea;
+          border-bottom: 1px solid #e6ece8; /* 调整为浅绿色调 */
           transition: all 0.3s ease;
           cursor: pointer;
           position: relative;
@@ -258,11 +274,11 @@ const WriteArticle = ({}) => {
           border-bottom: none;
         }
         .timeline-item:hover {
-          background-color: #f8f9fa;
+          background-color: #e6ece8; /* 浅绿色悬浮背景 */
           transform: translateX(5px);
         }
         .timeline-item.hovered {
-          background-color: #f8f9fa;
+          background-color: #e6ece8; /* 浅绿色悬浮背景 */
         }
         .time-section {
           display: flex;
@@ -291,10 +307,10 @@ const WriteArticle = ({}) => {
           transition: color 0.2s ease;
         }
         .timeline-item:hover .title {
-          color: #007bff;
+          color: #7ab892; /* 修改悬浮标题颜色 */
         }
         .arrow-icon {
-          color: #007bff;
+          color: #7ab892; /* 修改箭头颜色 */
           display: flex;
           align-items: center;
           opacity: 0;
@@ -355,8 +371,8 @@ const WriteArticle = ({}) => {
           top: 0;
           height: 100%;
           width: 0;
-          background-color: #007bff;
-          opacity: 0.05;
+          background-color: #7ab892; /* 修改悬浮条颜色 */
+          opacity: 0.1;
           transition: width 0.3s ease;
         }
         .timeline-item:hover::after {

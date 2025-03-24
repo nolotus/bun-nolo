@@ -27,7 +27,6 @@ const Dashboard = () => {
 
   const createNewPage = async () => {
     const id = await dispatch(createPage()).unwrap();
-    console.log("id", id);
     navigate(`/${id}?edit=true`);
   };
 
