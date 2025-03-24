@@ -51,4 +51,14 @@ export const fireworksmodels: Model[] = [
       output: 64, // 8 * 8
     },
   },
+  {
+    name: "accounts/fireworks/models/deepseek-r1-basic",
+    displayName: "DeepSeek R1 Basic",
+    hasVision: false,
+    contextWindow: 160000, // 160k
+    price: {
+      input: 4.4, // $0.55 * 8
+      output: 17.52, // $2.19 * 8
+    },
+  },
 ];
