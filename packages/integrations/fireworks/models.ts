@@ -61,4 +61,15 @@ export const fireworksmodels: Model[] = [
       output: 17.52, // $2.19 * 8
     },
   },
+  {
+    name: "accounts/fireworks/models/deepseek-v3-0324",
+    displayName: "DeepSeek V3 0324",
+    hasVision: false,
+    contextWindow: 160000, // 160k
+    fnCall: false, // 设置函数调用为不支持
+    price: {
+      input: 9.6, // 1.2 * 8
+      output: 9.6, // 1.2 * 8
+    },
+  },
 ];
