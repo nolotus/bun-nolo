@@ -193,8 +193,6 @@ export const readAction = async (
   const token = state.auth.currentToken;
   const currentServer = selectCurrentServer(state);
 
-  console.log("currentServer", currentServer);
-
   const allServers = getAllServers(currentServer);
   const localData = await fetchFromClientDb(clientDb, dbKey);
   const remotePromises = allServers.map((server) =>

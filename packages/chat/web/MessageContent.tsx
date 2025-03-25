@@ -1,8 +1,13 @@
+import { useState } from "react";
 import { MessageText } from "./MessageText";
 import { useTheme } from "app/theme";
+import ExcelPreview from "web/ExcelPreview";
+import { FaFileExcel } from "react-icons/fa";
 
 export const MessageContent = ({ content, role }) => {
   const theme = useTheme();
+  const [previewingExcel, setPreviewingExcel] = useState(null);
+
   if (!content) return null;
 
   const isSelf = role === "self";
@@ -31,13 +36,28 @@ export const MessageContent = ({ content, role }) => {
             if (item.type === "image_url" && item.image_url?.url) {
               return (
                 <picture key={`image-${index}`}>
-                  <source srcSet={item.image_url?.url} />
+                  <source srcSet={item.image_url.url} />
                   <img
-                    src={item.image_url?.url}
+                    src={item.image_url.url}
                     alt="Generated content"
                     className="message-image"
                   />
                 </picture>
+              );
+            }
+
+            if (item.type === "excel" && item.data) {
+              // 不直接展示 Excel 数据，而显示一个可点击的占位区域
+              return (
+                <div
+                  key={`excel-${index}`}
+                  className="message-excel-placeholder"
+                  onClick={() => setPreviewingExcel(item)}
+                  title="点击预览 Excel 文件"
+                >
+                  <FaFileExcel size={18} />
+                  <span>Excel 文件: {item.name || "未知文件"}</span>
+                </div>
               );
             }
 
@@ -51,7 +71,20 @@ export const MessageContent = ({ content, role }) => {
           <div className="message-invalid">Invalid content format</div>
         )}
       </div>
-      <style jsx global>{`
+
+      {/* 当点击 Excel 占位区域后，显示预览模态框 */}
+      {previewingExcel && (
+        <ExcelPreview
+          excelFiles={[previewingExcel]}
+          // 对于消息中的 Excel 文件，不需要删除或预览操作，这里传入空函数
+          onRemove={(id) => {}}
+          onPreview={(id) => {}}
+          previewingFile={previewingExcel}
+          closePreview={() => setPreviewingExcel(null)}
+        />
+      )}
+
+      <style jsx>{`
         @keyframes message-enter {
           from {
             opacity: 0;
@@ -70,15 +103,14 @@ export const MessageContent = ({ content, role }) => {
           animation: message-enter 0.3s ease-out forwards;
           white-space: pre-wrap;
           min-width: 100px;
-          font-size: 15px; /* 增大字体 */
+          font-size: 15px;
           line-height: 1.6;
-          gap: 14px; /* 增加间距 */
+          gap: 14px;
           position: relative;
         }
 
         .message-content p {
-          margin: 0;
-          margin-bottom: 0.85em;
+          margin: 0 0 0.85em 0;
         }
 
         .message-content p:last-child {
@@ -126,6 +158,22 @@ export const MessageContent = ({ content, role }) => {
           color: ${theme.textSecondary};
           font-size: 14px;
           border: 1px solid ${theme.borderLight};
+        }
+
+        .message-excel-placeholder {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 14px;
+          background-color: ${theme.backgroundSecondary};
+          border: 1px solid ${theme.borderLight};
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .message-excel-placeholder:hover {
+          background-color: ${theme.backgroundHover};
         }
       `}</style>
     </>

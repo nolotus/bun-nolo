@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Checkbox } from "web/form/Checkbox";
 import { useTheme } from "app/theme";
 
+// 增加生成表格工具选项
 export const TOOL_OPTIONS = [
   {
     id: "makeAppointment",
@@ -13,6 +14,11 @@ export const TOOL_OPTIONS = [
     id: "runCybot",
     name: "runCybot",
     description: "Execute other cybots and combine their capabilities",
+  },
+  {
+    id: "generateTable",
+    name: "generateTable",
+    description: "根据 JSON 数据生成 Excel 表格",
   },
 ];
 

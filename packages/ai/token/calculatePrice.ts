@@ -274,10 +274,8 @@ export const calculatePrice = ({
   sharingLevel = "default",
 }: CalculatePriceParams): PriceResult => {
   const model = getModelConfig(provider, modelName);
-  console.log("model", model);
 
   const costs = calculateBasicCost(model, usage, provider, externalPrice);
-  console.log("costs", costs);
 
   const pay = calculatePayDistribution(costs, externalPrice, sharingLevel);
 
