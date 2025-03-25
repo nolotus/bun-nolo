@@ -3,7 +3,6 @@ import Lab from "app/pages/Lab";
 import { Suspense, lazy } from "react";
 import MainLayout from "render/layout/MainLayout";
 
-import { SurfTip } from "./SurfTip";
 import { commonRoutes } from "./generatorRoutes";
 import SpaceSettings from "create/space/pages/SpaceSettings";
 import SpaceHome from "create/space/pages/SpaceHome";
@@ -28,10 +27,6 @@ export const routes = (currentUser: any) => [
       {
         path: "price",
         element: <PricePage />,
-      },
-      {
-        path: "surfing-safety-tips",
-        element: <SurfTip />,
       },
       // 空间首页
       {
