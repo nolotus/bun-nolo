@@ -203,6 +203,7 @@ const spaceSlice = createSliceWithThunks({
         }
       },
     }),
+    // category relate
 
     addCategory: create.asyncThunk(addCategoryAction, {
       fulfilled: (state, action) => {
