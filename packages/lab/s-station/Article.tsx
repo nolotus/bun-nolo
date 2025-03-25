@@ -153,7 +153,7 @@ const WriteArticle = ({}) => {
       </div>
 
       {/* Styles remain unchanged */}
-      <style jsx>{`
+      <style>{`
         .article-container {
           max-width: 800px;
           margin: 0 auto;

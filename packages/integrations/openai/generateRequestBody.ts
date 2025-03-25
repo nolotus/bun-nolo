@@ -18,12 +18,6 @@ interface Message {
   userId?: string;
 }
 
-enum ModelType {
-  Standard = "standard",
-  Reasoning = "reasoning",
-  MinimalReasoning = "minimalReasoning",
-}
-
 const filterValidMessages = (msgs: any): Message[] => {
   return pipe(
     flatten,
@@ -60,38 +54,11 @@ const generateSystemPrompt = (
   return generatePrompt(prompt || "", botName, language, context);
 };
 
-const determineModelType = (model: string): ModelType => {
-  if (model.includes("o1-mini")) return ModelType.MinimalReasoning;
-  if (model.includes("o1") || model.includes("o3")) return ModelType.Reasoning;
-  return ModelType.Standard;
-};
-
-const determinePromptRole = (
-  modelType: ModelType
-): "system" | "develop" | null => {
-  switch (modelType) {
-    case ModelType.Standard:
-      return "system";
-    case ModelType.Reasoning:
-      return "develop";
-    case ModelType.MinimalReasoning:
-      return null; // No prompt role for o1-mini
-  }
-};
-
 const prependPromptMessage = (
   messages: Message[],
-  promptContent: string,
-  model: string
+  promptContent: string
 ): Message[] => {
-  const modelType = determineModelType(model);
-  const promptRole = determinePromptRole(modelType);
-
-  if (!promptRole) {
-    return messages; // No prompt for MinimalReasoning (o1-mini)
-  }
-
-  return [{ role: promptRole, content: promptContent }, ...messages];
+  return [{ role: "system", content: promptContent }, ...messages];
 };
 
 const buildRequestBody = (
