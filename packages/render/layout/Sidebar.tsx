@@ -72,7 +72,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div className="main-content">{children}</div>
       </main>
 
-      <style jsx>{`
+      <style>{`
         .app-layout {
           display: flex;
           min-height: 100vh;
