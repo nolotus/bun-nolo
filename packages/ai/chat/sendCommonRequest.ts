@@ -111,7 +111,6 @@ export const sendCommonChatRequest = async ({
 
       const result = decoder.decode(value);
       const parsedResults = parseMultilineSSE(result);
-
       for (const parsedData of parsedResults) {
         if (parsedData.error) {
           const errorMsg = `Error: ${parsedData.error.message}`;
