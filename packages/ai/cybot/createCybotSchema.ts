@@ -44,16 +44,26 @@ export const createCybotSchema = z
       .optional()
       .default([]), // 添加 references 字段，默认为空数组
   })
+  // 在 createCybotSchema 中修改 refine 逻辑
   .refine(
     (data) => {
-      // 只有 custom API 且非 ollama、非 server proxy 时要求 apiKey
-      if (data.provider !== "ollama" && !data.useServerProxy && !data.apiKey) {
-        return false;
+      // 不需要 API Key 的情况：
+      // 1. 使用 server proxy
+      // 2. provider 是 ollama
+      // 3. provider 是 custom
+      if (
+        data.useServerProxy ||
+        data.provider.toLowerCase() === "ollama" ||
+        data.provider.toLowerCase() === "custom"
+      ) {
+        return true;
       }
-      return true;
+      // 其他情况需要 API Key
+      return !!data.apiKey;
     },
     {
-      message: "API Key is required for custom API sources except Ollama",
+      message:
+        "API Key is required unless using Server Proxy, Ollama or Custom provider",
       path: ["apiKey"],
     }
   );

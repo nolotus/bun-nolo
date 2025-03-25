@@ -1,4 +1,4 @@
-// chat/web/MessageInput.tsx
+// MessageInput.tsx
 import { useAuth } from "auth/hooks/useAuth";
 import type React from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
@@ -8,28 +8,33 @@ import { Content } from "../messages/types";
 import { zIndex } from "render/styles/zIndex";
 import { useAppDispatch } from "app/hooks";
 import { handleSendMessage } from "../messages/messageSlice";
-
-//web part
 import { UploadIcon } from "@primer/octicons-react";
 import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
+import ExcelPreview from "web/ExcelPreview"; // 新的组件
 import toast from "react-hot-toast";
+import * as XLSX from "xlsx";
+import { nanoid } from "nanoid"; // 添加此依赖用于生成唯一ID
+
+// 定义Excel文件类型
+interface ExcelFile {
+  id: string;
+  name: string;
+  data: any[];
+}
 
 const MessageInput: React.FC = () => {
   const dispatch = useAppDispatch();
-
-  const handleMessageSend = (userInput: Content) => {
-    try {
-      dispatch(handleSendMessage({ userInput }));
-    } catch (err) {
-      toast.error("Failed to send message");
-    }
-  };
   const theme = useTheme();
   const { t } = useTranslation();
   const auth = useAuth();
+
   const [textContent, setTextContent] = useState("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  // 保存多个Excel文件
+  const [excelFiles, setExcelFiles] = useState<ExcelFile[]>([]);
+  // 当前正在预览的Excel文件
+  const [previewingFile, setPreviewingFile] = useState<ExcelFile | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragEnabled, setIsDragEnabled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,9 +45,16 @@ const MessageInput: React.FC = () => {
     const timer = setTimeout(() => {
       setIsDragEnabled(true);
     }, 1000);
-
     return () => clearTimeout(timer);
   }, []);
+
+  const handleMessageSend = (userInput: Content) => {
+    try {
+      dispatch(handleSendMessage({ userInput }));
+    } catch (err) {
+      toast.error("Failed to send message");
+    }
+  };
 
   const handleMessageChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -55,29 +67,38 @@ const MessageInput: React.FC = () => {
     []
   );
 
-  const handleSend = useCallback(() => {
-    if (!textContent.trim() && !imagePreviewUrls.length) return;
+  // 使用 sheetjs 解析 Excel 文件，并添加到文件列表中
+  const parseExcelFile = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        console.log("jsonData", jsonData);
+        if (jsonData.length > 0) {
+          const newExcelFile: ExcelFile = {
+            id: nanoid(),
+            name: file.name,
+            data: jsonData,
+          };
 
-    const content: Content = imagePreviewUrls[0]
-      ? [
-          { type: "text", text: textContent },
-          { type: "image_url", image_url: { url: imagePreviewUrls[0] } },
-        ]
-      : textContent;
-
-    handleMessageSend(content);
-    setTextContent("");
-    setImagePreviewUrls([]);
-
-    // 重置输入框高度
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
-  }, [textContent, imagePreviewUrls, handleMessageSend]);
+          setExcelFiles((prev) => [...prev, newExcelFile]);
+        } else {
+          toast.error("Excel文件为空");
+        }
+      } catch (error) {
+        toast.error("无法解析Excel文件");
+        console.error(error);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }, []);
 
   const previewImage = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) return;
-
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreviewUrls((prev) => [...prev, reader.result as string]);
@@ -85,16 +106,68 @@ const MessageInput: React.FC = () => {
     reader.readAsDataURL(file);
   }, []);
 
+  const handleSend = useCallback(() => {
+    if (
+      !textContent.trim() &&
+      !imagePreviewUrls.length &&
+      excelFiles.length === 0
+    )
+      return;
+
+    let content: Content;
+
+    // 构建要发送的内容
+    if (imagePreviewUrls.length > 0 || excelFiles.length > 0) {
+      content = [
+        { type: "text", text: textContent },
+        ...(imagePreviewUrls.length > 0
+          ? imagePreviewUrls.map((url) => ({
+              type: "image_url",
+              image_url: { url },
+            }))
+          : []),
+        ...(excelFiles.length > 0
+          ? excelFiles.map((file) => ({
+              type: "excel",
+              name: file.name,
+              data: file.data,
+            }))
+          : []),
+      ];
+    } else {
+      content = textContent;
+    }
+
+    handleMessageSend(content);
+    setTextContent("");
+    setImagePreviewUrls([]);
+    setExcelFiles([]);
+    setPreviewingFile(null);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+  }, [textContent, imagePreviewUrls, excelFiles, handleMessageSend]);
+
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       if (!isDragEnabled) return;
-
       const files = Array.from(e.dataTransfer.files);
-      files.forEach(previewImage);
+      files.forEach((file) => {
+        if (file.type.startsWith("image/")) {
+          previewImage(file);
+        } else if (
+          file.name.toLowerCase().endsWith(".xlsx") ||
+          file.name.toLowerCase().endsWith(".xls") ||
+          file.type.includes("excel") ||
+          file.name.toLowerCase().endsWith(".csv")
+        ) {
+          parseExcelFile(file);
+        }
+      });
       setIsDragOver(false);
     },
-    [isDragEnabled, previewImage]
+    [isDragEnabled, previewImage, parseExcelFile]
   );
 
   const handlePaste = useCallback(
@@ -120,6 +193,24 @@ const MessageInput: React.FC = () => {
     [handleSend]
   );
 
+  const handleRemoveExcelFile = useCallback(
+    (id: string) => {
+      setExcelFiles((prev) => prev.filter((file) => file.id !== id));
+      if (previewingFile?.id === id) {
+        setPreviewingFile(null);
+      }
+    },
+    [previewingFile]
+  );
+
+  const handlePreviewExcelFile = useCallback(
+    (id: string) => {
+      const fileToPreview = excelFiles.find((file) => file.id === id) || null;
+      setPreviewingFile(fileToPreview);
+    },
+    [excelFiles]
+  );
+
   return (
     <div
       className="message-input-container"
@@ -135,23 +226,38 @@ const MessageInput: React.FC = () => {
       }}
       onDrop={handleDrop}
     >
-      {imagePreviewUrls.length > 0 && (
-        <div className="message-preview-wrapper">
-          <ImagePreview
-            imageUrls={imagePreviewUrls}
-            onRemove={(index) => {
-              setImagePreviewUrls((prev) => prev.filter((_, i) => i !== index));
-            }}
+      <div className="attachments-preview">
+        {imagePreviewUrls.length > 0 && (
+          <div className="message-preview-wrapper">
+            <ImagePreview
+              imageUrls={imagePreviewUrls}
+              onRemove={(index) =>
+                setImagePreviewUrls((prev) =>
+                  prev.filter((_, i) => i !== index)
+                )
+              }
+            />
+          </div>
+        )}
+
+        {/* 使用新的 ExcelPreview 组件处理多个Excel文件 */}
+        {excelFiles.length > 0 && (
+          <ExcelPreview
+            excelFiles={excelFiles}
+            onRemove={handleRemoveExcelFile}
+            onPreview={handlePreviewExcelFile}
+            previewingFile={previewingFile}
+            closePreview={() => setPreviewingFile(null)}
           />
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="input-controls">
         <button
           className="upload-button"
           onClick={() => fileInputRef.current?.click()}
-          title={t("uploadImage")}
-          aria-label={t("uploadImage")}
+          title={t("uploadFile") || "上传文件"}
+          aria-label={t("uploadFile") || "上传文件"}
         >
           <UploadIcon size={20} />
         </button>
@@ -160,7 +266,7 @@ const MessageInput: React.FC = () => {
           ref={textareaRef}
           className="message-textarea"
           value={textContent}
-          placeholder={t("messageOrImageHere")}
+          placeholder={t("messageOrFileHere") || "输入消息或上传文件..."}
           onChange={handleMessageChange}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
@@ -172,7 +278,7 @@ const MessageInput: React.FC = () => {
       {isDragOver && isDragEnabled && (
         <div className="drop-zone">
           <UploadIcon size={24} />
-          <span>{t("dropToUpload")}</span>
+          <span>{t("dropToUpload") || "拖放文件到此处上传"}</span>
         </div>
       )}
 
@@ -180,15 +286,26 @@ const MessageInput: React.FC = () => {
         ref={fileInputRef}
         type="file"
         hidden
-        accept="image/*"
+        accept="image/*,.xlsx,.xls,.csv"
         multiple
         onChange={(e) => {
-          Array.from(e.target.files || []).forEach(previewImage);
-          e.target.value = ""; // Reset input
+          Array.from(e.target.files || []).forEach((file) => {
+            if (file.type.startsWith("image/")) {
+              previewImage(file);
+            } else if (
+              file.name.toLowerCase().endsWith(".xlsx") ||
+              file.name.toLowerCase().endsWith(".xls") ||
+              file.type.includes("excel") ||
+              file.name.toLowerCase().endsWith(".csv")
+            ) {
+              parseExcelFile(file);
+            }
+          });
+          e.target.value = ""; // 重置 input
         }}
       />
 
-      <style>{`
+      <style jsx>{`
         .message-input-container {
           position: relative;
           bottom: 0;
@@ -207,6 +324,13 @@ const MessageInput: React.FC = () => {
           transition: all 0.2s ease;
         }
 
+        .attachments-preview {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          width: 100%;
+        }
+
         .message-preview-wrapper {
           width: 100%;
           margin-bottom: 4px;
@@ -221,7 +345,7 @@ const MessageInput: React.FC = () => {
 
         .message-textarea {
           flex: 1;
-          height: 40px;
+          min-height: 40px;
           max-height: 100px;
           padding: 10px 12px;
           font-size: 14px;
@@ -232,7 +356,9 @@ const MessageInput: React.FC = () => {
           font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
           background: ${theme.backgroundSecondary};
           color: ${theme.text};
-          transition: border-color 0.2s ease;
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
         }
 
         .message-textarea::placeholder {
@@ -242,6 +368,7 @@ const MessageInput: React.FC = () => {
         .message-textarea:focus {
           outline: none;
           border-color: ${theme.primary};
+          box-shadow: 0 0 0 2px ${theme.primaryLight};
         }
 
         .upload-button {
@@ -258,6 +385,11 @@ const MessageInput: React.FC = () => {
           transition: all 0.2s ease;
         }
 
+        .upload-button:hover {
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
+        }
+
         .upload-button:active {
           transform: scale(0.96);
         }
@@ -267,17 +399,19 @@ const MessageInput: React.FC = () => {
           inset: 0;
           border-radius: 10px;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 10px;
           font-size: 15px;
           background: ${theme.backgroundGhost};
+          backdrop-filter: blur(4px);
           border: 2px dashed ${theme.primary};
           color: ${theme.primary};
           pointer-events: none;
+          z-index: 10;
         }
 
-        /* 桌面端样式 */
         @media screen and (min-width: 769px) {
           .message-input-container {
             position: relative;
@@ -290,7 +424,7 @@ const MessageInput: React.FC = () => {
           }
 
           .message-textarea {
-            height: 44px;
+            min-height: 44px;
             max-height: 140px;
             padding: 12px 16px;
             font-size: 15px;
@@ -300,18 +434,23 @@ const MessageInput: React.FC = () => {
             width: 44px;
             height: 44px;
           }
-
-          .upload-button:hover {
-            background: ${theme.backgroundHover};
-            border-color: ${theme.borderHover};
-            color: ${theme.text};
-          }
         }
 
-        /* 大屏幕优化 */
         @media screen and (min-width: 1400px) {
           .message-input-container {
             max-width: 1000px;
+          }
+        }
+
+        @media screen and (max-width: 480px) {
+          .message-textarea {
+            padding: 8px 10px;
+            font-size: 13px;
+          }
+
+          .upload-button {
+            width: 36px;
+            height: 36px;
           }
         }
       `}</style>

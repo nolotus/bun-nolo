@@ -29,6 +29,8 @@ import ModelSelector from "ai/llm/ModelSelector";
 import ProviderSelector from "ai/llm/ProviderSelector";
 import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";
+// 新增导入工具选择组件
+import ToolSelector from "ai/tools/ToolSelector";
 
 interface EditCybotProps {
   initialValues: {
@@ -46,6 +48,8 @@ interface EditCybotProps {
     outputPrice?: number;
     tags?: string[] | string;
     references?: any[];
+    // 如果有工具数据可在此传入（可选）
+    tools?: string[];
   };
   onClose: () => void;
 }
@@ -93,6 +97,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
         ? initialValues.tags.join(", ")
         : initialValues.tags || "",
       references: initialValues.references || [],
+      tools: initialValues.tools || [], // 重置工具选择，若有初始值
     });
     setApiSource(
       initialValues.apiKey || initialValues.provider === "ollama"
@@ -329,6 +334,27 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                   references={references}
                   onChange={setReferences}
                   t={t}
+                />
+              </FormField>
+            </div>
+          </section>
+
+          {/* 工具选择 */}
+          <section className="form-section">
+            <div className="section-title">
+              {t("toolSelection", "工具选择")}
+            </div>
+            <div className="section-content">
+              <FormField
+                label={t("selectTools", "选择工具")}
+                help={t("selectToolsHelp", "请选择要启用的工具")}
+                horizontal
+                labelWidth="140px"
+                error={errors.tools?.message}
+              >
+                <ToolSelector
+                  register={register}
+                  defaultValue={watch("tools") || []}
                 />
               </FormField>
             </div>

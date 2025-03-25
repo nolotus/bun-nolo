@@ -75,7 +75,6 @@ const updateStats = async (
         [providerName]: updateStatsCounter(data, stats.providers[providerName]),
       },
     };
-    console.log("token day stats id ", key);
 
     await thunkApi.dispatch(
       write({
@@ -98,7 +97,6 @@ const updateStats = async (
 export const saveTokenUsage = async (data: TokenUsageData, thunkApi) => {
   const dateKey = format(Date.now(), "yyyy-MM-dd");
   const tokenDayStatsKey = createTokenStatsKey(data.userId, dateKey);
-  console.log("tokenDayStatsKey", tokenDayStatsKey);
   try {
     let currentStats = null;
     try {
@@ -143,12 +141,8 @@ export const updateTokensAction = async (
   { dialogId, usage: usageRaw, cybotConfig },
   thunkApi
 ) => {
-  console.log("usageRaw", usageRaw);
-  console.log("cybotConfig", cybotConfig);
-
   const { currentUser } = thunkApi.getState().auth;
   const usage = normalizeUsage(usageRaw);
-  console.log("usage", usage);
 
   const timestamp = Date.now();
 
@@ -162,7 +156,6 @@ export const updateTokensAction = async (
       creatorId: extractUserId(cybotConfig.id),
     },
   });
-  console.log("result", result);
 
   const tokenData: TokenUsageData = {
     ...usage,
@@ -179,14 +172,12 @@ export const updateTokensAction = async (
     id: ulid(timestamp),
     dateKey: format(timestamp, "yyyy-MM-dd"),
   };
-  console.log("tokenData", tokenData);
 
   const record = createTokenRecord(tokenData, {
     cost: result.cost,
     inputPrice: cybotConfig.inputPrice,
     outputPrice: cybotConfig.outputPrice,
   });
-  console.log("record", record);
 
   await saveTokenRecord(tokenData, record, thunkApi);
   await saveTokenUsage(tokenData, thunkApi);

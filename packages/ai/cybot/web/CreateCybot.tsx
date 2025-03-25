@@ -22,6 +22,8 @@ import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
+// 新增工具选择组件的导入
+import ToolSelector from "ai/tools/ToolSelector";
 
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
@@ -246,6 +248,27 @@ const CreateCybot: React.FC = () => {
                   references={references}
                   onChange={setReferences}
                   t={t}
+                />
+              </FormField>
+            </div>
+          </section>
+
+          {/* 工具选择 */}
+          <section className="form-section">
+            <div className="section-title">
+              {t("toolSelection", "工具选择")}
+            </div>
+            <div className="section-content">
+              <FormField
+                label={t("selectTools", "选择工具")}
+                help={t("selectToolsHelp", "请选择要启用的工具")}
+                horizontal
+                labelWidth="140px"
+                error={errors.tools?.message}
+              >
+                <ToolSelector
+                  register={register}
+                  defaultValue={watch("tools") || []}
                 />
               </FormField>
             </div>
