@@ -1,4 +1,3 @@
-import * as Ariakit from "@ariakit/react";
 import {
   DiscussionOutdatedIcon,
   FileIcon,
@@ -9,10 +8,10 @@ import {
 } from "@primer/octicons-react";
 import { FaFileLines } from "react-icons/fa6";
 import { selectTheme } from "app/theme/themeSlice";
-import { ContentContextMenu } from "./ContentContextMenu";
-import React from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { NavLink, useParams } from "react-router-dom";
+import DeleteContentButton from "./DeleteContentButton"; // 导入新的删除按钮组件
 
 interface SidebarItemProps {
   contentKey: string;
@@ -37,29 +36,15 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
   ({ contentKey, type, title, handleProps }) => {
     const { pageId } = useParams();
     const theme = useSelector(selectTheme);
-    const menu = Ariakit.useMenuStore();
-    const [anchorRect, setAnchorRect] = React.useState({ x: 0, y: 0 });
-    const [isIconHover, setIsIconHover] = React.useState(false);
+    const [isIconHover, setIsIconHover] = useState(false);
+
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
     const isSelected = contentKey === pageId;
 
-    const handleContextMenu = React.useCallback(
-      (event: React.MouseEvent) => {
-        event.preventDefault();
-        event.stopPropagation();
-        setAnchorRect({ x: event.clientX, y: event.clientY });
-        menu.show();
-      },
-      [menu]
-    );
-
     return (
       <>
-        <div
-          className={`sidebar-item ${isSelected ? "selected" : ""}`}
-          onContextMenu={handleContextMenu}
-        >
+        <div className={`sidebar-item ${isSelected ? "selected" : ""}`}>
           <span
             className={`item-icon ${isIconHover ? "is-draggable" : ""}`}
             {...handleProps}
@@ -76,13 +61,14 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             {displayTitle}
           </NavLink>
 
-          <ContentContextMenu
-            menu={menu}
-            anchorRect={anchorRect}
+          <DeleteContentButton
             contentKey={contentKey}
+            title={displayTitle}
+            theme={theme}
           />
         </div>
-        <style jsx>{`
+
+        <style href="sidebar-item">{`
           .sidebar-item {
             margin: 2px 0;
             padding: 7px 10px;
@@ -103,8 +89,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           }
 
           .sidebar-item.selected {
-            background-color: ${theme.primaryGhost ||
-            "rgba(22, 119, 255, 0.08)"};
+            background-color: ${
+              theme.primaryGhost || "rgba(22, 119, 255, 0.08)"
+            };
             color: ${theme.primary};
           }
 
@@ -166,6 +153,11 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
 
           .sidebar-item.selected .sidebar-link {
             font-weight: 500;
+          }
+
+          /* 让删除按钮在项目悬停时显示 */
+          .sidebar-item:hover :global(.delete-button) {
+            opacity: 0.7;
           }
         `}</style>
       </>
