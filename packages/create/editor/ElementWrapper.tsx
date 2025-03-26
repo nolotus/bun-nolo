@@ -2,16 +2,38 @@ import CodeBlock from "render/elements/CodeBlock";
 import { ImageElement } from "render/elements/ImageElement";
 import { List, ListItem } from "render/elements/List";
 import { SafeLink } from "render/elements/SafeLink";
-import { Table, TableCell, TableRow } from "web/ui/Table";
+import { Table, TableCell, TableRow } from "web/ui/Table"; // 正确导入Table组件
 import { useSlateStatic } from "slate-react";
 import { CodeBlockType, CodeLineType } from "./type";
 import { useTheme } from "app/theme";
+
+// 定义统一的间距和排版常量
+const TYPOGRAPHY = {
+  paragraph: {
+    margin: "0.75em 0",
+    lineHeight: 1.7,
+    fontSize: "16px",
+  },
+  headings: {
+    h1: { fontSize: "2em", margin: "0.8em 0 0.6em", lineHeight: 1.3 }, // 减少上边距从1.2em到0.8em
+    h2: { fontSize: "1.7em", margin: "0.7em 0 0.5em", lineHeight: 1.35 }, // 相应减少从1.1em到0.7em
+    h3: { fontSize: "1.4em", margin: "0.7em 0 0.5em", lineHeight: 1.4 }, // 相应减少从1.0em到0.7em
+    h4: { fontSize: "1.2em", margin: "0.6em 0 0.4em", lineHeight: 1.45 }, // 相应减少从0.9em到0.6em
+    h5: { fontSize: "1.1em", margin: "0.6em 0 0.4em", lineHeight: 1.5 }, // 相应减少从0.8em到0.6em
+    h6: { fontSize: "1em", margin: "0.5em 0 0.4em", lineHeight: 1.6 }, // 相应减少从0.7em到0.5em
+  },
+};
 
 export const ElementWrapper = (props) => {
   const { attributes, children, element } = props;
   const editor = useSlateStatic();
   const theme = useTheme();
-  const style = { textAlign: element.align }; // 添加基础样式对象
+
+  // 合并基础样式与对齐样式
+  const getStyle = (additionalStyle = {}) => ({
+    ...(element.align ? { textAlign: element.align } : {}),
+    ...additionalStyle,
+  });
 
   // 处理代码块
   if (element.type === CodeBlockType) {
@@ -26,7 +48,7 @@ export const ElementWrapper = (props) => {
 
   if (element.type === CodeLineType) {
     return (
-      <div {...attributes} style={style}>
+      <div {...attributes} style={getStyle()}>
         {children}
       </div>
     );
@@ -39,7 +61,7 @@ export const ElementWrapper = (props) => {
       return (
         <code
           {...attributes}
-          style={{
+          style={getStyle({
             backgroundColor: theme.backgroundSecondary,
             color: theme.primary,
             padding: "0.2em 0.4em",
@@ -50,115 +72,56 @@ export const ElementWrapper = (props) => {
             wordBreak: "break-word",
             lineHeight: 1.4,
             fontWeight: 500,
-            ...style,
-          }}
+          })}
         >
           {children}
         </code>
       );
 
-    // quote
+    // 极简化的引用块样式
     case "quote":
       return (
         <blockquote
           {...attributes}
-          style={{
-            position: "relative",
+          style={getStyle({
             margin: "1.5em 0",
-            padding: "1.5em 2em",
-            borderRadius: "12px", // 更圆润的圆角
-            background: `linear-gradient(135deg, ${theme.primaryGhost} 0%, transparent 70%)`, // 渐变背景
-            border: `1px solid ${theme.border}`,
-            borderLeft: `6px solid ${theme.primary}`, // 稍微加粗的左侧边框
-            boxShadow: `0 6px 12px -4px ${theme.shadowLight}`, // 更柔和的阴影
-            fontStyle: "italic",
+            padding: "0.5em 0 0.5em 1em", // 减少内边距，只保留左侧空间
+            borderLeft: `3px solid ${theme.primary}`, // 更细的左侧边框
             color: theme.textSecondary,
-            fontSize: "1.05em",
-            lineHeight: 1.6,
-            overflow: "hidden", // 确保内容不会溢出
-            transition: "all 0.3s ease", // 添加轻微的过渡效果
-          }}
+            fontStyle: "italic",
+            lineHeight: 1.7,
+          })}
         >
-          <div
-            style={{
-              position: "relative",
-              paddingRight: "2em",
-              display: "flex",
-              alignItems: "center",
-              gap: "1em",
-            }}
-          >
-            {/* 左侧引号图标 */}
-            <div
-              style={{
-                position: "absolute",
-                top: "-10px",
-                left: "-1em",
-                fontSize: "3em",
-                color: theme.primary,
-                opacity: 0.2,
-                lineHeight: 0,
-                userSelect: "none", // 防止选中
-              }}
-            >
-              ❝
-            </div>
+          {children}
 
-            {/* 引用内容 */}
-            <div style={{ flex: 1 }}>{children}</div>
-          </div>
-
-          {/* 引用来源 */}
+          {/* 极简引用来源 */}
           {element.cite && (
             <div
               style={{
-                marginTop: "1em",
+                marginTop: "0.5em",
                 textAlign: "right",
                 fontStyle: "normal",
-                color: theme.textTertiary,
                 fontSize: "0.9em",
-                position: "relative",
-                paddingRight: "1em",
-                opacity: 0.8,
-                borderTop: `1px solid ${theme.border}`,
-                paddingTop: "0.5em",
+                opacity: 0.7,
               }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  left: "-1em",
-                  color: theme.primary,
-                  opacity: 0.7,
-                }}
-              >
-                —
-              </div>
-              {element.cite}
+              — {element.cite}
             </div>
           )}
-
-          {/* 底部装饰线 */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: "-4px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "50px",
-              height: "3px",
-              backgroundColor: theme.primary,
-              opacity: 0.3,
-              borderRadius: "2px",
-            }}
-          />
         </blockquote>
       );
 
     // 段落
     case "paragraph":
       return (
-        <p {...attributes} style={{ style }}>
+        <p
+          {...attributes}
+          style={getStyle({
+            ...TYPOGRAPHY.paragraph,
+            color: theme.text,
+            margin: element.isNested ? "0.4em 0" : TYPOGRAPHY.paragraph.margin,
+          })}
+        >
           {children}
         </p>
       );
@@ -166,37 +129,79 @@ export const ElementWrapper = (props) => {
     // 标题
     case "heading-one":
       return (
-        <h1 {...attributes} style={style}>
+        <h1
+          {...attributes}
+          style={getStyle({
+            ...TYPOGRAPHY.headings.h1,
+            color: theme.textStrong,
+            fontWeight: 600,
+          })}
+        >
           {children}
         </h1>
       );
     case "heading-two":
       return (
-        <h2 {...attributes} style={style}>
+        <h2
+          {...attributes}
+          style={getStyle({
+            ...TYPOGRAPHY.headings.h2,
+            color: theme.textStrong,
+            fontWeight: 600,
+          })}
+        >
           {children}
         </h2>
       );
     case "heading-three":
       return (
-        <h3 {...attributes} style={style}>
+        <h3
+          {...attributes}
+          style={getStyle({
+            ...TYPOGRAPHY.headings.h3,
+            color: theme.textStrong,
+            fontWeight: 600,
+          })}
+        >
           {children}
         </h3>
       );
     case "heading-four":
       return (
-        <h4 {...attributes} style={style}>
+        <h4
+          {...attributes}
+          style={getStyle({
+            ...TYPOGRAPHY.headings.h4,
+            color: theme.textStrong,
+            fontWeight: 600,
+          })}
+        >
           {children}
         </h4>
       );
     case "heading-five":
       return (
-        <h5 {...attributes} style={style}>
+        <h5
+          {...attributes}
+          style={getStyle({
+            ...TYPOGRAPHY.headings.h5,
+            color: theme.textStrong,
+            fontWeight: 600,
+          })}
+        >
           {children}
         </h5>
       );
     case "heading-six":
       return (
-        <h6 {...attributes} style={style}>
+        <h6
+          {...attributes}
+          style={getStyle({
+            ...TYPOGRAPHY.headings.h6,
+            color: theme.textStrong,
+            fontWeight: 600,
+          })}
+        >
           {children}
         </h6>
       );
@@ -207,10 +212,12 @@ export const ElementWrapper = (props) => {
         <SafeLink
           href={element.url}
           {...attributes}
-          style={{
-            ...style,
+          style={getStyle({
             color: theme.primary,
-          }}
+            textDecoration: "underline",
+            textDecorationColor: `${theme.primary}50`,
+            textUnderlineOffset: "2px",
+          })}
         >
           {children}
         </SafeLink>
@@ -218,7 +225,14 @@ export const ElementWrapper = (props) => {
 
     // 图片
     case "image":
-      return <ImageElement {...props} style={style} />;
+      return (
+        <ImageElement
+          {...props}
+          style={getStyle({
+            margin: "1.5em 0",
+          })}
+        />
+      );
 
     // 列表
     case "list":
@@ -227,7 +241,10 @@ export const ElementWrapper = (props) => {
           attributes={attributes}
           element={element}
           theme={theme}
-          style={style}
+          style={getStyle({
+            margin: "1em 0",
+            paddingLeft: element.isNested ? "1.5em" : "2em",
+          })}
         >
           {children}
         </List>
@@ -240,32 +257,46 @@ export const ElementWrapper = (props) => {
           element={element}
           theme={theme}
           editor={editor}
-          style={style}
+          style={getStyle({
+            margin: "0.5em 0",
+            lineHeight: 1.6,
+          })}
         >
           {children}
         </ListItem>
       );
 
-    // 表格
+    // 表格 - 使用导入的Table组件
     case "table":
       return (
-        <Table attributes={attributes} theme={theme} style={style}>
+        <Table
+          attributes={attributes}
+          theme={theme}
+          style={getStyle({
+            margin: "1.5em 0", // 增加表格上下间距
+          })}
+        >
           {children}
         </Table>
       );
+
     case "table-row":
       return (
-        <TableRow attributes={attributes} theme={theme} style={style}>
+        <TableRow attributes={attributes} theme={theme} style={getStyle()}>
           {children}
         </TableRow>
       );
+
     case "table-cell":
       return (
         <TableCell
           attributes={attributes}
           element={element}
           theme={theme}
-          style={style}
+          style={getStyle({
+            padding: "0.75em 1em", // 自定义单元格内边距
+            lineHeight: 1.5, // 自定义行高
+          })}
         >
           {children}
         </TableCell>
@@ -273,7 +304,17 @@ export const ElementWrapper = (props) => {
 
     // 分割线
     case "thematic-break":
-      return <hr {...attributes} style={style} />;
+      return (
+        <hr
+          {...attributes}
+          style={getStyle({
+            margin: "2em 0",
+            border: "none",
+            height: "1px",
+            backgroundColor: theme.border,
+          })}
+        />
+      );
 
     // HTML 内容
     case "html-block":
@@ -281,7 +322,9 @@ export const ElementWrapper = (props) => {
       return (
         <div
           {...attributes}
-          style={style}
+          style={getStyle({
+            margin: element.type === "html-block" ? "1em 0" : 0,
+          })}
           dangerouslySetInnerHTML={{ __html: element.html }}
         />
       );
@@ -290,7 +333,12 @@ export const ElementWrapper = (props) => {
     default:
       const Tag = editor.isInline(element) ? "span" : "div";
       return (
-        <Tag {...attributes} style={style}>
+        <Tag
+          {...attributes}
+          style={getStyle({
+            ...(editor.isInline(element) ? {} : { margin: "0.75em 0" }),
+          })}
+        >
           {children}
         </Tag>
       );
