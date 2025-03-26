@@ -23,51 +23,66 @@ const NoloEditor = ({ initialValue, readOnly, onChange, placeholder }) => {
   );
   const decorate = useDecorate(editor);
   const onKeyDown = useOnKeydown(editor);
-  return (
-    <Slate
-      editor={editor}
-      initialValue={initialValue}
-      onChange={(value) => {
-        const isAstChange = editor.operations.some(
-          (op) => "set_selection" !== op.type
-        );
-        if (isAstChange) {
-          onChange?.(value);
-        }
-      }}
-    >
-      {!readOnly && (
-        <>
-          <ExampleToolbar />
-          <HoveringToolbar />
-        </>
-      )}
 
-      <SetNodeToDecorations />
-      <Editable
-        placeholder={placeholder}
-        style={!readOnly ? { padding: "20px" } : {}}
-        readOnly={readOnly}
-        decorate={decorate}
-        renderElement={ElementWrapper}
-        renderLeaf={renderLeaf}
-        onKeyDown={onKeyDown}
-        onDOMBeforeInput={(event) => {
-          switch (event.inputType) {
-            case "formatBold":
-              event.preventDefault();
-              return toggleMark(editor, "bold");
-            case "formatItalic":
-              event.preventDefault();
-              return toggleMark(editor, "italic");
-            case "formatUnderline":
-              event.preventDefault();
-              return toggleMark(editor, "underlined");
+  return (
+    <div className="nolo-editor-container">
+      <Slate
+        editor={editor}
+        initialValue={initialValue}
+        onChange={(value) => {
+          const isAstChange = editor.operations.some(
+            (op) => "set_selection" !== op.type
+          );
+          if (isAstChange) {
+            onChange?.(value);
           }
         }}
-      />
-      <style>{prismThemeCss}</style>
-    </Slate>
+      >
+        {!readOnly && (
+          <div className="toolbar-container">
+            <ExampleToolbar />
+            <HoveringToolbar />
+          </div>
+        )}
+
+        <SetNodeToDecorations />
+        <Editable
+          placeholder={placeholder}
+          style={!readOnly ? { padding: "20px" } : {}}
+          readOnly={readOnly}
+          decorate={decorate}
+          renderElement={ElementWrapper}
+          renderLeaf={renderLeaf}
+          onKeyDown={onKeyDown}
+          onDOMBeforeInput={(event) => {
+            switch (event.inputType) {
+              case "formatBold":
+                event.preventDefault();
+                return toggleMark(editor, "bold");
+              case "formatItalic":
+                event.preventDefault();
+                return toggleMark(editor, "italic");
+              case "formatUnderline":
+                event.preventDefault();
+                return toggleMark(editor, "underlined");
+            }
+          }}
+        />
+        <style>{prismThemeCss}</style>
+      </Slate>
+
+      <style>{`
+        .nolo-editor-container {
+          position: relative;
+        }
+        
+        .toolbar-container {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+      `}</style>
+    </div>
   );
 };
 

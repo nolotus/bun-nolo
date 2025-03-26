@@ -1,4 +1,21 @@
-import { Toolbar, Button } from "./components";
+import { Button, Menu } from "./components";
+
+export const Toolbar = ({ className, style, ...props }) => (
+  <Menu
+    {...props}
+    className={`editor-toolbar ${className || ""}`}
+    style={{
+      position: "relative",
+      padding: "8px 12px",
+      backgroundColor: "#f8f9fa",
+      borderRadius: "4px",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+      marginBottom: "16px",
+      ...style,
+    }}
+  />
+);
+
 import { CodeBlockButton } from "./CodeBlockButton";
 import { Editable, withReact, useSlate, Slate } from "slate-react";
 import {
@@ -128,22 +145,57 @@ const MarkButton = ({ format, Icon }) => {
 };
 
 export const ExampleToolbar = () => {
+  // 样式常量
+  const groupStyle = {
+    display: "flex",
+    gap: "4px",
+    marginRight: "8px",
+  };
+
+  const dividerStyle = {
+    borderLeft: "1px solid #ddd",
+    paddingLeft: "8px",
+  };
+
   return (
     <Toolbar>
-      <CodeBlockButton />
-      <MarkButton format="bold" Icon={MdFormatBold} />
-      <MarkButton format="italic" Icon={MdFormatItalic} />
-      <MarkButton format="underline" Icon={MdFormatUnderlined} />
-      <MarkButton format="code" Icon={MdCode} />
-      <BlockButton format="heading-one" Icon={MdLooksOne} />
-      <BlockButton format="heading-two" Icon={MdLooksTwo} />
-      <BlockButton format="quote" Icon={MdFormatQuote} />
-      <BlockButton format="list" ordered={true} Icon={MdFormatListNumbered} />
-      <BlockButton format="list" ordered={false} Icon={MdFormatListBulleted} />
-      <BlockButton format="left" Icon={MdFormatAlignLeft} />
-      <BlockButton format="center" Icon={MdFormatAlignCenter} />
-      <BlockButton format="right" Icon={MdFormatAlignRight} />
-      <BlockButton format="justify" Icon={MdFormatAlignJustify} />
+      {/* 文本样式组 */}
+      <div style={groupStyle}>
+        <MarkButton format="bold" Icon={MdFormatBold} />
+        <MarkButton format="italic" Icon={MdFormatItalic} />
+        <MarkButton format="underline" Icon={MdFormatUnderlined} />
+      </div>
+
+      {/* 标题和引用组 */}
+      <div style={{ ...groupStyle, ...dividerStyle }}>
+        <BlockButton format="heading-one" Icon={MdLooksOne} />
+        <BlockButton format="heading-two" Icon={MdLooksTwo} />
+        <BlockButton format="quote" Icon={MdFormatQuote} />
+      </div>
+
+      {/* 列表组 */}
+      <div style={{ ...groupStyle, ...dividerStyle }}>
+        <BlockButton format="list" ordered={true} Icon={MdFormatListNumbered} />
+        <BlockButton
+          format="list"
+          ordered={false}
+          Icon={MdFormatListBulleted}
+        />
+      </div>
+
+      {/* 对齐组 */}
+      <div style={{ ...groupStyle, ...dividerStyle }}>
+        <BlockButton format="left" Icon={MdFormatAlignLeft} />
+        <BlockButton format="center" Icon={MdFormatAlignCenter} />
+        <BlockButton format="right" Icon={MdFormatAlignRight} />
+        <BlockButton format="justify" Icon={MdFormatAlignJustify} />
+      </div>
+
+      {/* 代码组 */}
+      <div style={{ ...groupStyle, ...dividerStyle, marginRight: 0 }}>
+        <CodeBlockButton />
+        <MarkButton format="code" Icon={MdCode} />
+      </div>
     </Toolbar>
   );
 };

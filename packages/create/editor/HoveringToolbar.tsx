@@ -42,6 +42,8 @@ export const Button = ({ className, active, reversed, children, ...props }) => {
   );
 };
 
+// 在 HoveringToolbar 组件文件中
+
 const FormatButton = ({ format, icon: Icon }) => {
   const editor = useSlate();
   return (
@@ -50,7 +52,7 @@ const FormatButton = ({ format, icon: Icon }) => {
       active={isMarkActive(editor, format)}
       onClick={() => toggleMark(editor, format)}
     >
-      <Icon />
+      <Icon size={16} />
     </Button>
   );
 };
@@ -82,7 +84,7 @@ export const HoveringToolbar = () => {
     const rect = domRange.getBoundingClientRect();
 
     // 只设置位置相关属性
-    el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight}px`;
+    el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight - 6}px`;
     el.style.left = `${rect.left + window.pageXOffset - el.offsetWidth / 2 + rect.width / 2}px`;
     el.style.opacity = "1";
     el.style.visibility = "visible";
@@ -93,15 +95,13 @@ export const HoveringToolbar = () => {
       <Menu
         ref={ref}
         style={{
-          padding: "8px 7px 6px",
+          padding: "6px 8px",
           position: "fixed",
           zIndex: 9999,
           backgroundColor: "#222",
-          borderRadius: "4px",
-          boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-          transition: "opacity 0.75s, visibility 0.75s",
-          display: "flex",
-          gap: "4px",
+          borderRadius: "6px",
+          boxShadow: "0 3px 12px rgba(0,0,0,0.25)",
+          transition: "opacity 0.2s, visibility 0.2s",
           visibility: "hidden",
           opacity: 0,
         }}
