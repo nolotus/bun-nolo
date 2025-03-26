@@ -19,6 +19,15 @@ export default {
       resend: "Resend",
       clearConversation: "Clear Conversation",
       newchat: "New chat",
+      // --- Added based on DeleteContentButton ---
+      delete: "Delete",
+      deleteFailed: "Delete failed",
+      deleteSuccess: "Delete successful",
+      deleteContentTitle: 'Delete "{{title}}"',
+      deleteContentConfirmation:
+        "Are you sure you want to delete this content? This action cannot be undone.",
+      cancel: "Cancel",
+      // --- End Added ---
     },
   },
   "zh-CN": {
@@ -41,6 +50,14 @@ export default {
       resend: "重新发送",
       clearConversation: "清除对话",
       newchat: "新对话",
+      // --- Added based on DeleteContentButton ---
+      delete: "删除",
+      deleteFailed: "删除失败",
+      deleteSuccess: "删除成功",
+      deleteContentTitle: '删除 "{{title}}"',
+      deleteContentConfirmation: "您确定要删除此内容吗？此操作无法撤销。",
+      cancel: "取消",
+      // --- End Added ---
     },
   },
   "zh-Hant": {
@@ -63,6 +80,14 @@ export default {
       resend: "重新發送",
       clearConversation: "清除對話",
       newchat: "新對話",
+      // --- Added based on DeleteContentButton ---
+      delete: "刪除",
+      deleteFailed: "刪除失敗",
+      deleteSuccess: "刪除成功",
+      deleteContentTitle: '刪除 "{{title}}"',
+      deleteContentConfirmation: "您確定要刪除此內容嗎？此操作無法撤銷。",
+      cancel: "取消",
+      // --- End Added ---
     },
   },
   ja: {
@@ -85,6 +110,15 @@ export default {
       resend: "再送信",
       clearConversation: "会話をクリア",
       newchat: "新しいチャット",
+      // --- Added based on DeleteContentButton ---
+      delete: "削除",
+      deleteFailed: "削除に失敗しました",
+      deleteSuccess: "削除に成功しました",
+      deleteContentTitle: "「{{title}}」を削除します",
+      deleteContentConfirmation:
+        "このコンテンツを削除してもよろしいですか？この操作は元に戻せません。",
+      cancel: "キャンセル",
+      // --- End Added ---
     },
   },
 };

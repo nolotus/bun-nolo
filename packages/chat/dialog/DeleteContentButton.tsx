@@ -1,4 +1,4 @@
-// DeleteContentButton.jsx 或 DeleteContentButton.tsx
+//  chat/DeleteContentButton.tsx
 import React, { useState } from "react";
 import { TrashIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
@@ -23,7 +23,7 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
   title,
   theme,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("chat");
   const dispatch = useAppDispatch();
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
