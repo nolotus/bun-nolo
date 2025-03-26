@@ -1,5 +1,6 @@
 // web/ui/BaseActionModal.tsx
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import { BaseModal } from "./BaseModal";
 import { useTheme } from "app/theme";
 
@@ -31,6 +32,18 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
   width = 400,
 }) => {
   const theme = useTheme();
+  const [animateIn, setAnimateIn] = useState(false);
+
+  // 用于处理入场动画
+  useEffect(() => {
+    if (isOpen) {
+      // 设置一个短暂的延迟，让DOM先挂载，再触发动画
+      const timer = setTimeout(() => setAnimateIn(true), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setAnimateIn(false);
+    }
+  }, [isOpen]);
 
   const getStatusColor = () => {
     switch (status) {
@@ -49,7 +62,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      className={`action-modal ${className}`}
+      className={`action-modal ${className} ${animateIn ? "animate-in" : ""}`}
     >
       <div className="modal-container">
         <div className="modal-header">
@@ -68,14 +81,22 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
       <style jsx>{`
         .action-modal {
           background: ${theme.background};
-          border-radius: 8px;
+          border-radius: 12px;
           box-shadow:
-            0 20px 25px -5px rgb(0 0 0 / 0.1),
-            0 8px 10px -6px rgb(0 0 0 / 0.1);
+            0 10px 15px -3px rgba(0, 0, 0, 0.1),
+            0 4px 6px -2px rgba(0, 0, 0, 0.05);
           width: 100%;
           max-width: ${typeof width === "number" ? `${width}px` : width};
           margin: 16px;
           overflow: hidden;
+          opacity: 0;
+          transform: scale(0.95) translateY(10px);
+          transition: all 0.2s ease-out;
+        }
+
+        .action-modal.animate-in {
+          opacity: 1;
+          transform: scale(1) translateY(0);
         }
 
         .modal-container {
@@ -84,7 +105,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         }
 
         .modal-header {
-          padding: 16px 24px;
+          padding: 20px 24px 16px;
           border-bottom: 1px solid ${theme.border};
           display: flex;
           align-items: center;
@@ -95,7 +116,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         .title-wrapper {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           color: ${getStatusColor()};
         }
 
@@ -110,6 +131,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           font-size: 18px;
           font-weight: 600;
           color: ${theme.text};
+          letter-spacing: -0.01em;
         }
 
         .header-extra {
@@ -117,18 +139,19 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         }
 
         .modal-body {
-          padding: 24px;
+          padding: 24px 24px 16px;
           flex: 1;
           overflow-y: auto;
+          color: ${theme.textSecondary || "#666"};
+          font-size: 14px;
+          line-height: 1.6;
         }
 
         .modal-actions {
-          padding: 16px 24px;
-          border-top: 1px solid ${theme.border};
+          padding: 8px 24px 24px;
           display: flex;
           justify-content: flex-end;
           gap: 12px;
-          background: ${theme.backgroundSecondary};
         }
 
         @media (max-width: 640px) {
@@ -137,6 +160,11 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
             max-width: 100%;
             height: 100%;
             border-radius: 0;
+            transform: translateY(20px);
+          }
+
+          .action-modal.animate-in {
+            transform: translateY(0);
           }
 
           .modal-container {
@@ -144,15 +172,16 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           }
 
           .modal-header {
-            padding: 12px 16px;
+            padding: 16px 16px 12px;
           }
 
           .modal-body {
-            padding: 16px;
+            padding: 16px 16px 8px;
           }
 
           .modal-actions {
-            padding: 12px 16px;
+            padding: 8px 16px 20px;
+            margin-top: auto; /* 确保在移动设备上按钮在底部 */
           }
         }
       `}</style>
