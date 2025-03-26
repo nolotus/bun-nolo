@@ -1,44 +1,73 @@
-import React from "react";
+// 在 components.js 文件中
+
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 
-export const Button = ({ className, active, reversed, children, ...props }) => (
-  <span
-    {...props}
-    className={className}
-    style={{
-      cursor: "pointer",
-      color: reversed ? (active ? "white" : "#aaa") : active ? "black" : "#ccc",
-    }}
-  >
-    {children}
-  </span>
-);
+// 统一按钮组件
+export const Button = ({ className, active, reversed, children, ...props }) => {
+  const [isHovered, setIsHovered] = useState(false);
 
-export const Menu = ({ className, style, ...props }) => (
+  // 计算按钮颜色
+  const getColor = () => {
+    if (reversed) {
+      return active ? "white" : "#aaa";
+    } else {
+      return active ? "#1890ff" : "#666";
+    }
+  };
+
+  // 计算背景色
+  const getBackgroundColor = () => {
+    if (isHovered) {
+      return reversed ? "rgba(255,255,255,0.15)" : "rgba(24,144,255,0.08)";
+    } else {
+      return active
+        ? reversed
+          ? "rgba(255,255,255,0.1)"
+          : "rgba(24,144,255,0.1)"
+        : "transparent";
+    }
+  };
+
+  return (
+    <span
+      {...props}
+      className={className}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        cursor: "pointer",
+        color: getColor(),
+        padding: "4px 6px",
+        borderRadius: "4px",
+        backgroundColor: getBackgroundColor(),
+        transition: "all 0.2s",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        ...props.style,
+      }}
+    >
+      {children}
+    </span>
+  );
+};
+
+// 统一菜单组件
+export const Menu = React.forwardRef(({ className, style, ...props }, ref) => (
   <div
     {...props}
+    ref={ref}
     data-test-id="menu"
+    className={className}
     style={{
-      ...style,
       display: "flex",
-      gap: "15px",
-    }}
-  />
-);
-
-export const Toolbar = ({ className, style, ...props }) => (
-  <Menu
-    {...props}
-    style={{
-      position: "relative",
-      padding: "1px 18px 17px",
-      margin: "0 -20px",
-      borderBottom: "2px solid #eee",
-      marginBottom: "20px",
+      flexWrap: "wrap",
+      gap: "6px",
       ...style,
     }}
   />
-);
+));
 
 export const Portal = ({ children }) => {
   return typeof document === "object"

@@ -104,7 +104,6 @@ const RenderPage = ({ isReadOnly = true }) => {
           style={{
             ...layout.flexGrow1,
             ...layout.overflowYAuto,
-            padding: "1rem",
           }}
         >
           <div
@@ -112,8 +111,6 @@ const RenderPage = ({ isReadOnly = true }) => {
               maxWidth: "768px",
               margin: "0 auto",
               minHeight: "calc(100vh - 200px)",
-              backgroundColor: "#ffffff",
-              padding: ".5rem",
             }}
           >
             <Editor
