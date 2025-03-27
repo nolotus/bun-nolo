@@ -9,10 +9,19 @@ import { useSearchParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { formatISO } from "date-fns";
 import toast from "react-hot-toast";
-// **** 不再引入 Ramda ****
+import { FaExclamationCircle } from "react-icons/fa";
 
-import Editor from "create/editor/Editor"; // 确认路径
-import { patchData } from "database/dbSlice"; // 确认路径
+// --- 从 slateUtils 文件中导入 ---
+import {
+  EditorContent,
+  hasContentChanged,
+  extractTitleFromSlate,
+} from "create/editor/utils/slateUtils"; // 确认路径正确
+// ----------------------------------
+
+// 组件懒加载
+const Editor = React.lazy(() => import("create/editor/Editor"));
+import { patchData } from "database/dbSlice";
 import {
   initPage,
   selectPageData,
@@ -22,127 +31,291 @@ import {
   selectPageError,
   selectPageDbSpaceId,
   updatePageTitle,
-} from "./pageSlice"; // 确认路径
-import { updateContentTitle } from "create/space/spaceSlice"; // 确认路径
-import NoMatch from "../NoMatch"; // 确认路径
-import { markdownToSlate } from "create/editor/markdownToSlate"; // 确认路径
+  selectIsReadOnly,
+  setReadOnly,
+} from "./pageSlice";
+import { updateContentTitle } from "create/space/spaceSlice";
+import { markdownToSlate } from "create/editor/markdownToSlate";
+import { selectTheme } from "app/theme/themeSlice";
+import SaveStatusIndicator, { SaveStatus } from "./SaveStatusIndicator";
+import useKeyboardSave from "./useKeyboardSave";
 
-// Props 定义
+// ================ 类型定义 ================
 interface RenderPageProps {
   pageKey: string;
 }
+// (EditorContent 类型已移至 slateUtils.ts)
 
-// 内容比较函数 (恢复使用 JSON.stringify)
-const hasContentChanged = (newContent: any, oldContent: any): boolean => {
-  if (newContent === oldContent) return false; // 优化：同一引用则无需比较
-  try {
-    // 注意: JSON.stringify 对某些类型（如 Date, undefined, 函数）处理不佳
-    return JSON.stringify(newContent) !== JSON.stringify(oldContent);
-  } catch (e) {
-    console.warn(
-      "hasContentChanged: JSON.stringify comparison failed, assuming content changed.",
-      e
+// ================ 工具函数 ================
+// (hasContentChanged 和 extractTitleFromSlate 函数已移至 slateUtils.ts)
+
+// 页面错误信息组件
+const PageError = React.memo(
+  ({ error, onRetry }: { error: string; onRetry: () => void }) => {
+    const theme = useAppSelector(selectTheme);
+
+    return (
+      <div className="render-page-error">
+        <div className="error-container">
+          <FaExclamationCircle size={32} color={theme.error} />
+          <h3>加载页面时出错</h3>
+          <p>{error}</p>
+          <button className="retry-button" onClick={onRetry}>
+            重新加载
+          </button>
+        </div>
+
+        <style jsx>{`
+          .render-page-error {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+            color: ${theme.text};
+          }
+
+          .error-container {
+            max-width: 500px;
+            text-align: center;
+            padding: 30px;
+            background-color: ${theme.background};
+            border-radius: 6px;
+            box-shadow: 0 4px 12px ${theme.shadowMedium};
+          }
+
+          .error-container h3 {
+            margin: 16px 0;
+            color: ${theme.text};
+          }
+
+          .error-container p {
+            margin-bottom: 24px;
+            color: ${theme.textSecondary};
+          }
+
+          .retry-button {
+            background-color: ${theme.primary};
+            color: ${theme.buttonText || "#ffffff"};
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+          }
+
+          .retry-button:hover {
+            background-color: ${theme.primaryLight};
+          }
+
+          .retry-button:active {
+            background-color: ${theme.primaryDark};
+          }
+        `}</style>
+      </div>
     );
-    return true; // 出错时保守地认为内容已改变
   }
-};
+);
 
-// RenderPage 组件
+// ================ 主组件 ================
+
 const RenderPage: React.FC<RenderPageProps> = ({ pageKey }) => {
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
-  const isEditMode = searchParams.get("edit") === "true";
-  const isReadOnly = !isEditMode;
+  const theme = useAppSelector(selectTheme);
 
-  // 从 slice 获取状态
+  // Redux 状态
   const isLoading = useAppSelector(selectPageIsLoading);
   const isInitialized = useAppSelector(selectPageIsInitialized);
   const fetchError = useAppSelector(selectPageError);
   const pageState = useAppSelector(selectPageData);
   const dbSpaceId = useAppSelector(selectPageDbSpaceId);
+  const isReadOnly = useAppSelector(selectIsReadOnly);
 
-  // 初始化 Effect
+  // 记录编辑器渲染是否发生，避免重复初始化
+  const editorMounted = useRef(false);
+
+  // 本地状态
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>(null);
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+
+  // 保持一个稳定的编辑器 key
+  const [editorKey] = useState(`editor-instance-${pageKey}`);
+
+  // 初始化 isReadOnly 状态 - 关键修复
+  const urlEditMode = searchParams.get("edit") === "true";
+
+  // 仅在初始化时设置一次只读状态
   useEffect(() => {
-    if (pageKey) {
-      dispatch(initPage({ pageId: pageKey, isReadOnly }));
-    } else {
-      console.error("[RenderPage] Error: pageKey prop is missing.");
+    if (!editorMounted.current) {
+      dispatch(setReadOnly(!urlEditMode));
+      editorMounted.current = true;
     }
-    // 重置保存状态和引用
-    setSaveStatus(null);
-    lastSavedContent.current = null;
-    if (saveTimeoutId.current) clearTimeout(saveTimeoutId.current);
-    saveTimeoutId.current = null;
-  }, [dispatch, pageKey, isReadOnly]);
+  }, [dispatch, urlEditMode]);
 
-  // 保存状态 Ref等
-  const [saveStatus, setSaveStatus] = useState<
-    "saving" | "saved" | "error" | null
-  >(null);
-  const lastSavedContent = useRef<any>(null);
-  const saveTimeoutId = useRef<NodeJS.Timeout | null>(null);
+  // 引用保存
+  const lastSavedContent = useRef<EditorContent | null>(null);
+  const saveTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const statusTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const editorFocused = useRef(false);
+  const changesPending = useRef(false);
+  const mountedRef = useRef(true); // 组件挂载状态追踪
 
-  // **** savePage 使用 useCallback 记忆化 ****
-  // 这个 lambda 函数 (箭头函数) 的引用将在其依赖项不变时保持稳定
-  const savePage = useCallback(async () => {
-    if (saveStatus === "saving" || isReadOnly) return;
-    const currentSlateData = pageState.slateData;
-    const pageOwnedSpaceId = dbSpaceId;
+  // 格式化上次保存时间的函数
+  const formatSavedTime = (date: Date): string => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    // **** 恢复使用 hasContentChanged 函数 (内部是 JSON.stringify) ****
-    if (!hasContentChanged(currentSlateData, lastSavedContent.current)) {
-      console.log("[RenderPage] Save skipped: No change");
-      setSaveStatus(null);
+    if (diffInSeconds < 60) {
+      return "刚刚";
+    } else if (diffInSeconds < 3600) {
+      return `${Math.floor(diffInSeconds / 60)}分钟前`;
+    } else if (diffInSeconds < 86400) {
+      return `${Math.floor(diffInSeconds / 3600)}小时前`;
+    } else {
+      return date.toLocaleString("zh-CN", {
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      });
+    }
+  };
+
+  // 初始化逻辑
+  const loadPage = useCallback(() => {
+    if (!pageKey) {
+      console.error("RenderPage: pageKey prop is missing");
       return;
     }
 
-    console.log("[RenderPage] Saving page", { pageKey });
+    // 重置状态
+    setSaveStatus(null);
+    setLastSavedTime(null);
+    lastSavedContent.current = null;
+    changesPending.current = false;
+
+    // 清理定时器
+    if (saveTimeoutId.current) {
+      clearTimeout(saveTimeoutId.current);
+      saveTimeoutId.current = null;
+    }
+
+    if (statusTimeoutId.current) {
+      clearTimeout(statusTimeoutId.current);
+      statusTimeoutId.current = null;
+    }
+
+    // 使用从 URL 获取的初始只读状态
+    dispatch(initPage({ pageId: pageKey, isReadOnly: !urlEditMode }));
+  }, [dispatch, pageKey, urlEditMode]);
+
+  // 初始加载
+  useEffect(() => {
+    loadPage();
+    mountedRef.current = true;
+
+    // 组件卸载时清理
+    return () => {
+      mountedRef.current = false;
+      if (saveTimeoutId.current) clearTimeout(saveTimeoutId.current);
+      if (statusTimeoutId.current) clearTimeout(statusTimeoutId.current);
+    };
+  }, [loadPage]);
+
+  // 保存页面逻辑
+  const savePage = useCallback(async () => {
+    // 状态和权限检查
+    if (saveStatus === "saving" || isReadOnly) return;
+
+    const currentSlateData = pageState.slateData;
+
+    // 内容检查 (避免不必要保存)
+    if (
+      !changesPending.current &&
+      !hasContentChanged(currentSlateData, lastSavedContent.current)
+    ) {
+      if (saveStatus === "error") setSaveStatus(null);
+      return;
+    }
+
+    // 清理状态提示计时器
+    if (statusTimeoutId.current) {
+      clearTimeout(statusTimeoutId.current);
+      statusTimeoutId.current = null;
+    }
+
+    // 开始保存
     setSaveStatus("saving");
-    const nowISO = formatISO(new Date());
+    const saveStartTime = new Date();
+    const nowISO = formatISO(saveStartTime);
 
     try {
-      const titleNode = currentSlateData?.find(
-        (node: any) => node.type === "heading-one"
-      );
-      const title = titleNode?.children?.[0]?.text || "新页面";
+      // 提取标题 (使用导入的函数)
+      const title = extractTitleFromSlate(currentSlateData);
 
-      // ... (数据库和 space title 更新逻辑不变) ...
+      // 保存到数据库
       await dispatch(
         patchData({
           dbKey: pageKey,
-          changes: { updated_at: nowISO, slateData: currentSlateData, title },
+          changes: {
+            updated_at: nowISO,
+            slateData: currentSlateData,
+            title,
+          },
         })
       ).unwrap();
-      if (pageOwnedSpaceId) {
+
+      // 如果有关联空间，更新空间标题
+      if (dbSpaceId) {
         try {
           await dispatch(
             updateContentTitle({
-              spaceId: pageOwnedSpaceId,
+              spaceId: dbSpaceId,
               contentKey: pageKey,
               title,
             })
           ).unwrap();
         } catch (spaceError) {
-          console.error(
-            `[RenderPage] Failed to update space title for page ${pageKey}:`,
-            spaceError
-          );
+          console.error("更新空间标题失败:", spaceError);
+          // 非关键错误，继续执行
         }
       }
+
+      // 更新页面标题
       dispatch(updatePageTitle(title));
 
-      // 更新本地状态
-      lastSavedContent.current = currentSlateData;
-      setSaveStatus("saved");
-      console.log("[RenderPage] Save successful", { pageKey });
-      setTimeout(() => setSaveStatus(null), 2000);
+      // 更新状态
+      lastSavedContent.current = JSON.parse(JSON.stringify(currentSlateData));
+      changesPending.current = false;
+
+      // 更新保存时间
+      setLastSavedTime(formatSavedTime(saveStartTime));
+
+      // 只有在组件仍然挂载时更新状态
+      if (mountedRef.current) {
+        setSaveStatus("saved");
+
+        // 3秒后切换到仅显示时间状态
+        statusTimeoutId.current = setTimeout(() => {
+          if (mountedRef.current) {
+            setSaveStatus(null);
+          }
+          statusTimeoutId.current = null;
+        }, 3000);
+      }
     } catch (error) {
-      console.error(`[RenderPage] Save failed for ${pageKey}:`, error);
-      setSaveStatus("error");
-      toast.error("内容保存失败");
-      setTimeout(() => setSaveStatus(null), 3000);
+      console.error(`保存失败:`, error);
+
+      if (mountedRef.current) {
+        setSaveStatus("error");
+        toast.error("内容保存失败", {
+          icon: "⚠️",
+          duration: 4000,
+        });
+      }
     }
-    // 依赖项保持不变，确保 useCallback 正确工作
   }, [
     saveStatus,
     isReadOnly,
@@ -150,127 +323,294 @@ const RenderPage: React.FC<RenderPageProps> = ({ pageKey }) => {
     dbSpaceId,
     dispatch,
     pageKey,
+    // hasContentChanged 和 extractTitleFromSlate 是导入的稳定函数，无需加入依赖
   ]);
 
-  // **** handleContentChange 使用 useCallback 记忆化 ****
-  // 这个传递给 Editor 的回调函数 (lambda) 将被稳定引用
+  // 内容变化处理
   const handleContentChange = useCallback(
-    (changeValue: any) => {
+    (changeValue: EditorContent) => {
       if (isReadOnly) return;
 
-      // 检查传入值与 Redux 状态值是否不同 (使用 stringify)
-      // 避免因编辑器内部更新触发不必要的 dispatch 和 savePage 调用
-      if (hasContentChanged(changeValue, pageState.slateData)) {
-        dispatch(updateSlate(changeValue)); // 更新 Redux 状态
-
-        // 清除旧的定时器，设置新的定时器（防抖）
-        if (saveTimeoutId.current) clearTimeout(saveTimeoutId.current);
-        saveTimeoutId.current = setTimeout(() => {
-          savePage(); // 调用记忆化后的 savePage
-        }, 3000); // 自动保存延迟 3 秒
+      // 如果当前是错误状态，清除
+      if (saveStatus === "error") {
+        setSaveStatus(null);
       }
-      // 依赖项包含 dispatch, pageState.slateData, savePage, isReadOnly
+
+      // 检测变化 (使用导入的函数)
+      if (hasContentChanged(changeValue, pageState.slateData)) {
+        dispatch(updateSlate(changeValue));
+        changesPending.current = true;
+
+        // 防抖自动保存
+        if (saveTimeoutId.current) {
+          clearTimeout(saveTimeoutId.current);
+        }
+
+        // 更为明显的自动保存延迟
+        saveTimeoutId.current = setTimeout(() => {
+          if (mountedRef.current && changesPending.current) {
+            savePage();
+          }
+          saveTimeoutId.current = null;
+        }, 2000); // 减少到2秒，让保存更快感知到
+      }
     },
-    [dispatch, pageState.slateData, savePage, isReadOnly]
+    [dispatch, pageState.slateData, savePage, isReadOnly, saveStatus]
+    // hasContentChanged 是导入的稳定函数，无需加入依赖
   );
 
-  // 编辑器初始值计算 (逻辑不变)
-  const initialValue = useMemo(() => {
-    if (!isInitialized)
-      return [{ type: "paragraph", children: [{ text: "" }] }];
-    const data = pageState.slateData;
-    if (Array.isArray(data) && data.length > 0) {
-      lastSavedContent.current = data;
-      return data;
-    }
-    if (pageState.content) {
-      const converted = markdownToSlate(pageState.content);
-      lastSavedContent.current = converted;
-      return converted;
-    }
-    const defaultInitial = [
-      { type: "paragraph", children: [{ text: "开始编辑..." }] },
-    ];
-    lastSavedContent.current = defaultInitial;
-    return defaultInitial;
-  }, [isInitialized, pageState.slateData, pageState.content]);
-
-  // --- 副作用 Hooks (Ctrl+S, beforeunload, cleanup - 逻辑不变，但 beforeunload 比较也用 hasContentChanged) ---
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      /* ... Ctrl+S ... */
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isReadOnly, savePage]);
-
-  useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      // **** 使用 hasContentChanged 进行比较 ****
-      if (
-        !isReadOnly &&
-        hasContentChanged(pageState.slateData, lastSavedContent.current)
-      ) {
-        event.preventDefault();
-        event.returnValue = "您有未保存的更改，确定要离开吗？";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isReadOnly, pageState.slateData]); // 依赖 pageState.slateData
-
-  useEffect(() => {
-    /* ... cleanup timeout ... */
+  // 编辑器焦点事件处理
+  const handleEditorFocus = useCallback(() => {
+    editorFocused.current = true;
   }, []);
 
-  // --- 条件渲染 (逻辑不变) ---
-  if (isLoading) {
-    return <div className="render-page-message">页面加载中...</div>;
-  }
+  const handleEditorBlur = useCallback(() => {
+    editorFocused.current = false;
+  }, []);
+
+  // 使用键盘快捷键保存Hook
+  useKeyboardSave({
+    isReadOnly,
+    editorFocusedRef: editorFocused,
+    saveTimeoutRef: saveTimeoutId,
+    onSave: savePage,
+  });
+
+  // 定时更新上次保存时间显示
+  useEffect(() => {
+    if (!lastSavedTime) return;
+
+    const updateInterval = setInterval(() => {
+      if (lastSavedContent.current) {
+        // 每分钟更新"多久前"的显示
+        setLastSavedTime(formatSavedTime(new Date()));
+      }
+    }, 60000); // 每分钟更新一次
+
+    return () => clearInterval(updateInterval);
+  }, [lastSavedTime]);
+
+  // 离开页面前确认
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (
+        !isReadOnly &&
+        changesPending.current &&
+        hasContentChanged(pageState.slateData, lastSavedContent.current) // 使用导入的函数
+      ) {
+        const message = "您有未保存的更改，确定要离开吗？";
+        event.preventDefault();
+        event.returnValue = message;
+        return message;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isReadOnly, pageState.slateData]); // hasContentChanged 是导入的稳定函数，无需加入依赖
+
+  // 初始值计算
+  const initialValue = useMemo(() => {
+    if (!isInitialized) {
+      return [{ type: "paragraph", children: [{ text: "" }] }];
+    }
+
+    const data = pageState.slateData;
+    if (Array.isArray(data) && data.length > 0) {
+      lastSavedContent.current = JSON.parse(JSON.stringify(data)); // 深拷贝避免引用问题
+      return data;
+    }
+
+    if (pageState.content) {
+      try {
+        const converted = markdownToSlate(pageState.content);
+        lastSavedContent.current = JSON.parse(JSON.stringify(converted));
+        return converted;
+      } catch (e) {
+        console.error("转换 markdown 失败:", e);
+      }
+    }
+
+    const defaultValue = [
+      { type: "heading-one", children: [{ text: "新页面" }] },
+      { type: "paragraph", children: [{ text: "开始编辑..." }] },
+    ];
+    lastSavedContent.current = JSON.parse(JSON.stringify(defaultValue));
+    return defaultValue;
+  }, [isInitialized, pageState.slateData, pageState.content]);
+
+  // 显示错误状态
   if (fetchError) {
-    return <NoMatch message={fetchError} />;
-  }
-  if (!isInitialized || !initialValue) {
-    return <div className="render-page-message">正在初始化编辑器...</div>;
+    return <PageError error={fetchError} onRetry={loadPage} />;
   }
 
-  // --- 最终渲染 (结构和类名不变) ---
+  // 简单加载提示
+  if (!isInitialized && isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "14px",
+            color: theme.textSecondary,
+          }}
+        >
+          加载中...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="render-page-container">
         <main className="render-page-main">
           <div className="render-page-scrollable-area scrollable-editor-area">
             <div className="render-page-editor-wrapper">
-              <Editor
-                placeholder="开始编辑..."
-                key={pageKey}
-                initialValue={initialValue}
-                onChange={handleContentChange} // **** 传递记忆化后的回调 ****
-                readOnly={isReadOnly}
-              />
+              <React.Suspense
+                fallback={
+                  <div
+                    style={{
+                      padding: "20px",
+                      textAlign: "center",
+                      color: theme.textSecondary,
+                    }}
+                  >
+                    加载编辑器...
+                  </div>
+                }
+              >
+                <div key={editorKey}>
+                  <Editor
+                    placeholder="开始编辑..."
+                    initialValue={initialValue}
+                    onChange={handleContentChange}
+                    onFocus={handleEditorFocus}
+                    onBlur={handleEditorBlur}
+                    readOnly={isReadOnly}
+                  />
+                </div>
+              </React.Suspense>
             </div>
           </div>
         </main>
-        {/* ... 保存状态指示器 ... */}
+
+        {/* 工具栏区域 - 只在编辑模式显示 */}
+        {!isReadOnly && (
+          <>
+            {/* 合并后的保存状态指示器 */}
+            <SaveStatusIndicator
+              status={saveStatus}
+              lastSaved={lastSavedTime}
+              onRetry={savePage}
+              hasPendingChanges={changesPending.current}
+            />
+          </>
+        )}
       </div>
 
-      {/* **** 样式保持不变，仍在 style 标签内 **** */}
+      {/* CSS 样式 */}
       <style>{`
-        /* ... 所有样式规则和之前一样 ... */
-        .render-page-container { display: flex; flex-direction: column; height: calc(100dvh - 60px); background-color: #fff; overflow: hidden; }
-        .render-page-main { flex-grow: 1; display: flex; overflow: hidden; }
-        .render-page-scrollable-area { flex-grow: 1; overflow-y: auto; padding: 20px 0; }
-        .render-page-editor-wrapper { max-width: 800px; margin: 0 auto; padding: 0 16px; }
-        .render-page-message { padding: 40px; text-align: center; font-size: 16px; color: #666; }
-        .render-page-save-status { position: fixed; bottom: 10px; right: 10px; padding: 4px 8px; background-color: rgba(0, 0, 0, 0.6); color: white; border-radius: 4px; font-size: 12px; z-index: 100; pointer-events: none; transition: opacity 0.3s ease; }
-        [contenteditable="true"], [data-slate-editor="true"] { outline: none !important; caret-color: #1890ff; white-space: pre-wrap; word-wrap: break-word; padding: 4px; font-size: 16px; line-height: 1.7; }
-        .scrollable-editor-area::-webkit-scrollbar { width: 6px; }
-        .scrollable-editor-area::-webkit-scrollbar-track { background: transparent; }
-        .scrollable-editor-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
-        .scrollable-editor-area::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+        /* ========== 页面容器与布局 ========== */
+        .render-page-container {
+          display: flex;
+          flex-direction: column;
+          height: calc(100dvh - 60px);
+          background-color: ${theme.background};
+          color: ${theme.text};
+          overflow: hidden;
+          position: relative;
+        }
+
+        .render-page-main {
+          flex: 1;
+          display: flex;
+          overflow: hidden;
+        }
+
+        .render-page-scrollable-area {
+          flex: 1;
+          overflow-y: auto;
+          scroll-behavior: smooth;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .render-page-editor-wrapper {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px 16px;
+          min-height: 100%;
+        }
+
+        /* ========== 编辑器样式 ========== */
+        [contenteditable="true"],
+        [data-slate-editor="true"] {
+          outline: none;
+          caret-color: ${theme.primary};
+          white-space: pre-wrap;
+          word-wrap: break-word;
+          padding: 4px;
+          font-size: 16px;
+          line-height: 1.7;
+          color: ${theme.text};
+        }
+
+        /* ========== 滚动条样式 ========== */
+        .scrollable-editor-area::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .scrollable-editor-area::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .scrollable-editor-area::-webkit-scrollbar-thumb {
+          background: ${theme.borderHover};
+          border-radius: 3px;
+          transition: background 0.2s;
+        }
+
+        .scrollable-editor-area::-webkit-scrollbar-thumb:hover {
+          background: ${theme.textQuaternary};
+        }
+
+        /* ========== 移动设备适配 ========== */
+        @media (max-width: 768px) {
+          .render-page-editor-wrapper {
+            padding: 16px 12px;
+          }
+        }
+        /* ========== 打印样式优化 ========== */
+        @media print {
+          .render-page-container {
+            height: auto;
+            overflow: visible;
+          }
+
+          .render-page-scrollable-area {
+            overflow: visible;
+          }
+
+          .page-save-status-indicator {
+            display: none !important;
+          }
+
+          .render-page-editor-wrapper {
+            max-width: 100%;
+            padding: 0;
+            margin: 0;
+          }
+        }
       `}</style>
     </>
   );
 };
 
-export default RenderPage;
+export default React.memo(RenderPage);

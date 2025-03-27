@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react"; // 引入 React 和 lazy
+import React, { Suspense, lazy } from "react";
 
 import { authRoutes } from "auth/web/routes"; // 确认路径正确
 import { createRoutes } from "create/routes"; // 确认路径正确
