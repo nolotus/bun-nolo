@@ -1,8 +1,8 @@
 // render/page/PageLoader.tsx
 
-import React, { Suspense, lazy, useEffect, useMemo } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { useAppDispatch } from "app/hooks";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 // 懒加载子组件
 const DialogPage = lazy(() => import("chat/dialog/DialogPage"));
