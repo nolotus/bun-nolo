@@ -10,16 +10,16 @@ import { FaFileLines } from "react-icons/fa6";
 import { selectTheme } from "app/theme/themeSlice";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { NavLink, useParams } from "react-router-dom";
+// 1. 导入 useSearchParams 来读取当前 URL 的查询参数
+import { NavLink, useParams, useSearchParams } from "react-router-dom";
 import DeleteContentButton from "./DeleteContentButton";
+import { selectCurrentSpaceId } from "create/space/spaceSlice"; // 确认路径正确
 
 interface SidebarItemProps {
   contentKey: string;
   type: "dialog" | "page" | "image" | "doc" | "code" | "file";
   title: string;
-  // 保留 categoryId 如果其他地方需要
   categoryId?: string;
-  // 保留 handleProps 用于拖放
   handleProps?: any;
 }
 
@@ -35,18 +35,36 @@ const ICON_SIZE = 18;
 
 export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
   ({ contentKey, type, title, handleProps }) => {
-    const { pageId } = useParams();
+    // 2. 获取路径参数 pageId
+    const { pageId: pageIdFromPath } = useParams<{ pageId?: string }>();
+    // 3. 获取当前 URL 的查询参数
+    const [searchParams] = useSearchParams();
     const theme = useSelector(selectTheme);
+    // 4. 从 Redux store 获取当前的 spaceId (这是目标链接要用的)
+    const currentSpaceId = useSelector(selectCurrentSpaceId);
     const [isIconHover, setIsIconHover] = useState(false);
 
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
-    const isSelected = contentKey === pageId;
+
+    // 5. 更新选中状态的判断逻辑
+    //    - 路径中的 pageId 必须等于当前项的 contentKey
+    //    - URL 查询参数中的 spaceId 必须等于 Redux 中的 currentSpaceId
+    const spaceIdFromQuery = searchParams.get("spaceId"); // 从当前 URL 读取 spaceId
+    const isSelected =
+      pageIdFromPath === contentKey && spaceIdFromQuery === currentSpaceId;
 
     const rootClassName =
       `SidebarItem ${isSelected ? "SidebarItem--selected" : ""}`.trim();
     const iconClassName =
       `SidebarItem__icon ${isIconHover ? "SidebarItem__icon--draggable" : ""}`.trim();
+
+    // 6. 构建目标 URL，将 spaceId 作为查询参数
+    //    格式: /{contentKey}?spaceId={currentSpaceId}
+    const targetUrlObject = {
+      pathname: `/${contentKey}`,
+      search: currentSpaceId ? `?spaceId=${currentSpaceId}` : "", // 只有当 spaceId 存在时才添加
+    };
 
     return (
       <>
@@ -56,7 +74,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             {...handleProps}
             onMouseEnter={() => setIsIconHover(true)}
             onMouseLeave={() => setIsIconHover(false)}
-            // 为抓取图标添加 title
             title={isIconHover ? "拖拽排序" : ""}
           >
             {isIconHover ? (
@@ -65,14 +82,16 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
               <IconComponent size={ICON_SIZE} />
             )}
           </span>
-          <NavLink to={`/${contentKey}`} className="SidebarItem__link">
+          {/* 7. 更新 NavLink 的 `to` 属性，可以传递对象 */}
+          <NavLink
+            to={targetUrlObject} // 传递路径和查询参数对象
+            className="SidebarItem__link"
+            // 阻止无效点击 (如果需要，虽然这里 spaceId 不决定路径本身)
+            // onClick={(e) => { if (!currentSpaceId) e.preventDefault(); }}
+          >
             {displayTitle}
           </NavLink>
 
-          {/*
-             传递一个特定的类名给 DeleteContentButton，
-             以便 SidebarItem 的 CSS 可以控制其可见性
-          */}
           <DeleteContentButton
             contentKey={contentKey}
             title={displayTitle}
@@ -81,8 +100,10 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           />
         </div>
 
+        {/* --- CSS 部分保持不变 --- */}
         <style href="sidebar-item">{`
-          .SidebarItem {
+          /* ... CSS 样式保持不变 ... */
+           .SidebarItem {
             margin: 2px 0;
             padding: 7px 10px;
             display: flex;
@@ -94,7 +115,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             transition: background-color 0.15s ease, color 0.15s ease;
             color: ${theme.textSecondary};
             user-select: none;
-            /* 确保最小高度 */
             min-height: 36px;
           }
 
@@ -111,7 +131,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           .SidebarItem--selected::before {
             content: "";
             position: absolute;
-            /* 相对于 padding 定位 */
             left: -6px;
             top: 50%;
             transform: translateY(-50%);
@@ -119,15 +138,12 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             height: 16px;
             background: ${theme.primary};
             border-radius: 0 2px 2px 0;
-            /* 过渡已移除 - 随选中状态出现/消失 */
           }
 
           .SidebarItem__icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            /* width/height 可能由图标大小 + padding 控制 */
-            /* 添加内边距 */
             padding: 3px;
             border-radius: 6px;
             color: ${theme.textTertiary};
@@ -163,11 +179,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            /* 继承 .SidebarItem 的颜色 */
             color: inherit;
             transition: color 0.15s ease, font-weight 0.15s ease;
             letter-spacing: -0.01em;
-            /* 允许 flex item 收缩 */
             min-width: 0;
           }
 
@@ -175,14 +189,10 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             font-weight: 500;
           }
 
-          /* --- 控制删除按钮可见性 --- */
-          /* 选择传递给 DeleteContentButton 的特定类名 */
           .SidebarItem__deleteButton {
              opacity: 0;
              transition: opacity 0.2s ease;
-             /* 将按钮推到最右侧 */
              margin-left: auto;
-             /* 确保内边距一致 */
              padding: 4px;
           }
 
@@ -190,14 +200,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
              opacity: 0.7;
           }
 
-          /* 当直接悬停在删除按钮上时，使其完全不透明 */
-          /* 此规则应封装在 DeleteContentButton 的样式中 */
-          /* 但如果这里需要更高优先级: */
            .SidebarItem .SidebarItem__deleteButton:hover {
-             /* 确保覆盖 0.7 */
              opacity: 1 !important;
            }
-
         `}</style>
       </>
     );
