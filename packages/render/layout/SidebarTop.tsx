@@ -17,12 +17,12 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
   changeSpace,
-  fetchUserSpaceMemberships,
+  // fetchUserSpaceMemberships, // <- 移除导入，因为 App.tsx 会处理
   selectAllMemberSpaces,
   selectCurrentSpace,
   selectSpaceLoading,
 } from "create/space/spaceSlice";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; // 移除了 useEffect 如果不再使用
 import { useTranslation } from "react-i18next";
 import { RxDropdownMenu } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
@@ -33,7 +33,7 @@ import { useTheme } from "app/theme";
 import { zIndex } from "../styles/zIndex";
 import NavIconItem from "./blocks/NavIconItem";
 import { CreateSpaceButton } from "create/space/CreateSpaceButton";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectCurrentUserId } from "auth/authSlice"; // 保持，可能仍然需要
 import { createSpaceKey } from "create/space/spaceKeys";
 import { SpaceItem } from "create/space/components/SpaceItem";
 
@@ -42,24 +42,26 @@ export const SidebarTop = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const currentUserId = useAppSelector(selectCurrentUserId);
-  const spaces = useAppSelector(selectAllMemberSpaces) || [];
+  // const currentUserId = useAppSelector(selectCurrentUserId); // 保持，以防未来需要或检查条件
+  const spaces = useAppSelector(selectAllMemberSpaces) || []; // 直接从 state 获取，由 App.tsx 填充
   const space = useAppSelector(selectCurrentSpace);
-  const loading = useAppSelector(selectSpaceLoading);
+  const loading = useAppSelector(selectSpaceLoading); // 可能需要调整 loading 状态的来源或含义
 
-  useEffect(() => {
-    const fetchSpaces = async () => {
-      if (currentUserId && !loading && (!spaces || spaces.length === 0)) {
-        try {
-          await dispatch(fetchUserSpaceMemberships(currentUserId)).unwrap();
-        } catch (error) {
-          console.error("Failed to fetch spaces in SidebarTop:", error);
-        }
-      }
-    };
-
-    fetchSpaces();
-  }, [currentUserId, spaces, loading, dispatch]);
+  // --------------------------------------------------------------------
+  // !! 移除了此处的 useEffect !!
+  // useEffect(() => {
+  //   const fetchSpaces = async () => {
+  //     if (currentUserId && !loading && (!spaces || spaces.length === 0)) {
+  //       try {
+  //         await dispatch(fetchUserSpaceMemberships(currentUserId)).unwrap();
+  //       } catch (error) {
+  //         console.error("Failed to fetch spaces in SidebarTop:", error);
+  //       }
+  //     }
+  //   };
+  //   fetchSpaces();
+  // }, [currentUserId, spaces, loading, dispatch]);
+  // --------------------------------------------------------------------
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -67,13 +69,20 @@ export const SidebarTop = () => {
 
   const spacesLength = spaces.length;
   const listRef = React.useRef<Array<HTMLElement | null>>(
+    // 初始化大小现在依赖于 selector 的初始值
     new Array(spacesLength + 1).fill(null)
   );
 
+  // 依赖于 spaces.length 的 useEffect 仍然需要，用于更新 listRef 大小
   useEffect(() => {
     listRef.current = Array(spaces.length + 1).fill(null);
-  }, [spaces.length]);
+    // 如果 spaces 变化时下拉菜单是打开的，重置 activeIndex 可能更安全
+    if (isOpen) {
+      setActiveIndex(null);
+    }
+  }, [spaces.length, isOpen]); // 添加 isOpen 依赖
 
+  // --- Floating UI Hooks (保持不变) ---
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
     onOpenChange: setIsOpen,
@@ -113,9 +122,12 @@ export const SidebarTop = () => {
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(
     [click, dismiss, role, listNavigation]
   );
+  // --- Floating UI Hooks End ---
 
+  // --- Event Handlers (保持不变) ---
   const handleOptionClick = (spaceId?: string) => {
     if (!spaceId) return;
+    // 仍然需要 dispatch changeSpace
     dispatch(changeSpace(spaceId));
     navigate(`/space/${spaceId}`);
     setIsOpen(false);
@@ -123,16 +135,23 @@ export const SidebarTop = () => {
 
   const handleSettingsClick = (
     e: React.MouseEvent,
-    spaceMemberpath: string
+    spaceMemberpath: string // 注意：这里用的是 dbKey/memberPath，需要确认 SpaceItem 传递的是什么
   ) => {
     e.stopPropagation();
-    const spaceId = createSpaceKey.spaceIdFromMember(spaceMemberpath);
-    navigate(`/space/${spaceId}/settings`);
-    setIsOpen(false);
+    // 假设 spaceMemberpath 就是 dbKey 如 'space-member-userId-spaceId'
+    const spaceId = createSpaceKey.spaceIdFromMember(spaceMemberpath); // 确认此函数能正确解析
+    if (spaceId) {
+      navigate(`/space/${spaceId}/settings`);
+      setIsOpen(false);
+    } else {
+      console.error("Could not extract spaceId from:", spaceMemberpath);
+    }
   };
 
   const isCurrentSpace = (spaceId: string) => space?.id === spaceId;
+  // --- Event Handlers End ---
 
+  // --- Render Logic (保持不变) ---
   return (
     <div className="space-sidebar-top" role="navigation">
       <NavIconItem path="/create" icon={<ProjectIcon size={22} />} />
@@ -144,15 +163,20 @@ export const SidebarTop = () => {
           className={`space-dropdown__trigger ${isOpen ? "is-open" : ""} ${loading ? "is-loading" : ""}`}
           aria-label={t("select_space")}
           aria-expanded={isOpen}
+          // loading 状态现在完全由 Redux state 驱动
           disabled={loading}
         >
           <span className="space-dropdown__name" title={space?.name}>
-            {loading ? t("loading") : space?.name || t("select_space")}
+            {/* loading 状态可能需要更精细的控制，因为它可能代表 spaceSlice 的任何异步操作 */}
+            {loading && !space?.name
+              ? t("loading")
+              : space?.name || t("select_space")}
           </span>
           <RxDropdownMenu size={14} className="space-dropdown__icon" />
         </button>
 
-        {isMounted && !loading && (
+        {/* Dropdown Menu Content */}
+        {isMounted && ( // 移除 !loading 条件，允许在加载时也能看到空的骨架或上一次的数据
           <FloatingFocusManager context={context} modal={false}>
             <div
               ref={refs.setFloating}
@@ -166,30 +190,40 @@ export const SidebarTop = () => {
               aria-label={t("space_list")}
             >
               <div className="space-dropdown__content">
+                {/* 显示逻辑稍微调整，即使 loading 也可渲染 */}
                 {spaces.length > 0 ? (
                   <div className="space-dropdown__section">
-                    {spaces.map((spaceItem: any, index: number) => (
+                    {spaces.map((spaceItem, index) => (
                       <SpaceItem
-                        key={spaceItem.dbKey}
+                        // 确认 key 是否稳定且唯一，dbKey 应该可以
+                        key={spaceItem.dbKey || spaceItem.spaceId}
                         spaceItem={spaceItem}
                         isCurrentSpace={isCurrentSpace(spaceItem.spaceId)}
                         index={index}
                         listRef={(node) => (listRef.current[index] = node)}
                         getItemProps={getItemProps}
                         onSelect={handleOptionClick}
-                        onSettingsClick={handleSettingsClick}
+                        onSettingsClick={(e) =>
+                          handleSettingsClick(e, spaceItem.dbKey)
+                        } // 确认传递 dbKey
                       />
                     ))}
                   </div>
+                ) : // 如果正在加载，显示加载提示；否则显示“无空间”
+                loading ? (
+                  <div className="space-dropdown__empty">{t("loading")}</div>
                 ) : (
                   <div className="space-dropdown__empty">{t("no_spaces")}</div>
                 )}
 
+                {/* 创建按钮 */}
                 <CreateSpaceButton
                   onClick={openModal}
                   getItemProps={getItemProps}
                   listRef={(node) => (listRef.current[spacesLength] = node)}
                   index={spacesLength}
+                  // 如果正在加载，可以考虑禁用创建按钮
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -197,10 +231,12 @@ export const SidebarTop = () => {
         )}
       </div>
 
+      {/* Modal for Creating Space */}
       <Dialog isOpen={visible} onClose={closeModal}>
         <CreateSpaceForm onClose={closeModal} />
       </Dialog>
 
+      {/* --- Styles (保持不变) --- */}
       <style>{`
         .space-sidebar-top {
           display: flex;
@@ -303,24 +339,21 @@ export const SidebarTop = () => {
           margin: 4px 0;
         }
 
+        /* Scrollbar styles */
         .space-dropdown__content::-webkit-scrollbar {
           width: 5px;
           height: 5px;
         }
-
         .space-dropdown__content::-webkit-scrollbar-track {
           background: transparent;
         }
-
         .space-dropdown__content::-webkit-scrollbar-thumb {
           background: ${theme.textLight};
           border-radius: 10px;
         }
-
         .space-dropdown__content::-webkit-scrollbar-thumb:hover {
           background: ${theme.textQuaternary};
         }
-
         .space-dropdown__content {
           scrollbar-width: thin;
           scrollbar-color: ${theme.textLight} transparent;

@@ -30,7 +30,7 @@ import { reorderCategoriesAction } from "./action/reorderCategoriesAction";
 
 import { fetchSpaceAction } from "./action/fetchSpaceAction";
 import { updateContentCategoryAction } from "./action/updateContentCategoryAction";
-import { initializeSpaceAction } from "./action/initializeSpaceAction";
+import { loadDefaultSpaceAction } from "./action/loadDefaultSpaceAction";
 import { moveContentAction } from "./action/moveContentAction";
 import { updateContentTitleAction } from "./action/updateContentTitleAction";
 import { read } from "database/dbSlice";
@@ -172,7 +172,7 @@ const spaceSlice = createSliceWithThunks({
       },
     }),
 
-    initializeSpace: create.asyncThunk(initializeSpaceAction, {
+    loadDefaultSpace: create.asyncThunk(loadDefaultSpaceAction, {
       pending: (state) => {
         state.loading = true;
         state.initialized = false;
@@ -270,7 +270,7 @@ export const {
   updateSpace,
   addContentToSpace,
   deleteContentFromSpace,
-  initializeSpace,
+  loadDefaultSpace,
   fetchUserSpaceMemberships,
   addMember,
   removeMember,
