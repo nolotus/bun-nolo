@@ -10,7 +10,7 @@ import { User } from "./types";
 import { loginRequest } from "./client/loginRequest";
 import { signUpAction } from "./action/signUpAction";
 import { hashPasswordV1 } from "core/password";
-import { initializeSpace } from "create/space/spaceSlice";
+import { loadDefaultSpace } from "create/space/spaceSlice";
 
 // 优化初始状态和类型定义
 interface AuthState {
@@ -172,7 +172,7 @@ export const authSlice = createSliceWithThunks({
 
         // 尝试初始化新用户的 space，如果出错也不阻断流程
         try {
-          await dispatch(initializeSpace(user.userId)).unwrap();
+          await dispatch(loadDefaultSpace(user.userId)).unwrap();
         } catch (error) {
           console.warn("Failed to initialize user settings:", error);
         }

@@ -1,13 +1,19 @@
+// App.tsx
+
 import React, { useEffect, useMemo, useRef } from "react";
 import { useAppDispatch } from "app/hooks";
-import { initializeAuth } from "auth/authSlice";
+import { initializeAuth, selectCurrentUserId } from "auth/authSlice"; // 假设 selectCurrentUserId 在这里
 import { useAuth } from "auth/hooks/useAuth";
 import i18n from "i18n";
 import { Toaster } from "react-hot-toast";
 import { useRoutes, Outlet } from "react-router-dom";
 import { addHostToCurrentServer, getSettings } from "setting/settingSlice";
 import { setDarkMode } from "app/theme/themeSlice";
-import { initializeSpace } from "create/space/spaceSlice";
+// 导入 fetchUserSpaceMemberships 和 loadDefaultSpace
+import {
+  fetchUserSpaceMemberships,
+  loadDefaultSpace,
+} from "create/space/spaceSlice";
 
 import Article from "lab/s-station/Article";
 import NavbarComponent from "lab/s-station/Navbar";
@@ -15,8 +21,9 @@ import Moment from "lab/s-station/index";
 import { commonRoutes } from "./generatorRoutes";
 import { routes } from "./routes";
 
-// 路由生成器函数
+// 路由生成器函数 (保持不变)
 const generatorRoutes = (hostname: string, auth: any) => {
+  // ... (代码保持不变)
   if (hostname === "nolotus.local" || hostname === "cybot.me") {
     return [
       {
@@ -74,60 +81,74 @@ export default function App({
     [hostname, auth]
   );
 
-  // 系统初始化
+  // 系统初始化 (保持不变)
   useEffect(() => {
-    // 如果已经初始化，则直接返回
     if (initializedRef.current) return;
     initializedRef.current = true;
-    console.log("App init");
+    console.log("App init: System level"); // 添加日志区分
     const initializeSystem = async () => {
       try {
-        // 1. 基础设置初始化
         dispatch(addHostToCurrentServer(hostname));
         dispatch(setDarkMode(isDark));
-
-        // 2. 初始化认证
         await dispatch(initializeAuth(tokenManager)).unwrap();
+        console.log("App init: System level completed.");
       } catch (error) {
         console.error("系统初始化失败：", error);
       }
     };
-
     initializeSystem();
   }, [dispatch, hostname, isDark, tokenManager]);
 
-  // 用户相关的初始化（支持切换用户）
+  // 用户相关的初始化（修改此部分）
   useEffect(() => {
     const initializeUserData = async () => {
+      // 确保 auth.user 和 userId 都存在
       if (auth.user?.userId) {
+        const userId = auth.user.userId;
+        console.log(`App init: User data for ${userId}`); // 添加日志
         try {
-          await dispatch(getSettings(auth.user.userId)).unwrap();
-          await dispatch(initializeSpace(auth.user.userId)).unwrap();
+          // 1. 获取用户设置 (包含默认 Space ID 偏好)
+          await dispatch(getSettings(userId)).unwrap();
+          console.log(`App init: Settings loaded for ${userId}.`);
+
+          // 2. 获取用户的所有 Space 成员列表
+          // 这会填充 state.space.memberSpaces，供 SidebarTop 和 loadDefaultSpace 使用
+          await dispatch(fetchUserSpaceMemberships(userId)).unwrap();
+          console.log(`App init: Space memberships fetched for ${userId}.`);
+
+          // 3. 尝试加载默认 Space
+          // 这个 action 现在会利用已获取的列表和设置，
+          // 并且如果 PageLoader 已加载了 Space，它会跳过
+          await dispatch(loadDefaultSpace(userId)).unwrap();
+          console.log(
+            `App init: Attempted to load default space for ${userId}.`
+          );
         } catch (error) {
-          console.error("用户数据初始化失败：", error);
+          // 更具体地记录错误
+          console.error(`用户数据初始化失败 for ${userId}:`, error);
         }
+      } else {
+        // 添加日志说明为何跳过
+        console.log(
+          "App init: User data skipped, auth.user.userId is missing."
+        );
       }
     };
 
     initializeUserData();
-  }, [dispatch, auth.user]); // 监听 auth.user 变化
+  }, [dispatch, auth.user]); // 监听 auth.user 变化 (保持不变)
 
-  // 主题和语言初始化
+  // 主题和语言初始化 (保持不变)
   useEffect(() => {
-    // 监听系统主题变化
+    console.log("App init: Theme and Language"); // 添加日志
     const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent) => {
       dispatch(setDarkMode(event.matches));
     };
-
     colorSchemeQuery.addEventListener("change", handleThemeChange);
-
-    // 设置语言
     if (lng) {
       i18n.changeLanguage(lng);
     }
-
-    // 清理函数
     return () => {
       colorSchemeQuery.removeEventListener("change", handleThemeChange);
     };
