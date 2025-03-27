@@ -24,20 +24,21 @@ const AddCategoryControl: React.FC = memo(() => {
         dispatch(addCategory({ name }));
         setIsAddModalOpen(false);
       }
-      // Consider adding validation feedback for empty or duplicate names here
     },
     [dispatch]
   );
 
   return (
     <>
-      <div className="button-container">
+      {/* Renamed class */}
+      <div className="AddCategoryControl__container">
         <Button
           block
           variant="secondary"
           size="medium"
           onClick={handleAddCategory}
-          className="add-category-button"
+          // Renamed class
+          className="AddCategoryControl__button"
         >
           添加分类
         </Button>
@@ -49,13 +50,14 @@ const AddCategoryControl: React.FC = memo(() => {
         onAddCategory={handleAddCategoryConfirm}
       />
 
+      {/* Updated style selectors */}
       <style>{`
-        .button-container {
+        .AddCategoryControl__container {
           padding: 4px 12px 4px;
           margin-top: 4px;
         }
 
-        .add-category-button {
+        .AddCategoryControl__button {
           transition: all 0.2s ease;
           background: ${theme.backgroundSecondary};
           border: none;
@@ -65,13 +67,13 @@ const AddCategoryControl: React.FC = memo(() => {
           height: 36px;
         }
 
-        .add-category-button:hover {
+        .AddCategoryControl__button:hover {
           background: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
           color: ${theme.primary};
           transform: translateY(-1px);
         }
 
-        .add-category-button:active {
+        .AddCategoryControl__button:active {
           transform: translateY(0);
         }
       `}</style>

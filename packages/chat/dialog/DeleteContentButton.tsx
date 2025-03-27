@@ -1,4 +1,4 @@
-//  chat/DeleteContentButton.tsx
+// chat/DeleteContentButton.tsx
 import React, { useState } from "react";
 import { TrashIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
@@ -16,12 +16,15 @@ interface DeleteContentButtonProps {
   contentKey: string;
   title: string;
   theme: any;
+  // 添加 className prop 以允许父组件控制样式
+  className?: string;
 }
 
 const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
   contentKey,
   title,
   theme,
+  className = "",
 }) => {
   const { t } = useTranslation("chat");
   const dispatch = useAppDispatch();
@@ -37,25 +40,17 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
 
   const handleDelete = async () => {
     setIsDeleting(true);
-
     if (!currentSpaceId) {
       console.error("No current space selected");
       toast.error(t("deleteFailed"));
       setIsDeleting(false);
       return;
     }
-
     try {
-      console.log("delete content", contentKey);
       await dispatch(remove(contentKey)).unwrap();
-
       await dispatch(
-        deleteContentFromSpace({
-          contentKey,
-          spaceId: currentSpaceId,
-        })
+        deleteContentFromSpace({ contentKey, spaceId: currentSpaceId })
       );
-
       toast.success(t("deleteSuccess"));
     } catch (error) {
       console.error("Failed to delete content:", error);
@@ -66,13 +61,17 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
     }
   };
 
+  const buttonClassName = `DeleteContentButton ${className}`.trim();
+
   return (
     <>
       <Tooltip content={t("delete")} placement="top">
         <button
-          className="delete-button"
+          className={buttonClassName}
           onClick={openConfirmModal}
           disabled={isDeleting}
+          // 添加 data attribute 便于父组件在需要时进行更复杂的 CSS 选择
+          data-component="delete-content-button"
         >
           <TrashIcon size={16} />
         </button>
@@ -91,7 +90,7 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
       />
 
       <style href="delete-content-button">{`
-        .delete-button {
+        .DeleteContentButton {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -101,17 +100,20 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
           border-radius: 4px;
           padding: 4px;
           cursor: pointer;
-          opacity: 0;
+          /* 已移除 opacity: 0; 由父组件控制可见性 */
+          opacity: 1;
           transition: all 0.2s ease;
+          flex-shrink: 0;
         }
 
-        .delete-button:hover {
+        .DeleteContentButton:hover {
           background-color: ${theme.backgroundTertiary};
           color: ${theme.danger || "#e53e3e"};
-          opacity: 1 !important;
+          /* 如果父组件样式不冲突，则无需 !important */
+          opacity: 1;
         }
 
-        .delete-button:disabled {
+        .DeleteContentButton:disabled {
           cursor: not-allowed;
           opacity: 0.5;
         }
