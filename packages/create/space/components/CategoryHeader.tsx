@@ -33,7 +33,7 @@ interface CategoryHeaderProps {
 
 const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   categoryId,
-  categoryName,
+  categoryName = "", // 添加默认值防止 categoryName 为 undefined
   onEdit,
   onDelete,
   isDragOver,
@@ -43,7 +43,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   // const [isHovered, setIsHovered] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState(categoryName);
+  const [newCategoryName, setNewCategoryName] = useState(categoryName || ""); // 确保有默认值
 
   const dispatch = useAppDispatch();
   const theme = useTheme();
@@ -53,11 +53,12 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const isUncategorized = categoryName === "未分类";
 
   const handleEdit = () => {
-    setNewCategoryName(categoryName);
+    setNewCategoryName(categoryName || ""); // 确保有有效值
     setIsEditModalOpen(true);
   };
 
   const handleConfirmEdit = () => {
+    // 安全检查 newCategoryName 是否存在
     if (
       newCategoryName &&
       newCategoryName.trim() &&
@@ -76,7 +77,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         );
       }
       setIsEditModalOpen(false);
-    } else if (!newCategoryName.trim()) {
+    } else if (!newCategoryName || !newCategoryName.trim()) {
       // 可选：提示名称不能为空
       console.warn("Category name cannot be empty.");
     }
@@ -211,8 +212,9 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
                 variant="primary"
                 size="small"
                 onClick={handleConfirmEdit}
-                // 检查 trim 后的名称是否为空或与原名称相同
+                // 修复：安全地检查 newCategoryName
                 disabled={
+                  !newCategoryName ||
                   !newCategoryName.trim() ||
                   newCategoryName.trim() === categoryName
                 }
@@ -225,7 +227,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         >
           <input
             type="text"
-            value={newCategoryName}
+            value={newCategoryName || ""} // 确保即使是 null 也能正常显示
             onChange={(e) => setNewCategoryName(e.target.value)}
             className="CategoryHeader__editInput" // 精确化类名
             placeholder="请输入新的分类名称"
@@ -234,6 +236,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
               if (e.key === "Enter") {
                 // 触发确认逻辑，如果按钮未禁用
                 if (
+                  newCategoryName &&
                   newCategoryName.trim() &&
                   newCategoryName.trim() !== categoryName
                 ) {
@@ -254,7 +257,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleConfirmDelete}
           title="删除分类"
-          message={`确定要删除分类 "${categoryName}" 吗？该分类下的所有内容将被移至“未分类”。`}
+          message={`确定要删除分类 "${categoryName}" 吗？该分类下的所有内容将被移至"未分类"。`}
           confirmText="删除"
           cancelText="取消"
           type="error"
@@ -281,19 +284,18 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           }
 
           .CategoryHeader:hover {
-            background-color: ${theme.backgroundGhost};
+            background-color: ${theme?.backgroundGhost || "rgba(0,0,0,0.05)"};
           }
 
           /* drag-over 状态的样式 */
           .CategoryHeader--drag-over {
-            /* 可以使用背景色或边框来指示 */
-             background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
-             /* border: 1px dashed ${theme.primaryLight || "#91caff"}; */
+            /* 修复：安全地访问 theme 属性 */
+            background-color: ${theme?.primaryGhost || "rgba(22, 119, 255, 0.06)"};
           }
 
           .CategoryHeader__dragHandle {
             cursor: grab;
-            color: ${theme.textTertiary};
+            color: ${theme?.textTertiary || "#999"};
             display: flex;
             align-items: center;
             justify-content: center;
@@ -312,13 +314,13 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           }
 
           .CategoryHeader__dragHandle:hover {
-            color: ${theme.textSecondary};
-            background-color: ${theme.backgroundSecondary};
+            color: ${theme?.textSecondary || "#666"};
+            background-color: ${theme?.backgroundSecondary || "#f0f0f0"};
           }
 
           .CategoryHeader__dragHandle:active {
-            color: ${theme.primary};
-            background-color: ${theme.primaryGhost};
+            color: ${theme?.primary || "#1677ff"};
+            background-color: ${theme?.primaryGhost || "rgba(22, 119, 255, 0.06)"};
             cursor: grabbing;
           }
 
@@ -333,7 +335,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           .CategoryHeader__name {
             font-size: 14px;
             font-weight: 500;
-            color: ${theme.textSecondary};
+            color: ${theme?.textSecondary || "#666"};
             flex-grow: 1;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -364,7 +366,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             padding: 3px;
             background: none;
             border: none;
-            color: ${theme.textTertiary};
+            color: ${theme?.textTertiary || "#999"};
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -375,18 +377,18 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           }
 
           .CategoryHeader__actionButton:hover {
-            background-color: ${theme.backgroundSecondary};
+            background-color: ${theme?.backgroundSecondary || "#f0f0f0"};
           }
 
           /* 特定按钮的悬停颜色 */
           .CategoryHeader__actionButton--add:hover {
-            color: ${theme.success};
+            color: ${theme?.success || "#52c41a"};
           }
           .CategoryHeader__actionButton--edit:hover {
-            color: ${theme.primary};
+            color: ${theme?.primary || "#1677ff"};
           }
           .CategoryHeader__actionButton--delete:hover {
-            color: ${theme.error};
+            color: ${theme?.error || "#ff4d4f"};
           }
 
 
@@ -394,32 +396,32 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           .CategoryHeader__modalCloseButton {
             background: none;
             border: none;
-            color: ${theme.textSecondary};
+            color: ${theme?.textSecondary || "#666"};
             cursor: pointer;
             padding: 0;
             display: flex;
             align-items: center;
           }
            .CategoryHeader__modalCloseButton:hover {
-               color: ${theme.text};
+               color: ${theme?.text || "#333"};
            }
 
           /* 模态框输入框样式 */
           .CategoryHeader__editInput {
             width: 100%;
             padding: 8px 12px;
-            border: 1px solid ${theme.border};
+            border: 1px solid ${theme?.border || "#d9d9d9"};
             border-radius: 6px;
-            background: ${theme.background};
-            color: ${theme.text};
+            background: ${theme?.background || "#fff"};
+            color: ${theme?.text || "#333"};
             outline: none;
             font-size: 14px;
             box-sizing: border-box;
           }
 
           .CategoryHeader__editInput:focus {
-            border-color: ${theme.primary};
-             box-shadow: 0 0 0 2px ${theme.primary}30;
+            border-color: ${theme?.primary || "#1677ff"};
+            box-shadow: 0 0 0 2px ${theme?.primary ? `${theme.primary}30` : "rgba(22, 119, 255, 0.3)"};
           }
         `}
       </style>
