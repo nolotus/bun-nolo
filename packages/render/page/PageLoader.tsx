@@ -1,18 +1,16 @@
 // render/page/PageLoader.tsx
 
-import React, { Suspense, lazy, useEffect } from "react"; // 引入 React 相关
+import React, { Suspense, lazy, useEffect, useMemo } from "react";
 import { useAppDispatch } from "app/hooks";
 import { useParams, useSearchParams } from "react-router-dom";
 
-// 导入子组件 (保持懒加载或直接导入)
-// import DialogPage from "chat/dialog/DialogPage";
-// import RenderPage from "./RenderPage";
-const DialogPage = lazy(() => import("chat/dialog/DialogPage")); // 示例懒加载
-const RenderPage = lazy(() => import("./RenderPage")); // 示例懒加载
+// 懒加载子组件
+const DialogPage = lazy(() => import("chat/dialog/DialogPage"));
+const RenderPage = lazy(() => import("./RenderPage"));
 
 // 导入工具和 Action
-import NoMatch from "../NoMatch"; // 确认路径正确
-import { resetPage } from "./pageSlice"; // 确认路径正确
+import NoMatch from "../NoMatch";
+import { resetPage } from "./pageSlice";
 
 // 简单的加载提示组件
 const LoadingFallback = () => (
@@ -21,60 +19,37 @@ const LoadingFallback = () => (
 
 const PageLoader = () => {
   const { pageKey } = useParams<{ pageKey?: string }>();
-  const [searchParams] = useSearchParams(); // 仍然需要 searchParams 来获取 edit 状态
   const dispatch = useAppDispatch();
-  const isEditMode = searchParams.get("edit") === "true";
 
+  // 移除 searchParams 和 isEditMode 的使用，让 RenderPage 自己处理
+
+  // 仅在组件卸载时清理状态
   useEffect(() => {
-    console.log(
-      "PageLoader: Mounting. Context - pageKey:",
-      pageKey,
-      "| isEditMode:",
-      isEditMode
-    );
     return () => {
-      console.log("PageLoader: Unmounting, resetting page state for:", pageKey);
       dispatch(resetPage());
     };
-  }, [dispatch, pageKey, isEditMode]);
+  }, [dispatch]);
 
   if (!pageKey) {
     console.error("PageLoader: pageKey is missing in URL parameters.");
     return <NoMatch message="页面 Key 缺失" />;
   }
 
-  // 使用 Suspense 包裹懒加载的组件
+  // 简化组件渲染，只依赖 pageKey
   if (pageKey.startsWith("page")) {
-    console.log(
-      "PageLoader: Delegating rendering to RenderPage for pageKey:",
-      pageKey
-    );
     return (
       <Suspense fallback={<LoadingFallback />}>
-        <RenderPage
-          key={pageKey}
-          pageKey={pageKey}
-          // 不再传递 spaceId
-        />
+        <RenderPage pageKey={pageKey} />
       </Suspense>
     );
   } else if (pageKey.startsWith("dialog")) {
-    console.log(
-      "PageLoader: Delegating rendering to DialogPage for pageKey:",
-      pageKey
-    );
     return (
       <Suspense fallback={<LoadingFallback />}>
-        <DialogPage
-          key={pageKey}
-          pageKey={pageKey}
-          // 不再传递 spaceId (除非 DialogPage 需要 URL context spaceId)
-        />
+        <DialogPage pageKey={pageKey} />
       </Suspense>
     );
   }
 
-  console.warn("PageLoader: Unrecognized pageKey format or type:", pageKey);
   return <NoMatch message={`无法识别或处理的页面类型: ${pageKey}`} />;
 };
 
