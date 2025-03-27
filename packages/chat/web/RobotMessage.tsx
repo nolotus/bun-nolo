@@ -52,7 +52,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, controller }) => {
         </div>
       </div>
 
-      <style jsx="robot-msg">{`
+      <style href="robot-msg">{`
         .chat-message-container {
           display: flex;
           margin-bottom: 18px;

@@ -84,7 +84,7 @@ export const MessageContent = ({ content, role }) => {
         />
       )}
 
-      <style jsx>{`
+      <style href="message-content">{`
         @keyframes message-enter {
           from {
             opacity: 0;
