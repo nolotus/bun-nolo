@@ -48,4 +48,28 @@ export const googleModels: Model[] = [
     },
     canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
   },
+  {
+    name: "gemini-2.5-pro-exp-03-25",
+    displayName: "Gemini 2.5 Pro (Experimental 03-25)",
+    provider: "google",
+    description:
+      "Experimental version of Gemini 2.5 Pro (release 03-25).  May have different performance and features.",
+    strengths:
+      "Access to the latest experimental features. Potentially improved performance or capabilities.",
+    hasVision: true, //  Assume it has vision, adjust if not.
+    hasAudio: true, //  Assume it has audio, adjust if not.
+    // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
+    contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly larger.
+    maxOutputTokens: 8192, // Placeholder - Likely similar to Flash, or possibly larger.
+    price: {
+      input: 1.0, //  Placeholder -  Likely higher than Flash, as it's "Pro" and experimental.
+      output: 4.0, //  Placeholder - Likely higher than Flash.
+      cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
+      cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
+    },
+    performance: {
+      latency: "variable", //  Likely variable, especially for experimental models.
+    },
+    canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
+  },
 ];
