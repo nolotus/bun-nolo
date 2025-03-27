@@ -1,17 +1,14 @@
-import React, { memo, useState, useEffect, useMemo, useCallback } from "react";
+import React, { memo, useState, useEffect, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import {
-  addCategory,
   selectCurrentSpace,
   updateContentCategory,
   reorderCategories,
 } from "create/space/spaceSlice";
 import { SpaceContent, Space } from "create/space/types";
-import Button from "web/ui/Button";
 import CategoryHeader from "create/space/components/CategoryHeader";
 import { useTheme } from "app/theme";
-import { AddCategoryModal } from "create/space/components/AddCategoryModal";
-import { SidebarItem } from "./dialog/SidebarItem";
+import { SidebarItem } from "./dialog/SidebarItem"; // Adjust path if necessary
 
 import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
 import {
@@ -21,16 +18,16 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useGroupedContent } from "./hooks/useGroupedContent";
+import { useGroupedContent } from "./hooks/useGroupedContent"; // Adjust path if necessary
 
-// 分组数据：将 space 中的内容按分类分组
+import AddCategoryControl from "create/space/components/AddCategoryControl"; // Corrected import path
+
 interface CategoryItem {
   id: string;
   name: string;
   order?: number;
 }
 
-// 拖拽排序相关 Hook
 const useCategoryDragAndDrop = (
   sortedCategories: CategoryItem[],
   space: Space | null,
@@ -38,10 +35,10 @@ const useCategoryDragAndDrop = (
 ) => {
   return useCallback(
     (activeId: string, overId: string) => {
-      if (!space?.id) return;
+      if (!space?.id || activeId === overId) return;
       const oldIndex = sortedCategories.findIndex((cat) => cat.id === activeId);
       const newIndex = sortedCategories.findIndex((cat) => cat.id === overId);
-      if (oldIndex !== newIndex) {
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         const newOrder = arrayMove(
           sortedCategories.map((cat) => cat.id),
           oldIndex,
@@ -76,7 +73,6 @@ const useItemDragAndDrop = (space: Space | null, dispatch: any) => {
   );
 };
 
-// 可拖拽的分类组件
 interface CategoryDraggableProps {
   id: string;
   children: React.ReactNode;
@@ -110,12 +106,13 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
   };
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      {React.cloneElement(children, { handleProps: listeners })}
+      {React.cloneElement(children as React.ReactElement, {
+        handleProps: listeners,
+      })}
     </div>
   );
 };
 
-// 可拖拽的 Item 组件
 interface ItemDraggableProps {
   id: string;
   containerId: string;
@@ -154,24 +151,25 @@ const ItemDraggable: React.FC<ItemDraggableProps> = ({
   };
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      {React.cloneElement(children, { handleProps: listeners })}
+      {React.cloneElement(children as React.ReactElement, {
+        handleProps: listeners,
+      })}
     </div>
   );
 };
 
-// 分类区域组件
 interface CategorySectionProps {
   category: CategoryItem;
   items: SpaceContent[];
   shouldAnimate: boolean;
-  handleProps?: any;
+  handleProps?: any; // Passed down from CategoryDraggable
 }
 
 const CategorySection: React.FC<CategorySectionProps> = memo(
   ({ category, items, shouldAnimate, handleProps }) => {
     const { isOver, setNodeRef } = useDroppable({
       id: category.id,
-      data: { containerId: category.id },
+      data: { containerId: category.id, type: "CATEGORY_CONTAINER" }, // Add type for clarity
     });
     return (
       <div
@@ -181,7 +179,7 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
         <CategoryHeader
           categoryId={category.id}
           categoryName={category.name}
-          handleProps={handleProps}
+          handleProps={handleProps} // Pass handleProps to CategoryHeader
         />
         <div className="category-content">
           <SortableContext
@@ -205,7 +203,6 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
   }
 );
 
-// 未分类区域组件
 interface UncategorizedSectionProps {
   items: SpaceContent[];
   shouldAnimate: boolean;
@@ -215,7 +212,7 @@ const UncategorizedSection: React.FC<UncategorizedSectionProps> = memo(
   ({ items, shouldAnimate }) => {
     const { isOver, setNodeRef } = useDroppable({
       id: "uncategorized",
-      data: { containerId: "uncategorized" },
+      data: { containerId: "uncategorized", type: "CATEGORY_CONTAINER" }, // Add type for clarity
     });
     return (
       <div
@@ -245,10 +242,8 @@ const UncategorizedSection: React.FC<UncategorizedSectionProps> = memo(
   }
 );
 
-// 主组件
 const ChatSidebar: React.FC = () => {
   const [shouldAnimate, setShouldAnimate] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const dispatch = useAppDispatch();
   const space = useAppSelector(selectCurrentSpace);
   const theme = useTheme();
@@ -263,76 +258,113 @@ const ChatSidebar: React.FC = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!active.data.current || !over) return;
-    const type = active.data.current.type;
-    if (type === "CATEGORY") {
-      handleCategoryDragEnd(active.id as string, over.id as string);
-    } else if (type === "ITEM") {
-      const sourceContainer = active.data.current.containerId;
-      const targetContainer = (over.data.current?.containerId ||
-        over.id) as string;
-      handleItemDragEnd(active.id as string, sourceContainer, targetContainer);
+
+    // Ensure we have valid active and over elements
+    if (!over || !active.data.current) {
+      console.warn("DragEnd event missing active or over data.");
+      return;
+    }
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+    const activeType = active.data.current.type;
+    const overData = over.data.current;
+
+    if (activeId === overId) {
+      // No movement needed
+      return;
+    }
+
+    if (activeType === "CATEGORY") {
+      // Dragging a Category over another Category
+      if (overData?.type === "CATEGORY" || over.id) {
+        // Check if over is a category or a category ID directly
+        handleCategoryDragEnd(activeId, overId);
+      } else {
+        console.warn(
+          `Cannot drop Category onto target with ID ${overId} and data:`,
+          overData
+        );
+      }
+    } else if (activeType === "ITEM") {
+      const sourceContainer = active.data.current.containerId as string;
+      let targetContainer: string | undefined;
+
+      // Determine the target container ID
+      if (overData?.type === "CATEGORY_CONTAINER") {
+        targetContainer = overData.containerId as string; // Dropped onto a category section (droppable)
+      } else if (overData?.type === "ITEM") {
+        targetContainer = overData.containerId as string; // Dropped onto another item
+      } else if (overData?.type === "CATEGORY") {
+        // Sometimes the 'over' might be the CategoryDraggable itself if dropped near the header
+        targetContainer = overId; // Use the category ID directly
+      } else if (overId === "uncategorized") {
+        // Directly dropped onto the 'uncategorized' droppable ID
+        targetContainer = "uncategorized";
+      }
+
+      if (targetContainer && sourceContainer !== targetContainer) {
+        handleItemDragEnd(activeId, sourceContainer, targetContainer);
+      } else if (!targetContainer) {
+        console.warn(
+          `Could not determine target container for item drop. Over ID: ${overId}, Over Data:`,
+          overData
+        );
+      }
     }
   };
 
   useEffect(() => {
-    const hasContent =
-      groupedData.uncategorized.length > 0 ||
-      Object.values(groupedData.categorized).some((list) => list.length > 0);
-    setShouldAnimate(hasContent);
+    const hasCategorizedContent = Object.values(groupedData.categorized).some(
+      (list) => list.length > 0
+    );
+    const hasUncategorizedContent = groupedData.uncategorized.length > 0;
+    setShouldAnimate(hasCategorizedContent || hasUncategorizedContent);
   }, [groupedData]);
 
-  const handleAddCategory = () => setIsAddModalOpen(true);
-  const handleAddCategoryConfirm = (name: string) => {
-    dispatch(addCategory({ name }));
-    setIsAddModalOpen(false);
-  };
+  const categoryIds = useMemo(
+    () => sortedCategories.map((cat) => cat.id),
+    [sortedCategories]
+  );
+  const uncategorizedItemIds = useMemo(
+    () => groupedData.uncategorized.map((item) => item.contentKey),
+    [groupedData.uncategorized]
+  );
+  const categorizedItemIds = useMemo(() => {
+    return sortedCategories.reduce((acc, category) => {
+      const items = groupedData.categorized[category.id] || [];
+      return [...acc, ...items.map((item) => item.contentKey)];
+    }, [] as string[]);
+  }, [sortedCategories, groupedData.categorized]);
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <nav className="chat-sidebar">
         <div className="scroll-area">
-          {sortedCategories.length > 0 && (
-            <SortableContext
-              items={sortedCategories.map((cat) => cat.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {sortedCategories.map((category) => (
-                <CategoryDraggable key={category.id} id={category.id}>
-                  <CategorySection
-                    category={category}
-                    items={groupedData.categorized[category.id] || []}
-                    shouldAnimate={shouldAnimate}
-                  />
-                </CategoryDraggable>
-              ))}
-            </SortableContext>
-          )}
+          <SortableContext
+            items={categoryIds}
+            strategy={verticalListSortingStrategy}
+          >
+            {sortedCategories.map((category) => (
+              <CategoryDraggable key={category.id} id={category.id}>
+                <CategorySection
+                  category={category}
+                  items={groupedData.categorized[category.id] || []}
+                  shouldAnimate={shouldAnimate}
+                />
+              </CategoryDraggable>
+            ))}
+          </SortableContext>
+
           <UncategorizedSection
             items={groupedData.uncategorized}
             shouldAnimate={shouldAnimate}
           />
         </div>
 
-        <div className="button-container">
-          <Button
-            block
-            variant="secondary"
-            size="medium"
-            onClick={handleAddCategory}
-            className="add-category-button"
-          >
-            添加分类
-          </Button>
-        </div>
+        <AddCategoryControl />
 
-        <AddCategoryModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onAddCategory={handleAddCategoryConfirm}
-        />
-
-        <style jsx>{`
+        <style href="chat-sidebar">{`
           .chat-sidebar {
             display: flex;
             flex-direction: column;
@@ -345,7 +377,7 @@ const ChatSidebar: React.FC = () => {
             flex: 1;
             overflow-y: auto;
             padding: 0 8px 12px;
-            margin-right: -4px;
+            margin-right: -4px; /* Compensate for scrollbar width */
           }
 
           .scroll-area::-webkit-scrollbar {
@@ -367,60 +399,39 @@ const ChatSidebar: React.FC = () => {
           }
 
           .category-section {
-            position: relative;
+            position: relative; /* Needed for drag-over pseudo-element */
             margin-bottom: 16px;
             padding: 4px 0;
             border-radius: 8px;
             transition:
               background-color 0.2s ease,
-              transform 0.15s ease;
+              transform 0.15s ease; /* Added transform transition */
+             /* border: 1px solid transparent; // Add transparent border */
           }
 
           .category-section.drag-over {
-            background: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
-            transform: translateY(2px);
+             background: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
+             /* transform: translateY(2px); // Optional visual cue */
           }
 
           .category-section.drag-over::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 8px;
-            box-shadow: 0 0 0 2px ${theme.primaryLight};
-            pointer-events: none;
+              content: "";
+              position: absolute;
+              top: -1px; /* Adjust to cover border */
+              left: -1px;
+              right: -1px;
+              bottom: -1px;
+              border-radius: 9px; /* Slightly larger than section radius */
+              border: 1px dashed ${theme.primaryLight || "#91caff"}; /* Use dashed border */
+              /* box-shadow: 0 0 0 2px ${theme.primaryLight}; */
+              pointer-events: none;
+              z-index: 1; /* Ensure it's above content but below dragged item */
           }
+
 
           .category-content {
             margin-top: 2px;
-            padding: 0 2px;
-          }
-
-          .button-container {
-            padding: 4px 12px 4px;
-            margin-top: 4px;
-          }
-
-          .add-category-button {
-            transition: all 0.2s ease;
-            background: ${theme.backgroundSecondary};
-            border: none;
-            border-radius: 8px;
-            color: ${theme.textSecondary};
-            font-weight: 500;
-            height: 36px;
-          }
-
-          .add-category-button:hover {
-            background: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
-            color: ${theme.primary};
-            transform: translateY(-1px);
-          }
-
-          .add-category-button:active {
-            transform: translateY(0);
+            padding: 0 2px; /* Minimal horizontal padding */
           }
 
           @keyframes fadeIn {
