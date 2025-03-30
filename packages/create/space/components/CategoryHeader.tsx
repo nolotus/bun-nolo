@@ -8,8 +8,8 @@ import {
   XIcon,
   PencilIcon,
   TrashIcon,
-  GrabberIcon,
   PlusIcon,
+  ChevronDownIcon,
 } from "@primer/octicons-react";
 import {
   updateCategoryName,
@@ -25,25 +25,23 @@ interface CategoryHeaderProps {
   categoryName: string;
   onEdit?: (categoryId: string, newName: string) => void;
   onDelete?: (categoryId: string) => void;
-  // isDragOver 属性用于拖拽悬浮样式
   isDragOver?: boolean;
-  // handleProps 用于拖拽
   handleProps?: DraggableSyntheticListeners;
 }
 
 const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   categoryId,
-  categoryName = "", // 添加默认值防止 categoryName 为 undefined
+  categoryName = "",
   onEdit,
   onDelete,
   isDragOver,
   handleProps,
 }) => {
-  // isHovered state 不再直接控制按钮样式，但可用于其他悬停逻辑（如果需要）
-  // const [isHovered, setIsHovered] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState(categoryName || ""); // 确保有默认值
+  const [newCategoryName, setNewCategoryName] = useState(categoryName);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false); // 新增：跟踪拖拽状态
 
   const dispatch = useAppDispatch();
   const theme = useTheme();
@@ -52,16 +50,36 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
 
   const isUncategorized = categoryName === "未分类";
 
+  // 监听拖拽状态变化
+  const enhancedHandleProps = handleProps
+    ? {
+        ...handleProps,
+        onDragStart: (e: any) => {
+          setIsDragging(true);
+          // 调用原始的onDragStart（如果存在）
+          if (handleProps.onDragStart) handleProps.onDragStart(e);
+        },
+        onDragEnd: (e: any) => {
+          setIsDragging(false);
+          // 调用原始的onDragEnd（如果存在）
+          if (handleProps.onDragEnd) handleProps.onDragEnd(e);
+        },
+      }
+    : undefined;
+
+  const toggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+    // 折叠/展开分类的逻辑可在此处实现
+  };
+
   const handleEdit = () => {
-    setNewCategoryName(categoryName || ""); // 确保有有效值
+    setNewCategoryName(categoryName);
     setIsEditModalOpen(true);
   };
 
   const handleConfirmEdit = () => {
-    // 安全检查 newCategoryName 是否存在
     if (
-      newCategoryName &&
-      newCategoryName.trim() &&
+      newCategoryName?.trim() &&
       newCategoryName !== categoryName &&
       spaceId
     ) {
@@ -77,87 +95,72 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         );
       }
       setIsEditModalOpen(false);
-    } else if (!newCategoryName || !newCategoryName.trim()) {
-      // 可选：提示名称不能为空
-      console.warn("Category name cannot be empty.");
     }
   };
 
-  const handleDelete = () => {
-    setIsDeleteModalOpen(true);
-  };
+  const handleDelete = () => setIsDeleteModalOpen(true);
 
   const handleConfirmDelete = () => {
     if (spaceId) {
       if (onDelete) {
         onDelete(categoryId);
       } else {
-        dispatch(
-          deleteCategory({
-            spaceId,
-            categoryId,
-          })
-        );
+        dispatch(deleteCategory({ spaceId, categoryId }));
       }
     }
     setIsDeleteModalOpen(false);
   };
 
   const handleAddPage = async () => {
-    if (!spaceId) {
-      console.error("Cannot create page without a current space ID.");
-      return;
-    }
+    if (!spaceId) return;
     try {
       const dbKey = await dispatch(createPage({ categoryId })).unwrap();
       navigate(`/${dbKey}?edit=true`);
     } catch (error) {
       console.error("Failed to create page:", error);
-      // 添加用户反馈，例如 toast 通知
     }
   };
 
-  // 应用精确化的 CSS 类名，并根据 isDragOver 添加修饰符
-  const headerClassName = `CategoryHeader ${isDragOver ? "CategoryHeader--drag-over" : ""}`;
+  // 构建类名
+  const headerClassName = `CategoryHeader ${
+    isDragOver ? "CategoryHeader--drag-over" : ""
+  } ${isDragging ? "CategoryHeader--dragging" : ""} ${
+    !isUncategorized ? "CategoryHeader--draggable" : ""
+  }`;
 
   return (
     <>
+      {/* 整个标题区域可拖拽（非未分类） */}
       <div
         className={headerClassName}
-        // 移除 onMouseEnter/Leave，因为显隐由 CSS :hover 控制
-        // onMouseEnter={() => setIsHovered(true)}
-        // onMouseLeave={() => setIsHovered(false)}
+        {...(!isUncategorized ? enhancedHandleProps : {})}
+        title={!isUncategorized ? "按住拖拽以调整分类顺序" : ""}
       >
-        {/* 拖拽手柄 */}
-        {!isUncategorized && handleProps && (
-          // 应用精确化的 CSS 类名
-          <span
-            className="CategoryHeader__dragHandle"
-            {...handleProps}
-            title="拖拽以移动"
-          >
-            {/* 移除内联 style 控制 opacity */}
-            <GrabberIcon size={16} />
-          </span>
-        )}
-        {/* 占位符，用于未分类项保持对齐 */}
-        {isUncategorized && (
-          <span className="CategoryHeader__dragHandlePlaceholder"></span>
-        )}
+        {/* 折叠按钮 - 独立事件处理，防止冒泡到拖拽 */}
+        <span
+          className={`CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation(); // 阻止冒泡到拖拽
+            toggleCollapse();
+          }}
+          title={isCollapsed ? "展开分类" : "折叠分类"}
+        >
+          <ChevronDownIcon size={18} />
+        </span>
 
         {/* 分类名称 */}
         <span className="CategoryHeader__name">{categoryName}</span>
 
         {/* 操作按钮区域 */}
-        {/* 应用精确化的 CSS 类名 */}
         <div className="CategoryHeader__actions">
           {/* 添加按钮 */}
           <button
-            // 应用精确化的 CSS 类名
             className="CategoryHeader__actionButton CategoryHeader__actionButton--add"
-            onClick={handleAddPage}
+            onClick={(e) => {
+              e.stopPropagation(); // 阻止冒泡到拖拽
+              handleAddPage();
+            }}
             title="新建页面"
-            // 移除内联 style 控制 opacity
           >
             <PlusIcon size={14} />
           </button>
@@ -167,14 +170,20 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             <>
               <button
                 className="CategoryHeader__actionButton CategoryHeader__actionButton--edit"
-                onClick={handleEdit}
+                onClick={(e) => {
+                  e.stopPropagation(); // 阻止冒泡到拖拽
+                  handleEdit();
+                }}
                 title="编辑分类"
               >
                 <PencilIcon size={14} />
               </button>
               <button
                 className="CategoryHeader__actionButton CategoryHeader__actionButton--delete"
-                onClick={handleDelete}
+                onClick={(e) => {
+                  e.stopPropagation(); // 阻止冒泡到拖拽
+                  handleDelete();
+                }}
                 title="删除分类"
               >
                 <TrashIcon size={14} />
@@ -193,7 +202,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           status="info"
           headerExtra={
             <button
-              className="CategoryHeader__modalCloseButton" // 精确化类名
+              className="CategoryHeader__modalCloseButton"
               onClick={() => setIsEditModalOpen(false)}
             >
               <XIcon size={16} />
@@ -212,10 +221,8 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
                 variant="primary"
                 size="small"
                 onClick={handleConfirmEdit}
-                // 修复：安全地检查 newCategoryName
                 disabled={
-                  !newCategoryName ||
-                  !newCategoryName.trim() ||
+                  !newCategoryName?.trim() ||
                   newCategoryName.trim() === categoryName
                 }
               >
@@ -227,21 +234,18 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         >
           <input
             type="text"
-            value={newCategoryName || ""} // 确保即使是 null 也能正常显示
+            value={newCategoryName || ""}
             onChange={(e) => setNewCategoryName(e.target.value)}
-            className="CategoryHeader__editInput" // 精确化类名
+            className="CategoryHeader__editInput"
             placeholder="请输入新的分类名称"
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                // 触发确认逻辑，如果按钮未禁用
-                if (
-                  newCategoryName &&
-                  newCategoryName.trim() &&
-                  newCategoryName.trim() !== categoryName
-                ) {
-                  handleConfirmEdit();
-                }
+              if (
+                e.key === "Enter" &&
+                newCategoryName?.trim() &&
+                newCategoryName.trim() !== categoryName
+              ) {
+                handleConfirmEdit();
               } else if (e.key === "Escape") {
                 setIsEditModalOpen(false);
               }
@@ -265,165 +269,177 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         />
       )}
 
-      {/* 更新 CSS 选择器 */}
-      <style>
+      <style id="category-header">
         {`
-          .CategoryHeader {
-            box-sizing: border-box;
-            padding: 6px 8px;
-            display: flex;
-            align-items: center;
-            border-radius: 6px;
-            background-color: transparent;
-            border: 1px solid transparent;
-            transition: background-color 0.2s ease-out;
-            user-select: none;
-            cursor: default;
-            min-height: 32px;
-            position: relative; /* 添加 relative 定位以便绝对定位子元素（如果需要） */
-          }
+        .CategoryHeader {
+          box-sizing: border-box;
+          padding: 7px 10px 7px 10px; /* 与SidebarItem一致的padding */
+          display: flex;
+          align-items: center;
+          gap: 10px; /* 与SidebarItem一致的gap */
+          border-radius: 8px;
+          transition: all 0.15s ease;
+          user-select: none;
+          cursor: default;
+          min-height: 36px;
+          position: relative;
+          margin: 8px 0 2px 0;
+          background-color: transparent;
+        }
 
-          .CategoryHeader:hover {
-            background-color: ${theme?.backgroundGhost || "rgba(0,0,0,0.05)"};
-          }
+        /* 可拖拽的标题样式 */
+        .CategoryHeader--draggable {
+          cursor: grab;
+        }
+        
+        /* 拖拽时的视觉反馈 */
+        .CategoryHeader--draggable:active {
+          cursor: grabbing;
+        }
+        
+        /* 拖拽进行中的样式 */
+        .CategoryHeader--dragging {
+          opacity: 0.8;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          background-color: ${theme?.backgroundSecondary || "#f5f5f7"};
+          transform: scale(1.01);
+        }
 
-          /* drag-over 状态的样式 */
-          .CategoryHeader--drag-over {
-            /* 修复：安全地访问 theme 属性 */
-            background-color: ${theme?.primaryGhost || "rgba(22, 119, 255, 0.06)"};
-          }
+        .CategoryHeader:hover {
+          background-color: ${theme?.backgroundHover || "rgba(0,0,0,0.03)"};
+        }
+        
+        /* 在可拖拽区域悬停时添加轻微边框指示 */
+        .CategoryHeader--draggable:hover::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          border-radius: 8px;
+          border: 1px dashed ${theme?.border || "rgba(0,0,0,0.1)"};
+          pointer-events: none;
+          opacity: 0.5;
+        }
 
-          .CategoryHeader__dragHandle {
-            cursor: grab;
-            color: ${theme?.textTertiary || "#999"};
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            margin-right: 4px;
-            flex-shrink: 0;
-            /* 默认隐藏，仅在父元素 hover 时显示 */
-            opacity: 0;
-            transition: opacity 0.15s ease-out, color 0.2s ease-out, background-color 0.2s ease-out;
-          }
-           /* 父元素 hover 时显示拖拽手柄 */
-          .CategoryHeader:hover .CategoryHeader__dragHandle {
-               opacity: 1;
-          }
+        .CategoryHeader--drag-over {
+          background-color: ${theme?.primaryGhost || "rgba(22, 119, 255, 0.06)"};
+        }
 
-          .CategoryHeader__dragHandle:hover {
-            color: ${theme?.textSecondary || "#666"};
-            background-color: ${theme?.backgroundSecondary || "#f0f0f0"};
-          }
+        /* 折叠按钮样式，与SidebarItem的图标对齐 */
+        .CategoryHeader__collapseButton {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: ${theme?.textTertiary || "#999"};
+          cursor: pointer;
+          border-radius: 6px;
+          transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+          flex-shrink: 0;
+          padding: 3px;
+          width: auto;
+          height: auto;
+        }
+        
+        .CategoryHeader__collapseButton:hover {
+          color: ${theme?.textSecondary || "#666"};
+          background-color: ${theme?.backgroundTertiary || "#e8e8e8"};
+        }
+        
+        .CategoryHeader__collapseButton--collapsed {
+          transform: rotate(-90deg);
+        }
 
-          .CategoryHeader__dragHandle:active {
-            color: ${theme?.primary || "#1677ff"};
-            background-color: ${theme?.primaryGhost || "rgba(22, 119, 255, 0.06)"};
-            cursor: grabbing;
-          }
+        .CategoryHeader__name {
+          font-size: 14px;
+          font-weight: 600;
+          color: ${theme?.text || "#333"};
+          flex-grow: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          min-width: 0;
+          line-height: 1.4;
+          letter-spacing: -0.01em;
+        }
 
-          .CategoryHeader__dragHandlePlaceholder {
-            display: block;
-            width: 20px;
-            margin-right: 4px;
-            flex-shrink: 0;
-          }
+        .CategoryHeader__actions {
+          position: absolute;
+          right: 10px;
+          display: flex;
+          gap: 2px;
+          align-items: center;
+          opacity: 0;
+          transition: opacity 0.15s ease;
+          pointer-events: none;
+          background: linear-gradient(90deg, transparent, ${theme?.backgroundHover || "rgba(0,0,0,0.03)"} 20%);
+          padding-left: 20px;
+          z-index: 2; /* 确保按钮在拖拽提示之上 */
+        }
 
+        .CategoryHeader:hover .CategoryHeader__actions {
+          opacity: 1;
+          pointer-events: all;
+        }
 
-          .CategoryHeader__name {
-            font-size: 14px;
-            font-weight: 500;
-            color: ${theme?.textSecondary || "#666"};
-            flex-grow: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            /* 关键：允许 flex item 在空间不足时收缩 */
-            min-width: 0;
-            padding: 2px 0;
-          }
+        .CategoryHeader__actionButton {
+          padding: 4px;
+          background: none;
+          border: none;
+          color: ${theme?.textTertiary || "#999"};
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          border-radius: 4px;
+          transition: color 0.2s ease, background-color 0.2s ease;
+        }
 
-          .CategoryHeader__actions {
-            display: flex;
-            gap: 2px;
-            align-items: center;
-            flex-shrink: 0;
-            margin-left: 8px;
-            /* 默认隐藏 */
-            opacity: 0;
-            /* 添加过渡效果 */
-            transition: opacity 0.15s ease-out;
-          }
+        .CategoryHeader__actionButton:hover {
+          background-color: ${theme?.backgroundTertiary || "#e8e8e8"};
+        }
 
-           /* 悬停时显示操作按钮区域 */
-          .CategoryHeader:hover .CategoryHeader__actions {
-             opacity: 1;
-          }
+        .CategoryHeader__actionButton--add:hover {
+          color: ${theme?.success || "#52c41a"};
+        }
+        .CategoryHeader__actionButton--edit:hover {
+          color: ${theme?.primary || "#1677ff"};
+        }
+        .CategoryHeader__actionButton--delete:hover {
+          color: ${theme?.error || "#ff4d4f"};
+        }
 
-          .CategoryHeader__actionButton {
-            padding: 3px;
-            background: none;
-            border: none;
-            color: ${theme?.textTertiary || "#999"};
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            transition: background-color 0.2s ease-out, color 0.2s ease-out;
-            /* 透明度由父级 .CategoryHeader__actions 控制 */
-          }
+        .CategoryHeader__modalCloseButton {
+          background: none;
+          border: none;
+          color: ${theme?.textSecondary || "#666"};
+          cursor: pointer;
+          padding: 0;
+          display: flex;
+          align-items: center;
+        }
+        
+        .CategoryHeader__modalCloseButton:hover {
+          color: ${theme?.text || "#333"};
+        }
 
-          .CategoryHeader__actionButton:hover {
-            background-color: ${theme?.backgroundSecondary || "#f0f0f0"};
-          }
+        .CategoryHeader__editInput {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid ${theme?.border || "#d9d9d9"};
+          border-radius: 6px;
+          background: ${theme?.background || "#fff"};
+          color: ${theme?.text || "#333"};
+          outline: none;
+          font-size: 14px;
+          box-sizing: border-box;
+        }
 
-          /* 特定按钮的悬停颜色 */
-          .CategoryHeader__actionButton--add:hover {
-            color: ${theme?.success || "#52c41a"};
-          }
-          .CategoryHeader__actionButton--edit:hover {
-            color: ${theme?.primary || "#1677ff"};
-          }
-          .CategoryHeader__actionButton--delete:hover {
-            color: ${theme?.error || "#ff4d4f"};
-          }
-
-
-          /* 模态框关闭按钮样式 */
-          .CategoryHeader__modalCloseButton {
-            background: none;
-            border: none;
-            color: ${theme?.textSecondary || "#666"};
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            align-items: center;
-          }
-           .CategoryHeader__modalCloseButton:hover {
-               color: ${theme?.text || "#333"};
-           }
-
-          /* 模态框输入框样式 */
-          .CategoryHeader__editInput {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid ${theme?.border || "#d9d9d9"};
-            border-radius: 6px;
-            background: ${theme?.background || "#fff"};
-            color: ${theme?.text || "#333"};
-            outline: none;
-            font-size: 14px;
-            box-sizing: border-box;
-          }
-
-          .CategoryHeader__editInput:focus {
-            border-color: ${theme?.primary || "#1677ff"};
-            box-shadow: 0 0 0 2px ${theme?.primary ? `${theme.primary}30` : "rgba(22, 119, 255, 0.3)"};
-          }
-        `}
+        .CategoryHeader__editInput:focus {
+          border-color: ${theme?.primary || "#1677ff"};
+          box-shadow: 0 0 0 2px ${theme?.primary ? `${theme.primary}30` : "rgba(22, 119, 255, 0.3)"};
+        }
+      `}
       </style>
     </>
   );
