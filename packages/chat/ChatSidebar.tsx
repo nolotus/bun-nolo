@@ -5,12 +5,10 @@ import {
   updateContentCategory,
   reorderCategories,
 } from "create/space/spaceSlice";
-import { SpaceContent, Space } from "create/space/types";
-import CategoryHeader from "create/space/components/CategoryHeader";
+import { Space } from "create/space/types";
 import { useTheme } from "app/theme";
-import { SidebarItem } from "./dialog/SidebarItem"; // 请确保路径正确
 
-import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
@@ -21,6 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useGroupedContent } from "./hooks/useGroupedContent"; // 请确保路径正确
 
 import AddCategoryControl from "create/space/components/AddCategoryControl";
+import CategorySection, { UncategorizedSection } from "./CategorySection";
 
 interface CategoryItem {
   id: string;
@@ -126,7 +125,7 @@ interface ItemDraggableProps {
   children: React.ReactNode;
 }
 
-const ItemDraggable: React.FC<ItemDraggableProps> = ({
+export const ItemDraggable: React.FC<ItemDraggableProps> = ({
   id,
   containerId,
   animate,
@@ -164,103 +163,6 @@ const ItemDraggable: React.FC<ItemDraggableProps> = ({
     </div>
   );
 };
-
-// --- 分区组件 ---
-interface CategorySectionProps {
-  category: CategoryItem;
-  items: SpaceContent[];
-  shouldAnimate: boolean;
-  // 从 CategoryDraggable 传递下来的拖拽监听器
-  handleProps?: any;
-}
-
-const CategorySection: React.FC<CategorySectionProps> = memo(
-  ({ category, items, shouldAnimate, handleProps }) => {
-    const { isOver, setNodeRef } = useDroppable({
-      id: category.id,
-      data: { containerId: category.id, type: "CATEGORY_CONTAINER" },
-    });
-    const dragOverClass = isOver ? "ChatSidebar__category--drag-over" : "";
-    return (
-      <div
-        ref={setNodeRef}
-        className={`ChatSidebar__category ${dragOverClass}`}
-      >
-        <CategoryHeader
-          categoryId={category.id}
-          categoryName={category.name}
-          // 将拖拽句柄传递给 Header
-          handleProps={handleProps}
-          isDragOver={isOver} // 将拖拽悬停状态传递给 Header 以应用样式
-        />
-        <div className="ChatSidebar__category-content">
-          <SortableContext
-            items={items.map((item) => item.contentKey)}
-            strategy={verticalListSortingStrategy}
-          >
-            {items.map((item) => (
-              <ItemDraggable
-                key={item.contentKey}
-                id={item.contentKey}
-                containerId={category.id}
-                animate={shouldAnimate}
-              >
-                {/* 将 handleProps 传递给 SidebarItem */}
-                <SidebarItem {...item} />
-              </ItemDraggable>
-            ))}
-          </SortableContext>
-        </div>
-      </div>
-    );
-  }
-);
-
-interface UncategorizedSectionProps {
-  items: SpaceContent[];
-  shouldAnimate: boolean;
-}
-
-const UncategorizedSection: React.FC<UncategorizedSectionProps> = memo(
-  ({ items, shouldAnimate }) => {
-    const { isOver, setNodeRef } = useDroppable({
-      id: "uncategorized",
-      data: { containerId: "uncategorized", type: "CATEGORY_CONTAINER" },
-    });
-    const dragOverClass = isOver ? "ChatSidebar__category--drag-over" : "";
-    return (
-      <div
-        ref={setNodeRef}
-        className={`ChatSidebar__category ChatSidebar__category--uncategorized ${dragOverClass}`}
-      >
-        <CategoryHeader
-          categoryId="uncategorized"
-          categoryName="未分类"
-          isDragOver={isOver} // 将拖拽悬停状态传递给 Header
-          // 未分类区域通常不需要拖拽手柄 (handleProps)
-        />
-        <div className="ChatSidebar__category-content">
-          <SortableContext
-            items={items.map((item) => item.contentKey)}
-            strategy={verticalListSortingStrategy}
-          >
-            {items.map((item) => (
-              <ItemDraggable
-                key={item.contentKey}
-                id={item.contentKey}
-                containerId="uncategorized"
-                animate={shouldAnimate}
-              >
-                {/* 将 handleProps 传递给 SidebarItem */}
-                <SidebarItem {...item} />
-              </ItemDraggable>
-            ))}
-          </SortableContext>
-        </div>
-      </div>
-    );
-  }
-);
 
 // --- 主侧边栏组件 ---
 const ChatSidebar: React.FC = () => {
