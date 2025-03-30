@@ -6,7 +6,6 @@ import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
-import { remove } from "database/dbSlice";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
@@ -47,7 +46,6 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
       return;
     }
     try {
-      await dispatch(remove(contentKey)).unwrap();
       await dispatch(
         deleteContentFromSpace({ contentKey, spaceId: currentSpaceId })
       );
