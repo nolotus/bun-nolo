@@ -10,7 +10,7 @@ import { FaFileLines } from "react-icons/fa6";
 import { selectTheme } from "app/theme/themeSlice"; // 确认路径
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { NavLink, useParams, useSearchParams } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import DeleteContentButton from "./DeleteContentButton"; // 确认路径
 import { selectCurrentSpaceId } from "create/space/spaceSlice"; // 确认路径
 
