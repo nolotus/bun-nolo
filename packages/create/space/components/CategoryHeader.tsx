@@ -41,7 +41,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState(categoryName);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isDragging, setIsDragging] = useState(false); // 新增：跟踪拖拽状态
 
   const dispatch = useAppDispatch();
   const theme = useTheme();
@@ -49,23 +48,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const navigate = useNavigate();
 
   const isUncategorized = categoryName === "未分类";
-
-  // 监听拖拽状态变化
-  const enhancedHandleProps = handleProps
-    ? {
-        ...handleProps,
-        onDragStart: (e: any) => {
-          setIsDragging(true);
-          // 调用原始的onDragStart（如果存在）
-          if (handleProps.onDragStart) handleProps.onDragStart(e);
-        },
-        onDragEnd: (e: any) => {
-          setIsDragging(false);
-          // 调用原始的onDragEnd（如果存在）
-          if (handleProps.onDragEnd) handleProps.onDragEnd(e);
-        },
-      }
-    : undefined;
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -121,45 +103,35 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
     }
   };
 
-  // 构建类名
-  const headerClassName = `CategoryHeader ${
-    isDragOver ? "CategoryHeader--drag-over" : ""
-  } ${isDragging ? "CategoryHeader--dragging" : ""} ${
-    !isUncategorized ? "CategoryHeader--draggable" : ""
-  }`;
+  const headerClassName = `CategoryHeader ${isDragOver ? "CategoryHeader--drag-over" : ""}`;
 
   return (
     <>
-      {/* 整个标题区域可拖拽（非未分类） */}
-      <div
-        className={headerClassName}
-        {...(!isUncategorized ? enhancedHandleProps : {})}
-        title={!isUncategorized ? "按住拖拽以调整分类顺序" : ""}
-      >
-        {/* 折叠按钮 - 独立事件处理，防止冒泡到拖拽 */}
+      <div className={headerClassName}>
+        {/* 折叠按钮 */}
         <span
           className={`CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`}
-          onClick={(e) => {
-            e.stopPropagation(); // 阻止冒泡到拖拽
-            toggleCollapse();
-          }}
+          onClick={toggleCollapse}
           title={isCollapsed ? "展开分类" : "折叠分类"}
         >
           <ChevronDownIcon size={18} />
         </span>
 
-        {/* 分类名称 */}
-        <span className="CategoryHeader__name">{categoryName}</span>
+        {/* 分类名称 - 只有标题文本部分可拖拽 */}
+        <span
+          className={`CategoryHeader__name ${!isUncategorized ? "CategoryHeader__name--draggable" : ""}`}
+          {...(!isUncategorized && handleProps ? handleProps : {})}
+          title={!isUncategorized ? "拖拽以调整分类顺序" : ""}
+        >
+          {categoryName}
+        </span>
 
         {/* 操作按钮区域 */}
         <div className="CategoryHeader__actions">
           {/* 添加按钮 */}
           <button
             className="CategoryHeader__actionButton CategoryHeader__actionButton--add"
-            onClick={(e) => {
-              e.stopPropagation(); // 阻止冒泡到拖拽
-              handleAddPage();
-            }}
+            onClick={handleAddPage}
             title="新建页面"
           >
             <PlusIcon size={14} />
@@ -170,20 +142,14 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
             <>
               <button
                 className="CategoryHeader__actionButton CategoryHeader__actionButton--edit"
-                onClick={(e) => {
-                  e.stopPropagation(); // 阻止冒泡到拖拽
-                  handleEdit();
-                }}
+                onClick={handleEdit}
                 title="编辑分类"
               >
                 <PencilIcon size={14} />
               </button>
               <button
                 className="CategoryHeader__actionButton CategoryHeader__actionButton--delete"
-                onClick={(e) => {
-                  e.stopPropagation(); // 阻止冒泡到拖拽
-                  handleDelete();
-                }}
+                onClick={handleDelete}
                 title="删除分类"
               >
                 <TrashIcon size={14} />
@@ -278,49 +244,16 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           align-items: center;
           gap: 10px; /* 与SidebarItem一致的gap */
           border-radius: 8px;
-          transition: all 0.15s ease;
+          transition: background-color 0.15s ease;
           user-select: none;
           cursor: default;
           min-height: 36px;
           position: relative;
           margin: 8px 0 2px 0;
-          background-color: transparent;
-        }
-
-        /* 可拖拽的标题样式 */
-        .CategoryHeader--draggable {
-          cursor: grab;
-        }
-        
-        /* 拖拽时的视觉反馈 */
-        .CategoryHeader--draggable:active {
-          cursor: grabbing;
-        }
-        
-        /* 拖拽进行中的样式 */
-        .CategoryHeader--dragging {
-          opacity: 0.8;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          background-color: ${theme?.backgroundSecondary || "#f5f5f7"};
-          transform: scale(1.01);
         }
 
         .CategoryHeader:hover {
           background-color: ${theme?.backgroundHover || "rgba(0,0,0,0.03)"};
-        }
-        
-        /* 在可拖拽区域悬停时添加轻微边框指示 */
-        .CategoryHeader--draggable:hover::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          border-radius: 8px;
-          border: 1px dashed ${theme?.border || "rgba(0,0,0,0.1)"};
-          pointer-events: none;
-          opacity: 0.5;
         }
 
         .CategoryHeader--drag-over {
@@ -362,25 +295,45 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           min-width: 0;
           line-height: 1.4;
           letter-spacing: -0.01em;
+          padding: 4px 0; /* 增加可点击区域 */
+        }
+        
+        /* 可拖拽的标题文本样式 */
+        .CategoryHeader__name--draggable {
+          cursor: grab;
+          position: relative; /* 用于伪元素定位 */
+        }
+        
+        /* 拖拽时光标变化 */
+        .CategoryHeader__name--draggable:active {
+          cursor: grabbing;
+        }
+        
+        /* 为拖拽区域添加悬停效果 */
+        .CategoryHeader__name--draggable:hover::after {
+          content: "";
+          position: absolute;
+          left: -4px;
+          right: -4px;
+          top: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.03);
+          border-radius: 4px;
+          pointer-events: none;
+          z-index: -1;
         }
 
         .CategoryHeader__actions {
-          position: absolute;
-          right: 10px;
           display: flex;
           gap: 2px;
           align-items: center;
+          margin-left: auto;
           opacity: 0;
           transition: opacity 0.15s ease;
-          pointer-events: none;
-          background: linear-gradient(90deg, transparent, ${theme?.backgroundHover || "rgba(0,0,0,0.03)"} 20%);
-          padding-left: 20px;
-          z-index: 2; /* 确保按钮在拖拽提示之上 */
         }
 
         .CategoryHeader:hover .CategoryHeader__actions {
           opacity: 1;
-          pointer-events: all;
         }
 
         .CategoryHeader__actionButton {
