@@ -2,7 +2,6 @@ import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { remove } from "database/dbSlice";
 import toast from "react-hot-toast";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import {
@@ -30,8 +29,6 @@ const DeleteButton = ({ dbKey }: DeleteButtonProps) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      dispatch(remove(deleteKey));
-
       await dispatch(
         deleteContentFromSpace({ contentKey: deleteKey, spaceId })
       );
