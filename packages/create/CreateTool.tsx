@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { formatISO } from "date-fns";
-import { patchData } from "database/dbSlice";
+import { patch } from "database/dbSlice";
 import {
   selectPageData,
   selectIsReadOnly,
@@ -69,7 +69,7 @@ export const CreateTool = () => {
           ?.children?.[0]?.text || "未命名页面";
 
       await dispatch(
-        patchData({
+        patch({
           dbKey,
           changes: {
             updated_at: nowISO,

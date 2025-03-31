@@ -1,7 +1,7 @@
 import type { SpaceId, SpaceData } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-import { read, patchData } from "database/dbSlice";
+import { read, patch } from "database/dbSlice";
 
 export const reorderCategoriesAction = async (
   input: { spaceId: SpaceId; sortedCategoryIds: string[] },
@@ -40,7 +40,7 @@ export const reorderCategoriesAction = async (
   });
 
   const updatedSpaceData = await dispatch(
-    patchData({ dbKey: spaceKey, changes })
+    patch({ dbKey: spaceKey, changes })
   ).unwrap();
 
   return { spaceId, updatedSpaceData };

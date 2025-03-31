@@ -4,7 +4,7 @@ import {
   selectCurrentSpaceId,
   updateContentTitle,
 } from "create/space/spaceSlice";
-import { patchData, selectById } from "database/dbSlice";
+import { patch, selectById } from "database/dbSlice";
 import { format, differenceInHours } from "date-fns";
 
 import { NoloRootState } from "app/store";
@@ -78,7 +78,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
     updateContentTitle({ spaceId, contentKey: dialogKey, title })
   );
   const result = await dispatch(
-    patchData({ dbKey: dialogKey, changes: { title } })
+    patch({ dbKey: dialogKey, changes: { title } })
   ).unwrap();
 
   return result;

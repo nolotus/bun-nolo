@@ -1,5 +1,5 @@
 import { selectCurrentUserId } from "auth/authSlice";
-import { read, patchData } from "database/dbSlice";
+import { read, patch } from "database/dbSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { SpaceVisibility } from "create/space/types";
 
@@ -42,7 +42,7 @@ export const updateSpaceAction = async (
 
   // 使用 patchData 更新空间数据
   const updatedSpaceData = await dispatch(
-    patchData({
+    patch({
       dbKey: spaceKey,
       changes,
     })
@@ -55,7 +55,7 @@ export const updateSpaceAction = async (
 
     if (memberData) {
       await dispatch(
-        patchData({
+        patch({
           dbKey: memberKey,
           changes: { spaceName: name },
         })

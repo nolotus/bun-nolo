@@ -1,7 +1,7 @@
 import { SpaceId, SpaceData } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-import { read, patchData } from "database/dbSlice";
+import { read, patch } from "database/dbSlice";
 
 export const updateContentCategoryAction = async (
   input: { spaceId: SpaceId; contentKey: string; categoryId: string | null },
@@ -41,7 +41,7 @@ export const updateContentCategoryAction = async (
   };
 
   const updatedSpaceData = await dispatch(
-    patchData({ dbKey: spaceKey, changes })
+    patch({ dbKey: spaceKey, changes })
   ).unwrap();
 
   return { spaceId, updatedSpaceData };

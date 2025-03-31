@@ -18,7 +18,7 @@ import {
 } from "create/editor/utils/slateUtils";
 
 const Editor = React.lazy(() => import("create/editor/Editor"));
-import { patchData } from "database/dbSlice";
+import { patch } from "database/dbSlice";
 import {
   initPage,
   selectPageData,
@@ -150,7 +150,7 @@ const RenderPage: React.FC<RenderPageProps> = ({ pageKey }) => {
       const title = extractTitleFromSlate(currentSlateData);
       // Save page data
       await dispatch(
-        patchData({
+        patch({
           dbKey: pageKey,
           changes: { updated_at: nowISO, slateData: currentSlateData, title },
         })

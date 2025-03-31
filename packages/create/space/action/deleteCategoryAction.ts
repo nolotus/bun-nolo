@@ -1,7 +1,7 @@
 import type { SpaceId, SpaceData } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-import { read, patchData } from "database/dbSlice";
+import { read, patch } from "database/dbSlice";
 
 export const deleteCategoryAction = async (
   input: { categoryId: string; spaceId: SpaceId },
@@ -54,7 +54,7 @@ export const deleteCategoryAction = async (
   let updatedSpaceData: SpaceData;
   try {
     updatedSpaceData = await dispatch(
-      patchData({ dbKey: spaceKey, changes })
+      patch({ dbKey: spaceKey, changes })
     ).unwrap();
     console.log("[DEBUG] Updated SpaceData:", {
       categories: Object.keys(updatedSpaceData.categories || {}),

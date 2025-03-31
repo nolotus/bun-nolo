@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { DataType } from "create/types";
 import { useTheme } from "app/theme";
 import { selectCurrentSpace } from "create/space/spaceSlice";
-import { patchData } from "database/dbSlice";
+import { patch } from "database/dbSlice";
 import { getModelsByProvider } from "ai/llm/providers";
 import { SyncIcon } from "@primer/octicons-react";
 
@@ -54,7 +54,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   // 提交表单
   const onSubmit = async (data) => {
     await dispatch(
-      patchData({
+      patch({
         dbKey: initialValues.dbKey || initialValues.id,
         changes: {
           ...data,
