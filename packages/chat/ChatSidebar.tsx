@@ -16,7 +16,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useGroupedContent } from "./hooks/useGroupedContent"; // 请确保路径正确
+import { useGroupedContent } from "./hooks/useGroupedContent";
 
 import AddCategoryControl from "create/space/components/AddCategoryControl";
 import CategorySection, { UncategorizedSection } from "./CategorySection";
@@ -94,7 +94,7 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
     id,
     data: { type: "CATEGORY" },
   });
-  // dnd-kit 动态计算的样式
+
   const style = {
     transform: transform ? CSS.Transform.toString(transform) : undefined,
     transition,
@@ -110,7 +110,6 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
       className={`CategoryDraggable ${draggingClass}`}
       {...attributes}
     >
-      {/* 将拖拽监听器传递给子组件 (CategorySection -> CategoryHeader) */}
       {React.cloneElement(children as React.ReactElement, {
         handleProps: listeners,
       })}
@@ -156,7 +155,6 @@ export const ItemDraggable: React.FC<ItemDraggableProps> = ({
       className={`ItemDraggable ${draggingClass}`}
       {...attributes}
     >
-      {/* 将拖拽监听器传递给子组件 (SidebarItem) */}
       {React.cloneElement(children as React.ReactElement, {
         handleProps: listeners,
       })}
@@ -184,7 +182,6 @@ const ChatSidebar: React.FC = () => {
     const { active, over } = event;
 
     if (!over || !active.data.current) {
-      // console.warn("DragEnd event missing active or over data.");
       return;
     }
 
@@ -193,38 +190,28 @@ const ChatSidebar: React.FC = () => {
     const activeType = active.data.current.type;
     const overData = over.data.current;
 
-    if (activeId === overId) return; // 没有移动
+    if (activeId === overId) return;
 
     if (activeType === "CATEGORY") {
-      // 确保目标是另一个分类或其容器
       if (overData?.type === "CATEGORY" || over.id) {
         handleCategoryDragEnd(activeId, overId);
-      } else {
-        // console.warn(`Cannot drop Category onto target with ID ${overId} and data:`, overData);
       }
     } else if (activeType === "ITEM") {
       const sourceContainer = active.data.current.containerId as string;
       let targetContainer: string | undefined;
 
-      // 确定放置的目标容器 ID
       if (overData?.type === "CATEGORY_CONTAINER") {
-        // 拖到分类区域 (Droppable)
         targetContainer = overData.containerId as string;
       } else if (overData?.type === "ITEM") {
-        // 拖到另一个 Item 上方/下方
         targetContainer = overData.containerId as string;
       } else if (overData?.type === "CATEGORY") {
-        // 拖到 CategoryDraggable 附近 (可能落在 Category Header 上)
-        targetContainer = overId; // 直接使用分类 ID
+        targetContainer = overId;
       } else if (overId === "uncategorized") {
-        // 拖到未分类区域 (Droppable)
         targetContainer = "uncategorized";
       }
 
       if (targetContainer && sourceContainer !== targetContainer) {
         handleItemDragEnd(activeId, sourceContainer, targetContainer);
-      } else if (!targetContainer) {
-        // console.warn(`Could not determine target container for item drop. Over ID: ${overId}, Over Data:`, overData);
       }
     }
   };
@@ -235,11 +222,9 @@ const ChatSidebar: React.FC = () => {
       (list) => list.length > 0
     );
     const hasUncategorizedContent = groupedData.uncategorized.length > 0;
-    // 仅当有内容时才启用动画，避免空列表也执行动画
     setShouldAnimate(hasCategorizedContent || hasUncategorizedContent);
   }, [groupedData]);
 
-  // 优化：仅在分类变化时重新计算 ID 列表
   const categoryIds = useMemo(
     () => sortedCategories.map((cat) => cat.id),
     [sortedCategories]
@@ -249,7 +234,6 @@ const ChatSidebar: React.FC = () => {
     <DndContext onDragEnd={handleDragEnd}>
       <nav className="ChatSidebar">
         <div className="ChatSidebar__scroll-area">
-          {/* 分类列表 */}
           <SortableContext
             items={categoryIds}
             strategy={verticalListSortingStrategy}
@@ -265,17 +249,15 @@ const ChatSidebar: React.FC = () => {
             ))}
           </SortableContext>
 
-          {/* 未分类区域 */}
           <UncategorizedSection
             items={groupedData.uncategorized}
             shouldAnimate={shouldAnimate}
           />
         </div>
 
-        {/* 添加分类控件 */}
         <AddCategoryControl />
 
-        <style href="chat-sidebar">{`
+        <style>{`
           .ChatSidebar {
             display: flex;
             flex-direction: column;
@@ -289,7 +271,6 @@ const ChatSidebar: React.FC = () => {
             flex: 1;
             overflow-y: auto;
             padding: 0 8px 12px;
-            /* 补偿滚动条宽度，避免内容抖动 */
             margin-right: -4px;
           }
 
@@ -309,69 +290,30 @@ const ChatSidebar: React.FC = () => {
           }
 
           .CategoryDraggable {
-             /* 控制分类块之间的间距 */
-             margin-bottom: 16px;
-             border-radius: 8px;
-             position: relative;
-             background-color: transparent;
-             transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 8px;
+            position: relative;
+            background-color: transparent;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
           }
-          /* 拖拽时的分类块样式 */
+
           .CategoryDraggable--dragging {
             background-color: ${theme.backgroundSecondary};
             box-shadow: 0 6px 16px rgba(0,0,0,0.08);
             opacity: 0.9;
-            /* z-index 和 position 由 dnd-kit 的 style 属性控制 */
-          }
-
-          /* 分类区域（包括未分类）的基础样式 */
-          .ChatSidebar__category {
-            position: relative;
-            padding: 4px 0;
-            border-radius: 8px;
-            transition: background-color 0.2s ease;
-          }
-
-          /* 拖拽物悬停在分类区域上时的样式 */
-          .ChatSidebar__category--drag-over {
-             background: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
-          }
-          /* 拖拽物悬停在分类区域上时的边框指示 */
-          .ChatSidebar__category--drag-over::after {
-              content: "";
-              position: absolute;
-              top: -1px;
-              left: -1px;
-              right: -1px;
-              bottom: -1px;
-              border-radius: 9px;
-              border: 1px dashed ${theme.primaryLight || "#91caff"};
-              pointer-events: none;
-              z-index: 1; /* 确保在内容之上，但在拖拽物之下 */
-          }
-
-           /* 可选：未分类区域的特定样式 */
-           /* .ChatSidebar__category--uncategorized { } */
-
-          .ChatSidebar__category-content {
-            margin-top: 2px;
-            padding: 0 2px;
           }
 
           .ItemDraggable {
-             margin: 3px 0;
-             position: relative;
-             border-radius: 6px;
-             transition: opacity 0.2s ease, box-shadow 0.2s ease;
-          }
-          /* 拖拽时的条目样式 */
-          .ItemDraggable--dragging {
-             opacity: 0.8;
-             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-             /* z-index 和 position 由 dnd-kit 的 style 属性控制 */
+            margin: 3px 0;
+            position: relative;
+            border-radius: 6px;
+            transition: opacity 0.2s ease, box-shadow 0.2s ease;
           }
 
-          /* 条目淡入动画 */
+          .ItemDraggable--dragging {
+            opacity: 0.8;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+          }
+
           @keyframes itemFadeIn {
             from {
               opacity: 0;
