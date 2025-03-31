@@ -1,21 +1,23 @@
 // src/database/actions/upsertAction.ts
 import { browserDb } from "../browser/db";
 import { selectCurrentServer } from "setting/settingSlice";
-import { selectCurrentUserId, selectIsLoggedIn } from "auth/authSlice";
-import pino from "pino";
-import { API_ENDPOINTS } from "../config";
-import { getAllServers, normalizeTimeFields, logger } from "./common"; // Assuming logger is exported from common
-import { noloRequest } from "../requests"; // Import noloRequest for patch
+import { selectCurrentUserId } from "auth/authSlice"; // Removed selectIsLoggedIn as it wasn't used
+import { getAllServers, normalizeTimeFields, logger } from "./common";
+import {
+  noloPatchRequest, // Import new patch request function
+  noloWriteRequest, // Import new write request function
+  syncWithServers, // Import the generic sync utility
+} from "../requests";
 import { toast } from "react-hot-toast";
 
-const TIMEOUT = 5000; // Timeout for server requests
-
-// --- Helper Functions (Consider moving to common if used elsewhere) ---
-
 // 深度合并工具函数，支持删除（null 值） - Copied from patchAction.ts logic
+// Consider moving to a shared utility file if used in multiple actions
 const deepMerge = (target: any, source: any): any => {
   const output = { ...target };
   for (const key in source) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (!source.hasOwnProperty(key)) continue; // Skip prototype properties
+
     if (source[key] === null && key in output) {
       delete output[key]; // Handle explicit null for deletion
     } else if (
@@ -25,7 +27,7 @@ const deepMerge = (target: any, source: any): any => {
     ) {
       // Recursively merge objects, ensuring target key exists and is an object
       output[key] = deepMerge(output[key] || {}, source[key]);
-    } else if (source.hasOwnProperty(key)) {
+    } else {
       // Assign primitive values or arrays directly
       output[key] = source[key];
     }
@@ -33,112 +35,25 @@ const deepMerge = (target: any, source: any): any => {
   return output;
 };
 
-// --- Server Sync Functions ---
-
-// Sync function adapted from patchAction for sending *changes*
-const syncPatchWithServers = (
-  servers: string[],
-  dbKey: string,
-  updates: any, // Only the changes
-  state: any
-) => {
-  servers.forEach((server) => {
-    const abortController = new AbortController();
-    const timeoutId = setTimeout(() => {
-      abortController.abort();
-    }, TIMEOUT);
-
-    // Use noloRequest similar to patchAction
-    noloRequest(
-      server,
-      {
-        url: `${API_ENDPOINTS.DATABASE}/patch/${dbKey}`,
-        method: "PATCH",
-        body: JSON.stringify(updates), // Send only the changes
-      },
-      state,
-      abortController.signal
-    )
-      .then((response) => {
-        clearTimeout(timeoutId);
-        if (!response.ok) {
-          // Log or minor notification, avoid blocking toast for background sync
-          console.error(
-            `Upsert (patch sync) failed with ${server}: HTTP ${response.status}`
-          );
-        }
-      })
-      .catch((error) => {
-        clearTimeout(timeoutId);
-        if (error.name !== "AbortError") {
-          console.error(
-            `Upsert (patch sync) failed with ${server}: ${
-              error.message || "Unknown error"
-            }`
-          );
-          // Optional: Minor notification instead of toast for background sync
-          // toast.error(`Sync patch failed with ${server}`);
-        }
-      });
-  });
-};
-
-// Sync function adapted from writeAction for sending *full data*
-const syncWriteWithServers = (
-  servers: string[],
-  writeConfig: { data: any; customKey: string; userId?: string }, // Contains full data
-  state: any
-): void => {
-  const { data, customKey, userId } = writeConfig;
-
-  servers.forEach((server) => {
-    const abortController = new AbortController();
-    const timeoutId = setTimeout(() => abortController.abort(), TIMEOUT);
-
-    const headers = {
-      "Content-Type": "application/json",
-      ...(state.auth?.currentToken && {
-        Authorization: `Bearer ${state.auth.currentToken}`,
-      }),
-    };
-
-    fetch(`${server}${API_ENDPOINTS.DATABASE}/write/`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ data, customKey, userId }),
-      signal: abortController.signal,
-    })
-      .then((response) => {
-        clearTimeout(timeoutId);
-        if (!response.ok) {
-          console.error(
-            `Upsert (write sync) failed with ${server}: HTTP ${response.status}`
-          );
-          // Optional: Minor notification instead of toast for background sync
-          // toast.error(`Sync write failed with ${server}`);
-        }
-      })
-      .catch((error) => {
-        clearTimeout(timeoutId);
-        if (error.name !== "AbortError") {
-          console.error(
-            `Upsert (write sync) failed with ${server}: ${
-              error.message || "Unknown error"
-            }`
-          );
-        }
-      });
-  });
-};
-
 // --- Main Upsert Action ---
 
+/**
+ * Upserts data: Updates if exists locally, otherwise inserts.
+ * Syncs changes (patch) or full data (write) with servers asynchronously.
+ * @param upsertConfig Contains dbKey (required) and data (required). userId is optional override.
+ * @param thunkApi Redux Thunk API
+ * @param clientDb Database client (defaults to browserDb)
+ * @returns Promise<any> The upserted data object.
+ * @throws Error if arguments are invalid, db is undefined, or local operation fails.
+ */
 export const upsertAction = async (
-  upsertConfig: { dbKey: string; data: any; userId?: string }, // Expect dbKey and data
+  upsertConfig: { dbKey: string; data: any; userId?: string },
   thunkApi: any,
-  clientDb: any = browserDb
+  clientDb: any = browserDb // Allow injecting db for testing
 ): Promise<any> => {
   const { dbKey, data } = upsertConfig;
+
+  // --- Input Validation ---
   if (!dbKey || !data || typeof data !== "object") {
     const errorMsg =
       "Invalid arguments for upsertAction: dbKey and data object are required.";
@@ -156,92 +71,127 @@ export const upsertAction = async (
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
   const currentUserId = selectCurrentUserId(state);
-  const providedUserId = upsertConfig.userId; // Optional userId override
-  const userId = providedUserId || currentUserId; // Use provided or fallback to current
+  const providedUserId = upsertConfig.userId; // Optional userId override from config
+  const userId = providedUserId || currentUserId; // Use provided or fallback to current user from auth state
 
-  // Prepare server list - Use a Set to avoid duplicates like in patchAction
-  const servers = getAllServers(currentServer); // Assuming getAllServers handles unique servers
+  // Prepare server list - getAllServers should handle uniqueness
+  const servers = getAllServers(currentServer);
 
   try {
-    // 1. Check if data exists locally
+    // 1. Check if data exists locally using the provided dbKey
     const localData = await clientDb.get(dbKey);
 
     if (localData) {
-      // --- UPDATE PATH ---
-      logger.info({ dbKey }, "Upserting (Update Path)");
+      // --- UPDATE PATH (Data exists locally) ---
+      logger.info({ dbKey }, "Upserting (Update Path - data exists locally)");
 
-      // Prepare changes, always update 'updatedAt'
+      // Prepare the changes to be applied, always include/update 'updatedAt'
       const updatedChanges = {
-        ...data, // Apply incoming data changes
-        updatedAt: new Date().toISOString(), // Ensure updatedAt is fresh
+        ...data, // Apply incoming data changes first
+        updatedAt: new Date().toISOString(), // Ensure 'updatedAt' is fresh
         // Ensure userId is present if it wasn't before or needs updating
         ...(userId && { userId }),
       };
 
-      // Merge existing data with new changes
+      // Merge existing local data with the new changes
+      // deepMerge handles nested objects and null for deletion
       const newData = deepMerge(localData, updatedChanges);
 
-      // Update local database first
+      // 2. Update local database first (atomic operation locally)
       await clientDb.put(dbKey, newData);
+      logger.debug({ dbKey, newData }, "Local database updated successfully.");
 
-      // Asynchronously sync *changes* to servers in the background
+      // 3. Asynchronously sync *only the changes* (patch) to servers in the background
+      // Use Promise.resolve().then() to ensure it runs after the current microtask queue
       Promise.resolve().then(() => {
-        // Pass only the changes (updatedChanges) for patching
-        syncPatchWithServers(servers, dbKey, updatedChanges, state);
+        logger.debug(
+          { dbKey, servers: servers.length },
+          "Initiating background patch sync"
+        );
+        syncWithServers(
+          servers,
+          noloPatchRequest, // Use the imported patch request function
+          `Upsert (patch sync) failed with`, // Error message prefix for sync utility
+          dbKey,
+          updatedChanges, // Pass only the changes object
+          state // Pass state for auth token, etc.
+        );
       });
 
-      // Return the merged data for Redux state update
+      // 4. Return the fully merged data immediately for Redux state update
       return newData;
     } else {
-      // --- INSERT PATH ---
-      logger.info({ dbKey }, "Upserting (Insert Path)");
+      // --- INSERT PATH (Data does not exist locally) ---
+      logger.info(
+        { dbKey },
+        "Upserting (Insert Path - data does not exist locally)"
+      );
 
-      // Prepare the full data object for saving
+      // Prepare the full data object for saving (new entry)
       const willSaveData = normalizeTimeFields({
         // Adds createdAt and updatedAt
-        ...data, // Include all data provided
-        dbKey: dbKey, // Ensure dbKey is part of the object
+        ...data, // Include all data provided in the config
+        dbKey: dbKey, // Ensure dbKey is part of the object saved
         userId: userId, // Ensure userId is included
       });
 
-      // Check data type validity (similar to writeAction)
-      if (
-        willSaveData.type &&
-        ![
-          "MSG",
-          "CYBOT",
-          "PAGE",
-          "DIALOG",
-          "TOKEN",
-          "TRANSACTION",
-          "SPACE",
-          "SETTING",
-        ].includes(willSaveData.type)
-      ) {
-        throw new Error(`Invalid data type for upsert: ${willSaveData.type}`);
+      // Optional: Data type validation (if applicable to your data structure)
+      const VALID_TYPES = [
+        "MSG",
+        "CYBOT",
+        "PAGE",
+        "DIALOG",
+        "TOKEN",
+        "TRANSACTION",
+        "SPACE",
+        "SETTING",
+      ];
+      if (willSaveData.type && !VALID_TYPES.includes(willSaveData.type)) {
+        // Consider if this should be a warning or an error depending on strictness
+        logger.warn(
+          { dbKey, type: willSaveData.type },
+          `Invalid data type encountered during insert: ${willSaveData.type}`
+        );
+        // throw new Error(`Invalid data type for upsert: ${willSaveData.type}`); // Uncomment to make it a hard error
       }
 
-      // Save the new data to the local database first
+      // 2. Save the new data to the local database first
       await clientDb.put(dbKey, willSaveData);
+      logger.debug(
+        { dbKey, willSaveData },
+        "New data saved to local database successfully."
+      );
 
-      // Asynchronously sync *full data* to servers in the background
+      // 3. Asynchronously sync the *full data object* (write) to servers in the background
       Promise.resolve().then(() => {
+        logger.debug(
+          { dbKey, servers: servers.length },
+          "Initiating background write sync"
+        );
         const serverWriteConfig = {
+          // Prepare config for noloWriteRequest
           data: willSaveData,
           customKey: dbKey,
           userId,
         };
-        syncWriteWithServers(servers, serverWriteConfig, state);
+        syncWithServers(
+          servers,
+          noloWriteRequest, // Use the imported write request function
+          `Upsert (write sync) failed with`, // Error message prefix
+          serverWriteConfig, // Pass the write configuration object
+          state // Pass state
+        );
       });
 
-      // Return the prepared data for Redux state update
+      // 4. Return the prepared data immediately for Redux state update
       return willSaveData;
     }
   } catch (error: any) {
     const errorMessage = `Upsert action failed for ${dbKey}: ${error.message || "Unknown error"}`;
     logger.error({ err: error, dbKey }, errorMessage);
-    toast.error(`Failed to save data for ${dbKey}.`); // User-friendly error
-    // Re-throw the error so the async thunk promise is rejected
+    // Provide a user-friendly error message via toast
+    toast.error(`Failed to save data for ${dbKey}. Changes might not persist.`);
+    // Re-throw the error so the calling async thunk (if any) knows the operation failed
     throw error;
   }
 };
