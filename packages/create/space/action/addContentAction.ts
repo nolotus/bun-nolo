@@ -1,7 +1,7 @@
 import { AddContentRequest, SpaceId, SpaceContent } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-import { patchData, read } from "database/dbSlice";
+import { patch, read } from "database/dbSlice";
 
 export const addContentAction = async (
   input: AddContentRequest & { spaceId: SpaceId },
@@ -52,7 +52,7 @@ export const addContentAction = async (
 
   // 写入更新后的space数据
   const updatedSpaceData = await dispatch(
-    patchData({
+    patch({
       dbKey: spaceKey,
       changes,
     })

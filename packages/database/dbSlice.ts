@@ -76,7 +76,7 @@ const dbSlice = createSliceWithThunks({
       }
       dbAdapter.upsertMany(state, action.payload);
     },
-    patchData: create.asyncThunk(patchAction, {
+    patch: create.asyncThunk(patchAction, {
       fulfilled: (state, action) => {
         const { payload } = action;
         if (!payload.dbKey || Object.keys(payload).length <= 1) {
@@ -93,7 +93,7 @@ const dbSlice = createSliceWithThunks({
   }),
 });
 
-export const { upsertMany, remove, patchData, read, write, queryServer } =
+export const { upsertMany, remove, patch, read, write, queryServer } =
   dbSlice.actions;
 
 export default dbSlice.reducer;

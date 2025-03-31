@@ -1,7 +1,7 @@
 // src/database/actions/space/deleteContentFromSpaceAction.ts (请根据你的项目结构调整路径)
 import { selectCurrentUserId } from "auth/authSlice"; // 假设路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 假设路径
-import { patchData, read, remove } from "database/dbSlice"; // 从 dbSlice 导入
+import { patch, read, remove } from "database/dbSlice"; // 从 dbSlice 导入
 import { SpaceData } from "create/space/types"; // 导入 SpaceData 类型
 import pino from "pino"; // 假设你使用 pino 进行日志记录
 
@@ -74,7 +74,7 @@ export const deleteContentFromSpaceAction = async (
     };
     try {
       await dispatch(
-        patchData({
+        patch({
           dbKey: spaceKey,
           changes,
         })

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
 import { DataType } from "create/types";
-import { patchData, write } from "database/dbSlice";
+import { patch, write } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { createCybotKey } from "database/keys";
 import { createCybotSchema, FormData } from "../createCybotSchema";
@@ -86,7 +86,7 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
         userCybotPath
       );
       await dispatch(
-        patchData({
+        patch({
           dbKey: userCybotPath,
           changes: {
             ...updateData,
