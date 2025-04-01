@@ -1,13 +1,8 @@
-// src/database/actions/patchAction.ts
-import { selectCurrentServer } from "setting/settingSlice";
-import { browserDb } from "../browser/db";
-import { toast } from "react-hot-toast";
-import {
-  noloPatchRequest, // 导入 patch 请求函数
-  syncWithServers, // 导入通用同步函数
-  CYBOT_SERVERS, // 保留 CYBOT_SERVERS 用于生成服务器列表
-} from "../requests";
-// import { API_ENDPOINTS } from "../config"; // API_ENDPOINTS 不再直接使用，可以移除
+// src/database/actions/patch.ts
+import { selectCurrentServer } from "setting/settingSlice"; // 确认导入路径
+import { browserDb } from "../browser/db"; // 确认导入路径
+import { toast } from "react-hot-toast"; // 确认导入
+import { noloPatchRequest, syncWithServers, CYBOT_SERVERS } from "../requests"; // 确认导入路径
 
 // 深度合并工具函数，支持删除（null 值）
 // 如果多处使用，考虑移到公共 utils
@@ -37,12 +32,12 @@ const deepMerge = (target: any, source: any): any => {
 /**
  * Patch Action: 更新现有数据项。
  * 1. 从本地数据库读取现有数据。
- * 2. 合并现有数据和传入的更改。
+ * 2. 使用传入的 changes 合并现有数据。 (不再强制添加 updatedAt)
  * 3. 更新本地数据库。
- * 4. 异步将更改 (patch) 同步到服务器。
+ * 4. 异步将传入的 changes 同步到服务器。
  * @param {object} payload - 包含 dbKey 和 changes 的对象。
  * @param {string} payload.dbKey - 要更新的数据的键。
- * @param {object} payload.changes - 要应用的更改。
+ * @param {object} payload.changes - 要应用的更改 (应由调用者包含时间戳)。
  * @param {object} thunkApi - Redux Thunk API。
  * @returns {Promise<any>} 更新后的完整数据对象。
  * @throws {Error} 如果本地数据未找到或本地更新失败。
@@ -51,6 +46,7 @@ export const patchAction = async (
   { dbKey, changes }: { dbKey: string; changes: any },
   thunkApi: any
 ): Promise<any> => {
+  // --- 输入验证 (保持不变) ---
   if (!dbKey || !changes || typeof changes !== "object") {
     const errorMsg =
       "Invalid arguments for patchAction: dbKey and changes object are required.";
@@ -63,7 +59,7 @@ export const patchAction = async (
   const currentServer = selectCurrentServer(state); // 获取当前设置的服务器
 
   try {
-    // 1. 读取当前数据
+    // --- 1. 读取当前数据 (保持不变) ---
     const currentData = await browserDb.get(dbKey);
     if (!currentData) {
       // 如果数据在本地不存在，patch 操作无法进行
@@ -72,29 +68,24 @@ export const patchAction = async (
       );
     }
 
-    // 2. 准备更新数据，强制更新 updatedAt
-    const updatedChanges = {
-      ...changes, // 应用传入的更改
-      updatedAt: new Date().toISOString(), // 确保 updatedAt 是最新的
-    };
+    // --- 2. 移除强制更新 updatedAt 的步骤 ---
+    // const updatedChanges = { ... }; // 不再需要
 
-    // 3. 深度合并当前数据和更新数据
-    const newData = deepMerge(currentData, updatedChanges);
+    // --- 3. 深度合并当前数据和传入的原始 changes ---
+    const newData = deepMerge(currentData, changes); // 使用原始 changes
 
-    // 4. 本地更新 (优先保证本地操作成功)
+    // --- 4. 本地更新 (优先保证本地操作成功) (保持不变) ---
     await browserDb.put(dbKey, newData);
     console.debug(`[patchAction] Local data updated for key: ${dbKey}`);
 
-    // 5. 准备服务器列表 (包括当前服务器和固定的 CYBOT 服务器)
-    // 使用 Set 自动去重
+    // --- 5. 准备服务器列表 (保持不变) ---
     const servers = Array.from(
       new Set(
         [currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN].filter(Boolean)
       ) // filter(Boolean) 过滤掉可能为空的 currentServer
     );
 
-    // 6. 后台异步同步（只发送增量更新 `updatedChanges`）
-    // 使用 Promise.resolve().then() 确保在当前调用栈结束后执行
+    // --- 6. 后台异步同步（发送传入的原始 changes） ---
     Promise.resolve().then(() => {
       console.debug(
         `[patchAction] Initiating background sync for key: ${dbKey} to ${servers.length} servers.`
@@ -105,16 +96,16 @@ export const patchAction = async (
         `Patch sync failed for ${dbKey} on`, // 错误消息前缀
         // --- 传递给 noloPatchRequest 的参数 ---
         dbKey,
-        updatedChanges, // 只发送实际的更改内容
+        changes, // <--- 使用原始 changes
         state // 传递 state 用于认证等
         // -------------------------------------
       );
     });
 
-    // 7. 返回合并后的新数据，供 Redux 更新或其他逻辑使用
+    // --- 7. 返回合并后的新数据，供 Redux 更新或其他逻辑使用 (保持不变) ---
     return newData;
   } catch (error: any) {
-    // 处理本地操作错误或上面抛出的 "Data not found" 错误
+    // --- 错误处理 (保持不变) ---
     const errorMessage = `Patch action failed for ${dbKey}: ${error.message || "Unknown error"}`;
     console.error("[patchAction] Error:", error);
     toast.error(`Failed to update data for ${dbKey}.`); // 用户友好的错误提示
