@@ -19,7 +19,7 @@ export const useGroupedContent = (space: SpaceData | null) => {
         sortedCategories: [] as CategoryItem[],
       };
     }
-
+    console.log("space", space);
     const { contents, categories } = space;
     const categorized: Record<string, SpaceContent[]> = {};
     const uncategorized: SpaceContent[] = [];
