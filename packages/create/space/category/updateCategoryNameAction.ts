@@ -1,4 +1,4 @@
-// src/create/space/category/updateCategoryNameAction.ts (假设路径)
+// create/space/category/updateCategoryNameAction.ts
 import type { SpaceId, SpaceData } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
@@ -8,26 +8,33 @@ import { checkSpaceMembership } from "../utils/permissions"; // 确认导入路�
 
 export const updateCategoryNameAction = async (
   input: { spaceId: SpaceId; categoryId: string; name: string },
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState } // 使用具体类型
+  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
   const { spaceId, categoryId, name } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
   const currentUserId = selectCurrentUserId(state);
+
+  // --- 输入验证 ---
   if (!currentUserId) {
-    // 添加 userId 检查
     throw new Error("User is not logged in.");
   }
-
   if (
     !categoryId ||
     typeof categoryId !== "string" ||
-    categoryId.trim() === ""
+    !categoryId.trim() // 稍微简化：检查非空且非空白字符串
   ) {
     throw new Error("Invalid categoryId provided.");
   }
+  // 验证 name (先 trim 再检查)
   if (name === undefined || name === null || typeof name !== "string") {
-    throw new Error("Invalid category name provided.");
+    // 基础类型检查仍然需要
+    throw new Error("Invalid category name type provided.");
+  }
+  const trimmedName = name.trim(); // 获取处理后的名称
+  if (!trimmedName) {
+    // 检查处理后的名称是否为空
+    throw new Error("Category name cannot be empty or only whitespace.");
   }
 
   const spaceKey = createSpaceKey.space(spaceId);
@@ -35,7 +42,6 @@ export const updateCategoryNameAction = async (
   try {
     spaceData = await dispatch(read(spaceKey)).unwrap();
   } catch (error: any) {
-    // 添加类型注解
     console.error(
       `[updateCategoryNameAction] Failed to read space data for key ${spaceKey}:`,
       error
@@ -47,12 +53,12 @@ export const updateCategoryNameAction = async (
 
   // --- 权限检查 ---
   try {
-    checkSpaceMembership(spaceData, currentUserId); // 使用提取的函数
+    checkSpaceMembership(spaceData, currentUserId);
   } catch (permissionError: any) {
-    // 添加类型注解
     throw new Error(`权限不足，无法修改分类名称: ${permissionError.message}`);
   }
 
+  // --- 分类存在性检查 ---
   if (!spaceData.categories || !spaceData.categories[categoryId]) {
     console.warn(
       `[updateCategoryNameAction] Category ${categoryId} not found in space ${spaceId}.`
@@ -60,27 +66,26 @@ export const updateCategoryNameAction = async (
     throw new Error("指定的分类不存在");
   }
 
-  // --- 统一使用 ISO 字符串格式时间戳 ---
+  // --- 构建更新 ---
   const nowISO = new Date().toISOString();
-
   const changes = {
     categories: {
       [categoryId]: {
         ...spaceData.categories[categoryId], // 保留原始字段
-        name: name.trim(),
-        updatedAt: nowISO, // 统一使用 ISO 字符串
+        name: trimmedName, // 使用 trim 后的名称
+        updatedAt: nowISO,
       },
     },
-    updatedAt: nowISO, // 统一使用 ISO 字符串
+    updatedAt: nowISO,
   };
 
+  // --- 执行更新 ---
   let updatedSpaceData: SpaceData;
   try {
     updatedSpaceData = await dispatch(
       patch({ dbKey: spaceKey, changes })
     ).unwrap();
   } catch (patchError: any) {
-    // 添加类型注解
     console.error(
       `[updateCategoryNameAction] Failed to patch space data for key ${spaceKey}:`,
       patchError
