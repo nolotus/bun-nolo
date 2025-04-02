@@ -3,7 +3,8 @@ import { useAppDispatch } from "app/hooks";
 import { addCategory } from "create/space/spaceSlice";
 import Button from "web/ui/Button";
 import { useTheme } from "app/theme";
-import { AddCategoryModal } from "create/space/components/AddCategoryModal";
+
+import { AddCategoryModal } from "./AddCategoryModal";
 
 const AddCategoryControl: React.FC = memo(() => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
