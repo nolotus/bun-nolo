@@ -1,15 +1,13 @@
 // MessagesList.jsx
 import { useAppSelector } from "app/hooks";
 import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { MessageItem } from "./MessageItem";
 import {
   selectMergedMessages,
   selectStreamMessages,
 } from "../messages/selector";
 import { useTheme } from "app/theme";
-import * as Ariakit from "@ariakit/react";
-import { MessageContextMenu } from "./MessageContextMenu";
 
 const MessagesList: React.FC = () => {
   const theme = useTheme();
@@ -18,19 +16,6 @@ const MessagesList: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // 添加上下文菜单状态
-  const [activeMessageId, setActiveMessageId] = useState(null);
-  const [contextMenuContent, setContextMenuContent] = useState("");
-  const [anchorRect, setAnchorRect] = useState({ x: 0, y: 0 });
-  const contextMenu = Ariakit.useMenuStore();
-
-  // 处理右键菜单事件
-  const handleContextMenu = (e, message) => {
-    e.preventDefault();
-    setActiveMessageId(message.id);
-    setContextMenuContent(message.content);
-    setAnchorRect({ x: e.clientX, y: e.clientY });
-    contextMenu.show();
-  };
 
   const scrollToBottom = useCallback(() => {
     if (containerRef.current) {
@@ -53,20 +38,11 @@ const MessagesList: React.FC = () => {
               style={{
                 animationDelay: `${index * 0.05}s`,
               }}
-              onContextMenu={(e) => handleContextMenu(e, message)}
             >
               <MessageItem message={message} />
             </div>
           ))}
         </div>
-
-        {/* 全局上下文菜单 */}
-        <MessageContextMenu
-          menu={contextMenu}
-          anchorRect={anchorRect}
-          content={contextMenuContent}
-          id={activeMessageId}
-        />
       </div>
       <style>
         {`
