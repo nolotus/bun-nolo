@@ -1,10 +1,10 @@
 import { NoloRootState } from "app/store";
-import { addSpace, changeSpace } from "../spaceSlice";
+import { addSpace, changeSpace } from "./spaceSlice";
 // Removed: import { fetchUserSpaceMemberships } from "../spaceSlice";
 import { setSettings } from "setting/settingSlice";
-import { DataType, SpaceMemberWithSpaceInfo } from "../../types"; // Assuming SpaceMemberWithSpaceInfo is here
+import { DataType, SpaceMemberWithSpaceInfo } from "../types"; // Assuming SpaceMemberWithSpaceInfo is here
 import { read } from "database/dbSlice";
-import { createSpaceKey } from "../spaceKeys";
+import { createSpaceKey } from "./spaceKeys";
 import i18next from "i18next";
 
 // --- handleEmptyMembership remains the same ---
