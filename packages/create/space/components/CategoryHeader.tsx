@@ -1,4 +1,5 @@
-import React from "react"; // 引入 React
+// 文件路径: create/space/components/CategoryHeader.tsx (假设)
+import React from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTheme } from "app/theme";
 import { ConfirmModal } from "web/ui/ConfirmModal";
@@ -9,8 +10,8 @@ import {
   ChevronDownIcon,
 } from "@primer/octicons-react";
 import {
-  updateCategoryName,
-  deleteCategory,
+  updateCategoryName, // Assumed to be the thunk handling validation
+  deleteCategory, // Assumed to be the thunk handling validation
   selectCurrentSpaceId,
   toggleCategoryCollapse,
   selectCollapsedCategories,
@@ -18,29 +19,25 @@ import {
 import { createPage } from "render/page/pageSlice";
 import { DraggableSyntheticListeners } from "@dnd-kit/core";
 import { useNavigate } from "react-router-dom";
-import { useInlineEdit } from "render/web/ui/useInlineEdit"; // Import the hook
-import InlineEditInput from "render/web/ui/InlineEditInput"; // Import the input component
+import { useInlineEdit } from "render/web/ui/useInlineEdit";
+import InlineEditInput from "render/web/ui/InlineEditInput";
 
+// Props interface remains simple
 interface CategoryHeaderProps {
   categoryId: string;
   categoryName: string;
-  onEdit?: (categoryId: string, newName: string) => void; // 可选的回调
-  onDelete?: (categoryId: string) => void; // 可选的回调
-  isDragOver?: boolean; // 是否有东西悬停在其上
-  handleProps?: DraggableSyntheticListeners; // dnd-kit 拖拽句柄
+  isDragOver?: boolean;
+  handleProps?: DraggableSyntheticListeners;
 }
 
 const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   categoryId,
-  categoryName = "", // 提供默认值
-  onEdit,
-  onDelete,
+  categoryName = "",
   isDragOver,
   handleProps,
 }) => {
   // --- State ---
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
-  // Editing state is now managed by useInlineEdit hook
 
   // --- Hooks ---
   const dispatch = useAppDispatch();
@@ -55,71 +52,52 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   // --- Computed ---
   const isUncategorized = categoryId === "uncategorized";
 
-  // --- Inline Edit Hook ---
-  // Define the save handler logic
-  const handleSaveCategoryName = React.useCallback(
+  // --- Inline Edit: Simplified Save Handler ---
+  // This handler now *only* dispatches the action.
+  // Validation (trimming, empty check, 'uncategorized', permissions) happens inside the updateCategoryName action.
+  // The useInlineEdit hook ensures this is only called when the value has changed and potentially handles basic non-empty checks.
+  const handleSaveDispatch = React.useCallback(
     (newName: string) => {
-      const trimmedName = newName.trim(); // Already trimmed in hook, but double-check is safe
-
-      // Check if name is valid and actually changed (hook handles basic validation)
-      // The hook ensures onSave is only called if trimmedName is non-empty and different
       if (spaceId && !isUncategorized) {
-        if (onEdit) {
-          onEdit(categoryId, trimmedName);
-        } else {
-          dispatch(
-            updateCategoryName({
-              spaceId,
-              categoryId,
-              name: trimmedName,
-            })
-          );
-        }
+        // Keep basic guard for spaceId and 'uncategorized' before dispatching
+        dispatch(updateCategoryName({ spaceId, categoryId, name: newName }));
       }
+      // Note: updateCategoryName action should handle trimming internally now.
     },
-    [spaceId, categoryId, onEdit, dispatch, isUncategorized]
+    [dispatch, spaceId, categoryId, isUncategorized]
   );
 
-  // Use the hook to manage editing state and input props
-  const {
-    isEditing,
-    startEditing,
-    inputRef,
-    inputProps, // Contains value, onChange, onKeyDown, onBlur etc.
-  } = useInlineEdit({
+  // Configure useInlineEdit to use the simple dispatch handler
+  const { isEditing, startEditing, inputRef, inputProps } = useInlineEdit({
     initialValue: categoryName,
-    onSave: handleSaveCategoryName,
+    onSave: handleSaveDispatch, // Use the simplified handler
     placeholder: "输入分类名称",
     ariaLabel: "编辑分类名称",
   });
 
-  // --- Other Handlers ---
+  // --- Other Handlers (remain mostly the same) ---
   const handleToggleCollapse = React.useCallback(() => {
     if (categoryId) {
       dispatch(toggleCategoryCollapse(categoryId));
     }
   }, [dispatch, categoryId]);
 
-  // Trigger delete confirmation modal
   const handleDeleteClick = () => {
     if (!isUncategorized) {
       setIsDeleteModalOpen(true);
     }
   };
 
-  // Confirm deletion
+  // Uses deleteCategory action, which handles validation internally
   const handleConfirmDelete = () => {
-    if (spaceId && categoryId && !isUncategorized) {
-      if (onDelete) {
-        onDelete(categoryId);
-      } else {
-        dispatch(deleteCategory({ spaceId, categoryId }));
-      }
+    if (spaceId && !isUncategorized) {
+      // Keep basic guard
+      dispatch(deleteCategory({ spaceId, categoryId }));
     }
     setIsDeleteModalOpen(false);
   };
 
-  // Add a new page
+  // Add page handler remains the same
   const handleAddPage = async () => {
     if (!spaceId) return;
     try {
@@ -133,20 +111,17 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
     }
   };
 
-  // --- Dynamic ClassNames & Props ---
-  // Add 'CategoryHeader--editing' class when editing
+  // --- Dynamic ClassNames & Props (remain the same) ---
   const headerClassName = `CategoryHeader ${isDragOver ? "CategoryHeader--drag-over" : ""} ${isEditing ? "CategoryHeader--editing" : ""}`;
   const collapseButtonClassName = `CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`;
-  // Apply draggable class and props only when NOT editing
   const nameClassName = `CategoryHeader__name ${!isUncategorized && !isEditing ? "CategoryHeader__name--draggable" : ""}`;
-  // Apply drag handle props only when not editing and not uncategorized
   const nameProps =
     !isUncategorized && !isEditing && handleProps ? handleProps : {};
 
   return (
     <>
       <div className={headerClassName}>
-        {/* Collapse/Expand Button */}
+        {/* Collapse Button */}
         <span
           className={collapseButtonClassName}
           onClick={handleToggleCollapse}
@@ -155,70 +130,66 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           <ChevronDownIcon size={18} />
         </span>
 
-        {/* Category Name (Span or InlineEditInput) */}
+        {/* Name Display / Edit Input */}
         {isEditing && !isUncategorized ? (
-          <InlineEditInput
-            inputRef={inputRef}
-            {...inputProps} // Pass all necessary props from the hook
-          />
+          <InlineEditInput inputRef={inputRef} {...inputProps} />
         ) : (
           <span
             className={nameClassName}
-            {...nameProps} // Apply drag listeners only when not editing
+            {...nameProps}
             title={
               !isUncategorized && !isEditing
                 ? "拖拽以调整分类顺序"
                 : categoryName
             }
-            onDoubleClick={!isUncategorized ? startEditing : undefined} // Use startEditing from hook
+            onDoubleClick={!isUncategorized ? startEditing : undefined} // Allow editing normal categories
           >
             {categoryName}
           </span>
         )}
 
-        {/* Action Buttons Area */}
+        {/* Action Buttons */}
         <div className="CategoryHeader__actions">
-          {/* Add Page Button */}
+          {/* Add Page */}
           <button
             className="CategoryHeader__actionButton CategoryHeader__actionButton--add"
             onClick={handleAddPage}
             title="在此分类下新建页面"
-            disabled={isEditing} // Disable Add button while editing name
+            disabled={isEditing} // Disable while editing name
           >
             <PlusIcon size={14} />
           </button>
 
-          {/* Edit and Delete Buttons (Not for Uncategorized and hide Edit when editing) */}
-          {!isUncategorized &&
-            !isEditing && ( // Hide Edit button itself when editing
-              <>
-                <button
-                  className="CategoryHeader__actionButton CategoryHeader__actionButton--edit"
-                  onClick={startEditing} // Use startEditing from hook
-                  title="编辑分类名称"
-                >
-                  <PencilIcon size={14} />
-                </button>
-                <button
-                  className="CategoryHeader__actionButton CategoryHeader__actionButton--delete"
-                  onClick={handleDeleteClick}
-                  title="删除分类"
-                  disabled={isEditing} // Also disable delete while editing name
-                >
-                  <TrashIcon size={14} />
-                </button>
-              </>
-            )}
-          {/* No need for separate Save/Cancel icons here usually, handled by Input component's blur/Enter/Escape */}
+          {/* Edit/Delete (only for normal categories, hide edit button when editing) */}
+          {!isUncategorized && !isEditing && (
+            <>
+              {/* Edit */}
+              <button
+                className="CategoryHeader__actionButton CategoryHeader__actionButton--edit"
+                onClick={startEditing} // Trigger inline edit
+                title="编辑分类名称"
+              >
+                <PencilIcon size={14} />
+              </button>
+              {/* Delete */}
+              <button
+                className="CategoryHeader__actionButton CategoryHeader__actionButton--delete"
+                onClick={handleDeleteClick} // Open confirmation modal
+                title="删除分类"
+              >
+                <TrashIcon size={14} />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Delete Confirmation Modal (Remains the same) */}
+      {/* Delete Confirmation Modal */}
       {!isUncategorized && (
         <ConfirmModal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={handleConfirmDelete}
+          onConfirm={handleConfirmDelete} // Dispatches deleteCategory action
           title="删除分类"
           message={`确定要删除分类 "${categoryName}" 吗？该分类下的所有内容将被移至“未分类”。此操作无法撤销。`}
           confirmText="确认删除"
@@ -228,173 +199,71 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         />
       )}
 
-      {/* CSS Styles (Removed inline input style) */}
+      {/* CSS Styles (remain the same as previous version) */}
       <style id="category-header-styles">
         {`
-        /* --- Existing Styles (mostly unchanged) --- */
+        /* --- Styles from the previous version --- */
         .CategoryHeader {
-          box-sizing: border-box;
-          padding: 7px 10px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          border-radius: 8px;
-          transition: background-color 0.15s ease;
-          user-select: none;
-          cursor: default;
-          min-height: 36px;
-          position: relative;
+          box-sizing: border-box; padding: 7px 10px; display: flex; align-items: center; gap: 8px; border-radius: 8px; transition: background-color 0.15s ease; user-select: none; cursor: default; min-height: 36px; position: relative;
         }
-        /* Add a subtle indicator when editing */
-        .CategoryHeader--editing {
-           /* Example: Optional background or border change */
-           /* background-color: rgba(0, 0, 0, 0.02); */
-        }
-
+        .CategoryHeader--editing { }
         .CategoryHeader:hover {
-           /* Avoid hover background when editing to prevent input focus issues or visual clutter */
            background-color: ${isEditing ? "transparent" : theme?.backgroundHover || "rgba(0,0,0,0.03)"};
         }
-
-
-        .CategoryHeader--drag-over { } /* Keep if needed */
-
+        .CategoryHeader--drag-over { }
         .CategoryHeader__collapseButton {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: ${theme?.textTertiary || "#999"};
-          cursor: pointer;
-          border-radius: 6px;
-          transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-          flex-shrink: 0;
-          padding: 3px;
-          width: 24px;
-          height: 24px;
-          box-sizing: border-box;
+          display: flex; align-items: center; justify-content: center; color: ${theme?.textTertiary || "#999"}; cursor: pointer; border-radius: 6px; transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease; flex-shrink: 0; padding: 3px; width: 24px; height: 24px; box-sizing: border-box;
         }
-
         .CategoryHeader__collapseButton:hover {
-          color: ${theme?.textSecondary || "#666"};
-          background-color: ${theme?.backgroundTertiary || "rgba(0,0,0,0.06)"};
+          color: ${theme?.textSecondary || "#666"}; background-color: ${theme?.backgroundTertiary || "rgba(0,0,0,0.06)"};
         }
-
         .CategoryHeader__collapseButton--collapsed {
           transform: rotate(-90deg);
         }
-
-        /* Category Name Span */
         .CategoryHeader__name {
-          font-size: 14px;
-          font-weight: 600;
-          color: ${theme?.text || "#333"};
-          flex-grow: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          min-width: 0;
-          line-height: 1.4;
-          letter-spacing: -0.01em;
-          padding: 2px 0; /* Matches input vertical alignment better */
-           height: 24px; /* Match input height for consistency */
-           display: flex; /* Use flex to vertically center */
-           align-items: center; /* Vertically center text */
-           box-sizing: border-box;
+          font-size: 14px; font-weight: 600; color: ${theme?.text || "#333"}; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; line-height: 1.4; letter-spacing: -0.01em; padding: 2px 0; height: 24px; display: flex; align-items: center; box-sizing: border-box;
         }
-
         .CategoryHeader__name--draggable {
-          cursor: grab;
-          position: relative;
-          padding-left: 4px; /* Visual offset for grab area */
-          margin-left: -4px; /* Compensate for padding */
-          padding-right: 4px; /* Add padding for hover effect */
+          cursor: grab; position: relative; padding-left: 4px; margin-left: -4px; padding-right: 4px;
         }
-
         .CategoryHeader__name--draggable:active {
           cursor: grabbing;
         }
-
-        /* Subtle hover background for draggable name */
         .CategoryHeader__name--draggable:hover::before {
-           content: "";
-           position: absolute;
-           inset: -2px -4px; /* Cover padding */
-           background-color: rgba(0, 0, 0, 0.03);
-           border-radius: 4px;
-           z-index: -1;
-           pointer-events: none;
+           content: ""; position: absolute; inset: -2px -4px; background-color: rgba(0, 0, 0, 0.03); border-radius: 4px; z-index: -1; pointer-events: none;
         }
-
-
-        /* --- REMOVED .CategoryHeader__inlineInput styles --- */
-
-
         .CategoryHeader__actions {
-          display: flex;
-          gap: 2px;
-          align-items: center;
-          margin-left: auto; /* Pushes actions to the right */
-          opacity: 0; /* Hidden by default */
-          transition: opacity 0.15s ease;
-          flex-shrink: 0; /* Prevent shrinking */
+          display: flex; gap: 2px; align-items: center; margin-left: auto; opacity: 0; transition: opacity 0.15s ease; flex-shrink: 0;
         }
-
-        /* Show actions on hover ONLY when NOT editing */
         .CategoryHeader:hover .CategoryHeader__actions {
              opacity: ${isEditing ? 0 : 1};
         }
-
-        /* Keep actions visible if the draggable parent indicates dragging (e.g., during dnd) */
         .CategoryDraggable--dragging .CategoryHeader__actions {
              opacity: 1;
         }
-
-
         .CategoryHeader__actionButton {
-          padding: 4px;
-          background: none;
-          border: none;
-          color: ${theme?.textTertiary || "#999"};
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          border-radius: 4px;
-          transition: color 0.2s ease, background-color 0.2s ease;
-          /* Ensure buttons have consistent height */
-          height: 24px;
-          box-sizing: border-box;
+          padding: 4px; background: none; border: none; color: ${theme?.textTertiary || "#999"}; cursor: pointer; display: flex; align-items: center; border-radius: 4px; transition: color 0.2s ease, background-color 0.2s ease; height: 24px; box-sizing: border-box;
         }
-
-        /* Disable hover effects visually when editing */
         .CategoryHeader__actionButton:hover {
           background-color: ${isEditing ? "transparent" : theme?.backgroundTertiary || "rgba(0,0,0,0.06)"};
-          color: ${isEditing ? theme?.textTertiary || "#999" : undefined}; /* Keep color same on hover when editing */
+          color: ${isEditing ? theme?.textTertiary || "#999" : undefined};
         }
-
-        /* Specific icon color on hover (only when NOT editing) */
         .CategoryHeader__actionButton--add:hover {
             color: ${isEditing ? theme?.textTertiary || "#999" : theme?.success || "#52c41a"};
         }
         .CategoryHeader__actionButton--edit:hover {
-             /* This button is hidden when editing, so no need for isEditing check */
              color: ${theme?.primary || "#1677ff"};
         }
         .CategoryHeader__actionButton--delete:hover {
              color: ${isEditing ? theme?.textTertiary || "#999" : theme?.error || "#ff4d4f"};
         }
-
-        /* Disable pointer events and slightly fade disabled buttons */
          .CategoryHeader__actionButton:disabled {
-             opacity: 0.5;
-             cursor: not-allowed;
-             background-color: transparent !important; /* Ensure no hover background */
-             color: ${theme?.textTertiary || "#999"} !important; /* Ensure no hover color */
+             opacity: 0.5; cursor: not-allowed; background-color: transparent !important; color: ${theme?.textTertiary || "#999"} !important;
          }
-
       `}
       </style>
     </>
   );
 };
 
-export default React.memo(CategoryHeader); // Keep memoization
+export default React.memo(CategoryHeader);

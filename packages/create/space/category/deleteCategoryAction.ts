@@ -1,32 +1,49 @@
-// src/create/space/category/deleteCategoryAction.ts (假设路径)
-import type { SpaceId, SpaceData } from "create/space/types";
+// src/create/space/category/deleteCategoryAction.ts
+import type { SpaceId, SpaceData, Category } from "create/space/types"; // 假设 Category 类型已定义
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patch } from "database/dbSlice";
 import type { AppDispatch, NoloRootState } from "app/store";
-import { checkSpaceMembership } from "../utils/permissions"; // 确认导入路径
+import { checkSpaceMembership } from "../utils/permissions";
+
+// 定义一个更具体的 changes 类型，可以是 SpaceData 的部分属性
+type SpacePatchChanges = Partial<
+  Pick<SpaceData, "categories" | "contents" | "updatedAt">
+>;
 
 export const deleteCategoryAction = async (
   input: { categoryId: string; spaceId: SpaceId },
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState } // 使用具体类型
+  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
   const { categoryId, spaceId } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
   const currentUserId = selectCurrentUserId(state);
+
+  // --- 输入和状态验证 ---
   if (!currentUserId) {
-    // 添加 userId 检查
     throw new Error("User is not logged in.");
+  }
+  if (!categoryId || typeof categoryId !== "string") {
+    // 添加基础 categoryId 验证
+    throw new Error("Invalid categoryId provided.");
+  }
+  // "uncategorized" 通常不允许删除
+  if (categoryId === "uncategorized") {
+    throw new Error("Cannot delete the default 'uncategorized' category.");
   }
 
   const spaceKey = createSpaceKey.space(spaceId);
 
+  // --- 读取数据 ---
   let spaceData: SpaceData | null;
   try {
     spaceData = await dispatch(read(spaceKey)).unwrap();
   } catch (error: any) {
-    // 添加类型注解
-    console.error("[ERROR] Read SpaceData failed:", error);
+    console.error(
+      `[deleteCategoryAction] Read SpaceData failed for key ${spaceKey}:`,
+      error
+    );
     throw new Error(
       `无法加载空间数据: ${spaceId}, 原因: ${error.message || "未知错误"}`
     );
@@ -34,60 +51,61 @@ export const deleteCategoryAction = async (
 
   // --- 权限检查 ---
   try {
-    checkSpaceMembership(spaceData, currentUserId); // 使用提取的函数
+    checkSpaceMembership(spaceData, currentUserId);
   } catch (permissionError: any) {
-    // 添加类型注解
     throw new Error(`权限不足，无法删除分类: ${permissionError.message}`);
   }
 
+  // --- 分类存在性检查 ---
   if (!spaceData.categories?.[categoryId]) {
     console.warn(
-      `[deleteCategoryAction] Category ${categoryId} not found in space ${spaceId}.`
+      `[deleteCategoryAction] Category ${categoryId} not found in space ${spaceId}. Action Aborted.`
     );
-    throw new Error("指定的分类不存在");
+    // 如果分类不存在，可以选择不抛出错误而是直接返回当前数据，或者按需抛错
+    throw new Error("指定的分类不存在或已被删除");
+    // 或者 return { spaceId, updatedSpaceData: spaceData }; (取决于业务需求)
   }
 
-  // --- 统一使用 ISO 字符串格式时间戳 ---
+  // --- 构建更新 ---
   const nowISO = new Date().toISOString();
-
-  const changes: any = {
-    // 使用 any 或更具体的类型
-    categories: { ...spaceData.categories, [categoryId]: null }, // 标记删除分类
-    updatedAt: nowISO, // <--- 添加顶层 updatedAt (使用 ISO 字符串)
+  // 使用更具体的类型
+  const changes: SpacePatchChanges = {
+    categories: { ...spaceData.categories, [categoryId]: null }, // 标记删除分类 (值为 null)
+    updatedAt: nowISO,
   };
 
-  // 处理属于该分类的内容，将 categoryId 清空
+  // --- 处理关联内容 ---
   if (spaceData.contents) {
-    // 创建一个新的 contents 对象以避免直接修改 state draft (虽然 patch 内部会处理)
     const updatedContents = { ...spaceData.contents };
-    let contentsChanged = false; // 标记是否有内容被修改
+    let contentsChanged = false;
     Object.keys(updatedContents).forEach((key) => {
       const item = updatedContents[key];
+      // 确保 item 存在且 categoryId 匹配
       if (item && item.categoryId === categoryId) {
-        // 创建新的 item 对象，更新 categoryId
+        // 更新 categoryId 为空字符串 "" (代表未分类)
         updatedContents[key] = { ...item, categoryId: "" };
         contentsChanged = true;
-        console.log("[DEBUG] Cleared category for content:", key);
+        // console.log(`[deleteCategoryAction] Cleared category for content: ${key}`); // 生产环境移除
       }
     });
-    // 只有当 contents 确实发生改变时才将其加入 changes
+
     if (contentsChanged) {
       changes.contents = updatedContents;
     }
   }
 
+  // --- 执行更新 ---
   let updatedSpaceData: SpaceData;
   try {
     updatedSpaceData = await dispatch(
       patch({ dbKey: spaceKey, changes })
     ).unwrap();
-    console.log("[DEBUG] Updated SpaceData:", {
-      categories: Object.keys(updatedSpaceData.categories || {}),
-      // contents: Object.keys(updatedSpaceData.contents || {}), // 调试时查看
-    });
+    // console.log("[deleteCategoryAction] Patch successful. Updated SpaceData categories keys:", Object.keys(updatedSpaceData.categories || {}).filter(k => updatedSpaceData.categories[k] !== null)); // 生产环境移除或调整
   } catch (error: any) {
-    // 添加类型注解
-    console.error("[ERROR] Patch Data failed:", error);
+    console.error(
+      `[deleteCategoryAction] Patch Data failed for key ${spaceKey}:`,
+      error
+    );
     throw new Error(`删除分类失败: ${error.message || "未知错误"}`);
   }
 
