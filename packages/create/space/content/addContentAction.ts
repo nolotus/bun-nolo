@@ -1,3 +1,5 @@
+// 文件路径: src/create/space/actions/addContentAction.ts (或你的实际路径)
+
 import type {
   AddContentRequest,
   SpaceId,
@@ -9,27 +11,40 @@ import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
 import type { AppDispatch, NoloRootState } from "app/store"; // 假设 store 类型路径
 import { checkSpaceMembership } from "../utils/permissions"; // 导入权限检查函数
+import { UNCATEGORIZED_ID } from "create/space/constants"; // 导入常量
 
+/**
+ * 异步 Action Thunk，用于向指定 Space 添加新的内容项。
+ * 它负责处理所有传入的 categoryId 情况，并确保数据符合新标准：
+ * - 如果 categoryId 是有效的分类 ID，则使用它。
+ * - 如果 categoryId 指向无效分类、为空字符串、为 null/undefined 或等于 UNCATEGORIZED_ID，
+ *   则内容将被添加为未分类（最终对象不包含 categoryId 属性）。
+ */
 export const addContentAction = async (
-  // 输入类型现在包含了可选的 order
+  // 输入类型：AddContentRequest 包含可选的 categoryId?: string
+  // 但 Action 内部会处理更广泛的输入可能性
   input: AddContentRequest & { spaceId: SpaceId },
   thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
-) => {
+): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
+  // 返回类型明确
   const {
     spaceId,
     title,
     type,
     contentKey,
-    categoryId, // 可选, 默认为 ""
-    pinned = false, // 默认 false
-    order, // 可选的分组内排序
+    categoryId: rawCategoryId, // 接收原始传入的 categoryId
+    pinned = false,
+    order,
   } = input;
 
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const userId = selectCurrentUserId(state); // userId 也是创建者 ID (creatorId)
+  const userId = selectCurrentUserId(state);
 
-  // --- 基本输入验证 ---
+  // --- 1. 基本输入验证 ---
+  if (!userId) {
+    throw new Error("User is not logged in.");
+  }
   if (
     !contentKey ||
     typeof contentKey !== "string" ||
@@ -37,23 +52,19 @@ export const addContentAction = async (
   ) {
     throw new Error("Invalid contentKey provided.");
   }
-  if (!title || typeof title !== "string") {
-    // 标题通常是必须的
-    throw new Error("Invalid title provided.");
+  if (!title || typeof title !== "string" || title.trim() === "") {
+    throw new Error("Invalid or empty title provided.");
   }
   if (!type || typeof type !== "string") {
-    // 类型也是必须的
     throw new Error("Invalid content type provided.");
   }
-  // categoryId 验证 (如果提供且非空)
-  // pinned 验证 (应为布尔值)
-  // order 验证 (如果提供，应为数字)
 
+  // --- 2. 读取 Space 数据 ---
   const spaceKey = createSpaceKey.space(spaceId);
   let spaceData: SpaceData | null = null;
   try {
     spaceData = await dispatch(read(spaceKey)).unwrap();
-  } catch (readError) {
+  } catch (readError: any) {
     console.error(
       `[addContentAction] Failed to read space data for key ${spaceKey}:`,
       readError
@@ -63,69 +74,78 @@ export const addContentAction = async (
     );
   }
 
-  // --- 权限检查 ---
+  // --- 3. 权限检查 ---
   try {
     checkSpaceMembership(spaceData, userId);
-  } catch (permissionError) {
+  } catch (permissionError: any) {
     throw new Error(`权限不足，无法添加内容: ${permissionError.message}`);
   }
 
-  // --- 存在性检查 (contentKey 是否已存在?) ---
+  // --- 4. 检查 Content Key 是否已存在 ---
   if (spaceData.contents && spaceData.contents[contentKey]) {
-    // 根据业务逻辑决定是报错、忽略还是更新？这里选择报错
     console.warn(
       `[addContentAction] Content key "${contentKey}" already exists in space ${spaceId}.`
     );
     throw new Error(`内容键 "${contentKey}" 已存在。`);
   }
 
-  // --- 检查目标 CategoryId 是否有效 (如果提供了) ---
-  const finalCategoryId = categoryId ?? ""; // 处理 null/undefined 为 ""
-  if (finalCategoryId !== "") {
-    if (!spaceData.categories || !spaceData.categories[finalCategoryId]) {
-      const categoryValue = spaceData.categories?.[finalCategoryId];
+  // --- 5. 确定最终用于存储的 categoryId (string | undefined) ---
+  let categoryIdForStorage: string | undefined;
+
+  if (
+    rawCategoryId && // 存在
+    rawCategoryId !== "" && // 非空字符串
+    rawCategoryId !== UNCATEGORIZED_ID // 也不是 UI 常量
+  ) {
+    // 传入的是一个需要验证的真实分类 ID
+    if (spaceData.categories?.[rawCategoryId]) {
+      // 分类存在且有效 (不为 null)
+      categoryIdForStorage = rawCategoryId; // 使用此 ID
+    } else {
+      // 分类无效或不存在
       console.warn(
-        `[addContentAction] Target category ${finalCategoryId} not found or invalid (value: ${categoryValue}) in space ${spaceId}.`
+        `[addContentAction] Target category ${rawCategoryId} not found or invalid in space ${spaceId}. Content will be added as uncategorized.`
       );
-      // 决定是报错还是添加到未分类？这里选择报错
-      throw new Error(`目标分类 "${finalCategoryId}" 不存在或无效。`);
-      // 或者可以降级处理：finalCategoryId = "";
+      categoryIdForStorage = undefined; // 降级为未分类
     }
+  } else {
+    // 传入的是 "", null, undefined, 或 UNCATEGORIZED_ID 常量
+    categoryIdForStorage = undefined; // 都视为未分类
   }
 
-  // --- 构造新内容对象和 changes (核心修改) ---
-  const now = Date.now(); // 使用 number 类型的时间戳，与 types.ts 一致
+  // --- 6. 构造新内容对象 ---
+  const now = Date.now(); // 使用 number 类型的时间戳
 
-  // 创建新的 SpaceContent 对象
   const newSpaceContent: SpaceContent = {
-    title: title.trim(), // 可选 trim
+    title: title.trim(),
     type,
     contentKey,
-    categoryId: finalCategoryId,
+    // --- 核心: 只有当 categoryIdForStorage 不是 undefined 时才添加 categoryId 属性 ---
+    ...(categoryIdForStorage !== undefined && {
+      categoryId: categoryIdForStorage,
+    }),
     pinned,
-    createdAt: now, // 1. 设置创建时间戳
-    updatedAt: now, // 2. 设置初始更新时间戳 (与创建时间相同)
-    // 只有当 input 中提供了有效的 order 时才添加 order 字段
+    createdAt: now,
+    updatedAt: now,
     ...(order !== undefined && typeof order === "number" && { order }),
     // 可以考虑添加 creatorId: userId
   };
 
-  // 准备增量更新 (只包含新增的内容和顶层时间戳)
+  // --- 7. 准备 Patch Changes ---
   const changes = {
     contents: {
-      // 使用动态键添加新内容
-      [contentKey]: newSpaceContent,
+      [contentKey]: newSpaceContent, // newSpaceContent 可能不含 categoryId
     },
-    updatedAt: now, // 3. 设置整个 Space 对象的顶层 updatedAt
+    updatedAt: now, // 更新整个 Space 的时间戳
   };
-  // ------------------------------------
 
+  // --- 8. 执行 Patch 更新 ---
   let updatedSpaceData: SpaceData;
   try {
     updatedSpaceData = await dispatch(
       patch({ dbKey: spaceKey, changes })
     ).unwrap();
-  } catch (patchError) {
+  } catch (patchError: any) {
     console.error(
       `[addContentAction] Failed to patch space data for key ${spaceKey}:`,
       patchError
@@ -133,6 +153,6 @@ export const addContentAction = async (
     throw new Error(`添加内容失败: ${patchError.message || "未知错误"}`);
   }
 
-  // 返回结果 (保持不变)
+  // --- 9. 返回结果 ---
   return { spaceId, updatedSpaceData };
 };
