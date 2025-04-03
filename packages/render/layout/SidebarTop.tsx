@@ -26,7 +26,7 @@ import React, { useEffect, useState } from "react"; // 移除了 useEffect 如�
 import { useTranslation } from "react-i18next";
 import { RxDropdownMenu } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
-import { Dialog } from "render/ui/Dialog";
+import { Dialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { ProjectIcon } from "@primer/octicons-react";
 import { useTheme } from "app/theme";

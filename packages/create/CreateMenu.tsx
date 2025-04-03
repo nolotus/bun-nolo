@@ -16,7 +16,7 @@ import { useAuth } from "auth/hooks/useAuth";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { Dialog } from "render/ui/Dialog";
+import { Dialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { CreateRoutePaths } from "create/routePaths";
 import { useTheme } from "app/theme";

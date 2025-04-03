@@ -1,7 +1,8 @@
 import { useTheme } from "app/theme";
 import React, { useState } from "react";
 
-import { BaseModal } from "web/ui/BaseModal";
+import { BaseModal } from "render/web/ui/BaseModal";
+
 import { XIcon } from "@primer/octicons-react";
 
 interface ImagePreviewProps {

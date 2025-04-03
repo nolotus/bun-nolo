@@ -3,13 +3,13 @@ import React, { memo } from "react";
 import { useAppSelector } from "app/hooks"; // 确认路径
 import { SpaceContent } from "create/space/types"; // 确认路径
 import CategoryHeader from "create/space/category/CategoryHeader"; // 确认路径
-import { SidebarItem } from "./dialog/SidebarItem"; // 确认路径，假设 SidebarItem 接受 handleProps
+import { SidebarItem } from "chat/dialog/SidebarItem"; // 确认路径，假设 SidebarItem 接受 handleProps
 import { useDroppable, DraggableSyntheticListeners } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { ItemDraggable } from "./ChatSidebar"; // 从 ChatSidebar 导入 ItemDraggable
+import { ItemDraggable } from "chat/ChatSidebar"; // 从 ChatSidebar 导入 ItemDraggable
 import { selectCollapsedCategories } from "create/space/spaceSlice"; // 确认路径
 import { useTheme } from "app/theme"; // 确认路径
 import { UNCATEGORIZED_ID } from "create/space/constants"; // 确认路径
