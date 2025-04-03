@@ -9,7 +9,7 @@ import { NumberInput } from "web/form/NumberInput";
 import TextArea from "web/form/Textarea";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { PlusIcon } from "@primer/octicons-react";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";

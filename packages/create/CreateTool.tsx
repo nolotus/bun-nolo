@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { useParams, useSearchParams } from "react-router-dom";
 import { CheckIcon } from "@primer/octicons-react";
 import DeleteButton from "chat/web/DeleteButton"; // 确认路径
-import Button from "web/ui/Button"; // 确认路径
+import Button from "render/web/ui/Button"; // 确认路径
 import { useTheme } from "app/theme"; // 确认路径
 import ModeToggle from "web/ui/ModeToggle"; // 确认路径
 

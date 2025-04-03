@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { Input } from "web/form/Input";
 import FormTitle from "web/form/FormTitle";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import { PlusIcon } from "@primer/octicons-react";
 import FormContainer from "web/form/FormContainer";
 import { CreateSpaceRequest, SpaceVisibility } from "./types";

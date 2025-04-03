@@ -1,24 +1,24 @@
-import React from 'react';
-import Button from 'web/ui/Button';
-import { Combobox } from 'web/form/Combobox';
-import { SearchIcon } from '@primer/octicons-react';
+import React from "react";
+import Button from "render/web/ui/Button";
+import { Combobox } from "web/form/Combobox";
+import { SearchIcon } from "@primer/octicons-react";
 
 const Lab = () => {
   // Combobox 示例数据
   const fruits = [
-    { value: '1', label: 'Apple' },
-    { value: '2', label: 'Banana' },
-    { value: '3', label: 'Orange' },
-    { value: '4', label: 'Grape' },
-    { value: '5', label: 'Watermelon' },
+    { value: "1", label: "Apple" },
+    { value: "2", label: "Banana" },
+    { value: "3", label: "Orange" },
+    { value: "4", label: "Grape" },
+    { value: "5", label: "Watermelon" },
   ];
 
   const countries = [
-    { id: 'us', name: 'United States' },
-    { id: 'uk', name: 'United Kingdom' },
-    { id: 'cn', name: 'China' },
-    { id: 'jp', name: 'Japan' },
-    { id: 'kr', name: 'Korea' },
+    { id: "us", name: "United States" },
+    { id: "uk", name: "United Kingdom" },
+    { id: "cn", name: "China" },
+    { id: "jp", name: "Japan" },
+    { id: "kr", name: "Korea" },
   ];
 
   return (
@@ -48,11 +48,11 @@ const Lab = () => {
             <p>基础的 Combobox 用法展示</p>
           </div>
           <div className="demo-grid">
-            <div style={{ width: '250px' }}>
+            <div style={{ width: "250px" }}>
               <Combobox
                 items={fruits}
                 placeholder="Select a fruit..."
-                onChange={(item) => console.log('Selected:', item)}
+                onChange={(item) => console.log("Selected:", item)}
               />
             </div>
           </div>
@@ -64,13 +64,13 @@ const Lab = () => {
             <p>使用自定义的标签和值字段</p>
           </div>
           <div className="demo-grid">
-            <div style={{ width: '250px' }}>
+            <div style={{ width: "250px" }}>
               <Combobox
                 items={countries}
                 labelField="name"
                 valueField="id"
                 placeholder="Select a country..."
-                onChange={(item) => console.log('Selected:', item)}
+                onChange={(item) => console.log("Selected:", item)}
               />
             </div>
           </div>
@@ -85,7 +85,7 @@ const Lab = () => {
             <div className="row">
               <div className="label">禁用态</div>
               <div className="content">
-                <div style={{ width: '250px' }}>
+                <div style={{ width: "250px" }}>
                   <Combobox
                     items={fruits}
                     disabled
@@ -126,7 +126,7 @@ const Lab = () => {
           background: #fff;
           border-radius: 12px;
           padding: 32px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .section-header {

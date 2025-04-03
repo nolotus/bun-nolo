@@ -11,7 +11,7 @@ import {
   StarFillIcon, // Import a star icon
   // ShieldLockIcon and GlobeIcon were removed as unused in previous step, keep them removed
 } from "@primer/octicons-react";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
 import { Input } from "web/form/Input";

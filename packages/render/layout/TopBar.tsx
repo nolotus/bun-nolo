@@ -32,7 +32,7 @@ import { extractUserId } from "core/prefix";
 import { CreateTool } from "create/CreateTool";
 import { useTheme } from "app/theme";
 import { Dialog } from "render/web/ui/Dialog";
-import Button from "web/ui/Button"; // 假设有一个通用的 Button 组件
+import Button from "render/web/ui/Button"; // 假设有一个通用的 Button 组件
 
 interface TopBarProps {
   toggleSidebar?: () => void;

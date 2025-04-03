@@ -8,7 +8,7 @@ import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";
 
 import toast from "react-hot-toast";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/web/ui/Dialog";
 import { Tooltip } from "web/ui/Tooltip";

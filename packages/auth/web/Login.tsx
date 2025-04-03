@@ -11,7 +11,7 @@ import z from "zod";
 import { LockIcon, PersonIcon } from "@primer/octicons-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Input } from "web/form/Input";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import { RoutePaths } from "./routes";
 

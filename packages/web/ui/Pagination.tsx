@@ -1,7 +1,7 @@
 // web/ui/Pagination.tsx
 import React from "react";
 import { useTheme } from "app/theme";
-import Button from "./Button";
+import Button from "render/web/ui/Button";
 import pino from "pino";
 
 const logger = pino({ name: "Pagination" });

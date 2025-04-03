@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { useAppDispatch } from "app/hooks";
 import { PlusIcon, PersonIcon } from "@primer/octicons-react";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import toast from "react-hot-toast";
 import { InviteModal } from "../components/InviteModal";
 import { addMember, removeMember } from "../spaceSlice";

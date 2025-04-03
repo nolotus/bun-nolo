@@ -1,7 +1,7 @@
 import React, { memo, useState, useCallback } from "react";
 import { useAppDispatch } from "app/hooks";
 import { addCategory } from "create/space/spaceSlice";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import { useTheme } from "app/theme";
 
 import { AddCategoryModal } from "./AddCategoryModal";
