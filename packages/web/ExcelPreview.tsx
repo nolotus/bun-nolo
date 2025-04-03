@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { BaseModal } from "web/ui/BaseModal";
+import { BaseModal } from "render/web/ui/BaseModal";
+
 import { Table, TableRow, TableCell } from "web/ui/Table";
 import { FaFileExcel } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";

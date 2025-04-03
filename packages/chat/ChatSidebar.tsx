@@ -31,7 +31,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useGroupedContent } from "create/space/hooks/useGroupedContent"; // 确认路径
 
 import AddCategoryControl from "create/space/category/AddCategoryControl"; // 确认路径
-import CategorySection from "./CategorySection"; // 确认路径 (导入合并后的组件)
+import CategorySection from "create/space/category/CategorySection"; // 确认路径 (导入合并后的组件)
 import { UNCATEGORIZED_ID } from "create/space/constants"; // 确认路径 (导入常量)
 
 // --- 类型定义 ---

@@ -22,7 +22,6 @@ export const createDialogAction = async (args, thunkApi) => {
 
   const data = {
     cybots,
-    category,
     title,
     id: dialogPath,
     type: DataType.DIALOG,

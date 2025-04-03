@@ -1,4 +1,4 @@
-// web/ui/BaseModal.tsx
+// render/web/ui/BaseModal.tsx
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 

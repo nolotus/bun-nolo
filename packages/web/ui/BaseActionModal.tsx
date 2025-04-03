@@ -1,7 +1,8 @@
 // web/ui/BaseActionModal.tsx
 
 import React, { useEffect, useState } from "react";
-import { BaseModal } from "./BaseModal";
+import { BaseModal } from "render/web/ui/BaseModal";
+
 import { useTheme } from "app/theme";
 
 interface BaseActionModalProps {
