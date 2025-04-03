@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import { useTranslation } from "react-i18next";
 
 const NoMatch = () => {

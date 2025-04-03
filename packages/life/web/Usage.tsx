@@ -3,7 +3,7 @@ import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { clearTodayTokens, clearAllTokens } from "ai/token/clear";
-import Button from "web/ui/Button"; // 导入新的 Button 组件
+import Button from "render/web/ui/Button"; // 导入新的 Button 组件
 import BalanceCard from "./BalanceCard";
 import RechargeRecord from "./RechargeRecord";
 import UsageRecord from "./UsageRecord";

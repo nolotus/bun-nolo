@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { Input } from "web/form/Input";
 import TextArea from "web/form/Textarea";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import z from "zod";
 
 const InviteSignup: React.FC = () => {

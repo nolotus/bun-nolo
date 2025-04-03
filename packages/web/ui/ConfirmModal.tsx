@@ -1,5 +1,5 @@
 import React from "react";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import { BaseActionModal } from "./BaseActionModal";
 import {
   XCircleIcon,

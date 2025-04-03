@@ -4,7 +4,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import Pagination from "web/ui/Pagination";
 import { useDeleteUser } from "auth/hooks/useDeleteUser";
 import { useRechargeUser } from "auth/hooks/useRechargeUser";

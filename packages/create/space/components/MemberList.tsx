@@ -1,5 +1,5 @@
 import { TrashIcon } from "@primer/octicons-react";
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import { MemberRole } from "create/space/types";
 import { useAppSelector } from "app/hooks"; // 导入 useAppSelector
 import { selectCurrentUserId } from "auth/authSlice"; // 导入 selectCurrentUserId

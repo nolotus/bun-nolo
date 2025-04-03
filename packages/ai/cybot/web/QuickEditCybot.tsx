@@ -10,7 +10,7 @@ import { getModelsByProvider } from "ai/llm/providers";
 import { SyncIcon } from "@primer/octicons-react";
 
 // Components
-import Button from "web/ui/Button";
+import Button from "render/web/ui/Button";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { FormField } from "web/form/FormField";
 import { Input } from "web/form/Input";
