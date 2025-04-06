@@ -1,4 +1,4 @@
-// src/create/space/spaceSlice.ts
+// create/space/spaceSlice.ts
 import type { NoloRootState } from "app/store"; // Adjust path if needed
 import {
   type PayloadAction,
