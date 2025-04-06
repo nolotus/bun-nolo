@@ -1,4 +1,4 @@
-// 文件路径: src/components/sidebar/ChatSidebar.tsx (或你的实际路径)
+// 文件路径: chat/ChatSidebar.tsx
 import React, { memo, useState, useEffect, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks"; // 确认路径
 import {
