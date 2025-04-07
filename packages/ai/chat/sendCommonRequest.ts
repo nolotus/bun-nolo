@@ -106,6 +106,7 @@ export const sendCommonChatRequest = async ({
   const controller = new AbortController();
   const signal = controller.signal;
   const currentServer = selectCurrentServer(getState());
+  console.log("currentServer", currentServer);
   const messageId = createDialogMessageKey(dialogId);
 
   if (cybotConfig.tools?.length > 0) {
