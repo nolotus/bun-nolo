@@ -62,8 +62,32 @@ export const googleModels: Model[] = [
     contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly larger.
     maxOutputTokens: 8192, // Placeholder - Likely similar to Flash, or possibly larger.
     price: {
-      input: 1.0, //  Placeholder -  Likely higher than Flash, as it's "Pro" and experimental.
-      output: 4.0, //  Placeholder - Likely higher than Flash.
+      input: 0, // 免费
+      output: 0, // 免费
+      cachingWrite: 0, // 免费
+      cachingRead: 0, // 免费
+    },
+    performance: {
+      latency: "variable", //  Likely variable, especially for experimental models.
+    },
+    canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
+  },
+  {
+    name: "gemini-2.5-pro-preview-03-25",
+    displayName: "Gemini 2.5 Pro (Preview 03-25)",
+    provider: "google",
+    description:
+      "Preview version of Gemini 2.5 Pro (release 03-25).  May have different performance and features.",
+    strengths:
+      "Access to the latest preview features. Potentially improved performance or capabilities.",
+    hasVision: true, //  Assume it has vision, adjust if not.
+    hasAudio: true, //  Assume it has audio, adjust if not.
+    // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
+    contextWindow: 1048576, // 输入 token 限制
+    maxOutputTokens: 65536, // 输出 token 限制
+    price: {
+      input: 1.25 * 8, // 1.25 * 8 = 10
+      output: 10 * 8, // 10 * 8 = 80
       cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
       cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
     },

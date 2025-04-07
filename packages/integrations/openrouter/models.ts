@@ -14,7 +14,7 @@ export const openrouterModels = [
     hasVision: false,
     price: { input: 0, output: 0 },
     maxOutputTokens: "128k",
-    contextWindow: "32768", // 更新为与其他24b模型相同的上下文窗口大小。
+    contextWindow: "32768",
     supportsTool: true,
   },
   {
@@ -23,7 +23,16 @@ export const openrouterModels = [
     hasVision: false,
     price: { input: 0, output: 0 },
     maxOutputTokens: "128k",
-    contextWindow: "32768", // 已经是正确的上下文窗口大小，无需更改。
+    contextWindow: "32768",
+    supportsTool: true,
+  },
+  {
+    name: "openrouter/quasar-alpha",
+    displayName: "Quasar Alpha",
+    hasVision: false,
+    price: { input: 0, output: 0 },
+    maxOutputTokens: "32k",
+    contextWindow: "1000000",
     supportsTool: true,
   },
 ];
