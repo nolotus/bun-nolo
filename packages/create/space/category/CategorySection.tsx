@@ -3,7 +3,7 @@ import React, { memo } from "react";
 import { useAppSelector } from "app/hooks"; // 确认路径
 import { SpaceContent } from "create/space/types"; // 确认路径
 import CategoryHeader from "create/space/category/CategoryHeader"; // 确认路径
-import { SidebarItem } from "chat/dialog/SidebarItem"; // 确认路径，假设 SidebarItem 接受 handleProps
+import { SidebarItem } from "create/space/SidebarItem"; // 确认路径，假设 SidebarItem 接受 handleProps
 import { useDroppable, DraggableSyntheticListeners } from "@dnd-kit/core";
 import {
   SortableContext,

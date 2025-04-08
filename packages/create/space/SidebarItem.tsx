@@ -1,3 +1,7 @@
+// SidebarItem.tsx
+import React, { useState } from "react";
+import { NavLink, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   DiscussionOutdatedIcon,
   FileIcon,
@@ -5,15 +9,11 @@ import {
   BookIcon,
   FileCodeIcon,
   GrabberIcon,
-  KebabHorizontalIcon,
 } from "@primer/octicons-react";
 import { FaFileLines } from "react-icons/fa6";
 import { selectTheme } from "app/theme/themeSlice";
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useSelector } from "react-redux";
-import { NavLink, useParams } from "react-router-dom";
-import DeleteContentButton from "./DeleteContentButton";
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
+import SidebarActions from "./SidebarActions";
 
 interface SidebarItemProps {
   contentKey: string;
@@ -31,8 +31,8 @@ const ITEM_ICONS = {
   code: FileCodeIcon,
   file: FileIcon,
 } as const;
+
 const ICON_SIZE = 18;
-const MORE_ICON_SIZE = 16;
 
 export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
   ({ contentKey, type, title, handleProps }) => {
@@ -40,45 +40,14 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const theme = useSelector(selectTheme);
     const currentSpaceId = useSelector(selectCurrentSpaceId);
     const [isIconHover, setIsIconHover] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-    const actionButtonsRef = useRef<HTMLDivElement>(null);
-
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
     const isSelected = pageKeyFromPath === contentKey;
 
-    const toggleMenu = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setIsMenuOpen((prev) => !prev);
-    };
-
-    const closeMenu = useCallback(() => {
-      setIsMenuOpen(false);
-    }, []);
-
     const handleMoveClick = (e: React.MouseEvent) => {
       e.stopPropagation();
       console.log(`请求移动内容: ${contentKey}`);
-      closeMenu();
     };
-
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        if (
-          isMenuOpen &&
-          actionButtonsRef.current &&
-          !actionButtonsRef.current.contains(event.target as Node)
-        ) {
-          closeMenu();
-        }
-      };
-
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }, [isMenuOpen, closeMenu]);
 
     return (
       <>
@@ -87,7 +56,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
         >
           {/* 拖拽/类型图标 */}
           <span
-            className={`SidebarItem__icon ${isIconHover && handleProps ? "SidebarItem__icon--draggable" : ""}`}
+            className={`SidebarItem__icon ${
+              isIconHover && handleProps ? "SidebarItem__icon--draggable" : ""
+            }`}
             {...handleProps}
             onMouseEnter={() => setIsIconHover(true)}
             onMouseLeave={() => setIsIconHover(false)}
@@ -112,42 +83,17 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             {displayTitle}
           </NavLink>
 
-          {/* 操作按钮容器 */}
-          <div ref={actionButtonsRef} className="SidebarItem__actionButtons">
-            <button
-              className="SidebarItem__moreButton"
-              onClick={toggleMenu}
-              aria-haspopup="true"
-              aria-expanded={isMenuOpen}
-              title="更多操作"
-            >
-              <KebabHorizontalIcon size={MORE_ICON_SIZE} />
-            </button>
-
-            <DeleteContentButton
-              contentKey={contentKey}
-              title={displayTitle}
-              theme={theme}
-              className="SidebarItem__deleteButton"
-            />
-
-            {isMenuOpen && (
-              <div className="SidebarItem__menu" role="menu" ref={menuRef}>
-                <button
-                  className="SidebarItem__menuItem"
-                  onClick={handleMoveClick}
-                  role="menuitem"
-                >
-                  移动到空间...
-                </button>
-              </div>
-            )}
-          </div>
+          {/* 操作按钮区域，调用独立的 SidebarActions 组件 */}
+          <SidebarActions
+            contentKey={contentKey}
+            displayTitle={displayTitle}
+            theme={theme}
+            onMove={handleMoveClick}
+          />
         </div>
 
-        {/* --- CSS 样式 --- */}
+        {/* 内联 CSS 样式 */}
         <style>{`
-           /* 主容器样式 */
            .SidebarItem { 
              margin: 2px 0; 
              padding: 7px 10px; 
@@ -185,7 +131,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
              border-radius: 0 2px 2px 0;
            }
            
-           /* 图标样式 */
            .SidebarItem__icon { 
              display: flex; 
              align-items: center; 
@@ -215,7 +160,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
              color: ${theme.primary}; 
            }
            
-           /* 链接样式 */
            .SidebarItem__link { 
              font-size: 14px; 
              line-height: 1.4; 
@@ -233,8 +177,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
            .SidebarItem--selected .SidebarItem__link { 
              font-weight: 500; 
            }
-
-           /* 操作按钮区域样式 */
+           
            .SidebarItem__actionButtons {
              position: absolute;
              right: 8px;
@@ -259,7 +202,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
              -webkit-backdrop-filter: blur(8px);
            }
 
-           /* 按钮样式 */
            .SidebarItem__deleteButton,
            .SidebarItem__moreButton {
              padding: 4px;
@@ -273,14 +215,13 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
              color: ${theme.textTertiary};
              transition: background-color 0.15s, color 0.15s;
            }
-           
+
            .SidebarItem__deleteButton:hover,
            .SidebarItem__moreButton:hover {
              background-color: ${theme.backgroundTertiaryHover || theme.backgroundTertiary};
              color: ${theme.textSecondary};
            }
            
-           /* 菜单样式 */
            .SidebarItem__menu {
              position: absolute;
              top: calc(100% + 4px);
@@ -326,5 +267,4 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
 );
 
 SidebarItem.displayName = "SidebarItem";
-
 export default SidebarItem;
