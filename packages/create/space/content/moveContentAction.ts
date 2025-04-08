@@ -1,4 +1,4 @@
-// 文件路径: create/space/actions/moveContentAction.ts (或你的实际路径)
+// 文件路径: create/space/content/moveContentAction.ts
 
 import type { AppDispatch, NoloRootState } from "app/store"; // 确认 store 类型路径
 import type { SpaceId, SpaceContent, SpaceData } from "create/space/types"; // 确认类型路径
