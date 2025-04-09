@@ -18,10 +18,11 @@ const GuideSection = () => {
       <div className="guide-content">
         <h2 className="guide-title">
           <LightBulbIcon size={24} className="guide-title-icon" />
-          欢迎来到您的AI助手空间
+          Cybot可以做些什么？
         </h2>
         <p className="guide-subtitle">
-          这里是您的专属AI助手平台，无论是学习、工作还是兴趣爱好，都能帮您事半功倍
+          区别于其他平台，我们相信你自己定制的ai
+          才是最懂你的ai。在这里你可以分享你自己定制的，也可以使用别人创建的
         </p>
 
         {/* 核心功能展示区 */}
@@ -30,8 +31,8 @@ const GuideSection = () => {
             <div className="feature-icon">
               <RocketIcon size={24} />
             </div>
-            <h3>创建AI助手</h3>
-            <p>为不同场景创建定制化AI助手，让AI更懂你的需求</p>
+            <h3>创建cybot</h3>
+            <p>将你的提示词 大模型 相关tool 组合创建为为一个cybot </p>
             <NavLink to="/create" className="action-button">
               开始创建
             </NavLink>
@@ -41,10 +42,10 @@ const GuideSection = () => {
             <div className="feature-icon">
               <BookIcon size={24} />
             </div>
-            <h3>知识库管理</h3>
-            <p>上传并管理您的专业资料，让AI掌握您需要的专业知识</p>
+            <h3>资料管理</h3>
+            <p>cybot可以根据你的对话上下文，手动设置或者自动的使用相关的资料</p>
             <NavLink to="/knowledge-base" className="action-button">
-              查看详情
+              前往学习
             </NavLink>
           </div>
 
@@ -52,10 +53,10 @@ const GuideSection = () => {
             <div className="feature-icon">
               <PeopleIcon size={24} />
             </div>
-            <h3>多场景应用</h3>
-            <p>根据不同场景、学习、工作、生活，创建多个独立空间</p>
-            <NavLink to="/scenarios" className="action-button">
-              了解更多
+            <h3>文档中心</h3>
+            <p>在这里查看如何使用cybot</p>
+            <NavLink to="/space/xx" className="action-button">
+              点击前往
             </NavLink>
           </div>
         </div>
@@ -74,10 +75,6 @@ const GuideSection = () => {
             </div>
             <div className="step">
               <span className="step-number">3</span>
-              <p>开始对话，享受AI带来的效率提升</p>
-            </div>
-            <div className="step">
-              <span className="step-number">4</span>
               <p>
                 多账户使用，点击
                 <NavLink to="/login" className="auth-link">
@@ -92,16 +89,9 @@ const GuideSection = () => {
             </div>
           </div>
         </div>
-
-        {/* 帮助链接 */}
-        <div className="help-links">
-          <NavLink to="/tutorial" className="help-link">使用教程</NavLink>
-          <NavLink to="/faq" className="help-link">最近更新</NavLink>
-          <a href="mailto:s@nolotus.com" className="help-link">联系我们</a>
-        </div>
       </div>
 
-      <style >{`
+      <style>{`
         .fade-in {
           opacity: 0;
           animation: fadeInUp 0.6s ease forwards;

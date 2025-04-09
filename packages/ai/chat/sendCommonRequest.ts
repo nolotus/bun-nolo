@@ -163,6 +163,7 @@ export const sendCommonChatRequest = async ({
             cybotId: cybotConfig.id,
           })
         );
+        console.log("done", done);
         if (totalUsage) {
           dispatch(updateTokens({ dialogId, usage: totalUsage, cybotConfig }));
         }
@@ -269,8 +270,15 @@ export const sendCommonChatRequest = async ({
         // 处理正常文本内容
         const content = delta.content || "";
         if (parsedData.usage) {
+          console.log('"usage" 数据:", parsedData.usage);', totalUsage);
           if (!totalUsage) {
             totalUsage = { ...parsedData.usage };
+            console.log(
+              "初始化 totalUsage:",
+              totalUsage,
+              " parsedData.usage:",
+              parsedData.usage
+            );
           } else {
             totalUsage.completion_tokens = Math.max(
               totalUsage.completion_tokens || 0,

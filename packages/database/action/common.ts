@@ -10,6 +10,16 @@ export const logger = pino({
 
 // 获取所有服务器列表并去重
 export const getAllServers = (currentServer: string): string[] => {
+  // 检测网络连接状态
+  const isOnline = navigator.onLine;
+  console.log("isOnline", isOnline);
+
+  if (!isOnline) {
+    console.warn("Network is offline. Returning an empty server list.");
+    return [];
+  }
+
+  // 如果在线，则返回正常的服务器列表
   return Array.from(
     new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
   );

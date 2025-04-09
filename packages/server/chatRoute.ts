@@ -12,7 +12,7 @@ export const chatRoute = async (req) => {
       throw new Error("API key is required but not provided");
     }
 
-    const headers = rawBody.model?.includes("claude")
+    const headers = rawBody.provider?.includes("anthropic")
       ? {
           "Content-Type": "application/json",
           "x-api-key": apiKey,
