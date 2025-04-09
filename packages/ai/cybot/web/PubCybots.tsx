@@ -10,7 +10,6 @@ import toast from "react-hot-toast";
 
 interface PubCybotsProps {
   limit?: number;
-  closeModal?: () => void;
   showEmpty?: boolean; // 是否显示空状态
 }
 
@@ -72,59 +71,57 @@ const EmptyState = memo(() => {
 
 EmptyState.displayName = "EmptyState";
 
-const PubCybots = memo(
-  ({ limit = 20, closeModal, showEmpty = true }: PubCybotsProps) => {
-    const theme = useAppSelector(selectTheme);
-    const { loading, error, data } = usePubCybots({
-      limit,
-      sortBy: "newest",
-    });
+const PubCybots = memo(({ limit = 20, showEmpty = true }: PubCybotsProps) => {
+  const theme = useAppSelector(selectTheme);
+  const { loading, error, data } = usePubCybots({
+    limit,
+    sortBy: "newest",
+  });
 
-    if (error) {
-      toast.error("加载AI列表失败");
-      return null;
-    }
-
-    // 只在完全没有数据时显示加载状态
-    if (loading && !data.length) {
-      return <LoadingState />;
-    }
-
-    if (!data.length && showEmpty) {
-      return <EmptyState />;
-    }
-
-    return (
-      <>
-        <div className={`cybots-grid `}>
-          {data.map((item) => (
-            <CybotBlock key={item.id} item={item} isPub />
-          ))}
-        </div>
-        <style jsx>{`
-          .cybots-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            padding: 0.5rem;
-          }
-
-          @media (max-width: 768px) {
-            .cybots-grid {
-              grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            }
-          }
-
-          @media (max-width: 480px) {
-            .cybots-grid {
-              grid-template-columns: 1fr;
-            }
-          }
-        `}</style>
-      </>
-    );
+  if (error) {
+    toast.error("加载AI列表失败");
+    return null;
   }
-);
+
+  // 只在完全没有数据时显示加载状态
+  if (loading && !data.length) {
+    return <LoadingState />;
+  }
+
+  if (!data.length && showEmpty) {
+    return <EmptyState />;
+  }
+
+  return (
+    <>
+      <div className={`cybots-grid `}>
+        {data.map((item) => (
+          <CybotBlock key={item.id} item={item} />
+        ))}
+      </div>
+      <style>{`
+        .cybots-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 1.5rem;
+          padding: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+          .cybots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          }
+        }
+
+        @media (max-width: 480px) {
+          .cybots-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+    </>
+  );
+});
 
 PubCybots.displayName = "PubCybots";
 

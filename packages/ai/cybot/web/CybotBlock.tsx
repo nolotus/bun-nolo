@@ -24,11 +24,10 @@ import {
 
 interface CybotBlockProps {
   item: Cybot;
-  closeModal?: () => void;
   reload: () => Promise<void>;
 }
 
-const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
+const CybotBlock = ({ item, reload }: CybotBlockProps) => {
   const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
@@ -42,7 +41,6 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
     if (isLoading) return;
     try {
       await createNewDialog({ cybots: [cybotKey] });
-      closeModal?.();
     } catch (error) {
       toast.error(t("createDialogError"));
     }
