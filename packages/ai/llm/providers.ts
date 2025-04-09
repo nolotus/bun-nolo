@@ -89,6 +89,7 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
 };
 
 export const getModel = (provider: Provider, modelName: string): Model => {
+  console.log("getModel", provider, modelName);
   const models = getModelsByProvider(provider);
   const model = models.find((m) => m.name === modelName);
   if (!model) {
