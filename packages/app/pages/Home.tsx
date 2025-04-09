@@ -1,25 +1,34 @@
-import { DependabotIcon, MailIcon, PersonAddIcon, ChevronDownIcon, GlobeIcon } from "@primer/octicons-react";
-import { useAppSelector } from "../hooks";
-import { selectTheme } from "../theme/themeSlice";
-import { selectIsLoggedIn } from "../../auth/authSlice";
-import { NavLink } from 'react-router-dom'; // 添加路由组件
-import copyToClipboard from "utils/clipboard";
+// Home.tsx
+import {
+  DependabotIcon,
+  MailIcon,
+  PersonAddIcon,
+  ChevronDownIcon,
+  GlobeIcon,
+} from "@primer/octicons-react";
+import { useAppSelector } from "../hooks"; // 确保路径正确
+import { selectTheme } from "../theme/themeSlice"; // 确保路径正确
+// selectCurrentUser 仍然可以保留，用于 Home 组件的条件渲染逻辑
+import { selectIsLoggedIn, selectCurrentUser } from "../../auth/authSlice"; // 确保路径正确
+import { NavLink } from "react-router-dom";
+import copyToClipboard from "utils/clipboard"; // 确保路径正确
 import toast from "react-hot-toast";
-import PubCybots from "ai/cybot/web/PubCybots";
-import WelcomeSection from "./WelcomeSection";
-import GuideSection from "./GuideSection";
+import PubCybots from "ai/cybot/web/PubCybots"; // 确保路径正确
+import WelcomeSection from "./WelcomeSection"; // 确保路径正确
+import GuideSection from "./GuideSection"; // GuideSection 不再需要 userId
 
 const EMAIL = "s@nolotus.com";
 
 const Home = () => {
   const theme = useAppSelector(selectTheme);
   const isLoggedIn = useAppSelector(selectIsLoggedIn);
+  // 保留 currentUser 用于判断是否渲染 GuideSection
+  const currentUser = useAppSelector(selectCurrentUser);
 
   const handleEmailClick = (e: React.MouseEvent) => {
     if (e.ctrlKey || e.metaKey) {
       return;
     }
-
     e.preventDefault();
     copyToClipboard(EMAIL, {
       onSuccess: () => toast.success("邮箱已复制"),
@@ -30,14 +39,14 @@ const Home = () => {
   return (
     <>
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "1.5rem" }}>
-        {isLoggedIn ? <GuideSection /> : <WelcomeSection />}
+        {/* 条件渲染 GuideSection，不再传递 userId */}
+        {isLoggedIn && currentUser ? <GuideSection /> : <WelcomeSection />}
 
         <section className="section">
           <h2 className="section-title">
             <GlobeIcon size={24} className="section-title-icon" />
-            社区发布的cybot
+            社区发布的 Cybot
           </h2>
-
           <div className="cybots-container">
             <PubCybots limit={9} />
           </div>
@@ -56,7 +65,9 @@ const Home = () => {
           </a>
         </footer>
       </div>
+      {/* Home 组件的样式 (保持不变) */}
       <style jsx>{`
+        /* ... 省略与之前相同的样式 ... */
         @keyframes fadeInUp {
           from {
             opacity: 0;
@@ -74,13 +85,15 @@ const Home = () => {
         }
 
         .section.delay {
-          animation-delay: 0.2s        }
+          animation-delay: 0.2s;
+        }
 
         .section-title {
           font-size: 2rem;
           color: ${theme.text};
           margin: 3rem 0;
-          font-weight: 600          letter-spacing: -0.5px;
+          font-weight: 600;
+          letter-spacing: -0.5px;
           text-align: center;
           display: flex;
           align-items: center;

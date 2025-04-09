@@ -85,13 +85,11 @@ export default function App({
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
-    console.log("App init: System level"); // 添加日志区分
     const initializeSystem = async () => {
       try {
         dispatch(addHostToCurrentServer(hostname));
         dispatch(setDarkMode(isDark));
         await dispatch(initializeAuth(tokenManager)).unwrap();
-        console.log("App init: System level completed.");
       } catch (error) {
         console.error("系统初始化失败：", error);
       }
@@ -105,33 +103,22 @@ export default function App({
       // 确保 auth.user 和 userId 都存在
       if (auth.user?.userId) {
         const userId = auth.user.userId;
-        console.log(`App init: User data for ${userId}`); // 添加日志
         try {
           // 1. 获取用户设置 (包含默认 Space ID 偏好)
           await dispatch(getSettings(userId)).unwrap();
-          console.log(`App init: Settings loaded for ${userId}.`);
 
           // 2. 获取用户的所有 Space 成员列表
           // 这会填充 state.space.memberSpaces，供 SidebarTop 和 loadDefaultSpace 使用
           await dispatch(fetchUserSpaceMemberships(userId)).unwrap();
-          console.log(`App init: Space memberships fetched for ${userId}.`);
 
           // 3. 尝试加载默认 Space
           // 这个 action 现在会利用已获取的列表和设置，
           // 并且如果 PageLoader 已加载了 Space，它会跳过
           await dispatch(loadDefaultSpace(userId)).unwrap();
-          console.log(
-            `App init: Attempted to load default space for ${userId}.`
-          );
         } catch (error) {
           // 更具体地记录错误
           console.error(`用户数据初始化失败 for ${userId}:`, error);
         }
-      } else {
-        // 添加日志说明为何跳过
-        console.log(
-          "App init: User data skipped, auth.user.userId is missing."
-        );
       }
     };
 
@@ -140,7 +127,6 @@ export default function App({
 
   // 主题和语言初始化 (保持不变)
   useEffect(() => {
-    console.log("App init: Theme and Language"); // 添加日志
     const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent) => {
       dispatch(setDarkMode(event.matches));
