@@ -1,4 +1,4 @@
-// src/create/space/member/memberThunks.ts
+// create/space/member/memberThunks.ts
 import { asyncThunkCreator } from "@reduxjs/toolkit";
 import type { SpaceState } from "../spaceSlice"; // Adjust path
 import { fetchUserSpaceMembershipsAction } from "./fetchUserSpaceMembershipsAction";

@@ -39,8 +39,7 @@ const Login: React.FC = () => {
       const locale = navigator.language;
       const result = await dispatch(signIn({ ...data, locale })).unwrap();
       if (result.token) {
-        // 登录成功后跳转到 /create 页面
-        navigate("/create");
+        navigate("/");
       }
     } catch (err) {
       setError(typeof err === "string" ? err : t("networkError"));

@@ -1,4 +1,4 @@
-// 文件路径: src/create/space/constants.ts (或你的实际路径)
+// 文件路径: create/space/constants.ts (或你的实际路径)
 
 /**
  * 代表“未分类”区域在 UI 拖拽交互中的唯一标识符。

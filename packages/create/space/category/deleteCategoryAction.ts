@@ -1,4 +1,4 @@
-// 文件路径: src/create/space/category/deleteCategoryAction.ts (或你的实际路径)
+// 文件路径: create/space/category/deleteCategoryAction.ts (或你的实际路径)
 
 import type {
   SpaceId,

@@ -1,4 +1,4 @@
-// 文件路径: src/create/space/actions/updateContentCategoryAction.ts (或你的实际路径)
+// 文件路径: create/space/actions/updateContentCategoryAction.ts (或你的实际路径)
 
 import type { SpaceId, SpaceData, SpaceContent } from "create/space/types"; // 确认类型路径
 import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径

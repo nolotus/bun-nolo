@@ -1,4 +1,4 @@
-// src/create/space/spaceThunks.ts
+// create/space/spaceThunks.ts
 import { asyncThunkCreator } from "@reduxjs/toolkit";
 import { read } from "database/dbSlice"; // Assuming path is correct
 import { createSpaceKey } from "./spaceKeys";

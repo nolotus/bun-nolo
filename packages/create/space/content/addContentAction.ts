@@ -1,4 +1,4 @@
-// 文件路径: src/create/space/actions/addContentAction.ts (或你的实际路径)
+// 文件路径: create/space/actions/addContentAction.ts (或你的实际路径)
 
 import type {
   AddContentRequest,

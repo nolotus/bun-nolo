@@ -73,7 +73,7 @@ const SpaceSettings: React.FC = () => {
     try {
       await dispatch(deleteSpace(spaceId)).unwrap();
       toast.success("空间已删除");
-      navigate("/create"); // Navigate away after deletion
+      navigate("/");
     } catch (err) {
       console.error("Delete space error:", err);
       toast.error(

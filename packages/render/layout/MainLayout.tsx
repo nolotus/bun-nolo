@@ -18,8 +18,6 @@ const MainLayout: React.FC = () => {
       currentSidebar = <HomeSidebarContent />;
     } else if (location.pathname.startsWith("/life")) {
       currentSidebar = <LifeSidebarContent />;
-    } else if (location.pathname.startsWith("/create")) {
-      currentSidebar = <ChatSidebar />;
     }
 
     if (currentSidebar) {
