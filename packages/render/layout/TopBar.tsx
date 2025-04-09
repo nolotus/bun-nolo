@@ -161,7 +161,6 @@ const TopBar: React.FC<TopBarProps> = ({
         </div>
 
         <div className="topbar-right">
-          <CreateMenu />
           {isLoggedIn ? (
             <LoggedInMenu />
           ) : (
