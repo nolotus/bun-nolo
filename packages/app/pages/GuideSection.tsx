@@ -128,7 +128,10 @@ const GuideSection = () => {
           <p>
             了解如何更高效地使用 Cybot 的各项功能，包括对话、知识库和自定义设置
           </p>
-          <NavLink to="/space/xx" className="action-button">
+          <NavLink
+            to="/page-0e95801d90-01JRDMA6Q85PQDCEAC7EXHWF67?spaceId=01JRDM39VSNYD1PKS4B53W6BGE"
+            className="action-button"
+          >
             查看帮助文档
           </NavLink>
         </div>

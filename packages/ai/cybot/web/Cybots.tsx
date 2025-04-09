@@ -11,7 +11,6 @@ import CybotBlock from "./CybotBlock";
 interface CybotsProps {
   queryUserId: string;
   limit?: number;
-  closeModal?: () => void;
 }
 
 const LoadingState = memo(() => {
@@ -33,7 +32,7 @@ const GridContainer = memo(({ children }: { children: React.ReactNode }) => (
 
 GridContainer.displayName = "GridContainer";
 
-const Cybots = memo(({ queryUserId, limit = 20, closeModal }: CybotsProps) => {
+const Cybots = memo(({ queryUserId, limit = 20 }: CybotsProps) => {
   const {
     loading,
     data: cybots = [],
@@ -73,12 +72,7 @@ const Cybots = memo(({ queryUserId, limit = 20, closeModal }: CybotsProps) => {
     <>
       <GridContainer>
         {items.map((item) => (
-          <CybotBlock
-            key={item.id}
-            item={item}
-            closeModal={closeModal}
-            reload={handleReload}
-          />
+          <CybotBlock key={item.id} item={item} reload={handleReload} />
         ))}
       </GridContainer>
       <style>
