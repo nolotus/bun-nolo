@@ -11,7 +11,6 @@ import toast from "react-hot-toast";
 interface PubCybotsProps {
   limit?: number;
   closeModal?: () => void;
-  compact?: boolean;
   showEmpty?: boolean; // 是否显示空状态
 }
 
@@ -74,12 +73,7 @@ const EmptyState = memo(() => {
 EmptyState.displayName = "EmptyState";
 
 const PubCybots = memo(
-  ({
-    limit = 20,
-    closeModal,
-    compact = false,
-    showEmpty = true,
-  }: PubCybotsProps) => {
+  ({ limit = 20, closeModal, showEmpty = true }: PubCybotsProps) => {
     const theme = useAppSelector(selectTheme);
     const { loading, error, data } = usePubCybots({
       limit,
@@ -102,15 +96,9 @@ const PubCybots = memo(
 
     return (
       <>
-        <div className={`cybots-grid ${compact ? "compact" : ""}`}>
+        <div className={`cybots-grid `}>
           {data.map((item) => (
-            <CybotBlock
-              key={item.id}
-              item={item}
-              closeModal={closeModal}
-              isPub
-              compact={compact}
-            />
+            <CybotBlock key={item.id} item={item} isPub />
           ))}
         </div>
         <style jsx>{`
@@ -121,26 +109,14 @@ const PubCybots = memo(
             padding: 0.5rem;
           }
 
-          .cybots-grid.compact {
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1rem;
-            padding: 0.25rem;
-          }
-
           @media (max-width: 768px) {
             .cybots-grid {
               grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            }
-            .cybots-grid.compact {
-              grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             }
           }
 
           @media (max-width: 480px) {
             .cybots-grid {
-              grid-template-columns: 1fr;
-            }
-            .cybots-grid.compact {
               grid-template-columns: 1fr;
             }
           }

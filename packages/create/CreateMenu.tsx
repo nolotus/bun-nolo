@@ -7,7 +7,6 @@ import {
   useInteractions,
 } from "@floating-ui/react";
 import {
-  CommentIcon,
   DependabotIcon,
   FileAddedIcon,
   PlusIcon,
@@ -17,7 +16,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { Dialog } from "render/web/ui/Dialog";
-import { useModal } from "render/ui/Modal";
 import { CreateRoutePaths } from "create/routePaths";
 import { useTheme } from "app/theme";
 import { useAppDispatch } from "app/hooks";
@@ -33,11 +31,6 @@ export const CreateMenu = () => {
   const { isLoggedIn, user } = useAuth();
   const { t } = useTranslation();
   const theme = useTheme();
-  const {
-    visible: AIsModalVisible,
-    open: openAIsModal,
-    close: closeAIsModal,
-  } = useModal();
 
   const createNewPage = async () => {
     const dbkey = await dispatch(createPage()).unwrap();
@@ -46,11 +39,6 @@ export const CreateMenu = () => {
   };
 
   const buttonItems = [
-    {
-      tooltip: "新建对话",
-      icon: <CommentIcon size={16} />,
-      onClick: openAIsModal,
-    },
     {
       tooltip: "新建页面",
       icon: <FileAddedIcon size={16} />,
@@ -199,21 +187,6 @@ export const CreateMenu = () => {
             )}
           </div>
         )}
-
-        <Dialog
-          isOpen={AIsModalVisible}
-          onClose={closeAIsModal}
-          title={<h2>{t("createDialog")}</h2>}
-        >
-          {isLoggedIn && (
-            <>
-              <h3 style={{ marginBottom: "1rem" }}>我的 AIs</h3>
-              <Cybots queryUserId={user?.userId} closeModal={closeAIsModal} />
-            </>
-          )}
-          <h3>公共 AIs</h3>
-          <PubCybots limit={8} closeModal={closeAIsModal} compact />
-        </Dialog>
       </div>
     </>
   );
