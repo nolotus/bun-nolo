@@ -36,6 +36,7 @@ import { CreateSpaceButton } from "create/space/CreateSpaceButton";
 import { selectCurrentUserId } from "auth/authSlice"; // 保持，可能仍然需要
 import { createSpaceKey } from "create/space/spaceKeys";
 import { SpaceItem } from "create/space/components/SpaceItem";
+import { CreateMenu } from "create/CreateMenu";
 
 export const SidebarTop = () => {
   const theme = useTheme();
@@ -229,6 +230,7 @@ export const SidebarTop = () => {
         )}
       </div>
       {/* <NavIconItem path="/" icon={<PlusIcon size={22} />} /> */}
+      <CreateMenu />
 
       {/* Modal for Creating Space */}
       <Dialog isOpen={visible} onClose={closeModal}>
