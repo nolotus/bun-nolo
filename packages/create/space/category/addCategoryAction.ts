@@ -1,4 +1,4 @@
-// src/create/space/category/addCategoryAction.ts (假设路径)
+// create/space/category/addCategoryAction.ts (假设路径)
 import type { SpaceId, SpaceData, Category } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";

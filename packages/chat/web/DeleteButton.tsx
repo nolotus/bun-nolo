@@ -33,7 +33,7 @@ const DeleteButton = ({ dbKey }: DeleteButtonProps) => {
         deleteContentFromSpace({ contentKey: deleteKey, spaceId })
       );
       toast.success("Page deleted successfully!");
-      navigate("/create");
+      navigate("/");
     } catch (error) {
       console.error("Failed to delete:", error);
       toast.error("Failed to delete page");

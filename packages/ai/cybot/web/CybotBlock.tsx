@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import { selectTheme } from "app/theme/themeSlice";
 import { useTranslation } from "react-i18next";
-import { animations } from "render/styles/animations";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
@@ -12,14 +11,16 @@ import Button from "render/web/ui/Button";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/web/ui/Dialog";
 import { Tooltip } from "web/ui/Tooltip";
+import EditCybot from "ai/cybot/web/EditCybot";
+import { Cybot } from "../types";
+import { remove } from "database/dbSlice";
+
+// Using the original Octicons for compatibility
 import {
   CommentDiscussionIcon,
   PencilIcon,
   TrashIcon,
 } from "@primer/octicons-react";
-import EditCybot from "ai/cybot/web/EditCybot";
-import { Cybot } from "../types";
-import { remove } from "database/dbSlice";
 
 interface CybotBlockProps {
   item: Cybot;
@@ -54,157 +55,139 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
     try {
       const element = document.getElementById(`cybot-${item.id}`);
       element?.classList.add("item-exit");
-      await new Promise((r) => setTimeout(r, 50));
-      const result = await dispatch(remove(cybotKey));
-      console.log("result", result);
+      await new Promise((r) => setTimeout(r, 150));
+      await dispatch(remove(cybotKey));
       toast.success(t("deleteSuccess"));
       await reload();
     } catch (error) {
       setDeleting(false);
       toast.error(t("deleteError"));
     }
-  }, [item.id, deleting, reload, t]);
-
-  const renderPricing = () => {
-    if (!item.inputPrice && !item.outputPrice) return null;
-
-    const formatPrice = (price?: number) => {
-      if (!price) return "0";
-      return Number(price.toFixed(2)).toString();
-    };
-
-    return (
-      <div className="price-tag">
-        <span>
-          {t("price")}: {formatPrice(item.inputPrice)}/
-          {formatPrice(item.outputPrice)}
-        </span>
-      </div>
-    );
-  };
-
-  const renderTags = () => {
-    // 如果 item.tags 存在且是数组，渲染每个标签
-    if (!item.tags || !Array.isArray(item.tags) || item.tags.length === 0) {
-      return null;
-    }
-
-    return item.tags.map((tag, index) => (
-      <div key={index} className="tag">
-        {tag}
-      </div>
-    ));
-  };
+  }, [item.id, cybotKey, deleting, dispatch, reload, t]);
 
   return (
-    <>
-      <div id={`cybot-${item.id}`} className="cybot-block">
-        <div className="header">
-          <div className="avatar">{item.name?.[0]?.toUpperCase() || "?"}</div>
+    <div id={`cybot-${item.id}`} className="cybot-block" tabIndex={0}>
+      <div className="header">
+        <div className="avatar">{item.name?.[0]?.toUpperCase() || "?"}</div>
 
-          <div className="info">
-            <div className="title-row">
-              <Tooltip content={`ID: ${item.id}`}>
-                <h3 className="title">{item.name || t("unnamed")}</h3>
-              </Tooltip>
-              {renderPricing()}
-            </div>
+        <div className="info">
+          <div className="title-row">
+            <Tooltip content={`ID: ${item.id}`}>
+              <h3 className="title">{item.name || t("unnamed")}</h3>
+            </Tooltip>
 
-            <div className="tags">
-              <div className="tag">{item.model}</div>
-              <div className="tag">{item.provider}</div>
-              {item.dialogCount !== undefined && (
-                <div className="tag">
-                  {t("dialogCount")}: {item.dialogCount}
-                </div>
-              )}
-              {renderTags()} {/* 添加 tags 渲染 */}
-            </div>
+            {(item.inputPrice || item.outputPrice) && (
+              <div className="price-tag">
+                {(item.inputPrice || 0).toFixed(2)}/
+                {(item.outputPrice || 0).toFixed(2)}
+              </div>
+            )}
+          </div>
+
+          <div className="tags">
+            {item.model && <span className="tag">{item.model}</span>}
+            {item.tags?.map((tag, index) => (
+              <span key={index} className="tag">
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
+      </div>
 
-        <div className="description">
-          {item.introduction || t("noDescription")}
-        </div>
+      <div className="description">
+        {item.introduction || t("noDescription")}
+      </div>
 
-        <div className="actions">
-          <Button
-            icon={<CommentDiscussionIcon size={16} />}
-            onClick={startDialog}
-            disabled={isLoading}
-            loading={isLoading}
-            size="medium"
-            style={{ flex: 2 }}
-          >
-            {isLoading ? t("starting") : t("startChat")}
-          </Button>
+      <div className="actions">
+        <Button
+          icon={<CommentDiscussionIcon size={16} />}
+          onClick={startDialog}
+          disabled={isLoading}
+          loading={isLoading}
+          size="medium"
+          style={{ flex: 2 }}
+        >
+          {isLoading ? t("starting") : t("startChat")}
+        </Button>
 
-          {allowEdit && (
-            <div className="edit-actions">
-              <IconHoverButton
-                icon={<PencilIcon size={16} />}
-                variant="secondary"
-                onClick={openEdit}
-                size="medium"
-              >
-                {t("edit")}
-              </IconHoverButton>
+        {allowEdit && (
+          <div className="edit-actions">
+            <IconHoverButton
+              icon={<PencilIcon size={16} />}
+              variant="secondary"
+              onClick={openEdit}
+              size="medium"
+            >
+              {t("edit")}
+            </IconHoverButton>
 
-              <IconHoverButton
-                icon={<TrashIcon size={16} />}
-                variant="danger"
-                onClick={handleDelete}
-                disabled={deleting}
-                size="medium"
-              >
-                {t("delete")}
-              </IconHoverButton>
-            </div>
-          )}
-        </div>
-
-        {editVisible && (
-          <Dialog
-            isOpen={editVisible}
-            onClose={closeEdit}
-            title={`${t("edit")} ${item.name || t("cybot")}`}
-          >
-            <EditCybot initialValues={item} onClose={closeEdit} />
-          </Dialog>
+            <IconHoverButton
+              icon={<TrashIcon size={16} />}
+              variant="danger"
+              onClick={handleDelete}
+              disabled={deleting}
+              size="medium"
+            >
+              {t("delete")}
+            </IconHoverButton>
+          </div>
         )}
       </div>
 
-      <style>{`
+      {editVisible && (
+        <Dialog
+          isOpen={editVisible}
+          onClose={closeEdit}
+          title={`${t("edit")} ${item.name || t("cybot")}`}
+        >
+          <EditCybot initialValues={item} onClose={closeEdit} />
+        </Dialog>
+      )}
+
+      <style jsx>{`
         .cybot-block {
           background: ${theme.background};
           border-radius: 12px;
-          padding: clamp(0.875rem, 2vw, 1.25rem);
+          padding: 1.25rem;
           height: 100%;
           display: flex;
           flex-direction: column;
-          gap: 0.875rem;
+          gap: 1rem;
           border: 1px solid ${theme.border};
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-          transition: all ${animations.duration.normal} ease;
+          transition: all 0.15s ease;
           min-width: 280px;
+          position: relative;
+          outline: none;
+        }
+
+        .cybot-block:hover {
+          transform: translateY(-2px);
+          border-color: ${theme.primary}30;
+        }
+
+        .cybot-block:focus {
+          border-color: ${theme.primary};
         }
 
         .header {
           display: flex;
-          gap: 0.75rem;
+          gap: 0.875rem;
+          align-items: center;
         }
 
         .avatar {
-          width: 38px;
-          height: 38px;
-          border-radius: 8px;
-          background: ${theme.backgroundTertiary};
+          width: 42px;
+          height: 42px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 1rem;
-          color: ${theme.text};
+          font-weight: 600;
           flex-shrink: 0;
+          background: ${theme.primaryGhost}30;
+          color: ${theme.primary};
         }
 
         .info {
@@ -212,18 +195,18 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: 0.4rem;
+          gap: 0.5rem;
         }
 
         .title-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 0.5rem;
+          gap: 0.75rem;
         }
 
         .title {
-          font-size: 0.95rem;
+          font-size: 1rem;
           font-weight: 600;
           margin: 0;
           color: ${theme.text};
@@ -234,7 +217,7 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
 
         .tags {
           display: flex;
-          gap: 0.4rem;
+          gap: 0.5rem;
           flex-wrap: wrap;
           align-items: center;
         }
@@ -242,26 +225,28 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
         .tag {
           font-size: 0.75rem;
           color: ${theme.textSecondary};
-          padding: 0.15rem 0.4rem;
+          padding: 0.2rem 0.5rem;
           background: ${theme.backgroundSecondary};
-          border-radius: 4px;
+          border-radius: 6px;
           white-space: nowrap;
+          border: 1px solid ${theme.border};
         }
 
         .price-tag {
           font-size: 0.75rem;
-          color: ${theme.accent};
-          padding: 0.15rem 0.4rem;
-          background: ${theme.backgroundTertiary};
-          border-radius: 4px;
+          color: ${theme.textSecondary};
+          padding: 0.2rem 0.5rem;
+          background: ${theme.backgroundSecondary};
+          border-radius: 6px;
           white-space: nowrap;
+          border: 1px solid ${theme.border};
         }
 
         .description {
           flex: 1;
-          font-size: 0.85rem;
+          font-size: 0.9rem;
           line-height: 1.5;
-          color: ${theme.textTertiary};
+          color: ${theme.textSecondary};
           margin: 0.2rem 0;
           overflow-wrap: break-word;
           display: -webkit-box;
@@ -272,45 +257,57 @@ const CybotBlock = ({ item, closeModal, reload }: CybotBlockProps) => {
 
         .actions {
           display: flex;
-          gap: 0.5rem;
-          margin-top: auto;
+          gap: 0.75rem;
+          margin-top: 0.5rem;
         }
 
         .edit-actions {
           display: flex;
-          gap: 0.4rem;
+          gap: 0.5rem;
+        }
+
+        .item-exit {
+          opacity: 0;
+          transform: scale(0.98);
+          transition: all 0.15s ease;
         }
 
         @media (max-width: 480px) {
           .cybot-block {
-            padding: 0.75rem;
-            gap: 0.75rem;
+            padding: 1rem;
+            gap: 0.875rem;
           }
 
           .actions {
             flex-direction: column;
+            gap: 0.6rem;
           }
 
           .edit-actions {
             justify-content: stretch;
+            gap: 0.75rem;
           }
 
           .edit-actions button {
             flex: 1;
           }
-        }
 
-        .cybot-block:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
+          .avatar {
+            width: 38px;
+            height: 38px;
+          }
 
-        .item-exit {
-          opacity: 0;
-          transform: scale(0.9);
+          .title {
+            font-size: 0.95rem;
+          }
+
+          .description {
+            font-size: 0.85rem;
+            -webkit-line-clamp: 3;
+          }
         }
       `}</style>
-    </>
+    </div>
   );
 };
 

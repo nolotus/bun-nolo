@@ -28,7 +28,7 @@ import { RxDropdownMenu } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
 import { Dialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
-import { ProjectIcon } from "@primer/octicons-react";
+import { PlusIcon, ProjectIcon } from "@primer/octicons-react";
 import { useTheme } from "app/theme";
 import { zIndex } from "../styles/zIndex";
 import NavIconItem from "./blocks/NavIconItem";
@@ -154,8 +154,6 @@ export const SidebarTop = () => {
   // --- Render Logic (保持不变) ---
   return (
     <div className="space-sidebar-top" role="navigation">
-      <NavIconItem path="/create" icon={<ProjectIcon size={22} />} />
-
       <div className="space-dropdown">
         <button
           ref={refs.setReference}
@@ -230,6 +228,7 @@ export const SidebarTop = () => {
           </FloatingFocusManager>
         )}
       </div>
+      {/* <NavIconItem path="/" icon={<PlusIcon size={22} />} /> */}
 
       {/* Modal for Creating Space */}
       <Dialog isOpen={visible} onClose={closeModal}>

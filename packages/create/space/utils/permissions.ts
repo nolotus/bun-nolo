@@ -1,4 +1,4 @@
-// src/create/space/utils/permissions.ts (新文件)
+// create/space/utils/permissions.ts (新文件)
 
 import type { SpaceData } from "create/space/types"; // 确认类型路径
 
