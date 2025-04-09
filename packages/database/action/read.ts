@@ -199,11 +199,6 @@ export const readAction = async (
     fetchFromServer(server, dbKey, selectIsLoggedIn(state) ? token : undefined)
   );
 
-  if (dbKey === "space-01JPD00XH597Y9PSHJM6QFX5V0") {
-    console.log("localData", localData);
-    console.log("remotePromises started but not awaited");
-  }
-
   if (localData) {
     processRemoteDataInBackground(
       clientDb,

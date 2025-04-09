@@ -12,7 +12,7 @@ export const logger = pino({
 export const getAllServers = (currentServer: string): string[] => {
   // 检测网络连接状态
   const isOnline = navigator.onLine;
-  console.log("isOnline", isOnline);
+  // console.log("isOnline", isOnline);
 
   if (!isOnline) {
     console.warn("Network is offline. Returning an empty server list.");
