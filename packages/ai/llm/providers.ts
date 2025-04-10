@@ -1,8 +1,18 @@
+import { anthropicModels } from "integrations/anthropic/anthropicModels";
+import { deepinfraModels } from "integrations/deepinfra/models";
+import { deepSeekModels } from "integrations/deepseek/models";
+import { fireworksmodels } from "integrations/fireworks/models";
+import { googleModels } from "integrations/google/models";
+import { mistralModels } from "integrations/mistral/models";
+import { openAIModels } from "integrations/openai/models";
+import { ollamaModels } from "integrations/ollama/models";
+import { sambanovaModels } from "integrations/sambanova/models";
+import { openrouterModels } from "integrations/openrouter/models";
+import { xaiModels } from "integrations/xai/models";
 interface CybotConfig {
   provider: string;
   customProviderUrl?: string;
 }
-
 const CHAT_COMPLETION_URLS = {
   openai: "https://api.openai.com/v1/chat/completions",
   deepinfra: "https://api.deepinfra.com/v1/openai/chat/completions",
@@ -15,6 +25,28 @@ const CHAT_COMPLETION_URLS = {
   ollama: "http://localhost:11434/v1/chat/completions",
   sambanova: "https://api.sambanova.ai/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
+};
+
+export const getModelConfig = (provider: string, modelName: string): Model => {
+  const modelMap = {
+    anthropic: anthropicModels,
+    openai: openAIModels,
+    deepseek: deepSeekModels,
+    deepinfra: deepinfraModels,
+    fireworks: fireworksmodels,
+    mistral: mistralModels,
+    google: googleModels,
+    xai: xaiModels,
+    openrouter: openrouterModels,
+  };
+
+  const models = modelMap[provider];
+  if (!models) throw new Error(`Provider ${provider} not supported`);
+
+  const model = models.find((m) => m.name === modelName);
+  if (!model) throw new Error(`Model ${modelName} not found`);
+
+  return model;
 };
 
 export function getApiEndpoint(cybotConfig: CybotConfig): string {
@@ -37,18 +69,7 @@ export function getApiEndpoint(cybotConfig: CybotConfig): string {
   return endpoint;
 }
 
-import { anthropicModels } from "integrations/anthropic/anthropicModels";
-import { deepinfraModels } from "integrations/deepinfra/models";
-import { deepSeekModels } from "integrations/deepseek/models";
-import { fireworksmodels } from "integrations/fireworks/models";
-import { googleModels } from "integrations/google/models";
-import { mistralModels } from "integrations/mistral/models";
-import { openAIModels } from "integrations/openai/models";
-import { ollamaModels } from "integrations/ollama/models";
-import { sambanovaModels } from "integrations/sambanova/models";
-import { openrouterModels } from "integrations/openrouter/models";
 import type { Model } from "./types";
-import { xaiModels } from "integrations/xai/models";
 
 const providerOptions = [
   "openrouter",
@@ -68,6 +89,7 @@ export type Provider = (typeof providerOptions)[number];
 
 // 增加availableProviderOptions
 export const availableProviderOptions = providerOptions;
+
 export const getModelsByProvider = (provider: Provider): Model[] => {
   const modelsMap: Record<Provider, Model[]> = {
     anthropic: anthropicModels,
@@ -83,14 +105,4 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
     xai: xaiModels,
   };
   return modelsMap[provider] || [];
-};
-
-export const getModel = (provider: Provider, modelName: string): Model => {
-  console.log("getModel", provider, modelName);
-  const models = getModelsByProvider(provider);
-  const model = models.find((m) => m.name === modelName);
-  if (!model) {
-    throw new Error(`Model ${modelName} not found for provider ${provider}`);
-  }
-  return model;
 };
