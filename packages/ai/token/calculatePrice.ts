@@ -1,6 +1,6 @@
 import { nolotusId } from "core/init";
 import { Model } from "ai/llm/types";
-import { getModelConfig } from "./getModelConfig";
+import { getModelConfig } from "ai/llm/providers";
 
 // 定义基础接口
 interface Usage {
