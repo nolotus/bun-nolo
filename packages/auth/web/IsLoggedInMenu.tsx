@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import DropdownMenu from "web/ui/DropDownMenu";
 import { SettingRoutePaths } from "setting/config";
-import { Tooltip } from "web/ui/Tooltip";
+import { Tooltip } from "render/web/ui/Tooltip";
 
 const MenuStyles = () => {
   const theme = useAppSelector(selectTheme);
