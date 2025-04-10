@@ -18,7 +18,6 @@ import {
   // 假设有更新对话的 action (需要创建)
   // updateDialog,
 } from "chat/dialog/dialogSlice";
-import { CreateMenu } from "create/CreateMenu";
 import type React from "react";
 import { useState, useCallback } from "react"; // 导入 useCallback
 import type { ReactNode } from "react";
@@ -35,10 +34,8 @@ import { Dialog } from "render/web/ui/Dialog";
 import Button from "render/web/ui/Button"; // 假设有一个通用的 Button 组件
 
 interface TopBarProps {
-  toggleSidebar?: () => void;
   theme: any; // theme prop 仍然可以保留，虽然 useTheme 更常用
   topbarContent?: ReactNode;
-  isExpanded: boolean;
 }
 
 const styles = {
@@ -47,10 +44,8 @@ const styles = {
 };
 
 const TopBar: React.FC<TopBarProps> = ({
-  toggleSidebar,
   // theme: propTheme,
   topbarContent,
-  isExpanded,
 }) => {
   const { t } = useTranslation();
   const { isLoggedIn, user } = useAuth();
@@ -122,9 +117,6 @@ const TopBar: React.FC<TopBarProps> = ({
     <>
       <div className="topbar">
         <div className="topbar-left">
-          {toggleSidebar && (
-            <MenuButton onClick={toggleSidebar} isExpanded={isExpanded} />
-          )}
           <NavIconItem path="/" icon={<HomeIcon size={16} />} />
         </div>
 
