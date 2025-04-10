@@ -207,7 +207,6 @@ export const generateOpenAIRequestBody = (
     navigator.language,
     context
   );
-  console.log("Generated promptContent with context:", promptContent);
 
   const messagesWithPrompt = prependPromptMessage(
     conversationMessages,
@@ -220,6 +219,5 @@ export const generateOpenAIRequestBody = (
     providerName
   );
 
-  console.log("Final OpenAI requestBody:", requestBody);
   return requestBody;
 };

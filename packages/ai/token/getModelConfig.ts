@@ -6,6 +6,7 @@ import { fireworksmodels } from "integrations/fireworks/models";
 import { mistralModels } from "integrations/mistral/models";
 import { googleModels } from "integrations/google/models";
 import { xaiModels } from "integrations/xai/models";
+import { openrouterModels } from "integrations/openrouter/models";
 
 /**
  * 获取指定provider和模型的配置
@@ -21,6 +22,7 @@ export const getModelConfig = (provider: string, modelName: string): Model => {
     mistral: mistralModels,
     google: googleModels,
     xai: xaiModels,
+    openrouter: openrouterModels,
   };
 
   const models = modelMap[provider];

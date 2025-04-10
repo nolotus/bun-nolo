@@ -143,7 +143,6 @@ export const updateTokensAction = async (
 ) => {
   const { currentUser } = thunkApi.getState().auth;
   const usage = normalizeUsage(usageRaw);
-
   const timestamp = Date.now();
 
   const result = calculatePrice({
