@@ -1,3 +1,4 @@
+// render/web/ui/Tooltip.tsx
 import React from "react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
