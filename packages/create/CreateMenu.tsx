@@ -11,24 +11,23 @@ import {
   FileAddedIcon,
   PlusIcon,
 } from "@primer/octicons-react";
+import { MdCategory } from "react-icons/md"; // 从 react-icons 引入一个更合适的分类图标
 import { useAuth } from "auth/hooks/useAuth";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { Dialog } from "render/web/ui/Dialog";
 import { CreateRoutePaths } from "create/routePaths";
 import { useTheme } from "app/theme";
 import { useAppDispatch } from "app/hooks";
 import { createPage } from "render/page/pageSlice";
-
-import PubCybots from "ai/cybot/web/PubCybots";
-import Cybots from "ai/cybot/web/Cybots";
+import { addCategory } from "create/space/spaceSlice";
+import { AddCategoryModal } from "create/space/category/AddCategoryModal"; // 更新导入路径
 
 export const CreateMenu = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const { isLoggedIn, user } = useAuth();
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false); // 控制添加分类弹窗
   const { t } = useTranslation();
   const theme = useTheme();
 
@@ -38,17 +37,38 @@ export const CreateMenu = () => {
     setIsOpen(false);
   };
 
+  // 处理添加分类逻辑
+  const handleAddCategory = () => {
+    setIsAddCategoryModalOpen(true);
+    setIsOpen(false); // 关闭下拉菜单
+  };
+
+  const handleCloseCategoryModal = () => {
+    setIsAddCategoryModalOpen(false);
+  };
+
+  const handleAddCategoryConfirm = (name: string) => {
+    if (name.trim()) {
+      dispatch(addCategory({ name }));
+      setIsAddCategoryModalOpen(false);
+    }
+  };
+
   const buttonItems = [
     {
       tooltip: "新建页面",
       icon: <FileAddedIcon size={16} />,
       onClick: createNewPage,
     },
-
     {
       tooltip: "添加Cybot",
       icon: <DependabotIcon size={16} />,
       path: `/${CreateRoutePaths.CREATE_CYBOT}`,
+    },
+    {
+      tooltip: "添加分类",
+      icon: <MdCategory size={16} />, // 使用 react-icons 中的 MdCategory 图标
+      onClick: handleAddCategory, // 调用添加分类的处理函数
     },
   ];
 
@@ -188,6 +208,13 @@ export const CreateMenu = () => {
           </div>
         )}
       </div>
+
+      {/* 添加分类的弹窗，复用 AddCategoryModal 组件 */}
+      <AddCategoryModal
+        isOpen={isAddCategoryModalOpen}
+        onClose={handleCloseCategoryModal}
+        onAddCategory={handleAddCategoryConfirm}
+      />
     </>
   );
 };

@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import ResizeHandle from "./ResizeHandle";
 import { SidebarTop } from "./SidebarTop";
 import TopBar from "./TopBar";
+import { useAuth } from "auth/hooks/useAuth";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -17,6 +18,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   sidebarContent,
   topbarContent,
 }) => {
+  const { isLoggedIn, user } = useAuth();
+
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const theme = useSelector(selectTheme);
@@ -47,6 +50,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
   }, [toggleSidebar, sidebarContent]);
 
+  // 检查是否为 HomeSidebarContent，可以通过 props 或其他方式区分
+  const isHomeSidebar = sidebarContent?.type?.name === "HomeSidebarContent";
+
   return (
     <div className="app-layout">
       {sidebarContent && (
@@ -54,8 +60,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           ref={sidebarRef}
           className={`app-sidebar ${isOpen ? "sidebar-open" : "sidebar-closed"}`}
         >
-          <SidebarTop />
-          <div className="sidebar-content">{sidebarContent}</div>
+          {isLoggedIn && <SidebarTop />}
+          <div
+            className={`sidebar-content ${isHomeSidebar ? "home-sidebar" : ""}`}
+          >
+            {sidebarContent}
+          </div>
           <ResizeHandle sidebarRef={sidebarRef} theme={theme} />
         </aside>
       )}
@@ -91,7 +101,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           display: flex;
           flex-direction: column;
           background: ${theme.background};
-          border-right: 1px solid ${theme.border};
           transition:
             transform 0.25s cubic-bezier(0.17, 0.67, 0.26, 0.99),
             box-shadow 0.25s ease;
@@ -104,7 +113,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         .sidebar-open {
           transform: translateX(0);
-          box-shadow: 0 0 20px ${theme.shadowMedium};
         }
 
         .sidebar-content {
@@ -114,6 +122,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           color: ${theme.text};
           scrollbar-width: thin;
           scrollbar-color: ${theme.textLight} transparent;
+        }
+
+        .home-sidebar {
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start; /* 垂直方向从顶部开始 */
+          align-items: flex-start; /* 水平靠左 */
+          padding-top: 20%; /* 调整为稍低一些的位置 */
+          padding-left: 16px; /* 靠左边距 */
+          width: 100%; /* 撑满宽度 */
         }
 
         .sidebar-content::-webkit-scrollbar {
@@ -159,9 +177,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             width: 100%;
           }
 
-          .sidebar-open {
-            box-shadow: 0 0 40px ${theme.shadowHeavy};
-          }
+   
         }
       `}</style>
     </div>
