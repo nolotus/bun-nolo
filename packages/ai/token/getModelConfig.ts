@@ -5,6 +5,7 @@ import { deepinfraModels } from "integrations/deepinfra/models";
 import { fireworksmodels } from "integrations/fireworks/models";
 import { mistralModels } from "integrations/mistral/models";
 import { googleModels } from "integrations/google/models";
+import { xaiModels } from "integrations/xai/models";
 
 /**
  * 获取指定provider和模型的配置
@@ -19,6 +20,7 @@ export const getModelConfig = (provider: string, modelName: string): Model => {
     fireworks: fireworksmodels,
     mistral: mistralModels,
     google: googleModels,
+    xai: xaiModels,
   };
 
   const models = modelMap[provider];

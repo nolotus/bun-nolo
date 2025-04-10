@@ -48,6 +48,7 @@ import { ollamaModels } from "integrations/ollama/models";
 import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import type { Model } from "./types";
+import { xaiModels } from "integrations/xai/models";
 
 const providerOptions = [
   "openrouter",
@@ -66,10 +67,7 @@ const providerOptions = [
 export type Provider = (typeof providerOptions)[number];
 
 // 增加availableProviderOptions
-export const availableProviderOptions = providerOptions.filter(
-  (provider) => !["xai"].includes(provider)
-);
-
+export const availableProviderOptions = providerOptions;
 export const getModelsByProvider = (provider: Provider): Model[] => {
   const modelsMap: Record<Provider, Model[]> = {
     anthropic: anthropicModels,
@@ -82,8 +80,7 @@ export const getModelsByProvider = (provider: Provider): Model[] => {
     sambanova: sambanovaModels,
     openai: openAIModels,
     openrouter: openrouterModels,
-    xai: [],
-    custom: [],
+    xai: xaiModels,
   };
   return modelsMap[provider] || [];
 };
