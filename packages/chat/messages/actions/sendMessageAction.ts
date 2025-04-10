@@ -84,7 +84,6 @@ export const sendMessageAction = async (args, thunkApi) => {
     throw new Error(`Unsupported provider: ${cybotConfig.provider}`);
   }
 
-  console.log("providerName", providerName);
   return handler({
     bodyData,
     cybotConfig,

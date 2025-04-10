@@ -87,6 +87,7 @@ export default function App({
     initializedRef.current = true;
     const initializeSystem = async () => {
       try {
+        console.log("hostname", hostname);
         dispatch(addHostToCurrentServer(hostname));
         dispatch(setDarkMode(isDark));
         await dispatch(initializeAuth(tokenManager)).unwrap();

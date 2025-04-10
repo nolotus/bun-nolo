@@ -26,7 +26,6 @@ const removeFromLocalDb = async (
   }
   try {
     await clientDb.del(dbKey);
-    logger.info({ dbKey }, "Data deleted locally");
   } catch (err) {
     logger.error({ err, dbKey }, "Failed to delete local data");
   }

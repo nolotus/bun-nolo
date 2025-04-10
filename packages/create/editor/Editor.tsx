@@ -222,7 +222,6 @@ const SetNodeToDecorations = () => {
   // 使用 useMemo 尝试减少不必要的计算，但这依赖于 editor.children 的引用稳定性
   // 更精细的优化需要更复杂的逻辑
   const nodeToDecorations = React.useMemo(() => {
-    console.log("Recalculating decorations..."); // 添加日志观察计算频率
     const blockEntries = Array.from(
       Editor.nodes(editor, {
         at: [],

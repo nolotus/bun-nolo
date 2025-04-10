@@ -153,9 +153,6 @@ const createUserMessage = (
       .join("\n");
   }
 
-  // 添加日志记录生成的用户消息内容
-  console.log("生成的用户消息内容:", content);
-
   return { role: "user", content };
 };
 
