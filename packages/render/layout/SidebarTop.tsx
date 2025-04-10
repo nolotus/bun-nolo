@@ -28,41 +28,24 @@ import { RxDropdownMenu } from "react-icons/rx";
 import { useNavigate } from "react-router-dom";
 import { Dialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
-import { PlusIcon, ProjectIcon } from "@primer/octicons-react";
 import { useTheme } from "app/theme";
 import { zIndex } from "../styles/zIndex";
-import NavIconItem from "./blocks/NavIconItem";
 import { CreateSpaceButton } from "create/space/CreateSpaceButton";
-import { selectCurrentUserId } from "auth/authSlice"; // 保持，可能仍然需要
 import { createSpaceKey } from "create/space/spaceKeys";
 import { SpaceItem } from "create/space/components/SpaceItem";
 import { CreateMenu } from "create/CreateMenu";
+import { useAuth } from "auth/hooks/useAuth";
 
 export const SidebarTop = () => {
   const theme = useTheme();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  // const currentUserId = useAppSelector(selectCurrentUserId); // 保持，以防未来需要或检查条件
-  const spaces = useAppSelector(selectAllMemberSpaces) || []; // 直接从 state 获取，由 App.tsx 填充
-  const space = useAppSelector(selectCurrentSpace);
-  const loading = useAppSelector(selectSpaceLoading); // 可能需要调整 loading 状态的来源或含义
+  const { isLoggedIn, user } = useAuth();
 
-  // --------------------------------------------------------------------
-  // !! 移除了此处的 useEffect !!
-  // useEffect(() => {
-  //   const fetchSpaces = async () => {
-  //     if (currentUserId && !loading && (!spaces || spaces.length === 0)) {
-  //       try {
-  //         await dispatch(fetchUserSpaceMemberships(currentUserId)).unwrap();
-  //       } catch (error) {
-  //         console.error("Failed to fetch spaces in SidebarTop:", error);
-  //       }
-  //     }
-  //   };
-  //   fetchSpaces();
-  // }, [currentUserId, spaces, loading, dispatch]);
-  // --------------------------------------------------------------------
+  const spaces = useAppSelector(selectAllMemberSpaces) || [];
+  const space = useAppSelector(selectCurrentSpace);
+  const loading = useAppSelector(selectSpaceLoading);
 
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -229,7 +212,6 @@ export const SidebarTop = () => {
           </FloatingFocusManager>
         )}
       </div>
-      {/* <NavIconItem path="/" icon={<PlusIcon size={22} />} /> */}
       <CreateMenu />
 
       {/* Modal for Creating Space */}
