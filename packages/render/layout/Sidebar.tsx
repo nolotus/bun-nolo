@@ -27,7 +27,17 @@ const Sidebar: React.FC<SidebarProps> = ({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const theme = useSelector(selectTheme);
 
-  const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
+  // 处理侧边栏切换
+  const toggleSidebar = useCallback((e?: React.MouseEvent) => {
+    // 先移除悬停状态，确保resize背景恢复正常
+    setIsHandleHovered(false);
+    setIsOpen((prev) => !prev);
+
+    // 阻止事件冒泡，防止触发父元素的事件处理器
+    if (e) {
+      e.stopPropagation();
+    }
+  }, []);
 
   const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
     mouseDownEvent.preventDefault();
@@ -56,6 +66,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     },
     [isResizing, dispatch]
   );
+
+  // 处理悬停状态
+  const handleMouseEnter = useCallback(() => {
+    setIsHandleHovered(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHandleHovered(false);
+  }, []);
 
   useEffect(() => {
     if (!sidebarContent) return;
@@ -106,17 +125,17 @@ const Sidebar: React.FC<SidebarProps> = ({
       : "rgba(30, 30, 30, 0.9)";
 
   return (
-    <div className="app-layout">
+    <div className="sidebar-layout">
       {sidebarContent && (
         <>
           <aside
             ref={sidebarRef}
-            className={`app-sidebar ${isOpen ? "sidebar-open" : "sidebar-closed"}`}
+            className={`sidebar ${isOpen ? "sidebar--open" : "sidebar--closed"}`}
             style={{ width: `${theme.sidebarWidth}px` }}
           >
             {isLoggedIn && <SidebarTop />}
             <div
-              className={`sidebar-content ${isHomeSidebar ? "home-sidebar" : ""}`}
+              className={`sidebar__content ${isHomeSidebar ? "sidebar__content--home" : ""}`}
             >
               {sidebarContent}
             </div>
@@ -125,25 +144,25 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* 侧边栏打开时的调整手柄 */}
           {isOpen && sidebarContent && (
             <div
-              className="resize-handle"
-              onMouseEnter={() => setIsHandleHovered(true)}
-              onMouseLeave={() => setIsHandleHovered(false)}
+              className="sidebar__resize-handle"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
               style={{ left: `${theme.sidebarWidth - 5}px` }}
             >
               {/* 竖线按钮（用于开关） */}
               <div
                 onClick={toggleSidebar}
-                className="toggle-button"
+                className={`sidebar__toggle ${isHandleHovered ? "sidebar__toggle--hovered" : ""}`}
                 title="关闭侧边栏 (Ctrl+B)"
                 aria-label="关闭侧边栏，快捷键 Ctrl+B"
               >
-                <div className="toggle-line"></div>
-                <span className="tooltip">关闭侧边栏 (Ctrl+B)</span>
+                <div className="sidebar__toggle-line"></div>
+                <span className="sidebar__tooltip">关闭侧边栏 (Ctrl+B)</span>
               </div>
 
               {/* 可拖动区域 */}
               <div
-                className="resize-area"
+                className="sidebar__resize-area"
                 onMouseDown={startResizing}
                 title="调整侧边栏宽度"
               ></div>
@@ -153,22 +172,22 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* 侧边栏关闭时的切换按钮 */}
           {!isOpen && sidebarContent && (
             <div
-              className="sidebar-toggle-closed"
+              className={`sidebar-toggle--closed ${isHandleHovered ? "sidebar-toggle--closed--hovered" : ""}`}
               onClick={toggleSidebar}
-              onMouseEnter={() => setIsHandleHovered(true)}
-              onMouseLeave={() => setIsHandleHovered(false)}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
               title="打开侧边栏 (Ctrl+B)"
               aria-label="打开侧边栏，快捷键 Ctrl+B"
             >
-              <div className="toggle-line"></div>
-              <span className="tooltip">打开侧边栏 (Ctrl+B)</span>
+              <div className="sidebar__toggle-line"></div>
+              <span className="sidebar__tooltip">打开侧边栏 (Ctrl+B)</span>
             </div>
           )}
         </>
       )}
 
       <main
-        className={`app-main ${isOpen && sidebarContent ? "with-sidebar" : ""}`}
+        className={`main-container ${isOpen && sidebarContent ? "main-container--with-sidebar" : ""}`}
         style={
           isOpen && sidebarContent
             ? {
@@ -178,17 +197,12 @@ const Sidebar: React.FC<SidebarProps> = ({
             : {}
         }
       >
-        <TopBar
-          toggleSidebar={sidebarContent ? toggleSidebar : undefined}
-          theme={theme}
-          topbarContent={topbarContent}
-          isExpanded={isOpen}
-        />
-        <div className="main-content">{children}</div>
+        <TopBar theme={theme} topbarContent={topbarContent} />
+        <div className="main-container__content">{children}</div>
       </main>
 
       <style>{`
-        .app-layout {
+        .sidebar-layout {
           display: flex;
           min-height: 100vh;
           background: ${theme.background};
@@ -196,7 +210,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           overflow: hidden;
         }
 
-        .app-sidebar {
+        .sidebar {
           height: 100dvh;
           position: fixed;
           top: 0;
@@ -210,16 +224,16 @@ const Sidebar: React.FC<SidebarProps> = ({
             box-shadow 0.25s ease;
         }
 
-        .sidebar-closed {
+        .sidebar--closed {
           transform: translateX(-100%);
           box-shadow: none;
         }
 
-        .sidebar-open {
+        .sidebar--open {
           transform: translateX(0);
         }
 
-        .sidebar-content {
+        .sidebar__content {
           flex-grow: 1;
           overflow-y: auto;
           overflow-x: hidden;
@@ -228,7 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           scrollbar-color: ${theme.textLight} transparent;
         }
 
-        .home-sidebar {
+        .sidebar__content--home {
           display: flex;
           flex-direction: column;
           justify-content: flex-start;
@@ -238,20 +252,20 @@ const Sidebar: React.FC<SidebarProps> = ({
           width: 100%;
         }
 
-        .sidebar-content::-webkit-scrollbar {
+        .sidebar__content::-webkit-scrollbar {
           width: 4px;
         }
 
-        .sidebar-content::-webkit-scrollbar-track {
+        .sidebar__content::-webkit-scrollbar-track {
           background: transparent;
         }
 
-        .sidebar-content::-webkit-scrollbar-thumb {
+        .sidebar__content::-webkit-scrollbar-thumb {
           background: ${theme.textLight};
           border-radius: 10px;
         }
 
-        .app-main {
+        .main-container {
           flex-grow: 1;
           margin-left: 0;
           width: 100%;
@@ -264,14 +278,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           min-height: 100vh;
         }
 
-        .main-content {
+        .main-container__content {
           width: 100%;
           max-width: 100%;
           position: relative;
         }
 
         /* 调整手柄 */
-        .resize-handle {
+        .sidebar__resize-handle {
           width: 10px;
           height: 100dvh;
           position: fixed;
@@ -283,7 +297,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
 
         /* 竖线按钮 */
-        .toggle-button {
+        .sidebar__toggle {
           position: absolute;
           width: 24px;
           height: 40px;
@@ -295,7 +309,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
 
         /* 可调整宽度的区域 */
-        .resize-area {
+        .sidebar__resize-area {
           position: absolute;
           width: 100%;
           height: 100%;
@@ -308,7 +322,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
 
         /* 侧边栏关闭状态下的切换按钮 */
-        .sidebar-toggle-closed {
+        .sidebar-toggle--closed {
           width: 24px;
           height: 100dvh;
           position: fixed;
@@ -319,12 +333,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          background-color: ${isHandleHovered ? `${theme.border}30` : "transparent"};
           transition: background-color 0.2s ease;
+        }
+        
+        /* 悬停状态背景 */
+        .sidebar-toggle--closed--hovered {
+          background-color: ${`${theme.border}30`};
         }
 
         /* 简单的竖线 - 更深的默认颜色 */
-        .toggle-line {
+        .sidebar__toggle-line {
           width: 3px;
           height: 36px;
           background-color: ${lineColor};
@@ -340,7 +358,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
         
         /* 打开状态下悬停 - 变为右箭头 > 更美观版本 */
-        .toggle-button:hover .toggle-line {
+        .sidebar__toggle--hovered .sidebar__toggle-line,
+        .sidebar__toggle:hover .sidebar__toggle-line {
           background-color: ${lineHoverColor};
           transform: translateX(-2px);
           width: 5px;
@@ -350,7 +369,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
         
         /* 关闭状态下悬停 - 变为左箭头 < 更美观版本 */
-        .sidebar-toggle-closed:hover .toggle-line {
+        .sidebar-toggle--closed--hovered .sidebar__toggle-line,
+        .sidebar-toggle--closed:hover .sidebar__toggle-line {
           background-color: ${lineHoverColor};
           transform: translateX(2px);
           width: 5px;
@@ -360,7 +380,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
 
         /* 提示工具提示样式 - 统一在右侧 */
-        .tooltip {
+        .sidebar__tooltip {
           position: absolute;
           top: calc(50% - 15px);
           left: 20px;
@@ -379,8 +399,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           z-index: 100;
         }
         
-        .toggle-button:hover .tooltip,
-        .sidebar-toggle-closed:hover .tooltip {
+        /* 显示tooltip的条件同时支持:hover和.hovered类 */
+        .sidebar__toggle:hover .sidebar__tooltip,
+        .sidebar__toggle--hovered .sidebar__tooltip,
+        .sidebar-toggle--closed:hover .sidebar__tooltip,
+        .sidebar-toggle--closed--hovered .sidebar__tooltip {
           opacity: 1;
           transform: translateX(0);
         }
@@ -397,7 +420,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         }
 
         @media (max-width: 768px) {
-          .app-main.with-sidebar {
+          .main-container--with-sidebar {
             margin-left: 0 !important;
             width: 100% !important;
           }
