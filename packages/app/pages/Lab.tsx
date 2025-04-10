@@ -41,7 +41,7 @@ const Lab = () => {
         <p>可搜索的下拉选择器组件</p>
       </header>
 
-      <main>
+      <div>
         <section>
           <div className="section-header">
             <h2>基础用法</h2>
@@ -96,9 +96,9 @@ const Lab = () => {
             </div>
           </div>
         </section>
-      </main>
+      </div>
 
-      <style jsx>{`
+      <style>{`
         .container {
           max-width: 960px;
           margin: 0 auto;

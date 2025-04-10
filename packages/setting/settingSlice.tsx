@@ -68,8 +68,7 @@ const settingSlice = createSliceWithThunks({
             state.defaultSpaceId =
               loadedSettings.defaultSpaceId ?? state.defaultSpaceId; // Use nullish coalescing
             state.isAutoSync = loadedSettings.isAutoSync ?? state.isAutoSync;
-            state.currentServer =
-              loadedSettings.currentServer ?? state.currentServer;
+
             state.syncServers = loadedSettings.syncServers ?? state.syncServers;
             // Add any other settings fields here
           } else {
