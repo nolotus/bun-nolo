@@ -27,7 +27,7 @@ export const routes = (currentUser: any) => [
         element: <Lab />,
       },
       {
-        path: "price",
+        path: "pricing",
         element: <PricePage />,
       },
       // 空间相关路由使用嵌套布局

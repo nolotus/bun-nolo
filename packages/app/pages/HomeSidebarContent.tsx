@@ -26,7 +26,7 @@ const HomeSidebarContent: React.FC = () => {
       icon: <DesktopDownloadIcon size={16} />,
     },
     {
-      path: "/price",
+      path: "/pricing",
       label: "价格",
       icon: <RiMoneyCnyBoxLine size={20} />,
     },
