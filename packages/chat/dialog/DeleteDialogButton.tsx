@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import { deleteCurrentDialog } from "./dialogSlice";
-import toast from "react-hot-toast"; // 添加 toast 提示
-import { Tooltip } from "web/ui/Tooltip";
+import toast from "react-hot-toast";
+import { Tooltip } from "render/web/ui/Tooltip";
 
 const DeleteDialogButton = ({ dialogConfig }) => {
   const dispatch = useDispatch();

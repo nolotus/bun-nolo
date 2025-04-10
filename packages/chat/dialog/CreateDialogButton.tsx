@@ -1,6 +1,6 @@
 import { TbMessageCirclePlus } from "react-icons/tb";
 import { useCreateDialog } from "./useCreateDialog";
-import { Tooltip } from "web/ui/Tooltip";
+import { Tooltip } from "render/web/ui/Tooltip";
 import { useTranslation } from "react-i18next";
 
 const Spinner = () => {

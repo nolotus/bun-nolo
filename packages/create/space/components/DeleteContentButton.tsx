@@ -9,7 +9,7 @@ import {
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
-import { Tooltip } from "web/ui/Tooltip";
+import { Tooltip } from "render/web/ui/Tooltip";
 
 interface DeleteContentButtonProps {
   contentKey: string;

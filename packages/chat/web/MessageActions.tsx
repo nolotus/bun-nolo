@@ -2,7 +2,7 @@
 import React from "react";
 import { CopyIcon, BookmarkIcon, TrashIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
-import { Tooltip } from "web/ui/Tooltip";
+import { Tooltip } from "render/web/ui/Tooltip";
 import toast from "react-hot-toast";
 import copyToClipboard from "utils/clipboard";
 import { useAuth } from "auth/hooks/useAuth";

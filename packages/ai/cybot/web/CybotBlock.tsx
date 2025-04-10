@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import Button from "render/web/ui/Button";
 import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/web/ui/Dialog";
-import { Tooltip } from "web/ui/Tooltip";
+import { Tooltip } from "render/web/ui/Tooltip";
 import EditCybot from "ai/cybot/web/EditCybot";
 import { Cybot } from "../types";
 import { remove } from "database/dbSlice";

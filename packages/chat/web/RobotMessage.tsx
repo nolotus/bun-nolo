@@ -4,7 +4,7 @@ import type React from "react";
 import { useRef } from "react";
 import { Avatar } from "render/ui";
 import { useTranslation } from "react-i18next";
-import { Tooltip } from "web/ui/Tooltip";
+import { Tooltip } from "render/web/ui/Tooltip";
 
 import { useAppSelector } from "app/hooks";
 import { MessageContent } from "./MessageContent";
