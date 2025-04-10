@@ -7,12 +7,14 @@ import { createPage } from "render/page/pageSlice";
 import { useNavigate, NavLink } from "react-router-dom";
 import Cybots from "ai/cybot/web/Cybots";
 
-// Importing better icons from React Icons
-import { FiChevronRight } from "react-icons/fi"; // Arrow right
-import { HiOutlineLightBulb, HiOutlineDocumentAdd } from "react-icons/hi"; // Light bulb and Document
-import { BsRobot, BsPlusLg } from "react-icons/bs"; // Robot and Plus
-import { MdOutlineSettings } from "react-icons/md"; // Settings gear
-import { IoDocumentTextOutline } from "react-icons/io5"; // Document for guide
+// 导入图标
+import { FiChevronRight } from "react-icons/fi";
+import { HiOutlineLightBulb, HiOutlineDocumentAdd } from "react-icons/hi";
+import { BsRobot, BsPlusLg } from "react-icons/bs";
+import { MdOutlineSettings } from "react-icons/md";
+import { IoDocumentTextOutline } from "react-icons/io5";
+import { FiDollarSign } from "react-icons/fi";
+import { BiBook } from "react-icons/bi";
 
 const GuideSection = () => {
   const theme = useAppSelector(selectTheme);
@@ -44,20 +46,35 @@ const GuideSection = () => {
     {
       text: "创建 Cybot",
       route: `/${CreateRoutePaths.CREATE_CYBOT}`,
-      icon: <BsRobot size={22} />,
+      icon: <BsRobot size={20} />,
       description: "创建你的 AI 助手，添加提示词并选择合适的模型",
     },
     {
       text: "自定义 Cybot",
       route: `/${CreateRoutePaths.CREATE_CUSTOM_CYBOT}`,
-      icon: <MdOutlineSettings size={22} />,
+      icon: <MdOutlineSettings size={20} />,
       description: "使用自定义 API 地址创建高级 Cybot",
     },
     {
       text: "新建笔记",
-      icon: <HiOutlineDocumentAdd size={22} />,
+      icon: <HiOutlineDocumentAdd size={20} />,
       description: "创建可与 Cybot 共享的笔记和知识库",
       action: createNewPage,
+    },
+  ];
+
+  const guideLinks = [
+    {
+      text: "使用指南",
+      icon: <BiBook size={18} />,
+      description: "了解如何高效使用 Cybot 功能",
+      link: "/page-0e95801d90-01JRDMA6Q85PQDCEAC7EXHWF67?spaceId=01JRDM39VSNYD1PKS4B53W6BGE",
+    },
+    {
+      text: "收费说明",
+      icon: <FiDollarSign size={18} />,
+      description: "按模型类型和 token 计费，按需付费",
+      link: "/pricing",
     },
   ];
 
@@ -65,7 +82,7 @@ const GuideSection = () => {
     <section className="guide-section-container">
       <div className="guide-header">
         <h2 className="guide-title">
-          <HiOutlineLightBulb size={28} className="guide-title-icon" />
+          <HiOutlineLightBulb size={26} className="guide-title-icon" />
           开始使用 Cybot
         </h2>
         <p className="guide-subtitle">
@@ -73,9 +90,29 @@ const GuideSection = () => {
         </p>
       </div>
 
+      {/* 优化后的使用指南部分 */}
+      <div className="guides-section section-block">
+        <div className="guides-container">
+          {guideLinks.map((guide) => (
+            <NavLink
+              key={guide.text}
+              to={guide.link}
+              className="guide-link-card"
+            >
+              <div className="guide-link-icon">{guide.icon}</div>
+              <div className="guide-link-content">
+                <h4 className="guide-link-title">{guide.text}</h4>
+                <p className="guide-link-desc">{guide.description}</p>
+              </div>
+              <FiChevronRight size={16} className="guide-link-arrow" />
+            </NavLink>
+          ))}
+        </div>
+      </div>
+
       <div className="quick-create-section section-block">
         <h3 className="section-subtitle">
-          <BsPlusLg size={18} className="subtitle-icon" />
+          <BsPlusLg size={16} className="subtitle-icon" />
           开始创建
         </h3>
         <div className="button-grid">
@@ -106,7 +143,7 @@ const GuideSection = () => {
       {currentUserId && (
         <div className="my-cybots-section section-block">
           <h3 className="section-subtitle">
-            <BsRobot size={18} className="subtitle-icon" />
+            <BsRobot size={16} className="subtitle-icon" />
             我的 Cybot 列表
           </h3>
           <Cybots queryUserId={currentUserId} limit={6} />
@@ -119,51 +156,37 @@ const GuideSection = () => {
         </div>
       )}
 
-      <div className="feature-section section-block">
-        <h3 className="section-subtitle">
-          <IoDocumentTextOutline size={20} className="subtitle-icon" />
-          使用指南
-        </h3>
-        <div className="feature-card">
-          <p>
-            了解如何更高效地使用 Cybot 的各项功能，包括对话、知识库和自定义设置
-          </p>
-          <NavLink
-            to="/page-0e95801d90-01JRDMA6Q85PQDCEAC7EXHWF67?spaceId=01JRDM39VSNYD1PKS4B53W6BGE"
-            className="action-button"
-          >
-            查看帮助文档
-          </NavLink>
-        </div>
-      </div>
-
       <style jsx>{`
         .guide-section-container {
-          animation: fadeIn 0.5s ease;
+          animation: fadeIn 0.4s ease;
+          max-width: 1200px;
+          margin: 0 auto;
         }
 
         @keyframes fadeIn {
           from {
             opacity: 0;
+            transform: translateY(10px);
           }
           to {
             opacity: 1;
+            transform: translateY(0);
           }
         }
 
         .guide-header {
           text-align: center;
-          margin-bottom: 2rem;
+          margin-bottom: 1.75rem;
         }
 
         .guide-title {
-          font-size: 1.8rem;
+          font-size: 1.75rem;
           color: ${theme.text};
-          margin-bottom: 0.8rem;
+          margin-bottom: 0.75rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.6rem;
+          gap: 0.5rem;
           font-weight: 600;
         }
 
@@ -175,14 +198,14 @@ const GuideSection = () => {
           color: ${theme.textSecondary};
           margin: 0 auto;
           max-width: 600px;
-          line-height: 1.5;
-          font-size: 1rem;
+          line-height: 1.4;
+          font-size: 0.95rem;
         }
 
         .section-block {
-          margin-bottom: 2.5rem;
-          padding: 1rem 0;
-          border-radius: 12px;
+          margin-bottom: 2rem;
+          padding: 0.6rem 0;
+          border-radius: 10px;
           background: transparent;
         }
 
@@ -191,12 +214,12 @@ const GuideSection = () => {
         }
 
         .section-subtitle {
-          font-size: 1.3rem;
+          font-size: 1.2rem;
           color: ${theme.text};
-          margin-bottom: 1.25rem;
+          margin-bottom: 1rem;
           display: flex;
           align-items: center;
-          gap: 0.6rem;
+          gap: 0.5rem;
           font-weight: 600;
         }
 
@@ -204,10 +227,78 @@ const GuideSection = () => {
           color: ${theme.primary};
         }
 
+        /* 优化的使用指南样式 */
+        .guides-container {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1rem;
+        }
+
+        .guide-link-card {
+          display: flex;
+          align-items: center;
+          padding: 0.85rem 1rem;
+          background-color: ${theme.background};
+          border: 1px solid ${theme.border};
+          border-radius: 8px;
+          text-decoration: none;
+          transition: all 0.2s ease;
+          color: ${theme.text};
+          gap: 0.75rem;
+        }
+
+        .guide-link-card:hover {
+          border-color: ${theme.primary};
+          transform: translateY(-2px);
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .guide-link-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 34px;
+          height: 34px;
+          border-radius: 8px;
+          background-color: ${theme.backgroundLight};
+          color: ${theme.primary};
+        }
+
+        .guide-link-content {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .guide-link-title {
+          font-size: 0.95rem;
+          font-weight: 600;
+          margin: 0 0 0.15rem;
+          color: ${theme.text};
+        }
+
+        .guide-link-desc {
+          font-size: 0.8rem;
+          color: ${theme.textSecondary};
+          margin: 0;
+          line-height: 1.3;
+        }
+
+        .guide-link-arrow {
+          color: ${theme.textSecondary};
+          opacity: 0.7;
+          transition: transform 0.2s ease;
+        }
+
+        .guide-link-card:hover .guide-link-arrow {
+          transform: translateX(3px);
+          color: ${theme.primary};
+          opacity: 1;
+        }
+
         .button-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.25rem;
+          gap: 1rem;
         }
 
         .grid-button {
@@ -228,7 +319,7 @@ const GuideSection = () => {
           transform: translateY(-1px);
         }
 
-        .grid-button:focus {
+        .grid-button:focus-visible {
           outline: 2px solid ${theme.primary};
           outline-offset: 2px;
         }
@@ -236,10 +327,10 @@ const GuideSection = () => {
         .button-content {
           display: flex;
           align-items: center;
-          padding: 1.25rem;
+          padding: 1.1rem;
           background: ${theme.background};
-          border-radius: 12px;
-          gap: 1.1rem;
+          border-radius: 10px;
+          gap: 1rem;
           height: 100%;
           border: 1px solid ${theme.border};
           transition: all 0.2s ease;
@@ -247,18 +338,18 @@ const GuideSection = () => {
 
         .button-content:hover {
           border-color: ${theme.primary};
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
         }
 
         .icon-container {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
+          min-width: 40px;
+          height: 40px;
+          border-radius: 10px;
           background-color: ${theme.backgroundLight};
           color: ${theme.primary};
-          flex-shrink: 0;
         }
 
         .button-icon {
@@ -274,53 +365,19 @@ const GuideSection = () => {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: 0.3rem;
+          gap: 0.25rem;
         }
 
         .button-title {
-          font-size: 1.1rem;
+          font-size: 1.05rem;
           font-weight: 600;
           color: ${theme.text};
         }
 
         .button-description {
-          font-size: 0.875rem;
+          font-size: 0.85rem;
           color: ${theme.textSecondary};
-          line-height: 1.4;
-        }
-
-        .feature-card {
-          background: ${theme.background};
-          padding: 1.5rem;
-          border-radius: 12px;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 1rem;
-          border: 1px solid ${theme.border};
-        }
-
-        .feature-card p {
-          color: ${theme.textSecondary};
-          margin: 0;
-          line-height: 1.5;
-          font-size: 1rem;
-        }
-
-        .action-button {
-          display: inline-block;
-          background: ${theme.primary};
-          color: white;
-          padding: 0.5rem 1.25rem;
-          border-radius: 6px;
-          text-decoration: none;
-          font-size: 0.95rem;
-          font-weight: 500;
-          transition: background-color 0.2s ease;
-        }
-
-        .action-button:hover {
-          background-color: ${theme.primaryDark};
+          line-height: 1.35;
         }
 
         .my-cybots-section {
@@ -329,7 +386,7 @@ const GuideSection = () => {
 
         .view-all-container {
           text-align: center;
-          margin-top: 1.25rem;
+          margin-top: 1rem;
         }
 
         .view-all-link {
@@ -339,7 +396,8 @@ const GuideSection = () => {
           color: ${theme.primary};
           text-decoration: none;
           font-weight: 500;
-          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+          padding: 0.4rem 0.9rem;
           border-radius: 6px;
           transition: all 0.2s ease;
         }
@@ -351,57 +409,59 @@ const GuideSection = () => {
 
         @media (max-width: 768px) {
           .guide-title {
-            font-size: 1.6rem;
-          }
-
-          .section-subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-          }
-
-          .button-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-          }
-
-          .button-content {
-            padding: 1.1rem;
-          }
-
-          .action-button {
-            width: 100%;
-            text-align: center;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .guide-title {
-            font-size: 1.4rem;
-          }
-
-          .guide-subtitle {
-            font-size: 0.9rem;
+            font-size: 1.5rem;
           }
 
           .section-subtitle {
             font-size: 1.1rem;
+            margin-bottom: 0.9rem;
           }
 
-          .button-title {
-            font-size: 1rem;
+          .button-grid,
+          .guides-container {
+            grid-template-columns: 1fr;
+            gap: 0.9rem;
           }
 
           .button-content {
             padding: 1rem;
           }
+        }
 
-          .icon-container {
-            width: 40px;
-            height: 40px;
+        @media (max-width: 480px) {
+          .guide-title {
+            font-size: 1.35rem;
           }
 
-          .feature-card p {
-            font-size: 0.9rem;
+          .guide-subtitle {
+            font-size: 0.85rem;
+          }
+
+          .section-subtitle {
+            font-size: 1rem;
+          }
+
+          .button-title,
+          .guide-link-title {
+            font-size: 0.95rem;
+          }
+
+          .button-content {
+            padding: 0.9rem;
+          }
+
+          .guide-link-card {
+            padding: 0.75rem 0.9rem;
+          }
+
+          .icon-container {
+            width: 36px;
+            height: 36px;
+          }
+
+          .guide-link-icon {
+            width: 30px;
+            height: 30px;
           }
         }
       `}</style>
