@@ -22,6 +22,8 @@ export const getNoloKey = (
       return process.env.OPENROUTER_API_KEY;
     case "openai":
       return process.env.OPENAI_KEY;
+    case "xai":
+      return process.env.XAI_API_KEY;
     default:
       return null;
   }

@@ -7,7 +7,6 @@ export const anthropicModels: Model[] = [
     displayName: "Claude 3.5 Sonnet",
     hasVision: true,
     description: "Our most intelligent model to date",
-    strengths: "Highest level of intelligence and capability",
     contextWindow: 200000,
     maxOutputTokens: 8192,
     price: {
@@ -22,7 +21,6 @@ export const anthropicModels: Model[] = [
     displayName: "Claude 3.7 Sonnet",
     hasVision: true,
     description: "Our most intelligent model to date",
-    strengths: "Highest level of intelligence and capability",
     contextWindow: 200000,
     maxOutputTokens: 8192,
     price: {
@@ -37,7 +35,6 @@ export const anthropicModels: Model[] = [
     displayName: "Claude 3.5 Haiku",
     hasVision: false,
     description: "Fastest, most cost-effective model",
-    strengths: "Quick and accurate targeted performance",
     contextWindow: 200000,
     maxOutputTokens: 8192,
     price: {

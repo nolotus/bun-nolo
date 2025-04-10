@@ -215,6 +215,9 @@ const calculateBasicCost = (
     case "fireworks":
     case "mistral":
     case "google":
+    case "xai":
+    case "openrouter":
+    case "sambanova":
       return calculateSimpleCost(model, usage, externalPrice);
     default:
       throw new Error(`Unsupported provider: ${provider}`);

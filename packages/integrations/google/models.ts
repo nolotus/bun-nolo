@@ -8,7 +8,6 @@ export const googleModels: Model[] = [
     displayName: "Gemini 2.0 Flash",
     provider: "google",
     description: "General pay-as-you-go pricing for the Gemini API.",
-    strengths: "Flexible pricing based on usage.",
     hasVision: true,
     hasAudio: true,
     contextWindow: 1048576, // 输入 token 限制
@@ -19,9 +18,6 @@ export const googleModels: Model[] = [
       cachingWrite: 0.2, // Cost per 1,000,000 tokens
       cachingRead: 0.2, // Cost per 1,000,000 tokens
     },
-    performance: {
-      latency: "variable",
-    },
     canFineTune: false, // Gemini API 是否支持微调，请根据实际情况调整
   },
   {
@@ -30,8 +26,6 @@ export const googleModels: Model[] = [
     provider: "google",
     description:
       "Experimental version of Gemini 2.0 Pro (release 02-05).  May have different performance and features.",
-    strengths:
-      "Access to the latest experimental features. Potentially improved performance or capabilities.",
     hasVision: true, //  Assume it has vision, adjust if not.
     hasAudio: true, //  Assume it has audio, adjust if not.
     // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
@@ -43,9 +37,6 @@ export const googleModels: Model[] = [
       cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
       cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
     },
-    performance: {
-      latency: "variable", //  Likely variable, especially for experimental models.
-    },
     canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
   },
   {
@@ -54,8 +45,6 @@ export const googleModels: Model[] = [
     provider: "google",
     description:
       "Experimental version of Gemini 2.5 Pro (release 03-25).  May have different performance and features.",
-    strengths:
-      "Access to the latest experimental features. Potentially improved performance or capabilities.",
     hasVision: true, //  Assume it has vision, adjust if not.
     hasAudio: true, //  Assume it has audio, adjust if not.
     // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
@@ -67,9 +56,6 @@ export const googleModels: Model[] = [
       cachingWrite: 0, // 免费
       cachingRead: 0, // 免费
     },
-    performance: {
-      latency: "variable", //  Likely variable, especially for experimental models.
-    },
     canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
   },
   {
@@ -78,8 +64,6 @@ export const googleModels: Model[] = [
     provider: "google",
     description:
       "Preview version of Gemini 2.5 Pro (release 03-25).  May have different performance and features.",
-    strengths:
-      "Access to the latest preview features. Potentially improved performance or capabilities.",
     hasVision: true, //  Assume it has vision, adjust if not.
     hasAudio: true, //  Assume it has audio, adjust if not.
     // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
@@ -90,9 +74,6 @@ export const googleModels: Model[] = [
       output: 10 * 8, // 10 * 8 = 80
       cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
       cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
-    },
-    performance: {
-      latency: "variable", //  Likely variable, especially for experimental models.
     },
     canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
   },
