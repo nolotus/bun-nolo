@@ -1,4 +1,3 @@
-import HomeSidebarContent from "app/pages/HomeSidebarContent";
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/ChatSidebar";
 import LifeSidebarContent from "life/LifeSidebarContent";
@@ -14,9 +13,7 @@ const MainLayout: React.FC = () => {
     let currentSidebar = isLoggedIn ? <ChatSidebar /> : null;
     const lastValidSidebarRef = React.useRef<React.ReactNode>(null);
 
-    if (location.pathname === "/") {
-      currentSidebar = <HomeSidebarContent />;
-    } else if (location.pathname.startsWith("/life")) {
+    if (location.pathname.startsWith("/life")) {
       currentSidebar = <LifeSidebarContent />;
     }
 
