@@ -266,7 +266,7 @@ export const SidebarTop = () => {
       <style>{`
         .space-sidebar-top {
           display: flex;
-          padding: 16px;
+          padding: 12px;
           gap: 12px;
           align-items: center;
           background: ${theme.background};
