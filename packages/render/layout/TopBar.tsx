@@ -38,7 +38,7 @@ interface TopBarProps {
 }
 
 const styles = {
-  height: "60px",
+  height: "56px",
   spacing: "8px",
 };
 
