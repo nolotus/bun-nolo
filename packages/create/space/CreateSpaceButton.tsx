@@ -1,4 +1,3 @@
-// create/space/CreateSpaceButton.tsx
 import { GoPlus } from "react-icons/go";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
@@ -8,6 +7,7 @@ interface CreateSpaceButtonProps {
   getItemProps: any;
   listRef: (node: HTMLElement | null) => void;
   index: number;
+  disabled?: boolean; // 添加可选的禁用属性
 }
 
 export const CreateSpaceButton = ({
@@ -15,6 +15,7 @@ export const CreateSpaceButton = ({
   getItemProps,
   listRef,
   index,
+  disabled = false,
 }: CreateSpaceButtonProps) => {
   const theme = useTheme();
   const { t } = useTranslation("space"); // 指定 space 命名空间
@@ -25,21 +26,25 @@ export const CreateSpaceButton = ({
       {...getItemProps({
         onClick,
       })}
-      className="space-create-button"
+      className={`space-create-button ${disabled ? "is-disabled" : ""}`}
       role="button"
-      aria-label={t("create")} // 使用扁平键 "create"
+      aria-label={t("create")}
+      aria-disabled={disabled}
     >
       <div className="space-create-button__content">
         <GoPlus size={12} />
-        <span>{t("create")}</span> {/* 使用扁平键 "create" */}
+        <span>{t("create")}</span>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .space-create-button {
           position: relative;
-          margin-top: ${index > 0 ? "4px" : "0"};
-          border-top: ${index > 0 ? `1px solid ${theme.border}` : "none"};
           padding: 4px;
+        }
+
+        .space-create-button.is-disabled {
+          opacity: 0.6;
+          pointer-events: none;
         }
 
         .space-create-button__content {
