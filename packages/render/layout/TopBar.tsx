@@ -24,7 +24,6 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import NavListItem from "render/layout/blocks/NavListItem";
-import MenuButton from "./MenuButton";
 import NavIconItem from "./blocks/NavIconItem";
 import { selectPageData } from "../page/pageSlice";
 import { extractUserId } from "core/prefix";
