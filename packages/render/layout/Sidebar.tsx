@@ -29,11 +29,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // 处理侧边栏切换
   const toggleSidebar = useCallback((e?: React.MouseEvent) => {
-    // 先移除悬停状态，确保resize背景恢复正常
     setIsHandleHovered(false);
     setIsOpen((prev) => !prev);
-
-    // 阻止事件冒泡，防止触发父元素的事件处理器
     if (e) {
       e.stopPropagation();
     }
@@ -41,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
     mouseDownEvent.preventDefault();
-    mouseDownEvent.stopPropagation(); // 防止事件冒泡到外层
+    mouseDownEvent.stopPropagation();
     setIsResizing(true);
   }, []);
 
@@ -57,7 +54,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           sidebarRef.current.getBoundingClientRect().left;
         if (newWidth > 200 && newWidth < 600) {
           dispatch(setSidebarWidth(newWidth));
-          // 立即更新DOM，确保拖动顺畅
           if (sidebarRef.current) {
             sidebarRef.current.style.width = `${newWidth}px`;
           }
@@ -67,7 +63,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     [isResizing, dispatch]
   );
 
-  // 处理悬停状态
   const handleMouseEnter = useCallback(() => {
     setIsHandleHovered(true);
   }, []);
@@ -112,9 +107,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
   }, [resize, stopResizing, isResizing]);
 
-  const isHomeSidebar = sidebarContent?.type?.name === "HomeSidebarContent";
+  // 删除了 isHomeSidebar 和 sidebar__content--home 相关逻辑
 
-  // 使用计算值而非硬编码颜色
   const lineColor =
     theme.mode === "dark"
       ? "rgba(200, 200, 200, 0.6)"
@@ -134,11 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             style={{ width: `${theme.sidebarWidth}px` }}
           >
             {isLoggedIn && <SidebarTop />}
-            <div
-              className={`sidebar__content ${isHomeSidebar ? "sidebar__content--home" : ""}`}
-            >
-              {sidebarContent}
-            </div>
+            <div className="sidebar__content">{sidebarContent}</div>
           </aside>
 
           {/* 侧边栏打开时的调整手柄 */}
@@ -242,16 +232,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           scrollbar-color: ${theme.textLight} transparent;
         }
 
-        .sidebar__content--home {
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-start;
-          align-items: flex-start;
-          padding-top: 20%;
-          padding-left: 16px;
-          width: 100%;
-        }
-
         .sidebar__content::-webkit-scrollbar {
           width: 4px;
         }
@@ -305,7 +285,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          z-index: 16; /* 高于resize区域 */
+          z-index: 16;
         }
 
         /* 可调整宽度的区域 */
@@ -318,7 +298,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             isHandleHovered || isResizing ? `${theme.border}30` : "transparent"
           };
           transition: background-color 0.2s ease;
-          z-index: 14; /* 低于toggle按钮 */
+          z-index: 14;
         }
 
         /* 侧边栏关闭状态下的切换按钮 */
