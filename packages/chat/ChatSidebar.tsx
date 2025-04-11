@@ -1,5 +1,12 @@
 // 文件路径: chat/ChatSidebar.tsx
-import React, { memo, useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  memo,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks"; // 确认路径
 import {
   selectCurrentSpace,
@@ -208,10 +215,12 @@ export const ItemDraggable: React.FC<ItemDraggableProps> = ({
 
 // --- 主侧边栏组件 ---
 const ChatSidebar: React.FC = () => {
-  const [shouldAnimate, setShouldAnimate] = useState(false); // 控制首次动画状态
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [scrolling, setScrolling] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
-  const space = useAppSelector(selectCurrentSpace); // 获取当前空间数据
-  const theme = useTheme(); // 获取主题
+  const space = useAppSelector(selectCurrentSpace);
+  const theme = useTheme();
 
   // 使用自定义 Hook 获取分组和排序后的数据
   const { groupedData, sortedCategories } = useGroupedContent(space);
@@ -224,178 +233,232 @@ const ChatSidebar: React.FC = () => {
   );
   const handleItemDragEnd = useItemDragAndDrop(space, dispatch);
 
-  // ---- 可选：优化拖拽传感器 ----
-  // const sensors = useSensors(
-  //   useSensor(PointerSensor, {
-  //     // 需要移动一定距离才开始拖拽，防止误触
-  //     activationConstraint: {
-  //       distance: 8,
-  //     },
-  //   }),
-  //   useSensor(KeyboardSensor, {
-  //     // 使用键盘协调器处理排序
-  //     coordinateGetter: sortableKeyboardCoordinates,
-  //   })
-  // );
-  // ---- 如果使用 sensors，则在 DndContext 中添加 sensors={sensors} ----
-
-  // --- 拖放结束事件处理器 ---
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    // 结束时没有悬浮目标，或活动元素数据不存在，则返回
-    if (!over || !active.data.current) {
-      // console.log("Drag end ignored: No 'over' or 'active.data.current'");
-      return;
+  // 处理滚动事件 - 智能显示滚动条
+  const handleScroll = useCallback(() => {
+    if (!scrolling) {
+      setScrolling(true);
+      const timer = setTimeout(() => setScrolling(false), 1000);
+      return () => clearTimeout(timer);
     }
+  }, [scrolling]);
 
-    const activeId = active.id as string; // 被拖拽元素的 ID
-    const overId = over.id as string; // 悬浮目标的 ID
-    const activeType = active.data.current.type as string; // 被拖拽元素的类型
-    const overData = over.data.current; // 悬浮目标的数据
+  // 使用 useMemo 优化拖拽处理逻辑
+  const handleDragEnd = useMemo(() => {
+    return (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || !active.data.current || active.id === over.id) return;
 
-    // 如果拖拽到自身，忽略
-    if (activeId === overId) {
-      // console.log("Drag end ignored: activeId === overId");
-      return;
-    }
+      const activeId = active.id as string;
+      const overId = over.id as string;
+      const activeType = active.data.current.type as string;
+      const overData = over.data.current;
 
-    // --- 情况一：拖拽的是分类 (CATEGORY) ---
-    if (activeType === "CATEGORY") {
-      // 检查悬浮目标是否也是分类 (通过 overData.type 或直接判断 overId 是否是有效分类ID)
-      // 假设不能将分类拖到未分类区域 (overId !== UNCATEGORIZED_ID)
-      const isOverCategory =
-        overData?.type === "CATEGORY" ||
-        sortedCategories.some((cat) => cat.id === overId);
+      // 处理分类拖拽
+      if (activeType === "CATEGORY") {
+        const isOverCategory =
+          overData?.type === "CATEGORY" ||
+          sortedCategories.some((cat) => cat.id === overId);
 
-      if (isOverCategory && overId !== UNCATEGORIZED_ID) {
-        handleCategoryDragEnd(activeId, overId);
-      } else {
-        // console.log("Drag end ignored: Cannot drag category over non-category or uncategorized");
+        if (isOverCategory && overId !== UNCATEGORIZED_ID) {
+          handleCategoryDragEnd(activeId, overId);
+        }
       }
-    }
-    // --- 情况二：拖拽的是项目 (ITEM) ---
-    else if (activeType === "ITEM") {
-      const sourceContainer = active.data.current.containerId as string; // 源容器 ID
-      let targetContainer: string | undefined; // 目标容器 ID
+      // 处理项目拖拽
+      else if (activeType === "ITEM") {
+        const sourceContainer = active.data.current.containerId as string;
+        let targetContainer: string | undefined;
 
-      // 根据悬浮目标的类型确定目标容器 ID
-      if (overData?.type === "CATEGORY_CONTAINER") {
-        // 情况 A: 直接落在分类的 Droppable 区域 (包括未分类区域的容器)
-        targetContainer = overData.containerId as string;
-      } else if (overData?.type === "ITEM") {
-        // 情况 B: 落在另一个 Item 上，目标容器是该 Item 的容器
-        targetContainer = overData.containerId as string;
-      } else if (overData?.type === "CATEGORY") {
-        // 情况 C: 落在分类的 Draggable 区域 (通常是 CategoryHeader)
-        targetContainer = overId; // 目标容器 ID 就是这个分类的 ID
+        if (overData?.type === "CATEGORY_CONTAINER") {
+          targetContainer = overData.containerId as string;
+        } else if (overData?.type === "ITEM") {
+          targetContainer = overData.containerId as string;
+        } else if (overData?.type === "CATEGORY") {
+          targetContainer = overId;
+        }
+
+        if (targetContainer && sourceContainer !== targetContainer) {
+          handleItemDragEnd(activeId, sourceContainer, targetContainer);
+        }
       }
-      // 不需要单独处理 overId === UNCATEGORIZED_ID，情况 A 会覆盖
+    };
+  }, [sortedCategories, handleCategoryDragEnd, handleItemDragEnd]);
 
-      // 如果成功确定了目标容器，并且与源容器不同
-      if (
-        targetContainer !== undefined &&
-        sourceContainer !== targetContainer
-      ) {
-        handleItemDragEnd(activeId, sourceContainer, targetContainer);
-      } else {
-        // console.log("Drag end ignored: Target container undefined or same as source");
-      }
-    } else {
-      // console.log("Drag end ignored: Unknown activeType", activeType);
+  // 设置滚动事件监听
+  useEffect(() => {
+    const scrollArea = scrollAreaRef.current;
+    if (scrollArea) {
+      scrollArea.addEventListener("scroll", handleScroll);
+      return () => scrollArea.removeEventListener("scroll", handleScroll);
     }
-  };
+  }, [handleScroll]);
 
-  // 控制首次加载时的动画效果 (逻辑不变)
+  // 动画效果控制 - 延迟触发可见性动画
   useEffect(() => {
     const hasCategorizedContent = Object.values(groupedData.categorized).some(
       (list) => list.length > 0
     );
     const hasUncategorizedContent = groupedData.uncategorized.length > 0;
-    setShouldAnimate(hasCategorizedContent || hasUncategorizedContent);
+
+    if (hasCategorizedContent || hasUncategorizedContent) {
+      const timer = setTimeout(() => {
+        requestAnimationFrame(() => setShouldAnimate(true));
+      }, 50); // 短暂延迟以提高动画效果
+      return () => clearTimeout(timer);
+    }
   }, [groupedData]);
 
-  // 缓存分类 ID 列表，用于 SortableContext
+  // 缓存分类 ID 列表
   const categoryIds = useMemo(
     () => sortedCategories.map((cat) => cat.id),
     [sortedCategories]
   );
 
-  return (
-    // 拖放上下文，提供给所有子组件
-    <DndContext onDragEnd={handleDragEnd /* sensors={sensors} */}>
-      <nav className="ChatSidebar">
-        {/* 可滚动区域 */}
-        <div className="ChatSidebar__scroll-area">
-          {/* 分类排序上下文 */}
-          <SortableContext
-            items={categoryIds} // 提供可排序分类的 ID 列表
-            strategy={verticalListSortingStrategy} // 使用垂直列表排序策略
-          >
-            {/* 遍历并渲染已排序的分类 */}
-            {sortedCategories.map((category) => (
-              <CategoryDraggable key={category.id} id={category.id}>
-                {(
-                  handleProps // 使用函数子元素传递拖拽句柄
-                ) => (
-                  <CategorySection
-                    categoryId={category.id} // 直接传递 ID
-                    categoryName={category.name} // 直接传递名称
-                    items={groupedData.categorized[category.id] || []} // 获取该分类下的内容
-                    shouldAnimate={shouldAnimate} // 是否应用动画
-                    handleProps={handleProps} // 传递拖拽句柄给 CategorySection -> CategoryHeader
-                  />
-                )}
-              </CategoryDraggable>
-            ))}
-          </SortableContext>
+  // 空状态检查
+  const isEmpty = useMemo(() => {
+    return (
+      !Object.values(groupedData.categorized).some(
+        (items) => items.length > 0
+      ) && groupedData.uncategorized.length === 0
+    );
+  }, [groupedData]);
 
-          {/* 渲染未分类区域 */}
-          {/* 仅当有未分类内容时才渲染 */}
-          {groupedData.uncategorized.length > 0 && (
-            <CategorySection
-              key={UNCATEGORIZED_ID} // 使用常量作为 key
-              categoryId={UNCATEGORIZED_ID} // 传递未分类 ID
-              categoryName="未分类" // 显示名称
-              items={groupedData.uncategorized} // 未分类内容列表
-              shouldAnimate={shouldAnimate} // 是否应用动画
-              // 注意：不包裹在 CategoryDraggable 中，不传递 handleProps
-            />
+  // 获取当前主题是否为暗色
+  const isDarkTheme = useMemo(() => {
+    return (
+      theme.type === "dark" ||
+      window?.matchMedia?.("(prefers-color-scheme: dark)")?.matches
+    );
+  }, [theme.type]);
+
+  return (
+    <DndContext onDragEnd={handleDragEnd}>
+      <nav className={`ChatSidebar ${isDarkTheme ? "ChatSidebar--dark" : ""}`}>
+        <div
+          ref={scrollAreaRef}
+          className={`ChatSidebar__scroll-area ${scrolling ? "is-scrolling" : ""}`}
+        >
+          {isEmpty ? (
+            <div className="ChatSidebar__empty-state">
+              <p>没有内容</p>
+              <p className="ChatSidebar__empty-hint">创建内容时会在此显示</p>
+            </div>
+          ) : (
+            <>
+              <SortableContext
+                items={categoryIds}
+                strategy={verticalListSortingStrategy}
+              >
+                {sortedCategories.map((category) => (
+                  <CategoryDraggable key={category.id} id={category.id}>
+                    {(handleProps) => (
+                      <CategorySection
+                        categoryId={category.id}
+                        categoryName={category.name}
+                        items={groupedData.categorized[category.id] || []}
+                        shouldAnimate={shouldAnimate}
+                        handleProps={handleProps}
+                      />
+                    )}
+                  </CategoryDraggable>
+                ))}
+              </SortableContext>
+
+              {groupedData.uncategorized.length > 0 && (
+                <CategorySection
+                  key={UNCATEGORIZED_ID}
+                  categoryId={UNCATEGORIZED_ID}
+                  categoryName="未分类"
+                  items={groupedData.uncategorized}
+                  shouldAnimate={shouldAnimate}
+                />
+              )}
+            </>
           )}
         </div>
 
-        {/* 组件内嵌样式 */}
         <style>{`
           .ChatSidebar {
             display: flex;
             flex-direction: column;
             height: 100%;
-            background: ${theme.background}; /* 使用主题背景色 */
-            padding: 12px 4px; /* 内边距 */
+            background: ${theme.background};
+            padding: 12px 4px;
             box-sizing: border-box;
+            font-size: 0.925rem;
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent;
           }
 
           .ChatSidebar__scroll-area {
-            flex: 1; /* 占据剩余空间 */
-            overflow-y: auto; /* 垂直滚动 */
-            padding: 0 8px 12px; /* 滚动区域内边距 */
-            margin-right: -4px; /* 隐藏滚动条视觉影响 */
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0 8px 12px;
+            margin-right: -4px;
+            scrollbar-width: thin; /* Firefox: 更细但可见的滚动条 */
+            scrollbar-color: rgba(0,0,0,0.14) transparent; /* 适当可见度 */
+            overscroll-behavior: contain;
+            scroll-behavior: smooth;
+            position: relative;
           }
-
-          /* 自定义滚动条样式 (可选) */
+          
           .ChatSidebar__scroll-area::-webkit-scrollbar {
-            width: 4px;
-          }
-          .ChatSidebar__scroll-area::-webkit-scrollbar-track {
+            width: 2.5px; /* 调整到适当可见度 */
             background: transparent;
           }
-          .ChatSidebar__scroll-area::-webkit-scrollbar-thumb {
-            background: ${theme.textLight || "#ccc"}; /* 使用主题颜色 */
-            border-radius: 10px;
-            opacity: 0.5;
+          
+          .ChatSidebar__scroll-area::-webkit-scrollbar-track {
+            background: transparent;
+            margin: 6px 0;
           }
+          
+          /* 可见但不突兀的滚动条 */
+          .ChatSidebar__scroll-area::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.14); /* 适当可见度 */
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+          }
+          
+          .ChatSidebar__scroll-area:hover::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.18);
+          }
+          
           .ChatSidebar__scroll-area::-webkit-scrollbar-thumb:hover {
-            background: ${theme.textQuaternary || "#aaa"}; /* 使用主题颜色 */
+            background-color: rgba(0,0,0,0.24);
+          }
+          
+          /* 暗色模式适配 */
+          .ChatSidebar--dark .ChatSidebar__scroll-area::-webkit-scrollbar-thumb {
+            background-color: rgba(255,255,255,0.14);
+          }
+          
+          .ChatSidebar--dark .ChatSidebar__scroll-area:hover::-webkit-scrollbar-thumb {
+            background-color: rgba(255,255,255,0.18);
+          }
+          
+          .ChatSidebar--dark .ChatSidebar__scroll-area::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255,255,255,0.24);
+          }
+
+          /* 空状态样式 */
+          .ChatSidebar__empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+            color: ${theme.textTertiary || "#888"};
+            text-align: center;
+            opacity: 0.75;
+            animation: fadeIn 0.5s ease-out;
+          }
+          
+          .ChatSidebar__empty-hint {
+            font-size: 0.8rem;
+            margin-top: 6px;
+            opacity: 0.7;
+            font-weight: 300;
           }
 
           /* 可拖拽分类容器样式 */
@@ -403,43 +466,113 @@ const ChatSidebar: React.FC = () => {
             border-radius: 8px;
             position: relative;
             background-color: transparent;
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
-            margin-bottom: 4px; /* 分类间距 */
+            transition: all 0.2s ease-out;
+            margin-bottom: 5px;
+            will-change: transform, opacity;
+            backface-visibility: hidden; /* 减少重绘 */
+            transform-style: preserve-3d; /* 更好的3D合成 */
+            touch-action: pan-y; 
           }
 
-          /* 拖拽分类时的样式 */
+          .CategoryDraggable:active {
+            cursor: grabbing; /* 拖动时指针样式 */
+          }
+
           .CategoryDraggable--dragging {
-            background-color: ${theme.backgroundSecondary || "#f0f0f0"}; /* 使用主题背景色 */
-            box-shadow: 0 6px 16px rgba(0,0,0,0.08); /* 添加阴影 */
-            opacity: 0.9; /* 轻微透明 */
+            background-color: ${theme.backgroundHover || theme.backgroundSecondary || "#f5f5f5"};
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            opacity: 0.97;
+            z-index: 5;
+            transform: translateZ(0);
           }
 
           /* 可拖拽项目容器样式 */
           .ItemDraggable {
-            margin: 3px 0; /* 项目上下间距 */
+            margin: 1.8px 0; 
             position: relative;
             border-radius: 6px;
-            transition: opacity 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.2s ease-out;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
           }
 
-          /* 拖拽项目时的样式 */
+          .ItemDraggable:active {
+            cursor: grabbing; /* 拖动时指针样式 */
+          }
+
           .ItemDraggable--dragging {
-            opacity: 0.8; /* 轻微透明 */
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08); /* 添加阴影 */
-            /* background-color: ${theme.background}; */ /* 可选：设置背景以防透明 */
-            /* z-index: 10; */ /* 可选：确保在顶层 */
+            opacity: 0.93;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 2px 10px rgba(0,0,0,0.03);
+            z-index: 5;
+            transform: scale(1.01) translateZ(0); /* 轻微放大效果 */
           }
 
-          /* 项目入场动画 */
+          /* 精细的项目入场动画 */
           @keyframes itemFadeIn {
+            0% {
+              opacity: 0;
+              transform: translateY(3px) scale(0.99);
+            }
+            45% {
+              transform: translateY(1px) scale(0.995);
+            }
+            75% {
+              opacity: 0.9;
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          
+          /* 淡入动画 */
+          @keyframes fadeIn {
             from {
               opacity: 0;
-              transform: translateY(6px);
+              transform: translateY(8px);
             }
             to {
-              opacity: 1;
+              opacity: 0.75;
               transform: translateY(0);
             }
+          }
+
+          /* 拖动句柄和交互增强 */
+          [data-draggable-handle] {
+            cursor: grab; /* 提醒用户可拖动 */
+          }
+          
+          [data-draggable-handle]:active {
+            cursor: grabbing; /* 拖动中时指针 */
+          }
+          
+          /* 响应式调整 */
+          @media (max-width: 768px) {
+            .ChatSidebar {
+              font-size: 0.9rem; /* 移动设备更小字体 */
+            }
+            
+            .ChatSidebar__scroll-area::-webkit-scrollbar {
+              width: 2px; /* 移动设备更窄滚动条 */
+            }
+          }
+          
+          /* 高密度显示模式 */
+          @media (min-resolution: 1.5dppx) {
+            .CategoryDraggable {
+              margin-bottom: 4px; /* 更密集布局 */
+            }
+            
+            .ItemDraggable {
+              margin: 1.5px 0; /* 更密集布局 */
+            }
+          }
+          
+          /* 低延迟拖动响应优化 - 减少动画干扰 */
+          .ChatSidebar *:not(.ItemDraggable--dragging, .CategoryDraggable--dragging) {
+            animation-duration: 0.2s !important; 
+            animation-delay: 0s !important;
+            transition-delay: 0s !important;
           }
         `}</style>
       </nav>
