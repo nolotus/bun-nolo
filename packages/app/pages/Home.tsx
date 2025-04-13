@@ -1,16 +1,15 @@
-import React from "react";
 import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import { selectIsLoggedIn, selectCurrentUser } from "../../auth/authSlice";
-import { NavLink } from "react-router-dom";
 import copyToClipboard from "utils/clipboard";
 import toast from "react-hot-toast";
 import PubCybots from "ai/cybot/web/PubCybots";
 import WelcomeSection from "./WelcomeSection";
 import GuideSection from "./GuideSection";
+import { NavLink } from "react-router-dom";
 
 // Better icons from React Icons
-import { FiGlobe, FiMail } from "react-icons/fi";
+import { FiGlobe, FiMail, FiChevronRight } from "react-icons/fi";
 
 const EMAIL = "s@nolotus.com";
 
@@ -35,10 +34,16 @@ const Home = () => {
       {isLoggedIn && currentUser ? <GuideSection /> : <WelcomeSection />}
 
       <section className="community-section">
-        <h2 className="section-title">
-          <FiGlobe className="section-title-icon" size={24} />
-          探索社区 Cybot
-        </h2>
+        <div className="section-header">
+          <h2 className="section-title">
+            <FiGlobe className="section-title-icon" size={24} />
+            探索社区 Cybot
+          </h2>
+          <NavLink to="/explore" className="explore-more-link">
+            <span>浏览更多</span>
+            <FiChevronRight size={16} aria-hidden="true" />
+          </NavLink>
+        </div>
         <div className="cybots-container">
           <PubCybots limit={9} />
         </div>
@@ -58,7 +63,7 @@ const Home = () => {
         </a>
       </footer>
 
-      <style jsx>{`
+      <style>{`
         .home-container {
           max-width: 1200px;
           margin: 0 auto;
@@ -79,21 +84,44 @@ const Home = () => {
             opacity: 1;
           }
         }
+        
+        .section-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin: 2.5rem 0 2rem;
+        }
 
         .section-title {
           font-size: 1.8rem;
           color: ${theme.text};
-          margin: 2.5rem 0 2rem;
           font-weight: 600;
-          text-align: center;
           display: flex;
           align-items: center;
-          justify-content: center;
           gap: 0.5rem;
+          margin: 0;
         }
 
         .section-title-icon {
           color: ${theme.primary};
+        }
+        
+        .explore-more-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: ${theme.primary};
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 0.95rem;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+        }
+
+        .explore-more-link:hover {
+          background-color: ${theme.backgroundLight};
+          transform: translateX(3px);
         }
 
         .cybots-container {
@@ -144,9 +172,20 @@ const Home = () => {
             padding: 1rem;
           }
 
+          .section-header {
+            margin: 2rem 0 1.5rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+
           .section-title {
             font-size: 1.6rem;
-            margin: 2rem 0 1.5rem;
+          }
+
+          .explore-more-link {
+            font-size: 0.9rem;
+            padding: 0.4rem 0.8rem;
           }
 
           .footer {

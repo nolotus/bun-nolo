@@ -12,7 +12,6 @@ import { FiChevronRight } from "react-icons/fi";
 import { HiOutlineLightBulb, HiOutlineDocumentAdd } from "react-icons/hi";
 import { BsRobot, BsPlusLg } from "react-icons/bs";
 import { MdOutlineSettings } from "react-icons/md";
-import { IoDocumentTextOutline } from "react-icons/io5";
 import { FiDollarSign } from "react-icons/fi";
 import { BiBook } from "react-icons/bi";
 
@@ -142,21 +141,21 @@ const GuideSection = () => {
 
       {currentUserId && (
         <div className="my-cybots-section section-block">
-          <h3 className="section-subtitle">
-            <BsRobot size={16} className="subtitle-icon" />
-            我的 Cybot 列表
-          </h3>
-          <Cybots queryUserId={currentUserId} limit={6} />
-          <div className="view-all-container">
+          <div className="section-header">
+            <h3 className="section-subtitle">
+              <BsRobot size={16} className="subtitle-icon" />
+              我的 Cybot 列表
+            </h3>
             <NavLink to="/cybots" className="view-all-link">
-              <span>查看全部 Cybot</span>
+              <span>查看全部</span>
               <FiChevronRight size={16} aria-hidden="true" />
             </NavLink>
           </div>
+          <Cybots queryUserId={currentUserId} limit={6} />
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .guide-section-container {
           animation: fadeIn 0.4s ease;
           max-width: 1200px;
@@ -213,14 +212,21 @@ const GuideSection = () => {
           margin-bottom: 0;
         }
 
+        .section-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1rem;
+        }
+
         .section-subtitle {
           font-size: 1.2rem;
           color: ${theme.text};
-          margin-bottom: 1rem;
           display: flex;
           align-items: center;
           gap: 0.5rem;
           font-weight: 600;
+          margin: 0;
         }
 
         .subtitle-icon {
@@ -384,11 +390,6 @@ const GuideSection = () => {
           padding: 0;
         }
 
-        .view-all-container {
-          text-align: center;
-          margin-top: 1rem;
-        }
-
         .view-all-link {
           display: inline-flex;
           align-items: center;
@@ -412,9 +413,14 @@ const GuideSection = () => {
             font-size: 1.5rem;
           }
 
+          .section-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+          }
+
           .section-subtitle {
             font-size: 1.1rem;
-            margin-bottom: 0.9rem;
           }
 
           .button-grid,
@@ -425,6 +431,11 @@ const GuideSection = () => {
 
           .button-content {
             padding: 1rem;
+          }
+          
+          .view-all-link {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.85rem;
           }
         }
 

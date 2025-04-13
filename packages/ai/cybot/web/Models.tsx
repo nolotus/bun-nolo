@@ -1,12 +1,12 @@
 import React from "react";
+import PubCybots from "ai/cybot/web/PubCybots";
 
 const Models: React.FC = () => {
   return (
     <div className="models-page">
-      <h1>模型页面</h1>
+      <h1>探索更多cybot</h1>
       <div className="models-content">
-        <p>这里展示所有模型的列表</p>
-        {/* 这里可以添加模型列表的实现 */}
+        <PubCybots limit={30} />
       </div>
       <style>{`
         .models-page {
