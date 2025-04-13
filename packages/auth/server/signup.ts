@@ -39,7 +39,7 @@ export async function handleSignUp(req) {
       locale,
       createdAt: Date.now(),
       email,
-      balance: 0,
+      balance: 1,
       balanceUpdatedAt: Date.now(),
     });
 

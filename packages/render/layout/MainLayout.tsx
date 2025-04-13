@@ -27,7 +27,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <Sidebar sidebarContent={getSidebarContent()}>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>main Loading...</div>}>
         <Outlet />
       </Suspense>
     </Sidebar>
