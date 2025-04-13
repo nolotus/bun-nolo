@@ -53,9 +53,8 @@ export const routes = (currentUser: any) => [
           },
         ],
       },
-      // 独立的models页面
       {
-        path: "models",
+        path: "explore",
         element: (
           <Suspense>
             <Models />
