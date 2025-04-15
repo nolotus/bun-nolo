@@ -1,7 +1,7 @@
 import { handleToken } from "auth/server/token";
 
 import { API_ENDPOINTS } from "../config";
-import { handleQuery } from "../query";
+import { handleQuery } from "./query";
 
 import { handleDelete } from "./delete";
 import { handleReadSingle } from "./read";

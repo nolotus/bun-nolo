@@ -37,7 +37,6 @@ export const Database = () => {
       queryUserId: currentUserId,
       server: currentServer,
       options: {
-        isJSON: true,
         limit: 100,
         condition: type ? { type } : {},
       },
