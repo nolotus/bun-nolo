@@ -25,23 +25,40 @@ export const openAIModels: Model[] = [
       inputCacheHit: 0.6, // $0.075/MTok * 8
     },
   },
-
-  // {
-  //   name: "o1-preview",
-  //   displayName: "O1 Preview",
-  //   hasVision: false,
-  //   price: { input: 120, output: 480 },
-  //   maxOutputTokens: "128k",
-  //   contextWindow: "128k",
-  //   supportsTool: true,
-  // },
-  // {
-  //   name: "o1-mini",
-  //   displayName: "O1 Mini",
-  //   hasVision: false,
-  //   price: { input: 24, output: 96 },
-  //   maxOutputTokens: "128k",
-  //   contextWindow: "128k",
-  //   supportsTool: true,
-  // },
+  {
+    name: "gpt-4.1",
+    displayName: "GPT-4.1",
+    hasVision: false,
+    contextWindow: 128000,
+    maxOutputTokens: 8192,
+    price: {
+      input: 16.0, // $2.00/MTok * 8
+      output: 64.0, // $8.00/MTok * 8
+      inputCacheHit: 4.0, // $0.50/MTok * 8
+    },
+  },
+  {
+    name: "gpt-4.1-mini",
+    displayName: "GPT-4.1 Mini",
+    hasVision: false,
+    contextWindow: 128000,
+    maxOutputTokens: 8192,
+    price: {
+      input: 3.2, // $0.40/MTok * 8
+      output: 12.8, // $1.60/MTok * 8
+      inputCacheHit: 0.8, // $0.10/MTok * 8
+    },
+  },
+  {
+    name: "gpt-4.1-nano",
+    displayName: "GPT-4.1 Nano",
+    hasVision: false,
+    contextWindow: 128000,
+    maxOutputTokens: 8192,
+    price: {
+      input: 0.8, // $0.10/MTok * 8
+      output: 3.2, // $0.40/MTok * 8
+      inputCacheHit: 0.2, // $0.025/MTok * 8
+    },
+  },
 ];

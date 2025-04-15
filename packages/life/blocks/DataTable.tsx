@@ -1,6 +1,5 @@
 import React from "react";
 import { useAppDispatch } from "app/hooks";
-import { extractCustomId } from "core/prefix";
 import { DataType } from "create/types";
 import { remove } from "database/dbSlice";
 import { Link } from "react-router-dom";
@@ -19,44 +18,6 @@ type RenderConfig = {
 };
 
 const renderConfigs: Record<string, RenderConfig> = {
-  [DataType.SurfSpot]: {
-    fields: [
-      {
-        header: "Id",
-        key: "id",
-        render: (value) => (
-          <Link
-            to={`/${value}`}
-            style={{ textDecoration: "none", color: "blue" }}
-          >
-            {extractCustomId(value)}
-          </Link>
-        ),
-      },
-      { header: "浪点名字", key: "title" },
-    ],
-  },
-  [DataType.Prompt]: {
-    fields: [
-      { header: "名称", key: "name" },
-      {
-        header: "内容",
-        key: "content",
-        render: (value) => value.substring(0, 50) + "...",
-      },
-      { header: "分类", key: "category" },
-      { header: "标签", key: "tags", render: (value) => value.join(", ") },
-    ],
-    actions: (data) => (
-      <Link
-        to={`/${data.id}`}
-        style={{ textDecoration: "none", color: "blue" }}
-      >
-        <button style={{ borderRadius: "4px", padding: "4px" }}>查看</button>
-      </Link>
-    ),
-  },
-
   [DataType.CalendarEvent]: {
     fields: [
       {
