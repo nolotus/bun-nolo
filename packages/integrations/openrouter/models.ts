@@ -111,13 +111,4 @@ export const openrouterModels = [
     supportsTool: true,
     speed: 10,
   },
-  {
-    name: "openrouter/optimus-alpha",
-    displayName: "Optimus Alpha",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 32000,
-    contextWindow: 1000000,
-    supportsTool: true,
-  },
 ];
