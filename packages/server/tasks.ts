@@ -1,6 +1,4 @@
-import { nolotusId } from "core/init";
 import { DataType } from "create/types";
-import { queryData } from "database/query/queryHandler";
 import { parseWeatherParams, fetchWeatherData } from "integrations/weather";
 import { ulid } from "ulid";
 
@@ -9,13 +7,7 @@ import { ulid } from "ulid";
 const TOP_COLLECTORS_QUERY_INTERVAL = "* * * * * *";
 
 const queryTopTenCollectors = async () => {
-  const result = await queryData({
-    userId: nolotusId,
-    isJSON: true,
-    condition: {
-      type: DataType.SurfSpot,
-    },
-  });
+  const result = [];
   const collectors = result.map((item) => {
     return { lat: item.lat, lng: item.lng };
   });

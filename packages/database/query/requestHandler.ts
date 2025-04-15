@@ -1,6 +1,4 @@
 import serverDb from "../server/db";
-import { queryData } from "./queryHandler";
-import { QueryOptions } from "./types";
 
 async function fetchUserData(types: string | string[], userId: string) {
   const results: Record<string, any[]> = {};
@@ -35,9 +33,8 @@ async function fetchUserData(types: string | string[], userId: string) {
 
 export const handleQuery = async (req, res) => {
   try {
-    const options: QueryOptions = {
+    const options = {
       userId: req.params.userId,
-      isJSON: req.query.isJSON === "true",
       condition: req.body,
       limit: Number(req.query.limit),
     };
@@ -52,17 +49,12 @@ export const handleQuery = async (req, res) => {
     ) {
       return res.status(400).json({ error: "UserId is required" });
     }
-
-    if (options.userId.length < 11) {
-      const result = await fetchUserData(
-        [options.condition.type],
-        options.userId
-      );
-      return res.status(200).json({ result });
-    }
-
-    const data = await queryData(options);
-    return res.status(200).json(data);
+    console.log("Query options:", options);
+    const result = await fetchUserData(
+      [options.condition.type],
+      options.userId
+    );
+    return res.status(200).json({ result });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
