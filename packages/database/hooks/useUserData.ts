@@ -1,6 +1,5 @@
 // database/hooks/useUserData.ts
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { pino } from "pino";
 import { toast } from "react-hot-toast";
 import { fetchUserData } from "../browser/fetchUserData"; // 确保路径正确
 import { DataType } from "create/types"; // 确保路径正确
@@ -9,8 +8,6 @@ import { selectCurrentServer } from "setting/settingSlice"; // 确保路径正�
 import { noloQueryRequest } from "../client/queryRequest"; // 确保路径正确
 import { upsertMany } from "database/dbSlice"; // 确保路径正确
 import { useAuth } from "auth/hooks/useAuth"; // 确保路径正确
-
-const logger = pino({ name: "useUserData" });
 
 // 定义基础数据项接口
 interface BaseItem {
@@ -46,10 +43,7 @@ const mergeAndDedupData = (
   const addToMap = (item: BaseItem) => {
     // 确保 item 和 item.id 有效
     if (!item?.id) {
-      logger.warn(
-        { item },
-        "Skipping item due to missing id in mergeAndDedupData"
-      );
+      // 跳过
       return;
     }
 
@@ -65,10 +59,8 @@ const mergeAndDedupData = (
       const dateStrOrNum = dataItem.updatedAt ?? dataItem.created;
       if (!dateStrOrNum) return 0;
       try {
-        // 尝试解析为日期对象，然后获取时间戳
         return new Date(dateStrOrNum).getTime();
       } catch (e) {
-        // 如果解析失败（可能已经是时间戳数字），直接返回或返回0
         return typeof dateStrOrNum === "number" ? dateStrOrNum : 0;
       }
     };
@@ -76,8 +68,6 @@ const mergeAndDedupData = (
     const existingTimestamp = getTimestamp(existing);
     const newTimestamp = getTimestamp(item);
 
-    // 如果新项目的时间戳更新或有效，则替换旧项目
-    // 注意：如果时间戳相同，后来的（可能是远程的）会覆盖本地的（如果它们ID相同）
     if (newTimestamp >= existingTimestamp) {
       uniqueMap.set(item.id, item);
     }
@@ -92,9 +82,8 @@ const mergeAndDedupData = (
     const items = result?.data?.data;
     if (Array.isArray(items)) {
       items.forEach(addToMap);
-    } else if (items) {
-      logger.warn({ resultData: items }, "Remote result data is not an array");
     }
+    // else: 跳过非法
   });
 
   // 返回 Map 中的所有值组成的数组
@@ -177,7 +166,6 @@ export function useUserData(
       JSON.stringify(previousParamsRef.current) ===
         JSON.stringify(currentParams)
     ) {
-      logger.debug("Skipping loadData: already loading or params unchanged.");
       return;
     }
 
@@ -186,18 +174,15 @@ export function useUserData(
     previousParamsRef.current = currentParams;
     // 更新状态为加载中，并清除之前的错误
     setState((prev) => ({ ...prev, loading: true, error: null }));
-    logger.debug({ params: currentParams }, "Starting data load...");
 
     try {
       // 1. 获取本地数据 (不受 limit 限制)
-      // 注意：如果 effectiveUserId 为 "local" 且未登录，fetchUserData 可能返回空或特定于本地未登录状态的数据
       const localResults = await fetchUserData(typeArray, effectiveUserId);
       const localData: BaseItem[] = Object.values(localResults).flat();
-      logger.debug({ count: localData.length }, "Fetched local data");
+      console.log("本地数据", localData);
 
       // 如果是纯本地用户（userId === "local"）且未登录，则只使用本地数据
       if (userId === "local" && !auth.isLoggedIn) {
-        logger.debug("Local user not logged in, using only local data.");
         // 对本地数据也应用排序和限制
         const sortedLocalData = [...localData].sort((a, b) => {
           const dateA = a.updatedAt
@@ -239,68 +224,45 @@ export function useUserData(
         return dateB - dateA; // 降序
       });
       const limitedInitialLocalData = sortedInitialLocalData.slice(0, limit);
-
+      console.log("本地数据（限制数量）", limitedInitialLocalData);
       setState((prev) => ({
         ...prev,
-        // data: localData, // 旧：显示所有本地数据
         data: limitedInitialLocalData, // 新：显示限制数量的本地数据
         loading: true, // 保持加载状态，因为要去获取远程数据
       }));
 
       // 2. 获取远程数据 (对每个 type 应用 limit)
-      logger.debug({ types: typeArray, limit }, "Fetching remote data...");
       const remoteResults = await Promise.all(
         typeArray.map(async (type) => {
           try {
+            // 请求远程数据
             const response = await noloQueryRequest({
-              server: currentServer, // 确保传递了服务器地址
-              queryUserId: effectiveUserId, // 查询的用户 ID
+              server: currentServer,
+              queryUserId: effectiveUserId,
               options: {
-                isJSON: true,
-                limit, // 在请求中包含 limit
-                condition: { type }, // 查询条件为指定类型
+                limit,
+                condition: { type },
               },
             });
-            // 检查响应状态
             if (!response.ok) {
-              logger.error(
-                { status: response.status, type },
-                "Remote query failed with status"
-              );
-              // 可以根据需要抛出错误或返回空结果
-              // throw new Error(`Remote query for type ${type} failed with status ${response.status}`);
-              return { data: { data: [] } }; // 返回空数据结构，避免 Promise.all 失败
+              // 返回空数据结构，避免 Promise.all 失败
+              return { data: { data: [] } };
             }
-            return await response.json(); // 解析 JSON 响应
+            const data = await response.json();
+            console.log(currentServer, "远程数据", data);
+            return data;
           } catch (error) {
-            logger.error(
-              { error, type },
-              "Error fetching remote data for type"
-            );
             // 返回空数据结构，让 Promise.all 继续
             return { data: { data: [] } };
           }
         })
       );
-      logger.debug(
-        {
-          count: remoteResults.reduce(
-            (sum, r) => sum + (r?.data?.data?.length || 0),
-            0
-          ),
-        },
-        "Fetched remote data"
-      );
 
       // 3. 合并本地和远程数据 (结果可能超过 limit)
+      console.log("远程数据", remoteResults);
       const mergedData = mergeAndDedupData(localData, remoteResults);
-      logger.debug(
-        { count: mergedData.length },
-        "Merged local and remote data"
-      );
-
+      console.log("合并后的数据", mergedData);
       // 4. 对合并后的数据进行排序和截断，确保最终结果符合 limit
-      //    根据 updatedAt 或 created 降序排序 (最新的在前)
       const sortedData = [...mergedData].sort((a, b) => {
         const getTimestamp = (dataItem: BaseItem): number => {
           const dateStrOrNum = dataItem.updatedAt ?? dataItem.created;
@@ -315,20 +277,12 @@ export function useUserData(
         const timestampB = getTimestamp(b);
         return timestampB - timestampA; // 降序
       });
-
+      console.log("排序后的数据", sortedData);
       //    截取前 limit 条数据
       const limitedData = sortedData.slice(0, limit);
-      logger.debug(
-        { count: limitedData.length },
-        "Applied limit to merged data"
-      );
-
-      // 5. (可选，但推荐) 将合并后的完整数据 (mergedData) 更新到 Redux store
-      //    这样可以缓存所有已知的数据，而不仅仅是限制后的数据
+      console.log("限制数量后的数据", limitedData);
+      // 5. (可选) 将合并后的完整数据 (mergedData) 更新到 Redux store
       if (mergedData.length > 0) {
-        logger.debug(
-          "Dispatching upsertMany to update Redux store with merged data"
-        );
         dispatch(upsertMany(mergedData));
       }
 
@@ -338,52 +292,36 @@ export function useUserData(
         error: null,
         data: limitedData, // 返回给组件的数据是限制数量的
       });
-      logger.debug("Data load finished successfully.");
     } catch (err) {
-      // 处理加载过程中发生的任何错误
       const error =
         err instanceof Error
           ? err
           : new Error(String(err) || "Unknown error occurred");
-      logger.error(
-        { err: error, userId: effectiveUserId, types: typeArray },
-        "Failed to load user data"
-      );
-      toast.error("加载数据失败，请检查网络或稍后重试"); // 用户友好的错误提示
+      toast.error("加载数据失败，请检查网络或稍后重试");
 
-      // 更新状态，标记加载失败并记录错误
-      // 保留之前可能已加载的数据（截断后的），或者清空
       setState((prev) => ({
         ...prev,
         loading: false,
         error,
-        // 可以选择保留截断后的旧数据：
-        // data: prev.data.slice(0, limit),
-        // 或者在出错时清空数据：
-        // data: [],
+        // 可以选择保留截断后的旧数据或清空
       }));
     } finally {
-      // 无论成功或失败，最终都要重置加载状态 ref
       loadingRef.current = false;
     }
   }, [
-    // useCallback 的依赖数组，确保在这些值变化时重新创建 loadData 函数
     typesKey,
     effectiveUserId,
     currentServer,
-    limit, // 确保 limit 是依赖项
+    limit,
     dispatch,
-    auth.isLoggedIn, // 需要根据登录状态决定行为
-    userId, // 原始的 userId 也需要，用于判断 "local" 场景
-    typeArray, // 虽然 typesKey 包含了它，但明确列出有时更清晰
+    auth.isLoggedIn,
+    userId,
+    typeArray,
   ]);
 
-  // 使用 useEffect 在组件挂载或 loadData 函数变化时执行数据加载
   useEffect(() => {
-    logger.debug("useEffect triggered, calling loadData.");
     loadData();
-  }, [loadData]); // 依赖于 useCallback 返回的 loadData 函数
+  }, [loadData]);
 
-  // 返回 Hook 的状态和控制函数
   return { loading, error, data, reload: loadData, clearCache };
 }
