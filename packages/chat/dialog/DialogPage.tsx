@@ -8,23 +8,44 @@ import {
 import MessageInputContainer from "chat/web/MessageInputContainer";
 import MessagesList from "chat/web/MessageList";
 import { useEffect } from "react";
-import { layout } from "render/styles/layout";
 import { useMessages } from "../messages/hooks/useMessages";
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
 import { initMsgs, resetMsgs } from "../messages/messageSlice";
 
+// 定义旋转动画的 keyframes (可以在组件外部或内部定义，这里放在外部)
+const spinKeyframes = `
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
 const LoadingSpinner = () => (
-  <div
-    style={{
-      ...layout.flex,
-      ...layout.justifyCenter,
-      ...layout.alignCenter,
-      height: "100%",
-    }}
-  >
-    <div>Loading...</div>
-  </div>
+  <>
+    {/* 将 keyframes 注入到 style 标签中 */}
+    <style>{spinKeyframes}</style>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%",
+      }}
+    >
+      {/* 简单的旋转加载动画 */}
+      <div
+        style={{
+          border: "4px solid rgba(0, 0, 0, 0.1)", // 浅色背景边框
+          borderLeftColor: "#09f", // 加载动画颜色 (可以根据你的主题修改)
+          borderRadius: "50%",
+          width: "30px",
+          height: "30px",
+          animation: "spin 1s linear infinite", // 应用动画
+        }}
+      ></div>
+    </div>
+  </>
 );
 
 const DialogPage = ({ pageKey }) => {
@@ -33,7 +54,6 @@ const DialogPage = ({ pageKey }) => {
   const dialogId = extractCustomId(pageKey);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
 
-  // 使用 useMessages hook
   const { messages, loading } = useMessages(browserDb, dialogId);
 
   // 处理消息初始化
@@ -62,16 +82,17 @@ const DialogPage = ({ pageKey }) => {
       {currentDialogConfig?.title && <title>{currentDialogConfig.title}</title>}
       <div
         style={{
-          ...layout.flex,
-          ...layout.overflowXHidden,
+          display: "flex",
+          overflowX: "hidden",
           height: "calc(100dvh - 60px)",
         }}
       >
         <div
           style={{
-            ...layout.flexColumn,
-            ...layout.flexGrow1,
-            ...layout.overflowXHidden,
+            display: "flex",
+            flexDirection: "column",
+            flexGrow: 1,
+            overflowX: "hidden",
           }}
         >
           {loading ? (
@@ -80,16 +101,18 @@ const DialogPage = ({ pageKey }) => {
             currentDialogConfig && (
               <div
                 style={{
-                  ...layout.flexColumn,
-                  ...layout.h100,
-                  ...layout.overflowXHidden,
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  overflowX: "hidden",
                 }}
               >
                 <div
                   style={{
-                    ...layout.flexGrow1,
-                    ...layout.overflowYAuto,
-                    ...layout.flexColumn,
+                    flexGrow: 1,
+                    overflowY: "auto",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
                   <MessagesList />

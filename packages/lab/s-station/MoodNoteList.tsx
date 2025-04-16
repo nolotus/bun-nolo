@@ -2,7 +2,6 @@ import type React from "react";
 import { useState } from "react";
 import { RiDeleteBin5Line } from "react-icons/ri";
 import useMediaQuery from "react-responsive"; // Assuming this import is correct
-import { layout } from "render/styles/layout"; // Assuming this import is correct
 
 // Updated MoodNote interface to include id
 interface MoodNote {
