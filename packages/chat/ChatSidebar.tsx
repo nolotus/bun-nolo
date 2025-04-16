@@ -348,6 +348,15 @@ const ChatSidebar: React.FC = () => {
                 items={categoryIds}
                 strategy={verticalListSortingStrategy}
               >
+                {groupedData.uncategorized.length > 0 && (
+                  <CategorySection
+                    key={UNCATEGORIZED_ID}
+                    categoryId={UNCATEGORIZED_ID}
+                    categoryName="未分类"
+                    items={groupedData.uncategorized}
+                    shouldAnimate={shouldAnimate}
+                  />
+                )}
                 {sortedCategories.map((category) => (
                   <CategoryDraggable key={category.id} id={category.id}>
                     {(handleProps) => (
@@ -362,16 +371,6 @@ const ChatSidebar: React.FC = () => {
                   </CategoryDraggable>
                 ))}
               </SortableContext>
-
-              {groupedData.uncategorized.length > 0 && (
-                <CategorySection
-                  key={UNCATEGORIZED_ID}
-                  categoryId={UNCATEGORIZED_ID}
-                  categoryName="未分类"
-                  items={groupedData.uncategorized}
-                  shouldAnimate={shouldAnimate}
-                />
-              )}
             </>
           )}
         </div>
