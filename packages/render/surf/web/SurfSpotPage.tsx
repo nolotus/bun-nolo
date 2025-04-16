@@ -32,12 +32,8 @@ const SurfSpotDescription = ({
   </div>
 );
 
-
 const SurfSpotPage = ({ id }) => {
   const { data, isLoading } = useFetchData(id);
-  // const mobile = useMediaQuery({ minWidth: 640 });
-  // const tablet = useMediaQuery({ minWidth: 768 });
-  // const monitor = useMediaQuery({ minWidth: 1281 });
   if (isLoading) {
     return <PageLoader />;
   }
