@@ -183,7 +183,11 @@ const buildRequestBody = (
     stream: true,
   };
 
-  if (providerName === "google" || providerName === "openrouter") {
+  if (
+    providerName === "google" ||
+    providerName === "openrouter" ||
+    providerName === "xai"
+  ) {
     bodyData.stream_options = { include_usage: true };
   }
 
