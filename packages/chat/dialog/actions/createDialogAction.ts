@@ -7,7 +7,8 @@ import {
 import { DataType } from "create/types";
 import { read, write } from "database/dbSlice";
 import { createDialogKey, createDialogMessageKey } from "database/keys";
-import { format } from "date-fns";
+import { format, formatISO } from "date-fns"; // 引入 formatISO
+import { DialogInvocationMode } from "chat/dialog/types";
 
 export const createDialogAction = async (args, thunkApi) => {
   const { cybots, category } = args;
@@ -20,11 +21,15 @@ export const createDialogAction = async (args, thunkApi) => {
   const userId = selectCurrentUserId(thunkApi.getState());
   const dialogPath = createDialogKey(userId);
 
+  // 设置 createdAt，updatedAt 将由 normalizeTimeFields 处理
   const data = {
     cybots,
     title,
     id: dialogPath,
     type: DataType.DIALOG,
+    mode: DialogInvocationMode.FIRST,
+    createdAt: formatISO(new Date()), // 使用 date-fns 格式化，与 toISOString() 兼容
+    // updatedAt: formatISO(new Date()), // 可选：不设置，让 normalizeTimeFields 处理
   };
 
   const result = await dispatch(

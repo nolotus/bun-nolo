@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import { useState, useCallback } from "react";
 import type React from "react";
 import { useTheme } from "app/theme";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector, useAppDispatch } from "app/hooks"; // 引入 useAppDispatch
 import {
   selectCurrentDialogConfig,
   selectTotalDialogTokens,
+  removeCybot, // 引入 removeCybot action
 } from "chat/dialog/dialogSlice";
+import { toast } from "react-hot-toast"; // 引入 toast 用于错误提示
 
 interface DialogInfoPanelProps {
   onAddCybotClick: () => void;
@@ -21,6 +23,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const dispatch = useAppDispatch(); // 使用 dispatch 来调用 action
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -28,6 +31,24 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
   const togglePanel = useCallback(() => {
     setIsPanelOpen((prev) => !prev);
   }, []);
+
+  // 处理移除 Cybot 的逻辑
+  const handleRemoveCybot = useCallback(
+    (cybotId: string) => {
+      dispatch(removeCybot(cybotId))
+        .unwrap()
+        .then(() => {
+          // 成功移除后调用传入的回调
+          onRemoveCybot(cybotId);
+          toast.success(t("Cybot removed successfully"));
+        })
+        .catch((error) => {
+          console.error("Failed to remove Cybot:", error);
+          toast.error(t("Failed to remove Cybot"));
+        });
+    },
+    [dispatch, onRemoveCybot, t]
+  );
 
   const participantCount = currentDialogConfig?.cybots?.length ?? 0;
 
@@ -61,7 +82,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
                     <CybotNameChip
                       key={cybotId}
                       cybotId={cybotId}
-                      onRemove={onRemoveCybot}
+                      onRemove={handleRemoveCybot} // 使用本地的 handleRemoveCybot 函数
                       className="dialog-info-list-item"
                     />
                   ))
