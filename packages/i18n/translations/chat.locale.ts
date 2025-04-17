@@ -28,6 +28,27 @@ export default {
         "Are you sure you want to delete this content? This action cannot be undone.",
       cancel: "Cancel",
       // --- End Added ---
+      // --- Added for DialogInfoPanel ---
+      Cybots: "Cybots",
+      AddCybot: "Add Cybot",
+      NoCybots: "No Cybots yet.",
+      ShowDialogConfigInfo: "Show dialog configuration and info",
+      CybotRemovedSuccess: "Cybot removed successfully",
+      CybotRemoveFailed: "Failed to remove Cybot",
+      CybotAddedSuccess: "Cybot added successfully",
+      CybotAddFailed: "Failed to add Cybot",
+      Info: "Info",
+      Tokens: "Tokens",
+      Mode: "Mode",
+      // --- End Added for DialogInfoPanel ---
+      // --- Added for AddCybotDialog ---
+      LoadingCybots: "Loading Cybots...",
+      FailedToLoadCybots: "Failed to load Cybots.",
+      Retry: "Retry",
+      SelectCybotToAdd: "Select a Cybot to add to the dialog.",
+      Unnamed: "Unnamed",
+      NoDescription: "No description available.",
+      // --- End Added for AddCybotDialog ---
     },
   },
   "zh-CN": {
@@ -58,6 +79,27 @@ export default {
       deleteContentConfirmation: "您确定要删除此内容吗？此操作无法撤销。",
       cancel: "取消",
       // --- End Added ---
+      // --- Added for DialogInfoPanel ---
+      Cybots: "Cybots",
+      AddCybot: "添加 Cybot",
+      NoCybots: "暂无 Cybots。",
+      ShowDialogConfigInfo: "显示对话配置和信息",
+      CybotRemovedSuccess: "Cybot 移除成功",
+      CybotRemoveFailed: "移除 Cybot 失败",
+      CybotAddedSuccess: "Cybot 添加成功",
+      CybotAddFailed: "添加 Cybot 失败",
+      Info: "信息",
+      Tokens: "令牌",
+      Mode: "模式",
+      // --- End Added for DialogInfoPanel ---
+      // --- Added for AddCybotDialog ---
+      LoadingCybots: "正在加载 Cybots...",
+      FailedToLoadCybots: "加载 Cybots 失败。",
+      Retry: "重试",
+      SelectCybotToAdd: "选择一个 Cybot 添加到对话中。",
+      Unnamed: "未命名",
+      NoDescription: "暂无描述。",
+      // --- End Added for AddCybotDialog ---
     },
   },
   "zh-Hant": {
@@ -88,6 +130,27 @@ export default {
       deleteContentConfirmation: "您確定要刪除此內容嗎？此操作無法撤銷。",
       cancel: "取消",
       // --- End Added ---
+      // --- Added for DialogInfoPanel ---
+      Cybots: "Cybots",
+      AddCybot: "添加 Cybot",
+      NoCybots: "暫無 Cybots。",
+      ShowDialogConfigInfo: "顯示對話配置和信息",
+      CybotRemovedSuccess: "Cybot 移除成功",
+      CybotRemoveFailed: "移除 Cybot 失敗",
+      CybotAddedSuccess: "Cybot 添加成功",
+      CybotAddFailed: "添加 Cybot 失敗",
+      Info: "信息",
+      Tokens: "令牌",
+      Mode: "模式",
+      // --- End Added for DialogInfoPanel ---
+      // --- Added for AddCybotDialog ---
+      LoadingCybots: "正在載入 Cybots...",
+      FailedToLoadCybots: "載入 Cybots 失敗。",
+      Retry: "重試",
+      SelectCybotToAdd: "選擇一個 Cybot 添加到對話中。",
+      Unnamed: "未命名",
+      NoDescription: "暫無描述。",
+      // --- End Added for AddCybotDialog ---
     },
   },
   ja: {
@@ -119,6 +182,27 @@ export default {
         "このコンテンツを削除してもよろしいですか？この操作は元に戻せません。",
       cancel: "キャンセル",
       // --- End Added ---
+      // --- Added for DialogInfoPanel ---
+      Cybots: "Cybots",
+      AddCybot: "Cybotを追加",
+      NoCybots: "Cybotがまだありません。",
+      ShowDialogConfigInfo: "対話の設定と情報を表示",
+      CybotRemovedSuccess: "Cybotの削除に成功しました",
+      CybotRemoveFailed: "Cybotの削除に失敗しました",
+      CybotAddedSuccess: "Cybotの追加に成功しました",
+      CybotAddFailed: "Cybotの追加に失敗しました",
+      Info: "情報",
+      Tokens: "トークン",
+      Mode: "モード",
+      // --- End Added for DialogInfoPanel ---
+      // --- Added for AddCybotDialog ---
+      LoadingCybots: "Cybotを読み込んでいます...",
+      FailedToLoadCybots: "Cybotの読み込みに失敗しました。",
+      Retry: "再試行",
+      SelectCybotToAdd: "対話に追加するCybotを選択してください。",
+      Unnamed: "名無し",
+      NoDescription: "説明がありません。",
+      // --- End Added for AddCybotDialog ---
     },
   },
 };

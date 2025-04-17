@@ -1,4 +1,3 @@
-// DialogInfoPanel.tsx
 import { PlusIcon, InfoIcon } from "@primer/octicons-react";
 import CybotNameChip from "ai/cybot/CybotNameChip";
 import { useTranslation } from "react-i18next";
@@ -10,30 +9,23 @@ import {
   selectCurrentDialogConfig,
   selectTotalDialogTokens,
   removeCybot,
+  addCybot,
 } from "chat/dialog/dialogSlice";
-import { selectCurrentUserId } from "auth/authSlice"; // 假设这是获取当前用户 ID 的 selector
+import { selectCurrentUserId } from "auth/authSlice";
 import { toast } from "react-hot-toast";
-import AddCybotDialog from "./AddCybotDialog"; // 引入添加 Cybot 的对话框组件
+import AddCybotDialog from "./AddCybotDialog";
 
 interface DialogInfoPanelProps {
-  onAddCybotClick: () => void;
-  onRemoveCybot: (cybotId: string) => void;
-  onAddCybot: (cybotId: string) => void; // 新增回调，用于处理添加 Cybot
   limit?: number; // 可选的加载数量限制
 }
 
-const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
-  onAddCybotClick,
-  onRemoveCybot,
-  onAddCybot,
-  limit = 20,
-}) => {
-  const { t } = useTranslation();
+const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
+  const { t } = useTranslation("chat");
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
-  const currentUserId = useAppSelector(selectCurrentUserId); // 在组件内部获取当前用户 ID
+  const currentUserId = useAppSelector(selectCurrentUserId);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isAddCybotDialogOpen, setIsAddCybotDialogOpen] = useState(false);
 
@@ -41,29 +33,42 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     setIsPanelOpen((prev) => !prev);
   }, []);
 
+  // 将 handleRemoveCybot 逻辑移到组件内部
   const handleRemoveCybot = useCallback(
     (cybotId: string) => {
       dispatch(removeCybot(cybotId))
         .unwrap()
         .then(() => {
-          onRemoveCybot(cybotId);
-          toast.success(t("Cybot removed successfully"));
+          toast.success(t("CybotRemovedSuccess"));
         })
         .catch((error) => {
           console.error("Failed to remove Cybot:", error);
-          toast.error(t("Failed to remove Cybot"));
+          toast.error(t("CybotRemoveFailed"));
         });
     },
-    [dispatch, onRemoveCybot, t]
+    [dispatch, t]
   );
 
-  // 处理打开添加 Cybot 对话框
+  // 将 handleAddCybot 逻辑移到组件内部
+  const handleAddCybot = useCallback(
+    (cybotId: string) => {
+      dispatch(addCybot(cybotId))
+        .unwrap()
+        .then(() => {
+          toast.success(t("CybotAddedSuccess"));
+        })
+        .catch((error) => {
+          console.error("Failed to add Cybot:", error);
+          toast.error(t("CybotAddFailed"));
+        });
+    },
+    [dispatch, t]
+  );
+
   const handleAddCybotClick = useCallback(() => {
     setIsAddCybotDialogOpen(true);
-    onAddCybotClick(); // 调用传入的回调（如果有其他逻辑）
-  }, [onAddCybotClick]);
+  }, []);
 
-  // 处理关闭添加 Cybot 对话框
   const handleCloseAddCybotDialog = useCallback(() => {
     setIsAddCybotDialogOpen(false);
   }, []);
@@ -78,7 +83,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           onClick={togglePanel}
           aria-expanded={isPanelOpen}
           aria-controls="dialog-info-panel-content"
-          aria-label={t("Show dialog configuration and info")}
+          aria-label={t("ShowDialogConfigInfo")}
           aria-haspopup="true"
         >
           <InfoIcon size={16} />
@@ -92,7 +97,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           >
             <div className="dialog-info-section participants-section">
               <h4 className="dialog-info-section-header">
-                {t("Participants")} ({participantCount})
+                {t("Cybots")} ({participantCount})
               </h4>
               <div className="dialog-cybot-list" role="list">
                 {participantCount > 0 ? (
@@ -105,9 +110,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
                     />
                   ))
                 ) : (
-                  <p className="dialog-no-participants-text">
-                    {t("No participants yet.")}
-                  </p>
+                  <p className="dialog-no-participants-text">{t("NoCybots")}</p>
                 )}
               </div>
               <button
@@ -116,7 +119,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
                 role="menuitem"
               >
                 <PlusIcon size={16} />
-                <span>{t("Add Participant")}</span>
+                <span>{t("AddCybot")}</span>
               </button>
             </div>
 
@@ -128,6 +131,10 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
                 <span>{t("Tokens")}:</span>
                 <span>{currentDialogTokens}</span>
               </div>
+              <div className="dialog-info-item dialog-mode-info">
+                <span>{t("Mode")}:</span>
+                <span>{currentDialogConfig?.mode || "N/A"}</span>
+              </div>
             </div>
           </div>
         )}
@@ -137,8 +144,8 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
       <AddCybotDialog
         isOpen={isAddCybotDialogOpen}
         onClose={handleCloseAddCybotDialog}
-        onAddCybot={onAddCybot}
-        queryUserId={currentUserId} // 使用内部获取的 currentUserId
+        onAddCybot={handleAddCybot}
+        queryUserId={currentUserId}
         limit={limit}
       />
 
@@ -323,6 +330,23 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           }
           
           .dialog-token-info span:last-child {
+            font-weight: 500;
+            color: ${theme.text};
+            background: ${theme.backgroundActive || theme.backgroundTertiary};
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+          }
+
+          /* --- Mode Info Item in Dialog Info Panel --- */
+          .dialog-mode-info {
+            color: ${theme.textSecondary};
+            font-size: 13px;
+            justify-content: space-between;
+            padding: 10px 0;
+          }
+          
+          .dialog-mode-info span:last-child {
             font-weight: 500;
             color: ${theme.text};
             background: ${theme.backgroundActive || theme.backgroundTertiary};
