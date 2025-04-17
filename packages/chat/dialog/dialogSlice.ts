@@ -1,4 +1,3 @@
-// dialogSlice.ts
 import {
   type PayloadAction,
   asyncThunkCreator,
@@ -7,16 +6,19 @@ import {
 import type { NoloRootState } from "app/store";
 import { deleteDialogMsgs } from "chat/messages/messageSlice";
 import { read, selectById, patch } from "database/dbSlice";
-import { createDialogAction } from "./actions/createDialogAction";
-import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
-import { updateTokensAction } from "./actions/updateTokensAction";
 import { extractCustomId } from "core/prefix";
-import { deleteDialogAction } from "./actions/deleteDialogAction";
 import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
-import { DialogInvocationMode } from "chat/dialog/types"; // 引入 DialogInvocationMode
+import { DialogInvocationMode } from "chat/dialog/types";
+import { createDialogAction } from "./actions/createDialogAction";
+import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
+import { updateTokensAction } from "./actions/updateTokensAction";
+import { deleteDialogAction } from "./actions/deleteDialogAction";
+import { addCybotAction } from "./actions/addCybotAction";
+import { removeCybotAction } from "./actions/removeCybotAction";
+import { updateDialogModeAction } from "./actions/updateDialogModeAction";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -37,7 +39,7 @@ const DialogSlice = createSliceWithThunks({
       inputTokens: 0,
       outputTokens: 0,
     },
-    isUpdatingMode: false, // 新增加载状态
+    isUpdatingMode: false,
   },
   reducers: (create) => ({
     updateTokens: create.asyncThunk(updateTokensAction, {
@@ -55,6 +57,7 @@ const DialogSlice = createSliceWithThunks({
     resetCurrentDialogTokens: create.reducer((state) => {
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
     }),
+
     initDialog: create.asyncThunk(
       async (id, thunkApi) => {
         const { dispatch } = thunkApi;
@@ -67,11 +70,13 @@ const DialogSlice = createSliceWithThunks({
         },
       }
     ),
+
     deleteDialog: create.asyncThunk(deleteDialogAction, {
       fulfilled: (state) => {
         state.currentDialogKey = null;
       },
     }),
+
     deleteCurrentDialog: create.asyncThunk(
       async (dialogKey, thunkApi) => {
         const dispatch = thunkApi.dispatch;
@@ -87,115 +92,35 @@ const DialogSlice = createSliceWithThunks({
         fulfilled: (state, action) => {},
       }
     ),
+
     clearDialogState: create.reducer((state) => {
       state.currentDialogKey = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
     }),
+
     createDialog: create.asyncThunk(createDialogAction),
+
     updateDialogTitle: create.asyncThunk(updateDialogTitleAction),
-    addCybot: create.asyncThunk(
-      // 现有代码保持不变
-      async (cybotId: string, thunkApi) => {
-        const { dispatch, getState } = thunkApi;
-        const state = getState();
-        const currentDialogKey = state.dialog.currentDialogKey;
 
-        if (!currentDialogKey) {
-          throw new Error("No current dialog selected");
-        }
+    addCybot: create.asyncThunk(addCybotAction, {
+      fulfilled: (state, action) => {},
+    }),
 
-        const dialogConfig = selectById(state, currentDialogKey);
-        if (!dialogConfig) {
-          throw new Error("Dialog configuration not found");
-        }
+    removeCybot: create.asyncThunk(removeCybotAction, {
+      fulfilled: (state, action) => {},
+    }),
 
-        const updatedCybots = dialogConfig.cybots
-          ? [...dialogConfig.cybots, cybotId].filter(
-              (id, index, arr) => arr.indexOf(id) === index
-            )
-          : [cybotId];
-
-        const changes = {
-          cybots: updatedCybots,
-          updatedAt: new Date().toISOString(),
-        };
-
-        const updatedConfig = await dispatch(
-          patch({ dbKey: currentDialogKey, changes })
-        ).unwrap();
-        return updatedConfig;
+    updateDialogMode: create.asyncThunk(updateDialogModeAction, {
+      pending: (state) => {
+        state.isUpdatingMode = true;
       },
-      {
-        fulfilled: (state, action) => {},
-      }
-    ),
-    removeCybot: create.asyncThunk(
-      // 现有代码保持不变
-      async (cybotId: string, thunkApi) => {
-        const { dispatch, getState } = thunkApi;
-        const state = getState();
-        const currentDialogKey = state.dialog.currentDialogKey;
-
-        if (!currentDialogKey) {
-          throw new Error("No current dialog selected");
-        }
-
-        const dialogConfig = selectById(state, currentDialogKey);
-        if (!dialogConfig) {
-          throw new Error("Dialog configuration not found");
-        }
-
-        const updatedCybots = dialogConfig.cybots
-          ? dialogConfig.cybots.filter((id: string) => id !== cybotId)
-          : [];
-
-        const changes = {
-          cybots: updatedCybots,
-          updatedAt: new Date().toISOString(),
-        };
-
-        const updatedConfig = await dispatch(
-          patch({ dbKey: currentDialogKey, changes })
-        ).unwrap();
-        return updatedConfig;
+      fulfilled: (state) => {
+        state.isUpdatingMode = false;
       },
-      {
-        fulfilled: (state, action) => {},
-      }
-    ),
-    // 新增：更新对话模式
-    updateDialogMode: create.asyncThunk(
-      async (mode: DialogInvocationMode, thunkApi) => {
-        const { dispatch, getState } = thunkApi;
-        const state = getState();
-        const currentDialogKey = state.dialog.currentDialogKey;
-
-        if (!currentDialogKey) {
-          throw new Error("No current dialog selected");
-        }
-
-        const changes = {
-          mode,
-          updatedAt: new Date().toISOString(),
-        };
-
-        const updatedConfig = await dispatch(
-          patch({ dbKey: currentDialogKey, changes })
-        ).unwrap();
-        return updatedConfig;
+      rejected: (state) => {
+        state.isUpdatingMode = false;
       },
-      {
-        pending: (state) => {
-          state.isUpdatingMode = true;
-        },
-        fulfilled: (state) => {
-          state.isUpdatingMode = false;
-        },
-        rejected: (state) => {
-          state.isUpdatingMode = false;
-        },
-      }
-    ),
+    }),
   }),
 });
 
@@ -210,7 +135,7 @@ export const {
   updateDialogTitle,
   addCybot,
   removeCybot,
-  updateDialogMode, // 新增导出
+  updateDialogMode,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;
@@ -218,9 +143,12 @@ export default DialogSlice.reducer;
 export const selectCurrentDialogConfig = (state: NoloRootState) =>
   selectById(state, state.dialog.currentDialogKey);
 
+export const selectCurrentDialogKey = (state: NoloRootState) =>
+  state.dialog.currentDialogKey;
+
 export const selectTotalDialogTokens = (state: NoloRootState): number =>
   state.dialog.currentDialogTokens.inputTokens +
   state.dialog.currentDialogTokens.outputTokens;
 
 export const selectIsUpdatingMode = (state: NoloRootState): boolean =>
-  state.dialog.isUpdatingMode; // 新增选择器，用于获取加载状态
+  state.dialog.isUpdatingMode;
