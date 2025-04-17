@@ -25,7 +25,7 @@ export const createDialogAction = async (args, thunkApi) => {
   const data = {
     cybots,
     title,
-    id: dialogPath,
+    dbKey: dialogPath,
     type: DataType.DIALOG,
     mode: DialogInvocationMode.FIRST,
     createdAt: formatISO(new Date()), // 使用 date-fns 格式化，与 toISOString() 兼容
@@ -50,7 +50,7 @@ export const createDialogAction = async (args, thunkApi) => {
   const msgPath = createDialogMessageKey(dialogId);
 
   const msgData = {
-    id: msgPath,
+    dbKey: msgPath,
     content: cybotConfig.greeting,
     role: "assistant",
     cybotId,

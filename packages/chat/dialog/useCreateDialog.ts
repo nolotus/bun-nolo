@@ -34,7 +34,7 @@ export const useCreateDialog = (): UseCreateDialogResult => {
     if (cybots) {
       try {
         const result = await dispatch(createDialog({ cybots })).unwrap();
-        navigate(`/${result.id}`);
+        navigate(`/${result.dbKey}`);
         setIsSuccess(true);
       } catch (error) {
         // 错误处理

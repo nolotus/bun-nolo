@@ -1,5 +1,3 @@
-import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
-import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { read } from "database/dbSlice";
 import { extractCustomId } from "core/prefix";
@@ -10,6 +8,7 @@ import { NoloRootState } from "app/store";
 import { addMsg } from "../messageSlice";
 import { generateAnthropicRequestBody } from "integrations/anthropic/generateRequestBody";
 import { generateOpenAIRequestBody } from "integrations/openai/generateRequestBody";
+import { requestHandlers } from "ai/llm/providers";
 
 interface CybotConfig {
   provider: string;
@@ -18,21 +17,6 @@ interface CybotConfig {
   name?: string;
   [key: string]: any;
 }
-
-const requestHandlers = {
-  deepinfra: sendCommonChatRequest,
-  fireworks: sendCommonChatRequest,
-  deepseek: sendCommonChatRequest,
-  xai: sendCommonChatRequest,
-  openai: sendCommonChatRequest,
-  mistral: sendCommonChatRequest,
-  google: sendCommonChatRequest,
-  ollama: sendCommonChatRequest,
-  sambanova: sendCommonChatRequest,
-  openrouter: sendCommonChatRequest,
-  custom: sendCommonChatRequest,
-  anthropic: sendClaudeRequest,
-};
 
 export const generateRequestBody = (
   state: NoloRootState,
@@ -61,8 +45,8 @@ export const sendMessageAction = async (args, thunkApi) => {
 
   const dialogConfig = selectCurrentDialogConfig(state);
   const cybotConfig = await dispatch(read(dialogConfig.cybots[0])).unwrap();
-  const dialogKey = dialogConfig.id;
-
+  const dialogKey = dialogConfig.dbKey || dialogConfig.id;
+  console.log("dialogConfig", dialogConfig);
   const dialogId = extractCustomId(dialogKey);
   const userId = selectCurrentUserId(state);
   const msgId = createDialogMessageKey(dialogId);
