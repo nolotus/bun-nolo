@@ -9,6 +9,7 @@ import { addMsg } from "../messageSlice";
 import { generateAnthropicRequestBody } from "integrations/anthropic/generateRequestBody";
 import { generateOpenAIRequestBody } from "integrations/openai/generateRequestBody";
 import { requestHandlers } from "ai/llm/providers";
+import { DialogInvocationMode } from "../../dialog/types";
 
 interface CybotConfig {
   provider: string;
@@ -62,16 +63,16 @@ export const sendMessageAction = async (args, thunkApi) => {
   const providerName = cybotConfig.provider.toLowerCase();
   const context = await buildReferenceContext(cybotConfig, dispatch);
   const bodyData = generateRequestBody(state, userInput, cybotConfig, context);
-
-  const handler = requestHandlers[providerName];
-  if (!handler) {
-    throw new Error(`Unsupported provider: ${cybotConfig.provider}`);
+  if (dialogConfig.mode === DialogInvocationMode.FIRST) {
+    const handler = requestHandlers[providerName];
+    if (!handler) {
+      throw new Error(`Unsupported provider: ${cybotConfig.provider}`);
+    }
+    handler({
+      bodyData,
+      cybotConfig,
+      thunkApi,
+      dialogKey,
+    });
   }
-
-  return handler({
-    bodyData,
-    cybotConfig,
-    thunkApi,
-    dialogKey,
-  });
 };
