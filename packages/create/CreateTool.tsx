@@ -1,126 +1,102 @@
 import React, { useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useParams, useSearchParams } from "react-router-dom";
 import { formatISO } from "date-fns";
+import toast from "react-hot-toast";
+import { CheckIcon } from "@primer/octicons-react";
+
+import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useTheme } from "app/theme";
 import { patch } from "database/dbSlice";
 import {
   selectPageData,
   selectIsReadOnly,
   toggleReadOnly,
   selectPageDbSpaceId,
-} from "render/page/pageSlice"; // 确认路径
-import { updateContentTitle } from "create/space/spaceSlice"; // 确认路径
-import toast from "react-hot-toast";
-import { useParams, useSearchParams } from "react-router-dom";
-import { CheckIcon } from "@primer/octicons-react";
-import DeleteButton from "chat/web/DeleteButton"; // 确认路径
-import Button from "render/web/ui/Button"; // 确认路径
-import { useTheme } from "app/theme"; // 确认路径
-import ModeToggle from "web/ui/ModeToggle"; // 确认路径
+} from "render/page/pageSlice";
+import { updateContentTitle } from "create/space/spaceSlice";
+import DeleteButton from "chat/web/DeleteButton";
+import Button from "render/web/ui/Button";
+import ModeToggle from "web/ui/ModeToggle";
 
-export const CreateTool = () => {
+export const CreateTool: React.FC = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const pageState = useAppSelector(selectPageData);
   const isReadOnly = useAppSelector(selectIsReadOnly);
   const dbSpaceId = useAppSelector(selectPageDbSpaceId);
-
   const { pageKey: dbKey } = useParams<{ pageKey?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  // 修改 CreateTool.tsx 中的模式切换处理函数
 
-  // 处理编辑/只读模式切换的回调函数
-  // 处理编辑/只读模式切换的回调函数
-  // 处理编辑/只读模式切换的回调函数
-  const handleToggleEdit = useCallback(
-    (checked: boolean) => {
-      // 首先更新 Redux 状态
-      dispatch(toggleReadOnly());
-
-      // 然后更新 URL，但不触发重新渲染
-      const nextSearchParams = new URLSearchParams(searchParams);
-
-      if (checked) {
-        // 切换到编辑模式: 添加或更新 edit=true
-        nextSearchParams.set("edit", "true");
-      } else {
-        // 切换到只读模式: 删除 edit 参数
-        nextSearchParams.delete("edit");
-      }
-
-      // 更新 URL 但避免历史记录堆栈和滚动位置重置
-      setSearchParams(nextSearchParams, {
+  // 更新 URL 查询参数的通用函数
+  const updateUrl = useCallback(
+    (fn: (p: URLSearchParams) => void) => {
+      const p = new URLSearchParams(searchParams);
+      fn(p);
+      setSearchParams(p, {
         replace: true,
         preventScrollReset: true,
       });
     },
-    [dispatch, searchParams, setSearchParams]
+    [searchParams, setSearchParams]
   );
 
-  // 处理保存按钮点击事件
+  // 切换编辑/只读模式
+  const handleToggleEdit = useCallback(
+    (isEdit: boolean) => {
+      dispatch(toggleReadOnly());
+      updateUrl((p) => (isEdit ? p.set("edit", "true") : p.delete("edit")));
+    },
+    [dispatch, updateUrl]
+  );
+
+  // 点击保存
   const handleSave = useCallback(async () => {
     if (!dbKey) {
-      toast.error("无法获取页面标识符，无法保存");
+      toast.error("无法获取页面标识符");
       return;
     }
     const nowISO = formatISO(new Date());
-    try {
-      const title =
-        pageState.slateData?.find((node: any) => node.type === "heading-one")
-          ?.children?.[0]?.text || "未命名页面";
+    const title =
+      pageState.slateData?.find((n) => n.type === "heading-one")?.children?.[0]
+        ?.text || "未命名页面";
 
+    try {
+      // 更新页面数据
       await dispatch(
         patch({
           dbKey,
           changes: {
-            updated_at: nowISO,
+            updatedAt: nowISO,
             slateData: pageState.slateData,
             title,
           },
         })
       ).unwrap();
 
+      // 更新空间内的标题（可选）
       if (dbSpaceId) {
-        console.log(`[CreateTool] 尝试更新空间标题...`);
-        try {
-          await dispatch(
-            updateContentTitle({
-              spaceId: dbSpaceId,
-              contentKey: dbKey,
-              title,
-            })
-          ).unwrap();
-          console.log(`[CreateTool] 空间标题更新成功。`);
-        } catch (spaceError) {
-          console.error(`[CreateTool] 更新空间标题失败:`, spaceError);
-        }
-      } else {
-        console.log(`[CreateTool] 跳过空间标题更新...`);
+        dispatch(
+          updateContentTitle({
+            spaceId: dbSpaceId,
+            contentKey: dbKey,
+            title,
+          })
+        )
+          .unwrap()
+          .catch(console.error);
       }
 
-      toast.success("保存成功");
-
-      // 保存成功后切换到只读模式
-      // 只使用 Redux 状态，不需要像之前那样直接调用 handleToggleEdit
+      // 切回只读模式并移除 URL 中的 edit 参数
       dispatch(toggleReadOnly());
+      updateUrl((p) => p.delete("edit"));
 
-      // 更新 URL 但不触发页面重载
-      const nextSearchParams = new URLSearchParams(searchParams);
-      nextSearchParams.delete("edit");
-      setSearchParams(nextSearchParams, { replace: true });
-    } catch (error) {
-      console.error("保存失败:", error);
+      toast.success("保存成功");
+    } catch (e) {
+      console.error("保存失败:", e);
       toast.error("保存失败");
     }
-  }, [
-    dbKey,
-    pageState.slateData,
-    dispatch,
-    dbSpaceId,
-    searchParams,
-    setSearchParams,
-  ]);
+  }, [dispatch, dbKey, pageState.slateData, dbSpaceId, updateUrl]);
 
-  // 如果 dbKey 不存在，提前返回
   if (!dbKey) {
     return (
       <div style={{ padding: "12px 24px", color: theme.textSecondary }}>
@@ -131,49 +107,66 @@ export const CreateTool = () => {
 
   return (
     <>
-      <div className="tools-container">
-        <div className="title">{pageState.title || "加载中..."}</div>
+      <div
+        className="tools-container"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "12px 24px",
+          background: theme.background,
+          borderBottom: `1px solid ${theme.border}`,
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
+      >
+        <div
+          className="title"
+          style={{
+            fontSize: 16,
+            fontWeight: 500,
+            color: theme.textPrimary,
+            marginRight: 24,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            minWidth: 50,
+            flexShrink: 1,
+          }}
+        >
+          {pageState.title || "加载中..."}
+        </div>
 
-        <div className="controls">
-          <div className="left-group">
-            <DeleteButton dbKey={dbKey} />
-            <div className="mode-switch">
-              <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
-            </div>
-          </div>
-          <div className="right-group">
-            <Button
-              variant="primary"
-              icon={<CheckIcon size={16} />}
-              onClick={handleSave}
-              size="medium"
-              disabled={isReadOnly}
-              className={isReadOnly ? "hidden" : ""}
-            >
-              保存
-            </Button>
-          </div>
+        <div
+          className="controls"
+          style={{ display: "flex", alignItems: "center", gap: 24 }}
+        >
+          <DeleteButton dbKey={dbKey} />
+          <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
+          <Button
+            variant="primary"
+            icon={<CheckIcon size={16} />}
+            onClick={handleSave}
+            size="medium"
+            disabled={isReadOnly}
+            style={{
+              opacity: isReadOnly ? 0 : 1,
+              transition: "all 0.2s ease",
+            }}
+          >
+            保存
+          </Button>
         </div>
       </div>
 
-      {/* 样式 */}
       <style>{`
-        .tools-container { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: ${theme.background}; border-bottom: 1px solid ${theme.border}; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-        .title { font-size: 16px; font-weight: 500; color: ${theme.textPrimary}; margin-right: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 50px; flex-shrink: 1; }
-        .controls { display: flex; align-items: center; gap: 24px; flex-shrink: 0; }
-        .left-group, .right-group { display: flex; align-items: center; gap: 16px; }
-        .mode-switch { display: flex; align-items: center; border-radius: 8px; }
-        .mode-switch:hover { background: ${theme.backgroundTertiary}; }
-        :global(.tools-container button) { transition: all 0.2s ease; }
-        :global(.tools-container button:hover:not(:disabled)) { transform: translateY(-1px); box-shadow: 0 2px 4px ${theme.shadowLight}; }
-        :global(.tools-container .hidden) { opacity: 0; pointer-events: none; width: 0; padding-left: 0; padding-right: 0; margin-left: -16px; overflow: hidden; }
         @media (max-width: 640px) {
           .tools-container { padding: 8px 16px; }
           .title { display: none; }
-          .controls { width: 100%; justify-content: space-between; }
-          .left-group { gap: 8px; }
-          .right-group { gap: 8px; }
-          .controls { gap: 16px; }
+          .controls { justify-content: space-between; gap: 16px; }
         }
       `}</style>
     </>
