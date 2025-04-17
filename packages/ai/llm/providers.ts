@@ -9,10 +9,29 @@ import { ollamaModels } from "integrations/ollama/models";
 import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
+
+import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
+import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 interface CybotConfig {
   provider: string;
   customProviderUrl?: string;
 }
+
+export const requestHandlers = {
+  deepinfra: sendCommonChatRequest,
+  fireworks: sendCommonChatRequest,
+  deepseek: sendCommonChatRequest,
+  xai: sendCommonChatRequest,
+  openai: sendCommonChatRequest,
+  mistral: sendCommonChatRequest,
+  google: sendCommonChatRequest,
+  ollama: sendCommonChatRequest,
+  sambanova: sendCommonChatRequest,
+  openrouter: sendCommonChatRequest,
+  custom: sendCommonChatRequest,
+  anthropic: sendClaudeRequest,
+};
+
 const CHAT_COMPLETION_URLS = {
   openai: "https://api.openai.com/v1/chat/completions",
   deepinfra: "https://api.deepinfra.com/v1/openai/chat/completions",

@@ -1,11 +1,11 @@
 import { remove, read } from "database/dbSlice";
 
-export const deleteDialogAction = async (id, thunkApi) => {
+export const deleteDialogAction = async (dialogKey, thunkApi) => {
   const { dispatch, getState } = thunkApi;
   const state = getState();
 
   try {
-    const dialogConfig = await dispatch(read(id)).unwrap();
+    const dialogConfig = await dispatch(read(dialogKey)).unwrap();
     if (dialogConfig?.messageListId) {
       const body = { ids: state.message.ids };
       const deleteMessageListAction = await dispatch(
@@ -18,6 +18,6 @@ export const deleteDialogAction = async (id, thunkApi) => {
   } catch (error) {
     console.error("Error reading dialog:", error);
   } finally {
-    dispatch(remove(id));
+    dispatch(remove(dialogKey));
   }
 };
