@@ -1,14 +1,5 @@
 export const openrouterModels = [
   {
-    name: "openai/o3-mini-high",
-    displayName: "O3 Mini High",
-    hasVision: false,
-    price: { input: 8.8, output: 32.32 },
-    maxOutputTokens: 128000,
-    contextWindow: 200000,
-    supportsTool: true,
-  },
-  {
     name: "cognitivecomputations/dolphin3.0-mistral-24b:free",
     displayName: "Dolphin 3.0 Mistral 24b",
     hasVision: false,
@@ -24,15 +15,6 @@ export const openrouterModels = [
     price: { input: 1, output: 1 },
     maxOutputTokens: 128000,
     contextWindow: 32768,
-    supportsTool: true,
-  },
-  {
-    name: "openrouter/quasar-alpha",
-    displayName: "Quasar Alpha",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 32000,
-    contextWindow: 1000000,
     supportsTool: true,
   },
   {
@@ -110,5 +92,14 @@ export const openrouterModels = [
     contextWindow: 164000,
     supportsTool: true,
     speed: 10,
+  },
+  {
+    name: "openai/o4-mini-high",
+    displayName: "OpenAI: o4 Mini High",
+    hasVision: false,
+    price: { input: 1.1 * 8, output: 4.4 * 8 },
+    maxOutputTokens: 128000,
+    contextWindow: 200000,
+    supportsTool: true,
   },
 ];
