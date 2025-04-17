@@ -40,6 +40,12 @@ export default {
       Info: "Info",
       Tokens: "Tokens",
       Mode: "Mode",
+      ModeUpdatedSuccess: "Mode updated successfully", // 新增：模式更新成功提示
+      ModeUpdateFailed: "Failed to update mode", // 新增：模式更新失败提示
+      First: "First", // 新增：模式选项
+      Sequential: "Sequential", // 新增：模式选项
+      Parallel: "Parallel", // 新增：模式选项
+      Orchestrated: "Orchestrated", // 新增：模式选项
       // --- End Added for DialogInfoPanel ---
       // --- Added for AddCybotDialog ---
       LoadingCybots: "Loading Cybots...",
@@ -91,6 +97,12 @@ export default {
       Info: "信息",
       Tokens: "令牌",
       Mode: "模式",
+      ModeUpdatedSuccess: "模式更新成功", // 新增：模式更新成功提示
+      ModeUpdateFailed: "更新模式失败", // 新增：模式更新失败提示
+      First: "首个", // 新增：模式选项
+      Sequential: "顺序", // 新增：模式选项
+      Parallel: "并行", // 新增：模式选项
+      Orchestrated: "编排", // 新增：模式选项
       // --- End Added for DialogInfoPanel ---
       // --- Added for AddCybotDialog ---
       LoadingCybots: "正在加载 Cybots...",
@@ -142,6 +154,12 @@ export default {
       Info: "信息",
       Tokens: "令牌",
       Mode: "模式",
+      ModeUpdatedSuccess: "模式更新成功", // 新增：模式更新成功提示
+      ModeUpdateFailed: "更新模式失敗", // 新增：模式更新失败提示
+      First: "首個", // 新增：模式选项
+      Sequential: "順序", // 新增：模式选项
+      Parallel: "並行", // 新增：模式选项
+      Orchestrated: "編排", // 新增：模式选项
       // --- End Added for DialogInfoPanel ---
       // --- Added for AddCybotDialog ---
       LoadingCybots: "正在載入 Cybots...",
@@ -194,6 +212,12 @@ export default {
       Info: "情報",
       Tokens: "トークン",
       Mode: "モード",
+      ModeUpdatedSuccess: "モードの更新に成功しました", // 新增：模式更新成功提示
+      ModeUpdateFailed: "モードの更新に失敗しました", // 新增：模式更新失败提示
+      First: "最初", // 新增：模式选项
+      Sequential: "順次", // 新增：模式选项
+      Parallel: "並行", // 新增：模式选项
+      Orchestrated: "編成", // 新增：模式选项
       // --- End Added for DialogInfoPanel ---
       // --- Added for AddCybotDialog ---
       LoadingCybots: "Cybotを読み込んでいます...",

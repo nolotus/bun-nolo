@@ -4,8 +4,8 @@ import { initReactI18next } from "react-i18next";
 import { Language } from "./types";
 
 import errorLocale from "./translations/error.locale";
-import aiLocale from "./translations/ai.locale";
-import chatLocale from "./translations/chat.locale";
+import aiLocale from "ai/ai.locale";
+import chatLocale from "chat/chat.locale";
 import interfaceLocale from "./translations/interface.locale";
 import spaceLocale from "./translations/space.locale";
 

@@ -1,3 +1,4 @@
+// DialogInfoPanel.tsx
 import { PlusIcon, InfoIcon } from "@primer/octicons-react";
 import CybotNameChip from "ai/cybot/CybotNameChip";
 import { useTranslation } from "react-i18next";
@@ -10,10 +11,13 @@ import {
   selectTotalDialogTokens,
   removeCybot,
   addCybot,
+  updateDialogMode,
+  selectIsUpdatingMode, // 新增选择器
 } from "chat/dialog/dialogSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { toast } from "react-hot-toast";
 import AddCybotDialog from "./AddCybotDialog";
+import { DialogInvocationMode } from "chat/dialog/types"; // 引入 DialogInvocationMode
 
 interface DialogInfoPanelProps {
   limit?: number; // 可选的加载数量限制
@@ -25,6 +29,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
   const dispatch = useAppDispatch();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
+  const isUpdatingMode = useAppSelector(selectIsUpdatingMode); // 新增加载状态
   const currentUserId = useAppSelector(selectCurrentUserId);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isAddCybotDialogOpen, setIsAddCybotDialogOpen] = useState(false);
@@ -33,7 +38,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
     setIsPanelOpen((prev) => !prev);
   }, []);
 
-  // 将 handleRemoveCybot 逻辑移到组件内部
   const handleRemoveCybot = useCallback(
     (cybotId: string) => {
       dispatch(removeCybot(cybotId))
@@ -49,7 +53,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
     [dispatch, t]
   );
 
-  // 将 handleAddCybot 逻辑移到组件内部
   const handleAddCybot = useCallback(
     (cybotId: string) => {
       dispatch(addCybot(cybotId))
@@ -72,6 +75,23 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
   const handleCloseAddCybotDialog = useCallback(() => {
     setIsAddCybotDialogOpen(false);
   }, []);
+
+  // 新增：处理模式变更
+  const handleModeChange = useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const newMode = event.target.value as DialogInvocationMode;
+      dispatch(updateDialogMode(newMode))
+        .unwrap()
+        .then(() => {
+          toast.success(t("ModeUpdatedSuccess"));
+        })
+        .catch((error) => {
+          console.error("Failed to update mode:", error);
+          toast.error(t("ModeUpdateFailed"));
+        });
+    },
+    [dispatch, t]
+  );
 
   const participantCount = currentDialogConfig?.cybots?.length ?? 0;
 
@@ -133,7 +153,27 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
               </div>
               <div className="dialog-info-item dialog-mode-info">
                 <span>{t("Mode")}:</span>
-                <span>{currentDialogConfig?.mode || "N/A"}</span>
+                <select
+                  value={
+                    currentDialogConfig?.mode || DialogInvocationMode.FIRST
+                  }
+                  onChange={handleModeChange}
+                  className="dialog-mode-select"
+                  disabled={!currentDialogConfig || isUpdatingMode} // 禁用条件
+                >
+                  <option value={DialogInvocationMode.FIRST}>
+                    {t("First")}
+                  </option>
+                  <option value={DialogInvocationMode.SEQUENTIAL}>
+                    {t("Sequential")}
+                  </option>
+                  <option value={DialogInvocationMode.PARALLEL}>
+                    {t("Parallel")}
+                  </option>
+                  <option value={DialogInvocationMode.ORCHESTRATED}>
+                    {t("Orchestrated")}
+                  </option>
+                </select>
               </div>
             </div>
           </div>
@@ -353,6 +393,27 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 12px;
+          }
+
+          /* --- 新增：模式选择下拉菜单样式 --- */
+          .dialog-mode-select {
+            background: ${theme.backgroundActive || theme.backgroundTertiary};
+            color: ${theme.text};
+            border: 1px solid ${theme.borderLight};
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+          }
+          
+          .dialog-mode-select:hover {
+            border-color: ${theme.primary};
+          }
+          
+          .dialog-mode-select:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
           }
 
           /* --- Dialog Info Divider Line --- */
