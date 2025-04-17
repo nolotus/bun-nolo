@@ -1,9 +1,7 @@
-// AddCybotDialog.tsx
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { Dialog } from "render/web/ui/Dialog"; // 假设 Dialog 组件路径
-import { toast } from "react-hot-toast";
 import { SyncIcon } from "@primer/octicons-react";
 import { useUserData } from "database/hooks/useUserData";
 import { DataType } from "create/types";
@@ -25,7 +23,7 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
   queryUserId,
   limit = 20,
 }) => {
-  const { t } = useTranslation("ai");
+  const { t } = useTranslation("chat"); // 修改为 chat 命名空间，与 DialogInfoPanel 一致
   const theme = useTheme();
 
   // 使用 useUserData 钩子加载 Cybot 列表
@@ -43,28 +41,27 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
     await reload();
   }, [clearCache, reload]);
 
-  // 处理添加 Cybot 的逻辑
+  // 处理添加 Cybot 的逻辑，移除 toast 通知
   const handleAddCybot = useCallback(
     (cybotId: string) => {
       onAddCybot(cybotId); // 调用传入的回调函数
-      toast.success(t(`Cybot added successfully`));
       onClose(); // 关闭对话框
     },
-    [onAddCybot, onClose, t]
+    [onAddCybot, onClose]
   );
 
   // 加载状态显示
   const renderLoading = () => (
     <div className="loading-container" style={{ color: theme.textSecondary }}>
       <SyncIcon className="icon-spin" size={16} />
-      <span className="loading-text">{t("Loading AI list...")}</span>
+      <span className="loading-text">{t("LoadingCybots")}</span>
     </div>
   );
 
   // 错误状态显示
   const renderError = () => (
     <div className="error-container" style={{ color: theme.textDanger }}>
-      <p>{t("Failed to load AI list.")}</p>
+      <p>{t("FailedToLoadCybots")}</p>
       <Button onClick={handleReload} size="small">
         {t("Retry")}
       </Button>
@@ -74,7 +71,7 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
   // 空数据状态显示
   const renderEmpty = () => (
     <p className="no-cybots-text" style={{ color: theme.textTertiary }}>
-      {t("No Cybots available to add.")}
+      {t("NoCybots")}
     </p>
   );
 
@@ -87,7 +84,7 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
             <div className="avatar">{item.name?.[0]?.toUpperCase() || "?"}</div>
             <div className="info">
               <div className="title-row">
-                <h3 className="title">{item.name || t("unnamed")}</h3>
+                <h3 className="title">{item.name || t("Unnamed")}</h3>
                 {(item.inputPrice || item.outputPrice) && (
                   <div className="price-tag">
                     {(item.inputPrice || 0).toFixed(2)}/
@@ -106,7 +103,7 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
             </div>
           </div>
           <div className="description">
-            {item.introduction || t("noDescription")}
+            {item.introduction || t("NoDescription")}
           </div>
           <div className="actions">
             <Button
@@ -115,7 +112,7 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
               size="medium"
               style={{ flex: 1 }}
             >
-              {t("Add to Dialog")}
+              {t("AddCybot")}
             </Button>
           </div>
         </div>
@@ -124,9 +121,9 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
   );
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={t("Add New Cybot")}>
+    <Dialog isOpen={isOpen} onClose={onClose} title={t("AddCybot")}>
       <div className="add-cybot-content">
-        <p>{t("Select a Cybot to add to the dialog.")}</p>
+        <p>{t("SelectCybotToAdd")}</p>
         {error
           ? renderError()
           : loading && !cybots.length

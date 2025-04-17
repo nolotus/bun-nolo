@@ -1,6 +1,4 @@
-// TopBar.tsx
 import { useTheme } from "app/theme";
-import { useCallback } from "react";
 import { extractUserId } from "core/prefix";
 import { selectPageData } from "../page/pageSlice";
 import { useTranslation } from "react-i18next";
@@ -8,7 +6,9 @@ import type { ReactNode } from "react";
 import type React from "react";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { useAuth } from "auth/hooks/useAuth";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppSelector } from "app/hooks";
+
+//web
 import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
 import { CreateTool } from "create/CreateTool";
 import NavIconItem from "./blocks/NavIconItem";
@@ -20,8 +20,6 @@ import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
 import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 import { RoutePaths } from "auth/web/routes";
 import { HomeIcon, SignInIcon } from "@primer/octicons-react";
-import { addCybot } from "chat/dialog/dialogSlice"; // 引入 addCybot action
-import { toast } from "react-hot-toast";
 
 interface TopBarProps {
   topbarContent?: ReactNode;
@@ -38,7 +36,6 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const pageData = useAppSelector(selectPageData);
   const theme = useTheme();
-  const dispatch = useAppDispatch(); // 使用 dispatch 来调用 action
   const { pageKey } = useParams<{ pageKey?: string }>();
 
   const dataCreator = pageKey ? extractUserId(pageKey) : undefined;
@@ -49,46 +46,6 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
     pageData.isInitialized && (pageData.content || pageData.slateData);
   const displayEditTool =
     pageKey?.startsWith("page") && allowEdit && hasPageData;
-
-  const handleRemoveCybot = useCallback(
-    (cybotIdToRemove: string) => {
-      if (!currentDialogConfig) return;
-      dispatch(removeCybot(cybotIdToRemove))
-        .unwrap()
-        .then(() => {
-          toast.success(t("Cybot removed successfully"));
-        })
-        .catch((error) => {
-          console.error("Failed to remove Cybot:", error);
-          toast.error(t("Failed to remove Cybot"));
-        });
-    },
-    [currentDialogConfig, dispatch, t]
-  );
-
-  const handleAddCybotClick = useCallback(() => {
-    // 不再需要 alert，直接打开对话框，具体逻辑已在 DialogInfoPanel 中实现
-    console.log(
-      "Open UI to select and add a new cybot to dialog:",
-      currentDialogConfig?.id
-    );
-  }, [currentDialogConfig]);
-
-  const handleAddCybot = useCallback(
-    (cybotId: string) => {
-      if (!currentDialogConfig) return;
-      dispatch(addCybot(cybotId))
-        .unwrap()
-        .then(() => {
-          toast.success(t("Cybot added successfully"));
-        })
-        .catch((error) => {
-          console.error("Failed to add Cybot:", error);
-          toast.error(t("Failed to add Cybot"));
-        });
-    },
-    [currentDialogConfig, dispatch, t]
-  );
 
   return (
     <>
@@ -102,11 +59,7 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
             {currentDialogConfig && (
               <>
                 <EditableTitle currentDialogConfig={currentDialogConfig} />
-                <DialogInfoPanel
-                  onAddCybotClick={handleAddCybotClick}
-                  onRemoveCybot={handleRemoveCybot}
-                  onAddCybot={handleAddCybot} // 传递添加 Cybot 的回调
-                />
+                <DialogInfoPanel />
                 <CreateDialogButton dialogConfig={currentDialogConfig} />
                 <DeleteDialogButton dialogConfig={currentDialogConfig} />
               </>
