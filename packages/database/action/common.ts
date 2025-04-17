@@ -1,3 +1,4 @@
+//  database/action/common.ts
 import pino from "pino";
 import { CYBOT_SERVERS } from "../requests";
 
