@@ -1,44 +1,51 @@
+// DialogInfoPanel.tsx
 import { PlusIcon, InfoIcon } from "@primer/octicons-react";
 import CybotNameChip from "ai/cybot/CybotNameChip";
 import { useTranslation } from "react-i18next";
 import { useState, useCallback } from "react";
 import type React from "react";
 import { useTheme } from "app/theme";
-import { useAppSelector, useAppDispatch } from "app/hooks"; // 引入 useAppDispatch
+import { useAppSelector, useAppDispatch } from "app/hooks";
 import {
   selectCurrentDialogConfig,
   selectTotalDialogTokens,
-  removeCybot, // 引入 removeCybot action
+  removeCybot,
 } from "chat/dialog/dialogSlice";
-import { toast } from "react-hot-toast"; // 引入 toast 用于错误提示
+import { selectCurrentUserId } from "auth/authSlice"; // 假设这是获取当前用户 ID 的 selector
+import { toast } from "react-hot-toast";
+import AddCybotDialog from "./AddCybotDialog"; // 引入添加 Cybot 的对话框组件
 
 interface DialogInfoPanelProps {
   onAddCybotClick: () => void;
   onRemoveCybot: (cybotId: string) => void;
+  onAddCybot: (cybotId: string) => void; // 新增回调，用于处理添加 Cybot
+  limit?: number; // 可选的加载数量限制
 }
 
 const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
   onAddCybotClick,
   onRemoveCybot,
+  onAddCybot,
+  limit = 20,
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const dispatch = useAppDispatch(); // 使用 dispatch 来调用 action
+  const dispatch = useAppDispatch();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
+  const currentUserId = useAppSelector(selectCurrentUserId); // 在组件内部获取当前用户 ID
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isAddCybotDialogOpen, setIsAddCybotDialogOpen] = useState(false);
 
   const togglePanel = useCallback(() => {
     setIsPanelOpen((prev) => !prev);
   }, []);
 
-  // 处理移除 Cybot 的逻辑
   const handleRemoveCybot = useCallback(
     (cybotId: string) => {
       dispatch(removeCybot(cybotId))
         .unwrap()
         .then(() => {
-          // 成功移除后调用传入的回调
           onRemoveCybot(cybotId);
           toast.success(t("Cybot removed successfully"));
         })
@@ -49,6 +56,17 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     },
     [dispatch, onRemoveCybot, t]
   );
+
+  // 处理打开添加 Cybot 对话框
+  const handleAddCybotClick = useCallback(() => {
+    setIsAddCybotDialogOpen(true);
+    onAddCybotClick(); // 调用传入的回调（如果有其他逻辑）
+  }, [onAddCybotClick]);
+
+  // 处理关闭添加 Cybot 对话框
+  const handleCloseAddCybotDialog = useCallback(() => {
+    setIsAddCybotDialogOpen(false);
+  }, []);
 
   const participantCount = currentDialogConfig?.cybots?.length ?? 0;
 
@@ -82,7 +100,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
                     <CybotNameChip
                       key={cybotId}
                       cybotId={cybotId}
-                      onRemove={handleRemoveCybot} // 使用本地的 handleRemoveCybot 函数
+                      onRemove={handleRemoveCybot}
                       className="dialog-info-list-item"
                     />
                   ))
@@ -94,7 +112,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
               </div>
               <button
                 className="dialog-info-item dialog-add-participant-button"
-                onClick={onAddCybotClick}
+                onClick={handleAddCybotClick}
                 role="menuitem"
               >
                 <PlusIcon size={16} />
@@ -114,6 +132,15 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           </div>
         )}
       </div>
+
+      {/* 添加 Cybot 的对话框 */}
+      <AddCybotDialog
+        isOpen={isAddCybotDialogOpen}
+        onClose={handleCloseAddCybotDialog}
+        onAddCybot={onAddCybot}
+        queryUserId={currentUserId} // 使用内部获取的 currentUserId
+        limit={limit}
+      />
 
       <style>
         {`
