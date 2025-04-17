@@ -5,6 +5,7 @@ import pino from "pino";
 import { API_ENDPOINTS } from "../config";
 import { getAllServers, fetchFromClientDb } from "./common";
 import { selectIsLoggedIn } from "auth/authSlice";
+import { write } from "../dbSlice";
 
 const logger = pino({
   level: "info",
@@ -67,6 +68,9 @@ const updateClientDbIfNewer = async (
 
 // 判断远程数据是否存在且比本地数据新
 const isRemoteDataNewer = (remoteData: any, localData: any): boolean => {
+  console.log("remoteData", remoteData);
+  console.log("localData", localData);
+
   const hasRemoteTimestamp = !!remoteData?.updatedAt;
   if (!hasRemoteTimestamp) return false;
 

@@ -62,16 +62,19 @@ export const CreateTool: React.FC = () => {
 
     try {
       // 更新页面数据
+      const changes = {
+        updatedAt: nowISO,
+        slateData: pageState.slateData,
+        title,
+      };
+      console.log("changes", changes);
+
       await dispatch(
         patch({
           dbKey,
-          changes: {
-            updatedAt: nowISO,
-            slateData: pageState.slateData,
-            title,
-          },
+          changes,
         })
-      ).unwrap();
+      );
 
       // 更新空间内的标题（可选）
       if (dbSpaceId) {
