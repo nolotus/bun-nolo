@@ -4,7 +4,7 @@ import { getLatestMessages } from "../dialogMessageOperations";
 import { useAppDispatch } from "app/hooks";
 import { upsertMany } from "database/dbSlice";
 
-export const useMessages = (db, dialogId, limit = 20) => {
+export const useMessages = (db, dialogId, limit = 100) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
