@@ -1,4 +1,4 @@
-export const getLatestMessages = async (db, dialogId, limit = 20) => {
+export const getLatestMessages = async (db, dialogId, limit = 100) => {
   const messages = [];
   const prefix = `dialog-${dialogId}-msg-`;
 

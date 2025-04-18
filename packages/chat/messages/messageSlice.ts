@@ -62,9 +62,9 @@ export const messageSlice = createSliceWithThunks({
     }),
 
     deleteMessage: create.asyncThunk(
-      async (messageId: string, thunkApi) => {
-        await thunkApi.dispatch(remove(messageId));
-        return messageId;
+      async (messageDbKey: string, thunkApi) => {
+        await thunkApi.dispatch(remove(messageDbKey));
+        return messageDbKey;
       },
       {
         fulfilled: (state, action) => {

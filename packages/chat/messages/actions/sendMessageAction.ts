@@ -49,10 +49,11 @@ export const sendMessageAction = async (args, thunkApi) => {
   console.log("dialogConfig", dialogConfig);
   const dialogId = extractCustomId(dialogKey);
   const userId = selectCurrentUserId(state);
-  const msgId = createDialogMessageKey(dialogId);
+  const msgKey = createDialogMessageKey(dialogId);
 
   const msg = {
-    id: msgId,
+    id: msgKey,
+    dbKey: msgKey,
     role: "user",
     content: userInput,
     userId,

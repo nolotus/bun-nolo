@@ -17,7 +17,7 @@ interface MessageProps {
 export const MessageItem = ({ message }: MessageProps) => {
   const currentUserId = useAppSelector(selectCurrentUserId);
   const { id, content, controller, userId, cybotId } = message;
-
+  console.log("cybotId", cybotId);
   if (!content) return null;
 
   if (currentUserId === userId && !cybotId) {
