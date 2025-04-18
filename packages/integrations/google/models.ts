@@ -18,26 +18,6 @@ export const googleModels: Model[] = [
       cachingWrite: 0.2, // Cost per 1,000,000 tokens
       cachingRead: 0.2, // Cost per 1,000,000 tokens
     },
-    canFineTune: false, // Gemini API 是否支持微调，请根据实际情况调整
-  },
-  {
-    name: "gemini-2.0-pro-exp-02-05",
-    displayName: "Gemini 2.0 Pro (Experimental 02-05)",
-    provider: "google",
-    description:
-      "Experimental version of Gemini 2.0 Pro (release 02-05).  May have different performance and features.",
-    hasVision: true, //  Assume it has vision, adjust if not.
-    hasAudio: true, //  Assume it has audio, adjust if not.
-    // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
-    contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly larger.
-    maxOutputTokens: 8192, // Placeholder - Likely similar to Flash, or possibly larger.
-    price: {
-      input: 1.0, //  Placeholder -  Likely higher than Flash, as it's "Pro" and experimental.
-      output: 4.0, //  Placeholder - Likely higher than Flash.
-      cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
-      cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
-    },
-    canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
   },
   {
     name: "gemini-2.5-pro-exp-03-25",
@@ -51,12 +31,11 @@ export const googleModels: Model[] = [
     contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly larger.
     maxOutputTokens: 8192, // Placeholder - Likely similar to Flash, or possibly larger.
     price: {
-      input: 0, // 免费
-      output: 0, // 免费
-      cachingWrite: 0, // 免费
-      cachingRead: 0, // 免费
+      input: 1, // Cost per 1,000,000 tokens
+      output: 1, // Cost per 1,000,000 tokens
+      cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
+      cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
     },
-    canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
   },
   {
     name: "gemini-2.5-pro-preview-03-25",
@@ -75,6 +54,23 @@ export const googleModels: Model[] = [
       cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
       cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
     },
-    canFineTune: false, //  Assume no fine-tuning for experimental releases, unless explicitly stated.
+  },
+  {
+    name: "gemini-2.5-flash-preview-04-17",
+    displayName: "Gemini 2.5 Flash (Preview 04-17)",
+    provider: "google",
+    description:
+      "Preview version of Gemini 2.5 Flash (release 04-17).  May have different performance and features.",
+    hasVision: true, //  Assume it has vision, adjust if not.
+    hasAudio: true, //  Assume it has audio, adjust if not.
+    // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
+    contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly larger.
+    maxOutputTokens: 8192, // Placeholder - Likely similar to Flash, or possibly larger.
+    price: {
+      input: 0.15, // Cost per 1,000,000 tokens
+      output: 0.6, // Cost per 1,000,000 tokens
+      cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
+      cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
+    },
   },
 ];
