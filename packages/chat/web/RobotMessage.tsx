@@ -12,6 +12,7 @@ import type { Message } from "../messages/types";
 import { MessageActions } from "./MessageActions";
 
 const RobotMessage: React.FC<Message> = ({ id, content, controller }) => {
+  console.log("RobotMessage", id);
   const theme = useAppSelector(selectTheme);
   const { t } = useTranslation("chat");
   const messageRef = useRef(null);
