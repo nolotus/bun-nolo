@@ -190,6 +190,10 @@ const buildRequestBody = (
   ) {
     bodyData.stream_options = { include_usage: true };
   }
+  if (providerName === "xai" && model.includes("grol3-mini")) {
+    bodyData.reasoning_effort = "high";
+    bodyData.temperature = 0.7;
+  }
 
   return bodyData;
 };

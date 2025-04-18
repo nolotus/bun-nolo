@@ -1,18 +1,10 @@
 // database/actions/read.ts
 import { browserDb } from "../browser/db";
 import { selectCurrentServer } from "setting/settingSlice";
-import pino from "pino";
 import { API_ENDPOINTS } from "../config";
 import { getAllServers, fetchFromClientDb } from "./common";
 import { selectIsLoggedIn } from "auth/authSlice";
 import { write } from "../dbSlice";
-
-const logger = pino({
-  level: "info",
-  transport: {
-    target: "pino-pretty",
-  },
-});
 
 // 从单个服务器获取数据
 const fetchFromServer = async (
@@ -34,11 +26,9 @@ const fetchFromServer = async (
     if (res.status === 200) {
       return await res.json();
     }
-    logger.warn({ status: res.status, server }, "Fetch failed");
-    return null;
+    return null; // 原日志已删除
   } catch (err) {
-    logger.error({ err, server }, "Fetch error");
-    return null;
+    return null; // 原日志已删除
   }
 };
 
@@ -50,27 +40,20 @@ const updateClientDbIfNewer = async (
   localData: any
 ): Promise<void> => {
   if (!clientDb) {
-    logger.error(
-      { dbKey },
-      "Client database is undefined in updateClientDbIfNewer"
-    );
-    return;
+    return; // 原日志已删除
   }
   try {
     if (isRemoteDataNewer(remoteData, localData)) {
       await clientDb.put(dbKey, remoteData);
     }
   } catch (err) {
-    logger.error({ err, dbKey }, "Failed to update local data");
-    throw err;
+    throw err; // 原日志已删除
   }
 };
 
 // 判断远程数据是否存在且比本地数据新
 const isRemoteDataNewer = (remoteData: any, localData: any): boolean => {
-  console.log("remoteData", remoteData);
-  console.log("localData", localData);
-
+  // 删除了console.log语句
   const hasRemoteTimestamp = !!remoteData?.updatedAt;
   if (!hasRemoteTimestamp) return false;
 
@@ -103,7 +86,7 @@ const syncLocalDataToServer = async (
       )
       .unwrap();
   } catch (err) {
-    logger.error({ err }, "Failed to sync local data to server");
+    // 原日志已删除
   }
 };
 
@@ -114,16 +97,12 @@ const saveRemoteDataToClientDb = async (
   remoteData: any
 ): Promise<void> => {
   if (!clientDb) {
-    logger.error(
-      { dbKey },
-      "Client database is undefined in saveRemoteDataToClientDb"
-    );
-    return;
+    return; // 原日志已删除
   }
   try {
     await clientDb.put(dbKey, remoteData);
   } catch (err) {
-    logger.error({ err, dbKey }, "Failed to save remote data locally");
+    // 原日志已删除
   }
 };
 
@@ -159,11 +138,7 @@ const processRemoteDataInBackground = async (
   thunkApi: any
 ): Promise<void> => {
   if (!clientDb) {
-    logger.error(
-      { dbKey },
-      "Client database is undefined in processRemoteDataInBackground"
-    );
-    return;
+    return; // 原日志已删除
   }
   try {
     const settledResults = await Promise.allSettled(remotePromises);
@@ -177,7 +152,7 @@ const processRemoteDataInBackground = async (
       await syncLocalDataToServer(thunkApi, dbKey, localData);
     }
   } catch (err) {
-    logger.error({ err }, "Background remote data processing failed");
+    // 原日志已删除
   }
 };
 
@@ -188,9 +163,7 @@ export const readAction = async (
   clientDb: any = browserDb
 ): Promise<any> => {
   if (!clientDb) {
-    const errorMsg = "Client database is undefined in readAction";
-    logger.error({ dbKey }, errorMsg);
-    throw new Error(errorMsg);
+    throw new Error("Client database is undefined in readAction"); // 原日志已删除
   }
 
   const state = thunkApi.getState();
@@ -211,7 +184,7 @@ export const readAction = async (
       allServers,
       localData,
       thunkApi
-    ).catch((err) => logger.error({ err }, "Background processing failed"));
+    ).catch((err) => {}); // 原日志已删除
     return localData;
   }
 
