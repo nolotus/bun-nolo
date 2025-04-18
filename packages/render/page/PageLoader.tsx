@@ -48,17 +48,11 @@ const PageLoader = () => {
     };
   }, [dispatch]); // 仅依赖 dispatch
 
-  // 检查 pageKey 是否存在
-  if (!pageKey) {
-    console.error("PageLoader: pageKey is missing in URL parameters.");
-    return <NoMatch message="页面 Key 缺失" />;
-  }
-
   // 根据 pageKey 前缀渲染不同的组件
   const renderPageComponent = () => {
-    if (pageKey.startsWith("page")) {
+    if (pageKey?.startsWith("page")) {
       return <RenderPage pageKey={pageKey} />;
-    } else if (pageKey.startsWith("dialog")) {
+    } else if (pageKey?.startsWith("dialog")) {
       return <DialogPage pageKey={pageKey} />;
     } else {
       // 如果 pageKey 格式不匹配，显示 NoMatch

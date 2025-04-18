@@ -16,6 +16,7 @@ import "prismjs/components/prism-java";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-yaml";
 import "prismjs/components/prism-mermaid";
+import "prismjs/components/prism-diff";
 
 mermaid.initialize({
   startOnLoad: true,

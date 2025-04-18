@@ -1,13 +1,13 @@
 import React, { Suspense, lazy } from "react";
 
-import { authRoutes } from "auth/web/routes"; // 确认路径正确
-import { createRoutes } from "create/routes"; // 确认路径正确
-import { settingRoutes } from "setting/routes"; // 确认路径正确
-import { lifeRoutes } from "life/routes"; // 确认路径正确
+import { authRoutes } from "auth/web/routes";
+import { createRoutes } from "create/routes";
+import { settingRoutes } from "setting/routes";
+import { lifeRoutes } from "life/routes";
 // import { chatRoutes } from "chat/routes"; // 如果有聊天路由
 
 // 懒加载 PageLoader 组件
-const PageLoader = lazy(() => import("render/page/PageLoader")); // 确认路径正确
+const PageLoader = lazy(() => import("render/page/PageLoader"));
 
 // hostRoutesMap 和 generatorRoutes (根据你的需要保留或修改)
 const hostRoutesMap = {
