@@ -11,7 +11,7 @@ import { Tooltip } from "render/web/ui/Tooltip";
 const DeleteDialogButton = ({ dialogConfig }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t } = useTranslation("chat");
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
