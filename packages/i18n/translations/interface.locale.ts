@@ -1,5 +1,4 @@
 // i18n/translations/interface.locale.ts
-
 import { Language } from "../types";
 
 export default {
@@ -59,6 +58,7 @@ export default {
       "Nothing to see here!": "Nothing to see here!",
       "Go to Home": "Go to Home",
       "Go Back": "Go Back",
+      deleteSuccess: "Delete successful", // 新添加的键
     },
   },
   [Language.ZH_CN]: {
@@ -116,6 +116,7 @@ export default {
       "Nothing to see here!": "这里没有内容！",
       "Go to Home": "返回首页",
       "Go Back": "返回",
+      deleteSuccess: "删除成功", // 新添加的键
     },
   },
   [Language.ZH_HANT]: {
@@ -173,6 +174,7 @@ export default {
       "Nothing to see here!": "這裡沒有內容！",
       "Go to Home": "返回首頁",
       "Go Back": "返回",
+      deleteSuccess: "刪除成功", // 新添加的键
     },
   },
   [Language.JA]: {
@@ -232,6 +234,7 @@ export default {
       "Nothing to see here!": "ここには何もありません！",
       "Go to Home": "ホームに戻る",
       "Go Back": "戻る",
+      deleteSuccess: "削除成功", // 新添加的键
     },
   },
 };
