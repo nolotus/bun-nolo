@@ -244,7 +244,7 @@ const SpaceHome: React.FC = () => {
         .cybots-container {
           border-radius: 12px;
           overflow: hidden;
-          box-shadow: 0 1px 3px ${theme.shadowLight};
+          /* 移除了阴影 */
         }
 
         .cybots-container {
@@ -264,16 +264,16 @@ const SpaceHome: React.FC = () => {
           padding: ${theme.space[4]};
           display: flex;
           align-items: center;
-          transition:
-            transform 0.2s,
-            box-shadow 0.2s;
+          transition: transform 0.2s;
           cursor: pointer;
-          box-shadow: 0 1px 3px ${theme.shadowLight};
+          /* 调整了卡片的阴影为更轻微的效果 */
+          border: 1px solid ${theme.backgroundHover};
         }
 
         .page-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px ${theme.shadowMedium};
+          /*  hover时添加轻微阴影效果 */
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         }
 
         .page-icon {
