@@ -47,42 +47,42 @@ const fileIconMap = {
   default: <FaFile />,
 };
 
-// 文件类型样式映射
-const getFileTypeStyle = (fileType: string) => {
+// 获取文件类型样式，使用主题变量
+const getFileTypeStyle = (fileType: string, theme) => {
   switch (fileType) {
     case "pdf":
       return {
-        background: "rgba(239, 68, 68, 0.15)",
-        color: "rgb(239, 68, 68)",
-      }; // 红色
+        background: theme.errorLight || "rgba(239, 68, 68, 0.15)",
+        color: theme.error || "rgb(239, 68, 68)",
+      };
     case "doc":
     case "docx":
       return {
-        background: "rgba(37, 99, 235, 0.15)",
-        color: "rgb(37, 99, 235)",
-      }; // 蓝色
+        background: theme.primaryLight,
+        color: theme.primary,
+      };
     case "xls":
     case "xlsx":
       return {
         background: "rgba(16, 185, 129, 0.15)",
         color: "rgb(16, 185, 129)",
-      }; // 绿色
+      };
     case "md":
     case "markdown":
       return {
         background: "rgba(139, 92, 246, 0.15)",
         color: "rgb(139, 92, 246)",
-      }; // 紫色
+      };
     case "txt":
       return {
         background: "rgba(245, 158, 11, 0.15)",
         color: "rgb(245, 158, 11)",
-      }; // 黄色
+      };
     default:
       return {
-        background: "rgba(107, 114, 128, 0.15)",
-        color: "rgb(107, 114, 128)",
-      }; // 灰色
+        background: theme.backgroundTertiary,
+        color: theme.textSecondary,
+      };
   }
 };
 
@@ -122,14 +122,14 @@ const FileList: React.FC<FileListProps> = ({
             grid-template-columns: ${gridLayout
               ? "repeat(auto-fill, minmax(280px, 1fr))"
               : "1fr"};
-            gap: 16px;
-            padding: 20px;
+            gap: ${theme.space[4]};
+            padding: ${theme.space[5]};
           }
 
           .file-skeleton {
             background: ${theme.backgroundSecondary};
             border-radius: 12px;
-            padding: 16px;
+            padding: ${theme.space[4]};
             display: flex;
             align-items: center;
           }
@@ -146,7 +146,7 @@ const FileList: React.FC<FileListProps> = ({
             );
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
-            margin-right: 16px;
+            margin-right: ${theme.space[4]};
             flex-shrink: 0;
           }
 
@@ -166,7 +166,7 @@ const FileList: React.FC<FileListProps> = ({
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
             border-radius: 4px;
-            margin-bottom: 8px;
+            margin-bottom: ${theme.space[2]};
           }
 
           .skeleton-line.short {
@@ -195,7 +195,7 @@ const FileList: React.FC<FileListProps> = ({
         actionText={
           onImportFile && (
             <>
-              <FaFileImport style={{ marginRight: "8px" }} />
+              <FaFileImport style={{ marginRight: theme.space[2] }} />
               导入文件
             </>
           )
@@ -214,7 +214,10 @@ const FileList: React.FC<FileListProps> = ({
       {files.map((file) => (
         <div key={file.id} className="file-card">
           <div className="file-card-header">
-            <div className="file-type-icon" style={getFileTypeStyle(file.type)}>
+            <div
+              className="file-type-icon"
+              style={getFileTypeStyle(file.type, theme)}
+            >
               {getFileIcon(file.type)}
             </div>
             <div className="file-actions">
@@ -263,15 +266,15 @@ const FileList: React.FC<FileListProps> = ({
         .file-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 16px;
-          padding: 20px;
+          gap: ${theme.space[4]};
+          padding: ${theme.space[5]};
         }
 
         .file-list {
           display: flex;
           flex-direction: column;
-          gap: 12px;
-          padding: 20px;
+          gap: ${theme.space[3]};
+          padding: ${theme.space[5]};
         }
 
         .file-card {
@@ -285,11 +288,11 @@ const FileList: React.FC<FileListProps> = ({
 
         .file-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 4px 12px ${theme.shadowMedium};
         }
 
         .file-card-header {
-          padding: 16px;
+          padding: ${theme.space[4]};
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -308,7 +311,7 @@ const FileList: React.FC<FileListProps> = ({
 
         .file-actions {
           display: flex;
-          gap: 8px;
+          gap: ${theme.space[2]};
         }
 
         .action-button {
@@ -326,24 +329,24 @@ const FileList: React.FC<FileListProps> = ({
         }
 
         .action-button:hover {
-          background: ${theme.backgroundTertiary};
+          background: ${theme.backgroundHover};
           color: ${theme.text};
         }
 
         .action-button.delete:hover {
-          background: rgba(220, 38, 38, 0.1);
-          color: rgba(220, 38, 38, 1);
+          background: ${theme.errorLight || "rgba(220, 38, 38, 0.1)"};
+          color: ${theme.error || "rgba(220, 38, 38, 1)"};
         }
 
         .file-card-body {
-          padding: 16px;
+          padding: ${theme.space[4]};
         }
 
         .file-name {
           font-size: 15px;
           font-weight: 500;
           color: ${theme.text};
-          margin: 0 0 8px 0;
+          margin: 0 0 ${theme.space[2]} 0;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -359,6 +362,15 @@ const FileList: React.FC<FileListProps> = ({
         @media (max-width: 768px) {
           .file-grid {
             grid-template-columns: 1fr;
+          }
+
+          .file-actions {
+            gap: ${theme.space[1]};
+          }
+
+          .action-button {
+            width: 28px;
+            height: 28px;
           }
         }
       `}</style>

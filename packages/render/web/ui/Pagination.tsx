@@ -1,4 +1,4 @@
-// web/ui/Pagination.tsx
+// render/web/ui/Pagination.tsx
 import React from "react";
 import { useTheme } from "app/theme";
 import Button from "render/web/ui/Button";

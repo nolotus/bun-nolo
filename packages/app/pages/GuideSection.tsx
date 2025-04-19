@@ -3,17 +3,17 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import { selectCurrentUserId } from "../../auth/authSlice";
 import { CreateRoutePaths } from "create/routePaths";
-import { createPage } from "render/page/pageSlice";
-import { useNavigate, NavLink } from "react-router-dom";
-import Cybots from "ai/cybot/web/Cybots";
 
-// 导入图标
+// web
 import { FiChevronRight } from "react-icons/fi";
 import { HiOutlineLightBulb, HiOutlineDocumentAdd } from "react-icons/hi";
 import { BsRobot, BsPlusLg } from "react-icons/bs";
 import { MdOutlineSettings } from "react-icons/md";
 import { FiDollarSign } from "react-icons/fi";
 import { BiBook } from "react-icons/bi";
+import Cybots from "ai/cybot/web/Cybots";
+import { useNavigate, NavLink } from "react-router-dom";
+import { createPage } from "render/page/pageSlice";
 
 const GuideSection = () => {
   const theme = useAppSelector(selectTheme);

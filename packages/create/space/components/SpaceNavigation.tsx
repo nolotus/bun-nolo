@@ -1,4 +1,3 @@
-// create/space/components/SpaceNavigation.tsx
 import React from "react";
 import { useParams, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "app/theme";
@@ -44,7 +43,7 @@ const SpaceNavigation: React.FC = () => {
     navigate(`/space/${spaceId}`);
   };
 
-  // 生成基于空间名称的渐变颜色
+  // 生成基于空间名称的渐变颜色，但使用更和谐的色调
   const generateGradient = (name: string) => {
     const hash = name
       .split("")
@@ -53,7 +52,8 @@ const SpaceNavigation: React.FC = () => {
     const hue1 = hash % 360;
     const hue2 = (hue1 + 40) % 360;
 
-    return `linear-gradient(135deg, hsl(${hue1}, 80%, 55%), hsl(${hue2}, 80%, 45%))`;
+    // 降低饱和度和亮度，使外观更柔和
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 50%), hsl(${hue2}, 70%, 40%))`;
   };
 
   return (
@@ -113,17 +113,17 @@ const SpaceNavigation: React.FC = () => {
         .space-navigation {
           background: ${theme.background};
           border-radius: 14px;
-          padding: 12px 16px;
+          padding: ${theme.space[3]} ${theme.space[4]};
           box-shadow:
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            0 0 1px rgba(0, 0, 0, 0.08);
-          transition: box-shadow 0.3s ease;
+            0 1px 3px ${theme.shadowLight},
+            0 0 1px ${theme.shadow1};
+          transition: all 0.2s ease;
         }
 
         .space-navigation:hover {
           box-shadow:
-            0 4px 12px rgba(0, 0, 0, 0.05),
-            0 0 1px rgba(0, 0, 0, 0.1);
+            0 2px 5px ${theme.shadowMedium},
+            0 0 1px ${theme.shadow2};
         }
 
         .space-header {
@@ -142,7 +142,8 @@ const SpaceNavigation: React.FC = () => {
           overflow: hidden;
           text-overflow: ellipsis;
           cursor: pointer;
-          padding: 6px 12px 6px 6px;
+          padding: ${theme.space[1]} ${theme.space[3]} ${theme.space[1]}
+            ${theme.space[1]};
           border-radius: 10px;
           transition: all 0.2s ease;
           max-width: 45%;
@@ -150,11 +151,11 @@ const SpaceNavigation: React.FC = () => {
         }
 
         .space-title:hover {
-          background: ${theme.backgroundSecondary};
+          background: ${theme.backgroundHover};
         }
 
         .space-title:active {
-          background: ${theme.backgroundTertiary};
+          background: ${theme.backgroundSelected};
           transform: translateY(1px);
         }
 
@@ -167,11 +168,11 @@ const SpaceNavigation: React.FC = () => {
           align-items: center;
           justify-content: center;
           font-weight: 600;
-          margin-right: 8px;
+          margin-right: ${theme.space[2]};
           flex-shrink: 0;
           font-size: 14px;
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          text-shadow: 0 1px 2px ${theme.shadowLight};
+          box-shadow: 0 1px 2px ${theme.shadowLight};
         }
 
         .space-name {
@@ -192,7 +193,7 @@ const SpaceNavigation: React.FC = () => {
           background: linear-gradient(
             90deg,
             ${theme.backgroundSecondary} 25%,
-            ${theme.backgroundTertiary} 50%,
+            ${theme.backgroundHover} 50%,
             ${theme.backgroundSecondary} 75%
           );
           background-size: 200% 100%;
@@ -213,14 +214,14 @@ const SpaceNavigation: React.FC = () => {
           display: flex;
           align-items: center;
           background: ${theme.backgroundSecondary};
-          padding: 4px;
+          padding: ${theme.space[1]};
           border-radius: 10px;
         }
 
         .nav-item {
           display: flex;
           align-items: center;
-          padding: 6px 10px;
+          padding: ${theme.space[1]} ${theme.space[2]};
           color: ${theme.textSecondary};
           text-decoration: none;
           transition: all 0.2s ease;
@@ -232,13 +233,12 @@ const SpaceNavigation: React.FC = () => {
 
         .nav-item:hover {
           color: ${theme.text};
-          background: ${theme.backgroundTertiary};
+          background: ${theme.backgroundHover};
         }
 
         .nav-item.active {
           color: ${theme.primary};
-          background: ${theme.background};
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+          background: ${theme.backgroundSelected};
         }
 
         .home-nav-item {
@@ -252,7 +252,7 @@ const SpaceNavigation: React.FC = () => {
         }
 
         .nav-icon {
-          margin-right: 6px;
+          margin-right: ${theme.space[1]};
           display: flex;
           align-items: center;
         }
@@ -264,44 +264,44 @@ const SpaceNavigation: React.FC = () => {
           }
 
           .space-title {
-            margin-bottom: 12px;
+            margin-bottom: ${theme.space[3]};
             max-width: 100%;
             width: 100%;
             justify-content: center;
-            padding: 8px 12px;
+            padding: ${theme.space[2]} ${theme.space[3]};
             border-radius: 8px;
           }
 
           .space-nav {
             width: 100%;
             justify-content: space-between;
-            padding: 4px;
+            padding: ${theme.space[1]};
           }
 
           .nav-item {
             flex: 1;
             justify-content: center;
             text-align: center;
-            padding: 8px 6px;
+            padding: ${theme.space[2]} ${theme.space[1]};
           }
 
           .nav-icon {
-            margin-right: 4px;
+            margin-right: ${theme.space[1]};
           }
         }
 
         @media (max-width: 480px) {
           .space-navigation {
-            padding: 10px;
+            padding: ${theme.space[2]};
           }
 
           .nav-item {
-            padding: 8px 6px;
+            padding: ${theme.space[2]} ${theme.space[1]};
             font-size: 12px;
           }
 
           .nav-icon {
-            margin-right: 3px;
+            margin-right: ${theme.space[0]};
           }
         }
       `}</style>

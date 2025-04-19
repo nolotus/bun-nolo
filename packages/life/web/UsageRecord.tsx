@@ -7,7 +7,7 @@ import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
 import { selectCurrentUserId } from "auth/authSlice";
 import { useAppSelector } from "app/hooks";
 import { pino } from "pino";
-import Pagination from "web/ui/Pagination";
+import Pagination from "render/web/ui/Pagination";
 
 const logger = pino({ name: "usage-record" });
 const ITEMS_PER_PAGE = 10;
