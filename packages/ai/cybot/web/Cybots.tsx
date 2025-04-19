@@ -1,4 +1,5 @@
 // ai/cybot/web/Cybots.tsx
+
 import { memo, useEffect, useState, useCallback } from "react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
@@ -33,6 +34,7 @@ const GridContainer = memo(({ children }: { children: React.ReactNode }) => (
 GridContainer.displayName = "GridContainer";
 
 const Cybots = memo(({ queryUserId, limit = 20 }: CybotsProps) => {
+  const theme = useAppSelector(selectTheme);
   const {
     loading,
     data: cybots = [],
@@ -75,45 +77,62 @@ const Cybots = memo(({ queryUserId, limit = 20 }: CybotsProps) => {
           <CybotBlock key={item.id} item={item} reload={handleReload} />
         ))}
       </GridContainer>
-      <style>
-        {`
-          .loading-container {
-            text-align: center;
-            padding: 1.5rem;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-          }
+      <style jsx>{`
+        .loading-container {
+          text-align: center;
+          padding: ${theme.space[6]};
+          font-size: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: ${theme.space[2]};
+        }
 
-          .icon-spin {
-            animation: spin 1s linear infinite;
-          }
+        .icon-spin {
+          animation: spin 1s linear infinite;
+        }
 
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
           }
+          to {
+            transform: rotate(360deg);
+          }
+        }
 
+        .cybots-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: ${theme.space[6]};
+          padding: ${theme.space[3]};
+          margin: 0 auto;
+          max-width: 1200px;
+          width: 100%;
+        }
+
+        .loading-text {
+          margin-left: ${theme.space[2]};
+        }
+
+        @media (max-width: 768px) {
           .cybots-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            padding: 0.8rem;
-            margin: 0 auto;
-            max-width: 1200px;
+            gap: ${theme.space[4]};
+            padding: ${theme.space[2]};
+          }
+        }
+
+        @media (max-width: 480px) {
+          .cybots-grid {
+            grid-template-columns: 1fr;
+            gap: ${theme.space[3]};
           }
 
-          .loading-text {
-            margin-left: 0.5rem;
+          .loading-container {
+            padding: ${theme.space[4]};
           }
-        `}
-      </style>
+        }
+      `}</style>
     </>
   );
 });

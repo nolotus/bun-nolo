@@ -147,21 +147,23 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         .cybot-block {
           background: ${theme.background};
           border-radius: 12px;
-          padding: 1.25rem;
+          padding: ${theme.space[5]};
           height: 100%;
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: ${theme.space[4]};
           border: 1px solid ${theme.border};
           transition: all 0.15s ease;
-          min-width: 280px;
+          min-width: 0;
           position: relative;
           outline: none;
+          box-shadow: 0 2px 8px ${theme.shadowLight};
         }
 
         .cybot-block:hover {
           transform: translateY(-2px);
           border-color: ${theme.primary}30;
+          box-shadow: 0 4px 12px ${theme.shadowMedium};
         }
 
         .cybot-block:focus {
@@ -170,7 +172,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         .header {
           display: flex;
-          gap: 0.875rem;
+          gap: ${theme.space[3]};
           align-items: center;
         }
 
@@ -193,14 +195,14 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: ${theme.space[2]};
         }
 
         .title-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 0.75rem;
+          gap: ${theme.space[3]};
         }
 
         .title {
@@ -215,7 +217,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         .tags {
           display: flex;
-          gap: 0.5rem;
+          gap: ${theme.space[2]};
           flex-wrap: wrap;
           align-items: center;
         }
@@ -223,7 +225,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         .tag {
           font-size: 0.75rem;
           color: ${theme.textSecondary};
-          padding: 0.2rem 0.5rem;
+          padding: ${theme.space[1]} ${theme.space[2]};
           background: ${theme.backgroundSecondary};
           border-radius: 6px;
           white-space: nowrap;
@@ -233,7 +235,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         .price-tag {
           font-size: 0.75rem;
           color: ${theme.textSecondary};
-          padding: 0.2rem 0.5rem;
+          padding: ${theme.space[1]} ${theme.space[2]};
           background: ${theme.backgroundSecondary};
           border-radius: 6px;
           white-space: nowrap;
@@ -245,23 +247,24 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           font-size: 0.9rem;
           line-height: 1.5;
           color: ${theme.textSecondary};
-          margin: 0.2rem 0;
+          margin: ${theme.space[1]} 0;
           overflow-wrap: break-word;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .actions {
           display: flex;
-          gap: 0.75rem;
-          margin-top: 0.5rem;
+          gap: ${theme.space[3]};
+          margin-top: auto;
         }
 
         .edit-actions {
           display: flex;
-          gap: 0.5rem;
+          gap: ${theme.space[2]};
         }
 
         .item-exit {
@@ -270,24 +273,33 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           transition: all 0.15s ease;
         }
 
+        @media (max-width: 768px) {
+          .cybot-block {
+            padding: ${theme.space[4]};
+            gap: ${theme.space[3]};
+          }
+
+          .description {
+            -webkit-line-clamp: 3;
+          }
+        }
+
         @media (max-width: 480px) {
           .cybot-block {
-            padding: 1rem;
-            gap: 0.875rem;
+            padding: ${theme.space[4]};
+            gap: ${theme.space[3]};
           }
 
           .actions {
             flex-direction: column;
-            gap: 0.6rem;
+            gap: ${theme.space[2]};
           }
 
           .edit-actions {
-            justify-content: stretch;
-            gap: 0.75rem;
-          }
-
-          .edit-actions button {
-            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            gap: ${theme.space[3]};
           }
 
           .avatar {
@@ -302,6 +314,10 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           .description {
             font-size: 0.85rem;
             -webkit-line-clamp: 3;
+          }
+
+          .tags {
+            margin-top: ${theme.space[1]};
           }
         }
       `}</style>
