@@ -1,5 +1,3 @@
-// web/ui/BaseActionModal.tsx
-
 import React, { useEffect, useState } from "react";
 import { BaseModal } from "render/web/ui/BaseModal";
 
@@ -34,11 +32,11 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
 }) => {
   const theme = useTheme();
   const [animateIn, setAnimateIn] = useState(false);
+  const { space: sp } = theme;
 
   // 用于处理入场动画
   useEffect(() => {
     if (isOpen) {
-      // 设置一个短暂的延迟，让DOM先挂载，再触发动画
       const timer = setTimeout(() => setAnimateIn(true), 50);
       return () => clearTimeout(timer);
     } else {
@@ -79,16 +77,16 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         {actions && <div className="modal-actions">{actions}</div>}
       </div>
 
-      <style jsx>{`
+      <style href="base-action-modal">{`
         .action-modal {
           background: ${theme.background};
           border-radius: 12px;
           box-shadow:
-            0 10px 15px -3px rgba(0, 0, 0, 0.1),
-            0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            0 10px 15px -3px ${theme.shadowLight},
+            0 4px 6px -2px ${theme.shadowMedium};
           width: 100%;
           max-width: ${typeof width === "number" ? `${width}px` : width};
-          margin: 16px;
+          margin: ${sp[4]};
           overflow: hidden;
           opacity: 0;
           transform: scale(0.95) translateY(10px);
@@ -106,18 +104,18 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         }
 
         .modal-header {
-          padding: 20px 24px 16px;
-          border-bottom: 1px solid ${theme.border};
+          padding: ${sp[5]} ${sp[6]} ${sp[4]};
+          border-bottom: 1px solid ${theme.backgroundTertiary};
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
+          gap: ${sp[4]};
         }
 
         .title-wrapper {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: ${sp[2]};
           color: ${getStatusColor()};
         }
 
@@ -140,19 +138,19 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         }
 
         .modal-body {
-          padding: 24px 24px 16px;
+          padding: ${sp[6]} ${sp[6]} ${sp[4]};
           flex: 1;
           overflow-y: auto;
-          color: ${theme.textSecondary || "#666"};
+          color: ${theme.textSecondary};
           font-size: 14px;
           line-height: 1.6;
         }
 
         .modal-actions {
-          padding: 8px 24px 24px;
+          padding: ${sp[2]} ${sp[6]} ${sp[6]};
           display: flex;
           justify-content: flex-end;
-          gap: 12px;
+          gap: ${sp[3]};
         }
 
         @media (max-width: 640px) {
@@ -173,16 +171,16 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           }
 
           .modal-header {
-            padding: 16px 16px 12px;
+            padding: ${sp[4]} ${sp[4]} ${sp[3]};
           }
 
           .modal-body {
-            padding: 16px 16px 8px;
+            padding: ${sp[4]} ${sp[4]} ${sp[2]};
           }
 
           .modal-actions {
-            padding: 8px 16px 20px;
-            margin-top: auto; /* 确保在移动设备上按钮在底部 */
+            padding: ${sp[2]} ${sp[4]} ${sp[5]};
+            margin-top: auto;
           }
         }
       `}</style>
