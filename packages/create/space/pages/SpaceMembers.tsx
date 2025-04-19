@@ -1,4 +1,3 @@
-// create/space/pages/SpaceMembers.tsx
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useTheme } from "app/theme";
@@ -353,7 +352,7 @@ const SpaceMembers: React.FC = () => {
           justify-content: center;
           width: 32px;
           height: 32px;
-          background: ${theme.backgroundSecondary};
+          background: ${theme.backgroundHover};
           color: ${theme.primary};
           border-radius: 8px;
           margin-right: 12px;
@@ -367,11 +366,10 @@ const SpaceMembers: React.FC = () => {
         }
 
         .members-container {
-          background: ${theme.background};
           border-radius: 16px;
           box-shadow:
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            0 0 1px rgba(0, 0, 0, 0.08);
+            0 2px 8px ${theme.shadowLight},
+            0 0 1px ${theme.shadow1};
           overflow: hidden;
         }
 
@@ -383,17 +381,18 @@ const SpaceMembers: React.FC = () => {
         }
 
         .member-card {
-          background: ${theme.backgroundSecondary};
+          background: ${theme.background};
           border-radius: 12px;
           overflow: hidden;
           transition:
             transform 0.2s,
             box-shadow 0.2s;
+          box-shadow: 0 1px 3px ${theme.shadowLight};
         }
 
         .member-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 4px 12px ${theme.shadowMedium};
         }
 
         .member-header {
@@ -471,7 +470,7 @@ const SpaceMembers: React.FC = () => {
           display: inline-flex;
           align-items: center;
           padding: 6px 10px;
-          background: ${theme.background};
+          background: ${theme.backgroundHover};
           color: ${theme.textSecondary};
           border-radius: 8px;
           font-size: 14px;
@@ -529,7 +528,7 @@ const SpaceMembers: React.FC = () => {
           border-radius: 8px;
           cursor: pointer;
           transition: all 0.2s;
-          background: ${theme.background};
+          background: ${theme.backgroundHover};
           color: ${theme.textSecondary};
           font-size: 14px;
         }
@@ -599,14 +598,15 @@ const SpaceMembers: React.FC = () => {
           background: ${theme.background};
           border-radius: 16px;
           box-shadow:
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            0 0 1px rgba(0, 0, 0, 0.08);
+            0 2px 8px ${theme.shadowLight},
+            0 0 1px ${theme.shadow1};
           padding: 20px;
           transition: transform 0.2s;
         }
 
         .role-card:hover {
           transform: translateY(-2px);
+          box-shadow: 0 4px 12px ${theme.shadowMedium};
         }
 
         .role-header {
@@ -619,7 +619,7 @@ const SpaceMembers: React.FC = () => {
           width: 32px;
           height: 32px;
           border-radius: 8px;
-          background: ${theme.backgroundSecondary};
+          background: ${theme.backgroundHover};
           color: ${theme.primary};
           display: flex;
           align-items: center;

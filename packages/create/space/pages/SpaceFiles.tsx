@@ -297,7 +297,7 @@ const SpaceFiles: React.FC = () => {
             gap: ${theme.space[1]};
             font-size: 13px;
             color: ${theme.textSecondary};
-            background: ${theme.backgroundTertiary};
+            background: ${theme.backgroundHover};
             padding: ${theme.space[1]} ${theme.space[3]};
             border-radius: 6px;
           }
@@ -339,7 +339,7 @@ const SpaceFiles: React.FC = () => {
             margin-right: ${theme.space[2]};
             width: 28px;
             height: 28px;
-            background: ${theme.backgroundSecondary};
+            background: ${theme.backgroundHover};
             color: ${theme.primary};
             border-radius: 6px;
           }
@@ -400,7 +400,6 @@ const SpaceFiles: React.FC = () => {
           }
 
           .files-container {
-            background: ${theme.background};
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 1px 3px ${theme.shadowLight};
