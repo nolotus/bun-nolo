@@ -4,6 +4,7 @@ export interface Message {
   image?: string;
   id: string;
   images?: string[]; // Ollama format
+  dbKey: string; // Database key for the message
 }
 
 type MessageRole = "user" | "system" | "assistant";

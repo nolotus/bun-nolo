@@ -57,6 +57,7 @@ export const sendClaudeRequest = async ({
   const dispatch = thunkApi.dispatch;
   const currentServer = selectCurrentServer(state);
   const messageId = createDialogMessageKey(dialogId);
+  const messageKey = createDialogMessageKey(dialogId);
 
   const controller = new AbortController();
   const signal = controller.signal;
@@ -81,6 +82,7 @@ export const sendClaudeRequest = async ({
   ) => {
     const final = {
       id: messageId,
+      dbKey: messageKey,
       content: error ? `Error: ${error.message}` : content,
       cybotId: cybotConfig.id,
       role: "assistant",
@@ -143,6 +145,7 @@ export const sendClaudeRequest = async ({
               dispatch(
                 messageStreaming({
                   id: messageId,
+                  dbKey: messageKey,
                   content: "Loading...",
                   role: "assistant",
                   cybotId,
@@ -157,6 +160,7 @@ export const sendClaudeRequest = async ({
                 dispatch(
                   messageStreaming({
                     id: messageId,
+                    dbKey: messageKey,
                     content: accumulatedContent,
                     role: "assistant",
                     cybotId: cybotConfig.id,
