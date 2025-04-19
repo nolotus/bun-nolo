@@ -1,6 +1,4 @@
 // DialogInfoPanel.tsx
-import { PlusIcon, InfoIcon } from "@primer/octicons-react";
-import CybotNameChip from "ai/cybot/CybotNameChip";
 import { useTranslation } from "react-i18next";
 import { useState, useCallback } from "react";
 import type React from "react";
@@ -15,10 +13,13 @@ import {
   selectIsUpdatingMode, // 新增选择器
 } from "chat/dialog/dialogSlice";
 import { selectCurrentUserId } from "auth/authSlice";
-import { toast } from "react-hot-toast";
-import AddCybotDialog from "./AddCybotDialog";
 import { DialogInvocationMode } from "chat/dialog/types"; // 引入 DialogInvocationMode
 
+//web
+import { PlusIcon, ChevronDownIcon } from "@primer/octicons-react";
+import CybotNameChip from "ai/cybot/CybotNameChip";
+import { toast } from "react-hot-toast";
+import AddCybotDialog from "./AddCybotDialog";
 interface DialogInfoPanelProps {
   limit?: number; // 可选的加载数量限制
 }
@@ -106,7 +107,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
           aria-label={t("ShowDialogConfigInfo")}
           aria-haspopup="true"
         >
-          <InfoIcon size={16} />
+          <ChevronDownIcon size={16} />
         </button>
 
         {isPanelOpen && (
