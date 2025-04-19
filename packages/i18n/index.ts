@@ -6,8 +6,9 @@ import { Language } from "./types";
 import errorLocale from "./translations/error.locale";
 import aiLocale from "ai/ai.locale";
 import chatLocale from "chat/chat.locale";
+import spaceLocale from "create/space/space.locale";
+
 import interfaceLocale from "./translations/interface.locale";
-import spaceLocale from "./translations/space.locale";
 
 export const resources = {
   [Language.EN]: {

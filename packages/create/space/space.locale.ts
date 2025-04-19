@@ -1,6 +1,6 @@
-// i18n/translations/space.locale.ts
+// create/space/space.locale.ts
 
-import { Language } from "../types";
+import { Language } from "i18n/types";
 
 export default {
   [Language.EN]: {
