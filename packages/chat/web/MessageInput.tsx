@@ -405,7 +405,6 @@ const MessageInput: React.FC = () => {
         onChange={handleFileInputChange} // 使用 memoized callback
       />
 
-      {/* JSX Styles (已恢复到原始版本) */}
       <style jsx>{`
         .message-input-container {
           position: relative;
@@ -430,7 +429,6 @@ const MessageInput: React.FC = () => {
           flex-direction: column;
           gap: 8px;
           width: 100%;
-          /* 恢复: 移除了 max-height 和 overflow */
         }
 
         .message-preview-wrapper {
@@ -448,29 +446,35 @@ const MessageInput: React.FC = () => {
         .message-textarea {
           flex: 1;
           min-height: 40px;
-          max-height: 100px; /* 恢复: 原始 max-height */
+          /* 调大默认最大高度 */
+          max-height: 200px;
           padding: 10px 12px;
           font-size: 14px;
           line-height: 1.4;
           border: 1px solid ${theme.border};
           border-radius: 10px;
-          resize: none;
+          /* 只允许垂直方向拉伸 */
+          resize: vertical;
+          /* 拉伸后超过高度出现滚动 */
+          overflow-y: auto;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
           font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
           background: ${theme.backgroundSecondary};
           color: ${theme.text};
           transition:
             border-color 0.2s ease,
             box-shadow 0.2s ease;
-          /* 恢复: 移除了 overflow-y: auto */
         }
-
         .message-textarea::placeholder {
           color: ${theme.textTertiary};
         }
-
         .message-textarea:focus {
           outline: none;
           border-color: ${theme.primary};
+        }
+        .message-textarea::-webkit-resizer {
+          cursor: ns-resize;
         }
 
         .upload-button {
@@ -485,14 +489,12 @@ const MessageInput: React.FC = () => {
           color: ${theme.textSecondary};
           cursor: pointer;
           transition: all 0.2s ease;
-          flex-shrink: 0; /* 保持按钮大小 */
+          flex-shrink: 0;
         }
-
         .upload-button:hover {
           background: ${theme.backgroundHover};
           color: ${theme.text};
         }
-
         .upload-button:active {
           transform: scale(0.96);
         }
@@ -517,28 +519,31 @@ const MessageInput: React.FC = () => {
 
         @media screen and (min-width: 769px) {
           .message-input-container {
-            position: relative; /* 恢复: 保持 relative */
+            position: relative;
             max-width: 900px;
             margin: 0 auto;
             padding: 16px;
             padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-            border-top: none; /* 恢复: 保持 none */
-            box-shadow: none; /* 恢复: 保持 none */
-            /* 恢复: 移除了 border 和 border-radius */
+            border-top: none;
+            box-shadow: none;
           }
 
           .message-textarea {
             min-height: 44px;
-            max-height: 140px; /* 恢复: 原始 max-height */
+            /* 调大桌面端最大高度 */
+            max-height: 260px;
             padding: 12px 16px;
             font-size: 15px;
+            resize: vertical;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
           }
 
           .upload-button {
             width: 44px;
             height: 44px;
           }
-          /* 恢复: 移除了 .attachments-preview 的 max-height 调整 */
         }
 
         @media screen and (min-width: 1400px) {
@@ -549,16 +554,20 @@ const MessageInput: React.FC = () => {
 
         @media screen and (max-width: 480px) {
           .message-textarea {
-            /* 恢复: 移除了 min-height 调整 */
+            /* 调大手机端最大高度 */
+            max-height: 180px;
             padding: 8px 10px;
             font-size: 13px;
+            resize: vertical;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
           }
 
           .upload-button {
             width: 36px;
             height: 36px;
           }
-          /* 恢复: 移除了 .attachments-preview 的 max-height 调整 */
         }
       `}</style>
     </div>
