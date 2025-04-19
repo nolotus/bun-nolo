@@ -18,7 +18,6 @@ const SpaceLayout: React.FC = () => {
 
       <style>{`
         .space-layout {
-          padding: ${theme.space[5]};
           max-width: 1200px;
           margin: 0 auto;
           display: grid;
@@ -28,7 +27,6 @@ const SpaceLayout: React.FC = () => {
 
         .space-content {
           border-radius: 16px;
-          padding: ${theme.space[6]};
           min-height: 600px;
         }
 
