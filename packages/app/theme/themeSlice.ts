@@ -9,6 +9,22 @@ import { yellow } from "./yellow";
 import { graphite } from "./graphite";
 import { pink } from "./pink";
 
+// 简化的空间尺寸系统
+const SPACE = {
+  0: "0",
+  1: "4px", // 极小间距
+  2: "8px", // 小间距
+  3: "12px", // 中小间距
+  4: "16px", // 基础间距
+  5: "20px", // 中间距
+  6: "24px", // 中大间距
+  8: "32px", // 大间距
+  10: "40px", // 极大间距
+  12: "48px", // 特大间距
+  16: "64px", // 巨大间距
+  20: "80px", // 超大间距
+};
+
 // 主题色系配置
 const THEME_COLORS = {
   blue,
@@ -22,7 +38,6 @@ const THEME_COLORS = {
 };
 
 // 明暗模式基础颜色
-// app/theme/themeSlice.ts (MODE_COLORS 优化版)
 const MODE_COLORS = {
   light: {
     // 中性色系 - 适用于所有主题
@@ -98,6 +113,7 @@ const createThemeConfig = (themeName: string, isDark: boolean) => {
   const mode = isDark ? "dark" : "light";
   return {
     sidebarWidth: 260,
+    space: SPACE, // 添加精简的空间尺寸系统
     ...MODE_COLORS[mode],
     ...THEME_COLORS[themeName][mode],
   };
