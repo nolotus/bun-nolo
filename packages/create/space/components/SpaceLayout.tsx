@@ -1,4 +1,3 @@
-// create/space/components/SpaceLayout.tsx
 import React, { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import SpaceNavigation from "./SpaceNavigation";
@@ -19,18 +18,18 @@ const SpaceLayout: React.FC = () => {
 
       <style>{`
         .space-layout {
-          padding: 20px;
+          padding: ${theme.space[5]};
           max-width: 1200px;
           margin: 0 auto;
           display: grid;
           grid-template-columns: 1fr;
-          gap: 20px;
+          gap: ${theme.space[5]};
         }
 
         .space-content {
           background: ${theme.backgroundSecondary};
           border-radius: 16px;
-          padding: 24px;
+          padding: ${theme.space[6]};
           min-height: 600px;
         }
 
@@ -39,16 +38,16 @@ const SpaceLayout: React.FC = () => {
           justify-content: center;
           align-items: center;
           height: 400px;
-          color: ${theme.textSecondary};
+          color: ${theme.textTertiary};
         }
 
         @media (max-width: 768px) {
           .space-layout {
-            padding: 12px;
+            padding: ${theme.space[3]};
           }
 
           .space-content {
-            padding: 16px;
+            padding: ${theme.space[4]};
           }
         }
       `}</style>

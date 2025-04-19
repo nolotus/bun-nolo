@@ -2,6 +2,7 @@ import SpaceLayout from "create/space/components/SpaceLayout";
 import SpaceHome from "create/space/pages/SpaceHome";
 import SpaceSettings from "create/space/pages/SpaceSettings";
 import SpaceMembers from "create/space/pages/SpaceMembers";
+import SpaceFiles from "create/space/pages/SpaceFiles";
 
 export const spaceRoutes = {
   path: "space/:spaceId",
@@ -21,7 +22,7 @@ export const spaceRoutes = {
     },
     {
       path: "files",
-      element: <SpaceHome />, // 目前与首页相同，之后可以替换为专用文件页面
+      element: <SpaceFiles />, // 使用新的 SpaceFiles 组件
     },
   ],
 };

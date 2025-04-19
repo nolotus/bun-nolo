@@ -5,7 +5,7 @@ import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import Button from "render/web/ui/Button";
-import Pagination from "web/ui/Pagination";
+import Pagination from "render/web/ui/Pagination";
 import { useDeleteUser } from "auth/hooks/useDeleteUser";
 import { useRechargeUser } from "auth/hooks/useRechargeUser";
 import { Table, TableRow, TableCell } from "web/ui/Table";
