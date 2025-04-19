@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { FaCog, FaUsers, FaFile, FaHome } from "react-icons/fa";
+import { FiUsers, FiCalendar } from "react-icons/fi";
 import { useSpaceData } from "../hooks/useSpaceData";
 
 const SpaceNavigation: React.FC = () => {
@@ -59,36 +60,58 @@ const SpaceNavigation: React.FC = () => {
   return (
     <div className="space-navigation">
       <div className="space-header">
-        <div
-          className="space-title"
-          onClick={goToHome}
-          title={
-            loading
-              ? "加载中..."
-              : spaceData?.name || `空间 ${spaceId?.substring(0, 8)}`
-          }
-        >
-          {loading ? (
-            <div className="loading-title">
-              <div className="skeleton"></div>
-            </div>
-          ) : (
-            <>
-              <div
-                className="space-icon"
-                style={{
-                  background: spaceData?.name
-                    ? generateGradient(spaceData.name)
-                    : theme.primaryGradient,
-                }}
-              >
-                {spaceData?.name?.charAt(0)?.toUpperCase() || "#"}
+        <div className="space-info">
+          <div
+            className="space-title"
+            onClick={goToHome}
+            title={
+              loading
+                ? "加载中..."
+                : spaceData?.name || `空间 ${spaceId?.substring(0, 8)}`
+            }
+          >
+            {loading ? (
+              <div className="loading-title">
+                <div className="skeleton"></div>
               </div>
-              <span className="space-name">
-                {spaceData?.name || `空间 ${spaceId?.substring(0, 8)}`}
+            ) : (
+              <>
+                <div
+                  className="space-icon"
+                  style={{
+                    background: spaceData?.name
+                      ? generateGradient(spaceData.name)
+                      : theme.primaryGradient,
+                  }}
+                >
+                  {spaceData?.name?.charAt(0)?.toUpperCase() || "#"}
+                </div>
+                <span className="space-name">
+                  {spaceData?.name || `空间 ${spaceId?.substring(0, 8)}`}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* 新增：成员数和创建日期信息 */}
+          <div className="space-meta">
+            <div className="space-stat">
+              <FiUsers className="stat-icon" size={12} />
+              <span>
+                {loading ? "..." : spaceData?.members?.length || 0} 成员
               </span>
-            </>
-          )}
+            </div>
+            <div className="space-stat">
+              <FiCalendar className="stat-icon" size={12} />
+              <span>
+                {loading
+                  ? "..."
+                  : new Date(
+                      spaceData?.createdAt || Date.now()
+                    ).toLocaleDateString() + " 创建"}
+              </span>
+            </div>
+          </div>
         </div>
 
         <nav className="space-nav">
@@ -128,8 +151,16 @@ const SpaceNavigation: React.FC = () => {
 
         .space-header {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
+        }
+
+        .space-info {
+          display: flex;
+          flex-direction: column;
+          gap: ${theme.space[2]};
+          min-width: 0;
+          flex: 1;
         }
 
         .space-title {
@@ -146,7 +177,7 @@ const SpaceNavigation: React.FC = () => {
             ${theme.space[1]};
           border-radius: 10px;
           transition: all 0.2s ease;
-          max-width: 45%;
+          max-width: 100%;
           position: relative;
         }
 
@@ -157,6 +188,24 @@ const SpaceNavigation: React.FC = () => {
         .space-title:active {
           background: ${theme.backgroundSelected};
           transform: translateY(1px);
+        }
+
+        .space-meta {
+          display: flex;
+          gap: ${theme.space[4]};
+          padding-left: ${theme.space[2]};
+        }
+
+        .space-stat {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[1]};
+          font-size: 12px;
+          color: ${theme.textTertiary};
+        }
+
+        .stat-icon {
+          opacity: 0.7;
         }
 
         .space-icon {
@@ -192,9 +241,9 @@ const SpaceNavigation: React.FC = () => {
           width: 100%;
           background: linear-gradient(
             90deg,
-            ${theme.backgroundSecondary} 25%,
+            ${theme.background} 25%,
             ${theme.backgroundHover} 50%,
-            ${theme.backgroundSecondary} 75%
+            ${theme.background} 75%
           );
           background-size: 200% 100%;
           animation: shimmer 1.5s infinite;
@@ -213,7 +262,7 @@ const SpaceNavigation: React.FC = () => {
         .space-nav {
           display: flex;
           align-items: center;
-          background: ${theme.backgroundSecondary};
+          background: ${theme.backgroundHover};
           padding: ${theme.space[1]};
           border-radius: 10px;
         }
@@ -233,12 +282,12 @@ const SpaceNavigation: React.FC = () => {
 
         .nav-item:hover {
           color: ${theme.text};
-          background: ${theme.backgroundHover};
+          background: ${theme.background};
         }
 
         .nav-item.active {
           color: ${theme.primary};
-          background: ${theme.backgroundSelected};
+          background: ${theme.background};
         }
 
         .home-nav-item {
@@ -263,13 +312,21 @@ const SpaceNavigation: React.FC = () => {
             align-items: stretch;
           }
 
-          .space-title {
+          .space-info {
             margin-bottom: ${theme.space[3]};
+          }
+
+          .space-title {
             max-width: 100%;
             width: 100%;
             justify-content: center;
             padding: ${theme.space[2]} ${theme.space[3]};
             border-radius: 8px;
+          }
+
+          .space-meta {
+            justify-content: center;
+            padding-left: 0;
           }
 
           .space-nav {
@@ -293,6 +350,12 @@ const SpaceNavigation: React.FC = () => {
         @media (max-width: 480px) {
           .space-navigation {
             padding: ${theme.space[2]};
+          }
+
+          .space-meta {
+            flex-direction: column;
+            gap: ${theme.space[1]};
+            align-items: center;
           }
 
           .nav-item {

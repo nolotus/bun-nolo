@@ -71,49 +71,9 @@ const SpaceHome: React.FC = () => {
 
   return (
     <div className="space-home">
-      <div className="dashboard-header">
-        <div className="stats-pills">
-          <div className="stat-pill">
-            <div className="stat-icon pages-icon">
-              <HiOutlineDocument />
-            </div>
-            <div className="stat-info">
-              <span className="stat-label">页面</span>
-              <span className="stat-value">{pages.length}</span>
-            </div>
-          </div>
+      {/* 注意：移除了统计信息区域，该信息将移动到SpaceNavigation组件中 */}
 
-          <div className="stat-pill">
-            <div className="stat-icon members-icon">
-              <FiUsers />
-            </div>
-            <div className="stat-info">
-              <span className="stat-label">成员</span>
-              <span className="stat-value">
-                {loading ? "..." : spaceData?.members?.length || 0}
-              </span>
-            </div>
-          </div>
-
-          <div className="stat-pill">
-            <div className="stat-icon date-icon">
-              <FiCalendar />
-            </div>
-            <div className="stat-info">
-              <span className="stat-label">创建于</span>
-              <span className="stat-value">
-                {loading
-                  ? "..."
-                  : new Date(
-                      spaceData?.createdAt || Date.now()
-                    ).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Cybots 部分 - 放在最新页面上方 */}
+      {/* Cybots 部分 */}
       {currentUserId && (
         <div className="content-section">
           <div className="section-header">
@@ -126,12 +86,6 @@ const SpaceHome: React.FC = () => {
           </div>
 
           <div className="cybots-container">
-            {/* TODO: 实现真正的分页功能，包括:
-              1. 创建专用的分页组件包装Cybots
-              2. 添加后端API支持，提供总数和分页数据
-              3. 集成Pagination组件进行页面导航
-              4. 处理加载状态和错误情况
-            */}
             <Cybots queryUserId={currentUserId} limit={100} />
           </div>
         </div>
@@ -199,89 +153,6 @@ const SpaceHome: React.FC = () => {
           width: 100%;
         }
 
-        .dashboard-header {
-          margin-bottom: ${theme.space[6]};
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: ${theme.space[3]};
-        }
-
-        .stats-pills {
-          display: flex;
-          gap: ${theme.space[2]};
-          flex-wrap: wrap;
-        }
-
-        .stat-pill {
-          display: flex;
-          align-items: center;
-          background: ${theme.background};
-          border-radius: 40px;
-          padding: ${theme.space[1]} ${theme.space[3]};
-          box-shadow: 0 1px 2px ${theme.shadowLight};
-          transition: transform 0.15s ease;
-        }
-
-        .stat-pill:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px ${theme.shadowLight};
-        }
-
-        .stat-icon {
-          width: ${theme.space[6]};
-          height: ${theme.space[6]};
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 14px;
-          margin-right: ${theme.space[2]};
-        }
-
-        .pages-icon {
-          background: ${theme.primaryLight};
-          color: ${theme.primary};
-        }
-
-        .members-icon {
-          background: rgba(16, 185, 129, 0.15);
-          color: rgb(16, 185, 129);
-        }
-
-        .date-icon {
-          background: rgba(245, 158, 11, 0.15);
-          color: rgb(245, 158, 11);
-        }
-
-        .robots-icon {
-          background: ${theme.primaryLight};
-          color: ${theme.primary};
-        }
-
-        .pages-title-icon {
-          background: ${theme.backgroundTertiary};
-          color: ${theme.textSecondary};
-        }
-
-        .stat-info {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .stat-label {
-          font-size: 11px;
-          color: ${theme.textSecondary};
-          line-height: 1;
-        }
-
-        .stat-value {
-          font-size: 14px;
-          font-weight: 600;
-          color: ${theme.text};
-        }
-
         .content-section {
           margin-bottom: ${theme.space[8]};
         }
@@ -315,9 +186,19 @@ const SpaceHome: React.FC = () => {
           margin-right: ${theme.space[3]};
           width: ${theme.space[6]};
           height: ${theme.space[6]};
-          background: ${theme.backgroundSecondary};
+          background: ${theme.backgroundHover};
           color: ${theme.primary};
           border-radius: 6px;
+        }
+
+        .robots-icon {
+          background: ${theme.primaryLight};
+          color: ${theme.primary};
+        }
+
+        .pages-title-icon {
+          background: ${theme.backgroundTertiary};
+          color: ${theme.textSecondary};
         }
 
         .import-button {
@@ -351,7 +232,7 @@ const SpaceHome: React.FC = () => {
         }
 
         .import-button.secondary {
-          background: ${theme.backgroundSecondary};
+          background: ${theme.backgroundHover};
           color: ${theme.text};
         }
 
@@ -361,7 +242,6 @@ const SpaceHome: React.FC = () => {
 
         .pages-container,
         .cybots-container {
-          background: ${theme.background};
           border-radius: 12px;
           overflow: hidden;
           box-shadow: 0 1px 3px ${theme.shadowLight};
@@ -379,7 +259,7 @@ const SpaceHome: React.FC = () => {
         }
 
         .page-card {
-          background: ${theme.backgroundSecondary};
+          background: ${theme.background};
           border-radius: 10px;
           padding: ${theme.space[4]};
           display: flex;
@@ -388,6 +268,7 @@ const SpaceHome: React.FC = () => {
             transform 0.2s,
             box-shadow 0.2s;
           cursor: pointer;
+          box-shadow: 0 1px 3px ${theme.shadowLight};
         }
 
         .page-card:hover {
@@ -432,16 +313,6 @@ const SpaceHome: React.FC = () => {
         }
 
         @media (max-width: 768px) {
-          .dashboard-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .stats-pills {
-            width: 100%;
-            justify-content: space-between;
-          }
-
           .section-header {
             flex-direction: column;
             align-items: flex-start;
@@ -463,22 +334,8 @@ const SpaceHome: React.FC = () => {
         }
 
         @media (max-width: 480px) {
-          .stats-pills {
-            gap: ${theme.space[1]};
-          }
-
-          .stat-pill {
-            padding: ${theme.space[1]} ${theme.space[2]};
-          }
-
-          .stat-icon {
-            width: ${theme.space[5]};
-            height: ${theme.space[5]};
-            font-size: 10px;
-          }
-
-          .stat-value {
-            font-size: 13px;
+          .import-button svg {
+            font-size: 12px;
           }
         }
       `}</style>

@@ -27,7 +27,6 @@ const SpaceLayout: React.FC = () => {
         }
 
         .space-content {
-          background: ${theme.backgroundSecondary};
           border-radius: 16px;
           padding: ${theme.space[6]};
           min-height: 600px;
