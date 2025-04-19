@@ -36,7 +36,7 @@ export const messageSlice = createSliceWithThunks({
       async (msg, thunkApi) => {
         const { dispatch } = thunkApi;
         await dispatch(addMsg(msg)).unwrap();
-        return { id: msg.id };
+        return { id: msg.dbKey };
       },
       {
         fulfilled: (state, action) => {
@@ -80,7 +80,7 @@ export const messageSlice = createSliceWithThunks({
         await thunkApi.dispatch(
           write({
             data: { ...msg, type: DataType.MSG },
-            customKey: msg.id,
+            customKey: msg.dbKey,
             //must change
           })
         );
@@ -88,7 +88,7 @@ export const messageSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          const hasTheMsg = state.msgs.includes(action.payload.id);
+          const hasTheMsg = state.msgs.includes(action.payload.dbKey);
           if (!hasTheMsg) {
             state.msgs.unshift(action.payload);
           }

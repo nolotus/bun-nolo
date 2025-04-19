@@ -114,7 +114,7 @@ export const sendCommonChatRequest = async ({
   const controller = new AbortController();
   const signal = controller.signal;
   const currentServer = selectCurrentServer(getState());
-  const messageId = createDialogMessageKey(dialogId);
+  const msgKey = createDialogMessageKey(dialogId);
 
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
@@ -129,7 +129,8 @@ export const sendCommonChatRequest = async ({
   try {
     dispatch(
       messageStreaming({
-        id: messageId,
+        id: msgKey,
+        dbKey: msgKey,
         content: contentBuffer,
         role: "assistant",
         cybotId: cybotConfig.id,
@@ -164,9 +165,11 @@ export const sendCommonChatRequest = async ({
           contentBuffer.length > 0
             ? contentBuffer
             : [{ type: "text", text: "" }];
+        //正常结束
         dispatch(
           messageStreamEnd({
-            id: messageId,
+            id: msgKey,
+            dbKey: msgKey,
             content: finalContent,
             role: "assistant",
             cybotId: cybotConfig.id,
@@ -222,9 +225,11 @@ export const sendCommonChatRequest = async ({
             ...contentBuffer,
             { type: "text", text: `\n[API Error] ${errorMsg}` },
           ];
+          //错误结束
           dispatch(
             messageStreamEnd({
-              id: messageId,
+              id: msgKey,
+              dbKey: msgKey,
               content: contentBuffer,
               role: "assistant",
               cybotId: cybotConfig.id,
@@ -252,14 +257,14 @@ export const sendCommonChatRequest = async ({
                   toolCall,
                   dispatch,
                   cybotConfig,
-                  messageId
+                  msgKey
                 );
                 let newContentBuffer = [...contentBuffer, toolResult];
                 contentBuffer = newContentBuffer;
 
                 dispatch(
                   messageStreaming({
-                    id: messageId,
+                    id: msgKey,
                     content: contentBuffer,
                     role: "assistant",
                     cybotId: cybotConfig.id,
@@ -277,7 +282,7 @@ export const sendCommonChatRequest = async ({
                 contentBuffer = newContentBuffer;
                 dispatch(
                   messageStreaming({
-                    id: messageId,
+                    id: msgKey,
                     content: contentBuffer,
                     role: "assistant",
                     cybotId: cybotConfig.id,
@@ -321,7 +326,7 @@ export const sendCommonChatRequest = async ({
           contentBuffer = newContentBuffer;
           dispatch(
             messageStreaming({
-              id: messageId,
+              id: msgKey,
               content: contentBuffer,
               role: "assistant",
               cybotId: cybotConfig.id,
@@ -356,10 +361,11 @@ export const sendCommonChatRequest = async ({
       newContentBuffer = [...contentBuffer, { type: "text", text: errorText }];
     }
     contentBuffer = newContentBuffer;
-
+    //中断结束
     dispatch(
       messageStreamEnd({
-        id: messageId,
+        id: msgKey,
+        dbKey: msgKey,
         content: contentBuffer,
         role: "assistant",
         cybotId: cybotConfig.id,

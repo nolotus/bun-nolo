@@ -67,8 +67,8 @@ export const googleModels: Model[] = [
     contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly larger.
     maxOutputTokens: 8192, // Placeholder - Likely similar to Flash, or possibly larger.
     price: {
-      input: 0.15, // Cost per 1,000,000 tokens
-      output: 0.6, // Cost per 1,000,000 tokens
+      input: 0.15 * 8, // Cost per 1,000,000 tokens, 0.15 * 8 = 1.2
+      output: 0.6 * 8, // Cost per 1,000,000 tokens, 0.6 * 8 = 4.8
       cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
       cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
     },
