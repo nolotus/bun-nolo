@@ -16,7 +16,7 @@ export const Tooltip = ({
   delay = 200,
   placement = "top",
 }: TooltipProps) => {
-  // 只取基础方向（例如 "top-start" 仅取 "top"）
+  // 只取基础方向
   const basePlacement = placement.split("-")[0] as
     | "top"
     | "bottom"
@@ -47,7 +47,7 @@ export const Tooltip = ({
           font-size: 0.875rem;
           line-height: 1.4;
           z-index: 1000;
-          box-shadow: 0 4px 12px ${theme.shadowMedium};
+          box-shadow: 0 3px 10px ${theme.shadowMedium};
           border: 1px solid ${theme.border};
           border-radius: 6px;
           opacity: 0;
@@ -62,14 +62,14 @@ export const Tooltip = ({
           visibility: visible;
         }
         .tooltip-content {
-          padding: 6px 12px;
+          padding: ${theme.space[2]} ${theme.space[3]};
           white-space: nowrap;
         }
         /* Top 方向 Tooltip 调整 */
         .tooltip-top {
-          bottom: calc(100% + 8px);
+          bottom: calc(100% + ${theme.space[2]});
           left: 50%;
-          transform: translateX(-50%) translateY(4px) scale(0.96);
+          transform: translateX(-50%) translateY(${theme.space[1]}) scale(0.96);
         }
         .tooltip-wrapper:hover .tooltip-top,
         .tooltip-wrapper:focus-within .tooltip-top {
@@ -78,21 +78,20 @@ export const Tooltip = ({
         .tooltip-top .tooltip-arrow {
           position: absolute;
           left: 50%;
-          bottom: -4px;
+          bottom: -5px;
           transform: translateX(-50%) rotate(45deg);
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.border};
-          /* 移除上边和左边的边框，使箭头只在底右两边显示 */
           border-top: none;
           border-left: none;
         }
         /* Bottom 方向 Tooltip 调整 */
         .tooltip-bottom {
-          top: calc(100% + 8px);
+          top: calc(100% + ${theme.space[2]});
           left: 50%;
-          transform: translateX(-50%) translateY(-4px) scale(0.96);
+          transform: translateX(-50%) translateY(-${theme.space[1]}) scale(0.96);
         }
         .tooltip-wrapper:hover .tooltip-bottom,
         .tooltip-wrapper:focus-within .tooltip-bottom {
@@ -101,21 +100,20 @@ export const Tooltip = ({
         .tooltip-bottom .tooltip-arrow {
           position: absolute;
           left: 50%;
-          top: -4px;
+          top: -5px;
           transform: translateX(-50%) rotate(45deg);
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.border};
-          /* 移除下边和右边的边框 */
           border-bottom: none;
           border-right: none;
         }
         /* Left 方向 Tooltip 调整 */
         .tooltip-left {
-          right: calc(100% + 8px);
+          right: calc(100% + ${theme.space[2]});
           top: 50%;
-          transform: translateY(-50%) translateX(4px) scale(0.96);
+          transform: translateY(-50%) translateX(${theme.space[1]}) scale(0.96);
         }
         .tooltip-wrapper:hover .tooltip-left,
         .tooltip-wrapper:focus-within .tooltip-left {
@@ -123,22 +121,21 @@ export const Tooltip = ({
         }
         .tooltip-left .tooltip-arrow {
           position: absolute;
-          right: -4px;
+          right: -5px;
           top: 50%;
           transform: translateY(-50%) rotate(45deg);
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.border};
-          /* 移除右边和上边的边框 */
           border-right: none;
           border-top: none;
         }
         /* Right 方向 Tooltip 调整 */
         .tooltip-right {
-          left: calc(100% + 8px);
+          left: calc(100% + ${theme.space[2]});
           top: 50%;
-          transform: translateY(-50%) translateX(-4px) scale(0.96);
+          transform: translateY(-50%) translateX(-${theme.space[1]}) scale(0.96);
         }
         .tooltip-wrapper:hover .tooltip-right,
         .tooltip-wrapper:focus-within .tooltip-right {
@@ -146,14 +143,13 @@ export const Tooltip = ({
         }
         .tooltip-right .tooltip-arrow {
           position: absolute;
-          left: -4px;
+          left: -5px;
           top: 50%;
           transform: translateY(-50%) rotate(45deg);
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.border};
-          /* 移除左边和下边的边框 */
           border-left: none;
           border-bottom: none;
         }
