@@ -18,6 +18,14 @@ export const ollamaModels: Model[] = [
     price: { input: 0, output: 0 },
   },
   {
+    name: "mistral-small3.1:latest",
+    displayName: "Mistral Small",
+    description: "Mistral-small language model",
+    hasVision: false,
+    contextWindow: 128000,
+    price: { input: 0, output: 0 },
+  },
+  {
     name: "llama3.1:latest",
     displayName: "Llama 3.1",
     description: "Large language model",
@@ -36,3 +44,4 @@ export const ollamaModels: Model[] = [
     price: { input: 0, output: 0 },
   },
 ];
+
