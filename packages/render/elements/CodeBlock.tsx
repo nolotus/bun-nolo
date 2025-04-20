@@ -28,6 +28,8 @@ const CodeBlock = ({ attributes, children, element }) => {
   const theme = useTheme();
   const [isCopied, setIsCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showRightPreview, setShowRightPreview] = useState(false);
 
   const content = useMemo(() => {
     const getTextContent = (nodes) => {
@@ -59,15 +61,19 @@ const CodeBlock = ({ attributes, children, element }) => {
     });
   };
 
-  // 通用代码块样式
+  // 提取 code-block 的内边距变量
+  const CODE_BLOCK_PADDING = theme.space[4]; // 16px，作为标准内边距
+  const CODE_BLOCK_PADDING_COLLAPSED = theme.space[1]; // 4px，折叠状态下减少内边距以配合居中
+
+  // 通用代码块样式，使用提取的变量
   const codeBlockStyles = `
     .code-block {
       position: relative;
       font-family: 'Fira Code', monospace;
       background: ${theme.backgroundSecondary};
-      padding: 16px 18px;
-      border-radius: 6px;
-      margin: 18px 0;
+      padding: ${CODE_BLOCK_PADDING} ${CODE_BLOCK_PADDING};
+      border-radius: ${theme.space[2]};
+      margin: ${theme.space[4]} 0;
       border: 1px solid ${theme.border};
       box-shadow: 0 1px 2px ${theme.shadowLight};
       transition: all 0.2s ease-out;
@@ -75,17 +81,24 @@ const CodeBlock = ({ attributes, children, element }) => {
     
     .preview-mode {
       background: ${theme.backgroundGhost};
-      padding: 18px;
+      padding: ${CODE_BLOCK_PADDING};
+    }
+
+    .collapsed {
+      padding: ${CODE_BLOCK_PADDING_COLLAPSED} ${CODE_BLOCK_PADDING};
+      min-height: ${theme.space[10]}; /* 40px，确保 actions 可见 */
+      overflow: hidden;
     }
 
     .code-content {
       margin: 0;
       white-space: pre-wrap;
       word-break: break-word;
-      font-size: 14px; /* 略微增大 */
+      font-size: 14px;
       line-height: 1.6;
       color: ${theme.text};
       overflow-x: auto;
+      display: ${isCollapsed ? "none" : "block"};
     }
     
     .code-block:hover {
@@ -102,7 +115,7 @@ const CodeBlock = ({ attributes, children, element }) => {
           <style>{codeBlockStyles}</style>
           <div
             {...attributes}
-            className={`code-block ${showPreview ? "preview-mode" : ""}`}
+            className={`code-block ${showPreview ? "preview-mode" : ""} ${isCollapsed ? "collapsed" : ""}`}
           >
             <CodeBlockActions
               language={element.language}
@@ -110,8 +123,13 @@ const CodeBlock = ({ attributes, children, element }) => {
               setShowPreview={setShowPreview}
               isCopied={isCopied}
               onCopy={handleCopy}
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+              showRightPreview={showRightPreview}
+              setShowRightPreview={setShowRightPreview}
+              codeBlockPadding={CODE_BLOCK_PADDING} // 传递给 CodeBlockActions 用于 gap
             />
-            {showPreview ? (
+            {!isCollapsed && showPreview ? (
               <JsonView
                 data={jsonData}
                 shouldExpandNode={allExpanded}
@@ -124,7 +142,7 @@ const CodeBlock = ({ attributes, children, element }) => {
                 }}
               />
             ) : (
-              <pre className="code-content">{content}</pre>
+              !isCollapsed && <pre className="code-content">{content}</pre>
             )}
           </div>
         </>
@@ -137,17 +155,17 @@ const CodeBlock = ({ attributes, children, element }) => {
   // Mermaid View
   if (element.language === "mermaid") {
     useEffect(() => {
-      if (showPreview) {
+      if (showPreview && !isCollapsed) {
         mermaid.contentLoaded();
       }
-    }, [showPreview]);
+    }, [showPreview, isCollapsed]);
 
     return (
       <>
         <style>{codeBlockStyles}</style>
         <div
           {...attributes}
-          className={`code-block ${showPreview ? "preview-mode" : ""}`}
+          className={`code-block ${showPreview ? "preview-mode" : ""} ${isCollapsed ? "collapsed" : ""}`}
         >
           <CodeBlockActions
             language={element.language}
@@ -155,11 +173,16 @@ const CodeBlock = ({ attributes, children, element }) => {
             setShowPreview={setShowPreview}
             isCopied={isCopied}
             onCopy={handleCopy}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            showRightPreview={showRightPreview}
+            setShowRightPreview={setShowRightPreview}
+            codeBlockPadding={CODE_BLOCK_PADDING}
           />
-          {showPreview ? (
+          {!isCollapsed && showPreview ? (
             <div className="mermaid">{content}</div>
           ) : (
-            <pre className="code-content">{content}</pre>
+            !isCollapsed && <pre className="code-content">{content}</pre>
           )}
         </div>
       </>
@@ -170,15 +193,23 @@ const CodeBlock = ({ attributes, children, element }) => {
   return (
     <>
       <style>{codeBlockStyles}</style>
-      <div {...attributes} className="code-block">
+      <div
+        {...attributes}
+        className={`code-block ${isCollapsed ? "collapsed" : ""}`}
+      >
         <CodeBlockActions
           language={element.language}
           showPreview={showPreview}
           setShowPreview={setShowPreview}
           isCopied={isCopied}
           onCopy={handleCopy}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          showRightPreview={showRightPreview}
+          setShowRightPreview={setShowRightPreview}
+          codeBlockPadding={CODE_BLOCK_PADDING}
         />
-        <pre className="code-content">{children}</pre>
+        {!isCollapsed && <pre className="code-content">{children}</pre>}
       </div>
     </>
   );
