@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { JsonView, allExpanded, defaultStyles } from "react-json-view-lite";
 import { useTheme } from "app/theme";
 import mermaid from "mermaid";
 import copyToClipboard from "utils/clipboard";
 import CodeBlockActions from "./CodeBlockActions";
+import JsonBlock from "./JsonBlock"; // 假设文件路径正确
+import ReactLiveBlock from "./ReactLiveBlock"; // 假设文件路径正确
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-jsx";
 import "prismjs/components/prism-typescript";
@@ -106,50 +107,37 @@ const CodeBlock = ({ attributes, children, element }) => {
     }
   `;
 
-  // JSON View
-  if (element.language === "json" && content) {
-    try {
-      const jsonData = JSON.parse(content);
-      return (
-        <>
-          <style>{codeBlockStyles}</style>
-          <div
-            {...attributes}
-            className={`code-block ${showPreview ? "preview-mode" : ""} ${isCollapsed ? "collapsed" : ""}`}
-          >
-            <CodeBlockActions
-              language={element.language}
+  // JSON View only when showPreview is true
+  if (element.language === "json" && showPreview && content) {
+    return (
+      <>
+        <style>{codeBlockStyles}</style>
+        <div
+          {...attributes}
+          className={`code-block preview-mode ${isCollapsed ? "collapsed" : ""}`}
+        >
+          <CodeBlockActions
+            language={element.language}
+            showPreview={showPreview}
+            setShowPreview={setShowPreview}
+            isCopied={isCopied}
+            onCopy={handleCopy}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            showRightPreview={showRightPreview}
+            setShowRightPreview={setShowRightPreview}
+            codeBlockPadding={CODE_BLOCK_PADDING} // 传递给 CodeBlockActions 用于 gap
+          />
+          {!isCollapsed && (
+            <JsonBlock
+              rawCode={content}
               showPreview={showPreview}
-              setShowPreview={setShowPreview}
-              isCopied={isCopied}
-              onCopy={handleCopy}
-              isCollapsed={isCollapsed}
-              setIsCollapsed={setIsCollapsed}
-              showRightPreview={showRightPreview}
-              setShowRightPreview={setShowRightPreview}
-              codeBlockPadding={CODE_BLOCK_PADDING} // 传递给 CodeBlockActions 用于 gap
+              codeBlockPadding={CODE_BLOCK_PADDING}
             />
-            {!isCollapsed && showPreview ? (
-              <JsonView
-                data={jsonData}
-                shouldExpandNode={allExpanded}
-                style={{
-                  ...defaultStyles,
-                  container: {
-                    ...defaultStyles.container,
-                    backgroundColor: "transparent",
-                  },
-                }}
-              />
-            ) : (
-              !isCollapsed && <pre className="code-content">{content}</pre>
-            )}
-          </div>
-        </>
-      );
-    } catch (e) {
-      console.error("JSON parse error:", e);
-    }
+          )}
+        </div>
+      </>
+    );
   }
 
   // Mermaid View
@@ -189,7 +177,46 @@ const CodeBlock = ({ attributes, children, element }) => {
     );
   }
 
-  // Default Code Block
+  // React Live View for JSX/TSX only when showPreview is true
+  if (
+    (element.language === "jsx" || element.language === "tsx") &&
+    showPreview
+  ) {
+    return (
+      <>
+        <style>{codeBlockStyles}</style>
+        <div
+          {...attributes}
+          className={`code-block preview-mode ${isCollapsed ? "collapsed" : ""}`}
+        >
+          <CodeBlockActions
+            language={element.language}
+            showPreview={showPreview}
+            setShowPreview={setShowPreview}
+            isCopied={isCopied}
+            onCopy={handleCopy}
+            isCollapsed={isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            showRightPreview={showRightPreview}
+            setShowRightPreview={setShowRightPreview}
+            codeBlockPadding={CODE_BLOCK_PADDING}
+          />
+          {!isCollapsed && (
+            <ReactLiveBlock
+              rawCode={content}
+              language={element.language}
+              theme={theme}
+              showPreview={showPreview}
+              liveScope={{}} // 需要根据你的需求传递 scope
+              codeBlockPadding={CODE_BLOCK_PADDING}
+            />
+          )}
+        </div>
+      </>
+    );
+  }
+
+  // Default Code Block (including JSON and JSX/TSX when showPreview is false)
   return (
     <>
       <style>{codeBlockStyles}</style>
@@ -209,7 +236,13 @@ const CodeBlock = ({ attributes, children, element }) => {
           setShowRightPreview={setShowRightPreview}
           codeBlockPadding={CODE_BLOCK_PADDING}
         />
-        {!isCollapsed && <pre className="code-content">{children}</pre>}
+        {!isCollapsed && (
+          <pre
+            className={`code-content language-${element.language || "plaintext"}`}
+          >
+            <code>{children}</code>
+          </pre>
+        )}
       </div>
     </>
   );

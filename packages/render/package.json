@@ -1,10 +1,9 @@
 {
-	"name": "render",
-	"module": "index.ts",
-	"type": "module",
-	"dependencies": {
-		"app": "workspace:app",
-		"database": "workspace:database",
-		"react-json-view-lite": "^1.2.1"
-	}
+  "name": "render",
+  "module": "index.ts",
+  "type": "module",
+  "dependencies": {
+    "app": "workspace:app",
+    "database": "workspace:database"
+  }
 }
