@@ -19,7 +19,7 @@ export const ollamaModels: Model[] = [
   },
   {
     name: "mistral-small3.1:latest",
-    displayName: "Mistral Small",
+    displayName: "Mistral Small3.1",
     description: "Mistral-small language model",
     hasVision: false,
     contextWindow: 128000,
