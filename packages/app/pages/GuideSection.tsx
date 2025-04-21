@@ -14,10 +14,12 @@ import { BiBook } from "react-icons/bi";
 import Cybots from "ai/cybot/web/Cybots";
 import { useNavigate, NavLink } from "react-router-dom";
 import { createPage } from "render/page/pageSlice";
+import { selectCurrentSpaceId } from "create/space/spaceSlice";
 
 const GuideSection = () => {
   const theme = useAppSelector(selectTheme);
   const currentUserId = useAppSelector(selectCurrentUserId);
+  const currentSpaceId = useAppSelector(selectCurrentSpaceId);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -146,7 +148,7 @@ const GuideSection = () => {
               <BsRobot size={16} className="subtitle-icon" />
               我的 Cybot 列表
             </h3>
-            <NavLink to="/cybots" className="view-all-link">
+            <NavLink to={`space/${currentSpaceId}`} className="view-all-link">
               <span>查看全部</span>
               <FiChevronRight size={16} aria-hidden="true" />
             </NavLink>
