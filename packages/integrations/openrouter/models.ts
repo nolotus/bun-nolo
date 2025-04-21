@@ -102,4 +102,14 @@ export const openrouterModels = [
     contextWindow: 200000,
     supportsTool: true,
   },
+  {
+    name: "google/gemini-2.5-pro-preview-03-25",
+    displayName: "Google: Gemini 2.5 Pro Preview",
+    hasVision: true,
+    price: { input: 1.25 * 8, output: 10 * 8 },
+    maxOutputTokens: 1048576,
+    contextWindow: 1048576,
+    supportsTool: true,
+    pricePerImage: 5.16 * 8,
+  },
 ];
