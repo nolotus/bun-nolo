@@ -1,49 +1,53 @@
-// MessageInput.tsx
-import { useAuth } from "auth/hooks/useAuth";
+// chat/web/MessageInput.tsx
 import type React from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { Content } from "../messages/types";
 import { zIndex } from "render/styles/zIndex";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks";
 import { handleSendMessage } from "../messages/messageSlice";
-import { UploadIcon } from "@primer/octicons-react";
-import SendButton from "./ActionButton";
-import ImagePreview from "./ImagePreview";
-import ExcelPreview from "web/ExcelPreview"; // 新的组件
-import toast from "react-hot-toast";
+
+import {
+  addPendingImagePreview,
+  addPendingExcelFile,
+  removePendingImagePreview,
+  removePendingExcelFile,
+  setPreviewingExcelFile,
+  clearPendingAttachments,
+  selectPendingImagePreviews,
+  selectPendingExcelFiles,
+  selectPreviewingExcelFile,
+  type PendingImagePreview,
+  type PendingExcelFile,
+} from "../dialog/dialogSlice"; // Ensure path is correct
+
+// Import the compression utility
+import { compressImage } from "utils/imageUtils"; // Adjust path if needed
+
 import * as XLSX from "xlsx";
 import { nanoid } from "nanoid";
-
-// 定义Excel文件类型
-interface ExcelFile {
-  id: string;
-  name: string;
-  data: any[]; // 保持any[]以匹配XLSX输出，或定义更具体的类型
-}
+import toast from "react-hot-toast";
+import ExcelPreview from "web/ExcelPreview";
+import { UploadIcon } from "@primer/octicons-react";
+import SendButton from "./ActionButton";
+import ImagePreview from "./ImagePreview"; // Assuming this is updated as per previous step
 
 const MessageInput: React.FC = () => {
-  // --- Hooks ---
+  // --- Hooks, Refs, Local State, Redux State (remain the same) ---
   const dispatch = useAppDispatch();
   const theme = useTheme();
   const { t } = useTranslation();
-  // const auth = useAuth(); // auth 未在组件中使用，可以移除或注释掉
-
-  // --- Refs ---
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // --- State ---
   const [textContent, setTextContent] = useState("");
-  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
-  const [excelFiles, setExcelFiles] = useState<ExcelFile[]>([]);
-  const [previewingFileId, setPreviewingFileId] = useState<string | null>(null); // 只保存ID更轻量
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isDragEnabled, setIsDragEnabled] = useState(false); // 用于延迟启用拖放
+  const [isDragEnabled, setIsDragEnabled] = useState(false);
+  const imagePreviews = useAppSelector(selectPendingImagePreviews);
+  const excelFiles = useAppSelector(selectPendingExcelFiles);
+  const previewingExcelFile = useAppSelector(selectPreviewingExcelFile);
 
-  // --- Effects ---
-  // 延迟加载拖拽功能，避免初始加载时意外触发
+  // --- Effects (remain the same) ---
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsDragEnabled(true);
@@ -51,22 +55,22 @@ const MessageInput: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // --- File Handling Callbacks ---
+  // --- File Handling Callbacks (remain the same) ---
+  const handleAddImagePreview = useCallback(
+    (file: File) => {
+      if (!file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) {
+          dispatch(addPendingImagePreview(reader.result as string));
+        }
+      };
+      reader.readAsDataURL(file);
+    },
+    [dispatch]
+  );
 
-  // 解析图片文件并生成预览URL
-  const addImagePreviewUrl = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (reader.result) {
-        setImagePreviewUrls((prev) => [...prev, reader.result as string]);
-      }
-    };
-    reader.readAsDataURL(file);
-  }, []); // 依赖项: setImagePreviewUrls (setState是稳定的，可以省略)
-
-  // 解析Excel文件
-  const parseAndAddExcelFile = useCallback(
+  const handleParseAndAddExcel = useCallback(
     (file: File) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -86,12 +90,12 @@ const MessageInput: React.FC = () => {
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
           if (jsonData.length > 0) {
-            const newExcelFile: ExcelFile = {
+            const newExcelFile: PendingExcelFile = {
               id: nanoid(),
               name: file.name,
               data: jsonData,
             };
-            setExcelFiles((prev) => [...prev, newExcelFile]);
+            dispatch(addPendingExcelFile(newExcelFile));
           } else {
             toast.error(t("excelIsEmpty") || "Excel文件内容为空");
           }
@@ -105,307 +109,315 @@ const MessageInput: React.FC = () => {
       };
       reader.readAsArrayBuffer(file);
     },
-    [t]
-  ); // 依赖项: setExcelFiles (setState稳定), t (来自i18n，可能变化)
+    [dispatch, t]
+  );
 
-  // 根据文件类型处理文件
   const processFile = useCallback(
     (file: File) => {
       const fileNameLower = file.name.toLowerCase();
       if (file.type.startsWith("image/")) {
-        addImagePreviewUrl(file);
+        handleAddImagePreview(file);
       } else if (
         fileNameLower.endsWith(".xlsx") ||
         fileNameLower.endsWith(".xls") ||
-        fileNameLower.endsWith(".csv") || // CSV 也视为Excel处理
-        file.type.includes("excel") || // 更通用的检查
+        fileNameLower.endsWith(".csv") ||
+        file.type.includes("excel") ||
         file.type === "application/vnd.ms-excel" ||
         file.type ===
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       ) {
-        parseAndAddExcelFile(file);
-      } else {
-        // 可以选择性地提示不支持的文件类型
-        // toast.info(`${file.name} ${t('unsupportedFileType') || 'is not supported'}`);
+        handleParseAndAddExcel(file);
       }
     },
-    [addImagePreviewUrl, parseAndAddExcelFile]
-  ); // 依赖项: memoized callbacks
+    [handleAddImagePreview, handleParseAndAddExcel]
+  );
 
   // --- Input & Send Logic ---
 
-  // 处理文本输入变化及高度自适应
   const handleTextareaChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const textarea = e.target;
-      // 重置高度以获取正确scrollHeight
       textarea.style.height = "auto";
-      // 计算最大高度 (响应式)
-      const maxHeight = window.innerWidth > 768 ? 140 : 100;
-      // 设置新高度，但不超过最大值
+      const maxHeight = window.innerWidth > 768 ? 140 : 100; // Adjust max height if needed
       textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
       setTextContent(e.target.value);
     },
-    [] // 依赖项: setTextContent (setState稳定)
+    []
   );
 
-  // 清理输入状态
   const clearInputState = useCallback(() => {
     setTextContent("");
-    setImagePreviewUrls([]);
-    setExcelFiles([]);
-    setPreviewingFileId(null);
+    dispatch(clearPendingAttachments());
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"; // 重置高度
+      textareaRef.current.style.height = "auto";
     }
-  }, []); // 依赖项: setState 都是稳定的
+  }, [dispatch]);
 
-  // 发送消息
-  const sendMessage = useCallback(() => {
+  // **** MODIFIED sendMessage FUNCTION ****
+  const sendMessage = useCallback(async () => {
+    // Make the function async
+    // Get current state from Redux
+    const currentImagePreviews = imagePreviews; // Get from selector (already done)
+    const currentExcelFiles = excelFiles; // Get from selector (already done)
     const trimmedText = textContent.trim();
-    if (!trimmedText && !imagePreviewUrls.length && !excelFiles.length) {
-      return; // 没有内容则不发送
+
+    if (
+      !trimmedText &&
+      !currentImagePreviews.length &&
+      !currentExcelFiles.length
+    ) {
+      return;
     }
 
     let messageContent: Content;
+    const parts: ({ type: string } & Record<string, any>)[] = [];
 
-    // 构建多部分内容
-    if (imagePreviewUrls.length > 0 || excelFiles.length > 0) {
-      const parts: ({ type: string } & Record<string, any>)[] = [];
-
-      if (trimmedText) {
-        parts.push({ type: "text", text: trimmedText });
-      }
-      imagePreviewUrls.forEach((url) =>
-        parts.push({ type: "image_url", image_url: { url } })
-      );
-      excelFiles.forEach((file) =>
-        parts.push({ type: "excel", name: file.name, data: file.data })
-      ); // 假设后端能处理 excel 类型
-
-      messageContent = parts;
-    } else {
-      // 纯文本内容
-      messageContent = trimmedText;
+    // Add text part if exists
+    if (trimmedText) {
+      parts.push({ type: "text", text: trimmedText });
     }
 
+    // ** Image Compression Step **
+    if (currentImagePreviews.length > 0) {
+      // Add a toast notification for compression start
+      const compressionToastId = toast.loading(
+        t("compressingImages", "Compressing images..."),
+        { duration: Infinity }
+      );
+
+      try {
+        // Map over previews and compress each image URL concurrently
+        const compressedUrls = await Promise.all(
+          currentImagePreviews.map((img) => compressImage(img.url)) // Call the utility function
+        );
+
+        // Add compressed image parts
+        compressedUrls.forEach((compressedUrl) => {
+          parts.push({ type: "image_url", image_url: { url: compressedUrl } });
+        });
+
+        toast.dismiss(compressionToastId); // Dismiss loading toast on success
+      } catch (error) {
+        toast.dismiss(compressionToastId); // Dismiss loading toast on error
+        console.error("Error during image compression batch:", error);
+        toast.error(
+          t(
+            "compressionError",
+            "Image compression failed. Sending original images."
+          ),
+          { duration: 4000 }
+        );
+        // Fallback: Add original image parts if compression fails
+        currentImagePreviews.forEach((img) => {
+          parts.push({ type: "image_url", image_url: { url: img.url } });
+        });
+      }
+    }
+
+    // Add Excel parts if they exist
+    currentExcelFiles.forEach((file) => {
+      parts.push({ type: "excel", name: file.name, data: file.data });
+    });
+
+    // Determine final message content structure
+    if (parts.length > 1) {
+      messageContent = parts; // Use the parts array for multipart messages
+    } else if (parts.length === 1 && parts[0].type === "text") {
+      messageContent = parts[0].text; // Use plain string for text-only messages
+    } else if (parts.length === 1) {
+      messageContent = parts; // Use parts array even for single non-text part
+    } else {
+      // This case should technically not be reached due to the initial check,
+      // but handle defensively.
+      console.warn("sendMessage called with no content after processing.");
+      return;
+    }
+
+    // Dispatch the message
     try {
       dispatch(handleSendMessage({ userInput: messageContent }));
-      clearInputState(); // 发送成功后清理
+      clearInputState(); // Clear local text and Redux attachments
     } catch (err) {
       console.error("Failed to send message:", err);
       toast.error(t("sendFail") || "发送消息失败");
     }
-  }, [textContent, imagePreviewUrls, excelFiles, dispatch, clearInputState, t]); // 依赖项: state, dispatch, t, 和 memoized clearInputState
+  }, [
+    textContent,
+    imagePreviews, // Dependency: Reads original previews
+    excelFiles,
+    dispatch,
+    clearInputState, // Dependency: Memoized callback
+    t, // Dependency: Translation function
+    // No need to add compressImage here as it's a stable import
+  ]);
+  // **** END OF MODIFIED sendMessage FUNCTION ****
 
-  // 处理键盘事件（Enter发送）
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      // MetaKey (Cmd on Mac) + Enter 或 Ctrl + Enter 用于换行 (如果需要)
-      // if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      //   // 允许换行，不做任何事
-      //   return;
-      // }
-
-      // Enter 发送 (排除输入法组合状态)
       if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-        e.preventDefault(); // 阻止默认换行行为
+        e.preventDefault();
+        // No need to await here, just trigger the async function
         sendMessage();
       }
     },
-    [sendMessage] // 依赖项: memoized sendMessage
+    [sendMessage] // Dependency is the memoized async function
   );
 
-  // --- Event Handlers ---
-
-  // 处理文件粘贴
+  // --- Event Handlers (Paste, Drop, Drag, FileInput, Preview Callbacks - remain the same) ---
   const handlePaste = useCallback(
     (e: React.ClipboardEvent) => {
       Array.from(e.clipboardData.items).forEach((item) => {
         if (item.kind === "file" && item.type.startsWith("image/")) {
           const file = item.getAsFile();
-          if (file) addImagePreviewUrl(file);
+          if (file) handleAddImagePreview(file);
         }
-        // Note: 粘贴 Excel 文件通常不直接支持，浏览器行为不一
       });
     },
-    [addImagePreviewUrl] // 依赖项: memoized addImagePreviewUrl
+    [handleAddImagePreview]
   );
 
-  // 处理文件拖放
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
-      setIsDragOver(false); // 结束拖放状态
-      if (!isDragEnabled) return; // 检查拖放功能是否已启用
-
+      setIsDragOver(false);
+      if (!isDragEnabled) return;
       Array.from(e.dataTransfer.files).forEach(processFile);
     },
-    [isDragEnabled, processFile] // 依赖项: isDragEnabled state, memoized processFile
+    [isDragEnabled, processFile]
   );
 
-  // 处理拖放悬停进入
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
       if (!isDragEnabled) return;
-      e.preventDefault(); // 必须阻止默认行为以允许 drop
+      e.preventDefault();
       setIsDragOver(true);
     },
     [isDragEnabled]
-  ); // 依赖项: isDragEnabled state
+  );
 
-  // 处理拖放悬停离开
   const handleDragLeave = useCallback(
     (e: React.DragEvent) => {
       if (!isDragEnabled) return;
-      // // 可选：更精确地判断是否真的离开区域，防止在子元素上触发 leave
-      // if (e.currentTarget.contains(e.relatedTarget as Node)) {
-      //   return;
-      // }
       setIsDragOver(false);
     },
     [isDragEnabled]
-  ); // 依赖项: isDragEnabled state
+  );
 
-  // 打开文件选择对话框
   const triggerFileInput = useCallback(() => {
     fileInputRef.current?.click();
-  }, []); // 无依赖
+  }, []);
 
-  // 处理文件输入变化 (来自 input[type=file])
   const handleFileInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       Array.from(e.target.files || []).forEach(processFile);
-      // 重置 input 值，允许再次选择相同文件
       e.target.value = "";
     },
     [processFile]
-  ); // 依赖项: memoized processFile
+  );
 
-  // --- Preview Component Callbacks (Memoized) ---
-
-  // 移除指定索引的图片预览
-  const removeImagePreview = useCallback((indexToRemove: number) => {
-    setImagePreviewUrls((prev) =>
-      prev.filter((_, index) => index !== indexToRemove)
-    );
-  }, []); // 依赖项: setImagePreviewUrls (stable)
-
-  // 移除指定ID的Excel文件
-  const removeExcelFile = useCallback(
+  const handleRemoveImage = useCallback(
     (idToRemove: string) => {
-      setExcelFiles((prev) => prev.filter((file) => file.id !== idToRemove));
-      // 如果移除的是正在预览的文件，则关闭预览
-      if (previewingFileId === idToRemove) {
-        setPreviewingFileId(null);
-      }
+      dispatch(removePendingImagePreview(idToRemove));
     },
-    [previewingFileId]
-  ); // 依赖项: previewingFileId, setExcelFiles/setPreviewingFileId (stable)
+    [dispatch]
+  );
 
-  // 设置要预览的Excel文件ID
-  const previewExcelFile = useCallback((idToPreview: string) => {
-    setPreviewingFileId(idToPreview);
-  }, []); // 依赖项: setPreviewingFileId (stable)
+  const handleRemoveExcel = useCallback(
+    (idToRemove: string) => {
+      dispatch(removePendingExcelFile(idToRemove));
+    },
+    [dispatch]
+  );
 
-  // 关闭Excel预览
-  const closeExcelPreview = useCallback(() => {
-    setPreviewingFileId(null);
-  }, []); // 依赖项: setPreviewingFileId (stable)
+  const handlePreviewExcel = useCallback(
+    (idToPreview: string) => {
+      dispatch(setPreviewingExcelFile(idToPreview));
+    },
+    [dispatch]
+  );
 
-  // --- Derived State ---
-  const previewingExcelFile =
-    excelFiles.find((file) => file.id === previewingFileId) || null;
+  const handleCloseExcelPreview = useCallback(() => {
+    dispatch(setPreviewingExcelFile(null));
+  }, [dispatch]);
 
   // --- Render ---
+  const hasContent =
+    textContent.trim() || imagePreviews.length > 0 || excelFiles.length > 0;
+
   return (
     <div
       className="message-input-container"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      // 添加 aria-label 增强可访问性
       aria-label={
         t("messageInputArea", "Message input area with file upload support") ||
         "消息输入区域，支持文件上传"
       }
     >
-      {/* 附件预览区域 */}
+      {/* Attachments Preview Area */}
       <div className="attachments-preview">
-        {imagePreviewUrls.length > 0 && (
+        {imagePreviews.length > 0 && (
           <div className="message-preview-wrapper">
-            <ImagePreview
-              imageUrls={imagePreviewUrls}
-              onRemove={removeImagePreview} // 使用 memoized callback
-            />
+            {/* Ensure ImagePreview uses the updated props */}
+            <ImagePreview images={imagePreviews} onRemove={handleRemoveImage} />
           </div>
         )}
-
         {excelFiles.length > 0 && (
           <ExcelPreview
             excelFiles={excelFiles}
-            onRemove={removeExcelFile} // 使用 memoized callback
-            onPreview={previewExcelFile} // 使用 memoized callback
-            previewingFile={previewingExcelFile} // 使用派生状态
-            closePreview={closeExcelPreview} // 使用 memoized callback
+            onRemove={handleRemoveExcel}
+            onPreview={handlePreviewExcel}
+            previewingFile={previewingExcelFile}
+            closePreview={handleCloseExcelPreview}
           />
         )}
       </div>
 
-      {/* 输入控件区域 */}
+      {/* Input Controls Area */}
       <div className="input-controls">
         <button
           className="upload-button"
-          onClick={triggerFileInput} // 使用 memoized callback
+          onClick={triggerFileInput}
           title={t("uploadFile") || "上传文件"}
           aria-label={t("uploadFile") || "上传文件"}
         >
           <UploadIcon size={20} />
         </button>
-
         <textarea
           ref={textareaRef}
           className="message-textarea"
           value={textContent}
           placeholder={t("messageOrFileHere") || "输入消息或上传文件..."}
-          onChange={handleTextareaChange} // 使用 memoized callback
-          onKeyDown={handleKeyDown} // 使用 memoized callback
-          onPaste={handlePaste} // 使用 memoized callback
-          // rows={1} // 移除 rows={1} 以恢复原始行为
+          onChange={handleTextareaChange}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           aria-label={t("messageInput", "Message input field") || "消息输入框"}
         />
-
-        <SendButton
-          onClick={sendMessage} // 使用 memoized callback
-          disabled={
-            !textContent.trim() &&
-            imagePreviewUrls.length === 0 &&
-            excelFiles.length === 0
-          } // 根据是否有内容禁用按钮
-        />
+        <SendButton onClick={sendMessage} disabled={!hasContent} />
       </div>
 
-      {/* 拖放覆盖提示 */}
+      {/* Drag Overlay */}
       {isDragOver && isDragEnabled && (
         <div className="drop-zone" aria-live="polite">
-          {" "}
-          {/* aria-live 用于屏幕阅读器 */}
           <UploadIcon size={24} />
           <span>{t("dropToUpload") || "拖放文件到此处上传"}</span>
         </div>
       )}
 
-      {/* 隐藏的文件输入 */}
+      {/* Hidden File Input */}
       <input
         ref={fileInputRef}
         type="file"
         hidden
-        accept="image/*,.xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // 更精确的 accept 类型
+        accept="image/*,.xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         multiple
-        onChange={handleFileInputChange} // 使用 memoized callback
+        onChange={handleFileInputChange}
       />
 
+      {/* Styles */}
       <style jsx>{`
+        /* ... CSS 样式保持不变 ... */
         .message-input-container {
           position: relative;
           bottom: 0;
@@ -534,7 +546,7 @@ const MessageInput: React.FC = () => {
             max-height: 260px;
             padding: 12px 16px;
             font-size: 15px;
-            resize: vertical;
+            resize: vertical; /* 保持可调大小 */
             overflow-y: auto;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
@@ -558,7 +570,7 @@ const MessageInput: React.FC = () => {
             max-height: 180px;
             padding: 8px 10px;
             font-size: 13px;
-            resize: vertical;
+            resize: vertical; /* 保持可调大小 */
             overflow-y: auto;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;

@@ -41,12 +41,12 @@ export const generateRequestBody = (
 
 export const sendMessageAction = async (args, thunkApi) => {
   const { userInput } = args;
+  console.log("sendMessageAction", userInput);
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
 
   const dialogConfig = selectCurrentDialogConfig(state);
   const dialogKey = dialogConfig.dbKey || dialogConfig.id;
-  console.log("dialogConfig", dialogConfig);
   const dialogId = extractCustomId(dialogKey);
   const userId = selectCurrentUserId(state);
   const msgKey = createDialogMessageKey(dialogId);
