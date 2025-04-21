@@ -27,7 +27,7 @@ export const mistralModels: Model[] = [
   },
   {
     name: "mistral-small-latest",
-    displayName: "Mistral Small 24.09",
+    displayName: "Mistral Small",
     hasVision: false,
     description:
       "Cost-efficient, fast, and reliable option for use cases such as translation, summarization, and sentiment analysis",

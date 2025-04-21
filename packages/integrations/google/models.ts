@@ -73,4 +73,19 @@ export const googleModels: Model[] = [
       cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
     },
   },
+  {
+    name: "gemini-2.0-flash-lite",
+    displayName: "Gemini 2.0 Flash Lite",
+    provider: "google",
+    description: "A lighter version of Gemini 2.0 Flash with lower pricing.",
+    hasVision: true, //  Assume it has vision, adjust if not.
+    hasAudio: true, //  Assume it has audio, adjust if not.
+    // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
+    contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly smaller.
+    maxOutputTokens: 4096, // Placeholder - Likely smaller than Flash.
+    price: {
+      input: 0.075 * 8, // Cost per 1,000,000 tokens, 0.075 * 8 = 0.6
+      output: 0.3 * 8, // Cost per 1,000,000 tokens, 0.3 * 8 = 2.4
+    },
+  },
 ];
