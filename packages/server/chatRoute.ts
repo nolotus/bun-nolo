@@ -3,14 +3,11 @@ import { getNoloKey } from "ai/llm/getNoloKey";
 
 export const chatRoute = async (req) => {
   try {
-    const rawBody = req.body;
-    const body = omit("url,KEY,provider", rawBody);
-    let apiKey;
-    const userKey = rawBody.KEY?.trim();
-    apiKey = Boolean(userKey) ? userKey : getNoloKey(rawBody.provider);
-    if (!apiKey) {
-      throw new Error("API key is required but not provided");
-    }
+    const { body: rawBody } = req;
+    const body = omit(["url", "KEY", "provider"], rawBody);
+    const apiKey = rawBody.KEY?.trim() || getNoloKey(rawBody.provider);
+
+    if (!apiKey) throw new Error("API key is required but not provided");
 
     const headers = rawBody.provider?.includes("anthropic")
       ? {
@@ -24,7 +21,10 @@ export const chatRoute = async (req) => {
         };
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => {
+      console.log("Request timed out after 30 seconds");
+      controller.abort();
+    }, 30000);
 
     const response = await fetch(rawBody.url, {
       method: "POST",
@@ -50,13 +50,17 @@ export const chatRoute = async (req) => {
     });
   } catch (error) {
     console.error("Proxy error:", error);
+    const isAbortError = error.name === "AbortError";
+    const isBadRequest = error.message.includes("Status 400");
+    const statusCode = isAbortError ? 504 : isBadRequest ? 400 : 500;
+    const errorMessage = isAbortError
+      ? "Request aborted due to timeout after 30 seconds"
+      : error.message;
+
     return new Response(
-      JSON.stringify({
-        error: error.message,
-        code: error.message.includes("Status 400") ? 400 : 500,
-      }),
+      JSON.stringify({ error: errorMessage, code: statusCode }),
       {
-        status: error.message.includes("Status 400") ? 400 : 500,
+        status: statusCode,
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Origin": "*",
