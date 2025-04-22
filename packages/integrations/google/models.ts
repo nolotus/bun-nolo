@@ -78,7 +78,7 @@ export const googleModels: Model[] = [
     displayName: "Gemini 2.0 Flash Lite",
     provider: "google",
     description: "A lighter version of Gemini 2.0 Flash with lower pricing.",
-    hasVision: true, //  Assume it has vision, adjust if not.
+    hasVision: false, //  已修改为 false
     hasAudio: true, //  Assume it has audio, adjust if not.
     // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
     contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly smaller.
