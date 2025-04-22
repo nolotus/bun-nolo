@@ -162,9 +162,9 @@ export const MessageActions = ({
       toast.success(
         <div>
           {t("saveSuccess")}
-          {savedItem?.id && (
+          {savedItem?.dbKey && (
             <Link
-              to={`/${savedItem.id}`}
+              to={`/${savedItem.dbKey}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{
