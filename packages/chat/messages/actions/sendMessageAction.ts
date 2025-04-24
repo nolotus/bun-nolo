@@ -41,7 +41,6 @@ export const generateRequestBody = (
 
 export const sendMessageAction = async (args, thunkApi) => {
   const { userInput } = args;
-  console.log("sendMessageAction", userInput);
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
 
