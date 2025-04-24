@@ -15,28 +15,31 @@ export const createDialogAction = async (args, thunkApi) => {
   const dispatch = thunkApi.dispatch;
   const cybotId = cybots[0];
 
+  // 1. 获取 Cybot 配置
   const cybotConfig = await dispatch(read(cybotId)).unwrap();
   const time = format(new Date(), "MM-dd HH:mm");
   const title = cybotConfig.name + "  " + time;
   const userId = selectCurrentUserId(thunkApi.getState());
   const dialogPath = createDialogKey(userId);
+  const dialogId = extractCustomId(dialogPath);
 
-  // 设置 createdAt，updatedAt 将由 normalizeTimeFields 处理
+  // 2. 准备并写入对话数据
   const data = {
+    id: dialogId,
     cybots,
     title,
     dbKey: dialogPath,
     type: DataType.DIALOG,
     mode: DialogInvocationMode.FIRST,
-    createdAt: formatISO(new Date()), // 使用 date-fns 格式化，与 toISOString() 兼容
-    // updatedAt: formatISO(new Date()), // 可选：不设置，让 normalizeTimeFields 处理
+    createdAt: formatISO(new Date()), // 使用 date-fns 格式化
+    // updatedAt: formatISO(new Date()), // 由 normalizeTimeFields 处理
   };
-
   const result = await dispatch(
     write({ data, customKey: dialogPath })
   ).unwrap();
-  const spaceId = selectCurrentSpaceId(thunkApi.getState());
 
+  // 3. 将对话添加到空间
+  const spaceId = selectCurrentSpaceId(thunkApi.getState());
   await dispatch(
     addContentToSpace({
       spaceId,
@@ -45,21 +48,33 @@ export const createDialogAction = async (args, thunkApi) => {
       title,
     })
   );
-  const dialogId = extractCustomId(dialogPath);
 
-  const { messageId, key } = createDialogMessageKeyAndId;
+  // 4. **条件性地创建初始消息**
+  // 检查 cybotConfig.greeting 是否存在且不为空
+  if (cybotConfig.greeting) {
+    const { messageId, key } = createDialogMessageKeyAndId(dialogId);
+    const msgData = {
+      id: messageId,
+      dbKey: key,
+      content: cybotConfig.greeting, // 使用非空的 greeting
+      role: "assistant",
+      cybotId,
+      type: DataType.MSG,
+      // 初始消息通常也需要时间戳，根据你的 normalizeTimeFields 逻辑决定是否在此处添加
+      // createdAt: formatISO(new Date()),
+    };
+    // 只有在 greeting 有值时才写入消息
+    const msgResult = await dispatch(
+      write({ data: msgData, customKey: key })
+    ).unwrap();
+    // 注意：原始代码 msgResult 未被使用，这里保留了写入操作，但结果同样未使用
+  } else {
+    // 如果 greeting 为空，则不执行任何操作，跳过创建初始消息
+    console.log(
+      `Cybot ${cybotId} greeting is empty, skipping initial message creation.`
+    ); // 可选日志
+  }
 
-  const msgData = {
-    id: messageId,
-    dbKey: key,
-    content: cybotConfig.greeting,
-    role: "assistant",
-    cybotId,
-    type: DataType.MSG,
-  };
-
-  const msgResult = await dispatch(
-    write({ data: msgData, customKey: msgPath })
-  ).unwrap();
+  // 5. 返回对话创建结果
   return result;
 };
