@@ -1,5 +1,5 @@
 import { selectCurrentServer } from "setting/settingSlice";
-import { createDialogMessageKey } from "database/keys";
+import { createDialogMessageKeyAndId } from "database/keys";
 import { API_ENDPOINTS } from "database/config";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
@@ -56,8 +56,7 @@ export const sendClaudeRequest = async ({
   const state = thunkApi.getState();
   const dispatch = thunkApi.dispatch;
   const currentServer = selectCurrentServer(state);
-  const messageId = createDialogMessageKey(dialogId);
-  const messageKey = createDialogMessageKey(dialogId);
+  const { key, messageId } = createDialogMessageKeyAndId(dialogId);
 
   const controller = new AbortController();
   const signal = controller.signal;
@@ -82,7 +81,7 @@ export const sendClaudeRequest = async ({
   ) => {
     const final = {
       id: messageId,
-      dbKey: messageKey,
+      dbKey: key,
       content: error ? `Error: ${error.message}` : content,
       cybotId: cybotConfig.id,
       role: "assistant",

@@ -9,7 +9,7 @@ import { MessageActions } from "./MessageActions";
 import type { Message } from "../messages/types";
 import { useTheme } from "app/theme";
 
-export const UserMessage: React.FC<Message> = ({ content, id }) => {
+export const UserMessage: React.FC<Message> = ({ content, dbKey }) => {
   const messageRef = useRef(null);
   const theme = useTheme();
 
@@ -26,7 +26,11 @@ export const UserMessage: React.FC<Message> = ({ content, id }) => {
             </div>
 
             {/* Action buttons - using the shared component */}
-            <MessageActions content={content} id={id} showDelete={false} />
+            <MessageActions
+              content={content}
+              dbkey={dbKey}
+              showDelete={false}
+            />
           </div>
         </div>
       </div>

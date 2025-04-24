@@ -4,28 +4,24 @@ import RobotMessage from "./RobotMessage";
 import { SelfMessage } from "./SelfMessage";
 import { UserMessage } from "./UserMessage";
 
-interface MessageProps {
-  message: {
-    id: string;
-    content?: string;
-    controller?: any;
-    userId?: string;
-    cybotId?: string;
-  };
-}
-
-export const MessageItem = ({ message }: MessageProps) => {
+export const MessageItem = ({ message }) => {
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const { id, content, controller, userId, cybotId } = message;
-  console.log("cybotId", cybotId);
+  const { id, content, controller, userId, cybotId, dbKey } = message;
   if (!content) return null;
 
   if (currentUserId === userId && !cybotId) {
-    return <SelfMessage content={content} id={id} />;
+    return <SelfMessage content={content} dbKey={dbKey} />;
   }
 
   if (cybotId) {
-    return <RobotMessage id={id} content={content} controller={controller} />;
+    return (
+      <RobotMessage
+        dbKey={dbKey}
+        content={content}
+        controller={controller}
+        cybotId={cybotId}
+      />
+    );
   }
 
   return <UserMessage content={content} id={id} />;

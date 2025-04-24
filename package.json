@@ -97,6 +97,7 @@
     "concurrently": "^8.2.2",
     "date-fns": "^2.30.0",
     "esbuild": "^0.24.2",
+    "eslint-plugin-react-hooks": "6.0.0-rc.1",
     "react-native": "0.78.0",
     "react-native-localize": "^3.0.4",
     "react-native-maps": "^1.8.3",
