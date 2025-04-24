@@ -170,7 +170,7 @@ const WriteArticle = () => {
               ) : (
                 <div className="articles-wrapper">
                   {currentItems.map((item, index) => {
-                    const contentKey = item.id;
+                    const contentKey = item.dbKey;
                     const itemType = item.type;
                     const isHovered = hoveredItem === contentKey;
                     return (
