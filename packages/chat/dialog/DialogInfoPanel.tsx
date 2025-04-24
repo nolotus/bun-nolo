@@ -1,6 +1,7 @@
 // DialogInfoPanel.tsx
+
 import { useTranslation } from "react-i18next";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react"; // 引入 useEffect 和 useRef
 import type React from "react";
 import { useTheme } from "app/theme";
 import { useAppSelector, useAppDispatch } from "app/hooks";
@@ -10,16 +11,17 @@ import {
   removeCybot,
   addCybot,
   updateDialogMode,
-  selectIsUpdatingMode, // 新增选择器
+  selectIsUpdatingMode,
 } from "chat/dialog/dialogSlice";
 import { selectCurrentUserId } from "auth/authSlice";
-import { DialogInvocationMode } from "chat/dialog/types"; // 引入 DialogInvocationMode
+import { DialogInvocationMode } from "chat/dialog/types";
 
 //web
 import { PlusIcon, ChevronDownIcon } from "@primer/octicons-react";
 import CybotNameChip from "ai/cybot/CybotNameChip";
 import { toast } from "react-hot-toast";
 import AddCybotDialog from "./AddCybotDialog";
+
 interface DialogInfoPanelProps {
   limit?: number; // 可选的加载数量限制
 }
@@ -30,14 +32,39 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
   const dispatch = useAppDispatch();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
-  const isUpdatingMode = useAppSelector(selectIsUpdatingMode); // 新增加载状态
+  const isUpdatingMode = useAppSelector(selectIsUpdatingMode);
   const currentUserId = useAppSelector(selectCurrentUserId);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isAddCybotDialogOpen, setIsAddCybotDialogOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null); // 用于引用面板元素
+  const triggerRef = useRef<HTMLButtonElement>(null); // 用于引用触发按钮
 
   const togglePanel = useCallback(() => {
     setIsPanelOpen((prev) => !prev);
   }, []);
+
+  // 点击外部关闭面板
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isPanelOpen &&
+        panelRef.current &&
+        triggerRef.current &&
+        !panelRef.current.contains(event.target as Node) &&
+        !triggerRef.current.contains(event.target as Node)
+      ) {
+        setIsPanelOpen(false);
+      }
+    };
+
+    if (isPanelOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isPanelOpen]);
 
   const handleRemoveCybot = useCallback(
     (cybotId: string) => {
@@ -77,7 +104,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
     setIsAddCybotDialogOpen(false);
   }, []);
 
-  // 新增：处理模式变更
   const handleModeChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       const newMode = event.target.value as DialogInvocationMode;
@@ -100,6 +126,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
     <>
       <div className="dialog-info-panel-wrapper">
         <button
+          ref={triggerRef} // 绑定触发按钮的 ref
           className="dialog-info-panel-trigger icon-button"
           onClick={togglePanel}
           aria-expanded={isPanelOpen}
@@ -112,6 +139,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
 
         {isPanelOpen && (
           <div
+            ref={panelRef} // 绑定面板的 ref
             id="dialog-info-panel-content"
             className="dialog-info-panel"
             role="menu"
@@ -160,7 +188,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
                   }
                   onChange={handleModeChange}
                   className="dialog-mode-select"
-                  disabled={!currentDialogConfig || isUpdatingMode} // 禁用条件
+                  disabled={!currentDialogConfig || isUpdatingMode}
                 >
                   <option value={DialogInvocationMode.FIRST}>
                     {t("First")}
@@ -181,7 +209,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
         )}
       </div>
 
-      {/* 添加 Cybot 的对话框 */}
       <AddCybotDialog
         isOpen={isAddCybotDialogOpen}
         onClose={handleCloseAddCybotDialog}
@@ -190,6 +217,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
         limit={limit}
       />
 
+      {/* 样式保持不变 */}
       <style>
         {`
           /* --- Dialog Info Panel Trigger Button --- */
