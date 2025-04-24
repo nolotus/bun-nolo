@@ -20,13 +20,12 @@ async function processToolData(
   toolCall: any,
   thunkApi: any,
   cybotConfig: any,
-  messageId: string
+  messageId: string // 或 msgKey
 ): Promise<any> {
-  // 返回消息内容部分 (IMessageContentPart)
+  // Returns IMessageContentPart
   console.log("[Tool] 开始处理工具调用:", JSON.stringify(toolCall, null, 2));
   const func = toolCall.function;
   if (!func || !func.name) {
-    // 增加对 func.name 的检查
     console.error("[Tool] 工具调用缺少函数信息或名称:", toolCall);
     return { type: "text", text: "[Tool Error] 工具调用数据无效" };
   }
@@ -35,8 +34,9 @@ async function processToolData(
   let toolArgs = func.arguments;
 
   try {
-    // 参数解析 (更健壮)
+    // ... (参数解析逻辑保持不变) ...
     if (typeof toolArgs === "string") {
+      // ...(robust argument parsing)...
       if (toolArgs.trim() === "") {
         toolArgs = {};
         console.warn(`[Tool] ${toolName}: 参数为空字符串，视为空对象 {}。`);
@@ -51,14 +51,11 @@ async function processToolData(
             `[Tool] ${toolName}: JSON 参数解析失败，将使用原始字符串: "${toolArgs}"`,
             e
           );
-          // 可以选择报错或让工具处理原始字符串
-          // return { type: "text", text: `[Tool Error] ${toolName} 参数 JSON 解析失败: ${toolArgs}` };
         }
       } else {
         console.warn(
           `[Tool] ${toolName}: 参数不是 JSON，将作为字符串传递: "${toolArgs}"`
         );
-        // 让工具决定如何处理非 JSON 字符串参数
       }
     } else if (toolArgs === undefined || toolArgs === null) {
       toolArgs = {};
@@ -67,13 +64,13 @@ async function processToolData(
       );
     }
 
-    let resultData: any = null;
+    let resultData: any = null; // Should be IMessageContentPart
     switch (toolName) {
       case "generate_table":
         console.log("[Tool] 调用 generate_table，参数：", toolArgs);
         resultData = {
           type: "excel",
-          id: toolCall.id || `tool_${Date.now()}`, // 确保有 ID
+          id: toolCall.id || `tool_${Date.now()}`,
           name: toolArgs.fileName || "Excel 文件",
           data: toolArgs.data || [],
         };
@@ -82,55 +79,63 @@ async function processToolData(
       case "create_page":
         console.log("[Tool] 调用 create_page，参数：", toolArgs);
         try {
-          // *** 修改: 调用 createPageFunc 并处理结果以生成 Markdown 链接 ***
+          // *** 修改: 调用已更新的 createPageFunc，期望返回 { success: true, id: '...', title: '...' } ***
           const pageResult = await createPageFunc(toolArgs, thunkApi);
-          // 假设 createPageFunc 成功时返回 { success: true, id: '...', title: '...' }
-          // 失败时返回 { success: false, message: '...' } 或抛出错误
+
+          // *** 修改: 基于 createPageFunc 的结构化返回来构建结果 ***
+          // 检查 pageResult 是否是预期的成功结构
           if (
             pageResult &&
             pageResult.success &&
             pageResult.id &&
             pageResult.title
           ) {
-            // *** FIX 3: 构建 Markdown 链接 ***
-            // !!! 重要：请将 '/app/pages/' 替换为你应用中查看页面的实际路径 !!!
-            const pageUrl = `/app/pages/${pageResult.id}`;
+            // 构建指向页面的 Markdown 链接，使用 /page/:id 格式
+            const pageUrl = `${pageResult.id}`; // 使用返回的 id (dbKey)
+            console.log("pageUrl:", pageUrl);
+            const text = `页面已成功创建：[${pageResult.title}](${pageUrl})`; // 生成链接
+            console.log(
+              "[Tool] createPageFunc 成功，生成链接:",
+              text // 生成链接
+            );
             resultData = {
               type: "text",
-              // text: `页面已成功创建：[${pageResult.title}](${pageUrl}) (页面ID: ${pageResult.id})` // 包含 ID
-              text: `页面已成功创建：[${pageResult.title}](${pageUrl})`, // 仅链接
+              text: text,
             };
             console.log(
               "[Tool] createPageFunc 成功，生成链接:",
               resultData.text
             );
           } else {
+            // 如果 pageResult 结构不符合预期 (虽然 createPageFunc 现在应该只在成功时返回此结构)
             console.error(
-              "[Tool] createPageFunc 未成功或返回格式不符:",
+              "[Tool] createPageFunc 未返回预期的成功结构:",
               pageResult
             );
+            // 提供一个更通用的错误消息，因为理论上不应该进入这里除非 createPageFunc 内部逻辑有问题
             resultData = {
               type: "text",
-              text: `[Tool Error] create_page 操作失败: ${pageResult?.message || "未知错误"}`,
+              text: `[Tool Error] create_page 操作未返回预期结果。`,
             };
           }
         } catch (error: any) {
+          // 捕获 createPageFunc 抛出的错误 (包括 unwrap 失败)
           console.error("[Tool] createPageFunc 执行异常:", error);
           resultData = {
             type: "text",
-            text: `[Tool Error] 执行 create_page 操作异常: ${error.message}`,
+            // 使用 error.message (来自 createPageFunc 中抛出的错误)
+            text: `[Tool Error] 执行 create_page 操作失败: ${error.message}`,
           };
         }
         break;
 
       case "generate_image":
         console.log("[Tool] 调用 generate_image，参数：", toolArgs);
-        // 假设返回结构
         resultData = {
           type: "image",
           id: toolCall.id || `tool_${Date.now()}`,
           prompt: toolArgs.prompt,
-          images: [], // 实际实现需要填充这个
+          images: [], // Placeholder
         };
         break;
 
@@ -153,14 +158,25 @@ async function processToolData(
   }
 }
 
+// ... (handleAccumulatedToolCalls, appendTextChunk, finalizeStream, sendCommonChatRequest 保持不变) ...
+
+// 例如，在 handleAccumulatedToolCalls 中调用 processToolData 的地方：
+// const toolResult = await processToolData(
+//   toolCall,
+//   thunkApi,
+//   cybotConfig,
+//   messageId // 或 msgKey
+// );
+// updatedContentBuffer = [...updatedContentBuffer, toolResult]; // toolResult 现在应该是正确的格式
+
 // --- 辅助函数：处理累积的工具调用 ---
 async function handleAccumulatedToolCalls(
   accumulatedCalls: any[],
   currentContentBuffer: any[],
   thunkApi: any,
   cybotConfig: any,
-  msgKey: string,
-  messageId: string
+  msgKey: string, // 这个是消息的 key
+  messageId: string // 这个是消息的 UI id
 ): Promise<any[]> {
   let updatedContentBuffer = [...currentContentBuffer]; // 创建副本以修改
   const { dispatch } = thunkApi;
@@ -181,11 +197,12 @@ async function handleAccumulatedToolCalls(
         continue;
       }
       try {
+        // 注意：processToolData 现在需要 messageId 或 msgKey，根据其内部逻辑确定
         const toolResult = await processToolData(
           toolCall,
           thunkApi,
           cybotConfig,
-          msgKey
+          messageId // 传递 messageId 或 msgKey
         );
         updatedContentBuffer = [...updatedContentBuffer, toolResult];
         // 实时更新 UI 显示工具结果
@@ -223,7 +240,7 @@ async function handleAccumulatedToolCalls(
   return updatedContentBuffer; // 返回更新后的 buffer
 }
 
-// --- 辅助函数：追加文本块 ---
+// --- 辅助函数：追加文本块 --- (代码无变化)
 function appendTextChunk(
   currentContentBuffer: any[],
   textChunk: string
@@ -259,7 +276,7 @@ function appendTextChunk(
   return updatedContentBuffer;
 }
 
-// --- 辅助函数：完成流处理 ---
+// --- 辅助函数：完成流处理 --- (代码无变化)
 function finalizeStream(
   finalContentBuffer: any[],
   totalUsage: any,
@@ -336,7 +353,7 @@ export const sendCommonChatRequest = async ({
   const controller = new AbortController();
   const signal = controller.signal;
   const currentServer = selectCurrentServer(getState());
-  const { key, messageId } = createDialogMessageKeyAndId(dialogId);
+  const { key: msgKey, messageId } = createDialogMessageKeyAndId(dialogId); // 重命名 key 为 msgKey 以更清晰
 
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
@@ -355,7 +372,7 @@ export const sendCommonChatRequest = async ({
     dispatch(
       messageStreaming({
         id: messageId,
-        dbKey: key,
+        dbKey: msgKey, // 使用 msgKey
         content: contentBuffer,
         role: "assistant",
         cybotId: cybotConfig.id,
@@ -396,12 +413,15 @@ export const sendCommonChatRequest = async ({
       if (done) {
         console.log("[Stream] 流结束 (done=true).");
         // 处理流结束时可能剩余的工具调用
+        // *** FIX (添加定义): 在调用前获取长度 ***
+        const currentContentBufferLengthBeforeHandling = contentBuffer.length;
         contentBuffer = await handleAccumulatedToolCalls(
           accumulatedToolCalls,
           contentBuffer,
           thunkApi,
           cybotConfig,
-          key
+          msgKey, // 传递 msgKey
+          messageId
         );
         accumulatedToolCalls = []; // 清空
 
@@ -409,7 +429,7 @@ export const sendCommonChatRequest = async ({
         finalizeStream(
           contentBuffer,
           totalUsage,
-          key,
+          msgKey, // 传递 msgKey
           cybotConfig,
           dialogId,
           dialogKey,
@@ -425,10 +445,10 @@ export const sendCommonChatRequest = async ({
       for (const parsedData of parsedResults) {
         // --- 处理 Usage --- (逻辑不变)
         if (parsedData.usage) {
+          // ... (usage 合并逻辑保持不变) ...
           if (!totalUsage) {
             totalUsage = { ...parsedData.usage };
           } else {
-            /* ... 合并逻辑 ... */
             totalUsage.completion_tokens =
               parsedData.usage.completion_tokens ??
               totalUsage.completion_tokens;
@@ -451,7 +471,7 @@ export const sendCommonChatRequest = async ({
           }
         }
 
-        // --- 处理 Error ---
+        // --- 处理 Error --- (逻辑不变)
         if (parsedData.error) {
           const errorMsg = `Error: ${parsedData.error.message || JSON.stringify(parsedData.error)}`;
           console.error("[API Error]", errorMsg);
@@ -463,7 +483,7 @@ export const sendCommonChatRequest = async ({
           finalizeStream(
             contentBuffer,
             totalUsage,
-            key,
+            msgKey, // 传递 msgKey
             cybotConfig,
             dialogId,
             dialogKey,
@@ -474,7 +494,7 @@ export const sendCommonChatRequest = async ({
           return; // 提前退出
         }
 
-        // --- 处理 Choices ---
+        // --- 处理 Choices --- (逻辑不变)
         const choice = parsedData.choices?.[0];
         if (
           !choice &&
@@ -495,15 +515,16 @@ export const sendCommonChatRequest = async ({
         const delta = choice.delta || {};
         const finishReason = choice.finish_reason;
 
-        // --- 处理工具调用流 (Tool Calls Stream) ---
+        // --- 处理工具调用流 (Tool Calls Stream) --- (逻辑不变)
         if (delta.tool_calls && Array.isArray(delta.tool_calls)) {
+          // ... (工具调用聚合逻辑保持不变) ...
           for (const toolCallChunk of delta.tool_calls) {
             const index = toolCallChunk.index;
             const id = toolCallChunk.id;
             const type = toolCallChunk.type;
             const functionCall = toolCallChunk.function;
 
-            // *** FIX 1: 处理无 index 但完整的块 ***
+            // *** FIX 1: 处理无 index 但完整的块 *** (逻辑不变)
             if (index !== undefined && index !== null) {
               // --- 按 index 聚合 (标准) ---
               while (accumulatedToolCalls.length <= index) {
@@ -566,14 +587,14 @@ export const sendCommonChatRequest = async ({
           }
         }
 
-        // --- 处理文本内容 (Content) ---
+        // --- 处理文本内容 (Content) --- (逻辑不变)
         const contentChunk = delta.content || "";
         if (contentChunk) {
           contentBuffer = appendTextChunk(contentBuffer, contentChunk);
           dispatch(
             messageStreaming({
               id: messageId,
-              dbKey: key,
+              dbKey: msgKey, // 使用 msgKey
               content: contentBuffer,
               role: "assistant",
               cybotId: cybotConfig.id,
@@ -587,26 +608,31 @@ export const sendCommonChatRequest = async ({
           console.log("[Stream] Finish Reason received:", finishReason);
           if (finishReason === "tool_calls") {
             // 收到 tool_calls 信号，处理已累积的调用
+            // *** FIX (添加定义): 在调用前获取长度 ***
+            const currentContentBufferLengthBeforeHandling =
+              contentBuffer.length;
             contentBuffer = await handleAccumulatedToolCalls(
               accumulatedToolCalls,
               contentBuffer,
               thunkApi,
               cybotConfig,
-              key,
+              msgKey, // 传递 msgKey
               messageId
             );
             accumulatedToolCalls = []; // 清空已处理的调用
             // 注意：这里不清空 contentBuffer，因为它包含了工具调用的结果
+
+            // *** FIX (使用定义): 检查是否有实际调用被处理 ***
             if (
               contentBuffer.length === currentContentBufferLengthBeforeHandling
             ) {
-              // 检查是否有实际调用被处理
               console.warn(
                 "[Finish Reason=tool_calls] 收到 tool_calls，但处理后无有效工具调用结果。"
               );
             }
           } else if (finishReason === "stop") {
             console.log("[Finish Reason=stop] 流正常结束信号.");
+            // 正常 stop 时不需要特殊处理 contentBuffer，等待 done=true 时 finalize
           } else {
             console.warn("[Stream] 其他 Finish Reason:", finishReason);
             contentBuffer = appendTextChunk(
@@ -616,10 +642,11 @@ export const sendCommonChatRequest = async ({
             dispatch(
               messageStreaming({
                 id: messageId,
+                dbKey: msgKey, // 使用 msgKey
                 content: contentBuffer,
                 role: "assistant",
                 cybotId: cybotConfig.id,
-                controller,
+                controller, // 传递 controller
               })
             );
           }
@@ -638,7 +665,7 @@ export const sendCommonChatRequest = async ({
     finalizeStream(
       contentBuffer,
       totalUsage,
-      key,
+      msgKey, // 使用 msgKey
       cybotConfig,
       dialogId,
       dialogKey,
@@ -646,12 +673,12 @@ export const sendCommonChatRequest = async ({
       messageId
     );
   } finally {
-    // 确保 reader 被正确关闭
+    // 确保 reader 被正确关闭 (逻辑不变)
     if (reader) {
       try {
         if (!controller.signal.aborted) {
-          controller.abort();
-        } // 确保中止
+          // controller.abort(); // 可能不需要手动 abort，cancel 会处理？确认一下
+        }
         await reader.cancel();
         console.log("[Chat Request] Reader cancelled.");
       } catch (cancelError) {
