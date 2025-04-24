@@ -82,7 +82,7 @@ const convertMarkdownToSlateFormat = (markdownString) => {
 
 export const MessageActions = ({
   content,
-  id,
+  dbKey,
   showDelete = true,
   showSave = true,
   className = "",
@@ -95,7 +95,7 @@ export const MessageActions = ({
 
   /** 处理删除消息 */
   const handleDeleteMessage = () => {
-    dispatch(deleteMessage(id));
+    dispatch(deleteMessage(dbKey));
     toast.success(t("deleteSuccess"));
   };
 

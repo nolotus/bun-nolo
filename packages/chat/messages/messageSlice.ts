@@ -35,8 +35,9 @@ export const messageSlice = createSliceWithThunks({
     messageStreamEnd: create.asyncThunk(
       async (msg, thunkApi) => {
         const { dispatch } = thunkApi;
+        console.log("messageStreamEnd", msg);
         await dispatch(addMsg(msg)).unwrap();
-        return { id: msg.dbKey };
+        return { id: msg.id };
       },
       {
         fulfilled: (state, action) => {
@@ -51,6 +52,7 @@ export const messageSlice = createSliceWithThunks({
 
     messageStreaming: create.reducer<Message>((state, action) => {
       const message = action.payload;
+      console.log("messageStreaming", message);
       const index = state.streamMessages.findIndex(
         (msg) => msg.id === message.id
       );
@@ -62,13 +64,15 @@ export const messageSlice = createSliceWithThunks({
     }),
 
     deleteMessage: create.asyncThunk(
-      async (messageDbKey: string, thunkApi) => {
-        await thunkApi.dispatch(remove(messageDbKey));
-        return messageDbKey;
+      async (dbKey: string, thunkApi) => {
+        await thunkApi.dispatch(remove(dbKey));
+        return { dbKey };
       },
       {
         fulfilled: (state, action) => {
-          state.msgs = state.msgs.filter((msg) => msg.id !== action.payload);
+          state.msgs = state.msgs.filter(
+            (msg) => msg.dbKey !== action.payload.dbKey
+          );
         },
       }
     ),
@@ -77,6 +81,7 @@ export const messageSlice = createSliceWithThunks({
     deleteDialogMsgs: create.asyncThunk(deleteDialogMsgsAction),
     addMsg: create.asyncThunk(
       async (msg, thunkApi) => {
+        console.log("addMsg", msg);
         await thunkApi.dispatch(
           write({
             data: { ...msg, type: DataType.MSG },

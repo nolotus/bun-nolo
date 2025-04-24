@@ -6,7 +6,7 @@ import {
 } from "create/space/spaceSlice";
 import { DataType } from "create/types";
 import { read, write } from "database/dbSlice";
-import { createDialogKey, createDialogMessageKey } from "database/keys";
+import { createDialogKey, createDialogMessageKeyAndId } from "database/keys";
 import { format, formatISO } from "date-fns"; // 引入 formatISO
 import { DialogInvocationMode } from "chat/dialog/types";
 
@@ -47,10 +47,11 @@ export const createDialogAction = async (args, thunkApi) => {
   );
   const dialogId = extractCustomId(dialogPath);
 
-  const msgPath = createDialogMessageKey(dialogId);
+  const { messageId, key } = createDialogMessageKeyAndId;
 
   const msgData = {
-    dbKey: msgPath,
+    id: messageId,
+    dbKey: key,
     content: cybotConfig.greeting,
     role: "assistant",
     cybotId,

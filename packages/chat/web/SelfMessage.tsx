@@ -6,7 +6,7 @@ import { selectTheme } from "app/theme/themeSlice";
 import { MessageContent } from "./MessageContent";
 import { MessageActions } from "./MessageActions";
 
-export const SelfMessage = ({ content, id }) => {
+export const SelfMessage = ({ content, dbKey }) => {
   const theme = useSelector(selectTheme);
   const messageRef = useRef(null);
 
@@ -26,12 +26,12 @@ export const SelfMessage = ({ content, id }) => {
             </div>
 
             {/* 使用共享的MessageActions组件 */}
-            <MessageActions content={content} id={id} showSave={false} />
+            <MessageActions content={content} dbKey={dbKey} showSave={false} />
           </div>
         </div>
       </div>
 
-      <style jsx>{`
+      <style href="self-msg">{`
         .chat-message-container {
           display: flex;
           margin-bottom: 18px;

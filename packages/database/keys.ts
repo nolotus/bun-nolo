@@ -77,8 +77,21 @@ export const createTokenStatsKey = curry((userId: string, dateKey: string) => {
 export const createDialogKey = (userId: string) =>
   createKey(DataType.DIALOG, userId, ulid());
 
-export const createDialogMessageKey = (dialogId: string) =>
-  createKey(DataType.DIALOG, dialogId, "msg", ulid());
+export const createDialogMessageKeyAndId = (
+  dialogId: string
+): { key: string; messageId: string } => {
+  // 1. 首先生成唯一的 ID (ULID)
+  const messageId = ulid();
+
+  // 2. 使用这个生成的 ID 来创建 key
+  const key = createKey(DataType.DIALOG, dialogId, "msg", messageId);
+
+  // 3. 返回包含 key 和 messageId 的对象
+  return {
+    key: key,
+    messageId: messageId, // 将生成的 ulid 作为 messageId 返回
+  };
+};
 
 /**
  * Page相关key

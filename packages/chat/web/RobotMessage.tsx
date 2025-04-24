@@ -11,8 +11,12 @@ import { MessageContent } from "./MessageContent";
 import type { Message } from "../messages/types";
 import { MessageActions } from "./MessageActions";
 
-const RobotMessage: React.FC<Message> = ({ id, content, controller }) => {
-  console.log("RobotMessage", id);
+const RobotMessage: React.FC<Message> = ({
+  dbKey,
+  content,
+  cybotId,
+  controller,
+}) => {
   const theme = useAppSelector(selectTheme);
   const { t } = useTranslation("chat");
   const messageRef = useRef(null);
@@ -46,7 +50,7 @@ const RobotMessage: React.FC<Message> = ({ id, content, controller }) => {
                 )}
               </div>
               <div className="footer-right">
-                <MessageActions content={content} id={id} />
+                <MessageActions content={content} dbKey={dbKey} />
               </div>
             </div>
           </div>

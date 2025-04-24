@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Checkbox } from "web/form/Checkbox";
 import { useTheme } from "app/theme";
 
-// 增加生成表格工具选项
 export const TOOL_OPTIONS = [
   {
     id: "makeAppointment",
@@ -19,6 +18,16 @@ export const TOOL_OPTIONS = [
     id: "generateTable",
     name: "generateTable",
     description: "根据 JSON 数据生成 Excel 表格",
+  },
+  {
+    id: "createPage",
+    name: "createPage",
+    description: "在当前空间中创建新页面",
+  },
+  {
+    id: "generateImage",
+    name: "generateImage",
+    description: "根据提示生成图片",
   },
 ];
 
@@ -53,7 +62,7 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
         ))}
       </div>
 
-      <style jsx>{`
+      <style href="tools-selector">{`
         .tools-wrapper {
           width: 100%;
         }
