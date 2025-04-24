@@ -75,10 +75,7 @@ export const pageSlice = createSliceWithThunks({
      * 4. 如果指定了 Space，则调用 addContentToSpace 将页面引用添加到 Space 中。
      *    - 在此步骤中，会将 "" 或 null/undefined 的 categoryId 转换为 undefined 再传递。
      */
-    createPage: create.asyncThunk(
-      createPageAction
-      // 可以添加 .pending, .fulfilled, .rejected 来处理 Thunk 状态，但对于创建操作可能不是必须的
-    ),
+    createPage: create.asyncThunk(createPageAction),
 
     /**
      * 异步 Thunk: 初始化页面编辑器状态。
