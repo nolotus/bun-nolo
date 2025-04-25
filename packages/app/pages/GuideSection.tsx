@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
-import { selectCurrentUserId } from "../../auth/authSlice";
+import { selectCurrentUserId } from "auth/authSlice";
 import { CreateRoutePaths } from "create/routePaths";
 
 // web
