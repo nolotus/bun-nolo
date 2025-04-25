@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { pipe } from "rambda";
+import { pipe, sort } from "rambda";
 import { useAppDispatch } from "app/hooks";
 import { upsertMany } from "database/dbSlice";
 import { fetchMessages } from "chat/messages/fetchMessages";
@@ -85,10 +85,11 @@ export const useMessages = (db: any, dialogId: string, limit = 100) => {
 
       const processedMessages = pipe(
         (msgs: any[]) =>
-          msgs.sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          ),
+          sort((a, b) => {
+            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return aTime - bTime;
+          }, msgs),
         (msgs: any[]) =>
           msgs.filter(
             (msg) =>

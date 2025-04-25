@@ -16,6 +16,7 @@ export interface MessageSliceState {
   msgs: Message[];
   streamMessages: Message[];
 }
+
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -24,6 +25,7 @@ const initialState: MessageSliceState = {
   msgs: [],
   streamMessages: [],
 };
+
 export const messageSlice = createSliceWithThunks({
   name: "message",
   initialState: initialState as MessageSliceState,
@@ -59,7 +61,7 @@ export const messageSlice = createSliceWithThunks({
       if (index !== -1) {
         state.streamMessages[index] = message;
       } else {
-        state.streamMessages.unshift(message);
+        state.streamMessages.push(message); // 修改为 push，添加到末尾
       }
     }),
 
@@ -93,9 +95,11 @@ export const messageSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          const hasTheMsg = state.msgs.includes(action.payload.dbKey);
+          const hasTheMsg = state.msgs.some(
+            (msg) => msg.dbKey === action.payload.dbKey
+          );
           if (!hasTheMsg) {
-            state.msgs.unshift(action.payload);
+            state.msgs.push(action.payload); // 修改为 push，添加到末尾
           }
         },
       }
