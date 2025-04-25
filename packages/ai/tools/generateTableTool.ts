@@ -1,3 +1,4 @@
+// 文件路径: ai/tools/generateTableTool.ts
 import * as XLSX from "xlsx";
 
 export const generateTableTool = {

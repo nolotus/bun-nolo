@@ -1,4 +1,4 @@
-// src/chat/messages/MessagesList.jsx
+// chat/messages/MessagesList.jsx
 import React, {
   useCallback,
   useEffect,
