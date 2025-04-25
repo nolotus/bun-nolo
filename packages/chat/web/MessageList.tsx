@@ -1,7 +1,7 @@
 // MessagesList.jsx
 import { useAppSelector } from "app/hooks";
 import type React from "react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageItem } from "./MessageItem";
 import {
   selectMergedMessages,
@@ -14,8 +14,17 @@ const MessagesList: React.FC = () => {
   const messages = useAppSelector(selectMergedMessages);
   const streamingMessages = useAppSelector(selectStreamMessages);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 添加上下文菜单状态
+  // 检查是否接近底部（距离底部100px内视为接近）
+  const isNearBottom = useCallback(() => {
+    if (containerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+      return scrollHeight - scrollTop - clientHeight < 100;
+    }
+    return false;
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     if (containerRef.current) {
@@ -23,9 +32,51 @@ const MessagesList: React.FC = () => {
     }
   }, []);
 
+  // 检测用户滚动行为
+  const handleScroll = useCallback(() => {
+    setIsUserScrolling(true);
+    // 清除之前的超时
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    // 设置超时，超时后认为用户不再滚动
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 2500); // 2.5秒后重置，用户停止滚动后恢复自动滚动
+  }, []);
+
+  // 监听用户滚动事件
   useEffect(() => {
-    if (streamingMessages) scrollToBottom();
-  }, [streamingMessages, scrollToBottom]);
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener("scroll", handleScroll);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [handleScroll]);
+
+  // 当有流式传输消息时，检查是否需要自动滚动
+  useEffect(() => {
+    if (streamingMessages.length > 0) {
+      // 如果用户接近底部或者未在滚动，则自动滚动到底部
+      if (!isUserScrolling || isNearBottom()) {
+        scrollToBottom();
+      }
+    }
+  }, [streamingMessages, scrollToBottom, isUserScrolling, isNearBottom]);
+
+  // 初次加载或消息更新时滚动到底部（如果用户未滚动或接近底部）
+  useEffect(() => {
+    if (!isUserScrolling || isNearBottom()) {
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom, isUserScrolling, isNearBottom]);
 
   return (
     <>
@@ -57,7 +108,7 @@ const MessagesList: React.FC = () => {
           .chat-message-list {
             flex: 1;
             display: flex;
-            flex-direction: column-reverse;
+            flex-direction: column; /* 正常顺序 */
             gap: 16px;
             padding: 24px 15%;
             overflow-y: auto;
