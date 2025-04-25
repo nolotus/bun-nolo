@@ -65,7 +65,29 @@ export const useMessages = (db: any, dialogId: string, limit = 100) => {
     if (!db || !dialogId) return;
     setLoading(true);
     try {
+      // 优先加载并显示本地消息
       const localMessages = await fetchMessages(db, dialogId, limit, false);
+      const processedLocalMessages = pipe(
+        (msgs: any[]) =>
+          sort((a, b) => {
+            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return aTime - bTime;
+          }, msgs),
+        (msgs: any[]) =>
+          msgs.filter(
+            (msg) =>
+              msg &&
+              typeof msg === "object" &&
+              (msg.content || msg.content === "")
+          )
+      )(localMessages);
+
+      // 立即更新状态以显示本地消息
+      setMessages(processedLocalMessages);
+      dispatch(upsertMany(localMessages));
+
+      // 异步加载远程消息并合并
       const allServers = [currentServer, ...SERVERS].filter(Boolean);
       let remoteMessages = [];
       if (token && allServers.length) {
@@ -77,6 +99,7 @@ export const useMessages = (db: any, dialogId: string, limit = 100) => {
         remoteMessages = remoteResults.flat();
       }
 
+      // 合并本地和远程消息
       const messageMap = new Map<string, any>();
       [...localMessages, ...remoteMessages].forEach(
         (msg) => msg.id && messageMap.set(msg.id, msg)
@@ -99,6 +122,7 @@ export const useMessages = (db: any, dialogId: string, limit = 100) => {
           )
       )(mergedMessages);
 
+      // 更新状态以显示合并后的消息
       setMessages(processedMessages);
       dispatch(upsertMany(mergedMessages));
       setError(null);
