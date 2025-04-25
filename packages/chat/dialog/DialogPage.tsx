@@ -95,7 +95,7 @@ const DialogPage = ({ pageKey }) => {
             overflowX: "hidden",
           }}
         >
-          {loading ? (
+          {loading && messages.length === 0 ? (
             <LoadingSpinner />
           ) : (
             currentDialogConfig && (
