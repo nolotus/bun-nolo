@@ -1,4 +1,3 @@
-// DialogPage.jsx
 import React, { useEffect } from "react"; // Import React
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/hooks/useAuth";
@@ -8,8 +7,8 @@ import {
   selectCurrentDialogConfig,
 } from "chat/dialog/dialogSlice";
 import MessageInputContainer from "chat/web/MessageInputContainer";
-import MessagesList from "chat/web/MessageList"; // Corrected import path casing if needed
-import { useMessages } from "../messages/hooks/useMessages";
+import MessagesList from "chat/web/MessageList";
+import { initMsgs, selectMessagesState } from "chat/messages/messageSlice";
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
 
@@ -52,24 +51,20 @@ const DialogPage = ({ pageKey }) => {
   const dialogId = extractCustomId(pageKey);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
 
-  // --- Use the messages hook ---
-  const {
-    messages,
-    isLoadingInitial,
-    isLoadingOlder,
-    hasMoreOlder,
-    error,
-    loadOlderMessages,
-    // refresh, // Optional refresh function
-  } = useMessages(browserDb, dialogId);
+  // --- Get messages state from Redux ---
+  const { isLoadingInitial, isLoadingOlder, hasMoreOlder, error } =
+    useAppSelector(selectMessagesState);
 
-  // --- Dialog initialization (remains the same) ---
+  // --- Dialog and messages initialization ---
   useEffect(() => {
-    if (pageKey && user) dispatch(initDialog(pageKey));
+    if (pageKey && user) {
+      dispatch(initDialog(pageKey));
+      dispatch(initMsgs({ dialogId, db: browserDb }));
+    }
     return () => {
       dispatch(clearDialogState());
     };
-  }, [user, pageKey, dispatch]);
+  }, [user, pageKey, dialogId, dispatch]);
 
   // --- Render Error (Optional) ---
   const renderError = () =>
@@ -120,14 +115,8 @@ const DialogPage = ({ pageKey }) => {
                     flexDirection: "column",
                   }}
                 >
-                  {/* --- Pass required data and functions to MessagesList --- */}
-                  <MessagesList
-                    paginatedMessages={messages} // Pass messages from the hook
-                    isLoadingOlder={isLoadingOlder}
-                    hasMoreOlder={hasMoreOlder}
-                    loadOlderMessages={loadOlderMessages}
-                    dialogId={dialogId}
-                  />
+                  {/* --- Pass dialogId to MessagesList --- */}
+                  <MessagesList dialogId={dialogId} />
                 </div>
                 <MessageInputContainer />
               </div>
