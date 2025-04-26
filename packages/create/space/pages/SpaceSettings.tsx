@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { updateSpace, deleteSpace } from "create/space/spaceSlice";
+import { updateSpace, deleteSpace, fixSpace } from "create/space/spaceSlice";
 import { setSettings, selectDefaultSpaceId } from "setting/settingSlice";
 import { TrashIcon, PencilIcon, StarFillIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
@@ -40,7 +40,7 @@ const SpaceSettings: React.FC = () => {
   const handleRepair = async () => {
     setIsRepairing(true);
     try {
-      // 此处添加具体的修复逻辑，例如重新加载数据或调用API
+      dispatch(fixSpace(spaceId));
       console.log("尝试修复空间信息...");
       // 模拟一个异步操作，实际使用时替换为你的逻辑
       await new Promise((resolve) => setTimeout(resolve, 1000));

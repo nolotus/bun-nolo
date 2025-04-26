@@ -1,6 +1,6 @@
 // create/space/spaceThunks.ts
 import { asyncThunkCreator } from "@reduxjs/toolkit";
-import { read } from "database/dbSlice"; // Assuming path is correct
+import { patch, read } from "database/dbSlice"; // Assuming path is correct
 import { createSpaceKey } from "./spaceKeys";
 import type { SpaceState } from "./spaceSlice"; // Adjust path
 import type { SpaceData } from "./types"; // Adjust path
@@ -145,4 +145,20 @@ export const createSpaceThunks = (create: Create) => ({
     },
     // Optional: Add pending/rejected handlers if needed for UI feedback during fetch.
   }),
+  fixSpace: create.asyncThunk(
+    (spaceId, thunkAPI) => {
+      if (spaceId.startWith("space-")) {
+        const newId = spaceId.slice(6);
+        thunkAPI.dispatch(patch({ dbKey: spaceId, changes: { id: newId } }));
+      }
+    },
+    {
+      fulfilled: (state, action) => {
+        const { spaceId, spaceData } = action.payload;
+        if (state.currentSpaceId === spaceId) {
+          state.currentSpace = spaceData;
+        }
+      },
+    }
+  ),
 });
