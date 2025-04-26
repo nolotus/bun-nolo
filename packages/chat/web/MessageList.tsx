@@ -1,7 +1,7 @@
-// chat/messages/MessagesList
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect, // Import useLayoutEffect
   useRef,
   useState,
   memo,
@@ -13,212 +13,290 @@ import { useTheme } from "app/theme";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import {
   selectMergedMessages,
-  selectMessagesState,
+  // selectMessagesState, // Use specific selectors below
+  selectIsLoadingOlder,
+  selectHasMoreOlder,
   loadOlderMessages,
 } from "chat/messages/messageSlice";
+import type { Message } from "./types"; // Import Message type if needed for casting or checks
 
-// --- 顶部加载指示器组件 ---
+// --- Top Loading Indicator Component (Consider moving to a separate file) ---
 const spinKeyframes = `
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 `;
 const TopLoadingIndicator = () => {
   const theme = useTheme();
   return (
-    <div
-      style={{ display: "flex", justifyContent: "center", padding: "10px 0" }}
-    >
+    <>
+      {/* Ensure keyframes are available */}
+      <style>{spinKeyframes}</style>
       <div
-        style={{
-          border: "3px solid rgba(0, 0, 0, 0.1)",
-          borderTopColor: theme.primary || "#09f",
-          borderRadius: "50%",
-          width: "20px",
-          height: "20px",
-          animation: "spin 1s linear infinite",
-        }}
-      ></div>
-    </div>
+        style={{ display: "flex", justifyContent: "center", padding: "10px 0" }}
+      >
+        <div
+          style={{
+            border: "3px solid rgba(0, 0, 0, 0.1)",
+            borderTopColor: theme.primary || "#09f",
+            borderRadius: "50%",
+            width: "20px",
+            height: "20px",
+            animation: "spin 1s linear infinite",
+          }}
+        />
+      </div>
+    </>
   );
 };
 
-// --- 常量定义 ---
-const LAZY_LOAD_THRESHOLD = 100; // 懒加载阈值，消息数量超过此值时启用懒加载
-const SCROLL_NEAR_BOTTOM_THRESHOLD = 150; // 接近底部的滚动阈值（像素）
-const SCROLL_DEBOUNCE_MS = 150; // 滚动事件去抖时间（毫秒）
-const USER_ACTION_RESET_MS = 100; // 用户操作重置时间（毫秒）
-const AVG_MESSAGE_HEIGHT_ESTIMATE = 100; // 平均消息高度估计值（像素）
-const LAZY_LOAD_BUFFER_SCREENS = 1; // 懒加载缓冲屏幕数
-const TOP_SCROLL_THRESHOLD = 50; // 触发加载旧消息的顶部滚动阈值（像素）
-const OLDER_LOAD_LIMIT = 30; // 向上滚动加载的消息数量
+// --- Constants ---
+const LAZY_LOAD_THRESHOLD = 100;
+const SCROLL_NEAR_BOTTOM_THRESHOLD = 150;
+const SCROLL_DEBOUNCE_MS = 150; // Debounce for user scroll detection reset
+const USER_ACTION_RESET_MS = 100; // Time after programmatic scroll to ignore scroll events
+const AVG_MESSAGE_HEIGHT_ESTIMATE = 100;
+const LAZY_LOAD_BUFFER_SCREENS = 1;
+const TOP_SCROLL_THRESHOLD = 50;
+// OLDER_LOAD_LIMIT is used in dispatch, not directly here now
 
-// --- 组件属性接口 ---
+// --- Component Props ---
 interface MessagesListProps {
-  dialogId: string; // 对话ID
+  dialogId: string;
 }
 
-// --- MessagesList 组件 ---
+// --- MessagesList Component ---
 const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
-  // --- 从 Redux 获取合并后的消息和状态 ---
-  const displayMessages = useAppSelector(selectMergedMessages); // 获取合并后的消息列表
-  const { isLoadingOlder, hasMoreOlder } = useAppSelector(selectMessagesState);
+  // --- Redux State ---
+  const displayMessages = useAppSelector(selectMergedMessages); // Use the selector that provides the final list
+  const isLoadingOlder = useAppSelector(selectIsLoadingOlder);
+  const hasMoreOlder = useAppSelector(selectHasMoreOlder);
 
-  // --- 状态和引用管理 ---
-  const containerRef = useRef<HTMLDivElement | null>(null); // 消息容器引用
-  const [autoScroll, setAutoScroll] = useState(true); // 是否自动滚动到底部
-  const lastScrollHeightRef = useRef(0); // 上一次滚动高度
-  const scrollDebounceTimerRef = useRef<number | null>(null); // 滚动事件去抖定时器
-  const userScrollActionRef = useRef(false); // 是否为用户滚动操作
-  const lastScrollTopRef = useRef(0); // 上一次滚动顶部位置
-  const scrollHeightBeforeLoadingOlderRef = useRef(0); // 加载旧消息前的高度
-  const prevDisplayMessagesLengthRef = useRef(0); // 跟踪消息长度变化
+  // --- Refs ---
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const lastScrollHeightRef = useRef(0);
+  const scrollDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  ); // Use correct timer type
+  const userScrollActionRef = useRef(false); // Flag to ignore scroll events caused by code
+  const isProcessingScrollRef = useRef(false); // Prevent re-entrant scroll handling
+  const scrollHeightBeforeLoadingOlderRef = useRef(0); // Store height before prepend
+  const prevDisplayMessagesLengthRef = useRef(displayMessages.length); // Track length changes
 
-  // --- 虚拟化逻辑（基于最终的 displayMessages） ---
-  const messageCount = displayMessages.length; // 消息总数
+  // --- State ---
+  const [autoScroll, setAutoScroll] = useState(true); // Auto-scroll enabled?
+
+  // --- Memoized Values for Lazy Loading/Virtualization ---
+  // Note: This is range-based lazy loading, not true virtualization.
+  // For very large lists, consider libraries like react-window or react-virtualized.
+  const messageCount = displayMessages.length;
   const shouldUseLazyLoading = useMemo(
     () => messageCount > LAZY_LOAD_THRESHOLD,
     [messageCount]
-  ); // 是否使用懒加载
-  const estimatedAvgHeight = useMemo(() => {
-    if (!containerRef.current || messageCount === 0)
-      return AVG_MESSAGE_HEIGHT_ESTIMATE;
-    const calculatedAvg = containerRef.current.scrollHeight / messageCount;
-    return calculatedAvg > 20 ? calculatedAvg : AVG_MESSAGE_HEIGHT_ESTIMATE;
-  }, [messageCount, containerRef.current?.scrollHeight]); // 估计平均消息高度
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 }); // 可见消息范围
-  const visibleMessages = useMemo(() => {
-    if (!shouldUseLazyLoading) return displayMessages;
-    const endIndex = Math.min(visibleRange.end, messageCount);
-    return displayMessages.slice(visibleRange.start, endIndex);
-  }, [displayMessages, visibleRange, shouldUseLazyLoading, messageCount]); // 可见消息列表
-
-  // --- 滚动相关逻辑 ---
-  // 检查是否接近底部
-  const isNearBottom = useCallback(() => {
-    if (!containerRef.current) return true;
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    return (
-      scrollHeight <= clientHeight ||
-      scrollHeight - scrollTop - clientHeight < SCROLL_NEAR_BOTTOM_THRESHOLD
-    );
-  }, []);
-
-  // 滚动到底部
-  const scrollToBottom = useCallback(
-    (instant = false) => {
-      if (!containerRef.current) return;
-      userScrollActionRef.current = true;
-      const targetScrollTop = containerRef.current.scrollHeight;
-      containerRef.current.scrollTo({
-        top: targetScrollTop,
-        behavior: instant ? "auto" : "smooth",
-      });
-      const timer = setTimeout(() => {
-        userScrollActionRef.current = false;
-        if (!autoScroll) setAutoScroll(true);
-      }, USER_ACTION_RESET_MS);
-    },
-    [autoScroll]
   );
 
-  // --- 加载旧消息逻辑 ---
+  const estimatedAvgHeight = useMemo(() => {
+    // Improved estimation logic (optional)
+    if (!containerRef.current || messageCount === 0)
+      return AVG_MESSAGE_HEIGHT_ESTIMATE;
+    // Only calculate if scrollHeight seems valid
+    const scrollHeight = containerRef.current.scrollHeight;
+    if (scrollHeight <= containerRef.current.clientHeight && messageCount > 0) {
+      // If content doesn't fill viewport, estimate based on rendered items maybe? Or stick to default.
+      // This case is tricky. Sticking to default or a measured average might be safer.
+      return AVG_MESSAGE_HEIGHT_ESTIMATE;
+    }
+    const calculatedAvg = scrollHeight / messageCount;
+    // Use calculated average only if it's within a reasonable range
+    return calculatedAvg > 20 && calculatedAvg < 1000
+      ? calculatedAvg
+      : AVG_MESSAGE_HEIGHT_ESTIMATE;
+  }, [
+    messageCount,
+    containerRef.current?.scrollHeight,
+    containerRef.current?.clientHeight,
+  ]); // Re-calculate if container size changes too
+
+  const [visibleRange, setVisibleRange] = useState({
+    start: 0,
+    end: Math.min(messageCount, 50),
+  }); // Initial range
+
+  const visibleMessages = useMemo(() => {
+    if (!shouldUseLazyLoading) return displayMessages;
+    // Ensure end index doesn't exceed actual message count
+    const safeEnd = Math.min(visibleRange.end, messageCount);
+    const safeStart = Math.max(0, visibleRange.start); // Ensure start is not negative
+    return displayMessages.slice(safeStart, safeEnd);
+  }, [displayMessages, visibleRange, shouldUseLazyLoading, messageCount]);
+
+  // --- Callback Functions ---
+
+  // Check if scroll is near the bottom
+  const isNearBottom = useCallback(() => {
+    const elem = containerRef.current;
+    if (!elem) return true; // Assume near bottom if element doesn't exist
+    return (
+      elem.scrollHeight - elem.scrollTop - elem.clientHeight <
+      SCROLL_NEAR_BOTTOM_THRESHOLD
+    );
+  }, []); // No dependencies needed
+
+  // Programmatically scroll to bottom
+  const scrollToBottom = useCallback((instant = false) => {
+    const elem = containerRef.current;
+    if (!elem) return;
+
+    userScrollActionRef.current = true; // Mark as programmatic scroll
+    elem.scrollTo({
+      top: elem.scrollHeight,
+      behavior: instant ? "auto" : "smooth",
+    });
+    // Reset the user action flag shortly after, allowing user scroll detection again
+    const timer = setTimeout(() => {
+      userScrollActionRef.current = false;
+    }, USER_ACTION_RESET_MS);
+    // We might not need to tie setAutoScroll(true) directly to this action anymore,
+    // handleScroll should manage the autoScroll state based on user position.
+    // if (!autoScroll) setAutoScroll(true); // Maybe remove this, let handleScroll decide
+
+    // Clear timer on cleanup or next call if needed (though short timeout makes it less critical)
+  }, []); // Dependency: autoScroll removed
+
+  // Trigger loading older messages
   const handleLoadOlderMessages = useCallback(() => {
-    if (displayMessages.length === 0 || !hasMoreOlder || isLoadingOlder) return;
-
-    // 获取最早的消息 key 作为 beforeKey
-    const oldestMessage = displayMessages[0];
-    const beforeKey = oldestMessage?._key || oldestMessage?.id;
-
-    if (!beforeKey || beforeKey.startsWith("remote-")) {
-      console.warn(
-        "handleLoadOlderMessages: 无法加载旧消息，无效的旧消息 key:",
-        beforeKey
-      );
+    // Prevent concurrent loads or loading when no more exist
+    if (isLoadingOlder || !hasMoreOlder || displayMessages.length === 0) {
       return;
     }
 
+    // Get the key of the *actual* first message in the full list
+    const oldestMessage = displayMessages[0];
+    // Use _key if available (from local DB), otherwise fallback to id. Ensure it's a string.
+    const beforeKey =
+      oldestMessage?._key ??
+      (typeof oldestMessage?.id === "string" ? oldestMessage.id : null);
+
+    // Important: Check if we have a valid key to paginate from.
+    // Avoids issues if the first message is temporary or lacks a stable key.
+    // The `remote-` check might be specific to your key generation, adjust if needed.
+    if (
+      !beforeKey ||
+      (typeof beforeKey === "string" && beforeKey.startsWith("remote-"))
+    ) {
+      console.warn(
+        "MessagesList: Cannot load older messages, invalid or remote-only 'beforeKey'.",
+        oldestMessage
+      );
+      return; // Stop if key is unsuitable for pagination
+    }
+
     console.log(
-      `handleLoadOlderMessages: 加载旧消息，beforeKey 为 ${beforeKey}`
+      `MessagesList: Attempting to load older messages before key: ${beforeKey}`
     );
-    dispatch(
-      loadOlderMessages({ dialogId, beforeKey, limit: OLDER_LOAD_LIMIT })
-    );
-  }, [dialogId, displayMessages, hasMoreOlder, isLoadingOlder, dispatch]);
-
-  // --- 处理滚动事件 ---
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current || userScrollActionRef.current) return;
-    const { scrollTop } = containerRef.current;
-
-    // 去抖处理
-    if (scrollDebounceTimerRef.current)
-      clearTimeout(scrollDebounceTimerRef.current);
-    scrollDebounceTimerRef.current = setTimeout(() => {
-      userScrollActionRef.current = false;
-    }, SCROLL_DEBOUNCE_MS);
-
-    // 触发加载旧消息
-    if (scrollTop < TOP_SCROLL_THRESHOLD && !isLoadingOlder && hasMoreOlder) {
+    // Record scroll height *before* dispatching the action
+    if (containerRef.current) {
       scrollHeightBeforeLoadingOlderRef.current =
-        containerRef.current.scrollHeight; // 记录加载前的滚动高度
+        containerRef.current.scrollHeight;
+    }
+    dispatch(loadOlderMessages({ dialogId, beforeKey })); // Limit is handled within the thunk now
+  }, [dispatch, dialogId, displayMessages, hasMoreOlder, isLoadingOlder]);
+
+  // Handle user scroll events
+  const handleScroll = useCallback(() => {
+    const elem = containerRef.current;
+    // Exit if element doesn't exist, if a programmatic scroll is happening, or if already processing
+    if (!elem || userScrollActionRef.current || isProcessingScrollRef.current) {
+      return;
+    }
+
+    isProcessingScrollRef.current = true; // Lock processing
+
+    const { scrollTop, scrollHeight, clientHeight } = elem;
+
+    // --- 1. Load Older Messages Trigger ---
+    // Check if scrolled near the top and conditions allow loading
+    if (scrollTop < TOP_SCROLL_THRESHOLD && !isLoadingOlder && hasMoreOlder) {
       handleLoadOlderMessages();
     }
 
-    // 更新自动滚动状态
-    const scrollingDown = scrollTop > lastScrollTopRef.current;
-    lastScrollTopRef.current = Math.max(0, scrollTop);
+    // --- 2. Update Auto-Scroll State ---
+    // Determine if user scrolled up away from the bottom
     const nearBottom = isNearBottom();
-    if (!nearBottom && autoScroll) setAutoScroll(false);
-    else if (nearBottom && !autoScroll && scrollingDown) setAutoScroll(true);
+    if (!nearBottom && autoScroll) {
+      // User scrolled up, disable auto-scroll
+      setAutoScroll(false);
+    } else if (nearBottom && !autoScroll) {
+      // User scrolled back to the bottom, re-enable auto-scroll
+      setAutoScroll(true);
+    }
 
-    // 更新懒加载范围
+    // --- 3. Update Lazy Loading Visible Range ---
     if (shouldUseLazyLoading) {
-      const { clientHeight } = containerRef.current;
-      const avgHeight = estimatedAvgHeight;
-      const visibleItems = Math.ceil(clientHeight / avgHeight);
-      const bufferItems = visibleItems * LAZY_LOAD_BUFFER_SCREENS;
+      const avgHeight = estimatedAvgHeight; // Use memoized estimate
+      const visibleItemsCount = Math.ceil(clientHeight / avgHeight);
+      const buffer = Math.ceil(visibleItemsCount * LAZY_LOAD_BUFFER_SCREENS); // Items to render outside viewport
+
+      // Calculate the index of the first theoretically visible item
       const firstVisibleIndex = Math.max(0, Math.floor(scrollTop / avgHeight));
-      const newStart = Math.max(0, firstVisibleIndex - bufferItems);
+
+      // Calculate new start and end indices for rendering
+      const newStart = Math.max(0, firstVisibleIndex - buffer);
       const newEnd = Math.min(
         messageCount,
-        firstVisibleIndex + visibleItems + bufferItems
+        firstVisibleIndex + visibleItemsCount + buffer
       );
+
+      // Update state only if the range actually changes
       if (newStart !== visibleRange.start || newEnd !== visibleRange.end) {
         setVisibleRange({ start: newStart, end: newEnd });
       }
     }
+
+    // --- Debounce reset for user action flag (optional but can help) ---
+    // This ensures that even if programmatic scrolls happen quickly,
+    // the user flag eventually resets if no coded scroll occurred recently.
+    if (scrollDebounceTimerRef.current)
+      clearTimeout(scrollDebounceTimerRef.current);
+    scrollDebounceTimerRef.current = setTimeout(() => {
+      userScrollActionRef.current = false; // Allow user scroll detection again
+    }, SCROLL_DEBOUNCE_MS);
+
+    isProcessingScrollRef.current = false; // Unlock processing
   }, [
     autoScroll,
-    isNearBottom,
-    shouldUseLazyLoading,
-    messageCount,
     estimatedAvgHeight,
-    visibleRange,
-    isLoadingOlder,
-    hasMoreOlder,
     handleLoadOlderMessages,
+    hasMoreOlder,
+    isLoadingOlder,
+    isNearBottom,
+    messageCount,
+    shouldUseLazyLoading,
+    visibleRange,
   ]);
 
-  // --- 副作用处理 ---
+  // --- Effects ---
 
-  // 绑定滚动事件监听器
+  // Effect to attach and detach scroll listener
   useEffect(() => {
     const elem = containerRef.current;
     if (!elem) return;
-    lastScrollHeightRef.current = elem.scrollHeight;
-    lastScrollTopRef.current = elem.scrollTop;
+
+    // Add listener
     elem.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Cleanup: remove listener and clear any pending timers
     return () => {
       elem.removeEventListener("scroll", handleScroll);
-      if (scrollDebounceTimerRef.current)
+      if (scrollDebounceTimerRef.current) {
         clearTimeout(scrollDebounceTimerRef.current);
+      }
     };
-  }, [handleScroll]);
+  }, [handleScroll]); // Re-attach if handleScroll changes
 
-  // 处理消息列表变化（滚动位置和自动滚动）
-  useEffect(() => {
+  // Effect to handle scroll position AFTER messages are added/prepended
+  useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
@@ -226,63 +304,76 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     const prevMessageCount = prevDisplayMessagesLengthRef.current;
     const messagesAddedCount = currentMessageCount - prevMessageCount;
 
-    const currentScrollHeight = container.scrollHeight;
-    const scrollHeightDiff = currentScrollHeight - lastScrollHeightRef.current;
-
-    // --- 1. 在前置添加消息时保持滚动位置 ---
-    // 如果加载旧消息导致高度显著增加，调整滚动位置
-    if (scrollHeightBeforeLoadingOlderRef.current > 0 && scrollHeightDiff > 0) {
-      const adjustment =
+    // --- 1. Restore Scroll Position After Prepending (Loading Older) ---
+    // If scrollHeightBeforeLoadingOlderRef has a value, it means we loaded older messages.
+    if (
+      scrollHeightBeforeLoadingOlderRef.current > 0 &&
+      messagesAddedCount > 0
+    ) {
+      const currentScrollHeight = container.scrollHeight;
+      const scrollHeightDiff =
         currentScrollHeight - scrollHeightBeforeLoadingOlderRef.current;
-      if (adjustment > 5 && !autoScroll) {
-        container.scrollTop += adjustment;
-        console.log(`MessagesList: 前置添加消息后调整滚动位置 ${adjustment}px`);
+
+      // If height increased significantly and user wasn't at the bottom, adjust scroll
+      if (scrollHeightDiff > 5 && !autoScroll) {
+        // Only adjust if not auto-scrolling
+        container.scrollTop += scrollHeightDiff;
+        console.log(
+          `MessagesList (LayoutEffect): Restored scroll position by ${scrollHeightDiff}px after prepending.`
+        );
       }
-      scrollHeightBeforeLoadingOlderRef.current = 0; // 重置引用
+      // Reset the reference height after adjustment
+      scrollHeightBeforeLoadingOlderRef.current = 0;
     }
 
-    // --- 2. 追加消息时自动滚动 ---
-    userScrollActionRef.current = true; // 防止 handleScroll 干扰
-    const wasInitiallyEmpty = prevMessageCount === 0 && currentMessageCount > 0;
-    const newMessagesAppended = messagesAddedCount > 0 && autoScroll;
-    if (wasInitiallyEmpty || newMessagesAppended) {
-      scrollToBottom(wasInitiallyEmpty || messagesAddedCount > 1); // 初始或多条消息时立即滚动
+    // --- 2. Auto-Scroll on New Appended Messages ---
+    const newMessagesAppended =
+      messagesAddedCount > 0 && currentMessageCount > prevMessageCount;
+    // Scroll if auto-scroll is enabled AND (it was initially empty OR new messages were appended)
+    if (autoScroll && (prevMessageCount === 0 || newMessagesAppended)) {
+      // Determine if instant scroll is needed (initial load or many messages added)
+      const instant = prevMessageCount === 0 || messagesAddedCount > 1;
+      scrollToBottom(instant);
     }
 
-    // --- 3. 更新引用 ---
+    // --- 3. Update References for Next Render ---
     prevDisplayMessagesLengthRef.current = currentMessageCount;
-    lastScrollHeightRef.current = currentScrollHeight;
-    const timer = setTimeout(() => {
-      userScrollActionRef.current = false;
-    }, USER_ACTION_RESET_MS);
-    return () => clearTimeout(timer);
+    // We might not need lastScrollHeightRef if using scrollHeightBeforeLoadingOlderRef logic
+
+    // Dependencies: Monitor changes in messages and autoScroll state.
+    // scrollToBottom is stable due to useCallback.
   }, [displayMessages, autoScroll, scrollToBottom]);
 
-  // 滚动到底部按钮点击事件
-  const handleScrollToBottomClick = useCallback(
-    () => scrollToBottom(false),
-    [scrollToBottom]
-  );
+  // Scroll to bottom button click handler
+  const handleScrollToBottomClick = useCallback(() => {
+    setAutoScroll(true); // Re-enable auto-scroll when button is clicked
+    scrollToBottom(false); // Perform smooth scroll
+  }, [scrollToBottom]);
 
-  // 渲染虚拟化占位符
+  // --- Render Functions ---
+
+  // Render placeholder divs for lazy loading
   const renderPlaceholders = () => {
-    if (!shouldUseLazyLoading) return null;
-    const topPlaceholderHeight = visibleRange.start * estimatedAvgHeight;
-    const bottomPlaceholderHeight =
-      Math.max(0, messageCount - visibleRange.end) * estimatedAvgHeight;
+    if (!shouldUseLazyLoading || !containerRef.current) return null;
+
+    // Use estimated height for placeholders
+    const avgHeight = estimatedAvgHeight;
+    const topPlaceholderHeight = visibleRange.start * avgHeight;
+    // Calculate remaining items below the visible range
+    const bottomItemsCount = Math.max(0, messageCount - visibleRange.end);
+    const bottomPlaceholderHeight = bottomItemsCount * avgHeight;
+
     return (
       <>
         {topPlaceholderHeight > 0 && (
           <div
-            className="messages-placeholder"
-            style={{ height: `${topPlaceholderHeight}px` }}
+            style={{ height: `${topPlaceholderHeight}px`, flexShrink: 0 }}
             aria-hidden="true"
           />
         )}
         {bottomPlaceholderHeight > 0 && (
           <div
-            className="messages-placeholder"
-            style={{ height: `${bottomPlaceholderHeight}px` }}
+            style={{ height: `${bottomPlaceholderHeight}px`, flexShrink: 0 }}
             aria-hidden="true"
           />
         )}
@@ -290,72 +381,85 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     );
   };
 
-  // --- 渲染组件 ---
+  // --- Final Render ---
   return (
-    <>
-      <style>{spinKeyframes}</style> {/* 确保旋转动画可用 */}
-      <div className="chat-messages-container">
-        <div
-          ref={containerRef}
-          className="chat-message-list"
-          role="log"
-          aria-live="polite"
-        >
-          {/* 顶部加载指示器 */}
-          {isLoadingOlder && <TopLoadingIndicator />}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        position: "relative",
+        backgroundColor: theme.background,
+        overflow: "hidden", // Container clips content
+      }}
+      className="chat-messages-container"
+    >
+      <div
+        ref={containerRef}
+        style={{
+          flex: "1 1 auto", // Allow shrinking/growing, basis auto
+          overflowY: "auto",
+          overflowX: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px", // Consistent gap between items/placeholders
+          padding: "24px 15%", // Responsive padding handled by CSS below
+          scrollBehavior: "auto", // Let JS handle smooth scroll
+          overscrollBehavior: "contain", // Prevent parent scrolling
+          zIndex: 1, // Ensure content is above potential background elements
+          // Styles for scrollbar are in CSS below
+        }}
+        className="chat-message-list" // Class for CSS styling
+        role="log"
+        aria-live="polite" // Announce changes politely
+      >
+        {/* Loading indicator at the top when fetching older messages */}
+        {isLoadingOlder && <TopLoadingIndicator />}
 
-          {/* 占位符和消息列表 */}
-          {renderPlaceholders()}
-          {visibleMessages.map((message, index) => {
-            const key =
-              message.id || `msg-${dialogId}-${visibleRange.start + index}`;
-            const realIndex = shouldUseLazyLoading
-              ? visibleRange.start + index
-              : index;
-            return (
-              <div
-                key={key}
-                className="chat-message-item-wrapper"
-                style={{
-                  animationDelay: `${Math.min(realIndex * 0.03, 0.5)}s`,
-                }}
-              >
-                <MemoizedMessageItem message={message} />
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 滚动到底部按钮 */}
-        <ScrollToBottomButton
-          isVisible={!autoScroll && !!containerRef.current}
-          onClick={handleScrollToBottomClick}
-        />
+        {/* Render top placeholder, visible messages, then bottom placeholder */}
+        {renderPlaceholders()}
+        {visibleMessages.map((message, index) => {
+          // Calculate the message's actual index in the full displayMessages array
+          const realIndex = shouldUseLazyLoading
+            ? visibleRange.start + index
+            : index;
+          // Generate a stable key: use message.id primarily
+          const key = message.id || `msg-fallback-${realIndex}`;
+          return (
+            // Wrapper for potential future styling or item-specific logic
+            <div key={key} className="chat-message-item-wrapper">
+              <MemoizedMessageItem message={message as Message} />
+            </div>
+          );
+        })}
       </div>
-      {/* 样式定义 */}
+
+      {/* Scroll to Bottom Button */}
+      <ScrollToBottomButton
+        isVisible={!autoScroll && !!containerRef.current} // Show when not auto-scrolling
+        onClick={handleScrollToBottomClick}
+      />
+
+      {/* Component-specific styles using style jsx */}
       <style jsx>{`
-        .chat-messages-container {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-          position: relative;
-          background-color: ${theme.background};
-          overflow: hidden;
+        /* Keyframes for message appearance */
+        @keyframes chatMessageAppear {
+          from {
+            opacity: 0;
+            transform: translateY(15px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
+
         .chat-message-list {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          padding: 24px 15%;
-          overflow-y: auto;
-          overflow-x: hidden;
-          scroll-behavior: auto; /* 让 JS 控制平滑滚动 */
-          -webkit-overflow-scrolling: touch;
-          background-color: ${theme.background};
-          overscroll-behavior: contain;
-          z-index: 1;
+          /* Basic scrollbar styling */
+          scrollbar-width: thin;
+          scrollbar-color: ${theme.border || "#ccc"} transparent; /* Use theme */
         }
+        /* Webkit scrollbar styling */
         .chat-message-list::-webkit-scrollbar {
           width: 8px;
         }
@@ -363,34 +467,29 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           background: transparent;
         }
         .chat-message-list::-webkit-scrollbar-thumb {
-          background-color: ${theme.border};
+          background-color: ${theme.border || "#ccc"}; /* Use theme */
           border-radius: 4px;
-          border: 2px solid ${theme.background};
+          /* Optional: border to match background for inset look */
+          border: 2px solid ${theme.background || "#fff"};
         }
         .chat-message-list::-webkit-scrollbar-thumb:hover {
-          background-color: ${theme.borderHover};
+          background-color: ${theme.borderHover || "#aaa"}; /* Use theme */
         }
-        .chat-message-list {
-          scrollbar-width: thin;
-          scrollbar-color: ${theme.border} transparent;
-        }
+
         .chat-message-item-wrapper {
+          /* Staggered appearance animation */
           opacity: 0;
           transform: translateY(15px);
           animation: chatMessageAppear 0.3s ease-out forwards;
-          will-change: transform, opacity;
+          /* Delay calculation based on index - keep simple */
+          animation-delay: ${Math.min(
+            (typeof index !== "undefined" ? index : 0) * 0.03, // Use index if available
+            0.5
+          )}s;
+          will-change: transform, opacity; /* Optimize animation */
         }
-        .messages-placeholder {
-          min-height: 1px;
-          flex-shrink: 0;
-          background: transparent;
-        }
-        @keyframes chatMessageAppear {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
+
+        /* Responsive padding adjustments */
         @media (max-width: 1024px) {
           .chat-message-list {
             padding: 20px 10%;
@@ -403,10 +502,11 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           }
         }
       `}</style>
-    </>
+    </div>
   );
 };
 
-// --- 导出 MemoizedMessageItem 和 MessagesList ---
+// Memoize MessageItem for performance optimization
 const MemoizedMessageItem = memo(MessageItem);
+
 export default MessagesList;
