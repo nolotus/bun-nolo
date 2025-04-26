@@ -12,16 +12,15 @@ import { Input } from "web/form/Input";
 import TextArea from "web/form/Textarea";
 import { useSpaceData } from "../hooks/useSpaceData";
 import { FaCog, FaLock, FaGlobe, FaExclamationTriangle } from "react-icons/fa";
-import { useTranslation } from "react-i18next"; // 假设使用 react-i18next
+import { useTranslation } from "react-i18next";
 
 const SpaceSettings: React.FC = () => {
   const theme = useTheme();
   const { spaceId } = useParams<{ spaceId: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { t } = useTranslation("space"); // 使用 space 作用域的翻译
+  const { t } = useTranslation("space");
 
-  // State for space data loading and form fields
   const { spaceData, loading, error } = useSpaceData(spaceId!);
   const [name, setSpaceName] = useState("");
   const [description, setDescription] = useState("");
@@ -31,18 +30,14 @@ const SpaceSettings: React.FC = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [isRepairing, setIsRepairing] = useState(false);
 
-  // --- New state and selector for default space ---
   const [isSettingDefault, setIsSettingDefault] = useState(false);
   const currentDefaultSpaceId = useAppSelector(selectDefaultSpaceId);
   const isCurrentDefault = spaceId === currentDefaultSpaceId;
 
-  // 修复函数，供后续添加具体逻辑
   const handleRepair = async () => {
     setIsRepairing(true);
     try {
       dispatch(fixSpace(spaceId));
-      console.log("尝试修复空间信息...");
-      // 模拟一个异步操作，实际使用时替换为你的逻辑
       await new Promise((resolve) => setTimeout(resolve, 1000));
       toast.success(t("repair_success"));
     } catch (err) {
@@ -55,8 +50,6 @@ const SpaceSettings: React.FC = () => {
     }
   };
 
-  // ... 其他函数（handleDelete, handleUpdate, handleSetDefault, handleCancelChanges）保持不变
-  // 只更新部分 toast 消息使用翻译
   const handleDelete = async () => {
     if (!spaceId) return;
     try {
@@ -118,6 +111,10 @@ const SpaceSettings: React.FC = () => {
     }
   };
 
+  const handleCancelChanges = () => {
+    setHasChanges(false);
+  };
+
   if (loading) {
     return (
       <div className="loading-state">
@@ -146,6 +143,17 @@ const SpaceSettings: React.FC = () => {
             <FaCog />
           </div>
           <h2 className="section-title">{t("space_settings")}</h2>
+          <Button
+            onClick={handleRepair}
+            loading={isRepairing}
+            disabled={isRepairing}
+            status="error"
+            variant="secondary"
+            icon={<FaCog />}
+            style={{ marginLeft: "12px" }}
+          >
+            {t("try_repair")}
+          </Button>
         </div>
         {hasChanges && (
           <div className="settings-changes-badge">{t("unsaved_changes")}</div>
@@ -166,17 +174,6 @@ const SpaceSettings: React.FC = () => {
                   : String(error)
                 : t("no_space_data")}
             </p>
-            <Button
-              onClick={handleRepair}
-              loading={isRepairing}
-              disabled={isRepairing}
-              status="error"
-              variant="secondary"
-              icon={<FaCog />}
-              style={{ marginTop: "16px" }}
-            >
-              {t("try_repair")}
-            </Button>
           </div>
         </div>
       ) : (
@@ -407,11 +404,15 @@ const SpaceSettings: React.FC = () => {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 24px;
+          flex-wrap: wrap;
+          gap: 12px;
         }
 
         .section-title-container {
           display: flex;
           align-items: center;
+          flex-wrap: wrap;
+          gap: 12px;
         }
 
         .section-icon {
