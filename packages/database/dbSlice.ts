@@ -2,13 +2,11 @@ import {
   asyncThunkCreator,
   buildCreateSlice,
   createEntityAdapter,
-  PayloadAction, // Import PayloadAction if needed for simple reducers like upsertMany
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 
 // Import actions
 import { removeAction } from "./action/remove";
-import { queryServerAction } from "./action/queryServer";
 import { readAction } from "./action/read";
 import { writeAction } from "./action/write";
 import { patchAction } from "./action/patch";
@@ -39,7 +37,6 @@ const dbSlice = createSliceWithThunks({
   initialState,
   reducers: (create) => ({
     // --- Async Thunks ---
-    queryServer: create.asyncThunk(queryServerAction), // Keep existing thunks
     read: create.asyncThunk(readAction, {
       fulfilled: (state, action) => {
         if (action.payload) {
@@ -124,45 +121,17 @@ const dbSlice = createSliceWithThunks({
       // pending: (state, action) => { ... },
       // rejected: (state, action) => { ... },
     }),
-
-    // --- Simple Reducers (if any) ---
-    // Keep upsertMany as a simple reducer if it doesn't involve async logic
-    upsertMany: (state, action: PayloadAction<any[]>) => {
-      // Use PayloadAction for typing
-      if (!Array.isArray(action.payload) || action.payload.length === 0) {
-        console.warn("Invalid payload for upsertMany:", action.payload);
-        return; // Exit if payload is not a non-empty array
-      }
-      // Check each item for dbKey and non-empty object
-      if (
-        action.payload.some(
-          (item) => !item || !item.dbKey || Object.keys(item).length === 0
-        )
-      ) {
-        console.warn("Empty or invalid item detected in upsertMany:", {
-          payload: action.payload,
-          stack: new Error().stack,
-        });
-        // Optionally filter out invalid items before upserting
-        // const validItems = action.payload.filter(item => item && item.dbKey && Object.keys(item).length > 0);
-        // dbAdapter.upsertMany(state, validItems);
-        // For now, proceed with original behavior (potential issues if items are invalid)
-      }
-      dbAdapter.upsertMany(state, action.payload);
-    },
   }),
 });
 
 // Export actions including the new upsert action
 export const {
-  upsertMany, // Keep if needed as simple reducer
   // Async thunk actions are automatically generated but not typically exported here
   // Instead, you dispatch the thunk itself, e.g., dispatch(upsert({ dbKey: '...', data: {...} }))
 } = dbSlice.actions;
 
 // Export the async thunk action creators directly for dispatching
-export const { remove, patch, read, write, queryServer, upsert } =
-  dbSlice.actions;
+export const { remove, patch, read, write, upsert } = dbSlice.actions;
 
 // Export the reducer
 export default dbSlice.reducer;
