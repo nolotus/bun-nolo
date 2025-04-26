@@ -1,7 +1,12 @@
 import { NoloRootState } from "app/store";
-import { createSelector } from "@reduxjs/toolkit";
-import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
-import { filter } from "rambda";
+import {
+  createSelector,
+  asyncThunkCreator,
+  buildCreateSlice,
+  createEntityAdapter,
+  EntityState,
+  Update,
+} from "@reduxjs/toolkit";
 import { DataType } from "create/types";
 import { remove, write, upsertMany } from "database/dbSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
@@ -14,34 +19,31 @@ import {
   MessageWithKey,
 } from "chat/messages/fetchMessages";
 import { fetchConvMsgs } from "./fetchConvMsgs";
-import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
 //web
 import { browserDb } from "database/browser/db";
 
 // --- Constants ---
 const FALLBACK_SERVERS = ["https://cybot.one", "https://cybot.run"];
-const INITIAL_LOAD_LIMIT = 50; // 初始加载数量
-const OLDER_LOAD_LIMIT = 30; // 向上滚动加载数量
+const INITIAL_LOAD_LIMIT = 50;
+const OLDER_LOAD_LIMIT = 30;
 
 // --- Utility: isValidMessage ---
-const isValidMessage = (msg: any): msg is Message => {
-  return (
-    msg &&
-    typeof msg === "object" &&
-    typeof msg.id === "string" &&
-    msg.content != null &&
-    msg.createdAt != null
-  );
-};
+const isValidMessage = (msg: any): msg is Message =>
+  msg &&
+  typeof msg === "object" &&
+  typeof msg.id === "string" &&
+  msg.content != null &&
+  msg.createdAt != null;
 
-// 使用 createEntityAdapter 来管理 msgs
+// --- Entity Adapter ---
 const messagesAdapter = createEntityAdapter<Message>({
   selectId: (message) => message.id,
-  sortComparer: (a, b) => a.id.localeCompare(b.id), // 基于 id 的字符串排序
+  sortComparer: (a, b) => a.id.localeCompare(b.id),
 });
 
+// --- State Interface ---
 export interface MessageSliceState {
-  msgs: EntityState<Message>; // 使用 EntityState 来管理 msgs
+  msgs: EntityState<Message>;
   firstStreamProcessed: boolean;
   isLoadingInitial: boolean;
   isLoadingOlder: boolean;
@@ -49,12 +51,14 @@ export interface MessageSliceState {
   error: Error | null;
 }
 
+// --- Slice Creation Setup ---
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
 
+// --- Initial State ---
 const initialState: MessageSliceState = {
-  msgs: messagesAdapter.getInitialState(), // 使用 adapter 的初始状态
+  msgs: messagesAdapter.getInitialState(),
   firstStreamProcessed: false,
   isLoadingInitial: false,
   isLoadingOlder: false,
@@ -62,159 +66,127 @@ const initialState: MessageSliceState = {
   error: null,
 };
 
+// --- Helper Functions for Async Thunk Handlers ---
+// Generic pending handler
+const createPendingHandler =
+  (loadingKey: "isLoadingInitial" | "isLoadingOlder") =>
+  (state: MessageSliceState) => {
+    state[loadingKey] = true;
+    state.error = null;
+  };
+
+// Generic rejected handler
+const createRejectedHandler =
+  (loadingKey: "isLoadingInitial" | "isLoadingOlder") =>
+  (state: MessageSliceState, action: any) => {
+    state[loadingKey] = false;
+    state.error =
+      action.error instanceof Error
+        ? action.error
+        : new Error(String(action.error));
+    console.error(
+      `${action.type} failed:`, // Keep minimal error logging
+      action.error
+    );
+  };
+
+// Generic fulfilled handler for fetch actions that upsert messages
+// Modified: Now takes a payload containing messages instead of directly being the message array
+const createFetchFulfilledHandler =
+  (loadingKey: "isLoadingInitial" | "isLoadingOlder") =>
+  (state: MessageSliceState, action: { payload: { messages: Message[] } }) => {
+    state[loadingKey] = false;
+    if (action.payload?.messages?.length > 0) {
+      messagesAdapter.upsertMany(state.msgs, action.payload.messages);
+    }
+  };
+
+// --- Message Slice ---
 export const messageSlice = createSliceWithThunks({
   name: "message",
   initialState: initialState as MessageSliceState,
   reducers: (create) => ({
-    // initMsgs 作为 async thunk
+    // --- Simple Reducers ---
+    messageStreaming: create.reducer<Message>((state, action) => {
+      messagesAdapter.upsertOne(state.msgs, action.payload);
+      state.firstStreamProcessed = true;
+    }),
+    resetMsgs: create.reducer((state) => {
+      messagesAdapter.removeAll(state.msgs);
+      state.firstStreamProcessed = false;
+    }),
+
+    // --- Async Thunks ---
     initMsgs: create.asyncThunk(
       async (
-        options: {
+        {
+          dialogId,
+          limit = INITIAL_LOAD_LIMIT,
+          db = browserDb,
+        }: {
           dialogId: string;
           limit?: number;
           db?: any;
         },
-        thunkApi
+        { dispatch }
       ) => {
-        const {
-          dialogId,
-          limit = INITIAL_LOAD_LIMIT,
-          db = browserDb,
-        } = options;
-        const { dispatch } = thunkApi;
-
-        console.log("initMsgs: Fetching initial local messages");
-        await dispatch(
-          fetchInitialLocalMessagesAction({ dialogId, limit, db })
-        ).unwrap();
-
-        console.log("initMsgs: Fetching initial remote messages");
-        await dispatch(
-          fetchInitialRemoteMessagesAction({ dialogId, limit })
-        ).unwrap();
-
+        // Keep parallel fetching for initial load
+        await Promise.all([
+          dispatch(fetchInitialLocalMessagesAction({ dialogId, limit, db })),
+          dispatch(fetchInitialRemoteMessagesAction({ dialogId, limit })),
+        ]);
         return { dialogId };
       },
       {
         pending: (state) => {
           state.isLoadingInitial = true;
           state.error = null;
-          messagesAdapter.removeAll(state.msgs); // 重置消息列表
-          state.firstStreamProcessed = false; // 重置流处理标志
-          console.log("initMsgs: Initialization started");
+          messagesAdapter.removeAll(state.msgs);
+          state.firstStreamProcessed = false;
         },
-        fulfilled: (state, action) => {
+        fulfilled: (state) => {
           state.isLoadingInitial = false;
-          console.log(
-            `initMsgs: Initialization completed for dialog ${action.payload.dialogId}`
-          );
         },
-        rejected: (state, action) => {
-          state.isLoadingInitial = false;
-          state.error =
-            action.error instanceof Error
-              ? action.error
-              : new Error(String(action.error));
-          console.error("initMsgs: Initialization failed", action.error);
-        },
+        rejected: createRejectedHandler("isLoadingInitial"),
       }
     ),
 
     messageStreamEnd: create.asyncThunk(
-      async (msg: Message, thunkApi) => {
-        const { dispatch } = thunkApi;
-        console.log("messageStreamEnd: Writing final message", msg.id); // Log id for clarity
-
-        // Create a version of the message without the controller for writing
-        // Although 'write' might handle extra fields, it's cleaner not to store transient UI state
+      async (msg: Message, { dispatch }) => {
         const { controller, ...messageToWrite } = msg;
-
         await dispatch(
           write({
             data: { ...messageToWrite, type: DataType.MSG },
             customKey: msg.dbKey,
           })
         );
-        // Return the ID so the reducer knows which message to update
         return { id: msg.id };
       },
       {
         fulfilled: (state, action) => {
-          const { id } = action.payload;
-          console.log("messageStreamEnd: DB Write fulfilled for id", id);
-
-          // --- START MODIFICATION ---
-          // Explicitly remove the controller from the message state in Redux
-          const existingMessage = state.msgs.entities[id];
-          if (existingMessage && existingMessage.controller) {
-            console.log(
-              `messageStreamEnd: Removing controller for message ${id}`
-            );
-            // Prepare the update payload to remove the controller
-            const update: Update<Message> = {
-              id: id,
-              changes: { controller: undefined }, // Set controller to undefined
-            };
-            messagesAdapter.updateOne(state.msgs, update);
-          } else if (existingMessage) {
-            console.log(
-              `messageStreamEnd: Controller already removed or never existed for message ${id}`
-            );
-          } else {
-            console.warn(
-              `messageStreamEnd: Message with id ${id} not found in state for controller removal.`
-            );
+          const existingMessage = state.msgs.entities[action.payload.id];
+          if (existingMessage?.controller) {
+            messagesAdapter.updateOne(state.msgs, {
+              id: action.payload.id,
+              changes: { controller: undefined },
+            });
           }
-          // --- END MODIFICATION ---
-
-          // Keep the original comment if 'write' triggers other updates for content etc.
-          // 但我们在这里确保了 controller 被清除
         },
         rejected: (state, action) => {
           console.error("messageStreamEnd failed:", action.error);
-          // Optionally, still try to remove the controller if the write failed but stream ended
-          // This depends on whether msg.id is available in action.meta.arg or similar
-          // Example (needs adjustment based on actual toolkit behavior):
-          // const messageWithError = action.meta.arg as Message;
-          // if (messageWithError?.id) {
-          //   const id = messageWithError.id;
-          //   const existingMessage = state.msgs.entities[id];
-          //   if (existingMessage && existingMessage.controller) {
-          //     console.warn(`messageStreamEnd (rejected): Removing controller for message ${id} despite write error.`);
-          //     const update: Update<Message> = { id: id, changes: { controller: undefined } };
-          //     messagesAdapter.updateOne(state.msgs, update);
-          //   }
-          // }
         },
       }
     ),
 
-    messageStreaming: create.reducer<Message>((state, action) => {
-      const message = action.payload;
-      console.log("messageStreaming: Processing streaming message", message.id);
-      // 直接将流式消息写入 msgs
-      messagesAdapter.upsertOne(state.msgs, message);
-      if (!state.firstStreamProcessed) {
-        console.log("messageStreaming: First stream processed flag set");
-        state.firstStreamProcessed = true;
-      }
-    }),
-
     deleteMessage: create.asyncThunk(
-      async (dbKey: string, thunkApi) => {
-        await thunkApi.dispatch(remove(dbKey));
+      async (dbKey: string, { dispatch }) => {
+        await dispatch(remove(dbKey));
         return { dbKey };
       },
       {
         fulfilled: (state, action) => {
-          const dbKeyToRemove = action.payload.dbKey;
-          console.log(
-            "deleteMessage: Removing message with dbKey",
-            dbKeyToRemove
-          );
-          // 从 msgs 中移除对应的消息（需要找到对应的 id）
           const msgToRemove = Object.values(state.msgs.entities).find(
-            (msg) => msg?.dbKey === dbKeyToRemove
+            (msg) => msg?.dbKey === action.payload.dbKey
           );
           if (msgToRemove) {
             messagesAdapter.removeOne(state.msgs, msgToRemove.id);
@@ -226,14 +198,9 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    handleSendMessage: create.asyncThunk(sendMessageAction),
-
-    deleteDialogMsgs: create.asyncThunk(deleteDialogMsgsAction),
-
     addMsg: create.asyncThunk(
-      async (msg: Message, thunkApi) => {
-        console.log("addMsg: Writing message", msg.id);
-        await thunkApi.dispatch(
+      async (msg: Message, { dispatch }) => {
+        await dispatch(
           write({
             data: { ...msg, type: DataType.MSG },
             customKey: msg.dbKey,
@@ -243,9 +210,7 @@ export const messageSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          const newMessage = action.payload;
-          console.log("addMsg: Adding or updating message", newMessage.id);
-          messagesAdapter.upsertOne(state.msgs, newMessage);
+          messagesAdapter.upsertOne(state.msgs, action.payload);
         },
         rejected: (state, action) => {
           console.error("addMsg failed:", action.error);
@@ -253,385 +218,182 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    resetMsgs: create.reducer((state) => {
-      console.log("resetMsgs: Clearing all messages and stream state");
-      messagesAdapter.removeAll(state.msgs); // 清空 msgs
-      state.firstStreamProcessed = false;
-    }),
+    handleSendMessage: create.asyncThunk(sendMessageAction),
+    deleteDialogMsgs: create.asyncThunk(deleteDialogMsgsAction),
 
+    // --- Fetching Thunks (Initial Load - Still separate for potential clarity) ---
     fetchInitialRemoteMessagesAction: create.asyncThunk(
       async (
-        options: {
-          dialogId: string;
-          limit: number;
-        },
-        thunkApi
+        { dialogId, limit }: { dialogId: string; limit: number },
+        { getState, dispatch }
       ) => {
-        const { dialogId, limit } = options;
-        const state = thunkApi.getState() as NoloRootState;
+        const state = getState() as NoloRootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
+        if (!server || !token) return { messages: [] }; // Return structure expected by handler
 
-        if (!server || !token) {
-          console.warn(
-            "fetchInitialRemoteMessagesAction: No server or token available"
-          );
-          return [];
-        }
+        const uniqueServers = Array.from(
+          new Set([server, ...FALLBACK_SERVERS])
+        ).filter(Boolean) as string[];
+        if (uniqueServers.length === 0) return { messages: [] };
 
         try {
-          const uniqueServers = Array.from(
-            new Set([server, ...FALLBACK_SERVERS])
-          ).filter(Boolean) as string[];
-          if (uniqueServers.length === 0) return [];
-
-          const remoteResults = await Promise.all(
-            uniqueServers.map(async (srv) => {
-              return await fetchConvMsgs(srv, token, { dialogId, limit });
-            })
+          const results = await Promise.all(
+            uniqueServers.map((srv) =>
+              fetchConvMsgs(srv, token, { dialogId, limit })
+            )
           );
-
-          const remoteMessages = remoteResults.flat().filter(isValidMessage);
-          console.log(
-            `fetchInitialRemoteMessagesAction: Fetched ${remoteMessages.length} remote messages for dialog ${dialogId}`
-          );
-
-          if (remoteMessages.length > 0) {
-            await thunkApi.dispatch(upsertMany(remoteMessages));
-          }
-
-          return remoteMessages;
+          const remoteMessages = results.flat().filter(isValidMessage);
+          // Note: upsertMany is handled by fulfilled handler
+          return { messages: remoteMessages };
         } catch (error) {
-          console.error(
-            "fetchInitialRemoteMessagesAction: Unexpected error:",
-            error
-          );
+          console.error("fetchInitialRemoteMessagesAction Error:", error);
           throw error;
         }
       },
       {
-        pending: (state) => {
-          state.isLoadingInitial = true;
-          state.error = null;
-          console.log("fetchInitialRemoteMessagesAction: Loading started");
-        },
-        fulfilled: (state, action) => {
-          state.isLoadingInitial = false;
-          const remoteMessages = action.payload;
-
-          if (remoteMessages.length === 0) {
-            console.log(
-              "fetchInitialRemoteMessagesAction: No remote messages received"
-            );
-            return;
-          }
-
-          messagesAdapter.upsertMany(state.msgs, remoteMessages);
-          console.log(
-            `fetchInitialRemoteMessagesAction: Updated state with ${remoteMessages.length} remote messages`
-          );
-        },
-        rejected: (state, action) => {
-          state.isLoadingInitial = false;
-          state.error =
-            action.error instanceof Error
-              ? action.error
-              : new Error(String(action.error));
-          console.error(
-            "fetchInitialRemoteMessagesAction: Failed",
-            action.error
-          );
-        },
+        pending: createPendingHandler("isLoadingInitial"),
+        fulfilled: createFetchFulfilledHandler("isLoadingInitial"),
+        rejected: createRejectedHandler("isLoadingInitial"),
       }
     ),
 
     fetchInitialLocalMessagesAction: create.asyncThunk(
-      async (
-        options: {
-          dialogId: string;
-          limit: number;
-          db: any;
-        },
-        thunkApi
-      ) => {
-        const { dialogId, limit, db } = options;
-
+      async ({
+        dialogId,
+        limit,
+        db,
+      }: {
+        dialogId: string;
+        limit: number;
+        db: any;
+      }) => {
         try {
           const localMessages = await fetchLocalMessages(db, dialogId, {
             limit,
             throwOnError: false,
           });
-
-          console.log(
-            `fetchInitialLocalMessagesAction: Fetched ${localMessages.length} local messages for dialog ${dialogId}`
-          );
-          return localMessages;
+          return { messages: localMessages }; // Return structure expected by handler
         } catch (error) {
-          console.error(
-            "fetchInitialLocalMessagesAction: Unexpected error:",
-            error
-          );
+          console.error("fetchInitialLocalMessagesAction Error:", error);
           throw error;
         }
       },
       {
-        pending: (state) => {
-          state.isLoadingInitial = true;
-          state.error = null;
-          console.log("fetchInitialLocalMessagesAction: Loading started");
-        },
-        fulfilled: (state, action) => {
-          state.isLoadingInitial = false;
-          const localMessages = action.payload as MessageWithKey[];
-
-          if (localMessages.length === 0) {
-            console.log(
-              "fetchInitialLocalMessagesAction: No local messages received"
-            );
-            return;
-          }
-
-          messagesAdapter.upsertMany(state.msgs, localMessages);
-          console.log(
-            `fetchInitialLocalMessagesAction: Updated state with ${localMessages.length} local messages`
-          );
-        },
-        rejected: (state, action) => {
-          state.isLoadingInitial = false;
-          state.error =
-            action.error instanceof Error
-              ? action.error
-              : new Error(String(action.error));
-          console.error(
-            "fetchInitialLocalMessagesAction: Failed",
-            action.error
-          );
-        },
+        pending: createPendingHandler("isLoadingInitial"),
+        fulfilled: createFetchFulfilledHandler("isLoadingInitial"),
+        rejected: createRejectedHandler("isLoadingInitial"),
       }
     ),
 
+    // --- loadOlderMessages (Merged Logic) ---
     loadOlderMessages: create.asyncThunk(
       async (
-        options: {
+        {
+          dialogId,
+          beforeKey,
+          limit = OLDER_LOAD_LIMIT,
+          db = browserDb,
+        }: {
           dialogId: string;
           beforeKey: string;
           limit?: number;
           db?: any;
         },
-        thunkApi
+        { getState } // Removed dispatch as we are not dispatching sub-actions
       ) => {
-        const {
-          dialogId,
-          beforeKey,
-          limit = OLDER_LOAD_LIMIT,
-          db = browserDb,
-        } = options;
-        const { dispatch } = thunkApi;
-
-        console.log("loadOlderMessages: Fetching older local messages");
-        const localResult = await dispatch(
-          fetchOlderLocalMessagesAction({ dialogId, beforeKey, limit, db })
-        ).unwrap();
-
-        console.log("loadOlderMessages: Fetching older remote messages");
-        const remoteResult = await dispatch(
-          fetchOlderRemoteMessagesAction({ dialogId, beforeKey, limit })
-        ).unwrap();
-
-        return {
-          dialogId,
-          localCount: localResult.length,
-          remoteCount: remoteResult.length,
-          totalLimit: limit,
-        };
-      },
-      {
-        pending: (state) => {
-          state.isLoadingOlder = true;
-          state.error = null;
-          console.log("loadOlderMessages: Loading older messages started");
-        },
-        fulfilled: (state, action) => {
-          state.isLoadingOlder = false;
-          const { localCount, remoteCount, totalLimit } = action.payload;
-
-          if (localCount + remoteCount < totalLimit) {
-            state.hasMoreOlder = false;
-            console.log("loadOlderMessages: No more older messages to load");
-          }
-
-          console.log(
-            `loadOlderMessages: Loaded ${localCount} local and ${remoteCount} remote older messages`
-          );
-        },
-        rejected: (state, action) => {
-          state.isLoadingOlder = false;
-          state.error =
-            action.error instanceof Error
-              ? action.error
-              : new Error(String(action.error));
-          console.error(
-            "loadOlderMessages: Loading older messages failed",
-            action.error
-          );
-        },
-      }
-    ),
-
-    fetchOlderLocalMessagesAction: create.asyncThunk(
-      async (
-        options: {
-          dialogId: string;
-          beforeKey: string;
-          limit: number;
-          db: any;
-        },
-        thunkApi
-      ) => {
-        const { dialogId, beforeKey, limit, db } = options;
-
-        try {
-          const localMessages = await fetchLocalMessages(db, dialogId, {
-            limit,
-            beforeKey,
-            throwOnError: false,
-          });
-
-          console.log(
-            `fetchOlderLocalMessagesAction: Fetched ${localMessages.length} older local messages for dialog ${dialogId}`
-          );
-          return localMessages;
-        } catch (error) {
-          console.error(
-            "fetchOlderLocalMessagesAction: Unexpected error:",
-            error
-          );
-          throw error;
-        }
-      },
-      {
-        pending: (state) => {
-          state.isLoadingOlder = true;
-          state.error = null;
-          console.log("fetchOlderLocalMessagesAction: Loading started");
-        },
-        fulfilled: (state, action) => {
-          state.isLoadingOlder = false;
-          const localMessages = action.payload as MessageWithKey[];
-
-          if (localMessages.length === 0) {
-            console.log(
-              "fetchOlderLocalMessagesAction: No older local messages received"
-            );
-            return;
-          }
-
-          messagesAdapter.upsertMany(state.msgs, localMessages);
-          console.log(
-            `fetchOlderLocalMessagesAction: Updated state with ${localMessages.length} older local messages`
-          );
-        },
-        rejected: (state, action) => {
-          state.isLoadingOlder = false;
-          state.error =
-            action.error instanceof Error
-              ? action.error
-              : new Error(String(action.error));
-          console.error("fetchOlderLocalMessagesAction: Failed", action.error);
-        },
-      }
-    ),
-
-    fetchOlderRemoteMessagesAction: create.asyncThunk(
-      async (
-        options: {
-          dialogId: string;
-          beforeKey: string;
-          limit: number;
-        },
-        thunkApi
-      ) => {
-        const { dialogId, beforeKey, limit } = options;
-        const state = thunkApi.getState() as NoloRootState;
+        const state = getState() as NoloRootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
 
-        if (!server || !token) {
-          console.warn(
-            "fetchOlderRemoteMessagesAction: No server or token available"
+        // --- Fetch Local Older Messages ---
+        const fetchLocalPromise = fetchLocalMessages(db, dialogId, {
+          limit,
+          beforeKey,
+          throwOnError: false, // Or handle error inside if needed
+        }).catch((error) => {
+          console.error(
+            "loadOlderMessages: Failed to fetch local older messages",
+            error
           );
-          return [];
-        }
+          return []; // Return empty array on error to allow remote fetch to proceed
+        });
 
-        try {
+        // --- Fetch Remote Older Messages ---
+        const fetchRemotePromise = (async () => {
+          if (!server || !token) {
+            console.warn(
+              "loadOlderMessages: No server or token for remote fetch."
+            );
+            return [];
+          }
           const uniqueServers = Array.from(
             new Set([server, ...FALLBACK_SERVERS])
           ).filter(Boolean) as string[];
           if (uniqueServers.length === 0) return [];
 
-          const remoteResults = await Promise.all(
-            uniqueServers.map(async (srv) => {
-              return await fetchConvMsgs(srv, token, {
-                dialogId,
-                limit,
-                beforeKey,
-              });
-            })
-          );
-
-          const remoteMessages = remoteResults.flat().filter(isValidMessage);
-          console.log(
-            `fetchOlderRemoteMessagesAction: Fetched ${remoteMessages.length} older remote messages for dialog ${dialogId}`
-          );
-
-          if (remoteMessages.length > 0) {
-            await thunkApi.dispatch(upsertMany(remoteMessages));
+          try {
+            const results = await Promise.all(
+              uniqueServers.map((srv) =>
+                fetchConvMsgs(srv, token, { dialogId, limit, beforeKey })
+              )
+            );
+            // Filter valid messages *after* fetching
+            return results.flat().filter(isValidMessage);
+          } catch (error) {
+            console.error(
+              "loadOlderMessages: Failed to fetch remote older messages",
+              error
+            );
+            // Don't rethrow here if we want Promise.all below to resolve
+            return []; // Return empty array on error
           }
+        })(); // Immediately invoke the async function
 
-          return remoteMessages;
-        } catch (error) {
-          console.error(
-            "fetchOlderRemoteMessagesAction: Unexpected error:",
-            error
-          );
-          throw error;
-        }
+        // --- Wait for both fetches ---
+        // Promise.all ensures both fetches complete (or fail gracefully if handled above)
+        const [localMessages, remoteMessages] = await Promise.all([
+          fetchLocalPromise,
+          fetchRemotePromise,
+        ]);
+
+        // --- Return combined results for the fulfilled handler ---
+        return {
+          messages: [...localMessages, ...remoteMessages] as Message[], // Combine results
+          limit, // Pass limit for hasMoreOlder calculation
+        };
       },
       {
-        pending: (state) => {
-          state.isLoadingOlder = true;
-          state.error = null;
-          console.log("fetchOlderRemoteMessagesAction: Loading started");
-        },
+        pending: createPendingHandler("isLoadingOlder"),
         fulfilled: (state, action) => {
           state.isLoadingOlder = false;
-          const remoteMessages = action.payload;
+          const { messages, limit } = action.payload;
 
-          if (remoteMessages.length === 0) {
+          if (messages.length > 0) {
+            messagesAdapter.upsertMany(state.msgs, messages);
             console.log(
-              "fetchOlderRemoteMessagesAction: No older remote messages received"
+              `loadOlderMessages: Added ${messages.length} older messages.`
             );
-            return;
+          } else {
+            console.log("loadOlderMessages: No older messages found.");
           }
 
-          messagesAdapter.upsertMany(state.msgs, remoteMessages);
-          console.log(
-            `fetchOlderRemoteMessagesAction: Updated state with ${remoteMessages.length} older remote messages`
-          );
+          // Update hasMoreOlder based on whether fewer messages were fetched than requested
+          if (messages.length < limit) {
+            state.hasMoreOlder = false;
+            console.log("loadOlderMessages: No more older messages expected.");
+          }
         },
-        rejected: (state, action) => {
-          state.isLoadingOlder = false;
-          state.error =
-            action.error instanceof Error
-              ? action.error
-              : new Error(String(action.error));
-          console.error("fetchOlderRemoteMessagesAction: Failed", action.error);
-        },
+        rejected: createRejectedHandler("isLoadingOlder"), // Generic handler is fine
       }
     ),
+
+    // REMOVED: fetchOlderLocalMessagesAction
+    // REMOVED: fetchOlderRemoteMessagesAction
   }),
 });
 
+// --- Actions ---
 export const {
   messageStreamEnd,
   messageStreaming,
@@ -641,13 +403,14 @@ export const {
   addMsg,
   initMsgs,
   resetMsgs,
+  // Keep initial fetch actions if initMsgs still dispatches them
   fetchInitialRemoteMessagesAction,
   fetchInitialLocalMessagesAction,
-  loadOlderMessages,
-  fetchOlderLocalMessagesAction,
-  fetchOlderRemoteMessagesAction,
+  loadOlderMessages, // Export the merged thunk
+  // Removed exports for the merged actions
 } = messageSlice.actions;
 
+// --- Reducer ---
 export default messageSlice.reducer;
 
 // --- Selectors ---
@@ -659,21 +422,30 @@ export const {
 
 export const selectFirstStreamProcessed = (state: NoloRootState) =>
   state.message.firstStreamProcessed;
+export const selectIsLoadingInitial = (state: NoloRootState) =>
+  state.message.isLoadingInitial;
+export const selectIsLoadingOlder = (state: NoloRootState) =>
+  state.message.isLoadingOlder;
+export const selectHasMoreOlder = (state: NoloRootState) =>
+  state.message.hasMoreOlder;
+export const selectMessageError = (state: NoloRootState) => state.message.error;
 
-export const selectMessagesState = (state: NoloRootState) => ({
-  messages: selectMsgs(state),
-  isLoadingInitial: state.message.isLoadingInitial,
-  isLoadingOlder: state.message.isLoadingOlder,
-  hasMoreOlder: state.message.hasMoreOlder,
-  error: state.message.error,
-});
-
-/**
- * Selector: 返回消息列表，不进行额外排序。
- */
 export const selectMergedMessages = createSelector(
   [selectMsgs],
-  (msgs = []) => {
-    return msgs; // 直接返回消息列表，不进行额外排序
-  }
+  (msgs) => msgs
+);
+
+export const selectMessagesLoadingState = createSelector(
+  [
+    selectIsLoadingInitial,
+    selectIsLoadingOlder,
+    selectHasMoreOlder,
+    selectMessageError,
+  ],
+  (isLoadingInitial, isLoadingOlder, hasMoreOlder, error) => ({
+    isLoadingInitial,
+    isLoadingOlder,
+    hasMoreOlder,
+    error,
+  })
 );
