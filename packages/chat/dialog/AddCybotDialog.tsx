@@ -21,7 +21,7 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
   onClose,
   onAddCybot,
   queryUserId,
-  limit = 20,
+  limit = 50,
 }) => {
   const { t } = useTranslation("chat"); // 修改为 chat 命名空间，与 DialogInfoPanel 一致
   const theme = useTheme();

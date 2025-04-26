@@ -10,11 +10,8 @@ import React, {
 import { MessageItem } from "./MessageItem";
 import { ScrollToBottomButton } from "./ScrollToBottomButton";
 import { useTheme } from "app/theme";
-import type { Message } from "../messages/types"; // Base message type
-import type { MessageWithKey } from "../messages/fetchMessages"; // Type with _key from useMessages
 import { useAppSelector } from "app/hooks";
-import { selectMsgs, selectStreamMessages } from "chat/messages/messageSlice"; // Selectors for Redux state
-import { sort } from "rambda"; // For final sorting
+import { selectMergedMessages } from "chat/messages/messageSlice"; // 使用 selectMergedMessages 替代手动合并
 
 const MemoizedMessageItem = memo(MessageItem);
 
@@ -51,17 +48,8 @@ const AVG_MESSAGE_HEIGHT_ESTIMATE = 100;
 const LAZY_LOAD_BUFFER_SCREENS = 1;
 const TOP_SCROLL_THRESHOLD = 50; // Pixels from top to trigger load older
 
-// --- Helper: compareMessagesByTime ---
-const compareMessagesByTime = (a: Message, b: Message): number => {
-  const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-  const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-  if (aTime === bTime) return a.id.localeCompare(b.id);
-  return aTime - bTime; // ASC sort (oldest first)
-};
-
 // --- Component Props ---
 interface MessagesListProps {
-  paginatedMessages: MessageWithKey[]; // From useMessages (ASC, with key)
   isLoadingOlder: boolean;
   hasMoreOlder: boolean;
   loadOlderMessages: () => Promise<void> | void;
@@ -70,7 +58,6 @@ interface MessagesListProps {
 
 // --- MessagesList Component ---
 const MessagesList: React.FC<MessagesListProps> = ({
-  paginatedMessages,
   isLoadingOlder,
   hasMoreOlder,
   loadOlderMessages,
@@ -78,9 +65,8 @@ const MessagesList: React.FC<MessagesListProps> = ({
 }) => {
   const theme = useTheme();
 
-  // --- Get latest Redux state ---
-  const reduxMsgs = useAppSelector(selectMsgs); // Latest persisted msgs
-  const streamMessages = useAppSelector(selectStreamMessages); // Live stream msgs
+  // --- Get merged messages directly from Redux ---
+  const displayMessages = useAppSelector(selectMergedMessages); // 使用 selector 获取合并后的消息列表
 
   // --- State and Refs ---
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -91,37 +77,6 @@ const MessagesList: React.FC<MessagesListProps> = ({
   const lastScrollTopRef = useRef(0);
   const scrollHeightBeforeLoadingOlderRef = useRef(0); // Height before loading older
   const prevDisplayMessagesLengthRef = useRef(0); // Track length changes
-
-  // --- Merge Data Sources ---
-  const displayMessages = useMemo(() => {
-    const displayMap = new Map<string, Message>(); // Use base Message type for display
-
-    // 1. Add paginated messages (historical base)
-    paginatedMessages.forEach((msg) => {
-      if (msg?.id) displayMap.set(msg.id, msg);
-    });
-
-    // 2. Merge latest persisted messages from Redux
-    reduxMsgs.forEach((reduxMsg) => {
-      if (reduxMsg?.id) {
-        const existing = displayMap.get(reduxMsg.id);
-        // Simple merge: Redux state potentially newer/more complete
-        displayMap.set(reduxMsg.id, { ...(existing || {}), ...reduxMsg });
-      }
-    });
-
-    // 3. Merge stream messages (highest priority)
-    streamMessages.forEach((streamMsg) => {
-      if (streamMsg?.id) {
-        const existing = displayMap.get(streamMsg.id);
-        displayMap.set(streamMsg.id, { ...(existing || {}), ...streamMsg });
-      }
-    });
-
-    // 4. Convert to array and sort ASC (oldest first) for rendering
-    const combined = Array.from(displayMap.values());
-    return sort(compareMessagesByTime, combined);
-  }, [paginatedMessages, reduxMsgs, streamMessages]); // Dependencies
 
   // --- Virtualization (based on final displayMessages) ---
   const messageCount = displayMessages.length;
