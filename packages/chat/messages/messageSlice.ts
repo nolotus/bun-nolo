@@ -8,7 +8,7 @@ import {
   Update,
 } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
-import { remove, write, upsertMany } from "database/dbSlice";
+import { remove, write } from "database/dbSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
 import { deleteDialogMsgsAction } from "./actions/deleteDialogMsgsAction";
 import type { Message } from "./types";

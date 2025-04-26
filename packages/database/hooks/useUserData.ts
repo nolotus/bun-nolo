@@ -6,7 +6,6 @@ import { DataType } from "create/types";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
 import { noloQueryRequest } from "../client/queryRequest";
-import { upsertMany } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";
 
 interface BaseItem {
@@ -226,7 +225,7 @@ export function useUserData(
       const limitedData = sortedData.slice(0, limit);
 
       if (mergedData.length > 0) {
-        dispatch(upsertMany(mergedData));
+        //todo  write to local db
       }
 
       setState({
