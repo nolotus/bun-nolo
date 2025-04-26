@@ -18,6 +18,7 @@ import { browserDb } from "database/browser/db";
 // --- Constants ---
 const FALLBACK_SERVERS = ["https://cybot.one", "https://cybot.run"];
 const INITIAL_LOAD_LIMIT = 50; // 初始加载数量
+const OLDER_LOAD_LIMIT = 30; // 向上滚动加载数量
 
 // --- Utility: isValidMessage ---
 const isValidMessage = (msg: any): msg is Message => {
@@ -448,6 +449,284 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
+
+    // 新增：加载更多旧数据的 action
+    loadOlderMessages: create.asyncThunk(
+      async (
+        options: {
+          dialogId: string;
+          beforeKey: string;
+          limit?: number; // 可选的 limit 参数，默认值为 OLDER_LOAD_LIMIT
+          db?: any; // 可选的数据库对象，默认值为 browserDb
+        },
+        thunkApi
+      ) => {
+        const {
+          dialogId,
+          beforeKey,
+          limit = OLDER_LOAD_LIMIT,
+          db = browserDb,
+        } = options;
+        const { dispatch } = thunkApi;
+
+        // 1. 优先加载本地旧消息
+        console.log("loadOlderMessages: Fetching older local messages");
+        const localResult = await dispatch(
+          fetchOlderLocalMessagesAction({ dialogId, beforeKey, limit, db })
+        ).unwrap();
+
+        // 2. 再加载远程旧消息
+        console.log("loadOlderMessages: Fetching older remote messages");
+        const remoteResult = await dispatch(
+          fetchOlderRemoteMessagesAction({ dialogId, beforeKey, limit })
+        ).unwrap();
+
+        // 返回结果，包含本地和远程加载的数量，用于判断是否还有更多数据
+        return {
+          dialogId,
+          localCount: localResult.length,
+          remoteCount: remoteResult.length,
+          totalLimit: limit,
+        };
+      },
+      {
+        pending: (state) => {
+          state.isLoadingOlder = true;
+          state.error = null;
+          console.log("loadOlderMessages: Loading older messages started");
+        },
+        fulfilled: (state, action) => {
+          state.isLoadingOlder = false;
+          const { localCount, remoteCount, totalLimit } = action.payload;
+
+          // 如果本地和远程返回的消息总数少于限制，则认为没有更多旧消息
+          if (localCount + remoteCount < totalLimit) {
+            state.hasMoreOlder = false;
+            console.log("loadOlderMessages: No more older messages to load");
+          }
+
+          console.log(
+            `loadOlderMessages: Loaded ${localCount} local and ${remoteCount} remote older messages`
+          );
+        },
+        rejected: (state, action) => {
+          state.isLoadingOlder = false;
+          state.error =
+            action.error instanceof Error
+              ? action.error
+              : new Error(String(action.error));
+          console.error(
+            "loadOlderMessages: Loading older messages failed",
+            action.error
+          );
+        },
+      }
+    ),
+
+    // 新增：加载更多本地旧消息的 action
+    fetchOlderLocalMessagesAction: create.asyncThunk(
+      async (
+        options: {
+          dialogId: string;
+          beforeKey: string;
+          limit: number;
+          db: any;
+        },
+        thunkApi
+      ) => {
+        const { dialogId, beforeKey, limit, db } = options;
+
+        try {
+          // 从本地数据库获取旧消息
+          const localMessages = await fetchLocalMessages(db, dialogId, {
+            limit,
+            beforeKey,
+            throwOnError: false,
+          });
+
+          console.log(
+            `fetchOlderLocalMessagesAction: Fetched ${localMessages.length} older local messages for dialog ${dialogId}`
+          );
+          return localMessages;
+        } catch (error) {
+          console.error(
+            "fetchOlderLocalMessagesAction: Unexpected error:",
+            error
+          );
+          throw error;
+        }
+      },
+      {
+        pending: (state) => {
+          state.isLoadingOlder = true;
+          state.error = null;
+          console.log("fetchOlderLocalMessagesAction: Loading started");
+        },
+        fulfilled: (state, action) => {
+          state.isLoadingOlder = false;
+          const localMessages = action.payload as MessageWithKey[];
+
+          if (localMessages.length === 0) {
+            console.log(
+              "fetchOlderLocalMessagesAction: No older local messages received"
+            );
+            return;
+          }
+
+          // 将本地旧消息更新到状态中，直接合并到 msgs
+          const messageMap = new Map<string, Message>();
+          state.msgs.forEach((msg) => {
+            if (msg.id) messageMap.set(msg.id, msg);
+          });
+          localMessages.forEach((localMsg) => {
+            const existing = messageMap.get(localMsg.id);
+            messageMap.set(localMsg.id, { ...(existing || {}), ...localMsg });
+          });
+          state.msgs = sort(
+            compareMessagesByTime,
+            Array.from(messageMap.values())
+          );
+
+          console.log(
+            `fetchOlderLocalMessagesAction: Updated state with ${localMessages.length} older local messages`
+          );
+        },
+        rejected: (state, action) => {
+          state.isLoadingOlder = false;
+          state.error =
+            action.error instanceof Error
+              ? action.error
+              : new Error(String(action.error));
+          console.error("fetchOlderLocalMessagesAction: Failed", action.error);
+        },
+      }
+    ),
+
+    // 新增：加载更多远程旧消息的 action
+    fetchOlderRemoteMessagesAction: create.asyncThunk(
+      async (
+        options: {
+          dialogId: string;
+          beforeKey: string;
+          limit: number;
+        },
+        thunkApi
+      ) => {
+        const { dialogId, beforeKey, limit } = options;
+        const state = thunkApi.getState() as NoloRootState;
+        const server = selectCurrentServer(state);
+        const token = selectCurrentToken(state);
+
+        if (!server || !token) {
+          console.warn(
+            "fetchOlderRemoteMessagesAction: No server or token available"
+          );
+          return [];
+        }
+
+        try {
+          const uniqueServers = Array.from(
+            new Set([server, ...FALLBACK_SERVERS])
+          ).filter(Boolean) as string[];
+          if (uniqueServers.length === 0) return [];
+
+          const remoteResults = await Promise.all(
+            uniqueServers.map(async (srv) => {
+              try {
+                const response = await fetch(`${srv}/rpc/getConvMsgs`, {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    dialogId,
+                    limit,
+                    beforeKey,
+                  }),
+                });
+                if (!response.ok) {
+                  console.error(
+                    `fetchOlderRemoteMessagesAction: Failed ${response.status} from ${srv}`
+                  );
+                  return [];
+                }
+                const data = await response.json();
+                return Array.isArray(data) ? data.filter(isValidMessage) : [];
+              } catch (error) {
+                console.error(
+                  `fetchOlderRemoteMessagesAction: Error fetching from ${srv}:`,
+                  error
+                );
+                return [];
+              }
+            })
+          );
+
+          const remoteMessages = remoteResults.flat();
+          console.log(
+            `fetchOlderRemoteMessagesAction: Fetched ${remoteMessages.length} older remote messages for dialog ${dialogId}`
+          );
+
+          // 将远程消息持久化到数据库
+          if (remoteMessages.length > 0) {
+            await thunkApi.dispatch(upsertMany(remoteMessages));
+          }
+
+          return remoteMessages;
+        } catch (error) {
+          console.error(
+            "fetchOlderRemoteMessagesAction: Unexpected error:",
+            error
+          );
+          throw error;
+        }
+      },
+      {
+        pending: (state) => {
+          state.isLoadingOlder = true;
+          state.error = null;
+          console.log("fetchOlderRemoteMessagesAction: Loading started");
+        },
+        fulfilled: (state, action) => {
+          state.isLoadingOlder = false;
+          const remoteMessages = action.payload;
+
+          if (remoteMessages.length === 0) {
+            console.log(
+              "fetchOlderRemoteMessagesAction: No older remote messages received"
+            );
+            return;
+          }
+
+          // 将远程旧消息更新到状态中，直接合并到 msgs
+          const messageMap = new Map<string, Message>();
+          state.msgs.forEach((msg) => {
+            if (msg.id) messageMap.set(msg.id, msg);
+          });
+          remoteMessages.forEach((remoteMsg) => {
+            const existing = messageMap.get(remoteMsg.id);
+            messageMap.set(remoteMsg.id, { ...(existing || {}), ...remoteMsg });
+          });
+          state.msgs = sort(
+            compareMessagesByTime,
+            Array.from(messageMap.values())
+          );
+
+          console.log(
+            `fetchOlderRemoteMessagesAction: Updated state with ${remoteMessages.length} older remote messages`
+          );
+        },
+        rejected: (state, action) => {
+          state.isLoadingOlder = false;
+          state.error =
+            action.error instanceof Error
+              ? action.error
+              : new Error(String(action.error));
+          console.error("fetchOlderRemoteMessagesAction: Failed", action.error);
+        },
+      }
+    ),
   }),
 });
 
@@ -462,6 +741,9 @@ export const {
   resetMsgs,
   fetchInitialRemoteMessagesAction,
   fetchInitialLocalMessagesAction,
+  loadOlderMessages,
+  fetchOlderLocalMessagesAction,
+  fetchOlderRemoteMessagesAction,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;

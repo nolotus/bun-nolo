@@ -1,4 +1,5 @@
-// chat/messages/MessagesList.jsx
+// chat/messages/MessagesList
+
 import React, {
   useCallback,
   useEffect,
@@ -10,8 +11,12 @@ import React, {
 import { MessageItem } from "./MessageItem";
 import { ScrollToBottomButton } from "./ScrollToBottomButton";
 import { useTheme } from "app/theme";
-import { useAppSelector } from "app/hooks";
-import { selectMergedMessages } from "chat/messages/messageSlice"; // 使用 selectMergedMessages 替代手动合并
+import { useAppSelector, useAppDispatch } from "app/hooks";
+import {
+  selectMergedMessages,
+  selectMessagesState,
+  loadOlderMessages,
+} from "chat/messages/messageSlice"; // 引入 loadOlderMessages action
 
 const MemoizedMessageItem = memo(MessageItem);
 
@@ -47,26 +52,21 @@ const USER_ACTION_RESET_MS = 100;
 const AVG_MESSAGE_HEIGHT_ESTIMATE = 100;
 const LAZY_LOAD_BUFFER_SCREENS = 1;
 const TOP_SCROLL_THRESHOLD = 50; // Pixels from top to trigger load older
+const OLDER_LOAD_LIMIT = 30; // 向上滚动加载数量
 
 // --- Component Props ---
 interface MessagesListProps {
-  isLoadingOlder: boolean;
-  hasMoreOlder: boolean;
-  loadOlderMessages: () => Promise<void> | void;
   dialogId: string;
 }
 
 // --- MessagesList Component ---
-const MessagesList: React.FC<MessagesListProps> = ({
-  isLoadingOlder,
-  hasMoreOlder,
-  loadOlderMessages,
-  dialogId,
-}) => {
+const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
   const theme = useTheme();
+  const dispatch = useAppDispatch();
 
-  // --- Get merged messages directly from Redux ---
+  // --- Get merged messages and state from Redux ---
   const displayMessages = useAppSelector(selectMergedMessages); // 使用 selector 获取合并后的消息列表
+  const { isLoadingOlder, hasMoreOlder } = useAppSelector(selectMessagesState);
 
   // --- State and Refs ---
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -125,6 +125,30 @@ const MessagesList: React.FC<MessagesListProps> = ({
     [autoScroll]
   );
 
+  // --- Load Older Messages ---
+  const handleLoadOlderMessages = useCallback(() => {
+    if (displayMessages.length === 0 || !hasMoreOlder || isLoadingOlder) return;
+
+    // 获取最早的消息 key 作为 beforeKey
+    const oldestMessage = displayMessages[0];
+    const beforeKey = oldestMessage?._key || oldestMessage?.id;
+
+    if (!beforeKey || beforeKey.startsWith("remote-")) {
+      console.warn(
+        "handleLoadOlderMessages: Cannot load older, invalid oldest key:",
+        beforeKey
+      );
+      return;
+    }
+
+    console.log(
+      `handleLoadOlderMessages: Loading older messages before key ${beforeKey}`
+    );
+    dispatch(
+      loadOlderMessages({ dialogId, beforeKey, limit: OLDER_LOAD_LIMIT })
+    );
+  }, [dialogId, displayMessages, hasMoreOlder, isLoadingOlder, dispatch]);
+
   // --- Handle Scroll Event ---
   const handleScroll = useCallback(() => {
     if (!containerRef.current || userScrollActionRef.current) return;
@@ -141,7 +165,7 @@ const MessagesList: React.FC<MessagesListProps> = ({
     if (scrollTop < TOP_SCROLL_THRESHOLD && !isLoadingOlder && hasMoreOlder) {
       scrollHeightBeforeLoadingOlderRef.current =
         containerRef.current.scrollHeight; // Record height BEFORE load
-      loadOlderMessages();
+      handleLoadOlderMessages();
     }
 
     // Update AutoScroll
@@ -176,7 +200,7 @@ const MessagesList: React.FC<MessagesListProps> = ({
     visibleRange,
     isLoadingOlder,
     hasMoreOlder,
-    loadOlderMessages,
+    handleLoadOlderMessages,
   ]);
 
   // --- Effects ---
