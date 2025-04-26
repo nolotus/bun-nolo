@@ -52,8 +52,7 @@ const DialogPage = ({ pageKey }) => {
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
 
   // --- Get messages state from Redux ---
-  const { isLoadingInitial, isLoadingOlder, hasMoreOlder, error } =
-    useAppSelector(selectMessagesState);
+  const { isLoadingInitial, error } = useAppSelector(selectMessagesState);
 
   // --- Dialog and messages initialization ---
   useEffect(() => {
@@ -95,32 +94,34 @@ const DialogPage = ({ pageKey }) => {
           {/* --- Conditional Rendering based on initial load state --- */}
           {isLoadingInitial ? (
             <LoadingSpinner />
-          ) : error ? (
-            renderError()
           ) : (
-            // Render chat only when initial load is done and no error
-            currentDialogConfig && (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  height: "100%",
-                }}
-              >
-                <div
-                  style={{
-                    flexGrow: 1,
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  {/* --- Pass dialogId to MessagesList --- */}
-                  <MessagesList dialogId={dialogId} />
-                </div>
-                <MessageInputContainer />
-              </div>
-            )
+            // Render chat or error as soon as initial load is done
+            <>
+              {error
+                ? renderError()
+                : currentDialogConfig && (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        height: "100%",
+                      }}
+                    >
+                      <div
+                        style={{
+                          flexGrow: 1,
+                          overflow: "hidden",
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      >
+                        {/* --- Pass dialogId to MessagesList --- */}
+                        <MessagesList dialogId={dialogId} />
+                      </div>
+                      <MessageInputContainer />
+                    </div>
+                  )}
+            </>
           )}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { NoloRootState } from "app/store"; // Assuming path is correct
 import { generatePrompt } from "ai/prompt/generatePrompt"; // Assuming path is correct
+import { selectMsgs } from "chat/messages/messageSlice";
 
 // --- 类型定义 (保持不变) ---
 
@@ -88,7 +89,7 @@ const filterAndCleanMessages = (msgs: any[]): Message[] => {
                   part.image_url &&
                   typeof part.image_url.url === "string" &&
                   part.image_url.url.trim() !== "")) // 图片 URL 必须非空
-              // 可以添加对其他 type 的验证
+            // 可以添加对其他 type 的验证
           ) &&
           // 确保至少有一个非空文本或图片URL (防止只有空的 text part 的数组)
           msg.content.some(
@@ -283,7 +284,7 @@ export const generateOpenAIRequestBody = (
   context: any = ""
 ) => {
   // 1. 从 state 获取、过滤并清理历史消息
-  const previousMessages = filterAndCleanMessages(state.message.msgs || []);
+  const previousMessages = filterAndCleanMessages(selectMsgs(state));
   console.log("previousMessages", previousMessages);
 
   // 2. 创建新的用户消息 (自动处理 content 格式)

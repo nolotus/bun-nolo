@@ -1,5 +1,4 @@
 // chat/messages/MessagesList
-
 import React, {
   useCallback,
   useEffect,
@@ -16,11 +15,9 @@ import {
   selectMergedMessages,
   selectMessagesState,
   loadOlderMessages,
-} from "chat/messages/messageSlice"; // 引入 loadOlderMessages action
+} from "chat/messages/messageSlice";
 
-const MemoizedMessageItem = memo(MessageItem);
-
-// --- Loading Indicator Component ---
+// --- 顶部加载指示器组件 ---
 const spinKeyframes = `
   @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 `;
@@ -44,60 +41,61 @@ const TopLoadingIndicator = () => {
   );
 };
 
-// --- Constants ---
-const LAZY_LOAD_THRESHOLD = 100;
-const SCROLL_NEAR_BOTTOM_THRESHOLD = 150;
-const SCROLL_DEBOUNCE_MS = 150;
-const USER_ACTION_RESET_MS = 100;
-const AVG_MESSAGE_HEIGHT_ESTIMATE = 100;
-const LAZY_LOAD_BUFFER_SCREENS = 1;
-const TOP_SCROLL_THRESHOLD = 50; // Pixels from top to trigger load older
-const OLDER_LOAD_LIMIT = 30; // 向上滚动加载数量
+// --- 常量定义 ---
+const LAZY_LOAD_THRESHOLD = 100; // 懒加载阈值，消息数量超过此值时启用懒加载
+const SCROLL_NEAR_BOTTOM_THRESHOLD = 150; // 接近底部的滚动阈值（像素）
+const SCROLL_DEBOUNCE_MS = 150; // 滚动事件去抖时间（毫秒）
+const USER_ACTION_RESET_MS = 100; // 用户操作重置时间（毫秒）
+const AVG_MESSAGE_HEIGHT_ESTIMATE = 100; // 平均消息高度估计值（像素）
+const LAZY_LOAD_BUFFER_SCREENS = 1; // 懒加载缓冲屏幕数
+const TOP_SCROLL_THRESHOLD = 50; // 触发加载旧消息的顶部滚动阈值（像素）
+const OLDER_LOAD_LIMIT = 30; // 向上滚动加载的消息数量
 
-// --- Component Props ---
+// --- 组件属性接口 ---
 interface MessagesListProps {
-  dialogId: string;
+  dialogId: string; // 对话ID
 }
 
-// --- MessagesList Component ---
+// --- MessagesList 组件 ---
 const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
-  // --- Get merged messages and state from Redux ---
-  const displayMessages = useAppSelector(selectMergedMessages); // 使用 selector 获取合并后的消息列表
+  // --- 从 Redux 获取合并后的消息和状态 ---
+  const displayMessages = useAppSelector(selectMergedMessages); // 获取合并后的消息列表
   const { isLoadingOlder, hasMoreOlder } = useAppSelector(selectMessagesState);
 
-  // --- State and Refs ---
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
-  const lastScrollHeightRef = useRef(0);
-  const scrollDebounceTimerRef = useRef<number | null>(null);
-  const userScrollActionRef = useRef(false);
-  const lastScrollTopRef = useRef(0);
-  const scrollHeightBeforeLoadingOlderRef = useRef(0); // Height before loading older
-  const prevDisplayMessagesLengthRef = useRef(0); // Track length changes
+  // --- 状态和引用管理 ---
+  const containerRef = useRef<HTMLDivElement | null>(null); // 消息容器引用
+  const [autoScroll, setAutoScroll] = useState(true); // 是否自动滚动到底部
+  const lastScrollHeightRef = useRef(0); // 上一次滚动高度
+  const scrollDebounceTimerRef = useRef<number | null>(null); // 滚动事件去抖定时器
+  const userScrollActionRef = useRef(false); // 是否为用户滚动操作
+  const lastScrollTopRef = useRef(0); // 上一次滚动顶部位置
+  const scrollHeightBeforeLoadingOlderRef = useRef(0); // 加载旧消息前的高度
+  const prevDisplayMessagesLengthRef = useRef(0); // 跟踪消息长度变化
 
-  // --- Virtualization (based on final displayMessages) ---
-  const messageCount = displayMessages.length;
+  // --- 虚拟化逻辑（基于最终的 displayMessages） ---
+  const messageCount = displayMessages.length; // 消息总数
   const shouldUseLazyLoading = useMemo(
     () => messageCount > LAZY_LOAD_THRESHOLD,
     [messageCount]
-  );
+  ); // 是否使用懒加载
   const estimatedAvgHeight = useMemo(() => {
     if (!containerRef.current || messageCount === 0)
       return AVG_MESSAGE_HEIGHT_ESTIMATE;
     const calculatedAvg = containerRef.current.scrollHeight / messageCount;
     return calculatedAvg > 20 ? calculatedAvg : AVG_MESSAGE_HEIGHT_ESTIMATE;
-  }, [messageCount, containerRef.current?.scrollHeight]);
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 });
+  }, [messageCount, containerRef.current?.scrollHeight]); // 估计平均消息高度
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 }); // 可见消息范围
   const visibleMessages = useMemo(() => {
     if (!shouldUseLazyLoading) return displayMessages;
     const endIndex = Math.min(visibleRange.end, messageCount);
     return displayMessages.slice(visibleRange.start, endIndex);
-  }, [displayMessages, visibleRange, shouldUseLazyLoading, messageCount]);
+  }, [displayMessages, visibleRange, shouldUseLazyLoading, messageCount]); // 可见消息列表
 
-  // --- Scrolling Logic ---
+  // --- 滚动相关逻辑 ---
+  // 检查是否接近底部
   const isNearBottom = useCallback(() => {
     if (!containerRef.current) return true;
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
@@ -107,6 +105,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     );
   }, []);
 
+  // 滚动到底部
   const scrollToBottom = useCallback(
     (instant = false) => {
       if (!containerRef.current) return;
@@ -120,12 +119,11 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
         userScrollActionRef.current = false;
         if (!autoScroll) setAutoScroll(true);
       }, USER_ACTION_RESET_MS);
-      // Consider clearing timer on unmount if necessary
     },
     [autoScroll]
   );
 
-  // --- Load Older Messages ---
+  // --- 加载旧消息逻辑 ---
   const handleLoadOlderMessages = useCallback(() => {
     if (displayMessages.length === 0 || !hasMoreOlder || isLoadingOlder) return;
 
@@ -135,47 +133,47 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
 
     if (!beforeKey || beforeKey.startsWith("remote-")) {
       console.warn(
-        "handleLoadOlderMessages: Cannot load older, invalid oldest key:",
+        "handleLoadOlderMessages: 无法加载旧消息，无效的旧消息 key:",
         beforeKey
       );
       return;
     }
 
     console.log(
-      `handleLoadOlderMessages: Loading older messages before key ${beforeKey}`
+      `handleLoadOlderMessages: 加载旧消息，beforeKey 为 ${beforeKey}`
     );
     dispatch(
       loadOlderMessages({ dialogId, beforeKey, limit: OLDER_LOAD_LIMIT })
     );
   }, [dialogId, displayMessages, hasMoreOlder, isLoadingOlder, dispatch]);
 
-  // --- Handle Scroll Event ---
+  // --- 处理滚动事件 ---
   const handleScroll = useCallback(() => {
     if (!containerRef.current || userScrollActionRef.current) return;
     const { scrollTop } = containerRef.current;
 
-    // Debounce
+    // 去抖处理
     if (scrollDebounceTimerRef.current)
       clearTimeout(scrollDebounceTimerRef.current);
     scrollDebounceTimerRef.current = setTimeout(() => {
       userScrollActionRef.current = false;
     }, SCROLL_DEBOUNCE_MS);
 
-    // Trigger Load Older
+    // 触发加载旧消息
     if (scrollTop < TOP_SCROLL_THRESHOLD && !isLoadingOlder && hasMoreOlder) {
       scrollHeightBeforeLoadingOlderRef.current =
-        containerRef.current.scrollHeight; // Record height BEFORE load
+        containerRef.current.scrollHeight; // 记录加载前的滚动高度
       handleLoadOlderMessages();
     }
 
-    // Update AutoScroll
+    // 更新自动滚动状态
     const scrollingDown = scrollTop > lastScrollTopRef.current;
     lastScrollTopRef.current = Math.max(0, scrollTop);
     const nearBottom = isNearBottom();
     if (!nearBottom && autoScroll) setAutoScroll(false);
     else if (nearBottom && !autoScroll && scrollingDown) setAutoScroll(true);
 
-    // Update Lazy Loading Range
+    // 更新懒加载范围
     if (shouldUseLazyLoading) {
       const { clientHeight } = containerRef.current;
       const avgHeight = estimatedAvgHeight;
@@ -203,9 +201,9 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     handleLoadOlderMessages,
   ]);
 
-  // --- Effects ---
+  // --- 副作用处理 ---
 
-  // Attach scroll listener
+  // 绑定滚动事件监听器
   useEffect(() => {
     const elem = containerRef.current;
     if (!elem) return;
@@ -219,7 +217,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     };
   }, [handleScroll]);
 
-  // Handle Message List Changes (Scroll Position & Auto-Scroll)
+  // 处理消息列表变化（滚动位置和自动滚动）
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -231,44 +229,42 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     const currentScrollHeight = container.scrollHeight;
     const scrollHeightDiff = currentScrollHeight - lastScrollHeightRef.current;
 
-    // --- 1. Preserve Scroll on Prepend ---
-    // If height increased significantly due to loading older messages, adjust scroll
+    // --- 1. 在前置添加消息时保持滚动位置 ---
+    // 如果加载旧消息导致高度显著增加，调整滚动位置
     if (scrollHeightBeforeLoadingOlderRef.current > 0 && scrollHeightDiff > 0) {
       const adjustment =
         currentScrollHeight - scrollHeightBeforeLoadingOlderRef.current;
       if (adjustment > 5 && !autoScroll) {
-        // Add threshold > 5px to avoid minor adjustments
         container.scrollTop += adjustment;
-        console.log(
-          `MessagesList: Adjusted scroll after prepend by ${adjustment}px`
-        );
+        console.log(`MessagesList: 前置添加消息后调整滚动位置 ${adjustment}px`);
       }
-      scrollHeightBeforeLoadingOlderRef.current = 0; // Reset ref
+      scrollHeightBeforeLoadingOlderRef.current = 0; // 重置引用
     }
-    // --- 2. Auto Scroll on Append ---
-    userScrollActionRef.current = true; // Prevent handleScroll interference
+
+    // --- 2. 追加消息时自动滚动 ---
+    userScrollActionRef.current = true; // 防止 handleScroll 干扰
     const wasInitiallyEmpty = prevMessageCount === 0 && currentMessageCount > 0;
     const newMessagesAppended = messagesAddedCount > 0 && autoScroll;
     if (wasInitiallyEmpty || newMessagesAppended) {
-      scrollToBottom(wasInitiallyEmpty || messagesAddedCount > 1); // Instant scroll if initial or many messages added
+      scrollToBottom(wasInitiallyEmpty || messagesAddedCount > 1); // 初始或多条消息时立即滚动
     }
 
-    // --- 3. Update Refs ---
+    // --- 3. 更新引用 ---
     prevDisplayMessagesLengthRef.current = currentMessageCount;
     lastScrollHeightRef.current = currentScrollHeight;
     const timer = setTimeout(() => {
       userScrollActionRef.current = false;
     }, USER_ACTION_RESET_MS);
     return () => clearTimeout(timer);
-  }, [displayMessages, autoScroll, scrollToBottom]); // Depend on final displayMessages
+  }, [displayMessages, autoScroll, scrollToBottom]);
 
-  // Scroll to Bottom Button Click
+  // 滚动到底部按钮点击事件
   const handleScrollToBottomClick = useCallback(
     () => scrollToBottom(false),
     [scrollToBottom]
   );
 
-  // Render Placeholders for Virtualization
+  // 渲染虚拟化占位符
   const renderPlaceholders = () => {
     if (!shouldUseLazyLoading) return null;
     const topPlaceholderHeight = visibleRange.start * estimatedAvgHeight;
@@ -294,10 +290,10 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     );
   };
 
-  // --- Rendering ---
+  // --- 渲染组件 ---
   return (
     <>
-      <style>{spinKeyframes}</style> {/* Ensure spin animation is available */}
+      <style>{spinKeyframes}</style> {/* 确保旋转动画可用 */}
       <div className="chat-messages-container">
         <div
           ref={containerRef}
@@ -305,10 +301,10 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           role="log"
           aria-live="polite"
         >
-          {/* Top loading indicator */}
+          {/* 顶部加载指示器 */}
           {isLoadingOlder && <TopLoadingIndicator />}
 
-          {/* Placeholders and Messages */}
+          {/* 占位符和消息列表 */}
           {renderPlaceholders()}
           {visibleMessages.map((message, index) => {
             const key =
@@ -330,13 +326,13 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           })}
         </div>
 
-        {/* Scroll to bottom button */}
+        {/* 滚动到底部按钮 */}
         <ScrollToBottomButton
           isVisible={!autoScroll && !!containerRef.current}
           onClick={handleScrollToBottomClick}
         />
       </div>
-      {/* Styles */}
+      {/* 样式定义 */}
       <style jsx>{`
         .chat-messages-container {
           display: flex;
@@ -354,7 +350,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           padding: 24px 15%;
           overflow-y: auto;
           overflow-x: hidden;
-          scroll-behavior: auto; /* Let JS control smooth scroll */
+          scroll-behavior: auto; /* 让 JS 控制平滑滚动 */
           -webkit-overflow-scrolling: touch;
           background-color: ${theme.background};
           overscroll-behavior: contain;
@@ -411,4 +407,6 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
   );
 };
 
+// --- 导出 MemoizedMessageItem 和 MessagesList ---
+const MemoizedMessageItem = memo(MessageItem);
 export default MessagesList;
