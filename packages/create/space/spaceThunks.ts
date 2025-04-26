@@ -145,20 +145,16 @@ export const createSpaceThunks = (create: Create) => ({
     },
     // Optional: Add pending/rejected handlers if needed for UI feedback during fetch.
   }),
-  fixSpace: create.asyncThunk(
-    (spaceId, thunkAPI) => {
-      if (spaceId.startWith("space-")) {
-        const newId = spaceId.slice(6);
-        thunkAPI.dispatch(patch({ dbKey: spaceId, changes: { id: newId } }));
-      }
-    },
-    {
-      fulfilled: (state, action) => {
-        const { spaceId, spaceData } = action.payload;
-        if (state.currentSpaceId === spaceId) {
-          state.currentSpace = spaceData;
-        }
-      },
+  fixSpace: create.asyncThunk((spaceId, thunkAPI) => {
+    const currentSpace = thunkAPI.getState().space.currentSpace;
+    const spaceIdError = spaceId.startsWith("space-");
+    const currentSpaceError = currentSpace.id.startsWith("space-");
+    const shoudlFix = spaceIdError || currentSpaceError;
+    if (shoudlFix) {
+      const shouldDbKey = spaceIdError ? spaceId : currentSpace.id;
+      const newId = shouldDbKey.slice(6);
+      console.log(shouldDbKey, newId);
+      thunkAPI.dispatch(patch({ dbKey: shouldDbKey, changes: { id: newId } }));
     }
-  ),
+  }),
 });
