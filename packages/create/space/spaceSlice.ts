@@ -87,6 +87,7 @@ export const {
   fetchUserSpaceMemberships,
   addMember,
   removeMember,
+  fixSpace,
 } = spaceSlice.actions;
 
 // Selectors (Keep them here or move to a separate selectors file if preferred)
