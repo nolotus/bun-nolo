@@ -10,8 +10,10 @@ import { format, differenceInHours } from "date-fns";
 import { NoloRootState } from "app/store";
 import { pipe, flatten, filter, reverse } from "rambda";
 
-export const getFilteredMessages = (state: NoloRootState) => {
-  const msgs = state.message.msgs;
+import { selectMsgs } from "../../messages/messageSlice";
+
+const getFilteredMessages = (state: NoloRootState) => {
+  const msgs = selectMsgs(state);
 
   return pipe(
     flatten,
@@ -19,10 +21,13 @@ export const getFilteredMessages = (state: NoloRootState) => {
     filter((msg) => {
       if (!msg) return false;
       const content = msg.content;
-      return content != null && content.trim() !== "";
+      // 检查 content 是否为字符串且非空
+      return (
+        content != null && typeof content === "string" && content.trim() !== ""
+      );
     }),
     reverse
-  )([msgs]);
+  )(msgs); // 直接传递 msgs 数组
 };
 
 const TITLE_UPDATE_INTERVAL_HOURS = 6;
@@ -51,7 +56,7 @@ const shouldUpdateTitle = (lastUpdatedAt: string): boolean => {
 export const updateDialogTitleAction = async (args, thunkApi) => {
   const { dialogKey, cybotConfig } = args;
   const dispatch = thunkApi.dispatch;
-  const state = thunkApi.getState();
+  const state = thunkApi.getState() as NoloRootState; // 确保类型正确
 
   const dialogConfig = selectById(state, dialogKey);
 
@@ -59,7 +64,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
     return dialogConfig;
   }
 
-  const currentMsgs = getFilteredMessages(state);
+  const currentMsgs = getFilteredMessages(state); // 使用更新后的函数获取消息
   const content = JSON.stringify(currentMsgs);
 
   const generateTitle = await dispatch(
@@ -71,7 +76,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
 
   const formattedDate = format(new Date(), "MM-dd");
   const title = generateTitle || `${cybotConfig.name}_${formattedDate}`;
-  //todo  update space is need
+  //todo update space is need
 
   const spaceId = selectCurrentSpaceId(state);
   const spaceUpdateResult = dispatch(

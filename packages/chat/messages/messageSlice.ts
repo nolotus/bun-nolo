@@ -1,7 +1,7 @@
 import { NoloRootState } from "app/store";
 import { createSelector } from "@reduxjs/toolkit";
 import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
-import { filter, sort } from "rambda";
+import { filter } from "rambda";
 import { DataType } from "create/types";
 import { remove, write, upsertMany } from "database/dbSlice";
 import { sendMessageAction } from "./actions/sendMessageAction";
@@ -13,6 +13,9 @@ import {
   fetchMessages as fetchLocalMessages,
   MessageWithKey,
 } from "chat/messages/fetchMessages";
+import { fetchConvMsgs } from "./fetchConvMsgs";
+import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
+//web
 import { browserDb } from "database/browser/db";
 
 // --- Constants ---
@@ -31,17 +34,14 @@ const isValidMessage = (msg: any): msg is Message => {
   );
 };
 
-// --- Utility: compareMessagesByTime ---
-export const compareMessagesByTime = (a: Message, b: Message): number => {
-  const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-  const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-  if (aTime === bTime) return a.id.localeCompare(b.id);
-  return aTime - bTime; // 升序 (oldest first)
-};
+// 使用 createEntityAdapter 来管理 msgs
+const messagesAdapter = createEntityAdapter<Message>({
+  selectId: (message) => message.id,
+  sortComparer: (a, b) => a.id.localeCompare(b.id), // 基于 id 的字符串排序
+});
 
 export interface MessageSliceState {
-  msgs: Message[];
-  streamMessages: Message[];
+  msgs: EntityState<Message>; // 使用 EntityState 来管理 msgs
   firstStreamProcessed: boolean;
   isLoadingInitial: boolean;
   isLoadingOlder: boolean;
@@ -54,8 +54,7 @@ const createSliceWithThunks = buildCreateSlice({
 });
 
 const initialState: MessageSliceState = {
-  msgs: [],
-  streamMessages: [],
+  msgs: messagesAdapter.getInitialState(), // 使用 adapter 的初始状态
   firstStreamProcessed: false,
   isLoadingInitial: false,
   isLoadingOlder: false,
@@ -72,8 +71,8 @@ export const messageSlice = createSliceWithThunks({
       async (
         options: {
           dialogId: string;
-          limit?: number; // 可选的 limit 参数，默认值为 INITIAL_LOAD_LIMIT
-          db?: any; // 可选的数据库对象，默认值为 browserDb
+          limit?: number;
+          db?: any;
         },
         thunkApi
       ) => {
@@ -84,27 +83,23 @@ export const messageSlice = createSliceWithThunks({
         } = options;
         const { dispatch } = thunkApi;
 
-        // 1. 调用本地消息初始化
         console.log("initMsgs: Fetching initial local messages");
         await dispatch(
           fetchInitialLocalMessagesAction({ dialogId, limit, db })
         ).unwrap();
 
-        // 2. 调用远程消息初始化
         console.log("initMsgs: Fetching initial remote messages");
         await dispatch(
           fetchInitialRemoteMessagesAction({ dialogId, limit })
         ).unwrap();
 
-        // 返回结果，实际数据通过其他 action 更新到状态
         return { dialogId };
       },
       {
         pending: (state) => {
           state.isLoadingInitial = true;
           state.error = null;
-          state.msgs = []; // 重置消息列表
-          state.streamMessages = []; // 重置流状态
+          messagesAdapter.removeAll(state.msgs); // 重置消息列表
           state.firstStreamProcessed = false; // 重置流处理标志
           console.log("initMsgs: Initialization started");
         },
@@ -128,47 +123,80 @@ export const messageSlice = createSliceWithThunks({
     messageStreamEnd: create.asyncThunk(
       async (msg: Message, thunkApi) => {
         const { dispatch } = thunkApi;
-        console.log("messageStreamEnd: Adding final message", msg);
-        await dispatch(addMsg(msg)).unwrap();
+        console.log("messageStreamEnd: Writing final message", msg.id); // Log id for clarity
+
+        // Create a version of the message without the controller for writing
+        // Although 'write' might handle extra fields, it's cleaner not to store transient UI state
+        const { controller, ...messageToWrite } = msg;
+
+        await dispatch(
+          write({
+            data: { ...messageToWrite, type: DataType.MSG },
+            customKey: msg.dbKey,
+          })
+        );
+        // Return the ID so the reducer knows which message to update
         return { id: msg.id };
       },
       {
         fulfilled: (state, action) => {
           const { id } = action.payload;
-          console.log("messageStreamEnd: Cleaning stream message with id", id);
-          state.streamMessages = filter(
-            (streamMsg) => streamMsg.id !== id,
-            state.streamMessages
-          );
+          console.log("messageStreamEnd: DB Write fulfilled for id", id);
+
+          // --- START MODIFICATION ---
+          // Explicitly remove the controller from the message state in Redux
+          const existingMessage = state.msgs.entities[id];
+          if (existingMessage && existingMessage.controller) {
+            console.log(
+              `messageStreamEnd: Removing controller for message ${id}`
+            );
+            // Prepare the update payload to remove the controller
+            const update: Update<Message> = {
+              id: id,
+              changes: { controller: undefined }, // Set controller to undefined
+            };
+            messagesAdapter.updateOne(state.msgs, update);
+          } else if (existingMessage) {
+            console.log(
+              `messageStreamEnd: Controller already removed or never existed for message ${id}`
+            );
+          } else {
+            console.warn(
+              `messageStreamEnd: Message with id ${id} not found in state for controller removal.`
+            );
+          }
+          // --- END MODIFICATION ---
+
+          // Keep the original comment if 'write' triggers other updates for content etc.
+          // 但我们在这里确保了 controller 被清除
         },
         rejected: (state, action) => {
           console.error("messageStreamEnd failed:", action.error);
-          if (action.meta.arg?.id) {
-            state.streamMessages = filter(
-              (streamMsg) => streamMsg.id !== action.meta.arg.id,
-              state.streamMessages
-            );
-          }
+          // Optionally, still try to remove the controller if the write failed but stream ended
+          // This depends on whether msg.id is available in action.meta.arg or similar
+          // Example (needs adjustment based on actual toolkit behavior):
+          // const messageWithError = action.meta.arg as Message;
+          // if (messageWithError?.id) {
+          //   const id = messageWithError.id;
+          //   const existingMessage = state.msgs.entities[id];
+          //   if (existingMessage && existingMessage.controller) {
+          //     console.warn(`messageStreamEnd (rejected): Removing controller for message ${id} despite write error.`);
+          //     const update: Update<Message> = { id: id, changes: { controller: undefined } };
+          //     messagesAdapter.updateOne(state.msgs, update);
+          //   }
+          // }
         },
       }
     ),
 
     messageStreaming: create.reducer<Message>((state, action) => {
       const message = action.payload;
-      const index = state.streamMessages.findIndex(
-        (msg) => msg.id === message.id
-      );
-      if (index !== -1) {
-        state.streamMessages[index] = {
-          ...state.streamMessages[index],
-          ...message,
-        };
-      } else {
-        state.streamMessages.push(message);
-        if (!state.firstStreamProcessed) {
-          console.log("messageStreaming: First stream processed flag set");
-          state.firstStreamProcessed = true;
-        }
+      console.log("messageStreaming: Processing streaming message", message.id);
+      // 直接将流式消息写入 msgs
+      messagesAdapter.upsertOne(state.msgs, message);
+      if (!state.firstStreamProcessed) {
+        console.log("messageStreaming: First stream processed flag set");
+        state.firstStreamProcessed = true;
       }
     }),
 
@@ -184,10 +212,13 @@ export const messageSlice = createSliceWithThunks({
             "deleteMessage: Removing message with dbKey",
             dbKeyToRemove
           );
-          state.msgs = state.msgs.filter((msg) => msg.dbKey !== dbKeyToRemove);
-          state.streamMessages = state.streamMessages.filter(
-            (msg) => msg.dbKey !== dbKeyToRemove
+          // 从 msgs 中移除对应的消息（需要找到对应的 id）
+          const msgToRemove = Object.values(state.msgs.entities).find(
+            (msg) => msg?.dbKey === dbKeyToRemove
           );
+          if (msgToRemove) {
+            messagesAdapter.removeOne(state.msgs, msgToRemove.id);
+          }
         },
         rejected: (state, action) => {
           console.error("deleteMessage failed:", action.error);
@@ -213,22 +244,8 @@ export const messageSlice = createSliceWithThunks({
       {
         fulfilled: (state, action) => {
           const newMessage = action.payload;
-          const index = state.msgs.findIndex(
-            (msg) => msg.dbKey === newMessage.dbKey || msg.id === newMessage.id
-          );
-          if (index === -1) {
-            console.log(
-              "addMsg: Adding new message to state.msgs",
-              newMessage.id
-            );
-            state.msgs.push(newMessage);
-          } else {
-            console.log(
-              "addMsg: Updating existing message in state.msgs",
-              newMessage.id
-            );
-            state.msgs[index] = { ...state.msgs[index], ...newMessage };
-          }
+          console.log("addMsg: Adding or updating message", newMessage.id);
+          messagesAdapter.upsertOne(state.msgs, newMessage);
         },
         rejected: (state, action) => {
           console.error("addMsg failed:", action.error);
@@ -238,12 +255,10 @@ export const messageSlice = createSliceWithThunks({
 
     resetMsgs: create.reducer((state) => {
       console.log("resetMsgs: Clearing all messages and stream state");
-      state.msgs = [];
-      state.streamMessages = [];
+      messagesAdapter.removeAll(state.msgs); // 清空 msgs
       state.firstStreamProcessed = false;
     }),
 
-    // 初次加载远程消息的 action
     fetchInitialRemoteMessagesAction: create.asyncThunk(
       async (
         options: {
@@ -272,42 +287,15 @@ export const messageSlice = createSliceWithThunks({
 
           const remoteResults = await Promise.all(
             uniqueServers.map(async (srv) => {
-              try {
-                const response = await fetch(`${srv}/rpc/getConvMsgs`, {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    dialogId,
-                    limit,
-                  }),
-                });
-                if (!response.ok) {
-                  console.error(
-                    `fetchInitialRemoteMessagesAction: Failed ${response.status} from ${srv}`
-                  );
-                  return [];
-                }
-                const data = await response.json();
-                return Array.isArray(data) ? data.filter(isValidMessage) : [];
-              } catch (error) {
-                console.error(
-                  `fetchInitialRemoteMessagesAction: Error fetching from ${srv}:`,
-                  error
-                );
-                return [];
-              }
+              return await fetchConvMsgs(srv, token, { dialogId, limit });
             })
           );
 
-          const remoteMessages = remoteResults.flat();
+          const remoteMessages = remoteResults.flat().filter(isValidMessage);
           console.log(
             `fetchInitialRemoteMessagesAction: Fetched ${remoteMessages.length} remote messages for dialog ${dialogId}`
           );
 
-          // 将远程消息持久化到数据库
           if (remoteMessages.length > 0) {
             await thunkApi.dispatch(upsertMany(remoteMessages));
           }
@@ -338,20 +326,7 @@ export const messageSlice = createSliceWithThunks({
             return;
           }
 
-          // 将远程消息更新到状态中，直接合并到 msgs
-          const messageMap = new Map<string, Message>();
-          state.msgs.forEach((msg) => {
-            if (msg.id) messageMap.set(msg.id, msg);
-          });
-          remoteMessages.forEach((remoteMsg) => {
-            const existing = messageMap.get(remoteMsg.id);
-            messageMap.set(remoteMsg.id, { ...(existing || {}), ...remoteMsg });
-          });
-          state.msgs = sort(
-            compareMessagesByTime,
-            Array.from(messageMap.values())
-          );
-
+          messagesAdapter.upsertMany(state.msgs, remoteMessages);
           console.log(
             `fetchInitialRemoteMessagesAction: Updated state with ${remoteMessages.length} remote messages`
           );
@@ -370,7 +345,6 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    // 初次加载本地消息的 action
     fetchInitialLocalMessagesAction: create.asyncThunk(
       async (
         options: {
@@ -383,7 +357,6 @@ export const messageSlice = createSliceWithThunks({
         const { dialogId, limit, db } = options;
 
         try {
-          // 从本地数据库获取消息
           const localMessages = await fetchLocalMessages(db, dialogId, {
             limit,
             throwOnError: false,
@@ -418,20 +391,7 @@ export const messageSlice = createSliceWithThunks({
             return;
           }
 
-          // 将本地消息更新到状态中，直接合并到 msgs
-          const messageMap = new Map<string, Message>();
-          state.msgs.forEach((msg) => {
-            if (msg.id) messageMap.set(msg.id, msg);
-          });
-          localMessages.forEach((localMsg) => {
-            const existing = messageMap.get(localMsg.id);
-            messageMap.set(localMsg.id, { ...(existing || {}), ...localMsg });
-          });
-          state.msgs = sort(
-            compareMessagesByTime,
-            Array.from(messageMap.values())
-          );
-
+          messagesAdapter.upsertMany(state.msgs, localMessages);
           console.log(
             `fetchInitialLocalMessagesAction: Updated state with ${localMessages.length} local messages`
           );
@@ -450,14 +410,13 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    // 新增：加载更多旧数据的 action
     loadOlderMessages: create.asyncThunk(
       async (
         options: {
           dialogId: string;
           beforeKey: string;
-          limit?: number; // 可选的 limit 参数，默认值为 OLDER_LOAD_LIMIT
-          db?: any; // 可选的数据库对象，默认值为 browserDb
+          limit?: number;
+          db?: any;
         },
         thunkApi
       ) => {
@@ -469,19 +428,16 @@ export const messageSlice = createSliceWithThunks({
         } = options;
         const { dispatch } = thunkApi;
 
-        // 1. 优先加载本地旧消息
         console.log("loadOlderMessages: Fetching older local messages");
         const localResult = await dispatch(
           fetchOlderLocalMessagesAction({ dialogId, beforeKey, limit, db })
         ).unwrap();
 
-        // 2. 再加载远程旧消息
         console.log("loadOlderMessages: Fetching older remote messages");
         const remoteResult = await dispatch(
           fetchOlderRemoteMessagesAction({ dialogId, beforeKey, limit })
         ).unwrap();
 
-        // 返回结果，包含本地和远程加载的数量，用于判断是否还有更多数据
         return {
           dialogId,
           localCount: localResult.length,
@@ -499,7 +455,6 @@ export const messageSlice = createSliceWithThunks({
           state.isLoadingOlder = false;
           const { localCount, remoteCount, totalLimit } = action.payload;
 
-          // 如果本地和远程返回的消息总数少于限制，则认为没有更多旧消息
           if (localCount + remoteCount < totalLimit) {
             state.hasMoreOlder = false;
             console.log("loadOlderMessages: No more older messages to load");
@@ -523,7 +478,6 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    // 新增：加载更多本地旧消息的 action
     fetchOlderLocalMessagesAction: create.asyncThunk(
       async (
         options: {
@@ -537,7 +491,6 @@ export const messageSlice = createSliceWithThunks({
         const { dialogId, beforeKey, limit, db } = options;
 
         try {
-          // 从本地数据库获取旧消息
           const localMessages = await fetchLocalMessages(db, dialogId, {
             limit,
             beforeKey,
@@ -573,20 +526,7 @@ export const messageSlice = createSliceWithThunks({
             return;
           }
 
-          // 将本地旧消息更新到状态中，直接合并到 msgs
-          const messageMap = new Map<string, Message>();
-          state.msgs.forEach((msg) => {
-            if (msg.id) messageMap.set(msg.id, msg);
-          });
-          localMessages.forEach((localMsg) => {
-            const existing = messageMap.get(localMsg.id);
-            messageMap.set(localMsg.id, { ...(existing || {}), ...localMsg });
-          });
-          state.msgs = sort(
-            compareMessagesByTime,
-            Array.from(messageMap.values())
-          );
-
+          messagesAdapter.upsertMany(state.msgs, localMessages);
           console.log(
             `fetchOlderLocalMessagesAction: Updated state with ${localMessages.length} older local messages`
           );
@@ -602,7 +542,6 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    // 新增：加载更多远程旧消息的 action
     fetchOlderRemoteMessagesAction: create.asyncThunk(
       async (
         options: {
@@ -632,43 +571,19 @@ export const messageSlice = createSliceWithThunks({
 
           const remoteResults = await Promise.all(
             uniqueServers.map(async (srv) => {
-              try {
-                const response = await fetch(`${srv}/rpc/getConvMsgs`, {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    dialogId,
-                    limit,
-                    beforeKey,
-                  }),
-                });
-                if (!response.ok) {
-                  console.error(
-                    `fetchOlderRemoteMessagesAction: Failed ${response.status} from ${srv}`
-                  );
-                  return [];
-                }
-                const data = await response.json();
-                return Array.isArray(data) ? data.filter(isValidMessage) : [];
-              } catch (error) {
-                console.error(
-                  `fetchOlderRemoteMessagesAction: Error fetching from ${srv}:`,
-                  error
-                );
-                return [];
-              }
+              return await fetchConvMsgs(srv, token, {
+                dialogId,
+                limit,
+                beforeKey,
+              });
             })
           );
 
-          const remoteMessages = remoteResults.flat();
+          const remoteMessages = remoteResults.flat().filter(isValidMessage);
           console.log(
             `fetchOlderRemoteMessagesAction: Fetched ${remoteMessages.length} older remote messages for dialog ${dialogId}`
           );
 
-          // 将远程消息持久化到数据库
           if (remoteMessages.length > 0) {
             await thunkApi.dispatch(upsertMany(remoteMessages));
           }
@@ -699,20 +614,7 @@ export const messageSlice = createSliceWithThunks({
             return;
           }
 
-          // 将远程旧消息更新到状态中，直接合并到 msgs
-          const messageMap = new Map<string, Message>();
-          state.msgs.forEach((msg) => {
-            if (msg.id) messageMap.set(msg.id, msg);
-          });
-          remoteMessages.forEach((remoteMsg) => {
-            const existing = messageMap.get(remoteMsg.id);
-            messageMap.set(remoteMsg.id, { ...(existing || {}), ...remoteMsg });
-          });
-          state.msgs = sort(
-            compareMessagesByTime,
-            Array.from(messageMap.values())
-          );
-
+          messagesAdapter.upsertMany(state.msgs, remoteMessages);
           console.log(
             `fetchOlderRemoteMessagesAction: Updated state with ${remoteMessages.length} older remote messages`
           );
@@ -749,13 +651,17 @@ export const {
 export default messageSlice.reducer;
 
 // --- Selectors ---
-export const selectMsgs = (state: NoloRootState) => state.message.msgs;
-export const selectStreamMessages = (state: NoloRootState) =>
-  state.message.streamMessages;
+export const {
+  selectAll: selectMsgs,
+  selectById: selectMessageById,
+  selectIds: selectMessageIds,
+} = messagesAdapter.getSelectors((state: NoloRootState) => state.message.msgs);
+
 export const selectFirstStreamProcessed = (state: NoloRootState) =>
   state.message.firstStreamProcessed;
+
 export const selectMessagesState = (state: NoloRootState) => ({
-  messages: state.message.msgs,
+  messages: selectMsgs(state),
   isLoadingInitial: state.message.isLoadingInitial,
   isLoadingOlder: state.message.isLoadingOlder,
   hasMoreOlder: state.message.hasMoreOlder,
@@ -763,23 +669,11 @@ export const selectMessagesState = (state: NoloRootState) => ({
 });
 
 /**
- * Selector: 合并持久化消息 (msgs) 和流式消息 (streamMessages)。
- * 使用 Map 确保流式消息更新能覆盖旧消息，并按时间排序。
+ * Selector: 返回消息列表，不进行额外排序。
  */
 export const selectMergedMessages = createSelector(
-  [selectMsgs, selectStreamMessages],
-  (msgs = [], streamMessages = []) => {
-    const messageMap = new Map<string, Message>();
-    msgs.forEach((msg) => msg?.id && messageMap.set(msg.id, msg));
-    streamMessages.forEach((streamMsg) => {
-      if (streamMsg?.id) {
-        const existing = messageMap.get(streamMsg.id);
-        messageMap.set(
-          streamMsg.id,
-          existing ? { ...existing, ...streamMsg } : streamMsg
-        );
-      }
-    });
-    return sort(compareMessagesByTime, Array.from(messageMap.values()));
+  [selectMsgs],
+  (msgs = []) => {
+    return msgs; // 直接返回消息列表，不进行额外排序
   }
 );
