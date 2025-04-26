@@ -191,25 +191,21 @@ export const messageSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          // 查找对应的消息并移除 controller 属性
+          // 查找对应的消息
           const existingMessage = state.msgs.entities[action.payload.id];
-          if (existingMessage?.controller) {
-            // 创建一个不包含 controller 的更新对象
-            const changes: Partial<Message> = { ...existingMessage };
-            delete changes.controller;
-            messagesAdapter.updateOne(state.msgs, {
-              id: action.payload.id,
-              changes: changes, // 应用移除 controller 后的更改
-            });
+          if (existingMessage) {
+            // 创建一个不包含 controller 的新对象
+            const { controller, ...updatedMessage } = existingMessage;
+            // 直接使用 setOne 替换整个对象，不检查 controller 是否存在
+            messagesAdapter.setOne(state.msgs, updatedMessage);
           }
         },
         rejected: (state, action) => {
           console.error("messageStreamEnd failed:", action.error);
-          // Consider how to handle this error, e.g., retry logic or UI feedback
+          // 可以考虑如何处理错误，比如重试逻辑或 UI 反馈
         },
       }
     ),
-
     deleteMessage: create.asyncThunk(
       async (dbKey: string, { dispatch, getState }) => {
         // 找到对应的 message id (如果需要的话，虽然 removeOne 可以直接用 id)
