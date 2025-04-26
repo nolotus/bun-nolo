@@ -1,6 +1,6 @@
 import { NoloRootState } from "app/store"; // Assuming path is correct
 import { generatePrompt } from "ai/prompt/generatePrompt"; // Assuming path is correct
-import { selectMsgs } from "chat/messages/messageSlice";
+import { selectAllMsgs } from "chat/messages/messageSlice";
 
 // --- 类型定义 (保持不变) ---
 
@@ -284,7 +284,7 @@ export const generateOpenAIRequestBody = (
   context: any = ""
 ) => {
   // 1. 从 state 获取、过滤并清理历史消息
-  const previousMessages = filterAndCleanMessages(selectMsgs(state));
+  const previousMessages = filterAndCleanMessages(selectAllMsgs(state));
   console.log("previousMessages", previousMessages);
 
   // 2. 创建新的用户消息 (自动处理 content 格式)

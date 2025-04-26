@@ -1,7 +1,7 @@
 import { generatePrompt } from "ai/prompt/generatePrompt";
 import { pipe, flatten, filter, reverse, map } from "rambda";
 import { NoloRootState } from "app/store";
-import { selectMsgs } from "chat/messages/messageSlice";
+import { selectAllMsgs } from "chat/messages/messageSlice";
 
 interface Message {
   id: string;
@@ -89,7 +89,7 @@ export const generateAnthropicRequestBody = (
   cybotConfig: CybotConfig,
   context: any
 ) => {
-  const previousMessages = filterValidMessages(selectMsgs(state));
+  const previousMessages = filterValidMessages(selectAllMsgs(state));
   const newUserMessage = createUserMessage(userInput);
   const conversationMessages = [...previousMessages, newUserMessage];
 

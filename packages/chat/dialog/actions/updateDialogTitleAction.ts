@@ -10,10 +10,10 @@ import { format, differenceInHours } from "date-fns";
 import { NoloRootState } from "app/store";
 import { pipe, flatten, filter, reverse } from "rambda";
 
-import { selectMsgs } from "../../messages/messageSlice";
+import { selectAllMsgs } from "../../messages/messageSlice";
 
 const getFilteredMessages = (state: NoloRootState) => {
-  const msgs = selectMsgs(state);
+  const msgs = selectAllMsgs(state);
 
   return pipe(
     flatten,
