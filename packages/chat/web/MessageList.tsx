@@ -13,7 +13,7 @@ import { useTheme } from "app/theme";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import {
   selectMergedMessages,
-  // selectMessagesState, // Use specific selectors below
+  selectIsLoadingInitial,
   selectIsLoadingOlder,
   selectHasMoreOlder,
   loadOlderMessages,
@@ -56,7 +56,6 @@ const USER_ACTION_RESET_MS = 100; // Time after programmatic scroll to ignore sc
 const AVG_MESSAGE_HEIGHT_ESTIMATE = 100;
 const LAZY_LOAD_BUFFER_SCREENS = 1;
 const TOP_SCROLL_THRESHOLD = 50;
-// OLDER_LOAD_LIMIT is used in dispatch, not directly here now
 
 // --- Component Props ---
 interface MessagesListProps {
@@ -70,6 +69,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
 
   // --- Redux State ---
   const displayMessages = useAppSelector(selectMergedMessages); // Use the selector that provides the final list
+  const isLoadingInitial = useAppSelector(selectIsLoadingInitial); // 监听初始加载状态
   const isLoadingOlder = useAppSelector(selectIsLoadingOlder);
   const hasMoreOlder = useAppSelector(selectHasMoreOlder);
 
@@ -326,23 +326,36 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
       scrollHeightBeforeLoadingOlderRef.current = 0;
     }
 
-    // --- 2. Auto-Scroll on New Appended Messages ---
+    // --- 2. Auto-Scroll on New Appended Messages or Initial Load ---
     const newMessagesAppended =
       messagesAddedCount > 0 && currentMessageCount > prevMessageCount;
-    // Scroll if auto-scroll is enabled AND (it was initially empty OR new messages were appended)
-    if (autoScroll && (prevMessageCount === 0 || newMessagesAppended)) {
+    // Scroll if auto-scroll is enabled AND (it was initially empty OR new messages were appended OR initial load completed)
+    if (
+      autoScroll &&
+      (prevMessageCount === 0 ||
+        newMessagesAppended ||
+        (!isLoadingInitial && currentMessageCount > 0))
+    ) {
       // Determine if instant scroll is needed (initial load or many messages added)
       const instant = prevMessageCount === 0 || messagesAddedCount > 1;
       scrollToBottom(instant);
+      console.log(
+        `MessagesList (LayoutEffect): Auto-scrolled to bottom (instant: ${instant}) due to ${
+          prevMessageCount === 0
+            ? "initial load"
+            : newMessagesAppended
+              ? "new messages"
+              : "initial load completed"
+        }.`
+      );
     }
 
     // --- 3. Update References for Next Render ---
     prevDisplayMessagesLengthRef.current = currentMessageCount;
     // We might not need lastScrollHeightRef if using scrollHeightBeforeLoadingOlderRef logic
 
-    // Dependencies: Monitor changes in messages and autoScroll state.
-    // scrollToBottom is stable due to useCallback.
-  }, [displayMessages, autoScroll, scrollToBottom]);
+    // Dependencies: Monitor changes in messages, autoScroll state, and initial loading state.
+  }, [displayMessages, autoScroll, scrollToBottom, isLoadingInitial]);
 
   // Scroll to bottom button click handler
   const handleScrollToBottomClick = useCallback(() => {
