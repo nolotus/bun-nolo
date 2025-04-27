@@ -16,6 +16,7 @@ import { createPortal } from "react-dom";
 import DeleteContentButton from "./components/DeleteContentButton";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
+import MoveToSpaceSubMenu from "./MoveToSpaceSubMenu"; // 引入子菜单组件
 
 interface SidebarItemProps {
   contentKey: string;
@@ -43,7 +44,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const theme = useSelector(selectTheme);
     const currentSpaceId = useSelector(selectCurrentSpaceId);
     const [isIconHover, setIsIconHover] = useState(false);
-    const [isHovered, setIsHovered] = useState(false); // 新增状态控制操作按钮区域是否显示
+    const [isHovered, setIsHovered] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [isMoveSubMenuOpen, setIsMoveSubMenuOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -61,14 +62,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const handleMoveClick = (e: React.MouseEvent) => {
       e.stopPropagation();
       setIsMoveSubMenuOpen(true);
-    };
-
-    // 处理选择某个空间
-    const handleSpaceSelect = (space: string) => (e: React.MouseEvent) => {
-      e.stopPropagation();
-      console.log(`移动内容 ${contentKey} 到空间: ${space}`);
-      setIsMoveSubMenuOpen(false);
-      setMenuOpen(false);
     };
 
     const handleAddToConversation = (e: React.MouseEvent) => {
@@ -103,8 +96,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
       if ((menuOpen || isMoveSubMenuOpen) && containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         setMenuPosition({
-          top: rect.bottom + window.scrollY + 4, // 按钮下方 4px
-          left: rect.right + window.scrollX - 150, // 假设菜单宽度为 150px，右对齐
+          top: rect.bottom + window.scrollY + 4,
+          left: rect.right + window.scrollX - 150,
         });
       }
     }, [menuOpen, isMoveSubMenuOpen]);
@@ -126,7 +119,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
               onClick={handleMoveClick}
               role="menuitem"
             >
-              移动到空间...
+              移动到空间
             </button>
             <DeleteContentButton
               contentKey={contentKey}
@@ -134,33 +127,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
               theme={theme}
               className="SidebarItem__menuItem SidebarItem__deleteMenuItem"
             />
-          </div>,
-          document.body
-        )
-      : null;
-
-    // 子菜单内容（移动到空间的子选项）
-    const moveSubMenuContent = isMoveSubMenuOpen
-      ? createPortal(
-          <div
-            className="SidebarItem__menu SidebarItem__subMenu"
-            role="menu"
-            style={{
-              position: "absolute",
-              top: `${menuPosition.top}px`,
-              left: `${menuPosition.left + 160}px`, // 子菜单在主菜单右侧，略微偏移
-            }}
-          >
-            {["空间 1", "空间 2", "空间 3"].map((space) => (
-              <button
-                key={space}
-                className="SidebarItem__menuItem"
-                onClick={handleSpaceSelect(space)}
-                role="menuitem"
-              >
-                {space}
-              </button>
-            ))}
           </div>,
           document.body
         )
@@ -226,9 +192,25 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           )}
         </div>
 
-        {/* 渲染主菜单和子菜单内容 */}
+        {/* 渲染主菜单 */}
         {menuContent}
-        {moveSubMenuContent}
+
+        {/* 渲染移动到空间子菜单 */}
+        {isMoveSubMenuOpen &&
+          createPortal(
+            <MoveToSpaceSubMenu
+              position={{
+                top: menuPosition.top,
+                left: menuPosition.left + 160,
+              }}
+              contentKey={contentKey}
+              onClose={() => {
+                setIsMoveSubMenuOpen(false);
+                setMenuOpen(false);
+              }}
+            />,
+            document.body
+          )}
 
         {/* 内联 CSS 样式 */}
         <style href="sidebar-item" precedence="medium">{`
@@ -322,8 +304,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             display: flex;
             align-items: center;
             gap: 5px;
-            opacity: 1; /* 移除默认隐藏样式，直接显示 */
-            pointer-events: auto; /* 移除默认禁用交互 */
+            opacity: 1;
+            pointer-events: auto;
             transition: background-color 0.2s, backdrop-filter 0.2s;
             z-index: 1;
             border-radius: 6px;
@@ -361,17 +343,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             padding: 4px;
             z-index: 1000;
             min-width: 150px;
-            animation: fadeIn 0.15s ease-out;
-          }
-          
-          .SidebarItem__subMenu {
-            background-color: ${theme.backgroundElevated || theme.background};
-            border: 1px solid ${theme.border};
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 4px;
-            z-index: 1001; /* 确保子菜单在主菜单之上 */
-            min-width: 120px;
             animation: fadeIn 0.15s ease-out;
           }
           

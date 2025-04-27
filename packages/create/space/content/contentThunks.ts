@@ -26,9 +26,19 @@ export const createContentThunks = (create: Create) => ({
 
   moveContentToSpace: create.asyncThunk(moveContentAction, {
     fulfilled: (state, action) => {
-      const { spaceId, updatedSpaceData } = action.payload;
-      if (state.currentSpaceId === spaceId) {
-        state.currentSpace = updatedSpaceData;
+      const {
+        sourceSpaceId,
+        updatedSourceSpaceData,
+        targetSpaceId,
+        updatedTargetSpaceData,
+      } = action.payload;
+      // 如果当前空间是源空间，更新为最新的源空间数据
+      if (state.currentSpaceId === sourceSpaceId && updatedSourceSpaceData) {
+        state.currentSpace = updatedSourceSpaceData;
+      }
+      // 如果当前空间是目标空间，更新为最新的目标空间数据
+      if (state.currentSpaceId === targetSpaceId && updatedTargetSpaceData) {
+        state.currentSpace = updatedTargetSpaceData;
       }
     },
   }),
