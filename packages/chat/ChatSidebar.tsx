@@ -543,9 +543,9 @@ const ChatSidebar: React.FC = () => {
           border-radius: 8px;
           position: relative;
           background-color: transparent;
-          transition: all 0.2s ease-out;
+          transition: background-color 0.2s ease-out, border 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out;
           margin-bottom: 5px;
-          will-change: transform, opacity;
+          will-change: background-color, border, box-shadow, transform;
           backface-visibility: hidden; /* 减少重绘 */
           transform-style: preserve-3d; /* 更好的3D合成 */
           touch-action: pan-y; 
@@ -556,13 +556,17 @@ const ChatSidebar: React.FC = () => {
         }
 
         .CategoryDraggable--drag-over-category {
-          background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.06)"};
-          border: 1px dashed ${theme.primaryLight || "#91caff"};
+          background-color: ${isDarkTheme ? "rgba(22, 119, 255, 0.1)" : "rgba(22, 119, 255, 0.05)"};
+          border: 1px dashed ${isDarkTheme ? "rgba(135, 206, 255, 0.6)" : theme.primaryLight || "#91caff"};
+          box-shadow: 0 0 0 1px ${isDarkTheme ? "rgba(135, 206, 255, 0.2)" : "rgba(22, 119, 255, 0.15)"};
+          transform: translateY(1px);
         }
 
         .CategoryDraggable--drag-over-item {
-          background-color: ${theme.successGhost || "rgba(82, 196, 26, 0.06)"};
-          border: 1px dashed ${theme.successLight || "#b7eb8f"};
+          background-color: ${isDarkTheme ? "rgba(82, 196, 26, 0.1)" : theme.successGhost || "rgba(82, 196, 26, 0.05)"};
+          border: 1px dashed ${isDarkTheme ? "rgba(176, 236, 129, 0.6)" : theme.successLight || "#b7eb8f"};
+          box-shadow: 0 0 0 1px ${isDarkTheme ? "rgba(176, 236, 129, 0.2)" : "rgba(82, 196, 26, 0.15)"};
+          transform: translateY(1px);
         }
 
         /* 未分类区域样式 */
@@ -570,17 +574,19 @@ const ChatSidebar: React.FC = () => {
           border-radius: 8px;
           position: relative;
           background-color: transparent;
-          transition: all 0.2s ease-out;
+          transition: background-color 0.2s ease-out, border 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out;
           margin-bottom: 5px;
-          will-change: transform, opacity;
+          will-change: background-color, border, box-shadow, transform;
           backface-visibility: hidden;
           transform-style: preserve-3d;
           touch-action: pan-y;
         }
 
         .UncategorizedDraggable--drag-over-item {
-          background-color: ${theme.successGhost || "rgba(82, 196, 26, 0.06)"};
-          border: 1px dashed ${theme.successLight || "#b7eb8f"};
+          background-color: ${isDarkTheme ? "rgba(82, 196, 26, 0.1)" : theme.successGhost || "rgba(82, 196, 26, 0.05)"};
+          border: 1px dashed ${isDarkTheme ? "rgba(176, 236, 129, 0.6)" : theme.successLight || "#b7eb8f"};
+          box-shadow: 0 0 0 1px ${isDarkTheme ? "rgba(176, 236, 129, 0.2)" : "rgba(82, 196, 26, 0.15)"};
+          transform: translateY(1px);
         }
 
         /* 可拖拽项目容器样式 */
@@ -588,8 +594,8 @@ const ChatSidebar: React.FC = () => {
           margin: 1.8px 0; 
           position: relative;
           border-radius: 6px;
-          transition: all 0.2s ease-out;
-          will-change: transform, opacity;
+          transition: opacity 0.2s ease-out, transform 0.2s ease-out, background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+          will-change: opacity, transform, background-color, box-shadow;
           backface-visibility: hidden;
         }
 
@@ -599,25 +605,22 @@ const ChatSidebar: React.FC = () => {
 
         .ItemDraggable--dragging {
           opacity: 0.7;
-          background-color: ${theme.backgroundHover || "#f5f5f5"};
-          box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+          background-color: ${isDarkTheme ? "rgba(255, 255, 255, 0.08)" : theme.backgroundHover || "#f5f5f5"};
+          box-shadow: 0 2px 8px ${isDarkTheme ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.1)"};
+          transform: translateY(-1px);
+          z-index: 10;
+          border: 1px solid ${isDarkTheme ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)"};
         }
 
         /* 精细的项目入场动画 */
         @keyframes itemFadeIn {
           0% {
             opacity: 0;
-            transform: translateY(3px) scale(0.99);
-          }
-          45% {
-            transform: translateY(1px) scale(0.995);
-          }
-          75% {
-            opacity: 0.9;
+            transform: translateY(3px);
           }
           100% {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
           }
         }
         
@@ -662,13 +665,6 @@ const ChatSidebar: React.FC = () => {
           .ItemDraggable {
             margin: 1.5px 0; /* 更密集布局 */
           }
-        }
-        
-        /* 低延迟拖动响应优化 - 减少动画干扰 */
-        .ChatSidebar *:not(.ItemDraggable--dragging, .CategoryDraggable--dragging) {
-          animation-duration: 0.2s !important; 
-          animation-delay: 0s !important;
-          transition-delay: 0s !important;
         }
       `}</style>
     </nav>

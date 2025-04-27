@@ -41,6 +41,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
 }) => {
   // --- State ---
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
 
   // --- Hooks ---
   const dispatch = useAppDispatch();
@@ -125,7 +126,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
 
   // --- Dynamic ClassNames & Props ---
   // (保持不变，依赖 isUncategorized 和 isEditing)
-  const headerClassName = `CategoryHeader ${isDragOver ? "CategoryHeader--drag-over" : ""} ${isEditing ? "CategoryHeader--editing" : ""}`;
+  const headerClassName = `CategoryHeader ${isDragOver ? "CategoryHeader--drag-over" : ""} ${isEditing ? "CategoryHeader--editing" : ""} ${isDragging ? "CategoryHeader--dragging" : ""}`;
   const collapseButtonClassName = `CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`;
   const nameClassName = `CategoryHeader__name ${!isUncategorized && !isEditing ? "CategoryHeader__name--draggable" : ""}`;
   const nameProps =
@@ -143,6 +144,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
     e.dataTransfer.setData("categoryId", categoryId);
     e.dataTransfer.setData("dragType", "category");
     e.dataTransfer.effectAllowed = "move";
+    setIsDragging(true);
     if (handleProps && handleProps.onDragStart) {
       handleProps.onDragStart(e);
     }
@@ -151,6 +153,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   // 自定义分类拖动结束事件
   const customDragEnd = (e: React.DragEvent) => {
     console.log("Custom drag ended for category:", categoryId);
+    setIsDragging(false);
     if (handleProps && handleProps.onDragEnd) {
       handleProps.onDragEnd(e);
     }
@@ -240,20 +243,21 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         />
       )}
 
-      {/* CSS Styles (保持不变) */}
-      <style id="category-header-styles">
+      {/* CSS Styles (简化视觉反馈和动画) */}
+      <style href="category-header-styles" precedence="medium">
         {`
         /* --- Styles from the previous version --- */
-        .CategoryHeader { box-sizing: border-box; padding: 7px 10px; display: flex; align-items: center; gap: 8px; border-radius: 8px; transition: background-color 0.15s ease; user-select: none; cursor: default; min-height: 36px; position: relative; }
+        .CategoryHeader { box-sizing: border-box; padding: 7px 10px; display: flex; align-items: center; gap: 8px; border-radius: 8px; transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; user-select: none; cursor: default; min-height: 36px; position: relative; will-change: background-color, transform, opacity, box-shadow; }
         .CategoryHeader--editing { }
         .CategoryHeader:hover { background-color: ${isEditing ? "transparent" : theme?.backgroundHover || "rgba(0,0,0,0.03)"}; }
-        .CategoryHeader--drag-over { }
+        .CategoryHeader--drag-over { background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"}; border: 1px dashed ${theme.primaryLight || "#91caff"}; }
+        .CategoryHeader--dragging { opacity: 0.75; background-color: ${theme.backgroundHover || "rgba(0,0,0,0.05)"}; box-shadow: 0 2px 8px ${theme.type === "dark" ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.1)"}; transform: translateY(-1px); z-index: 10; border: 1px solid ${theme.type === "dark" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}; }
         .CategoryHeader__collapseButton { display: flex; align-items: center; justify-content: center; color: ${theme?.textTertiary || "#999"}; cursor: pointer; border-radius: 6px; transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease; flex-shrink: 0; padding: 3px; width: 24px; height: 24px; box-sizing: border-box; }
         .CategoryHeader__collapseButton:hover { color: ${theme?.textSecondary || "#666"}; background-color: ${theme?.backgroundTertiary || "rgba(0,0,0,0.06)"}; }
         .CategoryHeader__collapseButton--collapsed { transform: rotate(-90deg); }
-        .CategoryHeader__name { font-size: 14px; font-weight: 600; color: ${theme?.text || "#333"}; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; line-height: 1.4; letter-spacing: -0.01em; padding: 2px 0; height: 24px; display: flex; align-items: center; box-sizing: border-box; }
+        .CategoryHeader__name { font-size: 14px; font-weight: 600; color: ${theme?.text || "#333"}; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; line-height: 1.4; letter-spacing: -0.01em; padding: 2px 0; height: 24px; display: flex; align-items: center; box-sizing: border-box; transition: opacity 0.2s ease, transform 0.2s ease; will-change: opacity, transform; }
         .CategoryHeader__name--draggable { cursor: grab; position: relative; padding-left: 4px; margin-left: -4px; padding-right: 4px; }
-        .CategoryHeader__name--draggable:active { cursor: grabbing; }
+        .CategoryHeader__name--draggable:active { cursor: grabbing; opacity: 0.8; transform: translateY(-1px); }
         .CategoryHeader__name--draggable:hover::before { content: ""; position: absolute; inset: -2px -4px; background-color: rgba(0, 0, 0, 0.03); border-radius: 4px; z-index: -1; pointer-events: none; }
         .CategoryHeader__actions { display: flex; gap: 2px; align-items: center; margin-left: auto; opacity: 0; transition: opacity 0.15s ease; flex-shrink: 0; }
         .CategoryHeader:hover .CategoryHeader__actions { opacity: ${isEditing ? 0 : 1}; }
