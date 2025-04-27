@@ -57,7 +57,7 @@ const RobotMessage: React.FC<Message> = ({
         </div>
       </div>
 
-      <style href="robot-msg">{`
+      <style href="robot-msg" precedence="medium">{`
         .chat-message-container {
           display: flex;
           margin-bottom: 18px;

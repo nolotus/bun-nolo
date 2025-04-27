@@ -35,7 +35,7 @@ export const UserMessage: React.FC<Message> = ({ content, dbKey }) => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style href="user-msg" precedence="medium">{`
         .chat-message-container {
           display: flex;
           margin-bottom: 18px;
