@@ -15,7 +15,7 @@ import EditCybot from "ai/cybot/web/EditCybot";
 import { Cybot } from "../types";
 import { remove } from "database/dbSlice";
 
-// Using the original Octicons for compatibility
+// 使用原始的 Octicons 图标以确保兼容性
 import {
   CommentDiscussionIcon,
   PencilIcon,
@@ -28,6 +28,7 @@ interface CybotBlockProps {
 }
 
 const CybotBlock = ({ item, reload }: CybotBlockProps) => {
+  console.log("CybotBlock", item);
   const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
@@ -52,7 +53,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
     try {
       const element = document.getElementById(`cybot-${item.id}`);
-      element?.classList.add("item-exit");
+      element?.classList.add("cybot-block--exit");
       await new Promise((r) => setTimeout(r, 150));
       await dispatch(remove(cybotKey));
       toast.success(t("deleteSuccess"));
@@ -65,27 +66,33 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
   return (
     <div id={`cybot-${item.id}`} className="cybot-block" tabIndex={0}>
-      <div className="header">
-        <div className="avatar">{item.name?.[0]?.toUpperCase() || "?"}</div>
+      <div className="cybot-block__header">
+        <div className="cybot-block__avatar">
+          {item.name?.[0]?.toUpperCase() || "?"}
+        </div>
 
-        <div className="info">
-          <div className="title-row">
+        <div className="cybot-block__info">
+          <div className="cybot-block__title-row">
             <Tooltip content={`ID: ${item.id}`}>
-              <h3 className="title">{item.name || t("unnamed")}</h3>
+              <h3 className="cybot-block__title">
+                {item.name || t("unnamed")}
+              </h3>
             </Tooltip>
 
             {(item.inputPrice || item.outputPrice) && (
-              <div className="price-tag">
+              <div className="cybot-block__price-tag">
                 {(item.inputPrice || 0).toFixed(2)}/
                 {(item.outputPrice || 0).toFixed(2)}
               </div>
             )}
           </div>
 
-          <div className="tags">
-            {item.model && <span className="tag">{item.model}</span>}
+          <div className="cybot-block__tags">
+            {item.model && (
+              <span className="cybot-block__tag">{item.model}</span>
+            )}
             {item.tags?.map((tag, index) => (
-              <span key={index} className="tag">
+              <span key={index} className="cybot-block__tag">
                 {tag}
               </span>
             ))}
@@ -93,11 +100,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         </div>
       </div>
 
-      <div className="description">
+      <div className="cybot-block__description">
         {item.introduction || t("noDescription")}
       </div>
 
-      <div className="actions">
+      <div className="cybot-block__actions">
         <Button
           icon={<CommentDiscussionIcon size={16} />}
           onClick={startDialog}
@@ -110,7 +117,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         </Button>
 
         {allowEdit && (
-          <div className="edit-actions">
+          <div className="cybot-block__edit-actions">
             <IconHoverButton
               icon={<PencilIcon size={16} />}
               variant="secondary"
@@ -143,7 +150,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         </Dialog>
       )}
 
-      <style jsx>{`
+      <style href="cybot-block" precedence="medium">{`
         .cybot-block {
           background: ${theme.background};
           border-radius: 12px;
@@ -170,13 +177,13 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           border-color: ${theme.primary};
         }
 
-        .header {
+        .cybot-block__header {
           display: flex;
           gap: ${theme.space[3]};
           align-items: center;
         }
 
-        .avatar {
+        .cybot-block__avatar {
           width: 42px;
           height: 42px;
           border-radius: 10px;
@@ -190,7 +197,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           color: ${theme.primary};
         }
 
-        .info {
+        .cybot-block__info {
           flex: 1;
           min-width: 0;
           display: flex;
@@ -198,14 +205,14 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           gap: ${theme.space[2]};
         }
 
-        .title-row {
+        .cybot-block__title-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: ${theme.space[3]};
         }
 
-        .title {
+        .cybot-block__title {
           font-size: 1rem;
           font-weight: 600;
           margin: 0;
@@ -215,14 +222,14 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           text-overflow: ellipsis;
         }
 
-        .tags {
+        .cybot-block__tags {
           display: flex;
           gap: ${theme.space[2]};
           flex-wrap: wrap;
           align-items: center;
         }
 
-        .tag {
+        .cybot-block__tag {
           font-size: 0.75rem;
           color: ${theme.textSecondary};
           padding: ${theme.space[1]} ${theme.space[2]};
@@ -232,7 +239,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           border: 1px solid ${theme.border};
         }
 
-        .price-tag {
+        .cybot-block__price-tag {
           font-size: 0.75rem;
           color: ${theme.textSecondary};
           padding: ${theme.space[1]} ${theme.space[2]};
@@ -242,32 +249,33 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           border: 1px solid ${theme.border};
         }
 
-        .description {
+        .cybot-block__description {
           flex: 1;
           font-size: 0.9rem;
           line-height: 1.5;
           color: ${theme.textSecondary};
           margin: ${theme.space[1]} 0;
           overflow-wrap: break-word;
+          white-space: pre-line; /* 保留换行符效果 */
           display: -webkit-box;
-          -webkit-line-clamp: 2;
+          -webkit-line-clamp: 3; /* 增加到3行 */
           -webkit-box-orient: vertical;
           overflow: hidden;
           text-overflow: ellipsis;
         }
 
-        .actions {
+        .cybot-block__actions {
           display: flex;
           gap: ${theme.space[3]};
           margin-top: auto;
         }
 
-        .edit-actions {
+        .cybot-block__edit-actions {
           display: flex;
           gap: ${theme.space[2]};
         }
 
-        .item-exit {
+        .cybot-block--exit {
           opacity: 0;
           transform: scale(0.98);
           transition: all 0.15s ease;
@@ -279,8 +287,8 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             gap: ${theme.space[3]};
           }
 
-          .description {
-            -webkit-line-clamp: 3;
+          .cybot-block__description {
+            -webkit-line-clamp: 4; /* 增加到4行 */
           }
         }
 
@@ -290,33 +298,33 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             gap: ${theme.space[3]};
           }
 
-          .actions {
+          .cybot-block__actions {
             flex-direction: column;
             gap: ${theme.space[2]};
           }
 
-          .edit-actions {
+          .cybot-block__edit-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
             width: 100%;
             gap: ${theme.space[3]};
           }
 
-          .avatar {
+          .cybot-block__avatar {
             width: 38px;
             height: 38px;
           }
 
-          .title {
+          .cybot-block__title {
             font-size: 0.95rem;
           }
 
-          .description {
+          .cybot-block__description {
             font-size: 0.85rem;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 4; /* 增加到4行 */
           }
 
-          .tags {
+          .cybot-block__tags {
             margin-top: ${theme.space[1]};
           }
         }

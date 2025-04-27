@@ -122,7 +122,14 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
 
   const handleFormSubmit = async (data: any) => {
     console.log("[EditCybot] handleFormSubmit triggered with data:", data);
-    await onSubmit(data);
+    // 确保文本字段保留换行符
+    const processedData = {
+      ...data,
+      prompt: data.prompt || "",
+      greeting: data.greeting || "",
+      introduction: data.introduction || "",
+    };
+    await onSubmit(processedData);
     console.log("[EditCybot] handleFormSubmit completed");
     onClose();
   };

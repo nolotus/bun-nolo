@@ -68,16 +68,19 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
     const userCybotPath = createCybotKey.private(auth.user.userId, cybotId);
     const publicCybotPath = createCybotKey.public(cybotId);
 
-    const updateData = {
+    // 确保文本字段保留换行符
+    const processedData = {
       ...data,
-      updatedAt: now,
+      prompt: data.prompt || "",
+      greeting: data.greeting || "",
+      introduction: data.introduction || "",
       tags: data.tags
         ? data.tags
             .split(",")
             .map((tag) => tag.trim())
             .filter(Boolean)
         : [],
-      references: data.references || [], // 类型由 FormData 定义
+      references: data.references || [],
     };
 
     try {
@@ -89,7 +92,7 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
         patch({
           dbKey: userCybotPath,
           changes: {
-            ...updateData,
+            ...processedData,
             isPublic: data.isPublic,
           },
         })
@@ -103,7 +106,7 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
         await dispatch(
           write({
             data: {
-              ...updateData,
+              ...processedData,
               id: cybotId,
               type: DataType.CYBOT,
               userId: auth.user.userId,
