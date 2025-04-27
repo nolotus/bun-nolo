@@ -43,7 +43,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const theme = useSelector(selectTheme);
     const currentSpaceId = useSelector(selectCurrentSpaceId);
     const [isIconHover, setIsIconHover] = useState(false);
+    const [isHovered, setIsHovered] = useState(false); // 新增状态控制操作按钮区域是否显示
     const [menuOpen, setMenuOpen] = useState(false);
+    const [isMoveSubMenuOpen, setIsMoveSubMenuOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
@@ -55,10 +57,17 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
       setMenuOpen((prev) => !prev);
     };
 
-    // 处理移动内容和加入对话的回调
+    // 处理“移动到空间”点击，显示子菜单
     const handleMoveClick = (e: React.MouseEvent) => {
       e.stopPropagation();
-      console.log(`请求移动内容: ${contentKey}`);
+      setIsMoveSubMenuOpen(true);
+    };
+
+    // 处理选择某个空间
+    const handleSpaceSelect = (space: string) => (e: React.MouseEvent) => {
+      e.stopPropagation();
+      console.log(`移动内容 ${contentKey} 到空间: ${space}`);
+      setIsMoveSubMenuOpen(false);
       setMenuOpen(false);
     };
 
@@ -67,7 +76,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
       console.log(`加入到当前对话: ${contentKey}`);
     };
 
-    // 监听外部点击，若点击区域不在当前组件内则关闭下拉菜单
+    // 监听外部点击，关闭菜单和子菜单
     useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
         if (
@@ -75,31 +84,32 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           !containerRef.current.contains(e.target as Node)
         ) {
           setMenuOpen(false);
+          setIsMoveSubMenuOpen(false);
         }
       };
 
-      if (menuOpen) {
+      if (menuOpen || isMoveSubMenuOpen) {
         document.addEventListener("click", handleClickOutside);
       }
 
       return () => {
         document.removeEventListener("click", handleClickOutside);
       };
-    }, [menuOpen]);
+    }, [menuOpen, isMoveSubMenuOpen]);
 
     // 计算菜单位置
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
     useEffect(() => {
-      if (menuOpen && containerRef.current) {
+      if ((menuOpen || isMoveSubMenuOpen) && containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         setMenuPosition({
           top: rect.bottom + window.scrollY + 4, // 按钮下方 4px
           left: rect.right + window.scrollX - 150, // 假设菜单宽度为 150px，右对齐
         });
       }
-    }, [menuOpen]);
+    }, [menuOpen, isMoveSubMenuOpen]);
 
-    // 菜单内容，使用 createPortal 渲染到 body
+    // 主菜单内容
     const menuContent = menuOpen
       ? createPortal(
           <div
@@ -129,10 +139,39 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
         )
       : null;
 
+    // 子菜单内容（移动到空间的子选项）
+    const moveSubMenuContent = isMoveSubMenuOpen
+      ? createPortal(
+          <div
+            className="SidebarItem__menu SidebarItem__subMenu"
+            role="menu"
+            style={{
+              position: "absolute",
+              top: `${menuPosition.top}px`,
+              left: `${menuPosition.left + 160}px`, // 子菜单在主菜单右侧，略微偏移
+            }}
+          >
+            {["空间 1", "空间 2", "空间 3"].map((space) => (
+              <button
+                key={space}
+                className="SidebarItem__menuItem"
+                onClick={handleSpaceSelect(space)}
+                role="menuitem"
+              >
+                {space}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )
+      : null;
+
     return (
       <>
         <div
           className={`SidebarItem ${isSelected ? "SidebarItem--selected" : ""}`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           {/* 拖拽/类型图标 */}
           <span
@@ -163,30 +202,33 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             {displayTitle}
           </NavLink>
 
-          {/* 操作按钮区域 */}
-          <div ref={containerRef} className="SidebarItem__actionButtons">
-            <button
-              className="SidebarItem__moreButton"
-              onClick={handleToggleMenu}
-              aria-haspopup="true"
-              aria-expanded={menuOpen}
-              title="更多操作"
-            >
-              <KebabHorizontalIcon size={MORE_ICON_SIZE} />
-            </button>
+          {/* 操作按钮区域，只有在悬停或菜单打开时才渲染 */}
+          {(isHovered || menuOpen || isMoveSubMenuOpen) && (
+            <div ref={containerRef} className="SidebarItem__actionButtons">
+              <button
+                className="SidebarItem__moreButton"
+                onClick={handleToggleMenu}
+                aria-haspopup="true"
+                aria-expanded={menuOpen}
+                title="更多操作"
+              >
+                <KebabHorizontalIcon size={MORE_ICON_SIZE} />
+              </button>
 
-            <button
-              className="SidebarItem__addToConversationButton"
-              onClick={handleAddToConversation}
-              title="加入到当前对话"
-            >
-              <ChevronRightIcon size={MORE_ICON_SIZE} />
-            </button>
-          </div>
+              <button
+                className="SidebarItem__addToConversationButton"
+                onClick={handleAddToConversation}
+                title="加入到当前对话"
+              >
+                <ChevronRightIcon size={MORE_ICON_SIZE} />
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* 渲染菜单内容 */}
+        {/* 渲染主菜单和子菜单内容 */}
         {menuContent}
+        {moveSubMenuContent}
 
         {/* 内联 CSS 样式 */}
         <style href="sidebar-item" precedence="medium">{`
@@ -280,17 +322,12 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             display: flex;
             align-items: center;
             gap: 5px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s, background-color 0.2s, backdrop-filter 0.2s;
+            opacity: 1; /* 移除默认隐藏样式，直接显示 */
+            pointer-events: auto; /* 移除默认禁用交互 */
+            transition: background-color 0.2s, backdrop-filter 0.2s;
             z-index: 1;
             border-radius: 6px;
             padding: 3px 5px;
-          }
-
-          .SidebarItem:hover .SidebarItem__actionButtons {
-            opacity: 1;
-            pointer-events: auto;
             background-color: ${theme.backgroundTertiary}CC;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -324,6 +361,17 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             padding: 4px;
             z-index: 1000;
             min-width: 150px;
+            animation: fadeIn 0.15s ease-out;
+          }
+          
+          .SidebarItem__subMenu {
+            background-color: ${theme.backgroundElevated || theme.background};
+            border: 1px solid ${theme.border};
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 4px;
+            z-index: 1001; /* 确保子菜单在主菜单之上 */
+            min-width: 120px;
             animation: fadeIn 0.15s ease-out;
           }
           

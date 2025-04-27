@@ -136,7 +136,7 @@ export default {
       create: "创建",
       enterModelName: "输入模型名称",
       insufficientBalanceDetailed:
-        "余额不足。当前使用的模型为 {{modelName}}，单次对话最多可能需要 {{pricePerMessage}} 积分。您当前的余额为 {{balance}} 积分。",
+        "余额不足。当前模型为 {{modelName}}，单次对话最多消耗为 {{pricePerMessage}} 积分。您的余额为 {{balance}} 积分。",
       insufficientBalance: "余额不足",
       cybotConfigMissing: "Cybot配置缺失",
       modelPricingMissing: "模型定价信息缺失",
