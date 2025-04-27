@@ -31,7 +31,7 @@ export const SelfMessage = ({ content, dbKey }) => {
         </div>
       </div>
 
-      <style href="self-msg">{`
+      <style href="self-msg" precedence="medium">{`
         .chat-message-container {
           display: flex;
           margin-bottom: 18px;

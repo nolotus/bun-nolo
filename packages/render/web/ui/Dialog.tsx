@@ -37,7 +37,7 @@ export const Dialog: React.FC<DialogProps> = ({
         <div className="dialog-content">{children}</div>
       </div>
 
-      <style href="dialog">{`
+      <style href="dialog" precedence="medium">{`
         .dialog-container {
           display: flex;
           flex-direction: column;

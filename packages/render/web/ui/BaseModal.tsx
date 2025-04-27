@@ -50,7 +50,7 @@ export const BaseModal: React.FC<BaseModalProps> = ({
         {children}
       </div>
 
-      <style href="base-modal">{`
+      <style href="base-modal" precedence="medium">{`
         .modal-backdrop {
           position: fixed;
           top: 0;

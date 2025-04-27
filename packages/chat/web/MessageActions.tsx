@@ -228,7 +228,7 @@ export const MessageActions = ({
       </div>
 
       {/* 使用主题系统的样式 */}
-      <style href="msg-actions">{`
+      <style href="msg-actions" precedence="medium">{`
         .chat-message-actions {
           display: flex;
           justify-content: flex-end;

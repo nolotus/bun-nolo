@@ -75,7 +75,7 @@ const DialogPage = ({ pageKey }) => {
         `DialogPage: Initializing for pageKey: ${pageKey}, dialogId: ${dialogId}`
       );
       dispatch(initDialog(pageKey));
-      dispatch(initMsgs({ dialogId, db: browserDb }));
+      dispatch(initMsgs({ dialogId, limit: 15, db: browserDb }));
     }
 
     // Cleanup function

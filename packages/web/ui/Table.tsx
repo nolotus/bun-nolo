@@ -17,7 +17,7 @@ export const Table: React.FC<TableBaseProps> = ({
 
   return (
     <>
-      <style href="table-container">{`
+      <style href="table-container" precedence="medium">{`
         .table-container {
           overflow-x: auto;
           border-radius: 8px;
@@ -59,7 +59,7 @@ export const TableRow: React.FC<TableBaseProps> = ({
 
   return (
     <>
-      <style href="table-row">{`
+      <style href="table-row" precedence="medium">{`
         .table-row {
           border-bottom: 1px solid ${theme.border};
           background: ${theme.background};
@@ -96,7 +96,7 @@ export const TableCell: React.FC<TableCellProps> = ({
 
   return (
     <>
-      <style href="table-cell">{`
+      <style href="table-cell" precedence="medium">{`
         .table-cell {
           padding: ${element.header ? "0.875rem 1rem" : "1rem"};
           text-align: left;
