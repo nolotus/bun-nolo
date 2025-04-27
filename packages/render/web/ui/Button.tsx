@@ -56,7 +56,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           {loading ? <LoadingSpinner /> : children}
         </span>
 
-        <style href="button">{`
+        <style href="button" precedence="medium">{`
         .btn {
           position: relative;
           font-size: 14px;

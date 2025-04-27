@@ -84,7 +84,7 @@ export const MessageContent = ({ content, role }) => {
         />
       )}
 
-      <style href="message-content">{`
+      <style href="message-content" precedence="medium">{`
         @keyframes message-enter {
           from {
             opacity: 0;

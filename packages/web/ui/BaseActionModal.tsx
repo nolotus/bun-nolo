@@ -77,7 +77,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         {actions && <div className="modal-actions">{actions}</div>}
       </div>
 
-      <style href="base-action-modal">{`
+      <style href="base-action-modal" precedence="medium">{`
         .action-modal {
           background: ${theme.background};
           border-radius: 12px;

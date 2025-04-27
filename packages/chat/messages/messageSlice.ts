@@ -24,7 +24,6 @@ import { browserDb } from "database/browser/db";
 
 // --- Constants ---
 const FALLBACK_SERVERS = ["https://cybot.one", "https://cybot.run"];
-const INITIAL_LOAD_LIMIT = 50;
 const OLDER_LOAD_LIMIT = 30;
 
 // --- Utility: isValidMessage ---
@@ -127,7 +126,7 @@ export const messageSlice = createSliceWithThunks({
       async (
         {
           dialogId,
-          limit = INITIAL_LOAD_LIMIT,
+          limit,
           db = browserDb,
         }: {
           dialogId: string;

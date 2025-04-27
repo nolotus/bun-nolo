@@ -86,7 +86,7 @@ export const CreateMenu = () => {
 
   return (
     <>
-      <style href="create-menu">
+      <style href="create-menu" precedence="medium">
         {`
 			.create-menu {
 			  position: relative;

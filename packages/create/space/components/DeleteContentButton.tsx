@@ -92,7 +92,7 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
         loading={isDeleting}
       />
 
-      <style href="delete-content-button">{`
+      <style href="delete-content-button" precedence="medium">{`
         .DeleteContentButton {
           display: flex;
           align-items: center;
