@@ -17,7 +17,6 @@ import {
   selectCollapsedCategories,
 } from "create/space/spaceSlice";
 import { createPage } from "render/page/pageSlice";
-import { DraggableSyntheticListeners } from "@dnd-kit/core";
 import { useNavigate } from "react-router-dom";
 import { useInlineEdit } from "render/web/ui/useInlineEdit";
 import InlineEditInput from "render/web/ui/InlineEditInput";
@@ -28,7 +27,10 @@ interface CategoryHeaderProps {
   categoryId: string; // 可以是真实的 ID 或 UNCATEGORIZED_ID
   categoryName: string;
   isDragOver?: boolean;
-  handleProps?: DraggableSyntheticListeners;
+  handleProps?: {
+    onDragStart: (e: React.DragEvent) => void;
+    onDragEnd: (e: React.DragEvent) => void;
+  };
 }
 
 const CategoryHeader: React.FC<CategoryHeaderProps> = ({
@@ -127,7 +129,32 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const collapseButtonClassName = `CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`;
   const nameClassName = `CategoryHeader__name ${!isUncategorized && !isEditing ? "CategoryHeader__name--draggable" : ""}`;
   const nameProps =
-    !isUncategorized && !isEditing && handleProps ? handleProps : {};
+    !isUncategorized && !isEditing && handleProps
+      ? {
+          draggable: true,
+          onDragStart: handleProps.onDragStart,
+          onDragEnd: handleProps.onDragEnd,
+        }
+      : {};
+
+  // 自定义分类拖动开始事件
+  const customDragStart = (e: React.DragEvent) => {
+    console.log("Custom drag started for category:", categoryId);
+    e.dataTransfer.setData("categoryId", categoryId);
+    e.dataTransfer.setData("dragType", "category");
+    e.dataTransfer.effectAllowed = "move";
+    if (handleProps && handleProps.onDragStart) {
+      handleProps.onDragStart(e);
+    }
+  };
+
+  // 自定义分类拖动结束事件
+  const customDragEnd = (e: React.DragEvent) => {
+    console.log("Custom drag ended for category:", categoryId);
+    if (handleProps && handleProps.onDragEnd) {
+      handleProps.onDragEnd(e);
+    }
+  };
 
   return (
     <>
@@ -149,6 +176,8 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           <span
             className={nameClassName}
             {...nameProps}
+            onDragStart={customDragStart}
+            onDragEnd={customDragEnd}
             title={
               !isUncategorized && !isEditing
                 ? "拖拽调整顺序" // 简化 title
