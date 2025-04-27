@@ -1,4 +1,4 @@
-// chat/DeleteContentButton.tsx
+// create/space/components/DeleteContentButton.tsx
 import React, { useState } from "react";
 import { TrashIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
@@ -9,13 +9,11 @@ import {
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
-import { Tooltip } from "render/web/ui/Tooltip";
 
 interface DeleteContentButtonProps {
   contentKey: string;
   title: string;
   theme: any;
-  // 添加 className prop 以允许父组件控制样式
   className?: string;
 }
 
@@ -61,19 +59,26 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
 
   const buttonClassName = `DeleteContentButton ${className}`.trim();
 
+  // 检查是否作为菜单项渲染
+  const isMenuItem = className.includes("SidebarItem__menuItem");
+
   return (
     <>
-      <Tooltip content={t("delete")} placement="top">
-        <button
-          className={buttonClassName}
-          onClick={openConfirmModal}
-          disabled={isDeleting}
-          // 添加 data attribute 便于父组件在需要时进行更复杂的 CSS 选择
-          data-component="delete-content-button"
-        >
+      <button
+        className={buttonClassName}
+        onClick={openConfirmModal}
+        disabled={isDeleting}
+        data-component="delete-content-button"
+      >
+        {isMenuItem ? (
+          <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <TrashIcon size={16} />
+            {t("delete")}
+          </span>
+        ) : (
           <TrashIcon size={16} />
-        </button>
-      </Tooltip>
+        )}
+      </button>
 
       <ConfirmModal
         isOpen={isConfirmOpen}
@@ -98,7 +103,6 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
           border-radius: 4px;
           padding: 4px;
           cursor: pointer;
-          /* 已移除 opacity: 0; 由父组件控制可见性 */
           opacity: 1;
           transition: all 0.2s ease;
           flex-shrink: 0;
@@ -107,13 +111,22 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
         .DeleteContentButton:hover {
           background-color: ${theme.backgroundTertiary};
           color: ${theme.danger || "#e53e3e"};
-          /* 如果父组件样式不冲突，则无需 !important */
           opacity: 1;
         }
 
         .DeleteContentButton:disabled {
           cursor: not-allowed;
           opacity: 0.5;
+        }
+        
+        /* 特别为菜单项调整样式 */
+        .SidebarItem__menuItem.DeleteContentButton {
+          justify-content: flex-start;
+          padding: 8px 12px;
+          font-size: 13px;
+          line-height: 1.4;
+          width: 100%;
+          text-align: left;
         }
       `}</style>
     </>
