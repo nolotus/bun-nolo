@@ -1,5 +1,4 @@
 // create/editor/utils/slateUtils.ts
-import { Node } from "slate"; // 确保导入 Node
 
 // ================ 类型定义 ================
 export type EditorContent = Array<{
@@ -20,27 +19,15 @@ export const compareSlateContent = (
   newContent: EditorContent | null,
   oldContent: EditorContent | null
 ): boolean => {
-  try {
-    // 快速引用检查
-    if (newContent === oldContent) return false; // 相同
-    // 空值检查
-    if (!newContent || !oldContent) return true; // 不同
-    // 长度检查
-    if (newContent.length !== oldContent.length) return true; // 不同
+  // 快速引用检查
+  if (newContent === oldContent) return false; // 相同
+  // 空值检查
+  if (!newContent || !oldContent) return true; // 不同
+  // 长度检查
+  if (newContent.length !== oldContent.length) return true; // 不同
 
-    // 逐个比较顶层节点
-    for (let i = 0; i < newContent.length; i++) {
-      // 使用 Slate 的 Node.equals 进行深度比较
-      // 类型断言确保兼容性
-      if (!Node.equals(newContent[i] as Node, oldContent[i] as Node)) {
-        return true; // 发现差异，内容不同
-      }
-    }
-    return false; // 所有节点都相同，内容相同
-  } catch (e) {
-    console.warn("Slate 内容比较出错，将视为已变更:", e);
-    return true; // 出错时，保守地认为内容已更改 (不同)
-  }
+  // 使用 JSON.stringify 进行深度比较
+  return JSON.stringify(newContent) !== JSON.stringify(oldContent);
 };
 
 /**

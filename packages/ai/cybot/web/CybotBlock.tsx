@@ -28,7 +28,6 @@ interface CybotBlockProps {
 }
 
 const CybotBlock = ({ item, reload }: CybotBlockProps) => {
-  console.log("CybotBlock", item);
   const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();

@@ -31,7 +31,6 @@ import {
   selectPageError,
 } from "./pageSlice";
 import { updateContentTitle } from "create/space/spaceSlice";
-
 interface RenderPageProps {
   pageKey: string;
 }
@@ -70,7 +69,6 @@ export default React.memo(function RenderPage({ pageKey }: RenderPageProps) {
             <React.Suspense fallback={<EditorLoader theme={theme} />}>
               <div key={pageKey}>
                 <Editor
-                  placeholder="开始编辑..."
                   initialValue={initialValue}
                   onChange={handleChange}
                   onFocus={handleFocus}

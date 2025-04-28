@@ -24,7 +24,7 @@ import { useOnKeydown } from "./useOnKeyDown";
 import { normalizeTokens } from "./utils/normalize-tokens";
 import { withLayout } from "./withLayout";
 import { withShortcuts } from "./withShortcuts";
-
+import { PlaceHolder } from "render/page/placeholder";
 // Type for the editor instance with custom properties
 type CustomEditor = ReactEditor &
   History & {
@@ -84,7 +84,12 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         )}
         <SetNodeToDecorations />
         <Editable
-          placeholder={placeholder}
+          placeholder=" "
+          renderPlaceholder={({ children, attributes }) => (
+            <div {...attributes}>
+              <PlaceHolder />
+            </div>
+          )}
           readOnly={readOnly}
           decorate={decorate}
           renderElement={ElementWrapper}
