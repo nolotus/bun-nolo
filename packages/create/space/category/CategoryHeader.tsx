@@ -247,7 +247,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
       <style href="category-header-styles" precedence="medium">
         {`
         /* --- Styles from the previous version --- */
-        .CategoryHeader { box-sizing: border-box; padding: 7px 10px; display: flex; align-items: center; gap: 8px; border-radius: 8px; transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; user-select: none; cursor: default; min-height: 36px; position: relative; will-change: background-color, transform, opacity, box-shadow; }
+        .CategoryHeader { box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; gap: 8px; border-radius: 8px; transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; user-select: none; cursor: default; min-height: 36px; position: relative; will-change: background-color, transform, opacity, box-shadow; }
         .CategoryHeader--editing { }
         .CategoryHeader:hover { background-color: ${isEditing ? "transparent" : theme?.backgroundHover || "rgba(0,0,0,0.03)"}; }
         .CategoryHeader--drag-over { background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"}; border: 1px dashed ${theme.primaryLight || "#91caff"}; }

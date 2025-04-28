@@ -266,10 +266,11 @@ export const SidebarTop = () => {
       <style>{`
         .space-sidebar-top {
           display: flex;
-          padding: 12px;
-          gap: 12px;
+          padding: ${theme.space[3]}; /* 12px */
+          gap: ${theme.space[3]}; /* 12px */
           align-items: center;
           background: ${theme.background};
+          height: ${theme.space[12]}; /* 48px */
         }
         .space-dropdown {
           flex: 1;
@@ -280,7 +281,7 @@ export const SidebarTop = () => {
           display: flex;
           align-items: center;
           width: 100%;
-          height: 32px;
+          height: ${theme.space[8]}; /* 32px */
           padding: 0;
           background: ${theme.backgroundSecondary};
           border-radius: 6px;
@@ -304,7 +305,7 @@ export const SidebarTop = () => {
           color: ${theme.text};
           flex: 1;
           min-width: 0;
-          padding: 0 12px;
+          padding: 0 ${theme.space[3]}; /* 12px */
           font-weight: 500;
           line-height: 30px;
           height: 100%;
@@ -325,7 +326,7 @@ export const SidebarTop = () => {
         }
         .space-dropdown__icon-btn {
           height: 100%;
-          width: 32px;
+          width: ${theme.space[8]}; /* 32px */
           display: flex;
           align-items: center;
           justify-content: center;
@@ -361,14 +362,14 @@ export const SidebarTop = () => {
           border: 1px solid ${theme.borderLight};
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.03);
           z-index: ${zIndex.spaceDropdownZIndex};
-          margin-top: 4px;
+          margin-top: ${theme.space[1]}; /* 4px */
           overflow: hidden;
           backdrop-filter: blur(8px);
         }
         .space-dropdown__content {
-          max-height: 320px;
+          max-height: 300px;
           overflow-y: auto;
-          padding: 6px;
+          padding: ${theme.space[2]}; /* 8px */
           scrollbar-width: thin;
           scrollbar-color: ${theme.textLight} transparent;
         }
@@ -386,8 +387,8 @@ export const SidebarTop = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          padding: 12px 0;
+          gap: ${theme.space[2]}; /* 8px */
+          padding: ${theme.space[3]} 0; /* 12px */
         }
         .loading-dot {
           width: 6px;
@@ -415,12 +416,12 @@ export const SidebarTop = () => {
         }
         .space-dropdown__divider {
           height: 1px;
-          margin: 4px 0;
+          margin: ${theme.space[1]} 0; /* 4px */
           background-color: ${theme.borderLight};
           opacity: 0.6;
         }
         .space-dropdown__empty {
-          padding: 12px;
+          padding: ${theme.space[3]}; /* 12px */
           color: ${theme.textSecondary};
           text-align: center;
           font-size: 13px;

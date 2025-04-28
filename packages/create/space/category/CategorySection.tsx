@@ -80,10 +80,9 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
         </div>
 
         {/* 组件内嵌样式 */}
-        <style>{`
+        <style href="category-section" precedence="medium">{`
           .ChatSidebar__category {
             position: relative; /* 用于 ::after 伪元素定位 */
-            border-radius: 8px;
             transition: background-color 0.2s ease;
             margin-bottom: 4px; /* 分类之间的间距 */
           }
@@ -93,8 +92,8 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
 
           /* 分类内容区域 */
           .ChatSidebar__category-content {
-            margin-top: 2px; /* 与头部的间距 */
-            padding: 0 2px; /* 左右内边距 */
+            margin-top: 0; /* 与头部的间距 */
+            padding: 0 ;
           }
 
           /* 项目入场动画 (可选) */
