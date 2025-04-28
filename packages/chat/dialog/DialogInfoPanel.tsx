@@ -150,10 +150,10 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
               </h4>
               <div className="dialog-cybot-list" role="list">
                 {participantCount > 0 ? (
-                  currentDialogConfig?.cybots?.map((cybotId) => (
+                  currentDialogConfig?.cybots?.map((cybotKey) => (
                     <CybotNameChip
-                      key={cybotId}
-                      cybotId={cybotId}
+                      key={cybotKey}
+                      cybotKey={cybotKey}
                       onRemove={handleRemoveCybot}
                       className="dialog-info-list-item"
                     />

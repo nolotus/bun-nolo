@@ -27,6 +27,16 @@ export const openrouterModels = [
     supportsTool: true,
   },
   {
+    name: "anthropic/claude-3.5-sonnet",
+    displayName: "Anthropic: Claude 3.5 Sonnet",
+    hasVision: true,
+    price: { input: 3 * 8, output: 15 * 8 },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 4.8 * 8,
+  },
+  {
     name: "qwen/qwen-2.5-72b-instruct:free",
     displayName: "Qwen 2.5 72b Instruct",
     hasVision: false,
