@@ -1,6 +1,4 @@
 import React, { useEffect } from "react";
-// Optional: For managing head tags like title
-// import { Helmet } from "react-helmet-async";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useAuth } from "auth/hooks/useAuth";
 import {
@@ -9,65 +7,83 @@ import {
   selectCurrentDialogConfig,
 } from "chat/dialog/dialogSlice";
 import MessageInputContainer from "chat/web/MessageInputContainer";
-import MessagesList from "chat/web/MessageList"; // Keep MessagesList import
+import MessagesList from "chat/web/MessageList";
 import {
   initMsgs,
-  selectIsLoadingInitial, // Import specific selectors for clarity
-  selectMessageError, // Import specific selectors for clarity
+  selectIsLoadingInitial,
+  selectMessageError,
 } from "chat/messages/messageSlice";
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
+import { selectHeaderHeight, selectTheme } from "app/theme/themeSlice"; // 新增 selectTheme 导入以获取主题配置
 
-// --- Loading Spinner Component (Consider moving to a separate file) ---
+// 加载旋转动画样式
 const spinKeyframes = `
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
 `;
-const LoadingSpinner = () => (
-  <>
-    <style>{spinKeyframes}</style> {/* Keyframes needed */}
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100%", // Spinner needs height context
-      }}
-    >
+
+// 加载中旋转组件
+const LoadingSpinner = () => {
+  const theme = useAppSelector(selectTheme); // 获取当前主题配置
+
+  return (
+    <>
+      <style>{spinKeyframes}</style>
       <div
         style={{
-          border: "4px solid rgba(0, 0, 0, 0.1)",
-          borderLeftColor: "#09f", // Or use theme color
-          borderRadius: "50%",
-          width: "30px",
-          height: "30px",
-          animation: "spin 1s linear infinite",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
         }}
-      />
+      >
+        <div
+          style={{
+            border: `4px solid rgba(0, 0, 0, 0.1)`,
+            borderLeftColor: theme.primary, // 使用主题的主色调作为加载动画的颜色
+            borderRadius: "50%",
+            width: "30px",
+            height: "30px",
+            animation: "spin 1s linear infinite",
+          }}
+        />
+      </div>
+    </>
+  );
+};
+
+// 错误显示组件
+const ErrorDisplay = ({ error }: { error: any }) => {
+  const theme = useAppSelector(selectTheme); // 获取当前主题配置
+
+  return (
+    <div
+      style={{
+        padding: theme.space[5], // 使用主题中定义的空间尺寸
+        color: theme.error, // 使用主题中定义的错误颜色
+        textAlign: "center",
+      }}
+    >
+      加载消息出错: {error.message}
     </div>
-  </>
-);
+  );
+};
 
-// --- Error Display Component ---
-const ErrorDisplay = ({ error }) => (
-  <div style={{ padding: "20px", color: "red", textAlign: "center" }}>
-    加载消息出错: {error.message}
-  </div>
-);
-
-// --- DialogPage Component ---
-const DialogPage = ({ pageKey }) => {
+// 对话页面组件
+const DialogPage = ({ pageKey }: { pageKey: string }) => {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
-  const dialogId = extractCustomId(pageKey); // Derived from pageKey
-
+  const dialogId = extractCustomId(pageKey);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
-  const isLoadingInitial = useAppSelector(selectIsLoadingInitial); // Use specific selector
-  const error = useAppSelector(selectMessageError); // Use specific selector
+  const isLoadingInitial = useAppSelector(selectIsLoadingInitial);
+  const error = useAppSelector(selectMessageError);
+  const headerHeight = useAppSelector(selectHeaderHeight); // 从主题中获取顶部高度
+  const theme = useAppSelector(selectTheme); // 获取当前主题配置
 
-  // --- Dialog and messages initialization ---
+  // 初始化对话和消息
   useEffect(() => {
     let isMounted = true;
     if (pageKey && user && dialogId) {
@@ -78,84 +94,67 @@ const DialogPage = ({ pageKey }) => {
       dispatch(initMsgs({ dialogId, limit: 15, db: browserDb }));
     }
 
-    // Cleanup function
     return () => {
       isMounted = false;
-      // Clear dialog state when component unmounts or pageKey/user changes significantly
       console.log(`DialogPage: Cleaning up for pageKey: ${pageKey}`);
       dispatch(clearDialogState());
-      // Consider resetting messages too if that's the desired behavior on page change
-      // dispatch(resetMsgs()); // Uncomment if messages should clear completely
     };
-    // dialogId is derived from pageKey, so only pageKey and user are needed here
-  }, [user, pageKey, dispatch, dialogId]); // Keep dialogId if initMsgs needs stable reference
+  }, [user, pageKey, dispatch, dialogId]);
 
-  // --- Render Logic ---
+  // 渲染内容逻辑
   const renderContent = () => {
-    // 1. Initial Loading State
     if (isLoadingInitial) {
       return <LoadingSpinner />;
     }
-
-    // 2. Error State (after initial load attempt)
     if (error) {
       return <ErrorDisplay error={error} />;
     }
-
-    // 3. Success State (Dialog config loaded)
     if (currentDialogConfig) {
       return (
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            height: "100%", // Occupy full available height
+            height: "100%",
           }}
         >
-          {/* Messages List occupies remaining space */}
           <div style={{ flexGrow: 1, overflow: "hidden" }}>
-            {/* Pass dialogId explicitly */}
             <MessagesList dialogId={dialogId} />
           </div>
-          {/* Input container at the bottom */}
           <MessageInputContainer />
         </div>
       );
     }
-
-    // 4. Fallback (e.g., config not loaded yet, but not loading/error)
-    // This state might indicate an issue if it persists.
     return (
-      <div style={{ textAlign: "center", padding: "20px" }}>
+      <div
+        style={{
+          textAlign: "center",
+          padding: theme.space[5], // 使用主题中定义的空间尺寸
+          color: theme.textSecondary, // 使用主题中的次级文本颜色
+        }}
+      >
         正在加载对话信息...
       </div>
-    ); // Or null, or a different placeholder
+    );
   };
 
   return (
     <>
-      {/* Optional: Use Helmet for better title management */}
-      {/* <Helmet>
-        <title>{currentDialogConfig?.title || "Chat"}</title>
-      </Helmet> */}
       {currentDialogConfig?.title && <title>{currentDialogConfig.title}</title>}
-
-      {/* Main layout container */}
       <div
         style={{
           display: "flex",
-          overflow: "hidden", // Changed overflowX to overflow
-          height: "calc(100dvh - 60px)", // Assuming 60px is header height
-          backgroundColor: "var(--background-color, #fff)", // Use theme background
+          overflow: "hidden",
+          height: `calc(100dvh - ${headerHeight}px)`, // 使用从主题获取的顶部高度
+          backgroundColor: theme.background, // 使用主题中的背景颜色
         }}
       >
-        {/* Inner container taking up available space */}
         <div
           style={{
             flexGrow: 1,
-            display: "flex", // Needed for spinner centering
+            display: "flex",
             flexDirection: "column",
-            overflow: "hidden", // Prevent content overflow issues
+            overflow: "hidden",
           }}
         >
           {renderContent()}
