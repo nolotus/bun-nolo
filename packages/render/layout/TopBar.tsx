@@ -1,22 +1,22 @@
 import { useTheme } from "app/theme";
-import { extractUserId } from "core/prefix";
-import { selectPageData } from "../page/pageSlice";
 import { useTranslation } from "react-i18next";
-import type { ReactNode } from "react";
-import type React from "react";
-import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
+import { useParams } from "react-router-dom";
 import { useAuth } from "auth/hooks/useAuth";
 import { useAppSelector } from "app/hooks";
+import { extractUserId } from "core/prefix";
+import { selectPageData } from "../page/pageSlice";
+import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
+import type React from "react";
+import type { ReactNode } from "react";
 
-//web
-import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
-import { CreateTool } from "create/CreateTool";
+// Web Components
 import NavIconItem from "./blocks/NavIconItem";
 import NavListItem from "render/layout/blocks/NavListItem";
-import { useParams } from "react-router-dom";
+import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
 import EditableTitle from "chat/dialog/EditableTitle";
 import CreateDialogButton from "chat/dialog/CreateDialogButton";
 import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
+import { CreateTool } from "create/CreateTool";
 import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 import { RoutePaths } from "auth/web/routes";
 import { HomeIcon, SignInIcon } from "@primer/octicons-react";
@@ -25,19 +25,15 @@ interface TopBarProps {
   topbarContent?: ReactNode;
 }
 
-const styles = {
-  height: "56px",
-  spacing: "8px",
-};
-
 const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
   const { t } = useTranslation();
   const { isLoggedIn, user } = useAuth();
+  const theme = useTheme();
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const pageData = useAppSelector(selectPageData);
-  const theme = useTheme();
   const { pageKey } = useParams<{ pageKey?: string }>();
 
+  // 编辑权限逻辑
   const dataCreator = pageKey ? extractUserId(pageKey) : undefined;
   const isCreator = dataCreator === user?.userId;
   const isNotBelongAnyone = !pageData.creator;
@@ -94,9 +90,9 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
             top: 0;
             right: 0;
             width: 100%;
-            padding: 0 16px;
+            padding: 0 ${theme.space[4]}; /* 16px */
             z-index: 2;
-            height: ${styles.height};
+            height: ${theme.space[12]}; /* 48px */
             box-sizing: border-box;
             border: none;
             box-shadow: none;
@@ -105,8 +101,8 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
           .topbar-left, .topbar-right {
             display: flex;
             align-items: center;
-            gap: ${styles.spacing};
-            min-width: 90px;
+            gap: ${theme.space[2]}; /* 8px */
+            min-width: 80px;
             flex-shrink: 0;
           }
           
@@ -119,7 +115,7 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0 24px;
+            padding: 0 ${theme.space[5]}; /* 20px */
             overflow: visible;
             min-width: 0;
           }
@@ -128,7 +124,7 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: ${theme.space[3]}; /* 12px */
             max-width: 800px;
             width: 100%;
           }
@@ -136,35 +132,35 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
           /* --- Responsive Design --- */
           @media (max-width: 768px) {
             .topbar { 
-              padding: 0 12px;
+              padding: 0 ${theme.space[3]}; /* 12px */
             }
             
             .topbar-center { 
-              padding: 0 10px;
-              gap: 6px;
+              padding: 0 ${theme.space[2]}; /* 8px */
+              gap: ${theme.space[1]}; /* 4px */
             }
             
             .topbar-right { 
-              gap: 6px; 
+              gap: ${theme.space[1]}; /* 4px */
             }
           }
           
           @media (max-width: 640px) {
             .topbar-center .editable-title {
-              max-width: 110px;
+              max-width: 100px;
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
             }
             
             .topbar-content-wrapper {
-              gap: 8px;
+              gap: ${theme.space[2]}; /* 8px */
             }
           }
           
           @media (max-width: 480px) {
             .topbar-center .editable-title {
-              max-width: 80px;
+              max-width: 70px;
             }
           }
         `}

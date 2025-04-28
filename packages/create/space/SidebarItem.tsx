@@ -216,7 +216,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
         <style href="sidebar-item" precedence="medium">{`
           .SidebarItem { 
             margin: 2px 0; 
-            padding: 7px 10px; 
+            padding: 4px 8px; 
             display: flex; 
             align-items: center; 
             gap: 10px; 
