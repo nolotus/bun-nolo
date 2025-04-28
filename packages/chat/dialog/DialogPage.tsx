@@ -7,7 +7,7 @@ import {
   selectCurrentDialogConfig,
 } from "chat/dialog/dialogSlice";
 import MessageInputContainer from "chat/web/MessageInputContainer";
-import MessagesList from "chat/web/MessageList";
+import MessagesList from "chat/messages/web/MessageList";
 import {
   initMsgs,
   selectIsLoadingInitial,
