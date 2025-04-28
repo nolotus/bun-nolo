@@ -1,7 +1,7 @@
 import { NoloRootState } from "app/store"; // Assuming path is correct
 import { generatePrompt } from "ai/prompt/generatePrompt"; // Assuming path is correct
 import { selectAllMsgs } from "chat/messages/messageSlice";
-
+import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages"; // Assuming path is correct
 // --- 类型定义 (保持不变) ---
 
 type MessageContentPartText = {
@@ -45,94 +45,6 @@ interface CybotConfig {
   name?: string;
   [key: string]: any;
 }
-
-// --- 函数实现 ---
-
-/**
-
- * 重构: 过滤并清理历史消息。
- * 移除 Ramda，使用标准 JS 方法。
- * 仅保留 API 调用所需的字段。
- * @param msgs 原始消息数组 (期望是最新在前，最旧在后)。
- * @returns 清理和过滤后的消息数组 (Message[])，按时间顺序 (最旧在前，最新在后)。
- */
-const filterAndCleanMessages = (msgs: any[]): Message[] => {
-  if (!Array.isArray(msgs)) return [];
-
-  const cleanedAndFiltered = msgs
-    .flat() // 展平可能存在的嵌套数组
-    .map((msg: any) => {
-      // 1. 基础验证
-      if (!msg || typeof msg !== "object" || !msg.role) return null;
-      // 允许 system, user, assistant, tool 等角色
-      if (!["system", "user", "assistant", "tool"].includes(msg.role))
-        return null;
-
-      // 2. 内容验证
-      let isValidContent = false;
-      if (typeof msg.content === "string") {
-        // 允许空字符串内容吗？通常不允许，除非特定场景。这里假设不允许。
-        // isValidContent = msg.content.trim() !== "";
-        // 如果 API 允许空字符串 content，可以改为:
-        isValidContent = true; // 或者保留 trim() !== "" 如果不允许空内容
-      } else if (Array.isArray(msg.content)) {
-        // 检查数组内容是否有效
-        isValidContent =
-          msg.content.length > 0 &&
-          msg.content.every(
-            // 改为 every 可能更严谨，确保所有 part 都有效？或者 some 即可？看 API 要求。通常 some 即可。
-            (part: any) =>
-              part &&
-              typeof part === "object" && // 基础 part 结构检查
-              ((part.type === "text" && typeof part.text === "string") || // 文本部分，允许空文本吗？
-                (part.type === "image_url" &&
-                  part.image_url &&
-                  typeof part.image_url.url === "string" &&
-                  part.image_url.url.trim() !== "")) // 图片 URL 必须非空
-            // 可以添加对其他 type 的验证
-          ) &&
-          // 确保至少有一个非空文本或图片URL (防止只有空的 text part 的数组)
-          msg.content.some(
-            (part: any) =>
-              (part.type === "text" && part.text?.trim() !== "") ||
-              (part.type === "image_url" && part.image_url?.url?.trim() !== "")
-          );
-      }
-      // 如果 content 既不是 string 也不是 array，或者验证失败
-      if (!isValidContent) return null;
-
-      // 3. 构建清理后的消息对象 (仅包含 Message 接口定义的字段)
-      const cleanedMessage: Partial<Message> = {
-        role: msg.role,
-        content: msg.content, // 保留原始 content 结构 (string 或 array)
-      };
-      // 可选字段 (只有在原始 msg 中存在时才添加)
-      if (msg.name !== undefined) cleanedMessage.name = msg.name;
-      if (msg.role === "assistant" && msg.tool_calls !== undefined)
-        cleanedMessage.tool_calls = msg.tool_calls;
-      if (msg.role === "tool" && msg.tool_call_id !== undefined)
-        cleanedMessage.tool_call_id = msg.tool_call_id;
-
-      // 确保 role 和 content 存在 (上面已验证，理论上不会为 null/undefined)
-      if (!cleanedMessage.role || cleanedMessage.content === undefined) {
-        console.warn(
-          "Skipping message due to missing role or content after cleaning:",
-          msg
-        );
-        return null;
-      }
-
-      // 这里做一次显式类型转换，因为 Partial<Message> 可能不满足 Message
-      // 确保所有必需字段都存在
-      return cleanedMessage as Message;
-    })
-    .filter((msg): msg is Message => msg !== null); // 移除无效或被过滤的消息
-
-  // 4. 反转数组，将 "最新在前" 的输入顺序转换为 "最旧在前" 的 API 要求顺序
-  return cleanedAndFiltered.reverse();
-  // 下面这行是多余的，删除掉
-  // return cleanedAndFiltered;
-};
 
 /**
  * 创建用户消息对象 (保持不变)
@@ -284,6 +196,7 @@ export const generateOpenAIRequestBody = (
   context: any = ""
 ) => {
   // 1. 从 state 获取、过滤并清理历史消息
+  console.log("state", state);
   const previousMessages = filterAndCleanMessages(selectAllMsgs(state));
   console.log("previousMessages", previousMessages);
 

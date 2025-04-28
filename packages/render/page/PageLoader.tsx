@@ -7,9 +7,8 @@ import { useParams, useLocation } from "react-router-dom";
 // 导入 Action
 import { resetPage } from "./pageSlice";
 import { changeSpace } from "create/space/spaceSlice";
-
+import DialogPage from "chat/dialog/DialogPage";
 // 懒加载子组件
-const DialogPage = lazy(() => import("chat/dialog/DialogPage"));
 const RenderPage = lazy(() => import("./RenderPage"));
 
 // 导入工具

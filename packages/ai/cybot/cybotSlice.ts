@@ -4,6 +4,11 @@ import { read } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "../chat/fetchUtils";
+import { generateRequestBody } from "./generateRequestBody";
+import { buildReferenceContext } from "ai/context/buildReferenceContext";
+import { requestHandlers } from "ai/llm/providers";
+import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
+import { selectAllMsgs } from "chat/messages/messageSlice";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -44,9 +49,37 @@ export const cybotSlice = createSliceWithThunks({
         return content;
       }
     }, {}),
+    streamCybotId: create.asyncThunk(
+      async ({ cybotId, userInput }, thunkApi) => {
+        const state = thunkApi.getState();
+        const msgs = selectAllMsgs(state);
+        console.log("msgs", msgs);
+        const dispatch = thunkApi.dispatch;
+        const cybotConfig = await dispatch(read(cybotId)).unwrap();
+        const context = await buildReferenceContext(cybotConfig, dispatch);
+
+        const bodyData = generateRequestBody(
+          state,
+          userInput,
+          cybotConfig,
+          context
+        );
+        const providerName = cybotConfig.provider.toLowerCase();
+        const handler = requestHandlers[providerName];
+        const dialogConfig = selectCurrentDialogConfig(state);
+        const dialogKey = dialogConfig.dbKey;
+        await handler({
+          bodyData,
+          cybotConfig,
+          thunkApi,
+          dialogKey,
+        });
+      },
+      {}
+    ),
   }),
 });
 
-export const { runCybotId } = cybotSlice.actions;
+export const { runCybotId, streamCybotId } = cybotSlice.actions;
 
 export default cybotSlice.reducer;
