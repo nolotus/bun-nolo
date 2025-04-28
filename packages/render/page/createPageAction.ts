@@ -11,7 +11,6 @@ import type { NoloRootState, AppDispatch } from "app/store";
 import { write } from "database/dbSlice";
 import type { PageData } from "./types";
 import { format } from "date-fns";
-import { getInitialPageContent } from "./initialPageContent"; // 引入初始化内容
 
 /**
  * 异步 Action Thunk (Standalone): 创建一个新页面。
@@ -22,6 +21,7 @@ export const createPageAction = async (
     spaceId?: string;
     title?: string;
     addMomentTag?: boolean;
+    content?: string; // 新增可选参数 content
   } = {},
   thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
 ): Promise<string> => {
@@ -30,6 +30,7 @@ export const createPageAction = async (
     spaceId: customSpaceId,
     title: initialTitle,
     addMomentTag,
+    content, // 新增 content 参数
   } = args;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
@@ -56,8 +57,16 @@ export const createPageAction = async (
     tags.push("moment");
   }
 
-  // 使用提取的初始化内容
-  const initialSlateData = getInitialPageContent(title);
+  // 初始化 slateData 为空内容
+  const emptySlateData = [
+    {
+      type: "paragraph",
+      children: [{ text: "" }],
+    },
+  ];
+
+  // 使用传入的 content 作为 slateData，如果没有传入则使用空内容
+  const initialSlateData = content ? content : emptySlateData;
 
   const pageData: PageData = {
     dbKey,
