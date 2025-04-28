@@ -6,7 +6,7 @@ import type { AppDispatch, NoloRootState } from "./store";
 export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<NoloRootState> = useSelector;
 
-export function useFetchData<T>(id: string) {
+export function useFetchData<T>(dbKey: string) {
   const dispatch = useDispatch();
   const [data, setData] = useState<T | undefined>();
   const [isLoading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export function useFetchData<T>(id: string) {
     const getData = async () => {
       try {
         setLoading(true);
-        const readAction = await dispatch(read(id)).unwrap();
+        const readAction = await dispatch(read(dbKey)).unwrap();
         if (mounted) {
           setData(readAction);
         }
@@ -38,7 +38,7 @@ export function useFetchData<T>(id: string) {
     return () => {
       mounted = false;
     };
-  }, [dispatch, id]);
+  }, [dispatch, dbKey]);
 
   return { data, isLoading, error };
 }

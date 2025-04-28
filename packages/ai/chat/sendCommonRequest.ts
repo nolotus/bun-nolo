@@ -211,7 +211,7 @@ async function handleAccumulatedToolCalls(
             id: messageId,
             content: updatedContentBuffer,
             role: "assistant",
-            cybotId: cybotConfig.id,
+            cybotKey: cybotConfig.dbKey,
           })
         );
       } catch (toolError: any) {
@@ -229,7 +229,7 @@ async function handleAccumulatedToolCalls(
             id: messageId,
             content: updatedContentBuffer,
             role: "assistant",
-            cybotId: cybotConfig.id,
+            cybotKey: cybotConfig.dbKey,
           })
         );
       }
@@ -296,17 +296,14 @@ function finalizeStream(
     totalUsage.completion_tokens !== null
       ? { completion_tokens: totalUsage.completion_tokens }
       : undefined;
-
-  console.log("[finalizeStream] 最终内容:", finalContent);
-  console.log("[finalizeStream] 最终 Usage 数据:", finalUsageData);
-
+  console.log("cybotConfig", cybotConfig);
   dispatch(
     messageStreamEnd({
       id: messageId,
       dbKey: msgKey,
       content: finalContent,
       role: "assistant",
-      cybotId: cybotConfig.id,
+      cybotKey: cybotConfig.dbKey,
       usage: finalUsageData,
     })
   );
@@ -367,7 +364,7 @@ export const sendCommonChatRequest = async ({
         dbKey: msgKey,
         content: contentBuffer,
         role: "assistant",
-        cybotId: cybotConfig.id,
+        cybotKey: cybotConfig.dbKey,
         controller,
       })
     );
@@ -578,7 +575,7 @@ export const sendCommonChatRequest = async ({
               dbKey: msgKey,
               content: contentBuffer,
               role: "assistant",
-              cybotId: cybotConfig.id,
+              cybotKey: cybotConfig.dbKey,
               controller,
             })
           );
@@ -620,7 +617,7 @@ export const sendCommonChatRequest = async ({
                 dbKey: msgKey,
                 content: contentBuffer,
                 role: "assistant",
-                cybotId: cybotConfig.id,
+                cybotKey: cybotConfig.dbKey,
                 controller,
               })
             );

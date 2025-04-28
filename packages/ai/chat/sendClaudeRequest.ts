@@ -83,7 +83,7 @@ export const sendClaudeRequest = async ({
       id: messageId,
       dbKey: key,
       content: error ? `Error: ${error.message}` : content,
-      cybotId: cybotConfig.id,
+      cybotKey: cybotConfig.dbKey,
       role: "assistant",
       error: !!error,
     };

@@ -6,6 +6,7 @@ export interface Message {
   images?: string[]; // Ollama format
   dbKey: string; // Database key for the message
   cybotId?: string; // ID of the AI bot
+  cybotKey?: string; // Key of the AI bot
   controller?: AbortController; // Controller for aborting requests
 }
 
