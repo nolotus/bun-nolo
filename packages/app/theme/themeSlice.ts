@@ -113,6 +113,7 @@ const createThemeConfig = (themeName: string, isDark: boolean) => {
   const mode = isDark ? "dark" : "light";
   return {
     sidebarWidth: 260,
+    headerHeight: 48, // 新增顶部高度
     space: SPACE, // 添加精简的空间尺寸系统
     ...MODE_COLORS[mode],
     ...THEME_COLORS[themeName][mode],
@@ -131,6 +132,7 @@ const initialState = {
   // 预计算完整主题配置
   current: createThemeVariants("blue"),
   sidebarWidth: 260,
+  headerHeight: 48, // 新增顶部高度
 };
 
 const themeSlice = createSlice({
@@ -155,15 +157,27 @@ const themeSlice = createSlice({
     setDarkMode: (state, action) => {
       state.isDark = action.payload;
     },
+
+    // 新增设置顶部高度的 reducer
+    setHeaderHeight: (state, action) => {
+      const height = action.payload;
+      state.headerHeight = height;
+      state.current.light.headerHeight = height;
+      state.current.dark.headerHeight = height;
+    },
   },
 });
 
-export const { setTheme, setSidebarWidth, setDarkMode } = themeSlice.actions;
+export const { setTheme, setSidebarWidth, setDarkMode, setHeaderHeight } =
+  themeSlice.actions;
 
 // 简化的选择器 - 直接返回预计算的主题配置
 export const selectTheme = (state) =>
   state.theme.isDark ? state.theme.current.dark : state.theme.current.light;
 
 export const selectIsDark = (state) => state.theme.isDark;
+
+// 新增选择器用于获取顶部高度
+export const selectHeaderHeight = (state) => state.theme.headerHeight;
 
 export default themeSlice.reducer;
