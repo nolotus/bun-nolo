@@ -85,18 +85,12 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
 
   // 初始化对话和消息
   useEffect(() => {
-    let isMounted = true;
     if (pageKey && user && dialogId) {
-      console.log(
-        `DialogPage: Initializing for pageKey: ${pageKey}, dialogId: ${dialogId}`
-      );
       dispatch(initDialog(pageKey));
       dispatch(initMsgs({ dialogId, limit: 15, db: browserDb }));
     }
 
     return () => {
-      isMounted = false;
-      console.log(`DialogPage: Cleaning up for pageKey: ${pageKey}`);
       dispatch(clearDialogState());
     };
   }, [user, pageKey, dispatch, dialogId]);
