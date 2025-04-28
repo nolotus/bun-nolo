@@ -1,4 +1,3 @@
-// chat/web/MessageInput.tsx
 import type React from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,7 +6,6 @@ import { Content } from "../messages/types";
 import { zIndex } from "render/styles/zIndex";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { handleSendMessage } from "../messages/messageSlice";
-
 import {
   addPendingImagePreview,
   addPendingExcelFile,
@@ -20,24 +18,21 @@ import {
   selectPreviewingExcelFile,
   type PendingImagePreview,
   type PendingExcelFile,
-} from "../dialog/dialogSlice"; // Ensure path is correct
-
-// Import the compression utility
-import { compressImage } from "utils/imageUtils"; // Adjust path if needed
-
+} from "../dialog/dialogSlice";
+import { compressImage } from "utils/imageUtils";
 import * as XLSX from "xlsx";
 import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
 import ExcelPreview from "web/ExcelPreview";
 import { UploadIcon } from "@primer/octicons-react";
 import SendButton from "./ActionButton";
-import ImagePreview from "./ImagePreview"; // Assuming this is updated as per previous step
+import ImagePreview from "./ImagePreview";
 
 const MessageInput: React.FC = () => {
-  // --- Hooks, Refs, Local State, Redux State (remain the same) ---
+  // Hooks, Refs, Local State, Redux State
   const dispatch = useAppDispatch();
   const theme = useTheme();
-  const { t } = useTranslation();
+  const { t } = useTranslation("chat");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [textContent, setTextContent] = useState("");
@@ -47,7 +42,7 @@ const MessageInput: React.FC = () => {
   const excelFiles = useAppSelector(selectPendingExcelFiles);
   const previewingExcelFile = useAppSelector(selectPreviewingExcelFile);
 
-  // --- Effects (remain the same) ---
+  // Effects
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsDragEnabled(true);
@@ -55,7 +50,7 @@ const MessageInput: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // --- File Handling Callbacks (remain the same) ---
+  // File Handling Callbacks
   const handleAddImagePreview = useCallback(
     (file: File) => {
       if (!file.type.startsWith("image/")) return;
@@ -75,7 +70,7 @@ const MessageInput: React.FC = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (!e.target?.result) {
-          toast.error(t("fileReadError") || "无法读取文件内容");
+          toast.error(t("fileReadError"));
           return;
         }
         try {
@@ -83,7 +78,7 @@ const MessageInput: React.FC = () => {
           const workbook = XLSX.read(data, { type: "array" });
           const firstSheetName = workbook.SheetNames[0];
           if (!firstSheetName) {
-            toast.error(t("excelIsEmptyOrInvalid") || "Excel文件为空或无效");
+            toast.error(t("excelIsEmptyOrInvalid"));
             return;
           }
           const worksheet = workbook.Sheets[firstSheetName];
@@ -97,15 +92,15 @@ const MessageInput: React.FC = () => {
             };
             dispatch(addPendingExcelFile(newExcelFile));
           } else {
-            toast.error(t("excelIsEmpty") || "Excel文件内容为空");
+            toast.error(t("excelIsEmpty"));
           }
         } catch (error) {
-          toast.error(t("excelParseError") || "无法解析Excel文件");
+          toast.error(t("excelParseError"));
           console.error("Excel parsing error:", error);
         }
       };
       reader.onerror = () => {
-        toast.error(t("fileReadError") || "读取文件时出错");
+        toast.error(t("fileReadError"));
       };
       reader.readAsArrayBuffer(file);
     },
@@ -132,13 +127,12 @@ const MessageInput: React.FC = () => {
     [handleAddImagePreview, handleParseAndAddExcel]
   );
 
-  // --- Input & Send Logic ---
-
+  // Input & Send Logic
   const handleTextareaChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const textarea = e.target;
       textarea.style.height = "auto";
-      const maxHeight = window.innerWidth > 768 ? 140 : 100; // Adjust max height if needed
+      const maxHeight = window.innerWidth > 768 ? 140 : 100;
       textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
       setTextContent(e.target.value);
     },
@@ -153,12 +147,9 @@ const MessageInput: React.FC = () => {
     }
   }, [dispatch]);
 
-  // **** MODIFIED sendMessage FUNCTION ****
   const sendMessage = useCallback(async () => {
-    // Make the function async
-    // Get current state from Redux
-    const currentImagePreviews = imagePreviews; // Get from selector (already done)
-    const currentExcelFiles = excelFiles; // Get from selector (already done)
+    const currentImagePreviews = imagePreviews;
+    const currentExcelFiles = excelFiles;
     const trimmedText = textContent.trim();
 
     if (
@@ -172,98 +163,67 @@ const MessageInput: React.FC = () => {
     let messageContent: Content;
     const parts: ({ type: string } & Record<string, any>)[] = [];
 
-    // Add text part if exists
     if (trimmedText) {
       parts.push({ type: "text", text: trimmedText });
     }
 
-    // ** Image Compression Step **
     if (currentImagePreviews.length > 0) {
-      // Add a toast notification for compression start
-      const compressionToastId = toast.loading(
-        t("compressingImages", "Compressing images..."),
-        { duration: Infinity }
-      );
-
+      const compressionToastId = toast.loading(t("compressingImages"), {
+        duration: Infinity,
+      });
       try {
-        // Map over previews and compress each image URL concurrently
         const compressedUrls = await Promise.all(
-          currentImagePreviews.map((img) => compressImage(img.url)) // Call the utility function
+          currentImagePreviews.map((img) => compressImage(img.url))
         );
-
-        // Add compressed image parts
         compressedUrls.forEach((compressedUrl) => {
           parts.push({ type: "image_url", image_url: { url: compressedUrl } });
         });
-
-        toast.dismiss(compressionToastId); // Dismiss loading toast on success
+        toast.dismiss(compressionToastId);
       } catch (error) {
-        toast.dismiss(compressionToastId); // Dismiss loading toast on error
+        toast.dismiss(compressionToastId);
         console.error("Error during image compression batch:", error);
-        toast.error(
-          t(
-            "compressionError",
-            "Image compression failed. Sending original images."
-          ),
-          { duration: 4000 }
-        );
-        // Fallback: Add original image parts if compression fails
+        toast.error(t("compressionError"), { duration: 4000 });
         currentImagePreviews.forEach((img) => {
           parts.push({ type: "image_url", image_url: { url: img.url } });
         });
       }
     }
 
-    // Add Excel parts if they exist
     currentExcelFiles.forEach((file) => {
       parts.push({ type: "excel", name: file.name, data: file.data });
     });
 
-    // Determine final message content structure
     if (parts.length > 1) {
-      messageContent = parts; // Use the parts array for multipart messages
+      messageContent = parts;
     } else if (parts.length === 1 && parts[0].type === "text") {
-      messageContent = parts[0].text; // Use plain string for text-only messages
+      messageContent = parts[0].text;
     } else if (parts.length === 1) {
-      messageContent = parts; // Use parts array even for single non-text part
+      messageContent = parts;
     } else {
-      // This case should technically not be reached due to the initial check,
-      // but handle defensively.
       console.warn("sendMessage called with no content after processing.");
       return;
     }
 
-    // Dispatch the message
     try {
       dispatch(handleSendMessage({ userInput: messageContent }));
-      clearInputState(); // Clear local text and Redux attachments
+      clearInputState();
     } catch (err) {
       console.error("Failed to send message:", err);
-      toast.error(t("sendFail") || "发送消息失败");
+      toast.error(t("sendFail"));
     }
-  }, [
-    textContent,
-    imagePreviews, // Dependency: Reads original previews
-    excelFiles,
-    dispatch,
-    clearInputState, // Dependency: Memoized callback
-    t, // Dependency: Translation function
-    // No need to add compressImage here as it's a stable import
-  ]);
-  // **** END OF MODIFIED sendMessage FUNCTION ****
+  }, [textContent, imagePreviews, excelFiles, dispatch, clearInputState, t]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
         e.preventDefault();
-        // No need to await here, just trigger the async function
         sendMessage();
       }
     },
-    [sendMessage] // Dependency is the memoized async function
+    [sendMessage]
   );
 
-  // --- Event Handlers (Paste, Drop, Drag, FileInput, Preview Callbacks - remain the same) ---
+  // Event Handlers
   const handlePaste = useCallback(
     (e: React.ClipboardEvent) => {
       Array.from(e.clipboardData.items).forEach((item) => {
@@ -340,7 +300,7 @@ const MessageInput: React.FC = () => {
     dispatch(setPreviewingExcelFile(null));
   }, [dispatch]);
 
-  // --- Render ---
+  // Render Logic
   const hasContent =
     textContent.trim() || imagePreviews.length > 0 || excelFiles.length > 0;
 
@@ -350,16 +310,12 @@ const MessageInput: React.FC = () => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      aria-label={
-        t("messageInputArea", "Message input area with file upload support") ||
-        "消息输入区域，支持文件上传"
-      }
+      aria-label={t("messageInputArea")}
     >
       {/* Attachments Preview Area */}
       <div className="attachments-preview">
         {imagePreviews.length > 0 && (
           <div className="message-preview-wrapper">
-            {/* Ensure ImagePreview uses the updated props */}
             <ImagePreview images={imagePreviews} onRemove={handleRemoveImage} />
           </div>
         )}
@@ -379,8 +335,8 @@ const MessageInput: React.FC = () => {
         <button
           className="upload-button"
           onClick={triggerFileInput}
-          title={t("uploadFile") || "上传文件"}
-          aria-label={t("uploadFile") || "上传文件"}
+          title={t("uploadFile")}
+          aria-label={t("uploadFile")}
         >
           <UploadIcon size={20} />
         </button>
@@ -388,11 +344,11 @@ const MessageInput: React.FC = () => {
           ref={textareaRef}
           className="message-textarea"
           value={textContent}
-          placeholder={t("messageOrFileHere") || "输入消息或上传文件..."}
+          placeholder={t("messageOrFileHere")}
           onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          aria-label={t("messageInput", "Message input field") || "消息输入框"}
+          aria-label={t("messageInput")}
         />
         <SendButton onClick={sendMessage} disabled={!hasContent} />
       </div>
@@ -401,7 +357,7 @@ const MessageInput: React.FC = () => {
       {isDragOver && isDragEnabled && (
         <div className="drop-zone" aria-live="polite">
           <UploadIcon size={24} />
-          <span>{t("dropToUpload") || "拖放文件到此处上传"}</span>
+          <span>{t("dropToUpload")}</span>
         </div>
       )}
 
@@ -417,7 +373,6 @@ const MessageInput: React.FC = () => {
 
       {/* Styles */}
       <style jsx>{`
-        /* ... CSS 样式保持不变 ... */
         .message-input-container {
           position: relative;
           bottom: 0;
@@ -458,16 +413,13 @@ const MessageInput: React.FC = () => {
         .message-textarea {
           flex: 1;
           min-height: 40px;
-          /* 调大默认最大高度 */
           max-height: 200px;
           padding: 10px 12px;
           font-size: 14px;
           line-height: 1.4;
           border: 1px solid ${theme.border};
           border-radius: 10px;
-          /* 只允许垂直方向拉伸 */
           resize: vertical;
-          /* 拉伸后超过高度出现滚动 */
           overflow-y: auto;
           scroll-behavior: smooth;
           -webkit-overflow-scrolling: touch;
@@ -542,11 +494,10 @@ const MessageInput: React.FC = () => {
 
           .message-textarea {
             min-height: 44px;
-            /* 调大桌面端最大高度 */
             max-height: 260px;
             padding: 12px 16px;
             font-size: 15px;
-            resize: vertical; /* 保持可调大小 */
+            resize: vertical;
             overflow-y: auto;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
@@ -566,11 +517,10 @@ const MessageInput: React.FC = () => {
 
         @media screen and (max-width: 480px) {
           .message-textarea {
-            /* 调大手机端最大高度 */
             max-height: 180px;
             padding: 8px 10px;
             font-size: 13px;
-            resize: vertical; /* 保持可调大小 */
+            resize: vertical;
             overflow-y: auto;
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
