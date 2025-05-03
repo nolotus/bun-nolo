@@ -24,7 +24,7 @@ import { useOnKeydown } from "./useOnKeyDown";
 import { normalizeTokens } from "./utils/normalize-tokens";
 import { withLayout } from "./withLayout";
 import { withShortcuts } from "./withShortcuts";
-import { PlaceHolder } from "render/page/placeholder";
+import { PlaceHolder } from "render/page/PlaceHolder";
 // Type for the editor instance with custom properties
 type CustomEditor = ReactEditor &
   History & {
