@@ -176,6 +176,7 @@ dist
 nolodata/
 data/
 nolo/
+puppeteer_cache
 
 # OSX
 #
