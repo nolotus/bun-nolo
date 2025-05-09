@@ -57,4 +57,16 @@ export const mistralModels: Model[] = [
     contextWindow: 32000,
     price: {},
   },
+  {
+    name: "mistral-medium-latest",
+    displayName: "Mistral Medium",
+    hasVision: false,
+    description:
+      "Balanced model for a wide range of tasks, offering a good trade-off between performance and cost",
+    contextWindow: 128000,
+    price: {
+      input: 3.2, // $0.4 * 8
+      output: 16, // $2 * 8
+    },
+  },
 ];
