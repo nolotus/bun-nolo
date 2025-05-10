@@ -9,15 +9,22 @@ import type { AppDispatch, NoloRootState } from "app/store";
 import { checkSpaceMembership } from "../utils/permissions"; // 确认导入路径
 
 export const addCategoryAction = async (
-  input: { name: string; categoryId?: string; order?: number },
+  input: {
+    spaceId?: string;
+    name: string;
+    categoryId?: string;
+    order?: number;
+  }, // 增加 spaceId 作为可选参数
   thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
-  const { name, categoryId, order } = input;
+  const { spaceId: inputSpaceId, name, categoryId, order } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const spaceId = selectCurrentSpaceId(state);
+
+  // 如果输入中提供了 spaceId，则使用传入的 spaceId；否则从状态中获取当前空间 ID
+  const spaceId = inputSpaceId || selectCurrentSpaceId(state);
   if (!spaceId) {
-    throw new Error("无法添加分类：未选择当前空间。");
+    throw new Error("无法添加分类：未选择当前空间且未提供空间 ID。");
   }
   const currentUserId = selectCurrentUserId(state);
   if (!currentUserId) {

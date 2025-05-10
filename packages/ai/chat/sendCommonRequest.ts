@@ -2,9 +2,6 @@
 
 import { prepareTools } from "ai/tools/prepareTools";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
-// *** 修改: 引入 Action 类型和 Slice 类型，如果使用 TypeScript ***
-// import { AppThunk, RootState } from 'path/to/your/store'; // 假设有类型定义
-// import { IMessageContentPart } from 'path/to/your/message/types'; // 假设有类型定义
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
@@ -13,10 +10,32 @@ import { createDialogMessageKeyAndId } from "database/keys";
 import { selectCurrentUserId } from "auth/authSlice";
 
 import { extractCustomId } from "core/prefix";
-import { createPageFunc } from "ai/tools/createPageTool"; // 确认路径
+import { createPageFunc } from "ai/tools/createPageTool";
+import { createCategoryFunc } from "ai/tools/createCategoryTool";
+import { generateTable } from "ai/tools/generateTableTool";
 import { parseMultilineSSE } from "./parseMultilineSSE";
-// *** 修改: 引入 generateTable 函数 ***
-import { generateTable } from "ai/tools/generateTableTool"; // 确认路径
+
+// 工具处理函数映射表
+const toolHandlers: Record<string, (args: any, thunkApi: any) => Promise<any>> =
+  {
+    generate_table: async (args, thunkApi) => {
+      const { getState } = thunkApi;
+      const currentUserId = selectCurrentUserId(getState());
+      return generateTable(args, thunkApi, currentUserId);
+    },
+    create_page: createPageFunc,
+    create_category: createCategoryFunc,
+    generate_image: async (args, thunkApi) => {
+      // TODO: 实际图像生成逻辑
+      return {
+        success: true,
+        id: `img_${Date.now()}`,
+        name: "生成的图片",
+        // 占位符，实际应返回图像数据
+      };
+    },
+    // 其他工具可以后续添加
+  };
 
 // --- 辅助函数：处理工具调用结果 ---
 async function processToolData(
@@ -25,7 +44,6 @@ async function processToolData(
   cybotConfig: any,
   messageId: string // 或 msgKey
 ): Promise<any> {
-  // Returns IMessageContentPart
   console.log("[Tool] 开始处理工具调用:", JSON.stringify(toolCall, null, 2));
   const func = toolCall.function;
   if (!func || !func.name) {
@@ -36,13 +54,9 @@ async function processToolData(
   const toolName = func.name;
   let toolArgs = func.arguments;
 
-  // *** 修改: 从 thunkApi 获取 getState 和 dispatch ***
-  const { getState, dispatch } = thunkApi;
-
   try {
-    // ... (参数解析逻辑保持不变) ...
+    // 参数解析逻辑
     if (typeof toolArgs === "string") {
-      // ...(robust argument parsing)...
       if (toolArgs.trim() === "") {
         toolArgs = {};
         console.warn(`[Tool] ${toolName}: 参数为空字符串，视为空对象 {}。`);
@@ -70,96 +84,35 @@ async function processToolData(
       );
     }
 
-    let resultData: any = null; // Should be IMessageContentPart
-    switch (toolName) {
-      case "generate_table":
-        console.log("[Tool] 调用 generate_table，参数：", toolArgs);
-        try {
-          // *** 修改: 调用实际的 generateTable 函数 ***
-          // 假设你有方法从 state 获取 currentUserId
-          const currentUserId = selectCurrentUserId(getState());
-          // generateTable 现在会直接触发下载并返回一个消息字符串
-          const resultMessage = await generateTable(
-            toolArgs,
-            thunkApi,
-            currentUserId
-          );
-          console.log("[Tool] generateTable 成功:", resultMessage);
-          // *** 修改: 将函数的返回消息作为文本内容显示 ***
-          resultData = {
-            type: "text",
-            text: resultMessage, // 使用 generateTable 返回的成功消息
-          };
-        } catch (error: any) {
-          // 捕获 generateTable 抛出的错误
-          console.error("[Tool] generateTable 执行异常:", error);
-          resultData = {
-            type: "text",
-            // *** 修改: 显示来自 generateTable 的具体错误消息 ***
-            text: `[Tool Error] 执行 generate_table 操作失败: ${error.message}`,
-          };
-        }
-        break;
-
-      case "create_page":
-        console.log("[Tool] 调用 create_page，参数：", toolArgs);
-        try {
-          const pageResult = await createPageFunc(toolArgs, thunkApi);
-          if (
-            pageResult &&
-            pageResult.success &&
-            pageResult.id &&
-            pageResult.title
-          ) {
-            const pageUrl = `${pageResult.id}`;
-            console.log("pageUrl:", pageUrl);
-            const text = `页面已成功创建：[${pageResult.title}](${pageUrl})`;
-            console.log("[Tool] createPageFunc 成功，生成链接:", text);
-            resultData = { type: "text", text: text };
-            console.log(
-              "[Tool] createPageFunc 成功，生成链接:",
-              resultData.text
-            );
-          } else {
-            console.error(
-              "[Tool] createPageFunc 未返回预期的成功结构:",
-              pageResult
-            );
-            resultData = {
-              type: "text",
-              text: `[Tool Error] create_page 操作未返回预期结果。`,
-            };
-          }
-        } catch (error: any) {
-          console.error("[Tool] createPageFunc 执行异常:", error);
-          resultData = {
-            type: "text",
-            text: `[Tool Error] 执行 create_page 操作失败: ${error.message}`,
-          };
-        }
-        break;
-
-      case "generate_image":
-        console.log("[Tool] 调用 generate_image，参数：", toolArgs);
-        // TODO: 这里可能也需要调用实际的图像生成函数
-        resultData = {
-          type: "image",
-          id: toolCall.id || `tool_${Date.now()}`,
-          prompt: toolArgs.prompt,
-          images: [], // Placeholder - 需要实际的图像生成逻辑填充
-        };
-        break;
-
-      default:
-        console.warn("[Tool] 未知工具：", toolName);
-        resultData = {
-          type: "text",
-          text: `[Tool Error] 未知工具: ${toolName}`,
-        };
-        break;
+    const handler = toolHandlers[toolName];
+    if (!handler) {
+      console.warn("[Tool] 未知工具：", toolName);
+      return { type: "text", text: `[Tool Error] 未知工具: ${toolName}` };
     }
-    console.log("[Tool] 返回处理结果:", JSON.stringify(resultData, null, 2));
-    return resultData;
+
+    console.log(`[Tool] 调用 ${toolName}，参数：`, toolArgs);
+    try {
+      const result = await handler(toolArgs, thunkApi);
+      if (result && result.success) {
+        const displayName = result.title || result.name || "操作完成";
+        const displayId = result.id || "N/A";
+        const text = `${toolName.replace("_", " ").replace(/^./, (c) => c.toUpperCase())} 已成功执行：${displayName} (ID: ${displayId})`;
+        console.log(`[Tool] ${toolName} 成功，生成信息:`, text);
+        return { type: "text", text };
+      } else {
+        console.error(`[Tool] ${toolName} 未返回预期的成功结构:`, result);
+        return {
+          type: "text",
+          text: `[Tool Error] ${toolName} 操作未返回预期结果。`,
+        };
+      }
+    } catch (error: any) {
+      console.error(`[Tool] ${toolName} 执行异常:`, error);
+      return {
+        type: "text",
+        text: `[Tool Error] 执行 ${toolName} 操作失败: ${error.message}`,
+      };
+    }
   } catch (e: any) {
     console.error(`[Tool] ${toolName} 处理过程中发生意外错误:`, e);
     return {
@@ -196,16 +149,13 @@ async function handleAccumulatedToolCalls(
         continue;
       }
       try {
-        // *** 调用更新后的 processToolData ***
         const toolResult = await processToolData(
           toolCall,
-          thunkApi, // 传递 thunkApi 给 processToolData
+          thunkApi,
           cybotConfig,
-          messageId // 传递 messageId 或 msgKey
+          messageId
         );
-        // *** toolResult 现在是 { type: 'text', text: '...' } 格式 ***
         updatedContentBuffer = [...updatedContentBuffer, toolResult];
-        // 实时更新 UI 显示工具结果
         dispatch(
           messageStreaming({
             id: messageId,
@@ -343,8 +293,6 @@ export const sendCommonChatRequest = async ({
 
   // --- (工具准备逻辑不变) ---
   if (cybotConfig.tools?.length > 0) {
-    // *** 假设 generateTableTool 包含在 cybotConfig.tools 列表中 ***
-    // prepareTools 应该能处理来自 ai/tools/generateTableTool.ts 的定义
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;
     if (!bodyData.tool_choice) {

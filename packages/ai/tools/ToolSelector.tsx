@@ -1,35 +1,17 @@
+// 文件路径: components/ToolSelector.ts (假设路径)
+
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import { Checkbox } from "web/form/Checkbox";
 import { useTheme } from "app/theme";
+import { toolDescriptions } from "ai/tools/toolRegistry";
 
-export const TOOL_OPTIONS = [
-  {
-    id: "makeAppointment",
-    name: "makeAppointment",
-    description: "Schedule appointments and manage calendar events",
-  },
-  {
-    id: "runCybot",
-    name: "runCybot",
-    description: "Execute other cybots and combine their capabilities",
-  },
-  {
-    id: "generateTable",
-    name: "generateTable",
-    description: "根据 JSON 数据生成 Excel 表格",
-  },
-  {
-    id: "createPage",
-    name: "createPage",
-    description: "在当前空间中创建新页面",
-  },
-  {
-    id: "generateImage",
-    name: "generateImage",
-    description: "根据提示生成图片",
-  },
-];
+// 动态生成工具选项
+const TOOL_OPTIONS = Object.entries(toolDescriptions).map(([id, info]) => ({
+  id,
+  name: info.name,
+  description: info.description,
+}));
 
 interface ToolSelectorProps {
   register: any;
