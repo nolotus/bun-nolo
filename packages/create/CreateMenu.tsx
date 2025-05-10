@@ -18,9 +18,10 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { CreateRoutePaths } from "create/routePaths";
 import { useTheme } from "app/theme";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/hooks"; // 增加 useAppSelector 导入
 import { createPage } from "render/page/pageSlice";
 import { addCategory } from "create/space/spaceSlice";
+import { selectCurrentSpaceId } from "create/space/spaceSlice"; // 导入选择器以获取 spaceId
 import { AddCategoryModal } from "create/space/category/AddCategoryModal"; // 更新导入路径
 
 export const CreateMenu = () => {
@@ -30,6 +31,9 @@ export const CreateMenu = () => {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false); // 控制添加分类弹窗
   const { t } = useTranslation();
   const theme = useTheme();
+
+  // 从状态中获取当前空间 ID
+  const spaceId = useAppSelector(selectCurrentSpaceId);
 
   const createNewPage = async () => {
     const dbkey = await dispatch(createPage()).unwrap();
@@ -47,9 +51,15 @@ export const CreateMenu = () => {
     setIsAddCategoryModalOpen(false);
   };
 
+  // 修改 handleAddCategoryConfirm，传入 spaceId 和 name
   const handleAddCategoryConfirm = (name: string) => {
     if (name.trim()) {
-      dispatch(addCategory({ name }));
+      if (!spaceId) {
+        console.error("无法添加分类：未找到当前空间ID");
+        alert("无法添加分类，因为当前空间未设定。");
+        return;
+      }
+      dispatch(addCategory({ spaceId, name }));
       setIsAddCategoryModalOpen(false);
     }
   };
