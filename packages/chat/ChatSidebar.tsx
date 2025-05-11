@@ -12,7 +12,7 @@ import {
   selectCurrentSpace,
   updateContentCategory,
   reorderCategories,
-} from "create/space/spaceSlice"; // 确认路径
+} from "create/space/spaceSlice";
 import { SpaceData } from "create/space/types"; // 确认路径 (使用 SpaceData 或你定义的 Space 类型)
 import { useTheme } from "app/theme"; // 确认路径
 import { useGroupedContent } from "create/space/hooks/useGroupedContent"; // 确认路径
