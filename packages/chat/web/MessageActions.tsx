@@ -58,7 +58,7 @@ const generatePageTitle = async (contentString, fallbackTitle, dispatch) => {
     const title = await dispatch(
       runCybotId({
         cybotId: titleCybotId,
-        userInput: contentString.substring(0, 500),
+        content: contentString.substring(0, 500),
       })
     ).unwrap();
     return title || fallbackTitle;

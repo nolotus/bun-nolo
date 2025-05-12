@@ -70,7 +70,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
   const generateTitle = await dispatch(
     runCybotId({
       cybotId: titleCybotId,
-      userInput: content,
+      content,
     })
   ).unwrap();
 

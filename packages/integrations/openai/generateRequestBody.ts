@@ -1,7 +1,7 @@
 import { NoloRootState } from "app/store"; // Assuming path is correct
 import { generatePrompt } from "ai/prompt/generatePrompt"; // Assuming path is correct
 import { selectAllMsgs } from "chat/messages/messageSlice";
-import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages"; // Assuming path is correct
+import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 // --- 类型定义 (保持不变) ---
 
 type MessageContentPartText = {
