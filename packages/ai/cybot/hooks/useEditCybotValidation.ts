@@ -47,6 +47,7 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
         ? initialValues.tags.join(", ")
         : initialValues.tags || "",
       references: initialValues.references || [], // 类型由 FormData 定义
+      smartReadEnabled: initialValues.smartReadEnabled ?? false, // 新增 smartReadEnabled 默认值
     },
   });
 
@@ -81,6 +82,7 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
             .filter(Boolean)
         : [],
       references: data.references || [],
+      smartReadEnabled: data.smartReadEnabled || false, // 确保 smartReadEnabled 被包含
     };
 
     try {

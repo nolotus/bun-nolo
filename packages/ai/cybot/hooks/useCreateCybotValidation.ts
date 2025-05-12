@@ -33,6 +33,7 @@ export const useCreateCybotValidation = () => {
       outputPrice: 0,
       tags: "",
       references: [], // 添加 references 默认值，类型由 FormData 定义
+      smartReadEnabled: false, // 新增 smartReadEnabled 默认值
     },
   });
 
@@ -62,6 +63,7 @@ export const useCreateCybotValidation = () => {
       tokenCount: 0,
       tags: data.tags ? data.tags.split(",").map((tag) => tag.trim()) : [],
       references: data.references || [], // 确保 references 被包含
+      smartReadEnabled: data.smartReadEnabled || false, // 确保 smartReadEnabled 被包含
     };
 
     // 保存私有版本

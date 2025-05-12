@@ -1,5 +1,4 @@
-import type React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
@@ -29,7 +28,6 @@ import ModelSelector from "ai/llm/ModelSelector";
 import ProviderSelector from "ai/llm/ProviderSelector";
 import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";
-// 新增导入工具选择组件
 import ToolSelector from "ai/tools/ToolSelector";
 
 interface EditCybotProps {
@@ -48,8 +46,8 @@ interface EditCybotProps {
     outputPrice?: number;
     tags?: string[] | string;
     references?: any[];
-    // 如果有工具数据可在此传入（可选）
     tools?: string[];
+    smartReadEnabled?: boolean; // 新增字段
   };
   onClose: () => void;
 }
@@ -81,6 +79,9 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
   const [models, setModels] = useState<Model[]>([]);
   const [providerInputValue, setProviderInputValue] = useState(provider || "");
   const [references, setReferences] = useState(initialValues.references || []);
+  const [smartReadEnabled, setSmartReadEnabled] = useState(
+    initialValues.smartReadEnabled || false
+  ); // 新增状态管理智能读取选项
 
   const isCustomProvider = provider === "Custom";
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
@@ -97,7 +98,8 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
         ? initialValues.tags.join(", ")
         : initialValues.tags || "",
       references: initialValues.references || [],
-      tools: initialValues.tools || [], // 重置工具选择，若有初始值
+      tools: initialValues.tools || [],
+      smartReadEnabled: initialValues.smartReadEnabled || false, // 重置智能读取选项
     });
     setApiSource(
       initialValues.apiKey || initialValues.provider === "ollama"
@@ -115,14 +117,19 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     }
   }, [provider, setValue, watch]);
 
-  // 当 references 更新时，同步到表单数据
+  // 当 references 或 smartReadEnabled 更新时，同步到表单数据
   useEffect(() => {
     setValue("references", references);
-  }, [references, setValue]);
+    setValue("smartReadEnabled", smartReadEnabled);
+  }, [references, smartReadEnabled, setValue]);
+
+  // 处理 ReferencesSelector 的变化
+  const handleReferencesChange = (newReferences) => {
+    setReferences(newReferences);
+  };
 
   const handleFormSubmit = async (data: any) => {
     console.log("[EditCybot] handleFormSubmit triggered with data:", data);
-    // 确保文本字段保留换行符
     const processedData = {
       ...data,
       prompt: data.prompt || "",
@@ -330,8 +337,19 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
             <div className="section-title">{t("references")}</div>
             <div className="section-content">
               <FormField
+                label={t("smartReadCurrentSpace", "智能读取用户当前空间")}
+                help={t("smartReadHelp", "启用后将智能读取当前空间的相关内容")}
+                horizontal
+                labelWidth="140px"
+              >
+                <ToggleSwitch
+                  checked={smartReadEnabled}
+                  onChange={(checked) => setSmartReadEnabled(checked)}
+                />
+              </FormField>
+              <FormField
                 label={t("selectReferences")}
-                help={t("selectReferencesHelp", "Select pages to reference")}
+                help={t("selectReferencesHelp", "选择需要始终使用的参考资料")}
                 horizontal
                 labelWidth="140px"
                 error={errors.references?.message}
@@ -339,7 +357,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 <ReferencesSelector
                   space={space}
                   references={references}
-                  onChange={setReferences}
+                  onChange={handleReferencesChange}
                   t={t}
                 />
               </FormField>
