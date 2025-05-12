@@ -3,7 +3,6 @@ import { read } from "database/dbSlice";
 import { extractCustomId } from "core/prefix";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createDialogMessageKeyAndId } from "database/keys";
-import { buildReferenceContext } from "ai/context/buildReferenceContext";
 import { addMsg } from "../messageSlice";
 
 import { requestHandlers } from "ai/llm/providers";
@@ -44,10 +43,10 @@ export const sendMessageAction = async (args, thunkApi) => {
 
     await Promise.all(cybotPromises);
   } else if (mode === DialogInvocationMode.SEQUENTIAL) {
-    // 新添加：串行处理，按顺序轮流调用 cybot
+    // 新添加：串行处理，按顺序轮流调用 cybot  streamCybotId没有等待
     for (const cybotId of dialogConfig?.cybots) {
       try {
-        dispatch(streamCybotId(cybotId)).unwrap();
+        dispatch(streamCybotId({ cybotId, userInput })).unwrap();
       } catch (error) {
         console.error(`Error processing cybot ${cybotId}:`, error);
         // 可以继续下一个 cybot 或停止，根据需求
@@ -73,13 +72,8 @@ export const sendMessageAction = async (args, thunkApi) => {
       for (const cybotId of selectedCybots) {
         // 基于决策的 cybot 列表
         const cybotConfig = await dispatch(read(cybotId)).unwrap();
-        const context = await buildReferenceContext(cybotConfig, dispatch);
-        const bodyData = generateRequestBody(
-          state,
-          userInput,
-          cybotConfig,
-          context // context 中可以包含提示词，例如 context.prompt = cybotConfig.prompt
-        );
+        // const context = await buildReferenceContext(cybotConfig, dispatch);
+        const bodyData = {};
 
         const providerName = cybotConfig.provider.toLowerCase();
         const handler = requestHandlers[providerName];

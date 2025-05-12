@@ -1,5 +1,6 @@
 // render/web/ui/Tooltip.tsx
-import React from "react";
+
+import React, { useState, useRef } from "react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 
@@ -7,6 +8,7 @@ interface TooltipProps {
   content: React.ReactNode;
   children: React.ReactElement;
   delay?: number;
+  hideDelay?: number;
   placement?: "top" | "bottom" | "left" | "right" | string;
 }
 
@@ -14,23 +16,73 @@ export const Tooltip = ({
   content,
   children,
   delay = 200,
+  hideDelay = 200,
   placement = "top",
 }: TooltipProps) => {
-  // 只取基础方向
   const basePlacement = placement.split("-")[0] as
     | "top"
     | "bottom"
     | "left"
     | "right";
   const theme = useAppSelector(selectTheme);
+  const [isVisible, setIsVisible] = useState(false);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 鼠标进入子元素时显示 Tooltip
+  const handleMouseEnter = () => {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+    setIsVisible(true);
+  };
+
+  // 鼠标离开子元素时开始隐藏计时
+  const handleMouseLeave = () => {
+    hideTimerRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, hideDelay);
+  };
+
+  // 鼠标进入 Tooltip 区域时保持显示
+  const handleTooltipMouseEnter = () => {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+    setIsVisible(true);
+  };
+
+  // 鼠标离开 Tooltip 区域时隐藏
+  const handleTooltipMouseLeave = () => {
+    hideTimerRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, hideDelay);
+  };
+
+  // 清理定时器
+  React.useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div
       className="tooltip-wrapper"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={{ "--tooltip-delay": `${delay}ms` } as React.CSSProperties}
     >
       {children}
-      <div className={`tooltip-tip tooltip-${basePlacement}`}>
+      <div
+        className={`tooltip-tip tooltip-${basePlacement}`}
+        onMouseEnter={handleTooltipMouseEnter}
+        onMouseLeave={handleTooltipMouseLeave}
+        style={{ display: isVisible ? "block" : "none" }}
+      >
         <div className="tooltip-content">{content}</div>
         <div className="tooltip-arrow" />
       </div>
@@ -56,8 +108,7 @@ export const Tooltip = ({
             opacity 200ms cubic-bezier(0.16, 1, 0.3, 1) var(--tooltip-delay),
             transform 200ms cubic-bezier(0.16, 1, 0.3, 1) var(--tooltip-delay);
         }
-        .tooltip-wrapper:hover .tooltip-tip,
-        .tooltip-wrapper:focus-within .tooltip-tip {
+        .tooltip-tip[style*="display: block"] {
           opacity: 1;
           visibility: visible;
         }
@@ -71,8 +122,7 @@ export const Tooltip = ({
           left: 50%;
           transform: translateX(-50%) translateY(${theme.space[1]}) scale(0.96);
         }
-        .tooltip-wrapper:hover .tooltip-top,
-        .tooltip-wrapper:focus-within .tooltip-top {
+        .tooltip-tip[style*="display: block"].tooltip-top {
           transform: translateX(-50%) translateY(0) scale(1);
         }
         .tooltip-top .tooltip-arrow {
@@ -93,8 +143,7 @@ export const Tooltip = ({
           left: 50%;
           transform: translateX(-50%) translateY(-${theme.space[1]}) scale(0.96);
         }
-        .tooltip-wrapper:hover .tooltip-bottom,
-        .tooltip-wrapper:focus-within .tooltip-bottom {
+        .tooltip-tip[style*="display: block"].tooltip-bottom {
           transform: translateX(-50%) translateY(0) scale(1);
         }
         .tooltip-bottom .tooltip-arrow {
@@ -115,8 +164,7 @@ export const Tooltip = ({
           top: 50%;
           transform: translateY(-50%) translateX(${theme.space[1]}) scale(0.96);
         }
-        .tooltip-wrapper:hover .tooltip-left,
-        .tooltip-wrapper:focus-within .tooltip-left {
+        .tooltip-tip[style*="display: block"].tooltip-left {
           transform: translateY(-50%) translateX(0) scale(1);
         }
         .tooltip-left .tooltip-arrow {
@@ -137,8 +185,7 @@ export const Tooltip = ({
           top: 50%;
           transform: translateY(-50%) translateX(-${theme.space[1]}) scale(0.96);
         }
-        .tooltip-wrapper:hover .tooltip-right,
-        .tooltip-wrapper:focus-within .tooltip-right {
+        .tooltip-tip[style*="display: block"].tooltip-right {
           transform: translateY(-50%) translateX(0) scale(1);
         }
         .tooltip-right .tooltip-arrow {
