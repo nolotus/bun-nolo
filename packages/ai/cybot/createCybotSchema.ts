@@ -43,6 +43,7 @@ export const createCybotSchema = z
       )
       .optional()
       .default([]), // 添加 references 字段，默认为空数组
+    smartReadEnabled: z.boolean().default(false), // 新增 smartReadEnabled 字段，默认为 false
   })
   // 在 createCybotSchema 中修改 refine 逻辑
   .refine(

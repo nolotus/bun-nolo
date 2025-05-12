@@ -57,7 +57,7 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
         })
       )}
 
-      <style jsx>{`
+      <style>{`
         .references-list {
           max-height: 200px;
           overflow-y: auto;

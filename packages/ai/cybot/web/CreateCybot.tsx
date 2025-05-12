@@ -22,7 +22,6 @@ import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
-// 新增工具选择组件的导入
 import ToolSelector from "ai/tools/ToolSelector";
 
 const CreateCybot: React.FC = () => {
@@ -53,6 +52,7 @@ const CreateCybot: React.FC = () => {
     provider || ""
   );
   const [references, setReferences] = useState([]); // 用于存储选中的参考资料
+  const [smartReadEnabled, setSmartReadEnabled] = useState(false); // 新增状态管理智能读取选项
   const isCustomProvider = provider === "Custom";
 
   const space = useAppSelector(selectCurrentSpace);
@@ -69,10 +69,16 @@ const CreateCybot: React.FC = () => {
     }
   }, [provider, setValue, watch]);
 
-  // 当 references 更新时，同步到表单数据
+  // 当 references 或 smartReadEnabled 更新时，同步到表单数据
   useEffect(() => {
     setValue("references", references);
-  }, [references, setValue]);
+    setValue("smartReadEnabled", smartReadEnabled);
+  }, [references, smartReadEnabled, setValue]);
+
+  // 处理 ReferencesSelector 的变化
+  const handleReferencesChange = (newReferences) => {
+    setReferences(newReferences);
+  };
 
   return (
     <div className="create-cybot-container">
@@ -237,8 +243,19 @@ const CreateCybot: React.FC = () => {
             <div className="section-title">{t("references")}</div>
             <div className="section-content">
               <FormField
+                label={t("smartReadCurrentSpace", "智能读取用户当前空间")}
+                help={t("smartReadHelp", "启用后将智能读取当前空间的相关内容")}
+                horizontal
+                labelWidth="140px"
+              >
+                <ToggleSwitch
+                  checked={smartReadEnabled}
+                  onChange={(checked) => setSmartReadEnabled(checked)}
+                />
+              </FormField>
+              <FormField
                 label={t("selectReferences")}
-                help={t("selectReferencesHelp", "Select pages to reference")}
+                help={t("selectReferencesHelp", "选择需要始终使用的参考资料")}
                 horizontal
                 labelWidth="140px"
                 error={errors.references?.message}
@@ -246,7 +263,7 @@ const CreateCybot: React.FC = () => {
                 <ReferencesSelector
                   space={space}
                   references={references}
-                  onChange={setReferences}
+                  onChange={handleReferencesChange}
                   t={t}
                 />
               </FormField>
