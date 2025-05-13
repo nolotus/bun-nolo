@@ -43,13 +43,13 @@ export const sendMessageAction = async (args, thunkApi) => {
 
     await Promise.all(cybotPromises);
   } else if (mode === DialogInvocationMode.SEQUENTIAL) {
-    // 新添加：串行处理，按顺序轮流调用 cybot  streamCybotId没有等待
+    // 串行处理，按顺序轮流调用 cybot，确保等待上一个完成
     for (const cybotId of dialogConfig?.cybots) {
       try {
-        dispatch(streamCybotId({ cybotId, userInput })).unwrap();
+        await dispatch(streamCybotId({ cybotId, userInput })).unwrap();
       } catch (error) {
         console.error(`Error processing cybot ${cybotId}:`, error);
-        // 可以继续下一个 cybot 或停止，根据需求
+        // 可以选择继续下一个 cybot 或停止，根据需求
       }
     }
   } else if (mode === DialogInvocationMode.ORCHESTRATED) {
