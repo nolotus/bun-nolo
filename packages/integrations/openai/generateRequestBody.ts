@@ -196,7 +196,6 @@ export const generateOpenAIRequestBody = (
   context: any = ""
 ) => {
   // 1. 从 state 获取、过滤并清理历史消息
-  console.log("state", state);
   const previousMessages = filterAndCleanMessages(selectAllMsgs(state));
   console.log("previousMessages", previousMessages);
 
