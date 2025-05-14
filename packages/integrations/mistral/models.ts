@@ -60,7 +60,7 @@ export const mistralModels: Model[] = [
   {
     name: "mistral-medium-latest",
     displayName: "Mistral Medium",
-    hasVision: false,
+    hasVision: true,
     description:
       "Balanced model for a wide range of tasks, offering a good trade-off between performance and cost",
     contextWindow: 128000,
