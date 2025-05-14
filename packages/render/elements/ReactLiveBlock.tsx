@@ -150,6 +150,32 @@ const ReactLiveBlock: React.FC<ReactLiveBlockProps> = ({
     margin-top: ${theme?.space?.[2] || "8px"};
     border: 1px dashed ${theme?.border || "#E5E7EB"};
     min-height: 50px;
+    min-width: 280px; /* 默认最小宽度 */
+  }
+
+  /* 响应式设计：根据屏幕尺寸调整最小宽度 */
+  @media (min-width: 768px) {
+    .preview-container {
+      min-width: 400px; /* 中等屏幕（如平板）的最小宽度 */
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .preview-container {
+      min-width: 600px; /* 大屏幕（如桌面）的最小宽度 */
+    }
+  }
+
+  @media (min-width: 1440px) {
+    .preview-container {
+      min-width: 800px; /* 超大屏幕的最小宽度 */
+    }
+  }
+
+  @media (max-width: 480px) {
+    .preview-container {
+      min-width: 250px; /* 小屏幕（如手机）的最小宽度 */
+    }
   }
 
   .error-message {
@@ -173,7 +199,6 @@ const ReactLiveBlock: React.FC<ReactLiveBlockProps> = ({
     to { transform: rotate(360deg); }
   }
 `;
-
   // --- Render Logic ---
   if (!showPreview) {
     return null; // 非预览模式下不渲染任何内容，交给外部处理
