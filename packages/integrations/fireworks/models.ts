@@ -2,46 +2,6 @@ import type { Model } from "ai/llm/types";
 
 export const fireworksmodels: Model[] = [
   {
-    name: "accounts/fireworks/models/llama-v3p1-405b-instruct",
-    displayName: "LLaMA V3.1 405B",
-    hasVision: false,
-    contextWindow: 131072,
-    price: {
-      input: 24, // 3 * 8
-      output: 24, // 3 * 8
-    },
-  },
-  {
-    name: "accounts/fireworks/models/qwen2p5-coder-32b-instruct",
-    displayName: "Qwen 2.5 Coder 32B",
-    hasVision: false,
-    contextWindow: 32768,
-    price: {
-      input: 7.2, // 0.9 * 8
-      output: 7.2, // 0.9 * 8
-    },
-  },
-  {
-    name: "accounts/fireworks/models/qwen2p5-72b-instruct",
-    displayName: "Qwen 2.5 72B",
-    hasVision: false,
-    contextWindow: 32768,
-    price: {
-      input: 7.2, // 0.9 * 8
-      output: 7.2, // 0.9 * 8
-    },
-  },
-  {
-    name: "accounts/fireworks/models/llama-v3p3-70b-instruct",
-    displayName: "LLaMA V3.3 70B",
-    hasVision: false,
-    contextWindow: 131072,
-    price: {
-      input: 7.2, // 0.9 * 8
-      output: 7.2, // 0.9 * 8
-    },
-  },
-  {
     name: "accounts/fireworks/models/deepseek-r1",
     displayName: "DeepSeek R1",
     hasVision: false,
@@ -70,6 +30,26 @@ export const fireworksmodels: Model[] = [
     price: {
       input: 9.6, // 1.2 * 8
       output: 9.6, // 1.2 * 8
+    },
+  },
+  {
+    name: "accounts/fireworks/models/llama4-maverick-instruct-basic",
+    displayName: "LLaMA 4 Maverick Basic",
+    hasVision: false,
+    contextWindow: 1000000, // 1m
+    price: {
+      input: 1.76, // 0.22 * 8
+      output: 7.04, // 0.88 * 8
+    },
+  },
+  {
+    name: "accounts/fireworks/models/qwen3-235b-a22b",
+    displayName: "Qwen 3 235B A22B",
+    hasVision: false,
+    contextWindow: 125000, // 125k
+    price: {
+      input: 1.76, // 0.22 * 8
+      output: 7.04, // 0.88 * 8
     },
   },
 ];
