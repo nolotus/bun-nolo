@@ -2,18 +2,6 @@ import { Model } from "ai/llm/types";
 
 export const mistralModels: Model[] = [
   {
-    name: "mistral-large-latest",
-    displayName: "Mistral Large 24.11",
-    hasVision: false,
-    description:
-      "Top-tier reasoning for high-complexity tasks and sophisticated problems",
-    contextWindow: 128000,
-    price: {
-      input: 16, // $2 * 8
-      output: 48, // $6 * 8
-    },
-  },
-  {
     name: "pixtral-large-latest",
     displayName: "Pixtral Large",
     hasVision: true,

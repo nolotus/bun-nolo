@@ -4,15 +4,17 @@ import { useTheme } from "app/theme";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { updateSpace, deleteSpace, fixSpace } from "create/space/spaceSlice";
 import { setSettings, selectDefaultSpaceId } from "setting/settingSlice";
-import { TrashIcon, PencilIcon, StarFillIcon } from "@primer/octicons-react";
+import { useSpaceData } from "../hooks/useSpaceData";
+import { useTranslation } from "react-i18next";
+
+//web
 import Button from "render/web/ui/Button";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import toast from "react-hot-toast";
 import { Input } from "web/form/Input";
 import TextArea from "web/form/Textarea";
-import { useSpaceData } from "../hooks/useSpaceData";
 import { FaCog, FaLock, FaGlobe, FaExclamationTriangle } from "react-icons/fa";
-import { useTranslation } from "react-i18next";
+import { TrashIcon, PencilIcon, StarFillIcon } from "@primer/octicons-react";
 
 const SpaceSettings: React.FC = () => {
   const theme = useTheme();
@@ -29,15 +31,36 @@ const SpaceSettings: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isRepairing, setIsRepairing] = useState(false);
-
   const [isSettingDefault, setIsSettingDefault] = useState(false);
+  const [inputErrors, setInputErrors] = useState({ name: "", description: "" });
+
   const currentDefaultSpaceId = useAppSelector(selectDefaultSpaceId);
   const isCurrentDefault = spaceId === currentDefaultSpaceId;
+
+  // 初始化状态
+  useEffect(() => {
+    if (spaceData) {
+      setSpaceName(spaceData.name || "");
+      setDescription(spaceData.description || "");
+      setVisibility(spaceData.visibility || "private");
+    }
+  }, [spaceData]);
+
+  // 检测更改
+  useEffect(() => {
+    if (spaceData) {
+      const hasChanges =
+        name !== spaceData.name ||
+        description !== spaceData.description ||
+        visibility !== spaceData.visibility;
+      setHasChanges(hasChanges);
+    }
+  }, [name, description, visibility, spaceData]);
 
   const handleRepair = async () => {
     setIsRepairing(true);
     try {
-      dispatch(fixSpace(spaceId));
+      await dispatch(fixSpace(spaceId)).unwrap();
       await new Promise((resolve) => setTimeout(resolve, 1000));
       toast.success(t("repair_success"));
     } catch (err) {
@@ -66,8 +89,26 @@ const SpaceSettings: React.FC = () => {
     }
   };
 
+  const validateInputs = () => {
+    let isValid = true;
+    const errors = { name: "", description: "" };
+
+    if (!name.trim()) {
+      errors.name = t("name_required");
+      isValid = false;
+    }
+
+    if (description.length > 500) {
+      errors.description = t("description_too_long");
+      isValid = false;
+    }
+
+    setInputErrors(errors);
+    return isValid;
+  };
+
   const handleUpdate = async () => {
-    if (!spaceData || !spaceId) return;
+    if (!spaceData || !spaceId || !validateInputs()) return;
     if (!hasChanges) {
       return;
     }
@@ -112,7 +153,16 @@ const SpaceSettings: React.FC = () => {
   };
 
   const handleCancelChanges = () => {
-    setHasChanges(false);
+    if (spaceData) {
+      setSpaceName(spaceData.name || "");
+      setDescription(spaceData.description || "");
+      setVisibility(spaceData.visibility || "private");
+      setHasChanges(false);
+    }
+  };
+
+  const handleInputChange = (e, setter) => {
+    setter(e.target.value);
   };
 
   if (loading) {
@@ -151,6 +201,7 @@ const SpaceSettings: React.FC = () => {
             variant="secondary"
             icon={<FaCog />}
             style={{ marginLeft: "12px" }}
+            aria-label={t("try_repair")}
           >
             {t("try_repair")}
           </Button>
@@ -190,10 +241,17 @@ const SpaceSettings: React.FC = () => {
                   id="space-name-input"
                   type="text"
                   value={name}
-                  onChange={(e) => setSpaceName(e.target.value)}
+                  onChange={(e) => handleInputChange(e, setSpaceName)}
                   placeholder={t("name_placeholder")}
                   aria-required="true"
+                  aria-invalid={!!inputErrors.name}
+                  aria-describedby="name-error"
                 />
+                {inputErrors.name && (
+                  <div id="name-error" className="error-message">
+                    {inputErrors.name}
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -203,10 +261,17 @@ const SpaceSettings: React.FC = () => {
                 <TextArea
                   id="space-description-input"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => handleInputChange(e, setDescription)}
                   placeholder={t("description_placeholder")}
                   rows={4}
+                  aria-invalid={!!inputErrors.description}
+                  aria-describedby="description-error"
                 />
+                {inputErrors.description && (
+                  <div id="description-error" className="error-message">
+                    {inputErrors.description}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -320,6 +385,7 @@ const SpaceSettings: React.FC = () => {
               loading={updating}
               disabled={!hasChanges || updating || isSettingDefault}
               icon={<PencilIcon />}
+              aria-label={t("save_changes")}
             >
               {t("save_changes")}
             </Button>
@@ -347,6 +413,7 @@ const SpaceSettings: React.FC = () => {
                 className="cancel-button"
                 onClick={handleCancelChanges}
                 disabled={updating || isSettingDefault}
+                aria-label={t("cancel_changes")}
               >
                 {t("cancel_changes")}
               </button>
@@ -373,6 +440,7 @@ const SpaceSettings: React.FC = () => {
                   onClick={() => setShowDeleteModal(true)}
                   icon={<TrashIcon />}
                   disabled={updating || isSettingDefault}
+                  aria-label={t("delete_space")}
                 >
                   {t("delete_space")}
                 </Button>
@@ -382,7 +450,7 @@ const SpaceSettings: React.FC = () => {
         </>
       )}
 
-      <style jsx>{`
+      <style>{`
         .sr-only {
           position: absolute;
           width: 1px;
@@ -782,6 +850,12 @@ const SpaceSettings: React.FC = () => {
         .error-state p {
           color: ${theme.textSecondary};
           line-height: 1.5;
+        }
+
+        .error-message {
+          color: ${theme.error};
+          font-size: 12px;
+          margin-top: 4px;
         }
 
         @media (max-width: 768px) {

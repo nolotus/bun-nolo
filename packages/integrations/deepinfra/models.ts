@@ -112,28 +112,4 @@ export const deepinfraModels: Model[] = [
     jsonOutput: true,
     fnCall: true,
   },
-  {
-    name: "Qwen/Qwen2.5-Coder-32B-Instruct",
-    displayName: "Qwen 2.5 Coder 32B",
-    hasVision: false,
-    contextWindow: 32768,
-    price: {
-      input: 0.56, // 0.07 * 8
-      output: 1.28, // 0.16 * 8
-    },
-    jsonOutput: true,
-    fnCall: true,
-  },
-  {
-    name: "Qwen/Qwen2.5-72B-Instruct",
-    displayName: "Qwen 2.5 72B",
-    hasVision: false,
-    contextWindow: 32768,
-    price: {
-      input: 1.84, // 0.23 * 8
-      output: 3.2, // 0.4 * 8
-    },
-    jsonOutput: true,
-    fnCall: true,
-  },
 ];
