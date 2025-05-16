@@ -30,7 +30,6 @@ export const databaseRequest = async (req, res, url) => {
       case "write":
         req.user = await handleToken(req, res);
         return handleWrite(req, res);
-
       case "patch":
         req.user = await handleToken(req, res);
         req.params = { id: getIdFromPath("/api/v1/db/patch/") };
