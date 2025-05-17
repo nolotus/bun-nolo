@@ -13,7 +13,11 @@ import { Input } from "web/form/Input";
 import { NumberInput } from "web/form/NumberInput";
 import TextArea from "web/form/Textarea";
 import ToggleSwitch from "web/ui/ToggleSwitch";
-import { PlusIcon } from "@primer/octicons-react";
+import {
+  PlusIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+} from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import ModelSelector from "ai/llm/ModelSelector";
@@ -27,6 +31,7 @@ import ToolSelector from "ai/tools/ToolSelector";
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
+  const [isToolsExpanded, setIsToolsExpanded] = useState(false); // 控制工具选择是否展开
 
   const {
     form: {
@@ -270,12 +275,22 @@ const CreateCybot: React.FC = () => {
             </div>
           </section>
 
-          {/* 工具选择 */}
+          {/* 工具选择 - 可折叠 */}
           <section className="form-section">
-            <div className="section-title">
+            <div
+              className="section-title collapsible-title"
+              onClick={() => setIsToolsExpanded(!isToolsExpanded)}
+            >
               {t("toolSelection", "工具选择")}
+              {isToolsExpanded ? (
+                <ChevronDownIcon className="collapse-icon" />
+              ) : (
+                <ChevronRightIcon className="collapse-icon" />
+              )}
             </div>
-            <div className="section-content">
+            <div
+              className={`section-content ${isToolsExpanded ? "expanded" : "collapsed"}`}
+            >
               <FormField
                 label={t("selectTools", "选择工具")}
                 help={t("selectToolsHelp", "请选择要启用的工具")}
@@ -415,6 +430,21 @@ const CreateCybot: React.FC = () => {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 16px;
+        }
+        .collapsible-title {
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .collapse-icon {
+          margin-left: 8px;
+        }
+        .collapsed {
+          display: none;
+        }
+        .expanded {
+          display: flex;
         }
         @media (max-width: 640px) {
           .create-cybot-container {
