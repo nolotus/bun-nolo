@@ -6,17 +6,11 @@ import {
   useHover,
   useInteractions,
 } from "@floating-ui/react";
-import {
-  DependabotIcon,
-  FileAddedIcon,
-  PlusIcon,
-} from "@primer/octicons-react";
-import { MdCategory } from "react-icons/md"; // 从 react-icons 引入一个更合适的分类图标
-import { useAuth } from "auth/hooks/useAuth";
+import { FileAddedIcon, PlusIcon } from "@primer/octicons-react";
+import { MdCategory } from "react-icons/md";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
-import { CreateRoutePaths } from "create/routePaths";
 import { useTheme } from "app/theme";
 import { useAppDispatch, useAppSelector } from "app/hooks"; // 增加 useAppSelector 导入
 import { createPage } from "render/page/pageSlice";
@@ -70,11 +64,7 @@ export const CreateMenu = () => {
       icon: <FileAddedIcon size={16} />,
       onClick: createNewPage,
     },
-    {
-      tooltip: "添加Cybot",
-      icon: <DependabotIcon size={16} />,
-      path: `/${CreateRoutePaths.CREATE_CYBOT}`,
-    },
+
     {
       tooltip: "添加分类",
       icon: <MdCategory size={16} />, // 使用 react-icons 中的 MdCategory 图标

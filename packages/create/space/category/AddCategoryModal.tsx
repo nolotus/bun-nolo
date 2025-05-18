@@ -3,6 +3,7 @@ import { BaseActionModal } from "web/ui/BaseActionModal";
 import Button from "render/web/ui/Button";
 import { useTheme } from "app/theme";
 import { XIcon } from "@primer/octicons-react";
+import { Input } from "web/form/Input";
 
 interface AddCategoryModalProps {
   isOpen: boolean;
@@ -64,20 +65,10 @@ export const AddCategoryModal = ({
       }
       width={400}
     >
-      <input
+      <Input
         type="text"
         value={newCategoryName}
         onChange={(e) => setNewCategoryName(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "8px",
-          border: `1px solid ${theme.border}`,
-          borderRadius: "4px",
-          background: theme.backgroundSecondary,
-          color: theme.text,
-          outline: "none",
-          fontSize: "14px",
-        }}
         placeholder="请输入分类名称"
         onKeyDown={(e) => {
           if (e.key === "Enter") handleConfirmAdd();
