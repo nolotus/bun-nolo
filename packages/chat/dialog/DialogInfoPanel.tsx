@@ -1,7 +1,6 @@
 // DialogInfoPanel.tsx
-
 import { useTranslation } from "react-i18next";
-import { useState, useCallback, useEffect, useRef } from "react"; // 引入 useEffect 和 useRef
+import { useState, useCallback, useEffect, useRef } from "react";
 import type React from "react";
 import { useTheme } from "app/theme";
 import { useAppSelector, useAppDispatch } from "app/hooks";
@@ -53,6 +52,14 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({ limit = 20 }) => {
         !panelRef.current.contains(event.target as Node) &&
         !triggerRef.current.contains(event.target as Node)
       ) {
+        // 检查点击目标是否在模态框内部
+        const target = event.target as HTMLElement;
+        if (
+          target.closest(".modal-backdrop") ||
+          target.closest(".modal-content")
+        ) {
+          return; // 如果点击的是模态框内部，则不关闭面板
+        }
         setIsPanelOpen(false);
       }
     };

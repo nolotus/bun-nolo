@@ -1,3 +1,4 @@
+// render/web/ui/Dialog.tsx
 import { XIcon } from "@primer/octicons-react";
 import React from "react";
 import { useTheme } from "app/theme";

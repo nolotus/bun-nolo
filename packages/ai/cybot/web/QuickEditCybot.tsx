@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "app/hooks";
@@ -6,7 +5,6 @@ import { DataType } from "create/types";
 import { useTheme } from "app/theme";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import { patch } from "database/dbSlice";
-import { getModelsByProvider } from "ai/llm/providers";
 import { SyncIcon } from "@primer/octicons-react";
 
 // Components
@@ -16,7 +14,7 @@ import { FormField } from "web/form/FormField";
 import { Input } from "web/form/Input";
 import Textarea from "web/form/Textarea";
 import FormTitle from "web/form/FormTitle";
-import ModelSelector from "ai/llm/ModelSelector";
+import AllModelsSelector from "ai/llm/AllModelsSelector";
 import ReferencesSelector from "./ReferencesSelector";
 
 const QuickEditCybot = ({ initialValues, onClose }) => {
@@ -24,10 +22,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation("ai");
   const dispatch = useAppDispatch();
   const theme = useTheme();
-
-  // 直接获取provider值，不允许修改
-  const provider = initialValues.provider;
-  const isCustomProvider = provider === "Custom";
 
   // 表单初始化
   const {
@@ -43,13 +37,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   // 基本状态
   const useServerProxy = watch("useServerProxy");
   const references = watch("references") || [];
-  const [models, setModels] = useState([]);
-
-  // 加载模型列表
-  useEffect(() => {
-    const modelsList = getModelsByProvider(provider);
-    setModels(modelsList);
-  }, [provider]);
 
   // 提交表单
   const onSubmit = async (data) => {
@@ -91,11 +78,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
           <Textarea {...register("prompt")} placeholder={t("enterPrompt")} />
         </FormField>
 
-        {/* 提供商 - 只读 */}
-        <FormField label={t("provider")} horizontal labelWidth="140px">
-          <Input value={provider} disabled readOnly />
-        </FormField>
-
         {/* 自定义URL - 始终显示 */}
         <FormField
           label={t("providerUrl")}
@@ -118,8 +100,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
           horizontal
           labelWidth="140px"
         >
-          <ModelSelector
-            models={models}
+          <AllModelsSelector
             watch={watch}
             setValue={setValue}
             register={register}
@@ -165,7 +146,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
         </Button>
       </form>
 
-      <style jsx>{`
+      <style>{`
         .quick-edit-container {
           max-width: 800px;
           margin: 24px auto;

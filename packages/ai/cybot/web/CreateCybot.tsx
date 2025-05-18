@@ -1,8 +1,7 @@
+// CreateCybot.tsx
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import type { Model } from "../../llm/types";
-import { getModelsByProvider } from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 import { useOllamaSettings } from "../hooks/useOllamaSettings";
@@ -20,8 +19,7 @@ import {
 } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
-import ModelSelector from "ai/llm/ModelSelector";
-import ProviderSelector from "ai/llm/ProviderSelector";
+import AllModelsSelector from "ai/llm/AllModelsSelector";
 import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";
 import { useAppSelector } from "app/hooks";
@@ -52,10 +50,6 @@ const CreateCybot: React.FC = () => {
     provider,
     setValue
   );
-  const [models, setModels] = useState<Model[]>([]);
-  const [providerInputValue, setProviderInputValue] = useState<string>(
-    provider || ""
-  );
   const [references, setReferences] = useState([]); // 用于存储选中的参考资料
   const [smartReadEnabled, setSmartReadEnabled] = useState(false); // 新增状态管理智能读取选项
   const isCustomProvider = provider === "Custom";
@@ -64,15 +58,6 @@ const CreateCybot: React.FC = () => {
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
-
-  useEffect(() => {
-    setProviderInputValue(provider || "");
-    const modelsList = getModelsByProvider(provider || "");
-    setModels(modelsList);
-    if (modelsList.length > 0 && !watch("model")) {
-      setValue("model", modelsList[0].name);
-    }
-  }, [provider, setValue, watch]);
 
   // 当 references 或 smartReadEnabled 更新时，同步到表单数据
   useEffect(() => {
@@ -162,22 +147,6 @@ const CreateCybot: React.FC = () => {
                   )}
                 />
               </FormField>
-              <FormField
-                label={t("provider")}
-                required
-                error={errors.provider?.message}
-                horizontal
-                labelWidth="140px"
-              >
-                <ProviderSelector
-                  provider={provider}
-                  setValue={setValue}
-                  providerInputValue={providerInputValue}
-                  setProviderInputValue={setProviderInputValue}
-                  t={t}
-                  error={errors.provider?.message}
-                />
-              </FormField>
               {(isCustomProvider || apiSource === "custom") && (
                 <FormField
                   label={t("providerUrl")}
@@ -200,8 +169,7 @@ const CreateCybot: React.FC = () => {
                 horizontal
                 labelWidth="140px"
               >
-                <ModelSelector
-                  models={models}
+                <AllModelsSelector
                   watch={watch}
                   setValue={setValue}
                   register={register}

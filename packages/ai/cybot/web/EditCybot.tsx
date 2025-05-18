@@ -5,11 +5,9 @@ import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 
 // types & validations
-import type { Model } from "../../llm/types";
 import { useEditCybotValidation } from "../hooks/useEditCybotValidation";
 
 // data & hooks
-import { getModelsByProvider } from "../../llm/providers";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 import { useOllamaSettings } from "../hooks/useOllamaSettings";
@@ -24,8 +22,7 @@ import ToggleSwitch from "web/ui/ToggleSwitch";
 import { SyncIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
-import ModelSelector from "ai/llm/ModelSelector";
-import ProviderSelector from "ai/llm/ProviderSelector";
+import AllModelsSelector from "ai/llm/AllModelsSelector";
 import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";
 import ToolSelector from "ai/tools/ToolSelector";
@@ -76,8 +73,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     provider,
     setValue
   );
-  const [models, setModels] = useState<Model[]>([]);
-  const [providerInputValue, setProviderInputValue] = useState(provider || "");
   const [references, setReferences] = useState(initialValues.references || []);
   const [smartReadEnabled, setSmartReadEnabled] = useState(
     initialValues.smartReadEnabled || false
@@ -107,15 +102,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
         : "platform"
     );
   }, [initialValues, reset, setApiSource]);
-
-  useEffect(() => {
-    setProviderInputValue(provider || "");
-    const modelsList = getModelsByProvider(provider || "");
-    setModels(modelsList);
-    if (modelsList.length > 0 && !watch("model")) {
-      setValue("model", modelsList[0].name);
-    }
-  }, [provider, setValue, watch]);
 
   // 当 references 或 smartReadEnabled 更新时，同步到表单数据
   useEffect(() => {
@@ -245,23 +231,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 />
               </FormField>
 
-              <FormField
-                label={t("provider")}
-                required
-                error={errors.provider?.message}
-                horizontal
-                labelWidth="140px"
-              >
-                <ProviderSelector
-                  provider={provider}
-                  setValue={setValue}
-                  providerInputValue={providerInputValue}
-                  setProviderInputValue={setProviderInputValue}
-                  t={t}
-                  error={errors.provider?.message}
-                />
-              </FormField>
-
               {(isCustomProvider || apiSource === "custom") && (
                 <FormField
                   label={t("providerUrl")}
@@ -286,8 +255,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
                 horizontal
                 labelWidth="140px"
               >
-                <ModelSelector
-                  models={models}
+                <AllModelsSelector
                   watch={watch}
                   setValue={setValue}
                   register={register}
