@@ -63,9 +63,9 @@ export const requestHandlers: Record<
 };
 
 // 自动推断 Provider 类型 & 列表
-export const availableProviderOptions = Object.keys(MODEL_MAP) as Array<
-  keyof typeof MODEL_MAP
->;
+export const availableProviderOptions = Object.keys(MODEL_MAP).filter(
+  (provider) => provider !== "anthropic"
+) as Array<keyof typeof MODEL_MAP>;
 export type Provider = (typeof availableProviderOptions)[number];
 
 /** 获取单个模型配置 */
