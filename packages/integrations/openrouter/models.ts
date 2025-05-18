@@ -1,23 +1,5 @@
 export const openrouterModels = [
   {
-    name: "cognitivecomputations/dolphin3.0-mistral-24b:free",
-    displayName: "Dolphin 3.0 Mistral 24b",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 128000,
-    contextWindow: 32768,
-    supportsTool: true,
-  },
-  {
-    name: "cognitivecomputations/dolphin3.0-r1-mistral-24b:free",
-    displayName: "Dolphin 3.0 R1 Mistral 24b",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 128000,
-    contextWindow: 32768,
-    supportsTool: true,
-  },
-  {
     name: "anthropic/claude-3.7-sonnet",
     displayName: "Anthropic: Claude 3.7 Sonnet",
     hasVision: true,
@@ -37,15 +19,6 @@ export const openrouterModels = [
     pricePerImage: 4.8 * 8,
   },
   {
-    name: "qwen/qwen-2.5-72b-instruct:free",
-    displayName: "Qwen 2.5 72b Instruct",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 32768,
-    contextWindow: 32768,
-    supportsTool: true,
-  },
-  {
     name: "google/gemini-2.5-pro-exp-03-25:free",
     displayName: "Gemini 2.5 Pro Exp 03-25",
     hasVision: false,
@@ -63,15 +36,6 @@ export const openrouterModels = [
     contextWindow: 131000,
     supportsTool: true,
     speed: 25,
-  },
-  {
-    name: "qwen/qwen2.5-vl-72b-instruct:free",
-    displayName: "Qwen 2.5 VL 72b Instruct",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 2000,
-    contextWindow: 131072,
-    supportsTool: true,
   },
   {
     name: "deepseek/deepseek-chat-v3-0324:free",
@@ -111,15 +75,5 @@ export const openrouterModels = [
     maxOutputTokens: 128000,
     contextWindow: 200000,
     supportsTool: true,
-  },
-  {
-    name: "google/gemini-2.5-pro-preview-03-25",
-    displayName: "Google: Gemini 2.5 Pro Preview",
-    hasVision: true,
-    price: { input: 1.25 * 8, output: 10 * 8 },
-    maxOutputTokens: 1048576,
-    contextWindow: 1048576,
-    supportsTool: true,
-    pricePerImage: 5.16 * 8,
   },
 ];
