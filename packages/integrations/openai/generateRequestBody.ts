@@ -174,10 +174,10 @@ const buildRequestBody = (
   };
 
   // Provider-specific options (保持不变)
-  if (["google", "openrouter", "xai"].includes(providerName)) {
+  if (["google", "openrouter", "xai", "openai"].includes(providerName)) {
     bodyData.stream_options = { include_usage: true };
   }
-  if (providerName === "xai" && model.includes("grol3-mini")) {
+  if (providerName === "xai" && model.includes("grok3-mini")) {
     bodyData.reasoning_effort = "high";
     bodyData.temperature = 0.7;
   }
