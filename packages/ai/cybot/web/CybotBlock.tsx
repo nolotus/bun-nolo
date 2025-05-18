@@ -20,6 +20,7 @@ import {
   CommentDiscussionIcon,
   PencilIcon,
   TrashIcon,
+  EyeIcon, // 引入 EyeIcon 作为视觉能力图标
 } from "@primer/octicons-react";
 
 interface CybotBlockProps {
@@ -87,14 +88,18 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           </div>
 
           <div className="cybot-block__tags">
-            {item.model && (
-              <span className="cybot-block__tag">{item.model}</span>
-            )}
             {item.tags?.map((tag, index) => (
               <span key={index} className="cybot-block__tag">
                 {tag}
               </span>
             ))}
+            {item.hasVision && (
+              <Tooltip content={t("hasVision")}>
+                <span className="cybot-block__tag cybot-block__vision-tag">
+                  <EyeIcon size={12} /> {t("vision")}
+                </span>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>
@@ -236,6 +241,12 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           border-radius: 6px;
           white-space: nowrap;
           border: 1px solid ${theme.border};
+        }
+
+        .cybot-block__vision-tag {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[1]};
         }
 
         .cybot-block__price-tag {

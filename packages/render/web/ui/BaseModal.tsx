@@ -36,16 +36,26 @@ export const BaseModal: React.FC<BaseModalProps> = ({
     }, 150);
   };
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    // 确保只有点击背景区域（而非内容区域）才触发关闭
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
     <div
       className={`modal-backdrop ${isClosing ? "closing" : ""}`}
-      onClick={handleClose}
+      onClick={handleBackdropClick}
     >
       <div
         className={`modal-content ${className} ${isClosing ? "closing" : ""}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation(); // 阻止事件冒泡到全局监听器
+          e.nativeEvent.stopImmediatePropagation(); // 进一步阻止事件冒泡
+        }}
       >
         {children}
       </div>

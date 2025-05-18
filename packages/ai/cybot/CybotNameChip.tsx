@@ -1,3 +1,4 @@
+// CybotNameChip.tsx
 import { XIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
