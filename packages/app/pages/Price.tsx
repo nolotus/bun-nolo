@@ -125,51 +125,26 @@ const ModelComparison = () => {
             <TableRow key={index} theme={theme} attributes={{}}>
               <TableCell
                 element={{ header: false }}
-                theme={theme}
                 attributes={{ title: model.description }}
               >
                 {model.displayName || model.name}
               </TableCell>
-              <TableCell
-                element={{ header: false }}
-                theme={theme}
-                attributes={{}}
-              >
+              <TableCell element={{ header: false }} attributes={{}}>
                 {model.maxOutputTokens}
               </TableCell>
-              <TableCell
-                element={{ header: false }}
-                theme={theme}
-                attributes={{}}
-              >
+              <TableCell element={{ header: false }} attributes={{}}>
                 {model.contextWindow}
               </TableCell>
-              <TableCell
-                element={{ header: false }}
-                theme={theme}
-                attributes={{}}
-              >
+              <TableCell element={{ header: false }} attributes={{}}>
                 {model.price?.input || "未知"} / {model.price?.output || "未知"}
               </TableCell>
-              <TableCell
-                element={{ header: false }}
-                theme={theme}
-                attributes={{}}
-              >
+              <TableCell element={{ header: false }} attributes={{}}>
                 {model.supportsTool || "未知"}
               </TableCell>
-              <TableCell
-                element={{ header: false }}
-                theme={theme}
-                attributes={{}}
-              >
+              <TableCell element={{ header: false }} attributes={{}}>
                 {model.hasVision ? "是" : "否"}
               </TableCell>
-              <TableCell
-                element={{ header: false }}
-                theme={theme}
-                attributes={{}}
-              >
+              <TableCell element={{ header: false }} attributes={{}}>
                 {model.provider}
               </TableCell>
             </TableRow>
