@@ -31,16 +31,16 @@ interface ModelWithProvider extends Model {
 
 // 合并所有模型并添加提供商信息
 const ALL_MODELS: ModelWithProvider[] = [
-  ...deepinfraModels.map((m) => ({ ...m, provider: "deepinfra" })),
-  ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
-  ...fireworksmodels.map((m) => ({ ...m, provider: "fireworks" })),
-  ...googleModels.map((m) => ({ ...m, provider: "google" })),
   ...mistralModels.map((m) => ({ ...m, provider: "mistral" })),
+  ...googleModels.map((m) => ({ ...m, provider: "google" })),
   ...openAIModels.map((m) => ({ ...m, provider: "openai" })),
-  ...ollamaModels.map((m) => ({ ...m, provider: "ollama" })),
-  ...sambanovaModels.map((m) => ({ ...m, provider: "sambanova" })),
   ...openrouterModels.map((m) => ({ ...m, provider: "openrouter" })),
   ...xaiModels.map((m) => ({ ...m, provider: "xai" })),
+  ...deepSeekModels.map((m) => ({ ...m, provider: "deepseek" })),
+  ...fireworksmodels.map((m) => ({ ...m, provider: "fireworks" })),
+  ...deepinfraModels.map((m) => ({ ...m, provider: "deepinfra" })),
+  ...sambanovaModels.map((m) => ({ ...m, provider: "sambanova" })),
+  ...ollamaModels.map((m) => ({ ...m, provider: "ollama" })),
 ];
 
 const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
@@ -50,11 +50,18 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
   defaultModel,
   t,
 }) => {
+  // 设置默认值，如果提供了 defaultModel，则使用它，否则默认选择第一个 mistral 模型
+  const selectedModel = watch("model")
+    ? ALL_MODELS.find((m) => watch("model") === m.name)
+    : defaultModel
+      ? ALL_MODELS.find((m) => m.name === defaultModel)
+      : ALL_MODELS.find((m) => m.provider === "mistral") || null;
+
   return (
     <>
       <Dropdown
         items={ALL_MODELS}
-        selectedItem={ALL_MODELS.find((m) => watch("model") === m.name) || null}
+        selectedItem={selectedModel}
         onChange={(item) => {
           if (item) {
             setValue("model", item.name);

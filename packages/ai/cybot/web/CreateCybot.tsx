@@ -1,9 +1,7 @@
-// CreateCybot.tsx
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import useModelPricing from "../hooks/useModelPricing";
-import { useProxySetting } from "../hooks/useProxySetting";
 import { useOllamaSettings } from "../hooks/useOllamaSettings";
 import { useCreateCybotValidation } from "../hooks/useCreateCybotValidation";
 import { FormField } from "web/form/FormField";
@@ -18,7 +16,6 @@ import {
   ChevronRightIcon,
 } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
-import PasswordInput from "web/form/PasswordInput";
 import AllModelsSelector from "ai/llm/AllModelsSelector";
 import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";
@@ -29,7 +26,7 @@ import ToolSelector from "ai/tools/ToolSelector";
 const CreateCybot: React.FC = () => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
-  const [isToolsExpanded, setIsToolsExpanded] = useState(false); // 控制工具选择是否展开
+  const [isToolsExpanded, setIsToolsExpanded] = useState(false);
 
   const {
     form: {
@@ -41,31 +38,23 @@ const CreateCybot: React.FC = () => {
       formState: { errors, isSubmitting },
     },
     provider,
-    useServerProxy,
     isPublic,
     onSubmit,
   } = useCreateCybotValidation();
 
-  const { apiSource, setApiSource, isOllama } = useOllamaSettings(
-    provider,
-    setValue
-  );
-  const [references, setReferences] = useState([]); // 用于存储选中的参考资料
-  const [smartReadEnabled, setSmartReadEnabled] = useState(false); // 新增状态管理智能读取选项
-  const isCustomProvider = provider === "Custom";
+  const { apiSource } = useOllamaSettings(provider, setValue);
+  const [references, setReferences] = useState([]);
+  const [smartReadEnabled, setSmartReadEnabled] = useState(false);
 
   const space = useAppSelector(selectCurrentSpace);
   const { inputPrice, outputPrice, setInputPrice, setOutputPrice } =
     useModelPricing(provider, watch("model"), setValue);
-  const isProxyDisabled = useProxySetting(provider, setValue);
 
-  // 当 references 或 smartReadEnabled 更新时，同步到表单数据
   useEffect(() => {
     setValue("references", references);
     setValue("smartReadEnabled", smartReadEnabled);
   }, [references, smartReadEnabled, setValue]);
 
-  // 处理 ReferencesSelector 的变化
   const handleReferencesChange = (newReferences) => {
     setReferences(newReferences);
   };
@@ -119,49 +108,6 @@ const CreateCybot: React.FC = () => {
                   placeholder={t("enterTags")}
                 />
               </FormField>
-            </div>
-          </section>
-
-          {/* 模型配置 */}
-          <section className="form-section">
-            <div className="section-title">{t("modelConfiguration")}</div>
-            <div className="section-content">
-              <FormField
-                label={t("apiSource")}
-                help={
-                  apiSource === "platform"
-                    ? t("platformApiHelp")
-                    : t("customApiHelp")
-                }
-                horizontal
-                labelWidth="140px"
-              >
-                <ToggleSwitch
-                  checked={apiSource === "custom"}
-                  onChange={(checked) =>
-                    setApiSource(checked ? "custom" : "platform")
-                  }
-                  disabled={isOllama}
-                  label={t(
-                    apiSource === "custom" ? "useCustomApi" : "usePlatformApi"
-                  )}
-                />
-              </FormField>
-              {(isCustomProvider || apiSource === "custom") && (
-                <FormField
-                  label={t("providerUrl")}
-                  error={errors.customProviderUrl?.message}
-                  help={t("providerUrlHelp")}
-                  horizontal
-                  labelWidth="140px"
-                >
-                  <Input
-                    {...register("customProviderUrl")}
-                    placeholder={t("enterProviderUrl")}
-                    type="url"
-                  />
-                </FormField>
-              )}
               <FormField
                 label={t("model")}
                 required
@@ -175,37 +121,6 @@ const CreateCybot: React.FC = () => {
                   register={register}
                   defaultModel={watch("model")}
                   t={t}
-                />
-              </FormField>
-              {apiSource === "custom" && !isOllama && (
-                <FormField
-                  label={t("apiKey")}
-                  required={!isOllama}
-                  error={errors.apiKey?.message}
-                  help={t("apiKeyHelp")}
-                  horizontal
-                  labelWidth="140px"
-                >
-                  <PasswordInput
-                    {...register("apiKey")}
-                    placeholder={t("enterApiKey")}
-                  />
-                </FormField>
-              )}
-              <FormField
-                label={t("useServerProxy")}
-                help={
-                  isProxyDisabled
-                    ? t("proxyNotAvailableForProvider")
-                    : t("proxyHelp")
-                }
-                horizontal
-                labelWidth="140px"
-              >
-                <ToggleSwitch
-                  checked={useServerProxy}
-                  onChange={(checked) => setValue("useServerProxy", checked)}
-                  disabled={isProxyDisabled || apiSource === "platform"}
                 />
               </FormField>
             </div>
