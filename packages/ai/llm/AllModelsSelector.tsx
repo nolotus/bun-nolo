@@ -1,5 +1,4 @@
-// ai/llm/AllModelsSelector.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Dropdown } from "web/form/Dropdown";
 import { CheckIcon } from "@primer/octicons-react";
 import type { Model } from "./types";
@@ -56,6 +55,14 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
     : defaultModel
       ? ALL_MODELS.find((m) => m.name === defaultModel)
       : ALL_MODELS.find((m) => m.provider === "mistral") || null;
+
+  // 初始化时将默认值设置到表单中
+  useEffect(() => {
+    if (selectedModel && !watch("model")) {
+      setValue("model", selectedModel.name);
+      setValue("provider", selectedModel.provider);
+    }
+  }, [selectedModel, watch, setValue]);
 
   return (
     <>
