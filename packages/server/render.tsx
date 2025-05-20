@@ -1,5 +1,5 @@
 import { store } from "app/store";
-import { renderToReadableStream } from "react-dom/server.browser";
+import { renderToReadableStream } from "react-dom/server";
 
 import assets from "../../public/assets.json";
 import { renderReactApp } from "./html/renderReactApp";
