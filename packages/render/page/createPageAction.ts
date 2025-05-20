@@ -21,7 +21,8 @@ export const createPageAction = async (
     spaceId?: string;
     title?: string;
     addMomentTag?: boolean;
-    content?: string; // 新增可选参数 content
+    content?: string; // 可选参数 content，纯字符串
+    slateData?: any; // 新增可选参数 slateData，用于传入 SlateJS 数据结构
   } = {},
   thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
 ): Promise<string> => {
@@ -30,7 +31,8 @@ export const createPageAction = async (
     spaceId: customSpaceId,
     title: initialTitle,
     addMomentTag,
-    content, // 新增 content 参数
+    content, // 纯字符串内容
+    slateData, // SlateJS 数据结构
   } = args;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
@@ -65,8 +67,23 @@ export const createPageAction = async (
     },
   ];
 
-  // 使用传入的 content 作为 slateData，如果没有传入则使用空内容
-  const initialSlateData = content ? content : emptySlateData;
+  // 确定初始 slateData 的值
+  let initialSlateData;
+  if (slateData) {
+    // 如果传入了 slateData，优先使用它
+    initialSlateData = slateData;
+  } else if (content) {
+    // 如果没有 slateData 但传入了 content，将 content 转换为 SlateJS 格式
+    initialSlateData = [
+      {
+        type: "paragraph",
+        children: [{ text: content }],
+      },
+    ];
+  } else {
+    // 如果都没有传入，使用默认空内容
+    initialSlateData = emptySlateData;
+  }
 
   const pageData: PageData = {
     dbKey,

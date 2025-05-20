@@ -2,11 +2,13 @@ import { useState } from "react";
 import { MessageText } from "./MessageText";
 import { useTheme } from "app/theme";
 import ExcelPreview from "web/ExcelPreview";
-import { FaFileExcel } from "react-icons/fa";
+import DocxPreviewDialog from "web/DocxPreviewDialog"; // 新增导入
+import { FaFileExcel, FaFileWord } from "react-icons/fa";
 
 export const MessageContent = ({ content, role }) => {
   const theme = useTheme();
   const [previewingExcel, setPreviewingExcel] = useState(null);
+  const [previewingDocx, setPreviewingDocx] = useState(null); // 新增状态用于控制 DOCX 预览
 
   if (!content) return null;
 
@@ -61,6 +63,21 @@ export const MessageContent = ({ content, role }) => {
               );
             }
 
+            if (item.type === "docx" && item.pageKey) {
+              // 不直接展示 DOCX 内容，而显示一个可点击的占位区域
+              return (
+                <div
+                  key={`docx-${index}`}
+                  className="message-docx-placeholder"
+                  onClick={() => setPreviewingDocx(item)}
+                  title="点击预览 DOCX 文件"
+                >
+                  <FaFileWord size={18} />
+                  <span>DOCX 文件: {item.name || "未知文件"}</span>
+                </div>
+              );
+            }
+
             return (
               <div key={`unknown-${index}`} className="message-unknown">
                 Unknown message type
@@ -81,6 +98,16 @@ export const MessageContent = ({ content, role }) => {
           onPreview={(id) => {}}
           previewingFile={previewingExcel}
           closePreview={() => setPreviewingExcel(null)}
+        />
+      )}
+
+      {/* 当点击 DOCX 占位区域后，显示预览模态框 */}
+      {previewingDocx && (
+        <DocxPreviewDialog
+          isOpen={!!previewingDocx}
+          onClose={() => setPreviewingDocx(null)}
+          pageKey={previewingDocx.pageKey}
+          fileName={previewingDocx.name}
         />
       )}
 
@@ -173,6 +200,22 @@ export const MessageContent = ({ content, role }) => {
         }
 
         .message-excel-placeholder:hover {
+          background-color: ${theme.backgroundHover};
+        }
+
+        .message-docx-placeholder {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 14px;
+          background-color: ${theme.backgroundSecondary};
+          border: 1px solid ${theme.borderLight};
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .message-docx-placeholder:hover {
           background-color: ${theme.backgroundHover};
         }
       `}</style>

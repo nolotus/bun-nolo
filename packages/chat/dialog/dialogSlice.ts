@@ -3,8 +3,8 @@ import {
   type PayloadAction,
   asyncThunkCreator,
   buildCreateSlice,
-  createAction, // 导入 createAction 用于非异步 reducer
-  nanoid, // 导入 nanoid 生成唯一 ID
+  createAction,
+  nanoid,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 import { deleteDialogMsgs } from "chat/messages/messageSlice";
@@ -46,6 +46,13 @@ export interface PendingExcelFile {
   data: any[]; // 保持 any[] 或定义更具体的类型
 }
 
+// 新增 DOCX 文件类型
+export interface PendingDocxFile {
+  id: string;
+  name: string;
+  pageKey: string; // 只保存 pageKey
+}
+
 // 定义 Slice 的 State 接口
 interface DialogState {
   currentDialogKey: string | null;
@@ -58,6 +65,7 @@ interface DialogState {
   pendingImagePreviews: PendingImagePreview[];
   pendingExcelFiles: PendingExcelFile[];
   previewingExcelFileId: string | null;
+  pendingDocxFiles: PendingDocxFile[]; // 新增 DOCX 文件状态
 }
 
 // 定义初始状态
@@ -72,10 +80,11 @@ const initialState: DialogState = {
   pendingImagePreviews: [],
   pendingExcelFiles: [],
   previewingExcelFileId: null,
+  pendingDocxFiles: [], // 初始化 DOCX 文件状态
 };
 
 const DialogSlice = createSliceWithThunks({
-  name: "dialog", // 通常 slice name 应该是 'dialog' 而不是 'chat'，除非它管理整个聊天
+  name: "dialog",
   initialState,
   reducers: (create) => ({
     // --- 现有 Reducers ---
@@ -122,11 +131,10 @@ const DialogSlice = createSliceWithThunks({
     deleteCurrentDialog: create.asyncThunk(
       async (dialogKey, thunkApi) => {
         const dispatch = thunkApi.dispatch;
-        const state = thunkApi.getState() as NoloRootState; // 强制类型转换
-        dispatch(deleteDialog(dialogKey)); //
+        const state = thunkApi.getState() as NoloRootState;
+        dispatch(deleteDialog(dialogKey));
         const spaceId = selectCurrentSpaceId(state);
         if (spaceId) {
-          // 添加检查，确保 spaceId 存在
           dispatch(deleteContentFromSpace({ contentKey: dialogKey, spaceId }));
         }
         const dialogId = extractCustomId(dialogKey);
@@ -137,7 +145,7 @@ const DialogSlice = createSliceWithThunks({
       },
       {
         fulfilled: (state, action) => {
-          state.currentDialogKey = null; // 确保当前对话 key 被清除
+          state.currentDialogKey = null;
         },
       }
     ),
@@ -149,6 +157,7 @@ const DialogSlice = createSliceWithThunks({
       state.pendingImagePreviews = [];
       state.pendingExcelFiles = [];
       state.previewingExcelFileId = null;
+      state.pendingDocxFiles = []; // 清空 DOCX 文件
     }),
 
     createDialog: create.asyncThunk(createDialogAction),
@@ -170,7 +179,6 @@ const DialogSlice = createSliceWithThunks({
     // --- 新增：附件管理 Reducers ---
     addPendingImagePreview: create.reducer(
       (state, action: PayloadAction<string>) => {
-        // 使用 nanoid 生成唯一 ID
         const newImage: PendingImagePreview = {
           id: nanoid(),
           url: action.payload,
@@ -180,15 +188,25 @@ const DialogSlice = createSliceWithThunks({
     ),
     addPendingExcelFile: create.reducer(
       (state, action: PayloadAction<PendingExcelFile>) => {
-        // 确保传入的对象包含 id, name, data
         if (action.payload.id && action.payload.name && action.payload.data) {
           state.pendingExcelFiles.push(action.payload);
         }
       }
     ),
+    // 新增 DOCX 文件相关 reducers
+    addPendingDocxFile: create.reducer(
+      (state, action: PayloadAction<PendingDocxFile>) => {
+        if (
+          action.payload.id &&
+          action.payload.name &&
+          action.payload.pageKey
+        ) {
+          state.pendingDocxFiles.push(action.payload);
+        }
+      }
+    ),
     removePendingImagePreview: create.reducer(
       (state, action: PayloadAction<string>) => {
-        // 按 ID 移除
         state.pendingImagePreviews = state.pendingImagePreviews.filter(
           (img) => img.id !== action.payload
         );
@@ -196,14 +214,20 @@ const DialogSlice = createSliceWithThunks({
     ),
     removePendingExcelFile: create.reducer(
       (state, action: PayloadAction<string>) => {
-        // 按 ID 移除
         state.pendingExcelFiles = state.pendingExcelFiles.filter(
           (file) => file.id !== action.payload
         );
-        // 如果移除的是正在预览的文件，则关闭预览
         if (state.previewingExcelFileId === action.payload) {
           state.previewingExcelFileId = null;
         }
+      }
+    ),
+    // 新增移除 DOCX 文件的 reducer
+    removePendingDocxFile: create.reducer(
+      (state, action: PayloadAction<string>) => {
+        state.pendingDocxFiles = state.pendingDocxFiles.filter(
+          (file) => file.id !== action.payload
+        );
       }
     ),
     setPreviewingExcelFile: create.reducer(
@@ -215,12 +239,12 @@ const DialogSlice = createSliceWithThunks({
       state.pendingImagePreviews = [];
       state.pendingExcelFiles = [];
       state.previewingExcelFileId = null;
+      state.pendingDocxFiles = []; // 清空 DOCX 文件
     }),
   }),
 });
 
 export const {
-  // 现有 actions
   initDialog,
   deleteDialog,
   resetCurrentDialogTokens,
@@ -232,13 +256,15 @@ export const {
   addCybot,
   removeCybot,
   updateDialogMode,
-  // 新增 actions
   addPendingImagePreview,
   addPendingExcelFile,
   removePendingImagePreview,
   removePendingExcelFile,
   setPreviewingExcelFile,
   clearPendingAttachments,
+  // 新增 DOCX 文件相关 actions
+  addPendingDocxFile,
+  removePendingDocxFile,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;
@@ -247,7 +273,7 @@ export default DialogSlice.reducer;
 export const selectCurrentDialogConfig = (state: NoloRootState) =>
   state.dialog.currentDialogKey
     ? selectById(state, state.dialog.currentDialogKey)
-    : null; // 添加 null 检查
+    : null;
 
 export const selectCurrentDialogKey = (state: NoloRootState) =>
   state.dialog.currentDialogKey;
@@ -271,6 +297,11 @@ export const selectPendingExcelFiles = (
 export const selectPreviewingExcelFileId = (
   state: NoloRootState
 ): string | null => state.dialog.previewingExcelFileId;
+
+// 新增 DOCX 文件 selector
+export const selectPendingDocxFiles = (
+  state: NoloRootState
+): PendingDocxFile[] => state.dialog.pendingDocxFiles;
 
 // 派生 Selector，用于获取正在预览的 Excel 文件对象
 export const selectPreviewingExcelFile = (

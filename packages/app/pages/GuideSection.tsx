@@ -25,8 +25,8 @@ const GuideSection = () => {
 
   const createNewPage = useCallback(async () => {
     try {
-      const id = await dispatch(createPage()).unwrap();
-      navigate(`/${id}?edit=true`);
+      const pageKey = await dispatch(createPage()).unwrap();
+      navigate(`/${pageKey}?edit=true`);
     } catch (error) {
       console.error("Failed to create page:", error);
     }
