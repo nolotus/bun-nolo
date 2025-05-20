@@ -1,4 +1,3 @@
-// MessageInput.tsx
 import type React from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,11 +28,12 @@ import * as XLSX from "xlsx";
 import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
 import ExcelPreview from "web/ExcelPreview";
-import DocxPreviewDialog from "web/DocxPreviewDialog"; // 新增导入
+import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { UploadIcon } from "@primer/octicons-react";
 import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { convertDocxToSlate } from "./docxToSlate";
+import { convertPdfToSlate } from "./pdfToSlate"; // 假设你已创建并导入此函数
 import { createPage } from "render/page/pageSlice";
 
 const MessageInput: React.FC = () => {
@@ -46,7 +46,7 @@ const MessageInput: React.FC = () => {
   const [textContent, setTextContent] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [previewingDocxId, setPreviewingDocxId] = useState<string | null>(null); // 新增状态用于控制 DOCX 预览对话框
+  const [previewingDocxId, setPreviewingDocxId] = useState<string | null>(null);
   const imagePreviews = useAppSelector(selectPendingImagePreviews);
   const excelFiles = useAppSelector(selectPendingExcelFiles);
   const docxFiles = useAppSelector(selectPendingDocxFiles);
@@ -117,29 +117,51 @@ const MessageInput: React.FC = () => {
     [dispatch, t]
   );
 
-  // 添加DOCX文件处理逻辑，并直接dispatch createPage，保存pageKey
   const handleParseDocx = useCallback(
     async (file: File) => {
       try {
         const slateContent = await convertDocxToSlate(file);
-        console.log("转换后的Slate.js格式内容：", slateContent);
-        // 直接dispatch createPage，传递slateData，并获取pageKey
+        console.log("转换后的 Slate.js 格式内容：", slateContent);
         const pageKey = await dispatch(
           createPage({ slateData: slateContent })
         ).unwrap();
         console.log("创建页面成功，pageKey:", pageKey);
 
-        // 只保存pageKey，不保存data
         const newDocxFile: PendingDocxFile = {
           id: nanoid(),
           name: file.name,
           pageKey: pageKey,
         };
-        dispatch(addPendingDocxFile(newDocxFile)); // 将DOCX文件信息添加到Redux状态
+        dispatch(addPendingDocxFile(newDocxFile));
         toast.success(t("docxToSlateSuccess"));
       } catch (error) {
-        console.error("处理DOCX文件失败：", error);
+        console.error("处理 DOCX 文件失败：", error);
         toast.error(t("docxToSlateError"));
+      }
+    },
+    [dispatch, t]
+  );
+
+  const handleParsePdf = useCallback(
+    async (file: File) => {
+      try {
+        const slateContent = await convertPdfToSlate(file);
+        console.log("转换后的 PDF Slate.js 内容：", slateContent);
+        const pageKey = await dispatch(
+          createPage({ slateData: slateContent })
+        ).unwrap();
+        console.log("创建 PDF 页面成功，pageKey:", pageKey);
+
+        const newPdfFile: PendingDocxFile = {
+          id: nanoid(),
+          name: file.name,
+          pageKey: pageKey,
+        };
+        dispatch(addPendingDocxFile(newPdfFile)); // 复用 DOCX 的状态管理
+        toast.success(t("pdfToSlateSuccess"));
+      } catch (error) {
+        console.error("处理 PDF 文件失败：", error);
+        toast.error(t("pdfToSlateError"));
       }
     },
     [dispatch, t]
@@ -162,9 +184,16 @@ const MessageInput: React.FC = () => {
         handleParseAndAddExcel(file);
       } else if (fileNameLower.endsWith(".docx")) {
         handleParseDocx(file);
+      } else if (fileNameLower.endsWith(".pdf")) {
+        handleParsePdf(file);
       }
     },
-    [handleAddImagePreview, handleParseAndAddExcel, handleParseDocx]
+    [
+      handleAddImagePreview,
+      handleParseAndAddExcel,
+      handleParseDocx,
+      handleParsePdf,
+    ]
   );
 
   // Input & Send Logic
@@ -235,9 +264,12 @@ const MessageInput: React.FC = () => {
       parts.push({ type: "excel", name: file.name, data: file.data });
     });
 
-    // 处理DOCX文件，只包含pageKey
     currentDocxFiles.forEach((file) => {
-      parts.push({ type: "docx", name: file.name, pageKey: file.pageKey });
+      parts.push({
+        type: file.name.toLowerCase().endsWith(".pdf") ? "pdf" : "docx",
+        name: file.name,
+        pageKey: file.pageKey,
+      });
     });
 
     if (parts.length > 1) {
@@ -377,7 +409,6 @@ const MessageInput: React.FC = () => {
     excelFiles.length > 0 ||
     docxFiles.length > 0;
 
-  // 查找当前预览的 DOCX 文件
   const previewingDocxFile =
     docxFiles.find((file) => file.id === previewingDocxId) || null;
 
@@ -459,7 +490,7 @@ const MessageInput: React.FC = () => {
         </div>
       )}
 
-      {/* DOCX Preview Dialog */}
+      {/* DOCX/PDF Preview Dialog */}
       {previewingDocxFile && (
         <DocxPreviewDialog
           isOpen={!!previewingDocxFile}
@@ -474,7 +505,7 @@ const MessageInput: React.FC = () => {
         ref={fileInputRef}
         type="file"
         hidden
-        accept="image/*,.xlsx,.xls,.csv,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept="image/*,.xlsx,.xls,.csv,.docx,.pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
         multiple
         onChange={handleFileInputChange}
       />

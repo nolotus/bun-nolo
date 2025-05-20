@@ -2,13 +2,13 @@ import { useState } from "react";
 import { MessageText } from "./MessageText";
 import { useTheme } from "app/theme";
 import ExcelPreview from "web/ExcelPreview";
-import DocxPreviewDialog from "web/DocxPreviewDialog"; // 新增导入
-import { FaFileExcel, FaFileWord } from "react-icons/fa";
+import DocxPreviewDialog from "web/DocxPreviewDialog";
+import { FaFileExcel, FaFileWord, FaFilePdf } from "react-icons/fa";
 
 export const MessageContent = ({ content, role }) => {
   const theme = useTheme();
   const [previewingExcel, setPreviewingExcel] = useState(null);
-  const [previewingDocx, setPreviewingDocx] = useState(null); // 新增状态用于控制 DOCX 预览
+  const [previewingDocx, setPreviewingDocx] = useState(null); // 用于控制 DOCX 和 PDF 预览
 
   if (!content) return null;
 
@@ -78,6 +78,21 @@ export const MessageContent = ({ content, role }) => {
               );
             }
 
+            if (item.type === "pdf" && item.pageKey) {
+              // 不直接展示 PDF 内容，而显示一个可点击的占位区域
+              return (
+                <div
+                  key={`pdf-${index}`}
+                  className="message-pdf-placeholder"
+                  onClick={() => setPreviewingDocx(item)}
+                  title="点击预览 PDF 文件"
+                >
+                  <FaFilePdf size={18} />
+                  <span>PDF 文件: {item.name || "未知文件"}</span>
+                </div>
+              );
+            }
+
             return (
               <div key={`unknown-${index}`} className="message-unknown">
                 Unknown message type
@@ -101,7 +116,7 @@ export const MessageContent = ({ content, role }) => {
         />
       )}
 
-      {/* 当点击 DOCX 占位区域后，显示预览模态框 */}
+      {/* 当点击 DOCX 或 PDF 占位区域后，显示预览模态框 */}
       {previewingDocx && (
         <DocxPreviewDialog
           isOpen={!!previewingDocx}
@@ -216,6 +231,22 @@ export const MessageContent = ({ content, role }) => {
         }
 
         .message-docx-placeholder:hover {
+          background-color: ${theme.backgroundHover};
+        }
+
+        .message-pdf-placeholder {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 14px;
+          background-color: ${theme.backgroundSecondary};
+          border: 1px solid ${theme.borderLight};
+          border-radius: 6px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .message-pdf-placeholder:hover {
           background-color: ${theme.backgroundHover};
         }
       `}</style>

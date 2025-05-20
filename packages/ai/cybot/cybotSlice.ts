@@ -75,17 +75,17 @@ export const cybotSlice = createSliceWithThunks({
           .map((ref: any) => ref.dbKey || (typeof ref === "string" ? ref : ""))
           .filter((key: string) => typeof key === "string" && key.length > 0);
 
-        // 新增：从 userInput 中提取 pageKey（例如 DOCX 文件中的 pageKey）
+        // 新增：从 userInput 中提取 pageKey（例如 DOCX 和 PDF 文件中的 pageKey）
         let msgReferences: string[] = [];
         if (Array.isArray(userInput)) {
           userInput.forEach((part: any) => {
-            if (part.type === "docx" && part.pageKey) {
+            if ((part.type === "docx" || part.type === "pdf") && part.pageKey) {
               msgReferences.push(part.pageKey);
             }
           });
         } else if (
           typeof userInput === "object" &&
-          userInput.type === "docx" &&
+          (userInput.type === "docx" || userInput.type === "pdf") &&
           userInput.pageKey
         ) {
           msgReferences.push(userInput.pageKey);
@@ -97,13 +97,16 @@ export const cybotSlice = createSliceWithThunks({
           const content = msg.content;
           if (Array.isArray(content)) {
             content.forEach((part: any) => {
-              if (part.type === "docx" && part.pageKey) {
+              if (
+                (part.type === "docx" || part.type === "pdf") &&
+                part.pageKey
+              ) {
                 historyReferences.push(part.pageKey);
               }
             });
           } else if (
             typeof content === "object" &&
-            content.type === "docx" &&
+            (content.type === "docx" || content.type === "pdf") &&
             content.pageKey
           ) {
             historyReferences.push(content.pageKey);
