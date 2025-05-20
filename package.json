@@ -47,6 +47,7 @@
     "mdast-util-gfm": "^3.0.0",
     "mermaid": "^11.6.0",
     "micromark-extension-gfm": "^3.0.0",
+    "pdfjs-dist": "^5.2.133",
     "playwright": "^1.47.2",
     "prismjs": "^1.29.0",
     "puppeteer": "^24.8.0",
