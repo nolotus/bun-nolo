@@ -1,8 +1,8 @@
 import * as pdfjsLib from "pdfjs-dist";
 
-// 设置 pdf.js worker 路径（根据你的项目配置调整）
-pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
-
+// 设置 pdf.js worker 路径（使用 CDN）
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://unpkg.com/pdfjs-dist@5.2.133/build/pdf.worker.mjs";
 // Slate.js 节点的基本类型定义（与 DOCX 代码一致）
 interface SlateNode {
   type: string;
