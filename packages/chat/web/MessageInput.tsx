@@ -1,3 +1,4 @@
+// MessageInput.tsx
 import type React from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,24 +10,31 @@ import { handleSendMessage } from "../messages/messageSlice";
 import {
   addPendingImagePreview,
   addPendingExcelFile,
+  addPendingDocxFile,
   removePendingImagePreview,
   removePendingExcelFile,
+  removePendingDocxFile,
   setPreviewingExcelFile,
   clearPendingAttachments,
   selectPendingImagePreviews,
   selectPendingExcelFiles,
+  selectPendingDocxFiles,
   selectPreviewingExcelFile,
   type PendingImagePreview,
   type PendingExcelFile,
+  type PendingDocxFile,
 } from "../dialog/dialogSlice";
 import { compressImage } from "utils/imageUtils";
 import * as XLSX from "xlsx";
 import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
 import ExcelPreview from "web/ExcelPreview";
+import DocxPreviewDialog from "web/DocxPreviewDialog"; // 新增导入
 import { UploadIcon } from "@primer/octicons-react";
 import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
+import { convertDocxToSlate } from "./docxToSlate";
+import { createPage } from "render/page/pageSlice";
 
 const MessageInput: React.FC = () => {
   // Hooks, Refs, Local State, Redux State
@@ -38,8 +46,10 @@ const MessageInput: React.FC = () => {
   const [textContent, setTextContent] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragEnabled, setIsDragEnabled] = useState(false);
+  const [previewingDocxId, setPreviewingDocxId] = useState<string | null>(null); // 新增状态用于控制 DOCX 预览对话框
   const imagePreviews = useAppSelector(selectPendingImagePreviews);
   const excelFiles = useAppSelector(selectPendingExcelFiles);
+  const docxFiles = useAppSelector(selectPendingDocxFiles);
   const previewingExcelFile = useAppSelector(selectPreviewingExcelFile);
 
   // Effects
@@ -107,6 +117,34 @@ const MessageInput: React.FC = () => {
     [dispatch, t]
   );
 
+  // 添加DOCX文件处理逻辑，并直接dispatch createPage，保存pageKey
+  const handleParseDocx = useCallback(
+    async (file: File) => {
+      try {
+        const slateContent = await convertDocxToSlate(file);
+        console.log("转换后的Slate.js格式内容：", slateContent);
+        // 直接dispatch createPage，传递slateData，并获取pageKey
+        const pageKey = await dispatch(
+          createPage({ slateData: slateContent })
+        ).unwrap();
+        console.log("创建页面成功，pageKey:", pageKey);
+
+        // 只保存pageKey，不保存data
+        const newDocxFile: PendingDocxFile = {
+          id: nanoid(),
+          name: file.name,
+          pageKey: pageKey,
+        };
+        dispatch(addPendingDocxFile(newDocxFile)); // 将DOCX文件信息添加到Redux状态
+        toast.success(t("docxToSlateSuccess"));
+      } catch (error) {
+        console.error("处理DOCX文件失败：", error);
+        toast.error(t("docxToSlateError"));
+      }
+    },
+    [dispatch, t]
+  );
+
   const processFile = useCallback(
     (file: File) => {
       const fileNameLower = file.name.toLowerCase();
@@ -122,9 +160,11 @@ const MessageInput: React.FC = () => {
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       ) {
         handleParseAndAddExcel(file);
+      } else if (fileNameLower.endsWith(".docx")) {
+        handleParseDocx(file);
       }
     },
-    [handleAddImagePreview, handleParseAndAddExcel]
+    [handleAddImagePreview, handleParseAndAddExcel, handleParseDocx]
   );
 
   // Input & Send Logic
@@ -150,12 +190,14 @@ const MessageInput: React.FC = () => {
   const sendMessage = useCallback(async () => {
     const currentImagePreviews = imagePreviews;
     const currentExcelFiles = excelFiles;
+    const currentDocxFiles = docxFiles;
     const trimmedText = textContent.trim();
 
     if (
       !trimmedText &&
       !currentImagePreviews.length &&
-      !currentExcelFiles.length
+      !currentExcelFiles.length &&
+      !currentDocxFiles.length
     ) {
       return;
     }
@@ -193,6 +235,11 @@ const MessageInput: React.FC = () => {
       parts.push({ type: "excel", name: file.name, data: file.data });
     });
 
+    // 处理DOCX文件，只包含pageKey
+    currentDocxFiles.forEach((file) => {
+      parts.push({ type: "docx", name: file.name, pageKey: file.pageKey });
+    });
+
     if (parts.length > 1) {
       messageContent = parts;
     } else if (parts.length === 1 && parts[0].type === "text") {
@@ -211,7 +258,15 @@ const MessageInput: React.FC = () => {
       console.error("Failed to send message:", err);
       toast.error(t("sendFail"));
     }
-  }, [textContent, imagePreviews, excelFiles, dispatch, clearInputState, t]);
+  }, [
+    textContent,
+    imagePreviews,
+    excelFiles,
+    docxFiles,
+    dispatch,
+    clearInputState,
+    t,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -289,6 +344,13 @@ const MessageInput: React.FC = () => {
     [dispatch]
   );
 
+  const handleRemoveDocx = useCallback(
+    (idToRemove: string) => {
+      dispatch(removePendingDocxFile(idToRemove));
+    },
+    [dispatch]
+  );
+
   const handlePreviewExcel = useCallback(
     (idToPreview: string) => {
       dispatch(setPreviewingExcelFile(idToPreview));
@@ -296,13 +358,28 @@ const MessageInput: React.FC = () => {
     [dispatch]
   );
 
+  const handlePreviewDocx = useCallback((idToPreview: string) => {
+    setPreviewingDocxId(idToPreview);
+  }, []);
+
   const handleCloseExcelPreview = useCallback(() => {
     dispatch(setPreviewingExcelFile(null));
   }, [dispatch]);
 
+  const handleCloseDocxPreview = useCallback(() => {
+    setPreviewingDocxId(null);
+  }, []);
+
   // Render Logic
   const hasContent =
-    textContent.trim() || imagePreviews.length > 0 || excelFiles.length > 0;
+    textContent.trim() ||
+    imagePreviews.length > 0 ||
+    excelFiles.length > 0 ||
+    docxFiles.length > 0;
+
+  // 查找当前预览的 DOCX 文件
+  const previewingDocxFile =
+    docxFiles.find((file) => file.id === previewingDocxId) || null;
 
   return (
     <div
@@ -327,6 +404,27 @@ const MessageInput: React.FC = () => {
             previewingFile={previewingExcelFile}
             closePreview={handleCloseExcelPreview}
           />
+        )}
+        {docxFiles.length > 0 && (
+          <div className="docx-preview-wrapper">
+            <div className="docx-preview-list">
+              {docxFiles.map((file) => (
+                <div key={file.id} className="docx-preview-item">
+                  <span
+                    className="docx-name"
+                    onClick={() => handlePreviewDocx(file.id)}
+                    style={{ cursor: "pointer", color: theme.primary }}
+                    title={t("preview")}
+                  >
+                    {file.name}
+                  </span>
+                  <button onClick={() => handleRemoveDocx(file.id)}>
+                    {t("remove")}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -361,12 +459,22 @@ const MessageInput: React.FC = () => {
         </div>
       )}
 
+      {/* DOCX Preview Dialog */}
+      {previewingDocxFile && (
+        <DocxPreviewDialog
+          isOpen={!!previewingDocxFile}
+          onClose={handleCloseDocxPreview}
+          pageKey={previewingDocxFile.pageKey}
+          fileName={previewingDocxFile.name}
+        />
+      )}
+
       {/* Hidden File Input */}
       <input
         ref={fileInputRef}
         type="file"
         hidden
-        accept="image/*,.xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        accept="image/*,.xlsx,.xls,.csv,.docx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         multiple
         onChange={handleFileInputChange}
       />
@@ -398,9 +506,37 @@ const MessageInput: React.FC = () => {
           width: 100%;
         }
 
-        .message-preview-wrapper {
+        .message-preview-wrapper,
+        .docx-preview-wrapper {
           width: 100%;
           margin-bottom: 4px;
+        }
+
+        .docx-preview-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .docx-preview-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: ${theme.backgroundSecondary};
+          padding: 8px;
+          border-radius: 8px;
+          border: 1px solid ${theme.border};
+        }
+
+        .docx-preview-item button {
+          background: none;
+          border: none;
+          color: ${theme.textSecondary};
+          cursor: pointer;
+        }
+
+        .docx-name:hover {
+          text-decoration: underline;
         }
 
         .input-controls {

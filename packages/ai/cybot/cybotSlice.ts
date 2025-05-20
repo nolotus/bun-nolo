@@ -66,7 +66,7 @@ export const cybotSlice = createSliceWithThunks({
     streamCybotId: create.asyncThunk(
       async ({ cybotId, userInput }, thunkApi) => {
         const state = thunkApi.getState();
-        const msgs = selectAllMsgs(state); // 直接获取原始消息
+        const msgs = selectAllMsgs(state); // 获取历史消息
         const dispatch = thunkApi.dispatch;
         const cybotConfig = await dispatch(read(cybotId)).unwrap();
 
@@ -74,6 +74,48 @@ export const cybotSlice = createSliceWithThunks({
         let allReference: string[] = cybotConfig.references
           .map((ref: any) => ref.dbKey || (typeof ref === "string" ? ref : ""))
           .filter((key: string) => typeof key === "string" && key.length > 0);
+
+        // 新增：从 userInput 中提取 pageKey（例如 DOCX 文件中的 pageKey）
+        let msgReferences: string[] = [];
+        if (Array.isArray(userInput)) {
+          userInput.forEach((part: any) => {
+            if (part.type === "docx" && part.pageKey) {
+              msgReferences.push(part.pageKey);
+            }
+          });
+        } else if (
+          typeof userInput === "object" &&
+          userInput.type === "docx" &&
+          userInput.pageKey
+        ) {
+          msgReferences.push(userInput.pageKey);
+        }
+
+        // 新增：从历史消息中提取 pageKey
+        let historyReferences: string[] = [];
+        msgs.forEach((msg: any) => {
+          const content = msg.content;
+          if (Array.isArray(content)) {
+            content.forEach((part: any) => {
+              if (part.type === "docx" && part.pageKey) {
+                historyReferences.push(part.pageKey);
+              }
+            });
+          } else if (
+            typeof content === "object" &&
+            content.type === "docx" &&
+            content.pageKey
+          ) {
+            historyReferences.push(content.pageKey);
+          }
+        });
+
+        // 将 msgReferences 和 historyReferences 合并到 allReference
+        allReference = [
+          ...allReference,
+          ...msgReferences,
+          ...historyReferences,
+        ];
 
         // 如果启用智能读取，获取当前空间数据并生成 outputReference
         if (cybotConfig.smartReadEnabled === true) {
@@ -89,7 +131,6 @@ export const cybotSlice = createSliceWithThunks({
 
           // 尝试解析 outputReference 为 ID 数组，并组合到 allReference
           try {
-            // 去除可能的 ```json 前缀和 ``` 后缀以及换行符
             const cleanedOutput = outputReference
               .replace(/```json/g, "")
               .replace(/```/g, "")
