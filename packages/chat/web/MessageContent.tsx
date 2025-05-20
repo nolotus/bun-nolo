@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { MessageText } from "./MessageText";
 import { useTheme } from "app/theme";
-import ExcelPreview from "web/ExcelPreview";
 import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { FaFileExcel, FaFileWord, FaFilePdf } from "react-icons/fa";
 
 export const MessageContent = ({ content, role }) => {
   const theme = useTheme();
-  const [previewingExcel, setPreviewingExcel] = useState(null);
-  const [previewingDocx, setPreviewingDocx] = useState(null); // 用于控制 DOCX 和 PDF 预览
+  const [previewingFile, setPreviewingFile] = useState<{
+    item: any;
+    type: "excel" | "docx" | "pdf";
+  } | null>(null);
 
   if (!content) return null;
 
@@ -48,13 +49,13 @@ export const MessageContent = ({ content, role }) => {
               );
             }
 
-            if (item.type === "excel" && item.data) {
+            if (item.type === "excel" && item.pageKey) {
               // 不直接展示 Excel 数据，而显示一个可点击的占位区域
               return (
                 <div
                   key={`excel-${index}`}
                   className="message-excel-placeholder"
-                  onClick={() => setPreviewingExcel(item)}
+                  onClick={() => setPreviewingFile({ item, type: "excel" })}
                   title="点击预览 Excel 文件"
                 >
                   <FaFileExcel size={18} />
@@ -69,7 +70,7 @@ export const MessageContent = ({ content, role }) => {
                 <div
                   key={`docx-${index}`}
                   className="message-docx-placeholder"
-                  onClick={() => setPreviewingDocx(item)}
+                  onClick={() => setPreviewingFile({ item, type: "docx" })}
                   title="点击预览 DOCX 文件"
                 >
                   <FaFileWord size={18} />
@@ -84,7 +85,7 @@ export const MessageContent = ({ content, role }) => {
                 <div
                   key={`pdf-${index}`}
                   className="message-pdf-placeholder"
-                  onClick={() => setPreviewingDocx(item)}
+                  onClick={() => setPreviewingFile({ item, type: "pdf" })}
                   title="点击预览 PDF 文件"
                 >
                   <FaFilePdf size={18} />
@@ -104,25 +105,13 @@ export const MessageContent = ({ content, role }) => {
         )}
       </div>
 
-      {/* 当点击 Excel 占位区域后，显示预览模态框 */}
-      {previewingExcel && (
-        <ExcelPreview
-          excelFiles={[previewingExcel]}
-          // 对于消息中的 Excel 文件，不需要删除或预览操作，这里传入空函数
-          onRemove={(id) => {}}
-          onPreview={(id) => {}}
-          previewingFile={previewingExcel}
-          closePreview={() => setPreviewingExcel(null)}
-        />
-      )}
-
-      {/* 当点击 DOCX 或 PDF 占位区域后，显示预览模态框 */}
-      {previewingDocx && (
+      {/* 统一文件预览模态框 */}
+      {previewingFile && (
         <DocxPreviewDialog
-          isOpen={!!previewingDocx}
-          onClose={() => setPreviewingDocx(null)}
-          pageKey={previewingDocx.pageKey}
-          fileName={previewingDocx.name}
+          isOpen={!!previewingFile}
+          onClose={() => setPreviewingFile(null)}
+          pageKey={previewingFile.item.pageKey}
+          fileName={previewingFile.item.name}
         />
       )}
 
