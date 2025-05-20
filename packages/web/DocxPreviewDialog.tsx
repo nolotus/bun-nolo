@@ -1,5 +1,5 @@
 // web/DocxPreviewDialog.tsx
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { Dialog } from "render/web/ui/Dialog";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,12 @@ import {
 import { EditorContent } from "create/editor/utils/slateUtils";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import { selectTheme } from "app/theme/themeSlice";
+import {
+  slateToExcelData,
+  convertToCSV,
+  convertToJSON,
+} from "utils/slateToExcel";
+import * as XLSX from "xlsx";
 
 // 懒加载 Editor 组件
 const Editor = React.lazy(() => import("create/editor/Editor"));
@@ -35,6 +41,7 @@ const DocxPreviewDialog: React.FC<DocxPreviewDialogProps> = ({
   const isLoading = useAppSelector(selectPageIsLoading);
   const isInitialized = useAppSelector(selectPageIsInitialized);
   const page = useAppSelector(selectPageData);
+  const [selectedFormat, setSelectedFormat] = useState("csv");
 
   useEffect(() => {
     if (isOpen && pageKey) {
@@ -43,7 +50,6 @@ const DocxPreviewDialog: React.FC<DocxPreviewDialogProps> = ({
   }, [dispatch, isOpen, pageKey]);
 
   const initialValue = useMemo<EditorContent>(() => {
-    // ... 初始值计算逻辑保持不变
     if (!isInitialized) {
       return [{ type: "paragraph", children: [{ text: "" }] }];
     }
@@ -65,6 +71,52 @@ const DocxPreviewDialog: React.FC<DocxPreviewDialogProps> = ({
     ];
   }, [page, isInitialized, fileName]);
 
+  const handleDownload = useCallback(() => {
+    const excelData = slateToExcelData(initialValue);
+    if (!excelData) {
+      alert(t("noTableDataToExport"));
+      return;
+    }
+
+    const { headers, rows } = excelData;
+    const baseFileName =
+      fileName.split(".").slice(0, -1).join(".") || "exported_data";
+
+    if (selectedFormat === "csv") {
+      const csvData = convertToCSV(headers, rows);
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${baseFileName}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else if (selectedFormat === "json") {
+      const jsonData = convertToJSON(headers, rows);
+      const blob = new Blob([jsonData], {
+        type: "application/json;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${baseFileName}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else if (selectedFormat === "xlsx") {
+      const jsonData = rows.map((row) => {
+        const obj: Record<string, string> = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || "";
+        });
+        return obj;
+      });
+      const ws = XLSX.utils.json_to_sheet(jsonData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      XLSX.writeFile(wb, `${baseFileName}.xlsx`);
+    }
+  }, [initialValue, fileName, selectedFormat, t]);
+
   if (!isOpen) return null;
 
   return (
@@ -72,28 +124,45 @@ const DocxPreviewDialog: React.FC<DocxPreviewDialogProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={`${t("preview")}: ${fileName}`}
-      className="docx-preview-dialog" // 添加自定义类名用于样式覆盖
+      className="docx-preview-dialog"
     >
       {isLoading || !isInitialized ? (
         <div className="loading-container">
           <p>{t("loadingContent")}</p>
         </div>
       ) : (
-        <div className="editor-container">
-          <React.Suspense
-            fallback={
-              <div className="editor-loading">{t("loadingEditor")}</div>
-            }
-          >
-            <Editor
-              initialValue={initialValue}
-              onChange={() => {}} // 只读模式下不需要处理变化
-              onFocus={() => {}} // 不需要处理焦点事件
-              onBlur={() => {}} // 不需要处理失焦事件
-              readOnly={true} // 设置为只读模式
-            />
-          </React.Suspense>
-        </div>
+        <>
+          <div className="editor-container">
+            <React.Suspense
+              fallback={
+                <div className="editor-loading">{t("loadingEditor")}</div>
+              }
+            >
+              <Editor
+                initialValue={initialValue}
+                onChange={() => {}} // 只读模式下不需要处理变化
+                onFocus={() => {}} // 不需要处理焦点事件
+                onBlur={() => {}} // 不需要处理失焦事件
+                readOnly={true} // 设置为只读模式
+              />
+            </React.Suspense>
+          </div>
+          {(fileName.toLowerCase().includes("xls") ||
+            fileName.toLowerCase().includes("csv") ||
+            fileName.toLowerCase().includes("excel")) && (
+            <div className="export-controls">
+              <select
+                value={selectedFormat}
+                onChange={(e) => setSelectedFormat(e.target.value)}
+              >
+                <option value="csv">CSV</option>
+                <option value="json">JSON</option>
+                <option value="xlsx">XLSX</option>
+              </select>
+              <button onClick={handleDownload}>{t("export")}</button>
+            </div>
+          )}
+        </>
       )}
 
       <style jsx>{`
@@ -126,6 +195,37 @@ const DocxPreviewDialog: React.FC<DocxPreviewDialogProps> = ({
           font-size: 14px;
         }
 
+        .export-controls {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          margin-top: 10px;
+          gap: 10px;
+        }
+
+        .export-controls select {
+          padding: 6px 8px;
+          border: 1px solid ${theme.borderLight};
+          border-radius: 4px;
+          background: ${theme.backgroundSecondary};
+          color: ${theme.text};
+        }
+
+        .export-controls button {
+          padding: 8px 16px;
+          border: none;
+          background: ${theme.primary};
+          color: white;
+          border-radius: 6px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .export-controls button:hover {
+          background: ${theme.primaryDark};
+        }
+
         .editor-container::-webkit-scrollbar {
           width: 6px;
         }
@@ -139,7 +239,6 @@ const DocxPreviewDialog: React.FC<DocxPreviewDialogProps> = ({
           background: ${theme.textQuaternary};
         }
 
-        /* 覆盖 Dialog 的默认样式，调整宽高 */
         :global(.docx-preview-dialog.dialog-container) {
           width: 75vw;
           min-width: 600px;
@@ -148,7 +247,6 @@ const DocxPreviewDialog: React.FC<DocxPreviewDialogProps> = ({
           max-height: 85vh;
         }
 
-        /* 响应式调整 */
         @media (min-width: 1601px) {
           :global(.docx-preview-dialog.dialog-container) {
             width: 80vw;

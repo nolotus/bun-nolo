@@ -14,7 +14,6 @@ import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
-import { DialogInvocationMode } from "chat/dialog/types";
 import { createDialogAction } from "./actions/createDialogAction";
 import { updateDialogTitleAction } from "./actions/updateDialogTitleAction";
 import { updateTokensAction } from "./actions/updateTokensAction";
@@ -43,7 +42,7 @@ export interface PendingImagePreview {
 export interface PendingExcelFile {
   id: string;
   name: string;
-  data: any[]; // 保持 any[] 或定义更具体的类型
+  pageKey: string; // 只保存 pageKey
 }
 
 // 新增 DOCX 文件类型
@@ -64,8 +63,8 @@ interface DialogState {
   // 新增：待处理的附件状态
   pendingImagePreviews: PendingImagePreview[];
   pendingExcelFiles: PendingExcelFile[];
-  previewingExcelFileId: string | null;
   pendingDocxFiles: PendingDocxFile[]; // 新增 DOCX 文件状态
+  previewingFile: { id: string; type: "excel" | "docx" } | null; // 统一预览状态
 }
 
 // 定义初始状态
@@ -79,8 +78,8 @@ const initialState: DialogState = {
   // 新增：初始化附件状态
   pendingImagePreviews: [],
   pendingExcelFiles: [],
-  previewingExcelFileId: null,
   pendingDocxFiles: [], // 初始化 DOCX 文件状态
+  previewingFile: null, // 初始化统一预览状态
 };
 
 const DialogSlice = createSliceWithThunks({
@@ -156,8 +155,8 @@ const DialogSlice = createSliceWithThunks({
       // 清空对话状态时，也清空附件
       state.pendingImagePreviews = [];
       state.pendingExcelFiles = [];
-      state.previewingExcelFileId = null;
       state.pendingDocxFiles = []; // 清空 DOCX 文件
+      state.previewingFile = null; // 清空统一预览状态
     }),
 
     createDialog: create.asyncThunk(createDialogAction),
@@ -188,7 +187,11 @@ const DialogSlice = createSliceWithThunks({
     ),
     addPendingExcelFile: create.reducer(
       (state, action: PayloadAction<PendingExcelFile>) => {
-        if (action.payload.id && action.payload.name && action.payload.data) {
+        if (
+          action.payload.id &&
+          action.payload.name &&
+          action.payload.pageKey
+        ) {
           state.pendingExcelFiles.push(action.payload);
         }
       }
@@ -217,8 +220,8 @@ const DialogSlice = createSliceWithThunks({
         state.pendingExcelFiles = state.pendingExcelFiles.filter(
           (file) => file.id !== action.payload
         );
-        if (state.previewingExcelFileId === action.payload) {
-          state.previewingExcelFileId = null;
+        if (state.previewingFile?.id === action.payload) {
+          state.previewingFile = null;
         }
       }
     ),
@@ -228,18 +231,24 @@ const DialogSlice = createSliceWithThunks({
         state.pendingDocxFiles = state.pendingDocxFiles.filter(
           (file) => file.id !== action.payload
         );
+        if (state.previewingFile?.id === action.payload) {
+          state.previewingFile = null;
+        }
       }
     ),
-    setPreviewingExcelFile: create.reducer(
-      (state, action: PayloadAction<string | null>) => {
-        state.previewingExcelFileId = action.payload;
+    setPreviewingFile: create.reducer(
+      (
+        state,
+        action: PayloadAction<{ id: string; type: "excel" | "docx" } | null>
+      ) => {
+        state.previewingFile = action.payload;
       }
     ),
     clearPendingAttachments: create.reducer((state) => {
       state.pendingImagePreviews = [];
       state.pendingExcelFiles = [];
-      state.previewingExcelFileId = null;
       state.pendingDocxFiles = []; // 清空 DOCX 文件
+      state.previewingFile = null; // 清空统一预览状态
     }),
   }),
 });
@@ -260,11 +269,11 @@ export const {
   addPendingExcelFile,
   removePendingImagePreview,
   removePendingExcelFile,
-  setPreviewingExcelFile,
   clearPendingAttachments,
   // 新增 DOCX 文件相关 actions
   addPendingDocxFile,
   removePendingDocxFile,
+  setPreviewingFile,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;
@@ -294,21 +303,26 @@ export const selectPendingExcelFiles = (
   state: NoloRootState
 ): PendingExcelFile[] => state.dialog.pendingExcelFiles;
 
-export const selectPreviewingExcelFileId = (
-  state: NoloRootState
-): string | null => state.dialog.previewingExcelFileId;
-
 // 新增 DOCX 文件 selector
 export const selectPendingDocxFiles = (
   state: NoloRootState
 ): PendingDocxFile[] => state.dialog.pendingDocxFiles;
 
-// 派生 Selector，用于获取正在预览的 Excel 文件对象
-export const selectPreviewingExcelFile = (
+export const selectPreviewingFile = (
   state: NoloRootState
-): PendingExcelFile | null => {
-  const id = selectPreviewingExcelFileId(state);
-  if (!id) return null;
-  const files = selectPendingExcelFiles(state);
-  return files.find((file) => file.id === id) || null;
+): { id: string; type: "excel" | "docx" } | null => state.dialog.previewingFile;
+
+// 派生 Selector，用于获取正在预览的文件对象
+export const selectPreviewingFileObject = (
+  state: NoloRootState
+): PendingExcelFile | PendingDocxFile | null => {
+  const previewingFile = state.dialog.previewingFile;
+  if (!previewingFile) return null;
+  if (previewingFile.type === "excel") {
+    const files = selectPendingExcelFiles(state);
+    return files.find((file) => file.id === previewingFile.id) || null;
+  } else {
+    const files = selectPendingDocxFiles(state);
+    return files.find((file) => file.id === previewingFile.id) || null;
+  }
 };

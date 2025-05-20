@@ -1,3 +1,4 @@
+// MessageInput.tsx
 import type React from "react";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,27 +14,24 @@ import {
   removePendingImagePreview,
   removePendingExcelFile,
   removePendingDocxFile,
-  setPreviewingExcelFile,
+  setPreviewingFile,
   clearPendingAttachments,
   selectPendingImagePreviews,
   selectPendingExcelFiles,
   selectPendingDocxFiles,
-  selectPreviewingExcelFile,
-  type PendingImagePreview,
-  type PendingExcelFile,
-  type PendingDocxFile,
+  selectPreviewingFileObject,
 } from "../dialog/dialogSlice";
 import { compressImage } from "utils/imageUtils";
 import * as XLSX from "xlsx";
 import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
-import ExcelPreview from "web/ExcelPreview";
 import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { UploadIcon } from "@primer/octicons-react";
 import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { convertDocxToSlate } from "./docxToSlate";
-import { convertPdfToSlate } from "./pdfToSlate"; // 假设你已创建并导入此函数
+import { convertPdfToSlate } from "./pdfToSlate";
+import { convertExcelToSlate } from "utils/excelToSlate";
 import { createPage } from "render/page/pageSlice";
 
 const MessageInput: React.FC = () => {
@@ -46,11 +44,10 @@ const MessageInput: React.FC = () => {
   const [textContent, setTextContent] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const [previewingDocxId, setPreviewingDocxId] = useState<string | null>(null);
   const imagePreviews = useAppSelector(selectPendingImagePreviews);
   const excelFiles = useAppSelector(selectPendingExcelFiles);
   const docxFiles = useAppSelector(selectPendingDocxFiles);
-  const previewingExcelFile = useAppSelector(selectPreviewingExcelFile);
+  const previewingFile = useAppSelector(selectPreviewingFileObject);
 
   // Effects
   useEffect(() => {
@@ -76,9 +73,9 @@ const MessageInput: React.FC = () => {
   );
 
   const handleParseAndAddExcel = useCallback(
-    (file: File) => {
+    async (file: File) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         if (!e.target?.result) {
           toast.error(t("fileReadError"));
           return;
@@ -95,12 +92,20 @@ const MessageInput: React.FC = () => {
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
           if (jsonData.length > 0) {
-            const newExcelFile: PendingExcelFile = {
+            // 转换为 Slate.js 格式
+            const slateContent = convertExcelToSlate(jsonData, file.name);
+            // 创建页面
+            const pageKey = await dispatch(
+              createPage({ slateData: slateContent })
+            ).unwrap();
+
+            const newExcelFile = {
               id: nanoid(),
               name: file.name,
-              data: jsonData,
+              pageKey: pageKey,
             };
             dispatch(addPendingExcelFile(newExcelFile));
+            toast.success(t("excelToSlateSuccess"));
           } else {
             toast.error(t("excelIsEmpty"));
           }
@@ -127,7 +132,7 @@ const MessageInput: React.FC = () => {
         ).unwrap();
         console.log("创建页面成功，pageKey:", pageKey);
 
-        const newDocxFile: PendingDocxFile = {
+        const newDocxFile = {
           id: nanoid(),
           name: file.name,
           pageKey: pageKey,
@@ -152,7 +157,7 @@ const MessageInput: React.FC = () => {
         ).unwrap();
         console.log("创建 PDF 页面成功，pageKey:", pageKey);
 
-        const newPdfFile: PendingDocxFile = {
+        const newPdfFile = {
           id: nanoid(),
           name: file.name,
           pageKey: pageKey,
@@ -261,7 +266,11 @@ const MessageInput: React.FC = () => {
     }
 
     currentExcelFiles.forEach((file) => {
-      parts.push({ type: "excel", name: file.name, data: file.data });
+      parts.push({
+        type: "excel",
+        name: file.name,
+        pageKey: file.pageKey,
+      });
     });
 
     currentDocxFiles.forEach((file) => {
@@ -385,22 +394,21 @@ const MessageInput: React.FC = () => {
 
   const handlePreviewExcel = useCallback(
     (idToPreview: string) => {
-      dispatch(setPreviewingExcelFile(idToPreview));
+      dispatch(setPreviewingFile({ id: idToPreview, type: "excel" }));
     },
     [dispatch]
   );
 
-  const handlePreviewDocx = useCallback((idToPreview: string) => {
-    setPreviewingDocxId(idToPreview);
-  }, []);
+  const handlePreviewDocx = useCallback(
+    (idToPreview: string) => {
+      dispatch(setPreviewingFile({ id: idToPreview, type: "docx" }));
+    },
+    [dispatch]
+  );
 
-  const handleCloseExcelPreview = useCallback(() => {
-    dispatch(setPreviewingExcelFile(null));
+  const handleClosePreview = useCallback(() => {
+    dispatch(setPreviewingFile(null));
   }, [dispatch]);
-
-  const handleCloseDocxPreview = useCallback(() => {
-    setPreviewingDocxId(null);
-  }, []);
 
   // Render Logic
   const hasContent =
@@ -408,9 +416,6 @@ const MessageInput: React.FC = () => {
     imagePreviews.length > 0 ||
     excelFiles.length > 0 ||
     docxFiles.length > 0;
-
-  const previewingDocxFile =
-    docxFiles.find((file) => file.id === previewingDocxId) || null;
 
   return (
     <div
@@ -427,29 +432,30 @@ const MessageInput: React.FC = () => {
             <ImagePreview images={imagePreviews} onRemove={handleRemoveImage} />
           </div>
         )}
-        {excelFiles.length > 0 && (
-          <ExcelPreview
-            excelFiles={excelFiles}
-            onRemove={handleRemoveExcel}
-            onPreview={handlePreviewExcel}
-            previewingFile={previewingExcelFile}
-            closePreview={handleCloseExcelPreview}
-          />
-        )}
-        {docxFiles.length > 0 && (
+        {(excelFiles.length > 0 || docxFiles.length > 0) && (
           <div className="docx-preview-wrapper">
             <div className="docx-preview-list">
-              {docxFiles.map((file) => (
+              {[...excelFiles, ...docxFiles].map((file) => (
                 <div key={file.id} className="docx-preview-item">
                   <span
                     className="docx-name"
-                    onClick={() => handlePreviewDocx(file.id)}
+                    onClick={() =>
+                      excelFiles.includes(file as any)
+                        ? handlePreviewExcel(file.id)
+                        : handlePreviewDocx(file.id)
+                    }
                     style={{ cursor: "pointer", color: theme.primary }}
                     title={t("preview")}
                   >
                     {file.name}
                   </span>
-                  <button onClick={() => handleRemoveDocx(file.id)}>
+                  <button
+                    onClick={() =>
+                      excelFiles.includes(file as any)
+                        ? handleRemoveExcel(file.id)
+                        : handleRemoveDocx(file.id)
+                    }
+                  >
                     {t("remove")}
                   </button>
                 </div>
@@ -490,13 +496,13 @@ const MessageInput: React.FC = () => {
         </div>
       )}
 
-      {/* DOCX/PDF Preview Dialog */}
-      {previewingDocxFile && (
+      {/* Unified File Preview Dialog */}
+      {previewingFile && (
         <DocxPreviewDialog
-          isOpen={!!previewingDocxFile}
-          onClose={handleCloseDocxPreview}
-          pageKey={previewingDocxFile.pageKey}
-          fileName={previewingDocxFile.name}
+          isOpen={!!previewingFile}
+          onClose={handleClosePreview}
+          pageKey={previewingFile.pageKey}
+          fileName={previewingFile.name}
         />
       )}
 
