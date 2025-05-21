@@ -77,7 +77,7 @@ const MessageInput: React.FC = () => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         if (!e.target?.result) {
-          toast.error(t("fileReadError"));
+          toast.error(t("fileReadErrorMessage"));
           return;
         }
         try {
@@ -85,7 +85,7 @@ const MessageInput: React.FC = () => {
           const workbook = XLSX.read(data, { type: "array" });
           const firstSheetName = workbook.SheetNames[0];
           if (!firstSheetName) {
-            toast.error(t("excelIsEmptyOrInvalid"));
+            toast.error(t("excelEmptyMessage"));
             return;
           }
           const worksheet = workbook.Sheets[firstSheetName];
@@ -94,9 +94,12 @@ const MessageInput: React.FC = () => {
           if (jsonData.length > 0) {
             // 转换为 Slate.js 格式
             const slateContent = convertExcelToSlate(jsonData, file.name);
-            // 创建页面
+            // 创建页面，将文件名作为 title 传递
             const pageKey = await dispatch(
-              createPage({ slateData: slateContent })
+              createPage({
+                slateData: slateContent,
+                title: file.name,
+              })
             ).unwrap();
 
             const newExcelFile = {
@@ -105,17 +108,17 @@ const MessageInput: React.FC = () => {
               pageKey: pageKey,
             };
             dispatch(addPendingExcelFile(newExcelFile));
-            toast.success(t("excelToSlateSuccess"));
+            toast.success(t("excelUploadSuccess"));
           } else {
-            toast.error(t("excelIsEmpty"));
+            toast.error(t("excelNoDataMessage"));
           }
         } catch (error) {
-          toast.error(t("excelParseError"));
+          toast.error(t("excelParseErrorMessage"));
           console.error("Excel parsing error:", error);
         }
       };
       reader.onerror = () => {
-        toast.error(t("fileReadError"));
+        toast.error(t("fileReadErrorMessage"));
       };
       reader.readAsArrayBuffer(file);
     },
@@ -128,7 +131,10 @@ const MessageInput: React.FC = () => {
         const slateContent = await convertDocxToSlate(file);
         console.log("转换后的 Slate.js 格式内容：", slateContent);
         const pageKey = await dispatch(
-          createPage({ slateData: slateContent })
+          createPage({
+            slateData: slateContent,
+            title: file.name,
+          })
         ).unwrap();
         console.log("创建页面成功，pageKey:", pageKey);
 
@@ -138,10 +144,10 @@ const MessageInput: React.FC = () => {
           pageKey: pageKey,
         };
         dispatch(addPendingDocxFile(newDocxFile));
-        toast.success(t("docxToSlateSuccess"));
+        toast.success(t("docxUploadSuccess"));
       } catch (error) {
         console.error("处理 DOCX 文件失败：", error);
-        toast.error(t("docxToSlateError"));
+        toast.error(t("docxUploadError"));
       }
     },
     [dispatch, t]
@@ -153,7 +159,10 @@ const MessageInput: React.FC = () => {
         const slateContent = await convertPdfToSlate(file);
         console.log("转换后的 PDF Slate.js 内容：", slateContent);
         const pageKey = await dispatch(
-          createPage({ slateData: slateContent })
+          createPage({
+            slateData: slateContent,
+            title: file.name,
+          })
         ).unwrap();
         console.log("创建 PDF 页面成功，pageKey:", pageKey);
 
@@ -163,10 +172,10 @@ const MessageInput: React.FC = () => {
           pageKey: pageKey,
         };
         dispatch(addPendingDocxFile(newPdfFile)); // 复用 DOCX 的状态管理
-        toast.success(t("pdfToSlateSuccess"));
+        toast.success(t("pdfUploadSuccess"));
       } catch (error) {
         console.error("处理 PDF 文件失败：", error);
-        toast.error(t("pdfToSlateError"));
+        toast.error(t("pdfUploadError"));
       }
     },
     [dispatch, t]
@@ -244,7 +253,7 @@ const MessageInput: React.FC = () => {
     }
 
     if (currentImagePreviews.length > 0) {
-      const compressionToastId = toast.loading(t("compressingImages"), {
+      const compressionToastId = toast.loading(t("compressingImagesMessage"), {
         duration: Infinity,
       });
       try {
@@ -258,7 +267,7 @@ const MessageInput: React.FC = () => {
       } catch (error) {
         toast.dismiss(compressionToastId);
         console.error("Error during image compression batch:", error);
-        toast.error(t("compressionError"), { duration: 4000 });
+        toast.error(t("compressionErrorMessage"), { duration: 4000 });
         currentImagePreviews.forEach((img) => {
           parts.push({ type: "image_url", image_url: { url: img.url } });
         });
@@ -297,7 +306,7 @@ const MessageInput: React.FC = () => {
       clearInputState();
     } catch (err) {
       console.error("Failed to send message:", err);
-      toast.error(t("sendFail"));
+      toast.error(t("sendFailMessage"));
     }
   }, [
     textContent,
