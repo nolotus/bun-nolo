@@ -61,6 +61,21 @@ export default {
       uploadFile: "Upload File",
       useServerProxy: "Use Transit Service",
       viewDetails: "for more details",
+      // 新增文件上传相关翻译
+      fileReadErrorMessage: "Failed to read file, please try again.",
+      excelEmptyMessage: "Excel file is empty or invalid.",
+      excelNoDataMessage: "No data found in Excel file.",
+      excelParseErrorMessage:
+        "Failed to parse Excel file, please check the format.",
+      excelUploadSuccess: "Excel file uploaded and converted successfully!",
+      docxUploadSuccess: "DOCX file uploaded and converted successfully!",
+      docxUploadError: "Failed to upload DOCX file, please check the format.",
+      pdfUploadSuccess: "PDF file uploaded and converted successfully!",
+      pdfUploadError: "Failed to upload PDF file, please check the format.",
+      compressingImagesMessage: "Compressing images, please wait...",
+      compressionErrorMessage:
+        "Image compression failed, sending original images.",
+      sendFailMessage: "Failed to send message, please try again.",
     },
   },
   "zh-CN": {
@@ -124,6 +139,19 @@ export default {
       uploadFile: "上传文件",
       useServerProxy: "使用中转服务",
       viewDetails: "了解更多详情",
+      // 新增文件上传相关翻译
+      fileReadErrorMessage: "读取文件时出错，请重试。",
+      excelEmptyMessage: "Excel 文件为空或格式无效。",
+      excelNoDataMessage: "Excel 文件中没有数据。",
+      excelParseErrorMessage: "解析 Excel 文件时出错，请检查文件格式。",
+      excelUploadSuccess: "Excel 文件上传并转换成功！",
+      docxUploadSuccess: "DOCX 文件上传并转换成功！",
+      docxUploadError: "上传 DOCX 文件时出错，请检查文件格式。",
+      pdfUploadSuccess: "PDF 文件上传并转换成功！",
+      pdfUploadError: "上传 PDF 文件时出错，请检查文件格式。",
+      compressingImagesMessage: "正在压缩图片，请稍候...",
+      compressionErrorMessage: "图片压缩失败，将使用原始图片上传。",
+      sendFailMessage: "发送消息失败，请重试。",
     },
   },
   "zh-Hant": {
@@ -187,6 +215,19 @@ export default {
       uploadFile: "上傳檔案",
       useServerProxy: "使用中轉服務",
       viewDetails: "了解更多詳情",
+      // 新增文件上传相关翻译
+      fileReadErrorMessage: "讀取檔案時出錯，請重試。",
+      excelEmptyMessage: "Excel 檔案為空或格式無效。",
+      excelNoDataMessage: "Excel 檔案中沒有數據。",
+      excelParseErrorMessage: "解析 Excel 檔案時出錯，請檢查檔案格式。",
+      excelUploadSuccess: "Excel 檔案上傳並轉換成功！",
+      docxUploadSuccess: "DOCX 檔案上傳並轉換成功！",
+      docxUploadError: "上傳 DOCX 檔案時出錯，請檢查檔案格式。",
+      pdfUploadSuccess: "PDF 檔案上傳並轉換成功！",
+      pdfUploadError: "上傳 PDF 檔案時出錯，請檢查檔案格式。",
+      compressingImagesMessage: "正在壓縮圖片，請稍候...",
+      compressionErrorMessage: "圖片壓縮失敗，將使用原始圖片上傳。",
+      sendFailMessage: "發送訊息失敗，請重試。",
     },
   },
   ja: {
@@ -251,6 +292,24 @@ export default {
       uploadFile: "ファイルをアップロード",
       useServerProxy: "中継サービスを使用",
       viewDetails: "詳細を確認",
+      // 新增文件上传相关翻译
+      fileReadErrorMessage:
+        "ファイルの読み込みに失敗しました。もう一度お試しください。",
+      excelEmptyMessage: "Excelファイルが空か無効です。",
+      excelNoDataMessage: "Excelファイルにデータが見つかりません。",
+      excelParseErrorMessage:
+        "Excelファイルの解析に失敗しました。フォーマットを確認してください。",
+      excelUploadSuccess: "Excelファイルのアップロードと変換が成功しました！",
+      docxUploadSuccess: "DOCXファイルのアップロードと変換が成功しました！",
+      docxUploadError:
+        "DOCXファイルのアップロードに失敗しました。フォーマットを確認してください。",
+      pdfUploadSuccess: "PDFファイルのアップロードと変換が成功しました！",
+      pdfUploadError:
+        "PDFファイルのアップロードに失敗しました。フォーマットを確認してください。",
+      compressingImagesMessage: "画像を圧縮中です。お待ちください...",
+      compressionErrorMessage: "画像圧縮に失敗しました。元の画像を送信します。",
+      sendFailMessage:
+        "メッセージの送信に失敗しました。もう一度お試しください。",
     },
   },
 };
