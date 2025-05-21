@@ -38,11 +38,11 @@ export const googleModels: Model[] = [
     },
   },
   {
-    name: "gemini-2.5-pro-preview-03-25",
-    displayName: "Gemini 2.5 Pro (Preview 03-25)",
+    name: "gemini-2.5-pro-preview-05-06",
+    displayName: "Gemini 2.5 Pro (Preview 05-06)",
     provider: "google",
     description:
-      "Preview version of Gemini 2.5 Pro (release 03-25).  May have different performance and features.",
+      "Preview version of Gemini 2.5 Pro (release 05-06).  May have different performance and features.",
     hasVision: true, //  Assume it has vision, adjust if not.
     hasAudio: true, //  Assume it has audio, adjust if not.
     // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
@@ -56,11 +56,11 @@ export const googleModels: Model[] = [
     },
   },
   {
-    name: "gemini-2.5-flash-preview-04-17",
-    displayName: "Gemini 2.5 Flash (Preview 04-17)",
+    name: "gemini-2.5-flash-preview-05-20",
+    displayName: "Gemini 2.5 Flash (Preview 05-20)",
     provider: "google",
     description:
-      "Preview version of Gemini 2.5 Flash (release 04-17).  May have different performance and features.",
+      "Preview version of Gemini 2.5 Flash (release 05-20).  May have different performance and features.",
     hasVision: true, //  Assume it has vision, adjust if not.
     hasAudio: true, //  Assume it has audio, adjust if not.
     // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
