@@ -13,7 +13,7 @@ const SectionHeader = ({ title, icon, linkText, linkTo }) => {
         {icon &&
           React.cloneElement(icon, {
             className: "section-title-icon",
-            size: 24,
+            size: 20,
           })}
         {title}
       </h2>
@@ -29,11 +29,11 @@ const SectionHeader = ({ title, icon, linkText, linkTo }) => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin: 2.5rem 0 2rem;
+          margin: 2rem 0 1.5rem; /* 调整上边距，视觉上更紧凑 */
         }
 
         .section-title {
-          font-size: 1.8rem;
+          font-size: 1.4rem; /* 减小字体大小，与"开始创建"一致 */
           color: ${theme.text};
           font-weight: 600;
           display: flex;
@@ -53,8 +53,8 @@ const SectionHeader = ({ title, icon, linkText, linkTo }) => {
           color: ${theme.primary};
           text-decoration: none;
           font-weight: 500;
-          font-size: 0.95rem;
-          padding: 0.5rem 1rem;
+          font-size: 0.9rem; /* 字体稍小，保持次要视觉 */
+          padding: 0.4rem 0.9rem;
           border-radius: 6px;
           transition: all 0.2s ease;
         }
@@ -66,33 +66,33 @@ const SectionHeader = ({ title, icon, linkText, linkTo }) => {
 
         @media (max-width: 768px) {
           .section-header {
-            margin: 2rem 0 1.5rem;
-            display: flex; /* 保持行布局 */
-            align-items: center; /* 垂直居中 */
-            justify-content: space-between; /* 保持两端对齐 */
-            gap: 0.75rem;
+            margin: 1.5rem 0 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
           }
 
           .section-title {
-            font-size: 1.6rem;
-            flex-shrink: 1; /* 允许标题缩小 */
-            min-width: 0; /* 确保标题不会溢出 */
+            font-size: 1.3rem; /* 移动端稍小 */
+            flex-shrink: 1;
+            min-width: 0;
           }
 
           .explore-more-link {
-            font-size: 0.9rem;
-            padding: 0.4rem 0.8rem;
-            flex-shrink: 0; /* 链接不缩小 */
+            font-size: 0.85rem;
+            padding: 0.3rem 0.7rem;
+            flex-shrink: 0;
           }
         }
 
         @media (max-width: 480px) {
           .section-title {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
           }
 
           .explore-more-link {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             padding: 0.3rem 0.6rem;
           }
         }

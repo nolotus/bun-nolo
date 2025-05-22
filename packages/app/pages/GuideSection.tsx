@@ -12,7 +12,7 @@ import Cybots from "ai/cybot/web/Cybots";
 import { useNavigate, NavLink } from "react-router-dom";
 import { createPage } from "render/page/pageSlice";
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
-import SectionHeader from "./SectionHeader"; // 引入新组件
+import SectionHeader from "./SectionHeader";
 
 const GuideSection = () => {
   const theme = useAppSelector(selectTheme);
@@ -209,13 +209,13 @@ const GuideSection = () => {
         }
 
         .section-subtitle {
-          font-size: 1.2rem;
+          font-size: 1.4rem; /* 与 SectionHeader 标题大小一致 */
           color: ${theme.text};
           display: flex;
           align-items: center;
           gap: 0.5rem;
           font-weight: 600;
-          margin: 0;
+          margin: 0 0 1.2rem 0; /* 调整下边距，与 SectionHeader 一致 */
         }
 
         .subtitle-icon {
@@ -385,7 +385,8 @@ const GuideSection = () => {
           }
 
           .section-subtitle {
-            font-size: 1.1rem;
+            font-size: 1.3rem; /* 与 SectionHeader 一致 */
+            margin: 0 0 1rem 0;
           }
 
           .button-grid,
@@ -409,7 +410,7 @@ const GuideSection = () => {
           }
 
           .section-subtitle {
-            font-size: 1rem;
+            font-size: 1.2rem; /* 与 SectionHeader 一致 */
           }
 
           .button-title,
