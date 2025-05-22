@@ -27,10 +27,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Deploy to tw.nolotus.com
+      - name: Deploy to cybot.one
         uses: appleboy/ssh-action@master
         with:
-          host: tw.nolotus.com
+          host: cybot.one
           username: nolotus
           key: ${{ secrets.SERVER_TW_KEY }}
           script: |
