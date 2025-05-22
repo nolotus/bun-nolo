@@ -2,14 +2,6 @@ import { Model } from "ai/llm/types";
 
 export const ollamaModels: Model[] = [
   {
-    name: "nomic-embed-text:latest",
-    displayName: "Nomic Embed Text",
-    description: "Text embedding model",
-    hasVision: false,
-    contextWindow: 8192,
-    price: { input: 0, output: 0 },
-  },
-  {
     name: "mistral-small:latest",
     displayName: "Mistral Small",
     description: "Mistral-small language model",
@@ -44,4 +36,3 @@ export const ollamaModels: Model[] = [
     price: { input: 0, output: 0 },
   },
 ];
-

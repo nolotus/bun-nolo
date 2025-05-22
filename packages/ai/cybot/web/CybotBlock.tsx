@@ -8,7 +8,6 @@ import { useModal } from "render/ui/Modal";
 
 import toast from "react-hot-toast";
 import Button from "render/web/ui/Button";
-import { IconHoverButton } from "render/ui/IconHoverButton";
 import { Dialog } from "render/web/ui/Dialog";
 import { Tooltip } from "render/web/ui/Tooltip";
 import EditCybot from "ai/cybot/web/EditCybot";
@@ -79,12 +78,39 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
               </h3>
             </Tooltip>
 
-            {(item.inputPrice || item.outputPrice) && (
-              <div className="cybot-block__price-tag">
-                {(item.inputPrice || 0).toFixed(2)}/
-                {(item.outputPrice || 0).toFixed(2)}
-              </div>
-            )}
+            <div className="cybot-block__meta">
+              {(item.inputPrice || item.outputPrice) && (
+                <div className="cybot-block__price-tag">
+                  {(item.inputPrice || 0).toFixed(2)}/
+                  {(item.outputPrice || 0).toFixed(2)}
+                </div>
+              )}
+
+              {allowEdit && (
+                <div className="cybot-block__actions-top">
+                  <Tooltip content={t("edit")}>
+                    <button
+                      className="cybot-block__icon-btn cybot-block__edit-btn"
+                      onClick={openEdit}
+                      aria-label={t("edit")}
+                    >
+                      <PencilIcon size={15} />
+                    </button>
+                  </Tooltip>
+
+                  <Tooltip content={t("delete")}>
+                    <button
+                      className="cybot-block__icon-btn cybot-block__delete-btn"
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      aria-label={t("delete")}
+                    >
+                      <TrashIcon size={15} />
+                    </button>
+                  </Tooltip>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="cybot-block__tags">
@@ -115,33 +141,10 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           disabled={isLoading}
           loading={isLoading}
           size="medium"
-          style={{ flex: 2 }}
+          style={{ flex: 1 }}
         >
           {isLoading ? t("starting") : t("startChat")}
         </Button>
-
-        {allowEdit && (
-          <div className="cybot-block__edit-actions">
-            <IconHoverButton
-              icon={<PencilIcon size={16} />}
-              variant="secondary"
-              onClick={openEdit}
-              size="medium"
-            >
-              {t("edit")}
-            </IconHoverButton>
-
-            <IconHoverButton
-              icon={<TrashIcon size={16} />}
-              variant="danger"
-              onClick={handleDelete}
-              disabled={deleting}
-              size="medium"
-            >
-              {t("delete")}
-            </IconHoverButton>
-          </div>
-        )}
       </div>
 
       {editVisible && (
@@ -179,6 +182,69 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         .cybot-block:focus {
           border-color: ${theme.primary};
+        }
+        
+        .cybot-block__meta {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .cybot-block__actions-top {
+          display: flex;
+          gap: 6px;
+          opacity: 0.7; /* 默认透明度提高，使按钮始终可见 */
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        
+        .cybot-block:hover .cybot-block__actions-top {
+          opacity: 1;
+          transform: translateY(-1px); /* 悬停时轻微上浮 */
+        }
+        
+        .cybot-block__icon-btn {
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          background: ${theme.backgroundSecondary};
+          color: ${theme.textSecondary};
+          border: 1px solid ${theme.border};
+          cursor: pointer;
+          transition: all 0.2s ease;
+          padding: 0;
+        }
+        
+        .cybot-block__icon-btn:hover {
+          transform: translateY(-1px);
+          color: ${theme.text};
+          background: ${theme.backgroundGhost};
+          box-shadow: 0 2px 5px ${theme.shadowLight};
+        }
+        
+        .cybot-block__icon-btn:active {
+          transform: translateY(0);
+          box-shadow: none;
+        }
+        
+        .cybot-block__edit-btn:hover {
+          color: ${theme.primary};
+          border-color: ${theme.primary}50;
+          background: ${theme.primaryGhost}20;
+        }
+        
+        .cybot-block__delete-btn:hover {
+          color: ${theme.error};
+          border-color: ${theme.error}50;
+          background: ${theme.error}10;
+        }
+        
+        .cybot-block__icon-btn[disabled] {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
         }
 
         .cybot-block__header {
@@ -276,13 +342,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         .cybot-block__actions {
           display: flex;
-          gap: ${theme.space[3]};
           margin-top: auto;
-        }
-
-        .cybot-block__edit-actions {
-          display: flex;
-          gap: ${theme.space[2]};
         }
 
         .cybot-block--exit {
@@ -307,17 +367,9 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             padding: ${theme.space[4]};
             gap: ${theme.space[3]};
           }
-
-          .cybot-block__actions {
-            flex-direction: column;
-            gap: ${theme.space[2]};
-          }
-
-          .cybot-block__edit-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            width: 100%;
-            gap: ${theme.space[3]};
+          
+          .cybot-block__actions-top {
+            opacity: 1; /* 在移动设备上始终显示操作按钮 */
           }
 
           .cybot-block__avatar {
@@ -327,6 +379,16 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
           .cybot-block__title {
             font-size: 0.95rem;
+          }
+          
+          .cybot-block__meta {
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+          }
+          
+          .cybot-block__price-tag {
+            margin-right: 0;
           }
 
           .cybot-block__description {
