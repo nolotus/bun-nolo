@@ -322,7 +322,6 @@ export const sendCommonChatRequest = async ({
       cybotConfig,
       api,
       bodyData,
-      currentServer,
       signal
     );
 
