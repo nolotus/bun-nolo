@@ -3,18 +3,16 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { CreateRoutePaths } from "create/routePaths";
-
-// web
-import { FiChevronRight } from "react-icons/fi";
+import { FiChevronRight, FiDollarSign } from "react-icons/fi";
 import { HiOutlineLightBulb, HiOutlineDocumentAdd } from "react-icons/hi";
 import { BsRobot, BsPlusLg } from "react-icons/bs";
 import { MdOutlineSettings } from "react-icons/md";
-import { FiDollarSign } from "react-icons/fi";
 import { BiBook } from "react-icons/bi";
 import Cybots from "ai/cybot/web/Cybots";
 import { useNavigate, NavLink } from "react-router-dom";
 import { createPage } from "render/page/pageSlice";
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
+import SectionHeader from "./SectionHeader"; // 引入新组件
 
 const GuideSection = () => {
   const theme = useAppSelector(selectTheme);
@@ -143,16 +141,12 @@ const GuideSection = () => {
 
       {currentUserId && (
         <div className="my-cybots-section section-block">
-          <div className="section-header">
-            <h3 className="section-subtitle">
-              <BsRobot size={16} className="subtitle-icon" />
-              我的 Cybot 列表
-            </h3>
-            <NavLink to={`space/${currentSpaceId}`} className="view-all-link">
-              <span>查看全部</span>
-              <FiChevronRight size={16} aria-hidden="true" />
-            </NavLink>
-          </div>
+          <SectionHeader
+            title="我的 Cybot 列表"
+            icon={<BsRobot size={16} />}
+            linkText="查看全部"
+            linkTo={`space/${currentSpaceId}`}
+          />
           <Cybots queryUserId={currentUserId} limit={6} />
         </div>
       )}
@@ -212,13 +206,6 @@ const GuideSection = () => {
 
         .section-block:last-child {
           margin-bottom: 0;
-        }
-
-        .section-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 1rem;
         }
 
         .section-subtitle {
@@ -392,33 +379,9 @@ const GuideSection = () => {
           padding: 0;
         }
 
-        .view-all-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          color: ${theme.primary};
-          text-decoration: none;
-          font-weight: 500;
-          font-size: 0.9rem;
-          padding: 0.4rem 0.9rem;
-          border-radius: 6px;
-          transition: all 0.2s ease;
-        }
-
-        .view-all-link:hover {
-          background-color: ${theme.backgroundLight};
-          transform: translateX(3px);
-        }
-
         @media (max-width: 768px) {
           .guide-title {
             font-size: 1.5rem;
-          }
-
-          .section-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
           }
 
           .section-subtitle {
@@ -433,11 +396,6 @@ const GuideSection = () => {
 
           .button-content {
             padding: 1rem;
-          }
-          
-          .view-all-link {
-            padding: 0.3rem 0.7rem;
-            font-size: 0.85rem;
           }
         }
 
