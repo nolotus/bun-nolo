@@ -33,6 +33,7 @@ import { createSpaceKey } from "create/space/spaceKeys";
 import { SpaceItem } from "create/space/components/SpaceItem";
 import { CreateMenu } from "create/CreateMenu";
 import { useAuth } from "auth/hooks/useAuth";
+import { HomeIcon } from "@primer/octicons-react";
 
 export const SidebarTop = () => {
   const theme = useTheme();
@@ -146,9 +147,20 @@ export const SidebarTop = () => {
     }
   };
 
+  const handleHomeClick = () => {
+    navigate("/");
+  };
+
   // --------- 渲染 ---------
   return (
     <div className="space-sidebar-top" role="navigation">
+      <button
+        className="home-icon-button"
+        onClick={handleHomeClick}
+        aria-label={t("home")}
+      >
+        <HomeIcon size={16} />
+      </button>
       <div className="space-dropdown">
         {/* 整个trigger容器作为reference */}
         <div
@@ -431,6 +443,28 @@ export const SidebarTop = () => {
         }
         .space-dropdown__create-container {
           padding: 2px 0;
+        }
+        .home-icon-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          color: ${theme.textSecondary};
+          width: ${theme.space[8]}; /* 32px */
+          height: ${theme.space[8]}; /* 32px */
+          border-radius: 6px;
+          transition: all 0.15s ease;
+        }
+        .home-icon-button:hover {
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
+        }
+        .home-icon-button:focus-visible {
+          outline: none;
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
         }
       `}</style>
     </div>

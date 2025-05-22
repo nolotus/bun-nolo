@@ -19,13 +19,19 @@ import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
 import { CreateTool } from "create/CreateTool";
 import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 import { RoutePaths } from "auth/web/routes";
-import { HomeIcon, SignInIcon } from "@primer/octicons-react";
+import { SignInIcon, ThreeBarsIcon } from "@primer/octicons-react";
 
 interface TopBarProps {
   topbarContent?: ReactNode;
+  toggleSidebar?: (e?: React.MouseEvent) => void;
+  isSidebarOpen?: boolean;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
+const TopBar: React.FC<TopBarProps> = ({
+  topbarContent,
+  toggleSidebar,
+  isSidebarOpen,
+}) => {
   const { t } = useTranslation();
   const { isLoggedIn, user } = useAuth();
   const theme = useTheme();
@@ -47,7 +53,18 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
     <>
       <div className="topbar">
         <div className="topbar-left">
-          <NavIconItem path="/" icon={<HomeIcon size={16} />} />
+          {toggleSidebar && (
+            <button
+              className="sidebar-toggle-button"
+              onClick={toggleSidebar}
+              aria-label={
+                isSidebarOpen ? t("close_sidebar") : t("open_sidebar")
+              }
+              title={isSidebarOpen ? t("close_sidebar") : t("open_sidebar")}
+            >
+              <ThreeBarsIcon size={16} />
+            </button>
+          )}
         </div>
 
         <div className="topbar-center">
@@ -96,6 +113,7 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
             box-sizing: border-box;
             border: none;
             box-shadow: none;
+            transition: transform 0.3s ease; /* 添加过渡效果 */
           }
           
           .topbar-left, .topbar-right {
@@ -127,6 +145,31 @@ const TopBar: React.FC<TopBarProps> = ({ topbarContent }) => {
             gap: ${theme.space[3]}; /* 12px */
             max-width: 800px;
             width: 100%;
+          }
+
+          .sidebar-toggle-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: ${theme.textSecondary};
+            width: ${theme.space[8]}; /* 32px */
+            height: ${theme.space[8]}; /* 32px */
+            border-radius: 6px;
+            transition: all 0.15s ease;
+          }
+
+          .sidebar-toggle-button:hover {
+            background: ${theme.backgroundHover};
+            color: ${theme.text};
+          }
+
+          .sidebar-toggle-button:focus-visible {
+            outline: none;
+            background: ${theme.backgroundHover};
+            color: ${theme.text};
           }
 
           /* --- Responsive Design --- */
