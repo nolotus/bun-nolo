@@ -3,6 +3,8 @@ import { MessageText } from "./MessageText";
 import { useTheme } from "app/theme";
 import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { FaFileExcel, FaFileWord, FaFilePdf } from "react-icons/fa";
+import { BaseModal } from "render/web/ui/BaseModal";
+import { XIcon } from "@primer/octicons-react";
 
 export const MessageContent = ({ content, role }) => {
   const theme = useTheme();
@@ -10,6 +12,7 @@ export const MessageContent = ({ content, role }) => {
     item: any;
     type: "excel" | "docx" | "pdf";
   } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   if (!content) return null;
 
@@ -38,19 +41,18 @@ export const MessageContent = ({ content, role }) => {
 
             if (item.type === "image_url" && item.image_url?.url) {
               return (
-                <picture key={`image-${index}`}>
-                  <source srcSet={item.image_url.url} />
+                <div key={`image-${index}`} className="message-image-container">
                   <img
                     src={item.image_url.url}
-                    alt="Generated content"
+                    alt="消息图片"
                     className="message-image"
+                    onClick={() => setSelectedImage(item.image_url.url)}
                   />
-                </picture>
+                </div>
               );
             }
 
             if (item.type === "excel" && item.pageKey) {
-              // 不直接展示 Excel 数据，而显示一个可点击的占位区域
               return (
                 <div
                   key={`excel-${index}`}
@@ -65,7 +67,6 @@ export const MessageContent = ({ content, role }) => {
             }
 
             if (item.type === "docx" && item.pageKey) {
-              // 不直接展示 DOCX 内容，而显示一个可点击的占位区域
               return (
                 <div
                   key={`docx-${index}`}
@@ -80,7 +81,6 @@ export const MessageContent = ({ content, role }) => {
             }
 
             if (item.type === "pdf" && item.pageKey) {
-              // 不直接展示 PDF 内容，而显示一个可点击的占位区域
               return (
                 <div
                   key={`pdf-${index}`}
@@ -113,6 +113,22 @@ export const MessageContent = ({ content, role }) => {
           pageKey={previewingFile.item.pageKey}
           fileName={previewingFile.item.name}
         />
+      )}
+
+      {/* 图片预览模态框 */}
+      {selectedImage && (
+        <BaseModal
+          isOpen={!!selectedImage}
+          onClose={() => setSelectedImage(null)}
+          className="image-preview-modal"
+        >
+          <img
+            src={selectedImage}
+            alt="放大预览"
+            className="preview-modal-image"
+            onClick={(e) => e.stopPropagation()} // 防止点击图片关闭模态框
+          />
+        </BaseModal>
       )}
 
       <style href="message-content" precedence="medium">{`
@@ -163,6 +179,11 @@ export const MessageContent = ({ content, role }) => {
           margin-bottom: 0;
         }
 
+        .message-image-container {
+          position: relative;
+          display: inline-block;
+        }
+
         .message-image {
           border-radius: 6px;
           max-width: 100%;
@@ -171,6 +192,13 @@ export const MessageContent = ({ content, role }) => {
           object-fit: contain;
           box-shadow: 0 1px 2px ${theme.shadowLight};
           border: 1px solid ${theme.border};
+          cursor: pointer;
+          transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .message-image:hover {
+          transform: scale(1.02);
+          border-color: ${theme.primary};
         }
 
         .message-self {
@@ -237,6 +265,21 @@ export const MessageContent = ({ content, role }) => {
 
         .message-pdf-placeholder:hover {
           background-color: ${theme.backgroundHover};
+        }
+
+        /* 图片预览模态框样式 */
+        .preview-modal-image {
+          max-width: 90vw;
+          max-height: 85vh;
+          object-fit: contain;
+          border-radius: 12px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .message-image {
+            transition: none;
+          }
         }
       `}</style>
     </>
