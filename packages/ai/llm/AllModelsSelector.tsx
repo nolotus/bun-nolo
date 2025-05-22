@@ -10,7 +10,6 @@ import { fireworksmodels } from "integrations/fireworks/models";
 import { googleModels } from "integrations/google/models";
 import { mistralModels } from "integrations/mistral/models";
 import { openAIModels } from "integrations/openai/models";
-import { ollamaModels } from "integrations/ollama/models";
 import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
@@ -39,7 +38,6 @@ const ALL_MODELS: ModelWithProvider[] = [
   ...fireworksmodels.map((m) => ({ ...m, provider: "fireworks" })),
   ...deepinfraModels.map((m) => ({ ...m, provider: "deepinfra" })),
   ...sambanovaModels.map((m) => ({ ...m, provider: "sambanova" })),
-  ...ollamaModels.map((m) => ({ ...m, provider: "ollama" })),
 ];
 
 const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
@@ -83,10 +81,8 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
         placeholder={t("selectModel")}
         renderOptionContent={(item, isHighlighted, isSelected) => (
           <div className="model-option">
-            <div className="model-info">
-              <span className="model-name">{item.name}</span>
-              <span className="provider-name">({item.provider})</span>
-            </div>
+            <span className="model-name">{item.name}</span>
+            <span className="provider-name">({item.provider})</span>
             <div className="model-indicators">
               {item.hasVision && (
                 <span className="vision-badge">{t("supportsVision")}</span>
@@ -103,11 +99,6 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
           align-items: center;
           padding: 6px 0;
         }
-        .model-info {
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        }
         .model-name {
           font-weight: 500;
           white-space: nowrap;
@@ -118,6 +109,7 @@ const AllModelsSelector: React.FC<AllModelsSelectorProps> = ({
           font-size: 11px;
           color: #6a737d;
           white-space: nowrap;
+          margin-left: 8px;
         }
         .model-indicators {
           display: flex;
