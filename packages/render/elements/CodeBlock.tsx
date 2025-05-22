@@ -6,6 +6,7 @@ import JsonBlock from "./JsonBlock"; // 假设路径正确
 import ReactLiveBlock, { createLiveScope } from "./ReactLiveBlock"; // 假设路径正确
 import ReactECharts from "echarts-for-react"; // 确保已安装
 import MermaidContent from "./MermaidContent"; // <--- 导入新组件
+import * as docx from "docx"; // <--- 1. 导入 docx 库
 
 // --- PrismJS Language Imports ---
 // (保持不变)
@@ -36,34 +37,29 @@ const CodeBlock = ({ attributes, children, element }) => {
 
   // --- 提取文本内容 (保持不变) ---
   const content = useMemo(() => {
-    // ... (代码与之前相同) ...
     const getTextContent = (nodes) => {
-      if (!Array.isArray(nodes)) return ""; // Handle potential non-array input
+      if (!Array.isArray(nodes)) return "";
       return nodes
         .map((node) => {
-          if (!node) return ""; // Skip null/undefined nodes
-          if (node.text !== undefined) return node.text; // Prefer text property
+          if (!node) return "";
+          if (node.text !== undefined) return node.text;
           if (node.type === "code-line" && Array.isArray(node.children)) {
-            // Recursively get text from children of code-line and add newline
             return getTextContent(node.children) + "\n";
           }
           if (Array.isArray(node.children)) {
-            // Recursively get text from other node types' children
             return getTextContent(node.children);
           }
-          return ""; // Default empty string for unknown nodes
+          return "";
         })
         .join("");
     };
 
     try {
-      // element.children should contain the code lines/text nodes
       const rawText = getTextContent(element.children);
-      // Trim trailing newline added by the last code-line
       return rawText.replace(/\n$/, "");
     } catch (err) {
       console.error("Error extracting code content:", err, element);
-      return ""; // Return empty string on error
+      return "";
     }
   }, [element.children]);
 
@@ -84,20 +80,19 @@ const CodeBlock = ({ attributes, children, element }) => {
   const CODE_BLOCK_PADDING = theme?.space?.[4] || "16px";
   const CODE_BLOCK_PADDING_COLLAPSED = theme?.space?.[1] || "4px";
 
-  // --- React Live Scope (保持不变) ---
+  // --- React Live Scope ---
   const liveScope = useMemo(
     () => ({
       ...createLiveScope(theme),
       ReactECharts,
+      docx, // <--- 2. 将 docx 添加到 liveScope
     }),
-    [theme]
+    [theme] // 确保 theme 是唯一的依赖项，如果 docx 不依赖 theme
+    // 如果 createLiveScope 返回的内容是稳定的，可以移除 theme 依赖，
+    // 但通常它会包含与主题相关的组件或函数
   );
 
-  // --- Mermaid Rendering Effect (已移除) ---
-  // useEffect(() => { ... }); // <-- 删除此部分
-
-  // --- Styles ---
-  // 移除 Mermaid 专属 CSS: .mermaid, .mermaid svg
+  // --- Styles (保持不变) ---
   const codeBlockStyles = `
     .code-block-wrapper {
       position: relative;
@@ -143,18 +138,14 @@ const CodeBlock = ({ attributes, children, element }) => {
        padding-left: 3.8em;
        position: relative;
     }
-
-    /* --- Mermaid styles removed --- */
   `;
 
   // --- Render Logic ---
 
-  // --- 生成稳定 ID (用于 Mermaid) ---
-  // 如果 element 本身有 ID 就用，否则生成一个
   const elementId = useMemo(
     () => element.id || `code-${Math.random().toString(36).substr(2, 9)}`,
     [element.id]
-  ); // 依赖 element.id
+  );
 
   // --- JSON Preview (保持不变) ---
   if (element.language === "json" && showPreview && content && !isCollapsed) {
@@ -162,7 +153,7 @@ const CodeBlock = ({ attributes, children, element }) => {
       <>
         <style>{codeBlockStyles}</style>
         <div {...attributes} className="code-block-wrapper">
-          <CodeBlockActions /* ...props */
+          <CodeBlockActions
             language={element.language}
             showPreview={showPreview}
             setShowPreview={setShowPreview}
@@ -186,13 +177,13 @@ const CodeBlock = ({ attributes, children, element }) => {
     );
   }
 
-  // --- Mermaid Preview / Code View (使用新组件) ---
+  // --- Mermaid Preview / Code View (保持不变) ---
   if (element.language === "mermaid") {
     return (
       <>
-        <style>{codeBlockStyles}</style> {/* 通用样式 */}
+        <style>{codeBlockStyles}</style>
         <div {...attributes} className="code-block-wrapper">
-          <CodeBlockActions /* ...props */
+          <CodeBlockActions
             language={element.language}
             showPreview={showPreview}
             setShowPreview={setShowPreview}
@@ -207,15 +198,14 @@ const CodeBlock = ({ attributes, children, element }) => {
           <div
             className={`code-block-content-area ${showPreview && !isCollapsed ? "preview-mode" : ""}`}
           >
-            {/* 调用 MermaidContent 组件 */}
             <MermaidContent
-              elementId={elementId} // 传递生成的 ID
+              elementId={elementId}
               content={content}
               showPreview={showPreview}
               isCollapsed={isCollapsed}
-              children={children} // 传递原始 children 用于代码显示
-              theme={theme} // 传递主题
-              codeBlockPadding={CODE_BLOCK_PADDING} // 传递内边距
+              children={children}
+              theme={theme}
+              codeBlockPadding={CODE_BLOCK_PADDING}
             />
           </div>
         </div>
@@ -233,7 +223,7 @@ const CodeBlock = ({ attributes, children, element }) => {
       <>
         <style>{codeBlockStyles}</style>
         <div {...attributes} className="code-block-wrapper">
-          <CodeBlockActions /* ...props */
+          <CodeBlockActions
             language={element.language}
             showPreview={showPreview}
             setShowPreview={setShowPreview}
@@ -251,7 +241,7 @@ const CodeBlock = ({ attributes, children, element }) => {
               language={element.language}
               theme={theme}
               showPreview={showPreview}
-              liveScope={liveScope}
+              liveScope={liveScope} // liveScope 现在包含了 docx
               codeBlockPadding={CODE_BLOCK_PADDING}
             />
           </div>
@@ -265,7 +255,7 @@ const CodeBlock = ({ attributes, children, element }) => {
     <>
       <style>{codeBlockStyles}</style>
       <div {...attributes} className="code-block-wrapper">
-        <CodeBlockActions /* ...props */
+        <CodeBlockActions
           language={element.language}
           showPreview={showPreview}
           setShowPreview={setShowPreview}
