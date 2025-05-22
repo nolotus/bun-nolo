@@ -22,6 +22,9 @@ import {
   EyeIcon, // 引入 EyeIcon 作为视觉能力图标
 } from "@primer/octicons-react";
 
+// 引入 react-icons 中的价格相关图标
+import { FaYenSign } from "react-icons/fa"; // 使用 FaYenSign 作为人民币符号
+
 interface CybotBlockProps {
   item: Cybot;
   reload: () => Promise<void>;
@@ -79,10 +82,9 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             </Tooltip>
 
             <div className="cybot-block__meta">
-              {(item.inputPrice || item.outputPrice) && (
+              {item.outputPrice && (
                 <div className="cybot-block__price-tag">
-                  {(item.inputPrice || 0).toFixed(2)}/
-                  {(item.outputPrice || 0).toFixed(2)}
+                  <FaYenSign size={12} /> {(item.outputPrice || 0).toFixed(2)}
                 </div>
               )}
 
@@ -188,6 +190,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           display: flex;
           align-items: center;
           gap: 8px;
+          justify-content: flex-end; /* 确保右侧对齐 */
         }
         
         .cybot-block__actions-top {
@@ -249,7 +252,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         .cybot-block__header {
           display: flex;
-          gap: ${theme.space[3]};
+          gap: ${theme.space[2]}; /* 减少头像与标题之间的距离 */
           align-items: center;
         }
 
@@ -283,7 +286,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         }
 
         .cybot-block__title {
-          font-size: 1rem;
+          font-size: 0.95rem; /* 字体大小稍微减小，从1rem改为0.95rem */
           font-weight: 600;
           margin: 0;
           color: ${theme.text};
@@ -323,6 +326,10 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           border-radius: 6px;
           white-space: nowrap;
           border: 1px solid ${theme.border};
+          align-self: center; /* 确保价格标签垂直居中 */
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[1]}; /* 图标和价格之间的间距 */
         }
 
         .cybot-block__description {
@@ -378,13 +385,14 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           }
 
           .cybot-block__title {
-            font-size: 0.95rem;
+            font-size: 0.9rem; /* 在小屏幕上进一步减小字体 */
           }
           
           .cybot-block__meta {
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 5px;
+            flex-direction: row; /* 改为横向排列以确保对齐 */
+            align-items: center;
+            justify-content: flex-end; /* 右侧对齐 */
+            gap: 6px;
           }
           
           .cybot-block__price-tag {
