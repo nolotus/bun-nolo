@@ -25,9 +25,8 @@ export const commonConfig = {
   },
   metafile: true,
   sourcemap: true,
-  // 修正 external 配置
+  platform: "browser",
   external: ["react-native*"],
-
   resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
   conditions: ["browser", "default"],
 };
