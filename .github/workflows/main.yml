@@ -29,9 +29,9 @@ jobs:
       - run: bun run build
       - run: bun test
 
-      # 👈 关键：上传构建产物
+      # 👈 关键：上传构建产物 - 改用v4
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: alpha-build-assets
           path: public/assets
@@ -60,21 +60,14 @@ jobs:
             rm -rf public/assets
             /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
 
-            # 统一PM2操作：只删除nolo进程
             sudo pm2 delete nolo || true
-
-            # 启动新的进程
             sudo pm2 start packages/server/entry.ts --interpreter /home/nolotus/.bun/bin/bun --name nolo 
-
-            # 保存 PM2 进程列表
             sudo pm2 save
 
-            # 健康检查
             echo "等待服务启动..."
             sleep 5
             sudo pm2 status nolo
 
-            # 检查进程是否正常运行
             if sudo pm2 list | grep -q "nolo.*online"; then
               echo "✅ 服务部署成功，进程运行正常"
             else
@@ -96,9 +89,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 👈 关键：下载构建产物
+      # 👈 关键：下载构建产物 - 改用v4
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: alpha-build-assets
           path: public/assets
@@ -124,27 +117,18 @@ jobs:
             git fetch --all
             git reset --hard origin/alpha
 
-            # 👈 关键：跳过构建步骤，直接使用上传的assets
             echo "🎯 使用CI构建的资源，跳过服务器构建"
 
-            # 只安装依赖（如果package.json有变化）
             /root/.bun/bin/bun install
 
-            # 统一PM2操作：只删除nolo进程
             /root/.bun/bin/pm2 delete nolo || true
-
-            # 启动新的进程
             /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo 
-
-            # 保存 PM2 进程列表
             /root/.bun/bin/pm2 save
 
-            # 健康检查
             echo "等待服务启动..."
             sleep 5
             /root/.bun/bin/pm2 status nolo
 
-            # 检查进程是否正常运行
             if /root/.bun/bin/pm2 list | grep -q "nolo.*online"; then
               echo "✅ 服务部署成功，进程运行正常"
             else
