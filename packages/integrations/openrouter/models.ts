@@ -1,14 +1,5 @@
 export const openrouterModels = [
   {
-    name: "anthropic/claude-3.7-sonnet",
-    displayName: "Anthropic: Claude 3.7 Sonnet",
-    hasVision: true,
-    price: { input: 3 * 8, output: 15 * 8 },
-    maxOutputTokens: 200000,
-    contextWindow: 200000,
-    supportsTool: true,
-  },
-  {
     name: "anthropic/claude-3.5-sonnet",
     displayName: "Anthropic: Claude 3.5 Sonnet",
     hasVision: true,
@@ -75,5 +66,25 @@ export const openrouterModels = [
     maxOutputTokens: 128000,
     contextWindow: 200000,
     supportsTool: true,
+  },
+  {
+    name: "anthropic/claude-opus-4",
+    displayName: "Anthropic: Claude Opus 4",
+    hasVision: true,
+    price: { input: 15 * 8, output: 75 * 8 },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 24 * 8,
+  },
+  {
+    name: "anthropic/claude-sonnet-4",
+    displayName: "Anthropic: Claude Sonnet 4",
+    hasVision: true,
+    price: { input: 3 * 8, output: 15 * 8 },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 4.8 * 8,
   },
 ];
