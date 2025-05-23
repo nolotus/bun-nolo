@@ -4,80 +4,81 @@ import { useTheme } from "app/theme";
 
 interface CreateSpaceButtonProps {
   onClick: () => void;
-  getItemProps: any;
-  listRef: (node: HTMLElement | null) => void;
-  index: number;
-  disabled?: boolean; // 添加可选的禁用属性
+  disabled?: boolean;
 }
 
 export const CreateSpaceButton = ({
   onClick,
-  getItemProps,
-  listRef,
-  index,
   disabled = false,
 }: CreateSpaceButtonProps) => {
   const theme = useTheme();
-  const { t } = useTranslation("space"); // 指定 space 命名空间
+  const { t } = useTranslation("space");
+
+  const handleClick = () => {
+    if (!disabled) {
+      onClick();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!disabled && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      onClick();
+    }
+  };
 
   return (
-    <div
-      ref={(node) => listRef(node)}
-      {...getItemProps({
-        onClick,
-      })}
+    <button
+      type="button"
       className={`space-create-button ${disabled ? "is-disabled" : ""}`}
-      role="button"
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
       aria-label={t("create")}
-      aria-disabled={disabled}
+      disabled={disabled}
     >
-      <div className="space-create-button__content">
-        <GoPlus size={12} />
-        <span>{t("create")}</span>
-      </div>
+      <GoPlus size={14} />
+      <span>{t("create")}</span>
 
       <style>{`
         .space-create-button {
-          position: relative;
-          padding: 4px;
-        }
-
-        .space-create-button.is-disabled {
-          opacity: 0.6;
-          pointer-events: none;
-        }
-
-        .space-create-button__content {
           display: flex;
           align-items: center;
-          gap: 6px;
-          padding: 6px 8px;
-          border-radius: 4px;
-          transition: all 0.2s ease;
-          color: ${theme.primary};
+          gap: 8px;
+          width: 100%;
+          padding: 8px 12px;
+          margin: 2px 0;
+          border: none;
+          border-radius: 6px;
+          background: transparent;
+          color: ${theme.textSecondary};
           font-size: 13px;
-          font-weight: 500;
+          font-weight: 400;
           cursor: pointer;
-          user-select: none;
+          transition: all 0.15s ease;
+          outline: none;
+          min-height: 32px;
         }
 
-        .space-create-button:active .space-create-button__content {
-          transform: scale(0.98);
-        }
-
-        .space-create-button:hover .space-create-button__content {
-          background: ${`${theme.primary}12`};
+        .space-create-button:hover {
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
         }
 
         .space-create-button:focus-visible {
-          outline: none;
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
+          box-shadow: 0 0 0 1px ${theme.primary};
         }
 
-        .space-create-button:focus-visible .space-create-button__content {
-          outline: 2px solid ${theme.primary};
-          outline-offset: -1px;
+        .space-create-button:active {
+          transform: scale(0.98);
+        }
+
+        .space-create-button.is-disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
       `}</style>
-    </div>
+    </button>
   );
 };
