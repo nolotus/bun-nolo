@@ -1,15 +1,5 @@
 export const openrouterModels = [
   {
-    name: "anthropic/claude-3.5-sonnet",
-    displayName: "Anthropic: Claude 3.5 Sonnet",
-    hasVision: true,
-    price: { input: 3 * 8, output: 15 * 8 },
-    maxOutputTokens: 200000,
-    contextWindow: 200000,
-    supportsTool: true,
-    pricePerImage: 4.8 * 8,
-  },
-  {
     name: "google/gemini-2.5-pro-exp-03-25:free",
     displayName: "Gemini 2.5 Pro Exp 03-25",
     hasVision: false,
