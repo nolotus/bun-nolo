@@ -37,12 +37,11 @@ export const commonConfig = {
   conditions: ['browser', 'default'],
 };
 
-// 定义生产环境特有配置
-// 定义生产环境特有配置
 const prodConfig = {
   entryNames: "[dir]/[name]-[hash]",
   minify: true,
-  sourcemap: false,  // 👈 只改这一行：取消注释
+  sourcemap: false,
+  minifyIdentifiers: false,  // 👈 只加这一行
 };
 
 export const config = isProduction
