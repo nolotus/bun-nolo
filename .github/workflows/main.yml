@@ -14,7 +14,6 @@ jobs:
       - uses: oven-sh/setup-bun@v1
       - run: bun install
       - run: rm -rf public/assets
-      - run: bun i
       - run: bun run build
       - run: bun test
 
@@ -41,7 +40,7 @@ jobs:
             rm -rf public/assets
             /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
 
-            # 使用一个命令删除所有旧的 nolo 进程
+            # 统一PM2操作：只删除nolo进程
             sudo pm2 delete nolo || true
 
             # 启动新的进程
@@ -50,7 +49,21 @@ jobs:
             # 保存 PM2 进程列表
             sudo pm2 save
 
-            echo "部署完成"
+            # 健康检查
+            echo "等待服务启动..."
+            sleep 5
+            sudo pm2 status nolo
+
+            # 检查进程是否正常运行
+            if sudo pm2 list | grep -q "nolo.*online"; then
+              echo "✅ 服务部署成功，进程运行正常"
+            else
+              echo "❌ 服务部署失败"
+              sudo pm2 logs nolo --lines 50
+              exit 1
+            fi
+
+            echo "🚀 部署完成"
 
   deploy-alpha-us:
     needs: build-test
@@ -75,8 +88,8 @@ jobs:
             rm -rf public/assets
             /root/.bun/bin/bun run ./scripts/esBuild.js
 
-            # 使用一个命令删除所有旧的 nolo 进程
-            /root/.bun/bin/pm2 delete all
+            # 统一PM2操作：只删除nolo进程
+            /root/.bun/bin/pm2 delete nolo || true
 
             # 启动新的进程
             /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo 
@@ -84,4 +97,18 @@ jobs:
             # 保存 PM2 进程列表
             /root/.bun/bin/pm2 save
 
-            echo "部署完成"
+            # 健康检查
+            echo "等待服务启动..."
+            sleep 5
+            /root/.bun/bin/pm2 status nolo
+
+            # 检查进程是否正常运行
+            if /root/.bun/bin/pm2 list | grep -q "nolo.*online"; then
+              echo "✅ 服务部署成功，进程运行正常"
+            else
+              echo "❌ 服务部署失败"
+              /root/.bun/bin/pm2 logs nolo --lines 50
+              exit 1
+            fi
+
+            echo "🚀 部署完成"
