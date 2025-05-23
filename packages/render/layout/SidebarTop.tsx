@@ -1,18 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  FloatingFocusManager,
-  autoUpdate,
-  flip,
-  offset,
-  shift,
-  size,
-  useDismiss,
-  useFloating,
-  useInteractions,
-  useListNavigation,
-  useRole,
-  useTransitionStyles,
-} from "@floating-ui/react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import {
@@ -23,7 +9,7 @@ import {
 } from "create/space/spaceSlice";
 import { useTranslation } from "react-i18next";
 import { RxDropdownMenu } from "react-icons/rx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import { Dialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { useTheme } from "app/theme";
@@ -50,69 +36,43 @@ export const SidebarTop = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const { visible, open: openModal, close: closeModal } = useModal();
 
-  const spacesLength = spaces.length;
-  const listRef = useRef<Array<HTMLElement | null>>(
-    new Array(spacesLength + 1).fill(null)
-  );
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  // 用 ref 绑定整个trigger容器
-  const triggerRef = useRef<HTMLDivElement | null>(null);
-
+  // 点击外部关闭下拉菜单
   useEffect(() => {
-    listRef.current = Array(spaces.length + 1).fill(null);
-    if (isOpen) setActiveIndex(null);
-  }, [spaces.length, isOpen]);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
 
-  // --------- Floating UI ---------
-  const { refs, floatingStyles, context } = useFloating({
-    open: isOpen,
-    onOpenChange: setIsOpen,
-    placement: "bottom-start",
-    whileElementsMounted: autoUpdate,
-    middleware: [
-      offset(4),
-      flip(),
-      shift(),
-      size({
-        apply({ rects, elements }) {
-          Object.assign(elements.floating.style, {
-            width: `${Math.max(rects.reference.width, 180)}px`,
-            maxWidth: "calc(100vw - 32px)",
-          });
-        },
-      }),
-    ],
-  });
-
-  useEffect(() => {
-    if (triggerRef.current) {
-      refs.setReference(triggerRef.current);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [refs]);
+  }, [isOpen]);
 
-  const { isMounted, styles: transitionStyles } = useTransitionStyles(context, {
-    initial: { opacity: 0, transform: "translateY(-4px)" },
-    open: { opacity: 1, transform: "translateY(0)" },
-    close: { opacity: 0, transform: "translateY(-4px)" },
-    duration: { open: 150, close: 100 },
-  });
+  // ESC 键关闭下拉菜单
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
 
-  const dismiss = useDismiss(context);
-  const role = useRole(context);
-  const listNavigation = useListNavigation(context, {
-    listRef,
-    activeIndex,
-    onNavigate: setActiveIndex,
-    loop: true,
-  });
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [isOpen]);
 
-  const { getFloatingProps, getItemProps } = useInteractions([
-    dismiss,
-    role,
-    listNavigation,
-  ]);
-
-  // --------- 事件处理 ---------
+  // 事件处理
   const handleCurrentSpaceClick = () => {
     if (!loading && space?.id) {
       navigate(`/space/${space.id}`);
@@ -147,22 +107,19 @@ export const SidebarTop = () => {
     }
   };
 
-  const handleHomeClick = () => {
-    navigate("/");
-  };
-
-  // --------- 渲染 ---------
   return (
     <div className="space-sidebar-top" role="navigation">
-      <button
-        className="home-icon-button"
-        onClick={handleHomeClick}
+      <NavLink
+        to="/"
+        className={({ isActive }) =>
+          `home-icon-button ${isActive ? "home-icon-button--active" : ""}`
+        }
         aria-label={t("home")}
       >
         <HomeIcon size={16} />
-      </button>
-      <div className="space-dropdown">
-        {/* 整个trigger容器作为reference */}
+      </NavLink>
+
+      <div className="space-dropdown" ref={dropdownRef}>
         <div
           className={`space-dropdown__trigger ${isOpen ? "is-open" : ""} ${loading ? "is-loading" : ""}`}
           ref={triggerRef}
@@ -209,262 +166,308 @@ export const SidebarTop = () => {
           </button>
         </div>
 
-        {/* ------------------ 下拉 ------------------ */}
-        {isMounted && (
-          <FloatingFocusManager context={context} modal={false}>
-            <div
-              ref={refs.setFloating}
-              style={{
-                ...floatingStyles,
-                ...transitionStyles,
-              }}
-              {...getFloatingProps()}
-              className="space-dropdown__menu"
-              role="listbox"
-              aria-label={t("space_list")}
-            >
-              <div className="space-dropdown__content">
-                {loading ? (
-                  <div className="space-dropdown__loading-state">
-                    <div className="loading-dot"></div>
-                    <div className="loading-dot"></div>
-                    <div className="loading-dot"></div>
-                  </div>
-                ) : spaces.length > 0 ? (
-                  <div className="space-dropdown__spaces">
-                    {spaces.map((spaceItem, index) => (
-                      <SpaceItem
-                        key={spaceItem.dbKey || spaceItem.spaceId}
-                        spaceItem={spaceItem}
-                        isCurrentSpace={isCurrentSpace(spaceItem.spaceId)}
-                        index={index}
-                        listRef={(node) => (listRef.current[index] = node)}
-                        getItemProps={getItemProps}
-                        onSelect={handleOptionClick}
-                        onSettingsClick={(e) =>
-                          handleSettingsClick(e, spaceItem.dbKey)
-                        }
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-dropdown__empty">{t("no_spaces")}</div>
-                )}
-
-                {!loading && spaces.length > 0 && (
-                  <div className="space-dropdown__divider"></div>
-                )}
-
-                {!loading && (
-                  <div className="space-dropdown__create-container">
-                    <CreateSpaceButton
-                      onClick={openModal}
-                      getItemProps={getItemProps}
-                      listRef={(node) => (listRef.current[spacesLength] = node)}
-                      index={spacesLength}
-                      disabled={loading}
+        {/* 下拉菜单 */}
+        {isOpen && (
+          <div
+            ref={menuRef}
+            className="space-dropdown__menu"
+            role="listbox"
+            aria-label={t("space_list")}
+          >
+            <div className="space-dropdown__content">
+              {loading ? (
+                <div className="space-dropdown__loading-state">
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                </div>
+              ) : spaces.length > 0 ? (
+                <div className="space-dropdown__spaces">
+                  {spaces.map((spaceItem, index) => (
+                    <SpaceItem
+                      key={spaceItem.dbKey || spaceItem.spaceId}
+                      spaceItem={spaceItem}
+                      isCurrentSpace={isCurrentSpace(spaceItem.spaceId)}
+                      onSelect={handleOptionClick}
+                      onSettingsClick={(e) =>
+                        handleSettingsClick(e, spaceItem.dbKey)
+                      }
                     />
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-dropdown__empty">{t("no_spaces")}</div>
+              )}
+
+              {!loading && spaces.length > 0 && (
+                <div className="space-dropdown__divider"></div>
+              )}
+
+              {!loading && (
+                <div className="space-dropdown__create-container">
+                  <CreateSpaceButton onClick={openModal} disabled={loading} />
+                </div>
+              )}
             </div>
-          </FloatingFocusManager>
+          </div>
         )}
       </div>
+
       <CreateMenu />
       <Dialog isOpen={visible} onClose={closeModal}>
         <CreateSpaceForm onClose={closeModal} />
       </Dialog>
+
       <style>{`
         .space-sidebar-top {
           display: flex;
-          padding: ${theme.space[3]}; /* 12px */
-          gap: ${theme.space[3]}; /* 12px */
+          padding: 12px;
+          gap: 12px;
           align-items: center;
           background: ${theme.background};
-          height: ${theme.space[12]}; /* 48px */
+          height: 48px;
         }
+
         .space-dropdown {
           flex: 1;
           min-width: 0;
           position: relative;
         }
+
         .space-dropdown__trigger {
           display: flex;
           align-items: center;
           width: 100%;
-          height: ${theme.space[8]}; /* 32px */
-          padding: 0;
+          height: 32px;
           background: ${theme.backgroundSecondary};
           border-radius: 6px;
-          border: 1px solid transparent;
-          transition: all 0.15s ease;
+          border: 1px solid ${theme.borderLight};
+          transition: all 0.12s ease-out;
+          overflow: hidden;
         }
+
+        .space-dropdown__trigger:hover {
+          border-color: ${theme.textSecondary};
+          background: ${theme.backgroundHover};
+        }
+
         .space-dropdown__trigger.is-open {
-          background: ${theme.backgroundActive || theme.backgroundHover};
           border-color: ${theme.primary};
+          background: ${theme.backgroundHover};
           box-shadow: 0 0 0 1px ${theme.primaryLight};
         }
+
         .space-dropdown__trigger.is-loading {
-          opacity: 0.7;
+          opacity: 0.6;
           cursor: default;
+          pointer-events: none;
         }
+
         .space-dropdown__name {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
           font-size: 13px;
+          font-weight: 500;
           color: ${theme.text};
           flex: 1;
           min-width: 0;
-          padding: 0 ${theme.space[3]}; /* 12px */
-          font-weight: 500;
-          line-height: 30px;
+          padding: 0 12px;
           height: 100%;
-          user-select: none;
-          border-radius: 6px 0 0 6px;
+          display: flex;
+          align-items: center;
           cursor: pointer;
-          transition: background 0.15s;
+          transition: color 0.12s ease;
+          user-select: none;
         }
+
         .space-dropdown__name:hover {
-          background: ${theme.backgroundHover};
+          color: ${theme.textDark || theme.text};
         }
+
         .space-dropdown__name:focus-visible {
           outline: none;
-          background: ${theme.backgroundHover};
+          color: ${theme.primary};
         }
+
         .space-dropdown__loading-text {
-          opacity: 0.7;
+          opacity: 0.6;
+          font-weight: 400;
         }
+
         .space-dropdown__icon-btn {
           height: 100%;
-          width: ${theme.space[8]}; /* 32px */
+          width: 32px;
           display: flex;
           align-items: center;
           justify-content: center;
           background: transparent;
           border: none;
-          border-radius: 0 6px 6px 0;
           cursor: pointer;
           color: ${theme.textSecondary};
-          transition: all 0.15s;
-          padding: 0;
+          transition: all 0.12s ease;
+          border-left: 1px solid ${theme.borderLight};
         }
+
         .space-dropdown__icon-btn:hover {
-          background: ${theme.backgroundHover};
+          background: ${theme.backgroundTertiary};
           color: ${theme.text};
         }
+
         .space-dropdown__icon-btn:focus-visible {
           outline: none;
-          background: ${theme.backgroundHover};
+          background: ${theme.backgroundTertiary};
           color: ${theme.text};
         }
+
         .space-dropdown__icon-btn:disabled {
-          opacity: 0.5;
+          opacity: 0.4;
           cursor: not-allowed;
         }
+
         .space-dropdown__icon {
-          transition: transform 0.2s, color 0.2s;
+          transition: transform 0.15s ease-out;
           transform: ${isOpen ? "rotate(180deg)" : "rotate(0deg)"};
-          color: ${isOpen ? theme.primary : theme.textTertiary};
         }
+
         .space-dropdown__menu {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          margin-top: 4px;
           background: ${theme.background};
           border-radius: 8px;
           border: 1px solid ${theme.borderLight};
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.03);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
           z-index: ${zIndex.spaceDropdownZIndex};
-          margin-top: ${theme.space[1]}; /* 4px */
           overflow: hidden;
-          backdrop-filter: blur(8px);
+          animation: slideIn 0.12s ease-out;
         }
+
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-4px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
         .space-dropdown__content {
-          max-height: 300px;
+          max-height: 280px;
           overflow-y: auto;
-          padding: ${theme.space[2]}; /* 8px */
+          padding: 8px;
           scrollbar-width: thin;
-          scrollbar-color: ${theme.textLight} transparent;
+          scrollbar-color: ${theme.borderLight} transparent;
         }
+
         .space-dropdown__content::-webkit-scrollbar {
           width: 4px;
         }
+
         .space-dropdown__content::-webkit-scrollbar-track {
           background: transparent;
         }
+
         .space-dropdown__content::-webkit-scrollbar-thumb {
-          background: ${theme.textLight};
-          border-radius: 4px;
+          background: ${theme.borderLight};
+          border-radius: 2px;
         }
+
+        .space-dropdown__content::-webkit-scrollbar-thumb:hover {
+          background: ${theme.textSecondary};
+        }
+
         .space-dropdown__loading-state {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: ${theme.space[2]}; /* 8px */
-          padding: ${theme.space[3]} 0; /* 12px */
+          gap: 6px;
+          padding: 16px 0;
         }
+
         .loading-dot {
-          width: 6px;
-          height: 6px;
+          width: 4px;
+          height: 4px;
           border-radius: 50%;
-          background: ${theme.primary};
-          animation: pulse 1.4s infinite ease-in-out;
-          opacity: 0.7;
+          background: ${theme.textSecondary};
+          animation: pulse 1.2s infinite ease-in-out;
         }
+
         .loading-dot:nth-child(2) {
           animation-delay: 0.2s;
         }
+
         .loading-dot:nth-child(3) {
           animation-delay: 0.4s;
         }
+
         @keyframes pulse {
           0%, 100% {
-            transform: scale(0.6);
-            opacity: 0.5;
+            opacity: 0.4;
           }
           50% {
-            transform: scale(1);
             opacity: 1;
           }
         }
+
         .space-dropdown__divider {
           height: 1px;
-          margin: ${theme.space[1]} 0; /* 4px */
-          background-color: ${theme.borderLight};
+          margin: 6px 0;
+          background: ${theme.borderLight};
           opacity: 0.6;
         }
+
         .space-dropdown__empty {
-          padding: ${theme.space[3]}; /* 12px */
+          padding: 16px 12px;
           color: ${theme.textSecondary};
           text-align: center;
           font-size: 13px;
         }
+
         .space-dropdown__spaces {
           padding: 0;
         }
+
         .space-dropdown__create-container {
-          padding: 2px 0;
+          padding: 0;
         }
+
         .home-icon-button {
           display: flex;
           align-items: center;
           justify-content: center;
           background: transparent;
-          border: none;
+          border: 1px solid transparent;
           cursor: pointer;
           color: ${theme.textSecondary};
-          width: ${theme.space[8]}; /* 32px */
-          height: ${theme.space[8]}; /* 32px */
+          width: 32px;
+          height: 32px;
           border-radius: 6px;
-          transition: all 0.15s ease;
+          transition: all 0.12s ease;
+          text-decoration: none;
         }
+
         .home-icon-button:hover {
           background: ${theme.backgroundHover};
           color: ${theme.text};
+          border-color: ${theme.borderLight};
         }
+
         .home-icon-button:focus-visible {
           outline: none;
           background: ${theme.backgroundHover};
           color: ${theme.text};
+          border-color: ${theme.primary};
+        }
+
+        .home-icon-button--active {
+          background: ${theme.backgroundSecondary};
+          color: ${theme.primary};
+          border-color: ${theme.primaryLight};
         }
       `}</style>
     </div>

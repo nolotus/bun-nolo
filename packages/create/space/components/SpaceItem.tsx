@@ -1,40 +1,45 @@
 import { useTheme } from "app/theme";
 import { useTranslation } from "react-i18next";
 import { CheckIcon, GearIcon } from "@primer/octicons-react";
+import { NavLink } from "react-router-dom";
 
 interface SpaceItemProps {
   spaceItem: any;
   isCurrentSpace: boolean;
-  index: number;
-  listRef: (node: HTMLElement | null) => void;
-  getItemProps: any;
   onSelect: (spaceId: string) => void;
   onSettingsClick: (e: React.MouseEvent, spaceMemberpath: string) => void;
 }
+
 export const SpaceItem = ({
   spaceItem,
   isCurrentSpace,
-  index,
-  listRef,
-  getItemProps,
   onSelect,
   onSettingsClick,
 }: SpaceItemProps) => {
   const theme = useTheme();
   const { t } = useTranslation();
 
+  const handleLinkClick = (e: React.MouseEvent) => {
+    // 如果是中键点击或按住 Ctrl/Cmd，让浏览器处理默认行为（新标签页打开）
+    if (e.button === 1 || e.ctrlKey || e.metaKey) {
+      return;
+    }
+    // 否则阻止默认导航，使用自定义逻辑
+    e.preventDefault();
+    onSelect(spaceItem.spaceId);
+  };
+
   return (
-    <div
-      ref={(node) => listRef(node)}
-      {...getItemProps({
-        onClick: () => onSelect(spaceItem.spaceId),
-      })}
-      className="space-list-item"
-      role="option"
-      aria-selected={isCurrentSpace}
-    >
-      <div
-        className={`space-list-item__inner ${isCurrentSpace ? "space-list-item__inner--current" : ""}`}
+    <div className="space-list-item">
+      <NavLink
+        to={`/space/${spaceItem.spaceId}`}
+        className={({ isActive }) =>
+          `space-list-item__link ${isActive ? "space-list-item__link--active" : ""} ${
+            isCurrentSpace ? "space-list-item__link--current" : ""
+          }`
+        }
+        onClick={handleLinkClick}
+        onAuxClick={handleLinkClick}
       >
         <div className="space-list-item__content">
           {isCurrentSpace && (
@@ -44,37 +49,60 @@ export const SpaceItem = ({
             {spaceItem.spaceName || spaceItem.spaceId}
           </span>
         </div>
-        <button
-          className="space-list-item__settings"
-          onClick={(e) => onSettingsClick(e, spaceItem.spaceId)}
-          aria-label={t("空间设置")}
-        >
-          <GearIcon size={12} />
-        </button>
-      </div>
+      </NavLink>
+
+      <button
+        className="space-list-item__settings"
+        onClick={(e) => onSettingsClick(e, spaceItem.dbKey)}
+        aria-label={t("space_settings")}
+        type="button"
+      >
+        <GearIcon size={12} />
+      </button>
 
       <style>{`
         .space-list-item {
-          position: relative;
-          padding: 1px 4px;
-        }
-
-        .space-list-item:active .space-list-item__inner {
-          transform: scale(0.98);
-        }
-
-        .space-list-item__inner {
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          margin: 1px 0;
+          border-radius: 6px;
+          overflow: hidden;
+        }
+
+        .space-list-item__link {
+          display: flex;
+          align-items: center;
           padding: 6px 8px;
-          cursor: pointer;
-          border-radius: 4px;
-          transition: all 0.2s ease;
+          border-radius: 6px;
+          transition: all 0.15s ease;
           color: ${theme.text};
           font-size: 13px;
-          user-select: none;
+          font-weight: 400;
+          text-decoration: none;
+          flex: 1;
           min-height: 28px;
+          outline: none;
+        }
+
+        .space-list-item__link:hover {
+          background: ${theme.backgroundHover};
+        }
+
+        .space-list-item__link:focus-visible {
+          background: ${theme.backgroundHover};
+          box-shadow: 0 0 0 1px ${theme.primary};
+        }
+
+        .space-list-item__link--current {
+          background: ${theme.backgroundSecondary};
+          color: ${theme.primary};
+          font-weight: 500;
+        }
+
+        .space-list-item__link--active {
+          background: ${theme.backgroundSecondary};
+          color: ${theme.primary};
+          font-weight: 500;
         }
 
         .space-list-item__content {
@@ -83,15 +111,6 @@ export const SpaceItem = ({
           gap: 6px;
           flex: 1;
           min-width: 0;
-        }
-
-        .space-list-item__inner:hover {
-          background: ${theme.backgroundSecondary};
-        }
-
-        .space-list-item__inner--current {
-          background: ${theme.backgroundTertiary};
-          font-weight: 500;
         }
 
         .space-list-item__check {
@@ -105,13 +124,14 @@ export const SpaceItem = ({
           white-space: nowrap;
           flex: 1;
           min-width: 0;
+          line-height: 1.4;
         }
 
         .space-list-item__settings {
           opacity: 0;
           padding: 4px;
           margin-left: 4px;
-          border-radius: 3px;
+          border-radius: 4px;
           color: ${theme.textSecondary};
           transition: all 0.15s ease;
           background: transparent;
@@ -121,22 +141,29 @@ export const SpaceItem = ({
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          width: 24px;
+          height: 24px;
         }
 
-        .space-list-item:hover .space-list-item__settings,
-        .space-list-item__inner--current .space-list-item__settings {
+        .space-list-item:hover .space-list-item__settings {
           opacity: 1;
         }
 
+        .space-list-item__link--current + .space-list-item__settings,
+        .space-list-item__link--active + .space-list-item__settings {
+          opacity: 0.6;
+        }
+
         .space-list-item__settings:hover {
-          background: ${theme.backgroundTertiary};
+          background: ${theme.backgroundSecondary};
           color: ${theme.text};
+          opacity: 1;
         }
 
         .space-list-item__settings:focus-visible {
           opacity: 1;
-          outline: 2px solid ${theme.primary};
-          outline-offset: -1px;
+          outline: 1px solid ${theme.primary};
+          outline-offset: 1px;
         }
       `}</style>
     </div>
