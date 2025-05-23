@@ -40,47 +40,30 @@ jobs:
             rm -rf public/assets
             /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
 
-            # 🔥 热更新部署 - 0停机时间
-            echo "🔄 开始热更新部署..."
+            # 🔥 PM2热重载 - 0停机部署
+            echo "🔄 开始热重载部署..."
 
-            # 1. 先启动新进程，用临时名称
-            sudo pm2 start packages/server/entry.ts --interpreter /home/nolotus/.bun/bin/bun --name nolo-new
-
-            # 2. 等待新进程启动并健康检查
-            echo "⏳ 等待新进程启动..."
-            sleep 8
-
-            # 3. 检查新进程是否正常运行
-            if sudo pm2 list | grep -q "nolo-new.*online"; then
-              echo "✅ 新进程启动成功，切换流量..."
-              
-              # 4. 删除旧进程
-              sudo pm2 delete nolo || true
-              
-              # 5. 重命名新进程
-              sudo pm2 restart nolo-new --name nolo
-              sudo pm2 delete nolo-new || true
-              
-              echo "🔄 热更新完成"
+            # 检查进程是否存在
+            if sudo pm2 list | grep -q "nolo"; then
+              echo "📡 进程存在，执行热重载..."
+              sudo pm2 reload nolo --wait-ready --listen-timeout 15000
             else
-              echo "❌ 新进程启动失败，回滚..."
-              sudo pm2 logs nolo-new --lines 20
-              sudo pm2 delete nolo-new || true
-              exit 1
+              echo "🚀 进程不存在，首次启动..."
+              sudo pm2 start packages/server/entry.ts --interpreter /home/nolotus/.bun/bin/bun --name nolo
+              sleep 5
             fi
 
             # 保存 PM2 进程列表
             sudo pm2 save
 
-            # 最终健康检查
-            echo "🔍 最终健康检查..."
+            echo "🔍 检查部署结果..."
             sleep 3
             sudo pm2 status nolo
 
             if sudo pm2 list | grep -q "nolo.*online"; then
-              echo "🚀 热更新部署成功！服务无中断运行"
+              echo "🚀 热重载部署成功！服务无中断运行"
             else
-              echo "❌ 最终健康检查失败"
+              echo "❌ 部署失败"
               sudo pm2 logs nolo --lines 50
               exit 1
             fi
@@ -108,47 +91,30 @@ jobs:
             rm -rf public/assets
             /root/.bun/bin/bun run ./scripts/esBuild.js
 
-            # 🔥 热更新部署 - 0停机时间
-            echo "🔄 开始热更新部署..."
+            # 🔥 PM2热重载 - 0停机部署
+            echo "🔄 开始热重载部署..."
 
-            # 1. 先启动新进程，用临时名称
-            /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo-new
-
-            # 2. 等待新进程启动并健康检查
-            echo "⏳ 等待新进程启动..."
-            sleep 8
-
-            # 3. 检查新进程是否正常运行
-            if /root/.bun/bin/pm2 list | grep -q "nolo-new.*online"; then
-              echo "✅ 新进程启动成功，切换流量..."
-              
-              # 4. 删除旧进程
-              /root/.bun/bin/pm2 delete nolo || true
-              
-              # 5. 重命名新进程
-              /root/.bun/bin/pm2 restart nolo-new --name nolo
-              /root/.bun/bin/pm2 delete nolo-new || true
-              
-              echo "🔄 热更新完成"
+            # 检查进程是否存在
+            if /root/.bun/bin/pm2 list | grep -q "nolo"; then
+              echo "📡 进程存在，执行热重载..."
+              /root/.bun/bin/pm2 reload nolo --wait-ready --listen-timeout 15000
             else
-              echo "❌ 新进程启动失败，回滚..."
-              /root/.bun/bin/pm2 logs nolo-new --lines 20
-              /root/.bun/bin/pm2 delete nolo-new || true
-              exit 1
+              echo "🚀 进程不存在，首次启动..."
+              /root/.bun/bin/pm2 start packages/server/entry.ts --interpreter /root/.bun/bin/bun --name nolo
+              sleep 5
             fi
 
             # 保存 PM2 进程列表
             /root/.bun/bin/pm2 save
 
-            # 最终健康检查
-            echo "🔍 最终健康检查..."
+            echo "🔍 检查部署结果..."
             sleep 3
             /root/.bun/bin/pm2 status nolo
 
             if /root/.bun/bin/pm2 list | grep -q "nolo.*online"; then
-              echo "🚀 热更新部署成功！服务无中断运行"
+              echo "🚀 热重载部署成功！服务无中断运行"
             else
-              echo "❌ 最终健康检查失败"
+              echo "❌ 部署失败"
               /root/.bun/bin/pm2 logs nolo --lines 50
               exit 1
             fi
