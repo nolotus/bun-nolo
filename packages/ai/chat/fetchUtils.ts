@@ -32,12 +32,13 @@ const createRequestConfig = (
 });
 
 const fetchWithServerProxy = async (
+  currentServer: string,
   api: string,
   bodyData: BodyData,
   cybotConfig: CybotConfig,
   signal?: AbortSignal
 ) => {
-  return await fetch(`https://cybot.run${API_ENDPOINTS.CHAT}`, {
+  return await fetch(`${currentServer}${API_ENDPOINTS.CHAT}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -56,10 +57,17 @@ export const performFetchRequest = async (
   cybotConfig: CybotConfig,
   api: string,
   bodyData: BodyData,
+  currentServer: string,
   signal?: AbortSignal
 ): Promise<Response> => {
   if (!cybotConfig.useServerProxy) {
     return await fetch(api, createRequestConfig(cybotConfig, bodyData, signal));
   }
-  return await fetchWithServerProxy(api, bodyData, cybotConfig, signal);
+  return await fetchWithServerProxy(
+    currentServer,
+    api,
+    bodyData,
+    cybotConfig,
+    signal
+  );
 };
