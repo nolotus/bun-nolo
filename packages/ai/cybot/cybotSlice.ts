@@ -46,7 +46,12 @@ export const cybotSlice = createSliceWithThunks({
           { role: "user", content }, // 使用 content 参数，供系统构造后传入
         ];
         const bodyData = { model: cybotConfig.model, messages, stream: false };
-        const response = await performFetchRequest(cybotConfig, api, bodyData);
+        const response = await performFetchRequest(
+          cybotConfig,
+          api,
+          bodyData,
+          currentServer
+        );
 
         const result = await response.json();
         const contentResult = result.choices[0].message.content;
