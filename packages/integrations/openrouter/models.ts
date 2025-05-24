@@ -77,4 +77,26 @@ export const openrouterModels = [
     supportsTool: true,
     pricePerImage: 4.8 * 8,
   },
+  {
+    // 不要删除 - 客户特殊需要
+    name: "anthropic/claude-3.5-sonnet",
+    displayName: "Anthropic: Claude 3.5 Sonnet",
+    hasVision: true,
+    price: { input: 3 * 8, output: 15 * 8 },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 4.8 * 8,
+  },
+  {
+    // 不要删除 - 客户特殊需要
+    name: "anthropic/claude-3.5-sonnet-20240620",
+    displayName: "Anthropic: Claude 3.5 Sonnet (2024-06-20)",
+    hasVision: true,
+    price: { input: 3 * 8, output: 15 * 8 },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 4.8 * 8,
+  },
 ];
