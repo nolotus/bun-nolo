@@ -14,16 +14,14 @@ import EditCybot from "ai/cybot/web/EditCybot";
 import { Cybot } from "../types";
 import { remove } from "database/dbSlice";
 
-// 使用原始的 Octicons 图标以确保兼容性
 import {
   CommentDiscussionIcon,
   PencilIcon,
   TrashIcon,
-  EyeIcon, // 引入 EyeIcon 作为视觉能力图标
+  EyeIcon,
 } from "@primer/octicons-react";
 
-// 引入 react-icons 中的价格相关图标
-import { FaYenSign } from "react-icons/fa"; // 使用 FaYenSign 作为人民币符号
+import { FaYenSign } from "react-icons/fa";
 
 interface CybotBlockProps {
   item: Cybot;
@@ -56,7 +54,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     try {
       const element = document.getElementById(`cybot-${item.id}`);
       element?.classList.add("cybot-block--exit");
-      await new Promise((r) => setTimeout(r, 150));
+      await new Promise((r) => setTimeout(r, 200));
       await dispatch(remove(cybotKey));
       toast.success(t("deleteSuccess"));
       await reload();
@@ -84,7 +82,8 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             <div className="cybot-block__meta">
               {item.outputPrice && (
                 <div className="cybot-block__price-tag">
-                  <FaYenSign size={12} /> {(item.outputPrice || 0).toFixed(2)}
+                  <FaYenSign size={11} />
+                  <span>{(item.outputPrice || 0).toFixed(2)}</span>
                 </div>
               )}
 
@@ -96,7 +95,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
                       onClick={openEdit}
                       aria-label={t("edit")}
                     >
-                      <PencilIcon size={15} />
+                      <PencilIcon size={14} />
                     </button>
                   </Tooltip>
 
@@ -107,7 +106,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
                       disabled={deleting}
                       aria-label={t("delete")}
                     >
-                      <TrashIcon size={15} />
+                      <TrashIcon size={14} />
                     </button>
                   </Tooltip>
                 </div>
@@ -124,7 +123,8 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             {item.hasVision && (
               <Tooltip content={t("hasVision")}>
                 <span className="cybot-block__tag cybot-block__vision-tag">
-                  <EyeIcon size={12} /> {t("vision")}
+                  <EyeIcon size={11} />
+                  <span>{t("vision")}</span>
                 </span>
               </Tooltip>
             )}
@@ -160,255 +160,274 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
       )}
 
       <style href="cybot-block" precedence="medium">{`
-        .cybot-block {
-          background: ${theme.background};
-          border-radius: 12px;
-          padding: ${theme.space[5]};
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.space[4]};
-          border: 1px solid ${theme.border};
-          transition: all 0.15s ease;
-          min-width: 0;
-          position: relative;
-          outline: none;
-          box-shadow: 0 2px 8px ${theme.shadowLight};
-        }
+  .cybot-block {
+    background: ${theme.background};
+    border-radius: ${theme.space[3]};
+    padding: ${theme.space[6]};
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: ${theme.space[4]};
+    border: 1px solid ${theme.border};
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+    position: relative;
+    outline: none;
+    box-shadow: 0 1px 3px ${theme.shadowLight};
+  }
 
-        .cybot-block:hover {
-          transform: translateY(-2px);
-          border-color: ${theme.primary}30;
-          box-shadow: 0 4px 12px ${theme.shadowMedium};
-        }
+  .cybot-block:hover {
+    transform: translateY(-1px);
+    border-color: ${theme.borderHover};
+    box-shadow: 0 4px 12px ${theme.shadowMedium};
+  }
 
-        .cybot-block:focus {
-          border-color: ${theme.primary};
-        }
-        
-        .cybot-block__meta {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          justify-content: flex-end; /* 确保右侧对齐 */
-        }
-        
-        .cybot-block__actions-top {
-          display: flex;
-          gap: 6px;
-          opacity: 0.7; /* 默认透明度提高，使按钮始终可见 */
-          transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-        
-        .cybot-block:hover .cybot-block__actions-top {
-          opacity: 1;
-          transform: translateY(-1px); /* 悬停时轻微上浮 */
-        }
-        
-        .cybot-block__icon-btn {
-          width: 28px;
-          height: 28px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 6px;
-          background: ${theme.backgroundSecondary};
-          color: ${theme.textSecondary};
-          border: 1px solid ${theme.border};
-          cursor: pointer;
-          transition: all 0.2s ease;
-          padding: 0;
-        }
-        
-        .cybot-block__icon-btn:hover {
-          transform: translateY(-1px);
-          color: ${theme.text};
-          background: ${theme.backgroundGhost};
-          box-shadow: 0 2px 5px ${theme.shadowLight};
-        }
-        
-        .cybot-block__icon-btn:active {
-          transform: translateY(0);
-          box-shadow: none;
-        }
-        
-        .cybot-block__edit-btn:hover {
-          color: ${theme.primary};
-          border-color: ${theme.primary}50;
-          background: ${theme.primaryGhost}20;
-        }
-        
-        .cybot-block__delete-btn:hover {
-          color: ${theme.error};
-          border-color: ${theme.error}50;
-          background: ${theme.error}10;
-        }
-        
-        .cybot-block__icon-btn[disabled] {
-          opacity: 0.5;
-          cursor: not-allowed;
-          transform: none;
-        }
+  .cybot-block:focus {
+    border-color: ${theme.primary};
+    box-shadow: 0 0 0 3px ${theme.primaryGhost};
+  }
+  
+  .cybot-block__meta {
+    display: flex;
+    align-items: center;
+    gap: ${theme.space[2]};
+    justify-content: flex-end;
+  }
+  
+  .cybot-block__actions-top {
+    display: flex;
+    gap: ${theme.space[1]};
+    opacity: 1; /* 默认显示 */
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .cybot-block__icon-btn {
+    width: ${theme.space[8]};
+    height: ${theme.space[8]};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: ${theme.space[2]};
+    background: ${theme.backgroundSecondary};
+    color: ${theme.textTertiary};
+    border: 1px solid ${theme.borderLight};
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+  }
+  
+  .cybot-block__icon-btn:hover {
+    color: ${theme.textSecondary};
+    background: ${theme.backgroundGhost};
+    border-color: ${theme.border};
+    box-shadow: 0 2px 4px ${theme.shadow1};
+  }
+  
+  .cybot-block__edit-btn:hover {
+    color: ${theme.primary};
+    background: ${theme.primaryGhost};
+    border-color: ${theme.primary};
+  }
+  
+  .cybot-block__delete-btn:hover {
+    color: ${theme.error};
+    background: ${theme.errorGhost || theme.backgroundSecondary};
+    border-color: ${theme.error};
+  }
+  
+  .cybot-block__icon-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
 
-        .cybot-block__header {
-          display: flex;
-          gap: ${theme.space[2]}; /* 减少头像与标题之间的距离 */
-          align-items: center;
-        }
+  .cybot-block__header {
+    display: flex;
+    gap: ${theme.space[3]};
+    align-items: flex-start;
+  }
 
-        .cybot-block__avatar {
-          width: 42px;
-          height: 42px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1rem;
-          font-weight: 600;
-          flex-shrink: 0;
-          background: ${theme.primaryGhost}30;
-          color: ${theme.primary};
-        }
+  .cybot-block__avatar {
+    width: ${theme.space[10]};
+    height: ${theme.space[10]};
+    border-radius: ${theme.space[3]};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem; /* 字体大小缩小 */
+    font-weight: 600;
+    flex-shrink: 0;
+    background: ${theme.primaryGhost};
+    color: ${theme.primary};
+    border: 1px solid ${theme.primary}20;
+  }
 
-        .cybot-block__info {
-          flex: 1;
-          min-width: 0;
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.space[2]};
-        }
+  .cybot-block__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: ${theme.space[2]};
+  }
 
-        .cybot-block__title-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: ${theme.space[3]};
-        }
+  .cybot-block__title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: ${theme.space[3]};
+    margin-top: ${theme.space[1]};
+  }
 
-        .cybot-block__title {
-          font-size: 0.95rem; /* 字体大小稍微减小，从1rem改为0.95rem */
-          font-weight: 600;
-          margin: 0;
-          color: ${theme.text};
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
+  .cybot-block__title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: ${theme.text};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+  }
 
-        .cybot-block__tags {
-          display: flex;
-          gap: ${theme.space[2]};
-          flex-wrap: wrap;
-          align-items: center;
-        }
+  .cybot-block__tags {
+    display: flex;
+    gap: ${theme.space[1]};
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: ${theme.space[1]};
+  }
 
-        .cybot-block__tag {
-          font-size: 0.75rem;
-          color: ${theme.textSecondary};
-          padding: ${theme.space[1]} ${theme.space[2]};
-          background: ${theme.backgroundSecondary};
-          border-radius: 6px;
-          white-space: nowrap;
-          border: 1px solid ${theme.border};
-        }
+  .cybot-block__tag {
+    font-size: 0.75rem;
+    color: ${theme.textTertiary};
+    padding: ${theme.space[1]} ${theme.space[2]};
+    background: ${theme.backgroundTertiary};
+    border-radius: ${theme.space[1]};
+    white-space: nowrap;
+    font-weight: 500;
+    border: 1px solid ${theme.borderLight};
+  }
 
-        .cybot-block__vision-tag {
-          display: flex;
-          align-items: center;
-          gap: ${theme.space[1]};
-        }
+  .cybot-block__vision-tag {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: ${theme.primary};
+    background: ${theme.primaryGhost};
+    border-color: ${theme.primary}30;
+  }
 
-        .cybot-block__price-tag {
-          font-size: 0.75rem;
-          color: ${theme.textSecondary};
-          padding: ${theme.space[1]} ${theme.space[2]};
-          background: ${theme.backgroundSecondary};
-          border-radius: 6px;
-          white-space: nowrap;
-          border: 1px solid ${theme.border};
-          align-self: center; /* 确保价格标签垂直居中 */
-          display: flex;
-          align-items: center;
-          gap: ${theme.space[1]}; /* 图标和价格之间的间距 */
-        }
+  .cybot-block__price-tag {
+    font-size: 0.75rem;
+    color: ${theme.textTertiary};
+    padding: ${theme.space[1]} ${theme.space[2]};
+    background: ${theme.backgroundTertiary};
+    border-radius: ${theme.space[1]};
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid ${theme.borderLight};
+  }
 
-        .cybot-block__description {
-          flex: 1;
-          font-size: 0.9rem;
-          line-height: 1.5;
-          color: ${theme.textSecondary};
-          margin: ${theme.space[1]} 0;
-          overflow-wrap: break-word;
-          white-space: pre-line; /* 保留换行符效果 */
-          display: -webkit-box;
-          -webkit-line-clamp: 3; /* 增加到3行 */
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
+  .cybot-block__description {
+    flex: 1;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: ${theme.textSecondary};
+    margin: ${theme.space[2]} 0;
+    overflow-wrap: break-word;
+    white-space: pre-line;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-        .cybot-block__actions {
-          display: flex;
-          margin-top: auto;
-        }
+  .cybot-block__actions {
+    display: flex;
+    margin-top: auto;
+    padding-top: ${theme.space[2]};
+  }
 
-        .cybot-block--exit {
-          opacity: 0;
-          transform: scale(0.98);
-          transition: all 0.15s ease;
-        }
+  .cybot-block--exit {
+    opacity: 0;
+    transform: scale(0.96);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-        @media (max-width: 768px) {
-          .cybot-block {
-            padding: ${theme.space[4]};
-            gap: ${theme.space[3]};
-          }
+  @media (max-width: 768px) {
+    .cybot-block {
+      padding: ${theme.space[5]};
+      gap: ${theme.space[3]};
+      border-radius: ${theme.space[2]};
+    }
 
-          .cybot-block__description {
-            -webkit-line-clamp: 4; /* 增加到4行 */
-          }
-        }
+    .cybot-block__actions-top {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-        @media (max-width: 480px) {
-          .cybot-block {
-            padding: ${theme.space[4]};
-            gap: ${theme.space[3]};
-          }
-          
-          .cybot-block__actions-top {
-            opacity: 1; /* 在移动设备上始终显示操作按钮 */
-          }
+    .cybot-block__avatar {
+      width: ${theme.space[8]};
+      height: ${theme.space[8]};
+      font-size: 0.75rem;
+    }
 
-          .cybot-block__avatar {
-            width: 38px;
-            height: 38px;
-          }
+    .cybot-block__icon-btn {
+      width: calc(${theme.space[8]} - ${theme.space[1]});
+      height: calc(${theme.space[8]} - ${theme.space[1]});
+    }
 
-          .cybot-block__title {
-            font-size: 0.9rem; /* 在小屏幕上进一步减小字体 */
-          }
-          
-          .cybot-block__meta {
-            flex-direction: row; /* 改为横向排列以确保对齐 */
-            align-items: center;
-            justify-content: flex-end; /* 右侧对齐 */
-            gap: 6px;
-          }
-          
-          .cybot-block__price-tag {
-            margin-right: 0;
-          }
+    .cybot-block__title {
+      font-size: 0.9375rem;
+    }
 
-          .cybot-block__description {
-            font-size: 0.85rem;
-            -webkit-line-clamp: 4; /* 增加到4行 */
-          }
+    .cybot-block__description {
+      font-size: 0.8125rem;
+      -webkit-line-clamp: 4;
+    }
+  }
 
-          .cybot-block__tags {
-            margin-top: ${theme.space[1]};
-          }
-        }
-      `}</style>
+  @media (max-width: 480px) {
+    .cybot-block {
+      padding: ${theme.space[4]};
+      gap: ${theme.space[3]};
+    }
+
+    .cybot-block__header {
+      gap: ${theme.space[2]};
+    }
+
+    .cybot-block__avatar {
+      width: ${theme.space[6]};
+      height: ${theme.space[6]};
+      font-size: 0.625rem;
+    }
+
+    .cybot-block__title {
+      font-size: 0.875rem;
+    }
+
+    .cybot-block__meta {
+      gap: ${theme.space[1]};
+    }
+
+    .cybot-block__icon-btn {
+      width: calc(${theme.space[6]} + ${theme.space[2]});
+      height: calc(${theme.space[6]} + ${theme.space[2]});
+    }
+
+    .cybot-block__description {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      -webkit-line-clamp: 4;
+    }
+  }
+`}</style>
     </div>
   );
 };

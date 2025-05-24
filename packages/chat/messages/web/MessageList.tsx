@@ -432,7 +432,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
         isVisible={!autoScroll && !!containerRef.current}
         onClick={handleScrollToBottomClick}
       />
-      <style jsx>{`
+      <style>{`
         @keyframes chat-messages__message-appear {
           from {
             opacity: 0;

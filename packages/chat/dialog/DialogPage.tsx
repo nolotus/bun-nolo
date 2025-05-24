@@ -87,7 +87,7 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
   useEffect(() => {
     if (pageKey && user && dialogId) {
       dispatch(initDialog(pageKey));
-      dispatch(initMsgs({ dialogId, limit: 15, db: browserDb }));
+      dispatch(initMsgs({ dialogId, limit: 20, db: browserDb }));
     }
 
     return () => {
