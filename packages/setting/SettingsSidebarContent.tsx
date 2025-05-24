@@ -6,6 +6,7 @@ import { SettingRoutePaths } from "./config";
 const navItems = [
   { path: SettingRoutePaths.SETTING_USER_PROFILE, label: "个人资料" },
   { path: SettingRoutePaths.SETTING_EDITOR_CONFIG, label: "编辑器设置" },
+  { path: SettingRoutePaths.SETTING_CHAT_CONFIG, label: "对话设置" }, // 新增对话设置选项
 ];
 
 const SettingsSidebarContent: React.FC = () => {
