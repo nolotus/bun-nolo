@@ -4,16 +4,15 @@ import { renderReactApp } from "./html/renderReactApp";
 import { serializeState } from "./html/serializeState";
 import { htmlEnd, htmlStart } from "./html/template";
 
-// 缓存机制
-let cachedAssets = null;
-let lastCheckTime = 0;
-const CACHE_DURATION = 60000; // 缓存 60 秒
-
 // 获取最新的 assets.json 路径
 const getLatestAssetsPath = async () => {
   try {
+    const startTime = performance.now();
     const versionData = await Bun.file("public/latest-version.json").text();
     const versionInfo = JSON.parse(versionData);
+    console.log(
+      `读取 latest-version.json 耗时: ${performance.now() - startTime}ms`
+    );
     return `${versionInfo.outdir}/assets.json`;
   } catch (error) {
     console.error("读取 latest-version.json 失败，使用默认路径", error);
@@ -21,25 +20,18 @@ const getLatestAssetsPath = async () => {
   }
 };
 
-// 获取最新的 assets 数据，带缓存
+// 获取最新的 assets 数据，不使用缓存
 const getLatestAssets = async () => {
-  const currentTime = Date.now();
-  if (cachedAssets && currentTime - lastCheckTime < CACHE_DURATION) {
-    return cachedAssets; // 使用缓存
-  }
-
   try {
     const latestAssetsPath = await getLatestAssetsPath();
+    const startTime = performance.now();
     const assetsData = await Bun.file(latestAssetsPath).text();
-    cachedAssets = JSON.parse(assetsData);
-    lastCheckTime = currentTime;
-    return cachedAssets;
+    const assets = JSON.parse(assetsData);
+    console.log(`读取 assets.json 耗时: ${performance.now() - startTime}ms`);
+    return assets;
   } catch (error) {
     console.error("读取 assets.json 失败", error);
-    if (cachedAssets) {
-      return cachedAssets; // 如果有缓存，返回缓存数据
-    }
-    throw error; // 否则抛出错误
+    throw error; // 抛出错误，交给上层处理
   }
 };
 
