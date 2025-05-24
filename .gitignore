@@ -52,7 +52,8 @@ build/Release
 public/assets
 public/meta.json
 public/assets.json
-
+public/assets-*
+public/latest-version.json
 build/
 # Dependency directories
 
