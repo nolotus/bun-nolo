@@ -31,11 +31,20 @@ export const runMetaBuild = async () => {
   const result = await measureTime("esbuild 构建", () => esbuild.build(config));
 
   await measureTime("写入 meta.json", () =>
-    write("public/meta.json", JSON.stringify(result.metafile)),
+    write("public/meta.json", JSON.stringify(result.metafile))
   );
   const assets = getEntryFiles(result.metafile);
   await measureTime("写入 assets.json", () =>
-    write("public/assets.json", JSON.stringify(assets)),
+    write("public/assets.json", JSON.stringify(assets))
+  );
+
+  // 保存当前版本的输出目录到固定文件
+  const versionInfo = {
+    outdir: config.outdir, // 从配置中获取当前输出目录，如 "public/assets-时间戳"
+    timestamp: Date.now(),
+  };
+  await measureTime("写入 latest-version.json", () =>
+    write("public/latest-version.json", JSON.stringify(versionInfo))
   );
 
   const totalEndTime = performance.now();

@@ -13,7 +13,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
       - run: bun install
-      - run: rm -rf public/assets
+      # 移除删除步骤，避免清理历史版本
+      # - run: rm -rf public/assets
       - run: bun run build
       - run: bun test
 
@@ -37,7 +38,8 @@ jobs:
             git fetch --all
             git reset --hard origin/main
             /home/nolotus/.bun/bin/bun install
-            rm -rf public/assets
+            # 移除删除步骤，避免清理历史版本
+            # rm -rf public/assets
             /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
 
             # 🔥 PM2热重载 - 0停机部署
@@ -88,7 +90,8 @@ jobs:
             git fetch --all
             git reset --hard origin/alpha
             /root/.bun/bin/bun install
-            rm -rf public/assets
+            # 移除删除步骤，避免清理历史版本
+            # rm -rf public/assets
             /root/.bun/bin/bun run ./scripts/esBuild.js
 
             # 🔥 PM2热重载 - 0停机部署

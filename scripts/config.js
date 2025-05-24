@@ -5,7 +5,7 @@ const inputPath = "./packages/web/entry.tsx";
 // 定义公共配置
 export const commonConfig = {
   entryPoints: [inputPath],
-  outdir: "public/assets",
+  outdir: "public/assets", // 默认输出目录，可能会被覆盖
   define: {
     "process.env.PLATFORM": JSON.stringify("web"),
     "process.env.NODE_ENV": JSON.stringify(
@@ -39,6 +39,10 @@ const prodConfig = {
   target: ["es2020"],
 };
 
+// 动态生成输出目录，基于时间戳
+const timestamp = Date.now().toString();
+const dynamicOutdir = `public/assets-${timestamp}`;
+
 export const config = isProduction
-  ? { ...commonConfig, ...prodConfig }
-  : commonConfig;
+  ? { ...commonConfig, ...prodConfig, outdir: dynamicOutdir }
+  : { ...commonConfig, outdir: dynamicOutdir };
