@@ -15,8 +15,8 @@ import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import pino from "pino";
 import { useFetchUsers } from "auth/hooks/useFetchUsers";
-// 假设有一个用于停用用户的钩子
-import { useDisableUser } from "auth/hooks/useDisableUser"; // 需要自行实现
+import { useDisableUser } from "auth/hooks/useDisableUser";
+import { useEnableUser } from "auth/hooks/useEnableUser";
 
 const logger = pino({ name: "UsersPage" });
 const PAGE_SIZE = 10;
@@ -28,7 +28,7 @@ interface User {
   balance: number;
   createdAt: string;
   lastLoginAt: string | null;
-  isDisabled?: boolean; // 添加一个字段来标识用户是否被停用，可选字段
+  isDisabled?: boolean;
 }
 
 export default function UsersPage() {
@@ -60,8 +60,13 @@ export default function UsersPage() {
     username: "",
   });
 
-  // 新增停用模态框状态
   const [disableModal, setDisableModal] = useState({
+    isOpen: false,
+    userId: "",
+    username: "",
+  });
+
+  const [enableModal, setEnableModal] = useState({
     isOpen: false,
     userId: "",
     username: "",
@@ -185,7 +190,7 @@ export default function UsersPage() {
     handleFetch(currentPage);
   }, [currentPage, handleFetch]);
 
-  const disableUser = useDisableUser(handleDisableSuccess); // 假设有这个钩子
+  const disableUser = useDisableUser(handleDisableSuccess);
 
   const handleDisableClick = useCallback((user: User) => {
     logger.debug({ userId: user.id }, "Disable button clicked");
@@ -203,6 +208,33 @@ export default function UsersPage() {
     } catch (err) {
       logger.error({ err }, "Disable failed");
       alert("停用失败，请重试");
+    }
+  };
+
+  // 启用用户
+  const handleEnableSuccess = useCallback(() => {
+    logger.debug({ page: currentPage }, "Enable success, refreshing");
+    handleFetch(currentPage);
+  }, [currentPage, handleFetch]);
+
+  const enableUser = useEnableUser(handleEnableSuccess);
+
+  const handleEnableClick = useCallback((user: User) => {
+    logger.debug({ userId: user.id }, "Enable button clicked");
+    setEnableModal({
+      isOpen: true,
+      userId: user.id,
+      username: user.username,
+    });
+  }, []);
+
+  const handleEnableConfirm = async () => {
+    try {
+      await enableUser(enableModal.userId);
+      setEnableModal({ isOpen: false, userId: "", username: "" });
+    } catch (err) {
+      logger.error({ err }, "Enable failed");
+      alert("启用失败，请重试");
     }
   };
 
@@ -265,8 +297,7 @@ export default function UsersPage() {
                   <TableCell element={{ header: true }}>余额</TableCell>
                   <TableCell element={{ header: true }}>注册时间</TableCell>
                   <TableCell element={{ header: true }}>最近登录</TableCell>
-                  <TableCell element={{ header: true }}>状态</TableCell>{" "}
-                  {/* 新增状态列 */}
+                  <TableCell element={{ header: true }}>状态</TableCell>
                   <TableCell element={{ header: true }} align="right">
                     操作
                   </TableCell>
@@ -302,8 +333,7 @@ export default function UsersPage() {
                       >
                         {user.isDisabled ? "已停用" : "启用中"}
                       </span>
-                    </TableCell>{" "}
-                    {/* 新增状态列内容 */}
+                    </TableCell>
                     <TableCell element={{}} align="right">
                       <div className="action-buttons">
                         <Button
@@ -313,7 +343,16 @@ export default function UsersPage() {
                         >
                           充值
                         </Button>
-                        {!user.isDisabled && (
+                        {user.isDisabled ? (
+                          <Button
+                            onClick={() => handleEnableClick(user)}
+                            variant="secondary"
+                            status="success"
+                            size="small"
+                          >
+                            启用
+                          </Button>
+                        ) : (
                           <Button
                             onClick={() => handleDisableClick(user)}
                             variant="secondary"
@@ -374,7 +413,6 @@ export default function UsersPage() {
         username={rechargeModal.username}
       />
 
-      {/* 新增停用确认模态框 */}
       <ConfirmModal
         isOpen={disableModal.isOpen}
         onClose={() =>
@@ -386,130 +424,141 @@ export default function UsersPage() {
         status="warning"
       />
 
+      <ConfirmModal
+        isOpen={enableModal.isOpen}
+        onClose={() =>
+          setEnableModal({ isOpen: false, userId: "", username: "" })
+        }
+        onConfirm={handleEnableConfirm}
+        title="启用用户"
+        message={`确定要启用用户「${enableModal.username}」吗？启用后用户将恢复登录权限。`}
+        status="success"
+      />
+
       <style href="users-page">{`
-      .users-page {
-        padding: 24px;
-        min-height: calc(100dvh - 60px);
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-      }
-
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .page-title {
-        font-size: 24px;
-        font-weight: 600;
-        color: ${theme.text};
-        margin: 0;
-      }
-
-      .header-actions {
-        display: flex;
-        gap: 12px;
-      }
-
-      .error-container {
-        padding: 12px 16px;
-        background: ${theme.backgroundSecondary};
-        border: 1px solid ${theme.error};
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .error-message {
-        color: ${theme.error};
-      }
-
-      .loading-container {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 200px;
-      }
-
-      .table-container {
-        flex: 1;
-        overflow: auto;
-        border-radius: 8px;
-        background: ${theme.background};
-      }
-
-      .action-buttons {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-      }
-
-      .page-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding-top: 16px;
-      }
-
-      .total-info {
-        font-size: 14px;
-        color: ${theme.textSecondary};
-      }
-
-      .empty-container {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 200px;
-        background: ${theme.backgroundSecondary};
-        border-radius: 8px;
-        border: 1px dashed ${theme.border};
-      }
-
-      .empty-content {
-        color: ${theme.textSecondary};
-        font-size: 14px;
-      }
-
-      .no-server {
-        padding: 24px;
-        text-align: center;
-        color: ${theme.textSecondary};
-      }
-
-      @media (max-width: 768px) {
         .users-page {
-          padding: 16px;
-          gap: 16px;
+          padding: 24px;
+          min-height: calc(100dvh - 60px);
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
 
         .page-title {
-          font-size: 20px;
+          font-size: 24px;
+          font-weight: 600;
+          color: ${theme.text};
+          margin: 0;
+        }
+
+        .header-actions {
+          display: flex;
+          gap: 12px;
+        }
+
+        .error-container {
+          padding: 12px 16px;
+          background: ${theme.backgroundSecondary};
+          border: 1px solid ${theme.error};
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .error-message {
+          color: ${theme.error};
+        }
+
+        .loading-container {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 200px;
         }
 
         .table-container {
-          margin: 0 -16px;
-          border-left: none;
-          border-right: none;
-          border-radius: 0;
+          flex: 1;
+          overflow: auto;
+          border-radius: 8px;
+          background: ${theme.background};
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+          justify-content: flex-end;
         }
 
         .page-footer {
-          flex-direction: column-reverse;
-          align-items: stretch;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding-top: 16px;
         }
 
         .total-info {
-          text-align: center;
+          font-size: 14px;
+          color: ${theme.textSecondary};
         }
-      }
-    `}</style>
+
+        .empty-container {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 200px;
+          background: ${theme.backgroundSecondary};
+          border-radius: 8px;
+          border: 1px dashed ${theme.border};
+        }
+
+        .empty-content {
+          color: ${theme.textSecondary};
+          font-size: 14px;
+        }
+
+        .no-server {
+          padding: 24px;
+          text-align: center;
+          color: ${theme.textSecondary};
+        }
+
+        @media (max-width: 768px) {
+          .users-page {
+            padding: 16px;
+            gap: 16px;
+          }
+
+          .page-title {
+            font-size: 20px;
+          }
+
+          .table-container {
+            margin: 0 -16px;
+            border-left: none;
+            border-right: none;
+            border-radius: 0;
+          }
+
+          .page-footer {
+            flex-direction: column-reverse;
+            align-items: stretch;
+          }
+
+          .total-info {
+            text-align: center;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -6,7 +6,8 @@ import { handleDeleteUser } from "./delete";
 import { handleListUsers } from "./listusers";
 import { handleGetUser } from "./getUser";
 import { handleTransferUser } from "./transfer";
-import { handleDisableUser } from "./disable"; // 新增导入
+import { handleDisableUser } from "./disable";
+import { handleEnableUser } from "./enable";
 
 const routeHandlers = [
   {
@@ -62,6 +63,16 @@ const routeHandlers = [
     },
     handler: (req, params: RouteParams) =>
       handleDisableUser(req, params.userId!),
+  },
+  {
+    ...authRoutes.users.enable,
+    match: (path: string) => {
+      const matcher = createPathMatcher(authRoutes.users.enable.path);
+      const match = path.match(matcher);
+      return match ? { userId: match[1] } : false;
+    },
+    handler: (req, params: RouteParams) =>
+      handleEnableUser(req, params.userId!),
   },
 ];
 
