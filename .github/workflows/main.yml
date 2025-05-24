@@ -121,3 +121,114 @@ jobs:
               /root/.bun/bin/pm2 logs nolo --lines 50
               exit 1
             fi
+
+  cleanup-old-assets:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/alpha'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Cleanup old assets on cybot.one (for main)
+        if: github.ref == 'refs/heads/main'
+        uses: appleboy/ssh-action@master
+        with:
+          host: cybot.one
+          username: nolotus
+          key: ${{ secrets.SERVER_TW_KEY }}
+          script: |
+            cd bun-nolo
+            echo "开始清理旧的 assets 目录..."
+
+            # 获取当前时间戳（秒）
+            CURRENT_TIME=$(date +%s)
+            THRESHOLD_TIME=$((CURRENT_TIME - 86400)) # 24小时前的时间戳（86400秒）
+
+            # 获取所有 assets-* 目录并按时间戳排序（假设目录名为 assets-<timestamp>）
+            ASSET_DIRS=$(ls -d public/assets-* 2>/dev/null | sort -r || echo "")
+
+            if [ -z "$ASSET_DIRS" ]; then
+              echo "没有找到 assets 目录，跳过清理。"
+              exit 0
+            fi
+
+            # 保留最近 3 个版本
+            RECENT_DIRS=$(echo "$ASSET_DIRS" | head -n 3)
+            echo "保留的最近 3 个版本目录："
+            echo "$RECENT_DIRS"
+
+            # 遍历所有目录，删除 24 小时以前且不在最近 3 个版本中的目录
+            for dir in $ASSET_DIRS; do
+              # 提取目录名中的时间戳（假设格式为 assets-<timestamp>）
+              TIMESTAMP=$(basename "$dir" | cut -d'-' -f2)
+              # 检查是否为数字时间戳
+              if [[ "$TIMESTAMP" =~ ^[0-9]+$ ]]; then
+                if [ "$TIMESTAMP" -lt "$THRESHOLD_TIME" ]; then
+                  # 检查是否在最近 3 个版本中
+                  if ! echo "$RECENT_DIRS" | grep -q "$dir"; then
+                    echo "删除 24 小时以前的目录：$dir"
+                    rm -rf "$dir"
+                  else
+                    echo "保留 24 小时以前但在最近 3 个版本中的目录：$dir"
+                  fi
+                else
+                  echo "保留 24 小时以内的目录：$dir"
+                fi
+              else
+                echo "跳过非标准格式目录：$dir"
+              fi
+            done
+
+            echo "清理完成。"
+      - name: Cleanup old assets on us.cybot.run (for alpha)
+        if: github.ref == 'refs/heads/alpha'
+        uses: appleboy/ssh-action@master
+        with:
+          host: us.cybot.run
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /root/bun-nolo
+            echo "开始清理旧的 assets 目录..."
+
+            # 获取当前时间戳（秒）
+            CURRENT_TIME=$(date +%s)
+            THRESHOLD_TIME=$((CURRENT_TIME - 86400)) # 24小时前的时间戳（86400秒）
+
+            # 获取所有 assets-* 目录并按时间戳排序（假设目录名为 assets-<timestamp>）
+            ASSET_DIRS=$(ls -d public/assets-* 2>/dev/null | sort -r || echo "")
+
+            if [ -z "$ASSET_DIRS" ]; then
+              echo "没有找到 assets 目录，跳过清理。"
+              exit 0
+            fi
+
+            # 保留最近 3 个版本
+            RECENT_DIRS=$(echo "$ASSET_DIRS" | head -n 3)
+            echo "保留的最近 3 个版本目录："
+            echo "$RECENT_DIRS"
+
+            # 遍历所有目录，删除 24 小时以前且不在最近 3 个版本中的目录
+            for dir in $ASSET_DIRS; do
+              # 提取目录名中的时间戳（假设格式为 assets-<timestamp>）
+              TIMESTAMP=$(basename "$dir" | cut -d'-' -f2)
+              # 检查是否为数字时间戳
+              if [[ "$TIMESTAMP" =~ ^[0-9]+$ ]]; then
+                if [ "$TIMESTAMP" -lt "$THRESHOLD_TIME" ]; then
+                  # 检查是否在最近 3 个版本中
+                  if ! echo "$RECENT_DIRS" | grep -q "$dir"; then
+                    echo "删除 24 小时以前的目录：$dir"
+                    rm -rf "$dir"
+                  else
+                    echo "保留 24 小时以前但在最近 3 个版本中的目录：$dir"
+                  fi
+                else
+                  echo "保留 24 小时以内的目录：$dir"
+                fi
+              else
+                echo "跳过非标准格式目录：$dir"
+              fi
+            done
+
+            echo "清理完成。"
