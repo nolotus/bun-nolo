@@ -30,6 +30,8 @@ export const generatePrompt = (
   }
 
   const instruction = "Please follow these instructions: ";
+  const formattingInstruction =
+    "Ensure the response content is well-formatted and easy for users to read.";
 
-  return `${nameSection}${languageSection}${timeSection}${contextSection}${instruction}${prompt}`;
+  return `${nameSection}${languageSection}${timeSection}${contextSection}${instruction}${formattingInstruction} ${prompt}`;
 };
