@@ -14,7 +14,9 @@ import { RechargeModal } from "life/web/RechargeModal";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import pino from "pino";
-import { useFetchUsers } from "../hooks/useFetchUsers";
+import { useFetchUsers } from "auth/hooks/useFetchUsers";
+// 假设有一个用于停用用户的钩子
+import { useDisableUser } from "auth/hooks/useDisableUser"; // 需要自行实现
 
 const logger = pino({ name: "UsersPage" });
 const PAGE_SIZE = 10;
@@ -26,6 +28,7 @@ interface User {
   balance: number;
   createdAt: string;
   lastLoginAt: string | null;
+  isDisabled?: boolean; // 添加一个字段来标识用户是否被停用，可选字段
 }
 
 export default function UsersPage() {
@@ -52,6 +55,13 @@ export default function UsersPage() {
   });
 
   const [rechargeModal, setRechargeModal] = useState({
+    isOpen: false,
+    userId: "",
+    username: "",
+  });
+
+  // 新增停用模态框状态
+  const [disableModal, setDisableModal] = useState({
     isOpen: false,
     userId: "",
     username: "",
@@ -169,6 +179,33 @@ export default function UsersPage() {
     }
   };
 
+  // 停用用户
+  const handleDisableSuccess = useCallback(() => {
+    logger.debug({ page: currentPage }, "Disable success, refreshing");
+    handleFetch(currentPage);
+  }, [currentPage, handleFetch]);
+
+  const disableUser = useDisableUser(handleDisableSuccess); // 假设有这个钩子
+
+  const handleDisableClick = useCallback((user: User) => {
+    logger.debug({ userId: user.id }, "Disable button clicked");
+    setDisableModal({
+      isOpen: true,
+      userId: user.id,
+      username: user.username,
+    });
+  }, []);
+
+  const handleDisableConfirm = async () => {
+    try {
+      await disableUser(disableModal.userId);
+      setDisableModal({ isOpen: false, userId: "", username: "" });
+    } catch (err) {
+      logger.error({ err }, "Disable failed");
+      alert("停用失败，请重试");
+    }
+  };
+
   // 分页处理
   const handlePageChange = useCallback(
     (newPage: number) => {
@@ -228,6 +265,8 @@ export default function UsersPage() {
                   <TableCell element={{ header: true }}>余额</TableCell>
                   <TableCell element={{ header: true }}>注册时间</TableCell>
                   <TableCell element={{ header: true }}>最近登录</TableCell>
+                  <TableCell element={{ header: true }}>状态</TableCell>{" "}
+                  {/* 新增状态列 */}
                   <TableCell element={{ header: true }} align="right">
                     操作
                   </TableCell>
@@ -236,7 +275,14 @@ export default function UsersPage() {
               <tbody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell element={{}}>{user.username}</TableCell>
+                    <TableCell element={{}}>
+                      {user.username}
+                      {user.isDisabled && (
+                        <span style={{ color: theme.error, marginLeft: "8px" }}>
+                          (已停用)
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell element={{}}>{user.email || "-"}</TableCell>
                     <TableCell element={{}}>
                       ¥ {user.balance?.toFixed(2) || "0.00"}
@@ -247,6 +293,17 @@ export default function UsersPage() {
                     <TableCell element={{}}>
                       {formatTime(user.lastLoginAt)}
                     </TableCell>
+                    <TableCell element={{}}>
+                      <span
+                        style={{
+                          color: user.isDisabled ? theme.error : theme.success,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {user.isDisabled ? "已停用" : "启用中"}
+                      </span>
+                    </TableCell>{" "}
+                    {/* 新增状态列内容 */}
                     <TableCell element={{}} align="right">
                       <div className="action-buttons">
                         <Button
@@ -256,6 +313,16 @@ export default function UsersPage() {
                         >
                           充值
                         </Button>
+                        {!user.isDisabled && (
+                          <Button
+                            onClick={() => handleDisableClick(user)}
+                            variant="secondary"
+                            status="warning"
+                            size="small"
+                          >
+                            停用
+                          </Button>
+                        )}
                         <Button
                           onClick={() => handleDeleteClick(user)}
                           status="error"
@@ -307,130 +374,142 @@ export default function UsersPage() {
         username={rechargeModal.username}
       />
 
-      <style href="users-page">{`
-        .users-page {
-          padding: 24px;
-          min-height: calc(100dvh - 60px);
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
+      {/* 新增停用确认模态框 */}
+      <ConfirmModal
+        isOpen={disableModal.isOpen}
+        onClose={() =>
+          setDisableModal({ isOpen: false, userId: "", username: "" })
         }
+        onConfirm={handleDisableConfirm}
+        title="停用用户"
+        message={`确定要停用用户「${disableModal.username}」吗？停用后用户将无法登录。`}
+        status="warning"
+      />
 
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+      <style href="users-page">{`
+      .users-page {
+        padding: 24px;
+        min-height: calc(100dvh - 60px);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: ${theme.text};
+        margin: 0;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 12px;
+      }
+
+      .error-container {
+        padding: 12px 16px;
+        background: ${theme.backgroundSecondary};
+        border: 1px solid ${theme.error};
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .error-message {
+        color: ${theme.error};
+      }
+
+      .loading-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+      }
+
+      .table-container {
+        flex: 1;
+        overflow: auto;
+        border-radius: 8px;
+        background: ${theme.background};
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .page-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding-top: 16px;
+      }
+
+      .total-info {
+        font-size: 14px;
+        color: ${theme.textSecondary};
+      }
+
+      .empty-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        background: ${theme.backgroundSecondary};
+        border-radius: 8px;
+        border: 1px dashed ${theme.border};
+      }
+
+      .empty-content {
+        color: ${theme.textSecondary};
+        font-size: 14px;
+      }
+
+      .no-server {
+        padding: 24px;
+        text-align: center;
+        color: ${theme.textSecondary};
+      }
+
+      @media (max-width: 768px) {
+        .users-page {
+          padding: 16px;
+          gap: 16px;
         }
 
         .page-title {
-          font-size: 24px;
-          font-weight: 600;
-          color: ${theme.text};
-          margin: 0;
-        }
-
-        .header-actions {
-          display: flex;
-          gap: 12px;
-        }
-
-        .error-container {
-          padding: 12px 16px;
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.error};
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .error-message {
-          color: ${theme.error};
-        }
-
-        .loading-container {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 200px;
+          font-size: 20px;
         }
 
         .table-container {
-          flex: 1;
-          overflow: auto;
-          border-radius: 8px;
-          background: ${theme.background};
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
+          margin: 0 -16px;
+          border-left: none;
+          border-right: none;
+          border-radius: 0;
         }
 
         .page-footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          padding-top: 16px;
+          flex-direction: column-reverse;
+          align-items: stretch;
         }
 
         .total-info {
-          font-size: 14px;
-          color: ${theme.textSecondary};
-        }
-
-        .empty-container {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 200px;
-          background: ${theme.backgroundSecondary};
-          border-radius: 8px;
-          border: 1px dashed ${theme.border};
-        }
-
-        .empty-content {
-          color: ${theme.textSecondary};
-          font-size: 14px;
-        }
-
-        .no-server {
-          padding: 24px;
           text-align: center;
-          color: ${theme.textSecondary};
         }
-
-        @media (max-width: 768px) {
-          .users-page {
-            padding: 16px;
-            gap: 16px;
-          }
-
-          .page-title {
-            font-size: 20px;
-          }
-
-          .table-container {
-            margin: 0 -16px;
-            border-left: none;
-            border-right: none;
-            border-radius: 0;
-          }
-
-          .page-footer {
-            flex-direction: column-reverse;
-            align-items: stretch;
-          }
-
-          .total-info {
-            text-align: center;
-          }
-        }
-      `}</style>
+      }
+    `}</style>
     </div>
   );
 }
