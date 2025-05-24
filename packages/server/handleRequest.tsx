@@ -8,7 +8,6 @@ import { weatherRouteHandler } from "integrations/weather";
 import { createResponse } from "./createResponse";
 import { handleRender } from "./render";
 import { handlePublicRequest } from "./publicRequestHandler";
-import { chatRoute } from "./chatRoute";
 import { handleRPCRequest } from "./handleRPCRequest";
 
 const logger = pino({ name: "server:request" });
@@ -70,11 +69,6 @@ export const handleRequest = async (request: Request, server) => {
       headers: request.headers,
       method: request.method,
     };
-
-    if (url.pathname.startsWith(API_ENDPOINTS.CHAT)) {
-      req.user = await handleToken(request, res);
-      return chatRoute(req);
-    }
 
     if (url.pathname.startsWith(API_ENDPOINTS.USERS)) {
       req.user = await handleToken(request, res);
