@@ -46,6 +46,12 @@ export const authRoutes = {
       createPath: (params: RouteParams) =>
         `${API_VERSION}/users/${params.userId}/disable`,
     },
+    enable: {
+      path: `${API_VERSION}/users/:userId/enable`,
+      method: "POST" as const,
+      createPath: (params: RouteParams) =>
+        `${API_VERSION}/users/${params.userId}/enable`,
+    },
   },
 } as const;
 
