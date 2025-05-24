@@ -45,4 +45,4 @@ const dynamicOutdir = `public/assets-${timestamp}`;
 
 export const config = isProduction
   ? { ...commonConfig, ...prodConfig, outdir: dynamicOutdir }
-  : { ...commonConfig, outdir: dynamicOutdir };
+  : { ...commonConfig, outdir: "public/assets" };
