@@ -4,34 +4,30 @@ import { renderReactApp } from "./html/renderReactApp";
 import { serializeState } from "./html/serializeState";
 import { htmlEnd, htmlStart } from "./html/template";
 
-// 获取最新的 assets.json 路径
-const getLatestAssetsPath = async () => {
-  try {
-    const startTime = performance.now();
-    const versionData = await Bun.file("public/latest-version.json").text();
-    const versionInfo = JSON.parse(versionData);
-    console.log(
-      `读取 latest-version.json 耗时: ${performance.now() - startTime}ms`
-    );
-    return `${versionInfo.outdir}/assets.json`;
-  } catch (error) {
-    console.error("读取 latest-version.json 失败，使用默认路径", error);
-    return "public/assets/assets.json"; // 备用路径
-  }
-};
+// 缓存机制
+let cachedAssets = null;
+let lastCheckTime = 0;
+const CACHE_DURATION = 60000; // 缓存 60 秒
 
-// 获取最新的 assets 数据，不使用缓存
+// 获取最新的 assets 数据，带缓存
 const getLatestAssets = async () => {
+  const currentTime = Date.now();
+  if (cachedAssets && currentTime - lastCheckTime < CACHE_DURATION) {
+    return cachedAssets; // 使用缓存
+  }
+
   try {
-    const latestAssetsPath = await getLatestAssetsPath();
-    const startTime = performance.now();
-    const assetsData = await Bun.file(latestAssetsPath).text();
-    const assets = JSON.parse(assetsData);
-    console.log(`读取 assets.json 耗时: ${performance.now() - startTime}ms`);
-    return assets;
+    const assetsData = await Bun.file("public/latest-assets.json").text();
+    cachedAssets = JSON.parse(assetsData);
+    lastCheckTime = currentTime;
+    return cachedAssets;
   } catch (error) {
-    console.error("读取 assets.json 失败", error);
-    throw error; // 抛出错误，交给上层处理
+    console.error("读取 latest-assets.json 失败", error);
+    if (cachedAssets) {
+      return cachedAssets; // 如果有缓存，返回缓存数据
+    }
+    // 如果没有缓存，提供一个默认值或抛出错误
+    return { js: "", css: "" }; // 默认值作为备用
   }
 };
 
@@ -43,8 +39,8 @@ export const handleRender = async (req) => {
 
   // 获取最新的 assets 数据
   const assets = await getLatestAssets();
-  const bootstrapJs = `/${assets.js}`;
-  const bootstrapCss = `/${assets.css}`;
+  const bootstrapJs = assets.js ? `/${assets.js}` : "";
+  const bootstrapCss = assets.css ? `/${assets.css}` : "";
   let didError = false;
 
   const acceptLanguage = req.headers.get("accept-language");
@@ -55,7 +51,7 @@ export const handleRender = async (req) => {
     const stream = await renderToReadableStream(
       renderReactApp(store, url, hostname, lng),
       {
-        bootstrapModules: [bootstrapJs],
+        bootstrapModules: bootstrapJs ? [bootstrapJs] : [],
         onError(error) {
           didError = true;
           console.error(error);

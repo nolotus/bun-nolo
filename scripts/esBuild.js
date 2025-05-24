@@ -13,8 +13,10 @@ const measureTime = async (operation, action) => {
 
 const getEntryFiles = (metaData) => {
   const entryFiles = { js: "", css: "" };
+  // 调整路径匹配逻辑，确保与实际输出路径一致
   Object.entries(metaData.outputs).forEach(([path, output]) => {
-    if (path.startsWith("public/assets/entry")) {
+    // 移除硬编码的路径前缀，改为更灵活的匹配方式
+    if (path.includes("entry") || path.match(/entry[-_\w]*\.(js|css)$/)) {
       if (path.endsWith(".js")) {
         entryFiles.js = path;
       } else if (path.endsWith(".css")) {
@@ -34,17 +36,9 @@ export const runMetaBuild = async () => {
     write("public/meta.json", JSON.stringify(result.metafile))
   );
   const assets = getEntryFiles(result.metafile);
-  await measureTime("写入 assets.json", () =>
-    write("public/assets.json", JSON.stringify(assets))
-  );
-
-  // 保存当前版本的输出目录到固定文件
-  const versionInfo = {
-    outdir: config.outdir, // 从配置中获取当前输出目录，如 "public/assets-时间戳"
-    timestamp: Date.now(),
-  };
-  await measureTime("写入 latest-version.json", () =>
-    write("public/latest-version.json", JSON.stringify(versionInfo))
+  // 直接将最新的入口文件信息写入到固定文件，避免二次查找
+  await measureTime("写入 latest-assets.json", () =>
+    write("public/latest-assets.json", JSON.stringify(assets))
   );
 
   const totalEndTime = performance.now();
