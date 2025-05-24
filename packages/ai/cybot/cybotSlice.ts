@@ -12,6 +12,7 @@ import { selectAllMsgs } from "chat/messages/messageSlice";
 import { contextCybotId } from "core/init";
 import { formatDataForApi } from "./formatDataForApi";
 import { selectCurrentSpace } from "create/space/spaceSlice";
+import { selectCurrentToken } from "auth/authSlice";
 
 // 创建带有 Thunk 的 Slice
 const createSliceWithThunks = buildCreateSlice({
@@ -46,12 +47,14 @@ export const cybotSlice = createSliceWithThunks({
           { role: "user", content }, // 使用 content 参数，供系统构造后传入
         ];
         const bodyData = { model: cybotConfig.model, messages, stream: false };
-        const response = await performFetchRequest(
+        const token = selectCurrentToken(state);
+        const response = await performFetchRequest({
           cybotConfig,
           api,
           bodyData,
-          currentServer
-        );
+          currentServer,
+          token,
+        });
 
         const result = await response.json();
         const contentResult = result.choices[0].message.content;

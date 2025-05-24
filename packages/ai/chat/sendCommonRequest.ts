@@ -1,4 +1,4 @@
-// 文件路径: chatRequest.ts
+// 文件路径: ai/chat/sendCommonChatRequest.ts
 
 import { prepareTools } from "ai/tools/prepareTools";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
@@ -7,7 +7,7 @@ import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "./fetchUtils";
 import { createDialogMessageKeyAndId } from "database/keys";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectCurrentToken, selectCurrentUserId } from "auth/authSlice";
 
 import { extractCustomId } from "core/prefix";
 import { createPageFunc } from "ai/tools/createPageTool";
@@ -189,7 +189,7 @@ async function handleAccumulatedToolCalls(
   return updatedContentBuffer; // 返回更新后的 buffer
 }
 
-// --- 辅助函数：追加文本块 --- (代码无变化)
+// --- 辅助函数：追加文本块 ---
 function appendTextChunk(
   currentContentBuffer: any[],
   textChunk: string
@@ -222,7 +222,7 @@ function appendTextChunk(
   return updatedContentBuffer;
 }
 
-// --- 辅助函数：完成流处理 --- (代码无变化)
+// --- 辅助函数：完成流处理 ---
 function finalizeStream(
   finalContentBuffer: any[],
   totalUsage: any,
@@ -272,7 +272,7 @@ function finalizeStream(
   console.log("[finalizeStream] 流处理完成.");
 }
 
-// --- 主要请求函数 --- (大部分无变化，确保 thunkApi 正确传递)
+// --- 主要请求函数 ---
 export const sendCommonChatRequest = async ({
   bodyData,
   cybotConfig,
@@ -318,27 +318,82 @@ export const sendCommonChatRequest = async ({
     );
 
     const api = getApiEndpoint(cybotConfig);
-    const response = await performFetchRequest(
+    const token = selectCurrentToken(getState());
+
+    const response = await performFetchRequest({
       cybotConfig,
       api,
       bodyData,
       currentServer,
-      signal
-    );
-
+      signal,
+      token,
+    });
     if (!response.ok) {
       const errorBody = await response.text();
-      let errorJson = null;
+      let errorMessage = `API请求失败: 状态码 ${response.status}`;
+      let errorCode = `E${response.status}`;
       try {
-        errorJson = JSON.parse(errorBody);
-      } catch (e) {}
-      const errorMessage =
-        errorJson?.error?.message ||
-        errorBody ||
-        `${response.status} ${response.statusText}`;
-      throw new Error(`API请求失败: ${errorMessage}`);
+        const errorJson = JSON.parse(errorBody);
+        errorMessage =
+          errorJson?.error?.message ||
+          errorBody ||
+          `状态码 ${response.status} ${response.statusText}`;
+        errorCode = errorJson?.error?.code || errorCode;
+        // 根据状态码和错误代码自定义错误提示
+        if (response.status === 504) {
+          errorMessage = "请求超时，请稍后再试";
+        } else if (response.status === 401) {
+          if (errorCode === "AUTH_TOKEN_EXPIRED") {
+            errorMessage = "令牌已过期，请重新登录";
+          } else if (errorCode === "AUTH_ACCOUNT_INVALID") {
+            errorMessage = "账户无效或已被停用，请联系管理员";
+          } else if (errorCode === "AUTH_NO_TOKEN") {
+            errorMessage = "未提供身份验证令牌，请登录";
+          } else if (errorCode === "AUTH_INVALID_TOKEN") {
+            errorMessage = "无效的身份验证令牌，请重新登录";
+          } else if (errorCode === "AUTH_TOKEN_NOT_ACTIVE") {
+            errorMessage = "令牌尚未生效，请稍后再试";
+          } else {
+            errorMessage = "身份验证失败，请检查您的凭据";
+          }
+        } else if (response.status === 400) {
+          errorMessage = "请求参数错误，请检查输入";
+        }
+      } catch (e) {
+        console.error("[Chat Request] 解析错误响应失败:", e);
+        errorMessage =
+          errorBody || `状态码 ${response.status} ${response.statusText}`;
+      }
+      console.error("[Chat Request] API请求失败:", errorMessage);
+
+      // 将错误信息以流式传输方式显示
+      contentBuffer = appendTextChunk(contentBuffer, `[错误: ${errorMessage}]`);
+      dispatch(
+        messageStreaming({
+          id: messageId,
+          dbKey: msgKey,
+          content: contentBuffer,
+          role: "assistant",
+          cybotKey: cybotConfig.dbKey,
+          controller,
+        })
+      );
+
+      // 结束流处理
+      finalizeStream(
+        contentBuffer,
+        totalUsage,
+        msgKey,
+        cybotConfig,
+        dialogId,
+        dialogKey,
+        thunkApi,
+        messageId
+      );
+      return; // 提前返回，避免继续处理流
     }
 
+    // 以下代码保持不变，继续处理流式响应
     reader = response.body?.getReader();
     if (!reader) {
       throw new Error("无法获取响应流读取器");
@@ -353,7 +408,7 @@ export const sendCommonChatRequest = async ({
         contentBuffer = await handleAccumulatedToolCalls(
           accumulatedToolCalls,
           contentBuffer,
-          thunkApi, // *** 传递 thunkApi ***
+          thunkApi,
           cybotConfig,
           msgKey,
           messageId
@@ -367,7 +422,7 @@ export const sendCommonChatRequest = async ({
           cybotConfig,
           dialogId,
           dialogKey,
-          thunkApi, // *** 传递 thunkApi ***
+          thunkApi,
           messageId
         );
         break;
@@ -419,7 +474,7 @@ export const sendCommonChatRequest = async ({
             cybotConfig,
             dialogId,
             dialogKey,
-            thunkApi, // *** 传递 thunkApi ***
+            thunkApi,
             messageId
           );
           if (reader) await reader.cancel();
@@ -538,7 +593,7 @@ export const sendCommonChatRequest = async ({
             contentBuffer = await handleAccumulatedToolCalls(
               accumulatedToolCalls,
               contentBuffer,
-              thunkApi, // *** 传递 thunkApi ***
+              thunkApi,
               cybotConfig,
               msgKey,
               messageId
@@ -575,11 +630,28 @@ export const sendCommonChatRequest = async ({
     } // end while
   } catch (error: any) {
     console.error("[Chat Request] 捕获到异常:", error);
-    const errorText =
-      error.name === "AbortError"
-        ? "\n[用户中断]"
-        : `\n[错误: ${error.message || String(error)}]`;
+    let errorText = "";
+    if (error.name === "AbortError") {
+      errorText = "\n[用户中断]";
+    } else if (
+      error.message.includes("网络请求失败") ||
+      error.message.includes("NetworkError")
+    ) {
+      errorText = "\n[错误: 网络连接失败，请检查您的网络设置]";
+    } else {
+      errorText = `\n[错误: ${error.message || String(error)}]`;
+    }
     contentBuffer = appendTextChunk(contentBuffer, errorText);
+    dispatch(
+      messageStreaming({
+        id: messageId,
+        dbKey: msgKey,
+        content: contentBuffer,
+        role: "assistant",
+        cybotKey: cybotConfig.dbKey,
+        controller,
+      })
+    );
     finalizeStream(
       contentBuffer,
       totalUsage,
@@ -587,7 +659,7 @@ export const sendCommonChatRequest = async ({
       cybotConfig,
       dialogId,
       dialogKey,
-      thunkApi, // *** 传递 thunkApi ***
+      thunkApi,
       messageId
     );
   } finally {
