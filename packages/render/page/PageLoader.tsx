@@ -1,5 +1,4 @@
 // render/page/PageLoader.tsx
-
 import React, { Suspense, lazy, useEffect } from "react";
 import { useAppDispatch } from "app/hooks";
 import { useParams, useLocation } from "react-router-dom";
@@ -48,20 +47,17 @@ const PageLoader = () => {
   }, [dispatch]); // 仅依赖 dispatch
 
   // 根据 pageKey 前缀渲染不同的组件
-  const renderPageComponent = () => {
-    if (pageKey?.startsWith("page")) {
-      return <RenderPage pageKey={pageKey} />;
-    } else if (pageKey?.startsWith("dialog")) {
-      return <DialogPage pageKey={pageKey} />;
-    } else {
-      // 如果 pageKey 格式不匹配，显示 NoMatch
-      return <NoMatch message={`无法识别或处理的页面类型: ${pageKey}`} />;
-    }
-  };
-
-  return (
-    <Suspense fallback={<LoadingFallback />}>{renderPageComponent()}</Suspense>
-  );
+  if (pageKey?.startsWith("page")) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <RenderPage pageKey={pageKey} />
+      </Suspense>
+    );
+  } else if (pageKey?.startsWith("dialog")) {
+    return <DialogPage pageKey={pageKey} />;
+  } else {
+    return <NoMatch message={`无法识别或处理的页面类型: ${pageKey}`} />;
+  }
 };
 
 export default PageLoader;

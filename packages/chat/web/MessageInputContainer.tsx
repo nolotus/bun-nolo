@@ -1,11 +1,12 @@
-// chat/web/MessageInputContainer.tsx
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
-import type React from "react";
+import React, { Suspense, lazy } from "react";
 import { useSendPermission } from "../hooks/useSendPermission";
-import MessageInput from "./MessageInput";
 import { useBalance } from "auth/hooks/useBalance";
 import { zIndex } from "render/styles/zIndex";
+
+// 懒加载 MessageInput 组件
+const MessageInput = lazy(() => import("./MessageInput"));
 
 interface ErrorMessageProps {
   message: string;
@@ -39,6 +40,13 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => {
   );
 };
 
+// 加载提示组件
+const LoadingFallback = () => (
+  <div style={{ padding: "0.5rem 1rem", textAlign: "center" }}>
+    加载输入框...
+  </div>
+);
+
 const MessageInputContainer: React.FC = () => {
   const { balance, loading, error: balanceError } = useBalance();
   const { sendPermission, getErrorMessage } = useSendPermission(balance);
@@ -59,7 +67,11 @@ const MessageInputContainer: React.FC = () => {
     );
   }
 
-  return <MessageInput />;
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <MessageInput />
+    </Suspense>
+  );
 };
 
 export default MessageInputContainer;

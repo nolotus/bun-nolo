@@ -51,9 +51,8 @@ bower_components
 build/Release
 public/assets
 public/meta.json
-public/assets.json
 public/assets-*
-public/latest-version.json
+public/latest-assets.json
 build/
 # Dependency directories
 
