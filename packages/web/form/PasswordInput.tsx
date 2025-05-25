@@ -4,17 +4,20 @@ import { useTheme } from "app/theme";
 import type React from "react";
 import { useState } from "react";
 
-
-interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface PasswordInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: React.ReactNode;
   error?: boolean;
 }
 
-
-const PasswordInput = ({ icon, error, style, ...props }: PasswordInputProps) => {
+const PasswordInput = ({
+  icon,
+  error,
+  style,
+  ...props
+}: PasswordInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const theme = useTheme();
-
 
   return (
     <>
@@ -87,7 +90,6 @@ const PasswordInput = ({ icon, error, style, ...props }: PasswordInputProps) => 
         `}
       </style>
 
-
       <div className="password-input-wrapper">
         {icon && <div className="input-icon">{icon}</div>}
         <input
@@ -108,6 +110,5 @@ const PasswordInput = ({ icon, error, style, ...props }: PasswordInputProps) => 
     </>
   );
 };
-
 
 export default PasswordInput;
