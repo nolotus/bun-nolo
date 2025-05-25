@@ -7,42 +7,20 @@ import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "./fetchUtils";
 import { createDialogMessageKeyAndId } from "database/keys";
-import { selectCurrentToken, selectCurrentUserId } from "auth/authSlice";
+import { selectCurrentToken } from "auth/authSlice";
 
 import { extractCustomId } from "core/prefix";
-import { createPageFunc } from "ai/tools/createPageTool";
-import { createCategoryFunc } from "ai/tools/createCategoryTool";
-import { generateTable } from "ai/tools/generateTableTool";
-import { parseMultilineSSE } from "./parseMultilineSSE";
 
-// 工具处理函数映射表
-const toolHandlers: Record<string, (args: any, thunkApi: any) => Promise<any>> =
-  {
-    generate_table: async (args, thunkApi) => {
-      const { getState } = thunkApi;
-      const currentUserId = selectCurrentUserId(getState());
-      return generateTable(args, thunkApi, currentUserId);
-    },
-    create_page: createPageFunc,
-    create_category: createCategoryFunc,
-    generate_image: async (args, thunkApi) => {
-      // TODO: 实际图像生成逻辑
-      return {
-        success: true,
-        id: `img_${Date.now()}`,
-        name: "生成的图片",
-        // 占位符，实际应返回图像数据
-      };
-    },
-    // 其他工具可以后续添加
-  };
+import { parseMultilineSSE } from "./parseMultilineSSE";
+import { toolHandlers } from "../tools/toolHandlers";
 
 // --- 辅助函数：处理工具调用结果 ---
+
 async function processToolData(
   toolCall: any,
-  thunkApi: any, // { dispatch, getState }
+  thunkApi: any,
   cybotConfig: any,
-  messageId: string // 或 msgKey
+  messageId: string
 ): Promise<any> {
   console.log("[Tool] 开始处理工具调用:", JSON.stringify(toolCall, null, 2));
   const func = toolCall.function;
@@ -55,7 +33,7 @@ async function processToolData(
   let toolArgs = func.arguments;
 
   try {
-    // 参数解析逻辑
+    // 参数解析逻辑（保持不变）
     if (typeof toolArgs === "string") {
       if (toolArgs.trim() === "") {
         toolArgs = {};
@@ -94,9 +72,10 @@ async function processToolData(
     try {
       const result = await handler(toolArgs, thunkApi);
       if (result && result.success) {
-        const displayName = result.title || result.name || "操作完成";
-        const displayId = result.id || "N/A";
-        const text = `${toolName.replace("_", " ").replace(/^./, (c) => c.toUpperCase())} 已成功执行：${displayName} (ID: ${displayId})`;
+        // 如果 result 中有自定义 text 字段，优先使用
+        const text =
+          result.text ||
+          `${toolName.replace("_", " ").replace(/^./, (c) => c.toUpperCase())} 已成功执行：${result.title || result.name || "操作完成"} (ID: ${result.id || "N/A"})`;
         console.log(`[Tool] ${toolName} 成功，生成信息:`, text);
         return { type: "text", text };
       } else {
