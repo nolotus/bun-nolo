@@ -257,7 +257,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 600;
     flex-shrink: 0;
     background: ${theme.primaryGhost};
@@ -288,14 +288,14 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
   }
 
   .cybot-block__title {
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 600;
     margin: 0;
     color: ${theme.text};
     word-break: break-word;
     overflow-wrap: break-word;
     letter-spacing: -0.01em;
-    line-height: 1.3;
+    line-height: 1.4;
   }
 
   .cybot-block__tags {
@@ -303,11 +303,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     gap: ${theme.space[1]};
     flex-wrap: wrap;
     align-items: center;
-    margin-top: ${theme.space[1]};
+    margin-top: ${theme.space[2]};
   }
 
   .cybot-block__tag {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: ${theme.textTertiary};
     padding: ${theme.space[1]} ${theme.space[2]};
     background: ${theme.backgroundTertiary};
@@ -327,7 +327,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
   }
 
   .cybot-block__price-tag {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     color: ${theme.textTertiary};
     padding: ${theme.space[1]} ${theme.space[2]};
     background: ${theme.backgroundTertiary};
@@ -343,23 +343,24 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
   .cybot-block__description {
     flex: 1;
-    font-size: 0.875rem;
-    line-height: 1.6;
+    font-size: 0.9375rem;
+    line-height: 1.7;
     color: ${theme.textSecondary};
-    margin: ${theme.space[2]} 0;
+    margin: ${theme.space[3]} 0;
     overflow-wrap: break-word;
     white-space: pre-line;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-height: calc(1.7em * 4);
   }
 
   .cybot-block__actions {
     display: flex;
     margin-top: auto;
-    padding-top: ${theme.space[2]};
+    padding-top: ${theme.space[3]};
   }
 
   .cybot-block--exit {
@@ -381,9 +382,9 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     }
 
     .cybot-block__avatar {
-      width: ${theme.space[8]};
-      height: ${theme.space[8]};
-      font-size: 0.75rem;
+      width: ${theme.space[9]};
+      height: ${theme.space[9]};
+      font-size: 0.9375rem;
     }
 
     .cybot-block__icon-btn {
@@ -392,7 +393,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     }
 
     .cybot-block__title {
-      font-size: 0.9375rem;
+      font-size: 1rem;
       line-height: 1.4;
     }
 
@@ -401,8 +402,19 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     }
 
     .cybot-block__description {
-      font-size: 0.8125rem;
+      font-size: 0.875rem;
+      line-height: 1.6;
       -webkit-line-clamp: 4;
+      margin: ${theme.space[2]} 0;
+      max-height: calc(1.6em * 4);
+    }
+
+    .cybot-block__tag {
+      font-size: 0.75rem;
+    }
+
+    .cybot-block__price-tag {
+      font-size: 0.75rem;
     }
   }
 
@@ -417,14 +429,14 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     }
 
     .cybot-block__avatar {
-      width: ${theme.space[6]};
-      height: ${theme.space[6]};
-      font-size: 0.625rem;
+      width: ${theme.space[8]};
+      height: ${theme.space[8]};
+      font-size: 0.875rem;
     }
 
     .cybot-block__title {
-      font-size: 0.875rem;
-      line-height: 1.3;
+      font-size: 0.9375rem;
+      line-height: 1.4;
     }
 
     .cybot-block__title-row {
@@ -436,14 +448,26 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     }
 
     .cybot-block__icon-btn {
-      width: calc(${theme.space[6]} + ${theme.space[2]});
-      height: calc(${theme.space[6]} + ${theme.space[2]});
+      width: calc(${theme.space[7]});
+      height: calc(${theme.space[7]});
     }
 
     .cybot-block__description {
       font-size: 0.8125rem;
       line-height: 1.5;
       -webkit-line-clamp: 4;
+      margin: ${theme.space[2]} 0;
+      max-height: calc(1.5em * 4);
+    }
+
+    .cybot-block__tag {
+      font-size: 0.75rem;
+      padding: ${theme.space[1]} ${theme.space[2]};
+    }
+
+    .cybot-block__price-tag {
+      font-size: 0.75rem;
+      padding: ${theme.space[1]} ${theme.space[2]};
     }
   }
 `}</style>
