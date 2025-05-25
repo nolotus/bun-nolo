@@ -297,7 +297,6 @@ export default function UsersPage() {
                   <TableCell element={{ header: true }}>余额</TableCell>
                   <TableCell element={{ header: true }}>注册时间</TableCell>
                   <TableCell element={{ header: true }}>最近登录</TableCell>
-                  <TableCell element={{ header: true }}>状态</TableCell>
                   <TableCell element={{ header: true }} align="right">
                     操作
                   </TableCell>
@@ -324,16 +323,7 @@ export default function UsersPage() {
                     <TableCell element={{}}>
                       {formatTime(user.lastLoginAt)}
                     </TableCell>
-                    <TableCell element={{}}>
-                      <span
-                        style={{
-                          color: user.isDisabled ? theme.error : theme.success,
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {user.isDisabled ? "已停用" : "启用中"}
-                      </span>
-                    </TableCell>
+
                     <TableCell element={{}} align="right">
                       <div className="action-buttons">
                         <Button
