@@ -6,7 +6,8 @@ import { generateImageTool } from "./generateImageTool";
 import { createCategoryTool } from "./createCategoryTool";
 import { updateContentTitleTool } from "./updateContentTitleTool";
 import { updateContentCategoryTool } from "./updateContentCategoryTool";
-import { queryContentsByCategoryTool } from "./queryContentsByCategoryTool"; // 新增导入
+import { queryContentsByCategoryTool } from "./queryContentsByCategoryTool";
+import { fetchWebpageTool } from "./fetchWebpageTool"; // 新增导入
 
 // 工具注册表
 export const toolRegistry: Record<string, any> = {
@@ -18,7 +19,8 @@ export const toolRegistry: Record<string, any> = {
   createCategory: createCategoryTool,
   updateContentTitle: updateContentTitleTool,
   updateContentCategory: updateContentCategoryTool,
-  queryContentsByCategory: queryContentsByCategoryTool, // 新增工具
+  queryContentsByCategory: queryContentsByCategoryTool,
+  fetchWebpage: fetchWebpageTool, // 新增工具
 };
 
 // 工具描述映射，用于 ToolSelector 显示描述
@@ -61,5 +63,9 @@ export const toolDescriptions: Record<
   queryContentsByCategory: {
     name: "queryContentsByCategory",
     description: "查询当前空间中某个分类下的所有内容",
+  },
+  fetchWebpage: {
+    name: "fetchWebpage",
+    description: "访问指定网页并获取其内容",
   }, // 新增描述
 };

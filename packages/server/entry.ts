@@ -4,6 +4,7 @@ import { Cron } from "croner";
 import { tasks } from "./tasks";
 import { API_ENDPOINTS } from "database/config";
 import { handleChatRequest } from "./chatHandler";
+import { handleFetchWebpage } from "./handlers/fetchWebpageHandler"; // 新增导入
 
 const startTasks = () => {
   tasks.forEach(({ interval, task }) => {
@@ -12,7 +13,7 @@ const startTasks = () => {
   });
 };
 
-// 定义路由配置，只处理 chat 相关路由
+// 定义路由配置，只处理 chat 相关路由和新添加的网页访问路由
 const apiRoutes = {
   "/api/status": new Response("OK"),
   [API_ENDPOINTS.CHAT]: {
@@ -34,8 +35,12 @@ const apiRoutes = {
       return await handleChatRequest(req, headers);
     },
   },
+  "/api/fetch-webpage": {
+    POST: handleFetchWebpage, // 使用从单独文件中导入的处理函数
+  },
 };
 
+// 以下是 httpServer 和 startServer 的代码，未做修改
 const httpServer = () => {
   // 输出 isProduction 的值
   console.log("isProduction:", isProduction);
