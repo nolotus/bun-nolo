@@ -73,11 +73,13 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         <div className="cybot-block__info">
           <div className="cybot-block__title-row">
-            <Tooltip content={`ID: ${item.id}`}>
-              <h3 className="cybot-block__title">
-                {item.name || t("unnamed")}
-              </h3>
-            </Tooltip>
+            <div className="cybot-block__title-container">
+              <Tooltip content={`ID: ${item.id}`}>
+                <h3 className="cybot-block__title">
+                  {item.name || t("unnamed")}
+                </h3>
+              </Tooltip>
+            </div>
 
             <div className="cybot-block__meta">
               {item.outputPrice && (
@@ -189,15 +191,16 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
   
   .cybot-block__meta {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: ${theme.space[2]};
     justify-content: flex-end;
+    flex-shrink: 0;
   }
   
   .cybot-block__actions-top {
     display: flex;
     gap: ${theme.space[1]};
-    opacity: 1; /* 默认显示 */
+    opacity: 1;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
@@ -254,7 +257,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.875rem; /* 字体大小缩小 */
+    font-size: 0.875rem;
     font-weight: 600;
     flex-shrink: 0;
     background: ${theme.primaryGhost};
@@ -276,6 +279,12 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     justify-content: space-between;
     gap: ${theme.space[3]};
     margin-top: ${theme.space[1]};
+    flex-wrap: wrap;
+  }
+
+  .cybot-block__title-container {
+    min-width: 0;
+    flex: 1;
   }
 
   .cybot-block__title {
@@ -283,10 +292,10 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     font-weight: 600;
     margin: 0;
     color: ${theme.text};
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-word;
+    overflow-wrap: break-word;
     letter-spacing: -0.01em;
+    line-height: 1.3;
   }
 
   .cybot-block__tags {
@@ -384,6 +393,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
     .cybot-block__title {
       font-size: 0.9375rem;
+      line-height: 1.4;
+    }
+
+    .cybot-block__title-row {
+      gap: ${theme.space[2]};
     }
 
     .cybot-block__description {
@@ -410,6 +424,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
     .cybot-block__title {
       font-size: 0.875rem;
+      line-height: 1.3;
+    }
+
+    .cybot-block__title-row {
+      gap: ${theme.space[1]};
     }
 
     .cybot-block__meta {
