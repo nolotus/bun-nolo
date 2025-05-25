@@ -9,11 +9,8 @@ import { SyncIcon } from "@primer/octicons-react";
 
 // Components
 import Button from "render/web/ui/Button";
-import ToggleSwitch from "web/ui/ToggleSwitch";
 import { FormField } from "web/form/FormField";
-import { Input } from "web/form/Input";
 import Textarea from "web/form/Textarea";
-import FormTitle from "web/form/FormTitle";
 import AllModelsSelector from "ai/llm/AllModelsSelector";
 import ReferencesSelector from "./ReferencesSelector";
 
@@ -35,7 +32,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
   });
 
   // 基本状态
-  const useServerProxy = watch("useServerProxy");
   const references = watch("references") || [];
 
   // 提交表单
@@ -54,19 +50,7 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
 
   return (
     <div className="quick-edit-container">
-      <FormTitle>{t("quickEdit")}</FormTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* 名称 */}
-        <FormField
-          label={t("cybotName")}
-          required
-          error={errors.name?.message}
-          horizontal
-          labelWidth="140px"
-        >
-          <Input {...register("name")} placeholder={t("enterCybotName")} />
-        </FormField>
-
         {/* 提示词 */}
         <FormField
           label={t("prompt")}
@@ -76,20 +60,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
           labelWidth="140px"
         >
           <Textarea {...register("prompt")} placeholder={t("enterPrompt")} />
-        </FormField>
-
-        {/* 自定义URL - 始终显示 */}
-        <FormField
-          label={t("providerUrl")}
-          error={errors.customProviderUrl?.message}
-          horizontal
-          labelWidth="140px"
-        >
-          <Input
-            {...register("customProviderUrl")}
-            placeholder={t("enterProviderUrl")}
-            type="url"
-          />
         </FormField>
 
         {/* 模型选择 */}
@@ -106,19 +76,6 @@ const QuickEditCybot = ({ initialValues, onClose }) => {
             register={register}
             defaultModel={initialValues.model}
             t={t}
-          />
-        </FormField>
-
-        {/* 服务器代理 */}
-        <FormField
-          label={t("useServerProxy")}
-          help={t("proxyHelp")}
-          horizontal
-          labelWidth="140px"
-        >
-          <ToggleSwitch
-            checked={useServerProxy}
-            onChange={(checked) => setValue("useServerProxy", checked)}
           />
         </FormField>
 

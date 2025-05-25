@@ -77,7 +77,7 @@ const Cybots = memo(({ queryUserId, limit = 20 }: CybotsProps) => {
           <CybotBlock key={item.id} item={item} reload={handleReload} />
         ))}
       </GridContainer>
-      <style jsx>{`
+      <style href="cybot" precedence="medium">{`
         .loading-container {
           text-align: center;
           padding: ${theme.space[6]};
