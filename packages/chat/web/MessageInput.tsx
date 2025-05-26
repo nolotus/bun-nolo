@@ -23,12 +23,20 @@ import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
 import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { UploadIcon } from "@primer/octicons-react";
+import { FaFileExcel, FaFileWord, FaFilePdf, FaTimes } from "react-icons/fa";
 import SendButton from "./ActionButton";
 import ImagePreview from "./ImagePreview";
 import { convertDocxToSlate } from "./docxToSlate";
 import { convertPdfToSlate } from "./pdfToSlate";
 import { convertExcelToSlate } from "utils/excelToSlate";
 import { createPage } from "render/page/pageSlice";
+
+interface PendingFile {
+  id: string;
+  name: string;
+  pageKey: string;
+  type: "excel" | "docx" | "pdf" | "page";
+}
 
 const MessageInput: React.FC = () => {
   // Hooks, Refs, Local State, Redux State
@@ -43,11 +51,30 @@ const MessageInput: React.FC = () => {
   const imagePreviews = useAppSelector(selectPendingImagePreviews);
   const pendingFiles = useAppSelector(selectPendingFiles);
   const previewingFile = useAppSelector(selectPreviewingFileObject);
-  // 按类型分组文件以便显示
-  const excelFiles = pendingFiles.filter((f) => f.type === "excel");
-  const docxFiles = pendingFiles.filter(
-    (f) => f.type === "docx" || f.type === "pdf"
-  );
+
+  // 文件类型配置：与 MessageContent 保持一致
+  const FILE_TYPE_CONFIG = {
+    excel: {
+      icon: FaFileExcel,
+      title: "Excel 文件",
+      color: "#1D6F42", // Excel 绿色
+    },
+    docx: {
+      icon: FaFileWord,
+      title: "Word 文档",
+      color: "#2B579A", // Word 蓝色
+    },
+    pdf: {
+      icon: FaFilePdf,
+      title: "PDF 文档",
+      color: "#DC3545", // PDF 红色
+    },
+    page: {
+      icon: FaFileWord,
+      title: "Page 文档",
+      color: "#FF9500", // Pages 橙色
+    },
+  } as const;
 
   // Effects
   useEffect(() => {
@@ -92,9 +119,7 @@ const MessageInput: React.FC = () => {
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
           if (jsonData.length > 0) {
-            // 转换为 Slate.js 格式
             const slateContent = convertExcelToSlate(jsonData, file.name);
-            // 创建页面，将文件名作为 title 传递
             const pageKey = await dispatch(
               createPage({
                 slateData: slateContent,
@@ -102,11 +127,11 @@ const MessageInput: React.FC = () => {
               })
             ).unwrap();
 
-            const newExcelFile = {
+            const newExcelFile: PendingFile = {
               id: nanoid(),
               name: file.name,
               pageKey: pageKey,
-              type: "excel" as const,
+              type: "excel",
             };
             dispatch(addPendingFile(newExcelFile));
             toast.success(t("excelUploadSuccess"));
@@ -130,20 +155,18 @@ const MessageInput: React.FC = () => {
     async (file: File) => {
       try {
         const slateContent = await convertDocxToSlate(file);
-        console.log("转换后的 Slate.js 格式内容：", slateContent);
         const pageKey = await dispatch(
           createPage({
             slateData: slateContent,
             title: file.name,
           })
         ).unwrap();
-        console.log("创建页面成功，pageKey:", pageKey);
 
-        const newDocxFile = {
+        const newDocxFile: PendingFile = {
           id: nanoid(),
           name: file.name,
           pageKey: pageKey,
-          type: "docx" as const,
+          type: "docx",
         };
         dispatch(addPendingFile(newDocxFile));
         toast.success(t("docxUploadSuccess"));
@@ -159,20 +182,18 @@ const MessageInput: React.FC = () => {
     async (file: File) => {
       try {
         const slateContent = await convertPdfToSlate(file);
-        console.log("转换后的 PDF Slate.js 内容：", slateContent);
         const pageKey = await dispatch(
           createPage({
             slateData: slateContent,
             title: file.name,
           })
         ).unwrap();
-        console.log("创建 PDF 页面成功，pageKey:", pageKey);
 
-        const newPdfFile = {
+        const newPdfFile: PendingFile = {
           id: nanoid(),
           name: file.name,
           pageKey: pageKey,
-          type: "pdf" as const,
+          type: "pdf",
         };
         dispatch(addPendingFile(newPdfFile));
         toast.success(t("pdfUploadSuccess"));
@@ -286,7 +307,6 @@ const MessageInput: React.FC = () => {
     } else if (parts.length === 1) {
       messageContent = parts;
     } else {
-      console.warn("sendMessage called with no content after processing.");
       return;
     }
 
@@ -376,7 +396,7 @@ const MessageInput: React.FC = () => {
   );
 
   const handlePreviewFile = useCallback(
-    (idToPreview: string, type: "excel" | "docx" | "pdf") => {
+    (idToPreview: string, type: keyof typeof FILE_TYPE_CONFIG) => {
       dispatch(setPreviewingFile({ id: idToPreview, type }));
     },
     [dispatch]
@@ -386,9 +406,55 @@ const MessageInput: React.FC = () => {
     dispatch(setPreviewingFile(null));
   }, [dispatch]);
 
+  // 文件预览渲染函数 - 与 MessageContent 保持一致
+  const renderFilePreview = (file: PendingFile) => {
+    const config = FILE_TYPE_CONFIG[file.type];
+    if (!config) return null;
+
+    const IconComponent = config.icon;
+
+    return (
+      <div
+        key={file.id}
+        className="file-attachment"
+        style={{ "--file-color": config.color } as React.CSSProperties}
+      >
+        <div className="file-preview-content">
+          <IconComponent size={16} />
+          <span
+            className="file-name"
+            onClick={() => handlePreviewFile(file.id, file.type)}
+            title={`点击预览 ${config.title}`}
+            role="button"
+            aria-label={`${config.title}: ${file.name}`}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handlePreviewFile(file.id, file.type);
+              }
+            }}
+          >
+            {file.name}
+          </span>
+        </div>
+        <button
+          className="remove-file-btn"
+          onClick={() => handleRemoveFile(file.id)}
+          aria-label={`删除 ${file.name}`}
+          title={`删除 ${file.name}`}
+        >
+          <FaTimes size={12} />
+        </button>
+      </div>
+    );
+  };
+
   // Render Logic
   const hasContent =
     textContent.trim() || imagePreviews.length > 0 || pendingFiles.length > 0;
+
+  const hasAttachments = imagePreviews.length > 0 || pendingFiles.length > 0;
 
   return (
     <div
@@ -398,35 +464,22 @@ const MessageInput: React.FC = () => {
       onDrop={handleDrop}
       aria-label={t("messageInputArea")}
     >
-      {/* Attachments Preview Area */}
-      <div className="attachments-preview">
-        {imagePreviews.length > 0 && (
-          <div className="message-preview-wrapper">
-            <ImagePreview images={imagePreviews} onRemove={handleRemoveImage} />
+      {/* 统一的附件预览区域 - 横向排列 */}
+      {hasAttachments && (
+        <div className="attachments-preview">
+          <div className="attachments-list">
+            {/* 使用新的 ImagePreview 组件 */}
+            {imagePreviews.length > 0 && (
+              <ImagePreview
+                images={imagePreviews}
+                onRemove={handleRemoveImage}
+              />
+            )}
+            {/* 渲染文件预览 */}
+            {pendingFiles.map(renderFilePreview)}
           </div>
-        )}
-        {pendingFiles.length > 0 && (
-          <div className="docx-preview-wrapper">
-            <div className="docx-preview-list">
-              {pendingFiles.map((file) => (
-                <div key={file.id} className="docx-preview-item">
-                  <span
-                    className="docx-name"
-                    onClick={() => handlePreviewFile(file.id, file.type)}
-                    style={{ cursor: "pointer", color: theme.primary }}
-                    title={t("preview")}
-                  >
-                    {file.name}
-                  </span>
-                  <button onClick={() => handleRemoveFile(file.id)}>
-                    {t("remove")}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Input Controls Area */}
       <div className="input-controls">
@@ -454,8 +507,10 @@ const MessageInput: React.FC = () => {
       {/* Drag Overlay */}
       {isDragOver && isDragEnabled && (
         <div className="drop-zone" aria-live="polite">
-          <UploadIcon size={24} />
-          <span>{t("dropToUpload")}</span>
+          <div className="drop-zone-content">
+            <UploadIcon size={32} />
+            <span>{t("dropToUpload")}</span>
+          </div>
         </div>
       )}
 
@@ -480,68 +535,127 @@ const MessageInput: React.FC = () => {
       />
 
       {/* Styles */}
-      <style jsx>{`
+      <style href="message-input" precedence="medium">{`
         .message-input-container {
           position: relative;
           bottom: 0;
           left: 0;
           right: 0;
           width: 100%;
-          padding: 10px 16px;
-          padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+          padding: ${theme.space[2]} ${theme.space[4]};
+          padding-bottom: calc(${theme.space[2]} + env(safe-area-inset-bottom, 0px));
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: ${theme.space[2]};
           background: ${theme.background};
           border-top: 1px solid ${theme.borderLight};
-          box-shadow: 0 -2px 10px ${theme.shadowLight};
+          box-shadow: 0 -2px 12px ${theme.shadowLight};
           z-index: ${zIndex.messageInputContainerZIndex};
-          transition: all 0.2s ease;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .attachments-preview {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
           width: 100%;
         }
 
-        .message-preview-wrapper,
-        .docx-preview-wrapper {
-          width: 100%;
-          margin-bottom: 4px;
-        }
-
-        .docx-preview-list {
+        .attachments-list {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: ${theme.space[2]};
+          padding: ${theme.space[1]} 0;
+          align-items: flex-start;
         }
 
-        .docx-preview-item {
+        /* 文件附件样式 */
+        .file-attachment {
           display: flex;
           align-items: center;
-          gap: 8px;
+          justify-content: space-between;
+          padding: ${theme.space[2]} ${theme.space[3]};
           background: ${theme.backgroundSecondary};
-          padding: 8px;
-          border-radius: 8px;
           border: 1px solid ${theme.border};
+          border-radius: ${theme.space[2]};
+          max-width: 200px;
+          min-width: 120px;
+          position: relative;
+          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .docx-preview-item button {
-          background: none;
-          border: none;
-          color: ${theme.textSecondary};
+        .file-attachment:hover {
+          background: ${theme.backgroundHover};
+          border-color: ${theme.borderHover};
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px ${theme.shadowLight};
+        }
+
+        .file-preview-content {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[2]};
+          flex: 1;
+          min-width: 0;
+          color: var(--file-color, ${theme.textSecondary});
+        }
+
+        .file-name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
           cursor: pointer;
+          font-size: 13px;
+          font-weight: 500;
+          transition: text-decoration 0.15s ease;
         }
 
-        .docx-name:hover {
+        .file-name:hover {
           text-decoration: underline;
+        }
+
+        .file-name:focus {
+          outline: 2px solid ${theme.primary};
+          outline-offset: 2px;
+          border-radius: 2px;
+        }
+
+        /* 删除文件按钮样式 */
+        .remove-file-btn {
+          position: absolute;
+          top: -6px;
+          right: -6px;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: ${theme.error};
+          border: 2px solid ${theme.background};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          cursor: pointer;
+          font-size: 10px;
+          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+          z-index: 2;
+          opacity: 0;
+        }
+
+        .file-attachment:hover .remove-file-btn {
+          opacity: 1;
+        }
+
+        .remove-file-btn:hover {
+          transform: scale(1.1);
+          background: #dc2626;
+        }
+
+        .remove-file-btn:focus {
+          opacity: 1;
+          outline: 2px solid ${theme.primary};
+          outline-offset: 2px;
         }
 
         .input-controls {
           display: flex;
-          gap: 8px;
+          gap: ${theme.space[2]};
           width: 100%;
           align-items: flex-end;
         }
@@ -550,11 +664,11 @@ const MessageInput: React.FC = () => {
           flex: 1;
           min-height: 40px;
           max-height: 200px;
-          padding: 10px 12px;
+          padding: ${theme.space[2]} ${theme.space[3]};
           font-size: 14px;
-          line-height: 1.4;
+          line-height: 1.5;
           border: 1px solid ${theme.border};
-          border-radius: 10px;
+          border-radius: ${theme.space[2]};
           resize: vertical;
           overflow-y: auto;
           scroll-behavior: smooth;
@@ -562,25 +676,22 @@ const MessageInput: React.FC = () => {
           font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
           background: ${theme.backgroundSecondary};
           color: ${theme.text};
-          transition:
-            border-color 0.2s ease,
-            box-shadow 0.2s ease;
+          transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .message-textarea::placeholder {
-          color: ${theme.textTertiary};
+          color: ${theme.placeholder};
         }
+
         .message-textarea:focus {
           outline: none;
           border-color: ${theme.primary};
-        }
-        .message-textarea::-webkit-resizer {
-          cursor: ns-resize;
         }
 
         .upload-button {
           width: 40px;
           height: 40px;
-          border-radius: 10px;
+          border-radius: ${theme.space[2]};
           border: 1px solid ${theme.border};
           display: flex;
           align-items: center;
@@ -588,55 +699,104 @@ const MessageInput: React.FC = () => {
           background: ${theme.background};
           color: ${theme.textSecondary};
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           flex-shrink: 0;
         }
+
         .upload-button:hover {
           background: ${theme.backgroundHover};
           color: ${theme.text};
+          transform: translateY(-1px);
         }
+
         .upload-button:active {
-          transform: scale(0.96);
+          transform: translateY(0);
+        }
+
+        .upload-button:focus {
+          outline: 2px solid ${theme.primary};
+          outline-offset: 2px;
         }
 
         .drop-zone {
           position: absolute;
           inset: 0;
-          border-radius: 10px;
+          border-radius: ${theme.space[2]};
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          font-size: 15px;
           background: ${theme.backgroundGhost};
-          backdrop-filter: blur(4px);
+          backdrop-filter: blur(8px);
           border: 2px dashed ${theme.primary};
           color: ${theme.primary};
           pointer-events: none;
           z-index: 10;
         }
 
-        @media screen and (min-width: 769px) {
+        .drop-zone-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: ${theme.space[2]};
+          font-size: 15px;
+          font-weight: 500;
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+          .message-input-container {
+            padding: ${theme.space[1]} ${theme.space[3]};
+          }
+
+          .attachments-list {
+            gap: ${theme.space[1]};
+          }
+          
+          .file-attachment {
+            max-width: 150px;
+            min-width: 100px;
+            padding: ${theme.space[1]} ${theme.space[2]};
+          }
+
+          .file-name {
+            font-size: 12px;
+          }
+          
+          .message-textarea {
+            max-height: 150px;
+            font-size: 13px;
+          }
+
+          .upload-button {
+            width: 36px;
+            height: 36px;
+          }
+        }
+
+        @media (min-width: 769px) {
           .message-input-container {
             position: relative;
             max-width: 900px;
             margin: 0 auto;
-            padding: 16px;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            padding: ${theme.space[4]};
             border-top: none;
             box-shadow: none;
           }
 
+          .file-attachment {
+            max-width: 240px;
+            min-width: 140px;
+          }
+
+          .file-name {
+            font-size: 14px;
+          }
+
           .message-textarea {
             min-height: 44px;
-            max-height: 260px;
-            padding: 12px 16px;
+            max-height: 200px;
+            padding: ${theme.space[3]} ${theme.space[4]};
             font-size: 15px;
-            resize: vertical;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
           }
 
           .upload-button {
@@ -645,26 +805,31 @@ const MessageInput: React.FC = () => {
           }
         }
 
-        @media screen and (min-width: 1400px) {
+        @media (min-width: 1400px) {
           .message-input-container {
             max-width: 1000px;
           }
         }
 
-        @media screen and (max-width: 480px) {
+        /* 减少动画偏好设置 */
+        @media (prefers-reduced-motion: reduce) {
+          .message-input-container,
+          .file-attachment,
+          .upload-button,
           .message-textarea {
-            max-height: 180px;
-            padding: 8px 10px;
-            font-size: 13px;
-            resize: vertical;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
+            transition: none;
           }
+          
+          .upload-button:hover,
+          .file-attachment:hover {
+            transform: none;
+          }
+        }
 
-          .upload-button {
-            width: 36px;
-            height: 36px;
+        /* 打印样式 */
+        @media print {
+          .message-input-container {
+            display: none;
           }
         }
       `}</style>

@@ -4,19 +4,85 @@ import { useTheme } from "app/theme";
 import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { FaFileExcel, FaFileWord, FaFilePdf } from "react-icons/fa";
 import { BaseModal } from "render/web/ui/BaseModal";
-import { XIcon } from "@primer/octicons-react";
 
-export const MessageContent = ({ content, role }) => {
+interface FilePreview {
+  item: any;
+  type: "excel" | "docx" | "pdf" | "page";
+}
+
+interface MessageContentProps {
+  content: string | Array<any>;
+  role: string;
+}
+
+export const MessageContent = ({ content, role }: MessageContentProps) => {
   const theme = useTheme();
-  const [previewingFile, setPreviewingFile] = useState<{
-    item: any;
-    type: "excel" | "docx" | "pdf";
-  } | null>(null);
+  const [previewingFile, setPreviewingFile] = useState<FilePreview | null>(
+    null
+  );
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   if (!content) return null;
 
   const isSelf = role === "self";
+
+  // 文件类型配置：图标、标题和颜色
+  const FILE_TYPE_CONFIG = {
+    excel: {
+      icon: FaFileExcel,
+      title: "Excel 文件",
+      color: "#1D6F42", // Excel 绿色
+    },
+    docx: {
+      icon: FaFileWord,
+      title: "Word 文档",
+      color: "#2B579A", // Word 蓝色
+    },
+    pdf: {
+      icon: FaFilePdf,
+      title: "PDF 文档",
+      color: "#DC3545", // PDF 红色
+    },
+    page: {
+      icon: FaFileWord,
+      title: "Page 文档",
+      color: "#FF9500", // Pages 橙色
+    },
+  } as const;
+
+  // 通用的文件占位符渲染函数
+  const renderFilePlaceholder = (
+    item: any,
+    index: number,
+    type: keyof typeof FILE_TYPE_CONFIG
+  ) => {
+    const config = FILE_TYPE_CONFIG[type];
+    if (!config) return null;
+
+    const IconComponent = config.icon;
+
+    return (
+      <div
+        key={`${type}-${index}`}
+        className="file-placeholder"
+        onClick={() => setPreviewingFile({ item, type })}
+        title={`点击预览 ${config.title}`}
+        role="button"
+        aria-label={`${config.title}: ${item.name || "未知文件"}`}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setPreviewingFile({ item, type });
+          }
+        }}
+        style={{ "--file-color": config.color } as React.CSSProperties}
+      >
+        <IconComponent size={16} />
+        <span className="file-name">{item.name || "未知文件"}</span>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -44,53 +110,32 @@ export const MessageContent = ({ content, role }) => {
                 <div key={`image-${index}`} className="message-image-container">
                   <img
                     src={item.image_url.url}
-                    alt="消息图片"
+                    alt={item.alt_text || "消息图片"}
                     className="message-image"
                     onClick={() => setSelectedImage(item.image_url.url)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedImage(item.image_url.url);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label="点击查看大图"
                   />
                 </div>
               );
             }
 
-            if (item.type === "excel" && item.pageKey) {
-              return (
-                <div
-                  key={`excel-${index}`}
-                  className="message-excel-placeholder"
-                  onClick={() => setPreviewingFile({ item, type: "excel" })}
-                  title="点击预览 Excel 文件"
-                >
-                  <FaFileExcel size={18} />
-                  <span>Excel 文件: {item.name || "未知文件"}</span>
-                </div>
-              );
-            }
-
-            if (item.type === "docx" && item.pageKey) {
-              return (
-                <div
-                  key={`docx-${index}`}
-                  className="message-docx-placeholder"
-                  onClick={() => setPreviewingFile({ item, type: "docx" })}
-                  title="点击预览 DOCX 文件"
-                >
-                  <FaFileWord size={18} />
-                  <span>DOCX 文件: {item.name || "未知文件"}</span>
-                </div>
-              );
-            }
-
-            if (item.type === "pdf" && item.pageKey) {
-              return (
-                <div
-                  key={`pdf-${index}`}
-                  className="message-pdf-placeholder"
-                  onClick={() => setPreviewingFile({ item, type: "pdf" })}
-                  title="点击预览 PDF 文件"
-                >
-                  <FaFilePdf size={18} />
-                  <span>PDF 文件: {item.name || "未知文件"}</span>
-                </div>
+            // 处理文件类型：excel, docx, pdf, page
+            if (
+              item.pageKey &&
+              FILE_TYPE_CONFIG[item.type as keyof typeof FILE_TYPE_CONFIG]
+            ) {
+              return renderFilePlaceholder(
+                item,
+                index,
+                item.type as keyof typeof FILE_TYPE_CONFIG
               );
             }
 
@@ -126,7 +171,7 @@ export const MessageContent = ({ content, role }) => {
             src={selectedImage}
             alt="放大预览"
             className="preview-modal-image"
-            onClick={(e) => e.stopPropagation()} // 防止点击图片关闭模态框
+            onClick={(e) => e.stopPropagation()}
           />
         </BaseModal>
       )}
@@ -135,7 +180,7 @@ export const MessageContent = ({ content, role }) => {
         @keyframes message-enter {
           from {
             opacity: 0;
-            transform: translateY(8px);
+            transform: translateY(12px);
           }
           to {
             opacity: 1;
@@ -146,13 +191,13 @@ export const MessageContent = ({ content, role }) => {
         .message-content {
           display: flex;
           flex-direction: column;
-          transition: all 0.2s ease-out;
-          animation: message-enter 0.3s ease-out forwards;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: message-enter 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
           white-space: pre-wrap;
           min-width: 100px;
           font-size: 15px;
-          line-height: 1.6;
-          gap: 14px;
+          line-height: 1.65;
+          gap: ${theme.space[3]};
           position: relative;
         }
 
@@ -185,20 +230,26 @@ export const MessageContent = ({ content, role }) => {
         }
 
         .message-image {
-          border-radius: 6px;
+          border-radius: ${theme.space[2]};
           max-width: 100%;
           height: auto;
           max-height: 480px;
           object-fit: contain;
-          box-shadow: 0 1px 2px ${theme.shadowLight};
+          box-shadow: 0 2px 8px ${theme.shadowLight};
           border: 1px solid ${theme.border};
           cursor: pointer;
-          transition: transform 0.2s ease, border-color 0.2s ease;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .message-image:hover {
-          transform: scale(1.02);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px ${theme.shadowMedium};
           border-color: ${theme.primary};
+        }
+
+        .message-image:focus {
+          outline: 2px solid ${theme.primary};
+          outline-offset: 2px;
         }
 
         .message-self {
@@ -211,74 +262,106 @@ export const MessageContent = ({ content, role }) => {
 
         .message-unknown,
         .message-invalid {
-          padding: 10px 14px;
+          padding: ${theme.space[2]} ${theme.space[3]};
           background-color: ${theme.backgroundGhost};
-          border-radius: 6px;
+          border-radius: ${theme.space[2]};
           color: ${theme.textSecondary};
           font-size: 14px;
           border: 1px solid ${theme.borderLight};
         }
 
-        .message-excel-placeholder {
+        /* 文件占位符统一样式 */
+        .file-placeholder {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 10px 14px;
+          gap: ${theme.space[2]};
+          padding: ${theme.space[2]} ${theme.space[3]};
           background-color: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.borderLight};
-          border-radius: 6px;
+          border: 1px solid ${theme.border};
+          border-radius: ${theme.space[2]};
           cursor: pointer;
-          transition: background 0.2s ease;
+          transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+          color: var(--file-color, ${theme.textSecondary});
+          font-size: 14px;
+          font-weight: 500;
+          max-width: 280px;
         }
 
-        .message-excel-placeholder:hover {
+        .file-placeholder:hover {
           background-color: ${theme.backgroundHover};
+          border-color: ${theme.borderHover};
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px ${theme.shadowLight};
         }
 
-        .message-docx-placeholder {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 14px;
-          background-color: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.borderLight};
-          border-radius: 6px;
-          cursor: pointer;
-          transition: background 0.2s ease;
+        .file-placeholder:focus {
+          outline: 2px solid ${theme.primary};
+          outline-offset: 2px;
         }
 
-        .message-docx-placeholder:hover {
-          background-color: ${theme.backgroundHover};
-        }
-
-        .message-pdf-placeholder {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 14px;
-          background-color: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.borderLight};
-          border-radius: 6px;
-          cursor: pointer;
-          transition: background 0.2s ease;
-        }
-
-        .message-pdf-placeholder:hover {
-          background-color: ${theme.backgroundHover};
+        .file-name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          flex: 1;
+          min-width: 0;
         }
 
         /* 图片预览模态框样式 */
         .preview-modal-image {
-          max-width: 90vw;
-          max-height: 85vh;
+          max-width: 92vw;
+          max-height: 88vh;
           object-fit: contain;
-          border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+          border-radius: ${theme.space[3]};
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(8px);
         }
 
-        @media (prefers-reduced-motion: reduce) {
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+          .message-content {
+            font-size: 14px;
+            gap: ${theme.space[2]};
+          }
+          
+          .file-placeholder {
+            padding: ${theme.space[1]} ${theme.space[2]};
+            max-width: 240px;
+            font-size: 13px;
+          }
+          
           .message-image {
+            max-height: 320px;
+          }
+        }
+
+        /* 减少动画偏好设置 */
+        @media (prefers-reduced-motion: reduce) {
+          .message-content {
+            animation: none;
+          }
+          
+          .message-image,
+          .file-placeholder {
             transition: none;
+          }
+          
+          .message-image:hover,
+          .file-placeholder:hover {
+            transform: none;
+          }
+        }
+
+        /* 打印样式 */
+        @media print {
+          .file-placeholder {
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+          }
+          
+          .message-image {
+            box-shadow: none;
+            border: 1px solid #ccc;
           }
         }
       `}</style>

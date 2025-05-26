@@ -42,7 +42,7 @@ export interface PendingFile {
   id: string;
   name: string;
   pageKey: string; // 只保存 pageKey
-  type: "excel" | "docx" | "pdf"; // 文件类型字段，用于区分
+  type: "excel" | "docx" | "pdf" | "page"; // 新增 page 类型支持
 }
 
 // 定义 Slice 的 State 接口
@@ -56,7 +56,10 @@ interface DialogState {
   // 新增：待处理的附件状态
   pendingImagePreviews: PendingImagePreview[];
   pendingFiles: PendingFile[]; // 合并后的文件数组
-  previewingFile: { id: string; type: "excel" | "docx" | "pdf" } | null; // 统一预览状态
+  previewingFile: {
+    id: string;
+    type: "excel" | "docx" | "pdf" | "page";
+  } | null; // 统一预览状态，新增 page 类型
 }
 
 // 定义初始状态
@@ -208,7 +211,7 @@ const DialogSlice = createSliceWithThunks({
         state,
         action: PayloadAction<{
           id: string;
-          type: "excel" | "docx" | "pdf";
+          type: "excel" | "docx" | "pdf" | "page";
         } | null>
       ) => {
         state.previewingFile = action.payload;
@@ -270,13 +273,13 @@ export const selectPendingFiles = (state: NoloRootState): PendingFile[] =>
 
 export const selectPendingFilesByType = (
   state: NoloRootState,
-  type: "excel" | "docx" | "pdf"
+  type: "excel" | "docx" | "pdf" | "page"
 ): PendingFile[] =>
   state.dialog.pendingFiles.filter((file) => file.type === type);
 
 export const selectPreviewingFile = (
   state: NoloRootState
-): { id: string; type: "excel" | "docx" | "pdf" } | null =>
+): { id: string; type: "excel" | "docx" | "pdf" | "page" } | null =>
   state.dialog.previewingFile;
 
 // 派生 Selector，用于获取正在预览的文件对象

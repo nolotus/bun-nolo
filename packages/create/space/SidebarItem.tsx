@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { NavLink, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   DiscussionOutdatedIcon,
   FileIcon,
@@ -17,6 +17,10 @@ import DeleteContentButton from "./components/DeleteContentButton";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
 import MoveToSpaceSubMenu from "./MoveToSpaceSubMenu";
+import { addPendingFile } from "chat/dialog/dialogSlice"; // 引入 action
+import { nanoid } from "nanoid";
+import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface SidebarItemProps {
   contentKey: string;
@@ -44,6 +48,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const { pageKey: pageKeyFromPath } = useParams<{ pageKey?: string }>();
     const theme = useSelector(selectTheme);
     const currentSpaceId = useSelector(selectCurrentSpaceId);
+    const dispatch = useDispatch(); // 使用 dispatch 来触发 Redux 动作
+    const { t } = useTranslation("chat"); // 用于翻译提示信息
     const [isIconHover, setIsIconHover] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -114,12 +120,24 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
       setIsMoveSubMenuOpen(true);
     }, []);
 
+    // 将当前项加入到当前对话的待处理文件列表（仅支持 page 类型）
     const handleAddToConversation = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation();
-        console.log(`加入到当前对话: ${contentKey}`);
+
+        // 创建一个新的 PendingFile 对象，类型映射为 docx（或其他类型）
+        const newFile = {
+          id: nanoid(),
+          name: displayTitle,
+          pageKey: contentKey, // 使用 contentKey 作为 pageKey
+          type: "page" as const, // 将 page 类型映射为一个新类型
+        };
+
+        // 触发 Redux 动作，将文件添加到 pendingFiles
+        dispatch(addPendingFile(newFile));
+        toast.success(t("addedToConversation"));
       },
-      [contentKey]
+      [contentKey, type, displayTitle, dispatch, t]
     );
 
     // 键盘导航处理
@@ -258,16 +276,19 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
                 <KebabHorizontalIcon size={MORE_ICON_SIZE} />
               </button>
 
-              <button
-                className="SidebarItem__addToConversationButton"
-                onClick={handleAddToConversation}
-                aria-label="加入到当前对话"
-                style={{
-                  minHeight: isMobile ? `${TOUCH_TARGET_SIZE}px` : "auto",
-                }}
-              >
-                <ChevronRightIcon size={MORE_ICON_SIZE} />
-              </button>
+              {/* 只在 contentKey 以 "page" 开头时显示向右箭头按钮 */}
+              {contentKey.startsWith("page") && (
+                <button
+                  className="SidebarItem__addToConversationButton"
+                  onClick={handleAddToConversation}
+                  aria-label="加入到当前对话"
+                  style={{
+                    minHeight: isMobile ? `${TOUCH_TARGET_SIZE}px` : "auto",
+                  }}
+                >
+                  <ChevronRightIcon size={MORE_ICON_SIZE} />
+                </button>
+              )}
             </div>
           )}
 
