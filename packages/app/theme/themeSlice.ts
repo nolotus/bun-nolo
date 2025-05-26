@@ -112,7 +112,7 @@ const MODE_COLORS = {
 const createThemeConfig = (themeName: string, isDark: boolean) => {
   const mode = isDark ? "dark" : "light";
   return {
-    sidebarWidth: 260,
+    sidebarWidth: 270,
     headerHeight: 48, // 新增顶部高度
     space: SPACE, // 添加精简的空间尺寸系统
     ...MODE_COLORS[mode],
