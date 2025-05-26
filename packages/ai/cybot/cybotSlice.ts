@@ -82,7 +82,13 @@ export const cybotSlice = createSliceWithThunks({
         let msgReferences: string[] = [];
         if (Array.isArray(userInput)) {
           userInput.forEach((part: any) => {
-            if ((part.type === "docx" || part.type === "pdf") && part.pageKey) {
+            if (
+              (part.type === "docx" ||
+                part.type === "pdf" ||
+                part.type === "page" ||
+                part.type === "excel") &&
+              part.pageKey
+            ) {
               msgReferences.push(part.pageKey);
             }
           });
