@@ -188,7 +188,8 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
           slateNodes.push({
             type: "list",
             ordered: !!node.ordered,
-            children: (node.children || []).map((item: any) => {
+            start: node.start || 1, // 保存起始序号，默认为 1
+            children: (node.children || []).map((item: any, index: number) => {
               processedNodes.add(item);
               (item.children || []).forEach((child: any) =>
                 processedNodes.add(child)
@@ -196,6 +197,7 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
 
               const listItemNode: SlateNode = {
                 type: "list-item",
+                value: (node.start || 1) + index, // 保存每个列表项的序号
                 children: processListItemChildren(item),
               };
 
@@ -207,7 +209,6 @@ export function mdastToSlate(mdastTree: any): SlateNode[] {
             }),
           });
           break;
-
         case "table":
           slateNodes.push({
             type: "table",
