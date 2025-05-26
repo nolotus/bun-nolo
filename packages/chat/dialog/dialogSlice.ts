@@ -1,4 +1,3 @@
-// dialogSlice.ts
 import {
   type PayloadAction,
   asyncThunkCreator,
@@ -39,17 +38,11 @@ export interface PendingImagePreview {
   url: string; // Base64 or Blob URL
 }
 
-export interface PendingExcelFile {
+export interface PendingFile {
   id: string;
   name: string;
   pageKey: string; // 只保存 pageKey
-}
-
-// 新增 DOCX 文件类型
-export interface PendingDocxFile {
-  id: string;
-  name: string;
-  pageKey: string; // 只保存 pageKey
+  type: "excel" | "docx" | "pdf"; // 文件类型字段，用于区分
 }
 
 // 定义 Slice 的 State 接口
@@ -62,9 +55,8 @@ interface DialogState {
   isUpdatingMode: boolean;
   // 新增：待处理的附件状态
   pendingImagePreviews: PendingImagePreview[];
-  pendingExcelFiles: PendingExcelFile[];
-  pendingDocxFiles: PendingDocxFile[]; // 新增 DOCX 文件状态
-  previewingFile: { id: string; type: "excel" | "docx" } | null; // 统一预览状态
+  pendingFiles: PendingFile[]; // 合并后的文件数组
+  previewingFile: { id: string; type: "excel" | "docx" | "pdf" } | null; // 统一预览状态
 }
 
 // 定义初始状态
@@ -77,8 +69,7 @@ const initialState: DialogState = {
   isUpdatingMode: false,
   // 新增：初始化附件状态
   pendingImagePreviews: [],
-  pendingExcelFiles: [],
-  pendingDocxFiles: [], // 初始化 DOCX 文件状态
+  pendingFiles: [], // 初始化合并后的文件数组
   previewingFile: null, // 初始化统一预览状态
 };
 
@@ -154,8 +145,7 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
       // 清空对话状态时，也清空附件
       state.pendingImagePreviews = [];
-      state.pendingExcelFiles = [];
-      state.pendingDocxFiles = []; // 清空 DOCX 文件
+      state.pendingFiles = []; // 清空合并后的文件数组
       state.previewingFile = null; // 清空统一预览状态
     }),
 
@@ -185,26 +175,14 @@ const DialogSlice = createSliceWithThunks({
         state.pendingImagePreviews.push(newImage);
       }
     ),
-    addPendingExcelFile: create.reducer(
-      (state, action: PayloadAction<PendingExcelFile>) => {
+    addPendingFile: create.reducer(
+      (state, action: PayloadAction<PendingFile>) => {
         if (
           action.payload.id &&
           action.payload.name &&
           action.payload.pageKey
         ) {
-          state.pendingExcelFiles.push(action.payload);
-        }
-      }
-    ),
-    // 新增 DOCX 文件相关 reducers
-    addPendingDocxFile: create.reducer(
-      (state, action: PayloadAction<PendingDocxFile>) => {
-        if (
-          action.payload.id &&
-          action.payload.name &&
-          action.payload.pageKey
-        ) {
-          state.pendingDocxFiles.push(action.payload);
+          state.pendingFiles.push(action.payload);
         }
       }
     ),
@@ -215,20 +193,9 @@ const DialogSlice = createSliceWithThunks({
         );
       }
     ),
-    removePendingExcelFile: create.reducer(
+    removePendingFile: create.reducer(
       (state, action: PayloadAction<string>) => {
-        state.pendingExcelFiles = state.pendingExcelFiles.filter(
-          (file) => file.id !== action.payload
-        );
-        if (state.previewingFile?.id === action.payload) {
-          state.previewingFile = null;
-        }
-      }
-    ),
-    // 新增移除 DOCX 文件的 reducer
-    removePendingDocxFile: create.reducer(
-      (state, action: PayloadAction<string>) => {
-        state.pendingDocxFiles = state.pendingDocxFiles.filter(
+        state.pendingFiles = state.pendingFiles.filter(
           (file) => file.id !== action.payload
         );
         if (state.previewingFile?.id === action.payload) {
@@ -239,15 +206,17 @@ const DialogSlice = createSliceWithThunks({
     setPreviewingFile: create.reducer(
       (
         state,
-        action: PayloadAction<{ id: string; type: "excel" | "docx" } | null>
+        action: PayloadAction<{
+          id: string;
+          type: "excel" | "docx" | "pdf";
+        } | null>
       ) => {
         state.previewingFile = action.payload;
       }
     ),
     clearPendingAttachments: create.reducer((state) => {
       state.pendingImagePreviews = [];
-      state.pendingExcelFiles = [];
-      state.pendingDocxFiles = []; // 清空 DOCX 文件
+      state.pendingFiles = []; // 清空合并后的文件数组
       state.previewingFile = null; // 清空统一预览状态
     }),
   }),
@@ -266,13 +235,10 @@ export const {
   removeCybot,
   updateDialogMode,
   addPendingImagePreview,
-  addPendingExcelFile,
+  addPendingFile,
   removePendingImagePreview,
-  removePendingExcelFile,
+  removePendingFile,
   clearPendingAttachments,
-  // 新增 DOCX 文件相关 actions
-  addPendingDocxFile,
-  removePendingDocxFile,
   setPreviewingFile,
 } = DialogSlice.actions;
 
@@ -299,30 +265,28 @@ export const selectPendingImagePreviews = (
   state: NoloRootState
 ): PendingImagePreview[] => state.dialog.pendingImagePreviews;
 
-export const selectPendingExcelFiles = (
-  state: NoloRootState
-): PendingExcelFile[] => state.dialog.pendingExcelFiles;
+export const selectPendingFiles = (state: NoloRootState): PendingFile[] =>
+  state.dialog.pendingFiles;
 
-// 新增 DOCX 文件 selector
-export const selectPendingDocxFiles = (
-  state: NoloRootState
-): PendingDocxFile[] => state.dialog.pendingDocxFiles;
+export const selectPendingFilesByType = (
+  state: NoloRootState,
+  type: "excel" | "docx" | "pdf"
+): PendingFile[] =>
+  state.dialog.pendingFiles.filter((file) => file.type === type);
 
 export const selectPreviewingFile = (
   state: NoloRootState
-): { id: string; type: "excel" | "docx" } | null => state.dialog.previewingFile;
+): { id: string; type: "excel" | "docx" | "pdf" } | null =>
+  state.dialog.previewingFile;
 
 // 派生 Selector，用于获取正在预览的文件对象
 export const selectPreviewingFileObject = (
   state: NoloRootState
-): PendingExcelFile | PendingDocxFile | null => {
+): PendingFile | null => {
   const previewingFile = state.dialog.previewingFile;
   if (!previewingFile) return null;
-  if (previewingFile.type === "excel") {
-    const files = selectPendingExcelFiles(state);
-    return files.find((file) => file.id === previewingFile.id) || null;
-  } else {
-    const files = selectPendingDocxFiles(state);
-    return files.find((file) => file.id === previewingFile.id) || null;
-  }
+  return (
+    state.dialog.pendingFiles.find((file) => file.id === previewingFile.id) ||
+    null
+  );
 };
