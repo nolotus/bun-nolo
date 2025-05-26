@@ -1,7 +1,7 @@
 // create/editor/renderLeaf.tsx
-import React from "react";
+import React, { useMemo } from "react";
+import { useTheme } from "app/theme";
 
-// 定义 TextLeaf 组件的 props 类型 (如果还没有的话)
 interface TextLeafProps {
   attributes: any;
   children: React.ReactNode;
@@ -11,67 +11,110 @@ interface TextLeafProps {
     italic?: boolean;
     underline?: boolean;
     strikethrough?: boolean;
-    // code?: boolean; // 移除了这个，因为内联代码由 ElementWrapper 处理
     subscript?: boolean;
     superscript?: boolean;
     highlight?: boolean;
-    // 其他可能的 token 类型，由 Prism decorate 添加
+    // Prism token 类型
+    token?: boolean;
     [key: string]: any;
   };
 }
 
+// 样式缓存 Hook - 简化版本，避免复杂的嵌套
+const useLeafStyles = (theme) => {
+  return useMemo(
+    () => ({
+      bold: {
+        fontWeight: 600,
+        color: theme.text,
+      },
+      italic: {
+        fontStyle: "italic",
+        color: theme.textSecondary,
+      },
+      underline: {
+        textDecorationThickness: "0.1em",
+        textUnderlineOffset: "0.2em",
+        textDecorationColor: theme.primary,
+        color: theme.text,
+      },
+      strikethrough: {
+        textDecorationThickness: "0.1em",
+        textDecorationColor: theme.textTertiary,
+        opacity: 0.65,
+        color: theme.textTertiary,
+      },
+      subscript: {
+        fontSize: "0.75em",
+        color: theme.textSecondary,
+      },
+      superscript: {
+        fontSize: "0.75em",
+        color: theme.textSecondary,
+      },
+      highlight: {
+        backgroundColor: theme.primaryLight || `${theme.primary}20`,
+        color: theme.text,
+        padding: `${theme.space[0]} ${theme.space[1]}`,
+        borderRadius: theme.space[1],
+        boxShadow: `0 0 0 1px ${theme.primary}15`,
+      },
+    }),
+    [theme]
+  );
+};
+
 const TextLeaf: React.FC<TextLeafProps> = ({ attributes, children, leaf }) => {
-  const { text, ...rest } = leaf; // 使用 rest 来收集 Prism 添加的 token 类型
+  const theme = useTheme();
+  const styles = useLeafStyles(theme);
+  const { text, ...rest } = leaf;
   let node = children;
 
-  const commonStyle = {
-    textDecorationThickness: "0.1em", // 定义通用样式变量
-  };
-
-  // 应用标准的 Markdown 格式标记
+  // 应用格式化 - 保持原有的顺序和逻辑
   if (leaf.bold) {
-    node = <strong style={{ fontWeight: 600 }}>{node}</strong>;
+    node = <strong style={styles.bold}>{node}</strong>;
   }
+
   if (leaf.italic) {
-    node = <em style={{ fontStyle: "italic" }}>{node}</em>;
+    node = <em style={styles.italic}>{node}</em>;
   }
+
   if (leaf.underline) {
-    node = (
-      <u style={{ ...commonStyle, textUnderlineOffset: "0.2em" }}>{node}</u>
-    );
+    node = <u style={styles.underline}>{node}</u>;
   }
+
   if (leaf.strikethrough) {
-    node = <del style={{ ...commonStyle, opacity: 0.6 }}>{node}</del>;
+    node = <del style={styles.strikethrough}>{node}</del>;
   }
-  // --- 移除了 leaf.code 的处理 ---
-  // if (leaf.code) { ... } // 这部分代码被删除
 
-  // 处理其他可能的格式标记
   if (leaf.subscript) {
-    node = <sub>{node}</sub>;
-  }
-  if (leaf.superscript) {
-    node = <sup>{node}</sup>;
-  }
-  if (leaf.highlight) {
-    node = <mark style={{ backgroundColor: "#ffeeba" }}>{node}</mark>;
+    node = <sub style={styles.subscript}>{node}</sub>;
   }
 
-  // 将 Prism 添加的 token 类型作为 className 应用，用于语法高亮样式
-  // (假设 prismThemeCss 中定义了对应的类名，如 .token.string, .token.keyword 等)
-  const prismClasses = Object.keys(rest)
-    .filter((key) => key !== "text" && rest[key] === true) // 提取由 decorate 添加的标记
-    .map((type) => `token ${type}`) // 转换为 'token type' 格式的类名
-    .join(" ");
+  if (leaf.superscript) {
+    node = <sup style={styles.superscript}>{node}</sup>;
+  }
+
+  if (leaf.highlight) {
+    node = <mark style={styles.highlight}>{node}</mark>;
+  }
+
+  // 处理 Prism 语法高亮 token 类型 - 保持原有逻辑
+  const prismClasses = useMemo(() => {
+    return Object.keys(rest)
+      .filter((key) => key !== "text" && key !== "token" && rest[key] === true)
+      .map((type) => `token ${type}`)
+      .join(" ");
+  }, [rest]);
 
   return (
-    <span {...attributes} className={prismClasses}>
+    <span {...attributes} className={prismClasses || undefined}>
       {node}
     </span>
   );
 };
 
-// 导出 renderLeaf 函数
+// 导出 renderLeaf 函数 - 不使用 React.memo 避免可能的问题
 export const renderLeaf = (props: TextLeafProps) => {
   return <TextLeaf {...props} />;
 };
