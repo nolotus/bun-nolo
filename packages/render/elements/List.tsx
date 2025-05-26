@@ -21,7 +21,11 @@ export const List: React.FC<ListProps> = ({
   theme,
 }) =>
   element.ordered ? (
-    <ol {...attributes} style={{ ...baseListStyle, color: theme.text1 }}>
+    <ol
+      {...attributes}
+      start={element.start || 1} // 设置起始序号
+      style={{ ...baseListStyle, color: theme.text1 }}
+    >
       {children}
     </ol>
   ) : (
