@@ -1,4 +1,3 @@
-// elements/List.tsx
 import React from "react";
 import { RenderElementProps } from "slate-react";
 
@@ -42,6 +41,7 @@ export const ListItem: React.FC<ListProps> = ({
 }) => (
   <li
     {...attributes}
+    value={element.value !== undefined ? element.value : undefined} // 设置列表项的序号，仅在有序列表中有效
     style={{
       color: theme.text2,
       lineHeight: 1.3,
