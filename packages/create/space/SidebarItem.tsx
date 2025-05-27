@@ -10,18 +10,24 @@ import {
   GrabberIcon,
   KebabHorizontalIcon,
   ChevronRightIcon,
+  PencilIcon,
 } from "@primer/octicons-react";
 import { FaFileLines } from "react-icons/fa6";
 import { createPortal } from "react-dom";
 import DeleteContentButton from "./components/DeleteContentButton";
 import { selectTheme } from "app/theme/themeSlice";
-import { selectCurrentSpaceId } from "create/space/spaceSlice";
+import {
+  selectCurrentSpaceId,
+  updateContentTitle,
+} from "create/space/spaceSlice";
 import MoveToSpaceSubMenu from "./MoveToSpaceSubMenu";
 import { addPendingFile } from "chat/dialog/dialogSlice";
 import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { Tooltip } from "render/web/ui/Tooltip";
+import { useInlineEdit } from "render/web/ui/useInlineEdit";
+import InlineEditInput from "render/web/ui/InlineEditInput";
 
 interface SidebarItemProps {
   contentKey: string;
@@ -51,31 +57,50 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const currentSpaceId = useSelector(selectCurrentSpaceId);
     const dispatch = useDispatch();
     const { t } = useTranslation("chat");
+
+    // --- State ---
     const [isIconHover, setIsIconHover] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [isMoveSubMenuOpen, setIsMoveSubMenuOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
     const containerRef = useRef<HTMLDivElement>(null);
     const linkRef = useRef<HTMLAnchorElement>(null);
 
+    // --- Computed ---
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
     const isSelected = pageKeyFromPath === contentKey;
+    const isMobile = window.innerWidth <= 768;
+    const showActions = isHovered || menuOpen || isMoveSubMenuOpen;
 
-    useEffect(() => {
-      const checkIsMobile = () => {
-        setIsMobile(window.innerWidth <= 768 || "ontouchstart" in window);
-      };
-      checkIsMobile();
-      window.addEventListener("resize", checkIsMobile);
-      return () => window.removeEventListener("resize", checkIsMobile);
-    }, []);
+    // --- 标题编辑功能 ---
+    const handleSaveTitle = useCallback(
+      (newTitle: string) => {
+        if (currentSpaceId && newTitle.trim() && newTitle !== title) {
+          dispatch(
+            updateContentTitle({
+              spaceId: currentSpaceId,
+              contentKey,
+              title: newTitle.trim(),
+            })
+          );
+          toast.success("标题已更新");
+        }
+      },
+      [dispatch, currentSpaceId, contentKey, title]
+    );
 
+    const { isEditing, startEditing, inputRef, inputProps } = useInlineEdit({
+      initialValue: displayTitle,
+      onSave: handleSaveTitle,
+      placeholder: "输入标题",
+      ariaLabel: "编辑标题",
+    });
+
+    // --- Effects ---
     useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
         if (
@@ -88,98 +113,154 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
       };
       if (menuOpen || isMoveSubMenuOpen) {
         document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
       }
-      return () => document.removeEventListener("click", handleClickOutside);
     }, [menuOpen, isMoveSubMenuOpen]);
 
     useEffect(() => {
-      if ((menuOpen || isMoveSubMenuOpen) && containerRef.current) {
+      if (showActions && containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        let left = rect.right + window.scrollX - 150;
-        let top = rect.bottom + window.scrollY + 4;
-        if (isMobile) {
-          if (left + 150 > viewportWidth) left = viewportWidth - 160;
-          if (top + 100 > viewportHeight) top = rect.top + window.scrollY - 100;
-        }
+        const left = Math.min(rect.right - 150, window.innerWidth - 160);
+        const top = rect.bottom + 4;
         setMenuPosition({ top, left });
       }
-    }, [menuOpen, isMoveSubMenuOpen, isMobile]);
+    }, [menuOpen, isMoveSubMenuOpen, showActions]);
 
-    const handleDragStart = useCallback(
-      (e: React.DragEvent) => {
-        setIsDragging(true);
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", contentKey);
-      },
-      [contentKey]
-    );
+    // --- Handlers ---
+    const handleDrag = {
+      start: useCallback(
+        (e: React.DragEvent) => {
+          setIsDragging(true);
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", contentKey);
+        },
+        [contentKey]
+      ),
+      end: useCallback(() => setIsDragging(false), []),
+    };
 
-    const handleDragEnd = useCallback(() => setIsDragging(false), []);
-
-    const handleToggleMenu = useCallback((e: React.MouseEvent) => {
-      e.stopPropagation();
-      setMenuOpen((prev) => !prev);
-    }, []);
-
-    const handleMoveClick = useCallback((e: React.MouseEvent) => {
-      e.stopPropagation();
-      setIsMoveSubMenuOpen(true);
-    }, []);
+    const handleMenu = {
+      toggle: useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setMenuOpen((prev) => !prev);
+      }, []),
+      edit: useCallback(
+        (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setMenuOpen(false);
+          startEditing();
+        },
+        [startEditing]
+      ),
+      move: useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsMoveSubMenuOpen(true);
+      }, []),
+    };
 
     const handleAddToConversation = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation();
-        const newFile = {
-          id: nanoid(),
-          name: displayTitle,
-          pageKey: contentKey,
-          type: "page" as const,
-        };
-        dispatch(addPendingFile(newFile));
+        dispatch(
+          addPendingFile({
+            id: nanoid(),
+            name: displayTitle,
+            pageKey: contentKey,
+            type: "page" as const,
+          })
+        );
         toast.success(t("addedToConversation"));
       },
       [contentKey, displayTitle, dispatch, t]
     );
 
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (isEditing) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          linkRef.current?.click();
+        } else if (e.key === "F2") {
+          e.preventDefault();
+          startEditing();
+        }
+      },
+      [isEditing, startEditing]
+    );
+
+    const handleDoubleClick = useCallback(
+      (e: React.MouseEvent) => {
         e.preventDefault();
-        linkRef.current?.click();
-      }
-    }, []);
+        e.stopPropagation();
+        if (!isEditing) startEditing();
+      },
+      [isEditing, startEditing]
+    );
+
+    // --- Render Helpers ---
+    const ActionButton = ({ onClick, icon: Icon, label, className = "" }) => {
+      const ButtonComponent = (
+        <button
+          className={`SidebarItem__actionButton ${className}`}
+          onClick={onClick}
+          aria-label={label}
+          type="button"
+        >
+          <Icon size={MORE_ICON_SIZE} />
+        </button>
+      );
+
+      return isMobile ? (
+        ButtonComponent
+      ) : (
+        <Tooltip content={label} delay={100}>
+          {ButtonComponent}
+        </Tooltip>
+      );
+    };
+
+    const MenuItem = ({ onClick, icon: Icon, label, className = "" }) => (
+      <button
+        className={`SidebarItem__menuItem ${className}`}
+        onClick={onClick}
+        role="menuitem"
+        aria-label={label}
+        type="button"
+      >
+        {Icon && <Icon size={14} style={{ marginRight: "8px" }} />}
+        {label}
+      </button>
+    );
 
     return (
       <>
         <div
           ref={containerRef}
-          className={`SidebarItem ${isSelected ? "SidebarItem--selected" : ""} ${
-            isDragging ? "SidebarItem--dragging" : ""
-          }`}
+          className={[
+            "SidebarItem",
+            isSelected && "SidebarItem--selected",
+            isDragging && "SidebarItem--dragging",
+            isEditing && "SidebarItem--editing",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
           onKeyDown={handleKeyDown}
           tabIndex={0}
-          role="button"
-          aria-label={`${displayTitle} - ${type}类型内容`}
           aria-selected={isSelected}
         >
+          {/* 图标 */}
           <span
-            className={`SidebarItem__icon ${
-              isIconHover && handleProps ? "SidebarItem__icon--draggable" : ""
-            }`}
+            className={`SidebarItem__icon ${isIconHover && handleProps ? "SidebarItem__icon--draggable" : ""}`}
             {...(handleProps && {
               ...handleProps,
               draggable: true,
-              onDragStart: handleDragStart,
-              onDragEnd: handleDragEnd,
+              onDragStart: handleDrag.start,
+              onDragEnd: handleDrag.end,
             })}
             onMouseEnter={() => setIsIconHover(true)}
             onMouseLeave={() => setIsIconHover(false)}
-            title={isIconHover && handleProps ? "拖拽排序" : ""}
           >
             {isIconHover && handleProps ? (
               <GrabberIcon size={ICON_SIZE} />
@@ -188,100 +269,63 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             )}
           </span>
 
-          <NavLink
-            ref={linkRef}
-            to={{
-              pathname: `/${contentKey}`,
-              search: currentSpaceId ? `?spaceId=${currentSpaceId}` : "",
-            }}
-            className="SidebarItem__link"
-            aria-label={`打开${displayTitle}`}
-          >
-            <span className="SidebarItem__linkText">{displayTitle}</span>
-          </NavLink>
+          {/* 标题 */}
+          {isEditing ? (
+            <div className="SidebarItem__editContainer">
+              <InlineEditInput inputRef={inputRef} {...inputProps} />
+            </div>
+          ) : (
+            <NavLink
+              ref={linkRef}
+              to={{
+                pathname: `/${contentKey}`,
+                search: currentSpaceId ? `?spaceId=${currentSpaceId}` : "",
+              }}
+              className="SidebarItem__link"
+              onClick={(e) => isEditing && e.preventDefault()}
+            >
+              <span
+                className="SidebarItem__linkText"
+                onDoubleClick={handleDoubleClick}
+                title="双击编辑标题"
+              >
+                {displayTitle}
+              </span>
+            </NavLink>
+          )}
 
-          {(isHovered || isFocused || menuOpen || isMoveSubMenuOpen) && (
+          {/* 操作按钮 */}
+          {showActions && !isEditing && (
             <div className="SidebarItem__actionButtons">
-              {!isMobile ? (
-                <Tooltip content="更多操作" delay={100}>
-                  <button
-                    className="SidebarItem__moreButton"
-                    onClick={handleToggleMenu}
-                    aria-haspopup="true"
-                    aria-expanded={menuOpen}
-                    aria-label="更多操作"
-                    style={{
-                      minHeight: isMobile ? `${TOUCH_TARGET_SIZE}px` : "auto",
-                    }}
-                  >
-                    <KebabHorizontalIcon size={MORE_ICON_SIZE} />
-                  </button>
-                </Tooltip>
-              ) : (
-                <button
-                  className="SidebarItem__moreButton"
-                  onClick={handleToggleMenu}
-                  aria-haspopup="true"
-                  aria-expanded={menuOpen}
-                  aria-label="更多操作"
-                  style={{
-                    minHeight: isMobile ? `${TOUCH_TARGET_SIZE}px` : "auto",
-                  }}
-                >
-                  <KebabHorizontalIcon size={MORE_ICON_SIZE} />
-                </button>
+              <ActionButton
+                onClick={handleMenu.toggle}
+                icon={KebabHorizontalIcon}
+                label="更多操作"
+              />
+              {contentKey.startsWith("page") && (
+                <ActionButton
+                  onClick={handleAddToConversation}
+                  icon={ChevronRightIcon}
+                  label="加入对话"
+                />
               )}
-
-              {contentKey.startsWith("page") &&
-                (!isMobile ? (
-                  <Tooltip content="加入对话" delay={100} placement="top-left">
-                    <button
-                      className="SidebarItem__addToConversationButton"
-                      onClick={handleAddToConversation}
-                      aria-label="加入到当前对话"
-                      style={{
-                        minHeight: isMobile ? `${TOUCH_TARGET_SIZE}px` : "auto",
-                      }}
-                    >
-                      <ChevronRightIcon size={MORE_ICON_SIZE} />
-                    </button>
-                  </Tooltip>
-                ) : (
-                  <button
-                    className="SidebarItem__addToConversationButton"
-                    onClick={handleAddToConversation}
-                    aria-label="加入到当前对话"
-                    style={{
-                      minHeight: isMobile ? `${TOUCH_TARGET_SIZE}px` : "auto",
-                    }}
-                  >
-                    <ChevronRightIcon size={MORE_ICON_SIZE} />
-                  </button>
-                ))}
             </div>
           )}
         </div>
 
+        {/* 菜单 */}
         {menuOpen &&
           createPortal(
             <div
               className="SidebarItem__menu"
-              role="menu"
-              aria-orientation="vertical"
-              style={{
-                position: "absolute",
-                top: `${menuPosition.top}px`,
-                left: `${menuPosition.left}px`,
-              }}
+              style={{ position: "absolute", ...menuPosition }}
             >
-              <button
-                className="SidebarItem__menuItem"
-                onClick={handleMoveClick}
-                role="menuitem"
-                aria-label="移动到其他空间"
-              >
-                移动到空间
-              </button>
+              <MenuItem
+                onClick={handleMenu.edit}
+                icon={PencilIcon}
+                label="编辑标题"
+              />
+              <MenuItem onClick={handleMenu.move} label="移动到空间" />
               <DeleteContentButton
                 contentKey={contentKey}
                 title={displayTitle}
@@ -292,6 +336,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             document.body
           )}
 
+        {/* 移动子菜单 */}
         {isMoveSubMenuOpen &&
           createPortal(
             <MoveToSpaceSubMenu
@@ -311,16 +356,16 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
         <style href="sidebar-item" precedence="medium">{`
           .SidebarItem {
             margin: 2px 0;
-            padding: ${isMobile ? "12px 8px" : "8px"};
+            padding: 8px;
             display: flex;
             align-items: center;
             gap: 10px;
             cursor: pointer;
             border-radius: 8px;
             position: relative;
-            transition: background-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+            transition: all 0.12s ease;
             color: ${theme.textSecondary};
-            min-height: ${isMobile ? `${TOUCH_TARGET_SIZE}px` : "36px"};
+            min-height: 36px;
             outline: none;
           }
           .SidebarItem:hover {
@@ -329,12 +374,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             transform: translateX(2px);
           }
           .SidebarItem:focus-visible {
-            background-color: ${theme.backgroundHover};
-            color: ${theme.text};
             box-shadow: 0 0 0 2px ${theme.primary}40;
-          }
-          .SidebarItem:active {
-            transform: scale(0.98) translateX(2px);
           }
           .SidebarItem--selected {
             background: linear-gradient(90deg, ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"} 0%, ${theme.primaryGhost || "rgba(22, 119, 255, 0.04)"} 100%);
@@ -358,6 +398,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             z-index: 1000;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
           }
+          .SidebarItem--editing {
+            background-color: ${theme.backgroundHover};
+          }
           .SidebarItem__icon {
             display: flex;
             align-items: center;
@@ -365,7 +408,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             padding: 3px;
             border-radius: 6px;
             color: ${theme.textTertiary};
-            transition: color 0.12s ease, background-color 0.12s ease, transform 0.12s ease;
+            transition: all 0.12s ease;
             flex-shrink: 0;
           }
           .SidebarItem__icon--draggable {
@@ -381,107 +424,94 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           .SidebarItem--selected .SidebarItem__icon {
             color: ${theme.primary};
           }
+          .SidebarItem__editContainer {
+            flex: 1;
+            min-width: 0;
+            padding: 0 2px;
+          }
           .SidebarItem__link {
+            flex: 1;
             font-size: 14px;
             line-height: 1.4;
-            flex-grow: 1;
-            font-weight: 400;
             text-decoration: none;
             color: inherit;
-            transition: color 0.12s ease, font-weight 0.12s ease;
             min-width: 0;
-            display: block;
           }
           .SidebarItem__linkText {
-            display: block;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            position: relative;
+            cursor: text;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background-color 0.15s ease;
           }
-          .SidebarItem__linkText::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20px;
-            height: 100%;
-            background: linear-gradient(to right, transparent, ${theme.background || "#ffffff"});
-            opacity: 0;
-            transition: opacity 0.2s;
-          }
-          .SidebarItem:hover .SidebarItem__linkText::after {
-            opacity: 1;
+          .SidebarItem__linkText:hover {
+            background-color: ${theme.backgroundTertiary}80;
           }
           .SidebarItem--selected .SidebarItem__link {
             font-weight: 500;
           }
           .SidebarItem__actionButtons {
             position: absolute;
-            right: 0px;
+            right: 0;
             top: 50%;
             transform: translateY(-50%) translateX(8px);
             display: flex;
-            align-items: center;
-            gap: ${isMobile ? "8px" : "5px"};
+            gap: 2px;
             opacity: 0;
-            transition: opacity 0.15s ease, transform 0.15s ease;
-            z-index: 1;
-            border-radius: 6px;
-            padding: ${isMobile ? "6px 8px" : "3px 5px"};
-            background-color: ${theme.backgroundTertiary}DD;
+            transition: all 0.15s ease;
+            padding: 2px 4px;
+            background: ${theme.backgroundTertiary}DD;
             backdrop-filter: blur(8px);
+            border-radius: 6px;
           }
-          .SidebarItem:hover .SidebarItem__actionButtons,
-          .SidebarItem:focus-visible .SidebarItem__actionButtons {
+          .SidebarItem:hover .SidebarItem__actionButtons {
             opacity: 1;
             transform: translateY(-50%) translateX(0);
           }
-          .SidebarItem__moreButton,
-          .SidebarItem__addToConversationButton {
-            padding: ${isMobile ? "8px" : "4px"};
+          .SidebarItem__actionButton {
+            padding: 3px;
             border: none;
             background: none;
             cursor: pointer;
             border-radius: 4px;
+            color: ${theme.textTertiary};
+            transition: all 0.12s ease;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: ${theme.textTertiary};
-            transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
-            min-width: ${isMobile ? `${TOUCH_TARGET_SIZE}px` : "auto"};
           }
-          .SidebarItem__moreButton:hover,
-          .SidebarItem__addToConversationButton:hover {
-            background-color: ${theme.backgroundTertiaryHover || theme.backgroundTertiary};
+          .SidebarItem__actionButton:hover {
+            background-color: ${theme.backgroundTertiary};
             color: ${theme.textSecondary};
             transform: scale(1.1);
           }
           .SidebarItem__menu {
-            background-color: ${theme.backgroundElevated || theme.background};
+            background: ${theme.backgroundElevated || theme.background};
             border: 1px solid ${theme.border};
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             padding: 4px;
             z-index: 1000;
-            min-width: ${isMobile ? "180px" : "150px"};
+            min-width: 150px;
             animation: menuFadeIn 0.15s ease;
           }
           .SidebarItem__menuItem {
-            display: block;
+            display: flex;
+            align-items: center;
             width: 100%;
-            text-align: left;
-            padding: ${isMobile ? "12px 16px" : "8px 12px"};
+            padding: 8px 12px;
             font-size: 13px;
             color: ${theme.text};
             background: none;
             border: none;
             cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.12s ease, transform 0.1s ease;
-            min-height: ${isMobile ? `${TOUCH_TARGET_SIZE}px` : "auto"};
-            display: flex;
-            align-items: center;
+            border-radius: 6px;
+            transition: all 0.12s ease;
+            min-height: 32px;
           }
           .SidebarItem__menuItem:hover {
             background-color: ${theme.backgroundHover};
@@ -494,23 +524,23 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             from { opacity: 0; transform: translateY(-8px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
           }
-          @media (prefers-reduced-motion: reduce) {
-            .SidebarItem, .SidebarItem__icon, .SidebarItem__link,
-            .SidebarItem__actionButtons, .SidebarItem__moreButton,
-            .SidebarItem__addToConversationButton, .SidebarItem__menuItem {
-              transition: none;
-              animation: none;
-            }
-          }
           @media (max-width: 768px) {
+            .SidebarItem {
+              padding: 12px 8px;
+              min-height: ${TOUCH_TARGET_SIZE}px;
+            }
             .SidebarItem__actionButtons {
               position: static;
               opacity: 1;
               transform: none;
               margin-left: auto;
-              background-color: transparent;
+              background: transparent;
               backdrop-filter: none;
-              padding: 0;
+            }
+            .SidebarItem__actionButton {
+              width: 32px;
+              height: 32px;
+              padding: 6px;
             }
           }
         `}</style>

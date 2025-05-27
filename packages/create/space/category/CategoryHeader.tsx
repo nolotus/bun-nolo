@@ -1,5 +1,5 @@
-// 文件路径: create/space/components/CategoryHeader.tsx (假设)
-import React from "react";
+// 文件路径: create/space/components/CategoryHeader.tsx
+import React, { useState, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTheme } from "app/theme";
 import { ConfirmModal } from "web/ui/ConfirmModal";
@@ -20,11 +20,10 @@ import { createPage } from "render/page/pageSlice";
 import { useNavigate } from "react-router-dom";
 import { useInlineEdit } from "render/web/ui/useInlineEdit";
 import InlineEditInput from "render/web/ui/InlineEditInput";
-// --- 导入常量 ---
 import { UNCATEGORIZED_ID } from "create/space/constants";
 
 interface CategoryHeaderProps {
-  categoryId: string; // 可以是真实的 ID 或 UNCATEGORIZED_ID
+  categoryId: string;
   categoryName: string;
   isDragOver?: boolean;
   handleProps?: {
@@ -35,191 +34,168 @@ interface CategoryHeaderProps {
 
 const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   categoryId,
-  categoryName = "", // 默认值可能需要根据 UNCATEGORIZED_ID 调整显示名称
+  categoryName = "",
   isDragOver,
   handleProps,
 }) => {
   // --- State ---
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
-  const [isDragging, setIsDragging] = React.useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // --- Hooks ---
+  // --- Hooks & Selectors ---
   const dispatch = useAppDispatch();
   const theme = useTheme();
   const spaceId = useAppSelector(selectCurrentSpaceId);
   const navigate = useNavigate();
-
-  // --- Selectors ---
   const collapsedCategories = useAppSelector(selectCollapsedCategories);
-  // 使用 categoryId (可以是 UNCATEGORIZED_ID) 来检查折叠状态
-  const isCollapsed = collapsedCategories[categoryId] ?? false;
 
-  // --- Computed ---
-  // 使用常量定义 isUncategorized
+  // --- Computed Values ---
   const isUncategorized = categoryId === UNCATEGORIZED_ID;
-  // 可以为未分类提供一个默认显示名称，如果 props 没有传入的话
+  const isCollapsed = collapsedCategories[categoryId] ?? false;
   const displayCategoryName =
     isUncategorized && !categoryName ? "未分类" : categoryName;
 
-  // --- Inline Edit: Save Handler ---
-  // (保持不变，因为 UI 层会阻止对未分类项触发编辑)
-  const handleSaveDispatch = React.useCallback(
+  // --- Handlers ---
+  const handleSave = useCallback(
     (newName: string) => {
-      if (spaceId && categoryId !== UNCATEGORIZED_ID) {
-        // 添加额外防护，虽然UI已阻止
+      if (spaceId && !isUncategorized) {
         dispatch(updateCategoryName({ spaceId, categoryId, name: newName }));
       }
     },
-    [dispatch, spaceId, categoryId]
+    [dispatch, spaceId, categoryId, isUncategorized]
   );
 
   const { isEditing, startEditing, inputRef, inputProps } = useInlineEdit({
-    initialValue: displayCategoryName, // 使用处理后的显示名称
-    onSave: handleSaveDispatch,
+    initialValue: displayCategoryName,
+    onSave: handleSave,
     placeholder: "输入分类名称",
     ariaLabel: "编辑分类名称",
-    // 阻止对未分类项启动编辑
     disabled: isUncategorized,
   });
 
-  // --- Other Handlers ---
-  const handleToggleCollapse = React.useCallback(() => {
-    // 移除 if(categoryId) 检查，允许所有 header (包括未分类) 触发折叠/展开
-    // spaceSlice 中的 toggleCategoryCollapse 需要能正确处理 UNCATEGORIZED_ID
+  const handleToggleCollapse = useCallback(() => {
     dispatch(toggleCategoryCollapse(categoryId));
   }, [dispatch, categoryId]);
 
-  // handleDeleteClick (保持不变，按钮已在 UI 中隐藏)
-  const handleDeleteClick = () => {
-    // 仅在非未分类时才打开模态框 (双重保险，UI已隐藏按钮)
-    if (!isUncategorized) {
-      setIsDeleteModalOpen(true);
-    }
-  };
-
-  // handleConfirmDelete (保持不变，模态框已在 UI 中隐藏)
-  const handleConfirmDelete = () => {
-    // 仅在非未分类且 spaceId 存在时才执行删除 (双重保险)
+  const handleDelete = useCallback(() => {
     if (spaceId && !isUncategorized) {
       dispatch(deleteCategory({ spaceId, categoryId }));
     }
     setIsDeleteModalOpen(false);
-  };
+  }, [dispatch, spaceId, categoryId, isUncategorized]);
 
-  // handleAddPage (保持不变，createPage slice 应能处理 categoryId === UNCATEGORIZED_ID)
-  const handleAddPage = async () => {
+  const handleAddPage = useCallback(async () => {
     if (!spaceId) return;
     try {
-      // 传递当前的 categoryId，即使是 UNCATEGORIZED_ID
       const resultAction = await dispatch(createPage({ categoryId }));
-      // 假设 payload 是 contentKey 或 dbKey
       const pageKey = resultAction.payload as string;
       if (pageKey) {
-        // 根据你的路由结构调整导航路径
-        // 可能需要区分是 page 还是 dialog 等
-        navigate(`/${pageKey}?edit=true`); // 示例导航
+        navigate(`/${pageKey}?edit=true`);
       }
     } catch (error) {
       console.error("Failed to create page:", error);
     }
-  };
+  }, [dispatch, spaceId, categoryId, navigate]);
 
-  // --- Dynamic ClassNames & Props ---
-  // (保持不变，依赖 isUncategorized 和 isEditing)
-  const headerClassName = `CategoryHeader ${isDragOver ? "CategoryHeader--drag-over" : ""} ${isEditing ? "CategoryHeader--editing" : ""} ${isDragging ? "CategoryHeader--dragging" : ""}`;
-  const collapseButtonClassName = `CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`;
-  const nameClassName = `CategoryHeader__name ${!isUncategorized && !isEditing ? "CategoryHeader__name--draggable" : ""}`;
-  const nameProps =
-    !isUncategorized && !isEditing && handleProps
-      ? {
-          draggable: true,
-          onDragStart: handleProps.onDragStart,
-          onDragEnd: handleProps.onDragEnd,
-        }
-      : {};
+  const handleDragStart = useCallback(
+    (e: React.DragEvent) => {
+      e.dataTransfer.setData("categoryId", categoryId);
+      e.dataTransfer.setData("dragType", "category");
+      e.dataTransfer.effectAllowed = "move";
+      setIsDragging(true);
+      handleProps?.onDragStart?.(e);
+    },
+    [categoryId, handleProps]
+  );
 
-  // 自定义分类拖动开始事件
-  const customDragStart = (e: React.DragEvent) => {
-    console.log("Custom drag started for category:", categoryId);
-    e.dataTransfer.setData("categoryId", categoryId);
-    e.dataTransfer.setData("dragType", "category");
-    e.dataTransfer.effectAllowed = "move";
-    setIsDragging(true);
-    if (handleProps && handleProps.onDragStart) {
-      handleProps.onDragStart(e);
-    }
-  };
+  const handleDragEnd = useCallback(
+    (e: React.DragEvent) => {
+      setIsDragging(false);
+      handleProps?.onDragEnd?.(e);
+    },
+    [handleProps]
+  );
 
-  // 自定义分类拖动结束事件
-  const customDragEnd = (e: React.DragEvent) => {
-    console.log("Custom drag ended for category:", categoryId);
-    setIsDragging(false);
-    if (handleProps && handleProps.onDragEnd) {
-      handleProps.onDragEnd(e);
-    }
-  };
+  // --- Dynamic Props ---
+  const canEdit = !isUncategorized && !isEditing;
+  const canDrag = canEdit && handleProps;
+
+  const nameProps = useMemo(
+    () =>
+      canDrag
+        ? {
+            draggable: true,
+            onDragStart: handleDragStart,
+            onDragEnd: handleDragEnd,
+          }
+        : {},
+    [canDrag, handleDragStart, handleDragEnd]
+  );
+
+  // --- Class Names ---
+  const headerClass = [
+    "CategoryHeader",
+    isDragOver && "CategoryHeader--drag-over",
+    isEditing && "CategoryHeader--editing",
+    isDragging && "CategoryHeader--dragging",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
-      <div className={headerClassName}>
-        {/* Collapse Button */}
-        <span
-          className={collapseButtonClassName}
-          onClick={handleToggleCollapse} // 允许所有头部折叠
-          title={isCollapsed ? "展开" : "折叠"} // 简化 title
+      <div className={headerClass}>
+        {/* 折叠按钮 */}
+        <button
+          className={`CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`}
+          onClick={handleToggleCollapse}
+          title={isCollapsed ? "展开" : "折叠"}
+          type="button"
         >
-          <ChevronDownIcon size={18} />
-        </span>
+          <ChevronDownIcon size={16} />
+        </button>
 
-        {/* Name Display / Edit Input */}
-        {/* (逻辑保持不变，使用 isUncategorized 控制) */}
-        {isEditing && !isUncategorized ? (
+        {/* 名称显示/编辑 */}
+        {isEditing ? (
           <InlineEditInput inputRef={inputRef} {...inputProps} />
         ) : (
           <span
-            className={nameClassName}
+            className={`CategoryHeader__name ${canDrag ? "CategoryHeader__name--draggable" : ""}`}
             {...nameProps}
-            onDragStart={customDragStart}
-            onDragEnd={customDragEnd}
-            title={
-              !isUncategorized && !isEditing
-                ? "拖拽调整顺序" // 简化 title
-                : displayCategoryName
-            }
-            onDoubleClick={!isUncategorized ? startEditing : undefined} // 阻止未分类项双击编辑
+            title={canDrag ? "拖拽调整顺序" : displayCategoryName}
+            onDoubleClick={canEdit ? startEditing : undefined}
           >
-            {displayCategoryName} {/* 使用处理后的显示名称 */}
+            {displayCategoryName}
           </span>
         )}
 
-        {/* Action Buttons */}
+        {/* 操作按钮 */}
         <div className="CategoryHeader__actions">
-          {/* Add Page Button (始终显示，除非在编辑状态) */}
           <button
             className="CategoryHeader__actionButton CategoryHeader__actionButton--add"
             onClick={handleAddPage}
-            title="新建页面" // 简化 title
-            disabled={isEditing} // 仅在编辑时禁用
+            title="新建页面"
+            disabled={isEditing}
+            type="button"
           >
             <PlusIcon size={14} />
           </button>
 
-          {/* Edit/Delete Buttons (使用 isUncategorized 控制渲染) */}
-          {!isUncategorized && !isEditing && (
+          {canEdit && (
             <>
-              {/* Edit Button */}
               <button
                 className="CategoryHeader__actionButton CategoryHeader__actionButton--edit"
-                onClick={startEditing} // startEditing 已包含 isUncategorized 检查 (通过 useInlineEdit 的 disabled)
-                title="编辑名称" // 简化 title
+                onClick={startEditing}
+                title="编辑名称"
+                type="button"
               >
                 <PencilIcon size={14} />
               </button>
-              {/* Delete Button */}
               <button
                 className="CategoryHeader__actionButton CategoryHeader__actionButton--delete"
-                onClick={handleDeleteClick} // 内部有检查，但按钮本身已条件渲染
+                onClick={() => setIsDeleteModalOpen(true)}
                 title="删除分类"
+                type="button"
               >
                 <TrashIcon size={14} />
               </button>
@@ -228,52 +204,170 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         </div>
       </div>
 
-      {/* Delete Confirmation Modal (使用 isUncategorized 控制渲染) */}
+      {/* 删除确认弹窗 */}
       {!isUncategorized && (
         <ConfirmModal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={handleConfirmDelete} // 内部有检查，但模态框本身已条件渲染
+          onConfirm={handleDelete}
           title="删除分类"
-          message={`确定要删除分类 "${displayCategoryName}" 吗？该分类下的所有内容将被移至“未分类”。此操作无法撤销。`}
+          message={`确定要删除分类 "${displayCategoryName}" 吗？该分类下的所有内容将被移至"未分类"。此操作无法撤销。`}
           confirmText="确认删除"
           cancelText="取消"
           type="error"
-          showCancel={true}
+          showCancel
         />
       )}
 
-      {/* CSS Styles (简化视觉反馈和动画) */}
-      <style href="category-header-styles" precedence="medium">
-        {`
-        /* --- Styles from the previous version --- */
-        .CategoryHeader { box-sizing: border-box; padding: 4px 8px; display: flex; align-items: center; gap: 8px; border-radius: 8px; transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; user-select: none; cursor: default; min-height: 36px; position: relative; will-change: background-color, transform, opacity, box-shadow; }
-        .CategoryHeader--editing { }
-        .CategoryHeader:hover { background-color: ${isEditing ? "transparent" : theme?.backgroundHover || "rgba(0,0,0,0.03)"}; }
-        .CategoryHeader--drag-over { background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"}; border: 1px dashed ${theme.primaryLight || "#91caff"}; }
-        .CategoryHeader--dragging { opacity: 0.75; background-color: ${theme.backgroundHover || "rgba(0,0,0,0.05)"}; box-shadow: 0 2px 8px ${theme.type === "dark" ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.1)"}; transform: translateY(-1px); z-index: 10; border: 1px solid ${theme.type === "dark" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}; }
-        .CategoryHeader__collapseButton { display: flex; align-items: center; justify-content: center; color: ${theme?.textTertiary || "#999"}; cursor: pointer; border-radius: 6px; transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease; flex-shrink: 0; padding: 3px; width: 24px; height: 24px; box-sizing: border-box; }
-        .CategoryHeader__collapseButton:hover { color: ${theme?.textSecondary || "#666"}; background-color: ${theme?.backgroundTertiary || "rgba(0,0,0,0.06)"}; }
-        .CategoryHeader__collapseButton--collapsed { transform: rotate(-90deg); }
-        .CategoryHeader__name { font-size: 14px; font-weight: 600; color: ${theme?.text || "#333"}; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; line-height: 1.4; letter-spacing: -0.01em; padding: 2px 0; height: 24px; display: flex; align-items: center; box-sizing: border-box; transition: opacity 0.2s ease, transform 0.2s ease; will-change: opacity, transform; }
-        .CategoryHeader__name--draggable { cursor: grab; position: relative; padding-left: 4px; margin-left: -4px; padding-right: 4px; }
-        .CategoryHeader__name--draggable:active { cursor: grabbing; opacity: 0.8; transform: translateY(-1px); }
-        .CategoryHeader__name--draggable:hover::before { content: ""; position: absolute; inset: -2px -4px; background-color: rgba(0, 0, 0, 0.03); border-radius: 4px; z-index: -1; pointer-events: none; }
-        .CategoryHeader__actions { display: flex; gap: 2px; align-items: center; margin-left: auto; opacity: 0; transition: opacity 0.15s ease; flex-shrink: 0; }
-        .CategoryHeader:hover .CategoryHeader__actions { opacity: ${isEditing ? 0 : 1}; }
-        /* Ensure actions show when dragging */
-        .CategoryHeader__name--draggable:active + .CategoryHeader__actions, /* When dragging the name */
-        .CategoryHeader.CategoryHeader--drag-over .CategoryHeader__actions /* When hovering over with a draggable */ {
-             opacity: 1;
+      <style href="category-header" precedence="medium">{`
+        .CategoryHeader {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[2]};
+          padding: ${theme.space[1]} ${theme.space[2]};
+          border-radius: ${theme.space[2]};
+          min-height: 36px;
+          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          user-select: none;
+          position: relative;
         }
-        .CategoryHeader__actionButton { padding: 4px; background: none; border: none; color: ${theme?.textTertiary || "#999"}; cursor: pointer; display: flex; align-items: center; border-radius: 4px; transition: color 0.2s ease, background-color 0.2s ease; height: 24px; box-sizing: border-box; }
-        .CategoryHeader__actionButton:hover { background-color: ${isEditing ? "transparent" : theme?.backgroundTertiary || "rgba(0,0,0,0.06)"}; color: ${isEditing ? theme?.textTertiary || "#999" : undefined}; }
-        .CategoryHeader__actionButton--add:hover { color: ${isEditing ? theme?.textTertiary || "#999" : theme?.success || "#52c41a"}; }
-        .CategoryHeader__actionButton--edit:hover { color: ${theme?.primary || "#1677ff"}; }
-        .CategoryHeader__actionButton--delete:hover { color: ${isEditing ? theme?.textTertiary || "#999" : theme?.error || "#ff4d4f"}; }
-        .CategoryHeader__actionButton:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; color: ${theme?.textTertiary || "#999"} !important; }
-      `}
-      </style>
+
+        .CategoryHeader:hover:not(.CategoryHeader--editing) {
+          background-color: ${theme.backgroundHover};
+        }
+
+        .CategoryHeader--drag-over {
+          background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"};
+          border: 1px dashed ${theme.primary};
+          transform: translateY(-1px);
+        }
+
+        .CategoryHeader--dragging {
+          opacity: 0.8;
+          background-color: ${theme.backgroundSelected};
+          box-shadow: ${theme.shadowMedium};
+          transform: translateY(-2px);
+          z-index: 100;
+        }
+
+        .CategoryHeader__collapseButton {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          padding: 0;
+          background: none;
+          border: none;
+          color: ${theme.textTertiary};
+          cursor: pointer;
+          border-radius: ${theme.space[1]};
+          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          flex-shrink: 0;
+        }
+
+        .CategoryHeader__collapseButton:hover {
+          color: ${theme.textSecondary};
+          background-color: ${theme.backgroundTertiary};
+        }
+
+        .CategoryHeader__collapseButton--collapsed {
+          transform: rotate(-90deg);
+        }
+
+        .CategoryHeader__name {
+          flex: 1;
+          font-size: 14px;
+          font-weight: 600;
+          color: ${theme.text};
+          line-height: 1.4;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          min-width: 0;
+          padding: ${theme.space[1]} 0;
+          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .CategoryHeader__name--draggable {
+          cursor: grab;
+          padding-left: ${theme.space[1]};
+          padding-right: ${theme.space[1]};
+          margin: 0 -${theme.space[1]};
+          border-radius: ${theme.space[1]};
+          position: relative;
+        }
+
+        .CategoryHeader__name--draggable:hover {
+          background-color: ${theme.backgroundTertiary};
+        }
+
+        .CategoryHeader__name--draggable:active {
+          cursor: grabbing;
+          transform: translateY(-1px);
+        }
+
+        .CategoryHeader__actions {
+          display: flex;
+          gap: 1px;
+          align-items: center;
+          opacity: 0;
+          transition: opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          flex-shrink: 0;
+        }
+
+        .CategoryHeader:hover .CategoryHeader__actions:not(.CategoryHeader--editing .CategoryHeader__actions) {
+          opacity: 1;
+        }
+
+        .CategoryHeader__actionButton {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 24px;
+          height: 24px;
+          padding: 0;
+          background: none;
+          border: none;
+          color: ${theme.textTertiary};
+          cursor: pointer;
+          border-radius: ${theme.space[1]};
+          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .CategoryHeader__actionButton:hover:not(:disabled) {
+          background-color: ${theme.backgroundTertiary};
+        }
+
+        .CategoryHeader__actionButton--add:hover:not(:disabled) {
+          color: ${theme.success || "#52c41a"};
+        }
+
+        .CategoryHeader__actionButton--edit:hover {
+          color: ${theme.primary};
+        }
+
+        .CategoryHeader__actionButton--delete:hover {
+          color: ${theme.error || "#ff4d4f"};
+        }
+
+        .CategoryHeader__actionButton:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 768px) {
+          .CategoryHeader {
+            gap: ${theme.space[1]};
+            padding: ${theme.space[1]};
+          }
+          
+          .CategoryHeader__name {
+            font-size: 13px;
+          }
+        }
+      `}</style>
     </>
   );
 };
