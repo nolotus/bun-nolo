@@ -60,6 +60,8 @@ interface DialogState {
     id: string;
     type: "excel" | "docx" | "pdf" | "page";
   } | null; // 统一预览状态，新增 page 类型
+  // 新增：存储正在进行的 AbortController 实例
+  activeControllers: Record<string, AbortController>; // 以 messageId 为键
 }
 
 // 定义初始状态
@@ -74,6 +76,8 @@ const initialState: DialogState = {
   pendingImagePreviews: [],
   pendingFiles: [], // 初始化合并后的文件数组
   previewingFile: null, // 初始化统一预览状态
+  // 新增：初始化控制器对象
+  activeControllers: {},
 };
 
 const DialogSlice = createSliceWithThunks({
@@ -222,6 +226,64 @@ const DialogSlice = createSliceWithThunks({
       state.pendingFiles = []; // 清空合并后的文件数组
       state.previewingFile = null; // 清空统一预览状态
     }),
+
+    // 新增：添加控制器到状态
+    addActiveController: create.reducer(
+      (
+        state,
+        action: PayloadAction<{
+          messageId: string;
+          controller: AbortController;
+        }>
+      ) => {
+        state.activeControllers[action.payload.messageId] =
+          action.payload.controller;
+      }
+    ),
+
+    // 新增：移除控制器（在请求完成后）
+    removeActiveController: create.reducer(
+      (state, action: PayloadAction<string>) => {
+        delete state.activeControllers[action.payload];
+      }
+    ),
+
+    // 新增：中止所有正在进行的请求
+    abortAllMessages: create.asyncThunk(
+      async (_, thunkApi) => {
+        const { dispatch, getState } = thunkApi;
+        const state = getState() as NoloRootState;
+        const controllers = state.dialog.activeControllers;
+
+        // 对所有控制器调用 abort 方法
+        Object.values(controllers).forEach((controller) => {
+          try {
+            controller.abort();
+          } catch (error) {
+            console.error(`中止控制器失败:`, error);
+          }
+        });
+
+        // 清空控制器记录
+        dispatch(DialogSlice.actions.clearActiveControllers());
+
+        return { abortedCount: Object.keys(controllers).length };
+      },
+      {
+        fulfilled: (state, action) => {
+          console.log(`已中止 ${action.payload.abortedCount} 个请求`);
+          state.activeControllers = {};
+        },
+        rejected: (state, action) => {
+          console.error(`中止所有消息失败:`, action.error);
+        },
+      }
+    ),
+
+    // 新增：清空所有控制器记录
+    clearActiveControllers: create.reducer((state) => {
+      state.activeControllers = {};
+    }),
   }),
 });
 
@@ -243,6 +305,10 @@ export const {
   removePendingFile,
   clearPendingAttachments,
   setPreviewingFile,
+  addActiveController, // 新增
+  removeActiveController, // 新增
+  abortAllMessages, // 新增
+  clearActiveControllers, // 新增
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;
@@ -293,3 +359,8 @@ export const selectPreviewingFileObject = (
     null
   );
 };
+
+// 新增 Selector
+export const selectActiveControllers = (
+  state: NoloRootState
+): Record<string, AbortController> => state.dialog.activeControllers;
