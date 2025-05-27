@@ -76,6 +76,14 @@ export default {
       compressionErrorMessage:
         "Image compression failed, sending original images.",
       sendFailMessage: "Failed to send message, please try again.",
+      // 新增余额不足相关翻译
+      insufficientBalanceDetailed:
+        "Insufficient balance. Model: {{modelName}}, max cost per message: {{pricePerMessage}} credits. Balance: {{balance}} credits. Click to recharge",
+      insufficientBalance: "Insufficient balance",
+      cybotConfigMissing: "Cybot configuration missing",
+      modelPricingMissing: "Model pricing info missing",
+      noAvailableCybotMessage: "No available Cybot message",
+      recharge: "Click to recharge", // 新增单独的充值翻译
     },
   },
   "zh-CN": {
@@ -152,6 +160,14 @@ export default {
       compressingImagesMessage: "正在压缩图片，请稍候...",
       compressionErrorMessage: "图片压缩失败，将使用原始图片上传。",
       sendFailMessage: "发送消息失败，请重试。",
+      // 新增余额不足相关翻译
+      insufficientBalanceDetailed:
+        "余额不足。当前模型：{{modelName}}，单次最多消耗：{{pricePerMessage}}积分。余额：{{balance}}积分。点此充值",
+      insufficientBalance: "余额不足",
+      cybotConfigMissing: "Cybot配置缺失",
+      modelPricingMissing: "模型定价信息缺失",
+      noAvailableCybotMessage: "没有可用的Cybot消息",
+      recharge: "点此充值", // 新增单独的充值翻译
     },
   },
   "zh-Hant": {
@@ -228,6 +244,14 @@ export default {
       compressingImagesMessage: "正在壓縮圖片，請稍候...",
       compressionErrorMessage: "圖片壓縮失敗，將使用原始圖片上傳。",
       sendFailMessage: "發送訊息失敗，請重試。",
+      // 新增余额不足相关翻译
+      insufficientBalanceDetailed:
+        "餘額不足。當前模型：{{modelName}}，單次最多消耗：{{pricePerMessage}}積分。餘額：{{balance}}積分。點此充值",
+      insufficientBalance: "餘額不足",
+      cybotConfigMissing: "Cybot配置缺失",
+      modelPricingMissing: "模型定價信息缺失",
+      noAvailableCybotMessage: "沒有可用的Cybot消息",
+      recharge: "點此充值", // 新增单独的充值翻译
     },
   },
   ja: {
@@ -310,6 +334,14 @@ export default {
       compressionErrorMessage: "画像圧縮に失敗しました。元の画像を送信します。",
       sendFailMessage:
         "メッセージの送信に失敗しました。もう一度お試しください。",
+      // 新增余额不足相关翻译
+      insufficientBalanceDetailed:
+        "残高不足。モデル：{{modelName}}、1回の最大コスト：{{pricePerMessage}}ポイント。残高：{{balance}}ポイント。クリックしてチャージ",
+      insufficientBalance: "残高不足",
+      cybotConfigMissing: "Cybotの設定が見つかりません",
+      modelPricingMissing: "モデルの価格情報が見つかりません",
+      noAvailableCybotMessage: "利用可能なCybotメッセージがありません",
+      recharge: "クリックしてチャージ", // 新增单独的充值翻译
     },
   },
 };
