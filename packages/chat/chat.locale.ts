@@ -84,6 +84,11 @@ export default {
       modelPricingMissing: "Model pricing info missing",
       noAvailableCybotMessage: "No available Cybot message",
       recharge: "Click to recharge", // 新增单独的充值翻译
+      // 新增中止功能相关翻译
+      stopAllGeneration: "Stop All Generations",
+      allMessagesAborted: "All messages have been aborted",
+      // 新增发送按钮翻译
+      send: "Send",
     },
   },
   "zh-CN": {
@@ -168,6 +173,11 @@ export default {
       modelPricingMissing: "模型定价信息缺失",
       noAvailableCybotMessage: "没有可用的Cybot消息",
       recharge: "点此充值", // 新增单独的充值翻译
+      // 新增中止功能相关翻译
+      stopAllGeneration: "停止所有生成",
+      allMessagesAborted: "所有消息已中止",
+      // 新增发送按钮翻译
+      send: "发送",
     },
   },
   "zh-Hant": {
@@ -252,6 +262,11 @@ export default {
       modelPricingMissing: "模型定價信息缺失",
       noAvailableCybotMessage: "沒有可用的Cybot消息",
       recharge: "點此充值", // 新增单独的充值翻译
+      // 新增中止功能相关翻译
+      stopAllGeneration: "停止所有生成",
+      allMessagesAborted: "所有訊息已中止",
+      // 新增发送按钮翻译
+      send: "發送",
     },
   },
   ja: {
@@ -342,6 +357,11 @@ export default {
       modelPricingMissing: "モデルの価格情報が見つかりません",
       noAvailableCybotMessage: "利用可能なCybotメッセージがありません",
       recharge: "クリックしてチャージ", // 新增单独的充值翻译
+      // 新增中止功能相关翻译
+      stopAllGeneration: "すべての生成を停止",
+      allMessagesAborted: "すべてのメッセージが中止されました",
+      // 新增发送按钮翻译
+      send: "送信",
     },
   },
 };

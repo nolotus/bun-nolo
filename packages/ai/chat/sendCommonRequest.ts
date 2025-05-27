@@ -1,7 +1,10 @@
-// 文件路径: ai/chat/sendCommonChatRequest.ts
-
 import { prepareTools } from "ai/tools/prepareTools";
-import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
+import {
+  updateDialogTitle,
+  updateTokens,
+  addActiveController,
+  removeActiveController,
+} from "chat/dialog/dialogSlice";
 import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
@@ -269,6 +272,9 @@ export const sendCommonChatRequest = async ({
   const signal = controller.signal;
   const currentServer = selectCurrentServer(getState());
   const { key: msgKey, messageId } = createDialogMessageKeyAndId(dialogId);
+
+  // 注册 controller 到 dialogSlice
+  dispatch(addActiveController({ messageId, controller }));
 
   // --- (工具准备逻辑不变) ---
   if (cybotConfig.tools?.length > 0) {
@@ -642,6 +648,8 @@ export const sendCommonChatRequest = async ({
       messageId
     );
   } finally {
+    // 请求结束后移除 controller
+    dispatch(removeActiveController(messageId));
     // --- (Reader 关闭逻辑不变) ---
     if (reader) {
       try {
