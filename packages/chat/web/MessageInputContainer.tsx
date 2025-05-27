@@ -12,33 +12,27 @@ const MessageInput = lazy(() => import("./MessageInput"));
 
 interface ErrorMessageProps {
   message: string;
+  isInsufficientBalance?: boolean;
   onRechargeClick?: () => void;
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = ({
   message,
+  isInsufficientBalance = false,
   onRechargeClick,
 }) => {
   const theme = useAppSelector(selectTheme);
   const { t } = useTranslation("chat");
-
-  // 检查消息是否包含“余额不足”相关提示，并拆分消息内容
-  const isInsufficientBalance = message.includes(t("insufficientBalance"));
-  const rechargeText = t("recharge");
-
-  const messageParts = isInsufficientBalance
-    ? message.split(rechargeText)
-    : [message];
 
   return (
     <div
       className="error-message"
       style={{ zIndex: zIndex.messageInputContainerZIndex }}
     >
-      {messageParts[0]}
-      {isInsufficientBalance && messageParts.length > 1 && (
+      <span>{message}</span>
+      {isInsufficientBalance && (
         <span className="recharge-link" onClick={onRechargeClick}>
-          {rechargeText}
+          {t("recharge")}
         </span>
       )}
       <style>{`
@@ -52,13 +46,13 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
           display: flex;
           align-items: center;
           justify-content: center;
+          gap: 8px;
           box-shadow: 0 2px 4px ${theme.shadow1};
           animation: fadeIn 0.3s ease-out;
         }
         .recharge-link {
           color: ${theme.primary};
           cursor: pointer;
-          margin-left: 5px;
           text-decoration: underline;
         }
         .recharge-link:hover {
@@ -175,18 +169,27 @@ const MessageInputContainer: React.FC = () => {
   const navigate = useNavigate();
 
   const handleRechargeClick = () => {
+    console.log("点击了充值链接，跳转至充值页面"); // 添加调试信息
     navigate("/recharge"); // 跳转到充值页面
   };
 
   if (loading) return <LoadingAnimation />;
   if (balanceError) return <ErrorMessage message={balanceError} />;
-  if (!sendPermission.allowed)
+  if (!sendPermission.allowed) {
+    const errorMessage = getErrorMessage(
+      sendPermission.reason,
+      sendPermission.pricing
+    );
+    const isInsufficientBalance =
+      sendPermission.reason === "INSUFFICIENT_BALANCE";
     return (
       <ErrorMessage
-        message={getErrorMessage(sendPermission.reason, sendPermission.pricing)}
+        message={errorMessage}
+        isInsufficientBalance={isInsufficientBalance}
         onRechargeClick={handleRechargeClick}
       />
     );
+  }
 
   return (
     <Suspense fallback={<InputLoadingPlaceholder />}>
