@@ -15,7 +15,7 @@ export interface SendPermissionCheck {
 }
 
 export const useSendPermission = (userBalance: number = 0) => {
-  const { t } = useTranslation("ai");
+  const { t } = useTranslation("chat"); // 修改为 chat 命名空间
   const userId = useAppSelector(selectCurrentUserId);
   const cybotConfig = useCybotConfig();
   const serverPrices = cybotConfig
