@@ -1,5 +1,3 @@
-// ai/cybot/hooks/useEditCybotValidation
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
@@ -7,14 +5,21 @@ import { DataType } from "create/types";
 import { patch, write } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { createCybotKey } from "database/keys";
-import { createCybotSchema, FormData } from "../createCybotSchema";
+import {
+  createCybotSchema,
+  FormData,
+  DEFAULT_TEMPERATURE,
+  DEFAULT_TOP_P,
+  DEFAULT_FREQUENCY_PENALTY,
+  DEFAULT_PRESENCE_PENALTY,
+  DEFAULT_MAX_TOKENS,
+} from "../createCybotSchema";
 
 const extractCybotId = (path: string) => {
   const matches = path.match(/cybot-[^-]+-(\w+)/);
   return matches ? matches[1] : path;
 };
 
-// 更新 ExtendedFormData 接口以匹配 createCybotSchema 中的 references 类型
 interface ExtendedFormData extends FormData {
   id: string;
   createdAt?: number;
@@ -46,21 +51,47 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
       tags: Array.isArray(initialValues.tags)
         ? initialValues.tags.join(", ")
         : initialValues.tags || "",
-      references: initialValues.references || [], // 类型由 FormData 定义
-      smartReadEnabled: initialValues.smartReadEnabled ?? false, // 新增 smartReadEnabled 默认值
+      references: initialValues.references || [],
+      smartReadEnabled: initialValues.smartReadEnabled ?? false,
+      temperature: initialValues.temperature ?? DEFAULT_TEMPERATURE,
+      top_p: initialValues.top_p ?? DEFAULT_TOP_P,
+      frequency_penalty:
+        initialValues.frequency_penalty ?? DEFAULT_FREQUENCY_PENALTY,
+      presence_penalty:
+        initialValues.presence_penalty ?? DEFAULT_PRESENCE_PENALTY,
+      max_tokens: initialValues.max_tokens ?? DEFAULT_MAX_TOKENS,
     },
   });
 
   const { watch } = form;
-
   const provider = watch("provider");
   const useServerProxy = watch("useServerProxy");
   const isPublic = watch("isPublic");
 
+  // 提取数据处理逻辑
+  const processData = (data: FormData) => ({
+    ...data,
+    prompt: data.prompt || "",
+    greeting: data.greeting || "",
+    introduction: data.introduction || "",
+    tags: data.tags
+      ? data.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+      : [],
+    references: data.references || [],
+    smartReadEnabled: data.smartReadEnabled || false,
+    temperature: data.temperature ?? DEFAULT_TEMPERATURE,
+    top_p: data.top_p ?? DEFAULT_TOP_P,
+    frequency_penalty: data.frequency_penalty ?? DEFAULT_FREQUENCY_PENALTY,
+    presence_penalty: data.presence_penalty ?? DEFAULT_PRESENCE_PENALTY,
+    max_tokens: data.max_tokens ?? DEFAULT_MAX_TOKENS,
+  });
+
   const onSubmit = async (data: FormData) => {
-    console.log("[useEditCybotValidation] onSubmit triggered with data:", data);
     if (!auth.user?.userId) {
-      console.log("[useEditCybotValidation] No userId, aborting submission");
+      console.error("[useEditCybotValidation] No userId, aborting submission");
       return;
     }
 
@@ -68,43 +99,16 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
     const cybotId = extractCybotId(initialValues.id);
     const userCybotPath = createCybotKey.private(auth.user.userId, cybotId);
     const publicCybotPath = createCybotKey.public(cybotId);
-
-    // 确保文本字段保留换行符
-    const processedData = {
-      ...data,
-      prompt: data.prompt || "",
-      greeting: data.greeting || "",
-      introduction: data.introduction || "",
-      tags: data.tags
-        ? data.tags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter(Boolean)
-        : [],
-      references: data.references || [],
-      smartReadEnabled: data.smartReadEnabled || false, // 确保 smartReadEnabled 被包含
-    };
+    const processedData = processData(data);
 
     try {
-      console.log(
-        "[useEditCybotValidation] Updating private version at:",
-        userCybotPath
-      );
       await dispatch(
         patch({
           dbKey: userCybotPath,
-          changes: {
-            ...processedData,
-            isPublic: data.isPublic,
-          },
+          changes: { ...processedData, isPublic: data.isPublic },
         })
       ).unwrap();
-
       if (data.isPublic) {
-        console.log(
-          "[useEditCybotValidation] Writing public version at:",
-          publicCybotPath
-        );
         await dispatch(
           write({
             data: {
@@ -122,7 +126,6 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
           })
         ).unwrap();
       }
-      console.log("[useEditCybotValidation] Submission completed successfully");
     } catch (error) {
       console.error(
         "[useEditCybotValidation] Submission failed with error:",
@@ -132,11 +135,5 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
     }
   };
 
-  return {
-    form,
-    provider,
-    useServerProxy,
-    isPublic,
-    onSubmit,
-  };
+  return { form, provider, useServerProxy, isPublic, onSubmit };
 };

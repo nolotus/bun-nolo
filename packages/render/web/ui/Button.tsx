@@ -1,10 +1,9 @@
-// render/render/web/ui/Button.tsx
-
+// render/web/ui/Button.tsx
 import React from "react";
 import { useTheme } from "app/theme";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "ghost";
   status?: "error";
   size?: "small" | "medium" | "large";
   icon?: React.ReactNode;
@@ -24,9 +23,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       block,
       type = "button",
-      className,
+      className = "",
       children,
-      style,
       onClick,
       ...rest
     },
@@ -35,198 +33,252 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const theme = useTheme();
 
     const buttonType = status === "error" ? "danger" : variant;
-    const buttonClassName = `btn btn-${buttonType}${
-      disabled || loading ? " disabled" : ""
-    } ${size}${block ? " block" : ""} ${className || ""}`;
+    const isDisabled = disabled || loading;
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (loading || disabled) return;
+      if (isDisabled) return;
       onClick?.(e);
     };
 
     return (
-      <button
-        {...rest}
-        ref={ref}
-        className={buttonClassName}
-        disabled={disabled || loading}
-        onClick={handleClick}
-        style={style}
-        type={type}
-      >
-        <span className="btn-content">
-          {icon && !loading && <span className="btn-icon">{icon}</span>}
-          {loading ? <LoadingSpinner /> : children}
-        </span>
+      <>
+        <button
+          {...rest}
+          ref={ref}
+          className={`btn btn-${buttonType} btn-${size} ${block ? "btn-block" : ""} ${isDisabled ? "btn-disabled" : ""} ${className}`}
+          disabled={isDisabled}
+          onClick={handleClick}
+          type={type}
+        >
+          <span className="btn-content">
+            {loading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                {icon && <span className="btn-icon">{icon}</span>}
+                {children && <span className="btn-text">{children}</span>}
+              </>
+            )}
+          </span>
+        </button>
 
-        <style jsx>{`
+        <style href="button" precedence="medium">{`
           .btn {
             position: relative;
-            font-size: 14px;
-            line-height: 1.5;
-            font-weight: 500;
-            border-radius: 6px;
-            cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid transparent;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen;
+            font-weight: 500;
+            line-height: 1;
+            text-align: center;
             white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border-radius: ${theme.space[2]};
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
             outline: none;
-            letter-spacing: 0.02em;
           }
 
-          .btn:focus-visible {
-            box-shadow:
-              0 0 0 2px ${theme.background},
-              0 0 0 4px ${theme.primaryGhost};
-            outline: none;
-          }
-
-          .block {
-            width: 100%;
-            display: flex;
-          }
-
-          .small {
-            height: 30px;
+          /* 尺寸 */
+          .btn-small {
+            height: 32px;
             padding: 0 ${theme.space[3]};
             font-size: 13px;
+            gap: ${theme.space[1]};
           }
 
-          .medium {
-            height: 36px;
+          .btn-medium {
+            height: 38px;
             padding: 0 ${theme.space[4]};
+            font-size: 14px;
+            gap: ${theme.space[2]};
           }
 
-          .large {
-            height: 42px;
+          .btn-large {
+            height: 44px;
             padding: 0 ${theme.space[5]};
             font-size: 15px;
+            gap: ${theme.space[2]};
           }
 
-          .btn:hover:not(.disabled) {
-            transform: translateY(-1px);
-            transition: all 0.15s ease;
-          }
-
-          .btn:active:not(.disabled) {
-            transform: translateY(0);
+          .btn-block {
+            width: 100%;
           }
 
           .btn-content {
             display: flex;
             align-items: center;
-            gap: ${theme.space[2]};
+            justify-content: center;
+            gap: inherit;
           }
 
           .btn-icon {
             display: flex;
             align-items: center;
-            font-size: 1.15em;
+            justify-content: center;
+            line-height: 1;
           }
 
-          .disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            filter: grayscale(20%);
+          .btn-text {
+            line-height: 1;
           }
 
-          /* Primary Button */
+          /* Primary 样式 - 极简设计 */
           .btn-primary {
             background: ${theme.primary};
             color: white;
-            box-shadow: 0 1px 3px ${theme.primaryGhost};
           }
 
-          .btn-primary:hover:not(.disabled) {
-            background: ${theme.primaryLight};
-            box-shadow: 0 3px 8px ${theme.primaryGhost};
+          .btn-primary:hover:not(.btn-disabled) {
+            background: ${theme.primaryLight || theme.primary};
+            transform: translateY(-1px);
           }
 
-          .btn-primary:active:not(.disabled) {
-            background: ${theme.primary};
-            box-shadow: 0 1px 2px ${theme.primaryGhost};
+          .btn-primary:active:not(.btn-disabled) {
+            transform: translateY(0);
+            transition-duration: 0.05s;
           }
 
-          /* Secondary Button */
+          /* Secondary 样式 - 去除边框，使用背景色差异 */
           .btn-secondary {
-            background: ${theme.backgroundSecondary};
+            background: ${theme.backgroundTertiary};
             color: ${theme.text};
-            border: 1px solid ${theme.border};
-            box-shadow: 0 1px 2px ${theme.shadowLight};
           }
 
-          .btn-secondary:hover:not(.disabled) {
-            border-color: ${theme.borderHover};
-            background: ${theme.backgroundGhost};
-            box-shadow: 0 2px 4px ${theme.shadowLight};
+          .btn-secondary:hover:not(.btn-disabled) {
+            background: ${theme.backgroundSelected || theme.backgroundHover};
+            transform: translateY(-1px);
           }
 
-          .btn-secondary:active:not(.disabled) {
-            background: ${theme.backgroundSecondary};
-            box-shadow: 0 1px 2px ${theme.shadowLight};
+          .btn-secondary:active:not(.btn-disabled) {
+            background: ${theme.backgroundTertiary};
+            transform: translateY(0);
+            transition-duration: 0.05s;
           }
 
-          /* Danger Button */
+          /* Ghost 样式 - 极简透明按钮 */
+          .btn-ghost {
+            background: transparent;
+            color: ${theme.textSecondary};
+          }
+
+          .btn-ghost:hover:not(.btn-disabled) {
+            background: ${theme.backgroundHover};
+            color: ${theme.text};
+          }
+
+          .btn-ghost:active:not(.btn-disabled) {
+            background: ${theme.backgroundSelected || theme.backgroundHover};
+            transition-duration: 0.05s;
+          }
+
+          /* Danger 样式 */
           .btn-danger {
             background: ${theme.error};
             color: white;
-            box-shadow: 0 1px 3px rgba(239, 68, 68, 0.25);
           }
 
-          .btn-danger:hover:not(.disabled) {
-            filter: brightness(1.05);
-            box-shadow: 0 3px 8px rgba(239, 68, 68, 0.25);
+          .btn-danger:hover:not(.btn-disabled) {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
           }
 
-          .btn-danger:active:not(.disabled) {
+          .btn-danger:active:not(.btn-disabled) {
             filter: brightness(0.95);
-            box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
+            transform: translateY(0);
+            transition-duration: 0.05s;
           }
 
+          /* 禁用状态 */
+          .btn-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            filter: none !important;
+          }
+
+          /* 焦点状态 - 极简无障碍设计 */
+          .btn:focus-visible:not(.btn-disabled) {
+            box-shadow: 0 0 0 2px ${theme.background}, 0 0 0 4px ${theme.primary};
+          }
+
+          /* 触摸设备优化 */
+          @media (hover: none) and (pointer: coarse) {
+            .btn:hover:not(.btn-disabled) {
+              transform: none;
+            }
+            
+            .btn:active:not(.btn-disabled) {
+              transform: scale(0.98);
+              transition-duration: 0.1s;
+            }
+          }
+
+          /* 减少动画偏好 */
+          @media (prefers-reduced-motion: reduce) {
+            .btn {
+              transition: none;
+            }
+            
+            .btn:hover:not(.btn-disabled) {
+              transform: none;
+            }
+            
+            .btn:active:not(.btn-disabled) {
+              transform: none;
+            }
+          }
+
+          /* 加载动画 */
           @keyframes spin {
             to {
               transform: rotate(360deg);
             }
           }
 
-          :global(.loading) {
-            animation: spin 0.7s linear infinite;
-            opacity: 0.9;
+          .loading-spinner {
+            animation: spin 0.8s linear infinite;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .loading-spinner {
+              animation: none;
+            }
           }
         `}</style>
-      </button>
+      </>
     );
   }
 );
 
 Button.displayName = "Button";
 
+// 优化的加载指示器
 const LoadingSpinner = () => (
   <svg
-    className="loading"
-    width="14"
-    height="14"
-    viewBox="0 0 14 14"
+    className="loading-spinner"
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
     fill="none"
-    xmlns="http://www.w3.org/2000/svg"
   >
     <circle
-      cx="7"
-      cy="7"
-      r="5.5"
+      cx="8"
+      cy="8"
+      r="6"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="2"
       strokeLinecap="round"
-      opacity="0.2"
+      opacity="0.25"
     />
     <path
-      d="M13 7A6 6 0 111 7"
+      d="M14 8A6 6 0 012 8"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="2"
       strokeLinecap="round"
     />
   </svg>

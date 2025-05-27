@@ -1,6 +1,6 @@
+// web/ui/BaseActionModal.tsx
 import React, { useEffect, useState } from "react";
 import { BaseModal } from "render/web/ui/BaseModal";
-
 import { useTheme } from "app/theme";
 
 interface BaseActionModalProps {
@@ -49,9 +49,9 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
       case "error":
         return theme.error;
       case "warning":
-        return theme.warning;
+        return theme.warning || theme.primary; // fallback 如果没有 warning 色
       case "success":
-        return theme.success;
+        return theme.success || theme.primary; // fallback 如果没有 success 色
       default:
         return theme.primary;
     }
@@ -61,6 +61,8 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
+      variant="default"
+      preventBodyScroll={true}
       className={`action-modal ${className} ${animateIn ? "animate-in" : ""}`}
     >
       <div className="modal-container">
@@ -82,6 +84,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           background: ${theme.background};
           border-radius: 12px;
           box-shadow:
+            0 0 0 1px ${theme.border},
             0 10px 15px -3px ${theme.shadowLight},
             0 4px 6px -2px ${theme.shadowMedium};
           width: 100%;
@@ -144,6 +147,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           color: ${theme.textSecondary};
           font-size: 14px;
           line-height: 1.6;
+          -webkit-overflow-scrolling: touch;
         }
 
         .modal-actions {
@@ -153,11 +157,13 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           gap: ${sp[3]};
         }
 
+        /* 移动端优化 */
         @media (max-width: 640px) {
           .action-modal {
             margin: 0;
             max-width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             border-radius: 0;
             transform: translateY(20px);
           }
@@ -174,16 +180,38 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
             padding: ${sp[4]} ${sp[4]} ${sp[3]};
           }
 
+          .title {
+            font-size: 16px;
+          }
+
           .modal-body {
             padding: ${sp[4]} ${sp[4]} ${sp[2]};
+            height: calc(100vh - 140px);
           }
 
           .modal-actions {
-            padding: ${sp[2]} ${sp[4]} ${sp[5]};
+            padding: ${sp[3]} ${sp[4]} ${sp[5]};
             margin-top: auto;
+          }
+        }
+
+        /* 平板端优化 */
+        @media (max-width: 768px) and (min-width: 641px) {
+          .action-modal {
+            margin: ${sp[4]};
+            max-width: 90%;
+          }
+        }
+
+        /* 无障碍支持 */
+        @media (prefers-reduced-motion: reduce) {
+          .action-modal {
+            transition: none;
           }
         }
       `}</style>
     </BaseModal>
   );
 };
+
+export default BaseActionModal;

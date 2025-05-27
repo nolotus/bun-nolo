@@ -151,6 +151,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           isOpen={editVisible}
           onClose={closeEdit}
           title={`${t("edit")} ${item.name || t("cybot")}`}
+          size="large"
         >
           <EditCybot initialValues={item} onClose={closeEdit} />
         </Dialog>

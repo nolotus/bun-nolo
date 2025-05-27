@@ -35,7 +35,6 @@ export default {
       update: "Update",
       updating: "Updating...",
       supportsVision: "Vision Support",
-      modelConfiguration: "Model Configuration", // 不再使用，改为 advancedSettings
       proxyNotAvailableForProvider:
         "Direct connection unavailable for this provider",
       inputPrice: "Input Price",
@@ -54,11 +53,10 @@ export default {
       customApiHelp: "Use your own API key and settings",
       useCustomApi: "Custom API",
       usePlatformApi: "Platform API",
-      basicInfo: "Basic Info", // 优化为更简洁的表达
+      basicInfo: "Basic Info",
       providerUrlHelp: "Enter API endpoint URL for custom provider",
       apiKeyHelp: "Enter API key for authentication",
       promptHelp: "Define AI's behavior and personality",
-      communitySettings: "Community Settings", // 不再使用，改为 publishSettings
       shareInCommunity: "Make Public",
       shareInCommunityHelp: "Show in community list for others to use",
       shareInCommunityCustomApiHelp: "Custom API Cybots can't be public",
@@ -78,19 +76,43 @@ export default {
       input: "Input",
       output: "Output",
       dialogCount: "Dialogs",
-      basicInfoAndBehavior: "Basic Info & Behavior", // 不再使用，改为 basicInfo
       editCybot: "Edit Cybot",
       pricing: "Pricing",
       inputPricePerThousand: "Input price per 1M tokens",
       outputPricePerThousand: "Output price per 1M tokens",
-      // 更新的翻译键，与代码一致
       references: "References",
       selectReferences: "Select References",
       selectReferencesHelp: "Select pages to reference",
       noPagesAvailable: "No pages available",
-      toolSelection: "Tools", // 优化为更简洁的表达
-      advancedSettings: "Advanced Settings", // 替换 modelConfiguration
-      publishSettings: "Publish Settings", // 替换 communitySettings
+      toolSelection: "Tools",
+      advancedSettings: "Advanced Settings",
+      publishSettings: "Publish Settings",
+      modelParameters: "Model Parameters",
+      temperature: "Temperature",
+      temperatureHelp:
+        "Controls randomness of output, between 0 and 2. Higher values (e.g., 0.8) make output more random, lower values (e.g., 0.2) make it more focused.",
+      topP: "Top P",
+      topPHelp:
+        "Controls output diversity, between 0 and 1. Higher values (e.g., 0.9) include more diverse outputs.",
+      frequencyPenalty: "Frequency Penalty",
+      frequencyPenaltyHelp:
+        "Reduces repetition of words, between -2 and 2. Higher values discourage repetition.",
+      presencePenalty: "Presence Penalty",
+      presencePenaltyHelp:
+        "Reduces repetition of topics, between -2 and 2. Higher values encourage new topics.",
+      maxTokens: "Max Tokens",
+      maxTokensHelp:
+        "Limits the length of output, minimum 1. Defines the maximum number of tokens in response.",
+
+      // 新增缺失的翻译键
+      cancel: "Cancel",
+      resetToDefaults: "Reset to Defaults",
+      smartReadCurrentSpace: "Smart Read Current Space",
+      smartReadHelp:
+        "Enable to automatically reference current workspace content",
+      selectTools: "Select Tools",
+      selectToolsHelp: "Choose tools that this Cybot can use",
+      enterTags: "Enter tags separated by commas",
     },
   },
   "zh-CN": {
@@ -129,7 +151,6 @@ export default {
       update: "更新",
       updating: "更新中...",
       supportsVision: "视觉支持",
-      modelConfiguration: "模型配置", // 不再使用，改为 advancedSettings
       proxyNotAvailableForProvider: "此提供商不支持直连模式",
       inputPrice: "输入价格",
       outputPrice: "输出价格",
@@ -147,11 +168,10 @@ export default {
       customApiHelp: "使用自定义API密钥和设置",
       useCustomApi: "自定义API",
       usePlatformApi: "平台API",
-      basicInfo: "基本信息", // 已优化
+      basicInfo: "基本信息",
       providerUrlHelp: "输入自定义提供商API端点URL",
       apiKeyHelp: "输入API密钥进行认证",
       promptHelp: "定义AI行为和个性",
-      communitySettings: "社区设置", // 不再使用，改为 publishSettings
       shareInCommunity: "公开发布",
       shareInCommunityHelp: "显示在社区列表，供其他用户使用",
       shareInCommunityCustomApiHelp: "自定义API的Cybot无法公开发布",
@@ -171,19 +191,38 @@ export default {
       input: "输入",
       output: "输出",
       dialogCount: "对话数",
-      basicInfoAndBehavior: "基本信息与行为设置", // 不再使用，改为 basicInfo
       editCybot: "编辑Cybot",
       pricing: "价格设置",
       inputPricePerThousand: "每百万输入词元价格",
       outputPricePerThousand: "每百万输出词元价格",
-      // 更新的翻译键，与代码一致
       references: "参考资料",
       selectReferences: "选择参考资料",
       selectReferencesHelp: "选择要引用的页面",
       noPagesAvailable: "暂无可用页面",
-      toolSelection: "工具设置", // 优化为更符合上下文的表达
-      advancedSettings: "高级设置", // 替换 modelConfiguration
-      publishSettings: "发布设置", // 替换 communitySettings
+      toolSelection: "工具设置",
+      advancedSettings: "高级设置",
+      publishSettings: "发布设置",
+      modelParameters: "模型参数",
+      temperature: "温度",
+      temperatureHelp:
+        "控制输出随机性，范围0到2。较高值（如0.8）使输出更随机，较低值（如0.2）使输出更集中。",
+      topP: "Top P",
+      topPHelp: "控制输出多样性，范围0到1。较高值（如0.9）包含更多样化的输出。",
+      frequencyPenalty: "频率惩罚",
+      frequencyPenaltyHelp: "减少词汇重复，范围-2到2。较高值会抑制重复。",
+      presencePenalty: "存在惩罚",
+      presencePenaltyHelp: "减少主题重复，范围-2到2。较高值鼓励引入新主题。",
+      maxTokens: "最大Token数",
+      maxTokensHelp: "限制输出长度，最小值为1。定义响应的最大Token数量。",
+
+      // 新增缺失的翻译键
+      cancel: "取消",
+      resetToDefaults: "重置为默认值",
+      smartReadCurrentSpace: "智能读取当前空间",
+      smartReadHelp: "启用后自动引用当前工作空间的内容",
+      selectTools: "选择工具",
+      selectToolsHelp: "选择此Cybot可以使用的工具",
+      enterTags: "输入标签，用逗号分隔",
     },
   },
   "zh-Hant": {
@@ -222,7 +261,6 @@ export default {
       update: "更新",
       updating: "更新中...",
       supportsVision: "視覺支持",
-      modelConfiguration: "模型配置", // 不再使用，改为 advancedSettings
       proxyNotAvailableForProvider: "此提供商不支持直連模式",
       inputPrice: "輸入價格",
       outputPrice: "輸出價格",
@@ -240,11 +278,10 @@ export default {
       customApiHelp: "使用自定義API密鑰和設置",
       useCustomApi: "自定義API",
       usePlatformApi: "平台API",
-      basicInfo: "基本信息", // 已优化
+      basicInfo: "基本信息",
       providerUrlHelp: "輸入自定義提供商API端點URL",
       apiKeyHelp: "輸入API密鑰進行認證",
       promptHelp: "定義AI行為和個性",
-      communitySettings: "社區設置", // 不再使用，改为 publishSettings
       shareInCommunity: "公開發布",
       shareInCommunityHelp: "顯示在社區列表，供其他用戶使用",
       shareInCommunityCustomApiHelp: "自定義API的Cybot無法公開發布",
@@ -264,19 +301,38 @@ export default {
       input: "輸入",
       output: "輸出",
       dialogCount: "對話數",
-      basicInfoAndBehavior: "基本信息與行為設置", // 不再使用，改为 basicInfo
       editCybot: "編輯Cybot",
       pricing: "價格設置",
       inputPricePerThousand: "每百萬輸入詞元價格",
       outputPricePerThousand: "每百萬輸出詞元價格",
-      // 更新的翻译键，与代码一致
       references: "參考資料",
       selectReferences: "選擇參考資料",
       selectReferencesHelp: "選擇要引用的頁面",
       noPagesAvailable: "暫無可用頁面",
-      toolSelection: "工具設置", // 优化为更符合上下文的表达
-      advancedSettings: "高級設置", // 替换 modelConfiguration
-      publishSettings: "發布設置", // 替换 communitySettings
+      toolSelection: "工具設置",
+      advancedSettings: "高級設置",
+      publishSettings: "發布設置",
+      modelParameters: "模型參數",
+      temperature: "溫度",
+      temperatureHelp:
+        "控制輸出隨機性，範圍0到2。較高值（如0.8）使輸出更隨機，較低值（如0.2）使輸出更集中。",
+      topP: "Top P",
+      topPHelp: "控制輸出多樣性，範圍0到1。較高值（如0.9）包含更多樣化的輸出。",
+      frequencyPenalty: "頻率懲罰",
+      frequencyPenaltyHelp: "減少詞彙重複，範圍-2到2。較高值會抑制重複。",
+      presencePenalty: "存在懲罰",
+      presencePenaltyHelp: "減少主題重複，範圍-2到2。較高值鼓勵引入新主題。",
+      maxTokens: "最大Token數",
+      maxTokensHelp: "限制輸出長度，最小值為1。定義響應的最大Token數量。",
+
+      // 新增缺失的翻译键
+      cancel: "取消",
+      resetToDefaults: "重置為默認值",
+      smartReadCurrentSpace: "智能讀取當前空間",
+      smartReadHelp: "啟用後自動引用當前工作空間的內容",
+      selectTools: "選擇工具",
+      selectToolsHelp: "選擇此Cybot可以使用的工具",
+      enterTags: "輸入標籤，用逗號分隔",
     },
   },
   ja: {
@@ -315,7 +371,6 @@ export default {
       update: "更新",
       updating: "更新中...",
       supportsVision: "視覚サポート",
-      modelConfiguration: "モデル設定", // 不再使用，改为 advancedSettings
       proxyNotAvailableForProvider:
         "このプロバイダーは直接接続をサポートしていません",
       inputPrice: "入力価格",
@@ -334,11 +389,10 @@ export default {
       customApiHelp: "カスタムAPIキーと設定を使用",
       useCustomApi: "カスタムAPI",
       usePlatformApi: "プラットフォームAPI",
-      basicInfo: "基本情報", // 已优化
+      basicInfo: "基本情報",
       providerUrlHelp: "カスタムプロバイダーのAPIエンドポイントURLを入力",
       apiKeyHelp: "認証用のAPIキーを入力",
       promptHelp: "AIの行動と性格を定義",
-      communitySettings: "コミュニティ設定", // 不再使用，改为 publishSettings
       shareInCommunity: "公開する",
       shareInCommunityHelp:
         "コミュニティリストに表示し、他のユーザーが使用可能に",
@@ -359,19 +413,42 @@ export default {
       input: "入力",
       output: "出力",
       dialogCount: "対話数",
-      basicInfoAndBehavior: "基本情報と動作設定", // 不再使用，改为 basicInfo
       editCybot: "Cybotを編集",
       pricing: "価格設定",
       inputPricePerThousand: "100万入力トークンあたりの価格",
       outputPricePerThousand: "100万出力トークンあたりの価格",
-      // 更新的翻译键，与代码一致
       references: "参照資料",
       selectReferences: "参照資料を選択",
       selectReferencesHelp: "参照するページを選択",
       noPagesAvailable: "利用可能なページなし",
-      toolSelection: "ツール設定", // 优化为更符合上下文的表达
-      advancedSettings: "高度な設定", // 替换 modelConfiguration
-      publishSettings: "公開設定", // 替换 communitySettings
+      toolSelection: "ツール設定",
+      advancedSettings: "高度な設定",
+      publishSettings: "公開設定",
+      modelParameters: "モデルパラメータ",
+      temperature: "温度",
+      temperatureHelp:
+        "出力のランダム性を制御、範囲は0から2。高い値（例：0.8）は出力をよりランダムに、低い値（例：0.2）は出力をより集中させます。",
+      topP: "Top P",
+      topPHelp:
+        "出力の多様性を制御、範囲は0から1。高い値（例：0.9）はより多様な出力を含みます。",
+      frequencyPenalty: "頻度ペナルティ",
+      frequencyPenaltyHelp:
+        "単語の繰り返しを減少、範囲は-2から2。高い値は繰り返しを抑制します。",
+      presencePenalty: "存在ペナルティ",
+      presencePenaltyHelp:
+        "トピックの繰り返しを減少、範囲は-2から2。高い値は新しいトピックを奨励します。",
+      maxTokens: "最大トークン数",
+      maxTokensHelp:
+        "出力の長さを制限、最小値は1。応答の最大トークン数を定義します。",
+
+      // 新增缺失的翻译键
+      cancel: "キャンセル",
+      resetToDefaults: "デフォルトにリセット",
+      smartReadCurrentSpace: "現在のスペースをスマート読取",
+      smartReadHelp: "有効にすると現在のワークスペースのコンテンツを自動参照",
+      selectTools: "ツールを選択",
+      selectToolsHelp: "このCybotが使用できるツールを選択",
+      enterTags: "タグをカンマ区切りで入力",
     },
   },
 };

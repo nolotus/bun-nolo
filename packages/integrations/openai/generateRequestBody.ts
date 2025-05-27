@@ -1,8 +1,9 @@
-import { NoloRootState } from "app/store"; // Assuming path is correct
-import { generatePrompt } from "ai/prompt/generatePrompt"; // Assuming path is correct
+import { NoloRootState } from "app/store";
+import { generatePrompt } from "ai/prompt/generatePrompt";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
-// --- 类型定义 (保持不变) ---
+
+// --- 类型定义 ---
 
 type MessageContentPartText = {
   type: "text";
@@ -19,36 +20,36 @@ type MessageContentPartImageUrl = {
 
 type MessageContentPart = MessageContentPartText | MessageContentPartImageUrl;
 
-// 核心 Message 接口 - 定义 API 期望的最终结构
 interface Message {
   role: "user" | "assistant" | "system" | "tool";
   content: string | MessageContentPart[];
-  name?: string; // For tool/function calling
-  tool_calls?: any; // For assistant role
-  tool_call_id?: string; // For tool role
+  name?: string;
+  tool_calls?: any;
+  tool_call_id?: string;
 }
 
-// UserInputPart 类型 (保持不变)
 type UserInputPart = {
   type: "text" | "image_url" | "excel";
   text?: string;
-  data?: any;
   image_url?: { url: string };
   name?: string;
 };
 
-// CybotConfig 类型 (保持不变)
-interface CybotConfig {
-  provider: string;
+// 只传必要配置
+interface BuildRequestBodyOptions {
   model: string;
-  prompt?: string;
-  name?: string;
-  [key: string]: any;
+  messages: Message[];
+  providerName: string;
+  temperature?: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  max_tokens?: number;
+  // 后续可以按需增加参数
 }
 
 /**
- * 创建用户消息对象 (保持不变)
- * 根据输入内容决定 content 是字符串还是数组。
+ * 创建用户消息对象
  */
 const createUserMessage = (userInput: string | UserInputPart[]): Message => {
   if (typeof userInput === "string") {
@@ -62,11 +63,8 @@ const createUserMessage = (userInput: string | UserInputPart[]): Message => {
     userInput.forEach((item) => {
       switch (item.type) {
         case "text":
-          const textContent =
-            item.text?.trim() ||
-            (typeof item.data === "string" ? item.data.trim() : "");
-          if (textContent) {
-            contentParts.push({ type: "text", text: textContent });
+          if (item.text?.trim()) {
+            contentParts.push({ type: "text", text: item.text.trim() });
           }
           break;
         case "image_url":
@@ -79,46 +77,21 @@ const createUserMessage = (userInput: string | UserInputPart[]): Message => {
           }
           break;
         case "excel":
-          let excelText = "";
-          const fileName = item.name || "未知Excel文件";
-          if (Array.isArray(item.data) && item.data.length > 0) {
-            try {
-              const firstRowKeys = Object.keys(item.data[0] || {});
-              if (firstRowKeys.length > 0) {
-                const header = firstRowKeys.join("\t");
-                const rows = item.data
-                  .map((row: any) =>
-                    firstRowKeys
-                      .map((key) => String(row[key] ?? "")) // Safely convert to string
-                      .join("\t")
-                  )
-                  .join("\n");
-                excelText = `[Excel 文件: ${fileName}]\n${header}\n${rows}`;
-              } else {
-                excelText = `[Excel 文件: ${fileName} (空或无效)]`;
-              }
-            } catch (e) {
-              console.error("Error processing excel data:", e);
-              excelText = `[Excel 文件: ${fileName} (处理错误)]`;
-            }
-          } else {
-            excelText = `[Excel 文件: ${fileName} (无数据)]`;
-          }
-          if (excelText) {
-            contentParts.push({ type: "text", text: excelText });
-          }
+          // 只用 text 字段
+          const excelText =
+            item.text?.trim() ||
+            `[Excel 文件: ${item.name || "未知Excel文件"} (无内容)]`;
+          contentParts.push({ type: "text", text: excelText });
           break;
         default:
-          // console.warn(`Unhandled user input part type: ${item.type}`); // 可选日志
           break;
       }
     });
 
-    // 根据是否包含图片决定 content 格式
     if (hasImage) {
-      return { role: "user", content: contentParts }; // 包含图片，必须是数组
+      return { role: "user", content: contentParts };
     } else {
-      // 仅文本（或Excel转文本），合并为单一字符串
+      // 仅文本，合并为一个字符串
       const combinedText = contentParts
         .map((part) => (part.type === "text" ? part.text : ""))
         .filter(Boolean)
@@ -128,11 +101,11 @@ const createUserMessage = (userInput: string | UserInputPart[]): Message => {
   }
 
   console.error("Invalid userInput for createUserMessage:", userInput);
-  return { role: "user", content: "" }; // Fallback
+  return { role: "user", content: "" };
 };
 
 /**
- * 生成系统提示 (保持不变)
+ * 生成系统提示
  */
 const generateSystemPrompt = (
   prompt: string | undefined,
@@ -140,19 +113,17 @@ const generateSystemPrompt = (
   language: string,
   context: any
 ): string => {
-  // 确保 generatePrompt 能处理空 prompt
   return generatePrompt(prompt || "", botName, language, context);
 };
 
 /**
- * 在消息列表前添加系统提示 (保持不变)
+ * 在消息列表前添加系统提示
  */
 const prependPromptMessage = (
   messages: Message[],
   promptContent: string
 ): Message[] => {
   if (promptContent.trim()) {
-    // 确保 system message 结构符合 Message 接口
     const systemMessage: Message = { role: "system", content: promptContent };
     return [systemMessage, ...messages];
   }
@@ -160,20 +131,27 @@ const prependPromptMessage = (
 };
 
 /**
- * 构建请求体 (保持不变)
+ * 只传必要字段，构建请求体
  */
-const buildRequestBody = (
-  model: string,
-  messages: Message[], // 接收清理后的消息
-  providerName: string
-): any => {
+const buildRequestBody = (options: BuildRequestBodyOptions): any => {
+  const {
+    model,
+    messages,
+    providerName,
+    temperature,
+    top_p,
+    frequency_penalty,
+    presence_penalty,
+    max_tokens,
+  } = options;
+
   const bodyData: any = {
     model,
-    messages, // 直接使用传入的、结构正确的 messages
+    messages,
     stream: true,
   };
 
-  // Provider-specific options (保持不变)
+  // Provider-specific options
   if (["google", "openrouter", "xai", "openai"].includes(providerName)) {
     bodyData.stream_options = { include_usage: true };
   }
@@ -182,49 +160,72 @@ const buildRequestBody = (
     bodyData.temperature = 0.7;
   }
 
+  if (typeof temperature === "number") bodyData.temperature = temperature;
+  if (typeof top_p === "number") bodyData.top_p = top_p;
+  if (typeof frequency_penalty === "number")
+    bodyData.frequency_penalty = frequency_penalty;
+  if (typeof presence_penalty === "number")
+    bodyData.presence_penalty = presence_penalty;
+  if (typeof max_tokens === "number") bodyData.max_tokens = max_tokens;
+
   return bodyData;
 };
 
 /**
- * 主函数：生成 OpenAI 请求体 (调用更新后的清理函数)
+ * 主函数
+ * cybotConfig 只用于挑选所需字段，最终只把所需参数传递给 buildRequestBody
  */
 export const generateOpenAIRequestBody = (
   state: NoloRootState,
   userInput: string | UserInputPart[],
-  cybotConfig: CybotConfig,
+  cybotConfig: {
+    model: string;
+    prompt?: string;
+    name?: string;
+    temperature?: number;
+    top_p?: number;
+    frequency_penalty?: number;
+    presence_penalty?: number;
+    max_tokens?: number;
+    [key: string]: any;
+  },
   providerName: string,
   context: any = ""
 ) => {
-  // 1. 从 state 获取、过滤并清理历史消息
+  // 1. 获取清理历史消息
   const previousMessages = filterAndCleanMessages(selectAllMsgs(state));
-  console.log("previousMessages", previousMessages);
 
-  // 2. 创建新的用户消息 (自动处理 content 格式)
+  // 2. 创建新的用户消息
   const newUserMessage = createUserMessage(userInput);
 
-  // 3. 合并历史消息和新消息
+  // 3. 合并消息（历史消息+新消息）
   const conversationMessages = [...previousMessages, newUserMessage];
 
-  // 4. 生成系统提示
+  // 4. 生成 system prompt
   const promptContent = generateSystemPrompt(
     cybotConfig.prompt,
     cybotConfig.name,
-    navigator.language, // 或从配置/状态获取
+    navigator.language,
     context
   );
 
-  // 5. 添加系统提示到消息列表开头
+  // 5. 消息队头插入 prompt
   const messagesWithPrompt = prependPromptMessage(
     conversationMessages,
     promptContent
   );
 
-  // 6. 构建最终请求体
-  const requestBody = buildRequestBody(
-    cybotConfig.model,
-    messagesWithPrompt, // 使用包含清理后历史消息的列表
-    providerName
-  );
+  // 6. 优雅地只挑所需字段构建请求体（不重复也不全传递）
+  const requestBody = buildRequestBody({
+    model: cybotConfig.model,
+    messages: messagesWithPrompt,
+    providerName,
+    temperature: cybotConfig.temperature,
+    top_p: cybotConfig.top_p,
+    frequency_penalty: cybotConfig.frequency_penalty,
+    presence_penalty: cybotConfig.presence_penalty,
+    max_tokens: cybotConfig.max_tokens,
+  });
 
   return requestBody;
 };
