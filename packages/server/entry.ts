@@ -3,7 +3,7 @@ import { handleRequest } from "./handleRequest";
 import { Cron } from "croner";
 import { tasks } from "./tasks";
 import { API_ENDPOINTS } from "database/config";
-import { handleChatRequest } from "./chatHandler";
+import { handleChatRequest } from "./handlers/chatHandler";
 import { handleFetchWebpage } from "./handlers/fetchWebpageHandler"; // 新增导入
 
 const startTasks = () => {
