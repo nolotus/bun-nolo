@@ -15,11 +15,9 @@ const ModelComparison = () => {
   const theme = useAppSelector(selectTheme);
 
   // 统一处理各提供商的模型数据
-  const normalizeModel = (model: any, provider: string) => ({
+  const normalizeModel = (model: any) => ({
     ...model,
-    provider,
     maxOutputTokens: model.maxOutputTokens || "未知",
-    supportsTool: model.supportsTool || "未知",
   });
 
   const modelProviders = [
@@ -32,8 +30,8 @@ const ModelComparison = () => {
     { models: fireworksmodels, name: "Fireworks" },
   ];
 
-  const combinedModels = modelProviders.flatMap(({ models, name }) =>
-    models.map((model) => normalizeModel(model, name))
+  const combinedModels = modelProviders.flatMap(({ models }) =>
+    models.map((model) => normalizeModel(model))
   );
 
   const [models, setModels] = useState(combinedModels);
@@ -107,16 +105,8 @@ const ModelComparison = () => {
               <SortButton columnKey="price" />
             </TableCell>
             <TableCell {...headerCellProps}>
-              支持工具
-              <SortButton columnKey="supportsTool" />
-            </TableCell>
-            <TableCell {...headerCellProps}>
               视觉能力
               <SortButton columnKey="hasVision" />
-            </TableCell>
-            <TableCell {...headerCellProps}>
-              提供商
-              <SortButton columnKey="provider" />
             </TableCell>
           </TableRow>
         </thead>
@@ -139,13 +129,7 @@ const ModelComparison = () => {
                 {model.price?.input || "未知"} / {model.price?.output || "未知"}
               </TableCell>
               <TableCell element={{ header: false }} attributes={{}}>
-                {model.supportsTool || "未知"}
-              </TableCell>
-              <TableCell element={{ header: false }} attributes={{}}>
                 {model.hasVision ? "是" : "否"}
-              </TableCell>
-              <TableCell element={{ header: false }} attributes={{}}>
-                {model.provider}
               </TableCell>
             </TableRow>
           ))}

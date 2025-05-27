@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+// 定义模型参数的常量默认值
+export const DEFAULT_TEMPERATURE = 1.0;
+export const DEFAULT_TOP_P = 1.0;
+export const DEFAULT_FREQUENCY_PENALTY = 0.0;
+export const DEFAULT_PRESENCE_PENALTY = 0.0;
+export const DEFAULT_MAX_TOKENS = 4096; // 调大 max_tokens 的默认值
+
 export const createCybotSchema = z
   .object({
     name: z
@@ -44,6 +51,31 @@ export const createCybotSchema = z
       .optional()
       .default([]), // 添加 references 字段，默认为空数组
     smartReadEnabled: z.boolean().default(false), // 新增 smartReadEnabled 字段，默认为 false
+    // 模型参数字段，使用常量作为默认值
+    temperature: z
+      .number()
+      .min(0, "Temperature must be at least 0")
+      .max(2, "Temperature must be at most 2")
+      .default(DEFAULT_TEMPERATURE),
+    top_p: z
+      .number()
+      .min(0, "Top P must be at least 0")
+      .max(1, "Top P must be at most 1")
+      .default(DEFAULT_TOP_P),
+    frequency_penalty: z
+      .number()
+      .min(-2, "Frequency Penalty must be at least -2")
+      .max(2, "Frequency Penalty must be at most 2")
+      .default(DEFAULT_FREQUENCY_PENALTY),
+    presence_penalty: z
+      .number()
+      .min(-2, "Presence Penalty must be at least -2")
+      .max(2, "Presence Penalty must be at most 2")
+      .default(DEFAULT_PRESENCE_PENALTY),
+    max_tokens: z
+      .number()
+      .min(1, "Max Tokens must be at least 1")
+      .default(DEFAULT_MAX_TOKENS),
   })
   // 在 createCybotSchema 中修改 refine 逻辑
   .refine(
