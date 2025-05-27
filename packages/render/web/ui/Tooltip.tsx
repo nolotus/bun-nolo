@@ -1,6 +1,5 @@
-// render/web/ui/Tooltip.tsx
-
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 
@@ -9,42 +8,66 @@ interface TooltipProps {
   children: React.ReactElement;
   delay?: number;
   hideDelay?: number;
-  placement?: "top" | "bottom" | "left" | "right" | string;
+  placement?: "top" | "bottom" | "left" | "right" | "top-left";
+  portalContainer?: HTMLElement;
 }
 
 export const Tooltip = ({
   content,
   children,
-  delay = 200,
-  hideDelay = 200,
+  delay = 100,
+  hideDelay = 100,
   placement = "top",
+  portalContainer = document.body,
 }: TooltipProps) => {
-  const basePlacement = placement.split("-")[0] as
-    | "top"
-    | "bottom"
-    | "left"
-    | "right";
   const theme = useAppSelector(selectTheme);
   const [isVisible, setIsVisible] = useState(false);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  // 鼠标进入子元素时显示 Tooltip
+  const updatePosition = () => {
+    if (wrapperRef.current) {
+      const rect = wrapperRef.current.getBoundingClientRect();
+      let top = 0;
+      let left = 0;
+
+      if (placement === "top") {
+        top = rect.top + window.scrollY - 10;
+        left = rect.left + window.scrollX + rect.width / 2;
+      } else if (placement === "top-left") {
+        top = rect.top + window.scrollY - 10;
+        left = rect.right + window.scrollX - rect.width / 2;
+      } else if (placement === "bottom") {
+        top = rect.bottom + window.scrollY + 10;
+        left = rect.left + window.scrollX + rect.width / 2;
+      } else if (placement === "left") {
+        top = rect.top + window.scrollY + rect.height / 2;
+        left = rect.left + window.scrollX - 10;
+      } else if (placement === "right") {
+        top = rect.top + window.scrollY + rect.height / 2;
+        left = rect.right + window.scrollX + 10;
+      }
+
+      setPosition({ top, left });
+    }
+  };
+
   const handleMouseEnter = () => {
     if (hideTimerRef.current) {
       clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
     }
     setIsVisible(true);
+    updatePosition();
   };
 
-  // 鼠标离开子元素时开始隐藏计时
   const handleMouseLeave = () => {
     hideTimerRef.current = setTimeout(() => {
       setIsVisible(false);
     }, hideDelay);
   };
 
-  // 鼠标进入 Tooltip 区域时保持显示
   const handleTooltipMouseEnter = () => {
     if (hideTimerRef.current) {
       clearTimeout(hideTimerRef.current);
@@ -53,15 +76,13 @@ export const Tooltip = ({
     setIsVisible(true);
   };
 
-  // 鼠标离开 Tooltip 区域时隐藏
   const handleTooltipMouseLeave = () => {
     hideTimerRef.current = setTimeout(() => {
       setIsVisible(false);
     }, hideDelay);
   };
 
-  // 清理定时器
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
@@ -69,44 +90,74 @@ export const Tooltip = ({
     };
   }, []);
 
+  // 仅在 Tooltip 可见时更新位置，添加防抖机制
+  useEffect(() => {
+    if (isVisible) {
+      const handleUpdatePosition = () => updatePosition();
+      window.addEventListener("resize", handleUpdatePosition);
+      window.addEventListener("scroll", handleUpdatePosition);
+      return () => {
+        window.removeEventListener("resize", handleUpdatePosition);
+        window.removeEventListener("scroll", handleUpdatePosition);
+      };
+    }
+  }, [isVisible]);
+
+  const tooltipContent = isVisible ? (
+    <div
+      className={`tooltip-tip tooltip-${placement}`}
+      onMouseEnter={handleTooltipMouseEnter}
+      onMouseLeave={handleTooltipMouseLeave}
+      style={{
+        position: "absolute",
+        top: `${position.top}px`,
+        left: `${position.left}px`,
+        transform: placement.includes("top")
+          ? "translateX(-50%) translateY(-100%)"
+          : placement.includes("bottom")
+            ? "translateX(-50%)"
+            : placement === "left"
+              ? "translateY(-50%) translateX(-100%)"
+              : placement === "right"
+                ? "translateY(-50%)"
+                : "translateX(-50%) translateY(-100%)",
+        zIndex: 9999,
+        display: "block", // 强制设置为 block，确保可见
+      }}
+    >
+      <div className="tooltip-content">{content}</div>
+      <div className="tooltip-arrow" />
+    </div>
+  ) : null;
+
   return (
     <div
+      ref={wrapperRef}
       className="tooltip-wrapper"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ "--tooltip-delay": `${delay}ms` } as React.CSSProperties}
     >
       {children}
-      <div
-        className={`tooltip-tip tooltip-${basePlacement}`}
-        onMouseEnter={handleTooltipMouseEnter}
-        onMouseLeave={handleTooltipMouseLeave}
-        style={{ display: isVisible ? "block" : "none" }}
-      >
-        <div className="tooltip-content">{content}</div>
-        <div className="tooltip-arrow" />
-      </div>
-
+      {tooltipContent && createPortal(tooltipContent, portalContainer)}
       <style jsx>{`
         .tooltip-wrapper {
           position: relative;
           display: inline-block;
         }
         .tooltip-tip {
-          position: absolute;
           background: ${theme.backgroundSecondary};
           color: ${theme.text};
           font-size: 0.875rem;
           line-height: 1.4;
-          z-index: 1000;
           box-shadow: 0 3px 10px ${theme.shadowMedium};
           border: 1px solid ${theme.border};
           border-radius: 6px;
           opacity: 0;
           visibility: hidden;
           transition:
-            opacity 200ms cubic-bezier(0.16, 1, 0.3, 1) var(--tooltip-delay),
-            transform 200ms cubic-bezier(0.16, 1, 0.3, 1) var(--tooltip-delay);
+            opacity 0.1s ease var(--tooltip-delay),
+            transform 0.1s ease var(--tooltip-delay);
         }
         .tooltip-tip[style*="display: block"] {
           opacity: 1;
@@ -116,87 +167,46 @@ export const Tooltip = ({
           padding: ${theme.space[2]} ${theme.space[3]};
           white-space: nowrap;
         }
-        /* Top 方向 Tooltip 调整 */
-        .tooltip-top {
-          bottom: calc(100% + ${theme.space[2]});
-          left: 50%;
-          transform: translateX(-50%) translateY(${theme.space[1]}) scale(0.96);
-        }
-        .tooltip-tip[style*="display: block"].tooltip-top {
-          transform: translateX(-50%) translateY(0) scale(1);
-        }
-        .tooltip-top .tooltip-arrow {
+        .tooltip-arrow {
           position: absolute;
-          left: 50%;
-          bottom: -5px;
-          transform: translateX(-50%) rotate(45deg);
           width: 9px;
           height: 9px;
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.border};
+        }
+        .tooltip-top .tooltip-arrow,
+        .tooltip-top-left .tooltip-arrow {
+          bottom: -5px;
+          transform: rotate(45deg);
           border-top: none;
           border-left: none;
         }
-        /* Bottom 方向 Tooltip 调整 */
-        .tooltip-bottom {
-          top: calc(100% + ${theme.space[2]});
+        .tooltip-top .tooltip-arrow {
           left: 50%;
-          transform: translateX(-50%) translateY(-${theme.space[1]}) scale(0.96);
+          transform: translateX(-50%) rotate(45deg);
         }
-        .tooltip-tip[style*="display: block"].tooltip-bottom {
-          transform: translateX(-50%) translateY(0) scale(1);
+        .tooltip-top-left .tooltip-arrow {
+          right: 50%;
+          transform: translateX(50%) rotate(45deg);
         }
         .tooltip-bottom .tooltip-arrow {
-          position: absolute;
-          left: 50%;
           top: -5px;
+          left: 50%;
           transform: translateX(-50%) rotate(45deg);
-          width: 9px;
-          height: 9px;
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.border};
           border-bottom: none;
           border-right: none;
         }
-        /* Left 方向 Tooltip 调整 */
-        .tooltip-left {
-          right: calc(100% + ${theme.space[2]});
-          top: 50%;
-          transform: translateY(-50%) translateX(${theme.space[1]}) scale(0.96);
-        }
-        .tooltip-tip[style*="display: block"].tooltip-left {
-          transform: translateY(-50%) translateX(0) scale(1);
-        }
         .tooltip-left .tooltip-arrow {
-          position: absolute;
           right: -5px;
           top: 50%;
           transform: translateY(-50%) rotate(45deg);
-          width: 9px;
-          height: 9px;
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.border};
           border-right: none;
           border-top: none;
         }
-        /* Right 方向 Tooltip 调整 */
-        .tooltip-right {
-          left: calc(100% + ${theme.space[2]});
-          top: 50%;
-          transform: translateY(-50%) translateX(-${theme.space[1]}) scale(0.96);
-        }
-        .tooltip-tip[style*="display: block"].tooltip-right {
-          transform: translateY(-50%) translateX(0) scale(1);
-        }
         .tooltip-right .tooltip-arrow {
-          position: absolute;
           left: -5px;
           top: 50%;
           transform: translateY(-50%) rotate(45deg);
-          width: 9px;
-          height: 9px;
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.border};
           border-left: none;
           border-bottom: none;
         }
