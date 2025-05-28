@@ -20,7 +20,6 @@ interface CategorySectionProps {
   };
 }
 
-// 优化后的 CategorySection 组件片段
 const CategorySection: React.FC<CategorySectionProps> = memo(
   ({ categoryId, categoryName, items = [], shouldAnimate, handleProps }) => {
     const theme = useTheme();
@@ -32,29 +31,30 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
     const collapsedCategories = useAppSelector(selectCollapsedCategories);
     const isCollapsed = collapsedCategories[categoryId] ?? false;
 
-    // 修复：即时重新计算高度，避免拖拽空隙
     useEffect(() => {
       const updateHeight = () => {
         if (contentRef.current) {
-          const height = Math.max(
-            contentRef.current.scrollHeight,
-            items.length === 0 ? 32 : 0
-          );
+          contentRef.current.style.height = "auto";
+          const scrollHeight = contentRef.current.scrollHeight;
+          const height = items.length === 0 ? 32 : scrollHeight;
           setContentHeight(height);
         }
       };
 
       updateHeight();
+      const timer = setTimeout(updateHeight, 500);
 
-      // 使用 ResizeObserver 监听内容变化
       if (contentRef.current) {
         const resizeObserver = new ResizeObserver(updateHeight);
         resizeObserver.observe(contentRef.current);
-        return () => resizeObserver.disconnect();
+        return () => {
+          resizeObserver.disconnect();
+          clearTimeout(timer);
+        };
       }
-    }, [items.length, isCollapsed]); // 依赖 items.length 而非整个 items 数组
+      return () => clearTimeout(timer);
+    }, [items.length, isCollapsed]);
 
-    // 动画控制
     useEffect(() => {
       if (contentHeight !== null) {
         setIsAnimating(true);
@@ -104,7 +104,6 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
                   </span>
                 </div>
               ) : (
-                // 使用 React.Suspense 优化长列表渲染
                 items.map((item, index) => (
                   <div
                     key={item.contentKey}
@@ -132,14 +131,13 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
           </div>
         </div>
 
-        {/* 优化后的样式 */}
-        <style href="category-section" precedence="medium">{`
+        <style href="category-section" precedence="high">{`
           .ChatSidebar__category {
             position: relative;
             margin-bottom: ${theme.space[1]};
             border-radius: ${theme.space[2]};
             transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-            overflow: hidden; /* 防止内容溢出 */
+            overflow: hidden;
           }
 
           .ChatSidebar__category-content {
@@ -148,7 +146,7 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
             transition: height 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
                         opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 1;
-            will-change: height, opacity; /* 优化动画性能 */
+            will-change: height, opacity;
           }
 
           .ChatSidebar__category-content--collapsed {
@@ -160,17 +158,16 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
 
           .ChatSidebar__category-inner {
             padding-top: ${theme.space[1]};
-            min-height: calc(var(--items-count, 0) * 0px + ${items.length === 0 ? "32px" : "0px"});
-            transform: translateZ(0); /* 开启硬件加速 */
+            min-height: 0;
+            transform: translateZ(0);
           }
 
-          /* 项目包装器 - 修复空隙问题 */
           .ChatSidebar__item-wrapper {
             transform: translateY(0);
             opacity: 1;
             transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
             transition-delay: calc(var(--item-index, 0) * 0.03s);
-            margin: 0; /* 移除可能造成空隙的 margin */
+            margin: 0;
             will-change: transform, opacity;
           }
 
@@ -180,7 +177,6 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
             transition-delay: calc((var(--total-items, 1) - var(--item-index, 0) - 1) * 0.02s);
           }
 
-          /* 空分类提示优化 */
           .ChatSidebar__empty-category-hint {
             display: flex;
             align-items: center;
@@ -191,21 +187,9 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
             border-radius: ${theme.space[2]};
             background: ${theme.backgroundGhost};
             transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-            flex-shrink: 0; /* 防止高度塌陷 */
+            flex-shrink: 0;
           }
 
-          .ChatSidebar__empty-category-text {
-            font-size: 0.75rem;
-            color: ${theme.textQuaternary};
-            opacity: 0;
-            transition: opacity 0.25s ease;
-          }
-
-          .ChatSidebar__category:hover .ChatSidebar__empty-category-text {
-            opacity: 0.6;
-          }
-
-          /* 减少动画的媒体查询 */
           @media (prefers-reduced-motion: reduce) {
             .ChatSidebar__category,
             .ChatSidebar__category-content,
