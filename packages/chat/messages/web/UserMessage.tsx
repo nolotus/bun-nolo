@@ -6,7 +6,7 @@ import { Avatar } from "render/ui";
 import { MessageContent } from "./MessageContent";
 import { MessageActions } from "./MessageActions";
 
-import type { Message } from "../messages/types";
+import type { Message } from "../types";
 import { useTheme } from "app/theme";
 
 export const UserMessage: React.FC<Message> = ({ content, dbKey }) => {
