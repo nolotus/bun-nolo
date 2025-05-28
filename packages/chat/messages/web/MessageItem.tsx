@@ -1,5 +1,5 @@
 // MessageItem.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { selectTheme } from "app/theme/themeSlice";
@@ -22,8 +22,11 @@ import {
 import { Link } from "react-router-dom";
 import { titleCybotId } from "core/init";
 import { Avatar } from "render/ui";
-import { MessageContent } from "./MessageContent";
 import { useFetchData } from "app/hooks";
+import { FaFileExcel, FaFileWord, FaFilePdf } from "react-icons/fa";
+import Editor from "create/editor/Editor";
+import DocxPreviewDialog from "web/DocxPreviewDialog";
+import { BaseModal } from "render/web/ui/BaseModal";
 
 const getContentString = (content) => {
   if (typeof content === "string") return content;
@@ -34,11 +37,135 @@ const getContentString = (content) => {
           ? item.text
           : item.type === "image_url"
             ? `[Image: ${item.image_url?.url}]`
-            : ""
+            : item.pageKey
+              ? `[File: ${item.name || "未知文件"}]`
+              : ""
       )
       .join("\n");
   }
   return JSON.stringify(content);
+};
+
+// 内部 MessageText 组件
+const MessageText = ({ content, role }) => {
+  const slateData = useMemo(() => markdownToSlate(content), [content]);
+
+  return (
+    <div className="message-text">
+      {role === "self" ? (
+        <div className="simple-text">{content}</div>
+      ) : (
+        <Editor key={content} initialValue={slateData} readOnly={true} />
+      )}
+    </div>
+  );
+};
+
+// 内部 MessageContent 组件
+const MessageContent = ({ content, role }) => {
+  const theme = useAppSelector(selectTheme);
+  const [previewingFile, setPreviewingFile] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  if (!content) return null;
+
+  const isSelf = role === "self";
+
+  // 简化的文件类型配置
+  const FILE_TYPES = {
+    excel: { icon: FaFileExcel, color: "#1D6F42" },
+    docx: { icon: FaFileWord, color: "#2B579A" },
+    pdf: { icon: FaFilePdf, color: "#DC3545" },
+    page: { icon: FaFileWord, color: "#FF9500" },
+  };
+
+  const renderFile = (item, index, type) => {
+    const config = FILE_TYPES[type];
+    if (!config) return null;
+
+    const IconComponent = config.icon;
+
+    return (
+      <div
+        key={`${type}-${index}`}
+        className="file-item"
+        onClick={() => setPreviewingFile({ item, type })}
+        style={{ "--file-color": config.color }}
+      >
+        <IconComponent size={16} />
+        <span className="file-name">{item.name || "未知文件"}</span>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <div className="msg-content">
+        {typeof content === "string" ? (
+          <MessageText content={content} role={role} />
+        ) : Array.isArray(content) ? (
+          content.map((item, index) => {
+            if (!item || typeof item !== "object") return null;
+
+            if (item.type === "text" && item.text) {
+              return (
+                <MessageText
+                  key={`text-${index}`}
+                  content={item.text}
+                  role={role}
+                />
+              );
+            }
+
+            if (item.type === "image_url" && item.image_url?.url) {
+              return (
+                <div key={`image-${index}`} className="msg-image-wrap">
+                  <img
+                    src={item.image_url.url}
+                    alt={item.alt_text || "消息图片"}
+                    className="msg-image"
+                    onClick={() => setSelectedImage(item.image_url.url)}
+                  />
+                </div>
+              );
+            }
+
+            if (item.pageKey && FILE_TYPES[item.type]) {
+              return renderFile(item, index, item.type);
+            }
+
+            return null;
+          })
+        ) : null}
+      </div>
+
+      {/* 文件预览 */}
+      {previewingFile && (
+        <DocxPreviewDialog
+          isOpen={true}
+          onClose={() => setPreviewingFile(null)}
+          pageKey={previewingFile.item.pageKey}
+          fileName={previewingFile.item.name}
+        />
+      )}
+
+      {/* 图片预览 */}
+      {selectedImage && (
+        <BaseModal
+          isOpen={true}
+          onClose={() => setSelectedImage(null)}
+          className="image-modal"
+        >
+          <img
+            src={selectedImage}
+            alt="放大预览"
+            className="modal-image"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </BaseModal>
+      )}
+    </>
+  );
 };
 
 export const MessageItem = ({ message }) => {
@@ -88,7 +215,6 @@ export const MessageItem = ({ message }) => {
     const key = `${DataType.PAGE}-${user.userId}-${ulid()}`;
     let title = key;
 
-    // 生成标题
     try {
       title =
         (await dispatch(
@@ -139,7 +265,6 @@ export const MessageItem = ({ message }) => {
     }
   };
 
-  // 根据消息类型过滤操作
   const actions = [
     { icon: CopyIcon, handler: handleCopy, tooltip: t("copyContent") },
     !isSelf && {
@@ -158,7 +283,7 @@ export const MessageItem = ({ message }) => {
   return (
     <div className={`msg ${type} ${isShort ? "short" : ""}`}>
       <div className="msg-inner">
-        {/* 头像和操作区域 */}
+        {/* 头像区域 */}
         <div className="avatar-area">
           <Avatar name={isRobot ? "robot" : "user"} />
           {actions.length > 0 && (
@@ -183,7 +308,6 @@ export const MessageItem = ({ message }) => {
           {isRobot && robotData?.name && (
             <div className="robot-name">{robotData.name}</div>
           )}
-
           <div className={`msg-body ${type}`}>
             <MessageContent
               content={content}
@@ -207,28 +331,23 @@ export const MessageItem = ({ message }) => {
           align-items: flex-start; 
         }
         
-        /* 用户消息右对齐 */
+        /* 布局优化 */
         .msg.self .msg-inner { 
           flex-direction: row-reverse; 
-          justify-content: flex-start;
           max-width: 75%;
           margin-left: auto;
           margin-right: 0;
         }
         
-        /* 其他用户消息左对齐 */
         .msg.other .msg-inner { 
           max-width: 75%;
-          margin-left: 0;
-          margin-right: auto;
         }
         
-        /* 机器人消息居中 */
         .msg.robot .msg-inner { 
           max-width: 95%; 
         }
         
-        /* 头像和操作区域 */
+        /* 头像区域简化 */
         .avatar-area { 
           flex-shrink: 0; 
           display: flex; 
@@ -245,15 +364,14 @@ export const MessageItem = ({ message }) => {
           opacity: 0; 
           transition: opacity 0.2s ease; 
           background: ${theme.backgroundGhost}; 
-          border: 1px solid ${theme.border}30; 
+          border: 1px solid ${theme.border}; 
           border-radius: ${theme.space[2]}; 
           padding: ${theme.space[1]}; 
           gap: 2px;
           box-shadow: 0 2px 8px ${theme.shadowLight};
         }
         
-        .msg:hover .actions { opacity: 0.9; }
-        .actions:hover { opacity: 1 !important; }
+        .msg:hover .actions { opacity: 0.8; }
         
         .action-btn { 
           display: flex; 
@@ -272,12 +390,10 @@ export const MessageItem = ({ message }) => {
         .action-btn:hover { 
           color: ${theme.primary}; 
           background: ${theme.backgroundHover}; 
-          transform: scale(1.1);
         }
         
         .action-btn.danger:hover { 
           color: ${theme.error}; 
-          background: ${theme.error}10; 
         }
         
         /* 内容区域 */
@@ -288,34 +404,32 @@ export const MessageItem = ({ message }) => {
         
         .robot-name { 
           font-size: 11px; 
-          font-weight: 700; 
+          font-weight: 600; 
           color: ${theme.textSecondary}; 
           text-transform: uppercase; 
           margin-bottom: ${theme.space[2]}; 
-          padding-left: ${theme.space[1]};
+          letter-spacing: 0.5px;
         }
         
         .msg-body { 
           color: ${theme.text}; 
-          line-height: 1.7; 
+          line-height: 1.6; 
           word-wrap: break-word; 
         }
         
-        /* 消息样式 */
+        /* 消息样式简化 */
         .msg-body.self { 
-          background: linear-gradient(135deg, ${theme.primary}08 0%, ${theme.primary}12 100%); 
-          border-radius: 18px 18px 6px 18px; 
-          padding: ${theme.space[4]} ${theme.space[5]}; 
-          border: 1px solid ${theme.primary}20; 
-          transition: all 0.25s ease; 
+          background: ${theme.primary}08; 
+          border-radius: 16px 16px 4px 16px; 
+          padding: ${theme.space[4]}; 
+          border: 1px solid ${theme.primary}15; 
         }
         
         .msg-body.other { 
           background: ${theme.backgroundSecondary}; 
-          border-radius: 18px 18px 18px 6px; 
-          padding: ${theme.space[4]} ${theme.space[5]}; 
-          border: 1px solid ${theme.border}40; 
-          transition: all 0.25s ease; 
+          border-radius: 16px 16px 16px 4px; 
+          padding: ${theme.space[4]}; 
+          border: 1px solid ${theme.border}; 
         }
         
         .msg-body.robot { 
@@ -323,30 +437,108 @@ export const MessageItem = ({ message }) => {
           padding: ${theme.space[2]} 0; 
         }
         
+        /* MessageContent 样式简化 */
+        .msg-content {
+          display: flex;
+          flex-direction: column;
+          gap: ${theme.space[3]};
+        }
+
+        .message-text {
+          max-width: 100%;
+          line-height: 1.65;
+        }
+
+        .simple-text {
+          white-space: pre-wrap;
+          margin: 0;
+        }
+
+        .msg-image-wrap {
+          display: inline-block;
+        }
+
+        .msg-image {
+          border-radius: ${theme.space[2]};
+          max-width: 100%;
+          max-height: 400px;
+          object-fit: contain;
+          box-shadow: 0 2px 8px ${theme.shadowLight};
+          border: 1px solid ${theme.border};
+          cursor: pointer;
+          transition: transform 0.2s ease;
+        }
+
+        .msg-image:hover {
+          transform: translateY(-2px);
+        }
+
+        /* 文件样式简化 */
+        .file-item {
+          display: inline-flex;
+          align-items: center;
+          gap: ${theme.space[2]};
+          padding: ${theme.space[2]} ${theme.space[3]};
+          background: ${theme.backgroundSecondary};
+          border: 1px solid ${theme.border};
+          border-radius: ${theme.space[2]};
+          cursor: pointer;
+          transition: all 0.15s ease;
+          color: var(--file-color, ${theme.textSecondary});
+          font-size: 14px;
+          font-weight: 500;
+          max-width: 280px;
+        }
+
+        .file-item:hover {
+          background: ${theme.backgroundHover};
+          transform: translateY(-1px);
+        }
+
+        .file-name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          flex: 1;
+        }
+
+        /* 模态框样式简化 */
+        .modal-image {
+          max-width: 90vw;
+          max-height: 85vh;
+          object-fit: contain;
+          border-radius: ${theme.space[2]};
+        }
+        
         /* 短消息优化 */
         .msg.short .msg-body.self,
         .msg.short .msg-body.other { 
-          padding: ${theme.space[3]} ${theme.space[4]}; 
-          border-radius: 14px; 
-          font-size: 14px; 
+          padding: ${theme.space[3]}; 
+          border-radius: 12px; 
         }
         
-        .msg.short .msg-body.self { border-radius: 14px 14px 4px 14px; }
-        .msg.short .msg-body.other { border-radius: 14px 14px 14px 4px; }
-        
-        /* 响应式 */
+        /* 响应式简化 */
         @media (max-width: 768px) { 
           .msg { padding: 0 ${theme.space[3]}; }
-          .msg.self .msg-inner, .msg.other .msg-inner { max-width: 90%; }
-          .actions { opacity: 0.7; }
-          .action-btn { width: 28px; height: 28px; }
+          .msg.self .msg-inner, .msg.other .msg-inner { max-width: 95%; }
+          .actions { opacity: 0.6; }
+          .msg-image { max-height: 280px; }
+          .file-item { max-width: 200px; font-size: 13px; }
         }
         
         @media (max-width: 480px) { 
           .msg { padding: 0 ${theme.space[2]}; }
-          .msg.self .msg-inner, .msg.other .msg-inner, .msg.robot .msg-inner { max-width: 100%; }
           .msg-inner { gap: ${theme.space[2]}; }
           .avatar-area { position: static; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .msg-image, .file-item, .action-btn {
+            transition: none;
+          }
+          .msg-image:hover, .file-item:hover {
+            transform: none;
+          }
         }
       `}</style>
     </div>
