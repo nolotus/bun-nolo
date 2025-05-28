@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import copyToClipboard from "utils/clipboard";
 import { useAuth } from "auth/hooks/useAuth";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { deleteMessage } from "../messages/messageSlice";
+import { deleteMessage } from "../messageSlice";
 import { write } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import { DataType } from "create/types";

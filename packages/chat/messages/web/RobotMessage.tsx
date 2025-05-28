@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { Avatar } from "render/ui";
 import { useAppSelector } from "app/hooks";
 import { MessageContent } from "./MessageContent";
-import type { Message } from "../messages/types";
+import type { Message } from "../types";
 import { MessageActions } from "./MessageActions";
 import { useFetchData } from "app/hooks"; // 假设 useFetchData 位于 app/hooks 文件夹中
 

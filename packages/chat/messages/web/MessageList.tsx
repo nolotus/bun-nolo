@@ -7,7 +7,7 @@ import React, {
   memo,
   useMemo,
 } from "react";
-import { MessageItem } from "../../web/MessageItem";
+import { MessageItem } from "./MessageItem";
 import { ScrollToBottomButton } from "../../web/ScrollToBottomButton";
 import { useTheme } from "app/theme";
 import { useAppSelector, useAppDispatch } from "app/hooks";
