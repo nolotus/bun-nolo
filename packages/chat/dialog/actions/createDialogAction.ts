@@ -58,7 +58,7 @@ export const createDialogAction = async (args, thunkApi) => {
       dbKey: key,
       content: cybotConfig.greeting, // 使用非空的 greeting
       role: "assistant",
-      cybotId,
+      cybotKey: cybotId,
       type: DataType.MSG,
       // 初始消息通常也需要时间戳，根据你的 normalizeTimeFields 逻辑决定是否在此处添加
       // createdAt: formatISO(new Date()),
