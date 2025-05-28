@@ -30,54 +30,89 @@ export const SelfMessage = ({ content, dbKey }) => {
           </div>
         </div>
       </div>
-
       <style href="self-msg" precedence="medium">{`
-        .chat-message-container {
-          display: flex;
-          margin-bottom: 18px;
-          padding: 0 16px;
-        }
+  .chat-message-container {
+    display: flex;
+    margin-bottom: 18px;
+    padding: 0 16px;
+  }
 
-        .chat-message-container.chat-message-self {
-          justify-content: flex-end;
-        }
+  .chat-message-container.chat-message-self {
+    justify-content: flex-end;
+  }
 
-        .chat-message-content-wrapper {
-          display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          position: relative;
-          max-width: 88%;
-        }
+  .chat-message-content-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+    width: 100%;
+  }
 
-        .chat-message-content-wrapper.chat-message-self {
-          flex-direction: row-reverse;
-        }
+  .chat-message-content-wrapper.chat-message-self {
+    flex-direction: row-reverse;
+  }
 
-        .chat-message-avatar-wrapper {
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
+  .chat-message-avatar-wrapper {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
 
-        .chat-message-content-container {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 6px;
-        }
+  .chat-message-content-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
 
-        .chat-message-bubble {
-          background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"};
-          border-radius: 8px;
-          padding: 14px 16px;
-          color: ${theme.text};
-          box-shadow: 0 1px 2px ${theme.shadowLight};
-        }
+  .chat-message-bubble {
+    background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"};
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: ${theme.text};
+    box-shadow: 0 1px 2px ${theme.shadowLight};
+  }
 
-        .chat-message-bubble:hover {
-          background-color: ${theme.primaryHover || "rgba(22, 119, 255, 0.12)"};
-        }
-      `}</style>
+  .chat-message-bubble:hover {
+    background-color: ${theme.primaryHover || "rgba(22, 119, 255, 0.12)"};
+  }
+
+  /* 响应式断点调整 */
+  @media (max-width: 1024px) {
+    .chat-message-content-wrapper {
+      max-width: 90%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .chat-message-content-wrapper {
+      max-width: 88%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .chat-message-content-wrapper {
+      max-width: 95%;
+    }
+    .chat-message-container {
+      padding: 0 8px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .chat-message-content-wrapper {
+      max-width: 98%;
+      gap: 8px;
+    }
+    .chat-message-container {
+      padding: 0 4px;
+      margin-bottom: 12px;
+    }
+    .chat-message-bubble {
+      padding: 12px 14px;
+    }
+  }
+`}</style>
     </>
   );
 };
