@@ -27,7 +27,7 @@ const SCROLL_NEAR_BOTTOM_THRESHOLD = 150;
 const SCROLL_DEBOUNCE_MS = 150;
 const USER_ACTION_RESET_MS = 100;
 const AVG_MESSAGE_HEIGHT_ESTIMATE = 100;
-const LAZY_LOAD_BUFFER_SCREENS = 1;
+const LAZY_LOAD_BUFFER_SCREENS = 2; // 增加缓冲区屏幕数，确保覆盖更多范围
 const TOP_SCROLL_THRESHOLD = 50;
 
 // --- Custom Hook for Scroll Handling ---
@@ -141,25 +141,29 @@ const useVirtualList = (
   const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRangeRef = useRef(visibleRange);
   const lastHeightUpdateTimeRef = useRef<number>(0);
-  const HEIGHT_UPDATE_INTERVAL = 500; // 高度更新最小间隔时间，单位：ms
+  const HEIGHT_UPDATE_INTERVAL = 1000; // 增加高度更新间隔时间，减少频繁计算，单位：ms
+  const MIN_HEIGHT = 50; // 消息最小高度，避免过小值导致范围异常
+  const MAX_HEIGHT = 500; // 消息最大高度，避免过大值导致范围异常
 
   // 动态计算平均高度，基于已渲染的消息，并限制频率
   const updateAvgHeight = useCallback(() => {
     const now = Date.now();
+    // 增加间隔时间，进一步减少频繁调用
     if (now - lastHeightUpdateTimeRef.current < HEIGHT_UPDATE_INTERVAL) {
       return; // 限制频率，避免频繁计算
     }
     lastHeightUpdateTimeRef.current = now;
 
     if (!containerRef.current || messageCount === 0) return;
+    // 限制查询数量，减少 DOM 操作开销
     const visibleElements = containerRef.current.querySelectorAll(
       ".chat-messages__item-wrapper"
     );
     if (visibleElements.length > 0) {
       let totalHeight = 0;
       let count = 0;
-      // 仅取前 10 个元素，减少 DOM 操作开销
-      const maxElementsToCheck = Math.min(visibleElements.length, 10);
+      // 进一步减少检查元素数量，从10个减少到5个
+      const maxElementsToCheck = Math.min(visibleElements.length, 5);
       for (let i = 0; i < maxElementsToCheck; i++) {
         const height = (visibleElements[i] as HTMLElement).offsetHeight;
         if (height > 0) {
@@ -169,20 +173,27 @@ const useVirtualList = (
       }
       if (count > 0) {
         const newAvgHeight = totalHeight / count;
-        if (newAvgHeight > 20 && newAvgHeight < 1000) {
+        // 限制平均高度在合理范围内，避免极端值
+        if (newAvgHeight >= MIN_HEIGHT && newAvgHeight <= MAX_HEIGHT) {
           avgHeightRef.current = newAvgHeight;
         }
       }
     }
   }, [containerRef, messageCount]);
 
-  // 使用 ResizeObserver 监听高度变化（如图片加载完成）
+  // 使用 ResizeObserver 监听高度变化（如图片加载完成），并限制触发频率
   useEffect(() => {
     if (!shouldUseLazyLoading || !containerRef.current) return;
     let observer: ResizeObserver | null = null;
+    let lastResizeUpdate = 0;
+    const RESIZE_THROTTLE_MS = 200; // 节流 ResizeObserver 回调频率
     if (typeof ResizeObserver !== "undefined") {
       observer = new ResizeObserver(() => {
-        updateAvgHeight(); // 高度变化时重新计算
+        const now = Date.now();
+        if (now - lastResizeUpdate > RESIZE_THROTTLE_MS) {
+          updateAvgHeight(); // 高度变化时重新计算，但受频率限制
+          lastResizeUpdate = now;
+        }
       });
       const container = containerRef.current;
       observer.observe(container);
@@ -202,13 +213,14 @@ const useVirtualList = (
     return messages.slice(safeStart, safeEnd);
   }, [messages, visibleRange, shouldUseLazyLoading, messageCount]);
 
-  // 更新可见范围，带有节流机制
+  // 更新可见范围，带有节流机制，并增加更大缓冲区
   const updateVisibleRange = useCallback(() => {
     const elem = containerRef.current;
     if (!elem || !shouldUseLazyLoading) return;
     const { scrollTop, clientHeight } = elem;
     const avgHeight = avgHeightRef.current;
     const visibleItemsCount = Math.ceil(clientHeight / avgHeight);
+    // 增加缓冲区，确保即使高度估计不准确也不会漏掉消息
     const buffer = Math.ceil(visibleItemsCount * LAZY_LOAD_BUFFER_SCREENS);
     const firstVisibleIndex = Math.max(0, Math.floor(scrollTop / avgHeight));
     const newStart = Math.max(0, firstVisibleIndex - buffer);
@@ -421,8 +433,14 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
             ? visibleRange.start + index
             : index;
           const key = message.id || `msg-fallback-${realIndex}`;
+          // 动态计算动画延迟并通过内联样式应用
+          const animationDelay = Math.min(index * 0.03, 0.5);
           return (
-            <div key={key} className="chat-messages__item-wrapper">
+            <div
+              key={key}
+              className="chat-messages__item-wrapper"
+              style={{ animationDelay: `${animationDelay}s` }}
+            >
               <MemoizedMessageItem message={message as Message} />
             </div>
           );
@@ -490,10 +508,6 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           opacity: 0;
           transform: translateY(15px);
           animation: chat-messages__message-appear 0.3s ease-out forwards;
-          animation-delay: ${Math.min(
-            (typeof index !== "undefined" ? index : 0) * 0.03,
-            0.5
-          )}s;
           will-change: transform, opacity;
         }
 
