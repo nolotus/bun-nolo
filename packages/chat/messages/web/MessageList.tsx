@@ -21,16 +21,18 @@ import {
 import TopLoadingIndicator from "./TopLoadingIndicator";
 import type { Message } from "./types";
 
-// --- Constants ---
+// --- Constants --- (优化：增加常量复用)
 const LAZY_LOAD_THRESHOLD = 100;
 const SCROLL_NEAR_BOTTOM_THRESHOLD = 150;
-const SCROLL_DEBOUNCE_MS = 150;
-const USER_ACTION_RESET_MS = 100;
+const SCROLL_DEBOUNCE_MS = 100; // 减少防抖时间，提升响应性
+const USER_ACTION_RESET_MS = 80; // 减少用户操作重置时间
 const AVG_MESSAGE_HEIGHT_ESTIMATE = 100;
-const LAZY_LOAD_BUFFER_SCREENS = 1;
+const LAZY_LOAD_BUFFER_SCREENS = 1.5; // 增加缓冲区
 const TOP_SCROLL_THRESHOLD = 50;
+const HEIGHT_UPDATE_INTERVAL = 300; // 减少高度更新间隔
+const RANGE_UPDATE_DEBOUNCE = 50; // 减少范围更新防抖时间
 
-// --- Custom Hook for Scroll Handling ---
+// --- Custom Hook for Scroll Handling --- (性能优化：减少重复计算)
 const useScrollHandler = (
   containerRef: React.RefObject<HTMLDivElement>,
   autoScroll: boolean,
@@ -46,6 +48,7 @@ const useScrollHandler = (
   const scrollDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+  const lastScrollTopRef = useRef(0); // 新增：记录上次滚动位置
 
   const isNearBottom = useCallback(() => {
     const elem = containerRef.current;
@@ -77,27 +80,41 @@ const useScrollHandler = (
     if (!elem || userScrollActionRef.current || isProcessingScrollRef.current) {
       return;
     }
-    isProcessingScrollRef.current = true;
+
     const { scrollTop } = elem;
+
+    // 优化：只有滚动距离超过阈值才处理
+    const scrollDelta = Math.abs(scrollTop - lastScrollTopRef.current);
+    if (scrollDelta < 5) return;
+    lastScrollTopRef.current = scrollTop;
+
+    isProcessingScrollRef.current = true;
+
+    // 加载更多消息检查
     if (scrollTop < TOP_SCROLL_THRESHOLD && !isLoadingOlder && hasMoreOlder) {
       handleLoadOlderMessages();
     }
+
+    // 自动滚动状态管理
     const nearBottom = isNearBottom();
     if (!nearBottom && autoScroll) {
       setAutoScroll(false);
     } else if (nearBottom && !autoScroll) {
       setAutoScroll(true);
     }
+
+    // 虚拟列表更新
     if (shouldUseLazyLoading) {
       updateVisibleRange();
     }
+
+    // 防抖处理
     if (scrollDebounceTimerRef.current) {
       clearTimeout(scrollDebounceTimerRef.current);
     }
     scrollDebounceTimerRef.current = setTimeout(() => {
-      userScrollActionRef.current = false;
+      isProcessingScrollRef.current = false;
     }, SCROLL_DEBOUNCE_MS);
-    isProcessingScrollRef.current = false;
   }, [
     autoScroll,
     setAutoScroll,
@@ -113,6 +130,8 @@ const useScrollHandler = (
   useEffect(() => {
     const elem = containerRef.current;
     if (!elem) return;
+
+    // 使用 passive 监听器优化滚动性能
     elem.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       elem.removeEventListener("scroll", handleScroll);
@@ -125,7 +144,7 @@ const useScrollHandler = (
   return { scrollToBottom, isNearBottom };
 };
 
-// --- Custom Hook for Virtual List (Lazy Loading) - Optimized ---
+// --- Custom Hook for Virtual List --- (大幅性能优化)
 const useVirtualList = (
   containerRef: React.RefObject<HTMLDivElement>,
   messages: Message[],
@@ -136,65 +155,55 @@ const useVirtualList = (
     start: 0,
     end: Math.min(messageCount, 50),
   });
-  // 使用 useRef 存储平均高度，避免频繁状态更新
+
+  // 性能优化：使用 useRef 存储状态，减少重渲染
   const avgHeightRef = useRef<number>(AVG_MESSAGE_HEIGHT_ESTIMATE);
   const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRangeRef = useRef(visibleRange);
   const lastHeightUpdateTimeRef = useRef<number>(0);
-  const HEIGHT_UPDATE_INTERVAL = 500; // 高度更新最小间隔时间，单位：ms
+  const heightSamplesRef = useRef<number[]>([]); // 新增：高度样本池
+  const observerRef = useRef<ResizeObserver | null>(null);
 
-  // 动态计算平均高度，基于已渲染的消息，并限制频率
+  // 优化高度计算：使用样本池平均
   const updateAvgHeight = useCallback(() => {
     const now = Date.now();
     if (now - lastHeightUpdateTimeRef.current < HEIGHT_UPDATE_INTERVAL) {
-      return; // 限制频率，避免频繁计算
+      return;
     }
     lastHeightUpdateTimeRef.current = now;
 
     if (!containerRef.current || messageCount === 0) return;
+
     const visibleElements = containerRef.current.querySelectorAll(
       ".chat-messages__item-wrapper"
     );
+
     if (visibleElements.length > 0) {
-      let totalHeight = 0;
-      let count = 0;
-      // 仅取前 10 个元素，减少 DOM 操作开销
-      const maxElementsToCheck = Math.min(visibleElements.length, 10);
-      for (let i = 0; i < maxElementsToCheck; i++) {
+      const samples = heightSamplesRef.current;
+
+      // 收集新样本
+      for (let i = 0; i < Math.min(visibleElements.length, 5); i++) {
         const height = (visibleElements[i] as HTMLElement).offsetHeight;
-        if (height > 0) {
-          totalHeight += height;
-          count++;
+        if (height > 20 && height < 1000) {
+          samples.push(height);
         }
       }
-      if (count > 0) {
-        const newAvgHeight = totalHeight / count;
-        if (newAvgHeight > 20 && newAvgHeight < 1000) {
-          avgHeightRef.current = newAvgHeight;
-        }
+
+      // 保持样本池大小
+      if (samples.length > 20) {
+        samples.splice(0, samples.length - 20);
+      }
+
+      // 计算加权平均高度
+      if (samples.length > 0) {
+        const avgHeight =
+          samples.reduce((sum, h) => sum + h, 0) / samples.length;
+        avgHeightRef.current = avgHeight;
       }
     }
   }, [containerRef, messageCount]);
 
-  // 使用 ResizeObserver 监听高度变化（如图片加载完成）
-  useEffect(() => {
-    if (!shouldUseLazyLoading || !containerRef.current) return;
-    let observer: ResizeObserver | null = null;
-    if (typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(() => {
-        updateAvgHeight(); // 高度变化时重新计算
-      });
-      const container = containerRef.current;
-      observer.observe(container);
-    }
-    return () => {
-      if (observer) {
-        observer.disconnect();
-      }
-    };
-  }, [shouldUseLazyLoading, updateAvgHeight, containerRef]);
-
-  // 可见消息列表
+  // 可见消息列表 - 使用 useMemo 优化
   const visibleMessages = useMemo(() => {
     if (!shouldUseLazyLoading) return messages;
     const safeEnd = Math.min(visibleRange.end, messageCount);
@@ -202,23 +211,25 @@ const useVirtualList = (
     return messages.slice(safeStart, safeEnd);
   }, [messages, visibleRange, shouldUseLazyLoading, messageCount]);
 
-  // 更新可见范围，带有节流机制
+  // 优化的可见范围更新
   const updateVisibleRange = useCallback(() => {
     const elem = containerRef.current;
     if (!elem || !shouldUseLazyLoading) return;
+
     const { scrollTop, clientHeight } = elem;
     const avgHeight = avgHeightRef.current;
     const visibleItemsCount = Math.ceil(clientHeight / avgHeight);
     const buffer = Math.ceil(visibleItemsCount * LAZY_LOAD_BUFFER_SCREENS);
     const firstVisibleIndex = Math.max(0, Math.floor(scrollTop / avgHeight));
+
     const newStart = Math.max(0, firstVisibleIndex - buffer);
     const newEnd = Math.min(
       messageCount,
       firstVisibleIndex + visibleItemsCount + buffer
     );
 
-    // 只有当范围变化超过阈值时才更新，避免频繁渲染
-    const rangeChangeThreshold = 5;
+    // 减少更新频率：只有显著变化才更新
+    const rangeChangeThreshold = 3;
     if (
       Math.abs(newStart - lastRangeRef.current.start) > rangeChangeThreshold ||
       Math.abs(newEnd - lastRangeRef.current.end) > rangeChangeThreshold
@@ -229,18 +240,20 @@ const useVirtualList = (
       updateTimerRef.current = setTimeout(() => {
         setVisibleRange({ start: newStart, end: newEnd });
         lastRangeRef.current = { start: newStart, end: newEnd };
-        updateAvgHeight(); // 更新范围后重新计算高度
-      }, 100); // 节流时间，100ms
+        updateAvgHeight();
+      }, RANGE_UPDATE_DEBOUNCE);
     }
   }, [containerRef, messageCount, shouldUseLazyLoading, updateAvgHeight]);
 
-  // 渲染顶部和底部的占位符
+  // 优化占位符渲染
   const renderPlaceholders = useCallback(() => {
-    if (!shouldUseLazyLoading || !containerRef.current) return null;
+    if (!shouldUseLazyLoading) return null;
+
     const avgHeight = avgHeightRef.current;
     const topPlaceholderHeight = visibleRange.start * avgHeight;
     const bottomItemsCount = Math.max(0, messageCount - visibleRange.end);
     const bottomPlaceholderHeight = bottomItemsCount * avgHeight;
+
     return (
       <>
         {topPlaceholderHeight > 0 && (
@@ -259,7 +272,32 @@ const useVirtualList = (
         )}
       </>
     );
-  }, [shouldUseLazyLoading, visibleRange, messageCount, containerRef]);
+  }, [shouldUseLazyLoading, visibleRange, messageCount]);
+
+  // ResizeObserver 优化
+  useEffect(() => {
+    if (!shouldUseLazyLoading || !containerRef.current) return;
+
+    if (typeof ResizeObserver !== "undefined") {
+      observerRef.current = new ResizeObserver((entries) => {
+        // 限制 ResizeObserver 触发频率
+        if (
+          Date.now() - lastHeightUpdateTimeRef.current >
+          HEIGHT_UPDATE_INTERVAL
+        ) {
+          updateAvgHeight();
+        }
+      });
+
+      observerRef.current.observe(containerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [shouldUseLazyLoading, updateAvgHeight, containerRef]);
 
   // 清理定时器
   useEffect(() => {
@@ -270,14 +308,21 @@ const useVirtualList = (
     };
   }, []);
 
-  // 初始化时计算平均高度
+  // 初始化高度计算
   useEffect(() => {
     if (shouldUseLazyLoading && messageCount > 0) {
-      updateAvgHeight();
+      // 延迟执行，避免阻塞初始渲染
+      const timer = setTimeout(() => updateAvgHeight(), 100);
+      return () => clearTimeout(timer);
     }
   }, [shouldUseLazyLoading, messageCount, updateAvgHeight]);
 
-  return { visibleMessages, renderPlaceholders, updateVisibleRange };
+  return {
+    visibleMessages,
+    renderPlaceholders,
+    updateVisibleRange,
+    visibleRange,
+  };
 };
 
 // --- Component Props ---
@@ -311,38 +356,47 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     [messageCount]
   );
 
-  // --- Scroll Handling Hook ---
+  // --- Load Older Messages Handler (优化：添加防重复调用)
   const handleLoadOlderMessages = useCallback(() => {
     if (isLoadingOlder || !hasMoreOlder || displayMessages.length === 0) return;
+
     const oldestMessage = displayMessages[0];
     const beforeKey =
       oldestMessage?._key ??
       (typeof oldestMessage?.id === "string" ? oldestMessage.id : null);
+
     if (
       !beforeKey ||
       (typeof beforeKey === "string" && beforeKey.startsWith("remote-"))
     ) {
       console.warn(
-        "MessagesList: Cannot load older messages, invalid or remote-only 'beforeKey'.",
+        "MessagesList: Cannot load older messages, invalid beforeKey.",
         oldestMessage
       );
       return;
     }
+
     console.log(
-      `MessagesList: Attempting to load older messages before key: ${beforeKey}`
+      `MessagesList: Loading older messages before key: ${beforeKey}`
     );
+
     if (containerRef.current) {
       scrollHeightBeforeLoadingOlderRef.current =
         containerRef.current.scrollHeight;
     }
+
     dispatch(loadOlderMessages({ dialogId, beforeKey }));
   }, [dispatch, dialogId, displayMessages, hasMoreOlder, isLoadingOlder]);
 
   // --- Virtual List Hook ---
-  const { visibleMessages, renderPlaceholders, updateVisibleRange } =
-    useVirtualList(containerRef, displayMessages, shouldUseLazyLoading);
+  const {
+    visibleMessages,
+    renderPlaceholders,
+    updateVisibleRange,
+    visibleRange,
+  } = useVirtualList(containerRef, displayMessages, shouldUseLazyLoading);
 
-  // --- Scroll Handling Hook with Merged Scroll Logic ---
+  // --- Scroll Handling Hook ---
   const { scrollToBottom } = useScrollHandler(
     containerRef,
     autoScroll,
@@ -358,10 +412,12 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) return;
+
     const currentMessageCount = displayMessages.length;
     const prevMessageCount = prevDisplayMessagesLengthRef.current;
     const messagesAddedCount = currentMessageCount - prevMessageCount;
 
+    // 恢复滚动位置（加载旧消息后）
     if (
       scrollHeightBeforeLoadingOlderRef.current > 0 &&
       messagesAddedCount > 0
@@ -369,15 +425,17 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
       const currentScrollHeight = container.scrollHeight;
       const scrollHeightDiff =
         currentScrollHeight - scrollHeightBeforeLoadingOlderRef.current;
+
       if (scrollHeightDiff > 5 && !autoScroll) {
         container.scrollTop += scrollHeightDiff;
         console.log(
-          `MessagesList (LayoutEffect): Restored scroll position by ${scrollHeightDiff}px after prepending.`
+          `MessagesList: Restored scroll position by ${scrollHeightDiff}px`
         );
       }
       scrollHeightBeforeLoadingOlderRef.current = 0;
     }
 
+    // 自动滚动到底部
     const newMessagesAppended =
       messagesAddedCount > 0 && currentMessageCount > prevMessageCount;
     if (
@@ -387,20 +445,17 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
         (!isLoadingInitial && currentMessageCount > 0))
     ) {
       const instant = prevMessageCount === 0 || messagesAddedCount > 1;
-      scrollToBottom(instant);
+      // 使用 requestAnimationFrame 优化滚动性能
+      requestAnimationFrame(() => scrollToBottom(instant));
       console.log(
-        `MessagesList (LayoutEffect): Auto-scrolled to bottom (instant: ${instant}) due to ${
-          prevMessageCount === 0
-            ? "initial load"
-            : newMessagesAppended
-              ? "new messages"
-              : "initial load completed"
-        }.`
+        `MessagesList: Auto-scrolled to bottom (instant: ${instant})`
       );
     }
+
     prevDisplayMessagesLengthRef.current = currentMessageCount;
   }, [displayMessages, autoScroll, scrollToBottom, isLoadingInitial]);
 
+  // 滚动到底部按钮处理
   const handleScrollToBottomClick = useCallback(() => {
     setAutoScroll(true);
     scrollToBottom(false);
@@ -432,6 +487,7 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
         isVisible={!autoScroll && !!containerRef.current}
         onClick={handleScrollToBottomClick}
       />
+
       <style>{`
         @keyframes chat-messages__message-appear {
           from {
@@ -460,12 +516,13 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           display: flex;
           flex-direction: column;
           gap: 16px;
-          padding: 24px 15%;
+          padding: 24px 0;
           scroll-behavior: auto;
           overscroll-behavior: contain;
           z-index: 1;
           scrollbar-width: thin;
           scrollbar-color: ${theme.border || "#ccc"} transparent;
+          contain: layout style paint;
         }
 
         .chat-messages__list::-webkit-scrollbar {
@@ -490,11 +547,8 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           opacity: 0;
           transform: translateY(15px);
           animation: chat-messages__message-appear 0.3s ease-out forwards;
-          animation-delay: ${Math.min(
-            (typeof index !== "undefined" ? index : 0) * 0.03,
-            0.5
-          )}s;
           will-change: transform, opacity;
+          contain: layout style paint;
         }
 
         .chat-messages__placeholder--top,
@@ -502,16 +556,37 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           flex-shrink: 0;
         }
 
+        /* 响应式布局优化 */
+        @media (min-width: 1200px) {
+          .chat-messages__list {
+            padding: 24px 5%;
+          }
+        }
+
         @media (max-width: 1024px) {
           .chat-messages__list {
-            padding: 20px 10%;
+            padding: 20px 2%;
           }
         }
 
         @media (max-width: 768px) {
           .chat-messages__list {
-            padding: 16px 12px;
+            padding: 16px 8px;
             gap: 12px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .chat-messages__list {
+            padding: 12px 4px;
+            gap: 10px;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .chat-messages__list {
+            padding: 8px 2px;
+            gap: 8px;
           }
         }
       `}</style>
