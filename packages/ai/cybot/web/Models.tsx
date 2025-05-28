@@ -6,7 +6,7 @@ const Models: React.FC = () => {
     <div className="models-page">
       <h1>探索更多cybot</h1>
       <div className="models-content">
-        <PubCybots limit={30} />
+        <PubCybots limit={40} />
       </div>
       <style>{`
         .models-page {
