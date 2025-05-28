@@ -7,15 +7,10 @@ import { zIndex } from "render/styles/zIndex";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { handleSendMessage } from "../messages/messageSlice";
 import {
-  addPendingImagePreview,
   addPendingFile,
-  removePendingImagePreview,
   removePendingFile,
-  setPreviewingFile,
   clearPendingAttachments,
-  selectPendingImagePreviews,
   selectPendingFiles,
-  selectPreviewingFileObject,
 } from "../dialog/dialogSlice";
 import { compressImage } from "utils/imageUtils";
 import * as XLSX from "xlsx";
@@ -30,6 +25,11 @@ import { convertDocxToSlate } from "./docxToSlate";
 import { convertPdfToSlate } from "./pdfToSlate";
 import { convertExcelToSlate } from "utils/excelToSlate";
 import { createPage } from "render/page/pageSlice";
+
+interface PendingImagePreview {
+  id: string;
+  url: string; // Base64 or Blob URL
+}
 
 interface PendingFile {
   id: string;
@@ -48,9 +48,12 @@ const MessageInput: React.FC = () => {
   const [textContent, setTextContent] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragEnabled, setIsDragEnabled] = useState(false);
-  const imagePreviews = useAppSelector(selectPendingImagePreviews);
+  const [localImagePreviews, setLocalImagePreviews] = useState<
+    PendingImagePreview[]
+  >([]);
+  const [localPreviewingFile, setLocalPreviewingFile] =
+    useState<PendingFile | null>(null);
   const pendingFiles = useAppSelector(selectPendingFiles);
-  const previewingFile = useAppSelector(selectPreviewingFileObject);
 
   // 文件类型配置：与 MessageContent 保持一致
   const FILE_TYPE_CONFIG = {
@@ -84,20 +87,31 @@ const MessageInput: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // 同步本地预览文件状态与 Redux pendingFiles
+  useEffect(() => {
+    if (
+      localPreviewingFile &&
+      !pendingFiles.some((file) => file.id === localPreviewingFile.id)
+    ) {
+      setLocalPreviewingFile(null);
+    }
+  }, [pendingFiles, localPreviewingFile]);
+
   // File Handling Callbacks
-  const handleAddImagePreview = useCallback(
-    (file: File) => {
-      if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result) {
-          dispatch(addPendingImagePreview(reader.result as string));
-        }
-      };
-      reader.readAsDataURL(file);
-    },
-    [dispatch]
-  );
+  const handleAddImagePreview = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (reader.result) {
+        const newImage: PendingImagePreview = {
+          id: nanoid(),
+          url: reader.result as string,
+        };
+        setLocalImagePreviews((prev) => [...prev, newImage]);
+      }
+    };
+    reader.readAsDataURL(file);
+  }, []);
 
   const handleParseAndAddExcel = useCallback(
     async (file: File) => {
@@ -248,6 +262,7 @@ const MessageInput: React.FC = () => {
 
   const clearInputState = useCallback(() => {
     setTextContent("");
+    setLocalImagePreviews([]);
     dispatch(clearPendingAttachments());
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -255,7 +270,7 @@ const MessageInput: React.FC = () => {
   }, [dispatch]);
 
   const sendMessage = useCallback(async () => {
-    const currentImagePreviews = imagePreviews;
+    const currentImagePreviews = localImagePreviews;
     const currentFiles = pendingFiles;
     const trimmedText = textContent.trim();
 
@@ -317,7 +332,14 @@ const MessageInput: React.FC = () => {
       console.error("Failed to send message:", err);
       toast.error(t("sendFailMessage"));
     }
-  }, [textContent, imagePreviews, pendingFiles, dispatch, clearInputState, t]);
+  }, [
+    textContent,
+    localImagePreviews,
+    pendingFiles,
+    dispatch,
+    clearInputState,
+    t,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -381,12 +403,11 @@ const MessageInput: React.FC = () => {
     [processFile]
   );
 
-  const handleRemoveImage = useCallback(
-    (idToRemove: string) => {
-      dispatch(removePendingImagePreview(idToRemove));
-    },
-    [dispatch]
-  );
+  const handleRemoveImage = useCallback((idToRemove: string) => {
+    setLocalImagePreviews((prev) =>
+      prev.filter((img) => img.id !== idToRemove)
+    );
+  }, []);
 
   const handleRemoveFile = useCallback(
     (idToRemove: string) => {
@@ -397,14 +418,19 @@ const MessageInput: React.FC = () => {
 
   const handlePreviewFile = useCallback(
     (idToPreview: string, type: keyof typeof FILE_TYPE_CONFIG) => {
-      dispatch(setPreviewingFile({ id: idToPreview, type }));
+      const fileToPreview = pendingFiles.find(
+        (file) => file.id === idToPreview
+      );
+      if (fileToPreview) {
+        setLocalPreviewingFile(fileToPreview);
+      }
     },
-    [dispatch]
+    [pendingFiles]
   );
 
   const handleClosePreview = useCallback(() => {
-    dispatch(setPreviewingFile(null));
-  }, [dispatch]);
+    setLocalPreviewingFile(null);
+  }, []);
 
   // 文件预览渲染函数 - 与 MessageContent 保持一致
   const renderFilePreview = (file: PendingFile) => {
@@ -452,9 +478,12 @@ const MessageInput: React.FC = () => {
 
   // Render Logic
   const hasContent =
-    textContent.trim() || imagePreviews.length > 0 || pendingFiles.length > 0;
+    textContent.trim() ||
+    localImagePreviews.length > 0 ||
+    pendingFiles.length > 0;
 
-  const hasAttachments = imagePreviews.length > 0 || pendingFiles.length > 0;
+  const hasAttachments =
+    localImagePreviews.length > 0 || pendingFiles.length > 0;
 
   return (
     <div
@@ -469,9 +498,9 @@ const MessageInput: React.FC = () => {
         <div className="attachments-preview">
           <div className="attachments-list">
             {/* 使用新的 ImagePreview 组件 */}
-            {imagePreviews.length > 0 && (
+            {localImagePreviews.length > 0 && (
               <ImagePreview
-                images={imagePreviews}
+                images={localImagePreviews}
                 onRemove={handleRemoveImage}
               />
             )}
@@ -515,12 +544,12 @@ const MessageInput: React.FC = () => {
       )}
 
       {/* Unified File Preview Dialog */}
-      {previewingFile && (
+      {localPreviewingFile && (
         <DocxPreviewDialog
-          isOpen={!!previewingFile}
+          isOpen={!!localPreviewingFile}
           onClose={handleClosePreview}
-          pageKey={previewingFile.pageKey}
-          fileName={previewingFile.name}
+          pageKey={localPreviewingFile.pageKey}
+          fileName={localPreviewingFile.name}
         />
       )}
 
