@@ -2,8 +2,6 @@ import {
   type PayloadAction,
   asyncThunkCreator,
   buildCreateSlice,
-  createAction,
-  nanoid,
 } from "@reduxjs/toolkit";
 import type { NoloRootState } from "app/store";
 import { deleteDialogMsgs } from "chat/messages/messageSlice";
@@ -32,12 +30,7 @@ interface TokenMetrics {
   input_tokens: number;
 }
 
-// 定义附件类型 (从 MessageInput 移动并调整)
-export interface PendingImagePreview {
-  id: string;
-  url: string; // Base64 or Blob URL
-}
-
+// 定义附件类型 (仅保留 PendingFile)
 export interface PendingFile {
   id: string;
   name: string;
@@ -53,13 +46,8 @@ interface DialogState {
     outputTokens: number;
   };
   isUpdatingMode: boolean;
-  // 新增：待处理的附件状态
-  pendingImagePreviews: PendingImagePreview[];
+  // 待处理的附件状态（仅保留 pendingFiles）
   pendingFiles: PendingFile[]; // 合并后的文件数组
-  previewingFile: {
-    id: string;
-    type: "excel" | "docx" | "pdf" | "page";
-  } | null; // 统一预览状态，新增 page 类型
   // 新增：存储正在进行的 AbortController 实例
   activeControllers: Record<string, AbortController>; // 以 messageId 为键
 }
@@ -72,11 +60,9 @@ const initialState: DialogState = {
     outputTokens: 0,
   },
   isUpdatingMode: false,
-  // 新增：初始化附件状态
-  pendingImagePreviews: [],
+  // 初始化附件状态（仅保留 pendingFiles）
   pendingFiles: [], // 初始化合并后的文件数组
-  previewingFile: null, // 初始化统一预览状态
-  // 新增：初始化控制器对象
+  // 初始化控制器对象
   activeControllers: {},
 };
 
@@ -151,9 +137,7 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogKey = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
       // 清空对话状态时，也清空附件
-      state.pendingImagePreviews = [];
       state.pendingFiles = []; // 清空合并后的文件数组
-      state.previewingFile = null; // 清空统一预览状态
     }),
 
     createDialog: create.asyncThunk(createDialogAction),
@@ -172,16 +156,7 @@ const DialogSlice = createSliceWithThunks({
       },
     }),
 
-    // --- 新增：附件管理 Reducers ---
-    addPendingImagePreview: create.reducer(
-      (state, action: PayloadAction<string>) => {
-        const newImage: PendingImagePreview = {
-          id: nanoid(),
-          url: action.payload,
-        };
-        state.pendingImagePreviews.push(newImage);
-      }
-    ),
+    // --- 附件管理 Reducers（仅保留与 pendingFiles 相关的） ---
     addPendingFile: create.reducer(
       (state, action: PayloadAction<PendingFile>) => {
         if (
@@ -193,38 +168,15 @@ const DialogSlice = createSliceWithThunks({
         }
       }
     ),
-    removePendingImagePreview: create.reducer(
-      (state, action: PayloadAction<string>) => {
-        state.pendingImagePreviews = state.pendingImagePreviews.filter(
-          (img) => img.id !== action.payload
-        );
-      }
-    ),
     removePendingFile: create.reducer(
       (state, action: PayloadAction<string>) => {
         state.pendingFiles = state.pendingFiles.filter(
           (file) => file.id !== action.payload
         );
-        if (state.previewingFile?.id === action.payload) {
-          state.previewingFile = null;
-        }
-      }
-    ),
-    setPreviewingFile: create.reducer(
-      (
-        state,
-        action: PayloadAction<{
-          id: string;
-          type: "excel" | "docx" | "pdf" | "page";
-        } | null>
-      ) => {
-        state.previewingFile = action.payload;
       }
     ),
     clearPendingAttachments: create.reducer((state) => {
-      state.pendingImagePreviews = [];
       state.pendingFiles = []; // 清空合并后的文件数组
-      state.previewingFile = null; // 清空统一预览状态
     }),
 
     // 新增：添加控制器到状态
@@ -299,16 +251,13 @@ export const {
   addCybot,
   removeCybot,
   updateDialogMode,
-  addPendingImagePreview,
   addPendingFile,
-  removePendingImagePreview,
   removePendingFile,
   clearPendingAttachments,
-  setPreviewingFile,
-  addActiveController, // 新增
-  removeActiveController, // 新增
-  abortAllMessages, // 新增
-  clearActiveControllers, // 新增
+  addActiveController,
+  removeActiveController,
+  abortAllMessages,
+  clearActiveControllers,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;
@@ -329,11 +278,7 @@ export const selectTotalDialogTokens = (state: NoloRootState): number =>
 export const selectIsUpdatingMode = (state: NoloRootState): boolean =>
   state.dialog.isUpdatingMode;
 
-// 新增 Selectors
-export const selectPendingImagePreviews = (
-  state: NoloRootState
-): PendingImagePreview[] => state.dialog.pendingImagePreviews;
-
+// 新增 Selectors（仅保留与 pendingFiles 相关的）
 export const selectPendingFiles = (state: NoloRootState): PendingFile[] =>
   state.dialog.pendingFiles;
 
@@ -342,23 +287,6 @@ export const selectPendingFilesByType = (
   type: "excel" | "docx" | "pdf" | "page"
 ): PendingFile[] =>
   state.dialog.pendingFiles.filter((file) => file.type === type);
-
-export const selectPreviewingFile = (
-  state: NoloRootState
-): { id: string; type: "excel" | "docx" | "pdf" | "page" } | null =>
-  state.dialog.previewingFile;
-
-// 派生 Selector，用于获取正在预览的文件对象
-export const selectPreviewingFileObject = (
-  state: NoloRootState
-): PendingFile | null => {
-  const previewingFile = state.dialog.previewingFile;
-  if (!previewingFile) return null;
-  return (
-    state.dialog.pendingFiles.find((file) => file.id === previewingFile.id) ||
-    null
-  );
-};
 
 // 新增 Selector
 export const selectActiveControllers = (
