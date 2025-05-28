@@ -39,10 +39,6 @@ export const handleRequest = async (request: Request, server) => {
 
   // 以下是原有API处理逻辑
   if (url.pathname.startsWith(API_VERSION)) {
-    if (url.pathname.startsWith(API_ENDPOINTS.HI)) {
-      return res.status(200).json({ API_VERSION });
-    }
-
     const contentType = request.headers.get("content-type") || "";
     let body;
 

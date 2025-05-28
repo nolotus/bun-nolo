@@ -4,7 +4,6 @@ import { API_ENDPOINTS } from "../config";
 import { handleQuery } from "./query";
 
 import { handleDelete } from "./delete";
-import { handleReadSingle } from "./read";
 import { handleWrite } from "./write";
 import { handlePatch } from "./patch";
 
@@ -24,9 +23,6 @@ export const databaseRequest = async (req, res, url) => {
       .split("/")[1];
 
     switch (operation) {
-      case "read":
-        req.params = { id: getIdFromPath("/api/v1/db/read/") };
-        return await handleReadSingle(req, res);
       case "write":
         req.user = await handleToken(req, res);
         return handleWrite(req, res);
