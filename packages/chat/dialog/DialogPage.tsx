@@ -15,9 +15,8 @@ import {
 } from "chat/messages/messageSlice";
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
-import { selectHeaderHeight, selectTheme } from "app/theme/themeSlice"; // 新增 selectTheme 导入以获取主题配置
+import { selectHeaderHeight, selectTheme } from "app/theme/themeSlice";
 
-// 加载旋转动画样式
 const spinKeyframes = `
   @keyframes spin {
     0% { transform: rotate(0deg); }
@@ -25,10 +24,8 @@ const spinKeyframes = `
   }
 `;
 
-// 加载中旋转组件
 const LoadingSpinner = () => {
-  const theme = useAppSelector(selectTheme); // 获取当前主题配置
-
+  const theme = useAppSelector(selectTheme);
   return (
     <>
       <style>{spinKeyframes}</style>
@@ -43,7 +40,7 @@ const LoadingSpinner = () => {
         <div
           style={{
             border: `4px solid rgba(0, 0, 0, 0.1)`,
-            borderLeftColor: theme.primary, // 使用主题的主色调作为加载动画的颜色
+            borderLeftColor: theme.primary,
             borderRadius: "50%",
             width: "30px",
             height: "30px",
@@ -55,15 +52,13 @@ const LoadingSpinner = () => {
   );
 };
 
-// 错误显示组件
 const ErrorDisplay = ({ error }: { error: any }) => {
-  const theme = useAppSelector(selectTheme); // 获取当前主题配置
-
+  const theme = useAppSelector(selectTheme);
   return (
     <div
       style={{
-        padding: theme.space[5], // 使用主题中定义的空间尺寸
-        color: theme.error, // 使用主题中定义的错误颜色
+        padding: theme.space[5],
+        color: theme.error,
         textAlign: "center",
       }}
     >
@@ -72,7 +67,6 @@ const ErrorDisplay = ({ error }: { error: any }) => {
   );
 };
 
-// 对话页面组件
 const DialogPage = ({ pageKey }: { pageKey: string }) => {
   const dispatch = useAppDispatch();
   const { user } = useAuth();
@@ -80,37 +74,26 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const isLoadingInitial = useAppSelector(selectIsLoadingInitial);
   const error = useAppSelector(selectMessageError);
-  const headerHeight = useAppSelector(selectHeaderHeight); // 从主题中获取顶部高度
-  const theme = useAppSelector(selectTheme); // 获取当前主题配置
+  const headerHeight = useAppSelector(selectHeaderHeight);
+  const theme = useAppSelector(selectTheme);
 
-  // 初始化对话和消息
   useEffect(() => {
     if (pageKey && user && dialogId) {
       dispatch(initDialog(pageKey));
-      dispatch(initMsgs({ dialogId, limit: 20, db: browserDb }));
+      dispatch(initMsgs({ dialogId, limit: 10, db: browserDb }));
     }
-
     return () => {
       dispatch(clearDialogState());
     };
   }, [user, pageKey, dispatch, dialogId]);
 
-  // 渲染内容逻辑
   const renderContent = () => {
-    if (isLoadingInitial) {
-      return <LoadingSpinner />;
-    }
-    if (error) {
-      return <ErrorDisplay error={error} />;
-    }
+    if (isLoadingInitial) return <LoadingSpinner />;
+    if (error) return <ErrorDisplay error={error} />;
     if (currentDialogConfig) {
       return (
         <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-          }}
+          style={{ display: "flex", flexDirection: "column", height: "100%" }}
         >
           <div style={{ flexGrow: 1, overflow: "hidden" }}>
             <MessagesList dialogId={dialogId} />
@@ -123,8 +106,8 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
       <div
         style={{
           textAlign: "center",
-          padding: theme.space[5], // 使用主题中定义的空间尺寸
-          color: theme.textSecondary, // 使用主题中的次级文本颜色
+          padding: theme.space[5],
+          color: theme.textSecondary,
         }}
       >
         正在加载对话信息...
@@ -139,8 +122,8 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
         style={{
           display: "flex",
           overflow: "hidden",
-          height: `calc(100dvh - ${headerHeight}px)`, // 使用从主题获取的顶部高度
-          backgroundColor: theme.background, // 使用主题中的背景颜色
+          height: `calc(100dvh - ${headerHeight}px)`,
+          backgroundColor: theme.background,
         }}
       >
         <div
