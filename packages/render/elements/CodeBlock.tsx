@@ -1,4 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
+
+import { useTheme } from "app/theme";
+import copyToClipboard from "utils/clipboard";
+import * as docx from "docx";
+//web
+import { Tooltip } from "render/web/ui/Tooltip";
+import MermaidContent from "./MermaidContent";
+import ReactECharts from "echarts-for-react";
+import ReactLiveBlock, { createLiveScope } from "./ReactLiveBlock";
+import JsonBlock from "./JsonBlock";
 import {
   CheckIcon,
   CodeIcon,
@@ -8,14 +18,6 @@ import {
   ChevronUpIcon,
   ScreenFullIcon,
 } from "@primer/octicons-react";
-import { useTheme } from "app/theme";
-import { zIndex } from "../styles/zIndex";
-import copyToClipboard from "utils/clipboard";
-import JsonBlock from "./JsonBlock";
-import ReactLiveBlock, { createLiveScope } from "./ReactLiveBlock";
-import ReactECharts from "echarts-for-react";
-import MermaidContent from "./MermaidContent";
-import * as docx from "docx";
 
 // --- PrismJS Language Imports ---
 import "prismjs/components/prism-javascript";
@@ -160,38 +162,39 @@ const CodeBlock = ({ attributes, children, element }) => {
     <div className="code-block-actions">
       <span className="language-tag">{element.language}</span>
       <div className="action-buttons">
-        <button
-          onClick={() => setShowPreview(!showPreview)}
-          className={`action-button ${showPreview ? "active" : ""}`}
-          title={showPreview ? "显示代码" : "显示预览"}
-        >
-          {showPreview ? <CodeIcon size={16} /> : <EyeIcon size={16} />}
-        </button>
-        <button
-          onClick={handleCopy}
-          className="action-button"
-          title={isCopied ? "已复制!" : "复制代码"}
-        >
-          {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
-        </button>
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`action-button ${isCollapsed ? "active" : ""}`}
-          title={isCollapsed ? "展开代码" : "折叠代码"}
-        >
-          {isCollapsed ? (
-            <ChevronUpIcon size={16} />
-          ) : (
-            <ChevronDownIcon size={16} />
-          )}
-        </button>
-        <button
-          onClick={() => setShowRightPreview(!showRightPreview)}
-          className={`action-button ${showRightPreview ? "active" : ""}`}
-          title={showRightPreview ? "关闭右侧预览" : "打开右侧预览"}
-        >
-          <ScreenFullIcon size={16} />
-        </button>
+        <Tooltip content={showPreview ? "显示代码" : "显示预览"}>
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            className={`action-button ${showPreview ? "active" : ""}`}
+          >
+            {showPreview ? <CodeIcon size={16} /> : <EyeIcon size={16} />}
+          </button>
+        </Tooltip>
+        <Tooltip content={isCopied ? "已复制!" : "复制代码"}>
+          <button onClick={handleCopy} className="action-button">
+            {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
+          </button>
+        </Tooltip>
+        <Tooltip content={isCollapsed ? "展开代码" : "折叠代码"}>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`action-button ${isCollapsed ? "active" : ""}`}
+          >
+            {isCollapsed ? (
+              <ChevronUpIcon size={16} />
+            ) : (
+              <ChevronDownIcon size={16} />
+            )}
+          </button>
+        </Tooltip>
+        <Tooltip content={showRightPreview ? "关闭右侧预览" : "打开右侧预览"}>
+          <button
+            onClick={() => setShowRightPreview(!showRightPreview)}
+            className={`action-button ${showRightPreview ? "active" : ""}`}
+          >
+            <ScreenFullIcon size={16} />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );
@@ -203,7 +206,9 @@ const CodeBlock = ({ attributes, children, element }) => {
 
   return (
     <>
-      <style>{styles}</style>
+      <style href="code-block" precedence="medium">
+        {styles}
+      </style>
       <div {...attributes} className="code-block-wrapper">
         <CodeBlockActions />
 
