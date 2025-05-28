@@ -5,7 +5,7 @@ export const DEFAULT_TEMPERATURE = 1.0;
 export const DEFAULT_TOP_P = 1.0;
 export const DEFAULT_FREQUENCY_PENALTY = 0.0;
 export const DEFAULT_PRESENCE_PENALTY = 0.0;
-export const DEFAULT_MAX_TOKENS = 4096; // 调大 max_tokens 的默认值
+export const DEFAULT_MAX_TOKENS = 8192; // 调大 max_tokens 的默认值
 
 export const createCybotSchema = z
   .object({

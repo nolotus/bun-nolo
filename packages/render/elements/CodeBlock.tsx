@@ -1,15 +1,25 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useTheme } from "app/theme"; // 假设路径正确
-import copyToClipboard from "utils/clipboard"; // 假设路径正确
-import CodeBlockActions from "./CodeBlockActions"; // 假设路径正确
-import JsonBlock from "./JsonBlock"; // 假设路径正确
-import ReactLiveBlock, { createLiveScope } from "./ReactLiveBlock"; // 假设路径正确
-import ReactECharts from "echarts-for-react"; // 确保已安装
-import MermaidContent from "./MermaidContent"; // <--- 导入新组件
-import * as docx from "docx"; // <--- 1. 导入 docx 库
+
+import { useTheme } from "app/theme";
+import copyToClipboard from "utils/clipboard";
+import * as docx from "docx";
+//web
+import { Tooltip } from "render/web/ui/Tooltip";
+import MermaidContent from "./MermaidContent";
+import ReactECharts from "echarts-for-react";
+import ReactLiveBlock, { createLiveScope } from "./ReactLiveBlock";
+import JsonBlock from "./JsonBlock";
+import {
+  CheckIcon,
+  CodeIcon,
+  CopyIcon,
+  EyeIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ScreenFullIcon,
+} from "@primer/octicons-react";
 
 // --- PrismJS Language Imports ---
-// (保持不变)
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-jsx";
 import "prismjs/components/prism-typescript";
@@ -21,12 +31,8 @@ import "prismjs/components/prism-sql";
 import "prismjs/components/prism-java";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-mermaid"; // 仍然需要这个用于代码高亮
+import "prismjs/components/prism-mermaid";
 import "prismjs/components/prism-diff";
-// import 'prismjs/themes/prism-okaidia.css'; // 或你选择的主题
-
-// --- Mermaid Initialization (已移至 MermaidContent.jsx 或全局) ---
-// 此处不再需要初始化代码
 
 const CodeBlock = ({ attributes, children, element }) => {
   const theme = useTheme();
@@ -35,7 +41,7 @@ const CodeBlock = ({ attributes, children, element }) => {
   const [isCollapsed, setIsCollapsed] = useState(element.collapsed === "true");
   const [showRightPreview, setShowRightPreview] = useState(false);
 
-  // --- 提取文本内容 (保持不变) ---
+  // --- 提取文本内容 ---
   const content = useMemo(() => {
     const getTextContent = (nodes) => {
       if (!Array.isArray(nodes)) return "";
@@ -63,7 +69,7 @@ const CodeBlock = ({ attributes, children, element }) => {
     }
   }, [element.children]);
 
-  // --- 复制处理 (保持不变) ---
+  // --- 复制处理 ---
   const handleCopy = () => {
     copyToClipboard(content, {
       onSuccess: () => {
@@ -76,128 +82,147 @@ const CodeBlock = ({ attributes, children, element }) => {
     });
   };
 
-  // --- 内边距变量 (保持不变) ---
-  const CODE_BLOCK_PADDING = theme?.space?.[4] || "16px";
-  const CODE_BLOCK_PADDING_COLLAPSED = theme?.space?.[1] || "4px";
-
   // --- React Live Scope ---
   const liveScope = useMemo(
     () => ({
       ...createLiveScope(theme),
       ReactECharts,
-      docx, // <--- 2. 将 docx 添加到 liveScope
+      docx,
     }),
-    [theme] // 确保 theme 是唯一的依赖项，如果 docx 不依赖 theme
-    // 如果 createLiveScope 返回的内容是稳定的，可以移除 theme 依赖，
-    // 但通常它会包含与主题相关的组件或函数
+    [theme]
   );
 
-  // --- Styles (保持不变) ---
-  const codeBlockStyles = `
+  // --- 极简样式 ---
+  const styles = `
     .code-block-wrapper {
-      position: relative;
-      margin: ${theme?.space?.[4] || "16px"} 0;
-      border-radius: ${theme?.space?.[2] || "8px"};
-      border: 1px solid ${theme?.border || "#E5E7EB"};
-      background: ${theme?.backgroundSecondary || "#F9FAFB"};
-      box-shadow: 0 1px 2px ${theme?.shadowLight || "rgba(0, 0, 0, 0.05)"};
-      transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+      margin: ${theme.space[6]} 0;
+      background: ${theme.background};
+      border-radius: ${theme.space[2]};
       overflow: hidden;
     }
 
-    .code-block-wrapper:hover {
-      border-color: ${theme?.borderHover || "#D1D5DB"};
-      box-shadow: 0 2px 4px ${theme?.shadowLight || "rgba(0, 0, 0, 0.07)"};
+    .code-block-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: ${theme.space[8]};
+      background: ${theme.backgroundGhost};
+      padding: 0 ${theme.space[2]};
     }
 
-    .code-block-content-area {
-      padding: ${isCollapsed ? CODE_BLOCK_PADDING_COLLAPSED : CODE_BLOCK_PADDING} ${CODE_BLOCK_PADDING};
-      transition: padding 0.2s ease-out;
-      min-height: ${isCollapsed ? theme?.space?.[10] || "40px" : "auto"};
+    .language-tag {
+      font-size: 12px;
+      color: ${theme.textSecondary}; 
+      padding: ${theme.space[1]} ${theme.space[2]};
+      background: ${theme.primaryGhost};
+      border-radius: ${theme.space[1]};
+      text-transform: uppercase;
     }
 
-    .preview-mode {
-       background: ${theme?.backgroundGhost || "rgba(249, 250, 251, 0.97)"};
-       border-top: 1px solid ${theme?.border || "#E5E7EB"};
-       margin-top: -1px;
+    .action-buttons {
+      display: flex;
+      gap: ${theme.space[1]};
     }
 
-    .code-content { /* 通用代码样式 */
+    .action-button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: ${theme.space[2]};
+      color: ${theme.textSecondary};
+      border-radius: ${theme.space[1]};
+      transition: color 0.2s;
+    }
+
+    .action-button:hover,
+    .action-button.active {
+      color: ${theme.text};
+      background: ${theme.primaryGhost};
+    }
+
+    .code-content {
       margin: 0;
-      white-space: pre-wrap;
-      word-break: break-all;
-      font-family: 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+      padding: ${theme.space[4]};
+      font-family: 'SF Mono', 'Monaco', monospace;
       font-size: 14px;
       line-height: 1.6;
-      color: ${theme?.text || "#1F2937"};
+      color: ${theme.text};
       overflow-x: auto;
       display: ${isCollapsed ? "none" : "block"};
     }
 
-    .line-numbers .code-content { /* Prism 行号支持 */
-       padding-left: 3.8em;
-       position: relative;
+    .preview-content {
+      padding: 0;
+      margin: 0;
     }
   `;
 
-  // --- Render Logic ---
+  // --- 内联操作栏组件 ---
+  const CodeBlockActions = () => (
+    <div className="code-block-actions">
+      <span className="language-tag">{element.language}</span>
+      <div className="action-buttons">
+        <Tooltip content={showPreview ? "显示代码" : "显示预览"}>
+          <button
+            onClick={() => setShowPreview(!showPreview)}
+            className={`action-button ${showPreview ? "active" : ""}`}
+          >
+            {showPreview ? <CodeIcon size={16} /> : <EyeIcon size={16} />}
+          </button>
+        </Tooltip>
+        <Tooltip content={isCopied ? "已复制!" : "复制代码"}>
+          <button onClick={handleCopy} className="action-button">
+            {isCopied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}
+          </button>
+        </Tooltip>
+        <Tooltip content={isCollapsed ? "展开代码" : "折叠代码"}>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`action-button ${isCollapsed ? "active" : ""}`}
+          >
+            {isCollapsed ? (
+              <ChevronUpIcon size={16} />
+            ) : (
+              <ChevronDownIcon size={16} />
+            )}
+          </button>
+        </Tooltip>
+        <Tooltip content={showRightPreview ? "关闭右侧预览" : "打开右侧预览"}>
+          <button
+            onClick={() => setShowRightPreview(!showRightPreview)}
+            className={`action-button ${showRightPreview ? "active" : ""}`}
+          >
+            <ScreenFullIcon size={16} />
+          </button>
+        </Tooltip>
+      </div>
+    </div>
+  );
 
   const elementId = useMemo(
     () => element.id || `code-${Math.random().toString(36).substr(2, 9)}`,
     [element.id]
   );
 
-  // --- JSON Preview (保持不变) ---
-  if (element.language === "json" && showPreview && content && !isCollapsed) {
-    return (
-      <>
-        <style>{codeBlockStyles}</style>
-        <div {...attributes} className="code-block-wrapper">
-          <CodeBlockActions
-            language={element.language}
-            showPreview={showPreview}
-            setShowPreview={setShowPreview}
-            isCopied={isCopied}
-            onCopy={handleCopy}
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-            showRightPreview={showRightPreview}
-            setShowRightPreview={setShowRightPreview}
-            codeBlockPadding={CODE_BLOCK_PADDING}
-          />
-          <div className="code-block-content-area preview-mode">
-            <JsonBlock
-              rawCode={content}
-              showPreview={showPreview}
-              codeBlockPadding={CODE_BLOCK_PADDING}
-            />
-          </div>
-        </div>
-      </>
-    );
-  }
+  return (
+    <>
+      <style href="code-block" precedence="medium">
+        {styles}
+      </style>
+      <div {...attributes} className="code-block-wrapper">
+        <CodeBlockActions />
 
-  // --- Mermaid Preview / Code View (保持不变) ---
-  if (element.language === "mermaid") {
-    return (
-      <>
-        <style>{codeBlockStyles}</style>
-        <div {...attributes} className="code-block-wrapper">
-          <CodeBlockActions
-            language={element.language}
-            showPreview={showPreview}
-            setShowPreview={setShowPreview}
-            isCopied={isCopied}
-            onCopy={handleCopy}
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-            showRightPreview={showRightPreview}
-            setShowRightPreview={setShowRightPreview}
-            codeBlockPadding={CODE_BLOCK_PADDING}
-          />
-          <div
-            className={`code-block-content-area ${showPreview && !isCollapsed ? "preview-mode" : ""}`}
-          >
+        {/* JSON Preview - 原始展示 */}
+        {element.language === "json" &&
+        showPreview &&
+        content &&
+        !isCollapsed ? (
+          <div className="preview-content">
+            <JsonBlock rawCode={content} showPreview={showPreview} />
+          </div>
+        ) : /* Mermaid Preview - 原始展示 */
+        element.language === "mermaid" ? (
+          <div className="preview-content">
             <MermaidContent
               elementId={elementId}
               content={content}
@@ -205,77 +230,27 @@ const CodeBlock = ({ attributes, children, element }) => {
               isCollapsed={isCollapsed}
               children={children}
               theme={theme}
-              codeBlockPadding={CODE_BLOCK_PADDING}
             />
           </div>
-        </div>
-      </>
-    );
-  }
-
-  // --- React Live Preview / Code View (保持不变) ---
-  if (
-    (element.language === "jsx" || element.language === "tsx") &&
-    showPreview &&
-    !isCollapsed
-  ) {
-    return (
-      <>
-        <style>{codeBlockStyles}</style>
-        <div {...attributes} className="code-block-wrapper">
-          <CodeBlockActions
-            language={element.language}
-            showPreview={showPreview}
-            setShowPreview={setShowPreview}
-            isCopied={isCopied}
-            onCopy={handleCopy}
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-            showRightPreview={showRightPreview}
-            setShowRightPreview={setShowRightPreview}
-            codeBlockPadding={CODE_BLOCK_PADDING}
-          />
-          <div className="code-block-content-area preview-mode">
+        ) : /* React Live Preview - 原始展示 */
+        (element.language === "jsx" || element.language === "tsx") &&
+          showPreview &&
+          !isCollapsed ? (
+          <div className="preview-content">
             <ReactLiveBlock
               rawCode={content}
               language={element.language}
               theme={theme}
               showPreview={showPreview}
-              liveScope={liveScope} // liveScope 现在包含了 docx
-              codeBlockPadding={CODE_BLOCK_PADDING}
+              liveScope={liveScope}
             />
           </div>
-        </div>
-      </>
-    );
-  }
-
-  // --- Default Code Block View (保持不变) ---
-  return (
-    <>
-      <style>{codeBlockStyles}</style>
-      <div {...attributes} className="code-block-wrapper">
-        <CodeBlockActions
-          language={element.language}
-          showPreview={showPreview}
-          setShowPreview={setShowPreview}
-          isCopied={isCopied}
-          onCopy={handleCopy}
-          isCollapsed={isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          showRightPreview={showRightPreview}
-          setShowRightPreview={setShowRightPreview}
-          codeBlockPadding={CODE_BLOCK_PADDING}
-        />
-        <div className="code-block-content-area">
-          {!isCollapsed && (
-            <pre
-              className={`code-content language-${element.language || "plaintext"}`}
-            >
-              <code>{children}</code>
-            </pre>
-          )}
-        </div>
+        ) : /* Default Code View */
+        !isCollapsed ? (
+          <pre className="code-content language-${element.language || 'plaintext'}">
+            <code>{children}</code>
+          </pre>
+        ) : null}
       </div>
     </>
   );

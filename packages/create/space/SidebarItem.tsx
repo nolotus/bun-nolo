@@ -20,15 +20,16 @@ import {
   selectCurrentSpaceId,
   updateContentTitle,
 } from "create/space/spaceSlice";
-import MoveToSpaceSubMenu from "./MoveToSpaceSubMenu";
 import { addPendingFile } from "chat/dialog/dialogSlice";
 import { nanoid } from "nanoid";
-import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { Tooltip } from "render/web/ui/Tooltip";
+
+//web
 import { useInlineEdit } from "render/web/ui/useInlineEdit";
 import InlineEditInput from "render/web/ui/InlineEditInput";
-
+import { Tooltip } from "render/web/ui/Tooltip";
+import MoveToSpaceSubMenu from "./MoveToSpaceSubMenu";
+import toast from "react-hot-toast";
 interface SidebarItemProps {
   contentKey: string;
   type: "dialog" | "page" | "image" | "doc" | "code" | "file";

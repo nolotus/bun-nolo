@@ -27,7 +27,7 @@ const SCROLL_NEAR_BOTTOM_THRESHOLD = 150;
 const SCROLL_DEBOUNCE_MS = 100; // 减少防抖时间，提升响应性
 const USER_ACTION_RESET_MS = 80; // 减少用户操作重置时间
 const AVG_MESSAGE_HEIGHT_ESTIMATE = 100;
-const LAZY_LOAD_BUFFER_SCREENS = 1.5; // 增加缓冲区
+const LAZY_LOAD_BUFFER_SCREENS = 1;
 const TOP_SCROLL_THRESHOLD = 50;
 const HEIGHT_UPDATE_INTERVAL = 300; // 减少高度更新间隔
 const RANGE_UPDATE_DEBOUNCE = 50; // 减少范围更新防抖时间
@@ -161,49 +161,63 @@ const useVirtualList = (
   const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRangeRef = useRef(visibleRange);
   const lastHeightUpdateTimeRef = useRef<number>(0);
-  const heightSamplesRef = useRef<number[]>([]); // 新增：高度样本池
-  const observerRef = useRef<ResizeObserver | null>(null);
+  const HEIGHT_UPDATE_INTERVAL = 500; // 高度更新最小间隔时间，单位：ms
 
   // 优化高度计算：使用样本池平均
   const updateAvgHeight = useCallback(() => {
     const now = Date.now();
+    // 增加间隔时间，进一步减少频繁调用
     if (now - lastHeightUpdateTimeRef.current < HEIGHT_UPDATE_INTERVAL) {
       return;
     }
     lastHeightUpdateTimeRef.current = now;
 
     if (!containerRef.current || messageCount === 0) return;
-
+    // 限制查询数量，减少 DOM 操作开销
     const visibleElements = containerRef.current.querySelectorAll(
       ".chat-messages__item-wrapper"
     );
 
     if (visibleElements.length > 0) {
-      const samples = heightSamplesRef.current;
-
-      // 收集新样本
-      for (let i = 0; i < Math.min(visibleElements.length, 5); i++) {
+      let totalHeight = 0;
+      let count = 0;
+      // 仅取前 10 个元素，减少 DOM 操作开销
+      const maxElementsToCheck = Math.min(visibleElements.length, 10);
+      for (let i = 0; i < maxElementsToCheck; i++) {
         const height = (visibleElements[i] as HTMLElement).offsetHeight;
-        if (height > 20 && height < 1000) {
-          samples.push(height);
+        if (height > 0) {
+          totalHeight += height;
+          count++;
         }
       }
-
-      // 保持样本池大小
-      if (samples.length > 20) {
-        samples.splice(0, samples.length - 20);
-      }
-
-      // 计算加权平均高度
-      if (samples.length > 0) {
-        const avgHeight =
-          samples.reduce((sum, h) => sum + h, 0) / samples.length;
-        avgHeightRef.current = avgHeight;
+      if (count > 0) {
+        const newAvgHeight = totalHeight / count;
+        if (newAvgHeight > 20 && newAvgHeight < 1000) {
+          avgHeightRef.current = newAvgHeight;
+        }
       }
     }
   }, [containerRef, messageCount]);
 
-  // 可见消息列表 - 使用 useMemo 优化
+  // 使用 ResizeObserver 监听高度变化（如图片加载完成）
+  useEffect(() => {
+    if (!shouldUseLazyLoading || !containerRef.current) return;
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => {
+        updateAvgHeight(); // 高度变化时重新计算
+      });
+      const container = containerRef.current;
+      observer.observe(container);
+    }
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, [shouldUseLazyLoading, updateAvgHeight, containerRef]);
+
+  // 可见消息列表
   const visibleMessages = useMemo(() => {
     if (!shouldUseLazyLoading) return messages;
     const safeEnd = Math.min(visibleRange.end, messageCount);
@@ -211,7 +225,7 @@ const useVirtualList = (
     return messages.slice(safeStart, safeEnd);
   }, [messages, visibleRange, shouldUseLazyLoading, messageCount]);
 
-  // 优化的可见范围更新
+  // 更新可见范围，带有节流机制
   const updateVisibleRange = useCallback(() => {
     const elem = containerRef.current;
     if (!elem || !shouldUseLazyLoading) return;
@@ -219,6 +233,7 @@ const useVirtualList = (
     const { scrollTop, clientHeight } = elem;
     const avgHeight = avgHeightRef.current;
     const visibleItemsCount = Math.ceil(clientHeight / avgHeight);
+    // 增加缓冲区，确保即使高度估计不准确也不会漏掉消息
     const buffer = Math.ceil(visibleItemsCount * LAZY_LOAD_BUFFER_SCREENS);
     const firstVisibleIndex = Math.max(0, Math.floor(scrollTop / avgHeight));
 
@@ -476,8 +491,14 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
             ? visibleRange.start + index
             : index;
           const key = message.id || `msg-fallback-${realIndex}`;
+          // 动态计算动画延迟并通过内联样式应用
+          const animationDelay = Math.min(index * 0.03, 0.5);
           return (
-            <div key={key} className="chat-messages__item-wrapper">
+            <div
+              key={key}
+              className="chat-messages__item-wrapper"
+              style={{ animationDelay: `${animationDelay}s` }}
+            >
               <MemoizedMessageItem message={message as Message} />
             </div>
           );
