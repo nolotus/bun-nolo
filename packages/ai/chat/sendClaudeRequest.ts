@@ -148,7 +148,7 @@ export const sendClaudeRequest = async ({
                   content: "Loading...",
                   role: "assistant",
                   cybotId,
-                  controller,
+                  isStreaming: true,
                 })
               );
               break;
@@ -163,7 +163,7 @@ export const sendClaudeRequest = async ({
                     content: accumulatedContent,
                     role: "assistant",
                     cybotId: cybotConfig.id,
-                    controller,
+                    isStreaming: true,
                   })
                 );
               }

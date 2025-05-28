@@ -298,7 +298,7 @@ export const sendCommonChatRequest = async ({
         content: contentBuffer,
         role: "assistant",
         cybotKey: cybotConfig.dbKey,
-        controller,
+        isStreaming: true,
       })
     );
 
@@ -360,7 +360,7 @@ export const sendCommonChatRequest = async ({
           content: contentBuffer,
           role: "assistant",
           cybotKey: cybotConfig.dbKey,
-          controller,
+          isStreaming: true,
         })
       );
 
@@ -564,7 +564,7 @@ export const sendCommonChatRequest = async ({
               content: contentBuffer,
               role: "assistant",
               cybotKey: cybotConfig.dbKey,
-              controller,
+              isStreaming: true,
             })
           );
         }
@@ -606,7 +606,7 @@ export const sendCommonChatRequest = async ({
                 content: contentBuffer,
                 role: "assistant",
                 cybotKey: cybotConfig.dbKey,
-                controller,
+                isStreaming: true,
               })
             );
           }
@@ -634,7 +634,7 @@ export const sendCommonChatRequest = async ({
         content: contentBuffer,
         role: "assistant",
         cybotKey: cybotConfig.dbKey,
-        controller,
+        isStreaming: true,
       })
     );
     finalizeStream(

@@ -7,7 +7,7 @@ export interface Message {
   dbKey: string; // Database key for the message
   cybotId?: string; // ID of the AI bot
   cybotKey?: string; // Key of the AI bot
-  controller?: AbortController; // Controller for aborting requests
+  isStreaming?: boolean; // Flag for streaming responses
 }
 
 type MessageRole = "user" | "system" | "assistant";
