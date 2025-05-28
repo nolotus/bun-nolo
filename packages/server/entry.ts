@@ -5,7 +5,7 @@ import { tasks } from "./tasks";
 import { API_ENDPOINTS, API_VERSION } from "database/config";
 import { handleChatRequest } from "./handlers/chatHandler";
 import { handleFetchWebpage } from "./handlers/fetchWebpageHandler";
-import { handleReadSingle } from "database/server/read"; // 导入 read 处理函数
+import { databaseRoutes } from "./databaseRoutes";
 
 const startTasks = () => {
   tasks.forEach(({ interval, task }) => {
@@ -14,7 +14,7 @@ const startTasks = () => {
   });
 };
 
-// 定义路由配置，参考 Bun.serve 示例
+// 定义主要的路由配置
 const apiRoutes = {
   // 静态路由
   "/api/status": new Response("OK"),
@@ -54,27 +54,32 @@ const apiRoutes = {
   // /api/fetch-webpage 路由，支持 POST
   "/api/fetch-webpage": {
     POST: handleFetchWebpage,
+    OPTIONS: () =>
+      new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          "Access-Control-Max-Age": "86400",
+        },
+      }),
   },
 
-  // 动态路由：处理数据库 read 操作，支持 /api/v1/db/read/:id
-  [`${API_ENDPOINTS.DATABASE}/read/:id`]: (req) => {
-    const { id } = req.params; // 直接从 req.params 获取 id，Bun 会自动解析
-    req.params = { id }; // 将 id 存入 req.params 以供处理函数使用
-    return handleReadSingle(req, {}); // 传递 req 和一个空对象，实际可能需要调整
-  },
+  // 整合 databaseRoutes
+  ...databaseRoutes,
 };
 
 // 以下是 httpServer 和 startServer 的代码
 const httpServer = () => {
   console.log("isProduction:", isProduction);
 
-  // 启动 http 服务器
   Bun.serve({
     routes: apiRoutes, // 使用定义好的路由配置
     idleTimeout: 60,
     port: 80,
     hostname: "0.0.0.0",
-    fetch: handleRequest, // 其他未匹配的路由仍然通过 handleRequest 处理
+    fetch: handleRequest, // 保持原有 fetch，不做全局改动
     websocket: {
       async message(ws, message) {
         ws.send(`Received`);
