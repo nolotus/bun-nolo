@@ -6,6 +6,7 @@ import { selectTheme } from "app/theme/themeSlice";
 import { CopyIcon, BookmarkIcon, TrashIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import { Tooltip } from "render/web/ui/Tooltip";
+import Avatar from "render/web/ui/Avatar";
 import toast from "react-hot-toast";
 import copyToClipboard from "utils/clipboard";
 import { useAuth } from "auth/hooks/useAuth";
@@ -21,7 +22,6 @@ import {
 } from "create/space/spaceSlice";
 import { Link } from "react-router-dom";
 import { titleCybotId } from "core/init";
-import { Avatar } from "render/ui";
 import { useFetchData } from "app/hooks";
 import { FaFileExcel, FaFileWord, FaFilePdf } from "react-icons/fa";
 import Editor from "create/editor/Editor";
@@ -285,7 +285,11 @@ export const MessageItem = ({ message }) => {
       <div className="msg-inner">
         {/* 头像区域 */}
         <div className="avatar-area">
-          <Avatar name={isRobot ? "robot" : "user"} />
+          <Avatar
+            name={isRobot ? robotData?.name || "Robot" : "User"}
+            type={isRobot ? "robot" : "user"}
+            size="medium"
+          />
           {actions.length > 0 && (
             <div className="actions">
               {actions.map(({ icon: Icon, handler, tooltip, danger }, i) => (
@@ -533,7 +537,7 @@ export const MessageItem = ({ message }) => {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .msg-image, .file-item, .action-btn {
+          .msg-image, .file-item, .action-btn, .actions {
             transition: none;
           }
           .msg-image:hover, .file-item:hover {
@@ -544,3 +548,5 @@ export const MessageItem = ({ message }) => {
     </div>
   );
 };
+
+export default MessageItem;

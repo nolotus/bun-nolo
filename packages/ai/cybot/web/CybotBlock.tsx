@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import Button from "render/web/ui/Button";
 import { Dialog } from "render/web/ui/Dialog";
 import { Tooltip } from "render/web/ui/Tooltip";
+import Avatar from "render/web/ui/Avatar";
 import EditCybot from "ai/cybot/web/EditCybot";
 import { Cybot } from "../types";
 import { remove } from "database/dbSlice";
@@ -67,9 +68,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
   return (
     <div id={`cybot-${item.id}`} className="cybot-block" tabIndex={0}>
       <div className="cybot-block__header">
-        <div className="cybot-block__avatar">
-          {item.name?.[0]?.toUpperCase() || "?"}
-        </div>
+        <Avatar name={item.name} type="cybot" size="large" />
 
         <div className="cybot-block__info">
           <div className="cybot-block__title-row">
@@ -185,33 +184,10 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           box-shadow: 0 0 0 3px ${theme.primaryGhost};
         }
 
-        .cybot-block__meta {
-          display: flex;
-          align-items: flex-start;
-          gap: ${theme.space[2]};
-          justify-content: flex-end;
-          flex-shrink: 0;
-        }
-
         .cybot-block__header {
           display: flex;
           gap: ${theme.space[3]};
           align-items: flex-start;
-        }
-
-        .cybot-block__avatar {
-          width: ${theme.space[10]};
-          height: ${theme.space[10]};
-          border-radius: ${theme.space[3]};
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1rem;
-          font-weight: 600;
-          flex-shrink: 0;
-          background: ${theme.primaryGhost};
-          color: ${theme.primary};
-          border: 1px solid ${theme.primary}20;
         }
 
         .cybot-block__info {
@@ -247,6 +223,29 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           line-height: 1.4;
         }
 
+        .cybot-block__meta {
+          display: flex;
+          align-items: flex-start;
+          gap: ${theme.space[2]};
+          justify-content: flex-end;
+          flex-shrink: 0;
+        }
+
+        .cybot-block__price-tag {
+          font-size: 0.75rem;
+          color: ${theme.textTertiary};
+          padding: ${theme.space[1]} ${theme.space[2]};
+          background: ${theme.backgroundTertiary};
+          border-radius: ${theme.space[1]};
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          font-weight: 500;
+          font-variant-numeric: tabular-nums;
+          border: 1px solid ${theme.borderLight};
+        }
+
         .cybot-block__tags {
           display: flex;
           gap: ${theme.space[1]};
@@ -273,21 +272,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           color: ${theme.primary};
           background: ${theme.primaryGhost};
           border-color: ${theme.primary}30;
-        }
-
-        .cybot-block__price-tag {
-          font-size: 0.75rem;
-          color: ${theme.textTertiary};
-          padding: ${theme.space[1]} ${theme.space[2]};
-          background: ${theme.backgroundTertiary};
-          border-radius: ${theme.space[1]};
-          white-space: nowrap;
-          display: flex;
-          align-items: center;
-          gap: 3px;
-          font-weight: 500;
-          font-variant-numeric: tabular-nums;
-          border: 1px solid ${theme.borderLight};
         }
 
         .cybot-block__description {
@@ -326,12 +310,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             border-radius: ${theme.space[2]};
           }
 
-          .cybot-block__avatar {
-            width: ${theme.space[9]};
-            height: ${theme.space[9]};
-            font-size: 0.875rem;
-          }
-
           .cybot-block__title {
             font-size: 0.9375rem;
             line-height: 1.4;
@@ -368,12 +346,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             gap: ${theme.space[2]};
           }
 
-          .cybot-block__avatar {
-            width: ${theme.space[8]};
-            height: ${theme.space[8]};
-            font-size: 0.8125rem;
-          }
-
           .cybot-block__title {
             font-size: 0.875rem;
             line-height: 1.4;
@@ -408,6 +380,18 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           .cybot-block__actions {
             flex-wrap: wrap;
             gap: ${theme.space[1]};
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .cybot-block {
+            transition: none;
+          }
+          .cybot-block:hover {
+            transform: none;
+          }
+          .cybot-block--exit {
+            transition: none;
           }
         }
       `}</style>
