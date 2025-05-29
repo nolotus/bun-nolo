@@ -400,15 +400,6 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
     ) {
       const instant = prevMessageCount === 0 || messagesAddedCount > 1;
       scrollToBottom(instant);
-      console.log(
-        `MessagesList (LayoutEffect): Auto-scrolled to bottom (instant: ${instant}) due to ${
-          prevMessageCount === 0
-            ? "initial load"
-            : newMessagesAppended
-              ? "new messages"
-              : "initial load completed"
-        }.`
-      );
     }
     prevDisplayMessagesLengthRef.current = currentMessageCount;
   }, [displayMessages, autoScroll, scrollToBottom, isLoadingInitial]);
