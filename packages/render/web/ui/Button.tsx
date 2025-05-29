@@ -1,4 +1,3 @@
-// render/web/ui/Button.tsx
 import React from "react";
 import { useTheme } from "app/theme";
 
@@ -81,6 +80,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
             outline: none;
+            /* 新拟物风格基础 */
+            box-shadow: 
+              3px 3px 6px rgba(0, 0, 0, 0.1),
+              -3px -3px 6px rgba(255, 255, 255, 0.1),
+              0 0 0 1px ${theme.border};
+            background-clip: padding-box;
           }
 
           /* 尺寸 */
@@ -125,96 +130,159 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
           .btn-text {
             line-height: 1;
+            /* 文字轻微阴影增强立体感 */
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
           }
 
-          /* Primary 样式 - 极简设计 */
+          /* Primary 样式 - 新拟物设计 */
           .btn-primary {
             background: ${theme.primary};
             color: white;
+            /* 顶部高光效果 */
+            box-shadow: 
+              3px 3px 6px rgba(0, 0, 0, 0.15),
+              -3px -3px 6px rgba(255, 255, 255, 0.1),
+              0 0 0 1px ${theme.border},
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
           }
 
           .btn-primary:hover:not(.btn-disabled) {
-            background: ${theme.primaryLight || theme.primary};
             transform: translateY(-1px);
+            box-shadow: 
+              4px 4px 8px rgba(0, 0, 0, 0.18),
+              -4px -4px 8px rgba(255, 255, 255, 0.12),
+              0 0 0 1px ${theme.border},
+              inset 0 1px 0 rgba(255, 255, 255, 0.25);
           }
 
           .btn-primary:active:not(.btn-disabled) {
-            transform: translateY(0);
+            transform: translateY(1px);
             transition-duration: 0.05s;
+            /* 按下时的凹陷效果 */
+            box-shadow: 
+              inset 2px 2px 4px rgba(0, 0, 0, 0.2),
+              inset -2px -2px 4px rgba(255, 255, 255, 0.05),
+              0 0 0 1px ${theme.border};
           }
 
-          /* Secondary 样式 - 去除边框，使用背景色差异 */
+          /* Secondary 样式 - 新拟物设计 */
           .btn-secondary {
             background: ${theme.backgroundTertiary};
             color: ${theme.text};
+            box-shadow: 
+              3px 3px 6px rgba(0, 0, 0, 0.1),
+              -3px -3px 6px rgba(255, 255, 255, 0.1),
+              0 0 0 1px ${theme.border};
           }
 
           .btn-secondary:hover:not(.btn-disabled) {
             background: ${theme.backgroundSelected || theme.backgroundHover};
             transform: translateY(-1px);
+            box-shadow: 
+              4px 4px 8px rgba(0, 0, 0, 0.12),
+              -4px -4px 8px rgba(255, 255, 255, 0.08),
+              0 0 0 1px ${theme.border};
           }
 
           .btn-secondary:active:not(.btn-disabled) {
-            background: ${theme.backgroundTertiary};
-            transform: translateY(0);
+            transform: translateY(1px);
             transition-duration: 0.05s;
+            box-shadow: 
+              inset 2px 2px 4px rgba(0, 0, 0, 0.15),
+              inset -2px -2px 4px rgba(255, 255, 255, 0.05),
+              0 0 0 1px ${theme.border};
           }
 
-          /* Ghost 样式 - 极简透明按钮 */
+          /* Ghost 样式 - 保持扁平但增强层次 */
           .btn-ghost {
             background: transparent;
             color: ${theme.textSecondary};
+            box-shadow: none;
+            border: 1px solid ${theme.border};
           }
 
           .btn-ghost:hover:not(.btn-disabled) {
             background: ${theme.backgroundHover};
             color: ${theme.text};
+            box-shadow: 
+              0 2px 4px rgba(0, 0, 0, 0.05),
+              inset 0 0 0 1px ${theme.border};
           }
 
           .btn-ghost:active:not(.btn-disabled) {
             background: ${theme.backgroundSelected || theme.backgroundHover};
             transition-duration: 0.05s;
+            box-shadow: 
+              inset 0 2px 4px rgba(0, 0, 0, 0.05),
+              inset 0 0 0 1px ${theme.border};
           }
 
           /* Danger 样式 */
           .btn-danger {
             background: ${theme.error};
             color: white;
+            box-shadow: 
+              3px 3px 6px rgba(0, 0, 0, 0.15),
+              -3px -3px 6px rgba(255, 255, 255, 0.1),
+              0 0 0 1px ${theme.border},
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
           }
 
           .btn-danger:hover:not(.btn-disabled) {
             filter: brightness(1.1);
             transform: translateY(-1px);
+            box-shadow: 
+              4px 4px 8px rgba(0, 0, 0, 0.18),
+              -4px -4px 8px rgba(255, 255, 255, 0.12),
+              0 0 0 1px ${theme.border},
+              inset 0 1px 0 rgba(255, 255, 255, 0.25);
           }
 
           .btn-danger:active:not(.btn-disabled) {
             filter: brightness(0.95);
-            transform: translateY(0);
+            transform: translateY(1px);
             transition-duration: 0.05s;
+            box-shadow: 
+              inset 2px 2px 4px rgba(0, 0, 0, 0.2),
+              inset -2px -2px 4px rgba(255, 255, 255, 0.05),
+              0 0 0 1px ${theme.border};
           }
 
           /* 禁用状态 */
           .btn-disabled {
-            opacity: 0.4;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none !important;
             filter: none !important;
+            box-shadow: none !important;
           }
 
-          /* 焦点状态 - 极简无障碍设计 */
+          /* 焦点状态 - 新拟物风格 */
           .btn:focus-visible:not(.btn-disabled) {
-            box-shadow: 0 0 0 2px ${theme.background}, 0 0 0 4px ${theme.primary};
+            box-shadow: 
+              0 0 0 2px ${theme.background}, 
+              0 0 0 4px ${theme.primary},
+              3px 3px 6px rgba(0, 0, 0, 0.1),
+              -3px -3px 6px rgba(255, 255, 255, 0.1);
           }
 
           /* 触摸设备优化 */
           @media (hover: none) and (pointer: coarse) {
             .btn:hover:not(.btn-disabled) {
               transform: none;
+              box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.1),
+                -3px -3px 6px rgba(255, 255, 255, 0.1),
+                0 0 0 1px ${theme.border};
             }
             
             .btn:active:not(.btn-disabled) {
               transform: scale(0.98);
               transition-duration: 0.1s;
+              box-shadow: 
+                inset 2px 2px 4px rgba(0, 0, 0, 0.15),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.05),
+                0 0 0 1px ${theme.border};
             }
           }
 
