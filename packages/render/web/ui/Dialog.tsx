@@ -77,16 +77,19 @@ export const Dialog: React.FC<DialogProps> = ({
           min-height: 200px;
           max-height: 92vh;
           border-radius: ${theme.space[4]};
-          border: 1px solid ${theme.border};
           overflow: hidden;
+          /* 新拟物风格阴影 */
           box-shadow: 
-            0 25px 100px -12px rgba(0, 0, 0, 0.15),
-            0 12px 40px -8px rgba(0, 0, 0, 0.08),
+            0 10px 30px rgba(0, 0, 0, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.2) inset,
             0 0 0 1px ${theme.border};
           margin: ${theme.space[4]};
           box-sizing: border-box;
           position: relative;
           animation: dialog-enter 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+          /* 微妙的3D效果 */
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background-clip: padding-box;
         }
 
         @keyframes dialog-enter {
@@ -114,6 +117,7 @@ export const Dialog: React.FC<DialogProps> = ({
           min-height: 72px;
           box-sizing: border-box;
           position: relative;
+          background: rgba(255, 255, 255, 0.02);
         }
 
         .dialog-header.with-divider::after {
@@ -130,6 +134,8 @@ export const Dialog: React.FC<DialogProps> = ({
             ${theme.border} 80%,
             transparent
           );
+          /* 添加轻微凸起效果 */
+          box-shadow: 0 1px 1px rgba(255, 255, 255, 0.1);
         }
 
         .dialog-title {
@@ -142,6 +148,8 @@ export const Dialog: React.FC<DialogProps> = ({
           text-overflow: ellipsis;
           white-space: nowrap;
           max-width: calc(100% - 60px);
+          /* 文字轻微阴影增强立体感 */
+          text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
         }
 
         .dialog-close {
@@ -151,7 +159,7 @@ export const Dialog: React.FC<DialogProps> = ({
           width: 36px;
           height: 36px;
           padding: 0;
-          background: none;
+          background: ${theme.background};
           border: none;
           border-radius: ${theme.space[2]};
           cursor: pointer;
@@ -159,16 +167,28 @@ export const Dialog: React.FC<DialogProps> = ({
           transition: all 0.15s ease;
           flex-shrink: 0;
           touch-action: manipulation;
+          /* 新拟物按钮效果 */
+          box-shadow: 
+            3px 3px 6px rgba(0, 0, 0, 0.1),
+            -3px -3px 6px rgba(255, 255, 255, 0.1),
+            0 0 0 1px ${theme.border};
         }
 
         .dialog-close:hover {
           background: ${theme.backgroundHover};
           color: ${theme.textSecondary};
+          /* 悬停时凹陷效果 */
+          box-shadow: 
+            inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+            inset -2px -2px 4px rgba(255, 255, 255, 0.1);
         }
 
         .dialog-close:active {
           transform: scale(0.95);
           background: ${theme.backgroundSelected};
+          box-shadow: 
+            inset 3px 3px 5px rgba(0, 0, 0, 0.2),
+            inset -3px -3px 5px rgba(255, 255, 255, 0.05);
         }
 
         .dialog-close:focus-visible {
@@ -183,21 +203,28 @@ export const Dialog: React.FC<DialogProps> = ({
           -webkit-overflow-scrolling: touch;
           box-sizing: border-box;
           width: 100%;
+          padding: ${theme.space[5]} ${theme.space[6]};
+          /* 内容区域轻微内凹效果 */
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+          background: rgba(255, 255, 255, 0.01);
         }
 
         .dialog-content::-webkit-scrollbar {
-          width: 4px;
+          width: 6px;
         }
 
         .dialog-content::-webkit-scrollbar-track {
           background: transparent;
           margin: ${theme.space[2]} 0;
+          border-radius: 3px;
         }
 
         .dialog-content::-webkit-scrollbar-thumb {
           background: ${theme.border};
-          border-radius: 2px;
+          border-radius: 3px;
           transition: background 0.15s ease;
+          /* 滚动条立体效果 */
+          box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.2);
         }
 
         .dialog-content::-webkit-scrollbar-thumb:hover {
@@ -333,8 +360,11 @@ export const Dialog: React.FC<DialogProps> = ({
 
         @media (hover: none) and (pointer: coarse) {
           .dialog-close:hover {
-            background: transparent;
+            background: ${theme.background};
             color: ${theme.textTertiary};
+            box-shadow: 
+              3px 3px 6px rgba(0, 0, 0, 0.1),
+              -3px -3px 6px rgba(255, 255, 255, 0.1);
           }
         }
 
@@ -360,8 +390,8 @@ export const Dialog: React.FC<DialogProps> = ({
         @media (min-resolution: 2dppx) {
           .dialog-container {
             box-shadow: 
-              0 25px 100px -12px rgba(0, 0, 0, 0.2),
-              0 12px 40px -8px rgba(0, 0, 0, 0.12),
+              0 15px 50px -12px rgba(0, 0, 0, 0.15),
+              0 0 0 1px rgba(255, 255, 255, 0.2) inset,
               0 0 0 1px ${theme.border};
           }
         }

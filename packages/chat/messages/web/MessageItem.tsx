@@ -33,8 +33,8 @@ import Editor from "create/editor/Editor";
 import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { BaseModal } from "render/web/ui/BaseModal";
 import { selectShowThinking } from "setting/settingSlice";
-// 假设用户偏好设置存储在settingSlice中
 
+// 获取内容字符串，包含思考内容（如果需要显示）
 const getContentString = (content, thinkContent = "", showThinking = false) => {
   let baseContent = "";
 
@@ -56,13 +56,12 @@ const getContentString = (content, thinkContent = "", showThinking = false) => {
     baseContent = JSON.stringify(content);
   }
 
-  // 如果用户希望看到思考内容，且有thinkContent，则拼接到前面
   return showThinking && thinkContent
     ? `**思考内容**:\n${thinkContent}\n\n**回答**:\n${baseContent}`
     : baseContent;
 };
 
-// 优化的思考内容组件
+// 思考内容组件
 const ThinkingContent = ({ thinkContent, theme }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -209,7 +208,7 @@ const ThinkingContent = ({ thinkContent, theme }) => {
   );
 };
 
-// 内部 MessageText 组件 - 移除了思考内容的硬编码显示
+// 消息文本组件
 const MessageText = ({ content, role }) => {
   const slateData = useMemo(() => markdownToSlate(content), [content]);
 
@@ -224,7 +223,7 @@ const MessageText = ({ content, role }) => {
   );
 };
 
-// 内部 MessageContent 组件
+// 消息内容组件
 const MessageContent = ({ content, thinkContent, role }) => {
   const theme = useAppSelector(selectTheme);
   const showThinking = useAppSelector(selectShowThinking);
@@ -234,7 +233,6 @@ const MessageContent = ({ content, thinkContent, role }) => {
   const isSelf = role === "self";
   const isRobot = role !== "self";
 
-  // 简化的文件类型配置
   const FILE_TYPES = {
     excel: { icon: FaFileExcel, color: "#1D6F42" },
     docx: { icon: FaFileWord, color: "#2B579A" },
@@ -264,12 +262,10 @@ const MessageContent = ({ content, thinkContent, role }) => {
   return (
     <>
       <div className="msg-content">
-        {/* 思考内容区域 - 仅对机器人回复显示 */}
         {showThinking && isRobot && thinkContent && (
           <ThinkingContent thinkContent={thinkContent} theme={theme} />
         )}
 
-        {/* 主要内容 */}
         {content ? (
           typeof content === "string" ? (
             <MessageText content={content} role={role} />
@@ -312,7 +308,6 @@ const MessageContent = ({ content, thinkContent, role }) => {
         )}
       </div>
 
-      {/* 文件预览 */}
       {previewingFile && (
         <DocxPreviewDialog
           isOpen={true}
@@ -322,7 +317,6 @@ const MessageContent = ({ content, thinkContent, role }) => {
         />
       )}
 
-      {/* 图片预览 */}
       {selectedImage && (
         <BaseModal
           isOpen={true}
@@ -341,6 +335,7 @@ const MessageContent = ({ content, thinkContent, role }) => {
   );
 };
 
+// 消息项组件，折叠完全交给用户控制，移动端点击显示actions
 export const MessageItem = ({ message }) => {
   const theme = useAppSelector(selectTheme);
   const currentUserId = useAppSelector(selectCurrentUserId);
@@ -349,23 +344,13 @@ export const MessageItem = ({ message }) => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation("chat");
   const { user } = useAuth();
-  const [isShort, setIsShort] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false); // 折叠状态
+  const [showActions, setShowActions] = useState(false); // 是否显示操作按钮
 
   // 解构message对象，确保所有字段都存在
   const { content, thinkContent, userId, dbKey, cybotKey, role } =
     message || {};
 
-  // 使用useEffect设置isShort，避免提前返回影响Hooks
-  useEffect(() => {
-    if (content) {
-      const str = getContentString(content, thinkContent, showThinking);
-      setIsShort(str.split("\n").length <= 2 && str.length <= 80);
-    } else {
-      setIsShort(false);
-    }
-  }, [content, thinkContent, showThinking]);
-
-  // 如果没有内容，仍然继续渲染，只是显示空内容
   const isSelf = role === "user" && (currentUserId === userId || !cybotKey);
   const isRobot = role !== "user";
   const type = isSelf ? "self" : isRobot ? "robot" : "other";
@@ -373,6 +358,7 @@ export const MessageItem = ({ message }) => {
   const { data: robotData } =
     cybotKey && isRobot ? useFetchData(cybotKey) : { data: null };
 
+  // 复制消息内容
   const handleCopy = () => {
     const text = content
       ? getContentString(content, thinkContent, showThinking)
@@ -384,6 +370,7 @@ export const MessageItem = ({ message }) => {
     });
   };
 
+  // 删除消息
   const handleDelete = () => {
     if (dbKey) {
       dispatch(deleteMessage(dbKey));
@@ -393,6 +380,7 @@ export const MessageItem = ({ message }) => {
     }
   };
 
+  // 保存消息内容
   const handleSave = async () => {
     if (!user?.userId) return toast.error(t("userNotAuthenticated"));
 
@@ -454,6 +442,17 @@ export const MessageItem = ({ message }) => {
     }
   };
 
+  // 切换折叠状态
+  const handleToggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  // 切换操作按钮显示状态（用于移动端点击消息显示actions）
+  const handleToggleActions = () => {
+    setShowActions(!showActions);
+  };
+
+  // 操作按钮列表，折叠按钮始终显示，不依赖内容长度
   const actions = [
     { icon: CopyIcon, handler: handleCopy, tooltip: t("copyContent") },
     !isSelf && {
@@ -467,11 +466,18 @@ export const MessageItem = ({ message }) => {
       tooltip: t("deleteMessage"),
       danger: true,
     },
+    {
+      icon: isCollapsed ? ChevronRightIcon : ChevronDownIcon,
+      handler: handleToggleCollapse,
+      tooltip: isCollapsed ? t("expandMessage") : t("collapseMessage"),
+    },
   ].filter(Boolean);
 
-  // 即使没有内容，也渲染完整结构
   return (
-    <div className={`msg ${type} ${isShort ? "short" : ""}`}>
+    <div
+      className={`msg ${type} ${isCollapsed ? "collapsed" : ""}`}
+      onClick={handleToggleActions}
+    >
       <div className="msg-inner">
         {/* 头像区域 */}
         <div className="avatar-area">
@@ -481,7 +487,7 @@ export const MessageItem = ({ message }) => {
             size="medium"
           />
           {actions.length > 0 && (
-            <div className="actions">
+            <div className={`actions ${showActions ? "show" : ""}`}>
               {actions.map(({ icon: Icon, handler, tooltip, danger }, i) => (
                 <Tooltip key={i} content={tooltip} placement="top">
                   <button
@@ -516,6 +522,7 @@ export const MessageItem = ({ message }) => {
         .msg {
           padding: 0 ${theme.space[4]};
           margin-bottom: ${theme.space[4]};
+          cursor: pointer; /* 添加光标样式，提示用户可以点击 */
         }
 
         .msg-inner {
@@ -567,8 +574,13 @@ export const MessageItem = ({ message }) => {
           backdrop-filter: blur(8px);
         }
 
+        /* 桌面端悬停显示，移动端点击显示 */
         .msg:hover .actions {
           opacity: 0.8;
+        }
+
+        .msg .actions.show {
+          opacity: 0.8; /* 点击后显示操作按钮 */
         }
 
         .action-btn {
@@ -708,11 +720,25 @@ export const MessageItem = ({ message }) => {
           border-radius: ${theme.space[2]};
         }
 
-        /* 短消息优化 */
-        .msg.short .msg-body.self,
-        .msg.short .msg-body.other {
-          padding: ${theme.space[3]};
-          border-radius: 12px;
+        /* 折叠样式 */
+        .msg.collapsed .msg-content {
+          max-height: 60px;
+          overflow: hidden;
+          position: relative;
+          transition: max-height 0.3s ease;
+        }
+
+        .msg.collapsed .msg-content::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 20px;
+          background: linear-gradient(
+            transparent,
+            ${theme.backgroundSecondary}
+          );
         }
 
         /* 响应式简化 */
@@ -724,8 +750,9 @@ export const MessageItem = ({ message }) => {
           .msg.other .msg-inner {
             max-width: 95%;
           }
-          .actions {
-            opacity: 0.6;
+          /* 移动端不默认显示actions，通过点击切换 */
+          .msg:hover .actions {
+            opacity: 0; /* 移动端悬停不显示 */
           }
           .msg-image {
             max-height: 280px;
@@ -758,6 +785,9 @@ export const MessageItem = ({ message }) => {
           .msg-image:hover,
           .file-item:hover {
             transform: none;
+          }
+          .msg.collapsed .msg-content {
+            transition: none;
           }
         }
       `}</style>

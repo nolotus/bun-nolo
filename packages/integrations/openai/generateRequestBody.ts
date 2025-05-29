@@ -152,7 +152,11 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
   };
 
   // Provider-specific options
-  if (["google", "openrouter", "xai", "openai"].includes(providerName)) {
+  if (
+    ["google", "openrouter", "xai", "openai", "deepinfra"].includes(
+      providerName
+    )
+  ) {
     bodyData.stream_options = { include_usage: true };
   }
   if (providerName === "xai" && model.includes("grok3-mini")) {
