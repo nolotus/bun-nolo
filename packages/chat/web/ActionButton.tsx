@@ -7,8 +7,8 @@ import {
 } from "chat/dialog/dialogSlice";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
+import { useCallback, useState, useMemo } from "react";
 import type React from "react";
-import { useCallback, useState } from "react";
 
 interface SendButtonProps {
   onClick: () => void;
@@ -30,7 +30,7 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
     toast.success(t("allMessagesAborted"), { duration: 3000 });
   }, [dispatch, t]);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     if (canAbort) {
       handleAbortAllMessages();
     } else {
@@ -38,35 +38,49 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 500);
     }
-  };
+  }, [canAbort, handleAbortAllMessages, onClick]);
+
+  // 动态样式计算
+  const buttonStyles = useMemo(() => {
+    const baseStyles = {
+      height: "40px",
+      borderRadius: canAbort ? "20px" : "12px",
+      background: canAbort ? theme.backgroundHover : theme.primary,
+      cursor: disabled && !canAbort ? "not-allowed" : "pointer",
+      transform: disabled
+        ? "scale(0.95)"
+        : isHovered
+          ? "scale(1.03)"
+          : "scale(1)",
+      boxShadow: `0 4px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px ${theme.border}, inset 2px 2px 4px rgba(255, 255, 255, 0.2)`,
+    };
+
+    return {
+      width: canAbort ? "40px" : "110px",
+      ...baseStyles,
+    };
+  }, [canAbort, theme, disabled, isHovered]);
+
+  const iconTransform = useMemo(() => {
+    if (canAbort) return "scale(1)";
+    return isHovered ? "translateX(3px) scale(1.1)" : "translateX(0) scale(1)";
+  }, [canAbort, isHovered]);
 
   return (
     <>
-      <style>
+      <style precedence="medium">
         {`
-          .neumorphic-button {
+          .send-button {
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 40px;
-            width: ${canAbort ? "40px" : "110px"};
-            border-radius: ${canAbort ? "20px" : "12px"};
             border: none;
-            cursor: ${disabled ? "not-allowed" : "pointer"};
             font-weight: 600;
             outline: none;
             overflow: hidden;
             padding: 0;
             transition: all 0.2s ease;
-            background: ${canAbort ? theme.backgroundHover : theme.primary};
-            box-shadow: 
-              0 4px 8px rgba(0, 0, 0, 0.15),
-              0 0 0 1px ${theme.border},
-              inset 2px 2px 4px rgba(255, 255, 255, 0.2);
-            transform: ${
-              disabled ? "scale(0.95)" : isHovered ? "scale(1.03)" : "scale(1)"
-            };
           }
 
           .send-state {
@@ -96,23 +110,8 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           .send-icon {
             position: absolute;
             transition: transform 0.2s ease;
-            transform: ${
-              isHovered && !canAbort
-                ? "translateX(3px) scale(1.1)"
-                : "translateX(0) scale(1)"
-            };
+            transform: ${iconTransform};
             color: ${canAbort ? theme.textSecondary : "#FFFFFF"};
-          }
-
-          /* 简单的飞机起飞动画 */
-          ${
-            isAnimating && !canAbort
-              ? `
-            .send-icon {
-              animation: takeOff 0.5s ease forwards;
-            }
-          `
-              : ""
           }
 
           .stop-state {
@@ -154,63 +153,42 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             transition: transform 0.2s ease;
           }
 
-          .neumorphic-button:disabled {
+          .send-button:disabled {
             opacity: 0.6;
             filter: saturate(0.5);
             transform: scale(0.95);
           }
 
-          .neumorphic-button:active:not(:disabled) {
+          .send-button:active:not(:disabled) {
             transform: scale(0.97);
-            box-shadow: 
-              inset 2px 2px 4px rgba(0, 0, 0, 0.1),
-              0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
           }
 
-          /* 动画定义 */
           @keyframes takeOff {
-            0% {
-              transform: translateX(0) scale(1);
-            }
-            50% {
-              transform: translateX(10px) scale(1.1);
-            }
-            100% {
-              transform: translateX(20px) scale(0.8);
-              opacity: 0;
-            }
+            0% { transform: translateX(0) scale(1); }
+            50% { transform: translateX(10px) scale(1.1); }
+            100% { transform: translateX(20px) scale(0.8); opacity: 0; }
           }
 
           @keyframes pulse {
-            0% {
-              transform: scale(0.8);
-              opacity: 0.5;
-            }
-            50% {
-              transform: scale(1.05);
-              opacity: 0.3;
-            }
-            100% {
-              transform: scale(0.8);
-              opacity: 0.5;
-            }
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.05); opacity: 0.3; }
+            100% { transform: scale(0.8); opacity: 0.5; }
           }
 
           @media (max-width: 768px) {
-            .neumorphic-button {
-              height: 40px;
-              width: 40px;
-              border-radius: 12px;
+            .send-button {
+              width: 40px !important;
+              border-radius: 12px !important;
             }
-            .send-text {
-              display: none;
-            }
+            .send-text { display: none; }
           }
         `}
       </style>
 
       <button
-        className="neumorphic-button"
+        className="send-button"
+        style={buttonStyles}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -220,7 +198,17 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
         <div className="send-state">
           <span className="send-text">{t("send")}</span>
           <div className="send-icon-container">
-            <PaperAirplaneIcon size={16} className="send-icon" />
+            <PaperAirplaneIcon
+              size={16}
+              className="send-icon"
+              style={
+                isAnimating && !canAbort
+                  ? {
+                      animation: "takeOff 0.5s ease forwards",
+                    }
+                  : undefined
+              }
+            />
           </div>
         </div>
         <div className="stop-state">
