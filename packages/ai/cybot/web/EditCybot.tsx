@@ -1,5 +1,4 @@
-// EditCybot.tsx
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
@@ -241,13 +240,11 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
         : initialValues.tags || "",
       useServerProxy: initialValues.useServerProxy ?? true,
       isPublic: initialValues.isPublic ?? false,
-      temperature: initialValues.temperature ?? DEFAULT_TEMPERATURE,
-      top_p: initialValues.top_p ?? DEFAULT_TOP_P,
-      frequency_penalty:
-        initialValues.frequency_penalty ?? DEFAULT_FREQUENCY_PENALTY,
-      presence_penalty:
-        initialValues.presence_penalty ?? DEFAULT_PRESENCE_PENALTY,
-      max_tokens: initialValues.max_tokens ?? DEFAULT_MAX_TOKENS,
+      temperature: initialValues.temperature,
+      top_p: initialValues.top_p,
+      frequency_penalty: initialValues.frequency_penalty,
+      presence_penalty: initialValues.presence_penalty,
+      max_tokens: initialValues.max_tokens,
     });
     setApiSource(
       initialValues.apiKey || initialValues.provider === "ollama"

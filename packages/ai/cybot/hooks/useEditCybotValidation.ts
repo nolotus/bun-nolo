@@ -5,15 +5,7 @@ import { DataType } from "create/types";
 import { patch, write } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { createCybotKey } from "database/keys";
-import {
-  createCybotSchema,
-  FormData,
-  DEFAULT_TEMPERATURE,
-  DEFAULT_TOP_P,
-  DEFAULT_FREQUENCY_PENALTY,
-  DEFAULT_PRESENCE_PENALTY,
-  DEFAULT_MAX_TOKENS,
-} from "../createCybotSchema";
+import { createCybotSchema, FormData } from "../createCybotSchema";
 
 const extractCybotId = (path: string) => {
   const matches = path.match(/cybot-[^-]+-(\w+)/);
@@ -53,13 +45,12 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
         : initialValues.tags || "",
       references: initialValues.references || [],
       smartReadEnabled: initialValues.smartReadEnabled ?? false,
-      temperature: initialValues.temperature ?? DEFAULT_TEMPERATURE,
-      top_p: initialValues.top_p ?? DEFAULT_TOP_P,
-      frequency_penalty:
-        initialValues.frequency_penalty ?? DEFAULT_FREQUENCY_PENALTY,
-      presence_penalty:
-        initialValues.presence_penalty ?? DEFAULT_PRESENCE_PENALTY,
-      max_tokens: initialValues.max_tokens ?? DEFAULT_MAX_TOKENS,
+      // 使用 initialValues 的值，不强制设置默认值
+      temperature: initialValues.temperature,
+      top_p: initialValues.top_p,
+      frequency_penalty: initialValues.frequency_penalty,
+      presence_penalty: initialValues.presence_penalty,
+      max_tokens: initialValues.max_tokens,
     },
   });
 
@@ -82,11 +73,24 @@ export const useEditCybotValidation = (initialValues: ExtendedFormData) => {
       : [],
     references: data.references || [],
     smartReadEnabled: data.smartReadEnabled || false,
-    temperature: data.temperature ?? DEFAULT_TEMPERATURE,
-    top_p: data.top_p ?? DEFAULT_TOP_P,
-    frequency_penalty: data.frequency_penalty ?? DEFAULT_FREQUENCY_PENALTY,
-    presence_penalty: data.presence_penalty ?? DEFAULT_PRESENCE_PENALTY,
-    max_tokens: data.max_tokens ?? DEFAULT_MAX_TOKENS,
+    // 如果表单数据有值，则用表单数据；否则用初始值
+    temperature:
+      data.temperature !== undefined
+        ? data.temperature
+        : initialValues.temperature,
+    top_p: data.top_p !== undefined ? data.top_p : initialValues.top_p,
+    frequency_penalty:
+      data.frequency_penalty !== undefined
+        ? data.frequency_penalty
+        : initialValues.frequency_penalty,
+    presence_penalty:
+      data.presence_penalty !== undefined
+        ? data.presence_penalty
+        : initialValues.presence_penalty,
+    max_tokens:
+      data.max_tokens !== undefined
+        ? data.max_tokens
+        : initialValues.max_tokens,
   });
 
   const onSubmit = async (data: FormData) => {
