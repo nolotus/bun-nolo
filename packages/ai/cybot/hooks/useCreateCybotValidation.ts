@@ -1,4 +1,3 @@
-// ai/cybot/hooks/useCreateCybotValidation
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAppDispatch } from "app/hooks";
@@ -8,7 +7,7 @@ import { useAuth } from "auth/hooks/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { createCybotKey } from "database/keys";
 import { ulid } from "ulid";
-import { createCybotSchema, FormData } from "../createCybotSchema";
+import { createCybotSchema, FormData } from "../common/createCybotSchema";
 
 export const useCreateCybotValidation = () => {
   const dispatch = useAppDispatch();
@@ -34,6 +33,12 @@ export const useCreateCybotValidation = () => {
       tags: "",
       references: [], // 添加 references 默认值，类型由 FormData 定义
       smartReadEnabled: false, // 新增 smartReadEnabled 默认值
+      // 不为模型参数设置默认值，保持可选
+      temperature: undefined,
+      top_p: undefined,
+      frequency_penalty: undefined,
+      presence_penalty: undefined,
+      max_tokens: undefined,
     },
   });
 
@@ -61,7 +66,12 @@ export const useCreateCybotValidation = () => {
       dialogCount: 0,
       messageCount: 0,
       tokenCount: 0,
-      tags: data.tags ? data.tags.split(",").map((tag) => tag.trim()) : [],
+      tags: data.tags
+        ? data.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        : [],
       references: data.references || [], // 确保 references 被包含
       smartReadEnabled: data.smartReadEnabled || false, // 确保 smartReadEnabled 被包含
     };
