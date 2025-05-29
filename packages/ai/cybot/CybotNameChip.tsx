@@ -1,4 +1,3 @@
-// CybotNameChip.tsx
 import { XIcon } from "@primer/octicons-react";
 import { useFetchData } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
@@ -6,7 +5,8 @@ import React from "react";
 import { Dialog as EditDialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { useTheme } from "app/theme";
-import QuickEditCybot from "./web/QuickEditCybot";
+import CybotForm from "./web/CybotForm";
+import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
 // 定义组件的 props 接口
 interface CybotNameChipProps {
@@ -91,7 +91,13 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
             onClose={closeEdit}
             title={`Edit ${cybot.name || "Cybot"}`}
           >
-            <QuickEditCybot initialValues={cybot} onClose={closeEdit} />
+            <CybotForm
+              mode="edit"
+              initialValues={cybot}
+              onClose={closeEdit}
+              CreateIcon={PlusIcon}
+              EditIcon={SyncIcon}
+            />
           </EditDialog>
         )}
 
