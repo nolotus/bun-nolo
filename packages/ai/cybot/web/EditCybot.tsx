@@ -5,190 +5,23 @@ import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import TabsNav from "render/web/ui/TabsNav";
 import { FormField } from "web/form/FormField";
-import { Input } from "web/form/Input";
-import { NumberInput } from "web/form/NumberInput";
 import TextArea from "web/form/Textarea";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { SyncIcon } from "@primer/octicons-react";
-import { MdRefresh, MdInfoOutline } from "react-icons/md";
 import Button from "render/web/ui/Button";
+import { NumberInput } from "web/form/NumberInput";
 import PasswordInput from "web/form/PasswordInput";
-import AllModelsSelector from "ai/llm/AllModelsSelector";
-import { TagsInput } from "web/form/TagsInput";
+import { Input } from "web/form/Input";
 import ReferencesSelector from "./ReferencesSelector";
 import ToolSelector from "ai/tools/ToolSelector";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 import { useOllamaSettings } from "../hooks/useOllamaSettings";
-import {
-  DEFAULT_TEMPERATURE,
-  DEFAULT_TOP_P,
-  DEFAULT_FREQUENCY_PENALTY,
-  DEFAULT_PRESENCE_PENALTY,
-  DEFAULT_MAX_TOKENS,
-} from "../common/createCybotSchema";
-import { Slider } from "web/form/Slider";
-import { Tooltip } from "render/web/ui/Tooltip";
 import { useCybotValidation } from "../common/useCybotFormValidation";
+import BasicInfoTab from "./BasicInfoTab";
+import ModelParameters from "./ModelParameters";
 
-interface EditCybotProps {
-  initialValues: {
-    name: string;
-    prompt: string;
-    provider: string;
-    model: string;
-    apiKey?: string;
-    useServerProxy: boolean;
-    isPublic: boolean;
-    greeting?: string;
-    introduction?: string;
-    customProviderUrl?: string;
-    inputPrice?: number;
-    outputPrice?: number;
-    tags?: string[] | string;
-    references?: any[];
-    tools?: string[];
-    smartReadEnabled?: boolean;
-    temperature?: number;
-    top_p?: number;
-    frequency_penalty?: number;
-    presence_penalty?: number;
-    max_tokens?: number;
-  };
-  onClose: () => void;
-}
-
-// 模型参数配置
-const PARAMETER_CONFIGS = [
-  {
-    key: "temperature",
-    min: 0,
-    max: 2,
-    step: 0.1,
-    default: DEFAULT_TEMPERATURE,
-    format: (val: number) => val.toFixed(1),
-  },
-  {
-    key: "topP",
-    min: 0,
-    max: 1,
-    step: 0.1,
-    default: DEFAULT_TOP_P,
-    format: (val: number) => val.toFixed(1),
-  },
-  {
-    key: "frequencyPenalty",
-    min: -2,
-    max: 2,
-    step: 0.1,
-    default: DEFAULT_FREQUENCY_PENALTY,
-    format: (val: number) => val.toFixed(1),
-  },
-  {
-    key: "presencePenalty",
-    min: -2,
-    max: 2,
-    step: 0.1,
-    default: DEFAULT_PRESENCE_PENALTY,
-    format: (val: number) => val.toFixed(1),
-  },
-  {
-    key: "maxTokens",
-    min: 1,
-    max: 16384,
-    step: 100,
-    default: DEFAULT_MAX_TOKENS,
-    format: (val: number) => val.toString(),
-  },
-];
-
-// 参数键映射（翻译键 -> 表单键）
-const PARAMETER_FORM_KEYS = {
-  temperature: "temperature",
-  topP: "top_p",
-  frequencyPenalty: "frequency_penalty",
-  presencePenalty: "presence_penalty",
-  maxTokens: "max_tokens",
-};
-
-// 模型参数组件
-const ModelParameters: React.FC<any> = ({
-  register,
-  watch,
-  setValue,
-  t,
-  theme,
-}) => {
-  const handleResetParameters = useCallback(() => {
-    PARAMETER_CONFIGS.forEach((config) => {
-      const formKey = PARAMETER_FORM_KEYS[config.key];
-      setValue(formKey, config.default);
-      register(formKey, { value: config.default });
-    });
-  }, [setValue, register]);
-
-  return (
-    <div className="model-parameters">
-      <div className="parameters-header">
-        <h3>{t("modelParameters")}</h3>
-        <Button
-          variant="ghost"
-          size="small"
-          icon={<MdRefresh size={16} />}
-          onClick={handleResetParameters}
-          type="button"
-        >
-          {t("resetToDefaults")}
-        </Button>
-      </div>
-
-      <div className="parameters-grid">
-        {PARAMETER_CONFIGS.map((config) => {
-          const formKey = PARAMETER_FORM_KEYS[config.key];
-          return (
-            <div key={config.key} className="parameter-item">
-              <div className="parameter-label">
-                <span className="label-text">{t(config.key)}</span>
-                <Tooltip
-                  content={t(`${config.key}Help`)}
-                  placement="right"
-                  delay={200}
-                >
-                  <MdInfoOutline size={16} className="info-icon" />
-                </Tooltip>
-              </div>
-
-              <div className="parameter-control">
-                <Slider
-                  value={watch(formKey) ?? config.default}
-                  onChange={(value) => {
-                    setValue(formKey, value);
-                    register(formKey, { value });
-                  }}
-                  min={config.min}
-                  max={config.max}
-                  step={config.step}
-                  showValue
-                  ariaLabel={t(config.key)}
-                />
-                <div className="parameter-info">
-                  <span className="parameter-range">
-                    {config.min} - {config.max}
-                  </span>
-                  <span className="parameter-current">
-                    {config.format(watch(formKey) ?? config.default)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
+const EditCybot = ({ initialValues, onClose }) => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
   const space = useAppSelector(selectCurrentSpace);
@@ -231,7 +64,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     { id: 4, label: t("advancedSettings") },
   ];
 
-  // 初始化表单
   useEffect(() => {
     reset({
       ...initialValues,
@@ -263,7 +95,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     []
   );
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data) => {
     await onSubmit({
       ...data,
       prompt: data.prompt || "",
@@ -279,63 +111,15 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     switch (activeTab) {
       case 0:
         return (
-          <div className="tab-content-wrapper">
-            <FormField
-              label={t("cybotName")}
-              required
-              error={errors.name?.message}
-              {...commonProps}
-            >
-              <Input
-                {...register("name")}
-                defaultValue={initialValues.name}
-                placeholder={t("enterCybotName")}
-              />
-            </FormField>
-
-            <FormField
-              label={t("prompt")}
-              error={errors.prompt?.message}
-              help={t("promptHelp")}
-              {...commonProps}
-            >
-              <TextArea
-                {...register("prompt")}
-                value={watch("prompt")}
-                onChange={(e) => setValue("prompt", e.target.value)}
-                placeholder={t("enterPrompt")}
-                rows={6}
-              />
-            </FormField>
-
-            <FormField
-              label={t("tags")}
-              error={errors.tags?.message}
-              help={t("tagsHelp")}
-              {...commonProps}
-            >
-              <TagsInput
-                name="tags"
-                control={control}
-                placeholder={t("enterTags")}
-              />
-            </FormField>
-
-            <FormField
-              label={t("model")}
-              required
-              error={errors.model?.message}
-              {...commonProps}
-            >
-              <AllModelsSelector
-                watch={watch}
-                setValue={setValue}
-                register={register}
-                defaultModel={watch("model") || initialValues.model}
-                t={t}
-              />
-            </FormField>
-          </div>
+          <BasicInfoTab
+            t={t}
+            errors={errors}
+            register={register}
+            control={control}
+            watch={watch}
+            setValue={setValue}
+            initialValues={initialValues}
+          />
         );
 
       case 1:
@@ -633,7 +417,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
           gap: ${theme.space?.[6] || "24px"};
         }
 
-        /* 模型参数样式 */
         .model-parameters {
           margin-top: ${theme.space?.[12] || "48px"};
           padding-top: ${theme.space?.[8] || "32px"};
@@ -710,7 +493,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
           font-family: 'SF Mono', Consolas, 'Roboto Mono', monospace;
         }
 
-        /* 移动端优化 */
         @media (max-width: 640px) {
           .tab-content-wrapper {
             padding: ${theme.space?.[6] || "24px"} ${theme.space?.[4] || "16px"};
@@ -746,7 +528,6 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
           }
         }
 
-        /* 滚动条 */
         .form-body::-webkit-scrollbar {
           width: 4px;
         }
