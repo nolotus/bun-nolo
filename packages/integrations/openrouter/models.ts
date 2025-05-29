@@ -98,4 +98,14 @@ export const openrouterModels = [
     contextWindow: 163840,
     supportsTool: true,
   },
+  {
+    name: "anthropic/claude-3.7-sonnet:thinking",
+    displayName: "Anthropic: Claude 3.7 Sonnet",
+    hasVision: true,
+    price: { input: 3 * 8, output: 15 * 8 },
+    maxOutputTokens: 200000,
+    contextWindow: 200000,
+    supportsTool: true,
+    pricePerImage: 4.8 * 8,
+  },
 ];

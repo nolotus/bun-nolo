@@ -96,7 +96,7 @@ const createFetchFulfilledHandler =
   (state: MessageSliceState, action: { payload: { messages: Message[] } }) => {
     state[loadingKey] = false;
     if (action.payload?.messages?.length > 0) {
-      // 使用 upsertMany，它会根据 id 更新或插入，天然处理了与 store 中现有数据的“去重”
+      // 使用 upsertMany，它会根据 id 更新或插入，天然处理了与 store 中现有数据的"去重"
       messagesAdapter.upsertMany(state.msgs, action.payload.messages);
     }
   };
@@ -108,7 +108,17 @@ export const messageSlice = createSliceWithThunks({
   reducers: (create) => ({
     // --- Simple Reducers ---
     messageStreaming: create.reducer<Message>((state, action) => {
-      messagesAdapter.upsertOne(state.msgs, action.payload);
+      const { id, content, thinkContent, role, cybotKey, isStreaming, dbKey } =
+        action.payload;
+      messagesAdapter.upsertOne(state.msgs, {
+        id,
+        content: content || "",
+        thinkContent: thinkContent || "", // 存储思考内容
+        role,
+        cybotKey,
+        isStreaming: isStreaming !== undefined ? isStreaming : true,
+        dbKey,
+      });
       state.firstStreamProcessed = true;
     }),
     resetMsgs: create.reducer((state) => {

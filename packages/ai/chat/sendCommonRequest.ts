@@ -204,6 +204,43 @@ function appendTextChunk(
   return updatedContentBuffer;
 }
 
+// --- 辅助函数：分离 <think> 内容和普通内容 ---
+function separateThinkContent(contentBuffer: any[]) {
+  let thinkContent = "";
+  let normalContent = "";
+
+  const combinedText = contentBuffer
+    .filter((c) => c.type === "text" && c.text)
+    .map((c) => c.text)
+    .join("");
+
+  // 改进正则表达式，支持多个 <think> 标签，忽略大小写
+  const thinkMatches = combinedText.match(/<think\b[^>]*>(.*?)<\/think>/gis);
+  if (thinkMatches) {
+    // 提取所有 <think> 内容并合并
+    thinkContent = thinkMatches
+      .map((match) => match.replace(/<think\b[^>]*>|<\/think>/gi, ""))
+      .join("\n\n");
+    // 移除所有 <think> 标签内容，留下普通内容
+    normalContent = combinedText
+      .replace(/<think\b[^>]*>.*?<\/think>/gis, "")
+      .trim();
+  } else {
+    normalContent = combinedText;
+  }
+
+  console.log(
+    "Think content extracted:",
+    thinkContent.substring(0, 50) + (thinkContent.length > 50 ? "..." : "")
+  );
+  console.log(
+    "Normal content extracted:",
+    normalContent.substring(0, 50) + (normalContent.length > 50 ? "..." : "")
+  );
+
+  return { thinkContent, normalContent };
+}
+
 // --- 辅助函数：完成流处理 ---
 function finalizeStream(
   finalContentBuffer: any[],
@@ -217,10 +254,11 @@ function finalizeStream(
 ) {
   const { dispatch } = thunkApi;
 
-  const finalContent =
-    finalContentBuffer.length > 0
-      ? finalContentBuffer
-      : [{ type: "text", text: "" }];
+  // 分离 <think> 和普通内容
+  const { thinkContent, normalContent } =
+    separateThinkContent(finalContentBuffer);
+
+  const finalContent = normalContent || "";
 
   const finalUsageData =
     totalUsage &&
@@ -233,7 +271,8 @@ function finalizeStream(
     messageStreamEnd({
       id: messageId,
       dbKey: msgKey,
-      content: finalContent,
+      content: finalContent, // 普通内容，移除 <think> 部分
+      thinkContent: thinkContent, // 单独存储 <think> 内容
       role: "assistant",
       cybotKey: cybotConfig.dbKey,
       usage: finalUsageData,
@@ -244,9 +283,7 @@ function finalizeStream(
     dispatch(updateTokens({ dialogId, usage: totalUsage, cybotConfig }));
   }
 
-  const hasMeaningfulText = finalContent.some(
-    (c) => c.type === "text" && c.text?.trim()
-  );
+  const hasMeaningfulText = finalContent.trim() !== "";
   if (hasMeaningfulText) {
     dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
   }
@@ -557,11 +594,15 @@ export const sendCommonChatRequest = async ({
         const contentChunk = delta.content || "";
         if (contentChunk) {
           contentBuffer = appendTextChunk(contentBuffer, contentChunk);
+          // 在流式更新时也分离 <think> 内容（可选）
+          const { thinkContent, normalContent } =
+            separateThinkContent(contentBuffer);
           dispatch(
             messageStreaming({
               id: messageId,
               dbKey: msgKey,
-              content: contentBuffer,
+              content: normalContent, // 普通内容
+              thinkContent: thinkContent, // 思考内容
               role: "assistant",
               cybotKey: cybotConfig.dbKey,
               isStreaming: true,

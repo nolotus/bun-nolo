@@ -14,6 +14,7 @@ interface SettingState {
   currentServer: string;
   defaultSpaceId?: string | null; // Allow null if it can be unset
   syncServers: string[];
+  showThinking: boolean; // 新增：是否显示思考过程，默认为true
   // Add other settings fields as needed
   [key: string]: any; // Allow other potential settings fields
 }
@@ -23,6 +24,7 @@ const initialState: SettingState = {
   currentServer: isProduction ? "https://cybot.one" : "https://cybot.run",
   defaultSpaceId: undefined, // Start with undefined or null
   syncServers: ["https://nolotus.com", "https://us.nolotus.com"],
+  showThinking: true, // 新增：默认显示思考过程
 };
 
 const createSliceWithThunks = buildCreateSlice({
@@ -68,8 +70,9 @@ const settingSlice = createSliceWithThunks({
             state.defaultSpaceId =
               loadedSettings.defaultSpaceId ?? state.defaultSpaceId; // Use nullish coalescing
             state.isAutoSync = loadedSettings.isAutoSync ?? state.isAutoSync;
-
             state.syncServers = loadedSettings.syncServers ?? state.syncServers;
+            state.showThinking =
+              loadedSettings.showThinking ?? state.showThinking; // 新增：处理思考设置
             // Add any other settings fields here
           } else {
             // Handle case where settings were not found (e.g., keep initial state)
@@ -102,6 +105,11 @@ const settingSlice = createSliceWithThunks({
       // Default ports might not always be correct, but okay for now
       const port = isLocal ? ":80" : ""; // Often standard ports are implicit
       state.currentServer = `${protocol}://${hostname}${port}`;
+    },
+
+    // 新增：快速切换思考显示的reducer
+    toggleShowThinking: (state) => {
+      state.showThinking = !state.showThinking;
     },
 
     // --- Modified setSettings Thunk ---
@@ -178,8 +186,12 @@ const settingSlice = createSliceWithThunks({
 });
 
 // Export actions
-export const { addHostToCurrentServer, getSettings, setSettings } =
-  settingSlice.actions;
+export const {
+  addHostToCurrentServer,
+  getSettings,
+  setSettings,
+  toggleShowThinking,
+} = settingSlice.actions;
 
 // Export selectors
 export const selectCurrentServer = (state: NoloRootState): string =>
@@ -193,6 +205,10 @@ export const selectSyncServers = (state: NoloRootState): string[] =>
 export const selectDefaultSpaceId = (
   state: NoloRootState
 ): string | null | undefined => state.settings.defaultSpaceId;
+
+// 新增：思考显示设置的selector
+export const selectShowThinking = (state: NoloRootState): boolean =>
+  state.settings.showThinking;
 
 // Export reducer
 export default settingSlice.reducer;
