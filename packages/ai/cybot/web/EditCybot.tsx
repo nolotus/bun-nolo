@@ -17,7 +17,6 @@ import AllModelsSelector from "ai/llm/AllModelsSelector";
 import { TagsInput } from "web/form/TagsInput";
 import ReferencesSelector from "./ReferencesSelector";
 import ToolSelector from "ai/tools/ToolSelector";
-import { useEditCybotValidation } from "../hooks/useEditCybotValidation";
 import useModelPricing from "../hooks/useModelPricing";
 import { useProxySetting } from "../hooks/useProxySetting";
 import { useOllamaSettings } from "../hooks/useOllamaSettings";
@@ -27,9 +26,10 @@ import {
   DEFAULT_FREQUENCY_PENALTY,
   DEFAULT_PRESENCE_PENALTY,
   DEFAULT_MAX_TOKENS,
-} from "../createCybotSchema";
+} from "../common/createCybotSchema";
 import { Slider } from "web/form/Slider";
 import { Tooltip } from "render/web/ui/Tooltip";
+import { useCybotValidation } from "../common/useCybotFormValidation";
 
 interface EditCybotProps {
   initialValues: {
@@ -212,7 +212,7 @@ const EditCybot: React.FC<EditCybotProps> = ({ initialValues, onClose }) => {
     useServerProxy,
     isPublic,
     onSubmit,
-  } = useEditCybotValidation(initialValues);
+  } = useCybotValidation(initialValues);
 
   const { apiSource, setApiSource, isOllama } = useOllamaSettings(
     provider,
