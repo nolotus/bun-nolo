@@ -1,10 +1,10 @@
-// createRoutes.ts
 import { CreateRoutePaths } from "./routePaths";
 
 // Web imports
-import CreateCybot from "ai/cybot/web/CreateCybot";
-import CreateCustomCybot from "ai/cybot/web/CreateCustomCybot"; // 假设 CreateCustomCybot.tsx 在同一目录下
+import CybotForm from "ai/cybot/web/CybotForm";
+import CreateCustomCybot from "ai/cybot/web/CreateCustomCybot"; // 假设暂时保留 CreateCustomCybot
 import Dashboard from "./Dashboard";
+import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
 export const createRoutes = [
   {
@@ -13,10 +13,12 @@ export const createRoutes = [
   },
   {
     path: CreateRoutePaths.CREATE_CYBOT,
-    element: <CreateCybot />,
+    element: (
+      <CybotForm mode="create" CreateIcon={PlusIcon} EditIcon={SyncIcon} />
+    ),
   },
   {
     path: CreateRoutePaths.CREATE_CUSTOM_CYBOT,
-    element: <CreateCustomCybot />,
+    element: <CreateCustomCybot />, // 暂时保留原组件，可根据需求替换为 CybotForm
   },
 ];

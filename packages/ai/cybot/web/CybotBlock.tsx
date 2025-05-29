@@ -11,9 +11,10 @@ import Button from "render/web/ui/Button";
 import { Dialog } from "render/web/ui/Dialog";
 import { Tooltip } from "render/web/ui/Tooltip";
 import Avatar from "render/web/ui/Avatar";
-import EditCybot from "ai/cybot/web/EditCybot";
+import CybotForm from "ai/cybot/web/CybotForm";
 import { Cybot } from "../types";
 import { remove } from "database/dbSlice";
+import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
 import {
   CommentDiscussionIcon,
@@ -152,7 +153,13 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           title={`${t("edit")} ${item.name || t("cybot")}`}
           size="large"
         >
-          <EditCybot initialValues={item} onClose={closeEdit} />
+          <CybotForm
+            mode="edit"
+            initialValues={item}
+            onClose={closeEdit}
+            CreateIcon={PlusIcon}
+            EditIcon={SyncIcon}
+          />
         </Dialog>
       )}
 
