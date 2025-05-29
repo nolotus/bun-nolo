@@ -39,16 +39,6 @@ export const openrouterModels = [
     speed: 80,
   },
   {
-    name: "deepseek/deepseek-r1:free",
-    displayName: "DeepSeek R1",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 164000,
-    contextWindow: 164000,
-    supportsTool: true,
-    speed: 10,
-  },
-  {
     name: "openai/o4-mini-high",
     displayName: "OpenAI: o4 Mini High",
     hasVision: false,
@@ -98,5 +88,14 @@ export const openrouterModels = [
     contextWindow: 200000,
     supportsTool: true,
     pricePerImage: 4.8 * 8,
+  },
+  {
+    name: "deepseek/deepseek-r1-0528:free",
+    displayName: "DeepSeek: R1 0528 (free)",
+    hasVision: false,
+    price: { input: 1, output: 1 },
+    maxOutputTokens: 163840,
+    contextWindow: 163840,
+    supportsTool: true,
   },
 ];
