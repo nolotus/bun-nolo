@@ -1,19 +1,23 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { Dialog } from "render/web/ui/Dialog"; // 假设 Dialog 组件路径
-import { SyncIcon } from "@primer/octicons-react";
+import { Dialog } from "render/web/ui/Dialog";
+import {
+  SyncIcon,
+  PlusIcon,
+  SearchIcon,
+  CheckIcon,
+} from "@primer/octicons-react";
 import { useUserData } from "database/hooks/useUserData";
 import { DataType } from "create/types";
-import { CommentDiscussionIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 
 interface AddCybotDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddCybot: (cybotId: string) => void; // 回调函数，用于处理添加 Cybot
-  queryUserId: string; // 用于加载 Cybot 列表的用户 ID
-  limit?: number; // 可选的加载数量限制
+  onAddCybot: (cybotIds: string | string[]) => void;
+  queryUserId: string;
+  limit?: number;
 }
 
 const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
@@ -23,10 +27,10 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
   queryUserId,
   limit = 50,
 }) => {
-  const { t } = useTranslation("chat"); // 修改为 chat 命名空间，与 DialogInfoPanel 一致
+  const { t } = useTranslation("chat");
   const theme = useTheme();
+  const [selectedCybots, setSelectedCybots] = useState<Set<string>>(new Set());
 
-  // 使用 useUserData 钩子加载 Cybot 列表
   const {
     loading,
     data: cybots = [],
@@ -35,32 +39,46 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
     clearCache,
   } = useUserData(DataType.CYBOT, queryUserId, limit);
 
-  // 处理重新加载 Cybot 列表
   const handleReload = useCallback(async () => {
     clearCache();
     await reload();
   }, [clearCache, reload]);
 
-  // 处理添加 Cybot 的逻辑，移除 toast 通知
+  // 保持原来简单的添加逻辑
   const handleAddCybot = useCallback(
     (cybotId: string) => {
-      onAddCybot(cybotId); // 调用传入的回调函数
-      onClose(); // 关闭对话框
+      onAddCybot(cybotId);
+      onClose();
     },
     [onAddCybot, onClose]
   );
 
-  // 加载状态显示
+  // 新增批量选择功能
+  const toggleSelection = useCallback((cybotId: string) => {
+    setSelectedCybots((prev) => {
+      const newSet = new Set(prev);
+      newSet.has(cybotId) ? newSet.delete(cybotId) : newSet.add(cybotId);
+      return newSet;
+    });
+  }, []);
+
+  const addSelected = useCallback(() => {
+    if (selectedCybots.size > 0) {
+      const ids = Array.from(selectedCybots);
+      onAddCybot(ids.length === 1 ? ids[0] : ids);
+      onClose();
+    }
+  }, [selectedCybots, onAddCybot, onClose]);
+
   const renderLoading = () => (
-    <div className="loading-container" style={{ color: theme.textSecondary }}>
-      <SyncIcon className="icon-spin" size={16} />
-      <span className="loading-text">{t("LoadingCybots")}</span>
+    <div className="state-container loading">
+      <SyncIcon className="spin-icon" size={24} />
+      <span>{t("LoadingCybots")}</span>
     </div>
   );
 
-  // 错误状态显示
   const renderError = () => (
-    <div className="error-container" style={{ color: theme.textDanger }}>
+    <div className="state-container error">
       <p>{t("FailedToLoadCybots")}</p>
       <Button onClick={handleReload} size="small">
         {t("Retry")}
@@ -68,62 +86,103 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
     </div>
   );
 
-  // 空数据状态显示
   const renderEmpty = () => (
-    <p className="no-cybots-text" style={{ color: theme.textTertiary }}>
-      {t("NoCybots")}
-    </p>
+    <div className="state-container empty">
+      <SearchIcon size={24} />
+      <span>{t("NoCybots")}</span>
+    </div>
   );
 
-  // Cybot 列表显示
   const renderCybots = () => (
-    <div className="cybots-grid">
-      {cybots.map((item) => (
-        <div key={item.id} className="cybot-block" tabIndex={0}>
-          <div className="header">
-            <div className="avatar">{item.name?.[0]?.toUpperCase() || "?"}</div>
-            <div className="info">
-              <div className="title-row">
-                <h3 className="title">{item.name || t("Unnamed")}</h3>
-                {(item.inputPrice || item.outputPrice) && (
-                  <div className="price-tag">
-                    {(item.inputPrice || 0).toFixed(2)}/
-                    {(item.outputPrice || 0).toFixed(2)}
-                  </div>
-                )}
-              </div>
-              <div className="tags">
-                {item.model && <span className="tag">{item.model}</span>}
-                {item.tags?.map((tag, index) => (
-                  <span key={index} className="tag">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="description">
-            {item.introduction || t("NoDescription")}
-          </div>
-          <div className="actions">
+    <div className="cybot-container">
+      {selectedCybots.size > 0 && (
+        <div className="batch-bar">
+          <span>已选择 {selectedCybots.size} 个 Cybot</span>
+          <div className="batch-actions">
+            <Button onClick={addSelected} size="small" variant="primary">
+              添加选中
+            </Button>
             <Button
-              icon={<CommentDiscussionIcon size={16} />}
-              onClick={() => handleAddCybot(item.dbKey || item.id)}
-              size="medium"
-              style={{ flex: 1 }}
+              onClick={() => setSelectedCybots(new Set())}
+              size="small"
+              variant="ghost"
             >
-              {t("AddCybot")}
+              清空
             </Button>
           </div>
         </div>
-      ))}
+      )}
+
+      <div className="cybot-grid">
+        {cybots.map((item) => {
+          const cybotId = item.dbKey || item.id;
+          const isSelected = selectedCybots.has(cybotId);
+
+          return (
+            <div
+              key={item.id}
+              className={`cybot-card ${isSelected ? "selected" : ""}`}
+            >
+              <div className="card-header">
+                <button
+                  className="select-btn"
+                  onClick={() => toggleSelection(cybotId)}
+                >
+                  <div className={`checkbox ${isSelected ? "checked" : ""}`}>
+                    {isSelected && <CheckIcon size={12} />}
+                  </div>
+                </button>
+
+                <div className="card-info">
+                  <div className="avatar">
+                    {item.name?.[0]?.toUpperCase() || "?"}
+                  </div>
+                  <div className="info">
+                    <h3 className="title">{item.name || t("Unnamed")}</h3>
+                    <div className="tags">
+                      {item.model && <span className="tag">{item.model}</span>}
+                      {item.tags?.slice(0, 2).map((tag, index) => (
+                        <span key={index} className="tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card-actions">
+                  {item.outputPrice && (
+                    <span className="price">
+                      ${item.outputPrice.toFixed(2)}
+                    </span>
+                  )}
+                  <button
+                    className="add-btn"
+                    onClick={() => handleAddCybot(cybotId)}
+                  >
+                    <PlusIcon size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="description">
+                {item.introduction || t("NoDescription")}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={t("AddCybot")}>
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t("AddCybot")}
+      size="large"
+    >
       <div className="add-cybot-content">
-        <p>{t("SelectCybotToAdd")}</p>
         {error
           ? renderError()
           : loading && !cybots.length
@@ -133,196 +192,237 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
               : renderCybots()}
       </div>
 
-      <style>
-        {`
-          .add-cybot-content {
-            display: flex;
+      <style>{`
+        .add-cybot-content {
+          padding: ${theme.space[4]};
+        }
+
+        .state-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: ${theme.space[4]};
+          padding: ${theme.space[12]} ${theme.space[4]};
+          text-align: center;
+          min-height: 300px;
+          color: ${theme.textSecondary};
+        }
+
+        .state-container.loading { color: ${theme.primary}; }
+        .state-container.error { color: ${theme.error}; }
+
+        .spin-icon {
+          animation: spin 1.2s linear infinite;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        .cybot-container {
+          display: flex;
+          flex-direction: column;
+          gap: ${theme.space[4]};
+        }
+
+        .batch-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: ${theme.space[3]} ${theme.space[4]};
+          background: ${theme.primaryGhost};
+          border-radius: ${theme.space[3]};
+          border: 1px solid ${theme.primary}30;
+          font-size: 14px;
+          font-weight: 500;
+          color: ${theme.primary};
+        }
+
+        .batch-actions {
+          display: flex;
+          gap: ${theme.space[2]};
+        }
+
+        .cybot-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: ${theme.space[4]};
+        }
+
+        .cybot-card {
+          background: ${theme.backgroundSecondary};
+          border: 1px solid ${theme.border};
+          border-radius: 12px;
+          padding: ${theme.space[4]};
+          transition: all 0.2s ease;
+          display: flex;
+          flex-direction: column;
+          gap: ${theme.space[3]};
+        }
+
+        .cybot-card:hover {
+          transform: translateY(-2px);
+          border-color: ${theme.primary}40;
+          box-shadow: 0 8px 32px -8px ${theme.shadowLight};
+        }
+
+        .cybot-card.selected {
+          border-color: ${theme.primary};
+          background: ${theme.primaryGhost}20;
+        }
+
+        .card-header {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[3]};
+        }
+
+        .select-btn {
+          background: none;
+          border: none;
+          padding: ${theme.space[1]};
+          cursor: pointer;
+          border-radius: 6px;
+        }
+
+        .select-btn:hover {
+          background: ${theme.backgroundHover};
+        }
+
+        .checkbox {
+          width: 18px;
+          height: 18px;
+          border: 2px solid ${theme.border};
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${theme.background};
+          transition: all 0.2s ease;
+        }
+
+        .checkbox.checked {
+          background: ${theme.primary};
+          border-color: ${theme.primary};
+          color: white;
+        }
+
+        .card-info {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[3]};
+          flex: 1;
+          min-width: 0;
+        }
+
+        .avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          font-weight: 600;
+          background: ${theme.primaryGhost}40;
+          color: ${theme.primary};
+          flex-shrink: 0;
+        }
+
+        .info {
+          min-width: 0;
+        }
+
+        .title {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0 0 ${theme.space[1]} 0;
+          color: ${theme.text};
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .tags {
+          display: flex;
+          gap: ${theme.space[1]};
+          flex-wrap: wrap;
+        }
+
+        .tag {
+          font-size: 11px;
+          color: ${theme.textSecondary};
+          background: ${theme.backgroundTertiary};
+          padding: 2px ${theme.space[2]};
+          border-radius: 6px;
+          border: 1px solid ${theme.border};
+        }
+
+        .card-actions {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[2]};
+          flex-shrink: 0;
+        }
+
+        .price {
+          font-size: 11px;
+          font-weight: 600;
+          color: ${theme.primary};
+          background: ${theme.primaryGhost};
+          padding: ${theme.space[1]} ${theme.space[2]};
+          border-radius: 12px;
+          font-family: monospace;
+        }
+
+        .add-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          background: ${theme.primary};
+          color: white;
+          border: none;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .add-btn:hover {
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px -2px ${theme.primary}40;
+        }
+
+        .description {
+          font-size: 14px;
+          line-height: 1.5;
+          color: ${theme.textSecondary};
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+
+        @media (max-width: 768px) {
+          .cybot-grid {
+            grid-template-columns: 1fr;
+            gap: ${theme.space[3]};
+          }
+
+          .batch-bar {
             flex-direction: column;
-            gap: 16px;
-            max-height: 60vh;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: ${theme.border} transparent;
-          }
-          .add-cybot-content::-webkit-scrollbar {
-            width: 6px;
-          }
-          .add-cybot-content::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .add-cybot-content::-webkit-scrollbar-thumb {
-            background-color: ${theme.border};
-            border-radius: 10px;
-          }
-          .add-cybot-content::-webkit-scrollbar-thumb:hover {
-            background-color: ${theme.borderHover};
-          }
-          .loading-container {
+            gap: ${theme.space[3]};
             text-align: center;
-            padding: 1.5rem;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
+          }
+
+          .batch-actions {
             justify-content: center;
-            gap: 0.5rem;
           }
-          .icon-spin {
-            animation: spin 1s linear infinite;
-          }
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
-          }
-          .error-container {
-            text-align: center;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-          }
-          .no-cybots-text {
-            font-style: italic;
-            text-align: center;
-            padding: 1.5rem;
-          }
-          .cybots-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            padding: 0.8rem;
-            margin: 0 auto;
-            max-width: 100%;
-          }
-          .cybot-block {
-            background: ${theme.background};
-            border-radius: 12px;
-            padding: 1.25rem;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            border: 1px solid ${theme.border};
-            transition: all 0.15s ease;
-            min-width: 280px;
-            position: relative;
-            outline: none;
-          }
-          .cybot-block:hover {
-            transform: translateY(-2px);
-            border-color: ${theme.primary}30;
-          }
-          .cybot-block:focus {
-            border-color: ${theme.primary};
-          }
-          .header {
-            display: flex;
-            gap: 0.875rem;
-            align-items: center;
-          }
-          .avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            font-weight: 600;
-            flex-shrink: 0;
-            background: ${theme.primaryGhost}30;
-            color: ${theme.primary};
-          }
-          .info {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-          }
-          .title-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.75rem;
-          }
-          .title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin: 0;
-            color: ${theme.text};
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-          .tags {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            align-items: center;
-          }
-          .tag {
-            font-size: 0.75rem;
-            color: ${theme.textSecondary};
-            padding: 0.2rem 0.5rem;
-            background: ${theme.backgroundSecondary};
-            border-radius: 6px;
-            white-space: nowrap;
-            border: 1px solid ${theme.border};
-          }
-          .price-tag {
-            font-size: 0.75rem;
-            color: ${theme.textSecondary};
-            padding: 0.2rem 0.5rem;
-            background: ${theme.backgroundSecondary};
-            border-radius: 6px;
-            white-space: nowrap;
-            border: 1px solid ${theme.border};
-          }
-          .description {
-            flex: 1;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: ${theme.textSecondary};
-            margin: 0.2rem 0;
-            overflow-wrap: break-word;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-          }
-          .actions {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-          }
-          @media (max-width: 480px) {
-            .cybot-block {
-              padding: 1rem;
-              gap: 0.875rem;
-            }
-            .actions {
-              flex-direction: column;
-              gap: 0.6rem;
-            }
-            .avatar {
-              width: 38px;
-              height: 38px;
-            }
-            .title {
-              font-size: 0.95rem;
-            }
-            .description {
-              font-size: 0.85rem;
-              -webkit-line-clamp: 3;
-            }
-          }
-        `}
-      </style>
+        }
+      `}</style>
     </Dialog>
   );
 };

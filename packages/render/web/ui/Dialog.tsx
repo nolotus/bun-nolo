@@ -1,4 +1,3 @@
-// render/web/ui/Dialog.tsx
 import { XIcon } from "@primer/octicons-react";
 import React from "react";
 import { useTheme } from "app/theme";
@@ -12,6 +11,7 @@ interface DialogProps {
   className?: string;
   fullScreenOnMobile?: boolean;
   size?: "small" | "medium" | "large" | "xlarge";
+  showDivider?: boolean;
 }
 
 export const Dialog: React.FC<DialogProps> = ({
@@ -22,6 +22,7 @@ export const Dialog: React.FC<DialogProps> = ({
   className = "",
   fullScreenOnMobile = true,
   size = "medium",
+  showDivider = false,
 }) => {
   const theme = useTheme();
 
@@ -30,11 +31,11 @@ export const Dialog: React.FC<DialogProps> = ({
       case "small":
         return { width: "400px", minWidth: "400px", maxWidth: "400px" };
       case "large":
-        return { width: "800px", minWidth: "800px", maxWidth: "800px" };
+        return { width: "850px", minWidth: "700px", maxWidth: "850px" };
       case "xlarge":
-        return { width: "1000px", minWidth: "1000px", maxWidth: "1000px" };
+        return { width: "1100px", minWidth: "900px", maxWidth: "1100px" };
       default:
-        return { width: "600px", minWidth: "600px", maxWidth: "600px" };
+        return { width: "650px", minWidth: "500px", maxWidth: "650px" };
     }
   };
 
@@ -48,7 +49,7 @@ export const Dialog: React.FC<DialogProps> = ({
       preventBodyScroll={true}
     >
       <div className={`dialog-container ${className} size-${size}`}>
-        <div className="dialog-header">
+        <div className={`dialog-header ${showDivider ? "with-divider" : ""}`}>
           <h2 className="dialog-title">{title}</h2>
           <button
             className="dialog-close"
@@ -68,21 +69,37 @@ export const Dialog: React.FC<DialogProps> = ({
           display: flex;
           flex-direction: column;
           background: ${theme.background};
-          /* 使用固定宽度，防止内容变化导致的尺寸跳动 */
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
           width: ${sizeStyles.width};
           min-width: ${sizeStyles.minWidth};
           max-width: ${sizeStyles.maxWidth};
           min-height: 200px;
-          max-height: 90vh;
-          border-radius: ${theme.space[3]};
+          max-height: 92vh;
+          border-radius: ${theme.space[4]};
+          border: 1px solid ${theme.border};
           overflow: hidden;
-          box-shadow: 0 20px 80px rgba(0, 0, 0, 0.08);
+          box-shadow: 
+            0 25px 100px -12px rgba(0, 0, 0, 0.15),
+            0 12px 40px -8px rgba(0, 0, 0, 0.08),
+            0 0 0 1px ${theme.border};
           margin: ${theme.space[4]};
-          /* 确保内容不会影响容器宽度 */
           box-sizing: border-box;
+          position: relative;
+          animation: dialog-enter 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* 针对不同尺寸的特殊处理 */
+        @keyframes dialog-enter {
+          from {
+            opacity: 0;
+            transform: scale(0.9) translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
         .dialog-container.size-large,
         .dialog-container.size-xlarge {
           max-height: 95vh;
@@ -92,11 +109,27 @@ export const Dialog: React.FC<DialogProps> = ({
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: ${theme.space[8]} ${theme.space[8]} ${theme.space[6]};
+          padding: ${theme.space[6]} ${theme.space[6]} ${theme.space[5]};
           flex-shrink: 0;
-          /* 确保标题区域不会被内容挤压 */
-          min-height: 80px;
+          min-height: 72px;
           box-sizing: border-box;
+          position: relative;
+        }
+
+        .dialog-header.with-divider::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: ${theme.space[6]};
+          right: ${theme.space[6]};
+          height: 1px;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            ${theme.border} 20%,
+            ${theme.border} 80%,
+            transparent
+          );
         }
 
         .dialog-title {
@@ -104,11 +137,10 @@ export const Dialog: React.FC<DialogProps> = ({
           font-weight: 600;
           color: ${theme.text};
           margin: 0;
-          line-height: 1.4;
+          line-height: 1.3;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          /* 确保标题不会超出固定宽度 */
           max-width: calc(100% - 60px);
         }
 
@@ -130,13 +162,13 @@ export const Dialog: React.FC<DialogProps> = ({
         }
 
         .dialog-close:hover {
-          background-color: ${theme.backgroundHover};
-          color: ${theme.text};
+          background: ${theme.backgroundHover};
+          color: ${theme.textSecondary};
         }
 
         .dialog-close:active {
           transform: scale(0.95);
-          background-color: ${theme.backgroundSelected};
+          background: ${theme.backgroundSelected};
         }
 
         .dialog-close:focus-visible {
@@ -147,35 +179,32 @@ export const Dialog: React.FC<DialogProps> = ({
         .dialog-content {
           flex: 1;
           overflow-y: auto;
-          overflow-x: hidden; /* 防止水平滚动影响宽度 */
-          padding: 0;
+          overflow-x: hidden;
           -webkit-overflow-scrolling: touch;
-          /* 确保内容区域不会超出容器 */
           box-sizing: border-box;
           width: 100%;
         }
 
-        /* 更隐蔽的滚动条 */
         .dialog-content::-webkit-scrollbar {
-          width: 3px;
+          width: 4px;
         }
 
         .dialog-content::-webkit-scrollbar-track {
           background: transparent;
+          margin: ${theme.space[2]} 0;
         }
 
         .dialog-content::-webkit-scrollbar-thumb {
-          background-color: ${theme.textLight};
+          background: ${theme.border};
           border-radius: 2px;
-          opacity: 0.3;
+          transition: background 0.15s ease;
         }
 
         .dialog-content::-webkit-scrollbar-thumb:hover {
-          opacity: 0.5;
+          background: ${theme.borderHover};
         }
 
-        /* 桌面端响应式 - 在空间不足时才调整宽度 */
-        @media (min-width: 1601px) {
+        @media (min-width: 1400px) {
           .dialog-container.size-medium {
             width: 700px;
             min-width: 700px;
@@ -183,76 +212,52 @@ export const Dialog: React.FC<DialogProps> = ({
           }
           
           .dialog-container.size-large {
-            width: 1000px;
-            min-width: 1000px;
-            max-width: 1000px;
+            width: 950px;
+            min-width: 950px;
+            max-width: 950px;
           }
           
           .dialog-container.size-xlarge {
-            width: 1300px;
-            min-width: 1300px;
-            max-width: 1300px;
+            width: 1200px;
+            min-width: 1200px;
+            max-width: 1200px;
           }
         }
 
-        /* 当屏幕宽度小于对话框宽度时，才使用百分比 */
-        @media (max-width: 1350px) {
-          .dialog-container.size-xlarge {
-            width: 95vw;
-            min-width: 800px;
-            max-width: 95vw;
-          }
-        }
-
-        @media (max-width: 1050px) {
-          .dialog-container.size-large {
-            width: 90vw;
-            min-width: 600px;
-            max-width: 90vw;
-          }
-          
+        @media (max-width: 1250px) {
           .dialog-container.size-xlarge {
             width: 92vw;
-            min-width: 600px;
+            min-width: 800px;
             max-width: 92vw;
           }
         }
 
-        @media (max-width: 850px) {
+        @media (max-width: 950px) {
           .dialog-container.size-large,
           .dialog-container.size-xlarge {
-            width: 95vw;
-            min-width: 400px;
-            max-width: 95vw;
-          }
-        }
-
-        @media (max-width: 650px) {
-          .dialog-container.size-medium {
             width: 90vw;
-            min-width: 320px;
+            min-width: 600px;
             max-width: 90vw;
           }
         }
 
-        @media (max-width: 450px) {
-          .dialog-container.size-small {
-            width: 95vw;
-            min-width: 300px;
-            max-width: 95vw;
-          }
-        }
-
-        /* 平板端优化 */
-        @media (max-width: 768px) and (min-width: 641px) {
+        @media (max-width: 750px) {
           .dialog-container {
-            margin: ${theme.space[4]};
-            border-radius: ${theme.space[2]};
+            width: 92vw !important;
+            min-width: 350px;
+            max-width: 92vw !important;
+            margin: ${theme.space[3]};
+            border-radius: ${theme.space[3]};
           }
 
           .dialog-header {
-            padding: ${theme.space[6]};
-            min-height: 72px;
+            padding: ${theme.space[5]} ${theme.space[5]} ${theme.space[4]};
+            min-height: 64px;
+          }
+
+          .dialog-header.with-divider::after {
+            left: ${theme.space[5]};
+            right: ${theme.space[5]};
           }
 
           .dialog-title {
@@ -260,7 +265,6 @@ export const Dialog: React.FC<DialogProps> = ({
           }
         }
 
-        /* 移动端全屏显示 */
         @media (max-width: 640px) {
           .dialog-container {
             width: 100vw !important;
@@ -270,12 +274,18 @@ export const Dialog: React.FC<DialogProps> = ({
             max-height: 100vh;
             border-radius: 0;
             margin: 0;
+            border: none;
             box-shadow: none;
           }
 
           .dialog-header {
-            padding: ${theme.space[4]} ${theme.space[4]} ${theme.space[3]};
+            padding: ${theme.space[4]};
             min-height: 60px;
+            border-bottom: 1px solid ${theme.border};
+          }
+
+          .dialog-header.with-divider::after {
+            display: none;
           }
 
           .dialog-title {
@@ -289,10 +299,9 @@ export const Dialog: React.FC<DialogProps> = ({
           }
         }
 
-        /* 小屏手机优化 */
-        @media (max-width: 375px) {
+        @media (max-width: 480px) {
           .dialog-header {
-            padding: ${theme.space[3]} ${theme.space[3]} ${theme.space[2]};
+            padding: ${theme.space[3]};
             min-height: 56px;
           }
 
@@ -306,11 +315,10 @@ export const Dialog: React.FC<DialogProps> = ({
           }
         }
 
-        /* 横屏手机优化 */
         @media (max-width: 640px) and (orientation: landscape) and (max-height: 500px) {
           .dialog-header {
-            padding: ${theme.space[2]} ${theme.space[4]} ${theme.space[1]};
-            min-height: 48px;
+            padding: ${theme.space[2]} ${theme.space[4]};
+            min-height: 44px;
           }
 
           .dialog-title {
@@ -323,15 +331,18 @@ export const Dialog: React.FC<DialogProps> = ({
           }
         }
 
-        /* 触摸设备优化 */
         @media (hover: none) and (pointer: coarse) {
           .dialog-close:hover {
-            background-color: transparent;
+            background: transparent;
+            color: ${theme.textTertiary};
           }
         }
 
-        /* 无障碍支持 */
         @media (prefers-reduced-motion: reduce) {
+          .dialog-container {
+            animation: none;
+          }
+          
           .dialog-close {
             transition: none;
           }
@@ -339,12 +350,19 @@ export const Dialog: React.FC<DialogProps> = ({
           .dialog-close:active {
             transform: none;
           }
+
+          .dialog-container {
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+          }
         }
 
-        /* 高分辨率屏幕优化 */
         @media (min-resolution: 2dppx) {
           .dialog-container {
-            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.1);
+            box-shadow: 
+              0 25px 100px -12px rgba(0, 0, 0, 0.2),
+              0 12px 40px -8px rgba(0, 0, 0, 0.12),
+              0 0 0 1px ${theme.border};
           }
         }
       `}</style>
