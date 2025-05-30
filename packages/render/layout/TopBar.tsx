@@ -10,7 +10,6 @@ import type React from "react";
 import type { ReactNode } from "react";
 
 // Web Components
-import NavIconItem from "./blocks/NavIconItem";
 import NavListItem from "render/layout/blocks/NavListItem";
 import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
 import EditableTitle from "chat/dialog/EditableTitle";
