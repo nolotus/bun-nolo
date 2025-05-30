@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { formatISO } from "date-fns";
 import toast from "react-hot-toast";
-import { CheckIcon, TrashIcon } from "@primer/octicons-react";
+import { UploadIcon, TrashIcon } from "@primer/octicons-react"; // 使用 UploadIcon 替代之前的图标
 import { useTranslation } from "react-i18next";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
@@ -143,18 +143,10 @@ export const CreateTool: React.FC = () => {
           className="controls"
           style={{ display: "flex", alignItems: "center", gap: 12 }}
         >
-          <button
-            className="icon-button delete-btn"
-            onClick={() => setIsDeleteModalOpen(true)}
-            disabled={isDeleting}
-            title={t("delete")}
-          >
-            <TrashIcon size={16} />
-          </button>
           <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
           <Button
             variant="primary"
-            icon={<CheckIcon size={16} />}
+            icon={<UploadIcon size={16} />} // 使用 UploadIcon 作为保存按钮图标
             onClick={handleSave}
             size="medium"
             disabled={isReadOnly}
@@ -165,6 +157,14 @@ export const CreateTool: React.FC = () => {
           >
             保存
           </Button>
+          <button
+            className="icon-button delete-btn"
+            onClick={() => setIsDeleteModalOpen(true)}
+            disabled={isDeleting}
+            title={t("delete")}
+          >
+            <TrashIcon size={16} />
+          </button>
         </div>
       </div>
       <ConfirmModal
@@ -184,9 +184,6 @@ export const CreateTool: React.FC = () => {
         .icon-button:hover:not(:disabled){background-color:#f0f0f0}
         .icon-button:disabled{cursor:not-allowed;opacity:0.6}
         .delete-btn:hover:not(:disabled){color:${theme.error};background-color:rgba(220,38,38,0.1)}
-        .save-btn{background-color:rgba(59,130,246,0.1);border:1px solid ${theme.primary};color:${theme.primary};padding:6px 12px;display:flex;align-items:center;justify-content:center;transition:background-color 0.2s, transform 0.1s;}
-        .save-btn:hover:not(:disabled){background-color:rgba(59,130,246,0.2);transform:scale(1.05);}
-        .save-btn:disabled{background-color:rgba(59,130,246,0.05);border-color:${theme.primary};opacity:0.6;cursor:not-allowed;}
       `}</style>
     </>
   );
