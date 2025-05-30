@@ -41,30 +41,38 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
   }, [canAbort, handleAbortAllMessages, onClick]);
 
   // 动态样式计算
-  const buttonStyles = useMemo(() => {
-    const baseStyles = {
+  const buttonStyles = useMemo(
+    () => ({
+      width: canAbort ? "40px" : "110px",
       height: "40px",
-      borderRadius: canAbort ? "20px" : "12px",
-      background: canAbort ? theme.backgroundHover : theme.primary,
+      borderRadius: canAbort ? "50%" : "12px",
+      background: canAbort
+        ? isHovered
+          ? "rgba(231, 76, 60, 0.2)"
+          : theme.backgroundHover || "#808080"
+        : isHovered
+          ? theme.primary + "cc"
+          : theme.primary,
       cursor: disabled && !canAbort ? "not-allowed" : "pointer",
       transform: disabled
         ? "scale(0.95)"
         : isHovered
           ? "scale(1.03)"
           : "scale(1)",
-      boxShadow: `0 4px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px ${theme.border}, inset 2px 2px 4px rgba(255, 255, 255, 0.2)`,
-    };
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)", // 简化阴影，降低真实度
+    }),
+    [canAbort, theme, disabled, isHovered]
+  );
 
-    return {
-      width: canAbort ? "40px" : "110px",
-      ...baseStyles,
-    };
-  }, [canAbort, theme, disabled, isHovered]);
-
-  const iconTransform = useMemo(() => {
-    if (canAbort) return "scale(1)";
-    return isHovered ? "translateX(3px) scale(1.1)" : "translateX(0) scale(1)";
-  }, [canAbort, isHovered]);
+  const iconTransform = useMemo(
+    () =>
+      canAbort
+        ? "scale(1)"
+        : isHovered
+          ? "translateX(3px) scale(1.1)"
+          : "translateX(0) scale(1)",
+    [canAbort, isHovered]
+  );
 
   return (
     <>
@@ -86,14 +94,17 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           .send-state {
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
             color: ${canAbort ? theme.textSecondary : "#FFFFFF"};
             transition: opacity 0.3s ease;
             opacity: ${canAbort ? 0 : 1};
+            width: 100%;
+            height: 100%;
+            gap: 8px;
           }
 
           .send-text {
-            font-size: 13px;
+            font-size: 14px;
             transition: transform 0.2s ease;
             transform: ${isHovered && !canAbort ? "translateX(-2px)" : "translateX(0)"};
           }
@@ -127,30 +138,10 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
 
           .stop-indicator {
             position: relative;
-            width: 24px;
-            height: 24px;
-          }
-
-          .pulse-ring {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 1.5px solid ${theme.primary};
-            opacity: 0.4;
-            animation: ${canAbort ? "breathe 2s infinite" : "none"};
-          }
-
-          .stop-square {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 10px;
-            height: 10px;
-            background: #000000;
+            width: 14px;
+            height: 14px;
+            background: ${theme.textSecondary || "#333"};
             border-radius: 2px;
-            transform: translate(-50%, -50%) scale(${isHovered && canAbort ? 1.1 : 1});
-            transition: transform 0.2s ease;
           }
 
           .send-button:disabled {
@@ -161,7 +152,9 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
 
           .send-button:active:not(:disabled) {
             transform: scale(0.97);
-            box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); // 简化点击时的阴影
+            background: ${canAbort ? "rgba(231, 76, 60, 0.3)" : theme.primary + "aa"};
+            transition: background 0.1s ease;
           }
 
           @keyframes takeOff {
@@ -171,15 +164,27 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
           }
 
           @keyframes breathe {
-            0% { transform: scale(0.85); opacity: 0.4; }
-            50% { transform: scale(1.0); opacity: 0.7; }
-            100% { transform: scale(0.85); opacity: 0.4; }
+            0% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+            50% { box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); } // 简化阴影范围
+            100% { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+          }
+
+          .send-button.can-abort {
+            animation: ${canAbort ? "breathe 2.5s infinite ease-in-out" : "none"};
+          }
+
+          .send-button:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); // 简化悬停时的阴影
+          }
+
+          .send-button.can-abort:hover {
+            animation-play-state: paused;
           }
 
           @media (max-width: 768px) {
             .send-button {
-              width: 40px !important;
-              border-radius: 12px !important;
+              width: ${canAbort ? "40px" : "40px"} !important;
+              border-radius: ${canAbort ? "50%" : "12px"} !important;
             }
             .send-text { display: none; }
           }
@@ -187,36 +192,35 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
       </style>
 
       <button
-        className="send-button"
+        className={`send-button ${canAbort ? "can-abort" : ""}`}
         style={buttonStyles}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         disabled={disabled && !canAbort}
         aria-label={canAbort ? t("stopAllGeneration") : t("send")}
+        title={canAbort ? t("stopAllGeneration") : t("send")}
       >
-        <div className="send-state">
-          <span className="send-text">{t("send")}</span>
-          <div className="send-icon-container">
-            <PaperAirplaneIcon
-              size={16}
-              className="send-icon"
-              style={
-                isAnimating && !canAbort
-                  ? {
-                      animation: "takeOff 0.5s ease forwards",
-                    }
-                  : undefined
-              }
-            />
+        {canAbort ? (
+          <div className="stop-state">
+            <div className="stop-indicator"></div>
           </div>
-        </div>
-        <div className="stop-state">
-          <div className="stop-indicator">
-            <div className="pulse-ring"></div>
-            <div className="stop-square"></div>
+        ) : (
+          <div className="send-state">
+            <span className="send-text">{t("send")}</span>
+            <div className="send-icon-container">
+              <PaperAirplaneIcon
+                size={16}
+                className="send-icon"
+                style={
+                  isAnimating && !canAbort
+                    ? { animation: "takeOff 0.5s ease forwards" }
+                    : undefined
+                }
+              />
+            </div>
           </div>
-        </div>
+        )}
       </button>
     </>
   );
