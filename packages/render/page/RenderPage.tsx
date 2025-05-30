@@ -31,6 +31,12 @@ import {
   selectPageError,
 } from "./pageSlice";
 import { updateContentTitle } from "create/space/spaceSlice";
+
+// 常量定义：提取硬编码数字以提高可维护性
+const AUTO_SAVE_DELAY_MS = 2000; // 自动保存延时
+const STATUS_RESET_DELAY_MS = 3000; // 保存状态重置延时
+const TIME_UPDATE_INTERVAL_MS = 60000; // 更新保存时间显示的间隔
+
 interface RenderPageProps {
   pageKey: string;
 }
@@ -182,13 +188,13 @@ function useAutoSave({
     });
   }, []);
 
-  // 初始化、定时格更新时间
+  // 初始化、定时更新时间
   useEffect(() => {
     if (lastSavedDate.current) setLastSaved(formatSaved(lastSavedDate.current));
     const id = setInterval(() => {
       if (lastSavedDate.current)
         setLastSaved(formatSaved(lastSavedDate.current));
-    }, 60000);
+    }, TIME_UPDATE_INTERVAL_MS);
     return () => clearInterval(id);
   }, [formatSaved]);
 
@@ -257,7 +263,10 @@ function useAutoSave({
       setLastSaved(formatSaved(now));
       setStatus("saved");
 
-      statusTimer.current = window.setTimeout(() => setStatus(null), 3000);
+      statusTimer.current = window.setTimeout(
+        () => setStatus(null),
+        STATUS_RESET_DELAY_MS
+      );
     } catch (e) {
       console.error("保存失败:", e);
       setStatus("error");
@@ -272,7 +281,7 @@ function useAutoSave({
     const changed = compareSlateContent(v, page?.slateData);
     if (changed) {
       dispatch(updateSlate(v));
-      saveTimer.current = window.setTimeout(savePage, 2000);
+      saveTimer.current = window.setTimeout(savePage, AUTO_SAVE_DELAY_MS);
     }
   }
 
