@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { selectTheme } from "app/theme/themeSlice";
@@ -489,13 +489,17 @@ export const MessageItem = ({ message }) => {
           {actions.length > 0 && (
             <div className={`actions ${showActions ? "show" : ""}`}>
               {actions.map(({ icon: Icon, handler, tooltip, danger }, i) => (
-                <Tooltip key={i} content={tooltip} placement="top">
+                <Tooltip
+                  key={i}
+                  content={tooltip}
+                  placement={isRobot ? "left" : "right"}
+                >
                   <button
                     className={`action-btn ${danger ? "danger" : ""}`}
                     onClick={handler}
                     aria-label={tooltip}
                   >
-                    <Icon size={12} />
+                    <Icon size={16} /> {/* 增大图标尺寸 */}
                   </button>
                 </Tooltip>
               ))}
@@ -565,13 +569,7 @@ export const MessageItem = ({ message }) => {
           flex-direction: column;
           opacity: 0;
           transition: opacity 0.2s ease;
-          background: ${theme.backgroundGhost};
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[2]};
-          padding: ${theme.space[1]};
-          gap: 2px;
-          box-shadow: 0 2px 8px ${theme.shadowLight};
-          backdrop-filter: blur(8px);
+          gap: 4px; /* 增大按钮间距 */
         }
 
         /* 桌面端悬停显示，移动端点击显示 */
@@ -587,8 +585,8 @@ export const MessageItem = ({ message }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 24px;
-          height: 24px;
+          width: 28px; /* 增大点击区域 */
+          height: 28px; /* 增大点击区域 */
           border: none;
           border-radius: 4px;
           background: transparent;
