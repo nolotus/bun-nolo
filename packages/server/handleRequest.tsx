@@ -41,14 +41,7 @@ export const handleRequest = async (request: Request, server) => {
   if (url.pathname.startsWith(API_VERSION)) {
     const contentType = request.headers.get("content-type") || "";
     let body;
-
-    if (contentType.includes("multipart/form-data")) {
-      try {
-        body = await request.formData();
-      } catch (error) {
-        logger.warn({ error }, "Failed to parse form data");
-      }
-    } else if (contentType.includes("application/json") && request.body) {
+    if (contentType.includes("application/json") && request.body) {
       try {
         body = await request.json();
         if (!body) body = {};
@@ -56,7 +49,6 @@ export const handleRequest = async (request: Request, server) => {
         logger.warn({ error }, "Failed to parse JSON body");
       }
     }
-
     let req = {
       url,
       body,
