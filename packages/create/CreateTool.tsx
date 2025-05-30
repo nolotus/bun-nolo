@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import React, { useCallback, useState } from "react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { formatISO } from "date-fns";
 import toast from "react-hot-toast";
-import { CheckIcon } from "@primer/octicons-react";
-
+import { CheckIcon, TrashIcon } from "@primer/octicons-react";
+import { useTranslation } from "react-i18next";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
 import { patch } from "database/dbSlice";
@@ -13,86 +13,70 @@ import {
   toggleReadOnly,
   selectPageDbSpaceId,
 } from "render/page/pageSlice";
-import { updateContentTitle } from "create/space/spaceSlice";
-import DeleteButton from "chat/web/DeleteButton";
-import Button from "render/web/ui/Button";
+import {
+  updateContentTitle,
+  deleteContentFromSpace,
+  selectCurrentSpaceId,
+} from "create/space/spaceSlice";
 import ModeToggle from "web/ui/ModeToggle";
+import { ConfirmModal } from "web/ui/ConfirmModal";
+import Button from "render/web/ui/Button";
 
 export const CreateTool: React.FC = () => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const pageState = useAppSelector(selectPageData);
   const isReadOnly = useAppSelector(selectIsReadOnly);
   const dbSpaceId = useAppSelector(selectPageDbSpaceId);
+  const spaceId = useAppSelector(selectCurrentSpaceId);
   const { pageKey: dbKey } = useParams<{ pageKey?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // 更新 URL 查询参数的通用函数
   const updateUrl = useCallback(
-    (fn: (p: URLSearchParams) => void) => {
+    (fn) => {
       const p = new URLSearchParams(searchParams);
       fn(p);
-      setSearchParams(p, {
-        replace: true,
-        preventScrollReset: true,
-      });
+      setSearchParams(p, { replace: true, preventScrollReset: true });
     },
     [searchParams, setSearchParams]
   );
 
-  // 切换编辑/只读模式
   const handleToggleEdit = useCallback(
-    (isEdit: boolean) => {
+    (isEdit) => {
       dispatch(toggleReadOnly());
       updateUrl((p) => (isEdit ? p.set("edit", "true") : p.delete("edit")));
     },
     [dispatch, updateUrl]
   );
 
-  // 点击保存
   const handleSave = useCallback(async () => {
-    if (!dbKey) {
-      toast.error("无法获取页面标识符");
-      return;
-    }
-    const nowISO = formatISO(new Date());
+    if (!dbKey) return toast.error("无法获取页面标识符");
     const title =
       pageState.slateData?.find((n) => n.type === "heading-one")?.children?.[0]
         ?.text || "未命名页面";
-
     try {
-      // 更新页面数据
-      const changes = {
-        updatedAt: nowISO,
-        slateData: pageState.slateData,
-        title,
-      };
-      console.log("changes", changes);
-
       await dispatch(
         patch({
           dbKey,
-          changes,
+          changes: {
+            updatedAt: formatISO(new Date()),
+            slateData: pageState.slateData,
+            title,
+          },
         })
       );
-
-      // 更新空间内的标题（可选）
-      if (dbSpaceId) {
+      dbSpaceId &&
         dispatch(
-          updateContentTitle({
-            spaceId: dbSpaceId,
-            contentKey: dbKey,
-            title,
-          })
+          updateContentTitle({ spaceId: dbSpaceId, contentKey: dbKey, title })
         )
           .unwrap()
           .catch(console.error);
-      }
-
-      // 切回只读模式并移除 URL 中的 edit 参数
       dispatch(toggleReadOnly());
       updateUrl((p) => p.delete("edit"));
-
       toast.success("保存成功");
     } catch (e) {
       console.error("保存失败:", e);
@@ -100,13 +84,27 @@ export const CreateTool: React.FC = () => {
     }
   }, [dispatch, dbKey, pageState.slateData, dbSpaceId, updateUrl]);
 
-  if (!dbKey) {
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await dispatch(deleteContentFromSpace({ contentKey: dbKey, spaceId }));
+      toast.success("Page deleted successfully!");
+      navigate(-1);
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      toast.error("Failed to delete page");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  if (!dbKey)
     return (
       <div style={{ padding: "12px 24px", color: theme.textSecondary }}>
         加载工具栏中...
       </div>
     );
-  }
 
   return (
     <>
@@ -123,7 +121,6 @@ export const CreateTool: React.FC = () => {
           background: theme.background,
           borderBottom: `1px solid ${theme.border}`,
           backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
         }}
       >
         <div
@@ -142,12 +139,18 @@ export const CreateTool: React.FC = () => {
         >
           {pageState.title || "加载中..."}
         </div>
-
         <div
           className="controls"
-          style={{ display: "flex", alignItems: "center", gap: 24 }}
+          style={{ display: "flex", alignItems: "center", gap: 12 }}
         >
-          <DeleteButton dbKey={dbKey} />
+          <button
+            className="icon-button delete-btn"
+            onClick={() => setIsDeleteModalOpen(true)}
+            disabled={isDeleting}
+            title={t("delete")}
+          >
+            <TrashIcon size={16} />
+          </button>
           <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
           <Button
             variant="primary"
@@ -164,13 +167,26 @@ export const CreateTool: React.FC = () => {
           </Button>
         </div>
       </div>
-
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title={t("deleteDialogTitle", { title: pageState.title || dbKey })}
+        message={t("deleteDialogConfirmation")}
+        confirmText={t("delete")}
+        cancelText={t("cancel")}
+        type="error"
+        loading={isDeleting}
+      />
       <style>{`
-        @media (max-width: 640px) {
-          .tools-container { padding: 8px 16px; }
-          .title { display: none; }
-          .controls { justify-content: space-between; gap: 16px; }
-        }
+        @media (max-width:640px){.tools-container{padding:8px 16px}.title{display:none}.controls{justify-content:space-between;gap:8px}}
+        .icon-button{background:transparent;border:none;cursor:pointer;padding:4px;color:inherit;border-radius:4px;flex-shrink:0;position:relative}
+        .icon-button:hover:not(:disabled){background-color:#f0f0f0}
+        .icon-button:disabled{cursor:not-allowed;opacity:0.6}
+        .delete-btn:hover:not(:disabled){color:${theme.error};background-color:rgba(220,38,38,0.1)}
+        .save-btn{background-color:rgba(59,130,246,0.1);border:1px solid ${theme.primary};color:${theme.primary};padding:6px 12px;display:flex;align-items:center;justify-content:center;transition:background-color 0.2s, transform 0.1s;}
+        .save-btn:hover:not(:disabled){background-color:rgba(59,130,246,0.2);transform:scale(1.05);}
+        .save-btn:disabled{background-color:rgba(59,130,246,0.05);border-color:${theme.primary};opacity:0.6;cursor:not-allowed;}
       `}</style>
     </>
   );
