@@ -127,8 +127,8 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
 
           .stop-indicator {
             position: relative;
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
           }
 
           .pulse-ring {
@@ -137,17 +137,17 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             height: 100%;
             border-radius: 50%;
             border: 1.5px solid ${theme.primary};
-            opacity: 0.5;
-            animation: ${canAbort ? "pulse 1.5s infinite" : "none"};
+            opacity: 0.4;
+            animation: ${canAbort ? "breathe 2s infinite" : "none"};
           }
 
           .stop-square {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 8px;
-            height: 8px;
-            background: ${theme.error};
+            width: 10px;
+            height: 10px;
+            background: #000000;
             border-radius: 2px;
             transform: translate(-50%, -50%) scale(${isHovered && canAbort ? 1.1 : 1});
             transition: transform 0.2s ease;
@@ -170,10 +170,10 @@ const SendButton: React.FC<SendButtonProps> = ({ onClick, disabled }) => {
             100% { transform: translateX(20px) scale(0.8); opacity: 0; }
           }
 
-          @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            50% { transform: scale(1.05); opacity: 0.3; }
-            100% { transform: scale(0.8); opacity: 0.5; }
+          @keyframes breathe {
+            0% { transform: scale(0.85); opacity: 0.4; }
+            50% { transform: scale(1.0); opacity: 0.7; }
+            100% { transform: scale(0.85); opacity: 0.4; }
           }
 
           @media (max-width: 768px) {
