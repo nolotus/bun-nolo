@@ -144,6 +144,15 @@ export const CreateTool: React.FC = () => {
           style={{ display: "flex", alignItems: "center", gap: 12 }}
         >
           <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
+
+          <button
+            className="icon-button delete-btn"
+            onClick={() => setIsDeleteModalOpen(true)}
+            disabled={isDeleting}
+            title={t("delete")}
+          >
+            <TrashIcon size={16} />
+          </button>
           <Button
             variant="primary"
             icon={<UploadIcon size={16} />} // 使用 UploadIcon 作为保存按钮图标
@@ -157,14 +166,6 @@ export const CreateTool: React.FC = () => {
           >
             保存
           </Button>
-          <button
-            className="icon-button delete-btn"
-            onClick={() => setIsDeleteModalOpen(true)}
-            disabled={isDeleting}
-            title={t("delete")}
-          >
-            <TrashIcon size={16} />
-          </button>
         </div>
       </div>
       <ConfirmModal
