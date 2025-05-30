@@ -15,7 +15,7 @@ import { Editable, Slate, useSlate, withReact, ReactEditor } from "slate-react";
 import { useSelector } from "react-redux";
 
 import { ElementWrapper } from "./ElementWrapper";
-import { ExampleToolbar } from "./ExampleToolbar";
+import { EditorToolbar } from "./EditorToolbar"; // 假设文件名为 EditorToolbar.tsx
 import { HoveringToolbar } from "./HoveringToolbar";
 import { toggleMark } from "./mark";
 import { renderLeaf } from "./renderLeaf";
@@ -81,7 +81,7 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
       >
         {!readOnly && (
           <div className="toolbar-container">
-            <ExampleToolbar />
+            <EditorToolbar />
             <HoveringToolbar />
           </div>
         )}

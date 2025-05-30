@@ -1,5 +1,31 @@
+// create/editor/EditorToolbar.tsx
+import React from "react";
 import { Button, Menu } from "./components";
+import { useSlate } from "slate-react";
+import { Editor, Transforms, Element as SlateElement } from "slate";
+import {
+  MdFormatBold,
+  MdFormatItalic,
+  MdFormatUnderlined,
+  MdCode,
+  MdFormatQuote,
+  MdFormatListBulleted,
+  MdFormatListNumbered,
+  MdLooksOne,
+  MdLooksTwo,
+  MdFormatAlignLeft,
+  MdFormatAlignCenter,
+  MdFormatAlignRight,
+  MdFormatAlignJustify,
+} from "react-icons/md";
+import { CodeBlockButton } from "./CodeBlockButton";
+import { isMarkActive, toggleMark } from "./mark";
 
+// 常量定义
+const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
+const LIST_TYPE = "list";
+
+// 工具栏组件样式
 export const Toolbar = ({ className, style, ...props }) => (
   <Menu
     {...props}
@@ -16,44 +42,20 @@ export const Toolbar = ({ className, style, ...props }) => (
   />
 );
 
-import { CodeBlockButton } from "./CodeBlockButton";
-import { Editable, withReact, useSlate, Slate } from "slate-react";
-import {
-  Editor,
-  Transforms,
-  createEditor,
-  Element as SlateElement,
-} from "slate";
-import {
-  MdFormatBold,
-  MdFormatItalic,
-  MdFormatUnderlined,
-  MdCode,
-  MdFormatQuote,
-  MdFormatListBulleted,
-  MdFormatListNumbered,
-  MdLooksOne,
-  MdLooksTwo,
-  MdFormatAlignLeft,
-  MdFormatAlignCenter,
-  MdFormatAlignRight,
-  MdFormatAlignJustify,
-} from "react-icons/md";
-import { isMarkActive, toggleMark } from "./mark";
-
-const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
-const LIST_TYPE = "list";
-
-const toggleBlock = (editor, format, ordered = undefined) => {
+// 切换块级元素状态的函数
+const toggleBlock = (
+  editor: Editor,
+  format: string,
+  ordered: boolean | undefined = undefined
+) => {
   const isActive = isBlockActive(
     editor,
     format,
     TEXT_ALIGN_TYPES.includes(format) ? "align" : "type"
   );
-
   const isList = format === LIST_TYPE;
 
-  // 处理列表
+  // 处理列表逻辑
   if (isList) {
     Transforms.unwrapNodes(editor, {
       match: (n) =>
@@ -79,7 +81,7 @@ const toggleBlock = (editor, format, ordered = undefined) => {
     return;
   }
 
-  // 处理其他块级元素
+  // 处理文本对齐和其他块级元素
   if (TEXT_ALIGN_TYPES.includes(format)) {
     const newProperties = {
       align: isActive ? undefined : format,
@@ -93,7 +95,12 @@ const toggleBlock = (editor, format, ordered = undefined) => {
   }
 };
 
-const isBlockActive = (editor, format, blockType = "type") => {
+// 检查块级元素是否激活
+const isBlockActive = (
+  editor: Editor,
+  format: string,
+  blockType: string = "type"
+) => {
   const { selection } = editor;
   if (!selection) return false;
 
@@ -110,7 +117,16 @@ const isBlockActive = (editor, format, blockType = "type") => {
   return !!match;
 };
 
-const BlockButton = ({ format, Icon, ordered = undefined }) => {
+// 块级元素按钮组件
+const BlockButton = ({
+  format,
+  Icon,
+  ordered = undefined,
+}: {
+  format: string;
+  Icon: any;
+  ordered?: boolean;
+}) => {
   const editor = useSlate();
   return (
     <Button
@@ -129,7 +145,8 @@ const BlockButton = ({ format, Icon, ordered = undefined }) => {
   );
 };
 
-const MarkButton = ({ format, Icon }) => {
+// 标记按钮组件
+const MarkButton = ({ format, Icon }: { format: string; Icon: any }) => {
   const editor = useSlate();
   return (
     <Button
@@ -144,7 +161,8 @@ const MarkButton = ({ format, Icon }) => {
   );
 };
 
-export const ExampleToolbar = () => {
+// 编辑器工具栏主组件
+export const EditorToolbar = () => {
   // 样式常量
   const groupStyle = {
     display: "flex",
