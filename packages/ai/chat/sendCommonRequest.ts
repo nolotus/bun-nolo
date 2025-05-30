@@ -17,18 +17,14 @@ import { extractCustomId } from "core/prefix";
 import { parseMultilineSSE } from "./parseMultilineSSE";
 import { toolHandlers } from "../tools/toolHandlers";
 
-// --- 辅助函数：处理工具调用结果 ---
-
 async function processToolData(
   toolCall: any,
   thunkApi: any,
   cybotConfig: any,
   messageId: string
 ): Promise<any> {
-  console.log("[Tool] 开始处理工具调用:", JSON.stringify(toolCall, null, 2));
   const func = toolCall.function;
   if (!func || !func.name) {
-    console.error("[Tool] 工具调用缺少函数信息或名称:", toolCall);
     return { type: "text", text: "[Tool Error] 工具调用数据无效" };
   }
 
@@ -36,67 +32,46 @@ async function processToolData(
   let toolArgs = func.arguments;
 
   try {
-    // 参数解析逻辑（保持不变）
     if (typeof toolArgs === "string") {
       if (toolArgs.trim() === "") {
         toolArgs = {};
-        console.warn(`[Tool] ${toolName}: 参数为空字符串，视为空对象 {}。`);
       } else if (
         toolArgs.trim().startsWith("{") ||
         toolArgs.trim().startsWith("[")
       ) {
         try {
           toolArgs = JSON.parse(toolArgs);
-        } catch (e) {
-          console.warn(
-            `[Tool] ${toolName}: JSON 参数解析失败，将使用原始字符串: "${toolArgs}"`,
-            e
-          );
-        }
-      } else {
-        console.warn(
-          `[Tool] ${toolName}: 参数不是 JSON，将作为字符串传递: "${toolArgs}"`
-        );
+        } catch (e) {}
       }
     } else if (toolArgs === undefined || toolArgs === null) {
       toolArgs = {};
-      console.warn(
-        `[Tool] ${toolName}: 参数为 undefined/null，视为空对象 {}。`
-      );
     }
 
     const handler = toolHandlers[toolName];
     if (!handler) {
-      console.warn("[Tool] 未知工具：", toolName);
       return { type: "text", text: `[Tool Error] 未知工具: ${toolName}` };
     }
 
-    console.log(`[Tool] 调用 ${toolName}，参数：`, toolArgs);
     try {
       const result = await handler(toolArgs, thunkApi);
       if (result && result.success) {
-        // 如果 result 中有自定义 text 字段，优先使用
         const text =
           result.text ||
           `${toolName.replace("_", " ").replace(/^./, (c) => c.toUpperCase())} 已成功执行：${result.title || result.name || "操作完成"} (ID: ${result.id || "N/A"})`;
-        console.log(`[Tool] ${toolName} 成功，生成信息:`, text);
         return { type: "text", text };
       } else {
-        console.error(`[Tool] ${toolName} 未返回预期的成功结构:`, result);
         return {
           type: "text",
           text: `[Tool Error] ${toolName} 操作未返回预期结果。`,
         };
       }
     } catch (error: any) {
-      console.error(`[Tool] ${toolName} 执行异常:`, error);
       return {
         type: "text",
         text: `[Tool Error] 执行 ${toolName} 操作失败: ${error.message}`,
       };
     }
   } catch (e: any) {
-    console.error(`[Tool] ${toolName} 处理过程中发生意外错误:`, e);
     return {
       type: "text",
       text: `[Tool Error] 处理 ${toolName} 时发生内部错误: ${e.message}`,
@@ -104,30 +79,24 @@ async function processToolData(
   }
 }
 
-// --- 辅助函数：处理累积的工具调用 ---
 async function handleAccumulatedToolCalls(
   accumulatedCalls: any[],
   currentContentBuffer: any[],
   thunkApi: any,
   cybotConfig: any,
-  msgKey: string, // 这个是消息的 key
-  messageId: string // 这个是消息的 UI id
+  msgKey: string,
+  messageId: string
 ): Promise<any[]> {
-  let updatedContentBuffer = [...currentContentBuffer]; // 创建副本以修改
+  let updatedContentBuffer = [...currentContentBuffer];
   const { dispatch } = thunkApi;
 
   if (accumulatedCalls.length > 0) {
-    console.log("[handleAccumulatedToolCalls] 开始处理:", accumulatedCalls);
     for (const toolCall of accumulatedCalls) {
       if (
         !toolCall.function ||
         !toolCall.function.name ||
         toolCall.function.arguments === undefined
       ) {
-        console.warn(
-          "[handleAccumulatedToolCalls] 跳过不完整的工具调用:",
-          toolCall
-        );
         continue;
       }
       try {
@@ -147,10 +116,6 @@ async function handleAccumulatedToolCalls(
           })
         );
       } catch (toolError: any) {
-        console.error(
-          "[handleAccumulatedToolCalls] processToolData 异常:",
-          toolError
-        );
         const errorResult = {
           type: "text",
           text: `\n[Tool 执行异常: ${toolError.message}]`,
@@ -166,12 +131,10 @@ async function handleAccumulatedToolCalls(
         );
       }
     }
-    console.log("[handleAccumulatedToolCalls] 处理完成.");
   }
-  return updatedContentBuffer; // 返回更新后的 buffer
+  return updatedContentBuffer;
 }
 
-// --- 辅助函数：追加文本块 ---
 function appendTextChunk(
   currentContentBuffer: any[],
   textChunk: string
@@ -181,9 +144,6 @@ function appendTextChunk(
   let updatedContentBuffer = [...currentContentBuffer];
 
   if (Object.isFrozen(updatedContentBuffer)) {
-    console.warn(
-      "Content buffer is frozen, creating a new array for appending text."
-    );
     updatedContentBuffer = [...updatedContentBuffer];
   }
 
@@ -204,7 +164,6 @@ function appendTextChunk(
   return updatedContentBuffer;
 }
 
-// --- 辅助函数：分离 <think> 内容和普通内容 ---
 function separateThinkContent(contentBuffer: any[]) {
   let thinkContent = "";
   let normalContent = "";
@@ -214,14 +173,11 @@ function separateThinkContent(contentBuffer: any[]) {
     .map((c) => c.text)
     .join("");
 
-  // 改进正则表达式，支持多个 <think> 标签，忽略大小写
   const thinkMatches = combinedText.match(/<think\b[^>]*>(.*?)<\/think>/gis);
   if (thinkMatches) {
-    // 提取所有 <think> 内容并合并
     thinkContent = thinkMatches
       .map((match) => match.replace(/<think\b[^>]*>|<\/think>/gi, ""))
       .join("\n\n");
-    // 移除所有 <think> 标签内容，留下普通内容
     normalContent = combinedText
       .replace(/<think\b[^>]*>.*?<\/think>/gis, "")
       .trim();
@@ -229,19 +185,9 @@ function separateThinkContent(contentBuffer: any[]) {
     normalContent = combinedText;
   }
 
-  console.log(
-    "Think content extracted:",
-    thinkContent.substring(0, 50) + (thinkContent.length > 50 ? "..." : "")
-  );
-  console.log(
-    "Normal content extracted:",
-    normalContent.substring(0, 50) + (normalContent.length > 50 ? "..." : "")
-  );
-
   return { thinkContent, normalContent };
 }
 
-// --- 辅助函数：完成流处理 ---
 function finalizeStream(
   finalContentBuffer: any[],
   totalUsage: any,
@@ -254,7 +200,6 @@ function finalizeStream(
 ) {
   const { dispatch } = thunkApi;
 
-  // 分离 <think> 和普通内容
   const { thinkContent, normalContent } =
     separateThinkContent(finalContentBuffer);
 
@@ -266,13 +211,13 @@ function finalizeStream(
     totalUsage.completion_tokens !== null
       ? { completion_tokens: totalUsage.completion_tokens }
       : undefined;
-  console.log("cybotConfig", cybotConfig);
+
   dispatch(
     messageStreamEnd({
       id: messageId,
       dbKey: msgKey,
-      content: finalContent, // 普通内容，移除 <think> 部分
-      thinkContent: thinkContent, // 单独存储 <think> 内容
+      content: finalContent,
+      thinkContent: thinkContent,
       role: "assistant",
       cybotKey: cybotConfig.dbKey,
       usage: finalUsageData,
@@ -287,15 +232,12 @@ function finalizeStream(
   if (hasMeaningfulText) {
     dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
   }
-
-  console.log("[finalizeStream] 流处理完成.");
 }
 
-// --- 主要请求函数 ---
 export const sendCommonChatRequest = async ({
   bodyData,
   cybotConfig,
-  thunkApi, // 确保传入的是 { dispatch, getState }
+  thunkApi,
   dialogKey,
 }: {
   bodyData: any;
@@ -303,17 +245,15 @@ export const sendCommonChatRequest = async ({
   thunkApi: any;
   dialogKey: string;
 }) => {
-  const { dispatch, getState } = thunkApi; // 解构以备后用
+  const { dispatch, getState } = thunkApi;
   const dialogId = extractCustomId(dialogKey);
   const controller = new AbortController();
   const signal = controller.signal;
   const currentServer = selectCurrentServer(getState());
   const { key: msgKey, messageId } = createDialogMessageKeyAndId(dialogId);
 
-  // 注册 controller 到 dialogSlice
   dispatch(addActiveController({ messageId, controller }));
 
-  // --- (工具准备逻辑不变) ---
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;
@@ -361,7 +301,6 @@ export const sendCommonChatRequest = async ({
           errorBody ||
           `状态码 ${response.status} ${response.statusText}`;
         errorCode = errorJson?.error?.code || errorCode;
-        // 根据状态码和错误代码自定义错误提示
         if (response.status === 504) {
           errorMessage = "请求超时，请稍后再试";
         } else if (response.status === 401) {
@@ -382,13 +321,10 @@ export const sendCommonChatRequest = async ({
           errorMessage = "请求参数错误，请检查输入";
         }
       } catch (e) {
-        console.error("[Chat Request] 解析错误响应失败:", e);
         errorMessage =
           errorBody || `状态码 ${response.status} ${response.statusText}`;
       }
-      console.error("[Chat Request] API请求失败:", errorMessage);
 
-      // 将错误信息以流式传输方式显示
       contentBuffer = appendTextChunk(contentBuffer, `[错误: ${errorMessage}]`);
       dispatch(
         messageStreaming({
@@ -401,7 +337,6 @@ export const sendCommonChatRequest = async ({
         })
       );
 
-      // 结束流处理
       finalizeStream(
         contentBuffer,
         totalUsage,
@@ -412,10 +347,9 @@ export const sendCommonChatRequest = async ({
         thunkApi,
         messageId
       );
-      return; // 提前返回，避免继续处理流
+      return;
     }
 
-    // 以下代码保持不变，继续处理流式响应
     reader = response.body?.getReader();
     if (!reader) {
       throw new Error("无法获取响应流读取器");
@@ -425,8 +359,6 @@ export const sendCommonChatRequest = async ({
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        console.log("[Stream] 流结束 (done=true).");
-        const currentContentBufferLengthBeforeHandling = contentBuffer.length;
         contentBuffer = await handleAccumulatedToolCalls(
           accumulatedToolCalls,
           contentBuffer,
@@ -454,7 +386,6 @@ export const sendCommonChatRequest = async ({
       const parsedResults = parseMultilineSSE(chunk);
 
       for (const parsedData of parsedResults) {
-        // --- (Usage 处理逻辑不变) ---
         if (parsedData.usage) {
           if (!totalUsage) {
             totalUsage = { ...parsedData.usage };
@@ -481,10 +412,8 @@ export const sendCommonChatRequest = async ({
           }
         }
 
-        // --- (Error 处理逻辑不变) ---
         if (parsedData.error) {
           const errorMsg = `Error: ${parsedData.error.message || JSON.stringify(parsedData.error)}`;
-          console.error("[API Error]", errorMsg);
           contentBuffer = appendTextChunk(
             contentBuffer,
             `\n[API Error] ${errorMsg}`
@@ -503,7 +432,6 @@ export const sendCommonChatRequest = async ({
           return;
         }
 
-        // --- (Choices 处理逻辑不变) ---
         const choice = parsedData.choices?.[0];
         if (
           !choice &&
@@ -514,17 +442,12 @@ export const sendCommonChatRequest = async ({
           continue;
         if (!choice && Object.keys(parsedData).length === 0) continue;
         if (!choice) {
-          console.warn(
-            "SSE chunk without choices or known metadata:",
-            parsedData
-          );
           continue;
         }
 
         const delta = choice.delta || {};
         const finishReason = choice.finish_reason;
 
-        // --- (Tool Calls Stream 处理逻辑不变) ---
         if (delta.tool_calls && Array.isArray(delta.tool_calls)) {
           for (const toolCallChunk of delta.tool_calls) {
             const index = toolCallChunk.index;
@@ -556,10 +479,6 @@ export const sendCommonChatRequest = async ({
               functionCall.name &&
               functionCall.arguments !== undefined
             ) {
-              console.warn(
-                `[Tool Stream] 无 index 工具调用块，视为完整调用:`,
-                toolCallChunk
-              );
               const existingCallIndex = id
                 ? accumulatedToolCalls.findIndex((call) => call.id === id)
                 : -1;
@@ -572,37 +491,22 @@ export const sendCommonChatRequest = async ({
                     arguments: functionCall.arguments,
                   },
                 });
-                console.log(
-                  `[Tool Stream] 添加了无 index 的完整工具调用 (ID: ${id || "N/A"}).`
-                );
-              } else {
-                console.warn(
-                  `[Tool Stream] 发现重复 ID (${id}) 的无 index 工具调用块，已忽略:`,
-                  toolCallChunk
-                );
               }
-            } else {
-              console.warn(
-                "[Tool Stream] 工具调用块缺少 index 且数据不完整，已忽略:",
-                toolCallChunk
-              );
             }
           }
         }
 
-        // --- (Content 处理逻辑不变) ---
         const contentChunk = delta.content || "";
         if (contentChunk) {
           contentBuffer = appendTextChunk(contentBuffer, contentChunk);
-          // 在流式更新时也分离 <think> 内容（可选）
           const { thinkContent, normalContent } =
             separateThinkContent(contentBuffer);
           dispatch(
             messageStreaming({
               id: messageId,
               dbKey: msgKey,
-              content: normalContent, // 普通内容
-              thinkContent: thinkContent, // 思考内容
+              content: normalContent,
+              thinkContent: thinkContent,
               role: "assistant",
               cybotKey: cybotConfig.dbKey,
               isStreaming: true,
@@ -610,9 +514,7 @@ export const sendCommonChatRequest = async ({
           );
         }
 
-        // --- (Finish Reason 处理逻辑不变) ---
         if (finishReason) {
-          console.log("[Stream] Finish Reason received:", finishReason);
           if (finishReason === "tool_calls") {
             const currentContentBufferLengthBeforeHandling =
               contentBuffer.length;
@@ -625,17 +527,8 @@ export const sendCommonChatRequest = async ({
               messageId
             );
             accumulatedToolCalls = [];
-            if (
-              contentBuffer.length === currentContentBufferLengthBeforeHandling
-            ) {
-              console.warn(
-                "[Finish Reason=tool_calls] 收到 tool_calls，但处理后无有效工具调用结果。"
-              );
-            }
           } else if (finishReason === "stop") {
-            console.log("[Finish Reason=stop] 流正常结束信号.");
           } else {
-            console.warn("[Stream] 其他 Finish Reason:", finishReason);
             contentBuffer = appendTextChunk(
               contentBuffer,
               `\n[流结束原因: ${finishReason}]`
@@ -652,10 +545,9 @@ export const sendCommonChatRequest = async ({
             );
           }
         }
-      } // end for parsedData
-    } // end while
+      }
+    }
   } catch (error: any) {
-    console.error("[Chat Request] 捕获到异常:", error);
     let errorText = "";
     if (error.name === "AbortError") {
       errorText = "\n[用户中断]";
@@ -689,20 +581,11 @@ export const sendCommonChatRequest = async ({
       messageId
     );
   } finally {
-    // 请求结束后移除 controller
     dispatch(removeActiveController(messageId));
-    // --- (Reader 关闭逻辑不变) ---
     if (reader) {
       try {
-        if (!controller.signal.aborted) {
-          // controller.abort(); // May not be needed if cancel() aborts internally
-        }
         await reader.cancel();
-        console.log("[Chat Request] Reader cancelled.");
-      } catch (cancelError) {
-        console.warn("[Chat Request] Error cancelling reader:", cancelError);
-      }
+      } catch (cancelError) {}
     }
-    console.log("[Chat Request] Finalized.");
   }
-}; // end sendCommonChatRequest
+};
