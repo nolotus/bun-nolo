@@ -3,7 +3,7 @@
 import { logger } from "auth/server/shared";
 import { DataType } from "create/types";
 import serverDb from "./db";
-import { handleToken, handleCybot, handleOtherDataTypes } from "./dataHandlers";
+import { handleToken, handleCybot } from "./dataHandlers";
 import { handleTransaction } from "./handleTransaction";
 
 export const handleWrite = async (req: any, res: any) => {
@@ -69,7 +69,25 @@ export const handleWrite = async (req: any, res: any) => {
         result = await handleCybot(data, res, customKey);
         break;
       default:
-        result = await handleOtherDataTypes(data, res, customKey);
+        // 直接嵌入 handleOtherDataTypes 的逻辑
+        if (
+          data.type === DataType.MSG ||
+          data.type === DataType.PAGE ||
+          data.type === DataType.DIALOG ||
+          data.type === DataType.SPACE ||
+          data.type === DataType.SETTING
+        ) {
+          if (data.type === DataType.SPACE) {
+            console.log("Creating space with key:", customKey);
+          }
+          await serverDb.put(customKey, data);
+          result = res.status(200).json({
+            message: "Data written to file successfully.",
+            id: customKey,
+            dbKey: customKey,
+            ...data,
+          });
+        }
         break;
     }
 

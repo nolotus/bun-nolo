@@ -1,6 +1,5 @@
 import { logger } from "auth/server/shared";
 import { deductUserBalance } from "auth/server/deduct";
-import { DataType } from "create/types";
 import serverDb from "./db";
 
 export const handleToken = async (
@@ -111,30 +110,5 @@ export const handleCybot = async (data: any, res: any, customKey: string) => {
       name: data.name,
     });
     throw error;
-  }
-};
-
-export const handleOtherDataTypes = async (
-  data: any,
-  res: any,
-  customKey: string
-) => {
-  if (
-    data.type === DataType.MSG ||
-    data.type === DataType.PAGE ||
-    data.type === DataType.DIALOG ||
-    data.type === DataType.SPACE ||
-    data.type === DataType.SETTING
-  ) {
-    if (data.type === DataType.SPACE) {
-      console.log("Creating space with key:", customKey);
-    }
-    await serverDb.put(customKey, data);
-    return res.status(200).json({
-      message: "Data written to file successfully.",
-      id: customKey,
-      dbKey: customKey,
-      ...data,
-    });
   }
 };
