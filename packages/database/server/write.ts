@@ -4,10 +4,12 @@ import { logger } from "auth/server/shared";
 import { DataType } from "create/types";
 import serverDb from "./db";
 import { handleToken, handleCybot } from "./dataHandlers";
+
 import { handleTransaction } from "./handleTransaction";
+import { handleToken as handleAuthToken } from "auth/server/token";
 
 export const handleWrite = async (req: any, res: any) => {
-  req.user = await handleToken(req, res);
+  req.user = await handleAuthToken(req, res);
 
   const { user } = req;
   const actionUserId = user.userId;

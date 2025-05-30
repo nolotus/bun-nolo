@@ -1,3 +1,4 @@
+// src/features/page/RenderPage.tsx
 import React, { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
@@ -17,7 +18,7 @@ import { selectTheme } from "app/theme/themeSlice";
 // Editor 懒加载
 const Editor = React.lazy(() => import("create/editor/Editor"));
 
-// patch 来自 database/dbSlice，其它 action/selectors 来自 pageSlice
+// database/dbSlice.patch
 import { patch } from "database/dbSlice";
 import {
   initPage,
@@ -32,10 +33,9 @@ import {
 } from "./pageSlice";
 import { updateContentTitle } from "create/space/spaceSlice";
 
-// 常量定义：提取硬编码数字以提高可维护性
-const AUTO_SAVE_DELAY_MS = 2000; // 自动保存延时
-const STATUS_RESET_DELAY_MS = 3000; // 保存状态重置延时
-const TIME_UPDATE_INTERVAL_MS = 60000; // 更新保存时间显示的间隔
+const AUTO_SAVE_DELAY_MS = 2000; // 后端 patch 防抖时长
+const STATUS_RESET_DELAY_MS = 3000;
+const TIME_UPDATE_INTERVAL_MS = 60000;
 
 interface RenderPageProps {
   pageKey: string;
@@ -50,7 +50,6 @@ export default React.memo(function RenderPage({ pageKey }: RenderPageProps) {
     pageKey,
     urlEditMode
   );
-
   const initialValue = useInitialValue(page, isInitialized);
 
   const {
@@ -148,7 +147,7 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
   }, [page, isInitialized]);
 }
 
-/*——————— Hook: 自动保存 & 状态管理 ———————*/
+/*——————— Hook: 自动保存 & 状态管理（updateSlate 立即执行，后端 patch 防抖） ———————*/
 function useAutoSave({
   pageKey,
   page,
@@ -170,6 +169,7 @@ function useAutoSave({
   const lastContent = React.useRef<EditorContent>(
     JSON.parse(JSON.stringify(page?.slateData || []))
   );
+
   const saveTimer = React.useRef<number>();
   const statusTimer = React.useRef<number>();
   const editorFocus = React.useRef(false);
@@ -221,18 +221,33 @@ function useAutoSave({
     onSave: savePage,
   });
 
+  // 每次输入都立即更新 Redux，并防抖触发后端 patch
+  function handleChange(v: EditorContent) {
+    if (isReadOnly) return;
+    // 1. 立即同步到 Redux
+    dispatch(updateSlate(v));
+    // 2. 防抖调用后端保存
+    clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(savePage, AUTO_SAVE_DELAY_MS);
+  }
+
+  // 真正的后端 patch 流程
   async function savePage() {
     if (status === "saving" || isReadOnly) return;
+
     const slateData = page?.slateData;
     if (!slateData) return;
 
+    // 如果内容没变，可以跳过（可选）
     const changed = compareSlateContent(slateData, lastContent.current);
     if (!changed) {
       if (status === "error") setStatus(null);
       return;
     }
+
     clearTimeout(statusTimer.current);
     setStatus("saving");
+
     const now = new Date();
     lastSavedDate.current = now;
     const iso = formatISO(now);
@@ -259,6 +274,7 @@ function useAutoSave({
       }
       dispatch(updatePageTitle(title));
 
+      // 更新本地“已保存内容”快照
       lastContent.current = JSON.parse(JSON.stringify(slateData));
       setLastSaved(formatSaved(now));
       setStatus("saved");
@@ -271,17 +287,6 @@ function useAutoSave({
       console.error("保存失败:", e);
       setStatus("error");
       toast.error("内容保存失败", { icon: "⚠️", duration: 4000 });
-    }
-  }
-
-  function handleChange(v: EditorContent) {
-    if (isReadOnly) return;
-    clearTimeout(saveTimer.current);
-    if (status === "error") setStatus(null);
-    const changed = compareSlateContent(v, page?.slateData);
-    if (changed) {
-      dispatch(updateSlate(v));
-      saveTimer.current = window.setTimeout(savePage, AUTO_SAVE_DELAY_MS);
     }
   }
 
