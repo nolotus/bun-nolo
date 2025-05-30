@@ -1,5 +1,6 @@
 // patch.js (或你的 patch 处理文件名)
 import serverDb from "./db"; // 确认路径正确
+import { handleToken } from "auth/server/token";
 
 // 深度合并工具函数 (保持不变)
 const deepMerge = (target, source) => {
@@ -24,6 +25,8 @@ const deepMerge = (target, source) => {
 };
 
 export const handlePatch = async (req, res) => {
+  req.user = await handleToken(req, res);
+
   // --- 修改：变量名改为 dbKey，但仍然从 req.params.id 获取值 ---
   // (路由中仍然是 :id, 所以这里还是 req.params.id)
   const dbKey = req.params.id;
@@ -87,11 +90,9 @@ export const handlePatch = async (req, res) => {
     // 根据错误类型返回更具体的错误码可能更好
     if (error.name === "NotFoundError" || error.notFound) {
       // 检查 LevelDB 可能的错误类型
-      return res
-        .status(404)
-        .json({
-          message: `Data not found during patch operation for key: ${dbKey}`,
-        });
+      return res.status(404).json({
+        message: `Data not found during patch operation for key: ${dbKey}`,
+      });
     }
     return res.status(500).json({
       message: "Failed to patch data due to internal server error",

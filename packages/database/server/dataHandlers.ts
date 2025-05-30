@@ -5,9 +5,9 @@ import serverDb from "./db";
 export const handleToken = async (
   data: any,
   res: any,
-  userId: string,
-  customKey: string,
-  actionUserId: string
+  userId?: string,
+  customKey?: string,
+  actionUserId?: string
 ) => {
   const isStatsKey = customKey.includes("token-stats");
   await serverDb.put(customKey, data);

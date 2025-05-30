@@ -7,6 +7,8 @@ import { handleToken, handleCybot } from "./dataHandlers";
 import { handleTransaction } from "./handleTransaction";
 
 export const handleWrite = async (req: any, res: any) => {
+  req.user = await handleToken(req, res);
+
   const { user } = req;
   const actionUserId = user.userId;
 

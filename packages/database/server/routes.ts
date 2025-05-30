@@ -1,5 +1,3 @@
-import { handleToken } from "auth/server/token";
-
 import { API_ENDPOINTS } from "../config";
 import { handleQuery } from "./query";
 
@@ -23,10 +21,8 @@ export const databaseRequest = async (req, res, url) => {
 
     switch (operation) {
       case "write":
-        req.user = await handleToken(req, res);
         return handleWrite(req, res);
       case "patch":
-        req.user = await handleToken(req, res);
         req.params = { id: getIdFromPath("/api/v1/db/patch/") };
         return handlePatch(req, res);
       case "query":
