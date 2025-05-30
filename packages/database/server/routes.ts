@@ -3,7 +3,6 @@ import { handleToken } from "auth/server/token";
 import { API_ENDPOINTS } from "../config";
 import { handleQuery } from "./query";
 
-import { handleDelete } from "./delete";
 import { handleWrite } from "./write";
 import { handlePatch } from "./patch";
 
@@ -33,10 +32,6 @@ export const databaseRequest = async (req, res, url) => {
       case "query":
         req.params = { userId: getIdFromPath("/api/v1/db/query/") };
         return handleQuery(req, res);
-      case "delete":
-        req.user = await handleToken(req, res);
-        req.params = { id: getIdFromPath("/api/v1/db/delete/") };
-        return handleDelete(req, res);
       default:
         return new Response("database");
     }
