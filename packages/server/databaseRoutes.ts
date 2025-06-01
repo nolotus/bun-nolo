@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from "database/config";
 import { handleReadSingle } from "database/server/read";
 import { handleDelete } from "database/server/delete";
 import { createRouteConfig } from "./routeFactory";
+import { handleUpload } from "database/server/upload"; // 假设有一个处理文件上传的函数
 
 export const databaseRouteConfigs = [
   createRouteConfig({
@@ -19,6 +20,14 @@ export const databaseRouteConfigs = [
       DELETE: async (req) => handleDelete(req),
     },
     allowedMethods: ["DELETE", "OPTIONS"],
+    enableCors: true, // 明确启用 CORS
+  }),
+  createRouteConfig({
+    path: `${API_ENDPOINTS.DATABASE}/upload`,
+    handlers: {
+      POST: async (req) => handleUpload(req),
+    },
+    allowedMethods: ["POST", "OPTIONS"],
     enableCors: true, // 明确启用 CORS
   }),
 ];
