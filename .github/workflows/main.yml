@@ -12,9 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
-      - run: bun install
-      # 移除删除步骤，避免清理历史版本
-      # - run: rm -rf public/assets
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+      - name: Install dependencies
+        run: bun install --production
       - run: bun run build
       - run: bun test
 
@@ -37,9 +45,7 @@ jobs:
             cd bun-nolo
             git fetch --all
             git reset --hard origin/main
-            /home/nolotus/.bun/bin/bun install
-            # 移除删除步骤，避免清理历史版本
-            # rm -rf public/assets
+            /home/nolotus/.bun/bin/bun install --production
             /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
 
             # 🔥 PM2热重载 - 0停机部署
@@ -89,9 +95,7 @@ jobs:
             cd /root/bun-nolo
             git fetch --all
             git reset --hard origin/alpha
-            /root/.bun/bin/bun install
-            # 移除删除步骤，避免清理历史版本
-            # rm -rf public/assets
+            /root/.bun/bin/bun install --production
             /root/.bun/bin/bun run ./scripts/esBuild.js
 
             # 🔥 PM2热重载 - 0停机部署
