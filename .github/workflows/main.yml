@@ -22,7 +22,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-bun-
       - name: Install dependencies
-        run: bun install --production
+        run: |
+          bun install --no-frozen-lockfile
+          bun install --production
       - run: bun run build
       - run: bun test
 
@@ -45,6 +47,7 @@ jobs:
             cd bun-nolo
             git fetch --all
             git reset --hard origin/main
+            /home/nolotus/.bun/bin/bun install --no-frozen-lockfile
             /home/nolotus/.bun/bin/bun install --production
             /home/nolotus/.bun/bin/bun run ./scripts/esBuild.js
 
@@ -95,6 +98,7 @@ jobs:
             cd /root/bun-nolo
             git fetch --all
             git reset --hard origin/alpha
+            /root/.bun/bin/bun install --no-frozen-lockfile
             /root/.bun/bin/bun install --production
             /root/.bun/bin/bun run ./scripts/esBuild.js
 
