@@ -17,10 +17,10 @@ const getEntryFiles = (metaData) => {
   Object.entries(metaData.outputs).forEach(([path, output]) => {
     if (path.includes("entry") || path.match(/entry[-_\w]*\.(js|css)$/)) {
       if (path.endsWith(".js")) {
-        // 保留完整路径，但去掉 public/ 前缀
-        entryFiles.js = path.replace(/^public\//, "");
+        // 转换为服务端路由格式：public/assets-xxx/entry-hash.js → /public/assets-xxx/entry-hash.js
+        entryFiles.js = "/" + path;
       } else if (path.endsWith(".css")) {
-        entryFiles.css = path.replace(/^public\//, "");
+        entryFiles.css = "/" + path;
       }
     }
   });
@@ -33,28 +33,25 @@ export const runMetaBuild = async () => {
 
   const result = await measureTime("esbuild 构建", () => esbuild.build(config));
 
-  // 保留原有的 meta.json 写入
   await measureTime("写入 meta.json", () =>
     write("public/meta.json", JSON.stringify(result.metafile))
   );
 
   const assets = getEntryFiles(result.metafile);
 
-  // 简化的资源信息，但保留时间戳版本管理
   const buildInfo = {
-    // 资源基础路径
-    basePath: publicPath, // 如: "/assets/" 或 "/assets-1703123456789/"
+    // 资源基础路径（与服务端路由匹配）
+    basePath: publicPath,
 
-    // 入口文件（相对于 public/ 目录）
-    js: assets.js, // 如: "assets-1703123456789/entry-abc123.js"
-    css: assets.css, // 如: "assets-1703123456789/entry-def456.css"
+    // 入口文件的完整URL路径
+    js: assets.js, // 如: "/public/assets-1703123456789/entry-abc123.js"
+    css: assets.css, // 如: "/public/assets-1703123456789/entry-def456.css"
 
     // 版本信息
     timestamp,
     buildTime: new Date().toISOString(),
   };
 
-  // 保留原有的文件写入逻辑
   await measureTime("写入 latest-assets.json", () =>
     write("public/latest-assets.json", JSON.stringify(buildInfo))
   );
