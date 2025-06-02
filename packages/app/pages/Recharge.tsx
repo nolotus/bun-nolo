@@ -10,6 +10,7 @@ import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import image from "app/images/image.png";
+const EMAIL = "s@nolotus.com";
 
 const RechargePage = () => {
   const theme = useAppSelector(selectTheme);
@@ -277,7 +278,7 @@ const RechargePage = () => {
               fontSize: "0.9rem",
             }}
           >
-            充值遇到问题请联系 s@nolotus.com
+            充值遇到问题请联系 {EMAIL}
           </div>
         </div>
       </div>
