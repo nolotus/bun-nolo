@@ -1,7 +1,7 @@
 // build.js
 import { write } from "bun";
 import * as esbuild from "esbuild";
-import { config, timestamp, publicPath } from "./config";
+import { config, timestamp, publicPath } from "./esbuild.config";
 
 const measureTime = async (operation, action) => {
   const startTime = performance.now();
