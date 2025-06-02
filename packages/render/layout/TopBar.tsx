@@ -18,7 +18,7 @@ import DeleteDialogButton from "chat/dialog/DeleteDialogButton";
 import { CreateTool } from "create/CreateTool";
 import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 import { RoutePaths } from "auth/web/routes";
-import { SignInIcon, ThreeBarsIcon } from "@primer/octicons-react";
+import { SignInIcon, ThreeBarsIcon, HomeIcon } from "@primer/octicons-react";
 
 interface TopBarProps {
   topbarContent?: ReactNode;
@@ -52,6 +52,13 @@ const TopBar: React.FC<TopBarProps> = ({
     <>
       <div className="topbar">
         <div className="topbar-left">
+          {!isLoggedIn && (
+            <NavListItem
+              label={t("home")}
+              icon={<HomeIcon size={16} />}
+              path="/"
+            />
+          )}
           {toggleSidebar && (
             <button
               className="sidebar-toggle-button"
@@ -94,119 +101,122 @@ const TopBar: React.FC<TopBarProps> = ({
         </div>
       </div>
 
-      <style>
-        {`
-          /* --- TopBar Basic Layout --- */
+      <style href="topbar" precedence="default">{`
+        /* --- TopBar Basic Layout --- */
+        .topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background-color: ${theme.background};
+          position: sticky;
+          top: 0;
+          right: 0;
+          width: 100%;
+          padding: 0 ${theme.space[4]}; /* 16px */
+          z-index: 2;
+          height: ${theme.space[12]}; /* 48px */
+          box-sizing: border-box;
+          border: none;
+          box-shadow: none;
+          transition: transform 0.3s ease;
+        }
+
+        .topbar-left {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[2]}; /* 8px */
+          min-width: 80px;
+          flex-shrink: 0;
+        }
+
+        .topbar-right {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[2]}; /* 8px */
+          min-width: 80px;
+          flex-shrink: 0;
+          justify-content: flex-end;
+        }
+
+        .topbar-center {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 ${theme.space[5]}; /* 20px */
+          overflow: visible;
+          min-width: 0;
+        }
+
+        .topbar-content-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: ${theme.space[3]}; /* 12px */
+          max-width: 800px;
+          width: 100%;
+        }
+
+        .sidebar-toggle-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          color: ${theme.textSecondary};
+          width: ${theme.space[8]}; /* 32px */
+          height: ${theme.space[8]}; /* 32px */
+          border-radius: 6px;
+          transition: all 0.15s ease;
+        }
+
+        .sidebar-toggle-button:hover {
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
+        }
+
+        .sidebar-toggle-button:focus-visible {
+          outline: none;
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
           .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: ${theme.background};
-            position: sticky;
-            top: 0;
-            right: 0;
-            width: 100%;
-            padding: 0 ${theme.space[4]}; /* 16px */
-            z-index: 2;
-            height: ${theme.space[12]}; /* 48px */
-            box-sizing: border-box;
-            border: none;
-            box-shadow: none;
-            transition: transform 0.3s ease; /* 添加过渡效果 */
+            padding: 0 ${theme.space[3]}; /* 12px */
           }
-          
-          .topbar-left, .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: ${theme.space[2]}; /* 8px */
-            min-width: 80px;
-            flex-shrink: 0;
-          }
-          
-          .topbar-right {
-            justify-content: flex-end;
-          }
-          
+
           .topbar-center {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 ${theme.space[5]}; /* 20px */
-            overflow: visible;
-            min-width: 0;
+            padding: 0 ${theme.space[2]}; /* 8px */
+            gap: ${theme.space[1]}; /* 4px */
           }
-          
+
+          .topbar-right {
+            gap: ${theme.space[1]}; /* 4px */
+          }
+        }
+
+        @media (max-width: 640px) {
+          .topbar-center .editable-title {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
           .topbar-content-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: ${theme.space[3]}; /* 12px */
-            max-width: 800px;
-            width: 100%;
+            gap: ${theme.space[2]}; /* 8px */
           }
+        }
 
-          .sidebar-toggle-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: ${theme.textSecondary};
-            width: ${theme.space[8]}; /* 32px */
-            height: ${theme.space[8]}; /* 32px */
-            border-radius: 6px;
-            transition: all 0.15s ease;
+        @media (max-width: 480px) {
+          .topbar-center .editable-title {
+            max-width: 70px;
           }
-
-          .sidebar-toggle-button:hover {
-            background: ${theme.backgroundHover};
-            color: ${theme.text};
-          }
-
-          .sidebar-toggle-button:focus-visible {
-            outline: none;
-            background: ${theme.backgroundHover};
-            color: ${theme.text};
-          }
-
-          /* --- Responsive Design --- */
-          @media (max-width: 768px) {
-            .topbar { 
-              padding: 0 ${theme.space[3]}; /* 12px */
-            }
-            
-            .topbar-center { 
-              padding: 0 ${theme.space[2]}; /* 8px */
-              gap: ${theme.space[1]}; /* 4px */
-            }
-            
-            .topbar-right { 
-              gap: ${theme.space[1]}; /* 4px */
-            }
-          }
-          
-          @media (max-width: 640px) {
-            .topbar-center .editable-title {
-              max-width: 100px;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            
-            .topbar-content-wrapper {
-              gap: ${theme.space[2]}; /* 8px */
-            }
-          }
-          
-          @media (max-width: 480px) {
-            .topbar-center .editable-title {
-              max-width: 70px;
-            }
-          }
-        `}
-      </style>
+        }
+      `}</style>
     </>
   );
 };
