@@ -1,7 +1,7 @@
+// build.js
 import { write } from "bun";
 import * as esbuild from "esbuild";
-
-import { config } from "./config";
+import { config, timestamp, publicPath } from "./config";
 
 const measureTime = async (operation, action) => {
   const startTime = performance.now();
@@ -13,17 +13,18 @@ const measureTime = async (operation, action) => {
 
 const getEntryFiles = (metaData) => {
   const entryFiles = { js: "", css: "" };
-  // 调整路径匹配逻辑，确保与实际输出路径一致
+
   Object.entries(metaData.outputs).forEach(([path, output]) => {
-    // 移除硬编码的路径前缀，改为更灵活的匹配方式
     if (path.includes("entry") || path.match(/entry[-_\w]*\.(js|css)$/)) {
       if (path.endsWith(".js")) {
-        entryFiles.js = path;
+        // 保留完整路径，但去掉 public/ 前缀
+        entryFiles.js = path.replace(/^public\//, "");
       } else if (path.endsWith(".css")) {
-        entryFiles.css = path;
+        entryFiles.css = path.replace(/^public\//, "");
       }
     }
   });
+
   return entryFiles;
 };
 
@@ -32,17 +33,35 @@ export const runMetaBuild = async () => {
 
   const result = await measureTime("esbuild 构建", () => esbuild.build(config));
 
+  // 保留原有的 meta.json 写入
   await measureTime("写入 meta.json", () =>
     write("public/meta.json", JSON.stringify(result.metafile))
   );
+
   const assets = getEntryFiles(result.metafile);
-  // 直接将最新的入口文件信息写入到固定文件，避免二次查找
+
+  // 简化的资源信息，但保留时间戳版本管理
+  const buildInfo = {
+    // 资源基础路径
+    basePath: publicPath, // 如: "/assets/" 或 "/assets-1703123456789/"
+
+    // 入口文件（相对于 public/ 目录）
+    js: assets.js, // 如: "assets-1703123456789/entry-abc123.js"
+    css: assets.css, // 如: "assets-1703123456789/entry-def456.css"
+
+    // 版本信息
+    timestamp,
+    buildTime: new Date().toISOString(),
+  };
+
+  // 保留原有的文件写入逻辑
   await measureTime("写入 latest-assets.json", () =>
-    write("public/latest-assets.json", JSON.stringify(assets))
+    write("public/latest-assets.json", JSON.stringify(buildInfo))
   );
 
   const totalEndTime = performance.now();
   console.log(`总耗时 ${(totalEndTime - totalStartTime).toFixed(2)} 毫秒`);
+  console.log("构建信息:", buildInfo);
 };
 
 runMetaBuild();

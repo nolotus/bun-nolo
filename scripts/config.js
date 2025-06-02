@@ -1,11 +1,16 @@
+// config.js
 import { isProduction } from "../packages/utils/env";
 
 const inputPath = "./packages/web/entry.tsx";
 
-// 定义公共配置
+// 动态生成时间戳目录（保留版本管理）
+const timestamp = Date.now().toString();
+const dynamicOutdir = `public/assets-${timestamp}`;
+const publicPath = isProduction ? `/assets-${timestamp}/` : "/assets/";
+
 export const commonConfig = {
   entryPoints: [inputPath],
-  outdir: "public/assets", // 默认输出目录，可能会被覆盖
+  outdir: isProduction ? dynamicOutdir : "public/assets", // 保留时间戳目录生成
   define: {
     "process.env.PLATFORM": JSON.stringify("web"),
     "process.env.NODE_ENV": JSON.stringify(
@@ -29,33 +34,20 @@ export const commonConfig = {
   external: ["react-native*"],
   resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
   conditions: ["browser", "default"],
-  // 添加 publicPath 配置
-  publicPath: "/assets/",
-  // 配置资源文件的输出名称
+  publicPath, // 关键：这确保所有资源都有正确的路径前缀
   assetNames: "[name]-[hash]",
+  entryNames: "[name]-[hash]",
 };
 
 const prodConfig = {
-  entryNames: "[dir]/[name]-[hash]",
   minify: true,
   sourcemap: false,
-  minifyIdentifiers: false,
   target: ["es2020"],
 };
 
-// 动态生成输出目录，基于时间戳
-const timestamp = Date.now().toString();
-const dynamicOutdir = `public/assets-${timestamp}`;
-
 export const config = isProduction
-  ? {
-      ...commonConfig,
-      ...prodConfig,
-      outdir: dynamicOutdir,
-      publicPath: `/assets-${timestamp}/`, // 生产环境使用动态路径
-    }
-  : {
-      ...commonConfig,
-      outdir: "public/assets",
-      publicPath: "/assets/", // 开发环境使用固定路径
-    };
+  ? { ...commonConfig, ...prodConfig }
+  : commonConfig;
+
+// 导出时间戳和路径信息供其他文件使用
+export { timestamp, publicPath };
