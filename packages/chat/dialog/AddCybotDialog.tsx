@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { Dialog } from "render/web/ui/Dialog";
@@ -31,6 +31,13 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
   const theme = useTheme();
   const [selectedCybots, setSelectedCybots] = useState<Set<string>>(new Set());
 
+  // 当对话框关闭时清空选中状态
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedCybots(new Set());
+    }
+  }, [isOpen]);
+
   const {
     loading,
     data: cybots = [],
@@ -44,7 +51,6 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
     await reload();
   }, [clearCache, reload]);
 
-  // 保持原来简单的添加逻辑
   const handleAddCybot = useCallback(
     (cybotId: string) => {
       onAddCybot(cybotId);
@@ -53,7 +59,6 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
     [onAddCybot, onClose]
   );
 
-  // 新增批量选择功能
   const toggleSelection = useCallback((cybotId: string) => {
     setSelectedCybots((prev) => {
       const newSet = new Set(prev);
@@ -153,7 +158,8 @@ const AddCybotDialog: React.FC<AddCybotDialogProps> = ({
                 <div className="card-actions">
                   {item.outputPrice && (
                     <span className="price">
-                      ${item.outputPrice.toFixed(2)}
+                      ¥{item.outputPrice.toFixed(2)}{" "}
+                      {/* 将美元符号改为人民币符号 */}
                     </span>
                   )}
                   <button
