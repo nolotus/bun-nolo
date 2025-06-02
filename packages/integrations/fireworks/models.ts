@@ -33,16 +33,6 @@ export const fireworksmodels: Model[] = [
     },
   },
   {
-    name: "accounts/fireworks/models/llama4-maverick-instruct-basic",
-    displayName: "LLaMA 4 Maverick Basic",
-    hasVision: false,
-    contextWindow: 1000000, // 1m
-    price: {
-      input: 1.76, // 0.22 * 8
-      output: 7.04, // 0.88 * 8
-    },
-  },
-  {
     name: "accounts/fireworks/models/qwen3-235b-a22b",
     displayName: "Qwen 3 235B A22B",
     hasVision: false,
