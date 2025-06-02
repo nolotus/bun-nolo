@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import { selectCurrentUserId } from "auth/authSlice";
 import { CreateRoutePaths } from "create/routePaths";
-import { FiChevronRight, FiDollarSign } from "react-icons/fi";
+import { FiChevronRight, FiDollarSign, FiCreditCard } from "react-icons/fi"; // 导入 FiCreditCard
 import { HiOutlineLightBulb, HiOutlineDocumentAdd } from "react-icons/hi";
 import { BsRobot, BsPlusLg } from "react-icons/bs";
 import { MdOutlineSettings } from "react-icons/md";
@@ -74,6 +74,13 @@ const GuideSection = () => {
       icon: <FiDollarSign size={18} />,
       description: "按模型类型和 token 计费，按需付费",
       link: "/pricing",
+    },
+    // 添加新的“点此充值”链接
+    {
+      text: "点此充值", // 链接文本
+      icon: <FiCreditCard size={18} />, // 使用 FiCreditCard 图标
+      description: "充值您的余额以使用 Cybot 服务", // 描述
+      link: "/recharge", // 假设充值页面的路由是 /recharge，请根据您的实际路由调整
     },
   ];
 
