@@ -1,3 +1,4 @@
+// render/web/ui/Button.tsx
 import React from "react";
 import { useTheme } from "app/theme";
 import { Link, LinkProps } from "react-router-dom";
