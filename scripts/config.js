@@ -6,7 +6,9 @@ const inputPath = "./packages/web/entry.tsx";
 // 动态生成时间戳目录（保留版本管理）
 const timestamp = Date.now().toString();
 const dynamicOutdir = `public/assets-${timestamp}`;
-const publicPath = isProduction ? `/assets-${timestamp}/` : "/assets/";
+const publicPath = isProduction
+  ? `public/assets-${timestamp}/`
+  : "public/assets/";
 
 export const commonConfig = {
   entryPoints: [inputPath],
