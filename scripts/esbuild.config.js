@@ -1,5 +1,5 @@
 // config.js
-import { isProduction } from "../packages/utils/env";
+import { isProduction } from "utils/env";
 
 const inputPath = "./packages/web/entry.tsx";
 
@@ -10,7 +10,7 @@ const dynamicOutdir = `public/assets-${timestamp}`;
 // 关键：publicPath 需要与服务端路由匹配
 const publicPath = isProduction
   ? `/public/assets-${timestamp}/` // 注意这里加了 /public 前缀
-  : "/public/assets/"; // 开发环境也加 /public 前缀
+  : "/assets/"; // 开发环境也加 /public 前缀
 
 export const commonConfig = {
   entryPoints: [inputPath],
@@ -39,8 +39,6 @@ export const commonConfig = {
   resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
   conditions: ["browser", "default"],
   publicPath, // 现在路径是 /public/assets-xxx/ 格式
-  assetNames: "[name]-[hash]",
-  entryNames: "[name]-[hash]",
 };
 
 const prodConfig = {
