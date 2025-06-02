@@ -3,16 +3,18 @@ import { isProduction } from "../packages/utils/env";
 
 const inputPath = "./packages/web/entry.tsx";
 
-// 动态生成时间戳目录（保留版本管理）
+// 生成时间戳目录
 const timestamp = Date.now().toString();
 const dynamicOutdir = `public/assets-${timestamp}`;
+
+// 关键：publicPath 需要与服务端路由匹配
 const publicPath = isProduction
-  ? `public/assets-${timestamp}/`
-  : "public/assets/";
+  ? `/public/assets-${timestamp}/` // 注意这里加了 /public 前缀
+  : "/public/assets/"; // 开发环境也加 /public 前缀
 
 export const commonConfig = {
   entryPoints: [inputPath],
-  outdir: isProduction ? dynamicOutdir : "public/assets", // 保留时间戳目录生成
+  outdir: isProduction ? dynamicOutdir : "public/assets",
   define: {
     "process.env.PLATFORM": JSON.stringify("web"),
     "process.env.NODE_ENV": JSON.stringify(
@@ -36,7 +38,7 @@ export const commonConfig = {
   external: ["react-native*"],
   resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
   conditions: ["browser", "default"],
-  publicPath, // 关键：这确保所有资源都有正确的路径前缀
+  publicPath, // 现在路径是 /public/assets-xxx/ 格式
   assetNames: "[name]-[hash]",
   entryNames: "[name]-[hash]",
 };
@@ -51,5 +53,4 @@ export const config = isProduction
   ? { ...commonConfig, ...prodConfig }
   : commonConfig;
 
-// 导出时间戳和路径信息供其他文件使用
 export { timestamp, publicPath };
