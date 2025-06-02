@@ -16,6 +16,9 @@ import {
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
 import { selectHeaderHeight, selectTheme } from "app/theme/themeSlice";
+import { Link } from "react-router-dom";
+import { RocketIcon } from "@primer/octicons-react";
+import Button from "render/web/ui/Button";
 
 const spinKeyframes = `
   @keyframes spin {
@@ -67,9 +70,101 @@ const ErrorDisplay = ({ error }: { error: any }) => {
   );
 };
 
+const NotLoggedIn = () => {
+  const theme = useAppSelector(selectTheme);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%",
+        padding: theme.space[8],
+        textAlign: "center",
+        color: theme.textSecondary,
+        backgroundColor: theme.background,
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          backgroundColor: theme.backgroundSecondary,
+          borderRadius: theme.space[4],
+          padding: theme.space[8],
+          boxShadow: `0 4px 6px ${theme.shadowLight}`,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: theme.space[6],
+          }}
+        >
+          <RocketIcon size={48} style={{ color: theme.primary }} />
+        </div>
+
+        <h2
+          style={{
+            margin: `0 0 ${theme.space[4]} 0`,
+            color: theme.text,
+            fontSize: "24px",
+            fontWeight: 600,
+          }}
+        >
+          欢迎使用我们的服务
+        </h2>
+
+        <p
+          style={{
+            margin: `0 0 ${theme.space[6]} 0`,
+            lineHeight: "1.5",
+            fontSize: "16px",
+          }}
+        >
+          请登录或注册以继续使用所有功能
+        </p>
+
+        <div
+          style={{
+            display: "flex",
+            gap: theme.space[4],
+            justifyContent: "center",
+          }}
+        >
+          <Button
+            as={Link}
+            to="/login"
+            variant="primary"
+            style={{
+              width: "100px",
+            }}
+          >
+            登录
+          </Button>
+
+          <Button
+            as={Link}
+            to="/signup"
+            variant="secondary"
+            style={{
+              width: "100px",
+            }}
+          >
+            注册
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DialogPage = ({ pageKey }: { pageKey: string }) => {
   const dispatch = useAppDispatch();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const dialogId = extractCustomId(pageKey);
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const isLoadingInitial = useAppSelector(selectIsLoadingInitial);
@@ -88,6 +183,7 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
   }, [user, pageKey, dispatch, dialogId]);
 
   const renderContent = () => {
+    if (!isLoggedIn) return <NotLoggedIn />;
     if (isLoadingInitial) return <LoadingSpinner />;
     if (error) return <ErrorDisplay error={error} />;
     if (currentDialogConfig) {
