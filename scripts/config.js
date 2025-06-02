@@ -29,6 +29,10 @@ export const commonConfig = {
   external: ["react-native*"],
   resolveExtensions: [".tsx", ".ts", ".jsx", ".js"],
   conditions: ["browser", "default"],
+  // 添加 publicPath 配置
+  publicPath: "/assets/",
+  // 配置资源文件的输出名称
+  assetNames: "[name]-[hash]",
 };
 
 const prodConfig = {
@@ -44,5 +48,14 @@ const timestamp = Date.now().toString();
 const dynamicOutdir = `public/assets-${timestamp}`;
 
 export const config = isProduction
-  ? { ...commonConfig, ...prodConfig, outdir: dynamicOutdir }
-  : { ...commonConfig, outdir: "public/assets" };
+  ? {
+      ...commonConfig,
+      ...prodConfig,
+      outdir: dynamicOutdir,
+      publicPath: `/assets-${timestamp}/`, // 生产环境使用动态路径
+    }
+  : {
+      ...commonConfig,
+      outdir: "public/assets",
+      publicPath: "/assets/", // 开发环境使用固定路径
+    };
