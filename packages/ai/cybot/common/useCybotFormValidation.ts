@@ -51,12 +51,12 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
             : initialValues.tags || "",
           references: initialValues.references || [],
           smartReadEnabled: initialValues.smartReadEnabled ?? false,
-          // 模型参数设为可选，使用 initialValues 的值（如果存在）
           temperature: initialValues.temperature,
           top_p: initialValues.top_p,
           frequency_penalty: initialValues.frequency_penalty,
           presence_penalty: initialValues.presence_penalty,
           max_tokens: initialValues.max_tokens,
+          reasoning_effort: initialValues.reasoning_effort, // 保持原样，不设置默认值
         }
       : {
           name: "",
@@ -75,12 +75,12 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
           tags: "",
           references: [],
           smartReadEnabled: false,
-          // 不为模型参数设置默认值，保持可选
           temperature: undefined,
           top_p: undefined,
           frequency_penalty: undefined,
           presence_penalty: undefined,
           max_tokens: undefined,
+          reasoning_effort: undefined, // 保持 undefined，不设置默认值
         },
   });
 
@@ -89,27 +89,34 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
   const useServerProxy = watch("useServerProxy");
   const isPublic = watch("isPublic");
 
-  // 提取数据处理逻辑
-  const processData = (data: FormData) => ({
-    ...data,
-    prompt: data.prompt || "",
-    greeting: data.greeting || "",
-    introduction: data.introduction || "",
-    tags: data.tags
-      ? data.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean)
-      : [],
-    references: data.references || [],
-    smartReadEnabled: data.smartReadEnabled || false,
-    // 模型参数直接使用表单值，保持可选特性
-    temperature: data.temperature,
-    top_p: data.top_p,
-    frequency_penalty: data.frequency_penalty,
-    presence_penalty: data.presence_penalty,
-    max_tokens: data.max_tokens,
-  });
+  const processData = (data: FormData) => {
+    const result: any = {
+      ...data,
+      prompt: data.prompt || "",
+      greeting: data.greeting || "",
+      introduction: data.introduction || "",
+      tags: data.tags
+        ? data.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        : [],
+      references: data.references || [],
+      smartReadEnabled: data.smartReadEnabled || false,
+      temperature: data.temperature,
+      top_p: data.top_p,
+      frequency_penalty: data.frequency_penalty,
+      presence_penalty: data.presence_penalty,
+      max_tokens: data.max_tokens,
+    };
+
+    // 只有当 reasoning_effort 有值时才添加到结果中
+    if (data.reasoning_effort !== undefined) {
+      result.reasoning_effort = data.reasoning_effort;
+    }
+
+    return result;
+  };
 
   const onSubmit = async (data: FormData) => {
     if (!auth.user?.userId) {
@@ -121,7 +128,6 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
     const processedData = processData(data);
 
     if (isEditing) {
-      // 编辑逻辑
       const cybotId = extractCybotId(initialValues.id || "");
       const userCybotPath = createCybotKey.private(auth.user.userId, cybotId);
       const publicCybotPath = createCybotKey.public(cybotId);
@@ -159,12 +165,10 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
         throw error;
       }
     } else {
-      // 创建逻辑
       const id = ulid();
       const userCybotPath = createCybotKey.private(auth.user.userId, id);
       const publicCybotPath = createCybotKey.public(id);
 
-      // 构建基础数据
       const cybotData = {
         ...processedData,
         id,
@@ -177,7 +181,6 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
         tokenCount: 0,
       };
 
-      // 保存私有版本
       await dispatch(
         write({
           data: {
@@ -188,7 +191,6 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
         })
       ).unwrap();
 
-      // 如果是公开的，保存公开版本
       if (data.isPublic) {
         await dispatch(
           write({
@@ -201,7 +203,6 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
         ).unwrap();
       }
 
-      // 创建对话时使用公开路径，这样其他用户也可以访问
       await createNewDialog({
         cybots: [data.isPublic ? publicCybotPath : userCybotPath],
       });
@@ -214,6 +215,6 @@ export const useCybotValidation = (initialValues?: ExtendedFormData) => {
     useServerProxy,
     isPublic,
     onSubmit,
-    isEditing, // 可选：返回是否是编辑模式，供组件根据场景调整逻辑
+    isEditing,
   };
 };

@@ -5,7 +5,11 @@ export const DEFAULT_TEMPERATURE = 1.0;
 export const DEFAULT_TOP_P = 1.0;
 export const DEFAULT_FREQUENCY_PENALTY = 0.0;
 export const DEFAULT_PRESENCE_PENALTY = 0.0;
-export const DEFAULT_MAX_TOKENS = 8192; // 调大 max_tokens 的默认值
+export const DEFAULT_MAX_TOKENS = 8192;
+export const DEFAULT_REASONING_EFFORT = "medium"; // 新增默认值
+
+// 定义 reasoning_effort 的可选值
+export const REASONING_EFFORT_OPTIONS = ["low", "medium", "high"] as const;
 
 export const createCybotSchema = z
   .object({
@@ -43,14 +47,14 @@ export const createCybotSchema = z
     references: z
       .array(
         z.object({
-          type: z.string(), // 例如 "PAGE"
-          dbKey: z.string(), // 页面标识符
-          title: z.string(), // 页面标题
+          type: z.string(),
+          dbKey: z.string(),
+          title: z.string(),
         })
       )
       .optional()
-      .default([]), // 添加 references 字段，默认为空数组
-    smartReadEnabled: z.boolean().default(false), // 新增 smartReadEnabled 字段，默认为 false
+      .default([]),
+    smartReadEnabled: z.boolean().default(false),
     // 模型参数字段，设置为可选
     temperature: z
       .number()
@@ -73,14 +77,14 @@ export const createCybotSchema = z
       .max(2, "Presence Penalty must be at most 2")
       .optional(),
     max_tokens: z.number().min(1, "Max Tokens must be at least 1").optional(),
+    // 新增 reasoning_effort 字段
+    reasoning_effort: z
+      .enum(REASONING_EFFORT_OPTIONS)
+      .default(DEFAULT_REASONING_EFFORT)
+      .optional(),
   })
-  // 在 createCybotSchema 中修改 refine 逻辑
   .refine(
     (data) => {
-      // 不需要 API Key 的情况：
-      // 1. 使用 server proxy
-      // 2. provider 是 ollama
-      // 3. provider 是 custom
       if (
         data.useServerProxy ||
         data.provider.toLowerCase() === "ollama" ||
@@ -88,7 +92,6 @@ export const createCybotSchema = z
       ) {
         return true;
       }
-      // 其他情况需要 API Key
       return !!data.apiKey;
     },
     {

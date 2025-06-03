@@ -45,7 +45,7 @@ interface BuildRequestBodyOptions {
   frequency_penalty?: number;
   presence_penalty?: number;
   max_tokens?: number;
-  // 后续可以按需增加参数
+  reasoning_effort?: string;
 }
 
 /**
@@ -77,7 +77,6 @@ const createUserMessage = (userInput: string | UserInputPart[]): Message => {
           }
           break;
         case "excel":
-          // 只用 text 字段
           const excelText =
             item.text?.trim() ||
             `[Excel 文件: ${item.name || "未知Excel文件"} (无内容)]`;
@@ -91,7 +90,6 @@ const createUserMessage = (userInput: string | UserInputPart[]): Message => {
     if (hasImage) {
       return { role: "user", content: contentParts };
     } else {
-      // 仅文本，合并为一个字符串
       const combinedText = contentParts
         .map((part) => (part.type === "text" ? part.text : ""))
         .filter(Boolean)
@@ -143,6 +141,7 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
     frequency_penalty,
     presence_penalty,
     max_tokens,
+    reasoning_effort,
   } = options;
 
   const bodyData: any = {
@@ -159,9 +158,10 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
   ) {
     bodyData.stream_options = { include_usage: true };
   }
-  if (providerName === "xai" && model.includes("grok3-mini")) {
-    bodyData.reasoning_effort = "high";
-    bodyData.temperature = 0.7;
+
+  // 通用的 reasoning_effort 处理
+  if (reasoning_effort) {
+    bodyData.reasoning_effort = reasoning_effort;
   }
 
   if (typeof temperature === "number") bodyData.temperature = temperature;
@@ -177,7 +177,6 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
 
 /**
  * 主函数
- * cybotConfig 只用于挑选所需字段，最终只把所需参数传递给 buildRequestBody
  */
 export const generateOpenAIRequestBody = (
   state: NoloRootState,
@@ -191,6 +190,7 @@ export const generateOpenAIRequestBody = (
     frequency_penalty?: number;
     presence_penalty?: number;
     max_tokens?: number;
+    reasoning_effort?: string;
     [key: string]: any;
   },
   providerName: string,
@@ -219,7 +219,7 @@ export const generateOpenAIRequestBody = (
     promptContent
   );
 
-  // 6. 优雅地只挑所需字段构建请求体（不重复也不全传递）
+  // 6. 构建请求体
   const requestBody = buildRequestBody({
     model: cybotConfig.model,
     messages: messagesWithPrompt,
@@ -229,6 +229,7 @@ export const generateOpenAIRequestBody = (
     frequency_penalty: cybotConfig.frequency_penalty,
     presence_penalty: cybotConfig.presence_penalty,
     max_tokens: cybotConfig.max_tokens,
+    reasoning_effort: cybotConfig.reasoning_effort,
   });
 
   return requestBody;
