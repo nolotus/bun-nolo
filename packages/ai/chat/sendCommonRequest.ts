@@ -1,3 +1,4 @@
+// chatService.ts
 import { prepareTools } from "ai/tools/prepareTools";
 import {
   updateDialogTitle,
@@ -11,12 +12,11 @@ import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "./fetchUtils";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { selectCurrentToken } from "auth/authSlice";
-
 import { extractCustomId } from "core/prefix";
-
 import { parseMultilineSSE } from "./parseMultilineSSE";
 import { toolHandlers } from "../tools/toolHandlers";
 
+// 处理单次工具调用
 async function processToolData(
   toolCall: any,
   thunkApi: any,
@@ -41,7 +41,7 @@ async function processToolData(
       ) {
         try {
           toolArgs = JSON.parse(toolArgs);
-        } catch (e) {}
+        } catch (_e) {}
       }
     } else if (toolArgs === undefined || toolArgs === null) {
       toolArgs = {};
@@ -57,7 +57,11 @@ async function processToolData(
       if (result && result.success) {
         const text =
           result.text ||
-          `${toolName.replace("_", " ").replace(/^./, (c) => c.toUpperCase())} 已成功执行：${result.title || result.name || "操作完成"} (ID: ${result.id || "N/A"})`;
+          `${toolName
+            .replace("_", " ")
+            .replace(/^./, (c) => c.toUpperCase())} 已成功执行：${
+            result.title || result.name || "操作完成"
+          } (ID: ${result.id || "N/A"})`;
         return { type: "text", text };
       } else {
         return {
@@ -79,6 +83,7 @@ async function processToolData(
   }
 }
 
+// 处理多次累积的工具调用
 async function handleAccumulatedToolCalls(
   accumulatedCalls: any[],
   currentContentBuffer: any[],
@@ -135,6 +140,7 @@ async function handleAccumulatedToolCalls(
   return updatedContentBuffer;
 }
 
+// 向已有内容缓冲追加新的文本片段
 function appendTextChunk(
   currentContentBuffer: any[],
   textChunk: string
@@ -143,27 +149,20 @@ function appendTextChunk(
 
   let updatedContentBuffer = [...currentContentBuffer];
 
-  if (Object.isFrozen(updatedContentBuffer)) {
-    updatedContentBuffer = [...updatedContentBuffer];
-  }
-
-  const lastElementIndex = updatedContentBuffer.length - 1;
-  if (
-    lastElementIndex >= 0 &&
-    updatedContentBuffer[lastElementIndex].type === "text"
-  ) {
-    const lastElement = updatedContentBuffer[lastElementIndex];
-    const updatedLastElement = {
-      ...lastElement,
-      text: (lastElement.text || "") + textChunk,
+  const lastIndex = updatedContentBuffer.length - 1;
+  if (lastIndex >= 0 && updatedContentBuffer[lastIndex].type === "text") {
+    const last = updatedContentBuffer[lastIndex];
+    updatedContentBuffer[lastIndex] = {
+      ...last,
+      text: (last.text || "") + textChunk,
     };
-    updatedContentBuffer[lastElementIndex] = updatedLastElement;
   } else {
     updatedContentBuffer.push({ type: "text", text: textChunk });
   }
   return updatedContentBuffer;
 }
 
+// 从 contentBuffer 中分离 <think> 标签里内容与普通内容
 function separateThinkContent(contentBuffer: any[]) {
   let thinkContent = "";
   let normalContent = "";
@@ -176,7 +175,7 @@ function separateThinkContent(contentBuffer: any[]) {
   const thinkMatches = combinedText.match(/<think\b[^>]*>(.*?)<\/think>/gis);
   if (thinkMatches) {
     thinkContent = thinkMatches
-      .map((match) => match.replace(/<think\b[^>]*>|<\/think>/gi, ""))
+      .map((m) => m.replace(/<think\b[^>]*>|<\/think>/gi, ""))
       .join("\n\n");
     normalContent = combinedText
       .replace(/<think\b[^>]*>.*?<\/think>/gis, "")
@@ -188,6 +187,7 @@ function separateThinkContent(contentBuffer: any[]) {
   return { thinkContent, normalContent };
 }
 
+// 流结束时的统一收尾
 function finalizeStream(
   finalContentBuffer: any[],
   totalUsage: any,
@@ -196,19 +196,17 @@ function finalizeStream(
   dialogId: string,
   dialogKey: string,
   thunkApi: any,
-  messageId: string
+  messageId: string,
+  reasoningBuffer: string
 ) {
   const { dispatch } = thunkApi;
-
-  const { thinkContent, normalContent } =
+  const { thinkContent: tagThink, normalContent } =
     separateThinkContent(finalContentBuffer);
-
-  const finalContent = normalContent || "";
+  const thinkContent = tagThink + reasoningBuffer;
+  console.debug("[finalizeStream] final thinkContent:", thinkContent);
 
   const finalUsageData =
-    totalUsage &&
-    totalUsage.completion_tokens !== undefined &&
-    totalUsage.completion_tokens !== null
+    totalUsage && totalUsage.completion_tokens != null
       ? { completion_tokens: totalUsage.completion_tokens }
       : undefined;
 
@@ -216,11 +214,12 @@ function finalizeStream(
     messageStreamEnd({
       id: messageId,
       dbKey: msgKey,
-      content: finalContent,
-      thinkContent: thinkContent,
+      content: normalContent || "",
+      thinkContent,
       role: "assistant",
       cybotKey: cybotConfig.dbKey,
       usage: finalUsageData,
+      isStreaming: false, // 明确设置为 false
     })
   );
 
@@ -228,12 +227,12 @@ function finalizeStream(
     dispatch(updateTokens({ dialogId, usage: totalUsage, cybotConfig }));
   }
 
-  const hasMeaningfulText = finalContent.trim() !== "";
-  if (hasMeaningfulText) {
+  if ((normalContent || "").trim() !== "") {
     dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
   }
 }
 
+// 主流程：发送常规聊天请求
 export const sendCommonChatRequest = async ({
   bodyData,
   cybotConfig,
@@ -254,6 +253,7 @@ export const sendCommonChatRequest = async ({
 
   dispatch(addActiveController({ messageId, controller }));
 
+  // 如果配置了工具，注入 tools & tool_choice
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;
@@ -262,12 +262,13 @@ export const sendCommonChatRequest = async ({
     }
   }
 
-  let contentBuffer: Array<any> = [];
-  let reader: ReadableStreamDefaultReader | null = null;
+  let contentBuffer: any[] = [];
   let totalUsage: any = null;
   let accumulatedToolCalls: any[] = [];
+  let reasoningBuffer: string = ""; // 累积 API 返回的 reasoning_content
 
   try {
+    // 首次 dispatch 一个空的 streaming 消息
     dispatch(
       messageStreaming({
         id: messageId,
@@ -279,9 +280,9 @@ export const sendCommonChatRequest = async ({
       })
     );
 
+    // 发起 HTTP 请求
     const api = getApiEndpoint(cybotConfig);
     const token = selectCurrentToken(getState());
-
     const response = await performFetchRequest({
       cybotConfig,
       api,
@@ -290,6 +291,8 @@ export const sendCommonChatRequest = async ({
       signal,
       token,
     });
+
+    // 处理 HTTP 错误
     if (!response.ok) {
       const errorBody = await response.text();
       let errorMessage = `API请求失败: 状态码 ${response.status}`;
@@ -320,7 +323,7 @@ export const sendCommonChatRequest = async ({
         } else if (response.status === 400) {
           errorMessage = "请求参数错误，请检查输入";
         }
-      } catch (e) {
+      } catch (_e) {
         errorMessage =
           errorBody || `状态码 ${response.status} ${response.statusText}`;
       }
@@ -345,12 +348,14 @@ export const sendCommonChatRequest = async ({
         dialogId,
         dialogKey,
         thunkApi,
-        messageId
+        messageId,
+        reasoningBuffer
       );
       return;
     }
 
-    reader = response.body?.getReader();
+    // 处理流式响应
+    const reader = response.body?.getReader();
     if (!reader) {
       throw new Error("无法获取响应流读取器");
     }
@@ -359,6 +364,7 @@ export const sendCommonChatRequest = async ({
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
+        // 流读完，执行所有累积的工具调用
         contentBuffer = await handleAccumulatedToolCalls(
           accumulatedToolCalls,
           contentBuffer,
@@ -368,7 +374,7 @@ export const sendCommonChatRequest = async ({
           messageId
         );
         accumulatedToolCalls = [];
-
+        // 收尾
         finalizeStream(
           contentBuffer,
           totalUsage,
@@ -377,177 +383,196 @@ export const sendCommonChatRequest = async ({
           dialogId,
           dialogKey,
           thunkApi,
-          messageId
+          messageId,
+          reasoningBuffer
         );
         break;
       }
 
       const chunk = decoder.decode(value, { stream: true });
+      console.debug("[sendCommonChatRequest] received chunk:", chunk);
       const parsedResults = parseMultilineSSE(chunk);
 
       for (const parsedData of parsedResults) {
-        if (parsedData.usage) {
-          if (!totalUsage) {
-            totalUsage = { ...parsedData.usage };
-          } else {
-            totalUsage.completion_tokens =
-              parsedData.usage.completion_tokens ??
-              totalUsage.completion_tokens;
-            totalUsage.prompt_tokens =
-              parsedData.usage.prompt_tokens ?? totalUsage.prompt_tokens;
-            totalUsage.total_tokens =
-              parsedData.usage.total_tokens ?? totalUsage.total_tokens;
-            if (parsedData.usage.prompt_tokens_details) {
-              totalUsage.prompt_tokens_details = {
-                ...(totalUsage.prompt_tokens_details || {}),
-                ...parsedData.usage.prompt_tokens_details,
-              };
-            }
-            if (parsedData.usage.completion_tokens_details) {
-              totalUsage.completion_tokens_details = {
-                ...(totalUsage.completion_tokens_details || {}),
-                ...parsedData.usage.completion_tokens_details,
-              };
-            }
-          }
-        }
+        // 支持 parseMultilineSSE 返回单对象或对象数组
+        const dataList = Array.isArray(parsedData) ? parsedData : [parsedData];
 
-        if (parsedData.error) {
-          const errorMsg = `Error: ${parsedData.error.message || JSON.stringify(parsedData.error)}`;
-          contentBuffer = appendTextChunk(
-            contentBuffer,
-            `\n[API Error] ${errorMsg}`
-          );
-          finalizeStream(
-            contentBuffer,
-            totalUsage,
-            msgKey,
-            cybotConfig,
-            dialogId,
-            dialogKey,
-            thunkApi,
-            messageId
-          );
-          if (reader) await reader.cancel();
-          return;
-        }
-
-        const choice = parsedData.choices?.[0];
-        if (
-          !choice &&
-          (parsedData.usage ||
-            Object.keys(parsedData).length > 1 ||
-            parsedData.id)
-        )
-          continue;
-        if (!choice && Object.keys(parsedData).length === 0) continue;
-        if (!choice) {
-          continue;
-        }
-
-        const delta = choice.delta || {};
-        const finishReason = choice.finish_reason;
-
-        if (delta.tool_calls && Array.isArray(delta.tool_calls)) {
-          for (const toolCallChunk of delta.tool_calls) {
-            const index = toolCallChunk.index;
-            const id = toolCallChunk.id;
-            const type = toolCallChunk.type;
-            const functionCall = toolCallChunk.function;
-
-            if (index !== undefined && index !== null) {
-              while (accumulatedToolCalls.length <= index) {
-                accumulatedToolCalls.push({});
+        for (const data of dataList) {
+          // 累积 usage
+          if (data.usage) {
+            if (!totalUsage) {
+              totalUsage = { ...data.usage };
+            } else {
+              totalUsage.completion_tokens =
+                data.usage.completion_tokens ?? totalUsage.completion_tokens;
+              totalUsage.prompt_tokens =
+                data.usage.prompt_tokens ?? totalUsage.prompt_tokens;
+              totalUsage.total_tokens =
+                data.usage.total_tokens ?? totalUsage.total_tokens;
+              if (data.usage.prompt_tokens_details) {
+                totalUsage.prompt_tokens_details = {
+                  ...(totalUsage.prompt_tokens_details || {}),
+                  ...data.usage.prompt_tokens_details,
+                };
               }
-              const currentTool = accumulatedToolCalls[index];
-              if (id && !currentTool.id) currentTool.id = id;
-              if (type && !currentTool.type) currentTool.type = type;
-              if (functionCall) {
-                if (!currentTool.function)
-                  currentTool.function = { name: "", arguments: "" };
-                if (functionCall.name)
-                  currentTool.function.name += functionCall.name;
-                if (functionCall.arguments)
-                  currentTool.function.arguments =
-                    (currentTool.function.arguments || "") +
-                    functionCall.arguments;
-              }
-            } else if (
-              id !== undefined &&
-              type === "function" &&
-              functionCall &&
-              functionCall.name &&
-              functionCall.arguments !== undefined
-            ) {
-              const existingCallIndex = id
-                ? accumulatedToolCalls.findIndex((call) => call.id === id)
-                : -1;
-              if (existingCallIndex === -1 || !id) {
-                accumulatedToolCalls.push({
-                  id: id,
-                  type: type,
-                  function: {
-                    name: functionCall.name,
-                    arguments: functionCall.arguments,
-                  },
-                });
+              if (data.usage.completion_tokens_details) {
+                totalUsage.completion_tokens_details = {
+                  ...(totalUsage.completion_tokens_details || {}),
+                  ...data.usage.completion_tokens_details,
+                };
               }
             }
           }
-        }
 
-        const contentChunk = delta.content || "";
-        if (contentChunk) {
-          contentBuffer = appendTextChunk(contentBuffer, contentChunk);
-          const { thinkContent, normalContent } =
-            separateThinkContent(contentBuffer);
-          dispatch(
-            messageStreaming({
-              id: messageId,
-              dbKey: msgKey,
-              content: normalContent,
-              thinkContent: thinkContent,
-              role: "assistant",
-              cybotKey: cybotConfig.dbKey,
-              isStreaming: true,
-            })
-          );
-        }
-
-        if (finishReason) {
-          if (finishReason === "tool_calls") {
-            const currentContentBufferLengthBeforeHandling =
-              contentBuffer.length;
-            contentBuffer = await handleAccumulatedToolCalls(
-              accumulatedToolCalls,
-              contentBuffer,
-              thunkApi,
-              cybotConfig,
-              msgKey,
-              messageId
-            );
-            accumulatedToolCalls = [];
-          } else if (finishReason === "stop") {
-          } else {
+          // 处理 API Error
+          if (data.error) {
+            const errorMsg = `Error: ${data.error.message || JSON.stringify(data.error)}`;
             contentBuffer = appendTextChunk(
               contentBuffer,
-              `\n[流结束原因: ${finishReason}]`
+              `\n[API Error] ${errorMsg}`
+            );
+            finalizeStream(
+              contentBuffer,
+              totalUsage,
+              msgKey,
+              cybotConfig,
+              dialogId,
+              dialogKey,
+              thunkApi,
+              messageId,
+              reasoningBuffer
+            );
+            await reader.cancel();
+            return;
+          }
+
+          const choice = data.choices?.[0];
+          if (!choice) continue;
+          const delta = choice.delta || {};
+
+          // —— 从 delta 中提取 reasoning_content ——
+          if (delta.reasoning_content) {
+            console.debug(
+              "[sendCommonChatRequest] received reasoning_content:",
+              delta.reasoning_content
+            );
+            reasoningBuffer += delta.reasoning_content;
+            console.debug(
+              "[sendCommonChatRequest] updated reasoningBuffer:",
+              reasoningBuffer
+            );
+          }
+
+          // 累积工具调用
+          if (delta.tool_calls && Array.isArray(delta.tool_calls)) {
+            for (const toolCallChunk of delta.tool_calls) {
+              const index = toolCallChunk.index;
+              const id = toolCallChunk.id;
+              const type = toolCallChunk.type;
+              const functionCall = toolCallChunk.function;
+
+              if (index != null) {
+                while (accumulatedToolCalls.length <= index) {
+                  accumulatedToolCalls.push({});
+                }
+                const currentTool = accumulatedToolCalls[index];
+                if (id && !currentTool.id) currentTool.id = id;
+                if (type && !currentTool.type) currentTool.type = type;
+                if (functionCall) {
+                  if (!currentTool.function)
+                    currentTool.function = { name: "", arguments: "" };
+                  if (functionCall.name)
+                    currentTool.function.name += functionCall.name;
+                  if (functionCall.arguments)
+                    currentTool.function.arguments =
+                      (currentTool.function.arguments || "") +
+                      functionCall.arguments;
+                }
+              } else if (
+                id != null &&
+                type === "function" &&
+                functionCall?.name &&
+                functionCall.arguments != null
+              ) {
+                const existingIndex = id
+                  ? accumulatedToolCalls.findIndex((c) => c.id === id)
+                  : -1;
+                if (existingIndex === -1 || !id) {
+                  accumulatedToolCalls.push({
+                    id,
+                    type,
+                    function: {
+                      name: functionCall.name,
+                      arguments: functionCall.arguments,
+                    },
+                  });
+                }
+              }
+            }
+          }
+
+          // 处理 content
+          const contentChunk = delta.content || "";
+          if (contentChunk) {
+            contentBuffer = appendTextChunk(contentBuffer, contentChunk);
+            const { thinkContent: tagThink, normalContent } =
+              separateThinkContent(contentBuffer);
+            // 合并 <think> 标签内容 + reasoning_buffer
+            const thinkContent = tagThink + reasoningBuffer;
+            console.debug(
+              "[sendCommonChatRequest] dispatch messageStreaming thinkContent:",
+              thinkContent
             );
             dispatch(
               messageStreaming({
                 id: messageId,
                 dbKey: msgKey,
-                content: contentBuffer,
+                content: normalContent,
+                thinkContent,
                 role: "assistant",
                 cybotKey: cybotConfig.dbKey,
                 isStreaming: true,
               })
             );
           }
+
+          // 处理 finish_reason
+          const finishReason = choice.finish_reason;
+          if (finishReason) {
+            if (finishReason === "tool_calls") {
+              contentBuffer = await handleAccumulatedToolCalls(
+                accumulatedToolCalls,
+                contentBuffer,
+                thunkApi,
+                cybotConfig,
+                msgKey,
+                messageId
+              );
+              accumulatedToolCalls = [];
+            } else if (finishReason === "stop") {
+              // 不做特殊处理
+            } else {
+              contentBuffer = appendTextChunk(
+                contentBuffer,
+                `\n[流结束原因: ${finishReason}]`
+              );
+              dispatch(
+                messageStreaming({
+                  id: messageId,
+                  dbKey: msgKey,
+                  content: contentBuffer,
+                  role: "assistant",
+                  cybotKey: cybotConfig.dbKey,
+                  isStreaming: true,
+                })
+              );
+            }
+          }
         }
       }
     }
   } catch (error: any) {
+    // 异常处理
     let errorText = "";
     if (error.name === "AbortError") {
       errorText = "\n[用户中断]";
@@ -578,14 +603,14 @@ export const sendCommonChatRequest = async ({
       dialogId,
       dialogKey,
       thunkApi,
-      messageId
+      messageId,
+      reasoningBuffer
     );
   } finally {
     dispatch(removeActiveController(messageId));
-    if (reader) {
-      try {
-        await reader.cancel();
-      } catch (cancelError) {}
-    }
+    // 取消 reader
+    try {
+      await reader?.cancel();
+    } catch (_e) {}
   }
 };

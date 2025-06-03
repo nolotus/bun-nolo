@@ -203,15 +203,26 @@ export const messageSlice = createSliceWithThunks({
           // 查找对应的消息
           const existingMessage = state.msgs.entities[action.payload.id];
           if (existingMessage) {
-            // 创建一个不包含 controller 的新对象
+            // 创建一个不包含 controller 的新对象，并关闭流式状态
             const { controller, ...updatedMessage } = existingMessage;
-            // 直接使用 setOne 替换整个对象，不检查 controller 是否存在
+            // 关闭流式传输状态
+            updatedMessage.isStreaming = false;
+            // 直接使用 setOne 替换整个对象
             messagesAdapter.setOne(state.msgs, updatedMessage);
           }
         },
         rejected: (state, action) => {
           console.error("messageStreamEnd failed:", action.error);
-          // 可以考虑如何处理错误，比如重试逻辑或 UI 反馈
+          // 即使失败也要关闭流式状态
+          const messageId = action.meta?.arg?.id;
+          if (messageId && state.msgs.entities[messageId]) {
+            const existingMessage = state.msgs.entities[messageId];
+            if (existingMessage) {
+              const { controller, ...updatedMessage } = existingMessage;
+              updatedMessage.isStreaming = false;
+              messagesAdapter.setOne(state.msgs, updatedMessage);
+            }
+          }
         },
       }
     ),

@@ -1,65 +1,18 @@
 import React, { useState, useMemo } from "react";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppSelector } from "app/hooks";
 import { selectCurrentUserId } from "auth/authSlice";
 import { selectTheme } from "app/theme/themeSlice";
-import {
-  CopyIcon,
-  BookmarkIcon,
-  TrashIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-} from "@primer/octicons-react";
-import { useTranslation } from "react-i18next";
-import { Tooltip } from "render/web/ui/Tooltip";
+import { ChevronDownIcon, ChevronRightIcon } from "@primer/octicons-react";
 import Avatar from "render/web/ui/Avatar";
-import toast from "react-hot-toast";
-import copyToClipboard from "utils/clipboard";
-import { useAuth } from "auth/hooks/useAuth";
-import { deleteMessage } from "../messageSlice";
-import { write } from "database/dbSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
-import { DataType } from "create/types";
-import { ulid } from "ulid";
-import { runCybotId } from "ai/cybot/cybotSlice";
-import {
-  selectCurrentSpaceId,
-  addContentToSpace,
-} from "create/space/spaceSlice";
-import { Link } from "react-router-dom";
-import { titleCybotId } from "core/init";
+
 import { useFetchData } from "app/hooks";
 import { FaFileExcel, FaFileWord, FaFilePdf } from "react-icons/fa";
 import Editor from "create/editor/Editor";
 import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { BaseModal } from "render/web/ui/BaseModal";
 import { selectShowThinking } from "setting/settingSlice";
-
-// 获取内容字符串，包含思考内容（如果需要显示）
-const getContentString = (content, thinkContent = "", showThinking = false) => {
-  let baseContent = "";
-
-  if (typeof content === "string") {
-    baseContent = content;
-  } else if (Array.isArray(content)) {
-    baseContent = content
-      .map((item) =>
-        item.type === "text"
-          ? item.text
-          : item.type === "image_url"
-            ? `[Image: ${item.image_url?.url}]`
-            : item.pageKey
-              ? `[File: ${item.name || "未知文件"}]`
-              : ""
-      )
-      .join("\n");
-  } else {
-    baseContent = JSON.stringify(content);
-  }
-
-  return showThinking && thinkContent
-    ? `**思考内容**:\n${thinkContent}\n\n**回答**:\n${baseContent}`
-    : baseContent;
-};
+import { MessageActions } from "./MessageActions";
 
 // 思考内容组件
 const ThinkingContent = ({ thinkContent, theme }) => {
@@ -339,17 +292,13 @@ const MessageContent = ({ content, thinkContent, role }) => {
 export const MessageItem = ({ message }) => {
   const theme = useAppSelector(selectTheme);
   const currentUserId = useAppSelector(selectCurrentUserId);
-  const currentSpaceId = useAppSelector(selectCurrentSpaceId);
-  const showThinking = useAppSelector(selectShowThinking);
-  const dispatch = useAppDispatch();
-  const { t } = useTranslation("chat");
-  const { user } = useAuth();
+  // const showThinking = useAppSelector(selectShowThinking);
+
   const [isCollapsed, setIsCollapsed] = useState(false); // 折叠状态
   const [showActions, setShowActions] = useState(false); // 是否显示操作按钮
 
   // 解构message对象，确保所有字段都存在
-  const { content, thinkContent, userId, dbKey, cybotKey, role } =
-    message || {};
+  const { content, thinkContent, userId, cybotKey, role } = message || {};
 
   const isSelf = role === "user" && (currentUserId === userId || !cybotKey);
   const isRobot = role !== "user";
@@ -357,90 +306,6 @@ export const MessageItem = ({ message }) => {
 
   const { data: robotData } =
     cybotKey && isRobot ? useFetchData(cybotKey) : { data: null };
-
-  // 复制消息内容
-  const handleCopy = () => {
-    const text = content
-      ? getContentString(content, thinkContent, showThinking)
-      : "";
-    if (!text) return toast.error(t("copyFailed"));
-    copyToClipboard(text, {
-      onSuccess: () => toast.success(t("copySuccess")),
-      onError: () => toast.error(t("copyFailed")),
-    });
-  };
-
-  // 删除消息
-  const handleDelete = () => {
-    if (dbKey) {
-      dispatch(deleteMessage(dbKey));
-      toast.success(t("deleteSuccess"));
-    } else {
-      toast.error(t("deleteFailed"));
-    }
-  };
-
-  // 保存消息内容
-  const handleSave = async () => {
-    if (!user?.userId) return toast.error(t("userNotAuthenticated"));
-
-    const str = content
-      ? getContentString(content, thinkContent, showThinking)
-      : "";
-    if (!str) return toast.error(t("contentIsEmpty"));
-
-    const key = `${DataType.PAGE}-${user.userId}-${ulid()}`;
-    let title = key;
-
-    try {
-      title =
-        (await dispatch(
-          runCybotId({ cybotId: titleCybotId, content: str.substring(0, 500) })
-        ).unwrap()) || key;
-    } catch {}
-
-    try {
-      const saved = await dispatch(
-        write({
-          data: {
-            content: str,
-            slateData: markdownToSlate(str),
-            type: DataType.PAGE,
-            title,
-          },
-          customKey: key,
-        })
-      ).unwrap();
-
-      if (currentSpaceId) {
-        await dispatch(
-          addContentToSpace({
-            contentKey: key,
-            type: DataType.PAGE,
-            spaceId: currentSpaceId,
-            title,
-          })
-        ).unwrap();
-      }
-
-      toast.success(
-        <div>
-          {t("saveSuccess")}
-          {saved?.dbKey && (
-            <Link
-              to={`/${saved.dbKey}`}
-              target="_blank"
-              style={{ marginLeft: theme.space[2], color: theme.primary }}
-            >
-              {t("clickHere")}
-            </Link>
-          )}
-        </div>
-      );
-    } catch {
-      toast.error(t("saveFailed"));
-    }
-  };
 
   // 切换折叠状态
   const handleToggleCollapse = () => {
@@ -451,27 +316,6 @@ export const MessageItem = ({ message }) => {
   const handleToggleActions = () => {
     setShowActions(!showActions);
   };
-
-  // 操作按钮列表，折叠按钮始终显示，不依赖内容长度
-  const actions = [
-    { icon: CopyIcon, handler: handleCopy, tooltip: t("copyContent") },
-    !isSelf && {
-      icon: BookmarkIcon,
-      handler: handleSave,
-      tooltip: t("saveContent"),
-    },
-    type !== "other" && {
-      icon: TrashIcon,
-      handler: handleDelete,
-      tooltip: t("deleteMessage"),
-      danger: true,
-    },
-    {
-      icon: isCollapsed ? ChevronRightIcon : ChevronDownIcon,
-      handler: handleToggleCollapse,
-      tooltip: isCollapsed ? t("expandMessage") : t("collapseMessage"),
-    },
-  ].filter(Boolean);
 
   return (
     <div
@@ -486,25 +330,14 @@ export const MessageItem = ({ message }) => {
             type={isRobot ? "robot" : "user"}
             size="medium"
           />
-          {actions.length > 0 && (
-            <div className={`actions ${showActions ? "show" : ""}`}>
-              {actions.map(({ icon: Icon, handler, tooltip, danger }, i) => (
-                <Tooltip
-                  key={i}
-                  content={tooltip}
-                  placement={isRobot ? "left" : "right"}
-                >
-                  <button
-                    className={`action-btn ${danger ? "danger" : ""}`}
-                    onClick={handler}
-                    aria-label={tooltip}
-                  >
-                    <Icon size={16} /> {/* 增大图标尺寸 */}
-                  </button>
-                </Tooltip>
-              ))}
-            </div>
-          )}
+          <MessageActions
+            isRobot={isRobot}
+            isSelf={isSelf}
+            handleToggleCollapse={handleToggleCollapse}
+            isCollapsed={isCollapsed}
+            message={message}
+            showActions={showActions}
+          />
         </div>
 
         {/* 内容区域 */}
@@ -564,13 +397,7 @@ export const MessageItem = ({ message }) => {
           top: ${theme.space[4]};
         }
 
-        .actions {
-          display: flex;
-          flex-direction: column;
-          opacity: 0;
-          transition: opacity 0.2s ease;
-          gap: 4px;
-        }
+  
 
         /* 桌面端悬停显示，移动端点击显示 */
         .msg:hover .actions {
@@ -581,29 +408,7 @@ export const MessageItem = ({ message }) => {
           opacity: 0.8;
         }
 
-        .action-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 28px;
-          height: 28px;
-          border: none;
-          border-radius: 4px;
-          background: transparent;
-          color: ${theme.textTertiary};
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-
-        .action-btn:hover {
-          color: ${theme.primary};
-          background: ${theme.backgroundHover};
-        }
-
-        .action-btn.danger:hover {
-          color: ${theme.error};
-        }
-
+       
         /* 内容区域 */
         .content-area {
           flex: 1;
