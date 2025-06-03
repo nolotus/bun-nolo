@@ -3,6 +3,7 @@ import { MdRefresh, MdInfoOutline } from "react-icons/md";
 import Button from "render/web/ui/Button";
 import { Slider } from "web/form/Slider";
 import { Tooltip } from "render/web/ui/Tooltip";
+import RadioGroup from "render/web/form/RadioGroup";
 import {
   DEFAULT_TEMPERATURE,
   DEFAULT_TOP_P,
@@ -52,6 +53,11 @@ const PARAMETER_CONFIGS = [
     default: DEFAULT_MAX_TOKENS,
     format: (val) => val.toString(),
   },
+  {
+    key: "reasoning_effort",
+    options: ["low", "medium", "high"],
+    default: "medium",
+  },
 ];
 
 const PARAMETER_FORM_KEYS = {
@@ -60,6 +66,7 @@ const PARAMETER_FORM_KEYS = {
   frequencyPenalty: "frequency_penalty",
   presencePenalty: "presence_penalty",
   maxTokens: "max_tokens",
+  reasoning_effort: "reasoning_effort",
 };
 
 const ModelParameters = ({ register, watch, setValue, t, theme }) => {
@@ -89,6 +96,8 @@ const ModelParameters = ({ register, watch, setValue, t, theme }) => {
       <div className="parameters-grid">
         {PARAMETER_CONFIGS.map((config) => {
           const formKey = PARAMETER_FORM_KEYS[config.key];
+          const value = watch(formKey) ?? config.default;
+
           return (
             <div key={config.key} className="parameter-item">
               <div className="parameter-label">
@@ -103,26 +112,38 @@ const ModelParameters = ({ register, watch, setValue, t, theme }) => {
               </div>
 
               <div className="parameter-control">
-                <Slider
-                  value={watch(formKey) ?? config.default}
-                  onChange={(value) => {
-                    setValue(formKey, value);
-                    register(formKey, { value });
-                  }}
-                  min={config.min}
-                  max={config.max}
-                  step={config.step}
-                  showValue
-                  ariaLabel={t(config.key)}
-                />
-                <div className="parameter-info">
-                  <span className="parameter-range">
-                    {config.min} - {config.max}
-                  </span>
-                  <span className="parameter-current">
-                    {config.format(watch(formKey) ?? config.default)}
-                  </span>
-                </div>
+                {config.key === "reasoning_effort" ? (
+                  <RadioGroup
+                    options={config.options.map((option) => ({
+                      id: option,
+                      value: option,
+                      label: t(option) || option,
+                    }))}
+                    value={value}
+                    name={formKey}
+                    onChange={(newValue) => setValue(formKey, newValue)}
+                  />
+                ) : (
+                  <>
+                    <Slider
+                      value={value}
+                      onChange={(newValue) => setValue(formKey, newValue)}
+                      min={config.min}
+                      max={config.max}
+                      step={config.step}
+                      showValue
+                      ariaLabel={t(config.key)}
+                    />
+                    <div className="parameter-info">
+                      <span className="parameter-range">
+                        {config.min} - {config.max}
+                      </span>
+                      <span className="parameter-current">
+                        {config.format(value)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { useCreateCybotValidation } from "../hooks/useCreateCybotValidation";
+import { useCybotValidation } from "../common/useCybotFormValidation";
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
@@ -20,6 +20,7 @@ const CreateCustomCybot: React.FC = () => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
 
+  // 使用新的 useCybotValidation 钩子（无初始值表示创建模式）
   const {
     form: {
       register,
@@ -31,7 +32,7 @@ const CreateCustomCybot: React.FC = () => {
     },
     isPublic,
     onSubmit,
-  } = useCreateCybotValidation();
+  } = useCybotValidation(); // 替换为新的钩子
 
   // 强制设置 provider 为 "Custom"
   useEffect(() => {
@@ -50,14 +51,6 @@ const CreateCustomCybot: React.FC = () => {
 
   const [references, setReferences] = useState([]);
   const space = useAppSelector(selectCurrentSpace);
-
-  // 日志：检查错误和当前值
-  console.log("CreateCustomCybot - errors:", errors);
-  console.log("CreateCustomCybot - current model value:", watch("model"));
-  console.log(
-    "CreateCustomCybot - useServerProxy value:",
-    watch("useServerProxy")
-  );
 
   // 当 references 更新时，同步到表单数据
   useEffect(() => {
@@ -155,10 +148,6 @@ const CreateCustomCybot: React.FC = () => {
                 <Input
                   {...register("model")}
                   placeholder={t("enterModelName")}
-                  onChange={(e) => {
-                    console.log("Model input changed:", e.target.value);
-                    setValue("model", e.target.value);
-                  }}
                 />
               </FormField>
               <FormField
@@ -178,7 +167,7 @@ const CreateCustomCybot: React.FC = () => {
                 help={t(
                   "proxyNotAvailableForCustom",
                   "Custom providers must connect directly"
-                )} // 新增帮助文本
+                )}
                 horizontal
                 labelWidth="140px"
               >

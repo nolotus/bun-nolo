@@ -99,7 +99,7 @@ const ThinkingContent = ({ thinkContent, theme }) => {
         </div>
       )}
 
-      <style jsx>{`
+      <style href="list" precedence="medium">{`
         .thinking-container {
           margin-bottom: ${theme.space[3]};
         }
@@ -522,11 +522,11 @@ export const MessageItem = ({ message }) => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style href="list" precedence="medium">{`
         .msg {
           padding: 0 ${theme.space[4]};
           margin-bottom: ${theme.space[4]};
-          cursor: pointer; /* 添加光标样式，提示用户可以点击 */
+          cursor: pointer;
         }
 
         .msg-inner {
@@ -569,7 +569,7 @@ export const MessageItem = ({ message }) => {
           flex-direction: column;
           opacity: 0;
           transition: opacity 0.2s ease;
-          gap: 4px; /* 增大按钮间距 */
+          gap: 4px;
         }
 
         /* 桌面端悬停显示，移动端点击显示 */
@@ -578,15 +578,15 @@ export const MessageItem = ({ message }) => {
         }
 
         .msg .actions.show {
-          opacity: 0.8; /* 点击后显示操作按钮 */
+          opacity: 0.8;
         }
 
         .action-btn {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 28px; /* 增大点击区域 */
-          height: 28px; /* 增大点击区域 */
+          width: 28px;
+          height: 28px;
           border: none;
           border-radius: 4px;
           background: transparent;
@@ -750,7 +750,7 @@ export const MessageItem = ({ message }) => {
           }
           /* 移动端不默认显示actions，通过点击切换 */
           .msg:hover .actions {
-            opacity: 0; /* 移动端悬停不显示 */
+            opacity: 0;
           }
           .msg-image {
             max-height: 280px;
