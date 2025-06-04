@@ -161,10 +161,7 @@ export const pageSlice = createSliceWithThunks({
       Object.assign(state, initialState);
     }),
 
-    // 同步更新 UI 上的标题 / 标签（不持久化）
-    updatePageTitle: create.reducer((state, action: PayloadAction<string>) => {
-      if (state.isInitialized) state.title = action.payload;
-    }),
+    // 同步更新 UI 上的标签（不持久化）
     updatePageTags: create.reducer((state, action: PayloadAction<string[]>) => {
       if (state.isInitialized) state.tags = action.payload;
     }),
@@ -209,9 +206,7 @@ export const pageSlice = createSliceWithThunks({
           }
 
           // 3) 本地更新 title（UI 立刻生效）
-          dispatch(pageSlice.actions.updatePageTitle(title));
-
-          return { updatedAt: iso };
+          return { updatedAt: iso, title };
         } catch (e: any) {
           return rejectWithValue(e.message || "保存失败");
         }
@@ -221,9 +216,13 @@ export const pageSlice = createSliceWithThunks({
           state.isSaving = true;
           state.saveError = null;
         },
-        fulfilled: (state, action: PayloadAction<{ updatedAt: string }>) => {
+        fulfilled: (
+          state,
+          action: PayloadAction<{ updatedAt: string; title: string }>
+        ) => {
           state.isSaving = false;
           state.lastSavedAt = action.payload.updatedAt;
+          state.title = action.payload.title;
         },
         rejected: (state, action) => {
           state.isSaving = false;
@@ -262,7 +261,6 @@ export const {
   toggleReadOnly,
   setReadOnly,
   resetPage,
-  updatePageTitle,
   updatePageTags,
   savePage,
 } = pageSlice.actions;
