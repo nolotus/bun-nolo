@@ -1,5 +1,3 @@
-// 文件路径：src/features/page/RenderPage.tsx
-
 import React, { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
@@ -7,7 +5,6 @@ import toast from "react-hot-toast";
 
 import {
   EditorContent,
-  extractTitleFromSlate,
   compareSlateContent,
 } from "create/editor/utils/slateUtils";
 import { markdownToSlate } from "create/editor/markdownToSlate";
@@ -26,8 +23,8 @@ import {
   selectPageDbSpaceId,
   selectIsReadOnly,
   updateSlate,
+  savePage,
 } from "./pageSlice";
-import { savePage } from "./pageSlice";
 
 const AUTO_SAVE_DELAY_MS = 2000; // 自动保存防抖时长
 const STATUS_RESET_DELAY_MS = 3000; // “已保存”状态保留时长
@@ -249,9 +246,7 @@ function useAutoSave({
     setStatus("saving");
 
     try {
-      // 统一调用异步 Thunk，从 store 里拿最新 slateData/title
       const result = await dispatch(savePage()).unwrap();
-      // result.updatedAt 是 ISO 字符串
       const now = new Date(result.updatedAt);
       lastSavedDate.current = now;
       lastContent.current = JSON.parse(JSON.stringify(slateData));
@@ -270,6 +265,14 @@ function useAutoSave({
     }
   }
 
+  // —— 新增：组件卸载时清理所有定时器 ——
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+      if (statusTimer.current) window.clearTimeout(statusTimer.current);
+    };
+  }, []);
+
   return {
     saveStatus: status,
     lastSavedTime: lastSaved,
@@ -284,7 +287,7 @@ function useAutoSave({
   };
 }
 
-/*——————— Loader / EditorLoader / 样式 ———————*/
+/*—————— Loader / EditorLoader / 样式 ———————*/
 const Loader = ({ theme }: any) => (
   <div
     style={{
@@ -338,7 +341,7 @@ const styles = {
       .container, .scrollable { overflow:visible }
       .container { height:auto }
       .wrapper { max-width:100%; padding:0; margin:0 }
-      .page-save-status-indicator, .toolbar-container { display:none!important }
+      .page-save-status-indicator, .tools-container { display:none!important }
       body { -webkit-print-color-adjust:exact; color-adjust:exact }
     }
   `,
