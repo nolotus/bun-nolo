@@ -1,5 +1,3 @@
-// 文件路径：src/features/page/CreateTool.tsx
-
 import React, { useCallback, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -18,10 +16,7 @@ import {
   selectIsSaving,
   selectSaveError,
 } from "render/page/pageSlice";
-import {
-  deleteContentFromSpace,
-  selectCurrentSpaceId,
-} from "create/space/spaceSlice";
+import { deleteContentFromSpace } from "create/space/spaceSlice";
 
 import ModeToggle from "web/ui/ModeToggle";
 import { ConfirmModal } from "web/ui/ConfirmModal";
@@ -41,8 +36,7 @@ export const CreateTool: React.FC = () => {
   const isSaving = useAppSelector(selectIsSaving);
   const saveError = useAppSelector(selectSaveError);
 
-  // 当前空间、路由参数
-  const spaceId = useAppSelector(selectCurrentSpaceId);
+  // 路由参数
   const { pageKey: dbKey } = useParams<{ pageKey?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -50,7 +44,7 @@ export const CreateTool: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 帮助函数：更新 URL 的 edit 参数
+  // 帮助：更新 URL edit 参数
   const updateUrl = useCallback(
     (fn: (p: URLSearchParams) => void) => {
       const p = new URLSearchParams(searchParams);
@@ -63,7 +57,7 @@ export const CreateTool: React.FC = () => {
     [searchParams, setSearchParams]
   );
 
-  // 切换「只读 ↔ 编辑」
+  // 切换编辑 / 只读
   const handleToggleEdit = useCallback(
     (isEdit: boolean) => {
       dispatch(toggleReadOnly());
@@ -79,10 +73,8 @@ export const CreateTool: React.FC = () => {
       return;
     }
     try {
-      // 调用 savePage thunk（里面会从 store 拿最新的 slateData/title）
       await dispatch(savePage()).unwrap();
       toast.success(t("保存成功"));
-
       // 切回只读、清除 URL edit 参数
       dispatch(toggleReadOnly());
       updateUrl((p) => p.delete("edit"));
@@ -92,13 +84,13 @@ export const CreateTool: React.FC = () => {
     }
   }, [dispatch, dbKey, savePage, toggleReadOnly, updateUrl, t]);
 
-  // 删除页面
+  // 删除页面 —— 使用页面自身的 dbSpaceId，而非当前选中空间
   const handleDelete = async () => {
-    if (!dbKey) return;
+    if (!dbKey || !dbSpaceId) return;
     setIsDeleting(true);
     try {
       await dispatch(
-        deleteContentFromSpace({ contentKey: dbKey, spaceId })
+        deleteContentFromSpace({ contentKey: dbKey, spaceId: dbSpaceId })
       ).unwrap();
       toast.success(t("删除成功"));
       navigate(-1);
