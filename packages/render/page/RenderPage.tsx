@@ -1,8 +1,8 @@
-// src/features/page/RenderPage.tsx
+// 文件路径：src/features/page/RenderPage.tsx
+
 import React, { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
-import { formatISO } from "date-fns";
 import toast from "react-hot-toast";
 
 import {
@@ -15,11 +15,9 @@ import SaveStatusIndicator, { SaveStatus } from "./SaveStatusIndicator";
 import useKeyboardSave from "./useKeyboardSave";
 import { selectTheme } from "app/theme/themeSlice";
 
-// Editor 懒加载
+// 编辑器懒加载
 const Editor = React.lazy(() => import("create/editor/Editor"));
 
-// database/dbSlice.patch
-import { patch } from "database/dbSlice";
 import {
   initPage,
   selectPageData,
@@ -28,14 +26,12 @@ import {
   selectPageDbSpaceId,
   selectIsReadOnly,
   updateSlate,
-  updatePageTitle,
-  selectPageError,
 } from "./pageSlice";
-import { updateContentTitle } from "create/space/spaceSlice";
+import { savePage } from "./pageSlice";
 
-const AUTO_SAVE_DELAY_MS = 2000; // 后端 patch 防抖时长
-const STATUS_RESET_DELAY_MS = 3000;
-const TIME_UPDATE_INTERVAL_MS = 60000;
+const AUTO_SAVE_DELAY_MS = 2000; // 自动保存防抖时长
+const STATUS_RESET_DELAY_MS = 3000; // “已保存”状态保留时长
+const TIME_UPDATE_INTERVAL_MS = 60000; // 更新时间戳的间隔
 
 interface RenderPageProps {
   pageKey: string;
@@ -108,7 +104,7 @@ function usePageData(pageKey: string, urlEditMode: boolean) {
   const page = useAppSelector(selectPageData);
   const dbSpaceId = useAppSelector(selectPageDbSpaceId);
   const isReadOnly = useAppSelector(selectIsReadOnly);
-  const error = useAppSelector(selectPageError);
+  const error = useAppSelector(selectPageData).error;
 
   useEffect(() => {
     if (!pageKey) console.error("RenderPage: missing pageKey");
@@ -135,7 +131,10 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
         return markdownToSlate(page.content);
       } catch {
         return [
-          { type: "heading-one", children: [{ text: "新页面 (转换失败)" }] },
+          {
+            type: "heading-one",
+            children: [{ text: "新页面 (转换失败)" }],
+          },
           { type: "paragraph", children: [{ text: "请直接编辑此内容。" }] },
         ];
       }
@@ -147,7 +146,7 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
   }, [page, isInitialized]);
 }
 
-/*——————— Hook: 自动保存 & 状态管理（updateSlate 立即执行，后端 patch 防抖） ———————*/
+/*——————— Hook: 自动保存 & 状态管理 ———————*/
 function useAutoSave({
   pageKey,
   page,
@@ -163,6 +162,7 @@ function useAutoSave({
   const [status, setStatus] = React.useState<SaveStatus>(null);
   const [lastSaved, setLastSaved] = React.useState<string | null>(null);
 
+  // 本地快照与时间
   const lastSavedDate = React.useRef<Date | null>(
     page.updatedAt ? new Date(page.updatedAt) : null
   );
@@ -174,6 +174,7 @@ function useAutoSave({
   const statusTimer = React.useRef<number>();
   const editorFocus = React.useRef(false);
 
+  // 格式化“刚刚/几分钟前”
   const formatSaved = React.useCallback((d: Date | null) => {
     if (!d) return null;
     const diff = Math.floor((Date.now() - d.getTime()) / 1000);
@@ -188,17 +189,20 @@ function useAutoSave({
     });
   }, []);
 
-  // 初始化、定时更新时间
+  // 初始化 & 定时刷新 lastSaved
   useEffect(() => {
-    if (lastSavedDate.current) setLastSaved(formatSaved(lastSavedDate.current));
-    const id = setInterval(() => {
-      if (lastSavedDate.current)
+    if (lastSavedDate.current) {
+      setLastSaved(formatSaved(lastSavedDate.current));
+    }
+    const id = window.setInterval(() => {
+      if (lastSavedDate.current) {
         setLastSaved(formatSaved(lastSavedDate.current));
+      }
     }, TIME_UPDATE_INTERVAL_MS);
     return () => clearInterval(id);
   }, [formatSaved]);
 
-  // 离开前提示未保存
+  // 离开前提醒
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       const changed = compareSlateContent(page?.slateData, lastContent.current);
@@ -213,32 +217,28 @@ function useAutoSave({
     return () => window.removeEventListener("beforeunload", handler);
   }, [isReadOnly, page?.slateData]);
 
-  // Ctrl+S / Cmd+S 保存
+  // Ctrl+S / Cmd+S
   useKeyboardSave({
     isReadOnly,
     editorFocusedRef: editorFocus,
     saveTimeoutRef: saveTimer,
-    onSave: savePage,
+    onSave: triggerSave,
   });
 
-  // 每次输入都立即更新 Redux，并防抖触发后端 patch
+  // 每次输入
   function handleChange(v: EditorContent) {
     if (isReadOnly) return;
-    // 1. 立即同步到 Redux
     dispatch(updateSlate(v));
-    // 2. 防抖调用后端保存
     clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(savePage, AUTO_SAVE_DELAY_MS);
+    saveTimer.current = window.setTimeout(triggerSave, AUTO_SAVE_DELAY_MS);
   }
 
-  // 真正的后端 patch 流程
-  async function savePage() {
+  // 真正的保存
+  async function triggerSave() {
     if (status === "saving" || isReadOnly) return;
-
     const slateData = page?.slateData;
     if (!slateData) return;
 
-    // 如果内容没变，可以跳过（可选）
     const changed = compareSlateContent(slateData, lastContent.current);
     if (!changed) {
       if (status === "error") setStatus(null);
@@ -248,34 +248,14 @@ function useAutoSave({
     clearTimeout(statusTimer.current);
     setStatus("saving");
 
-    const now = new Date();
-    lastSavedDate.current = now;
-    const iso = formatISO(now);
-
     try {
-      const title = extractTitleFromSlate(slateData);
-      await dispatch(
-        patch({
-          dbKey: pageKey,
-          changes: { updatedAt: iso, slateData, title },
-        })
-      ).unwrap();
-
-      if (dbSpaceId) {
-        dispatch(
-          updateContentTitle({
-            spaceId: dbSpaceId,
-            contentKey: pageKey,
-            title,
-          })
-        )
-          .unwrap()
-          .catch(console.error);
-      }
-      dispatch(updatePageTitle(title));
-
-      // 更新本地“已保存内容”快照
+      // 统一调用异步 Thunk，从 store 里拿最新 slateData/title
+      const result = await dispatch(savePage()).unwrap();
+      // result.updatedAt 是 ISO 字符串
+      const now = new Date(result.updatedAt);
+      lastSavedDate.current = now;
       lastContent.current = JSON.parse(JSON.stringify(slateData));
+
       setLastSaved(formatSaved(now));
       setStatus("saved");
 
@@ -294,7 +274,7 @@ function useAutoSave({
     saveStatus: status,
     lastSavedTime: lastSaved,
     handleChange,
-    handleRetry: savePage,
+    handleRetry: triggerSave,
     handleFocus: () => (editorFocus.current = true),
     handleBlur: () => (editorFocus.current = false),
     hasPendingChanges: compareSlateContent(
