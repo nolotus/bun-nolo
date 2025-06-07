@@ -15,12 +15,13 @@ import CybotForm from "ai/cybot/web/CybotForm";
 import { Cybot } from "../types";
 import { remove } from "database/dbSlice";
 import { PlusIcon, SyncIcon } from "@primer/octicons-react";
-
+import { useNavigate } from "react-router-dom";
 import {
   CommentDiscussionIcon,
   PencilIcon,
   TrashIcon,
   EyeIcon,
+  ArrowRightIcon,
 } from "@primer/octicons-react";
 
 import { FaYenSign } from "react-icons/fa";
@@ -34,6 +35,8 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
   const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const cybotKey = item.dbKey || item.id;
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
@@ -65,6 +68,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
       toast.error(t("deleteError"));
     }
   }, [item.id, cybotKey, deleting, dispatch, reload, t]);
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/${cybotKey}`);
+  };
 
   return (
     <div id={`cybot-${item.id}`} className="cybot-block" tabIndex={0}>
@@ -78,6 +86,17 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
                 <h3 className="cybot-block__title">
                   {item.name || t("unnamed")}
                 </h3>
+              </Tooltip>
+
+              {/* 新增查看详情按钮 */}
+              <Tooltip content={t("viewDetails")}>
+                <button
+                  className="cybot-block__view-link"
+                  onClick={handleViewDetails}
+                  aria-label={t("viewDetails")}
+                >
+                  <ArrowRightIcon size={14} />
+                </button>
               </Tooltip>
             </div>
 
@@ -217,6 +236,9 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         .cybot-block__title-container {
           min-width: 0;
           flex: 1;
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[2]};
         }
 
         .cybot-block__title {
@@ -228,6 +250,42 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           overflow-wrap: break-word;
           letter-spacing: -0.01em;
           line-height: 1.4;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .cybot-block__view-link {
+          background: none;
+          border: none;
+          color: ${theme.textTertiary};
+          cursor: pointer;
+          padding: ${theme.space[1]};
+          border-radius: ${theme.space[1]};
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transform: translateX(-4px);
+          flex-shrink: 0;
+        }
+
+        .cybot-block:hover .cybot-block__view-link {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        .cybot-block__view-link:hover {
+          color: ${theme.primary};
+          background: ${theme.primaryGhost};
+          transform: translateX(2px);
+        }
+
+        .cybot-block__view-link:focus {
+          opacity: 1;
+          outline: none;
+          box-shadow: 0 0 0 2px ${theme.primaryGhost};
+          color: ${theme.primary};
         }
 
         .cybot-block__meta {
@@ -326,6 +384,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             gap: ${theme.space[2]};
           }
 
+          .cybot-block__view-link {
+            opacity: 1;
+            transform: translateX(0);
+          }
+
           .cybot-block__description {
             font-size: 0.8125rem;
             line-height: 1.5;
@@ -398,6 +461,9 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             transform: none;
           }
           .cybot-block--exit {
+            transition: none;
+          }
+          .cybot-block__view-link {
             transition: none;
           }
         }
