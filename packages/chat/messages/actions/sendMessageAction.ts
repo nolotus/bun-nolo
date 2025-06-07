@@ -4,7 +4,6 @@ import { extractCustomId } from "core/prefix";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { addMsg } from "../messageSlice";
-
 import { requestHandlers } from "ai/llm/providers";
 import { DialogInvocationMode } from "../../dialog/types";
 import { streamCybotId } from "ai/cybot/cybotSlice";
@@ -16,7 +15,6 @@ export const sendMessageAction = async (args, thunkApi) => {
 
   const dialogConfig = selectCurrentDialogConfig(state);
   const dialogKey = dialogConfig.dbKey || dialogConfig.id;
-  console.log("dialogConfig", dialogConfig);
   const dialogId = extractCustomId(dialogKey);
   const userId = selectCurrentUserId(state);
   const { key, messageId } = createDialogMessageKeyAndId(dialogId);
