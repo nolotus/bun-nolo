@@ -28,13 +28,6 @@ interface Message {
   tool_call_id?: string;
 }
 
-type UserInputPart = {
-  type: "text" | "image_url" | "excel";
-  text?: string;
-  image_url?: { url: string };
-  name?: string;
-};
-
 // 只传必要配置
 interface BuildRequestBodyOptions {
   model: string;
@@ -47,60 +40,6 @@ interface BuildRequestBodyOptions {
   max_tokens?: number;
   reasoning_effort?: string;
 }
-
-/**
- * 创建用户消息对象
- */
-const createUserMessage = (userInput: string | UserInputPart[]): Message => {
-  if (typeof userInput === "string") {
-    return { role: "user", content: userInput };
-  }
-
-  if (Array.isArray(userInput)) {
-    const contentParts: MessageContentPart[] = [];
-    let hasImage = false;
-
-    userInput.forEach((item) => {
-      switch (item.type) {
-        case "text":
-          if (item.text?.trim()) {
-            contentParts.push({ type: "text", text: item.text.trim() });
-          }
-          break;
-        case "image_url":
-          if (item.image_url?.url) {
-            contentParts.push({
-              type: "image_url",
-              image_url: { url: item.image_url.url },
-            });
-            hasImage = true;
-          }
-          break;
-        case "excel":
-          const excelText =
-            item.text?.trim() ||
-            `[Excel 文件: ${item.name || "未知Excel文件"} (无内容)]`;
-          contentParts.push({ type: "text", text: excelText });
-          break;
-        default:
-          break;
-      }
-    });
-
-    if (hasImage) {
-      return { role: "user", content: contentParts };
-    } else {
-      const combinedText = contentParts
-        .map((part) => (part.type === "text" ? part.text : ""))
-        .filter(Boolean)
-        .join("\n\n");
-      return { role: "user", content: combinedText };
-    }
-  }
-
-  console.error("Invalid userInput for createUserMessage:", userInput);
-  return { role: "user", content: "" };
-};
 
 /**
  * 生成系统提示
