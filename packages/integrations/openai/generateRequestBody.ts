@@ -180,7 +180,6 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
  */
 export const generateOpenAIRequestBody = (
   state: NoloRootState,
-  userInput: string | UserInputPart[],
   cybotConfig: {
     model: string;
     prompt?: string;
@@ -199,12 +198,6 @@ export const generateOpenAIRequestBody = (
   // 1. 获取清理历史消息
   const previousMessages = filterAndCleanMessages(selectAllMsgs(state));
 
-  // 2. 创建新的用户消息
-  const newUserMessage = createUserMessage(userInput);
-
-  // 3. 合并消息（历史消息+新消息）
-  const conversationMessages = [...previousMessages, newUserMessage];
-
   // 4. 生成 system prompt
   const promptContent = generateSystemPrompt(
     cybotConfig.prompt,
@@ -215,7 +208,7 @@ export const generateOpenAIRequestBody = (
 
   // 5. 消息队头插入 prompt
   const messagesWithPrompt = prependPromptMessage(
-    conversationMessages,
+    previousMessages,
     promptContent
   );
 
