@@ -14,6 +14,58 @@ import { BaseModal } from "render/web/ui/BaseModal";
 import { selectShowThinking } from "setting/settingSlice";
 import { MessageActions } from "./MessageActions";
 
+// --- 新增代码 ---
+// 流式输出指示器组件 (AI正在输入中)
+const StreamingIndicator = ({ theme }) => (
+  <>
+    <div className="streaming-indicator">
+      <span className="dot" style={{ animationDelay: "0s" }} />
+      <span className="dot" style={{ animationDelay: "0.2s" }} />
+      <span className="dot" style={{ animationDelay: "0.4s" }} />
+    </div>
+    <style>{`
+      .streaming-indicator {
+        position: absolute;
+        bottom: -2px;
+        right: -4px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding: 5px 6px;
+        background: ${theme.background};
+        border: 1px solid ${theme.border};
+        border-radius: 50px;
+        box-shadow: 0 1px 4px ${theme.shadowLight};
+        z-index: 1;
+      }
+
+      .streaming-indicator .dot {
+        width: 4px;
+        height: 4px;
+        background-color: ${theme.textSecondary};
+        border-radius: 50%;
+        animation: streaming-bounce 1.4s infinite ease-in-out both;
+      }
+
+      @keyframes streaming-bounce {
+        0%, 80%, 100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1.0);
+        }
+      }
+      
+      @media (prefers-reduced-motion: reduce) {
+        .streaming-indicator .dot {
+          animation: none;
+        }
+      }
+    `}</style>
+  </>
+);
+// --- 新增代码结束 ---
+
 // 思考内容组件
 const ThinkingContent = ({ thinkContent, theme }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -297,8 +349,17 @@ export const MessageItem = ({ message }) => {
   const [isCollapsed, setIsCollapsed] = useState(false); // 折叠状态
   const [showActions, setShowActions] = useState(false); // 是否显示操作按钮
 
-  // 解构message对象，确保所有字段都存在
-  const { content, thinkContent, userId, cybotKey, role } = message || {};
+  // --- 修改代码 ---
+  // 解构message对象，确保所有字段都存在，增加 isStreaming
+  const {
+    content,
+    thinkContent,
+    userId,
+    cybotKey,
+    role,
+    isStreaming = false,
+  } = message || {};
+  // --- 修改代码结束 ---
 
   const isSelf = role === "user" && (currentUserId === userId || !cybotKey);
   const isRobot = role !== "user";
@@ -325,11 +386,18 @@ export const MessageItem = ({ message }) => {
       <div className="msg-inner">
         {/* 头像区域 */}
         <div className="avatar-area">
-          <Avatar
-            name={isRobot ? robotData?.name || "Robot" : "User"}
-            type={isRobot ? "robot" : "user"}
-            size="medium"
-          />
+          {/* --- 修改代码：增加 wrapper 用于定位 --- */}
+          <div className="avatar-wrapper">
+            <Avatar
+              name={isRobot ? robotData?.name || "Robot" : "User"}
+              type={isRobot ? "robot" : "user"}
+              size="medium"
+            />
+            {/* --- 修改代码：条件渲染流式输出指示器 --- */}
+            {isRobot && isStreaming && <StreamingIndicator theme={theme} />}
+          </div>
+          {/* --- 修改代码结束 --- */}
+
           <MessageActions
             isRobot={isRobot}
             isSelf={isSelf}
@@ -397,7 +465,11 @@ export const MessageItem = ({ message }) => {
           top: ${theme.space[4]};
         }
 
-  
+        /* --- 新增样式：为头像和指示器提供定位上下文 --- */
+        .avatar-wrapper {
+          position: relative;
+        }
+        /* --- 新增样式结束 --- */
 
         /* 桌面端悬停显示，移动端点击显示 */
         .msg:hover .actions {
