@@ -4,7 +4,6 @@ import { selectAllMsgs } from "chat/messages/messageSlice";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 
 // --- 类型定义 ---
-
 type MessageContentPartText = {
   type: "text";
   text: string;
@@ -42,24 +41,22 @@ interface BuildRequestBodyOptions {
 }
 
 /**
- * 生成系统提示
- */
-const generateSystemPrompt = (
-  prompt: string | undefined,
-  botName: string | undefined,
-  language: string,
-  context: any
-): string => {
-  return generatePrompt(prompt || "", botName, language, context);
-};
-
-/**
  * 在消息列表前添加系统提示
  */
 const prependPromptMessage = (
   messages: Message[],
-  promptContent: string
+  prompt: string | undefined,
+  botName: string | undefined,
+  language: string,
+  context: any
 ): Message[] => {
+  const promptContent = generatePrompt({
+    prompt,
+    name: botName,
+    language,
+    context,
+  });
+
   if (promptContent.trim()) {
     const systemMessage: Message = { role: "system", content: promptContent };
     return [systemMessage, ...messages];
@@ -137,18 +134,13 @@ export const generateOpenAIRequestBody = (
   // 1. 获取清理历史消息
   const previousMessages = filterAndCleanMessages(selectAllMsgs(state));
 
-  // 4. 生成 system prompt
-  const promptContent = generateSystemPrompt(
+  // 5. 消息队头插入 prompt
+  const messagesWithPrompt = prependPromptMessage(
+    previousMessages,
     cybotConfig.prompt,
     cybotConfig.name,
     navigator.language,
     context
-  );
-
-  // 5. 消息队头插入 prompt
-  const messagesWithPrompt = prependPromptMessage(
-    previousMessages,
-    promptContent
   );
 
   // 6. 构建请求体

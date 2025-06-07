@@ -170,12 +170,7 @@ export const cybotSlice = createSliceWithThunks({
         const context = await fetchReferenceContents(allReference, dispatch);
 
         // 生成请求体数据，直接使用 userInput，不构造额外内容
-        const bodyData = generateRequestBody(
-          state,
-          userInput, // 直接使用用户输入，供界面展示
-          cybotConfig,
-          context
-        );
+        const bodyData = generateRequestBody(state, cybotConfig, context);
 
         const providerName = cybotConfig.provider.toLowerCase();
         const handler = requestHandlers[providerName];

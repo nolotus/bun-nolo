@@ -1,8 +1,8 @@
 export const languageMap = {
-  'en-US': 'English',
-  'zh-CN': 'Simplified Chinese',
-  'zh-TW': 'Traditional Chinese',
-  'ja-JP': 'Japanese',
+  "en-US": "English",
+  "zh-CN": "Simplified Chinese",
+  "zh-TW": "Traditional Chinese",
+  "ja-JP": "Japanese",
   // Add more mappings as needed
 };
 
