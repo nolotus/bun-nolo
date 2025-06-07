@@ -21,11 +21,5 @@ export const generateRequestBody = (
   if (providerName === "anthropic") {
     return generateAnthropicRequestBody(state, userInput, cybotConfig, context);
   }
-  return generateOpenAIRequestBody(
-    state,
-    userInput,
-    cybotConfig,
-    providerName,
-    context
-  );
+  return generateOpenAIRequestBody(state, cybotConfig, providerName, context);
 };
