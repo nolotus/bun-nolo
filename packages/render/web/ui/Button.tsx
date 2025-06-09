@@ -1,4 +1,5 @@
 // render/web/ui/Button.tsx
+
 import React from "react";
 import { useTheme } from "app/theme";
 import { Link, LinkProps } from "react-router-dom";
@@ -122,7 +123,8 @@ const ButtonStyles = () => {
         font-weight: 500;
         line-height: 1;
         text-align: center;
-        white-space: nowrap;
+        /* --- 修改点 1: 移除了 white-space: nowrap; --- */
+        /* white-space: nowrap; */
         vertical-align: middle;
         user-select: none;
         border-radius: ${theme.space[2]};
@@ -131,7 +133,6 @@ const ButtonStyles = () => {
         transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         text-decoration: none;
         outline: none;
-        /* 新拟物风格基础 */
         box-shadow:
           3px 3px 6px rgba(0, 0, 0, 0.1),
           -3px -3px 6px rgba(255, 255, 255, 0.1),
@@ -139,24 +140,25 @@ const ButtonStyles = () => {
         background-clip: padding-box;
       }
 
+      /* --- 修改点 2: 将 height 改为 min-height --- */
       /* 尺寸 */
       .btn-small {
-        height: 32px;
-        padding: 0 ${theme.space[3]};
+        min-height: 32px;
+        padding: ${theme.space[1]} ${theme.space[3]}; /* 适当调整垂直padding，让单行时也居中 */
         font-size: 13px;
         gap: ${theme.space[1]};
       }
 
       .btn-medium {
-        height: 38px;
-        padding: 0 ${theme.space[4]};
+        min-height: 38px;
+        padding: ${theme.space[2]} ${theme.space[4]}; /* 适当调整垂直padding */
         font-size: 14px;
         gap: ${theme.space[2]};
       }
 
       .btn-large {
-        height: 44px;
-        padding: 0 ${theme.space[5]};
+        min-height: 44px;
+        padding: ${theme.space[2]} ${theme.space[5]}; /* 适当调整垂直padding */
         font-size: 15px;
         gap: ${theme.space[2]};
       }
@@ -177,11 +179,14 @@ const ButtonStyles = () => {
         align-items: center;
         justify-content: center;
         line-height: 1;
+        /* --- 新增点: 避免图标在换行时被压缩 --- */
+        flex-shrink: 0;
       }
 
+      /* --- 修改点 3: 调整 .btn-text 样式以支持优雅换行 --- */
       .btn-text {
-        line-height: 1;
-        /* 文字轻微阴影增强立体感 */
+        line-height: 1.4; /* 增加行高，让多行文本更易读 */
+        white-space: normal; /* 明确允许文本内容换行 */
         text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
       }
 
@@ -189,7 +194,6 @@ const ButtonStyles = () => {
       .btn-primary {
         background: ${theme.primary};
         color: white;
-        /* 顶部高光效果 */
         box-shadow:
           3px 3px 6px rgba(0, 0, 0, 0.15),
           -3px -3px 6px rgba(255, 255, 255, 0.1),
@@ -209,7 +213,6 @@ const ButtonStyles = () => {
       .btn-primary:active:not(.btn-disabled) {
         transform: translateY(1px);
         transition-duration: 0.05s;
-        /* 按下时的凹陷效果 */
         box-shadow:
           inset 2px 2px 4px rgba(0, 0, 0, 0.2),
           inset -2px -2px 4px rgba(255, 255, 255, 0.05),
