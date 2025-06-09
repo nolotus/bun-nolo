@@ -170,7 +170,6 @@ export const CreateTool: React.FC = () => {
 
           <Button
             variant="primary"
-            icon={<UploadIcon size={16} />}
             onClick={handleSave}
             size="medium"
             disabled={isReadOnly || isSaving}
