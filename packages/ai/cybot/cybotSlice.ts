@@ -69,71 +69,27 @@ export const cybotSlice = createSliceWithThunks({
     streamCybotId: create.asyncThunk(
       async ({ cybotId, userInput }, thunkApi) => {
         const state = thunkApi.getState();
-        const msgs = selectAllMsgs(state); // 获取历史消息
+        const msgs = selectAllMsgs(state);
         const dispatch = thunkApi.dispatch;
         const cybotConfig = await dispatch(read(cybotId)).unwrap();
 
-        // 初始化参考资料列表，只提取 references 中的 dbKey
-        let allReference: string[] = cybotConfig.references
-          .map((ref: any) => ref.dbKey || (typeof ref === "string" ? ref : ""))
-          .filter((key: string) => typeof key === "string" && key.length > 0);
+        // --- 1. 分别收集所有来源的 Keys ---
 
-        // 新增：从 userInput 中提取 pageKey（例如 DOCX 和 PDF 文件中的 pageKey）
-        let msgReferences: string[] = [];
+        // 源 1: 用户当前输入 (最高优先级)
+        const currentUserKeys = new Set<string>();
         if (Array.isArray(userInput)) {
           userInput.forEach((part: any) => {
-            if (
-              (part.type === "docx" ||
-                part.type === "pdf" ||
-                part.type === "page" ||
-                part.type === "excel") &&
-              part.pageKey
-            ) {
-              msgReferences.push(part.pageKey);
+            if (part && part.pageKey) {
+              currentUserKeys.add(part.pageKey);
             }
           });
-        } else if (
-          typeof userInput === "object" &&
-          (userInput.type === "docx" || userInput.type === "pdf") &&
-          userInput.pageKey
-        ) {
-          msgReferences.push(userInput.pageKey);
         }
 
-        // 新增：从历史消息中提取 pageKey
-        let historyReferences: string[] = [];
-        msgs.forEach((msg: any) => {
-          const content = msg.content;
-          if (Array.isArray(content)) {
-            content.forEach((part: any) => {
-              if (
-                (part.type === "docx" || part.type === "pdf") &&
-                part.pageKey
-              ) {
-                historyReferences.push(part.pageKey);
-              }
-            });
-          } else if (
-            typeof content === "object" &&
-            (content.type === "docx" || content.type === "pdf") &&
-            content.pageKey
-          ) {
-            historyReferences.push(content.pageKey);
-          }
-        });
-
-        // 将 msgReferences 和 historyReferences 合并到 allReference
-        allReference = [
-          ...allReference,
-          ...msgReferences,
-          ...historyReferences,
-        ];
-
-        // 如果启用智能读取，获取当前空间数据并生成 outputReference
+        // 源 2: 智能读取 (高优先级)
+        const smartReadKeys = new Set<string>();
         if (cybotConfig.smartReadEnabled === true) {
-          const spaceData = selectCurrentSpace(state); // 获取当前空间数据
-          const formattedData = formatDataForApi(spaceData, msgs); // 直接使用原始消息，已在 formatDataForApi 中过滤 Type: page
-
+          const spaceData = selectCurrentSpace(state);
+          const formattedData = formatDataForApi(spaceData, msgs);
           const outputReference = await dispatch(
             runCybotId({
               cybotId: contextCybotId,
@@ -141,39 +97,98 @@ export const cybotSlice = createSliceWithThunks({
             })
           ).unwrap();
 
-          // 尝试解析 outputReference 为 ID 数组，并组合到 allReference
           try {
             const cleanedOutput = outputReference
               .replace(/```json/g, "")
               .replace(/```/g, "")
-              .replace(/\n/g, "")
               .trim();
-            if (cleanedOutput && cleanedOutput !== "[]") {
-              const parsedReference = JSON.parse(cleanedOutput);
-              if (
-                Array.isArray(parsedReference) &&
-                parsedReference.length > 0
-              ) {
-                allReference = [...parsedReference, ...allReference];
+            if (cleanedOutput) {
+              const parsedKeys = JSON.parse(cleanedOutput);
+              if (Array.isArray(parsedKeys)) {
+                parsedKeys.forEach((key) => {
+                  if (typeof key === "string") smartReadKeys.add(key);
+                });
               }
             }
           } catch (error) {
             console.error(
-              "streamCybotId - Failed to parse outputReference as JSON:",
+              "streamCybotId - Failed to parse smartRead output:",
               outputReference,
               error
             );
           }
         }
 
-        // 获取参考内容上下文
-        const context = await fetchReferenceContents(allReference, dispatch);
+        // 源 3: 对话历史 (中等优先级)
+        const historyKeys = new Set<string>();
+        msgs.forEach((msg: any) => {
+          const content = Array.isArray(msg.content)
+            ? msg.content
+            : [msg.content];
+          content.forEach((part: any) => {
+            if (part && part.pageKey) {
+              historyKeys.add(part.pageKey);
+            }
+          });
+        });
 
-        // 生成请求体数据，直接使用 userInput，不构造额外内容
-        const bodyData = generateRequestBody(state, cybotConfig, context);
+        // 源 4: Cybot 预设 (基础优先级)
+        const preConfiguredKeys = new Set<string>();
+        if (Array.isArray(cybotConfig.references)) {
+          cybotConfig.references.forEach((ref: any) => {
+            const key = ref.dbKey || (typeof ref === "string" ? ref : null);
+            if (key) preConfiguredKeys.add(key);
+          });
+        }
 
+        // --- 2. 按优先级去重 ---
+        // 从低优先级集合中，移除已在高优先级集合中存在的 key
+        smartReadKeys.forEach((key) => {
+          if (currentUserKeys.has(key)) smartReadKeys.delete(key);
+        });
+        historyKeys.forEach((key) => {
+          if (currentUserKeys.has(key) || smartReadKeys.has(key))
+            historyKeys.delete(key);
+        });
+        preConfiguredKeys.forEach((key) => {
+          if (
+            currentUserKeys.has(key) ||
+            smartReadKeys.has(key) ||
+            historyKeys.has(key)
+          )
+            preConfiguredKeys.delete(key);
+        });
+
+        // --- 3. 并发获取每个层级的内容 ---
+        const [
+          currentUserContext,
+          smartReadContext,
+          historyContext,
+          preConfiguredContext,
+        ] = await Promise.all([
+          fetchReferenceContents(Array.from(currentUserKeys), dispatch),
+          fetchReferenceContents(Array.from(smartReadKeys), dispatch),
+          fetchReferenceContents(Array.from(historyKeys), dispatch),
+          fetchReferenceContents(Array.from(preConfiguredKeys), dispatch),
+        ]);
+
+        // --- 4. 将所有结构化上下文传递给请求体生成器 ---
         const providerName = cybotConfig.provider.toLowerCase();
+        const bodyData = generateRequestBody(state, cybotConfig, {
+          // 传递一个包含所有上下文的结构化对象
+          currentUserContext,
+          smartReadContext,
+          historyContext,
+          preConfiguredContext,
+        });
+
+        // --- 5. 执行请求 ---
         const handler = requestHandlers[providerName];
+        if (!handler) {
+          throw new Error(
+            `No request handler found for provider: ${providerName}`
+          );
+        }
         const dialogConfig = selectCurrentDialogConfig(state);
         const dialogKey = dialogConfig.dbKey;
 

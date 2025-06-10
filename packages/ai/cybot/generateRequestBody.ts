@@ -12,9 +12,9 @@ interface CybotConfig {
 export const generateRequestBody = (
   state: NoloRootState,
   cybotConfig: CybotConfig,
-  context?: any
+  contexts?: any
 ) => {
   const providerName = cybotConfig.provider.toLowerCase();
 
-  return generateOpenAIRequestBody(state, cybotConfig, providerName, context);
+  return generateOpenAIRequestBody(state, cybotConfig, providerName, contexts);
 };
