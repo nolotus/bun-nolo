@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-
 import { useTheme } from "app/theme";
 import copyToClipboard from "utils/clipboard";
 import * as docx from "docx";
-//web
 import { Tooltip } from "render/web/ui/Tooltip";
 import MermaidContent from "./MermaidContent";
 import ReactECharts from "echarts-for-react";
@@ -40,6 +38,16 @@ const CodeBlock = ({ attributes, children, element }) => {
   const [showPreview, setShowPreview] = useState(element.preview === "true");
   const [isCollapsed, setIsCollapsed] = useState(element.collapsed === "true");
   const [showRightPreview, setShowRightPreview] = useState(false);
+
+  // 解析语言和文件名
+  const [language, filename] = useMemo(() => {
+    const lang = element.language || "";
+    const colonIndex = lang.indexOf(":");
+    if (colonIndex > -1) {
+      return [lang.substring(0, colonIndex), lang.substring(colonIndex + 1)];
+    }
+    return [lang, null];
+  }, [element.language]);
 
   // --- 提取文本内容 ---
   const content = useMemo(() => {
@@ -92,7 +100,7 @@ const CodeBlock = ({ attributes, children, element }) => {
     [theme]
   );
 
-  // --- 极简样式 ---
+  // --- 更新样式 ---
   const styles = `
     .code-block-wrapper {
       margin: ${theme.space[6]} 0;
@@ -117,6 +125,19 @@ const CodeBlock = ({ attributes, children, element }) => {
       background: ${theme.primaryGhost};
       border-radius: ${theme.space[1]};
       text-transform: uppercase;
+    }
+
+    .filename-tag {
+      font-size: 12px;
+      color: ${theme.textSecondary};
+      padding: ${theme.space[1]} ${theme.space[2]};
+      margin-left: ${theme.space[2]};
+      background: ${theme.secondaryGhost};
+      border-radius: ${theme.space[1]};
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 200px;
     }
 
     .action-buttons {
@@ -160,7 +181,14 @@ const CodeBlock = ({ attributes, children, element }) => {
   // --- 内联操作栏组件 ---
   const CodeBlockActions = () => (
     <div className="code-block-actions">
-      <span className="language-tag">{element.language}</span>
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <span className="language-tag">{language}</span>
+        {filename && (
+          <Tooltip content={filename}>
+            <span className="filename-tag">{filename}</span>
+          </Tooltip>
+        )}
+      </div>
       <div className="action-buttons">
         <Tooltip content={showPreview ? "显示代码" : "显示预览"}>
           <button
@@ -212,16 +240,13 @@ const CodeBlock = ({ attributes, children, element }) => {
       <div {...attributes} className="code-block-wrapper">
         <CodeBlockActions />
 
-        {/* JSON Preview - 原始展示 */}
-        {element.language === "json" &&
-        showPreview &&
-        content &&
-        !isCollapsed ? (
+        {/* JSON Preview */}
+        {language === "json" && showPreview && content && !isCollapsed ? (
           <div className="preview-content">
             <JsonBlock rawCode={content} showPreview={showPreview} />
           </div>
-        ) : /* Mermaid Preview - 原始展示 */
-        element.language === "mermaid" ? (
+        ) : /* Mermaid Preview */
+        language === "mermaid" ? (
           <div className="preview-content">
             <MermaidContent
               elementId={elementId}
@@ -232,14 +257,14 @@ const CodeBlock = ({ attributes, children, element }) => {
               theme={theme}
             />
           </div>
-        ) : /* React Live Preview - 原始展示 */
-        (element.language === "jsx" || element.language === "tsx") &&
+        ) : /* React Live Preview */
+        (language === "jsx" || language === "tsx") &&
           showPreview &&
           !isCollapsed ? (
           <div className="preview-content">
             <ReactLiveBlock
               rawCode={content}
-              language={element.language}
+              language={language}
               theme={theme}
               showPreview={showPreview}
               liveScope={liveScope}
@@ -247,7 +272,7 @@ const CodeBlock = ({ attributes, children, element }) => {
           </div>
         ) : /* Default Code View */
         !isCollapsed ? (
-          <pre className="code-content language-${element.language || 'plaintext'}">
+          <pre className={`code-content language-${language || "plaintext"}`}>
             <code>{children}</code>
           </pre>
         ) : null}
