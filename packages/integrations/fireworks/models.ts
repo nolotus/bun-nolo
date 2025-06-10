@@ -2,12 +2,12 @@ import type { Model } from "ai/llm/types";
 
 export const fireworksmodels: Model[] = [
   {
-    name: "accounts/fireworks/models/deepseek-r1",
-    displayName: "DeepSeek R1",
+    name: "accounts/fireworks/models/deepseek-r1-0528",
+    displayName: "DeepSeek R1 0528",
     hasVision: false,
     contextWindow: 160000, // 160k
     price: {
-      input: 64, // 8 * 8
+      input: 24, // 3 * 8
       output: 64, // 8 * 8
     },
   },
