@@ -47,7 +47,7 @@ const prependPromptMessage = (
   contexts: Contexts // 👈 接收结构化 contexts
 ): Message[] => {
   const promptContent = generatePrompt({
-    prompt,
+    mainPrompt: prompt,
     name: botName,
     language,
     contexts, // 👈 直接传递 contexts 对象
@@ -139,7 +139,6 @@ export const generateOpenAIRequestBody = (
     navigator.language,
     contexts // 👈 传递 contexts 对象
   );
-
   // 3. 构建请求体
   const requestBody = buildRequestBody({
     model: cybotConfig.model,

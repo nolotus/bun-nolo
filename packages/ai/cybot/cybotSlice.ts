@@ -73,19 +73,17 @@ export const cybotSlice = createSliceWithThunks({
         const dispatch = thunkApi.dispatch;
         const cybotConfig = await dispatch(read(cybotId)).unwrap();
 
-        // --- 1. 分别收集所有来源的 Keys ---
+        // --- 1. 收集所有来源的 Keys，并按类型分离 ---
 
-        // 源 1: 用户当前输入 (最高优先级)
+        // 源 1: 用户当前输入中引用的 Key (高优先级)
         const currentUserKeys = new Set<string>();
         if (Array.isArray(userInput)) {
           userInput.forEach((part: any) => {
-            if (part && part.pageKey) {
-              currentUserKeys.add(part.pageKey);
-            }
+            if (part && part.pageKey) currentUserKeys.add(part.pageKey);
           });
         }
 
-        // 源 2: 智能读取 (高优先级)
+        // 源 2: 智能读取 (中高优先级)
         const smartReadKeys = new Set<string>();
         if (cybotConfig.smartReadEnabled === true) {
           const spaceData = selectCurrentSpace(state);
@@ -126,61 +124,82 @@ export const cybotSlice = createSliceWithThunks({
             ? msg.content
             : [msg.content];
           content.forEach((part: any) => {
-            if (part && part.pageKey) {
-              historyKeys.add(part.pageKey);
-            }
+            if (part && part.pageKey) historyKeys.add(part.pageKey);
           });
         });
 
-        // 源 4: Cybot 预设 (基础优先级)
-        const preConfiguredKeys = new Set<string>();
+        // 源 4: 从预设参考资料中分离 "指令" 和 "知识"
+        const botInstructionKeys = new Set<string>();
+        const botKnowledgeKeys = new Set<string>();
         if (Array.isArray(cybotConfig.references)) {
-          cybotConfig.references.forEach((ref: any) => {
-            const key = ref.dbKey || (typeof ref === "string" ? ref : null);
-            if (key) preConfiguredKeys.add(key);
-          });
+          cybotConfig.references.forEach(
+            (ref: { dbKey: string; type: string }) => {
+              if (ref && ref.dbKey) {
+                if (ref.type === "instruction") {
+                  botInstructionKeys.add(ref.dbKey);
+                } else {
+                  // 默认为 knowledge
+                  botKnowledgeKeys.add(ref.dbKey);
+                }
+              }
+            }
+          );
         }
 
         // --- 2. 按优先级去重 ---
-        // 从低优先级集合中，移除已在高优先级集合中存在的 key
+        // 优先级: Core Prompt (隐式) > Instructions > CurrentUser > SmartRead > History > Knowledge
+        currentUserKeys.forEach((key) => {
+          if (botInstructionKeys.has(key)) currentUserKeys.delete(key);
+        });
         smartReadKeys.forEach((key) => {
-          if (currentUserKeys.has(key)) smartReadKeys.delete(key);
+          if (botInstructionKeys.has(key) || currentUserKeys.has(key))
+            smartReadKeys.delete(key);
         });
         historyKeys.forEach((key) => {
-          if (currentUserKeys.has(key) || smartReadKeys.has(key))
+          if (
+            botInstructionKeys.has(key) ||
+            currentUserKeys.has(key) ||
+            smartReadKeys.has(key)
+          )
             historyKeys.delete(key);
         });
-        preConfiguredKeys.forEach((key) => {
+        botKnowledgeKeys.forEach((key) => {
           if (
+            botInstructionKeys.has(key) ||
             currentUserKeys.has(key) ||
             smartReadKeys.has(key) ||
             historyKeys.has(key)
           )
-            preConfiguredKeys.delete(key);
+            botKnowledgeKeys.delete(key);
         });
 
         // --- 3. 并发获取每个层级的内容 ---
         const [
+          botInstructionsContext,
           currentUserContext,
           smartReadContext,
           historyContext,
-          preConfiguredContext,
+          botKnowledgeContext,
         ] = await Promise.all([
+          fetchReferenceContents(Array.from(botInstructionKeys), dispatch),
           fetchReferenceContents(Array.from(currentUserKeys), dispatch),
           fetchReferenceContents(Array.from(smartReadKeys), dispatch),
           fetchReferenceContents(Array.from(historyKeys), dispatch),
-          fetchReferenceContents(Array.from(preConfiguredKeys), dispatch),
+          fetchReferenceContents(Array.from(botKnowledgeKeys), dispatch),
         ]);
-
         // --- 4. 将所有结构化上下文传递给请求体生成器 ---
         const providerName = cybotConfig.provider.toLowerCase();
-        const bodyData = generateRequestBody(state, cybotConfig, {
-          // 传递一个包含所有上下文的结构化对象
-          currentUserContext,
-          smartReadContext,
-          historyContext,
-          preConfiguredContext,
-        });
+        const bodyData = generateRequestBody(
+          state,
+          cybotConfig, // cybotConfig 中包含了核心 prompt
+          {
+            botInstructionsContext,
+            currentUserContext,
+            smartReadContext,
+            historyContext,
+            botKnowledgeContext,
+          }
+        );
 
         // --- 5. 执行请求 ---
         const handler = requestHandlers[providerName];
