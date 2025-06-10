@@ -1,8 +1,9 @@
 // web/ui/BaseActionModal.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react"; // --- 1. 引入 useRef ---
 import { BaseModal } from "render/web/ui/BaseModal";
 import { useTheme } from "app/theme";
 
+// Props 接口定义保持不变
 interface BaseActionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -15,6 +16,8 @@ interface BaseActionModalProps {
   className?: string;
   bodyClassName?: string;
   width?: number | string;
+  onEnterPress?: () => void;
+  isActionDisabled?: boolean;
 }
 
 export const BaseActionModal: React.FC<BaseActionModalProps> = ({
@@ -29,12 +32,15 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
   className = "",
   bodyClassName = "",
   width = 400,
+  onEnterPress,
+  isActionDisabled = false,
 }) => {
   const theme = useTheme();
   const [animateIn, setAnimateIn] = useState(false);
   const { space: sp } = theme;
+  const modalRef = useRef<HTMLDivElement>(null); // --- 2. 创建一个 ref 来引用弹窗容器 ---
 
-  // 用于处理入场动画
+  // 入场动画逻辑 (无变化)
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => setAnimateIn(true), 50);
@@ -43,6 +49,45 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
       setAnimateIn(false);
     }
   }, [isOpen]);
+
+  // --- 3. 新增：当弹窗打开时，自动聚焦到弹窗 ---
+  useEffect(() => {
+    if (isOpen) {
+      // 使用一个短暂的延时，确保弹窗渲染并可见后再聚焦
+      const timer = setTimeout(() => {
+        modalRef.current?.focus();
+      }, 50); // 50ms 通常足够
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // 键盘事件监听 (无变化)
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isActionDisabled) {
+        return;
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+      if (event.key === "Enter" && onEnterPress) {
+        if (
+          !(event.target instanceof HTMLButtonElement) &&
+          !(event.target instanceof HTMLInputElement) &&
+          !(event.target instanceof HTMLTextAreaElement)
+        ) {
+          event.preventDefault();
+          onEnterPress();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose, onEnterPress, isActionDisabled]);
 
   const getStatusColor = () => {
     switch (status) {
@@ -65,7 +110,13 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
       preventBodyScroll={true}
       className={`action-modal ${className} ${animateIn ? "animate-in" : ""}`}
     >
-      <div className="modal-container">
+      {/* --- 4. 将 ref 和 tabIndex 应用到弹窗主容器上 --- */}
+      <div
+        ref={modalRef}
+        tabIndex={-1} // tabIndex="-1" 使元素可以通过 JS 聚焦，但用户不能通过 Tab 键手动聚焦
+        className="modal-container"
+        style={{ outline: "none" }} // 移除聚焦时的默认蓝色轮廓
+      >
         <div className="modal-header">
           <div className="title-wrapper">
             {titleIcon && <span className="title-icon">{titleIcon}</span>}
