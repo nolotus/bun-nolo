@@ -3,22 +3,13 @@ import { generatePrompt } from "ai/prompt/generatePrompt";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 
-// --- 类型定义 ---
-type MessageContentPartText = {
-  type: "text";
-  text: string;
-};
-
+// 类型定义保持不变...
+type MessageContentPartText = { type: "text"; text: string };
 type MessageContentPartImageUrl = {
   type: "image_url";
-  image_url: {
-    url: string;
-    detail?: "low" | "high" | "auto";
-  };
+  image_url: { url: string; detail?: "low" | "high" | "auto" };
 };
-
 type MessageContentPart = MessageContentPartText | MessageContentPartImageUrl;
-
 interface Message {
   role: "user" | "assistant" | "system" | "tool";
   content: string | MessageContentPart[];
@@ -26,8 +17,6 @@ interface Message {
   tool_calls?: any;
   tool_call_id?: string;
 }
-
-// 只传必要配置
 interface BuildRequestBodyOptions {
   model: string;
   messages: Message[];
@@ -39,6 +28,13 @@ interface BuildRequestBodyOptions {
   max_tokens?: number;
   reasoning_effort?: string;
 }
+// 👇 新增 contexts 类型
+interface Contexts {
+  currentUserContext?: string | null;
+  smartReadContext?: string | null;
+  historyContext?: string | null;
+  preConfiguredContext?: string | null;
+}
 
 /**
  * 在消息列表前添加系统提示
@@ -48,13 +44,13 @@ const prependPromptMessage = (
   prompt: string | undefined,
   botName: string | undefined,
   language: string,
-  context: any
+  contexts: Contexts // 👈 接收结构化 contexts
 ): Message[] => {
   const promptContent = generatePrompt({
     prompt,
     name: botName,
     language,
-    context,
+    contexts, // 👈 直接传递 contexts 对象
   });
 
   if (promptContent.trim()) {
@@ -65,7 +61,7 @@ const prependPromptMessage = (
 };
 
 /**
- * 只传必要字段，构建请求体
+ * 只传必要字段，构建请求体 (此函数保持不变)
  */
 const buildRequestBody = (options: BuildRequestBodyOptions): any => {
   const {
@@ -113,6 +109,7 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
 
 /**
  * 主函数
+ * 👇 修改函数签名以接收 contexts 对象
  */
 export const generateOpenAIRequestBody = (
   state: NoloRootState,
@@ -129,21 +126,21 @@ export const generateOpenAIRequestBody = (
     [key: string]: any;
   },
   providerName: string,
-  context: any = ""
+  contexts: Contexts // 👈 接收结构化 contexts
 ) => {
   // 1. 获取清理历史消息
   const previousMessages = filterAndCleanMessages(selectAllMsgs(state));
 
-  // 5. 消息队头插入 prompt
+  // 2. 消息队头插入 prompt
   const messagesWithPrompt = prependPromptMessage(
     previousMessages,
     cybotConfig.prompt,
     cybotConfig.name,
     navigator.language,
-    context
+    contexts // 👈 传递 contexts 对象
   );
 
-  // 6. 构建请求体
+  // 3. 构建请求体
   const requestBody = buildRequestBody({
     model: cybotConfig.model,
     messages: messagesWithPrompt,
