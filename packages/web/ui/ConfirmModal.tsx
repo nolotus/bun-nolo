@@ -1,3 +1,4 @@
+// ConfirmModal.tsx
 import React from "react";
 import Button from "render/web/ui/Button";
 import { BaseActionModal } from "./BaseActionModal";
@@ -81,6 +82,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       status={type}
       actions={actions}
       width={400}
+      // --- 新增：将确认操作和加载状态传递给基础弹窗 ---
+      onEnterPress={onConfirm}
+      isActionDisabled={loading}
     >
       <p className="confirm-message">{message}</p>
 
