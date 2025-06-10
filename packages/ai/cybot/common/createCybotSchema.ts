@@ -6,10 +6,19 @@ export const DEFAULT_TOP_P = 1.0;
 export const DEFAULT_FREQUENCY_PENALTY = 0.0;
 export const DEFAULT_PRESENCE_PENALTY = 0.0;
 export const DEFAULT_MAX_TOKENS = 8192;
-export const DEFAULT_REASONING_EFFORT = "medium"; // 新增默认值
+export const DEFAULT_REASONING_EFFORT = "medium";
 
 // 定义 reasoning_effort 的可选值
 export const REASONING_EFFORT_OPTIONS = ["low", "medium", "high"] as const;
+
+// 👇 --- 核心改动在这里 --- 👇
+// 定义 ReferenceItem 的 schema，使其类型安全
+const referenceItemSchema = z.object({
+  dbKey: z.string(),
+  title: z.string(),
+  // 确保 type 只能是 'knowledge' 或 'instruction'
+  type: z.enum(["knowledge", "instruction"]),
+});
 
 export const createCybotSchema = z
   .object({
@@ -44,16 +53,10 @@ export const createCybotSchema = z
     inputPrice: z.number().min(0).default(0),
     outputPrice: z.number().min(0).default(0),
     tags: z.string().trim().optional().or(z.string().length(0)),
-    references: z
-      .array(
-        z.object({
-          type: z.string(),
-          dbKey: z.string(),
-          title: z.string(),
-        })
-      )
-      .optional()
-      .default([]),
+
+    // 👇 --- 使用新的 referenceItemSchema --- 👇
+    references: z.array(referenceItemSchema).optional().default([]),
+
     smartReadEnabled: z.boolean().default(false),
     // 模型参数字段，设置为可选
     temperature: z
@@ -77,7 +80,6 @@ export const createCybotSchema = z
       .max(2, "Presence Penalty must be at most 2")
       .optional(),
     max_tokens: z.number().min(1, "Max Tokens must be at least 1").optional(),
-    // 新增 reasoning_effort 字段
     reasoning_effort: z
       .enum(REASONING_EFFORT_OPTIONS)
       .default(DEFAULT_REASONING_EFFORT)

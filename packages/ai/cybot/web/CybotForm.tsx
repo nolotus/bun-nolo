@@ -26,7 +26,16 @@ const CybotForm = ({
   const { t } = useTranslation("ai");
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
-  const [references, setReferences] = useState(initialValues.references || []);
+  const [references, setReferences] = useState(() => {
+    const initialRefs = initialValues.references || [];
+    if (!Array.isArray(initialRefs)) return [];
+    return initialRefs.map((ref) => ({
+      ...ref,
+      // 如果 ref 中没有 type，则默认为 'knowledge'
+      type: ref.type || "knowledge",
+    }));
+  });
+
   const [smartReadEnabled, setSmartReadEnabled] = useState(
     initialValues.smartReadEnabled || false
   );
