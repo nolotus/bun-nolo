@@ -11,16 +11,6 @@ import { useOllamaSettings } from "../hooks/useOllamaSettings";
 import { useProxySetting } from "../hooks/useProxySetting";
 import { useCybotValidation } from "../common/useCybotFormValidation";
 
-// 移除对 DEFAULT_Xxx 的导入，因为它们不再在 reset 中使用
-// import {
-//   DEFAULT_TEMPERATURE,
-//   DEFAULT_TOP_P,
-//   DEFAULT_FREQUENCY_PENALTY,
-//   DEFAULT_PRESENCE_PENALTY,
-//   DEFAULT_MAX_TOKENS,
-// } from "../common/createCybotSchema";
-// const DEFAULT_REASONING_EFFORT = "medium"; // 也移除此行
-
 // 导入更新后的子组件 (假设它们都已按最新建议修改)
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
@@ -290,49 +280,49 @@ const CybotForm = ({
         }
 
         .tab-content-wrapper {
-          padding: ${theme.space?.[8] || "32px"} ${theme.space?.[6] || "24px"};
+          padding: ${theme.space[8]} ${theme.space[6]};
           display: flex;
           flex-direction: column;
-          gap: ${theme.space?.[8] || "32px"};
+          gap: ${theme.space[8]};
         }
 
         .form-footer {
           flex-shrink: 0;
-          padding: ${theme.space?.[6] || "24px"};
-          margin-top: ${theme.space?.[4] || "16px"};
+          padding: ${theme.space[6]};
+          margin-top: ${theme.space[4]};
         }
 
         .footer-actions {
           display: flex;
           justify-content: flex-end;
-          gap: ${theme.space?.[3] || "12px"};
+          gap: ${theme.space[3]};
         }
 
         .price-inputs {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: ${theme.space?.[4] || "16px"};
+          gap: ${theme.space[4]};
         }
 
         .public-settings-group,
         .api-settings-group {
-          margin-top: ${theme.space?.[8] || "32px"};
-          padding-top: ${theme.space?.[6] || "24px"};
+          margin-top: ${theme.space[8]};
+          padding-top: ${theme.space[6]};
           display: flex;
           flex-direction: column;
-          gap: ${theme.space?.[6] || "24px"};
+          gap: ${theme.space[6]};
         }
 
         .model-parameters {
-          margin-top: ${theme.space?.[12] || "48px"};
-          padding-top: ${theme.space?.[8] || "32px"};
+          margin-top: ${theme.space[12]};
+          padding-top: ${theme.space[8]};
         }
 
         .parameters-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: ${theme.space?.[8] || "32px"};
+          margin-bottom: ${theme.space[8]};
         }
 
         .parameters-header h3 {
@@ -345,13 +335,13 @@ const CybotForm = ({
         .parameters-grid {
           display: flex;
           flex-direction: column;
-          gap: ${theme.space?.[6] || "24px"};
+          gap: ${theme.space[6]};
         }
 
         .parameter-item {
           display: grid;
           grid-template-columns: 140px 1fr;
-          gap: ${theme.space?.[4] || "16px"};
+          gap: ${theme.space[4]};
           align-items: start;
           min-height: 60px;
         }
@@ -359,8 +349,8 @@ const CybotForm = ({
         .parameter-label {
           display: flex;
           align-items: center;
-          gap: ${theme.space?.[2] || "8px"};
-          padding-top: ${theme.space?.[1] || "4px"};
+          gap: ${theme.space[2]};
+          padding-top: ${theme.space[1]};
         }
 
         .label-text {
@@ -383,7 +373,7 @@ const CybotForm = ({
         .parameter-control {
           display: flex;
           flex-direction: column;
-          gap: ${theme.space?.[3] || "12px"};
+          gap: ${theme.space[3]};
         }
 
         .parameter-info {
@@ -406,12 +396,12 @@ const CybotForm = ({
           }
 
           .tab-content-wrapper {
-            padding: ${theme.space?.[6] || "24px"} ${theme.space?.[4] || "16px"};
-            gap: ${theme.space?.[6] || "24px"};
+            padding: ${theme.space[6]} ${theme.space[4]};
+            gap: ${theme.space[6]};
           }
           
           .form-footer {
-            padding: ${theme.space?.[4] || "16px"};
+            padding: ${theme.space[4]};
           }
           
           .footer-actions {
@@ -424,7 +414,7 @@ const CybotForm = ({
 
           .parameter-item {
             grid-template-columns: 1fr;
-            gap: ${theme.space?.[3] || "12px"};
+            gap: ${theme.space[3]};
             min-height: auto;
           }
 
@@ -435,7 +425,7 @@ const CybotForm = ({
           .parameters-header {
             flex-direction: column;
             align-items: flex-start;
-            gap: ${theme.space?.[4] || "16px"};
+            gap: ${theme.space[4]};
           }
         }
 
