@@ -25,7 +25,6 @@ export const mistralModels: Model[] = [
       output: 2.4, // $0.3 * 8
     },
   },
-
   {
     name: "mistral-ocr-latest",
     displayName: "Mistral OCR",
@@ -33,5 +32,29 @@ export const mistralModels: Model[] = [
     description: "OCR-capable model for extracting text from images",
     contextWindow: 32000,
     price: {},
+  },
+  {
+    name: "magistral-medium-2506",
+    displayName: "Magistral Medium (Preview)",
+    hasVision: true,
+    description:
+      "Thinking model excelling in domain-specific, transparent, and multilingual reasoning.",
+    contextWindow: 40000,
+    price: {
+      input: 2 * 8, // $2 per million tokens
+      output: 5 * 8, // $5 per million tokens
+    },
+  },
+  {
+    name: "magistral-small-2506",
+    displayName: "Magistral Small",
+    hasVision: true,
+    description:
+      "Thinking model excelling in domain-specific, transparent, and multilingual reasoning.",
+    contextWindow: 40000,
+    price: {
+      input: 0.5 * 8, // $0.5 per million tokens
+      output: 1.5 * 8, // $1.5 per million tokens
+    },
   },
 ];
