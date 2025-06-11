@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -23,19 +23,47 @@ import {
 import { addPendingFile } from "chat/dialog/dialogSlice";
 import { nanoid } from "nanoid";
 import { useTranslation } from "react-i18next";
-
-//web
 import { useInlineEdit } from "render/web/ui/useInlineEdit";
 import InlineEditInput from "render/web/ui/InlineEditInput";
 import { Tooltip } from "render/web/ui/Tooltip";
 import MoveToSpaceSubMenu from "./MoveToSpaceSubMenu";
 import toast from "react-hot-toast";
+
+// 最小化的可拖拽组件，仅包裹图标元素
+interface ItemDraggableProps {
+  id: string;
+  containerId: string;
+  children: (handleProps: {
+    onDragStart: (e: React.DragEvent) => void;
+    onDragEnd: (e: React.DragEvent) => void;
+  }) => React.ReactNode;
+}
+
+const ItemDraggable: React.FC<ItemDraggableProps> = memo(
+  ({ id, containerId, children }) => {
+    const handleDragStart = (e: React.DragEvent) => {
+      e.dataTransfer.setData("itemId", id);
+      e.dataTransfer.setData("sourceContainer", containerId);
+      e.dataTransfer.setData("dragType", "item");
+      e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragEnd = (e: React.DragEvent) => {
+      // 拖拽结束处理
+    };
+
+    return children({ onDragStart: handleDragStart, onDragEnd: handleDragEnd });
+  }
+);
+
+ItemDraggable.displayName = "ItemDraggable";
+
 interface SidebarItemProps {
   contentKey: string;
   type: "dialog" | "page" | "image" | "doc" | "code" | "file";
   title: string;
   categoryId?: string;
-  handleProps?: any;
+  animate?: boolean;
 }
 
 const ITEM_ICONS = {
@@ -52,7 +80,7 @@ const MORE_ICON_SIZE = 16;
 const TOUCH_TARGET_SIZE = 44;
 
 export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
-  ({ contentKey, type, title, handleProps }) => {
+  ({ contentKey, type, title, categoryId, animate = false }) => {
     const { pageKey: pageKeyFromPath } = useParams<{ pageKey?: string }>();
     const theme = useSelector(selectTheme);
     const currentSpaceId = useSelector(selectCurrentSpaceId);
@@ -64,7 +92,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const [isHovered, setIsHovered] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [isMoveSubMenuOpen, setIsMoveSubMenuOpen] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -128,37 +155,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     }, [menuOpen, isMoveSubMenuOpen, showActions]);
 
     // --- Handlers ---
-    const handleDrag = {
-      start: useCallback(
-        (e: React.DragEvent) => {
-          setIsDragging(true);
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", contentKey);
-        },
-        [contentKey]
-      ),
-      end: useCallback(() => setIsDragging(false), []),
-    };
-
-    const handleMenu = {
-      toggle: useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        setMenuOpen((prev) => !prev);
-      }, []),
-      edit: useCallback(
-        (e: React.MouseEvent) => {
-          e.stopPropagation();
-          setMenuOpen(false);
-          startEditing();
-        },
-        [startEditing]
-      ),
-      move: useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsMoveSubMenuOpen(true);
-      }, []),
-    };
-
     const handleAddToConversation = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -197,6 +193,25 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
       },
       [isEditing, startEditing]
     );
+
+    const handleMenu = {
+      toggle: useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setMenuOpen((prev) => !prev);
+      }, []),
+      edit: useCallback(
+        (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setMenuOpen(false);
+          startEditing();
+        },
+        [startEditing]
+      ),
+      move: useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsMoveSubMenuOpen(true);
+      }, []),
+    };
 
     // --- Render Helpers ---
     const ActionButton = ({ onClick, icon: Icon, label, className = "" }) => {
@@ -240,7 +255,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           className={[
             "SidebarItem",
             isSelected && "SidebarItem--selected",
-            isDragging && "SidebarItem--dragging",
             isEditing && "SidebarItem--editing",
           ]
             .filter(Boolean)
@@ -251,24 +265,27 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           tabIndex={0}
           aria-selected={isSelected}
         >
-          {/* 图标 */}
-          <span
-            className={`SidebarItem__icon ${isIconHover && handleProps ? "SidebarItem__icon--draggable" : ""}`}
-            {...(handleProps && {
-              ...handleProps,
-              draggable: true,
-              onDragStart: handleDrag.start,
-              onDragEnd: handleDrag.end,
-            })}
-            onMouseEnter={() => setIsIconHover(true)}
-            onMouseLeave={() => setIsIconHover(false)}
-          >
-            {isIconHover && handleProps ? (
-              <GrabberIcon size={ICON_SIZE} />
-            ) : (
-              <IconComponent size={ICON_SIZE} />
+          {/* 仅包裹图标的可拖拽组件 */}
+          <ItemDraggable id={contentKey} containerId={categoryId || "default"}>
+            {({ onDragStart, onDragEnd }) => (
+              <span
+                className={`SidebarItem__icon ${
+                  isIconHover ? "SidebarItem__icon--draggable" : ""
+                }`}
+                onMouseEnter={() => setIsIconHover(true)}
+                onMouseLeave={() => setIsIconHover(false)}
+                draggable
+                onDragStart={onDragStart}
+                onDragEnd={onDragEnd}
+              >
+                {isIconHover ? (
+                  <GrabberIcon size={ICON_SIZE} />
+                ) : (
+                  <IconComponent size={ICON_SIZE} />
+                )}
+              </span>
             )}
-          </span>
+          </ItemDraggable>
 
           {/* 标题 */}
           {isEditing ? (
@@ -354,7 +371,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             document.body
           )}
 
-        <style href="sidebar-item" precedence="medium">{`
+        <style jsx>{`
           .SidebarItem {
             margin: 2px 0;
             padding: 8px;
@@ -378,7 +395,11 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             box-shadow: 0 0 0 2px ${theme.primary}40;
           }
           .SidebarItem--selected {
-            background: linear-gradient(90deg, ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"} 0%, ${theme.primaryGhost || "rgba(22, 119, 255, 0.04)"} 100%);
+            background: linear-gradient(
+              90deg,
+              ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"} 0%,
+              ${theme.primaryGhost || "rgba(22, 119, 255, 0.04)"} 100%
+            );
             color: ${theme.primary};
             transform: translateX(4px);
           }
@@ -393,12 +414,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             background: ${theme.primary};
             border-radius: 0 2px 2px 0;
           }
-          .SidebarItem--dragging {
-            opacity: 0.6;
-            transform: scale(1.02);
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          }
           .SidebarItem--editing {
             background-color: ${theme.backgroundHover};
           }
@@ -411,6 +426,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             color: ${theme.textTertiary};
             transition: all 0.12s ease;
             flex-shrink: 0;
+            cursor: pointer;
           }
           .SidebarItem__icon--draggable {
             color: ${theme.textSecondary};
@@ -522,8 +538,14 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             color: ${theme.danger || "#e53e3e"};
           }
           @keyframes menuFadeIn {
-            from { opacity: 0; transform: translateY(-8px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from {
+              opacity: 0;
+              transform: translateY(-8px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
           }
           @media (max-width: 768px) {
             .SidebarItem {
