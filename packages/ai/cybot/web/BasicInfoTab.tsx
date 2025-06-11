@@ -30,6 +30,7 @@ const BasicInfoTab = ({
           placeholder={t("enterCybotName")}
         />
       </FormField>
+
       <FormField
         label={t("model")}
         required
@@ -40,10 +41,11 @@ const BasicInfoTab = ({
           watch={watch}
           setValue={setValue}
           register={register}
-          defaultModel={watch("model") || initialValues.model || ""}
+          defaultValue={initialValues.model || ""}
           t={t}
         />
       </FormField>
+
       <FormField
         label={t("prompt")}
         error={errors.prompt?.message}
@@ -52,8 +54,10 @@ const BasicInfoTab = ({
       >
         <TextArea
           {...register("prompt")}
-          value={watch("prompt") || initialValues.prompt || ""}
-          onChange={(e) => setValue("prompt", e.target.value)}
+          defaultValue={initialValues.prompt || ""}
+          onChange={(e) =>
+            setValue("prompt", e.target.value, { shouldDirty: true })
+          }
           placeholder={t("enterPrompt")}
           rows={6}
         />
@@ -65,7 +69,12 @@ const BasicInfoTab = ({
         help={t("tagsHelp")}
         {...commonProps}
       >
-        <TagsInput name="tags" control={control} placeholder={t("enterTags")} />
+        <TagsInput
+          name="tags"
+          control={control}
+          defaultValue={initialValues.tags}
+          placeholder={t("enterTags")}
+        />
       </FormField>
     </div>
   );

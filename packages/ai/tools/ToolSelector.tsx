@@ -1,8 +1,9 @@
-// 文件路径: components/ToolSelector.ts (假设路径)
+// 文件路径: ai/tools/ToolSelector.tsx (或者 components/ToolSelector.tsx，请根据实际路径调整)
 
 import type React from "react";
+import { useState, useEffect } from "react"; // 引入 useState 和 useEffect
 import { useTranslation } from "react-i18next";
-import { Checkbox } from "web/form/Checkbox";
+import { Checkbox } from "web/form/Checkbox"; // 假设这是普通的 Checkbox 组件
 import { useTheme } from "app/theme";
 import { toolDescriptions } from "ai/tools/toolRegistry";
 
@@ -14,16 +15,50 @@ const TOOL_OPTIONS = Object.entries(toolDescriptions).map(([id, info]) => ({
 }));
 
 interface ToolSelectorProps {
-  register: any;
-  defaultValue?: string[];
+  // 不再需要 register
+  // register: any;
+
+  // 独立组件的 value 和 onChange props
+  value: string[]; // 当前选中的工具ID数组
+  onChange: (selectedToolIds: string[]) => void; // 选中状态改变时的回调
 }
 
 export const ToolSelector: React.FC<ToolSelectorProps> = ({
-  register,
-  defaultValue = [],
+  value, // 从父组件接收当前值
+  onChange, // 从父组件接收值变化的回调
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+
+  // 内部状态来管理复选框的选中状态
+  // 这个状态由外部的 value prop 初始化，并在内部更新
+  const [internalSelectedTools, setInternalSelectedTools] =
+    useState<string[]>(value);
+
+  // 当外部 value prop 改变时，同步内部状态
+  useEffect(() => {
+    setInternalSelectedTools(value);
+  }, [value]);
+
+  // 处理单个复选框的改变事件
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const toolId = event.target.value;
+    const isChecked = event.target.checked;
+
+    let newSelectedTools;
+    if (isChecked) {
+      // 选中：添加到数组
+      newSelectedTools = [...internalSelectedTools, toolId];
+    } else {
+      // 取消选中：从数组中移除
+      newSelectedTools = internalSelectedTools.filter((id) => id !== toolId);
+    }
+
+    // 更新内部状态
+    setInternalSelectedTools(newSelectedTools);
+    // 通知父组件值已改变
+    onChange(newSelectedTools);
+  };
 
   return (
     <div className="tools-wrapper">
@@ -33,9 +68,11 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
             <div className="tool-main">
               <Checkbox
                 id={`tool-${tool.id}`}
-                {...register("tools")}
                 value={tool.id}
-                defaultChecked={defaultValue.includes(tool.id)}
+                // 控制 Checkbox 的选中状态，基于内部状态
+                checked={internalSelectedTools.includes(tool.id)}
+                onChange={handleCheckboxChange}
+                // 不再使用 register，因为它依赖 react-hook-form
               />
               <div className="tool-title">{t(tool.name)}</div>
             </div>
@@ -44,7 +81,7 @@ export const ToolSelector: React.FC<ToolSelectorProps> = ({
         ))}
       </div>
 
-      <style href="tools-selector">{`
+      <style>{`
         .tools-wrapper {
           width: 100%;
         }
