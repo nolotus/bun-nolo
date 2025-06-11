@@ -28,8 +28,8 @@ export const fireworksmodels: Model[] = [
     contextWindow: 160000, // 160k
     fnCall: false, // 设置函数调用为不支持
     price: {
-      input: 9.6, // 1.2 * 8
-      output: 9.6, // 1.2 * 8
+      input: 0.9 * 8, // 修改为 0.9
+      output: 0.9 * 8, // 修改为 0.9
     },
   },
   {
