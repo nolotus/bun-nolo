@@ -85,6 +85,28 @@ const PublishSettingsTab = ({
           </FormField>
         </div>
       )}
+
+      <style href="publish-settings" precedence="high">{`
+        .public-settings-group {
+          margin-top: 24px;
+          padding-top: 20px;
+          border-top: 1px solid var(--border, #e2e8f0);
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .price-inputs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        @media (max-width: 640px) {
+          .price-inputs {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+        }
+      `}</style>
     </div>
   );
 };
