@@ -1,12 +1,10 @@
-// 文件路径：render/page/pageSlice.ts
-
 import { formatISO } from "date-fns";
 import {
   asyncThunkCreator,
   buildCreateSlice,
   PayloadAction,
 } from "@reduxjs/toolkit";
-import { read, patch } from "database/dbSlice";
+import { readAndWait, patch } from "database/dbSlice";
 import { updateContentTitle } from "create/space/spaceSlice";
 import { extractTitleFromSlate } from "create/editor/utils/slateUtils";
 import { DataType } from "create/types";
@@ -44,7 +42,6 @@ const initialState: PageSliceState = {
   isInitialized: false,
   error: null,
   currentPageId: null,
-
   isSaving: false,
   saveError: null,
   lastSavedAt: null,
@@ -55,6 +52,7 @@ interface InitPageArgs {
   pageId: string;
   isReadOnly: boolean;
 }
+
 interface InitPagePayload extends PageData {
   isReadOnly: boolean;
 }
@@ -71,13 +69,15 @@ export const pageSlice = createSliceWithThunks({
     // 创建页面（暂时不管）
     createPage: create.asyncThunk(createPageAction),
 
-    // 初始化页面：读数据库
+    // 初始化页面：读数据库 - 使用 readAndWait 替代 read
     initPage: create.asyncThunk(
       async (args: InitPageArgs, { dispatch, rejectWithValue }) => {
         const { pageId, isReadOnly } = args;
         try {
-          const readAction = await dispatch(read(pageId));
-          if (read.fulfilled.match(readAction) && readAction.payload) {
+          // 使用 readAndWait 替代 read
+          const readAction = await dispatch(readAndWait(pageId));
+
+          if (readAndWait.fulfilled.match(readAction) && readAction.payload) {
             const data = readAction.payload as PageData;
             if (data.type !== DataType.PAGE) {
               return rejectWithValue(`加载的内容 ${pageId} 不是页面类型`);
@@ -102,6 +102,7 @@ export const pageSlice = createSliceWithThunks({
           state.error = null;
           state.currentPageId = action.meta.arg.pageId;
 
+          // 重置其他状态
           state.content = null;
           state.slateData = null;
           state.title = null;
@@ -114,6 +115,7 @@ export const pageSlice = createSliceWithThunks({
           state.isInitialized = true;
           state.error = null;
 
+          // 更新状态
           state.content = action.payload.content;
           state.slateData = action.payload.slateData;
           state.title = action.payload.title;
@@ -130,6 +132,7 @@ export const pageSlice = createSliceWithThunks({
             action.error.message ||
             "初始化页面时发生未知错误";
 
+          // 重置状态
           state.content = null;
           state.slateData = null;
           state.title = null;
@@ -148,10 +151,11 @@ export const pageSlice = createSliceWithThunks({
       }
     }),
 
-    // 只读模式切换 / 设置
+    // 只读模式切换/设置
     toggleReadOnly: create.reducer((state) => {
       state.isReadOnly = !state.isReadOnly;
     }),
+
     setReadOnly: create.reducer((state, action: PayloadAction<boolean>) => {
       state.isReadOnly = action.payload;
     }),
@@ -166,20 +170,19 @@ export const pageSlice = createSliceWithThunks({
       if (state.isInitialized) state.tags = action.payload;
     }),
 
-    // —— 统一保存 Thunk ——
+    // 统一保存 Thunk
     savePage: create.asyncThunk(
-      // 参数不用，从 getState() 里取
       async (_arg: void, { dispatch, getState, rejectWithValue }) => {
         const root = (getState() as any).page as PageSliceState & {
           currentPageId: string | null;
           slateData: any;
           dbSpaceId: string | null;
         };
+
         const dbKey = root.currentPageId;
         if (!dbKey) return rejectWithValue("缺少 pageKey，无法保存");
 
         const slateData = root.slateData;
-        // 从 slateData 提取一级标题
         const title = extractTitleFromSlate(slateData) || "未命名页面";
         const spaceId = root.dbSpaceId;
         const now = new Date();
@@ -245,8 +248,6 @@ export const pageSlice = createSliceWithThunks({
     selectPageDbSpaceId: (s: PageSliceState) => s.dbSpaceId,
     selectCurrentPageId: (s: PageSliceState) => s.currentPageId,
     selectPageTags: (s: PageSliceState) => s.tags,
-
-    // 保存状态相关
     selectIsSaving: (s: PageSliceState) => s.isSaving,
     selectSaveError: (s: PageSliceState) => s.saveError,
     selectLastSavedAt: (s: PageSliceState) => s.lastSavedAt,
