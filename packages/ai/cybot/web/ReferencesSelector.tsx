@@ -9,7 +9,7 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
   const theme = useTheme();
   const [availableContents, setAvailableContents] = useState([]);
 
-  // Load available content from space (此部分逻辑不变)
+  // Load available content from space (修正依赖项)
   useEffect(() => {
     if (space?.contents) {
       const contents = Object.entries(space.contents)
@@ -21,7 +21,7 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
         }));
       setAvailableContents(contents);
     }
-  }, [space]);
+  }, [space?.contents]); // 修正：使用 space?.contents 而不是 space
 
   // 👇 --- 核心改动 1: 更新勾选逻辑 ---
   const handleToggleReference = (content) => {
@@ -100,9 +100,9 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
                       onClick={() => handleToggleType(content.dbKey)}
                     >
                       {selectedRef.type === "knowledge" ? (
-                        <PiBrain size={16} /> // 大脑图标代表“知识”
+                        <PiBrain size={16} /> // 大脑图标代表"知识"
                       ) : (
-                        <PiLightbulb size={16} /> // 灯泡图标代表“指令”
+                        <PiLightbulb size={16} /> // 灯泡图标代表"指令"
                       )}
                     </button>
                   </Tooltip>

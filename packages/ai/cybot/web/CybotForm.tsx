@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
@@ -11,15 +11,26 @@ import { useOllamaSettings } from "../hooks/useOllamaSettings";
 import { useProxySetting } from "../hooks/useProxySetting";
 import { useCybotValidation } from "../common/useCybotFormValidation";
 
-// 导入更新后的子组件 (假设它们都已按最新建议修改)
+// 导入更新后的子组件
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
 import ToolsTab from "./ToolsTab";
 import PublishSettingsTab from "./PublishSettingsTab";
 import AdvancedSettingsTab from "./AdvancedSettingsTab";
 
+// 数据兼容性处理函数
+const normalizeReferences = (references) => {
+  if (!Array.isArray(references)) return [];
+
+  return references.map((ref) => ({
+    ...ref,
+    // 兼容性处理：将旧的 "page" 类型转换为 "knowledge"
+    type: ref.type === "page" ? "knowledge" : ref.type || "knowledge",
+  }));
+};
+
 const CybotForm = ({
-  mode = "create", // "create" 或 "edit"
+  mode = "create",
   initialValues = {},
   onClose,
   CreateIcon,
@@ -29,17 +40,14 @@ const CybotForm = ({
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
 
+  // 修改 references 的初始化，处理数据兼容性
   const [references, setReferences] = useState(() => {
-    const initialRefs = initialValues.references || [];
-    if (!Array.isArray(initialRefs)) return [];
-    return initialRefs.map((ref) => ({
-      ...ref,
-      type: ref.type || "knowledge",
-    }));
+    const initialRefs = initialValues.references;
+    return normalizeReferences(initialRefs);
   });
 
   const [smartReadEnabled, setSmartReadEnabled] = useState(
-    initialValues.smartReadEnabled || false
+    Boolean(initialValues.smartReadEnabled)
   );
 
   const space = useAppSelector(selectCurrentSpace);
@@ -68,23 +76,32 @@ const CybotForm = ({
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
 
-  const tabs = [
-    { id: 0, label: t("basicInfo") },
-    { id: 1, label: t("references") },
-    { id: 2, label: t("toolSelection") },
-    { id: 3, label: t("publishSettings") },
-    { id: 4, label: t("advancedSettings") },
-  ];
+  const tabs = useMemo(
+    () => [
+      { id: 0, label: t("basicInfo") },
+      { id: 1, label: t("references") },
+      { id: 2, label: t("toolSelection") },
+      { id: 3, label: t("publishSettings") },
+      { id: 4, label: t("advancedSettings") },
+    ],
+    [t]
+  );
 
   useEffect(() => {
     setValue("references", references, { shouldDirty: true });
+  }, [references, setValue]);
+
+  useEffect(() => {
     setValue("smartReadEnabled", smartReadEnabled, { shouldDirty: true });
-  }, [references, smartReadEnabled, setValue]);
+  }, [smartReadEnabled, setValue]);
 
   useEffect(() => {
     if (mode === "edit") {
-      // *** 关键修复点：不再为模型参数强制设置默认值 ***
-      // 如果 initialValues.field 为 undefined，它在 react-hook-form 中也将是 undefined。
+      // 处理编辑模式下的数据重置，包括兼容性处理
+      const normalizedReferences = normalizeReferences(
+        initialValues.references || []
+      );
+
       reset({
         ...initialValues,
         tags: Array.isArray(initialValues.tags)
@@ -92,8 +109,7 @@ const CybotForm = ({
           : initialValues.tags || "",
         useServerProxy: initialValues.useServerProxy ?? true,
         isPublic: initialValues.isPublic ?? false,
-        // 这些模型参数现在直接从 initialValues 获取，如果 initialValues 中是 undefined，
-        // 则在 react-hook-form 内部也会是 undefined。
+        references: normalizedReferences, // 使用规范化的 references
         temperature: initialValues.temperature,
         top_p: initialValues.top_p,
         frequency_penalty: initialValues.frequency_penalty,
@@ -101,6 +117,10 @@ const CybotForm = ({
         max_tokens: initialValues.max_tokens,
         reasoning_effort: initialValues.reasoning_effort,
       });
+
+      // 同时更新组件状态
+      setReferences(normalizedReferences);
+
       setApiSource(
         initialValues.apiKey || initialValues.provider === "ollama"
           ? "custom"
@@ -109,13 +129,13 @@ const CybotForm = ({
     }
   }, [initialValues, reset, setApiSource, mode]);
 
-  const handleReferencesChange = useCallback(
-    (newReferences) => setReferences(newReferences),
-    []
-  );
+  const handleReferencesChange = useCallback((newReferences) => {
+    console.log("[CybotForm] References changed:", newReferences);
+    setReferences(newReferences);
+  }, []);
 
   const handleFormSubmit = async (data) => {
-    // 确保这些字段在提交时是空字符串，即使它们在 UI 中被清空
+    console.log("[CybotForm] Form submit data:", data);
     await onSubmit({
       ...data,
       prompt: data.prompt || "",
@@ -127,85 +147,100 @@ const CybotForm = ({
     }
   };
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 0:
-        return (
-          <BasicInfoTab
-            t={t}
-            errors={errors}
-            register={register}
-            control={control}
-            watch={watch}
-            setValue={setValue}
-            initialValues={initialValues}
-          />
-        );
-
-      case 1:
-        return (
-          <ReferencesTab
-            t={t}
-            errors={errors}
-            space={space}
-            references={references}
-            onReferencesChange={handleReferencesChange}
-            smartReadEnabled={smartReadEnabled}
-            setSmartReadEnabled={setSmartReadEnabled}
-          />
-        );
-
-      case 2:
-        return (
-          <ToolsTab
-            t={t}
-            errors={errors}
-            register={register}
-            watch={watch}
-            control={control}
-          />
-        );
-
-      case 3:
-        return (
-          <PublishSettingsTab
-            t={t}
-            errors={errors}
-            register={register}
-            isPublic={isPublic}
-            setValue={setValue}
-            apiSource={apiSource}
-            inputPrice={inputPrice}
-            outputPrice={outputPrice}
-            setInputPrice={setInputPrice}
-            setOutputPrice={setOutputPrice}
-            initialValues={initialValues}
-          />
-        );
-
-      case 4:
-        return (
-          <AdvancedSettingsTab
-            t={t}
-            errors={errors}
-            register={register}
-            setValue={setValue}
-            theme={theme}
-            watch={watch}
-            provider={provider}
-            apiSource={apiSource}
-            setApiSource={setApiSource}
-            useServerProxy={useServerProxy}
-            isOllama={isOllama}
-            isProxyDisabled={isProxyDisabled}
-            initialValues={initialValues} // 继续传递 initialValues 给 AdvancedSettingsTab
-          />
-        );
-
-      default:
-        return null;
-    }
-  };
+  // 使用对象映射替代switch语句
+  const tabComponents = useMemo(
+    () => ({
+      0: (
+        <BasicInfoTab
+          t={t}
+          errors={errors}
+          register={register}
+          control={control}
+          watch={watch}
+          setValue={setValue}
+          initialValues={initialValues}
+        />
+      ),
+      1: (
+        <ReferencesTab
+          t={t}
+          errors={errors}
+          space={space}
+          references={references}
+          onReferencesChange={handleReferencesChange}
+          smartReadEnabled={smartReadEnabled}
+          setSmartReadEnabled={setSmartReadEnabled}
+        />
+      ),
+      2: (
+        <ToolsTab
+          t={t}
+          errors={errors}
+          register={register}
+          watch={watch}
+          control={control}
+        />
+      ),
+      3: (
+        <PublishSettingsTab
+          t={t}
+          errors={errors}
+          register={register}
+          isPublic={isPublic}
+          setValue={setValue}
+          apiSource={apiSource}
+          inputPrice={inputPrice}
+          outputPrice={outputPrice}
+          setInputPrice={setInputPrice}
+          setOutputPrice={setOutputPrice}
+          initialValues={initialValues}
+        />
+      ),
+      4: (
+        <AdvancedSettingsTab
+          t={t}
+          errors={errors}
+          register={register}
+          setValue={setValue}
+          theme={theme}
+          watch={watch}
+          provider={provider}
+          apiSource={apiSource}
+          setApiSource={setApiSource}
+          useServerProxy={useServerProxy}
+          isOllama={isOllama}
+          isProxyDisabled={isProxyDisabled}
+          initialValues={initialValues}
+        />
+      ),
+    }),
+    [
+      t,
+      errors,
+      register,
+      control,
+      watch,
+      setValue,
+      initialValues,
+      space,
+      references,
+      handleReferencesChange,
+      smartReadEnabled,
+      setSmartReadEnabled,
+      isPublic,
+      apiSource,
+      inputPrice,
+      outputPrice,
+      setInputPrice,
+      setOutputPrice,
+      theme,
+      provider,
+      setApiSource,
+      useServerProxy,
+      isOllama,
+      isProxyDisabled,
+    ]
+  );
 
   const containerClass =
     mode === "create" ? "create-cybot-container" : "edit-cybot-container";
@@ -231,7 +266,7 @@ const CybotForm = ({
         </div>
 
         <div className="form-body">
-          <div className="tab-content">{renderTabContent()}</div>
+          <div className="tab-content">{tabComponents[activeTab] || null}</div>
         </div>
 
         <div className="form-footer">
@@ -259,6 +294,7 @@ const CybotForm = ({
         </div>
       </form>
 
+      {/* 样式代码保持不变 */}
       <style>{`
         .create-cybot-container, .edit-cybot-container {
           max-width: ${mode === "create" ? "800px" : "auto"};
