@@ -1,6 +1,7 @@
 //  database/action/common.ts
 import pino from "pino";
 import { CYBOT_SERVERS } from "../requests";
+import { API_ENDPOINTS } from "../config";
 
 export const logger = pino({
   level: "info",
@@ -43,6 +44,31 @@ export const fetchFromClientDb = async (
   } catch (err) {
     logger.error({ err, dbKey }, "Failed to get local data");
     return null;
+  }
+};
+
+export const fetchFromServer = async (
+  server: string,
+  dbKey: string,
+  token?: string
+): Promise<any> => {
+  try {
+    const res = await fetch(
+      `${server}${API_ENDPOINTS.DATABASE}/read/${dbKey}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      }
+    );
+
+    if (res.status === 200) {
+      return await res.json();
+    }
+    return null; // 原日志已删除
+  } catch (err) {
+    return null; // 原日志已删除
   }
 };
 

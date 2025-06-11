@@ -1,36 +1,9 @@
 // database/actions/readAndWait.ts
 import { browserDb } from "../browser/db";
 import { selectCurrentServer } from "setting/settingSlice";
-import { API_ENDPOINTS } from "../config";
-import { getAllServers, fetchFromClientDb } from "./common";
+import { getAllServers, fetchFromClientDb, fetchFromServer } from "./common";
 import { selectIsLoggedIn } from "auth/authSlice";
 import { write } from "../dbSlice";
-
-// 从单个服务器获取数据
-const fetchFromServer = async (
-  server: string,
-  dbKey: string,
-  token?: string
-): Promise<any> => {
-  try {
-    const res = await fetch(
-      `${server}${API_ENDPOINTS.DATABASE}/read/${dbKey}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      }
-    );
-
-    if (res.status === 200) {
-      return await res.json();
-    }
-    return null;
-  } catch (err) {
-    return null;
-  }
-};
 
 // 更新客户端数据库（仅当远程数据更新时）
 const updateClientDbIfNewer = async (
