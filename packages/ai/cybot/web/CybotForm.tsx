@@ -10,6 +10,18 @@ import useModelPricing from "../hooks/useModelPricing";
 import { useOllamaSettings } from "../hooks/useOllamaSettings";
 import { useProxySetting } from "../hooks/useProxySetting";
 import { useCybotValidation } from "../common/useCybotFormValidation";
+
+// 移除对 DEFAULT_Xxx 的导入，因为它们不再在 reset 中使用
+// import {
+//   DEFAULT_TEMPERATURE,
+//   DEFAULT_TOP_P,
+//   DEFAULT_FREQUENCY_PENALTY,
+//   DEFAULT_PRESENCE_PENALTY,
+//   DEFAULT_MAX_TOKENS,
+// } from "../common/createCybotSchema";
+// const DEFAULT_REASONING_EFFORT = "medium"; // 也移除此行
+
+// 导入更新后的子组件 (假设它们都已按最新建议修改)
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
 import ToolsTab from "./ToolsTab";
@@ -26,12 +38,12 @@ const CybotForm = ({
   const { t } = useTranslation("ai");
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
+
   const [references, setReferences] = useState(() => {
     const initialRefs = initialValues.references || [];
     if (!Array.isArray(initialRefs)) return [];
     return initialRefs.map((ref) => ({
       ...ref,
-      // 如果 ref 中没有 type，则默认为 'knowledge'
       type: ref.type || "knowledge",
     }));
   });
@@ -75,12 +87,14 @@ const CybotForm = ({
   ];
 
   useEffect(() => {
-    setValue("references", references);
-    setValue("smartReadEnabled", smartReadEnabled);
+    setValue("references", references, { shouldDirty: true });
+    setValue("smartReadEnabled", smartReadEnabled, { shouldDirty: true });
   }, [references, smartReadEnabled, setValue]);
 
   useEffect(() => {
     if (mode === "edit") {
+      // *** 关键修复点：不再为模型参数强制设置默认值 ***
+      // 如果 initialValues.field 为 undefined，它在 react-hook-form 中也将是 undefined。
       reset({
         ...initialValues,
         tags: Array.isArray(initialValues.tags)
@@ -88,11 +102,14 @@ const CybotForm = ({
           : initialValues.tags || "",
         useServerProxy: initialValues.useServerProxy ?? true,
         isPublic: initialValues.isPublic ?? false,
+        // 这些模型参数现在直接从 initialValues 获取，如果 initialValues 中是 undefined，
+        // 则在 react-hook-form 内部也会是 undefined。
         temperature: initialValues.temperature,
         top_p: initialValues.top_p,
         frequency_penalty: initialValues.frequency_penalty,
         presence_penalty: initialValues.presence_penalty,
         max_tokens: initialValues.max_tokens,
+        reasoning_effort: initialValues.reasoning_effort,
       });
       setApiSource(
         initialValues.apiKey || initialValues.provider === "ollama"
@@ -108,6 +125,7 @@ const CybotForm = ({
   );
 
   const handleFormSubmit = async (data) => {
+    // 确保这些字段在提交时是空字符串，即使它们在 UI 中被清空
     await onSubmit({
       ...data,
       prompt: data.prompt || "",
@@ -149,7 +167,13 @@ const CybotForm = ({
 
       case 2:
         return (
-          <ToolsTab t={t} errors={errors} register={register} watch={watch} />
+          <ToolsTab
+            t={t}
+            errors={errors}
+            register={register}
+            watch={watch}
+            control={control}
+          />
         );
 
       case 3:
@@ -184,6 +208,7 @@ const CybotForm = ({
             useServerProxy={useServerProxy}
             isOllama={isOllama}
             isProxyDisabled={isProxyDisabled}
+            initialValues={initialValues} // 继续传递 initialValues 给 AdvancedSettingsTab
           />
         );
 
