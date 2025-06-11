@@ -16,7 +16,7 @@ import {
 import { SpaceData } from "create/space/types";
 import { useTheme } from "app/theme";
 import { useGroupedContent } from "create/space/hooks/useGroupedContent";
-import CategorySection from "create/space/category/CategorySection";
+import CategorySection from "create/space/category/CategorySection"; // 修正路径
 import { UNCATEGORIZED_ID } from "create/space/constants";
 
 // --- 类型定义 ---
@@ -157,54 +157,6 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
         onDragStart: () => {},
         onDragEnd: () => {},
       })}
-    </div>
-  );
-};
-
-// --- 可拖拽内容项组件 ---
-interface ItemDraggableProps {
-  id: string;
-  containerId: string;
-  animate?: boolean;
-  children: (handleProps: {
-    onDragStart: (e: React.DragEvent) => void;
-    onDragEnd: (e: React.DragEvent) => void;
-  }) => React.ReactNode;
-}
-
-export const ItemDraggable: React.FC<ItemDraggableProps> = ({
-  id,
-  containerId,
-  animate,
-  children,
-}) => {
-  const [isDragging, setIsDragging] = useState(false);
-
-  const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData("itemId", id);
-    e.dataTransfer.setData("sourceContainer", containerId);
-    e.dataTransfer.setData("dragType", "item");
-    e.dataTransfer.effectAllowed = "move";
-    setIsDragging(true);
-  };
-
-  const handleDragEnd = (e: React.DragEvent) => {
-    setIsDragging(false);
-  };
-
-  return (
-    <div
-      draggable
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      className={`ItemDraggable ${isDragging ? "ItemDraggable--dragging" : ""}`}
-      style={{
-        margin: "1.8px 0",
-        position: "relative",
-        animation: animate ? "itemFadeIn 0.3s ease-out" : "none",
-      }}
-    >
-      {children({ onDragStart: handleDragStart, onDragEnd: handleDragEnd })}
     </div>
   );
 };
@@ -645,41 +597,7 @@ const ChatSidebar: React.FC = () => {
           transform: translateY(-1px) scale(1.01);
         }
 
-        /* 可拖拽项目容器样式优化 */
-        .ItemDraggable {
-          margin: 1.8px 0; 
-          position: relative;
-          border-radius: ${theme.space[2]};
-          transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-          will-change: opacity, transform, background-color, box-shadow;
-          backface-visibility: hidden;
-        }
-
-        .ItemDraggable:active {
-          cursor: grabbing;
-        }
-
-        .ItemDraggable--dragging {
-          opacity: 0.75;
-          background-color: ${theme.backgroundHover};
-          box-shadow: 0 4px 12px ${theme.shadowMedium};
-          transform: translateY(-2px) scale(1.02);
-          z-index: 100;
-          border: 1px solid ${theme.borderHover};
-        }
-
         /* 动画关键帧优化 */
-        @keyframes itemFadeIn {
-          0% {
-            opacity: 0;
-            transform: translateY(6px) scale(0.98);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-        
         @keyframes emptyStateIn {
           from {
             opacity: 0;
@@ -727,10 +645,6 @@ const ChatSidebar: React.FC = () => {
           .CategoryDraggable {
             margin-bottom: ${theme.space[0]};
           }
-          
-          .ItemDraggable {
-            margin: 1.5px 0;
-          }
         }
 
         /* 减少动画的媒体查询 */
@@ -738,8 +652,7 @@ const ChatSidebar: React.FC = () => {
           .ChatSidebar__content,
           .ChatSidebar__section,
           .CategoryDraggable,
-          .UncategorizedDraggable,
-          .ItemDraggable {
+          .UncategorizedDraggable {
             transition-duration: 0.1s !important;
             animation-duration: 0.1s !important;
           }

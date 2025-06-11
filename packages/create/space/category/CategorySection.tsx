@@ -1,4 +1,4 @@
-// 文件路径: src/components/sidebar/CategorySection.tsx
+// 文件路径: "create/space/category/CategorySection"
 import React, { memo, useState, useRef, useEffect } from "react";
 import { useAppSelector } from "app/hooks";
 import { SpaceContent } from "create/space/types";
@@ -7,7 +7,6 @@ import SidebarItem from "create/space/SidebarItem";
 import { selectCollapsedCategories } from "create/space/spaceSlice";
 import { useTheme } from "app/theme";
 import { UNCATEGORIZED_ID } from "create/space/constants";
-import { ItemDraggable } from "chat/ChatSidebar";
 
 interface CategorySectionProps {
   categoryId: string;
@@ -36,12 +35,16 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
         if (contentRef.current) {
           contentRef.current.style.height = "auto";
           const scrollHeight = contentRef.current.scrollHeight;
-          const height = items.length === 0 ? 32 : scrollHeight;
+          // 当没有项目时，给一个固定的高度，例如 28px (CategorySection 的高度通常是 28px 左右)
+          // 否则，使用实际滚动高度
+          const height = items.length === 0 ? 28 : scrollHeight;
           setContentHeight(height);
         }
       };
 
       updateHeight();
+      // 在一些特殊情况下，比如图片加载完成后内容高度可能会变化，可以加一个小的延时再次更新高度。
+      // 但对于纯文本内容，首次更新通常足够。为了确保动画平滑，保留这个 timer 是一种保险措施。
       const timer = setTimeout(updateHeight, 500);
 
       if (contentRef.current) {
@@ -53,15 +56,15 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
         };
       }
       return () => clearTimeout(timer);
-    }, [items.length, isCollapsed]);
+    }, [items.length, isCollapsed]); // 依赖项：items.length 变化时更新高度，isCollapsed 变化时重新计算高度
 
     useEffect(() => {
       if (contentHeight !== null) {
         setIsAnimating(true);
-        const timer = setTimeout(() => setIsAnimating(false), 280);
+        const timer = setTimeout(() => setIsAnimating(false), 280); // 280ms 匹配 transition 动画时间
         return () => clearTimeout(timer);
       }
-    }, [isCollapsed, contentHeight]);
+    }, [isCollapsed, contentHeight]); // contentHeight 变化（意味着高度计算完成）或 isCollapsed 变化时触发动画状态
 
     return (
       <>
@@ -69,8 +72,8 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
           className={[
             "ChatSidebar__category",
             isUncategorized && "ChatSidebar__category--uncategorized",
-            isAnimating && "ChatSidebar__category--animating",
-            items.length === 0 && "ChatSidebar__category--empty",
+            isAnimating && "ChatSidebar__category--animating", // 动画进行中
+            items.length === 0 && "ChatSidebar__category--empty", // 空分类状态
           ]
             .filter(Boolean)
             .join(" ")}
@@ -79,7 +82,7 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
             categoryId={categoryId}
             categoryName={categoryName}
             handleProps={!isUncategorized ? handleProps : undefined}
-            isDragOver={false}
+            isDragOver={false} // CategoryHeader 内部可能需要知道拖拽状态，这里暂时保持 false
           />
 
           <div
@@ -91,8 +94,8 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
               {
                 "--content-height": contentHeight
                   ? `${contentHeight}px`
-                  : "auto",
-                "--items-count": items.length,
+                  : "auto", // 使用计算出的高度
+                "--items-count": items.length, // 用于 CSS 动画延迟计算
               } as React.CSSProperties
             }
           >
@@ -115,15 +118,7 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
                       } as React.CSSProperties
                     }
                   >
-                    <ItemDraggable
-                      id={item.contentKey}
-                      containerId={categoryId}
-                      animate={shouldAnimate}
-                    >
-                      {(itemHandleProps) => (
-                        <SidebarItem {...item} handleProps={itemHandleProps} />
-                      )}
-                    </ItemDraggable>
+                    <SidebarItem {...item} animate={shouldAnimate} />
                   </div>
                 ))
               )}
@@ -131,7 +126,7 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
           </div>
         </div>
 
-        <style href="category-section" precedence="high">{`
+        <style jsx>{`
           .ChatSidebar__category {
             position: relative;
             margin-bottom: ${theme.space[1]};
@@ -143,8 +138,9 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
           .ChatSidebar__category-content {
             overflow: hidden;
             height: var(--content-height);
-            transition: height 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
-                        opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition:
+              height 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
+              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 1;
             will-change: height, opacity;
           }
@@ -152,14 +148,15 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
           .ChatSidebar__category-content--collapsed {
             height: 0 !important;
             opacity: 0;
-            transition: height 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
-                        opacity 0.15s cubic-bezier(0.4, 0, 1, 1);
+            transition:
+              height 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
+              opacity 0.15s cubic-bezier(0.4, 0, 1, 1);
           }
 
           .ChatSidebar__category-inner {
             padding-top: ${theme.space[1]};
             min-height: 0;
-            transform: translateZ(0);
+            transform: translateZ(0); /* 提升 GPU 渲染 */
           }
 
           .ChatSidebar__item-wrapper {
@@ -174,20 +171,28 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
           .ChatSidebar__category-content--collapsed .ChatSidebar__item-wrapper {
             transform: translateY(-8px);
             opacity: 0;
-            transition-delay: calc((var(--total-items, 1) - var(--item-index, 0) - 1) * 0.02s);
+            transition-delay: calc(
+              (var(--total-items, 1) - var(--item-index, 0) - 1) * 0.02s
+            );
           }
 
           .ChatSidebar__empty-category-hint {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 28px;
+            height: 28px; /* 适配计算的高度 */
             margin: ${theme.space[1]} 0;
             border: 1px dashed ${theme.borderLight};
             border-radius: ${theme.space[2]};
             background: ${theme.backgroundGhost};
             transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-            flex-shrink: 0;
+            flex-shrink: 0; /* 防止被压缩 */
+          }
+
+          .ChatSidebar__empty-category-text {
+            color: ${theme.textQuaternary};
+            font-size: 0.75rem;
+            opacity: 0.7;
           }
 
           @media (prefers-reduced-motion: reduce) {
