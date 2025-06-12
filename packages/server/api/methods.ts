@@ -1,7 +1,6 @@
 import { fetchPubCybots } from "ai/cybot/server/fetchPubCybots";
 import { fetchUserSpaceMemberships } from "create/space/server/fetchUserSpaceMemberships";
 import { fetchConvMsgs } from "chat/messages/server/fetchConvMsgs"; // 调整后的导入路径
-import { type ApiMethod } from "./types";
 
 // 定义所有API方法
 export const apiMethods = {
