@@ -1,21 +1,13 @@
 import React from "react";
+import { Controller } from "react-hook-form";
 import { FormField } from "web/form/FormField";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import ReferencesSelector from "./ReferencesSelector";
 
-// 在 ReferencesTab.tsx 中
-const ReferencesTab = ({
-  t,
-  errors,
-  space,
-  references,
-  onReferencesChange,
-  smartReadEnabled,
-  setSmartReadEnabled,
-}) => {
+const ReferencesTab = ({ t, errors, control, space }) => {
   const commonProps = { horizontal: true, labelWidth: "140px" };
 
-  // 👇 --- 处理 references 的错误显示 --- 👇
+  // 组合 references 字段可能的错误信息
   const referencesError =
     errors.references?.message ||
     (Array.isArray(errors.references)
@@ -24,31 +16,48 @@ const ReferencesTab = ({
 
   return (
     <div className="tab-content-wrapper">
+      {/* 智能阅读开关 */}
       <FormField
         label={t("smartReadCurrentSpace")}
         help={t("smartReadHelp")}
         {...commonProps}
       >
-        <ToggleSwitch
-          checked={smartReadEnabled}
-          onChange={setSmartReadEnabled}
+        <Controller
+          name="smartReadEnabled"
+          control={control}
+          defaultValue={false}
+          render={({ field }) => (
+            <ToggleSwitch
+              checked={field.value}
+              onChange={(checked) => field.onChange(checked)}
+            />
+          )}
         />
       </FormField>
 
+      {/* 参考文献选择 */}
       <FormField
         label={t("selectReferences")}
         help={t("selectReferencesHelp")}
-        error={referencesError} // 显示 references 相关的错误
+        error={referencesError}
         {...commonProps}
       >
-        <ReferencesSelector
-          space={space}
-          references={references}
-          onChange={onReferencesChange}
-          t={t}
+        <Controller
+          name="references"
+          control={control}
+          defaultValue={[]}
+          render={({ field }) => (
+            <ReferencesSelector
+              space={space}
+              references={field.value}
+              onChange={(refs) => field.onChange(refs)}
+              t={t}
+            />
+          )}
         />
       </FormField>
     </div>
   );
 };
+
 export default ReferencesTab;

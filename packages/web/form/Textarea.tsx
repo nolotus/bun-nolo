@@ -1,17 +1,17 @@
 // web/form/TextArea.tsx
 
+import React, { forwardRef } from "react";
 import { useTheme } from "app/theme";
-import type React from "react";
 
-interface TextAreaProps
+export interface TextAreaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 
-const TextArea = (props: TextAreaProps) => {
-  const theme = useTheme();
-  return (
-    <>
-      <style>
-        {`
+const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  (props, ref) => {
+    const theme = useTheme();
+    return (
+      <>
+        <style href="form-textarea" precedence="high">{`
           .textarea-wrapper {
             position: relative;
             width: 100%;
@@ -50,15 +50,15 @@ const TextArea = (props: TextAreaProps) => {
           .textarea::placeholder {
             color: ${theme.placeholder};
           }
-        `}
-      </style>
+        `}</style>
 
-      <div className="textarea-wrapper">
-        <textarea {...props} className="textarea" />
-      </div>
-    </>
-  );
-};
+        <div className="textarea-wrapper">
+          <textarea {...props} ref={ref} className="textarea" />
+        </div>
+      </>
+    );
+  }
+);
 
 TextArea.displayName = "TextArea";
 

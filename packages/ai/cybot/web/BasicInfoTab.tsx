@@ -1,4 +1,5 @@
 import React from "react";
+import { Controller } from "react-hook-form";
 import { FormField } from "web/form/FormField";
 import { Input } from "web/form/Input";
 import TextArea from "web/form/Textarea";
@@ -8,7 +9,6 @@ import AllModelsSelector from "ai/llm/AllModelsSelector";
 const BasicInfoTab = ({
   t,
   errors,
-  register,
   control,
   watch,
   setValue,
@@ -18,19 +18,24 @@ const BasicInfoTab = ({
 
   return (
     <div className="tab-content-wrapper">
+      {/* 名称字段：使用 Controller 受控 */}
       <FormField
         label={t("cybotName")}
         required
         error={errors.name?.message}
         {...commonProps}
       >
-        <Input
-          {...register("name")}
+        <Controller
+          name="name"
+          control={control}
           defaultValue={initialValues.name || ""}
-          placeholder={t("enterCybotName")}
+          render={({ field }) => (
+            <Input {...field} placeholder={t("enterCybotName")} />
+          )}
         />
       </FormField>
 
+      {/* 模型选择，保持原来写法 */}
       <FormField
         label={t("model")}
         required
@@ -40,29 +45,30 @@ const BasicInfoTab = ({
         <AllModelsSelector
           watch={watch}
           setValue={setValue}
-          register={register}
+          register={(field) => field}
           defaultValue={initialValues.model || ""}
           t={t}
         />
       </FormField>
 
+      {/* Prompt 字段：同样用 Controller */}
       <FormField
         label={t("prompt")}
         error={errors.prompt?.message}
         help={t("promptHelp")}
         {...commonProps}
       >
-        <TextArea
-          {...register("prompt")}
+        <Controller
+          name="prompt"
+          control={control}
           defaultValue={initialValues.prompt || ""}
-          onChange={(e) =>
-            setValue("prompt", e.target.value, { shouldDirty: true })
-          }
-          placeholder={t("enterPrompt")}
-          rows={6}
+          render={({ field }) => (
+            <TextArea {...field} placeholder={t("enterPrompt")} rows={6} />
+          )}
         />
       </FormField>
 
+      {/* Tags 使用原生 TagsInput */}
       <FormField
         label={t("tags")}
         error={errors.tags?.message}

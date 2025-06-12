@@ -4,97 +4,113 @@ import ToggleSwitch from "web/ui/ToggleSwitch";
 import { Input } from "web/form/Input";
 import PasswordInput from "web/form/PasswordInput";
 import ModelParameters from "./ModelParameters";
+import { Controller } from "react-hook-form";
 
 const AdvancedSettingsTab = ({
   t,
   errors,
-  register,
-  setValue,
-  theme,
+  control,
   watch,
+  initialValues = {},
   provider,
   apiSource,
   setApiSource,
-  useServerProxy,
   isOllama,
   isProxyDisabled,
 }) => {
   const commonProps = { horizontal: true, labelWidth: "140px" };
-  const isCustomProvider = provider === "Custom";
+  const useServerProxy = watch("useServerProxy");
 
   return (
     <div className="tab-content-wrapper">
-      <div className="api-settings-group">
+      {/* API 来源 */}
+      <FormField
+        label={t("apiSource")}
+        help={
+          apiSource === "platform" ? t("platformApiHelp") : t("customApiHelp")
+        }
+        {...commonProps}
+      >
+        <ToggleSwitch
+          checked={apiSource === "custom"}
+          onChange={(checked) => setApiSource(checked ? "custom" : "platform")}
+          disabled={isOllama}
+          label={t(apiSource === "custom" ? "useCustomApi" : "usePlatformApi")}
+        />
+      </FormField>
+
+      {/* 自定义 Provider URL */}
+      {(provider === "Custom" || apiSource === "custom") && (
         <FormField
-          label={t("apiSource")}
-          help={
-            apiSource === "platform" ? t("platformApiHelp") : t("customApiHelp")
-          }
+          label={t("providerUrl")}
+          error={errors.customProviderUrl?.message}
+          help={t("providerUrlHelp")}
           {...commonProps}
         >
-          <ToggleSwitch
-            checked={apiSource === "custom"}
-            onChange={(checked) =>
-              setApiSource(checked ? "custom" : "platform")
-            }
-            disabled={isOllama}
-            label={t(
-              apiSource === "custom" ? "useCustomApi" : "usePlatformApi"
+          <Controller
+            name="customProviderUrl"
+            control={control}
+            defaultValue={initialValues.customProviderUrl || ""}
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder={t("enterProviderUrl")}
+                type="url"
+              />
             )}
           />
         </FormField>
+      )}
 
-        {(isCustomProvider || apiSource === "custom") && (
-          <FormField
-            label={t("providerUrl")}
-            error={errors.customProviderUrl?.message}
-            help={t("providerUrlHelp")}
-            {...commonProps}
-          >
-            <Input
-              {...register("customProviderUrl")}
-              placeholder={t("enterProviderUrl")}
-              type="url"
-            />
-          </FormField>
-        )}
-
-        {apiSource === "custom" && !isOllama && (
-          <FormField
-            label={t("apiKeyField")}
-            required={!isOllama && !useServerProxy}
-            error={errors.apiKey?.message}
-            help={t("apiKeyHelp")}
-            {...commonProps}
-          >
-            <PasswordInput
-              {...register("apiKey")}
-              placeholder={t("enterApiKey")}
-            />
-          </FormField>
-        )}
-
+      {/* API Key */}
+      {apiSource === "custom" && !isOllama && (
         <FormField
-          label={t("useServerProxy")}
-          help={
-            isProxyDisabled ? t("proxyNotAvailableForProvider") : t("proxyHelp")
-          }
+          label={t("apiKeyField")}
+          required={!isOllama && !useServerProxy}
+          error={errors.apiKey?.message}
+          help={t("apiKeyHelp")}
           {...commonProps}
         >
-          <ToggleSwitch
-            checked={useServerProxy}
-            onChange={(checked) => setValue("useServerProxy", checked)}
-            disabled={isProxyDisabled || apiSource === "platform"}
+          <Controller
+            name="apiKey"
+            control={control}
+            defaultValue={initialValues.apiKey || ""}
+            render={({ field }) => (
+              <PasswordInput {...field} placeholder={t("enterApiKey")} />
+            )}
           />
         </FormField>
-      </div>
+      )}
 
+      {/* Server Proxy 切换 */}
+      <FormField
+        label={t("useServerProxy")}
+        help={
+          isProxyDisabled ? t("proxyNotAvailableForProvider") : t("proxyHelp")
+        }
+        {...commonProps}
+      >
+        <Controller
+          name="useServerProxy"
+          control={control}
+          defaultValue={initialValues.useServerProxy ?? true}
+          render={({ field }) => (
+            <ToggleSwitch
+              checked={field.value}
+              onChange={field.onChange}
+              disabled={isProxyDisabled || apiSource === "platform"}
+            />
+          )}
+        />
+      </FormField>
+
+      {/* 模型参数 */}
       <ModelParameters
-        register={register}
+        register={control.register}
         watch={watch}
-        setValue={setValue}
+        setValue={control.setValue}
         t={t}
-        theme={theme}
+        theme={undefined}
       />
     </div>
   );

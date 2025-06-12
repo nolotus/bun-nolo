@@ -33,15 +33,9 @@ const CybotForm = ({
   EditIcon,
 }) => {
   const { t } = useTranslation("ai");
-  const [activeTab, setActiveTab] = useState(0);
-  const [references, setReferences] = useState(() =>
-    normalizeReferences(initialValues.references)
-  );
-  const [smartReadEnabled, setSmartReadEnabled] = useState(
-    Boolean(initialValues.smartReadEnabled)
-  );
+  const isCreate = mode === "create";
 
-  const space = useAppSelector(selectCurrentSpace);
+  // --- hook form ---
   const { form, provider, useServerProxy, isPublic, onSubmit } =
     useCybotValidation(initialValues);
   const {
@@ -54,6 +48,7 @@ const CybotForm = ({
     formState: { errors, isSubmitting },
   } = form;
 
+  const space = useAppSelector(selectCurrentSpace);
   const { apiSource, setApiSource, isOllama } = useOllamaSettings(
     provider,
     setValue
@@ -62,39 +57,45 @@ const CybotForm = ({
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
 
-  const tabs = TABS.map((tab) => ({ ...tab, label: t(tab.key) }));
+  // --- 本地 state ---
+  const [references, setReferences] = useState(() =>
+    normalizeReferences(initialValues.references)
+  );
+  const [smartReadEnabled, setSmartReadEnabled] = useState(
+    Boolean(initialValues.smartReadEnabled)
+  );
 
+  // 1. 仅在编辑模式第一次加载时 初始化表单值
   useEffect(() => {
-    setValue("references", references, { shouldDirty: true });
-    setValue("smartReadEnabled", smartReadEnabled, { shouldDirty: true });
-
     if (mode === "edit") {
-      const normalizedReferences = normalizeReferences(
-        initialValues.references || []
-      );
+      const normRefs = normalizeReferences(initialValues.references || []);
       reset({
         ...initialValues,
         tags: Array.isArray(initialValues.tags)
           ? initialValues.tags.join(", ")
           : initialValues.tags || "",
-        references: normalizedReferences,
+        references: normRefs,
+        smartReadEnabled: Boolean(initialValues.smartReadEnabled),
       });
-      setReferences(normalizedReferences);
+      setReferences(normRefs);
+      setSmartReadEnabled(Boolean(initialValues.smartReadEnabled));
       setApiSource(
         initialValues.apiKey || initialValues.provider === "ollama"
           ? "custom"
           : "platform"
       );
     }
-  }, [
-    references,
-    smartReadEnabled,
-    setValue,
-    mode,
-    initialValues,
-    reset,
-    setApiSource,
-  ]);
+    // 仅依赖 mode 和 id，避免重复重置
+  }, [mode, initialValues.id, initialValues, reset, setApiSource]);
+
+  // 2. 分别同步 references 和 smartReadEnabled 到表单
+  useEffect(() => {
+    setValue("references", references, { shouldDirty: true });
+  }, [references, setValue]);
+
+  useEffect(() => {
+    setValue("smartReadEnabled", smartReadEnabled, { shouldDirty: true });
+  }, [smartReadEnabled, setValue]);
 
   const handleReferencesChange = useCallback(setReferences, []);
 
@@ -108,11 +109,22 @@ const CybotForm = ({
     if (mode === "edit" && onClose) onClose();
   };
 
-  const sharedProps = { t, errors, register, setValue, watch, initialValues };
+  const tabs = TABS.map((tab) => ({ ...tab, label: t(tab.key) }));
+
+  const sharedProps = {
+    t,
+    errors,
+    register,
+    control,
+    watch,
+    setValue,
+    initialValues,
+  };
 
   const tabComponents = [
-    <BasicInfoTab {...sharedProps} control={control} />,
+    <BasicInfoTab key="basicInfo" {...sharedProps} />,
     <ReferencesTab
+      key="references"
       {...sharedProps}
       space={space}
       references={references}
@@ -120,8 +132,9 @@ const CybotForm = ({
       smartReadEnabled={smartReadEnabled}
       setSmartReadEnabled={setSmartReadEnabled}
     />,
-    <ToolsTab {...sharedProps} control={control} />,
+    <ToolsTab key="tools" {...sharedProps} />,
     <PublishSettingsTab
+      key="publish"
       {...sharedProps}
       isPublic={isPublic}
       apiSource={apiSource}
@@ -131,6 +144,7 @@ const CybotForm = ({
       setOutputPrice={setOutputPrice}
     />,
     <AdvancedSettingsTab
+      key="advanced"
       {...sharedProps}
       provider={provider}
       apiSource={apiSource}
@@ -141,8 +155,6 @@ const CybotForm = ({
     />,
   ];
 
-  const isCreate = mode === "create";
-
   return (
     <div
       className={isCreate ? "create-cybot-container" : "edit-cybot-container"}
@@ -151,11 +163,18 @@ const CybotForm = ({
 
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="form-header">
-          <TabsNav tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+          <TabsNav
+            tabs={tabs}
+            activeTab={watch("activeTab") || 0}
+            onChange={(idx) => setValue("activeTab", idx)}
+          />
+          {/* 也可直接用 useState 管理 activeTab */}
         </div>
 
         <div className="form-body">
-          <div className="tab-content">{tabComponents[activeTab]}</div>
+          <div className="tab-content">
+            {tabComponents[watch("activeTab") || 0]}
+          </div>
         </div>
 
         <div className="form-footer">

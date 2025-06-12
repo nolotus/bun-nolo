@@ -3,13 +3,13 @@ import { FormField } from "web/form/FormField";
 import TextArea from "web/form/Textarea";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { NumberInput } from "web/form/NumberInput";
+import { Controller } from "react-hook-form";
 
 const PublishSettingsTab = ({
   t,
   errors,
-  register,
-  isPublic,
-  setValue,
+  control,
+  watch,
   apiSource,
   inputPrice,
   outputPrice,
@@ -18,9 +18,11 @@ const PublishSettingsTab = ({
   initialValues = {},
 }) => {
   const commonProps = { horizontal: true, labelWidth: "140px" };
+  const isPublic = watch("isPublic");
 
   return (
     <div className="tab-content-wrapper">
+      {/* 分享开关 */}
       <FormField
         label={t("shareInCommunity")}
         help={
@@ -30,12 +32,17 @@ const PublishSettingsTab = ({
         }
         {...commonProps}
       >
-        <ToggleSwitch
-          checked={isPublic}
-          onChange={(checked) => setValue("isPublic", checked)}
+        <Controller
+          name="isPublic"
+          control={control}
+          defaultValue={initialValues.isPublic ?? false}
+          render={({ field }) => (
+            <ToggleSwitch checked={field.value} onChange={field.onChange} />
+          )}
         />
       </FormField>
 
+      {/* 公开发布设置 */}
       {isPublic && (
         <div className="public-settings-group">
           <FormField
@@ -44,10 +51,13 @@ const PublishSettingsTab = ({
             help={t("greetingMessageHelp")}
             {...commonProps}
           >
-            <TextArea
-              {...register("greeting")}
+            <Controller
+              name="greeting"
+              control={control}
               defaultValue={initialValues.greeting || ""}
-              placeholder={t("enterGreetingMessage")}
+              render={({ field }) => (
+                <TextArea {...field} placeholder={t("enterGreetingMessage")} />
+              )}
             />
           </FormField>
 
@@ -57,11 +67,17 @@ const PublishSettingsTab = ({
             help={t("selfIntroductionHelp")}
             {...commonProps}
           >
-            <TextArea
-              {...register("introduction")}
+            <Controller
+              name="introduction"
+              control={control}
               defaultValue={initialValues.introduction || ""}
-              placeholder={t("enterSelfIntroduction")}
-              rows={4}
+              render={({ field }) => (
+                <TextArea
+                  {...field}
+                  placeholder={t("enterSelfIntroduction")}
+                  rows={4}
+                />
+              )}
             />
           </FormField>
 
