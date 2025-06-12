@@ -1,3 +1,11 @@
+/* ============================================================
+ *  所有 Tool 的统一注册与描述（新版）
+ *  ------------------------------------------------------------
+ *  ① 业务侧（已有）    : 10 个
+ *  ② 数据查询/存储侧（新增）: 8 个
+ *  总计                : 18 个
+ * ========================================================== */
+
 import { makeAppointmentTool } from "ai/tools/appointment";
 import { runCybotTool } from "./runCybot";
 import { generateTableTool } from "./generateTableTool";
@@ -7,10 +15,23 @@ import { createCategoryTool } from "./createCategoryTool";
 import { updateContentTitleTool } from "./updateContentTitleTool";
 import { updateContentCategoryTool } from "./updateContentCategoryTool";
 import { queryContentsByCategoryTool } from "./queryContentsByCategoryTool";
-import { fetchWebpageTool } from "./fetchWebpageTool"; // 新增导入
+import { fetchWebpageTool } from "./fetchWebpageTool";
 
-// 工具注册表
+/* ---------- 新增数据查询/存储工具 ---------- */
+import { createTableTool } from "database/tools/createTableTool";
+import { listTablesTool } from "database/tools/listTablesTool";
+import { describeTableTool } from "./describeTableTool";
+import { selectRowsTool } from "./selectRowsTool";
+import { groupAggregateTool } from "./groupAggregateTool";
+import { joinTablesTool } from "./joinTablesTool";
+import { transformRowsTool } from "./transformRowsTool";
+import { joinRowsTool } from "./joinRowsTool";
+
+/* ============================================================
+ *  1. 工具注册表 —— 大模型实际调用时依赖的映射
+ * ========================================================== */
 export const toolRegistry: Record<string, any> = {
+  /* ----------- 业务侧（已存在） ----------- */
   makeAppointment: makeAppointmentTool,
   runCybot: runCybotTool,
   generateTable: generateTableTool,
@@ -20,14 +41,27 @@ export const toolRegistry: Record<string, any> = {
   updateContentTitle: updateContentTitleTool,
   updateContentCategory: updateContentCategoryTool,
   queryContentsByCategory: queryContentsByCategoryTool,
-  fetchWebpage: fetchWebpageTool, // 新增工具
+  fetchWebpage: fetchWebpageTool,
+
+  /* ----------- 数据查询 / 存储侧（新增） ----------- */
+  createTable: createTableTool,
+  listTables: listTablesTool,
+  describeTable: describeTableTool,
+  selectRows: selectRowsTool,
+  groupAggregate: groupAggregateTool,
+  joinTables: joinTablesTool,
+  transformRows: transformRowsTool,
+  joinRows: joinRowsTool,
 };
 
-// 工具描述映射，用于 ToolSelector 显示描述
+/* ============================================================
+ *  2. 工具描述 —— 用于前端 ToolSelector / 调试 UI
+ * ========================================================== */
 export const toolDescriptions: Record<
   string,
   { name: string; description: string }
 > = {
+  /* ----------- 业务侧（已存在） ----------- */
   makeAppointment: {
     name: "makeAppointment",
     description: "Schedule appointments and manage calendar events",
@@ -67,5 +101,46 @@ export const toolDescriptions: Record<
   fetchWebpage: {
     name: "fetchWebpage",
     description: "访问指定网页并获取其内容",
-  }, // 新增描述
+  },
+
+  /* ----------- 数据查询 / 存储侧（新增） ----------- */
+  createTable: {
+    name: "createTable",
+    description:
+      "为指定租户注册一张新表：写入表结构元数据（meta-{tenantId}-{tableId}），包含表名、列定义、索引定义和创建时间",
+  },
+  listTables: {
+    name: "listTables",
+    description:
+      "列出指定租户下的所有表：扫描 meta 前缀 (meta-{tenantId}-*)，可选择仅返回表 ID 或同时返回元信息",
+  },
+  describeTable: {
+    name: "describeTable",
+    description:
+      "读取指定表的元数据（表名、列定义、索引定义、创建时间）；可选返回行数和索引大小统计",
+  },
+  selectRows: {
+    name: "selectRows",
+    description:
+      "按主键或二级索引扫描表行，支持多条件过滤、排序和游标分页，返回符合条件的行数组",
+  },
+  groupAggregate: {
+    name: "groupAggregate",
+    description:
+      "对满足条件的行执行分组聚合，一次返回多种聚合指标（COUNT/SUM/AVG/MIN/MAX）",
+  },
+  joinTables: {
+    name: "joinTables",
+    description:
+      "对两张表做等值内联 JOIN，返回扁平合并后的行，字段冲突时用表名作前缀区分",
+  },
+  transformRows: {
+    name: "transformRows",
+    description:
+      "对输入行数组按 JSON-Logic 规则做衍生字段计算、投影或条件映射，返回新行数组",
+  },
+  joinRows: {
+    name: "joinRows",
+    description: "在内存中对两组任意行数组做等值内/左连接，返回合并后的行数组",
+  },
 };
