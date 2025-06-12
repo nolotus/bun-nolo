@@ -1,51 +1,98 @@
 // database/tools/createTableTool.ts
-import { metaKey } from "database/keys";
 
+import { ulid } from "ulid";
+import { metaKey } from "database/keys";
+import { write } from "database/dbSlice";
+import type { AppDispatch } from "app/store";
+
+/**
+ * createTable 工具定义
+ */
 export const createTableTool = {
   name: "createTable",
   description:
     "为指定租户注册一张新表：写入 meta 信息（包含表名、列定义、索引定义和创建时间）",
-  run: async (
-    {
-      tenantId,
-      tableId,
-      tableName,
-      columns,
-      indexDefs = [],
-    }: {
-      tenantId: string;
-      tableId: string;
-      tableName: string;
-      columns: Array<{ name: string; type: string }>;
-      indexDefs?: Array<{ name: string; fields: string[] }>;
+  parameters: {
+    type: "object",
+    properties: {
+      tenantId: {
+        type: "string",
+        description: "租户 ID",
+      },
+      tableName: {
+        type: "string",
+        description: "表展示名称",
+      },
+      columns: {
+        type: "array",
+        description: "列定义数组，每项 { name: 列名, type: 数据类型 }",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            type: { type: "string" },
+          },
+          required: ["name", "type"],
+        },
+      },
+      indexDefs: {
+        type: "array",
+        description: "索引定义数组，每项 { name: 索引名, fields: 字段名数组 }",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            fields: {
+              type: "array",
+              items: { type: "string" },
+            },
+          },
+          required: ["name", "fields"],
+        },
+      },
     },
-    { db }: { db: any }
-  ) => {
-    const mKey = metaKey(tenantId, tableId);
-
-    // 检查是否已存在
-    try {
-      await db.get(mKey);
-      // 如果上面没抛 “NotFound”，说明已经存在
-      throw new Error(`表 ${tableId} 已存在`);
-    } catch (err: any) {
-      if (!/NotFound/.test(err.message)) {
-        // 不是“未找到”错误，直接抛
-        throw err;
-      }
-    }
-
-    // 组装 meta
-    const meta = {
-      name: tableName,
-      columns,
-      indexDefs,
-      createdAt: Date.now(),
-    };
-
-    // 只需写入一条 metaKey
-    await db.put(mKey, JSON.stringify(meta));
-
-    return { tableId };
+    required: ["tenantId", "tableName", "columns"],
   },
 };
+
+/**
+ * 执行 createTable 操作
+ * 自动生成唯一 tableId，无需传入
+ *
+ * @param args
+ *   tenantId   租户 ID
+ *   tableName  表展示名称
+ *   columns    列定义数组
+ *   indexDefs  索引定义数组，可选
+ * @param thunkApi.dispatch Redux dispatch
+ * @returns { tableId: string }
+ */
+export async function createTableFunc(
+  args: {
+    tenantId: string;
+    tableName: string;
+    columns: { name: string; type: string }[];
+    indexDefs?: { name: string; fields: string[] }[];
+  },
+  { dispatch }: { dispatch: AppDispatch }
+): Promise<{ tableId: string }> {
+  const { tenantId, tableName, columns, indexDefs = [] } = args;
+
+  // 生成全局唯一的表 ID
+  const tableId = ulid();
+  // 根据租户和表 ID 生成存储 key
+  const key = metaKey(tenantId, tableId);
+
+  // 组装 meta 信息
+  const meta = {
+    name: tableName,
+    columns,
+    indexDefs, // 索引定义
+    createdAt: Date.now(),
+  };
+
+  // 写入数据库（Redux store），customKey 为 metaKey
+  await dispatch(write({ data: meta, customKey: key })).unwrap();
+
+  return { tableId };
+}
