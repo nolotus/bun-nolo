@@ -68,6 +68,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
       toast.error(t("deleteError"));
     }
   }, [item.id, cybotKey, deleting, dispatch, reload, t]);
+
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -88,7 +89,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
                 </h3>
               </Tooltip>
 
-              {/* 新增查看详情按钮 */}
               <Tooltip content={t("viewDetails")}>
                 <button
                   className="cybot-block__view-link"
@@ -193,8 +193,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           gap: ${theme.space[4]};
           border: 1px solid ${theme.border};
           transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          min-width: 0;
-          position: relative;
           outline: none;
           box-shadow: 0 1px 3px ${theme.shadowLight};
         }
@@ -230,7 +228,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           justify-content: space-between;
           gap: ${theme.space[3]};
           margin-top: ${theme.space[1]};
-          flex-wrap: wrap;
         }
 
         .cybot-block__title-container {
@@ -247,7 +244,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           margin: 0;
           color: ${theme.text};
           word-break: break-word;
-          overflow-wrap: break-word;
           letter-spacing: -0.01em;
           line-height: 1.4;
           flex: 1;
@@ -292,7 +288,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           display: flex;
           align-items: flex-start;
           gap: ${theme.space[2]};
-          justify-content: flex-end;
           flex-shrink: 0;
         }
 
@@ -348,11 +343,10 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           overflow-wrap: break-word;
           white-space: pre-line;
           display: -webkit-box;
-          -webkit-line-clamp: 4;
+          -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
           text-overflow: ellipsis;
-          max-height: calc(1.6em * 4);
         }
 
         .cybot-block__actions {
@@ -370,39 +364,12 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         @media (max-width: 768px) {
           .cybot-block {
-            padding: ${theme.space[5]};  
-            gap: ${theme.space[3]};
-            border-radius: ${theme.space[2]};
-          }
-
-          .cybot-block__title {
-            font-size: 0.9375rem;
-            line-height: 1.4;
-          }
-
-          .cybot-block__title-row {
-            gap: ${theme.space[2]};
+            padding: ${theme.space[5]};
           }
 
           .cybot-block__view-link {
             opacity: 1;
             transform: translateX(0);
-          }
-
-          .cybot-block__description {
-            font-size: 0.8125rem;
-            line-height: 1.5;
-            -webkit-line-clamp: 4;
-            margin: ${theme.space[2]} 0;
-            max-height: calc(1.5em * 4);
-          }
-
-          .cybot-block__tag {
-            font-size: 0.6875rem;
-          }
-
-          .cybot-block__price-tag {
-            font-size: 0.6875rem;
           }
         }
 
@@ -410,41 +377,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           .cybot-block {
             padding: ${theme.space[4]};
             gap: ${theme.space[3]};
-          }
-
-          .cybot-block__header {
-            gap: ${theme.space[2]};
-          }
-
-          .cybot-block__title {
-            font-size: 0.875rem;
-            line-height: 1.4;
-          }
-
-          .cybot-block__title-row {
-            gap: ${theme.space[1]};
-          }
-
-          .cybot-block__meta {
-            gap: ${theme.space[1]};
-          }
-
-          .cybot-block__description {
-            font-size: 0.75rem;
-            line-height: 1.5;
-            -webkit-line-clamp: 4;
-            margin: ${theme.space[2]} 0;
-            max-height: calc(1.5em * 4);
-          }
-
-          .cybot-block__tag {
-            font-size: 0.625rem;
-            padding: ${theme.space[1]} ${theme.space[2]};
-          }
-
-          .cybot-block__price-tag {
-            font-size: 0.625rem;
-            padding: ${theme.space[1]} ${theme.space[2]};
           }
 
           .cybot-block__actions {
