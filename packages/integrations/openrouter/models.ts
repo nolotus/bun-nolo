@@ -1,14 +1,5 @@
 export const openrouterModels = [
   {
-    name: "google/gemini-2.5-pro-exp-03-25:free",
-    displayName: "Gemini 2.5 Pro Exp 03-25",
-    hasVision: false,
-    price: { input: 1, output: 1 },
-    maxOutputTokens: 66000,
-    contextWindow: 1000000,
-    supportsTool: true,
-  },
-  {
     name: "nvidia/llama-3.1-nemotron-ultra-253b-v1:free",
     displayName: "Llama 3.1 Nemotron Ultra 253b V1",
     hasVision: false,

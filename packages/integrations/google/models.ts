@@ -19,24 +19,7 @@ export const googleModels: Model[] = [
       cachingRead: 0.2, // Cost per 1,000,000 tokens
     },
   },
-  {
-    name: "gemini-2.5-pro-exp-03-25",
-    displayName: "Gemini 2.5 Pro (Experimental 03-25)",
-    provider: "google",
-    description:
-      "Experimental version of Gemini 2.5 Pro (release 03-25).  May have different performance and features.",
-    hasVision: true, //  Assume it has vision, adjust if not.
-    hasAudio: true, //  Assume it has audio, adjust if not.
-    // **Important:  Use placeholder values, or best guesses, if you don't know the exact specs.**
-    contextWindow: 1048576, // Placeholder - Likely similar to Flash, or possibly larger.
-    maxOutputTokens: 8192, // Placeholder - Likely similar to Flash, or possibly larger.
-    price: {
-      input: 1, // Cost per 1,000,000 tokens
-      output: 1, // Cost per 1,000,000 tokens
-      cachingWrite: 0.2, // Placeholder - Assume same as Flash unless you have other info.
-      cachingRead: 0.2, // Placeholder - Assume same as Flash unless you have other info.
-    },
-  },
+
   {
     name: "gemini-2.5-pro-preview-05-06",
     displayName: "Gemini 2.5 Pro (Preview 05-06)",
