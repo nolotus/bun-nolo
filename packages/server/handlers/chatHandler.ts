@@ -1,211 +1,76 @@
-import { omit } from "rambda";
 import { getNoloKey } from "ai/llm/getNoloKey";
 import { pino } from "pino";
 import { verifyToken } from "auth/token";
 import serverDb from "database/server/db";
 
-const logger = pino({ name: "server:request" });
-
-// 辅助函数：处理错误响应
-// 辅助函数：处理错误响应
-const handleErrorResponse = (
-  error,
-  status = 500,
-  details = "",
-  errorCode = ""
-) => {
-  logger.error({ error, status, details }, "Returning error response");
-  return new Response(
-    JSON.stringify({
-      error: {
-        message: error.message,
-        details: details || "No additional details available",
-        code: errorCode || `E${status}`, // 添加错误代码，用于前端区分
-      },
-    }),
-    {
-      status: status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*", // 添加 CORS 头
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400",
-      },
-    }
-  );
+const log = pino({ name: "server:request" });
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
 };
+const errorRes = (msg, code, status = 500, details = "") =>
+  new Response(JSON.stringify({ error: { message: msg, details, code } }), {
+    status,
+    headers: { "Content-Type": "application/json", ...CORS },
+  });
 
-// Token 验证逻辑
-const handleToken = async (req) => {
-  logger.info("Starting token validation process");
-  const authHeader = req.headers.get("authorization");
-  const token = authHeader?.split(" ")[1];
-
-  if (!token) {
-    logger.warn("No token provided in request");
-    return handleErrorResponse(
-      new Error("Access denied. No token provided."),
-      401,
-      "",
-      "AUTH_NO_TOKEN"
-    );
-  }
-
-  try {
-    const [payloadBase64Url] = token.split(".");
-    const tempPayload = JSON.parse(atob(payloadBase64Url));
-    logger.info(
-      { userId: tempPayload.userId },
-      "Extracted userId from token payload"
-    );
-
-    const { publicKey, isNewUser } = await getPublicKey(tempPayload.userId);
-    if (!publicKey) {
-      logger.warn(
-        { userId: tempPayload.userId },
-        "Public key not found for user"
-      );
-      return handleErrorResponse(
-        new Error("Public key not found or account invalid"),
-        401,
-        "",
-        "AUTH_ACCOUNT_INVALID"
-      );
-    }
-
-    const payload = verifyToken(token, publicKey);
-    if (!payload) {
-      logger.warn(
-        { userId: tempPayload.userId },
-        "Token verification failed: invalid token"
-      );
-      return handleErrorResponse(
-        new Error("Invalid token"),
-        401,
-        "",
-        "AUTH_INVALID_TOKEN"
-      );
-    }
-
-    const currentTime = new Date().getTime();
-    const expTime = new Date(payload.exp).getTime();
-    if (currentTime > expTime) {
-      logger.warn({ userId: tempPayload.userId }, "Token has expired");
-      return handleErrorResponse(
-        new Error("Token has expired"),
-        401,
-        "",
-        "AUTH_TOKEN_EXPIRED"
-      );
-    }
-
-    const nbfTime = new Date(payload.nbf).getTime();
-    if (currentTime < nbfTime) {
-      logger.warn({ userId: tempPayload.userId }, "Token not yet active");
-      return handleErrorResponse(
-        new Error("Token not yet active"),
-        401,
-        "",
-        "AUTH_TOKEN_NOT_ACTIVE"
-      );
-    }
-
-    logger.info({ userId: tempPayload.userId }, "Token validation successful");
-    return {
-      ...payload,
-      isNewUser,
-    };
-  } catch (err) {
-    logger.error({ err }, "Token verification process failed with error");
-    return handleErrorResponse(err, 401, "", "AUTH_VERIFICATION_FAILED");
-  }
-};
-// 辅助函数：获取用户公钥
 const getPublicKey = async (userId) => {
-  logger.info({ userId }, "Attempting to get public key for user");
   try {
-    const newUser = await serverDb.get(`user:${userId}`);
-    if (newUser) {
-      logger.info({ userId }, "User data retrieved from database");
-      if (newUser.publicKey) {
-        // 检查 balance 是否小于等于 0
-        if (newUser.balance <= 0) {
-          logger.warn(
-            { userId, balance: newUser.balance },
-            "User balance is insufficient"
-          );
-          return {};
-        }
-        // 检查 isDisabled 是否为 true
-        if (newUser.isDisabled === true) {
-          logger.warn({ userId }, "User account is disabled");
-          return {};
-        }
-        logger.info({ userId }, "Public key found and user account is valid");
-        return {
-          publicKey: newUser.publicKey,
-          isNewUser: true,
-        };
-      } else {
-        logger.warn({ userId }, "No public key found for user");
-      }
-    } else {
-      logger.warn({ userId }, "User not found in database");
+    const u = await serverDb.get(`user:${userId}`);
+    if (!u?.publicKey || u.balance <= 0 || u.isDisabled) {
+      log.warn({ userId, u }, "invalid user");
+      return {};
     }
-  } catch (err) {
-    logger.error({ err, userId }, "Failed to get public key from database");
+    return { publicKey: u.publicKey, isNewUser: true };
+  } catch (e) {
+    log.error({ userId, e }, "db error");
+    return {};
   }
-  logger.info({ userId }, "Returning empty result as no valid user data found");
-  return {};
 };
 
-// 聊天请求处理函数
-export const handleChatRequest = async (req, headers = {}) => {
-  logger.info("Starting chat request handling");
-  const userResult = await handleToken(req);
+const handleToken = async (req) => {
+  const token = req.headers.get("authorization")?.split(" ")[1];
+  if (!token) return errorRes("No token provided", "AUTH_NO_TOKEN", 401);
 
-  if (userResult instanceof Response) {
-    logger.warn("Token validation failed, returning error response");
-    return userResult;
+  try {
+    const p0 = JSON.parse(atob(token.split(".")[0]));
+    const { publicKey, isNewUser } = await getPublicKey(p0.userId);
+    if (!publicKey)
+      return errorRes("Invalid account", "AUTH_ACCOUNT_INVALID", 401);
+
+    const data = verifyToken(token, publicKey);
+    if (!data) return errorRes("Invalid token", "AUTH_INVALID_TOKEN", 401);
+
+    const now = Date.now();
+    if (now > new Date(data.exp).getTime())
+      return errorRes("Token expired", "AUTH_TOKEN_EXPIRED", 401);
+    if (now < new Date(data.nbf).getTime())
+      return errorRes("Token not active", "AUTH_TOKEN_NOT_ACTIVE", 401);
+
+    return { ...data, isNewUser };
+  } catch (e) {
+    log.error({ e }, "token error");
+    return errorRes(e.message, "AUTH_VERIFICATION_FAILED", 401);
   }
+};
 
-  logger.info(
-    { userId: userResult.userId },
-    "User authenticated successfully for chat request"
-  );
+export const handleChatRequest = async (req, extraHeaders = {}) => {
+  const user = await handleToken(req);
+  if (user instanceof Response) return user;
 
   try {
     const contentType = req.headers.get("content-type") || "";
-    let rawBody = {};
+    const raw =
+      contentType.includes("application/json") && req.body
+        ? await req.json().catch(() => ({}))
+        : {};
+    const { url, KEY, provider, ...body } = raw;
+    const apiKey = KEY?.trim() || getNoloKey(provider || "");
+    if (!apiKey) throw new Error("Missing API key");
 
-    if (contentType.includes("application/json") && req.body) {
-      try {
-        rawBody = await req.json();
-        if (!rawBody) {
-          logger.warn("Parsed JSON body is empty, setting to empty object");
-          rawBody = {};
-        }
-      } catch (error) {
-        logger.error({ error }, "Failed to parse JSON body");
-        return handleErrorResponse(new Error("Invalid JSON body"), 400);
-      }
-    } else {
-      logger.warn(
-        { contentType },
-        "Content type is not JSON or no body provided"
-      );
-    }
-
-    const body = omit(["url", "KEY", "provider"], rawBody);
-    const apiKey = rawBody.KEY?.trim() || getNoloKey(rawBody.provider);
-
-    if (!apiKey) {
-      logger.error("API key is required but not provided");
-      throw new Error("API key is required but not provided");
-    }
-
-    const fetchHeaders = rawBody.provider?.includes("anthropic")
+    const fetchHeaders = provider?.includes("anthropic")
       ? {
           "Content-Type": "application/json",
           "x-api-key": apiKey,
@@ -216,66 +81,59 @@ export const handleChatRequest = async (req, headers = {}) => {
           Authorization: `Bearer ${apiKey}`,
         };
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      logger.warn("Request timed out after 30 seconds, aborting");
-      controller.abort();
-    }, 30000);
+    const INIT_TIMEOUT = 60_000; // 等首包
+    const IDLE_TIMEOUT = 30_000; // 等后续包
 
-    const response = await fetch(rawBody.url, {
+    const ctl = new AbortController();
+    const initTimer = setTimeout(() => ctl.abort(), INIT_TIMEOUT);
+
+    const resp = await fetch(url, {
       method: "POST",
       headers: fetchHeaders,
       body: JSON.stringify(body),
-      signal: controller.signal,
+      signal: ctl.signal,
     });
+    clearTimeout(initTimer);
 
-    if (!response.ok) {
-      logger.error(
-        { status: response.status },
-        "Proxy request failed with error status"
-      );
-      const errorText = await response.text();
-      logger.error({ errorText }, "Error details from proxy response");
-      throw new Error(`Status ${response.status}: ${errorText}`);
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error(`Status ${resp.status}: ${txt}`);
     }
 
-    logger.info("Proxy request successful");
-    clearTimeout(timeout);
+    let idleTimer;
+    const stream = resp.body.pipeThrough(
+      new TransformStream({
+        transform(chunk, ctrl) {
+          idleTimer && clearTimeout(idleTimer);
+          ctrl.enqueue(chunk);
+          idleTimer = setTimeout(() => {
+            log.warn("stream idle timeout");
+            ctrl.error(new Error("Stream idle timeout"));
+          }, IDLE_TIMEOUT);
+        },
+        flush(ctrl) {
+          idleTimer && clearTimeout(idleTimer);
+        },
+      })
+    );
 
-    return new Response(response.body, {
+    return new Response(stream, {
       headers: {
-        ...headers,
+        ...extraHeaders,
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       },
     });
-  } catch (error) {
-    logger.error({ error }, "Chat request proxy error occurred");
-    const isAbortError = error.name === "AbortError";
-    const isBadRequest = error.message.includes("Status 400");
-    const statusCode = isAbortError ? 504 : isBadRequest ? 400 : 500;
-    const errorMessage = isAbortError
-      ? "Request aborted due to timeout after 30 seconds"
-      : error.message;
-
-    logger.info(
-      { statusCode, errorMessage },
-      "Returning error response for chat request"
-    );
+  } catch (e) {
+    const isAbort = e.name === "AbortError";
+    const status = isAbort ? 504 : e.message.includes("Status 400") ? 400 : 500;
+    const msg = isAbort ? "Timeout" : e.message;
     return new Response(
-      JSON.stringify({
-        error: {
-          message: errorMessage,
-          code: statusCode,
-        },
-      }),
+      JSON.stringify({ error: { message: msg, code: status } }),
       {
-        status: statusCode,
-        headers: {
-          ...headers,
-          "Content-Type": "application/json",
-        },
+        status,
+        headers: { "Content-Type": "application/json", ...extraHeaders },
       }
     );
   }
