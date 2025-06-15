@@ -1,5 +1,5 @@
 // pages/UsersPage.tsx
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
@@ -31,50 +31,26 @@ interface User {
   isDisabled?: boolean;
 }
 
+type ActionType = "delete" | "disable" | "enable";
+
 export default function UsersPage() {
   const navigate = useNavigate();
   const theme = useTheme();
   const [searchParams] = useSearchParams();
   const currentServer = useAppSelector(selectCurrentServer);
 
-  // 基础状态
+  // 列表状态
   const [state, setState] = useState({
     users: [] as User[],
     loading: false,
     error: null as string | null,
-    currentPage: parseInt(searchParams.get("page") || "1"),
+    currentPage: parseInt(searchParams.get("page") || "1", 10),
     total: 0,
     totalPages: 0,
   });
-
-  // 模态框状态
-  const [deleteModal, setDeleteModal] = useState({
-    isOpen: false,
-    userId: "",
-    username: "",
-  });
-
-  const [rechargeModal, setRechargeModal] = useState({
-    isOpen: false,
-    userId: "",
-    username: "",
-  });
-
-  const [disableModal, setDisableModal] = useState({
-    isOpen: false,
-    userId: "",
-    username: "",
-  });
-
-  const [enableModal, setEnableModal] = useState({
-    isOpen: false,
-    userId: "",
-    username: "",
-  });
-
   const { users, loading, error, currentPage, total } = state;
 
-  // 数据获取
+  // 获取用户列表
   const fetchUsers = useFetchUsers();
   const handleFetch = useCallback(
     async (page: number) => {
@@ -82,10 +58,8 @@ export default function UsersPage() {
         logger.debug("No server selected, skipping fetch");
         return;
       }
-
       logger.debug({ page }, "Fetching users");
       setState((prev) => ({ ...prev, loading: true, error: null }));
-
       try {
         const data = await fetchUsers(page);
         if (!data?.list) {
@@ -98,12 +72,10 @@ export default function UsersPage() {
           }));
           return;
         }
-
         logger.debug(
           { userCount: data.list.length, total: data.total },
           "Users fetched successfully"
         );
-
         setState((prev) => ({
           ...prev,
           users: data.list,
@@ -125,44 +97,64 @@ export default function UsersPage() {
     [fetchUsers, currentServer]
   );
 
-  // 初始加载和页面变化
   useEffect(() => {
     if (currentServer) {
-      const page = parseInt(searchParams.get("page") || "1");
+      const page = parseInt(searchParams.get("page") || "1", 10);
       handleFetch(page);
     }
-  }, [handleFetch, searchParams, currentServer]);
+  }, [currentServer, handleFetch, searchParams]);
 
-  // 删除用户
-  const handleDeleteSuccess = useCallback(() => {
-    logger.debug({ page: currentPage }, "Delete success, refreshing");
+  // 统一确认模态框状态
+  const [confirmModal, setConfirmModal] = useState<{
+    type?: ActionType;
+    user?: User;
+  }>({});
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  // 操作成功后刷新
+  const handleActionSuccess = useCallback(() => {
     handleFetch(currentPage);
   }, [currentPage, handleFetch]);
 
-  const deleteUser = useDeleteUser(handleDeleteSuccess);
+  // 钩子：删除/停用/启用
+  const deleteUser = useDeleteUser(handleActionSuccess);
+  const disableUser = useDisableUser(handleActionSuccess);
+  const enableUser = useEnableUser(handleActionSuccess);
 
-  const handleDeleteClick = useCallback((user: User) => {
-    logger.debug({ userId: user.id }, "Delete button clicked");
-    setDeleteModal({
-      isOpen: true,
-      userId: user.id,
-      username: user.username,
-    });
-  }, []);
+  // 操作配置表
+  const confirmActions = useMemo(
+    () => ({
+      delete: {
+        title: "删除用户",
+        type: "error" as const,
+        getMessage: (u: string) => `确定要删除用户「${u}」吗？此操作无法撤销。`,
+        handler: deleteUser,
+      },
+      disable: {
+        title: "停用用户",
+        type: "warning" as const,
+        getMessage: (u: string) =>
+          `确定要停用用户「${u}」吗？停用后用户将无法登录。`,
+        handler: disableUser,
+      },
+      enable: {
+        title: "启用用户",
+        type: "success" as const,
+        getMessage: (u: string) =>
+          `确定要启用用户「${u}」吗？启用后用户将恢复登录权限。`,
+        handler: enableUser,
+      },
+    }),
+    [deleteUser, disableUser, enableUser]
+  );
 
-  const handleDeleteConfirm = async () => {
-    try {
-      await deleteUser(deleteModal.userId);
-      setDeleteModal({ isOpen: false, userId: "", username: "" });
-    } catch (err) {
-      logger.error({ err }, "Delete failed");
-      alert("删除失败，请重试");
-    }
-  };
-
-  // 充值处理
+  // 充值模态框状态
+  const [rechargeModal, setRechargeModal] = useState({
+    isOpen: false,
+    userId: "",
+    username: "",
+  });
   const rechargeUser = useRechargeUser(() => handleFetch(currentPage));
-
   const handleRechargeClick = useCallback((user: User) => {
     setRechargeModal({
       isOpen: true,
@@ -170,75 +162,23 @@ export default function UsersPage() {
       username: user.username,
     });
   }, []);
+  const handleRechargeConfirm = useCallback(
+    async (amount: number) => {
+      try {
+        await rechargeUser(rechargeModal.userId, amount);
+        logger.debug(
+          { userId: rechargeModal.userId, amount },
+          "Recharge success"
+        );
+      } catch (err) {
+        logger.error({ err }, "Recharge failed");
+        throw err;
+      }
+    },
+    [rechargeModal.userId, rechargeUser]
+  );
 
-  const handleRechargeConfirm = async (amount: number) => {
-    try {
-      await rechargeUser(rechargeModal.userId, amount);
-      logger.debug(
-        { userId: rechargeModal.userId, amount },
-        "Recharge success"
-      );
-    } catch (err) {
-      logger.error({ err }, "Recharge failed");
-      throw err; // Let RechargeModal handle the error
-    }
-  };
-
-  // 停用用户
-  const handleDisableSuccess = useCallback(() => {
-    logger.debug({ page: currentPage }, "Disable success, refreshing");
-    handleFetch(currentPage);
-  }, [currentPage, handleFetch]);
-
-  const disableUser = useDisableUser(handleDisableSuccess);
-
-  const handleDisableClick = useCallback((user: User) => {
-    logger.debug({ userId: user.id }, "Disable button clicked");
-    setDisableModal({
-      isOpen: true,
-      userId: user.id,
-      username: user.username,
-    });
-  }, []);
-
-  const handleDisableConfirm = async () => {
-    try {
-      await disableUser(disableModal.userId);
-      setDisableModal({ isOpen: false, userId: "", username: "" });
-    } catch (err) {
-      logger.error({ err }, "Disable failed");
-      alert("停用失败，请重试");
-    }
-  };
-
-  // 启用用户
-  const handleEnableSuccess = useCallback(() => {
-    logger.debug({ page: currentPage }, "Enable success, refreshing");
-    handleFetch(currentPage);
-  }, [currentPage, handleFetch]);
-
-  const enableUser = useEnableUser(handleEnableSuccess);
-
-  const handleEnableClick = useCallback((user: User) => {
-    logger.debug({ userId: user.id }, "Enable button clicked");
-    setEnableModal({
-      isOpen: true,
-      userId: user.id,
-      username: user.username,
-    });
-  }, []);
-
-  const handleEnableConfirm = async () => {
-    try {
-      await enableUser(enableModal.userId);
-      setEnableModal({ isOpen: false, userId: "", username: "" });
-    } catch (err) {
-      logger.error({ err }, "Enable failed");
-      alert("启用失败，请重试");
-    }
-  };
-
-  // 分页处理
+  // 分页
   const handlePageChange = useCallback(
     (newPage: number) => {
       logger.debug({ from: currentPage, to: newPage }, "Page change requested");
@@ -247,7 +187,7 @@ export default function UsersPage() {
     [navigate, currentPage]
   );
 
-  // 格式化时间
+  // 时间格式化
   const formatTime = (time: string | null) => {
     if (!time) return "-";
     return formatDistanceToNow(new Date(time), {
@@ -315,7 +255,7 @@ export default function UsersPage() {
                     </TableCell>
                     <TableCell element={{}}>{user.email || "-"}</TableCell>
                     <TableCell element={{}}>
-                      ¥ {user.balance?.toFixed(2) || "0.00"}
+                      ¥ {user.balance.toFixed(2)}
                     </TableCell>
                     <TableCell element={{}}>
                       {formatTime(user.createdAt)}
@@ -323,7 +263,6 @@ export default function UsersPage() {
                     <TableCell element={{}}>
                       {formatTime(user.lastLoginAt)}
                     </TableCell>
-
                     <TableCell element={{}} align="right">
                       <div className="action-buttons">
                         <Button
@@ -335,7 +274,9 @@ export default function UsersPage() {
                         </Button>
                         {user.isDisabled ? (
                           <Button
-                            onClick={() => handleEnableClick(user)}
+                            onClick={() =>
+                              setConfirmModal({ type: "enable", user })
+                            }
                             variant="secondary"
                             status="success"
                             size="small"
@@ -344,7 +285,9 @@ export default function UsersPage() {
                           </Button>
                         ) : (
                           <Button
-                            onClick={() => handleDisableClick(user)}
+                            onClick={() =>
+                              setConfirmModal({ type: "disable", user })
+                            }
                             variant="secondary"
                             status="warning"
                             size="small"
@@ -353,7 +296,9 @@ export default function UsersPage() {
                           </Button>
                         )}
                         <Button
-                          onClick={() => handleDeleteClick(user)}
+                          onClick={() =>
+                            setConfirmModal({ type: "delete", user })
+                          }
                           status="error"
                           size="small"
                         >
@@ -383,16 +328,31 @@ export default function UsersPage() {
         </div>
       )}
 
-      <ConfirmModal
-        isOpen={deleteModal.isOpen}
-        onClose={() =>
-          setDeleteModal({ isOpen: false, userId: "", username: "" })
-        }
-        onConfirm={handleDeleteConfirm}
-        title="删除用户"
-        message={`确定要删除用户「${deleteModal.username}」吗？此操作无法撤销。`}
-        status="error"
-      />
+      {/* 统一的 ConfirmModal */}
+      {confirmModal.type && confirmModal.user && (
+        <ConfirmModal
+          isOpen={true}
+          onClose={() => setConfirmModal({})}
+          onConfirm={async () => {
+            setConfirmLoading(true);
+            const action = confirmActions[confirmModal.type!];
+            try {
+              await action.handler(confirmModal.user!.id);
+              setConfirmModal({});
+            } catch {
+              alert(`${action.title}失败，请重试`);
+            } finally {
+              setConfirmLoading(false);
+            }
+          }}
+          title={confirmActions[confirmModal.type].title}
+          message={confirmActions[confirmModal.type].getMessage(
+            confirmModal.user.username
+          )}
+          type={confirmActions[confirmModal.type].type}
+          loading={confirmLoading}
+        />
+      )}
 
       <RechargeModal
         isOpen={rechargeModal.isOpen}
@@ -403,28 +363,6 @@ export default function UsersPage() {
         username={rechargeModal.username}
       />
 
-      <ConfirmModal
-        isOpen={disableModal.isOpen}
-        onClose={() =>
-          setDisableModal({ isOpen: false, userId: "", username: "" })
-        }
-        onConfirm={handleDisableConfirm}
-        title="停用用户"
-        message={`确定要停用用户「${disableModal.username}」吗？停用后用户将无法登录。`}
-        status="warning"
-      />
-
-      <ConfirmModal
-        isOpen={enableModal.isOpen}
-        onClose={() =>
-          setEnableModal({ isOpen: false, userId: "", username: "" })
-        }
-        onConfirm={handleEnableConfirm}
-        title="启用用户"
-        message={`确定要启用用户「${enableModal.username}」吗？启用后用户将恢复登录权限。`}
-        status="success"
-      />
-
       <style href="users-page">{`
         .users-page {
           padding: 24px;
@@ -432,7 +370,6 @@ export default function UsersPage() {
           display: flex;
           flex-direction: column;
           gap: 24px;
-        }
 
         .page-header {
           display: flex;
