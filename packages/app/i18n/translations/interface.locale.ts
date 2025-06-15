@@ -59,7 +59,34 @@ export default {
       "Go to Home": "Go to Home",
       "Go Back": "Go Back",
       deleteSuccess: "Delete successful",
-      home: "Home", // 新添加的键
+      home: "Home",
+      welcomeSection: {
+        heroTitle: "Build Your AI Assistant",
+        waveEmoji: "👋",
+        heroDescription:
+          "Cybot allows you to customize AI assistants for specific needs without any programming knowledge",
+        ctaButton: "Start for Free",
+        feature1: {
+          title: "Custom AI Assistant",
+          description:
+            "Create personalized AI assistants for different needs, customize conversations and skills",
+        },
+        feature2: {
+          title: "Privacy and Security",
+          description:
+            "End-to-end encryption protection, support for local model deployment, data self-control",
+        },
+        feature3: {
+          title: "Cross-Platform Support",
+          description:
+            "Seamless experience across Web, desktop, and mobile (coming soon)",
+        },
+        feature4: {
+          title: "Open Source Ecosystem",
+          description:
+            "Decentralized architecture, support for free deployment and community custom extensions",
+        },
+      },
     },
   },
   [Language.ZH_CN]: {
@@ -118,7 +145,29 @@ export default {
       "Go to Home": "返回首页",
       "Go Back": "返回",
       deleteSuccess: "删除成功",
-      home: "首页", // 新添加的键
+      home: "首页",
+      welcomeSection: {
+        heroTitle: "打造你的 AI 助手",
+        waveEmoji: "👋",
+        heroDescription: "Cybot 让你能够根据特定需求定制 AI 助手，无需编程知识",
+        ctaButton: "免费开始使用",
+        feature1: {
+          title: "定制 AI 助手",
+          description: "为不同需求创建专属智能助手，自定义对话和技能",
+        },
+        feature2: {
+          title: "隐私与安全",
+          description: "端到端加密保护，支持本地模型部署，数据自主可控",
+        },
+        feature3: {
+          title: "全平台支持",
+          description: "Web、桌面和移动端（即将推出）体验无缝衔接",
+        },
+        feature4: {
+          title: "开源生态",
+          description: "去中心化架构，支持自由部署和社区定制扩展",
+        },
+      },
     },
   },
   [Language.ZH_HANT]: {
@@ -177,7 +226,29 @@ export default {
       "Go to Home": "返回首頁",
       "Go Back": "返回",
       deleteSuccess: "刪除成功",
-      home: "首頁", // 新添加的键
+      home: "首頁",
+      welcomeSection: {
+        heroTitle: "打造你的 AI 助手",
+        waveEmoji: "👋",
+        heroDescription: "Cybot 讓你能夠根據特定需求定制 AI 助手，無需編程知識",
+        ctaButton: "免費開始使用",
+        feature1: {
+          title: "定制 AI 助手",
+          description: "為不同需求創建專屬智能助手，自訂對話和技能",
+        },
+        feature2: {
+          title: "隱私與安全",
+          description: "端到端加密保護，支持本地模型部署，數據自主可控",
+        },
+        feature3: {
+          title: "全平台支持",
+          description: "Web、桌面和移動端（即將推出）體驗無縫銜接",
+        },
+        feature4: {
+          title: "開源生態",
+          description: "去中心化架構，支持自由部署和社區定制擴展",
+        },
+      },
     },
   },
   [Language.JA]: {
@@ -238,7 +309,34 @@ export default {
       "Go to Home": "ホームに戻る",
       "Go Back": "戻る",
       deleteSuccess: "削除成功",
-      home: "ホーム", // 新添加的键
+      home: "ホーム",
+      welcomeSection: {
+        heroTitle: "あなたのAIアシスタントを作成",
+        waveEmoji: "👋",
+        heroDescription:
+          "Cybotは、特定のニーズに応じたAIアシスタントをカスタマイズできるようにします。プログラミングの知識は不要です。",
+        ctaButton: "無料で始める",
+        feature1: {
+          title: "カスタムAIアシスタント",
+          description:
+            "異なるニーズに応じたパーソナライズされたAIアシスタントを作成し、会話とスキルをカスタマイズします。",
+        },
+        feature2: {
+          title: "プライバシーとセキュリティ",
+          description:
+            "エンドツーエンドの暗号化保護、ローカルモデルのデプロイをサポート、データの自己管理。",
+        },
+        feature3: {
+          title: "クロスプラットフォームサポート",
+          description:
+            "Web、デスクトップ、モバイル（近日公開予定）でのシームレスな体験。",
+        },
+        feature4: {
+          title: "オープンソースエコシステム",
+          description:
+            "分散型アーキテクチャ、自由なデプロイとコミュニティカスタム拡張をサポート。",
+        },
+      },
     },
   },
 };

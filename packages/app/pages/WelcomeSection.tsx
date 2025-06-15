@@ -3,30 +3,32 @@ import { NavLink } from "react-router-dom";
 import { useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import { BsRobot, BsShieldCheck, BsLaptop, BsGlobe } from "react-icons/bs";
+import { useTranslation } from "react-i18next";
 
 const WelcomeSection = () => {
   const theme = useAppSelector(selectTheme);
+  const { t } = useTranslation();
 
   const features = [
     {
       icon: <BsRobot size={22} />,
-      title: "定制 AI 助手",
-      description: "为不同需求创建专属智能助手，自定义对话和技能",
+      title: t("welcomeSection.feature1.title"),
+      description: t("welcomeSection.feature1.description"),
     },
     {
       icon: <BsShieldCheck size={22} />,
-      title: "隐私与安全",
-      description: "端到端加密保护，支持本地模型部署，数据自主可控",
+      title: t("welcomeSection.feature2.title"),
+      description: t("welcomeSection.feature2.description"),
     },
     {
       icon: <BsLaptop size={22} />,
-      title: "全平台支持",
-      description: "Web、桌面和移动端（即将推出）体验无缝衔接",
+      title: t("welcomeSection.feature3.title"),
+      description: t("welcomeSection.feature3.description"),
     },
     {
       icon: <BsGlobe size={22} />,
-      title: "开源生态",
-      description: "去中心化架构，支持自由部署和社区定制扩展",
+      title: t("welcomeSection.feature4.title"),
+      description: t("welcomeSection.feature4.description"),
     },
   ];
 
@@ -34,19 +36,19 @@ const WelcomeSection = () => {
     <section className="welcome-section">
       <div className="hero-content">
         <h1 className="hero-title">
-          <span className="gradient-text">打造你的 AI 助手</span>
+          <span className="gradient-text">{t("welcomeSection.heroTitle")}</span>
           <span className="wave-emoji" aria-hidden="true">
-            👋
+            {t("welcomeSection.waveEmoji")}
           </span>
         </h1>
 
         <p className="hero-description">
-          Cybot 让你能够根据特定需求定制 AI 助手，无需编程知识
+          {t("welcomeSection.heroDescription")}
         </p>
 
         <div className="cta-container">
           <NavLink to="/signup" className="cta-button">
-            免费开始使用
+            {t("welcomeSection.ctaButton")}
           </NavLink>
         </div>
       </div>
