@@ -1,5 +1,10 @@
-// render/page/RenderPage.tsx
-import React, { useEffect, useMemo, useRef, MutableRefObject } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+  useState,
+} from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import toast from "react-hot-toast";
@@ -20,45 +25,34 @@ import {
   selectPageData,
   selectPageIsLoading,
   selectPageIsInitialized,
-  selectPageDbSpaceId,
   selectIsReadOnly,
+  selectIsSaving,
+  selectHasPendingChanges,
+  selectSaveError,
   updateSlate,
   savePage,
 } from "./pageSlice";
 
 const AUTO_SAVE_DELAY_MS = 2000; // 自动保存防抖时长
-const STATUS_RESET_DELAY_MS = 3000; // “已保存”状态保留时长
 
 // 内置 Ctrl+S / Cmd+S 保存 Hook
-interface KeyboardSaveProps {
-  isReadOnly: boolean;
-  editorFocusedRef: MutableRefObject<boolean>;
-  saveTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
-  onSave: () => void;
-}
-function useKeyboardSave({
-  isReadOnly,
-  editorFocusedRef,
-  saveTimeoutRef,
-  onSave,
-}: KeyboardSaveProps) {
+function useKeyboardSave(onSave: () => void, isReadOnly: boolean) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isReadOnly) return;
+
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current);
-          saveTimeoutRef.current = null;
-        }
         onSave();
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isReadOnly, onSave, saveTimeoutRef, editorFocusedRef]);
+  }, [onSave, isReadOnly]);
 }
 
+// 核心组件
 export default React.memo(function RenderPage({
   pageKey,
 }: {
@@ -68,19 +62,14 @@ export default React.memo(function RenderPage({
   const urlEditMode = params.get("edit") === "true";
   const theme = useAppSelector(selectTheme);
 
-  const { isLoading, isInitialized, page, dbSpaceId, isReadOnly } = usePageData(
+  const { isLoading, isInitialized, page, isReadOnly } = usePageData(
     pageKey,
     urlEditMode
   );
   const initialValue = useInitialValue(page, isInitialized);
 
-  const {
-    saveStatus,
-    handleChange,
-    handleFocus,
-    handleBlur,
-    hasPendingChanges,
-  } = useAutoSave({ pageKey, page, dbSpaceId, isReadOnly });
+  const { handleChange, triggerSaveNow } = usePageSaveManager(isReadOnly);
+  useKeyboardSave(triggerSaveNow, isReadOnly);
 
   if (isLoading || !isInitialized) {
     return <Loader theme={theme} />;
@@ -96,8 +85,6 @@ export default React.memo(function RenderPage({
                 <Editor
                   initialValue={initialValue}
                   onChange={handleChange}
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
                   readOnly={isReadOnly}
                 />
               </div>
@@ -106,12 +93,7 @@ export default React.memo(function RenderPage({
         </div>
       </main>
 
-      {!isReadOnly && (
-        <SaveStatusIndicator
-          status={saveStatus}
-          hasPendingChanges={hasPendingChanges}
-        />
-      )}
+      {!isReadOnly && <PageSaveStatus />}
 
       <style>{styles.css(theme)}</style>
     </div>
@@ -124,7 +106,6 @@ function usePageData(pageKey: string, urlEditMode: boolean) {
   const isLoading = useAppSelector(selectPageIsLoading);
   const isInitialized = useAppSelector(selectPageIsInitialized);
   const page = useAppSelector(selectPageData);
-  const dbSpaceId = useAppSelector(selectPageDbSpaceId);
   const isReadOnly = useAppSelector(selectIsReadOnly);
   const error = page.error;
 
@@ -137,7 +118,7 @@ function usePageData(pageKey: string, urlEditMode: boolean) {
     if (error) console.error("加载页面失败:", error);
   }, [error]);
 
-  return { isLoading, isInitialized, page, dbSpaceId, isReadOnly };
+  return { isLoading, isInitialized, page, isReadOnly };
 }
 
 /*——————— Hook: 计算 Slate 编辑器的初始值 ———————*/
@@ -168,89 +149,113 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
   }, [page, isInitialized]);
 }
 
-/*——————— Hook: 自动保存 & 状态管理 ———————*/
-function useAutoSave({
-  pageKey,
-  page,
-  dbSpaceId,
-  isReadOnly,
-}: {
-  pageKey: string;
-  page: any;
-  dbSpaceId: string | null;
-  isReadOnly: boolean;
-}) {
+/*——————— 新 Hook: 页面保存管理器 ———————*/
+function usePageSaveManager(isReadOnly: boolean) {
   const dispatch = useAppDispatch();
-  const [status, setStatus] = React.useState<SaveStatus>(null);
+  const page = useAppSelector(selectPageData);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const lastContent = useRef<EditorContent>(
-    JSON.parse(JSON.stringify(page?.slateData || []))
+  // 自动保存逻辑: 监听 Redux state 的变化
+  useEffect(() => {
+    if (isReadOnly) return;
+
+    // 清除上一个定时器
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+    }
+    // 设置新的定时器
+    saveTimer.current = setTimeout(() => {
+      dispatch(savePage());
+    }, AUTO_SAVE_DELAY_MS);
+
+    // 组件卸载时清除定时器
+    return () => {
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+      }
+    };
+  }, [page.slateData, isReadOnly, dispatch]); // 依赖 slateData
+
+  // 编辑器内容变化时的回调
+  const handleChange = useCallback(
+    (value: EditorContent) => {
+      dispatch(updateSlate(value));
+    },
+    [dispatch]
   );
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const editorFocus = useRef(false);
-
-  useKeyboardSave({
-    isReadOnly,
-    editorFocusedRef: editorFocus,
-    saveTimeoutRef: saveTimer,
-    onSave: triggerSave,
-  });
-
-  function handleChange(v: EditorContent) {
+  // 手动/快捷键触发保存的回调
+  const triggerSaveNow = useCallback(() => {
     if (isReadOnly) return;
-    dispatch(updateSlate(v));
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(triggerSave, AUTO_SAVE_DELAY_MS);
-  }
-
-  async function triggerSave() {
-    if (status === "saving" || isReadOnly) return;
-    const slateData = page?.slateData;
-    if (!slateData) return;
-
-    const changed = compareSlateContent(slateData, lastContent.current);
-    if (!changed) {
-      if (status === "error") setStatus(null);
-      return;
+    // 取消可能存在的自动保存定时器，并立即保存
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
     }
+    dispatch(savePage());
+  }, [dispatch, isReadOnly]);
 
-    if (statusTimer.current) clearTimeout(statusTimer.current);
-    setStatus("saving");
+  return { handleChange, triggerSaveNow };
+}
 
-    try {
-      const result = await dispatch(savePage()).unwrap();
-      lastContent.current = JSON.parse(JSON.stringify(slateData));
-      setStatus("saved");
-      statusTimer.current = setTimeout(
-        () => setStatus(null),
-        STATUS_RESET_DELAY_MS
-      );
-    } catch (e) {
-      console.error("保存失败:", e);
-      setStatus("error");
-      toast.error("内容保存失败", { icon: "⚠️", duration: 4000 });
-    }
-  }
+/*——————— 新组件: 页面保存状态指示器 ———————*/
+const STATUS_RESET_DELAY_MS = 3000;
 
+function PageSaveStatus() {
+  const isSaving = useAppSelector(selectIsSaving);
+  const hasPendingChanges = useAppSelector(selectHasPendingChanges);
+  const saveError = useAppSelector(selectSaveError);
+  const [showSaved, setShowSaved] = useState(false);
+  const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 这个 effect 用于在合适的时机触发 "已保存" 状态的显示和隐藏
   useEffect(() => {
+    // 每次保存成功（即：不在保存中、没有待定更改、也没有错误），就显示“已保存”状态
+    if (!isSaving && !hasPendingChanges && !saveError) {
+      // 检查是否是从 isSaving=true 状态过来的，避免页面加载时就显示“已保存”
+      if (statusTimer.current === null) {
+        // 如果不是刚保存完，什么都不做
+      } else {
+        clearTimeout(statusTimer.current);
+      }
+
+      setShowSaved(true);
+      statusTimer.current = setTimeout(() => {
+        setShowSaved(false);
+        statusTimer.current = null; // 重置 timer 引用
+      }, STATUS_RESET_DELAY_MS);
+    }
+    // 如果开始编辑，则立即隐藏“已保存”
+    if (hasPendingChanges) {
+      if (statusTimer.current) clearTimeout(statusTimer.current);
+      setShowSaved(false);
+    }
+
     return () => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
       if (statusTimer.current) clearTimeout(statusTimer.current);
     };
-  }, []);
+  }, [isSaving, hasPendingChanges, saveError]);
 
-  return {
-    saveStatus: status,
-    handleChange,
-    handleFocus: () => (editorFocus.current = true),
-    handleBlur: () => (editorFocus.current = false),
-    hasPendingChanges: compareSlateContent(
-      page?.slateData,
-      lastContent.current
-    ),
+  // 这个 effect 只用于在出现保存错误时弹出 toast
+  useEffect(() => {
+    if (saveError) {
+      toast.error("内容保存失败", { icon: "⚠️", duration: 4000 });
+    }
+  }, [saveError]);
+
+  const getStatus = (): SaveStatus => {
+    if (isSaving) return "saving";
+    if (saveError && hasPendingChanges) return "error"; // 保存失败且有改动
+    if (showSaved) return "saved";
+    return null; // 默认空闲状态
   };
+
+  return (
+    <SaveStatusIndicator
+      status={getStatus()}
+      hasPendingChanges={hasPendingChanges}
+    />
+  );
 }
 
 /*—————— Loader / EditorLoader / 样式 ———————*/
