@@ -1,12 +1,19 @@
+// src/features/dialog/dialogSlice.ts
+
 import {
   type PayloadAction,
   asyncThunkCreator,
   buildCreateSlice,
 } from "@reduxjs/toolkit";
 import type { RootState } from "app/store";
+import { nanoid } from "nanoid";
+import { createPage } from "render/page/pageSlice";
+import { Descendant } from "slate";
+
+// --- 其他 Slice 和 Action 的引用 ---
 import { deleteDialogMsgs } from "chat/messages/messageSlice";
-import { read, selectById, patch } from "database/dbSlice";
 import { extractCustomId } from "core/prefix";
+import { read, selectById, patch } from "database/dbSlice";
 import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
@@ -19,6 +26,7 @@ import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
 import { updateDialogModeAction } from "./actions/updateDialogModeAction";
 
+// --- 工具和类型定义 ---
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -30,15 +38,20 @@ interface TokenMetrics {
   input_tokens: number;
 }
 
-// 定义附件类型 (仅保留 PendingFile)
 export interface PendingFile {
   id: string;
   name: string;
-  pageKey: string; // 只保存 pageKey
-  type: "excel" | "docx" | "pdf" | "page"; // 新增 page 类型支持
+  pageKey: string;
+  type: "excel" | "docx" | "pdf" | "page" | "txt";
 }
 
-// 定义 Slice 的 State 接口
+// Thunk 输入类型：只包含纯粹的数据
+export interface CreatePageFromSlatePayload {
+  slateData: Descendant[];
+  title: string;
+  type: "excel" | "docx" | "pdf" | "txt"; // 用来在UI上显示正确的图标
+}
+
 interface DialogState {
   currentDialogKey: string | null;
   currentDialogTokens: {
@@ -46,13 +59,10 @@ interface DialogState {
     outputTokens: number;
   };
   isUpdatingMode: boolean;
-  // 待处理的附件状态（仅保留 pendingFiles）
-  pendingFiles: PendingFile[]; // 合并后的文件数组
-  // 新增：存储正在进行的 AbortController 实例
-  activeControllers: Record<string, AbortController>; // 以 messageId 为键
+  pendingFiles: PendingFile[];
+  activeControllers: Record<string, AbortController>;
 }
 
-// 定义初始状态
 const initialState: DialogState = {
   currentDialogKey: null,
   currentDialogTokens: {
@@ -60,17 +70,79 @@ const initialState: DialogState = {
     outputTokens: 0,
   },
   isUpdatingMode: false,
-  // 初始化附件状态（仅保留 pendingFiles）
-  pendingFiles: [], // 初始化合并后的文件数组
-  // 初始化控制器对象
+  pendingFiles: [],
   activeControllers: {},
 };
 
+// --- Slice 定义 ---
 const DialogSlice = createSliceWithThunks({
   name: "dialog",
   initialState,
   reducers: (create) => ({
-    // --- 现有 Reducers ---
+    // ===================================================================
+    // 核心 Thunk (完全平台无关)
+    // ===================================================================
+    createPageAndAddReference: create.asyncThunk(
+      async (
+        payload: CreatePageFromSlatePayload,
+        { dispatch, rejectWithValue }
+      ) => {
+        const { slateData, title, type } = payload;
+        try {
+          const pageKey = await dispatch(
+            createPage({ slateData, title })
+          ).unwrap();
+
+          const newReference: PendingFile = {
+            id: nanoid(),
+            name: title,
+            pageKey,
+            type,
+          };
+
+          return newReference;
+        } catch (error) {
+          console.error("创建页面或引用失败:", error);
+          return rejectWithValue((error as Error).message);
+        }
+      },
+      {
+        fulfilled: (state, action: PayloadAction<PendingFile>) => {
+          state.pendingFiles.push(action.payload);
+        },
+        rejected: (state, action) => {
+          console.error("createPageAndAddReference rejected:", action.payload);
+        },
+      }
+    ),
+
+    // ===================================================================
+    // 同步附件管理 Reducers (用于引用现有页面)
+    // ===================================================================
+    addPendingFile: create.reducer(
+      (state, action: PayloadAction<PendingFile>) => {
+        const isAlreadyAdded = state.pendingFiles.some(
+          (file) => file.pageKey === action.payload.pageKey
+        );
+        if (!isAlreadyAdded) {
+          state.pendingFiles.push(action.payload);
+        }
+      }
+    ),
+    removePendingFile: create.reducer(
+      (state, action: PayloadAction<string>) => {
+        state.pendingFiles = state.pendingFiles.filter(
+          (file) => file.id !== action.payload
+        );
+      }
+    ),
+    clearPendingAttachments: create.reducer((state) => {
+      state.pendingFiles = [];
+    }),
+
+    // ===================================================================
+    // 对话状态管理
+    // ===================================================================
     updateTokens: create.asyncThunk(updateTokensAction, {
       fulfilled: (state, action: PayloadAction<TokenMetrics>) => {
         if (action.payload.input_tokens) {
@@ -82,15 +154,12 @@ const DialogSlice = createSliceWithThunks({
         }
       },
     }),
-
     resetCurrentDialogTokens: create.reducer((state) => {
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
     }),
-
     initDialog: create.asyncThunk(
       async (id, thunkApi) => {
         const { dispatch } = thunkApi;
-        // 在初始化新对话前清空待处理附件
         dispatch(DialogSlice.actions.clearPendingAttachments());
         const action = await dispatch(read(id));
         return { ...action.payload };
@@ -98,19 +167,13 @@ const DialogSlice = createSliceWithThunks({
       {
         pending: (state, action) => {
           state.currentDialogKey = action.meta.arg;
-          // 清空 token 计数器
           state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
-          // 附件已在 thunk 中清除
         },
       }
     ),
-
     deleteDialog: create.asyncThunk(deleteDialogAction, {
-      fulfilled: (state) => {
-        // 如果删除的是当前对话，则状态在 deleteCurrentDialog 中处理
-      },
+      fulfilled: (state) => {},
     }),
-
     deleteCurrentDialog: create.asyncThunk(
       async (dialogKey, thunkApi) => {
         const dispatch = thunkApi.dispatch;
@@ -123,7 +186,6 @@ const DialogSlice = createSliceWithThunks({
         const dialogId = extractCustomId(dialogKey);
         dispatch(deleteDialogMsgs(dialogId));
         dispatch(resetCurrentDialogTokens());
-        // 删除当前对话时，也清空附件
         dispatch(DialogSlice.actions.clearPendingAttachments());
       },
       {
@@ -132,14 +194,11 @@ const DialogSlice = createSliceWithThunks({
         },
       }
     ),
-
     clearDialogState: create.reducer((state) => {
       state.currentDialogKey = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
-      // 清空对话状态时，也清空附件
-      state.pendingFiles = []; // 清空合并后的文件数组
+      state.pendingFiles = [];
     }),
-
     createDialog: create.asyncThunk(createDialogAction),
     updateDialogTitle: create.asyncThunk(updateDialogTitleAction),
     addCybot: create.asyncThunk(addCybotAction),
@@ -156,30 +215,9 @@ const DialogSlice = createSliceWithThunks({
       },
     }),
 
-    // --- 附件管理 Reducers（仅保留与 pendingFiles 相关的） ---
-    addPendingFile: create.reducer(
-      (state, action: PayloadAction<PendingFile>) => {
-        if (
-          action.payload.id &&
-          action.payload.name &&
-          action.payload.pageKey
-        ) {
-          state.pendingFiles.push(action.payload);
-        }
-      }
-    ),
-    removePendingFile: create.reducer(
-      (state, action: PayloadAction<string>) => {
-        state.pendingFiles = state.pendingFiles.filter(
-          (file) => file.id !== action.payload
-        );
-      }
-    ),
-    clearPendingAttachments: create.reducer((state) => {
-      state.pendingFiles = []; // 清空合并后的文件数组
-    }),
-
-    // 新增：添加控制器到状态
+    // ===================================================================
+    // Abort Controller 管理
+    // ===================================================================
     addActiveController: create.reducer(
       (
         state,
@@ -192,22 +230,16 @@ const DialogSlice = createSliceWithThunks({
           action.payload.controller;
       }
     ),
-
-    // 新增：移除控制器（在请求完成后）
     removeActiveController: create.reducer(
       (state, action: PayloadAction<string>) => {
         delete state.activeControllers[action.payload];
       }
     ),
-
-    // 新增：中止所有正在进行的请求
     abortAllMessages: create.asyncThunk(
       async (_, thunkApi) => {
         const { dispatch, getState } = thunkApi;
         const state = getState() as RootState;
         const controllers = state.dialog.activeControllers;
-
-        // 对所有控制器调用 abort 方法
         Object.values(controllers).forEach((controller) => {
           try {
             controller.abort();
@@ -215,10 +247,7 @@ const DialogSlice = createSliceWithThunks({
             console.error(`中止控制器失败:`, error);
           }
         });
-
-        // 清空控制器记录
         dispatch(DialogSlice.actions.clearActiveControllers());
-
         return { abortedCount: Object.keys(controllers).length };
       },
       {
@@ -231,15 +260,18 @@ const DialogSlice = createSliceWithThunks({
         },
       }
     ),
-
-    // 新增：清空所有控制器记录
     clearActiveControllers: create.reducer((state) => {
       state.activeControllers = {};
     }),
   }),
 });
 
+// --- Actions 导出 ---
 export const {
+  createPageAndAddReference,
+  addPendingFile,
+  removePendingFile,
+  clearPendingAttachments,
   initDialog,
   deleteDialog,
   resetCurrentDialogTokens,
@@ -251,44 +283,34 @@ export const {
   addCybot,
   removeCybot,
   updateDialogMode,
-  addPendingFile,
-  removePendingFile,
-  clearPendingAttachments,
   addActiveController,
   removeActiveController,
   abortAllMessages,
   clearActiveControllers,
 } = DialogSlice.actions;
 
+// --- Reducer 导出 ---
 export default DialogSlice.reducer;
 
-// --- Selectors ---
+// --- Selectors 导出 ---
 export const selectCurrentDialogConfig = (state: RootState) =>
   state.dialog.currentDialogKey
     ? selectById(state, state.dialog.currentDialogKey)
     : null;
-
 export const selectCurrentDialogKey = (state: RootState) =>
   state.dialog.currentDialogKey;
-
 export const selectTotalDialogTokens = (state: RootState): number =>
   state.dialog.currentDialogTokens.inputTokens +
   state.dialog.currentDialogTokens.outputTokens;
-
 export const selectIsUpdatingMode = (state: RootState): boolean =>
   state.dialog.isUpdatingMode;
-
-// 新增 Selectors（仅保留与 pendingFiles 相关的）
 export const selectPendingFiles = (state: RootState): PendingFile[] =>
   state.dialog.pendingFiles;
-
 export const selectPendingFilesByType = (
   state: RootState,
-  type: "excel" | "docx" | "pdf" | "page"
+  type: PendingFile["type"]
 ): PendingFile[] =>
   state.dialog.pendingFiles.filter((file) => file.type === type);
-
-// 新增 Selector
 export const selectActiveControllers = (
   state: RootState
 ): Record<string, AbortController> => state.dialog.activeControllers;
