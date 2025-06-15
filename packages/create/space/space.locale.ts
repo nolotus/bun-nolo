@@ -1,4 +1,4 @@
-import { Language } from "i18n/types";
+import { Language } from "app/i18n/types";
 
 export default {
   [Language.EN]: {

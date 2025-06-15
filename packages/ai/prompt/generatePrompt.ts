@@ -1,4 +1,4 @@
-import { mapLanguage } from "i18n/mapLanguage";
+import { mapLanguage } from "app/i18n/mapLanguage";
 
 // 接口定义保持不变
 interface Contexts {

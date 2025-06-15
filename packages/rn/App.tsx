@@ -3,7 +3,7 @@ import { StatusBar, useColorScheme } from "react-native";
 
 import "intl-pluralrules";
 
-import i18n from "i18n";
+import i18n from "app/i18n";
 import * as RNLocalize from "react-native-localize";
 import { Provider } from "react-redux";
 import MainNavigation from "./MainNavigation";

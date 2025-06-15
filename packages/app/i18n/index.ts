@@ -1,14 +1,14 @@
 // i18n/index.ts
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import { Language } from "./types";
+import { Language } from "app/i18n/types";
 
-import errorLocale from "./translations/error.locale";
 import aiLocale from "ai/ai.locale";
 import chatLocale from "chat/chat.locale";
 import spaceLocale from "create/space/space.locale";
 
 import interfaceLocale from "./translations/interface.locale";
+import errorLocale from "./translations/error.locale";
 
 export const resources = {
   [Language.EN]: {
