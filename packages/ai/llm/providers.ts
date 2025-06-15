@@ -19,6 +19,25 @@ interface CybotConfig {
   customProviderUrl?: string;
 }
 
+// 提取所有支持推理功能的模型
+const allModels = [
+  ...anthropicModels,
+  ...deepinfraModels,
+  ...deepSeekModels,
+  ...fireworksmodels,
+  ...googleModels,
+  ...mistralModels,
+  ...openAIModels,
+  ...ollamaModels,
+  ...sambanovaModels,
+  ...openrouterModels,
+  ...xaiModels,
+];
+
+export const supportedReasoningModels = allModels
+  .filter((model) => model.supportsReasoningEffort)
+  .map((model) => model.name);
+
 // 1. 各 provider 对应的模型列表
 const MODEL_MAP = {
   anthropic: anthropicModels,

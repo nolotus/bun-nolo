@@ -2,6 +2,7 @@ import { NoloRootState } from "app/store";
 import { generatePrompt } from "ai/prompt/generatePrompt";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
+import { supportedReasoningModels } from "ai/llm/providers";
 
 // 类型定义保持不变...
 type MessageContentPartText = { type: "text"; text: string };
@@ -28,7 +29,7 @@ interface BuildRequestBodyOptions {
   max_tokens?: number;
   reasoning_effort?: string;
 }
-// 👇 新增 contexts 类型
+
 interface Contexts {
   currentUserContext?: string | null;
   smartReadContext?: string | null;
@@ -44,13 +45,13 @@ const prependPromptMessage = (
   prompt: string | undefined,
   botName: string | undefined,
   language: string,
-  contexts: Contexts // 👈 接收结构化 contexts
+  contexts: Contexts
 ): Message[] => {
   const promptContent = generatePrompt({
     mainPrompt: prompt,
     name: botName,
     language,
-    contexts, // 👈 直接传递 contexts 对象
+    contexts,
   });
 
   if (promptContent.trim()) {
@@ -61,7 +62,14 @@ const prependPromptMessage = (
 };
 
 /**
- * 只传必要字段，构建请求体 (此函数保持不变)
+ * 检查模型是否支持 reasoning_effort
+ */
+const isModelSupportReasoningEffort = (model: string): boolean => {
+  return supportedReasoningModels.includes(model);
+};
+
+/**
+ * 构建请求体
  */
 const buildRequestBody = (options: BuildRequestBodyOptions): any => {
   const {
@@ -92,7 +100,7 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
   }
 
   // 通用的 reasoning_effort 处理
-  if (reasoning_effort) {
+  if (reasoning_effort && isModelSupportReasoningEffort(model)) {
     bodyData.reasoning_effort = reasoning_effort;
   }
 
@@ -109,7 +117,6 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
 
 /**
  * 主函数
- * 👇 修改函数签名以接收 contexts 对象
  */
 export const generateOpenAIRequestBody = (
   state: NoloRootState,
@@ -126,7 +133,7 @@ export const generateOpenAIRequestBody = (
     [key: string]: any;
   },
   providerName: string,
-  contexts: Contexts // 👈 接收结构化 contexts
+  contexts: Contexts
 ) => {
   // 1. 获取清理历史消息
   const previousMessages = filterAndCleanMessages(selectAllMsgs(state));
@@ -137,8 +144,9 @@ export const generateOpenAIRequestBody = (
     cybotConfig.prompt,
     cybotConfig.name,
     navigator.language,
-    contexts // 👈 传递 contexts 对象
+    contexts
   );
+
   // 3. 构建请求体
   const requestBody = buildRequestBody({
     model: cybotConfig.model,
