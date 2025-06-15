@@ -1,3 +1,4 @@
+// index.ts
 import { isProduction } from "utils/env";
 import { handleRequest } from "./handleRequest";
 import { Cron } from "croner";
@@ -6,6 +7,7 @@ import { API_ENDPOINTS, API_VERSION } from "database/config";
 import { handleChatRequest } from "./handlers/chatHandler";
 import { handleFetchWebpage } from "./handlers/fetchWebpageHandler";
 import { databaseRoutes } from "./databaseRoutes";
+import { sqliteRoutes } from "./sqliteRoutes";
 
 const startTasks = () => {
   tasks.forEach(({ interval, task }) => {
@@ -14,12 +16,8 @@ const startTasks = () => {
   });
 };
 
-// 定义主要的路由配置
 const apiRoutes = {
-  // 静态路由
   "/api/status": new Response("OK"),
-
-  // API_ENDPOINTS.HI 路由
   [API_ENDPOINTS.HI]: {
     GET: () =>
       new Response(JSON.stringify({ API_VERSION }), {
@@ -27,15 +25,13 @@ const apiRoutes = {
         headers: { "Content-Type": "application/json" },
       }),
   },
-
-  // API_ENDPOINTS.CHAT 路由，支持 POST 和 OPTIONS
   [API_ENDPOINTS.CHAT]: {
     POST: async (req) => {
       const headers = {
-        "Access-Control-Allow-Origin": "*", // 允许所有域名访问
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400", // 缓存 24 小时
+        "Access-Control-Max-Age": "86400",
       };
       return await handleChatRequest(req, headers);
     },
@@ -50,8 +46,6 @@ const apiRoutes = {
         },
       }),
   },
-
-  // /api/fetch-webpage 路由，支持 POST
   "/api/fetch-webpage": {
     POST: handleFetchWebpage,
     OPTIONS: () =>
@@ -65,21 +59,19 @@ const apiRoutes = {
         },
       }),
   },
-
-  // 整合 databaseRoutes
   ...databaseRoutes,
+  ...sqliteRoutes, // 仍然会整合进来
 };
 
-// 以下是 httpServer 和 startServer 的代码
 const httpServer = () => {
   console.log("isProduction:", isProduction);
 
   Bun.serve({
-    routes: apiRoutes, // 使用定义好的路由配置
+    routes: apiRoutes,
     idleTimeout: 60,
     port: 80,
     hostname: "0.0.0.0",
-    fetch: handleRequest, // 保持原有 fetch，不做全局改动
+    fetch: handleRequest,
     websocket: {
       async message(ws, message) {
         ws.send(`Received`);
@@ -113,9 +105,8 @@ const httpServer = () => {
 export const startServer = () => {
   console.log("start httpServer");
   httpServer();
-  console.log("end httpServer");
-
   // startTasks();
+  console.log("end httpServer");
 };
 
 startServer();

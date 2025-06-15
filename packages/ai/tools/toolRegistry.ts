@@ -2,11 +2,10 @@
  *  所有 Tool 的统一注册与描述（新版）
  *  ------------------------------------------------------------
  *  ① 业务侧（已有）    : 10 个
- *  ② 数据查询/存储侧（新增）: 8 个
- *  总计                : 18 个
+ *  ② 数据查询/存储侧（新增）: 9 个  <-- 从 8 个变为 9 个
+ *  总计                : 19 个  <-- 从 18 个变为 19 个
  * ========================================================== */
 
-import { makeAppointmentTool } from "ai/tools/appointment";
 import { runCybotTool } from "./runCybot";
 import { generateTableTool } from "./generateTableTool";
 import { createPageTool } from "./createPageTool";
@@ -18,6 +17,7 @@ import { queryContentsByCategoryTool } from "./queryContentsByCategoryTool";
 import { fetchWebpageTool } from "./fetchWebpageTool";
 
 /* ---------- 新增数据查询/存储工具 ---------- */
+// 确保这些导入路径正确，特别是 executeSqlTool 的路径
 import { createTableTool } from "database/tools/createTableTool";
 import { listTablesTool } from "database/tools/listTablesTool";
 import { describeTableTool } from "./describeTableTool";
@@ -26,13 +26,13 @@ import { groupAggregateTool } from "./groupAggregateTool";
 import { joinTablesTool } from "./joinTablesTool";
 import { transformRowsTool } from "./transformRowsTool";
 import { joinRowsTool } from "./joinRowsTool";
+import { executeSqlTool } from "./executeSqlTool"; // **新增：导入 executeSqlTool**
 
 /* ============================================================
  *  1. 工具注册表 —— 大模型实际调用时依赖的映射
  * ========================================================== */
 export const toolRegistry: Record<string, any> = {
   /* ----------- 业务侧（已存在） ----------- */
-  makeAppointment: makeAppointmentTool,
   runCybot: runCybotTool,
   generateTable: generateTableTool,
   createPage: createPageTool,
@@ -52,6 +52,7 @@ export const toolRegistry: Record<string, any> = {
   joinTables: joinTablesTool,
   transformRows: transformRowsTool,
   joinRows: joinRowsTool,
+  executeSql: executeSqlTool, // **新增：注册 executeSqlTool**
 };
 
 /* ============================================================
@@ -62,10 +63,6 @@ export const toolDescriptions: Record<
   { name: string; description: string }
 > = {
   /* ----------- 业务侧（已存在） ----------- */
-  makeAppointment: {
-    name: "makeAppointment",
-    description: "Schedule appointments and manage calendar events",
-  },
   runCybot: {
     name: "runCybot",
     description: "Execute other cybots and combine their capabilities",
@@ -142,5 +139,11 @@ export const toolDescriptions: Record<
   joinRows: {
     name: "joinRows",
     description: "在内存中对两组任意行数组做等值内/左连接，返回合并后的行数组",
+  },
+  executeSql: {
+    // **新增：注册 executeSql 的描述**
+    name: "execute_sql",
+    description:
+      "直接在 SQLite 数据库中执行任意 SQL 语句，包括数据查询、修改和表结构操作。请确保SQL语句的正确性。",
   },
 };
