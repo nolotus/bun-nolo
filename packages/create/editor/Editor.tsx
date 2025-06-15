@@ -15,7 +15,7 @@ import { Editable, Slate, useSlate, withReact, ReactEditor } from "slate-react";
 import { useSelector } from "react-redux";
 
 import { ElementWrapper } from "./ElementWrapper";
-import { EditorToolbar } from "./EditorToolbar"; // 假设文件名为 EditorToolbar.tsx
+import { EditorToolbar } from "./EditorToolbar";
 import { HoveringToolbar } from "./HoveringToolbar";
 import { toggleMark } from "./mark";
 import { renderLeaf } from "./renderLeaf";
@@ -118,21 +118,21 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
       <style>{`
         .nolo-editor-container {
           position: relative;
-          padding: ${theme.space[2]}; /* 从10px减小到8px */
+          padding: ${theme.space[2]};
         }
 
         .toolbar-container {
           position: sticky;
           top: 0;
           z-index: 100;
-          margin-bottom: ${theme.space[2]}; /* 从10px减小到8px */
-          padding: ${theme.space[1]}; /* 从5px减小到4px */
+          margin-bottom: ${theme.space[2]}; 
+          padding: ${theme.space[1]};
         }
 
         /* 编辑器内容区域 - 更紧凑 */
         .nolo-editor-container [data-slate-editor] {
-          font-size: 14px; /* 从默认字体减小 */
-          line-height: 1.4; /* 从1.6减小到1.4 */
+          font-size: 14px;
+          line-height: 1.4; 
           color: ${theme.text};
           -webkit-text-size-adjust: 100%;
         }

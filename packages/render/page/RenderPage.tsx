@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo } from "react";
+// render/page/RenderPage.tsx
+import React, { useEffect, useMemo, useRef, MutableRefObject } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import toast from "react-hot-toast";
@@ -9,7 +10,6 @@ import {
 } from "create/editor/utils/slateUtils";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import SaveStatusIndicator, { SaveStatus } from "./SaveStatusIndicator";
-import useKeyboardSave from "./useKeyboardSave";
 import { selectTheme } from "app/theme/themeSlice";
 
 // 编辑器懒加载
@@ -28,13 +28,42 @@ import {
 
 const AUTO_SAVE_DELAY_MS = 2000; // 自动保存防抖时长
 const STATUS_RESET_DELAY_MS = 3000; // “已保存”状态保留时长
-const TIME_UPDATE_INTERVAL_MS = 60000; // 更新时间戳的间隔
 
-interface RenderPageProps {
-  pageKey: string;
+// 内置 Ctrl+S / Cmd+S 保存 Hook
+interface KeyboardSaveProps {
+  isReadOnly: boolean;
+  editorFocusedRef: MutableRefObject<boolean>;
+  saveTimeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  onSave: () => void;
+}
+function useKeyboardSave({
+  isReadOnly,
+  editorFocusedRef,
+  saveTimeoutRef,
+  onSave,
+}: KeyboardSaveProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isReadOnly) return;
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
+        onSave();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isReadOnly, onSave, saveTimeoutRef, editorFocusedRef]);
 }
 
-export default React.memo(function RenderPage({ pageKey }: RenderPageProps) {
+export default React.memo(function RenderPage({
+  pageKey,
+}: {
+  pageKey: string;
+}) {
   const [params] = useSearchParams();
   const urlEditMode = params.get("edit") === "true";
   const theme = useAppSelector(selectTheme);
@@ -47,9 +76,7 @@ export default React.memo(function RenderPage({ pageKey }: RenderPageProps) {
 
   const {
     saveStatus,
-    lastSavedTime,
     handleChange,
-    handleRetry,
     handleFocus,
     handleBlur,
     hasPendingChanges,
@@ -82,8 +109,6 @@ export default React.memo(function RenderPage({ pageKey }: RenderPageProps) {
       {!isReadOnly && (
         <SaveStatusIndicator
           status={saveStatus}
-          lastSaved={lastSavedTime}
-          onRetry={handleRetry}
           hasPendingChanges={hasPendingChanges}
         />
       )}
@@ -101,7 +126,7 @@ function usePageData(pageKey: string, urlEditMode: boolean) {
   const page = useAppSelector(selectPageData);
   const dbSpaceId = useAppSelector(selectPageDbSpaceId);
   const isReadOnly = useAppSelector(selectIsReadOnly);
-  const error = useAppSelector(selectPageData).error;
+  const error = page.error;
 
   useEffect(() => {
     if (!pageKey) console.error("RenderPage: missing pageKey");
@@ -157,64 +182,15 @@ function useAutoSave({
 }) {
   const dispatch = useAppDispatch();
   const [status, setStatus] = React.useState<SaveStatus>(null);
-  const [lastSaved, setLastSaved] = React.useState<string | null>(null);
 
-  // 本地快照与时间
-  const lastSavedDate = React.useRef<Date | null>(
-    page.updatedAt ? new Date(page.updatedAt) : null
-  );
-  const lastContent = React.useRef<EditorContent>(
+  const lastContent = useRef<EditorContent>(
     JSON.parse(JSON.stringify(page?.slateData || []))
   );
 
-  const saveTimer = React.useRef<number>();
-  const statusTimer = React.useRef<number>();
-  const editorFocus = React.useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const editorFocus = useRef(false);
 
-  // 格式化“刚刚/几分钟前”
-  const formatSaved = React.useCallback((d: Date | null) => {
-    if (!d) return null;
-    const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-    if (diff < 60) return "刚刚";
-    if (diff < 3600) return `${Math.floor(diff / 60)}分钟前`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}小时前`;
-    return d.toLocaleString("zh-CN", {
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-    });
-  }, []);
-
-  // 初始化 & 定时刷新 lastSaved
-  useEffect(() => {
-    if (lastSavedDate.current) {
-      setLastSaved(formatSaved(lastSavedDate.current));
-    }
-    const id = window.setInterval(() => {
-      if (lastSavedDate.current) {
-        setLastSaved(formatSaved(lastSavedDate.current));
-      }
-    }, TIME_UPDATE_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [formatSaved]);
-
-  // 离开前提醒
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      const changed = compareSlateContent(page?.slateData, lastContent.current);
-      if (!isReadOnly && changed) {
-        const msg = "您有未保存的更改，确定要离开吗？";
-        e.preventDefault();
-        e.returnValue = msg;
-        return msg;
-      }
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [isReadOnly, page?.slateData]);
-
-  // Ctrl+S / Cmd+S
   useKeyboardSave({
     isReadOnly,
     editorFocusedRef: editorFocus,
@@ -222,15 +198,13 @@ function useAutoSave({
     onSave: triggerSave,
   });
 
-  // 每次输入
   function handleChange(v: EditorContent) {
     if (isReadOnly) return;
     dispatch(updateSlate(v));
-    clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(triggerSave, AUTO_SAVE_DELAY_MS);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(triggerSave, AUTO_SAVE_DELAY_MS);
   }
 
-  // 真正的保存
   async function triggerSave() {
     if (status === "saving" || isReadOnly) return;
     const slateData = page?.slateData;
@@ -242,19 +216,14 @@ function useAutoSave({
       return;
     }
 
-    clearTimeout(statusTimer.current);
+    if (statusTimer.current) clearTimeout(statusTimer.current);
     setStatus("saving");
 
     try {
       const result = await dispatch(savePage()).unwrap();
-      const now = new Date(result.updatedAt);
-      lastSavedDate.current = now;
       lastContent.current = JSON.parse(JSON.stringify(slateData));
-
-      setLastSaved(formatSaved(now));
       setStatus("saved");
-
-      statusTimer.current = window.setTimeout(
+      statusTimer.current = setTimeout(
         () => setStatus(null),
         STATUS_RESET_DELAY_MS
       );
@@ -265,19 +234,16 @@ function useAutoSave({
     }
   }
 
-  // —— 新增：组件卸载时清理所有定时器 ——
   useEffect(() => {
     return () => {
-      if (saveTimer.current) window.clearTimeout(saveTimer.current);
-      if (statusTimer.current) window.clearTimeout(statusTimer.current);
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (statusTimer.current) clearTimeout(statusTimer.current);
     };
   }, []);
 
   return {
     saveStatus: status,
-    lastSavedTime: lastSaved,
     handleChange,
-    handleRetry: triggerSave,
     handleFocus: () => (editorFocus.current = true),
     handleBlur: () => (editorFocus.current = false),
     hasPendingChanges: compareSlateContent(
