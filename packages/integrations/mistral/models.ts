@@ -44,6 +44,7 @@ export const mistralModels: Model[] = [
       input: 2 * 8, // $2 per million tokens
       output: 5 * 8, // $5 per million tokens
     },
+    supportsReasoningEffort: true, // Supports reasoning effort
   },
   {
     name: "magistral-small-2506",
@@ -56,5 +57,6 @@ export const mistralModels: Model[] = [
       input: 0.5 * 8, // $0.5 per million tokens
       output: 1.5 * 8, // $1.5 per million tokens
     },
+    supportsReasoningEffort: true, // Supports reasoning effort
   },
 ];

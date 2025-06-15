@@ -10,6 +10,7 @@ export const deepinfraModels: Model[] = [
     price: { input: 0.5, output: 2.18 * 8 },
     maxOutputTokens: 163840,
     contextWindow: 163840,
+    supportsReasoningEffort: true, // 支持推理功能
   },
   {
     name: "deepseek-ai/DeepSeek-V3-0324",

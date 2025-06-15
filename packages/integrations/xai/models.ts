@@ -27,6 +27,7 @@ export const xaiModels: Model[] = [
     price: { input: 2.4, output: 4 }, // 真实价格：input: 0.3 * 8, output: 0.5 * 8
     fnCall: true, // 支持函数调用
     jsonOutput: true, // 支持结构化输出
+    supportsReasoningEffort: true, // 支持推理功能
   },
   {
     name: "grok-3-mini-fast-latest",
@@ -36,5 +37,6 @@ export const xaiModels: Model[] = [
     price: { input: 4.8, output: 32 }, // 真实价格：input: 0.6 * 8, output: 4 * 8
     fnCall: true, // 支持函数调用
     jsonOutput: true, // 支持结构化输出
+    supportsReasoningEffort: true, // 支持推理功能
   },
 ];

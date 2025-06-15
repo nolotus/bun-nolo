@@ -19,6 +19,7 @@ export const deepSeekModels: Model[] = [
     hasVision: false,
     contextWindow: 65536, // 64k
     maxOutputTokens: 32768, // 32k tokens
+    supportsReasoningEffort: true, // 支持推理功能
     price: {
       input: 4, // 4元 per 1M tokens
       inputCacheHit: 1, // 1元 per 1M tokens (cache hit)
