@@ -3,7 +3,7 @@ import { createCategoryFunc } from "ai/tools/createCategoryTool";
 import { generateTable } from "ai/tools/generateTableTool";
 import { fetchWebpage } from "ai/tools/fetchWebpageTool"; // 新增导入
 import { selectCurrentUserId } from "auth/authSlice";
-
+import { executeSql } from "./executeSqlTool";
 // 工具处理函数映射表
 export const toolHandlers: Record<
   string,
@@ -30,4 +30,5 @@ export const toolHandlers: Record<
     const currentUserId = selectCurrentUserId(getState());
     return fetchWebpage(args, thunkApi, currentUserId);
   }, // 新增工具处理函数
+  execute_sql: executeSql,
 };
