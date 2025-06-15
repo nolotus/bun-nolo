@@ -6,7 +6,7 @@ import type {
   SpaceData,
   SpaceMember,
 } from "create/space/types"; // 确认类型路径, 添加 SpaceMember
-import type { AppDispatch, NoloRootState } from "app/store"; // 假设 store 类型路径
+import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
 // import { checkSpaceMembership } from "../utils/permissions"; // 导入权限检查函数
 
 // --- 权限检查函数 (暂时注释掉) ---
@@ -25,7 +25,7 @@ export const updateSpaceAction = async (
     description?: string;
     visibility?: SpaceVisibility;
   },
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
 ) => {
   const { spaceId, name, description, visibility } = input;
   const { dispatch, getState } = thunkAPI;

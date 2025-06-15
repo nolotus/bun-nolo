@@ -1,4 +1,4 @@
-import { NoloRootState } from "app/store";
+import { RootState } from "app/store";
 import {
   createSelector,
   asyncThunkCreator,
@@ -229,7 +229,7 @@ export const messageSlice = createSliceWithThunks({
     deleteMessage: create.asyncThunk(
       async (dbKey: string, { dispatch, getState }) => {
         // 找到对应的 message id (如果需要的话，虽然 removeOne 可以直接用 id)
-        const state = getState() as NoloRootState;
+        const state = getState() as RootState;
         const msgToRemove = Object.values(state.message.msgs.entities).find(
           (msg) => msg?.dbKey === dbKey
         );
@@ -292,7 +292,7 @@ export const messageSlice = createSliceWithThunks({
         { getState } // 不需要 dispatch 了，因为 fulfilled handler 会处理 upsert
       ): Promise<{ messages: Message[] }> => {
         // 明确返回类型
-        const state = getState() as NoloRootState;
+        const state = getState() as RootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
 
@@ -423,7 +423,7 @@ export const messageSlice = createSliceWithThunks({
         { getState } // 不需要 dispatch
       ): Promise<{ messages: Message[]; limit: number }> => {
         // 明确返回类型
-        const state = getState() as NoloRootState;
+        const state = getState() as RootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
 
@@ -563,7 +563,7 @@ export const messageSlice = createSliceWithThunks({
 
 // --- Selectors using the adapter ---
 // 直接从导出的 slice 中获取 selectors
-const baseSelectors = messagesAdapter.getSelectors<NoloRootState>(
+const baseSelectors = messagesAdapter.getSelectors<RootState>(
   (state) => state.message.msgs // 指向正确的 state slice
 );
 

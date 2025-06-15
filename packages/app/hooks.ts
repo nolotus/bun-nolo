@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { read } from "database/dbSlice";
-import type { AppDispatch, NoloRootState } from "./store";
+import type { AppDispatch, RootState } from "app/store";
 
 export const useAppDispatch: () => AppDispatch = useDispatch;
-export const useAppSelector: TypedUseSelectorHook<NoloRootState> = useSelector;
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export function useFetchData<T>(dbKey: string) {
   const dispatch = useDispatch();

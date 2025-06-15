@@ -3,7 +3,7 @@ import {
   buildCreateSlice,
   createEntityAdapter,
 } from "@reduxjs/toolkit";
-import type { NoloRootState } from "app/store";
+import type { RootState } from "app/store";
 
 // Import actions
 import { removeAction } from "./action/remove";
@@ -20,7 +20,7 @@ export const dbAdapter = createEntityAdapter<any>({
 
 // Selectors
 export const { selectById, selectEntities, selectAll, selectIds, selectTotal } =
-  dbAdapter.getSelectors((state: NoloRootState) => state.db);
+  dbAdapter.getSelectors((state: RootState) => state.db);
 
 // Initial state
 const initialState = dbAdapter.getInitialState({});

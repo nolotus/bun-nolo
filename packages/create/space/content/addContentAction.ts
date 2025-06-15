@@ -9,7 +9,7 @@ import type {
 import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
-import type { AppDispatch, NoloRootState } from "app/store"; // 假设 store 类型路径
+import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
 import { checkSpaceMembership } from "../utils/permissions"; // 导入权限检查函数
 import { UNCATEGORIZED_ID } from "create/space/constants"; // 导入常量
 
@@ -24,7 +24,7 @@ export const addContentAction = async (
   // 输入类型：AddContentRequest 包含可选的 categoryId?: string
   // 但 Action 内部会处理更广泛的输入可能性
   input: AddContentRequest & { spaceId: SpaceId },
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
   // 返回类型明确
   const {

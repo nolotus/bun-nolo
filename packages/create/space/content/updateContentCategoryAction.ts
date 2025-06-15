@@ -4,7 +4,7 @@ import type { SpaceId, SpaceData, SpaceContent } from "create/space/types"; // �
 import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
-import type { AppDispatch, NoloRootState } from "app/store"; // 假设 store 类型路径
+import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
 import { checkSpaceMembership } from "../utils/permissions"; // 导入权限检查函数
 // --- 导入常量 ---
 import { UNCATEGORIZED_ID } from "create/space/constants"; // 导入代表 UI 未分类容器的常量
@@ -18,7 +18,7 @@ export const updateContentCategoryAction = async (
   // --- 修改: 输入类型明确为 string，代表目标容器 ID ---
   //   这个 ID 可以是真实的分类 ID，也可以是 UNCATEGORIZED_ID 常量
   input: { spaceId: SpaceId; contentKey: string; categoryId: string },
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState } // 使用明确类型
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState } // 使用明确类型
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
   // --- 重命名 categoryId 为 targetContainerId 以更清晰地表达其含义 ---
   const { spaceId, contentKey, categoryId: targetContainerId } = input;

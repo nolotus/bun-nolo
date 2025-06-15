@@ -1,4 +1,4 @@
-import { NoloRootState } from "app/store";
+import { RootState } from "app/store";
 import { generatePrompt } from "ai/prompt/generatePrompt";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
@@ -119,7 +119,7 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
  * 主函数
  */
 export const generateOpenAIRequestBody = (
-  state: NoloRootState,
+  state: RootState,
   cybotConfig: {
     model: string;
     prompt?: string;

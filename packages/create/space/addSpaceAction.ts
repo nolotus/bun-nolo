@@ -13,13 +13,13 @@ import { ulid } from "ulid";
 import { patch, write, read } from "database/dbSlice"; // 确认导入路径 (添加 read)
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { selectAllMemberSpaces } from "./spaceSlice"; // 确认导入路径
-import type { AppDispatch, NoloRootState } from "app/store"; // 假设 store 类型路径
+import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
 
 const targetTypes = [DataType.DIALOG, DataType.PAGE];
 
 export const addSpaceAction = async (
   input: CreateSpaceRequest,
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState } // 使用具体类型
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState } // 使用具体类型
 ) => {
   const {
     name,

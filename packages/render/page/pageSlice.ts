@@ -1,9 +1,15 @@
+// 文件: store/features/page/pageSlice.ts
+// (假设文件路径)
+
 import { formatISO } from "date-fns";
 import {
   asyncThunkCreator,
   buildCreateSlice,
+  createListenerMiddleware,
   PayloadAction,
+  isAnyOf,
 } from "@reduxjs/toolkit";
+import { RootState } from "app/store"; // 假设的 RootState 类型路径
 import { readAndWait, patch } from "database/dbSlice";
 import { updateContentTitle } from "create/space/spaceSlice";
 import {
@@ -14,6 +20,8 @@ import {
 import { DataType } from "create/types";
 import { createPageAction } from "./createPageAction";
 import { PageData } from "./types";
+
+const AUTO_SAVE_DELAY_MS = 2000; // 自动保存延时
 
 // —— State 接口 ——
 export interface PageSliceState {
@@ -27,12 +35,11 @@ export interface PageSliceState {
   isInitialized: boolean;
   error: string | null;
   currentPageId: string | null;
-
-  // 保存状态字段
   isSaving: boolean;
   saveError: string | null;
-  lastSavedAt: string | null; // ISO 字符串
-  lastSavedSlateData: EditorContent | null; // 上次成功保存时的内容
+  lastSavedAt: string | null;
+  lastSavedSlateData: EditorContent | null;
+  justSaved: boolean;
 }
 
 // —— 初始状态 ——
@@ -51,6 +58,7 @@ const initialState: PageSliceState = {
   saveError: null,
   lastSavedAt: null,
   lastSavedSlateData: null,
+  justSaved: false,
 };
 
 // —— initPage 参数和 payload 类型 ——
@@ -72,10 +80,8 @@ export const pageSlice = createSliceWithThunks({
   name: "page",
   initialState,
   reducers: (create) => ({
-    // 创建页面（暂时不管）
     createPage: create.asyncThunk(createPageAction),
 
-    // 初始化页面：读数据库
     initPage: create.asyncThunk(
       async (args: InitPageArgs, { dispatch, rejectWithValue }) => {
         const { pageId, isReadOnly } = args;
@@ -102,7 +108,6 @@ export const pageSlice = createSliceWithThunks({
           state,
           action: PayloadAction<undefined, string, { arg: InitPageArgs }>
         ) => {
-          // 使用 initialState 重置，避免状态污染
           Object.assign(state, initialState);
           state.isLoading = true;
           state.currentPageId = action.meta.arg.pageId;
@@ -114,7 +119,7 @@ export const pageSlice = createSliceWithThunks({
           state.error = null;
           state.content = action.payload.content;
           state.slateData = action.payload.slateData;
-          state.lastSavedSlateData = action.payload.slateData; // 关键：初始化保存基准
+          state.lastSavedSlateData = action.payload.slateData;
           state.title = action.payload.title;
           state.dbSpaceId = action.payload.spaceId;
           state.tags = action.payload.tags || null;
@@ -124,7 +129,7 @@ export const pageSlice = createSliceWithThunks({
         },
         rejected: (state, action) => {
           state.isLoading = false;
-          state.isInitialized = true; // 即使失败也标记为已初始化，以显示错误信息
+          state.isInitialized = true;
           state.error =
             (action.payload as string) ||
             action.error.message ||
@@ -133,28 +138,29 @@ export const pageSlice = createSliceWithThunks({
       }
     ),
 
-    // 更新 Slate 数据
     updateSlate: create.reducer(
       (state, action: PayloadAction<EditorContent>) => {
         if (state.isInitialized && !state.isReadOnly) {
           state.slateData = action.payload;
+          state.justSaved = false;
         }
       }
     ),
 
-    // 统一保存 Thunk
     savePage: create.asyncThunk(
       async (_arg: void, { dispatch, getState, rejectWithValue }) => {
-        const state = (getState() as any).page as PageSliceState;
+        const state = (getState() as RootState).page;
         const { currentPageId, slateData, dbSpaceId } = state;
 
         if (!currentPageId) return rejectWithValue("缺少 pageId，无法保存");
         if (!slateData) return rejectWithValue("内容为空，无法保存");
+        // 注意：这里的 condition 检查已经很完善，能防止无效的保存请求
 
         const title = extractTitleFromSlate(slateData) || "未命名页面";
         const now = new Date();
 
         try {
+          // 这个 thunk 的核心逻辑是异步的，但 dispatch(savePage()) 本身可以被同步或异步等待
           await dispatch(
             patch({
               dbKey: currentPageId,
@@ -178,29 +184,20 @@ export const pageSlice = createSliceWithThunks({
         }
       },
       {
-        // 关键：在 Thunk 执行前进行条件检查
         condition: (_arg, { getState }) => {
-          const state = (getState() as any).page as PageSliceState;
-
-          // 如果正在保存中，则取消本次操作，防止并发
-          if (state.isSaving) {
-            return false;
-          }
-
-          // 如果内容没有变化，则取消本次操作，防止不必要的请求
+          const state = (getState() as RootState).page;
+          if (state.isSaving) return false;
           const hasChanges = compareSlateContent(
             state.slateData,
             state.lastSavedSlateData
           );
-          if (!hasChanges) {
-            return false;
-          }
-
+          if (!hasChanges) return false;
           return true;
         },
         pending: (state) => {
           state.isSaving = true;
           state.saveError = null;
+          state.justSaved = false;
         },
         fulfilled: (
           state,
@@ -213,18 +210,22 @@ export const pageSlice = createSliceWithThunks({
           state.isSaving = false;
           state.lastSavedAt = action.payload.updatedAt;
           state.title = action.payload.title;
-          // 关键：保存成功后，更新“上次保存的内容”基准
           state.lastSavedSlateData = action.payload.savedContent;
+          state.justSaved = true;
         },
         rejected: (state, action) => {
           state.isSaving = false;
           state.saveError =
             (action.payload as string) || action.error.message || "未知错误";
+          state.justSaved = false;
         },
       }
     ),
 
-    // 其他 reducers
+    resetJustSavedStatus: create.reducer((state) => {
+      state.justSaved = false;
+    }),
+
     toggleReadOnly: create.reducer((state) => {
       state.isReadOnly = !state.isReadOnly;
     }),
@@ -239,7 +240,6 @@ export const pageSlice = createSliceWithThunks({
     }),
   }),
 
-  // —— Selectors ——
   selectors: {
     selectPageData: (s: PageSliceState) => s,
     selectSlateData: (s: PageSliceState) => s.slateData,
@@ -247,27 +247,27 @@ export const pageSlice = createSliceWithThunks({
     selectPageIsLoading: (s: PageSliceState) => s.isLoading,
     selectPageIsInitialized: (s: PageSliceState) => s.isInitialized,
     selectPageError: (s: PageSliceState) => s.error,
+    selectIsSaving: (s: PageSliceState) => s.isSaving,
+    selectSaveError: (s: PageSliceState) => s.saveError,
+    selectJustSaved: (s: PageSliceState) => s.justSaved,
+    selectHasPendingChanges: (s: PageSliceState) => {
+      if (!s.isInitialized || s.isReadOnly) return false;
+      return compareSlateContent(s.slateData, s.lastSavedSlateData);
+    },
     selectCurrentPageTitle: (s: PageSliceState) => s.title,
     selectPageDbSpaceId: (s: PageSliceState) => s.dbSpaceId,
     selectCurrentPageId: (s: PageSliceState) => s.currentPageId,
     selectPageTags: (s: PageSliceState) => s.tags,
-    selectIsSaving: (s: PageSliceState) => s.isSaving,
-    selectSaveError: (s: PageSliceState) => s.saveError,
     selectLastSavedAt: (s: PageSliceState) => s.lastSavedAt,
-    // 新增：直接从 Redux 判断是否有未保存的更改
-    selectHasPendingChanges: (s: PageSliceState) => {
-      if (!s.isInitialized) return false;
-      return compareSlateContent(s.slateData, s.lastSavedSlateData);
-    },
   },
 });
 
-// —— 导出 Actions 和 Reducer ——
 export const {
   createPage,
   initPage,
   updateSlate,
   savePage,
+  resetJustSavedStatus,
   toggleReadOnly,
   setReadOnly,
   resetPage,
@@ -281,14 +281,26 @@ export const {
   selectPageIsLoading,
   selectPageIsInitialized,
   selectPageError,
+  selectIsSaving,
+  selectSaveError,
+  selectJustSaved,
+  selectHasPendingChanges,
   selectCurrentPageTitle,
   selectPageDbSpaceId,
   selectCurrentPageId,
   selectPageTags,
-  selectIsSaving,
-  selectSaveError,
   selectLastSavedAt,
-  selectHasPendingChanges,
 } = pageSlice.selectors;
 
 export default pageSlice.reducer;
+
+export const pageListenerMiddleware = createListenerMiddleware();
+
+pageListenerMiddleware.startListening({
+  actionCreator: updateSlate,
+  effect: async (action, listenerApi) => {
+    listenerApi.cancelActiveListeners();
+    await listenerApi.delay(AUTO_SAVE_DELAY_MS);
+    listenerApi.dispatch(savePage());
+  },
+});

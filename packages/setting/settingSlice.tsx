@@ -1,6 +1,6 @@
 // src/setting/settingSlice.ts
 
-import type { NoloRootState } from "app/store";
+import type { RootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { isProduction } from "utils/env";
 // Import read and the NEW upsert action
@@ -117,7 +117,7 @@ const settingSlice = createSliceWithThunks({
       // 'args' should contain only the settings fields to be updated
       async (args: Partial<SettingState> & { type?: DataType }, thunkAPI) => {
         const { dispatch, getState } = thunkAPI;
-        const state = getState() as NoloRootState; // Get root state
+        const state = getState() as RootState; // Get root state
         const userId = selectCurrentUserId(state); // Get current user ID
 
         if (!userId) {
@@ -194,20 +194,20 @@ export const {
 } = settingSlice.actions;
 
 // Export selectors
-export const selectCurrentServer = (state: NoloRootState): string =>
+export const selectCurrentServer = (state: RootState): string =>
   state.settings.currentServer;
 
 // Make sure selectSyncServers selector exists if needed elsewhere
-export const selectSyncServers = (state: NoloRootState): string[] =>
+export const selectSyncServers = (state: RootState): string[] =>
   state.settings.syncServers; // Return type should be string[]
 
 // Selector for defaultSpaceId
 export const selectDefaultSpaceId = (
-  state: NoloRootState
+  state: RootState
 ): string | null | undefined => state.settings.defaultSpaceId;
 
 // 新增：思考显示设置的selector
-export const selectShowThinking = (state: NoloRootState): boolean =>
+export const selectShowThinking = (state: RootState): boolean =>
   state.settings.showThinking;
 
 // Export reducer

@@ -10,7 +10,7 @@ import type {
 import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
-import type { AppDispatch, NoloRootState } from "app/store"; // 假设 store 类型路径
+import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
 import { checkSpaceMembership } from "../utils/permissions"; // 导入权限检查函数
 // --- 移除 UNCATEGORIZED_ID 导入，因为它不再用于此文件的核心逻辑 ---
 // import { UNCATEGORIZED_ID } from "create/space/constants";
@@ -29,7 +29,7 @@ type SpacePatchChanges = Partial<
  */
 export const deleteCategoryAction = async (
   input: { categoryId: string; spaceId: SpaceId },
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
   const { categoryId, spaceId } = input;
   const { dispatch, getState } = thunkAPI;

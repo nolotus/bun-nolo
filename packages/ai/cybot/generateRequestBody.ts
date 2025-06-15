@@ -1,4 +1,4 @@
-import { NoloRootState } from "app/store";
+import { RootState } from "app/store";
 import { generateOpenAIRequestBody } from "integrations/openai/generateRequestBody";
 
 interface CybotConfig {
@@ -10,7 +10,7 @@ interface CybotConfig {
 }
 
 export const generateRequestBody = (
-  state: NoloRootState,
+  state: RootState,
   cybotConfig: CybotConfig,
   contexts?: any
 ) => {
