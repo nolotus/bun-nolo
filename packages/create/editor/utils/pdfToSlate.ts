@@ -1,5 +1,6 @@
 import * as pdfjsLib from "pdfjs-dist";
 import * as worker from "pdfjs-dist/build/pdf.worker.mjs";
+
 console.log("worker", worker);
 // 设置 pdf.js worker 路径（根据你的项目配置调整）
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/public/assets/pdf.worker.mjs";

@@ -265,7 +265,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           tabIndex={0}
           aria-selected={isSelected}
         >
-          {/* 仅包裹图标的可拖拽组件 */}
           <ItemDraggable id={contentKey} containerId={categoryId || "default"}>
             {({ onDragStart, onDragEnd }) => (
               <span
@@ -287,7 +286,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             )}
           </ItemDraggable>
 
-          {/* 标题 */}
           {isEditing ? (
             <div className="SidebarItem__editContainer">
               <InlineEditInput inputRef={inputRef} {...inputProps} />
@@ -312,7 +310,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             </NavLink>
           )}
 
-          {/* 操作按钮 */}
           {showActions && !isEditing && (
             <div className="SidebarItem__actionButtons">
               <ActionButton
@@ -331,7 +328,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           )}
         </div>
 
-        {/* 菜单 */}
         {menuOpen &&
           createPortal(
             <div
@@ -354,7 +350,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             document.body
           )}
 
-        {/* 移动子菜单 */}
         {isMoveSubMenuOpen &&
           createPortal(
             <MoveToSpaceSubMenu
