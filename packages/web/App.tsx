@@ -2,9 +2,9 @@
 
 import React, { useEffect, useMemo, useRef } from "react";
 import { useAppDispatch } from "app/hooks";
-import { initializeAuth, selectCurrentUserId } from "auth/authSlice"; // 假设 selectCurrentUserId 在这里
+import { initializeAuth, selectCurrentUserId } from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
-import i18n from "i18n";
+import i18n from "app/i18n";
 import { Toaster } from "react-hot-toast";
 import { useRoutes, Outlet } from "react-router-dom";
 import { addHostToCurrentServer, getSettings } from "setting/settingSlice";
