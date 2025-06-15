@@ -3,7 +3,7 @@ import {
   asyncThunkCreator,
   buildCreateSlice,
 } from "@reduxjs/toolkit";
-import type { NoloRootState } from "app/store";
+import type { RootState } from "app/store";
 import { deleteDialogMsgs } from "chat/messages/messageSlice";
 import { read, selectById, patch } from "database/dbSlice";
 import { extractCustomId } from "core/prefix";
@@ -114,7 +114,7 @@ const DialogSlice = createSliceWithThunks({
     deleteCurrentDialog: create.asyncThunk(
       async (dialogKey, thunkApi) => {
         const dispatch = thunkApi.dispatch;
-        const state = thunkApi.getState() as NoloRootState;
+        const state = thunkApi.getState() as RootState;
         dispatch(deleteDialog(dialogKey));
         const spaceId = selectCurrentSpaceId(state);
         if (spaceId) {
@@ -204,7 +204,7 @@ const DialogSlice = createSliceWithThunks({
     abortAllMessages: create.asyncThunk(
       async (_, thunkApi) => {
         const { dispatch, getState } = thunkApi;
-        const state = getState() as NoloRootState;
+        const state = getState() as RootState;
         const controllers = state.dialog.activeControllers;
 
         // 对所有控制器调用 abort 方法
@@ -263,32 +263,32 @@ export const {
 export default DialogSlice.reducer;
 
 // --- Selectors ---
-export const selectCurrentDialogConfig = (state: NoloRootState) =>
+export const selectCurrentDialogConfig = (state: RootState) =>
   state.dialog.currentDialogKey
     ? selectById(state, state.dialog.currentDialogKey)
     : null;
 
-export const selectCurrentDialogKey = (state: NoloRootState) =>
+export const selectCurrentDialogKey = (state: RootState) =>
   state.dialog.currentDialogKey;
 
-export const selectTotalDialogTokens = (state: NoloRootState): number =>
+export const selectTotalDialogTokens = (state: RootState): number =>
   state.dialog.currentDialogTokens.inputTokens +
   state.dialog.currentDialogTokens.outputTokens;
 
-export const selectIsUpdatingMode = (state: NoloRootState): boolean =>
+export const selectIsUpdatingMode = (state: RootState): boolean =>
   state.dialog.isUpdatingMode;
 
 // 新增 Selectors（仅保留与 pendingFiles 相关的）
-export const selectPendingFiles = (state: NoloRootState): PendingFile[] =>
+export const selectPendingFiles = (state: RootState): PendingFile[] =>
   state.dialog.pendingFiles;
 
 export const selectPendingFilesByType = (
-  state: NoloRootState,
+  state: RootState,
   type: "excel" | "docx" | "pdf" | "page"
 ): PendingFile[] =>
   state.dialog.pendingFiles.filter((file) => file.type === type);
 
 // 新增 Selector
 export const selectActiveControllers = (
-  state: NoloRootState
+  state: RootState
 ): Record<string, AbortController> => state.dialog.activeControllers;

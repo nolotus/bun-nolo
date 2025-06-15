@@ -1,23 +1,16 @@
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useCallback,
-  useState,
-} from "react";
+// 文件: components/page/RenderPage.tsx
+// (假设文件路径)
+
+import React, { useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import toast from "react-hot-toast";
 
-import {
-  EditorContent,
-  compareSlateContent,
-} from "create/editor/utils/slateUtils";
+import { EditorContent } from "create/editor/utils/slateUtils";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import SaveStatusIndicator, { SaveStatus } from "./SaveStatusIndicator";
 import { selectTheme } from "app/theme/themeSlice";
 
-// 编辑器懒加载
 const Editor = React.lazy(() => import("create/editor/Editor"));
 
 import {
@@ -29,36 +22,71 @@ import {
   selectIsSaving,
   selectHasPendingChanges,
   selectSaveError,
+  selectJustSaved,
   updateSlate,
   savePage,
+  resetJustSavedStatus,
 } from "./pageSlice";
 
-const AUTO_SAVE_DELAY_MS = 2000; // 自动保存防抖时长
+const STATUS_RESET_DELAY_MS = 2000;
 
-// 内置 Ctrl+S / Cmd+S 保存 Hook
 function useKeyboardSave(onSave: () => void, isReadOnly: boolean) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isReadOnly) return;
-
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
         onSave();
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onSave, isReadOnly]);
 }
 
-// 核心组件
+// ======================================================================
+// 【新增 Hook】: 封装基于事件的保存触发器
+// ======================================================================
+function useSaveOnEvents(onSave: () => void, isReadOnly: boolean) {
+  useEffect(() => {
+    if (isReadOnly) return;
+
+    // 1. 当用户切换标签页或最小化窗口时保存
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        onSave();
+      }
+    };
+
+    // 2. 当用户尝试关闭标签页时保存
+    // 注意: 现代浏览器对 beforeunload 中的操作有严格限制，
+    // dispatch thunk 是一个可行的同步操作。
+    // 我们不在这里使用 navigator.sendBeacon，因为 RTK 的 thunk 机制更统一。
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // onSave() 内部的 condition 会检查是否有未保存的更改
+      onSave();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [onSave, isReadOnly]);
+}
+
+// ======================================================================
+// 【核心组件】: RenderPage
+// ======================================================================
 export default React.memo(function RenderPage({
   pageKey,
 }: {
   pageKey: string;
 }) {
   const [params] = useSearchParams();
+  const dispatch = useAppDispatch();
   const urlEditMode = params.get("edit") === "true";
   const theme = useAppSelector(selectTheme);
 
@@ -68,8 +96,31 @@ export default React.memo(function RenderPage({
   );
   const initialValue = useInitialValue(page, isInitialized);
 
-  const { handleChange, triggerSaveNow } = usePageSaveManager(isReadOnly);
+  // 统一的保存触发函数
+  const triggerSaveNow = useCallback(() => {
+    // dispatch(savePage()) 会由 thunk 的 condition 自动处理
+    // 是否需要保存，无需在组件中判断。
+    dispatch(savePage());
+  }, [dispatch]);
+
+  // 编辑器内容变化回调
+  const handleChange = useCallback(
+    (value: EditorContent) => {
+      dispatch(updateSlate(value));
+    },
+    [dispatch]
+  );
+
+  // 编辑器失焦时回调
+  const handleBlur = useCallback(() => {
+    if (!isReadOnly) {
+      triggerSaveNow();
+    }
+  }, [isReadOnly, triggerSaveNow]);
+
+  // 注册所有保存事件
   useKeyboardSave(triggerSaveNow, isReadOnly);
+  useSaveOnEvents(triggerSaveNow, isReadOnly);
 
   if (isLoading || !isInitialized) {
     return <Loader theme={theme} />;
@@ -86,6 +137,7 @@ export default React.memo(function RenderPage({
                   initialValue={initialValue}
                   onChange={handleChange}
                   readOnly={isReadOnly}
+                  onBlur={handleBlur} // <-- 新增 onBlur 属性
                 />
               </div>
             </React.Suspense>
@@ -100,7 +152,7 @@ export default React.memo(function RenderPage({
   );
 });
 
-/*——————— Hook: 装载并选择 Page 数据 ———————*/
+/*——————— Hook: 装载并选择 Page 数据 (维持不变) ———————*/
 function usePageData(pageKey: string, urlEditMode: boolean) {
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector(selectPageIsLoading);
@@ -121,7 +173,7 @@ function usePageData(pageKey: string, urlEditMode: boolean) {
   return { isLoading, isInitialized, page, isReadOnly };
 }
 
-/*——————— Hook: 计算 Slate 编辑器的初始值 ———————*/
+/*——————— Hook: 计算 Slate 编辑器的初始值 (维持不变) ———————*/
 function useInitialValue(page: any, isInitialized: boolean): EditorContent {
   return useMemo<EditorContent>(() => {
     if (!isInitialized) {
@@ -134,10 +186,7 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
         return markdownToSlate(page.content);
       } catch {
         return [
-          {
-            type: "heading-one",
-            children: [{ text: "新页面 (转换失败)" }],
-          },
+          { type: "heading-one", children: [{ text: "新页面 (转换失败)" }] },
           { type: "paragraph", children: [{ text: "请直接编辑此内容。" }] },
         ];
       }
@@ -149,105 +198,34 @@ function useInitialValue(page: any, isInitialized: boolean): EditorContent {
   }, [page, isInitialized]);
 }
 
-/*——————— 新 Hook: 页面保存管理器 ———————*/
-function usePageSaveManager(isReadOnly: boolean) {
-  const dispatch = useAppDispatch();
-  const page = useAppSelector(selectPageData);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // 自动保存逻辑: 监听 Redux state 的变化
-  useEffect(() => {
-    if (isReadOnly) return;
-
-    // 清除上一个定时器
-    if (saveTimer.current) {
-      clearTimeout(saveTimer.current);
-    }
-    // 设置新的定时器
-    saveTimer.current = setTimeout(() => {
-      dispatch(savePage());
-    }, AUTO_SAVE_DELAY_MS);
-
-    // 组件卸载时清除定时器
-    return () => {
-      if (saveTimer.current) {
-        clearTimeout(saveTimer.current);
-      }
-    };
-  }, [page.slateData, isReadOnly, dispatch]); // 依赖 slateData
-
-  // 编辑器内容变化时的回调
-  const handleChange = useCallback(
-    (value: EditorContent) => {
-      dispatch(updateSlate(value));
-    },
-    [dispatch]
-  );
-
-  // 手动/快捷键触发保存的回调
-  const triggerSaveNow = useCallback(() => {
-    if (isReadOnly) return;
-    // 取消可能存在的自动保存定时器，并立即保存
-    if (saveTimer.current) {
-      clearTimeout(saveTimer.current);
-      saveTimer.current = null;
-    }
-    dispatch(savePage());
-  }, [dispatch, isReadOnly]);
-
-  return { handleChange, triggerSaveNow };
-}
-
-/*——————— 新组件: 页面保存状态指示器 ———————*/
-const STATUS_RESET_DELAY_MS = 3000;
-
+/*——————— 组件: 页面保存状态指示器 (维持不变) ———————*/
 function PageSaveStatus() {
+  const dispatch = useAppDispatch();
   const isSaving = useAppSelector(selectIsSaving);
   const hasPendingChanges = useAppSelector(selectHasPendingChanges);
   const saveError = useAppSelector(selectSaveError);
-  const [showSaved, setShowSaved] = useState(false);
-  const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const justSaved = useAppSelector(selectJustSaved);
 
-  // 这个 effect 用于在合适的时机触发 "已保存" 状态的显示和隐藏
   useEffect(() => {
-    // 每次保存成功（即：不在保存中、没有待定更改、也没有错误），就显示“已保存”状态
-    if (!isSaving && !hasPendingChanges && !saveError) {
-      // 检查是否是从 isSaving=true 状态过来的，避免页面加载时就显示“已保存”
-      if (statusTimer.current === null) {
-        // 如果不是刚保存完，什么都不做
-      } else {
-        clearTimeout(statusTimer.current);
-      }
-
-      setShowSaved(true);
-      statusTimer.current = setTimeout(() => {
-        setShowSaved(false);
-        statusTimer.current = null; // 重置 timer 引用
+    if (justSaved) {
+      const timer = setTimeout(() => {
+        dispatch(resetJustSavedStatus());
       }, STATUS_RESET_DELAY_MS);
+      return () => clearTimeout(timer);
     }
-    // 如果开始编辑，则立即隐藏“已保存”
-    if (hasPendingChanges) {
-      if (statusTimer.current) clearTimeout(statusTimer.current);
-      setShowSaved(false);
-    }
+  }, [justSaved, dispatch]);
 
-    return () => {
-      if (statusTimer.current) clearTimeout(statusTimer.current);
-    };
-  }, [isSaving, hasPendingChanges, saveError]);
-
-  // 这个 effect 只用于在出现保存错误时弹出 toast
   useEffect(() => {
-    if (saveError) {
+    if (saveError && saveError !== "内容无变化") {
       toast.error("内容保存失败", { icon: "⚠️", duration: 4000 });
     }
   }, [saveError]);
 
   const getStatus = (): SaveStatus => {
     if (isSaving) return "saving";
-    if (saveError && hasPendingChanges) return "error"; // 保存失败且有改动
-    if (showSaved) return "saved";
-    return null; // 默认空闲状态
+    if (saveError && hasPendingChanges) return "error";
+    if (justSaved) return "saved";
+    return null;
   };
 
   return (
@@ -258,7 +236,7 @@ function PageSaveStatus() {
   );
 }
 
-/*—————— Loader / EditorLoader / 样式 ———————*/
+/*—————— Loader / EditorLoader / 样式 (维持不变) ———————*/
 const Loader = ({ theme }: any) => (
   <div
     style={{
@@ -275,13 +253,7 @@ const Loader = ({ theme }: any) => (
 );
 
 const EditorLoader = ({ theme }: any) => (
-  <div
-    style={{
-      padding: 20,
-      textAlign: "center",
-      color: theme.textSecondary,
-    }}
-  >
+  <div style={{ padding: 20, textAlign: "center", color: theme.textSecondary }}>
     加载编辑器...
   </div>
 );
@@ -298,16 +270,11 @@ const styles = {
     .main { flex:1; display:flex; overflow:hidden }
     .scrollable { flex:1; overflow-y:auto; scroll-behavior:smooth }
     .wrapper { max-width:800px; margin:0 auto; padding:20px 16px }
-    [contenteditable="true"] { outline:none; caret-color:${t.primary};
-      padding:4px; font-size:16px; line-height:1.7; color:${t.text} }
+    [contenteditable="true"] { outline:none; caret-color:${t.primary}; padding:4px; font-size:16px; line-height:1.7; color:${t.text} }
     .scrollable::-webkit-scrollbar { width:6px }
-    .scrollable::-webkit-scrollbar-thumb {
-      background:${t.borderHover}; border-radius:3px }
-    .scrollable::-webkit-scrollbar-thumb:hover {
-      background:${t.textQuaternary} }
-    @media (max-width:768px) {
-      .wrapper { padding:16px 12px }
-    }
+    .scrollable::-webkit-scrollbar-thumb { background:${t.borderHover}; border-radius:3px }
+    .scrollable::-webkit-scrollbar-thumb:hover { background:${t.textQuaternary} }
+    @media (max-width:768px) { .wrapper { padding:16px 12px } }
     @media print {
       .container, .scrollable { overflow:visible }
       .container { height:auto }

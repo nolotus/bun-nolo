@@ -1,4 +1,4 @@
-import { NoloRootState } from "app/store";
+import { RootState } from "app/store";
 import { addSpace, changeSpace } from "./spaceSlice";
 import { setSettings } from "setting/settingSlice";
 import { DataType, SpaceMemberWithSpaceInfo } from "../types";
@@ -35,7 +35,7 @@ const handleEmptyMembership = async (dispatch: any) => {
 const handleNonEmptyMembership = async (
   dispatch: any,
   memberships: SpaceMemberWithSpaceInfo[],
-  state: NoloRootState
+  state: RootState
 ): Promise<string | null> => {
   try {
     const defaultSpaceId = state.settings.defaultSpaceId;
@@ -75,7 +75,7 @@ export const loadDefaultSpaceAction = async (
   thunkAPI
 ): Promise<string | null> => {
   const dispatch = thunkAPI.dispatch;
-  const state = thunkAPI.getState() as NoloRootState;
+  const state = thunkAPI.getState() as RootState;
 
   if (state.space.currentSpaceId) {
     return null;

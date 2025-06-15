@@ -1,6 +1,6 @@
 // 文件路径: create/space/content/moveContentAction.ts
 
-import type { AppDispatch, NoloRootState } from "app/store"; // 确认 store 类型路径
+import type { AppDispatch, RootState } from "app/store"; // 确认 store 类型路径
 import type { SpaceId, SpaceContent, SpaceData } from "create/space/types"; // 确认类型路径
 import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
@@ -42,7 +42,7 @@ interface MoveContentResult {
  */
 export const moveContentAction = async (
   input: MoveContentInput,
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
 ): Promise<MoveContentResult> => {
   const {
     contentKey,

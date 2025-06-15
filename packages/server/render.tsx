@@ -1,5 +1,5 @@
 // handleRender.js
-import { store } from "app/store";
+import { createAppStore } from "app/store";
 import { renderToReadableStream } from "react-dom/server";
 import { renderReactApp } from "./html/renderReactApp";
 import { serializeState } from "./html/serializeState";
@@ -57,7 +57,7 @@ export const handleRender = async (req) => {
 
   try {
     const renderStartTime = performance.now();
-
+    const store = createAppStore();
     const stream = await renderToReadableStream(
       renderReactApp(store, url, hostname, lng),
       {
@@ -260,65 +260,4 @@ export const handleRender = async (req) => {
       }
     );
   }
-};
-
-// 可选：添加健康检查函数
-export const handleHealthCheck = async () => {
-  try {
-    const assets = await getLatestAssets();
-
-    return new Response(
-      JSON.stringify(
-        {
-          status: "healthy",
-          timestamp: new Date().toISOString(),
-          assets: {
-            hasJS: !!assets.js,
-            hasCSS: !!assets.css,
-            basePath: assets.basePath,
-            buildTimestamp: assets.timestamp,
-          },
-          cache: {
-            isCached: !!cachedAssets,
-            lastCheckTime: new Date(lastCheckTime).toISOString(),
-          },
-        },
-        null,
-        2
-      ),
-      {
-        status: 200,
-        headers: {
-          "content-type": "application/json",
-          "cache-control": "no-cache",
-        },
-      }
-    );
-  } catch (error) {
-    return new Response(
-      JSON.stringify(
-        {
-          status: "unhealthy",
-          error: error.message,
-          timestamp: new Date().toISOString(),
-        },
-        null,
-        2
-      ),
-      {
-        status: 500,
-        headers: {
-          "content-type": "application/json",
-          "cache-control": "no-cache",
-        },
-      }
-    );
-  }
-};
-
-// 可选：清除缓存的工具函数
-export const clearAssetsCache = () => {
-  cachedAssets = null;
-  lastCheckTime = 0;
-  console.log("Assets 缓存已清除");
 };

@@ -7,7 +7,7 @@ import {
 import { createPageKey } from "database/keys";
 import { t } from "i18next";
 import { DataType } from "create/types";
-import type { NoloRootState, AppDispatch } from "app/store";
+import type { RootState, AppDispatch } from "app/store";
 import { write } from "database/dbSlice";
 import type { PageData } from "./types";
 import { format } from "date-fns";
@@ -28,10 +28,7 @@ export const createPageAction = async (
     content?: string;
     slateData?: any;
   } = {},
-  {
-    dispatch,
-    getState,
-  }: { dispatch: AppDispatch; getState: () => NoloRootState }
+  { dispatch, getState }: { dispatch: AppDispatch; getState: () => RootState }
 ): Promise<string> => {
   const state = getState();
   const userId = selectCurrentUserId(state);

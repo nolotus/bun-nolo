@@ -1,5 +1,5 @@
 import { PayloadAction } from "@reduxjs/toolkit";
-import { NoloRootState } from "app/store";
+import { RootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { generateUserIdV1 } from "core/generateMainKey";
 import { signToken } from "auth/token";
@@ -41,7 +41,7 @@ export const authSlice = createSliceWithThunks({
   reducers: (create) => ({
     signIn: create.asyncThunk(
       async (input, thunkAPI) => {
-        const state: NoloRootState = thunkAPI.getState();
+        const state: RootState = thunkAPI.getState();
         const tokenManager = state.auth.tokenManager;
         try {
           const { username, locale, password } = input;
@@ -135,7 +135,7 @@ export const authSlice = createSliceWithThunks({
 
     signOut: create.asyncThunk(
       async (_, thunkAPI) => {
-        const state: NoloRootState = thunkAPI.getState();
+        const state: RootState = thunkAPI.getState();
         const tokenManager = state.auth.tokenManager;
         const tokens = await tokenManager.getTokens();
         const token = selectCurrentToken(state);
@@ -167,7 +167,7 @@ export const authSlice = createSliceWithThunks({
     changeUser: create.asyncThunk(
       async (user: User, thunkAPI) => {
         const dispatch = thunkAPI.dispatch;
-        const state: NoloRootState = thunkAPI.getState();
+        const state: RootState = thunkAPI.getState();
         const tokenManager = state.auth.tokenManager;
 
         // 尝试初始化新用户的 space，如果出错也不阻断流程
@@ -218,11 +218,9 @@ export const {
 export default authSlice.reducer;
 
 // 选择器
-export const selectCurrentUser = (state: NoloRootState) =>
-  state.auth.currentUser;
-export const selectUsers = (state: NoloRootState) => state.auth.users;
-export const selectCurrentUserId = (state: NoloRootState) =>
+export const selectCurrentUser = (state: RootState) => state.auth.currentUser;
+export const selectUsers = (state: RootState) => state.auth.users;
+export const selectCurrentUserId = (state: RootState) =>
   state.auth.currentUser?.userId;
-export const selectIsLoggedIn = (state: NoloRootState) => state.auth.isLoggedIn;
-export const selectCurrentToken = (state: NoloRootState) =>
-  state.auth.currentToken;
+export const selectIsLoggedIn = (state: RootState) => state.auth.isLoggedIn;
+export const selectCurrentToken = (state: RootState) => state.auth.currentToken;

@@ -7,12 +7,12 @@ import {
 import { patch, selectById } from "database/dbSlice";
 import { format, differenceInHours } from "date-fns";
 
-import { NoloRootState } from "app/store";
+import { RootState } from "app/store";
 import { pipe, flatten, filter, reverse } from "rambda";
 
 import { selectAllMsgs } from "../../messages/messageSlice";
 
-const getFilteredMessages = (state: NoloRootState) => {
+const getFilteredMessages = (state: RootState) => {
   const msgs = selectAllMsgs(state);
 
   return pipe(
@@ -56,7 +56,7 @@ const shouldUpdateTitle = (lastUpdatedAt: string): boolean => {
 export const updateDialogTitleAction = async (args, thunkApi) => {
   const { dialogKey, cybotConfig } = args;
   const dispatch = thunkApi.dispatch;
-  const state = thunkApi.getState() as NoloRootState; // 确保类型正确
+  const state = thunkApi.getState() as RootState; // 确保类型正确
 
   const dialogConfig = selectById(state, dialogKey);
 

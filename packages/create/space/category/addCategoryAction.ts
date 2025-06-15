@@ -5,7 +5,7 @@ import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patch } from "database/dbSlice";
 import { ulid } from "ulid";
 import { selectCurrentSpaceId } from "../spaceSlice";
-import type { AppDispatch, NoloRootState } from "app/store";
+import type { AppDispatch, RootState } from "app/store";
 import { checkSpaceMembership } from "../utils/permissions"; // 确认导入路径
 
 export const addCategoryAction = async (
@@ -15,7 +15,7 @@ export const addCategoryAction = async (
     categoryId?: string;
     order?: number;
   }, // 增加 spaceId 作为可选参数
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
   const { spaceId: inputSpaceId, name, categoryId, order } = input;
   const { dispatch, getState } = thunkAPI;

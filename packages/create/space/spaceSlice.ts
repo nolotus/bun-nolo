@@ -1,5 +1,5 @@
 // create/space/spaceSlice.ts
-import type { NoloRootState } from "app/store"; // Adjust path if needed
+import type { RootState } from "app/store"; // Adjust path if needed
 import {
   type PayloadAction,
   asyncThunkCreator,
@@ -91,7 +91,7 @@ export const {
 } = spaceSlice.actions;
 
 // Selectors (Keep them here or move to a separate selectors file if preferred)
-const selectSpaceState = (state: NoloRootState) => state.space;
+const selectSpaceState = (state: RootState) => state.space;
 
 export const selectCurrentSpaceId = createSelector(
   selectSpaceState,

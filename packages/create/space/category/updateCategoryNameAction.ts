@@ -3,12 +3,12 @@ import type { SpaceId, SpaceData } from "create/space/types";
 import { selectCurrentUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patch } from "database/dbSlice";
-import type { AppDispatch, NoloRootState } from "app/store";
+import type { AppDispatch, RootState } from "app/store";
 import { checkSpaceMembership } from "../utils/permissions"; // 确认导入路径
 
 export const updateCategoryNameAction = async (
   input: { spaceId: SpaceId; categoryId: string; name: string },
-  thunkAPI: { dispatch: AppDispatch; getState: () => NoloRootState }
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
 ): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
   const { spaceId, categoryId, name } = input;
   const { dispatch, getState } = thunkAPI;
