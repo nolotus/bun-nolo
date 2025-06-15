@@ -6,7 +6,11 @@ import {
 } from "@reduxjs/toolkit";
 import { readAndWait, patch } from "database/dbSlice";
 import { updateContentTitle } from "create/space/spaceSlice";
-import { extractTitleFromSlate } from "create/editor/utils/slateUtils";
+import {
+  extractTitleFromSlate,
+  compareSlateContent,
+  EditorContent,
+} from "create/editor/utils/slateUtils";
 import { DataType } from "create/types";
 import { createPageAction } from "./createPageAction";
 import { PageData } from "./types";
@@ -14,7 +18,7 @@ import { PageData } from "./types";
 // —— State 接口 ——
 export interface PageSliceState {
   content: string | null;
-  slateData: any | null;
+  slateData: EditorContent | null;
   title: string | null;
   dbSpaceId: string | null;
   tags: string[] | null;
@@ -24,10 +28,11 @@ export interface PageSliceState {
   error: string | null;
   currentPageId: string | null;
 
-  // 新增保存状态字段
+  // 保存状态字段
   isSaving: boolean;
   saveError: string | null;
   lastSavedAt: string | null; // ISO 字符串
+  lastSavedSlateData: EditorContent | null; // 上次成功保存时的内容
 }
 
 // —— 初始状态 ——
@@ -45,6 +50,7 @@ const initialState: PageSliceState = {
   isSaving: false,
   saveError: null,
   lastSavedAt: null,
+  lastSavedSlateData: null,
 };
 
 // —— initPage 参数和 payload 类型 ——
@@ -69,12 +75,11 @@ export const pageSlice = createSliceWithThunks({
     // 创建页面（暂时不管）
     createPage: create.asyncThunk(createPageAction),
 
-    // 初始化页面：读数据库 - 使用 readAndWait 替代 read
+    // 初始化页面：读数据库
     initPage: create.asyncThunk(
       async (args: InitPageArgs, { dispatch, rejectWithValue }) => {
         const { pageId, isReadOnly } = args;
         try {
-          // 使用 readAndWait 替代 read
           const readAction = await dispatch(readAndWait(pageId));
 
           if (readAndWait.fulfilled.match(readAction) && readAction.payload) {
@@ -97,135 +102,119 @@ export const pageSlice = createSliceWithThunks({
           state,
           action: PayloadAction<undefined, string, { arg: InitPageArgs }>
         ) => {
+          // 使用 initialState 重置，避免状态污染
+          Object.assign(state, initialState);
           state.isLoading = true;
-          state.isInitialized = false;
-          state.error = null;
           state.currentPageId = action.meta.arg.pageId;
-
-          // 重置其他状态
-          state.content = null;
-          state.slateData = null;
-          state.title = null;
-          state.dbSpaceId = null;
-          state.tags = null;
           state.isReadOnly = action.meta.arg.isReadOnly;
         },
         fulfilled: (state, action: PayloadAction<InitPagePayload>) => {
           state.isLoading = false;
           state.isInitialized = true;
           state.error = null;
-
-          // 更新状态
           state.content = action.payload.content;
           state.slateData = action.payload.slateData;
+          state.lastSavedSlateData = action.payload.slateData; // 关键：初始化保存基准
           state.title = action.payload.title;
           state.dbSpaceId = action.payload.spaceId;
           state.tags = action.payload.tags || null;
           state.isReadOnly = action.payload.isReadOnly;
           state.currentPageId = action.payload.dbKey;
+          state.lastSavedAt = action.payload.updatedAt || null;
         },
         rejected: (state, action) => {
           state.isLoading = false;
-          state.isInitialized = false;
+          state.isInitialized = true; // 即使失败也标记为已初始化，以显示错误信息
           state.error =
             (action.payload as string) ||
             action.error.message ||
             "初始化页面时发生未知错误";
-
-          // 重置状态
-          state.content = null;
-          state.slateData = null;
-          state.title = null;
-          state.dbSpaceId = null;
-          state.tags = null;
-          state.isReadOnly = true;
-          state.currentPageId = null;
         },
       }
     ),
 
     // 更新 Slate 数据
-    updateSlate: create.reducer((state, action: PayloadAction<any>) => {
-      if (state.isInitialized) {
-        state.slateData = action.payload;
+    updateSlate: create.reducer(
+      (state, action: PayloadAction<EditorContent>) => {
+        if (state.isInitialized && !state.isReadOnly) {
+          state.slateData = action.payload;
+        }
       }
-    }),
-
-    // 只读模式切换/设置
-    toggleReadOnly: create.reducer((state) => {
-      state.isReadOnly = !state.isReadOnly;
-    }),
-
-    setReadOnly: create.reducer((state, action: PayloadAction<boolean>) => {
-      state.isReadOnly = action.payload;
-    }),
-
-    // 重置整个页面 slice
-    resetPage: create.reducer((state) => {
-      Object.assign(state, initialState);
-    }),
-
-    // 同步更新 UI 上的标签（不持久化）
-    updatePageTags: create.reducer((state, action: PayloadAction<string[]>) => {
-      if (state.isInitialized) state.tags = action.payload;
-    }),
+    ),
 
     // 统一保存 Thunk
     savePage: create.asyncThunk(
       async (_arg: void, { dispatch, getState, rejectWithValue }) => {
-        const root = (getState() as any).page as PageSliceState & {
-          currentPageId: string | null;
-          slateData: any;
-          dbSpaceId: string | null;
-        };
+        const state = (getState() as any).page as PageSliceState;
+        const { currentPageId, slateData, dbSpaceId } = state;
 
-        const dbKey = root.currentPageId;
-        if (!dbKey) return rejectWithValue("缺少 pageKey，无法保存");
+        if (!currentPageId) return rejectWithValue("缺少 pageId，无法保存");
+        if (!slateData) return rejectWithValue("内容为空，无法保存");
 
-        const slateData = root.slateData;
         const title = extractTitleFromSlate(slateData) || "未命名页面";
-        const spaceId = root.dbSpaceId;
         const now = new Date();
-        const iso = formatISO(now);
 
         try {
-          // 1) 保存到后端
           await dispatch(
             patch({
-              dbKey,
-              changes: { updatedAt: iso, slateData, title },
+              dbKey: currentPageId,
+              changes: { updatedAt: formatISO(now), slateData, title },
             })
           ).unwrap();
 
-          // 2) 同步 Space 侧边栏标题
-          if (spaceId) {
+          if (dbSpaceId) {
             await dispatch(
               updateContentTitle({
-                spaceId,
-                contentKey: dbKey,
+                spaceId: dbSpaceId,
+                contentKey: currentPageId,
                 title,
               })
             ).unwrap();
           }
 
-          // 3) 本地更新 title（UI 立刻生效）
-          return { updatedAt: iso, title };
+          return { updatedAt: formatISO(now), title, savedContent: slateData };
         } catch (e: any) {
           return rejectWithValue(e.message || "保存失败");
         }
       },
       {
+        // 关键：在 Thunk 执行前进行条件检查
+        condition: (_arg, { getState }) => {
+          const state = (getState() as any).page as PageSliceState;
+
+          // 如果正在保存中，则取消本次操作，防止并发
+          if (state.isSaving) {
+            return false;
+          }
+
+          // 如果内容没有变化，则取消本次操作，防止不必要的请求
+          const hasChanges = compareSlateContent(
+            state.slateData,
+            state.lastSavedSlateData
+          );
+          if (!hasChanges) {
+            return false;
+          }
+
+          return true;
+        },
         pending: (state) => {
           state.isSaving = true;
           state.saveError = null;
         },
         fulfilled: (
           state,
-          action: PayloadAction<{ updatedAt: string; title: string }>
+          action: PayloadAction<{
+            updatedAt: string;
+            title: string;
+            savedContent: EditorContent;
+          }>
         ) => {
           state.isSaving = false;
           state.lastSavedAt = action.payload.updatedAt;
           state.title = action.payload.title;
+          // 关键：保存成功后，更新“上次保存的内容”基准
+          state.lastSavedSlateData = action.payload.savedContent;
         },
         rejected: (state, action) => {
           state.isSaving = false;
@@ -234,12 +223,26 @@ export const pageSlice = createSliceWithThunks({
         },
       }
     ),
+
+    // 其他 reducers
+    toggleReadOnly: create.reducer((state) => {
+      state.isReadOnly = !state.isReadOnly;
+    }),
+    setReadOnly: create.reducer((state, action: PayloadAction<boolean>) => {
+      state.isReadOnly = action.payload;
+    }),
+    resetPage: create.reducer((state) => {
+      Object.assign(state, initialState);
+    }),
+    updatePageTags: create.reducer((state, action: PayloadAction<string[]>) => {
+      if (state.isInitialized) state.tags = action.payload;
+    }),
   }),
 
   // —— Selectors ——
   selectors: {
-    selectSlateData: (s: PageSliceState) => s.slateData,
     selectPageData: (s: PageSliceState) => s,
+    selectSlateData: (s: PageSliceState) => s.slateData,
     selectIsReadOnly: (s: PageSliceState) => s.isReadOnly,
     selectPageIsLoading: (s: PageSliceState) => s.isLoading,
     selectPageIsInitialized: (s: PageSliceState) => s.isInitialized,
@@ -251,6 +254,11 @@ export const pageSlice = createSliceWithThunks({
     selectIsSaving: (s: PageSliceState) => s.isSaving,
     selectSaveError: (s: PageSliceState) => s.saveError,
     selectLastSavedAt: (s: PageSliceState) => s.lastSavedAt,
+    // 新增：直接从 Redux 判断是否有未保存的更改
+    selectHasPendingChanges: (s: PageSliceState) => {
+      if (!s.isInitialized) return false;
+      return compareSlateContent(s.slateData, s.lastSavedSlateData);
+    },
   },
 });
 
@@ -259,16 +267,16 @@ export const {
   createPage,
   initPage,
   updateSlate,
+  savePage,
   toggleReadOnly,
   setReadOnly,
   resetPage,
   updatePageTags,
-  savePage,
 } = pageSlice.actions;
 
 export const {
-  selectSlateData,
   selectPageData,
+  selectSlateData,
   selectIsReadOnly,
   selectPageIsLoading,
   selectPageIsInitialized,
@@ -280,6 +288,7 @@ export const {
   selectIsSaving,
   selectSaveError,
   selectLastSavedAt,
+  selectHasPendingChanges,
 } = pageSlice.selectors;
 
 export default pageSlice.reducer;

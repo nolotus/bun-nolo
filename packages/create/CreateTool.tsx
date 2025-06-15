@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { UploadIcon, TrashIcon } from "@primer/octicons-react";
+import { TrashIcon } from "@primer/octicons-react";
 
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { useTheme } from "app/theme";
@@ -14,7 +14,8 @@ import {
   toggleReadOnly,
   savePage,
   selectIsSaving,
-  selectSaveError,
+  // 1. 新增导入 selectHasPendingChanges
+  selectHasPendingChanges,
 } from "render/page/pageSlice";
 import { deleteContentFromSpace } from "create/space/spaceSlice";
 
@@ -34,7 +35,8 @@ export const CreateTool: React.FC = () => {
   const dbSpaceId = useAppSelector(selectPageDbSpaceId);
   // 保存状态
   const isSaving = useAppSelector(selectIsSaving);
-  const saveError = useAppSelector(selectSaveError);
+  // 1. 新增获取 hasPendingChanges 状态
+  const hasPendingChanges = useAppSelector(selectHasPendingChanges);
 
   // 路由参数
   const { pageKey: dbKey } = useParams<{ pageKey?: string }>();
@@ -66,23 +68,22 @@ export const CreateTool: React.FC = () => {
     [dispatch, updateUrl]
   );
 
-  // 手动保存
+  // 2. 简化手动保存函数
   const handleSave = useCallback(async () => {
-    if (!dbKey) {
-      toast.error(t("无法获取页面标识符"));
-      return;
-    }
+    // dispatch savePage 并处理本次点击的直接反馈 (toast)
+    // 不再包含切换模式等副作用
     try {
       await dispatch(savePage()).unwrap();
       toast.success(t("保存成功"));
-      // 切回只读、清除 URL edit 参数
-      dispatch(toggleReadOnly());
-      updateUrl((p) => p.delete("edit"));
     } catch (err: any) {
-      console.error("保存失败:", err);
-      toast.error(t("保存失败"));
+      // unwrap 会在 thunk rejected 时抛出错误，包括 condition 为 false 的情况
+      // 如果 err.message 为 'Aborted'，说明是 condition 中止的，可以不弹 toast
+      if (err.message !== "Aborted") {
+        console.error("保存失败:", err);
+        toast.error(t("保存失败"));
+      }
     }
-  }, [dispatch, dbKey, savePage, toggleReadOnly, updateUrl, t]);
+  }, [dispatch, t]);
 
   // 删除页面 —— 使用页面自身的 dbSpaceId，而非当前选中空间
   const handleDelete = async () => {
@@ -103,7 +104,6 @@ export const CreateTool: React.FC = () => {
     }
   };
 
-  // render
   if (!dbKey) {
     return (
       <div
@@ -172,9 +172,10 @@ export const CreateTool: React.FC = () => {
             variant="primary"
             onClick={handleSave}
             size="medium"
-            disabled={isReadOnly || isSaving}
+            // 3. 修正 disabled 条件，增加对 hasPendingChanges 的判断
+            disabled={isReadOnly || isSaving || !hasPendingChanges}
             style={{
-              opacity: isReadOnly || isSaving ? 0.6 : 1,
+              opacity: isReadOnly || isSaving || !hasPendingChanges ? 0.6 : 1,
               transition: "all 0.2s ease",
             }}
           >
