@@ -10,6 +10,7 @@ export const fireworksmodels: Model[] = [
       input: 24, // 3 * 8
       output: 64, // 8 * 8
     },
+    supportsReasoningEffort: true, // 支持推理功能
   },
   {
     name: "accounts/fireworks/models/deepseek-r1-basic",
@@ -20,6 +21,7 @@ export const fireworksmodels: Model[] = [
       input: 4.4, // $0.55 * 8
       output: 17.52, // $2.19 * 8
     },
+    supportsReasoningEffort: true, // 支持推理功能
   },
   {
     name: "accounts/fireworks/models/deepseek-v3-0324",
