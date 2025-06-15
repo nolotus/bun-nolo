@@ -5,6 +5,7 @@ export interface ModelPrice {
   cachingRead?: number;
   inputCacheHit?: number; // 为DeepSeek模型保留
 }
+
 export interface Model {
   name: string;
   displayName?: string; // 可选的 displayName 字段
@@ -20,4 +21,5 @@ export interface Model {
   maxImageResolution?: string; // 最大图像分辨率
   canFineTune?: boolean; // 是否可以微调
   hasImageOutput?: boolean; // 是否支持图片输出
+  supportsReasoningEffort?: boolean; // 是否支持推理功能
 }
