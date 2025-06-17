@@ -151,9 +151,6 @@ export const SidebarTop: React.FC = () => {
               ) : (
                 <div className="space-dropdown__empty">{t("no_spaces")}</div>
               )}
-              {!loading && spaces.length > 0 && (
-                <div className="space-dropdown__divider"></div>
-              )}
             </div>
           </div>
         )}
@@ -279,12 +276,7 @@ export const SidebarTop: React.FC = () => {
           0%,100% { opacity:0.4; }
           50% { opacity:1; }
         }
-        .space-dropdown__divider {
-          height: 1px;
-          margin: 6px 0;
-          background: ${theme.borderLight};
-          opacity: 0.6;
-        }
+
         .space-dropdown__empty {
           padding: 16px 12px;
           color: ${theme.textSecondary};
