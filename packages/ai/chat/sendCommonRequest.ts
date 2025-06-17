@@ -203,7 +203,6 @@ function finalizeStream(
   const { thinkContent: tagThink, normalContent } =
     separateThinkContent(finalContentBuffer);
   const thinkContent = tagThink + reasoningBuffer;
-  console.debug("[finalizeStream] final thinkContent:", thinkContent);
 
   const finalUsageData =
     totalUsage && totalUsage.completion_tokens != null
@@ -219,7 +218,7 @@ function finalizeStream(
       role: "assistant",
       cybotKey: cybotConfig.dbKey,
       usage: finalUsageData,
-      isStreaming: false, // 明确设置为 false
+      isStreaming: false,
     })
   );
 
@@ -253,7 +252,6 @@ export const sendCommonChatRequest = async ({
 
   dispatch(addActiveController({ messageId, controller }));
 
-  // 如果配置了工具，注入 tools & tool_choice
   if (cybotConfig.tools?.length > 0) {
     const tools = prepareTools(cybotConfig.tools);
     bodyData.tools = tools;
@@ -265,10 +263,9 @@ export const sendCommonChatRequest = async ({
   let contentBuffer: any[] = [];
   let totalUsage: any = null;
   let accumulatedToolCalls: any[] = [];
-  let reasoningBuffer: string = ""; // 累积 API 返回的 reasoning_content
+  let reasoningBuffer: string = "";
 
   try {
-    // 首次 dispatch 一个空的 streaming 消息
     dispatch(
       messageStreaming({
         id: messageId,
@@ -280,7 +277,6 @@ export const sendCommonChatRequest = async ({
       })
     );
 
-    // 发起 HTTP 请求
     const api = getApiEndpoint(cybotConfig);
     const token = selectCurrentToken(getState());
     const response = await performFetchRequest({
@@ -292,7 +288,6 @@ export const sendCommonChatRequest = async ({
       token,
     });
 
-    // 处理 HTTP 错误
     if (!response.ok) {
       const errorBody = await response.text();
       let errorMessage = `API请求失败: 状态码 ${response.status}`;
@@ -354,7 +349,6 @@ export const sendCommonChatRequest = async ({
       return;
     }
 
-    // 处理流式响应
     const reader = response.body?.getReader();
     if (!reader) {
       throw new Error("无法获取响应流读取器");
@@ -364,7 +358,6 @@ export const sendCommonChatRequest = async ({
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        // 流读完，执行所有累积的工具调用
         contentBuffer = await handleAccumulatedToolCalls(
           accumulatedToolCalls,
           contentBuffer,
@@ -374,7 +367,6 @@ export const sendCommonChatRequest = async ({
           messageId
         );
         accumulatedToolCalls = [];
-        // 收尾
         finalizeStream(
           contentBuffer,
           totalUsage,
@@ -390,15 +382,12 @@ export const sendCommonChatRequest = async ({
       }
 
       const chunk = decoder.decode(value, { stream: true });
-      console.debug("[sendCommonChatRequest] received chunk:", chunk);
       const parsedResults = parseMultilineSSE(chunk);
 
       for (const parsedData of parsedResults) {
-        // 支持 parseMultilineSSE 返回单对象或对象数组
         const dataList = Array.isArray(parsedData) ? parsedData : [parsedData];
 
         for (const data of dataList) {
-          // 累积 usage
           if (data.usage) {
             if (!totalUsage) {
               totalUsage = { ...data.usage };
@@ -424,7 +413,6 @@ export const sendCommonChatRequest = async ({
             }
           }
 
-          // 处理 API Error
           if (data.error) {
             const errorMsg = `Error: ${data.error.message || JSON.stringify(data.error)}`;
             contentBuffer = appendTextChunk(
@@ -450,20 +438,10 @@ export const sendCommonChatRequest = async ({
           if (!choice) continue;
           const delta = choice.delta || {};
 
-          // —— 从 delta 中提取 reasoning_content ——
           if (delta.reasoning_content) {
-            console.debug(
-              "[sendCommonChatRequest] received reasoning_content:",
-              delta.reasoning_content
-            );
             reasoningBuffer += delta.reasoning_content;
-            console.debug(
-              "[sendCommonChatRequest] updated reasoningBuffer:",
-              reasoningBuffer
-            );
           }
 
-          // 累积工具调用
           if (delta.tool_calls && Array.isArray(delta.tool_calls)) {
             for (const toolCallChunk of delta.tool_calls) {
               const index = toolCallChunk.index;
@@ -511,18 +489,12 @@ export const sendCommonChatRequest = async ({
             }
           }
 
-          // 处理 content
           const contentChunk = delta.content || "";
           if (contentChunk) {
             contentBuffer = appendTextChunk(contentBuffer, contentChunk);
             const { thinkContent: tagThink, normalContent } =
               separateThinkContent(contentBuffer);
-            // 合并 <think> 标签内容 + reasoning_buffer
             const thinkContent = tagThink + reasoningBuffer;
-            console.debug(
-              "[sendCommonChatRequest] dispatch messageStreaming thinkContent:",
-              thinkContent
-            );
             dispatch(
               messageStreaming({
                 id: messageId,
@@ -536,7 +508,6 @@ export const sendCommonChatRequest = async ({
             );
           }
 
-          // 处理 finish_reason
           const finishReason = choice.finish_reason;
           if (finishReason) {
             if (finishReason === "tool_calls") {
@@ -550,7 +521,6 @@ export const sendCommonChatRequest = async ({
               );
               accumulatedToolCalls = [];
             } else if (finishReason === "stop") {
-              // 不做特殊处理
             } else {
               contentBuffer = appendTextChunk(
                 contentBuffer,
@@ -572,7 +542,6 @@ export const sendCommonChatRequest = async ({
       }
     }
   } catch (error: any) {
-    // 异常处理
     let errorText = "";
     if (error.name === "AbortError") {
       errorText = "\n[用户中断]";
@@ -608,7 +577,6 @@ export const sendCommonChatRequest = async ({
     );
   } finally {
     dispatch(removeActiveController(messageId));
-    // 取消 reader
     try {
       await reader?.cancel();
     } catch (_e) {}

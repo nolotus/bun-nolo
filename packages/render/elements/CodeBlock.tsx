@@ -17,7 +17,21 @@ import {
   ScreenFullIcon,
 } from "@primer/octicons-react";
 
+// --- React Flow / XY Flow Imports ---
+// 1. 导入 @xyflow/react 的组件和样式
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+
 // --- PrismJS Language Imports ---
+// (保持不变)
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-jsx";
 import "prismjs/components/prism-typescript";
@@ -32,6 +46,17 @@ import "prismjs/components/prism-yaml";
 import "prismjs/components/prism-mermaid";
 import "prismjs/components/prism-diff";
 
+// 2. (可选) 创建一个 XY Flow 的辅助工具集，方便在代码块中使用
+const xyFlowUtils = {
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap,
+};
+
 const CodeBlock = ({ attributes, children, element }) => {
   const theme = useTheme();
   const [isCopied, setIsCopied] = useState(false);
@@ -39,7 +64,7 @@ const CodeBlock = ({ attributes, children, element }) => {
   const [isCollapsed, setIsCollapsed] = useState(element.collapsed === "true");
   const [showRightPreview, setShowRightPreview] = useState(false);
 
-  // 解析语言和文件名
+  // 解析语言和文件名 (保持不变)
   const [language, filename] = useMemo(() => {
     const lang = element.language || "";
     const colonIndex = lang.indexOf(":");
@@ -49,7 +74,7 @@ const CodeBlock = ({ attributes, children, element }) => {
     return [lang, null];
   }, [element.language]);
 
-  // --- 提取文本内容 ---
+  // --- 提取文本内容 --- (保持不变)
   const content = useMemo(() => {
     const getTextContent = (nodes) => {
       if (!Array.isArray(nodes)) return "";
@@ -77,7 +102,7 @@ const CodeBlock = ({ attributes, children, element }) => {
     }
   }, [element.children]);
 
-  // --- 复制处理 ---
+  // --- 复制处理 --- (保持不变)
   const handleCopy = () => {
     copyToClipboard(content, {
       onSuccess: () => {
@@ -91,22 +116,26 @@ const CodeBlock = ({ attributes, children, element }) => {
   };
 
   // --- React Live Scope ---
+  // 3. 将 xyFlowUtils 添加到 liveScope 中
   const liveScope = useMemo(
     () => ({
       ...createLiveScope(theme),
       ReactECharts,
       docx,
+      ...xyFlowUtils, // 将所有 @xyflow/react 相关组件和 hooks 注入作用域
     }),
     [theme]
   );
 
-  // --- 更新样式 ---
+  // --- 更新样式 --- (保持不变)
   const styles = `
     .code-block-wrapper {
       margin: ${theme.space[6]} 0;
       background: ${theme.background};
       border-radius: ${theme.space[2]};
       overflow: hidden;
+      /* 为 React Flow 添加一个相对定位的容器 */
+      position: relative; 
     }
 
     .code-block-actions {
@@ -176,9 +205,22 @@ const CodeBlock = ({ attributes, children, element }) => {
       padding: 0;
       margin: 0;
     }
+
+    /* 4. 为 React Flow 预览添加特定样式 */
+    .react-flow__pane {
+      cursor: grab;
+    }
+    .react-flow__attribution {
+      /* 隐藏 "by xyflow" 的 logo，如果需要的话 */
+      display: none;
+    }
+    .react-live-preview {
+        /* 确保预览区域有高度 */
+        min-height: 300px; 
+    }
   `;
 
-  // --- 内联操作栏组件 ---
+  // --- 内联操作栏组件 --- (保持不变)
   const CodeBlockActions = () => (
     <div className="code-block-actions">
       <div style={{ display: "flex", alignItems: "center" }}>
@@ -232,6 +274,7 @@ const CodeBlock = ({ attributes, children, element }) => {
     [element.id]
   );
 
+  // (渲染逻辑保持不变)
   return (
     <>
       <style href="code-block" precedence="medium">
