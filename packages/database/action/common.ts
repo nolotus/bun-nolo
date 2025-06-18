@@ -1,6 +1,6 @@
 //  database/action/common.ts
 import pino from "pino";
-import { CYBOT_SERVERS } from "../requests";
+import { SERVERS } from "../requests";
 import { API_ENDPOINTS } from "../config";
 
 export const logger = pino({
@@ -22,9 +22,7 @@ export const getAllServers = (currentServer: string): string[] => {
   }
 
   // 如果在线，则返回正常的服务器列表
-  return Array.from(
-    new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.US])
-  );
+  return Array.from(new Set([currentServer, SERVERS.MAIN, SERVERS.US]));
 };
 
 // 从客户端数据库获取数据

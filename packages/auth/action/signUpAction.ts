@@ -7,7 +7,7 @@ import { signToken, parseToken } from "auth/token";
 import { API_VERSION } from "database/config";
 import { hashPasswordV1 } from "core/password";
 import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
-import { CYBOT_SERVERS } from "database/requests";
+import { SERVERS } from "database/requests";
 const logger = pino({
   level: "info",
   transport: {
@@ -119,7 +119,7 @@ export const signUpAction = async (user, thunkAPI) => {
   }
 
   // 后台注册到其他服务器
-  const backupServers = [CYBOT_SERVERS.ONE, CYBOT_SERVERS.US].filter(
+  const backupServers = [SERVERS.MAIN, SERVERS.US].filter(
     (server) => server !== currentServer
   );
 

@@ -1,8 +1,8 @@
 // database/requests.ts
 import { API_ENDPOINTS } from "./config";
 
-export const CYBOT_SERVERS = {
-  ONE: "https://cybot.one",
+export const SERVERS = {
+  MAIN: "https://nolo.chat",
   US: "https://us.nolo.chat",
 };
 

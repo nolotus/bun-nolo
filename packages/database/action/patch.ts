@@ -2,7 +2,7 @@
 import { selectCurrentServer } from "setting/settingSlice";
 import { browserDb } from "../browser/db";
 import { toast } from "react-hot-toast";
-import { noloPatchRequest, syncWithServers, CYBOT_SERVERS } from "../requests";
+import { noloPatchRequest, syncWithServers, SERVERS } from "../requests";
 
 // 深度合并工具函数，支持删除（null 值）
 const deepMerge = (target: any, source: any): any => {
@@ -69,9 +69,7 @@ export const patchAction = async (
     await browserDb.put(dbKey, newData);
 
     const servers = Array.from(
-      new Set(
-        [currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.US].filter(Boolean)
-      )
+      new Set([currentServer, SERVERS.MAIN, SERVERS.US].filter(Boolean))
     );
 
     Promise.resolve().then(() => {
