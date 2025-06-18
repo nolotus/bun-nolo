@@ -12,7 +12,7 @@ import { PlusIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import { TagsInput } from "web/form/TagsInput";
-import ReferencesSelector from "./ReferencesSelector";
+import ReferencesSelector from "../../bot/web/ReferencesSelector";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 

@@ -2,7 +2,7 @@ import React from "react";
 import { Controller } from "react-hook-form";
 import { FormField } from "web/form/FormField";
 import ToggleSwitch from "web/ui/ToggleSwitch";
-import ReferencesSelector from "./ReferencesSelector";
+import ReferencesSelector from "../../bot/web/ReferencesSelector";
 
 const ReferencesTab = ({ t, errors, control, space }) => {
   const commonProps = { horizontal: true, labelWidth: "140px" };

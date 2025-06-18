@@ -19,7 +19,7 @@ import {
   XIcon,
   InfoIcon,
 } from "@primer/octicons-react";
-import CybotNameChip from "ai/cybot/CybotNameChip";
+import BotNameChip from "ai/bot/web/BotNameChip";
 import { toast } from "react-hot-toast";
 import AddCybotDialog from "./AddCybotDialog";
 
@@ -384,10 +384,10 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
 
                 <div className="dialog-cybot-list" role="list">
                   {participantCount > 0 ? (
-                    currentDialogConfig?.cybots?.map((cybotKey) => (
-                      <CybotNameChip
-                        key={cybotKey}
-                        cybotKey={cybotKey}
+                    currentDialogConfig?.cybots?.map((botKey) => (
+                      <BotNameChip
+                        key={botKey}
+                        botKey={botKey}
                         onRemove={handleRemoveCybot}
                         className="dialog-info-list-item"
                       />
