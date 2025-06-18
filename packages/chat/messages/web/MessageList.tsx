@@ -1,94 +1,112 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useLayoutEffect, useCallback, useState } from "react";
 import { useTheme } from "app/theme";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import {
-  selectMergedMessages,
-  selectIsLoadingOlder,
-  selectHasMoreOlder,
+  selectAllMsgs, // 直接使用 adapter 的 selector
+  selectMessagesLoadingState, // 使用组合 selector
   loadOlderMessages,
 } from "chat/messages/messageSlice";
 import MessageItem from "./MessageItem";
 import TopLoadingIndicator from "./TopLoadingIndicator";
 import { ScrollToBottomButton } from "chat/web/ScrollToBottomButton";
 
-const LOAD_THRESHOLD = 50;
-
-interface MessagesListProps {
-  dialogId: string;
-}
+const LOAD_THRESHOLD = 50; // 滚动到顶部多少像素时触发加载
 
 const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
   const theme = useTheme();
   const dispatch = useAppDispatch();
 
-  const messages = useAppSelector(selectMergedMessages);
-  const isLoadingOlder = useAppSelector(selectIsLoadingOlder);
-  const hasMoreOlder = useAppSelector(selectHasMoreOlder);
+  // 1. 使用更直接和集中的 Selector
+  const messages = useAppSelector(selectAllMsgs);
+  const { isLoadingOlder, hasMoreOlder } = useAppSelector(
+    selectMessagesLoadingState
+  );
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
-  const [userScrolled, setUserScrolled] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  // Ref 用于在回调函数中访问最新的状态，避免回调函数自身依赖项过多
+  const stateRef = useRef({ isLoadingOlder, hasMoreOlder, messages, dialogId });
+  stateRef.current = { isLoadingOlder, hasMoreOlder, messages, dialogId };
 
-  const handleLoadOlder = useCallback(() => {
-    if (isLoadingOlder || !hasMoreOlder || messages.length === 0) return;
-    const oldest = messages[0];
-    const beforeKey = (oldest as any).dbKey ?? oldest.id;
-    if (!beforeKey) return;
+  // 新状态：用于控制“滚动到底部”按钮的显示
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
 
-    const prevH = containerRef.current?.scrollHeight || 0;
-    dispatch(loadOlderMessages({ dialogId, beforeKey })).finally(() => {
-      const newH = containerRef.current?.scrollHeight || 0;
-      if (containerRef.current) {
-        containerRef.current.scrollTop = newH - prevH;
+  // 2. 修复滚动跳动 & 简化自动滚动 (核心改动)
+  useLayoutEffect(() => {
+    const listEl = listRef.current;
+    if (!listEl) return;
+
+    // 获取渲染前的快照
+    const { scrollHeight: prevScrollHeight, scrollTop: prevScrollTop } = listEl;
+
+    // 决定渲染后要做什么：'LOAD_OLDER' 或 'AUTO_SCROLL'
+    const action = listEl.dataset.scrollAction;
+
+    if (action === "LOAD_OLDER") {
+      // 加载旧消息后，恢复滚动位置以防止跳动
+      listEl.scrollTop =
+        prevScrollTop + (listEl.scrollHeight - prevScrollHeight);
+      delete listEl.dataset.scrollAction; // 清理标记
+    } else {
+      // 检查渲染前是否在底部
+      const wasAtBottom =
+        prevScrollHeight - listEl.clientHeight <= prevScrollTop + 1;
+      if (wasAtBottom) {
+        // 如果是，则在新消息渲染后自动滚动到底部
+        listEl.scrollTop = listEl.scrollHeight;
       }
-    });
-  }, [dispatch, dialogId, hasMoreOlder, isLoadingOlder, messages]);
+    }
+  }, [messages]); // 仅在消息列表变化时运行
+
+  // 3. 稳定化的回调函数，避免事件监听器重复绑定
+  const handleLoadOlder = useCallback(() => {
+    const { isLoadingOlder, hasMoreOlder, messages, dialogId } =
+      stateRef.current;
+    if (isLoadingOlder || !hasMoreOlder || messages.length === 0) return;
+
+    const listEl = listRef.current;
+    if (listEl) {
+      // 在 dispatch 前标记，让 useLayoutEffect 知道要做什么
+      listEl.dataset.scrollAction = "LOAD_OLDER";
+    }
+
+    const oldestMessage = messages[0];
+    const beforeKey = (oldestMessage as any).dbKey ?? oldestMessage.id;
+    if (beforeKey) {
+      dispatch(loadOlderMessages({ dialogId, beforeKey }));
+    }
+  }, [dispatch]); // dispatch 是稳定函数，此回调仅创建一次
 
   const handleScroll = useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      const c = e.currentTarget;
-      const { scrollTop, scrollHeight, clientHeight } = c;
+    (event: Event) => {
+      const listEl = event.currentTarget as HTMLDivElement;
+      const { scrollTop, scrollHeight, clientHeight } = listEl;
 
+      // 触发加载旧消息
       if (scrollTop < LOAD_THRESHOLD) {
         handleLoadOlder();
       }
 
-      const atBottom =
-        scrollHeight - (scrollTop + clientHeight) < LOAD_THRESHOLD;
-
-      if (e.isTrusted) {
-        if (atBottom) {
-          setAutoScroll(true);
-          setUserScrolled(false);
-        } else {
-          setAutoScroll(false);
-          setUserScrolled(true);
-        }
-      }
+      // 判断是否在底部，以控制“滚动到底部”按钮的显示
+      const atBottom = scrollHeight - (scrollTop + clientHeight) < 1;
+      setShowScrollToBottom(!atBottom);
     },
     [handleLoadOlder]
-  );
+  ); // 依赖于稳定的 handleLoadOlder
 
-  useEffect(() => {
-    const c = containerRef.current;
-    c?.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      c?.removeEventListener("scroll", handleScroll);
-    };
-  }, [handleScroll]);
-
-  useEffect(() => {
-    if (autoScroll && !userScrolled && containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+  // 仅在组件挂载时添加一次事件监听器
+  useLayoutEffect(() => {
+    const listEl = listRef.current;
+    if (listEl) {
+      listEl.addEventListener("scroll", handleScroll, { passive: true });
+      return () => listEl.removeEventListener("scroll", handleScroll);
     }
-  }, [messages, autoScroll, userScrolled]);
+  }, [handleScroll]); // 依赖于稳定的 handleScroll
 
   const scrollToBottom = useCallback(() => {
-    setAutoScroll(true);
-    setUserScrolled(false);
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
+    listRef.current?.scrollTo({
+      top: listRef.current.scrollHeight,
+      behavior: "smooth", // 使用平滑滚动体验更好
+    });
   }, []);
 
   const css = `
@@ -205,13 +223,10 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
       }
     }
   `;
-
   return (
-    <div
-      className={`chat-messages__container ${isLoadingOlder ? "loading-older" : ""}`}
-    >
+    <div className="chat-messages__container">
       <div
-        ref={containerRef}
+        ref={listRef}
         className="chat-messages__list"
         role="log"
         aria-live="polite"
@@ -222,26 +237,21 @@ const MessagesList: React.FC<MessagesListProps> = ({ dialogId }) => {
           </div>
         )}
 
-        {messages.map((msg, idx) => {
-          const key = msg.id || `msg-fallback-${idx}`;
-          const animationDelay = Math.min(idx * 0.03, 0.5);
-
-          return (
-            <div
-              key={key}
-              className="chat-messages__item-wrapper"
-              style={{
-                animationDelay: `${animationDelay}s`,
-                "--msg-index": idx,
-              }}
-            >
-              <MessageItem message={msg} />
-            </div>
-          );
-        })}
+        {messages.map((msg, idx) => (
+          <div
+            key={msg.id} // 直接使用ID作为key
+            className="chat-messages__item-wrapper"
+            style={{ animationDelay: `${Math.min(idx * 0.03, 0.5)}s` }}
+          >
+            <MessageItem message={msg} />
+          </div>
+        ))}
       </div>
 
-      <ScrollToBottomButton isVisible={!autoScroll} onClick={scrollToBottom} />
+      <ScrollToBottomButton
+        isVisible={showScrollToBottom}
+        onClick={scrollToBottom}
+      />
 
       <style>{css}</style>
     </div>

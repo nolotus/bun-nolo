@@ -1,10 +1,6 @@
 // chat/message/action/
 import { selectCurrentServer } from "setting/settingSlice";
-import {
-  noloDeleteRequest,
-  syncWithServers,
-  CYBOT_SERVERS,
-} from "database/requests";
+import { noloDeleteRequest, syncWithServers, SERVERS } from "database/requests";
 import pino from "pino";
 import { browserDb } from "database/browser/db";
 import { createKey } from "database/keys";
@@ -52,7 +48,7 @@ export const deleteDialogMsgsAction = async (dialogId: string, thunkApi) => {
     await batchDeleteLocal(deletedIds);
 
     const servers = Array.from(
-      new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.US])
+      new Set([currentServer, SERVERS.MAIN, SERVERS.US])
     );
 
     Promise.resolve().then(() => {
