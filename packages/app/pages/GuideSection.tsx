@@ -149,7 +149,7 @@ const GuideSection = () => {
       {currentUserId && (
         <div className="my-cybots-section section-block">
           <SectionHeader
-            title="我的 Cybot 列表"
+            title="我的AI列表"
             icon={<BsRobot size={16} />}
             linkText="查看全部"
             linkTo={`space/${currentSpaceId}`}
