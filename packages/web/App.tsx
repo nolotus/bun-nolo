@@ -24,7 +24,7 @@ import { routes } from "./routes";
 // 路由生成器函数 (保持不变)
 const generatorRoutes = (hostname: string, auth: any) => {
   // ... (代码保持不变)
-  if (hostname === "nolotus.local" || hostname === "cybot.me") {
+  if (hostname === "nolotus.local" || hostname === "cybot.run") {
     return [
       {
         path: "/",
