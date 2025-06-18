@@ -1,3 +1,5 @@
+// /chat/messages/messageSlice.ts
+
 import { RootState } from "app/store";
 import {
   createSelector,
@@ -11,22 +13,14 @@ import { remove, write, read } from "database/dbSlice";
 import { deleteDialogMsgsAction } from "./actions/deleteDialogMsgsAction";
 import type { Message } from "./types";
 import { selectCurrentServer } from "setting/settingSlice";
-import { selectCurrentToken, selectCurrentUserId } from "auth/authSlice";
+import { selectCurrentToken } from "auth/authSlice";
 import { fetchMessages as fetchLocalMessages } from "chat/messages/fetchMessages";
 import { fetchConvMsgs } from "./fetchConvMsgs";
 import { browserDb } from "database/browser/db";
-import { SERVERS } from "database/requests"; // <--- 【优化1】导入集中的服务器地址
-
-// sendMessageAction 所需的依赖
-import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
-import { extractCustomId } from "core/prefix";
-import { createDialogMessageKeyAndId } from "database/keys";
-import { DialogInvocationMode } from "chat/dialog/types";
-import { streamCybotId } from "ai/cybot/cybotSlice";
-import { requestHandlers } from "ai/llm/providers";
+import { SERVERS } from "database/requests";
 
 // --- 常量与工具函数 ---
-const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US]; // <--- 【优化1】使用导入的常量
+const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
 const OLDER_LOAD_LIMIT = 30;
 const isValidMessage = (msg: any): msg is Message =>
   msg && typeof msg === "object" && typeof msg.id === "string";
@@ -45,6 +39,7 @@ export interface MessageSliceState {
   isLoadingOlder: boolean;
   hasMoreOlder: boolean;
   error: Error | null;
+  lastStreamTimestamp: number; // <--- 【新增】用于触发流式滚动
 }
 
 // --- Slice 创建设置 ---
@@ -60,6 +55,7 @@ const initialState: MessageSliceState = {
   isLoadingOlder: false,
   hasMoreOlder: true,
   error: null,
+  lastStreamTimestamp: 0, // <--- 【新增】
 };
 
 // --- Thunk 状态处理辅助函数 ---
@@ -101,6 +97,7 @@ export const messageSlice = createSliceWithThunks({
         ...action.payload,
       });
       state.firstStreamProcessed = true;
+      state.lastStreamTimestamp = Date.now(); // <--- 【关键】更新时间戳以触发滚动
     }),
 
     resetMsgs: create.reducer((state) => {
@@ -136,7 +133,6 @@ export const messageSlice = createSliceWithThunks({
             new Set([server, ...FALLBACK_SERVERS])
           ).filter(Boolean) as string[];
           if (uniqueServers.length === 0) return [];
-
           const results = await Promise.all(
             uniqueServers.map((srv) =>
               fetchConvMsgs(srv, token, { dialogId, limit }).catch((err) => {
@@ -152,13 +148,11 @@ export const messageSlice = createSliceWithThunks({
           fetchLocalPromise,
           fetchRemotePromise,
         ]);
-
         const allMessages = [...localMessages, ...remoteMessages].filter(
           isValidMessage
         );
         const uniqueMessagesMap = new Map<string, Message>();
         allMessages.forEach((msg) => uniqueMessagesMap.set(msg.id, msg));
-
         return Array.from(uniqueMessagesMap.values());
       },
       {
@@ -227,13 +221,11 @@ export const messageSlice = createSliceWithThunks({
           fetchLocalPromise,
           fetchRemotePromise,
         ]);
-
         const allMessages = [...localMessages, ...remoteMessages].filter(
           isValidMessage
         );
         const uniqueMessagesMap = new Map<string, Message>();
         allMessages.forEach((msg) => uniqueMessagesMap.set(msg.id, msg));
-
         return { messages: Array.from(uniqueMessagesMap.values()), limit };
       },
       {
@@ -304,100 +296,6 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    handleSendMessage: create.asyncThunk(
-      async (args: { userInput: string }, thunkApi) => {
-        const { userInput } = args;
-        const state = thunkApi.getState() as RootState;
-        const dispatch = thunkApi.dispatch;
-
-        const dialogConfig = selectCurrentDialogConfig(state);
-        const dialogKey = dialogConfig?.dbKey || dialogConfig?.id;
-        if (!dialogKey) {
-          console.error("handleSendMessage: Missing dialogKey or dialogConfig");
-          throw new Error("Current dialog configuration is missing.");
-        }
-        const dialogId = extractCustomId(dialogKey);
-        const userId = selectCurrentUserId(state);
-
-        const { key: messageDbKey, messageId } =
-          createDialogMessageKeyAndId(dialogId);
-        const userMsg: Message = {
-          id: messageId,
-          dbKey: messageDbKey,
-          role: "user",
-          content: userInput,
-          userId,
-        };
-
-        dispatch(addUserMessage(userMsg));
-
-        // 【优化2】净化写入数据库的数据对象，移除任何潜在的前端专用字段
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { controller, ...messageToWrite } = userMsg;
-        dispatch(
-          write({
-            data: { ...messageToWrite, type: DataType.MSG },
-            customKey: userMsg.dbKey,
-          })
-        );
-
-        const mode = dialogConfig?.mode;
-        const cybots = dialogConfig?.cybots || [];
-
-        try {
-          if (mode === DialogInvocationMode.PARALLEL) {
-            const cybotPromises = cybots.map((cybotId) =>
-              dispatch(streamCybotId({ cybotId, userInput }))
-                .unwrap()
-                .catch((error) =>
-                  console.error(
-                    `Error in PARALLEL mode for cybot ${cybotId}:`,
-                    error
-                  )
-                )
-            );
-            await Promise.all(cybotPromises);
-          } else if (mode === DialogInvocationMode.SEQUENTIAL) {
-            for (const cybotId of cybots) {
-              await dispatch(streamCybotId({ cybotId, userInput })).unwrap();
-            }
-          } else if (mode === DialogInvocationMode.ORCHESTRATED) {
-            console.log(
-              "ORCHESTRATED mode selected, but decision logic is a TODO."
-            );
-            const selectedCybots: string[] = [];
-
-            for (const cybotId of selectedCybots) {
-              const cybotConfig = await dispatch(read(cybotId)).unwrap();
-              const bodyData = {};
-              const providerName = cybotConfig.provider.toLowerCase();
-              const handler = requestHandlers[providerName];
-              if (handler) {
-                await handler({ bodyData, cybotConfig, thunkApi, dialogKey });
-              } else {
-                throw new Error(
-                  `Unsupported provider: ${cybotConfig.provider}`
-                );
-              }
-            }
-          } else {
-            // 默认或 FIRST 模式
-            if (cybots.length > 0) {
-              const firstCybotId = cybots[0];
-              await dispatch(
-                streamCybotId({ cybotId: firstCybotId, userInput })
-              ).unwrap();
-            }
-          }
-        } catch (error) {
-          console.error(
-            `Error during cybot invocation in mode '${mode}':`,
-            error
-          );
-        }
-      }
-    ),
-
     deleteDialogMsgs: create.asyncThunk(deleteDialogMsgsAction),
   }),
 
@@ -408,6 +306,7 @@ export const messageSlice = createSliceWithThunks({
     selectIsLoadingOlder: (state) => state.isLoadingOlder,
     selectHasMoreOlder: (state) => state.hasMoreOlder,
     selectMessageError: (state) => state.error,
+    selectLastStreamTimestamp: (state) => state.lastStreamTimestamp, // <--- 【新增】
   },
 });
 
@@ -425,6 +324,7 @@ export const {
   selectIsLoadingOlder,
   selectHasMoreOlder,
   selectMessageError,
+  selectLastStreamTimestamp, // <--- 【新增】
 } = messageSlice.selectors;
 
 export const selectMessagesLoadingState = createSelector(
@@ -451,7 +351,6 @@ export const {
   loadOlderMessages,
   messageStreamEnd,
   deleteMessage,
-  handleSendMessage,
   deleteDialogMsgs,
 } = messageSlice.actions;
 

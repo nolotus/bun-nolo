@@ -1,193 +1,149 @@
 // src/web/chat/MessageInput/MessageInput.tsx
 
 import type React from "react";
-import { useCallback, useRef, useState, useEffect } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { Content } from "../messages/types";
 import { zIndex } from "render/styles/zIndex";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { handleSendMessage } from "../messages/messageSlice";
 import { compressImage } from "utils/imageUtils";
 import { nanoid } from "nanoid";
 import toast from "react-hot-toast";
 import { UploadIcon } from "@primer/octicons-react";
-import {
-  FaFileExcel,
-  FaFileWord,
-  FaFilePdf,
-  FaFileAlt,
-  FaTimes,
-} from "react-icons/fa";
-import DocxPreviewDialog from "web/DocxPreviewDialog";
-import SendButton from "./ActionButton";
-import ImagePreview from "./ImagePreview";
 import { Descendant } from "slate";
-
-// --- Redux Actions & Selectors (使用新的 Thunk) ---
+import SendButton from "./ActionButton";
+import DocxPreviewDialog from "web/DocxPreviewDialog";
+import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
 import {
-  removePendingFile,
+  handleSendMessage,
   clearPendingAttachments,
   selectPendingFiles,
   createPageAndAddReference,
   type PendingFile,
 } from "../dialog/dialogSlice";
-
-// --- 重新引入特定于 Web 的解析库和工具函数 ---
+import type { Content } from "../messages/types";
 import * as XLSX from "xlsx";
 import { convertExcelToSlate } from "utils/excelToSlate";
 import { convertDocxToSlate } from "./docxToSlate";
 import { convertPdfToSlate } from "create/editor/utils/pdfToSlate";
 import { convertTxtToSlate } from "create/editor/utils/txtToSlate";
 
-// --- 配置 PDF.js Worker ---
-// 这一行非常重要，确保它在组件文件顶部或应用的入口处被调用
-
-// 本地UI状态的类型定义
-interface PendingImagePreview {
-  id: string;
-  url: string; // Base64 or Blob URL
-}
-
 const MessageInput: React.FC = () => {
-  // --- Hooks, Refs, and State ---
   const dispatch = useAppDispatch();
-  const theme = useTheme();
   const { t } = useTranslation("chat");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const theme = useTheme();
+
   const [textContent, setTextContent] = useState("");
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [isDragEnabled, setIsDragEnabled] = useState(false);
   const [localImagePreviews, setLocalImagePreviews] = useState<
     PendingImagePreview[]
   >([]);
-  const [localPreviewingFile, setLocalPreviewingFile] =
-    useState<PendingFile | null>(null);
   const pendingFiles = useAppSelector(selectPendingFiles);
 
-  // --- 文件类型配置 ---
-  const FILE_TYPE_CONFIG = {
-    excel: { icon: FaFileExcel, title: "电子表格", color: "#1D6F42" }, // --- MODIFICATION --- 标题更通用
-    docx: { icon: FaFileWord, title: "Word 文档", color: "#2B579A" },
-    pdf: { icon: FaFilePdf, title: "PDF 文档", color: "#DC3545" },
-    txt: { icon: FaFileAlt, title: "文本文件", color: "#6c757d" },
-    page: { icon: FaFileWord, title: "Page 文档", color: "#FF9500" },
-  } as const;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [localPreviewingFile, setLocalPreviewingFile] =
+    useState<PendingFile | null>(null);
 
-  // --- Effects ---
-  useEffect(() => {
-    const timer = setTimeout(() => setIsDragEnabled(true), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  const processFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files) return;
 
-  useEffect(() => {
-    if (
-      localPreviewingFile &&
-      !pendingFiles.some((file) => file.id === localPreviewingFile.id)
-    ) {
-      setLocalPreviewingFile(null);
-    }
-  }, [pendingFiles, localPreviewingFile]);
-
-  // --- File Handling Callbacks ---
-  const handleAddImagePreview = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (reader.result) {
-        setLocalImagePreviews((prev) => [
-          ...prev,
-          { id: nanoid(), url: reader.result as string },
-        ]);
-      }
-    };
-    reader.readAsDataURL(file);
-  }, []);
-
-  const processFile = useCallback(
-    async (file: File) => {
-      if (file.type.startsWith("image/")) {
-        handleAddImagePreview(file);
-        return;
-      }
-
-      let slateData: Descendant[];
-      let fileType: "excel" | "docx" | "pdf" | "txt" | null = null;
-      const toastId = toast.loading(`正在处理 ${file.name}...`);
-
-      try {
-        const fileNameLower = file.name.toLowerCase();
-
-        // --- MODIFICATION START: 扩展支持的电子表格格式 ---
-        const spreadsheetExtensions = [
-          ".xlsx",
-          ".xls",
-          ".csv",
-          ".ods",
-          ".xlsm",
-          ".xlsb",
-        ];
-        if (spreadsheetExtensions.some((ext) => fileNameLower.endsWith(ext))) {
-          // --- MODIFICATION END ---
-          fileType = "excel";
-          const buffer = await file.arrayBuffer();
-          const workbook = XLSX.read(buffer, { type: "array" });
-          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
-          slateData = convertExcelToSlate(jsonData, file.name);
-        } else if (fileNameLower.endsWith(".docx")) {
-          fileType = "docx";
-          slateData = await convertDocxToSlate(file);
-        } else if (fileNameLower.endsWith(".pdf")) {
-          fileType = "pdf";
-          slateData = await convertPdfToSlate(file);
-        } else if (
-          fileNameLower.endsWith(".txt") ||
-          file.type === "text/plain"
-        ) {
-          fileType = "txt";
-          const text = await file.text();
-          slateData = convertTxtToSlate(text);
-        } else {
-          toast.error(
-            t("unsupportedFileType", `不支持的文件类型: ${file.name}`),
-            { id: toastId }
-          );
-          return;
+      for (const file of Array.from(files)) {
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (reader.result) {
+              setLocalImagePreviews((prev) => [
+                ...prev,
+                { id: nanoid(), url: reader.result as string },
+              ]);
+            }
+          };
+          reader.readAsDataURL(file);
+          continue;
         }
 
-        const resultAction = await dispatch(
-          createPageAndAddReference({
-            slateData,
-            title: file.name,
-            type: fileType,
+        let slateData: Descendant[];
+        let fileType: "excel" | "docx" | "pdf" | "txt" | null = null;
+        const toastId = toast.loading(
+          t("processingFile", "正在处理 {{fileName}}...", {
+            fileName: file.name,
           })
         );
 
-        if (createPageAndAddReference.fulfilled.match(resultAction)) {
-          toast.success(`${file.name} 处理成功!`, { id: toastId });
-        } else {
-          throw new Error("创建页面或添加引用失败");
+        try {
+          const fileNameLower = file.name.toLowerCase();
+          const spreadsheetExtensions = [
+            ".xlsx",
+            ".xls",
+            ".csv",
+            ".ods",
+            ".xlsm",
+            ".xlsb",
+          ];
+          if (
+            spreadsheetExtensions.some((ext) => fileNameLower.endsWith(ext))
+          ) {
+            fileType = "excel";
+            const buffer = await file.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type: "array" });
+            slateData = convertExcelToSlate(
+              XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]),
+              file.name
+            );
+          } else if (fileNameLower.endsWith(".docx")) {
+            fileType = "docx";
+            slateData = await convertDocxToSlate(file);
+          } else if (fileNameLower.endsWith(".pdf")) {
+            fileType = "pdf";
+            slateData = await convertPdfToSlate(file);
+          } else if (
+            fileNameLower.endsWith(".txt") ||
+            file.type === "text/plain"
+          ) {
+            fileType = "txt";
+            slateData = await convertTxtToSlate(await file.text());
+          } else {
+            toast.error(
+              t("unsupportedFileType", "不支持的文件类型: {{fileName}}", {
+                fileName: file.name,
+              }),
+              { id: toastId }
+            );
+            continue;
+          }
+
+          const resultAction = await dispatch(
+            createPageAndAddReference({
+              slateData,
+              title: file.name,
+              type: fileType,
+            })
+          );
+          if (createPageAndAddReference.fulfilled.match(resultAction)) {
+            toast.success(
+              t("fileProcessedSuccess", "{{fileName}} 处理成功!", {
+                fileName: file.name,
+              }),
+              { id: toastId }
+            );
+          } else {
+            throw new Error(
+              (resultAction.payload as string) || "创建页面引用失败"
+            );
+          }
+        } catch (error) {
+          toast.error(
+            t("fileProcessedError", "处理 {{fileName}} 时出错。", {
+              fileName: file.name,
+            }),
+            { id: toastId }
+          );
         }
-      } catch (error) {
-        console.error(`处理文件 ${file.name} 失败:`, error);
-        toast.error(`处理 ${file.name} 时出错。`, { id: toastId });
       }
     },
-    [dispatch, handleAddImagePreview, t]
-  );
-
-  // --- Input & Send Logic ---
-  const handleTextareaChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const textarea = e.target;
-      textarea.style.height = "auto";
-      const maxHeight = window.innerWidth > 768 ? 140 : 100;
-      textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
-      setTextContent(e.target.value);
-    },
-    []
+    [dispatch, t]
   );
 
   const clearInputState = useCallback(() => {
@@ -196,10 +152,11 @@ const MessageInput: React.FC = () => {
     dispatch(clearPendingAttachments());
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
+      textareaRef.current.focus();
     }
   }, [dispatch]);
 
-  const sendMessage = useCallback(async () => {
+  const sendMessage = useCallback(() => {
     const trimmedText = textContent.trim();
     if (!trimmedText && !localImagePreviews.length && !pendingFiles.length)
       return;
@@ -209,47 +166,43 @@ const MessageInput: React.FC = () => {
       parts.push({ type: "text", text: trimmedText });
     }
 
-    if (localImagePreviews.length > 0) {
-      const compressionToastId = toast.loading(
-        t("compressingImagesMessage", "正在压缩图片..."),
-        { duration: Infinity }
-      );
+    const imagePromises = localImagePreviews.map(async (img) => {
       try {
-        const compressedUrls = await Promise.all(
-          localImagePreviews.map((img) => compressImage(img.url))
-        );
-        compressedUrls.forEach((url) =>
-          parts.push({ type: "image_url", image_url: { url } })
-        );
-        toast.dismiss(compressionToastId);
+        const compressedUrl = await compressImage(img.url);
+        return { type: "image_url", image_url: { url: compressedUrl } };
       } catch (error) {
-        toast.dismiss(compressionToastId);
-        console.error("图片压缩失败:", error);
-        toast.error(t("compressionErrorMessage", "图片压缩失败，将发送原图"), {
-          duration: 4000,
-        });
-        localImagePreviews.forEach((img) =>
-          parts.push({ type: "image_url", image_url: { url: img.url } })
-        );
+        toast.error(t("compressionErrorMessage", "图片压缩失败，将发送原图"));
+        return { type: "image_url", image_url: { url: img.url } };
       }
-    }
+    });
 
     pendingFiles.forEach((file) => {
       parts.push({ type: file.type, name: file.name, pageKey: file.pageKey });
     });
 
-    const messageContent =
-      parts.length === 1 && parts[0].type === "text" ? parts[0].text : parts;
+    clearInputState();
 
-    try {
-      if (parts.length > 0) {
-        dispatch(handleSendMessage({ userInput: messageContent }));
-        clearInputState();
+    (async () => {
+      try {
+        const imageParts = await Promise.all(imagePromises);
+        const finalParts = [
+          ...parts.filter((p) => p.type !== "image_url"),
+          ...imageParts,
+        ];
+        const messageContent =
+          finalParts.length === 1 && finalParts[0].type === "text"
+            ? finalParts[0].text!
+            : finalParts;
+
+        if (finalParts.length > 0) {
+          await dispatch(
+            handleSendMessage({ userInput: messageContent })
+          ).unwrap();
+        }
+      } catch (err) {
+        toast.error(t("sendFailMessage", "消息发送失败"));
       }
-    } catch (err) {
-      console.error("发送消息失败:", err);
-      toast.error(t("sendFailMessage", "消息发送失败"));
-    }
+    })();
   }, [
     textContent,
     localImagePreviews,
@@ -259,153 +212,60 @@ const MessageInput: React.FC = () => {
     t,
   ]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-        e.preventDefault();
-        sendMessage();
-      }
-    },
-    [sendMessage]
-  );
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    const maxHeight = window.innerWidth > 768 ? 140 : 100;
+    textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+    setTextContent(e.target.value);
+  };
 
-  // --- Event Handlers ---
-  const handlePaste = useCallback(
-    (e: React.ClipboardEvent) => {
-      Array.from(e.clipboardData.items).forEach((item) => {
-        if (item.kind === "file" && item.type.startsWith("image/")) {
-          const file = item.getAsFile();
-          if (file) handleAddImagePreview(file);
-        }
-      });
-    },
-    [handleAddImagePreview]
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
-      setIsDragOver(false);
-      if (isDragEnabled) Array.from(e.dataTransfer.files).forEach(processFile);
-    },
-    [isDragEnabled, processFile]
-  );
+      sendMessage();
+    }
+  };
 
-  const handleDragOver = useCallback(
-    (e: React.DragEvent) => {
-      if (isDragEnabled) {
-        e.preventDefault();
-        setIsDragOver(true);
-      }
-    },
-    [isDragEnabled]
-  );
+  const handlePaste = (e: React.ClipboardEvent) => {
+    processFiles(e.clipboardData.files);
+  };
 
-  const handleDragLeave = useCallback(() => {
-    if (isDragEnabled) setIsDragOver(false);
-  }, [isDragEnabled]);
-
-  const triggerFileInput = useCallback(() => fileInputRef.current?.click(), []);
-
-  const handleFileInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) Array.from(e.target.files).forEach(processFile);
-      e.target.value = "";
-    },
-    [processFile]
-  );
-
-  const handleRemoveImage = useCallback((id: string) => {
-    setLocalImagePreviews((prev) => prev.filter((img) => img.id !== id));
-  }, []);
-
-  const handleRemoveFile = useCallback(
-    (id: string) => {
-      dispatch(removePendingFile(id));
-    },
-    [dispatch]
-  );
-
-  const handlePreviewFile = useCallback((file: PendingFile) => {
-    setLocalPreviewingFile(file);
-  }, []);
-
-  const handleClosePreview = useCallback(
-    () => setLocalPreviewingFile(null),
-    []
-  );
-
-  // --- Render Functions ---
-  const renderFilePreview = (file: PendingFile) => {
-    const config = FILE_TYPE_CONFIG[file.type as keyof typeof FILE_TYPE_CONFIG];
-    if (!config) return null;
-    const IconComponent = config.icon;
-    return (
-      <div
-        key={file.id}
-        className="file-attachment"
-        style={{ "--file-color": config.color } as React.CSSProperties}
-      >
-        <div className="file-preview-content">
-          <IconComponent size={16} />
-          <span
-            className="file-name"
-            onClick={() => handlePreviewFile(file)}
-            title={`点击预览 ${config.title}`}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") handlePreviewFile(file);
-            }}
-          >
-            {file.name}
-          </span>
-        </div>
-        <button
-          className="remove-file-btn"
-          onClick={() => handleRemoveFile(file.id)}
-          aria-label={`删除 ${file.name}`}
-          title={`删除 ${file.name}`}
-        >
-          <FaTimes size={12} />
-        </button>
-      </div>
-    );
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    processFiles(e.dataTransfer.files);
   };
 
   const hasContent =
     textContent.trim() ||
     localImagePreviews.length > 0 ||
     pendingFiles.length > 0;
-  const hasAttachments =
-    localImagePreviews.length > 0 || pendingFiles.length > 0;
 
-  // --- JSX Output ---
   return (
     <div
       className="message-input-container"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+      }}
+      onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
       aria-label={t("messageInputArea", "消息输入区域")}
     >
-      {hasAttachments && (
-        <div className="attachments-preview">
-          <div className="attachments-list">
-            {localImagePreviews.length > 0 && (
-              <ImagePreview
-                images={localImagePreviews}
-                onRemove={handleRemoveImage}
-              />
-            )}
-            {pendingFiles.map(renderFilePreview)}
-          </div>
-        </div>
-      )}
+      <AttachmentsPreview
+        imagePreviews={localImagePreviews}
+        pendingFiles={pendingFiles}
+        onRemoveImage={(id) =>
+          setLocalImagePreviews((prev) => prev.filter((img) => img.id !== id))
+        }
+        onPreviewFile={setLocalPreviewingFile}
+      />
+
       <div className="input-controls">
         <button
           className="upload-button"
-          onClick={triggerFileInput}
+          onClick={() => fileInputRef.current?.click()}
           title={t("uploadFile", "上传文件")}
           aria-label={t("uploadFile", "上传文件")}
         >
@@ -423,7 +283,8 @@ const MessageInput: React.FC = () => {
         />
         <SendButton onClick={sendMessage} disabled={!hasContent} />
       </div>
-      {isDragOver && isDragEnabled && (
+
+      {isDragOver && (
         <div className="drop-zone" aria-live="polite">
           <div className="drop-zone-content">
             <UploadIcon size={32} />
@@ -431,24 +292,28 @@ const MessageInput: React.FC = () => {
           </div>
         </div>
       )}
+
       {localPreviewingFile && (
         <DocxPreviewDialog
           isOpen={!!localPreviewingFile}
-          onClose={handleClosePreview}
+          onClose={() => setLocalPreviewingFile(null)}
           pageKey={localPreviewingFile.pageKey}
           fileName={localPreviewingFile.name}
         />
       )}
+
       <input
         ref={fileInputRef}
         type="file"
         hidden
-        // --- MODIFICATION START: 更新 accept 属性以包含更多电子表格格式 ---
-        accept="image/*,.xlsx,.xls,.csv,.ods,.xlsm,.xlsb,.docx,.pdf,.txt,text/plain,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.oasis.opendocument.spreadsheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
-        // --- MODIFICATION END ---
+        accept="image/*,.xlsx,.xls,.csv,.ods,.xlsm,.xlsb,.docx,.pdf,.txt,text/plain"
         multiple
-        onChange={handleFileInputChange}
+        onChange={(e) => {
+          processFiles(e.target.files);
+          e.target.value = "";
+        }}
       />
+
       <style href="message-input" precedence="medium">{`
         .message-input-container { position: relative; bottom: 0; left: 0; right: 0; width: 100%; padding: ${theme.space[2]} ${theme.space[4]}; padding-bottom: calc(${theme.space[2]} + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: ${theme.space[2]}; background: ${theme.background}; border-top: 1px solid ${theme.borderLight}; box-shadow: 0 -2px 12px ${theme.shadowLight}; z-index: ${zIndex.messageInputContainerZIndex}; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .attachments-preview { width: 100%; }

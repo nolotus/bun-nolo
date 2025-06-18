@@ -1,4 +1,4 @@
-// src/features/dialog/dialogSlice.ts
+// /dialog/dialogSlice.ts
 
 import {
   type PayloadAction,
@@ -11,9 +11,9 @@ import { createPage } from "render/page/pageSlice";
 import { Descendant } from "slate";
 
 // --- 其他 Slice 和 Action 的引用 ---
-import { deleteDialogMsgs } from "chat/messages/messageSlice";
+import { addUserMessage, deleteDialogMsgs } from "chat/messages/messageSlice"; // <--- 【新增】导入原子 action
 import { extractCustomId } from "core/prefix";
-import { read, selectById, patch } from "database/dbSlice";
+import { read, selectById, patch, write } from "database/dbSlice"; // <--- 【新增】导入 write 和 DataType
 import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
@@ -25,6 +25,13 @@ import { deleteDialogAction } from "./actions/deleteDialogAction";
 import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
 import { updateDialogModeAction } from "./actions/updateDialogModeAction";
+import { selectCurrentUserId } from "auth/authSlice"; // <--- 【新增】导入
+import { createDialogMessageKeyAndId } from "database/keys"; // <--- 【新增】导入
+import { streamCybotId } from "ai/cybot/cybotSlice"; // <--- 【新增】导入
+import { requestHandlers } from "ai/llm/providers"; // <--- 【新增】导入
+import { DialogInvocationMode } from "./types"; // <--- 【新增】导入类型
+import type { Message } from "chat/messages/types"; // <--- 【新增】导入类型
+import { DataType } from "create/types";
 
 // --- 工具和类型定义 ---
 const createSliceWithThunks = buildCreateSlice({
@@ -216,6 +223,106 @@ const DialogSlice = createSliceWithThunks({
     }),
 
     // ===================================================================
+    // 【新增】发送消息流程编排 Thunk
+    // ===================================================================
+    handleSendMessage: create.asyncThunk(
+      async (args: { userInput: string }, thunkApi) => {
+        const { userInput } = args;
+        const state = thunkApi.getState() as RootState;
+        const dispatch = thunkApi.dispatch;
+
+        // 注意：selectCurrentDialogConfig 是在本文件末尾定义的
+        const dialogConfig = selectCurrentDialogConfig(state);
+        const dialogKey = dialogConfig?.dbKey || dialogConfig?.id;
+        if (!dialogKey) {
+          console.error("handleSendMessage: Missing dialogKey or dialogConfig");
+          throw new Error("Current dialog configuration is missing.");
+        }
+        const dialogId = extractCustomId(dialogKey);
+        const userId = selectCurrentUserId(state);
+
+        const { key: messageDbKey, messageId } =
+          createDialogMessageKeyAndId(dialogId);
+        const userMsg: Message = {
+          id: messageId,
+          dbKey: messageDbKey,
+          role: "user",
+          content: userInput,
+          userId,
+        };
+
+        // 步骤1：调用 messageSlice 的 action，立即更新 UI
+        dispatch(addUserMessage(userMsg));
+
+        // 步骤2：调用 dbSlice 的 action，持久化用户消息
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { controller, ...messageToWrite } = userMsg;
+        dispatch(
+          write({
+            data: { ...messageToWrite, type: DataType.MSG },
+            customKey: userMsg.dbKey,
+          })
+        );
+
+        // 步骤3：根据对话模式，编排 AI 调用流程
+        const mode = dialogConfig?.mode;
+        const cybots = dialogConfig?.cybots || [];
+
+        try {
+          if (mode === DialogInvocationMode.PARALLEL) {
+            const cybotPromises = cybots.map((cybotId) =>
+              dispatch(streamCybotId({ cybotId, userInput }))
+                .unwrap()
+                .catch((error) =>
+                  console.error(
+                    `Error in PARALLEL mode for cybot ${cybotId}:`,
+                    error
+                  )
+                )
+            );
+            await Promise.all(cybotPromises);
+          } else if (mode === DialogInvocationMode.SEQUENTIAL) {
+            for (const cybotId of cybots) {
+              await dispatch(streamCybotId({ cybotId, userInput })).unwrap();
+            }
+          } else if (mode === DialogInvocationMode.ORCHESTRATED) {
+            console.log(
+              "ORCHESTRATED mode selected, but decision logic is a TODO."
+            );
+            const selectedCybots: string[] = [];
+
+            for (const cybotId of selectedCybots) {
+              const cybotConfig = await dispatch(read(cybotId)).unwrap();
+              const bodyData = {};
+              const providerName = cybotConfig.provider.toLowerCase();
+              const handler = requestHandlers[providerName];
+              if (handler) {
+                await handler({ bodyData, cybotConfig, thunkApi, dialogKey });
+              } else {
+                throw new Error(
+                  `Unsupported provider: ${cybotConfig.provider}`
+                );
+              }
+            }
+          } else {
+            // 默认或 FIRST 模式
+            if (cybots.length > 0) {
+              const firstCybotId = cybots[0];
+              await dispatch(
+                streamCybotId({ cybotId: firstCybotId, userInput })
+              ).unwrap();
+            }
+          }
+        } catch (error) {
+          console.error(
+            `Error during cybot invocation in mode '${mode}':`,
+            error
+          );
+        }
+      }
+    ),
+
+    // ===================================================================
     // Abort Controller 管理
     // ===================================================================
     addActiveController: create.reducer(
@@ -283,6 +390,7 @@ export const {
   addCybot,
   removeCybot,
   updateDialogMode,
+  handleSendMessage, // <--- 【新增】导出
   addActiveController,
   removeActiveController,
   abortAllMessages,
