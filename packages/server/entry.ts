@@ -9,117 +9,80 @@ import { handleFetchWebpage } from "./handlers/fetchWebpageHandler";
 import { databaseRoutes } from "./databaseRoutes";
 import { sqliteRoutes } from "./sqliteRoutes";
 
+// 启动定时任务 (如果需要，可以取消注释)
 const startTasks = () => {
-  tasks.forEach(({ interval, task }) => {
-    const cron = Cron(interval, task);
-    cron.trigger();
-  });
+  tasks.forEach(({ interval, task }) => Cron(interval, task).trigger());
 };
 
-// 新增：使用 Bun 的路由功能高效处理静态文件
-const publicRoutes = {
-  // 使用通配符 * 匹配 /public/ 目录下的所有文件和子目录
-  "/public/*": (req: Request) => {
-    const url = new URL(req.url);
-    // 从路径中移除 /public/ 前缀，得到文件的相对路径
-    const filePath = url.pathname.substring("/public/".length);
-    // 直接返回文件响应，Bun 会自动处理 Content-Type 等头部
-    return new Response(Bun.file(`public/${filePath}`));
-  },
+// 提取重复的 CORS 响应头，使代码更简洁
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
 };
 
+// 路由定义
 const apiRoutes = {
+  // 新增：为 /public 目录下的静态文件提供服务，并设置1天浏览器缓存
+  "/public/*": (req: Request) => {
+    const filePath = new URL(req.url).pathname.substring("/public/".length);
+    return new Response(Bun.file(`public/${filePath}`), {
+      headers: { "Cache-Control": "public, max-age=86400" }, // 缓存1天
+    });
+  },
+
   "/api/status": new Response("OK"),
   [API_ENDPOINTS.HI]: {
-    GET: () =>
-      new Response(JSON.stringify({ API_VERSION }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
+    GET: () => new Response(JSON.stringify({ API_VERSION })),
   },
   [API_ENDPOINTS.CHAT]: {
-    POST: async (req: Request) => {
-      const headers = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400",
-      };
-      return await handleChatRequest(req, headers);
-    },
-    OPTIONS: () =>
-      new Response(null, {
-        status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          "Access-Control-Max-Age": "86400",
-        },
-      }),
+    POST: (req: Request) => handleChatRequest(req, corsHeaders),
+    OPTIONS: () => new Response(null, { status: 204, headers: corsHeaders }),
   },
   "/api/fetch-webpage": {
     POST: handleFetchWebpage,
-    OPTIONS: () =>
-      new Response(null, {
-        status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          "Access-Control-Max-Age": "86400",
-        },
-      }),
+    OPTIONS: () => new Response(null, { status: 204, headers: corsHeaders }),
   },
-  ...publicRoutes, // <-- 整合静态文件路由
   ...databaseRoutes,
   ...sqliteRoutes,
 };
 
-const httpServer = () => {
+// 启动 HTTP/HTTPS 服务器
+const startServer = () => {
   console.log("isProduction:", isProduction);
 
-  Bun.serve({
+  // 提取通用的服务器配置
+  const serverOptions = {
     routes: apiRoutes,
     idleTimeout: 60,
-    port: 80,
     hostname: "0.0.0.0",
-    fetch: handleRequest, // 这个 fetch 现在是备用处理器，用于处理 routes 中未匹配的请求
+    fetch: handleRequest, // 备用处理器
     websocket: {
-      async message(ws, message) {
-        ws.send(`Received`);
-      },
+      message: (ws: any, message: any) => ws.send(`Received`),
     },
-  });
+  };
 
+  // 启动 HTTP 服务
+  Bun.serve({ ...serverOptions, port: 80 });
+  console.log("HTTP server started on port 80");
+
+  // 在生产环境中启动 HTTPS 服务
   if (isProduction) {
-    console.log("Starting HTTPS server on port 443");
     Bun.serve({
-      idleTimeout: 60,
-      routes: apiRoutes,
+      ...serverOptions,
       port: 443,
-      hostname: "0.0.0.0",
-      fetch: handleRequest,
-      websocket: {
-        async message(ws, message) {
-          ws.send(`Received`);
-        },
-      },
       tls: {
         key: Bun.file("./key.pem"),
         cert: Bun.file("./cert.pem"),
       },
     });
+    console.log("HTTPS server started on port 443");
   } else {
     console.log("HTTPS server not started (not in production mode)");
   }
-};
 
-export const startServer = () => {
-  console.log("start httpServer");
-  httpServer();
   // startTasks();
-  console.log("end httpServer");
 };
 
 startServer();
