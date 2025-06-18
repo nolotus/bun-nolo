@@ -5,31 +5,31 @@ import React from "react";
 import { Dialog as EditDialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { useTheme } from "app/theme";
-import CybotForm from "./web/CybotForm";
+import CybotForm from "./BotForm";
 import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
 // 定义组件的 props 接口
-interface CybotNameChipProps {
-  cybotKey: string;
-  /** 可选回调函数，用于从当前上下文中移除 Cybot */
-  onRemove?: (cybotKey: string) => void;
+interface BotNameChipProps {
+  botKey: string;
+  /** 可选回调函数，用于从当前上下文中移除 Bot */
+  onRemove?: (botKey: string) => void;
 }
 
 // 使用 React.memo 优化组件性能
-const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
-  ({ cybotKey, onRemove }) => {
+const BotNameChip: React.FC<BotNameChipProps> = React.memo(
+  ({ botKey, onRemove }) => {
     // 获取主题、数据、编辑权限和模态框状态
     const theme = useTheme();
-    const { isLoading, data: cybot } = useFetchData(cybotKey);
+    const { isLoading, data: bot } = useFetchData(botKey);
     const {
       visible: editVisible,
       open: openEdit,
       close: closeEdit,
     } = useModal();
-    const allowEdit = useCouldEdit(cybotKey);
+    const allowEdit = useCouldEdit(botKey);
 
-    // 显示名称，优先使用 cybot.name，没有则回退到 cybotKey
-    const displayName = cybot?.name || cybotKey;
+    // 显示名称，优先使用 bot.name，没有则回退到 botKey
+    const displayName = bot?.name || botKey;
 
     // 处理点击 Chip 的事件，允许编辑时打开编辑框
     const handleChipClick = (e: React.MouseEvent) => {
@@ -42,18 +42,16 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
     // 处理点击移除按钮的事件
     const handleRemoveClick = (e: React.MouseEvent) => {
       e.stopPropagation(); // 阻止事件冒泡
-      if (onRemove) {
-        onRemove(cybotKey);
-      }
+      onRemove?.(botKey); // 使用可选链式调用简化条件判断
     };
 
     return (
       <>
         {/* Chip 和移除按钮的容器 */}
-        <div className="cybot-chip-wrapper">
+        <div className="bot-chip-wrapper">
           {/* 显示名称的 Chip */}
           <span
-            className={`cybot-chip ${allowEdit ? "editable" : ""}`}
+            className={`bot-chip ${allowEdit ? "editable" : ""}`}
             title={displayName}
             onClick={handleChipClick}
             role={allowEdit ? "button" : undefined}
@@ -74,7 +72,7 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
           {/* 移除按钮，onRemove 存在时显示 */}
           {onRemove && (
             <button
-              className="cybot-chip-remove-button"
+              className="bot-chip-remove-button"
               onClick={handleRemoveClick}
               aria-label={`Remove ${displayName}`}
               title={`Remove ${displayName}`}
@@ -85,15 +83,15 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
         </div>
 
         {/* 编辑对话框，只有允许编辑且数据存在时显示 */}
-        {allowEdit && editVisible && cybot && (
+        {allowEdit && editVisible && bot && (
           <EditDialog
             isOpen={editVisible}
             onClose={closeEdit}
-            title={`Edit ${cybot.name || "Cybot"}`}
+            title={`Edit ${bot.name || "Bot"}`}
           >
-            <CybotForm
+            <CybotForm // 组件名保留，但内部可能处理bot
               mode="edit"
-              initialValues={cybot}
+              initialValues={bot}
               onClose={closeEdit}
               CreateIcon={PlusIcon}
               EditIcon={SyncIcon}
@@ -104,7 +102,7 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
         {/* 组件样式 */}
         <style>
           {`
-          .cybot-chip-wrapper {
+          .bot-chip-wrapper {
             display: inline-flex;
             align-items: center;
             background-color: ${theme.surface2};
@@ -114,12 +112,12 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
             transition: all 0.2s ease;
             max-width: 100%;
           }
-          .cybot-chip-wrapper:hover {
+          .bot-chip-wrapper:hover {
             border-color: ${theme.borderHover};
             background-color: ${theme.surfaceHighlight};
           }
 
-          .cybot-chip {
+          .bot-chip {
             font-size: 13px;
             padding: 5px 12px;
             color: ${theme.textSecondary};
@@ -130,12 +128,12 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
             flex-grow: 1;
             min-width: 0;
           }
-          .cybot-chip.editable {
+          .bot-chip.editable {
             cursor: pointer;
             color: ${theme.text};
           }
 
-          .cybot-chip-remove-button {
+          .bot-chip-remove-button {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -150,15 +148,15 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
             transition: all 0.15s ease;
             flex-shrink: 0;
           }
-          .cybot-chip-remove-button:hover {
+          .bot-chip-remove-button:hover {
             background-color: ${theme.dangerMuted};
             color: ${theme.dangerFg};
           }
-          .cybot-chip-remove-button:active {
+          .bot-chip-remove-button:active {
             transform: scale(0.9);
           }
 
-          .cybot-dialog-list .cybot-chip-wrapper {
+          .bot-dialog-list .bot-chip-wrapper {
             width: 100%;
             box-sizing: border-box;
           }
@@ -169,4 +167,4 @@ const CybotNameChip: React.FC<CybotNameChipProps> = React.memo(
   }
 );
 
-export default CybotNameChip;
+export default BotNameChip;

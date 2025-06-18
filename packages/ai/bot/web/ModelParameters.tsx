@@ -11,7 +11,7 @@ import {
   DEFAULT_PRESENCE_PENALTY,
   DEFAULT_MAX_TOKENS,
   DEFAULT_REASONING_EFFORT,
-} from "../common/createCybotSchema";
+} from "../../cybot/common/createCybotSchema";
 
 // 定义模型参数的配置，包含默认值和UI展示信息
 const PARAMETER_CONFIGS = [
