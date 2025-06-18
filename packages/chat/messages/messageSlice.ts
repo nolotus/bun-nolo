@@ -23,7 +23,7 @@ import { fetchConvMsgs } from "./fetchConvMsgs";
 import { browserDb } from "database/browser/db";
 
 // --- Constants ---
-const FALLBACK_SERVERS = ["https://cybot.one", "https://cybot.run"];
+const FALLBACK_SERVERS = ["https://cybot.one", "https://us.nolo.chat"];
 const OLDER_LOAD_LIMIT = 30;
 
 // --- Utility: isValidMessage ---

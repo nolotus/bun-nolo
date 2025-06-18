@@ -21,7 +21,7 @@ interface SettingState {
 
 const initialState: SettingState = {
   isAutoSync: false,
-  currentServer: isProduction ? "https://cybot.one" : "https://cybot.run",
+  currentServer: isProduction ? "https://cybot.one" : "https://us.nolo.chat",
   defaultSpaceId: undefined, // Start with undefined or null
   syncServers: ["https://nolotus.com", "https://us.nolotus.com"],
   showThinking: true, // 新增：默认显示思考过程

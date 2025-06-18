@@ -5,7 +5,7 @@ import { selectCurrentToken } from "auth/authSlice";
 
 // 配置常量
 const SERVER_TIMEOUT = 5000;
-const SERVERS = ["https://cybot.one", "https://cybot.run"];
+const SERVERS = ["https://cybot.one", "https://us.nolo.chat"];
 
 const fetchWithTimeout = async (
   url: string,

@@ -1,10 +1,9 @@
 // database/requests.ts
 import { API_ENDPOINTS } from "./config";
-import { toast } from "react-hot-toast";
 
 export const CYBOT_SERVERS = {
   ONE: "https://cybot.one",
-  RUN: "https://cybot.run",
+  US: "https://us.nolo.chat",
 };
 
 export const TIMEOUT = 5000;

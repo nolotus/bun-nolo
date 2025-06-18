@@ -52,7 +52,7 @@ export const deleteDialogMsgsAction = async (dialogId: string, thunkApi) => {
     await batchDeleteLocal(deletedIds);
 
     const servers = Array.from(
-      new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
+      new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.US])
     );
 
     Promise.resolve().then(() => {
