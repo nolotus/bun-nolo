@@ -210,10 +210,10 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
               <div className="dialog-cybot-preview">
                 {currentDialogConfig?.cybots
                   ?.slice(0, 3)
-                  .map((cybotKey) => (
-                    <CybotNameChip
-                      key={cybotKey}
-                      cybotKey={cybotKey}
+                  .map((botKey) => (
+                    <BotNameChip
+                      key={botKey}
+                      botKey={botKey}
                       onRemove={handleRemoveCybot}
                       compact={true}
                     />

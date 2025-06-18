@@ -18,7 +18,7 @@ const Home = () => {
 
       <section className="community-section">
         <SectionHeader
-          title="探索社区 Cybot"
+          title="探索社区 AI"
           icon={<FiGlobe />}
           linkText="浏览更多"
           linkTo="/explore"
