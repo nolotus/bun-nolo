@@ -4,14 +4,9 @@ import { CreateRoutePaths } from "./routePaths";
 import BotForm from "ai/bot/web/BotForm";
 
 import CreateCustomCybot from "ai/cybot/web/CreateCustomCybot"; // 假设暂时保留 CreateCustomCybot
-import Dashboard from "./Dashboard";
 import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
 export const createRoutes = [
-  {
-    path: CreateRoutePaths.CREATE,
-    element: <Dashboard />,
-  },
   {
     path: CreateRoutePaths.CREATE_CYBOT,
     element: (
