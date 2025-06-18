@@ -70,7 +70,7 @@ export const patchAction = async (
 
     const servers = Array.from(
       new Set(
-        [currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN].filter(Boolean)
+        [currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.US].filter(Boolean)
       )
     );
 

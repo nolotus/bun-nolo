@@ -50,10 +50,6 @@ const generatorRoutes = (hostname: string, auth: any) => {
     ];
   }
 
-  if (hostname === "cybot.one" || hostname === "cybot.run") {
-    return routes(auth.user);
-  }
-
   return routes(auth.user);
 };
 

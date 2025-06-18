@@ -88,10 +88,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Deploy to us.cybot.run
+      - name: Deploy to us.nolo.chat
         uses: appleboy/ssh-action@master
         with:
-          host: us.cybot.run
+          host: us.nolo.chat
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
@@ -189,11 +189,11 @@ jobs:
             done
 
             echo "清理完成。"
-      - name: Cleanup old assets on us.cybot.run (for alpha)
+      - name: Cleanup old assets on us.nolo.chat(for alpha)
         if: github.ref == 'refs/heads/alpha'
         uses: appleboy/ssh-action@master
         with:
-          host: us.cybot.run
+          host: us.nolo.chat
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |

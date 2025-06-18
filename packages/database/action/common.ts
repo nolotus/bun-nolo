@@ -23,7 +23,7 @@ export const getAllServers = (currentServer: string): string[] => {
 
   // 如果在线，则返回正常的服务器列表
   return Array.from(
-    new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.RUN])
+    new Set([currentServer, CYBOT_SERVERS.ONE, CYBOT_SERVERS.US])
   );
 };
 
