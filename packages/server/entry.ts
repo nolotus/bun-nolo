@@ -16,6 +16,18 @@ const startTasks = () => {
   });
 };
 
+// 新增：使用 Bun 的路由功能高效处理静态文件
+const publicRoutes = {
+  // 使用通配符 * 匹配 /public/ 目录下的所有文件和子目录
+  "/public/*": (req: Request) => {
+    const url = new URL(req.url);
+    // 从路径中移除 /public/ 前缀，得到文件的相对路径
+    const filePath = url.pathname.substring("/public/".length);
+    // 直接返回文件响应，Bun 会自动处理 Content-Type 等头部
+    return new Response(Bun.file(`public/${filePath}`));
+  },
+};
+
 const apiRoutes = {
   "/api/status": new Response("OK"),
   [API_ENDPOINTS.HI]: {
@@ -26,7 +38,7 @@ const apiRoutes = {
       }),
   },
   [API_ENDPOINTS.CHAT]: {
-    POST: async (req) => {
+    POST: async (req: Request) => {
       const headers = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -59,8 +71,9 @@ const apiRoutes = {
         },
       }),
   },
+  ...publicRoutes, // <-- 整合静态文件路由
   ...databaseRoutes,
-  ...sqliteRoutes, // 仍然会整合进来
+  ...sqliteRoutes,
 };
 
 const httpServer = () => {
@@ -71,7 +84,7 @@ const httpServer = () => {
     idleTimeout: 60,
     port: 80,
     hostname: "0.0.0.0",
-    fetch: handleRequest,
+    fetch: handleRequest, // 这个 fetch 现在是备用处理器，用于处理 routes 中未匹配的请求
     websocket: {
       async message(ws, message) {
         ws.send(`Received`);
