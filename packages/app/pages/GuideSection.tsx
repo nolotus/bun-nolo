@@ -43,13 +43,13 @@ const GuideSection = () => {
 
   const buttonsInfo = [
     {
-      text: "创建 Cybot",
+      text: "创建 ai",
       route: `/${CreateRoutePaths.CREATE_CYBOT}`,
       icon: <BsRobot size={20} />,
       description: "创建你的 AI 助手，添加提示词并选择合适的模型",
     },
     {
-      text: "自定义 Cybot",
+      text: "自定义 ai",
       route: `/${CreateRoutePaths.CREATE_CUSTOM_CYBOT}`,
       icon: <MdOutlineSettings size={20} />,
       description: "使用自定义 API 地址创建高级 Cybot",
@@ -57,7 +57,7 @@ const GuideSection = () => {
     {
       text: "新建笔记",
       icon: <HiOutlineDocumentAdd size={20} />,
-      description: "创建可与 Cybot 共享的笔记和知识库",
+      description: "创建可笔记和知识库",
       action: createNewPage,
     },
   ];
@@ -66,7 +66,7 @@ const GuideSection = () => {
     {
       text: "使用指南",
       icon: <BiBook size={18} />,
-      description: "了解如何高效使用 Cybot 功能",
+      description: "了解如何高效使用",
       link: "/page-0e95801d90-01JRDMA6Q85PQDCEAC7EXHWF67?spaceId=01JRDM39VSNYD1PKS4B53W6BGE",
     },
     {
@@ -79,7 +79,7 @@ const GuideSection = () => {
     {
       text: "点此充值", // 链接文本
       icon: <FiCreditCard size={18} />, // 使用 FiCreditCard 图标
-      description: "充值您的余额以使用 Cybot 服务", // 描述
+      description: "充值您的余额以使用服务", // 描述
       link: "/recharge", // 假设充值页面的路由是 /recharge，请根据您的实际路由调整
     },
   ];
@@ -89,10 +89,10 @@ const GuideSection = () => {
       <div className="guide-header">
         <h2 className="guide-title">
           <HiOutlineLightBulb size={26} className="guide-title-icon" />
-          开始使用 Cybot
+          开始使用
         </h2>
         <p className="guide-subtitle">
-          探索 AI 助手的强大功能，根据下方选项快速开始您的 Cybot 之旅
+          探索 AI 助手的强大功能，根据下方选项快速开始
         </p>
       </div>
 

@@ -7,12 +7,12 @@ import { databaseRequest } from "database/server/routes";
 import { weatherRouteHandler } from "integrations/weather";
 import { createResponse } from "./createResponse";
 import { handleRender } from "./render";
-import { handlePublicRequest } from "./publicRequestHandler";
 import { handleRPCRequest } from "./handleRPCRequest";
 
 const logger = pino({ name: "server:request" });
 const res = createResponse();
 
+// 注意：这个函数现在只处理没有被 `routes` 匹配到的请求
 export const handleRequest = async (request: Request, server) => {
   const upgraded = server.upgrade(request, {
     data: {
@@ -26,10 +26,6 @@ export const handleRequest = async (request: Request, server) => {
 
   if (request.method === "OPTIONS") {
     return res.status(200).json({ ok: true });
-  }
-
-  if (url.pathname.startsWith("/public")) {
-    return handlePublicRequest(url);
   }
 
   // RPC请求处理
@@ -73,6 +69,7 @@ export const handleRequest = async (request: Request, server) => {
   }
 
   try {
+    // 这个函数现在是所有未匹配路由的最终处理器，通常用于渲染前端应用 (SPA)
     return await handleRender(request);
   } catch (error) {
     logger.error({ error }, "Render failed");
