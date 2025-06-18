@@ -68,7 +68,7 @@ const MessageInput: React.FC = () => {
 
   // --- 文件类型配置 ---
   const FILE_TYPE_CONFIG = {
-    excel: { icon: FaFileExcel, title: "Excel 文件", color: "#1D6F42" },
+    excel: { icon: FaFileExcel, title: "电子表格", color: "#1D6F42" }, // --- MODIFICATION --- 标题更通用
     docx: { icon: FaFileWord, title: "Word 文档", color: "#2B579A" },
     pdf: { icon: FaFilePdf, title: "PDF 文档", color: "#DC3545" },
     txt: { icon: FaFileAlt, title: "文本文件", color: "#6c757d" },
@@ -119,7 +119,17 @@ const MessageInput: React.FC = () => {
       try {
         const fileNameLower = file.name.toLowerCase();
 
-        if (fileNameLower.endsWith(".xlsx") || fileNameLower.endsWith(".xls")) {
+        // --- MODIFICATION START: 扩展支持的电子表格格式 ---
+        const spreadsheetExtensions = [
+          ".xlsx",
+          ".xls",
+          ".csv",
+          ".ods",
+          ".xlsm",
+          ".xlsb",
+        ];
+        if (spreadsheetExtensions.some((ext) => fileNameLower.endsWith(ext))) {
+          // --- MODIFICATION END ---
           fileType = "excel";
           const buffer = await file.arrayBuffer();
           const workbook = XLSX.read(buffer, { type: "array" });
@@ -433,7 +443,9 @@ const MessageInput: React.FC = () => {
         ref={fileInputRef}
         type="file"
         hidden
-        accept="image/*,.xlsx,.xls,.csv,.docx,.pdf,.txt,text/plain,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
+        // --- MODIFICATION START: 更新 accept 属性以包含更多电子表格格式 ---
+        accept="image/*,.xlsx,.xls,.csv,.ods,.xlsm,.xlsb,.docx,.pdf,.txt,text/plain,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.oasis.opendocument.spreadsheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
+        // --- MODIFICATION END ---
         multiple
         onChange={handleFileInputChange}
       />
