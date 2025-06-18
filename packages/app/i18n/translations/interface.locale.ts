@@ -61,30 +61,40 @@ export default {
       deleteSuccess: "Delete successful",
       home: "Home",
       welcomeSection: {
-        heroTitle: "Build Your AI Assistant",
-        waveEmoji: "👋",
+        heroTitle: "Your Personal AI, Your Rules",
+        waveEmoji: "🔒",
         heroDescription:
-          "Cybot allows you to customize AI assistants for specific needs without any programming knowledge",
-        ctaButton: "Start for Free",
+          "Experience the future of AI assistance with complete privacy control. Build intelligent AI companions that understand your needs, learn from your files, and adapt to your unique style—all while keeping your data completely secure.",
+        ctaButton: "Start Your AI Journey",
         feature1: {
-          title: "Custom AI Assistant",
+          title: "Intelligent Knowledge Hub",
           description:
-            "Create personalized AI assistants for different needs, customize conversations and skills",
+            "Transform any document, image, or file into your AI's memory. Watch as your assistant becomes smarter with every upload, understanding context and delivering insights tailored to your world",
+          highlights: {
+            0: "📚 Smart Document Processing",
+            1: "🔍 Visual Intelligence",
+            2: "🎨 Custom Personalities",
+          },
         },
         feature2: {
-          title: "Privacy and Security",
+          title: "Fort Knox-Level Security",
           description:
-            "End-to-end encryption protection, support for local model deployment, data self-control",
+            "Your conversations stay yours. Military-grade encryption, local deployment options, and open-source transparency ensure your data never leaves your control",
+          highlights: {
+            0: "🛡️ Zero-Trust Architecture",
+            1: "🔐 End-to-End Encryption",
+            2: "🌐 Transparency First",
+          },
         },
         feature3: {
-          title: "Cross-Platform Support",
+          title: "Seamless Everywhere",
           description:
-            "Seamless experience across Web, desktop, and mobile (coming soon)",
-        },
-        feature4: {
-          title: "Open Source Ecosystem",
-          description:
-            "Decentralized architecture, support for free deployment and community custom extensions",
+            "Your AI follows you across every device and platform. Start a conversation on your phone, continue on your laptop, with perfect sync and consistent experience",
+          highlights: {
+            0: "⚡ Lightning Fast",
+            1: "🔄 Perfect Sync",
+            2: "🌍 Universal Access",
+          },
         },
       },
     },
@@ -147,25 +157,40 @@ export default {
       deleteSuccess: "删除成功",
       home: "首页",
       welcomeSection: {
-        heroTitle: "打造你的 AI 助手",
-        waveEmoji: "👋",
-        heroDescription: "Cybot 让你能够根据特定需求定制 AI 助手，无需编程知识",
-        ctaButton: "免费开始使用",
+        heroTitle: "你的AI，你做主",
+        waveEmoji: "🔒",
+        heroDescription:
+          "体验AI助手的未来，掌握完整的隐私控制权。打造懂你的智能伙伴，让它从你的文件中学习，适应你的独特风格——同时确保数据完全安全。",
+        ctaButton: "开启AI之旅",
         feature1: {
-          title: "定制 AI 助手",
-          description: "为不同需求创建专属智能助手，自定义对话和技能",
+          title: "智能知识中枢",
+          description:
+            "将任何文档、图片或文件转化为AI的记忆。看着你的助手随着每次上传变得更聪明，理解上下文并提供专属于你的洞察",
+          highlights: {
+            0: "📚 智能文档处理",
+            1: "🔍 视觉智能分析",
+            2: "🎨 个性化定制",
+          },
         },
         feature2: {
-          title: "隐私与安全",
-          description: "端到端加密保护，支持本地模型部署，数据自主可控",
+          title: "银行级安全保障",
+          description:
+            "你的对话完全属于你。军用级加密，本地部署选项，开源透明度确保数据永远在你的控制之下",
+          highlights: {
+            0: "🛡️ 零信任架构",
+            1: "🔐 端到端加密",
+            2: "🌐 透明优先",
+          },
         },
         feature3: {
-          title: "全平台支持",
-          description: "Web、桌面和移动端（即将推出）体验无缝衔接",
-        },
-        feature4: {
-          title: "开源生态",
-          description: "去中心化架构，支持自由部署和社区定制扩展",
+          title: "无缝随行体验",
+          description:
+            "你的AI伴随你跨越每个设备和平台。在手机上开始对话，在笔记本上继续，完美同步，体验一致",
+          highlights: {
+            0: "⚡ 闪电般快速",
+            1: "🔄 完美同步",
+            2: "🌍 全球触达",
+          },
         },
       },
     },
@@ -228,25 +253,40 @@ export default {
       deleteSuccess: "刪除成功",
       home: "首頁",
       welcomeSection: {
-        heroTitle: "打造你的 AI 助手",
-        waveEmoji: "👋",
-        heroDescription: "Cybot 讓你能夠根據特定需求定制 AI 助手，無需編程知識",
-        ctaButton: "免費開始使用",
+        heroTitle: "你的AI，你做主",
+        waveEmoji: "🔒",
+        heroDescription:
+          "體驗AI助手的未來，掌握完整的隱私控制權。打造懂你的智能夥伴，讓它從你的文件中學習，適應你的獨特風格——同時確保數據完全安全。",
+        ctaButton: "開啟AI之旅",
         feature1: {
-          title: "定制 AI 助手",
-          description: "為不同需求創建專屬智能助手，自訂對話和技能",
+          title: "智能知識中樞",
+          description:
+            "將任何文檔、圖片或文件轉化為AI的記憶。看著你的助手隨著每次上傳變得更聰明，理解上下文並提供專屬於你的洞察",
+          highlights: {
+            0: "📚 智能文檔處理",
+            1: "🔍 視覺智能分析",
+            2: "🎨 個性化定製",
+          },
         },
         feature2: {
-          title: "隱私與安全",
-          description: "端到端加密保護，支持本地模型部署，數據自主可控",
+          title: "銀行級安全保障",
+          description:
+            "你的對話完全屬於你。軍用級加密，本地部署選項，開源透明度確保數據永遠在你的控制之下",
+          highlights: {
+            0: "🛡️ 零信任架構",
+            1: "🔐 端到端加密",
+            2: "🌐 透明優先",
+          },
         },
         feature3: {
-          title: "全平台支持",
-          description: "Web、桌面和移動端（即將推出）體驗無縫銜接",
-        },
-        feature4: {
-          title: "開源生態",
-          description: "去中心化架構，支持自由部署和社區定制擴展",
+          title: "無縫隨行體驗",
+          description:
+            "你的AI伴隨你跨越每個設備和平台。在手機上開始對話，在筆記本上繼續，完美同步，體驗一致",
+          highlights: {
+            0: "⚡ 閃電般快速",
+            1: "🔄 完美同步",
+            2: "🌍 全球觸達",
+          },
         },
       },
     },
@@ -304,37 +344,47 @@ export default {
       settings: "設定",
       introtext: "編集を開始するにはここをクリック",
       hintofKey:
-        "ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雜なパスワードの組み合わせを使用し、パスワードを覚えておいてください",
+        "ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雑なパスワードの組み合わせを使用し、パスワードを覚えておいてください",
       "Nothing to see here!": "ここには何もありません！",
       "Go to Home": "ホームに戻る",
       "Go Back": "戻る",
       deleteSuccess: "削除成功",
       home: "ホーム",
       welcomeSection: {
-        heroTitle: "あなたのAIアシスタントを作成",
-        waveEmoji: "👋",
+        heroTitle: "あなたのAI、あなたのルール",
+        waveEmoji: "🔒",
         heroDescription:
-          "Cybotは、特定のニーズに応じたAIアシスタントをカスタマイズできるようにします。プログラミングの知識は不要です。",
-        ctaButton: "無料で始める",
+          "完全なプライバシー制御でAIアシスタンスの未来を体験。あなたのニーズを理解し、ファイルから学習し、独自のスタイルに適応するインテリジェントなAIコンパニオンを構築—データを完全に安全に保ちながら。",
+        ctaButton: "AIジャーニーを開始",
         feature1: {
-          title: "カスタムAIアシスタント",
+          title: "インテリジェント知識ハブ",
           description:
-            "異なるニーズに応じたパーソナライズされたAIアシスタントを作成し、会話とスキルをカスタマイズします。",
+            "あらゆる文書、画像、ファイルをAIの記憶に変換。アップロードするたびにアシスタントがより賢くなり、コンテキストを理解してあなたの世界に合わせたインサイトを提供する様子をご覧ください",
+          highlights: {
+            0: "📚 スマート文書処理",
+            1: "🔍 ビジュアルインテリジェンス",
+            2: "🎨 カスタムパーソナリティ",
+          },
         },
         feature2: {
-          title: "プライバシーとセキュリティ",
+          title: "要塞レベルのセキュリティ",
           description:
-            "エンドツーエンドの暗号化保護、ローカルモデルのデプロイをサポート、データの自己管理。",
+            "あなたの会話はあなたのもの。軍事レベルの暗号化、ローカルデプロイメントオプション、オープンソースの透明性により、データがあなたのコントロールから離れることはありません",
+          highlights: {
+            0: "🛡️ ゼロトラストアーキテクチャ",
+            1: "🔐 エンドツーエンド暗号化",
+            2: "🌐 透明性ファースト",
+          },
         },
         feature3: {
-          title: "クロスプラットフォームサポート",
+          title: "どこでもシームレス",
           description:
-            "Web、デスクトップ、モバイル（近日公開予定）でのシームレスな体験。",
-        },
-        feature4: {
-          title: "オープンソースエコシステム",
-          description:
-            "分散型アーキテクチャ、自由なデプロイとコミュニティカスタム拡張をサポート。",
+            "あなたのAIはすべてのデバイスとプラットフォームであなたと一緒に移動します。スマートフォンで会話を開始し、ラップトップで続行、完璧な同期と一貫した体験を提供",
+          highlights: {
+            0: "⚡ 光速の高速性",
+            1: "🔄 完璧な同期",
+            2: "🌍 ユニバーサルアクセス",
+          },
         },
       },
     },
