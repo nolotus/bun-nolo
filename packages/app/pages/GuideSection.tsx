@@ -1,23 +1,17 @@
 import React, { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
-import { selectCurrentUserId } from "auth/authSlice";
 import { CreateRoutePaths } from "create/routePaths";
 import { FiChevronRight, FiDollarSign, FiCreditCard } from "react-icons/fi"; // 导入 FiCreditCard
 import { HiOutlineLightBulb, HiOutlineDocumentAdd } from "react-icons/hi";
 import { BsRobot, BsPlusLg } from "react-icons/bs";
 import { MdOutlineSettings } from "react-icons/md";
 import { BiBook } from "react-icons/bi";
-import Cybots from "ai/cybot/web/Cybots";
 import { useNavigate, NavLink } from "react-router-dom";
 import { createPage } from "render/page/pageSlice";
-import { selectCurrentSpaceId } from "create/space/spaceSlice";
-import SectionHeader from "./SectionHeader";
 
 const GuideSection = () => {
   const theme = useAppSelector(selectTheme);
-  const currentUserId = useAppSelector(selectCurrentUserId);
-  const currentSpaceId = useAppSelector(selectCurrentSpaceId);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -145,18 +139,6 @@ const GuideSection = () => {
           ))}
         </div>
       </div>
-
-      {currentUserId && (
-        <div className="my-cybots-section section-block">
-          <SectionHeader
-            title="我的AI列表"
-            icon={<BsRobot size={16} />}
-            linkText="查看全部"
-            linkTo={`space/${currentSpaceId}`}
-          />
-          <Cybots queryUserId={currentUserId} limit={6} />
-        </div>
-      )}
 
       <style>{`
         .guide-section-container {
@@ -381,11 +363,7 @@ const GuideSection = () => {
           color: ${theme.textSecondary};
           line-height: 1.35;
         }
-
-        .my-cybots-section {
-          padding: 0;
-        }
-
+        
         @media (max-width: 768px) {
           .guide-title {
             font-size: 1.5rem;
