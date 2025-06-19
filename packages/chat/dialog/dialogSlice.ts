@@ -1,4 +1,4 @@
-// /dialog/dialogSlice.ts
+// /chat/dialog/dialogSlice.ts
 
 import {
   type PayloadAction,

@@ -1,4 +1,10 @@
-import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
+// /ai/cybot/cybotSlice.ts (完整、最终版本)
+
+import {
+  asyncThunkCreator,
+  buildCreateSlice,
+  AsyncThunk,
+} from "@reduxjs/toolkit";
 import { DataType } from "create/types";
 import { read } from "database/dbSlice";
 import { selectCurrentServer } from "setting/settingSlice";
@@ -67,156 +73,165 @@ export const cybotSlice = createSliceWithThunks({
      * 流式运行 Cybot ID，处理用户输入并与 AI 进行交互
      */
     streamCybotId: create.asyncThunk(
-      async ({ cybotId, userInput }, thunkApi) => {
-        const state = thunkApi.getState();
+      // ✨ 关键 1: 修改 Thunk 的参数类型，使其可以接收可选的 parentMessageId ✨
+      async (
+        args: {
+          cybotId: string;
+          userInput: string | any[]; // 保持原有类型
+          parentMessageId?: string; // 新增可选参数
+        },
+        thunkApi
+      ) => {
+        const { cybotId, userInput, parentMessageId } = args; // 解构出新参数
+        const { getState, dispatch, rejectWithValue } = thunkApi; // 使用完整的 thunkApi
+        const state = getState();
         const msgs = selectAllMsgs(state);
-        const dispatch = thunkApi.dispatch;
-        const cybotConfig = await dispatch(read(cybotId)).unwrap();
 
-        // --- 1. 收集所有来源的 Keys，并按类型分离 ---
+        try {
+          const cybotConfig = await dispatch(read(cybotId)).unwrap();
 
-        // 源 1: 用户当前输入中引用的 Key (高优先级)
-        const currentUserKeys = new Set<string>();
-        if (Array.isArray(userInput)) {
-          userInput.forEach((part: any) => {
-            if (part && part.pageKey) currentUserKeys.add(part.pageKey);
-          });
-        }
+          // --- 1. 收集所有来源的 Keys，并按类型分离 (逻辑不变) ---
 
-        // 源 2: 智能读取 (中高优先级)
-        const smartReadKeys = new Set<string>();
-        if (cybotConfig.smartReadEnabled === true) {
-          const spaceData = selectCurrentSpace(state);
-          const formattedData = formatDataForApi(spaceData, msgs);
-          const outputReference = await dispatch(
-            runCybotId({
-              cybotId: contextCybotId,
-              content: `User Input: 请提取相关内容的 contentKey ID\n\n${formattedData}`,
-            })
-          ).unwrap();
-
-          try {
-            const cleanedOutput = outputReference
-              .replace(/```json/g, "")
-              .replace(/```/g, "")
-              .trim();
-            if (cleanedOutput) {
-              const parsedKeys = JSON.parse(cleanedOutput);
-              if (Array.isArray(parsedKeys)) {
-                parsedKeys.forEach((key) => {
-                  if (typeof key === "string") smartReadKeys.add(key);
-                });
-              }
-            }
-          } catch (error) {
-            console.error(
-              "streamCybotId - Failed to parse smartRead output:",
-              outputReference,
-              error
-            );
+          const currentUserKeys = new Set<string>();
+          if (Array.isArray(userInput)) {
+            userInput.forEach((part: any) => {
+              if (part && part.pageKey) currentUserKeys.add(part.pageKey);
+            });
           }
-        }
 
-        // 源 3: 对话历史 (中等优先级)
-        const historyKeys = new Set<string>();
-        msgs.forEach((msg: any) => {
-          const content = Array.isArray(msg.content)
-            ? msg.content
-            : [msg.content];
-          content.forEach((part: any) => {
-            if (part && part.pageKey) historyKeys.add(part.pageKey);
-          });
-        });
+          const smartReadKeys = new Set<string>();
+          if (cybotConfig.smartReadEnabled === true) {
+            const spaceData = selectCurrentSpace(state);
+            const formattedData = formatDataForApi(spaceData, msgs);
+            const outputReference = await dispatch(
+              (cybotSlice.actions.runCybotId as AsyncThunk<any, any, any>)({
+                cybotId: contextCybotId,
+                content: `User Input: 请提取相关内容的 contentKey ID\n\n${formattedData}`,
+              })
+            ).unwrap();
 
-        // 源 4: 从预设参考资料中分离 "指令" 和 "知识"
-        const botInstructionKeys = new Set<string>();
-        const botKnowledgeKeys = new Set<string>();
-        if (Array.isArray(cybotConfig.references)) {
-          cybotConfig.references.forEach(
-            (ref: { dbKey: string; type: string }) => {
-              if (ref && ref.dbKey) {
-                if (ref.type === "instruction") {
-                  botInstructionKeys.add(ref.dbKey);
-                } else {
-                  // 默认为 knowledge
-                  botKnowledgeKeys.add(ref.dbKey);
+            try {
+              const cleanedOutput = outputReference
+                .replace(/```json/g, "")
+                .replace(/```/g, "")
+                .trim();
+              if (cleanedOutput) {
+                const parsedKeys = JSON.parse(cleanedOutput);
+                if (Array.isArray(parsedKeys)) {
+                  parsedKeys.forEach((key) => {
+                    if (typeof key === "string") smartReadKeys.add(key);
+                  });
                 }
               }
+            } catch (error) {
+              console.error(
+                "streamCybotId - Failed to parse smartRead output:",
+                outputReference,
+                error
+              );
             }
-          );
-        }
+          }
 
-        // --- 2. 按优先级去重 ---
-        // 优先级: Core Prompt (隐式) > Instructions > CurrentUser > SmartRead > History > Knowledge
-        currentUserKeys.forEach((key) => {
-          if (botInstructionKeys.has(key)) currentUserKeys.delete(key);
-        });
-        smartReadKeys.forEach((key) => {
-          if (botInstructionKeys.has(key) || currentUserKeys.has(key))
-            smartReadKeys.delete(key);
-        });
-        historyKeys.forEach((key) => {
-          if (
-            botInstructionKeys.has(key) ||
-            currentUserKeys.has(key) ||
-            smartReadKeys.has(key)
-          )
-            historyKeys.delete(key);
-        });
-        botKnowledgeKeys.forEach((key) => {
-          if (
-            botInstructionKeys.has(key) ||
-            currentUserKeys.has(key) ||
-            smartReadKeys.has(key) ||
-            historyKeys.has(key)
-          )
-            botKnowledgeKeys.delete(key);
-        });
+          const historyKeys = new Set<string>();
+          msgs.forEach((msg: any) => {
+            const content = Array.isArray(msg.content)
+              ? msg.content
+              : [msg.content];
+            content.forEach((part: any) => {
+              if (part && part.pageKey) historyKeys.add(part.pageKey);
+            });
+          });
 
-        // --- 3. 并发获取每个层级的内容 ---
-        const [
-          botInstructionsContext,
-          currentUserContext,
-          smartReadContext,
-          historyContext,
-          botKnowledgeContext,
-        ] = await Promise.all([
-          fetchReferenceContents(Array.from(botInstructionKeys), dispatch),
-          fetchReferenceContents(Array.from(currentUserKeys), dispatch),
-          fetchReferenceContents(Array.from(smartReadKeys), dispatch),
-          fetchReferenceContents(Array.from(historyKeys), dispatch),
-          fetchReferenceContents(Array.from(botKnowledgeKeys), dispatch),
-        ]);
-        // --- 4. 将所有结构化上下文传递给请求体生成器 ---
-        const providerName = cybotConfig.provider.toLowerCase();
-        const bodyData = generateRequestBody(
-          state,
-          cybotConfig, // cybotConfig 中包含了核心 prompt
-          {
+          const botInstructionKeys = new Set<string>();
+          const botKnowledgeKeys = new Set<string>();
+          if (Array.isArray(cybotConfig.references)) {
+            cybotConfig.references.forEach(
+              (ref: { dbKey: string; type: string }) => {
+                if (ref && ref.dbKey) {
+                  if (ref.type === "instruction") {
+                    botInstructionKeys.add(ref.dbKey);
+                  } else {
+                    botKnowledgeKeys.add(ref.dbKey);
+                  }
+                }
+              }
+            );
+          }
+
+          // --- 2. 按优先级去重 (逻辑不变) ---
+          currentUserKeys.forEach((key) => {
+            if (botInstructionKeys.has(key)) currentUserKeys.delete(key);
+          });
+          smartReadKeys.forEach((key) => {
+            if (botInstructionKeys.has(key) || currentUserKeys.has(key))
+              smartReadKeys.delete(key);
+          });
+          historyKeys.forEach((key) => {
+            if (
+              botInstructionKeys.has(key) ||
+              currentUserKeys.has(key) ||
+              smartReadKeys.has(key)
+            )
+              historyKeys.delete(key);
+          });
+          botKnowledgeKeys.forEach((key) => {
+            if (
+              botInstructionKeys.has(key) ||
+              currentUserKeys.has(key) ||
+              smartReadKeys.has(key) ||
+              historyKeys.has(key)
+            )
+              botKnowledgeKeys.delete(key);
+          });
+
+          // --- 3. 并发获取每个层级的内容 (逻辑不变) ---
+          const [
             botInstructionsContext,
             currentUserContext,
             smartReadContext,
             historyContext,
             botKnowledgeContext,
+          ] = await Promise.all([
+            fetchReferenceContents(Array.from(botInstructionKeys), dispatch),
+            fetchReferenceContents(Array.from(currentUserKeys), dispatch),
+            fetchReferenceContents(Array.from(smartReadKeys), dispatch),
+            fetchReferenceContents(Array.from(historyKeys), dispatch),
+            fetchReferenceContents(Array.from(botKnowledgeKeys), dispatch),
+          ]);
+          // --- 4. 将所有结构化上下文传递给请求体生成器 (逻辑不变) ---
+          const providerName = cybotConfig.provider.toLowerCase();
+          const bodyData = generateRequestBody(state, cybotConfig, {
+            botInstructionsContext,
+            currentUserContext,
+            smartReadContext,
+            historyContext,
+            botKnowledgeContext,
+          });
+
+          // --- 5. 执行请求 ---
+          const handler = requestHandlers[providerName];
+          if (!handler) {
+            throw new Error(
+              `No request handler found for provider: ${providerName}`
+            );
           }
-        );
+          const dialogConfig = selectCurrentDialogConfig(state);
+          const dialogKey = dialogConfig?.dbKey; // 使用可选链，因为 dialogConfig 可能为 null
 
-        // --- 5. 执行请求 ---
-        const handler = requestHandlers[providerName];
-        if (!handler) {
-          throw new Error(
-            `No request handler found for provider: ${providerName}`
-          );
+          // ✨ 关键 2: 将 parentMessageId 传递给最终的请求处理器 ✨
+          await handler({
+            bodyData,
+            cybotConfig,
+            thunkApi,
+            dialogKey,
+            // 如果 parentMessageId 存在，就用它；否则，让 handler 自己生成。
+            // 这使得同一个 handler 既可以用于创建新消息，也可以用于“变形”现有消息。
+            parentMessageId: parentMessageId,
+          });
+        } catch (error: any) {
+          console.error(`执行 Cybot [${cybotId}] 时出错:`, error);
+          return rejectWithValue(error.message);
         }
-        const dialogConfig = selectCurrentDialogConfig(state);
-        const dialogKey = dialogConfig.dbKey;
-
-        await handler({
-          bodyData,
-          cybotConfig,
-          thunkApi,
-          dialogKey,
-        });
       },
       {}
     ),
