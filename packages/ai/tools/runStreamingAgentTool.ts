@@ -1,9 +1,9 @@
+// runStreamingAgentTool.ts (完整、最终版本)
+
 import { streamCybotId } from "ai/cybot/cybotSlice";
 
 /**
  * Tool 定义：run_streaming_agent
- * --------------------------------
- * 参数已从 agentId 更新为 agentKey。
  */
 export const runStreamingAgentTool = {
   type: "function",
@@ -15,7 +15,6 @@ export const runStreamingAgentTool = {
       type: "object",
       properties: {
         agentKey: {
-          // **<-- 已从 agentId 更新为 agentKey**
           type: "string",
           description: "要运行的 Agent 的唯一标识符 (Key)。",
         },
@@ -24,25 +23,26 @@ export const runStreamingAgentTool = {
           description: "要发送给 Agent 的初始用户输入或问题。",
         },
       },
-      required: ["agentKey", "userInput"], // **<-- 已从 agentId 更新为 agentKey**
+      required: ["agentKey", "userInput"],
     },
   },
 };
 
 /**
  * Tool 执行函数：runStreamingAgentFunc
- * --------------------------------
- * 此函数的参数处理逻辑已同步更新。
  * @param {object} args - LLM 提供的参数，如 { agentKey: "...", userInput: "..." }
  * @param {object} thunkApi - 包含 dispatch 和 getState 的 Redux Thunk API
+ * @param {object} context - 包含父消息ID的上下文对象
  */
-export async function runStreamingAgentFunc(args, thunkApi) {
+export async function runStreamingAgentFunc(
+  args: { agentKey: string; userInput: string },
+  thunkApi: any,
+  context?: { parentMessageId: string } // ✨ 关键：接收上下文
+) {
   const { dispatch } = thunkApi;
-  const { agentKey, userInput } = args; // **<-- 已从 agentId 更新为 agentKey**
+  const { agentKey, userInput } = args;
 
-  // 参数校验
   if (!agentKey) {
-    // **<-- 已从 agentId 更新为 agentKey**
     throw new Error("调用 'run_streaming_agent' 失败：缺少 'agentKey' 参数。");
   }
   if (!userInput) {
@@ -50,19 +50,19 @@ export async function runStreamingAgentFunc(args, thunkApi) {
   }
 
   try {
-    // 异步 dispatch streamCybotId thunk。
-    // **关键**: 将外部的 'agentKey' 映射回内部的 'cybotId'。
+    // ✨ 关键：将 parentMessageId 传递给下一个 Thunk
     await dispatch(
-      streamCybotId({ cybotId: agentKey, userInput }) // **<-- 已从 agentId 更新为 agentKey**
+      streamCybotId({
+        cybotId: agentKey,
+        userInput,
+        parentMessageId: context?.parentMessageId,
+      })
     ).unwrap();
 
-    // 向 LLM 返回确认信息，表明任务已成功启动。
-    return {
-      success: true,
-      message: `与 Agent [${agentKey}] 的流式会话已成功启动。`, // **<-- 已从 agentId 更新为 agentKey**
-    };
-  } catch (error) {
+    // 此函数不再需要返回任何东西，因为它已经把UI控制权完全交给了 streamCybotId
+    return;
+  } catch (error: any) {
     const msg = error?.message || JSON.stringify(error) || "未知错误";
-    throw new Error(`启动流式 Agent [${agentKey}] 会话时出错: ${msg}`); // **<-- 已从 agentId 更新为 agentKey**
+    throw new Error(`启动流式 Agent [${agentKey}] 会话时出错: ${msg}`);
   }
 }

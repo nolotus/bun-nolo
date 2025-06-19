@@ -422,7 +422,7 @@ const MessageContent = memo(({ content, thinkContent, role }) => {
   // 渲染内容的优化函数
   const renderContentItems = useMemo(() => {
     if (!content) {
-      return <div className="empty-content">无内容</div>;
+      return <div className="empty-content">思考中</div>;
     }
 
     if (typeof content === "string") {

@@ -1,10 +1,7 @@
+// /ai/tools/toolRegistry.ts (完整、最终版本)
+
 /* ============================================================
- *  所有 Tool 的统一注册与描述 (最终合并版)
- *  ------------------------------------------------------------
- *  此文件是项目的“工具中心”，包含三部分：
- *  1. toolRegistry:   给 LLM 的工具定义。
- *  2. toolExecutors:  工具名到实际执行函数的映射。
- *  3. toolDescriptions: 给前端 UI 的描述。
+ *  所有 Tool 的统一注册与描述
  * ========================================================== */
 
 // ---------- 工具定义导入 ----------
@@ -16,7 +13,7 @@ import { updateContentTitleTool } from "./updateContentTitleTool";
 import { updateContentCategoryTool } from "./updateContentCategoryTool";
 import { queryContentsByCategoryTool } from "./queryContentsByCategoryTool";
 import { fetchWebpageTool } from "./fetchWebpageTool";
-import { runStreamingAgentTool } from "./runStreamingAgentTool"; // 新增
+import { runStreamingAgentTool } from "./runStreamingAgentTool";
 import { createTableTool } from "database/tools/createTableTool";
 import { listTablesTool } from "database/tools/listTablesTool";
 import { describeTableTool } from "./describeTableTool";
@@ -33,7 +30,7 @@ import { createCategoryFunc } from "./createCategoryTool";
 import { generateTable } from "./generateTableTool";
 import { fetchWebpage } from "./fetchWebpageTool";
 import { executeSql } from "./executeSqlTool";
-import { runStreamingAgentFunc } from "./runStreamingAgentTool"; // 新增
+import { runStreamingAgentFunc } from "./runStreamingAgentTool";
 import { selectCurrentUserId } from "auth/authSlice";
 
 /* ============================================================
@@ -48,7 +45,7 @@ export const toolRegistry: Record<string, any> = {
   updateContentCategory: updateContentCategoryTool,
   queryContentsByCategory: queryContentsByCategoryTool,
   fetchWebpage: fetchWebpageTool,
-  runStreamingAgent: runStreamingAgentTool, // 新增
+  runStreamingAgent: runStreamingAgentTool,
   createTable: createTableTool,
   listTables: listTablesTool,
   describeTable: describeTableTool,
@@ -65,10 +62,13 @@ export const toolRegistry: Record<string, any> = {
  * ========================================================== */
 export const toolExecutors: Record<
   string,
-  (args: any, thunkApi: any) => Promise<any>
+  // ✨ 关键：更新函数签名以接受可选的第三个参数 `context`
+  (
+    args: any,
+    thunkApi: any,
+    context?: { parentMessageId: string }
+  ) => Promise<any>
 > = {
-  // 注意：这里的 key (如 'create_page') 必须与 Tool 定义中 'function.name' 的值完全匹配。
-
   generate_table: async (args, thunkApi) => {
     const { getState } = thunkApi;
     const currentUserId = selectCurrentUserId(getState());
@@ -77,7 +77,6 @@ export const toolExecutors: Record<
   create_page: createPageFunc,
   create_category: createCategoryFunc,
   generate_image: async (args, thunkApi) => {
-    // TODO: 实际图像生成逻辑
     console.log("Generating image with args:", args);
     return {
       success: true,
@@ -93,10 +92,8 @@ export const toolExecutors: Record<
   },
   execute_sql: executeSql,
 
-  // --- 新增 runStreamingAgent 的执行器 ---
+  // --- runStreamingAgent 的执行器现在与新签名匹配 ---
   run_streaming_agent: runStreamingAgentFunc,
-
-  // ... 未来可以继续在这里添加其他工具的执行函数
 };
 
 /* ============================================================
@@ -136,7 +133,7 @@ export const toolDescriptions: Record<
     name: "run_streaming_agent",
     description:
       "调用一个指定的 Agent (智能代理)，并以流式方式处理用户输入，与其进行交互。",
-  }, // 新增
+  },
   createTable: { name: "createTable", description: "为指定租户注册一张新表" },
   listTables: { name: "listTables", description: "列出指定租户下的所有表" },
   describeTable: { name: "describeTable", description: "读取指定表的元数据" },
@@ -151,7 +148,7 @@ export const toolDescriptions: Record<
     description: "对输入行数组按规则做衍生字段计算",
   },
   joinRows: { name: "joinRows", description: "在内存中对两组任意行数组做连接" },
-  executeSql: {
+  execute_sql: {
     name: "execute_sql",
     description: "直接在 SQLite 数据库中执行任意 SQL 语句",
   },

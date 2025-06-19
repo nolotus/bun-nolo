@@ -1,5 +1,3 @@
-// /chat/messages/messageSlice.ts
-
 import { RootState } from "app/store";
 import {
   createSelector,
@@ -7,35 +5,33 @@ import {
   buildCreateSlice,
   createEntityAdapter,
   EntityState,
-  PayloadAction, // 导入 PayloadAction
+  PayloadAction,
 } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
 import { remove, write, read } from "database/dbSlice";
 import { deleteDialogMsgsAction } from "./actions/deleteDialogMsgsAction";
 import type { Message } from "./types";
 import { selectCurrentServer } from "setting/settingSlice";
-import { selectCurrentToken, selectCurrentUserId } from "auth/authSlice"; // 导入 selectCurrentUserId
+import { selectCurrentToken, selectCurrentUserId } from "auth/authSlice";
 import { fetchMessages as fetchLocalMessages } from "chat/messages/fetchMessages";
 import { fetchConvMsgs } from "./fetchConvMsgs";
 import { browserDb } from "database/browser/db";
 import { SERVERS } from "database/requests";
-import { createDialogMessageKeyAndId } from "database/keys"; // 导入 key 生成函数
-import { extractCustomId } from "core/prefix"; // 导入 id 提取函数
+import { createDialogMessageKeyAndId } from "database/keys";
+import { extractCustomId } from "core/prefix";
 import { DialogConfig } from "../dialog/types";
+import { toolExecutors } from "ai/tools/toolRegistry"; // ✨ 新增 import
 
-// --- 常量与工具函数 ---
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
 const OLDER_LOAD_LIMIT = 30;
 const isValidMessage = (msg: any): msg is Message =>
   msg && typeof msg === "object" && typeof msg.id === "string";
 
-// --- 实体适配器 ---
 const messagesAdapter = createEntityAdapter<Message>({
   selectId: (message) => message.id,
   sortComparer: (a, b) => a.id.localeCompare(b.id),
 });
 
-// --- State 接口 ---
 export interface MessageSliceState {
   msgs: EntityState<Message>;
   firstStreamProcessed: boolean;
@@ -46,12 +42,10 @@ export interface MessageSliceState {
   lastStreamTimestamp: number;
 }
 
-// --- Slice 创建设置 ---
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
 
-// --- 初始状态 ---
 const initialState: MessageSliceState = {
   msgs: messagesAdapter.getInitialState(),
   firstStreamProcessed: false,
@@ -62,13 +56,13 @@ const initialState: MessageSliceState = {
   lastStreamTimestamp: 0,
 };
 
-// --- Thunk 状态处理辅助函数 ---
 const pendingHandler =
   (loadingKey: "isLoadingInitial" | "isLoadingOlder") =>
   (state: MessageSliceState) => {
     state[loadingKey] = true;
     state.error = null;
   };
+
 const rejectedHandler =
   (loadingKey: "isLoadingInitial" | "isLoadingOlder") =>
   (state: MessageSliceState, action: any) => {
@@ -80,19 +74,174 @@ const rejectedHandler =
     console.error(`${action.type} failed:`, action.error);
   };
 
-// --- Message Slice ---
+// ===================================================================
+// ✨ 1. 新增: 工具处理辅助函数 (从外部迁移)
+// ===================================================================
+
+async function processToolData(
+  toolCall: any,
+  thunkApi: any,
+  cybotConfig: any,
+  messageId: string
+): Promise<{ content?: any; agentTookOver?: boolean }> {
+  const func = toolCall.function;
+  if (!func || !func.name) {
+    return { content: { type: "text", text: "[Tool Error] 工具调用数据无效" } };
+  }
+
+  const toolName = func.name;
+  let toolArgs = func.arguments;
+
+  try {
+    if (typeof toolArgs === "string") {
+      if (toolArgs.trim() === "") {
+        toolArgs = {};
+      } else if (
+        toolArgs.trim().startsWith("{") ||
+        toolArgs.trim().startsWith("[")
+      ) {
+        try {
+          toolArgs = JSON.parse(toolArgs);
+        } catch (_e) {}
+      }
+    } else if (toolArgs === undefined || toolArgs === null) {
+      toolArgs = {};
+    }
+
+    const handler = toolExecutors[toolName];
+    if (!handler) {
+      return {
+        content: { type: "text", text: `[Tool Error] 未知工具: ${toolName}` },
+      };
+    }
+
+    if (toolName === "run_streaming_agent") {
+      try {
+        await handler(toolArgs, thunkApi, { parentMessageId: messageId });
+        return { agentTookOver: true };
+      } catch (error: any) {
+        return {
+          content: {
+            type: "text",
+            text: `[Tool Error] 启动 Agent 失败: ${error.message}`,
+          },
+        };
+      }
+    }
+
+    const result = await handler(toolArgs, thunkApi);
+    if (result && result.success) {
+      const text =
+        result.text ||
+        `${toolName
+          .replace(/_/g, " ")
+          .replace(/^./, (c) => c.toUpperCase())} 已成功执行：${
+          result.title || result.name || "操作完成"
+        } (ID: ${result.id || "N/A"})`;
+      return { content: { type: "text", text } };
+    } else {
+      return {
+        content: {
+          type: "text",
+          text: `[Tool Error] ${toolName} 操作未返回预期结果。`,
+        },
+      };
+    }
+  } catch (e: any) {
+    return {
+      content: {
+        type: "text",
+        text: `[Tool Error] 处理 ${toolName} 时发生内部错误: ${e.message}`,
+      },
+    };
+  }
+}
+
+async function handleAccumulatedToolCallsInternal(
+  accumulatedCalls: any[],
+  currentContentBuffer: any[],
+  thunkApi: any,
+  cybotConfig: any,
+  messageId: string
+): Promise<{ finalContentBuffer: any[]; agentTookOver: boolean }> {
+  let updatedContentBuffer = [...currentContentBuffer];
+  let agentHasTakenOver = false;
+  const { dispatch } = thunkApi;
+
+  if (accumulatedCalls.length > 0) {
+    for (const toolCall of accumulatedCalls) {
+      if (
+        !toolCall.function ||
+        !toolCall.function.name ||
+        toolCall.function.arguments === undefined
+      ) {
+        continue;
+      }
+      try {
+        const { content: toolResult, agentTookOver } = await processToolData(
+          toolCall,
+          thunkApi,
+          cybotConfig,
+          messageId
+        );
+
+        if (agentTookOver) {
+          agentHasTakenOver = true;
+          break;
+        }
+
+        if (toolResult) {
+          updatedContentBuffer = [...updatedContentBuffer, toolResult];
+          dispatch(
+            messageSlice.actions.messageStreaming({
+              id: messageId,
+              content: updatedContentBuffer,
+              role: "assistant",
+              cybotKey: cybotConfig.dbKey,
+            })
+          );
+        }
+      } catch (toolError: any) {
+        const errorResult = {
+          type: "text",
+          text: `\n[Tool 执行异常: ${toolError.message}]`,
+        };
+        updatedContentBuffer = [...updatedContentBuffer, errorResult];
+        dispatch(
+          messageSlice.actions.messageStreaming({
+            id: messageId,
+            content: updatedContentBuffer,
+            role: "assistant",
+            cybotKey: cybotConfig.dbKey,
+          })
+        );
+      }
+    }
+  }
+  return {
+    finalContentBuffer: updatedContentBuffer,
+    agentTookOver: agentHasTakenOver,
+  };
+}
+
+// ✨ 2. 定义新 Thunk 的 Payload 类型
+interface HandleToolCallsPayload {
+  accumulatedCalls: any[];
+  currentContentBuffer: any[];
+  cybotConfig: any;
+  messageId: string;
+}
+
 export const messageSlice = createSliceWithThunks({
   name: "message",
   initialState,
   reducers: (create) => ({
-    // --- 同步 Reducers ---
     addUserMessage: create.reducer<Message>((state, action) => {
       messagesAdapter.upsertOne(state.msgs, {
         ...action.payload,
         isStreaming: false,
       });
     }),
-
     messageStreaming: create.reducer<Message>((state, action) => {
       messagesAdapter.upsertOne(state.msgs, {
         isStreaming: true,
@@ -103,15 +252,10 @@ export const messageSlice = createSliceWithThunks({
       state.firstStreamProcessed = true;
       state.lastStreamTimestamp = Date.now();
     }),
-
     resetMsgs: create.reducer((state) => {
       messagesAdapter.removeAll(state.msgs);
       Object.assign(state, initialState);
     }),
-
-    // --- 异步 Thunks ---
-
-    // 【新增】从 dialogSlice 移入并重构的 Thunk
     prepareAndPersistUserMessage: create.asyncThunk(
       async (
         args: { userInput: string; dialogConfig: DialogConfig },
@@ -120,18 +264,12 @@ export const messageSlice = createSliceWithThunks({
         const { userInput, dialogConfig } = args;
         const { getState, dispatch, rejectWithValue } = thunkApi;
         const state = getState() as RootState;
-
-        // dialogConfig 现在作为参数传入，不再需要 select
         if (!dialogConfig) {
-          const errorMsg = "prepareAndPersistUserMessage: Missing dialogConfig";
-          console.error(errorMsg);
-          return rejectWithValue(errorMsg);
+          return rejectWithValue("Missing dialogConfig");
         }
-
         const dialogKey = dialogConfig.dbKey || dialogConfig.id;
         const dialogId = extractCustomId(dialogKey);
         const userId = selectCurrentUserId(state);
-
         const { key: messageDbKey, messageId } =
           createDialogMessageKeyAndId(dialogId);
         const userMsg: Message = {
@@ -141,11 +279,7 @@ export const messageSlice = createSliceWithThunks({
           content: userInput,
           userId,
         };
-
-        // 步骤1：立即更新 UI (乐观更新)
         dispatch(messageSlice.actions.addUserMessage(userMsg));
-
-        // 步骤2：持久化用户消息
         const { controller, ...messageToWrite } = userMsg;
         dispatch(
           write({
@@ -153,14 +287,10 @@ export const messageSlice = createSliceWithThunks({
             customKey: userMsg.dbKey,
           })
         );
-
-        // 返回新创建的消息，供调用方使用 (如果需要)
         return userMsg;
       }
     ),
-
     initMsgs: create.asyncThunk(
-      // ... (此处及以下代码保持不变) ...
       async (
         {
           dialogId,
@@ -172,15 +302,10 @@ export const messageSlice = createSliceWithThunks({
         const state = getState() as RootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
-
         const fetchLocalPromise = fetchLocalMessages(db, dialogId, {
           limit,
           throwOnError: false,
-        }).catch((err) => {
-          console.error("initMsgs: Failed to fetch local messages", err);
-          return [];
-        });
-
+        }).catch(() => []);
         const fetchRemotePromise = (async () => {
           if (!server || !token) return [];
           const uniqueServers = Array.from(
@@ -189,15 +314,11 @@ export const messageSlice = createSliceWithThunks({
           if (uniqueServers.length === 0) return [];
           const results = await Promise.all(
             uniqueServers.map((srv) =>
-              fetchConvMsgs(srv, token, { dialogId, limit }).catch((err) => {
-                console.error(`initMsgs: Failed to fetch from ${srv}`, err);
-                return [];
-              })
+              fetchConvMsgs(srv, token, { dialogId, limit }).catch(() => [])
             )
           );
           return results.flat();
         })();
-
         const [localMessages, remoteMessages] = await Promise.all([
           fetchLocalPromise,
           fetchRemotePromise,
@@ -212,11 +333,7 @@ export const messageSlice = createSliceWithThunks({
       {
         pending: (state) => {
           messagesAdapter.removeAll(state.msgs);
-          state.firstStreamProcessed = false;
-          state.isLoadingInitial = true;
-          state.isLoadingOlder = false;
-          state.hasMoreOlder = true;
-          state.error = null;
+          Object.assign(state, { ...initialState, isLoadingInitial: true });
         },
         fulfilled: (state, action) => {
           state.isLoadingInitial = false;
@@ -225,7 +342,6 @@ export const messageSlice = createSliceWithThunks({
         rejected: rejectedHandler("isLoadingInitial"),
       }
     ),
-
     loadOlderMessages: create.asyncThunk(
       async (
         {
@@ -239,16 +355,11 @@ export const messageSlice = createSliceWithThunks({
         const state = getState() as RootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
-
         const fetchLocalPromise = fetchLocalMessages(db, dialogId, {
           limit,
           beforeKey,
           throwOnError: false,
-        }).catch((err) => {
-          console.error("loadOlderMessages: Failed local fetch", err);
-          return [];
-        });
-
+        }).catch(() => []);
         const fetchRemotePromise = (async () => {
           if (!server || !token) return [];
           const uniqueServers = Array.from(
@@ -258,19 +369,12 @@ export const messageSlice = createSliceWithThunks({
           const results = await Promise.all(
             uniqueServers.map((srv) =>
               fetchConvMsgs(srv, token, { dialogId, limit, beforeKey }).catch(
-                (err) => {
-                  console.error(
-                    `loadOlderMessages: Failed remote fetch from ${srv}`,
-                    err
-                  );
-                  return [];
-                }
+                () => []
               )
             )
           );
           return results.flat();
         })();
-
         const [localMessages, remoteMessages] = await Promise.all([
           fetchLocalPromise,
           fetchRemotePromise,
@@ -295,6 +399,29 @@ export const messageSlice = createSliceWithThunks({
           }
         },
         rejected: rejectedHandler("isLoadingOlder"),
+      }
+    ),
+
+    // ✨ ✨ ✨ 3. 新增的 Thunk 用于处理工具调用 ✨ ✨ ✨
+    handleToolCalls: create.asyncThunk(
+      async (args: HandleToolCallsPayload, thunkApi) => {
+        const {
+          accumulatedCalls,
+          currentContentBuffer,
+          cybotConfig,
+          messageId,
+        } = args;
+
+        const result = await handleAccumulatedToolCallsInternal(
+          accumulatedCalls,
+          currentContentBuffer,
+          thunkApi,
+          cybotConfig,
+          messageId
+        );
+
+        // 返回结果给调用方 (sendCommonChatRequest)
+        return result;
       }
     ),
 
@@ -328,7 +455,6 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
-
     deleteMessage: create.asyncThunk(
       async (dbKey: string, { dispatch, getState }) => {
         const state = getState() as RootState;
@@ -344,17 +470,11 @@ export const messageSlice = createSliceWithThunks({
             messagesAdapter.removeOne(state.msgs, action.payload.id);
           }
         },
-        rejected: (state, action) => {
-          console.error("deleteMessage failed:", action.error);
-        },
       }
     ),
-
     deleteDialogMsgs: create.asyncThunk(deleteDialogMsgsAction),
   }),
-
   selectors: {
-    // ... (selectors 保持不变)
     selectMsgsState: (state) => state.msgs,
     selectFirstStreamProcessed: (state) => state.firstStreamProcessed,
     selectIsLoadingInitial: (state) => state.isLoadingInitial,
@@ -365,8 +485,6 @@ export const messageSlice = createSliceWithThunks({
   },
 });
 
-// --- 导出 Selectors ---
-// ... (selectors 导出保持不变)
 const baseSelectors = messagesAdapter.getSelectors<RootState>(
   (state) => state.message.msgs
 );
@@ -398,18 +516,17 @@ export const selectMessagesLoadingState = createSelector(
   })
 );
 
-// --- 导出 Actions ---
 export const {
   addUserMessage,
   messageStreaming,
   resetMsgs,
-  prepareAndPersistUserMessage, // <-- 导出新的 action
+  prepareAndPersistUserMessage,
   initMsgs,
   loadOlderMessages,
   messageStreamEnd,
   deleteMessage,
   deleteDialogMsgs,
+  handleToolCalls, // ✨ 4. 导出新的 action
 } = messageSlice.actions;
 
-// --- 导出 Reducer ---
 export default messageSlice.reducer;
