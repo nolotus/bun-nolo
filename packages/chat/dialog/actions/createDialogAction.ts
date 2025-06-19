@@ -15,10 +15,10 @@ export const createDialogAction = async (args, thunkApi) => {
   const dispatch = thunkApi.dispatch;
   const cybotId = cybots[0];
 
-  // 1. 获取 Cybot 配置
-  const cybotConfig = await dispatch(read(cybotId)).unwrap();
+  // 1. 获取 bot 配置
+  const botConfig = await dispatch(read(cybotId)).unwrap();
   const time = format(new Date(), "MM-dd HH:mm");
-  const title = cybotConfig.name + "  " + time;
+  const title = botConfig.name + "  " + time;
   const userId = selectCurrentUserId(thunkApi.getState());
   const dialogPath = createDialogKey(userId);
   const dialogId = extractCustomId(dialogPath);
@@ -51,12 +51,12 @@ export const createDialogAction = async (args, thunkApi) => {
 
   // 4. **条件性地创建初始消息**
   // 检查 cybotConfig.greeting 是否存在且不为空
-  if (cybotConfig.greeting) {
+  if (botConfig.greeting) {
     const { messageId, key } = createDialogMessageKeyAndId(dialogId);
     const msgData = {
       id: messageId,
       dbKey: key,
-      content: cybotConfig.greeting, // 使用非空的 greeting
+      content: botConfig.greeting, // 使用非空的 greeting
       role: "assistant",
       cybotKey: cybotId,
       type: DataType.MSG,
