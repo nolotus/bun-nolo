@@ -11,9 +11,12 @@ import { createPage } from "render/page/pageSlice";
 import { Descendant } from "slate";
 
 // --- 其他 Slice 和 Action 的引用 ---
-import { addUserMessage, deleteDialogMsgs } from "chat/messages/messageSlice"; // <--- 【新增】导入原子 action
+import {
+  deleteDialogMsgs,
+  prepareAndPersistUserMessage, // 从 messageSlice 导入
+} from "chat/messages/messageSlice";
 import { extractCustomId } from "core/prefix";
-import { read, selectById, patch, write } from "database/dbSlice"; // <--- 【新增】导入 write 和 DataType
+import { read, selectById, write } from "database/dbSlice";
 import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
@@ -25,12 +28,9 @@ import { deleteDialogAction } from "./actions/deleteDialogAction";
 import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
 import { updateDialogModeAction } from "./actions/updateDialogModeAction";
-import { selectCurrentUserId } from "auth/authSlice"; // <--- 【新增】导入
-import { createDialogMessageKeyAndId } from "database/keys"; // <--- 【新增】导入
-import { streamCybotId } from "ai/cybot/cybotSlice"; // <--- 【新增】导入
-import { requestHandlers } from "ai/llm/providers"; // <--- 【新增】导入
-import { DialogInvocationMode } from "./types"; // <--- 【新增】导入类型
-import type { Message } from "chat/messages/types"; // <--- 【新增】导入类型
+import { streamCybotId } from "ai/cybot/cybotSlice";
+import { requestHandlers } from "ai/llm/providers";
+import { DialogInvocationMode, Dialog } from "./types";
 import { DataType } from "create/types";
 
 // --- 工具和类型定义 ---
@@ -223,50 +223,22 @@ const DialogSlice = createSliceWithThunks({
     }),
 
     // ===================================================================
-    // 【新增】发送消息流程编排 Thunk
+    // 发送消息流程编排 Thunks (已重构)
     // ===================================================================
-    handleSendMessage: create.asyncThunk(
-      async (args: { userInput: string }, thunkApi) => {
-        const { userInput } = args;
-        const state = thunkApi.getState() as RootState;
-        const dispatch = thunkApi.dispatch;
 
-        // 注意：selectCurrentDialogConfig 是在本文件末尾定义的
-        const dialogConfig = selectCurrentDialogConfig(state);
-        const dialogKey = dialogConfig?.dbKey || dialogConfig?.id;
-        if (!dialogKey) {
-          console.error("handleSendMessage: Missing dialogKey or dialogConfig");
-          throw new Error("Current dialog configuration is missing.");
-        }
-        const dialogId = extractCustomId(dialogKey);
-        const userId = selectCurrentUserId(state);
-
-        const { key: messageDbKey, messageId } =
-          createDialogMessageKeyAndId(dialogId);
-        const userMsg: Message = {
-          id: messageId,
-          dbKey: messageDbKey,
-          role: "user",
-          content: userInput,
-          userId,
-        };
-
-        // 步骤1：调用 messageSlice 的 action，立即更新 UI
-        dispatch(addUserMessage(userMsg));
-
-        // 步骤2：调用 dbSlice 的 action，持久化用户消息
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { controller, ...messageToWrite } = userMsg;
-        dispatch(
-          write({
-            data: { ...messageToWrite, type: DataType.MSG },
-            customKey: userMsg.dbKey,
-          })
-        );
-
-        // 步骤3：根据对话模式，编排 AI 调用流程
+    /**
+     * @internal
+     * 步骤 2: 根据对话模式编排 Cybot 响应
+     * - 接收对话配置和用户输入
+     * - 根据 PARALLEL, SEQUENTIAL, ORCHESTRATED 或 FIRST 模式调用 Cybot
+     */
+    orchestrateCybotResponse: create.asyncThunk(
+      async (args: { dialogConfig: Dialog; userInput: string }, thunkApi) => {
+        const { dialogConfig, userInput } = args;
+        const { dispatch } = thunkApi;
         const mode = dialogConfig?.mode;
         const cybots = dialogConfig?.cybots || [];
+        const dialogKey = dialogConfig.dbKey || dialogConfig.id;
 
         try {
           if (mode === DialogInvocationMode.PARALLEL) {
@@ -289,11 +261,12 @@ const DialogSlice = createSliceWithThunks({
             console.log(
               "ORCHESTRATED mode selected, but decision logic is a TODO."
             );
-            const selectedCybots: string[] = [];
+            // TODO: 实现编排逻辑，动态选择 Cybots
+            const selectedCybots: string[] = []; // 示例：当前为空
 
             for (const cybotId of selectedCybots) {
               const cybotConfig = await dispatch(read(cybotId)).unwrap();
-              const bodyData = {};
+              const bodyData = {}; // 示例：构建请求体
               const providerName = cybotConfig.provider.toLowerCase();
               const handler = requestHandlers[providerName];
               if (handler) {
@@ -318,6 +291,48 @@ const DialogSlice = createSliceWithThunks({
             `Error during cybot invocation in mode '${mode}':`,
             error
           );
+          // 可以在此 re-throw 或 dispatch 一个错误 action
+          throw error;
+        }
+      }
+    ),
+
+    /**
+     * 公开的 Action: 处理用户发送消息的完整流程
+     * - 这是 UI 组件应该 dispatch 的 action
+     * - 它按顺序编排了消息持久化和 Cybot 响应两个步骤
+     */
+    handleSendMessage: create.asyncThunk(
+      async (args: { userInput: string }, thunkApi) => {
+        const { userInput } = args;
+        const { dispatch, getState, rejectWithValue } = thunkApi;
+        const state = getState() as RootState;
+
+        try {
+          // 步骤 1: 从 dialogSlice state 中获取当前对话配置
+          const dialogConfig = selectCurrentDialogConfig(state);
+          if (!dialogConfig) {
+            throw new Error(
+              "handleSendMessage: Current dialog configuration is missing."
+            );
+          }
+
+          // 步骤 2: 调用 messageSlice 的 action 来创建和持久化用户消息
+          // 将 dialogConfig 作为参数传递
+          await dispatch(
+            prepareAndPersistUserMessage({ userInput, dialogConfig })
+          ).unwrap();
+
+          // 步骤 3: 使用获取到的配置和原始用户输入，编排AI响应
+          await dispatch(
+            DialogSlice.actions.orchestrateCybotResponse({
+              dialogConfig,
+              userInput,
+            })
+          );
+        } catch (error) {
+          console.error("handleSendMessage failed:", error);
+          return rejectWithValue((error as Error).message);
         }
       }
     ),
@@ -390,7 +405,7 @@ export const {
   addCybot,
   removeCybot,
   updateDialogMode,
-  handleSendMessage, // <--- 【新增】导出
+  handleSendMessage,
   addActiveController,
   removeActiveController,
   abortAllMessages,
@@ -403,7 +418,7 @@ export default DialogSlice.reducer;
 // --- Selectors 导出 ---
 export const selectCurrentDialogConfig = (state: RootState) =>
   state.dialog.currentDialogKey
-    ? selectById(state, state.dialog.currentDialogKey)
+    ? (selectById(state, state.dialog.currentDialogKey) as Dialog | null)
     : null;
 export const selectCurrentDialogKey = (state: RootState) =>
   state.dialog.currentDialogKey;

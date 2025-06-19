@@ -7,17 +7,21 @@ import {
   buildCreateSlice,
   createEntityAdapter,
   EntityState,
+  PayloadAction, // 导入 PayloadAction
 } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
 import { remove, write, read } from "database/dbSlice";
 import { deleteDialogMsgsAction } from "./actions/deleteDialogMsgsAction";
 import type { Message } from "./types";
 import { selectCurrentServer } from "setting/settingSlice";
-import { selectCurrentToken } from "auth/authSlice";
+import { selectCurrentToken, selectCurrentUserId } from "auth/authSlice"; // 导入 selectCurrentUserId
 import { fetchMessages as fetchLocalMessages } from "chat/messages/fetchMessages";
 import { fetchConvMsgs } from "./fetchConvMsgs";
 import { browserDb } from "database/browser/db";
 import { SERVERS } from "database/requests";
+import { createDialogMessageKeyAndId } from "database/keys"; // 导入 key 生成函数
+import { extractCustomId } from "core/prefix"; // 导入 id 提取函数
+import { DialogConfig } from "../dialog/types";
 
 // --- 常量与工具函数 ---
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
@@ -39,7 +43,7 @@ export interface MessageSliceState {
   isLoadingOlder: boolean;
   hasMoreOlder: boolean;
   error: Error | null;
-  lastStreamTimestamp: number; // <--- 【新增】用于触发流式滚动
+  lastStreamTimestamp: number;
 }
 
 // --- Slice 创建设置 ---
@@ -55,7 +59,7 @@ const initialState: MessageSliceState = {
   isLoadingOlder: false,
   hasMoreOlder: true,
   error: null,
-  lastStreamTimestamp: 0, // <--- 【新增】
+  lastStreamTimestamp: 0,
 };
 
 // --- Thunk 状态处理辅助函数 ---
@@ -97,7 +101,7 @@ export const messageSlice = createSliceWithThunks({
         ...action.payload,
       });
       state.firstStreamProcessed = true;
-      state.lastStreamTimestamp = Date.now(); // <--- 【关键】更新时间戳以触发滚动
+      state.lastStreamTimestamp = Date.now();
     }),
 
     resetMsgs: create.reducer((state) => {
@@ -106,7 +110,57 @@ export const messageSlice = createSliceWithThunks({
     }),
 
     // --- 异步 Thunks ---
+
+    // 【新增】从 dialogSlice 移入并重构的 Thunk
+    prepareAndPersistUserMessage: create.asyncThunk(
+      async (
+        args: { userInput: string; dialogConfig: DialogConfig },
+        thunkApi
+      ) => {
+        const { userInput, dialogConfig } = args;
+        const { getState, dispatch, rejectWithValue } = thunkApi;
+        const state = getState() as RootState;
+
+        // dialogConfig 现在作为参数传入，不再需要 select
+        if (!dialogConfig) {
+          const errorMsg = "prepareAndPersistUserMessage: Missing dialogConfig";
+          console.error(errorMsg);
+          return rejectWithValue(errorMsg);
+        }
+
+        const dialogKey = dialogConfig.dbKey || dialogConfig.id;
+        const dialogId = extractCustomId(dialogKey);
+        const userId = selectCurrentUserId(state);
+
+        const { key: messageDbKey, messageId } =
+          createDialogMessageKeyAndId(dialogId);
+        const userMsg: Message = {
+          id: messageId,
+          dbKey: messageDbKey,
+          role: "user",
+          content: userInput,
+          userId,
+        };
+
+        // 步骤1：立即更新 UI (乐观更新)
+        dispatch(messageSlice.actions.addUserMessage(userMsg));
+
+        // 步骤2：持久化用户消息
+        const { controller, ...messageToWrite } = userMsg;
+        dispatch(
+          write({
+            data: { ...messageToWrite, type: DataType.MSG },
+            customKey: userMsg.dbKey,
+          })
+        );
+
+        // 返回新创建的消息，供调用方使用 (如果需要)
+        return userMsg;
+      }
+    ),
+
     initMsgs: create.asyncThunk(
+      // ... (此处及以下代码保持不变) ...
       async (
         {
           dialogId,
@@ -300,17 +354,19 @@ export const messageSlice = createSliceWithThunks({
   }),
 
   selectors: {
+    // ... (selectors 保持不变)
     selectMsgsState: (state) => state.msgs,
     selectFirstStreamProcessed: (state) => state.firstStreamProcessed,
     selectIsLoadingInitial: (state) => state.isLoadingInitial,
     selectIsLoadingOlder: (state) => state.isLoadingOlder,
     selectHasMoreOlder: (state) => state.hasMoreOlder,
     selectMessageError: (state) => state.error,
-    selectLastStreamTimestamp: (state) => state.lastStreamTimestamp, // <--- 【新增】
+    selectLastStreamTimestamp: (state) => state.lastStreamTimestamp,
   },
 });
 
 // --- 导出 Selectors ---
+// ... (selectors 导出保持不变)
 const baseSelectors = messagesAdapter.getSelectors<RootState>(
   (state) => state.message.msgs
 );
@@ -324,7 +380,7 @@ export const {
   selectIsLoadingOlder,
   selectHasMoreOlder,
   selectMessageError,
-  selectLastStreamTimestamp, // <--- 【新增】
+  selectLastStreamTimestamp,
 } = messageSlice.selectors;
 
 export const selectMessagesLoadingState = createSelector(
@@ -347,6 +403,7 @@ export const {
   addUserMessage,
   messageStreaming,
   resetMsgs,
+  prepareAndPersistUserMessage, // <-- 导出新的 action
   initMsgs,
   loadOlderMessages,
   messageStreamEnd,
