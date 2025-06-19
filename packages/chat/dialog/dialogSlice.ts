@@ -228,6 +228,30 @@ const DialogSlice = createSliceWithThunks({
 
     /**
      * @internal
+     * 新增 Thunk: 并行调用所有指定的 Cybot
+     * - 接收 cybot ID 列表和用户输入
+     * - 使用 Promise.all 并行调度 streamCybotId
+     * - 内部 catch 确保单个 cybot 失败不会中断其他 cybot
+     */
+    streamAllCybotsInParallel: create.asyncThunk(
+      async (args: { cybotIds: string[]; userInput: string }, { dispatch }) => {
+        const { cybotIds, userInput } = args;
+        const cybotPromises = cybotIds.map((cybotId) =>
+          dispatch(streamCybotId({ cybotId, userInput }))
+            .unwrap()
+            .catch((error) =>
+              console.error(
+                `Error in PARALLEL mode for cybot ${cybotId}:`,
+                error
+              )
+            )
+        );
+        await Promise.all(cybotPromises);
+      }
+    ),
+
+    /**
+     * @internal
      * 步骤 2: 根据对话模式编排 Cybot 响应
      * - 接收对话配置和用户输入
      * - 根据 PARALLEL, SEQUENTIAL, ORCHESTRATED 或 FIRST 模式调用 Cybot
@@ -242,17 +266,13 @@ const DialogSlice = createSliceWithThunks({
 
         try {
           if (mode === DialogInvocationMode.PARALLEL) {
-            const cybotPromises = cybots.map((cybotId) =>
-              dispatch(streamCybotId({ cybotId, userInput }))
-                .unwrap()
-                .catch((error) =>
-                  console.error(
-                    `Error in PARALLEL mode for cybot ${cybotId}:`,
-                    error
-                  )
-                )
+            // **改动点**: 调用新的并行处理 thunk
+            await dispatch(
+              DialogSlice.actions.streamAllCybotsInParallel({
+                cybotIds: cybots,
+                userInput,
+              })
             );
-            await Promise.all(cybotPromises);
           } else if (mode === DialogInvocationMode.SEQUENTIAL) {
             for (const cybotId of cybots) {
               await dispatch(streamCybotId({ cybotId, userInput })).unwrap();
@@ -410,6 +430,8 @@ export const {
   removeActiveController,
   abortAllMessages,
   clearActiveControllers,
+  // **改动点**: 导出新的 action
+  streamAllCybotsInParallel,
 } = DialogSlice.actions;
 
 // --- Reducer 导出 ---
