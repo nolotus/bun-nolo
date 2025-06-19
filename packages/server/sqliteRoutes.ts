@@ -12,7 +12,7 @@ import {
 
 const CORS_HEADERS = CORS_HEADERS_AUTH;
 
-const ALLOWED_SQL_EXEC_USER_IDS = ["1c2b14b968", "0e95801d90"];
+const ALLOWED_SQL_EXEC_USER_IDS = ["1c2b14b968", "0e95801d90", "21b40f2e04"];
 
 export const sqliteRoutes = {
   [API_ENDPOINTS.EXECUTE_SQL]: {
