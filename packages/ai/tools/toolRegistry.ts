@@ -1,12 +1,13 @@
 /* ============================================================
- *  所有 Tool 的统一注册与描述（新版）
+ *  所有 Tool 的统一注册与描述 (最终合并版)
  *  ------------------------------------------------------------
- *  ① 业务侧（已有）    : 10 个
- *  ② 数据查询/存储侧（新增）: 9 个  <-- 从 8 个变为 9 个
- *  总计                : 19 个  <-- 从 18 个变为 19 个
+ *  此文件是项目的“工具中心”，包含三部分：
+ *  1. toolRegistry:   给 LLM 的工具定义。
+ *  2. toolExecutors:  工具名到实际执行函数的映射。
+ *  3. toolDescriptions: 给前端 UI 的描述。
  * ========================================================== */
 
-import { runCybotTool } from "./runCybot";
+// ---------- 工具定义导入 ----------
 import { generateTableTool } from "./generateTableTool";
 import { createPageTool } from "./createPageTool";
 import { generateImageTool } from "./generateImageTool";
@@ -15,9 +16,7 @@ import { updateContentTitleTool } from "./updateContentTitleTool";
 import { updateContentCategoryTool } from "./updateContentCategoryTool";
 import { queryContentsByCategoryTool } from "./queryContentsByCategoryTool";
 import { fetchWebpageTool } from "./fetchWebpageTool";
-
-/* ---------- 新增数据查询/存储工具 ---------- */
-// 确保这些导入路径正确，特别是 executeSqlTool 的路径
+import { runStreamingAgentTool } from "./runStreamingAgentTool"; // 新增
 import { createTableTool } from "database/tools/createTableTool";
 import { listTablesTool } from "database/tools/listTablesTool";
 import { describeTableTool } from "./describeTableTool";
@@ -26,14 +25,21 @@ import { groupAggregateTool } from "./groupAggregateTool";
 import { joinTablesTool } from "./joinTablesTool";
 import { transformRowsTool } from "./transformRowsTool";
 import { joinRowsTool } from "./joinRowsTool";
-import { executeSqlTool } from "./executeSqlTool"; // **新增：导入 executeSqlTool**
+import { executeSqlTool } from "./executeSqlTool";
+
+// ---------- 工具执行函数导入 ----------
+import { createPageFunc } from "./createPageTool";
+import { createCategoryFunc } from "./createCategoryTool";
+import { generateTable } from "./generateTableTool";
+import { fetchWebpage } from "./fetchWebpageTool";
+import { executeSql } from "./executeSqlTool";
+import { runStreamingAgentFunc } from "./runStreamingAgentTool"; // 新增
+import { selectCurrentUserId } from "auth/authSlice";
 
 /* ============================================================
- *  1. 工具注册表 —— 大模型实际调用时依赖的映射
+ *  1. 工具注册表 (给 LLM)
  * ========================================================== */
 export const toolRegistry: Record<string, any> = {
-  /* ----------- 业务侧（已存在） ----------- */
-  runCybot: runCybotTool,
   generateTable: generateTableTool,
   createPage: createPageTool,
   generateImage: generateImageTool,
@@ -42,8 +48,7 @@ export const toolRegistry: Record<string, any> = {
   updateContentCategory: updateContentCategoryTool,
   queryContentsByCategory: queryContentsByCategoryTool,
   fetchWebpage: fetchWebpageTool,
-
-  /* ----------- 数据查询 / 存储侧（新增） ----------- */
+  runStreamingAgent: runStreamingAgentTool, // 新增
   createTable: createTableTool,
   listTables: listTablesTool,
   describeTable: describeTableTool,
@@ -52,33 +57,61 @@ export const toolRegistry: Record<string, any> = {
   joinTables: joinTablesTool,
   transformRows: transformRowsTool,
   joinRows: joinRowsTool,
-  executeSql: executeSqlTool, // **新增：注册 executeSqlTool**
+  executeSql: executeSqlTool,
 };
 
 /* ============================================================
- *  2. 工具描述 —— 用于前端 ToolSelector / 调试 UI
+ *  2. 工具执行器 (核心逻辑)
+ * ========================================================== */
+export const toolExecutors: Record<
+  string,
+  (args: any, thunkApi: any) => Promise<any>
+> = {
+  // 注意：这里的 key (如 'create_page') 必须与 Tool 定义中 'function.name' 的值完全匹配。
+
+  generate_table: async (args, thunkApi) => {
+    const { getState } = thunkApi;
+    const currentUserId = selectCurrentUserId(getState());
+    return generateTable(args, thunkApi, currentUserId);
+  },
+  create_page: createPageFunc,
+  create_category: createCategoryFunc,
+  generate_image: async (args, thunkApi) => {
+    // TODO: 实际图像生成逻辑
+    console.log("Generating image with args:", args);
+    return {
+      success: true,
+      id: `img_${Date.now()}`,
+      name: "生成的图片",
+      title: `图片：${args.prompt || "未命名"}`,
+    };
+  },
+  fetch_webpage: async (args, thunkApi) => {
+    const { getState } = thunkApi;
+    const currentUserId = selectCurrentUserId(getState());
+    return fetchWebpage(args, thunkApi, currentUserId);
+  },
+  execute_sql: executeSql,
+
+  // --- 新增 runStreamingAgent 的执行器 ---
+  run_streaming_agent: runStreamingAgentFunc,
+
+  // ... 未来可以继续在这里添加其他工具的执行函数
+};
+
+/* ============================================================
+ *  3. 工具描述 (给 前端 UI)
  * ========================================================== */
 export const toolDescriptions: Record<
   string,
   { name: string; description: string }
 > = {
-  /* ----------- 业务侧（已存在） ----------- */
-  runCybot: {
-    name: "runCybot",
-    description: "Execute other cybots and combine their capabilities",
-  },
   generateTable: {
     name: "generateTable",
     description: "根据 JSON 数据生成 Excel 表格",
   },
-  createPage: {
-    name: "createPage",
-    description: "在当前空间中创建新页面",
-  },
-  generateImage: {
-    name: "generateImage",
-    description: "根据提示生成图片",
-  },
+  createPage: { name: "createPage", description: "在当前空间中创建新页面" },
+  generateImage: { name: "generateImage", description: "根据提示生成图片" },
   createCategory: {
     name: "createCategory",
     description: "在当前空间中创建新分类",
@@ -99,51 +132,27 @@ export const toolDescriptions: Record<
     name: "fetchWebpage",
     description: "访问指定网页并获取其内容",
   },
-
-  /* ----------- 数据查询 / 存储侧（新增） ----------- */
-  createTable: {
-    name: "createTable",
+  runStreamingAgent: {
+    name: "run_streaming_agent",
     description:
-      "为指定租户注册一张新表：写入表结构元数据（meta-{tenantId}-{tableId}），包含表名、列定义、索引定义和创建时间",
-  },
-  listTables: {
-    name: "listTables",
-    description:
-      "列出指定租户下的所有表：扫描 meta 前缀 (meta-{tenantId}-*)，可选择仅返回表 ID 或同时返回元信息",
-  },
-  describeTable: {
-    name: "describeTable",
-    description:
-      "读取指定表的元数据（表名、列定义、索引定义、创建时间）；可选返回行数和索引大小统计",
-  },
-  selectRows: {
-    name: "selectRows",
-    description:
-      "按主键或二级索引扫描表行，支持多条件过滤、排序和游标分页，返回符合条件的行数组",
-  },
+      "调用一个指定的 Agent (智能代理)，并以流式方式处理用户输入，与其进行交互。",
+  }, // 新增
+  createTable: { name: "createTable", description: "为指定租户注册一张新表" },
+  listTables: { name: "listTables", description: "列出指定租户下的所有表" },
+  describeTable: { name: "describeTable", description: "读取指定表的元数据" },
+  selectRows: { name: "selectRows", description: "按主键或二级索引扫描表行" },
   groupAggregate: {
     name: "groupAggregate",
-    description:
-      "对满足条件的行执行分组聚合，一次返回多种聚合指标（COUNT/SUM/AVG/MIN/MAX）",
+    description: "对满足条件的行执行分组聚合",
   },
-  joinTables: {
-    name: "joinTables",
-    description:
-      "对两张表做等值内联 JOIN，返回扁平合并后的行，字段冲突时用表名作前缀区分",
-  },
+  joinTables: { name: "joinTables", description: "对两张表做等值内联 JOIN" },
   transformRows: {
     name: "transformRows",
-    description:
-      "对输入行数组按 JSON-Logic 规则做衍生字段计算、投影或条件映射，返回新行数组",
+    description: "对输入行数组按规则做衍生字段计算",
   },
-  joinRows: {
-    name: "joinRows",
-    description: "在内存中对两组任意行数组做等值内/左连接，返回合并后的行数组",
-  },
+  joinRows: { name: "joinRows", description: "在内存中对两组任意行数组做连接" },
   executeSql: {
-    // **新增：注册 executeSql 的描述**
     name: "execute_sql",
-    description:
-      "直接在 SQLite 数据库中执行任意 SQL 语句，包括数据查询、修改和表结构操作。请确保SQL语句的正确性。",
+    description: "直接在 SQLite 数据库中执行任意 SQL 语句",
   },
 };

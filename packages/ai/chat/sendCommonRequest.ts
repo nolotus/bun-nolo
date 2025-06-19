@@ -1,4 +1,3 @@
-// chatService.ts
 import { prepareTools } from "ai/tools/prepareTools";
 import {
   updateDialogTitle,
@@ -14,7 +13,8 @@ import { createDialogMessageKeyAndId } from "database/keys";
 import { selectCurrentToken } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
 import { parseMultilineSSE } from "./parseMultilineSSE";
-import { toolHandlers } from "../tools/toolHandlers";
+// --- 修改点：从 toolRegistry 导入 toolExecutors ---
+import { toolExecutors } from "ai/tools/toolRegistry";
 
 // 处理单次工具调用
 async function processToolData(
@@ -22,7 +22,7 @@ async function processToolData(
   thunkApi: any,
   cybotConfig: any,
   messageId: string
-): Promise<any> {
+): Promise<any | null> {
   const func = toolCall.function;
   if (!func || !func.name) {
     return { type: "text", text: "[Tool Error] 工具调用数据无效" };
@@ -47,18 +47,33 @@ async function processToolData(
       toolArgs = {};
     }
 
-    const handler = toolHandlers[toolName];
+    // --- 修改点：使用 toolExecutors ---
+    const handler = toolExecutors[toolName];
     if (!handler) {
       return { type: "text", text: `[Tool Error] 未知工具: ${toolName}` };
     }
 
+    // 特殊处理 run_streaming_agent
+    if (toolName === "run_streaming_agent") {
+      try {
+        await handler(toolArgs, thunkApi);
+        return null; // 返回 null，表示此工具不应产生文本反馈
+      } catch (error: any) {
+        return {
+          type: "text",
+          text: `[Tool Error] 启动 Agent 失败: ${error.message}`,
+        };
+      }
+    }
+
+    // 其他工具的常规处理流程
     try {
       const result = await handler(toolArgs, thunkApi);
       if (result && result.success) {
         const text =
           result.text ||
           `${toolName
-            .replace("_", " ")
+            .replace(/_/g, " ")
             .replace(/^./, (c) => c.toUpperCase())} 已成功执行：${
             result.title || result.name || "操作完成"
           } (ID: ${result.id || "N/A"})`;
@@ -111,15 +126,19 @@ async function handleAccumulatedToolCalls(
           cybotConfig,
           messageId
         );
-        updatedContentBuffer = [...updatedContentBuffer, toolResult];
-        dispatch(
-          messageStreaming({
-            id: messageId,
-            content: updatedContentBuffer,
-            role: "assistant",
-            cybotKey: cybotConfig.dbKey,
-          })
-        );
+
+        if (toolResult) {
+          // 只有当 toolResult 不为 null 时才更新消息流
+          updatedContentBuffer = [...updatedContentBuffer, toolResult];
+          dispatch(
+            messageStreaming({
+              id: messageId,
+              content: updatedContentBuffer,
+              role: "assistant",
+              cybotKey: cybotConfig.dbKey,
+            })
+          );
+        }
       } catch (toolError: any) {
         const errorResult = {
           type: "text",
@@ -264,6 +283,7 @@ export const sendCommonChatRequest = async ({
   let totalUsage: any = null;
   let accumulatedToolCalls: any[] = [];
   let reasoningBuffer: string = "";
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
 
   try {
     dispatch(
@@ -349,7 +369,7 @@ export const sendCommonChatRequest = async ({
       return;
     }
 
-    const reader = response.body?.getReader();
+    reader = response.body?.getReader();
     if (!reader) {
       throw new Error("无法获取响应流读取器");
     }
@@ -521,6 +541,7 @@ export const sendCommonChatRequest = async ({
               );
               accumulatedToolCalls = [];
             } else if (finishReason === "stop") {
+              // Standard stop, do nothing special
             } else {
               contentBuffer = appendTextChunk(
                 contentBuffer,
