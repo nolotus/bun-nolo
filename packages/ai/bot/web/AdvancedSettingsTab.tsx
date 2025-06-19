@@ -1,16 +1,21 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { Controller } from "react-hook-form";
 import { FormField } from "web/form/FormField";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { Input } from "web/form/Input";
 import PasswordInput from "web/form/PasswordInput";
 import ModelParameters from "./ModelParameters";
-import { Controller } from "react-hook-form";
+
+// 为了重置逻辑，从 ModelParameters 导入配置，避免 props drilling
+// (假设 PARAMETER_CONFIGS 和 PARAMETER_FORM_KEYS 从 ModelParameters.jsx 文件中导出)
+import { PARAMETER_CONFIGS, PARAMETER_FORM_KEYS } from "./ModelParameters";
 
 const AdvancedSettingsTab = ({
   t,
   errors,
   control,
   watch,
+  setValue, // 接收并使用正确的 setValue 函数
   initialValues = {},
   provider,
   apiSource,
@@ -20,6 +25,17 @@ const AdvancedSettingsTab = ({
 }) => {
   const commonProps = { horizontal: true, labelWidth: "140px" };
   const useServerProxy = watch("useServerProxy");
+
+  // 重置逻辑现在放在这里，它使用 setValue 来实现
+  const handleResetParameters = useCallback(() => {
+    PARAMETER_CONFIGS.forEach((config) => {
+      const formKey = PARAMETER_FORM_KEYS[config.key];
+      setValue(formKey, config.default, { shouldDirty: true });
+    });
+  }, [setValue]);
+
+  // 使用 watch() 获取所有表单值。这比多次调用 watch("key") 更高效。
+  const allFormValues = watch();
 
   return (
     <div className="tab-content-wrapper">
@@ -104,13 +120,17 @@ const AdvancedSettingsTab = ({
         />
       </FormField>
 
-      {/* 模型参数 */}
+      {/* 模型参数 (适配层) */}
       <ModelParameters
-        register={control.register}
-        watch={watch}
-        setValue={control.setValue}
         t={t}
-        theme={undefined}
+        // `values` prop: 传入所有表单值
+        values={allFormValues}
+        // `onValueChange` prop: 当参数变化时，调用 setValue 更新表单状态
+        onValueChange={(key, newValue) =>
+          setValue(key, newValue, { shouldDirty: true })
+        }
+        // `onReset` prop: 传入上面定义的重置函数
+        onReset={handleResetParameters}
       />
     </div>
   );

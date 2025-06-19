@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { useCybotValidation } from "../common/useCybotFormValidation";
+import { useCybotValidation } from "../../bot/web/common/useCybotFormValidation";
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
