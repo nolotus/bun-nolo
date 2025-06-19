@@ -8,8 +8,8 @@ import Button from "render/web/ui/Button";
 import useModelPricing from "../../cybot/hooks/useModelPricing";
 import { useOllamaSettings } from "../../cybot/hooks/useOllamaSettings";
 import { useProxySetting } from "../../cybot/hooks/useProxySetting";
-import { useCybotValidation } from "../../cybot/common/useCybotFormValidation";
-import { normalizeReferences } from "../../cybot/common/createCybotSchema";
+import { useCybotValidation } from "./common/useCybotFormValidation";
+import { normalizeReferences } from "./common/createCybotSchema";
 
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "../../cybot/web/ReferencesTab";

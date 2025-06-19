@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { MdRefresh, MdInfoOutline } from "react-icons/md";
 import Button from "render/web/ui/Button";
 import { Slider } from "web/form/Slider";
@@ -11,10 +11,10 @@ import {
   DEFAULT_PRESENCE_PENALTY,
   DEFAULT_MAX_TOKENS,
   DEFAULT_REASONING_EFFORT,
-} from "../../cybot/common/createCybotSchema";
+} from "./common/createCybotSchema";
 
-// 定义模型参数的配置，包含默认值和UI展示信息
-const PARAMETER_CONFIGS = [
+// 导出常量，供 AdvancedSettingsTab 使用
+export const PARAMETER_CONFIGS = [
   {
     key: "temperature",
     min: 0,
@@ -62,8 +62,7 @@ const PARAMETER_CONFIGS = [
   },
 ];
 
-// 将配置的 key 映射到实际的 react-hook-form 字段名 (snake_case)
-const PARAMETER_FORM_KEYS = {
+export const PARAMETER_FORM_KEYS = {
   temperature: "temperature",
   topP: "top_p",
   frequencyPenalty: "frequency_penalty",
@@ -72,15 +71,8 @@ const PARAMETER_FORM_KEYS = {
   reasoning_effort: "reasoning_effort",
 };
 
-const ModelParameters = ({ register, watch, setValue, t, theme }) => {
-  // 重置参数为默认值
-  const handleResetParameters = useCallback(() => {
-    PARAMETER_CONFIGS.forEach((config) => {
-      const formKey = PARAMETER_FORM_KEYS[config.key];
-      setValue(formKey, config.default, { shouldDirty: true });
-    });
-  }, [setValue]);
-
+// Props 接口已更新为通用的 values, onValueChange, 和 onReset
+const ModelParameters = ({ values, onValueChange, onReset, t }) => {
   return (
     <div className="model-parameters">
       <div className="parameters-header">
@@ -89,7 +81,7 @@ const ModelParameters = ({ register, watch, setValue, t, theme }) => {
           variant="ghost"
           size="small"
           icon={<MdRefresh size={16} />}
-          onClick={handleResetParameters}
+          onClick={onReset} // 直接使用父组件提供的 onReset 回调
           type="button"
         >
           {t("resetToDefaults")}
@@ -99,11 +91,8 @@ const ModelParameters = ({ register, watch, setValue, t, theme }) => {
       <div className="parameters-grid">
         {PARAMETER_CONFIGS.map((config) => {
           const formKey = PARAMETER_FORM_KEYS[config.key];
-          const valueFromForm = watch(formKey);
-          let displayValue = valueFromForm;
-          if (displayValue === null || displayValue === undefined) {
-            displayValue = config.default;
-          }
+          // 从 values prop 获取值，如果不存在则使用默认值
+          const displayValue = values[formKey] ?? config.default;
 
           return (
             <div key={config.key} className="parameter-item">
@@ -128,17 +117,15 @@ const ModelParameters = ({ register, watch, setValue, t, theme }) => {
                     }))}
                     value={displayValue}
                     name={formKey}
-                    onChange={(newValue) =>
-                      setValue(formKey, newValue, { shouldDirty: true })
-                    }
+                    // 调用通用的 onValueChange 回调，通知父组件值的变更
+                    onChange={(newValue) => onValueChange(formKey, newValue)}
                   />
                 ) : (
                   <>
                     <Slider
                       value={displayValue}
-                      onChange={(newValue) =>
-                        setValue(formKey, newValue, { shouldDirty: true })
-                      }
+                      // 调用通用的 onValueChange 回调
+                      onChange={(newValue) => onValueChange(formKey, newValue)}
                       min={config.min}
                       max={config.max}
                       step={config.step}
@@ -162,6 +149,7 @@ const ModelParameters = ({ register, watch, setValue, t, theme }) => {
       </div>
 
       <style href="model-parameters" precedence="medium">{`
+        /* CSS styles remain the same */
         .model-parameters {
           margin-top: 32px;
           padding-top: 24px;

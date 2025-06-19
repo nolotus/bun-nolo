@@ -7,7 +7,10 @@ import { useAuth } from "auth/hooks/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { createCybotKey } from "database/keys";
 import { ulid } from "ulid";
-import { createCybotSchema, FormData } from "../common/createCybotSchema";
+import {
+  createCybotSchema,
+  FormData,
+} from "../../bot/web/common/createCybotSchema";
 
 export const useCreateCybotValidation = () => {
   const dispatch = useAppDispatch();

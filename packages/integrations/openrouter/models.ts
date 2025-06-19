@@ -103,7 +103,7 @@ export const openrouterModels = [
     name: "minimax/minimax-m1",
     displayName: "MiniMax: MiniMax M1",
     hasVision: false,
-    price: { input: 0.3, output: 1.65 },
+    price: { input: 0.3 * 8, output: 1.65 * 8 },
     maxOutputTokens: 1000000,
     contextWindow: 1000000,
     supportsTool: true,
