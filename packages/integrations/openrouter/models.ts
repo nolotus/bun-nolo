@@ -99,4 +99,13 @@ export const openrouterModels = [
     supportsTool: true,
     pricePerImage: 4.8 * 8,
   },
+  {
+    name: "minimax/minimax-m1",
+    displayName: "MiniMax: MiniMax M1",
+    hasVision: false,
+    price: { input: 0.3, output: 1.65 },
+    maxOutputTokens: 1000000,
+    contextWindow: 1000000,
+    supportsTool: true,
+  },
 ];
