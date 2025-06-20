@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { useCybotValidation } from "../../bot/web/common/useCybotFormValidation";
+import { useCybotValidation } from "../../llm/web/common/useCybotFormValidation";
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
@@ -12,7 +12,7 @@ import { PlusIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import { TagsInput } from "web/form/TagsInput";
-import ReferencesSelector from "../../bot/web/ReferencesSelector";
+import ReferencesSelector from "../../llm/web/ReferencesSelector";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 
