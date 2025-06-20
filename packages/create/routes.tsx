@@ -1,7 +1,7 @@
 import { CreateRoutePaths } from "./routePaths";
 
 // Web imports
-import BotForm from "ai/bot/web/BotForm";
+import BotForm from "ai/llm/web/BotForm";
 
 import CreateCustomCybot from "ai/cybot/web/CreateCustomCybot"; // 假设暂时保留 CreateCustomCybot
 import { PlusIcon, SyncIcon } from "@primer/octicons-react";
