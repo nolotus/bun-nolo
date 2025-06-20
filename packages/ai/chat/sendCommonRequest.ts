@@ -17,6 +17,8 @@ import { createDialogMessageKeyAndId } from "database/keys";
 import { selectCurrentToken } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
 import { parseMultilineSSE } from "./parseMultilineSSE";
+import { parseApiError } from "./parseApiError";
+import { updateTotalUsage } from "./updateTotalUsage";
 
 // 向已有内容缓冲追加新的文本片段
 function appendTextChunk(
@@ -174,40 +176,7 @@ export const sendCommonChatRequest = async ({
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      let errorMessage = `API请求失败: 状态码 ${response.status}`;
-      let errorCode = `E${response.status}`;
-      try {
-        const errorJson = JSON.parse(errorBody);
-        errorMessage =
-          errorJson?.error?.message ||
-          errorBody ||
-          `状态码 ${response.status} ${response.statusText}`;
-        errorCode = errorJson?.error?.code || errorCode;
-        if (response.status === 504) {
-          errorMessage = "请求超时，请稍后再试";
-        } else if (response.status === 401) {
-          if (errorCode === "AUTH_TOKEN_EXPIRED") {
-            errorMessage = "令牌已过期，请重新登录";
-          } else if (errorCode === "AUTH_ACCOUNT_INVALID") {
-            errorMessage = "账户无效或已被停用，请联系管理员";
-          } else if (errorCode === "AUTH_NO_TOKEN") {
-            errorMessage = "未提供身份验证令牌，请登录";
-          } else if (errorCode === "AUTH_INVALID_TOKEN") {
-            errorMessage = "无效的身份验证令牌，请重新登录";
-          } else if (errorCode === "AUTH_TOKEN_NOT_ACTIVE") {
-            errorMessage = "令牌尚未生效，请稍后再试";
-          } else {
-            errorMessage = "身份验证失败，请检查您的凭据";
-          }
-        } else if (response.status === 400) {
-          errorMessage = "请求参数错误，请检查输入";
-        }
-      } catch (_e) {
-        errorMessage =
-          errorBody || `状态码 ${response.status} ${response.statusText}`;
-      }
-
+      const errorMessage = await parseApiError(response);
       contentBuffer = appendTextChunk(contentBuffer, `[错误: ${errorMessage}]`);
       dispatch(
         messageStreaming({
@@ -218,7 +187,6 @@ export const sendCommonChatRequest = async ({
           cybotKey: cybotConfig.dbKey,
         })
       );
-
       finalizeStream(
         contentBuffer,
         totalUsage,
@@ -247,21 +215,17 @@ export const sendCommonChatRequest = async ({
         if (accumulatedToolCalls.length > 0) {
           const result = await dispatch(
             handleToolCalls({
-              // ✨ 修正点 1: 使用显式赋值
               accumulatedCalls: accumulatedToolCalls,
               currentContentBuffer: contentBuffer,
               cybotConfig,
               messageId,
             })
           ).unwrap();
-
           contentBuffer = result.finalContentBuffer;
-
           if (result.agentTookOver) {
             return;
           }
         }
-
         finalizeStream(
           contentBuffer,
           totalUsage,
@@ -283,29 +247,9 @@ export const sendCommonChatRequest = async ({
         const dataList = Array.isArray(parsedData) ? parsedData : [parsedData];
 
         for (const data of dataList) {
+          // ✨ 重构点：使用新的辅助函数处理 usage 数据的累积
           if (data.usage) {
-            if (!totalUsage) {
-              totalUsage = { ...data.usage };
-            } else {
-              totalUsage.completion_tokens =
-                data.usage.completion_tokens ?? totalUsage.completion_tokens;
-              totalUsage.prompt_tokens =
-                data.usage.prompt_tokens ?? totalUsage.prompt_tokens;
-              totalUsage.total_tokens =
-                data.usage.total_tokens ?? totalUsage.total_tokens;
-              if (data.usage.prompt_tokens_details) {
-                totalUsage.prompt_tokens_details = {
-                  ...(totalUsage.prompt_tokens_details || {}),
-                  ...data.usage.prompt_tokens_details,
-                };
-              }
-              if (data.usage.completion_tokens_details) {
-                totalUsage.completion_tokens_details = {
-                  ...(totalUsage.completion_tokens_details || {}),
-                  ...data.usage.completion_tokens_details,
-                };
-              }
-            }
+            totalUsage = updateTotalUsage(totalUsage, data.usage);
           }
 
           if (data.error) {
@@ -407,7 +351,6 @@ export const sendCommonChatRequest = async ({
             if (finishReason === "tool_calls") {
               const result = await dispatch(
                 handleToolCalls({
-                  // ✨ 修正点 2: 使用显式赋值
                   accumulatedCalls: accumulatedToolCalls,
                   currentContentBuffer: contentBuffer,
                   cybotConfig,
