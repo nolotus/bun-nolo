@@ -11,7 +11,7 @@ import Button from "render/web/ui/Button";
 import { Dialog } from "render/web/ui/Dialog";
 import { Tooltip } from "render/web/ui/Tooltip";
 import Avatar from "render/web/ui/Avatar";
-import BotForm from "../../llm/web/BotForm";
+import BotForm from "ai/llm/web/BotForm";
 import { Cybot } from "../types";
 import { remove } from "database/dbSlice";
 import { PlusIcon, SyncIcon } from "@primer/octicons-react";

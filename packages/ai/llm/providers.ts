@@ -13,11 +13,7 @@ import { xaiModels } from "integrations/xai/models";
 import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
 import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 import type { Model } from "./types";
-
-interface CybotConfig {
-  provider: string;
-  customProviderUrl?: string;
-}
+import { BotConfig } from "app/types";
 
 // 提取所有支持推理功能的模型
 const allModels = [
@@ -106,7 +102,7 @@ export function getModelsByProvider(provider: Provider): Model[] {
 export function getApiEndpoint({
   provider,
   customProviderUrl,
-}: CybotConfig): string {
+}: BotConfig): string {
   if (customProviderUrl) return customProviderUrl;
   const key = provider.toLowerCase();
   if (key === "custom") {

@@ -2,21 +2,7 @@ import { generatePrompt } from "ai/prompt/generatePrompt";
 import { pipe, flatten, filter, reverse, map } from "rambda";
 import { RootState } from "app/store";
 import { selectAllMsgs } from "chat/messages/messageSlice";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string | { type: string; data: string }[];
-  userId?: string;
-}
-
-interface CybotConfig {
-  provider: string;
-  model: string;
-  prompt?: string;
-  name?: string;
-  [key: string]: any;
-}
+import { BotConfig, Message } from "app/types";
 
 const filterValidMessages = (
   msgs: any
@@ -86,7 +72,7 @@ const buildRequestBody = (
 export const generateAnthropicRequestBody = (
   state: RootState,
   userInput: string | { type: string; data: string }[],
-  cybotConfig: CybotConfig,
+  cybotConfig: BotConfig,
   context: any
 ) => {
   const previousMessages = filterValidMessages(selectAllMsgs(state));

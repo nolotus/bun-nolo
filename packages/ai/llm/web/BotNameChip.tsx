@@ -5,7 +5,8 @@ import React from "react";
 import { Dialog as EditDialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { useTheme } from "app/theme";
-import CybotForm from "./BotForm";
+import BotForm from "ai/llm/web/BotForm";
+
 import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
 // 定义组件的 props 接口
@@ -89,7 +90,7 @@ const BotNameChip: React.FC<BotNameChipProps> = React.memo(
             onClose={closeEdit}
             title={`Edit ${bot.name || "Bot"}`}
           >
-            <CybotForm // 组件名保留，但内部可能处理bot
+            <BotForm // 组件名保留，但内部可能处理bot
               mode="edit"
               initialValues={bot}
               onClose={closeEdit}
