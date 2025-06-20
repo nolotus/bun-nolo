@@ -1,5 +1,3 @@
-// ai/chat/sendCommonChatRequest.ts (完整替换)
-
 import { prepareTools } from "ai/tools/prepareTools";
 import {
   addActiveController,
@@ -15,16 +13,15 @@ import { getApiEndpoint } from "ai/llm/providers";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { selectCurrentToken } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
-import { read } from "database/dbSlice";
 
 import { performFetchRequest } from "./fetchUtils";
 import { parseMultilineSSE } from "./parseMultilineSSE";
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
-import { generateRequestBody } from "../cybot/generateRequestBody";
 import { accumulateToolCallChunks } from "./accumulateToolCallChunks";
+import { initiateAgentStream } from "../cybot/cybotSlice"; // ✨ 1. 从 cybotSlice 导入 action
 
-// 向已有内容缓冲追加新的文本片段
+// 辅助函数：向已有内容缓冲追加新的文本片段 (无变化)
 function appendTextChunk(
   currentContentBuffer: any[],
   textChunk: string
@@ -44,58 +41,6 @@ function appendTextChunk(
   return updatedContentBuffer;
 }
 
-// 辅助函数：用于启动 Agent 流并返回新的 Reader
-async function initiateAgentStream(
-  toolCall: any,
-  thunkApi: any
-): Promise<{
-  newReader: ReadableStreamDefaultReader<Uint8Array>;
-  newCybotConfig: any;
-} | null> {
-  const { getState, dispatch, signal } = thunkApi;
-  const args = JSON.parse(toolCall.function.arguments);
-  const { agentKey, userInput } = args;
-
-  if (!agentKey) {
-    console.error("Agent Handoff failed: missing agentKey");
-    return null;
-  }
-
-  try {
-    const newCybotConfig = await dispatch(read(agentKey)).unwrap();
-    const bodyData = generateRequestBody(getState(), newCybotConfig, {
-      currentUserContext: userInput,
-    });
-
-    const api = getApiEndpoint(newCybotConfig);
-    const token = selectCurrentToken(getState());
-    const currentServer = selectCurrentServer(getState());
-
-    const response = await performFetchRequest({
-      cybotConfig: newCybotConfig,
-      api,
-      bodyData,
-      currentServer,
-      signal,
-      token,
-    });
-
-    if (!response.ok || !response.body) {
-      const errorMsg = await parseApiError(response);
-      throw new Error(`Agent [${agentKey}] request failed: ${errorMsg}`);
-    }
-
-    console.log(`Switching stream to agent: ${agentKey}`);
-    return {
-      newReader: response.body.getReader(),
-      newCybotConfig: newCybotConfig,
-    };
-  } catch (error: any) {
-    console.error(`Failed to initiate agent stream for [${agentKey}]:`, error);
-    return null;
-  }
-}
-
 // 主流程：发送常规聊天请求
 export const sendCommonChatRequest = async ({
   bodyData,
@@ -103,12 +48,14 @@ export const sendCommonChatRequest = async ({
   thunkApi,
   dialogKey,
   parentMessageId,
+  inheritedContext, // 接收从 streamCybotId 传递过来的完整上下文
 }: {
   bodyData: any;
   cybotConfig: any;
   thunkApi: any;
   dialogKey: string;
   parentMessageId?: string;
+  inheritedContext?: any; // 定义类型
 }) => {
   const { dispatch, getState, signal: thunkSignal } = thunkApi;
   const dialogId = extractCustomId(dialogKey);
@@ -252,13 +199,12 @@ export const sendCommonChatRequest = async ({
           const contentChunk = delta.content || "";
           if (contentChunk) {
             contentBuffer = appendTextChunk(contentBuffer, contentChunk);
-            // 只在流式输出时dispatch，不依赖 separateThinkContent，最终结果在 finalize 中处理
             dispatch(
               messageStreaming({
                 id: messageId,
                 dbKey: msgKey,
                 content: contentBuffer,
-                thinkContent: reasoningBuffer, // 传递累积的 reasoning
+                thinkContent: reasoningBuffer,
                 role: "assistant",
                 cybotKey: cybotConfig.dbKey,
               })
@@ -273,26 +219,40 @@ export const sendCommonChatRequest = async ({
               );
 
               if (streamingAgentCall) {
-                const handoffResult = await initiateAgentStream(
-                  streamingAgentCall,
-                  { ...thunkApi, signal }
-                );
+                // ✨ 2. 通过 dispatch 调用新的 Thunk action
+                const args = JSON.parse(streamingAgentCall.function.arguments);
 
-                if (handoffResult) {
-                  await reader.cancel();
-                  reader = handoffResult.newReader;
-                  cybotConfig = handoffResult.newCybotConfig;
-                  accumulatedToolCalls = [];
-                  contentBuffer = appendTextChunk(contentBuffer, `\n\n`);
-                  continue;
-                } else {
+                try {
+                  // .unwrap() 会在 thunk 失败时自动抛出错误，成功时返回 payload
+                  const handoffResult = await dispatch(
+                    initiateAgentStream({
+                      agentKey: args.agentKey,
+                      userInput: args.userInput,
+                      inheritedContext: inheritedContext, // 传递继承的上下文
+                    })
+                  ).unwrap();
+
+                  // ✨ 3. handoffResult 现在是 Thunk 的返回值
+                  if (handoffResult) {
+                    await reader.cancel();
+                    reader = handoffResult.newReader;
+                    cybotConfig = handoffResult.newCybotConfig;
+                    accumulatedToolCalls = [];
+                    contentBuffer = appendTextChunk(contentBuffer, `\n\n`);
+                    continue; // 继续外层 while 循环，使用新的 reader
+                  }
+                } catch (error: any) {
+                  // 如果 initiateAgentStream thunk 失败
+                  console.error("Agent handoff failed:", error);
+                  const errorMessage = error.message || String(error);
                   contentBuffer = appendTextChunk(
                     contentBuffer,
-                    `\n[Agent 启动失败]`
+                    `\n[Agent 启动失败: ${errorMessage}]`
                   );
                   await reader.cancel();
                 }
               } else {
+                // 处理非流式的 tool calls
                 const result = await dispatch(
                   handleToolCalls({
                     accumulatedCalls: accumulatedToolCalls,

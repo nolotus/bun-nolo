@@ -1,5 +1,3 @@
-// /ai/cybot/cybotSlice.ts (完整、最终版本)
-
 import {
   asyncThunkCreator,
   buildCreateSlice,
@@ -19,6 +17,7 @@ import { contextCybotId } from "core/init";
 import { formatDataForApi } from "./formatDataForApi";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import { selectCurrentToken } from "auth/authSlice";
+import { parseApiError } from "ai/chat/parseApiError";
 
 // 创建带有 Thunk 的 Slice
 const createSliceWithThunks = buildCreateSlice({
@@ -27,7 +26,7 @@ const createSliceWithThunks = buildCreateSlice({
 
 // 初始化状态
 const initialState = {
-  // 初始化状态
+  // 可以根据需要添加状态，例如记录当前正在运行的cybot等
 };
 
 // 创建 cybot Slice
@@ -42,6 +41,7 @@ export const cybotSlice = createSliceWithThunks({
       const state = thunkApi.getState();
       const dispatch = thunkApi.dispatch;
       const cybotConfig = await dispatch(read(cybotId)).unwrap();
+
       if (cybotConfig.type === DataType.CYBOT) {
         const api = getApiEndpoint(cybotConfig);
         const currentServer = selectCurrentServer(state);
@@ -50,9 +50,13 @@ export const cybotSlice = createSliceWithThunks({
             role: "system",
             content: cybotConfig.prompt,
           },
-          { role: "user", content }, // 使用 content 参数，供系统构造后传入
+          { role: "user", content },
         ];
-        const bodyData = { model: cybotConfig.model, messages, stream: false };
+        const bodyData = {
+          model: cybotConfig.model,
+          messages,
+          stream: false,
+        };
         const token = selectCurrentToken(state);
         const response = await performFetchRequest({
           cybotConfig,
@@ -73,25 +77,24 @@ export const cybotSlice = createSliceWithThunks({
      * 流式运行 Cybot ID，处理用户输入并与 AI 进行交互
      */
     streamCybotId: create.asyncThunk(
-      // ✨ 关键 1: 修改 Thunk 的参数类型，使其可以接收可选的 parentMessageId ✨
       async (
         args: {
           cybotId: string;
-          userInput: string | any[]; // 保持原有类型
-          parentMessageId?: string; // 新增可选参数
+          userInput: string | any[];
+          parentMessageId?: string;
         },
         thunkApi
       ) => {
-        const { cybotId, userInput, parentMessageId } = args; // 解构出新参数
-        const { getState, dispatch, rejectWithValue } = thunkApi; // 使用完整的 thunkApi
+        const { cybotId, userInput, parentMessageId } = args;
+        const { getState, dispatch, rejectWithValue } = thunkApi;
         const state = getState();
         const msgs = selectAllMsgs(state);
 
         try {
           const cybotConfig = await dispatch(read(cybotId)).unwrap();
 
-          // --- 1. 收集所有来源的 Keys，并按类型分离 (逻辑不变) ---
-
+          // --- 1. 上下文收集 ---
+          // (根据您的上下文策略进行调整，此处为完整收集逻辑)
           const currentUserKeys = new Set<string>();
           if (Array.isArray(userInput)) {
             userInput.forEach((part: any) => {
@@ -158,7 +161,7 @@ export const cybotSlice = createSliceWithThunks({
             );
           }
 
-          // --- 2. 按优先级去重 (逻辑不变) ---
+          // --- 2. 优先级去重 ---
           currentUserKeys.forEach((key) => {
             if (botInstructionKeys.has(key)) currentUserKeys.delete(key);
           });
@@ -184,7 +187,7 @@ export const cybotSlice = createSliceWithThunks({
               botKnowledgeKeys.delete(key);
           });
 
-          // --- 3. 并发获取每个层级的内容 (逻辑不变) ---
+          // --- 3. 并发获取上下文内容 ---
           const [
             botInstructionsContext,
             currentUserContext,
@@ -198,15 +201,18 @@ export const cybotSlice = createSliceWithThunks({
             fetchReferenceContents(Array.from(historyKeys), dispatch),
             fetchReferenceContents(Array.from(botKnowledgeKeys), dispatch),
           ]);
-          // --- 4. 将所有结构化上下文传递给请求体生成器 (逻辑不变) ---
-          const providerName = cybotConfig.provider.toLowerCase();
-          const bodyData = generateRequestBody(state, cybotConfig, {
+
+          const contexts = {
             botInstructionsContext,
             currentUserContext,
             smartReadContext,
             historyContext,
             botKnowledgeContext,
-          });
+          };
+
+          // --- 4. 构建请求体 ---
+          const providerName = cybotConfig.provider.toLowerCase();
+          const bodyData = generateRequestBody(state, cybotConfig, contexts);
 
           // --- 5. 执行请求 ---
           const handler = requestHandlers[providerName];
@@ -216,20 +222,111 @@ export const cybotSlice = createSliceWithThunks({
             );
           }
           const dialogConfig = selectCurrentDialogConfig(state);
-          const dialogKey = dialogConfig?.dbKey; // 使用可选链，因为 dialogConfig 可能为 null
+          const dialogKey = dialogConfig?.dbKey;
 
-          // ✨ 关键 2: 将 parentMessageId 传递给最终的请求处理器 ✨
           await handler({
             bodyData,
             cybotConfig,
             thunkApi,
             dialogKey,
-            // 如果 parentMessageId 存在，就用它；否则，让 handler 自己生成。
-            // 这使得同一个 handler 既可以用于创建新消息，也可以用于“变形”现有消息。
             parentMessageId: parentMessageId,
+            inheritedContext: contexts, // 传递完整的上下文给 handler
           });
         } catch (error: any) {
           console.error(`执行 Cybot [${cybotId}] 时出错:`, error);
+          return rejectWithValue(error.message);
+        }
+      },
+      {}
+    ),
+
+    /**
+     * 作为 Agent 被启动，并返回一个新的流读取器 (Reader) 和配置。
+     * 这个 Thunk 执行 Agent 的启动逻辑，并返回关键对象给调用方。
+     */
+    initiateAgentStream: create.asyncThunk(
+      async (
+        args: {
+          agentKey: string;
+          userInput: string | any[];
+        },
+        thunkApi
+      ) => {
+        const { agentKey, userInput } = args;
+        const { getState, dispatch, signal, rejectWithValue } = thunkApi;
+
+        try {
+          const newCybotConfig = await dispatch(read(agentKey)).unwrap();
+
+          // 获取新 Agent 自身的上下文
+          const newBotInstructionKeys: string[] = [];
+          const newBotKnowledgeKeys: string[] = [];
+          if (Array.isArray(newCybotConfig.references)) {
+            newCybotConfig.references.forEach(
+              (ref: { dbKey: string; type: string }) => {
+                if (ref && ref.dbKey) {
+                  if (ref.type === "instruction") {
+                    newBotInstructionKeys.push(ref.dbKey);
+                  } else {
+                    newBotKnowledgeKeys.push(ref.dbKey);
+                  }
+                }
+              }
+            );
+          }
+          const [newBotInstructionsContext, newBotKnowledgeContext] =
+            await Promise.all([
+              fetchReferenceContents(newBotInstructionKeys, dispatch),
+              fetchReferenceContents(newBotKnowledgeKeys, dispatch),
+            ]);
+
+          // 融合继承的上下文和新 Agent 的上下文
+          const finalContext = {
+            botInstructionsContext: [newBotInstructionsContext]
+              .filter(Boolean)
+              .join("\n\n"),
+            botKnowledgeContext: [newBotKnowledgeContext]
+              .filter(Boolean)
+              .join("\n\n"),
+          };
+
+          // 根据新 Agent 的配置和融合后的上下文生成请求体
+          const bodyData = generateRequestBody(
+            getState(),
+            newCybotConfig,
+            finalContext
+          );
+
+          const api = getApiEndpoint(newCybotConfig);
+          const token = selectCurrentToken(getState());
+          const currentServer = selectCurrentServer(getState());
+
+          const response = await performFetchRequest({
+            cybotConfig: newCybotConfig,
+            api,
+            bodyData,
+            currentServer,
+            signal,
+            token,
+          });
+
+          if (!response.ok || !response.body) {
+            const errorMsg = await parseApiError(response);
+            throw new Error(`Agent [${agentKey}] request failed: ${errorMsg}`);
+          }
+
+          console.log(`Switching stream to agent: ${agentKey}`);
+
+          // Thunk 的成功返回值
+          return {
+            newReader: response.body.getReader(),
+            newCybotConfig: newCybotConfig,
+          };
+        } catch (error: any) {
+          console.error(
+            `Failed to initiate agent stream for [${agentKey}]:`,
+            error
+          );
           return rejectWithValue(error.message);
         }
       },
@@ -239,5 +336,6 @@ export const cybotSlice = createSliceWithThunks({
 });
 
 // 导出 actions 和 reducer
-export const { runCybotId, streamCybotId } = cybotSlice.actions;
+export const { runCybotId, streamCybotId, initiateAgentStream } =
+  cybotSlice.actions;
 export default cybotSlice.reducer;
