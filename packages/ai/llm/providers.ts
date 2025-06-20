@@ -10,8 +10,6 @@ import { sambanovaModels } from "integrations/sambanova/models";
 import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
 
-import { sendClaudeRequest } from "ai/chat/sendClaudeRequest";
-import { sendCommonChatRequest } from "ai/chat/sendCommonRequest";
 import type { Model } from "./types";
 import { BotConfig } from "app/types";
 
@@ -64,23 +62,10 @@ const API_ENDPOINTS: Record<string, string> = {
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
 };
 
-// 3. 请求处理器，默认 sendCommon，anthropic 用 sendClaude
-const DEFAULT_HANDLER = sendCommonChatRequest;
-export const requestHandlers: Record<
-  string,
-  typeof DEFAULT_HANDLER | typeof sendClaudeRequest
-> = {
-  custom: DEFAULT_HANDLER,
-  anthropic: sendClaudeRequest,
-  ...Object.fromEntries(
-    Object.keys(API_ENDPOINTS).map((p) => [p, DEFAULT_HANDLER])
-  ),
-};
-
 // 自动推断 Provider 类型 & 列表
-export const availableProviderOptions = Object.keys(MODEL_MAP).filter(
-  (provider) => provider !== "anthropic"
-) as Array<keyof typeof MODEL_MAP>;
+export const availableProviderOptions = Object.keys(MODEL_MAP) as Array<
+  keyof typeof MODEL_MAP
+>;
 export type Provider = (typeof availableProviderOptions)[number];
 
 /** 获取单个模型配置 */
