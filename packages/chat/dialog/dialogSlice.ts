@@ -53,6 +53,17 @@ export interface CreatePageFromSlatePayload {
   type: "excel" | "docx" | "pdf" | "txt";
 }
 
+/**
+ * @interface PlanState
+ * @description 定义了与对话计划相关的状态
+ */
+export interface PlanState {
+  maxRounds: number;
+  maxCost: number;
+  planDetails: string;
+  currentProgress: number; // 例如，当前进行的轮次
+}
+
 interface DialogState {
   currentDialogKey: string | null;
   currentDialogTokens: {
@@ -62,6 +73,7 @@ interface DialogState {
   isUpdatingMode: boolean;
   pendingFiles: PendingFile[];
   activeControllers: Record<string, AbortController>;
+  plan: PlanState | null; // 新增：计划相关的状态
 }
 
 const initialState: DialogState = {
@@ -73,12 +85,31 @@ const initialState: DialogState = {
   isUpdatingMode: false,
   pendingFiles: [],
   activeControllers: {},
+  plan: null, // 新增：初始化计划状态
 };
 
 const DialogSlice = createSliceWithThunks({
   name: "dialog",
   initialState,
   reducers: (create) => ({
+    // ... 其他 reducers
+
+    // --- 新增：计划相关的 Reducers ---
+    setPlan: create.reducer((state, action: PayloadAction<PlanState>) => {
+      state.plan = action.payload;
+    }),
+    updatePlanProgress: create.reducer(
+      (state, action: PayloadAction<number>) => {
+        if (state.plan) {
+          state.plan.currentProgress = action.payload;
+        }
+      }
+    ),
+    clearPlan: create.reducer((state) => {
+      state.plan = null;
+    }),
+    // --------------------------------
+
     createPageAndAddReference: create.asyncThunk(
       async (
         payload: CreatePageFromSlatePayload,
@@ -159,6 +190,7 @@ const DialogSlice = createSliceWithThunks({
         pending: (state, action) => {
           state.currentDialogKey = action.meta.arg;
           state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
+          state.plan = null; // 初始化对话时重置计划
         },
       }
     ),
@@ -178,6 +210,7 @@ const DialogSlice = createSliceWithThunks({
         dispatch(deleteDialogMsgs(dialogId));
         dispatch(resetCurrentDialogTokens());
         dispatch(DialogSlice.actions.clearPendingAttachments());
+        dispatch(DialogSlice.actions.clearPlan()); // 删除对话时也清除计划
       },
       {
         fulfilled: (state, action) => {
@@ -189,6 +222,7 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogKey = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
       state.pendingFiles = [];
+      state.plan = null; // 更新：清除对话状态时也清除计划
     }),
     createDialog: create.asyncThunk(createDialogAction),
     updateDialogTitle: create.asyncThunk(updateDialogTitleAction),
@@ -380,6 +414,10 @@ export const {
   abortAllMessages,
   clearActiveControllers,
   streamAllCybotsInParallel,
+  // 新增导出的 actions
+  setPlan,
+  updatePlanProgress,
+  clearPlan,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;
@@ -405,3 +443,12 @@ export const selectPendingFilesByType = (
 export const selectActiveControllers = (
   state: RootState
 ): Record<string, AbortController> => state.dialog.activeControllers;
+
+// --- 新增：计划相关的 Selectors ---
+export const selectPlan = (state: RootState): PlanState | null =>
+  state.dialog.plan;
+export const selectCurrentProgress = (state: RootState): number | undefined =>
+  state.dialog.plan?.currentProgress;
+export const selectPlanDetails = (state: RootState): string | undefined =>
+  state.dialog.plan?.planDetails;
+// ------------------------------------
