@@ -10,7 +10,7 @@ import { ulid } from "ulid";
 import {
   createCybotSchema,
   FormData,
-} from "../../bot/web/common/createCybotSchema";
+} from "../../llm/web/common/createCybotSchema";
 
 export const useCreateCybotValidation = () => {
   const dispatch = useAppDispatch();

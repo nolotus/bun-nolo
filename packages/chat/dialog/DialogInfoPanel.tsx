@@ -19,7 +19,7 @@ import {
   XIcon,
   InfoIcon,
 } from "@primer/octicons-react";
-import BotNameChip from "ai/bot/web/BotNameChip";
+import BotNameChip from "ai/llm/web/BotNameChip";
 import { toast } from "react-hot-toast";
 import AddCybotDialog from "./AddCybotDialog";
 
