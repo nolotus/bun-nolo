@@ -9,7 +9,7 @@ import {
   EntityState,
 } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
-import { remove, write, read } from "database/dbSlice";
+import { remove, write } from "database/dbSlice";
 import { deleteDialogMsgsAction } from "./actions/deleteDialogMsgsAction";
 import type { Message } from "./types";
 import { selectCurrentServer } from "setting/settingSlice";
@@ -22,11 +22,34 @@ import { createDialogMessageKeyAndId } from "database/keys";
 import { extractCustomId } from "core/prefix";
 import { DialogConfig } from "../dialog/types";
 import { toolExecutors } from "ai/tools/toolRegistry";
+import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
 const OLDER_LOAD_LIMIT = 30;
 const isValidMessage = (msg: any): msg is Message =>
   msg && typeof msg === "object" && typeof msg.id === "string";
+
+// 从 contentBuffer 中分离 <think> 标签里内容与普通内容
+function separateThinkContent(contentBuffer: any[]) {
+  let thinkContent = "";
+  let normalContent = "";
+  const combinedText = contentBuffer
+    .filter((c) => c.type === "text" && c.text)
+    .map((c) => c.text)
+    .join("");
+  const thinkMatches = combinedText.match(/<think\b[^>]*>(.*?)<\/think>/gis);
+  if (thinkMatches) {
+    thinkContent = thinkMatches
+      .map((m) => m.replace(/<think\b[^>]*>|<\/think>/gi, ""))
+      .join("\n\n");
+    normalContent = combinedText
+      .replace(/<think\b[^>]*>.*?<\/think>/gis, "")
+      .trim();
+  } else {
+    normalContent = combinedText;
+  }
+  return { thinkContent, normalContent };
+}
 
 const messagesAdapter = createEntityAdapter<Message>({
   selectId: (message) => message.id,
@@ -153,6 +176,17 @@ interface ProcessToolDataPayload {
   messageId: string;
 }
 
+interface FinalizeStreamPayload {
+  finalContentBuffer: any[];
+  totalUsage: any;
+  msgKey: string;
+  cybotConfig: any;
+  dialogId: string;
+  dialogKey: string;
+  messageId: string;
+  reasoningBuffer: string;
+}
+
 export const messageSlice = createSliceWithThunks({
   name: "message",
   initialState,
@@ -163,16 +197,18 @@ export const messageSlice = createSliceWithThunks({
         isStreaming: false,
       });
     }),
-    messageStreaming: create.reducer<Message>((state, action) => {
-      messagesAdapter.upsertOne(state.msgs, {
-        isStreaming: true,
-        content: "",
-        thinkContent: "",
-        ...action.payload,
-      });
-      state.firstStreamProcessed = true;
-      state.lastStreamTimestamp = Date.now();
-    }),
+    messageStreaming: create.reducer<Partial<Message> & { id: string }>(
+      (state, action) => {
+        messagesAdapter.upsertOne(state.msgs, {
+          isStreaming: true,
+          content: "",
+          thinkContent: "",
+          ...action.payload,
+        });
+        state.firstStreamProcessed = true;
+        state.lastStreamTimestamp = Date.now();
+      }
+    ),
     resetMsgs: create.reducer((state) => {
       messagesAdapter.removeAll(state.msgs);
       Object.assign(state, initialState);
@@ -416,15 +452,56 @@ export const messageSlice = createSliceWithThunks({
     ),
 
     messageStreamEnd: create.asyncThunk(
-      async (msg: Message, { dispatch }) => {
-        const { controller, ...messageToWrite } = msg;
+      async (payload: FinalizeStreamPayload, { dispatch }) => {
+        const {
+          finalContentBuffer,
+          totalUsage,
+          msgKey,
+          cybotConfig,
+          dialogId,
+          dialogKey,
+          messageId,
+          reasoningBuffer,
+        } = payload;
+
+        const { thinkContent: tagThink, normalContent } =
+          separateThinkContent(finalContentBuffer);
+
+        const thinkContent = tagThink + reasoningBuffer;
+
+        const finalUsageData =
+          totalUsage && totalUsage.completion_tokens != null
+            ? { completion_tokens: totalUsage.completion_tokens }
+            : undefined;
+
+        const finalMessage: Message = {
+          id: messageId,
+          dbKey: msgKey,
+          content: normalContent || "",
+          thinkContent,
+          role: "assistant",
+          cybotKey: cybotConfig.dbKey,
+          usage: finalUsageData,
+          isStreaming: false,
+        };
+
+        const { controller, ...messageToWrite } = finalMessage;
         await dispatch(
           write({
             data: { ...messageToWrite, type: DataType.MSG },
-            customKey: msg.dbKey,
+            customKey: msgKey,
           })
         );
-        return { id: msg.id };
+
+        if (totalUsage) {
+          dispatch(updateTokens({ dialogId, usage: totalUsage, cybotConfig }));
+        }
+
+        if ((normalContent || "").trim() !== "") {
+          dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
+        }
+
+        return { id: messageId };
       },
       {
         fulfilled: (state, action) => {
@@ -435,11 +512,17 @@ export const messageSlice = createSliceWithThunks({
         },
         rejected: (state, action) => {
           console.error("messageStreamEnd failed:", action.error);
-          const messageId = action.meta?.arg?.id;
+          const messageId = (action.meta?.arg as FinalizeStreamPayload)
+            ?.messageId;
           if (messageId) {
             messagesAdapter.updateOne(state.msgs, {
               id: messageId,
-              changes: { isStreaming: false },
+              changes: {
+                isStreaming: false,
+                content:
+                  (state.msgs.entities[messageId]?.content || "") +
+                  "\n[保存失败]",
+              },
             });
           }
         },
