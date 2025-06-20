@@ -2,8 +2,6 @@
 
 import { prepareTools } from "ai/tools/prepareTools";
 import {
-  updateDialogTitle,
-  updateTokens,
   addActiveController,
   removeActiveController,
 } from "chat/dialog/dialogSlice";
@@ -14,14 +12,15 @@ import {
 } from "chat/messages/messageSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
-import { performFetchRequest } from "./fetchUtils";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { selectCurrentToken } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
+import { read } from "database/dbSlice";
+
+import { performFetchRequest } from "./fetchUtils";
 import { parseMultilineSSE } from "./parseMultilineSSE";
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
-import { read } from "database/dbSlice";
 import { generateRequestBody } from "../cybot/generateRequestBody";
 import { accumulateToolCallChunks } from "./accumulateToolCallChunks";
 
@@ -43,68 +42,6 @@ function appendTextChunk(
     updatedContentBuffer.push({ type: "text", text: textChunk });
   }
   return updatedContentBuffer;
-}
-
-// 从 contentBuffer 中分离 <think> 标签里内容与普通内容
-function separateThinkContent(contentBuffer: any[]) {
-  let thinkContent = "";
-  let normalContent = "";
-  const combinedText = contentBuffer
-    .filter((c) => c.type === "text" && c.text)
-    .map((c) => c.text)
-    .join("");
-  const thinkMatches = combinedText.match(/<think\b[^>]*>(.*?)<\/think>/gis);
-  if (thinkMatches) {
-    thinkContent = thinkMatches
-      .map((m) => m.replace(/<think\b[^>]*>|<\/think>/gi, ""))
-      .join("\n\n");
-    normalContent = combinedText
-      .replace(/<think\b[^>]*>.*?<\/think>/gis, "")
-      .trim();
-  } else {
-    normalContent = combinedText;
-  }
-  return { thinkContent, normalContent };
-}
-
-// 流结束时的统一收尾
-function finalizeStream(
-  finalContentBuffer: any[],
-  totalUsage: any,
-  msgKey: string,
-  cybotConfig: any,
-  dialogId: string,
-  dialogKey: string,
-  thunkApi: any,
-  messageId: string,
-  reasoningBuffer: string
-) {
-  const { dispatch } = thunkApi;
-  const { thinkContent: tagThink, normalContent } =
-    separateThinkContent(finalContentBuffer);
-  const thinkContent = tagThink + reasoningBuffer;
-  const finalUsageData =
-    totalUsage && totalUsage.completion_tokens != null
-      ? { completion_tokens: totalUsage.completion_tokens }
-      : undefined;
-  dispatch(
-    messageStreamEnd({
-      id: messageId,
-      dbKey: msgKey,
-      content: normalContent || "",
-      thinkContent,
-      role: "assistant",
-      cybotKey: cybotConfig.dbKey,
-      usage: finalUsageData,
-      isStreaming: false,
-    })
-  );
-  if (totalUsage) {
-    dispatch(updateTokens({ dialogId, usage: totalUsage, cybotConfig }));
-  }
-  if ((normalContent || "").trim() !== "") {
-    dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
-  }
 }
 
 // 辅助函数：用于启动 Agent 流并返回新的 Reader
@@ -207,6 +144,21 @@ export const sendCommonChatRequest = async ({
   let reasoningBuffer: string = "";
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
 
+  const finalize = () => {
+    dispatch(
+      messageStreamEnd({
+        finalContentBuffer: contentBuffer,
+        totalUsage,
+        msgKey,
+        cybotConfig,
+        dialogId,
+        dialogKey,
+        messageId,
+        reasoningBuffer,
+      })
+    );
+  };
+
   try {
     if (!parentMessageId) {
       dispatch(
@@ -240,17 +192,7 @@ export const sendCommonChatRequest = async ({
     }
 
     if (!reader) {
-      finalizeStream(
-        contentBuffer,
-        totalUsage,
-        msgKey,
-        cybotConfig,
-        dialogId,
-        dialogKey,
-        thunkApi,
-        messageId,
-        reasoningBuffer
-      );
+      finalize();
       return;
     }
 
@@ -300,7 +242,6 @@ export const sendCommonChatRequest = async ({
             reasoningBuffer += delta.reasoning_content;
           }
 
-          // ✨ REFACTORED PART: Use the new helper function
           if (delta.tool_calls && Array.isArray(delta.tool_calls)) {
             accumulatedToolCalls = accumulateToolCallChunks(
               accumulatedToolCalls,
@@ -311,15 +252,13 @@ export const sendCommonChatRequest = async ({
           const contentChunk = delta.content || "";
           if (contentChunk) {
             contentBuffer = appendTextChunk(contentBuffer, contentChunk);
-            const { thinkContent: tagThink, normalContent } =
-              separateThinkContent(contentBuffer);
-            const thinkContent = tagThink + reasoningBuffer;
+            // 只在流式输出时dispatch，不依赖 separateThinkContent，最终结果在 finalize 中处理
             dispatch(
               messageStreaming({
                 id: messageId,
                 dbKey: msgKey,
-                content: normalContent,
-                thinkContent,
+                content: contentBuffer,
+                thinkContent: reasoningBuffer, // 传递累积的 reasoning
                 role: "assistant",
                 cybotKey: cybotConfig.dbKey,
               })
@@ -378,17 +317,7 @@ export const sendCommonChatRequest = async ({
       }
     }
 
-    finalizeStream(
-      contentBuffer,
-      totalUsage,
-      msgKey,
-      cybotConfig,
-      dialogId,
-      dialogKey,
-      thunkApi,
-      messageId,
-      reasoningBuffer
-    );
+    finalize();
   } catch (error: any) {
     let errorText = "";
     if (error.name === "AbortError") {
@@ -397,17 +326,7 @@ export const sendCommonChatRequest = async ({
       errorText = `\n[错误: ${error.message || String(error)}]`;
     }
     contentBuffer = appendTextChunk(contentBuffer, errorText);
-    finalizeStream(
-      contentBuffer,
-      totalUsage,
-      msgKey,
-      cybotConfig,
-      dialogId,
-      dialogKey,
-      thunkApi,
-      messageId,
-      reasoningBuffer
-    );
+    finalize();
   } finally {
     dispatch(removeActiveController(messageId));
     try {
