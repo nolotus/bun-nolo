@@ -1,6 +1,6 @@
 import { generatePrompt } from "ai/prompt/generatePrompt";
 import { pipe, flatten, filter, reverse, map } from "rambda";
-import { NoloRootState } from "app/store";
+import { RootState } from "app/store";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 
 interface Message {
@@ -84,7 +84,7 @@ const buildRequestBody = (
 };
 
 export const generateAnthropicRequestBody = (
-  state: NoloRootState,
+  state: RootState,
   userInput: string | { type: string; data: string }[],
   cybotConfig: CybotConfig,
   context: any
