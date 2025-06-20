@@ -1,3 +1,5 @@
+// ai/chat/sendCommonChatRequest.ts (完整替换)
+
 import { prepareTools } from "ai/tools/prepareTools";
 import {
   updateDialogTitle,
@@ -19,6 +21,9 @@ import { extractCustomId } from "core/prefix";
 import { parseMultilineSSE } from "./parseMultilineSSE";
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
+import { read } from "database/dbSlice";
+import { generateRequestBody } from "../cybot/generateRequestBody";
+import { accumulateToolCallChunks } from "./accumulateToolCallChunks";
 
 // 向已有内容缓冲追加新的文本片段
 function appendTextChunk(
@@ -102,6 +107,58 @@ function finalizeStream(
   }
 }
 
+// 辅助函数：用于启动 Agent 流并返回新的 Reader
+async function initiateAgentStream(
+  toolCall: any,
+  thunkApi: any
+): Promise<{
+  newReader: ReadableStreamDefaultReader<Uint8Array>;
+  newCybotConfig: any;
+} | null> {
+  const { getState, dispatch, signal } = thunkApi;
+  const args = JSON.parse(toolCall.function.arguments);
+  const { agentKey, userInput } = args;
+
+  if (!agentKey) {
+    console.error("Agent Handoff failed: missing agentKey");
+    return null;
+  }
+
+  try {
+    const newCybotConfig = await dispatch(read(agentKey)).unwrap();
+    const bodyData = generateRequestBody(getState(), newCybotConfig, {
+      currentUserContext: userInput,
+    });
+
+    const api = getApiEndpoint(newCybotConfig);
+    const token = selectCurrentToken(getState());
+    const currentServer = selectCurrentServer(getState());
+
+    const response = await performFetchRequest({
+      cybotConfig: newCybotConfig,
+      api,
+      bodyData,
+      currentServer,
+      signal,
+      token,
+    });
+
+    if (!response.ok || !response.body) {
+      const errorMsg = await parseApiError(response);
+      throw new Error(`Agent [${agentKey}] request failed: ${errorMsg}`);
+    }
+
+    console.log(`Switching stream to agent: ${agentKey}`);
+    return {
+      newReader: response.body.getReader(),
+      newCybotConfig: newCybotConfig,
+    };
+  } catch (error: any) {
+    console.error(`Failed to initiate agent stream for [${agentKey}]:`, error);
+    return null;
+  }
+}
+
 // 主流程：发送常规聊天请求
 export const sendCommonChatRequest = async ({
   bodyData,
@@ -116,11 +173,11 @@ export const sendCommonChatRequest = async ({
   dialogKey: string;
   parentMessageId?: string;
 }) => {
-  const { dispatch, getState } = thunkApi;
+  const { dispatch, getState, signal: thunkSignal } = thunkApi;
   const dialogId = extractCustomId(dialogKey);
   const controller = new AbortController();
+  thunkSignal.addEventListener("abort", () => controller.abort());
   const signal = controller.signal;
-  const currentServer = selectCurrentServer(getState());
 
   let messageId: string;
   let msgKey: string;
@@ -170,7 +227,7 @@ export const sendCommonChatRequest = async ({
       cybotConfig,
       api,
       bodyData,
-      currentServer,
+      currentServer: selectCurrentServer(getState()),
       signal,
       token,
     });
@@ -178,15 +235,11 @@ export const sendCommonChatRequest = async ({
     if (!response.ok) {
       const errorMessage = await parseApiError(response);
       contentBuffer = appendTextChunk(contentBuffer, `[错误: ${errorMessage}]`);
-      dispatch(
-        messageStreaming({
-          id: messageId,
-          dbKey: msgKey,
-          content: contentBuffer,
-          role: "assistant",
-          cybotKey: cybotConfig.dbKey,
-        })
-      );
+    } else {
+      reader = response.body?.getReader();
+    }
+
+    if (!reader) {
       finalizeStream(
         contentBuffer,
         totalUsage,
@@ -201,13 +254,7 @@ export const sendCommonChatRequest = async ({
       return;
     }
 
-    reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error("无法获取响应流读取器");
-    }
     const decoder = new TextDecoder();
-
-    let agentTookOverInLoop = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -222,21 +269,7 @@ export const sendCommonChatRequest = async ({
             })
           ).unwrap();
           contentBuffer = result.finalContentBuffer;
-          if (result.agentTookOver) {
-            return;
-          }
         }
-        finalizeStream(
-          contentBuffer,
-          totalUsage,
-          msgKey,
-          cybotConfig,
-          dialogId,
-          dialogKey,
-          thunkApi,
-          messageId,
-          reasoningBuffer
-        );
         break;
       }
 
@@ -245,9 +278,7 @@ export const sendCommonChatRequest = async ({
 
       for (const parsedData of parsedResults) {
         const dataList = Array.isArray(parsedData) ? parsedData : [parsedData];
-
         for (const data of dataList) {
-          // ✨ 重构点：使用新的辅助函数处理 usage 数据的累积
           if (data.usage) {
             totalUsage = updateTotalUsage(totalUsage, data.usage);
           }
@@ -258,74 +289,23 @@ export const sendCommonChatRequest = async ({
               contentBuffer,
               `\n[API Error] ${errorMsg}`
             );
-            finalizeStream(
-              contentBuffer,
-              totalUsage,
-              msgKey,
-              cybotConfig,
-              dialogId,
-              dialogKey,
-              thunkApi,
-              messageId,
-              reasoningBuffer
-            );
             await reader.cancel();
-            return;
+            break;
           }
 
           const choice = data.choices?.[0];
           if (!choice) continue;
           const delta = choice.delta || {};
-
           if (delta.reasoning_content) {
             reasoningBuffer += delta.reasoning_content;
           }
 
+          // ✨ REFACTORED PART: Use the new helper function
           if (delta.tool_calls && Array.isArray(delta.tool_calls)) {
-            for (const toolCallChunk of delta.tool_calls) {
-              const index = toolCallChunk.index;
-              const id = toolCallChunk.id;
-              const type = toolCallChunk.type;
-              const functionCall = toolCallChunk.function;
-
-              if (index != null) {
-                while (accumulatedToolCalls.length <= index) {
-                  accumulatedToolCalls.push({});
-                }
-                const currentTool = accumulatedToolCalls[index];
-                if (id && !currentTool.id) currentTool.id = id;
-                if (type && !currentTool.type) currentTool.type = type;
-                if (functionCall) {
-                  if (!currentTool.function)
-                    currentTool.function = { name: "", arguments: "" };
-                  if (functionCall.name)
-                    currentTool.function.name += functionCall.name;
-                  if (functionCall.arguments)
-                    currentTool.function.arguments =
-                      (currentTool.function.arguments || "") +
-                      functionCall.arguments;
-                }
-              } else if (
-                id != null &&
-                type === "function" &&
-                functionCall?.name &&
-                functionCall.arguments != null
-              ) {
-                const existingIndex = id
-                  ? accumulatedToolCalls.findIndex((c) => c.id === id)
-                  : -1;
-                if (existingIndex === -1 || !id) {
-                  accumulatedToolCalls.push({
-                    id,
-                    type,
-                    function: {
-                      name: functionCall.name,
-                      arguments: functionCall.arguments,
-                    },
-                  });
-                }
-              }
-            }
+            accumulatedToolCalls = accumulateToolCallChunks(
+              accumulatedToolCalls,
+              delta.tool_calls
+            );
           }
 
           const contentChunk = delta.content || "";
@@ -349,73 +329,74 @@ export const sendCommonChatRequest = async ({
           const finishReason = choice.finish_reason;
           if (finishReason) {
             if (finishReason === "tool_calls") {
-              const result = await dispatch(
-                handleToolCalls({
-                  accumulatedCalls: accumulatedToolCalls,
-                  currentContentBuffer: contentBuffer,
-                  cybotConfig,
-                  messageId,
-                })
-              ).unwrap();
+              const streamingAgentCall = accumulatedToolCalls.find(
+                (call) => call.function?.name === "run_streaming_agent"
+              );
 
-              contentBuffer = result.finalContentBuffer;
-              accumulatedToolCalls = [];
+              if (streamingAgentCall) {
+                const handoffResult = await initiateAgentStream(
+                  streamingAgentCall,
+                  { ...thunkApi, signal }
+                );
 
-              if (result.agentTookOver) {
-                agentTookOverInLoop = true;
-                break;
+                if (handoffResult) {
+                  await reader.cancel();
+                  reader = handoffResult.newReader;
+                  cybotConfig = handoffResult.newCybotConfig;
+                  accumulatedToolCalls = [];
+                  contentBuffer = appendTextChunk(contentBuffer, `\n\n`);
+                  continue;
+                } else {
+                  contentBuffer = appendTextChunk(
+                    contentBuffer,
+                    `\n[Agent 启动失败]`
+                  );
+                  await reader.cancel();
+                }
+              } else {
+                const result = await dispatch(
+                  handleToolCalls({
+                    accumulatedCalls: accumulatedToolCalls,
+                    currentContentBuffer: contentBuffer,
+                    cybotConfig,
+                    messageId,
+                  })
+                ).unwrap();
+                contentBuffer = result.finalContentBuffer;
+                accumulatedToolCalls = [];
               }
-            } else if (finishReason === "stop") {
-              // Standard stop, do nothing special
             } else {
-              contentBuffer = appendTextChunk(
-                contentBuffer,
-                `\n[流结束原因: ${finishReason}]`
-              );
-              dispatch(
-                messageStreaming({
-                  id: messageId,
-                  dbKey: msgKey,
-                  content: contentBuffer,
-                  role: "assistant",
-                  cybotKey: cybotConfig.dbKey,
-                })
-              );
+              if (finishReason !== "stop") {
+                contentBuffer = appendTextChunk(
+                  contentBuffer,
+                  `\n[流结束原因: ${finishReason}]`
+                );
+              }
             }
           }
         }
       }
-
-      if (agentTookOverInLoop) {
-        break;
-      }
     }
 
-    if (agentTookOverInLoop) {
-      return;
-    }
+    finalizeStream(
+      contentBuffer,
+      totalUsage,
+      msgKey,
+      cybotConfig,
+      dialogId,
+      dialogKey,
+      thunkApi,
+      messageId,
+      reasoningBuffer
+    );
   } catch (error: any) {
     let errorText = "";
     if (error.name === "AbortError") {
       errorText = "\n[用户中断]";
-    } else if (
-      error.message.includes("网络请求失败") ||
-      error.message.includes("NetworkError")
-    ) {
-      errorText = "\n[错误: 网络连接失败，请检查您的网络设置]";
     } else {
       errorText = `\n[错误: ${error.message || String(error)}]`;
     }
     contentBuffer = appendTextChunk(contentBuffer, errorText);
-    dispatch(
-      messageStreaming({
-        id: messageId,
-        dbKey: msgKey,
-        content: contentBuffer,
-        role: "assistant",
-        cybotKey: cybotConfig.dbKey,
-      })
-    );
     finalizeStream(
       contentBuffer,
       totalUsage,

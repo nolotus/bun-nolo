@@ -1,3 +1,5 @@
+// chat/messages/messageSlice.ts (完整、可直接使用的版本)
+
 import { RootState } from "app/store";
 import {
   createSelector,
@@ -5,7 +7,6 @@ import {
   buildCreateSlice,
   createEntityAdapter,
   EntityState,
-  PayloadAction,
 } from "@reduxjs/toolkit";
 import { DataType } from "create/types";
 import { remove, write, read } from "database/dbSlice";
@@ -74,16 +75,15 @@ const rejectedHandler =
     console.error(`${action.type} failed:`, action.error);
   };
 
-// 辅助函数: 内部处理累积的工具调用
+// 辅助函数: 内部处理累积的工具调用（仅限非流式工具）
 async function handleAccumulatedToolCallsInternal(
   accumulatedCalls: any[],
   currentContentBuffer: any[],
   thunkApi: any,
   cybotConfig: any,
   messageId: string
-): Promise<{ finalContentBuffer: any[]; agentTookOver: boolean }> {
+): Promise<{ finalContentBuffer: any[] }> {
   let updatedContentBuffer = [...currentContentBuffer];
-  let agentHasTakenOver = false;
   const { dispatch } = thunkApi;
 
   if (accumulatedCalls.length > 0) {
@@ -96,21 +96,15 @@ async function handleAccumulatedToolCallsInternal(
         continue;
       }
       try {
-        // ✨ 修改点: 调用方式从直接调用函数变为 dispatch thunk
         const result = await dispatch(
           messageSlice.actions.processToolData({
             toolCall,
             cybotConfig,
             messageId,
           })
-        ).unwrap(); // .unwrap() 会在 thunk 成功时返回 payload，失败时抛出错误
+        ).unwrap();
 
-        const { content: toolResult, agentTookOver } = result;
-
-        if (agentTookOver) {
-          agentHasTakenOver = true;
-          break;
-        }
+        const toolResult = result.content;
 
         if (toolResult) {
           updatedContentBuffer = [...updatedContentBuffer, toolResult];
@@ -124,7 +118,6 @@ async function handleAccumulatedToolCallsInternal(
           );
         }
       } catch (toolError: any) {
-        // .unwrap() 抛出的错误会被这里捕获
         const errorResult = {
           type: "text",
           text: `\n[Tool 执行异常: ${toolError.message}]`,
@@ -143,7 +136,6 @@ async function handleAccumulatedToolCallsInternal(
   }
   return {
     finalContentBuffer: updatedContentBuffer,
-    agentTookOver: agentHasTakenOver,
   };
 }
 
@@ -331,10 +323,10 @@ export const messageSlice = createSliceWithThunks({
       }
     ),
 
-    // ✨ 新增: 将 processToolData 实现为 asyncThunk
+    // Thunk for processing a single, non-streaming tool call
     processToolData: create.asyncThunk(
       async (args: ProcessToolDataPayload, thunkApi) => {
-        const { toolCall, cybotConfig, messageId } = args;
+        const { toolCall } = args;
 
         const func = toolCall.function;
         if (!func || !func.name) {
@@ -365,23 +357,9 @@ export const messageSlice = createSliceWithThunks({
             return {
               content: {
                 type: "text",
-                text: `[Tool Error] 未知工具: ${toolName}`,
+                text: `\n[Tool Error] 未知工具: ${toolName}\n`,
               },
             };
-          }
-
-          if (toolName === "run_streaming_agent") {
-            try {
-              await handler(toolArgs, thunkApi, { parentMessageId: messageId });
-              return { agentTookOver: true };
-            } catch (error: any) {
-              return {
-                content: {
-                  type: "text",
-                  text: `[Tool Error] 启动 Agent 失败: ${error.message}`,
-                },
-              };
-            }
           }
 
           const result = await handler(toolArgs, thunkApi);
@@ -393,27 +371,29 @@ export const messageSlice = createSliceWithThunks({
                 .replace(/^./, (c) => c.toUpperCase())} 已成功执行：${
                 result.title || result.name || "操作完成"
               } (ID: ${result.id || "N/A"})`;
-            return { content: { type: "text", text } };
+            return {
+              content: { type: "text", text: `\n[工具结果: ${text}]\n` },
+            };
           } else {
             return {
               content: {
                 type: "text",
-                text: `[Tool Error] ${toolName} 操作未返回预期结果。`,
+                text: `\n[Tool Error] ${toolName} 操作未返回预期结果。\n`,
               },
             };
           }
         } catch (e: any) {
-          // 通过 rejectWithValue 将错误信息传递出去，以便 .unwrap() 捕获
           return thunkApi.rejectWithValue({
             content: {
               type: "text",
-              text: `[Tool Error] 处理 ${toolName} 时发生内部错误: ${e.message}`,
+              text: `\n[Tool Error] 处理 ${toolName} 时发生内部错误: ${e.message}\n`,
             },
           });
         }
       }
     ),
 
+    // Thunk for handling a batch of tool calls after a stream ends with `finish_reason: "tool_calls"`
     handleToolCalls: create.asyncThunk(
       async (args: HandleToolCallsPayload, thunkApi) => {
         const {
@@ -537,7 +517,7 @@ export const {
   deleteMessage,
   deleteDialogMsgs,
   handleToolCalls,
-  processToolData, // ✨ 导出新的 action
+  processToolData,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;
