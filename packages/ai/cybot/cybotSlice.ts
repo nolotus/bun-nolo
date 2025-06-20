@@ -10,7 +10,6 @@ import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "../chat/fetchUtils";
 import { generateRequestBody } from "./generateRequestBody";
 import { fetchReferenceContents } from "ai/context/buildReferenceContext";
-import { requestHandlers } from "ai/llm/providers";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { contextCybotId } from "core/init";
@@ -18,7 +17,7 @@ import { formatDataForApi } from "./formatDataForApi";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import { parseApiError } from "ai/chat/parseApiError";
-
+import { sendCommonChatRequest } from "../chat/sendCommonRequest";
 // 创建带有 Thunk 的 Slice
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -211,20 +210,12 @@ export const cybotSlice = createSliceWithThunks({
           };
 
           // --- 4. 构建请求体 ---
-          const providerName = cybotConfig.provider.toLowerCase();
           const bodyData = generateRequestBody(state, cybotConfig, contexts);
 
-          // --- 5. 执行请求 ---
-          const handler = requestHandlers[providerName];
-          if (!handler) {
-            throw new Error(
-              `No request handler found for provider: ${providerName}`
-            );
-          }
           const dialogConfig = selectCurrentDialogConfig(state);
           const dialogKey = dialogConfig?.dbKey;
 
-          await handler({
+          await sendCommonChatRequest({
             bodyData,
             cybotConfig,
             thunkApi,
