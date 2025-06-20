@@ -9,14 +9,12 @@ import type { RootState } from "app/store";
 import { nanoid } from "nanoid";
 import { createPage } from "render/page/pageSlice";
 import { Descendant } from "slate";
-
-// --- 其他 Slice 和 Action 的引用 ---
 import {
   deleteDialogMsgs,
-  prepareAndPersistUserMessage, // 从 messageSlice 导入
+  prepareAndPersistUserMessage,
 } from "chat/messages/messageSlice";
 import { extractCustomId } from "core/prefix";
-import { read, selectById, write } from "database/dbSlice";
+import { read, selectById } from "database/dbSlice";
 import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
@@ -29,11 +27,8 @@ import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
 import { updateDialogModeAction } from "./actions/updateDialogModeAction";
 import { streamCybotId } from "ai/cybot/cybotSlice";
-import { requestHandlers } from "ai/llm/providers";
 import { DialogInvocationMode, Dialog } from "./types";
-import { DataType } from "create/types";
 
-// --- 工具和类型定义 ---
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -52,11 +47,10 @@ export interface PendingFile {
   type: "excel" | "docx" | "pdf" | "page" | "txt";
 }
 
-// Thunk 输入类型：只包含纯粹的数据
 export interface CreatePageFromSlatePayload {
   slateData: Descendant[];
   title: string;
-  type: "excel" | "docx" | "pdf" | "txt"; // 用来在UI上显示正确的图标
+  type: "excel" | "docx" | "pdf" | "txt";
 }
 
 interface DialogState {
@@ -81,14 +75,10 @@ const initialState: DialogState = {
   activeControllers: {},
 };
 
-// --- Slice 定义 ---
 const DialogSlice = createSliceWithThunks({
   name: "dialog",
   initialState,
   reducers: (create) => ({
-    // ===================================================================
-    // 核心 Thunk (完全平台无关)
-    // ===================================================================
     createPageAndAddReference: create.asyncThunk(
       async (
         payload: CreatePageFromSlatePayload,
@@ -123,9 +113,6 @@ const DialogSlice = createSliceWithThunks({
       }
     ),
 
-    // ===================================================================
-    // 同步附件管理 Reducers (用于引用现有页面)
-    // ===================================================================
     addPendingFile: create.reducer(
       (state, action: PayloadAction<PendingFile>) => {
         const isAlreadyAdded = state.pendingFiles.some(
@@ -147,9 +134,6 @@ const DialogSlice = createSliceWithThunks({
       state.pendingFiles = [];
     }),
 
-    // ===================================================================
-    // 对话状态管理
-    // ===================================================================
     updateTokens: create.asyncThunk(updateTokensAction, {
       fulfilled: (state, action: PayloadAction<TokenMetrics>) => {
         if (action.payload.input_tokens) {
@@ -222,16 +206,12 @@ const DialogSlice = createSliceWithThunks({
       },
     }),
 
-    // ===================================================================
-    // 发送消息流程编排 Thunks (已重构)
-    // ===================================================================
-
     /**
      * @internal
-     * 新增 Thunk: 并行调用所有指定的 Cybot
-     * - 接收 cybot ID 列表和用户输入
-     * - 使用 Promise.all 并行调度 streamCybotId
-     * - 内部 catch 确保单个 cybot 失败不会中断其他 cybot
+     * 并行调用所有指定的 Cybot。
+     * - 接收 cybot ID 列表和用户输入。
+     * - 使用 Promise.all 并行调度 streamCybotId。
+     * - 内部 catch 确保单个 cybot 失败不会中断其他 cybot。
      */
     streamAllCybotsInParallel: create.asyncThunk(
       async (args: { cybotIds: string[]; userInput: string }, { dispatch }) => {
@@ -252,9 +232,9 @@ const DialogSlice = createSliceWithThunks({
 
     /**
      * @internal
-     * 步骤 2: 根据对话模式编排 Cybot 响应
-     * - 接收对话配置和用户输入
-     * - 根据 PARALLEL, SEQUENTIAL, ORCHESTRATED 或 FIRST 模式调用 Cybot
+     * 根据对话模式编排 Cybot 响应。
+     * - 接收对话配置和用户输入。
+     * - 根据 PARALLEL, SEQUENTIAL 或 FIRST 模式调用 Cybot。
      */
     orchestrateCybotResponse: create.asyncThunk(
       async (args: { dialogConfig: Dialog; userInput: string }, thunkApi) => {
@@ -262,11 +242,9 @@ const DialogSlice = createSliceWithThunks({
         const { dispatch } = thunkApi;
         const mode = dialogConfig?.mode;
         const cybots = dialogConfig?.cybots || [];
-        const dialogKey = dialogConfig.dbKey || dialogConfig.id;
 
         try {
           if (mode === DialogInvocationMode.PARALLEL) {
-            // **改动点**: 调用新的并行处理 thunk
             await dispatch(
               DialogSlice.actions.streamAllCybotsInParallel({
                 cybotIds: cybots,
@@ -276,26 +254,6 @@ const DialogSlice = createSliceWithThunks({
           } else if (mode === DialogInvocationMode.SEQUENTIAL) {
             for (const cybotId of cybots) {
               await dispatch(streamCybotId({ cybotId, userInput })).unwrap();
-            }
-          } else if (mode === DialogInvocationMode.ORCHESTRATED) {
-            console.log(
-              "ORCHESTRATED mode selected, but decision logic is a TODO."
-            );
-            // TODO: 实现编排逻辑，动态选择 Cybots
-            const selectedCybots: string[] = []; // 示例：当前为空
-
-            for (const cybotId of selectedCybots) {
-              const cybotConfig = await dispatch(read(cybotId)).unwrap();
-              const bodyData = {}; // 示例：构建请求体
-              const providerName = cybotConfig.provider.toLowerCase();
-              const handler = requestHandlers[providerName];
-              if (handler) {
-                await handler({ bodyData, cybotConfig, thunkApi, dialogKey });
-              } else {
-                throw new Error(
-                  `Unsupported provider: ${cybotConfig.provider}`
-                );
-              }
             }
           } else {
             // 默认或 FIRST 模式
@@ -311,16 +269,15 @@ const DialogSlice = createSliceWithThunks({
             `Error during cybot invocation in mode '${mode}':`,
             error
           );
-          // 可以在此 re-throw 或 dispatch 一个错误 action
           throw error;
         }
       }
     ),
 
     /**
-     * 公开的 Action: 处理用户发送消息的完整流程
-     * - 这是 UI 组件应该 dispatch 的 action
-     * - 它按顺序编排了消息持久化和 Cybot 响应两个步骤
+     * 公开 Action: 处理用户发送消息的完整流程。
+     * 这是 UI 组件应该 dispatch 的 action。
+     * 它按顺序编排了消息持久化和 Cybot 响应两个步骤。
      */
     handleSendMessage: create.asyncThunk(
       async (args: { userInput: string }, thunkApi) => {
@@ -329,7 +286,6 @@ const DialogSlice = createSliceWithThunks({
         const state = getState() as RootState;
 
         try {
-          // 步骤 1: 从 dialogSlice state 中获取当前对话配置
           const dialogConfig = selectCurrentDialogConfig(state);
           if (!dialogConfig) {
             throw new Error(
@@ -337,13 +293,10 @@ const DialogSlice = createSliceWithThunks({
             );
           }
 
-          // 步骤 2: 调用 messageSlice 的 action 来创建和持久化用户消息
-          // 将 dialogConfig 作为参数传递
           await dispatch(
             prepareAndPersistUserMessage({ userInput, dialogConfig })
           ).unwrap();
 
-          // 步骤 3: 使用获取到的配置和原始用户输入，编排AI响应
           await dispatch(
             DialogSlice.actions.orchestrateCybotResponse({
               dialogConfig,
@@ -357,9 +310,6 @@ const DialogSlice = createSliceWithThunks({
       }
     ),
 
-    // ===================================================================
-    // Abort Controller 管理
-    // ===================================================================
     addActiveController: create.reducer(
       (
         state,
@@ -408,7 +358,6 @@ const DialogSlice = createSliceWithThunks({
   }),
 });
 
-// --- Actions 导出 ---
 export const {
   createPageAndAddReference,
   addPendingFile,
@@ -430,14 +379,11 @@ export const {
   removeActiveController,
   abortAllMessages,
   clearActiveControllers,
-  // **改动点**: 导出新的 action
   streamAllCybotsInParallel,
 } = DialogSlice.actions;
 
-// --- Reducer 导出 ---
 export default DialogSlice.reducer;
 
-// --- Selectors 导出 ---
 export const selectCurrentDialogConfig = (state: RootState) =>
   state.dialog.currentDialogKey
     ? (selectById(state, state.dialog.currentDialogKey) as Dialog | null)
