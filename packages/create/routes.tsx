@@ -1,9 +1,7 @@
 import { CreateRoutePaths } from "./routePaths";
 
-// Web imports
 import BotForm from "ai/llm/web/BotForm";
-
-import CreateCustomCybot from "ai/cybot/web/CreateCustomCybot"; // 假设暂时保留 CreateCustomCybot
+import CreateCustomCybot from "ai/llm/web/CreateCustomCybot";
 import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
 export const createRoutes = [
@@ -15,6 +13,6 @@ export const createRoutes = [
   },
   {
     path: CreateRoutePaths.CREATE_CUSTOM_CYBOT,
-    element: <CreateCustomCybot />, // 暂时保留原组件，可根据需求替换为 CybotForm
+    element: <CreateCustomCybot />,
   },
 ];
