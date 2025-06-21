@@ -5,22 +5,21 @@ import { useCybotValidation } from "../../llm/web/common/useCybotFormValidation"
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
 import { Input } from "web/form/Input";
-import { NumberInput } from "web/form/NumberInput";
 import TextArea from "web/form/Textarea";
-import ToggleSwitch from "web/ui/ToggleSwitch";
 import { PlusIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 import PasswordInput from "web/form/PasswordInput";
 import { TagsInput } from "web/form/TagsInput";
-import ReferencesSelector from "../../llm/web/ReferencesSelector";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
+import ToggleSwitch from "web/ui/ToggleSwitch";
+import PublishSettingsTab from "./PublishSettingsTab";
+import ReferencesSelector from "./ReferencesSelector"; // 确保路径正确
 
 const CreateCustomCybot: React.FC = () => {
   const { t } = useTranslation("ai");
   const theme = useTheme();
 
-  // 使用新的 useCybotValidation 钩子（无初始值表示创建模式）
   const {
     form: {
       register,
@@ -30,29 +29,35 @@ const CreateCustomCybot: React.FC = () => {
       control,
       formState: { errors, isSubmitting },
     },
-    isPublic,
     onSubmit,
-  } = useCybotValidation(); // 替换为新的钩子
+  } = useCybotValidation();
 
-  // 强制设置 provider 为 "Custom"
+  const [inputPrice, setInputPrice] = useState<number | undefined>(
+    watch("inputPrice")
+  );
+  const [outputPrice, setOutputPrice] = useState<number | undefined>(
+    watch("outputPrice")
+  );
+
+  useEffect(() => {
+    setValue("inputPrice", inputPrice);
+  }, [inputPrice, setValue]);
+
+  useEffect(() => {
+    setValue("outputPrice", outputPrice);
+  }, [outputPrice, setValue]);
+
+  // 设置表单字段的初始/默认值
   useEffect(() => {
     setValue("provider", "Custom");
-    console.log("CreateCustomCybot - provider set to Custom");
-  }, [setValue]);
-
-  // 初始化时确保 model 为空，useServerProxy 为 false
-  useEffect(() => {
+    setValue("customProviderUrl", "http://localhost:11434/v1/chat/completions"); // 设置Ollama地址
     setValue("model", "");
-    setValue("useServerProxy", false); // 默认且固定为 false
-    console.log(
-      "CreateCustomCybot - model initialized to empty, useServerProxy set to false"
-    );
+    setValue("useServerProxy", false);
   }, [setValue]);
 
   const [references, setReferences] = useState([]);
   const space = useAppSelector(selectCurrentSpace);
 
-  // 当 references 更新时，同步到表单数据
   useEffect(() => {
     setValue("references", references);
   }, [references, setValue]);
@@ -128,13 +133,16 @@ const CreateCustomCybot: React.FC = () => {
               <FormField
                 label={t("providerUrl")}
                 error={errors.customProviderUrl?.message}
-                help={t("providerUrlHelp")}
+                help={t(
+                  "providerUrlOllamaHelp",
+                  "Defaults to local Ollama. Change if your API is hosted elsewhere."
+                )}
                 horizontal
                 labelWidth="140px"
               >
                 <Input
                   {...register("customProviderUrl")}
-                  placeholder={t("enterProviderUrl")}
+                  placeholder="http://localhost:11434/v1/chat/completions"
                   type="url"
                 />
               </FormField>
@@ -153,7 +161,7 @@ const CreateCustomCybot: React.FC = () => {
               <FormField
                 label={t("apiKey")}
                 error={errors.apiKey?.message}
-                help={t("apiKeyHelp")}
+                help={t("apiKeyHelpOllama", "For Ollama, can be left blank.")}
                 horizontal
                 labelWidth="140px"
               >
@@ -171,10 +179,7 @@ const CreateCustomCybot: React.FC = () => {
                 horizontal
                 labelWidth="140px"
               >
-                <ToggleSwitch
-                  checked={false} // 固定为 false
-                  disabled={true} // 禁用开关
-                />
+                <ToggleSwitch checked={false} disabled={true} />
               </FormField>
             </div>
           </section>
@@ -185,7 +190,10 @@ const CreateCustomCybot: React.FC = () => {
             <div className="section-content">
               <FormField
                 label={t("selectReferences")}
-                help={t("selectReferencesHelp", "Select pages to reference")}
+                help={t(
+                  "selectReferencesWithTypeHelp",
+                  "Select pages and mark them as knowledge or instruction."
+                )}
                 horizontal
                 labelWidth="140px"
                 error={errors.references?.message}
@@ -194,7 +202,6 @@ const CreateCustomCybot: React.FC = () => {
                   space={space}
                   references={references}
                   onChange={setReferences}
-                  t={t}
                 />
               </FormField>
             </div>
@@ -204,61 +211,18 @@ const CreateCustomCybot: React.FC = () => {
           <section className="form-section">
             <div className="section-title">{t("communitySettings")}</div>
             <div className="section-content">
-              <FormField
-                label={t("shareInCommunity")}
-                help={t("shareInCommunityCustomApiHelp")}
-                horizontal
-                labelWidth="140px"
-              >
-                <ToggleSwitch
-                  checked={isPublic}
-                  onChange={(checked) => setValue("isPublic", checked)}
-                />
-              </FormField>
-              {isPublic && (
-                <>
-                  <FormField
-                    label={t("greetingMessage")}
-                    error={errors.greeting?.message}
-                    help={t("greetingMessageHelp")}
-                    horizontal
-                    labelWidth="140px"
-                  >
-                    <TextArea
-                      {...register("greeting")}
-                      placeholder={t("enterGreetingMessage")}
-                    />
-                  </FormField>
-                  <FormField
-                    label={t("selfIntroduction")}
-                    error={errors.introduction?.message}
-                    help={t("selfIntroductionHelp")}
-                    horizontal
-                    labelWidth="140px"
-                  >
-                    <TextArea
-                      {...register("introduction")}
-                      placeholder={t("enterSelfIntroduction")}
-                    />
-                  </FormField>
-                  <FormField label={t("pricing")} horizontal labelWidth="140px">
-                    <div className="price-inputs">
-                      <NumberInput
-                        value={watch("inputPrice") || 0}
-                        onChange={(value) => setValue("inputPrice", value)}
-                        decimal={4}
-                        placeholder={t("inputPrice")}
-                      />
-                      <NumberInput
-                        value={watch("outputPrice") || 0}
-                        onChange={(value) => setValue("outputPrice", value)}
-                        decimal={4}
-                        placeholder={t("outputPrice")}
-                      />
-                    </div>
-                  </FormField>
-                </>
-              )}
+              <PublishSettingsTab
+                t={t}
+                errors={errors}
+                control={control}
+                watch={watch}
+                apiSource="custom"
+                inputPrice={inputPrice}
+                outputPrice={outputPrice}
+                setInputPrice={setInputPrice}
+                setOutputPrice={setOutputPrice}
+                initialValues={{}}
+              />
             </div>
           </section>
         </div>
@@ -316,11 +280,6 @@ const CreateCustomCybot: React.FC = () => {
           display: flex;
           flex-direction: column;
         }
-        .price-inputs {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
         @media (max-width: 640px) {
           .create-cybot-container {
             padding: 16px;
@@ -335,9 +294,6 @@ const CreateCustomCybot: React.FC = () => {
           .section-title {
             font-size: 14px;
             margin-bottom: 20px;
-          }
-          .price-inputs {
-            grid-template-columns: 1fr;
           }
         }
       `}</style>

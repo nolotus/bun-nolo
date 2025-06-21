@@ -1,15 +1,35 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { ReferenceItemType } from "ai/cybot/types";
-// 👇 假设你的图标库是 react-icons，如果没有，可以用SVG或文字代替
+// 确保您已经安装了 react-icons: npm install react-icons
 import { PiLightbulb, PiBrain } from "react-icons/pi";
-import { Tooltip } from "render/web/ui/Tooltip"; // 假设你有一个Tooltip组件来提升用户体验
+import { Tooltip } from "render/web/ui/Tooltip"; // 确保您项目中存在 Tooltip 组件
 
-const ReferencesSelector = ({ space, references, onChange, t }) => {
+interface ReferencesSelectorProps {
+  space: {
+    contents?: {
+      [key: string]: {
+        title?: string;
+      };
+    };
+  } | null;
+  references: ReferenceItemType[];
+  onChange: (references: ReferenceItemType[]) => void;
+}
+
+const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
+  space,
+  references,
+  onChange,
+}) => {
+  const { t } = useTranslation("ai"); // 直接在此处使用 hook
   const theme = useTheme();
-  const [availableContents, setAvailableContents] = useState([]);
+  const [availableContents, setAvailableContents] = useState<
+    { dbKey: string; title?: string }[]
+  >([]);
 
-  // Load available content from space (修正依赖项)
+  // 从 space 加载可用的内容
   useEffect(() => {
     if (space?.contents) {
       const contents = Object.entries(space.contents)
@@ -17,35 +37,37 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
         .map(([key, value]) => ({
           dbKey: key,
           title: value?.title,
-          // 注意：这里不再设置 type，因为 type 是在用户选择后才决定的
         }));
       setAvailableContents(contents);
     }
-  }, [space?.contents]); // 修正：使用 space?.contents 而不是 space
+  }, [space?.contents]);
 
-  // 👇 --- 核心改动 1: 更新勾选逻辑 ---
-  const handleToggleReference = (content) => {
+  // 更新勾选逻辑
+  const handleToggleReference = (content: {
+    dbKey: string;
+    title?: string;
+  }) => {
     const exists = references.some((ref) => ref.dbKey === content.dbKey);
     let newReferences;
 
     if (exists) {
       newReferences = references.filter((ref) => ref.dbKey !== content.dbKey);
     } else {
-      // 当新增一个引用时，默认为 'knowledge' 类型
+      // 新增引用时，默认为 'knowledge' 类型
       newReferences = [
         ...references,
         {
           dbKey: content.dbKey,
-          title: content.title, // 最好把title也存进去，方便其他地方显示
-          type: "knowledge", // 默认类型
+          title: content.title || "Untitled",
+          type: "knowledge", // 默认类型为知识
         },
       ];
     }
     onChange(newReferences);
   };
 
-  // 👇 --- 核心改动 2: 新增类型切换逻辑 ---
-  const handleToggleType = (dbKey) => {
+  // 新增类型切换逻辑
+  const handleToggleType = (dbKey: string) => {
     const newReferences = references.map((ref) => {
       if (ref.dbKey === dbKey) {
         return {
@@ -70,7 +92,6 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
           const isSelected = !!selectedRef;
 
           return (
-            // 👇 --- 核心改动 3: 更新 JSX 结构 ---
             <div
               key={content.dbKey}
               className={`reference-item ${isSelected ? "selected" : ""}`}
@@ -85,7 +106,7 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
               </label>
 
               {/* 只有当被选中时，才显示类型切换按钮 */}
-              {isSelected && (
+              {isSelected && selectedRef && (
                 <div className="type-toggle-wrapper">
                   <Tooltip
                     content={
@@ -98,11 +119,16 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
                       type="button"
                       className={`type-toggle-btn ${selectedRef.type}`}
                       onClick={() => handleToggleType(content.dbKey)}
+                      aria-label={
+                        selectedRef.type === "knowledge"
+                          ? "Switch to instruction"
+                          : "Switch to knowledge"
+                      }
                     >
                       {selectedRef.type === "knowledge" ? (
-                        <PiBrain size={16} /> // 大脑图标代表"知识"
+                        <PiBrain size={16} />
                       ) : (
-                        <PiLightbulb size={16} /> // 灯泡图标代表"指令"
+                        <PiLightbulb size={16} />
                       )}
                     </button>
                   </Tooltip>
@@ -113,10 +139,9 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
         })
       )}
 
-      {/* 👇 --- 核心改动 4: 增加新的样式 --- */}
       <style>{`
         .references-list {
-          max-height: 300px; /* 增加一点高度 */
+          max-height: 300px;
           overflow-y: auto;
           border: 1px solid ${theme.border};
           border-radius: 6px;
@@ -130,9 +155,13 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
           padding: 8px 12px;
           border-radius: 4px;
           transition: background-color 0.2s ease;
+          min-height: 44px; /* 保证一致的高度 */
+        }
+        .reference-item:hover {
+           background-color: ${theme.backgroundTertiary || "rgba(0,0,0,0.05)"};
         }
         .reference-item.selected {
-          background-color: ${theme.backgroundTertiary || theme.backgroundSecondary};
+          background-color: ${theme.primaryMuted};
         }
         .reference-label {
           display: flex;
@@ -140,12 +169,13 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
           gap: 10px;
           cursor: pointer;
           flex-grow: 1; /* 让label占据更多空间 */
+          overflow: hidden; /* 防止内容溢出 */
         }
         .reference-title {
-          /* 优化文本显示 */
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          color: ${theme.text};
         }
         .type-toggle-wrapper {
           flex-shrink: 0; /* 防止按钮被压缩 */
@@ -168,18 +198,21 @@ const ReferencesSelector = ({ space, references, onChange, t }) => {
           background-color: ${theme.border};
           color: ${theme.text};
         }
-        /* 指令状态下的特殊样式 */
         .type-toggle-btn.instruction {
           color: ${theme.primary};
-          background-color: ${theme.primaryMuted};
+          background-color: ${theme.primaryMutedHover};
         }
         .type-toggle-btn.instruction:hover {
-          background-color: ${theme.primaryMutedHover};
+          opacity: 0.8;
+        }
+        .type-toggle-btn.knowledge {
+           color: ${theme.textSecondary};
         }
         .empty-message {
           color: ${theme.textTertiary || theme.textSecondary};
           font-style: italic;
-          padding: 12px;
+          padding: 16px;
+          text-align: center;
         }
       `}</style>
     </div>
