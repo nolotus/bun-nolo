@@ -30,34 +30,61 @@ export const cybotSlice = createSliceWithThunks({
   name: "cybot",
   initialState: initialState,
   reducers: (create) => ({
-    runCybotId: create.asyncThunk(async ({ cybotId, content }, thunkApi) => {
-      const state = thunkApi.getState();
-      const dispatch = thunkApi.dispatch;
-      const cybotConfig = await dispatch(read(cybotId)).unwrap();
+    runCybotId: create.asyncThunk(
+      async (
+        {
+          cybotId: providedCybotId,
+          content,
+        }: { cybotId?: string; content: any },
+        thunkApi
+      ) => {
+        const state = thunkApi.getState();
+        const dispatch = thunkApi.dispatch;
+        const { rejectWithValue } = thunkApi;
 
-      const api = getApiEndpoint(cybotConfig);
-      const currentServer = selectCurrentServer(state);
-      const messages = [
-        { role: "system", content: cybotConfig.prompt },
-        { role: "user", content },
-      ];
-      const bodyData = {
-        model: cybotConfig.model,
-        messages,
-        stream: false,
-      };
-      const token = selectCurrentToken(state);
-      const response = await performFetchRequest({
-        cybotConfig,
-        api,
-        bodyData,
-        currentServer,
-        token,
-      });
+        // 如果未提供 cybotId，则从当前对话获取默认值
+        let effectiveCybotId = providedCybotId;
+        if (!effectiveCybotId) {
+          const dialogConfig = selectCurrentDialogConfig(state);
+          if (dialogConfig?.cybots?.length > 0) {
+            effectiveCybotId = dialogConfig.cybots[0];
+          }
+        }
 
-      const result = await response.json();
-      return result.choices[0].message.content;
-    }, {}),
+        // 如果最终无法确定 cybotId，则中止操作
+        if (!effectiveCybotId) {
+          const errorMsg =
+            "runCybotId failed: No cybotId was provided and no default cybot could be found in the current dialog.";
+          console.error(errorMsg);
+          return rejectWithValue(errorMsg);
+        }
+
+        const cybotConfig = await dispatch(read(effectiveCybotId)).unwrap();
+        const api = getApiEndpoint(cybotConfig);
+        const currentServer = selectCurrentServer(state);
+        const messages = [
+          { role: "system", content: cybotConfig.prompt },
+          { role: "user", content },
+        ];
+        const bodyData = {
+          model: cybotConfig.model,
+          messages,
+          stream: false,
+        };
+        const token = selectCurrentToken(state);
+        const response = await performFetchRequest({
+          cybotConfig,
+          api,
+          bodyData,
+          currentServer,
+          token,
+        });
+
+        const result = await response.json();
+        return result.choices[0].message.content;
+      },
+      {}
+    ),
 
     streamCybotId: create.asyncThunk(
       async (

@@ -1,4 +1,8 @@
-// /chat/messages/messageSlice.ts
+/*
+ * ==================================================================
+ *  /chat/messages/messageSlice.ts (Corrected)
+ * ==================================================================
+ */
 
 import { RootState } from "app/store";
 import {
@@ -21,7 +25,7 @@ import { SERVERS } from "database/requests";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { extractCustomId } from "core/prefix";
 import { DialogConfig } from "app/types";
-import { toolExecutors } from "ai/tools/toolRegistry";
+import { findToolExecutor } from "ai/tools/toolRegistry";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
 import { streamCybotId } from "ai/cybot/cybotSlice";
 
@@ -298,66 +302,90 @@ export const messageSlice = createSliceWithThunks({
         const { dispatch, rejectWithValue } = thunkApi;
 
         const func = toolCall.function;
-        if (!func || !func.name) throw new Error("工具调用数据无效");
-
-        // 特殊处理 run_streaming_agent
-        if (func.name === "run_streaming_agent") {
-          try {
-            const toolArgs =
-              typeof func.arguments === "string"
-                ? JSON.parse(func.arguments)
-                : func.arguments;
-            // 直接调用 streamCybotId Thunk
-            await dispatch(
-              streamCybotId({
-                cybotId: toolArgs.agentKey,
-                userInput: toolArgs.userInput,
-                parentMessageId: parentMessageId,
-              })
-            ).unwrap();
-
-            // 返回特殊标志，表示控制权已移交
-            return { hasHandedOff: true };
-          } catch (e: any) {
-            const errorContent = {
-              type: "text",
-              text: `\n[Agent 启动失败] ${e.message}\n`,
-            };
-            return rejectWithValue({ displayContent: errorContent });
-          }
+        if (!func || !func.name) {
+          throw new Error(
+            "Invalid tool call data: missing function or function.name"
+          );
         }
 
-        // --- 其他常规工具的处理逻辑 ---
-        const toolName = func.name;
+        const rawToolName = func.name;
         let toolArgs = func.arguments;
 
         try {
-          if (typeof toolArgs === "string") toolArgs = JSON.parse(toolArgs);
+          const { executor: handler, canonicalName } =
+            findToolExecutor(rawToolName);
 
-          const handler = toolExecutors[toolName];
-          if (!handler) throw new Error(`未知工具: ${toolName}`);
+          if (typeof toolArgs === "string") {
+            try {
+              toolArgs = JSON.parse(toolArgs);
+            } catch (e) {
+              throw new Error(`Failed to parse tool arguments JSON: ${e}`);
+            }
+          }
 
-          const rawResult = await handler(toolArgs, thunkApi, {
+          if (canonicalName === "runStreamingAgent") {
+            try {
+              await dispatch(
+                streamCybotId({
+                  cybotId: toolArgs.agentKey,
+                  userInput: toolArgs.userInput,
+                  parentMessageId: parentMessageId,
+                })
+              ).unwrap();
+              return { hasHandedOff: true };
+            } catch (e: any) {
+              const errorContent = {
+                type: "text",
+                text: `\n[Agent Failed to Start] ${e.message}\n`,
+              };
+              return rejectWithValue({ displayContent: errorContent });
+            }
+          }
+
+          const toolResult = await handler(toolArgs, thunkApi, {
             parentMessageId,
           });
 
           let displayContent;
-          if (toolName === "create_plan") {
-            displayContent = { type: "text", text: rawResult };
+          const displayData = toolResult?.displayData;
+
+          // ===================== [FIXED CODE BLOCK] =====================
+          // The logic is now unified. All tools are expected to return an object
+          // with a 'displayData' property for rendering in the chat.
+          if (canonicalName === "createPlan") {
+            // The createPlan tool now returns a comprehensive report in displayData.
+            // We just need to display it directly, without extra text.
+            displayContent = {
+              type: "text",
+              text:
+                displayData || "[Plan executed, but no report was generated.]",
+            };
           } else {
+            // Other tools will be wrapped in a standard "Tool Result" format.
             const text =
-              rawResult?.text || `${toolName.replace(/_/g, " ")} 已成功执行。`;
-            displayContent = { type: "text", text: `\n[工具结果: ${text}]\n` };
+              displayData ||
+              `${canonicalName.replace(/_/g, " ")} executed successfully.`;
+            displayContent = {
+              type: "text",
+              text: `\n[Tool Result: ${text}]\n`,
+            };
           }
-          return { displayContent, rawResult, hasHandedOff: false };
+          // =================== [END FIXED CODE BLOCK] ===================
+
+          return {
+            displayContent,
+            rawResult: toolResult.rawData,
+            hasHandedOff: false,
+          };
         } catch (e: any) {
+          const errorMessage = e.message || "Unknown error";
           const errorContent = {
             type: "text",
-            text: `\n[工具执行异常] ${e.message}\n`,
+            text: `\n[Tool Execution Error: ${rawToolName}] ${errorMessage}\n`,
           };
           return rejectWithValue({
             displayContent: errorContent,
-            rawResult: { error: e.message },
+            rawResult: { error: errorMessage },
           });
         }
       }
@@ -388,7 +416,7 @@ export const messageSlice = createSliceWithThunks({
 
             if (result.hasHandedOff) {
               hasHandedOff = true;
-              break; // 控制权已移交，立即停止处理其他工具调用
+              break;
             }
             if (result.displayContent) {
               updatedContentBuffer.push(result.displayContent);
@@ -410,7 +438,6 @@ export const messageSlice = createSliceWithThunks({
             );
           }
         }
-        // 返回最终结果和移交状态
         return { finalContentBuffer: updatedContentBuffer, hasHandedOff };
       }
     ),
@@ -430,7 +457,7 @@ export const messageSlice = createSliceWithThunks({
         const { thinkContent: tagThink, normalContent } =
           separateThinkContent(finalContentBuffer);
 
-        const thinkContent = tagThink + reasoningBuffer;
+        const thinkContent = (tagThink + reasoningBuffer).trim();
 
         const finalUsageData =
           totalUsage && totalUsage.completion_tokens != null
@@ -484,7 +511,7 @@ export const messageSlice = createSliceWithThunks({
                 isStreaming: false,
                 content:
                   (state.msgs.entities[messageId]?.content || "") +
-                  "\n[保存失败]",
+                  "\n[Failed to save message]",
               },
             });
           }
