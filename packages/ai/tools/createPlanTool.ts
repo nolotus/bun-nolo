@@ -1,154 +1,151 @@
-// 文件路径: ai/tools/createPlanTool.ts
+import { setPlan, setSteps, Step, runPlanSteps } from "ai/llm/planSlice";
+import type { RootState } from "app/store";
 
-import { setPlan, setSteps, Step } from "chat/dialog/dialogSlice";
-import { toolRegistry } from "./toolRegistry"; // 导入本身没问题
-
-/**
- * @interface StepBlueprint
- * @description LLM 创建计划时提供的单个步骤的蓝图。
- */
-interface StepBlueprint {
-  id: string;
-  title: string;
-  tool_name: string;
-  parameters: Record<string, any>;
-}
-
-// Tool 定义，新增了 planDescription 字段，并要求 LLM 详细描述计划
-export const createPlanTool = {
-  type: "function",
-  function: {
-    name: "create_plan",
-    description:
-      "用于处理需要多个步骤才能完成的复杂任务。你需要首先描述整个计划的目标和策略，然后提供一个详细的、有序的工具调用（tool_call）步骤列表。后续步骤可以通过'{{steps.step_id.result}}'语法来引用前面步骤的输出结果。",
-    parameters: {
-      type: "object",
-      properties: {
-        planTitle: {
-          type: "string",
-          description: "整个计划的总体目标或标题。",
-        },
-        planDescription: {
-          type: "string",
-          description:
-            "对整个计划的详细描述。解释你为什么制定这个计划，以及每个步骤的作用是什么，最终要达成什么效果。",
-        },
-        steps: {
-          type: "array",
-          description: "构成计划的一系列有序步骤。",
-          items: {
-            type: "object",
-            properties: {
-              id: {
-                type: "string",
-                description: "步骤的唯一标识符，例如 'step_1'，用于后续引用。",
-              },
-              title: {
-                type: "string",
-                description: "对该步骤的人类可读的简短描述。",
-              },
-              // ✅ *** 关键修复 ***
-              // 使用 getter 延迟 Object.keys 的执行，从而打破循环依赖
-              tool_name: {
-                type: "string",
-                description:
-                  "要调用的工具的名称。注意：不能调用 'create_plan' 工具本身。",
-                get enum() {
-                  // 通过 getter，这行代码只会在 enum 属性被访问时执行
-                  // 此时 toolRegistry 已经加载完毕
-                  return Object.keys(toolRegistry).filter(
-                    (name) => name !== "createPlan"
-                  );
-                },
-              },
-              parameters: {
-                type: "object",
-                description:
-                  "一个包含工具所需参数的对象。可以使用 '{{steps.step_id.result}}' 来引用先前步骤的结果。",
-              },
+// Schema 保持不变...
+export const createPlanFunctionSchema = {
+  name: "createPlan",
+  description:
+    "When a task requires multiple structured steps or sequential AI thinking to complete, use this tool to formulate and execute a detailed plan. Do not use for simple, single-step tasks.",
+  parameters: {
+    type: "object",
+    properties: {
+      planTitle: {
+        type: "string",
+        description:
+          "A clear and concise title for the overall goal of the plan.",
+      },
+      strategy: {
+        type: "string",
+        description:
+          "[Crucially Important] Detail the overall strategy and thought process for creating this plan. Explain why you chose these steps and how you expect them to work together to achieve the final goal. This ensures the plan's logic and correctness.",
+      },
+      steps: {
+        type: "array",
+        description:
+          "An ordered sequence of steps that make up the plan. Subsequent steps can reference the output of previous steps using the '{{steps.step_id.result}}' syntax.",
+        items: {
+          type: "object",
+          properties: {
+            id: {
+              type: "string",
+              description:
+                "A unique identifier for the step (e.g., 'step_1'), used for referencing in subsequent steps.",
             },
-            required: ["id", "title", "tool_name"],
+            title: {
+              type: "string",
+              description:
+                "A short, human-readable description of the step's objective.",
+            },
+            tool_name: {
+              type: "string",
+              description:
+                "The name of the tool to be called. Includes a special 'ask_ai_assistant' tool for open-ended tasks requiring language understanding, generation, summarization, or transformation.",
+            },
+            parameters: {
+              type: "object",
+              description: `Provides the necessary parameters for the selected tool. If tool_name is 'ask_ai_assistant', the parameters must include 'task'. You can use '{{steps.step_id.result}}' to reference results from previous steps.`,
+            },
           },
+          required: ["id", "title", "tool_name", "parameters"],
         },
       },
-      required: ["planTitle", "planDescription", "steps"],
     },
+    required: ["planTitle", "strategy", "steps"],
   },
 };
 
-/**
- * 将参数对象转换为人类可读的字符串，用于在 Markdown 中显示。
- * @param params - 参数对象
- * @returns 格式化后的字符串
- */
 function formatParameters(params: Record<string, any>): string {
-  if (!params || Object.keys(params).length === 0) {
-    return "无";
-  }
+  if (!params || Object.keys(params).length === 0) return "None";
   return Object.entries(params)
     .map(([key, value]) => `  - \`${key}\`: \`${JSON.stringify(value)}\``)
     .join("\n");
 }
 
 /**
- * 接收 LLM 生成的计划，将其设置到 dialog state 中，并返回一个详细的 Markdown 描述。
- * @param {{ planTitle: string, planDescription: string, steps: StepBlueprint[] }} args
- * @param {{ dispatch: Function }} thunkApi
- * @returns {Promise<string>} 返回一个 Markdown 格式的计划详情字符串。
+ * [CORRECTED FOR REAL-TIME FEEDBACK]
+ * Creates a plan, displays it, and then dispatches the execution thunk to run in the background,
+ * allowing it to post real-time updates to the UI.
  */
-export async function createPlanFunc(
+export async function createPlanAndOrchestrateFunc(
   args: any,
   thunkApi: any
-): Promise<string> {
-  const { dispatch } = thunkApi;
-  const { planTitle, planDescription, steps: stepBlueprints } = args;
+): Promise<{ rawData: string; displayData: string }> {
+  const { dispatch, getState } = thunkApi;
+  const { planTitle, strategy, steps: stepBlueprints } = args;
 
   if (
     !planTitle ||
-    !planDescription ||
+    !strategy ||
     !Array.isArray(stepBlueprints) ||
     stepBlueprints.length === 0
   ) {
-    throw new Error("必须提供计划标题、详细描述和至少一个步骤。");
+    throw new Error(
+      "Plan title, strategy, and at least one step are required."
+    );
   }
 
-  const processedSteps: Step[] = stepBlueprints.map(
-    (blueprint: StepBlueprint) => ({
-      id: blueprint.id,
-      title: blueprint.title,
-      status: "pending",
-      call: {
-        tool_name: blueprint.tool_name,
-        parameters: blueprint.parameters || {},
-      },
-      result: null,
-    })
-  );
+  // 1. Prepare and store the plan in Redux state
+  const processedSteps: Step[] = stepBlueprints.map((blueprint: any) => ({
+    id: blueprint.id,
+    title: blueprint.title,
+    status: "pending",
+    call: {
+      tool_name: blueprint.tool_name,
+      parameters: blueprint.parameters || {},
+    },
+    result: null,
+  }));
 
-  dispatch(setPlan({ planDetails: planDescription }));
+  dispatch(setPlan({ planDetails: strategy, currentProgress: 0 }));
   dispatch(setSteps(processedSteps));
 
-  const markdownResult = `
-### 计划已创建：${planTitle}
+  // 2. Dispatch the plan execution thunk but DO NOT await it.
+  // This lets it run in the background and create its own messages.
+  const state = getState() as RootState;
+  const dialogKey = state.dialog.currentDialogKey;
 
-**目标与策略:**
-${planDescription}
+  if (dialogKey) {
+    dispatch(runPlanSteps({ dialogKey })); // Fire-and-forget
+  } else {
+    // This error is critical and should be part of the returned message.
+    console.error(
+      "Cannot execute plan: Could not retrieve currentDialogKey. The plan will not be executed."
+    );
+    const errorMarkdown = `\n\n**CRITICAL ERROR:** Could not find the current dialog. The plan was created but **will not be executed.**`;
+    return {
+      rawData: errorMarkdown,
+      displayData: errorMarkdown,
+    };
+  }
+
+  // 3. Immediately return the initial plan overview message to the user.
+  const markdownResult = `
+### Plan Created: ${planTitle}
+
+**Strategy:**
+${strategy}
 
 ---
 
-**执行步骤 (${processedSteps.length}步):**
+**Execution Steps (${processedSteps.length}):**
 
 ${processedSteps
   .map(
     (step, index) => `
 **${index + 1}. ${step.title}** (\`ID: ${step.id}\`)
-- **工具:** \`${step.call.tool_name}\`
-- **参数:**
+- **Tool:** \`${step.call.tool_name}\`
+- **Parameters:**
 ${formatParameters(step.call.parameters)}
 `
   )
   .join("\n---\n")}
+
+---
+**Plan execution has started automatically...**
 `;
 
-  return markdownResult;
+  return {
+    rawData: markdownResult,
+    displayData: markdownResult,
+  };
 }
