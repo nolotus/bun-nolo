@@ -7,8 +7,21 @@ import { ImageElement } from "render/elements/ImageElement";
 import { List, ListItem } from "render/elements/List";
 import { SafeLink } from "render/elements/SafeLink";
 import { Table, TableCell, TableRow } from "web/ui/Table";
-import { Heading } from "render/elements/Heading"; // 导入标题组件
+import { TextBlockRenderer } from "render/web/elements/TextBlockRenderer";
 import { CodeBlockType, CodeLineType } from "./type";
+
+// 定义所有由 TextBlockRenderer 处理的元素类型
+const TEXT_BLOCK_TYPES = [
+  "paragraph",
+  "heading-one",
+  "heading-two",
+  "heading-three",
+  "heading-four",
+  "heading-five",
+  "heading-six",
+  "quote",
+  "thematic-break",
+];
 
 export const ElementWrapper = (props) => {
   const { attributes, children, element } = props;
@@ -19,6 +32,15 @@ export const ElementWrapper = (props) => {
     ...(element.align ? { textAlign: element.align } : {}),
     ...additionalStyle,
   });
+
+  // 统一处理所有文本块
+  if (TEXT_BLOCK_TYPES.includes(element.type)) {
+    return (
+      <TextBlockRenderer attributes={attributes} element={element}>
+        {children}
+      </TextBlockRenderer>
+    );
+  }
 
   if (element.type === CodeBlockType) {
     return (
@@ -60,90 +82,7 @@ export const ElementWrapper = (props) => {
         </code>
       );
 
-    case "quote":
-      return (
-        <blockquote
-          {...attributes}
-          style={getStyle({
-            margin: `${theme.space[4]} 0`,
-            padding: `${theme.space[2]} 0 ${theme.space[2]} ${theme.space[4]}`,
-            borderLeft: `3px solid ${theme.primary}`,
-            color: theme.textSecondary,
-            fontStyle: "italic",
-            lineHeight: 1.6,
-          })}
-        >
-          {children}
-          {element.cite && (
-            <div
-              style={{
-                marginTop: theme.space[2],
-                textAlign: "right",
-                fontStyle: "normal",
-                fontSize: "0.9em",
-                opacity: 0.7,
-              }}
-            >
-              — {element.cite}
-            </div>
-          )}
-        </blockquote>
-      );
-
-    case "paragraph":
-      return (
-        <p
-          {...attributes}
-          style={getStyle({
-            margin: element.isNested
-              ? `${theme.space[1]} 0`
-              : `${theme.space[2]} 0`,
-            lineHeight: 1.6,
-            fontSize: "16px",
-            color: theme.text,
-          })}
-        >
-          {children}
-        </p>
-      );
-
-    // 简化的标题处理
-    case "heading-one":
-      return (
-        <Heading attributes={attributes} element={element} level={1}>
-          {children}
-        </Heading>
-      );
-    case "heading-two":
-      return (
-        <Heading attributes={attributes} element={element} level={2}>
-          {children}
-        </Heading>
-      );
-    case "heading-three":
-      return (
-        <Heading attributes={attributes} element={element} level={3}>
-          {children}
-        </Heading>
-      );
-    case "heading-four":
-      return (
-        <Heading attributes={attributes} element={element} level={4}>
-          {children}
-        </Heading>
-      );
-    case "heading-five":
-      return (
-        <Heading attributes={attributes} element={element} level={5}>
-          {children}
-        </Heading>
-      );
-    case "heading-six":
-      return (
-        <Heading attributes={attributes} element={element} level={6}>
-          {children}
-        </Heading>
-      );
+    // 段落、标题、引用、分割线已移至 TextBlockRenderer
 
     case "link":
       return (
@@ -212,19 +151,6 @@ export const ElementWrapper = (props) => {
         >
           {children}
         </TableCell>
-      );
-
-    case "thematic-break":
-      return (
-        <hr
-          {...attributes}
-          style={getStyle({
-            margin: `${theme.space[5]} 0`,
-            border: "none",
-            height: "1px",
-            backgroundColor: theme.border,
-          })}
-        />
       );
 
     case "html-inline":
