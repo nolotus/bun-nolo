@@ -1,8 +1,9 @@
 import { RootState } from "app/store";
-import { generatePrompt } from "ai/prompt/generatePrompt";
+import { generatePrompt } from "ai/llm/generatePrompt";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 import { supportedReasoningModels } from "ai/llm/providers";
+import { BotConfig } from "app/types";
 
 // 类型定义保持不变...
 type MessageContentPartText = { type: "text"; text: string };
@@ -42,14 +43,12 @@ interface Contexts {
  */
 const prependPromptMessage = (
   messages: Message[],
-  prompt: string | undefined,
-  botName: string | undefined,
+  agentConfig: BotConfig,
   language: string,
   contexts: Contexts
 ): Message[] => {
   const promptContent = generatePrompt({
-    mainPrompt: prompt,
-    name: botName,
+    agentConfig,
     language,
     contexts,
   });
@@ -120,18 +119,7 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
  */
 export const generateOpenAIRequestBody = (
   state: RootState,
-  cybotConfig: {
-    model: string;
-    prompt?: string;
-    name?: string;
-    temperature?: number;
-    top_p?: number;
-    frequency_penalty?: number;
-    presence_penalty?: number;
-    max_tokens?: number;
-    reasoning_effort?: string;
-    [key: string]: any;
-  },
+  agentConfig: BotConfig,
   providerName: string,
   contexts: Contexts
 ) => {
@@ -141,23 +129,22 @@ export const generateOpenAIRequestBody = (
   // 2. 消息队头插入 prompt
   const messagesWithPrompt = prependPromptMessage(
     previousMessages,
-    cybotConfig.prompt,
-    cybotConfig.name,
+    agentConfig,
     navigator.language,
     contexts
   );
 
   // 3. 构建请求体
   const requestBody = buildRequestBody({
-    model: cybotConfig.model,
+    model: agentConfig.model,
     messages: messagesWithPrompt,
     providerName,
-    temperature: cybotConfig.temperature,
-    top_p: cybotConfig.top_p,
-    frequency_penalty: cybotConfig.frequency_penalty,
-    presence_penalty: cybotConfig.presence_penalty,
-    max_tokens: cybotConfig.max_tokens,
-    reasoning_effort: cybotConfig.reasoning_effort,
+    temperature: agentConfig.temperature,
+    top_p: agentConfig.top_p,
+    frequency_penalty: agentConfig.frequency_penalty,
+    presence_penalty: agentConfig.presence_penalty,
+    max_tokens: agentConfig.max_tokens,
+    reasoning_effort: agentConfig.reasoning_effort,
   });
 
   return requestBody;

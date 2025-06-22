@@ -1,4 +1,4 @@
-// chat/messages/messageSlice.ts (完整、可直接使用的版本)
+// /chat/messages/messageSlice.ts
 
 import { RootState } from "app/store";
 import {
@@ -20,16 +20,16 @@ import { browserDb } from "database/browser/db";
 import { SERVERS } from "database/requests";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { extractCustomId } from "core/prefix";
-import { DialogConfig } from "../dialog/types";
+import { DialogConfig } from "app/types";
 import { toolExecutors } from "ai/tools/toolRegistry";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
+import { streamCybotId } from "ai/cybot/cybotSlice";
 
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
 const OLDER_LOAD_LIMIT = 30;
 const isValidMessage = (msg: any): msg is Message =>
   msg && typeof msg === "object" && typeof msg.id === "string";
 
-// 从 contentBuffer 中分离 <think> 标签里内容与普通内容
 function separateThinkContent(contentBuffer: any[]) {
   let thinkContent = "";
   let normalContent = "";
@@ -98,71 +98,6 @@ const rejectedHandler =
     console.error(`${action.type} failed:`, action.error);
   };
 
-// 辅助函数: 内部处理累积的工具调用（仅限非流式工具）
-async function handleAccumulatedToolCallsInternal(
-  accumulatedCalls: any[],
-  currentContentBuffer: any[],
-  thunkApi: any,
-  cybotConfig: any,
-  messageId: string
-): Promise<{ finalContentBuffer: any[] }> {
-  let updatedContentBuffer = [...currentContentBuffer];
-  const { dispatch } = thunkApi;
-
-  if (accumulatedCalls.length > 0) {
-    for (const toolCall of accumulatedCalls) {
-      if (
-        !toolCall.function ||
-        !toolCall.function.name ||
-        toolCall.function.arguments === undefined
-      ) {
-        continue;
-      }
-      try {
-        const result = await dispatch(
-          messageSlice.actions.processToolData({
-            toolCall,
-            cybotConfig,
-            messageId,
-          })
-        ).unwrap();
-
-        const toolResult = result.content;
-
-        if (toolResult) {
-          updatedContentBuffer = [...updatedContentBuffer, toolResult];
-          dispatch(
-            messageSlice.actions.messageStreaming({
-              id: messageId,
-              content: updatedContentBuffer,
-              role: "assistant",
-              cybotKey: cybotConfig.dbKey,
-            })
-          );
-        }
-      } catch (toolError: any) {
-        const errorResult = {
-          type: "text",
-          text: `\n[Tool 执行异常: ${toolError.message}]`,
-        };
-        updatedContentBuffer = [...updatedContentBuffer, errorResult];
-        dispatch(
-          messageSlice.actions.messageStreaming({
-            id: messageId,
-            content: updatedContentBuffer,
-            role: "assistant",
-            cybotKey: cybotConfig.dbKey,
-          })
-        );
-      }
-    }
-  }
-  return {
-    finalContentBuffer: updatedContentBuffer,
-  };
-}
-
-// Thunk 的 Payload 类型定义
 interface HandleToolCallsPayload {
   accumulatedCalls: any[];
   currentContentBuffer: any[];
@@ -172,8 +107,7 @@ interface HandleToolCallsPayload {
 
 interface ProcessToolDataPayload {
   toolCall: any;
-  cybotConfig: any;
-  messageId: string;
+  parentMessageId: string;
 }
 
 interface FinalizeStreamPayload {
@@ -358,78 +292,76 @@ export const messageSlice = createSliceWithThunks({
         rejected: rejectedHandler("isLoadingOlder"),
       }
     ),
-
-    // Thunk for processing a single, non-streaming tool call
     processToolData: create.asyncThunk(
       async (args: ProcessToolDataPayload, thunkApi) => {
-        const { toolCall } = args;
+        const { toolCall, parentMessageId } = args;
+        const { dispatch, rejectWithValue } = thunkApi;
 
         const func = toolCall.function;
-        if (!func || !func.name) {
-          throw new Error("工具调用数据无效");
+        if (!func || !func.name) throw new Error("工具调用数据无效");
+
+        // 特殊处理 run_streaming_agent
+        if (func.name === "run_streaming_agent") {
+          try {
+            const toolArgs =
+              typeof func.arguments === "string"
+                ? JSON.parse(func.arguments)
+                : func.arguments;
+            // 直接调用 streamCybotId Thunk
+            await dispatch(
+              streamCybotId({
+                cybotId: toolArgs.agentKey,
+                userInput: toolArgs.userInput,
+                parentMessageId: parentMessageId,
+              })
+            ).unwrap();
+
+            // 返回特殊标志，表示控制权已移交
+            return { hasHandedOff: true };
+          } catch (e: any) {
+            const errorContent = {
+              type: "text",
+              text: `\n[Agent 启动失败] ${e.message}\n`,
+            };
+            return rejectWithValue({ displayContent: errorContent });
+          }
         }
 
+        // --- 其他常规工具的处理逻辑 ---
         const toolName = func.name;
         let toolArgs = func.arguments;
 
         try {
-          if (typeof toolArgs === "string") {
-            if (toolArgs.trim() === "") {
-              toolArgs = {};
-            } else if (
-              toolArgs.trim().startsWith("{") ||
-              toolArgs.trim().startsWith("[")
-            ) {
-              try {
-                toolArgs = JSON.parse(toolArgs);
-              } catch (_e) {}
-            }
-          } else if (toolArgs === undefined || toolArgs === null) {
-            toolArgs = {};
-          }
+          if (typeof toolArgs === "string") toolArgs = JSON.parse(toolArgs);
 
           const handler = toolExecutors[toolName];
-          if (!handler) {
-            return {
-              content: {
-                type: "text",
-                text: `\n[Tool Error] 未知工具: ${toolName}\n`,
-              },
-            };
-          }
+          if (!handler) throw new Error(`未知工具: ${toolName}`);
 
-          const result = await handler(toolArgs, thunkApi);
-          if (result && result.success) {
-            const text =
-              result.text ||
-              `${toolName
-                .replace(/_/g, " ")
-                .replace(/^./, (c) => c.toUpperCase())} 已成功执行：${
-                result.title || result.name || "操作完成"
-              } (ID: ${result.id || "N/A"})`;
-            return {
-              content: { type: "text", text: `\n[工具结果: ${text}]\n` },
-            };
+          const rawResult = await handler(toolArgs, thunkApi, {
+            parentMessageId,
+          });
+
+          let displayContent;
+          if (toolName === "create_plan") {
+            displayContent = { type: "text", text: rawResult };
           } else {
-            return {
-              content: {
-                type: "text",
-                text: `\n[Tool Error] ${toolName} 操作未返回预期结果。\n`,
-              },
-            };
+            const text =
+              rawResult?.text || `${toolName.replace(/_/g, " ")} 已成功执行。`;
+            displayContent = { type: "text", text: `\n[工具结果: ${text}]\n` };
           }
+          return { displayContent, rawResult, hasHandedOff: false };
         } catch (e: any) {
-          return thunkApi.rejectWithValue({
-            content: {
-              type: "text",
-              text: `\n[Tool Error] 处理 ${toolName} 时发生内部错误: ${e.message}\n`,
-            },
+          const errorContent = {
+            type: "text",
+            text: `\n[工具执行异常] ${e.message}\n`,
+          };
+          return rejectWithValue({
+            displayContent: errorContent,
+            rawResult: { error: e.message },
           });
         }
       }
     ),
-
-    // Thunk for handling a batch of tool calls after a stream ends with `finish_reason: "tool_calls"`
     handleToolCalls: create.asyncThunk(
       async (args: HandleToolCallsPayload, thunkApi) => {
         const {
@@ -438,19 +370,50 @@ export const messageSlice = createSliceWithThunks({
           cybotConfig,
           messageId,
         } = args;
+        const { dispatch } = thunkApi;
 
-        const result = await handleAccumulatedToolCallsInternal(
-          accumulatedCalls,
-          currentContentBuffer,
-          thunkApi,
-          cybotConfig,
-          messageId
-        );
+        let updatedContentBuffer = [...currentContentBuffer];
+        let hasHandedOff = false;
 
-        return result;
+        for (const toolCall of accumulatedCalls) {
+          if (!toolCall.function?.name) continue;
+
+          try {
+            const result = await dispatch(
+              messageSlice.actions.processToolData({
+                toolCall,
+                parentMessageId: messageId,
+              })
+            ).unwrap();
+
+            if (result.hasHandedOff) {
+              hasHandedOff = true;
+              break; // 控制权已移交，立即停止处理其他工具调用
+            }
+            if (result.displayContent) {
+              updatedContentBuffer.push(result.displayContent);
+            }
+          } catch (rejectedValue: any) {
+            if (rejectedValue.displayContent) {
+              updatedContentBuffer.push(rejectedValue.displayContent);
+            }
+          }
+
+          if (!hasHandedOff) {
+            dispatch(
+              messageSlice.actions.messageStreaming({
+                id: messageId,
+                content: updatedContentBuffer,
+                role: "assistant",
+                cybotKey: cybotConfig.dbKey,
+              })
+            );
+          }
+        }
+        // 返回最终结果和移交状态
+        return { finalContentBuffer: updatedContentBuffer, hasHandedOff };
       }
     ),
-
     messageStreamEnd: create.asyncThunk(
       async (payload: FinalizeStreamPayload, { dispatch }) => {
         const {

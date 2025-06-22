@@ -58,10 +58,20 @@ export interface CreatePageFromSlatePayload {
  * @description 定义了与对话计划相关的状态
  */
 export interface PlanState {
-  maxRounds: number;
-  maxCost: number;
   planDetails: string;
   currentProgress: number; // 例如，当前进行的轮次
+}
+
+/**
+ * @interface Step
+ * @description 新增：定义计划中单个步骤的结构
+ */
+export interface Step {
+  id: string;
+  title: string;
+  status: "pending" | "in-progress" | "completed" | "failed";
+  details?: any;
+  result?: any;
 }
 
 interface DialogState {
@@ -73,7 +83,9 @@ interface DialogState {
   isUpdatingMode: boolean;
   pendingFiles: PendingFile[];
   activeControllers: Record<string, AbortController>;
-  plan: PlanState | null; // 新增：计划相关的状态
+  plan: PlanState | null;
+  steps: Step[]; // 新增：计划执行的步骤列表
+  currentStep: string | null; // 新增：当前活动步骤的 ID
 }
 
 const initialState: DialogState = {
@@ -85,7 +97,9 @@ const initialState: DialogState = {
   isUpdatingMode: false,
   pendingFiles: [],
   activeControllers: {},
-  plan: null, // 新增：初始化计划状态
+  plan: null,
+  steps: [], // 新增：初始化步骤
+  currentStep: null, // 新增：初始化当前步骤
 };
 
 const DialogSlice = createSliceWithThunks({
@@ -94,7 +108,7 @@ const DialogSlice = createSliceWithThunks({
   reducers: (create) => ({
     // ... 其他 reducers
 
-    // --- 新增：计划相关的 Reducers ---
+    // --- 计划相关的 Reducers ---
     setPlan: create.reducer((state, action: PayloadAction<PlanState>) => {
       state.plan = action.payload;
     }),
@@ -107,6 +121,33 @@ const DialogSlice = createSliceWithThunks({
     ),
     clearPlan: create.reducer((state) => {
       state.plan = null;
+      state.steps = []; // 清除计划时也清除步骤
+      state.currentStep = null;
+    }),
+
+    // --- 新增：步骤相关的 Reducers ---
+    setSteps: create.reducer((state, action: PayloadAction<Step[]>) => {
+      state.steps = action.payload;
+    }),
+    updateStep: create.reducer(
+      (
+        state,
+        action: PayloadAction<{ id: string; updates: Partial<Step> }>
+      ) => {
+        const step = state.steps.find((s) => s.id === action.payload.id);
+        if (step) {
+          Object.assign(step, action.payload.updates);
+        }
+      }
+    ),
+    setCurrentStep: create.reducer(
+      (state, action: PayloadAction<string | null>) => {
+        state.currentStep = action.payload;
+      }
+    ),
+    clearSteps: create.reducer((state) => {
+      state.steps = [];
+      state.currentStep = null;
     }),
     // --------------------------------
 
@@ -190,7 +231,9 @@ const DialogSlice = createSliceWithThunks({
         pending: (state, action) => {
           state.currentDialogKey = action.meta.arg;
           state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
-          state.plan = null; // 初始化对话时重置计划
+          state.plan = null;
+          state.steps = []; // 初始化对话时重置步骤
+          state.currentStep = null;
         },
       }
     ),
@@ -210,7 +253,7 @@ const DialogSlice = createSliceWithThunks({
         dispatch(deleteDialogMsgs(dialogId));
         dispatch(resetCurrentDialogTokens());
         dispatch(DialogSlice.actions.clearPendingAttachments());
-        dispatch(DialogSlice.actions.clearPlan()); // 删除对话时也清除计划
+        dispatch(DialogSlice.actions.clearPlan()); // 此 action 会同时清除 plan 和 steps
       },
       {
         fulfilled: (state, action) => {
@@ -222,7 +265,9 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogKey = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
       state.pendingFiles = [];
-      state.plan = null; // 更新：清除对话状态时也清除计划
+      state.plan = null;
+      state.steps = []; // 清除对话状态时也清除步骤
+      state.currentStep = null;
     }),
     createDialog: create.asyncThunk(createDialogAction),
     updateDialogTitle: create.asyncThunk(updateDialogTitleAction),
@@ -243,9 +288,6 @@ const DialogSlice = createSliceWithThunks({
     /**
      * @internal
      * 并行调用所有指定的 Cybot。
-     * - 接收 cybot ID 列表和用户输入。
-     * - 使用 Promise.all 并行调度 streamCybotId。
-     * - 内部 catch 确保单个 cybot 失败不会中断其他 cybot。
      */
     streamAllCybotsInParallel: create.asyncThunk(
       async (args: { cybotIds: string[]; userInput: string }, { dispatch }) => {
@@ -267,8 +309,6 @@ const DialogSlice = createSliceWithThunks({
     /**
      * @internal
      * 根据对话模式编排 Cybot 响应。
-     * - 接收对话配置和用户输入。
-     * - 根据 PARALLEL, SEQUENTIAL 或 FIRST 模式调用 Cybot。
      */
     orchestrateCybotResponse: create.asyncThunk(
       async (
@@ -313,8 +353,6 @@ const DialogSlice = createSliceWithThunks({
 
     /**
      * 公开 Action: 处理用户发送消息的完整流程。
-     * 这是 UI 组件应该 dispatch 的 action。
-     * 它按顺序编排了消息持久化和 Cybot 响应两个步骤。
      */
     handleSendMessage: create.asyncThunk(
       async (args: { userInput: string }, thunkApi) => {
@@ -417,17 +455,21 @@ export const {
   abortAllMessages,
   clearActiveControllers,
   streamAllCybotsInParallel,
-  // 新增导出的 actions
   setPlan,
   updatePlanProgress,
   clearPlan,
+  // 新增导出的 actions
+  setSteps,
+  updateStep,
+  setCurrentStep,
+  clearSteps,
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;
 
 export const selectCurrentDialogConfig = (state: RootState) =>
   state.dialog.currentDialogKey
-    ? (selectById(state, state.dialog.currentDialogKey) as Dialog | null)
+    ? (selectById(state, state.dialog.currentDialogKey) as DialogConfig | null)
     : null;
 export const selectCurrentDialogKey = (state: RootState) =>
   state.dialog.currentDialogKey;
@@ -447,11 +489,23 @@ export const selectActiveControllers = (
   state: RootState
 ): Record<string, AbortController> => state.dialog.activeControllers;
 
-// --- 新增：计划相关的 Selectors ---
+// --- 计划相关的 Selectors ---
 export const selectPlan = (state: RootState): PlanState | null =>
   state.dialog.plan;
 export const selectCurrentProgress = (state: RootState): number | undefined =>
   state.dialog.plan?.currentProgress;
 export const selectPlanDetails = (state: RootState): string | undefined =>
   state.dialog.plan?.planDetails;
+
+// --- 新增：步骤相关的 Selectors ---
+export const selectSteps = (state: RootState): Step[] => state.dialog.steps;
+export const selectCurrentStepId = (state: RootState): string | null =>
+  state.dialog.currentStep;
+export const selectCurrentStepDetails = (state: RootState): Step | null => {
+  if (!state.dialog.currentStep) return null;
+  return (
+    state.dialog.steps.find((step) => step.id === state.dialog.currentStep) ||
+    null
+  );
+};
 // ------------------------------------
