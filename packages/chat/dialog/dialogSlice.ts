@@ -27,7 +27,7 @@ import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
 import { updateDialogModeAction } from "./actions/updateDialogModeAction";
 import { streamCybotId } from "ai/cybot/cybotSlice";
-import { DialogInvocationMode, Dialog } from "./types";
+import { DialogInvocationMode, DialogConfig } from "app/types";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
@@ -237,7 +237,10 @@ const DialogSlice = createSliceWithThunks({
      * - 根据 PARALLEL, SEQUENTIAL 或 FIRST 模式调用 Cybot。
      */
     orchestrateCybotResponse: create.asyncThunk(
-      async (args: { dialogConfig: Dialog; userInput: string }, thunkApi) => {
+      async (
+        args: { dialogConfig: DialogConfig; userInput: string },
+        thunkApi
+      ) => {
         const { dialogConfig, userInput } = args;
         const { dispatch } = thunkApi;
         const mode = dialogConfig?.mode;

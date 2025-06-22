@@ -7,8 +7,8 @@ import {
 import { DataType } from "create/types";
 import { read, write } from "database/dbSlice";
 import { createDialogKey, createDialogMessageKeyAndId } from "database/keys";
-import { format, formatISO } from "date-fns"; // 引入 formatISO
-import { DialogInvocationMode } from "chat/dialog/types";
+import { format, formatISO } from "date-fns";
+import { DialogInvocationMode } from "app/types";
 
 export const createDialogAction = async (args, thunkApi) => {
   const { cybots, category } = args;
