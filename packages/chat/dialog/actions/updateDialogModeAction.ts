@@ -1,6 +1,7 @@
 import { patch } from "database/dbSlice";
 import { selectCurrentDialogKey } from "chat/dialog/dialogSlice";
-import { DialogInvocationMode } from "chat/dialog/types";
+import { DialogInvocationMode } from "app/types";
+
 import { formatISO } from "date-fns";
 
 export const updateDialogModeAction = async (

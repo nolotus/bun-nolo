@@ -12,7 +12,7 @@ import {
   selectIsUpdatingMode,
 } from "chat/dialog/dialogSlice";
 import { selectCurrentUserId } from "auth/authSlice";
-import { DialogInvocationMode } from "chat/dialog/types";
+import { DialogInvocationMode } from "app/types";
 import {
   PlusIcon,
   ChevronDownIcon,
