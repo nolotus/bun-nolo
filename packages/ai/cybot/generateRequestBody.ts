@@ -4,10 +4,11 @@ import { generateOpenAIRequestBody } from "integrations/openai/generateRequestBo
 
 export const generateRequestBody = (
   state: RootState,
-  cybotConfig: BotConfig,
+  agentConfig: BotConfig,
   contexts?: any
 ) => {
-  const providerName = cybotConfig.provider.toLowerCase();
+  console.log("Generating request body for agent:", agentConfig);
+  const providerName = agentConfig.provider.toLowerCase();
 
-  return generateOpenAIRequestBody(state, cybotConfig, providerName, contexts);
+  return generateOpenAIRequestBody(state, agentConfig, providerName, contexts);
 };

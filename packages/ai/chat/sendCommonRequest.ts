@@ -1,3 +1,5 @@
+// /ai/chat/sendCommonChatRequest.ts
+
 import { prepareTools } from "ai/tools/prepareTools";
 import {
   addActiveController,
@@ -19,9 +21,8 @@ import { parseMultilineSSE } from "./parseMultilineSSE";
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
 import { accumulateToolCallChunks } from "./accumulateToolCallChunks";
-import { initiateAgentStream } from "../cybot/cybotSlice"; // ✨ 1. 从 cybotSlice 导入 action
 
-// 辅助函数：向已有内容缓冲追加新的文本片段 (无变化)
+// 辅助函数 (无变化)
 function appendTextChunk(
   currentContentBuffer: any[],
   textChunk: string
@@ -48,14 +49,12 @@ export const sendCommonChatRequest = async ({
   thunkApi,
   dialogKey,
   parentMessageId,
-  inheritedContext, // 接收从 streamCybotId 传递过来的完整上下文
 }: {
   bodyData: any;
   cybotConfig: any;
   thunkApi: any;
   dialogKey: string;
   parentMessageId?: string;
-  inheritedContext?: any; // 定义类型
 }) => {
   const { dispatch, getState, signal: thunkSignal } = thunkApi;
   const dialogId = extractCustomId(dialogKey);
@@ -90,8 +89,10 @@ export const sendCommonChatRequest = async ({
   let accumulatedToolCalls: any[] = [];
   let reasoningBuffer: string = "";
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let hasHandedOff = false;
 
   const finalize = () => {
+    if (hasHandedOff) return;
     dispatch(
       messageStreamEnd({
         finalContentBuffer: contentBuffer,
@@ -158,6 +159,9 @@ export const sendCommonChatRequest = async ({
             })
           ).unwrap();
           contentBuffer = result.finalContentBuffer;
+          if (result.hasHandedOff) {
+            hasHandedOff = true;
+          }
         }
         break;
       }
@@ -214,55 +218,21 @@ export const sendCommonChatRequest = async ({
           const finishReason = choice.finish_reason;
           if (finishReason) {
             if (finishReason === "tool_calls") {
-              const streamingAgentCall = accumulatedToolCalls.find(
-                (call) => call.function?.name === "run_streaming_agent"
-              );
+              const result = await dispatch(
+                handleToolCalls({
+                  accumulatedCalls: accumulatedToolCalls,
+                  currentContentBuffer: contentBuffer,
+                  cybotConfig,
+                  messageId,
+                })
+              ).unwrap();
 
-              if (streamingAgentCall) {
-                // ✨ 2. 通过 dispatch 调用新的 Thunk action
-                const args = JSON.parse(streamingAgentCall.function.arguments);
+              contentBuffer = result.finalContentBuffer;
+              accumulatedToolCalls = [];
 
-                try {
-                  // .unwrap() 会在 thunk 失败时自动抛出错误，成功时返回 payload
-                  const handoffResult = await dispatch(
-                    initiateAgentStream({
-                      agentKey: args.agentKey,
-                      userInput: args.userInput,
-                      inheritedContext: inheritedContext, // 传递继承的上下文
-                    })
-                  ).unwrap();
-
-                  // ✨ 3. handoffResult 现在是 Thunk 的返回值
-                  if (handoffResult) {
-                    await reader.cancel();
-                    reader = handoffResult.newReader;
-                    cybotConfig = handoffResult.newCybotConfig;
-                    accumulatedToolCalls = [];
-                    contentBuffer = appendTextChunk(contentBuffer, `\n\n`);
-                    continue; // 继续外层 while 循环，使用新的 reader
-                  }
-                } catch (error: any) {
-                  // 如果 initiateAgentStream thunk 失败
-                  console.error("Agent handoff failed:", error);
-                  const errorMessage = error.message || String(error);
-                  contentBuffer = appendTextChunk(
-                    contentBuffer,
-                    `\n[Agent 启动失败: ${errorMessage}]`
-                  );
-                  await reader.cancel();
-                }
-              } else {
-                // 处理非流式的 tool calls
-                const result = await dispatch(
-                  handleToolCalls({
-                    accumulatedCalls: accumulatedToolCalls,
-                    currentContentBuffer: contentBuffer,
-                    cybotConfig,
-                    messageId,
-                  })
-                ).unwrap();
-                contentBuffer = result.finalContentBuffer;
-                accumulatedToolCalls = [];
+              if (result.hasHandedOff) {
+                hasHandedOff = true;
+                await reader.cancel();
               }
             } else {
               if (finishReason !== "stop") {

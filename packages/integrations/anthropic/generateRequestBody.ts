@@ -1,4 +1,4 @@
-import { generatePrompt } from "ai/prompt/generatePrompt";
+import { generatePrompt } from "ai/llm/generatePrompt";
 import { pipe, flatten, filter, reverse, map } from "rambda";
 import { RootState } from "app/store";
 import { selectAllMsgs } from "chat/messages/messageSlice";
@@ -47,12 +47,11 @@ const createUserMessage = (
 };
 
 const generateSystemPrompt = (
-  prompt: string | undefined,
-  botName: string | undefined,
+  agentConfig: BotConfig,
   language: string,
   context: any
 ): string => {
-  return generatePrompt(prompt || "", botName, language, context);
+  return generatePrompt(agentConfig, language, context);
 };
 
 const buildRequestBody = (
@@ -72,7 +71,7 @@ const buildRequestBody = (
 export const generateAnthropicRequestBody = (
   state: RootState,
   userInput: string | { type: string; data: string }[],
-  cybotConfig: BotConfig,
+  agentConfig: BotConfig,
   context: any
 ) => {
   const previousMessages = filterValidMessages(selectAllMsgs(state));
@@ -80,15 +79,14 @@ export const generateAnthropicRequestBody = (
   const conversationMessages = [...previousMessages, newUserMessage];
 
   const systemPrompt = generateSystemPrompt(
-    cybotConfig.prompt,
-    cybotConfig.name,
+    agentConfig,
     navigator.language,
     context
   );
   console.log("Generated systemPrompt with context:", systemPrompt);
 
   const requestBody = buildRequestBody(
-    cybotConfig.model,
+    agentConfig.model,
     conversationMessages,
     systemPrompt
   );

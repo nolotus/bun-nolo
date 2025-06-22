@@ -1,4 +1,5 @@
 import { mapLanguage } from "app/i18n/mapLanguage";
+import { BotConfig } from "app/types";
 
 // 接口定义保持不变
 interface Contexts {
@@ -10,8 +11,7 @@ interface Contexts {
 }
 
 interface GeneratePromptOptions {
-  mainPrompt?: string;
-  name?: string;
+  agentConfig: BotConfig;
   language?: string;
   contexts?: Contexts;
 }
@@ -35,18 +35,15 @@ const CONTEXT_USAGE_INSTRUCTIONS = `INSTRUCTIONS FOR USING THE REFERENCE MATERIA
 - Point out any conflicting information you find within the materials.`;
 
 export const generatePrompt = (options: GeneratePromptOptions = {}): string => {
-  const {
-    mainPrompt = "",
-    name = "",
-    language = navigator.language,
-    contexts = {},
-  } = options;
+  const { agentConfig, language = navigator.language, contexts = {} } = options;
+  const { name, prompt: mainPrompt, id, dbKey } = agentConfig;
   const mappedLanguage = mapLanguage(language);
   const currentTime = new Date().toLocaleString("en-US", { timeZone: "UTC" });
 
   // --- 1. 基础信息区 (始终存在) ---
   const baseInfo = [
     name ? `Your name is ${name}.` : "",
+    dbKey ? `Your dbKey is ${dbKey}.` : "",
     mappedLanguage ? `Response Language: ${mappedLanguage}.` : "",
     `Current time is ${currentTime}.`,
   ]
