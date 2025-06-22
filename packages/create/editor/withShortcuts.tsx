@@ -19,10 +19,13 @@ export const SHORTCUTS = {
   "[]": { type: "list-item", wrapper: "list", ordered: false, checked: false },
   "[x]": { type: "list-item", wrapper: "list", ordered: false, checked: true },
 
-  // 标题
+  // 标题 (已扩展至6级)
   "#": "heading-one",
   "##": "heading-two",
   "###": "heading-three",
+  "####": "heading-four",
+  "#####": "heading-five",
+  "######": "heading-six",
 
   // 引用和代码
   ">": "block-quote",
@@ -40,8 +43,36 @@ const HOTKEYS = {
   "mod+`": "code",
 };
 
+interface HotkeyEvent {
+  key: string;
+  ctrlKey: boolean;
+  metaKey: boolean;
+}
+
+const isHotkey = (hotkey: string, event: HotkeyEvent): boolean => {
+  try {
+    // 检查是否需要 mod (Ctrl/Cmd)
+    const mod = hotkey.startsWith("mod+");
+    const key = mod ? hotkey.slice(4) : hotkey;
+
+    // 检查修饰键
+    const hasModifier = event.ctrlKey || event.metaKey;
+
+    // 如果热键需要修饰键，但用户没按，则不匹配
+    if (mod && !hasModifier) return false;
+    // 如果热键不需要修饰键，但用户按了，则不匹配 (避免误触发)
+    if (!mod && hasModifier) return false;
+
+    // 检查主键是否匹配
+    return event.key.toLowerCase() === key.toLowerCase();
+  } catch (error) {
+    console.warn("Error checking hotkey:", error);
+    return false;
+  }
+};
+
 export const withShortcuts = (editor: Editor) => {
-  const { deleteBackward, insertText } = editor;
+  const { deleteBackward, insertText, onKeyDown } = editor;
 
   editor.insertText = (text: string) => {
     const { selection } = editor;
@@ -61,6 +92,9 @@ export const withShortcuts = (editor: Editor) => {
       const start = Editor.start(editor, path);
       const range = { anchor, focus: start };
       const beforeText = Editor.string(editor, range) + text.slice(0, -1);
+
+      // 注意：这里需要从长到短匹配，或者确保 SHORTCUTS 对象键的唯一性
+      // 当前实现是精确匹配，所以顺序不影响
       const shortcut = SHORTCUTS[beforeText];
 
       if (shortcut) {
@@ -94,7 +128,7 @@ export const withShortcuts = (editor: Editor) => {
                 !Editor.isEditor(n) &&
                 SlateElement.isElement(n) &&
                 n.type === type,
-            },
+            }
           );
         }
         return;
@@ -121,8 +155,9 @@ export const withShortcuts = (editor: Editor) => {
           block.type !== "paragraph" &&
           Point.equals(selection.anchor, start)
         ) {
+          const newProperties: Partial<SlateElement> = { type: "paragraph" };
           // 转换回段落
-          Transforms.setNodes(editor, { type: "paragraph" });
+          Transforms.setNodes(editor, newProperties);
 
           // 如果是列表项,需要解除列表包装
           if (block.type === "list-item") {
@@ -130,7 +165,7 @@ export const withShortcuts = (editor: Editor) => {
               match: (n) =>
                 !Editor.isEditor(n) &&
                 SlateElement.isElement(n) &&
-                n.type === "list",
+                n.type === "list", // 假设列表容器类型为 'list'
               split: true,
             });
           }
@@ -148,35 +183,14 @@ export const withShortcuts = (editor: Editor) => {
         event.preventDefault();
         const mark = HOTKEYS[hotkey];
         toggleMark(editor, mark);
+        return; // 匹配到一个后即可返回
       }
+    }
+    // 如果没有匹配到自定义热键，则调用原始的 onKeyDown
+    if (onKeyDown) {
+      onKeyDown(event);
     }
   };
 
   return editor;
-};
-
-interface HotkeyEvent {
-  key: string;
-  ctrlKey: boolean;
-  metaKey: boolean;
-}
-
-const isHotkey = (hotkey): boolean => {
-  try {
-    const mod = hotkey.startsWith("mod+");
-    const key = mod ? hotkey.slice(4) : hotkey;
-
-    // 检查修饰键
-    const hasModifier = event.ctrlKey || event.metaKey;
-
-    // 只有当需要修饰键时才检查修饰键
-    if (mod && !hasModifier) return false;
-    if (!mod && hasModifier) return false;
-
-    // 检查主键
-    return event.key.toLowerCase() === key.toLowerCase();
-  } catch (error) {
-    console.warn("Error checking hotkey:", error);
-    return false;
-  }
 };
