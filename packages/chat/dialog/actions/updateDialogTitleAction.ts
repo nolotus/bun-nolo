@@ -1,5 +1,5 @@
 import { runAgent } from "ai/cybot/cybotSlice";
-import { titleCybotId } from "core/init";
+import { titleAgentId } from "core/init";
 import {
   selectCurrentSpaceId,
   updateContentTitle,
@@ -69,7 +69,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
 
   const generateTitle = await dispatch(
     runAgent({
-      cybotId: titleCybotId,
+      cybotId: titleAgentId,
       content,
     })
   ).unwrap();

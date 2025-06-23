@@ -11,7 +11,7 @@ import { DataType } from "create/types";
 import { ulid } from "ulid";
 import { runAgent } from "ai/cybot/cybotSlice";
 import { Link } from "react-router-dom";
-import { titleCybotId } from "core/init";
+import { titleAgentId } from "core/init";
 import { useAuth } from "auth/hooks/useAuth";
 import {
   selectCurrentSpaceId,
@@ -96,7 +96,7 @@ export const MessageActions = ({
     try {
       title =
         (await dispatch(
-          runAgent({ cybotId: titleCybotId, content: str.substring(0, 500) })
+          runAgent({ cybotId: titleAgentId, content: str.substring(0, 1000) })
         ).unwrap()) || key;
     } catch {}
 
