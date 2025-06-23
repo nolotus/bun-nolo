@@ -26,7 +26,7 @@ import { deleteDialogAction } from "./actions/deleteDialogAction";
 import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
 import { updateDialogModeAction } from "./actions/updateDialogModeAction";
-import { streamCybotId } from "ai/cybot/cybotSlice";
+import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
 import { DialogConfig } from "app/types"; // DialogInvocationMode is no longer used here
 import { clearPlan } from "ai/llm/planSlice";
 
@@ -215,7 +215,7 @@ const DialogSlice = createSliceWithThunks({
         // Always stream the first available cybot. No more mode checks.
         if (cybots.length > 0) {
           await dispatch(
-            streamCybotId({ cybotId: cybots[0], userInput })
+            streamAgentChatTurn({ cybotId: cybots[0], userInput })
           ).unwrap();
         }
       }

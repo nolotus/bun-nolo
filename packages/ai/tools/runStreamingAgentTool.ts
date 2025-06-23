@@ -1,6 +1,6 @@
 // /ai/tools/runStreamingAgentTool.ts (已更新至新架构)
 
-import { streamCybotId } from "ai/cybot/cybotSlice";
+import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
 
 /**
  * [Schema] 定义了 'runStreamingAgent' 工具的结构，供 LLM 调用。
@@ -57,7 +57,7 @@ export async function runStreamingAgentFunc(
   try {
     // 将 parentMessageId 传递给 streamCybotId，以确保流式响应附加到正确的父消息
     await dispatch(
-      streamCybotId({
+      streamAgentChatTurn({
         cybotId: agentKey,
         userInput,
         parentMessageId: context?.parentMessageId,

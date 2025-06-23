@@ -29,7 +29,6 @@ interface Message {
  * @returns 清理和过滤后的消息数组（Message[]），保留其在原始数组中的相对顺序。
  */
 export const filterAndCleanMessages = (msgs: any[]): Message[] => {
-  console.log("before filterAndCleanMessages", msgs);
   if (!Array.isArray(msgs)) return [];
 
   const cleanedAndFiltered = msgs
@@ -65,7 +64,6 @@ export const filterAndCleanMessages = (msgs: any[]): Message[] => {
       }
 
       if (finalContent === null) {
-        console.warn("Skipping message due to no valid content:", msg);
         return null;
       }
 
@@ -83,8 +81,6 @@ export const filterAndCleanMessages = (msgs: any[]): Message[] => {
       return cleanedMessage as Message;
     })
     .filter((msg): msg is Message => msg !== null); // 移除无效消息
-
-  console.log("after filterAndCleanMessages", cleanedAndFiltered);
 
   // 直接返回清理和过滤后的结果，不进行排序
   return cleanedAndFiltered;
