@@ -1,4 +1,4 @@
-// /plan/planSlice.ts
+// /ai/llm/planSlice.ts
 // 这个文件现在只负责管理计划（Plan）的 Redux 状态。
 // 计划的创建和执行逻辑已被移至相关的工具函数中。
 
@@ -12,16 +12,21 @@ export interface PlanState {
   currentProgress: number;
 }
 
+// 单个工具调用的接口
+export interface ToolCall {
+  tool_name: string;
+  parameters: any;
+}
+
 export interface Step {
   id: string;
   title: string;
-  call: {
-    tool_name: string;
-    parameters: any;
-  };
+  // 修改：从单个 call 变为多个 calls 数组，以支持并行执行
+  calls: ToolCall[];
   status: "pending" | "in-progress" | "completed" | "failed";
   details?: any;
-  result?: any;
+  // result 现在将是一个数组，对应 calls 数组中每个调用的结果
+  result?: any[];
 }
 
 interface PlanSliceState {
@@ -93,7 +98,6 @@ const planSlice = createSlice({
 
 // --- Exports ---
 
-// 导出 Actions，供其他地方 (如 thunks 或组件) dispatch
 export const {
   setPlan,
   updatePlanProgress,
@@ -104,10 +108,8 @@ export const {
   clearSteps,
 } = planSlice.actions;
 
-// 导出 Reducer，用于 store 配置
 export default planSlice.reducer;
 
-// 导出方便使用的 Selectors，用于从根 state 中获取数据
 export const selectPlan = (state: RootState): PlanState | null =>
   state.plan.plan;
 export const selectSteps = (state: RootState): Step[] => state.plan.steps;

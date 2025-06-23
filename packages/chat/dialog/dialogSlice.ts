@@ -27,9 +27,7 @@ import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
 import { updateDialogModeAction } from "./actions/updateDialogModeAction";
 import { streamCybotId } from "ai/cybot/cybotSlice";
-import { DialogInvocationMode, DialogConfig } from "app/types";
-
-// 从新的 planSlice 导入 action
+import { DialogConfig } from "app/types"; // DialogInvocationMode is no longer used here
 import { clearPlan } from "ai/llm/planSlice";
 
 const createSliceWithThunks = buildCreateSlice({
@@ -58,7 +56,6 @@ export interface CreatePageFromSlatePayload {
   type: "excel" | "docx" | "pdf" | "txt";
 }
 
-// Plan 相关的 State 已经被移除
 interface DialogState {
   currentDialogKey: string | null;
   currentDialogTokens: {
@@ -89,7 +86,6 @@ const DialogSlice = createSliceWithThunks({
   name: "dialog",
   initialState,
   reducers: (create) => ({
-    // Plan 相关的 reducers 和 thunks 已被移除
     createPageAndAddReference: create.asyncThunk(
       async (
         payload: CreatePageFromSlatePayload,
@@ -151,9 +147,8 @@ const DialogSlice = createSliceWithThunks({
     }),
     initDialog: create.asyncThunk(
       async (id: string, { dispatch }) => {
-        // 在初始化对话时，同时清理 dialog 和 plan 的状态
         dispatch(DialogSlice.actions.clearPendingAttachments());
-        dispatch(clearPlan()); // <-- 调用从 planSlice 导入的 action
+        dispatch(clearPlan());
         const action = await dispatch(read(id));
         return { ...action.payload };
       },
@@ -161,7 +156,6 @@ const DialogSlice = createSliceWithThunks({
         pending: (state, action) => {
           state.currentDialogKey = action.meta.arg;
           state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
-          // Plan 相关的 state 初始化已移至 clearPlan action 中
         },
       }
     ),
@@ -179,7 +173,7 @@ const DialogSlice = createSliceWithThunks({
         dispatch(deleteDialogMsgs(dialogId));
         dispatch(resetCurrentDialogTokens());
         dispatch(DialogSlice.actions.clearPendingAttachments());
-        dispatch(clearPlan()); // <-- 调用从 planSlice 导入的 action
+        dispatch(clearPlan());
       },
       {
         fulfilled: (state) => {
@@ -191,7 +185,6 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogKey = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
       state.pendingFiles = [];
-      // Plan 相关的 state 清理已移至 clearPlan action 中
     }),
     createDialog: create.asyncThunk(createDialogAction),
     updateDialogTitle: create.asyncThunk(updateDialogTitleAction),
@@ -208,42 +201,19 @@ const DialogSlice = createSliceWithThunks({
         state.isUpdatingMode = false;
       },
     }),
-    streamAllCybotsInParallel: create.asyncThunk(
-      async (args: { cybotIds: string[]; userInput: string }, { dispatch }) => {
-        const { cybotIds, userInput } = args;
-        const cybotPromises = cybotIds.map((cybotId) =>
-          dispatch(streamCybotId({ cybotId, userInput }))
-            .unwrap()
-            .catch((error) =>
-              console.error(
-                `Error in PARALLEL mode for cybot ${cybotId}:`,
-                error
-              )
-            )
-        );
-        await Promise.all(cybotPromises);
-      }
-    ),
+    // The parallel thunk `streamAllCybotsInParallel` has been removed.
+
+    // `orchestrateCybotResponse` is now simplified to only run the first cybot.
     orchestrateCybotResponse: create.asyncThunk(
       async (
         args: { dialogConfig: DialogConfig; userInput: string },
         { dispatch }
       ) => {
         const { dialogConfig, userInput } = args;
-        const { mode = DialogInvocationMode.FIRST, cybots = [] } = dialogConfig;
+        const { cybots = [] } = dialogConfig;
 
-        if (mode === DialogInvocationMode.PARALLEL) {
-          await dispatch(
-            DialogSlice.actions.streamAllCybotsInParallel({
-              cybotIds: cybots,
-              userInput,
-            })
-          );
-        } else if (mode === DialogInvocationMode.SEQUENTIAL) {
-          for (const cybotId of cybots) {
-            await dispatch(streamCybotId({ cybotId, userInput })).unwrap();
-          }
-        } else if (cybots.length > 0) {
+        // Always stream the first available cybot. No more mode checks.
+        if (cybots.length > 0) {
           await dispatch(
             streamCybotId({ cybotId: cybots[0], userInput })
           ).unwrap();
@@ -278,7 +248,6 @@ const DialogSlice = createSliceWithThunks({
         }
       }
     ),
-    // `runPlanSteps` thunk 已被移除
     addActiveController: create.reducer(
       (
         state,
@@ -311,7 +280,7 @@ const DialogSlice = createSliceWithThunks({
         return { abortedCount: Object.keys(controllers).length };
       },
       {
-        fulfilled: (state, action) => {
+        fulfilled: (state) => {
           state.activeControllers = {};
         },
       }
@@ -344,7 +313,7 @@ export const {
   removeActiveController,
   abortAllMessages,
   clearActiveControllers,
-  streamAllCybotsInParallel,
+  // streamAllCybotsInParallel has been removed from exports.
 } = DialogSlice.actions;
 
 export default DialogSlice.reducer;
@@ -365,5 +334,3 @@ export const selectPendingFiles = (state: RootState): PendingFile[] =>
 export const selectActiveControllers = (
   state: RootState
 ): Record<string, AbortController> => state.dialog.activeControllers;
-
-// Plan 相关的 selectors 已被移除
