@@ -94,7 +94,6 @@ export default {
           },
         },
       },
-      // 新增翻译
       joinCommunity: "Join Our Community",
       invitedBy: "You've been invited by",
       acceptInvitation: "Accept Invitation",
@@ -103,6 +102,15 @@ export default {
       registrationFailed: "Registration failed",
       unknown: "Unknown",
       code: "Invitation Code",
+
+      // -- 新增 InviteSignup 翻译 --
+      inviteHeader: "Hi, you've received an invitation from {{name}}",
+      invitePartnerDescription:
+        "Since the inviter is our partner, you'll receive a bonus of 6.6 credits upon registration.",
+      inviteGeneralHint: "Register to receive your bonus credits!",
+      emailOptionalPlaceholder: "Enter email (optional)",
+      inviterIdOptionalPlaceholder: "Enter inviter ID (optional)",
+      inviterAvatarAlt: "Inviter avatar: {{name}}",
     },
   },
   [Language.ZH_CN]: {
@@ -197,7 +205,6 @@ export default {
           },
         },
       },
-      // 新增翻译
       joinCommunity: "加入我们的社区",
       invitedBy: "你已被邀请",
       acceptInvitation: "接受邀请",
@@ -206,6 +213,15 @@ export default {
       registrationFailed: "注册失败",
       unknown: "未知",
       code: "邀请码",
+
+      // -- 新增 InviteSignup 翻译 --
+      inviteHeader: "Hi，你收到了来自 {{name}} 的邀请",
+      invitePartnerDescription:
+        "由于邀请人是我们的合作伙伴，注册后你将获赠 6.6 积分。",
+      inviteGeneralHint: "成功注册即可领取赠送积分！",
+      emailOptionalPlaceholder: "请输入邮箱（选填）",
+      inviterIdOptionalPlaceholder: "请输入推荐人ID（选填）",
+      inviterAvatarAlt: "邀请人头像: {{name}}",
     },
   },
   [Language.ZH_HANT]: {
@@ -300,7 +316,6 @@ export default {
           },
         },
       },
-      // 新增翻译
       joinCommunity: "加入我們的社區",
       invitedBy: "您已被邀請",
       acceptInvitation: "接受邀請",
@@ -309,6 +324,15 @@ export default {
       registrationFailed: "註冊失敗",
       unknown: "未知",
       code: "邀請碼",
+
+      // -- 新增 InviteSignup 翻譯 --
+      inviteHeader: "Hi，您收到了來自 {{name}} 的邀請",
+      invitePartnerDescription:
+        "由於邀請人是我們的合作夥伴，註冊後您將獲贈 6.6 積分。",
+      inviteGeneralHint: "成功註冊即可領取贈送積分！",
+      emailOptionalPlaceholder: "請輸入電郵（選填）",
+      inviterIdOptionalPlaceholder: "請輸入推薦人ID（選填）",
+      inviterAvatarAlt: "邀請人頭像: {{name}}",
     },
   },
   [Language.JA]: {
@@ -405,7 +429,6 @@ export default {
           },
         },
       },
-      // 新增翻译
       joinCommunity: "コミュニティに参加",
       invitedBy: "招待されました",
       acceptInvitation: "招待を受け入れる",
@@ -414,6 +437,15 @@ export default {
       registrationFailed: "登録に失敗しました",
       unknown: "不明",
       code: "招待コード",
+
+      // -- 新增 InviteSignup 翻译 --
+      inviteHeader: "こんにちは、{{name}}さんからの招待が届きました",
+      invitePartnerDescription:
+        "招待者は私たちのパートナーであるため、登録すると6.6クレジットのボーナスが付与されます。",
+      inviteGeneralHint: "登録してボーナスクレジットを受け取りましょう！",
+      emailOptionalPlaceholder: "メールアドレスを入力（任意）",
+      inviterIdOptionalPlaceholder: "招待者IDを入力（任意）",
+      inviterAvatarAlt: "招待者のアバター: {{name}}",
     },
   },
 };

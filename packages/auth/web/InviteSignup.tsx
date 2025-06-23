@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTheme } from "app/theme";
-import type React from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useLocation, NavLink } from "react-router-dom";
 import z from "zod";
 import { Input } from "web/form/Input";
@@ -16,6 +16,8 @@ import {
   PeopleIcon,
   GiftIcon,
 } from "@primer/octicons-react";
+import { createUserKey } from "database/keys";
+import { read } from "database/dbSlice";
 import useRegister from "./useRegister";
 
 const InviteSignup: React.FC = () => {
@@ -24,11 +26,42 @@ const InviteSignup: React.FC = () => {
   const { t } = useTranslation();
   const { handleRegister, error } = useRegister();
   const location = useLocation();
+  const dispatch = useDispatch();
 
-  // 从URL中解析邀请信息
   const queryParams = new URLSearchParams(location.search);
-  const inviter = queryParams.get("inviter") || "";
+  const inviterId = queryParams.get("inviterId") || "";
+  const initialInviterName = queryParams.get("inviterName") || ""; // Fallback name
 
+  const [inviterProfile, setInviterProfile] = useState({
+    nickname: initialInviterName,
+    avatar: "",
+  });
+
+  useEffect(() => {
+    const fetchInviterProfile = async () => {
+      if (!inviterId) return;
+
+      try {
+        const profileKey = createUserKey.profile(inviterId);
+        // We assume `read` action handles not found cases gracefully (e.g., returns null)
+        const userProfile = await dispatch(read(profileKey)).unwrap();
+        if (userProfile) {
+          setInviterProfile({
+            nickname: userProfile.nickname || initialInviterName,
+            avatar: userProfile.avatar || "",
+          });
+        }
+      } catch (e) {
+        // If fetching fails, we just use the initial name from the URL
+        console.error("Failed to fetch inviter profile:", e);
+        setInviterProfile({ nickname: initialInviterName, avatar: "" });
+      }
+    };
+
+    fetchInviterProfile();
+  }, [inviterId, initialInviterName, dispatch]);
+
+  // Use Zod for schema validation with translation keys
   const userFormSchema = z.object({
     username: z.string().nonempty({ message: t("usernameRequired") || "" }),
     password: z.string().nonempty({ message: t("passwordRequired") || "" }),
@@ -37,7 +70,7 @@ const InviteSignup: React.FC = () => {
       .email({ message: t("invalidEmail") || "" })
       .optional()
       .or(z.literal("")),
-    inviter: z.string().optional(),
+    inviterId: z.string().optional(),
   });
 
   const {
@@ -47,29 +80,33 @@ const InviteSignup: React.FC = () => {
   } = useForm({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
-      inviter: inviter,
+      inviterId: inviterId,
     },
   });
 
   const onSubmit = (data) => {
     handleRegister({
       ...data,
-      inviterCode: queryParams.get("code") || undefined,
+      inviterCode: queryParams.get("code") || undefined, // Keep inviterCode if it exists
     });
   };
 
   return (
     <div className="signup-container">
       <form onSubmit={handleSubmit(onSubmit)} className="signup-form">
-        {/* 邀请信息头部 */}
-        {inviter && (
+        {inviterProfile.nickname && (
           <div className="invite-header">
+            {inviterProfile.avatar && (
+              <img
+                src={inviterProfile.avatar}
+                alt={t("inviterAvatarAlt", { name: inviterProfile.nickname })}
+                className="inviter-avatar"
+              />
+            )}
             <div className="invite-text">
-              您收到了 <span className="inviter-name">{inviter}</span> 的邀请
+              {t("inviteHeader", { name: inviterProfile.nickname })}
             </div>
-            <p className="invite-desc">
-              感谢朋友推荐！注册成功后，您和推荐人都将获得 6.6 积分奖励
-            </p>
+            <p className="invite-desc">{t("invitePartnerDescription")}</p>
           </div>
         )}
 
@@ -103,7 +140,7 @@ const InviteSignup: React.FC = () => {
 
         <div className="field-group">
           <Input
-            placeholder={t("enterEmail")}
+            placeholder={t("emailOptionalPlaceholder")}
             {...register("email")}
             error={!!errors.email}
             icon={<MailIcon size={20} />}
@@ -117,14 +154,14 @@ const InviteSignup: React.FC = () => {
 
         <div className="field-group">
           <Input
-            placeholder="请输入推荐人用户名（可选）"
-            {...register("inviter")}
-            error={!!errors.inviter}
+            placeholder={t("inviterIdOptionalPlaceholder")}
+            {...register("inviterId")}
+            error={!!errors.inviterId}
             icon={<PeopleIcon size={20} />}
             autoComplete="off"
           />
-          {errors.inviter && (
-            <p className="error-message">{errors.inviter.message}</p>
+          {errors.inviterId && (
+            <p className="error-message">{errors.inviterId.message}</p>
           )}
         </div>
 
@@ -149,10 +186,9 @@ const InviteSignup: React.FC = () => {
             </NavLink>
           </div>
 
-          {/* 积分提示 */}
           <div className="reward-hint">
             <GiftIcon size={16} />
-            <span>推荐好友注册，双方都能获得积分奖励</span>
+            <span>{t("inviteGeneralHint")}</span>
           </div>
         </div>
       </form>
@@ -179,7 +215,6 @@ const InviteSignup: React.FC = () => {
           padding: 32px 24px;
         }
 
-        /* 邀请信息头部 */
         .invite-header {
           background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primaryLight}10 100%);
           border: 1px solid ${theme.primary}20;
@@ -187,6 +222,18 @@ const InviteSignup: React.FC = () => {
           padding: 16px;
           margin-bottom: 32px;
           text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .inviter-avatar {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          margin-bottom: 12px;
+          border: 2px solid ${theme.primary}40;
+          object-fit: cover;
         }
 
         .invite-text {
@@ -194,14 +241,6 @@ const InviteSignup: React.FC = () => {
           color: ${theme.text};
           font-weight: 600;
           margin-bottom: 8px;
-        }
-
-        .inviter-name {
-          color: ${theme.primary};
-          font-weight: 700;
-          background: ${theme.primary}15;
-          padding: 2px 6px;
-          border-radius: 4px;
         }
 
         .invite-desc {
@@ -259,7 +298,6 @@ const InviteSignup: React.FC = () => {
           color: ${theme.primaryLight};
         }
 
-        /* 积分奖励提示 */
         .reward-hint {
           display: flex;
           align-items: center;
@@ -273,50 +311,10 @@ const InviteSignup: React.FC = () => {
           text-align: center;
         }
 
-        /* 响应式设计 */
         @media (min-width: 768px) {
           .signup-form {
             max-width: 420px;
             padding: 40px 32px;
-          }
-
-          .signup-title {
-            font-size: 36px;
-            margin-bottom: 56px;
-          }
-
-          .field-group {
-            margin-bottom: 32px;
-          }
-
-          .invite-header {
-            padding: 20px;
-            margin-bottom: 40px;
-          }
-        }
-
-        @media (min-width: 1200px) {
-          .signup-form {
-            max-width: 460px;
-            padding: 48px 40px;
-          }
-
-          .signup-title {
-            font-size: 40px;
-            margin-bottom: 64px;
-          }
-
-          .field-group {
-            margin-bottom: 36px;
-          }
-
-          .form-footer {
-            gap: 40px;
-          }
-
-          .invite-header {
-            padding: 24px;
-            margin-bottom: 48px;
           }
         }
       `}</style>
