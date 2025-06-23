@@ -5,7 +5,7 @@ import {
   selectIsLoggedIn,
   selectCurrentUser,
   selectUserId,
-} from "../../auth/authSlice";
+} from "auth/authSlice";
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
 import { CreateRoutePaths } from "create/routePaths";
 import PubCybots from "ai/cybot/web/PubCybots";

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { clearTodayTokens, clearAllTokens } from "ai/token/clear";
 import Button from "render/web/ui/Button"; // 导入新的 Button 组件
 import BalanceCard from "./BalanceCard";
@@ -11,7 +11,7 @@ import UsageChart from "./UsageChart";
 
 const Usage: React.FC = () => {
   const theme = useTheme();
-  const userId = useAppSelector(selectCurrentUserId);
+  const userId = useAppSelector(selectUserId);
   const [isRechargeRecordVisible, setRechargeRecordVisible] = useState(false);
   const [clearing, setClearing] = useState(false);
 

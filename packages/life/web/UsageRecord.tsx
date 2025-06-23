@@ -4,7 +4,7 @@ import { TokenRecord } from "ai/token/types";
 import React, { useState } from "react";
 import { useTheme } from "app/theme";
 import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { useAppSelector } from "app/hooks";
 import { pino } from "pino";
 import Pagination from "render/web/ui/Pagination";
@@ -53,7 +53,7 @@ const formatPrices = (
 const UsageRecord: React.FC = () => {
   const theme = useTheme();
   const [filter, setFilter] = useState(initialFilter);
-  const userId = useAppSelector(selectCurrentUserId);
+  const userId = useAppSelector(selectUserId);
   const { records, loading, totalCount } = useRecords(userId, filter);
 
   const handlePageChange = (page: number) => {

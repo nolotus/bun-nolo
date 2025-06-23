@@ -5,7 +5,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { pino } from "pino";
 import { getTokenStats } from "ai/token/query";
 import { useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { TimeRange, processDateRange } from "utils/processDateRange";
 
 const logger = pino({ name: "usage-chart" });
@@ -14,7 +14,7 @@ const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 type DataType = "tokens" | "cost";
 
 const UsageChart: React.FC<any> = ({ theme }) => {
-  const userId = useAppSelector(selectCurrentUserId);
+  const userId = useAppSelector(selectUserId);
   const [timeRange, setTimeRange] = useState<TimeRange>("7days");
   const [dataType, setDataType] = useState<DataType>("tokens");
   const [statsData, setStatsData] = useState<any[]>([]);

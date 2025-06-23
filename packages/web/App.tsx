@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef } from "react";
 import { useAppDispatch } from "app/hooks";
-import { initializeAuth, selectCurrentUserId } from "auth/authSlice";
+import { initializeAuth, selectUserId } from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import i18n from "app/i18n";
 import { Toaster } from "react-hot-toast";

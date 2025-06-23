@@ -9,7 +9,7 @@ import { useSpaceData } from "../hooks/useSpaceData";
 import EmptyState from "../components/EmptyState";
 import Cybots from "ai/cybot/web/Cybots";
 import { useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 
 // 模拟页面数据
 const mockPages = [
@@ -62,7 +62,7 @@ const SpaceHome: React.FC = () => {
   const [pages] = React.useState(mockPages);
   const theme = useTheme();
   const { spaceData, loading } = useSpaceData(spaceId!);
-  const currentUserId = useAppSelector(selectCurrentUserId);
+  const currentUserId = useAppSelector(selectUserId);
 
   const handleCreatePage = () => {
     console.log("创建新页面");
