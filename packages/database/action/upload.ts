@@ -1,5 +1,5 @@
 // database/actions/upload.ts
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { ulid } from "ulid"; // 使用 ulid 生成唯一ID
 import { getAllServers, normalizeTimeFields, logger } from "./common";
@@ -72,7 +72,7 @@ export const uploadFileAction = async (
 ): Promise<any> => {
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state); // 当前选定服务器
-  const currentUserId = selectCurrentUserId(state); // 当前登录用户 ID
+  const currentUserId = selectUserId(state); // 当前登录用户 ID
   const { file, customKey } = uploadConfig;
   // 优先使用 uploadConfig 中提供的 userId，否则回退到当前登录用户的 ID
   const userId = uploadConfig.userId || currentUserId;

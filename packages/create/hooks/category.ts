@@ -1,7 +1,7 @@
 // create/category/useCategories.ts
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { write } from "database/dbSlice";
 import { DataType } from "create/types";
 
@@ -28,7 +28,7 @@ interface UseCategoriesResult {
 
 export const useCategories = (): UseCategoriesResult => {
   const dispatch = useAppDispatch();
-  const currentUserId = useAppSelector(selectCurrentUserId);
+  const currentUserId = useAppSelector(selectUserId);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

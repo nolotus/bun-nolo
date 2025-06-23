@@ -1,46 +1,53 @@
+import { useAppDispatch, useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
+import { selectUsers, signOut, changeUser, selectUserId } from "auth/authSlice";
+import { useAuth } from "auth/hooks/useAuth";
+import { useTranslation } from "react-i18next";
+import { SettingRoutePaths } from "setting/config";
+import toast from "react-hot-toast";
+
+//web
+import { Tooltip } from "render/web/ui/Tooltip";
 import {
   GearIcon,
   PersonIcon,
+  PlusIcon,
   SignOutIcon,
   TriangleDownIcon,
 } from "@primer/octicons-react";
-import { useAppDispatch, useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
-import { selectUsers, signOut, changeUser } from "auth/authSlice";
-import { useAuth } from "auth/hooks/useAuth";
-import { useTranslation } from "react-i18next";
-import { NavLink, useNavigate } from "react-router-dom";
 import DropdownMenu from "web/ui/DropDownMenu";
-import { SettingRoutePaths } from "setting/config";
-import { Tooltip } from "render/web/ui/Tooltip";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const MenuStyles = () => {
   const theme = useAppSelector(selectTheme);
   return (
-    <style>
+    <style href="loginmenu-styles" precedence="medium">
       {`
         .loginmenu-wrapper {
           display: flex;
           align-items: center;
-          padding: 10px 16px;
-          gap: 1px;
+          padding: ${theme.space[2]} ${theme.space[4]};
+          gap: ${theme.space[1]};
         }
 
         .loginmenu-icon-button {
           background: transparent;
           border: none;
           cursor: pointer;
-          padding: 6px;
+          padding: ${theme.space[2]};
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s ease;
+          border-radius: 6px;
+          transition: all 0.15s ease;
           color: ${theme.textSecondary};
+          min-width: 36px;
+          min-height: 36px;
         }
 
         .loginmenu-icon-button:hover {
-          background-color: ${theme.primaryGhost};
-          color: ${theme.primary};
+          background-color: ${theme.backgroundHover};
+          color: ${theme.text};
         }
 
         .loginmenu-nav-link {
@@ -49,37 +56,48 @@ const MenuStyles = () => {
         }
 
         .loginmenu-nav-link.active .loginmenu-user-trigger {
-          background-color: ${theme.primaryGhost};
-          color: ${theme.primary};
+          background-color: ${theme.backgroundSelected};
+          color: ${theme.text};
         }
 
         .loginmenu-nav-link:hover .loginmenu-user-trigger {
-          background-color: ${theme.primaryGhost};
-          color: ${theme.primary};
+          background-color: ${theme.backgroundHover};
+          color: ${theme.text};
         }
 
         .loginmenu-user-trigger {
           display: flex;
           align-items: center;
           cursor: pointer;
-          padding: 6px 10px;
-          transition: all 0.2s ease;
+          padding: ${theme.space[2]} ${theme.space[3]};
+          border-radius: 6px;
+          transition: all 0.15s ease;
           color: ${theme.textSecondary};
+          min-height: 36px;
         }
 
         .loginmenu-user-trigger-text {
           font-size: 14px;
           font-weight: 500;
-          margin-left: 8px;
+          margin-left: ${theme.space[2]};
         }
 
         .loginmenu-dd-wrapper {
-          padding: 6px;
+          padding: ${theme.space[2]};
           min-width: 200px;
-          background-color: ${theme.background};
-          border-radius: 6px;
-          box-shadow: 0 4px 16px ${theme.shadowMedium};
-          border: 1px solid ${theme.borderHover};
+          background: rgba(${theme.background
+            .replace("#", "")
+            .match(/.{2}/g)
+            ?.map((hex) => parseInt(hex, 16))
+            .join(", ")}, 0.75);
+          backdrop-filter: blur(16px) saturate(1.5);
+          -webkit-backdrop-filter: blur(16px) saturate(1.5);
+          border-radius: 10px;
+          box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.1),
+            0 2px 8px rgba(0, 0, 0, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .loginmenu-dd-item {
@@ -87,34 +105,110 @@ const MenuStyles = () => {
           align-items: center;
           width: 100%;
           text-align: left;
-          padding: 8px 12px;
+          padding: ${theme.space[2]} ${theme.space[3]};
           border: none;
-          background: none;
+          background: transparent;
           cursor: pointer;
-          transition: all 0.2s ease;
-          color: ${theme.textSecondary};
-          font-size: 13px;
+          border-radius: 6px;
+          transition: all 0.15s ease;
+          color: ${theme.text};
+          font-size: 14px;
           font-weight: 500;
+          margin-bottom: ${theme.space[1]};
+          min-height: 36px;
+        }
+
+        .loginmenu-dd-item:last-child {
+          margin-bottom: 0;
         }
 
         .loginmenu-dd-item:hover {
-          background-color: ${theme.primaryGhost};
-          color: ${theme.primary};
-        }
-
-        .loginmenu-dd-item:hover .loginmenu-dd-icon {
-          color: ${theme.primary};
+          background: rgba(255, 255, 255, 0.08);
+          color: ${theme.text};
         }
 
         .loginmenu-dd-icon {
-          margin-right: 8px;
+          margin-right: ${theme.space[3]};
           color: ${theme.textTertiary};
-          transition: all 0.2s ease;
+          flex-shrink: 0;
+          transition: color 0.15s ease;
         }
 
-        .loginmenu-nav-link.active + .loginmenu-icon-button {
-          background-color: ${theme.primaryGhost};
+        .loginmenu-dd-item:hover .loginmenu-dd-icon {
+          color: ${theme.text};
+        }
+
+        .loginmenu-invite-item {
+          background: ${theme.primary}12;
           color: ${theme.primary};
+          font-weight: 600;
+          position: relative;
+        }
+
+        .loginmenu-invite-item::after {
+          content: '';
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 3px;
+          height: 3px;
+          background: ${theme.primary};
+          border-radius: 50%;
+          box-shadow: 0 0 4px ${theme.primary}60;
+          animation: pulse 2.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+          50% { opacity: 0.6; transform: translateY(-50%) scale(1.4); }
+        }
+
+        .loginmenu-invite-item .loginmenu-dd-icon {
+          color: ${theme.primary};
+        }
+
+        .loginmenu-invite-item:hover {
+          background: ${theme.primary}20;
+          color: ${theme.primary};
+        }
+
+        .loginmenu-logout-item:hover {
+          background: ${theme.error}12;
+          color: ${theme.error};
+        }
+
+        .loginmenu-logout-item:hover .loginmenu-dd-icon {
+          color: ${theme.error};
+        }
+
+        .loginmenu-user-item {
+          color: ${theme.textSecondary};
+        }
+
+        .loginmenu-user-item:hover {
+          background: rgba(255, 255, 255, 0.06);
+          color: ${theme.text};
+        }
+
+        .loginmenu-users-section {
+          margin-bottom: ${theme.space[3]};
+        }
+
+        .loginmenu-bottom-section {
+          margin-top: ${theme.space[3]};
+          padding-top: ${theme.space[2]};
+          position: relative;
+        }
+
+        .loginmenu-bottom-section::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: ${theme.space[3]};
+          right: ${theme.space[3]};
+          height: 1px;
+          background: rgba(255, 255, 255, 0.06);
         }
       `}
     </style>
@@ -127,6 +221,7 @@ export const LoggedInMenu: React.FC = () => {
   const dispatch = useAppDispatch();
   const auth = useAuth();
   const users = useAppSelector(selectUsers);
+  const currentUserId = useAppSelector(selectUserId);
 
   const handleUserChange = (user: User) => {
     dispatch(changeUser(user));
@@ -138,17 +233,33 @@ export const LoggedInMenu: React.FC = () => {
       .then(() => navigate("/"));
   };
 
-  const renderDropdownItem = (
-    label: string,
-    icon?: React.ReactNode,
-    onClick?: () => void,
-    key: string
-  ) => (
-    <button key={key} onClick={onClick} className="loginmenu-dd-item">
+  const handleInviteFriend = async () => {
+    const inviteUrl = `/invite-signup?inviterId=${currentUserId}`;
+    const fullUrl = window.location.origin + inviteUrl;
+
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      toast.success("邀请链接已复制", {
+        duration: 2500,
+        position: "top-center",
+      });
+    } catch {
+      toast.error("复制失败，请重试");
+    }
+  };
+
+  const MenuItem = ({ label, icon, onClick, itemKey, className = "" }: any) => (
+    <button
+      key={itemKey}
+      onClick={onClick}
+      className={`loginmenu-dd-item ${className}`}
+    >
       {icon && <span className="loginmenu-dd-icon">{icon}</span>}
       <span>{label}</span>
     </button>
   );
+
+  const otherUsers = users.filter((user) => user !== auth.user && user);
 
   return (
     <>
@@ -161,7 +272,7 @@ export const LoggedInMenu: React.FC = () => {
             }
           >
             <div className="loginmenu-user-trigger">
-              <PersonIcon size={20} />
+              <PersonIcon size={18} />
               <span className="loginmenu-user-trigger-text">
                 {auth.user?.username}
               </span>
@@ -172,38 +283,51 @@ export const LoggedInMenu: React.FC = () => {
         <DropdownMenu
           trigger={
             <button className="loginmenu-icon-button">
-              <TriangleDownIcon size={20} />
+              <TriangleDownIcon size={16} />
             </button>
           }
           direction="bottom"
           triggerType="hover"
         >
           <div className="loginmenu-dd-wrapper">
-            {users.map(
-              (user) =>
-                user !== auth.user &&
-                user &&
-                renderDropdownItem(
-                  user.username,
-                  null,
-                  () => handleUserChange(user),
-                  `user-${user.userId}`
-                )
+            {otherUsers.length > 0 && (
+              <div className="loginmenu-users-section">
+                {otherUsers.map((user) => (
+                  <MenuItem
+                    itemKey={`user-${user.userId}`}
+                    label={user.username}
+                    icon={<PersonIcon size={16} />}
+                    onClick={() => handleUserChange(user)}
+                    className="loginmenu-user-item"
+                  />
+                ))}
+              </div>
             )}
 
-            {renderDropdownItem(
-              t("settings"),
-              <GearIcon size={16} />,
-              () => navigate(SettingRoutePaths.SETTING),
-              "settings"
-            )}
+            <MenuItem
+              itemKey="invite"
+              label="邀请朋友"
+              icon={<PlusIcon size={16} />}
+              onClick={handleInviteFriend}
+              className="loginmenu-invite-item"
+            />
 
-            {renderDropdownItem(
-              t("logout"),
-              <SignOutIcon size={16} />,
-              handleLogout,
-              "logout"
-            )}
+            <MenuItem
+              itemKey="settings"
+              label={t("settings")}
+              icon={<GearIcon size={16} />}
+              onClick={() => navigate(SettingRoutePaths.SETTING)}
+            />
+
+            <div className="loginmenu-bottom-section">
+              <MenuItem
+                itemKey="logout"
+                label={t("logout")}
+                icon={<SignOutIcon size={16} />}
+                onClick={handleLogout}
+                className="loginmenu-logout-item"
+              />
+            </div>
           </div>
         </DropdownMenu>
       </div>

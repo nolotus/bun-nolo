@@ -2,7 +2,7 @@ import { TrashIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 import { MemberRole } from "create/space/types";
 import { useAppSelector } from "app/hooks"; // 导入 useAppSelector
-import { selectCurrentUserId } from "auth/authSlice"; // 导入 selectCurrentUserId
+import { selectUserId } from "auth/authSlice"; // 导入 selectUserId
 
 export const MemberList = ({
   members,
@@ -10,7 +10,7 @@ export const MemberList = ({
   onRemove,
   removingId,
 }) => {
-  const currentUserId = useAppSelector(selectCurrentUserId); // 直接获取当前用户 ID
+  const currentUserId = useAppSelector(selectUserId); // 直接获取当前用户 ID
   const isOwner = currentUserId === ownerId; // 判断当前用户是否是 owner
 
   return (
