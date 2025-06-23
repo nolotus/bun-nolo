@@ -8,9 +8,10 @@ import dbReducer from "database/dbSlice";
 import settingReducer from "setting/settingSlice";
 import dialogSlice from "chat/dialog/dialogSlice";
 import spaceRecer from "create/space/spaceSlice";
-
+import planSlice from "ai/llm/planSlice";
 export const reducer = {
   dialog: dialogSlice,
+  plan: planSlice,
   message: messageReducer,
   auth: authReducer,
   page: pageReducer,
