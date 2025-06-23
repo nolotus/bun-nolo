@@ -1,4 +1,5 @@
 // index.ts
+
 import { isProduction } from "utils/env";
 import { handleRequest } from "./handleRequest";
 import { Cron } from "croner";
@@ -8,6 +9,9 @@ import { handleChatRequest } from "./handlers/chatHandler";
 import { handleFetchWebpage } from "./handlers/fetchWebpageHandler";
 import { databaseRoutes } from "./databaseRoutes";
 import { sqliteRoutes } from "./sqliteRoutes";
+
+// --- 新增引入 ---
+import { handleGetTransactions } from "./handlers/getTransactionsHandler";
 
 // 启动定时任务 (如果需要，可以取消注释)
 const startTasks = () => {
@@ -40,6 +44,13 @@ const apiRoutes = {
     POST: (req: Request) => handleChatRequest(req, corsHeaders),
     OPTIONS: () => new Response(null, { status: 204, headers: corsHeaders }),
   },
+
+  // --- 新增的交易记录查询路由 ---
+  [API_ENDPOINTS.TRANSACTIONS]: {
+    POST: (req: Request) => handleGetTransactions(req),
+    OPTIONS: () => new Response(null, { status: 204, headers: corsHeaders }),
+  },
+
   "/api/fetch-webpage": {
     POST: handleFetchWebpage,
     OPTIONS: () => new Response(null, { status: 204, headers: corsHeaders }),
