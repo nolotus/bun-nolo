@@ -1,5 +1,5 @@
 // 这是一个完整的、可直接使用的文件
-// 它包含了 createPlan 工具的定义，以及从 planSlice 移动过来的 plan 执行逻辑
+// 它包含了 createPlan 工具的定义，以及支持并行执行的 plan 逻辑
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
@@ -9,7 +9,8 @@ import {
   setCurrentStep,
   selectSteps,
   type Step,
-} from "ai/llm/planSlice"; // 注意: 导入了更多的 action 和 selector
+  type ToolCall,
+} from "ai/llm/planSlice";
 import { runCybotId } from "ai/cybot/cybotSlice";
 import { toolExecutors } from "ai/tools/toolRegistry";
 import type { RootState } from "app/store";
@@ -18,14 +19,13 @@ import { messageStreamEnd, messageStreaming } from "chat/messages/messageSlice";
 import { extractCustomId } from "core/prefix";
 import { createDialogMessageKeyAndId } from "database/keys";
 
-// --- 常量定义 (从 planSlice 移动过来) ---
 const PLAN_EXECUTOR_CYBOT_KEY = "PLAN_EXECUTOR";
 
-// --- Schema (保持不变) ---
+// --- Schema (已更新以支持并行调用) ---
 export const createPlanFunctionSchema = {
   name: "createPlan",
   description:
-    "When a task requires multiple structured steps or sequential AI thinking to complete, use this tool to formulate and execute a detailed plan. Do not use for simple, single-step tasks.",
+    "When a task requires multiple structured steps or tools to be run in parallel, use this tool to formulate and execute a detailed plan. Do not use for simple, single-step tasks.",
   parameters: {
     type: "object",
     properties: {
@@ -37,36 +37,49 @@ export const createPlanFunctionSchema = {
       strategy: {
         type: "string",
         description:
-          "[Crucially Important] Detail the overall strategy and thought process for creating this plan. Explain why you chose these steps and how you expect them to work together to achieve the final goal. This ensures the plan's logic and correctness.",
+          "[Crucially Important] Detail the overall strategy and thought process for creating this plan. Explain why you chose these steps and how they work together to achieve the final goal.",
       },
       steps: {
         type: "array",
         description:
-          "An ordered sequence of steps that make up the plan. Subsequent steps can reference the output of previous steps using the '{{steps.step_id.result}}' syntax.",
+          "An ordered sequence of steps. Each step can contain one or more tool calls that will be executed in parallel.",
         items: {
           type: "object",
           properties: {
             id: {
               type: "string",
               description:
-                "A unique identifier for the step (e.g., 'step_1'), used for referencing in subsequent steps.",
+                "A unique identifier for the step (e.g., 'step_1'), used for referencing results in subsequent steps.",
             },
             title: {
               type: "string",
               description:
                 "A short, human-readable description of the step's objective.",
             },
-            tool_name: {
-              type: "string",
+            // 修改：'tool_name' 和 'parameters' 被移入 'calls' 数组
+            calls: {
+              type: "array",
               description:
-                "The name of the tool to be called. Includes a special 'ask_ai_assistant' tool for open-ended tasks requiring language understanding, generation, summarization, or transformation.",
-            },
-            parameters: {
-              type: "object",
-              description: `Provides the necessary parameters for the selected tool. If tool_name is 'ask_ai_assistant', the parameters must include 'task'. You can use '{{steps.step_id.result}}' to reference results from previous steps.`,
+                "An array of one or more tool calls to be executed in parallel within this step.",
+              items: {
+                type: "object",
+                properties: {
+                  tool_name: {
+                    type: "string",
+                    description:
+                      "The name of the tool to be called. Includes 'ask_ai_assistant'.",
+                  },
+                  parameters: {
+                    type: "object",
+                    description:
+                      "Parameters for the tool. Can use '{{steps.step_id.result[index]}}' to reference results from a specific parallel call in a previous step.",
+                  },
+                },
+                required: ["tool_name", "parameters"],
+              },
             },
           },
-          required: ["id", "title", "tool_name", "parameters"],
+          required: ["id", "title", "calls"],
         },
       },
     },
@@ -76,7 +89,6 @@ export const createPlanFunctionSchema = {
 
 // --- 辅助函数 ---
 
-// 辅助函数，用于解析步骤参数中的引用 (从 planSlice 移动过来)
 const resolveParameters = (params: any, allSteps: Step[]): any => {
   if (typeof params !== "string") {
     if (Array.isArray(params)) {
@@ -93,25 +105,41 @@ const resolveParameters = (params: any, allSteps: Step[]): any => {
     return params;
   }
 
-  return params.replace(/\{\{steps\.([^}]+)\.result\}\}/g, (match, stepId) => {
-    const referencedStep = allSteps.find((s) => s.id === stepId);
-    if (
-      referencedStep &&
-      referencedStep.status === "completed" &&
-      referencedStep.result !== undefined &&
-      referencedStep.result !== null
-    ) {
-      if (typeof referencedStep.result === "object") {
-        return JSON.stringify(referencedStep.result);
+  // 更新：支持索引来引用并行调用的结果，例如 {{steps.step_1.result[0]}}
+  return params.replace(
+    /\{\{steps\.([^}]+)\.result(\[\d+\])?\}\}/g,
+    (match, stepId, indexPart) => {
+      const referencedStep = allSteps.find((s) => s.id === stepId);
+      if (
+        !referencedStep ||
+        referencedStep.status !== "completed" ||
+        !referencedStep.result
+      ) {
+        console.warn(`无法解析引用：步骤 "${stepId}" 未完成或没有结果。`);
+        return match;
       }
-      return String(referencedStep.result);
+
+      let result = referencedStep.result;
+      if (indexPart) {
+        const index = parseInt(indexPart.slice(1, -1), 10);
+        if (Array.isArray(result) && index < result.length) {
+          result = result[index];
+        } else {
+          console.warn(
+            `无法解析引用：步骤 "${stepId}" 的结果中没有索引 ${index}。`
+          );
+          return match;
+        }
+      }
+
+      if (typeof result === "object") {
+        return JSON.stringify(result);
+      }
+      return String(result);
     }
-    console.warn(`无法解析引用：步骤 "${stepId}" 未完成或没有结果。`);
-    return match; // Return original placeholder if not found
-  });
+  );
 };
 
-// 辅助函数，用于格式化参数显示
 function formatParameters(params: Record<string, any>): string {
   if (!params || Object.keys(params).length === 0) return "None";
   return Object.entries(params)
@@ -119,22 +147,19 @@ function formatParameters(params: Record<string, any>): string {
     .join("\n");
 }
 
-// --- 异步 Thunk (从 planSlice 移动并重构) ---
+// --- 异步 Thunk (已重构以支持并行执行) ---
 
 interface RunPlanArgs {
   dialogKey: string;
 }
 
 export const runPlanSteps = createAsyncThunk(
-  "plan/runPlanSteps", // Action type prefix, 必须唯一
+  "plan/runPlanSteps",
   async ({ dialogKey }: RunPlanArgs, thunkApi) => {
     const { getState, dispatch, signal } = thunkApi;
     const initialSteps = selectSteps(getState() as RootState);
 
-    if (!initialSteps || initialSteps.length === 0) {
-      console.warn("runPlanSteps: no steps to run");
-      return;
-    }
+    if (!initialSteps || initialSteps.length === 0) return;
 
     const dialogId = extractCustomId(dialogKey);
 
@@ -145,13 +170,12 @@ export const runPlanSteps = createAsyncThunk(
       dispatch(updateStep({ id: step.id, updates: { status: "in-progress" } }));
 
       const { key: msgKey, messageId } = createDialogMessageKeyAndId(dialogId);
-
       dispatch(
         messageStreaming({
           id: messageId,
           dbKey: msgKey,
           role: "assistant",
-          content: `🔄 **正在执行: ${step.title}**`,
+          content: `🔄 **正在执行: ${step.title}** (${step.calls.length}个任务并行)`,
           cybotKey: PLAN_EXECUTOR_CYBOT_KEY,
           isStreaming: true,
         })
@@ -160,59 +184,69 @@ export const runPlanSteps = createAsyncThunk(
       try {
         const currentState = getState() as RootState;
         const currentSteps = selectSteps(currentState);
-        const resolvedParameters = resolveParameters(
-          step.call.parameters,
-          currentSteps
-        );
-        let toolResult: { rawData: any; displayData: string };
 
-        if (step.call.tool_name === "ask_ai_assistant") {
-          const { task, assistant_id } = resolvedParameters;
-          if (!task)
-            throw new Error(
-              `Step '${step.title}' is missing 'task' parameter.`
-            );
+        // 使用 Promise.all 并行执行步骤中的所有调用
+        const callPromises = step.calls.map(async (call: ToolCall) => {
+          const resolvedParameters = resolveParameters(
+            call.parameters,
+            currentSteps
+          );
 
-          let cybotIdToUse = assistant_id;
-          if (!cybotIdToUse) {
-            const dialogConfig = selectCurrentDialogConfig(currentState);
-            if (dialogConfig?.cybots?.length) {
-              cybotIdToUse = dialogConfig.cybots[0];
-            } else {
+          if (call.tool_name === "ask_ai_assistant") {
+            const { task, assistant_id } = resolvedParameters;
+            if (!task)
               throw new Error(
-                `Could not determine which assistant to use for '${step.title}'.`
+                `Step '${step.title}' is missing 'task' parameter.`
               );
-            }
-          }
 
-          const resultText = await dispatch(
-            runCybotId({ content: task, cybotId: cybotIdToUse })
-          ).unwrap();
-          toolResult = { rawData: resultText, displayData: resultText };
-        } else {
-          const executor = toolExecutors[step.call.tool_name];
-          if (!executor)
-            throw new Error(`Unknown tool: ${step.call.tool_name}`);
-          toolResult = await executor(resolvedParameters, thunkApi, {
-            parentMessageId: messageId,
-          });
-        }
+            let cybotIdToUse = assistant_id;
+            if (!cybotIdToUse) {
+              const dialogConfig = selectCurrentDialogConfig(currentState);
+              cybotIdToUse = dialogConfig?.cybots?.[0];
+              if (!cybotIdToUse)
+                throw new Error(
+                  `Could not determine assistant for '${step.title}'.`
+                );
+            }
+
+            const resultText = await dispatch(
+              runCybotId({ content: task, cybotId: cybotIdToUse })
+            ).unwrap();
+            return {
+              rawData: resultText,
+              displayData: `**${call.tool_name}**: ${resultText}`,
+            };
+          } else {
+            const executor = toolExecutors[call.tool_name];
+            if (!executor) throw new Error(`Unknown tool: ${call.tool_name}`);
+            const toolResult = await executor(resolvedParameters, thunkApi, {
+              parentMessageId: messageId,
+            });
+            return {
+              ...toolResult,
+              displayData: `**${call.tool_name}**: ${toolResult.displayData || "执行成功"}`,
+            };
+          }
+        });
+
+        // 等待所有并行任务完成
+        const toolResults = await Promise.all(callPromises);
 
         dispatch(
           updateStep({
             id: step.id,
-            updates: { status: "completed", result: toolResult.rawData },
+            updates: {
+              status: "completed",
+              // 将所有并行的原始结果存入数组
+              result: toolResults.map((res) => res.rawData),
+            },
           })
         );
 
+        const finalContent = `✅ **${step.title} 完成**\n\n${toolResults.map((r) => r.displayData).join("\n")}`;
         await dispatch(
           messageStreamEnd({
-            finalContentBuffer: [
-              {
-                type: "text",
-                text: `✅ **${step.title} 完成**\n\n${toolResult.displayData || "执行成功，结果已记录。"}`,
-              },
-            ],
+            finalContentBuffer: [{ type: "text", text: finalContent }],
             msgKey,
             dialogId,
             dialogKey,
@@ -227,10 +261,9 @@ export const runPlanSteps = createAsyncThunk(
         dispatch(
           updateStep({
             id: step.id,
-            updates: { status: "failed", result: e.message },
+            updates: { status: "failed", result: [e.message] },
           })
         );
-
         await dispatch(
           messageStreamEnd({
             finalContentBuffer: [
@@ -255,12 +288,7 @@ export const runPlanSteps = createAsyncThunk(
   }
 );
 
-// --- 工具主函数 (保持不变) ---
-
-/**
- * 创建一个计划，显示它，然后派发执行 thunk 在后台运行，
- * 允许它向 UI 实时推送更新。
- */
+// --- 工具主函数 (已更新以处理新结构) ---
 export async function createPlanAndOrchestrateFunc(
   args: any,
   thunkApi: any
@@ -284,35 +312,26 @@ export async function createPlanAndOrchestrateFunc(
     id: blueprint.id,
     title: blueprint.title,
     status: "pending",
-    call: {
-      tool_name: blueprint.tool_name,
-      parameters: blueprint.parameters || {},
-    },
-    result: null,
+    // 确保 calls 属性被正确映射
+    calls: blueprint.calls || [],
+    result: [],
   }));
 
   dispatch(setPlan({ planDetails: strategy, currentProgress: 0 }));
   dispatch(setSteps(processedSteps));
 
-  // 2. 派发计划执行 thunk，但不要 await 它。
-  //    这让它可以在后台运行并创建自己的消息。
+  // 2. 派发计划执行 thunk
   const state = getState() as RootState;
   const dialogKey = state.dialog.currentDialogKey;
-
   if (dialogKey) {
     dispatch(runPlanSteps({ dialogKey })); // "Fire-and-forget"
   } else {
-    console.error(
-      "Cannot execute plan: Could not retrieve currentDialogKey. The plan will not be executed."
-    );
+    console.error("Cannot execute plan: Could not retrieve currentDialogKey.");
     const errorMarkdown = `\n\n**CRITICAL ERROR:** Could not find the current dialog. The plan was created but **will not be executed.**`;
-    return {
-      rawData: errorMarkdown,
-      displayData: errorMarkdown,
-    };
+    return { rawData: errorMarkdown, displayData: errorMarkdown };
   }
 
-  // 3. 立即向用户返回初始的计划概览消息。
+  // 3. 立即向用户返回初始的计划概览消息
   const markdownResult = `
 ### Plan Created: ${planTitle}
 
@@ -327,9 +346,14 @@ ${processedSteps
   .map(
     (step, index) => `
 **${index + 1}. ${step.title}** (\`ID: ${step.id}\`)
-- **Tool:** \`${step.call.tool_name}\`
+${step.calls
+  .map(
+    (call) => `
+- **Tool:** \`${call.tool_name}\`
 - **Parameters:**
-${formatParameters(step.call.parameters)}
+${formatParameters(call.parameters)}`
+  )
+  .join("")}
 `
   )
   .join("\n---\n")}
