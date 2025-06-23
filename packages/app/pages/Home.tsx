@@ -4,7 +4,7 @@ import { selectTheme } from "../theme/themeSlice";
 import {
   selectIsLoggedIn,
   selectCurrentUser,
-  selectCurrentUserId,
+  selectUserId,
 } from "../../auth/authSlice";
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
 import { CreateRoutePaths } from "create/routePaths";
@@ -30,7 +30,7 @@ const Home = () => {
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector(selectIsLoggedIn);
   const currentUser = useAppSelector(selectCurrentUser);
-  const currentUserId = useAppSelector(selectCurrentUserId);
+  const currentUserId = useAppSelector(selectUserId);
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
 
   const [activeTab, setActiveTab] = useState(

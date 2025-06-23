@@ -6,7 +6,7 @@ import {
   SpaceContent,
   SpaceMemberWithSpaceInfo, // 确保这个类型包含了新增的字段 (dbKey, userId, createdAt, updatedAt)
 } from "create/space/types"; // 确认导入路径
-import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
+import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { DataType } from "create/types"; // 确认导入路径
 import { getUserDataOnce } from "database/utils/getUserDataOnce"; // 确认导入路径
 import { ulid } from "ulid";
@@ -28,7 +28,7 @@ export const addSpaceAction = async (
   } = input;
   const { dispatch, getState } = thunkAPI; // 显式解构 dispatch 和 getState
   const state = getState();
-  const userId = selectCurrentUserId(state);
+  const userId = selectUserId(state);
   if (!userId) {
     // 添加 userId 验证
     throw new Error("User is not logged in.");

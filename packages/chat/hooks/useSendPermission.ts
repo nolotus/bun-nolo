@@ -1,5 +1,5 @@
 import { useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
 import useCybotConfig from "ai/cybot/hooks/useCybotConfig";
 import { getModelPricing, getFinalPrice, getPrices } from "ai/llm/getPricing";
@@ -16,7 +16,7 @@ export interface SendPermissionCheck {
 
 export const useSendPermission = (userBalance: number = 0) => {
   const { t } = useTranslation("chat"); // 修改为 chat 命名空间
-  const userId = useAppSelector(selectCurrentUserId);
+  const userId = useAppSelector(selectUserId);
   const cybotConfig = useCybotConfig();
   const serverPrices = cybotConfig
     ? getModelPricing(cybotConfig.provider, cybotConfig.model)

@@ -1,7 +1,7 @@
 // src/database/actions/upsertAction.ts
 import { browserDb } from "../browser/db";
 import { selectCurrentServer } from "setting/settingSlice";
-import { selectCurrentUserId } from "auth/authSlice"; // Removed selectIsLoggedIn as it wasn't used
+import { selectUserId } from "auth/authSlice"; // Removed selectIsLoggedIn as it wasn't used
 import { getAllServers, normalizeTimeFields, logger } from "./common";
 import {
   noloPatchRequest, // Import new patch request function
@@ -70,7 +70,7 @@ export const upsertAction = async (
 
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state);
-  const currentUserId = selectCurrentUserId(state);
+  const currentUserId = selectUserId(state);
   const providedUserId = upsertConfig.userId; // Optional userId override from config
   const userId = providedUserId || currentUserId; // Use provided or fallback to current user from auth state
 

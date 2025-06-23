@@ -4,7 +4,7 @@ import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
 import { isProduction } from "utils/env";
 import { read, upsert } from "database/dbSlice";
 import { createUserKey } from "database/keys";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { DataType } from "create/types";
 import { SERVERS } from "database/requests";
 
@@ -80,7 +80,7 @@ const settingSlice = createSliceWithThunks({
       async (args: Partial<Omit<SettingState, "type">>, thunkAPI) => {
         const { dispatch, getState } = thunkAPI;
         const state = getState() as RootState;
-        const userId = selectCurrentUserId(state);
+        const userId = selectUserId(state);
 
         if (!userId) {
           throw new Error("Cannot set settings: User ID not found.");

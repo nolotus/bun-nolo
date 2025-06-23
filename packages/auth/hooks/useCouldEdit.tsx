@@ -1,6 +1,6 @@
 import { useAppSelector } from "app/hooks";
 import { extractUserId } from "core/prefix";
-import { selectCurrentUserId } from "../authSlice";
+import { selectUserId } from "../authSlice";
 import { nolotusId } from "core/init";
 
 export const useCouldEdit = (dbKey?: string) => {
@@ -10,7 +10,7 @@ export const useCouldEdit = (dbKey?: string) => {
   }
 
   const dataUserId = extractUserId(dbKey);
-  const currentUserId = useAppSelector(selectCurrentUserId);
+  const currentUserId = useAppSelector(selectUserId);
   if (currentUserId === nolotusId) {
     return true;
   }

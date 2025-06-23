@@ -1,5 +1,5 @@
 import type { SpaceId, SpaceData } from "create/space/types";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, write, remove } from "database/dbSlice"; // 使用 remove
 
@@ -18,7 +18,7 @@ export const removeMemberAction = async (
   const { spaceId, memberId } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const currentUserId = selectCurrentUserId(state);
+  const currentUserId = selectUserId(state);
 
   const spaceKey = createSpaceKey.space(spaceId);
   const spaceData: SpaceData | null = await dispatch(read(spaceKey)).unwrap();

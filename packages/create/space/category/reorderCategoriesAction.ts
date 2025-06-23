@@ -1,6 +1,6 @@
 // create/space/category/reorderCategoriesAction.ts (假设路径)
 import type { SpaceId, SpaceData, SpaceCategory } from "create/space/types";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patch } from "database/dbSlice";
 import type { AppDispatch, RootState } from "app/store";
@@ -13,7 +13,7 @@ export const reorderCategoriesAction = async (
   const { spaceId, sortedCategoryIds } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const currentUserId = selectCurrentUserId(state);
+  const currentUserId = selectUserId(state);
   if (!currentUserId) {
     // 添加 userId 检查
     throw new Error("User is not logged in.");

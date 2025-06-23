@@ -19,7 +19,7 @@ import { remove, write } from "database/dbSlice";
 import { deleteDialogMsgsAction } from "./actions/deleteDialogMsgsAction";
 import type { Message } from "./types";
 import { selectCurrentServer } from "setting/settingSlice";
-import { selectCurrentToken, selectCurrentUserId } from "auth/authSlice";
+import { selectCurrentToken, selectUserId } from "auth/authSlice";
 import { fetchMessages as fetchLocalMessages } from "chat/messages/fetchMessages";
 import { fetchConvMsgs } from "./fetchConvMsgs";
 import { browserDb } from "database/browser/db";
@@ -166,7 +166,7 @@ export const messageSlice = createSliceWithThunks({
         }
         const dialogKey = dialogConfig.dbKey || dialogConfig.id;
         const dialogId = extractCustomId(dialogKey);
-        const userId = selectCurrentUserId(state);
+        const userId = selectUserId(state);
         const { key: messageDbKey, messageId } =
           createDialogMessageKeyAndId(dialogId);
         const userMsg: Message = {

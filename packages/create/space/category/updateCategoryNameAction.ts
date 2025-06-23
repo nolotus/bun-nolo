@@ -1,6 +1,6 @@
 // create/space/category/updateCategoryNameAction.ts
 import type { SpaceId, SpaceData } from "create/space/types";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patch } from "database/dbSlice";
 import type { AppDispatch, RootState } from "app/store";
@@ -13,7 +13,7 @@ export const updateCategoryNameAction = async (
   const { spaceId, categoryId, name } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const currentUserId = selectCurrentUserId(state);
+  const currentUserId = selectUserId(state);
 
   // --- 输入验证 ---
   if (!currentUserId) {

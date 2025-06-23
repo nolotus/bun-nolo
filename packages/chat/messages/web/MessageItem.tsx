@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from "react";
 import { useAppSelector } from "app/hooks";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { selectTheme } from "app/theme/themeSlice";
 import { ChevronDownIcon, ChevronRightIcon } from "@primer/octicons-react";
 import Avatar from "render/web/ui/Avatar";
@@ -527,7 +527,7 @@ MessageContent.displayName = "MessageContent";
 // 主消息组件 - 使用 memo 和优化的事件处理
 export const MessageItem = memo(({ message }) => {
   const theme = useAppSelector(selectTheme);
-  const currentUserId = useAppSelector(selectCurrentUserId);
+  const currentUserId = useAppSelector(selectUserId);
 
   // 状态管理优化
   const [isCollapsed, setIsCollapsed] = useState(false);

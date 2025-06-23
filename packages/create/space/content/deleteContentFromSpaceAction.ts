@@ -1,5 +1,5 @@
 // src/database/actions/space/deleteContentFromSpaceAction.ts (请根据你的项目结构调整路径)
-import { selectCurrentUserId } from "auth/authSlice"; // 假设路径
+import { selectUserId } from "auth/authSlice"; // 假设路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 假设路径
 import { patch, read, remove } from "database/dbSlice"; // 从 dbSlice 导入
 import { SpaceData } from "create/space/types"; // 导入 SpaceData 类型
@@ -25,7 +25,7 @@ export const deleteContentFromSpaceAction = async (
   const { contentKey, spaceId } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const userId = selectCurrentUserId(state); // 获取当前用户 ID
+  const userId = selectUserId(state); // 获取当前用户 ID
 
   logger.info(
     { contentKey, spaceId, userId },

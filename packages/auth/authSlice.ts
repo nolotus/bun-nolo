@@ -220,7 +220,7 @@ export default authSlice.reducer;
 // 选择器
 export const selectCurrentUser = (state: RootState) => state.auth.currentUser;
 export const selectUsers = (state: RootState) => state.auth.users;
-export const selectCurrentUserId = (state: RootState) =>
+export const selectUserId = (state: RootState) =>
   state.auth.currentUser?.userId;
 export const selectIsLoggedIn = (state: RootState) => state.auth.isLoggedIn;
 export const selectCurrentToken = (state: RootState) => state.auth.currentToken;
