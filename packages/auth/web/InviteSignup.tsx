@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
-import { useLocation, NavLink } from "react-router-dom";
+import { useSearchParams, NavLink } from "react-router-dom";
 import z from "zod";
 import { Input } from "web/form/Input";
 import PasswordInput from "web/form/PasswordInput";
@@ -25,11 +25,12 @@ const InviteSignup: React.FC = () => {
   const { isLoading } = useSelector((state) => state.auth);
   const { t } = useTranslation();
   const { handleRegister, error } = useRegister();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
 
-  const queryParams = new URLSearchParams(location.search);
-  const inviterId = queryParams.get("inviterId") || "";
+  // 使用 React Router DOM 的现代方式获取参数
+  const inviterId = searchParams.get("inviterId") || "";
+  const inviterCode = searchParams.get("code") || "";
 
   const [inviterProfile, setInviterProfile] = useState({
     nickname: "",
@@ -81,7 +82,7 @@ const InviteSignup: React.FC = () => {
     handleRegister({
       ...data,
       inviterId: inviterId,
-      inviterCode: queryParams.get("code") || undefined,
+      inviterCode: inviterCode || undefined,
     });
   };
 
