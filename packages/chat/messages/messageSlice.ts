@@ -29,7 +29,7 @@ import { extractCustomId } from "core/prefix";
 import { DialogConfig } from "app/types";
 import { findToolExecutor } from "ai/tools/toolRegistry";
 import { updateDialogTitle, updateTokens } from "chat/dialog/dialogSlice";
-import { streamCybotId } from "ai/cybot/cybotSlice";
+import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
 
 const FALLBACK_SERVERS = [SERVERS.MAIN, SERVERS.US];
 const OLDER_LOAD_LIMIT = 30;
@@ -328,7 +328,7 @@ export const messageSlice = createSliceWithThunks({
           if (canonicalName === "runStreamingAgent") {
             try {
               await dispatch(
-                streamCybotId({
+                streamAgentChatTurn({
                   cybotId: toolArgs.agentKey,
                   userInput: toolArgs.userInput,
                   parentMessageId: parentMessageId,

@@ -9,7 +9,7 @@ import copyToClipboard from "utils/clipboard";
 import { write } from "database/dbSlice";
 import { DataType } from "create/types";
 import { ulid } from "ulid";
-import { runCybotId } from "ai/cybot/cybotSlice";
+import { runAgent } from "ai/cybot/cybotSlice";
 import { Link } from "react-router-dom";
 import { titleCybotId } from "core/init";
 import { useAuth } from "auth/hooks/useAuth";
@@ -96,7 +96,7 @@ export const MessageActions = ({
     try {
       title =
         (await dispatch(
-          runCybotId({ cybotId: titleCybotId, content: str.substring(0, 500) })
+          runAgent({ cybotId: titleCybotId, content: str.substring(0, 500) })
         ).unwrap()) || key;
     } catch {}
 

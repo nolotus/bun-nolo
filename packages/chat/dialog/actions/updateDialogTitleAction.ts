@@ -1,4 +1,4 @@
-import { runCybotId } from "ai/cybot/cybotSlice";
+import { runAgent } from "ai/cybot/cybotSlice";
 import { titleCybotId } from "core/init";
 import {
   selectCurrentSpaceId,
@@ -68,7 +68,7 @@ export const updateDialogTitleAction = async (args, thunkApi) => {
   const content = JSON.stringify(currentMsgs);
 
   const generateTitle = await dispatch(
-    runCybotId({
+    runAgent({
       cybotId: titleCybotId,
       content,
     })

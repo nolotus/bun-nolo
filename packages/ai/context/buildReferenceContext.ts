@@ -56,6 +56,5 @@ export const fetchReferenceContents = async (
     return null;
   }
 
-  // 移除了 "Context Information:" 标题，因为现在由 generatePrompt 动态生成更具体的标题
   return validContents.join("");
 };
