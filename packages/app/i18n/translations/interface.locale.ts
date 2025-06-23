@@ -1,4 +1,3 @@
-// app/i18n/translations/interface.locale.ts
 import { Language } from "../types";
 
 export default {
@@ -40,7 +39,6 @@ export default {
       betaAccess: "Apply for Beta Access",
       betaDescription:
         "We are currently in beta testing phase with limited spots available. Please leave your email and tell us how you would use our product.",
-      enterEmail: "Enter email",
       emailRequired: "Email is required",
       invalidEmail: "Please enter a valid email",
       emailExists: "This email has already applied",
@@ -96,6 +94,15 @@ export default {
           },
         },
       },
+      // 新增翻译
+      joinCommunity: "Join Our Community",
+      invitedBy: "You've been invited by",
+      acceptInvitation: "Accept Invitation",
+      passwordMinLength: "Password must be at least 8 characters",
+      registerSuccess: "Registration successful!",
+      registrationFailed: "Registration failed",
+      unknown: "Unknown",
+      code: "Invitation Code",
     },
   },
   [Language.ZH_CN]: {
@@ -135,7 +142,6 @@ export default {
       betaAccess: "申请内测资格",
       betaDescription:
         "我们目前处于内测阶段，仅开放有限名额。请留下您的邮箱并告诉我们您的使用场景。",
-      enterEmail: "请输入邮箱",
       emailRequired: "请输入邮箱",
       invalidEmail: "请输入有效的邮箱",
       emailExists: "该邮箱已申请",
@@ -191,6 +197,15 @@ export default {
           },
         },
       },
+      // 新增翻译
+      joinCommunity: "加入我们的社区",
+      invitedBy: "你已被邀请",
+      acceptInvitation: "接受邀请",
+      passwordMinLength: "密码至少需要8个字符",
+      registerSuccess: "注册成功！",
+      registrationFailed: "注册失败",
+      unknown: "未知",
+      code: "邀请码",
     },
   },
   [Language.ZH_HANT]: {
@@ -230,7 +245,6 @@ export default {
       betaAccess: "申請內測資格",
       betaDescription:
         "我們目前處於內測階段，僅開放有限名額。請留下您的郵箱並告訴我們您的使用場景。",
-      enterEmail: "請輸入郵箱",
       emailRequired: "請輸入郵箱",
       invalidEmail: "請輸入有效的郵箱",
       emailExists: "該郵箱已申請",
@@ -286,6 +300,15 @@ export default {
           },
         },
       },
+      // 新增翻译
+      joinCommunity: "加入我們的社區",
+      invitedBy: "您已被邀請",
+      acceptInvitation: "接受邀請",
+      passwordMinLength: "密碼至少需要8個字符",
+      registerSuccess: "註冊成功！",
+      registrationFailed: "註冊失敗",
+      unknown: "未知",
+      code: "邀請碼",
     },
   },
   [Language.JA]: {
@@ -327,7 +350,6 @@ export default {
       betaAccess: "ベータテスト参加申請",
       betaDescription:
         "現在ベータテスト段階で、参加枠に限りがございます。メールアドレスと使用目的をご記入ください。",
-      enterEmail: "メールアドレスを入力",
       emailRequired: "メールアドレスを入力してください",
       invalidEmail: "有効なメールアドレスを入力してください",
       emailExists: "このメールアドレスは既に申請済みです",
@@ -383,6 +405,15 @@ export default {
           },
         },
       },
+      // 新增翻译
+      joinCommunity: "コミュニティに参加",
+      invitedBy: "招待されました",
+      acceptInvitation: "招待を受け入れる",
+      passwordMinLength: "パスワードは8文字以上である必要があります",
+      registerSuccess: "登録成功！",
+      registrationFailed: "登録に失敗しました",
+      unknown: "不明",
+      code: "招待コード",
     },
   },
 };
