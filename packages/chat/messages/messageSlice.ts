@@ -2,6 +2,8 @@
  * ==================================================================
  *  /chat/messages/messageSlice.ts (Corrected)
  * ==================================================================
+ *  此版本修复了 messageStreamEnd thunk，确保在消息流结束后，
+ *  Redux store 中的消息内容能够与数据库同步更新，从而实现实时UI刷新。
  */
 
 import { RootState } from "app/store";
@@ -349,19 +351,13 @@ export const messageSlice = createSliceWithThunks({
           let displayContent;
           const displayData = toolResult?.displayData;
 
-          // ===================== [FIXED CODE BLOCK] =====================
-          // The logic is now unified. All tools are expected to return an object
-          // with a 'displayData' property for rendering in the chat.
           if (canonicalName === "createPlan") {
-            // The createPlan tool now returns a comprehensive report in displayData.
-            // We just need to display it directly, without extra text.
             displayContent = {
               type: "text",
               text:
                 displayData || "[Plan executed, but no report was generated.]",
             };
           } else {
-            // Other tools will be wrapped in a standard "Tool Result" format.
             const text =
               displayData ||
               `${canonicalName.replace(/_/g, " ")} executed successfully.`;
@@ -370,7 +366,6 @@ export const messageSlice = createSliceWithThunks({
               text: `\n[Tool Result: ${text}]\n`,
             };
           }
-          // =================== [END FIXED CODE BLOCK] ===================
 
           return {
             displayContent,
@@ -441,6 +436,8 @@ export const messageSlice = createSliceWithThunks({
         return { finalContentBuffer: updatedContentBuffer, hasHandedOff };
       }
     ),
+
+    // ================= [START] CORRECTED THUNK =================
     messageStreamEnd: create.asyncThunk(
       async (payload: FinalizeStreamPayload, { dispatch }) => {
         const {
@@ -491,13 +488,29 @@ export const messageSlice = createSliceWithThunks({
           dispatch(updateDialogTitle({ dialogKey, cybotConfig }));
         }
 
-        return { id: messageId };
+        // [FIX] Return the complete final message data, not just the ID.
+        // This allows the reducer to update the Redux state with the final content.
+        return {
+          id: messageId,
+          content: finalMessage.content,
+          thinkContent: finalMessage.thinkContent,
+          usage: finalMessage.usage,
+          cybotKey: finalMessage.cybotKey,
+        };
       },
       {
         fulfilled: (state, action) => {
+          // [FIX] Use all the data from the payload to update the message in Redux.
+          // This ensures the UI updates in real-time without needing a refresh.
           messagesAdapter.updateOne(state.msgs, {
             id: action.payload.id,
-            changes: { isStreaming: false },
+            changes: {
+              isStreaming: false,
+              content: action.payload.content,
+              thinkContent: action.payload.thinkContent,
+              usage: action.payload.usage,
+              cybotKey: action.payload.cybotKey,
+            },
           });
         },
         rejected: (state, action) => {
@@ -518,6 +531,8 @@ export const messageSlice = createSliceWithThunks({
         },
       }
     ),
+    // ================= [END] CORRECTED THUNK =================
+
     deleteMessage: create.asyncThunk(
       async (dbKey: string, { dispatch, getState }) => {
         const state = getState() as RootState;
