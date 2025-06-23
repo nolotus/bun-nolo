@@ -1,6 +1,6 @@
+// authSlice.ts
 import { selectCurrentServer } from "setting/settingSlice";
 import { addDays, formatISO } from "date-fns";
-import pino from "pino";
 import { verifySignedMessage } from "core/crypto";
 import { generateUserIdV1 } from "core/generateMainKey";
 import { signToken, parseToken } from "auth/token";
@@ -8,16 +8,9 @@ import { API_VERSION } from "database/config";
 import { hashPasswordV1 } from "core/password";
 import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
 import { SERVERS } from "database/requests";
-const logger = pino({
-  level: "info",
-  transport: {
-    target: "pino-pretty",
-  },
-});
 
 const TIMEOUT = 5000;
 
-// 单个服务器注册请求
 const signUpToServer = async (
   server: string,
   sendData: any,
@@ -44,15 +37,12 @@ const signUpToServer = async (
       nolotusPubKey
     );
     const result = JSON.parse(decryptedData);
-    console.log("result", result);
     return result;
   } catch (error) {
-    logger.error({ error, server }, "SignUp request failed");
     return null;
   }
 };
 
-// 后台注册到其他服务器
 const signUpToBackupServers = (
   servers: string[],
   sendData: any,
@@ -66,7 +56,6 @@ const signUpToBackupServers = (
       .then((result) => {
         clearTimeout(timeoutId);
         if (!result) {
-          logger.warn({ server }, "Backup server registration failed");
         }
       })
       .catch(() => {
@@ -76,7 +65,7 @@ const signUpToBackupServers = (
 };
 
 export const signUpAction = async (user, thunkAPI) => {
-  const { username, locale, password, email } = user;
+  const { username, locale, password, email, inviterId } = user;
   const state = thunkAPI.getState();
   const tokenManager = state.auth.tokenManager;
   const encryptionKey = await hashPasswordV1(password);
@@ -89,26 +78,24 @@ export const signUpAction = async (user, thunkAPI) => {
     publicKey,
     locale,
     email,
+    inviterId,
   };
 
   const nolotusPubKey = "pqjbGua2Rp-wkh3Vip1EBV6p4ggZWtWvGyNC37kKPus";
 
   const currentServer = selectCurrentServer(state);
 
-  // 首先在当前服务器注册
   const remoteData = await signUpToServer(
     currentServer,
     sendData,
     nolotusPubKey
   );
-  console.log("remoteData", remoteData);
 
   if (!remoteData) {
     throw new Error("Failed to register on current server");
   }
   const localUserId = generateUserIdV1(publicKey, username, locale);
 
-  // 验证返回数据
   const isValid =
     remoteData.publicKey === publicKey &&
     remoteData.username === username &&
@@ -118,7 +105,6 @@ export const signUpAction = async (user, thunkAPI) => {
     throw new Error("Server data does not match local data");
   }
 
-  // 后台注册到其他服务器
   const backupServers = [SERVERS.MAIN, SERVERS.US].filter(
     (server) => server !== currentServer
   );
@@ -129,7 +115,6 @@ export const signUpAction = async (user, thunkAPI) => {
     });
   }
 
-  // 生成token
   const now = new Date();
   const exp = formatISO(addDays(now, 7));
   const iat = formatISO(now);
@@ -141,7 +126,6 @@ export const signUpAction = async (user, thunkAPI) => {
   );
   tokenManager.storeToken(token);
   const parsedUser = parseToken(token);
-  logger.info({ username }, "Signup successful");
 
   return { user: parsedUser, token };
 };
