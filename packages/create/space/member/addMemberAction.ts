@@ -1,5 +1,5 @@
 import type { SpaceId, SpaceData, MemberRole } from "create/space/types";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, write } from "database/dbSlice";
 import { SpaceMemberWithSpaceInfo } from "create/space/types";
@@ -20,7 +20,7 @@ export const addMemberAction = async (
   const { spaceId, memberId, role = MemberRole.MEMBER } = input; // 默认角色为 MEMBER
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const currentUserId = selectCurrentUserId(state);
+  const currentUserId = selectUserId(state);
 
   const spaceKey = createSpaceKey.space(spaceId);
   const spaceData: SpaceData | null = await dispatch(read(spaceKey)).unwrap();

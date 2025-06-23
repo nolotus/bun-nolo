@@ -1,4 +1,4 @@
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { extractCustomId } from "core/prefix";
 import {
   addContentToSpace,
@@ -19,7 +19,7 @@ export const createDialogAction = async (args, thunkApi) => {
   const botConfig = await dispatch(read(cybotId)).unwrap();
   const time = format(new Date(), "MM-dd HH:mm");
   const title = botConfig.name + "  " + time;
-  const userId = selectCurrentUserId(thunkApi.getState());
+  const userId = selectUserId(thunkApi.getState());
   const dialogPath = createDialogKey(userId);
   const dialogId = extractCustomId(dialogPath);
 

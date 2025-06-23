@@ -1,4 +1,4 @@
-import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
+import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import type {
@@ -30,7 +30,7 @@ export const updateSpaceAction = async (
   const { spaceId, name, description, visibility } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const userId = selectCurrentUserId(state);
+  const userId = selectUserId(state);
 
   // --- 输入验证 (可选) ---
   // ...

@@ -11,7 +11,7 @@ import {
   updateDialogMode,
   selectIsUpdatingMode,
 } from "chat/dialog/dialogSlice";
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { DialogInvocationMode } from "app/types";
 import {
   PlusIcon,
@@ -38,7 +38,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
   const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
   const currentDialogTokens = useAppSelector(selectTotalDialogTokens);
   const isUpdatingMode = useAppSelector(selectIsUpdatingMode);
-  const currentUserId = useAppSelector(selectCurrentUserId);
+  const currentUserId = useAppSelector(selectUserId);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isAddCybotDialogOpen, setIsAddCybotDialogOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);

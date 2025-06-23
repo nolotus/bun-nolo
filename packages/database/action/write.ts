@@ -1,5 +1,5 @@
 // database/actions/write.ts
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { selectCurrentServer } from "setting/settingSlice";
 import { DataType } from "create/types"; // 假设 DataType 是有效的导入
 import { getAllServers, normalizeTimeFields, logger } from "./common";
@@ -54,7 +54,7 @@ export const writeAction = async (
 ): Promise<any> => {
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state); // 当前选定服务器
-  const currentUserId = selectCurrentUserId(state); // 当前登录用户 ID
+  const currentUserId = selectUserId(state); // 当前登录用户 ID
   const { data, customKey } = writeConfig;
   // 优先使用 writeConfig 中提供的 userId，否则回退到当前登录用户的 ID
   const userId = writeConfig.userId || currentUserId;

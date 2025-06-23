@@ -1,5 +1,5 @@
 import type { SpaceId, SpaceData } from "create/space/types"; // 确认类型路径
-import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
+import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
 
@@ -10,7 +10,7 @@ export const updateContentTitleAction = async (
   const { spaceId, contentKey, title } = input;
   const { dispatch, getState } = thunkAPI; // 从 thunkAPI 获取 getState
   const state = getState(); // 获取 state
-  const userId = selectCurrentUserId(state);
+  const userId = selectUserId(state);
 
   // --- 基本的输入验证 (可选但推荐) ---
   if (

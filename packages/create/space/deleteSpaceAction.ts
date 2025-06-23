@@ -1,4 +1,4 @@
-import { selectCurrentUserId } from "auth/authSlice";
+import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, remove } from "database/dbSlice";
 
@@ -8,7 +8,7 @@ interface ThunkAPI {
   getState: () => any; // 如果有RootState类型，可替换为RootState
 }
 
-const getCurrentUserId = (state: any): string => selectCurrentUserId(state);
+const getCurrentUserId = (state: any): string => selectUserId(state);
 
 const fetchSpaceData = async (
   spaceId: string,

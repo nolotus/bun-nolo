@@ -1,7 +1,7 @@
 // 文件路径: create/space/actions/updateContentCategoryAction.ts (或你的实际路径)
 
 import type { SpaceId, SpaceData, SpaceContent } from "create/space/types"; // 确认类型路径
-import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
+import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
 import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
@@ -24,7 +24,7 @@ export const updateContentCategoryAction = async (
   const { spaceId, contentKey, categoryId: targetContainerId } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const userId = selectCurrentUserId(state);
+  const userId = selectUserId(state);
 
   // --- 基本输入验证 ---
   if (!userId) {

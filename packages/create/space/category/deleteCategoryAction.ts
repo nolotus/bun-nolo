@@ -7,7 +7,7 @@ import type {
   Contents,
   SpaceContent, // 导入 SpaceContent
 } from "create/space/types"; // 确认类型路径
-import { selectCurrentUserId } from "auth/authSlice"; // 确认导入路径
+import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
 import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
@@ -34,7 +34,7 @@ export const deleteCategoryAction = async (
   const { categoryId, spaceId } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
-  const currentUserId = selectCurrentUserId(state);
+  const currentUserId = selectUserId(state);
 
   // --- 1. 输入和状态验证 ---
   if (!currentUserId) {
