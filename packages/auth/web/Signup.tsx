@@ -7,7 +7,8 @@ import { useSelector } from "react-redux";
 import z from "zod";
 import { NavLink } from "react-router-dom";
 import { Input } from "web/form/Input";
-import PasswordInput from "web/form/PasswordInput";
+import { PasswordInput } from "web/form/Input";
+
 import Button from "render/web/ui/Button";
 import { LockIcon, PersonIcon, MailIcon } from "@primer/octicons-react";
 import useRegister from "./useRegister";

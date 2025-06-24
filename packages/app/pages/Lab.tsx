@@ -1,26 +1,8 @@
 import React from "react";
 import Button from "render/web/ui/Button";
-import { Combobox } from "web/form/Combobox";
 import { SearchIcon } from "@primer/octicons-react";
 
 const Lab = () => {
-  // Combobox 示例数据
-  const fruits = [
-    { value: "1", label: "Apple" },
-    { value: "2", label: "Banana" },
-    { value: "3", label: "Orange" },
-    { value: "4", label: "Grape" },
-    { value: "5", label: "Watermelon" },
-  ];
-
-  const countries = [
-    { id: "us", name: "United States" },
-    { id: "uk", name: "United Kingdom" },
-    { id: "cn", name: "China" },
-    { id: "jp", name: "Japan" },
-    { id: "kr", name: "Korea" },
-  ];
-
   return (
     <div className="container">
       {/* Button Demo */}
@@ -47,15 +29,6 @@ const Lab = () => {
             <h2>基础用法</h2>
             <p>基础的 Combobox 用法展示</p>
           </div>
-          <div className="demo-grid">
-            <div style={{ width: "250px" }}>
-              <Combobox
-                items={fruits}
-                placeholder="Select a fruit..."
-                onChange={(item) => console.log("Selected:", item)}
-              />
-            </div>
-          </div>
         </section>
 
         <section>
@@ -63,37 +36,12 @@ const Lab = () => {
             <h2>自定义字段</h2>
             <p>使用自定义的标签和值字段</p>
           </div>
-          <div className="demo-grid">
-            <div style={{ width: "250px" }}>
-              <Combobox
-                items={countries}
-                labelField="name"
-                valueField="id"
-                placeholder="Select a country..."
-                onChange={(item) => console.log("Selected:", item)}
-              />
-            </div>
-          </div>
         </section>
 
         <section>
           <div className="section-header">
             <h2>状态展示</h2>
             <p>禁用状态和自定义样式</p>
-          </div>
-          <div className="demo-table">
-            <div className="row">
-              <div className="label">禁用态</div>
-              <div className="content">
-                <div style={{ width: "250px" }}>
-                  <Combobox
-                    items={fruits}
-                    disabled
-                    placeholder="Disabled state..."
-                  />
-                </div>
-              </div>
-            </div>
           </div>
         </section>
       </div>

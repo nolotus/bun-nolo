@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { selectTheme } from "../theme/themeSlice";
 import {
@@ -8,11 +8,11 @@ import {
 } from "auth/authSlice";
 import { selectCurrentSpaceId } from "create/space/spaceSlice";
 import { CreateRoutePaths } from "create/routePaths";
-import PubCybots from "ai/cybot/web/PubCybots";
-import Cybots from "ai/cybot/web/Cybots";
-import WelcomeSection from "./WelcomeSection";
-import { NavLink, useNavigate } from "react-router-dom";
 import { createPage } from "render/page/pageSlice";
+import { DataType } from "create/types";
+import { useUserData } from "database/hooks/useUserData";
+
+// Icons
 import {
   GlobeIcon,
   ChevronRightIcon,
@@ -21,9 +21,99 @@ import {
   GearIcon,
   BookIcon,
   CopilotIcon,
+  SyncIcon,
 } from "@primer/octicons-react";
 import { FiDollarSign } from "react-icons/fi";
+import { NavLink, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
+// Components
+import WelcomeSection from "./WelcomeSection";
+import CybotBlock from "ai/cybot/web/CybotBlock";
+import PubCybots from "ai/cybot/web/PubCybots";
+
+// Cybots 组件内联实现
+const LoadingState = memo(() => {
+  const theme = useAppSelector(selectTheme);
+
+  return (
+    <div className="loading-container">
+      <div className="loading-spinner">
+        <SyncIcon className="icon-spin" size={20} />
+      </div>
+      <span className="loading-text">正在加载 AI 助手...</span>
+    </div>
+  );
+});
+
+LoadingState.displayName = "LoadingState";
+
+const EmptyState = memo(({ message }: { message: string }) => {
+  const theme = useAppSelector(selectTheme);
+
+  return (
+    <div className="empty-state">
+      <div className="empty-icon">
+        <CopilotIcon size={48} />
+      </div>
+      <p className="empty-message">{message}</p>
+    </div>
+  );
+});
+
+EmptyState.displayName = "EmptyState";
+
+interface CybotsProps {
+  queryUserId: string;
+  limit?: number;
+}
+
+const Cybots = memo(({ queryUserId, limit = 6 }: CybotsProps) => {
+  const {
+    loading,
+    data: cybots = [],
+    error,
+    reload,
+    clearCache,
+  } = useUserData(DataType.CYBOT, queryUserId, limit);
+
+  const [items, setItems] = useState(cybots);
+
+  useEffect(() => {
+    setItems(cybots);
+  }, [cybots]);
+
+  const handleReload = useCallback(async () => {
+    clearCache();
+    await reload();
+  }, [clearCache, reload]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error("加载 AI 助手失败，请稍后重试");
+    }
+  }, [error]);
+
+  if (loading && !items.length) {
+    return <LoadingState />;
+  }
+
+  if (!loading && !items.length) {
+    return <EmptyState message="还没有创建任何 AI 助手" />;
+  }
+
+  return (
+    <div className="cybots-grid">
+      {items.map((item) => (
+        <CybotBlock key={item.id} item={item} reload={handleReload} />
+      ))}
+    </div>
+  );
+});
+
+Cybots.displayName = "Cybots";
+
+// 主组件
 const Home = () => {
   const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
@@ -41,7 +131,6 @@ const Home = () => {
     setActiveTab(isLoggedIn ? "myAI" : "communityAI");
   }, [isLoggedIn]);
 
-  // Guide Section 逻辑
   const handleActionClick = useCallback(
     (action) => {
       if (action.type === "action") {
@@ -59,10 +148,11 @@ const Home = () => {
       navigate(`/${pageKey}?edit=true`);
     } catch (error) {
       console.error("Failed to create page:", error);
+      toast.error("创建笔记失败，请重试");
     }
   }, [dispatch, navigate]);
 
-  // 主要操作 - 高频核心功能
+  // 主要操作配置
   const primaryActions = [
     {
       id: "create-ai",
@@ -85,7 +175,7 @@ const Home = () => {
     },
   ];
 
-  // 次要操作 - 支持功能
+  // 次要操作配置
   const secondaryActions = [
     {
       id: "guide",
@@ -155,39 +245,33 @@ const Home = () => {
         }
 
         .home-container {
-          max-width: min(1200px, calc(100vw - ${theme.space[6]}));
+          max-width: min(1200px, calc(100vw - ${theme.space[8]}));
           margin: 0 auto;
-          padding: ${theme.space[6]} ${theme.space[4]} ${theme.space[10]};
+          padding: ${theme.space[8]} ${theme.space[4]} ${theme.space[12]};
+          container-type: inline-size;
         }
 
         /* ======================
-           集成 Guide Section 样式
+           引导区域样式
            ====================== */
         .guide-section {
-          margin: 0 auto ${theme.space[10]};
+          margin: 0 auto ${theme.space[12]};
           opacity: 0;
-          animation: orchestratedEntry 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+          animation: sectionFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes orchestratedEntry {
+        @keyframes sectionFadeIn {
           0% { 
             opacity: 0; 
-            transform: translateY(32px) scale(0.95);
-            filter: blur(4px);
-          }
-          60% {
-            opacity: 0.8;
-            transform: translateY(8px) scale(0.98);
-            filter: blur(1px);
+            transform: translateY(40px) scale(0.95);
           }
           100% { 
             opacity: 1; 
             transform: translateY(0) scale(1);
-            filter: blur(0);
           }
         }
 
-        /* 主要操作区 - 英雄级操作 */
+        /* 主要操作区 */
         .hero-actions {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
@@ -205,21 +289,20 @@ const Home = () => {
           gap: ${theme.space[5]};
           text-align: left;
           cursor: pointer;
-          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           overflow: hidden;
           box-shadow: 
             0 1px 3px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
 
-        /* 渐变背景系统 */
         .hero-action[data-gradient="ai"]::before {
-          background: linear-gradient(135deg, ${theme.primary}08 0%, ${theme.primary}04 50%, transparent 100%);
+          background: linear-gradient(135deg, ${theme.primary}10 0%, ${theme.primary}05 50%, transparent 100%);
         }
 
         .hero-action[data-gradient="note"]::before {
-          background: linear-gradient(135deg, ${theme.primary}06 0%, ${theme.primary}02 50%, transparent 100%);
+          background: linear-gradient(135deg, ${theme.primary}08 0%, ${theme.primary}03 50%, transparent 100%);
         }
 
         .hero-action::before {
@@ -227,14 +310,15 @@ const Home = () => {
           position: absolute;
           inset: 0;
           opacity: 0;
-          transition: opacity 0.5s ease;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
         }
 
         .hero-action::after {
           content: '';
           position: absolute;
           inset: 0;
-          background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${theme.primary}06 0%, transparent 40%);
+          background: radial-gradient(300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${theme.primary}08 0%, transparent 60%);
           opacity: 0;
           transition: opacity 0.3s ease;
           pointer-events: none;
@@ -249,21 +333,21 @@ const Home = () => {
         }
 
         .hero-action:hover {
-          transform: translateY(-8px) scale(1.015);
-          border-color: ${theme.primary}40;
+          transform: translateY(-6px);
+          border-color: ${theme.primary}30;
           box-shadow: 
-            0 32px 64px -12px ${theme.shadow2},
-            0 0 0 1px ${theme.primary}20,
-            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            0 20px 40px -8px ${theme.shadow2},
+            0 0 0 1px ${theme.primary}15,
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
 
         .hero-action:active {
-          transform: translateY(-4px) scale(1.005);
+          transform: translateY(-2px);
           transition-duration: 0.1s;
         }
 
         .hero-action.accent {
-          background: linear-gradient(135deg, ${theme.primary}05 0%, ${theme.background} 60%);
+          background: linear-gradient(135deg, ${theme.primary}08 0%, ${theme.background} 70%);
           border-color: ${theme.primary}20;
         }
 
@@ -271,14 +355,14 @@ const Home = () => {
           width: 64px;
           height: 64px;
           border-radius: 20px;
-          background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}08 100%);
+          background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}10 100%);
           border: 1px solid ${theme.primary}20;
           color: ${theme.primary};
           flex-shrink: 0;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           overflow: hidden;
         }
@@ -287,18 +371,18 @@ const Home = () => {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, ${theme.primary}20 0%, transparent 50%);
+          background: linear-gradient(135deg, ${theme.primary}25 0%, transparent 60%);
           opacity: 0;
-          transition: opacity 0.5s ease;
+          transition: opacity 0.4s ease;
         }
 
         .hero-action:hover .hero-icon-container {
-          background: linear-gradient(135deg, ${theme.primary} 0%, ${theme.primary}85 100%);
+          background: linear-gradient(135deg, ${theme.primary} 0%, ${theme.primary}90 100%);
           color: white;
-          transform: scale(1.1) rotate(3deg);
+          transform: scale(1.08);
           box-shadow: 
-            0 12px 24px -6px ${theme.primary}50,
-            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            0 8px 20px -4px ${theme.primary}40,
+            inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
 
         .hero-action:hover .hero-icon-container::before {
@@ -316,19 +400,19 @@ const Home = () => {
           font-weight: 650;
           color: ${theme.text};
           margin: 0 0 ${theme.space[2]};
-          line-height: 1.25;
-          letter-spacing: -0.02em;
+          line-height: 1.3;
+          letter-spacing: -0.025em;
         }
 
         .hero-description {
-          font-size: 0.925rem;
+          font-size: 0.95rem;
           color: ${theme.textSecondary};
           margin: 0;
           line-height: 1.5;
           letter-spacing: -0.01em;
         }
 
-        /* 次要操作区 - 功能网格 */
+        /* 次要操作区 */
         .utility-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -348,7 +432,7 @@ const Home = () => {
           font-weight: 520;
           color: ${theme.textSecondary};
           cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           overflow: hidden;
         }
@@ -367,9 +451,9 @@ const Home = () => {
           content: '';
           position: absolute;
           inset: 0;
-          background: radial-gradient(circle at center, ${theme.primary}08 0%, transparent 70%);
+          background: radial-gradient(circle at center, ${theme.primary}10 0%, transparent 70%);
           opacity: 0;
-          transition: opacity 0.4s ease;
+          transition: opacity 0.3s ease;
         }
 
         .utility-action:hover::before {
@@ -379,11 +463,11 @@ const Home = () => {
         .utility-action:hover {
           background: ${theme.background};
           color: ${theme.primary};
-          border-color: ${theme.primary}25;
-          transform: translateY(-4px);
+          border-color: ${theme.primary}20;
+          transform: translateY(-3px);
           box-shadow: 
-            0 16px 32px -8px ${theme.shadow1},
-            0 0 0 1px ${theme.primary}15;
+            0 12px 24px -6px ${theme.shadow1},
+            0 0 0 1px ${theme.primary}10;
         }
 
         .utility-icon-wrapper {
@@ -395,17 +479,17 @@ const Home = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .utility-action:hover .utility-icon-wrapper {
-          background: ${theme.primary}20;
-          transform: scale(1.2);
+          background: ${theme.primary}18;
+          transform: scale(1.15);
         }
 
         .utility-text {
           font-weight: 520;
-          transition: all 0.4s ease;
+          transition: color 0.3s ease;
           text-align: center;
         }
 
@@ -415,20 +499,20 @@ const Home = () => {
         .content-transition {
           height: 1px;
           background: linear-gradient(90deg, transparent 0%, ${theme.border} 50%, transparent 100%);
-          margin: ${theme.space[8]} 0;
-          opacity: 0.6;
+          margin: ${theme.space[10]} 0;
+          opacity: 0.7;
         }
 
         .ai-showcase {
           opacity: 0;
-          animation: showcaseEntry 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-          animation-delay: 0.5s;
+          animation: showcaseEntry 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation-delay: 0.4s;
         }
 
         @keyframes showcaseEntry {
           from {
             opacity: 0;
-            transform: translateY(24px);
+            transform: translateY(32px);
           }
           to {
             opacity: 1;
@@ -451,19 +535,20 @@ const Home = () => {
         }
 
         .section-title {
-          font-size: 1.75rem;
+          font-size: 1.875rem;
           font-weight: 700;
           color: ${theme.text};
           margin: 0;
-          letter-spacing: -0.02em;
+          letter-spacing: -0.03em;
           line-height: 1.2;
         }
 
         .section-subtitle {
-          font-size: 0.95rem;
+          font-size: 1rem;
           color: ${theme.textSecondary};
           margin: 0;
           line-height: 1.4;
+          letter-spacing: -0.01em;
         }
 
         .tabs-navigator {
@@ -472,9 +557,9 @@ const Home = () => {
           gap: ${theme.space[1]};
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.borderLight};
-          border-radius: 14px;
+          border-radius: 16px;
           padding: ${theme.space[1]};
-          box-shadow: 0 1px 3px ${theme.shadow1};
+          box-shadow: 0 2px 6px ${theme.shadow1};
         }
 
         .tab-item {
@@ -482,14 +567,14 @@ const Home = () => {
           align-items: center;
           gap: ${theme.space[2]};
           padding: ${theme.space[3]} ${theme.space[4]};
-          border-radius: 10px;
+          border-radius: 12px;
           font-size: 0.875rem;
           font-weight: 520;
           color: ${theme.textSecondary};
           background: none;
           border: none;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           min-width: 120px;
           justify-content: center;
@@ -497,7 +582,7 @@ const Home = () => {
 
         .tab-item:hover {
           color: ${theme.primary};
-          background: ${theme.background}40;
+          background: ${theme.background}60;
         }
 
         .tab-item.active {
@@ -505,8 +590,8 @@ const Home = () => {
           background: ${theme.background};
           font-weight: 600;
           box-shadow: 
-            0 1px 3px ${theme.shadow1},
-            0 0 0 1px ${theme.primary}15;
+            0 2px 8px ${theme.shadow1},
+            0 0 0 1px ${theme.primary}12;
         }
 
         .tab-item.active::before {
@@ -514,7 +599,7 @@ const Home = () => {
           position: absolute;
           inset: 0;
           background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 50%);
-          border-radius: 10px;
+          border-radius: 12px;
         }
 
         .explore-link {
@@ -526,10 +611,10 @@ const Home = () => {
           font-weight: 520;
           font-size: 0.9rem;
           padding: ${theme.space[3]} ${theme.space[4]};
-          border-radius: 12px;
+          border-radius: 14px;
           border: 1px solid ${theme.borderLight};
           background: ${theme.backgroundSecondary};
-          transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           overflow: hidden;
         }
@@ -538,7 +623,7 @@ const Home = () => {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, ${theme.primary}06 0%, transparent 50%);
+          background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 50%);
           opacity: 0;
           transition: opacity 0.3s ease;
         }
@@ -550,28 +635,28 @@ const Home = () => {
         .explore-link:hover {
           color: ${theme.primary};
           background: ${theme.background};
-          border-color: ${theme.primary}30;
-          transform: translateX(3px);
-          box-shadow: 0 4px 12px ${theme.shadow1};
+          border-color: ${theme.primary}25;
+          transform: translateX(2px);
+          box-shadow: 0 6px 16px ${theme.shadow1};
         }
 
         .explore-link-icon {
-          transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .explore-link:hover .explore-link-icon {
-          transform: translateX(2px);
+          transform: translateX(3px);
         }
 
         .content-container {
           background: ${theme.background};
           border: 1px solid ${theme.borderLight};
-          border-radius: 20px;
+          border-radius: 24px;
           padding: ${theme.space[8]} ${theme.space[6]};
           box-shadow: 
-            0 1px 3px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
-          min-height: 400px;
+            0 2px 8px ${theme.shadow1},
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          min-height: 420px;
           position: relative;
           overflow: hidden;
         }
@@ -583,19 +668,19 @@ const Home = () => {
           left: 0;
           right: 0;
           height: 1px;
-          background: linear-gradient(90deg, transparent 0%, ${theme.primary}20 50%, transparent 100%);
+          background: linear-gradient(90deg, transparent 0%, ${theme.primary}25 50%, transparent 100%);
         }
 
         .tab-content {
           opacity: 0;
-          animation: contentFadeIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+          animation: contentFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           animation-delay: 0.1s;
         }
 
         @keyframes contentFadeIn {
           from {
             opacity: 0;
-            transform: translateY(16px);
+            transform: translateY(20px);
           }
           to {
             opacity: 1;
@@ -603,18 +688,107 @@ const Home = () => {
           }
         }
 
-        /* 响应式设计 */
+        /* ======================
+           Cybots 相关样式
+           ====================== */
+        .loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: ${theme.space[4]};
+          min-height: 280px;
+          color: ${theme.textTertiary};
+        }
+
+        .loading-spinner {
+          position: relative;
+        }
+
+        .icon-spin {
+          animation: gentleSpin 2s cubic-bezier(0.645, 0.045, 0.355, 1) infinite;
+          color: ${theme.primary};
+        }
+
+        @keyframes gentleSpin {
+          0% {
+            transform: rotate(0deg) scale(1);
+          }
+          50% {
+            transform: rotate(180deg) scale(1.1);
+          }
+          100% {
+            transform: rotate(360deg) scale(1);
+          }
+        }
+
+        .loading-text {
+          font-size: 0.95rem;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+        }
+
+        .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: ${theme.space[4]};
+          min-height: 280px;
+          color: ${theme.textTertiary};
+          text-align: center;
+        }
+
+        .empty-icon {
+          width: 80px;
+          height: 80px;
+          border-radius: 24px;
+          background: linear-gradient(135deg, ${theme.primary}12 0%, ${theme.primary}06 100%);
+          border: 1px solid ${theme.primary}20;
+          color: ${theme.primary}70;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0.8;
+        }
+
+        .empty-message {
+          font-size: 1rem;
+          font-weight: 500;
+          margin: 0;
+          letter-spacing: -0.01em;
+        }
+
+        .cybots-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: ${theme.space[5]};
+          width: 100%;
+        }
+
+        /* ======================
+           响应式设计
+           ====================== */
         @container (max-width: 800px) {
           .hero-actions {
             grid-template-columns: 1fr;
             gap: ${theme.space[5]};
             margin-bottom: ${theme.space[8]};
           }
+
+          .content-container {
+            padding: ${theme.space[6]} ${theme.space[4]};
+          }
+
+          .cybots-grid {
+            gap: ${theme.space[4]};
+          }
         }
 
         @media (max-width: 768px) {
           .home-container {
-            padding: ${theme.space[4]} ${theme.space[3]} ${theme.space[8]};
+            max-width: calc(100vw - ${theme.space[6]});
+            padding: ${theme.space[6]} ${theme.space[3]} ${theme.space[10]};
           }
           
           .hero-action {
@@ -641,8 +815,15 @@ const Home = () => {
             align-self: flex-end;
           }
 
-          .content-container {
-            padding: ${theme.space[6]} ${theme.space[4]};
+          .cybots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: ${theme.space[3]};
+          }
+
+          .loading-container,
+          .empty-state {
+            min-height: 200px;
+            padding: ${theme.space[6]} ${theme.space[3]};
           }
         }
 
@@ -669,6 +850,7 @@ const Home = () => {
           .tab-item {
             min-width: auto;
             flex: 1;
+            font-size: 0.8rem;
           }
 
           .explore-link {
@@ -678,9 +860,35 @@ const Home = () => {
           .content-transition {
             margin: ${theme.space[6]} 0;
           }
+
+          .cybots-grid {
+            grid-template-columns: 1fr;
+            gap: ${theme.space[3]};
+          }
+
+          .content-container {
+            padding: ${theme.space[5]} ${theme.space[3]};
+            min-height: 320px;
+          }
+
+          .loading-container,
+          .empty-state {
+            min-height: 160px;
+            gap: ${theme.space[3]};
+          }
+
+          .section-title {
+            font-size: 1.5rem;
+          }
+
+          .section-subtitle {
+            font-size: 0.9rem;
+          }
         }
 
-        /* 性能和可访问性优化 */
+        /* ======================
+           性能和可访问性优化
+           ====================== */
         @media (prefers-reduced-motion: reduce) {
           .guide-section,
           .ai-showcase,
@@ -688,15 +896,18 @@ const Home = () => {
           .hero-action,
           .utility-action,
           .hero-icon-container,
-          .utility-icon-wrapper {
+          .utility-icon-wrapper,
+          .icon-spin {
             animation: none !important;
-            transition: none !important;
+            transition-duration: 0.1s !important;
             opacity: 1 !important;
           }
           
           .hero-action:hover,
           .utility-action:hover,
-          .explore-link:hover {
+          .explore-link:hover,
+          .hero-icon-container,
+          .utility-icon-wrapper {
             transform: none !important;
           }
         }
@@ -707,14 +918,32 @@ const Home = () => {
           .content-container {
             border-width: 2px;
           }
+          
+          .loading-container,
+          .empty-state {
+            color: ${theme.text};
+          }
+        }
+
+        /* 焦点可访问性 */
+        .hero-action:focus-visible,
+        .utility-action:focus-visible,
+        .tab-item:focus-visible,
+        .explore-link:focus-visible {
+          outline: 2px solid ${theme.primary};
+          outline-offset: 2px;
         }
       `}</style>
 
       <div className="home-layout">
         <main className="home-container">
-          {/* 集成的引导区域 */}
+          {/* 引导区域 */}
           {isLoggedIn && currentUser ? (
-            <section className="guide-section">
+            <section
+              className="guide-section"
+              role="region"
+              aria-label="快捷操作"
+            >
               {/* 主要操作区 */}
               <div className="hero-actions">
                 {primaryActions.map((action) => (
@@ -761,11 +990,15 @@ const Home = () => {
             <WelcomeSection />
           )}
 
-          {/* 视觉过渡 */}
+          {/* 视觉过渡分割线 */}
           <div className="content-transition" aria-hidden="true" />
 
           {/* AI展示区域 */}
-          <section className="ai-showcase">
+          <section
+            className="ai-showcase"
+            role="region"
+            aria-label="AI助手展示"
+          >
             <header className="section-header">
               <div className="section-title-group">
                 <h2 className="section-title">
@@ -777,7 +1010,11 @@ const Home = () => {
               </div>
 
               {/* 标签页导航 */}
-              <nav className="tabs-navigator" role="tablist">
+              <nav
+                className="tabs-navigator"
+                role="tablist"
+                aria-label="AI助手分类"
+              >
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -817,6 +1054,7 @@ const Home = () => {
                 role="tabpanel"
                 id={`tabpanel-${activeTab}`}
                 key={activeTab}
+                aria-labelledby={`tab-${activeTab}`}
               >
                 {currentTab?.component}
               </div>
