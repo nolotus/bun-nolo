@@ -12,7 +12,7 @@ import { useCybotValidation } from "./common/useCybotFormValidation";
 import { normalizeReferences } from "./common/createCybotSchema";
 
 import BasicInfoTab from "./BasicInfoTab";
-import ReferencesTab from "../../cybot/web/ReferencesTab";
+import ReferencesTab from "./ReferencesTab";
 import ToolsTab from "./ToolsTab";
 import PublishSettingsTab from "./PublishSettingsTab";
 import AdvancedSettingsTab from "./AdvancedSettingsTab";
