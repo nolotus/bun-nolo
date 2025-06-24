@@ -4,7 +4,7 @@ import { useAppDispatch } from "app/hooks";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
-import { Input } from "web/form/Input";
+import { Input } from "render/web/form/Input";
 import FormTitle from "web/form/FormTitle";
 import Button from "render/web/ui/Button";
 import { PlusIcon } from "@primer/octicons-react";
