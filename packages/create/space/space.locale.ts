@@ -3,259 +3,486 @@ import { Language } from "app/i18n/types";
 export default {
   [Language.EN]: {
     translation: {
+      // === 基础操作 ===
       create: "Create Space",
       name: "Space Name",
       description: "Description",
       visibility: "Visibility",
       private: "Private",
       public: "Public",
+      loading: "Loading...",
+      cancel: "Cancel",
+      delete: "Delete",
+      save: "Save",
+      edit: "Edit",
+
+      // === 表单相关 ===
       name_required: "Space name is required",
       name_min_length: "Space name must be at least 2 characters",
+      name_max_length: "Space name cannot exceed 50 characters",
       name_placeholder: "Enter space name",
       description_placeholder: "Enter space description (optional)",
+      description_max_length: "Description cannot exceed 200 characters",
+
+      // === 创建空间 ===
+      create_new_space: "Create New Space",
+      create_space: "Create Space",
       create_success: "Space created successfully",
       create_error: "Failed to create space",
+      creating: "Creating space...",
+
+      // === 空间选择 ===
       default_space: "Default Space",
       select_space: "Select Space",
-      no_spaces: "No Spaces Available",
+      no_spaces: "No spaces available",
+      no_spaces_yet: "No spaces created yet",
       space_list: "Space List",
-      // 新增字段 for SpaceSettings
+      space_dropdown: "Open space menu",
+      current_space: "Current Space",
+      switch_space: "Switch Space",
+
+      // === 导航相关 ===
+      home: "Home",
+      back_to_home: "Back to Home",
       space_settings: "Space Settings",
-      unsaved_changes: "Unsaved Changes",
-      loading: "Loading space information...",
+
+      // === 空间设置 ===
+      unsaved_changes: "You have unsaved changes",
+      unsaved_warning:
+        "You have unsaved changes. Do you want to save them before leaving?",
+      save_before_leave: "Save Changes",
+      discard_changes: "Discard Changes",
       load_error_title: "Failed to Load Space Information",
       no_space_data: "Space data not found",
-      try_repair: "Try Repair",
-      repair_success: "Repair operation successful",
-      repair_error: "Repair failed",
+      try_repair: "Try to Repair",
+      repair_success: "Repair operation completed successfully",
+      repair_error: "Repair operation failed",
       try_later: "Please try again later",
+
+      // === 基本信息 ===
       basic_info: "Basic Information",
       manage_basic_info:
         "Manage space name, description and other basic information",
+      space_details: "Space Details",
+      view_space_details: "View basic information and metadata of this space",
+      space_id: "Space ID",
+      created_at: "Created",
+      updated_at: "Last Updated",
+      member_count: "Members",
+      people: "people",
+      person: "person",
+
+      // === 权限管理 ===
       access_permission: "Access Permission",
-      manage_access: "Set who can access and view the content of this space",
+      manage_access:
+        "Control who can access and view the content of this space",
       select_visibility: "Select Space Visibility",
       private_description: "Only invited members can access this space",
-      public_description:
-        "Everyone can view, but only members can edit content",
-      space_details: "Space Details",
-      view_space_details: "View basic information and metadata of the space",
-      space_id: "Space ID",
-      created_at: "Created At",
-      member_count: "Member Count",
-      people: "people",
+      public_description: "Anyone can view, but only members can edit content",
+      permission_updated: "Permission settings updated successfully",
+
+      // === 默认空间 ===
       save_changes: "Save Changes",
       set_as_default: "Set as Default Space",
       current_default: "Current Default Space",
       cancel_changes: "Cancel Changes",
+      set_default_success: "Set as default space successfully",
+      set_default_error: "Failed to set as default space",
+      this_space: "this space",
+
+      // === 删除空间 ===
       delete_space: "Delete Space",
       delete_confirm_message:
         "Are you sure you want to delete this space? This action cannot be undone, and all files and data in the space will be permanently deleted.",
       delete_description:
         "This action will permanently delete all files, pages, and data in the space, and cannot be recovered.",
       delete_warning:
-        "Note: This space has {{count}} members. Please ensure all members are notified before deletion.",
-      delete: "Delete",
-      cancel: "Cancel",
+        "Warning: This space has {{count}} members. Please ensure all members are notified before deletion.",
+      delete_input_placeholder: "Type the space name to confirm",
+      delete_confirmation_required:
+        "Please type the space name to confirm deletion",
       delete_success: "Space deleted successfully",
       delete_error: "Failed to delete space",
+      deleting: "Deleting space...",
+
+      // === 更新操作 ===
       update_success: "Settings updated successfully",
       update_error: "Failed to update settings",
-      set_default_success: "has been set as default space",
-      set_default_error: "Failed to set default space",
-      this_space: "this space",
+      updating: "Updating...",
+
+      // === 错误处理 ===
+      error_occurred: "An error occurred",
+      network_error: "Network connection error",
+      server_error: "Server error",
+      permission_denied: "Permission denied",
+      space_not_found: "Space not found",
+
+      // === 状态提示 ===
+      empty_state_title: "No spaces yet",
+      empty_state_description: "Create your first space to get started",
+      get_started: "Get Started",
     },
   },
+
   [Language.ZH_CN]: {
     translation: {
+      // === 基础操作 ===
       create: "创建空间",
       name: "空间名称",
       description: "描述",
       visibility: "可见性",
       private: "私有",
       public: "公开",
+      loading: "加载中...",
+      cancel: "取消",
+      delete: "删除",
+      save: "保存",
+      edit: "编辑",
+
+      // === 表单相关 ===
       name_required: "空间名称必填",
-      name_min_length: "空间名称至少2个字符",
+      name_min_length: "空间名称至少需要2个字符",
+      name_max_length: "空间名称不能超过50个字符",
       name_placeholder: "输入空间名称",
       description_placeholder: "输入空间描述（可选）",
+      description_max_length: "描述不能超过200个字符",
+
+      // === 创建空间 ===
+      create_new_space: "创建新空间",
+      create_space: "创建空间",
       create_success: "空间创建成功",
       create_error: "创建空间失败",
+      creating: "正在创建空间...",
+
+      // === 空间选择 ===
       default_space: "默认空间",
       select_space: "选择空间",
       no_spaces: "暂无空间",
+      no_spaces_yet: "尚未创建任何空间",
       space_list: "空间列表",
-      // 新增字段 for SpaceSettings
+      space_dropdown: "打开空间菜单",
+      current_space: "当前空间",
+      switch_space: "切换空间",
+
+      // === 导航相关 ===
+      home: "首页",
+      back_to_home: "回到首页",
       space_settings: "空间设置",
+
+      // === 空间设置 ===
       unsaved_changes: "有未保存的更改",
-      loading: "正在加载空间信息...",
-      load_error_title: "无法加载空间信息",
+      unsaved_warning: "您有未保存的更改。是否要在离开前保存？",
+      save_before_leave: "保存更改",
+      discard_changes: "放弃更改",
+      load_error_title: "加载空间信息失败",
       no_space_data: "未找到空间数据",
       try_repair: "尝试修复",
-      repair_success: "修复操作成功",
-      repair_error: "修复失败",
-      try_later: "请稍后再试",
+      repair_success: "修复操作成功完成",
+      repair_error: "修复操作失败",
+      try_later: "请稍后重试",
+
+      // === 基本信息 ===
       basic_info: "基本信息",
       manage_basic_info: "管理空间的名称、描述等基本信息",
+      space_details: "空间详情",
+      view_space_details: "查看此空间的基本信息和元数据",
+      space_id: "空间ID",
+      created_at: "创建时间",
+      updated_at: "最后更新",
+      member_count: "成员",
+      people: "人",
+      person: "人",
+
+      // === 权限管理 ===
       access_permission: "访问权限",
-      manage_access: "设置谁可以访问和查看此空间的内容",
+      manage_access: "控制谁可以访问和查看此空间的内容",
       select_visibility: "选择空间可见性",
       private_description: "只有被邀请的成员可以访问此空间",
       public_description: "所有人都可以查看，但只有成员可以编辑内容",
-      space_details: "空间详情",
-      view_space_details: "查看空间的基本信息和元数据",
-      space_id: "空间ID",
-      created_at: "创建时间",
-      member_count: "成员数量",
-      people: "人",
+      permission_updated: "权限设置更新成功",
+
+      // === 默认空间 ===
       save_changes: "保存更改",
       set_as_default: "设为默认空间",
       current_default: "当前默认空间",
       cancel_changes: "取消更改",
+      set_default_success: "已成功设为默认空间",
+      set_default_error: "设置默认空间失败",
+      this_space: "此空间",
+
+      // === 删除空间 ===
       delete_space: "删除空间",
       delete_confirm_message:
-        "确定要删除该空间吗？此操作不可恢复，空间内的所有文件和数据将被永久删除。",
+        "确定要删除此空间吗？此操作无法撤销，空间内的所有文件和数据将被永久删除。",
       delete_description:
         "此操作将永久删除空间内的所有文件、页面和数据，无法恢复。",
       delete_warning:
-        "注意：此空间有{{count}}名成员。删除前请确保通知所有成员。",
-      delete: "删除",
-      cancel: "取消",
+        "警告：此空间有 {{count}} 名成员。删除前请确保通知所有成员。",
+      delete_input_placeholder: "输入空间名称以确认",
+      delete_confirmation_required: "请输入空间名称以确认删除",
       delete_success: "空间已删除",
-      delete_error: "删除失败",
-      update_success: "设置已更新",
-      update_error: "更新失败",
-      set_default_success: "已设为默认空间",
-      set_default_error: "设置默认空间失败",
-      this_space: "此空间",
+      delete_error: "删除空间失败",
+      deleting: "正在删除空间...",
+
+      // === 更新操作 ===
+      update_success: "设置更新成功",
+      update_error: "更新设置失败",
+      updating: "正在更新...",
+
+      // === 错误处理 ===
+      error_occurred: "发生错误",
+      network_error: "网络连接错误",
+      server_error: "服务器错误",
+      permission_denied: "权限不足",
+      space_not_found: "空间不存在",
+
+      // === 状态提示 ===
+      empty_state_title: "尚无空间",
+      empty_state_description: "创建您的第一个空间来开始使用",
+      get_started: "开始使用",
     },
   },
+
   [Language.ZH_HANT]: {
     translation: {
+      // === 基础操作 ===
       create: "創建空間",
       name: "空間名稱",
       description: "描述",
       visibility: "可見性",
       private: "私有",
       public: "公開",
+      loading: "載入中...",
+      cancel: "取消",
+      delete: "刪除",
+      save: "儲存",
+      edit: "編輯",
+
+      // === 表單相關 ===
       name_required: "空間名稱必填",
-      name_min_length: "空間名稱至少2個字符",
+      name_min_length: "空間名稱至少需要2個字符",
+      name_max_length: "空間名稱不能超過50個字符",
       name_placeholder: "輸入空間名稱",
       description_placeholder: "輸入空間描述（可選）",
+      description_max_length: "描述不能超過200個字符",
+
+      // === 創建空間 ===
+      create_new_space: "創建新空間",
+      create_space: "創建空間",
       create_success: "空間創建成功",
       create_error: "創建空間失敗",
-      default_space: "默認空間",
+      creating: "正在創建空間...",
+
+      // === 空間選擇 ===
+      default_space: "預設空間",
       select_space: "選擇空間",
       no_spaces: "暫無空間",
-      space_list: "空間列表",
-      // 新增字段 for SpaceSettings
-      space_settings: "空間設置",
-      unsaved_changes: "有未保存的更改",
-      loading: "正在加載空間信息...",
-      load_error_title: "無法加載空間信息",
-      no_space_data: "未找到空間數據",
+      no_spaces_yet: "尚未創建任何空間",
+      space_list: "空間清單",
+      space_dropdown: "開啟空間選單",
+      current_space: "目前空間",
+      switch_space: "切換空間",
+
+      // === 導航相關 ===
+      home: "首頁",
+      back_to_home: "返回首頁",
+      space_settings: "空間設定",
+
+      // === 空間設定 ===
+      unsaved_changes: "有未儲存的變更",
+      unsaved_warning: "您有未儲存的變更。是否要在離開前儲存？",
+      save_before_leave: "儲存變更",
+      discard_changes: "放棄變更",
+      load_error_title: "載入空間資訊失敗",
+      no_space_data: "未找到空間資料",
       try_repair: "嘗試修復",
-      repair_success: "修復操作成功",
-      repair_error: "修復失敗",
-      try_later: "請稍後再試",
-      basic_info: "基本信息",
-      manage_basic_info: "管理空間的名稱、描述等基本信息",
-      access_permission: "訪問權限",
-      manage_access: "設置誰可以訪問和查看此空間的內容",
-      select_visibility: "選擇空間可見性",
-      private_description: "只有被邀請的成員可以訪問此空間",
-      public_description: "所有人都可以查看，但只有成員可以編輯內容",
+      repair_success: "修復操作成功完成",
+      repair_error: "修復操作失敗",
+      try_later: "請稍後重試",
+
+      // === 基本資訊 ===
+      basic_info: "基本資訊",
+      manage_basic_info: "管理空間的名稱、描述等基本資訊",
       space_details: "空間詳情",
-      view_space_details: "查看空間的基本信息和元數據",
+      view_space_details: "查看此空間的基本資訊和後設資料",
       space_id: "空間ID",
       created_at: "創建時間",
-      member_count: "成員數量",
+      updated_at: "最後更新",
+      member_count: "成員",
       people: "人",
-      save_changes: "保存更改",
-      set_as_default: "設為默認空間",
-      current_default: "當前默認空間",
-      cancel_changes: "取消更改",
+      person: "人",
+
+      // === 權限管理 ===
+      access_permission: "存取權限",
+      manage_access: "控制誰可以存取和查看此空間的內容",
+      select_visibility: "選擇空間可見性",
+      private_description: "只有受邀請的成員可以存取此空間",
+      public_description: "所有人都可以查看，但只有成員可以編輯內容",
+      permission_updated: "權限設定更新成功",
+
+      // === 預設空間 ===
+      save_changes: "儲存變更",
+      set_as_default: "設為預設空間",
+      current_default: "目前預設空間",
+      cancel_changes: "取消變更",
+      set_default_success: "已成功設為預設空間",
+      set_default_error: "設定預設空間失敗",
+      this_space: "此空間",
+
+      // === 刪除空間 ===
       delete_space: "刪除空間",
       delete_confirm_message:
-        "確定要刪除該空間嗎？此操作不可恢復，空間內的所有文件和數據將被永久刪除。",
+        "確定要刪除此空間嗎？此操作無法撤銷，空間內的所有檔案和資料將被永久刪除。",
       delete_description:
-        "此操作將永久刪除空間內的所有文件、頁面和數據，無法恢復。",
+        "此操作將永久刪除空間內的所有檔案、頁面和資料，無法復原。",
       delete_warning:
-        "注意：此空間有{{count}}名成員。刪除前請確保通知所有成員。",
-      delete: "刪除",
-      cancel: "取消",
+        "警告：此空間有 {{count}} 名成員。刪除前請確保通知所有成員。",
+      delete_input_placeholder: "輸入空間名稱以確認",
+      delete_confirmation_required: "請輸入空間名稱以確認刪除",
       delete_success: "空間已刪除",
-      delete_error: "刪除失敗",
-      update_success: "設置已更新",
-      update_error: "更新失敗",
-      set_default_success: "已設為默認空間",
-      set_default_error: "設置默認空間失敗",
-      this_space: "此空間",
+      delete_error: "刪除空間失敗",
+      deleting: "正在刪除空間...",
+
+      // === 更新操作 ===
+      update_success: "設定更新成功",
+      update_error: "更新設定失敗",
+      updating: "正在更新...",
+
+      // === 錯誤處理 ===
+      error_occurred: "發生錯誤",
+      network_error: "網路連線錯誤",
+      server_error: "伺服器錯誤",
+      permission_denied: "權限不足",
+      space_not_found: "空間不存在",
+
+      // === 狀態提示 ===
+      empty_state_title: "尚無空間",
+      empty_state_description: "創建您的第一個空間來開始使用",
+      get_started: "開始使用",
     },
   },
+
   [Language.JA]: {
     translation: {
-      create: "スペースを作成する",
+      // === 基本操作 ===
+      create: "スペースを作成",
       name: "スペース名",
       description: "説明",
       visibility: "公開設定",
       private: "非公開",
       public: "公開",
+      loading: "読み込み中...",
+      cancel: "キャンセル",
+      delete: "削除",
+      save: "保存",
+      edit: "編集",
+
+      // === フォーム関連 ===
       name_required: "スペース名は必須です",
       name_min_length: "スペース名は2文字以上である必要があります",
+      name_max_length: "スペース名は50文字以下にしてください",
       name_placeholder: "スペース名を入力",
       description_placeholder: "スペースの説明を入力（任意）",
+      description_max_length: "説明は200文字以下にしてください",
+
+      // === スペース作成 ===
+      create_new_space: "新しいスペースを作成",
+      create_space: "スペースを作成",
       create_success: "スペースが正常に作成されました",
       create_error: "スペースの作成に失敗しました",
+      creating: "スペースを作成中...",
+
+      // === スペース選択 ===
       default_space: "デフォルトスペース",
       select_space: "スペースを選択",
       no_spaces: "スペースがありません",
-      space_list: "スペースリスト",
-      // 新增字段 for SpaceSettings
+      no_spaces_yet: "まだスペースが作成されていません",
+      space_list: "スペース一覧",
+      space_dropdown: "スペースメニューを開く",
+      current_space: "現在のスペース",
+      switch_space: "スペースを切り替える",
+
+      // === ナビゲーション関連 ===
+      home: "ホーム",
+      back_to_home: "ホームに戻る",
       space_settings: "スペース設定",
+
+      // === スペース設定 ===
       unsaved_changes: "保存されていない変更があります",
-      loading: "スペース情報を読み込んでいます...",
+      unsaved_warning:
+        "保存されていない変更があります。離れる前に保存しますか？",
+      save_before_leave: "変更を保存",
+      discard_changes: "変更を破棄",
       load_error_title: "スペース情報の読み込みに失敗しました",
       no_space_data: "スペースデータが見つかりません",
-      try_repair: "修復を試みる",
-      repair_success: "修復操作が成功しました",
-      repair_error: "修復に失敗しました",
-      try_later: "後でもう一度お試しください",
+      try_repair: "修復を試行",
+      repair_success: "修復操作が正常に完了しました",
+      repair_error: "修復操作に失敗しました",
+      try_later: "しばらくしてから再度お試しください",
+
+      // === 基本情報 ===
       basic_info: "基本情報",
       manage_basic_info: "スペース名や説明などの基本情報を管理する",
+      space_details: "スペース詳細",
+      view_space_details: "このスペースの基本情報とメタデータを表示する",
+      space_id: "スペースID",
+      created_at: "作成日時",
+      updated_at: "最終更新",
+      member_count: "メンバー",
+      people: "人",
+      person: "人",
+
+      // === 権限管理 ===
       access_permission: "アクセス権限",
       manage_access:
-        "このスペースのコンテンツにアクセスおよび表示できるユーザーを設定する",
+        "このスペースのコンテンツにアクセスおよび表示できるユーザーを制御する",
       select_visibility: "スペースの公開設定を選択",
       private_description:
         "招待されたメンバーのみがこのスペースにアクセスできます",
       public_description:
         "誰でも閲覧できますが、メンバーのみがコンテンツを編集できます",
-      space_details: "スペース詳細",
-      view_space_details: "スペースの基本情報とメタデータを表示する",
-      space_id: "スペースID",
-      created_at: "作成日時",
-      member_count: "メンバー数",
-      people: "人",
+      permission_updated: "権限設定が正常に更新されました",
+
+      // === デフォルトスペース ===
       save_changes: "変更を保存",
       set_as_default: "デフォルトスペースに設定",
       current_default: "現在のデフォルトスペース",
       cancel_changes: "変更をキャンセル",
+      set_default_success: "デフォルトスペースに正常に設定されました",
+      set_default_error: "デフォルトスペースの設定に失敗しました",
+      this_space: "このスペース",
+
+      // === スペース削除 ===
       delete_space: "スペースを削除",
       delete_confirm_message:
         "このスペースを削除してもよろしいですか？この操作は元に戻せません。スペース内のすべてのファイルとデータが永久に削除されます。",
       delete_description:
         "この操作はスペース内のすべてのファイル、ページ、データを永久に削除し、復元することはできません。",
       delete_warning:
-        "注意：このスペースには{{count}}人のメンバーがいます。削除する前にすべてのメンバーに通知してください。",
-      delete: "削除",
-      cancel: "キャンセル",
+        "警告：このスペースには {{count}} 人のメンバーがいます。削除する前にすべてのメンバーに通知してください。",
+      delete_input_placeholder: "確認のためスペース名を入力",
+      delete_confirmation_required:
+        "削除を確認するためにスペース名を入力してください",
       delete_success: "スペースが削除されました",
       delete_error: "スペースの削除に失敗しました",
+      deleting: "スペースを削除中...",
+
+      // === 更新操作 ===
       update_success: "設定が更新されました",
       update_error: "設定の更新に失敗しました",
-      set_default_success: "がデフォルトスペースに設定されました",
-      set_default_error: "デフォルトスペースの設定に失敗しました",
-      this_space: "このスペース",
+      updating: "更新中...",
+
+      // === エラー処理 ===
+      error_occurred: "エラーが発生しました",
+      network_error: "ネットワーク接続エラー",
+      server_error: "サーバーエラー",
+      permission_denied: "アクセス権限がありません",
+      space_not_found: "スペースが見つかりません",
+
+      // === 状態メッセージ ===
+      empty_state_title: "スペースがまだありません",
+      empty_state_description: "最初のスペースを作成して始めましょう",
+      get_started: "始める",
     },
   },
 };

@@ -1,24 +1,25 @@
-// create/space/spaceSlice.ts
-import type { RootState } from "app/store"; // Adjust path if needed
+// 文件路径: create/space/spaceSlice.ts
+import type { RootState } from "app/store";
 import {
   type PayloadAction,
   asyncThunkCreator,
   buildCreateSlice,
   createSelector,
 } from "@reduxjs/toolkit";
-import { SpaceData, MemberRole, SpaceMemberWithSpaceInfo } from "./types"; // Import types from current directory
+import { SpaceData, MemberRole, SpaceMemberWithSpaceInfo } from "./types";
+import { UNCATEGORIZED_ID } from "./constants"; // <-- 确保导入
 
 // --- Import Thunk creators from their new locations ---
 import { createCategoryThunks } from "./category/categoryThunks";
 import { createContentThunks } from "./content/contentThunks";
 import { createMemberThunks } from "./member/memberThunks";
-import { createSpaceThunks } from "./spaceThunks"; // Import core space thunks
+import { createSpaceThunks } from "./spaceThunks";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
 
-// 定义 State 结构 (导出以供 thunk 文件使用)
+// 定义 State 结构
 export interface SpaceState {
   currentSpaceId: string | null;
   currentSpace: SpaceData | null;
@@ -56,19 +57,43 @@ const spaceSlice = createSliceWithThunks({
       }
     ),
 
-    // --- 合并异步 Thunks from different domains ---
-    ...createSpaceThunks(create), // Core space operations + changeSpace
-    ...createCategoryThunks(create), // Category operations
-    ...createContentThunks(create), // Content operations
-    ...createMemberThunks(create), // Member operations
-  }), // end reducers
-}); // end createSliceWithThunks
+    // <-- 修改此 Reducer -->
+    setAllCategoriesCollapsed: create.reducer(
+      (
+        state,
+        action: PayloadAction<{ spaceId: string; collapsed: boolean }>
+      ) => {
+        const { collapsed } = action.payload;
+        const currentSpace = state.currentSpace;
 
-// 导出 Actions (RTK automatically generates action creators for all reducers and thunks)
+        if (currentSpace && currentSpace.categories) {
+          const categoryIds = Object.keys(currentSpace.categories);
+
+          // 1. 设置所有命名分类的折叠状态
+          categoryIds.forEach((catId) => {
+            state.collapsedCategories[catId] = collapsed;
+          });
+
+          // 2. 同时设置"未分类"区域的折叠状态
+          state.collapsedCategories[UNCATEGORIZED_ID] = collapsed;
+        }
+      }
+    ),
+
+    // --- 合并异步 Thunks from different domains ---
+    ...createSpaceThunks(create),
+    ...createCategoryThunks(create),
+    ...createContentThunks(create),
+    ...createMemberThunks(create),
+  }),
+});
+
+// 导出 Actions
 export const {
   // Sync
   toggleCategoryCollapse,
-  // Async (Names remain the same as defined in the thunks)
+  setAllCategoriesCollapsed,
+  // Async
   changeSpace,
   addSpace,
   deleteSpace,
@@ -90,7 +115,7 @@ export const {
   fixSpace,
 } = spaceSlice.actions;
 
-// Selectors (Keep them here or move to a separate selectors file if preferred)
+// Selectors
 const selectSpaceState = (state: RootState) => state.space;
 
 export const selectCurrentSpaceId = createSelector(
