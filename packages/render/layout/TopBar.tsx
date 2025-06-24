@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback, memo } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "auth/hooks/useAuth";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
@@ -11,13 +10,8 @@ import {
   deleteCurrentDialog,
 } from "chat/dialog/dialogSlice";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
-import toast from "react-hot-toast";
 
-import NavListItem from "render/layout/blocks/NavListItem";
-import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
-import { CreateTool } from "create/CreateTool";
-import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
-import { RoutePaths } from "auth/web/routes";
+import LanguageSwitcher from "../web/ui/LanguageSwitcher";
 import { Tooltip } from "render/web/ui/Tooltip";
 import { ConfirmModal } from "web/ui/ConfirmModal";
 import {
@@ -28,9 +22,13 @@ import {
   TrashIcon,
   PlusIcon,
 } from "@primer/octicons-react";
-import LanguageSwitcher from "../web/ui/LanguageSwitcher";
-
-// 使用场景：聊天对话管理的顶部导航栏
+import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
+import { RoutePaths } from "auth/web/routes";
+import { CreateTool } from "create/CreateTool";
+import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
+import NavListItem from "render/layout/blocks/NavListItem";
+import toast from "react-hot-toast";
+import { useParams, useNavigate } from "react-router-dom";
 
 const Spinner = memo(() => {
   const theme = useAppSelector(selectTheme);
@@ -137,29 +135,20 @@ const DeleteDialogButton = memo(({ dialogConfig, isMobile = false }) => {
   );
 });
 
-const EditableTitle = memo(({ currentDialogConfig }) => (
-  <h1 className="dialog-title" title={currentDialogConfig.title}>
-    {currentDialogConfig.title}
-  </h1>
-));
-
 const MobileDialogMenu = memo(({ currentDialogConfig }) => {
   const [isOpen, setIsOpen] = useState(false);
   const theme = useAppSelector(selectTheme);
 
-  const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
-  const close = useCallback(() => setIsOpen(false), []);
-
   return (
     <>
       <div className="mobile-menu">
-        <button className="btn-action" onClick={toggle}>
+        <button className="btn-action" onClick={() => setIsOpen(!isOpen)}>
           <KebabHorizontalIcon size={16} />
         </button>
 
         {isOpen && (
           <>
-            <div className="backdrop" onClick={close} />
+            <div className="backdrop" onClick={() => setIsOpen(false)} />
             <div className="dropdown">
               <div className="menu-section">
                 <DialogInfoPanel isMobile />
@@ -188,9 +177,8 @@ const MobileDialogMenu = memo(({ currentDialogConfig }) => {
         .dropdown {
           position: absolute; top: calc(100% + ${theme.space[2]}); right: 0;
           background: ${theme.background}; border: 1px solid ${theme.border};
-          border-radius: 12px; min-width: 240px; padding: ${theme.space[4]};
-          box-shadow: 0 8px 24px ${theme.shadowMedium}; z-index: 999;
-          animation: slideIn 0.2s ease-out;
+          border-radius: 6px; min-width: 240px; padding: ${theme.space[4]};
+          z-index: 999;
         }
         .menu-section { display: flex; flex-direction: column; gap: ${theme.space[2]}; }
         .menu-section:not(:last-child) {
@@ -201,10 +189,6 @@ const MobileDialogMenu = memo(({ currentDialogConfig }) => {
           width: 100% !important; justify-content: flex-start !important;
           gap: ${theme.space[3]} !important; padding: ${theme.space[3]} !important;
           font-size: 14px; font-weight: 500;
-        }
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(-8px) scale(0.95); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
         }
         @media (max-width: 768px) {
           .mobile-menu { display: block; }
@@ -218,7 +202,7 @@ const MobileDialogMenu = memo(({ currentDialogConfig }) => {
   );
 });
 
-const TopBar = memo(({ topbarContent, toggleSidebar, isSidebarOpen }) => {
+const TopBar = memo(({ toggleSidebar }) => {
   const { t } = useTranslation();
   const { isLoggedIn, user } = useAuth();
   const theme = useAppSelector(selectTheme);
@@ -226,6 +210,7 @@ const TopBar = memo(({ topbarContent, toggleSidebar, isSidebarOpen }) => {
   const pageData = useAppSelector(selectPageData);
   const { pageKey } = useParams();
 
+  // 检查编辑工具
   const dataCreator = pageKey ? extractUserId(pageKey) : undefined;
   const isCreator = dataCreator === user?.userId;
   const allowEdit = isCreator || !pageData.creator;
@@ -254,7 +239,9 @@ const TopBar = memo(({ topbarContent, toggleSidebar, isSidebarOpen }) => {
         <div className="topbar-center">
           {currentDialogConfig && (
             <>
-              <EditableTitle currentDialogConfig={currentDialogConfig} />
+              <h1 className="dialog-title" title={currentDialogConfig.title}>
+                {currentDialogConfig.title}
+              </h1>
               <div className="desktop-actions">
                 <DialogInfoPanel />
                 <CreateDialogButton dialogConfig={currentDialogConfig} />
@@ -264,7 +251,6 @@ const TopBar = memo(({ topbarContent, toggleSidebar, isSidebarOpen }) => {
             </>
           )}
           {showEditTool && <CreateTool />}
-          {topbarContent}
         </div>
 
         <div className="topbar-section">
@@ -288,41 +274,47 @@ const TopBar = memo(({ topbarContent, toggleSidebar, isSidebarOpen }) => {
           display: flex; justify-content: space-between; align-items: center;
           background: ${theme.background}; position: sticky; top: 0;
           padding: 0 ${theme.space[5]}; z-index: 100;
-          height: ${theme.headerHeight}px; transition: all 0.2s ease;
+          height: ${theme.headerHeight}px;
         }
+        
         .topbar-section {
           display: flex; align-items: center; gap: ${theme.space[2]};
           min-width: 100px; flex-shrink: 0;
         }
         .topbar-section:last-child { justify-content: flex-end; }
+        
         .topbar-center {
           flex: 1; display: flex; align-items: center; justify-content: center;
           padding: 0 ${theme.space[5]}; gap: ${theme.space[4]}; min-width: 0;
         }
+        
         .dialog-title {
-          margin: 0; font-size: 16px; font-weight: 600; color: ${theme.text};
+          margin: 0; font-size: 16px; font-weight: 500; color: ${theme.text};
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           max-width: 300px;
         }
+        
         .btn-action {
           display: flex; align-items: center; justify-content: center;
           background: transparent; border: none; cursor: pointer;
           color: ${theme.textSecondary}; width: ${theme.space[8]}; height: ${theme.space[8]};
-          border-radius: 8px; transition: all 0.2s ease; flex-shrink: 0;
+          border-radius: 6px; transition: all 0.15s ease; flex-shrink: 0;
         }
         .btn-action:hover {
           background: ${theme.backgroundHover}; color: ${theme.text};
         }
-        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-action:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-delete:hover {
-          background: ${theme.error}10; color: ${theme.error};
+          background: ${theme.error}08; color: ${theme.error};
         }
+        
         @media (max-width: 768px) {
           .topbar { padding: 0 ${theme.space[4]}; }
           .topbar-center { padding: 0 ${theme.space[3]}; gap: ${theme.space[2]}; }
           .dialog-title { font-size: 15px; max-width: 180px; }
           .topbar-section { min-width: 80px; }
         }
+        
         @media (max-width: 480px) {
           .topbar { padding: 0 ${theme.space[3]}; }
           .dialog-title { font-size: 14px; max-width: 120px; }
