@@ -1,7 +1,7 @@
 import React from "react";
 import { MdRefresh, MdInfoOutline } from "react-icons/md";
 import Button from "render/web/ui/Button";
-import { Slider } from "web/form/Slider";
+import { Slider } from "render/web/form/Slider";
 import { Tooltip } from "render/web/ui/Tooltip";
 import RadioGroup from "render/web/form/RadioGroup";
 import {

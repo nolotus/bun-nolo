@@ -1,12 +1,13 @@
 import React from "react";
 import { Controller } from "react-hook-form";
-import { FormField } from "web/form/FormField";
+import { FormField } from "render/web/form/FormField";
+
 import { Input, TextArea } from "render/web/form/Input";
 import { TagsInput } from "render/web/form/TagsInput";
 import AllModelsSelector from "ai/llm/AllModelsSelector";
+import { useTranslation } from "react-i18next";
 
 const BasicInfoTab = ({
-  t,
   errors,
   control,
   watch,
@@ -14,6 +15,7 @@ const BasicInfoTab = ({
   initialValues = {},
 }) => {
   const commonProps = { horizontal: true, labelWidth: "140px" };
+  const { t } = useTranslation("ai");
 
   return (
     <div className="tab-content-wrapper">

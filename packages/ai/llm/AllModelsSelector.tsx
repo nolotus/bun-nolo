@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Dropdown } from "web/form/Dropdown";
+import { Dropdown } from "render/web/form/Dropdown";
 import { CheckIcon, EyeIcon } from "@primer/octicons-react";
 import { useTheme } from "app/theme";
 import type { Model } from "./types";
