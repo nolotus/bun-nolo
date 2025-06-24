@@ -1,8 +1,7 @@
 import React from "react";
 import { Controller } from "react-hook-form";
 import { FormField } from "web/form/FormField";
-import { Input } from "web/form/Input";
-import TextArea from "web/form/Textarea";
+import { Input, TextArea } from "web/form/Input";
 import { TagsInput } from "web/form/TagsInput";
 import AllModelsSelector from "ai/llm/AllModelsSelector";
 

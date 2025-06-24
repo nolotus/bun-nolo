@@ -7,7 +7,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { useSearchParams, NavLink } from "react-router-dom";
 import z from "zod";
 import { Input } from "web/form/Input";
-import PasswordInput from "web/form/PasswordInput";
+import { PasswordInput } from "web/form/Input";
+
 import Button from "render/web/ui/Button";
 import {
   LockIcon,

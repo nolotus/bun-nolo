@@ -6,25 +6,27 @@ import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";
 
-import toast from "react-hot-toast";
-import Button from "render/web/ui/Button";
-import { Dialog } from "render/web/ui/Dialog";
-import { Tooltip } from "render/web/ui/Tooltip";
 import Avatar from "render/web/ui/Avatar";
-import BotForm from "ai/llm/web/BotForm";
 import { Cybot } from "../types";
 import { remove } from "database/dbSlice";
-import { PlusIcon, SyncIcon } from "@primer/octicons-react";
-import { useNavigate } from "react-router-dom";
+
+// Icons
 import {
   CommentDiscussionIcon,
   PencilIcon,
   TrashIcon,
   EyeIcon,
   ArrowRightIcon,
+  SyncIcon,
 } from "@primer/octicons-react";
-
 import { FaYenSign } from "react-icons/fa";
+import { PlusIcon } from "@primer/octicons-react";
+import { useNavigate } from "react-router-dom";
+import { Dialog } from "render/web/ui/Dialog";
+import { Tooltip } from "render/web/ui/Tooltip";
+import BotForm from "ai/llm/web/BotForm";
+import Button from "render/web/ui/Button";
+import toast from "react-hot-toast";
 
 interface CybotBlockProps {
   item: Cybot;
@@ -59,7 +61,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     try {
       const element = document.getElementById(`cybot-${item.id}`);
       element?.classList.add("cybot-block--exit");
-      await new Promise((r) => setTimeout(r, 200));
+      await new Promise((r) => setTimeout(r, 250));
       await dispatch(remove(cybotKey));
       toast.success(t("deleteSuccess"));
       await reload();
@@ -75,96 +77,135 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     navigate(`/${cybotKey}`);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // 点击卡片主体区域也可进入详情
+    if (
+      e.target === e.currentTarget ||
+      (e.target as Element).classList.contains("cybot-block__clickable")
+    ) {
+      handleViewDetails(e);
+    }
+  };
+
   return (
-    <div id={`cybot-${item.id}`} className="cybot-block" tabIndex={0}>
-      <div className="cybot-block__header">
-        <Avatar name={item.name} type="cybot" size="large" />
+    <>
+      <div
+        id={`cybot-${item.id}`}
+        className="cybot-block"
+        tabIndex={0}
+        onClick={handleCardClick}
+        aria-label={`AI助手: ${item.name || t("unnamed")}`}
+      >
+        {/* 装饰性渐变背景 */}
+        <div className="cybot-block__bg-gradient" />
 
-        <div className="cybot-block__info">
-          <div className="cybot-block__title-row">
-            <div className="cybot-block__title-container">
-              <Tooltip content={`ID: ${item.id}`}>
-                <h3 className="cybot-block__title">
-                  {item.name || t("unnamed")}
-                </h3>
-              </Tooltip>
+        {/* 头部区域 */}
+        <div className="cybot-block__header">
+          <div className="cybot-block__avatar-container">
+            <Avatar name={item.name} type="cybot" size="large" />
+            <div className="cybot-block__avatar-ring" />
+          </div>
 
-              <Tooltip content={t("viewDetails")}>
-                <button
-                  className="cybot-block__view-link"
-                  onClick={handleViewDetails}
-                  aria-label={t("viewDetails")}
-                >
-                  <ArrowRightIcon size={14} />
-                </button>
-              </Tooltip>
+          <div className="cybot-block__info">
+            <div className="cybot-block__title-row">
+              <div className="cybot-block__title-container cybot-block__clickable">
+                <Tooltip content={`ID: ${item.id}`} placement="top">
+                  <h3 className="cybot-block__title">
+                    {item.name || t("unnamed")}
+                  </h3>
+                </Tooltip>
+
+                <Tooltip content={t("viewDetails")} placement="top">
+                  <button
+                    className="cybot-block__view-link"
+                    onClick={handleViewDetails}
+                    aria-label={t("viewDetails")}
+                  >
+                    <ArrowRightIcon size={14} />
+                  </button>
+                </Tooltip>
+              </div>
+
+              {/* Meta信息 */}
+              <div className="cybot-block__meta">
+                {item.outputPrice && (
+                  <div className="cybot-block__price-tag">
+                    <FaYenSign size={10} />
+                    <span>{(item.outputPrice || 0).toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="cybot-block__meta">
-              {item.outputPrice && (
-                <div className="cybot-block__price-tag">
-                  <FaYenSign size={11} />
-                  <span>{(item.outputPrice || 0).toFixed(2)}</span>
-                </div>
+            {/* 标签区域 */}
+            <div className="cybot-block__tags">
+              {item.hasVision && (
+                <Tooltip content={t("hasVision")} placement="top">
+                  <span className="cybot-block__tag cybot-block__vision-tag">
+                    <EyeIcon size={11} />
+                    <span>{t("vision")}</span>
+                  </span>
+                </Tooltip>
+              )}
+              {item.tags?.slice(0, 3).map((tag, index) => (
+                <span key={index} className="cybot-block__tag">
+                  {tag}
+                </span>
+              ))}
+              {item.tags && item.tags.length > 3 && (
+                <span className="cybot-block__tag cybot-block__more-tag">
+                  +{item.tags.length - 3}
+                </span>
               )}
             </div>
           </div>
-
-          <div className="cybot-block__tags">
-            {item.tags?.map((tag, index) => (
-              <span key={index} className="cybot-block__tag">
-                {tag}
-              </span>
-            ))}
-            {item.hasVision && (
-              <Tooltip content={t("hasVision")}>
-                <span className="cybot-block__tag cybot-block__vision-tag">
-                  <EyeIcon size={11} />
-                  <span>{t("vision")}</span>
-                </span>
-              </Tooltip>
-            )}
-          </div>
         </div>
+
+        {/* 描述区域 */}
+        <div className="cybot-block__description cybot-block__clickable">
+          {item.introduction || t("noDescription")}
+        </div>
+
+        {/* 操作区域 */}
+        <div className="cybot-block__actions">
+          <Button
+            icon={<CommentDiscussionIcon size={16} />}
+            onClick={startDialog}
+            disabled={isLoading}
+            loading={isLoading}
+            size="medium"
+            className="cybot-block__primary-action"
+          >
+            {isLoading ? t("starting") : t("startChat")}
+          </Button>
+
+          {allowEdit && (
+            <div className="cybot-block__secondary-actions">
+              <Button
+                icon={<PencilIcon size={14} />}
+                onClick={openEdit}
+                variant="secondary"
+                size="medium"
+                aria-label={t("edit")}
+              />
+              <Button
+                icon={<TrashIcon size={14} />}
+                onClick={handleDelete}
+                disabled={deleting}
+                loading={deleting}
+                variant="danger"
+                size="medium"
+                aria-label={t("delete")}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* 悬停指示器 */}
+        <div className="cybot-block__hover-indicator" />
       </div>
 
-      <div className="cybot-block__description">
-        {item.introduction || t("noDescription")}
-      </div>
-
-      <div className="cybot-block__actions">
-        <Button
-          icon={<CommentDiscussionIcon size={16} />}
-          onClick={startDialog}
-          disabled={isLoading}
-          loading={isLoading}
-          size="medium"
-          style={{ flex: 1 }}
-        >
-          {isLoading ? t("starting") : t("startChat")}
-        </Button>
-
-        {allowEdit && (
-          <>
-            <Button
-              icon={<PencilIcon size={14} />}
-              onClick={openEdit}
-              variant="secondary"
-              size="medium"
-              aria-label={t("edit")}
-            />
-            <Button
-              icon={<TrashIcon size={14} />}
-              onClick={handleDelete}
-              disabled={deleting}
-              variant="danger"
-              size="medium"
-              aria-label={t("delete")}
-            />
-          </>
-        )}
-      </div>
-
+      {/* 编辑对话框 */}
       {editVisible && (
         <Dialog
           isOpen={editVisible}
@@ -185,33 +226,81 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
       <style href="cybot-block" precedence="medium">{`
         .cybot-block {
           background: ${theme.background};
-          border-radius: ${theme.space[3]};
+          border-radius: 20px;
           padding: ${theme.space[6]};
           height: 100%;
           display: flex;
           flex-direction: column;
           gap: ${theme.space[4]};
           border: 1px solid ${theme.border};
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           outline: none;
-          box-shadow: 0 1px 3px ${theme.shadowLight};
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 
+            0 2px 8px ${theme.shadow1},
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .cybot-block__bg-gradient {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 60%;
+          background: linear-gradient(135deg, ${theme.primary}04 0%, transparent 60%);
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
+        }
+
+        .cybot-block:hover .cybot-block__bg-gradient {
+          opacity: 1;
         }
 
         .cybot-block:hover {
-          transform: translateY(-1px);
-          border-color: ${theme.borderHover};
-          box-shadow: 0 4px 12px ${theme.shadowMedium};
+          transform: translateY(-6px) scale(1.01);
+          border-color: ${theme.primary}30;
+          box-shadow: 
+            0 20px 40px -8px ${theme.shadow2},
+            0 0 0 1px ${theme.primary}15,
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
 
-        .cybot-block:focus {
+        .cybot-block:focus-visible {
           border-color: ${theme.primary};
-          box-shadow: 0 0 0 3px ${theme.primaryGhost};
+          box-shadow: 
+            0 0 0 2px ${theme.background},
+            0 0 0 4px ${theme.primary},
+            0 2px 8px ${theme.shadow1};
         }
 
         .cybot-block__header {
           display: flex;
-          gap: ${theme.space[3]};
+          gap: ${theme.space[4]};
           align-items: flex-start;
+          position: relative;
+          z-index: 1;
+        }
+
+        .cybot-block__avatar-container {
+          position: relative;
+          flex-shrink: 0;
+        }
+
+        .cybot-block__avatar-ring {
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, ${theme.primary}20 0%, transparent 50%);
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
+        }
+
+        .cybot-block:hover .cybot-block__avatar-ring {
+          opacity: 1;
         }
 
         .cybot-block__info {
@@ -219,7 +308,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[2]};
+          gap: ${theme.space[3]};
         }
 
         .cybot-block__title-row {
@@ -227,7 +316,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           align-items: flex-start;
           justify-content: space-between;
           gap: ${theme.space[3]};
-          margin-top: ${theme.space[1]};
         }
 
         .cybot-block__title-container {
@@ -239,15 +327,20 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         }
 
         .cybot-block__title {
-          font-size: 1rem;
-          font-weight: 600;
+          font-size: 1.125rem;
+          font-weight: 650;
           margin: 0;
           color: ${theme.text};
           word-break: break-word;
-          letter-spacing: -0.01em;
-          line-height: 1.4;
+          letter-spacing: -0.02em;
+          line-height: 1.3;
           flex: 1;
           min-width: 0;
+          transition: color 0.3s ease;
+        }
+
+        .cybot-block:hover .cybot-block__title {
+          color: ${theme.primary};
         }
 
         .cybot-block__view-link {
@@ -256,13 +349,13 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           color: ${theme.textTertiary};
           cursor: pointer;
           padding: ${theme.space[1]};
-          border-radius: ${theme.space[1]};
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          border-radius: ${theme.space[2]};
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           display: flex;
           align-items: center;
           justify-content: center;
           opacity: 0;
-          transform: translateX(-4px);
+          transform: translateX(-8px);
           flex-shrink: 0;
         }
 
@@ -273,14 +366,14 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         .cybot-block__view-link:hover {
           color: ${theme.primary};
-          background: ${theme.primaryGhost};
-          transform: translateX(2px);
+          background: ${theme.primary}12;
+          transform: translateX(3px);
         }
 
-        .cybot-block__view-link:focus {
+        .cybot-block__view-link:focus-visible {
           opacity: 1;
           outline: none;
-          box-shadow: 0 0 0 2px ${theme.primaryGhost};
+          box-shadow: 0 0 0 2px ${theme.primary}40;
           color: ${theme.primary};
         }
 
@@ -296,14 +389,21 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           color: ${theme.textTertiary};
           padding: ${theme.space[1]} ${theme.space[2]};
           background: ${theme.backgroundTertiary};
-          border-radius: ${theme.space[1]};
+          border-radius: ${theme.space[2]};
           white-space: nowrap;
           display: flex;
           align-items: center;
-          gap: 3px;
-          font-weight: 500;
+          gap: 4px;
+          font-weight: 550;
           font-variant-numeric: tabular-nums;
           border: 1px solid ${theme.borderLight};
+          transition: all 0.3s ease;
+        }
+
+        .cybot-block:hover .cybot-block__price-tag {
+          background: ${theme.primary}10;
+          border-color: ${theme.primary}20;
+          color: ${theme.primary};
         }
 
         .cybot-block__tags {
@@ -311,7 +411,6 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           gap: ${theme.space[1]};
           flex-wrap: wrap;
           align-items: center;
-          margin-top: ${theme.space[2]};
         }
 
         .cybot-block__tag {
@@ -319,27 +418,40 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           color: ${theme.textTertiary};
           padding: ${theme.space[1]} ${theme.space[2]};
           background: ${theme.backgroundTertiary};
-          border-radius: ${theme.space[1]};
+          border-radius: ${theme.space[2]};
           white-space: nowrap;
-          font-weight: 500;
+          font-weight: 520;
           border: 1px solid ${theme.borderLight};
+          transition: all 0.3s ease;
         }
 
         .cybot-block__vision-tag {
           display: flex;
           align-items: center;
-          gap: 3px;
+          gap: 4px;
           color: ${theme.primary};
-          background: ${theme.primaryGhost};
-          border-color: ${theme.primary}30;
+          background: ${theme.primary}12;
+          border-color: ${theme.primary}25;
+        }
+
+        .cybot-block__more-tag {
+          color: ${theme.primary};
+          background: ${theme.primary}08;
+          border-color: ${theme.primary}20;
+          font-weight: 600;
+        }
+
+        .cybot-block:hover .cybot-block__tag {
+          background: ${theme.backgroundSelected || theme.backgroundHover};
+          border-color: ${theme.border};
         }
 
         .cybot-block__description {
           flex: 1;
-          font-size: 0.875rem;
+          font-size: 0.9rem;
           line-height: 1.6;
           color: ${theme.textSecondary};
-          margin: ${theme.space[3]} 0;
+          margin: ${theme.space[2]} 0;
           overflow-wrap: break-word;
           white-space: pre-line;
           display: -webkit-box;
@@ -347,6 +459,9 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           -webkit-box-orient: vertical;
           overflow: hidden;
           text-overflow: ellipsis;
+          position: relative;
+          z-index: 1;
+          letter-spacing: -0.01em;
         }
 
         .cybot-block__actions {
@@ -354,14 +469,43 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           gap: ${theme.space[2]};
           margin-top: auto;
           padding-top: ${theme.space[3]};
+          position: relative;
+          z-index: 2;
+        }
+
+        .cybot-block__primary-action {
+          flex: 1;
+        }
+
+        .cybot-block__secondary-actions {
+          display: flex;
+          gap: ${theme.space[1]};
+          flex-shrink: 0;
+        }
+
+        .cybot-block__hover-indicator {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, ${theme.primary} 0%, ${theme.primary}60 100%);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .cybot-block:hover .cybot-block__hover-indicator {
+          transform: scaleX(1);
         }
 
         .cybot-block--exit {
           opacity: 0;
-          transform: scale(0.96);
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: scale(0.95) translateY(20px);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
+        /* 响应式设计 */
         @media (max-width: 768px) {
           .cybot-block {
             padding: ${theme.space[5]};
@@ -371,36 +515,81 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             opacity: 1;
             transform: translateX(0);
           }
+
+          .cybot-block:hover {
+            transform: translateY(-3px) scale(1.005);
+          }
+
+          .cybot-block__title {
+            font-size: 1rem;
+          }
         }
 
         @media (max-width: 480px) {
           .cybot-block {
             padding: ${theme.space[4]};
             gap: ${theme.space[3]};
+            border-radius: 16px;
           }
 
           .cybot-block__actions {
-            flex-wrap: wrap;
-            gap: ${theme.space[1]};
+            flex-direction: column;
+            gap: ${theme.space[2]};
+          }
+
+          .cybot-block__secondary-actions {
+            justify-content: stretch;
+          }
+
+          .cybot-block__secondary-actions > * {
+            flex: 1;
+          }
+
+          .cybot-block__tags {
+            gap: 6px;
+          }
+
+          .cybot-block__tag {
+            font-size: 0.7rem;
+            padding: 4px 8px;
           }
         }
 
+        /* 性能优化 */
         @media (prefers-reduced-motion: reduce) {
-          .cybot-block {
+          .cybot-block,
+          .cybot-block__bg-gradient,
+          .cybot-block__avatar-ring,
+          .cybot-block__view-link,
+          .cybot-block__hover-indicator,
+          .cybot-block__price-tag,
+          .cybot-block__tag,
+          .cybot-block__title {
             transition: none;
           }
+          
           .cybot-block:hover {
             transform: none;
           }
+          
           .cybot-block--exit {
             transition: none;
           }
-          .cybot-block__view-link {
-            transition: none;
+        }
+
+        /* 高对比度支持 */
+        @media (prefers-contrast: high) {
+          .cybot-block {
+            border-width: 2px;
+          }
+          
+          .cybot-block__tag,
+          .cybot-block__price-tag {
+            border-width: 2px;
           }
         }
       `}</style>
-    </div>
+    </>
   );
 };
 
