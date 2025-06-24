@@ -82,6 +82,7 @@ const MessageInput: React.FC = () => {
             ".xlsm",
             ".xlsb",
           ];
+
           if (
             spreadsheetExtensions.some((ext) => fileNameLower.endsWith(ext))
           ) {
@@ -121,6 +122,7 @@ const MessageInput: React.FC = () => {
               type: fileType,
             })
           );
+
           if (createPageAndAddReference.fulfilled.match(resultAction)) {
             toast.success(
               t("fileProcessedSuccess", "{{fileName}} 处理成功!", {
@@ -243,121 +245,393 @@ const MessageInput: React.FC = () => {
     pendingFiles.length > 0;
 
   return (
-    <div
-      className="message-input-container"
-      onDragOver={(e) => {
-        e.preventDefault();
-        setIsDragOver(true);
-      }}
-      onDragLeave={() => setIsDragOver(false)}
-      onDrop={handleDrop}
-      aria-label={t("messageInputArea", "消息输入区域")}
-    >
-      <AttachmentsPreview
-        imagePreviews={localImagePreviews}
-        pendingFiles={pendingFiles}
-        onRemoveImage={(id) =>
-          setLocalImagePreviews((prev) => prev.filter((img) => img.id !== id))
-        }
-        onPreviewFile={setLocalPreviewingFile}
-      />
-
-      <div className="input-controls">
-        <button
-          className="upload-button"
-          onClick={() => fileInputRef.current?.click()}
-          title={t("uploadFile", "上传文件")}
-          aria-label={t("uploadFile", "上传文件")}
-        >
-          <UploadIcon size={20} />
-        </button>
-        <textarea
-          ref={textareaRef}
-          className="message-textarea"
-          value={textContent}
-          placeholder={t("messageOrFileHere", "输入消息或拖入文件...")}
-          onChange={handleTextareaChange}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          aria-label={t("messageInput", "消息输入框")}
-        />
-        <SendButton onClick={sendMessage} disabled={!hasContent} />
-      </div>
-
-      {isDragOver && (
-        <div className="drop-zone" aria-live="polite">
-          <div className="drop-zone-content">
-            <UploadIcon size={32} />
-            <span>{t("dropToUpload", "松开即可上传")}</span>
-          </div>
-        </div>
-      )}
-
-      {localPreviewingFile && (
-        <DocxPreviewDialog
-          isOpen={!!localPreviewingFile}
-          onClose={() => setLocalPreviewingFile(null)}
-          pageKey={localPreviewingFile.pageKey}
-          fileName={localPreviewingFile.name}
-        />
-      )}
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        hidden
-        accept="image/*,.xlsx,.xls,.csv,.ods,.xlsm,.xlsb,.docx,.pdf,.txt,text/plain"
-        multiple
-        onChange={(e) => {
-          processFiles(e.target.files);
-          e.target.value = "";
-        }}
-      />
-
+    <>
       <style href="message-input" precedence="medium">{`
-        .message-input-container { position: relative; bottom: 0; left: 0; right: 0; width: 100%; padding: ${theme.space[2]} ${theme.space[4]}; padding-bottom: calc(${theme.space[2]} + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: ${theme.space[2]}; background: ${theme.background}; border-top: 1px solid ${theme.borderLight}; box-shadow: 0 -2px 12px ${theme.shadowLight}; z-index: ${zIndex.messageInputContainerZIndex}; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .attachments-preview { width: 100%; }
-        .attachments-list { display: flex; flex-wrap: wrap; gap: ${theme.space[2]}; padding: ${theme.space[1]} 0; align-items: flex-start; }
-        .file-attachment { display: flex; align-items: center; justify-content: space-between; padding: ${theme.space[2]} ${theme.space[3]}; background: ${theme.backgroundSecondary}; border: 1px solid ${theme.border}; border-radius: ${theme.space[2]}; max-width: 200px; min-width: 120px; position: relative; transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); }
-        .file-attachment:hover { background: ${theme.backgroundHover}; border-color: ${theme.borderHover}; transform: translateY(-1px); box-shadow: 0 2px 8px ${theme.shadowLight}; }
-        .file-preview-content { display: flex; align-items: center; gap: ${theme.space[2]}; flex: 1; min-width: 0; color: var(--file-color, ${theme.textSecondary}); }
-        .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; font-size: 13px; font-weight: 500; transition: text-decoration 0.15s ease; }
-        .file-name:hover { text-decoration: underline; }
-        .file-name:focus { outline: 2px solid ${theme.primary}; outline-offset: 2px; border-radius: 2px; }
-        .remove-file-btn { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; background: ${theme.error}; border: 2px solid ${theme.background}; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; font-size: 10px; transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2; opacity: 0; }
-        .file-attachment:hover .remove-file-btn { opacity: 1; }
-        .remove-file-btn:hover { transform: scale(1.1); background: #dc2626; }
-        .remove-file-btn:focus { opacity: 1; outline: 2px solid ${theme.primary}; outline-offset: 2px; }
-        .input-controls { display: flex; gap: ${theme.space[2]}; width: 100%; align-items: flex-end; }
-        .message-textarea { flex: 1; min-height: 40px; max-height: 200px; padding: ${theme.space[2]} ${theme.space[3]}; font-size: 14px; line-height: 1.5; border: 1px solid ${theme.border}; border-radius: ${theme.space[2]}; resize: none; overflow-y: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background: ${theme.backgroundSecondary}; color: ${theme.text}; transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .message-textarea::placeholder { color: ${theme.placeholder}; }
-        .message-textarea:focus { outline: none; border-color: ${theme.primary}; }
-        .upload-button { width: 40px; height: 40px; border-radius: ${theme.space[2]}; border: 1px solid ${theme.border}; display: flex; align-items: center; justify-content: center; background: ${theme.background}; color: ${theme.textSecondary}; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
-        .upload-button:hover { background: ${theme.backgroundHover}; color: ${theme.text}; transform: translateY(-1px); }
-        .upload-button:active { transform: translateY(0); }
-        .upload-button:focus { outline: 2px solid ${theme.primary}; outline-offset: 2px; }
-        .drop-zone { position: absolute; inset: 0; border-radius: ${theme.space[2]}; display: flex; align-items: center; justify-content: center; background: ${theme.backgroundGhost}; backdrop-filter: blur(8px); border: 2px dashed ${theme.primary}; color: ${theme.primary}; pointer-events: none; z-index: 10; }
-        .drop-zone-content { display: flex; flex-direction: column; align-items: center; gap: ${theme.space[2]}; font-size: 15px; font-weight: 500; }
+        .message-input-container {
+          position: relative;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
+          padding: ${theme.space[4]};
+          padding-bottom: calc(${theme.space[4]} + env(safe-area-inset-bottom, 0px));
+          display: flex;
+          flex-direction: column;
+          gap: ${theme.space[3]};
+          background: ${theme.background};
+          border-top: 1px solid ${theme.borderLight};
+          box-shadow: 
+            0 -4px 12px ${theme.shadow1},
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          z-index: ${zIndex.messageInputContainerZIndex};
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .input-controls {
+          display: flex;
+          gap: ${theme.space[3]};
+          width: 100%;
+          align-items: flex-end;
+        }
+
+        .message-textarea {
+          flex: 1;
+          min-height: 44px;
+          max-height: 200px;
+          padding: ${theme.space[3]} ${theme.space[4]};
+          font-size: 0.925rem;
+          line-height: 1.5;
+          border: 1px solid ${theme.border};
+          border-radius: ${theme.space[3]};
+          resize: none;
+          overflow-y: auto;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+          background: ${theme.backgroundSecondary};
+          color: ${theme.text};
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          letter-spacing: -0.01em;
+          box-shadow: 
+            0 1px 3px ${theme.shadow1},
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .message-textarea::placeholder {
+          color: ${theme.placeholder || theme.textQuaternary};
+          opacity: 1;
+        }
+
+        .message-textarea:focus {
+          outline: none;
+          border-color: ${theme.primary};
+          background: ${theme.background};
+          box-shadow: 
+            0 0 0 3px ${theme.primary}20,
+            0 2px 8px ${theme.shadow2},
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          transform: translateY(-1px);
+        }
+
+        .message-textarea:hover:not(:focus) {
+          border-color: ${theme.primary}40;
+          box-shadow: 
+            0 2px 6px ${theme.shadow1},
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .upload-button {
+          width: 44px;
+          height: 44px;
+          border-radius: ${theme.space[3]};
+          border: 1px solid ${theme.border};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${theme.backgroundSecondary};
+          color: ${theme.textSecondary};
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
+          box-shadow: 
+            0 1px 3px ${theme.shadow1},
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .upload-button::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 50%);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+        }
+
+        .upload-button:hover {
+          background: ${theme.background};
+          color: ${theme.primary};
+          border-color: ${theme.primary}30;
+          transform: translateY(-2px);
+          box-shadow: 
+            0 4px 12px ${theme.shadow1},
+            0 0 0 1px ${theme.primary}15,
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .upload-button:hover::before {
+          opacity: 1;
+        }
+
+        .upload-button:active {
+          transform: translateY(0);
+          transition-duration: 0.1s;
+          box-shadow: 
+            0 1px 3px ${theme.shadow1},
+            inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .upload-button:focus-visible {
+          outline: none;
+          box-shadow: 
+            0 0 0 2px ${theme.background},
+            0 0 0 4px ${theme.primary},
+            0 1px 3px ${theme.shadow1};
+        }
+
+        .drop-zone {
+          position: absolute;
+          inset: ${theme.space[2]};
+          border-radius: ${theme.space[4]};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: ${theme.backgroundGhost || `${theme.background}f0`};
+          backdrop-filter: blur(12px);
+          border: 2px dashed ${theme.primary};
+          color: ${theme.primary};
+          pointer-events: none;
+          z-index: 10;
+          opacity: 0;
+          animation: dropZoneFadeIn 0.2s ease-out forwards;
+        }
+
+        @keyframes dropZoneFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .drop-zone-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: ${theme.space[3]};
+          font-size: 0.95rem;
+          font-weight: 550;
+          letter-spacing: -0.01em;
+          padding: ${theme.space[4]};
+          border-radius: ${theme.space[3]};
+          background: ${theme.background}80;
+          backdrop-filter: blur(8px);
+        }
+
+        /* 响应式设计 */
         @media (max-width: 768px) {
-          .message-input-container { padding: ${theme.space[1]} ${theme.space[3]}; }
-          .attachments-list { gap: ${theme.space[1]}; }
-          .file-attachment { max-width: 150px; min-width: 100px; padding: ${theme.space[1]} ${theme.space[2]}; }
-          .file-name { font-size: 12px; }
-          .message-textarea { max-height: 150px; font-size: 13px; }
-          .upload-button { width: 36px; height: 36px; }
+          .message-input-container {
+            padding: ${theme.space[3]};
+            gap: ${theme.space[2]};
+          }
+
+          .input-controls {
+            gap: ${theme.space[2]};
+          }
+
+          .message-textarea {
+            min-height: 40px;
+            max-height: 150px;
+            padding: ${theme.space[2]} ${theme.space[3]};
+            font-size: 1rem; /* iOS 防止缩放 */
+            border-radius: ${theme.space[2]};
+          }
+
+          .upload-button {
+            width: 40px;
+            height: 40px;
+            border-radius: ${theme.space[2]};
+          }
+
+          .drop-zone-content {
+            padding: ${theme.space[3]};
+            font-size: 0.875rem;
+          }
         }
+
+        @media (max-width: 480px) {
+          .message-input-container {
+            padding: ${theme.space[2]};
+          }
+
+          .message-textarea {
+            padding: ${theme.space[2]};
+            font-size: 1rem;
+          }
+
+          .upload-button {
+            width: 36px;
+            height: 36px;
+          }
+        }
+
+        /* 桌面端优化 */
         @media (min-width: 769px) {
-          .message-input-container { max-width: 900px; margin: 0 auto; padding: ${theme.space[4]}; border-top: none; box-shadow: none; }
-          .file-attachment { max-width: 240px; min-width: 140px; }
-          .file-name { font-size: 14px; }
-          .message-textarea { min-height: 44px; max-height: 200px; padding: ${theme.space[3]} ${theme.space[4]}; font-size: 15px; }
-          .upload-button { width: 44px; height: 44px; }
+          .message-input-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: ${theme.space[5]} ${theme.space[4]};
+            border-top: none;
+            box-shadow: none;
+            background: transparent;
+          }
+
+          .message-textarea {
+            min-height: 48px;
+            max-height: 200px;
+            font-size: 1rem;
+            padding: ${theme.space[3]} ${theme.space[5]};
+          }
+
+          .upload-button {
+            width: 48px;
+            height: 48px;
+          }
         }
-        @media (min-width: 1400px) { .message-input-container { max-width: 1000px; } }
-        @media (prefers-reduced-motion: reduce) { .message-input-container, .file-attachment, .upload-button, .message-textarea { transition: none; } .upload-button:hover, .file-attachment:hover { transform: none; } }
-        @media print { .message-input-container { display: none; } }
+
+        @media (min-width: 1400px) {
+          .message-input-container {
+            max-width: 1000px;
+          }
+        }
+
+        /* 可访问性和性能优化 */
+        @media (prefers-reduced-motion: reduce) {
+          .message-input-container,
+          .message-textarea,
+          .upload-button {
+            transition: border-color 0.1s ease, background-color 0.1s ease;
+          }
+
+          .upload-button:hover,
+          .message-textarea:focus {
+            transform: none;
+          }
+
+          .drop-zone {
+            animation: none;
+          }
+        }
+
+        @media (prefers-contrast: high) {
+          .message-textarea,
+          .upload-button {
+            border-width: 2px;
+          }
+
+          .drop-zone {
+            border-width: 3px;
+          }
+        }
+
+        @media print {
+          .message-input-container {
+            display: none;
+          }
+        }
+
+        /* 暗色主题优化 */
+        @media (prefers-color-scheme: dark) {
+          .message-textarea:-webkit-autofill,
+          .message-textarea:-webkit-autofill:hover,
+          .message-textarea:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 1000px ${theme.backgroundSecondary} inset;
+            -webkit-text-fill-color: ${theme.text};
+          }
+        }
+
+        /* 焦点环优化 */
+        .message-textarea:focus-visible {
+          outline: none;
+        }
+
+        .upload-button:focus:not(:focus-visible) {
+          outline: none;
+          box-shadow: 
+            0 1px 3px ${theme.shadow1},
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
       `}</style>
-    </div>
+
+      <div
+        className="message-input-container"
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={handleDrop}
+        aria-label={t("messageInputArea", "消息输入区域")}
+      >
+        <AttachmentsPreview
+          imagePreviews={localImagePreviews}
+          pendingFiles={pendingFiles}
+          onRemoveImage={(id) =>
+            setLocalImagePreviews((prev) => prev.filter((img) => img.id !== id))
+          }
+          onPreviewFile={setLocalPreviewingFile}
+        />
+
+        <div className="input-controls">
+          <button
+            className="upload-button"
+            onClick={() => fileInputRef.current?.click()}
+            title={t("uploadFile", "上传文件")}
+            aria-label={t("uploadFile", "上传文件")}
+          >
+            <UploadIcon size={20} />
+          </button>
+
+          <textarea
+            ref={textareaRef}
+            className="message-textarea"
+            value={textContent}
+            placeholder={t("messageOrFileHere", "输入消息或拖入文件...")}
+            onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            aria-label={t("messageInput", "消息输入框")}
+          />
+
+          <SendButton onClick={sendMessage} disabled={!hasContent} />
+        </div>
+
+        {isDragOver && (
+          <div className="drop-zone" aria-live="polite">
+            <div className="drop-zone-content">
+              <UploadIcon size={32} />
+              <span>{t("dropToUpload", "松开即可上传")}</span>
+            </div>
+          </div>
+        )}
+
+        {localPreviewingFile && (
+          <DocxPreviewDialog
+            isOpen={!!localPreviewingFile}
+            onClose={() => setLocalPreviewingFile(null)}
+            pageKey={localPreviewingFile.pageKey}
+            fileName={localPreviewingFile.name}
+          />
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          hidden
+          accept="image/*,.xlsx,.xls,.csv,.ods,.xlsm,.xlsb,.docx,.pdf,.txt,text/plain"
+          multiple
+          onChange={(e) => {
+            processFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+      </div>
+    </>
   );
 };
 
