@@ -1,13 +1,14 @@
 import React from "react";
-import { FormField } from "web/form/FormField";
+import { FormField } from "render/web/form/FormField";
+
 import { TextArea } from "render/web/form/Input";
+import { useTranslation } from "react-i18next";
 
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { NumberInput } from "render/web/form/Input";
 import { Controller } from "react-hook-form";
 
 const PublishSettingsTab = ({
-  t,
   errors,
   control,
   watch,
@@ -18,6 +19,8 @@ const PublishSettingsTab = ({
   setOutputPrice,
   initialValues = {},
 }) => {
+  const { t } = useTranslation("ai");
+
   const commonProps = { horizontal: true, labelWidth: "140px" };
   const isPublic = watch("isPublic");
 

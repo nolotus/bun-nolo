@@ -1,10 +1,13 @@
 import React from "react";
-import { FormField } from "web/form/FormField";
+import { FormField } from "render/web/form/FormField";
+
 import ToolSelector from "ai/tools/ToolSelector";
 import { Controller } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
-const ToolsTab = ({ t, errors, control, initialValues = {} }) => {
+const ToolsTab = ({ errors, control, initialValues = {} }) => {
   const commonProps = { horizontal: true, labelWidth: "140px" };
+  const { t } = useTranslation("ai");
 
   return (
     <div className="tab-content-wrapper">

@@ -2,20 +2,22 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
-import TabsNav from "render/web/ui/TabsNav";
-import FormTitle from "web/form/FormTitle";
-import Button from "render/web/ui/Button";
 import useModelPricing from "../../cybot/hooks/useModelPricing";
 import { useOllamaSettings } from "../../cybot/hooks/useOllamaSettings";
 import { useProxySetting } from "../../cybot/hooks/useProxySetting";
 import { useCybotValidation } from "./common/useCybotFormValidation";
 import { normalizeReferences } from "./common/createCybotSchema";
 
+//web
+import ToolsTab from "./ToolsTab";
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
-import ToolsTab from "./ToolsTab";
 import PublishSettingsTab from "./PublishSettingsTab";
 import AdvancedSettingsTab from "./AdvancedSettingsTab";
+
+import Button from "render/web/ui/Button";
+import FormTitle from "web/form/FormTitle";
+import TabsNav from "render/web/ui/TabsNav";
 
 const TABS = [
   { id: 0, key: "basicInfo" },
@@ -112,7 +114,6 @@ const CybotForm = ({
   const tabs = TABS.map((tab) => ({ ...tab, label: t(tab.key) }));
 
   const sharedProps = {
-    t,
     errors,
     register,
     control,

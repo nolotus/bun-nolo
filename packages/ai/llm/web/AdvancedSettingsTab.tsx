@@ -1,17 +1,19 @@
 import React, { useCallback } from "react";
 import { Controller } from "react-hook-form";
-import { FormField } from "web/form/FormField";
-import ToggleSwitch from "web/ui/ToggleSwitch";
-import { Input, PasswordInput } from "render/web/form/Input";
+
+import { useTranslation } from "react-i18next";
 
 import ModelParameters from "./ModelParameters";
+import { PARAMETER_CONFIGS, PARAMETER_FORM_KEYS } from "./ModelParameters";
 
 // 为了重置逻辑，从 ModelParameters 导入配置，避免 props drilling
 // (假设 PARAMETER_CONFIGS 和 PARAMETER_FORM_KEYS 从 ModelParameters.jsx 文件中导出)
-import { PARAMETER_CONFIGS, PARAMETER_FORM_KEYS } from "./ModelParameters";
 
+//web
+import { Input, PasswordInput } from "render/web/form/Input";
+import { FormField } from "render/web/form/FormField";
+import ToggleSwitch from "web/ui/ToggleSwitch";
 const AdvancedSettingsTab = ({
-  t,
   errors,
   control,
   watch,
@@ -23,6 +25,8 @@ const AdvancedSettingsTab = ({
   isOllama,
   isProxyDisabled,
 }) => {
+  const { t } = useTranslation("ai");
+
   const commonProps = { horizontal: true, labelWidth: "140px" };
   const useServerProxy = watch("useServerProxy");
 

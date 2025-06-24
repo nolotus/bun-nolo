@@ -3,9 +3,11 @@
 import type React from "react";
 import { useState, useEffect } from "react"; // 引入 useState 和 useEffect
 import { useTranslation } from "react-i18next";
-import { Checkbox } from "web/form/Checkbox"; // 假设这是普通的 Checkbox 组件
 import { useTheme } from "app/theme";
 import { toolDescriptions } from "ai/tools/toolRegistry";
+
+//web
+import { Checkbox } from "render/web/form/Checkbox"; // 假设这是普通的 Checkbox 组件
 
 // 动态生成工具选项
 const TOOL_OPTIONS = Object.entries(toolDescriptions).map(([id, info]) => ({
