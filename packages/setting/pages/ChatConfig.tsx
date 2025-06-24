@@ -4,8 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
-import { Input } from "web/form/Input";
-import { NumberInput } from "web/form/NumberInput";
+import { NumberInput, Input } from "render/web/form/Input";
 import ToggleSwitch from "web/ui/ToggleSwitch";
 
 const ChatConfig: React.FC = () => {
