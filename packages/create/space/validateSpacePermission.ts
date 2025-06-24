@@ -1,4 +1,5 @@
-import type { SpaceId, SpaceData } from "create/space/types";
+import type { SpaceId } from "create/space/types";
+import type { SpaceData } from "app/types";
 import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read } from "database/dbSlice";

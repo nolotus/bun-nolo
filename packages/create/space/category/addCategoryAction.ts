@@ -1,5 +1,7 @@
 // create/space/category/addCategoryAction.ts (假设路径)
-import type { SpaceId, SpaceData, Category } from "create/space/types";
+import type { SpaceId } from "create/space/types";
+import type { Category } from "app/types";
+import type { SpaceData } from "app/types";
 import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patch } from "database/dbSlice";

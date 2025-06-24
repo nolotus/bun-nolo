@@ -4,7 +4,8 @@ import { useAppDispatch } from "app/hooks";
 import { read } from "database/dbSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { createUserKey } from "database/keys";
-import { SpaceData, MemberRole } from "create/space/types";
+import { MemberRole } from "app/types";
+import { SpaceData } from "app/types";
 
 interface Member {
   id: string;

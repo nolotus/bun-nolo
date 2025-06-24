@@ -1,11 +1,9 @@
 import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
-import type {
-  SpaceVisibility,
-  SpaceData,
-  SpaceMember,
-} from "create/space/types"; // 确认类型路径, 添加 SpaceMember
+import type { SpaceMember } from "app/types";
+import type { SpaceVisibility } from "app/types";
+import type { SpaceData } from "app/types";
 import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
 // import { checkSpaceMembership } from "../utils/permissions"; // 导入权限检查函数
 

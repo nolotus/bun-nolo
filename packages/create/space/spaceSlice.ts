@@ -6,7 +6,9 @@ import {
   buildCreateSlice,
   createSelector,
 } from "@reduxjs/toolkit";
-import { SpaceData, MemberRole, SpaceMemberWithSpaceInfo } from "./types";
+import { SpaceMemberWithSpaceInfo } from "app/types";
+import { MemberRole } from "app/types";
+import { SpaceData } from "app/types";
 import { UNCATEGORIZED_ID } from "./constants"; // <-- 确保导入
 
 // --- Import Thunk creators from their new locations ---
@@ -14,7 +16,9 @@ import { createCategoryThunks } from "./category/categoryThunks";
 import { createContentThunks } from "./content/contentThunks";
 import { createMemberThunks } from "./member/memberThunks";
 import { createSpaceThunks } from "./spaceThunks";
-
+export interface CreateSpaceRequest {
+  /* ... */
+}
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });

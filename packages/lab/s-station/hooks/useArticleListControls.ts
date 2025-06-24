@@ -4,7 +4,7 @@ import { useAppDispatch } from "app/hooks"; // 假设路径
 import { createPage } from "render/page/pageSlice"; // 假设路径
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ContentType } from "create/space/types"; // 假设路径
+import { ContentType } from "app/types"; // 假设路径
 import { useSpaceContentData } from "./useSpaceContentData"; // 导入数据 hook
 import { deleteContentFromSpace } from "create/space/spaceSlice"; // 导入 space action, 假设路径
 

@@ -2,7 +2,7 @@
 import { selectUserId } from "auth/authSlice"; // 假设路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 假设路径
 import { patch, read, remove } from "database/dbSlice"; // 从 dbSlice 导入
-import { SpaceData } from "create/space/types"; // 导入 SpaceData 类型
+import { SpaceData } from "app/types";
 import pino from "pino"; // 假设你使用 pino 进行日志记录
 
 const logger = pino({

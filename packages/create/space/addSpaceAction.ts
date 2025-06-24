@@ -1,18 +1,15 @@
-import {
-  SpaceData,
-  SpaceVisibility,
-  MemberRole,
-  CreateSpaceRequest,
-  SpaceContent,
-  SpaceMemberWithSpaceInfo, // 确保这个类型包含了新增的字段 (dbKey, userId, createdAt, updatedAt)
-} from "create/space/types"; // 确认导入路径
+import { SpaceMemberWithSpaceInfo } from "app/types";
+import { MemberRole } from "app/types";
+import { SpaceVisibility } from "app/types";
+import { SpaceData } from "app/types";
+import { SpaceContent } from "app/types";
 import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { DataType } from "create/types"; // 确认导入路径
 import { getUserDataOnce } from "database/utils/getUserDataOnce"; // 确认导入路径
 import { ulid } from "ulid";
-import { patch, write, read } from "database/dbSlice"; // 确认导入路径 (添加 read)
+import { patch, write } from "database/dbSlice"; // 确认导入路径 (添加 read)
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
-import { selectAllMemberSpaces } from "./spaceSlice"; // 确认导入路径
+import { CreateSpaceRequest, selectAllMemberSpaces } from "./spaceSlice"; // 确认导入路径
 import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
 
 const targetTypes = [DataType.DIALOG, DataType.PAGE];

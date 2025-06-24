@@ -7,7 +7,7 @@ import Button from "render/web/ui/Button";
 import toast from "react-hot-toast";
 import { InviteModal } from "../components/InviteModal";
 import { addMember, removeMember } from "../spaceSlice";
-import { MemberRole } from "../types";
+import { MemberRole } from "app/types";
 import { createUserKey } from "database/keys";
 import { read } from "database/dbSlice";
 import { useSpaceData } from "../hooks/useSpaceData";

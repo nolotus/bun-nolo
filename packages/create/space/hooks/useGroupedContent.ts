@@ -1,12 +1,9 @@
 // 文件路径: src/hooks/useGroupedContent.ts
 import React, { useMemo } from "react";
-import {
-  SpaceData,
-  Categories,
-  Contents,
-  SpaceContent,
-  Category,
-} from "create/space/types";
+import { Contents } from "app/types";
+import { Category } from "app/types";
+import { Categories } from "app/types";
+import { SpaceContent, SpaceData } from "app/types";
 
 interface ProcessedCategoryItem {
   id: string;

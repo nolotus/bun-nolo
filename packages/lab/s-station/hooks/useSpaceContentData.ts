@@ -4,7 +4,7 @@ import { useAppDispatch } from "app/hooks"; // 假设路径
 import { read } from "database/dbSlice"; // 假设路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 假设路径
 import toast from "react-hot-toast";
-import { SpaceData, ContentType } from "create/space/types"; // 假设路径
+import { type SpaceData, ContentType } from "app/types"; // 假设路径
 import pino from "pino"; // 假设使用 pino
 
 const logger = pino({

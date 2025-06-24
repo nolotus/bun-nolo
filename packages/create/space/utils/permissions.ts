@@ -1,6 +1,6 @@
 // create/space/utils/permissions.ts (新文件)
 
-import type { SpaceData } from "create/space/types"; // 确认类型路径
+import type { SpaceData } from "app/types";
 
 /**
  * 检查用户是否是指定空间的成员。

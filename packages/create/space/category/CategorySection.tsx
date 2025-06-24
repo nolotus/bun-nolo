@@ -1,7 +1,7 @@
 // 文件路径: "create/space/category/CategorySection"
 import React, { memo, useState, useRef, useEffect } from "react";
 import { useAppSelector } from "app/hooks";
-import { SpaceContent } from "create/space/types";
+import { SpaceContent } from "app/types";
 import CategoryHeader from "create/space/category/CategoryHeader";
 import SidebarItem from "create/space/SidebarItem";
 import { selectCollapsedCategories } from "create/space/spaceSlice";

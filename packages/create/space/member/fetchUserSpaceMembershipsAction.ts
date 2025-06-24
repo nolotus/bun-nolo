@@ -1,5 +1,5 @@
 import { RootState } from "app/store";
-import { SpaceMemberWithSpaceInfo } from "create/space/types";
+import { SpaceMemberWithSpaceInfo } from "app/types";
 import { browserDb } from "database/browser/db";
 import { selectCurrentServer } from "setting/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";

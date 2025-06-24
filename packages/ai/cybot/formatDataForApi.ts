@@ -1,4 +1,6 @@
-import { SpaceData, Contents, ContentType } from "create/space/types";
+import { Contents } from "app/types";
+import { ContentType } from "app/types";
+import { SpaceData } from "app/types";
 import { Message } from "chat/messages/types"; // 假设 Message 类型定义在此处
 
 /**

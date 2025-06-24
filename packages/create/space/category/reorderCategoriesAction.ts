@@ -1,5 +1,6 @@
 // create/space/category/reorderCategoriesAction.ts (假设路径)
-import type { SpaceId, SpaceData, SpaceCategory } from "create/space/types";
+import type { SpaceId } from "create/space/types";
+import type { SpaceData, SpaceCategory } from "app/types";
 import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patch } from "database/dbSlice";

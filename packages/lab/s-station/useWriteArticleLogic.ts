@@ -5,8 +5,7 @@ import { createSpaceKey } from "create/space/spaceKeys";
 import { createPage, PageData as FullPageData } from "render/page/pageSlice";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { DataType } from "create/types";
-import { SpaceData, SpaceContent, ContentType } from "create/space/types";
+import { ContentType, type SpaceData } from "app/types";
 
 // ... (interfaces remain the same) ...
 interface MoodNoteForList {
