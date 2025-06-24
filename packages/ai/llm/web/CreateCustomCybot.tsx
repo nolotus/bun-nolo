@@ -4,10 +4,10 @@ import { useTheme } from "app/theme";
 import { useCybotValidation } from "../../llm/web/common/useCybotFormValidation";
 import { FormField } from "web/form/FormField";
 import FormTitle from "web/form/FormTitle";
-import { Input, TextArea } from "web/form/Input";
+import { Input, TextArea, PasswordInput } from "render/web/form/Input";
+
 import { PlusIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
-import { PasswordInput } from "web/form/Input";
 
 import { TagsInput } from "web/form/TagsInput";
 import { useAppSelector } from "app/hooks";

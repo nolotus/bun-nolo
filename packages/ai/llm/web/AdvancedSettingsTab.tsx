@@ -2,8 +2,8 @@ import React, { useCallback } from "react";
 import { Controller } from "react-hook-form";
 import { FormField } from "web/form/FormField";
 import ToggleSwitch from "web/ui/ToggleSwitch";
-import { Input } from "web/form/Input";
-import { PasswordInput } from "web/form/Input";
+import { Input, PasswordInput } from "render/web/form/Input";
+
 import ModelParameters from "./ModelParameters";
 
 // 为了重置逻辑，从 ModelParameters 导入配置，避免 props drilling

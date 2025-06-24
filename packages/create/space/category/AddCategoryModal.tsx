@@ -3,8 +3,7 @@ import { BaseActionModal } from "web/ui/BaseActionModal";
 import Button from "render/web/ui/Button";
 import { useTheme } from "app/theme";
 import { XIcon } from "@primer/octicons-react";
-import { Input } from "web/form/Input";
-
+import { Input } from "render/web/form/Input";
 interface AddCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;

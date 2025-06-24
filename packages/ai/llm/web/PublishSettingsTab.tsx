@@ -1,6 +1,7 @@
 import React from "react";
 import { FormField } from "web/form/FormField";
-import TextArea from "web/form/Textarea";
+import { TextArea } from "render/web/form/Input";
+
 import ToggleSwitch from "web/ui/ToggleSwitch";
 import { NumberInput } from "render/web/form/Input";
 import { Controller } from "react-hook-form";

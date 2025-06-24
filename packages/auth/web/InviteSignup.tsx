@@ -6,8 +6,8 @@ import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { useSearchParams, NavLink } from "react-router-dom";
 import z from "zod";
-import { Input } from "web/form/Input";
-import { PasswordInput } from "web/form/Input";
+
+import { Input, PasswordInput } from "render/web/form/Input";
 
 import Button from "render/web/ui/Button";
 import {
