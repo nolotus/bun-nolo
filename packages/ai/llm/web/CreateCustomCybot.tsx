@@ -9,7 +9,8 @@ import { Input, TextArea, PasswordInput } from "render/web/form/Input";
 import { PlusIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 
-import { TagsInput } from "web/form/TagsInput";
+import { TagsInput } from "render/web/form/TagsInput";
+
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import ToggleSwitch from "web/ui/ToggleSwitch";

@@ -2,7 +2,7 @@ import React from "react";
 import { Controller } from "react-hook-form";
 import { FormField } from "web/form/FormField";
 import { Input, TextArea } from "render/web/form/Input";
-import { TagsInput } from "web/form/TagsInput";
+import { TagsInput } from "render/web/form/TagsInput";
 import AllModelsSelector from "ai/llm/AllModelsSelector";
 
 const BasicInfoTab = ({
