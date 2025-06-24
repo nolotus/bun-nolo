@@ -4,7 +4,6 @@ import { fetchConvMsgs } from "chat/messages/server/fetchConvMsgs"; // 调整后
 
 // 定义所有API方法
 export const apiMethods = {
-  // Cybot 相关
   getPubCybots: {
     handler: fetchPubCybots,
     auth: false,

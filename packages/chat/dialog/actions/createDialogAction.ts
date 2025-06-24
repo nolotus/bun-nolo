@@ -8,7 +8,6 @@ import { DataType } from "create/types";
 import { read, write } from "database/dbSlice";
 import { createDialogKey, createDialogMessageKeyAndId } from "database/keys";
 import { format, formatISO } from "date-fns";
-import { DialogInvocationMode } from "app/types";
 
 export const createDialogAction = async (args, thunkApi) => {
   const { cybots, category } = args;
@@ -30,7 +29,6 @@ export const createDialogAction = async (args, thunkApi) => {
     title,
     dbKey: dialogPath,
     type: DataType.DIALOG,
-    mode: DialogInvocationMode.FIRST,
     createdAt: formatISO(new Date()), // 使用 date-fns 格式化
     // updatedAt: formatISO(new Date()), // 由 normalizeTimeFields 处理
   };
@@ -68,11 +66,6 @@ export const createDialogAction = async (args, thunkApi) => {
       write({ data: msgData, customKey: key })
     ).unwrap();
     // 注意：原始代码 msgResult 未被使用，这里保留了写入操作，但结果同样未使用
-  } else {
-    // 如果 greeting 为空，则不执行任何操作，跳过创建初始消息
-    console.log(
-      `Cybot ${cybotId} greeting is empty, skipping initial message creation.`
-    ); // 可选日志
   }
 
   // 5. 返回对话创建结果

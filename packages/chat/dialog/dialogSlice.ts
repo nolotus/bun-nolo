@@ -25,7 +25,6 @@ import { updateTokensAction } from "./actions/updateTokensAction";
 import { deleteDialogAction } from "./actions/deleteDialogAction";
 import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
-import { updateDialogModeAction } from "./actions/updateDialogModeAction";
 import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
 import { DialogConfig } from "app/types"; // DialogInvocationMode is no longer used here
 import { clearPlan } from "ai/llm/planSlice";
@@ -190,18 +189,6 @@ const DialogSlice = createSliceWithThunks({
     updateDialogTitle: create.asyncThunk(updateDialogTitleAction),
     addCybot: create.asyncThunk(addCybotAction),
     removeCybot: create.asyncThunk(removeCybotAction),
-    updateDialogMode: create.asyncThunk(updateDialogModeAction, {
-      pending: (state) => {
-        state.isUpdatingMode = true;
-      },
-      fulfilled: (state) => {
-        state.isUpdatingMode = false;
-      },
-      rejected: (state) => {
-        state.isUpdatingMode = false;
-      },
-    }),
-    // The parallel thunk `streamAllCybotsInParallel` has been removed.
 
     // `orchestrateCybotResponse` is now simplified to only run the first cybot.
     orchestrateCybotResponse: create.asyncThunk(
@@ -307,7 +294,6 @@ export const {
   updateDialogTitle,
   addCybot,
   removeCybot,
-  updateDialogMode,
   handleSendMessage,
   addActiveController,
   removeActiveController,

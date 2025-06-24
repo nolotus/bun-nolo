@@ -1,3 +1,4 @@
+import { ReferenceItem } from "app/types";
 import { z } from "zod";
 
 // 定义模型参数的常量默认值（保留常量以备其他地方可能需要）
@@ -173,13 +174,6 @@ export const createCybotSchema = z
   );
 
 export type FormData = z.infer<typeof createCybotSchema>;
-
-// 👇 --- 导出类型定义以便其他地方使用 --- 👇
-export type ReferenceItem = {
-  dbKey: string;
-  title: string;
-  type: "knowledge" | "instruction";
-};
 
 // 👇 --- 帮助函数：手动规范化 references（用于非表单场景） --- 👇
 export const normalizeReferences = (references: any[]): ReferenceItem[] => {
