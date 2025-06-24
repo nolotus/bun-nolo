@@ -7,7 +7,6 @@ import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 import NavListItem from "render/layout/blocks/NavListItem";
 import { SignInIcon } from "@primer/octicons-react";
 import { RoutePaths } from "auth/web/routes";
-import { CreateMenu } from "create/CreateMenu";
 
 const styles = {
   container: {
@@ -51,7 +50,6 @@ const NavbarComponent = () => {
   return (
     <div style={styles.container}>
       <div style={{ display: "flex", gap: "12px" }}>
-        <CreateMenu />
         {isLoggedIn ? (
           <div>
             <LoggedInMenu />
