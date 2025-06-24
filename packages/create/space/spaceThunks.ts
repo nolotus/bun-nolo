@@ -3,7 +3,7 @@ import { asyncThunkCreator } from "@reduxjs/toolkit";
 import { patch, read } from "database/dbSlice"; // Assuming path is correct
 import { createSpaceKey } from "./spaceKeys";
 import type { SpaceState } from "./spaceSlice"; // Adjust path
-import type { SpaceData } from "./types"; // Adjust path
+import type { SpaceData } from "app/types";
 import { addSpaceAction } from "./addSpaceAction";
 import { deleteSpaceAction } from "./deleteSpaceAction";
 import { updateSpaceAction } from "./updateSpaceAction";

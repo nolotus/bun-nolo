@@ -1,7 +1,9 @@
 // 文件路径: create/space/content/moveContentAction.ts
 
 import type { AppDispatch, RootState } from "app/store"; // 确认 store 类型路径
-import type { SpaceId, SpaceContent, SpaceData } from "create/space/types"; // 确认类型路径
+import type { SpaceId } from "create/space/types"; // 确认类型路径
+import type { SpaceData } from "app/types";
+import type { SpaceContent } from "app/types";
 import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 // 假设 dbSlice 提供 read, patch

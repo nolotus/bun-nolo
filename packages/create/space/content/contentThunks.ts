@@ -1,7 +1,6 @@
 // create/space/content/contentThunks.ts
 import { asyncThunkCreator } from "@reduxjs/toolkit";
 import type { SpaceState } from "../spaceSlice"; // Adjust path
-import type { SpaceData } from "../types"; // Adjust path
 import { addContentAction } from "./addContentAction";
 import { deleteContentFromSpaceAction } from "./deleteContentFromSpaceAction";
 import { moveContentAction } from "./moveContentAction";

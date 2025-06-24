@@ -1,6 +1,6 @@
 import { TrashIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
-import { MemberRole } from "create/space/types";
+import { MemberRole } from "app/types";
 import { useAppSelector } from "app/hooks"; // 导入 useAppSelector
 import { selectUserId } from "auth/authSlice"; // 导入 selectUserId
 

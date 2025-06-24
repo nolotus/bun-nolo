@@ -1,7 +1,7 @@
 // create/space/category/categoryThunks.ts
 import { asyncThunkCreator } from "@reduxjs/toolkit";
 import type { SpaceState } from "../spaceSlice"; // Adjust path
-import type { SpaceData } from "../types"; // Adjust path
+import type { SpaceData } from "app/types";
 import { addCategoryAction } from "./addCategoryAction";
 import { deleteCategoryAction } from "./deleteCategoryAction";
 import { updateCategoryNameAction } from "./updateCategoryNameAction";

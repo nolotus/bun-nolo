@@ -9,8 +9,8 @@ import FormTitle from "web/form/FormTitle";
 import Button from "render/web/ui/Button";
 import { PlusIcon } from "@primer/octicons-react";
 import FormContainer from "web/form/FormContainer";
-import { CreateSpaceRequest, SpaceVisibility } from "./types";
-import { addSpace, changeSpace } from "./spaceSlice";
+import { SpaceVisibility } from "app/types";
+import { addSpace, changeSpace, type CreateSpaceRequest } from "./spaceSlice";
 
 export const CreateSpaceForm = ({ onClose }) => {
   const { t } = useTranslation("space");

@@ -1,4 +1,5 @@
-import type { SpaceId, SpaceData } from "create/space/types"; // 确认类型路径
+import type { SpaceId } from "create/space/types"; // 确认类型路径
+import type { SpaceData } from "app/types";
 import { selectUserId } from "auth/authSlice"; // 确认导入路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
 import { read, patch } from "database/dbSlice"; // 确认导入路径

@@ -1,4 +1,4 @@
-import { SpaceMemberWithSpaceInfo } from "create/space/types";
+import { SpaceMemberWithSpaceInfo } from "app/types";
 import serverDb from "database/server/db";
 
 export const fetchUserSpaceMemberships = async (
