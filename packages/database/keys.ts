@@ -1,5 +1,5 @@
 /* ===========================================================================
- *  unifiedKeys.ts —— 统一的 Key 辅助函数集合
+ *  keys.ts —— 统一的 Key 辅助函数集合
  *  1) 通用存储键（row / idx / dir / meta）
  *  2) 现有业务键（user / tx / token / dialog / page / cybot …）
  * =========================================================================*/
@@ -152,7 +152,6 @@ export const createPageKey = {
   },
 };
 
-/* ---- Cybot ---- */
 export const createCybotKey = {
   private: curry((userId: string, cybotId: string) =>
     createKey(DataType.CYBOT, userId, cybotId)

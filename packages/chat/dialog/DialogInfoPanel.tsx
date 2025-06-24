@@ -8,11 +8,9 @@ import {
   selectTotalDialogTokens,
   removeCybot,
   addCybot,
-  updateDialogMode,
   selectIsUpdatingMode,
 } from "chat/dialog/dialogSlice";
 import { selectUserId } from "auth/authSlice";
-import { DialogInvocationMode } from "app/types";
 import {
   PlusIcon,
   ChevronDownIcon,
@@ -25,7 +23,7 @@ import AddCybotDialog from "./AddCybotDialog";
 
 interface DialogInfoPanelProps {
   limit?: number;
-  isMobile?: boolean; // 新增属性支持移动端模式
+  isMobile?: boolean;
 }
 
 const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
@@ -44,7 +42,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // 防止移动端滚动穿透
   useEffect(() => {
     if (isPanelOpen && isMobile) {
       document.body.style.overflow = "hidden";
@@ -68,7 +65,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     setIsPanelOpen(false);
   }, []);
 
-  // 点击外部关闭逻辑
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (
@@ -106,7 +102,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     };
   }, [isPanelOpen, isMobile]);
 
-  // ESC键关闭面板
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isPanelOpen) {
@@ -164,25 +159,8 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     setIsAddCybotDialogOpen(false);
   }, []);
 
-  const handleModeChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      const newMode = event.target.value as DialogInvocationMode;
-      dispatch(updateDialogMode(newMode))
-        .unwrap()
-        .then(() => {
-          toast.success(t("ModeUpdatedSuccess"));
-        })
-        .catch((error) => {
-          console.error("Failed to update mode:", error);
-          toast.error(t("ModeUpdateFailed"));
-        });
-    },
-    [dispatch, t]
-  );
-
   const participantCount = currentDialogConfig?.cybots?.length ?? 0;
 
-  // 移动端简化显示内容
   if (isMobile) {
     return (
       <>
@@ -329,7 +307,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
             flex-direction: column;
             gap: ${theme.space[2]};
           }
-          
+
           .dialog-info-section-header {
             font-size: 11px;
             font-weight: 600;
@@ -346,7 +324,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
     );
   }
 
-  // 桌面端完整面板
   return (
     <>
       <div className="dialog-info-panel-wrapper">
@@ -420,31 +397,6 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
                     {currentDialogTokens?.toLocaleString() || "0"}
                   </span>
                 </div>
-
-                <div className="dialog-info-item dialog-mode-info">
-                  <span>{t("Mode")}:</span>
-                  <select
-                    value={
-                      currentDialogConfig?.mode || DialogInvocationMode.FIRST
-                    }
-                    onChange={handleModeChange}
-                    className="dialog-mode-select"
-                    disabled={!currentDialogConfig || isUpdatingMode}
-                  >
-                    <option value={DialogInvocationMode.FIRST}>
-                      {t("First")}
-                    </option>
-                    <option value={DialogInvocationMode.SEQUENTIAL}>
-                      {t("Sequential")}
-                    </option>
-                    <option value={DialogInvocationMode.PARALLEL}>
-                      {t("Parallel")}
-                    </option>
-                    <option value={DialogInvocationMode.ORCHESTRATED}>
-                      {t("Orchestrated")}
-                    </option>
-                  </select>
-                </div>
               </div>
             </div>
           </div>
@@ -476,7 +428,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           -webkit-tap-highlight-color: transparent;
           touch-action: manipulation;
         }
-        
+
         .dialog-info-panel-trigger.action-button:hover,
         .dialog-info-panel-trigger.action-button[aria-expanded="true"] {
           background: ${theme.backgroundHover};
@@ -504,9 +456,9 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           -webkit-backdrop-filter: blur(20px);
           border: 1px solid ${theme.border};
           border-radius: 12px;
-          box-shadow: 
-            0 20px 40px -12px ${theme.shadowMedium}, 
-            0 8px 16px -8px ${theme.shadowMedium}, 
+          box-shadow:
+            0 20px 40px -12px ${theme.shadowMedium},
+            0 8px 16px -8px ${theme.shadowMedium},
             0 0 0 1px ${theme.border};
           z-index: 1000;
           animation: dialog-info-show 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -537,15 +489,15 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           scrollbar-color: ${theme.border} transparent;
         }
 
-        .dialog-info-content::-webkit-scrollbar { 
-          width: 6px; 
+        .dialog-info-content::-webkit-scrollbar {
+          width: 6px;
         }
-        .dialog-info-content::-webkit-scrollbar-track { 
-          background: transparent; 
+        .dialog-info-content::-webkit-scrollbar-track {
+          background: transparent;
         }
-        .dialog-info-content::-webkit-scrollbar-thumb { 
-          background: ${theme.border}; 
-          border-radius: 3px; 
+        .dialog-info-content::-webkit-scrollbar-thumb {
+          background: ${theme.border};
+          border-radius: 3px;
         }
 
         .dialog-info-section {
@@ -553,7 +505,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           flex-direction: column;
           gap: ${theme.space[3]};
         }
-        
+
         .dialog-info-section-header {
           font-size: 11px;
           font-weight: 600;
@@ -576,7 +528,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           flex: 1;
           min-width: 240px;
         }
-        
+
         .token-section {
           flex-shrink: 0;
           min-width: 140px;
@@ -593,18 +545,18 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           scrollbar-color: ${theme.border} transparent;
         }
 
-        .dialog-cybot-list::-webkit-scrollbar { 
-          width: 4px; 
+        .dialog-cybot-list::-webkit-scrollbar {
+          width: 4px;
         }
-        .dialog-cybot-list::-webkit-scrollbar-track { 
-          background: transparent; 
+        .dialog-cybot-list::-webkit-scrollbar-track {
+          background: transparent;
         }
-        .dialog-cybot-list::-webkit-scrollbar-thumb { 
-          background: ${theme.border}; 
-          border-radius: 2px; 
+        .dialog-cybot-list::-webkit-scrollbar-thumb {
+          background: ${theme.border};
+          border-radius: 2px;
         }
-        .dialog-cybot-list::-webkit-scrollbar-thumb:hover { 
-          background: ${theme.borderHover}; 
+        .dialog-cybot-list::-webkit-scrollbar-thumb:hover {
+          background: ${theme.borderHover};
         }
 
         .dialog-no-participants-text {
@@ -621,7 +573,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
         .dialog-info-list-item {
           transition: transform 0.15s ease;
         }
-        
+
         .dialog-info-list-item:hover {
           transform: translateX(2px);
         }
@@ -653,7 +605,7 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           justify-content: flex-start;
           touch-action: manipulation;
         }
-        
+
         .dialog-add-participant-button:hover {
           background: ${theme.primaryGhost};
           color: ${theme.primary};
@@ -680,82 +632,36 @@ const DialogInfoPanel: React.FC<DialogInfoPanelProps> = ({
           letter-spacing: 0.5px;
         }
 
-        .dialog-mode-info {
-          justify-content: space-between;
-          color: ${theme.textSecondary};
-        }
-
-        .dialog-mode-select {
-          background: ${theme.backgroundTertiary};
-          color: ${theme.text};
-          border: 1px solid ${theme.border};
-          border-radius: 6px;
-          padding: 6px ${theme.space[2]};
-          font-size: 12px;
-          font-weight: 500;
-          cursor: pointer;
-          min-width: 90px;
-          transition: all 0.15s ease;
-          outline: none;
-          appearance: none;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-          background-repeat: no-repeat;
-          background-position: right ${theme.space[2]} center;
-          background-size: 12px;
-          padding-right: ${theme.space[6]};
-        }
-        
-        .dialog-mode-select:hover:not(:disabled) {
-          border-color: ${theme.primary};
-          background-color: ${theme.background};
-          box-shadow: 0 0 0 1px ${theme.primaryGhost};
-        }
-        
-        .dialog-mode-select:focus {
-          border-color: ${theme.primary};
-          box-shadow: 0 0 0 2px ${theme.primaryGhost};
-        }
-        
-        .dialog-mode-select:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          background-color: ${theme.backgroundTertiary};
-        }
-
         .dialog-info-divider {
           width: 1px;
           background: linear-gradient(
-            to bottom, 
-            transparent, 
-            ${theme.border} 20%, 
-            ${theme.border} 80%, 
+            to bottom,
+            transparent,
+            ${theme.border} 20%,
+            ${theme.border} 80%,
             transparent
           );
           align-self: stretch;
           margin: ${theme.space[2]} 0;
         }
 
-        /* 减少动画模式下的优化 */
         @media (prefers-reduced-motion: reduce) {
           .dialog-info-panel {
             animation: none;
           }
-          
+
           .dialog-info-panel-trigger.action-button svg,
           .dialog-info-list-item,
           .dialog-add-participant-button {
             transition: none;
           }
-          
+
           .dialog-info-list-item:hover,
           .dialog-add-participant-button:hover {
             transform: none;
           }
         }
 
-        /* 高对比度模式支持 */
         @media (prefers-contrast: high) {
           .dialog-info-panel {
             border: 2px solid ${theme.text};
