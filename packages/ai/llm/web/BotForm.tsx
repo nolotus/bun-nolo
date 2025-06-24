@@ -9,9 +9,9 @@ import { useCybotValidation } from "./common/useCybotFormValidation";
 import { normalizeReferences } from "./common/createCybotSchema";
 
 //web
-import ToolsTab from "./ToolsTab";
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
+import ToolsTab from "./ToolsTab";
 import PublishSettingsTab from "./PublishSettingsTab";
 import AdvancedSettingsTab from "./AdvancedSettingsTab";
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { useAppSelector, useAppDispatch } from "app/hooks";
@@ -8,8 +8,8 @@ import {
   fetchSpace,
 } from "create/space/spaceSlice";
 import { ReferenceItemType } from "ai/cybot/types";
+import { SearchIcon, XIcon, ChevronDownIcon } from "@primer/octicons-react";
 import { PiLightbulb, PiBrain } from "react-icons/pi";
-import { ChevronDownIcon } from "@primer/octicons-react";
 import { Tooltip } from "render/web/ui/Tooltip";
 
 interface ReferencesSelectorProps {
@@ -27,426 +27,679 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
   const currentSpace = useAppSelector(selectCurrentSpace);
   const allMemberSpaces = useAppSelector(selectAllMemberSpaces);
 
-  const [selectedSpaceId, setSelectedSpaceId] = useState<string>("");
-  const [isSpaceDropdownOpen, setIsSpaceDropdownOpen] = useState(false);
-  const [availableContents, setAvailableContents] = useState<
-    { dbKey: string; title?: string; spaceId?: string; spaceName?: string }[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeSpaceId, setActiveSpaceId] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAllSpaces, setShowAllSpaces] = useState(false);
+  const [spacesData, setSpacesData] = useState<Map<string, any[]>>(new Map());
+  const [loading, setLoading] = useState(false);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // 智能空间列表 - 显示策略
+  const { displaySpaces, hiddenSpaces } = useMemo(() => {
+    const maxDisplay = 4; // 最多显示4个标签
+    const spaces = [];
 
-  // 优化 1: 使用 useMemo 创建一个统一、有序的空间列表，简化渲染和查找
-  const selectableSpaces = useMemo(() => {
-    if (!currentSpace) return allMemberSpaces;
-
-    const otherSpaces = allMemberSpaces.filter(
-      (s) => s.spaceId !== currentSpace.id
-    );
-    // 将当前空间置顶
-    return [
-      {
-        spaceId: currentSpace.id,
-        spaceName: currentSpace.name,
+    // 1. 当前空间优先
+    if (currentSpace) {
+      spaces.push({
+        id: currentSpace.id,
+        name: currentSpace.name,
         isCurrent: true,
-      },
-      ...otherSpaces,
-    ];
+      });
+    }
+
+    // 2. 其他空间按使用频率排序（这里简化为字母序）
+    const others = allMemberSpaces
+      .filter((s) => s.spaceId !== currentSpace?.id)
+      .sort((a, b) => a.spaceName.localeCompare(b.spaceName));
+
+    spaces.push(
+      ...others.map((s) => ({
+        id: s.spaceId,
+        name: s.spaceName,
+        isCurrent: false,
+      }))
+    );
+
+    return {
+      displaySpaces: spaces.slice(0, maxDisplay),
+      hiddenSpaces: spaces.slice(maxDisplay),
+    };
   }, [currentSpace, allMemberSpaces]);
 
-  // 初始化：默认选择当前空间
+  // 初始化
   useEffect(() => {
-    if (currentSpace?.id && !selectedSpaceId) {
-      setSelectedSpaceId(currentSpace.id);
+    if (currentSpace?.id && !activeSpaceId) {
+      setActiveSpaceId(currentSpace.id);
     }
-  }, [currentSpace?.id, selectedSpaceId]);
+  }, [currentSpace?.id, activeSpaceId]);
 
-  // 点击外部关闭下拉菜单
+  // 加载空间数据
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsSpaceDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+    if (!activeSpaceId) return;
 
-  // 核心数据获取逻辑 (无缓存)
-  useEffect(() => {
-    if (!selectedSpaceId) {
-      setAvailableContents([]);
-      return;
-    }
-
-    let isMounted = true;
-
-    const processAndSetContents = (
-      contents: Record<string, any>,
-      spaceId: string,
-      spaceName?: string
-    ) => {
-      const processed = Object.entries(contents)
+    // 当前空间直接使用
+    if (activeSpaceId === currentSpace?.id && currentSpace?.contents) {
+      const contents = Object.entries(currentSpace.contents)
         .filter(([key]) => !key.startsWith("dialog-"))
-        .map(([key, value]) => ({
+        .map(([key, value]: [string, any]) => ({
           dbKey: key,
-          title: value?.title,
-          spaceId,
-          spaceName: spaceName || "Unknown Space",
+          title: value?.title || "Untitled",
+          spaceId: currentSpace.id,
+          spaceName: currentSpace.name,
         }));
-      if (isMounted) {
-        setAvailableContents(processed);
-      }
-    };
-
-    // Case 1: 选中的是当前空间
-    if (selectedSpaceId === currentSpace?.id) {
-      processAndSetContents(
-        currentSpace.contents || {},
-        currentSpace.id,
-        currentSpace.name
-      );
+      setSpacesData((prev) => new Map(prev).set(activeSpaceId, contents));
       return;
     }
 
-    // Case 2: 选中的是其他空间，发起请求
-    const fetchOtherSpace = async () => {
-      setIsLoading(true);
-      setAvailableContents([]); // 立即清空旧列表
+    // 已加载过的跳过
+    if (spacesData.has(activeSpaceId)) return;
+
+    // 加载其他空间
+    const loadSpace = async () => {
+      setLoading(true);
       try {
-        // 根据您提供的数据结构，unwrap() 的结果是 { spaceData: { ... } }
-        console.log(`Fetching space data for ID: ${selectedSpaceId}`);
         const result = await dispatch(
-          fetchSpace({ spaceId: selectedSpaceId })
+          fetchSpace({ spaceId: activeSpaceId })
         ).unwrap();
-        const fetchedSpace = result;
-        console.log(`Fetched space data:`, fetchedSpace);
-        if (isMounted && fetchedSpace?.contents) {
-          processAndSetContents(
-            fetchedSpace.contents,
-            fetchedSpace.id,
-            fetchedSpace.name
-          );
-        }
+        const contents = Object.entries(result.contents || {})
+          .filter(([key]) => !key.startsWith("dialog-"))
+          .map(([key, value]: [string, any]) => ({
+            dbKey: key,
+            title: value?.title || "Untitled",
+            spaceId: result.id,
+            spaceName: result.name,
+          }));
+        setSpacesData((prev) => new Map(prev).set(activeSpaceId, contents));
       } catch (error) {
-        console.error(`Failed to load space ${selectedSpaceId}:`, error);
-        if (isMounted) setAvailableContents([]);
+        console.error(`Failed to load space ${activeSpaceId}:`, error);
       } finally {
-        if (isMounted) setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchOtherSpace();
+    loadSpace();
+  }, [activeSpaceId, currentSpace, dispatch, spacesData]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedSpaceId, currentSpace, dispatch]);
+  // 过滤后的内容 - 支持跨空间搜索
+  const filteredContents = useMemo(() => {
+    if (!searchQuery) {
+      // 无搜索时只显示当前空间内容
+      return spacesData.get(activeSpaceId) || [];
+    }
 
-  const handleSpaceSelect = (spaceId: string) => {
-    setSelectedSpaceId(spaceId);
-    setIsSpaceDropdownOpen(false);
-  };
+    // 有搜索时跨空间搜索
+    const query = searchQuery.toLowerCase();
+    const allResults: any[] = [];
 
-  const handleToggleReference = (content: {
-    dbKey: string;
-    title?: string;
-    spaceId?: string;
-    spaceName?: string;
-  }) => {
+    spacesData.forEach((contents, spaceId) => {
+      const matched = contents.filter((item) =>
+        item.title.toLowerCase().includes(query)
+      );
+      allResults.push(...matched);
+    });
+
+    return allResults;
+  }, [spacesData, activeSpaceId, searchQuery]);
+
+  const handleToggleReference = (content: any) => {
     const isSelected = references.some((ref) => ref.dbKey === content.dbKey);
-    const newReferences = isSelected
-      ? references.filter((ref) => ref.dbKey !== content.dbKey)
-      : [
-          ...references,
-          { ...content, title: content.title || "Untitled", type: "knowledge" },
-        ];
-    onChange(newReferences);
+
+    if (isSelected) {
+      onChange(references.filter((ref) => ref.dbKey !== content.dbKey));
+    } else {
+      onChange([...references, { ...content, type: "knowledge" }]);
+    }
   };
 
   const handleToggleType = (dbKey: string) => {
-    const newReferences = references.map((ref) =>
-      ref.dbKey === dbKey
-        ? {
-            ...ref,
-            type: ref.type === "instruction" ? "knowledge" : "instruction",
-          }
-        : ref
+    onChange(
+      references.map((ref) =>
+        ref.dbKey === dbKey
+          ? {
+              ...ref,
+              type: ref.type === "instruction" ? "knowledge" : "instruction",
+            }
+          : ref
+      )
     );
-    onChange(newReferences);
   };
 
-  // 优化 2: 直接从派生出的 selectableSpaces 列表中查找，逻辑更单一
-  const selectedSpaceName =
-    selectableSpaces.find((s) => s.spaceId === selectedSpaceId)?.spaceName ||
-    t("selectSpace");
+  const handleSpaceSwitch = (spaceId: string) => {
+    setActiveSpaceId(spaceId);
+    setShowAllSpaces(false); // 选择后关闭展开
+  };
 
   return (
-    <div className="references-selector">
-      <div className="space-selector" ref={dropdownRef}>
-        <div
-          className={`space-selector__trigger ${isSpaceDropdownOpen ? "open" : ""}`}
-          onClick={() => setIsSpaceDropdownOpen(!isSpaceDropdownOpen)}
-        >
-          <span className="space-selector__name">{selectedSpaceName}</span>
-          <ChevronDownIcon
-            size={16}
-            className={`space-selector__icon ${isSpaceDropdownOpen ? "rotated" : ""}`}
+    <>
+      <div className="references-selector">
+        {/* 搜索框 */}
+        <div className="search-box">
+          <SearchIcon size={16} className="search-icon" />
+          <input
+            type="text"
+            placeholder={
+              searchQuery ? t("searchingAllSpaces") : t("searchInCurrentSpace")
+            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
           />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="clear-btn">
+              <XIcon size={14} />
+            </button>
+          )}
         </div>
 
-        {isSpaceDropdownOpen && (
-          <div className="space-selector__dropdown">
-            {/* 优化 3: 使用统一列表进行渲染，代码更简洁 */}
-            {selectableSpaces.map((space) => (
-              <div
-                key={space.spaceId}
-                className={`space-option ${selectedSpaceId === space.spaceId ? "selected" : ""}`}
-                onClick={() => handleSpaceSelect(space.spaceId)}
-              >
-                <span className="space-option__name">{space.spaceName}</span>
-                {space.isCurrent && (
-                  <span className="space-option__badge">{t("current")}</span>
-                )}
-              </div>
-            ))}
-          </div>
+        {/* 搜索提示 */}
+        {searchQuery && (
+          <div className="search-hint">🔍 在所有空间中搜索 "{searchQuery}"</div>
         )}
-      </div>
 
-      <div className="references-list">
-        {isLoading ? (
-          <div className="empty-state">
-            <p className="loading-message">{t("loadingSpaceContent")}</p>
-          </div>
-        ) : availableContents.length === 0 ? (
-          <div className="empty-state">
-            <p className="empty-message">{t("noPagesAvailable")}</p>
-          </div>
-        ) : (
-          availableContents.map((content) => {
-            const selectedRef = references.find(
-              (ref) => ref.dbKey === content.dbKey
-            );
-            const isSelected = !!selectedRef;
+        {/* 空间切换器 */}
+        {!searchQuery && (
+          <div className="space-selector">
+            {/* 主要空间标签 */}
+            <div className="space-tabs">
+              {displaySpaces.map((space) => (
+                <button
+                  key={space.id}
+                  onClick={() => handleSpaceSwitch(space.id)}
+                  className={`space-tab ${activeSpaceId === space.id ? "active" : ""}`}
+                >
+                  <span className="space-name">{space.name}</span>
+                  {space.isCurrent && <span className="current-dot" />}
+                </button>
+              ))}
 
-            return (
-              <div
-                key={content.dbKey}
-                className={`reference-item ${isSelected ? "selected" : ""}`}
-              >
-                <label className="reference-label">
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => handleToggleReference(content)}
+              {/* 更多空间按钮 */}
+              {hiddenSpaces.length > 0 && (
+                <button
+                  onClick={() => setShowAllSpaces(!showAllSpaces)}
+                  className={`more-btn ${showAllSpaces ? "active" : ""}`}
+                >
+                  +{hiddenSpaces.length}
+                  <ChevronDownIcon
+                    size={12}
+                    className={`chevron ${showAllSpaces ? "rotated" : ""}`}
                   />
-                  <span className="reference-title">
-                    {content.title || "Untitled"}
-                  </span>
-                </label>
+                </button>
+              )}
+            </div>
 
-                {isSelected && (
-                  <div className="type-toggle-wrapper">
-                    <Tooltip
-                      content={
-                        selectedRef.type === "knowledge"
-                          ? t("markAsInstruction")
-                          : t("markAsKnowledge")
-                      }
-                    >
-                      <button
-                        type="button"
-                        className={`type-toggle-btn ${selectedRef.type}`}
-                        onClick={() => handleToggleType(content.dbKey)}
-                      >
-                        {selectedRef.type === "knowledge" ? (
-                          <PiBrain size={16} />
-                        ) : (
-                          <PiLightbulb size={16} />
-                        )}
-                      </button>
-                    </Tooltip>
-                  </div>
-                )}
+            {/* 展开的额外空间 */}
+            {showAllSpaces && hiddenSpaces.length > 0 && (
+              <div className="extended-spaces">
+                {hiddenSpaces.map((space) => (
+                  <button
+                    key={space.id}
+                    onClick={() => handleSpaceSwitch(space.id)}
+                    className={`space-option ${activeSpaceId === space.id ? "active" : ""}`}
+                  >
+                    {space.name}
+                  </button>
+                ))}
               </div>
-            );
-          })
+            )}
+          </div>
+        )}
+
+        {/* 内容列表 */}
+        <div className="content-area">
+          {loading ? (
+            <div className="loading">
+              <div className="spinner" />
+              <span>{t("loading")}...</span>
+            </div>
+          ) : filteredContents.length === 0 ? (
+            <div className="empty">
+              <span>
+                {searchQuery ? t("noSearchResults") : t("noContentInSpace")}
+              </span>
+            </div>
+          ) : (
+            <>
+              {/* 搜索状态下显示结果数量 */}
+              {searchQuery && (
+                <div className="results-count">
+                  找到 {filteredContents.length} 个结果
+                </div>
+              )}
+
+              {filteredContents.map((item) => {
+                const selectedRef = references.find(
+                  (ref) => ref.dbKey === item.dbKey
+                );
+                const isSelected = !!selectedRef;
+
+                return (
+                  <div
+                    key={item.dbKey}
+                    className={`content-item ${isSelected ? "selected" : ""}`}
+                  >
+                    <label className="item-label">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleReference(item)}
+                      />
+                      <div className="item-info">
+                        <span className="item-title">{item.title}</span>
+                        {/* 搜索时显示来源空间 */}
+                        {searchQuery && (
+                          <span className="item-source">
+                            来自: {item.spaceName}
+                          </span>
+                        )}
+                      </div>
+                    </label>
+
+                    {isSelected && (
+                      <Tooltip
+                        content={
+                          selectedRef.type === "knowledge"
+                            ? t("toInstruction")
+                            : t("toKnowledge")
+                        }
+                      >
+                        <button
+                          className={`type-btn ${selectedRef.type}`}
+                          onClick={() => handleToggleType(item.dbKey)}
+                        >
+                          {selectedRef.type === "knowledge" ? (
+                            <PiBrain size={16} />
+                          ) : (
+                            <PiLightbulb size={16} />
+                          )}
+                        </button>
+                      </Tooltip>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
+
+        {/* 选中统计 */}
+        {references.length > 0 && (
+          <div className="summary">
+            已选择 {references.length} 个引用
+            {references.length > 1 && (
+              <span className="summary-detail">
+                (知识: {references.filter((r) => r.type === "knowledge").length}
+                , 指令:{" "}
+                {references.filter((r) => r.type === "instruction").length})
+              </span>
+            )}
+          </div>
         )}
       </div>
 
-      <style>{`
+      <style href="references-selector" precedence="medium">{`
         .references-selector {
           display: flex;
           flex-direction: column;
           gap: ${theme.space[3]};
+          max-height: 450px;
         }
-        .space-selector {
+
+        /* 搜索框 */
+        .search-box {
           position: relative;
-        }
-        .space-selector__trigger {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          padding: ${theme.space[2]} ${theme.space[3]};
-          background: ${theme.backgroundSecondary};
+        }
+
+        .search-input {
+          width: 100%;
+          height: 40px;
+          padding: 0 36px 0 36px;
           border: 1px solid ${theme.border};
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.12s;
-        }
-        .space-selector__trigger:hover {
-          border-color: ${theme.primary};
-          background: ${theme.backgroundHover};
-        }
-        .space-selector__trigger.open {
-          border-color: ${theme.primary};
-          box-shadow: 0 0 0 2px ${theme.primaryAlpha}15;
-        }
-        .space-selector__name {
-          font-size: 13px;
-          font-weight: 500;
-          color: ${theme.text};
-        }
-        .space-selector__icon {
-          color: ${theme.textSecondary};
-          transition: transform 0.12s;
-        }
-        .space-selector__icon.rotated {
-          transform: rotate(180deg);
-        }
-        .space-selector__dropdown {
-          position: absolute;
-          top: calc(100% + 4px);
-          left: 0;
-          right: 0;
+          border-radius: ${theme.space[2]};
           background: ${theme.background};
-          border: 1px solid ${theme.border};
-          border-radius: 6px;
-          box-shadow: ${theme.shadow2} 0 8px 24px;
-          z-index: 1000;
-          max-height: 200px;
-          overflow-y: auto;
-        }
-        .space-option {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: ${theme.space[2]} ${theme.space[3]};
-          cursor: pointer;
-          transition: background 0.12s;
-        }
-        .space-option:hover {
-          background: ${theme.backgroundHover};
-        }
-        .space-option.selected {
-          background: ${theme.primaryAlpha}15;
-        }
-        .space-option__name {
-          font-size: 13px;
           color: ${theme.text};
-          font-weight: 500;
-          flex: 1;
+          font-size: 0.875rem;
+          outline: none;
+          transition: border-color 0.2s ease;
         }
-        .space-option__badge {
-          font-size: 11px;
-          color: ${theme.primary};
-          font-weight: 600;
-          background: ${theme.primaryAlpha}20;
-          padding: 2px 6px;
-          border-radius: 10px;
+
+        .search-input:focus {
+          border-color: ${theme.primary};
         }
-        .references-list {
-          max-height: 300px;
-          overflow-y: auto;
-          border: 1px solid ${theme.border};
-          border-radius: 6px;
-          padding: ${theme.space[2]};
-          background: ${theme.backgroundSecondary};
+
+        .search-input::placeholder {
+          color: ${theme.textTertiary};
         }
-        .empty-state {
-          padding: ${theme.space[4]};
-          text-align: center;
-          min-height: 60px;
+
+        .search-icon {
+          position: absolute;
+          left: ${theme.space[3]};
+          color: ${theme.textSecondary};
+          pointer-events: none;
+        }
+
+        .clear-btn {
+          position: absolute;
+          right: ${theme.space[2]};
+          background: none;
+          border: none;
+          color: ${theme.textSecondary};
+          cursor: pointer;
+          padding: ${theme.space[1]};
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
         }
-        .loading-message {
+
+        .clear-btn:hover {
+          background: ${theme.backgroundHover};
+        }
+
+        /* 搜索提示 */
+        .search-hint {
+          padding: ${theme.space[2]} ${theme.space[3]};
+          background: ${theme.primary}08;
+          border-radius: ${theme.space[1]};
+          font-size: 0.8rem;
+          color: ${theme.primary};
+        }
+
+        /* 空间选择器 */
+        .space-selector {
+          display: flex;
+          flex-direction: column;
+          gap: ${theme.space[2]};
+        }
+
+        .space-tabs {
+          display: flex;
+          gap: ${theme.space[1]};
+          overflow-x: auto;
+          padding-bottom: 2px;
+        }
+
+        .space-tabs::-webkit-scrollbar {
+          height: 4px;
+        }
+
+        .space-tabs::-webkit-scrollbar-thumb {
+          background: ${theme.border};
+          border-radius: 2px;
+        }
+
+        .space-tab {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[1]};
+          padding: ${theme.space[2]} ${theme.space[3]};
+          background: ${theme.backgroundSecondary};
+          border: 1px solid ${theme.border};
+          border-radius: ${theme.space[2]};
+          cursor: pointer;
+          font-size: 0.875rem;
           color: ${theme.textSecondary};
-          font-size: 13px;
-          font-style: italic;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          position: relative;
         }
-        .empty-message {
+
+        .space-tab:hover {
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
+        }
+
+        .space-tab.active {
+          background: ${theme.primary};
+          color: white;
+          border-color: ${theme.primary};
+        }
+
+        .space-name {
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .current-dot {
+          width: 6px;
+          height: 6px;
+          background: currentColor;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .more-btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: ${theme.space[2]} ${theme.space[2]};
+          background: ${theme.backgroundTertiary};
+          border: 1px solid ${theme.border};
+          border-radius: ${theme.space[2]};
+          cursor: pointer;
+          font-size: 0.8rem;
+          color: ${theme.textSecondary};
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .more-btn:hover {
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
+        }
+
+        .more-btn.active {
+          background: ${theme.backgroundSelected || theme.backgroundHover};
+          color: ${theme.primary};
+        }
+
+        .chevron {
+          transition: transform 0.2s ease;
+        }
+
+        .chevron.rotated {
+          transform: rotate(180deg);
+        }
+
+        /* 展开空间 */
+        .extended-spaces {
+          display: flex;
+          flex-wrap: wrap;
+          gap: ${theme.space[1]};
+          padding: ${theme.space[2]};
+          background: ${theme.backgroundSecondary};
+          border-radius: ${theme.space[2]};
+          border: 1px solid ${theme.borderLight};
+        }
+
+        .space-option {
+          padding: ${theme.space[1]} ${theme.space[2]};
+          background: ${theme.background};
+          border: 1px solid ${theme.border};
+          border-radius: ${theme.space[1]};
+          cursor: pointer;
+          font-size: 0.8rem;
+          color: ${theme.textSecondary};
+          transition: all 0.2s ease;
+        }
+
+        .space-option:hover {
+          background: ${theme.backgroundHover};
+          color: ${theme.text};
+        }
+
+        .space-option.active {
+          background: ${theme.primary};
+          color: white;
+          border-color: ${theme.primary};
+        }
+
+        /* 内容区域 */
+        .content-area {
+          flex: 1;
+          overflow-y: auto;
+          border: 1px solid ${theme.border};
+          border-radius: ${theme.space[2]};
+          background: ${theme.backgroundSecondary};
+        }
+
+        .results-count {
+          padding: ${theme.space[2]} ${theme.space[3]};
+          font-size: 0.8rem;
+          color: ${theme.textSecondary};
+          border-bottom: 1px solid ${theme.borderLight};
+          background: ${theme.backgroundTertiary};
+        }
+
+        /* 状态组件 */
+        .loading, .empty {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: ${theme.space[2]};
+          padding: ${theme.space[6]};
           color: ${theme.textTertiary};
-          font-style: italic;
-          font-size: 13px;
+          font-size: 0.875rem;
         }
-        .reference-item {
+
+        .spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid ${theme.borderLight};
+          border-top: 2px solid ${theme.primary};
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        /* 内容项 */
+        .content-item {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: ${theme.space[2]} ${theme.space[3]};
-          border-radius: 4px;
-          transition: background 0.12s;
-          min-height: 38px;
+          border-bottom: 1px solid ${theme.borderLight};
+          transition: background 0.2s ease;
         }
-        .reference-item:hover {
-          background: ${theme.backgroundTertiary};
+
+        .content-item:hover {
+          background: ${theme.backgroundHover};
         }
-        .reference-item.selected {
-          background: ${theme.primaryAlpha}10;
+
+        .content-item.selected {
+          background: ${theme.primary}08;
         }
-        .reference-label {
+
+        .item-label {
           display: flex;
           align-items: center;
           gap: ${theme.space[2]};
           cursor: pointer;
-          flex-grow: 1;
-          overflow: hidden;
+          flex: 1;
+          min-width: 0;
         }
-        .reference-title {
-          white-space: nowrap;
+
+        .item-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .item-title {
+          font-size: 0.875rem;
+          color: ${theme.text};
           overflow: hidden;
           text-overflow: ellipsis;
-          color: ${theme.text};
-          font-size: 13px;
+          white-space: nowrap;
         }
-        .type-toggle-wrapper {
-          flex-shrink: 0;
-          margin-left: ${theme.space[3]};
+
+        .item-source {
+          font-size: 0.75rem;
+          color: ${theme.textTertiary};
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
-        .type-toggle-btn {
-          background: transparent;
-          border: 1px solid transparent;
-          border-radius: 50%;
+
+        .type-btn {
           width: 28px;
           height: 28px;
+          border-radius: 50%;
+          border: none;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          cursor: pointer;
-          transition: all 0.12s;
-          color: ${theme.textTertiary};
+          transition: all 0.2s ease;
+          flex-shrink: 0;
         }
-        .type-toggle-btn:hover {
-          background: ${theme.border};
-          color: ${theme.text};
-        }
-        .type-toggle-btn.instruction {
-          color: ${theme.primary};
-          background: ${theme.primaryAlpha}15;
-        }
-        .type-toggle-btn.knowledge {
+
+        .type-btn.knowledge {
+          background: ${theme.backgroundTertiary};
           color: ${theme.textSecondary};
         }
+
+        .type-btn.instruction {
+          background: ${theme.primary}15;
+          color: ${theme.primary};
+        }
+
+        .type-btn:hover {
+          transform: scale(1.1);
+        }
+
+        /* 统计 */
+        .summary {
+          padding: ${theme.space[2]} ${theme.space[3]};
+          background: ${theme.primary}08;
+          border-radius: ${theme.space[2]};
+          font-size: 0.875rem;
+          color: ${theme.text};
+          text-align: center;
+        }
+
+        .summary-detail {
+          color: ${theme.textSecondary};
+          font-size: 0.8rem;
+          margin-left: ${theme.space[1]};
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+          .references-selector {
+            max-height: 400px;
+          }
+
+          .space-tabs {
+            gap: 4px;
+          }
+
+          .space-tab {
+            padding: ${theme.space[2]} ${theme.space[2]};
+            font-size: 0.8rem;
+          }
+
+          .space-name {
+            max-width: 80px;
+          }
+
+          .current-dot {
+            display: none;
+          }
+
+          .extended-spaces {
+            padding: ${theme.space[1]};
+          }
+        }
       `}</style>
-    </div>
+    </>
   );
 };
 

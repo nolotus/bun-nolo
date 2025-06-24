@@ -8,10 +8,26 @@ import { Input } from "render/web/form/Input";
 import FormTitle from "web/form/FormTitle";
 import Button from "render/web/ui/Button";
 import { PlusIcon } from "@primer/octicons-react";
-import FormContainer from "web/form/FormContainer";
 import { SpaceVisibility } from "app/types";
 import { addSpace, changeSpace, type CreateSpaceRequest } from "./spaceSlice";
 
+const FormContainer = ({ children }) => {
+  const theme = useTheme();
+
+  return (
+    <div
+      style={{
+        maxWidth: 600,
+        margin: "0 auto",
+        padding: 20,
+        color: theme.text,
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+export default FormContainer;
 export const CreateSpaceForm = ({ onClose }) => {
   const { t } = useTranslation("space");
   const dispatch = useAppDispatch();
