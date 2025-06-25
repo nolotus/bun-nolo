@@ -15,6 +15,7 @@ import DropdownMenu from "web/ui/DropDownMenu";
 import { SettingRoutePaths } from "setting/config";
 import { Tooltip } from "render/web/ui/Tooltip";
 import toast from "react-hot-toast";
+import { useState, useEffect } from "react";
 
 const MenuStyles = () => {
   const theme = useAppSelector(selectTheme);
@@ -39,13 +40,20 @@ const MenuStyles = () => {
           border-radius: 6px;
           transition: all 0.15s ease;
           color: ${theme.textSecondary};
-          min-width: 36px;
-          min-height: 36px;
+          min-width: 44px;
+          min-height: 44px;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
         }
 
         .loginmenu-icon-button:hover {
           background-color: ${theme.backgroundHover};
           color: ${theme.text};
+        }
+
+        .loginmenu-icon-button:active {
+          background-color: ${theme.backgroundSelected};
+          transform: scale(0.96);
         }
 
         .loginmenu-nav-link {
@@ -71,7 +79,14 @@ const MenuStyles = () => {
           border-radius: 6px;
           transition: all 0.15s ease;
           color: ${theme.textSecondary};
-          min-height: 36px;
+          min-height: 44px;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+
+        .loginmenu-user-trigger:active {
+          background-color: ${theme.backgroundSelected};
+          transform: scale(0.98);
         }
 
         .loginmenu-user-trigger-text {
@@ -86,11 +101,12 @@ const MenuStyles = () => {
           background: ${theme.background};
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border-radius: 8px;
+          border-radius: 12px;
           box-shadow: 
-            0 6px 24px ${theme.shadowMedium},
-            0 1px 4px ${theme.shadowLight};
+            0 8px 32px ${theme.shadowMedium},
+            0 2px 8px ${theme.shadowLight};
           border: 1px solid ${theme.border};
+          margin-top: ${theme.space[2]};
         }
 
         .loginmenu-dd-item {
@@ -98,17 +114,20 @@ const MenuStyles = () => {
           align-items: center;
           width: 100%;
           text-align: left;
-          padding: ${theme.space[2]} ${theme.space[3]};
+          padding: ${theme.space[3]} ${theme.space[3]};
           border: none;
           background: transparent;
           cursor: pointer;
-          border-radius: 6px;
+          border-radius: 8px;
           transition: all 0.15s ease;
           color: ${theme.text};
           font-size: 14px;
           font-weight: 500;
           margin-bottom: ${theme.space[1]};
-          min-height: 36px;
+          min-height: 48px;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+          position: relative;
         }
 
         .loginmenu-dd-item:last-child {
@@ -118,6 +137,11 @@ const MenuStyles = () => {
         .loginmenu-dd-item:hover {
           background-color: ${theme.backgroundHover};
           color: ${theme.text};
+        }
+
+        .loginmenu-dd-item:active {
+          background-color: ${theme.backgroundSelected};
+          transform: scale(0.98);
         }
 
         .loginmenu-dd-icon {
@@ -145,6 +169,10 @@ const MenuStyles = () => {
           background: ${theme.primary}18;
         }
 
+        .loginmenu-invite-item:active {
+          background: ${theme.primary}25;
+        }
+
         .loginmenu-user-section {
           margin-bottom: ${theme.space[3]};
         }
@@ -160,8 +188,48 @@ const MenuStyles = () => {
           color: ${theme.error};
         }
 
+        .loginmenu-logout-item:active {
+          background: ${theme.error}18;
+          color: ${theme.error};
+        }
+
         .loginmenu-logout-item:hover .loginmenu-dd-icon {
           color: ${theme.error};
+        }
+
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+          .loginmenu-dd-wrapper {
+            min-width: 240px;
+            box-shadow: 
+              0 12px 48px ${theme.shadowMedium},
+              0 4px 16px ${theme.shadowLight};
+          }
+
+          .loginmenu-dd-item {
+            min-height: 52px;
+            padding: ${theme.space[4]} ${theme.space[3]};
+            font-size: 16px;
+          }
+
+          .loginmenu-user-trigger {
+            min-height: 48px;
+            padding: ${theme.space[3]} ${theme.space[3]};
+          }
+
+          .loginmenu-icon-button {
+            min-width: 48px;
+            min-height: 48px;
+          }
+        }
+
+        /* 触摸反馈动画 */
+        @media (pointer: coarse) {
+          .loginmenu-dd-item:active,
+          .loginmenu-user-trigger:active,
+          .loginmenu-icon-button:active {
+            transition: all 0.1s ease;
+          }
         }
       `}
     </style>
@@ -175,6 +243,18 @@ export const LoggedInMenu: React.FC = () => {
   const auth = useAuth();
   const users = useAppSelector(selectUsers);
   const currentUserId = useAppSelector(selectUserId);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 检测设备类型
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || "ontouchstart" in window);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleUserChange = (user: User) => {
     dispatch(changeUser(user));
@@ -207,6 +287,8 @@ export const LoggedInMenu: React.FC = () => {
       key={key}
       onClick={onClick}
       className={`loginmenu-dd-item ${className}`}
+      // 移动端优化：添加触摸事件
+      onTouchStart={() => {}}
     >
       {icon && <span className="loginmenu-dd-icon">{icon}</span>}
       <span>{label}</span>
@@ -218,7 +300,11 @@ export const LoggedInMenu: React.FC = () => {
   return (
     <>
       <div className="loginmenu-wrapper">
-        <Tooltip content="当前登录账户" placement="bottom">
+        <Tooltip
+          content="当前登录账户"
+          placement="bottom"
+          disabled={isMobile} // 移动端禁用Tooltip
+        >
           <NavLink
             to="/life"
             className={({ isActive }) =>
@@ -236,12 +322,15 @@ export const LoggedInMenu: React.FC = () => {
 
         <DropdownMenu
           trigger={
-            <button className="loginmenu-icon-button">
+            <button
+              className="loginmenu-icon-button"
+              onTouchStart={() => {}} // 优化触摸响应
+            >
               <TriangleDownIcon size={16} />
             </button>
           }
           direction="bottom"
-          triggerType="hover"
+          triggerType={isMobile ? "click" : "hover"} // 根据设备类型选择触发方式
         >
           <div className="loginmenu-dd-wrapper">
             {otherUsers.length > 0 && (
