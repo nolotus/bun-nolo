@@ -5,17 +5,17 @@ export default {
       model: "Model",
       modelRequired: "Model selection is required",
       selectModel: "Select a model",
-      cybotName: "Cybot Name",
-      cybotNameRequired: "Cybot name is required",
+      cybotName: "AI Name",
+      cybotNameRequired: "AI name is required",
       greetingMessage: "Greeting Message",
       greetingRequired: "Greeting message is required",
       selfIntroduction: "Self Introduction",
       introductionRequired: "Self introduction is required",
       prompt: "Prompt",
       tags: "Tags",
-      tagsHelp: "Add tags to categorize this Cybot",
+      tagsHelp: "Add tags to categorize this AI",
       addTagsPlaceholder: "Add tags and press Enter",
-      enterCybotName: "Enter Cybot name",
+      enterCybotName: "Enter AI name",
       enterPrompt: "Enter prompt",
       enterGreetingMessage: "Enter greeting message",
       enterSelfIntroduction: "Enter self introduction",
@@ -27,19 +27,21 @@ export default {
       creating: "Creating...",
       resetToDefaults: "Reset to Defaults",
 
-      // Cybot & Model Specifics
-      createCybot: "Create a New Cybot",
-      editCybot: "Edit Cybot",
-      cybot: "Cybot",
+      // AI & Model Specifics
+      createCybot: "Create a New AI",
+      editCybot: "Edit AI",
+      cybot: "AI",
       modelName: "Model Name",
       enterModelName: "Enter model name",
       introduction: "Introduction",
       dialog: "Dialog",
       dialogCount: "Dialogs",
       supportsVision: "Vision Support",
-      noAvailableCybotMessage: "No available Cybot message",
+      vision: "Vision",
+      noAvailableCybotMessage: "No available AI message",
       unnamed: "Unnamed",
       noDescription: "No description",
+      viewDetails: "View Details",
 
       // API & Provider Settings
       apiKeyField: "API Key",
@@ -72,31 +74,44 @@ export default {
       insufficientBalanceDetailed:
         "Insufficient balance. Current model: {{modelName}}, max cost per message: {{pricePerMessage}} credits. Your balance: {{balance}} credits.",
       insufficientBalance: "Insufficient balance",
-      cybotConfigMissing: "Cybot configuration missing",
+      cybotConfigMissing: "AI configuration missing",
       modelPricingMissing: "Model pricing info missing",
 
-      // References Tab - UPDATED
-      references: "References", // English key remains "References"
-      selectReferences: "Select References", // English key remains "Select References"
-      selectReferencesHelp: "Select pages to reference", // English key remains "Select pages to reference"
-      noPagesAvailable: "No pages available",
+      // References Tab
+      references: "References",
+      selectReferences: "Select References",
+      selectReferencesHelp: "Select pages to use as knowledge or instructions.",
       smartReadCurrentSpace: "Smart Read Current Space",
       smartReadHelp:
         "Enable to automatically reference current workspace content",
-      markAsInstruction: "Mark as Instruction (AI follows this strictly)",
-      markAsKnowledge: "Mark as Knowledge (AI can reference for answers)",
+      searchInCurrentSpace: "Search in current space...",
+      searchingAllSpaces: "Searching in all spaces...",
+      clearSearch: "Clear search",
+      loading: "Loading...",
+      noSearchResults: "No search results found.",
+      noContentInSpace: "No content available in this space.",
+      foundResults: "Found {{count}} result",
+      foundResults_plural: "Found {{count}} results",
+      fromSpace: "From: {{spaceName}}",
+      toInstruction: "Switch to Instruction",
+      toKnowledge: "Switch to Knowledge",
+      selectedSummary: "{{count}} reference selected",
+      selectedSummary_plural: "{{count}} references selected",
+      knowledge: "Knowledge",
+      instruction: "Instruction",
 
       // Tools Tab
       tools: "Tools",
-      toolSelection: "Tools",
+      toolSelection: "Tool Selection",
       selectTools: "Select Tools",
-      selectToolsHelp: "Choose tools that this Cybot can use",
+      selectToolsHelp: "Choose tools that this AI can use",
 
       // Publish Settings
       publishSettings: "Publish Settings",
       shareInCommunity: "Make Public",
       shareInCommunityHelp: "Show in community list for others to use",
-      shareInCommunityCustomApiHelp: "Custom API Cybots can't be public",
+      shareInCommunityCustomApiHelp:
+        "AIs with custom API keys cannot be made public",
 
       // Model Parameters & Advanced Settings
       advancedSettings: "Advanced Settings",
@@ -127,7 +142,7 @@ export default {
       createDialogError: "Failed to create dialog",
       input: "Input",
       output: "Output",
-      basicInfo: "Basic Info", // This is a tab label
+      basicInfo: "Basic Info",
     },
   },
   "zh-CN": {
@@ -144,9 +159,9 @@ export default {
       introductionRequired: "自我介绍为必填项",
       prompt: "提示词",
       tags: "标签",
-      tagsHelp: "添加标签以分类Cybot",
+      tagsHelp: "添加标签以分类此AI",
       addTagsPlaceholder: "添加标签并按回车",
-      enterCybotName: "输入Cybot名称",
+      enterCybotName: "输入AI名称",
       enterPrompt: "输入提示词",
       enterGreetingMessage: "输入问候消息",
       enterSelfIntroduction: "输入自我介绍",
@@ -158,19 +173,21 @@ export default {
       creating: "创建中...",
       resetToDefaults: "重置为默认值",
 
-      // Cybot & Model Specifics
-      createCybot: "创建新的Cybot",
-      editCybot: "编辑Cybot",
-      cybot: "Cybot",
+      // AI & Model Specifics
+      createCybot: "创建新的AI",
+      editCybot: "编辑AI",
+      cybot: "AI",
       modelName: "模型名称",
       enterModelName: "输入模型名称",
       introduction: "介绍",
       dialog: "对话",
       dialogCount: "对话数",
       supportsVision: "视觉支持",
-      noAvailableCybotMessage: "没有可用的Cybot消息",
+      vision: "视觉",
+      noAvailableCybotMessage: "没有可用的AI消息",
       unnamed: "未命名",
       noDescription: "暂无描述",
+      viewDetails: "查看详情",
 
       // API & Provider Settings
       apiKeyField: "API密钥",
@@ -202,30 +219,40 @@ export default {
       insufficientBalanceDetailed:
         "余额不足。当前模型：{{modelName}}，单次对话最多消耗：{{pricePerMessage}}积分。您的余额：{{balance}}积分。",
       insufficientBalance: "余额不足",
-      cybotConfigMissing: "Cybot配置缺失",
+      cybotConfigMissing: "AI配置缺失",
       modelPricingMissing: "模型定价信息缺失",
 
-      // References Tab - UPDATED
-      references: "知识与指令", // Tab Title
-      selectReferences: "管理知识与指令", // Selector Label
-      selectReferencesHelp: "选择此Cybot可作为知识或指令使用的页面。", // Selector Help Text
-      noPagesAvailable: "暂无可用页面",
+      // References Tab
+      references: "知识与指令",
+      selectReferences: "管理知识与指令",
+      selectReferencesHelp: "选择此AI可作为知识或指令使用的页面。",
       smartReadCurrentSpace: "智能读取当前空间",
       smartReadHelp: "启用后自动引用当前工作空间的内容",
-      markAsInstruction: "标记为指令（AI将严格遵循）",
-      markAsKnowledge: "标记为知识（AI可参考此提供答案）",
+      searchInCurrentSpace: "在当前空间中搜索...",
+      searchingAllSpaces: "在所有空间中搜索...",
+      clearSearch: "清除搜索",
+      loading: "加载中...",
+      noSearchResults: "未找到搜索结果。",
+      noContentInSpace: "此空间内暂无内容。",
+      foundResults: "找到 {{count}} 个结果",
+      fromSpace: "来自: {{spaceName}}",
+      toInstruction: "切换为指令",
+      toKnowledge: "切换为知识",
+      selectedSummary: "已选择 {{count}} 项引用",
+      knowledge: "知识",
+      instruction: "指令",
 
       // Tools Tab
       tools: "工具",
-      toolSelection: "工具设置",
+      toolSelection: "工具选择",
       selectTools: "选择工具",
-      selectToolsHelp: "选择此Cybot可以使用的工具",
+      selectToolsHelp: "选择此AI可以使用的工具",
 
       // Publish Settings
       publishSettings: "发布设置",
       shareInCommunity: "公开发布",
       shareInCommunityHelp: "显示在社区列表，供其他用户使用",
-      shareInCommunityCustomApiHelp: "自定义API的Cybot无法公开发布",
+      shareInCommunityCustomApiHelp: "使用自定义API的AI无法公开发布",
 
       // Model Parameters & Advanced Settings
       advancedSettings: "高级设置",
@@ -257,21 +284,20 @@ export default {
   },
   "zh-Hant": {
     translation: {
-      // General Form Fields & Actions
       model: "模型",
       modelRequired: "模型選擇為必填項",
       selectModel: "選擇一個模型",
-      cybotName: "Cybot名稱",
-      cybotNameRequired: "Cybot名稱為必填項",
+      cybotName: "AI名稱",
+      cybotNameRequired: "AI名稱為必填項",
       greetingMessage: "問候消息",
       greetingRequired: "問候消息為必填項",
       selfIntroduction: "自我介紹",
       introductionRequired: "自我介紹為必填項",
       prompt: "提示詞",
       tags: "標籤",
-      tagsHelp: "添加標籤以分類Cybot",
+      tagsHelp: "添加標籤以分類此AI",
       addTagsPlaceholder: "添加標籤並按回車",
-      enterCybotName: "輸入Cybot名稱",
+      enterCybotName: "輸入AI名稱",
       enterPrompt: "輸入提示詞",
       enterGreetingMessage: "輸入問候消息",
       enterSelfIntroduction: "輸入自我介紹",
@@ -282,22 +308,20 @@ export default {
       create: "創建",
       creating: "創建中...",
       resetToDefaults: "重置為默認值",
-
-      // Cybot & Model Specifics
-      createCybot: "創建新的Cybot",
-      editCybot: "編輯Cybot",
-      cybot: "Cybot",
+      createCybot: "創建新的AI",
+      editCybot: "編輯AI",
+      cybot: "AI",
       modelName: "模型名稱",
       enterModelName: "輸入模型名稱",
       introduction: "介紹",
       dialog: "對話",
       dialogCount: "對話數",
-      supportsVision: "視覺支持",
-      noAvailableCybotMessage: "沒有可用的Cybot消息",
+      supportsVision: "視覺支援",
+      vision: "視覺",
+      noAvailableCybotMessage: "沒有可用的AI消息",
       unnamed: "未命名",
       noDescription: "暫無描述",
-
-      // API & Provider Settings
+      viewDetails: "查看詳情",
       apiKeyField: "API密鑰",
       provider: "提供商",
       providerUrl: "提供商URL",
@@ -313,10 +337,8 @@ export default {
       apiKeyHelp: "輸入API密鑰進行認證",
       promptHelp: "定義AI行為和個性",
       useServerProxy: "中轉模式",
-      proxyHelp: "關閉後使用您的API密鑰直接連接，無需經過我們的服務器",
+      proxyHelp: "關閉後使用您的API密鑰直接連接，無需經過我們的伺服器",
       proxyNotAvailableForProvider: "此提供商不支持直連模式",
-
-      // Pricing & Balance
       inputPrice: "輸入價格",
       outputPrice: "輸出價格",
       inputPriceHelp: "每百萬輸入詞元成本",
@@ -327,32 +349,34 @@ export default {
       insufficientBalanceDetailed:
         "餘額不足。當前模型：{{modelName}}，單次對話最多消耗：{{pricePerMessage}}積分。您的餘額：{{balance}}積分。",
       insufficientBalance: "餘額不足",
-      cybotConfigMissing: "Cybot配置缺失",
+      cybotConfigMissing: "AI配置缺失",
       modelPricingMissing: "模型定價信息缺失",
-
-      // References Tab - UPDATED
-      references: "知識與指令", // Tab Title
-      selectReferences: "管理知識與指令", // Selector Label
-      selectReferencesHelp: "選擇此Cybot可作為知識或指令使用的頁面。", // Selector Help Text
-      noPagesAvailable: "暫無可用頁面",
+      references: "知識與指令",
+      selectReferences: "管理知識與指令",
+      selectReferencesHelp: "選擇此AI可作為知識或指令使用的頁面。",
       smartReadCurrentSpace: "智能讀取當前空間",
       smartReadHelp: "啟用後自動引用當前工作空間的內容",
-      markAsInstruction: "標記為指令（AI將嚴格遵循）",
-      markAsKnowledge: "標記為知識（AI可參考此提供答案）",
-
-      // Tools Tab
+      searchInCurrentSpace: "在當前空間中搜尋...",
+      searchingAllSpaces: "在所有空間中搜尋...",
+      clearSearch: "清除搜尋",
+      loading: "載入中...",
+      noSearchResults: "未找到搜尋結果。",
+      noContentInSpace: "此空間內暫無內容。",
+      foundResults: "找到 {{count}} 個結果",
+      fromSpace: "來自: {{spaceName}}",
+      toInstruction: "切換為指令",
+      toKnowledge: "切換為知識",
+      selectedSummary: "已選擇 {{count}} 項引用",
+      knowledge: "知識",
+      instruction: "指令",
       tools: "工具",
-      toolSelection: "工具設置",
+      toolSelection: "工具選擇",
       selectTools: "選擇工具",
-      selectToolsHelp: "選擇此Cybot可以使用的工具",
-
-      // Publish Settings
+      selectToolsHelp: "選擇此AI可以使用的工具",
       publishSettings: "發布設置",
       shareInCommunity: "公開發布",
       shareInCommunityHelp: "顯示在社區列表，供其他用戶使用",
-      shareInCommunityCustomApiHelp: "自定義API的Cybot無法公開發布",
-
-      // Model Parameters & Advanced Settings
+      shareInCommunityCustomApiHelp: "使用自定義API的AI無法公開發布",
       advancedSettings: "高級設置",
       modelParameters: "模型參數",
       temperature: "溫度",
@@ -366,8 +390,6 @@ export default {
       presencePenaltyHelp: "減少主題重複，範圍-2到2。較高值鼓勵引入新主題。",
       maxTokens: "最大Token數",
       maxTokensHelp: "限制輸出長度，最小值為1。定義響應的最大Token數量。",
-
-      // Other / Misc
       deleteSuccess: "刪除成功！",
       deleteError: "刪除失敗，請重試。",
       starting: "啟動中...",
@@ -382,22 +404,20 @@ export default {
   },
   ja: {
     translation: {
-      // General Form Fields & Actions
       model: "モデル",
       modelRequired: "モデルの選択は必須です",
       selectModel: "モデルを選択",
-      createCybot: "新しいCybotを作成",
-      cybotName: "Cybot名",
-      cybotNameRequired: "Cybot名は必須です",
+      cybotName: "AI名",
+      cybotNameRequired: "AI名は必須です",
       greetingMessage: "挨拶メッセージ",
       greetingRequired: "挨拶メッセージは必須です",
       selfIntroduction: "自己紹介",
       introductionRequired: "自己紹介は必須です",
       prompt: "プロンプト",
       tags: "タグ",
-      tagsHelp: "Cybotを分類するためにタグを追加",
+      tagsHelp: "AIを分類するためにタグを追加",
       addTagsPlaceholder: "タグを追加してEnterを押す",
-      enterCybotName: "Cybot名を入力",
+      enterCybotName: "AI名を入力",
       enterPrompt: "プロンプトを入力",
       enterGreetingMessage: "挨拶メッセージを入力",
       enterSelfIntroduction: "自己紹介を入力",
@@ -408,22 +428,20 @@ export default {
       create: "作成",
       creating: "作成中...",
       resetToDefaults: "デフォルトにリセット",
-
-      // Cybot & Model Specifics
-      createCybot: "新しいCybotを作成",
-      editCybot: "Cybotを編集",
-      cybot: "Cybot",
+      createCybot: "新しいAIを作成",
+      editCybot: "AIを編集",
+      cybot: "AI",
       modelName: "モデル名",
       enterModelName: "モデル名を入力",
       introduction: "紹介",
       dialog: "対話",
       dialogCount: "対話数",
       supportsVision: "視覚サポート",
-      noAvailableCybotMessage: "利用可能なCybotメッセージがありません",
+      vision: "視覚",
+      noAvailableCybotMessage: "利用可能なAIメッセージがありません",
       unnamed: "名称未設定",
       noDescription: "説明なし",
-
-      // API & Provider Settings
+      viewDetails: "詳細を見る",
       apiKeyField: "APIキー",
       provider: "プロバイダー",
       providerUrl: "プロバイダーURL",
@@ -442,8 +460,6 @@ export default {
       proxyHelp: "オフにすると当社サーバーを経由せず直接接続",
       proxyNotAvailableForProvider:
         "このプロバイダーは直接接続をサポートしていません",
-
-      // Pricing & Balance
       inputPrice: "入力価格",
       outputPrice: "出力価格",
       inputPriceHelp: "100万入力トークンあたりのコスト",
@@ -454,35 +470,36 @@ export default {
       insufficientBalanceDetailed:
         "残高不足。現在のモデル：{{modelName}}、1回の応答の最大コスト：{{pricePerMessage}}ポイント。現在の残高：{{balance}}ポイント。",
       insufficientBalance: "残高不足",
-      cybotConfigMissing: "Cybotの設定が見つかりません",
+      cybotConfigMissing: "AIの設定が見つかりません",
       modelPricingMissing: "モデルの価格情報が見つかりません",
-
-      // References Tab - UPDATED
-      references: "知識と指示", // Tab Title
-      selectReferences: "知識と指示を管理", // Selector Label
+      references: "知識と指示",
+      selectReferences: "知識と指示を管理",
       selectReferencesHelp:
-        "このCybotが知識または指示として使用できるページを選択します。", // Selector Help Text
-      noPagesAvailable: "利用可能なページなし",
+        "このAIが知識または指示として使用できるページを選択します。",
       smartReadCurrentSpace: "現在のスペースをスマート読取",
       smartReadHelp: "有効にすると現在のワークスペースのコンテンツを自動参照",
-      markAsInstruction: "指示としてマーク（AIはこれを厳密に遵守します）",
-      markAsKnowledge:
-        "知識としてマーク（AIはこれを参考にして回答を提供できます）",
-
-      // Tools Tab
+      searchInCurrentSpace: "現在のスペースで検索...",
+      searchingAllSpaces: "すべてのスペースで検索中...",
+      clearSearch: "検索をクリア",
+      loading: "読み込み中...",
+      noSearchResults: "検索結果が見つかりませんでした。",
+      noContentInSpace: "このスペースにはコンテンツがありません。",
+      foundResults: "{{count}}件の結果が見つかりました",
+      fromSpace: "ソース: {{spaceName}}",
+      toInstruction: "指示に切り替え",
+      toKnowledge: "知識に切り替え",
+      selectedSummary: "{{count}}件の参照を選択済み",
+      knowledge: "知識",
+      instruction: "指示",
       tools: "ツール",
-      toolSelection: "ツール設定",
+      toolSelection: "ツール選択",
       selectTools: "ツールを選択",
-      selectToolsHelp: "このCybotが使用できるツールを選択",
-
-      // Publish Settings
+      selectToolsHelp: "このAIが使用できるツールを選択",
       publishSettings: "公開設定",
       shareInCommunity: "公開する",
       shareInCommunityHelp:
         "コミュニティリストに表示し、他のユーザーが使用可能に",
-      shareInCommunityCustomApiHelp: "カスタムAPIのCybotは公開できません",
-
-      // Model Parameters & Advanced Settings
+      shareInCommunityCustomApiHelp: "カスタムAPIキーを持つAIは公開できません",
       advancedSettings: "高度な設定",
       modelParameters: "モデルパラメータ",
       temperature: "温度",
@@ -500,8 +517,6 @@ export default {
       maxTokens: "最大トークン数",
       maxTokensHelp:
         "出力の長さを制限、最小値は1。応答の最大トークン数を定義します。",
-
-      // Other / Misc
       deleteSuccess: "削除成功！",
       deleteError: "削除に失敗しました。もう一度お試しください。",
       starting: "開始中...",
