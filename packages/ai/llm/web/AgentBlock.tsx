@@ -5,10 +5,16 @@ import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 import Avatar from "render/web/ui/Avatar";
-import { Cybot } from "../types";
+import { Agent } from "app/types"; // <-- 重命名类型导入
 import { remove } from "database/dbSlice";
+import { Dialog } from "render/web/ui/Dialog";
+import { Tooltip } from "render/web/ui/Tooltip";
+import BotForm from "ai/llm/web/BotForm";
+import Button from "render/web/ui/Button";
 
 // Icons
 import {
@@ -18,37 +24,32 @@ import {
   EyeIcon,
   ArrowRightIcon,
   SyncIcon,
+  PlusIcon,
 } from "@primer/octicons-react";
 import { FaYenSign } from "react-icons/fa";
-import { PlusIcon } from "@primer/octicons-react";
-import { useNavigate } from "react-router-dom";
-import { Dialog } from "render/web/ui/Dialog";
-import { Tooltip } from "render/web/ui/Tooltip";
-import BotForm from "ai/llm/web/BotForm";
-import Button from "render/web/ui/Button";
-import toast from "react-hot-toast";
 
-interface CybotBlockProps {
-  item: Cybot;
+interface AgentBlockProps {
+  item: Agent; // <-- 使用重命名后的类型
   reload: () => Promise<void>;
 }
 
-const CybotBlock = ({ item, reload }: CybotBlockProps) => {
+const AgentBlock = ({ item, reload }: AgentBlockProps) => {
   const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const cybotKey = item.dbKey || item.id;
+  const agentKey = item.dbKey || item.id; // <-- 重命名变量
   const { isLoading, createNewDialog } = useCreateDialog();
   const { visible: editVisible, open: openEdit, close: closeEdit } = useModal();
   const [deleting, setDeleting] = useState(false);
-  const allowEdit = useCouldEdit(cybotKey);
+  const allowEdit = useCouldEdit(agentKey); // <-- 使用重命名后的变量
 
   const startDialog = async () => {
     if (isLoading) return;
     try {
-      await createNewDialog({ cybots: [cybotKey] });
+      // API参数也建议同步修改为 agents
+      await createNewDialog({ agents: [agentKey] });
     } catch (error) {
       toast.error(t("createDialogError"));
     }
@@ -59,29 +60,28 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
     setDeleting(true);
 
     try {
-      const element = document.getElementById(`cybot-${item.id}`);
-      element?.classList.add("cybot-block--exit");
+      const element = document.getElementById(`agent-${item.id}`); // <-- 重命名 ID
+      element?.classList.add("agent-block--exit"); // <-- 重命名 CSS 类
       await new Promise((r) => setTimeout(r, 250));
-      await dispatch(remove(cybotKey));
+      await dispatch(remove(agentKey)); // <-- 使用重命名后的变量
       toast.success(t("deleteSuccess"));
       await reload();
     } catch (error) {
       setDeleting(false);
       toast.error(t("deleteError"));
     }
-  }, [item.id, cybotKey, deleting, dispatch, reload, t]);
+  }, [item.id, agentKey, deleting, dispatch, reload, t]); // <-- 更新依赖项
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate(`/${cybotKey}`);
+    navigate(`/${agentKey}`); // <-- 使用重命名后的变量
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // 点击卡片主体区域也可进入详情
     if (
       e.target === e.currentTarget ||
-      (e.target as Element).classList.contains("cybot-block__clickable")
+      (e.target as Element).classList.contains("agent-block__clickable")
     ) {
       handleViewDetails(e);
     }
@@ -90,34 +90,34 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
   return (
     <>
       <div
-        id={`cybot-${item.id}`}
-        className="cybot-block"
+        id={`agent-${item.id}`} // <-- 重命名 ID
+        className="agent-block" // <-- 重命名 CSS 类
         tabIndex={0}
         onClick={handleCardClick}
         aria-label={`AI助手: ${item.name || t("unnamed")}`}
       >
         {/* 装饰性渐变背景 */}
-        <div className="cybot-block__bg-gradient" />
+        <div className="agent-block__bg-gradient" />
 
         {/* 头部区域 */}
-        <div className="cybot-block__header">
-          <div className="cybot-block__avatar-container">
-            <Avatar name={item.name} type="cybot" size="large" />
-            <div className="cybot-block__avatar-ring" />
+        <div className="agent-block__header">
+          <div className="agent-block__avatar-container">
+            <Avatar name={item.name} type="agent" size="large" />
+            <div className="agent-block__avatar-ring" />
           </div>
 
-          <div className="cybot-block__info">
-            <div className="cybot-block__title-row">
-              <div className="cybot-block__title-container cybot-block__clickable">
+          <div className="agent-block__info">
+            <div className="agent-block__title-row">
+              <div className="agent-block__title-container agent-block__clickable">
                 <Tooltip content={`ID: ${item.id}`} placement="top">
-                  <h3 className="cybot-block__title">
+                  <h3 className="agent-block__title">
                     {item.name || t("unnamed")}
                   </h3>
                 </Tooltip>
 
                 <Tooltip content={t("viewDetails")} placement="top">
                   <button
-                    className="cybot-block__view-link"
+                    className="agent-block__view-link"
                     onClick={handleViewDetails}
                     aria-label={t("viewDetails")}
                   >
@@ -127,9 +127,9 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
               </div>
 
               {/* Meta信息 */}
-              <div className="cybot-block__meta">
+              <div className="agent-block__meta">
                 {item.outputPrice && (
-                  <div className="cybot-block__price-tag">
+                  <div className="agent-block__price-tag">
                     <FaYenSign size={10} />
                     <span>{(item.outputPrice || 0).toFixed(2)}</span>
                   </div>
@@ -138,22 +138,22 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             </div>
 
             {/* 标签区域 */}
-            <div className="cybot-block__tags">
+            <div className="agent-block__tags">
               {item.hasVision && (
                 <Tooltip content={t("hasVision")} placement="top">
-                  <span className="cybot-block__tag cybot-block__vision-tag">
+                  <span className="agent-block__tag agent-block__vision-tag">
                     <EyeIcon size={11} />
                     <span>{t("vision")}</span>
                   </span>
                 </Tooltip>
               )}
               {item.tags?.slice(0, 3).map((tag, index) => (
-                <span key={index} className="cybot-block__tag">
+                <span key={index} className="agent-block__tag">
                   {tag}
                 </span>
               ))}
               {item.tags && item.tags.length > 3 && (
-                <span className="cybot-block__tag cybot-block__more-tag">
+                <span className="agent-block__tag agent-block__more-tag">
                   +{item.tags.length - 3}
                 </span>
               )}
@@ -162,25 +162,25 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         </div>
 
         {/* 描述区域 */}
-        <div className="cybot-block__description cybot-block__clickable">
+        <div className="agent-block__description agent-block__clickable">
           {item.introduction || t("noDescription")}
         </div>
 
         {/* 操作区域 */}
-        <div className="cybot-block__actions">
+        <div className="agent-block__actions">
           <Button
             icon={<CommentDiscussionIcon size={16} />}
             onClick={startDialog}
             disabled={isLoading}
             loading={isLoading}
             size="medium"
-            className="cybot-block__primary-action"
+            className="agent-block__primary-action"
           >
             {isLoading ? t("starting") : t("startChat")}
           </Button>
 
           {allowEdit && (
-            <div className="cybot-block__secondary-actions">
+            <div className="agent-block__secondary-actions">
               <Button
                 icon={<PencilIcon size={14} />}
                 onClick={openEdit}
@@ -202,7 +202,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         </div>
 
         {/* 悬停指示器 */}
-        <div className="cybot-block__hover-indicator" />
+        <div className="agent-block__hover-indicator" />
       </div>
 
       {/* 编辑对话框 */}
@@ -210,7 +210,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         <Dialog
           isOpen={editVisible}
           onClose={closeEdit}
-          title={`${t("edit")} ${item.name || t("cybot")}`}
+          title={`${t("edit")} ${item.name || t("agent")}`} // <-- 更新翻译占位符
           size="large"
         >
           <BotForm
@@ -223,8 +223,9 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
         </Dialog>
       )}
 
-      <style href="cybot-block" precedence="medium">{`
-        .cybot-block {
+      {/* 关键：重命名 style href */}
+      <style href="agent-block" precedence="medium">{`
+        .agent-block {
           background: ${theme.background};
           border-radius: 20px;
           padding: ${theme.space[6]};
@@ -243,7 +244,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
 
-        .cybot-block__bg-gradient {
+        .agent-block__bg-gradient {
           position: absolute;
           top: 0;
           left: 0;
@@ -255,11 +256,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           pointer-events: none;
         }
 
-        .cybot-block:hover .cybot-block__bg-gradient {
+        .agent-block:hover .agent-block__bg-gradient {
           opacity: 1;
         }
 
-        .cybot-block:hover {
+        .agent-block:hover {
           transform: translateY(-6px) scale(1.01);
           border-color: ${theme.primary}30;
           box-shadow: 
@@ -268,7 +269,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
 
-        .cybot-block:focus-visible {
+        .agent-block:focus-visible {
           border-color: ${theme.primary};
           box-shadow: 
             0 0 0 2px ${theme.background},
@@ -276,7 +277,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
             0 2px 8px ${theme.shadow1};
         }
 
-        .cybot-block__header {
+        .agent-block__header {
           display: flex;
           gap: ${theme.space[4]};
           align-items: flex-start;
@@ -284,12 +285,12 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           z-index: 1;
         }
 
-        .cybot-block__avatar-container {
+        .agent-block__avatar-container {
           position: relative;
           flex-shrink: 0;
         }
 
-        .cybot-block__avatar-ring {
+        .agent-block__avatar-ring {
           position: absolute;
           inset: -3px;
           border-radius: 50%;
@@ -299,11 +300,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           pointer-events: none;
         }
 
-        .cybot-block:hover .cybot-block__avatar-ring {
+        .agent-block:hover .agent-block__avatar-ring {
           opacity: 1;
         }
 
-        .cybot-block__info {
+        .agent-block__info {
           flex: 1;
           min-width: 0;
           display: flex;
@@ -311,14 +312,14 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           gap: ${theme.space[3]};
         }
 
-        .cybot-block__title-row {
+        .agent-block__title-row {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
           gap: ${theme.space[3]};
         }
 
-        .cybot-block__title-container {
+        .agent-block__title-container {
           min-width: 0;
           flex: 1;
           display: flex;
@@ -326,7 +327,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           gap: ${theme.space[2]};
         }
 
-        .cybot-block__title {
+        .agent-block__title {
           font-size: 1.125rem;
           font-weight: 650;
           margin: 0;
@@ -339,11 +340,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           transition: color 0.3s ease;
         }
 
-        .cybot-block:hover .cybot-block__title {
+        .agent-block:hover .agent-block__title {
           color: ${theme.primary};
         }
 
-        .cybot-block__view-link {
+        .agent-block__view-link {
           background: none;
           border: none;
           color: ${theme.textTertiary};
@@ -359,32 +360,32 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           flex-shrink: 0;
         }
 
-        .cybot-block:hover .cybot-block__view-link {
+        .agent-block:hover .agent-block__view-link {
           opacity: 1;
           transform: translateX(0);
         }
 
-        .cybot-block__view-link:hover {
+        .agent-block__view-link:hover {
           color: ${theme.primary};
           background: ${theme.primary}12;
           transform: translateX(3px);
         }
 
-        .cybot-block__view-link:focus-visible {
+        .agent-block__view-link:focus-visible {
           opacity: 1;
           outline: none;
           box-shadow: 0 0 0 2px ${theme.primary}40;
           color: ${theme.primary};
         }
 
-        .cybot-block__meta {
+        .agent-block__meta {
           display: flex;
           align-items: flex-start;
           gap: ${theme.space[2]};
           flex-shrink: 0;
         }
 
-        .cybot-block__price-tag {
+        .agent-block__price-tag {
           font-size: 0.75rem;
           color: ${theme.textTertiary};
           padding: ${theme.space[1]} ${theme.space[2]};
@@ -400,20 +401,20 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           transition: all 0.3s ease;
         }
 
-        .cybot-block:hover .cybot-block__price-tag {
+        .agent-block:hover .agent-block__price-tag {
           background: ${theme.primary}10;
           border-color: ${theme.primary}20;
           color: ${theme.primary};
         }
 
-        .cybot-block__tags {
+        .agent-block__tags {
           display: flex;
           gap: ${theme.space[1]};
           flex-wrap: wrap;
           align-items: center;
         }
 
-        .cybot-block__tag {
+        .agent-block__tag {
           font-size: 0.75rem;
           color: ${theme.textTertiary};
           padding: ${theme.space[1]} ${theme.space[2]};
@@ -425,7 +426,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           transition: all 0.3s ease;
         }
 
-        .cybot-block__vision-tag {
+        .agent-block__vision-tag {
           display: flex;
           align-items: center;
           gap: 4px;
@@ -434,19 +435,19 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           border-color: ${theme.primary}25;
         }
 
-        .cybot-block__more-tag {
+        .agent-block__more-tag {
           color: ${theme.primary};
           background: ${theme.primary}08;
           border-color: ${theme.primary}20;
           font-weight: 600;
         }
 
-        .cybot-block:hover .cybot-block__tag {
+        .agent-block:hover .agent-block__tag {
           background: ${theme.backgroundSelected || theme.backgroundHover};
           border-color: ${theme.border};
         }
 
-        .cybot-block__description {
+        .agent-block__description {
           flex: 1;
           font-size: 0.9rem;
           line-height: 1.6;
@@ -464,7 +465,7 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           letter-spacing: -0.01em;
         }
 
-        .cybot-block__actions {
+        .agent-block__actions {
           display: flex;
           gap: ${theme.space[2]};
           margin-top: auto;
@@ -473,17 +474,17 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           z-index: 2;
         }
 
-        .cybot-block__primary-action {
+        .agent-block__primary-action {
           flex: 1;
         }
 
-        .cybot-block__secondary-actions {
+        .agent-block__secondary-actions {
           display: flex;
           gap: ${theme.space[1]};
           flex-shrink: 0;
         }
 
-        .cybot-block__hover-indicator {
+        .agent-block__hover-indicator {
           position: absolute;
           bottom: 0;
           left: 0;
@@ -495,11 +496,11 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
           transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .cybot-block:hover .cybot-block__hover-indicator {
+        .agent-block:hover .agent-block__hover-indicator {
           transform: scaleX(1);
         }
 
-        .cybot-block--exit {
+        .agent-block--exit {
           opacity: 0;
           transform: scale(0.95) translateY(20px);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -507,49 +508,49 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         /* 响应式设计 */
         @media (max-width: 768px) {
-          .cybot-block {
+          .agent-block {
             padding: ${theme.space[5]};
           }
 
-          .cybot-block__view-link {
+          .agent-block__view-link {
             opacity: 1;
             transform: translateX(0);
           }
 
-          .cybot-block:hover {
+          .agent-block:hover {
             transform: translateY(-3px) scale(1.005);
           }
 
-          .cybot-block__title {
+          .agent-block__title {
             font-size: 1rem;
           }
         }
 
         @media (max-width: 480px) {
-          .cybot-block {
+          .agent-block {
             padding: ${theme.space[4]};
             gap: ${theme.space[3]};
             border-radius: 16px;
           }
 
-          .cybot-block__actions {
+          .agent-block__actions {
             flex-direction: column;
             gap: ${theme.space[2]};
           }
 
-          .cybot-block__secondary-actions {
+          .agent-block__secondary-actions {
             justify-content: stretch;
           }
 
-          .cybot-block__secondary-actions > * {
+          .agent-block__secondary-actions > * {
             flex: 1;
           }
 
-          .cybot-block__tags {
+          .agent-block__tags {
             gap: 6px;
           }
 
-          .cybot-block__tag {
+          .agent-block__tag {
             font-size: 0.7rem;
             padding: 4px 8px;
           }
@@ -557,34 +558,34 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
 
         /* 性能优化 */
         @media (prefers-reduced-motion: reduce) {
-          .cybot-block,
-          .cybot-block__bg-gradient,
-          .cybot-block__avatar-ring,
-          .cybot-block__view-link,
-          .cybot-block__hover-indicator,
-          .cybot-block__price-tag,
-          .cybot-block__tag,
-          .cybot-block__title {
+          .agent-block,
+          .agent-block__bg-gradient,
+          .agent-block__avatar-ring,
+          .agent-block__view-link,
+          .agent-block__hover-indicator,
+          .agent-block__price-tag,
+          .agent-block__tag,
+          .agent-block__title {
             transition: none;
           }
           
-          .cybot-block:hover {
+          .agent-block:hover {
             transform: none;
           }
           
-          .cybot-block--exit {
+          .agent-block--exit {
             transition: none;
           }
         }
 
         /* 高对比度支持 */
         @media (prefers-contrast: high) {
-          .cybot-block {
+          .agent-block {
             border-width: 2px;
           }
           
-          .cybot-block__tag,
-          .cybot-block__price-tag {
+          .agent-block__tag,
+          .agent-block__price-tag {
             border-width: 2px;
           }
         }
@@ -593,4 +594,4 @@ const CybotBlock = ({ item, reload }: CybotBlockProps) => {
   );
 };
 
-export default CybotBlock;
+export default AgentBlock;

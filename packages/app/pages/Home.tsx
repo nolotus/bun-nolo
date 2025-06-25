@@ -29,7 +29,8 @@ import { toast } from "react-hot-toast";
 
 // Components
 import WelcomeSection from "./WelcomeSection";
-import CybotBlock from "ai/cybot/web/CybotBlock";
+import AgentBlock from "ai/llm/web/AgentBlock";
+
 import PubCybots from "ai/cybot/web/PubCybots";
 
 // Cybots 组件内联实现
@@ -105,7 +106,7 @@ const Cybots = memo(({ queryUserId, limit = 6 }: CybotsProps) => {
   return (
     <div className="cybots-grid">
       {items.map((item) => (
-        <CybotBlock key={item.id} item={item} reload={handleReload} />
+        <AgentBlock key={item.id} item={item} reload={handleReload} />
       ))}
     </div>
   );

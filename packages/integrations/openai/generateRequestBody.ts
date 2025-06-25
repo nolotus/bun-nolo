@@ -2,7 +2,7 @@
 
 import { supportedReasoningModels } from "ai/llm/providers";
 import { mapLanguage } from "app/i18n/mapLanguage";
-import { BotConfig } from "app/types";
+import { Agent } from "app/types";
 
 // -----------------------------------------------------------------------------
 // 类型定义
@@ -71,7 +71,7 @@ const CONTEXT_USAGE_INSTRUCTIONS = `INSTRUCTIONS FOR USING THE REFERENCE MATERIA
  * 根据配置和上下文生成完整的系统提示。
  */
 const generatePrompt = (options: {
-  agentConfig: BotConfig;
+  agentConfig: Agent;
   language?: string;
   contexts?: Contexts;
 }): string => {
@@ -153,7 +153,7 @@ const generatePrompt = (options: {
  */
 const prependPromptMessage = (
   messages: Message[],
-  agentConfig: BotConfig,
+  agentConfig: Agent,
   language: string,
   contexts?: Contexts
 ): Message[] => {
@@ -223,7 +223,7 @@ const buildRequestBody = (options: BuildRequestBodyOptions): any => {
  * 主函数：生成完整的 OpenAI 请求体。
  */
 export const generateOpenAIRequestBody = (
-  agentConfig: BotConfig,
+  agentConfig: Agent,
   providerName: string,
   messages: Message[],
   contexts?: Contexts

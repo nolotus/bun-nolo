@@ -5,7 +5,7 @@ export type ReferenceItem = {
   title: string;
   type: "knowledge" | "instruction";
 };
-export interface BotConfig {
+export interface Agent {
   provider: string;
   model: string;
   prompt?: string;

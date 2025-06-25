@@ -11,7 +11,7 @@ import { openrouterModels } from "integrations/openrouter/models";
 import { xaiModels } from "integrations/xai/models";
 
 import type { Model } from "./types";
-import { BotConfig } from "app/types";
+import { Agent } from "app/types";
 
 // 提取所有支持推理功能的模型
 const allModels = [
@@ -84,10 +84,7 @@ export function getModelsByProvider(provider: Provider): Model[] {
 }
 
 /** 获取 Chat Completion API 地址 */
-export function getApiEndpoint({
-  provider,
-  customProviderUrl,
-}: BotConfig): string {
+export function getApiEndpoint({ provider, customProviderUrl }: Agent): string {
   if (customProviderUrl) return customProviderUrl;
   const key = provider.toLowerCase();
   if (key === "custom") {

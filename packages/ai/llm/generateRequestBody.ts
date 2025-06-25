@@ -1,6 +1,6 @@
 // /ai/llm/generateRequestBody.ts
 
-import { BotConfig } from "app/types";
+import { Agent } from "app/types";
 import {
   generateOpenAIRequestBody,
   Message,
@@ -11,7 +11,7 @@ import {
  * 目前只支持 OpenAI 兼容的格式，将来可扩展。
  */
 export const generateRequestBody = (
-  agentConfig: BotConfig,
+  agentConfig: Agent,
   messages: Message[], // 接收准备好的消息数组
   contexts?: any
 ) => {

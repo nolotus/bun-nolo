@@ -5,7 +5,7 @@ import { SyncIcon } from "@primer/octicons-react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { usePubCybots } from "../hooks/usePubCybots";
-import CybotBlock from "ai/cybot/web/CybotBlock";
+import AgentBlock from "ai/llm/web/AgentBlock";
 import toast from "react-hot-toast";
 
 interface PubCybotsProps {
@@ -96,7 +96,7 @@ const PubCybots = memo(({ limit = 20, showEmpty = true }: PubCybotsProps) => {
     <>
       <div className={`cybots-grid `}>
         {data.map((item) => (
-          <CybotBlock key={item.id} item={item} />
+          <AgentBlock key={item.id} item={item} />
         ))}
       </div>
       <style>{`

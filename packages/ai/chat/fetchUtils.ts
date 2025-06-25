@@ -1,5 +1,5 @@
 // 文件路径: ai/chat/fetchUtils.ts
-import { BotConfig } from "app/types";
+import { Agent } from "app/types";
 
 import { API_ENDPOINTS } from "database/config";
 
@@ -11,7 +11,7 @@ interface BodyData {
 }
 
 interface FetchParams {
-  cybotConfig: BotConfig;
+  cybotConfig: Agent;
   api: string;
   bodyData: BodyData;
   currentServer: string;
