@@ -1,7 +1,6 @@
 // chat/web/MessageInput/MessageInput.tsx
-
 import type React from "react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { zIndex } from "render/styles/zIndex";
@@ -48,18 +47,38 @@ const MessageInput: React.FC = () => {
   const [localPreviewingFile, setLocalPreviewingFile] =
     useState<PendingFile | null>(null);
 
+  // 新增状态管理
+  const [processingFiles, setProcessingFiles] = useState<Set<string>>(
+    new Set()
+  );
+  const [fileErrors, setFileErrors] = useState<Map<string, string>>(new Map());
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 检测移动端
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || "ontouchstart" in window);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const processFiles = useCallback(
     async (files: FileList | null) => {
       if (!files) return;
 
       for (const file of Array.from(files)) {
+        const fileId = nanoid();
+
         if (file.type.startsWith("image/")) {
           const reader = new FileReader();
           reader.onloadend = () => {
             if (reader.result) {
               setLocalImagePreviews((prev) => [
                 ...prev,
-                { id: nanoid(), url: reader.result as string },
+                { id: fileId, url: reader.result as string },
               ]);
             }
           };
@@ -67,8 +86,18 @@ const MessageInput: React.FC = () => {
           continue;
         }
 
+        // 标记文件为处理中
+        setProcessingFiles((prev) => new Set(prev).add(fileId));
+
+        // 清除可能存在的错误状态
+        setFileErrors((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(fileId);
+          return newMap;
+        });
+
         let slateData: Descendant[];
-        let jsonData: Record<string, any>[] | undefined; // [修改] jsonData 可能是 undefined
+        let jsonData: Record<string, any>[] | undefined;
         let fileType: "excel" | "docx" | "pdf" | "txt" | null = null;
         const toastId = toast.loading(
           t("processingFile", "正在处理 {{fileName}}...", {
@@ -95,7 +124,6 @@ const MessageInput: React.FC = () => {
             const workbook = XLSX.read(buffer, { type: "array" });
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 
-            // [修改] 同时生成 jsonData 和 slateData
             jsonData = XLSX.utils.sheet_to_json(worksheet);
             slateData = convertExcelToSlate(jsonData, file.name);
           } else if (fileNameLower.endsWith(".docx")) {
@@ -111,22 +139,17 @@ const MessageInput: React.FC = () => {
             fileType = "txt";
             slateData = await convertTxtToSlate(await file.text());
           } else {
-            toast.error(
-              t("unsupportedFileType", "不支持的文件类型: {{fileName}}", {
-                fileName: file.name,
-              }),
-              { id: toastId }
-            );
-            continue;
+            throw new Error("不支持的文件类型");
           }
 
-          // [修改] 将 jsonData 也传递给 action
           const resultAction = await dispatch(
             createPageAndAddReference({
               slateData,
-              jsonData, // 传递 jsonData
+              jsonData,
               title: file.name,
               type: fileType,
+              fileId, // 传递文件ID
+              size: file.size, // 传递文件大小
             })
           );
 
@@ -143,12 +166,26 @@ const MessageInput: React.FC = () => {
             );
           }
         } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : "处理文件时出错";
+
+          // 标记文件错误
+          setFileErrors((prev) => new Map(prev).set(fileId, errorMessage));
+
           toast.error(
-            t("fileProcessedError", "处理 {{fileName}} 时出错。", {
+            t("fileProcessedError", "处理 {{fileName}} 时出错: {{error}}", {
               fileName: file.name,
+              error: errorMessage,
             }),
             { id: toastId }
           );
+        } finally {
+          // 移除处理中状态
+          setProcessingFiles((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(fileId);
+            return newSet;
+          });
         }
       }
     },
@@ -158,7 +195,8 @@ const MessageInput: React.FC = () => {
   const clearInputState = useCallback(() => {
     setTextContent("");
     setLocalImagePreviews([]);
-    dispatch(clearPendingAttachments()); // 这个 action 现在也会清理 pendingRawData
+    setFileErrors(new Map()); // 清理错误状态
+    dispatch(clearPendingAttachments());
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.focus();
@@ -170,7 +208,12 @@ const MessageInput: React.FC = () => {
     if (!trimmedText && !localImagePreviews.length && !pendingFiles.length)
       return;
 
-    // [修改] 构建包含文本和文件引用的混合数组
+    // 检查是否有处理中的文件
+    if (processingFiles.size > 0) {
+      toast.error(t("waitForProcessing", "请等待文件处理完成"));
+      return;
+    }
+
     const parts: any[] = [];
     if (trimmedText) {
       parts.push({ type: "text", text: trimmedText });
@@ -190,23 +233,19 @@ const MessageInput: React.FC = () => {
       }
     });
 
-    // 清理输入框和暂存数据
     clearInputState();
 
     (async () => {
       try {
         const imageParts = await Promise.all(imagePromises);
-        // 将图片部分放在最后
         const finalParts = [...parts, ...imageParts];
 
         let messageContent: string | any[] = finalParts;
-        // 如果最终只有文本，则简化为字符串
         if (finalParts.length === 1 && finalParts[0].type === "text") {
           messageContent = finalParts[0].text!;
         }
 
         if (finalParts.length > 0) {
-          // [修改] dispatch 的 userInput 现在可能是混合数组
           await dispatch(
             handleSendMessage({ userInput: messageContent })
           ).unwrap();
@@ -219,6 +258,7 @@ const MessageInput: React.FC = () => {
     textContent,
     localImagePreviews,
     pendingFiles,
+    processingFiles,
     dispatch,
     clearInputState,
     t,
@@ -249,14 +289,22 @@ const MessageInput: React.FC = () => {
     processFiles(e.dataTransfer.files);
   };
 
+  // 获取增强的 pendingFiles（包含错误信息）
+  const enhancedPendingFiles = pendingFiles.map((file) => ({
+    ...file,
+    error: fileErrors.get(file.id),
+  }));
+
   const hasContent =
     textContent.trim() ||
     localImagePreviews.length > 0 ||
     pendingFiles.length > 0;
 
+  const isDisabled = processingFiles.size > 0;
+
   return (
     <>
-      {/* 样式部分无需修改，此处省略 */}
+      {/* 保持您原有的样式但添加处理状态的视觉反馈 */}
       <style href="message-input" precedence="medium">{`
         .message-input-container {
           position: relative;
@@ -276,6 +324,11 @@ const MessageInput: React.FC = () => {
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
           z-index: ${zIndex.messageInputContainerZIndex};
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* 添加处理中状态的样式 */
+        .message-input-container.processing {
+          opacity: 0.8;
         }
 
         .input-controls {
@@ -308,6 +361,12 @@ const MessageInput: React.FC = () => {
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
+        .message-textarea:disabled {
+          opacity: 0.6;
+          cursor: wait;
+          background: ${theme.backgroundTertiary};
+        }
+
         .message-textarea::placeholder {
           color: ${theme.placeholder || theme.textQuaternary};
           opacity: 1;
@@ -324,7 +383,7 @@ const MessageInput: React.FC = () => {
           transform: translateY(-1px);
         }
 
-        .message-textarea:hover:not(:focus) {
+        .message-textarea:hover:not(:focus):not(:disabled) {
           border-color: ${theme.primary}40;
           box-shadow: 
             0 2px 6px ${theme.shadow1},
@@ -351,6 +410,12 @@ const MessageInput: React.FC = () => {
           overflow: hidden;
         }
 
+        .upload-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+
         .upload-button::before {
           content: '';
           position: absolute;
@@ -361,7 +426,7 @@ const MessageInput: React.FC = () => {
           pointer-events: none;
         }
 
-        .upload-button:hover {
+        .upload-button:hover:not(:disabled) {
           background: ${theme.background};
           color: ${theme.primary};
           border-color: ${theme.primary}30;
@@ -372,11 +437,11 @@ const MessageInput: React.FC = () => {
             inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
 
-        .upload-button:hover::before {
+        .upload-button:hover:not(:disabled)::before {
           opacity: 1;
         }
 
-        .upload-button:active {
+        .upload-button:active:not(:disabled) {
           transform: translateY(0);
           transition-duration: 0.1s;
           box-shadow: 
@@ -434,6 +499,37 @@ const MessageInput: React.FC = () => {
           backdrop-filter: blur(8px);
         }
 
+        /* 处理状态指示器 */
+        .processing-indicator {
+          position: absolute;
+          top: ${theme.space[2]};
+          right: ${theme.space[2]};
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[1]};
+          padding: ${theme.space[1]} ${theme.space[2]};
+          background: ${theme.backgroundSecondary};
+          border: 1px solid ${theme.border};
+          border-radius: ${theme.space[2]};
+          font-size: 0.75rem;
+          color: ${theme.textSecondary};
+          z-index: 5;
+        }
+
+        .processing-spinner {
+          width: 12px;
+          height: 12px;
+          border: 1.5px solid ${theme.primary};
+          border-top: 1.5px solid transparent;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
         /* 响应式设计 */
         @media (max-width: 768px) {
           .message-input-container {
@@ -462,6 +558,19 @@ const MessageInput: React.FC = () => {
           .drop-zone-content {
             padding: ${theme.space[3]};
             font-size: 0.875rem;
+          }
+
+          .processing-indicator {
+            top: ${theme.space[1]};
+            right: ${theme.space[1]};
+            padding: ${theme.space[1]};
+            font-size: 0.7rem;
+          }
+
+          .processing-spinner {
+            width: 10px;
+            height: 10px;
+            border-width: 1px;
           }
         }
 
@@ -515,8 +624,10 @@ const MessageInput: React.FC = () => {
         @media (prefers-reduced-motion: reduce) {
           .message-input-container,
           .message-textarea,
-          .upload-button {
+          .upload-button,
+          .processing-spinner {
             transition: border-color 0.1s ease, background-color 0.1s ease;
+            animation: none;
           }
 
           .upload-button:hover,
@@ -526,6 +637,11 @@ const MessageInput: React.FC = () => {
 
           .drop-zone {
             animation: none;
+          }
+
+          .processing-spinner {
+            border: 2px solid ${theme.primary};
+            border-radius: 50%;
           }
         }
 
@@ -537,6 +653,10 @@ const MessageInput: React.FC = () => {
 
           .drop-zone {
             border-width: 3px;
+          }
+
+          .processing-indicator {
+            border-width: 2px;
           }
         }
 
@@ -569,7 +689,7 @@ const MessageInput: React.FC = () => {
         }
       `}</style>
       <div
-        className="message-input-container"
+        className={`message-input-container ${isDisabled ? "processing" : ""}`}
         onDragOver={(e) => {
           e.preventDefault();
           setIsDragOver(true);
@@ -580,11 +700,13 @@ const MessageInput: React.FC = () => {
       >
         <AttachmentsPreview
           imagePreviews={localImagePreviews}
-          pendingFiles={pendingFiles}
+          pendingFiles={enhancedPendingFiles}
           onRemoveImage={(id) =>
             setLocalImagePreviews((prev) => prev.filter((img) => img.id !== id))
           }
           onPreviewFile={setLocalPreviewingFile}
+          processingFiles={processingFiles}
+          isMobile={isMobile}
         />
 
         <div className="input-controls">
@@ -593,6 +715,7 @@ const MessageInput: React.FC = () => {
             onClick={() => fileInputRef.current?.click()}
             title={t("uploadFile", "上传文件")}
             aria-label={t("uploadFile", "上传文件")}
+            disabled={isDisabled}
           >
             <UploadIcon size={20} />
           </button>
@@ -601,15 +724,35 @@ const MessageInput: React.FC = () => {
             ref={textareaRef}
             className="message-textarea"
             value={textContent}
-            placeholder={t("messageOrFileHere", "输入消息或拖入文件...")}
+            placeholder={
+              isDisabled
+                ? t("waitForProcessing", "等待文件处理完成...")
+                : t("messageOrFileHere", "输入消息或拖入文件...")
+            }
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             aria-label={t("messageInput", "消息输入框")}
+            disabled={isDisabled}
           />
 
-          <SendButton onClick={sendMessage} disabled={!hasContent} />
+          <SendButton
+            onClick={sendMessage}
+            disabled={!hasContent || isDisabled}
+          />
         </div>
+
+        {/* 处理状态指示器 */}
+        {processingFiles.size > 0 && (
+          <div className="processing-indicator">
+            <div className="processing-spinner" />
+            <span>
+              {t("processingFiles", "处理中 {{count}} 个文件", {
+                count: processingFiles.size,
+              })}
+            </span>
+          </div>
+        )}
 
         {isDragOver && (
           <div className="drop-zone" aria-live="polite">
@@ -636,8 +779,10 @@ const MessageInput: React.FC = () => {
           accept="image/*,.xlsx,.xls,.csv,.ods,.xlsm,.xlsb,.docx,.pdf,.txt,text/plain"
           multiple
           onChange={(e) => {
-            processFiles(e.target.files);
-            if (e.target) e.target.value = "";
+            if (!isDisabled) {
+              processFiles(e.target.files);
+              if (e.target) e.target.value = "";
+            }
           }}
         />
       </div>
