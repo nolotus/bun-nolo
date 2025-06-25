@@ -20,7 +20,7 @@ import {
 import { deleteContentFromSpace } from "create/space/spaceSlice";
 
 import ModeToggle from "web/ui/ModeToggle";
-import { ConfirmModal } from "web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import Button from "render/web/ui/Button";
 
 export const CreateTool: React.FC = () => {

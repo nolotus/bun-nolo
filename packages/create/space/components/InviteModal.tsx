@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Button from "render/web/ui/Button";
-import { BaseActionModal } from "web/ui/BaseActionModal";
+import { BaseActionModal } from "render/web/ui/BaseActionModal";
+
 import { InfoIcon } from "@primer/octicons-react";
 
 interface InviteModalProps {

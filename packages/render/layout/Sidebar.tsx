@@ -1,11 +1,12 @@
-import { selectTheme } from "app/theme/themeSlice";
+// render/layout/Sidebar.tsx
+import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { SidebarTop } from "./SidebarTop";
 import TopBar from "./TopBar";
 import { useAuth } from "auth/hooks/useAuth";
-import { setSidebarWidth } from "app/theme/themeSlice";
+import { zIndex } from "render/styles/zIndex";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -204,7 +205,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
           position: fixed;
           top: 0;
           left: 0;
-          z-index: 10;
+          z-index: ${zIndex.sidebar};
           display: flex;
           flex-direction: column;
           background: ${theme.background};
@@ -281,7 +282,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
           height: 100vh;
           position: fixed;
           top: 0;
-          z-index: 15;
+          z-index: ${zIndex.sidebarResizeHandle};
           display: flex;
           align-items: center;
           justify-content: center;
@@ -296,7 +297,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
             isHandleHovered || isResizing ? `${theme.border}30` : "transparent"
           };
           transition: background-color 0.2s ease;
-          z-index: 14;
+          z-index: ${zIndex.sidebarResizeArea};
         }
 
         body.no-select-cursor {
@@ -314,7 +315,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
           right: 0;
           bottom: 0;
           background-color: rgba(0, 0, 0, 0.4);
-          z-index: 9;
+          z-index: ${zIndex.sidebarBackdrop};
           transition: opacity 0.25s ease-out;
         }
 
@@ -323,6 +324,19 @@ const Sidebar: React.FC<SidebarProps> = ({ children, sidebarContent }) => {
         }
 
         @media (max-width: 768px) {
+          /* --- 新增/修改 --- */
+          .sidebar {
+            /* 让侧边栏在 TopBar 下方 */
+            top: ${theme.headerHeight}px;
+            height: calc(100vh - ${theme.headerHeight}px);
+          }
+        
+          .sidebar-backdrop {
+             /* 遮罩也从 TopBar 下方开始 */
+            top: ${theme.headerHeight}px;
+          }
+          /* --- 修改结束 --- */
+
           .sidebar--open {
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.05);
           }

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { BaseActionModal } from "web/ui/BaseActionModal";
+import { BaseActionModal } from "render/web/ui/BaseActionModal";
+
 import Button from "render/web/ui/Button";
 import { useTheme } from "app/theme";
 import { XIcon } from "@primer/octicons-react";
