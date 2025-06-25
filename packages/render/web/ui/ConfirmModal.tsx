@@ -1,7 +1,8 @@
 // ConfirmModal.tsx
 import React from "react";
 import Button from "render/web/ui/Button";
-import { BaseActionModal } from "./BaseActionModal";
+import { BaseActionModal } from "render/web/ui/BaseActionModal";
+
 import {
   XCircleIcon,
   AlertIcon,

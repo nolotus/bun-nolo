@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useTheme } from "app/theme";
-import { ConfirmModal } from "web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import {
   PencilIcon,
   TrashIcon,

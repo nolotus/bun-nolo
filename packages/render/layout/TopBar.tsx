@@ -1,19 +1,23 @@
+// render/layout/TopBar.tsx
 import React, { useState, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
+import { useParams, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { useAuth } from "auth/hooks/useAuth";
 import { useAppSelector, useAppDispatch } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
+import { zIndex } from "render/styles/zIndex";
 import { extractUserId } from "core/prefix";
-import { selectPageData } from "../page/pageSlice";
+import { selectPageData } from "render/page/pageSlice";
 import {
   selectCurrentDialogConfig,
   deleteCurrentDialog,
 } from "chat/dialog/dialogSlice";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 
-import LanguageSwitcher from "../web/ui/LanguageSwitcher";
+import LanguageSwitcher from "render/web/ui/LanguageSwitcher";
 import { Tooltip } from "render/web/ui/Tooltip";
-import { ConfirmModal } from "web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import {
   SignInIcon,
   ThreeBarsIcon,
@@ -27,8 +31,6 @@ import { RoutePaths } from "auth/web/routes";
 import { CreateTool } from "create/CreateTool";
 import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
 import NavListItem from "render/layout/blocks/NavListItem";
-import toast from "react-hot-toast";
-import { useParams, useNavigate } from "react-router-dom";
 
 const Spinner = memo(() => {
   const theme = useAppSelector(selectTheme);
@@ -172,13 +174,13 @@ const MobileDialogMenu = memo(({ currentDialogConfig }) => {
         .mobile-menu { position: relative; display: none; }
         .backdrop {
           position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-          z-index: 998; background: transparent;
+          z-index: ${zIndex.mobileMenuBackdrop}; background: transparent;
         }
         .dropdown {
           position: absolute; top: calc(100% + ${theme.space[2]}); right: 0;
           background: ${theme.background}; border: 1px solid ${theme.border};
           border-radius: 6px; min-width: 240px; padding: ${theme.space[4]};
-          z-index: 999;
+          z-index: ${zIndex.mobileMenuDropdown};
         }
         .menu-section { display: flex; flex-direction: column; gap: ${theme.space[2]}; }
         .menu-section:not(:last-child) {
@@ -273,7 +275,7 @@ const TopBar = memo(({ toggleSidebar }) => {
         .topbar {
           display: flex; justify-content: space-between; align-items: center;
           background: ${theme.background}; position: sticky; top: 0;
-          padding: 0 ${theme.space[5]}; z-index: 100;
+          padding: 0 ${theme.space[5]}; z-index: ${zIndex.topbar};
           height: ${theme.headerHeight}px;
         }
         

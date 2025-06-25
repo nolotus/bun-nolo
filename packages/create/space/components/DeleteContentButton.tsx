@@ -7,7 +7,7 @@ import {
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { ConfirmModal } from "web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import toast from "react-hot-toast";
 
 interface DeleteContentButtonProps {

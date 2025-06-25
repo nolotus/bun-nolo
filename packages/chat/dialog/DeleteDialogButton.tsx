@@ -3,7 +3,7 @@ import { TrashIcon } from "@primer/octicons-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ConfirmModal } from "web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import { deleteCurrentDialog } from "./dialogSlice";
 import toast from "react-hot-toast";
 import { Tooltip } from "render/web/ui/Tooltip";

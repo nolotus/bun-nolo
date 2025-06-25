@@ -9,7 +9,7 @@ import Pagination from "render/web/ui/Pagination";
 import { useDeleteUser } from "auth/hooks/useDeleteUser";
 import { useRechargeUser } from "auth/hooks/useRechargeUser";
 import { Table, TableRow, TableCell } from "web/ui/Table";
-import { ConfirmModal } from "web/ui/ConfirmModal";
+import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import { RechargeModal } from "life/web/RechargeModal";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
