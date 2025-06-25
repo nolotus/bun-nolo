@@ -7,7 +7,7 @@ import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";
 import { SyncIcon } from "@primer/octicons-react";
 import { toast } from "react-hot-toast";
-import CybotBlock from "../../llm/web/AgentBlock";
+import AgentBlock from "../../llm/web/AgentBlock";
 
 interface CybotsProps {
   queryUserId: string;
@@ -74,7 +74,7 @@ const Cybots = memo(({ queryUserId, limit = 20 }: CybotsProps) => {
     <>
       <GridContainer>
         {items.map((item) => (
-          <CybotBlock key={item.id} item={item} reload={handleReload} />
+          <AgentBlock key={item.id} item={item} reload={handleReload} />
         ))}
       </GridContainer>
       <style href="cybot" precedence="medium">{`
