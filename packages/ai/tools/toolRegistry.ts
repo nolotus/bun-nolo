@@ -42,6 +42,8 @@ import { createPageFunctionSchema, createPageFunc } from "./createPageTool";
 // } from "./queryContentsByCategoryTool";
 
 // 数据操作
+// [新增] 导入 importData 工具
+import { importDataFunctionSchema, importDataFunc } from "./importDataTool";
 // import {
 //   generateTableFunctionSchema,
 //   generateTableFunc,
@@ -173,7 +175,19 @@ const toolDefinitions: ToolDefinition[] = [
   //     category: "内容管理",
   //   },
   // },
-  // // --- 数据操作 ---
+
+  // --- 数据操作 ---
+  // [新增] 注册 importData 工具
+  {
+    id: "importData",
+    schema: importDataFunctionSchema,
+    executor: importDataFunc,
+    description: {
+      name: "importData",
+      description: "将用户上传的文件数据导入数据库表",
+      category: "数据操作",
+    },
+  },
   // {
   //   id: "generateTable",
   //   schema: generateTableFunctionSchema,
@@ -274,7 +288,8 @@ const toolDefinitions: ToolDefinition[] = [
       category: "数据操作",
     },
   },
-  // // --- 网络与智能 ---
+
+  // --- 网络与智能 ---
   {
     id: "fetchWebpage",
     schema: fetchWebpageFunctionSchema,
@@ -285,7 +300,8 @@ const toolDefinitions: ToolDefinition[] = [
       category: "网络与智能",
     },
   },
-  // // --- 多媒体生成 ---
+
+  // --- 多媒体生成 ---
   // {
   //   id: "generateImage",
   //   schema: generateImageFunctionSchema,
