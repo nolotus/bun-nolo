@@ -7,14 +7,13 @@ import {
   selectAllMemberSpaces,
   fetchSpace,
 } from "create/space/spaceSlice";
-import { ReferenceItemType } from "ai/cybot/types";
 import { SearchIcon, XIcon, ChevronDownIcon } from "@primer/octicons-react";
 import { PiLightbulb, PiBrain } from "react-icons/pi";
 import { Tooltip } from "render/web/ui/Tooltip";
 
 interface ReferencesSelectorProps {
-  references: ReferenceItemType[];
-  onChange: (references: ReferenceItemType[]) => void;
+  references: [];
+  onChange: (references: []) => void;
 }
 
 const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
@@ -173,8 +172,8 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
     <>
       <div className="references-selector">
         {/* 搜索框 */}
-        <div className="search-box">
-          <SearchIcon size={16} className="search-icon" />
+        <div className="references-selector-search-box">
+          <SearchIcon size={16} className="references-selector-search-icon" />
           <input
             type="text"
             placeholder={
@@ -182,10 +181,13 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
             }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
+            className="references-selector-search-input"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="clear-btn">
+            <button
+              onClick={() => setSearchQuery("")}
+              className="references-selector-clear-btn"
+            >
               <XIcon size={14} />
             </button>
           )}
@@ -193,22 +195,30 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
 
         {/* 搜索提示 */}
         {searchQuery && (
-          <div className="search-hint">🔍 在所有空间中搜索 "{searchQuery}"</div>
+          <div className="references-selector-search-hint">
+            🔍 在所有空间中搜索 "{searchQuery}"
+          </div>
         )}
 
         {/* 空间切换器 */}
         {!searchQuery && (
-          <div className="space-selector">
+          <div className="references-selector-space-selector">
             {/* 主要空间标签 */}
-            <div className="space-tabs">
+            <div className="references-selector-space-tabs">
               {displaySpaces.map((space) => (
                 <button
                   key={space.id}
                   onClick={() => handleSpaceSwitch(space.id)}
-                  className={`space-tab ${activeSpaceId === space.id ? "active" : ""}`}
+                  className={`references-selector-space-tab ${
+                    activeSpaceId === space.id ? "is-active" : ""
+                  }`}
                 >
-                  <span className="space-name">{space.name}</span>
-                  {space.isCurrent && <span className="current-dot" />}
+                  <span className="references-selector-space-name">
+                    {space.name}
+                  </span>
+                  {space.isCurrent && (
+                    <span className="references-selector-current-dot" />
+                  )}
                 </button>
               ))}
 
@@ -216,12 +226,16 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
               {hiddenSpaces.length > 0 && (
                 <button
                   onClick={() => setShowAllSpaces(!showAllSpaces)}
-                  className={`more-btn ${showAllSpaces ? "active" : ""}`}
+                  className={`references-selector-more-btn ${
+                    showAllSpaces ? "is-active" : ""
+                  }`}
                 >
                   +{hiddenSpaces.length}
                   <ChevronDownIcon
                     size={12}
-                    className={`chevron ${showAllSpaces ? "rotated" : ""}`}
+                    className={`references-selector-chevron ${
+                      showAllSpaces ? "is-rotated" : ""
+                    }`}
                   />
                 </button>
               )}
@@ -229,12 +243,14 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
 
             {/* 展开的额外空间 */}
             {showAllSpaces && hiddenSpaces.length > 0 && (
-              <div className="extended-spaces">
+              <div className="references-selector-extended-spaces">
                 {hiddenSpaces.map((space) => (
                   <button
                     key={space.id}
                     onClick={() => handleSpaceSwitch(space.id)}
-                    className={`space-option ${activeSpaceId === space.id ? "active" : ""}`}
+                    className={`references-selector-space-option ${
+                      activeSpaceId === space.id ? "is-active" : ""
+                    }`}
                   >
                     {space.name}
                   </button>
@@ -245,14 +261,14 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
         )}
 
         {/* 内容列表 */}
-        <div className="content-area">
+        <div className="references-selector-content-area">
           {loading ? (
-            <div className="loading">
-              <div className="spinner" />
+            <div className="references-selector-loading">
+              <div className="references-selector-spinner" />
               <span>{t("loading")}...</span>
             </div>
           ) : filteredContents.length === 0 ? (
-            <div className="empty">
+            <div className="references-selector-empty">
               <span>
                 {searchQuery ? t("noSearchResults") : t("noContentInSpace")}
               </span>
@@ -261,7 +277,7 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
             <>
               {/* 搜索状态下显示结果数量 */}
               {searchQuery && (
-                <div className="results-count">
+                <div className="references-selector-results-count">
                   找到 {filteredContents.length} 个结果
                 </div>
               )}
@@ -275,19 +291,23 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
                 return (
                   <div
                     key={item.dbKey}
-                    className={`content-item ${isSelected ? "selected" : ""}`}
+                    className={`references-selector-content-item ${
+                      isSelected ? "is-selected" : ""
+                    }`}
                   >
-                    <label className="item-label">
+                    <label className="references-selector-item-label">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleToggleReference(item)}
                       />
-                      <div className="item-info">
-                        <span className="item-title">{item.title}</span>
+                      <div className="references-selector-item-info">
+                        <span className="references-selector-item-title">
+                          {item.title}
+                        </span>
                         {/* 搜索时显示来源空间 */}
                         {searchQuery && (
-                          <span className="item-source">
+                          <span className="references-selector-item-source">
                             来自: {item.spaceName}
                           </span>
                         )}
@@ -303,7 +323,7 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
                         }
                       >
                         <button
-                          className={`type-btn ${selectedRef.type}`}
+                          className={`references-selector-type-btn references-selector-type-btn--${selectedRef.type}`}
                           onClick={() => handleToggleType(item.dbKey)}
                         >
                           {selectedRef.type === "knowledge" ? (
@@ -323,10 +343,10 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
 
         {/* 选中统计 */}
         {references.length > 0 && (
-          <div className="summary">
+          <div className="references-selector-summary">
             已选择 {references.length} 个引用
             {references.length > 1 && (
-              <span className="summary-detail">
+              <span className="references-selector-summary-detail">
                 (知识: {references.filter((r) => r.type === "knowledge").length}
                 , 指令:{" "}
                 {references.filter((r) => r.type === "instruction").length})
@@ -345,13 +365,12 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
         }
 
         /* 搜索框 */
-        .search-box {
+        .references-selector-search-box {
           position: relative;
           display: flex;
           align-items: center;
         }
-
-        .search-input {
+        .references-selector-search-input {
           width: 100%;
           height: 40px;
           padding: 0 36px 0 36px;
@@ -363,23 +382,19 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           outline: none;
           transition: border-color 0.2s ease;
         }
-
-        .search-input:focus {
+        .references-selector-search-input:focus {
           border-color: ${theme.primary};
         }
-
-        .search-input::placeholder {
+        .references-selector-search-input::placeholder {
           color: ${theme.textTertiary};
         }
-
-        .search-icon {
+        .references-selector-search-icon {
           position: absolute;
           left: ${theme.space[3]};
           color: ${theme.textSecondary};
           pointer-events: none;
         }
-
-        .clear-btn {
+        .references-selector-clear-btn {
           position: absolute;
           right: ${theme.space[2]};
           background: none;
@@ -392,13 +407,12 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           align-items: center;
           justify-content: center;
         }
-
-        .clear-btn:hover {
+        .references-selector-clear-btn:hover {
           background: ${theme.backgroundHover};
         }
 
         /* 搜索提示 */
-        .search-hint {
+        .references-selector-search-hint {
           padding: ${theme.space[2]} ${theme.space[3]};
           background: ${theme.primary}08;
           border-radius: ${theme.space[1]};
@@ -407,29 +421,25 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
         }
 
         /* 空间选择器 */
-        .space-selector {
+        .references-selector-space-selector {
           display: flex;
           flex-direction: column;
           gap: ${theme.space[2]};
         }
-
-        .space-tabs {
+        .references-selector-space-tabs {
           display: flex;
           gap: ${theme.space[1]};
           overflow-x: auto;
           padding-bottom: 2px;
         }
-
-        .space-tabs::-webkit-scrollbar {
+        .references-selector-space-tabs::-webkit-scrollbar {
           height: 4px;
         }
-
-        .space-tabs::-webkit-scrollbar-thumb {
+        .references-selector-space-tabs::-webkit-scrollbar-thumb {
           background: ${theme.border};
           border-radius: 2px;
         }
-
-        .space-tab {
+        .references-selector-space-tab {
           display: flex;
           align-items: center;
           gap: ${theme.space[1]};
@@ -444,34 +454,29 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           white-space: nowrap;
           position: relative;
         }
-
-        .space-tab:hover {
+        .references-selector-space-tab:hover {
           background: ${theme.backgroundHover};
           color: ${theme.text};
         }
-
-        .space-tab.active {
+        .references-selector-space-tab.is-active {
           background: ${theme.primary};
           color: white;
           border-color: ${theme.primary};
         }
-
-        .space-name {
+        .references-selector-space-name {
           max-width: 120px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-
-        .current-dot {
+        .references-selector-current-dot {
           width: 6px;
           height: 6px;
           background: currentColor;
           border-radius: 50%;
           flex-shrink: 0;
         }
-
-        .more-btn {
+        .references-selector-more-btn {
           display: flex;
           align-items: center;
           gap: 4px;
@@ -485,27 +490,23 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           transition: all 0.2s ease;
           white-space: nowrap;
         }
-
-        .more-btn:hover {
+        .references-selector-more-btn:hover {
           background: ${theme.backgroundHover};
           color: ${theme.text};
         }
-
-        .more-btn.active {
+        .references-selector-more-btn.is-active {
           background: ${theme.backgroundSelected || theme.backgroundHover};
           color: ${theme.primary};
         }
-
-        .chevron {
+        .references-selector-chevron {
           transition: transform 0.2s ease;
         }
-
-        .chevron.rotated {
+        .references-selector-chevron.is-rotated {
           transform: rotate(180deg);
         }
 
         /* 展开空间 */
-        .extended-spaces {
+        .references-selector-extended-spaces {
           display: flex;
           flex-wrap: wrap;
           gap: ${theme.space[1]};
@@ -514,8 +515,7 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           border-radius: ${theme.space[2]};
           border: 1px solid ${theme.borderLight};
         }
-
-        .space-option {
+        .references-selector-space-option {
           padding: ${theme.space[1]} ${theme.space[2]};
           background: ${theme.background};
           border: 1px solid ${theme.border};
@@ -525,28 +525,25 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           color: ${theme.textSecondary};
           transition: all 0.2s ease;
         }
-
-        .space-option:hover {
+        .references-selector-space-option:hover {
           background: ${theme.backgroundHover};
           color: ${theme.text};
         }
-
-        .space-option.active {
+        .references-selector-space-option.is-active {
           background: ${theme.primary};
           color: white;
           border-color: ${theme.primary};
         }
 
         /* 内容区域 */
-        .content-area {
+        .references-selector-content-area {
           flex: 1;
           overflow-y: auto;
           border: 1px solid ${theme.border};
           border-radius: ${theme.space[2]};
           background: ${theme.backgroundSecondary};
         }
-
-        .results-count {
+        .references-selector-results-count {
           padding: ${theme.space[2]} ${theme.space[3]};
           font-size: 0.8rem;
           color: ${theme.textSecondary};
@@ -555,7 +552,7 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
         }
 
         /* 状态组件 */
-        .loading, .empty {
+        .references-selector-loading, .references-selector-empty {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -564,22 +561,20 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           color: ${theme.textTertiary};
           font-size: 0.875rem;
         }
-
-        .spinner {
+        .references-selector-spinner {
           width: 16px;
           height: 16px;
           border: 2px solid ${theme.borderLight};
           border-top: 2px solid ${theme.primary};
           border-radius: 50%;
-          animation: spin 1s linear infinite;
+          animation: references-selector-spin 1s linear infinite;
         }
-
-        @keyframes spin {
+        @keyframes references-selector-spin {
           to { transform: rotate(360deg); }
         }
 
         /* 内容项 */
-        .content-item {
+        .references-selector-content-item {
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -587,16 +582,13 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           border-bottom: 1px solid ${theme.borderLight};
           transition: background 0.2s ease;
         }
-
-        .content-item:hover {
+        .references-selector-content-item:hover {
           background: ${theme.backgroundHover};
         }
-
-        .content-item.selected {
+        .references-selector-content-item.is-selected {
           background: ${theme.primary}08;
         }
-
-        .item-label {
+        .references-selector-item-label {
           display: flex;
           align-items: center;
           gap: ${theme.space[2]};
@@ -604,31 +596,27 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           flex: 1;
           min-width: 0;
         }
-
-        .item-info {
+        .references-selector-item-info {
           display: flex;
           flex-direction: column;
           gap: 2px;
           min-width: 0;
         }
-
-        .item-title {
+        .references-selector-item-title {
           font-size: 0.875rem;
           color: ${theme.text};
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-
-        .item-source {
+        .references-selector-item-source {
           font-size: 0.75rem;
           color: ${theme.textTertiary};
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-
-        .type-btn {
+        .references-selector-type-btn {
           width: 28px;
           height: 28px;
           border-radius: 50%;
@@ -640,23 +628,20 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           transition: all 0.2s ease;
           flex-shrink: 0;
         }
-
-        .type-btn.knowledge {
+        .references-selector-type-btn--knowledge {
           background: ${theme.backgroundTertiary};
           color: ${theme.textSecondary};
         }
-
-        .type-btn.instruction {
+        .references-selector-type-btn--instruction {
           background: ${theme.primary}15;
           color: ${theme.primary};
         }
-
-        .type-btn:hover {
+        .references-selector-type-btn:hover {
           transform: scale(1.1);
         }
 
         /* 统计 */
-        .summary {
+        .references-selector-summary {
           padding: ${theme.space[2]} ${theme.space[3]};
           background: ${theme.primary}08;
           border-radius: ${theme.space[2]};
@@ -664,8 +649,7 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           color: ${theme.text};
           text-align: center;
         }
-
-        .summary-detail {
+        .references-selector-summary-detail {
           color: ${theme.textSecondary};
           font-size: 0.8rem;
           margin-left: ${theme.space[1]};
@@ -676,25 +660,20 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           .references-selector {
             max-height: 400px;
           }
-
-          .space-tabs {
+          .references-selector-space-tabs {
             gap: 4px;
           }
-
-          .space-tab {
+          .references-selector-space-tab {
             padding: ${theme.space[2]} ${theme.space[2]};
             font-size: 0.8rem;
           }
-
-          .space-name {
+          .references-selector-space-name {
             max-width: 80px;
           }
-
-          .current-dot {
+          .references-selector-current-dot {
             display: none;
           }
-
-          .extended-spaces {
+          .references-selector-extended-spaces {
             padding: ${theme.space[1]};
           }
         }

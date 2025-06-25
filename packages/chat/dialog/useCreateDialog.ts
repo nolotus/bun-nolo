@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { createDialog } from "./dialogSlice";
 
 export interface CreateDialogParams {
-  cybots: string[];
+  agents: string[];
   category?: string;
   users?: string[];
 }
@@ -25,15 +25,17 @@ export const useCreateDialog = (): UseCreateDialogResult => {
   const [isSuccess, setIsSuccess] = useState(false);
 
   const createNewDialog = async ({
-    cybots,
+    agents,
     users,
     category,
   }: CreateDialogParams) => {
     setIsLoading(true);
     setIsSuccess(false);
-    if (cybots) {
+    if (agents) {
       try {
-        const result = await dispatch(createDialog({ cybots })).unwrap();
+        const result = await dispatch(
+          createDialog({ cybots: agents })
+        ).unwrap();
         navigate(`/${result.dbKey}`);
         setIsSuccess(true);
       } catch (error) {
