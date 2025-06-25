@@ -4,7 +4,7 @@ import { browserDb } from "database/browser/db";
 import { pino } from "pino";
 
 import { pubCybotKeys } from "database/keys";
-import { BotConfig } from "app/types";
+import { Agent } from "app/types";
 
 const logger = pino({ name: "fetchPubCybots" });
 
@@ -18,7 +18,7 @@ export async function fetchPubCybots(options: FetchPubCybotsOptions = {}) {
 
   try {
     const { start, end } = pubCybotKeys.list();
-    const results: BotConfig[] = [];
+    const results: Agent[] = [];
 
     // 使用 iterator 获取范围数据
     for await (const [key, value] of browserDb.iterator({

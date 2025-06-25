@@ -5,8 +5,8 @@ import { selectCurrentSpace } from "create/space/spaceSlice";
 import useModelPricing from "../../cybot/hooks/useModelPricing";
 import { useOllamaSettings } from "../../cybot/hooks/useOllamaSettings";
 import { useProxySetting } from "../../cybot/hooks/useProxySetting";
-import { useCybotValidation } from "./common/useCybotFormValidation";
-import { normalizeReferences } from "./common/createCybotSchema";
+import { useCybotValidation } from "../common/useCybotFormValidation";
+import { normalizeReferences } from "../common/createCybotSchema";
 
 //web
 import BasicInfoTab from "./BasicInfoTab";

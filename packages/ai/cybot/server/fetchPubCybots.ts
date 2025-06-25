@@ -1,7 +1,7 @@
 // ai/cybot/server/fetchPubCybots.ts
 import serverDb from "database/server/db";
 import { pubCybotKeys } from "database/keys";
-import { BotConfig } from "app/types";
+import { Agent } from "app/types";
 
 interface FetchPubCybotsOptions {
   limit?: number;
@@ -14,7 +14,7 @@ export async function fetchPubCybots(options: FetchPubCybotsOptions = {}) {
   try {
     const { start, end } = pubCybotKeys.list();
 
-    const results: BotConfig[] = [];
+    const results: Agent[] = [];
     let scannedCount = 0;
 
     for await (const [key, value] of serverDb.iterator({

@@ -11,7 +11,7 @@ import {
   DEFAULT_PRESENCE_PENALTY,
   DEFAULT_MAX_TOKENS,
   DEFAULT_REASONING_EFFORT,
-} from "./common/createCybotSchema";
+} from "../common/createCybotSchema";
 
 // 导出常量，供 AdvancedSettingsTab 使用
 export const PARAMETER_CONFIGS = [
