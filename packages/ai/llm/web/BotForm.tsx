@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
@@ -37,7 +37,6 @@ const CybotForm = ({
   const { t } = useTranslation("ai");
   const isCreate = mode === "create";
 
-  // --- hook form ---
   const { form, provider, useServerProxy, isPublic, onSubmit } =
     useCybotValidation(initialValues);
   const {
@@ -59,17 +58,13 @@ const CybotForm = ({
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
 
-  // --- 本地 state ---
-  const [references, setReferences] = useState(() =>
-    normalizeReferences(initialValues.references)
-  );
-  const [smartReadEnabled, setSmartReadEnabled] = useState(
-    Boolean(initialValues.smartReadEnabled)
-  );
-
-  // 1. 仅在编辑模式第一次加载时 初始化表单值
+  // [!code ++]
+  // 核心修复：useEffect 用于在编辑模式下初始化表单
+  // 我们依赖 initialValues.id 而不是整个 initialValues 对象，
+  // 因为对象的引用在每次渲染时都可能改变，导致无限循环。
+  // ID 是一个稳定的原始值，可以确保此 effect 仅在切换编辑项目时运行一次。
   useEffect(() => {
-    if (mode === "edit") {
+    if (mode === "edit" && initialValues.id) {
       const normRefs = normalizeReferences(initialValues.references || []);
       reset({
         ...initialValues,
@@ -79,27 +74,24 @@ const CybotForm = ({
         references: normRefs,
         smartReadEnabled: Boolean(initialValues.smartReadEnabled),
       });
-      setReferences(normRefs);
-      setSmartReadEnabled(Boolean(initialValues.smartReadEnabled));
+
       setApiSource(
         initialValues.apiKey || initialValues.provider === "ollama"
           ? "custom"
           : "platform"
       );
     }
-    // 仅依赖 mode 和 id，避免重复重置
-  }, [mode, initialValues.id, initialValues, reset, setApiSource]);
-
-  // 2. 分别同步 references 和 smartReadEnabled 到表单
+    // 依赖项数组是关键：使用稳定的 ID 替代不稳定的对象引用
+  }, [mode, initialValues.id, reset, setApiSource]);
+  // [!code --]
+  /*
+  // 这是导致无限循环的错误代码
   useEffect(() => {
-    setValue("references", references, { shouldDirty: true });
-  }, [references, setValue]);
-
-  useEffect(() => {
-    setValue("smartReadEnabled", smartReadEnabled, { shouldDirty: true });
-  }, [smartReadEnabled, setValue]);
-
-  const handleReferencesChange = useCallback(setReferences, []);
+    if (mode === "edit") {
+      // ...
+    }
+  }, [mode, initialValues, reset, setApiSource]);
+  */
 
   const handleFormSubmit = async (data) => {
     await onSubmit({
@@ -124,15 +116,7 @@ const CybotForm = ({
 
   const tabComponents = [
     <BasicInfoTab key="basicInfo" {...sharedProps} />,
-    <ReferencesTab
-      key="references"
-      {...sharedProps}
-      space={space}
-      references={references}
-      onReferencesChange={handleReferencesChange}
-      smartReadEnabled={smartReadEnabled}
-      setSmartReadEnabled={setSmartReadEnabled}
-    />,
+    <ReferencesTab key="references" control={control} errors={errors} />,
     <ToolsTab key="tools" {...sharedProps} />,
     <PublishSettingsTab
       key="publish"
@@ -169,7 +153,6 @@ const CybotForm = ({
             activeTab={watch("activeTab") || 0}
             onChange={(idx) => setValue("activeTab", idx)}
           />
-          {/* 也可直接用 useState 管理 activeTab */}
         </div>
 
         <div className="form-body">

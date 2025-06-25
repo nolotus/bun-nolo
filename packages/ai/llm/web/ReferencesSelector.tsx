@@ -11,33 +11,41 @@ import { SearchIcon, XIcon, ChevronDownIcon } from "@primer/octicons-react";
 import { PiLightbulb, PiBrain } from "react-icons/pi";
 import { Tooltip } from "render/web/ui/Tooltip";
 
+// 定义数据结构
+interface Reference {
+  dbKey: string;
+  type: "knowledge" | "instruction";
+  [key: string]: any;
+}
+
+// 定义组件的 props 接口，遵循 value/onChange 模式
 interface ReferencesSelectorProps {
-  references: [];
-  onChange: (references: []) => void;
+  value?: Reference[];
+  onChange: (value: Reference[]) => void;
 }
 
 const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
-  references,
+  value = [], // 为 value 提供默认空数组，增强健壮性
   onChange,
 }) => {
+  // 初始化 i18next hook，使用 "ai" 命名空间
   const { t } = useTranslation("ai");
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const currentSpace = useAppSelector(selectCurrentSpace);
   const allMemberSpaces = useAppSelector(selectAllMemberSpaces);
 
+  // 组件内部状态
   const [activeSpaceId, setActiveSpaceId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllSpaces, setShowAllSpaces] = useState(false);
   const [spacesData, setSpacesData] = useState<Map<string, any[]>>(new Map());
   const [loading, setLoading] = useState(false);
 
-  // 智能空间列表 - 显示策略
+  // 计算空间标签的显示逻辑
   const { displaySpaces, hiddenSpaces } = useMemo(() => {
-    const maxDisplay = 4; // 最多显示4个标签
+    const maxDisplay = 4;
     const spaces = [];
-
-    // 1. 当前空间优先
     if (currentSpace) {
       spaces.push({
         id: currentSpace.id,
@@ -45,12 +53,9 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
         isCurrent: true,
       });
     }
-
-    // 2. 其他空间按使用频率排序（这里简化为字母序）
     const others = allMemberSpaces
       .filter((s) => s.spaceId !== currentSpace?.id)
       .sort((a, b) => a.spaceName.localeCompare(b.spaceName));
-
     spaces.push(
       ...others.map((s) => ({
         id: s.spaceId,
@@ -58,25 +63,24 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
         isCurrent: false,
       }))
     );
-
     return {
       displaySpaces: spaces.slice(0, maxDisplay),
       hiddenSpaces: spaces.slice(maxDisplay),
     };
   }, [currentSpace, allMemberSpaces]);
 
-  // 初始化
+  // 初始化时设置当前活动空间
   useEffect(() => {
     if (currentSpace?.id && !activeSpaceId) {
       setActiveSpaceId(currentSpace.id);
     }
   }, [currentSpace?.id, activeSpaceId]);
 
-  // 加载空间数据
+  // 根据活动空间 ID 加载数据
   useEffect(() => {
     if (!activeSpaceId) return;
 
-    // 当前空间直接使用
+    // 如果是当前空间且已有数据，直接使用
     if (activeSpaceId === currentSpace?.id && currentSpace?.contents) {
       const contents = Object.entries(currentSpace.contents)
         .filter(([key]) => !key.startsWith("dialog-"))
@@ -90,10 +94,10 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
       return;
     }
 
-    // 已加载过的跳过
+    // 如果数据已缓存，直接返回
     if (spacesData.has(activeSpaceId)) return;
 
-    // 加载其他空间
+    // 否则，通过 dispatch 异步加载
     const loadSpace = async () => {
       setLoading(true);
       try {
@@ -115,44 +119,38 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
         setLoading(false);
       }
     };
-
     loadSpace();
   }, [activeSpaceId, currentSpace, dispatch, spacesData]);
 
-  // 过滤后的内容 - 支持跨空间搜索
+  // 根据搜索词过滤内容
   const filteredContents = useMemo(() => {
     if (!searchQuery) {
-      // 无搜索时只显示当前空间内容
       return spacesData.get(activeSpaceId) || [];
     }
-
-    // 有搜索时跨空间搜索
     const query = searchQuery.toLowerCase();
     const allResults: any[] = [];
-
-    spacesData.forEach((contents, spaceId) => {
+    spacesData.forEach((contents) => {
       const matched = contents.filter((item) =>
         item.title.toLowerCase().includes(query)
       );
       allResults.push(...matched);
     });
-
     return allResults;
   }, [spacesData, activeSpaceId, searchQuery]);
 
+  // 处理函数，通过 onChange prop 通知父组件状态变更
   const handleToggleReference = (content: any) => {
-    const isSelected = references.some((ref) => ref.dbKey === content.dbKey);
-
+    const isSelected = value.some((ref) => ref.dbKey === content.dbKey);
     if (isSelected) {
-      onChange(references.filter((ref) => ref.dbKey !== content.dbKey));
+      onChange(value.filter((ref) => ref.dbKey !== content.dbKey));
     } else {
-      onChange([...references, { ...content, type: "knowledge" }]);
+      onChange([...value, { ...content, type: "knowledge" }]);
     }
   };
 
   const handleToggleType = (dbKey: string) => {
     onChange(
-      references.map((ref) =>
+      value.map((ref) =>
         ref.dbKey === dbKey
           ? {
               ...ref,
@@ -165,8 +163,11 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
 
   const handleSpaceSwitch = (spaceId: string) => {
     setActiveSpaceId(spaceId);
-    setShowAllSpaces(false); // 选择后关闭展开
+    setShowAllSpaces(false);
   };
+
+  const knowledgeCount = value.filter((r) => r.type === "knowledge").length;
+  const instructionCount = value.filter((r) => r.type === "instruction").length;
 
   return (
     <>
@@ -185,29 +186,24 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery("")}
               className="references-selector-clear-btn"
+              aria-label={t("clearSearch")}
             >
               <XIcon size={14} />
             </button>
           )}
         </div>
 
-        {/* 搜索提示 */}
-        {searchQuery && (
-          <div className="references-selector-search-hint">
-            🔍 在所有空间中搜索 "{searchQuery}"
-          </div>
-        )}
-
         {/* 空间切换器 */}
         {!searchQuery && (
           <div className="references-selector-space-selector">
-            {/* 主要空间标签 */}
             <div className="references-selector-space-tabs">
               {displaySpaces.map((space) => (
                 <button
                   key={space.id}
+                  type="button"
                   onClick={() => handleSpaceSwitch(space.id)}
                   className={`references-selector-space-tab ${
                     activeSpaceId === space.id ? "is-active" : ""
@@ -222,35 +218,29 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
                 </button>
               ))}
 
-              {/* 更多空间按钮 */}
               {hiddenSpaces.length > 0 && (
                 <button
+                  type="button"
                   onClick={() => setShowAllSpaces(!showAllSpaces)}
-                  className={`references-selector-more-btn ${
-                    showAllSpaces ? "is-active" : ""
-                  }`}
+                  className={`references-selector-more-btn ${showAllSpaces ? "is-active" : ""}`}
                 >
                   +{hiddenSpaces.length}
                   <ChevronDownIcon
                     size={12}
-                    className={`references-selector-chevron ${
-                      showAllSpaces ? "is-rotated" : ""
-                    }`}
+                    className={`references-selector-chevron ${showAllSpaces ? "is-rotated" : ""}`}
                   />
                 </button>
               )}
             </div>
 
-            {/* 展开的额外空间 */}
             {showAllSpaces && hiddenSpaces.length > 0 && (
               <div className="references-selector-extended-spaces">
                 {hiddenSpaces.map((space) => (
                   <button
                     key={space.id}
+                    type="button"
                     onClick={() => handleSpaceSwitch(space.id)}
-                    className={`references-selector-space-option ${
-                      activeSpaceId === space.id ? "is-active" : ""
-                    }`}
+                    className={`references-selector-space-option ${activeSpaceId === space.id ? "is-active" : ""}`}
                   >
                     {space.name}
                   </button>
@@ -275,15 +265,14 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
             </div>
           ) : (
             <>
-              {/* 搜索状态下显示结果数量 */}
               {searchQuery && (
                 <div className="references-selector-results-count">
-                  找到 {filteredContents.length} 个结果
+                  {t("foundResults", { count: filteredContents.length })}
                 </div>
               )}
 
               {filteredContents.map((item) => {
-                const selectedRef = references.find(
+                const selectedRef = value.find(
                   (ref) => ref.dbKey === item.dbKey
                 );
                 const isSelected = !!selectedRef;
@@ -291,9 +280,7 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
                 return (
                   <div
                     key={item.dbKey}
-                    className={`references-selector-content-item ${
-                      isSelected ? "is-selected" : ""
-                    }`}
+                    className={`references-selector-content-item ${isSelected ? "is-selected" : ""}`}
                   >
                     <label className="references-selector-item-label">
                       <input
@@ -305,10 +292,9 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
                         <span className="references-selector-item-title">
                           {item.title}
                         </span>
-                        {/* 搜索时显示来源空间 */}
                         {searchQuery && (
                           <span className="references-selector-item-source">
-                            来自: {item.spaceName}
+                            {t("fromSpace", { spaceName: item.spaceName })}
                           </span>
                         )}
                       </div>
@@ -323,6 +309,7 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
                         }
                       >
                         <button
+                          type="button"
                           className={`references-selector-type-btn references-selector-type-btn--${selectedRef.type}`}
                           onClick={() => handleToggleType(item.dbKey)}
                         >
@@ -342,14 +329,13 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
         </div>
 
         {/* 选中统计 */}
-        {references.length > 0 && (
+        {value.length > 0 && (
           <div className="references-selector-summary">
-            已选择 {references.length} 个引用
-            {references.length > 1 && (
+            {t("selectedSummary", { count: value.length })}
+            {value.length > 1 && (
               <span className="references-selector-summary-detail">
-                (知识: {references.filter((r) => r.type === "knowledge").length}
-                , 指令:{" "}
-                {references.filter((r) => r.type === "instruction").length})
+                ({t("knowledge")}: {knowledgeCount}, {t("instruction")}:{" "}
+                {instructionCount})
               </span>
             )}
           </div>
@@ -357,326 +343,53 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
       </div>
 
       <style href="references-selector" precedence="medium">{`
-        .references-selector {
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.space[3]};
-          max-height: 450px;
-        }
-
-        /* 搜索框 */
-        .references-selector-search-box {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-        .references-selector-search-input {
-          width: 100%;
-          height: 40px;
-          padding: 0 36px 0 36px;
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[2]};
-          background: ${theme.background};
-          color: ${theme.text};
-          font-size: 0.875rem;
-          outline: none;
-          transition: border-color 0.2s ease;
-        }
-        .references-selector-search-input:focus {
-          border-color: ${theme.primary};
-        }
-        .references-selector-search-input::placeholder {
-          color: ${theme.textTertiary};
-        }
-        .references-selector-search-icon {
-          position: absolute;
-          left: ${theme.space[3]};
-          color: ${theme.textSecondary};
-          pointer-events: none;
-        }
-        .references-selector-clear-btn {
-          position: absolute;
-          right: ${theme.space[2]};
-          background: none;
-          border: none;
-          color: ${theme.textSecondary};
-          cursor: pointer;
-          padding: ${theme.space[1]};
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .references-selector-clear-btn:hover {
-          background: ${theme.backgroundHover};
-        }
-
-        /* 搜索提示 */
-        .references-selector-search-hint {
-          padding: ${theme.space[2]} ${theme.space[3]};
-          background: ${theme.primary}08;
-          border-radius: ${theme.space[1]};
-          font-size: 0.8rem;
-          color: ${theme.primary};
-        }
-
-        /* 空间选择器 */
-        .references-selector-space-selector {
-          display: flex;
-          flex-direction: column;
-          gap: ${theme.space[2]};
-        }
-        .references-selector-space-tabs {
-          display: flex;
-          gap: ${theme.space[1]};
-          overflow-x: auto;
-          padding-bottom: 2px;
-        }
-        .references-selector-space-tabs::-webkit-scrollbar {
-          height: 4px;
-        }
-        .references-selector-space-tabs::-webkit-scrollbar-thumb {
-          background: ${theme.border};
-          border-radius: 2px;
-        }
-        .references-selector-space-tab {
-          display: flex;
-          align-items: center;
-          gap: ${theme.space[1]};
-          padding: ${theme.space[2]} ${theme.space[3]};
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[2]};
-          cursor: pointer;
-          font-size: 0.875rem;
-          color: ${theme.textSecondary};
-          transition: all 0.2s ease;
-          white-space: nowrap;
-          position: relative;
-        }
-        .references-selector-space-tab:hover {
-          background: ${theme.backgroundHover};
-          color: ${theme.text};
-        }
-        .references-selector-space-tab.is-active {
-          background: ${theme.primary};
-          color: white;
-          border-color: ${theme.primary};
-        }
-        .references-selector-space-name {
-          max-width: 120px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .references-selector-current-dot {
-          width: 6px;
-          height: 6px;
-          background: currentColor;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-        .references-selector-more-btn {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          padding: ${theme.space[2]} ${theme.space[2]};
-          background: ${theme.backgroundTertiary};
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[2]};
-          cursor: pointer;
-          font-size: 0.8rem;
-          color: ${theme.textSecondary};
-          transition: all 0.2s ease;
-          white-space: nowrap;
-        }
-        .references-selector-more-btn:hover {
-          background: ${theme.backgroundHover};
-          color: ${theme.text};
-        }
-        .references-selector-more-btn.is-active {
-          background: ${theme.backgroundSelected || theme.backgroundHover};
-          color: ${theme.primary};
-        }
-        .references-selector-chevron {
-          transition: transform 0.2s ease;
-        }
-        .references-selector-chevron.is-rotated {
-          transform: rotate(180deg);
-        }
-
-        /* 展开空间 */
-        .references-selector-extended-spaces {
-          display: flex;
-          flex-wrap: wrap;
-          gap: ${theme.space[1]};
-          padding: ${theme.space[2]};
-          background: ${theme.backgroundSecondary};
-          border-radius: ${theme.space[2]};
-          border: 1px solid ${theme.borderLight};
-        }
-        .references-selector-space-option {
-          padding: ${theme.space[1]} ${theme.space[2]};
-          background: ${theme.background};
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[1]};
-          cursor: pointer;
-          font-size: 0.8rem;
-          color: ${theme.textSecondary};
-          transition: all 0.2s ease;
-        }
-        .references-selector-space-option:hover {
-          background: ${theme.backgroundHover};
-          color: ${theme.text};
-        }
-        .references-selector-space-option.is-active {
-          background: ${theme.primary};
-          color: white;
-          border-color: ${theme.primary};
-        }
-
-        /* 内容区域 */
-        .references-selector-content-area {
-          flex: 1;
-          overflow-y: auto;
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[2]};
-          background: ${theme.backgroundSecondary};
-        }
-        .references-selector-results-count {
-          padding: ${theme.space[2]} ${theme.space[3]};
-          font-size: 0.8rem;
-          color: ${theme.textSecondary};
-          border-bottom: 1px solid ${theme.borderLight};
-          background: ${theme.backgroundTertiary};
-        }
-
-        /* 状态组件 */
-        .references-selector-loading, .references-selector-empty {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: ${theme.space[2]};
-          padding: ${theme.space[6]};
-          color: ${theme.textTertiary};
-          font-size: 0.875rem;
-        }
-        .references-selector-spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid ${theme.borderLight};
-          border-top: 2px solid ${theme.primary};
-          border-radius: 50%;
-          animation: references-selector-spin 1s linear infinite;
-        }
-        @keyframes references-selector-spin {
-          to { transform: rotate(360deg); }
-        }
-
-        /* 内容项 */
-        .references-selector-content-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: ${theme.space[2]} ${theme.space[3]};
-          border-bottom: 1px solid ${theme.borderLight};
-          transition: background 0.2s ease;
-        }
-        .references-selector-content-item:hover {
-          background: ${theme.backgroundHover};
-        }
-        .references-selector-content-item.is-selected {
-          background: ${theme.primary}08;
-        }
-        .references-selector-item-label {
-          display: flex;
-          align-items: center;
-          gap: ${theme.space[2]};
-          cursor: pointer;
-          flex: 1;
-          min-width: 0;
-        }
-        .references-selector-item-info {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          min-width: 0;
-        }
-        .references-selector-item-title {
-          font-size: 0.875rem;
-          color: ${theme.text};
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .references-selector-item-source {
-          font-size: 0.75rem;
-          color: ${theme.textTertiary};
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .references-selector-type-btn {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s ease;
-          flex-shrink: 0;
-        }
-        .references-selector-type-btn--knowledge {
-          background: ${theme.backgroundTertiary};
-          color: ${theme.textSecondary};
-        }
-        .references-selector-type-btn--instruction {
-          background: ${theme.primary}15;
-          color: ${theme.primary};
-        }
-        .references-selector-type-btn:hover {
-          transform: scale(1.1);
-        }
-
-        /* 统计 */
-        .references-selector-summary {
-          padding: ${theme.space[2]} ${theme.space[3]};
-          background: ${theme.primary}08;
-          border-radius: ${theme.space[2]};
-          font-size: 0.875rem;
-          color: ${theme.text};
-          text-align: center;
-        }
-        .references-selector-summary-detail {
-          color: ${theme.textSecondary};
-          font-size: 0.8rem;
-          margin-left: ${theme.space[1]};
-        }
-
-        /* 响应式 */
-        @media (max-width: 768px) {
-          .references-selector {
-            max-height: 400px;
-          }
-          .references-selector-space-tabs {
-            gap: 4px;
-          }
-          .references-selector-space-tab {
-            padding: ${theme.space[2]} ${theme.space[2]};
-            font-size: 0.8rem;
-          }
-          .references-selector-space-name {
-            max-width: 80px;
-          }
-          .references-selector-current-dot {
-            display: none;
-          }
-          .references-selector-extended-spaces {
-            padding: ${theme.space[1]};
-          }
-        }
+        .references-selector { display: flex; flex-direction: column; gap: ${theme.space[3]}; max-height: 450px; }
+        .references-selector-search-box { position: relative; display: flex; align-items: center; }
+        .references-selector-search-input { width: 100%; height: 40px; padding: 0 36px 0 36px; border: 1px solid ${theme.border}; border-radius: ${theme.space[2]}; background: ${theme.background}; color: ${theme.text}; font-size: 0.875rem; outline: none; transition: border-color 0.2s ease; }
+        .references-selector-search-input:focus { border-color: ${theme.primary}; }
+        .references-selector-search-input::placeholder { color: ${theme.textTertiary}; }
+        .references-selector-search-icon { position: absolute; left: ${theme.space[3]}; color: ${theme.textSecondary}; pointer-events: none; }
+        .references-selector-clear-btn { position: absolute; right: ${theme.space[2]}; background: none; border: none; color: ${theme.textSecondary}; cursor: pointer; padding: ${theme.space[1]}; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .references-selector-clear-btn:hover { background: ${theme.backgroundHover}; }
+        .references-selector-search-hint { padding: ${theme.space[2]} ${theme.space[3]}; background: ${theme.primary}08; border-radius: ${theme.space[1]}; font-size: 0.8rem; color: ${theme.primary}; }
+        .references-selector-space-selector { display: flex; flex-direction: column; gap: ${theme.space[2]}; }
+        .references-selector-space-tabs { display: flex; gap: ${theme.space[1]}; overflow-x: auto; padding-bottom: 2px; }
+        .references-selector-space-tabs::-webkit-scrollbar { height: 4px; }
+        .references-selector-space-tabs::-webkit-scrollbar-thumb { background: ${theme.border}; border-radius: 2px; }
+        .references-selector-space-tab { display: flex; align-items: center; gap: ${theme.space[1]}; padding: ${theme.space[2]} ${theme.space[3]}; background: ${theme.backgroundSecondary}; border: 1px solid ${theme.border}; border-radius: ${theme.space[2]}; cursor: pointer; font-size: 0.875rem; color: ${theme.textSecondary}; transition: all 0.2s ease; white-space: nowrap; position: relative; }
+        .references-selector-space-tab:hover { background: ${theme.backgroundHover}; color: ${theme.text}; }
+        .references-selector-space-tab.is-active { background: ${theme.primary}; color: white; border-color: ${theme.primary}; }
+        .references-selector-space-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .references-selector-current-dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; flex-shrink: 0; }
+        .references-selector-more-btn { display: flex; align-items: center; gap: 4px; padding: ${theme.space[2]} ${theme.space[2]}; background: ${theme.backgroundTertiary}; border: 1px solid ${theme.border}; border-radius: ${theme.space[2]}; cursor: pointer; font-size: 0.8rem; color: ${theme.textSecondary}; transition: all 0.2s ease; white-space: nowrap; }
+        .references-selector-more-btn:hover { background: ${theme.backgroundHover}; color: ${theme.text}; }
+        .references-selector-more-btn.is-active { background: ${theme.backgroundSelected || theme.backgroundHover}; color: ${theme.primary}; }
+        .references-selector-chevron { transition: transform 0.2s ease; }
+        .references-selector-chevron.is-rotated { transform: rotate(180deg); }
+        .references-selector-extended-spaces { display: flex; flex-wrap: wrap; gap: ${theme.space[1]}; padding: ${theme.space[2]}; background: ${theme.backgroundSecondary}; border-radius: ${theme.space[2]}; border: 1px solid ${theme.borderLight}; }
+        .references-selector-space-option { padding: ${theme.space[1]} ${theme.space[2]}; background: ${theme.background}; border: 1px solid ${theme.border}; border-radius: ${theme.space[1]}; cursor: pointer; font-size: 0.8rem; color: ${theme.textSecondary}; transition: all 0.2s ease; }
+        .references-selector-space-option:hover { background: ${theme.backgroundHover}; color: ${theme.text}; }
+        .references-selector-space-option.is-active { background: ${theme.primary}; color: white; border-color: ${theme.primary}; }
+        .references-selector-content-area { flex: 1; overflow-y: auto; border: 1px solid ${theme.border}; border-radius: ${theme.space[2]}; background: ${theme.backgroundSecondary}; min-height: 150px; }
+        .references-selector-results-count { padding: ${theme.space[2]} ${theme.space[3]}; font-size: 0.8rem; color: ${theme.textSecondary}; border-bottom: 1px solid ${theme.borderLight}; background: ${theme.backgroundTertiary}; }
+        .references-selector-loading, .references-selector-empty { display: flex; align-items: center; justify-content: center; gap: ${theme.space[2]}; padding: ${theme.space[6]}; color: ${theme.textTertiary}; font-size: 0.875rem; }
+        .references-selector-spinner { width: 16px; height: 16px; border: 2px solid ${theme.borderLight}; border-top: 2px solid ${theme.primary}; border-radius: 50%; animation: references-selector-spin 1s linear infinite; }
+        @keyframes references-selector-spin { to { transform: rotate(360deg); } }
+        .references-selector-content-item { display: flex; align-items: center; justify-content: space-between; padding: ${theme.space[2]} ${theme.space[3]}; border-bottom: 1px solid ${theme.borderLight}; transition: background 0.2s ease; }
+        .references-selector-content-item:last-child { border-bottom: none; }
+        .references-selector-content-item:hover { background: ${theme.backgroundHover}; }
+        .references-selector-content-item.is-selected { background: ${theme.primary}08; }
+        .references-selector-item-label { display: flex; align-items: center; gap: ${theme.space[2]}; cursor: pointer; flex: 1; min-width: 0; }
+        .references-selector-item-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .references-selector-item-title { font-size: 0.875rem; color: ${theme.text}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .references-selector-item-source { font-size: 0.75rem; color: ${theme.textTertiary}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .references-selector-type-btn { width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; }
+        .references-selector-type-btn--knowledge { background: ${theme.backgroundTertiary}; color: ${theme.textSecondary}; }
+        .references-selector-type-btn--instruction { background: ${theme.primary}15; color: ${theme.primary}; }
+        .references-selector-type-btn:hover { transform: scale(1.1); }
+        .references-selector-summary { padding: ${theme.space[2]} ${theme.space[3]}; background: ${theme.primary}08; border-radius: ${theme.space[2]}; font-size: 0.875rem; color: ${theme.text}; text-align: center; margin-top: ${theme.space[2]}; }
+        .references-selector-summary-detail { color: ${theme.textSecondary}; font-size: 0.8rem; margin-left: ${theme.space[1]}; }
+        @media (max-width: 768px) { .references-selector { max-height: 400px; } .references-selector-space-tabs { gap: 4px; } .references-selector-space-tab { padding: ${theme.space[2]} ${theme.space[2]}; font-size: 0.8rem; } .references-selector-space-name { max-width: 80px; } .references-selector-current-dot { display: none; } .references-selector-extended-spaces { padding: ${theme.space[1]}; } }
       `}</style>
     </>
   );
