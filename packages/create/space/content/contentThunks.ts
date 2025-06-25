@@ -1,11 +1,11 @@
-// create/space/content/contentThunks.ts
 import { asyncThunkCreator } from "@reduxjs/toolkit";
 import type { SpaceState } from "../spaceSlice"; // Adjust path
 import { addContentAction } from "./addContentAction";
 import { deleteContentFromSpaceAction } from "./deleteContentFromSpaceAction";
 import { moveContentAction } from "./moveContentAction";
 import { updateContentTitleAction } from "./updateContentTitleAction";
-import { updateContentCategoryAction } from "./updateContentCategoryAction"; // Import from here
+import { updateContentCategoryAction } from "./updateContentCategoryAction";
+import { deleteMultipleContentAction } from "./deleteMultipleContentAction"; // <-- 新增: 导入批量删除 Action
 
 type Create = ReturnType<typeof asyncThunkCreator<SpaceState>>;
 
@@ -31,11 +31,9 @@ export const createContentThunks = (create: Create) => ({
         targetSpaceId,
         updatedTargetSpaceData,
       } = action.payload;
-      // 如果当前空间是源空间，更新为最新的源空间数据
       if (state.currentSpaceId === sourceSpaceId && updatedSourceSpaceData) {
         state.currentSpace = updatedSourceSpaceData;
       }
-      // 如果当前空间是目标空间，更新为最新的目标空间数据
       if (state.currentSpaceId === targetSpaceId && updatedTargetSpaceData) {
         state.currentSpace = updatedTargetSpaceData;
       }
@@ -51,6 +49,16 @@ export const createContentThunks = (create: Create) => ({
     },
   }),
 
+  // --- 新增: 批量删除内容的 Thunk ---
+  deleteMultipleContent: create.asyncThunk(deleteMultipleContentAction, {
+    fulfilled: (state, action) => {
+      if (state.currentSpaceId === action.payload.spaceId) {
+        state.currentSpace = action.payload.updatedSpaceData;
+      }
+    },
+  }),
+  // --- 结束新增 ---
+
   updateContentTitle: create.asyncThunk(updateContentTitleAction, {
     fulfilled: (state, action) => {
       if (state.currentSpaceId === action.payload.spaceId) {
@@ -59,7 +67,6 @@ export const createContentThunks = (create: Create) => ({
     },
   }),
 
-  // Thunk for updating a content item's category
   updateContentCategory: create.asyncThunk(updateContentCategoryAction, {
     fulfilled: (state, action) => {
       if (state.currentSpaceId === action.payload.spaceId) {

@@ -1,4 +1,3 @@
-// 文件路径: chat/ChatSidebar.tsx
 import React, {
   memo,
   useState,
@@ -15,8 +14,9 @@ import {
   selectCollapsedCategories,
   setAllCategoriesCollapsed,
   addCategory,
+  deleteMultipleContent, // <-- 新增: 导入批量删除 Action
 } from "create/space/spaceSlice";
-import { SpaceData } from "create/space/types";
+import { SpaceData } from "app/types";
 import { useTheme } from "app/theme";
 import { useGroupedContent } from "create/space/hooks/useGroupedContent";
 import CategorySection from "create/space/category/CategorySection";
@@ -24,12 +24,16 @@ import { UNCATEGORIZED_ID } from "create/space/constants";
 import {
   FoldDownIcon,
   FoldUpIcon,
-  NoteIcon, // <-- 更正: 使用 NoteIcon 代表页面
-  FileDirectoryIcon, // <-- 更正: 使用 FileDirectoryIcon 代表分类
+  NoteIcon,
+  FileDirectoryIcon,
+  ChecklistIcon, // <-- 新增: 选择模式图标
+  TrashIcon, // <-- 新增: 删除图标
+  XIcon, // <-- 新增: 取消图标
 } from "@primer/octicons-react";
 import { useNavigate } from "react-router-dom";
 import { createPage } from "render/page/pageSlice";
 import { AddCategoryModal } from "create/space/category/AddCategoryModal";
+import toast from "react-hot-toast";
 
 // --- 类型定义 (无变动) ---
 interface CategoryItem {
@@ -220,6 +224,10 @@ const ChatSidebar: React.FC = () => {
   const [scrolling, setScrolling] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  // --- 新增: 批量选择状态 ---
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -235,18 +243,7 @@ const ChatSidebar: React.FC = () => {
     dispatch
   );
   const handleItemDragEnd = useItemDragAndDrop(space, dispatch);
-  const handleCategoryDrop = useCallback(
-    (sourceId: string, targetId: string) => {
-      handleCategoryDragEnd(sourceId, targetId);
-    },
-    [handleCategoryDragEnd]
-  );
-  const handleItemDrop = useCallback(
-    (itemId: string, sourceContainer: string, targetContainer: string) => {
-      handleItemDragEnd(itemId, sourceContainer, targetContainer);
-    },
-    [handleItemDragEnd]
-  );
+
   const allVisibleCategoryIds = useMemo(() => {
     const ids = sortedCategories.map((cat) => cat.id);
     if (groupedData.uncategorized.length > 0) ids.push(UNCATEGORIZED_ID);
@@ -260,6 +257,81 @@ const ChatSidebar: React.FC = () => {
     );
   }, [allVisibleCategoryIds, collapsedCategories]);
 
+  // --- 新增: 获取所有内容的 Key 用于全选 ---
+  const allContentKeys = useMemo(() => {
+    const keys = new Set<string>();
+    groupedData.uncategorized.forEach((item) => keys.add(item.contentKey));
+    Object.values(groupedData.categorized).forEach((items) => {
+      items.forEach((item) => keys.add(item.contentKey));
+    });
+    return Array.from(keys);
+  }, [groupedData]);
+
+  const areAllItemsSelected = useMemo(
+    () =>
+      allContentKeys.length > 0 && selectedItems.size === allContentKeys.length,
+    [selectedItems.size, allContentKeys.length]
+  );
+
+  // --- 新增: 批量选择相关处理函数 ---
+  const handleToggleSelectionMode = useCallback(() => {
+    setIsSelectionMode((prev) => !prev);
+    setSelectedItems(new Set()); // 退出时清空选项
+  }, []);
+
+  const handleSelectItem = useCallback((contentKey: string) => {
+    setSelectedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(contentKey)) {
+        newSet.delete(contentKey);
+      } else {
+        newSet.add(contentKey);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleSelectCategory = useCallback(
+    (categoryId: string, select: boolean) => {
+      const itemsInCategory =
+        categoryId === UNCATEGORIZED_ID
+          ? groupedData.uncategorized
+          : groupedData.categorized[categoryId] || [];
+      const keysToUpdate = itemsInCategory.map((item) => item.contentKey);
+
+      setSelectedItems((prev) => {
+        const newSet = new Set(prev);
+        if (select) {
+          keysToUpdate.forEach((key) => newSet.add(key));
+        } else {
+          keysToUpdate.forEach((key) => newSet.delete(key));
+        }
+        return newSet;
+      });
+    },
+    [groupedData]
+  );
+
+  const handleSelectAll = useCallback(() => {
+    if (areAllItemsSelected) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(allContentKeys));
+    }
+  }, [areAllItemsSelected, allContentKeys]);
+
+  const handleDeleteSelected = useCallback(() => {
+    if (!space?.id || selectedItems.size === 0) return;
+    dispatch(
+      deleteMultipleContent({
+        spaceId: space.id,
+        contentKeys: Array.from(selectedItems),
+      })
+    );
+    toast.success(`成功删除 ${selectedItems.size} 个项目`);
+    handleToggleSelectionMode(); // 删除后退出选择模式
+  }, [dispatch, space?.id, selectedItems, handleToggleSelectionMode]);
+
   const handleToggleAllCategories = useCallback(() => {
     if (space?.id && allVisibleCategoryIds.length > 0) {
       dispatch(
@@ -269,7 +341,7 @@ const ChatSidebar: React.FC = () => {
         })
       );
     }
-  }, [dispatch, space?.id, areAllCollapsed, allVisibleCategoryIds.length]);
+  }, [dispatch, space?.id, areAllCollapsed, allVisibleCategoryIds]);
 
   const handleNewPage = async () => {
     if (!space?.id) return;
@@ -337,36 +409,78 @@ const ChatSidebar: React.FC = () => {
       <nav className={`ChatSidebar ${isDarkTheme ? "ChatSidebar--dark" : ""}`}>
         {!isEmpty && (
           <div className="ChatSidebar__header">
-            <h3 className="ChatSidebar__header-title">内容</h3>
-            <div className="ChatSidebar__header-actions">
-              <button
-                className="ChatSidebar__header-icon-btn"
-                onClick={handleNewPage}
-                title="新建页面"
-              >
-                <NoteIcon size={14} />
-              </button>
-              <button
-                className="ChatSidebar__header-icon-btn"
-                onClick={() => setIsAddCategoryModalOpen(true)}
-                title="新建分类"
-              >
-                <FileDirectoryIcon size={14} />
-              </button>
-              <div className="ChatSidebar__header-divider"></div>
-              <button
-                className="ChatSidebar__header-icon-btn"
-                onClick={handleToggleAllCategories}
-                title={areAllCollapsed ? "全部展开" : "全部折叠"}
-                disabled={allVisibleCategoryIds.length === 0}
-              >
-                {areAllCollapsed ? (
-                  <FoldUpIcon size={14} />
-                ) : (
-                  <FoldDownIcon size={14} />
-                )}
-              </button>
-            </div>
+            {isSelectionMode ? (
+              <>
+                <h3 className="ChatSidebar__header-title">
+                  {selectedItems.size} 项已选择
+                </h3>
+                <div className="ChatSidebar__header-actions">
+                  <button
+                    className="ChatSidebar__header-icon-btn"
+                    onClick={handleSelectAll}
+                    title={areAllItemsSelected ? "取消全选" : "全部选择"}
+                  >
+                    <ChecklistIcon size={14} />
+                  </button>
+                  <button
+                    className="ChatSidebar__header-icon-btn"
+                    onClick={handleDeleteSelected}
+                    title="删除所选"
+                    disabled={selectedItems.size === 0}
+                  >
+                    <TrashIcon size={14} />
+                  </button>
+                  <div className="ChatSidebar__header-divider"></div>
+                  <button
+                    className="ChatSidebar__header-icon-btn"
+                    onClick={handleToggleSelectionMode}
+                    title="取消"
+                  >
+                    <XIcon size={16} />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="ChatSidebar__header-title">内容</h3>
+                <div className="ChatSidebar__header-actions">
+                  <button
+                    className="ChatSidebar__header-icon-btn"
+                    onClick={handleNewPage}
+                    title="新建页面"
+                  >
+                    <NoteIcon size={14} />
+                  </button>
+                  <button
+                    className="ChatSidebar__header-icon-btn"
+                    onClick={() => setIsAddCategoryModalOpen(true)}
+                    title="新建分类"
+                  >
+                    <FileDirectoryIcon size={14} />
+                  </button>
+                  <button
+                    className="ChatSidebar__header-icon-btn"
+                    onClick={() => setIsSelectionMode(true)}
+                    title="批量选择"
+                  >
+                    <ChecklistIcon size={14} />
+                  </button>
+                  <div className="ChatSidebar__header-divider"></div>
+                  <button
+                    className="ChatSidebar__header-icon-btn"
+                    onClick={handleToggleAllCategories}
+                    title={areAllCollapsed ? "全部展开" : "全部折叠"}
+                    disabled={allVisibleCategoryIds.length === 0}
+                  >
+                    {areAllCollapsed ? (
+                      <FoldUpIcon size={14} />
+                    ) : (
+                      <FoldDownIcon size={14} />
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -397,7 +511,7 @@ const ChatSidebar: React.FC = () => {
                 >
                   <UncategorizedDraggable
                     id={UNCATEGORIZED_ID}
-                    onDropItem={handleItemDrop}
+                    onDropItem={handleItemDragEnd}
                   >
                     <CategorySection
                       key={UNCATEGORIZED_ID}
@@ -405,6 +519,11 @@ const ChatSidebar: React.FC = () => {
                       categoryName="未分类"
                       items={groupedData.uncategorized}
                       shouldAnimate={shouldAnimate}
+                      // --- 新增: 传递选择相关 props ---
+                      isSelectionMode={isSelectionMode}
+                      selectedItems={selectedItems}
+                      onSelectItem={handleSelectItem}
+                      onSelectCategory={handleSelectCategory}
                     />
                   </UncategorizedDraggable>
                 </div>
@@ -429,8 +548,8 @@ const ChatSidebar: React.FC = () => {
                 >
                   <CategoryDraggable
                     id={category.id}
-                    onDropCategory={handleCategoryDrop}
-                    onDropItem={handleItemDrop}
+                    onDropCategory={handleCategoryDragEnd}
+                    onDropItem={handleItemDragEnd}
                   >
                     {(handleProps) => (
                       <CategorySection
@@ -439,6 +558,11 @@ const ChatSidebar: React.FC = () => {
                         items={groupedData.categorized[category.id] || []}
                         shouldAnimate={shouldAnimate}
                         handleProps={handleProps}
+                        // --- 新增: 传递选择相关 props ---
+                        isSelectionMode={isSelectionMode}
+                        selectedItems={selectedItems}
+                        onSelectItem={handleSelectItem}
+                        onSelectCategory={handleSelectCategory}
                       />
                     )}
                   </CategoryDraggable>
@@ -469,6 +593,7 @@ const ChatSidebar: React.FC = () => {
           padding: ${theme.space[3]} ${theme.space[3]} ${theme.space[2]};
           flex-shrink: 0;
           box-sizing: border-box;
+          height: 48px; /* 固定高度防止切换时跳动 */
         }
 
         .ChatSidebar__header-title {
@@ -478,6 +603,9 @@ const ChatSidebar: React.FC = () => {
           text-transform: uppercase;
           letter-spacing: 0.05em;
           margin: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .ChatSidebar__header-actions {

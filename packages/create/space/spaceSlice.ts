@@ -98,6 +98,7 @@ export const {
   addContentToSpace,
   moveContentToSpace,
   deleteContentFromSpace,
+  deleteMultipleContent, // <-- 新增: 导出批量删除 Action
   updateContentTitle,
   updateContentCategory,
   fetchUserSpaceMemberships,
