@@ -11,6 +11,8 @@ import {
   KebabHorizontalIcon,
   ChevronRightIcon,
   PencilIcon,
+  SquareIcon,
+  CheckboxIcon, // <-- 更正: 使用 CheckboxIcon 替换 CheckSquareIcon
 } from "@primer/octicons-react";
 import { FaFileLines } from "react-icons/fa6";
 import { createPortal } from "react-dom";
@@ -64,6 +66,10 @@ interface SidebarItemProps {
   title: string;
   categoryId?: string;
   animate?: boolean;
+  // --- 新增: 批量选择 Props ---
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onSelectItem?: (contentKey: string) => void;
 }
 
 const ITEM_ICONS = {
@@ -80,7 +86,16 @@ const MORE_ICON_SIZE = 16;
 const TOUCH_TARGET_SIZE = 44;
 
 export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
-  ({ contentKey, type, title, categoryId, animate = false }) => {
+  ({
+    contentKey,
+    type,
+    title,
+    categoryId,
+    animate = false,
+    isSelectionMode = false,
+    isSelected = false,
+    onSelectItem,
+  }) => {
     const { pageKey: pageKeyFromPath } = useParams<{ pageKey?: string }>();
     const theme = useSelector(selectTheme);
     const currentSpaceId = useSelector(selectCurrentSpaceId);
@@ -100,7 +115,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     // --- Computed ---
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
-    const isSelected = pageKeyFromPath === contentKey;
+    const isActive = pageKeyFromPath === contentKey;
     const isMobile = window.innerWidth <= 768;
     const showActions = isHovered || menuOpen || isMoveSubMenuOpen;
 
@@ -155,6 +170,13 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     }, [menuOpen, isMoveSubMenuOpen, showActions]);
 
     // --- Handlers ---
+    const handleContainerClick = (e: React.MouseEvent) => {
+      if (isSelectionMode) {
+        e.preventDefault();
+        onSelectItem?.(contentKey);
+      }
+    };
+
     const handleAddToConversation = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -176,22 +198,27 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
         if (isEditing) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          linkRef.current?.click();
+          if (isSelectionMode) {
+            onSelectItem?.(contentKey);
+          } else {
+            linkRef.current?.click();
+          }
         } else if (e.key === "F2") {
           e.preventDefault();
-          startEditing();
+          if (!isSelectionMode) startEditing();
         }
       },
-      [isEditing, startEditing]
+      [isEditing, startEditing, isSelectionMode, onSelectItem, contentKey]
     );
 
     const handleDoubleClick = useCallback(
       (e: React.MouseEvent) => {
+        if (isSelectionMode) return;
         e.preventDefault();
         e.stopPropagation();
         if (!isEditing) startEditing();
       },
-      [isEditing, startEditing]
+      [isEditing, startEditing, isSelectionMode]
     );
 
     const handleMenu = {
@@ -254,37 +281,59 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           ref={containerRef}
           className={[
             "SidebarItem",
-            isSelected && "SidebarItem--selected",
+            isActive && "SidebarItem--active",
             isEditing && "SidebarItem--editing",
+            isSelectionMode && "SidebarItem--selection-mode",
+            isSelected && "SidebarItem--selected",
           ]
             .filter(Boolean)
             .join(" ")}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
+          onClick={handleContainerClick}
           onKeyDown={handleKeyDown}
           tabIndex={0}
-          aria-selected={isSelected}
+          aria-selected={isActive || isSelected}
         >
-          <ItemDraggable id={contentKey} containerId={categoryId || "default"}>
-            {({ onDragStart, onDragEnd }) => (
-              <span
-                className={`SidebarItem__icon ${
-                  isIconHover ? "SidebarItem__icon--draggable" : ""
-                }`}
-                onMouseEnter={() => setIsIconHover(true)}
-                onMouseLeave={() => setIsIconHover(false)}
-                draggable
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
-              >
-                {isIconHover ? (
-                  <GrabberIcon size={ICON_SIZE} />
-                ) : (
-                  <IconComponent size={ICON_SIZE} />
-                )}
-              </span>
-            )}
-          </ItemDraggable>
+          {isSelectionMode ? (
+            <div className="SidebarItem__checkbox-wrapper">
+              {isSelected ? (
+                <CheckboxIcon
+                  size={ICON_SIZE}
+                  className="SidebarItem__checkbox SidebarItem__checkbox--checked"
+                />
+              ) : (
+                <SquareIcon
+                  size={ICON_SIZE}
+                  className="SidebarItem__checkbox"
+                />
+              )}
+            </div>
+          ) : (
+            <ItemDraggable
+              id={contentKey}
+              containerId={categoryId || "default"}
+            >
+              {({ onDragStart, onDragEnd }) => (
+                <span
+                  className={`SidebarItem__icon ${
+                    isIconHover ? "SidebarItem__icon--draggable" : ""
+                  }`}
+                  onMouseEnter={() => setIsIconHover(true)}
+                  onMouseLeave={() => setIsIconHover(false)}
+                  draggable
+                  onDragStart={onDragStart}
+                  onDragEnd={onDragEnd}
+                >
+                  {isIconHover ? (
+                    <GrabberIcon size={ICON_SIZE} />
+                  ) : (
+                    <IconComponent size={ICON_SIZE} />
+                  )}
+                </span>
+              )}
+            </ItemDraggable>
+          )}
 
           {isEditing ? (
             <div className="SidebarItem__editContainer">
@@ -298,19 +347,21 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
                 search: currentSpaceId ? `?spaceId=${currentSpaceId}` : "",
               }}
               className="SidebarItem__link"
-              onClick={(e) => isEditing && e.preventDefault()}
+              onClick={(e) =>
+                (isEditing || isSelectionMode) && e.preventDefault()
+              }
             >
               <span
                 className="SidebarItem__linkText"
                 onDoubleClick={handleDoubleClick}
-                title="双击编辑标题"
+                title={isSelectionMode ? "点击选择" : "双击编辑标题"}
               >
                 {displayTitle}
               </span>
             </NavLink>
           )}
 
-          {showActions && !isEditing && (
+          {showActions && !isEditing && !isSelectionMode && (
             <div className="SidebarItem__actionButtons">
               <ActionButton
                 onClick={handleMenu.toggle}
@@ -380,6 +431,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             color: ${theme.textSecondary};
             min-height: 36px;
             outline: none;
+            border: 1px solid transparent;
           }
           .SidebarItem:hover {
             background-color: ${theme.backgroundHover};
@@ -389,7 +441,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           .SidebarItem:focus-visible {
             box-shadow: 0 0 0 2px ${theme.primary}40;
           }
-          .SidebarItem--selected {
+          .SidebarItem--active {
+            /* Style for the current page */
             background: linear-gradient(
               90deg,
               ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"} 0%,
@@ -398,7 +451,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             color: ${theme.primary};
             transform: translateX(4px);
           }
-          .SidebarItem--selected::before {
+          .SidebarItem--active::before {
             content: "";
             position: absolute;
             left: -6px;
@@ -412,6 +465,43 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           .SidebarItem--editing {
             background-color: ${theme.backgroundHover};
           }
+          /* --- 新增: 批量选择模式样式 --- */
+          .SidebarItem--selection-mode {
+            cursor: pointer;
+          }
+          .SidebarItem--selection-mode:hover {
+            background-color: ${theme.backgroundHover};
+            transform: translateX(0); /* 覆盖普通 hover */
+          }
+          .SidebarItem--selected {
+            background-color: ${theme.primaryGhost ||
+            "rgba(22, 119, 255, 0.1)"};
+            border-color: ${theme.primary}50;
+          }
+          .SidebarItem--selected:hover {
+            background-color: ${theme.primaryGhost ||
+            "rgba(22, 119, 255, 0.15)"};
+          }
+          .SidebarItem__checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px;
+            flex-shrink: 0;
+            color: ${theme.textTertiary};
+          }
+          .SidebarItem__checkbox {
+            transition: color 0.15s ease;
+          }
+          .SidebarItem__checkbox--checked {
+            color: ${theme.primary};
+          }
+          .SidebarItem:hover
+            .SidebarItem__checkbox:not(.SidebarItem__checkbox--checked) {
+            color: ${theme.textSecondary};
+          }
+          /* --- 结束: 批量选择模式样式 --- */
+
           .SidebarItem__icon {
             display: flex;
             align-items: center;
@@ -433,7 +523,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             color: ${theme.textSecondary};
             transform: scale(1.1);
           }
-          .SidebarItem--selected .SidebarItem__icon {
+          .SidebarItem--active .SidebarItem__icon {
             color: ${theme.primary};
           }
           .SidebarItem__editContainer {
@@ -461,7 +551,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           .SidebarItem__linkText:hover {
             background-color: ${theme.backgroundTertiary}80;
           }
-          .SidebarItem--selected .SidebarItem__link {
+          .SidebarItem--active .SidebarItem__link {
             font-weight: 500;
           }
           .SidebarItem__actionButtons {

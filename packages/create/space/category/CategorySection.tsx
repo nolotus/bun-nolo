@@ -1,5 +1,4 @@
-// 文件路径: "create/space/category/CategorySection"
-import React, { memo, useState, useRef, useEffect } from "react";
+import React, { memo, useState, useRef, useEffect, useMemo } from "react";
 import { useAppSelector } from "app/hooks";
 import { SpaceContent } from "app/types";
 import CategoryHeader from "create/space/category/CategoryHeader";
@@ -17,10 +16,25 @@ interface CategorySectionProps {
     onDragStart: (e: React.DragEvent) => void;
     onDragEnd: (e: React.DragEvent) => void;
   };
+  // --- 新增: 批量选择 Props ---
+  isSelectionMode: boolean;
+  selectedItems: Set<string>;
+  onSelectItem: (contentKey: string) => void;
+  onSelectCategory: (categoryId: string, select: boolean) => void;
 }
 
 const CategorySection: React.FC<CategorySectionProps> = memo(
-  ({ categoryId, categoryName, items = [], shouldAnimate, handleProps }) => {
+  ({
+    categoryId,
+    categoryName,
+    items = [],
+    shouldAnimate,
+    handleProps,
+    isSelectionMode,
+    selectedItems,
+    onSelectItem,
+    onSelectCategory,
+  }) => {
     const theme = useTheme();
     const contentRef = useRef<HTMLDivElement>(null);
     const [contentHeight, setContentHeight] = useState<number | null>(null);
@@ -30,12 +44,18 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
     const collapsedCategories = useAppSelector(selectCollapsedCategories);
     const isCollapsed = collapsedCategories[categoryId] ?? false;
 
+    // --- 新增: 计算当前分类的选择状态 ---
+    const areAllItemsInCategorySelected = useMemo(() => {
+      if (items.length === 0) return false;
+      return items.every((item) => selectedItems.has(item.contentKey));
+    }, [items, selectedItems]);
+
     useEffect(() => {
       const updateHeight = () => {
         if (contentRef.current) {
           contentRef.current.style.height = "auto";
           const scrollHeight = contentRef.current.scrollHeight;
-          // 当没有项目时，给一个固定的高度，例如 28px (CategorySection 的高度通常是 28px 左右)
+          // 当没有项目时，给一个固定的高度，例如 28px (用于显示空状态提示)
           // 否则，使用实际滚动高度
           const height = items.length === 0 ? 28 : scrollHeight;
           setContentHeight(height);
@@ -43,8 +63,6 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
       };
 
       updateHeight();
-      // 在一些特殊情况下，比如图片加载完成后内容高度可能会变化，可以加一个小的延时再次更新高度。
-      // 但对于纯文本内容，首次更新通常足够。为了确保动画平滑，保留这个 timer 是一种保险措施。
       const timer = setTimeout(updateHeight, 500);
 
       if (contentRef.current) {
@@ -56,15 +74,15 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
         };
       }
       return () => clearTimeout(timer);
-    }, [items.length, isCollapsed]); // 依赖项：items.length 变化时更新高度，isCollapsed 变化时重新计算高度
+    }, [items.length, isCollapsed]);
 
     useEffect(() => {
       if (contentHeight !== null) {
         setIsAnimating(true);
-        const timer = setTimeout(() => setIsAnimating(false), 280); // 280ms 匹配 transition 动画时间
+        const timer = setTimeout(() => setIsAnimating(false), 280);
         return () => clearTimeout(timer);
       }
-    }, [isCollapsed, contentHeight]); // contentHeight 变化（意味着高度计算完成）或 isCollapsed 变化时触发动画状态
+    }, [isCollapsed, contentHeight]);
 
     return (
       <>
@@ -72,8 +90,8 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
           className={[
             "ChatSidebar__category",
             isUncategorized && "ChatSidebar__category--uncategorized",
-            isAnimating && "ChatSidebar__category--animating", // 动画进行中
-            items.length === 0 && "ChatSidebar__category--empty", // 空分类状态
+            isAnimating && "ChatSidebar__category--animating",
+            items.length === 0 && "ChatSidebar__category--empty",
           ]
             .filter(Boolean)
             .join(" ")}
@@ -81,21 +99,29 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
           <CategoryHeader
             categoryId={categoryId}
             categoryName={categoryName}
-            handleProps={!isUncategorized ? handleProps : undefined}
-            isDragOver={false} // CategoryHeader 内部可能需要知道拖拽状态，这里暂时保持 false
+            handleProps={
+              !isUncategorized && !isSelectionMode ? handleProps : undefined
+            }
+            isDragOver={false}
+            // --- 新增: 传递选择相关 props 给 Header ---
+            isSelectionMode={isSelectionMode}
+            isCategorySelected={areAllItemsInCategorySelected}
+            onSelectCategory={() =>
+              onSelectCategory(categoryId, !areAllItemsInCategorySelected)
+            }
           />
 
           <div
             ref={contentRef}
             className={`ChatSidebar__category-content ${
-              isCollapsed ? "ChatSidebar__category-content--collapsed" : ""
-            }`}
+              isCollapsed || isSelectionMode ? "" : "" // 确保选择模式下内容可见
+            } ${isCollapsed && !isSelectionMode ? "ChatSidebar__category-content--collapsed" : ""}`}
             style={
               {
                 "--content-height": contentHeight
                   ? `${contentHeight}px`
-                  : "auto", // 使用计算出的高度
-                "--items-count": items.length, // 用于 CSS 动画延迟计算
+                  : "auto",
+                "--items-count": items.length,
               } as React.CSSProperties
             }
           >
@@ -118,7 +144,14 @@ const CategorySection: React.FC<CategorySectionProps> = memo(
                       } as React.CSSProperties
                     }
                   >
-                    <SidebarItem {...item} animate={shouldAnimate} />
+                    <SidebarItem
+                      {...item}
+                      animate={shouldAnimate}
+                      // --- 新增: 传递选择相关 props 给 Item ---
+                      isSelectionMode={isSelectionMode}
+                      isSelected={selectedItems.has(item.contentKey)}
+                      onSelectItem={onSelectItem}
+                    />
                   </div>
                 ))
               )}
