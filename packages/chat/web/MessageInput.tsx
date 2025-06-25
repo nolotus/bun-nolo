@@ -1,4 +1,4 @@
-// src/web/chat/MessageInput/MessageInput.tsx
+// chat/web/MessageInput/MessageInput.tsx
 
 import type React from "react";
 import { useCallback, useRef, useState } from "react";
@@ -8,12 +8,8 @@ import { zIndex } from "render/styles/zIndex";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { compressImage } from "utils/imageUtils";
 import { nanoid } from "nanoid";
-import toast from "react-hot-toast";
-import { UploadIcon } from "@primer/octicons-react";
 import { Descendant } from "slate";
-import SendButton from "./ActionButton";
-import DocxPreviewDialog from "web/DocxPreviewDialog";
-import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
+
 import {
   handleSendMessage,
   clearPendingAttachments,
@@ -27,6 +23,13 @@ import { convertExcelToSlate } from "utils/excelToSlate";
 import { convertDocxToSlate } from "./docxToSlate";
 import { convertPdfToSlate } from "create/editor/utils/pdfToSlate";
 import { convertTxtToSlate } from "create/editor/utils/txtToSlate";
+
+//web
+import DocxPreviewDialog from "web/DocxPreviewDialog";
+import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
+import SendButton from "./ActionButton";
+import { UploadIcon } from "@primer/octicons-react";
+import toast from "react-hot-toast";
 
 const MessageInput: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -65,6 +68,7 @@ const MessageInput: React.FC = () => {
         }
 
         let slateData: Descendant[];
+        let jsonData: Record<string, any>[] | undefined; // [修改] jsonData 可能是 undefined
         let fileType: "excel" | "docx" | "pdf" | "txt" | null = null;
         const toastId = toast.loading(
           t("processingFile", "正在处理 {{fileName}}...", {
@@ -89,10 +93,11 @@ const MessageInput: React.FC = () => {
             fileType = "excel";
             const buffer = await file.arrayBuffer();
             const workbook = XLSX.read(buffer, { type: "array" });
-            slateData = convertExcelToSlate(
-              XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]),
-              file.name
-            );
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+            // [修改] 同时生成 jsonData 和 slateData
+            jsonData = XLSX.utils.sheet_to_json(worksheet);
+            slateData = convertExcelToSlate(jsonData, file.name);
           } else if (fileNameLower.endsWith(".docx")) {
             fileType = "docx";
             slateData = await convertDocxToSlate(file);
@@ -115,9 +120,11 @@ const MessageInput: React.FC = () => {
             continue;
           }
 
+          // [修改] 将 jsonData 也传递给 action
           const resultAction = await dispatch(
             createPageAndAddReference({
               slateData,
+              jsonData, // 传递 jsonData
               title: file.name,
               type: fileType,
             })
@@ -151,7 +158,7 @@ const MessageInput: React.FC = () => {
   const clearInputState = useCallback(() => {
     setTextContent("");
     setLocalImagePreviews([]);
-    dispatch(clearPendingAttachments());
+    dispatch(clearPendingAttachments()); // 这个 action 现在也会清理 pendingRawData
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.focus();
@@ -163,10 +170,15 @@ const MessageInput: React.FC = () => {
     if (!trimmedText && !localImagePreviews.length && !pendingFiles.length)
       return;
 
-    const parts: Content = [];
+    // [修改] 构建包含文本和文件引用的混合数组
+    const parts: any[] = [];
     if (trimmedText) {
       parts.push({ type: "text", text: trimmedText });
     }
+
+    pendingFiles.forEach((file) => {
+      parts.push({ type: file.type, name: file.name, pageKey: file.pageKey });
+    });
 
     const imagePromises = localImagePreviews.map(async (img) => {
       try {
@@ -178,25 +190,23 @@ const MessageInput: React.FC = () => {
       }
     });
 
-    pendingFiles.forEach((file) => {
-      parts.push({ type: file.type, name: file.name, pageKey: file.pageKey });
-    });
-
+    // 清理输入框和暂存数据
     clearInputState();
 
     (async () => {
       try {
         const imageParts = await Promise.all(imagePromises);
-        const finalParts = [
-          ...parts.filter((p) => p.type !== "image_url"),
-          ...imageParts,
-        ];
-        const messageContent =
-          finalParts.length === 1 && finalParts[0].type === "text"
-            ? finalParts[0].text!
-            : finalParts;
+        // 将图片部分放在最后
+        const finalParts = [...parts, ...imageParts];
+
+        let messageContent: string | any[] = finalParts;
+        // 如果最终只有文本，则简化为字符串
+        if (finalParts.length === 1 && finalParts[0].type === "text") {
+          messageContent = finalParts[0].text!;
+        }
 
         if (finalParts.length > 0) {
+          // [修改] dispatch 的 userInput 现在可能是混合数组
           await dispatch(
             handleSendMessage({ userInput: messageContent })
           ).unwrap();
@@ -246,6 +256,7 @@ const MessageInput: React.FC = () => {
 
   return (
     <>
+      {/* 样式部分无需修改，此处省略 */}
       <style href="message-input" precedence="medium">{`
         .message-input-container {
           position: relative;
@@ -557,7 +568,6 @@ const MessageInput: React.FC = () => {
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
       `}</style>
-
       <div
         className="message-input-container"
         onDragOver={(e) => {
@@ -627,7 +637,7 @@ const MessageInput: React.FC = () => {
           multiple
           onChange={(e) => {
             processFiles(e.target.files);
-            e.target.value = "";
+            if (e.target) e.target.value = "";
           }}
         />
       </div>

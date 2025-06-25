@@ -26,7 +26,7 @@ import { deleteDialogAction } from "./actions/deleteDialogAction";
 import { addCybotAction } from "./actions/addCybotAction";
 import { removeCybotAction } from "./actions/removeCybotAction";
 import { streamAgentChatTurn } from "ai/cybot/cybotSlice";
-import { DialogConfig } from "app/types"; // DialogInvocationMode is no longer used here
+import { DialogConfig } from "app/types";
 import { clearPlan } from "ai/llm/planSlice";
 
 const createSliceWithThunks = buildCreateSlice({
@@ -49,10 +49,18 @@ export interface PendingFile {
   type: "excel" | "docx" | "pdf" | "page" | "txt";
 }
 
-export interface CreatePageFromSlatePayload {
+// [修改] CreatePageFromSlatePayload 更名为 CreatePagePayload 并增加 jsonData
+export interface CreatePagePayload {
   slateData: Descendant[];
+  jsonData?: Record<string, any>[]; // jsonData 是可选的
   title: string;
   type: "excel" | "docx" | "pdf" | "txt";
+}
+
+// [新增] 用于暂存原始数据的接口
+export interface PendingRawData {
+  pageKey: string;
+  jsonData: Record<string, any>[];
 }
 
 interface DialogState {
@@ -64,6 +72,8 @@ interface DialogState {
   isUpdatingMode: boolean;
   pendingFiles: PendingFile[];
   activeControllers: Record<string, AbortController>;
+  // [新增] 暂存原始数据的字段
+  pendingRawData: Record<string, PendingRawData>;
 }
 
 // --- Initial State ---
@@ -77,6 +87,8 @@ const initialState: DialogState = {
   isUpdatingMode: false,
   pendingFiles: [],
   activeControllers: {},
+  // [新增] 初始化
+  pendingRawData: {},
 };
 
 // --- Slice Definition ---
@@ -85,31 +97,40 @@ const DialogSlice = createSliceWithThunks({
   name: "dialog",
   initialState,
   reducers: (create) => ({
+    // [修改] createPageAndAddReference Thunk
     createPageAndAddReference: create.asyncThunk(
-      async (
-        payload: CreatePageFromSlatePayload,
-        { dispatch, rejectWithValue }
-      ) => {
-        const { slateData, title, type } = payload;
+      async (payload: CreatePagePayload, { dispatch, rejectWithValue }) => {
+        const { slateData, jsonData, title, type } = payload;
         try {
+          // 数据库部分只关心 slateData 和 title
           const pageKey = await dispatch(
             createPage({ slateData, title })
           ).unwrap();
+
           const newReference: PendingFile = {
             id: nanoid(),
             name: title,
             pageKey,
             type,
           };
-          return newReference;
+
+          // 如果有 jsonData，则准备好 rawData 对象
+          const newRawData = jsonData ? { pageKey, jsonData } : null;
+
+          return { reference: newReference, rawData: newRawData };
         } catch (error) {
           console.error("创建页面或引用失败:", error);
           return rejectWithValue((error as Error).message);
         }
       },
       {
-        fulfilled: (state, action: PayloadAction<PendingFile>) => {
-          state.pendingFiles.push(action.payload);
+        fulfilled: (state, action) => {
+          // 同时更新 pendingFiles 和 pendingRawData
+          state.pendingFiles.push(action.payload.reference);
+          if (action.payload.rawData) {
+            state.pendingRawData[action.payload.rawData.pageKey] =
+              action.payload.rawData;
+          }
         },
       }
     ),
@@ -122,15 +143,25 @@ const DialogSlice = createSliceWithThunks({
         }
       }
     ),
+    // [修改] removePendingFile 需要同时清理 rawData
     removePendingFile: create.reducer(
       (state, action: PayloadAction<string>) => {
-        state.pendingFiles = state.pendingFiles.filter(
-          (file) => file.id !== action.payload
+        // payload is id
+        const fileToRemove = state.pendingFiles.find(
+          (f) => f.id === action.payload
         );
+        if (fileToRemove) {
+          delete state.pendingRawData[fileToRemove.pageKey];
+          state.pendingFiles = state.pendingFiles.filter(
+            (file) => file.id !== action.payload
+          );
+        }
       }
     ),
+    // [修改] clearPendingAttachments 需要同时清理 rawData
     clearPendingAttachments: create.reducer((state) => {
       state.pendingFiles = [];
+      state.pendingRawData = {};
     }),
     updateTokens: create.asyncThunk(updateTokensAction, {
       fulfilled: (state, action: PayloadAction<TokenMetrics>) => {
@@ -184,22 +215,21 @@ const DialogSlice = createSliceWithThunks({
       state.currentDialogKey = null;
       state.currentDialogTokens = { inputTokens: 0, outputTokens: 0 };
       state.pendingFiles = [];
+      state.pendingRawData = {}; // [修改] 清理
     }),
     createDialog: create.asyncThunk(createDialogAction),
     updateDialogTitle: create.asyncThunk(updateDialogTitleAction),
     addCybot: create.asyncThunk(addCybotAction),
     removeCybot: create.asyncThunk(removeCybotAction),
 
-    // `orchestrateCybotResponse` is now simplified to only run the first cybot.
     orchestrateCybotResponse: create.asyncThunk(
       async (
-        args: { dialogConfig: DialogConfig; userInput: string },
+        args: { dialogConfig: DialogConfig; userInput: string | any[] },
         { dispatch }
       ) => {
         const { dialogConfig, userInput } = args;
         const { cybots = [] } = dialogConfig;
 
-        // Always stream the first available cybot. No more mode checks.
         if (cybots.length > 0) {
           await dispatch(
             streamAgentChatTurn({ cybotId: cybots[0], userInput })
@@ -209,7 +239,7 @@ const DialogSlice = createSliceWithThunks({
     ),
     handleSendMessage: create.asyncThunk(
       async (
-        args: { userInput: string },
+        args: { userInput: string | any[] },
         { dispatch, getState, rejectWithValue }
       ) => {
         const { userInput } = args;
@@ -276,6 +306,13 @@ const DialogSlice = createSliceWithThunks({
       state.activeControllers = {};
     }),
   }),
+  // [新增] 在 selectors 中导出新状态
+  selectors: {
+    selectPendingRawDataByPageKey: (
+      state,
+      pageKey: string
+    ): PendingRawData | undefined => state.pendingRawData[pageKey],
+  },
 });
 
 // --- Actions & Selectors Exports ---
@@ -299,8 +336,10 @@ export const {
   removeActiveController,
   abortAllMessages,
   clearActiveControllers,
-  // streamAllCybotsInParallel has been removed from exports.
 } = DialogSlice.actions;
+
+// [新增] 导出新的 selector
+export const { selectPendingRawDataByPageKey } = DialogSlice.selectors;
 
 export default DialogSlice.reducer;
 
