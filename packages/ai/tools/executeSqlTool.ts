@@ -73,63 +73,100 @@ const handleApiResponse = async (response: Response): Promise<any> => {
   return response.json();
 };
 
+/**
+ * [优化] 格式化 SQL 执行结果为易于阅读的文本。
+ * 针对常见结构化查询（如查所有表、查表结构）和DDL操作（如建表）进行了特别优化。
+ */
 const formatSqlResultText = (data: any, sqlQuery: string): string => {
   if (!data.success) return `SQL 执行失败：${data.error || "未知错误"}`;
 
   const result = data.result;
   const lowerCaseQuery = sqlQuery.trim().toLowerCase();
-  let resultText = "";
+
+  // --- 优化点 1: 处理 CREATE TABLE 语句 ---
+  if (lowerCaseQuery.startsWith("create table")) {
+    const match = sqlQuery.match(
+      /create\s+table\s+(?:if\s+not\s+exists\s+)?['"]?(\w+)['"]?/i
+    );
+    const tableName = match ? match[1] : "新";
+    return `✅ 表 "${tableName}" 已成功创建。`;
+  }
 
   if (Array.isArray(result)) {
+    // --- 优化点 2: 处理查询所有表名的请求 ---
+    const isListTablesQuery =
+      lowerCaseQuery.includes("select") &&
+      lowerCaseQuery.includes("name") &&
+      lowerCaseQuery.includes("sqlite_master") &&
+      lowerCaseQuery.includes("type") &&
+      lowerCaseQuery.includes("'table'");
+
     if (
-      lowerCaseQuery.startsWith("pragma table_info(") &&
+      isListTablesQuery &&
       result.length > 0 &&
-      result[0].cid !== undefined &&
-      result[0].name !== undefined &&
-      result[0].type !== undefined
+      result[0].name !== undefined
     ) {
-      resultText = `表结构信息 (${result.length} 列):\n\n\`\`\`\n| 列名        | 类型      | 非空 | 主键 |\n|-------------|-----------|------|------|\n`;
-      result.forEach((col: any) => {
-        resultText += `| ${String(col.name).padEnd(11)} | ${String(col.type).padEnd(9)} | ${(col.notnull ? "是" : "否").padEnd(4)} | ${(col.pk ? "是" : "否").padEnd(4)} |\n`;
-      });
-      resultText += "```";
-    } else if (
+      const tableNames = result
+        .map((row: any) => `- \`${row.name}\``)
+        .join("\n");
+      return `查询成功，数据库中共有 ${result.length} 个表：\n\n${tableNames}`;
+    }
+
+    // --- 优化点 3: 增强对 PRAGMA table_info 的格式化 ---
+    if (lowerCaseQuery.startsWith("pragma table_info(")) {
+      const match = sqlQuery.match(/\(\s*['"]?(\w+)['"]?\s*\)/);
+      const tableName = match ? ` "${match[1]}"` : "";
+
+      if (result.length > 0 && result[0].cid !== undefined) {
+        let resultText = `表${tableName} 的结构信息 (${result.length} 列):\n\n\`\`\`\n| 列名        | 类型      | 非空 | 主键 |\n|-------------|-----------|------|------|\n`;
+        result.forEach((col: any) => {
+          resultText += `| ${String(col.name).padEnd(11)} | ${String(col.type).padEnd(9)} | ${(col.notnull ? "是" : "否").padEnd(4)} | ${(col.pk ? "是" : "否").padEnd(4)} |\n`;
+        });
+        resultText += "```";
+        return resultText;
+      } else {
+        return `表${tableName} 不存在或没有列信息。`;
+      }
+    }
+
+    // 处理查询表创建SQL的请求
+    if (
       lowerCaseQuery.includes("sqlite_master") &&
       lowerCaseQuery.includes("select sql") &&
       result.length > 0 &&
       result[0].sql !== undefined
     ) {
-      resultText = `表创建 SQL 语句:\n\n\`\`\`sql\n${result[0].sql}\n\`\`\``;
-    } else {
-      resultText = `SQL 查询成功，返回 ${result.length} 条记录。\n\n`;
-      if (result.length > 0) {
-        resultText +=
-          "```json\n" + JSON.stringify(result.slice(0, 5), null, 2) + "\n```";
-        if (result.length > 5)
-          resultText += `\n... 更多 ${result.length - 5} 条记录未显示。`;
-      } else {
-        resultText += "没有找到匹配的记录。";
-      }
+      return `表创建 SQL 语句:\n\n\`\`\`sql\n${result[0].sql}\n\`\`\``;
     }
+
+    // 通用 SELECT 查询结果的默认格式化
+    let resultText = `SQL 查询成功，返回 ${result.length} 条记录。\n\n`;
+    if (result.length > 0) {
+      resultText +=
+        "```json\n" + JSON.stringify(result.slice(0, 5), null, 2) + "\n```";
+      if (result.length > 5)
+        resultText += `\n... 更多 ${result.length - 5} 条记录未显示。`;
+    } else {
+      resultText += "没有找到匹配的记录。";
+    }
+    return resultText;
   } else if (typeof result === "object" && result !== null) {
+    // DDL/DML 操作的通用成功消息
     if (result.message) {
-      resultText = `SQL 命令执行成功：${result.message}`;
-    } else if (
-      result.changes !== undefined ||
-      result.lastInsertRowid !== undefined
-    ) {
-      resultText = `SQL 命令执行成功。`;
-      if (result.changes !== undefined)
-        resultText += ` 影响行数：${result.changes}。`;
+      return `SQL 命令执行成功：${result.message}`;
+    }
+    if (result.changes !== undefined || result.lastInsertRowid !== undefined) {
+      let resultText = `SQL 命令执行成功。`;
+      if (result.changes > 0) resultText += ` 影响行数：${result.changes}。`;
       if (result.lastInsertRowid)
         resultText += ` 最后插入ID：${result.lastInsertRowid}。`;
-    } else {
-      resultText = `SQL 命令执行成功，原始响应：${JSON.stringify(result)}`;
+      return resultText;
     }
-  } else {
-    resultText = `SQL 命令执行成功，原始响应：${JSON.stringify(result)}`;
+    return `SQL 命令执行成功，原始响应：${JSON.stringify(result)}`;
   }
-  return resultText;
+
+  // 其他未知情况的 fallback
+  return `SQL 命令执行成功，原始响应：${JSON.stringify(result)}`;
 };
 
 /**
