@@ -34,20 +34,20 @@ export const Tooltip = ({
       let left = 0;
 
       if (placement === "top") {
-        top = rect.top + window.scrollY - 10;
+        top = rect.top + window.scrollY - 8;
         left = rect.left + window.scrollX + rect.width / 2;
       } else if (placement === "top-left") {
-        top = rect.top + window.scrollY - 10;
+        top = rect.top + window.scrollY - 8;
         left = rect.right + window.scrollX - rect.width / 2;
       } else if (placement === "bottom") {
-        top = rect.bottom + window.scrollY + 10;
+        top = rect.bottom + window.scrollY + 8;
         left = rect.left + window.scrollX + rect.width / 2;
       } else if (placement === "left") {
         top = rect.top + window.scrollY + rect.height / 2;
-        left = rect.left + window.scrollX - 10;
+        left = rect.left + window.scrollX - 8;
       } else if (placement === "right") {
         top = rect.top + window.scrollY + rect.height / 2;
-        left = rect.right + window.scrollX + 10;
+        left = rect.right + window.scrollX + 8;
       }
 
       setPosition({ top, left });
@@ -91,7 +91,6 @@ export const Tooltip = ({
     };
   }, []);
 
-  // 仅在 Tooltip 可见时更新位置，添加防抖机制
   useEffect(() => {
     if (isVisible) {
       const handleUpdatePosition = () => updatePosition();
@@ -123,7 +122,7 @@ export const Tooltip = ({
                 ? "translateY(-50%)"
                 : "translateX(-50%) translateY(-100%)",
         zIndex: 9999,
-        display: "block", // 强制设置为 block，确保可见
+        display: "block",
       }}
     >
       <div className="tooltip-content">{content}</div>
@@ -149,16 +148,19 @@ export const Tooltip = ({
         .tooltip-tip {
           background: ${theme.backgroundSecondary};
           color: ${theme.text};
-          font-size: 0.875rem;
-          line-height: 1.4;
-          box-shadow: 0 3px 10px ${theme.shadowMedium};
+          font-size: 0.8125rem;
+          font-weight: 500;
+          line-height: 1.3;
+          box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.08),
+            0 1px 3px rgba(0, 0, 0, 0.06);
           border: 1px solid ${theme.border};
           border-radius: 6px;
           opacity: 0;
           visibility: hidden;
-          transition:
-            opacity 0.1s ease var(--tooltip-delay),
-            transform 0.1s ease var(--tooltip-delay);
+          transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1)
+            var(--tooltip-delay);
+          backdrop-filter: blur(8px);
         }
         .tooltip-tip[style*="display: block"] {
           opacity: 1;
@@ -167,17 +169,20 @@ export const Tooltip = ({
         .tooltip-content {
           padding: ${theme.space[2]} ${theme.space[3]};
           white-space: nowrap;
+          max-width: 240px;
+          word-break: break-word;
         }
         .tooltip-arrow {
           position: absolute;
-          width: 9px;
-          height: 9px;
+          width: 7px;
+          height: 7px;
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.border};
         }
+
         .tooltip-top .tooltip-arrow,
         .tooltip-top-left .tooltip-arrow {
-          bottom: -5px;
+          bottom: -4px;
           transform: rotate(45deg);
           border-top: none;
           border-left: none;
@@ -190,26 +195,29 @@ export const Tooltip = ({
           right: 50%;
           transform: translateX(50%) rotate(45deg);
         }
+
         .tooltip-bottom .tooltip-arrow {
-          top: -5px;
+          top: -4px;
           left: 50%;
           transform: translateX(-50%) rotate(45deg);
           border-bottom: none;
           border-right: none;
         }
+
         .tooltip-left .tooltip-arrow {
-          right: -5px;
-          top: 50%;
-          transform: translateY(-50%) rotate(45deg);
-          border-right: none;
-          border-top: none;
-        }
-        .tooltip-right .tooltip-arrow {
-          left: -5px;
+          right: -4px;
           top: 50%;
           transform: translateY(-50%) rotate(45deg);
           border-left: none;
           border-bottom: none;
+        }
+
+        .tooltip-right .tooltip-arrow {
+          left: -4px;
+          top: 50%;
+          transform: translateY(-50%) rotate(45deg);
+          border-right: none;
+          border-top: none;
         }
       `}</style>
     </div>
