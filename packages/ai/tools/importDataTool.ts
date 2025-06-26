@@ -1,12 +1,10 @@
 // /ai/tools/importDataTool.ts
 
 import type { RootState } from "app/store";
-import { executeSqlFunc } from "./executeSqlTool"; // 复用底层的 SQL 执行器
+import { executeSqlFunc } from "./executeSqlTool";
 import { selectPendingRawDataByPageKey } from "chat/dialog/dialogSlice";
 
-/**
- * [Schema] 定义了 'importData' 工具的结构，供 LLM 调用。
- */
+// importDataFunctionSchema 保持不变
 export const importDataFunctionSchema = {
   name: "importData",
   description:
@@ -40,75 +38,92 @@ export async function importDataFunc(
   thunkApi: any
 ): Promise<{ rawData: any; displayData: string }> {
   const { tableName, fileReferenceId: pageKey } = args;
-  const { getState, dispatch } = thunkApi;
 
   if (!tableName || !pageKey) {
     throw new Error("`tableName` 和 `fileReferenceId` 都是必需的参数。");
   }
 
   try {
-    // 1. 直接从 Redux State 读取暂存的原始数据
-    const state = getState() as RootState;
-    const pendingData = selectPendingRawDataByPageKey(state.dialog, pageKey);
+    const state = thunkApi.getState() as RootState;
+
+    const pendingData = selectPendingRawDataByPageKey(state, pageKey);
 
     if (!pendingData || !pendingData.jsonData) {
-      throw new Error(
-        `在内存中找不到文件 ${pageKey} 的数据。请让用户重新上传文件。`
-      );
+      throw new Error(`在内存中找不到文件 (ID: ${pageKey}) 的数据。`);
     }
 
     const jsonData = pendingData.jsonData;
-    if (jsonData.length === 0) {
+    if (!Array.isArray(jsonData) || jsonData.length === 0) {
       return { rawData: {}, displayData: "文件数据为空，未执行导入操作。" };
     }
 
-    // 2. 动态、安全地生成 SQL INSERT 语句
-    // 注意：批量 INSERT 在单个 SQL 语句中对 SQLite 更高效
-    const columns = Object.keys(jsonData[0]);
-    const columnNames = columns.join(", ");
-
-    // 为参数化查询准备值数组
-    const valuesPlaceholder = `(${columns.map(() => "?").join(", ")})`;
-    const allPlaceholders = jsonData.map(() => valuesPlaceholder).join(", ");
-
-    const flatValues = jsonData.flatMap((obj) =>
-      columns.map((col) => obj[col])
-    );
-
-    // 这里我们假设 executeSqlFunc 的后端能处理参数化查询
-    // 如果不能，我们需要构造一个完整的 SQL 字符串，但有 SQL 注入风险
-    // 为简单起见，我们先构造一个完整的字符串，但请注意这不是生产最佳实践
-
-    let insertStatements = "";
-    for (const row of jsonData) {
-      const values = columns
-        .map((col) => {
-          const value = row[col];
-          if (typeof value === "string") {
-            return `'${value.replace(/'/g, "''")}'`; // Escape single quotes
-          }
-          if (value === null || value === undefined) {
-            return "NULL";
-          }
-          return value;
-        })
-        .join(", ");
-      insertStatements += `INSERT INTO ${tableName} (${columnNames}) VALUES (${values});\n`;
-    }
-
-    // 3. 执行 SQL
-    const result = await executeSqlFunc(
-      { sqlQuery: insertStatements },
+    // [关键修复] 步骤 1: 查询数据库以获取真实的列名和大小写
+    const schemaInfoResult = await executeSqlFunc(
+      { sqlQuery: `PRAGMA table_info("${tableName}");` },
       thunkApi
     );
 
-    const affectedRows = result.rawData?.result?.changes || jsonData.length;
-    const displayData = `成功将文件中的 ${jsonData.length} 条记录导入到表 "${tableName}"。总共影响行数: ${affectedRows}。`;
+    if (
+      !schemaInfoResult.rawData?.result ||
+      schemaInfoResult.rawData.result.length === 0
+    ) {
+      throw new Error(
+        `无法获取表 "${tableName}" 的结构信息，请检查表是否存在。`
+      );
+    }
 
-    // 操作成功后，可以考虑从 Redux 中移除已处理的数据，但这会由 clearPendingAttachments 统一处理
+    // 从 PRAGMA 结果中提取数据库中的真实列名
+    const dbColumns = schemaInfoResult.rawData.result.map(
+      (col: any) => col.name
+    );
+
+    // [关键修复] 步骤 2: 创建从“小写键名”到“原始数据键名”的映射
+    // 这使得我们可以忽略大小写来匹配列
+    const inputKeys = Object.keys(jsonData[0]);
+    const inputKeyMap = new Map(
+      inputKeys.map((key) => [key.toLowerCase(), key])
+    );
+
+    // [关键修复] 步骤 3: 准备基于真实数据库列名的 INSERT 语句
+    const columnNamesForSql = dbColumns.map((col) => `"${col}"`).join(", ");
+    const valuePlaceholders = `(${dbColumns.map(() => "?").join(", ")})`;
+    const insertQueryTemplate = `INSERT INTO "${tableName}" (${columnNamesForSql}) VALUES ${valuePlaceholders};`;
+
+    let totalAffectedRows = 0;
+
+    await executeSqlFunc({ sqlQuery: "BEGIN TRANSACTION;" }, thunkApi);
+    try {
+      for (const row of jsonData) {
+        // [关键修复] 步骤 4: 按数据库列的顺序，不区分大小写地从数据行中提取值
+        const params = dbColumns.map((dbCol) => {
+          const originalInputKey = inputKeyMap.get(dbCol.toLowerCase());
+          // 如果在输入数据中找到了匹配的列（忽略大小写），则使用其值
+          if (originalInputKey) {
+            return row[originalInputKey] ?? null;
+          }
+          // 如果数据库有这个列，但输入数据没有，则插入 NULL
+          return null;
+        });
+
+        const result = await executeSqlFunc(
+          { sqlQuery: insertQueryTemplate, params },
+          thunkApi
+        );
+        totalAffectedRows += result.rawData?.result?.changes ?? 0;
+      }
+      await executeSqlFunc({ sqlQuery: "COMMIT;" }, thunkApi);
+    } catch (innerError) {
+      await executeSqlFunc({ sqlQuery: "ROLLBACK;" }, thunkApi);
+      throw innerError;
+    }
+
+    const displayData = `成功将文件中的 ${jsonData.length} 条记录导入到表 "${tableName}"。总共影响行数: ${totalAffectedRows}。`;
 
     return {
-      rawData: { importedCount: jsonData.length, affectedRows },
+      rawData: {
+        importedCount: jsonData.length,
+        affectedRows: totalAffectedRows,
+      },
       displayData,
     };
   } catch (error: any) {

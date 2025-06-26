@@ -1,4 +1,4 @@
-// /ai/tools/executeSqlTool.ts (已更新至新架构)
+// /ai/tools/executeSqlTool.ts (已更新以支持参数化查询)
 
 import type { RootState } from "app/store";
 import { selectCurrentServer } from "setting/settingSlice";
@@ -7,31 +7,32 @@ import { selectCurrentToken } from "auth/authSlice";
 
 /**
  * [Schema] 定义了 'executeSql' 工具的结构，供 LLM 调用。
+ * [修改] Schema 增加对参数化查询的描述，但对 LLM 保持简单，不暴露 params 字段。
+ * LLM 应该总是生成完整的、人类可读的 SQL。参数化是由内部工具（如 importData）调用的。
  */
 export const executeSqlFunctionSchema = {
-  // 已从 'execute_sql' 更新为 'executeSql'
   name: "executeSql",
   description:
-    "直接在 SQLite 数据库中执行任意 SQL 语句，包括查询、插入、更新、删除和表结构操作。",
+    "直接在 SQLite 数据库中执行任意 SQL 语句，包括查询、插入、更新、删除和表结构操作。内部支持参数化查询以防止SQL注入。",
   parameters: {
     type: "object",
     properties: {
-      // 已从 'sql_query' 更新为 'sqlQuery'
       sqlQuery: {
         type: "string",
         description:
-          "要执行的完整 SQL 语句。例如：SELECT * FROM users; INSERT INTO products (name) VALUES ('Milk'); CREATE TABLE IF NOT EXISTS logs (id INTEGER PRIMARY KEY, message TEXT);",
+          "要执行的完整 SQL 语句。例如：SELECT * FROM users; INSERT INTO products (name, price) VALUES ('Milk', 2.5);",
       },
+      // 注意：params 字段不向 LLM 暴露，这是内部实现细节
     },
     required: ["sqlQuery"],
   },
 };
 
-// --- 内部辅助函数 (保持不变，封装良好) ---
-
+// --- 内部辅助函数 (保持不变) ---
 const getRequestConfig = (
   thunkApi: any
 ): { currentServer: string; token: string | null } => {
+  // ... (代码与之前相同)
   const state = thunkApi.getState() as RootState;
   const currentServer = selectCurrentServer(state);
   const token = selectCurrentToken(state);
@@ -39,9 +40,8 @@ const getRequestConfig = (
   return { currentServer, token };
 };
 
-const buildApiUrl = (serverBaseUrl: string, endpoint: string): string => {
-  return `${serverBaseUrl}${endpoint}`;
-};
+const buildApiUrl = (serverBaseUrl: string, endpoint: string): string =>
+  `${serverBaseUrl}${endpoint}`;
 
 const buildRequestHeaders = (token: string | null): HeadersInit => {
   const headers: HeadersInit = { "Content-Type": "application/json" };
@@ -73,17 +73,32 @@ const handleApiResponse = async (response: Response): Promise<any> => {
   return response.json();
 };
 
-/**
- * [优化] 格式化 SQL 执行结果为易于阅读的文本。
- * 针对常见结构化查询（如查所有表、查表结构）和DDL操作（如建表）进行了特别优化。
- */
-const formatSqlResultText = (data: any, sqlQuery: string): string => {
+const formatSqlResultText = (
+  data: any,
+  sqlQuery: string,
+  params?: any[]
+): string => {
+  // ... (此函数大部分逻辑保持不变)
   if (!data.success) return `SQL 执行失败：${data.error || "未知错误"}`;
-
   const result = data.result;
+
+  // [新增] 如果是参数化 INSERT，提供更精确的反馈
+  if (
+    params &&
+    params.length > 0 &&
+    sqlQuery.trim().toLowerCase().startsWith("insert")
+  ) {
+    const changes = result?.changes ?? 0;
+    const match = sqlQuery.match(/insert\s+into\s+['"]?(\w+)['"]?/i);
+    const tableName = match ? ` "${match[1]}"` : "";
+    if (changes > 0) {
+      return `✅ 成功向表${tableName}中批量插入了 ${changes} 条记录。`;
+    }
+  }
+
+  // ... (其余格式化逻辑与之前相同)
   const lowerCaseQuery = sqlQuery.trim().toLowerCase();
 
-  // --- 优化点 1: 处理 CREATE TABLE 语句 ---
   if (lowerCaseQuery.startsWith("create table")) {
     const match = sqlQuery.match(
       /create\s+table\s+(?:if\s+not\s+exists\s+)?['"]?(\w+)['"]?/i
@@ -93,14 +108,12 @@ const formatSqlResultText = (data: any, sqlQuery: string): string => {
   }
 
   if (Array.isArray(result)) {
-    // --- 优化点 2: 处理查询所有表名的请求 ---
     const isListTablesQuery =
       lowerCaseQuery.includes("select") &&
       lowerCaseQuery.includes("name") &&
       lowerCaseQuery.includes("sqlite_master") &&
       lowerCaseQuery.includes("type") &&
       lowerCaseQuery.includes("'table'");
-
     if (
       isListTablesQuery &&
       result.length > 0 &&
@@ -111,12 +124,9 @@ const formatSqlResultText = (data: any, sqlQuery: string): string => {
         .join("\n");
       return `查询成功，数据库中共有 ${result.length} 个表：\n\n${tableNames}`;
     }
-
-    // --- 优化点 3: 增强对 PRAGMA table_info 的格式化 ---
     if (lowerCaseQuery.startsWith("pragma table_info(")) {
       const match = sqlQuery.match(/\(\s*['"]?(\w+)['"]?\s*\)/);
       const tableName = match ? ` "${match[1]}"` : "";
-
       if (result.length > 0 && result[0].cid !== undefined) {
         let resultText = `表${tableName} 的结构信息 (${result.length} 列):\n\n\`\`\`\n| 列名        | 类型      | 非空 | 主键 |\n|-------------|-----------|------|------|\n`;
         result.forEach((col: any) => {
@@ -128,8 +138,6 @@ const formatSqlResultText = (data: any, sqlQuery: string): string => {
         return `表${tableName} 不存在或没有列信息。`;
       }
     }
-
-    // 处理查询表创建SQL的请求
     if (
       lowerCaseQuery.includes("sqlite_master") &&
       lowerCaseQuery.includes("select sql") &&
@@ -138,8 +146,6 @@ const formatSqlResultText = (data: any, sqlQuery: string): string => {
     ) {
       return `表创建 SQL 语句:\n\n\`\`\`sql\n${result[0].sql}\n\`\`\``;
     }
-
-    // 通用 SELECT 查询结果的默认格式化
     let resultText = `SQL 查询成功，返回 ${result.length} 条记录。\n\n`;
     if (result.length > 0) {
       resultText +=
@@ -151,10 +157,7 @@ const formatSqlResultText = (data: any, sqlQuery: string): string => {
     }
     return resultText;
   } else if (typeof result === "object" && result !== null) {
-    // DDL/DML 操作的通用成功消息
-    if (result.message) {
-      return `SQL 命令执行成功：${result.message}`;
-    }
+    if (result.message) return `SQL 命令执行成功：${result.message}`;
     if (result.changes !== undefined || result.lastInsertRowid !== undefined) {
       let resultText = `SQL 命令执行成功。`;
       if (result.changes > 0) resultText += ` 影响行数：${result.changes}。`;
@@ -164,22 +167,21 @@ const formatSqlResultText = (data: any, sqlQuery: string): string => {
     }
     return `SQL 命令执行成功，原始响应：${JSON.stringify(result)}`;
   }
-
-  // 其他未知情况的 fallback
   return `SQL 命令执行成功，原始响应：${JSON.stringify(result)}`;
 };
 
 /**
  * [Executor] 'executeSql' 工具的执行函数。
- * @param args - LLM 提供的参数: { sqlQuery: string }
+ * [修改] 函数签名和请求体以支持可选的参数化查询。
+ * @param args - LLM 或内部工具提供的参数: { sqlQuery: string, params?: any[] }
  * @param thunkApi - Redux Thunk API
  * @returns {Promise<{rawData: any, displayData: string}>} - 返回标准化的结果对象
  */
 export async function executeSqlFunc(
-  args: { sqlQuery: string },
+  args: { sqlQuery: string; params?: any[] }, // <--- [修改] 签名接受可选的 params
   thunkApi: any
 ): Promise<{ rawData: any; displayData: string }> {
-  const { sqlQuery } = args;
+  const { sqlQuery, params } = args;
 
   if (!sqlQuery || typeof sqlQuery !== "string" || sqlQuery.trim() === "") {
     throw new Error("SQL 执行失败：'sqlQuery' 必须为非空字符串。");
@@ -190,15 +192,20 @@ export async function executeSqlFunc(
     const apiUrl = buildApiUrl(currentServer, API_ENDPOINTS.EXECUTE_SQL);
     const requestHeaders = buildRequestHeaders(token);
 
-    const response = await postRequest(apiUrl, requestHeaders, {
+    // [修改] 构建请求体，动态包含 params (如果存在)
+    const requestBody: { sql_query: string; params?: any[] } = {
       // 注意：发送给后端的字段名仍然是 'sql_query'，与后端API保持一致
       sql_query: sqlQuery,
-    });
+    };
+    if (params && Array.isArray(params)) {
+      requestBody.params = params;
+    }
 
+    const response = await postRequest(apiUrl, requestHeaders, requestBody);
     const responseData = await handleApiResponse(response);
 
     // 生成用于UI展示的文本和用于后续步骤的原始数据
-    const displayData = formatSqlResultText(responseData, sqlQuery);
+    const displayData = formatSqlResultText(responseData, sqlQuery, params);
     const rawData = responseData; // 完整的后端响应作为原始数据
 
     return { rawData, displayData };
