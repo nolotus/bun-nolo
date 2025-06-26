@@ -14,10 +14,12 @@ import {
   toggleReadOnly,
   savePage,
   selectIsSaving,
-  // 1. 新增导入 selectHasPendingChanges
   selectHasPendingChanges,
 } from "render/page/pageSlice";
-import { deleteContentFromSpace } from "create/space/spaceSlice";
+import {
+  deleteContentFromSpace,
+  selectCurrentSpaceId, // <-- 1. 新增导入
+} from "create/space/spaceSlice";
 
 import ModeToggle from "web/ui/ModeToggle";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
@@ -35,12 +37,14 @@ export const CreateTool: React.FC = () => {
   const dbSpaceId = useAppSelector(selectPageDbSpaceId);
   // 保存状态
   const isSaving = useAppSelector(selectIsSaving);
-  // 1. 新增获取 hasPendingChanges 状态
   const hasPendingChanges = useAppSelector(selectHasPendingChanges);
 
   // 路由参数
   const { pageKey: dbKey } = useParams<{ pageKey?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // <-- 2. 从 spaceSlice 获取当前 spaceId 作为备用
+  const currentSpaceId = useAppSelector(selectCurrentSpaceId);
 
   // 删除对话框状态
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -68,16 +72,12 @@ export const CreateTool: React.FC = () => {
     [dispatch, updateUrl]
   );
 
-  // 2. 简化手动保存函数
+  // 手动保存函数
   const handleSave = useCallback(async () => {
-    // dispatch savePage 并处理本次点击的直接反馈 (toast)
-    // 不再包含切换模式等副作用
     try {
       await dispatch(savePage()).unwrap();
       toast.success(t("保存成功"));
     } catch (err: any) {
-      // unwrap 会在 thunk rejected 时抛出错误，包括 condition 为 false 的情况
-      // 如果 err.message 为 'Aborted'，说明是 condition 中止的，可以不弹 toast
       if (err.message !== "Aborted") {
         console.error("保存失败:", err);
         toast.error(t("保存失败"));
@@ -85,13 +85,32 @@ export const CreateTool: React.FC = () => {
     }
   }, [dispatch, t]);
 
-  // 删除页面 —— 使用页面自身的 dbSpaceId，而非当前选中空间
+  // <-- 3. 修改删除逻辑
   const handleDelete = async () => {
-    if (!dbKey || !dbSpaceId) return;
+    if (!dbKey) {
+      console.error("无法删除：页面 key (dbKey) 不存在。");
+      toast.error(t("无法删除，页面标识不存在"));
+      return;
+    }
+
+    // 优先使用页面自身的 dbSpaceId，如果不存在，则回退到当前选中的 spaceId。
+    // 即使两个 ID 都不存在，也继续执行删除，由 thunk 处理后续逻辑。
+    const spaceIdToDeleteFrom = dbSpaceId || currentSpaceId;
+
+    console.log("尝试删除内容", {
+      contentKey: dbKey,
+      pageSpaceId: dbSpaceId,
+      currentSpaceId: currentSpaceId,
+      finalSpaceId: spaceIdToDeleteFrom,
+    });
+
     setIsDeleting(true);
     try {
       await dispatch(
-        deleteContentFromSpace({ contentKey: dbKey, spaceId: dbSpaceId })
+        deleteContentFromSpace({
+          contentKey: dbKey,
+          spaceId: spaceIdToDeleteFrom, // 使用最终确定的 spaceId
+        })
       ).unwrap();
       toast.success(t("删除成功"));
       navigate(-1);
@@ -172,7 +191,6 @@ export const CreateTool: React.FC = () => {
             variant="primary"
             onClick={handleSave}
             size="medium"
-            // 3. 修正 disabled 条件，增加对 hasPendingChanges 的判断
             disabled={isReadOnly || isSaving || !hasPendingChanges}
             style={{
               opacity: isReadOnly || isSaving || !hasPendingChanges ? 0.6 : 1,
@@ -199,27 +217,45 @@ export const CreateTool: React.FC = () => {
         loading={isDeleting}
       />
 
-      {/* 局部样式 */}
-      <style>{`
-        @media (max-width:640px){
-          .tools-container{padding:8px 16px}
-          .title{display:none}
-          .controls{justify-content:space-between;gap:8px}
+      {/* 局部样式 - 修复样式系统 */}
+      <style href="create-tool-styles" precedence="medium">{`
+        @media (max-width: 640px) {
+          .tools-container {
+            padding: 8px 16px;
+          }
+          .title {
+            display: none;
+          }
+          .controls {
+            justify-content: space-between;
+            gap: 8px;
+          }
         }
-        .icon-button{
-          background:transparent;border:none;cursor:pointer;
-          padding:4px;color:inherit;border-radius:4px;
-          flex-shrink:0;position:relative
+
+        .icon-button {
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          color: inherit;
+          border-radius: 4px;
+          flex-shrink: 0;
+          position: relative;
+          transition: all 0.2s ease;
         }
-        .icon-button:hover:not(:disabled){
-          background-color:#f0f0f0
+
+        .icon-button:hover:not(:disabled) {
+          background-color: ${theme.backgroundHover};
         }
-        .icon-button:disabled{
-          cursor:not-allowed;opacity:0.6
+
+        .icon-button:disabled {
+          cursor: not-allowed;
+          opacity: 0.6;
         }
-        .delete-btn:hover:not(:disabled){
-          color:${theme.error};
-          background-color:rgba(220,38,38,0.1)
+
+        .delete-btn:hover:not(:disabled) {
+          color: ${theme.error};
+          background-color: rgba(239, 68, 68, 0.1);
         }
       `}</style>
     </>

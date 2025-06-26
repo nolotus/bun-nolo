@@ -1,9 +1,8 @@
-// web/ui/BaseActionModal.tsx
-import React, { useEffect, useState, useRef } from "react"; // --- 1. 引入 useRef ---
+// render/web/ui/BaseActionModal.tsx
+import React, { useEffect, useState, useRef } from "react";
 import { BaseModal } from "render/web/ui/BaseModal";
 import { useTheme } from "app/theme";
 
-// Props 接口定义保持不变
 interface BaseActionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,9 +37,10 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
   const theme = useTheme();
   const [animateIn, setAnimateIn] = useState(false);
   const { space: sp } = theme;
-  const modalRef = useRef<HTMLDivElement>(null); // --- 2. 创建一个 ref 来引用弹窗容器 ---
+  const modalRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
 
-  // 入场动画逻辑 (无变化)
+  // 入场动画逻辑
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => setAnimateIn(true), 50);
@@ -50,42 +50,68 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
     }
   }, [isOpen]);
 
-  // --- 3. 新增：当弹窗打开时，自动聚焦到弹窗 ---
+  // 焦点管理 - 优化版本
   useEffect(() => {
-    if (isOpen) {
-      // 使用一个短暂的延时，确保弹窗渲染并可见后再聚焦
+    if (isOpen && modalRef.current) {
       const timer = setTimeout(() => {
-        modalRef.current?.focus();
-      }, 50); // 50ms 通常足够
+        // 优先聚焦到第一个可操作的按钮
+        const firstButton = actionsRef.current?.querySelector(
+          "button:not([disabled])"
+        ) as HTMLButtonElement;
+        if (firstButton) {
+          firstButton.focus();
+        } else {
+          modalRef.current?.focus();
+        }
+      }, 100); // 增加延时确保动画完成
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
-  // 键盘事件监听 (无变化)
+  // 键盘事件监听 - 优化版本
   useEffect(() => {
     if (!isOpen) return;
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (isActionDisabled) {
+      // 检查事件是否来自当前弹窗内部
+      const target = event.target as Element;
+      if (!modalRef.current?.contains(target)) {
         return;
       }
+
+      if (isActionDisabled) {
+        // 即使禁用状态也允许 ESC 关闭
+        if (event.key === "Escape") {
+          event.preventDefault();
+          onClose();
+        }
+        return;
+      }
+
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
       }
+
       if (event.key === "Enter" && onEnterPress) {
+        // 排除在表单元素内的回车
         if (
-          !(event.target instanceof HTMLButtonElement) &&
-          !(event.target instanceof HTMLInputElement) &&
-          !(event.target instanceof HTMLTextAreaElement)
+          !(target instanceof HTMLButtonElement) &&
+          !(target instanceof HTMLInputElement) &&
+          !(target instanceof HTMLTextAreaElement) &&
+          !(target instanceof HTMLSelectElement)
         ) {
           event.preventDefault();
           onEnterPress();
         }
       }
     };
-    document.addEventListener("keydown", handleKeyDown);
+
+    // 绑定到弹窗容器而不是 document
+    modalRef.current?.addEventListener("keydown", handleKeyDown);
+
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      modalRef.current?.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose, onEnterPress, isActionDisabled]);
 
@@ -94,9 +120,9 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
       case "error":
         return theme.error;
       case "warning":
-        return theme.warning || theme.primary; // fallback 如果没有 warning 色
+        return theme.warning || theme.primary;
       case "success":
-        return theme.success || theme.primary; // fallback 如果没有 success 色
+        return theme.success || theme.primary;
       default:
         return theme.primary;
     }
@@ -110,24 +136,32 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
       preventBodyScroll={true}
       className={`action-modal ${className} ${animateIn ? "animate-in" : ""}`}
     >
-      {/* --- 4. 将 ref 和 tabIndex 应用到弹窗主容器上 --- */}
       <div
         ref={modalRef}
-        tabIndex={-1} // tabIndex="-1" 使元素可以通过 JS 聚焦，但用户不能通过 Tab 键手动聚焦
+        tabIndex={-1}
         className="modal-container"
-        style={{ outline: "none" }} // 移除聚焦时的默认蓝色轮廓
+        style={{ outline: "none" }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
       >
         <div className="modal-header">
           <div className="title-wrapper">
             {titleIcon && <span className="title-icon">{titleIcon}</span>}
-            <h3 className="title">{title}</h3>
+            <h3 id="modal-title" className="title">
+              {title}
+            </h3>
           </div>
           {headerExtra && <div className="header-extra">{headerExtra}</div>}
         </div>
 
         <div className={`modal-body ${bodyClassName}`}>{children}</div>
 
-        {actions && <div className="modal-actions">{actions}</div>}
+        {actions && (
+          <div ref={actionsRef} className="modal-actions">
+            {actions}
+          </div>
+        )}
       </div>
 
       <style href="base-action-modal" precedence="medium">{`
