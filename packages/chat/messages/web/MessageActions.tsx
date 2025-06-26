@@ -96,7 +96,7 @@ export const MessageActions = ({
     try {
       title =
         (await dispatch(
-          runAgent({ cybotId: titleAgentId, content: str.substring(0, 1000) })
+          runAgent({ cybotId: titleAgentId, content: str.substring(0, 2000) })
         ).unwrap()) || key;
     } catch {}
 
@@ -108,6 +108,7 @@ export const MessageActions = ({
             slateData: markdownToSlate(str),
             type: DataType.PAGE,
             title,
+            spaceId: currentSpaceId,
           },
           customKey: key,
         })
