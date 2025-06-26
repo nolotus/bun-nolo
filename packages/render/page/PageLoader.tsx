@@ -7,7 +7,7 @@ import { useParams, useLocation } from "react-router-dom";
 import { resetPage } from "./pageSlice";
 import { changeSpace } from "create/space/spaceSlice";
 import DialogPage from "chat/dialog/DialogPage";
-import CybotPage from "ai/cybot/web/CybotPage";
+import AgentPage from "ai/llm/web/AgentPage";
 // 懒加载子组件
 const RenderPage = lazy(() => import("./RenderPage"));
 
@@ -57,7 +57,7 @@ const PageLoader = () => {
   } else if (pageKey?.startsWith("dialog")) {
     return <DialogPage pageKey={pageKey} />;
   } else if (pageKey?.startsWith("cybot")) {
-    return <CybotPage cybotKey={pageKey} />;
+    return <AgentPage agentKey={pageKey} />;
   } else {
     return <NoMatch message={`无法识别或处理的页面类型: ${pageKey}`} />;
   }
