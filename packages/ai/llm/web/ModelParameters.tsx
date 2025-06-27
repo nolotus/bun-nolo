@@ -11,7 +11,7 @@ import {
   DEFAULT_PRESENCE_PENALTY,
   DEFAULT_MAX_TOKENS,
   DEFAULT_REASONING_EFFORT,
-} from "../common/createCybotSchema";
+} from "../common/createAgentSchema";
 import { useTranslation } from "react-i18next";
 
 // 导出常量，供 AdvancedSettingsTab 使用

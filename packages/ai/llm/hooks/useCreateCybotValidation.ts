@@ -7,10 +7,7 @@ import { useAuth } from "auth/hooks/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { createCybotKey } from "database/keys";
 import { ulid } from "ulid";
-import {
-  createCybotSchema,
-  FormData,
-} from "../../llm/common/createCybotSchema";
+import { createAgentSchema, FormData } from "../common/createAgentSchema";
 
 export const useCreateCybotValidation = () => {
   const dispatch = useAppDispatch();
@@ -18,7 +15,7 @@ export const useCreateCybotValidation = () => {
   const auth = useAuth();
 
   const form = useForm<FormData>({
-    resolver: zodResolver(createCybotSchema),
+    resolver: zodResolver(createAgentSchema),
     defaultValues: {
       name: "",
       provider: "",

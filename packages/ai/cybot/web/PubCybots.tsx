@@ -4,7 +4,7 @@ import { memo } from "react";
 import { SyncIcon } from "@primer/octicons-react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
-import { usePubCybots } from "../hooks/usePubCybots";
+import { usePubCybots } from "ai/llm/hooks/usePubCybots";
 import AgentBlock from "ai/llm/web/AgentBlock";
 import toast from "react-hot-toast";
 
