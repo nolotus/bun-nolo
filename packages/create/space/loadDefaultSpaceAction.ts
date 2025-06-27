@@ -1,14 +1,17 @@
 import { RootState } from "app/store";
-import { addSpace, changeSpace } from "./spaceSlice";
-import { setSettings } from "setting/settingSlice";
-import { DataType, SpaceMemberWithSpaceInfo } from "../types";
+import { SpaceMemberWithSpaceInfo } from "app/types";
+import i18n from "app/i18n";
+
 import { read } from "database/dbSlice";
+import { setSettings } from "setting/settingSlice";
+
+import { addSpace, changeSpace } from "./spaceSlice";
+import { DataType } from "../types";
 import { createSpaceKey } from "./spaceKeys";
-import i18next from "i18next";
 
 const handleEmptyMembership = async (dispatch: any) => {
   try {
-    const defaultSpaceName = i18next.t("default_space", {
+    const defaultSpaceName = i18n.t("default_space", {
       ns: "space",
       defaultValue: "Default Space",
     });

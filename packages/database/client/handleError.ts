@@ -1,18 +1,17 @@
-import { t } from "i18next";
-
+import i18n from "app/i18n";
 export const handleError = (error, handleUnauthorized?) => {
   let message;
   switch (error.message) {
     case "400":
-      message = t("errors.validationError");
+      message = i18n.t("errors.validationError");
       break;
     case "401":
-      message = t("errors.unauthorized");
+      message = i18n.t("errors.unauthorized");
       handleUnauthorized && handleUnauthorized();
       break;
     case "500":
     default:
-      message = t("errors.serverError");
+      message = i18n.t("errors.serverError");
       break;
   }
 
