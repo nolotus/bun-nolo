@@ -8,8 +8,9 @@ import { useAuth } from "auth/hooks/useAuth";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { createCybotKey } from "database/keys";
 import { ulid } from "ulid";
+import { useTranslation } from "react-i18next";
 import {
-  createAgentSchema,
+  getCreateAgentSchema,
   FormData,
   normalizeReferences,
 } from "./createAgentSchema";
@@ -29,10 +30,12 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
   const dispatch = useAppDispatch();
   const { createNewDialog } = useCreateDialog();
   const auth = useAuth();
+  const { t } = useTranslation("ai"); // 1. 获取翻译函数
   const isEditing = !!initialValues?.id;
 
   const form = useForm<FormData>({
-    resolver: zodResolver(createAgentSchema),
+    // 2. 动态生成带翻译的 schema
+    resolver: zodResolver(getCreateAgentSchema(t)),
     defaultValues: isEditing
       ? {
           ...initialValues,
@@ -41,7 +44,12 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
             : initialValues.tags || "",
           references: normalizeReferences(initialValues.references || []),
         }
-      : undefined,
+      : {
+          // 3. 为创建模式设置默认问候语
+          greeting: t("form.defaults.greeting"),
+          useServerProxy: true,
+          isPublic: false,
+        },
   });
 
   const { watch } = form;
@@ -49,9 +57,6 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
   const processData = useCallback(
     (data: FormData) => ({
       ...data,
-      prompt: data.prompt || "",
-      greeting: data.greeting || "",
-      introduction: data.introduction || "",
       tags: data.tags
         ? data.tags
             .split(",")
@@ -72,7 +77,8 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!auth.user?.userId) throw new Error("No user ID available");
+      // 4. 翻译错误信息
+      if (!auth.user?.userId) throw new Error(t("errors.noUserId"));
 
       const processedData = processData(data);
       const now = Date.now();
@@ -82,24 +88,17 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
         const userPath = createCybotKey.private(auth.user.userId, cybotId);
 
         await dispatch(
-          patch({
-            dbKey: userPath,
-            changes: { ...processedData, isPublic: data.isPublic },
-          })
+          patch({ dbKey: userPath, changes: processedData })
         ).unwrap();
 
         if (data.isPublic) {
           await writeData(
             {
+              ...initialValues,
               ...processedData,
               id: cybotId,
               type: DataType.CYBOT,
               userId: auth.user.userId,
-              isPublic: true,
-              createdAt: initialValues?.createdAt || now,
-              dialogCount: initialValues?.dialogCount || 0,
-              messageCount: initialValues?.messageCount || 0,
-              tokenCount: initialValues?.tokenCount || 0,
             },
             createCybotKey.public(cybotId)
           );
@@ -117,16 +116,12 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
           dialogCount: 0,
           messageCount: 0,
           tokenCount: 0,
-          isPublic: data.isPublic,
         };
 
         await writeData(cybotData, userPath);
 
         if (data.isPublic) {
-          await writeData(
-            { ...cybotData, isPublic: true },
-            createCybotKey.public(id)
-          );
+          await writeData(cybotData, createCybotKey.public(id));
         }
 
         await createNewDialog({
@@ -142,6 +137,7 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
       dispatch,
       writeData,
       createNewDialog,
+      t,
     ]
   );
 
