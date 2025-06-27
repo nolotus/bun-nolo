@@ -56,7 +56,7 @@ const CreateDialogButton = memo(({ dialogConfig, isMobile = false }) => {
   const { t } = useTranslation("chat");
 
   const handleClick = useCallback(() => {
-    createNewDialog({ cybots: dialogConfig.cybots });
+    createNewDialog({ agents: dialogConfig.cybots });
   }, [createNewDialog, dialogConfig.cybots]);
 
   const button = (
