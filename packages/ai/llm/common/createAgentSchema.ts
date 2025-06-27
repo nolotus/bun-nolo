@@ -50,7 +50,7 @@ const referenceItemSchema = z
 //   type: data.type === "page" ? "knowledge" : data.type
 // }));
 
-export const createCybotSchema = z
+export const createAgentSchema = z
   .object({
     name: z
       .string()
@@ -173,7 +173,7 @@ export const createCybotSchema = z
     }
   );
 
-export type FormData = z.infer<typeof createCybotSchema>;
+export type FormData = z.infer<typeof createAgentSchema>;
 
 // 👇 --- 帮助函数：手动规范化 references（用于非表单场景） --- 👇
 export const normalizeReferences = (references: any[]): ReferenceItem[] => {

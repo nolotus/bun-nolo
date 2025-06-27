@@ -5,7 +5,7 @@ import { read } from "database/dbSlice";
 
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 
-const useCybotConfig = () => {
+const useAgentConfig = () => {
   const dispatch = useAppDispatch();
   const [cybotConfig, setCybotConfig] = useState(null);
 
@@ -27,4 +27,4 @@ const useCybotConfig = () => {
   return cybotConfig;
 };
 
-export default useCybotConfig;
+export default useAgentConfig;

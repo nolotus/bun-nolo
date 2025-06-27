@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
-import useModelPricing from "../../cybot/hooks/useModelPricing";
-import { useOllamaSettings } from "../../cybot/hooks/useOllamaSettings";
-import { useProxySetting } from "../../cybot/hooks/useProxySetting";
-import { useCybotValidation } from "../common/useCybotFormValidation";
-import { normalizeReferences } from "../common/createCybotSchema";
+import useModelPricing from "../hooks/useModelPricing";
+import { useOllamaSettings } from "../hooks/useOllamaSettings";
+import { useProxySetting } from "../hooks/useProxySetting";
+import { useAgentValidation } from "../common/useAgentFormValidation";
+import { normalizeReferences } from "../common/createAgentSchema";
 
-//web
+// web
 import BasicInfoTab from "./BasicInfoTab";
 import ReferencesTab from "./ReferencesTab";
 import ToolsTab from "./ToolsTab";
@@ -27,7 +27,7 @@ const TABS = [
   { id: 4, key: "advancedSettings" },
 ];
 
-const CybotForm = ({
+const AgentForm = ({
   mode = "create",
   initialValues = {},
   onClose,
@@ -38,7 +38,7 @@ const CybotForm = ({
   const isCreate = mode === "create";
 
   const { form, provider, useServerProxy, isPublic, onSubmit } =
-    useCybotValidation(initialValues);
+    useAgentValidation(initialValues);
   const {
     register,
     handleSubmit,
@@ -58,7 +58,6 @@ const CybotForm = ({
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
 
-  // [!code ++]
   // 核心修复：useEffect 用于在编辑模式下初始化表单
   // 我们依赖 initialValues.id 而不是整个 initialValues 对象，
   // 因为对象的引用在每次渲染时都可能改变，导致无限循环。
@@ -83,15 +82,6 @@ const CybotForm = ({
     }
     // 依赖项数组是关键：使用稳定的 ID 替代不稳定的对象引用
   }, [mode, initialValues.id, reset, setApiSource]);
-  // [!code --]
-  /*
-  // 这是导致无限循环的错误代码
-  useEffect(() => {
-    if (mode === "edit") {
-      // ...
-    }
-  }, [mode, initialValues, reset, setApiSource]);
-  */
 
   const handleFormSubmit = async (data) => {
     await onSubmit({
@@ -142,9 +132,9 @@ const CybotForm = ({
 
   return (
     <div
-      className={isCreate ? "create-cybot-container" : "edit-cybot-container"}
+      className={isCreate ? "create-agent-container" : "edit-agent-container"}
     >
-      {isCreate && <FormTitle>{t("createCybot")}</FormTitle>}
+      {isCreate && <FormTitle>{t("createAgent")}</FormTitle>}
 
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="form-header">
@@ -188,8 +178,8 @@ const CybotForm = ({
         </div>
       </form>
 
-      <style href="cybot-form" precedence="high">{`
-        .create-cybot-container, .edit-cybot-container {
+      <style href="agent-form" precedence="high">{`
+        .create-agent-container, .edit-agent-container {
           max-width: ${isCreate ? "800px" : "auto"};
           margin: ${isCreate ? "24px auto" : "0"};
           padding: ${isCreate ? "0 24px" : "0"};
@@ -216,7 +206,7 @@ const CybotForm = ({
           gap: 12px;
         }
         @media (max-width: 640px) {
-          .create-cybot-container, .edit-cybot-container {
+          .create-agent-container, .edit-agent-container {
             padding: ${isCreate ? "16px" : "0"};
             margin: ${isCreate ? "16px auto" : "0"};
           }
@@ -227,4 +217,4 @@ const CybotForm = ({
   );
 };
 
-export default CybotForm;
+export default AgentForm;

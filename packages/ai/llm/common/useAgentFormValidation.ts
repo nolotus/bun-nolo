@@ -9,10 +9,10 @@ import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { createCybotKey } from "database/keys";
 import { ulid } from "ulid";
 import {
-  createCybotSchema,
+  createAgentSchema,
   FormData,
   normalizeReferences,
-} from "./createCybotSchema";
+} from "./createAgentSchema";
 
 const extractCybotId = (path: string): string =>
   path.match(/cybot-[^-]+-(\w+)/)?.[1] || path;
@@ -25,14 +25,14 @@ interface ExtendedFormData extends FormData {
   tokenCount?: number;
 }
 
-export const useCybotValidation = (initialValues?: ExtendedFormData) => {
+export const useAgentValidation = (initialValues?: ExtendedFormData) => {
   const dispatch = useAppDispatch();
   const { createNewDialog } = useCreateDialog();
   const auth = useAuth();
   const isEditing = !!initialValues?.id;
 
   const form = useForm<FormData>({
-    resolver: zodResolver(createCybotSchema),
+    resolver: zodResolver(createAgentSchema),
     defaultValues: isEditing
       ? {
           ...initialValues,

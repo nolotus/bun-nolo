@@ -1,7 +1,7 @@
 // ai/hooks/usePubCybots.ts
 
 import { useEffect, useState, useCallback } from "react";
-import { Cybot } from "../types";
+import { Agent } from "app/types";
 import { fetchPubCybots as fetchLocal } from "ai/cybot/web/fetchPubCybots";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentServer } from "setting/settingSlice";
@@ -16,15 +16,15 @@ interface UsePubCybotsOptions {
 interface PubCybotsState {
   loading: boolean;
   error: Error | null;
-  data: Cybot[];
+  data: Agent[];
 }
 
-function mergeCybots(localData: Cybot[], remoteData: Cybot[]): MergeResult {
+function mergeCybots(localData: Agent[], remoteData: Agent[]): MergeResult {
   // 创建远程数据的id集合用于快速查找
   const remoteIds = new Set(remoteData.map((bot) => bot.id));
 
   // 最终结果数组
-  let merged: Cybot[] = [];
+  let merged: Agent[] = [];
   // 需要删除的本地bot id
   let toDelete: string[] = [];
 
