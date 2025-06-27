@@ -1,47 +1,34 @@
 import React from "react";
 import { FormField } from "render/web/form/FormField";
-
-import { TextArea } from "render/web/form/Input";
+import { TextArea, NumberInput } from "render/web/form/Input";
 import { useTranslation } from "react-i18next";
-
-import ToggleSwitch from "web/ui/ToggleSwitch";
-import { NumberInput } from "render/web/form/Input";
 import { Controller } from "react-hook-form";
+import ToggleSwitch from "web/ui/ToggleSwitch";
 
-const PublishSettingsTab = ({
-  errors,
-  control,
-  watch,
-  apiSource,
-  inputPrice,
-  outputPrice,
-  setInputPrice,
-  setOutputPrice,
-  initialValues = {},
-}) => {
+const PublishSettingsTab = ({ errors, control, watch, apiSource }) => {
   const { t } = useTranslation("ai");
 
   const commonProps = { horizontal: true, labelWidth: "140px" };
   const isPublic = watch("isPublic");
+  const canBePublic = apiSource === "platform";
 
   return (
     <div className="tab-content-wrapper">
       {/* 分享开关 */}
       <FormField
-        label={t("shareInCommunity")}
-        help={
-          apiSource === "platform"
-            ? t("shareInCommunityHelp")
-            : t("shareInCommunityCustomApiHelp")
-        }
+        label={t("form.isPublic")}
+        help={canBePublic ? t("help.isPublic") : t("help.isPublicCustomApi")}
         {...commonProps}
       >
         <Controller
           name="isPublic"
           control={control}
-          defaultValue={initialValues.isPublic ?? false}
           render={({ field }) => (
-            <ToggleSwitch checked={field.value} onChange={field.onChange} />
+            <ToggleSwitch
+              checked={field.value}
+              onChange={field.onChange}
+              disabled={!canBePublic}
+            />
           )}
         />
       </FormField>
@@ -49,59 +36,54 @@ const PublishSettingsTab = ({
       {/* 公开发布设置 */}
       {isPublic && (
         <div className="public-settings-group">
-          <FormField
-            label={t("greetingMessage")}
-            error={errors.greeting?.message}
-            help={t("greetingMessageHelp")}
-            {...commonProps}
-          >
-            <Controller
-              name="greeting"
-              control={control}
-              defaultValue={initialValues.greeting || ""}
-              render={({ field }) => (
-                <TextArea {...field} placeholder={t("enterGreetingMessage")} />
-              )}
-            />
-          </FormField>
+          {/* [移除] "问候语" 字段已移至 BasicInfoTab */}
 
+          {/* "自我介绍" 字段保留，因为它与公开展示强相关 */}
           <FormField
-            label={t("selfIntroduction")}
+            label={t("form.introduction")}
             error={errors.introduction?.message}
-            help={t("selfIntroductionHelp")}
             {...commonProps}
           >
             <Controller
               name="introduction"
               control={control}
-              defaultValue={initialValues.introduction || ""}
               render={({ field }) => (
                 <TextArea
                   {...field}
-                  placeholder={t("enterSelfIntroduction")}
+                  placeholder={t("form.introductionPlaceholder")}
                   rows={4}
                 />
               )}
             />
           </FormField>
 
-          <FormField label={t("pricing")} {...commonProps}>
-            <div className="price-inputs">
-              <NumberInput
-                value={inputPrice ?? 0}
-                onChange={setInputPrice}
-                decimal={4}
-                placeholder={t("inputPrice")}
-                aria-label={t("inputPricePerThousand")}
-              />
-              <NumberInput
-                value={outputPrice ?? 0}
-                onChange={setOutputPrice}
-                decimal={4}
-                placeholder={t("outputPrice")}
-                aria-label={t("outputPricePerThousand")}
-              />
-            </div>
+          {/* 价格设置 */}
+          <FormField label={t("form.inputPrice")} {...commonProps}>
+            <Controller
+              name="inputPrice"
+              control={control}
+              render={({ field }) => (
+                <NumberInput
+                  {...field}
+                  decimal={4}
+                  placeholder={t("form.inputPricePlaceholder")}
+                />
+              )}
+            />
+          </FormField>
+
+          <FormField label={t("form.outputPrice")} {...commonProps}>
+            <Controller
+              name="outputPrice"
+              control={control}
+              render={({ field }) => (
+                <NumberInput
+                  {...field}
+                  decimal={4}
+                  placeholder={t("form.outputPricePlaceholder")}
+                />
+              )}
+            />
           </FormField>
         </div>
       )}
@@ -109,22 +91,11 @@ const PublishSettingsTab = ({
       <style href="publish-settings" precedence="high">{`
         .public-settings-group {
           margin-top: 24px;
-          padding-top: 20px;
-          border-top: 1px solid var(--border, #e2e8f0);
+          padding-top: 24px;
+          border-top: 1px solid var(--border-color, #e2e8f0);
           display: flex;
           flex-direction: column;
-          gap: 20px;
-        }
-        .price-inputs {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-        @media (max-width: 640px) {
-          .price-inputs {
-            grid-template-columns: 1fr;
-            gap: 12px;
-          }
+          gap: 24px;
         }
       `}</style>
     </div>

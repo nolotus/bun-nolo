@@ -19,12 +19,13 @@ import Button from "render/web/ui/Button";
 import FormTitle from "web/form/FormTitle";
 import TabsNav from "render/web/ui/TabsNav";
 
+// 1. [修改] 更新 TABS 的 key 以匹配新的 i18n 结构
 const TABS = [
-  { id: 0, key: "basicInfo" },
-  { id: 1, key: "references" },
-  { id: 2, key: "toolSelection" },
-  { id: 3, key: "publishSettings" },
-  { id: 4, key: "advancedSettings" },
+  { id: 0, key: "tabs.basicInfo" },
+  { id: 1, key: "tabs.references" },
+  { id: 2, key: "tabs.toolSelection" },
+  { id: 3, key: "tabs.publishSettings" },
+  { id: 4, key: "tabs.advancedSettings" },
 ];
 
 const AgentForm = ({
@@ -58,10 +59,6 @@ const AgentForm = ({
     useModelPricing(provider, watch("model"), setValue);
   const isProxyDisabled = useProxySetting(provider, setValue);
 
-  // 核心修复：useEffect 用于在编辑模式下初始化表单
-  // 我们依赖 initialValues.id 而不是整个 initialValues 对象，
-  // 因为对象的引用在每次渲染时都可能改变，导致无限循环。
-  // ID 是一个稳定的原始值，可以确保此 effect 仅在切换编辑项目时运行一次。
   useEffect(() => {
     if (mode === "edit" && initialValues.id) {
       const normRefs = normalizeReferences(initialValues.references || []);
@@ -80,16 +77,11 @@ const AgentForm = ({
           : "platform"
       );
     }
-    // 依赖项数组是关键：使用稳定的 ID 替代不稳定的对象引用
   }, [mode, initialValues.id, reset, setApiSource]);
 
+  // 2. [优化] 简化提交函数。Zod schema已处理了默认值，无需手动设置。
   const handleFormSubmit = async (data) => {
-    await onSubmit({
-      ...data,
-      prompt: data.prompt || "",
-      greeting: data.greeting || "",
-      introduction: data.introduction || "",
-    });
+    await onSubmit(data); // 直接传递 data 即可
     if (mode === "edit" && onClose) onClose();
   };
 
@@ -136,7 +128,8 @@ const AgentForm = ({
     >
       {isCreate && <FormTitle>{t("createAgent")}</FormTitle>}
 
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+      {/* 3. [最佳实践] 添加 noValidate 禁用浏览器默认验证 */}
+      <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
         <div className="form-header">
           <TabsNav
             tabs={tabs}
