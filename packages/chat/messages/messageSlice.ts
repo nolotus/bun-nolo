@@ -153,40 +153,72 @@ export const messageSlice = createSliceWithThunks({
       messagesAdapter.removeAll(state.msgs);
       Object.assign(state, initialState);
     }),
+    // ================= [START] NEW GENERIC THUNK =================
+    prepareAndPersistMessage: create.asyncThunk(
+      async (
+        args: {
+          message: Omit<Message, "id" | "dbKey" | "userId">;
+          dialogConfig: DialogConfig;
+        },
+        thunkApi
+      ) => {
+        const { message, dialogConfig } = args;
+        const { getState, dispatch, rejectWithValue } = thunkApi;
+        const state = getState() as RootState;
+
+        if (!dialogConfig) {
+          return rejectWithValue("Missing dialogConfig");
+        }
+
+        const dialogKey = dialogConfig.dbKey || dialogConfig.id;
+        const dialogId = extractCustomId(dialogKey);
+        const userId = selectUserId(state);
+        const { key: messageDbKey, messageId } =
+          createDialogMessageKeyAndId(dialogId);
+
+        const fullMessage: Message = {
+          ...message,
+          id: messageId,
+          dbKey: messageDbKey,
+          userId,
+        };
+
+        dispatch(messageSlice.actions.addUserMessage(fullMessage));
+
+        const { controller, ...messageToWrite } = fullMessage;
+        dispatch(
+          write({
+            data: { ...messageToWrite, type: DataType.MSG },
+            customKey: fullMessage.dbKey,
+          })
+        );
+        return fullMessage;
+      }
+    ),
+    // ================= [END] NEW GENERIC THUNK =================
+
+    // ================= [START] ADJUSTED USER MESSAGE THUNK =================
     prepareAndPersistUserMessage: create.asyncThunk(
       async (
         args: { userInput: string; dialogConfig: DialogConfig },
         thunkApi
       ) => {
         const { userInput, dialogConfig } = args;
-        const { getState, dispatch, rejectWithValue } = thunkApi;
-        const state = getState() as RootState;
-        if (!dialogConfig) {
-          return rejectWithValue("Missing dialogConfig");
-        }
-        const dialogKey = dialogConfig.dbKey || dialogConfig.id;
-        const dialogId = extractCustomId(dialogKey);
-        const userId = selectUserId(state);
-        const { key: messageDbKey, messageId } =
-          createDialogMessageKeyAndId(dialogId);
-        const userMsg: Message = {
-          id: messageId,
-          dbKey: messageDbKey,
-          role: "user",
-          content: userInput,
-          userId,
-        };
-        dispatch(messageSlice.actions.addUserMessage(userMsg));
-        const { controller, ...messageToWrite } = userMsg;
-        dispatch(
-          write({
-            data: { ...messageToWrite, type: DataType.MSG },
-            customKey: userMsg.dbKey,
+        const { dispatch } = thunkApi;
+
+        // Delegate to the new generic thunk
+        return dispatch(
+          messageSlice.actions.prepareAndPersistMessage({
+            message: {
+              role: "user",
+              content: userInput,
+            },
+            dialogConfig,
           })
-        );
-        return userMsg;
+        ).unwrap();
       }
     ),
+    // ================= [END] ADJUSTED USER MESSAGE THUNK =================
     initMsgs: create.asyncThunk(
       async (
         {
@@ -598,6 +630,7 @@ export const {
   addUserMessage,
   messageStreaming,
   resetMsgs,
+  prepareAndPersistMessage, // Export new thunk
   prepareAndPersistUserMessage,
   initMsgs,
   loadOlderMessages,

@@ -1,6 +1,7 @@
 export interface Message {
   role: MessageRole;
   content: string;
+  thinkContent?: string; // Content for thinking phase
   image?: string;
   id: string;
   images?: string[]; // Ollama format
@@ -8,6 +9,9 @@ export interface Message {
   cybotId?: string; // ID of the AI bot
   cybotKey?: string; // Key of the AI bot
   isStreaming?: boolean; // Flag for streaming responses
+  userId?: string; // User ID of the message sender
+  usage?: any;
+  controller?: AbortController; // Controller for aborting the message
 }
 
 type MessageRole = "user" | "system" | "assistant";
