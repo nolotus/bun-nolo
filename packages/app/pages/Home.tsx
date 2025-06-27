@@ -11,6 +11,7 @@ import { CreateRoutePaths } from "create/routePaths";
 import { createPage } from "render/page/pageSlice";
 import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";
+import { useCreateDialog } from "chat/dialog/useCreateDialog";
 
 // Icons
 import {
@@ -21,7 +22,7 @@ import {
   GearIcon,
   BookIcon,
   CopilotIcon,
-  SyncIcon,
+  CommentDiscussionIcon,
 } from "@primer/octicons-react";
 import { FiDollarSign } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -33,16 +34,30 @@ import AgentBlock from "ai/llm/web/AgentBlock";
 
 import PubCybots from "ai/cybot/web/PubCybots";
 
-// Cybots 组件内联实现
+// 骨架屏组件
+const SkeletonCard = memo(({ index }: { index: number }) => {
+  const theme = useAppSelector(selectTheme);
+
+  return (
+    <div
+      className="skeleton-card"
+      style={{
+        animationDelay: `${index * 0.1}s`,
+      }}
+    />
+  );
+});
+
+SkeletonCard.displayName = "SkeletonCard";
+
 const LoadingState = memo(() => {
   const theme = useAppSelector(selectTheme);
 
   return (
-    <div className="loading-container">
-      <div className="loading-spinner">
-        <SyncIcon className="icon-spin" size={20} />
-      </div>
-      <span className="loading-text">正在加载 AI 助手...</span>
+    <div className="cybots-grid">
+      {Array.from({ length: 6 }, (_, i) => (
+        <SkeletonCard key={i} index={i} />
+      ))}
     </div>
   );
 });
@@ -124,6 +139,9 @@ const Home = () => {
   const currentUserId = useAppSelector(selectUserId);
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
 
+  // 立即聊天功能
+  const { isLoading: isChatLoading, createNewDialog } = useCreateDialog();
+
   const [activeTab, setActiveTab] = useState(
     isLoggedIn ? "myAI" : "communityAI"
   );
@@ -153,8 +171,30 @@ const Home = () => {
     }
   }, [dispatch, navigate]);
 
+  // 立即聊天功能
+  const startQuickChat = useCallback(async () => {
+    if (isChatLoading) return;
+    try {
+      await createNewDialog({
+        agents: ["cybot-pub-01JYRSTM0MPPGQC9S25S3Y9J20"],
+      });
+    } catch (error) {
+      toast.error("创建聊天失败，请重试");
+    }
+  }, [isChatLoading, createNewDialog]);
+
   // 主要操作配置
   const primaryActions = [
+    {
+      id: "quick-chat",
+      text: "立即聊天",
+      icon: <CommentDiscussionIcon size={28} />,
+      description: "与AI助手开始对话，获得即时帮助",
+      type: "action",
+      payload: startQuickChat,
+      accent: true,
+      gradient: "chat",
+    },
     {
       id: "create-ai",
       text: "创建 AI 助手",
@@ -162,7 +202,6 @@ const Home = () => {
       description: "智能对话，定制专属AI工作伙伴",
       type: "navigate",
       payload: `/${CreateRoutePaths.CREATE_CYBOT}`,
-      accent: true,
       gradient: "ai",
     },
     {
@@ -298,6 +337,10 @@ const Home = () => {
             inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
 
+        .hero-action[data-gradient="chat"]::before {
+          background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}08 50%, transparent 100%);
+        }
+
         .hero-action[data-gradient="ai"]::before {
           background: linear-gradient(135deg, ${theme.primary}10 0%, ${theme.primary}05 50%, transparent 100%);
         }
@@ -352,6 +395,12 @@ const Home = () => {
           border-color: ${theme.primary}20;
         }
 
+        .hero-action[disabled] {
+          opacity: 0.7;
+          cursor: not-allowed;
+          transform: none !important;
+        }
+
         .hero-icon-container {
           width: 64px;
           height: 64px;
@@ -384,6 +433,12 @@ const Home = () => {
           box-shadow: 
             0 8px 20px -4px ${theme.primary}40,
             inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .hero-action[disabled]:hover .hero-icon-container {
+          transform: none;
+          background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}10 100%);
+          color: ${theme.primary};
         }
 
         .hero-action:hover .hero-icon-container::before {
@@ -651,12 +706,8 @@ const Home = () => {
 
         .content-container {
           background: ${theme.background};
-          border: 1px solid ${theme.borderLight};
           border-radius: 24px;
           padding: ${theme.space[8]} ${theme.space[6]};
-          box-shadow: 
-            0 2px 8px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
           min-height: 420px;
           position: relative;
           overflow: hidden;
@@ -692,43 +743,6 @@ const Home = () => {
         /* ======================
            Cybots 相关样式
            ====================== */
-        .loading-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: ${theme.space[4]};
-          min-height: 280px;
-          color: ${theme.textTertiary};
-        }
-
-        .loading-spinner {
-          position: relative;
-        }
-
-        .icon-spin {
-          animation: gentleSpin 2s cubic-bezier(0.645, 0.045, 0.355, 1) infinite;
-          color: ${theme.primary};
-        }
-
-        @keyframes gentleSpin {
-          0% {
-            transform: rotate(0deg) scale(1);
-          }
-          50% {
-            transform: rotate(180deg) scale(1.1);
-          }
-          100% {
-            transform: rotate(360deg) scale(1);
-          }
-        }
-
-        .loading-text {
-          font-size: 0.95rem;
-          font-weight: 500;
-          letter-spacing: -0.01em;
-        }
-
         .empty-state {
           display: flex;
           flex-direction: column;
@@ -765,6 +779,58 @@ const Home = () => {
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: ${theme.space[5]};
           width: 100%;
+        }
+
+        /* 骨架屏样式 */
+        .skeleton-card {
+          background: ${theme.backgroundSecondary};
+          border-radius: 16px;
+          padding: ${theme.space[5]};
+          height: 280px;
+          position: relative;
+          overflow: hidden;
+          opacity: 0;
+          animation: skeletonFadeIn 0.6s ease forwards, skeletonPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes skeletonFadeIn {
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes skeletonPulse {
+          0%, 100% {
+            opacity: 0.8;
+          }
+          50% {
+            opacity: 0.4;
+          }
+        }
+
+        .skeleton-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            ${theme.background}60 50%,
+            transparent 100%
+          );
+          animation: skeletonShimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes skeletonShimmer {
+          0% {
+            left: -100%;
+          }
+          100% {
+            left: 100%;
+          }
         }
 
         /* ======================
@@ -821,7 +887,6 @@ const Home = () => {
             gap: ${theme.space[3]};
           }
 
-          .loading-container,
           .empty-state {
             min-height: 200px;
             padding: ${theme.space[6]} ${theme.space[3]};
@@ -872,7 +937,6 @@ const Home = () => {
             min-height: 320px;
           }
 
-          .loading-container,
           .empty-state {
             min-height: 160px;
             gap: ${theme.space[3]};
@@ -898,7 +962,7 @@ const Home = () => {
           .utility-action,
           .hero-icon-container,
           .utility-icon-wrapper,
-          .icon-spin {
+          .skeleton-card {
             animation: none !important;
             transition-duration: 0.1s !important;
             opacity: 1 !important;
@@ -920,7 +984,6 @@ const Home = () => {
             border-width: 2px;
           }
           
-          .loading-container,
           .empty-state {
             color: ${theme.text};
           }
@@ -953,6 +1016,7 @@ const Home = () => {
                     className={`hero-action ${action.accent ? "accent" : ""}`}
                     data-gradient={action.gradient}
                     onClick={() => handleActionClick(action)}
+                    disabled={action.id === "quick-chat" && isChatLoading}
                     aria-label={`${action.text}: ${action.description}`}
                     onMouseMove={(e) => {
                       const rect = e.currentTarget.getBoundingClientRect();
@@ -964,7 +1028,11 @@ const Home = () => {
                   >
                     <div className="hero-icon-container">{action.icon}</div>
                     <div className="hero-content">
-                      <h3 className="hero-title">{action.text}</h3>
+                      <h3 className="hero-title">
+                        {action.id === "quick-chat" && isChatLoading
+                          ? "正在启动..."
+                          : action.text}
+                      </h3>
                       <p className="hero-description">{action.description}</p>
                     </div>
                   </button>
