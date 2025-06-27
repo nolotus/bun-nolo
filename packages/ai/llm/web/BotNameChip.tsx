@@ -5,7 +5,7 @@ import React from "react";
 import { Dialog as EditDialog } from "render/web/ui/Dialog";
 import { useModal } from "render/ui/Modal";
 import { useTheme } from "app/theme";
-import BotForm from "ai/llm/web/BotForm";
+import AgentForm from "ai/llm/web/AgentForm";
 
 import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
@@ -90,7 +90,7 @@ const BotNameChip: React.FC<BotNameChipProps> = React.memo(
             onClose={closeEdit}
             title={`Edit ${bot.name || "Bot"}`}
           >
-            <BotForm // 组件名保留，但内部可能处理bot
+            <AgentForm // 组件名保留，但内部可能处理bot
               mode="edit"
               initialValues={bot}
               onClose={closeEdit}

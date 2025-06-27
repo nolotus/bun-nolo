@@ -13,7 +13,7 @@ import { Agent } from "app/types";
 import { remove } from "database/dbSlice";
 import { Dialog } from "render/web/ui/Dialog";
 import { Tooltip } from "render/web/ui/Tooltip";
-import BotForm from "ai/llm/web/BotForm";
+import AgentForm from "ai/llm/web/AgentForm";
 import Button from "render/web/ui/Button";
 
 // Icons
@@ -181,7 +181,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           title={`${t("edit")} ${item.name || t("agent")}`}
           size="large"
         >
-          <BotForm
+          <AgentForm
             mode="edit"
             initialValues={item}
             onClose={closeEdit}

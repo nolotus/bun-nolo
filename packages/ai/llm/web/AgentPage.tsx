@@ -1,23 +1,25 @@
 import { useCallback, useState } from "react";
-import { selectTheme } from "app/theme/themeSlice";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useFetchData } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";
+import { format } from "date-fns";
 
 import toast from "react-hot-toast";
 import Button from "render/web/ui/Button";
 import { Dialog } from "render/web/ui/Dialog";
 import Avatar from "render/web/ui/Avatar";
-import BotForm from "ai/llm/web/BotForm";
+import AgentForm from "ai/llm/web/AgentForm";
 
+import { selectTheme } from "app/theme/themeSlice";
 import { Agent } from "app/types";
 import { remove } from "database/dbSlice";
-import { PlusIcon, SyncIcon } from "@primer/octicons-react";
 
 import {
+  PlusIcon,
+  SyncIcon,
   CommentDiscussionIcon,
   PencilIcon,
   TrashIcon,
@@ -28,7 +30,6 @@ import {
   CpuIcon,
   EyeClosedIcon,
 } from "@primer/octicons-react";
-
 import { FaYenSign } from "react-icons/fa";
 
 interface AgentPageProps {
@@ -55,9 +56,10 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
       await dispatch(remove(agentKey));
       toast.success(t("deleteSuccess"));
       onBack?.();
-    } catch (error) {
+    } catch (err) {
       setDeleting(false);
-      toast.error(t("deleteError"));
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      toast.error(`${t("deleteError")}: ${errorMessage}`);
     }
   }, [item, agentKey, deleting, dispatch, t, onBack]);
 
@@ -65,8 +67,9 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
     if (dialogLoading) return;
     try {
       await createNewDialog({ agents: [agentKey] });
-    } catch (error) {
-      toast.error(t("createDialogError"));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      toast.error(`${t("createDialogError")}: ${errorMessage}`);
     }
   }, [dialogLoading, createNewDialog, agentKey, t]);
 
@@ -81,11 +84,11 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
   if (isLoading) {
     return (
       <div className="agent-page">
-        <div className="container">
-          <div className="loading">
-            <div className="skeleton header-skeleton"></div>
-            <div className="skeleton content-skeleton"></div>
-            <div className="skeleton actions-skeleton"></div>
+        <div className="agent-page__container">
+          <div className="agent-page__state-indicator">
+            <div className="agent-page__skeleton agent-page__skeleton--header" />
+            <div className="agent-page__skeleton agent-page__skeleton--content" />
+            <div className="agent-page__skeleton agent-page__skeleton--actions" />
           </div>
         </div>
       </div>
@@ -95,8 +98,8 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
   if (error) {
     return (
       <div className="agent-page">
-        <div className="container">
-          <div className="error">
+        <div className="agent-page__container">
+          <div className="agent-page__state-indicator">
             <h2>{t("loadError")}</h2>
             <p>{error.message}</p>
             <Button onClick={handleBack} variant="secondary">
@@ -112,9 +115,9 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
 
   return (
     <div className="agent-page">
-      <div className="container">
+      <div className="agent-page__container">
         {/* Back button */}
-        <div className="nav">
+        <nav className="agent-page__nav">
           <Button
             icon={<ArrowLeftIcon size={16} />}
             onClick={handleBack}
@@ -122,73 +125,73 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           >
             {t("back")}
           </Button>
-        </div>
+        </nav>
 
         {/* Hero section */}
-        <div className="hero">
-          <div className="hero-content">
-            <div className="avatar-section">
+        <header className="agent-page__hero">
+          <div className="agent-page__hero-content">
+            <div className="agent-page__avatar">
               <Avatar name={item.name} type="agent" size="xlarge" />
             </div>
 
-            <div className="info">
-              <h1 className="title">{item.name || t("unnamed")}</h1>
+            <div className="agent-page__info">
+              <h1 className="agent-page__name">{item.name || t("unnamed")}</h1>
 
-              <div className="badges">
+              <div className="agent-page__badges">
                 {item.hasVision ? (
-                  <span className="badge vision">
+                  <span className="agent-page__badge agent-page__badge--vision">
                     <EyeIcon size={14} />
                     {t("vision")}
                   </span>
                 ) : (
-                  <span className="badge text-only">
+                  <span className="agent-page__badge agent-page__badge--text-only">
                     <EyeClosedIcon size={14} />
                     {t("textOnly")}
                   </span>
                 )}
 
                 {item.outputPrice && (
-                  <span className="badge price">
+                  <span className="agent-page__badge agent-page__badge--price">
                     <FaYenSign size={12} />
                     {item.outputPrice.toFixed(2)}
                   </span>
                 )}
               </div>
 
-              <div className="meta">
-                <span className="id">#{item.id}</span>
+              <div className="agent-page__meta">
+                <span className="agent-page__id">#{item.id}</span>
                 {item.createdAt && (
-                  <span className="date">
+                  <span className="agent-page__date">
                     <CalendarIcon size={14} />
-                    {new Date(item.createdAt).toLocaleDateString()}
+                    {format(new Date(item.createdAt), "yyyy-MM-dd")}
                   </span>
                 )}
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Content sections */}
-        <div className="content">
+        <main className="agent-page__content">
           {item.introduction && (
-            <section className="section">
-              <h2 className="section-title">
+            <section className="agent-page__section">
+              <h2 className="agent-page__section-title">
                 <CpuIcon size={18} />
                 {t("introduction")}
               </h2>
-              <p className="description">{item.introduction}</p>
+              <p className="agent-page__description">{item.introduction}</p>
             </section>
           )}
 
           {item.tags && item.tags.length > 0 && (
-            <section className="section">
-              <h2 className="section-title">
+            <section className="agent-page__section">
+              <h2 className="agent-page__section-title">
                 <TagIcon size={18} />
                 {t("tags")}
               </h2>
-              <div className="tags">
+              <div className="agent-page__tags">
                 {item.tags.map((tag, i) => (
-                  <span key={i} className="tag">
+                  <span key={i} className="agent-page__tag">
                     {tag}
                   </span>
                 ))}
@@ -196,44 +199,50 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
             </section>
           )}
 
-          <section className="section">
-            <h2 className="section-title">{t("details")}</h2>
-            <div className="details">
-              <div className="detail">
-                <span className="label">{t("model")}</span>
-                <span className="value">{item.model || t("notSpecified")}</span>
+          <section className="agent-page__section">
+            <h2 className="agent-page__section-title">{t("details")}</h2>
+            <div className="agent-page__details-grid">
+              <div className="agent-page__detail-item">
+                <span className="agent-page__detail-label">{t("model")}</span>
+                <span className="agent-page__detail-value">
+                  {item.model || t("notSpecified")}
+                </span>
               </div>
-              <div className="detail">
-                <span className="label">{t("temperature")}</span>
-                <span className="value">
+              <div className="agent-page__detail-item">
+                <span className="agent-page__detail-label">
+                  {t("temperature")}
+                </span>
+                <span className="agent-page__detail-value">
                   {item.temperature ?? t("notSpecified")}
                 </span>
               </div>
-              <div className="detail">
-                <span className="label">{t("maxTokens")}</span>
-                <span className="value">
+              <div className="agent-page__detail-item">
+                <span className="agent-page__detail-label">
+                  {t("maxTokens")}
+                </span>
+                <span className="agent-page__detail-value">
                   {item.maxTokens || t("notSpecified")}
                 </span>
               </div>
             </div>
           </section>
-        </div>
+        </main>
 
         {/* Actions */}
-        <div className="actions">
+        <footer className="agent-page__actions-footer">
           <Button
             icon={<CommentDiscussionIcon size={16} />}
             onClick={startDialog}
             disabled={dialogLoading}
             loading={dialogLoading}
             size="large"
-            className="primary-action"
+            className="agent-page__primary-action"
           >
             {dialogLoading ? t("starting") : t("startChat")}
           </Button>
 
           {allowEdit && (
-            <div className="secondary-actions">
+            <div className="agent-page__secondary-actions">
               <Button
                 icon={<PencilIcon size={16} />}
                 onClick={openEdit}
@@ -254,7 +263,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
               </Button>
             </div>
           )}
-        </div>
+        </footer>
       </div>
 
       {editVisible && (
@@ -264,7 +273,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           title={`${t("edit")} ${item.name || t("agent")}`}
           size="large"
         >
-          <BotForm
+          <AgentForm
             mode="edit"
             initialValues={item}
             onClose={closeEdit}
@@ -281,7 +290,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           padding: ${theme.space[3]};
         }
 
-        .container {
+        .agent-page__container {
           max-width: 720px;
           margin: 0 auto;
           display: flex;
@@ -289,12 +298,12 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           gap: ${theme.space[6]};
         }
 
-        .nav {
+        .agent-page__nav {
           display: flex;
           align-items: center;
         }
 
-        .hero {
+        .agent-page__hero {
           background: ${theme.background};
           border-radius: 24px;
           padding: ${theme.space[8]};
@@ -304,7 +313,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           overflow: hidden;
         }
 
-        .hero::before {
+        .agent-page__hero::before {
           content: '';
           position: absolute;
           top: 0;
@@ -315,19 +324,19 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           pointer-events: none;
         }
 
-        .hero-content {
+        .agent-page__hero-content {
           position: relative;
           display: flex;
           align-items: center;
           gap: ${theme.space[6]};
         }
 
-        .avatar-section {
+        .agent-page__avatar {
           flex-shrink: 0;
           position: relative;
         }
 
-        .avatar-section::after {
+        .agent-page__avatar::after {
           content: '';
           position: absolute;
           inset: -8px;
@@ -337,12 +346,12 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           z-index: -1;
         }
 
-        .info {
+        .agent-page__info {
           flex: 1;
           min-width: 0;
         }
 
-        .title {
+        .agent-page__name {
           font-size: 2.5rem;
           font-weight: 700;
           margin: 0 0 ${theme.space[4]} 0;
@@ -351,14 +360,14 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           letter-spacing: -0.03em;
         }
 
-        .badges {
+        .agent-page__badges {
           display: flex;
           gap: ${theme.space[2]};
           margin-bottom: ${theme.space[4]};
           flex-wrap: wrap;
         }
 
-        .badge {
+        .agent-page__badge {
           display: flex;
           align-items: center;
           gap: ${theme.space[1]};
@@ -369,25 +378,25 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           border: 1px solid;
         }
 
-        .badge.vision {
+        .agent-page__badge--vision {
           background: ${theme.primary}15;
           color: ${theme.primary};
           border-color: ${theme.primary}30;
         }
 
-        .badge.text-only {
+        .agent-page__badge--text-only {
           background: ${theme.backgroundTertiary};
           color: ${theme.textTertiary};
           border-color: ${theme.border};
         }
 
-        .badge.price {
+        .agent-page__badge--price {
           background: ${theme.backgroundSecondary};
           color: ${theme.textSecondary};
           border-color: ${theme.border};
         }
 
-        .meta {
+        .agent-page__meta {
           display: flex;
           gap: ${theme.space[4]};
           align-items: center;
@@ -395,7 +404,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           color: ${theme.textTertiary};
         }
 
-        .id {
+        .agent-page__id {
           font-family: 'SF Mono', Monaco, monospace;
           background: ${theme.backgroundTertiary};
           padding: ${theme.space[1]} ${theme.space[2]};
@@ -404,19 +413,19 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           font-weight: 600;
         }
 
-        .date {
+        .agent-page__date {
           display: flex;
           align-items: center;
           gap: ${theme.space[1]};
         }
 
-        .content {
+        .agent-page__content {
           display: flex;
           flex-direction: column;
           gap: ${theme.space[5]};
         }
 
-        .section {
+        .agent-page__section {
           background: ${theme.background};
           border-radius: 20px;
           padding: ${theme.space[6]};
@@ -424,7 +433,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           box-shadow: 0 4px 16px ${theme.shadow1};
         }
 
-        .section-title {
+        .agent-page__section-title {
           display: flex;
           align-items: center;
           gap: ${theme.space[2]};
@@ -434,7 +443,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           color: ${theme.text};
         }
 
-        .description {
+        .agent-page__description {
           font-size: 1rem;
           line-height: 1.7;
           color: ${theme.textSecondary};
@@ -442,13 +451,13 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           white-space: pre-wrap;
         }
 
-        .tags {
+        .agent-page__tags {
           display: flex;
           gap: ${theme.space[2]};
           flex-wrap: wrap;
         }
 
-        .tag {
+        .agent-page__tag {
           background: ${theme.backgroundTertiary};
           color: ${theme.textSecondary};
           padding: ${theme.space[2]} ${theme.space[3]};
@@ -459,24 +468,24 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           transition: all 0.2s ease;
         }
 
-        .tag:hover {
+        .agent-page__tag:hover {
           background: ${theme.backgroundSelected};
           color: ${theme.text};
         }
 
-        .details {
+        .agent-page__details-grid {
           display: grid;
           gap: ${theme.space[4]};
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         }
 
-        .detail {
+        .agent-page__detail-item {
           display: flex;
           flex-direction: column;
           gap: ${theme.space[1]};
         }
 
-        .label {
+        .agent-page__detail-label {
           font-size: 0.75rem;
           font-weight: 600;
           color: ${theme.textTertiary};
@@ -484,17 +493,17 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           letter-spacing: 0.08em;
         }
 
-        .value {
+        .agent-page__detail-value {
           font-size: 0.9rem;
           color: ${theme.textSecondary};
           font-family: 'SF Mono', Monaco, monospace;
           font-weight: 500;
         }
 
-        .actions {
+        .agent-page__actions-footer {
           position: sticky;
           bottom: ${theme.space[3]};
-          background: ${theme.background};
+          background: ${theme.background}cc; /* Added transparency for backdrop-filter */
           border: 1px solid ${theme.border};
           border-radius: 20px;
           padding: ${theme.space[4]};
@@ -502,58 +511,61 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           gap: ${theme.space[3]};
           box-shadow: 0 8px 32px ${theme.shadow2};
           backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
         }
 
-        .primary-action {
+        .agent-page__primary-action {
           flex: 1;
         }
 
-        .secondary-actions {
+        .agent-page__secondary-actions {
           display: flex;
           gap: ${theme.space[2]};
         }
 
-        .loading, .error {
+        .agent-page__state-indicator {
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: stretch;
           justify-content: center;
           gap: ${theme.space[4]};
-          padding: ${theme.space[12]};
+          padding: ${theme.space[12]} ${theme.space[4]};
           text-align: center;
           background: ${theme.background};
           border-radius: 20px;
           border: 1px solid ${theme.border};
+          min-height: 50vh;
         }
-
-        .skeleton {
+        
+        .agent-page__skeleton {
+          width: 100%;
           background: linear-gradient(90deg, ${theme.backgroundTertiary} 25%, ${theme.backgroundSecondary} 50%, ${theme.backgroundTertiary} 75%);
           background-size: 200% 100%;
-          animation: loading 1.5s infinite;
+          animation: agent-page-loading 1.5s infinite;
           border-radius: 12px;
         }
 
-        .header-skeleton { height: 160px; margin-bottom: ${theme.space[5]}; }
-        .content-skeleton { height: 240px; margin-bottom: ${theme.space[5]}; }
-        .actions-skeleton { height: 80px; }
+        .agent-page__skeleton--header { height: 160px; margin-bottom: ${theme.space[5]}; }
+        .agent-page__skeleton--content { height: 240px; margin-bottom: ${theme.space[5]}; }
+        .agent-page__skeleton--actions { height: 60px; }
 
-        @keyframes loading {
+        @keyframes agent-page-loading {
           0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
 
         @media (max-width: 768px) {
-          .hero-content {
+          .agent-page__hero-content {
             flex-direction: column;
             text-align: center;
             gap: ${theme.space[4]};
           }
 
-          .title {
+          .agent-page__name {
             font-size: 2rem;
           }
 
-          .actions {
+          .agent-page__actions-footer {
             position: fixed;
             bottom: 0;
             left: 0;
@@ -563,27 +575,29 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
             border-right: 0;
             border-bottom: 0;
             margin: 0;
+            z-index: 10;
           }
 
-          .container {
-            padding-bottom: 100px;
+          .agent-page__container {
+            padding-bottom: 120px; /* Space for fixed footer */
           }
         }
 
         @media (max-width: 480px) {
-          .actions {
+          .agent-page__actions-footer {
             flex-direction: column;
           }
           
-          .secondary-actions {
+          .agent-page__secondary-actions {
+            width: 100%;
             justify-content: stretch;
           }
           
-          .secondary-actions > * {
+          .agent-page__secondary-actions > * {
             flex: 1;
           }
 
-          .details {
+          .agent-page__details-grid {
             grid-template-columns: 1fr;
           }
         }
