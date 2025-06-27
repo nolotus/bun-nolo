@@ -55,6 +55,15 @@ import {
   fetchWebpageFunctionSchema,
   fetchWebpageFunc,
 } from "./fetchWebpageTool";
+// [新增] 导入浏览器交互工具
+import {
+  browser_openSession_Schema,
+  browser_openSession_Func,
+} from "./browserTools/openSession";
+import {
+  browser_selectOption_Schema,
+  browser_selectOption_Func,
+} from "./browserTools/selectOption";
 
 // 多媒体生成
 // import {
@@ -300,6 +309,28 @@ const toolDefinitions: ToolDefinition[] = [
       category: "网络与智能",
     },
   },
+  // [新增] 浏览器 - 打开会话
+  {
+    id: "browserOpenSession",
+    schema: browser_openSession_Schema,
+    executor: browser_openSession_Func,
+    description: {
+      name: "browser_openSession",
+      description: "打开一个新的浏览器会话并导航到URL，返回会话ID",
+      category: "网络与智能",
+    },
+  },
+  // [新增] 浏览器 - 选择选项
+  {
+    id: "browserSelectOption",
+    schema: browser_selectOption_Schema,
+    executor: browser_selectOption_Func,
+    description: {
+      name: "browser_selectOption",
+      description: "在浏览器会话中选择一个下拉框选项",
+      category: "网络与智能",
+    },
+  },
 
   // --- 多媒体生成 ---
   // {
@@ -321,7 +352,8 @@ const toolDefinitions: ToolDefinition[] = [
 // 4.1 生成给 LLM 的工具注册表
 export const toolRegistry: Record<string, any> = toolDefinitions.reduce(
   (acc, tool) => {
-    acc[tool.id] = { type: "function", function: tool.schema };
+    // LLM 调用时使用 schema.name, 而我们的内部 ID 是 tool.id
+    acc[tool.schema.name] = { type: "function", function: tool.schema };
     return acc;
   },
   {} as Record<string, any>
@@ -331,7 +363,8 @@ export const toolRegistry: Record<string, any> = toolDefinitions.reduce(
 export const toolExecutors: Record<string, ToolDefinition["executor"]> =
   toolDefinitions.reduce(
     (acc, tool) => {
-      acc[tool.id] = tool.executor;
+      // 执行器使用 schema.name 作为键，与 createPlan 中的 tool_name 保持一致
+      acc[tool.schema.name] = tool.executor;
       return acc;
     },
     {} as Record<string, ToolDefinition["executor"]>
@@ -341,7 +374,8 @@ export const toolExecutors: Record<string, ToolDefinition["executor"]> =
 export const toolDescriptions: Record<string, ToolDefinition["description"]> =
   toolDefinitions.reduce(
     (acc, tool) => {
-      acc[tool.id] = tool.description;
+      // UI 描述使用 schema.name 作为键
+      acc[tool.schema.name] = tool.description;
       return acc;
     },
     {} as Record<string, ToolDefinition["description"]>

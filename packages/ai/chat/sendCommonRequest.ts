@@ -1,6 +1,5 @@
 // /ai/chat/sendCommonChatRequest.ts
 
-import { prepareTools } from "ai/tools/prepareTools";
 import {
   addActiveController,
   removeActiveController,
@@ -21,6 +20,13 @@ import { parseMultilineSSE } from "./parseMultilineSSE";
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
 import { accumulateToolCallChunks } from "./accumulateToolCallChunks";
+import { toolRegistry } from "../tools/toolRegistry";
+
+export const prepareTools = (toolNames: string[]) => {
+  return toolNames
+    .map((toolName: string) => toolRegistry[toolName])
+    .filter(Boolean); // 过滤掉未找到的工具
+};
 
 // 辅助函数 (无变化)
 function appendTextChunk(
