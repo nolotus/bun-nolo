@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { useAppSelector, useAppDispatch } from "app/hooks";
@@ -18,22 +18,24 @@ interface Reference {
   [key: string]: any;
 }
 
-// 定义组件的 props 接口，遵循 value/onChange 模式
+// 定义组件的 props 接口
 interface ReferencesSelectorProps {
   value?: Reference[];
   onChange: (value: Reference[]) => void;
 }
 
 const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
-  value = [], // 为 value 提供默认空数组，增强健壮性
+  value = [],
   onChange,
 }) => {
-  // 初始化 i18next hook，使用 "ai" 命名空间
   const { t } = useTranslation("ai");
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const currentSpace = useAppSelector(selectCurrentSpace);
   const allMemberSpaces = useAppSelector(selectAllMemberSpaces);
+
+  // [核心修复] 使用 useRef 来跟踪已获取的空间，防止无限循环
+  const fetchedSpacesRef = useRef(new Set<string>());
 
   // 组件内部状态
   const [activeSpaceId, setActiveSpaceId] = useState<string>("");
@@ -76,29 +78,28 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
     }
   }, [currentSpace?.id, activeSpaceId]);
 
-  // 根据活动空间 ID 加载数据
+  // [核心修复] 根据活动空间 ID 加载数据，移除对 spacesData 的依赖
   useEffect(() => {
-    if (!activeSpaceId) return;
+    if (!activeSpaceId || fetchedSpacesRef.current.has(activeSpaceId)) {
+      return;
+    }
 
-    // 如果是当前空间且已有数据，直接使用
     if (activeSpaceId === currentSpace?.id && currentSpace?.contents) {
       const contents = Object.entries(currentSpace.contents)
         .filter(([key]) => !key.startsWith("dialog-"))
         .map(([key, value]: [string, any]) => ({
           dbKey: key,
-          title: value?.title || "Untitled",
+          title: value?.title || t("unnamed"),
           spaceId: currentSpace.id,
           spaceName: currentSpace.name,
         }));
       setSpacesData((prev) => new Map(prev).set(activeSpaceId, contents));
+      fetchedSpacesRef.current.add(activeSpaceId); // 标记为已获取
       return;
     }
 
-    // 如果数据已缓存，直接返回
-    if (spacesData.has(activeSpaceId)) return;
-
-    // 否则，通过 dispatch 异步加载
     const loadSpace = async () => {
+      fetchedSpacesRef.current.add(activeSpaceId); // 在请求前标记，防止重复请求
       setLoading(true);
       try {
         const result = await dispatch(
@@ -108,25 +109,28 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           .filter(([key]) => !key.startsWith("dialog-"))
           .map(([key, value]: [string, any]) => ({
             dbKey: key,
-            title: value?.title || "Untitled",
+            title: value?.title || t("unnamed"),
             spaceId: result.id,
             spaceName: result.name,
           }));
         setSpacesData((prev) => new Map(prev).set(activeSpaceId, contents));
       } catch (error) {
+        // 在生产环境中，这里也应该有用户反馈
         console.error(`Failed to load space ${activeSpaceId}:`, error);
       } finally {
         setLoading(false);
       }
     };
     loadSpace();
-  }, [activeSpaceId, currentSpace, dispatch, spacesData]);
+  }, [activeSpaceId, currentSpace, dispatch, t]);
 
   // 根据搜索词过滤内容
   const filteredContents = useMemo(() => {
+    const activeData = spacesData.get(activeSpaceId) || [];
     if (!searchQuery) {
-      return spacesData.get(activeSpaceId) || [];
+      return activeData;
     }
+
     const query = searchQuery.toLowerCase();
     const allResults: any[] = [];
     spacesData.forEach((contents) => {
@@ -138,7 +142,7 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
     return allResults;
   }, [spacesData, activeSpaceId, searchQuery]);
 
-  // 处理函数，通过 onChange prop 通知父组件状态变更
+  // 处理函数
   const handleToggleReference = (content: any) => {
     const isSelected = value.some((ref) => ref.dbKey === content.dbKey);
     if (isSelected) {
@@ -172,13 +176,14 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
   return (
     <>
       <div className="references-selector">
-        {/* 搜索框 */}
         <div className="references-selector-search-box">
           <SearchIcon size={16} className="references-selector-search-icon" />
           <input
             type="text"
             placeholder={
-              searchQuery ? t("searchingAllSpaces") : t("searchInCurrentSpace")
+              searchQuery
+                ? t("references.searchAllSpaces")
+                : t("references.searchCurrentSpace")
             }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -189,14 +194,13 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
               type="button"
               onClick={() => setSearchQuery("")}
               className="references-selector-clear-btn"
-              aria-label={t("clearSearch")}
+              aria-label={t("references.clearSearch")}
             >
               <XIcon size={14} />
             </button>
           )}
         </div>
 
-        {/* 空间切换器 */}
         {!searchQuery && (
           <div className="references-selector-space-selector">
             <div className="references-selector-space-tabs">
@@ -250,24 +254,25 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           </div>
         )}
 
-        {/* 内容列表 */}
         <div className="references-selector-content-area">
           {loading ? (
             <div className="references-selector-loading">
               <div className="references-selector-spinner" />
-              <span>{t("loading")}...</span>
+              <span>{t("loading")}</span>
             </div>
           ) : filteredContents.length === 0 ? (
             <div className="references-selector-empty">
               <span>
-                {searchQuery ? t("noSearchResults") : t("noContentInSpace")}
+                {searchQuery
+                  ? t("references.noResults")
+                  : t("references.noContent")}
               </span>
             </div>
           ) : (
             <>
               {searchQuery && (
                 <div className="references-selector-results-count">
-                  {t("foundResults", { count: filteredContents.length })}
+                  {t("references.found", { count: filteredContents.length })}
                 </div>
               )}
 
@@ -294,7 +299,9 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
                         </span>
                         {searchQuery && (
                           <span className="references-selector-item-source">
-                            {t("fromSpace", { spaceName: item.spaceName })}
+                            {t("references.fromSpace", {
+                              spaceName: item.spaceName,
+                            })}
                           </span>
                         )}
                       </div>
@@ -304,8 +311,8 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
                       <Tooltip
                         content={
                           selectedRef.type === "knowledge"
-                            ? t("toInstruction")
-                            : t("toKnowledge")
+                            ? t("references.toInstruction")
+                            : t("references.toKnowledge")
                         }
                       >
                         <button
@@ -328,14 +335,13 @@ const ReferencesSelector: React.FC<ReferencesSelectorProps> = ({
           )}
         </div>
 
-        {/* 选中统计 */}
         {value.length > 0 && (
           <div className="references-selector-summary">
-            {t("selectedSummary", { count: value.length })}
+            {t("references.selected", { count: value.length })}
             {value.length > 1 && (
               <span className="references-selector-summary-detail">
-                ({t("knowledge")}: {knowledgeCount}, {t("instruction")}:{" "}
-                {instructionCount})
+                ({t("references.knowledge")}: {knowledgeCount},{" "}
+                {t("references.instruction")}: {instructionCount})
               </span>
             )}
           </div>
