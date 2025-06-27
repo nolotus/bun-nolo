@@ -19,7 +19,6 @@ import {
   ChevronRightIcon,
   CreditCardIcon,
   PlusIcon,
-  GearIcon,
   BookIcon,
   CopilotIcon,
   CommentDiscussionIcon,
@@ -31,37 +30,20 @@ import { toast } from "react-hot-toast";
 // Components
 import WelcomeSection from "./WelcomeSection";
 import AgentBlock from "ai/llm/web/AgentBlock";
-
 import PubCybots from "ai/cybot/web/PubCybots";
 
-// 骨架屏组件
-const SkeletonCard = memo(({ index }: { index: number }) => {
-  const theme = useAppSelector(selectTheme);
-
-  return (
-    <div
-      className="skeleton-card"
-      style={{
-        animationDelay: `${index * 0.1}s`,
-      }}
-    />
-  );
-});
-
-SkeletonCard.displayName = "SkeletonCard";
-
-const LoadingState = memo(() => {
-  const theme = useAppSelector(selectTheme);
-
-  return (
-    <div className="cybots-grid">
-      {Array.from({ length: 6 }, (_, i) => (
-        <SkeletonCard key={i} index={i} />
-      ))}
-    </div>
-  );
-});
-
+// 骨架屏组件 (已简化)
+const LoadingState = memo(() => (
+  <div className="cybots-grid">
+    {Array.from({ length: 6 }, (_, i) => (
+      <div
+        key={i}
+        className="skeleton-card"
+        style={{ animationDelay: `${i * 0.1}s` }}
+      />
+    ))}
+  </div>
+));
 LoadingState.displayName = "LoadingState";
 
 const EmptyState = memo(({ message }: { message: string }) => {
@@ -76,7 +58,6 @@ const EmptyState = memo(({ message }: { message: string }) => {
     </div>
   );
 });
-
 EmptyState.displayName = "EmptyState";
 
 interface CybotsProps {
@@ -126,7 +107,6 @@ const Cybots = memo(({ queryUserId, limit = 6 }: CybotsProps) => {
     </div>
   );
 });
-
 Cybots.displayName = "Cybots";
 
 // 主组件
@@ -225,14 +205,6 @@ const Home = () => {
       payload:
         "/page-0e95801d90-01JRDMA6Q85PQDCEAC7EXHWF67?spaceId=01JRDM39VSNYD1PKS4B53W6BGE",
       priority: "high",
-    },
-    {
-      id: "custom-ai",
-      text: "高级定制",
-      icon: <GearIcon size={18} />,
-      type: "navigate",
-      payload: `/${CreateRoutePaths.CREATE_CUSTOM_CYBOT}`,
-      priority: "medium",
     },
     {
       id: "recharge",
@@ -471,7 +443,7 @@ const Home = () => {
         /* 次要操作区 */
         .utility-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
           gap: ${theme.space[4]};
         }
 
