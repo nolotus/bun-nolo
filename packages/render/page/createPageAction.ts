@@ -5,7 +5,7 @@ import {
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
 import { createPageKey } from "database/keys";
-import { t } from "i18next";
+import i18n from "app/i18n";
 import { DataType } from "create/types";
 import type { RootState, AppDispatch } from "app/store";
 import { write } from "database/dbSlice";
@@ -39,7 +39,7 @@ export const createPageAction = async (
 
   const now = new Date();
   const dateStr = format(now, "yyyy-MM-dd HH:mm");
-  const defaultTitle = t("page:defaultTitleFormat", {
+  const defaultTitle = i18n.t("page:defaultTitleFormat", {
     defaultValue: "{{date}} 的笔记",
     date: dateStr,
   });

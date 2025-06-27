@@ -1,9 +1,13 @@
-// handleRender.js
+// handleRender.js (完整最终版本 - 已修复 TypeError)
+
 import { createAppStore } from "app/store";
 import { renderToReadableStream } from "react-dom/server";
 import { renderReactApp } from "./html/renderReactApp";
 import { serializeState } from "./html/serializeState";
 import { htmlEnd, htmlStart } from "./html/template";
+// 导入专为服务器创建的 i18next 实例
+// 请确保此路径相对于 handleRender.js 是正确的
+import i18nServer from "app/i18n/i18n.server";
 
 // 缓存机制
 let cachedAssets = null;
@@ -46,7 +50,7 @@ export const handleRender = async (req) => {
   // 获取最新的 assets 数据
   const assets = await getLatestAssets();
 
-  // 构建资源URL - 现在路径已经包含 /public 前缀
+  // 构建资源URL
   const bootstrapJs = assets.js || "";
   const bootstrapCss = assets.css || "";
 
@@ -56,6 +60,17 @@ export const handleRender = async (req) => {
   const lng = acceptLanguage?.split(",")[0] || "zh-CN";
 
   try {
+    // --- 已修复 ---
+    // i18n.init() 返回的 Promise 直接解析为 t 函数
+    const t = await i18nServer.cloneInstance({ lng }).init();
+
+    const seoData = {
+      lang: lng,
+      title: t("seo.title", { ns: "common" }),
+      description: t("seo.description", { ns: "common" }),
+    };
+    // --- 修复结束 ---
+
     const renderStartTime = performance.now();
     const store = createAppStore();
     const stream = await renderToReadableStream(
@@ -95,7 +110,7 @@ export const handleRender = async (req) => {
     };
 
     const writeHeaderStartTime = performance.now();
-    writer.write(new TextEncoder().encode(htmlStart(bootstrapCss)));
+    writer.write(new TextEncoder().encode(htmlStart(seoData, bootstrapCss)));
     console.log(
       `Write header time: ${performance.now() - writeHeaderStartTime}ms`
     );
@@ -121,6 +136,7 @@ export const handleRender = async (req) => {
       // }
       //maybe need delete api relate
       // 获取预加载的状态并序列化
+
       const preloadedState = store.getState();
       writer.write(new TextEncoder().encode(serializeState(preloadedState)));
 
@@ -186,46 +202,12 @@ export const handleRender = async (req) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
         <title>服务器错误</title>
         <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 40px;
-            background-color: #f5f5f5;
-            color: #333;
-          }
-          .error-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-          }
-          .error-title {
-            color: #e74c3c;
-            font-size: 24px;
-            margin-bottom: 16px;
-          }
-          .error-message {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 24px;
-          }
-          .retry-button {
-            background-color: #3498db;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-            display: inline-block;
-          }
-          .retry-button:hover {
-            background-color: #2980b9;
-          }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; background-color: #f5f5f5; color: #333; }
+          .error-container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+          .error-title { color: #e74c3c; font-size: 24px; margin-bottom: 16px; }
+          .error-message { color: #666; line-height: 1.6; margin-bottom: 24px; }
+          .retry-button { background-color: #3498db; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; text-decoration: none; display: inline-block; }
+          .retry-button:hover { background-color: #2980b9; }
         </style>
       </head>
       <body>
@@ -241,7 +223,6 @@ export const handleRender = async (req) => {
         </div>
         
         <script>
-          // 5秒后自动重新加载
           setTimeout(() => {
             if (confirm('页面将自动刷新，是否继续？')) {
               window.location.reload();

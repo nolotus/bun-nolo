@@ -1,14 +1,15 @@
 // auth/server/login.ts
-import { t } from "i18next";
+
 import { verifyToken } from "auth/token";
 import serverDb from "database/server/db.js";
+import { DB_PREFIX } from "database/keys";
+import i18nServer from "app/i18n/i18n.server";
 import {
   logger,
   createErrorResponse,
   createSuccessResponse,
   handleOptionsRequest,
 } from "./shared";
-import { DB_PREFIX } from "database/keys";
 
 export async function handleLogin(req: Request) {
   if (req.method === "OPTIONS") {
@@ -17,6 +18,11 @@ export async function handleLogin(req: Request) {
   }
 
   try {
+    // 2. 为本次请求动态创建专属的 t 函数
+    const acceptLanguage = req.headers.get("accept-language");
+    const lng = acceptLanguage?.split(",")[0] || "zh-CN";
+    const t = await i18nServer.cloneInstance({ lng }).init();
+
     logger.info({
       event: "login_attempt",
       method: req.method,
@@ -25,9 +31,11 @@ export async function handleLogin(req: Request) {
 
     if (!req.body) {
       logger.warn({ event: "login_failed", reason: "请求体为空" });
-      return createErrorResponse("请求体为空", 400);
+      // 3. 使用新的、本地化的 t 函数返回错误信息
+      return createErrorResponse(t("errors.requestBodyEmpty"), 400);
     }
 
+    // 完全保留您原有的 req.body 用法
     const { userId, token } = req.body;
 
     if (!userId || !token) {
@@ -36,7 +44,7 @@ export async function handleLogin(req: Request) {
         reason: "缺少必要字段",
         userId: userId ?? "未提供",
       });
-      return createErrorResponse("缺少 userId 或 token", 400);
+      return createErrorResponse(t("errors.missingFields"), 400);
     }
 
     let user;
@@ -45,7 +53,7 @@ export async function handleLogin(req: Request) {
       logger.debug({
         event: "user_fetched",
         userId,
-        user: user ? JSON.stringify(user) : "未找到",
+        user: user ? "已找到" : "未找到",
       });
     } catch (err) {
       logger.error({
@@ -54,7 +62,7 @@ export async function handleLogin(req: Request) {
         reason: "数据库查询失败",
         error: err.message,
       });
-      throw new Error(`数据库错误: ${err.message}`);
+      throw new Error(t("errors.databaseError"));
     }
 
     if (!user) {
@@ -72,7 +80,7 @@ export async function handleLogin(req: Request) {
         userId,
         reason: "用户缺少公钥",
       });
-      return createErrorResponse("用户数据无效", 500);
+      return createErrorResponse(t("errors.invalidUserData"), 500);
     }
 
     let verification;
@@ -85,7 +93,7 @@ export async function handleLogin(req: Request) {
         reason: "token 验证失败",
         error: err.message,
       });
-      return createErrorResponse("token 验证错误", 403);
+      return createErrorResponse(t("errors.tokenVerificationFailed"), 403);
     }
 
     if (!verification) {
@@ -99,7 +107,7 @@ export async function handleLogin(req: Request) {
 
     logger.info({ event: "login_success", userId });
     return createSuccessResponse({
-      message: t("User logged in"),
+      message: t("login.success"),
       token,
     });
   } catch (error) {
@@ -112,6 +120,7 @@ export async function handleLogin(req: Request) {
       method: req.method,
     });
 
+    // 这是一个后备错误信息，在 t 函数创建失败时使用
     return createErrorResponse("内部服务器错误", 500);
   }
 }

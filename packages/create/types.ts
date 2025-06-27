@@ -7,7 +7,5 @@ export enum DataType {
   TOKEN = "token",
   SPACE = "space",
   TRANSACTION = "transaction",
-  SETTING = "setting", // 添加新的数据类型
-
-  // CalendarEvent = "calendar_event",
+  SETTING = "setting",
 }

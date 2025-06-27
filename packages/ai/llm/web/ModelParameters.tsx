@@ -12,6 +12,7 @@ import {
   DEFAULT_MAX_TOKENS,
   DEFAULT_REASONING_EFFORT,
 } from "../common/createCybotSchema";
+import { useTranslation } from "react-i18next";
 
 // 导出常量，供 AdvancedSettingsTab 使用
 export const PARAMETER_CONFIGS = [
@@ -72,7 +73,9 @@ export const PARAMETER_FORM_KEYS = {
 };
 
 // Props 接口已更新为通用的 values, onValueChange, 和 onReset
-const ModelParameters = ({ values, onValueChange, onReset, t }) => {
+const ModelParameters = ({ values, onValueChange, onReset }) => {
+  const { t } = useTranslation("ai");
+
   return (
     <div className="model-parameters">
       <div className="parameters-header">
