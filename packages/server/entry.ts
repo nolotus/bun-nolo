@@ -1,4 +1,4 @@
-// index.ts
+// entry.ts
 
 import { isProduction } from "utils/env";
 import { handleRequest } from "./handleRequest";
@@ -11,6 +11,7 @@ import { databaseRoutes } from "./databaseRoutes";
 import { sqliteRoutes } from "./sqliteRoutes";
 
 // --- 新增引入 ---
+import { handleBrowserTool } from "./handlers/browserToolHandler"; // 新增
 import { handleGetTransactions } from "./handlers/getTransactionsHandler";
 
 // 启动定时任务 (如果需要，可以取消注释)
@@ -55,6 +56,13 @@ const apiRoutes = {
     POST: handleFetchWebpage,
     OPTIONS: () => new Response(null, { status: 204, headers: corsHeaders }),
   },
+
+  // [新增] 浏览器工具的统一路由
+  "/api/browser-tool": {
+    POST: (req: Request) => handleBrowserTool(req),
+    OPTIONS: () => new Response(null, { status: 204, headers: corsHeaders }),
+  },
+
   ...databaseRoutes,
   ...sqliteRoutes,
 };
@@ -65,7 +73,7 @@ const startServer = () => {
 
   // 提取通用的服务器配置
   const serverOptions = {
-    routes: apiRoutes,
+    routes: apiRoutes, // 保持您原有的、正确的路由方式
     idleTimeout: 60,
     hostname: "0.0.0.0",
     fetch: handleRequest, // 备用处理器
