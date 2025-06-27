@@ -130,7 +130,7 @@ export const useAgentValidation = (initialValues?: ExtendedFormData) => {
         }
 
         await createNewDialog({
-          cybots: [data.isPublic ? createCybotKey.public(id) : userPath],
+          agents: [data.isPublic ? createCybotKey.public(id) : userPath],
         });
       }
     },

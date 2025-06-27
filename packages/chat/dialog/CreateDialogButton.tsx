@@ -38,7 +38,7 @@ const CreateDialogButton = ({ dialogConfig }) => {
   const { t } = useTranslation("chat");
   const handleCreateClick = () => {
     createNewDialog({
-      cybots: dialogConfig.cybots,
+      agents: dialogConfig.cybots,
     });
   };
 
