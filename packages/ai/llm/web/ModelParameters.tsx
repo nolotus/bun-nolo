@@ -1,5 +1,10 @@
-import React from "react";
+// features/agent/tabs/ModelParameters.tsx (替换原文件)
+
+import React, { useCallback } from "react";
+import { Controller } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { MdRefresh, MdInfoOutline } from "react-icons/md";
+import { FormField } from "render/web/form/FormField";
 import Button from "render/web/ui/Button";
 import { Slider } from "render/web/form/Slider";
 import { Tooltip } from "render/web/ui/Tooltip";
@@ -12,10 +17,9 @@ import {
   DEFAULT_MAX_TOKENS,
   DEFAULT_REASONING_EFFORT,
 } from "../common/createAgentSchema";
-import { useTranslation } from "react-i18next";
 
-// 导出常量，供 AdvancedSettingsTab 使用
-export const PARAMETER_CONFIGS = [
+// 1. [封装] 常量现在是组件的内部细节，无需导出
+const PARAMETER_CONFIGS = [
   {
     key: "temperature",
     min: 0,
@@ -63,7 +67,7 @@ export const PARAMETER_CONFIGS = [
   },
 ];
 
-export const PARAMETER_FORM_KEYS = {
+const PARAMETER_FORM_KEYS = {
   temperature: "temperature",
   topP: "top_p",
   frequencyPenalty: "frequency_penalty",
@@ -72,19 +76,26 @@ export const PARAMETER_FORM_KEYS = {
   reasoning_effort: "reasoning_effort",
 };
 
-// Props 接口已更新为通用的 values, onValueChange, 和 onReset
-const ModelParameters = ({ values, onValueChange, onReset }) => {
+// 2. [简化API] 组件现在只接收 control 和 setValue
+const ModelParameters = ({ control, setValue }) => {
   const { t } = useTranslation("ai");
+
+  const handleResetParameters = useCallback(() => {
+    PARAMETER_CONFIGS.forEach((config) => {
+      const formKey = PARAMETER_FORM_KEYS[config.key];
+      setValue(formKey, config.default, { shouldDirty: true });
+    });
+  }, [setValue]);
 
   return (
     <div className="model-parameters">
       <div className="parameters-header">
-        <h3>{t("modelParameters")}</h3>
+        <h3>{t("form.modelParameters")}</h3>
         <Button
           variant="ghost"
           size="small"
           icon={<MdRefresh size={16} />}
-          onClick={onReset} // 直接使用父组件提供的 onReset 回调
+          onClick={handleResetParameters}
           type="button"
         >
           {t("resetToDefaults")}
@@ -94,69 +105,78 @@ const ModelParameters = ({ values, onValueChange, onReset }) => {
       <div className="parameters-grid">
         {PARAMETER_CONFIGS.map((config) => {
           const formKey = PARAMETER_FORM_KEYS[config.key];
-          // 从 values prop 获取值，如果不存在则使用默认值
-          const displayValue = values[formKey] ?? config.default;
 
           return (
-            <div key={config.key} className="parameter-item">
-              <div className="parameter-label">
-                <span className="label-text">{t(config.key)}</span>
-                <Tooltip
-                  content={t(`${config.key}Help`)}
-                  placement="right"
-                  delay={200}
-                >
-                  <MdInfoOutline size={16} className="info-icon" />
-                </Tooltip>
-              </div>
+            // 3. [重构] 每个参数都由自己的 Controller 管理
+            <Controller
+              key={formKey}
+              name={formKey}
+              control={control}
+              defaultValue={config.default}
+              render={({ field }) => {
+                const displayValue = field.value ?? config.default;
 
-              <div className="parameter-control">
-                {config.key === "reasoning_effort" ? (
-                  <RadioGroup
-                    options={config.options.map((option) => ({
-                      id: option,
-                      value: option,
-                      label: t(option) || option,
-                    }))}
-                    value={displayValue}
-                    name={formKey}
-                    // 调用通用的 onValueChange 回调，通知父组件值的变更
-                    onChange={(newValue) => onValueChange(formKey, newValue)}
-                  />
-                ) : (
-                  <>
-                    <Slider
-                      value={displayValue}
-                      // 调用通用的 onValueChange 回调
-                      onChange={(newValue) => onValueChange(formKey, newValue)}
-                      min={config.min}
-                      max={config.max}
-                      step={config.step}
-                      showValue
-                      ariaLabel={t(config.key)}
-                    />
-                    <div className="parameter-info">
-                      <span className="parameter-range">
-                        {config.min} - {config.max}
-                      </span>
-                      <span className="parameter-current">
-                        {config.format(displayValue)}
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+                return (
+                  <FormField
+                    horizontal={false} // 使用垂直布局更适合这种UI
+                    label={
+                      <div className="parameter-label-content">
+                        <span>{t(`form.${config.key}`)}</span>
+                        <Tooltip
+                          content={t(`help.${config.key}`)}
+                          placement="right"
+                          delay={200}
+                        >
+                          <MdInfoOutline size={16} className="info-icon" />
+                        </Tooltip>
+                      </div>
+                    }
+                  >
+                    {config.key === "reasoning_effort" ? (
+                      <RadioGroup
+                        options={config.options.map((option) => ({
+                          id: option,
+                          value: option,
+                          label: t(option, { defaultValue: option }),
+                        }))}
+                        value={displayValue}
+                        name={field.name}
+                        onChange={field.onChange}
+                      />
+                    ) : (
+                      <div className="slider-wrapper">
+                        <Slider
+                          value={[displayValue]} // Slider通常需要一个数组
+                          onValueChange={(val) => field.onChange(val[0])} // 从数组中取出值
+                          min={config.min}
+                          max={config.max}
+                          step={config.step}
+                          aria-label={t(`form.${config.key}`)}
+                        />
+                        <div className="parameter-info">
+                          <span className="parameter-range">
+                            {config.min} - {config.max}
+                          </span>
+                          <span className="parameter-current">
+                            {config.format(displayValue)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </FormField>
+                );
+              }}
+            />
           );
         })}
       </div>
 
-      <style href="model-parameters" precedence="medium">{`
-        /* CSS styles remain the same */
+      {/* 样式部分可以保持不变，或根据需要微调 */}
+      <style jsx>{`
         .model-parameters {
           margin-top: 32px;
           padding-top: 24px;
-          border-top: 1px solid var(--border, #e2e8f0);
+          border-top: 1px solid var(--border-color, #e2e8f0);
         }
         .parameters-header {
           display: flex;
@@ -165,33 +185,27 @@ const ModelParameters = ({ values, onValueChange, onReset }) => {
           margin-bottom: 24px;
         }
         .parameters-header h3 {
-          font-size: 16px;
+          font-size: 1.1rem;
           font-weight: 600;
           margin: 0;
-          color: var(--text, #1f2937);
         }
         .parameters-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 24px;
         }
-        .parameter-item {
+        /* 将 FormField 的 label 和 control 放在同一行 */
+        :global(.parameters-grid .form-field) {
           display: grid;
           grid-template-columns: 140px 1fr;
           gap: 16px;
           align-items: start;
-          min-height: 60px;
         }
-        .parameter-label {
+        .parameter-label-content {
           display: flex;
           align-items: center;
           gap: 8px;
           padding-top: 4px;
-        }
-        .label-text {
-          font-size: 14px;
-          font-weight: 500;
-          color: var(--text, #1f2937);
         }
         .info-icon {
           color: var(--text-tertiary, #6b7280);
@@ -202,7 +216,9 @@ const ModelParameters = ({ values, onValueChange, onReset }) => {
         .info-icon:hover {
           color: var(--primary, #3b82f6);
         }
+        .slider-wrapper,
         .parameter-control {
+          /* 合并样式 */
           display: flex;
           flex-direction: column;
           gap: 12px;
@@ -216,21 +232,15 @@ const ModelParameters = ({ values, onValueChange, onReset }) => {
         .parameter-current {
           font-weight: 500;
           color: var(--primary, #3b82f6);
-          font-family: 'SF Mono', Consolas, 'Roboto Mono', monospace;
+          font-family: "SF Mono", Consolas, "Roboto Mono", monospace;
         }
         @media (max-width: 640px) {
-          .parameter-item {
+          :global(.parameters-grid .form-field) {
             grid-template-columns: 1fr;
             gap: 12px;
-            min-height: auto;
           }
-          .parameter-label {
+          .parameter-label-content {
             padding-top: 0;
-          }
-          .parameters-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
           }
         }
       `}</style>
