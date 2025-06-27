@@ -24,7 +24,6 @@ import {
   PencilIcon,
   TrashIcon,
   EyeIcon,
-  ArrowLeftIcon,
   CalendarIcon,
   TagIcon,
   CpuIcon,
@@ -34,10 +33,9 @@ import { FaYenSign } from "react-icons/fa";
 
 interface AgentPageProps {
   agentKey: string;
-  onBack?: () => void;
 }
 
-const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
+const AgentPage = ({ agentKey }: AgentPageProps) => {
   const { t } = useTranslation("ai");
   const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
@@ -55,13 +53,12 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
     try {
       await dispatch(remove(agentKey));
       toast.success(t("deleteSuccess"));
-      onBack?.();
     } catch (err) {
       setDeleting(false);
       const errorMessage = err instanceof Error ? err.message : String(err);
       toast.error(`${t("deleteError")}: ${errorMessage}`);
     }
-  }, [item, agentKey, deleting, dispatch, t, onBack]);
+  }, [item, agentKey, deleting, dispatch, t]);
 
   const startDialog = useCallback(async () => {
     if (dialogLoading) return;
@@ -72,14 +69,6 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
       toast.error(`${t("createDialogError")}: ${errorMessage}`);
     }
   }, [dialogLoading, createNewDialog, agentKey, t]);
-
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      window.history.back();
-    }
-  };
 
   if (isLoading) {
     return (
@@ -102,9 +91,6 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           <div className="agent-page__state-indicator">
             <h2>{t("loadError")}</h2>
             <p>{error.message}</p>
-            <Button onClick={handleBack} variant="secondary">
-              {t("goBack")}
-            </Button>
           </div>
         </div>
       </div>
@@ -116,17 +102,6 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
   return (
     <div className="agent-page">
       <div className="agent-page__container">
-        {/* Back button */}
-        <nav className="agent-page__nav">
-          <Button
-            icon={<ArrowLeftIcon size={16} />}
-            onClick={handleBack}
-            variant="ghost"
-          >
-            {t("back")}
-          </Button>
-        </nav>
-
         {/* Hero section */}
         <header className="agent-page__hero">
           <div className="agent-page__hero-content">
@@ -296,11 +271,6 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           display: flex;
           flex-direction: column;
           gap: ${theme.space[6]};
-        }
-
-        .agent-page__nav {
-          display: flex;
-          align-items: center;
         }
 
         .agent-page__hero {
@@ -490,7 +460,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           font-weight: 600;
           color: ${theme.textTertiary};
           text-transform: uppercase;
-          letter-spacing: 0.08em;
+          letter-spacing:  0.08em;
         }
 
         .agent-page__detail-value {
@@ -503,7 +473,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
         .agent-page__actions-footer {
           position: sticky;
           bottom: ${theme.space[3]};
-          background: ${theme.background}cc; /* Added transparency for backdrop-filter */
+          background: ${theme.background}cc;
           border: 1px solid ${theme.border};
           border-radius: 20px;
           padding: ${theme.space[4]};
@@ -536,7 +506,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           border: 1px solid ${theme.border};
           min-height: 50vh;
         }
-        
+
         .agent-page__skeleton {
           width: 100%;
           background: linear-gradient(90deg, ${theme.backgroundTertiary} 25%, ${theme.backgroundSecondary} 50%, ${theme.backgroundTertiary} 75%);
@@ -579,7 +549,7 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           }
 
           .agent-page__container {
-            padding-bottom: 120px; /* Space for fixed footer */
+            padding-bottom: 120px;
           }
         }
 
@@ -587,12 +557,12 @@ const AgentPage = ({ agentKey, onBack }: AgentPageProps) => {
           .agent-page__actions-footer {
             flex-direction: column;
           }
-          
+
           .agent-page__secondary-actions {
             width: 100%;
             justify-content: stretch;
           }
-          
+
           .agent-page__secondary-actions > * {
             flex: 1;
           }
