@@ -1,202 +1,315 @@
 import { format, formatISO, parseISO } from "date-fns";
 import { utcToZonedTime } from "date-fns-tz";
 import { TokenRecord } from "ai/token/types";
-import React, { useState } from "react";
-import { useTheme } from "app/theme";
+import React, { useState, useMemo } from "react";
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
 import { selectUserId } from "auth/authSlice";
-import { useAppSelector } from "app/hooks";
-import { pino } from "pino";
+import { useTranslation } from "react-i18next";
+import { ClockIcon, CalendarIcon, FilterIcon } from "@primer/octicons-react";
 import Pagination from "render/web/ui/Pagination";
+import { Dropdown } from "render/web/ui/Dropdown";
 
-const logger = pino({ name: "usage-record" });
 const ITEMS_PER_PAGE = 10;
-const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const USER_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-const getTodayInUserTZ = () => {
-  const today = new Date();
-  const todayInUserTZ = utcToZonedTime(today, userTimeZone);
-  return formatISO(todayInUserTZ, { representation: "date" });
+const getTodayInUserTimezone = () => {
+  const today = utcToZonedTime(new Date(), USER_TIMEZONE);
+  return formatISO(today, { representation: "date" });
 };
 
-const initialFilter: RecordsFilter = {
-  date: getTodayInUserTZ(),
-  model: "全部模型",
-  currentPage: 1,
-};
+const formatTokensDisplay = (record: TokenRecord) =>
+  `${record.input_tokens} / ${record.output_tokens}`;
 
-const formatTokens = (record: TokenRecord) => {
-  const input = record.input_tokens;
-  const output = record.output_tokens;
-  return `输入:${input} 输出:${output}`;
-};
-
-const formatLocalTime = (utcTime: string | number | Date) => {
+const formatLocalTimeDisplay = (utcTime: string | number | Date) => {
   const date =
     typeof utcTime === "string" ? parseISO(utcTime) : new Date(utcTime);
-  const localDate = utcToZonedTime(date, userTimeZone);
-  return format(localDate, "yyyy-MM-dd HH:mm:ss");
+  return format(utcToZonedTime(date, USER_TIMEZONE), "HH:mm:ss");
 };
 
-const formatPrices = (
-  inputPrice: number | undefined,
-  outputPrice: number | undefined
-) => {
-  const inputPriceStr = inputPrice !== undefined ? inputPrice.toFixed(2) : "";
-  const outputPriceStr =
-    outputPrice !== undefined ? outputPrice.toFixed(2) : "";
-  return inputPriceStr && outputPriceStr
-    ? `${inputPriceStr}/${outputPriceStr}`
-    : "";
+const formatPriceDisplay = (inputPrice?: number, outputPrice?: number) => {
+  return inputPrice && outputPrice
+    ? `${inputPrice.toFixed(4)} / ${outputPrice.toFixed(4)}`
+    : "-";
 };
 
 const UsageRecord: React.FC = () => {
-  const theme = useTheme();
-  const [filter, setFilter] = useState(initialFilter);
+  const { t } = useTranslation();
+  const theme = useAppSelector(selectTheme);
   const userId = useAppSelector(selectUserId);
+
+  const [filter, setFilter] = useState<RecordsFilter>({
+    date: getTodayInUserTimezone(),
+    model: "全部模型",
+    currentPage: 1,
+  });
+
   const { records, loading, totalCount } = useRecords(userId, filter);
 
-  const handlePageChange = (page: number) => {
-    setFilter((prev) => ({ ...prev, currentPage: page }));
+  // 从实际的 records 数据中提取模型列表
+  const modelDropdownOptions = useMemo(() => {
+    if (!records || records.length === 0) {
+      return [{ label: t("all_models", "全部模型"), value: "全部模型" }];
+    }
+
+    // 从 records 中提取唯一的模型名称
+    const uniqueModels = [
+      ...new Set(records.map((record) => record.model)),
+    ].sort();
+
+    return [
+      { label: t("all_models", "全部模型"), value: "全部模型" },
+      ...uniqueModels.map((modelName) => ({
+        label: modelName,
+        value: modelName,
+      })),
+    ];
+  }, [records, t]);
+
+  const updateFilterState = (updates: Partial<RecordsFilter>) => {
+    setFilter((prevFilter) => ({ ...prevFilter, ...updates, currentPage: 1 }));
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = e.target.value;
-    logger.debug(
-      {
-        newDate,
-        currentDate: filter.date,
-        timeZone: userTimeZone,
-      },
-      "Date filter changed"
-    );
-    setFilter((prev) => ({ ...prev, date: newDate, currentPage: 1 }));
-  };
+  const totalCost = records.reduce((sum, record) => sum + record.cost, 0);
 
-  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newModel = e.target.value;
-    logger.debug({ newModel }, "Model filter changed");
-    setFilter((prev) => ({ ...prev, model: newModel, currentPage: 1 }));
-  };
-
-  const renderTableRow = (record: TokenRecord) => (
-    <tr key={record.id} className="table-row">
-      <td>{formatLocalTime(record.createdAt)}</td>
-      <td className="cybot-id">{record.cybotId || "-"}</td>
-      <td>{formatTokens(record)}</td>
-      <td>{record.model}</td>
-      <td>{formatPrices(record.inputPrice, record.outputPrice)}</td>
-      <td>{record.cost.toFixed(4)}</td>
-    </tr>
-  );
+  const usageRecordStyles = `
+    .usage-record-container { 
+      background: ${theme.background}; 
+      border-radius: 16px; 
+      border: 1px solid ${theme.borderLight}; 
+      overflow: hidden; 
+      box-shadow: 0 2px 8px ${theme.shadowLight}; 
+    }
+    
+    .usage-record-header { 
+      padding: 20px 24px; 
+      background: linear-gradient(135deg, ${theme.backgroundSecondary}, ${theme.backgroundTertiary}); 
+      border-bottom: 1px solid ${theme.borderLight}; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-wrap: wrap; 
+      gap: 20px; 
+    }
+    
+    .usage-record-title { 
+      font: 600 18px/1.4 system-ui; 
+      color: ${theme.text}; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      margin: 0; 
+    }
+    
+    .usage-record-filters { 
+      display: flex; 
+      gap: 12px; 
+      align-items: center; 
+      flex-wrap: wrap; 
+    }
+    
+    .usage-record-date-input { 
+      padding: 8px 32px 8px 12px; 
+      border-radius: 8px; 
+      border: 1px solid ${theme.border}; 
+      background: ${theme.background}; 
+      color: ${theme.text}; 
+      font-size: 13px; 
+      outline: none; 
+    }
+    .usage-record-date-input:focus { 
+      border-color: ${theme.primary}; 
+      box-shadow: 0 0 0 2px ${theme.primary}20; 
+    }
+    
+    .usage-record-table { 
+      width: 100%; 
+      border-collapse: separate; 
+      border-spacing: 0; 
+    }
+    .usage-record-table th { 
+      background: ${theme.backgroundSecondary}; 
+      color: ${theme.textSecondary}; 
+      font: 600 12px/1 system-ui; 
+      text-transform: uppercase; 
+      padding: 12px 16px; 
+      border-bottom: 1px solid ${theme.borderLight}; 
+      text-align: left; 
+    }
+    .usage-record-table td { 
+      padding: 16px; 
+      border-bottom: 1px solid ${theme.borderLight}; 
+      color: ${theme.text}; 
+      font-size: 14px; 
+    }
+    .usage-record-table tr:hover { 
+      background: ${theme.backgroundHover}; 
+    }
+    
+    .usage-record-table-container { 
+      padding: 20px 24px; 
+      overflow-x: auto; 
+    }
+    
+    .usage-record-cell-monospace { 
+      font-family: 'SF Mono', Monaco, Consolas, monospace; 
+    }
+    
+    .usage-record-cell-time { 
+      color: ${theme.textSecondary}; 
+      font-size: 13px; 
+    }
+    
+    .usage-record-cell-cybot { 
+      color: ${theme.primary}; 
+      font-weight: 500; 
+      max-width: 150px; 
+      text-overflow: ellipsis; 
+      overflow: hidden; 
+      white-space: nowrap; 
+    }
+    
+    .usage-record-cell-cost { 
+      color: ${theme.primary}; 
+      font-weight: 600; 
+      text-align: right; 
+    }
+    
+    .usage-record-total-section { 
+      padding: 20px 24px; 
+      background: ${theme.backgroundSecondary}; 
+      border-top: 1px solid ${theme.borderLight}; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+    
+    .usage-record-total-amount { 
+      font: 600 16px/1 'SF Mono', Monaco, Consolas, monospace; 
+      color: ${theme.primary}; 
+    }
+    
+    .usage-record-empty-state { 
+      text-align: center; 
+      padding: 40px; 
+      color: ${theme.textTertiary}; 
+    }
+    
+    .usage-record-loading-indicator { 
+      display: inline-flex; 
+      gap: 2px; 
+      margin-left: 8px; 
+    }
+    
+    .usage-record-loading-dot { 
+      width: 4px; 
+      height: 4px; 
+      border-radius: 50%; 
+      background: ${theme.primary}; 
+      animation: usageRecordPulse 1.4s infinite; 
+    }
+    .usage-record-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .usage-record-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes usageRecordPulse { 
+      0%, 80%, 100% { opacity: 0.3; } 
+      40% { opacity: 1; } 
+    }
+    
+    .usage-record-pagination-container { 
+      padding: 20px 24px; 
+      border-top: 1px solid ${theme.borderLight}; 
+    }
+  `;
 
   return (
     <>
-      <style>{`
-        .usage-card {
-          border-radius: 0px;
-          padding: 24px;
-        }
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-        }
-        .title {
-          font-size: 1.25rem;
-          font-weight: 500;
-          color: ${theme.text};
-        }
-        .filters {
-          display: flex;
-          gap: 1rem;
-        }
-        .input {
-          padding: 8px;
-          border: 1px solid ${theme.border};
-          border-radius: 6px;
-          color: ${theme.text};
-        }
-        .table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        .table-row {
-          border-bottom: 1px solid ${theme.border};
-        }
-        .table td, .table th {
-          padding: 12px;
-          color: ${theme.text};
-        }
-        .cybot-id {
-          width: 150px; /* 限制机器人列的宽度 */
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-        .footer {
-          margin-top: 1rem;
-        }
-        .total {
-          margin-top: 1rem;
-          padding-top: 1rem;
-          border-top: 1px solid ${theme.border};
-          display: flex;
-          justify-content: flex-end;
-          font-weight: bold;
-        }
-      `}</style>
+      <style>{usageRecordStyles}</style>
 
-      <div className="usage-card">
-        <div className="header">
-          <h2 className="title">
-            使用记录 {loading && "(加载中...)"}
-            <span style={{ fontSize: "0.8em", color: "#666" }}>
-              ({userTimeZone})
-            </span>
+      <div className="usage-record-container">
+        <div className="usage-record-header">
+          <h2 className="usage-record-title">
+            <ClockIcon size={20} />
+            {t("usage_records", "使用记录")}
+            {loading && (
+              <div className="usage-record-loading-indicator">
+                <div className="usage-record-loading-dot" />
+                <div className="usage-record-loading-dot" />
+                <div className="usage-record-loading-dot" />
+              </div>
+            )}
           </h2>
 
-          <div className="filters">
+          <div className="usage-record-filters">
             <input
               type="date"
-              className="input"
+              className="usage-record-date-input"
               value={filter.date}
-              onChange={handleDateChange}
-              title={`选择日期 (${userTimeZone})`}
+              onChange={(e) => updateFilterState({ date: e.target.value })}
             />
-            <select
-              className="input"
-              value={filter.model}
-              onChange={handleModelChange}
-            >
-              <option value="全部模型">全部模型</option>
-              <option value="gpt-3.5-turbo">GPT-3.5</option>
-              <option value="gpt-4">GPT-4</option>
-              <option value="claude">Claude</option>
-            </select>
+
+            <Dropdown
+              items={modelDropdownOptions}
+              selectedItem={modelDropdownOptions.find(
+                (option) => option.value === filter.model
+              )}
+              onChange={(selectedItem) =>
+                updateFilterState({ model: selectedItem.value })
+              }
+              placeholder={t("select_model", "选择模型")}
+              size="small"
+              icon={<FilterIcon size={14} />}
+            />
           </div>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table className="table">
+        <div className="usage-record-table-container">
+          <table className="usage-record-table">
             <thead>
-              <tr className="table-row">
-                <th>时间</th>
-                <th>机器人</th>
-                <th>Tokens</th>
-                <th>模型</th>
-                <th>输入/输出价格(￥)</th>
-                <th>费用(￥)</th>
+              <tr>
+                <th>{t("time", "时间")}</th>
+                <th>{t("robot", "机器人")}</th>
+                <th>{t("tokens", "Tokens")}</th>
+                <th>{t("model", "模型")}</th>
+                <th>{t("input_output_price", "输入/输出价格")} (¥)</th>
+                <th>{t("cost", "费用")} (¥)</th>
               </tr>
             </thead>
             <tbody>
               {records.length > 0 ? (
-                records.map(renderTableRow)
+                records.map((record) => (
+                  <tr key={record.id}>
+                    <td className="usage-record-cell-monospace usage-record-cell-time">
+                      {formatLocalTimeDisplay(record.createdAt)}
+                    </td>
+                    <td
+                      className="usage-record-cell-cybot"
+                      title={record.cybotId}
+                    >
+                      {record.cybotId || "-"}
+                    </td>
+                    <td className="usage-record-cell-monospace">
+                      {formatTokensDisplay(record)}
+                    </td>
+                    <td>{record.model}</td>
+                    <td className="usage-record-cell-monospace">
+                      {formatPriceDisplay(
+                        record.inputPrice,
+                        record.outputPrice
+                      )}
+                    </td>
+                    <td className="usage-record-cell-monospace usage-record-cell-cost">
+                      ¥{record.cost.toFixed(4)}
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center" }}>
-                    {loading ? "加载中..." : "暂无数据"}
+                  <td colSpan={6} className="usage-record-empty-state">
+                    {loading
+                      ? t("loading", "加载中...")
+                      : t("no_data", "暂无数据")}
                   </td>
                 </tr>
               )}
@@ -205,23 +318,29 @@ const UsageRecord: React.FC = () => {
         </div>
 
         {records.length > 0 && (
-          <div className="total">
-            当页合计：
-            {records
-              .reduce((sum, record) => sum + record.cost, 0)
-              .toFixed(4)}{" "}
-            ￥
+          <div className="usage-record-total-section">
+            <span>
+              {t("page_total", "当页合计")} ({records.length}{" "}
+              {t("records", "条记录")})
+            </span>
+            <div className="usage-record-total-amount">
+              ¥{totalCost.toFixed(4)}
+            </div>
           </div>
         )}
 
-        <div className="footer">
-          <Pagination
-            currentPage={filter.currentPage}
-            totalItems={totalCount}
-            pageSize={ITEMS_PER_PAGE}
-            onPageChange={handlePageChange}
-          />
-        </div>
+        {totalCount > ITEMS_PER_PAGE && (
+          <div className="usage-record-pagination-container">
+            <Pagination
+              currentPage={filter.currentPage}
+              totalItems={totalCount}
+              pageSize={ITEMS_PER_PAGE}
+              onPageChange={(page) =>
+                setFilter((prev) => ({ ...prev, currentPage: page }))
+              }
+            />
+          </div>
+        )}
       </div>
     </>
   );

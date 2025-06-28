@@ -1,21 +1,25 @@
 // components/RechargeRecord.tsx
 import { useState, useEffect, useCallback } from "react";
-import { useTheme } from "app/theme";
-import { ChevronDownIcon, ChevronUpIcon } from "@primer/octicons-react";
-import { Table, TableRow, TableCell } from "render/web/ui/Table";
-import { API_ENDPOINTS } from "database/config";
 import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import { selectCurrentServer } from "setting/settingSlice";
+import { useTranslation } from "react-i18next";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CreditCardIcon,
+  ClockIcon,
+} from "@primer/octicons-react";
+import { API_ENDPOINTS } from "database/config";
 
-// 1. 更新接口：添加 'type' 字段来区分交易类型
 interface TransactionRecord {
   txId: string;
   timestamp: number;
   amount: number;
   reason: string;
   status: "completed" | "failed";
-  type: "recharge" | "deduct"; // <--- 关键字段
+  type: "recharge" | "deduct";
 }
 
 interface RechargeRecordProps {
@@ -34,15 +38,14 @@ const formatTimestamp = (timestamp: number) => {
 };
 
 const formatReason = (reason: string): string => {
-  // 扩展原因映射，包含支出类型
   const reasonMap: { [key: string]: string } = {
     admin_recharge: "管理员充值",
     new_user_bonus: "新用户奖励",
     invited_signup_bonus: "邀请注册奖励",
-    // 示例支出原因
     chat_completion: "对话消耗",
     service_usage: "服务使用",
   };
+
   for (const key in reasonMap) {
     if (reason.startsWith(key)) {
       return reasonMap[key];
@@ -55,15 +58,16 @@ const RechargeRecord: React.FC<RechargeRecordProps> = ({
   isVisible,
   onToggleVisibility,
 }) => {
-  const theme = useTheme();
+  const { t } = useTranslation();
+  const theme = useAppSelector(selectTheme);
   const token = useAppSelector(selectCurrentToken);
   const server = useAppSelector(selectCurrentServer);
+
   const [records, setRecords] = useState<TransactionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
 
-  // 4. 修复 useCallback 依赖：添加 token 和 server
   const fetchRecords = useCallback(
     async (cursor: string | null) => {
       setIsLoading(true);
@@ -102,7 +106,7 @@ const RechargeRecord: React.FC<RechargeRecordProps> = ({
         setIsLoading(false);
       }
     },
-    [token, server] // <--- 修复依赖项
+    [token, server]
   );
 
   useEffect(() => {
@@ -117,209 +121,354 @@ const RechargeRecord: React.FC<RechargeRecordProps> = ({
     }
   };
 
+  // 计算当前页面总金额（收入 - 支出）
+  const totalAmount = records.reduce((sum, record) => {
+    return sum + (record.type === "recharge" ? record.amount : -record.amount);
+  }, 0);
+
+  const rechargeRecordStyles = `
+    .transaction-record-container { 
+      background: ${theme.background}; 
+      border-radius: 16px; 
+      border: 1px solid ${theme.borderLight}; 
+      overflow: hidden; 
+      box-shadow: 0 2px 8px ${theme.shadowLight}; 
+      margin-bottom: 24px;
+    }
+    
+    .transaction-record-header { 
+      padding: 20px 24px; 
+      background: linear-gradient(135deg, ${theme.backgroundSecondary}, ${theme.backgroundTertiary}); 
+      border-bottom: 1px solid ${theme.borderLight}; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-wrap: wrap; 
+      gap: 20px; 
+    }
+    
+    .transaction-record-title { 
+      font: 600 18px/1.4 system-ui; 
+      color: ${theme.text}; 
+      display: flex; 
+      align-items: center; 
+      gap: 8px; 
+      margin: 0; 
+    }
+    
+    .transaction-record-toggle-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: ${theme.primary};
+      background: ${theme.backgroundGhost};
+      border: 1px solid ${theme.border};
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    .transaction-record-toggle-button:hover {
+      background: ${theme.backgroundHover};
+      border-color: ${theme.borderHover};
+      transform: translateY(-1px);
+    }
+    .transaction-record-toggle-button:focus {
+      border-color: ${theme.primary};
+      box-shadow: 0 0 0 2px ${theme.primary}20;
+    }
+    
+    .transaction-record-content { 
+      padding: 20px 24px; 
+    }
+    
+    .transaction-record-table { 
+      width: 100%; 
+      border-collapse: separate; 
+      border-spacing: 0; 
+    }
+    .transaction-record-table th { 
+      background: ${theme.backgroundSecondary}; 
+      color: ${theme.textSecondary}; 
+      font: 600 12px/1 system-ui; 
+      text-transform: uppercase; 
+      padding: 12px 16px; 
+      border-bottom: 1px solid ${theme.borderLight}; 
+      text-align: left; 
+    }
+    .transaction-record-table td { 
+      padding: 16px; 
+      border-bottom: 1px solid ${theme.borderLight}; 
+      color: ${theme.text}; 
+      font-size: 14px; 
+    }
+    .transaction-record-table tr:hover { 
+      background: ${theme.backgroundHover}; 
+    }
+    .transaction-record-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .transaction-record-amount-income { 
+      color: ${theme.success || "#10B981"}; 
+      font: 600 14px/1 'SF Mono', Monaco, Consolas, monospace;
+    }
+    .transaction-record-amount-outcome { 
+      color: ${theme.error}; 
+      font: 600 14px/1 'SF Mono', Monaco, Consolas, monospace;
+    }
+    
+    .transaction-record-time { 
+      color: ${theme.textSecondary}; 
+      font: 13px/1 'SF Mono', Monaco, Consolas, monospace;
+    }
+    
+    .transaction-record-status-badge { 
+      padding: 4px 8px; 
+      border-radius: 12px; 
+      font: 600 11px/1 system-ui; 
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .transaction-record-status-completed { 
+      background: ${theme.success || "#10B981"}20; 
+      color: ${theme.success || "#10B981"}; 
+    }
+    .transaction-record-status-failed { 
+      background: ${theme.error}20; 
+      color: ${theme.error}; 
+    }
+    
+    .transaction-record-empty-state { 
+      text-align: center; 
+      padding: 40px; 
+      color: ${theme.textTertiary}; 
+    }
+    
+    .transaction-record-error-state { 
+      text-align: center; 
+      padding: 40px; 
+      color: ${theme.error}; 
+    }
+    
+    .transaction-record-loading-indicator { 
+      display: inline-flex; 
+      gap: 2px; 
+      margin-left: 8px; 
+    }
+    
+    .transaction-record-loading-dot { 
+      width: 4px; 
+      height: 4px; 
+      border-radius: 50%; 
+      background: ${theme.primary}; 
+      animation: transactionRecordPulse 1.4s infinite; 
+    }
+    .transaction-record-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .transaction-record-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes transactionRecordPulse { 
+      0%, 80%, 100% { opacity: 0.3; } 
+      40% { opacity: 1; } 
+    }
+    
+    .transaction-record-total-section { 
+      padding: 20px 24px; 
+      background: ${theme.backgroundSecondary}; 
+      border-top: 1px solid ${theme.borderLight}; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+    
+    .transaction-record-total-amount { 
+      font: 600 16px/1 'SF Mono', Monaco, Consolas, monospace; 
+      color: ${totalAmount >= 0 ? theme.success || "#10B981" : theme.error}; 
+    }
+    
+    .transaction-record-load-more-container { 
+      display: flex; 
+      justify-content: center; 
+      padding: 20px 24px; 
+      border-top: 1px solid ${theme.borderLight}; 
+    }
+    
+    .transaction-record-load-more-button { 
+      padding: 8px 20px; 
+      border-radius: 8px; 
+      font: 500 13px/1 system-ui; 
+      color: ${theme.primary}; 
+      background: transparent; 
+      border: 1px solid ${theme.border}; 
+      cursor: pointer; 
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    .transaction-record-load-more-button:hover:not(:disabled) { 
+      background: ${theme.backgroundHover}; 
+      border-color: ${theme.borderHover}; 
+      transform: translateY(-1px);
+    }
+    .transaction-record-load-more-button:disabled { 
+      cursor: not-allowed; 
+      opacity: 0.6; 
+    }
+    
+    @media (max-width: 768px) {
+      .transaction-record-header {
+        padding: 16px 20px;
+        gap: 16px;
+      }
+      .transaction-record-content {
+        padding: 16px 20px;
+      }
+      .transaction-record-total-section {
+        padding: 16px 20px;
+      }
+      .transaction-record-load-more-container {
+        padding: 16px 20px;
+      }
+      .transaction-record-table th,
+      .transaction-record-table td {
+        padding: 12px;
+        font-size: 13px;
+      }
+    }
+  `;
+
   const renderContent = () => {
     if (isLoading && records.length === 0) {
-      return <div className="status-text">加载中...</div>;
+      return (
+        <div className="transaction-record-empty-state">
+          {t("loading", "加载中...")}
+        </div>
+      );
     }
+
     if (error) {
-      return <div className="status-text error-text">错误: {error}</div>;
+      return (
+        <div className="transaction-record-error-state">错误: {error}</div>
+      );
     }
+
     if (!records.length) {
-      return <div className="status-text">暂无交易记录</div>;
+      return (
+        <div className="transaction-record-empty-state">
+          {t("no_data", "暂无交易记录")}
+        </div>
+      );
     }
 
     return (
-      <Table>
+      <table className="transaction-record-table">
         <thead>
-          <TableRow>
-            <TableCell element={{ header: true }}>时间</TableCell>
-            <TableCell element={{ header: true }}>金额</TableCell>
-            <TableCell element={{ header: true }}>项目</TableCell>
-            <TableCell element={{ header: true }}>状态</TableCell>
-          </TableRow>
+          <tr>
+            <th>{t("time", "时间")}</th>
+            <th>{t("amount", "金额")} (¥)</th>
+            <th>{t("project", "项目")}</th>
+            <th>{t("status", "状态")}</th>
+          </tr>
         </thead>
         <tbody>
           {records.map((record) => (
-            <TableRow key={record.txId}>
-              <TableCell element={{}}>
+            <tr key={record.txId}>
+              <td className="transaction-record-time">
                 {formatTimestamp(record.timestamp)}
-              </TableCell>
-              {/* 3. 根据交易类型区分显示金额和样式 */}
-              <TableCell
-                element={{}}
+              </td>
+              <td
                 className={
                   record.type === "recharge"
-                    ? "amount-income"
-                    : "amount-outcome"
+                    ? "transaction-record-amount-income"
+                    : "transaction-record-amount-outcome"
                 }
               >
-                {record.type === "recharge" ? "+" : "-"}
+                {record.type === "recharge" ? "+" : "-"}¥
                 {record.amount.toFixed(2)}
-              </TableCell>
-              <TableCell element={{}}>{formatReason(record.reason)}</TableCell>
-              <TableCell element={{}}>
-                <span className={`status-badge status-${record.status}`}>
+              </td>
+              <td>{formatReason(record.reason)}</td>
+              <td>
+                <span
+                  className={`transaction-record-status-badge transaction-record-status-${record.status}`}
+                >
                   {record.status === "completed" ? "成功" : "失败"}
                 </span>
-              </TableCell>
-            </TableRow>
+              </td>
+            </tr>
           ))}
         </tbody>
-      </Table>
+      </table>
     );
   };
 
   return (
-    <div className="card">
-      <div className="card-header">
-        {/* 2. 更改标题为更通用的 "交易记录" */}
-        <h2 className="title">交易记录</h2>
-        <button className="toggle-button" onClick={onToggleVisibility}>
-          {isVisible ? (
-            <>
-              <span>收起</span>
-              <ChevronUpIcon size={16} />
-            </>
-          ) : (
-            <>
-              <span>展开</span>
-              <ChevronDownIcon size={16} />
-            </>
-          )}
-        </button>
-      </div>
+    <>
+      <style>{rechargeRecordStyles}</style>
 
-      {isVisible && (
-        <div className="content-wrapper">
-          {renderContent()}
-          {nextCursor && (
-            <div className="load-more-container">
-              <button
-                className="load-more-button"
-                onClick={handleLoadMore}
-                disabled={isLoading}
-              >
-                {isLoading ? "加载中..." : "加载更多"}
-              </button>
-            </div>
-          )}
+      <div className="transaction-record-container">
+        <div className="transaction-record-header">
+          <h2 className="transaction-record-title">
+            <CreditCardIcon size={20} />
+            {t("transaction_records", "交易记录")}
+            {isLoading && (
+              <div className="transaction-record-loading-indicator">
+                <div className="transaction-record-loading-dot" />
+                <div className="transaction-record-loading-dot" />
+                <div className="transaction-record-loading-dot" />
+              </div>
+            )}
+          </h2>
+
+          <button
+            className="transaction-record-toggle-button"
+            onClick={onToggleVisibility}
+          >
+            <span>
+              {isVisible ? t("collapse", "收起") : t("expand", "展开")}
+            </span>
+            {isVisible ? (
+              <ChevronUpIcon size={14} />
+            ) : (
+              <ChevronDownIcon size={14} />
+            )}
+          </button>
         </div>
-      )}
 
-      <style jsx>{`
-        /* ... 其他样式保持不变 ... */
-        .card {
-          background: ${theme.background};
-          border-radius: 12px;
-          box-shadow: 0 2px 8px ${theme.shadowLight};
-          padding: 24px;
-          margin-bottom: 24px;
-          transition: box-shadow 0.2s ease;
-        }
+        {isVisible && (
+          <>
+            <div className="transaction-record-content">{renderContent()}</div>
 
-        .card:hover {
-          box-shadow: 0 4px 12px ${theme.shadowMedium};
-        }
-        .card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: ${isVisible ? "1rem" : "0"};
-        }
-        .title {
-          font-size: 1.25rem;
-          font-weight: 500;
-          color: ${theme.text};
-          margin: 0;
-        }
-        .toggle-button {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 0.5rem 1rem;
-          border-radius: 6px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: ${theme.primary};
-          background: transparent;
-          border: 1px solid ${theme.border};
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .toggle-button:hover {
-          background: ${theme.backgroundSecondary};
-          border-color: ${theme.borderHover};
-        }
-        .content-wrapper {
-          margin-top: 1rem;
-        }
-        .status-text {
-          color: ${theme.textSecondary};
-          padding: 2rem 0;
-          text-align: center;
-        }
-        .error-text {
-          color: ${theme.error};
-        }
-        .status-badge {
-          padding: 0.25rem 0.6rem;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 500;
-          background-color: ${theme.backgroundSecondary};
-          color: ${theme.textSecondary};
-        }
-        .status-completed {
-          background-color: ${theme.successBackground};
-          color: ${theme.success};
-        }
-        .status-failed {
-          background-color: ${theme.errorBackground};
-          color: ${theme.error};
-        }
+            {records.length > 0 && (
+              <div className="transaction-record-total-section">
+                <span>
+                  {t("page_total", "当页合计")} ({records.length}{" "}
+                  {t("records", "条记录")})
+                </span>
+                <div className="transaction-record-total-amount">
+                  ¥{totalAmount.toFixed(2)}
+                </div>
+              </div>
+            )}
 
-        /* 新增用于区分收入和支出的样式 */
-        .amount-income {
-          color: ${theme.success};
-          font-weight: 500;
-        }
-        .amount-outcome {
-          color: ${theme.error};
-        }
-
-        .load-more-container {
-          display: flex;
-          justify-content: center;
-          margin-top: 1.5rem;
-        }
-        .load-more-button {
-          padding: 0.5rem 1.5rem;
-          border-radius: 6px;
-          font-weight: 500;
-          color: ${theme.primary};
-          background: transparent;
-          border: 1px solid ${theme.border};
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .load-more-button:hover:not(:disabled) {
-          background: ${theme.backgroundSecondary};
-          border-color: ${theme.borderHover};
-        }
-        .load-more-button:disabled {
-          cursor: not-allowed;
-          opacity: 0.6;
-        }
-        @media (max-width: 640px) {
-          .card {
-            padding: 16px;
-          }
-          .toggle-button {
-            padding: 0.375rem 0.75rem;
-          }
-        }
-      `}</style>
-    </div>
+            {nextCursor && (
+              <div className="transaction-record-load-more-container">
+                <button
+                  className="transaction-record-load-more-button"
+                  onClick={handleLoadMore}
+                  disabled={isLoading}
+                >
+                  {isLoading
+                    ? t("loading", "加载中...")
+                    : t("load_more", "加载更多")}
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 };
 
