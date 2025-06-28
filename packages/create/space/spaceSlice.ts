@@ -98,7 +98,7 @@ export const {
   addContentToSpace,
   moveContentToSpace,
   deleteContentFromSpace,
-  deleteMultipleContent, // <-- 新增: 导出批量删除 Action
+  deleteMultipleContent,
   updateContentTitle,
   updateContentCategory,
   fetchUserSpaceMemberships,
@@ -121,7 +121,12 @@ export const selectCurrentSpace = createSelector(
 
 export const selectAllMemberSpaces = createSelector(
   selectSpaceState,
-  (space) => space.memberSpaces || []
+  (space) => {
+    const memberSpaces = space.memberSpaces || [];
+    return [...memberSpaces].sort((a, b) => {
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+  }
 );
 
 export const selectOwnedMemberSpaces = createSelector(

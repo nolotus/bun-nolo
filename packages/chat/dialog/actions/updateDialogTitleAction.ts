@@ -5,7 +5,7 @@ import {
   updateContentTitle,
 } from "create/space/spaceSlice";
 import { patch, selectById } from "database/dbSlice";
-import { format, differenceInHours } from "date-fns";
+import { format, differenceInMinutes } from "date-fns"; // 从 differenceInHours 改为 differenceInMinutes
 
 import { RootState } from "app/store";
 import { pipe, flatten, filter, reverse } from "rambda";
@@ -30,24 +30,25 @@ const getFilteredMessages = (state: RootState) => {
   )(msgs); // 直接传递 msgs 数组
 };
 
-const TITLE_UPDATE_INTERVAL_HOURS = 6;
-// 设置为 true 将跳过时间检查，始终更新标题
-const FORCE_UPDATE_FOR_TEST = true;
+// 更新间隔改为3分钟
+const TITLE_UPDATE_INTERVAL_MINUTES = 3;
+// 关闭强制更新，启用时间检查
+const FORCE_UPDATE_FOR_TEST = false;
 
 const shouldUpdateTitle = (lastUpdatedAt: string): boolean => {
   if (FORCE_UPDATE_FOR_TEST) {
     return true;
   }
 
-  const hoursSinceLastUpdate = differenceInHours(
+  const minutesSinceLastUpdate = differenceInMinutes(
     new Date(),
     new Date(lastUpdatedAt)
   );
 
-  const shouldUpdate = hoursSinceLastUpdate >= TITLE_UPDATE_INTERVAL_HOURS;
+  const shouldUpdate = minutesSinceLastUpdate >= TITLE_UPDATE_INTERVAL_MINUTES;
   if (!shouldUpdate) {
     console.log(
-      `Title update skipped: last update was ${hoursSinceLastUpdate} hours ago`
+      `Title update skipped: last update was ${minutesSinceLastUpdate} minutes ago. Need to wait for ${TITLE_UPDATE_INTERVAL_MINUTES} minutes.`
     );
   }
   return shouldUpdate;

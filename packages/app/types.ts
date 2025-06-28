@@ -1,5 +1,23 @@
 import { DataType } from "create/types";
 
+export type ULID = string;
+export interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string | { type: string; data: string }[];
+  userId?: string;
+}
+
+export interface DialogConfig {
+  id: string; // 对话的唯一标识符/路径
+  type: DataType.DIALOG; // 数据类型标记
+  title: string; // 对话标题
+  cybots: string[]; // 参与对话的 Cybot ID 列表
+  mode: string; // 调用模式 (原 invocationMode)
+  orchPrompt?: string; // 编排提示词 (原 orchestratorPrompt), 仅在 ORCHESTRATED 模式下使用 (可选)
+  createdAt: string; // 创建时间戳
+  updatedAt: string; // 最后更新时间戳
+}
 export type ReferenceItem = {
   dbKey: string;
   title: string;
@@ -40,23 +58,6 @@ export interface Agent {
   isPublic: boolean;
 }
 
-export interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string | { type: string; data: string }[];
-  userId?: string;
-}
-
-export interface DialogConfig {
-  id: string; // 对话的唯一标识符/路径
-  type: DataType.DIALOG; // 数据类型标记
-  title: string; // 对话标题
-  cybots: string[]; // 参与对话的 Cybot ID 列表
-  mode: string; // 调用模式 (原 invocationMode)
-  orchPrompt?: string; // 编排提示词 (原 orchestratorPrompt), 仅在 ORCHESTRATED 模式下使用 (可选)
-  createdAt: string; // 创建时间戳
-  updatedAt: string; // 最后更新时间戳
-}
 // --- 内容相关 (核心修改处) ---
 
 export interface SpaceContent {
@@ -75,7 +76,7 @@ export interface SpaceContent {
 } // --- 主数据结构 (SpaceData 保持不变) ---
 
 export interface SpaceData {
-  id: string;
+  id: ULID;
   name: string;
   description: string;
   ownerId: string;
