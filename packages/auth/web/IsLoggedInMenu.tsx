@@ -1,13 +1,22 @@
+// auth/web/LoggedInMenu.tsx
 import {
   GearIcon,
   PersonIcon,
   PlusIcon,
   SignOutIcon,
   TriangleDownIcon,
+  CreditCardIcon,
+  AlertIcon,
 } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
-import { selectUsers, signOut, changeUser, selectUserId } from "auth/authSlice";
+import {
+  selectUsers,
+  signOut,
+  changeUser,
+  selectUserId,
+  User,
+} from "auth/authSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -16,9 +25,13 @@ import { SettingRoutePaths } from "setting/config";
 import { Tooltip } from "render/web/ui/Tooltip";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
+import { useBalance } from "auth/hooks/useBalance";
 
 const MenuStyles = () => {
   const theme = useAppSelector(selectTheme);
+  const { balance, loading, error } = useBalance();
+  const isLowBalance = !loading && !error && balance < 10;
+
   return (
     <style href="loginmenu-styles" precedence="medium">
       {`
@@ -99,7 +112,7 @@ const MenuStyles = () => {
 
         .loginmenu-dd-wrapper {
           padding: ${theme.space[1]};
-          min-width: 180px;
+          min-width: 220px;
           background: ${theme.background};
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
@@ -157,6 +170,53 @@ const MenuStyles = () => {
           color: ${theme.textSecondary};
         }
 
+        /* Balance Section Styles */
+        .loginmenu-balance-section {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: ${theme.space[2]} ${theme.space[3]};
+          margin: ${theme.space[1]} 0;
+          border-top: 1px solid ${theme.borderLight};
+          border-bottom: 1px solid ${theme.borderLight};
+        }
+
+        .loginmenu-balance-info {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[2]};
+          font-size: 13px;
+          color: ${theme.textSecondary};
+        }
+        
+        .loginmenu-balance-amount {
+          font-weight: 600;
+          color: ${isLowBalance ? theme.error : theme.primary};
+        }
+
+        .loginmenu-recharge-button {
+          font-size: 12px;
+          font-weight: 500;
+          padding: ${theme.space[1]} ${theme.space[2]};
+          background-color: ${theme.primary}1A;
+          color: ${theme.primary};
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.12s ease;
+        }
+
+        .loginmenu-recharge-button:hover {
+          background-color: ${theme.primary}2A;
+          color: ${theme.primary};
+        }
+        
+        .loginmenu-recharge-button:active {
+           background-color: ${theme.primary}3A;
+           transform: scale(0.97);
+        }
+
+        /* Other Item Sections */
         .loginmenu-invite-item {
           background: ${theme.primary}08;
           color: ${theme.primary};
@@ -171,18 +231,8 @@ const MenuStyles = () => {
           background: ${theme.primary}12;
         }
 
-        .loginmenu-invite-item:active {
-          background: ${theme.primary}18;
-        }
-
-        .loginmenu-user-section {
-          margin-bottom: ${theme.space[2]};
-        }
-
         .loginmenu-action-section {
-          margin-top: ${theme.space[2]};
-          padding-top: ${theme.space[2]};
-          border-top: 1px solid ${theme.borderLight};
+          margin-top: ${theme.space[1]};
         }
 
         .loginmenu-logout-item:hover {
@@ -190,56 +240,8 @@ const MenuStyles = () => {
           color: ${theme.error};
         }
 
-        .loginmenu-logout-item:active {
-          background: ${theme.error}12;
-          color: ${theme.error};
-        }
-
         .loginmenu-logout-item:hover .loginmenu-dd-icon {
           color: ${theme.error};
-        }
-
-        /* 移动端优化 */
-        @media (max-width: 768px) {
-          .loginmenu-wrapper {
-            padding: ${theme.space[2]} ${theme.space[3]};
-          }
-
-          .loginmenu-dd-wrapper {
-            min-width: 200px;
-            box-shadow: 
-              0 8px 32px ${theme.shadowMedium},
-              0 2px 8px ${theme.shadowLight};
-          }
-
-          .loginmenu-dd-item {
-            min-height: 44px;
-            padding: ${theme.space[3]} ${theme.space[3]};
-            font-size: 14px;
-          }
-
-          .loginmenu-user-trigger {
-            min-height: 40px;
-            padding: ${theme.space[3]} ${theme.space[3]};
-          }
-
-          .loginmenu-user-trigger-text {
-            font-size: 14px;
-          }
-
-          .loginmenu-icon-button {
-            min-width: 40px;
-            min-height: 40px;
-          }
-        }
-
-        /* 触摸反馈动画 */
-        @media (pointer: coarse) {
-          .loginmenu-dd-item:active,
-          .loginmenu-user-trigger:active,
-          .loginmenu-icon-button:active {
-            transition: all 0.08s ease;
-          }
         }
       `}
     </style>
@@ -254,13 +256,10 @@ export const LoggedInMenu: React.FC = () => {
   const users = useAppSelector(selectUsers);
   const currentUserId = useAppSelector(selectUserId);
   const [isMobile, setIsMobile] = useState(false);
+  const { balance, loading, error } = useBalance();
 
-  // 检测设备类型
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768 || "ontouchstart" in window);
-    };
-
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -274,6 +273,10 @@ export const LoggedInMenu: React.FC = () => {
     dispatch(signOut())
       .unwrap()
       .then(() => navigate("/"));
+  };
+
+  const handleRecharge = () => {
+    navigate("/recharge");
   };
 
   const handleInviteFriend = async () => {
@@ -297,14 +300,15 @@ export const LoggedInMenu: React.FC = () => {
       key={key}
       onClick={onClick}
       className={`loginmenu-dd-item ${className}`}
-      onTouchStart={() => {}}
     >
       {icon && <span className="loginmenu-dd-icon">{icon}</span>}
       <span>{label}</span>
     </button>
   );
 
-  const otherUsers = users.filter((user) => user !== auth.user && user);
+  const otherUsers = users.filter(
+    (user) => user && user.userId !== currentUserId
+  );
 
   return (
     <>
@@ -327,7 +331,7 @@ export const LoggedInMenu: React.FC = () => {
 
         <DropdownMenu
           trigger={
-            <button className="loginmenu-icon-button" onTouchStart={() => {}}>
+            <button className="loginmenu-icon-button">
               <TriangleDownIcon size={14} />
             </button>
           }
@@ -348,6 +352,23 @@ export const LoggedInMenu: React.FC = () => {
               </div>
             )}
 
+            {/* Balance and Recharge Section */}
+            <div className="loginmenu-balance-section">
+              <div className="loginmenu-balance-info">
+                <CreditCardIcon size={14} />
+                <span>{t("balance", "余额")}:</span>
+                <span className="loginmenu-balance-amount">
+                  {loading ? "..." : error ? "N/A" : `¥ ${balance.toFixed(2)}`}
+                </span>
+              </div>
+              <button
+                className="loginmenu-recharge-button"
+                onClick={handleRecharge}
+              >
+                {t("recharge", "充值")}
+              </button>
+            </div>
+
             {renderDropdownItem(
               "邀请朋友",
               <PlusIcon size={14} />,
@@ -363,7 +384,6 @@ export const LoggedInMenu: React.FC = () => {
                 () => navigate(SettingRoutePaths.SETTING),
                 "settings"
               )}
-
               {renderDropdownItem(
                 t("logout"),
                 <SignOutIcon size={14} />,

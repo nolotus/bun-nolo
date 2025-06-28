@@ -6,8 +6,6 @@ import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
 import { clearTodayTokens, clearAllTokens } from "ai/token/clear";
 import { RiBarChartBoxLine } from "react-icons/ri";
-import Button from "render/web/ui/Button";
-import BalanceCard from "./BalanceCard";
 import RechargeRecord from "./RechargeRecord";
 import UsageRecord from "./UsageRecord";
 import UsageChart from "./UsageChart";
@@ -100,13 +98,11 @@ const Usage: React.FC = () => {
             {t("usage_dashboard", "使用统计")}
           </h1>
           <p className="usage-page-subtitle">
-            {t("usage_dashboard_subtitle", "查看账户余额、充值记录和使用详情")}
+            {t("usage_dashboard_subtitle", "查看充值记录和使用详情")}
           </p>
         </div>
 
         <div className="usage-page-content">
-          <BalanceCard />
-
           <RechargeRecord
             isVisible={isRechargeRecordVisible}
             onToggleVisibility={() =>
