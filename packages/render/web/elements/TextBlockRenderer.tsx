@@ -1,4 +1,6 @@
+// render/web/elements/TextBlockRenderer.tsx
 import React, { useMemo } from "react";
+import { NavLink } from "react-router-dom";
 import { useTheme } from "app/theme";
 
 type TextBlockType =
@@ -23,7 +25,69 @@ type TextBlockProps = {
   };
 };
 
-// 简化的标签映射
+type SafeLinkProps = {
+  attributes?: any;
+  children: React.ReactNode;
+  href: string;
+  [key: string]: any;
+};
+
+// 链接分析函数
+const getLinkInfo = (
+  rawHref: string | undefined
+): { href: string; isExternal: boolean } => {
+  if (!rawHref || typeof rawHref !== "string") {
+    return { href: "about:blank", isExternal: true };
+  }
+
+  const href = rawHref.trim();
+
+  if (/^(https?:|mailto:|tel:)/i.test(href)) {
+    return { href, isExternal: true };
+  }
+
+  if (href.startsWith("//")) {
+    return { href, isExternal: true };
+  }
+
+  if (href.includes(".") && !href.includes(" ") && !href.startsWith("/")) {
+    return { href: `//${href}`, isExternal: true };
+  }
+
+  return { href, isExternal: false };
+};
+
+// SafeLink 组件
+export const SafeLink: React.FC<SafeLinkProps> = ({
+  attributes,
+  children,
+  href,
+  ...props
+}) => {
+  const linkInfo = useMemo(() => getLinkInfo(href), [href]);
+
+  if (linkInfo.isExternal) {
+    return (
+      <a
+        href={linkInfo.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        {...attributes}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <NavLink to={linkInfo.href} {...attributes} {...props}>
+      {children}
+    </NavLink>
+  );
+};
+
+// 标签映射
 const TAG_MAP: Record<TextBlockType, keyof JSX.IntrinsicElements> = {
   "heading-one": "h1",
   "heading-two": "h2",
@@ -36,10 +100,9 @@ const TAG_MAP: Record<TextBlockType, keyof JSX.IntrinsicElements> = {
   paragraph: "p",
 };
 
-// 合并的样式配置 - 减少重复代码
+// 样式配置 Hook
 const useTextBlockStyles = (theme: any, element: TextBlockProps["element"]) => {
   return useMemo(() => {
-    // 统一基础样式
     const base = {
       color: theme.text,
       fontFamily: "system-ui, -apple-system, sans-serif",
@@ -47,7 +110,6 @@ const useTextBlockStyles = (theme: any, element: TextBlockProps["element"]) => {
       textRendering: "optimizeLegibility" as const,
     };
 
-    // 简化的尺寸配置
     const configs: Record<TextBlockType, React.CSSProperties> = {
       "heading-one": {
         ...base,
@@ -142,7 +204,7 @@ const useTextBlockStyles = (theme: any, element: TextBlockProps["element"]) => {
   }, [theme, element.type, element.isNested]);
 };
 
-// 合并的引用组件
+// 引用注释组件
 const QuoteCitation = ({ cite, theme }: { cite: string; theme: any }) => (
   <cite
     style={{
@@ -159,7 +221,7 @@ const QuoteCitation = ({ cite, theme }: { cite: string; theme: any }) => (
   </cite>
 );
 
-// 主组件
+// 主文本块渲染组件
 export const TextBlockRenderer: React.FC<TextBlockProps> = ({
   attributes,
   children,
@@ -169,12 +231,10 @@ export const TextBlockRenderer: React.FC<TextBlockProps> = ({
   const HtmlTag = TAG_MAP[element.type];
   const style = useTextBlockStyles(theme, element);
 
-  // 合并样式
   const finalStyle = element.align
     ? { ...style, textAlign: element.align }
     : style;
 
-  // 特殊情况处理
   if (element.type === "thematic-break") {
     return <HtmlTag {...attributes} style={finalStyle} />;
   }

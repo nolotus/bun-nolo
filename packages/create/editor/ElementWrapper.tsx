@@ -2,15 +2,16 @@
 import React from "react";
 import { useSlateStatic } from "slate-react";
 import { useTheme } from "app/theme";
-import CodeBlock from "render/elements/CodeBlock";
-import { ImageElement } from "render/elements/ImageElement";
-import { List, ListItem } from "render/elements/List";
-import { SafeLink } from "render/elements/SafeLink";
-import { Table, TableCell, TableRow } from "web/ui/Table";
-import { TextBlockRenderer } from "render/web/elements/TextBlockRenderer";
+import CodeBlock from "render/web/elements/CodeBlock";
+import { ImageElement } from "render/web/elements/ImageElement";
+import { List, ListItem } from "render/web/elements/List";
+import {
+  SafeLink,
+  TextBlockRenderer,
+} from "render/web/elements/TextBlockRenderer";
 import { CodeBlockType, CodeLineType } from "./types";
+import { Table, TableRow, TableCell } from "render/web/ui/Table";
 
-// 定义所有由 TextBlockRenderer 处理的元素类型
 const TEXT_BLOCK_TYPES = [
   "paragraph",
   "heading-one",
@@ -33,7 +34,6 @@ export const ElementWrapper = (props) => {
     ...additionalStyle,
   });
 
-  // 统一处理所有文本块
   if (TEXT_BLOCK_TYPES.includes(element.type)) {
     return (
       <TextBlockRenderer attributes={attributes} element={element}>
@@ -81,8 +81,6 @@ export const ElementWrapper = (props) => {
           {children}
         </code>
       );
-
-    // 段落、标题、引用、分割线已移至 TextBlockRenderer
 
     case "link":
       return (
@@ -133,12 +131,14 @@ export const ElementWrapper = (props) => {
           {children}
         </Table>
       );
+
     case "table-row":
       return (
         <TableRow attributes={attributes} style={getStyle()}>
           {children}
         </TableRow>
       );
+
     case "table-cell":
       return (
         <TableCell
@@ -161,6 +161,7 @@ export const ElementWrapper = (props) => {
           dangerouslySetInnerHTML={{ __html: element.html }}
         />
       );
+
     case "html-block":
       return (
         <div
