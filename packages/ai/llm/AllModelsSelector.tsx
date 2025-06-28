@@ -3,7 +3,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
-import { Dropdown } from "render/web/form/Dropdown";
+import { Dropdown } from "render/web/ui/Dropdown";
 import { CheckIcon, EyeIcon } from "@primer/octicons-react";
 
 // 1. [关键] 从新的数据文件中导入模型数据和类型
