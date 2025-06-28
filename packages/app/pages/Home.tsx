@@ -32,7 +32,6 @@ import WelcomeSection from "./WelcomeSection";
 import AgentBlock from "ai/llm/web/AgentBlock";
 import PubCybots from "ai/cybot/web/PubCybots";
 
-// 骨架屏组件 (已简化)
 const LoadingState = memo(() => (
   <div className="cybots-grid">
     {Array.from({ length: 6 }, (_, i) => (
@@ -47,8 +46,6 @@ const LoadingState = memo(() => (
 LoadingState.displayName = "LoadingState";
 
 const EmptyState = memo(({ message }: { message: string }) => {
-  const theme = useAppSelector(selectTheme);
-
   return (
     <div className="empty-state">
       <div className="empty-icon">
@@ -109,7 +106,6 @@ const Cybots = memo(({ queryUserId, limit = 6 }: CybotsProps) => {
 });
 Cybots.displayName = "Cybots";
 
-// 主组件
 const Home = () => {
   const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
@@ -119,7 +115,6 @@ const Home = () => {
   const currentUserId = useAppSelector(selectUserId);
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
 
-  // 立即聊天功能
   const { isLoading: isChatLoading, createNewDialog } = useCreateDialog();
 
   const [activeTab, setActiveTab] = useState(
@@ -151,7 +146,6 @@ const Home = () => {
     }
   }, [dispatch, navigate]);
 
-  // 立即聊天功能
   const startQuickChat = useCallback(async () => {
     if (isChatLoading) return;
     try {
@@ -163,7 +157,6 @@ const Home = () => {
     }
   }, [isChatLoading, createNewDialog]);
 
-  // 主要操作配置
   const primaryActions = [
     {
       id: "quick-chat",
@@ -195,7 +188,6 @@ const Home = () => {
     },
   ];
 
-  // 次要操作配置
   const secondaryActions = [
     {
       id: "guide",
@@ -224,7 +216,6 @@ const Home = () => {
     },
   ];
 
-  // 标签页配置
   const tabs = [
     ...(isLoggedIn
       ? [
@@ -232,7 +223,6 @@ const Home = () => {
             id: "myAI",
             label: "我的工作台",
             icon: <CopilotIcon size={20} />,
-            description: "专属AI助手",
             component: <Cybots queryUserId={currentUserId} limit={6} />,
           },
         ]
@@ -241,7 +231,6 @@ const Home = () => {
       id: "communityAI",
       label: "AI 广场",
       icon: <GlobeIcon size={20} />,
-      description: "发现优质AI",
       component: <PubCybots limit={6} />,
     },
   ];
@@ -260,27 +249,18 @@ const Home = () => {
           max-width: min(1200px, calc(100vw - ${theme.space[8]}));
           margin: 0 auto;
           padding: ${theme.space[8]} ${theme.space[4]} ${theme.space[12]};
-          container-type: inline-size;
         }
 
-        /* ======================
-           引导区域样式
-           ====================== */
+        /* 引导区域 */
         .guide-section {
-          margin: 0 auto ${theme.space[12]};
+          margin-bottom: ${theme.space[10]};
           opacity: 0;
           animation: sectionFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes sectionFadeIn {
-          0% { 
-            opacity: 0; 
-            transform: translateY(40px) scale(0.95);
-          }
-          100% { 
-            opacity: 1; 
-            transform: translateY(0) scale(1);
-          }
+          0% { opacity: 0; transform: translateY(32px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
 
         /* 主要操作区 */
@@ -288,7 +268,7 @@ const Home = () => {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
           gap: ${theme.space[6]};
-          margin-bottom: ${theme.space[10]};
+          margin-bottom: ${theme.space[8]};
         }
 
         .hero-action {
@@ -304,62 +284,13 @@ const Home = () => {
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           overflow: hidden;
-          box-shadow: 
-            0 1px 3px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        }
-
-        .hero-action[data-gradient="chat"]::before {
-          background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}08 50%, transparent 100%);
-        }
-
-        .hero-action[data-gradient="ai"]::before {
-          background: linear-gradient(135deg, ${theme.primary}10 0%, ${theme.primary}05 50%, transparent 100%);
-        }
-
-        .hero-action[data-gradient="note"]::before {
-          background: linear-gradient(135deg, ${theme.primary}08 0%, ${theme.primary}03 50%, transparent 100%);
-        }
-
-        .hero-action::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          opacity: 0;
-          transition: opacity 0.4s ease;
-          pointer-events: none;
-        }
-
-        .hero-action::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${theme.primary}08 0%, transparent 60%);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          pointer-events: none;
-        }
-
-        .hero-action:hover::before {
-          opacity: 1;
-        }
-
-        .hero-action:hover::after {
-          opacity: 1;
+          box-shadow: 0 1px 3px ${theme.shadow1};
         }
 
         .hero-action:hover {
           transform: translateY(-6px);
           border-color: ${theme.primary}30;
-          box-shadow: 
-            0 20px 40px -8px ${theme.shadow2},
-            0 0 0 1px ${theme.primary}15,
-            inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-
-        .hero-action:active {
-          transform: translateY(-2px);
-          transition-duration: 0.1s;
+          box-shadow: 0 20px 40px -8px ${theme.shadow2};
         }
 
         .hero-action.accent {
@@ -385,36 +316,18 @@ const Home = () => {
           align-items: center;
           justify-content: center;
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .hero-icon-container::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, ${theme.primary}25 0%, transparent 60%);
-          opacity: 0;
-          transition: opacity 0.4s ease;
         }
 
         .hero-action:hover .hero-icon-container {
           background: linear-gradient(135deg, ${theme.primary} 0%, ${theme.primary}90 100%);
           color: white;
           transform: scale(1.08);
-          box-shadow: 
-            0 8px 20px -4px ${theme.primary}40,
-            inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
 
         .hero-action[disabled]:hover .hero-icon-container {
           transform: none;
           background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}10 100%);
           color: ${theme.primary};
-        }
-
-        .hero-action:hover .hero-icon-container::before {
-          opacity: 1;
         }
 
         .hero-content {
@@ -429,7 +342,6 @@ const Home = () => {
           color: ${theme.text};
           margin: 0 0 ${theme.space[2]};
           line-height: 1.3;
-          letter-spacing: -0.025em;
         }
 
         .hero-description {
@@ -437,7 +349,6 @@ const Home = () => {
           color: ${theme.textSecondary};
           margin: 0;
           line-height: 1.5;
-          letter-spacing: -0.01em;
         }
 
         /* 次要操作区 */
@@ -461,8 +372,6 @@ const Home = () => {
           color: ${theme.textSecondary};
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          position: relative;
-          overflow: hidden;
         }
 
         .utility-action[data-priority="high"] {
@@ -475,27 +384,11 @@ const Home = () => {
           order: -1;
         }
 
-        .utility-action::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(circle at center, ${theme.primary}10 0%, transparent 70%);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .utility-action:hover::before {
-          opacity: 1;
-        }
-
         .utility-action:hover {
           background: ${theme.background};
           color: ${theme.primary};
           border-color: ${theme.primary}20;
           transform: translateY(-3px);
-          box-shadow: 
-            0 12px 24px -6px ${theme.shadow1},
-            0 0 0 1px ${theme.primary}10;
         }
 
         .utility-icon-wrapper {
@@ -507,30 +400,19 @@ const Home = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.3s ease;
         }
 
         .utility-action:hover .utility-icon-wrapper {
-          background: ${theme.primary}18;
           transform: scale(1.15);
         }
 
         .utility-text {
           font-weight: 520;
-          transition: color 0.3s ease;
           text-align: center;
         }
 
-        /* ======================
-           AI展示区域样式
-           ====================== */
-        .content-transition {
-          height: 1px;
-          background: linear-gradient(90deg, transparent 0%, ${theme.border} 50%, transparent 100%);
-          margin: ${theme.space[10]} 0;
-          opacity: 0.7;
-        }
-
+        /* AI展示区域 */
         .ai-showcase {
           opacity: 0;
           animation: showcaseEntry 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -538,45 +420,21 @@ const Home = () => {
         }
 
         @keyframes showcaseEntry {
-          from {
-            opacity: 0;
-            transform: translateY(32px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(32px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         .section-header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
-          margin-bottom: ${theme.space[8]};
-          padding: 0 ${theme.space[2]};
+          align-items: center;
+          margin-bottom: ${theme.space[6]};
         }
 
-        .section-title-group {
+        .tabs-container {
           display: flex;
-          flex-direction: column;
-          gap: ${theme.space[2]};
-        }
-
-        .section-title {
-          font-size: 1.875rem;
-          font-weight: 700;
-          color: ${theme.text};
-          margin: 0;
-          letter-spacing: -0.03em;
-          line-height: 1.2;
-        }
-
-        .section-subtitle {
-          font-size: 1rem;
-          color: ${theme.textSecondary};
-          margin: 0;
-          line-height: 1.4;
-          letter-spacing: -0.01em;
+          align-items: center;
+          gap: ${theme.space[4]};
         }
 
         .tabs-navigator {
@@ -602,10 +460,10 @@ const Home = () => {
           background: none;
           border: none;
           cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-          position: relative;
+          transition: all 0.25s ease;
           min-width: 120px;
           justify-content: center;
+          white-space: nowrap;
         }
 
         .tab-item:hover {
@@ -617,17 +475,7 @@ const Home = () => {
           color: ${theme.primary};
           background: ${theme.background};
           font-weight: 600;
-          box-shadow: 
-            0 2px 8px ${theme.shadow1},
-            0 0 0 1px ${theme.primary}12;
-        }
-
-        .tab-item.active::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 50%);
-          border-radius: 12px;
+          box-shadow: 0 2px 8px ${theme.shadow1};
         }
 
         .explore-link {
@@ -637,27 +485,13 @@ const Home = () => {
           color: ${theme.textSecondary};
           text-decoration: none;
           font-weight: 520;
-          font-size: 0.9rem;
+          font-size: 0.875rem;
           padding: ${theme.space[3]} ${theme.space[4]};
-          border-radius: 14px;
+          border-radius: 12px;
           border: 1px solid ${theme.borderLight};
           background: ${theme.backgroundSecondary};
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .explore-link::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 50%);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .explore-link:hover::before {
-          opacity: 1;
+          transition: all 0.3s ease;
+          white-space: nowrap;
         }
 
         .explore-link:hover {
@@ -665,56 +499,22 @@ const Home = () => {
           background: ${theme.background};
           border-color: ${theme.primary}25;
           transform: translateX(2px);
-          box-shadow: 0 6px 16px ${theme.shadow1};
         }
 
-        .explore-link-icon {
-          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        /* 内容区域 */
+        .ai-content {
+          padding: ${theme.space[6]} 0;
         }
 
-        .explore-link:hover .explore-link-icon {
-          transform: translateX(3px);
+        /* Cybots 网格 */
+        .cybots-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: ${theme.space[5]};
+          width: 100%;
         }
 
-        .content-container {
-          background: ${theme.background};
-          border-radius: 24px;
-          padding: ${theme.space[8]} ${theme.space[6]};
-          min-height: 420px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .content-container::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 1px;
-          background: linear-gradient(90deg, transparent 0%, ${theme.primary}25 50%, transparent 100%);
-        }
-
-        .tab-content {
-          opacity: 0;
-          animation: contentFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.1s;
-        }
-
-        @keyframes contentFadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        /* ======================
-           Cybots 相关样式
-           ====================== */
+        /* 空状态 */
         .empty-state {
           display: flex;
           flex-direction: column;
@@ -736,238 +536,197 @@ const Home = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          opacity: 0.8;
         }
 
         .empty-message {
           font-size: 1rem;
           font-weight: 500;
           margin: 0;
-          letter-spacing: -0.01em;
         }
 
-        .cybots-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: ${theme.space[5]};
-          width: 100%;
-        }
-
-        /* 骨架屏样式 */
+        /* 骨架屏 */
         .skeleton-card {
           background: ${theme.backgroundSecondary};
           border-radius: 16px;
-          padding: ${theme.space[5]};
           height: 280px;
-          position: relative;
-          overflow: hidden;
-          opacity: 0;
-          animation: skeletonFadeIn 0.6s ease forwards, skeletonPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes skeletonFadeIn {
-          to {
-            opacity: 1;
-          }
+          animation: skeletonPulse 2s ease-in-out infinite;
         }
 
         @keyframes skeletonPulse {
-          0%, 100% {
-            opacity: 0.8;
-          }
-          50% {
-            opacity: 0.4;
-          }
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 0.4; }
         }
 
-        .skeleton-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            ${theme.background}60 50%,
-            transparent 100%
-          );
-          animation: skeletonShimmer 2s ease-in-out infinite;
-        }
-
-        @keyframes skeletonShimmer {
-          0% {
-            left: -100%;
-          }
-          100% {
-            left: 100%;
-          }
-        }
-
-        /* ======================
-           响应式设计
-           ====================== */
-        @container (max-width: 800px) {
-          .hero-actions {
-            grid-template-columns: 1fr;
-            gap: ${theme.space[5]};
-            margin-bottom: ${theme.space[8]};
-          }
-
-          .content-container {
-            padding: ${theme.space[6]} ${theme.space[4]};
-          }
-
-          .cybots-grid {
-            gap: ${theme.space[4]};
-          }
-        }
-
+        /* 响应式设计 */
         @media (max-width: 768px) {
           .home-container {
-            max-width: calc(100vw - ${theme.space[6]});
-            padding: ${theme.space[6]} ${theme.space[3]} ${theme.space[10]};
+            max-width: calc(100vw - ${theme.space[4]});
+            padding: ${theme.space[5]} ${theme.space[3]} ${theme.space[8]};
           }
           
+          .hero-actions {
+            grid-template-columns: 1fr;
+            gap: ${theme.space[4]};
+            margin-bottom: ${theme.space[6]};
+          }
+
           .hero-action {
-            padding: ${theme.space[6]} ${theme.space[5]};
+            padding: ${theme.space[5]} ${theme.space[4]};
+            border-radius: 20px;
+          }
+
+          .hero-icon-container {
+            width: 52px;
+            height: 52px;
+          }
+
+          .hero-title {
+            font-size: 1.125rem;
+          }
+
+          .hero-description {
+            font-size: 0.875rem;
           }
           
           .utility-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: ${theme.space[3]};
+          }
+
+          .utility-action {
+            padding: ${theme.space[4]} ${theme.space[3]};
+            gap: ${theme.space[3]};
+          }
+
+          .utility-icon-wrapper {
+            width: 36px;
+            height: 36px;
           }
 
           .section-header {
             flex-direction: column;
             align-items: stretch;
-            gap: ${theme.space[4]};
-            margin-bottom: ${theme.space[6]};
+            gap: ${theme.space[3]};
+            margin-bottom: ${theme.space[5]};
           }
 
-          .tabs-navigator {
-            order: -1;
-          }
-
-          .explore-link {
-            align-self: flex-end;
-          }
-
-          .cybots-grid {
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          .tabs-container {
+            flex-direction: column;
             gap: ${theme.space[3]};
           }
 
-          .empty-state {
-            min-height: 200px;
-            padding: ${theme.space[6]} ${theme.space[3]};
+          .tabs-navigator {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .tab-item {
+            padding: ${theme.space[2]} ${theme.space[3]};
+            font-size: 0.8rem;
+            min-width: auto;
+            flex: 1;
+            gap: ${theme.space[1]};
+          }
+
+          .explore-link {
+            align-self: center;
+            font-size: 0.8rem;
+            padding: ${theme.space[2]} ${theme.space[4]};
+          }
+
+          .cybots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: ${theme.space[3]};
           }
         }
 
         @media (max-width: 480px) {
-          .hero-action {
-            flex-direction: column;
-            text-align: center;
-            gap: ${theme.space[5]};
-            padding: ${theme.space[6]};
+          .home-container {
+            padding: ${theme.space[4]} ${theme.space[2]} ${theme.space[6]};
           }
 
-          .hero-content {
-            padding-top: 0;
+          .hero-action {
+            padding: ${theme.space[4]} ${theme.space[3]};
+            flex-direction: row;
+            align-items: flex-start;
+            gap: ${theme.space[3]};
+          }
+
+          .hero-icon-container {
+            width: 48px;
+            height: 48px;
+          }
+
+          .hero-title {
+            font-size: 1rem;
+            font-weight: 600;
+          }
+
+          .hero-description {
+            font-size: 0.8rem;
           }
           
-          .utility-action {
-            padding: ${theme.space[5]} ${theme.space[3]};
-          }
-
           .utility-grid {
+            grid-template-columns: repeat(3, 1fr);
             gap: ${theme.space[2]};
           }
 
+          .utility-action {
+            padding: ${theme.space[3]} ${theme.space[2]};
+            font-size: 0.75rem;
+          }
+
+          .utility-icon-wrapper {
+            width: 32px;
+            height: 32px;
+          }
+
+          .section-header {
+            gap: ${theme.space[2]};
+          }
+
+          .tabs-container {
+            gap: ${theme.space[2]};
+          }
+
+          .tabs-navigator {
+            border-radius: 12px;
+            padding: 2px;
+          }
+
           .tab-item {
-            min-width: auto;
-            flex: 1;
-            font-size: 0.8rem;
+            padding: ${theme.space[1]} ${theme.space[2]};
+            font-size: 0.75rem;
+            gap: 4px;
+            border-radius: 8px;
+          }
+
+          .tab-item svg {
+            width: 16px;
+            height: 16px;
           }
 
           .explore-link {
-            display: none;
+            font-size: 0.75rem;
+            padding: ${theme.space[1]} ${theme.space[3]};
+            gap: 4px;
+            border-radius: 8px;
           }
 
-          .content-transition {
-            margin: ${theme.space[6]} 0;
+          .explore-link svg {
+            width: 14px;
+            height: 14px;
           }
 
           .cybots-grid {
             grid-template-columns: 1fr;
-            gap: ${theme.space[3]};
-          }
-
-          .content-container {
-            padding: ${theme.space[5]} ${theme.space[3]};
-            min-height: 320px;
+            gap: ${theme.space[2]};
           }
 
           .empty-state {
-            min-height: 160px;
+            min-height: 200px;
             gap: ${theme.space[3]};
           }
-
-          .section-title {
-            font-size: 1.5rem;
-          }
-
-          .section-subtitle {
-            font-size: 0.9rem;
-          }
-        }
-
-        /* ======================
-           性能和可访问性优化
-           ====================== */
-        @media (prefers-reduced-motion: reduce) {
-          .guide-section,
-          .ai-showcase,
-          .tab-content,
-          .hero-action,
-          .utility-action,
-          .hero-icon-container,
-          .utility-icon-wrapper,
-          .skeleton-card {
-            animation: none !important;
-            transition-duration: 0.1s !important;
-            opacity: 1 !important;
-          }
-          
-          .hero-action:hover,
-          .utility-action:hover,
-          .explore-link:hover,
-          .hero-icon-container,
-          .utility-icon-wrapper {
-            transform: none !important;
-          }
-        }
-
-        @media (prefers-contrast: high) {
-          .hero-action,
-          .utility-action,
-          .content-container {
-            border-width: 2px;
-          }
-          
-          .empty-state {
-            color: ${theme.text};
-          }
-        }
-
-        /* 焦点可访问性 */
-        .hero-action:focus-visible,
-        .utility-action:focus-visible,
-        .tab-item:focus-visible,
-        .explore-link:focus-visible {
-          outline: 2px solid ${theme.primary};
-          outline-offset: 2px;
         }
       `}</style>
 
@@ -975,28 +734,14 @@ const Home = () => {
         <main className="home-container">
           {/* 引导区域 */}
           {isLoggedIn && currentUser ? (
-            <section
-              className="guide-section"
-              role="region"
-              aria-label="快捷操作"
-            >
-              {/* 主要操作区 */}
+            <section className="guide-section">
               <div className="hero-actions">
                 {primaryActions.map((action) => (
                   <button
                     key={action.id}
                     className={`hero-action ${action.accent ? "accent" : ""}`}
-                    data-gradient={action.gradient}
                     onClick={() => handleActionClick(action)}
                     disabled={action.id === "quick-chat" && isChatLoading}
-                    aria-label={`${action.text}: ${action.description}`}
-                    onMouseMove={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = ((e.clientX - rect.left) / rect.width) * 100;
-                      const y = ((e.clientY - rect.top) / rect.height) * 100;
-                      e.currentTarget.style.setProperty("--mouse-x", `${x}%`);
-                      e.currentTarget.style.setProperty("--mouse-y", `${y}%`);
-                    }}
                   >
                     <div className="hero-icon-container">{action.icon}</div>
                     <div className="hero-content">
@@ -1011,7 +756,6 @@ const Home = () => {
                 ))}
               </div>
 
-              {/* 次要操作区 */}
               <div className="utility-grid">
                 {secondaryActions.map((action) => (
                   <button
@@ -1019,7 +763,6 @@ const Home = () => {
                     className="utility-action"
                     data-priority={action.priority}
                     onClick={() => handleActionClick(action)}
-                    aria-label={action.text}
                   >
                     <div className="utility-icon-wrapper">{action.icon}</div>
                     <span className="utility-text">{action.text}</span>
@@ -1031,75 +774,40 @@ const Home = () => {
             <WelcomeSection />
           )}
 
-          {/* 视觉过渡分割线 */}
-          <div className="content-transition" aria-hidden="true" />
-
           {/* AI展示区域 */}
-          <section
-            className="ai-showcase"
-            role="region"
-            aria-label="AI助手展示"
-          >
+          <section className="ai-showcase">
             <header className="section-header">
-              <div className="section-title-group">
-                <h2 className="section-title">
-                  {isLoggedIn ? "AI 工作空间" : "探索 AI 世界"}
-                </h2>
-                <p className="section-subtitle">
-                  {currentTab?.description || "发现和使用智能助手"}
-                </p>
-              </div>
+              <div className="tabs-container">
+                <nav className="tabs-navigator">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      {tab.icon}
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </nav>
 
-              {/* 标签页导航 */}
-              <nav
-                className="tabs-navigator"
-                role="tablist"
-                aria-label="AI助手分类"
-              >
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    role="tab"
-                    aria-selected={activeTab === tab.id}
-                    aria-controls={`tabpanel-${tab.id}`}
+                {isLoggedIn && (
+                  <NavLink
+                    to={
+                      activeTab === "myAI"
+                        ? `space/${currentSpaceId}`
+                        : "/explore"
+                    }
+                    className="explore-link"
                   >
-                    {tab.icon}
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-
-              {/* 查看全部链接 */}
-              {isLoggedIn && (
-                <NavLink
-                  to={
-                    activeTab === "myAI"
-                      ? `space/${currentSpaceId}`
-                      : "/explore"
-                  }
-                  className="explore-link"
-                  aria-label={`查看全部${currentTab?.label}`}
-                >
-                  <span>查看全部</span>
-                  <ChevronRightIcon size={16} className="explore-link-icon" />
-                </NavLink>
-              )}
+                    <span>查看全部</span>
+                    <ChevronRightIcon size={16} />
+                  </NavLink>
+                )}
+              </div>
             </header>
 
-            {/* 内容区域 */}
-            <div className="content-container">
-              <div
-                className="tab-content"
-                role="tabpanel"
-                id={`tabpanel-${activeTab}`}
-                key={activeTab}
-                aria-labelledby={`tab-${activeTab}`}
-              >
-                {currentTab?.component}
-              </div>
-            </div>
+            <div className="ai-content">{currentTab?.component}</div>
           </section>
         </main>
       </div>
