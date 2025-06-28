@@ -17,11 +17,11 @@ import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import {
   GlobeIcon,
   ChevronRightIcon,
-  CreditCardIcon,
   PlusIcon,
   BookIcon,
   CopilotIcon,
   CommentDiscussionIcon,
+  PencilIcon,
 } from "@primer/octicons-react";
 import { FiDollarSign } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -157,62 +157,53 @@ const Home = () => {
     }
   }, [isChatLoading, createNewDialog]);
 
-  const primaryActions = [
+  const actions = [
     {
       id: "quick-chat",
       text: "立即聊天",
-      icon: <CommentDiscussionIcon size={28} />,
+      icon: <CommentDiscussionIcon size={24} />,
       description: "与AI助手开始对话，获得即时帮助",
       type: "action",
       payload: startQuickChat,
       accent: true,
-      gradient: "chat",
     },
     {
       id: "create-ai",
       text: "创建 AI 助手",
-      icon: <CopilotIcon size={28} />,
+      icon: <CopilotIcon size={24} />,
       description: "智能对话，定制专属AI工作伙伴",
       type: "navigate",
       payload: `/${CreateRoutePaths.CREATE_CYBOT}`,
-      gradient: "ai",
     },
     {
-      id: "new-note",
+      id: "create-note",
       text: "创建笔记",
-      icon: <PlusIcon size={28} />,
+      icon: <PencilIcon size={24} />,
       description: "记录想法，构建知识体系",
       type: "action",
       payload: createNewPage,
-      gradient: "note",
-    },
-  ];
-
-  const secondaryActions = [
-    {
-      id: "guide",
-      text: "使用指南",
-      icon: <BookIcon size={18} />,
-      type: "navigate",
-      payload:
-        "/page-0e95801d90-01JRDMA6Q85PQDCEAC7EXHWF67?spaceId=01JRDM39VSNYD1PKS4B53W6BGE",
-      priority: "high",
     },
     {
-      id: "recharge",
-      text: "账户充值",
-      icon: <CreditCardIcon size={18} />,
-      type: "navigate",
-      payload: "/recharge",
-      priority: "medium",
-    },
-    {
-      id: "pricing",
-      text: "计费详情",
-      icon: <FiDollarSign size={18} />,
-      type: "navigate",
-      payload: "/pricing",
-      priority: "low",
+      id: "pricing-help",
+      text: "价格与帮助",
+      icon: <BookIcon size={24} />,
+      description: "查看计费详情和使用指南",
+      type: "mixed",
+      subActions: [
+        {
+          text: "计费详情",
+          icon: <FiDollarSign size={14} />,
+          type: "navigate",
+          payload: "/pricing",
+        },
+        {
+          text: "使用指南",
+          icon: <BookIcon size={14} />,
+          type: "navigate",
+          payload:
+            "/page-0e95801d90-01JRDMA6Q85PQDCEAC7EXHWF67?spaceId=01JRDM39VSNYD1PKS4B53W6BGE",
+        },
+      ],
     },
   ];
 
@@ -263,34 +254,35 @@ const Home = () => {
           100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* 主要操作区 */
+        /* 主要操作区 - 2x2 紧凑网格布局 */
         .hero-actions {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-          gap: ${theme.space[6]};
+          grid-template-columns: repeat(2, 1fr);
+          gap: ${theme.space[4]};
           margin-bottom: ${theme.space[8]};
         }
 
         .hero-action {
           background: ${theme.background};
           border: 1px solid ${theme.border};
-          border-radius: 24px;
-          padding: ${theme.space[8]} ${theme.space[6]};
+          border-radius: 20px;
+          padding: ${theme.space[5]} ${theme.space[4]};
           display: flex;
-          align-items: flex-start;
-          gap: ${theme.space[5]};
+          flex-direction: column;
+          gap: ${theme.space[3]};
           text-align: left;
           cursor: pointer;
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           overflow: hidden;
           box-shadow: 0 1px 3px ${theme.shadow1};
+          min-height: 120px;
         }
 
         .hero-action:hover {
-          transform: translateY(-6px);
+          transform: translateY(-4px);
           border-color: ${theme.primary}30;
-          box-shadow: 0 20px 40px -8px ${theme.shadow2};
+          box-shadow: 0 12px 24px -6px ${theme.shadow2};
         }
 
         .hero-action.accent {
@@ -304,10 +296,17 @@ const Home = () => {
           transform: none !important;
         }
 
+        /* 标题栏 - 图标和标题在同一行 */
+        .hero-header {
+          display: flex;
+          align-items: center;
+          gap: ${theme.space[3]};
+        }
+
         .hero-icon-container {
-          width: 64px;
-          height: 64px;
-          border-radius: 20px;
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
           background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}10 100%);
           border: 1px solid ${theme.primary}20;
           color: ${theme.primary};
@@ -321,7 +320,7 @@ const Home = () => {
         .hero-action:hover .hero-icon-container {
           background: linear-gradient(135deg, ${theme.primary} 0%, ${theme.primary}90 100%);
           color: white;
-          transform: scale(1.08);
+          transform: scale(1.05);
         }
 
         .hero-action[disabled]:hover .hero-icon-container {
@@ -330,86 +329,59 @@ const Home = () => {
           color: ${theme.primary};
         }
 
-        .hero-content {
-          flex: 1;
-          min-width: 0;
-          padding-top: ${theme.space[1]};
-        }
-
         .hero-title {
-          font-size: 1.375rem;
+          font-size: 1.125rem;
           font-weight: 650;
           color: ${theme.text};
-          margin: 0 0 ${theme.space[2]};
-          line-height: 1.3;
+          margin: 0;
+          line-height: 1.2;
+          flex: 1;
+        }
+
+        .hero-content {
+          display: flex;
+          flex-direction: column;
+          gap: ${theme.space[2]};
+          flex: 1;
         }
 
         .hero-description {
-          font-size: 0.95rem;
+          font-size: 0.85rem;
           color: ${theme.textSecondary};
           margin: 0;
-          line-height: 1.5;
+          line-height: 1.4;
+          flex: 1;
         }
 
-        /* 次要操作区 */
-        .utility-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-          gap: ${theme.space[4]};
+        /* 混合类型操作的子按钮 */
+        .sub-actions {
+          display: flex;
+          gap: ${theme.space[2]};
+          margin-top: auto;
         }
 
-        .utility-action {
+        .sub-action {
+          display: inline-flex;
+          align-items: center;
+          gap: ${theme.space[1]};
+          padding: ${theme.space[2]} ${theme.space[3]};
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.borderLight};
-          border-radius: 18px;
-          padding: ${theme.space[6]} ${theme.space[4]};
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: ${theme.space[4]};
-          font-size: 0.875rem;
+          border-radius: 10px;
+          font-size: 0.75rem;
           font-weight: 520;
           color: ${theme.textSecondary};
+          text-decoration: none;
+          transition: all 0.25s ease;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .utility-action[data-priority="high"] {
-          order: -2;
-          background: ${theme.background};
-          border-color: ${theme.border};
-        }
-
-        .utility-action[data-priority="medium"] {
-          order: -1;
-        }
-
-        .utility-action:hover {
-          background: ${theme.background};
-          color: ${theme.primary};
-          border-color: ${theme.primary}20;
-          transform: translateY(-3px);
-        }
-
-        .utility-icon-wrapper {
-          width: 44px;
-          height: 44px;
-          border-radius: 14px;
-          background: ${theme.primary}12;
-          color: ${theme.primary};
-          display: flex;
-          align-items: center;
+          flex: 1;
           justify-content: center;
-          transition: all 0.3s ease;
         }
 
-        .utility-action:hover .utility-icon-wrapper {
-          transform: scale(1.15);
-        }
-
-        .utility-text {
-          font-weight: 520;
-          text-align: center;
+        .sub-action:hover {
+          color: ${theme.primary};
+          background: ${theme.background};
+          border-color: ${theme.primary}25;
         }
 
         /* AI展示区域 */
@@ -566,41 +538,33 @@ const Home = () => {
           
           .hero-actions {
             grid-template-columns: 1fr;
-            gap: ${theme.space[4]};
+            gap: ${theme.space[3]};
             margin-bottom: ${theme.space[6]};
           }
 
           .hero-action {
-            padding: ${theme.space[5]} ${theme.space[4]};
-            border-radius: 20px;
+            padding: ${theme.space[4]} ${theme.space[3]};
+            border-radius: 18px;
+            min-height: auto;
           }
 
           .hero-icon-container {
-            width: 52px;
-            height: 52px;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
           }
 
           .hero-title {
-            font-size: 1.125rem;
+            font-size: 1rem;
           }
 
           .hero-description {
-            font-size: 0.875rem;
-          }
-          
-          .utility-grid {
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: ${theme.space[3]};
+            font-size: 0.8rem;
           }
 
-          .utility-action {
-            padding: ${theme.space[4]} ${theme.space[3]};
-            gap: ${theme.space[3]};
-          }
-
-          .utility-icon-wrapper {
-            width: 36px;
-            height: 36px;
+          .sub-action {
+            font-size: 0.7rem;
+            padding: ${theme.space[1]} ${theme.space[2]};
           }
 
           .section-header {
@@ -645,77 +609,43 @@ const Home = () => {
             padding: ${theme.space[4]} ${theme.space[2]} ${theme.space[6]};
           }
 
+          .hero-actions {
+            gap: ${theme.space[2]};
+          }
+
           .hero-action {
-            padding: ${theme.space[4]} ${theme.space[3]};
-            flex-direction: row;
-            align-items: flex-start;
-            gap: ${theme.space[3]};
+            padding: ${theme.space[3]} ${theme.space[3]};
+            gap: ${theme.space[2]};
+            min-height: 100px;
+          }
+
+          .hero-header {
+            gap: ${theme.space[2]};
           }
 
           .hero-icon-container {
-            width: 48px;
-            height: 48px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
           }
 
           .hero-title {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
           }
 
           .hero-description {
-            font-size: 0.8rem;
-          }
-          
-          .utility-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: ${theme.space[2]};
-          }
-
-          .utility-action {
-            padding: ${theme.space[3]} ${theme.space[2]};
             font-size: 0.75rem;
           }
 
-          .utility-icon-wrapper {
-            width: 32px;
-            height: 32px;
+          .sub-actions {
+            gap: ${theme.space[1]};
           }
 
-          .section-header {
-            gap: ${theme.space[2]};
-          }
-
-          .tabs-container {
-            gap: ${theme.space[2]};
-          }
-
-          .tabs-navigator {
-            border-radius: 12px;
-            padding: 2px;
-          }
-
-          .tab-item {
+          .sub-action {
+            font-size: 0.65rem;
             padding: ${theme.space[1]} ${theme.space[2]};
-            font-size: 0.75rem;
-            gap: 4px;
-            border-radius: 8px;
-          }
-
-          .tab-item svg {
-            width: 16px;
-            height: 16px;
-          }
-
-          .explore-link {
-            font-size: 0.75rem;
-            padding: ${theme.space[1]} ${theme.space[3]};
-            gap: 4px;
-            border-radius: 8px;
-          }
-
-          .explore-link svg {
-            width: 14px;
-            height: 14px;
+            gap: 2px;
           }
 
           .cybots-grid {
@@ -736,37 +666,48 @@ const Home = () => {
           {isLoggedIn && currentUser ? (
             <section className="guide-section">
               <div className="hero-actions">
-                {primaryActions.map((action) => (
-                  <button
+                {actions.map((action) => (
+                  <div
                     key={action.id}
                     className={`hero-action ${action.accent ? "accent" : ""}`}
-                    onClick={() => handleActionClick(action)}
-                    disabled={action.id === "quick-chat" && isChatLoading}
+                    onClick={
+                      action.type === "mixed"
+                        ? undefined
+                        : () => handleActionClick(action)
+                    }
+                    style={{
+                      cursor: action.type === "mixed" ? "default" : "pointer",
+                    }}
                   >
-                    <div className="hero-icon-container">{action.icon}</div>
-                    <div className="hero-content">
+                    <div className="hero-header">
+                      <div className="hero-icon-container">{action.icon}</div>
                       <h3 className="hero-title">
                         {action.id === "quick-chat" && isChatLoading
                           ? "正在启动..."
                           : action.text}
                       </h3>
-                      <p className="hero-description">{action.description}</p>
                     </div>
-                  </button>
-                ))}
-              </div>
 
-              <div className="utility-grid">
-                {secondaryActions.map((action) => (
-                  <button
-                    key={action.id}
-                    className="utility-action"
-                    data-priority={action.priority}
-                    onClick={() => handleActionClick(action)}
-                  >
-                    <div className="utility-icon-wrapper">{action.icon}</div>
-                    <span className="utility-text">{action.text}</span>
-                  </button>
+                    <div className="hero-content">
+                      <p className="hero-description">{action.description}</p>
+
+                      {action.type === "mixed" && action.subActions && (
+                        <div className="sub-actions">
+                          {action.subActions.map((subAction, index) => (
+                            <NavLink
+                              key={index}
+                              to={subAction.payload}
+                              className="sub-action"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {subAction.icon}
+                              <span>{subAction.text}</span>
+                            </NavLink>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>
