@@ -15,9 +15,13 @@ import {
 } from "chat/dialog/dialogSlice";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 
-import LanguageSwitcher from "render/web/ui/LanguageSwitcher";
-import { Tooltip } from "render/web/ui/Tooltip";
-import { ConfirmModal } from "render/web/ui/ConfirmModal";
+import { RoutePaths } from "auth/web/routes";
+//web
+import { CreateTool } from "create/CreateTool";
+import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
+
+import NavListItem from "render/layout/blocks/NavListItem";
+import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
 import {
   SignInIcon,
   ThreeBarsIcon,
@@ -26,11 +30,9 @@ import {
   TrashIcon,
   PlusIcon,
 } from "@primer/octicons-react";
-import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
-import { RoutePaths } from "auth/web/routes";
-import { CreateTool } from "create/CreateTool";
-import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
-import NavListItem from "render/layout/blocks/NavListItem";
+import LanguageSwitcher from "render/web/ui/LanguageSwitcher";
+import { Tooltip } from "render/web/ui/Tooltip";
+import { ConfirmModal } from "render/web/ui/ConfirmModal";
 
 const Spinner = memo(() => {
   const theme = useAppSelector(selectTheme);
