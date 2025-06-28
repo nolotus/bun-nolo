@@ -1,4 +1,4 @@
-// render/web/ui/Table
+// render/web/ui/Table.tsx
 import React from "react";
 import { useTheme } from "app/theme";
 
@@ -20,25 +20,21 @@ export const Table: React.FC<TableBaseProps> = ({
       <style href="table-container" precedence="medium">{`
         .table-container {
           overflow-x: auto;
-          border-radius: 8px;
-          margin-top: 1rem;
+          border-radius: ${theme.space[2]};
+          margin: ${theme.space[3]} 0;
+          max-width: 100%;
         }
 
         .data-table {
           width: 100%;
           border-collapse: collapse;
           background: ${theme.background};
-          border-radius: 8px;
-          box-shadow: 0 1px 3px ${theme.shadowLight};
+          border-radius: ${theme.space[2]};
           border: 1px solid ${theme.border};
           overflow: hidden;
           font-size: 0.875rem;
-        }
-
-        @media (max-width: 640px) {
-          .table-container {
-            margin-top: 0.75rem;
-          }
+          line-height: 1.65;
+          font-family: system-ui, -apple-system, sans-serif;
         }
       `}</style>
       <div className="table-container">
@@ -62,14 +58,13 @@ export const TableRow: React.FC<TableBaseProps> = ({
       <style href="table-row" precedence="medium">{`
         .table-row {
           border-bottom: 1px solid ${theme.border};
-          background: ${theme.background};
-          transition: background-color 0.2s ease;
+          transition: background-color 0.15s ease;
         }
         .table-row:last-child {
           border-bottom: none;
         }
         .table-row:hover {
-          background: ${theme.backgroundSecondary};
+          background: ${theme.backgroundHover};
         }
       `}</style>
       <tr className="table-row" style={style} {...attributes}>
@@ -98,39 +93,41 @@ export const TableCell: React.FC<TableCellProps> = ({
     <>
       <style href="table-cell" precedence="medium">{`
         .table-cell {
-          padding: ${element.header ? "0.875rem 1rem" : "1rem"};
+          padding: ${theme.space[3]} ${theme.space[4]};
           text-align: left;
-          color: ${element.header ? theme.textSecondary : theme.text};
-          font-size: ${element.header ? "0.813rem" : "0.875rem"};
-          line-height: 1.5;
-          white-space: nowrap;
+          color: ${theme.text};
+          font-size: 0.875rem;
+          line-height: 1.65;
+          vertical-align: top;
+          word-wrap: break-word;
+          hyphens: auto;
         }
 
         .table-header {
+          background: ${theme.backgroundSecondary};
+          font-weight: 550;
+          color: ${theme.textSecondary};
+          font-size: 0.8125rem;
+          padding: ${theme.space[2]} ${theme.space[4]};
+          border-bottom: 1px solid ${theme.border};
           position: sticky;
           top: 0;
-          background: ${theme.backgroundSecondary};
-          font-weight: 500;
-          user-select: none;
-          text-transform: none;
-          border-bottom: 1px solid ${theme.border};
           z-index: 1;
         }
 
-        .status-badge {
-          display: inline-block;
-          padding: 0.25rem 0.5rem;
-          border-radius: 4px;
-          background: ${theme.backgroundSecondary};
-          color: ${theme.primary};
-          font-size: 0.75rem;
-          font-weight: 500;
+        /* 减少内部段落间距 */
+        .table-cell p {
+          margin: 0;
+        }
+        
+        .table-cell p:not(:last-child) {
+          margin-bottom: ${theme.space[1]};
         }
 
-        @media (max-width: 640px) {
-          .table-cell {
-            padding: 0.75rem;
-          }
+        /* 代码在表格中的样式 */
+        .table-cell code {
+          font-size: 0.8125em;
+          padding: 1px ${theme.space[1]};
         }
       `}</style>
       <Component
