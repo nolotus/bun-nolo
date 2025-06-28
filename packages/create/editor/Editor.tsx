@@ -1,4 +1,5 @@
-// create/editor/Editor.tsx
+// create/editor/Editor.tsx (完整修改版)
+
 import Prism from "prismjs";
 import React, { useCallback, useState, useMemo } from "react";
 import {
@@ -20,13 +21,16 @@ import { HoveringToolbar } from "./HoveringToolbar";
 import { toggleMark } from "./mark";
 import { renderLeaf } from "./renderLeaf";
 import { prismThemeCss } from "./theme/prismThemeCss";
-import { CodeBlockType, CodeLineType } from "./type";
+import { CodeBlockType, CodeLineType } from "./types";
 import { useOnKeydown } from "./useOnKeyDown";
 import { normalizeTokens } from "./utils/normalize-tokens";
 import { withLayout } from "./withLayout";
 import { withShortcuts } from "./withShortcuts";
 import { PlaceHolder } from "render/page/EditorPlaceHolder";
 import { selectTheme } from "app/theme/themeSlice";
+
+// --- 新增: 引入链接插件 ---
+import { withLinks } from "./withLinks";
 
 type CustomEditor = ReactEditor &
   History & {
@@ -47,15 +51,22 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
   placeholder,
 }) => {
   const theme = useSelector(selectTheme);
-  const [isMobile, setIsMobile] = useState(false);
+  // `isMobile` state 未被使用，可以考虑移除
+  // const [isMobile, setIsMobile] = useState(false);
 
   const editor = useMemo(() => {
+    // --- 修改: 在插件链中加入 withLinks ---
     const baseEditor = withShortcuts(
-      withLayout(withHistory(withReact(createEditor() as ReactEditor)))
+      withLayout(
+        withLinks(withHistory(withReact(createEditor() as ReactEditor)))
+      )
     );
 
+    // --- 修改: 扩展 isInline 而不是重新定义 ---
+    // withLinks 已经处理了 link 类型，这里只需保留原有的即可
     const { isInline } = baseEditor;
     baseEditor.isInline = (element) => {
+      // 保留已有的 inline-code 判断，withLinks 会处理 link 类型
       return element.type === "inline-code" ? true : isInline(element);
     };
 
@@ -137,6 +148,17 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           -webkit-text-size-adjust: 100%;
         }
 
+        /* 新增: 链接样式 */
+        .nolo-editor-container a {
+          color: ${theme.primary};
+          text-decoration: none;
+          cursor: pointer;
+        }
+        .nolo-editor-container a:hover {
+          text-decoration: underline;
+        }
+
+
         /* 移动端响应式 - 简化 */
         @media (max-width: 768px) {
           .nolo-editor-container {
@@ -175,7 +197,9 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
   );
 };
 
-// 保持原有的语法高亮逻辑不变...
+// ... 剩余部分 (useDecorate, getChildNodeToDecorations, SetNodeToDecorations, mergeMaps) 保持不变 ...
+// ... (此处省略未修改的下半部分代码，请保留你原有的)
+
 const useDecorate = (editor: CustomEditor) => {
   return useCallback(
     ([node, path]): Range[] => {
