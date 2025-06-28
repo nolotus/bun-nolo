@@ -1,8 +1,8 @@
-// create/editor/EditorToolbar.tsx
-import React from "react";
-import { Button, Menu } from "./components";
-import { useSlate } from "slate-react";
-import { Editor, Transforms, Element as SlateElement } from "slate";
+// create/editor/EditorToolbar.tsx (已修复)
+
+import React, { useState, useCallback } from "react";
+import { useSlate, ReactEditor } from "slate-react"; // --- 修复: 导入 ReactEditor ---
+import { Editor, Element as SlateElement, Transforms } from "slate"; // --- 修复: 导入 Transforms ---
 import {
   MdFormatBold,
   MdFormatItalic,
@@ -17,15 +17,20 @@ import {
   MdFormatAlignCenter,
   MdFormatAlignRight,
   MdFormatAlignJustify,
+  MdLink,
 } from "react-icons/md";
+
+import { Button, Menu } from "./components";
 import { CodeBlockButton } from "./CodeBlockButton";
 import { isMarkActive, toggleMark } from "./mark";
+import { LinkCommands } from "./utils/linkCommands";
+import { LinkModal } from "render/web/ui/LinkModal"; // 确认路径正确
 
-// 常量定义
+// 常量定义 (保持不变)
 const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 const LIST_TYPE = "list";
 
-// 工具栏组件样式
+// 工具栏组件样式 (保持不变)
 export const Toolbar = ({ className, style, ...props }) => (
   <Menu
     {...props}
@@ -37,12 +42,16 @@ export const Toolbar = ({ className, style, ...props }) => (
       borderRadius: "4px",
       boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
       marginBottom: "16px",
+      display: "flex", // 使用 flex 布局以更好地控制分组和分割线
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: "8px",
       ...style,
     }}
   />
 );
 
-// 切换块级元素状态的函数
+// 切换块级元素状态的函数 (保持不变)
 const toggleBlock = (
   editor: Editor,
   format: string,
@@ -55,47 +64,34 @@ const toggleBlock = (
   );
   const isList = format === LIST_TYPE;
 
-  // 处理列表逻辑
-  if (isList) {
-    Transforms.unwrapNodes(editor, {
-      match: (n) =>
-        !Editor.isEditor(n) &&
-        SlateElement.isElement(n) &&
-        n.type === LIST_TYPE,
-      split: true,
-    });
+  Transforms.unwrapNodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) &&
+      SlateElement.isElement(n) &&
+      n.type === LIST_TYPE &&
+      !TEXT_ALIGN_TYPES.includes(format),
+    split: true,
+  });
 
-    const newProperties = {
-      type: isActive ? "paragraph" : "list-item",
-    };
-    Transforms.setNodes(editor, newProperties);
-
-    if (!isActive) {
-      const block = {
-        type: LIST_TYPE,
-        ordered: ordered,
-        children: [],
-      };
-      Transforms.wrapNodes(editor, block);
-    }
-    return;
-  }
-
-  // 处理文本对齐和其他块级元素
+  let newProperties: Partial<SlateElement>;
   if (TEXT_ALIGN_TYPES.includes(format)) {
-    const newProperties = {
+    newProperties = {
       align: isActive ? undefined : format,
     };
-    Transforms.setNodes(editor, newProperties);
   } else {
-    const newProperties = {
-      type: isActive ? "paragraph" : format,
+    newProperties = {
+      type: isActive ? "paragraph" : isList ? "list-item" : format,
     };
-    Transforms.setNodes(editor, newProperties);
+  }
+  Transforms.setNodes<SlateElement>(editor, newProperties);
+
+  if (!isActive && isList) {
+    const block = { type: LIST_TYPE, ordered: ordered === true, children: [] };
+    Transforms.wrapNodes(editor, block);
   }
 };
 
-// 检查块级元素是否激活
+// 检查块级元素是否激活 (保持不变)
 const isBlockActive = (
   editor: Editor,
   format: string,
@@ -117,7 +113,7 @@ const isBlockActive = (
   return !!match;
 };
 
-// 块级元素按钮组件
+// 块级元素按钮组件 (保持不变)
 const BlockButton = ({
   format,
   Icon,
@@ -145,7 +141,7 @@ const BlockButton = ({
   );
 };
 
-// 标记按钮组件
+// 标记按钮组件 (保持不变)
 const MarkButton = ({ format, Icon }: { format: string; Icon: any }) => {
   const editor = useSlate();
   return (
@@ -161,19 +157,70 @@ const MarkButton = ({ format, Icon }: { format: string; Icon: any }) => {
   );
 };
 
-// 编辑器工具栏主组件
+// --- 新增: 链接按钮组件 (已修复) ---
+const LinkButton = () => {
+  const editor = useSlate();
+  const [isModalOpen, setModalOpen] = useState(false);
+  const isActive = LinkCommands.isLinkActive(editor);
+
+  const getActiveLinkUrl = useCallback(() => {
+    if (!isActive) return "";
+    const [link] = Editor.nodes(editor, {
+      match: (n) =>
+        !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === "link",
+    });
+    return link ? (link[0] as any).url : "";
+  }, [editor, isActive]);
+
+  const handleConfirm = (url: string) => {
+    LinkCommands.toggleLink(editor, url);
+    setModalOpen(false);
+  };
+
+  const handleRemove = () => {
+    LinkCommands.toggleLink(editor); // 不带url参数即为移除链接
+    setModalOpen(false);
+  };
+
+  return (
+    <>
+      <Button
+        active={isActive}
+        onMouseDown={(event) => {
+          event.preventDefault();
+          // 如果编辑器没有焦点，先聚焦，确保有选区
+          if (!ReactEditor.isFocused(editor)) {
+            Transforms.focus(editor);
+          }
+          setModalOpen(true);
+        }}
+      >
+        <MdLink size={18} />
+      </Button>
+
+      {isModalOpen && (
+        <LinkModal
+          isOpen={isModalOpen}
+          onClose={() => setModalOpen(false)}
+          onConfirm={handleConfirm}
+          onRemove={handleRemove}
+          initialUrl={getActiveLinkUrl()}
+        />
+      )}
+    </>
+  );
+};
+
+// 编辑器工具栏主组件 (已优化布局)
 export const EditorToolbar = () => {
-  // 样式常量
   const groupStyle = {
     display: "flex",
     gap: "4px",
-    marginRight: "8px",
   };
 
-  const dividerStyle = {
-    borderLeft: "1px solid #ddd",
-    paddingLeft: "8px",
-  };
+  const divider = (
+    <div style={{ borderLeft: "1px solid #ddd", height: "20px" }} />
+  );
 
   return (
     <Toolbar>
@@ -182,17 +229,23 @@ export const EditorToolbar = () => {
         <MarkButton format="bold" Icon={MdFormatBold} />
         <MarkButton format="italic" Icon={MdFormatItalic} />
         <MarkButton format="underline" Icon={MdFormatUnderlined} />
+        <MarkButton format="code" Icon={MdCode} />
+        <LinkButton />
       </div>
 
+      {divider}
+
       {/* 标题和引用组 */}
-      <div style={{ ...groupStyle, ...dividerStyle }}>
+      <div style={groupStyle}>
         <BlockButton format="heading-one" Icon={MdLooksOne} />
         <BlockButton format="heading-two" Icon={MdLooksTwo} />
         <BlockButton format="quote" Icon={MdFormatQuote} />
       </div>
 
+      {divider}
+
       {/* 列表组 */}
-      <div style={{ ...groupStyle, ...dividerStyle }}>
+      <div style={groupStyle}>
         <BlockButton format="list" ordered={true} Icon={MdFormatListNumbered} />
         <BlockButton
           format="list"
@@ -201,18 +254,21 @@ export const EditorToolbar = () => {
         />
       </div>
 
+      {divider}
+
       {/* 对齐组 */}
-      <div style={{ ...groupStyle, ...dividerStyle }}>
+      <div style={groupStyle}>
         <BlockButton format="left" Icon={MdFormatAlignLeft} />
         <BlockButton format="center" Icon={MdFormatAlignCenter} />
         <BlockButton format="right" Icon={MdFormatAlignRight} />
         <BlockButton format="justify" Icon={MdFormatAlignJustify} />
       </div>
 
-      {/* 代码组 */}
-      <div style={{ ...groupStyle, ...dividerStyle, marginRight: 0 }}>
+      {divider}
+
+      {/* 代码块组 */}
+      <div style={groupStyle}>
         <CodeBlockButton />
-        <MarkButton format="code" Icon={MdCode} />
       </div>
     </Toolbar>
   );

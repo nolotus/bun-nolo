@@ -1,4 +1,4 @@
-import { CodeBlockType, CodeLineType, ParagraphType } from "./type";
+import { CodeBlockType, CodeLineType, ParagraphType } from "./types";
 
 const toChildren = (content) => [{ text: content }];
 
@@ -11,7 +11,7 @@ export const initialValue = [
   {
     type: ParagraphType,
     children: toChildren(
-      "Here's one containing a single paragraph block with some text in it:",
+      "Here's one containing a single paragraph block with some text in it:"
     ),
   },
   {
@@ -38,7 +38,7 @@ export const initialValue = [
   {
     type: ParagraphType,
     children: toChildren(
-      "If you are using TypeScript, you will also need to extend the Editor with ReactEditor and add annotations as per the documentation on TypeScript. The example below also includes the custom types required for the rest of this example.",
+      "If you are using TypeScript, you will also need to extend the Editor with ReactEditor and add annotations as per the documentation on TypeScript. The example below also includes the custom types required for the rest of this example."
     ),
   },
   {

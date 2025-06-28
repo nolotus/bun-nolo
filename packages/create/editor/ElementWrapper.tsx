@@ -8,7 +8,7 @@ import { List, ListItem } from "render/elements/List";
 import { SafeLink } from "render/elements/SafeLink";
 import { Table, TableCell, TableRow } from "web/ui/Table";
 import { TextBlockRenderer } from "render/web/elements/TextBlockRenderer";
-import { CodeBlockType, CodeLineType } from "./type";
+import { CodeBlockType, CodeLineType } from "./types";
 
 // 定义所有由 TextBlockRenderer 处理的元素类型
 const TEXT_BLOCK_TYPES = [
