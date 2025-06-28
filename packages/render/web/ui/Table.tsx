@@ -1,4 +1,4 @@
-// web/ui/Table/index.tsx
+// render/web/ui/Table
 import React from "react";
 import { useTheme } from "app/theme";
 

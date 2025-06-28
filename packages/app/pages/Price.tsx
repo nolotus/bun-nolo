@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Table, TableRow, TableCell } from "web/ui/Table";
+import { Table, TableRow, TableCell } from "render/web/ui/Table";
 import { fireworksmodels } from "integrations/fireworks/models";
 import { deepinfraModels } from "integrations/deepinfra/models";
 import { openAIModels } from "integrations/openai/models";

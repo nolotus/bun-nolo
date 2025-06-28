@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTheme } from "app/theme";
 import { ChevronDownIcon, ChevronUpIcon } from "@primer/octicons-react";
-import { Table, TableRow, TableCell } from "web/ui/Table";
+import { Table, TableRow, TableCell } from "render/web/ui/Table";
 import { API_ENDPOINTS } from "database/config";
 import { useAppSelector } from "app/hooks";
 import { selectCurrentToken } from "auth/authSlice";
