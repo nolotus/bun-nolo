@@ -1,4 +1,4 @@
-// features/ai/llm/models.ts
+// ai/llm/models.ts
 
 import type { Model } from "./types";
 

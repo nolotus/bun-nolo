@@ -1,16 +1,20 @@
+// Usage.tsx
 import React, { useState } from "react";
-import { useTheme } from "app/theme";
 import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/theme/themeSlice";
 import { selectUserId } from "auth/authSlice";
+import { useTranslation } from "react-i18next";
 import { clearTodayTokens, clearAllTokens } from "ai/token/clear";
-import Button from "render/web/ui/Button"; // 导入新的 Button 组件
+import { RiBarChartBoxLine } from "react-icons/ri";
+import Button from "render/web/ui/Button";
 import BalanceCard from "./BalanceCard";
 import RechargeRecord from "./RechargeRecord";
 import UsageRecord from "./UsageRecord";
 import UsageChart from "./UsageChart";
 
 const Usage: React.FC = () => {
-  const theme = useTheme();
+  const { t } = useTranslation();
+  const theme = useAppSelector(selectTheme);
   const userId = useAppSelector(selectUserId);
   const [isRechargeRecordVisible, setRechargeRecordVisible] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -27,11 +31,9 @@ const Usage: React.FC = () => {
 
     try {
       setClearing(true);
-
       const clearFunction =
         type === "today" ? clearTodayTokens : clearAllTokens;
       const result = await clearFunction(userId);
-
       alert("清除成功");
       window.location.reload();
     } catch (err) {
@@ -41,75 +43,82 @@ const Usage: React.FC = () => {
     }
   };
 
+  const usagePageStyles = `
+    .usage-page-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      min-height: 100vh;
+      background: ${theme.backgroundGhost || theme.backgroundSecondary};
+    }
+
+    .usage-page-header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .usage-page-title {
+      font: 700 24px/1.2 system-ui;
+      color: ${theme.text};
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .usage-page-subtitle {
+      font: 500 15px/1.4 system-ui;
+      color: ${theme.textSecondary};
+      margin: 0;
+    }
+
+    .usage-page-content {
+      display: grid;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .usage-page-container {
+        padding: 20px 16px;
+      }
+      .usage-page-title {
+        font-size: 20px;
+        gap: 8px;
+      }
+    }
+  `;
+
   return (
-    <div className="container">
-      {/* <div className="actions">
-        <Button
-          variant="primary"
-          status="error"
-          size="medium"
-          onClick={() => handleClearTokens("today")}
-          disabled={clearing}
-          loading={clearing}
-        >
-          {clearing ? "清除中..." : "清除今日记录"}
-        </Button>
-        <Button
-          variant="primary"
-          status="error"
-          size="medium"
-          onClick={() => handleClearTokens("all")}
-          disabled={clearing}
-          loading={clearing}
-        >
-          {clearing ? "清除中..." : "清除所有记录"}
-        </Button>
-      </div> */}
+    <>
+      <style>{usagePageStyles}</style>
 
-      <BalanceCard />
+      <div className="usage-page-container">
+        <div className="usage-page-header">
+          <h1 className="usage-page-title">
+            <RiBarChartBoxLine size={24} />
+            {t("usage_dashboard", "使用统计")}
+          </h1>
+          <p className="usage-page-subtitle">
+            {t("usage_dashboard_subtitle", "查看账户余额、充值记录和使用详情")}
+          </p>
+        </div>
 
-      <RechargeRecord
-        isVisible={isRechargeRecordVisible}
-        onToggleVisibility={() =>
-          setRechargeRecordVisible(!isRechargeRecordVisible)
-        }
-      />
+        <div className="usage-page-content">
+          <BalanceCard />
 
-      <UsageChart />
-      <UsageRecord />
+          <RechargeRecord
+            isVisible={isRechargeRecordVisible}
+            onToggleVisibility={() =>
+              setRechargeRecordVisible(!isRechargeRecordVisible)
+            }
+          />
 
-      <style jsx>{`
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 2rem;
-          min-height: 100vh;
-        }
-
-        .actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 0.75rem;
-          margin-bottom: 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-          .container {
-            padding: 1rem;
-          }
-
-          .actions {
-            flex-direction: column;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .container {
-            padding: 0.75rem;
-          }
-        }
-      `}</style>
-    </div>
+          <UsageChart />
+          <UsageRecord />
+        </div>
+      </div>
+    </>
   );
 };
 
