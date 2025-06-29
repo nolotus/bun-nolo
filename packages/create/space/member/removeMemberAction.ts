@@ -1,4 +1,4 @@
-import type { SpaceId } from "create/space/types";
+import type { ULID } from "app/types";
 import type { SpaceData } from "app/types";
 import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
@@ -13,9 +13,9 @@ import { read, write, remove } from "database/dbSlice"; // 使用 remove
  * 3. 更新 SpaceData.members 数组，删除对应的 SpaceMemberWithSpaceInfo 数据，并更新 updatedAt 字段。
  */
 export const removeMemberAction = async (
-  input: { spaceId: SpaceId; memberId: string },
+  input: { spaceId: ULID; memberId: string },
   thunkAPI: any
-): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
+): Promise<{ spaceId: ULID; updatedSpaceData: SpaceData }> => {
   const { spaceId, memberId } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();

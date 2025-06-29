@@ -1,38 +1,41 @@
 import { SpaceMemberWithSpaceInfo } from "app/types";
-import { MemberRole } from "app/types";
-import { SpaceVisibility } from "app/types";
-import { SpaceData } from "app/types";
-import { SpaceContent } from "app/types";
-import { selectUserId } from "auth/authSlice"; // 确认导入路径
-import { DataType } from "create/types"; // 确认导入路径
-import { getUserDataOnce } from "database/utils/getUserDataOnce"; // 确认导入路径
+import {
+  MemberRole,
+  SpaceVisibility,
+  SpaceData,
+  SpaceContent,
+} from "app/types";
+import { selectUserId } from "auth/authSlice";
+import { DataType } from "create/types";
+import { getUserDataOnce } from "database/utils/getUserDataOnce";
 import { ulid } from "ulid";
-import { patch, write } from "database/dbSlice"; // 确认导入路径 (添加 read)
-import { createSpaceKey } from "create/space/spaceKeys"; // 确认导入路径
-import { CreateSpaceRequest, selectAllMemberSpaces } from "./spaceSlice"; // 确认导入路径
-import type { AppDispatch, RootState } from "app/store"; // 假设 store 类型路径
+import { patch, write } from "database/dbSlice";
+import { createSpaceKey } from "create/space/spaceKeys";
+import { CreateSpaceRequest, selectAllMemberSpaces } from "./spaceSlice";
+import type { AppDispatch, RootState } from "app/store";
 
 const targetTypes = [DataType.DIALOG, DataType.PAGE];
 
 export const addSpaceAction = async (
   input: CreateSpaceRequest,
-  thunkAPI: { dispatch: AppDispatch; getState: () => RootState } // 使用具体类型
+  thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
 ) => {
   const {
     name,
     description = "",
     visibility = SpaceVisibility.PRIVATE,
   } = input;
-  const { dispatch, getState } = thunkAPI; // 显式解构 dispatch 和 getState
+  const { dispatch, getState } = thunkAPI;
   const state = getState();
   const userId = selectUserId(state);
+
   if (!userId) {
-    // 添加 userId 验证
     throw new Error("User is not logged in.");
   }
+
   const spaceId = ulid();
   const now = Date.now();
-  const nowISO = new Date(now).toISOString(); // 获取 ISO 格式时间戳
+  const nowISO = new Date(now).toISOString();
 
   let spaceData: SpaceData = {
     id: spaceId,
@@ -43,9 +46,9 @@ export const addSpaceAction = async (
     members: [userId], // 初始成员只有创建者
     categories: {},
     contents: {},
-    createdAt: now, // 或者 nowISO，取决于 SpaceData 定义
-    updatedAt: now, // 或者 nowISO
-    type: DataType.SPACE, // 添加 type
+    createdAt: now,
+    updatedAt: now,
+    type: DataType.SPACE,
   };
 
   const spaces = selectAllMemberSpaces(state);
@@ -53,7 +56,6 @@ export const addSpaceAction = async (
   let sidebarData;
   let needsMigration;
 
-  // --- 迁移逻辑 (保持不变) ---
   if (!hasSpace) {
     let hasOldSideData = false;
     sidebarData = await getUserDataOnce({
@@ -68,10 +70,9 @@ export const addSpaceAction = async (
     needsMigration = hasOldSideData && !hasSpace;
     if (needsMigration && sidebarData.data) {
       const contents: Record<string, SpaceContent> = {};
-      const updatePromises: Promise<any>[] = []; // 明确 Promise 类型
+      const updatePromises: Promise<any>[] = [];
 
       for (const item of sidebarData.data) {
-        // 确保 item 有 id 和 type
         if (!item.id || !item.type) continue;
 
         contents[item.id] = {
@@ -80,12 +81,11 @@ export const addSpaceAction = async (
           contentKey: item.id,
           categoryId: "",
           pinned: false, // 假设默认为 false
-          createdAt: item.createdAt || now, // 或 nowISO
-          updatedAt: item.updatedAt || now, // 或 nowISO
+          createdAt: item.createdAt || now,
+          updatedAt: item.updatedAt || now,
           order: item.order ?? undefined, // 保留 order
         };
 
-        // 确保 item 有 dbKey
         if (item.dbKey) {
           updatePromises.push(
             dispatch(
@@ -93,37 +93,29 @@ export const addSpaceAction = async (
                 dbKey: item.dbKey,
                 changes: {
                   spaceId: spaceId,
-                  updatedAt: now, // 或 nowISO
+                  updatedAt: now,
                 },
               })
             )
           );
-        } else {
-          console.warn(`Item ${item.id} is missing dbKey, skipping patch.`);
         }
       }
       spaceData.contents = contents;
-      // 等待所有 patch 完成 (可选，但更健壮)
+      // 等待所有 patch 完成，确保数据一致性
       await Promise.all(updatePromises);
-      console.log("[addSpaceAction] Data migration patches completed.");
     }
   }
 
-  // 写入 space 数据
   const spaceKey = createSpaceKey.space(spaceId);
-  console.log("[addSpaceAction] Creating space with key:", spaceKey);
   await dispatch(
     write({
-      data: spaceData, // spaceData 已包含 type
+      data: spaceData,
       customKey: spaceKey,
     })
   ).unwrap();
-  console.log("[addSpaceAction] Space created successfully:", spaceId);
 
-  // 创建 space 成员数据 (包含更多字段)
-  const spaceMemberKey = createSpaceKey.member(userId, spaceId); // 先生成 Key
+  const spaceMemberKey = createSpaceKey.member(userId, spaceId);
   const spaceMemberData: SpaceMemberWithSpaceInfo = {
-    // --- 核心字段 ---
     role: MemberRole.OWNER,
     joinedAt: now,
     spaceId: spaceId,
@@ -131,30 +123,18 @@ export const addSpaceAction = async (
     ownerId: userId, // space 的 ownerId
     visibility,
     type: DataType.SPACE, // 成员记录也标记 type? (根据你的数据模型决定)
-    // --- 新增的补充字段，使其结构更完整 ---
     dbKey: spaceMemberKey, // 使用生成的 key
     userId: userId, // 这个成员记录属于哪个 user
-    createdAt: nowISO, // ISO 格式时间戳
-    updatedAt: nowISO, // ISO 格式时间戳
+    createdAt: nowISO,
+    updatedAt: nowISO,
   };
 
-  // 写入成员数据
-  console.log(
-    "[addSpaceAction] Creating space member with key:",
-    spaceMemberKey
-  );
   await dispatch(
     write({
       data: spaceMemberData,
       customKey: spaceMemberKey,
     })
   ).unwrap();
-  console.log(
-    "[addSpaceAction] SpaceMember created successfully for user:",
-    userId
-  );
 
-  // 返回构建的、更完整的 spaceMemberData 对象
-  console.log("[addSpaceAction] Returning space member data:", spaceMemberData);
   return spaceMemberData;
 };
