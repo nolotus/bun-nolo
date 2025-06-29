@@ -1,4 +1,4 @@
-import { createLazyRoute } from "web/createLazyRoute";
+import { createLazyRoute } from "render/web/createLazyRoute";
 
 export const lifeRoutes = [
   createLazyRoute("/life", () => import("life/web/Usage")),

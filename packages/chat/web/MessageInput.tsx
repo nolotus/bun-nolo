@@ -24,7 +24,7 @@ import { convertPdfToSlate } from "create/editor/utils/pdfToSlate";
 import { convertTxtToSlate } from "create/editor/utils/txtToSlate";
 
 //web
-import DocxPreviewDialog from "web/DocxPreviewDialog";
+import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 import AttachmentsPreview, { PendingImagePreview } from "./AttachmentsPreview";
 import SendButton from "./ActionButton";
 import { UploadIcon } from "@primer/octicons-react";

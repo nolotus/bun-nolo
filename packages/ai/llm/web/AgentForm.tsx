@@ -16,7 +16,7 @@ import PublishSettingsTab from "./PublishSettingsTab";
 import AdvancedSettingsTab from "./AdvancedSettingsTab";
 
 import Button from "render/web/ui/Button";
-import FormTitle from "web/form/FormTitle";
+import FormTitle from "render/web/form/FormTitle";
 import TabsNav from "render/web/ui/TabsNav";
 
 // 1. [修改] 更新 TABS 的 key 以匹配新的 i18n 结构

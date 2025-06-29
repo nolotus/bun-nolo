@@ -1,4 +1,4 @@
-// web/ui/ModeToggle.tsx
+// render/web/ui/ModeToggle.tsx
 import { useTheme } from "app/theme";
 import { PencilIcon, EyeIcon } from "@primer/octicons-react";
 import type React from "react";

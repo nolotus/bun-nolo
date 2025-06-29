@@ -8,7 +8,7 @@ import { FormField } from "render/web/form/FormField";
 import { Slider } from "render/web/form/Slider"; // Slider 组件本身无需修改
 import RadioGroup from "render/web/form/RadioGroup";
 import Button from "render/web/ui/Button";
-import ToggleSwitch from "web/ui/ToggleSwitch";
+import ToggleSwitch from "render/web/ui/ToggleSwitch";
 
 import {
   DEFAULT_TEMPERATURE,
