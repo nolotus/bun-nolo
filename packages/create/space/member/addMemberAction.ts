@@ -1,4 +1,4 @@
-import type { SpaceId } from "create/space/types";
+import type { ULID } from "app/types";
 import type { MemberRole } from "app/types";
 import type { SpaceData } from "app/types";
 import { selectUserId } from "auth/authSlice";
@@ -16,9 +16,9 @@ import { DataType } from "create/types";
  * 3. 更新 SpaceData.members 数组，同时为新成员创建 SpaceMemberWithSpaceInfo 数据。
  */
 export const addMemberAction = async (
-  input: { spaceId: SpaceId; memberId: string; role?: MemberRole },
+  input: { spaceId: ULID; memberId: string; role?: MemberRole },
   thunkAPI: any
-): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
+): Promise<{ spaceId: ULID; updatedSpaceData: SpaceData }> => {
   const { spaceId, memberId, role = MemberRole.MEMBER } = input; // 默认角色为 MEMBER
   const { dispatch, getState } = thunkAPI;
   const state = getState();
