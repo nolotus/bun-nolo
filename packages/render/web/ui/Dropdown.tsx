@@ -4,10 +4,24 @@ import React, {
   useRef,
   useEffect,
   forwardRef,
+  useMemo,
   useCallback,
 } from "react";
 import { useTheme } from "app/theme";
 import { ChevronDownIcon, CheckIcon } from "@primer/octicons-react";
+import {
+  FloatingPortal,
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  useInteractions,
+  useClick,
+  useDismiss,
+  useRole,
+  useListNavigation,
+} from "@floating-ui/react";
 
 interface DropdownProps {
   items: any[];
@@ -57,88 +71,64 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
     ref
   ) => {
     const theme = useTheme();
-    const [isOpen, setIsOpen] = useState(false);
+    const [open, setOpen] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [searchTerm, setSearchTerm] = useState("");
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const dropdownListRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     const inputId = `dropdown-${Math.random().toString(36).substr(2, 9)}`;
     const helperTextId = helperText ? `${inputId}-helper` : undefined;
 
+    // 打开/关闭 时聚焦或清空
+    useEffect(() => {
+      if (open && searchable) {
+        setTimeout(() => searchInputRef.current?.focus(), 0);
+      }
+      if (!open) {
+        setSearchTerm("");
+        setHighlightedIndex(-1);
+      }
+    }, [open, searchable]);
+
     // 过滤项目
-    const filteredItems =
-      searchable && searchTerm
-        ? items.filter((item) =>
-            item[labelField]?.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        : items;
+    const filteredItems = useMemo(
+      () =>
+        searchable && searchTerm
+          ? items.filter((item) =>
+              String(item[labelField])
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+            )
+          : items,
+      [items, searchTerm, labelField, searchable]
+    );
 
-    // 点击外部关闭
-    useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-        if (
-          dropdownRef.current &&
-          !dropdownRef.current.contains(event.target as Node)
-        ) {
-          setIsOpen(false);
-          setSearchTerm("");
-        }
-      };
+    // floating-ui 核心
+    const { x, y, strategy, context, refs, update } = useFloating({
+      open,
+      onOpenChange: setOpen,
+      placement: "bottom-start",
+      middleware: [offset(4), flip(), shift()],
+      whileElementsMounted: autoUpdate,
+    });
 
-      document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    // 键盘导航
-    useEffect(() => {
-      if (isOpen) {
-        const handleKeyDown = (e: KeyboardEvent) => {
-          switch (e.key) {
-            case "ArrowDown":
-              e.preventDefault();
-              setHighlightedIndex((prev) =>
-                prev < filteredItems.length - 1 ? prev + 1 : prev
-              );
-              break;
-            case "ArrowUp":
-              e.preventDefault();
-              setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
-              break;
-            case "Enter":
-              e.preventDefault();
-              if (highlightedIndex >= 0 && filteredItems[highlightedIndex]) {
-                handleSelect(filteredItems[highlightedIndex]);
-              }
-              break;
-            case "Escape":
-              setIsOpen(false);
-              setSearchTerm("");
-              break;
-          }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-      }
-    }, [isOpen, highlightedIndex, filteredItems]);
-
-    const handleToggle = useCallback(() => {
-      if (!disabled) {
-        setIsOpen((prev) => !prev);
-        if (!isOpen && searchable) {
-          setTimeout(() => searchInputRef.current?.focus(), 0);
-        }
-      }
-    }, [disabled, isOpen, searchable]);
+    // 交互 Hook
+    const click = useClick(context);
+    const dismiss = useDismiss(context);
+    const role = useRole(context, { role: "listbox" });
+    const listNavigation = useListNavigation(context, {
+      listRef: dropdownListRef,
+      activeIndex: highlightedIndex,
+      onNavigate: setHighlightedIndex,
+    });
+    const { getReferenceProps, getFloatingProps, getItemProps } =
+      useInteractions([click, dismiss, role, listNavigation]);
 
     const handleSelect = useCallback(
       (item: any) => {
         onChange?.(item);
-        setIsOpen(false);
-        setSearchTerm("");
-        setHighlightedIndex(-1);
+        // 这里关闭会触发 useEffect 清空搜索、高亮
       },
       [onChange]
     );
@@ -149,14 +139,6 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
         onChange?.(null);
       },
       [onChange]
-    );
-
-    const handleSearchChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
-        setHighlightedIndex(-1);
-      },
-      []
     );
 
     const displayValue = selectedItem ? selectedItem[labelField] : placeholder;
@@ -361,7 +343,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
         .dropdown-chevron {
           color: ${theme.textTertiary};
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          transform: ${isOpen ? "rotate(180deg)" : "rotate(0)"};
+          transform: ${open ? "rotate(180deg)" : "rotate(0)"};
         }
 
         /* 下拉菜单 */
@@ -552,7 +534,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
             </label>
           )}
 
-          <div className="dropdown-wrapper" ref={dropdownRef}>
+          <div className="dropdown-wrapper">
             {icon && (
               <div
                 className={`dropdown-icon size-${size} ${error ? "error" : ""}`}
@@ -561,22 +543,27 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
               </div>
             )}
 
+            {/* reference 按钮 */}
             <button
-              ref={ref}
-              id={inputId}
-              type="button"
-              className={`dropdown-toggle size-${size} variant-${variant} ${
-                icon ? "has-icon" : "has-none"
-              } ${isOpen ? "open" : ""}`}
-              onClick={handleToggle}
-              disabled={disabled || loading}
-              aria-haspopup="listbox"
-              aria-expanded={isOpen}
-              aria-describedby={helperTextId}
-              aria-invalid={error}
+              {...getReferenceProps({
+                ref(node) {
+                  refs.setReference(node);
+                  if (typeof ref === "function") ref(node);
+                  else if (ref) (ref as any).current = node;
+                },
+                id: inputId,
+                type: "button",
+                className: `dropdown-toggle size-${size} variant-${variant} ${
+                  icon ? "has-icon" : "has-none"
+                } ${open ? "open" : ""}`,
+                disabled: disabled || loading,
+                "aria-haspopup": "listbox",
+                "aria-expanded": open,
+                "aria-describedby": helperTextId,
+                "aria-invalid": error,
+              })}
             >
               <span className="dropdown-text">{displayValue}</span>
-
               <div className="dropdown-controls">
                 {clearable && selectedItem && !disabled && (
                   <button
@@ -607,57 +594,99 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
               </div>
             </button>
 
-            {isOpen && (
-              <div className="dropdown-menu" role="listbox">
-                {searchable && (
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    className="dropdown-search"
-                    placeholder="搜索..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                  />
-                )}
-
-                <div className="dropdown-list">
-                  {loading ? (
-                    <div className="dropdown-loading">加载中...</div>
-                  ) : filteredItems.length > 0 ? (
-                    filteredItems.map((item, index) => {
-                      const isSelected = selectedItem === item;
-                      const isHighlighted = highlightedIndex === index;
-                      return (
-                        <div
-                          key={item[valueField] || index}
-                          className={`dropdown-item ${isHighlighted ? "highlighted" : ""} ${isSelected ? "selected" : ""}`}
-                          role="option"
-                          aria-selected={isSelected}
-                          onClick={() => handleSelect(item)}
-                          onMouseEnter={() => setHighlightedIndex(index)}
-                        >
-                          <span>
-                            {renderOptionContent?.(
-                              item,
-                              isHighlighted,
-                              isSelected
-                            ) || item[labelField]}
-                          </span>
-                          <CheckIcon
-                            size={14}
-                            className="dropdown-item-check"
-                          />
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="dropdown-empty">
-                      {searchTerm ? "没有匹配的选项" : "没有可用选项"}
-                    </div>
+            {/* 浮层部分 */}
+            <FloatingPortal>
+              {open && (
+                <div
+                  {...getFloatingProps({
+                    ref: refs.setFloating,
+                    className: "dropdown-menu",
+                    style: {
+                      position: strategy,
+                      top: y ?? 0,
+                      left: x ?? 0,
+                      // 同步宽度
+                      width: refs.reference.current
+                        ? refs.reference.current.getBoundingClientRect().width
+                        : undefined,
+                    },
+                    // 在浮层上处理回车选中
+                    onKeyDown(e: React.KeyboardEvent) {
+                      if (
+                        e.key === "Enter" &&
+                        highlightedIndex >= 0 &&
+                        filteredItems[highlightedIndex]
+                      ) {
+                        handleSelect(filteredItems[highlightedIndex]);
+                      }
+                    },
+                  })}
+                >
+                  {searchable && (
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      className="dropdown-search"
+                      placeholder="搜索..."
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setHighlightedIndex(-1);
+                      }}
+                    />
                   )}
+
+                  <div
+                    ref={dropdownListRef}
+                    className="dropdown-list"
+                    role="group"
+                  >
+                    {loading ? (
+                      <div className="dropdown-loading">加载中...</div>
+                    ) : filteredItems.length > 0 ? (
+                      filteredItems.map((item, index) => {
+                        const isSelected = selectedItem === item;
+                        const isHighlighted = highlightedIndex === index;
+                        return (
+                          <div
+                            key={item[valueField] ?? index}
+                            {...getItemProps({
+                              key: item[valueField] ?? index,
+                              index,
+                              item,
+                              onClick: () => handleSelect(item),
+                              onMouseEnter: () => setHighlightedIndex(index),
+                              className: `dropdown-item ${
+                                isHighlighted ? "highlighted" : ""
+                              } ${isSelected ? "selected" : ""}`,
+                              "aria-selected": isSelected,
+                            })}
+                          >
+                            <span>
+                              {renderOptionContent
+                                ? renderOptionContent(
+                                    item,
+                                    isHighlighted,
+                                    isSelected
+                                  )
+                                : item[labelField]}
+                            </span>
+                            <CheckIcon
+                              size={14}
+                              className="dropdown-item-check"
+                            />
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="dropdown-empty">
+                        {searchTerm ? "没有匹配的选项" : "没有可用选项"}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </FloatingPortal>
           </div>
 
           {helperText && (
@@ -676,5 +705,4 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
 );
 
 Dropdown.displayName = "Dropdown";
-
 export default Dropdown;
