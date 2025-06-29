@@ -1,13 +1,16 @@
 // app/theme/themeSlice.ts
 import { createSlice } from "@reduxjs/toolkit";
-import { blue } from "./blue";
-import { purple } from "./purple";
-import { green } from "./green";
-import { orange } from "./orange";
-import { red } from "./red";
-import { yellow } from "./yellow";
-import { graphite } from "./graphite";
-import { pink } from "./pink";
+
+import {
+  blue,
+  purple,
+  green,
+  orange,
+  yellow,
+  graphite,
+  pink,
+  red,
+} from "./colors";
 
 // 简化的空间尺寸系统
 const SPACE = {
