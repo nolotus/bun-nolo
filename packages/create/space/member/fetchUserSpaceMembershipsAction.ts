@@ -1,7 +1,7 @@
 import { RootState } from "app/store";
 import { SpaceMemberWithSpaceInfo } from "app/types";
 import { browserDb } from "database/browser/db";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import { SERVERS } from "database/requests"; // 1. 使用集中的服务器配置
 

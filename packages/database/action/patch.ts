@@ -1,5 +1,5 @@
 // database/actions/patch.ts
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { browserDb } from "../browser/db";
 import { toast } from "react-hot-toast";
 import { noloPatchRequest, syncWithServers, SERVERS } from "../requests";

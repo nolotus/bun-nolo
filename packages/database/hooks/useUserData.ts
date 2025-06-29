@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 import { fetchUserData } from "../browser/fetchUserData";
 import { DataType } from "create/types";
 import { useAppSelector, useAppDispatch } from "app/hooks";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { noloQueryRequest } from "../client/queryRequest";
 import { useAuth } from "auth/hooks/useAuth";
 

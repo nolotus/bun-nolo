@@ -9,7 +9,7 @@ import { useFetchData } from "app/hooks";
 import Editor from "create/editor/Editor";
 import DocxPreviewDialog from "web/DocxPreviewDialog";
 import { BaseModal } from "render/web/ui/BaseModal";
-import { selectShowThinking } from "setting/settingSlice";
+import { selectShowThinking } from "app/settings/settingSlice";
 import { MessageActions } from "./MessageActions";
 import { FileItem } from "./FileItem"; // 提取的共用组件
 

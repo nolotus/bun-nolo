@@ -1,5 +1,5 @@
 // authSlice.ts
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { addDays, formatISO } from "date-fns";
 import { verifySignedMessage } from "core/crypto";
 import { generateUserIdV1 } from "core/generateMainKey";

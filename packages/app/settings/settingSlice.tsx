@@ -1,12 +1,13 @@
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { RootState } from "app/store";
 import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
+
+import type { RootState } from "app/store";
 import { isProduction } from "utils/env";
 import { read, upsert } from "database/dbSlice";
 import { createUserKey } from "database/keys";
+import { SERVERS } from "database/requests";
 import { selectUserId } from "auth/authSlice";
 import { DataType } from "create/types";
-import { SERVERS } from "database/requests";
 
 interface SettingState {
   isAutoSync: boolean;

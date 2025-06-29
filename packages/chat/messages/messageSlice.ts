@@ -18,7 +18,7 @@ import { DataType } from "create/types";
 import { remove, write } from "database/dbSlice";
 import { deleteDialogMsgsAction } from "./actions/deleteDialogMsgsAction";
 import type { Message } from "./types";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectCurrentToken, selectUserId } from "auth/authSlice";
 import { fetchMessages as fetchLocalMessages } from "chat/messages/fetchMessages";
 import { fetchConvMsgs } from "./fetchConvMsgs";

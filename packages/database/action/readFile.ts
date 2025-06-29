@@ -1,5 +1,5 @@
 // database/actions/readFile.ts
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { getAllServers, logger } from "./common";
 import { noloReadFileRequest } from "../requests";
 import { toast } from "react-hot-toast";

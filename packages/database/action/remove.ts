@@ -1,6 +1,6 @@
 // src/database/actions/delete.ts
 import { browserDb } from "../browser/db";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import pino from "pino";
 import { noloDeleteRequest } from "../requests";
 import { getAllServers, fetchFromClientDb } from "./common";

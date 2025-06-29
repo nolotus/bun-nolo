@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { updateSpace, deleteSpace, fixSpace } from "create/space/spaceSlice";
-import { setSettings, selectDefaultSpaceId } from "setting/settingSlice";
+import { setSettings, selectDefaultSpaceId } from "app/settings/settingSlice";
 import { useSpaceData } from "../hooks/useSpaceData";
 import { useTranslation } from "react-i18next";
 

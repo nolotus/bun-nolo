@@ -21,7 +21,7 @@ import { useAuth } from "auth/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
 import DropdownMenu from "web/ui/DropDownMenu";
-import { SettingRoutePaths } from "setting/config";
+import { SettingRoutePaths } from "app/settings/config";
 import { Tooltip } from "render/web/ui/Tooltip";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";

@@ -2,8 +2,8 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
-import { ThemePicker } from "setting/web/ThemePicker";
-import { DarkModeSwitch } from "setting/web/DarkModeSwitch";
+import { ThemePicker } from "./ThemePicker";
+import { DarkModeSwitch } from "./DarkModeSwitch";
 
 const SettingSection: React.FC<{
   title: string;

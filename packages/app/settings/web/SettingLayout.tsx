@@ -11,7 +11,7 @@ import {
   GearIcon,
 } from "@primer/octicons-react";
 import NavListItem from "render/layout/blocks/NavListItem"; // 假设的 NavListItem 组件路径
-import { SettingRoutePaths } from "./config"; // 导入更新后的 config
+import { SettingRoutePaths } from "../config"; // 导入更新后的 config
 
 // 重新组织后的导航项，包含路径、翻译key和图标
 const useNavItems = () => {
