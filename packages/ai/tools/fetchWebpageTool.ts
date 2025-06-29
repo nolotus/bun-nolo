@@ -1,7 +1,7 @@
 // /ai/tools/fetchWebpageTool.ts (已更新至新架构)
 
 import type { RootState } from "app/store";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 
 /**
  * [Schema] 定义了 'fetchWebpage' 工具的结构，供 LLM 调用。

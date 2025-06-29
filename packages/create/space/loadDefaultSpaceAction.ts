@@ -3,7 +3,7 @@ import { SpaceMemberWithSpaceInfo } from "app/types";
 import i18n from "app/i18n";
 
 import { read } from "database/dbSlice";
-import { setSettings } from "setting/settingSlice";
+import { setSettings } from "app/settings/settingSlice";
 
 import { addSpace, changeSpace } from "./spaceSlice";
 import { DataType } from "../types";

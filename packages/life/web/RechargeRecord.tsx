@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAppSelector } from "app/hooks";
 import { selectTheme } from "app/theme/themeSlice";
 import { selectCurrentToken } from "auth/authSlice";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { useTranslation } from "react-i18next";
 import {
   ChevronDownIcon,

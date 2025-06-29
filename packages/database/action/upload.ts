@@ -1,6 +1,6 @@
 // database/actions/upload.ts
 import { selectUserId } from "auth/authSlice";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { ulid } from "ulid"; // 使用 ulid 生成唯一ID
 import { getAllServers, normalizeTimeFields, logger } from "./common";
 import {

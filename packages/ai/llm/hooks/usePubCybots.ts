@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Agent } from "app/types";
 import { fetchPubCybots as fetchLocal } from "ai/cybot/web/fetchPubCybots";
 import { useAppSelector } from "app/hooks";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { useDispatch } from "react-redux";
 import { remove } from "database/dbSlice";
 

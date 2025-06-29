@@ -5,7 +5,7 @@ import authReducer from "auth/authSlice";
 import messageReducer from "chat/messages/messageSlice";
 import dbReducer from "database/dbSlice";
 import themeReducer from "app/theme/themeSlice";
-import settingReducer from "setting/settingSlice";
+import settingReducer from "app/settings/settingSlice";
 
 // 同样地，我们需要导入 pageSlice 和它的 listener middleware
 // 假设 mobile store 也需要 page 的功能

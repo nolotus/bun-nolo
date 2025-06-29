@@ -1,6 +1,6 @@
 // database/actions/read.ts
 import { browserDb } from "../browser/db";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { getAllServers, fetchFromClientDb, fetchFromServer } from "./common";
 import { selectIsLoggedIn } from "auth/authSlice";
 import { write } from "../dbSlice";

@@ -9,7 +9,7 @@ import {
   messageStreaming,
   handleToolCalls,
 } from "chat/messages/messageSlice";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { selectCurrentToken } from "auth/authSlice";

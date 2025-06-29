@@ -7,7 +7,7 @@ import {
 } from "@reduxjs/toolkit";
 import * as R from "rambda";
 import { read } from "database/dbSlice";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "../chat/fetchUtils";
 import { generateRequestBody } from "ai/llm/generateRequestBody";

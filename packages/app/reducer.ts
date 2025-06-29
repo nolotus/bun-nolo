@@ -5,7 +5,7 @@ import pageReducer from "render/page/pageSlice";
 
 import themeSliceReducer from "./theme/themeSlice";
 import dbReducer from "database/dbSlice";
-import settingReducer from "setting/settingSlice";
+import settingReducer from "app/settings/settingSlice";
 import dialogSlice from "chat/dialog/dialogSlice";
 import spaceRecer from "create/space/spaceSlice";
 import planSlice from "ai/llm/planSlice";

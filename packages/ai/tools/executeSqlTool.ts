@@ -1,7 +1,7 @@
 // /ai/tools/executeSqlTool.ts (已更新以支持参数化查询)
 
 import type { RootState } from "app/store";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { API_ENDPOINTS } from "database/config";
 import { selectCurrentToken } from "auth/authSlice";
 

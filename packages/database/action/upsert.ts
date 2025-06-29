@@ -1,6 +1,6 @@
 // src/database/actions/upsertAction.ts
 import { browserDb } from "../browser/db";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectUserId } from "auth/authSlice"; // Removed selectIsLoggedIn as it wasn't used
 import { getAllServers, normalizeTimeFields, logger } from "./common";
 import {

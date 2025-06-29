@@ -1,5 +1,5 @@
 // chat/message/action/
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { noloDeleteRequest, syncWithServers, SERVERS } from "database/requests";
 import pino from "pino";
 import { browserDb } from "database/browser/db";

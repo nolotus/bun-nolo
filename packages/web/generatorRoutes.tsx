@@ -2,7 +2,7 @@ import React from "react";
 
 import { authRoutes } from "auth/web/routes";
 import { createRoutes } from "create/routes";
-import { settingRoutes } from "setting/routes";
+import { settingRoutes } from "app/settings/routes";
 import { lifeRoutes } from "life/routes";
 
 import PageLoader from "render/page/PageLoader";

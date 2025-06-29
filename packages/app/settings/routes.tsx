@@ -1,13 +1,13 @@
 import { Navigate } from "react-router-dom";
-import SettingLayout from "./SettingLayout";
 import { SettingRoutePaths } from "./config";
 
 // 直接导入所有设置页面组件，确保即时加载
-import Appearance from "setting/pages/Appearance";
-import UserProfile from "setting/pages/UserProfile";
-import EditorConfig from "setting/pages/EditorConfig";
-import ChatConfig from "setting/pages/ChatConfig";
-import Productivity from "setting/pages/Productivity";
+import Appearance from "./web/Appearance";
+import SettingLayout from "./web/SettingLayout";
+import UserProfile from "./web/UserProfile";
+import EditorConfig from "./web/EditorConfig";
+import ChatConfig from "./web/ChatConfig";
+import Productivity from "./web/Productivity";
 
 export const settingRoutes = {
   path: SettingRoutePaths.SETTING,

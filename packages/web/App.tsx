@@ -7,7 +7,7 @@ import { useAuth } from "auth/hooks/useAuth";
 import i18n from "app/i18n";
 import { Toaster } from "react-hot-toast";
 import { useRoutes, Outlet } from "react-router-dom";
-import { addHostToCurrentServer, getSettings } from "setting/settingSlice";
+import { addHostToCurrentServer, getSettings } from "app/settings/settingSlice";
 import { setDarkMode } from "app/theme/themeSlice";
 // 导入 fetchUserSpaceMemberships 和 loadDefaultSpace
 import {

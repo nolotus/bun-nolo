@@ -1,6 +1,6 @@
 // database/actions/write.ts
 import { selectUserId } from "auth/authSlice";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 import { DataType } from "create/types"; // 假设 DataType 是有效的导入
 import { getAllServers, normalizeTimeFields, logger } from "./common";
 import {

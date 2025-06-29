@@ -1,5 +1,5 @@
 import type { RootState } from "app/store";
-import { selectCurrentServer } from "setting/settingSlice";
+import { selectCurrentServer } from "app/settings/settingSlice";
 
 /**
  * 调用统一的后端浏览器工具API端点。
