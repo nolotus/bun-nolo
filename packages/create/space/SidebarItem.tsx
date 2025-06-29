@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback, memo } from "react";
+// src/components/SidebarItem.tsx
+
+import React, { useState, useRef, useCallback, memo, forwardRef } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -12,15 +14,29 @@ import {
   ChevronRightIcon,
   PencilIcon,
   SquareIcon,
-  CheckboxIcon, // <-- 更正: 使用 CheckboxIcon 替换 CheckSquareIcon
+  CheckboxIcon,
+  ChevronRightIcon as SubMenuIcon,
 } from "@primer/octicons-react";
 import { FaFileLines } from "react-icons/fa6";
-import { createPortal } from "react-dom";
+import {
+  useFloating,
+  useClick,
+  useDismiss,
+  useHover,
+  useInteractions,
+  FloatingPortal,
+  offset,
+  flip,
+  shift,
+  autoUpdate,
+} from "@floating-ui/react";
 import DeleteContentButton from "./components/DeleteContentButton";
 import { selectTheme } from "app/theme/themeSlice";
 import {
   selectCurrentSpaceId,
   updateContentTitle,
+  selectAllMemberSpaces,
+  moveContentToSpace,
 } from "create/space/spaceSlice";
 import { addPendingFile } from "chat/dialog/dialogSlice";
 import { nanoid } from "nanoid";
@@ -28,10 +44,170 @@ import { useTranslation } from "react-i18next";
 import { useInlineEdit } from "render/web/ui/useInlineEdit";
 import InlineEditInput from "render/web/ui/InlineEditInput";
 import { Tooltip } from "render/web/ui/Tooltip";
-import MoveToSpaceSubMenu from "./MoveToSpaceSubMenu";
 import toast from "react-hot-toast";
 
-// 最小化的可拖拽组件，仅包裹图标元素
+// --- 合并进来的子菜单组件 ---
+interface MoveToSpaceSubMenuProps {
+  contentKey: string;
+  onClose: () => void;
+  getFloatingProps: (
+    props?: React.HTMLProps<HTMLElement> | undefined
+  ) => Record<string, unknown>;
+}
+
+const MoveToSpaceSubMenu: React.FC<MoveToSpaceSubMenuProps> = ({
+  contentKey,
+  onClose,
+  getFloatingProps,
+}) => {
+  const theme = useSelector(selectTheme);
+  const dispatch = useDispatch();
+  const memberSpaces = useSelector(selectAllMemberSpaces);
+  const currentSpaceId = useSelector(selectCurrentSpaceId);
+  const [isMoving, setIsMoving] = useState<string | null>(null);
+
+  const handleSpaceSelect = useCallback(
+    (targetSpaceId: string) => async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      console.log("开始移动内容:", {
+        contentKey,
+        currentSpaceId,
+        targetSpaceId,
+      });
+
+      if (!currentSpaceId) {
+        toast.error("当前空间ID未定义，无法移动。");
+        return;
+      }
+
+      if (currentSpaceId === targetSpaceId) {
+        toast("目标空间与当前空间相同。");
+        onClose();
+        return;
+      }
+
+      setIsMoving(targetSpaceId);
+
+      try {
+        const result = await dispatch(
+          moveContentToSpace({
+            contentKey,
+            sourceSpaceId: currentSpaceId,
+            targetSpaceId,
+            targetCategoryId: undefined,
+          })
+        ).unwrap();
+
+        console.log("移动结果:", result);
+        toast.success("内容已成功移动");
+
+        // 延迟关闭菜单，让用户看到成功反馈
+        setTimeout(onClose, 500);
+      } catch (error) {
+        console.error("内容移动失败:", error);
+        toast.error(
+          `内容移动失败: ${error instanceof Error ? error.message : "未知错误"}`
+        );
+      } finally {
+        setIsMoving(null);
+      }
+    },
+    [contentKey, currentSpaceId, dispatch, onClose]
+  );
+
+  const availableSpaces = memberSpaces.filter(
+    (space) => space.spaceId !== currentSpaceId
+  );
+
+  return (
+    <div
+      className="SidebarItem__subMenu"
+      role="menu"
+      {...getFloatingProps({
+        onClick: (e: React.MouseEvent) => e.stopPropagation(),
+      })}
+    >
+      {availableSpaces.length > 0 ? (
+        availableSpaces.map((space) => (
+          <button
+            key={space.spaceId}
+            className={`SidebarItem__menuItem ${
+              isMoving === space.spaceId ? "SidebarItem__menuItem--loading" : ""
+            }`}
+            onClick={handleSpaceSelect(space.spaceId)}
+            disabled={isMoving === space.spaceId}
+            role="menuitem"
+          >
+            {isMoving === space.spaceId && (
+              <span className="SidebarItem__loadingSpinner" />
+            )}
+            <span>{space.spaceName || space.spaceId}</span>
+          </button>
+        ))
+      ) : (
+        <div className="SidebarItem__subMenuEmpty">无其他可用空间</div>
+      )}
+    </div>
+  );
+};
+MoveToSpaceSubMenu.displayName = "MoveToSpaceSubMenu";
+
+// --- 辅助组件 ActionButton ---
+const ActionButton = forwardRef<
+  HTMLButtonElement,
+  {
+    onClick?: (e: React.MouseEvent) => void;
+    icon: React.ElementType;
+    label: string;
+    className?: string;
+  }
+>(({ onClick, icon: Icon, label, className = "" }, ref) => (
+  <button
+    ref={ref}
+    className={`SidebarItem__actionButton ${className}`}
+    onClick={onClick}
+    aria-label={label}
+    type="button"
+  >
+    <Icon size={16} />
+  </button>
+));
+ActionButton.displayName = "ActionButton";
+
+// --- 辅助组件 MenuItem ---
+const MenuItem = forwardRef<
+  HTMLButtonElement,
+  {
+    onClick: (e: React.MouseEvent) => void;
+    icon?: React.ElementType;
+    label: string;
+    className?: string;
+    isSubMenuTrigger?: boolean;
+  }
+>(
+  (
+    { onClick, icon: Icon, label, className = "", isSubMenuTrigger = false },
+    ref
+  ) => (
+    <button
+      ref={ref}
+      className={`SidebarItem__menuItem ${className}`}
+      onClick={onClick}
+      role="menuitem"
+      aria-label={label}
+      type="button"
+    >
+      {Icon && <Icon size={14} style={{ marginRight: "8px" }} />}
+      <span style={{ flex: 1, textAlign: "left" }}>{label}</span>
+      {isSubMenuTrigger && <SubMenuIcon size={14} style={{ opacity: 0.6 }} />}
+    </button>
+  )
+);
+MenuItem.displayName = "MenuItem";
+
+// --- 辅助组件 ItemDraggable ---
 interface ItemDraggableProps {
   id: string;
   containerId: string;
@@ -40,7 +216,6 @@ interface ItemDraggableProps {
     onDragEnd: (e: React.DragEvent) => void;
   }) => React.ReactNode;
 }
-
 const ItemDraggable: React.FC<ItemDraggableProps> = memo(
   ({ id, containerId, children }) => {
     const handleDragStart = (e: React.DragEvent) => {
@@ -49,24 +224,19 @@ const ItemDraggable: React.FC<ItemDraggableProps> = memo(
       e.dataTransfer.setData("dragType", "item");
       e.dataTransfer.effectAllowed = "move";
     };
-
-    const handleDragEnd = (e: React.DragEvent) => {
-      // 拖拽结束处理
-    };
-
+    const handleDragEnd = (e: React.DragEvent) => {};
     return children({ onDragStart: handleDragStart, onDragEnd: handleDragEnd });
   }
 );
-
 ItemDraggable.displayName = "ItemDraggable";
 
+// --- 主组件 SidebarItem ---
 interface SidebarItemProps {
   contentKey: string;
   type: "dialog" | "page" | "image" | "doc" | "code" | "file";
   title: string;
   categoryId?: string;
   animate?: boolean;
-  // --- 新增: 批量选择 Props ---
   isSelectionMode?: boolean;
   isSelected?: boolean;
   onSelectItem?: (contentKey: string) => void;
@@ -82,8 +252,6 @@ const ITEM_ICONS = {
 } as const;
 
 const ICON_SIZE = 18;
-const MORE_ICON_SIZE = 16;
-const TOUCH_TARGET_SIZE = 44;
 
 export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
   ({
@@ -102,24 +270,64 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
     const dispatch = useDispatch();
     const { t } = useTranslation("chat");
 
-    // --- State ---
     const [isIconHover, setIsIconHover] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [isMoveSubMenuOpen, setIsMoveSubMenuOpen] = useState(false);
-    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
-    const containerRef = useRef<HTMLDivElement>(null);
     const linkRef = useRef<HTMLAnchorElement>(null);
 
-    // --- Computed ---
+    const {
+      x,
+      y,
+      refs,
+      floatingStyles,
+      context: menuContext,
+      placement,
+    } = useFloating({
+      open: menuOpen,
+      onOpenChange: setMenuOpen,
+      placement: "right-start",
+      middleware: [offset(4), flip(), shift({ padding: 8 })],
+      whileElementsMounted: autoUpdate,
+    });
+
+    const { getReferenceProps, getFloatingProps } = useInteractions([
+      useClick(menuContext),
+      useDismiss(menuContext, {
+        outsidePress: (event) =>
+          // 只在既不在根菜单也不在子菜单时才关闭
+          !refs.floating.current?.contains(event.target as Node) &&
+          !subMenuRefs.floating.current?.contains(event.target as Node),
+      }),
+    ]);
+
+    const {
+      refs: subMenuRefs,
+      floatingStyles: subMenuFloatingStyles,
+      context: subMenuContext,
+    } = useFloating({
+      open: isMoveSubMenuOpen,
+      onOpenChange: setIsMoveSubMenuOpen,
+      placement: "right-start",
+      middleware: [offset(4), flip(), shift({ padding: 8 })],
+      whileElementsMounted: autoUpdate,
+    });
+
+    const {
+      getReferenceProps: getSubMenuReferenceProps,
+      getFloatingProps: getSubMenuFloatingProps,
+    } = useInteractions([
+      useHover(subMenuContext, { delay: { open: 100, close: 200 } }),
+      useDismiss(subMenuContext),
+    ]);
+
     const IconComponent = ITEM_ICONS[type] || FileIcon;
     const displayTitle = title || contentKey;
     const isActive = pageKeyFromPath === contentKey;
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
     const showActions = isHovered || menuOpen || isMoveSubMenuOpen;
 
-    // --- 标题编辑功能 ---
     const handleSaveTitle = useCallback(
       (newTitle: string) => {
         if (currentSpaceId && newTitle.trim() && newTitle !== title) {
@@ -143,33 +351,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
       ariaLabel: "编辑标题",
     });
 
-    // --- Effects ---
-    useEffect(() => {
-      const handleClickOutside = (e: MouseEvent) => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(e.target as Node)
-        ) {
-          setMenuOpen(false);
-          setIsMoveSubMenuOpen(false);
-        }
-      };
-      if (menuOpen || isMoveSubMenuOpen) {
-        document.addEventListener("click", handleClickOutside);
-        return () => document.removeEventListener("click", handleClickOutside);
-      }
-    }, [menuOpen, isMoveSubMenuOpen]);
-
-    useEffect(() => {
-      if (showActions && containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const left = Math.min(rect.right - 150, window.innerWidth - 160);
-        const top = rect.bottom + 4;
-        setMenuPosition({ top, left });
-      }
-    }, [menuOpen, isMoveSubMenuOpen, showActions]);
-
-    // --- Handlers ---
     const handleContainerClick = (e: React.MouseEvent) => {
       if (isSelectionMode) {
         e.preventDefault();
@@ -211,21 +392,12 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
       [isEditing, startEditing, isSelectionMode, onSelectItem, contentKey]
     );
 
-    const handleDoubleClick = useCallback(
-      (e: React.MouseEvent) => {
-        if (isSelectionMode) return;
-        e.preventDefault();
-        e.stopPropagation();
-        if (!isEditing) startEditing();
-      },
-      [isEditing, startEditing, isSelectionMode]
-    );
+    const handleCloseAllMenus = useCallback(() => {
+      setIsMoveSubMenuOpen(false);
+      setMenuOpen(false);
+    }, []);
 
     const handleMenu = {
-      toggle: useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        setMenuOpen((prev) => !prev);
-      }, []),
       edit: useCallback(
         (e: React.MouseEvent) => {
           e.stopPropagation();
@@ -234,51 +406,31 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
         },
         [startEditing]
       ),
-      move: useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsMoveSubMenuOpen(true);
-      }, []),
     };
 
-    // --- Render Helpers ---
-    const ActionButton = ({ onClick, icon: Icon, label, className = "" }) => {
-      const ButtonComponent = (
-        <button
-          className={`SidebarItem__actionButton ${className}`}
-          onClick={onClick}
-          aria-label={label}
-          type="button"
-        >
-          <Icon size={MORE_ICON_SIZE} />
-        </button>
-      );
-
-      return isMobile ? (
-        ButtonComponent
-      ) : (
-        <Tooltip content={label} delay={100}>
-          {ButtonComponent}
-        </Tooltip>
-      );
-    };
-
-    const MenuItem = ({ onClick, icon: Icon, label, className = "" }) => (
-      <button
-        className={`SidebarItem__menuItem ${className}`}
-        onClick={onClick}
-        role="menuitem"
-        aria-label={label}
-        type="button"
-      >
-        {Icon && <Icon size={14} style={{ marginRight: "8px" }} />}
-        {label}
-      </button>
+    const moreActionsButton = (
+      <ActionButton
+        {...getReferenceProps({ onClick: (e) => e.stopPropagation() })}
+        icon={KebabHorizontalIcon}
+        label="更多操作"
+      />
     );
+
+    const isPlacedRight = placement.startsWith("right");
+    const menuStyle = {
+      ...floatingStyles,
+      ...(isPlacedRight && {
+        borderLeft: "none",
+        borderTopLeftRadius: 0,
+        borderBottomLeftRadius: 0,
+        boxShadow: "4px 0px 18px rgba(0, 0, 0, 0.12)",
+      }),
+    };
 
     return (
       <>
         <div
-          ref={containerRef}
+          ref={refs.setReference}
           className={[
             "SidebarItem",
             isActive && "SidebarItem--active",
@@ -316,9 +468,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             >
               {({ onDragStart, onDragEnd }) => (
                 <span
-                  className={`SidebarItem__icon ${
-                    isIconHover ? "SidebarItem__icon--draggable" : ""
-                  }`}
+                  className={`SidebarItem__icon ${isIconHover ? "SidebarItem__icon--draggable" : ""}`}
                   onMouseEnter={() => setIsIconHover(true)}
                   onMouseLeave={() => setIsIconHover(false)}
                   draggable
@@ -353,8 +503,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             >
               <span
                 className="SidebarItem__linkText"
-                onDoubleClick={handleDoubleClick}
-                title={isSelectionMode ? "点击选择" : "双击编辑标题"}
+                title={isSelectionMode ? "点击选择" : displayTitle}
               >
                 {displayTitle}
               </span>
@@ -363,61 +512,70 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
 
           {showActions && !isEditing && !isSelectionMode && (
             <div className="SidebarItem__actionButtons">
-              <ActionButton
-                onClick={handleMenu.toggle}
-                icon={KebabHorizontalIcon}
-                label="更多操作"
-              />
+              {isMobile ? (
+                moreActionsButton
+              ) : (
+                <Tooltip content="更多操作" delay={100}>
+                  {moreActionsButton}
+                </Tooltip>
+              )}
               {contentKey.startsWith("page") && (
-                <ActionButton
-                  onClick={handleAddToConversation}
-                  icon={ChevronRightIcon}
-                  label="加入对话"
-                />
+                <Tooltip content="加入对话" delay={100}>
+                  <ActionButton
+                    onClick={handleAddToConversation}
+                    icon={ChevronRightIcon}
+                    label="加入对话"
+                  />
+                </Tooltip>
               )}
             </div>
           )}
         </div>
 
-        {menuOpen &&
-          createPortal(
+        {menuOpen && (
+          <FloatingPortal>
             <div
-              className="SidebarItem__menu"
-              style={{ position: "absolute", ...menuPosition }}
+              ref={refs.setFloating}
+              style={menuStyle}
+              {...getFloatingProps()}
             >
-              <MenuItem
-                onClick={handleMenu.edit}
-                icon={PencilIcon}
-                label="编辑标题"
-              />
-              <MenuItem onClick={handleMenu.move} label="移动到空间" />
-              <DeleteContentButton
-                contentKey={contentKey}
-                title={displayTitle}
-                theme={theme}
-                className="SidebarItem__menuItem SidebarItem__deleteMenuItem"
-              />
-            </div>,
-            document.body
-          )}
+              <div
+                className="SidebarItem__menu"
+                style={{ border: "none", boxShadow: "none", animation: "none" }}
+              >
+                <MenuItem
+                  onClick={handleMenu.edit}
+                  icon={PencilIcon}
+                  label="编辑标题"
+                />
+                <MenuItem
+                  ref={subMenuRefs.setReference}
+                  {...getSubMenuReferenceProps()}
+                  onClick={(e) => e.stopPropagation()}
+                  label="移动到空间"
+                  isSubMenuTrigger
+                />
+                <DeleteContentButton
+                  contentKey={contentKey}
+                  title={displayTitle}
+                  theme={theme}
+                  className="SidebarItem__menuItem SidebarItem__deleteMenuItem"
+                />
+              </div>
+            </div>
+            {isMoveSubMenuOpen && (
+              <div ref={subMenuRefs.setFloating} style={subMenuFloatingStyles}>
+                <MoveToSpaceSubMenu
+                  contentKey={contentKey}
+                  onClose={handleCloseAllMenus}
+                  getFloatingProps={getSubMenuFloatingProps}
+                />
+              </div>
+            )}
+          </FloatingPortal>
+        )}
 
-        {isMoveSubMenuOpen &&
-          createPortal(
-            <MoveToSpaceSubMenu
-              position={{
-                top: menuPosition.top,
-                left: menuPosition.left + 160,
-              }}
-              contentKey={contentKey}
-              onClose={() => {
-                setIsMoveSubMenuOpen(false);
-                setMenuOpen(false);
-              }}
-            />,
-            document.body
-          )}
-
-        <style jsx>{`
+        <style href="SidebarItem" precedence="medium">{`
           .SidebarItem {
             margin: 2px 0;
             padding: 8px;
@@ -442,7 +600,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             box-shadow: 0 0 0 2px ${theme.primary}40;
           }
           .SidebarItem--active {
-            /* Style for the current page */
             background: linear-gradient(
               90deg,
               ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"} 0%,
@@ -462,46 +619,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             background: ${theme.primary};
             border-radius: 0 2px 2px 0;
           }
-          .SidebarItem--editing {
-            background-color: ${theme.backgroundHover};
-          }
-          /* --- 新增: 批量选择模式样式 --- */
-          .SidebarItem--selection-mode {
-            cursor: pointer;
-          }
-          .SidebarItem--selection-mode:hover {
-            background-color: ${theme.backgroundHover};
-            transform: translateX(0); /* 覆盖普通 hover */
-          }
-          .SidebarItem--selected {
-            background-color: ${theme.primaryGhost ||
-            "rgba(22, 119, 255, 0.1)"};
-            border-color: ${theme.primary}50;
-          }
-          .SidebarItem--selected:hover {
-            background-color: ${theme.primaryGhost ||
-            "rgba(22, 119, 255, 0.15)"};
-          }
-          .SidebarItem__checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3px;
-            flex-shrink: 0;
-            color: ${theme.textTertiary};
-          }
-          .SidebarItem__checkbox {
-            transition: color 0.15s ease;
-          }
-          .SidebarItem__checkbox--checked {
-            color: ${theme.primary};
-          }
-          .SidebarItem:hover
-            .SidebarItem__checkbox:not(.SidebarItem__checkbox--checked) {
-            color: ${theme.textSecondary};
-          }
-          /* --- 结束: 批量选择模式样式 --- */
-
           .SidebarItem__icon {
             display: flex;
             align-items: center;
@@ -513,23 +630,12 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             flex-shrink: 0;
             cursor: pointer;
           }
-          .SidebarItem__icon--draggable {
-            color: ${theme.textSecondary};
-            background-color: ${theme.backgroundTertiary};
-            cursor: grab;
-            transform: scale(1.05);
-          }
           .SidebarItem:hover .SidebarItem__icon {
             color: ${theme.textSecondary};
             transform: scale(1.1);
           }
           .SidebarItem--active .SidebarItem__icon {
             color: ${theme.primary};
-          }
-          .SidebarItem__editContainer {
-            flex: 1;
-            min-width: 0;
-            padding: 0 2px;
           }
           .SidebarItem__link {
             flex: 1;
@@ -543,16 +649,10 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            cursor: text;
             padding: 2px 4px;
             border-radius: 4px;
             transition: background-color 0.15s ease;
-          }
-          .SidebarItem__linkText:hover {
-            background-color: ${theme.backgroundTertiary}80;
-          }
-          .SidebarItem--active .SidebarItem__link {
-            font-weight: 500;
+            cursor: pointer;
           }
           .SidebarItem__actionButtons {
             position: absolute;
@@ -593,13 +693,29 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
           }
           .SidebarItem__menu {
             background: ${theme.backgroundElevated || theme.background};
-            border: 1px solid ${theme.border};
             border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             padding: 4px;
             z-index: 1000;
             min-width: 150px;
             animation: menuFadeIn 0.15s ease;
+            border: 1px solid ${theme.border};
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          }
+          .SidebarItem__subMenu {
+            background: ${theme.backgroundElevated || theme.background};
+            border-radius: 8px;
+            padding: 4px;
+            z-index: 1001;
+            min-width: 150px;
+            animation: menuFadeIn 0.15s ease;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            border: 1px solid ${theme.border};
+          }
+          .SidebarItem__subMenuEmpty {
+            padding: 8px 12px;
+            font-size: 13px;
+            color: ${theme.textSecondary};
+            text-align: center;
           }
           .SidebarItem__menuItem {
             display: flex;
@@ -614,14 +730,38 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
             border-radius: 6px;
             transition: all 0.12s ease;
             min-height: 32px;
+            position: relative;
           }
           .SidebarItem__menuItem:hover {
             background-color: ${theme.backgroundHover};
             transform: translateX(2px);
           }
+          .SidebarItem__menuItem--disabled {
+            color: ${theme.textTertiary};
+            cursor: not-allowed;
+          }
+          .SidebarItem__menuItem--disabled:hover {
+            background-color: transparent;
+            transform: none;
+          }
+          .SidebarItem__menuItem--loading {
+            opacity: 0.7;
+            cursor: wait;
+          }
+          .SidebarItem__loadingSpinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid ${theme.textTertiary};
+            border-top: 2px solid ${theme.primary};
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+          }
           .SidebarItem__deleteMenuItem {
             color: ${theme.danger || "#e53e3e"};
           }
+
           @keyframes menuFadeIn {
             from {
               opacity: 0;
@@ -632,24 +772,10 @@ export const SidebarItem: React.FC<SidebarItemProps> = React.memo(
               transform: translateY(0) scale(1);
             }
           }
-          @media (max-width: 768px) {
-            .SidebarItem {
-              padding: 12px 8px;
-              min-height: ${TOUCH_TARGET_SIZE}px;
-            }
-            .SidebarItem__actionButtons {
-              position: static;
-              opacity: 1;
-              transform: none;
-              margin-left: auto;
-              background: transparent;
-              backdrop-filter: none;
-            }
-            .SidebarItem__actionButton {
-              width: 32px;
-              height: 32px;
-              padding: 6px;
-            }
+
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
         `}</style>
       </>
