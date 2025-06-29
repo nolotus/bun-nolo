@@ -18,7 +18,7 @@ import {
 } from "render/page/pageSlice";
 import {
   deleteContentFromSpace,
-  selectCurrentSpaceId, // <-- 1. 新增导入
+  selectCurrentSpaceId,
 } from "create/space/spaceSlice";
 
 import ModeToggle from "web/ui/ModeToggle";
@@ -43,7 +43,7 @@ export const CreateTool: React.FC = () => {
   const { pageKey: dbKey } = useParams<{ pageKey?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // <-- 2. 从 spaceSlice 获取当前 spaceId 作为备用
+  // 从 spaceSlice 获取当前 spaceId 作为备用
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
 
   // 删除对话框状态
@@ -79,30 +79,15 @@ export const CreateTool: React.FC = () => {
       toast.success(t("保存成功"));
     } catch (err: any) {
       if (err.message !== "Aborted") {
-        console.error("保存失败:", err);
         toast.error(t("保存失败"));
       }
     }
   }, [dispatch, t]);
 
-  // <-- 3. 修改删除逻辑
+  // 修改删除逻辑
   const handleDelete = async () => {
-    if (!dbKey) {
-      console.error("无法删除：页面 key (dbKey) 不存在。");
-      toast.error(t("无法删除，页面标识不存在"));
-      return;
-    }
-
-    // 优先使用页面自身的 dbSpaceId，如果不存在，则回退到当前选中的 spaceId。
-    // 即使两个 ID 都不存在，也继续执行删除，由 thunk 处理后续逻辑。
+    // 优先使用页面自身的 dbSpaceId，如果不存在，则回退到当前选中的 spaceId
     const spaceIdToDeleteFrom = dbSpaceId || currentSpaceId;
-
-    console.log("尝试删除内容", {
-      contentKey: dbKey,
-      pageSpaceId: dbSpaceId,
-      currentSpaceId: currentSpaceId,
-      finalSpaceId: spaceIdToDeleteFrom,
-    });
 
     setIsDeleting(true);
     try {
@@ -115,26 +100,12 @@ export const CreateTool: React.FC = () => {
       toast.success(t("删除成功"));
       navigate(-1);
     } catch (err) {
-      console.error("删除失败:", err);
       toast.error(t("删除失败"));
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
     }
   };
-
-  if (!dbKey) {
-    return (
-      <div
-        style={{
-          padding: "12px 24px",
-          color: theme.textSecondary,
-        }}
-      >
-        {t("加载工具栏中...")}
-      </div>
-    );
-  }
 
   return (
     <>
