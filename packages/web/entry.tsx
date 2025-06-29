@@ -7,7 +7,7 @@ import { Provider } from "react-redux";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 import { isProduction } from "utils/env";
 import { webTokenManager } from "auth/web/tokenManager";
-import App from "./App";
+import App from "app/web/App";
 
 // 【修改】从统一的 store 文件导入工厂函数
 import { createAppStore } from "app/store"; // 假设你把 store.ts 放在了这里

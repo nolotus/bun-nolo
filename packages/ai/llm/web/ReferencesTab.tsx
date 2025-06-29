@@ -4,7 +4,7 @@ import React from "react";
 import { Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { FormField } from "render/web/form/FormField";
-import ToggleSwitch from "web/ui/ToggleSwitch";
+import ToggleSwitch from "render/web/ui/ToggleSwitch";
 import ReferencesSelector from "./ReferencesSelector";
 
 const ReferencesTab = ({ control, errors }) => {

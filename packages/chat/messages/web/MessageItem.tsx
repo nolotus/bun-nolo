@@ -7,7 +7,7 @@ import Avatar from "render/web/ui/Avatar";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import { useFetchData } from "app/hooks";
 import Editor from "create/editor/Editor";
-import DocxPreviewDialog from "web/DocxPreviewDialog";
+import DocxPreviewDialog from "render/web/DocxPreviewDialog";
 import { BaseModal } from "render/web/ui/BaseModal";
 import { selectShowThinking } from "app/settings/settingSlice";
 import { MessageActions } from "./MessageActions";

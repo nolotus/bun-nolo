@@ -3,7 +3,7 @@ import { FormField } from "render/web/form/FormField";
 import { TextArea, NumberInput } from "render/web/form/Input";
 import { useTranslation } from "react-i18next";
 import { Controller } from "react-hook-form";
-import ToggleSwitch from "web/ui/ToggleSwitch";
+import ToggleSwitch from "render/web/ui/ToggleSwitch";
 
 const PublishSettingsTab = ({ errors, control, watch, apiSource }) => {
   const { t } = useTranslation("ai");

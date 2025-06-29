@@ -4,7 +4,7 @@ import { useTheme } from "app/theme";
 import { useAgentValidation } from "../common/useAgentFormValidation";
 import { FormField } from "render/web/form/FormField";
 
-import FormTitle from "web/form/FormTitle";
+import FormTitle from "render/web/form/FormTitle";
 import { Input, TextArea, PasswordInput } from "render/web/form/Input";
 
 import { PlusIcon } from "@primer/octicons-react";
@@ -14,7 +14,7 @@ import { TagsInput } from "render/web/form/TagsInput";
 
 import { useAppSelector } from "app/hooks";
 import { selectCurrentSpace } from "create/space/spaceSlice";
-import ToggleSwitch from "web/ui/ToggleSwitch";
+import ToggleSwitch from "render/web/ui/ToggleSwitch";
 import PublishSettingsTab from "./PublishSettingsTab";
 import ReferencesSelector from "./ReferencesSelector"; // 确保路径正确
 

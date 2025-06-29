@@ -21,7 +21,7 @@ import {
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
 
-import ModeToggle from "web/ui/ModeToggle";
+import ModeToggle from "render/web/ui/ModeToggle";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import Button from "render/web/ui/Button";
 
