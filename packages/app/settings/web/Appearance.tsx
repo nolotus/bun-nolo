@@ -30,66 +30,71 @@ const Appearance: React.FC = () => {
           .appearance-page {
             display: flex;
             flex-direction: column;
-            gap: ${theme.space[8]};
+            gap: var(--space-8);
             max-width: 800px;
           }
+          
           .page-title {
             font-size: 1.5rem;
             font-weight: 600;
-            color: ${theme.text};
+            color: var(--text);
             margin: 0;
-            padding-bottom: ${theme.space[4]};
-            border-bottom: 1px solid ${theme.border};
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--borderLight);
           }
+          
           .setting-section {
             display: grid;
             grid-template-columns: minmax(200px, 2fr) 3fr;
-            gap: ${theme.space[8]};
+            gap: var(--space-6);
             align-items: start;
           }
+          
+          @media (max-width: 768px) {
+            .setting-section {
+              grid-template-columns: 1fr; /* 在小屏幕上堆叠 */
+              gap: var(--space-4); /* 堆叠时减小间距 */
+            }
+          }
+
           .section-header {
             display: flex;
             flex-direction: column;
-            gap: ${theme.space[1]};
+            gap: var(--space-1);
           }
+          
           .section-title {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: ${theme.text};
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
             margin: 0;
           }
+          
           .section-description {
-            font-size: 0.9rem;
-            color: ${theme.textSecondary};
+            font-size: 0.875rem;
+            color: var(--textTertiary);
             margin: 0;
-            line-height: 1.5;
+            line-height: 1.4;
           }
+          
           .section-content {
-            padding-top: ${theme.space[1]};
+            padding-top: var(--space-1);
           }
         `}
       </style>
       <div className="appearance-page">
-        <h1 className="page-title">
-          {t("settings.appearance.title", "外观设置")}
-        </h1>
+        <h1 className="page-title">{t("settings.appearance.title")}</h1>
 
         <SettingSection
-          title={t("settings.appearance.theme.title", "主题色彩")}
-          description={t(
-            "settings.appearance.theme.description",
-            "选择一个你喜欢的主题色，它将应用于整个应用的强调色。"
-          )}
+          title={t("settings.appearance.theme.title")}
+          description={t("settings.appearance.theme.description")}
         >
           <ThemePicker />
         </SettingSection>
 
         <SettingSection
-          title={t("settings.appearance.mode.title", "外观模式")}
-          description={t(
-            "settings.appearance.mode.description",
-            "切换日间或夜间模式以获得最佳的视觉舒适度。"
-          )}
+          title={t("settings.appearance.mode.title")}
+          description={t("settings.appearance.mode.description")}
         >
           <DarkModeSwitch />
         </SettingSection>

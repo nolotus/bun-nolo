@@ -12,7 +12,6 @@ import { CheckCircleFillIcon } from "@primer/octicons-react";
 import * as themePalettes from "app/theme/colors";
 
 // 动态生成可用的主题列表，保持与 colors.ts 同步
-// 这部分逻辑不需要改变
 const availableThemes = Object.entries(themePalettes).map(([key, palette]) => ({
   value: key, // 'blue', 'green', etc.
   color: palette.light.primary, // 使用 light 模式下的主色作为预览色
@@ -39,71 +38,80 @@ export const ThemePicker: React.FC = () => {
         {`
           .theme-picker-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: ${theme.space[3]}; /* 稍微减小间距，更紧凑 */
+            grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+            gap: var(--space-3);
           }
+          
           .theme-card {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: ${theme.space[2]};
-            padding: ${theme.space[3]};
-            border-radius: 8px; /* 柔和的圆角 */
-            border: 1px solid ${theme.border}; /* 更纤细的边框 */
-            background-color: ${theme.backgroundSecondary};
+            gap: var(--space-2);
+            padding: var(--space-3);
+            border-radius: 6px;
+            background: var(--background);
+            border: 1px solid var(--borderLight);
             cursor: pointer;
             position: relative;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+            transition: border-color 0.15s ease;
+            outline: none;
           }
+          
           .theme-card:hover {
-            transform: translateY(-2px); /* 悬浮效果更克制 */
-            border-color: ${theme.borderHover};
+            border-color: var(--border);
           }
+          
           .theme-card[data-active='true'] {
             border-color: var(--theme-color);
-            box-shadow: 0 0 0 2px var(--theme-color); /* 选中效果更精致 */
+            background: var(--backgroundSecondary);
           }
+          
+          .theme-card:focus-visible {
+            box-shadow: 0 0 0 2px var(--theme-focus);
+          }
+          
           .theme-color-swatch {
-            width: 32px; /* 尺寸更纤细 */
-            height: 32px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            border: 1px solid ${theme.border};
+            border: 1px solid var(--borderLight);
           }
+          
           .theme-name {
-            font-size: 13px; /* 字体大小调整 */
+            font-size: 12px;
             font-weight: 500;
-            color: ${theme.textSecondary};
+            color: var(--textTertiary);
             text-align: center;
           }
+          
+          .theme-card[data-active='true'] .theme-name {
+            color: var(--primary);
+            font-weight: 600;
+          }
+          
           .selected-checkmark {
             position: absolute;
-            top: 4px; /* 调整位置 */
-            right: 4px;
-            color: var(--theme-color);
-            background-color: ${theme.background};
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            top: 2px;
+            right: 2px;
+            color: var(--primary);
+            width: 14px;
+            height: 14px;
             opacity: 0;
-            transform: scale(0.8);
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: opacity 0.15s ease;
           }
+          
           .theme-card[data-active='true'] .selected-checkmark {
             opacity: 1;
-            transform: scale(1);
           }
         `}
       </style>
       <div className="theme-picker-grid">
         {availableThemes.map(({ value, color, name }) => {
           const isActive = currentThemeName === value;
+          const themeConfig =
+            themePalettes[value as keyof typeof themePalettes];
           const focusColor =
-            themePalettes[value as keyof typeof themePalettes]?.light.focus ||
-            "rgba(128, 128, 128, 0.3)";
+            themeConfig?.light.focus || "rgba(128, 128, 128, 0.1)";
 
           return (
             <div
@@ -113,7 +121,7 @@ export const ThemePicker: React.FC = () => {
               style={
                 {
                   "--theme-color": color,
-                  "--theme-focus-color": focusColor,
+                  "--theme-focus": focusColor,
                 } as React.CSSProperties
               }
               onClick={() => handleThemeSelect(value)}
@@ -129,10 +137,10 @@ export const ThemePicker: React.FC = () => {
                 className="theme-color-swatch"
                 style={{ backgroundColor: color }}
               />
-              <span className="theme-name">{t(name)}</span> {/* 使用 i18n */}
+              {/* 根据需求移除主题名称显示 */}
               {isActive && (
                 <div className="selected-checkmark">
-                  <CheckCircleFillIcon size={20} />
+                  <CheckCircleFillIcon size={10} />
                 </div>
               )}
             </div>
