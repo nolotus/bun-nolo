@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { Portal, Menu, Button } from "./components";
 import { MdCheck } from "react-icons/md";
 import { TrashIcon } from "@primer/octicons-react";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { useAppSelector } from "app/hooks";
 
 // Props 定义了组件的 API，它需要什么，以及它能做什么

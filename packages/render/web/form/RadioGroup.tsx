@@ -1,6 +1,6 @@
 import React from "react";
 import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 
 interface RadioOption {
   id: string;

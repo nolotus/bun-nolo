@@ -1,7 +1,7 @@
 // Usage.tsx
 import React, { useState } from "react";
 import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
 import { clearTodayTokens, clearAllTokens } from "ai/token/clear";

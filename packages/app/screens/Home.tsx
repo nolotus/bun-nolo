@@ -9,7 +9,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useAppSelector } from "../hooks";
 import { useAuth } from "auth/hooks/useAuth";
 import Octicons from "react-native-vector-icons/Octicons";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { CreateRoutePaths } from "create/routePaths";
 import { useMemo } from "react";
 

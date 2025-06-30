@@ -6,7 +6,7 @@ import { pino } from "pino";
 import { getTokenStats } from "ai/token/query";
 import { useAppSelector } from "app/hooks";
 import { selectUserId } from "auth/authSlice";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { TimeRange, processDateRange } from "utils/processDateRange";
 import { ClockIcon, GraphIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";

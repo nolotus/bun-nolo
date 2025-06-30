@@ -23,7 +23,7 @@ import { markdownToSlate } from "create/editor/markdownToSlate";
 import { useTranslation } from "react-i18next";
 import { Tooltip } from "render/web/ui/Tooltip";
 import toast from "react-hot-toast";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 
 // 获取内容字符串，包含思考内容（如果需要显示）
 const getContentString = (content, thinkContent = "", showThinking = false) => {

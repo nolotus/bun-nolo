@@ -7,7 +7,8 @@ import {
   DeviceMobileIcon,
 } from "@primer/octicons-react";
 import { useAppSelector } from "../hooks";
-import { selectTheme } from "../theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
+
 import { useAuth } from "auth/hooks/useAuth";
 import image from "app/images/image.png";
 const EMAIL = "s@nolotus.com";

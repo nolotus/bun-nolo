@@ -27,7 +27,7 @@ import { normalizeTokens } from "./utils/normalize-tokens";
 import { withLayout } from "./withLayout";
 import { withShortcuts } from "./withShortcuts";
 import { PlaceHolder } from "render/page/EditorPlaceHolder";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 
 // --- 新增: 引入链接插件 ---
 import { withLinks } from "./withLinks";

@@ -8,7 +8,6 @@ import * as RNLocalize from "react-native-localize";
 import { Provider } from "react-redux";
 import MainNavigation from "./MainNavigation";
 import { mobileStore } from "./store";
-import { setDarkMode } from "app/theme/themeSlice";
 import { rnTokenManager } from "auth/rn/tokenManager";
 import { useAppDispatch } from "app/hooks";
 import { useEffect } from "react";
@@ -27,7 +26,8 @@ function App(): React.JSX.Element {
   const init = async () => {
     // dispatch(setTheme(theme));
     const tokens = await rnTokenManager.getTokens();
-    dispatch(setDarkMode(isDarkMode)); // if (tokens) {
+    // dispatch(setDarkMode(isDarkMode));
+    // if (tokens) {
     //   await dispatch(initAuth(tokens));
     // }
   };

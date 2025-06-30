@@ -3,7 +3,7 @@ import { utcToZonedTime } from "date-fns-tz";
 import { TokenRecord } from "ai/token/types";
 import React, { useState, useMemo } from "react";
 import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { useRecords, RecordsFilter } from "ai/token/hooks/useRecords";
 import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";

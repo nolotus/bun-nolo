@@ -1,8 +1,8 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAppSelector } from "app/hooks"; // 假设的 Redux hooks 路径
-import { selectTheme } from "app/theme/themeSlice";
+import { useAppSelector } from "app/hooks";
+import { selectTheme } from "app/settings/settingSlice";
 import {
   PaintbrushIcon,
   PersonIcon,
@@ -69,7 +69,7 @@ const SettingsSidebarContent: React.FC = () => {
 
 const SettingLayout: React.FC = () => {
   const theme = useAppSelector(selectTheme);
-
+  console.log("Current theme:", theme); // 调试输出当前主题
   return (
     <>
       <style href="SettingLayout-styles" precedence="medium">

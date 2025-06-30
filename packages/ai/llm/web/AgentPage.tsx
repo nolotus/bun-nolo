@@ -13,7 +13,7 @@ import { Dialog } from "render/web/ui/Dialog";
 import Avatar from "render/web/ui/Avatar";
 import AgentForm from "ai/llm/web/AgentForm";
 
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { Agent } from "app/types";
 import { remove } from "database/dbSlice";
 

@@ -1,7 +1,7 @@
 // components/RechargeRecord.tsx
 import { useState, useEffect, useCallback } from "react";
 import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { useTranslation } from "react-i18next";
