@@ -127,41 +127,81 @@ export const graphite = {
 
 export const orange = {
   light: {
-    primary: "#F97316",
-    primaryLight: "#FB923C",
-    primaryBg: "#FFF8F1",
-    hover: "#EA580C",
-    focus: "rgba(249, 115, 22, 0.10)",
-    primaryGhost: "rgba(249, 115, 22, 0.06)",
-    primaryGradient: "linear-gradient(135deg, #F97316, #FB923C)",
-    name: "暖橙",
-    primaryDark: "#EA580C",
-    primaryHover: "rgba(249, 115, 22, 0.10)",
+    primary: "#F56E0F", // 使用配色板中的 Liquid Lava
+    primaryLight: "#FF8A3D", // 稍微亮一些的橙色
+    primaryBg: "#FBFBFB", // 使用配色板中的 Snow 作为浅色背景
+    hover: "#E5620D", // 比主色稍深的悬停色
+    focus: "rgba(245, 110, 15, 0.10)",
+    primaryGhost: "rgba(245, 110, 15, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #F56E0F, #FF8A3D)",
+    name: "熔岩橙",
+    primaryDark: "#E5620D",
+    primaryHover: "rgba(245, 110, 15, 0.10)",
 
-    backgroundAccent: "#FFF8F1",
-    backgroundActive: "#FFF1E6",
-    borderAccent: "#FED7AA",
+    backgroundAccent: "#FBFBFB", // Snow
+    backgroundActive: "#F5F5F5",
+    borderAccent: "#878787", // 使用配色板中的 Dusty Grey
     success: "#059669",
-    warning: "#F97316",
+    warning: "#F56E0F",
     info: "#3B82F6",
   },
   dark: {
-    primary: "#FB923C",
-    primaryLight: "#FDBA74",
-    primaryBg: "#1C1510",
-    hover: "#F97316",
-    focus: "rgba(251, 146, 60, 0.15)",
-    primaryGhost: "rgba(251, 146, 60, 0.08)",
-    primaryGradient: "linear-gradient(135deg, #FB923C, #FDBA74)",
-    name: "暖橙(暗色)",
-    primaryDark: "#F97316",
-    primaryHover: "rgba(251, 146, 60, 0.15)",
+    primary: "#F56E0F", // 保持 Liquid Lava 作为主色
+    primaryLight: "#FF8A3D",
+    primaryBg: "#151419", // 使用配色板中的 Dark Void
+    hover: "#FF8A3D",
+    focus: "rgba(245, 110, 15, 0.15)",
+    primaryGhost: "rgba(245, 110, 15, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #F56E0F, #FF8A3D)",
+    name: "熔岩橙(暗色)",
+    primaryDark: "#E5620D",
+    primaryHover: "rgba(245, 110, 15, 0.15)",
 
-    backgroundAccent: "#1A140E",
-    backgroundActive: "#221A14",
-    borderAccent: "#C2410C",
+    backgroundAccent: "#1B1B1E", // 使用配色板中的 Gluon Grey
+    backgroundActive: "#262626", // 使用配色板中的 Slate Grey
+    borderAccent: "#878787", // 使用配色板中的 Dusty Grey
     success: "#10B981",
-    warning: "#FB923C",
+    warning: "#F56E0F",
+    info: "#60A5FA",
+  },
+};
+export const yellow = {
+  light: {
+    primary: "#D97706", // 从 #EAB308 调整为更柔和的琥珀色
+    primaryLight: "#F59E0B", // 从 #FCD34D 调整为中等亮度的黄色
+    primaryBg: "#FFFBEB", // 从 #FFFCF0 调整为更柔和的奶黄背景
+    hover: "#B45309", // 从 #CA8A04 调整为更深的褐黄色
+    focus: "rgba(217, 119, 6, 0.10)", // 更新为新的主色透明度
+    primaryGhost: "rgba(217, 119, 6, 0.06)", // 更新为新的主色透明度
+    primaryGradient: "linear-gradient(135deg, #D97706, #F59E0B)", // 更新渐变色
+    name: "明亮黄",
+    primaryDark: "#B45309",
+    primaryHover: "rgba(217, 119, 6, 0.10)",
+
+    backgroundAccent: "#FFFBEB", // 与 primaryBg 保持一致
+    backgroundActive: "#FEF3C7", // 从 #FEF9E7 调整为更柔和的激活背景
+    borderAccent: "#FDE68A", // 保持柔和的黄色边框
+    success: "#10B981",
+    warning: "#D97706", // 与主色保持一致
+    info: "#3B82F6",
+  },
+  dark: {
+    primary: "#F59E0B", // 从 #FCD34D 调整为中等亮度，避免过于刺眼
+    primaryLight: "#FBBF24", // 从 #FDE68A 调整为稍微亮一些但不刺眼的黄色
+    primaryBg: "#1C1917", // 从 #1C1A10 调整为更深的暖色调背景
+    hover: "#D97706", // 从 #FBBF24 调整为更深的黄色
+    focus: "rgba(245, 158, 11, 0.15)", // 更新为新的主色透明度
+    primaryGhost: "rgba(245, 158, 11, 0.08)", // 更新为新的主色透明度
+    primaryGradient: "linear-gradient(135deg, #F59E0B, #FBBF24)", // 更新渐变色
+    name: "明亮黄(暗色)",
+    primaryDark: "#D97706",
+    primaryHover: "rgba(245, 158, 11, 0.15)",
+
+    backgroundAccent: "#1C1917", // 与 primaryBg 保持一致
+    backgroundActive: "#292524", // 从 #221E14 调整为更深的暖灰色
+    borderAccent: "#A16207", // 从 #B45309 调整为稍微亮一些的边框色
+    success: "#10B981",
+    warning: "#F59E0B", // 与主色保持一致
     info: "#60A5FA",
   },
 };
@@ -285,47 +325,6 @@ export const red = {
     borderAccent: "#DC2626",
     success: "#10B981",
     warning: "#F59E0B",
-    info: "#60A5FA",
-  },
-};
-
-export const yellow = {
-  light: {
-    primary: "#D97706", // 从 #EAB308 调整为更柔和的琥珀色
-    primaryLight: "#F59E0B", // 从 #FCD34D 调整为中等亮度的黄色
-    primaryBg: "#FFFBEB", // 从 #FFFCF0 调整为更柔和的奶黄背景
-    hover: "#B45309", // 从 #CA8A04 调整为更深的褐黄色
-    focus: "rgba(217, 119, 6, 0.10)", // 更新为新的主色透明度
-    primaryGhost: "rgba(217, 119, 6, 0.06)", // 更新为新的主色透明度
-    primaryGradient: "linear-gradient(135deg, #D97706, #F59E0B)", // 更新渐变色
-    name: "明亮黄",
-    primaryDark: "#B45309",
-    primaryHover: "rgba(217, 119, 6, 0.10)",
-
-    backgroundAccent: "#FFFBEB", // 与 primaryBg 保持一致
-    backgroundActive: "#FEF3C7", // 从 #FEF9E7 调整为更柔和的激活背景
-    borderAccent: "#FDE68A", // 保持柔和的黄色边框
-    success: "#10B981",
-    warning: "#D97706", // 与主色保持一致
-    info: "#3B82F6",
-  },
-  dark: {
-    primary: "#F59E0B", // 从 #FCD34D 调整为中等亮度，避免过于刺眼
-    primaryLight: "#FBBF24", // 从 #FDE68A 调整为稍微亮一些但不刺眼的黄色
-    primaryBg: "#1C1917", // 从 #1C1A10 调整为更深的暖色调背景
-    hover: "#D97706", // 从 #FBBF24 调整为更深的黄色
-    focus: "rgba(245, 158, 11, 0.15)", // 更新为新的主色透明度
-    primaryGhost: "rgba(245, 158, 11, 0.08)", // 更新为新的主色透明度
-    primaryGradient: "linear-gradient(135deg, #F59E0B, #FBBF24)", // 更新渐变色
-    name: "明亮黄(暗色)",
-    primaryDark: "#D97706",
-    primaryHover: "rgba(245, 158, 11, 0.15)",
-
-    backgroundAccent: "#1C1917", // 与 primaryBg 保持一致
-    backgroundActive: "#292524", // 从 #221E14 调整为更深的暖灰色
-    borderAccent: "#A16207", // 从 #B45309 调整为稍微亮一些的边框色
-    success: "#10B981",
-    warning: "#F59E0B", // 与主色保持一致
     info: "#60A5FA",
   },
 };
