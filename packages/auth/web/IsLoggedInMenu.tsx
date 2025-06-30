@@ -169,122 +169,208 @@ export const LoggedInMenu: React.FC = () => {
       <style href={"loginmenu" + theme.background} precedence="medium">
         {`
           .loginmenu-wrapper {
-            display: flex; align-items: center; gap: ${theme.space[1]};
-            padding: ${theme.space[1]} ${theme.space[3]};
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-1) var(--space-3);
           }
 
           .icon-button {
-            background: transparent; border: none; cursor: pointer;
-            padding: ${theme.space[2]}; display: flex; align-items: center;
-            justify-content: center; border-radius: 4px; transition: all 0.15s ease;
-            color: ${theme.textTertiary}; min-width: 32px; min-height: 32px;
-            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: var(--space-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+            color: var(--textTertiary);
+            min-width: 32px;
+            min-height: 32px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
           }
+
           .icon-button:hover {
-            background-color: ${theme.backgroundHover}; color: ${theme.textSecondary};
+            background-color: var(--backgroundHover);
+            color: var(--textSecondary);
           }
+
           .icon-button:active {
-            background-color: ${theme.backgroundSelected}; transform: scale(0.95);
+            background-color: var(--backgroundSelected);
+            transform: scale(0.95);
           }
 
           .nav-link {
-            text-decoration: none; color: inherit; display: block;
+            text-decoration: none;
+            color: inherit;
+            display: block;
           }
+
           .nav-link.active .user-trigger {
-            background-color: ${theme.backgroundSelected}; color: ${theme.text};
+            background-color: var(--backgroundSelected);
+            color: var(--text);
           }
+
           .nav-link:hover .user-trigger {
-            background-color: ${theme.backgroundHover}; color: ${theme.text};
+            background-color: var(--backgroundHover);
+            color: var(--text);
           }
 
           .user-trigger {
-            display: flex; align-items: center; cursor: pointer;
-            padding: ${theme.space[2]}; border-radius: 4px; transition: all 0.15s ease;
-            color: ${theme.textSecondary}; min-height: 32px;
-            -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: var(--space-2);
+            border-radius: 4px;
+            transition: all 0.15s ease;
+            color: var(--textSecondary);
+            min-height: 32px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
           }
+
           .user-trigger:active {
-            background-color: ${theme.backgroundSelected}; transform: scale(0.98);
+            background-color: var(--backgroundSelected);
+            transform: scale(0.98);
           }
 
           .user-trigger-text {
-            font-size: 13px; font-weight: 400; margin-left: ${theme.space[2]};
+            font-size: 13px;
+            font-weight: 400;
+            margin-left: var(--space-2);
             letter-spacing: 0.01em;
           }
 
           .dd-wrapper {
-            padding: ${theme.space[1]}; min-width: 220px; background: ${theme.background};
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-radius: 8px; margin-top: ${theme.space[1]};
-            box-shadow: 0 4px 20px ${theme.shadowLight}, 0 1px 4px ${theme.shadowMedium};
-            border: 1px solid ${theme.borderLight};
+            padding: var(--space-1);
+            min-width: 220px;
+            background: var(--background);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 8px;
+            margin-top: var(--space-1);
+            box-shadow: 0 4px 20px var(--shadowLight), 0 1px 4px var(--shadowMedium);
+            border: 1px solid var(--borderLight);
           }
 
           .dd-item {
-            display: flex; align-items: center; width: 100%; text-align: left;
-            padding: ${theme.space[2]} ${theme.space[3]}; border: none;
-            background: transparent; cursor: pointer; border-radius: 4px;
-            transition: all 0.15s ease; color: ${theme.textSecondary};
-            font-size: 13px; font-weight: 400; margin-bottom: 1px;
-            min-height: 36px; -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation; letter-spacing: 0.01em;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            padding: var(--space-2) var(--space-3);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+            color: var(--textSecondary);
+            font-size: 13px;
+            font-weight: 400;
+            margin-bottom: 1px;
+            min-height: 36px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            letter-spacing: 0.01em;
           }
-          .dd-item:last-child { margin-bottom: 0; }
+
+          .dd-item:last-child {
+            margin-bottom: 0;
+          }
+
           .dd-item:hover {
-            background-color: ${theme.backgroundHover}; color: ${theme.text};
+            background-color: var(--backgroundHover);
+            color: var(--text);
           }
-          .dd-item:hover .dd-icon { color: ${theme.textSecondary}; }
+
+          .dd-item:hover .dd-icon {
+            color: var(--textSecondary);
+          }
+
           .dd-item:active {
-            background-color: ${theme.backgroundSelected}; transform: scale(0.98);
+            background-color: var(--backgroundSelected);
+            transform: scale(0.98);
           }
 
           .dd-icon {
-            margin-right: ${theme.space[2]}; color: ${theme.textQuaternary};
-            flex-shrink: 0; transition: color 0.15s ease;
+            margin-right: var(--space-2);
+            color: var(--textQuaternary);
+            flex-shrink: 0;
+            transition: color 0.15s ease;
           }
 
           .balance-section {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: ${theme.space[2]} ${theme.space[3]}; margin: ${theme.space[1]} 0;
-            border-top: 1px solid ${theme.borderLight};
-            border-bottom: 1px solid ${theme.borderLight};
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-2) var(--space-3);
+            margin: var(--space-1) 0;
+            border-top: 1px solid var(--borderLight);
+            border-bottom: 1px solid var(--borderLight);
           }
 
           .balance-info {
-            display: flex; align-items: center; gap: ${theme.space[2]};
-            font-size: 13px; color: ${theme.textSecondary};
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: 13px;
+            color: var(--textSecondary);
           }
 
           .balance-amount {
-            font-weight: 600; color: ${isLowBalance ? theme.error : theme.primary};
+            font-weight: 600;
+            color: ${isLowBalance ? "var(--error)" : "var(--primary)"};
           }
 
           .recharge-button {
-            font-size: 12px; font-weight: 500;
-            padding: ${theme.space[1]} ${theme.space[2]};
-            background-color: ${theme.primary}1A; color: ${theme.primary};
-            border: none; border-radius: 4px; cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            padding: var(--space-1) var(--space-2);
+            background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+            color: var(--primary);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
             transition: all 0.15s ease;
           }
+
           .recharge-button:hover {
-            background-color: ${theme.primary}2A;
+            background-color: color-mix(in srgb, var(--primary) 16%, transparent);
           }
+
           .recharge-button:active {
-            background-color: ${theme.primary}3A; transform: scale(0.97);
+            background-color: color-mix(in srgb, var(--primary) 22%, transparent);
+            transform: scale(0.97);
           }
 
           .invite-item {
-            background: ${theme.primary}08; color: ${theme.primary}; font-weight: 450;
+            background: color-mix(in srgb, var(--primary) 3%, transparent);
+            color: var(--primary);
+            font-weight: 450;
           }
-          .invite-item .dd-icon { color: ${theme.primary}; }
-          .invite-item:hover { background: ${theme.primary}12; }
 
-          .action-section { margin-top: ${theme.space[1]}; }
+          .invite-item .dd-icon {
+            color: var(--primary);
+          }
+
+          .invite-item:hover {
+            background: color-mix(in srgb, var(--primary) 7%, transparent);
+          }
+
+          .action-section {
+            margin-top: var(--space-1);
+          }
 
           .logout-item:hover {
-            background: ${theme.error}08; color: ${theme.error};
+            background: color-mix(in srgb, var(--error) 3%, transparent);
+            color: var(--error);
           }
-          .logout-item:hover .dd-icon { color: ${theme.error}; }
+
+          .logout-item:hover .dd-icon {
+            color: var(--error);
+          }
         `}
       </style>
     </>
