@@ -4,7 +4,6 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "auth/authSlice";
 import messageReducer from "chat/messages/messageSlice";
 import dbReducer from "database/dbSlice";
-import themeReducer from "app/theme/themeSlice";
 import settingReducer from "app/settings/settingSlice";
 
 // 同样地，我们需要导入 pageSlice 和它的 listener middleware
@@ -23,7 +22,6 @@ export const mobileStore = configureStore({
     message: messageReducer,
     auth: authReducer,
     db: dbReducer,
-    theme: themeReducer,
     settings: settingReducer,
     // 新增的 reducer
     page: pageReducer, // <-- 【第2步】添加 page reducer

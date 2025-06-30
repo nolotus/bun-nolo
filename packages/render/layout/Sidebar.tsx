@@ -1,5 +1,5 @@
 // render/layout/Sidebar.tsx
-import { selectTheme, setSidebarWidth } from "app/theme/themeSlice";
+import { selectTheme, setSidebarWidth } from "app/settings/settingSlice";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";

@@ -9,7 +9,7 @@ import {
   AlertIcon,
 } from "@primer/octicons-react";
 import { useAppDispatch, useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import {
   selectUsers,
   signOut,

@@ -11,7 +11,7 @@ import {
 } from "render/page/pageSlice";
 import { EditorContent } from "create/editor/utils/slateUtils";
 import { markdownToSlate } from "create/editor/markdownToSlate";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import {
   slateToExcelData,
   convertToCSV,

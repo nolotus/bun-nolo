@@ -1,5 +1,5 @@
 import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import React from "react";
 
 const EditableTitle = ({ currentDialogConfig }) => {

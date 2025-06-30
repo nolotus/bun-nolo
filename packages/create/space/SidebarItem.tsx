@@ -31,7 +31,7 @@ import {
   autoUpdate,
 } from "@floating-ui/react";
 import DeleteContentButton from "./components/DeleteContentButton";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import {
   selectCurrentSpaceId,
   updateContentTitle,

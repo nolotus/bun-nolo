@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useState, useCallback } from "react";
 import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";
 import { SyncIcon } from "@primer/octicons-react";

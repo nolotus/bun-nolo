@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useState, useCallback, useEffect, useRef } from "react";
 import type React from "react";
 import { useAppSelector, useAppDispatch } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import {
   selectCurrentDialogConfig,
   selectTotalDialogTokens,

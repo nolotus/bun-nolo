@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks";
-import { selectTheme } from "../theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import {
   selectIsLoggedIn,
   selectCurrentUser,

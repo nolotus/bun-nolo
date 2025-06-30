@@ -1,7 +1,6 @@
 // ProfileScreen.jsx
 import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
 import { useTheme } from 'app/theme';
-import { ThemeSelector } from 'app/theme/ThemeSelector';
 
 const styles = StyleSheet.create({
     container: {
@@ -68,7 +67,6 @@ const styles = StyleSheet.create({
   
     return (
       <View style={[styles.container, {backgroundColor: theme.background}]}>
-        <ThemeSelector /> {/* 添加 ThemeSelector 组件 */}
         
         <View style={styles.contentContainer}>
           <View style={[styles.header, {borderBottomColor: theme.border}]}>

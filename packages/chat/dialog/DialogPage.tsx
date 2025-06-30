@@ -18,7 +18,7 @@ import {
 } from "chat/messages/messageSlice";
 import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
-import { selectHeaderHeight, selectTheme } from "app/theme/themeSlice";
+import { selectHeaderHeight, selectTheme } from "app/settings/settingSlice";
 import { Link } from "react-router-dom";
 import { RocketIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";

@@ -14,6 +14,7 @@ import { DB_PREFIX, createUserKey } from "database/keys";
 import pino from "pino";
 import { ulid } from "ulid";
 import { rechargeUserBalance } from "auth/server/recharge";
+import { prepareUserSettings } from "app/settings/prepareUserSetting";
 
 const logger = pino({ name: "signup" });
 
@@ -67,15 +68,6 @@ function prepareUserData(userData) {
     balance: 0,
     balanceUpdatedAt: Date.now(),
   });
-}
-
-function prepareUserSettings(locale) {
-  return {
-    theme: "system",
-    language: locale,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  };
 }
 
 function prepareUserProfile(username, email) {

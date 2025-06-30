@@ -8,7 +8,6 @@ import i18n from "app/i18n";
 import { Toaster } from "react-hot-toast";
 import { useRoutes, Outlet } from "react-router-dom";
 import { addHostToCurrentServer, getSettings } from "app/settings/settingSlice";
-import { setDarkMode } from "app/theme/themeSlice";
 // 导入 fetchUserSpaceMemberships 和 loadDefaultSpace
 import {
   fetchUserSpaceMemberships,
@@ -84,7 +83,7 @@ export default function App({
     const initializeSystem = async () => {
       try {
         dispatch(addHostToCurrentServer(hostname));
-        dispatch(setDarkMode(isDark));
+        // dispatch(setDarkMode(isDark));
         await dispatch(initializeAuth(tokenManager)).unwrap();
       } catch (error) {
         console.error("系统初始化失败：", error);
@@ -125,7 +124,7 @@ export default function App({
   useEffect(() => {
     const colorSchemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleThemeChange = (event: MediaQueryListEvent) => {
-      dispatch(setDarkMode(event.matches));
+      // dispatch(setDarkMode(event.matches));
     };
     colorSchemeQuery.addEventListener("change", handleThemeChange);
     if (lng) {

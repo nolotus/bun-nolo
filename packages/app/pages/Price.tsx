@@ -6,7 +6,8 @@ import { openAIModels } from "integrations/openai/models";
 import { mistralModels } from "integrations/mistral/models";
 import { googleModels } from "integrations/google/models";
 import { deepSeekModels } from "integrations/deepseek/models";
-import { selectTheme } from "../theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
+
 import { useAppSelector } from "../hooks";
 import { openrouterModels } from "integrations/openrouter/models";
 import { useMediaQuery } from "react-responsive";

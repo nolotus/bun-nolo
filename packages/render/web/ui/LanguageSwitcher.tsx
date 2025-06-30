@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppSelector } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { GlobeIcon, CheckIcon } from "@primer/octicons-react";
 import { Language } from "app/i18n/types";
 

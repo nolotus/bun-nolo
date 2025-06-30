@@ -1,7 +1,8 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAppSelector } from "../hooks";
-import { selectTheme } from "../theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
+
 import { BsFileEarmarkText, BsShieldLock, BsLaptop } from "react-icons/bs";
 import { useTranslation } from "react-i18next";
 

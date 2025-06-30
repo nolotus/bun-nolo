@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { EditorContent } from "create/editor/utils/slateUtils";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import SaveStatusIndicator, { SaveStatus } from "./SaveStatusIndicator";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 
 const Editor = React.lazy(() => import("create/editor/Editor"));
 

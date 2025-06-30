@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { useTranslation } from "react-i18next";
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";

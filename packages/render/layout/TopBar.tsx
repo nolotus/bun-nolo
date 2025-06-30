@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "auth/hooks/useAuth";
 import { useAppSelector, useAppDispatch } from "app/hooks";
-import { selectTheme } from "app/theme/themeSlice";
+import { selectTheme } from "app/settings/settingSlice";
 import { zIndex } from "render/styles/zIndex";
 import { extractUserId } from "core/prefix";
 import { selectPageData } from "render/page/pageSlice";
