@@ -149,7 +149,7 @@ export const LoggedInMenu: React.FC = () => {
 
             <div className="action-section">
               {renderDropdownItem(
-                t("settings"),
+                t("settings.title"),
                 <GearIcon size={14} />,
                 () => navigate(SettingRoutePaths.SETTING),
                 "settings"
