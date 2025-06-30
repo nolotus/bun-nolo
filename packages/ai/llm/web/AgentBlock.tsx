@@ -193,34 +193,39 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
       <style href="agent-block" precedence="medium">{`
         .agent {
-          background: ${theme.background};
-          border-radius: 16px;
-          padding: ${theme.space[5]};
-          border: 1px solid ${theme.border};
-          transition: all 0.3s ease;
+          background: var(--background);
+          border-radius: var(--space-4);
+          padding: var(--space-5);
+          border: 1px solid var(--border);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
           position: relative;
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[4]};
+          gap: var(--space-4);
           height: 100%;
         }
 
         .agent:hover {
-          transform: translateY(-4px);
-          border-color: ${theme.primary}40;
-          box-shadow: 0 12px 32px ${theme.shadow2};
+          transform: translateY(-2px);
+          border-color: var(--borderAccent, var(--primary));
+          box-shadow: 
+            0 4px 12px var(--shadowLight),
+            0 2px 4px var(--shadowMedium);
+        }
+
+        .agent:active {
+          transform: translateY(0);
         }
 
         .agent__header {
           display: flex;
-          gap: ${theme.space[3]};
+          gap: var(--space-3);
           align-items: flex-start;
         }
 
         .agent__avatar {
           flex-shrink: 0;
-          position: relative;
         }
 
         .agent__info {
@@ -228,20 +233,20 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
         }
 
         .agent__title-row {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: space-between;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
         }
 
         .agent__title-container {
           display: flex;
           align-items: center;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
           flex: 1;
           min-width: 0;
         }
@@ -250,75 +255,81 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
           font-size: 1.1rem;
           font-weight: 600;
           margin: 0;
-          color: ${theme.text};
+          color: var(--text);
           line-height: 1.3;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .agent:hover .agent__title {
-          color: ${theme.primary};
+          color: var(--primary);
         }
 
         .agent__view-btn {
           background: none;
           border: none;
-          color: ${theme.textTertiary};
-          padding: ${theme.space[1]};
-          border-radius: ${theme.space[1]};
+          color: var(--textTertiary);
+          padding: var(--space-1);
+          border-radius: var(--space-1);
           cursor: pointer;
           transition: all 0.2s ease;
           opacity: 0;
+          flex-shrink: 0;
         }
 
         .agent:hover .agent__view-btn {
           opacity: 1;
-          color: ${theme.primary};
+          color: var(--primary);
         }
 
         .agent__price {
           font-size: 0.75rem;
-          color: ${theme.textTertiary};
-          padding: ${theme.space[1]} ${theme.space[2]};
-          background: ${theme.backgroundTertiary};
-          border-radius: ${theme.space[1]};
+          color: var(--textTertiary);
+          padding: var(--space-1) var(--space-2);
+          background: var(--backgroundTertiary);
+          border-radius: var(--space-1);
           display: flex;
           align-items: center;
           gap: 4px;
           font-weight: 550;
+          flex-shrink: 0;
         }
 
         .agent__tags {
           display: flex;
-          gap: ${theme.space[1]};
+          gap: var(--space-1);
           flex-wrap: wrap;
         }
 
         .agent__tag {
           font-size: 0.75rem;
-          padding: ${theme.space[1]} ${theme.space[2]};
-          background: ${theme.backgroundTertiary};
-          border-radius: ${theme.space[1]};
-          color: ${theme.textTertiary};
+          padding: var(--space-1) var(--space-2);
+          background: var(--backgroundTertiary);
+          border-radius: var(--space-1);
+          color: var(--textTertiary);
           font-weight: 500;
+          white-space: nowrap;
         }
 
         .agent__vision {
           display: flex;
           align-items: center;
           gap: 4px;
-          color: ${theme.primary};
-          background: ${theme.primary}15;
+          color: var(--primary);
+          background: var(--primaryGhost, var(--focus));
         }
 
         .agent__more {
-          color: ${theme.primary};
-          background: ${theme.primary}10;
+          color: var(--primary);
+          background: var(--primaryGhost, var(--focus));
         }
 
         .agent__desc {
           flex: 1;
           font-size: 0.9rem;
           line-height: 1.5;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           display: -webkit-box;
           -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
@@ -327,7 +338,7 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         .agent__actions {
           display: flex;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
           margin-top: auto;
         }
 
@@ -337,26 +348,127 @@ const AgentBlock = ({ item, reload }: AgentBlockProps) => {
 
         .agent__secondary {
           display: flex;
-          gap: ${theme.space[1]};
+          gap: var(--space-1);
         }
 
         .agent-exit {
           opacity: 0;
-          transform: scale(0.9);
+          transform: scale(0.95);
           transition: all 0.25s ease;
         }
 
+        /* 响应式设计 - 移动端优化 */
         @media (max-width: 768px) {
           .agent {
-            padding: ${theme.space[4]};
+            padding: var(--space-4);
+            gap: var(--space-3);
           }
-          
+
+          .agent__header {
+            gap: var(--space-2);
+          }
+
+          .agent__info {
+            gap: var(--space-1);
+          }
+
+          .agent__title-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--space-1);
+          }
+
+          .agent__title-container {
+            width: 100%;
+          }
+
+          .agent__view-btn {
+            opacity: 1;
+            position: absolute;
+            top: var(--space-2);
+            right: var(--space-2);
+          }
+
+          .agent__price {
+            align-self: flex-start;
+          }
+
+          .agent__tags {
+            gap: var(--space-1);
+          }
+
+          .agent__actions {
+            gap: var(--space-2);
+          }
+
+          .agent__secondary {
+            gap: var(--space-1);
+          }
+
+          /* 移动端更小的屏幕 */
+          @media (max-width: 480px) {
+            .agent {
+              padding: var(--space-3);
+            }
+
+            .agent__actions {
+              flex-direction: column;
+              gap: var(--space-2);
+            }
+
+            .agent__secondary {
+              justify-content: center;
+            }
+
+            .agent__title {
+              font-size: 1rem;
+            }
+          }
+        }
+
+        /* 触屏设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+          .agent {
+            /* 移除hover效果，使用touch反馈 */
+            touch-action: manipulation;
+          }
+
+          .agent:hover {
+            transform: none;
+          }
+
           .agent__view-btn {
             opacity: 1;
           }
-          
-          .agent__actions {
-            flex-direction: column;
+
+          .agent:active {
+            transform: scale(0.98);
+            background: var(--backgroundHover);
+          }
+        }
+
+        /* 高对比度模式支持 */
+        @media (prefers-contrast: high) {
+          .agent {
+            border-width: 2px;
+          }
+
+          .agent__tag,
+          .agent__price {
+            border: 1px solid var(--border);
+          }
+        }
+
+        /* 减少动画 */
+        @media (prefers-reduced-motion: reduce) {
+          .agent,
+          .agent__view-btn,
+          .agent-exit {
+            transition: none;
+          }
+
+          .agent:hover {
+            transform: none;
           }
         }
       `}</style>
