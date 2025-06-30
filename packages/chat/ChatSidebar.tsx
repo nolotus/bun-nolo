@@ -16,13 +16,10 @@ import {
   deleteMultipleContent,
 } from "create/space/spaceSlice";
 import { SpaceData } from "app/types";
-import { useTheme } from "app/theme";
 import { useGroupedContent } from "create/space/hooks/useGroupedContent";
 import { UNCATEGORIZED_ID } from "create/space/constants";
 
 import { createPage } from "render/page/pageSlice";
-
-//web
 
 import CategorySection from "create/space/category/CategorySection";
 import { AddCategoryModal } from "create/space/category/AddCategoryModal";
@@ -38,14 +35,14 @@ import {
   XIcon,
 } from "@primer/octicons-react";
 
-// --- 类型定义 (无变动) ---
+// --- 类型定义 ---
 interface CategoryItem {
   id: string;
   name: string;
   order?: number;
 }
 
-// --- 拖放相关 Hooks (无变动) ---
+// --- 拖放相关 Hooks ---
 const useCategoryDragAndDrop = (
   sortedCategories: CategoryItem[],
   space: SpaceData | null,
@@ -100,7 +97,7 @@ const useItemDragAndDrop = (
   );
 };
 
-// --- 可拖拽组件 (无变动) ---
+// --- 可拖拽组件 ---
 interface CategoryDraggableProps {
   id: string;
   children: (handleProps: {
@@ -114,6 +111,7 @@ interface CategoryDraggableProps {
     targetContainer: string
   ) => void;
 }
+
 const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
   id,
   children,
@@ -122,22 +120,26 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
 }) => {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [dragType, setDragType] = useState<string | null>(null);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     setIsDraggingOver(true);
     setDragType(e.dataTransfer.getData("dragType"));
   };
+
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingOver(false);
     setDragType(null);
   };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const type = e.dataTransfer.getData("dragType");
     setIsDraggingOver(false);
     setDragType(null);
+
     if (type === "category") {
       const sourceId = e.dataTransfer.getData("categoryId");
       if (sourceId && sourceId !== id) onDropCategory(sourceId, id);
@@ -148,6 +150,7 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
         onDropItem(itemId, sourceContainer, id);
     }
   };
+
   return (
     <div
       onDragOver={handleDragOver}
@@ -158,7 +161,6 @@ const CategoryDraggable: React.FC<CategoryDraggableProps> = ({
           ? `CategoryDraggable--drag-over${dragType ? `-${dragType}` : ""}`
           : ""
       }`}
-      style={{ position: "relative" }}
     >
       {children({ onDragStart: () => {}, onDragEnd: () => {} })}
     </div>
@@ -174,6 +176,7 @@ interface UncategorizedDraggableProps {
     targetContainer: string
   ) => void;
 }
+
 const UncategorizedDraggable: React.FC<UncategorizedDraggableProps> = ({
   id,
   children,
@@ -181,22 +184,26 @@ const UncategorizedDraggable: React.FC<UncategorizedDraggableProps> = ({
 }) => {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [dragType, setDragType] = useState<string | null>(null);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     setIsDraggingOver(true);
     setDragType(e.dataTransfer.getData("dragType"));
   };
+
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingOver(false);
     setDragType(null);
   };
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const type = e.dataTransfer.getData("dragType");
     setIsDraggingOver(false);
     setDragType(null);
+
     if (type === "item") {
       const itemId = e.dataTransfer.getData("itemId");
       const sourceContainer = e.dataTransfer.getData("sourceContainer");
@@ -204,6 +211,7 @@ const UncategorizedDraggable: React.FC<UncategorizedDraggableProps> = ({
         onDropItem(itemId, sourceContainer, id);
     }
   };
+
   return (
     <div
       onDragOver={handleDragOver}
@@ -214,7 +222,6 @@ const UncategorizedDraggable: React.FC<UncategorizedDraggableProps> = ({
           ? `UncategorizedDraggable--drag-over${dragType ? `-${dragType}` : ""}`
           : ""
       }`}
-      style={{ position: "relative" }}
     >
       {children}
     </div>
@@ -234,7 +241,6 @@ const ChatSidebar: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const space = useAppSelector(selectCurrentSpace);
-  const theme = useTheme();
 
   const { groupedData, sortedCategories } = useGroupedContent(space);
   const collapsedCategories = useAppSelector(selectCollapsedCategories);
@@ -345,13 +351,18 @@ const ChatSidebar: React.FC = () => {
 
   const handleNewPage = async () => {
     if (!space?.id) return;
-    const key = await dispatch(createPage()).unwrap();
-    navigate(`/${key}?edit=true`);
+    try {
+      const key = await dispatch(createPage()).unwrap();
+      navigate(`/${key}?edit=true`);
+    } catch (error) {
+      toast.error("创建页面失败");
+    }
   };
 
   const handleAddCategory = (name: string) => {
     if (name.trim() && space?.id) {
-      dispatch(addCategory({ spaceId: space.id, name }));
+      dispatch(addCategory({ spaceId: space.id, name: name.trim() }));
+      toast.success(`分类 "${name}" 创建成功`);
     }
     setIsAddCategoryModalOpen(false);
   };
@@ -378,6 +389,7 @@ const ChatSidebar: React.FC = () => {
     );
     const hasUncategorized = groupedData.uncategorized.length > 0;
     const hasCategories = sortedCategories.length > 0;
+
     if (hasContent || hasUncategorized || hasCategories) {
       const timer = setTimeout(
         () => {
@@ -386,7 +398,7 @@ const ChatSidebar: React.FC = () => {
             setIsInitialLoad(false);
           });
         },
-        isInitialLoad ? 100 : 50
+        isInitialLoad ? 150 : 80
       );
       return () => clearTimeout(timer);
     }
@@ -416,14 +428,16 @@ const ChatSidebar: React.FC = () => {
                     className="ChatSidebar__header-icon-btn"
                     onClick={handleSelectAll}
                     title={areAllItemsSelected ? "取消全选" : "全部选择"}
+                    type="button"
                   >
                     <ChecklistIcon size={14} />
                   </button>
                   <button
-                    className="ChatSidebar__header-icon-btn"
+                    className="ChatSidebar__header-icon-btn ChatSidebar__header-icon-btn--danger"
                     onClick={handleDeleteSelected}
                     title="删除所选"
                     disabled={selectedItems.size === 0}
+                    type="button"
                   >
                     <TrashIcon size={14} />
                   </button>
@@ -431,7 +445,8 @@ const ChatSidebar: React.FC = () => {
                   <button
                     className="ChatSidebar__header-icon-btn"
                     onClick={handleToggleSelectionMode}
-                    title="取消"
+                    title="取消选择模式"
+                    type="button"
                   >
                     <XIcon size={16} />
                   </button>
@@ -445,6 +460,7 @@ const ChatSidebar: React.FC = () => {
                     className="ChatSidebar__header-icon-btn"
                     onClick={handleNewPage}
                     title="新建页面"
+                    type="button"
                   >
                     <NoteIcon size={14} />
                   </button>
@@ -452,6 +468,7 @@ const ChatSidebar: React.FC = () => {
                     className="ChatSidebar__header-icon-btn"
                     onClick={() => setIsAddCategoryModalOpen(true)}
                     title="新建分类"
+                    type="button"
                   >
                     <FileDirectoryIcon size={14} />
                   </button>
@@ -459,6 +476,7 @@ const ChatSidebar: React.FC = () => {
                     className="ChatSidebar__header-icon-btn"
                     onClick={() => setIsSelectionMode(true)}
                     title="批量选择"
+                    type="button"
                   >
                     <ChecklistIcon size={14} />
                   </button>
@@ -468,6 +486,7 @@ const ChatSidebar: React.FC = () => {
                     onClick={handleToggleAllCategories}
                     title={areAllCollapsed ? "全部展开" : "全部折叠"}
                     disabled={allVisibleCategoryIds.length === 0}
+                    type="button"
                   >
                     {areAllCollapsed ? (
                       <FoldUpIcon size={14} />
@@ -490,10 +509,18 @@ const ChatSidebar: React.FC = () => {
           {isEmpty ? (
             <div className="ChatSidebar__empty-state">
               <div className="ChatSidebar__empty-icon">📁</div>
-              <p>暂无内容</p>
+              <h4 className="ChatSidebar__empty-title">暂无内容</h4>
               <p className="ChatSidebar__empty-hint">
-                创建内容或分类时会在此显示
+                创建页面或分类时会在此显示
               </p>
+              <button
+                className="ChatSidebar__empty-action"
+                onClick={handleNewPage}
+                type="button"
+              >
+                <NoteIcon size={16} />
+                <span>创建第一个页面</span>
+              </button>
             </div>
           ) : (
             <div
@@ -566,16 +593,43 @@ const ChatSidebar: React.FC = () => {
             </div>
           )}
         </div>
+      </nav>
 
-        <style>{`
+      <AddCategoryModal
+        isOpen={isAddCategoryModalOpen}
+        onClose={() => setIsAddCategoryModalOpen(false)}
+        onAddCategory={handleAddCategory}
+      />
+
+      <style href="ChatSidebar-styles" precedence="component">{`
+        @keyframes emptyStateIn {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes buttonPulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+
         .ChatSidebar {
           display: flex;
           flex-direction: column;
           height: 100%;
-          background: ${theme.background};
-          padding: 0 ${theme.space[1]} ${theme.space[3]};
+          background: var(--background);
+          padding: 0;
           box-sizing: border-box;
-          font-size: 0.925rem;
+          font-size: 0.875rem;
           user-select: none;
           -webkit-tap-highlight-color: transparent;
           position: relative;
@@ -585,16 +639,18 @@ const ChatSidebar: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: ${theme.space[3]} ${theme.space[3]} ${theme.space[2]};
+          padding: var(--space-2);
           flex-shrink: 0;
           box-sizing: border-box;
-          height: 48px;
+          height: var(--headerHeight);
+          border-bottom: 1px solid var(--border);
+          background: var(--background);
         }
 
         .ChatSidebar__header-title {
           font-size: 0.8rem;
           font-weight: 600;
-          color: ${theme.textTertiary};
+          color: var(--textTertiary);
           text-transform: uppercase;
           letter-spacing: 0.05em;
           margin: 0;
@@ -606,27 +662,62 @@ const ChatSidebar: React.FC = () => {
         .ChatSidebar__header-actions {
           display: flex;
           align-items: center;
-          gap: ${theme.space[1]};
+          gap: var(--space-1);
         }
 
         .ChatSidebar__header-icon-btn {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           padding: 0;
           background: none;
           border: none;
-          color: ${theme.textTertiary};
+          color: var(--textTertiary);
           cursor: pointer;
-          border-radius: ${theme.space[1]};
+          border-radius: var(--space-1);
           transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          position: relative;
+          overflow: hidden;
+          font-family: inherit;
+        }
+
+        .ChatSidebar__header-icon-btn::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: var(--backgroundHover);
+          opacity: 0;
+          transition: opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          border-radius: inherit;
+        }
+
+        .ChatSidebar__header-icon-btn:hover:not(:disabled)::before {
+          opacity: 1;
         }
 
         .ChatSidebar__header-icon-btn:hover:not(:disabled) {
-          color: ${theme.textSecondary};
-          background-color: ${theme.backgroundTertiary};
+          color: var(--textSecondary);
+          transform: translateY(-1px);
+        }
+
+        .ChatSidebar__header-icon-btn:active {
+          transform: translateY(0);
+          animation: buttonPulse 0.2s ease;
+        }
+
+        .ChatSidebar__header-icon-btn--danger::before {
+          background: var(--error);
+          opacity: 0;
+        }
+
+        .ChatSidebar__header-icon-btn--danger:hover:not(:disabled) {
+          color: var(--error);
+        }
+
+        .ChatSidebar__header-icon-btn--danger:hover:not(:disabled)::before {
+          opacity: 0.12;
         }
 
         .ChatSidebar__header-icon-btn:disabled {
@@ -634,21 +725,25 @@ const ChatSidebar: React.FC = () => {
           cursor: not-allowed;
         }
 
+        .ChatSidebar__header-icon-btn:disabled:hover {
+          transform: none;
+        }
+
         .ChatSidebar__header-divider {
-            width: 1px;
-            height: 12px;
-            background-color: ${theme.border};
-            margin: 0 ${theme.space[1]};
+          width: 1px;
+          height: 14px;
+          background-color: var(--border);
+          margin: 0 var(--space-1);
+          flex-shrink: 0;
         }
 
         .ChatSidebar__scroll-area {
           flex: 1;
           overflow-y: auto;
           overflow-x: hidden;
-          padding: 0 ${theme.space[2]} ${theme.space[3]};
-          margin-right: -${theme.space[1]};
+          padding: var(--space-2);
           scrollbar-width: thin;
-          scrollbar-color: ${theme.textLight} transparent;
+          scrollbar-color: var(--textLight) transparent;
           overscroll-behavior: contain;
           scroll-behavior: smooth;
           position: relative;
@@ -656,34 +751,34 @@ const ChatSidebar: React.FC = () => {
         }
 
         .ChatSidebar__scroll-area::-webkit-scrollbar {
-          width: 3px;
+          width: 4px;
           background: transparent;
         }
 
         .ChatSidebar__scroll-area::-webkit-scrollbar-track {
           background: transparent;
-          margin: ${theme.space[2]} 0;
+          margin: var(--space-2) 0;
         }
 
         .ChatSidebar__scroll-area::-webkit-scrollbar-thumb {
-          background-color: ${theme.textLight};
-          border-radius: 6px;
+          background-color: var(--textLight);
+          border-radius: var(--space-2);
           transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .ChatSidebar__scroll-area:hover::-webkit-scrollbar-thumb {
-          background-color: ${theme.textTertiary};
+          background-color: var(--textTertiary);
         }
 
         .ChatSidebar__scroll-area.is-scrolling::-webkit-scrollbar-thumb {
-          background-color: ${theme.textSecondary};
+          background-color: var(--textSecondary);
         }
 
         .ChatSidebar__content {
           opacity: 0;
-          transform: translateY(12px);
-          transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
-                      transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+          transform: translateY(16px);
+          transition: opacity 0.5s cubic-bezier(0.25, 0.8, 0.25, 1),
+                      transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .ChatSidebar__content--animate {
@@ -697,35 +792,65 @@ const ChatSidebar: React.FC = () => {
           align-items: center;
           justify-content: center;
           height: 100%;
-          padding: ${theme.space[6]};
-          color: ${theme.textTertiary};
+          padding: var(--space-8) var(--space-6);
+          color: var(--textTertiary);
           text-align: center;
           opacity: 0;
-          animation: emptyStateIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) 0.2s forwards;
+          animation: emptyStateIn 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) 0.3s forwards;
         }
 
         .ChatSidebar__empty-icon {
-          font-size: 2rem;
-          margin-bottom: ${theme.space[3]};
+          font-size: 3rem;
+          margin-bottom: var(--space-4);
           opacity: 0.5;
           filter: grayscale(0.3);
         }
 
+        .ChatSidebar__empty-title {
+          margin: 0 0 var(--space-2) 0;
+          font-weight: 500;
+          font-size: 1rem;
+          color: var(--textSecondary);
+        }
+
         .ChatSidebar__empty-hint {
           font-size: 0.8rem;
-          margin-top: ${theme.space[2]};
+          margin: 0 0 var(--space-4) 0;
           opacity: 0.7;
           font-weight: 300;
           line-height: 1.4;
         }
 
+        .ChatSidebar__empty-action {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          padding: var(--space-2) var(--space-4);
+          background: var(--primaryGhost);
+          color: var(--primary);
+          border: none;
+          border-radius: var(--space-2);
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          font-family: inherit;
+        }
+
+        .ChatSidebar__empty-action:hover {
+          background: var(--primary);
+          background: color-mix(in srgb, var(--primary) 12%, transparent);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px var(--shadowLight);
+        }
+
         .ChatSidebar__section {
-          margin-bottom: ${theme.space[1]};
+          margin-bottom: var(--space-2);
           opacity: 0;
-          transform: translateY(8px);
-          transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
-                      transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-          transition-delay: calc(var(--section-index, 0) * 0.08s);
+          transform: translateY(12px);
+          transition: opacity 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+                      transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+          transition-delay: calc(var(--section-index, 0) * 0.1s);
         }
 
         .ChatSidebar__content--animate .ChatSidebar__section {
@@ -734,7 +859,7 @@ const ChatSidebar: React.FC = () => {
         }
 
         .ChatSidebar__section--empty {
-          opacity: 0.8;
+          opacity: 0.7;
           position: relative;
         }
 
@@ -745,53 +870,51 @@ const ChatSidebar: React.FC = () => {
           left: 50%;
           transform: translate(-50%, -50%);
           font-size: 0.75rem;
-          color: ${theme.textQuaternary};
+          color: var(--textQuaternary);
           pointer-events: none;
           opacity: 0;
-          transition: opacity 0.2s ease;
+          transition: opacity 0.25s ease;
         }
 
         .ChatSidebar__section--empty:hover::after {
-          opacity: 0.6;
+          opacity: 0.8;
         }
 
-        .CategoryDraggable {
-          border-radius: ${theme.space[2]};
+        .CategoryDraggable,
+        .UncategorizedDraggable {
+          border-radius: var(--space-2);
           position: relative;
           background-color: transparent;
-          transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-          margin-bottom: ${theme.space[1]};
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          margin-bottom: var(--space-1);
         }
 
         .CategoryDraggable--drag-over-category {
-          background-color: ${theme.primaryGhost};
-          border: 1px dashed ${theme.primary};
+          background-color: var(--primaryGhost);
+          border: 2px dashed var(--primary);
+          transform: scale(1.02);
         }
 
-        .CategoryDraggable--drag-over-item {
-          background-color: rgba(${theme.success === "#10B981" ? "16, 185, 129" : "82, 196, 26"}, 0.08);
-          border: 1px dashed ${theme.success || "#52c41a"};
-        }
-
-        .UncategorizedDraggable {
-          border-radius: ${theme.space[2]};
-          position: relative;
-          background-color: transparent;
-          transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-          margin-bottom: ${theme.space[1]};
-        }
-
+        .CategoryDraggable--drag-over-item,
         .UncategorizedDraggable--drag-over-item {
-          background-color: rgba(${theme.success === "#10B981" ? "16, 185, 129" : "82, 196, 26"}, 0.08);
-          border: 1px dashed ${theme.success || "#52c41a"};
+          background-color: color-mix(in srgb, var(--success) 10%, transparent);
+          border: 2px dashed var(--success);
+          transform: scale(1.02);
+        }
+
+        /* 图标在按钮中的样式 */
+        .ChatSidebar__header-icon-btn svg,
+        .ChatSidebar__empty-action svg {
+          position: relative;
+          z-index: 1;
+          flex-shrink: 0;
+        }
+
+        .ChatSidebar__empty-action span {
+          position: relative;
+          z-index: 1;
         }
       `}</style>
-      </nav>
-      <AddCategoryModal
-        isOpen={isAddCategoryModalOpen}
-        onClose={() => setIsAddCategoryModalOpen(false)}
-        onAddCategory={handleAddCategory}
-      />
     </>
   );
 };
