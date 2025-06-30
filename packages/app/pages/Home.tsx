@@ -32,65 +32,55 @@ import { FiDollarSign } from "react-icons/fi";
 import WelcomeSection from "./WelcomeSection";
 import AgentBlock from "ai/llm/web/AgentBlock";
 import PubCybots from "ai/cybot/web/PubCybots";
-import Tabs, { TabItem } from "render/web/ui/Tabs"; // 导入新组件
+import Tabs, { TabItem } from "render/web/ui/Tabs";
 
-const LoadingState = ({}) => {
-  return (
-    <>
-      <div className="cybots-grid">
-        {Array.from({ length: 6 }, (_, i) => (
-          <div
-            key={i}
-            className="skeleton-card"
-            style={{ animationDelay: `${i * 0.1}s` }}
-          />
-        ))}
+const LoadingShimmer = () => (
+  <>
+    <div className="cybots-grid">
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={i} className="loading-card" />
+      ))}
+    </div>
+    <style href="loading-shimmer" precedence="low">{`
+      .loading-card {
+        background: var(--backgroundSecondary);
+        border-radius: 16px;
+        height: 280px;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 0.8; }
+      }
+    `}</style>
+  </>
+);
+
+const EmptyPlaceholder = ({ message }: { message: string }) => (
+  <>
+    <div className="empty-container">
+      <div className="empty-icon">
+        <CopilotIcon size={48} />
       </div>
-      <style href="loading-state" precedence="low">{`
-        .skeleton-card {
-          background: var(--backgroundSecondary);
-          border-radius: 16px;
-          height: 280px;
-          animation: skeletonPulse 2s ease-in-out infinite;
-        }
-        @keyframes skeletonPulse {
-          0%, 100% { opacity: 0.8; }
-          50% { opacity: 0.4; }
-        }
-      `}</style>
-    </>
-  );
-};
-LoadingState.displayName = "LoadingState";
+      <p className="empty-text">{message}</p>
+    </div>
+    <style href="empty-placeholder" precedence="low">{`
+      .empty-container {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: var(--space-4); min-height: 280px; color: var(--textTertiary); text-align: center;
+      }
+      .empty-icon {
+        width: 80px; height: 80px; border-radius: 20px;
+        background: linear-gradient(135deg, var(--primary), var(--primaryLight));
+        color: var(--background); display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 8px 20px var(--primaryGhost);
+      }
+      .empty-text { font-size: 1rem; font-weight: 500; margin: 0; }
+    `}</style>
+  </>
+);
 
-const EmptyState = ({ message }: { message: string }) => {
-  return (
-    <>
-      <div className="empty-state">
-        <div className="empty-icon">
-          <CopilotIcon size={48} />
-        </div>
-        <p className="empty-message">{message}</p>
-      </div>
-      <style href="empty-state" precedence="low">{`
-        .empty-state {
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: var(--space-4); min-height: 280px; color: var(--textTertiary); text-align: center;
-        }
-        .empty-icon {
-          width: 80px; height: 80px; border-radius: 24px;
-          background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.06) 100%);
-          border: 1px solid var(--primaryGhost); color: var(--primary); opacity: 0.7;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .empty-message { font-size: 1rem; font-weight: 500; margin: 0; }
-      `}</style>
-    </>
-  );
-};
-EmptyState.displayName = "EmptyState";
-
-const Cybots = ({
+const CybotList = ({
   queryUserId,
   limit = 6,
 }: {
@@ -119,9 +109,9 @@ const Cybots = ({
     if (error) toast.error("加载 AI 助手失败，请稍后重试");
   }, [error]);
 
-  if (loading && !items.length) return <LoadingState />;
+  if (loading && !items.length) return <LoadingShimmer />;
   if (!loading && !items.length)
-    return <EmptyState message="还没有创建任何 AI 助手" />;
+    return <EmptyPlaceholder message="还没有创建任何 AI 助手" />;
 
   return (
     <div className="cybots-grid">
@@ -131,7 +121,6 @@ const Cybots = ({
     </div>
   );
 };
-Cybots.displayName = "Cybots";
 
 const Home = () => {
   const dispatch = useAppDispatch();
@@ -178,20 +167,20 @@ const Home = () => {
     }
   }, [isChatLoading, createNewDialog]);
 
-  const actions = [
+  const actionItems = [
     {
       id: "quick-chat",
       text: "立即聊天",
-      icon: <CommentDiscussionIcon size={24} />,
+      icon: <CommentDiscussionIcon size={22} />,
       description: "与AI助手开始对话，获得即时帮助",
       type: "action",
       payload: startQuickChat,
-      accent: true,
+      isPrimary: true,
     },
     {
       id: "create-ai",
       text: "创建 AI 助手",
-      icon: <CopilotIcon size={24} />,
+      icon: <CopilotIcon size={22} />,
       description: "智能对话，定制专属AI工作伙伴",
       type: "navigate",
       payload: `/${CreateRoutePaths.CREATE_CYBOT}`,
@@ -199,7 +188,7 @@ const Home = () => {
     {
       id: "create-note",
       text: "创建笔记",
-      icon: <PencilIcon size={24} />,
+      icon: <PencilIcon size={22} />,
       description: "记录想法，构建知识体系",
       type: "action",
       payload: createNewPage,
@@ -207,7 +196,7 @@ const Home = () => {
     {
       id: "pricing-help",
       text: "价格与帮助",
-      icon: <BookIcon size={24} />,
+      icon: <BookIcon size={22} />,
       description: "查看计费详情和使用指南",
       type: "mixed",
       subActions: [
@@ -235,7 +224,7 @@ const Home = () => {
             id: "myAI",
             label: "我的工作台",
             icon: <CopilotIcon size={20} />,
-            component: <Cybots queryUserId={currentUserId} limit={6} />,
+            component: <CybotList queryUserId={currentUserId} limit={6} />,
           },
         ]
       : []),
@@ -247,26 +236,30 @@ const Home = () => {
     },
   ];
 
-  const tabItemsForNav: TabItem[] = tabsConfig.map(({ id, label, icon }) => ({
+  const tabItems: TabItem[] = tabsConfig.map(({ id, label, icon }) => ({
     id,
     label,
     icon,
   }));
-  const currentTabContent = tabsConfig.find(
+  const activeTabContent = tabsConfig.find(
     (tab) => tab.id === activeTab
   )?.component;
 
   return (
     <>
       <div className="home-layout">
-        <main className="home-container">
+        <main className="home-main">
           {isLoggedIn && currentUser ? (
-            <section className="guide-section">
-              <div className="hero-actions">
-                {actions.map((action) => (
+            <section className="actions-section">
+              <div className="action-grid">
+                {actionItems.map((action) => (
                   <div
                     key={action.id}
-                    className={`hero-action ${action.accent ? "accent" : ""}`}
+                    className={`action-card ${action.isPrimary ? "primary" : ""} ${
+                      action.id === "quick-chat" && isChatLoading
+                        ? "loading"
+                        : ""
+                    }`}
                     onClick={
                       action.type === "mixed"
                         ? undefined
@@ -276,16 +269,16 @@ const Home = () => {
                       cursor: action.type === "mixed" ? "default" : "pointer",
                     }}
                   >
-                    <div className="hero-header">
-                      <div className="hero-icon-container">{action.icon}</div>
-                      <h3 className="hero-title">
+                    <div className="action-header">
+                      <div className="action-icon">{action.icon}</div>
+                      <h3 className="action-title">
                         {action.id === "quick-chat" && isChatLoading
                           ? "正在启动..."
                           : action.text}
                       </h3>
                     </div>
-                    <div className="hero-content">
-                      <p className="hero-description">{action.description}</p>
+                    <div className="action-body">
+                      <p className="action-desc">{action.description}</p>
                       {action.type === "mixed" && action.subActions && (
                         <div className="sub-actions">
                           {action.subActions.map((subAction, index) => (
@@ -310,10 +303,10 @@ const Home = () => {
             <WelcomeSection />
           )}
 
-          <section className="ai-showcase">
-            <header className="section-header">
+          <section className="content-section">
+            <header className="content-header">
               <Tabs
-                items={tabItemsForNav}
+                items={tabItems}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
               />
@@ -324,88 +317,257 @@ const Home = () => {
                       ? `space/${currentSpaceId}`
                       : "/explore"
                   }
-                  className="explore-link"
+                  className="view-all-link"
                 >
                   <span>查看全部</span>
                   <ChevronRightIcon size={16} />
                 </NavLink>
               )}
             </header>
-            <div className="ai-content">{currentTabContent}</div>
+            <div className="content-body">{activeTabContent}</div>
           </section>
         </main>
       </div>
 
-      <style href="home" precedence="high">{`
-        .home-layout { min-height: 100vh; background: linear-gradient(180deg, var(--backgroundSecondary) 0%, var(--background) 40%); }
-        .home-container { max-width: min(1200px, calc(100vw - var(--space-8))); margin: 0 auto; padding: var(--space-8) var(--space-4) var(--space-12); }
-        .guide-section { margin-bottom: var(--space-10); opacity: 0; animation: sectionFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes sectionFadeIn { 0% { opacity: 0; transform: translateY(32px); } 100% { opacity: 1; transform: translateY(0); } }
-        .hero-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); margin-bottom: var(--space-8); }
-        .hero-action {
-          background: var(--background); border: 1px solid var(--border); border-radius: 20px; padding: var(--space-5) var(--space-4);
-          display: flex; flex-direction: column; gap: var(--space-3); text-align: left; cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
-          box-shadow: 0 1px 3px var(--shadowLight); min-height: 120px;
+      <style href="home-optimized" precedence="high">{`
+        .home-layout { 
+          min-height: 100vh; 
+          background: linear-gradient(180deg, var(--backgroundSecondary) 0%, var(--background) 40%);
         }
-        .hero-action:hover { transform: translateY(-4px); border-color: var(--primaryGhost); box-shadow: 0 12px 24px -6px var(--shadowMedium); }
-        .hero-action.accent { background: linear-gradient(135deg, var(--primaryGhost) 0%, var(--background) 70%); border-color: var(--primaryGhost); }
-        .hero-action[disabled] { opacity: 0.7; cursor: not-allowed; transform: none !important; }
-        .hero-header { display: flex; align-items: center; gap: var(--space-3); }
-        .hero-icon-container {
-          width: 44px; height: 44px; border-radius: 14px;
-          background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.1) 100%);
-          border: 1px solid var(--primaryGhost); color: var(--primary); flex-shrink: 0; display: flex;
-          align-items: center; justify-content: center; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        
+        .home-main { 
+          max-width: min(1200px, calc(100vw - var(--space-8))); 
+          margin: 0 auto; 
+          padding: var(--space-8) var(--space-4) var(--space-12); 
         }
-        .hero-action:hover .hero-icon-container { background: var(--primary); color: var(--background); transform: scale(1.05); }
-        .hero-action[disabled]:hover .hero-icon-container { transform: none; background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.1) 100%); color: var(--primary); }
-        .hero-title { font-size: 1.125rem; font-weight: 650; color: var(--text); margin: 0; line-height: 1.2; flex: 1; }
-        .hero-content { display: flex; flex-direction: column; gap: var(--space-2); flex: 1; }
-        .hero-description { font-size: 0.85rem; color: var(--textSecondary); margin: 0; line-height: 1.4; flex: 1; }
-        .sub-actions { display: flex; gap: var(--space-2); margin-top: auto; }
+        
+        .actions-section { 
+          margin-bottom: var(--space-10); 
+          opacity: 0; 
+          animation: fadeInUp 0.6s ease forwards; 
+        }
+        
+        @keyframes fadeInUp { 
+          from { opacity: 0; transform: translateY(24px); } 
+          to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        .action-grid { 
+          display: grid; 
+          grid-template-columns: repeat(2, 1fr); 
+          gap: var(--space-4); 
+        }
+        
+        .action-card {
+          background: var(--background); 
+          border: 1px solid var(--border); 
+          border-radius: 18px; 
+          padding: var(--space-4);
+          display: flex; 
+          flex-direction: column; 
+          gap: var(--space-3); 
+          cursor: pointer;
+          transition: all 0.3s ease; 
+          min-height: 90px;
+          position: relative;
+        }
+        
+        .action-card:hover { 
+          transform: translateY(-4px); 
+          border-color: var(--primary); 
+          box-shadow: 0 12px 24px var(--primaryGhost); 
+        }
+        
+        .action-card.primary { 
+          background: linear-gradient(135deg, var(--primaryGhost) 0%, var(--background) 80%); 
+          border-color: var(--primaryGhost);
+        }
+        
+        .action-card.loading {
+          opacity: 0.8;
+          pointer-events: none;
+        }
+        
+        .action-header { 
+          display: flex; 
+          align-items: center; 
+          gap: var(--space-3); 
+        }
+        
+        .action-icon {
+          width: 40px; 
+          height: 40px; 
+          border-radius: 10px;
+          background: linear-gradient(135deg, var(--primaryGhost), var(--background));
+          border: 1px solid var(--primaryGhost); 
+          color: var(--primary); 
+          display: flex;
+          align-items: center; 
+          justify-content: center; 
+          transition: all 0.3s ease;
+        }
+        
+        .action-card:hover .action-icon { 
+          background: var(--primary); 
+          color: var(--background); 
+          transform: scale(1.05); 
+        }
+        
+        .action-title { 
+          font-size: 1.1rem; 
+          font-weight: 600; 
+          color: var(--text); 
+          margin: 0; 
+          flex: 1; 
+        }
+        
+        .action-body { 
+          display: flex; 
+          flex-direction: column; 
+          gap: var(--space-2); 
+          flex: 1; 
+        }
+        
+        .action-desc { 
+          font-size: 0.85rem; 
+          color: var(--textSecondary); 
+          margin: 0; 
+          line-height: 1.4; 
+          flex: 1; 
+        }
+        
+        .sub-actions { 
+          display: flex; 
+          gap: var(--space-2); 
+          margin-top: auto; 
+        }
+        
         .sub-action {
-          display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-2) var(--space-3);
-          background: var(--backgroundSecondary); border: 1px solid var(--borderLight); border-radius: 10px;
-          font-size: 0.75rem; font-weight: 520; color: var(--textSecondary); text-decoration: none;
-          transition: all 0.25s ease; cursor: pointer; flex: 1; justify-content: center;
+          display: flex; 
+          align-items: center; 
+          gap: var(--space-1); 
+          padding: var(--space-2) var(--space-3);
+          background: var(--backgroundSecondary); 
+          border: 1px solid var(--borderLight); 
+          border-radius: 8px;
+          font-size: 0.75rem; 
+          font-weight: 500; 
+          color: var(--textSecondary); 
+          text-decoration: none;
+          transition: all 0.2s ease; 
+          flex: 1; 
+          justify-content: center;
         }
-        .sub-action:hover { color: var(--primary); background: var(--background); border-color: var(--primaryGhost); }
-        .ai-showcase { opacity: 0; animation: showcaseEntry 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.4s; }
-        @keyframes showcaseEntry { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4); }
-        .explore-link {
-          display: inline-flex; align-items: center; gap: var(--space-2); color: var(--textSecondary); text-decoration: none;
-          font-weight: 520; font-size: 0.875rem; padding: var(--space-2) var(--space-3); border-radius: 12px;
-          border: 1px solid var(--borderLight); background: var(--backgroundSecondary); transition: all 0.3s ease; white-space: nowrap;
+        
+        .sub-action:hover { 
+          color: var(--primary); 
+          background: var(--background); 
+          border-color: var(--primaryGhost); 
         }
-        .explore-link:hover { color: var(--primary); background: var(--backgroundHover); border-color: var(--primaryGhost); transform: translateX(2px); }
-        .ai-content { padding: var(--space-6) 0; }
-        .cybots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-5); width: 100%; }
+        
+        .content-section { 
+          opacity: 0; 
+          animation: fadeInUp 0.6s ease forwards; 
+          animation-delay: 0.2s; 
+        }
+        
+        .content-header { 
+          display: flex; 
+          justify-content: space-between; 
+          align-items: center; 
+          margin-bottom: var(--space-6); 
+          flex-wrap: wrap; 
+          gap: var(--space-4); 
+        }
+        
+        .view-all-link {
+          display: flex; 
+          align-items: center; 
+          gap: var(--space-2); 
+          color: var(--textSecondary); 
+          text-decoration: none;
+          font-weight: 500; 
+          font-size: 0.875rem; 
+          padding: var(--space-2) var(--space-4); 
+          border-radius: 10px;
+          border: 1px solid var(--borderLight); 
+          background: var(--backgroundSecondary); 
+          transition: all 0.2s ease; 
+        }
+        
+        .view-all-link:hover { 
+          color: var(--primary); 
+          border-color: var(--primaryGhost); 
+          transform: translateX(2px);
+        }
+        
+        .content-body { 
+          padding: var(--space-6) 0; 
+        }
+        
+        .cybots-grid { 
+          display: grid; 
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+          gap: var(--space-5); 
+        }
         
         @media (max-width: 768px) {
-          .home-container { max-width: calc(100vw - var(--space-4)); padding: var(--space-5) var(--space-3) var(--space-8); }
-          .hero-actions { grid-template-columns: 1fr; gap: var(--space-3); margin-bottom: var(--space-6); }
-          .hero-action { padding: var(--space-4) var(--space-3); border-radius: 18px; min-height: auto; }
-          .hero-icon-container { width: 40px; height: 40px; border-radius: 12px; }
-          .hero-title { font-size: 1rem; }
-          .hero-description { font-size: 0.8rem; }
-          .sub-action { font-size: 0.7rem; padding: var(--space-1) var(--space-2); }
-          .section-header { flex-direction: column; align-items: stretch; gap: var(--space-3); margin-bottom: var(--space-5); }
-          .explore-link { align-self: center; font-size: 0.8rem; padding: var(--space-2) var(--space-4); }
-          .cybots-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
+          .home-main { 
+            max-width: calc(100vw - var(--space-4)); 
+            padding: var(--space-6) var(--space-3) var(--space-8); 
+          }
+          .action-grid { 
+            grid-template-columns: 1fr; 
+            gap: var(--space-3); 
+          }
+          .action-card { 
+            padding: var(--space-3); 
+            border-radius: 16px; 
+          }
+          .action-icon { 
+            width: 36px; 
+            height: 36px; 
+          }
+          .action-title { 
+            font-size: 1rem; 
+          }
+          .action-desc { 
+            font-size: 0.8rem; 
+          }
+          .content-header { 
+            flex-direction: column; 
+            align-items: stretch; 
+          }
+          .view-all-link { 
+            align-self: center; 
+          }
+          .cybots-grid { 
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+            gap: var(--space-3); 
+          }
         }
+        
         @media (max-width: 480px) {
-          .home-container { padding: var(--space-4) var(--space-2) var(--space-6); }
-          .hero-actions { gap: var(--space-2); }
-          .hero-action { padding: var(--space-3); gap: var(--space-2); min-height: 100px; }
-          .hero-header { gap: var(--space-2); }
-          .hero-icon-container { width: 36px; height: 36px; border-radius: 10px; }
-          .hero-title { font-size: 0.95rem; font-weight: 600; }
-          .hero-description { font-size: 0.75rem; }
-          .sub-actions { gap: var(--space-1); }
-          .sub-action { font-size: 0.65rem; padding: var(--space-1) var(--space-2); gap: 2px; }
-          .cybots-grid { grid-template-columns: 1fr; gap: var(--space-2); }
+          .home-main { 
+            padding: var(--space-4) var(--space-2) var(--space-6); 
+          }
+          .action-card { 
+            min-height: 80px; 
+          }
+          .action-icon { 
+            width: 32px; 
+            height: 32px; 
+          }
+          .action-title { 
+            font-size: 0.95rem; 
+          }
+          .action-desc { 
+            font-size: 0.75rem; 
+          }
+          .cybots-grid { 
+            grid-template-columns: 1fr; 
+            gap: var(--space-2); 
+          }
         }
       `}</style>
     </>
