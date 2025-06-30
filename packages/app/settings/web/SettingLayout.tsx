@@ -1,8 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAppSelector } from "app/store";
-import { selectTheme } from "app/settings/settingSlice";
 import {
   PaintbrushIcon,
   PersonIcon,
@@ -68,7 +66,6 @@ const SettingsSidebarContent: React.FC = () => {
 };
 
 const SettingLayout: React.FC = () => {
-  const theme = useAppSelector(selectTheme);
   return (
     <>
       <style href="SettingLayout-styles" precedence="medium">
@@ -77,37 +74,37 @@ const SettingLayout: React.FC = () => {
             display: flex;
             height: 100vh;
             width: 100%;
-            background-color: ${theme.background};
-            color: ${theme.text};
+            background-color: var(--background);
+            color: var(--text);
           }
 
           .settings-sidebar {
-            width: ${theme.sidebarWidth}px;
+            width: var(--sidebarWidth);
             flex-shrink: 0;
-            border-right: 1px solid ${theme.border};
-            padding: ${theme.space[6]} 0;
+            border-right: 1px solid var(--border);
+            padding: var(--space-6) 0;
             display: flex;
             flex-direction: column;
           }
-          
+
           .settings-title {
             font-size: 1.1rem;
             font-weight: 600;
-            padding: 0 ${theme.space[6]};
-            margin-bottom: ${theme.space[4]};
-            color: ${theme.textSecondary};
+            padding: 0 var(--space-6);
+            margin-bottom: var(--space-4);
+            color: var(--textSecondary);
           }
 
           .settings-nav {
             display: flex;
             flex-direction: column;
-            gap: ${theme.space[1]};
-            padding: 0 ${theme.space[4]};
+            gap: var(--space-1);
+            padding: 0 var(--space-4);
           }
 
           .settings-content {
             flex: 1;
-            padding: ${theme.space[8]};
+            padding: var(--space-8);
             overflow-y: auto;
           }
         `}
