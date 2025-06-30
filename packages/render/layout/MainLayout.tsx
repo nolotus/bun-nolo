@@ -1,4 +1,3 @@
-// MainLayout.tsx
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/ChatSidebar";
 import LifeSidebarContent from "life/LifeSidebarContent";
@@ -18,6 +17,7 @@ import {
   selectTheme,
   selectHeaderHeight,
   setSidebarWidth,
+  selectSidebarWidth,
 } from "app/settings/settingSlice";
 
 const MainLayout: React.FC = () => {
@@ -26,15 +26,21 @@ const MainLayout: React.FC = () => {
   const dispatch = useDispatch();
   const theme = useSelector(selectTheme);
   const headerHeight = useSelector(selectHeaderHeight);
+  const sidebarWidth = useSelector(selectSidebarWidth);
+  const isOpen = sidebarWidth > 0;
 
-  const [isOpen, setIsOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [isHandleHovered, setIsHandleHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const lastWidthRef = useRef(sidebarWidth);
+
+  useEffect(() => {
+    if (sidebarWidth > 0) {
+      lastWidthRef.current = sidebarWidth;
+    }
+  }, [sidebarWidth]);
 
   let sidebarContent;
-
   if (location.pathname.startsWith("/life")) {
     sidebarContent = <LifeSidebarContent />;
   } else if (isLoggedIn) {
@@ -43,11 +49,10 @@ const MainLayout: React.FC = () => {
     sidebarContent = null;
   }
 
-  const toggleSidebar = useCallback((e?: React.MouseEvent) => {
-    setIsHandleHovered(false);
-    setIsOpen((prev) => !prev);
-    e?.stopPropagation();
-  }, []);
+  const toggleSidebar = useCallback(() => {
+    const newWidth = sidebarWidth > 0 ? 0 : lastWidthRef.current || 260;
+    dispatch(setSidebarWidth(newWidth));
+  }, [dispatch, sidebarWidth]);
 
   const startResizing = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -57,124 +62,94 @@ const MainLayout: React.FC = () => {
 
   const resize = useCallback(
     (e: MouseEvent) => {
-      if (!isResizing || !sidebarRef.current) return;
-
+      if (!isResizing) return;
       requestAnimationFrame(() => {
-        const newWidth = Math.round(
-          e.clientX - sidebarRef.current!.getBoundingClientRect().left
-        );
+        const newWidth = e.clientX;
         if (newWidth >= 200 && newWidth <= 600) {
           dispatch(setSidebarWidth(newWidth));
-          if (sidebarRef.current) {
-            sidebarRef.current.style.width = `${newWidth}px`;
-          }
         }
       });
     },
     [isResizing, dispatch]
   );
 
-  // 统一处理窗口事件
   useEffect(() => {
-    if (!sidebarContent) return;
-
-    const handleResize = () => {
-      const isDesktop = window.innerWidth >= 768;
-      setIsMobile(!isDesktop);
-      setIsOpen(isDesktop);
-    };
-
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "b") {
         e.preventDefault();
         toggleSidebar();
       }
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
-    window.addEventListener("keydown", handleKeyDown);
-
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("resize", handleResize);
-      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [toggleSidebar, sidebarContent]);
+  }, [toggleSidebar]);
 
-  // 处理拖拽调整
   useEffect(() => {
     if (!isResizing) return;
-
     const stopResizing = () => setIsResizing(false);
-
     window.addEventListener("mousemove", resize);
     window.addEventListener("mouseup", stopResizing);
-    document.body.classList.add("no-select-cursor");
-
     return () => {
       window.removeEventListener("mousemove", resize);
       window.removeEventListener("mouseup", stopResizing);
-      document.body.classList.remove("no-select-cursor");
     };
   }, [resize, isResizing]);
 
-  // 移动端滚动控制
   useEffect(() => {
-    if (isOpen && sidebarContent && isMobile) {
-      document.body.classList.add("no-scroll");
-      return () => document.body.classList.remove("no-scroll");
-    }
-  }, [isOpen, sidebarContent, isMobile]);
+    document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isOpen, isMobile]);
 
   return (
     <>
-      <div className="sidebar-layout">
+      <div className="MainLayout">
+        {" "}
+        {/* 根组件 */}
         {sidebarContent && (
           <>
+            {isOpen && isMobile && (
+              <div className="MainLayout__backdrop" onClick={toggleSidebar} />
+            )}
+
             <aside
               ref={sidebarRef}
-              className={`sidebar ${isOpen ? "open" : "closed"} ${isResizing ? "resizing" : ""}`}
-              style={{ width: theme.sidebarWidth }}
+              className={`
+                MainLayout__sidebar 
+                ${isOpen ? "is-open" : "is-closed"}
+                ${isResizing ? "is-resizing" : ""}
+              `}
+              style={{ width: isMobile ? "85%" : theme.sidebarWidth }}
             >
               {isLoggedIn && <SidebarTop />}
-              <div className="sidebar-content">{sidebarContent}</div>
+              <div className="MainLayout__sidebarContent">{sidebarContent}</div>
+
+              {!isMobile && (
+                <div
+                  className="MainLayout__resizeHandle"
+                  onMouseDown={startResizing}
+                />
+              )}
             </aside>
-
-            {/* 桌面端调整手柄 */}
-            {isOpen && !isMobile && (
-              <div
-                className="resize-handle"
-                style={{ left: `calc(${theme.sidebarWidth}px - 5px)` }}
-                onMouseEnter={() => setIsHandleHovered(true)}
-                onMouseLeave={() => setIsHandleHovered(false)}
-              >
-                <div className="resize-area" onMouseDown={startResizing} />
-              </div>
-            )}
-
-            {/* 移动端遮罩 */}
-            {isOpen && isMobile && (
-              <div className="sidebar-backdrop" onClick={toggleSidebar} />
-            )}
           </>
         )}
-
         <main
-          className={`main-container ${isOpen && sidebarContent ? "with-sidebar" : ""} ${isResizing ? "resizing" : ""}`}
-          style={
-            isOpen && sidebarContent && !isMobile
-              ? {
-                  marginLeft: theme.sidebarWidth,
-                  width: `calc(100% - ${theme.sidebarWidth}px)`,
-                }
-              : {}
-          }
+          className={`
+            MainLayout__main
+            ${isOpen && !isMobile ? "has-sidebar" : ""}
+            ${isResizing ? "is-resizing" : ""}
+          `}
+          style={{ marginLeft: isOpen && !isMobile ? theme.sidebarWidth : "0" }}
         >
-          <TopBar
-            toggleSidebar={sidebarContent ? toggleSidebar : undefined}
-            isSidebarOpen={sidebarContent ? isOpen : undefined}
-          />
-          <div className="main-content">
+          <TopBar toggleSidebar={sidebarContent ? toggleSidebar : undefined} />
+          <div className="MainLayout__pageContent">
             <Suspense fallback={<div>main Loading...</div>}>
               <Outlet />
             </Suspense>
@@ -182,74 +157,87 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
 
-      <style href={"sidebar" + theme.background} precedence="default">{`
-        .sidebar-layout {
-          display: flex; min-height: 100vh; background: ${theme.background};
-          position: relative; overflow: hidden;
+      <style href="MainLayout-styles" precedence="component">{`
+        .MainLayout {
+          display: flex;
+          min-height: 100vh;
+          background: var(--background);
+          position: relative;
         }
 
-        .sidebar {
-          height: 100vh; position: fixed; top: 0; left: 0; z-index: ${zIndex.sidebar};
-          display: flex; flex-direction: column; background: ${theme.backgroundSecondary};
-          transition: transform 0.25s cubic-bezier(0.17, 0.67, 0.26, 0.99),
-                      box-shadow 0.25s ease, width 0.25s cubic-bezier(0.17, 0.67, 0.26, 0.99);
-          transform: translateX(-100%); will-change: transform, width;
+        .MainLayout__sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 100vh;
+          z-index: ${zIndex.sidebar};
+          display: flex;
+          flex-direction: column;
+          background: var(--backgroundSecondary);
+          box-shadow: var(--shadowMedium);
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateX(-100%);
+          will-change: transform;
         }
 
-        .sidebar.resizing, .main-container.resizing {
+        .MainLayout__sidebar.is-open {
+          transform: translateX(0);
+        }
+
+        .MainLayout__sidebar.is-resizing,
+        .MainLayout__main.is-resizing {
           transition: none !important;
         }
 
-        .sidebar.open { transform: translateX(0); }
-
-        .sidebar-content {
-          flex: 1; overflow-y: auto; overflow-x: hidden; color: ${theme.text};
-          scrollbar-width: thin; scrollbar-color: ${theme.textLight} transparent;
+        .MainLayout__sidebarContent {
+          flex: 1;
+          overflow-y: auto;
+          overflow-x: hidden;
         }
 
-        .sidebar-content::-webkit-scrollbar { width: 4px; }
-        .sidebar-content::-webkit-scrollbar-track { background: transparent; }
-        .sidebar-content::-webkit-scrollbar-thumb {
-          background: ${theme.textLight}; border-radius: 10px;
+        .MainLayout__main {
+          flex: 1;
+          transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .main-container {
-          flex: 1; background: ${theme.background}; color: ${theme.text};
-          transition: margin-left 0.25s cubic-bezier(0.17, 0.67, 0.26, 0.99),
-                      width 0.25s cubic-bezier(0.17, 0.67, 0.26, 0.99);
-          min-height: 100vh; will-change: margin-left, width;
+        .MainLayout__pageContent {
+          width: 100%;
+          position: relative;
         }
 
-        .main-content { width: 100%; position: relative; }
-
-        .resize-handle {
-          width: 10px; height: 100vh; position: fixed; top: 0;
-          z-index: ${zIndex.sidebarResizeHandle}; display: flex;
-          align-items: center; justify-content: center;
+        .MainLayout__resizeHandle {
+          position: absolute;
+          top: 0;
+          right: -2px;
+          width: 4px;
+          height: 100%;
+          cursor: col-resize;
+          z-index: ${zIndex.sidebarResizeHandle};
+        }
+        
+        .MainLayout__backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.4);
+          backdrop-filter: blur(2px);
+          z-index: ${zIndex.sidebarBackdrop};
         }
 
-        .resize-area {
-          width: 100%; height: 100%; cursor: col-resize;
-          background: ${isHandleHovered || isResizing ? `${theme.border}50` : "transparent"};
-          transition: background-color 0.2s ease;
-        }
-
-        .sidebar-backdrop {
-          position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0, 0, 0, 0.4); z-index: ${zIndex.sidebarBackdrop};
-          transition: opacity 0.25s ease-out;
-        }
-
-        body.no-select-cursor { cursor: col-resize !important; user-select: none; }
-        body.no-scroll { overflow: hidden; }
-
+        /* 移动端样式覆盖 */
         @media (max-width: 768px) {
-          .sidebar {
-            top: ${headerHeight}px; height: calc(100vh - ${headerHeight}px);
+          .MainLayout__sidebar {
+            width: 85% !important;
+            max-width: 320px;
+            box-shadow: var(--shadowHeavy);
           }
-          .sidebar.open { box-shadow: ${theme.shadowHeavy}; }
-          .sidebar-backdrop { top: ${headerHeight}px; }
-          .main-container.with-sidebar { margin-left: 0 !important; width: 100% !important; }
+          
+          .MainLayout__sidebar.is-closed {
+            overflow: hidden; /* 修复移动端关闭时内容溢出的问题 */
+          }
+          
+          .MainLayout__resizeHandle {
+            display: none;
+          }
         }
       `}</style>
     </>
