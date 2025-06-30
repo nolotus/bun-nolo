@@ -2,7 +2,6 @@
 import React from "react";
 import Button from "render/web/ui/Button";
 import { BaseActionModal } from "render/web/ui/BaseActionModal";
-
 import {
   XCircleIcon,
   AlertIcon,
@@ -83,7 +82,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       status={type}
       actions={actions}
       width={400}
-      // --- 新增：将确认操作和加载状态传递给基础弹窗 ---
       onEnterPress={onConfirm}
       isActionDisabled={loading}
     >
@@ -93,6 +91,20 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         .confirm-message {
           margin: 0;
           line-height: 1.5;
+          color: var(--text);
+          font-size: 14px;
+        }
+      `}</style>
+
+      <style jsx global>{`
+        .title {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: calc(100% - 32px);
+          color: var(--text);
+          font-size: 16px;
+          font-weight: 500;
         }
       `}</style>
     </BaseActionModal>
