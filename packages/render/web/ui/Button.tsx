@@ -103,8 +103,6 @@ const Button: ButtonComponent = React.forwardRef(
 ) as ButtonComponent;
 
 const ButtonStyles = () => {
-  const theme = useTheme();
-
   return (
     <style href="button" precedence="medium">{`
       .btn {
@@ -118,7 +116,7 @@ const ButtonStyles = () => {
         text-align: center;
         vertical-align: middle;
         user-select: none;
-        border-radius: ${theme.space[3]};
+        border-radius: var(--space-3);
         border: none;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -126,33 +124,33 @@ const ButtonStyles = () => {
         outline: none;
         background-clip: padding-box;
         letter-spacing: -0.01em;
-        box-shadow: 
-          0 2px 6px ${theme.shadow1},
+        box-shadow:
+          0 2px 6px var(--shadow1),
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
       }
 
       /* 尺寸系统 */
       .btn-small {
         min-height: 32px;
-        padding: ${theme.space[2]} ${theme.space[3]};
+        padding: var(--space-2) var(--space-3);
         font-size: 0.875rem;
-        gap: ${theme.space[1]};
-        border-radius: ${theme.space[2]};
+        gap: var(--space-1);
+        border-radius: var(--space-2);
       }
 
       .btn-medium {
         min-height: 40px;
-        padding: ${theme.space[2]} ${theme.space[4]};
+        padding: var(--space-2) var(--space-4);
         font-size: 0.925rem;
-        gap: ${theme.space[2]};
+        gap: var(--space-2);
       }
 
       .btn-large {
         min-height: 48px;
-        padding: ${theme.space[3]} ${theme.space[5]};
+        padding: var(--space-3) var(--space-5);
         font-size: 1rem;
-        gap: ${theme.space[2]};
-        border-radius: ${theme.space[4]};
+        gap: var(--space-2);
+        border-radius: var(--space-4);
       }
 
       .btn-block {
@@ -184,11 +182,11 @@ const ButtonStyles = () => {
 
       /* Primary 样式 - 现代新拟物 */
       .btn-primary {
-        background: linear-gradient(135deg, ${theme.primary} 0%, ${theme.primary}90 100%);
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primaryDark) 100%);
         color: white;
-        box-shadow: 
-          0 2px 8px ${theme.primary}30,
-          0 1px 3px ${theme.shadow1},
+        box-shadow:
+          0 2px 8px var(--primaryGhost),
+          0 1px 3px var(--shadow1),
           inset 0 1px 0 rgba(255, 255, 255, 0.2);
       }
 
@@ -205,9 +203,9 @@ const ButtonStyles = () => {
 
       .btn-primary:hover:not(.btn-disabled) {
         transform: translateY(-2px);
-        box-shadow: 
-          0 8px 20px ${theme.primary}40,
-          0 2px 8px ${theme.shadow2},
+        box-shadow:
+          0 8px 20px var(--primaryHover),
+          0 2px 8px var(--shadow2),
           inset 0 1px 0 rgba(255, 255, 255, 0.25);
       }
 
@@ -218,19 +216,19 @@ const ButtonStyles = () => {
       .btn-primary:active:not(.btn-disabled) {
         transform: translateY(0);
         transition-duration: 0.1s;
-        box-shadow: 
-          0 2px 6px ${theme.primary}40,
+        box-shadow:
+          0 2px 6px var(--primaryHover),
           inset 0 2px 4px rgba(0, 0, 0, 0.1),
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
       }
 
       /* Secondary 样式 */
       .btn-secondary {
-        background: ${theme.backgroundSecondary};
-        color: ${theme.text};
-        border: 1px solid ${theme.border};
-        box-shadow: 
-          0 1px 3px ${theme.shadow1},
+        background: var(--backgroundSecondary);
+        color: var(--text);
+        border: 1px solid var(--border);
+        box-shadow:
+          0 1px 3px var(--shadow1),
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
       }
 
@@ -238,7 +236,7 @@ const ButtonStyles = () => {
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 50%);
+        background: linear-gradient(135deg, var(--primaryGhost) 0%, transparent 50%);
         border-radius: inherit;
         opacity: 0;
         transition: opacity 0.3s ease;
@@ -246,13 +244,13 @@ const ButtonStyles = () => {
       }
 
       .btn-secondary:hover:not(.btn-disabled) {
-        background: ${theme.background};
-        border-color: ${theme.primary}30;
-        color: ${theme.primary};
+        background: var(--background);
+        border-color: var(--primaryHover);
+        color: var(--primary);
         transform: translateY(-1px);
-        box-shadow: 
-          0 4px 12px ${theme.shadow1},
-          0 0 0 1px ${theme.primary}15,
+        box-shadow:
+          0 4px 12px var(--shadow1),
+          0 0 0 1px var(--primaryHover),
           inset 0 1px 0 rgba(255, 255, 255, 0.15);
       }
 
@@ -263,38 +261,38 @@ const ButtonStyles = () => {
       .btn-secondary:active:not(.btn-disabled) {
         transform: translateY(0);
         transition-duration: 0.1s;
-        box-shadow: 
-          0 1px 3px ${theme.shadow1},
+        box-shadow:
+          0 1px 3px var(--shadow1),
           inset 0 2px 4px rgba(0, 0, 0, 0.05);
       }
 
       /* Ghost 样式 */
       .btn-ghost {
         background: transparent;
-        color: ${theme.textSecondary};
-        border: 1px solid ${theme.borderLight};
+        color: var(--textSecondary);
+        border: 1px solid var(--borderLight);
         box-shadow: none;
       }
 
       .btn-ghost:hover:not(.btn-disabled) {
-        background: ${theme.backgroundHover};
-        color: ${theme.text};
-        border-color: ${theme.border};
-        box-shadow: 0 2px 8px ${theme.shadow1};
+        background: var(--backgroundHover);
+        color: var(--text);
+        border-color: var(--border);
+        box-shadow: 0 2px 8px var(--shadow1);
       }
 
       .btn-ghost:active:not(.btn-disabled) {
-        background: ${theme.backgroundSelected || theme.backgroundHover};
-        box-shadow: inset 0 1px 3px ${theme.shadow1};
+        background: var(--backgroundSelected, var(--backgroundHover));
+        box-shadow: inset 0 1px 3px var(--shadow1);
       }
 
       /* Danger 样式 */
       .btn-danger {
-        background: linear-gradient(135deg, ${theme.error} 0%, ${theme.error}90 100%);
+        background: linear-gradient(135deg, var(--error) 0%, var(--error) 100%);
         color: white;
-        box-shadow: 
-          0 2px 8px ${theme.error}30,
-          0 1px 3px ${theme.shadow1},
+        box-shadow:
+          0 2px 8px rgba(var(--error-rgb), 0.3),
+          0 1px 3px var(--shadow1),
           inset 0 1px 0 rgba(255, 255, 255, 0.2);
       }
 
@@ -311,9 +309,9 @@ const ButtonStyles = () => {
 
       .btn-danger:hover:not(.btn-disabled) {
         transform: translateY(-2px);
-        box-shadow: 
-          0 8px 20px ${theme.error}40,
-          0 2px 8px ${theme.shadow2},
+        box-shadow:
+          0 8px 20px rgba(var(--error-rgb), 0.4),
+          0 2px 8px var(--shadow2),
           inset 0 1px 0 rgba(255, 255, 255, 0.25);
       }
 
@@ -324,8 +322,8 @@ const ButtonStyles = () => {
       .btn-danger:active:not(.btn-disabled) {
         transform: translateY(0);
         transition-duration: 0.1s;
-        box-shadow: 
-          0 2px 6px ${theme.error}40,
+        box-shadow:
+          0 2px 6px rgba(var(--error-rgb), 0.4),
           inset 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
@@ -344,10 +342,10 @@ const ButtonStyles = () => {
 
       /* 焦点状态 */
       .btn:focus-visible:not(.btn-disabled) {
-        box-shadow: 
-          0 0 0 2px ${theme.background},
-          0 0 0 4px ${theme.primary},
-          0 2px 8px ${theme.shadow1},
+        box-shadow:
+          0 0 0 2px var(--background),
+          0 0 0 4px var(--primary),
+          0 2px 8px var(--shadow1),
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
       }
 
@@ -393,7 +391,7 @@ const ButtonStyles = () => {
         .btn {
           border-width: 2px;
         }
-        
+
         .btn-ghost,
         .btn-secondary {
           border-width: 2px;
@@ -415,7 +413,7 @@ const ButtonStyles = () => {
         .loading-spinner {
           animation: none;
         }
-        
+
         .loading-spinner::after {
           content: '...';
         }
@@ -425,12 +423,12 @@ const ButtonStyles = () => {
       @media (max-width: 480px) {
         .btn-medium {
           min-height: 44px;
-          padding: ${theme.space[3]} ${theme.space[4]};
+          padding: var(--space-3) var(--space-4);
         }
-        
+
         .btn-small {
           min-height: 36px;
-          padding: ${theme.space[2]} ${theme.space[3]};
+          padding: var(--space-2) var(--space-3);
         }
       }
     `}</style>

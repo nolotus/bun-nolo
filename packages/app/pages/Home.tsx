@@ -33,8 +33,6 @@ import AgentBlock from "ai/llm/web/AgentBlock";
 import PubCybots from "ai/cybot/web/PubCybots";
 
 const LoadingState = ({}) => {
-  const theme = useAppSelector(selectTheme);
-
   return (
     <>
       <div className="cybots-grid">
@@ -47,9 +45,9 @@ const LoadingState = ({}) => {
         ))}
       </div>
 
-      <style href={"loading-state" + theme.background} precedence="low">{`
+      <style href="loading-state" precedence="low">{`
         .skeleton-card {
-          background: ${theme.backgroundSecondary};
+          background: var(--backgroundSecondary);
           border-radius: 16px;
           height: 280px;
           animation: skeletonPulse 2s ease-in-out infinite;
@@ -66,8 +64,6 @@ const LoadingState = ({}) => {
 LoadingState.displayName = "LoadingState";
 
 const EmptyState = ({ message }) => {
-  const theme = useAppSelector(selectTheme);
-
   return (
     <>
       <div className="empty-state">
@@ -77,22 +73,35 @@ const EmptyState = ({ message }) => {
         <p className="empty-message">{message}</p>
       </div>
 
-      <style href={"empty-state" + theme.background} precedence="low">{`
+      <style href="empty-state" precedence="low">{`
         .empty-state {
-          display: flex; flex-direction: column; align-items: center;
-          justify-content: center; gap: ${theme.space[4]}; min-height: 280px;
-          color: ${theme.textTertiary}; text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: var(--space-4);
+          min-height: 280px;
+          color: var(--textTertiary);
+          text-align: center;
         }
 
         .empty-icon {
-          width: 80px; height: 80px; border-radius: 24px;
-          background: linear-gradient(135deg, ${theme.primaryGhost} 0%, rgba(255, 255, 255, 0.06) 100%);
-          border: 1px solid ${theme.primaryGhost}; color: ${theme.primary};
-          opacity: 0.7; display: flex; align-items: center; justify-content: center;
+          width: 80px;
+          height: 80px;
+          border-radius: 24px;
+          background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.06) 100%);
+          border: 1px solid var(--primaryGhost);
+          color: var(--primary);
+          opacity: 0.7;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .empty-message {
-          font-size: 1rem; font-weight: 500; margin: 0;
+          font-size: 1rem;
+          font-weight: 500;
+          margin: 0;
         }
       `}</style>
     </>
@@ -361,20 +370,20 @@ const Home = () => {
         </main>
       </div>
 
-      <style href={"home" + theme.background} precedence="high">{`
+      <style href="home" precedence="high">{`
         .home-layout {
           min-height: 100vh;
-          background: linear-gradient(180deg, ${theme.backgroundSecondary} 0%, ${theme.background} 40%);
+          background: linear-gradient(180deg, var(--backgroundSecondary) 0%, var(--background) 40%);
         }
 
         .home-container {
-          max-width: min(1200px, calc(100vw - ${theme.space[8]}));
+          max-width: min(1200px, calc(100vw - var(--space-8)));
           margin: 0 auto;
-          padding: ${theme.space[8]} ${theme.space[4]} ${theme.space[12]};
+          padding: var(--space-8) var(--space-4) var(--space-12);
         }
 
         .guide-section {
-          margin-bottom: ${theme.space[10]};
+          margin-bottom: var(--space-10);
           opacity: 0;
           animation: sectionFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -387,36 +396,36 @@ const Home = () => {
         .hero-actions {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: ${theme.space[4]};
-          margin-bottom: ${theme.space[8]};
+          gap: var(--space-4);
+          margin-bottom: var(--space-8);
         }
 
         .hero-action {
-          background: ${theme.background};
-          border: 1px solid ${theme.border};
+          background: var(--background);
+          border: 1px solid var(--border);
           border-radius: 20px;
-          padding: ${theme.space[5]} ${theme.space[4]};
+          padding: var(--space-5) var(--space-4);
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[3]};
+          gap: var(--space-3);
           text-align: left;
           cursor: pointer;
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           overflow: hidden;
-          box-shadow: 0 1px 3px ${theme.shadowLight};
+          box-shadow: 0 1px 3px var(--shadowLight);
           min-height: 120px;
         }
 
         .hero-action:hover {
           transform: translateY(-4px);
-          border-color: ${theme.primaryGhost};
-          box-shadow: 0 12px 24px -6px ${theme.shadowMedium};
+          border-color: var(--primaryGhost);
+          box-shadow: 0 12px 24px -6px var(--shadowMedium);
         }
 
         .hero-action.accent {
-          background: linear-gradient(135deg, ${theme.primaryGhost} 0%, ${theme.background} 70%);
-          border-color: ${theme.primaryGhost};
+          background: linear-gradient(135deg, var(--primaryGhost) 0%, var(--background) 70%);
+          border-color: var(--primaryGhost);
         }
 
         .hero-action[disabled] {
@@ -428,16 +437,16 @@ const Home = () => {
         .hero-header {
           display: flex;
           align-items: center;
-          gap: ${theme.space[3]};
+          gap: var(--space-3);
         }
 
         .hero-icon-container {
           width: 44px;
           height: 44px;
           border-radius: 14px;
-          background: linear-gradient(135deg, ${theme.primaryGhost} 0%, rgba(255, 255, 255, 0.1) 100%);
-          border: 1px solid ${theme.primaryGhost};
-          color: ${theme.primary};
+          background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.1) 100%);
+          border: 1px solid var(--primaryGhost);
+          color: var(--primary);
           flex-shrink: 0;
           display: flex;
           align-items: center;
@@ -446,21 +455,21 @@ const Home = () => {
         }
 
         .hero-action:hover .hero-icon-container {
-          background: ${theme.primary};
-          color: ${theme.background};
+          background: var(--primary);
+          color: var(--background);
           transform: scale(1.05);
         }
 
         .hero-action[disabled]:hover .hero-icon-container {
           transform: none;
-          background: linear-gradient(135deg, ${theme.primaryGhost} 0%, rgba(255, 255, 255, 0.1) 100%);
-          color: ${theme.primary};
+          background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.1) 100%);
+          color: var(--primary);
         }
 
         .hero-title {
           font-size: 1.125rem;
           font-weight: 650;
-          color: ${theme.text};
+          color: var(--text);
           margin: 0;
           line-height: 1.2;
           flex: 1;
@@ -469,13 +478,13 @@ const Home = () => {
         .hero-content {
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
           flex: 1;
         }
 
         .hero-description {
           font-size: 0.85rem;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           margin: 0;
           line-height: 1.4;
           flex: 1;
@@ -483,21 +492,21 @@ const Home = () => {
 
         .sub-actions {
           display: flex;
-          gap: ${theme.space[2]};
+          gap: var(--space-2);
           margin-top: auto;
         }
 
         .sub-action {
           display: inline-flex;
           align-items: center;
-          gap: ${theme.space[1]};
-          padding: ${theme.space[2]} ${theme.space[3]};
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.borderLight};
+          gap: var(--space-1);
+          padding: var(--space-2) var(--space-3);
+          background: var(--backgroundSecondary);
+          border: 1px solid var(--borderLight);
           border-radius: 10px;
           font-size: 0.75rem;
           font-weight: 520;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           text-decoration: none;
           transition: all 0.25s ease;
           cursor: pointer;
@@ -506,9 +515,9 @@ const Home = () => {
         }
 
         .sub-action:hover {
-          color: ${theme.primary};
-          background: ${theme.background};
-          border-color: ${theme.primaryGhost};
+          color: var(--primary);
+          background: var(--background);
+          border-color: var(--primaryGhost);
         }
 
         .ai-showcase {
@@ -526,35 +535,35 @@ const Home = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: ${theme.space[6]};
+          margin-bottom: var(--space-6);
         }
 
         .tabs-container {
           display: flex;
           align-items: center;
-          gap: ${theme.space[4]};
+          gap: var(--space-4);
         }
 
         .tabs-navigator {
           display: flex;
           align-items: center;
-          gap: ${theme.space[1]};
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.borderLight};
+          gap: var(--space-1);
+          background: var(--backgroundSecondary);
+          border: 1px solid var(--borderLight);
           border-radius: 16px;
-          padding: ${theme.space[1]};
-          box-shadow: 0 2px 6px ${theme.shadowLight};
+          padding: var(--space-1);
+          box-shadow: 0 2px 6px var(--shadowLight);
         }
 
         .tab-item {
           display: flex;
           align-items: center;
-          gap: ${theme.space[2]};
-          padding: ${theme.space[3]} ${theme.space[4]};
+          gap: var(--space-2);
+          padding: var(--space-3) var(--space-4);
           border-radius: 12px;
           font-size: 0.875rem;
           font-weight: 520;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           background: none;
           border: none;
           cursor: pointer;
@@ -565,66 +574,66 @@ const Home = () => {
         }
 
         .tab-item:hover {
-          color: ${theme.primary};
-          background: rgba(${theme.background}, 0.6);
+          color: var(--primary);
+          background: rgba(var(--background), 0.6);
         }
 
         .tab-item.active {
-          color: ${theme.primary};
-          background: ${theme.background};
+          color: var(--primary);
+          background: var(--background);
           font-weight: 600;
-          box-shadow: 0 2px 8px ${theme.shadowLight};
+          box-shadow: 0 2px 8px var(--shadowLight);
         }
 
         .explore-link {
           display: inline-flex;
           align-items: center;
-          gap: ${theme.space[2]};
-          color: ${theme.textSecondary};
+          gap: var(--space-2);
+          color: var(--textSecondary);
           text-decoration: none;
           font-weight: 520;
           font-size: 0.875rem;
-          padding: ${theme.space[3]} ${theme.space[4]};
+          padding: var(--space-3) var(--space-4);
           border-radius: 12px;
-          border: 1px solid ${theme.borderLight};
-          background: ${theme.backgroundSecondary};
+          border: 1px solid var(--borderLight);
+          background: var(--backgroundSecondary);
           transition: all 0.3s ease;
           white-space: nowrap;
         }
 
         .explore-link:hover {
-          color: ${theme.primary};
-          background: ${theme.background};
-          border-color: ${theme.primaryGhost};
+          color: var(--primary);
+          background: var(--background);
+          border-color: var(--primaryGhost);
           transform: translateX(2px);
         }
 
         .ai-content {
-          padding: ${theme.space[6]} 0;
+          padding: var(--space-6) 0;
         }
 
         .cybots-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: ${theme.space[5]};
+          gap: var(--space-5);
           width: 100%;
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
           .home-container {
-            max-width: calc(100vw - ${theme.space[4]});
-            padding: ${theme.space[5]} ${theme.space[3]} ${theme.space[8]};
+            max-width: calc(100vw - var(--space-4));
+            padding: var(--space-5) var(--space-3) var(--space-8);
           }
 
           .hero-actions {
             grid-template-columns: 1fr;
-            gap: ${theme.space[3]};
-            margin-bottom: ${theme.space[6]};
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
           }
 
           .hero-action {
-            padding: ${theme.space[4]} ${theme.space[3]};
+            padding: var(--space-4) var(--space-3);
             border-radius: 18px;
             min-height: auto;
           }
@@ -645,19 +654,19 @@ const Home = () => {
 
           .sub-action {
             font-size: 0.7rem;
-            padding: ${theme.space[1]} ${theme.space[2]};
+            padding: var(--space-1) var(--space-2);
           }
 
           .section-header {
             flex-direction: column;
             align-items: stretch;
-            gap: ${theme.space[3]};
-            margin-bottom: ${theme.space[5]};
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
           }
 
           .tabs-container {
             flex-direction: column;
-            gap: ${theme.space[3]};
+            gap: var(--space-3);
           }
 
           .tabs-navigator {
@@ -666,42 +675,42 @@ const Home = () => {
           }
 
           .tab-item {
-            padding: ${theme.space[2]} ${theme.space[3]};
+            padding: var(--space-2) var(--space-3);
             font-size: 0.8rem;
             min-width: auto;
             flex: 1;
-            gap: ${theme.space[1]};
+            gap: var(--space-1);
           }
 
           .explore-link {
             align-self: center;
             font-size: 0.8rem;
-            padding: ${theme.space[2]} ${theme.space[4]};
+            padding: var(--space-2) var(--space-4);
           }
 
           .cybots-grid {
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: ${theme.space[3]};
+            gap: var(--space-3);
           }
         }
 
         @media (max-width: 480px) {
           .home-container {
-            padding: ${theme.space[4]} ${theme.space[2]} ${theme.space[6]};
+            padding: var(--space-4) var(--space-2) var(--space-6);
           }
 
           .hero-actions {
-            gap: ${theme.space[2]};
+            gap: var(--space-2);
           }
 
           .hero-action {
-            padding: ${theme.space[3]} ${theme.space[3]};
-            gap: ${theme.space[2]};
+            padding: var(--space-3) var(--space-3);
+            gap: var(--space-2);
             min-height: 100px;
           }
 
           .hero-header {
-            gap: ${theme.space[2]};
+            gap: var(--space-2);
           }
 
           .hero-icon-container {
@@ -720,18 +729,18 @@ const Home = () => {
           }
 
           .sub-actions {
-            gap: ${theme.space[1]};
+            gap: var(--space-1);
           }
 
           .sub-action {
             font-size: 0.65rem;
-            padding: ${theme.space[1]} ${theme.space[2]};
+            padding: var(--space-1) var(--space-2);
             gap: 2px;
           }
 
           .cybots-grid {
             grid-template-columns: 1fr;
-            gap: ${theme.space[2]};
+            gap: var(--space-2);
           }
         }
       `}</style>
