@@ -49,6 +49,10 @@ const MainLayout: React.FC = () => {
     sidebarContent = null;
   }
 
+  // 判断侧边栏是否应该显示并占用空间
+  const hasSidebar = sidebarContent !== null;
+  const sidebarShouldTakeSpace = hasSidebar && isOpen && !isMobile;
+
   const toggleSidebar = useCallback(() => {
     const newWidth = sidebarWidth > 0 ? 0 : lastWidthRef.current || 260;
     dispatch(setSidebarWidth(newWidth));
@@ -78,7 +82,9 @@ const MainLayout: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "b") {
         e.preventDefault();
-        toggleSidebar();
+        if (hasSidebar) {
+          toggleSidebar();
+        }
       }
     };
     handleResize();
@@ -88,7 +94,7 @@ const MainLayout: React.FC = () => {
       window.removeEventListener("resize", handleResize);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [toggleSidebar]);
+  }, [toggleSidebar, hasSidebar]);
 
   useEffect(() => {
     if (!isResizing) return;
@@ -102,18 +108,17 @@ const MainLayout: React.FC = () => {
   }, [resize, isResizing]);
 
   useEffect(() => {
-    document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
+    document.body.style.overflow =
+      isOpen && isMobile && hasSidebar ? "hidden" : "auto";
     return () => {
       document.body.style.overflow = "auto";
     };
-  }, [isOpen, isMobile]);
+  }, [isOpen, isMobile, hasSidebar]);
 
   return (
     <>
       <div className="MainLayout">
-        {" "}
-        {/* 根组件 */}
-        {sidebarContent && (
+        {hasSidebar && (
           <>
             {isOpen && isMobile && (
               <div className="MainLayout__backdrop" onClick={toggleSidebar} />
@@ -126,7 +131,7 @@ const MainLayout: React.FC = () => {
                 ${isOpen ? "is-open" : "is-closed"}
                 ${isResizing ? "is-resizing" : ""}
               `}
-              style={{ width: isMobile ? "85%" : theme.sidebarWidth }}
+              style={{ width: isMobile ? "85%" : sidebarWidth }}
             >
               {isLoggedIn && <SidebarTop />}
               <div className="MainLayout__sidebarContent">{sidebarContent}</div>
@@ -140,15 +145,18 @@ const MainLayout: React.FC = () => {
             </aside>
           </>
         )}
+
         <main
           className={`
             MainLayout__main
-            ${isOpen && !isMobile ? "has-sidebar" : ""}
+            ${sidebarShouldTakeSpace ? "has-sidebar" : ""}
             ${isResizing ? "is-resizing" : ""}
           `}
-          style={{ marginLeft: isOpen && !isMobile ? theme.sidebarWidth : "0" }}
+          style={{
+            marginLeft: sidebarShouldTakeSpace ? sidebarWidth : 0,
+          }}
         >
-          <TopBar toggleSidebar={sidebarContent ? toggleSidebar : undefined} />
+          <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
           <div className="MainLayout__pageContent">
             <Suspense fallback={<div>main Loading...</div>}>
               <Outlet />
@@ -198,6 +206,7 @@ const MainLayout: React.FC = () => {
         .MainLayout__main {
           flex: 1;
           transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 100%;
         }
 
         .MainLayout__pageContent {
@@ -232,11 +241,15 @@ const MainLayout: React.FC = () => {
           }
           
           .MainLayout__sidebar.is-closed {
-            overflow: hidden; /* 修复移动端关闭时内容溢出的问题 */
+            overflow: hidden;
           }
           
           .MainLayout__resizeHandle {
             display: none;
+          }
+
+          .MainLayout__main {
+            margin-left: 0 !important;
           }
         }
       `}</style>
