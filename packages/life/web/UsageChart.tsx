@@ -1,4 +1,4 @@
-// UsageChart.tsx
+// file: src/features/usage/UsageChart.tsx
 import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { formatInTimeZone } from "date-fns-tz";
@@ -11,6 +11,7 @@ import { TimeRange, processDateRange } from "utils/processDateRange";
 import { ClockIcon, GraphIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import { Dropdown } from "render/web/ui/Dropdown";
+import Tabs from "render/web/ui/Tabs"; // 导入新组件
 
 const logger = pino({ name: "usage-chart" });
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -26,14 +27,17 @@ const UsageChart: React.FC = () => {
   const [statsData, setStatsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 时间范围选项
   const timeRangeOptions = [
     { label: t("last_7_days", "近 7 天"), value: "7days" },
     { label: t("last_30_days", "近 30 天"), value: "30days" },
     { label: t("last_90_days", "近 90 天"), value: "90days" },
   ];
 
-  // 当前选中的时间范围项
+  const dataTypeOptions = [
+    { id: "tokens", label: "Tokens", icon: <GraphIcon size={14} /> },
+    { id: "cost", label: t("cost", "成本"), icon: "¥" },
+  ];
+
   const selectedTimeRange = timeRangeOptions.find(
     (option) => option.value === timeRange
   );
@@ -45,7 +49,6 @@ const UsageChart: React.FC = () => {
         const { dateArray } = processDateRange(timeRange, userTimeZone);
         const startDate = dateArray[0].utc;
         const endDate = dateArray[dateArray.length - 1].utc;
-
         const stats = await getTokenStats({ userId, startDate, endDate });
         setStatsData(stats);
       } catch (err) {
@@ -54,8 +57,7 @@ const UsageChart: React.FC = () => {
         setLoading(false);
       }
     };
-
-    fetchStats();
+    if (userId) fetchStats();
   }, [userId, timeRange]);
 
   const getChartData = () => {
@@ -79,12 +81,10 @@ const UsageChart: React.FC = () => {
         dataType === "tokens"
           ? (stat.total?.tokens?.input || 0) + (stat.total?.tokens?.output || 0)
           : stat.total?.cost || 0;
-
       Object.entries(stat.models || {}).forEach(
         ([model, data]: [string, any]) => {
-          if (!series.models[model]) {
+          if (!series.models[model])
             series.models[model] = new Array(dateArray.length).fill(0);
-          }
           series.models[model][dateIndex] =
             dataType === "tokens"
               ? (data.tokens?.input || 0) + (data.tokens?.output || 0)
@@ -92,20 +92,18 @@ const UsageChart: React.FC = () => {
         }
       );
     });
-
     return series;
   };
 
   const getChartOption = () => {
     const data = getChartData();
     const modelNames = Object.keys(data.models);
-
     return {
       tooltip: {
         trigger: "axis",
-        backgroundColor: theme.backgroundGhost,
-        borderColor: theme.border,
-        textStyle: { color: theme.text, fontSize: 12 },
+        backgroundColor: "var(--backgroundGhost)",
+        borderColor: "var(--border)",
+        textStyle: { color: "var(--text)", fontSize: 12 },
         padding: [8, 12],
         formatter: (params: any) => {
           const date = processDateRange(timeRange, userTimeZone).dateArray[
@@ -114,18 +112,17 @@ const UsageChart: React.FC = () => {
           let result = `<div style="font-weight: 600; margin-bottom: 4px;">${date}</div>`;
           params.forEach((param: any) => {
             const value =
-              dataType === "cost" ? `¥${param.value.toFixed(4)}` : param.value;
-            result += `<div style="margin: 2px 0;">
-              <span style="display: inline-block; width: 8px; height: 8px; background: ${param.color}; border-radius: 50%; margin-right: 6px;"></span>
-              ${param.seriesName}: ${value}
-            </div>`;
+              dataType === "cost"
+                ? `¥${param.value.toFixed(4)}`
+                : param.value.toLocaleString();
+            result += `<div style="margin: 2px 0;"><span style="display: inline-block; width: 8px; height: 8px; background: ${param.color}; border-radius: 50%; margin-right: 6px;"></span>${param.seriesName}: <strong>${value}</strong></div>`;
           });
           return result;
         },
       },
       legend: {
         data: [t("total", "总量"), ...modelNames],
-        textStyle: { color: theme.textSecondary, fontSize: 12 },
+        textStyle: { color: "var(--textSecondary)", fontSize: 12 },
         top: 10,
       },
       grid: {
@@ -138,16 +135,16 @@ const UsageChart: React.FC = () => {
       xAxis: {
         type: "category",
         data: data.dates,
-        axisLine: { lineStyle: { color: theme.borderLight } },
-        axisLabel: { color: theme.textTertiary, fontSize: 11 },
+        axisLine: { lineStyle: { color: "var(--borderLight)" } },
+        axisLabel: { color: "var(--textTertiary)", fontSize: 11 },
         axisTick: { show: false },
       },
       yAxis: {
         type: "value",
-        name: dataType === "tokens" ? "Tokens" : t("cost", "成本") + " (¥)",
-        nameTextStyle: { color: theme.textTertiary, fontSize: 11 },
+        name: dataType === "tokens" ? "Tokens" : `${t("cost", "成本")} (¥)`,
+        nameTextStyle: { color: "var(--textTertiary)", fontSize: 11 },
         axisLabel: {
-          color: theme.textTertiary,
+          color: "var(--textTertiary)",
           fontSize: 11,
           formatter:
             dataType === "cost"
@@ -157,7 +154,9 @@ const UsageChart: React.FC = () => {
                     ? `${(value / 1000).toFixed(1)}k`
                     : value.toString(),
         },
-        splitLine: { lineStyle: { color: theme.borderLight, type: "dashed" } },
+        splitLine: {
+          lineStyle: { color: "var(--borderLight)", type: "dashed" },
+        },
         axisLine: { show: false },
         axisTick: { show: false },
       },
@@ -169,14 +168,14 @@ const UsageChart: React.FC = () => {
           symbol: "circle",
           symbolSize: 6,
           data: data.total,
-          itemStyle: { color: theme.primary },
+          itemStyle: { color: "var(--primary)" },
           lineStyle: { width: 3 },
           areaStyle: {
             color: {
               type: "linear",
               colorStops: [
-                { offset: 0, color: theme.primaryLight + "40" },
-                { offset: 1, color: theme.primaryLight + "10" },
+                { offset: 0, color: "var(--primaryGhost)" },
+                { offset: 1, color: "rgba(var(--primary), 0)" },
               ],
             },
           },
@@ -188,30 +187,28 @@ const UsageChart: React.FC = () => {
           data: data.models[model],
         })),
       ],
+      animationEasing: "cubicInOut",
+      animationDuration: 1000,
     };
   };
 
   return (
     <>
-      <style>
-        {`@keyframes pulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }`}
-      </style>
-
+      <style>{`@keyframes pulse { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }`}</style>
       <div
         style={{
-          background: theme.background,
+          background: "var(--background)",
           borderRadius: "16px",
-          border: `1px solid ${theme.borderLight}`,
+          border: `1px solid var(--borderLight)`,
           overflow: "hidden",
-          boxShadow: `0 2px 8px ${theme.shadowLight}`,
+          boxShadow: `0 2px 8px var(--shadowLight)`,
         }}
       >
-        {/* Header */}
         <div
           style={{
             padding: "20px 24px",
-            background: `linear-gradient(135deg, ${theme.backgroundSecondary}, ${theme.backgroundTertiary})`,
-            borderBottom: `1px solid ${theme.borderLight}`,
+            background: "var(--backgroundSecondary)",
+            borderBottom: `1px solid var(--borderLight)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -219,7 +216,6 @@ const UsageChart: React.FC = () => {
             flexWrap: "wrap",
           }}
         >
-          {/* Left: Title and Loading */}
           <div
             style={{
               display: "flex",
@@ -229,19 +225,18 @@ const UsageChart: React.FC = () => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <ClockIcon size={20} />
+              <ClockIcon size={20} color="var(--text)" />
               <h2
                 style={{
                   fontSize: "18px",
                   fontWeight: "600",
-                  color: theme.text,
+                  color: "var(--text)",
                   margin: 0,
                 }}
               >
                 {t("usage_stats", "使用量统计")}
               </h2>
             </div>
-
             {loading && (
               <div
                 style={{ display: "flex", gap: "3px", alignItems: "center" }}
@@ -253,26 +248,23 @@ const UsageChart: React.FC = () => {
                       width: "4px",
                       height: "4px",
                       borderRadius: "50%",
-                      background: theme.primary,
+                      background: "var(--primary)",
                       animation: `pulse 1.4s infinite ${delay}s`,
                     }}
                   />
                 ))}
               </div>
             )}
-
             <div
               style={{
                 fontSize: "12px",
-                color: theme.textTertiary,
+                color: "var(--textTertiary)",
                 opacity: 0.8,
               }}
             >
               {userTimeZone}
             </div>
           </div>
-
-          {/* Right: Controls */}
           <div
             style={{
               display: "flex",
@@ -281,7 +273,6 @@ const UsageChart: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            {/* Time Range Dropdown */}
             <div style={{ minWidth: "120px" }}>
               <Dropdown
                 items={timeRangeOptions}
@@ -292,59 +283,15 @@ const UsageChart: React.FC = () => {
                 variant="default"
               />
             </div>
-
-            {/* Data Type Toggle */}
-            <div
-              style={{
-                display: "flex",
-                background: theme.backgroundTertiary,
-                borderRadius: "10px",
-                padding: "2px",
-                border: `1px solid ${theme.borderLight}`,
-              }}
-            >
-              {[
-                {
-                  type: "tokens",
-                  label: "Tokens",
-                  icon: <GraphIcon size={14} />,
-                },
-                { type: "cost", label: t("cost", "成本"), icon: "¥" },
-              ].map(({ type, label, icon }) => (
-                <button
-                  key={type}
-                  onClick={() => setDataType(type as DataType)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    height: "32px",
-                    padding: "0 12px",
-                    borderRadius: "8px",
-                    border: "none",
-                    background:
-                      dataType === type ? theme.primary : "transparent",
-                    color:
-                      dataType === type
-                        ? theme.background
-                        : theme.textSecondary,
-                    fontSize: "13px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {icon}
-                  {label}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              items={dataTypeOptions}
+              activeTab={dataType}
+              onTabChange={(id) => setDataType(id as DataType)}
+              size="small"
+            />
           </div>
         </div>
-
-        {/* Chart */}
-        <div style={{ padding: "20px 24px", background: theme.background }}>
+        <div style={{ padding: "20px 24px", background: "var(--background)" }}>
           <ReactECharts
             option={getChartOption()}
             style={{ height: "420px" }}
