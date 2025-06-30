@@ -306,23 +306,28 @@ const MessageInput: React.FC = () => {
     <>
       <style href="message-input" precedence="medium">{`
         .message-input-container {
+          --container-padding: var(--space-4);
+          --container-gap: var(--space-3);
+          --container-border-radius: var(--space-3);
+          --element-transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          
           position: relative;
           bottom: 0;
           left: 0;
           right: 0;
           width: 100%;
-          padding: ${theme.space[4]};
-          padding-bottom: calc(${theme.space[4]} + env(safe-area-inset-bottom, 0px));
+          padding: var(--container-padding);
+          padding-bottom: calc(var(--container-padding) + env(safe-area-inset-bottom, 0px));
           display: flex;
           flex-direction: column;
-          gap: ${theme.space[3]};
-          background: ${theme.background};
-          border-top: 1px solid ${theme.borderLight};
+          gap: var(--container-gap);
+          background: var(--background);
+          border-top: 1px solid var(--borderLight);
           box-shadow: 
-            0 -4px 12px ${theme.shadowLight},
+            0 -4px 12px var(--shadowLight),
             inset 0 1px 0 rgba(255, 255, 255, 0.05);
           z-index: ${zIndex.messageInputContainerZIndex};
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: var(--element-transition);
         }
 
         .message-input-container.processing {
@@ -331,7 +336,7 @@ const MessageInput: React.FC = () => {
 
         .input-controls {
           display: flex;
-          gap: ${theme.space[3]};
+          gap: var(--container-gap);
           width: 100%;
           align-items: flex-end;
         }
@@ -340,76 +345,70 @@ const MessageInput: React.FC = () => {
           flex: 1;
           min-height: 44px;
           max-height: 200px;
-          padding: ${theme.space[3]} ${theme.space[4]};
+          padding: var(--container-gap) var(--container-padding);
           font-size: 0.925rem;
           line-height: 1.5;
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[3]};
+          border: 1px solid var(--border);
+          border-radius: var(--container-border-radius);
           resize: none;
           overflow-y: auto;
           scroll-behavior: smooth;
           -webkit-overflow-scrolling: touch;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
-          background: ${theme.backgroundSecondary};
-          color: ${theme.text};
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          background: var(--backgroundSecondary);
+          color: var(--text);
+          transition: var(--element-transition);
           letter-spacing: -0.01em;
           box-shadow: 
-            0 1px 3px ${theme.shadowLight},
+            0 1px 3px var(--shadowLight),
             inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .message-textarea::placeholder {
+          color: var(--placeholder);
+          opacity: 1;
         }
 
         .message-textarea:disabled {
           opacity: 0.65;
           cursor: wait;
-          background: ${theme.backgroundTertiary};
-        }
-
-        .message-textarea::placeholder {
-          color: ${theme.placeholder};
-          opacity: 1;
+          background: var(--backgroundTertiary);
         }
 
         .message-textarea:focus {
           outline: none;
-          border-color: ${theme.primary};
-          background: ${theme.background};
+          border-color: var(--primary);
+          background: var(--background);
           box-shadow: 
-            0 0 0 3px ${theme.primary}20,
-            0 2px 8px ${theme.shadowMedium},
+            0 0 0 3px var(--focus),
+            0 2px 8px var(--shadowMedium),
             inset 0 1px 0 rgba(255, 255, 255, 0.05);
           transform: translateY(-1px);
         }
 
         .message-textarea:hover:not(:focus):not(:disabled) {
-          border-color: ${theme.borderHover};
+          border-color: var(--borderHover);
           box-shadow: 
-            0 2px 6px ${theme.shadowLight},
+            0 2px 6px var(--shadowLight),
             inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
 
-        .message-textarea:-webkit-autofill,
-        .message-textarea:-webkit-autofill:hover,
-        .message-textarea:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0 1000px ${theme.backgroundSecondary} inset;
-          -webkit-text-fill-color: ${theme.text};
-        }
-
         .upload-button {
-          width: 44px;
-          height: 44px;
-          border-radius: ${theme.space[3]};
-          border: 1px solid ${theme.border};
+          --button-size: 44px;
+          width: var(--button-size);
+          height: var(--button-size);
+          border-radius: var(--container-border-radius);
+          border: 1px solid var(--border);
           display: flex;
           align-items: center;
           justify-content: center;
-          background: ${theme.backgroundSecondary};
-          color: ${theme.textSecondary};
+          background: var(--backgroundSecondary);
+          color: var(--textSecondary);
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: var(--element-transition);
           flex-shrink: 0;
           box-shadow: 
-            0 1px 3px ${theme.shadowLight},
+            0 1px 3px var(--shadowLight),
             inset 0 1px 0 rgba(255, 255, 255, 0.03);
           position: relative;
           overflow: hidden;
@@ -425,20 +424,20 @@ const MessageInput: React.FC = () => {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, ${theme.primary}06 0%, transparent 50%);
+          background: linear-gradient(135deg, var(--primaryGhost) 0%, transparent 50%);
           opacity: 0;
           transition: opacity 0.3s ease;
           pointer-events: none;
         }
 
         .upload-button:hover:not(:disabled) {
-          background: ${theme.background};
-          color: ${theme.primary};
-          border-color: ${theme.borderHover};
+          background: var(--background);
+          color: var(--primary);
+          border-color: var(--borderHover);
           transform: translateY(-2px);
           box-shadow: 
-            0 4px 12px ${theme.shadowMedium},
-            0 0 0 1px ${theme.primary}12,
+            0 4px 12px var(--shadowMedium),
+            0 0 0 1px var(--primaryGhost),
             inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
@@ -450,36 +449,33 @@ const MessageInput: React.FC = () => {
           transform: translateY(0);
           transition-duration: 0.1s;
           box-shadow: 
-            0 1px 3px ${theme.shadowLight},
+            0 1px 3px var(--shadowLight),
             inset 0 2px 4px rgba(0, 0, 0, 0.03);
         }
 
         .upload-button:focus-visible {
           outline: none;
           box-shadow: 
-            0 0 0 2px ${theme.background},
-            0 0 0 4px ${theme.primary},
-            0 1px 3px ${theme.shadowLight};
+            0 0 0 2px var(--background),
+            0 0 0 4px var(--primary),
+            0 1px 3px var(--shadowLight);
         }
 
         .upload-button:focus:not(:focus-visible) {
           outline: none;
-          box-shadow: 
-            0 1px 3px ${theme.shadowLight},
-            inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
 
         .drop-zone {
           position: absolute;
-          inset: ${theme.space[2]};
-          border-radius: ${theme.space[4]};
+          inset: var(--space-2);
+          border-radius: var(--space-4);
           display: flex;
           align-items: center;
           justify-content: center;
-          background: ${theme.backgroundGhost};
+          background: var(--backgroundGhost);
           backdrop-filter: blur(12px);
-          border: 2px dashed ${theme.primary};
-          color: ${theme.primary};
+          border: 2px dashed var(--primary);
+          color: var(--primary);
           pointer-events: none;
           z-index: 10;
           opacity: 0;
@@ -487,55 +483,8 @@ const MessageInput: React.FC = () => {
         }
 
         @keyframes dropZoneFadeIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        .drop-zone-content {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: ${theme.space[3]};
-          font-size: 0.95rem;
-          font-weight: 550;
-          letter-spacing: -0.01em;
-          padding: ${theme.space[5]};
-          border-radius: ${theme.space[3]};
-          background: ${theme.background}90;
-          backdrop-filter: blur(8px);
-          box-shadow: 0 4px 20px ${theme.shadowMedium};
-        }
-
-        .processing-indicator {
-          position: absolute;
-          top: ${theme.space[2]};
-          right: ${theme.space[2]};
-          display: flex;
-          align-items: center;
-          gap: ${theme.space[2]};
-          padding: ${theme.space[2]} ${theme.space[3]};
-          background: ${theme.backgroundSecondary};
-          border: 1px solid ${theme.border};
-          border-radius: ${theme.space[2]};
-          font-size: 0.75rem;
-          color: ${theme.textSecondary};
-          z-index: 5;
-          box-shadow: 0 2px 8px ${theme.shadowMedium};
-        }
-
-        .processing-spinner {
-          width: 12px;
-          height: 12px;
-          border: 1.5px solid ${theme.primary};
-          border-top: 1.5px solid transparent;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
         }
 
         @keyframes spin {
@@ -543,44 +492,75 @@ const MessageInput: React.FC = () => {
           100% { transform: rotate(360deg); }
         }
 
-        .message-textarea:focus-visible {
-          outline: none;
+        .drop-zone-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-3);
+          font-size: 0.95rem;
+          font-weight: 550;
+          letter-spacing: -0.01em;
+          padding: var(--space-5);
+          border-radius: var(--container-border-radius);
+          background: rgba(var(--background), 0.9);
+          backdrop-filter: blur(8px);
+          box-shadow: 0 4px 20px var(--shadowMedium);
         }
 
-        /* 响应式设计 */
+        .processing-indicator {
+          position: absolute;
+          top: var(--space-2);
+          right: var(--space-2);
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          padding: var(--space-2) var(--space-3);
+          background: var(--backgroundSecondary);
+          border: 1px solid var(--border);
+          border-radius: var(--space-2);
+          font-size: 0.75rem;
+          color: var(--textSecondary);
+          z-index: 5;
+          box-shadow: 0 2px 8px var(--shadowMedium);
+        }
+
+        .processing-spinner {
+          width: 12px;
+          height: 12px;
+          border: 1.5px solid var(--primary);
+          border-top: 1.5px solid transparent;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        /* 移动端响应式 */
         @media (max-width: 768px) {
           .message-input-container {
-            padding: ${theme.space[3]};
-            gap: ${theme.space[2]};
+            --container-padding: var(--space-3);
+            --container-gap: var(--space-2);
+            --container-border-radius: var(--space-2);
           }
 
-          .input-controls {
-            gap: ${theme.space[2]};
+          .upload-button {
+            --button-size: 40px;
           }
 
           .message-textarea {
             min-height: 40px;
             max-height: 150px;
-            padding: ${theme.space[2]} ${theme.space[3]};
+            padding: var(--space-2) var(--space-3);
             font-size: 1rem;
-            border-radius: ${theme.space[2]};
-          }
-
-          .upload-button {
-            width: 40px;
-            height: 40px;
-            border-radius: ${theme.space[2]};
           }
 
           .drop-zone-content {
-            padding: ${theme.space[4]};
+            padding: var(--space-4);
             font-size: 0.875rem;
           }
 
           .processing-indicator {
-            top: ${theme.space[1]};
-            right: ${theme.space[1]};
-            padding: ${theme.space[1]} ${theme.space[2]};
+            top: var(--space-1);
+            right: var(--space-1);
+            padding: var(--space-1) var(--space-2);
             font-size: 0.7rem;
           }
 
@@ -593,17 +573,16 @@ const MessageInput: React.FC = () => {
 
         @media (max-width: 480px) {
           .message-input-container {
-            padding: ${theme.space[2]};
-          }
-
-          .message-textarea {
-            padding: ${theme.space[2]};
-            font-size: 1rem;
+            --container-padding: var(--space-2);
           }
 
           .upload-button {
-            width: 36px;
-            height: 36px;
+            --button-size: 36px;
+          }
+
+          .message-textarea {
+            padding: var(--space-2);
+            font-size: 1rem;
           }
         }
 
@@ -612,22 +591,21 @@ const MessageInput: React.FC = () => {
           .message-input-container {
             max-width: 900px;
             margin: 0 auto;
-            padding: ${theme.space[6]} ${theme.space[4]};
+            padding: var(--space-6) var(--container-padding);
             border-top: none;
             box-shadow: none;
             background: transparent;
+          }
+
+          .upload-button {
+            --button-size: 48px;
           }
 
           .message-textarea {
             min-height: 48px;
             max-height: 200px;
             font-size: 1rem;
-            padding: ${theme.space[3]} ${theme.space[5]};
-          }
-
-          .upload-button {
-            width: 48px;
-            height: 48px;
+            padding: var(--space-3) var(--space-5);
           }
         }
 
@@ -637,7 +615,7 @@ const MessageInput: React.FC = () => {
           }
         }
 
-        /* 可访问性和性能优化 */
+        /* 可访问性优化 */
         @media (prefers-reduced-motion: reduce) {
           .message-input-container,
           .message-textarea,
@@ -657,7 +635,7 @@ const MessageInput: React.FC = () => {
           }
 
           .processing-spinner {
-            border: 2px solid ${theme.primary};
+            border: 2px solid var(--primary);
             border-radius: 50%;
           }
         }
