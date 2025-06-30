@@ -277,7 +277,6 @@ const TopBar = ({ toggleSidebar }) => {
           background: var(--background); position: sticky; top: 0;
           padding: 0 var(--space-5); z-index: ${zIndex.topbar};
           height: var(--headerHeight);
-          border-bottom: 1px solid var(--border);
         }
         
         .topbar-section {
