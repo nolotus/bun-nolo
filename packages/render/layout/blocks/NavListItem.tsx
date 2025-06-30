@@ -10,11 +10,6 @@ interface NavListItemProps {
   size?: "default" | "large";
 }
 
-const styles = {
-  borderRadius: "6px",
-  transition: "all 0.2s ease",
-};
-
 const NavListItem: React.FC<NavListItemProps> = ({
   path,
   label,
@@ -22,11 +17,10 @@ const NavListItem: React.FC<NavListItemProps> = ({
   onClick,
   size = "default",
 }) => {
-  const theme = useTheme();
   const height = size === "large" ? "48px" : "32px";
-  const padding = size === "large" ? "0 16px" : "0 12px";
+  const padding = size === "large" ? "0 var(--space-4)" : "0 var(--space-3)";
   const fontSize = size === "large" ? "16px" : "14px";
-  const iconMargin = size === "large" ? "12px" : "8px";
+  const iconMargin = size === "large" ? "var(--space-3)" : "var(--space-2)";
 
   return (
     <>
@@ -36,11 +30,11 @@ const NavListItem: React.FC<NavListItemProps> = ({
             display: flex;
             align-items: center;
             padding: ${padding};
-            border-radius: ${styles.borderRadius};
-            color: ${theme.text};
+            border-radius: 6px;
+            color: var(--text);
             background: transparent;
             text-decoration: none;
-            transition: ${styles.transition};
+            transition: all 0.2s ease;
             cursor: pointer;
             font-weight: 400;
             height: ${height};
@@ -51,25 +45,25 @@ const NavListItem: React.FC<NavListItemProps> = ({
             display: flex;
             align-items: center;
             margin-right: ${iconMargin};
-            color: ${theme.textSecondary};
+            color: var(--textSecondary);
           }
 
           .nav-list-item:hover {
-            color: ${theme.primary};
-            background: ${theme.primaryGhost};
+            color: var(--primary);
+            background: var(--primaryGhost);
           }
-          
+
           .nav-list-item:hover .nav-list-icon {
-            color: ${theme.primary};
+            color: var(--primary);
           }
 
           .nav-list-item.active {
-            background: ${theme.primary};
-            color: ${theme.background};
+            background: var(--primary);
+            color: var(--background);
           }
-          
+
           .nav-list-item.active .nav-list-icon {
-            color: ${theme.background};
+            color: var(--background);
           }
 
           @media (prefers-reduced-motion: reduce) {

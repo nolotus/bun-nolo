@@ -164,17 +164,17 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         )}
       </div>
 
-      <style href="base-action-modal" precedence="medium">{`
+      <style jsx>{`
         .action-modal {
-          background: ${theme.background};
+          background: var(--background);
           border-radius: 12px;
           box-shadow:
-            0 0 0 1px ${theme.border},
-            0 10px 15px -3px ${theme.shadowLight},
-            0 4px 6px -2px ${theme.shadowMedium};
+            0 0 0 1px var(--border),
+            0 10px 15px -3px var(--shadowLight),
+            0 4px 6px -2px var(--shadowMedium);
           width: 100%;
           max-width: ${typeof width === "number" ? `${width}px` : width};
-          margin: ${sp[4]};
+          margin: var(--space-4);
           overflow: hidden;
           opacity: 0;
           transform: scale(0.95) translateY(10px);
@@ -192,18 +192,18 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         }
 
         .modal-header {
-          padding: ${sp[5]} ${sp[6]} ${sp[4]};
-          border-bottom: 1px solid ${theme.backgroundTertiary};
+          padding: var(--space-5) var(--space-6) var(--space-4);
+          border-bottom: 1px solid var(--backgroundTertiary);
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: ${sp[4]};
+          gap: var(--space-4);
         }
 
         .title-wrapper {
           display: flex;
           align-items: center;
-          gap: ${sp[2]};
+          gap: var(--space-2);
           color: ${getStatusColor()};
         }
 
@@ -217,8 +217,12 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           margin: 0;
           font-size: 18px;
           font-weight: 600;
-          color: ${theme.text};
+          color: var(--text);
           letter-spacing: -0.01em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: calc(100% - 32px);
         }
 
         .header-extra {
@@ -226,20 +230,20 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         }
 
         .modal-body {
-          padding: ${sp[6]} ${sp[6]} ${sp[4]};
+          padding: var(--space-6) var(--space-6) var(--space-4);
           flex: 1;
           overflow-y: auto;
-          color: ${theme.textSecondary};
+          color: var(--textSecondary);
           font-size: 14px;
           line-height: 1.6;
           -webkit-overflow-scrolling: touch;
         }
 
         .modal-actions {
-          padding: ${sp[2]} ${sp[6]} ${sp[6]};
+          padding: var(--space-2) var(--space-6) var(--space-6);
           display: flex;
           justify-content: flex-end;
-          gap: ${sp[3]};
+          gap: var(--space-3);
         }
 
         /* 移动端优化 */
@@ -262,7 +266,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           }
 
           .modal-header {
-            padding: ${sp[4]} ${sp[4]} ${sp[3]};
+            padding: var(--space-4);
           }
 
           .title {
@@ -270,12 +274,12 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           }
 
           .modal-body {
-            padding: ${sp[4]} ${sp[4]} ${sp[2]};
+            padding: var(--space-4);
             height: calc(100vh - 140px);
           }
 
           .modal-actions {
-            padding: ${sp[3]} ${sp[4]} ${sp[5]};
+            padding: var(--space-3) var(--space-4) var(--space-5);
             margin-top: auto;
           }
         }
@@ -283,7 +287,7 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
         /* 平板端优化 */
         @media (max-width: 768px) and (min-width: 641px) {
           .action-modal {
-            margin: ${sp[4]};
+            margin: var(--space-4);
             max-width: 90%;
           }
         }
