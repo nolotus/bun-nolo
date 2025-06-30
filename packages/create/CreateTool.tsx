@@ -118,9 +118,9 @@ export const CreateTool: React.FC = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "12px 24px",
-          background: theme.background,
-          borderBottom: `1px solid ${theme.border}`,
+          padding: "var(--space-3) var(--space-6)",
+          background: "var(--background)",
+          borderBottom: `1px solid var(--border)`,
           backdropFilter: "blur(8px)",
         }}
       >
@@ -130,8 +130,8 @@ export const CreateTool: React.FC = () => {
           style={{
             fontSize: 16,
             fontWeight: 500,
-            color: theme.textPrimary,
-            marginRight: 24,
+            color: "var(--text)",
+            marginRight: "var(--space-6)",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -145,7 +145,11 @@ export const CreateTool: React.FC = () => {
         {/* 操作按钮 */}
         <div
           className="controls"
-          style={{ display: "flex", alignItems: "center", gap: 12 }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-3)",
+          }}
         >
           <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
 
@@ -192,14 +196,14 @@ export const CreateTool: React.FC = () => {
       <style href="create-tool-styles" precedence="medium">{`
         @media (max-width: 640px) {
           .tools-container {
-            padding: 8px 16px;
+            padding: var(--space-2) var(--space-4);
           }
           .title {
             display: none;
           }
           .controls {
             justify-content: space-between;
-            gap: 8px;
+            gap: var(--space-2);
           }
         }
 
@@ -207,16 +211,16 @@ export const CreateTool: React.FC = () => {
           background: transparent;
           border: none;
           cursor: pointer;
-          padding: 4px;
+          padding: var(--space-1);
           color: inherit;
-          border-radius: 4px;
+          border-radius: var(--space-1);
           flex-shrink: 0;
           position: relative;
           transition: all 0.2s ease;
         }
 
         .icon-button:hover:not(:disabled) {
-          background-color: ${theme.backgroundHover};
+          background-color: var(--background-hover);
         }
 
         .icon-button:disabled {
@@ -225,7 +229,7 @@ export const CreateTool: React.FC = () => {
         }
 
         .delete-btn:hover:not(:disabled) {
-          color: ${theme.error};
+          color: var(--error);
           background-color: rgba(239, 68, 68, 0.1);
         }
       `}</style>
