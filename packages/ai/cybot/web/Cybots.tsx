@@ -1,7 +1,7 @@
 // ai/cybot/web/Cybots.tsx
 
 import { memo, useEffect, useState, useCallback } from "react";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";

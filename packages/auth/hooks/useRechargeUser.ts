@@ -1,7 +1,7 @@
 // hooks/useRechargeUser.ts
 import { ulid } from "ulid";
 import { useCallback } from "react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { write } from "database/dbSlice";
 import { DataType } from "create/types";
 import pino from "pino";

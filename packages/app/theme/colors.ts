@@ -4,231 +4,328 @@ export const blue = {
   light: {
     primary: "#1677FF",
     primaryLight: "#4096FF",
-    primaryBg: "#F0F7FF",
+    primaryBg: "#F6FBFF",
     hover: "#0958D9",
-    focus: "rgba(22, 119, 255, 0.12)",
-    primaryGhost: "rgba(22, 119, 255, 0.08)",
-    primaryGradient: "linear-gradient(45deg, #1677FF, #4096FF)",
+    focus: "rgba(22, 119, 255, 0.10)",
+    primaryGhost: "rgba(22, 119, 255, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #1677FF, #4096FF)",
     name: "默认蓝",
     primaryDark: "#0958D9",
-    primaryHover: "rgba(22, 119, 255, 0.12)",
+    primaryHover: "rgba(22, 119, 255, 0.10)",
 
     // 扩展色彩系统 - 蓝色协调色
-    backgroundAccent: "#F0F7FF", // 带蓝色调的浅背景
-    backgroundActive: "#E6F4FF", // 稍强的蓝色背景
-    borderAccent: "#BAE0FF", // 带蓝色的边框
-    success: "#10B981", // 协调的绿色
-    warning: "#F59E0B", // 协调的橙色
-    info: "#1677FF", // 信息色使用主色
+    backgroundAccent: "#F6FBFF", // 更微妙的蓝色调背景
+    backgroundActive: "#E8F4FF", // 稍强的蓝色背景
+    borderAccent: "#C7E2FF", // 柔和的蓝色边框
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#1677FF",
   },
   dark: {
     primary: "#4096FF",
     primaryLight: "#69B1FF",
-    primaryBg: "#111A2C",
+    primaryBg: "#0F1419",
     hover: "#1677FF",
-    focus: "rgba(64, 150, 255, 0.12)",
-    primaryGhost: "rgba(64, 150, 255, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #4096FF, #69B1FF)",
+    focus: "rgba(64, 150, 255, 0.15)",
+    primaryGhost: "rgba(64, 150, 255, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #4096FF, #69B1FF)",
     name: "默认蓝(暗色)",
     primaryDark: "#1677FF",
-    primaryHover: "rgba(64, 150, 255, 0.12)",
+    primaryHover: "rgba(64, 150, 255, 0.15)",
 
     // 扩展色彩系统 - 暗色模式下的蓝色协调色
-    backgroundAccent: "#112240", // 带蓝色调的深背景
-    backgroundActive: "#112D56", // 稍强的蓝色背景
-    borderAccent: "#1D4ED8", // 带蓝色的暗边框
-    success: "#10B981", // 协调的绿色
-    warning: "#F59E0B", // 协调的橙色
-    info: "#4096FF", // 信息色使用主色
+    backgroundAccent: "#0A1220", // 更深的蓝调背景
+    backgroundActive: "#0F1829", // 稍强的蓝色背景
+    borderAccent: "#1E3A8A", // 深蓝边框
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#4096FF",
   },
 };
+
 export const green = {
   light: {
-    primary: "#10B981", // 清新的翡翠绿
-    primaryLight: "#34D399", // 较浅的绿色
-    primaryBg: "#ECFDF5", // 极浅的背景绿
-    hover: "#059669", // 深绿交互色
-    focus: "rgba(16, 185, 129, 0.12)",
-    primaryGhost: "rgba(16, 185, 129, 0.08)", // 微调透明度
-    primaryGradient: "linear-gradient(45deg, #10B981, #34D399)",
+    primary: "#10B981",
+    primaryLight: "#34D399",
+    primaryBg: "#F0FDF9",
+    hover: "#059669",
+    focus: "rgba(16, 185, 129, 0.10)",
+    primaryGhost: "rgba(16, 185, 129, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #10B981, #34D399)",
     name: "清新绿",
-    primaryDark: "#059669", // 与hover保持一致
-    primaryHover: "rgba(16, 185, 129, 0.12)", // 与focus保持一致
+    primaryDark: "#059669",
+    primaryHover: "rgba(16, 185, 129, 0.10)",
+
+    backgroundAccent: "#F0FDF9",
+    backgroundActive: "#E6FFF7",
+    borderAccent: "#A7F3D0",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
   },
   dark: {
-    primary: "#34D399", // 明亮的绿色
-    primaryLight: "#6EE7B7", // 更亮的薄荷绿
-    primaryBg: "#0F1922", // 带绿调的深色背景
-    hover: "#10B981", // 互补的悬停色
-    focus: "rgba(52, 211, 153, 0.12)",
-    primaryGhost: "rgba(52, 211, 153, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #34D399, #6EE7B7)",
+    primary: "#34D399",
+    primaryLight: "#6EE7B7",
+    primaryBg: "#0C1B14",
+    hover: "#10B981",
+    focus: "rgba(52, 211, 153, 0.15)",
+    primaryGhost: "rgba(52, 211, 153, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #34D399, #6EE7B7)",
     name: "清新绿(暗色)",
-    primaryDark: "#10B981", // 与hover保持一致
-    primaryHover: "rgba(52, 211, 153, 0.12)", // 与focus保持一致
+    primaryDark: "#10B981",
+    primaryHover: "rgba(52, 211, 153, 0.15)",
+
+    backgroundAccent: "#051B11",
+    backgroundActive: "#0A2318",
+    borderAccent: "#065F46",
+    success: "#34D399",
+    warning: "#F59E0B",
+    info: "#60A5FA",
   },
 };
+
 export const graphite = {
   light: {
-    primary: "#475569", // 优雅的石墨灰
-    primaryLight: "#64748B", // 较浅的石墨色
-    primaryBg: "#F8FAFC", // 极浅的背景灰
-    hover: "#334155", // 深灰交互色
-    focus: "rgba(71, 85, 105, 0.12)",
-    primaryGhost: "rgba(71, 85, 105, 0.08)", // 微调透明度
-    primaryGradient: "linear-gradient(45deg, #475569, #64748B)",
+    primary: "#475569",
+    primaryLight: "#64748B",
+    primaryBg: "#F8FAFC",
+    hover: "#334155",
+    focus: "rgba(71, 85, 105, 0.10)",
+    primaryGhost: "rgba(71, 85, 105, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #475569, #64748B)",
     name: "石墨灰",
-    primaryDark: "#334155", // 与hover保持一致
-    primaryHover: "rgba(71, 85, 105, 0.12)", // 与focus保持一致
+    primaryDark: "#334155",
+    primaryHover: "rgba(71, 85, 105, 0.10)",
+
+    backgroundAccent: "#F8FAFC",
+    backgroundActive: "#F1F5F9",
+    borderAccent: "#CBD5E1",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
   },
   dark: {
-    primary: "#94A3B8", // 明亮的石墨色
-    primaryLight: "#CBD5E1", // 更亮的灰色
-    primaryBg: "#0F172A", // 深色背景
-    hover: "#64748B", // 互补的悬停色
-    focus: "rgba(148, 163, 184, 0.12)",
-    primaryGhost: "rgba(148, 163, 184, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #94A3B8, #CBD5E1)",
+    primary: "#94A3B8",
+    primaryLight: "#CBD5E1",
+    primaryBg: "#0F1419",
+    hover: "#64748B",
+    focus: "rgba(148, 163, 184, 0.15)",
+    primaryGhost: "rgba(148, 163, 184, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #94A3B8, #CBD5E1)",
     name: "石墨灰(暗色)",
-    primaryDark: "#64748B", // 与hover保持一致
-    primaryHover: "rgba(148, 163, 184, 0.12)", // 与focus保持一致
+    primaryDark: "#64748B",
+    primaryHover: "rgba(148, 163, 184, 0.15)",
+
+    backgroundAccent: "#0C1116",
+    backgroundActive: "#161B22",
+    borderAccent: "#374151",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#60A5FA",
   },
 };
+
 export const orange = {
   light: {
     primary: "#F97316",
     primaryLight: "#FB923C",
-    primaryBg: "#FFF7ED",
+    primaryBg: "#FFF8F1",
     hover: "#EA580C",
-    focus: "rgba(249, 115, 22, 0.12)",
-    primaryGhost: "rgba(249, 115, 22, 0.08)",
-    primaryGradient: "linear-gradient(45deg, #F97316, #FB923C)",
+    focus: "rgba(249, 115, 22, 0.10)",
+    primaryGhost: "rgba(249, 115, 22, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #F97316, #FB923C)",
     name: "暖橙",
     primaryDark: "#EA580C",
-    primaryHover: "rgba(249, 115, 22, 0.12)",
+    primaryHover: "rgba(249, 115, 22, 0.10)",
 
-    // 扩展色彩系统 - 橙色协调色
-    backgroundAccent: "#FFF7ED", // 带橙色调的浅背景
-    backgroundActive: "#FFEDD5", // 稍强的橙色背景
-    borderAccent: "#FED7AA", // 带橙色的边框
-    success: "#059669", // 深绿色，与橙色协调
-    warning: "#F97316", // 警告色使用主色
-    info: "#3B82F6", // 协调的蓝色
+    backgroundAccent: "#FFF8F1",
+    backgroundActive: "#FFF1E6",
+    borderAccent: "#FED7AA",
+    success: "#059669",
+    warning: "#F97316",
+    info: "#3B82F6",
   },
   dark: {
     primary: "#FB923C",
     primaryLight: "#FDBA74",
-    primaryBg: "#1C1917",
+    primaryBg: "#1C1510",
     hover: "#F97316",
-    focus: "rgba(251, 146, 60, 0.12)",
-    primaryGhost: "rgba(251, 146, 60, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #FB923C, #FDBA74)",
+    focus: "rgba(251, 146, 60, 0.15)",
+    primaryGhost: "rgba(251, 146, 60, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #FB923C, #FDBA74)",
     name: "暖橙(暗色)",
     primaryDark: "#F97316",
-    primaryHover: "rgba(251, 146, 60, 0.12)",
+    primaryHover: "rgba(251, 146, 60, 0.15)",
 
-    // 扩展色彩系统 - 暗色模式下的橙色协调色
-    backgroundAccent: "#292524", // 带暖调的深背景
-    backgroundActive: "#2E2320", // 稍强的橙色调背景
-    borderAccent: "#C2410C", // 带橙色的暗边框
-    success: "#10B981", // 协调的绿色
-    warning: "#FB923C", // 警告色使用主色
-    info: "#60A5FA", // 协调的蓝色
+    backgroundAccent: "#1A140E",
+    backgroundActive: "#221A14",
+    borderAccent: "#C2410C",
+    success: "#10B981",
+    warning: "#FB923C",
+    info: "#60A5FA",
   },
 };
+
 export const pink = {
   light: {
-    primary: "#db2777",
-    primaryLight: "#f17eae",
-    primaryBg: "#fef1f7",
-    hover: "#c32069",
-    focus: "rgba(219, 39, 119, 0.12)",
-    primaryGhost: "rgba(219, 39, 119, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #db2777, #f17eae)",
+    primary: "#EC4899",
+    primaryLight: "#F472B6",
+    primaryBg: "#FDF2F8",
+    hover: "#DB2777",
+    focus: "rgba(236, 72, 153, 0.10)",
+    primaryGhost: "rgba(236, 72, 153, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #EC4899, #F472B6)",
     name: "温柔粉",
+    primaryDark: "#DB2777",
+    primaryHover: "rgba(236, 72, 153, 0.10)",
+
+    backgroundAccent: "#FDF2F8",
+    backgroundActive: "#FCE8F3",
+    borderAccent: "#F9A8D4",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
   },
   dark: {
-    primary: "#f17eae",
-    primaryLight: "#db2777",
-    primaryBg: "#2a1922",
-    hover: "#f591bb",
-    focus: "rgba(241, 126, 174, 0.12)",
-    primaryGhost: "rgba(241, 126, 174, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #f17eae, #f591bb)",
+    primary: "#F472B6",
+    primaryLight: "#F9A8D4",
+    primaryBg: "#1C1118",
+    hover: "#EC4899",
+    focus: "rgba(244, 114, 182, 0.15)",
+    primaryGhost: "rgba(244, 114, 182, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #F472B6, #F9A8D4)",
     name: "温柔粉(暗色)",
+    primaryDark: "#EC4899",
+    primaryHover: "rgba(244, 114, 182, 0.15)",
+
+    backgroundAccent: "#1A0F15",
+    backgroundActive: "#22141B",
+    borderAccent: "#BE185D",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#60A5FA",
   },
 };
+
 export const purple = {
   light: {
-    primary: "#722ED1", // 优雅的紫色
-    primaryLight: "#9254DE", // 浅紫色
-    primaryBg: "#F9F0FF", // 柔和的背景紫
-    hover: "#531DAB", // 深紫交互色
-    focus: "rgba(114, 46, 209, 0.12)",
-    primaryGhost: "rgba(114, 46, 209, 0.08)", // 轻微调整透明度
-    primaryGradient: "linear-gradient(45deg, #722ED1, #9254DE)",
+    primary: "#8B5CF6",
+    primaryLight: "#A78BFA",
+    primaryBg: "#FAF7FF",
+    hover: "#7C3AED",
+    focus: "rgba(139, 92, 246, 0.10)",
+    primaryGhost: "rgba(139, 92, 246, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
     name: "雅致紫",
-    primaryDark: "#531DAB", // 与hover保持一致
-    primaryHover: "rgba(114, 46, 209, 0.12)", // 与focus保持一致
+    primaryDark: "#7C3AED",
+    primaryHover: "rgba(139, 92, 246, 0.10)",
+
+    backgroundAccent: "#FAF7FF",
+    backgroundActive: "#F5F0FF",
+    borderAccent: "#C7D2FE",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
   },
   dark: {
-    primary: "#9254DE", // 鲜明紫色
-    primaryLight: "#B37FEB", // 亮紫色
-    primaryBg: "#1A1429", // 深紫背景
-    hover: "#722ED1", // 互补的悬停色
-    focus: "rgba(146, 84, 222, 0.12)",
-    primaryGhost: "rgba(146, 84, 222, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #9254DE, #B37FEB)",
+    primary: "#A78BFA",
+    primaryLight: "#C4B5FD",
+    primaryBg: "#15111C",
+    hover: "#8B5CF6",
+    focus: "rgba(167, 139, 250, 0.15)",
+    primaryGhost: "rgba(167, 139, 250, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #A78BFA, #C4B5FD)",
     name: "雅致紫(暗色)",
-    primaryDark: "#722ED1", // 与hover保持一致
-    primaryHover: "rgba(146, 84, 222, 0.12)", // 与focus保持一致
+    primaryDark: "#8B5CF6",
+    primaryHover: "rgba(167, 139, 250, 0.15)",
+
+    backgroundAccent: "#130F1A",
+    backgroundActive: "#1B1520",
+    borderAccent: "#6D28D9",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#60A5FA",
   },
 };
+
 export const red = {
   light: {
-    primary: "#EF4444", // 鲜明但不刺眼的红色
-    primaryLight: "#F87171", // 较浅的红色
-    primaryBg: "#FEF2F2", // 极浅的背景粉红
-    hover: "#DC2626", // 深红交互色
-    focus: "rgba(239, 68, 68, 0.12)",
-    primaryGhost: "rgba(239, 68, 68, 0.08)", // 微调透明度
-    primaryGradient: "linear-gradient(45deg, #EF4444, #F87171)",
+    primary: "#EF4444",
+    primaryLight: "#F87171",
+    primaryBg: "#FEF7F7",
+    hover: "#DC2626",
+    focus: "rgba(239, 68, 68, 0.10)",
+    primaryGhost: "rgba(239, 68, 68, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #EF4444, #F87171)",
     name: "典雅红",
-    primaryDark: "#DC2626", // 与hover保持一致
-    primaryHover: "rgba(239, 68, 68, 0.12)", // 与focus保持一致
+    primaryDark: "#DC2626",
+    primaryHover: "rgba(239, 68, 68, 0.10)",
+
+    backgroundAccent: "#FEF7F7",
+    backgroundActive: "#FEF1F1",
+    borderAccent: "#FCA5A5",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#3B82F6",
   },
   dark: {
-    primary: "#F87171", // 明亮的红色
-    primaryLight: "#FCA5A5", // 更柔和的浅红色
-    primaryBg: "#1C1917", // 带暖调的深色背景
-    hover: "#EF4444", // 互补的悬停色
-    focus: "rgba(248, 113, 113, 0.12)",
-    primaryGhost: "rgba(248, 113, 113, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #F87171, #FCA5A5)",
+    primary: "#F87171",
+    primaryLight: "#FCA5A5",
+    primaryBg: "#1C1112",
+    hover: "#EF4444",
+    focus: "rgba(248, 113, 113, 0.15)",
+    primaryGhost: "rgba(248, 113, 113, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #F87171, #FCA5A5)",
     name: "典雅红(暗色)",
-    primaryDark: "#EF4444", // 与hover保持一致
-    primaryHover: "rgba(248, 113, 113, 0.12)", // 与focus保持一致
+    primaryDark: "#EF4444",
+    primaryHover: "rgba(248, 113, 113, 0.15)",
+
+    backgroundAccent: "#1A0F11",
+    backgroundActive: "#221416",
+    borderAccent: "#DC2626",
+    success: "#10B981",
+    warning: "#F59E0B",
+    info: "#60A5FA",
   },
 };
+
 export const yellow = {
   light: {
-    primary: "#F7C52B", // 更纯正的黄色,降低红色成分
-    primaryLight: "#FFD95A", // 更明亮的黄色
-    primaryBg: "#FFFBEB", // 更柔和的背景色
-    hover: "#E6B622", // 降低饱和度的hover状态
-    focus: "rgba(247, 197, 43, 0.12)",
-    primaryGhost: "rgba(247, 197, 43, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #F7C52B, #FFD95A)",
+    primary: "#EAB308",
+    primaryLight: "#FCD34D",
+    primaryBg: "#FFFCF0",
+    hover: "#CA8A04",
+    focus: "rgba(234, 179, 8, 0.10)",
+    primaryGhost: "rgba(234, 179, 8, 0.06)",
+    primaryGradient: "linear-gradient(135deg, #EAB308, #FCD34D)",
     name: "明亮黄",
+    primaryDark: "#CA8A04",
+    primaryHover: "rgba(234, 179, 8, 0.10)",
+
+    backgroundAccent: "#FFFCF0",
+    backgroundActive: "#FEF9E7",
+    borderAccent: "#FDE68A",
+    success: "#10B981",
+    warning: "#EAB308",
+    info: "#3B82F6",
   },
   dark: {
-    primary: "#FFD95A", // 暗色模式下使用更亮的黄色
-    primaryLight: "#F7C52B",
-    primaryBg: "#2A2620", // 暖色调的深色背景
-    hover: "#FFE070", // 柔和的hover效果
-    focus: "rgba(255, 217, 90, 0.12)",
-    primaryGhost: "rgba(255, 217, 90, 0.1)",
-    primaryGradient: "linear-gradient(45deg, #FFD95A, #FFE070)",
+    primary: "#FCD34D",
+    primaryLight: "#FDE68A",
+    primaryBg: "#1C1A10",
+    hover: "#FBBF24",
+    focus: "rgba(252, 211, 77, 0.15)",
+    primaryGhost: "rgba(252, 211, 77, 0.08)",
+    primaryGradient: "linear-gradient(135deg, #FCD34D, #FDE68A)",
     name: "明亮黄(暗色)",
+    primaryDark: "#FBBF24",
+    primaryHover: "rgba(252, 211, 77, 0.15)",
+
+    backgroundAccent: "#1A180E",
+    backgroundActive: "#221E14",
+    borderAccent: "#B45309",
+    success: "#10B981",
+    warning: "#FCD34D",
+    info: "#60A5FA",
   },
 };

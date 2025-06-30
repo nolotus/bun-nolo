@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 // 更新导入，使用新的 actions 和 selectors
 import {
   changeDarkMode,

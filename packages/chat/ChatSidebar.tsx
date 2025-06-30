@@ -1,12 +1,11 @@
 import React, {
-  memo,
   useState,
   useEffect,
   useCallback,
   useMemo,
   useRef,
 } from "react";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import {
   selectCurrentSpace,
   updateContentCategory,
@@ -14,26 +13,30 @@ import {
   selectCollapsedCategories,
   setAllCategoriesCollapsed,
   addCategory,
-  deleteMultipleContent, // <-- 新增: 导入批量删除 Action
+  deleteMultipleContent,
 } from "create/space/spaceSlice";
 import { SpaceData } from "app/types";
 import { useTheme } from "app/theme";
 import { useGroupedContent } from "create/space/hooks/useGroupedContent";
-import CategorySection from "create/space/category/CategorySection";
 import { UNCATEGORIZED_ID } from "create/space/constants";
+
+import { createPage } from "render/page/pageSlice";
+
+//web
+
+import CategorySection from "create/space/category/CategorySection";
+import { AddCategoryModal } from "create/space/category/AddCategoryModal";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import {
   FoldDownIcon,
   FoldUpIcon,
   NoteIcon,
   FileDirectoryIcon,
-  ChecklistIcon, // <-- 新增: 选择模式图标
-  TrashIcon, // <-- 新增: 删除图标
-  XIcon, // <-- 新增: 取消图标
+  ChecklistIcon,
+  TrashIcon,
+  XIcon,
 } from "@primer/octicons-react";
-import { useNavigate } from "react-router-dom";
-import { createPage } from "render/page/pageSlice";
-import { AddCategoryModal } from "create/space/category/AddCategoryModal";
-import toast from "react-hot-toast";
 
 // --- 类型定义 (无变动) ---
 interface CategoryItem {
@@ -224,7 +227,6 @@ const ChatSidebar: React.FC = () => {
   const [scrolling, setScrolling] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
-  // --- 新增: 批量选择状态 ---
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
@@ -257,7 +259,6 @@ const ChatSidebar: React.FC = () => {
     );
   }, [allVisibleCategoryIds, collapsedCategories]);
 
-  // --- 新增: 获取所有内容的 Key 用于全选 ---
   const allContentKeys = useMemo(() => {
     const keys = new Set<string>();
     groupedData.uncategorized.forEach((item) => keys.add(item.contentKey));
@@ -273,10 +274,9 @@ const ChatSidebar: React.FC = () => {
     [selectedItems.size, allContentKeys.length]
   );
 
-  // --- 新增: 批量选择相关处理函数 ---
   const handleToggleSelectionMode = useCallback(() => {
     setIsSelectionMode((prev) => !prev);
-    setSelectedItems(new Set()); // 退出时清空选项
+    setSelectedItems(new Set());
   }, []);
 
   const handleSelectItem = useCallback((contentKey: string) => {
@@ -329,7 +329,7 @@ const ChatSidebar: React.FC = () => {
       })
     );
     toast.success(`成功删除 ${selectedItems.size} 个项目`);
-    handleToggleSelectionMode(); // 删除后退出选择模式
+    handleToggleSelectionMode();
   }, [dispatch, space?.id, selectedItems, handleToggleSelectionMode]);
 
   const handleToggleAllCategories = useCallback(() => {
@@ -363,6 +363,7 @@ const ChatSidebar: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [scrolling]);
+
   useEffect(() => {
     const scrollArea = scrollAreaRef.current;
     if (scrollArea) {
@@ -370,6 +371,7 @@ const ChatSidebar: React.FC = () => {
       return () => scrollArea.removeEventListener("scroll", handleScroll);
     }
   }, [handleScroll]);
+
   useEffect(() => {
     const hasContent = Object.values(groupedData.categorized).some(
       (list) => list.length > 0
@@ -389,6 +391,7 @@ const ChatSidebar: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [groupedData, sortedCategories, isInitialLoad]);
+
   const isEmpty = useMemo(() => {
     const hasContent = Object.values(groupedData.categorized).some(
       (items) => items.length > 0
@@ -397,16 +400,10 @@ const ChatSidebar: React.FC = () => {
     const hasCategories = sortedCategories.length > 0;
     return !hasContent && !hasUncategorized && !hasCategories;
   }, [groupedData, sortedCategories]);
-  const isDarkTheme = useMemo(() => {
-    return (
-      theme.type === "dark" ||
-      window?.matchMedia?.("(prefers-color-scheme: dark)")?.matches
-    );
-  }, [theme.type]);
 
   return (
     <>
-      <nav className={`ChatSidebar ${isDarkTheme ? "ChatSidebar--dark" : ""}`}>
+      <nav className="ChatSidebar">
         {!isEmpty && (
           <div className="ChatSidebar__header">
             {isSelectionMode ? (
@@ -519,7 +516,6 @@ const ChatSidebar: React.FC = () => {
                       categoryName="未分类"
                       items={groupedData.uncategorized}
                       shouldAnimate={shouldAnimate}
-                      // --- 新增: 传递选择相关 props ---
                       isSelectionMode={isSelectionMode}
                       selectedItems={selectedItems}
                       onSelectItem={handleSelectItem}
@@ -558,7 +554,6 @@ const ChatSidebar: React.FC = () => {
                         items={groupedData.categorized[category.id] || []}
                         shouldAnimate={shouldAnimate}
                         handleProps={handleProps}
-                        // --- 新增: 传递选择相关 props ---
                         isSelectionMode={isSelectionMode}
                         selectedItems={selectedItems}
                         onSelectItem={handleSelectItem}
@@ -581,7 +576,7 @@ const ChatSidebar: React.FC = () => {
           padding: 0 ${theme.space[1]} ${theme.space[3]};
           box-sizing: border-box;
           font-size: 0.925rem;
-          user-select: none; 
+          user-select: none;
           -webkit-tap-highlight-color: transparent;
           position: relative;
         }
@@ -593,7 +588,7 @@ const ChatSidebar: React.FC = () => {
           padding: ${theme.space[3]} ${theme.space[3]} ${theme.space[2]};
           flex-shrink: 0;
           box-sizing: border-box;
-          height: 48px; /* 固定高度防止切换时跳动 */
+          height: 48px;
         }
 
         .ChatSidebar__header-title {
@@ -638,7 +633,7 @@ const ChatSidebar: React.FC = () => {
           opacity: 0.4;
           cursor: not-allowed;
         }
-        
+
         .ChatSidebar__header-divider {
             width: 1px;
             height: 12px;
@@ -653,49 +648,41 @@ const ChatSidebar: React.FC = () => {
           padding: 0 ${theme.space[2]} ${theme.space[3]};
           margin-right: -${theme.space[1]};
           scrollbar-width: thin;
-          scrollbar-color: ${
-            isDarkTheme ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"
-          } transparent;
+          scrollbar-color: ${theme.textLight} transparent;
           overscroll-behavior: contain;
           scroll-behavior: smooth;
           position: relative;
           transition: scrollbar-color 0.3s ease;
         }
-        
+
         .ChatSidebar__scroll-area::-webkit-scrollbar {
           width: 3px;
           background: transparent;
         }
-        
+
         .ChatSidebar__scroll-area::-webkit-scrollbar-track {
           background: transparent;
           margin: ${theme.space[2]} 0;
         }
-        
+
         .ChatSidebar__scroll-area::-webkit-scrollbar-thumb {
-          background-color: ${
-            isDarkTheme ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"
-          };
+          background-color: ${theme.textLight};
           border-radius: 6px;
           transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         .ChatSidebar__scroll-area:hover::-webkit-scrollbar-thumb {
-          background-color: ${
-            isDarkTheme ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.18)"
-          };
+          background-color: ${theme.textTertiary};
         }
-        
+
         .ChatSidebar__scroll-area.is-scrolling::-webkit-scrollbar-thumb {
-          background-color: ${
-            isDarkTheme ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)"
-          };
+          background-color: ${theme.textSecondary};
         }
 
         .ChatSidebar__content {
           opacity: 0;
           transform: translateY(12px);
-          transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+          transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
                       transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
@@ -723,7 +710,7 @@ const ChatSidebar: React.FC = () => {
           opacity: 0.5;
           filter: grayscale(0.3);
         }
-        
+
         .ChatSidebar__empty-hint {
           font-size: 0.8rem;
           margin-top: ${theme.space[2]};
@@ -777,18 +764,12 @@ const ChatSidebar: React.FC = () => {
         }
 
         .CategoryDraggable--drag-over-category {
-          background-color: ${
-            isDarkTheme
-              ? "rgba(22, 119, 255, 0.12)"
-              : "rgba(22, 119, 255, 0.06)"
-          };
+          background-color: ${theme.primaryGhost};
           border: 1px dashed ${theme.primary};
         }
 
         .CategoryDraggable--drag-over-item {
-          background-color: ${
-            isDarkTheme ? "rgba(82, 196, 26, 0.12)" : "rgba(82, 196, 26, 0.06)"
-          };
+          background-color: rgba(${theme.success === "#10B981" ? "16, 185, 129" : "82, 196, 26"}, 0.08);
           border: 1px dashed ${theme.success || "#52c41a"};
         }
 
@@ -801,9 +782,7 @@ const ChatSidebar: React.FC = () => {
         }
 
         .UncategorizedDraggable--drag-over-item {
-          background-color: ${
-            isDarkTheme ? "rgba(82, 196, 26, 0.12)" : "rgba(82, 196, 26, 0.06)"
-          };
+          background-color: rgba(${theme.success === "#10B981" ? "16, 185, 129" : "82, 196, 26"}, 0.08);
           border: 1px dashed ${theme.success || "#52c41a"};
         }
       `}</style>
@@ -817,4 +796,4 @@ const ChatSidebar: React.FC = () => {
   );
 };
 
-export default memo(ChatSidebar);
+export default ChatSidebar;

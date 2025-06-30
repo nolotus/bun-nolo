@@ -1,6 +1,6 @@
 // ai/cybot/hooks/useDeleteCybot.ts
 
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { remove } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";
 import { createCybotKey } from "database/keys";

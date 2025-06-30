@@ -1,4 +1,4 @@
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";
 import useAgentConfig from "ai/llm/hooks/useAgentConfig";

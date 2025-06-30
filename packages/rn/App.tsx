@@ -9,7 +9,7 @@ import { Provider } from "react-redux";
 import MainNavigation from "./MainNavigation";
 import { mobileStore } from "./store";
 import { rnTokenManager } from "auth/rn/tokenManager";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { useEffect } from "react";
 
 global._ISRN_ = true;

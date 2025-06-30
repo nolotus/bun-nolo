@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import useModelPricing from "../hooks/useModelPricing";
 import { useOllamaSettings } from "../hooks/useOllamaSettings";

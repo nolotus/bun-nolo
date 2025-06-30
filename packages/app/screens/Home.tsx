@@ -6,7 +6,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useAppSelector } from "../hooks";
+import { useAppSelector } from "app/store";
 import { useAuth } from "auth/hooks/useAuth";
 import Octicons from "react-native-vector-icons/Octicons";
 import { selectTheme } from "app/settings/settingSlice";

@@ -1,6 +1,6 @@
 // useSpaceData.ts
 import { useEffect, useState } from "react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { read } from "database/dbSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { createUserKey } from "database/keys";

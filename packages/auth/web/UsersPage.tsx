@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTheme } from "app/theme";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import Button from "render/web/ui/Button";
 import Pagination from "render/web/ui/Pagination";

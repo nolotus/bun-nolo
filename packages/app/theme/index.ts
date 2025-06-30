@@ -1,4 +1,4 @@
-import { useAppSelector } from "../hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 
 export const useTheme = () => {

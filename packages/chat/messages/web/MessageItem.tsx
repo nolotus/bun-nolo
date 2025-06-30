@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from "react";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
 import { selectTheme } from "app/settings/settingSlice";
 import { ChevronDownIcon, ChevronRightIcon } from "@primer/octicons-react";

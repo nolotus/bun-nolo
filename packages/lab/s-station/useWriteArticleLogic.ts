@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { read, remove } from "database/dbSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { createPage, PageData as FullPageData } from "render/page/pageSlice";

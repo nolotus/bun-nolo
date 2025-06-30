@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import {
   PaintbrushIcon,
@@ -69,7 +69,6 @@ const SettingsSidebarContent: React.FC = () => {
 
 const SettingLayout: React.FC = () => {
   const theme = useAppSelector(selectTheme);
-  console.log("Current theme:", theme); // 调试输出当前主题
   return (
     <>
       <style href="SettingLayout-styles" precedence="medium">

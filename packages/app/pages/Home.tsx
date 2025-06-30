@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
-import { useAppDispatch, useAppSelector } from "../hooks";
+import React, { useState, useEffect, useCallback } from "react";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import {
   selectIsLoggedIn,
@@ -32,37 +32,75 @@ import WelcomeSection from "./WelcomeSection";
 import AgentBlock from "ai/llm/web/AgentBlock";
 import PubCybots from "ai/cybot/web/PubCybots";
 
-const LoadingState = memo(() => (
-  <div className="cybots-grid">
-    {Array.from({ length: 6 }, (_, i) => (
-      <div
-        key={i}
-        className="skeleton-card"
-        style={{ animationDelay: `${i * 0.1}s` }}
-      />
-    ))}
-  </div>
-));
+const LoadingState = ({}) => {
+  const theme = useAppSelector(selectTheme);
+
+  return (
+    <>
+      <div className="cybots-grid">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div
+            key={i}
+            className="skeleton-card"
+            style={{ animationDelay: `${i * 0.1}s` }}
+          />
+        ))}
+      </div>
+
+      <style href={"loading-state" + theme.background} precedence="low">{`
+        .skeleton-card {
+          background: ${theme.backgroundSecondary};
+          border-radius: 16px;
+          height: 280px;
+          animation: skeletonPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes skeletonPulse {
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 0.4; }
+        }
+      `}</style>
+    </>
+  );
+};
 LoadingState.displayName = "LoadingState";
 
-const EmptyState = memo(({ message }: { message: string }) => {
+const EmptyState = ({ message }) => {
+  const theme = useAppSelector(selectTheme);
+
   return (
-    <div className="empty-state">
-      <div className="empty-icon">
-        <CopilotIcon size={48} />
+    <>
+      <div className="empty-state">
+        <div className="empty-icon">
+          <CopilotIcon size={48} />
+        </div>
+        <p className="empty-message">{message}</p>
       </div>
-      <p className="empty-message">{message}</p>
-    </div>
+
+      <style href={"empty-state" + theme.background} precedence="low">{`
+        .empty-state {
+          display: flex; flex-direction: column; align-items: center;
+          justify-content: center; gap: ${theme.space[4]}; min-height: 280px;
+          color: ${theme.textTertiary}; text-align: center;
+        }
+
+        .empty-icon {
+          width: 80px; height: 80px; border-radius: 24px;
+          background: linear-gradient(135deg, ${theme.primaryGhost} 0%, rgba(255, 255, 255, 0.06) 100%);
+          border: 1px solid ${theme.primaryGhost}; color: ${theme.primary};
+          opacity: 0.7; display: flex; align-items: center; justify-content: center;
+        }
+
+        .empty-message {
+          font-size: 1rem; font-weight: 500; margin: 0;
+        }
+      `}</style>
+    </>
   );
-});
+};
 EmptyState.displayName = "EmptyState";
 
-interface CybotsProps {
-  queryUserId: string;
-  limit?: number;
-}
-
-const Cybots = memo(({ queryUserId, limit = 6 }: CybotsProps) => {
+const Cybots = ({ queryUserId, limit = 6 }) => {
   const {
     loading,
     data: cybots = [],
@@ -103,7 +141,7 @@ const Cybots = memo(({ queryUserId, limit = 6 }: CybotsProps) => {
       ))}
     </div>
   );
-});
+};
 Cybots.displayName = "Cybots";
 
 const Home = () => {
@@ -230,7 +268,100 @@ const Home = () => {
 
   return (
     <>
-      <style href="unified-home" precedence="high">{`
+      <div className="home-layout">
+        <main className="home-container">
+          {/* 引导区域 */}
+          {isLoggedIn && currentUser ? (
+            <section className="guide-section">
+              <div className="hero-actions">
+                {actions.map((action) => (
+                  <div
+                    key={action.id}
+                    className={`hero-action ${action.accent ? "accent" : ""}`}
+                    onClick={
+                      action.type === "mixed"
+                        ? undefined
+                        : () => handleActionClick(action)
+                    }
+                    style={{
+                      cursor: action.type === "mixed" ? "default" : "pointer",
+                    }}
+                  >
+                    <div className="hero-header">
+                      <div className="hero-icon-container">{action.icon}</div>
+                      <h3 className="hero-title">
+                        {action.id === "quick-chat" && isChatLoading
+                          ? "正在启动..."
+                          : action.text}
+                      </h3>
+                    </div>
+
+                    <div className="hero-content">
+                      <p className="hero-description">{action.description}</p>
+
+                      {action.type === "mixed" && action.subActions && (
+                        <div className="sub-actions">
+                          {action.subActions.map((subAction, index) => (
+                            <NavLink
+                              key={index}
+                              to={subAction.payload}
+                              className="sub-action"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {subAction.icon}
+                              <span>{subAction.text}</span>
+                            </NavLink>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : (
+            <WelcomeSection />
+          )}
+
+          {/* AI展示区域 */}
+          <section className="ai-showcase">
+            <header className="section-header">
+              <div className="tabs-container">
+                <nav className="tabs-navigator">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      {tab.icon}
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </nav>
+
+                {isLoggedIn && (
+                  <NavLink
+                    to={
+                      activeTab === "myAI"
+                        ? `space/${currentSpaceId}`
+                        : "/explore"
+                    }
+                    className="explore-link"
+                  >
+                    <span>查看全部</span>
+                    <ChevronRightIcon size={16} />
+                  </NavLink>
+                )}
+              </div>
+            </header>
+
+            <div className="ai-content">{currentTab?.component}</div>
+          </section>
+        </main>
+      </div>
+
+      <style href={"home" + theme.background} precedence="high">{`
         .home-layout {
           min-height: 100vh;
           background: linear-gradient(180deg, ${theme.backgroundSecondary} 0%, ${theme.background} 40%);
@@ -242,7 +373,6 @@ const Home = () => {
           padding: ${theme.space[8]} ${theme.space[4]} ${theme.space[12]};
         }
 
-        /* 引导区域 */
         .guide-section {
           margin-bottom: ${theme.space[10]};
           opacity: 0;
@@ -254,7 +384,6 @@ const Home = () => {
           100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* 主要操作区 - 2x2 紧凑网格布局 */
         .hero-actions {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
@@ -275,19 +404,19 @@ const Home = () => {
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
           position: relative;
           overflow: hidden;
-          box-shadow: 0 1px 3px ${theme.shadow1};
+          box-shadow: 0 1px 3px ${theme.shadowLight};
           min-height: 120px;
         }
 
         .hero-action:hover {
           transform: translateY(-4px);
-          border-color: ${theme.primary}30;
-          box-shadow: 0 12px 24px -6px ${theme.shadow2};
+          border-color: ${theme.primaryGhost};
+          box-shadow: 0 12px 24px -6px ${theme.shadowMedium};
         }
 
         .hero-action.accent {
-          background: linear-gradient(135deg, ${theme.primary}08 0%, ${theme.background} 70%);
-          border-color: ${theme.primary}20;
+          background: linear-gradient(135deg, ${theme.primaryGhost} 0%, ${theme.background} 70%);
+          border-color: ${theme.primaryGhost};
         }
 
         .hero-action[disabled] {
@@ -296,7 +425,6 @@ const Home = () => {
           transform: none !important;
         }
 
-        /* 标题栏 - 图标和标题在同一行 */
         .hero-header {
           display: flex;
           align-items: center;
@@ -307,8 +435,8 @@ const Home = () => {
           width: 44px;
           height: 44px;
           border-radius: 14px;
-          background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}10 100%);
-          border: 1px solid ${theme.primary}20;
+          background: linear-gradient(135deg, ${theme.primaryGhost} 0%, rgba(255, 255, 255, 0.1) 100%);
+          border: 1px solid ${theme.primaryGhost};
           color: ${theme.primary};
           flex-shrink: 0;
           display: flex;
@@ -318,14 +446,14 @@ const Home = () => {
         }
 
         .hero-action:hover .hero-icon-container {
-          background: linear-gradient(135deg, ${theme.primary} 0%, ${theme.primary}90 100%);
-          color: white;
+          background: ${theme.primary};
+          color: ${theme.background};
           transform: scale(1.05);
         }
 
         .hero-action[disabled]:hover .hero-icon-container {
           transform: none;
-          background: linear-gradient(135deg, ${theme.primary}15 0%, ${theme.primary}10 100%);
+          background: linear-gradient(135deg, ${theme.primaryGhost} 0%, rgba(255, 255, 255, 0.1) 100%);
           color: ${theme.primary};
         }
 
@@ -353,7 +481,6 @@ const Home = () => {
           flex: 1;
         }
 
-        /* 混合类型操作的子按钮 */
         .sub-actions {
           display: flex;
           gap: ${theme.space[2]};
@@ -381,10 +508,9 @@ const Home = () => {
         .sub-action:hover {
           color: ${theme.primary};
           background: ${theme.background};
-          border-color: ${theme.primary}25;
+          border-color: ${theme.primaryGhost};
         }
 
-        /* AI展示区域 */
         .ai-showcase {
           opacity: 0;
           animation: showcaseEntry 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -417,7 +543,7 @@ const Home = () => {
           border: 1px solid ${theme.borderLight};
           border-radius: 16px;
           padding: ${theme.space[1]};
-          box-shadow: 0 2px 6px ${theme.shadow1};
+          box-shadow: 0 2px 6px ${theme.shadowLight};
         }
 
         .tab-item {
@@ -440,14 +566,14 @@ const Home = () => {
 
         .tab-item:hover {
           color: ${theme.primary};
-          background: ${theme.background}60;
+          background: rgba(${theme.background}, 0.6);
         }
 
         .tab-item.active {
           color: ${theme.primary};
           background: ${theme.background};
           font-weight: 600;
-          box-shadow: 0 2px 8px ${theme.shadow1};
+          box-shadow: 0 2px 8px ${theme.shadowLight};
         }
 
         .explore-link {
@@ -469,64 +595,19 @@ const Home = () => {
         .explore-link:hover {
           color: ${theme.primary};
           background: ${theme.background};
-          border-color: ${theme.primary}25;
+          border-color: ${theme.primaryGhost};
           transform: translateX(2px);
         }
 
-        /* 内容区域 */
         .ai-content {
           padding: ${theme.space[6]} 0;
         }
 
-        /* Cybots 网格 */
         .cybots-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: ${theme.space[5]};
           width: 100%;
-        }
-
-        /* 空状态 */
-        .empty-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: ${theme.space[4]};
-          min-height: 280px;
-          color: ${theme.textTertiary};
-          text-align: center;
-        }
-
-        .empty-icon {
-          width: 80px;
-          height: 80px;
-          border-radius: 24px;
-          background: linear-gradient(135deg, ${theme.primary}12 0%, ${theme.primary}06 100%);
-          border: 1px solid ${theme.primary}20;
-          color: ${theme.primary}70;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .empty-message {
-          font-size: 1rem;
-          font-weight: 500;
-          margin: 0;
-        }
-
-        /* 骨架屏 */
-        .skeleton-card {
-          background: ${theme.backgroundSecondary};
-          border-radius: 16px;
-          height: 280px;
-          animation: skeletonPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes skeletonPulse {
-          0%, 100% { opacity: 0.8; }
-          50% { opacity: 0.4; }
         }
 
         /* 响应式设计 */
@@ -535,7 +616,7 @@ const Home = () => {
             max-width: calc(100vw - ${theme.space[4]});
             padding: ${theme.space[5]} ${theme.space[3]} ${theme.space[8]};
           }
-          
+
           .hero-actions {
             grid-template-columns: 1fr;
             gap: ${theme.space[3]};
@@ -652,106 +733,8 @@ const Home = () => {
             grid-template-columns: 1fr;
             gap: ${theme.space[2]};
           }
-
-          .empty-state {
-            min-height: 200px;
-            gap: ${theme.space[3]};
-          }
         }
       `}</style>
-
-      <div className="home-layout">
-        <main className="home-container">
-          {/* 引导区域 */}
-          {isLoggedIn && currentUser ? (
-            <section className="guide-section">
-              <div className="hero-actions">
-                {actions.map((action) => (
-                  <div
-                    key={action.id}
-                    className={`hero-action ${action.accent ? "accent" : ""}`}
-                    onClick={
-                      action.type === "mixed"
-                        ? undefined
-                        : () => handleActionClick(action)
-                    }
-                    style={{
-                      cursor: action.type === "mixed" ? "default" : "pointer",
-                    }}
-                  >
-                    <div className="hero-header">
-                      <div className="hero-icon-container">{action.icon}</div>
-                      <h3 className="hero-title">
-                        {action.id === "quick-chat" && isChatLoading
-                          ? "正在启动..."
-                          : action.text}
-                      </h3>
-                    </div>
-
-                    <div className="hero-content">
-                      <p className="hero-description">{action.description}</p>
-
-                      {action.type === "mixed" && action.subActions && (
-                        <div className="sub-actions">
-                          {action.subActions.map((subAction, index) => (
-                            <NavLink
-                              key={index}
-                              to={subAction.payload}
-                              className="sub-action"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {subAction.icon}
-                              <span>{subAction.text}</span>
-                            </NavLink>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : (
-            <WelcomeSection />
-          )}
-
-          {/* AI展示区域 */}
-          <section className="ai-showcase">
-            <header className="section-header">
-              <div className="tabs-container">
-                <nav className="tabs-navigator">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
-                      onClick={() => setActiveTab(tab.id)}
-                    >
-                      {tab.icon}
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </nav>
-
-                {isLoggedIn && (
-                  <NavLink
-                    to={
-                      activeTab === "myAI"
-                        ? `space/${currentSpaceId}`
-                        : "/explore"
-                    }
-                    className="explore-link"
-                  >
-                    <span>查看全部</span>
-                    <ChevronRightIcon size={16} />
-                  </NavLink>
-                )}
-              </div>
-            </header>
-
-            <div className="ai-content">{currentTab?.component}</div>
-          </section>
-        </main>
-      </div>
     </>
   );
 };

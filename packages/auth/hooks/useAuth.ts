@@ -1,4 +1,4 @@
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectCurrentUser, selectIsLoggedIn } from "../authSlice";
 
 export const useAuth = () => {

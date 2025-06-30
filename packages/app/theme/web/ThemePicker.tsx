@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 // 从合并后的 settingSlice 中导入新的 action 和 selectors
 import {
   changeTheme,

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailIcon } from "@primer/octicons-react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { useTheme } from "app/theme";
 import { inviteSignUp } from "auth/authSlice";
 import type React from "react";

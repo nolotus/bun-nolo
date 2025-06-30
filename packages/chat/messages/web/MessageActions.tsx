@@ -17,7 +17,7 @@ import {
   selectCurrentSpaceId,
   addContentToSpace,
 } from "create/space/spaceSlice";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { deleteMessage } from "../messageSlice";
 import { markdownToSlate } from "create/editor/markdownToSlate";
 import { useTranslation } from "react-i18next";

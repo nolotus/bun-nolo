@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback } from "react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { DataType } from "create/types";
 import { patch, write } from "database/dbSlice";
 import { useAuth } from "auth/hooks/useAuth";

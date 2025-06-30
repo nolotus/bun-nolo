@@ -1,7 +1,6 @@
 // 文件路径: create/space/components/CategoryHeader.tsx
 import React, { useState, useCallback, useMemo } from "react";
-import { useAppDispatch, useAppSelector } from "app/hooks";
-import { useTheme } from "app/theme";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import {
   PencilIcon,
@@ -30,6 +29,10 @@ interface CategoryHeaderProps {
     onDragStart: (e: React.DragEvent) => void;
     onDragEnd: (e: React.DragEvent) => void;
   };
+  // The following props are passed from CategorySection but not used here yet.
+  // isSelectionMode?: boolean;
+  // isCategorySelected?: boolean;
+  // onSelectCategory?: () => void;
 }
 
 const CategoryHeader: React.FC<CategoryHeaderProps> = ({
@@ -44,7 +47,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
 
   // --- Hooks & Selectors ---
   const dispatch = useAppDispatch();
-  const theme = useTheme();
   const spaceId = useAppSelector(selectCurrentSpaceId);
   const navigate = useNavigate();
   const collapsedCategories = useAppSelector(selectCollapsedCategories);
@@ -145,7 +147,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   return (
     <>
       <div className={headerClass}>
-        {/* 折叠按钮 */}
         <button
           className={`CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`}
           onClick={handleToggleCollapse}
@@ -155,7 +156,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           <ChevronDownIcon size={16} />
         </button>
 
-        {/* 名称显示/编辑 */}
         {isEditing ? (
           <InlineEditInput inputRef={inputRef} {...inputProps} />
         ) : (
@@ -169,7 +169,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           </span>
         )}
 
-        {/* 操作按钮 */}
         <div className="CategoryHeader__actions">
           <button
             className="CategoryHeader__actionButton CategoryHeader__actionButton--add"
@@ -204,7 +203,6 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         </div>
       </div>
 
-      {/* 删除确认弹窗 */}
       {!isUncategorized && (
         <ConfirmModal
           isOpen={isDeleteModalOpen}
@@ -219,13 +217,13 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         />
       )}
 
-      <style href="category-header" precedence="medium">{`
+      <style href="category-header-styles" precedence="medium">{`
         .CategoryHeader {
           display: flex;
           align-items: center;
-          gap: ${theme.space[2]};
-          padding: ${theme.space[1]} ${theme.space[2]};
-          border-radius: ${theme.space[2]};
+          gap: var(--space-2);
+          padding: var(--space-1) var(--space-2);
+          border-radius: var(--space-2);
           min-height: 36px;
           transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
           user-select: none;
@@ -233,19 +231,19 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
         }
 
         .CategoryHeader:hover:not(.CategoryHeader--editing) {
-          background-color: ${theme.backgroundHover};
+          background-color: var(--backgroundHover);
         }
 
         .CategoryHeader--drag-over {
-          background-color: ${theme.primaryGhost || "rgba(22, 119, 255, 0.08)"};
-          border: 1px dashed ${theme.primary};
+          background-color: var(--primaryGhost);
+          border: 1px dashed var(--primary);
           transform: translateY(-1px);
         }
 
         .CategoryHeader--dragging {
           opacity: 0.8;
-          background-color: ${theme.backgroundSelected};
-          box-shadow: ${theme.shadowMedium};
+          background-color: var(--backgroundSelected);
+          box-shadow: var(--shadowMedium);
           transform: translateY(-2px);
           z-index: 100;
         }
@@ -259,16 +257,16 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           padding: 0;
           background: none;
           border: none;
-          color: ${theme.textTertiary};
+          color: var(--textTertiary);
           cursor: pointer;
-          border-radius: ${theme.space[1]};
+          border-radius: var(--space-1);
           transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
           flex-shrink: 0;
         }
 
         .CategoryHeader__collapseButton:hover {
-          color: ${theme.textSecondary};
-          background-color: ${theme.backgroundTertiary};
+          color: var(--textSecondary);
+          background-color: var(--backgroundTertiary);
         }
 
         .CategoryHeader__collapseButton--collapsed {
@@ -279,27 +277,27 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           flex: 1;
           font-size: 14px;
           font-weight: 600;
-          color: ${theme.text};
+          color: var(--text);
           line-height: 1.4;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
           min-width: 0;
-          padding: ${theme.space[1]} 0;
+          padding: var(--space-1) 0;
           transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .CategoryHeader__name--draggable {
           cursor: grab;
-          padding-left: ${theme.space[1]};
-          padding-right: ${theme.space[1]};
-          margin: 0 -${theme.space[1]};
-          border-radius: ${theme.space[1]};
+          padding-left: var(--space-1);
+          padding-right: var(--space-1);
+          margin: 0 calc(var(--space-1) * -1);
+          border-radius: var(--space-1);
           position: relative;
         }
 
         .CategoryHeader__name--draggable:hover {
-          background-color: ${theme.backgroundTertiary};
+          background-color: var(--backgroundTertiary);
         }
 
         .CategoryHeader__name--draggable:active {
@@ -329,26 +327,26 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           padding: 0;
           background: none;
           border: none;
-          color: ${theme.textTertiary};
+          color: var(--textTertiary);
           cursor: pointer;
-          border-radius: ${theme.space[1]};
+          border-radius: var(--space-1);
           transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .CategoryHeader__actionButton:hover:not(:disabled) {
-          background-color: ${theme.backgroundTertiary};
+          background-color: var(--backgroundTertiary);
         }
 
         .CategoryHeader__actionButton--add:hover:not(:disabled) {
-          color: ${theme.success || "#52c41a"};
+          color: var(--success);
         }
 
         .CategoryHeader__actionButton--edit:hover {
-          color: ${theme.primary};
+          color: var(--primary);
         }
 
         .CategoryHeader__actionButton--delete:hover {
-          color: ${theme.error || "#ff4d4f"};
+          color: var(--error);
         }
 
         .CategoryHeader__actionButton:disabled {
@@ -356,11 +354,10 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           cursor: not-allowed;
         }
 
-        /* 响应式优化 */
         @media (max-width: 768px) {
           .CategoryHeader {
-            gap: ${theme.space[1]};
-            padding: ${theme.space[1]};
+            gap: var(--space-1);
+            padding: var(--space-1);
           }
           
           .CategoryHeader__name {

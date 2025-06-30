@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { TrashIcon } from "@primer/octicons-react";
 
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { useTheme } from "app/theme";
 
 import {

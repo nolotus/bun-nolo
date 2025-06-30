@@ -1,4 +1,4 @@
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { extractUserId } from "core/prefix";
 import { selectUserId } from "../authSlice";
 import { nolotusId } from "core/init";

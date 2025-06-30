@@ -1,6 +1,6 @@
 // auth/hooks/useBalance.ts
 import { useState, useEffect } from "react";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectCurrentUser } from "auth/authSlice";
 import { useUserProfile } from "auth/hooks/useUserProfile";
 

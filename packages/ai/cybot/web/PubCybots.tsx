@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { SyncIcon } from "@primer/octicons-react";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import { usePubCybots } from "ai/llm/hooks/usePubCybots";
 import AgentBlock from "ai/llm/web/AgentBlock";

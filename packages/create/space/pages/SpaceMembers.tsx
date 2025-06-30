@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useTheme } from "app/theme";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { PlusIcon, PersonIcon } from "@primer/octicons-react";
 import Button from "render/web/ui/Button";
 import toast from "react-hot-toast";

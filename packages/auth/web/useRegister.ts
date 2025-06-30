@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { signUp } from "auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
