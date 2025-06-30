@@ -32,8 +32,6 @@ export default {
       edit: "Edit",
       delete: "Delete",
       add: "Add",
-      lightMode: "Light Mode",
-      darkMode: "Dark Mode",
       haveAccount: "Already have an account?",
       loginNow: "Login now",
       betaAccess: "Apply for Beta Access",
@@ -48,7 +46,28 @@ export default {
       purposeHolder: "What would you like to use our product for?",
       purposeRequired: "Please tell us your intended use",
       purposeTooShort: "Please provide more details (at least 10 characters)",
-      settings: "Settings",
+      settings: {
+        // Updated to be an object for nested settings
+        title: "Settings", // General settings title
+        appearance: {
+          title: "Appearance",
+          theme: {
+            title: "Theme",
+            description: "Customize the application's color scheme.",
+            changeTo: "Change theme to {{themeName}}",
+          },
+          mode: {
+            title: "Dark Mode",
+            description: "Adjust the application's light or dark mode setting.",
+          },
+        },
+        theme: {
+          // Moved theme specific translations here
+          light: "Light Mode",
+          dark: "Dark Mode",
+          system: "System",
+        },
+      },
       introtext: "click here to start editing",
       hintofKey:
         "Hint: There are no restrictions on the number of characters and symbols for usernames and passwords. Password reset is not provided for the time being, so it is recommended to use a complex password combination and remember the password",
@@ -143,8 +162,6 @@ export default {
       edit: "编辑",
       delete: "删除",
       add: "添加",
-      lightMode: "浅色模式",
-      darkMode: "深色模式",
       haveAccount: "已有账号？",
       loginNow: "立即登录",
       betaAccess: "申请内测资格",
@@ -159,7 +176,28 @@ export default {
       purposeHolder: "您打算用我们的产品做什么？",
       purposeRequired: "请告诉我们您的使用目的",
       purposeTooShort: "请提供更多详细信息（至少10个字符）",
-      settings: "设置",
+      settings: {
+        // Updated to be an object for nested settings
+        title: "设置", // General settings title
+        appearance: {
+          title: "外观",
+          theme: {
+            title: "主题",
+            description: "自定义应用程序的颜色方案。",
+            changeTo: "切换主题到{{themeName}}",
+          },
+          mode: {
+            title: "深色模式",
+            description: "调整应用程序的浅色或深色模式设置。",
+          },
+        },
+        theme: {
+          // Moved theme specific translations here
+          light: "浅色模式",
+          dark: "深色模式",
+          system: "跟随系统",
+        },
+      },
       introtext: "点击这里开始编辑",
       hintofKey:
         "提示：用户名密码不作字数和符限制，暂不提供找回密码，建议使用复杂的密码组合，并牢记密码",
@@ -254,8 +292,6 @@ export default {
       edit: "編輯",
       delete: "刪除",
       add: "新增",
-      lightMode: "淺色模式",
-      darkMode: "深色模式",
       haveAccount: "已有帳號？",
       loginNow: "立即登入",
       betaAccess: "申請內測資格",
@@ -270,7 +306,28 @@ export default {
       purposeHolder: "您打算用我們的產品做什麼？",
       purposeRequired: "請告訴我們您的使用目的",
       purposeTooShort: "請提供更多詳細信息（至少10個字符）",
-      settings: "設置",
+      settings: {
+        // Updated to be an object for nested settings
+        title: "設置", // General settings title
+        appearance: {
+          title: "外觀",
+          theme: {
+            title: "主題",
+            description: "自訂應用程式的顏色方案。",
+            changeTo: "切換主題到{{themeName}}",
+          },
+          mode: {
+            title: "深色模式",
+            description: "調整應用程式的淺色或深色模式設置。",
+          },
+        },
+        theme: {
+          // Moved theme specific translations here
+          light: "淺色模式",
+          dark: "深色模式",
+          system: "跟隨系統",
+        },
+      },
       introtext: "點擊這裡開始編輯",
       hintofKey:
         "提示：用戶名密碼不作字數和符號限制，暫不提供找回密碼，建議使用複雜的密碼組合，並牢記密碼",
@@ -367,8 +424,6 @@ export default {
       edit: "編集",
       delete: "削除",
       add: "追加",
-      lightMode: "ライトモード",
-      darkMode: "ダークモード",
       haveAccount: "アカウントをお持ちの方",
       loginNow: "ログインする",
       betaAccess: "ベータテスト参加申請",
@@ -383,7 +438,29 @@ export default {
       purposeHolder: "当製品をどのように使用されたいですか？",
       purposeRequired: "ご使用目的をお聞かせください",
       purposeTooShort: "より詳しい情報をご記入ください（10文字以上）",
-      settings: "設定",
+      settings: {
+        // Updated to be an object for nested settings
+        title: "設定", // General settings title
+        appearance: {
+          title: "外観",
+          theme: {
+            title: "テーマ",
+            description: "アプリケーションの配色をカスタマイズします。",
+            changeTo: "テーマを{{themeName}}に変更",
+          },
+          mode: {
+            title: "ダークモード",
+            description:
+              "アプリケーションのライトモードまたはダークモード設定を調整します。",
+          },
+        },
+        theme: {
+          // Moved theme specific translations here
+          light: "ライトモード",
+          dark: "ダークモード",
+          system: "システムに従う",
+        },
+      },
       introtext: "編集を開始するにはここをクリック",
       hintofKey:
         "ヒント：ユーザー名とパスワードには文字数や記号の制限はありません。パスワードの再設定は提供されていませんので、複雑なパスワードの組み合わせを使用し、パスワードを覚えておいてください",
@@ -417,6 +494,7 @@ export default {
             1: "🔐 エンドツーエンド暗号化",
             2: "🌐 透明性ファースト",
           },
+          // Removed duplicate lightMode and darkMode from here
         },
         feature3: {
           title: "シームレス同期",
@@ -438,7 +516,7 @@ export default {
       unknown: "不明",
       code: "招待コード",
 
-      // -- 新增 InviteSignup 翻译 --
+      // -- 新增 InviteSignup 翻訳 --
       inviteHeader: "こんにちは、{{name}}さんからの招待が届きました",
       invitePartnerDescription:
         "招待者は私たちのパートナーであるため、登録すると6.6クレジットのボーナスが付与されます。",

@@ -23,9 +23,7 @@ export const DarkModeSwitch: React.FC = () => {
   const handleOptionClick = (option: ThemeOption) => {
     if (option === "system") {
       dispatch(setThemeFollowsSystem(true));
-      // 当设置为跟随系统时，让全局监听器去处理实际的主题切换
     } else {
-      // 如果之前是跟随系统，先关闭该选项
       if (themeFollowsSystem) {
         dispatch(setThemeFollowsSystem(false));
       }
@@ -33,7 +31,6 @@ export const DarkModeSwitch: React.FC = () => {
     }
   };
 
-  // 决定当前哪个按钮是激活状态
   const getActiveOption = (): ThemeOption => {
     if (themeFollowsSystem) {
       return "system";
@@ -49,17 +46,17 @@ export const DarkModeSwitch: React.FC = () => {
   }[] = [
     {
       value: "light",
-      icon: <SunIcon size={16} />,
+      icon: <SunIcon size={14} />,
       label: t("settings.theme.light"),
     },
     {
       value: "dark",
-      icon: <MoonIcon size={16} />,
+      icon: <MoonIcon size={14} />,
       label: t("settings.theme.dark"),
     },
     {
       value: "system",
-      icon: <DeviceDesktopIcon size={16} />,
+      icon: <DeviceDesktopIcon size={14} />,
       label: t("settings.theme.system"),
     },
   ];
@@ -69,76 +66,60 @@ export const DarkModeSwitch: React.FC = () => {
       <style href="DarkModeSwitch-styles" precedence="high">
         {`
           .dark-mode-switch-container {
-            display: flex;
-            padding: ${theme.space[1]};
-            background-color: ${theme.backgroundTertiary};
-            border-radius: 8px;
-            position: relative;
-            width: fit-content;
-          }
-          .dark-mode-option {
-            padding: ${theme.space[1]} ${theme.space[3]};
+            display: inline-flex;
+            padding: var(--space-1);
+            background: var(--backgroundTertiary);
             border-radius: 6px;
+            border: 1px solid var(--borderLight);
+          }
+          
+          .dark-mode-option {
+            padding: var(--space-2) var(--space-3);
+            border-radius: 4px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: ${theme.space[2]};
-            font-size: 14px;
+            gap: var(--space-2);
+            font-size: 13px;
             font-weight: 500;
-            color: ${theme.textTertiary};
-            background-color: transparent;
+            color: var(--textTertiary);
+            background: transparent;
             border: none;
-            position: relative;
-            z-index: 1;
-            transition: color 0.3s ease;
+            transition: color 0.15s ease, background-color 0.15s ease;
             white-space: nowrap;
+            outline: none;
           }
+          
+          .dark-mode-option:hover {
+            color: var(--textSecondary);
+          }
+          
           .dark-mode-option.active {
-            color: ${theme.text};
+            color: var(--text);
+            background: var(--background);
+            border: 1px solid var(--border);
           }
-          .dark-mode-glider {
-            position: absolute;
-            top: 4px;
-            bottom: 4px;
-            left: 4px;
-            border-radius: 6px;
-            background-color: ${theme.background};
-            box-shadow: 0 1px 3px ${theme.shadowLight};
-            border: 1px solid ${theme.border};
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            /* JS会设置宽度和transform */
+          
+          .dark-mode-option:focus-visible {
+            box-shadow: 0 0 0 2px var(--primary);
           }
         `}
       </style>
-      <div className="dark-mode-switch-container" id="darkModeSwitchContainer">
-        <div className="dark-mode-glider" id="darkModeGlider"></div>
+      <div className="dark-mode-switch-container">
         {options.map((option) => (
           <button
             key={option.value}
-            id={`option-${option.value}`}
             className={`dark-mode-option ${activeOption === option.value ? "active" : ""}`}
             onClick={() => handleOptionClick(option.value)}
             aria-pressed={activeOption === option.value}
+            // 移除aria-label，因为只有图标
+            aria-label={t(`settings.theme.${option.value}`)} // 更新aria-label以反映选项
           >
             {option.icon}
-            {option.label}
+            {/* 根据需求移除主题名称显示 */}
           </button>
         ))}
       </div>
-      <script>
-        {`
-          // 使用原生JS来动态移动滑块，以获得最佳性能
-          try {
-            const container = document.getElementById('darkModeSwitchContainer');
-            const glider = document.getElementById('darkModeGlider');
-            const activeBtn = container.querySelector('.dark-mode-option.active');
-            if (glider && activeBtn) {
-              glider.style.width = activeBtn.offsetWidth + 'px';
-              glider.style.transform = 'translateX(' + activeBtn.offsetLeft - container.offsetLeft -4 + 'px)';
-            }
-          } catch (e) {}
-        `}
-      </script>
     </>
   );
 };
