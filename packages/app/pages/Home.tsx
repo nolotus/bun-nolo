@@ -1,3 +1,4 @@
+// file: src/pages/Home.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
@@ -12,6 +13,8 @@ import { createPage } from "render/page/pageSlice";
 import { DataType } from "create/types";
 import { useUserData } from "database/hooks/useUserData";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
+import { NavLink, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 // Icons
 import {
@@ -24,13 +27,12 @@ import {
   PencilIcon,
 } from "@primer/octicons-react";
 import { FiDollarSign } from "react-icons/fi";
-import { NavLink, useNavigate } from "react-router-dom";
-import { toast } from "react-hot-toast";
 
 // Components
 import WelcomeSection from "./WelcomeSection";
 import AgentBlock from "ai/llm/web/AgentBlock";
 import PubCybots from "ai/cybot/web/PubCybots";
+import Tabs, { TabItem } from "render/web/ui/Tabs"; // 导入新组件
 
 const LoadingState = ({}) => {
   return (
@@ -44,7 +46,6 @@ const LoadingState = ({}) => {
           />
         ))}
       </div>
-
       <style href="loading-state" precedence="low">{`
         .skeleton-card {
           background: var(--backgroundSecondary);
@@ -52,7 +53,6 @@ const LoadingState = ({}) => {
           height: 280px;
           animation: skeletonPulse 2s ease-in-out infinite;
         }
-
         @keyframes skeletonPulse {
           0%, 100% { opacity: 0.8; }
           50% { opacity: 0.4; }
@@ -63,7 +63,7 @@ const LoadingState = ({}) => {
 };
 LoadingState.displayName = "LoadingState";
 
-const EmptyState = ({ message }) => {
+const EmptyState = ({ message }: { message: string }) => {
   return (
     <>
       <div className="empty-state">
@@ -72,44 +72,31 @@ const EmptyState = ({ message }) => {
         </div>
         <p className="empty-message">{message}</p>
       </div>
-
       <style href="empty-state" precedence="low">{`
         .empty-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: var(--space-4);
-          min-height: 280px;
-          color: var(--textTertiary);
-          text-align: center;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: var(--space-4); min-height: 280px; color: var(--textTertiary); text-align: center;
         }
-
         .empty-icon {
-          width: 80px;
-          height: 80px;
-          border-radius: 24px;
+          width: 80px; height: 80px; border-radius: 24px;
           background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.06) 100%);
-          border: 1px solid var(--primaryGhost);
-          color: var(--primary);
-          opacity: 0.7;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          border: 1px solid var(--primaryGhost); color: var(--primary); opacity: 0.7;
+          display: flex; align-items: center; justify-content: center;
         }
-
-        .empty-message {
-          font-size: 1rem;
-          font-weight: 500;
-          margin: 0;
-        }
+        .empty-message { font-size: 1rem; font-weight: 500; margin: 0; }
       `}</style>
     </>
   );
 };
 EmptyState.displayName = "EmptyState";
 
-const Cybots = ({ queryUserId, limit = 6 }) => {
+const Cybots = ({
+  queryUserId,
+  limit = 6,
+}: {
+  queryUserId: string | null;
+  limit?: number;
+}) => {
   const {
     loading,
     data: cybots = [],
@@ -117,7 +104,6 @@ const Cybots = ({ queryUserId, limit = 6 }) => {
     reload,
     clearCache,
   } = useUserData(DataType.CYBOT, queryUserId, limit);
-
   const [items, setItems] = useState(cybots);
 
   useEffect(() => {
@@ -130,18 +116,12 @@ const Cybots = ({ queryUserId, limit = 6 }) => {
   }, [clearCache, reload]);
 
   useEffect(() => {
-    if (error) {
-      toast.error("加载 AI 助手失败，请稍后重试");
-    }
+    if (error) toast.error("加载 AI 助手失败，请稍后重试");
   }, [error]);
 
-  if (loading && !items.length) {
-    return <LoadingState />;
-  }
-
-  if (!loading && !items.length) {
+  if (loading && !items.length) return <LoadingState />;
+  if (!loading && !items.length)
     return <EmptyState message="还没有创建任何 AI 助手" />;
-  }
 
   return (
     <div className="cybots-grid">
@@ -154,16 +134,13 @@ const Cybots = ({ queryUserId, limit = 6 }) => {
 Cybots.displayName = "Cybots";
 
 const Home = () => {
-  const theme = useAppSelector(selectTheme);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isLoggedIn = useAppSelector(selectIsLoggedIn);
   const currentUser = useAppSelector(selectCurrentUser);
   const currentUserId = useAppSelector(selectUserId);
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
-
   const { isLoading: isChatLoading, createNewDialog } = useCreateDialog();
-
   const [activeTab, setActiveTab] = useState(
     isLoggedIn ? "myAI" : "communityAI"
   );
@@ -174,11 +151,8 @@ const Home = () => {
 
   const handleActionClick = useCallback(
     (action) => {
-      if (action.type === "action") {
-        action.payload();
-      } else if (action.type === "navigate") {
-        navigate(action.payload);
-      }
+      if (action.type === "action") action.payload();
+      else if (action.type === "navigate") navigate(action.payload);
     },
     [navigate]
   );
@@ -254,7 +228,7 @@ const Home = () => {
     },
   ];
 
-  const tabs = [
+  const tabsConfig = [
     ...(isLoggedIn
       ? [
           {
@@ -273,13 +247,19 @@ const Home = () => {
     },
   ];
 
-  const currentTab = tabs.find((tab) => tab.id === activeTab);
+  const tabItemsForNav: TabItem[] = tabsConfig.map(({ id, label, icon }) => ({
+    id,
+    label,
+    icon,
+  }));
+  const currentTabContent = tabsConfig.find(
+    (tab) => tab.id === activeTab
+  )?.component;
 
   return (
     <>
       <div className="home-layout">
         <main className="home-container">
-          {/* 引导区域 */}
           {isLoggedIn && currentUser ? (
             <section className="guide-section">
               <div className="hero-actions">
@@ -304,10 +284,8 @@ const Home = () => {
                           : action.text}
                       </h3>
                     </div>
-
                     <div className="hero-content">
                       <p className="hero-description">{action.description}</p>
-
                       {action.type === "mixed" && action.subActions && (
                         <div className="sub-actions">
                           {action.subActions.map((subAction, index) => (
@@ -332,416 +310,102 @@ const Home = () => {
             <WelcomeSection />
           )}
 
-          {/* AI展示区域 */}
           <section className="ai-showcase">
             <header className="section-header">
-              <div className="tabs-container">
-                <nav className="tabs-navigator">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      className={`tab-item ${activeTab === tab.id ? "active" : ""}`}
-                      onClick={() => setActiveTab(tab.id)}
-                    >
-                      {tab.icon}
-                      <span>{tab.label}</span>
-                    </button>
-                  ))}
-                </nav>
-
-                {isLoggedIn && (
-                  <NavLink
-                    to={
-                      activeTab === "myAI"
-                        ? `space/${currentSpaceId}`
-                        : "/explore"
-                    }
-                    className="explore-link"
-                  >
-                    <span>查看全部</span>
-                    <ChevronRightIcon size={16} />
-                  </NavLink>
-                )}
-              </div>
+              <Tabs
+                items={tabItemsForNav}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
+              {isLoggedIn && (
+                <NavLink
+                  to={
+                    activeTab === "myAI"
+                      ? `space/${currentSpaceId}`
+                      : "/explore"
+                  }
+                  className="explore-link"
+                >
+                  <span>查看全部</span>
+                  <ChevronRightIcon size={16} />
+                </NavLink>
+              )}
             </header>
-
-            <div className="ai-content">{currentTab?.component}</div>
+            <div className="ai-content">{currentTabContent}</div>
           </section>
         </main>
       </div>
 
       <style href="home" precedence="high">{`
-        .home-layout {
-          min-height: 100vh;
-          background: linear-gradient(180deg, var(--backgroundSecondary) 0%, var(--background) 40%);
-        }
-
-        .home-container {
-          max-width: min(1200px, calc(100vw - var(--space-8)));
-          margin: 0 auto;
-          padding: var(--space-8) var(--space-4) var(--space-12);
-        }
-
-        .guide-section {
-          margin-bottom: var(--space-10);
-          opacity: 0;
-          animation: sectionFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes sectionFadeIn {
-          0% { opacity: 0; transform: translateY(32px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .hero-actions {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: var(--space-4);
-          margin-bottom: var(--space-8);
-        }
-
+        .home-layout { min-height: 100vh; background: linear-gradient(180deg, var(--backgroundSecondary) 0%, var(--background) 40%); }
+        .home-container { max-width: min(1200px, calc(100vw - var(--space-8))); margin: 0 auto; padding: var(--space-8) var(--space-4) var(--space-12); }
+        .guide-section { margin-bottom: var(--space-10); opacity: 0; animation: sectionFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes sectionFadeIn { 0% { opacity: 0; transform: translateY(32px); } 100% { opacity: 1; transform: translateY(0); } }
+        .hero-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); margin-bottom: var(--space-8); }
         .hero-action {
-          background: var(--background);
-          border: 1px solid var(--border);
-          border-radius: 20px;
-          padding: var(--space-5) var(--space-4);
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-3);
-          text-align: left;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          position: relative;
-          overflow: hidden;
-          box-shadow: 0 1px 3px var(--shadowLight);
-          min-height: 120px;
+          background: var(--background); border: 1px solid var(--border); border-radius: 20px; padding: var(--space-5) var(--space-4);
+          display: flex; flex-direction: column; gap: var(--space-3); text-align: left; cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
+          box-shadow: 0 1px 3px var(--shadowLight); min-height: 120px;
         }
-
-        .hero-action:hover {
-          transform: translateY(-4px);
-          border-color: var(--primaryGhost);
-          box-shadow: 0 12px 24px -6px var(--shadowMedium);
-        }
-
-        .hero-action.accent {
-          background: linear-gradient(135deg, var(--primaryGhost) 0%, var(--background) 70%);
-          border-color: var(--primaryGhost);
-        }
-
-        .hero-action[disabled] {
-          opacity: 0.7;
-          cursor: not-allowed;
-          transform: none !important;
-        }
-
-        .hero-header {
-          display: flex;
-          align-items: center;
-          gap: var(--space-3);
-        }
-
+        .hero-action:hover { transform: translateY(-4px); border-color: var(--primaryGhost); box-shadow: 0 12px 24px -6px var(--shadowMedium); }
+        .hero-action.accent { background: linear-gradient(135deg, var(--primaryGhost) 0%, var(--background) 70%); border-color: var(--primaryGhost); }
+        .hero-action[disabled] { opacity: 0.7; cursor: not-allowed; transform: none !important; }
+        .hero-header { display: flex; align-items: center; gap: var(--space-3); }
         .hero-icon-container {
-          width: 44px;
-          height: 44px;
-          border-radius: 14px;
+          width: 44px; height: 44px; border-radius: 14px;
           background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.1) 100%);
-          border: 1px solid var(--primaryGhost);
-          color: var(--primary);
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          border: 1px solid var(--primaryGhost); color: var(--primary); flex-shrink: 0; display: flex;
+          align-items: center; justify-content: center; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        .hero-action:hover .hero-icon-container {
-          background: var(--primary);
-          color: var(--background);
-          transform: scale(1.05);
-        }
-
-        .hero-action[disabled]:hover .hero-icon-container {
-          transform: none;
-          background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.1) 100%);
-          color: var(--primary);
-        }
-
-        .hero-title {
-          font-size: 1.125rem;
-          font-weight: 650;
-          color: var(--text);
-          margin: 0;
-          line-height: 1.2;
-          flex: 1;
-        }
-
-        .hero-content {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-2);
-          flex: 1;
-        }
-
-        .hero-description {
-          font-size: 0.85rem;
-          color: var(--textSecondary);
-          margin: 0;
-          line-height: 1.4;
-          flex: 1;
-        }
-
-        .sub-actions {
-          display: flex;
-          gap: var(--space-2);
-          margin-top: auto;
-        }
-
+        .hero-action:hover .hero-icon-container { background: var(--primary); color: var(--background); transform: scale(1.05); }
+        .hero-action[disabled]:hover .hero-icon-container { transform: none; background: linear-gradient(135deg, var(--primaryGhost) 0%, rgba(255, 255, 255, 0.1) 100%); color: var(--primary); }
+        .hero-title { font-size: 1.125rem; font-weight: 650; color: var(--text); margin: 0; line-height: 1.2; flex: 1; }
+        .hero-content { display: flex; flex-direction: column; gap: var(--space-2); flex: 1; }
+        .hero-description { font-size: 0.85rem; color: var(--textSecondary); margin: 0; line-height: 1.4; flex: 1; }
+        .sub-actions { display: flex; gap: var(--space-2); margin-top: auto; }
         .sub-action {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-1);
-          padding: var(--space-2) var(--space-3);
-          background: var(--backgroundSecondary);
-          border: 1px solid var(--borderLight);
-          border-radius: 10px;
-          font-size: 0.75rem;
-          font-weight: 520;
-          color: var(--textSecondary);
-          text-decoration: none;
-          transition: all 0.25s ease;
-          cursor: pointer;
-          flex: 1;
-          justify-content: center;
+          display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-2) var(--space-3);
+          background: var(--backgroundSecondary); border: 1px solid var(--borderLight); border-radius: 10px;
+          font-size: 0.75rem; font-weight: 520; color: var(--textSecondary); text-decoration: none;
+          transition: all 0.25s ease; cursor: pointer; flex: 1; justify-content: center;
         }
-
-        .sub-action:hover {
-          color: var(--primary);
-          background: var(--background);
-          border-color: var(--primaryGhost);
-        }
-
-        .ai-showcase {
-          opacity: 0;
-          animation: showcaseEntry 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.4s;
-        }
-
-        @keyframes showcaseEntry {
-          from { opacity: 0; transform: translateY(32px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .section-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: var(--space-6);
-        }
-
-        .tabs-container {
-          display: flex;
-          align-items: center;
-          gap: var(--space-4);
-        }
-
-        .tabs-navigator {
-          display: flex;
-          align-items: center;
-          gap: var(--space-1);
-          background: var(--backgroundSecondary);
-          border: 1px solid var(--borderLight);
-          border-radius: 16px;
-          padding: var(--space-1);
-          box-shadow: 0 2px 6px var(--shadowLight);
-        }
-
-        .tab-item {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          padding: var(--space-3) var(--space-4);
-          border-radius: 12px;
-          font-size: 0.875rem;
-          font-weight: 520;
-          color: var(--textSecondary);
-          background: none;
-          border: none;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          min-width: 120px;
-          justify-content: center;
-          white-space: nowrap;
-        }
-
-        .tab-item:hover {
-          color: var(--primary);
-          background: rgba(var(--background), 0.6);
-        }
-
-        .tab-item.active {
-          color: var(--primary);
-          background: var(--background);
-          font-weight: 600;
-          box-shadow: 0 2px 8px var(--shadowLight);
-        }
-
+        .sub-action:hover { color: var(--primary); background: var(--background); border-color: var(--primaryGhost); }
+        .ai-showcase { opacity: 0; animation: showcaseEntry 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0.4s; }
+        @keyframes showcaseEntry { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-4); }
         .explore-link {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2);
-          color: var(--textSecondary);
-          text-decoration: none;
-          font-weight: 520;
-          font-size: 0.875rem;
-          padding: var(--space-3) var(--space-4);
-          border-radius: 12px;
-          border: 1px solid var(--borderLight);
-          background: var(--backgroundSecondary);
-          transition: all 0.3s ease;
-          white-space: nowrap;
+          display: inline-flex; align-items: center; gap: var(--space-2); color: var(--textSecondary); text-decoration: none;
+          font-weight: 520; font-size: 0.875rem; padding: var(--space-2) var(--space-3); border-radius: 12px;
+          border: 1px solid var(--borderLight); background: var(--backgroundSecondary); transition: all 0.3s ease; white-space: nowrap;
         }
-
-        .explore-link:hover {
-          color: var(--primary);
-          background: var(--background);
-          border-color: var(--primaryGhost);
-          transform: translateX(2px);
-        }
-
-        .ai-content {
-          padding: var(--space-6) 0;
-        }
-
-        .cybots-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: var(--space-5);
-          width: 100%;
-        }
-
-        /* 响应式设计 */
+        .explore-link:hover { color: var(--primary); background: var(--backgroundHover); border-color: var(--primaryGhost); transform: translateX(2px); }
+        .ai-content { padding: var(--space-6) 0; }
+        .cybots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-5); width: 100%; }
+        
         @media (max-width: 768px) {
-          .home-container {
-            max-width: calc(100vw - var(--space-4));
-            padding: var(--space-5) var(--space-3) var(--space-8);
-          }
-
-          .hero-actions {
-            grid-template-columns: 1fr;
-            gap: var(--space-3);
-            margin-bottom: var(--space-6);
-          }
-
-          .hero-action {
-            padding: var(--space-4) var(--space-3);
-            border-radius: 18px;
-            min-height: auto;
-          }
-
-          .hero-icon-container {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-          }
-
-          .hero-title {
-            font-size: 1rem;
-          }
-
-          .hero-description {
-            font-size: 0.8rem;
-          }
-
-          .sub-action {
-            font-size: 0.7rem;
-            padding: var(--space-1) var(--space-2);
-          }
-
-          .section-header {
-            flex-direction: column;
-            align-items: stretch;
-            gap: var(--space-3);
-            margin-bottom: var(--space-5);
-          }
-
-          .tabs-container {
-            flex-direction: column;
-            gap: var(--space-3);
-          }
-
-          .tabs-navigator {
-            width: 100%;
-            justify-content: center;
-          }
-
-          .tab-item {
-            padding: var(--space-2) var(--space-3);
-            font-size: 0.8rem;
-            min-width: auto;
-            flex: 1;
-            gap: var(--space-1);
-          }
-
-          .explore-link {
-            align-self: center;
-            font-size: 0.8rem;
-            padding: var(--space-2) var(--space-4);
-          }
-
-          .cybots-grid {
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: var(--space-3);
-          }
+          .home-container { max-width: calc(100vw - var(--space-4)); padding: var(--space-5) var(--space-3) var(--space-8); }
+          .hero-actions { grid-template-columns: 1fr; gap: var(--space-3); margin-bottom: var(--space-6); }
+          .hero-action { padding: var(--space-4) var(--space-3); border-radius: 18px; min-height: auto; }
+          .hero-icon-container { width: 40px; height: 40px; border-radius: 12px; }
+          .hero-title { font-size: 1rem; }
+          .hero-description { font-size: 0.8rem; }
+          .sub-action { font-size: 0.7rem; padding: var(--space-1) var(--space-2); }
+          .section-header { flex-direction: column; align-items: stretch; gap: var(--space-3); margin-bottom: var(--space-5); }
+          .explore-link { align-self: center; font-size: 0.8rem; padding: var(--space-2) var(--space-4); }
+          .cybots-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
         }
-
         @media (max-width: 480px) {
-          .home-container {
-            padding: var(--space-4) var(--space-2) var(--space-6);
-          }
-
-          .hero-actions {
-            gap: var(--space-2);
-          }
-
-          .hero-action {
-            padding: var(--space-3) var(--space-3);
-            gap: var(--space-2);
-            min-height: 100px;
-          }
-
-          .hero-header {
-            gap: var(--space-2);
-          }
-
-          .hero-icon-container {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-          }
-
-          .hero-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-          }
-
-          .hero-description {
-            font-size: 0.75rem;
-          }
-
-          .sub-actions {
-            gap: var(--space-1);
-          }
-
-          .sub-action {
-            font-size: 0.65rem;
-            padding: var(--space-1) var(--space-2);
-            gap: 2px;
-          }
-
-          .cybots-grid {
-            grid-template-columns: 1fr;
-            gap: var(--space-2);
-          }
+          .home-container { padding: var(--space-4) var(--space-2) var(--space-6); }
+          .hero-actions { gap: var(--space-2); }
+          .hero-action { padding: var(--space-3); gap: var(--space-2); min-height: 100px; }
+          .hero-header { gap: var(--space-2); }
+          .hero-icon-container { width: 36px; height: 36px; border-radius: 10px; }
+          .hero-title { font-size: 0.95rem; font-weight: 600; }
+          .hero-description { font-size: 0.75rem; }
+          .sub-actions { gap: var(--space-1); }
+          .sub-action { font-size: 0.65rem; padding: var(--space-1) var(--space-2); gap: 2px; }
+          .cybots-grid { grid-template-columns: 1fr; gap: var(--space-2); }
         }
       `}</style>
     </>
