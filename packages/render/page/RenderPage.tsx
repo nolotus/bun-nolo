@@ -3,7 +3,7 @@
 
 import React, { useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import toast from "react-hot-toast";
 
 import { EditorContent } from "create/editor/utils/slateUtils";

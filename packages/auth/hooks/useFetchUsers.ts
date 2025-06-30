@@ -1,6 +1,6 @@
 // hooks/useFetchUsers.ts
 import { useCallback } from "react";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import pino from "pino";

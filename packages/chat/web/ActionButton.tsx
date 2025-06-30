@@ -1,5 +1,5 @@
 import { PaperAirplaneIcon } from "@primer/octicons-react";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import {
   abortAllMessages,

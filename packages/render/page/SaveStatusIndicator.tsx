@@ -1,6 +1,6 @@
 import React from "react";
 import { FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 
 export type SaveStatus = "saving" | "saved" | "error" | "pending" | null;

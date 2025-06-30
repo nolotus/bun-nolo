@@ -1,5 +1,5 @@
 // render/web/ui/Avatar.jsx
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import { PersonIcon, GearIcon } from "@primer/octicons-react";
 

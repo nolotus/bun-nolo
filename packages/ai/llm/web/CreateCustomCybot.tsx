@@ -12,7 +12,7 @@ import Button from "render/web/ui/Button";
 
 import { TagsInput } from "render/web/form/TagsInput";
 
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectCurrentSpace } from "create/space/spaceSlice";
 import ToggleSwitch from "render/web/ui/ToggleSwitch";
 import PublishSettingsTab from "./PublishSettingsTab";

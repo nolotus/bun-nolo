@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { useAppSelector } from "../hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 
 import { BsFileEarmarkText, BsShieldLock, BsLaptop } from "react-icons/bs";

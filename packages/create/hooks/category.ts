@@ -1,6 +1,6 @@
 // create/category/useCategories.ts
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
 import { write } from "database/dbSlice";
 import { DataType } from "create/types";

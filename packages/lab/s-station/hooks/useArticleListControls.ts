@@ -1,6 +1,6 @@
 // hooks/useArticleListControls.ts
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useAppDispatch } from "app/hooks"; // 假设路径
+import { useAppDispatch } from "app/store"; // 假设路径
 import { createPage } from "render/page/pageSlice"; // 假设路径
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";

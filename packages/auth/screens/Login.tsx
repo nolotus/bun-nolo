@@ -1,4 +1,4 @@
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { signIn } from "../authSlice";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";

@@ -8,7 +8,7 @@ import { useTheme } from "app/theme";
 import { useSpaceData } from "../hooks/useSpaceData";
 import EmptyState from "../components/EmptyState";
 import Cybots from "ai/cybot/web/Cybots";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
 
 // 模拟页面数据

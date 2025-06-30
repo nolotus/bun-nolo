@@ -1,6 +1,6 @@
 // chat/dialog/useCreateDialog.ts
 
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createDialog } from "./dialogSlice";

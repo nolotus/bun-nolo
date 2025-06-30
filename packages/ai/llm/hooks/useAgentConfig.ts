@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { read } from "database/dbSlice";
 
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";

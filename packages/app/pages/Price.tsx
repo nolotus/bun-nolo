@@ -8,7 +8,7 @@ import { googleModels } from "integrations/google/models";
 import { deepSeekModels } from "integrations/deepseek/models";
 import { selectTheme } from "app/settings/settingSlice";
 
-import { useAppSelector } from "../hooks";
+import { useAppSelector } from "app/store";
 import { openrouterModels } from "integrations/openrouter/models";
 import { useMediaQuery } from "react-responsive";
 import { xaiModels } from "integrations/xai/models";

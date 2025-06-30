@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { useTheme } from "app/theme";
 import { signUp } from "auth/authSlice";
 import { useState } from "react";

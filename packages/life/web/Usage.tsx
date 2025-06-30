@@ -1,6 +1,6 @@
 // Usage.tsx
 import React, { useState } from "react";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import { selectUserId } from "auth/authSlice";
 import { useTranslation } from "react-i18next";

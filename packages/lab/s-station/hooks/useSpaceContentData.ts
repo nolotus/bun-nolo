@@ -1,6 +1,6 @@
 // hooks/useSpaceContentData.ts
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useAppDispatch } from "app/hooks"; // 假设路径
+import { useAppDispatch } from "app/store"; // 假设路径
 import { read } from "database/dbSlice"; // 假设路径
 import { createSpaceKey } from "create/space/spaceKeys"; // 假设路径
 import toast from "react-hot-toast";

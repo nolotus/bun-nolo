@@ -1,7 +1,7 @@
 // /pages/DialogPage.tsx
 
 import React, { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { useAuth } from "auth/hooks/useAuth";
 import {
   clearDialogState,

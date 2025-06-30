@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "auth/hooks/useAuth";
 import { useTranslation } from "react-i18next";
-import { useAppSelector } from "app/hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 
 //web

@@ -1,11 +1,12 @@
 // render/web/ui/TabsNav
 import React from "react";
-import { useTheme } from "app/theme";
+import { selectTheme } from "app/settings/settingSlice";
+import { useAppSelector } from "app/store";
 
 export interface Tab {
   id: number | string;
   label: string;
-  disabled?: boolean; // 新增禁用状态
+  disabled?: boolean;
 }
 
 interface TabsNavProps {
@@ -13,7 +14,7 @@ interface TabsNavProps {
   activeTab: number | string;
   onChange: (tabId: number | string) => void;
   className?: string;
-  size?: "small" | "medium" | "large"; // 新增尺寸选项
+  size?: "small" | "medium" | "large";
 }
 
 const TabsNav: React.FC<TabsNavProps> = ({
@@ -23,7 +24,7 @@ const TabsNav: React.FC<TabsNavProps> = ({
   className = "",
   size = "medium",
 }) => {
-  const theme = useTheme();
+  const theme = useAppSelector(selectTheme);
 
   // 根据尺寸计算样式
   const getSizeStyles = (size: string) => {
@@ -118,7 +119,7 @@ const TabsNav: React.FC<TabsNavProps> = ({
           bottom: 0;
           background: linear-gradient(
             180deg,
-            rgba(255, 255, 255, 0.02) 0%,
+            ${theme.backgroundAccent || theme.backgroundHover}50 0%,
             transparent 100%
           );
           border-radius: inherit;
@@ -129,8 +130,8 @@ const TabsNav: React.FC<TabsNavProps> = ({
         /* 焦点可访问性 */
         .tab-button:focus-visible {
           box-shadow:
-            0 0 0 2px ${theme.primary}30,
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            0 0 0 2px ${theme.focus || theme.primary + "30"},
+            inset 0 1px 0 ${theme.primaryGhost || "rgba(255, 255, 255, 0.1)"};
           background: ${theme.backgroundHover};
         }
 
@@ -194,16 +195,6 @@ const TabsNav: React.FC<TabsNavProps> = ({
             padding: ${theme.space[2]} ${theme.space[2]};
             font-size: 12px;
             min-height: 36px;
-          }
-        }
-
-        /* 暗色模式增强 */
-        @media (prefers-color-scheme: dark) {
-          .tab-button.active {
-            box-shadow:
-              0 -1px 0 ${theme.border},
-              0 1px 0 ${theme.background},
-              inset 0 1px 0 rgba(255, 255, 255, 0.05);
           }
         }
 

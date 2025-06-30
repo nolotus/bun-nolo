@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useTheme } from "app/theme";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";

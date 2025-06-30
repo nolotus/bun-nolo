@@ -4,7 +4,7 @@ import { useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "app/theme";
 import { zIndex } from "render/styles/zIndex";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { compressImage } from "utils/imageUtils";
 import { nanoid } from "nanoid";
 import { Descendant } from "slate";
@@ -304,7 +304,6 @@ const MessageInput: React.FC = () => {
 
   return (
     <>
-      {/* 保持您原有的样式但添加处理状态的视觉反馈 */}
       <style href="message-input" precedence="medium">{`
         .message-input-container {
           position: relative;
@@ -320,15 +319,14 @@ const MessageInput: React.FC = () => {
           background: ${theme.background};
           border-top: 1px solid ${theme.borderLight};
           box-shadow: 
-            0 -4px 12px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            0 -4px 12px ${theme.shadowLight},
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
           z-index: ${zIndex.messageInputContainerZIndex};
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* 添加处理中状态的样式 */
         .message-input-container.processing {
-          opacity: 0.8;
+          opacity: 0.85;
         }
 
         .input-controls {
@@ -357,18 +355,18 @@ const MessageInput: React.FC = () => {
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           letter-spacing: -0.01em;
           box-shadow: 
-            0 1px 3px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            0 1px 3px ${theme.shadowLight},
+            inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
 
         .message-textarea:disabled {
-          opacity: 0.6;
+          opacity: 0.65;
           cursor: wait;
           background: ${theme.backgroundTertiary};
         }
 
         .message-textarea::placeholder {
-          color: ${theme.placeholder || theme.textQuaternary};
+          color: ${theme.placeholder};
           opacity: 1;
         }
 
@@ -378,16 +376,23 @@ const MessageInput: React.FC = () => {
           background: ${theme.background};
           box-shadow: 
             0 0 0 3px ${theme.primary}20,
-            0 2px 8px ${theme.shadow2},
-            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            0 2px 8px ${theme.shadowMedium},
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
           transform: translateY(-1px);
         }
 
         .message-textarea:hover:not(:focus):not(:disabled) {
-          border-color: ${theme.primary}40;
+          border-color: ${theme.borderHover};
           box-shadow: 
-            0 2px 6px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            0 2px 6px ${theme.shadowLight},
+            inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .message-textarea:-webkit-autofill,
+        .message-textarea:-webkit-autofill:hover,
+        .message-textarea:-webkit-autofill:focus {
+          -webkit-box-shadow: 0 0 0 1000px ${theme.backgroundSecondary} inset;
+          -webkit-text-fill-color: ${theme.text};
         }
 
         .upload-button {
@@ -404,8 +409,8 @@ const MessageInput: React.FC = () => {
           transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
           flex-shrink: 0;
           box-shadow: 
-            0 1px 3px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            0 1px 3px ${theme.shadowLight},
+            inset 0 1px 0 rgba(255, 255, 255, 0.03);
           position: relative;
           overflow: hidden;
         }
@@ -420,7 +425,7 @@ const MessageInput: React.FC = () => {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, ${theme.primary}08 0%, transparent 50%);
+          background: linear-gradient(135deg, ${theme.primary}06 0%, transparent 50%);
           opacity: 0;
           transition: opacity 0.3s ease;
           pointer-events: none;
@@ -429,12 +434,12 @@ const MessageInput: React.FC = () => {
         .upload-button:hover:not(:disabled) {
           background: ${theme.background};
           color: ${theme.primary};
-          border-color: ${theme.primary}30;
+          border-color: ${theme.borderHover};
           transform: translateY(-2px);
           box-shadow: 
-            0 4px 12px ${theme.shadow1},
-            0 0 0 1px ${theme.primary}15,
-            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            0 4px 12px ${theme.shadowMedium},
+            0 0 0 1px ${theme.primary}12,
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .upload-button:hover:not(:disabled)::before {
@@ -445,8 +450,8 @@ const MessageInput: React.FC = () => {
           transform: translateY(0);
           transition-duration: 0.1s;
           box-shadow: 
-            0 1px 3px ${theme.shadow1},
-            inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            0 1px 3px ${theme.shadowLight},
+            inset 0 2px 4px rgba(0, 0, 0, 0.03);
         }
 
         .upload-button:focus-visible {
@@ -454,7 +459,14 @@ const MessageInput: React.FC = () => {
           box-shadow: 
             0 0 0 2px ${theme.background},
             0 0 0 4px ${theme.primary},
-            0 1px 3px ${theme.shadow1};
+            0 1px 3px ${theme.shadowLight};
+        }
+
+        .upload-button:focus:not(:focus-visible) {
+          outline: none;
+          box-shadow: 
+            0 1px 3px ${theme.shadowLight},
+            inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
 
         .drop-zone {
@@ -464,7 +476,7 @@ const MessageInput: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: ${theme.backgroundGhost || `${theme.background}f0`};
+          background: ${theme.backgroundGhost};
           backdrop-filter: blur(12px);
           border: 2px dashed ${theme.primary};
           color: ${theme.primary};
@@ -493,27 +505,28 @@ const MessageInput: React.FC = () => {
           font-size: 0.95rem;
           font-weight: 550;
           letter-spacing: -0.01em;
-          padding: ${theme.space[4]};
+          padding: ${theme.space[5]};
           border-radius: ${theme.space[3]};
-          background: ${theme.background}80;
+          background: ${theme.background}90;
           backdrop-filter: blur(8px);
+          box-shadow: 0 4px 20px ${theme.shadowMedium};
         }
 
-        /* 处理状态指示器 */
         .processing-indicator {
           position: absolute;
           top: ${theme.space[2]};
           right: ${theme.space[2]};
           display: flex;
           align-items: center;
-          gap: ${theme.space[1]};
-          padding: ${theme.space[1]} ${theme.space[2]};
+          gap: ${theme.space[2]};
+          padding: ${theme.space[2]} ${theme.space[3]};
           background: ${theme.backgroundSecondary};
           border: 1px solid ${theme.border};
           border-radius: ${theme.space[2]};
           font-size: 0.75rem;
           color: ${theme.textSecondary};
           z-index: 5;
+          box-shadow: 0 2px 8px ${theme.shadowMedium};
         }
 
         .processing-spinner {
@@ -528,6 +541,10 @@ const MessageInput: React.FC = () => {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+
+        .message-textarea:focus-visible {
+          outline: none;
         }
 
         /* 响应式设计 */
@@ -545,7 +562,7 @@ const MessageInput: React.FC = () => {
             min-height: 40px;
             max-height: 150px;
             padding: ${theme.space[2]} ${theme.space[3]};
-            font-size: 1rem; /* iOS 防止缩放 */
+            font-size: 1rem;
             border-radius: ${theme.space[2]};
           }
 
@@ -556,14 +573,14 @@ const MessageInput: React.FC = () => {
           }
 
           .drop-zone-content {
-            padding: ${theme.space[3]};
+            padding: ${theme.space[4]};
             font-size: 0.875rem;
           }
 
           .processing-indicator {
             top: ${theme.space[1]};
             right: ${theme.space[1]};
-            padding: ${theme.space[1]};
+            padding: ${theme.space[1]} ${theme.space[2]};
             font-size: 0.7rem;
           }
 
@@ -595,7 +612,7 @@ const MessageInput: React.FC = () => {
           .message-input-container {
             max-width: 900px;
             margin: 0 auto;
-            padding: ${theme.space[5]} ${theme.space[4]};
+            padding: ${theme.space[6]} ${theme.space[4]};
             border-top: none;
             box-shadow: none;
             background: transparent;
@@ -647,16 +664,13 @@ const MessageInput: React.FC = () => {
 
         @media (prefers-contrast: high) {
           .message-textarea,
-          .upload-button {
+          .upload-button,
+          .processing-indicator {
             border-width: 2px;
           }
 
           .drop-zone {
             border-width: 3px;
-          }
-
-          .processing-indicator {
-            border-width: 2px;
           }
         }
 
@@ -664,28 +678,6 @@ const MessageInput: React.FC = () => {
           .message-input-container {
             display: none;
           }
-        }
-
-        /* 暗色主题优化 */
-        @media (prefers-color-scheme: dark) {
-          .message-textarea:-webkit-autofill,
-          .message-textarea:-webkit-autofill:hover,
-          .message-textarea:-webkit-autofill:focus {
-            -webkit-box-shadow: 0 0 0 1000px ${theme.backgroundSecondary} inset;
-            -webkit-text-fill-color: ${theme.text};
-          }
-        }
-
-        /* 焦点环优化 */
-        .message-textarea:focus-visible {
-          outline: none;
-        }
-
-        .upload-button:focus:not(:focus-visible) {
-          outline: none;
-          box-shadow: 
-            0 1px 3px ${theme.shadow1},
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
       `}</style>
       <div

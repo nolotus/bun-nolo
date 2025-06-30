@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from "react";
 import mermaid from "mermaid";
-import { useTheme } from "app/theme"; // 假设路径正确
 
 // --- Mermaid Initialization (最佳实践是移到应用入口) ---
 try {
@@ -8,7 +7,6 @@ try {
     startOnLoad: false,
     securityLevel: "loose",
     theme: "default", // 考虑根据应用主题动态设置
-    // theme: window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
   });
 } catch (e) {
   console.error("Failed to initialize Mermaid:", e);

@@ -6,7 +6,7 @@ import {
   InfoIcon,
   DeviceMobileIcon,
 } from "@primer/octicons-react";
-import { useAppSelector } from "../hooks";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 
 import { useAuth } from "auth/hooks/useAuth";

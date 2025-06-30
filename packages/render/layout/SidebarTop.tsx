@@ -1,6 +1,6 @@
 // 文件路径: SidebarTop.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import {
   changeSpace,
   selectAllMemberSpaces,

@@ -1,7 +1,7 @@
 // chat/web/AttachmentsPreview.tsx
 import React, { useState, useCallback, memo } from "react";
 import { XIcon, TrashIcon } from "@primer/octicons-react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { useTheme } from "app/theme";
 import ImagePreviewModal from "./ImagePreviewModal";
 import { FileItem } from "chat/messages/web/FileItem"; // 使用共用组件

@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
 import { VersionsIcon } from "@primer/octicons-react";
 import { IoSparklesOutline, IoDocumentTextOutline } from "react-icons/io5"; // 从 react-icons 导入备用图标

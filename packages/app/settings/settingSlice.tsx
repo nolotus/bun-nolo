@@ -1,3 +1,5 @@
+// app/settings/settingSlice.ts
+
 import {
   buildCreateSlice,
   asyncThunkCreator,
@@ -57,15 +59,13 @@ const settingSlice = createSliceWithThunks({
   name: "settings",
   initialState,
   reducers: (create) => ({
-    // --- 内部同步 Reducer ---
+    // ... 其他 reducers 和 thunks 保持不变 ...
     _updateSettingsState: (
       state,
       action: PayloadAction<Partial<SettingState>>
     ) => {
       Object.assign(state, action.payload);
     },
-
-    // --- 原始同步 Reducer ---
     addHostToCurrentServer: (state, action: PayloadAction<string>) => {
       const hostname = action.payload;
       if (typeof hostname !== "string" || hostname.trim() === "") return;
@@ -75,8 +75,6 @@ const settingSlice = createSliceWithThunks({
       const protocol = isLocal ? "http" : "https";
       state.currentServer = `${protocol}://${hostname}`;
     },
-
-    // --- 异步 Thunks ---
     getSettings: create.asyncThunk(
       async (_, { dispatch, getState }) => {
         const userId = selectUserId(getState() as RootState);
@@ -89,8 +87,6 @@ const settingSlice = createSliceWithThunks({
         },
       }
     ),
-
-    // 核心 Thunk：批量更新设置并持久化
     setSettings: create.asyncThunk(
       async (changes: Partial<SettingState>, { dispatch, getState }) => {
         dispatch(settingSlice.actions._updateSettingsState(changes));
@@ -102,17 +98,13 @@ const settingSlice = createSliceWithThunks({
         return changes;
       }
     ),
-
-    // --- 具体的原子化 Thunks (全部复用 setSettings) ---
     changeTheme: create.asyncThunk(
       async (themeName: keyof typeof THEME_COLORS, { dispatch }) =>
         dispatch(setSettings({ themeName })).unwrap()
     ),
-
     changeDarkMode: create.asyncThunk(async (isDark: boolean, { dispatch }) =>
       dispatch(setSettings({ isDark, themeFollowsSystem: false })).unwrap()
     ),
-
     toggleShowThinking: create.asyncThunk(async (_, { dispatch, getState }) => {
       const currentShowThinking = (getState() as RootState).settings
         .showThinking;
@@ -120,13 +112,10 @@ const settingSlice = createSliceWithThunks({
         setSettings({ showThinking: !currentShowThinking })
       ).unwrap();
     }),
-
     setThemeFollowsSystem: create.asyncThunk(
       async (follows: boolean, { dispatch }) =>
         dispatch(setSettings({ themeFollowsSystem: follows })).unwrap()
     ),
-
-    // 【新增】设置侧边栏宽度并持久化
     setSidebarWidth: create.asyncThunk(
       async (sidebarWidth: number, { dispatch }) =>
         dispatch(setSettings({ sidebarWidth })).unwrap()
@@ -134,7 +123,7 @@ const settingSlice = createSliceWithThunks({
   }),
 });
 
-// --- 导出 Actions (已包含所有，包括 setSidebarWidth) ---
+// --- 导出 Actions ---
 export const {
   getSettings,
   setSettings,
@@ -143,10 +132,10 @@ export const {
   changeDarkMode,
   toggleShowThinking,
   setThemeFollowsSystem,
-  setSidebarWidth, // 【已导出】
+  setSidebarWidth,
 } = settingSlice.actions;
 
-// --- 导出 Selectors (已包含所有) ---
+// --- 导出 Selectors ---
 export const selectSettings = (state: RootState) => state.settings;
 export const selectCurrentServer = (state: RootState): string =>
   state.settings.currentServer;
@@ -170,7 +159,7 @@ export const selectThemeName = (state: RootState): keyof typeof THEME_COLORS =>
 export const selectThemeFollowsSystem = (state: RootState): boolean =>
   state.settings.themeFollowsSystem;
 export const selectSidebarWidth = (state: RootState): number =>
-  state.settings.sidebarWidth; // 【已存在且正确】
+  state.settings.sidebarWidth;
 
 // --- 高性能的记忆化 Selector ---
 export const selectTheme = createSelector(
@@ -179,8 +168,10 @@ export const selectTheme = createSelector(
     const mode = isDark ? "dark" : "light";
     const validThemeName = THEME_COLORS[themeName] ? themeName : "blue";
     return {
-      sidebarWidth,
-      headerHeight,
+      // 【优化】为动态尺寸添加 'px' 单位，确保 CSS 变量的有效性
+      sidebarWidth: `${sidebarWidth}px`,
+      headerHeight: `${headerHeight}px`,
+      // 【关键】将 space 对象直接注入，新的 Controller 会处理它
       space: SPACE,
       ...MODE_COLORS[mode],
       ...THEME_COLORS[validThemeName][mode],

@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { selectTheme } from "app/settings/settingSlice";
 import { useTranslation } from "react-i18next";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { useCouldEdit } from "auth/hooks/useCouldEdit";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
 import { useModal } from "render/ui/Modal";

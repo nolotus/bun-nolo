@@ -1,6 +1,6 @@
 // render/page/PageLoader.tsx
 import React, { Suspense, lazy, useEffect } from "react";
-import { useAppDispatch } from "app/hooks";
+import { useAppDispatch } from "app/store";
 import { useParams, useLocation } from "react-router-dom";
 
 // 导入 Action

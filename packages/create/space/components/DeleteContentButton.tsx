@@ -6,7 +6,7 @@ import {
   deleteContentFromSpace,
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
-import { useAppDispatch, useAppSelector } from "app/hooks";
+import { useAppDispatch, useAppSelector } from "app/store";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
 import toast from "react-hot-toast";
 

@@ -23,7 +23,6 @@ const browserStore = createAppStore(preloadedState);
 delete window.__PRELOADED_STATE__;
 
 const hostname = window.location.hostname;
-const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 const domNode = document.getElementById("root");
 const lng = window.navigator.language;
 
@@ -34,12 +33,7 @@ if (isProduction) {
       {/* 【修改】使用新创建的 browserStore */}
       <Provider store={browserStore}>
         <BrowserRouter>
-          <App
-            hostname={hostname}
-            lng={lng}
-            isDark={isDark}
-            tokenManager={webTokenManager}
-          />
+          <App hostname={hostname} lng={lng} tokenManager={webTokenManager} />
         </BrowserRouter>
       </Provider>
     </React.StrictMode>
@@ -51,12 +45,7 @@ if (isProduction) {
     <React.StrictMode>
       <Provider store={browserStore}>
         <HashRouter>
-          <App
-            hostname={hostname}
-            lng={lng}
-            isDark={isDark}
-            tokenManager={webTokenManager}
-          />
+          <App hostname={hostname} lng={lng} tokenManager={webTokenManager} />
         </HashRouter>
       </Provider>
     </React.StrictMode>
