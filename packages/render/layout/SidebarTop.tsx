@@ -17,6 +17,7 @@ import { SpaceItem } from "create/space/components/SpaceItem";
 import { HomeIcon, PlusIcon, ChevronDownIcon } from "@primer/octicons-react";
 import { zIndex } from "../styles/zIndex";
 
+// Custom hook to detect clicks outside a specified element
 const useClickOutside = (
   ref: React.RefObject<HTMLElement>,
   handler: (event: MouseEvent) => void
@@ -50,7 +51,9 @@ export const SidebarTop: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsDropdownOpen(false);
+      if (e.key === "Escape") {
+        setIsDropdownOpen(false);
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -143,17 +146,6 @@ export const SidebarTop: React.FC = () => {
       </Dialog>
 
       <style href="SidebarTop-styles" precedence="component">{`
-        @keyframes SidebarTop-pulse {
-          0%, 100% { 
-            background-color: var(--backgroundTertiary); 
-            opacity: 0.8;
-          }
-          50% { 
-            background-color: var(--backgroundHover); 
-            opacity: 1;
-          }
-        }
-
         @keyframes SidebarTop-slideIn {
           from { 
             opacity: 0; 
@@ -172,7 +164,6 @@ export const SidebarTop: React.FC = () => {
           padding: var(--space-2);
           height: var(--headerHeight);
           background-color: var(--background);
-          border-bottom: 1px solid var(--border);
           flex-shrink: 0;
           box-sizing: border-box;
         }
@@ -190,37 +181,17 @@ export const SidebarTop: React.FC = () => {
           border: none;
           cursor: pointer;
           text-decoration: none;
-          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .SidebarTop__homeButton::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: var(--backgroundHover);
-          opacity: 0;
-          transition: opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-          border-radius: inherit;
-        }
-
-        .SidebarTop__homeButton:hover::before {
-          opacity: 1;
+          transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         .SidebarTop__homeButton:hover {
           color: var(--text);
-          transform: translateY(-1px);
+          background-color: var(--backgroundHover);
         }
 
         .SidebarTop__homeButton.active {
           background-color: var(--primaryGhost);
           color: var(--primary);
-        }
-
-        .SidebarTop__homeButton.active::before {
-          display: none;
         }
 
         .SidebarTop__dropdown {
@@ -239,53 +210,25 @@ export const SidebarTop: React.FC = () => {
           border: 1px solid var(--border);
           background-color: var(--background);
           cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-          position: relative;
-          overflow: hidden;
           font-family: inherit;
+          transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .SidebarTop__trigger::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: var(--backgroundHover);
-          opacity: 0;
-          transition: opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-          border-radius: inherit;
-        }
-
-        .SidebarTop__trigger:hover:not(:disabled)::before {
-          opacity: 1;
-        }
-
-        .SidebarTop__trigger:hover:not(:disabled) {
+        .SidebarTop__trigger:hover:not(:disabled):not([aria-expanded="true"]) {
+          background-color: var(--backgroundHover);
           border-color: var(--borderHover);
-          transform: translateY(-1px);
-          box-shadow: 0 2px 8px var(--shadowLight);
         }
 
         .SidebarTop__trigger[aria-expanded="true"] {
           background-color: var(--backgroundSelected);
           border-color: var(--primary);
           box-shadow: 0 0 0 2px var(--focus);
-          transform: none;
-        }
-
-        .SidebarTop__trigger[aria-expanded="true"]::before {
-          display: none;
         }
 
         .SidebarTop__trigger:disabled {
           opacity: 0.6;
           cursor: not-allowed;
-          animation: SidebarTop-pulse 2s infinite ease-in-out;
-          border-color: var(--border);
-        }
-
-        .SidebarTop__trigger:disabled:hover {
-          transform: none;
-          box-shadow: none;
+          background-color: var(--backgroundTertiary);
         }
 
         .SidebarTop__label {
@@ -297,15 +240,11 @@ export const SidebarTop: React.FC = () => {
           overflow: hidden;
           text-overflow: ellipsis;
           text-align: left;
-          position: relative;
-          z-index: 1;
         }
 
         .SidebarTop__chevron {
           color: var(--textTertiary);
-          transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-          position: relative;
-          z-index: 1;
+          transition: transform 0.25s ease, color 0.25s ease;
           flex-shrink: 0;
         }
 
@@ -319,12 +258,10 @@ export const SidebarTop: React.FC = () => {
           top: calc(100% + var(--space-2));
           left: 0;
           right: 0;
-          background: var(--background);
+          background-color: var(--backgroundGhost, var(--background));
           border-radius: var(--space-2);
           border: 1px solid var(--border);
-          box-shadow: 
-            0 8px 24px var(--shadowMedium),
-            0 2px 6px var(--shadowLight);
+          box-shadow: 0 8px 24px var(--shadowMedium), 0 2px 6px var(--shadowLight);
           z-index: ${zIndex.spaceDropdownZIndex};
           animation: SidebarTop-slideIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
           transform-origin: top;
@@ -339,22 +276,19 @@ export const SidebarTop: React.FC = () => {
           scrollbar-width: thin;
           scrollbar-color: var(--textLight) transparent;
         }
-
+        
         .SidebarTop__content::-webkit-scrollbar {
           width: 4px;
         }
-
         .SidebarTop__content::-webkit-scrollbar-track {
           background: transparent;
           margin: var(--space-1) 0;
         }
-
         .SidebarTop__content::-webkit-scrollbar-thumb {
           background-color: var(--textLight);
           border-radius: var(--space-2);
           transition: background-color 0.2s ease;
         }
-
         .SidebarTop__content::-webkit-scrollbar-thumb:hover {
           background-color: var(--textTertiary);
         }
@@ -373,34 +307,17 @@ export const SidebarTop: React.FC = () => {
           padding: var(--space-2) var(--space-3);
           border-radius: var(--space-2);
           font-size: 0.875rem;
-          font-weight: 400;
           text-align: left;
           cursor: pointer;
           border: none;
           background-color: transparent;
-          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-          position: relative;
-          overflow: hidden;
           color: var(--text);
           font-family: inherit;
-        }
-
-        .SidebarTop__item::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: var(--backgroundHover);
-          opacity: 0;
-          transition: opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-          border-radius: inherit;
-        }
-
-        .SidebarTop__item:hover::before {
-          opacity: 1;
+          transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         .SidebarTop__item:hover {
-          transform: translateY(-1px);
+          background-color: var(--backgroundHover);
         }
 
         .SidebarTop__item--create {
@@ -408,12 +325,9 @@ export const SidebarTop: React.FC = () => {
           color: var(--textSecondary);
         }
 
-        .SidebarTop__item--create::before {
-          background: var(--primaryGhost);
-        }
-
         .SidebarTop__item--create:hover {
           color: var(--primary);
+          background-color: var(--primaryGhost);
         }
 
         .SidebarTop__item--empty {
@@ -424,24 +338,12 @@ export const SidebarTop: React.FC = () => {
           font-size: 0.8rem;
         }
 
-        .SidebarTop__item--empty::before {
-          display: none;
-        }
-
         .SidebarTop__item--empty:hover {
-          transform: none;
+          background-color: transparent;
         }
 
-        /* 图标样式 */
         .SidebarTop__item svg {
-          position: relative;
-          z-index: 1;
           flex-shrink: 0;
-        }
-
-        .SidebarTop__item span {
-          position: relative;
-          z-index: 1;
         }
       `}</style>
     </>

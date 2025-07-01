@@ -1,4 +1,3 @@
-// 文件路径: create/space/components/CategoryHeader.tsx
 import React, { useState, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "app/store";
 import { ConfirmModal } from "render/web/ui/ConfirmModal";
@@ -17,48 +16,49 @@ import {
 } from "create/space/spaceSlice";
 import { createPage } from "render/page/pageSlice";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useInlineEdit } from "render/web/ui/useInlineEdit";
 import InlineEditInput from "render/web/ui/InlineEditInput";
 import { UNCATEGORIZED_ID } from "create/space/constants";
+import toast from "react-hot-toast"; // 确保 toast 已导入
 
 interface CategoryHeaderProps {
   categoryId: string;
   categoryName: string;
-  isDragOver?: boolean;
   handleProps?: {
     onDragStart: (e: React.DragEvent) => void;
     onDragEnd: (e: React.DragEvent) => void;
   };
-  // The following props are passed from CategorySection but not used here yet.
-  // isSelectionMode?: boolean;
-  // isCategorySelected?: boolean;
-  // onSelectCategory?: () => void;
+  isSelectionMode: boolean;
+  isCategorySelected: boolean;
+  onSelectCategory: () => void;
 }
 
 const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   categoryId,
   categoryName = "",
-  isDragOver,
   handleProps,
+  isSelectionMode,
+  isCategorySelected,
+  onSelectCategory,
 }) => {
-  // --- State ---
+  const { t } = useTranslation("space"); // 指定命名空间为 "space"
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  // --- Hooks & Selectors ---
-  const dispatch = useAppDispatch();
   const spaceId = useAppSelector(selectCurrentSpaceId);
-  const navigate = useNavigate();
   const collapsedCategories = useAppSelector(selectCollapsedCategories);
 
-  // --- Computed Values ---
   const isUncategorized = categoryId === UNCATEGORIZED_ID;
   const isCollapsed = collapsedCategories[categoryId] ?? false;
-  const displayCategoryName =
-    isUncategorized && !categoryName ? "未分类" : categoryName;
+  const displayCategoryName = isUncategorized
+    ? t("uncategorized") // 引用 "uncategorized"
+    : categoryName;
 
-  // --- Handlers ---
-  const handleSave = useCallback(
+  const handleSaveName = useCallback(
     (newName: string) => {
       if (spaceId && !isUncategorized) {
         dispatch(updateCategoryName({ spaceId, categoryId, name: newName }));
@@ -69,58 +69,46 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
 
   const { isEditing, startEditing, inputRef, inputProps } = useInlineEdit({
     initialValue: displayCategoryName,
-    onSave: handleSave,
-    placeholder: "输入分类名称",
-    ariaLabel: "编辑分类名称",
+    onSave: handleSaveName,
+    placeholder: t("categoryNamePlaceholder"), // 引用 "categoryNamePlaceholder"
     disabled: isUncategorized,
   });
 
-  const handleToggleCollapse = useCallback(() => {
+  const handleToggleCollapse = () =>
     dispatch(toggleCategoryCollapse(categoryId));
-  }, [dispatch, categoryId]);
-
-  const handleDelete = useCallback(() => {
+  const handleDelete = () => {
     if (spaceId && !isUncategorized) {
       dispatch(deleteCategory({ spaceId, categoryId }));
     }
     setIsDeleteModalOpen(false);
-  }, [dispatch, spaceId, categoryId, isUncategorized]);
+  };
 
-  const handleAddPage = useCallback(async () => {
+  const handleAddPage = async () => {
     if (!spaceId) return;
     try {
-      const resultAction = await dispatch(createPage({ categoryId }));
-      const pageKey = resultAction.payload as string;
-      if (pageKey) {
-        navigate(`/${pageKey}?edit=true`);
-      }
+      const pageKey = await dispatch(createPage({ categoryId })).unwrap();
+      navigate(`/${pageKey}?edit=true`);
     } catch (error) {
       console.error("Failed to create page:", error);
+      toast.error(t("createPageFailed")); // 引用 "createPageFailed"
     }
-  }, [dispatch, spaceId, categoryId, navigate]);
+  };
 
-  const handleDragStart = useCallback(
-    (e: React.DragEvent) => {
-      e.dataTransfer.setData("categoryId", categoryId);
-      e.dataTransfer.setData("dragType", "category");
-      e.dataTransfer.effectAllowed = "move";
-      setIsDragging(true);
-      handleProps?.onDragStart?.(e);
-    },
-    [categoryId, handleProps]
-  );
+  const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true);
+    e.dataTransfer.setData("categoryId", categoryId);
+    e.dataTransfer.setData("dragType", "category");
+    e.dataTransfer.effectAllowed = "move";
+    handleProps?.onDragStart?.(e);
+  };
 
-  const handleDragEnd = useCallback(
-    (e: React.DragEvent) => {
-      setIsDragging(false);
-      handleProps?.onDragEnd?.(e);
-    },
-    [handleProps]
-  );
+  const handleDragEnd = (e: React.DragEvent) => {
+    setIsDragging(false);
+    handleProps?.onDragEnd?.(e);
+  };
 
-  // --- Dynamic Props ---
-  const canEdit = !isUncategorized && !isEditing;
-  const canDrag = canEdit && handleProps;
+  const canEdit = !isUncategorized && !isEditing && !isSelectionMode;
+  const canDrag = canEdit && !!handleProps;
 
   const nameProps = useMemo(
     () =>
@@ -134,12 +122,11 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
     [canDrag, handleDragStart, handleDragEnd]
   );
 
-  // --- Class Names ---
   const headerClass = [
     "CategoryHeader",
-    isDragOver && "CategoryHeader--drag-over",
     isEditing && "CategoryHeader--editing",
     isDragging && "CategoryHeader--dragging",
+    isSelectionMode && "CategoryHeader--selection-mode",
   ]
     .filter(Boolean)
     .join(" ");
@@ -147,60 +134,69 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   return (
     <>
       <div className={headerClass}>
-        <button
-          className={`CategoryHeader__collapseButton ${isCollapsed ? "CategoryHeader__collapseButton--collapsed" : ""}`}
-          onClick={handleToggleCollapse}
-          title={isCollapsed ? "展开" : "折叠"}
-          type="button"
-        >
-          <ChevronDownIcon size={16} />
-        </button>
+        {isSelectionMode ? (
+          <input
+            type="checkbox"
+            className="CategoryHeader__checkbox"
+            checked={isCategorySelected}
+            onChange={onSelectCategory}
+            aria-label={t("selectCategory", {
+              // 引用 "selectCategory"
+              name: displayCategoryName,
+            })}
+          />
+        ) : (
+          <button
+            className={`CategoryHeader__collapse-btn ${isCollapsed ? "is-collapsed" : ""}`}
+            onClick={handleToggleCollapse}
+            title={isCollapsed ? t("expand") : t("collapse")} // 引用 "expand" 和 "collapse"
+            type="button"
+          >
+            <ChevronDownIcon size={16} />
+          </button>
+        )}
 
         {isEditing ? (
           <InlineEditInput inputRef={inputRef} {...inputProps} />
         ) : (
           <span
-            className={`CategoryHeader__name ${canDrag ? "CategoryHeader__name--draggable" : ""}`}
+            className={`CategoryHeader__name ${canDrag ? "is-draggable" : ""}`}
             {...nameProps}
-            title={canDrag ? "拖拽调整顺序" : displayCategoryName}
+            title={canDrag ? t("dragToReorder") : displayCategoryName} // 引用 "dragToReorder"
             onDoubleClick={canEdit ? startEditing : undefined}
           >
             {displayCategoryName}
           </span>
         )}
 
-        <div className="CategoryHeader__actions">
-          <button
-            className="CategoryHeader__actionButton CategoryHeader__actionButton--add"
-            onClick={handleAddPage}
-            title="新建页面"
-            disabled={isEditing}
-            type="button"
-          >
-            <PlusIcon size={14} />
-          </button>
-
-          {canEdit && (
-            <>
-              <button
-                className="CategoryHeader__actionButton CategoryHeader__actionButton--edit"
-                onClick={startEditing}
-                title="编辑名称"
-                type="button"
-              >
-                <PencilIcon size={14} />
-              </button>
-              <button
-                className="CategoryHeader__actionButton CategoryHeader__actionButton--delete"
-                onClick={() => setIsDeleteModalOpen(true)}
-                title="删除分类"
-                type="button"
-              >
-                <TrashIcon size={14} />
-              </button>
-            </>
-          )}
-        </div>
+        {canEdit && (
+          <div className="CategoryHeader__actions">
+            <button
+              className="CategoryHeader__action-btn"
+              onClick={handleAddPage}
+              title={t("newPage")} // 引用 "newPage"
+              type="button"
+            >
+              <PlusIcon size={14} />
+            </button>
+            <button
+              className="CategoryHeader__action-btn"
+              onClick={startEditing}
+              title={t("editName")} // 引用 "editName"
+              type="button"
+            >
+              <PencilIcon size={14} />
+            </button>
+            <button
+              className="CategoryHeader__action-btn is-danger"
+              onClick={() => setIsDeleteModalOpen(true)}
+              title={t("deleteCategory")} // 引用 "deleteCategory"
+              type="button"
+            >
+              <TrashIcon size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
       {!isUncategorized && (
@@ -208,10 +204,13 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDelete}
-          title="删除分类"
-          message={`确定要删除分类 "${displayCategoryName}" 吗？该分类下的所有内容将被移至"未分类"。此操作无法撤销。`}
-          confirmText="确认删除"
-          cancelText="取消"
+          title={t("deleteCategory")} // 引用 "deleteCategory"
+          message={t("deleteCategoryConfirm", {
+            // 引用 "deleteCategoryConfirm"
+            name: displayCategoryName,
+          })}
+          confirmText={t("common.confirmDelete")} // 引用 "common.confirmDelete"
+          cancelText={t("common.cancel")} // 引用 "common.cancel"
           type="error"
           showCancel
         />
@@ -225,30 +224,18 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           padding: var(--space-1) var(--space-2);
           border-radius: var(--space-2);
           min-height: 36px;
-          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          transition: background-color 0.2s ease, box-shadow 0.2s ease;
           user-select: none;
-          position: relative;
         }
-
-        .CategoryHeader:hover:not(.CategoryHeader--editing) {
+        .CategoryHeader:not(.CategoryHeader--selection-mode):hover:not(.CategoryHeader--editing) {
           background-color: var(--backgroundHover);
         }
-
-        .CategoryHeader--drag-over {
-          background-color: var(--primaryGhost);
-          border: 1px dashed var(--primary);
-          transform: translateY(-1px);
-        }
-
         .CategoryHeader--dragging {
           opacity: 0.8;
           background-color: var(--backgroundSelected);
           box-shadow: var(--shadowMedium);
-          transform: translateY(-2px);
-          z-index: 100;
         }
-
-        .CategoryHeader__collapseButton {
+        .CategoryHeader__collapse-btn, .CategoryHeader__action-btn {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -260,109 +247,54 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
           color: var(--textTertiary);
           cursor: pointer;
           border-radius: var(--space-1);
-          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+          transition: all 0.2s ease;
           flex-shrink: 0;
         }
-
-        .CategoryHeader__collapseButton:hover {
+        .CategoryHeader__collapse-btn:hover, .CategoryHeader__action-btn:hover:not(:disabled) {
           color: var(--textSecondary);
           background-color: var(--backgroundTertiary);
         }
-
-        .CategoryHeader__collapseButton--collapsed {
+        .CategoryHeader__collapse-btn.is-collapsed {
           transform: rotate(-90deg);
         }
-
         .CategoryHeader__name {
           flex: 1;
-          font-size: 14px;
-          font-weight: 600;
+          font-weight: 500;
           color: var(--text);
-          line-height: 1.4;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          min-width: 0;
           padding: var(--space-1) 0;
-          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-
-        .CategoryHeader__name--draggable {
+        .CategoryHeader__name.is-draggable {
           cursor: grab;
-          padding-left: var(--space-1);
-          padding-right: var(--space-1);
-          margin: 0 calc(var(--space-1) * -1);
-          border-radius: var(--space-1);
-          position: relative;
         }
-
-        .CategoryHeader__name--draggable:hover {
-          background-color: var(--backgroundTertiary);
-        }
-
-        .CategoryHeader__name--draggable:active {
+        .CategoryHeader__name.is-draggable:active {
           cursor: grabbing;
-          transform: translateY(-1px);
         }
-
         .CategoryHeader__actions {
           display: flex;
           gap: 1px;
           align-items: center;
           opacity: 0;
-          transition: opacity 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-          flex-shrink: 0;
+          transition: opacity 0.2s ease;
         }
-
-        .CategoryHeader:hover .CategoryHeader__actions:not(.CategoryHeader--editing .CategoryHeader__actions) {
+        .CategoryHeader:hover .CategoryHeader__actions {
           opacity: 1;
         }
-
-        .CategoryHeader__actionButton {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 24px;
-          height: 24px;
-          padding: 0;
-          background: none;
-          border: none;
-          color: var(--textTertiary);
-          cursor: pointer;
-          border-radius: var(--space-1);
-          transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        .CategoryHeader--editing .CategoryHeader__actions,
+        .CategoryHeader--selection-mode .CategoryHeader__actions {
+          opacity: 0;
+          pointer-events: none;
         }
-
-        .CategoryHeader__actionButton:hover:not(:disabled) {
-          background-color: var(--backgroundTertiary);
-        }
-
-        .CategoryHeader__actionButton--add:hover:not(:disabled) {
-          color: var(--success);
-        }
-
-        .CategoryHeader__actionButton--edit:hover {
-          color: var(--primary);
-        }
-
-        .CategoryHeader__actionButton--delete:hover {
+        .CategoryHeader__action-btn:hover.is-danger {
           color: var(--error);
         }
-
-        .CategoryHeader__actionButton:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-          .CategoryHeader {
-            gap: var(--space-1);
-            padding: var(--space-1);
-          }
-          
-          .CategoryHeader__name {
-            font-size: 13px;
-          }
+        .CategoryHeader__checkbox {
+          width: 16px;
+          height: 16px;
+          margin: 4px; /* visually align with collapse button */
+          cursor: pointer;
         }
       `}</style>
     </>

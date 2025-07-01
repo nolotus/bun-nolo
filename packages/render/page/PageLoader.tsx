@@ -1,4 +1,5 @@
 // render/page/PageLoader.tsx
+
 import React, { Suspense, lazy, useEffect } from "react";
 import { useAppDispatch } from "app/store";
 import { useParams, useLocation } from "react-router-dom";
@@ -16,7 +17,15 @@ import NoMatch from "../NoMatch";
 
 // 加载提示组件
 const LoadingFallback = () => (
-  <div style={{ padding: "40px", textAlign: "center" }}>加载页面组件...</div>
+  <div
+    style={{
+      padding: "40px",
+      textAlign: "center",
+      color: "var(--textSecondary)",
+    }}
+  >
+    加载页面组件...
+  </div>
 );
 
 /**
@@ -32,20 +41,20 @@ const PageLoader = () => {
   // 处理 URL searchParams 中的 spaceId
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const spaceId = searchParams.get("spaceId"); // 获取 spaceId 参数
+    const spaceId = searchParams.get("spaceId");
 
     // 如果 spaceId 存在，则 dispatch changeSpace action
     if (spaceId) {
       dispatch(changeSpace(spaceId));
     }
-  }, [dispatch, location.search]); // 依赖 dispatch 和 location.search
+  }, [dispatch, location.search]);
 
   // 组件卸载时清理页面状态
   useEffect(() => {
     return () => {
       dispatch(resetPage());
     };
-  }, [dispatch]); // 仅依赖 dispatch
+  }, [dispatch]);
 
   // 根据 pageKey 前缀渲染不同的组件
   if (pageKey?.startsWith("page")) {
@@ -58,9 +67,14 @@ const PageLoader = () => {
     return <DialogPage pageKey={pageKey} />;
   } else if (pageKey?.startsWith("cybot")) {
     return <AgentPage agentKey={pageKey} />;
-  } else {
-    return <NoMatch message={`无法识别或处理的页面类型: ${pageKey}`} />;
   }
+
+  // 如果 pageKey 为空或未匹配，可以显示一个默认页面或 NoMatch
+  if (!pageKey) {
+    return <NoMatch message="请选择一个页面或对话。" />;
+  }
+
+  return <NoMatch message={`无法识别或处理的页面类型: ${pageKey}`} />;
 };
 
 export default PageLoader;

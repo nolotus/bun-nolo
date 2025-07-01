@@ -1,3 +1,4 @@
+// src/locales/common.ts
 import { Language } from "../types";
 
 export default {
@@ -47,8 +48,7 @@ export default {
       purposeRequired: "Please tell us your intended use",
       purposeTooShort: "Please provide more details (at least 10 characters)",
       settings: {
-        // Updated to be an object for nested settings
-        title: "Settings", // General settings title
+        title: "Settings",
         appearance: {
           title: "Appearance",
           theme: {
@@ -62,7 +62,6 @@ export default {
           },
         },
         theme: {
-          // Moved theme specific translations here
           light: "Light Mode",
           dark: "Dark Mode",
           system: "System",
@@ -121,8 +120,6 @@ export default {
       registrationFailed: "Registration failed",
       unknown: "Unknown",
       code: "Invitation Code",
-
-      // -- 新增 InviteSignup 翻译 --
       inviteHeader: "Hi, you've received an invitation from {{name}}",
       invitePartnerDescription:
         "Since the inviter is our partner, you'll receive a bonus of 6.6 credits upon registration.",
@@ -130,6 +127,14 @@ export default {
       emailOptionalPlaceholder: "Enter email (optional)",
       inviterIdOptionalPlaceholder: "Enter inviter ID (optional)",
       inviterAvatarAlt: "Inviter avatar: {{name}}",
+
+      // ——————— 新增对话页相关 Key ———————
+      errors: {
+        loadingMessages: "Error loading messages",
+      },
+      selectADialog: "Select a dialog",
+      welcomeTitle: "Welcome! Please log in to view and send messages",
+      welcomeHint: "Please log in or sign up to start chatting",
     },
   },
   [Language.ZH_CN]: {
@@ -177,8 +182,7 @@ export default {
       purposeRequired: "请告诉我们您的使用目的",
       purposeTooShort: "请提供更多详细信息（至少10个字符）",
       settings: {
-        // Updated to be an object for nested settings
-        title: "设置", // General settings title
+        title: "设置",
         appearance: {
           title: "外观",
           theme: {
@@ -192,7 +196,6 @@ export default {
           },
         },
         theme: {
-          // Moved theme specific translations here
           light: "浅色模式",
           dark: "深色模式",
           system: "跟随系统",
@@ -251,8 +254,6 @@ export default {
       registrationFailed: "注册失败",
       unknown: "未知",
       code: "邀请码",
-
-      // -- 新增 InviteSignup 翻译 --
       inviteHeader: "Hi，你收到了来自 {{name}} 的邀请",
       invitePartnerDescription:
         "由于邀请人是我们的合作伙伴，注册后你将获赠 6.6 积分。",
@@ -260,6 +261,14 @@ export default {
       emailOptionalPlaceholder: "请输入邮箱（选填）",
       inviterIdOptionalPlaceholder: "请输入推荐人ID（选填）",
       inviterAvatarAlt: "邀请人头像: {{name}}",
+
+      // ——————— 新增对话页相关 Key ———————
+      errors: {
+        loadingMessages: "加载消息失败",
+      },
+      selectADialog: "请选择一个对话",
+      welcomeTitle: "欢迎！请登录以查看和发送消息",
+      welcomeHint: "请登录或注册以开始聊天",
     },
   },
   [Language.ZH_HANT]: {
@@ -307,8 +316,7 @@ export default {
       purposeRequired: "請告訴我們您的使用目的",
       purposeTooShort: "請提供更多詳細信息（至少10個字符）",
       settings: {
-        // Updated to be an object for nested settings
-        title: "設置", // General settings title
+        title: "設置",
         appearance: {
           title: "外觀",
           theme: {
@@ -322,7 +330,6 @@ export default {
           },
         },
         theme: {
-          // Moved theme specific translations here
           light: "淺色模式",
           dark: "深色模式",
           system: "跟隨系統",
@@ -381,8 +388,6 @@ export default {
       registrationFailed: "註冊失敗",
       unknown: "未知",
       code: "邀請碼",
-
-      // -- 新增 InviteSignup 翻譯 --
       inviteHeader: "Hi，您收到了來自 {{name}} 的邀請",
       invitePartnerDescription:
         "由於邀請人是我們的合作夥伴，註冊後您將獲贈 6.6 積分。",
@@ -390,6 +395,14 @@ export default {
       emailOptionalPlaceholder: "請輸入電郵（選填）",
       inviterIdOptionalPlaceholder: "請輸入推薦人ID（選填）",
       inviterAvatarAlt: "邀請人頭像: {{name}}",
+
+      // ——————— 新增对话页相关 Key ———————
+      errors: {
+        loadingMessages: "加載消息失敗",
+      },
+      selectADialog: "請選擇一個對話",
+      welcomeTitle: "歡迎！請登入以查看和發送訊息",
+      welcomeHint: "請登入或註冊以開始聊天",
     },
   },
   [Language.JA]: {
@@ -439,8 +452,7 @@ export default {
       purposeRequired: "ご使用目的をお聞かせください",
       purposeTooShort: "より詳しい情報をご記入ください（10文字以上）",
       settings: {
-        // Updated to be an object for nested settings
-        title: "設定", // General settings title
+        title: "設定",
         appearance: {
           title: "外観",
           theme: {
@@ -455,7 +467,6 @@ export default {
           },
         },
         theme: {
-          // Moved theme specific translations here
           light: "ライトモード",
           dark: "ダークモード",
           system: "システムに従う",
@@ -494,7 +505,6 @@ export default {
             1: "🔐 エンドツーエンド暗号化",
             2: "🌐 透明性ファースト",
           },
-          // Removed duplicate lightMode and darkMode from here
         },
         feature3: {
           title: "シームレス同期",
@@ -515,8 +525,6 @@ export default {
       registrationFailed: "登録に失敗しました",
       unknown: "不明",
       code: "招待コード",
-
-      // -- 新增 InviteSignup 翻訳 --
       inviteHeader: "こんにちは、{{name}}さんからの招待が届きました",
       invitePartnerDescription:
         "招待者は私たちのパートナーであるため、登録すると6.6クレジットのボーナスが付与されます。",
@@ -524,6 +532,16 @@ export default {
       emailOptionalPlaceholder: "メールアドレスを入力（任意）",
       inviterIdOptionalPlaceholder: "招待者IDを入力（任意）",
       inviterAvatarAlt: "招待者のアバター: {{name}}",
+
+      // ——————— 新增对话页相关 Key ———————
+      errors: {
+        loadingMessages: "メッセージの読み込みに失敗しました",
+      },
+      selectADialog: "ダイアログを選択してください",
+      welcomeTitle:
+        "ようこそ！メッセージを表示および送信するにはログインしてください",
+      welcomeHint:
+        "チャットを開始するには、ログインまたはサインアップしてください",
     },
   },
 };
