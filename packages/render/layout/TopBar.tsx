@@ -171,7 +171,7 @@ const MobileDialogMenu = ({ currentDialogConfig }) => {
         )}
       </div>
 
-      <style href="mobile-dialog-menu-styles" precedence="utility">{`
+      <style href="mobile-dialog-menu-styles" precedence="default">{`
         .mobile-menu { position: relative; display: none; }
         .backdrop {
           position: fixed; top: 0; left: 0; width: 100%; height: 100%;
