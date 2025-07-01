@@ -1,5 +1,7 @@
+// MainLayout.tsx (Final Version with Animations)
+
 import { useAuth } from "auth/hooks/useAuth";
-import ChatSidebar from "chat/ChatSidebar";
+import ChatSidebar from "chat/web/ChatSidebar";
 import LifeSidebarContent from "life/LifeSidebarContent";
 import React, {
   Suspense,
@@ -9,29 +11,21 @@ import React, {
   useState,
 } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { zIndex } from "render/styles/zIndex";
+import { useDispatch, useSelector } from "react-redux";
 import { SidebarTop } from "./SidebarTop";
 import TopBar from "./TopBar";
-import {
-  selectTheme,
-  selectHeaderHeight,
-  setSidebarWidth,
-  selectSidebarWidth,
-} from "app/settings/settingSlice";
+import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
+import { zIndex } from "render/styles/zIndex";
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
   const { isLoggedIn } = useAuth();
   const dispatch = useDispatch();
-  const theme = useSelector(selectTheme);
-  const headerHeight = useSelector(selectHeaderHeight);
   const sidebarWidth = useSelector(selectSidebarWidth);
   const isOpen = sidebarWidth > 0;
 
   const [isResizing, setIsResizing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
   const lastWidthRef = useRef(sidebarWidth);
 
   useEffect(() => {
@@ -49,9 +43,7 @@ const MainLayout: React.FC = () => {
     sidebarContent = null;
   }
 
-  // 判断侧边栏是否应该显示并占用空间
   const hasSidebar = sidebarContent !== null;
-  const sidebarShouldTakeSpace = hasSidebar && isOpen && !isMobile;
 
   const toggleSidebar = useCallback(() => {
     const newWidth = sidebarWidth > 0 ? 0 : lastWidthRef.current || 260;
@@ -80,11 +72,9 @@ const MainLayout: React.FC = () => {
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+      if ((e.ctrlKey || e.metaKey) && e.key === "b" && hasSidebar) {
         e.preventDefault();
-        if (hasSidebar) {
-          toggleSidebar();
-        }
+        toggleSidebar();
       }
     };
     handleResize();
@@ -119,43 +109,27 @@ const MainLayout: React.FC = () => {
     <>
       <div className="MainLayout">
         {hasSidebar && (
-          <>
-            {isOpen && isMobile && (
-              <div className="MainLayout__backdrop" onClick={toggleSidebar} />
+          <aside
+            className={`MainLayout__sidebar ${isOpen ? "is-open" : "is-closed"} ${isResizing ? "is-resizing" : ""}`}
+            style={{ width: isMobile ? "85%" : sidebarWidth }}
+          >
+            {isLoggedIn && <SidebarTop />}
+            <div className="MainLayout__sidebarContent">{sidebarContent}</div>
+            {!isMobile && (
+              <div
+                className="MainLayout__resizeHandle"
+                onMouseDown={startResizing}
+              />
             )}
-
-            <aside
-              ref={sidebarRef}
-              className={`
-                MainLayout__sidebar 
-                ${isOpen ? "is-open" : "is-closed"}
-                ${isResizing ? "is-resizing" : ""}
-              `}
-              style={{ width: isMobile ? "85%" : sidebarWidth }}
-            >
-              {isLoggedIn && <SidebarTop />}
-              <div className="MainLayout__sidebarContent">{sidebarContent}</div>
-
-              {!isMobile && (
-                <div
-                  className="MainLayout__resizeHandle"
-                  onMouseDown={startResizing}
-                />
-              )}
-            </aside>
-          </>
+          </aside>
         )}
 
-        <main
-          className={`
-            MainLayout__main
-            ${sidebarShouldTakeSpace ? "has-sidebar" : ""}
-            ${isResizing ? "is-resizing" : ""}
-          `}
-          style={{
-            marginLeft: sidebarShouldTakeSpace ? sidebarWidth : 0,
-          }}
-        >
+        {hasSidebar && isOpen && isMobile && (
+          <div className="MainLayout__backdrop" onClick={toggleSidebar} />
+        )}
+
+        {/* --- 核心修复：移除 main 区域的 style.width，让 flexbox 自动处理动画 --- */}
+        <main className={`MainLayout__main ${isResizing ? "is-resizing" : ""}`}>
           <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
           <div className="MainLayout__pageContent">
             <Suspense fallback={<div>main Loading...</div>}>
@@ -170,28 +144,24 @@ const MainLayout: React.FC = () => {
           display: flex;
           min-height: 100vh;
           background: var(--background);
-          position: relative;
         }
 
         .MainLayout__sidebar {
-          position: fixed;
-          top: 0;
-          left: 0;
           height: 100vh;
-          z-index: ${zIndex.sidebar};
           display: flex;
           flex-direction: column;
           background: var(--backgroundSecondary);
           box-shadow: var(--shadowMedium);
-          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          transform: translateX(-100%);
-          will-change: transform;
+          flex-shrink: 0;
+          position: relative;
+          z-index: ${zIndex.sidebar};
+          overflow: hidden; /* 防止内容在收缩动画时溢出 */
+          
+          /* --- 动画效果: 桌面端 --- */
+          transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .MainLayout__sidebar.is-open {
-          transform: translateX(0);
-        }
-
+        /* --- 关键：调整大小时禁用动画，以获得流畅的拖拽体验 --- */
         .MainLayout__sidebar.is-resizing,
         .MainLayout__main.is-resizing {
           transition: none !important;
@@ -199,18 +169,24 @@ const MainLayout: React.FC = () => {
 
         .MainLayout__sidebarContent {
           flex: 1;
+          min-width: 200px; /* 确保内容不会被过度压缩 */
           overflow-y: auto;
           overflow-x: hidden;
         }
 
         .MainLayout__main {
           flex: 1;
-          transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          width: 100%;
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          min-width: 0;
+          overflow: hidden;
+          /* --- 动画效果: 桌面端主内容区无需添加 transition，flexbox 会自动处理 --- */
         }
-
+        
         .MainLayout__pageContent {
-          width: 100%;
+          flex: 1;
+          overflow: auto;
           position: relative;
         }
 
@@ -230,27 +206,34 @@ const MainLayout: React.FC = () => {
           background: rgba(0,0,0,0.4);
           backdrop-filter: blur(2px);
           z-index: ${zIndex.sidebarBackdrop};
+          animation: fadeIn 0.3s ease;
         }
 
-        /* 移动端样式覆盖 */
+        /* 移动端样式覆盖: 侧边栏恢复 fixed 定位 */
         @media (max-width: 768px) {
           .MainLayout__sidebar {
-            width: 85% !important;
+            position: fixed;
+            width: 85% !important; /* !important 覆盖内联样式 */
             max-width: 320px;
             box-shadow: var(--shadowHeavy);
+            transform: translateX(-100%);
+
+            /* --- 动画效果: 移动端 --- */
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           }
           
-          .MainLayout__sidebar.is-closed {
-            overflow: hidden;
+          .MainLayout__sidebar.is-open {
+            transform: translateX(0);
           }
           
           .MainLayout__resizeHandle {
             display: none;
           }
+        }
 
-          .MainLayout__main {
-            margin-left: 0 !important;
-          }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
       `}</style>
     </>

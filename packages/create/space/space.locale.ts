@@ -110,17 +110,52 @@ export default {
       update_error: "Failed to update settings",
       updating: "Updating...",
 
-      // === 错误处理 ===
-      error_occurred: "An error occurred",
-      network_error: "Network connection error",
-      server_error: "Server error",
-      permission_denied: "Permission denied",
-      space_not_found: "Space not found",
-
       // === 状态提示 ===
       empty_state_title: "No spaces yet",
       empty_state_description: "Create your first space to get started",
       get_started: "Get Started",
+
+      // === 侧边栏/内容管理相关 ===
+      uncategorized: "Uncategorized",
+      dragToCategorize:
+        "Drag items here to categorize them, or to create a new category.",
+      itemsDeleted: "Deleted {{count}} item(s)",
+      createPageFailed: "Failed to create new page",
+      categoryCreated: "Category '{{name}}' created successfully",
+      emptyTitle: "No content yet",
+      emptyHint: "Create your first page or drag files here to get started.",
+      createFirstPage: "Create First Page",
+      selectedItemsCount: "{{count}} item(s) selected",
+      deselectAll: "Deselect All",
+      selectAll: "Select All",
+      deleteSelected: "Delete Selected",
+      cancelSelectionMode: "Cancel Selection Mode",
+      content: "Content",
+      newPage: "New Page",
+      newCategory: "New Category",
+      batchSelect: "Batch Select",
+      expandAll: "Expand All",
+      collapseAll: "Collapse All",
+      contentMoved: "Content moved successfully",
+      noOtherSpaces: "No other spaces available",
+      titlePlaceholder: "Untitled",
+      moreActions: "More Actions",
+      editTitle: "Edit Title",
+      moveToSpace: "Move to Space",
+      // 新增翻译键
+      joinConversation: "Join Conversation",
+      addedToConversation: "Added to conversation",
+
+      // CategoryHeader 新增的翻译键
+      categoryNamePlaceholder: "Enter category name",
+      expand: "Expand",
+      collapse: "Collapse",
+      selectCategory: "Select category {{name}}",
+      dragToReorder: "Drag to reorder category",
+      editName: "Edit Name",
+      deleteCategoryConfirm:
+        "Are you sure you want to delete category '{{name}}'? This action cannot be undone.",
+      deleteCategory: "Delete Category",
     },
   },
 
@@ -229,17 +264,50 @@ export default {
       update_error: "更新设置失败",
       updating: "正在更新...",
 
-      // === 错误处理 ===
-      error_occurred: "发生错误",
-      network_error: "网络连接错误",
-      server_error: "服务器错误",
-      permission_denied: "权限不足",
-      space_not_found: "空间不存在",
-
       // === 状态提示 ===
       empty_state_title: "尚无空间",
       empty_state_description: "创建您的第一个空间来开始使用",
       get_started: "开始使用",
+
+      // === 侧边栏/内容管理相关 ===
+      uncategorized: "未分类",
+      dragToCategorize: "拖拽项目到此处进行分类，或创建新分类。",
+      itemsDeleted: "已删除 {{count}} 项",
+      createPageFailed: "创建新页面失败",
+      categoryCreated: "分类 '{{name}}' 创建成功",
+      emptyTitle: "暂无内容",
+      emptyHint: "创建您的第一个页面或将文件拖拽到此处开始。",
+      createFirstPage: "创建第一个页面",
+      selectedItemsCount: "已选择 {{count}} 项",
+      deselectAll: "取消全选",
+      selectAll: "全部选择",
+      deleteSelected: "删除所选",
+      cancelSelectionMode: "取消选择模式",
+      content: "内容",
+      newPage: "新建页面",
+      newCategory: "新建分类",
+      batchSelect: "批量选择",
+      expandAll: "全部展开",
+      collapseAll: "全部折叠",
+      contentMoved: "内容已成功移动",
+      noOtherSpaces: "没有其他可用空间",
+      titlePlaceholder: "无标题",
+      moreActions: "更多操作",
+      editTitle: "编辑标题",
+      moveToSpace: "移动到空间",
+      // 新增翻译键
+      joinConversation: "加入对话",
+      addedToConversation: "已加入对话",
+
+      // CategoryHeader 新增的翻译键
+      categoryNamePlaceholder: "输入分类名称",
+      expand: "展开",
+      collapse: "折叠",
+      selectCategory: "选择分类 {{name}}",
+      dragToReorder: "拖拽以重新排序分类",
+      editName: "编辑名称",
+      deleteCategoryConfirm: "确定要删除分类“{{name}}”吗？此操作无法撤销。",
+      deleteCategory: "删除分类",
     },
   },
 
@@ -258,7 +326,7 @@ export default {
       save: "儲存",
       edit: "編輯",
 
-      // === 表單相關 ===
+      // === 表单相关 ===
       name_required: "空間名稱必填",
       name_min_length: "空間名稱至少需要2個字符",
       name_max_length: "空間名稱不能超過50個字符",
@@ -266,14 +334,14 @@ export default {
       description_placeholder: "輸入空間描述（可選）",
       description_max_length: "描述不能超過200個字符",
 
-      // === 創建空間 ===
+      // === 创建空间 ===
       create_new_space: "創建新空間",
       create_space: "創建空間",
       create_success: "空間創建成功",
       create_error: "創建空間失敗",
       creating: "正在創建空間...",
 
-      // === 空間選擇 ===
+      // === 空间选择 ===
       default_space: "預設空間",
       select_space: "選擇空間",
       no_spaces: "暫無空間",
@@ -283,12 +351,12 @@ export default {
       current_space: "目前空間",
       switch_space: "切換空間",
 
-      // === 導航相關 ===
+      // === 导航相关 ===
       home: "首頁",
       back_to_home: "返回首頁",
       space_settings: "空間設定",
 
-      // === 空間設定 ===
+      // === 空间设置 ===
       unsaved_changes: "有未儲存的變更",
       unsaved_warning: "您有未儲存的變更。是否要在離開前儲存？",
       save_before_leave: "儲存變更",
@@ -300,7 +368,7 @@ export default {
       repair_error: "修復操作失敗",
       try_later: "請稍後重試",
 
-      // === 基本資訊 ===
+      // === 基本信息 ===
       basic_info: "基本資訊",
       manage_basic_info: "管理空間的名稱、描述等基本資訊",
       space_details: "空間詳情",
@@ -312,7 +380,7 @@ export default {
       people: "人",
       person: "人",
 
-      // === 權限管理 ===
+      // === 权限管理 ===
       access_permission: "存取權限",
       manage_access: "控制誰可以存取和查看此空間的內容",
       select_visibility: "選擇空間可見性",
@@ -320,7 +388,7 @@ export default {
       public_description: "所有人都可以查看，但只有成員可以編輯內容",
       permission_updated: "權限設定更新成功",
 
-      // === 預設空間 ===
+      // === 默认空间 ===
       save_changes: "儲存變更",
       set_as_default: "設為預設空間",
       current_default: "目前預設空間",
@@ -329,7 +397,7 @@ export default {
       set_default_error: "設定預設空間失敗",
       this_space: "此空間",
 
-      // === 刪除空間 ===
+      // === 删除空间 ===
       delete_space: "刪除空間",
       delete_confirm_message:
         "確定要刪除此空間嗎？此操作無法撤銷，空間內的所有檔案和資料將被永久刪除。",
@@ -348,17 +416,50 @@ export default {
       update_error: "更新設定失敗",
       updating: "正在更新...",
 
-      // === 錯誤處理 ===
-      error_occurred: "發生錯誤",
-      network_error: "網路連線錯誤",
-      server_error: "伺服器錯誤",
-      permission_denied: "權限不足",
-      space_not_found: "空間不存在",
-
-      // === 狀態提示 ===
+      // === 状态提示 ===
       empty_state_title: "尚無空間",
       empty_state_description: "創建您的第一個空間來開始使用",
       get_started: "開始使用",
+
+      // === 侧边栏/内容管理相关 ===
+      uncategorized: "未分類",
+      dragToCategorize: "拖曳項目到此處進行分類，或建立新分類。",
+      itemsDeleted: "已刪除 {{count}} 項",
+      createPageFailed: "建立新頁面失敗",
+      categoryCreated: "分類 '{{name}}' 建立成功",
+      emptyTitle: "暫無內容",
+      emptyHint: "建立您的第一個頁面或將檔案拖曳到此處開始。",
+      createFirstPage: "建立第一個頁面",
+      selectedItemsCount: "已選擇 {{count}} 項",
+      deselectAll: "取消全選",
+      selectAll: "全部選擇",
+      deleteSelected: "刪除所選",
+      cancelSelectionMode: "取消選擇模式",
+      content: "內容",
+      newPage: "新建頁面",
+      newCategory: "新建分類",
+      batchSelect: "批次選擇",
+      expandAll: "全部展開",
+      collapseAll: "全部摺疊",
+      contentMoved: "內容已成功移動",
+      noOtherSpaces: "沒有其他可用空間",
+      titlePlaceholder: "無標題",
+      moreActions: "更多操作",
+      editTitle: "編輯標題",
+      moveToSpace: "移動到空間",
+      // 新增翻译键
+      joinConversation: "加入對話",
+      addedToConversation: "已加入對話",
+
+      // CategoryHeader 新增的翻譯鍵
+      categoryNamePlaceholder: "輸入分類名稱",
+      expand: "展開",
+      collapse: "摺疊",
+      selectCategory: "選擇分類 {{name}}",
+      dragToReorder: "拖曳以重新排序分類",
+      editName: "編輯名稱",
+      deleteCategoryConfirm: "確定要刪除分類“{{name}}”嗎？此操作無法撤銷。",
+      deleteCategory: "刪除分類",
     },
   },
 
@@ -472,17 +573,53 @@ export default {
       update_error: "設定の更新に失敗しました",
       updating: "更新中...",
 
-      // === エラー処理 ===
-      error_occurred: "エラーが発生しました",
-      network_error: "ネットワーク接続エラー",
-      server_error: "サーバーエラー",
-      permission_denied: "アクセス権限がありません",
-      space_not_found: "スペースが見つかりません",
-
       // === 状態メッセージ ===
       empty_state_title: "スペースがまだありません",
       empty_state_description: "最初のスペースを作成して始めましょう",
       get_started: "始める",
+
+      // === 侧边栏/内容管理相关 ===
+      uncategorized: "未分類",
+      dragToCategorize:
+        "ここに項目をドラッグして分類するか、新しいカテゴリを作成します。",
+      itemsDeleted: "{{count}} 件の項目を削除しました",
+      createPageFailed: "新しいページの作成に失敗しました",
+      categoryCreated: "カテゴリ「{{name}}」が正常に作成されました",
+      emptyTitle: "まだコンテンツがありません",
+      emptyHint:
+        "最初のページを作成するか、ここにファイルをドラッグして開始してください。",
+      createFirstPage: "最初のページを作成",
+      selectedItemsCount: "{{count}} 件の項目を選択済み",
+      deselectAll: "すべて選択解除",
+      selectAll: "すべて選択",
+      deleteSelected: "選択した項目を削除",
+      cancelSelectionMode: "選択モードをキャンセル",
+      content: "コンテンツ",
+      newPage: "新規ページ",
+      newCategory: "新規カテゴリ",
+      batchSelect: "一括選択",
+      expandAll: "すべて展開",
+      collapseAll: "すべて折りたたむ",
+      contentMoved: "コンテンツが正常に移動されました",
+      noOtherSpaces: "他のスペースはありません",
+      titlePlaceholder: "無題",
+      moreActions: "その他のアクション",
+      editTitle: "タイトルを編集",
+      moveToSpace: "スペースに移動",
+      // 新增翻译键
+      joinConversation: "会話に参加",
+      addedToConversation: "会話に追加しました",
+
+      // CategoryHeader 新增的翻译键
+      categoryNamePlaceholder: "カテゴリ名を入力",
+      expand: "展開",
+      collapse: "折りたたむ",
+      selectCategory: "カテゴリ {{name}} を選択",
+      dragToReorder: "カテゴリを並べ替えるためにドラッグ",
+      editName: "名前を編集",
+      deleteCategoryConfirm:
+        "カテゴリ「{{name}}」を削除してもよろしいですか？この操作は元に戻せません。",
+      deleteCategory: "カテゴリを削除",
     },
   },
 };

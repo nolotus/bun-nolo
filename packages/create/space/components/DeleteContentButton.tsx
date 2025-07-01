@@ -1,5 +1,6 @@
 // create/space/components/DeleteContentButton.tsx
-import React, { useState } from "react";
+
+import React, { useState, forwardRef } from "react";
 import { TrashIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,19 +14,25 @@ import toast from "react-hot-toast";
 interface DeleteContentButtonProps {
   contentKey: string;
   title: string;
-  theme: any;
   className?: string;
+  /**
+   * Render the button as a different component or HTML tag.
+   * This is useful for polymorphic components, e.g., rendering as a MenuItem.
+   */
+  as?: React.ElementType;
 }
 
 const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
   contentKey,
   title,
-  theme,
-  className = "",
+  className,
+  as: Component = "button", // Default to a standard button if 'as' prop is not provided
 }) => {
-  const { t } = useTranslation("chat");
+  // Use multiple namespaces for better translation key management
+  const { t } = useTranslation(["sidebar", "common"]);
   const dispatch = useAppDispatch();
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
+
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -36,97 +43,90 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
   };
 
   const handleDelete = async () => {
-    setIsDeleting(true);
     if (!currentSpaceId) {
-      console.error("No current space selected");
-      toast.error(t("deleteFailed"));
-      setIsDeleting(false);
+      toast.error(t("sidebar:errors.noCurrentSpace"));
       return;
     }
+    setIsDeleting(true);
     try {
       await dispatch(
         deleteContentFromSpace({ contentKey, spaceId: currentSpaceId })
-      );
-      toast.success(t("deleteSuccess"));
+      ).unwrap();
+      toast.success(t("sidebar:deleteSuccess"));
+      setIsConfirmOpen(false);
     } catch (error) {
       console.error("Failed to delete content:", error);
-      toast.error(t("deleteFailed"));
+      toast.error(t("sidebar:errors.deleteFailed"));
     } finally {
       setIsDeleting(false);
-      setIsConfirmOpen(false);
     }
   };
 
-  const buttonClassName = `DeleteContentButton ${className}`.trim();
-
-  // 检查是否作为菜单项渲染
-  const isMenuItem = className.includes("SidebarItem__menuItem");
+  // Props for the rendered component.
+  // When rendered as a MenuItem, it expects 'icon' and 'label' props.
+  // When rendered as a button, it needs children.
+  const props = {
+    className: `DeleteButton ${className || ""}`.trim(),
+    onClick: openConfirmModal,
+    disabled: isDeleting,
+    ...(Component !== "button" && {
+      icon: TrashIcon,
+      label: t("common:delete"),
+    }),
+  };
 
   return (
     <>
-      <button
-        className={buttonClassName}
-        onClick={openConfirmModal}
-        disabled={isDeleting}
-        data-component="delete-content-button"
-      >
-        {isMenuItem ? (
-          <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <TrashIcon size={16} />
-            {t("delete")}
-          </span>
-        ) : (
-          <TrashIcon size={16} />
-        )}
-      </button>
+      <Component {...props}>
+        {/* Render children only if it's a default button */}
+        {Component === "button" && <TrashIcon size={16} />}
+      </Component>
 
       <ConfirmModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDelete}
-        title={t("deleteContentTitle", { title })}
-        message={t("deleteContentConfirmation")}
-        confirmText={t("delete")}
-        cancelText={t("cancel")}
+        title={t("sidebar:deleteContentTitle", { title })}
+        message={t("sidebar:deleteContentConfirmation")}
+        confirmText={t("common:delete")}
+        cancelText={t("common:cancel")}
         type="error"
         loading={isDeleting}
+        showCancel
       />
 
-      <style href="delete-content-button" precedence="medium">{`
-        .DeleteContentButton {
-          display: flex;
+      <style href="delete-content-button-styles" precedence="component">{`
+        .DeleteButton {
+          display: inline-flex;
           align-items: center;
           justify-content: center;
           background: transparent;
           border: none;
-          color: ${theme.textTertiary};
-          border-radius: 4px;
-          padding: 4px;
+          color: var(--textTertiary);
+          border-radius: var(--space-1);
+          padding: var(--space-1);
           cursor: pointer;
-          opacity: 1;
           transition: all 0.2s ease;
           flex-shrink: 0;
         }
 
-        .DeleteContentButton:hover {
-          background-color: ${theme.backgroundTertiary};
-          color: ${theme.danger || "#e53e3e"};
-          opacity: 1;
+        .DeleteButton:hover:not(:disabled) {
+          color: var(--error);
+          background-color: var(--backgroundTertiary);
         }
 
-        .DeleteContentButton:disabled {
+        .DeleteButton:disabled {
           cursor: not-allowed;
           opacity: 0.5;
         }
         
-        /* 特别为菜单项调整样式 */
-        .SidebarItem__menuItem.DeleteContentButton {
-          justify-content: flex-start;
-          padding: 8px 12px;
-          font-size: 13px;
-          line-height: 1.4;
-          width: 100%;
-          text-align: left;
+        /* 
+          When rendered as a MenuItem (or any component that receives this class), 
+          it will adopt the danger color on hover.
+        */
+        .DeleteButton.SidebarItemMenuItem:hover:not(:disabled) {
+          background-color: color-mix(in srgb, var(--error) 15%, transparent);
+          color: var(--error);
         }
       `}</style>
     </>
