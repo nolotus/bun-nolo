@@ -1,4 +1,10 @@
-import React, { useState, useRef, useCallback, forwardRef } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  forwardRef,
+  useEffect,
+} from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "app/store";
 import {
@@ -57,6 +63,9 @@ type SidebarItemProps = {
   isSelected?: boolean;
   onSelectItem?: (contentKey: string) => void;
   style?: React.CSSProperties;
+  // --- 变更点 1: 新增 Props ---
+  isMenuOpen: boolean;
+  onToggleMenu: (key: string | null) => void;
 };
 
 // Helper Components
@@ -196,6 +205,9 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
       isSelected = false,
       onSelectItem,
       style,
+      // --- 变更点 1: 接收 Props ---
+      isMenuOpen,
+      onToggleMenu,
     },
     outerRef
   ) => {
@@ -205,19 +217,19 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
     const currentSpaceId = useAppSelector(selectCurrentSpaceId);
 
     const [isDragging, setIsDragging] = useState(false);
-    const [menuOpen, setMenuOpen] = useState(false);
+    // menuOpen state is removed, movePanelOpen is kept local
     const [movePanelOpen, setMovePanelOpen] = useState(false);
 
     const linkRef = useRef<HTMLAnchorElement>(null);
-    const isMenuOrPanelOpen = menuOpen || movePanelOpen;
+    const isMenuOrPanelOpen = isMenuOpen || movePanelOpen;
 
-    // Floating UI setup - 保持原样
+    // --- 变更点 2: 更新 Floating UI 配置 ---
     const { refs, floatingStyles, context } = useFloating({
       open: isMenuOrPanelOpen,
       onOpenChange: (open) => {
+        // Let the parent know the menu should close (e.g., on dismiss)
         if (!open) {
-          setMenuOpen(false);
-          setMovePanelOpen(false);
+          onToggleMenu(null);
         }
       },
       placement: "right-start",
@@ -229,6 +241,14 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
       ],
       whileElementsMounted: autoUpdate,
     });
+
+    // --- 变更点 3: 添加 Effect 以同步状态 ---
+    // When the parent closes the menu, ensure the sub-panel also closes.
+    useEffect(() => {
+      if (!isMenuOpen) {
+        setMovePanelOpen(false);
+      }
+    }, [isMenuOpen]);
 
     const { getReferenceProps, getFloatingProps } = useInteractions([
       useClick(context),
@@ -251,7 +271,6 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
       placeholder: t("titlePlaceholder"),
     });
 
-    // Handlers
     const handleAddToConversation = useCallback(
       (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -297,6 +316,7 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
 
     const handleDragStart = (e: React.DragEvent) => {
       setIsDragging(true);
+      onToggleMenu(null); // Close menu on drag start
       e.dataTransfer.setData("itemId", contentKey);
       e.dataTransfer.setData("sourceContainer", categoryId || "default");
       e.dataTransfer.setData("dragType", "item");
@@ -396,8 +416,12 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
 
               <div
                 ref={refs.setReference}
+                // --- 变更点 4: 更新事件处理 ---
                 {...getReferenceProps({
-                  onClick: () => setMenuOpen(true),
+                  onClick: (e) => {
+                    e.stopPropagation();
+                    onToggleMenu(contentKey);
+                  },
                 })}
               >
                 <Tooltip content={t("moreActions")}>
@@ -418,21 +442,18 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
               style={{ ...floatingStyles, zIndex: 1000 }}
               {...getFloatingProps()}
             >
-              {menuOpen && (
+              {isMenuOpen && !movePanelOpen && (
                 <div className="SidebarItem__context-menu" role="menu">
                   <SidebarMenuItem
                     onClick={() => {
                       startEditing();
-                      setMenuOpen(false);
+                      onToggleMenu(null); // Close menu after action
                     }}
                     icon={PencilIcon}
                     label={t("editTitle")}
                   />
                   <SidebarMenuItem
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setMovePanelOpen(true);
-                    }}
+                    onClick={() => setMovePanelOpen(true)}
                     icon={ChevronRightIcon}
                     label={t("moveToSpace")}
                     isSubMenu
@@ -441,20 +462,24 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
                     contentKey={contentKey}
                     title={displayTitle}
                     as={SidebarMenuItem}
+                    onDelete={() => onToggleMenu(null)} // Close menu after action
                   />
                 </div>
               )}
               {movePanelOpen && (
                 <SidebarMoveToPanel
                   contentKey={contentKey}
-                  onClose={() => setMovePanelOpen(false)}
+                  onClose={() => {
+                    setMovePanelOpen(false);
+                    onToggleMenu(null); // Close menu after action
+                  }}
                 />
               )}
             </div>
           </FloatingPortal>
         )}
 
-        <style href="SidebarItem-styles" precedence="component">
+        <style href="SidebarItem-styles" precedence="default">
           {`
             .SidebarItem {
               position: relative;
@@ -720,4 +745,5 @@ const SidebarItem = forwardRef<HTMLDivElement, SidebarItemProps>(
   }
 );
 
-export default SidebarItem;
+// --- 变更点 5: 使用 React.memo 包裹组件 ---
+export default React.memo(SidebarItem);
