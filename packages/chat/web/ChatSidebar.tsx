@@ -577,7 +577,6 @@ const ChatSidebar: React.FC = () => {
         }
         .ChatSidebar__header-wrapper {
           flex-shrink: 0;
-          border-bottom: 1px solid var(--borderLight);
         }
         .ChatSidebar__scroll-area {
           flex: 1;
