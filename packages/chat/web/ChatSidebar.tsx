@@ -18,14 +18,16 @@ import {
 import { SpaceContent } from "app/types";
 import { useGroupedContent } from "create/space/hooks/useGroupedContent";
 import { UNCATEGORIZED_ID } from "create/space/constants";
-import { createPage } from "render/page/pageSlice";
 import { AddCategoryModal } from "create/space/category/AddCategoryModal";
+
+import { useTranslation } from "react-i18next";
+
+//web
+import SidebarItem from "create/space/SidebarItem";
+import ChatSidebarHeader from "./ChatSidebarHeader";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import ChatSidebarHeader from "./ChatSidebarHeader";
-import { useTranslation } from "react-i18next";
 import CategoryHeader from "create/space/category/CategoryHeader";
-import SidebarItem from "create/space/SidebarItem";
 
 // --- 类型定义 ---
 interface CategoryItem {
@@ -393,16 +395,6 @@ const ChatSidebar: React.FC = () => {
     }
   }, [dispatch, space?.id, areAllCollapsed, allVisibleCategoryIds]);
 
-  const handleNewPage = async () => {
-    if (!space?.id) return;
-    try {
-      const key = await dispatch(createPage()).unwrap();
-      navigate(`/${key}?edit=true`);
-    } catch (error) {
-      toast.error(t("createPageFailed"));
-    }
-  };
-
   const handleAddCategory = (name: string) => {
     if (name.trim() && space?.id) {
       dispatch(addCategory({ spaceId: space.id, name: name.trim() }));
@@ -444,7 +436,6 @@ const ChatSidebar: React.FC = () => {
             onSelectAll={handleSelectAll}
             onDeleteSelected={handleDeleteSelected}
             onToggleSelectionMode={handleToggleSelectionMode}
-            onNewPage={handleNewPage}
             onAddCategory={() => setIsAddCategoryModalOpen(true)}
             onToggleAllCategories={handleToggleAllCategories}
           />

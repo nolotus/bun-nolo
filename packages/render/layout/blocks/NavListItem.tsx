@@ -1,6 +1,5 @@
 import type React from "react";
 import { NavLink } from "react-router-dom";
-import { useTheme } from "app/theme";
 
 interface NavListItemProps {
   path?: string;

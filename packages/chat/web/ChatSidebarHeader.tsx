@@ -1,10 +1,7 @@
-// 路径: <你的组件目录>/ChatSidebarHeader.tsx
-
 import React from "react";
 import {
   FoldDownIcon,
   FoldUpIcon,
-  NoteIcon,
   FileDirectoryIcon,
   ChecklistIcon,
   TrashIcon,
@@ -20,7 +17,6 @@ interface ChatSidebarHeaderProps {
   onSelectAll: () => void;
   onDeleteSelected: () => void;
   onToggleSelectionMode: () => void;
-  onNewPage: () => void;
   onAddCategory: () => void;
   onToggleAllCategories: () => void;
 }
@@ -34,7 +30,6 @@ const ChatSidebarHeader: React.FC<ChatSidebarHeaderProps> = ({
   onSelectAll,
   onDeleteSelected,
   onToggleSelectionMode,
-  onNewPage,
   onAddCategory,
   onToggleAllCategories,
 }) => {
@@ -79,14 +74,6 @@ const ChatSidebarHeader: React.FC<ChatSidebarHeaderProps> = ({
           <>
             <h3 className="SidebarHeader__title">内容</h3>
             <div className="SidebarHeader__actions">
-              <button
-                className="SidebarHeader__icon-btn"
-                onClick={onNewPage}
-                title="新建页面"
-                type="button"
-              >
-                <NoteIcon size={14} />
-              </button>
               <button
                 className="SidebarHeader__icon-btn"
                 onClick={onAddCategory}
