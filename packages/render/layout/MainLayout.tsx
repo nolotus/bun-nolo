@@ -139,7 +139,7 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
 
-      <style href="MainLayout-styles" precedence="component">{`
+      <style href="MainLayout-styles" precedence="default">{`
         .MainLayout {
           display: flex;
           min-height: 100vh;
@@ -156,7 +156,7 @@ const MainLayout: React.FC = () => {
           position: relative;
           z-index: ${zIndex.sidebar};
           overflow: hidden; /* 防止内容在收缩动画时溢出 */
-          
+           border-right: 1px solid var(--border);
           /* --- 动画效果: 桌面端 --- */
           transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
