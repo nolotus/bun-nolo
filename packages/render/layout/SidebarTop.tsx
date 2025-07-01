@@ -1,3 +1,4 @@
+// render/layout/SidebarTop.tsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -10,11 +11,9 @@ import {
 } from "create/space/spaceSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 
-import { Dialog } from "render/web/ui/Dialog";
-import { CreateSpaceForm } from "create/space/CreateSpaceForm";
 import { SpaceItem } from "create/space/components/SpaceItem";
 
-import { HomeIcon, PlusIcon, ChevronDownIcon } from "@primer/octicons-react";
+import { HomeIcon, ChevronDownIcon } from "@primer/octicons-react";
 import { zIndex } from "../styles/zIndex";
 
 // Custom hook to detect clicks outside a specified element
@@ -44,7 +43,6 @@ export const SidebarTop: React.FC = () => {
   const loading = useAppSelector(selectSpaceLoading);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(dropdownRef, () => setIsDropdownOpen(false));
@@ -68,11 +66,6 @@ export const SidebarTop: React.FC = () => {
     },
     [dispatch, navigate]
   );
-
-  const openCreateModal = useCallback(() => {
-    setIsModalOpen(true);
-    setIsDropdownOpen(false);
-  }, []);
 
   return (
     <>
@@ -103,16 +96,6 @@ export const SidebarTop: React.FC = () => {
           {isDropdownOpen && (
             <div className="SidebarTop__menu">
               <div className="SidebarTop__content">
-                <button
-                  className="SidebarTop__item SidebarTop__item--create"
-                  onClick={openCreateModal}
-                >
-                  <PlusIcon size={14} />
-                  <span>{t("create_new_space")}</span>
-                </button>
-
-                <div className="SidebarTop__separator" />
-
                 {spaces.length > 0 ? (
                   spaces.map((s) => (
                     <SpaceItem
@@ -140,10 +123,6 @@ export const SidebarTop: React.FC = () => {
           )}
         </div>
       </div>
-
-      <Dialog isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <CreateSpaceForm onClose={() => setIsModalOpen(false)} />
-      </Dialog>
 
       <style href="SidebarTop-styles" precedence="component">{`
         @keyframes SidebarTop-slideIn {
@@ -293,12 +272,6 @@ export const SidebarTop: React.FC = () => {
           background-color: var(--textTertiary);
         }
         
-        .SidebarTop__separator {
-          height: 1px;
-          background: var(--border);
-          margin: var(--space-1) var(--space-2);
-        }
-        
         .SidebarTop__item {
           display: flex;
           align-items: center;
@@ -319,17 +292,7 @@ export const SidebarTop: React.FC = () => {
         .SidebarTop__item:hover {
           background-color: var(--backgroundHover);
         }
-
-        .SidebarTop__item--create {
-          font-weight: 500;
-          color: var(--textSecondary);
-        }
-
-        .SidebarTop__item--create:hover {
-          color: var(--primary);
-          background-color: var(--primaryGhost);
-        }
-
+        
         .SidebarTop__item--empty {
           color: var(--textTertiary);
           justify-content: center;
