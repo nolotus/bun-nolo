@@ -2,6 +2,11 @@
 import React from "react";
 import { useSlateStatic } from "slate-react";
 import { useTheme } from "app/theme";
+
+import { CodeBlockType, CodeLineType } from "./types";
+
+//web
+import { Table, TableRow, TableCell } from "render/web/ui/Table";
 import CodeBlock from "render/web/elements/CodeBlock";
 import { ImageElement } from "render/web/elements/ImageElement";
 import { List, ListItem } from "render/web/elements/List";
@@ -9,8 +14,6 @@ import {
   SafeLink,
   TextBlockRenderer,
 } from "render/web/elements/TextBlockRenderer";
-import { CodeBlockType, CodeLineType } from "./types";
-import { Table, TableRow, TableCell } from "render/web/ui/Table";
 
 const TEXT_BLOCK_TYPES = [
   "paragraph",
