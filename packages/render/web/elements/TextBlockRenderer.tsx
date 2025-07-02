@@ -1,7 +1,8 @@
 // render/web/elements/TextBlockRenderer.tsx
-import React from "react";
+import React, { useMemo } from "react";
 import { NavLink } from "react-router-dom";
 
+// 类型定义
 type TextBlockType =
   | "paragraph"
   | "heading-one"
@@ -31,7 +32,7 @@ type SafeLinkProps = {
   [key: string]: any;
 };
 
-// 链接分析逻辑不变
+// 链接分析函数 (逻辑不变)
 const getLinkInfo = (
   rawHref: string | undefined
 ): { href: string; isExternal: boolean } => {
@@ -51,13 +52,18 @@ const getLinkInfo = (
   return { href, isExternal: false };
 };
 
+// SafeLink 组件 (恢复了 useMemo 优化)
 export const SafeLink: React.FC<SafeLinkProps> = ({
   attributes,
   children,
   href,
   ...props
 }) => {
-  const { href: finalHref, isExternal } = getLinkInfo(href);
+  const { href: finalHref, isExternal } = useMemo(
+    () => getLinkInfo(href),
+    [href]
+  );
+
   if (isExternal) {
     return (
       <a
@@ -71,6 +77,7 @@ export const SafeLink: React.FC<SafeLinkProps> = ({
       </a>
     );
   }
+
   return (
     <NavLink to={finalHref} {...attributes} {...props}>
       {children}
@@ -92,6 +99,7 @@ const TAG_MAP: Record<TextBlockType, keyof JSX.IntrinsicElements> = {
 };
 
 // 基于 CSS 变量和类名的样式定义
+// 这些样式会通过 <style> 标签注入，并由 React 自动去重
 const textBlockStyles = `
   /* 公共基础 */
   .text-block {
@@ -191,36 +199,52 @@ const textBlockStyles = `
     background-image: linear-gradient(90deg, transparent, var(--border), transparent);
   }
 
-  /* 对齐 */
+  /* 对齐 (作为独立类，与 .text-block 组合使用) */
   .align-left { text-align: left; }
   .align-center { text-align: center; }
   .align-right { text-align: right; }
   .align-justify { text-align: justify; }
 `;
 
+// 主渲染组件
 export const TextBlockRenderer: React.FC<TextBlockProps> = ({
   attributes,
   children,
   element,
 }) => {
   const HtmlTag = TAG_MAP[element.type];
+
   // 组合类名
   const classNames = ["text-block", `text-${element.type}`];
-  if (element.align) classNames.push(`align-${element.align}`);
-  if (element.type === "paragraph" && element.isNested)
+  if (element.align) {
+    classNames.push(`align-${element.align}`);
+  }
+  if (element.type === "paragraph" && element.isNested) {
     classNames.push("nested");
+  }
 
+  const finalClassName = classNames.join(" ");
+
+  // 关键修复：
+  // 1. 使用 Fragment <>...</> 来包裹样式和内容。
+  // 2. <style> 标签使用 href 属性，React 会自动处理去重，确保样式只注入一次。
+  // 3. 通过三元运算符正确处理 thematic-break (hr)，它是一个不能有子元素的空标签。
   return (
     <>
-      <HtmlTag {...attributes} className={classNames.join(" ")}>
-        {children}
-        {element.type === "quote" && element.cite && (
-          <cite>— {element.cite}</cite>
-        )}
-      </HtmlTag>
       <style href="text-block-elements" precedence="medium">
         {textBlockStyles}
       </style>
+
+      {element.type === "thematic-break" ? (
+        <HtmlTag {...attributes} className={finalClassName} />
+      ) : (
+        <HtmlTag {...attributes} className={finalClassName}>
+          {children}
+          {element.type === "quote" && element.cite && (
+            <cite>— {element.cite}</cite>
+          )}
+        </HtmlTag>
+      )}
     </>
   );
 };
