@@ -43,7 +43,7 @@ const spaceSlice = createSliceWithThunks({
   initialState,
   reducers: (create) => ({
     ...createSpaceThunks(create),
-    ...createCategoryActions(create), // 单一函数调用，更清晰
+    ...createCategoryActions(create),
     ...createContentThunks(create),
     ...createMemberThunks(create),
   }),

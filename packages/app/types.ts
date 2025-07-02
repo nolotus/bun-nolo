@@ -128,3 +128,23 @@ export interface SpaceMemberWithSpaceInfo {
   spaceUpdatedAt: number;
   type?: DataType;
 }
+
+// --- 新增: 空间设置类型 ---
+export interface SpaceSetting {
+  /** 数据库中用于识别此对象类型的主键 */
+  type: DataType.SETTING;
+  /** 此设置所属的用户ID */
+  userId: ULID;
+  /** 此设置应用的空间ID */
+  spaceId: ULID;
+  /**
+   * 存储分类的折叠状态
+   * @key categoryId
+   * @value boolean (true: collapsed, false: expanded)
+   */
+  collapsedCategories?: Record<string, boolean>;
+  /** 创建时间的ISO字符串 */
+  createdAt: string;
+  /** 最后更新时间的ISO字符串 */
+  updatedAt: string;
+}

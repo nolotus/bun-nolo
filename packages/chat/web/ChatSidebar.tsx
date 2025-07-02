@@ -18,7 +18,6 @@ import {
 import { SpaceContent } from "app/types";
 import { useGroupedContent } from "create/space/hooks/useGroupedContent";
 import { UNCATEGORIZED_ID } from "create/space/constants";
-import { AddCategoryModal } from "create/space/category/AddCategoryModal";
 
 import { useTranslation } from "react-i18next";
 
@@ -28,6 +27,7 @@ import ChatSidebarHeader from "./ChatSidebarHeader";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import CategoryHeader from "create/space/category/CategoryHeader";
+import { AddCategoryModal } from "create/space/category/AddCategoryModal";
 
 // --- 类型定义 ---
 interface CategoryItem {
@@ -386,12 +386,7 @@ const ChatSidebar: React.FC = () => {
 
   const handleToggleAllCategories = useCallback(() => {
     if (space?.id && allVisibleCategoryIds.length > 0) {
-      dispatch(
-        setAllCategoriesCollapsed({
-          spaceId: space.id,
-          collapsed: !areAllCollapsed,
-        })
-      );
+      dispatch(setAllCategoriesCollapsed({ collapsed: !areAllCollapsed }));
     }
   }, [dispatch, space?.id, areAllCollapsed, allVisibleCategoryIds]);
 

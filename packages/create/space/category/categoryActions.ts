@@ -6,11 +6,12 @@ import type { AppDispatch, RootState } from "app/store";
 import type { Category, SpaceContent, SpaceData, ULID } from "app/types";
 import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
-import { patch, read } from "database/dbSlice";
+import { patch, read, upsert } from "database/dbSlice";
 import { UNCATEGORIZED_ID } from "../constants";
 import { selectCurrentSpaceId } from "../spaceSlice";
 import type { SpaceState } from "../spaceSlice";
 import { checkSpaceMembership } from "../utils/permissions";
+import { DataType } from "../../types";
 
 type Create = ReturnType<typeof asyncThunkCreator<SpaceState>>;
 
@@ -20,35 +21,140 @@ type Create = ReturnType<typeof asyncThunkCreator<SpaceState>>;
  */
 export const createCategoryActions = (create: Create) => ({
   // --- Regular Reducers ---
-  toggleCategoryCollapse: create.reducer(
-    (state: SpaceState, action: PayloadAction<string>) => {
-      const categoryId = action.payload;
-      if (categoryId) {
-        const currentCollapsed = state.collapsedCategories[categoryId] ?? false;
-        state.collapsedCategories[categoryId] = !currentCollapsed;
-      }
-    }
-  ),
 
-  setAllCategoriesCollapsed: create.reducer(
-    (
-      state: SpaceState,
-      action: PayloadAction<{ spaceId: string; collapsed: boolean }>
-    ) => {
-      const { collapsed } = action.payload;
-      const currentSpace = state.currentSpace;
-
-      if (currentSpace?.categories) {
-        const categoryIds = Object.keys(currentSpace.categories);
-        categoryIds.forEach((catId) => {
-          state.collapsedCategories[catId] = collapsed;
-        });
-        state.collapsedCategories[UNCATEGORIZED_ID] = collapsed;
-      }
+  /**
+   * (新增) 从持久化存储中水合分类的折叠状态
+   */
+  hydrateCollapsedCategories: create.reducer(
+    (state: SpaceState, action: PayloadAction<Record<string, boolean>>) => {
+      state.collapsedCategories = action.payload || {};
     }
   ),
 
   // --- Async Thunks ---
+
+  /**
+   * 批量切换所有分类的折叠状态，并持久化到数据库
+   */
+  setAllCategoriesCollapsed: create.asyncThunk(
+    async (
+      input: { spaceId?: string; collapsed: boolean },
+      thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
+    ): Promise<Record<string, boolean>> => {
+      const { dispatch, getState } = thunkAPI;
+      const rootState = getState();
+
+      // 验证用户登录
+      const currentUserId = selectUserId(rootState);
+      if (!currentUserId) throw new Error("用户未登录，无法保存设置。");
+
+      // 优先使用传入的 spaceId，否则获取当前活动空间
+      const spaceId = input.spaceId || selectCurrentSpaceId(rootState);
+      if (!spaceId) throw new Error("无法切换折叠状态：没有活动的空间。");
+
+      // 获取当前空间的所有分类 ID（包括已删除标签以外的所有分类）
+      const { currentSpace } = rootState.space;
+      const categoryIds = currentSpace?.categories
+        ? Object.keys(currentSpace.categories)
+        : [];
+      // 始终包含“未分类”
+      categoryIds.push(UNCATEGORIZED_ID);
+
+      // 构造新的折叠状态映射
+      const collapsedCategories: Record<string, boolean> = {};
+      categoryIds.forEach((id) => {
+        collapsedCategories[id] = input.collapsed;
+      });
+
+      // 持久化 key
+      const settingKey = createSpaceKey.setting(currentUserId, spaceId);
+      // 构造深度合并的数据，仅更新 collapsedCategories
+      const changes = {
+        type: DataType.SETTING,
+        collapsedCategories,
+      };
+      // 调用 upsert 进行数据持久化和同步
+      const updatedSettings = await dispatch(
+        upsert({ dbKey: settingKey, data: changes })
+      ).unwrap();
+
+      // 返回后端最新的 collapsedCategories，用于更新 Redux state
+      return updatedSettings.collapsedCategories as Record<string, boolean>;
+    },
+    {
+      fulfilled: (state, action) => {
+        // 合并返回的折叠状态，保持与持久化一致
+        state.collapsedCategories = {
+          ...state.collapsedCategories,
+          ...action.payload,
+        };
+      },
+      rejected: (state, action) => {
+        console.error("批量切换分类折叠状态失败:", action.error.message);
+      },
+    }
+  ),
+
+  /**
+   * 切换单个分类的折叠状态，并持久化存储。
+   * 直接使用当前激活的 spaceId，无需外部传入。
+   */
+  toggleCategoryCollapse: create.asyncThunk(
+    async (
+      input: { categoryId: string },
+      thunkAPI: { dispatch: AppDispatch; getState: () => RootState }
+    ): Promise<Record<string, boolean>> => {
+      const { dispatch, getState } = thunkAPI;
+      const { categoryId } = input;
+      const rootState = getState();
+
+      // 验证用户登录
+      const currentUserId = selectUserId(rootState);
+      if (!currentUserId) throw new Error("用户未登录，无法保存设置。");
+
+      // 获取当前空间 ID
+      const spaceId = selectCurrentSpaceId(rootState);
+      if (!spaceId) throw new Error("无法切换折叠状态：没有活动的空间。");
+      if (!categoryId) throw new Error("无效的分类ID。");
+
+      // 计算新的折叠状态
+      const isCurrentlyCollapsed =
+        rootState.space.collapsedCategories[categoryId] ?? false;
+      const newCollapsedState = !isCurrentlyCollapsed;
+
+      // 持久化 key
+      const settingKey = createSpaceKey.setting(currentUserId, spaceId);
+      // 构造深度合并的数据，仅更新单个分类的折叠状态
+      const changes = {
+        type: DataType.SETTING,
+        collapsedCategories: {
+          [categoryId]: newCollapsedState,
+        },
+      };
+      // 调用 upsert 进行数据持久化和同步
+      const updatedSettings = await dispatch(
+        upsert({ dbKey: settingKey, data: changes })
+      ).unwrap();
+
+      // 返回后端最新的 collapsedCategories，用于更新 Redux state
+      return updatedSettings.collapsedCategories as Record<string, boolean>;
+    },
+    {
+      fulfilled: (state, action) => {
+        state.collapsedCategories = {
+          ...state.collapsedCategories,
+          ...action.payload,
+        };
+      },
+      rejected: (state, action) => {
+        console.error("切换分类折叠状态失败:", action.error.message);
+      },
+    }
+  ),
+
+  /**
+   * 添加新分类
+   */
   addCategory: create.asyncThunk(
     async (
       input: {
@@ -61,16 +167,16 @@ export const createCategoryActions = (create: Create) => ({
     ): Promise<{ spaceId: ULID; updatedSpaceData: SpaceData }> => {
       const { spaceId: inputSpaceId, name, categoryId, order } = input;
       const { dispatch, getState } = thunkAPI;
-      const state = getState();
+      const rootState = getState();
 
-      const spaceId = inputSpaceId || selectCurrentSpaceId(state);
+      const spaceId = inputSpaceId || selectCurrentSpaceId(rootState);
       if (!spaceId) {
         throw new Error("无法添加分类：未选择当前空间且未提供空间 ID。");
       }
-      const currentUserId = selectUserId(state);
+      const currentUserId = selectUserId(rootState);
       if (!currentUserId) throw new Error("User is not logged in.");
 
-      if (!name || typeof name !== "string" || name.trim() === "") {
+      if (!name.trim()) {
         throw new Error("无效的分类名称。");
       }
 
@@ -87,9 +193,7 @@ export const createCategoryActions = (create: Create) => ({
         ? Object.values(spaceData.categories).filter(Boolean)
         : [];
       const finalOrder =
-        order !== undefined && typeof order === "number"
-          ? order
-          : existingValidCategories.length;
+        typeof order === "number" ? order : existingValidCategories.length;
 
       const nowISO = new Date().toISOString();
       const newCategory: Category = {
@@ -119,6 +223,9 @@ export const createCategoryActions = (create: Create) => ({
     }
   ),
 
+  /**
+   * 删除单个分类
+   */
   deleteCategory: create.asyncThunk(
     async (
       input: { categoryId: string; spaceId: ULID },
@@ -129,8 +236,7 @@ export const createCategoryActions = (create: Create) => ({
       const currentUserId = selectUserId(getState());
 
       if (!currentUserId) throw new Error("User is not logged in.");
-      if (!categoryId || typeof categoryId !== "string" || !categoryId.trim())
-        throw new Error("无效的 categoryId。");
+      if (!categoryId.trim()) throw new Error("无效的 categoryId。");
 
       const spaceKey = createSpaceKey.space(spaceId);
       const spaceData: SpaceData = await dispatch(read(spaceKey)).unwrap();
@@ -153,7 +259,10 @@ export const createCategoryActions = (create: Create) => ({
         let contentsChanged = false;
         for (const key in spaceData.contents) {
           if (spaceData.contents[key]?.categoryId === categoryId) {
-            contentsPatch[key] = { categoryId: null, updatedAt: nowISO };
+            contentsPatch[key] = {
+              categoryId: null,
+              updatedAt: nowISO,
+            };
             contentsChanged = true;
           }
         }
@@ -171,6 +280,7 @@ export const createCategoryActions = (create: Create) => ({
         const { categoryId } = action.meta.arg;
         if (state.currentSpaceId === action.payload.spaceId) {
           state.currentSpace = action.payload.updatedSpaceData;
+          // 删除已删除分类的折叠状态
           if (state.collapsedCategories[categoryId] !== undefined) {
             delete state.collapsedCategories[categoryId];
           }
@@ -179,6 +289,9 @@ export const createCategoryActions = (create: Create) => ({
     }
   ),
 
+  /**
+   * 修改分类名称
+   */
   updateCategoryName: create.asyncThunk(
     async (
       input: { spaceId: ULID; categoryId: string; name: string },
@@ -189,13 +302,9 @@ export const createCategoryActions = (create: Create) => ({
       const currentUserId = selectUserId(getState());
 
       if (!currentUserId) throw new Error("User is not logged in.");
-      if (!categoryId || typeof categoryId !== "string" || !categoryId.trim()) {
-        throw new Error("无效的 categoryId。");
-      }
-      const trimmedName = (name || "").trim();
-      if (!trimmedName) {
-        throw new Error("分类名称不能为空或仅包含空格。");
-      }
+      if (!categoryId.trim()) throw new Error("无效的 categoryId。");
+      const trimmedName = name.trim();
+      if (!trimmedName) throw new Error("分类名称不能为空或仅包含空格。");
 
       const spaceKey = createSpaceKey.space(spaceId);
       const spaceData: SpaceData = await dispatch(read(spaceKey)).unwrap();
@@ -233,6 +342,9 @@ export const createCategoryActions = (create: Create) => ({
     }
   ),
 
+  /**
+   * 重新排序分类
+   */
   reorderCategories: create.asyncThunk(
     async (
       input: { spaceId: ULID; sortedCategoryIds: string[] },
@@ -240,9 +352,9 @@ export const createCategoryActions = (create: Create) => ({
     ): Promise<{ spaceId: ULID; updatedSpaceData: SpaceData }> => {
       const { spaceId, sortedCategoryIds } = input;
       const { dispatch, getState } = thunkAPI;
-      const state = getState();
-      const currentUserId = selectUserId(state);
+      const stateRoot = getState();
 
+      const currentUserId = selectUserId(stateRoot);
       if (!currentUserId) {
         throw new Error("User is not logged in.");
       }
@@ -254,7 +366,6 @@ export const createCategoryActions = (create: Create) => ({
 
       const spaceKey = createSpaceKey.space(spaceId);
       const spaceData: SpaceData = await dispatch(read(spaceKey)).unwrap();
-
       checkSpaceMembership(spaceData, currentUserId);
 
       if (
@@ -282,14 +393,6 @@ export const createCategoryActions = (create: Create) => ({
           }
         }
       });
-
-      // 如果排序列表和现有分类不完全匹配，也认为有变更（例如仅更新时间戳）
-      if (
-        !hasValidChanges &&
-        Object.keys(updatedCategoriesChanges).length > 0
-      ) {
-        hasValidChanges = true;
-      }
 
       if (!hasValidChanges) {
         return { spaceId, updatedSpaceData: spaceData };
