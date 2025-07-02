@@ -1,7 +1,6 @@
 // render/web/elements/TextBlockRenderer.tsx
-import React, { useMemo } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
-import { useTheme } from "app/theme";
 
 type TextBlockType =
   | "paragraph"
@@ -32,44 +31,37 @@ type SafeLinkProps = {
   [key: string]: any;
 };
 
-// 链接分析函数
+// 链接分析逻辑不变
 const getLinkInfo = (
   rawHref: string | undefined
 ): { href: string; isExternal: boolean } => {
   if (!rawHref || typeof rawHref !== "string") {
     return { href: "about:blank", isExternal: true };
   }
-
   const href = rawHref.trim();
-
   if (/^(https?:|mailto:|tel:)/i.test(href)) {
     return { href, isExternal: true };
   }
-
   if (href.startsWith("//")) {
     return { href, isExternal: true };
   }
-
   if (href.includes(".") && !href.includes(" ") && !href.startsWith("/")) {
     return { href: `//${href}`, isExternal: true };
   }
-
   return { href, isExternal: false };
 };
 
-// SafeLink 组件
 export const SafeLink: React.FC<SafeLinkProps> = ({
   attributes,
   children,
   href,
   ...props
 }) => {
-  const linkInfo = useMemo(() => getLinkInfo(href), [href]);
-
-  if (linkInfo.isExternal) {
+  const { href: finalHref, isExternal } = getLinkInfo(href);
+  if (isExternal) {
     return (
       <a
-        href={linkInfo.href}
+        href={finalHref}
         target="_blank"
         rel="noopener noreferrer"
         {...attributes}
@@ -79,15 +71,14 @@ export const SafeLink: React.FC<SafeLinkProps> = ({
       </a>
     );
   }
-
   return (
-    <NavLink to={linkInfo.href} {...attributes} {...props}>
+    <NavLink to={finalHref} {...attributes} {...props}>
       {children}
     </NavLink>
   );
 };
 
-// 标签映射
+// HTML 标签映射
 const TAG_MAP: Record<TextBlockType, keyof JSX.IntrinsicElements> = {
   "heading-one": "h1",
   "heading-two": "h2",
@@ -100,151 +91,136 @@ const TAG_MAP: Record<TextBlockType, keyof JSX.IntrinsicElements> = {
   paragraph: "p",
 };
 
-// 样式配置 Hook
-const useTextBlockStyles = (theme: any, element: TextBlockProps["element"]) => {
-  return useMemo(() => {
-    const base = {
-      color: theme.text,
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      fontFeatureSettings: '"kern" 1, "liga" 1',
-      textRendering: "optimizeLegibility" as const,
-    };
+// 基于 CSS 变量和类名的样式定义
+const textBlockStyles = `
+  /* 公共基础 */
+  .text-block {
+    color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
+    font-feature-settings: "kern" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
+    margin: 0;
+  }
 
-    const configs: Record<TextBlockType, React.CSSProperties> = {
-      "heading-one": {
-        ...base,
-        fontSize: "2rem",
-        fontWeight: 700,
-        lineHeight: 1.25,
-        margin: `${theme.space[10]} 0 ${theme.space[5]}`,
-        letterSpacing: "-0.025em",
-      },
+  /* 标题样式 */
+  .text-heading-one {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: var(--space-10) 0 var(--space-5);
+    letter-spacing: -0.025em;
+  }
+  .text-heading-two {
+    font-size: 1.5rem;
+    font-weight: 650;
+    line-height: 1.3;
+    margin: var(--space-8) 0 var(--space-4);
+    letter-spacing: -0.02em;
+  }
+  .text-heading-three {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: var(--space-6) 0 var(--space-3);
+    letter-spacing: -0.015em;
+  }
+  .text-heading-four {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.45;
+    margin: var(--space-5) 0 var(--space-2);
+    letter-spacing: -0.01em;
+  }
+  .text-heading-five {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin: var(--space-4) 0 var(--space-2);
+    letter-spacing: -0.005em;
+  }
+  .text-heading-six {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.6;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin: var(--space-3) 0 var(--space-1);
+  }
 
-      "heading-two": {
-        ...base,
-        fontSize: "1.5rem",
-        fontWeight: 650,
-        lineHeight: 1.3,
-        margin: `${theme.space[8]} 0 ${theme.space[4]}`,
-        letterSpacing: "-0.02em",
-      },
+  /* 段落 */
+  .text-paragraph {
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: var(--space-3) 0;
+    max-width: 65ch;
+    hyphens: auto;
+  }
+  .text-paragraph.nested {
+    margin: var(--space-2) 0;
+  }
 
-      "heading-three": {
-        ...base,
-        fontSize: "1.25rem",
-        fontWeight: 600,
-        lineHeight: 1.4,
-        margin: `${theme.space[6]} 0 ${theme.space[3]}`,
-        letterSpacing: "-0.015em",
-      },
+  /* 引用块 */
+  .text-quote {
+    font-size: 1.0625rem;
+    font-style: italic;
+    color: var(--textSecondary);
+    margin: var(--space-5) 0;
+    padding: var(--space-3) var(--space-5);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 var(--space-1) var(--space-1) 0;
+    background-color: var(--backgroundSecondary);
+    box-shadow: inset 3px 0 0 var(--primary), var(--shadow1);
+  }
+  .text-quote cite {
+    display: block;
+    margin-top: var(--space-3);
+    text-align: right;
+    font-style: normal;
+    font-size: 0.875rem;
+    color: var(--textTertiary);
+    font-weight: 500;
+  }
 
-      "heading-four": {
-        ...base,
-        fontSize: "1.125rem",
-        fontWeight: 600,
-        lineHeight: 1.45,
-        margin: `${theme.space[5]} 0 ${theme.space[2]}`,
-        letterSpacing: "-0.01em",
-      },
+  /* 分割线 */
+  .text-thematic-break {
+    width: 100%;
+    height: 1px;
+    border: none;
+    background-color: var(--border);
+    margin: var(--space-6) 0;
+    background-image: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
 
-      "heading-five": {
-        ...base,
-        fontSize: "1rem",
-        fontWeight: 600,
-        lineHeight: 1.5,
-        margin: `${theme.space[4]} 0 ${theme.space[2]}`,
-        letterSpacing: "-0.005em",
-      },
+  /* 对齐 */
+  .align-left { text-align: left; }
+  .align-center { text-align: center; }
+  .align-right { text-align: right; }
+  .align-justify { text-align: justify; }
+`;
 
-      "heading-six": {
-        ...base,
-        fontSize: "0.875rem",
-        fontWeight: 600,
-        lineHeight: 1.6,
-        textTransform: "uppercase" as const,
-        opacity: 0.75,
-        margin: `${theme.space[3]} 0 ${theme.space[1]}`,
-      },
-
-      paragraph: {
-        ...base,
-        fontSize: "1rem",
-        lineHeight: 1.65,
-        margin: element.isNested
-          ? `${theme.space[2]} 0`
-          : `${theme.space[3]} 0`,
-        maxWidth: "65ch",
-        hyphens: "auto",
-      },
-
-      quote: {
-        ...base,
-        fontSize: "1.0625rem",
-        fontStyle: "italic",
-        color: theme.textSecondary,
-        margin: `${theme.space[5]} 0`,
-        padding: `${theme.space[3]} ${theme.space[5]}`,
-        borderLeft: `3px solid ${theme.primary}`,
-        borderRadius: `0 ${theme.space[1]} ${theme.space[1]} 0`,
-        backgroundColor: theme.backgroundSecondary,
-        boxShadow: `inset 3px 0 0 ${theme.primary}, ${theme.shadow1}`,
-      },
-
-      "thematic-break": {
-        width: "100%",
-        height: "1px",
-        border: "none",
-        backgroundColor: theme.border,
-        margin: `${theme.space[6]} 0`,
-        backgroundImage: `linear-gradient(90deg, transparent, ${theme.border}, transparent)`,
-      },
-    };
-
-    return configs[element.type] || base;
-  }, [theme, element.type, element.isNested]);
-};
-
-// 引用注释组件
-const QuoteCitation = ({ cite, theme }: { cite: string; theme: any }) => (
-  <cite
-    style={{
-      display: "block",
-      marginTop: theme.space[3],
-      textAlign: "right",
-      fontStyle: "normal",
-      fontSize: "0.875rem",
-      color: theme.textTertiary,
-      fontWeight: 500,
-    }}
-  >
-    — {cite}
-  </cite>
-);
-
-// 主文本块渲染组件
 export const TextBlockRenderer: React.FC<TextBlockProps> = ({
   attributes,
   children,
   element,
 }) => {
-  const theme = useTheme();
   const HtmlTag = TAG_MAP[element.type];
-  const style = useTextBlockStyles(theme, element);
-
-  const finalStyle = element.align
-    ? { ...style, textAlign: element.align }
-    : style;
-
-  if (element.type === "thematic-break") {
-    return <HtmlTag {...attributes} style={finalStyle} />;
-  }
+  // 组合类名
+  const classNames = ["text-block", `text-${element.type}`];
+  if (element.align) classNames.push(`align-${element.align}`);
+  if (element.type === "paragraph" && element.isNested)
+    classNames.push("nested");
 
   return (
-    <HtmlTag {...attributes} style={finalStyle}>
-      {children}
-      {element.type === "quote" && element.cite && (
-        <QuoteCitation cite={element.cite} theme={theme} />
-      )}
-    </HtmlTag>
+    <>
+      <HtmlTag {...attributes} className={classNames.join(" ")}>
+        {children}
+        {element.type === "quote" && element.cite && (
+          <cite>— {element.cite}</cite>
+        )}
+      </HtmlTag>
+      <style href="text-block-elements" precedence="medium">
+        {textBlockStyles}
+      </style>
+    </>
   );
 };

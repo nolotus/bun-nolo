@@ -18,7 +18,6 @@ import {
 } from "@primer/octicons-react";
 
 // --- React Flow / XY Flow Imports ---
-// 1. 导入 @xyflow/react 的组件和样式
 import {
   ReactFlow,
   Background,
@@ -30,8 +29,6 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-// --- PrismJS Language Imports ---
-// (保持不变)
 import "prismjs/components/prism-javascript";
 import "prismjs/components/prism-jsx";
 import "prismjs/components/prism-typescript";
@@ -46,7 +43,6 @@ import "prismjs/components/prism-yaml";
 import "prismjs/components/prism-mermaid";
 import "prismjs/components/prism-diff";
 
-// 2. (可选) 创建一个 XY Flow 的辅助工具集，方便在代码块中使用
 const xyFlowUtils = {
   useNodesState,
   useEdgesState,
@@ -64,45 +60,41 @@ const CodeBlock = ({ attributes, children, element }) => {
   const [isCollapsed, setIsCollapsed] = useState(element.collapsed === "true");
   const [showRightPreview, setShowRightPreview] = useState(false);
 
-  // 解析语言和文件名 (保持不变)
   const [language, filename] = useMemo(() => {
     const lang = element.language || "";
-    const colonIndex = lang.indexOf(":");
-    if (colonIndex > -1) {
-      return [lang.substring(0, colonIndex), lang.substring(colonIndex + 1)];
+    const idx = lang.indexOf(":");
+    if (idx > -1) {
+      return [lang.substring(0, idx), lang.substring(idx + 1)];
     }
     return [lang, null];
   }, [element.language]);
 
-  // --- 提取文本内容 --- (保持不变)
   const content = useMemo(() => {
-    const getTextContent = (nodes) => {
+    const getText = (nodes) => {
       if (!Array.isArray(nodes)) return "";
       return nodes
-        .map((node) => {
-          if (!node) return "";
-          if (node.text !== undefined) return node.text;
-          if (node.type === "code-line" && Array.isArray(node.children)) {
-            return getTextContent(node.children) + "\n";
+        .map((n) => {
+          if (!n) return "";
+          if (n.text !== undefined) return n.text;
+          if (n.type === "code-line" && Array.isArray(n.children)) {
+            return getText(n.children) + "\n";
           }
-          if (Array.isArray(node.children)) {
-            return getTextContent(node.children);
+          if (Array.isArray(n.children)) {
+            return getText(n.children);
           }
           return "";
         })
         .join("");
     };
-
     try {
-      const rawText = getTextContent(element.children);
-      return rawText.replace(/\n$/, "");
+      const txt = getText(element.children);
+      return txt.replace(/\n$/, "");
     } catch (err) {
       console.error("Error extracting code content:", err, element);
       return "";
     }
   }, [element.children]);
 
-  // --- 复制处理 --- (保持不变)
   const handleCopy = () => {
     copyToClipboard(content, {
       onSuccess: () => {
@@ -115,112 +107,95 @@ const CodeBlock = ({ attributes, children, element }) => {
     });
   };
 
-  // --- React Live Scope ---
-  // 3. 将 xyFlowUtils 添加到 liveScope 中
   const liveScope = useMemo(
     () => ({
       ...createLiveScope(theme),
       ReactECharts,
       docx,
-      ...xyFlowUtils, // 将所有 @xyflow/react 相关组件和 hooks 注入作用域
+      ...xyFlowUtils,
     }),
     [theme]
   );
 
-  // --- 更新样式 --- (保持不变)
   const styles = `
     .code-block-wrapper {
-      margin: ${theme.space[6]} 0;
-      background: ${theme.background};
-      border-radius: ${theme.space[2]};
+      margin: var(--space-6) 0;
+      background: var(--background);
+      border-radius: var(--space-2);
       overflow: hidden;
-      /* 为 React Flow 添加一个相对定位的容器 */
-      position: relative; 
+      position: relative;
     }
-
     .code-block-actions {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: ${theme.space[8]};
-      background: ${theme.backgroundGhost};
-      padding: 0 ${theme.space[2]};
+      height: var(--space-8);
+      background: var(--backgroundGhost);
+      padding: 0 var(--space-2);
     }
-
     .language-tag {
       font-size: 12px;
-      color: ${theme.textSecondary}; 
-      padding: ${theme.space[1]} ${theme.space[2]};
-      background: ${theme.primaryGhost};
-      border-radius: ${theme.space[1]};
+      color: var(--textSecondary);
+      padding: var(--space-1) var(--space-2);
+      background: var(--primaryGhost);
+      border-radius: var(--space-1);
       text-transform: uppercase;
     }
-
     .filename-tag {
       font-size: 12px;
-      color: ${theme.textSecondary};
-      padding: ${theme.space[1]} ${theme.space[2]};
-      margin-left: ${theme.space[2]};
-      background: ${theme.secondaryGhost};
-      border-radius: ${theme.space[1]};
+      color: var(--textSecondary);
+      padding: var(--space-1) var(--space-2);
+      margin-left: var(--space-2);
+      background: var(--backgroundSecondary);
+      border-radius: var(--space-1);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       max-width: 200px;
     }
-
     .action-buttons {
       display: flex;
-      gap: ${theme.space[1]};
+      gap: var(--space-1);
     }
-
     .action-button {
       background: transparent;
       border: none;
       cursor: pointer;
-      padding: ${theme.space[2]};
-      color: ${theme.textSecondary};
-      border-radius: ${theme.space[1]};
+      padding: var(--space-2);
+      color: var(--textSecondary);
+      border-radius: var(--space-1);
       transition: color 0.2s;
     }
-
     .action-button:hover,
     .action-button.active {
-      color: ${theme.text};
-      background: ${theme.primaryGhost};
+      color: var(--text);
+      background: var(--primaryGhost);
     }
-
     .code-content {
       margin: 0;
-      padding: ${theme.space[4]};
+      padding: var(--space-4);
       font-family: 'SF Mono', 'Monaco', monospace;
       font-size: 14px;
       line-height: 1.6;
-      color: ${theme.text};
+      color: var(--text);
       overflow-x: auto;
       display: ${isCollapsed ? "none" : "block"};
     }
-
     .preview-content {
       padding: 0;
       margin: 0;
     }
-
-    /* 4. 为 React Flow 预览添加特定样式 */
     .react-flow__pane {
       cursor: grab;
     }
     .react-flow__attribution {
-      /* 隐藏 "by xyflow" 的 logo，如果需要的话 */
       display: none;
     }
     .react-live-preview {
-        /* 确保预览区域有高度 */
-        min-height: 300px; 
+      min-height: 300px;
     }
   `;
 
-  // --- 内联操作栏组件 --- (保持不变)
   const CodeBlockActions = () => (
     <div className="code-block-actions">
       <div style={{ display: "flex", alignItems: "center" }}>
@@ -274,7 +249,6 @@ const CodeBlock = ({ attributes, children, element }) => {
     [element.id]
   );
 
-  // (渲染逻辑保持不变)
   return (
     <>
       <style href="code-block" precedence="medium">
@@ -283,13 +257,11 @@ const CodeBlock = ({ attributes, children, element }) => {
       <div {...attributes} className="code-block-wrapper">
         <CodeBlockActions />
 
-        {/* JSON Preview */}
         {language === "json" && showPreview && content && !isCollapsed ? (
           <div className="preview-content">
             <JsonBlock rawCode={content} showPreview={showPreview} />
           </div>
-        ) : /* Mermaid Preview */
-        language === "mermaid" ? (
+        ) : language === "mermaid" ? (
           <div className="preview-content">
             <MermaidContent
               elementId={elementId}
@@ -300,8 +272,7 @@ const CodeBlock = ({ attributes, children, element }) => {
               theme={theme}
             />
           </div>
-        ) : /* React Live Preview */
-        (language === "jsx" || language === "tsx") &&
+        ) : (language === "jsx" || language === "tsx") &&
           showPreview &&
           !isCollapsed ? (
           <div className="preview-content">
@@ -313,8 +284,7 @@ const CodeBlock = ({ attributes, children, element }) => {
               liveScope={liveScope}
             />
           </div>
-        ) : /* Default Code View */
-        !isCollapsed ? (
+        ) : !isCollapsed ? (
           <pre className={`code-content language-${language || "plaintext"}`}>
             <code>{children}</code>
           </pre>
