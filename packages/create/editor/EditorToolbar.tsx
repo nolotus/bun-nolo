@@ -1,8 +1,8 @@
-// create/editor/EditorToolbar.tsx (已修复)
+// create/editor/EditorToolbar.tsx
 
 import React, { useState, useCallback } from "react";
-import { useSlate, ReactEditor } from "slate-react"; // --- 修复: 导入 ReactEditor ---
-import { Editor, Element as SlateElement, Transforms } from "slate"; // --- 修复: 导入 Transforms ---
+import { useSlate, ReactEditor } from "slate-react";
+import { Editor, Element as SlateElement, Transforms } from "slate";
 import {
   MdFormatBold,
   MdFormatItalic,
@@ -24,39 +24,36 @@ import { Button, Menu } from "./components";
 import { CodeBlockButton } from "./CodeBlockButton";
 import { isMarkActive, toggleMark } from "./mark";
 import { LinkCommands } from "./utils/linkCommands";
-import { LinkModal } from "render/web/ui/LinkModal"; // 确认路径正确
+import { LinkModal } from "render/web/ui/LinkModal";
 
-// 常量定义 (保持不变)
 const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 const LIST_TYPE = "list";
 
-// 工具栏组件样式 (保持不变)
-export const Toolbar = ({ className, style, ...props }) => (
+// 工具栏容器，使用 CSS 变量
+export const Toolbar: React.FC<{
+  className?: string;
+  style?: React.CSSProperties;
+}> = ({ className = "", style = {}, ...props }) => (
   <Menu
     {...props}
-    className={`editor-toolbar ${className || ""}`}
+    className={`editor-toolbar ${className}`}
     style={{
       position: "relative",
-      padding: "8px 12px",
-      backgroundColor: "#f8f9fa",
-      borderRadius: "4px",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-      marginBottom: "16px",
-      display: "flex", // 使用 flex 布局以更好地控制分组和分割线
+      padding: "var(--space-2) var(--space-3)",
+      backgroundColor: "var(--backgroundSecondary)",
+      borderRadius: "var(--space-1)",
+      boxShadow: "0 1px 3px var(--shadowMedium)",
+      marginBottom: "var(--space-4)",
+      display: "flex",
       flexWrap: "wrap",
       alignItems: "center",
-      gap: "8px",
+      gap: "var(--space-2)",
       ...style,
     }}
   />
 );
 
-// 切换块级元素状态的函数 (保持不变)
-const toggleBlock = (
-  editor: Editor,
-  format: string,
-  ordered: boolean | undefined = undefined
-) => {
+const toggleBlock = (editor: Editor, format: string, ordered?: boolean) => {
   const isActive = isBlockActive(
     editor,
     format,
@@ -73,66 +70,56 @@ const toggleBlock = (
     split: true,
   });
 
-  let newProperties: Partial<SlateElement>;
-  if (TEXT_ALIGN_TYPES.includes(format)) {
-    newProperties = {
-      align: isActive ? undefined : format,
-    };
-  } else {
-    newProperties = {
-      type: isActive ? "paragraph" : isList ? "list-item" : format,
-    };
-  }
-  Transforms.setNodes<SlateElement>(editor, newProperties);
+  const newProps: Partial<SlateElement> = TEXT_ALIGN_TYPES.includes(format)
+    ? { align: isActive ? undefined : format }
+    : { type: isActive ? "paragraph" : isList ? "list-item" : format };
+
+  Transforms.setNodes<SlateElement>(editor, newProps);
 
   if (!isActive && isList) {
-    const block = { type: LIST_TYPE, ordered: ordered === true, children: [] };
-    Transforms.wrapNodes(editor, block);
+    Transforms.wrapNodes(editor, {
+      type: LIST_TYPE,
+      ordered: ordered === true,
+      children: [],
+    });
   }
 };
 
-// 检查块级元素是否激活 (保持不变)
 const isBlockActive = (
   editor: Editor,
   format: string,
-  blockType: string = "type"
+  blockType: "type" | "align" = "type"
 ) => {
   const { selection } = editor;
   if (!selection) return false;
-
   const [match] = Array.from(
     Editor.nodes(editor, {
       at: Editor.unhangRange(editor, selection),
       match: (n) =>
         !Editor.isEditor(n) &&
         SlateElement.isElement(n) &&
-        n[blockType] === format,
+        (n as any)[blockType] === format,
     })
   );
-
   return !!match;
 };
 
-// 块级元素按钮组件 (保持不变)
-const BlockButton = ({
-  format,
-  Icon,
-  ordered = undefined,
-}: {
+const BlockButton: React.FC<{
   format: string;
-  Icon: any;
+  Icon: React.ElementType;
   ordered?: boolean;
-}) => {
+}> = ({ format, Icon, ordered }) => {
   const editor = useSlate();
+  const active = isBlockActive(
+    editor,
+    format,
+    TEXT_ALIGN_TYPES.includes(format) ? "align" : "type"
+  );
   return (
     <Button
-      active={isBlockActive(
-        editor,
-        format,
-        TEXT_ALIGN_TYPES.includes(format) ? "align" : "type"
-      )}
-      onMouseDown={(event) => {
-        event.preventDefault();
+      active={active}
+      onMouseDown={(e) => {
+        e.preventDefault();
         toggleBlock(editor, format, ordered);
       }}
     >
@@ -141,14 +128,17 @@ const BlockButton = ({
   );
 };
 
-// 标记按钮组件 (保持不变)
-const MarkButton = ({ format, Icon }: { format: string; Icon: any }) => {
+const MarkButton: React.FC<{ format: string; Icon: React.ElementType }> = ({
+  format,
+  Icon,
+}) => {
   const editor = useSlate();
+  const active = isMarkActive(editor, format);
   return (
     <Button
-      active={isMarkActive(editor, format)}
-      onMouseDown={(event) => {
-        event.preventDefault();
+      active={active}
+      onMouseDown={(e) => {
+        e.preventDefault();
         toggleMark(editor, format);
       }}
     >
@@ -157,8 +147,7 @@ const MarkButton = ({ format, Icon }: { format: string; Icon: any }) => {
   );
 };
 
-// --- 新增: 链接按钮组件 (已修复) ---
-const LinkButton = () => {
+const LinkButton: React.FC = () => {
   const editor = useSlate();
   const [isModalOpen, setModalOpen] = useState(false);
   const isActive = LinkCommands.isLinkActive(editor);
@@ -176,9 +165,8 @@ const LinkButton = () => {
     LinkCommands.toggleLink(editor, url);
     setModalOpen(false);
   };
-
   const handleRemove = () => {
-    LinkCommands.toggleLink(editor); // 不带url参数即为移除链接
+    LinkCommands.toggleLink(editor);
     setModalOpen(false);
   };
 
@@ -186,18 +174,16 @@ const LinkButton = () => {
     <>
       <Button
         active={isActive}
-        onMouseDown={(event) => {
-          event.preventDefault();
-          // 如果编辑器没有焦点，先聚焦，确保有选区
+        onMouseDown={(e) => {
+          e.preventDefault();
           if (!ReactEditor.isFocused(editor)) {
-            Transforms.focus(editor);
+            ReactEditor.focus(editor); // ✅ 修复：正确聚焦编辑器
           }
           setModalOpen(true);
         }}
       >
         <MdLink size={18} />
       </Button>
-
       {isModalOpen && (
         <LinkModal
           isOpen={isModalOpen}
@@ -211,15 +197,19 @@ const LinkButton = () => {
   );
 };
 
-// 编辑器工具栏主组件 (已优化布局)
-export const EditorToolbar = () => {
-  const groupStyle = {
+export const EditorToolbar: React.FC = () => {
+  const groupStyle: React.CSSProperties = {
     display: "flex",
-    gap: "4px",
+    gap: "var(--space-1)",
   };
 
   const divider = (
-    <div style={{ borderLeft: "1px solid #ddd", height: "20px" }} />
+    <div
+      style={{
+        borderLeft: "1px solid var(--border)",
+        height: "var(--space-5)",
+      }}
+    />
   );
 
   return (
@@ -232,18 +222,14 @@ export const EditorToolbar = () => {
         <MarkButton format="code" Icon={MdCode} />
         <LinkButton />
       </div>
-
       {divider}
-
-      {/* 标题和引用组 */}
+      {/* 标题/引用组 */}
       <div style={groupStyle}>
         <BlockButton format="heading-one" Icon={MdLooksOne} />
         <BlockButton format="heading-two" Icon={MdLooksTwo} />
         <BlockButton format="quote" Icon={MdFormatQuote} />
       </div>
-
       {divider}
-
       {/* 列表组 */}
       <div style={groupStyle}>
         <BlockButton format="list" ordered={true} Icon={MdFormatListNumbered} />
@@ -253,9 +239,7 @@ export const EditorToolbar = () => {
           Icon={MdFormatListBulleted}
         />
       </div>
-
       {divider}
-
       {/* 对齐组 */}
       <div style={groupStyle}>
         <BlockButton format="left" Icon={MdFormatAlignLeft} />
@@ -263,9 +247,7 @@ export const EditorToolbar = () => {
         <BlockButton format="right" Icon={MdFormatAlignRight} />
         <BlockButton format="justify" Icon={MdFormatAlignJustify} />
       </div>
-
       {divider}
-
       {/* 代码块组 */}
       <div style={groupStyle}>
         <CodeBlockButton />

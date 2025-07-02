@@ -1,7 +1,7 @@
-// create/editor/Editor.tsx (完整修改版)
+// create/editor/Editor.tsx
 
 import Prism from "prismjs";
-import React, { useCallback, useState, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Editor,
   Node,
@@ -9,11 +9,11 @@ import {
   createEditor,
   Descendant,
   Range,
-  Transforms,
+  NodeEntry,
+  Path,
 } from "slate";
 import { withHistory, History } from "slate-history";
 import { Editable, Slate, useSlate, withReact, ReactEditor } from "slate-react";
-import { useSelector } from "react-redux";
 
 import { ElementWrapper } from "./ElementWrapper";
 import { EditorToolbar } from "./EditorToolbar";
@@ -22,14 +22,11 @@ import { toggleMark } from "./mark";
 import { renderLeaf } from "./renderLeaf";
 import { prismThemeCss } from "./theme/prismThemeCss";
 import { CodeBlockType, CodeLineType } from "./types";
-import { useOnKeydown } from "./useOnKeyDown";
+import { useOnKeyDown } from "./useOnKeyDown"; // ✅ 修复：确保与导出名称和文件名大小写一致
 import { normalizeTokens } from "./utils/normalize-tokens";
 import { withLayout } from "./withLayout";
 import { withShortcuts } from "./withShortcuts";
 import { PlaceHolder } from "render/page/EditorPlaceHolder";
-import { selectTheme } from "app/settings/settingSlice";
-
-// --- 新增: 引入链接插件 ---
 import { withLinks } from "./withLinks";
 
 type CustomEditor = ReactEditor &
@@ -41,40 +38,30 @@ interface NoloEditorProps {
   initialValue: Descendant[];
   readOnly?: boolean;
   onChange?: (value: Descendant[]) => void;
-  placeholder?: string;
+  // placeholder 已移除，原有未使用
 }
 
 const NoloEditor: React.FC<NoloEditorProps> = ({
   initialValue,
   readOnly = false,
   onChange,
-  placeholder,
 }) => {
-  const theme = useSelector(selectTheme);
-  // `isMobile` state 未被使用，可以考虑移除
-  // const [isMobile, setIsMobile] = useState(false);
-
   const editor = useMemo(() => {
-    // --- 修改: 在插件链中加入 withLinks ---
+    // ✅ 修复：插件链中正确串联 withLinks
     const baseEditor = withShortcuts(
       withLayout(
         withLinks(withHistory(withReact(createEditor() as ReactEditor)))
       )
     );
-
-    // --- 修改: 扩展 isInline 而不是重新定义 ---
-    // withLinks 已经处理了 link 类型，这里只需保留原有的即可
+    // ✅ 修复：保留 inline-code，其他 inline 由 Slate 默认处理
     const { isInline } = baseEditor;
-    baseEditor.isInline = (element) => {
-      // 保留已有的 inline-code 判断，withLinks 会处理 link 类型
-      return element.type === "inline-code" ? true : isInline(element);
-    };
-
+    baseEditor.isInline = (el) =>
+      el.type === "inline-code" ? true : isInline(el);
     return baseEditor as CustomEditor;
   }, []);
 
   const decorate = useDecorate(editor);
-  const onKeyDown = useOnKeydown(editor);
+  const onKeyDown = useOnKeyDown(editor);
 
   return (
     <div className="nolo-editor-container">
@@ -82,8 +69,9 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         editor={editor}
         initialValue={initialValue}
         onChange={(value) => {
+          // ✅ 修复：检测非 selection 更改时才触发外层 onChange
           const isAstChange = editor.operations.some(
-            (op) => "set_selection" !== op.type
+            (op) => op.type !== "set_selection"
           );
           if (isAstChange && onChange) {
             onChange(value);
@@ -98,8 +86,7 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         )}
         <SetNodeToDecorations />
         <Editable
-          placeholder=" "
-          renderPlaceholder={({ children, attributes }) => (
+          renderPlaceholder={({ attributes }) => (
             <div {...attributes}>
               <PlaceHolder />
             </div>
@@ -110,83 +97,72 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
           renderLeaf={renderLeaf}
           onKeyDown={onKeyDown}
           onDOMBeforeInput={(event: InputEvent) => {
+            // ✅ 修复：使用 switch-case 并 break，避免 return undefined
             switch (event.inputType) {
               case "formatBold":
                 event.preventDefault();
-                return toggleMark(editor, "bold");
+                toggleMark(editor, "bold");
+                break;
               case "formatItalic":
                 event.preventDefault();
-                return toggleMark(editor, "italic");
+                toggleMark(editor, "italic");
+                break;
               case "formatUnderline":
                 event.preventDefault();
-                return toggleMark(editor, "underline");
+                toggleMark(editor, "underline");
+                break;
             }
           }}
         />
         <style>{prismThemeCss}</style>
       </Slate>
 
+      {/* ✨ 优化：合并媒体查询，减少重复 */}
       <style>{`
         .nolo-editor-container {
           position: relative;
-          padding: ${theme.space[2]};
+          padding: var(--space-2);
         }
-
         .toolbar-container {
           position: sticky;
           top: 0;
           z-index: 100;
-          margin-bottom: ${theme.space[2]}; 
-          padding: ${theme.space[1]};
+          margin-bottom: var(--space-2);
+          padding: var(--space-1);
         }
-
-        /* 编辑器内容区域 - 更紧凑 */
         .nolo-editor-container [data-slate-editor] {
           font-size: 14px;
-          line-height: 1.4; 
-          color: ${theme.text};
+          line-height: 1.4;
+          color: var(--text);
           -webkit-text-size-adjust: 100%;
         }
-
-        /* 新增: 链接样式 */
         .nolo-editor-container a {
-          color: ${theme.primary};
+          color: var(--primary);
           text-decoration: none;
           cursor: pointer;
         }
         .nolo-editor-container a:hover {
           text-decoration: underline;
         }
-
-
-        /* 移动端响应式 - 简化 */
-        @media (max-width: 768px) {
-          .nolo-editor-container {
-            padding: ${theme.space[1]}; /* 移动端更小边距 */
-          }
-          
-          .nolo-editor-container [data-slate-editor] {
-            font-size: 15px; /* 移动端稍大一点防止缩放 */
-            line-height: 1.35;
-          }
-          
-          .toolbar-container {
-            padding: ${theme.space[1]};
-            margin-bottom: ${theme.space[1]};
-          }
-        }
-
-        /* 行内代码样式 - 简化 */
         .inline-code {
           font-family: monospace;
-          background-color: ${theme.backgroundTertiary};
-          padding: 0.1em 0.3em; /* 减小内边距 */
+          background-color: var(--backgroundTertiary);
+          padding: 0.1em 0.3em;
           border-radius: 3px;
-          font-size: 0.85em; /* 稍小一点 */
+          font-size: 0.85em;
         }
-
-        /* 移动端触摸目标优化 - 保持必要的可用性 */
         @media (max-width: 768px) {
+          .nolo-editor-container {
+            padding: var(--space-1);
+          }
+          .nolo-editor-container [data-slate-editor] {
+            font-size: 15px;
+            line-height: 1.35;
+          }
+          .toolbar-container {
+            padding: var(--space-1);
+            margin-bottom: var(--space-1);
+          }
           .inline-code {
             padding: 0.12em 0.35em;
             font-size: 0.9em;
@@ -197,18 +173,16 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
   );
 };
 
-// ... 剩余部分 (useDecorate, getChildNodeToDecorations, SetNodeToDecorations, mergeMaps) 保持不变 ...
-// ... (此处省略未修改的下半部分代码，请保留你原有的)
-
+// 装饰器 Hook
 const useDecorate = (editor: CustomEditor) => {
   return useCallback(
-    ([node, path]): Range[] => {
+    ([node]: NodeEntry): Range[] => {
       if (
         SlateElement.isElement(node) &&
         node.type === CodeLineType &&
         editor.nodeToDecorations?.has(node)
       ) {
-        return editor.nodeToDecorations.get(node) || [];
+        return editor.nodeToDecorations.get(node)!;
       }
       return [];
     },
@@ -216,7 +190,8 @@ const useDecorate = (editor: CustomEditor) => {
   );
 };
 
-const getChildNodeToDecorations = ([block, blockPath]): Map<
+// 为单个 CodeBlock 生成装饰范围
+const getChildNodeToDecorations = ([block, blockPath]: NodeEntry): Map<
   SlateElement,
   Range[]
 > => {
@@ -230,103 +205,92 @@ const getChildNodeToDecorations = ([block, blockPath]): Map<
   }
 
   const codeLines = block.children.filter(
-    (line): line is SlateElement =>
-      SlateElement.isElement(line) && line.type === CodeLineType
+    (child): child is SlateElement =>
+      SlateElement.isElement(child) && child.type === CodeLineType
   );
-  if (codeLines.length === 0) return nodeToDecorations;
-
-  let text = "";
-  try {
-    text = codeLines.map((line) => Node.string(line)).join("\n");
-  } catch (e) {
-    console.error("Error getting string from code block lines:", e, block);
+  if (codeLines.length === 0) {
     return nodeToDecorations;
   }
 
-  const language = (block.language as string) || "plain";
+  // ✅ 修复：block.language 可能无类型，使用 any
+  const language = (block as any).language || "plain";
   const grammar = Prism.languages[language] || Prism.languages.plain;
-
   if (!grammar && language !== "plain") {
     console.warn(`Prism grammar not found for language: ${language}`);
   }
 
-  let tokens;
+  // 拼接整个 code block 文本
+  let text = "";
   try {
-    tokens = Prism.tokenize(text, grammar || Prism.languages.plain);
+    text = codeLines.map((line) => Node.string(line)).join("\n");
   } catch (e) {
-    console.error(
-      `Prism error tokenizing text for language ${language}:`,
-      e,
-      text
-    );
+    console.error("Error extracting text from code lines:", e);
     return nodeToDecorations;
   }
 
-  const normalizedTokens = normalizeTokens(tokens);
-
-  for (let lineIndex = 0; lineIndex < normalizedTokens.length; lineIndex++) {
-    if (lineIndex >= codeLines.length) continue;
-
-    const tokensInLine = normalizedTokens[lineIndex];
-    const codeLineElement = codeLines[lineIndex];
-
-    nodeToDecorations.set(codeLineElement, []);
-
-    let currentOffset = 0;
-    for (const token of tokensInLine) {
-      const tokenContent =
-        typeof token.content === "string" ? token.content : "";
-      const tokenLength = tokenContent.length;
-      if (!tokenLength) continue;
-
-      const startOffset = currentOffset;
-      const endOffset = startOffset + tokenLength;
-      const textNodePath = [...blockPath, lineIndex, 0];
-
-      const tokenTypes = (token.types || []).filter((type) => type !== "text");
-
-      const range: Range & { [key: string]: any } = {
-        anchor: { path: textNodePath, offset: startOffset },
-        focus: { path: textNodePath, offset: endOffset },
-        token: true,
-        ...Object.fromEntries(tokenTypes.map((type) => [type, true])),
-      };
-
-      nodeToDecorations.get(codeLineElement)?.push(range);
-      currentOffset = endOffset;
-    }
+  // Prism 分词
+  let tokens;
+  try {
+    tokens = Prism.tokenize(text, grammar);
+  } catch (e) {
+    console.error(`Prism tokenize error for ${language}:`, e);
+    return nodeToDecorations;
   }
+
+  const normalized = normalizeTokens(tokens);
+  normalized.forEach((lineTokens, lineIndex) => {
+    if (lineIndex >= codeLines.length) return;
+    const element = codeLines[lineIndex];
+    nodeToDecorations.set(element, []);
+    let offset = 0;
+    for (const token of lineTokens) {
+      const content = typeof token.content === "string" ? token.content : "";
+      const length = content.length;
+      if (length === 0) continue;
+      const start = offset;
+      const end = start + length;
+      const path: Path = [...blockPath, lineIndex, 0];
+      const types = (token.types || []).filter((t) => t !== "text");
+      const range: Range & Record<string, boolean> = {
+        anchor: { path, offset: start },
+        focus: { path, offset: end },
+        token: true,
+        ...Object.fromEntries(types.map((t) => [t, true])),
+      };
+      nodeToDecorations.get(element)!.push(range);
+      offset = end;
+    }
+  });
+
   return nodeToDecorations;
 };
 
+// 统一合并所有 codeBlock 的装饰范围
 const SetNodeToDecorations: React.FC = () => {
-  const editor = useSlate() as CustomEditor;
-
+  const editor = useSlate<CustomEditor>();
   const nodeToDecorations = useMemo(() => {
-    const codeBlockEntries = Array.from(
+    const blocks = Array.from(
       Editor.nodes(editor, {
         at: [],
         match: (n) => SlateElement.isElement(n) && n.type === CodeBlockType,
       })
     );
-    const decorationMaps = codeBlockEntries.map(getChildNodeToDecorations);
-    return mergeMaps(...decorationMaps);
+    return mergeMaps(...blocks.map(getChildNodeToDecorations));
   }, [editor.children]);
 
   editor.nodeToDecorations = nodeToDecorations;
   return null;
 };
 
+// ✨ 优化：简化 mergeMaps，无需 instanceof 检查
 const mergeMaps = <K, V>(...maps: Map<K, V>[]): Map<K, V> => {
-  const mergedMap = new Map<K, V>();
-  for (const currentMap of maps) {
-    if (currentMap instanceof Map) {
-      for (const [key, value] of currentMap.entries()) {
-        mergedMap.set(key, value);
-      }
+  const merged = new Map<K, V>();
+  for (const m of maps) {
+    for (const [k, v] of m) {
+      merged.set(k, v);
     }
   }
-  return mergedMap;
+  return merged;
 };
 
 export default NoloEditor;

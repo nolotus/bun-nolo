@@ -1,33 +1,43 @@
-// 在 components.js 文件中
+// create/editor/components.tsx
 
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 
-// 统一按钮组件
-export const Button = ({ className, active, reversed, children, ...props }) => {
+// 通用 Button 组件
+export const Button: React.FC<
+  React.HTMLAttributes<HTMLSpanElement> & {
+    active?: boolean;
+    reversed?: boolean;
+  }
+> = ({
+  className = "",
+  active = false,
+  reversed = false,
+  children,
+  style = {},
+  ...props
+}) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  // 计算按钮颜色
-  const getColor = () => {
-    if (reversed) {
-      return active ? "white" : "#aaa";
-    } else {
-      return active ? "#1890ff" : "#666";
-    }
-  };
+  // 根据 active 和 reversed 计算文本颜色
+  const color = reversed
+    ? active
+      ? "var(--background)" // 反转 + 激活：背景色（light: #FFF, dark: #111827）
+      : "var(--textQuaternary)" // 反转 + 未激活：浅灰
+    : active
+      ? "var(--primary)" // 普通 + 激活：主色
+      : "var(--textSecondary)"; // 普通 + 未激活：中深灰
 
-  // 计算背景色
-  const getBackgroundColor = () => {
-    if (isHovered) {
-      return reversed ? "rgba(255,255,255,0.15)" : "rgba(24,144,255,0.08)";
-    } else {
-      return active
-        ? reversed
-          ? "rgba(255,255,255,0.1)"
-          : "rgba(24,144,255,0.1)"
-        : "transparent";
-    }
-  };
+  // 根据 hover 和 active 计算背景色
+  const backgroundColor = isHovered
+    ? reversed
+      ? "var(--backgroundHover)" // 反转 + hover：背景悬停色
+      : "var(--focus)" // 普通 + hover：主色 focus（10% 透明度）
+    : active
+      ? reversed
+        ? "var(--backgroundSelected)" // 反转 + 激活：背景选中色
+        : "var(--primaryHover)" // 普通 + 激活：主色 hover（10% 透明度）
+      : "transparent";
 
   return (
     <span
@@ -37,15 +47,15 @@ export const Button = ({ className, active, reversed, children, ...props }) => {
       onMouseLeave={() => setIsHovered(false)}
       style={{
         cursor: "pointer",
-        color: getColor(),
-        padding: "4px 6px",
-        borderRadius: "4px",
-        backgroundColor: getBackgroundColor(),
-        transition: "all 0.2s",
+        color,
+        padding: "var(--space-1) var(--space-2)", // 4px 8px
+        borderRadius: "var(--space-1)", // 4px
+        backgroundColor,
+        transition: "color 0.2s, background-color 0.2s", // ✨ 优化：只动画必要属性
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        ...props.style,
+        ...style,
       }}
     >
       {children}
@@ -53,8 +63,11 @@ export const Button = ({ className, active, reversed, children, ...props }) => {
   );
 };
 
-// 统一菜单组件
-export const Menu = React.forwardRef(({ className, style, ...props }, ref) => (
+// 通用 Menu 组件
+export const Menu = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className = "", style = {}, ...props }, ref) => (
   <div
     {...props}
     ref={ref}
@@ -63,14 +76,14 @@ export const Menu = React.forwardRef(({ className, style, ...props }, ref) => (
     style={{
       display: "flex",
       flexWrap: "wrap",
-      gap: "6px",
+      gap: "var(--space-2)", // 8px
       ...style,
     }}
   />
 ));
 
-export const Portal = ({ children }) => {
-  return typeof document === "object"
+// Portal 组件（保持不变）
+export const Portal: React.FC = ({ children }) =>
+  typeof document === "object"
     ? ReactDOM.createPortal(children, document.body)
     : null;
-};
