@@ -15,7 +15,7 @@ const isHotkey = (hotkey, event) => {
   return isMod && event.key.toLowerCase() === key;
 };
 
-export const useOnKeydown = (editor) => {
+export const useOnKeyDown = (editor) => {
   const onKeyDown = useCallback(
     (e) => {
       for (const hotkey in HOTKEYS) {
@@ -31,7 +31,7 @@ export const useOnKeydown = (editor) => {
         Editor.insertText(editor, "  ");
       }
     },
-    [editor],
+    [editor]
   );
 
   return onKeyDown;
