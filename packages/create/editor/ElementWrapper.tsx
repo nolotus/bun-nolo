@@ -5,7 +5,7 @@ import { useTheme } from "app/theme";
 
 import { CodeBlockType, CodeLineType } from "./types";
 
-//web
+// web
 import { Table, TableRow, TableCell } from "render/web/ui/Table";
 import CodeBlock from "render/web/elements/CodeBlock";
 import { ImageElement } from "render/web/elements/ImageElement";
@@ -27,12 +27,13 @@ const TEXT_BLOCK_TYPES = [
   "thematic-break",
 ];
 
-export const ElementWrapper = (props) => {
+export const ElementWrapper: React.FC<any> = (props) => {
   const { attributes, children, element } = props;
   const editor = useSlateStatic();
-  const theme = useTheme();
+  // 确保主题 CSS 变量已注入
+  useTheme();
 
-  const getStyle = (additionalStyle = {}) => ({
+  const getStyle = (additionalStyle: React.CSSProperties = {}) => ({
     ...(element.align ? { textAlign: element.align } : {}),
     ...additionalStyle,
   });
@@ -47,11 +48,9 @@ export const ElementWrapper = (props) => {
 
   if (element.type === CodeBlockType) {
     return (
-      <CodeBlock
-        attributes={attributes}
-        element={element}
-        children={children}
-      />
+      <CodeBlock attributes={attributes} element={element}>
+        {children}
+      </CodeBlock>
     );
   }
 
@@ -69,13 +68,13 @@ export const ElementWrapper = (props) => {
         <code
           {...attributes}
           style={getStyle({
-            backgroundColor: theme.backgroundSecondary,
-            color: theme.primary,
-            padding: `${theme.space[1]} ${theme.space[2]}`,
-            borderRadius: theme.space[1],
+            backgroundColor: "var(--backgroundSecondary)",
+            color: "var(--primary)",
+            padding: "var(--space-1) var(--space-2)",
+            borderRadius: "var(--space-1)",
             fontFamily: "JetBrains Mono, Consolas, monospace",
             fontSize: "0.85em",
-            border: `1px solid ${theme.border}`,
+            border: "1px solid var(--border)",
             wordBreak: "break-word",
             lineHeight: 1.3,
             fontWeight: 500,
@@ -91,9 +90,9 @@ export const ElementWrapper = (props) => {
           href={element.url}
           {...attributes}
           style={getStyle({
-            color: theme.primary,
+            color: "var(--primary)",
             textDecoration: "underline",
-            textDecorationColor: `${theme.primary}80`,
+            textDecorationColor: "var(--primary)",
             textUnderlineOffset: "1px",
           })}
         >
@@ -106,7 +105,7 @@ export const ElementWrapper = (props) => {
         <ImageElement
           {...props}
           style={getStyle({
-            margin: `${theme.space[4]} 0`,
+            margin: "var(--space-4) 0",
           })}
         />
       );
@@ -129,7 +128,7 @@ export const ElementWrapper = (props) => {
       return (
         <Table
           attributes={attributes}
-          style={getStyle({ margin: `${theme.space[4]} 0` })}
+          style={getStyle({ margin: "var(--space-4) 0" })}
         >
           {children}
         </Table>
@@ -148,7 +147,7 @@ export const ElementWrapper = (props) => {
           attributes={attributes}
           element={element}
           style={getStyle({
-            padding: `${theme.space[2]} ${theme.space[3]}`,
+            padding: "var(--space-2) var(--space-3)",
             lineHeight: 1.4,
           })}
         >
@@ -169,7 +168,7 @@ export const ElementWrapper = (props) => {
       return (
         <div
           {...attributes}
-          style={getStyle({ margin: `${theme.space[3]} 0` })}
+          style={getStyle({ margin: "var(--space-3) 0" })}
           dangerouslySetInnerHTML={{ __html: element.html }}
         />
       );
@@ -180,9 +179,7 @@ export const ElementWrapper = (props) => {
         <Tag
           {...attributes}
           style={getStyle({
-            ...(editor.isInline(element)
-              ? {}
-              : { margin: `${theme.space[2]} 0` }),
+            ...(editor.isInline(element) ? {} : { margin: "var(--space-2) 0" }),
           })}
         >
           {children}
