@@ -20,6 +20,28 @@ export const createSpaceKey = {
     };
   },
 
+  /**
+   * 新增：用户在空间中的个性化设置key
+   * @param userId 用户ID
+   * @param spaceId 空间ID
+   * @returns "space-setting-{userId}-{spaceId}"
+   */
+  setting: (userId: string, spaceId: string) => {
+    return [SPACE_PREFIX, "setting", userId, spaceId].join(SEPARATOR);
+  },
+
+  /**
+   * 新增：查询用户在所有空间中的个性化设置的范围
+   * @param userId 用户ID
+   * @returns start/end 查询范围
+   */
+  settingRange: (userId: string) => {
+    return {
+      start: [SPACE_PREFIX, "setting", userId, ""].join(SEPARATOR),
+      end: [SPACE_PREFIX, "setting", userId, "\uffff"].join(SEPARATOR),
+    };
+  },
+
   // 从成员key中提取空间key
   spaceFromMember: (memberKey: string) => {
     const parts = memberKey.split(SEPARATOR);

@@ -75,7 +75,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   });
 
   const handleToggleCollapse = () =>
-    dispatch(toggleCategoryCollapse(categoryId));
+    dispatch(toggleCategoryCollapse({ categoryId }));
   const handleDelete = () => {
     if (spaceId && !isUncategorized) {
       dispatch(deleteCategory({ spaceId, categoryId }));
