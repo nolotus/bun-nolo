@@ -1,6 +1,5 @@
 import type { RootState } from "app/store";
 import {
-  type PayloadAction,
   asyncThunkCreator,
   buildCreateSlice,
   createSelector,
@@ -8,9 +7,8 @@ import {
 import { SpaceMemberWithSpaceInfo } from "app/types";
 import { MemberRole } from "app/types";
 import { SpaceData } from "app/types";
-import { UNCATEGORIZED_ID } from "./constants";
 
-import { createCategoryThunks } from "./category/categoryThunks";
+import { createCategoryActions } from "./category/categoryActions";
 import { createContentThunks } from "./content/contentThunks";
 import { createMemberThunks } from "./member/memberThunks";
 import { createSpaceThunks } from "./spaceThunks";
@@ -44,39 +42,8 @@ const spaceSlice = createSliceWithThunks({
   name: "space",
   initialState,
   reducers: (create) => ({
-    toggleCategoryCollapse: create.reducer(
-      (state, action: PayloadAction<string>) => {
-        const categoryId = action.payload;
-        if (categoryId) {
-          const currentCollapsed =
-            state.collapsedCategories[categoryId] ?? false;
-          state.collapsedCategories[categoryId] = !currentCollapsed;
-        }
-      }
-    ),
-
-    setAllCategoriesCollapsed: create.reducer(
-      (
-        state,
-        action: PayloadAction<{ spaceId: string; collapsed: boolean }>
-      ) => {
-        const { collapsed } = action.payload;
-        const currentSpace = state.currentSpace;
-
-        if (currentSpace && currentSpace.categories) {
-          const categoryIds = Object.keys(currentSpace.categories);
-
-          categoryIds.forEach((catId) => {
-            state.collapsedCategories[catId] = collapsed;
-          });
-
-          state.collapsedCategories[UNCATEGORIZED_ID] = collapsed;
-        }
-      }
-    ),
-
     ...createSpaceThunks(create),
-    ...createCategoryThunks(create),
+    ...createCategoryActions(create), // 单一函数调用，更清晰
     ...createContentThunks(create),
     ...createMemberThunks(create),
   }),

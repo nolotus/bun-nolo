@@ -1,22 +1,48 @@
-// create/space/category/categoryThunks.ts
-import { asyncThunkCreator } from "@reduxjs/toolkit";
-import type { SpaceState } from "../spaceSlice"; // Adjust path
-import type { SpaceData } from "app/types";
+import { asyncThunkCreator, type PayloadAction } from "@reduxjs/toolkit";
+import type { SpaceState } from "../spaceSlice";
+import { UNCATEGORIZED_ID } from "../constants";
 import { addCategoryAction } from "./addCategoryAction";
 import { deleteCategoryAction } from "./deleteCategoryAction";
 import { updateCategoryNameAction } from "./updateCategoryNameAction";
 import { reorderCategoriesAction } from "./reorderCategoriesAction";
 
-// Define create 参数的类型 (根据 buildCreateSlice 的 API)
-type Create = ReturnType<
-  typeof asyncThunkCreator<SpaceState> // 使用 SpaceState 约束 State 类型
->;
+type Create = ReturnType<typeof asyncThunkCreator<SpaceState>>;
 
 /**
- * 创建与分类相关的 Async Thunks
+ * 创建与分类（Category）相关的所有 Reducer 和 Async Thunks
  * @param create - 由 buildCreateSlice 提供的创建器对象
  */
-export const createCategoryThunks = (create: Create) => ({
+export const createCategoryActions = (create: Create) => ({
+  // --- Regular Reducers ---
+  toggleCategoryCollapse: create.reducer(
+    (state: SpaceState, action: PayloadAction<string>) => {
+      const categoryId = action.payload;
+      if (categoryId) {
+        const currentCollapsed = state.collapsedCategories[categoryId] ?? false;
+        state.collapsedCategories[categoryId] = !currentCollapsed;
+      }
+    }
+  ),
+
+  setAllCategoriesCollapsed: create.reducer(
+    (
+      state: SpaceState,
+      action: PayloadAction<{ spaceId: string; collapsed: boolean }>
+    ) => {
+      const { collapsed } = action.payload;
+      const currentSpace = state.currentSpace;
+
+      if (currentSpace?.categories) {
+        const categoryIds = Object.keys(currentSpace.categories);
+        categoryIds.forEach((catId) => {
+          state.collapsedCategories[catId] = collapsed;
+        });
+        state.collapsedCategories[UNCATEGORIZED_ID] = collapsed;
+      }
+    }
+  ),
+
+  // --- Async Thunks ---
   addCategory: create.asyncThunk(addCategoryAction, {
     fulfilled: (state, action) => {
       if (state.currentSpaceId === action.payload.spaceId) {
@@ -27,10 +53,9 @@ export const createCategoryThunks = (create: Create) => ({
 
   deleteCategory: create.asyncThunk(deleteCategoryAction, {
     fulfilled: (state, action) => {
-      const { spaceId, categoryId } = action.meta.arg; // 从 meta 获取参数
+      const { spaceId, categoryId } = action.meta.arg;
       if (state.currentSpaceId === spaceId) {
         state.currentSpace = action.payload.updatedSpaceData;
-        // 删除对应的折叠状态
         if (state.collapsedCategories[categoryId] !== undefined) {
           delete state.collapsedCategories[categoryId];
         }

@@ -1,6 +1,6 @@
 // create/space/category/reorderCategoriesAction.ts (假设路径)
-import type { SpaceId } from "create/space/types";
-import type { SpaceData, SpaceCategory } from "app/types";
+import type { ULID } from "app/types";
+import type { SpaceData, Category } from "app/types";
 import { selectUserId } from "auth/authSlice";
 import { createSpaceKey } from "create/space/spaceKeys";
 import { read, patch } from "database/dbSlice";
@@ -8,9 +8,9 @@ import type { AppDispatch, RootState } from "app/store";
 import { checkSpaceMembership } from "../utils/permissions"; // 确认导入路径
 
 export const reorderCategoriesAction = async (
-  input: { spaceId: SpaceId; sortedCategoryIds: string[] },
+  input: { spaceId: ULID; sortedCategoryIds: string[] },
   thunkAPI: { dispatch: AppDispatch; getState: () => RootState } // 使用具体类型
-): Promise<{ spaceId: SpaceId; updatedSpaceData: SpaceData }> => {
+): Promise<{ spaceId: ULID; updatedSpaceData: SpaceData }> => {
   const { spaceId, sortedCategoryIds } = input;
   const { dispatch, getState } = thunkAPI;
   const state = getState();
@@ -78,7 +78,7 @@ export const reorderCategoriesAction = async (
       }
       return acc;
     },
-    {} as Record<string, SpaceCategory | null> // 使用类型断言
+    {} as Record<string, Category | null> // 使用类型断言
   );
 
   // 检查是否有实际有效的变更
