@@ -2,7 +2,6 @@
 
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
-import LifeSidebarContent from "life/LifeSidebarContent";
 import React, {
   Suspense,
   useCallback,
@@ -10,12 +9,15 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { SidebarTop } from "./SidebarTop";
-import TopBar from "./TopBar";
 import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
 import { zIndex } from "render/styles/zIndex";
+
+//web
+import TopBar from "./TopBar";
+import { SidebarTop } from "./SidebarTop";
+import { Outlet, useLocation } from "react-router-dom";
+import LifeSidebarContent from "life/LifeSidebarContent";
 
 const MainLayout: React.FC = () => {
   const location = useLocation();
