@@ -3,22 +3,6 @@
 import React, { useState, useCallback } from "react";
 import { useSlate, ReactEditor } from "slate-react";
 import { Editor, Element as SlateElement, Transforms } from "slate";
-import {
-  MdFormatBold,
-  MdFormatItalic,
-  MdFormatUnderlined,
-  MdCode,
-  MdFormatQuote,
-  MdFormatListBulleted,
-  MdFormatListNumbered,
-  MdLooksOne,
-  MdLooksTwo,
-  MdFormatAlignLeft,
-  MdFormatAlignCenter,
-  MdFormatAlignRight,
-  MdFormatAlignJustify,
-  MdLink,
-} from "react-icons/md";
 
 import { Button, Menu } from "./components";
 import { CodeBlockButton } from "./CodeBlockButton";
@@ -26,10 +10,28 @@ import { isMarkActive, toggleMark } from "./mark";
 import { LinkCommands } from "./utils/linkCommands";
 import { LinkModal } from "render/web/ui/LinkModal";
 
+// 从 react-icons/lu 引入 Lucide 图标
+import {
+  LuBold,
+  LuItalic,
+  LuUnderline,
+  LuCode,
+  LuQuote,
+  LuHeading1,
+  LuHeading2,
+  LuListOrdered,
+  LuList,
+  LuAlignLeft,
+  LuAlignCenter,
+  LuAlignRight,
+  LuAlignJustify,
+  LuLink,
+} from "react-icons/lu";
+
 const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 const LIST_TYPE = "list";
 
-// 工具栏容器，使用 CSS 变量
+// 工具栏容器
 export const Toolbar: React.FC<{
   className?: string;
   style?: React.CSSProperties;
@@ -177,12 +179,12 @@ const LinkButton: React.FC = () => {
         onMouseDown={(e) => {
           e.preventDefault();
           if (!ReactEditor.isFocused(editor)) {
-            ReactEditor.focus(editor); // ✅ 修复：正确聚焦编辑器
+            ReactEditor.focus(editor);
           }
           setModalOpen(true);
         }}
       >
-        <MdLink size={18} />
+        <LuLink size={18} />
       </Button>
       {isModalOpen && (
         <LinkModal
@@ -216,36 +218,32 @@ export const EditorToolbar: React.FC = () => {
     <Toolbar>
       {/* 文本样式组 */}
       <div style={groupStyle}>
-        <MarkButton format="bold" Icon={MdFormatBold} />
-        <MarkButton format="italic" Icon={MdFormatItalic} />
-        <MarkButton format="underline" Icon={MdFormatUnderlined} />
-        <MarkButton format="code" Icon={MdCode} />
+        <MarkButton format="bold" Icon={LuBold} />
+        <MarkButton format="italic" Icon={LuItalic} />
+        <MarkButton format="underline" Icon={LuUnderline} />
+        <MarkButton format="code" Icon={LuCode} />
         <LinkButton />
       </div>
       {divider}
       {/* 标题/引用组 */}
       <div style={groupStyle}>
-        <BlockButton format="heading-one" Icon={MdLooksOne} />
-        <BlockButton format="heading-two" Icon={MdLooksTwo} />
-        <BlockButton format="quote" Icon={MdFormatQuote} />
+        <BlockButton format="heading-one" Icon={LuHeading1} />
+        <BlockButton format="heading-two" Icon={LuHeading2} />
+        <BlockButton format="quote" Icon={LuQuote} />
       </div>
       {divider}
       {/* 列表组 */}
       <div style={groupStyle}>
-        <BlockButton format="list" ordered={true} Icon={MdFormatListNumbered} />
-        <BlockButton
-          format="list"
-          ordered={false}
-          Icon={MdFormatListBulleted}
-        />
+        <BlockButton format="list" ordered={true} Icon={LuListOrdered} />
+        <BlockButton format="list" ordered={false} Icon={LuList} />
       </div>
       {divider}
       {/* 对齐组 */}
       <div style={groupStyle}>
-        <BlockButton format="left" Icon={MdFormatAlignLeft} />
-        <BlockButton format="center" Icon={MdFormatAlignCenter} />
-        <BlockButton format="right" Icon={MdFormatAlignRight} />
-        <BlockButton format="justify" Icon={MdFormatAlignJustify} />
+        <BlockButton format="left" Icon={LuAlignLeft} />
+        <BlockButton format="center" Icon={LuAlignCenter} />
+        <BlockButton format="right" Icon={LuAlignRight} />
+        <BlockButton format="justify" Icon={LuAlignJustify} />
       </div>
       {divider}
       {/* 代码块组 */}

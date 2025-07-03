@@ -1,9 +1,10 @@
+// create/editor/CodeBlockButton.tsx
+
 import React from "react";
 import { useSlate } from "slate-react";
-import { Editor, Transforms, Element as SlateElement } from "slate";
+import { Editor, Transforms, Element as SlateElement, Node } from "slate";
 
-import { MdCode } from "react-icons/md";
-// 确保导入了所有需要的类型
+import { LuFileCode2 } from "react-icons/lu"; // Lucide 文件 + 代码 图标
 import {
   CodeBlockType,
   CodeLineType,
@@ -22,49 +23,48 @@ const isCodeBlockActive = (editor: Editor) => {
   return !!match;
 };
 
-const toggleCodeBlock = (editor: Editor) => {
+export const toggleCodeBlock = (editor: Editor) => {
   const isActive = isCodeBlockActive(editor);
 
-  // --- 1. 定义可以被转换的块类型列表 ---
-  // 将所有 HeadingType 的值和 ParagraphType 组合成一个数组
+  // 1. 可转换的块类型
   const convertibleTypes = [...Object.values(HeadingType), ParagraphType];
 
-  // --- 2. 创建一个更通用的匹配函数 ---
+  // 2. 通用匹配函数
   const matchCondition = (n: Node) =>
     SlateElement.isElement(n) && convertibleTypes.includes(n.type as string);
 
   if (isActive) {
-    // 将代码块变回普通段落
+    // 取消代码块：先把 code-line 变回段落，再拆 unwrap code-block
     Transforms.setNodes(
       editor,
       { type: ParagraphType },
-      { match: (n) => SlateElement.isElement(n) && n.type === CodeLineType }
+      {
+        match: (n) => SlateElement.isElement(n) && n.type === CodeLineType,
+      }
     );
     Transforms.unwrapNodes(editor, {
       match: (n) => SlateElement.isElement(n) && n.type === CodeBlockType,
       split: true,
     });
   } else {
-    // 将段落或标题转换为代码块
-
-    // --- 3. 在所有 Transforms 操作中使用新的匹配函数 ---
+    // 应用代码块：先将段落/标题改成 code-line，再 wrap 成 code-block
     Transforms.setNodes(
       editor,
       { type: CodeLineType },
-      { match: matchCondition } // 先将内部元素类型改为 code-line
+      { match: matchCondition }
     );
     Transforms.wrapNodes(
       editor,
       { type: CodeBlockType, language: "tsx", children: [] },
       {
-        match: (n) => SlateElement.isElement(n) && n.type === CodeLineType, // 然后用 code-block 包裹 code-line
+        match: (n) => SlateElement.isElement(n) && n.type === CodeLineType,
         split: true,
       }
     );
   }
 };
 
-export const CodeBlockButton = () => {
+export const CodeBlockButton: React.FC = () => {
   const editor = useSlate();
   const isActive = isCodeBlockActive(editor);
 
@@ -72,12 +72,12 @@ export const CodeBlockButton = () => {
     <Button
       data-test-id="code-block-button"
       active={isActive}
-      onMouseDown={(event) => {
-        event.preventDefault();
+      onMouseDown={(e) => {
+        e.preventDefault();
         toggleCodeBlock(editor);
       }}
     >
-      <MdCode size={18} />
+      <LuFileCode2 size={18} />
     </Button>
   );
 };
