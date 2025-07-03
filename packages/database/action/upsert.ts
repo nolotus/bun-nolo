@@ -42,7 +42,7 @@ export const upsertAction = async (
     } else {
       // **插入路径**：数据不存在，调度 write action
       // write action 内部会处理 createdAt/updatedAt、userId、本地写入和服务器同步
-      finalResultAction = await dispatch(write({ ...data, dbKey }));
+      finalResultAction = await dispatch(write({ data, customKey: dbKey }));
     }
 
     // 检查被调度的 thunk 是否出错

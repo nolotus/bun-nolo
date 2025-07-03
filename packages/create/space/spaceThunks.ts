@@ -15,22 +15,50 @@ import { updateSpaceAction } from "./updateSpaceAction";
 type Create = ReturnType<typeof asyncThunkCreator<SpaceState>>;
 
 /**
- * 创建与 Space 基本操作相关的 Async Thunks (包括切换 Space)
+ * 创建与 Space 操作相关的 Async Thunks
  * @param create - 由 buildCreateSlice 提供的创建器对象
  */
 export const createSpaceThunks = (create: Create) => ({
-  // --- Change Space (Core operation) ---
-  changeSpace: create.asyncThunk(
+  // --- 获取用户特定空间设置 ---
+  fetchSpaceSettings: create.asyncThunk(
     async (spaceId: string, thunkAPI) => {
       const { dispatch, getState } = thunkAPI;
       const state = getState() as RootState;
-
       const userId = selectUserId(state);
+
       if (!userId) {
-        throw new Error("用户未登录，无法获取空间设置。");
+        // 如果没有用户ID，直接返回默认值，不抛出错误
+        return { collapsedCategories: {} };
       }
 
-      // 1. 获取空间数据
+      const settingKey = createSpaceKey.setting(userId, spaceId);
+      const settingsData = (await dispatch(
+        read(settingKey)
+      ).unwrap()) as SpaceSetting | null;
+
+      // 如果没有设置数据或数据中没有 collapsedCategories，返回空对象
+      return {
+        collapsedCategories: settingsData?.collapsedCategories || {},
+      };
+    },
+    {
+      fulfilled: (state, action) => {
+        state.collapsedCategories = action.payload.collapsedCategories;
+      },
+      rejected: (state, action) => {
+        // 如果获取设置失败，打印错误并重置为默认状态
+        console.error("获取空间设置失败:", action.error.message);
+        state.collapsedCategories = {};
+      },
+    }
+  ),
+
+  // --- 切换空间 (核心操作) ---
+  changeSpace: create.asyncThunk(
+    async (spaceId: string, thunkAPI) => {
+      const { dispatch } = thunkAPI;
+
+      // 1. 获取核心空间数据
       const spaceKey = createSpaceKey.space(spaceId);
       const spaceData = (await dispatch(
         read(spaceKey)
@@ -38,20 +66,17 @@ export const createSpaceThunks = (create: Create) => ({
       if (!spaceData) {
         throw new Error("空间不存在或加载失败");
       }
-      console.log("spaceData", spaceData);
-      // 2. 获取该空间的用户特定设置
-      // const settingKey = createSpaceKey.setting(userId, spaceId);
-      // const settingsData = (await dispatch(
-      //   read(settingKey)
-      // ).unwrap()) as SpaceSetting | null;
-      // const collapsedCategories = settingsData?.collapsedCategories || {};
 
-      // 3. 返回包含空间数据和设置的组合 payload
-      return {
-        spaceId,
-        spaceData,
-        // collapsedCategories,
-      };
+      // 2. 异步获取该空间的用户特定设置 (非阻塞)
+      try {
+        await dispatch(thunkAPI.extra.fetchSpaceSettings(spaceId)).unwrap();
+      } catch (error) {
+        // 关键: 即使设置加载失败，也不影响主流程，仅记录警告
+        console.warn("获取空间设置失败，但不影响空间切换:", error);
+      }
+
+      // 3. 返回空间数据 payload
+      return { spaceId, spaceData };
     },
     {
       pending: (state) => {
@@ -61,8 +86,7 @@ export const createSpaceThunks = (create: Create) => ({
       fulfilled: (state, action) => {
         state.currentSpaceId = action.payload.spaceId;
         state.currentSpace = action.payload.spaceData;
-        // 应用从数据库加载的折叠状态
-        // state.collapsedCategories = action.payload.collapsedCategories;
+        // 注意: collapsedCategories 由 fetchSpaceSettings.fulfilled 独立更新
         state.initialized = true;
         state.loading = false;
       },
@@ -72,12 +96,12 @@ export const createSpaceThunks = (create: Create) => ({
         state.loading = false;
         state.currentSpaceId = null;
         state.currentSpace = null;
-        // state.collapsedCategories = {};
+        state.collapsedCategories = {}; // 主流程失败时，也重置设置
       },
     }
   ),
 
-  // --- Other Core Space Operations ---
+  // --- 其他核心空间操作 ---
   addSpace: create.asyncThunk(addSpaceAction, {
     fulfilled: (state, action) => {
       if (state.memberSpaces) {
