@@ -38,19 +38,19 @@ export const createSpaceThunks = (create: Create) => ({
       if (!spaceData) {
         throw new Error("空间不存在或加载失败");
       }
-
+      console.log("spaceData", spaceData);
       // 2. 获取该空间的用户特定设置
-      const settingKey = createSpaceKey.setting(userId, spaceId);
-      const settingsData = (await dispatch(
-        read(settingKey)
-      ).unwrap()) as SpaceSetting | null;
-      const collapsedCategories = settingsData?.collapsedCategories || {};
+      // const settingKey = createSpaceKey.setting(userId, spaceId);
+      // const settingsData = (await dispatch(
+      //   read(settingKey)
+      // ).unwrap()) as SpaceSetting | null;
+      // const collapsedCategories = settingsData?.collapsedCategories || {};
 
       // 3. 返回包含空间数据和设置的组合 payload
       return {
         spaceId,
         spaceData,
-        collapsedCategories,
+        // collapsedCategories,
       };
     },
     {
@@ -62,7 +62,7 @@ export const createSpaceThunks = (create: Create) => ({
         state.currentSpaceId = action.payload.spaceId;
         state.currentSpace = action.payload.spaceData;
         // 应用从数据库加载的折叠状态
-        state.collapsedCategories = action.payload.collapsedCategories;
+        // state.collapsedCategories = action.payload.collapsedCategories;
         state.initialized = true;
         state.loading = false;
       },
@@ -72,7 +72,7 @@ export const createSpaceThunks = (create: Create) => ({
         state.loading = false;
         state.currentSpaceId = null;
         state.currentSpace = null;
-        state.collapsedCategories = {};
+        // state.collapsedCategories = {};
       },
     }
   ),

@@ -103,7 +103,9 @@ export const loadDefaultSpaceAction = async (
     }
 
     if (spaceIdToLoad) {
-      await dispatch(changeSpace(spaceIdToLoad)).unwrap();
+      console.log(`Loading space with ID: ${spaceIdToLoad}`);
+      const res = await dispatch(changeSpace(spaceIdToLoad)).unwrap();
+      // Optionally, you can also
       return spaceIdToLoad;
     } else {
       return null;
