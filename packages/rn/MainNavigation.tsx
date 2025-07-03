@@ -33,14 +33,14 @@ function UserStack() {
 
 // 主标签导航
 function HomeTabs() {
-  const mainColor = useSelector((state) => state.theme.mainColor);
+  // const mainColor = useSelector((state) => state.theme.mainColor);
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarInactiveTintColor: "gray",
-        tabBarActiveTintColor: mainColor,
+        // tabBarActiveTintColor: mainColor,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           switch (route.name) {
