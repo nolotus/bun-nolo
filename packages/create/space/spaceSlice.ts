@@ -72,6 +72,7 @@ export const {
   addMember,
   removeMember,
   fixSpace,
+  fetchSpaceSettings,
 } = spaceSlice.actions;
 
 const selectSpaceState = (state: RootState) => state.space;

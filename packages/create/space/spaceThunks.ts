@@ -9,7 +9,7 @@ import { deleteSpaceAction } from "./deleteSpaceAction";
 import { fetchSpaceAction } from "./fetchSpaceAction";
 import { loadDefaultSpaceAction } from "./loadDefaultSpaceAction";
 import { createSpaceKey } from "./spaceKeys";
-import type { SpaceState } from "./spaceSlice";
+import { type SpaceState, fetchSpaceSettings } from "./spaceSlice";
 import { updateSpaceAction } from "./updateSpaceAction";
 
 type Create = ReturnType<typeof asyncThunkCreator<SpaceState>>;
@@ -32,10 +32,8 @@ export const createSpaceThunks = (create: Create) => ({
       }
 
       const settingKey = createSpaceKey.setting(userId, spaceId);
-      const settingsData = (await dispatch(
-        read(settingKey)
-      ).unwrap()) as SpaceSetting | null;
-
+      console.log("获取空间设置:", settingKey);
+      const settingsData = await dispatch(read(settingKey)).unwrap();
       // 如果没有设置数据或数据中没有 collapsedCategories，返回空对象
       return {
         collapsedCategories: settingsData?.collapsedCategories || {},
@@ -69,7 +67,7 @@ export const createSpaceThunks = (create: Create) => ({
 
       // 2. 异步获取该空间的用户特定设置 (非阻塞)
       try {
-        await dispatch(thunkAPI.extra.fetchSpaceSettings(spaceId)).unwrap();
+        await dispatch(fetchSpaceSettings(spaceId)).unwrap();
       } catch (error) {
         // 关键: 即使设置加载失败，也不影响主流程，仅记录警告
         console.warn("获取空间设置失败，但不影响空间切换:", error);
