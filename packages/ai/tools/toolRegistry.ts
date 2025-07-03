@@ -24,30 +24,26 @@ import {
 
 // 内容管理
 import { createPageFunctionSchema, createPageFunc } from "./createPageTool";
-// import {
-//   createCategoryFunctionSchema,
-//   createCategoryFunc,
-// } from "./createCategoryTool";
-// import {
-//   updateContentTitleFunctionSchema,
-//   updateContentTitleFunc,
-// } from "./updateContentTitleTool";
-// import {
-//   updateContentCategoryFunctionSchema,
-//   updateContentCategoryFunc,
-// } from "./updateContentCategoryTool";
-// import {
-//   queryContentsByCategoryFunctionSchema,
-//   queryContentsByCategoryFunc,
-// } from "./queryContentsByCategoryTool";
+
+// 分类相关工具集中在 ./category 文件夹
+import {
+  createCategoryFunctionSchema,
+  createCategoryFunc,
+} from "./category/createCategoryTool";
+import {
+  updateContentCategoryFunctionSchema,
+  updateContentCategoryFunc,
+} from "./category/updateContentCategoryTool";
+import {
+  queryContentsByCategoryFunctionSchema,
+  queryContentsByCategoryFunc,
+} from "./category/queryContentsByCategoryTool";
+
+// import { updateContentTitleFunctionSchema, updateContentTitleFunc } from "./updateContentTitleTool";
 
 // 数据操作
-// [新增] 导入 importData 工具
 import { importDataFunctionSchema, importDataFunc } from "./importDataTool";
-// import {
-//   generateTableFunctionSchema,
-//   generateTableFunc,
-// } from "./generateTableTool";
+// import { generateTableFunctionSchema, generateTableFunc } from "./generateTableTool";
 import { executeSqlFunctionSchema, executeSqlFunc } from "./executeSqlTool";
 
 // 网络与智能
@@ -55,7 +51,6 @@ import {
   fetchWebpageFunctionSchema,
   fetchWebpageFunc,
 } from "./fetchWebpageTool";
-// [新增] 导入浏览器交互工具
 import {
   browser_openSession_Schema,
   browser_openSession_Func,
@@ -66,42 +61,28 @@ import {
 } from "./browserTools/selectOption";
 
 // 多媒体生成
-// import {
-//   generateImageFunctionSchema,
-//   generateImageFunc,
-// } from "./generateImageTool";
+// import { generateImageFunctionSchema, generateImageFunc } from "./generateImageTool";
 
-// 数据库工具
-// import { createTableFunctionSchema } from "database/tools/createTableTool";
-// import { listTablesFunctionSchema } from "database/tools/listTablesTool";
-// import { describeTableFunctionSchema } from "./describeTableTool";
-// import { selectRowsFunctionSchema } from "./selectRowsTool";
-// import { groupAggregateFunctionSchema } from "./groupAggregateTool";
-// import { joinTablesFunctionSchema } from "./joinTablesTool";
-// import { transformRowsFunctionSchema } from "./transformRowsTool";
-// import { joinRowsFunctionSchema } from "./joinRowsTool";
-
-// (假设数据库工具的执行器也已导出，如果未导出，请在对应文件中导出)
-// import { createTableFunc } from "database/tools/createTableTool";
-// import { listTablesFunc } from "database/tools/listTablesTool";
-// import { describeTableFunc } from "./describeTableTool";
-// import { selectRowsFunc } from "./selectRowsTool";
-// import { groupAggregateFunc } from "./groupAggregateTool";
-// import { joinTablesFunc } from "./joinTablesTool";
-// import { transformRowsFunc } from "./transformRowsTool";
-// import { joinRowsFunc } from "./joinRowsTool";
+// 数据库 工具占位（如需使用请在对应文件中导出）
+// import { createTableFunctionSchema, createTableFunc } from "database/tools/createTableTool";
+// import { listTablesFunctionSchema, listTablesFunc } from "database/tools/listTablesTool";
+// import { describeTableFunctionSchema, describeTableFunc } from "./describeTableTool";
+// import { selectRowsFunctionSchema, selectRowsFunc } from "./selectRowsTool";
+// import { groupAggregateFunctionSchema, groupAggregateFunc } from "./groupAggregateTool";
+// import { joinTablesFunctionSchema, joinTablesFunc } from "./joinTablesTool";
+// import { transformRowsFunctionSchema, transformRowsFunc } from "./transformRowsTool";
+// import { joinRowsFunctionSchema, joinRowsFunc } from "./joinRowsTool";
 
 // ---------- 2. 定义工具规范接口 ----------
 interface ToolDefinition {
-  id: string; // 唯一ID (camelCase), 这是我们的单一事实来源
-  schema: any; // 提供给 LLM 的函数 Schema (不含 "type: 'function'")
+  id: string; // 唯一ID (camelCase)
+  schema: any; // 提供给 LLM 的函数 Schema
   executor: (
     args: any,
     thunkApi: any,
     context?: { parentMessageId: string }
   ) => Promise<any>;
   description: {
-    // 提供给前端UI的描述
     name: string;
     description: string;
     category: string;
@@ -133,6 +114,7 @@ const toolDefinitions: ToolDefinition[] = [
       category: "计划与编排",
     },
   },
+
   // --- 内容管理 ---
   {
     id: "createPage",
@@ -144,16 +126,36 @@ const toolDefinitions: ToolDefinition[] = [
       category: "内容管理",
     },
   },
-  // {
-  //   id: "createCategory",
-  //   schema: createCategoryFunctionSchema,
-  //   executor: createCategoryFunc,
-  //   description: {
-  //     name: "createCategory",
-  //     description: "在当前空间中创建新分类",
-  //     category: "内容管理",
-  //   },
-  // },
+  {
+    id: "createCategory",
+    schema: createCategoryFunctionSchema,
+    executor: createCategoryFunc,
+    description: {
+      name: "createCategory",
+      description: "在当前空间中创建新分类",
+      category: "内容管理",
+    },
+  },
+  {
+    id: "updateContentCategory",
+    schema: updateContentCategoryFunctionSchema,
+    executor: updateContentCategoryFunc,
+    description: {
+      name: "updateContentCategory",
+      description: "更新内容的分类",
+      category: "内容管理",
+    },
+  },
+  {
+    id: "queryContentsByCategory",
+    schema: queryContentsByCategoryFunctionSchema,
+    executor: queryContentsByCategoryFunc,
+    description: {
+      name: "queryContentsByCategory",
+      description: "查询分类下的所有内容",
+      category: "内容管理",
+    },
+  },
   // {
   //   id: "updateContentTitle",
   //   schema: updateContentTitleFunctionSchema,
@@ -164,29 +166,8 @@ const toolDefinitions: ToolDefinition[] = [
   //     category: "内容管理",
   //   },
   // },
-  // {
-  //   id: "updateContentCategory",
-  //   schema: updateContentCategoryFunctionSchema,
-  //   executor: updateContentCategoryFunc,
-  //   description: {
-  //     name: "updateContentCategory",
-  //     description: "更新内容的分类",
-  //     category: "内容管理",
-  //   },
-  // },
-  // {
-  //   id: "queryContentsByCategory",
-  //   schema: queryContentsByCategoryFunctionSchema,
-  //   executor: queryContentsByCategoryFunc,
-  //   description: {
-  //     name: "queryContentsByCategory",
-  //     description: "查询分类下的所有内容",
-  //     category: "内容管理",
-  //   },
-  // },
 
   // --- 数据操作 ---
-  // [新增] 注册 importData 工具
   {
     id: "importData",
     schema: importDataFunctionSchema,
@@ -207,92 +188,12 @@ const toolDefinitions: ToolDefinition[] = [
   //     category: "数据操作",
   //   },
   // },
-  // {
-  //   id: "createTable",
-  //   schema: createTableFunctionSchema,
-  //   executor: createTableFunc,
-  //   description: {
-  //     name: "createTable",
-  //     description: "注册一张新表",
-  //     category: "数据操作",
-  //   },
-  // },
-  // {
-  //   id: "listTables",
-  //   schema: listTablesFunctionSchema,
-  //   executor: listTablesFunc,
-  //   description: {
-  //     name: "listTables",
-  //     description: "列出所有可用的表",
-  //     category: "数据操作",
-  //   },
-  // },
-  // {
-  //   id: "describeTable",
-  //   schema: describeTableFunctionSchema,
-  //   executor: describeTableFunc,
-  //   description: {
-  //     name: "describeTable",
-  //     description: "读取表的元数据信息",
-  //     category: "数据操作",
-  //   },
-  // },
-  // {
-  //   id: "selectRows",
-  //   schema: selectRowsFunctionSchema,
-  //   executor: selectRowsFunc,
-  //   description: {
-  //     name: "selectRows",
-  //     description: "按主键或索引扫描表行",
-  //     category: "数据操作",
-  //   },
-  // },
-  // {
-  //   id: "groupAggregate",
-  //   schema: groupAggregateFunctionSchema,
-  //   executor: groupAggregateFunc,
-  //   description: {
-  //     name: "groupAggregate",
-  //     description: "对行进行分组聚合",
-  //     category: "数据操作",
-  //   },
-  // },
-  // {
-  //   id: "joinTables",
-  //   schema: joinTablesFunctionSchema,
-  //   executor: joinTablesFunc,
-  //   description: {
-  //     name: "joinTables",
-  //     description: "对两张表进行连接查询",
-  //     category: "数据操作",
-  //   },
-  // },
-  // {
-  //   id: "transformRows",
-  //   schema: transformRowsFunctionSchema,
-  //   executor: transformRowsFunc,
-  //   description: {
-  //     name: "transformRows",
-  //     description: "对行数据进行衍生字段计算",
-  //     category: "数据操作",
-  //   },
-  // },
-  // {
-  //   id: "joinRows",
-  //   schema: joinRowsFunctionSchema,
-  //   executor: joinRowsFunc,
-  //   description: {
-  //     name: "joinRows",
-  //     description: "在内存中连接两组行数据",
-  //     category: "数据操作",
-  //   },
-  // },
   {
     id: "executeSql",
     schema: executeSqlFunctionSchema,
     executor: executeSqlFunc,
     description: {
-      name: "execute_sql", // 保持与旧版一致，或者统一为 executeSql
+      name: "executeSql",
       description: "直接执行 SQL 语句",
       category: "数据操作",
     },
@@ -309,18 +210,16 @@ const toolDefinitions: ToolDefinition[] = [
       category: "网络与智能",
     },
   },
-  // [新增] 浏览器 - 打开会话
   {
     id: "browserOpenSession",
     schema: browser_openSession_Schema,
     executor: browser_openSession_Func,
     description: {
       name: "browser_openSession",
-      description: "打开一个新的浏览器会话并导航到URL，返回会话ID",
+      description: "打开一个新的浏览器会话并导航到 URL，返回会话ID",
       category: "网络与智能",
     },
   },
-  // [新增] 浏览器 - 选择选项
   {
     id: "browserSelectOption",
     schema: browser_selectOption_Schema,
@@ -352,7 +251,6 @@ const toolDefinitions: ToolDefinition[] = [
 // 4.1 生成给 LLM 的工具注册表
 export const toolRegistry: Record<string, any> = toolDefinitions.reduce(
   (acc, tool) => {
-    // LLM 调用时使用 schema.name, 而我们的内部 ID 是 tool.id
     acc[tool.schema.name] = { type: "function", function: tool.schema };
     return acc;
   },
@@ -363,7 +261,6 @@ export const toolRegistry: Record<string, any> = toolDefinitions.reduce(
 export const toolExecutors: Record<string, ToolDefinition["executor"]> =
   toolDefinitions.reduce(
     (acc, tool) => {
-      // 执行器使用 schema.name 作为键，与 createPlan 中的 tool_name 保持一致
       acc[tool.schema.name] = tool.executor;
       return acc;
     },
@@ -374,7 +271,6 @@ export const toolExecutors: Record<string, ToolDefinition["executor"]> =
 export const toolDescriptions: Record<string, ToolDefinition["description"]> =
   toolDefinitions.reduce(
     (acc, tool) => {
-      // UI 描述使用 schema.name 作为键
       acc[tool.schema.name] = tool.description;
       return acc;
     },
@@ -401,7 +297,7 @@ export const findToolExecutor = (
   if (canonicalName && toolExecutors[canonicalName]) {
     return {
       executor: toolExecutors[canonicalName],
-      canonicalName: canonicalName,
+      canonicalName,
     };
   }
   throw new Error(`执行器未找到：未知工具 "${rawName}"`);
