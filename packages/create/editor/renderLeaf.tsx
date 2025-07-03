@@ -1,6 +1,7 @@
-// create/editor/renderLeaf.tsx
+// 文件：create/editor/renderLeaf.tsx
+
 import React, { useMemo } from "react";
-import { useTheme } from "app/theme";
+import { CSSProperties } from "react";
 
 interface TextLeafProps {
   attributes: any;
@@ -14,98 +15,103 @@ interface TextLeafProps {
     subscript?: boolean;
     superscript?: boolean;
     highlight?: boolean;
-    // Prism token 类型
-    token?: boolean;
+    code?: boolean; // 内联代码标记
+    token?: boolean; // Prism 语法高亮 token
     [key: string]: any;
   };
 }
 
-// 样式缓存 Hook - 简化版本，避免复杂的嵌套
-const useLeafStyles = (theme) => {
-  return useMemo(
+// 简易样式助手
+const getStyle = (style: CSSProperties): CSSProperties => style;
+
+// 其他格式化样式都用 CSS 变量
+const useLeafStyles = () =>
+  useMemo(
     () => ({
       bold: {
         fontWeight: 600,
-        color: theme.text,
+        color: "var(--text)",
       },
       italic: {
         fontStyle: "italic",
-        color: theme.textSecondary,
+        color: "var(--textSecondary)",
       },
       underline: {
         textDecorationThickness: "0.1em",
         textUnderlineOffset: "0.2em",
-        textDecorationColor: theme.primary,
-        color: theme.text,
+        textDecorationColor: "var(--primary)",
+        color: "var(--text)",
       },
       strikethrough: {
         textDecorationThickness: "0.1em",
-        textDecorationColor: theme.textTertiary,
+        textDecorationColor: "var(--textTertiary)",
         opacity: 0.65,
-        color: theme.textTertiary,
+        color: "var(--textTertiary)",
       },
       subscript: {
         fontSize: "0.75em",
-        color: theme.textSecondary,
+        color: "var(--textSecondary)",
       },
       superscript: {
         fontSize: "0.75em",
-        color: theme.textSecondary,
+        color: "var(--textSecondary)",
       },
       highlight: {
-        backgroundColor: theme.primaryLight || `${theme.primary}20`,
-        color: theme.text,
-        padding: `${theme.space[0]} ${theme.space[1]}`,
-        borderRadius: theme.space[1],
-        boxShadow: `0 0 0 1px ${theme.primary}15`,
+        backgroundColor: "var(--primaryLight)",
+        color: "var(--text)",
+        padding: "var(--space-0) var(--space-1)",
+        borderRadius: "var(--space-1)",
+        boxShadow: "0 0 0 1px var(--primary)",
       },
     }),
-    [theme]
+    []
   );
-};
 
 const TextLeaf: React.FC<TextLeafProps> = ({ attributes, children, leaf }) => {
-  const theme = useTheme();
-  const styles = useLeafStyles(theme);
-  const { text, ...rest } = leaf;
-  let node = children;
+  // 永远在最顶层调用 Hooks，顺序不变
+  const styles = useLeafStyles();
+  const { text, code, token, ...rest } = leaf;
 
-  // 应用格式化 - 保持原有的顺序和逻辑
-  if (leaf.bold) {
-    node = <strong style={styles.bold}>{node}</strong>;
-  }
-
-  if (leaf.italic) {
-    node = <em style={styles.italic}>{node}</em>;
-  }
-
-  if (leaf.underline) {
-    node = <u style={styles.underline}>{node}</u>;
-  }
-
-  if (leaf.strikethrough) {
-    node = <del style={styles.strikethrough}>{node}</del>;
-  }
-
-  if (leaf.subscript) {
-    node = <sub style={styles.subscript}>{node}</sub>;
-  }
-
-  if (leaf.superscript) {
-    node = <sup style={styles.superscript}>{node}</sup>;
-  }
-
-  if (leaf.highlight) {
-    node = <mark style={styles.highlight}>{node}</mark>;
-  }
-
-  // 处理 Prism 语法高亮 token 类型 - 保持原有逻辑
+  // Prism token classes
   const prismClasses = useMemo(() => {
     return Object.keys(rest)
       .filter((key) => key !== "text" && key !== "token" && rest[key] === true)
       .map((type) => `token ${type}`)
       .join(" ");
   }, [rest]);
+
+  // 内联代码优先渲染
+  if (code) {
+    return (
+      <code
+        {...attributes}
+        style={getStyle({
+          backgroundColor: "var(--backgroundSecondary)",
+          color: "var(--primary)",
+          padding: "var(--space-1) var(--space-2)",
+          borderRadius: "var(--space-1)",
+          fontFamily: "JetBrains Mono, Consolas, monospace",
+          fontSize: "0.85em",
+          border: "1px solid var(--border)",
+          wordBreak: "break-word",
+          lineHeight: 1.3,
+          fontWeight: 500,
+        })}
+      >
+        {children}
+      </code>
+    );
+  }
+
+  // 其他格式化按顺序包裹
+  let node = children;
+  if (leaf.bold) node = <strong style={styles.bold}>{node}</strong>;
+  if (leaf.italic) node = <em style={styles.italic}>{node}</em>;
+  if (leaf.underline) node = <u style={styles.underline}>{node}</u>;
+  if (leaf.strikethrough) node = <del style={styles.strikethrough}>{node}</del>;
+  if (leaf.subscript) node = <sub style={styles.subscript}>{node}</sub>;
+  if (leaf.superscript) node = <sup style={styles.superscript}>{node}</sup>;
+  if (leaf.highlight) node = <mark style={styles.highlight}>{node}</mark>;
 
   return (
     <span {...attributes} className={prismClasses || undefined}>
@@ -114,7 +120,5 @@ const TextLeaf: React.FC<TextLeafProps> = ({ attributes, children, leaf }) => {
   );
 };
 
-// 导出 renderLeaf 函数 - 不使用 React.memo 避免可能的问题
-export const renderLeaf = (props: TextLeafProps) => {
-  return <TextLeaf {...props} />;
-};
+// 不使用 React.memo，保证渲染一致性
+export const renderLeaf = (props: TextLeafProps) => <TextLeaf {...props} />;
