@@ -140,7 +140,6 @@ export const readAction = async (
   if (!clientDb) {
     throw new Error("Client database is undefined in readAction"); // 原日志已删除
   }
-
   const state = thunkApi.getState();
   const token = state.auth.currentToken;
   const currentServer = selectCurrentServer(state);
