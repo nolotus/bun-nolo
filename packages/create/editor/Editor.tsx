@@ -127,7 +127,6 @@ const NoloEditor: React.FC<NoloEditorProps> = ({
         .toolbar-container {
           position: sticky;
           top: 0;
-          z-index: 100;
           margin-bottom: var(--space-2);
           padding: var(--space-1);
         }
