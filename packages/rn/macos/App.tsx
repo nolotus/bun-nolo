@@ -4,7 +4,7 @@ import { View, Text } from "react-native";
 const MacOSApp = () => {
   return (
     <View>
-      <Text>macosx</Text>
+      <Text>macosx 0.78.3</Text>
     </View>
   );
 };
