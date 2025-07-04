@@ -1,5 +1,6 @@
-import { AppRegistry } from "react-native";
+import { AppRegistry, Platform } from "react-native";
 import App from "rn/App";
+import MacOSApp from "rn/macos/App";
 import { isProduction } from "utils/env";
 
 import { name as appName } from "./app.json";
@@ -7,4 +8,7 @@ import { name as appName } from "./app.json";
 if (!isProduction) {
   require("./ReactotronConfig");
 }
-AppRegistry.registerComponent(appName, () => App);
+
+const AppComponent = Platform.OS === "macos" ? MacOSApp : App;
+
+AppRegistry.registerComponent(appName, () => AppComponent);

@@ -101,6 +101,7 @@
     "esbuild": "^0.24.2",
     "eslint-plugin-react-hooks": "6.0.0-rc.1",
     "react-native": "0.78.0",
+    "react-native-macos": "^0.78.3",
     "react-native-localize": "^3.0.4",
     "react-native-maps": "^1.8.3",
     "react-native-pager-view": "^6.2.3",
