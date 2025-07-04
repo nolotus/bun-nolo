@@ -1211,6 +1211,29 @@ PODS:
     - ReactCommon/turbomodule/core
   - react-native-safe-area-context (5.2.0):
     - React-Core
+  - react-native-skia (1.12.4):
+    - DoubleConversion
+    - glog
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - React-NativeModulesApple (0.78.3):
     - glog
     - React-callinvoker
@@ -1484,6 +1507,27 @@ PODS:
     - React-utils (= 0.78.3)
   - RNCPicker (2.10.2):
     - React-Core
+  - RNGestureHandler (2.27.1):
+    - DoubleConversion
+    - glog
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNKeychain (9.2.2):
     - DoubleConversion
     - glog
@@ -1661,6 +1705,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native-macos/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native-macos/ReactCommon/react/nativemodule/microtasks`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
   - React-NativeModulesApple (from `../node_modules/react-native-macos/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native-macos/ReactCommon/reactperflogger`)
   - React-performancetimeline (from `../node_modules/react-native-macos/ReactCommon/react/performance/timeline`)
@@ -1689,6 +1734,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native-macos/ReactCommon`)
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
   - RNLocalize (from `../node_modules/react-native-localize`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -1771,6 +1817,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-macos/ReactCommon/react/nativemodule/microtasks"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-skia:
+    :path: "../node_modules/@shopify/react-native-skia"
   React-NativeModulesApple:
     :path: "../node_modules/react-native-macos/ReactCommon/react/nativemodule/core/platform/ios"
   React-perflogger:
@@ -1827,6 +1875,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-macos/ReactCommon"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
+  RNGestureHandler:
+    :path: "../node_modules/react-native-gesture-handler"
   RNKeychain:
     :path: "../node_modules/react-native-keychain"
   RNLocalize:
@@ -1878,6 +1928,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: e67b47b96890c68b3bf1277345e0bf3b43189ccb
   React-microtasksnativemodule: 678a11284092266b066e9d473ade17a4bf77d98f
   react-native-safe-area-context: 849d7df29ecb2a7155c769c0b76849ba952c2aa3
+  react-native-skia: 3ff8646df8805920478e264ae111fae5fab133bd
   React-NativeModulesApple: 535d6b2d9634a3e62c61204784c690ea45c3d8e4
   React-perflogger: 264dc0f53bd9ee0fd734106002b531966ecc3256
   React-performancetimeline: d4f03d4699df0321c6303735cdede7f9dc6292a2
@@ -1906,6 +1957,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 0d4b1df68a3f3091c3bae46a165d83941839b51a
   ReactCommon: 9f08736d91355d414eab27f0812541c78f117d5e
   RNCPicker: d162737e03e48797110dbb60e5ddc03012e87e0b
+  RNGestureHandler: d7eb6bbc71ef77fa3d9549657895918aab4d815d
   RNKeychain: eb554800f51cbb2ea732e231907039975decf455
   RNLocalize: 4f22418187ecd5ca693231093ff1d912d1b3c9bc
   RNReanimated: a22829d4388af62206a6ce928c2fdb930b2b99bb

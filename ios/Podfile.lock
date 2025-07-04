@@ -1349,7 +1349,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-skia (2.1.0):
+  - react-native-skia (1.12.4):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1662,6 +1662,27 @@ PODS:
     - React-perflogger (= 0.78.2)
     - React-utils (= 0.78.2)
   - RNCPicker (2.10.2):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - RNGestureHandler (2.27.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2009,6 +2030,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+  - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
   - RNLocalize (from `../node_modules/react-native-localize`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -2166,6 +2188,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
+  RNGestureHandler:
+    :path: "../node_modules/react-native-gesture-handler"
   RNKeychain:
     :path: "../node_modules/react-native-keychain"
   RNLocalize:
@@ -2220,7 +2244,7 @@ SPEC CHECKSUMS:
   react-native-maps: 2e6e9896195781327ee15b33e3e84bf73c08207a
   react-native-pager-view: 9ba0efc22bc94122163d5b8f85179a203ab5045e
   react-native-safe-area-context: 9c33120e9eac7741a5364cc2d9f74665049b76b3
-  react-native-skia: b46d0b19a8b949a1af19df4d54b1b7309a8c58ea
+  react-native-skia: c12d01b3112c96a6ee2e375f173b435a1edca9ef
   react-native-vector-icons-lucide: 1657d2e2057719f73097403df942e99f9fbeb283
   react-native-vector-icons-octicons: cdd6a552e07c16830a2ed8977ae16c2365d52e2e
   React-NativeModulesApple: 79a4404ac301b40bec3b367879c5e9a9ce81683c
@@ -2252,6 +2276,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 78b64f0ad96ef733616f54d0c20923f6c67287fd
   ReactCommon: 547db015202a80a5b3e7e041586ea54c4a087180
   RNCPicker: fddd691ccbb5d63e395cb602aa531b38ebdbf800
+  RNGestureHandler: 968f5e8c975d81bbe98233677444894b1e8bb2fa
   RNKeychain: 3536c754b0b75920ff243d794ede14b0c8529d57
   RNLocalize: 3dd71fb425b839c992168e40b58c01e824fbf6c8
   RNReanimated: c021f620a8a8494147399ed4e02fdc09fb60ac35
