@@ -63,7 +63,6 @@
     "react-json-view-lite": "^2.4.1",
     "react-live": "^4.1.8",
     "react-native-keychain": "^9.2.2",
-    "react-native-leveldb": "^3.6.0",
     "react-native-safe-area-context": "^5.2.0",
     "react-native-svg": "^15.9.0",
     "react-redux": "^9.2.0",
