@@ -13,6 +13,8 @@ import SettingsScreen from "./screens/SettingsScreen";
 import RechargeScreen from "./screens/RechargeScreen";
 import ChatDetailScreen from "./screens/ChatDetailScreen";
 import ArticleDetailScreen from "./screens/ArticleDetailScreen";
+import AboutScreen from "./screens/AboutScreen";
+import DataScreen from "./screens/DataScreen";
 
 // 导航类型定义
 export type ScreenName =
@@ -21,7 +23,9 @@ export type ScreenName =
   | "Settings"
   | "Recharge"
   | "ChatDetail"
-  | "ArticleDetail";
+  | "ArticleDetail"
+  | "About"
+  | "Data";
 
 // 导航参数类型
 export interface NavigationParams {
@@ -174,6 +178,10 @@ const SimpleNavigator: React.FC<SimpleNavigatorProps> = ({ children }) => {
         return <ChatDetailScreen />;
       case "ArticleDetail":
         return <ArticleDetailScreen />;
+      case "About":
+        return <AboutScreen />;
+      case "Data":
+        return <DataScreen />;
       case "Main":
       default:
         return <>{children}</>;
