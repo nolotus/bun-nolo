@@ -10,10 +10,11 @@ import SidebarHeaderComponent from "../SidebarHeaderComponent";
 import { useSimpleNavigation } from "../../SimpleNavigator";
 
 // 页面类型定义
-export type PageType = "chat" | "article";
+export type PageType = "home" | "chat" | "article";
 
 // 页面配置
 const PAGES = {
+  home: { title: "首页", icon: "🏠" },
   chat: { title: "对话", icon: "💬" },
   article: { title: "文章", icon: "📝" },
 };

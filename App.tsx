@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Provider } from "react-redux";
 import UserMenu from "rn/components/shared/UserMenu";
 import SimpleNavigator, { useSimpleNavigation } from "rn/SimpleNavigator";
 import EnhancedSidebarLayout from "rn/components/EnhancedSidebarLayout";
@@ -7,12 +8,14 @@ import ResponsiveHeader from "rn/components/shared/ResponsiveHeader";
 import { useResponsiveLayout } from "rn/hooks/useResponsiveLayout";
 import { SidebarContentConfig } from "rn/components/shared/SidebarContentProvider";
 import { AppStateProvider, useAppState } from "rn/context/AppStateContext";
+import { store } from "rn/redux/store";
 
 // 页面类型定义
-export type PageType = "chat" | "article";
+export type PageType = "home" | "chat" | "article";
 
 // 页面配置
 const PAGES = {
+  home: { title: "首页", icon: "🏠" },
   chat: { title: "对话", icon: "💬" },
   article: { title: "文章", icon: "📝" },
 };
@@ -42,6 +45,31 @@ const renderPageContent = (
   const pageInfo = PAGES[currentPage];
 
   switch (currentPage) {
+    case "home":
+      return (
+        <View>
+          <InfoCard label="Redux状态:" value="已集成" />
+          <Text style={styles.description}>
+            这里展示Redux Toolkit的使用示例。
+          </Text>
+
+          <TouchableOpacity
+            style={styles.listItem}
+            onPress={() =>
+              navigate(
+                "HomeScreen",
+                { title: "Redux认证演示" },
+                { enabled: false }
+              )
+            }
+          >
+            <Text style={styles.listItemTitle}>🏠 Redux认证演示</Text>
+            <Text style={styles.listItemSubtitle}>
+              使用Redux Toolkit进行用户认证管理
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
     case "chat":
       return (
         <View>
@@ -258,14 +286,16 @@ const InnerApp = () => {
   );
 };
 
-// 主应用组件 - 包含SimpleNavigator和AppStateProvider
+// 主应用组件 - 包含Redux Provider、SimpleNavigator和AppStateProvider
 const MacOSApp = () => {
   return (
-    <AppStateProvider>
-      <SimpleNavigator>
-        <InnerApp />
-      </SimpleNavigator>
-    </AppStateProvider>
+    <Provider store={store}>
+      <AppStateProvider>
+        <SimpleNavigator>
+          <InnerApp />
+        </SimpleNavigator>
+      </AppStateProvider>
+    </Provider>
   );
 };
 
