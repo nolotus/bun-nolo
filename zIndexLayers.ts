@@ -12,28 +12,30 @@ export const Z_INDEX = {
   SIDEBAR_CONTENT: 200,
 
   // 导航层级 (500-799)
-  SIDEBAR_MOBILE: 860, // Must be higher than SIDEBAR_OVERLAY
   SIDEBAR_DESKTOP: 600,
 
   // 遮罩层级 (800-899)
   OVERLAY_BASE: 800,
-  SIDEBAR_OVERLAY: 850,
 
   // 下拉菜单层级 (900-999)
   DROPDOWN_OVERLAY: 900,
   DROPDOWN_CONTENT: 950,
 
   // 顶部导航层级 (1000-1099)
-  TOPBAR: 1100,
-  TOPBAR_DROPDOWN: 1050,
+  TOPBAR: 1000,
+  TOPBAR_DROPDOWN: 1010, // Must be higher than TOPBAR
 
-  // 模态框层级 (1100-1199)
-  MODAL_OVERLAY: 1100,
-  MODAL_CONTENT: 1150,
+  // 移动端侧边栏层级 (1100-1199)
+  SIDEBAR_OVERLAY: 1100,
+  SIDEBAR_MOBILE: 1110, // Must be higher than TOPBAR and OVERLAY
 
-  // 最高层级 (1200+)
-  TOAST: 1200,
-  TOOLTIP: 1250,
+  // 模态框层级 (1200-1299)
+  MODAL_OVERLAY: 1200,
+  MODAL_CONTENT: 1210,
+
+  // 最高层级 (1300+)
+  TOAST: 1300,
+  TOOLTIP: 1350,
 } as const;
 
 export type ZIndexKey = keyof typeof Z_INDEX;

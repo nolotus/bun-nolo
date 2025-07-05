@@ -22,12 +22,6 @@
       "bun-types"
     ]
   },
-  "files": [
-    "MacApp.tsx",
-    "SidebarHeader.tsx",
-    "UserDropdownMenu.tsx",
-    "zIndexLayers.ts"
-  ],
   "include": [
     "*.ts",
     "*.tsx",
