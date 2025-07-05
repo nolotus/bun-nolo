@@ -21,5 +21,25 @@
     "types": [
       "bun-types"
     ]
-  }
+  },
+  "files": [
+    "MacApp.tsx",
+    "SidebarHeader.tsx",
+    "UserDropdownMenu.tsx",
+    "zIndexLayers.ts"
+  ],
+  "include": [
+    "*.ts",
+    "*.tsx",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "android",
+    "ios",
+    "macos"
+  ]
 }
