@@ -16,6 +16,7 @@ import { DEFAULT_DRAWER_WIDTH } from "./shared/constants";
 import SidebarContentProvider, {
   SidebarContentConfig,
 } from "./shared/SidebarContentProvider";
+import { Z_INDEX } from "../zIndexLayers";
 
 // 增强的侧边栏布局组件 - 统一处理所有响应式逻辑
 interface EnhancedSidebarLayoutProps {
@@ -97,22 +98,27 @@ const EnhancedSidebarLayout: React.FC<EnhancedSidebarLayoutProps> = ({
   };
 
   // 渲染移动端侧边栏
-  const renderMobileSidebar = () => (
-    <RNAnimated.View
-      style={[
-        styles.mobileSidebar,
-        {
-          width: sidebarWidth,
-          transform: [{ translateX: drawerTranslateX }],
-          pointerEvents: isDrawerOpen ? "auto" : "none",
-          top: insets.top,
-          bottom: insets.bottom,
-        },
-      ]}
-    >
-      <SidebarContentProvider config={sidebarContentConfig} />
-    </RNAnimated.View>
-  );
+  const renderMobileSidebar = () => {
+    // 计算header的总高度：安全区域顶部 + header基础高度
+    const headerTotalHeight = insets.top + 60;
+
+    return (
+      <RNAnimated.View
+        style={[
+          styles.mobileSidebar,
+          {
+            width: sidebarWidth,
+            transform: [{ translateX: drawerTranslateX }],
+            pointerEvents: isDrawerOpen ? "auto" : "none",
+            top: headerTotalHeight, // 动态计算，避免被header遮挡
+            bottom: insets.bottom,
+          },
+        ]}
+      >
+        <SidebarContentProvider config={sidebarContentConfig} />
+      </RNAnimated.View>
+    );
+  };
 
   // 渲染遮罩层
   const renderOverlay = () => (
@@ -187,7 +193,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    zIndex: 1000,
+    zIndex: Z_INDEX.RN_SIDEBAR_MOBILE, // 提高zIndex，确保在header之上
   },
   mainContent: {
     flex: 1,
@@ -200,7 +206,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    zIndex: 999,
+    zIndex: Z_INDEX.RN_SIDEBAR_OVERLAY, // 在header之上，但在侧边栏之下
   },
   overlayTouchable: {
     flex: 1,

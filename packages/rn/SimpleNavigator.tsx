@@ -8,24 +8,22 @@ import React, {
 } from "react";
 import { View, Animated } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import UserProfileScreen from "./screens/UserProfileScreen";
-import SettingsScreen from "./screens/SettingsScreen";
-import RechargeScreen from "./screens/RechargeScreen";
-import ChatDetailScreen from "./screens/ChatDetailScreen";
-import ArticleDetailScreen from "./screens/ArticleDetailScreen";
-import AboutScreen from "./screens/AboutScreen";
-import DataScreen from "./screens/DataScreen";
 
-// 导航类型定义
-export type ScreenName =
-  | "Main"
-  | "UserProfile"
-  | "Settings"
-  | "Recharge"
-  | "ChatDetail"
-  | "ArticleDetail"
-  | "About"
-  | "Data";
+// 动态导入所有screens
+const screens = {
+  UserProfile: () => require("./screens/UserProfileScreen").default,
+  Settings: () => require("./screens/SettingsScreen").default,
+  Recharge: () => require("./screens/RechargeScreen").default,
+  ChatDetail: () => require("./screens/ChatDetailScreen").default,
+  ArticleDetail: () => require("./screens/ArticleDetailScreen").default,
+  About: () => require("./screens/AboutScreen").default,
+  Data: () => require("./screens/DataScreen").default,
+  HomeScreen: () => require("./screens/HomeScreen").default,
+  // 在这里添加新的screen就可以了，无需修改其他地方
+};
+
+// 导航类型定义 - 自动从screens对象生成
+export type ScreenName = keyof typeof screens | "Main";
 
 // 导航参数类型
 export interface NavigationParams {
@@ -167,25 +165,19 @@ const SimpleNavigator: React.FC<SimpleNavigatorProps> = ({ children }) => {
   };
 
   const renderScreen = () => {
-    switch (currentScreen) {
-      case "UserProfile":
-        return <UserProfileScreen />;
-      case "Settings":
-        return <SettingsScreen />;
-      case "Recharge":
-        return <RechargeScreen />;
-      case "ChatDetail":
-        return <ChatDetailScreen />;
-      case "ArticleDetail":
-        return <ArticleDetailScreen />;
-      case "About":
-        return <AboutScreen />;
-      case "Data":
-        return <DataScreen />;
-      case "Main":
-      default:
-        return <>{children}</>;
+    if (currentScreen === "Main") {
+      return <>{children}</>;
     }
+
+    // 动态渲染screen
+    const ScreenComponent = screens[currentScreen as keyof typeof screens];
+    if (ScreenComponent) {
+      const Component = ScreenComponent();
+      return <Component {...currentParams} />;
+    }
+
+    // 如果找不到screen，返回Main
+    return <>{children}</>;
   };
 
   return (

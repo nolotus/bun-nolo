@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Z_INDEX } from "../../zIndexLayers";
 
 // 响应式Header组件 - 统一处理sidebar按钮逻辑
 interface ResponsiveHeaderProps {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
-    zIndex: 9998,
+    zIndex: Z_INDEX.RN_HEADER, // 降低zIndex，确保侧边栏能在其之上
     position: "relative",
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255, 255, 255, 0.1)",

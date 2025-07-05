@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 // 页面类型定义
-export type PageType = "chat" | "article";
+export type PageType = "home" | "chat" | "article";
 
 // 应用状态接口
 interface AppState {
@@ -31,7 +31,7 @@ export const AppStateProvider: React.FC<AppStateProviderProps> = ({
   children,
 }) => {
   const [appState, setAppState] = useState<AppState>({
-    currentPage: "chat",
+    currentPage: "home",
     selectedSpace: "个人空间",
   });
 

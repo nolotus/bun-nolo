@@ -29,6 +29,11 @@ export const Z_INDEX = {
   SIDEBAR_OVERLAY: 1100,
   SIDEBAR_MOBILE: 1110, // Must be higher than TOPBAR and OVERLAY
 
+  // React Native 专用层级 (9990-9999)
+  RN_HEADER: 9997, // React Native 响应式头部
+  RN_SIDEBAR_OVERLAY: 9998, // React Native 侧边栏遮罩层
+  RN_SIDEBAR_MOBILE: 9999, // React Native 移动端侧边栏，最高优先级
+
   // 模态框层级 (1200-1299)
   MODAL_OVERLAY: 1200,
   MODAL_CONTENT: 1210,
