@@ -7,8 +7,8 @@ import {
   Image,
   ImageStyle,
 } from "react-native";
-import { useSimpleNavigation } from "./SimpleNavigator";
-import { Z_INDEX } from "./zIndexLayers";
+import { useSimpleNavigation } from "../../../SimpleNavigator";
+import { Z_INDEX } from "../../../zIndexLayers";
 
 // 用户信息接口
 interface UserInfo {
@@ -156,7 +156,6 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
   },
   avatar: {
     width: 32,
@@ -182,7 +181,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     fontWeight: "500",
-    maxWidth: 100,
+    maxWidth: 120,
   },
   dropdownIcon: {
     fontSize: 12,
@@ -191,7 +190,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: "absolute",
-    top: 50,
+    top: 52,
     right: -50,
     width: 250,
     height: 200,
@@ -200,7 +199,7 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     position: "absolute",
-    top: 50,
+    top: 52,
     right: 0,
     width: 220,
     backgroundColor: "#fff",

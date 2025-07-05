@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated as RNAnimated,
+  Platform,
+  StatusBar,
 } from "react-native";
 import {
   GestureHandlerRootView,
@@ -14,7 +16,7 @@ import {
 } from "react-native-gesture-handler";
 import Animated, { runOnJS } from "react-native-reanimated";
 import SidebarHeaderComponent from "./SidebarHeader";
-import UserDropdownMenu from "./UserDropdownMenu";
+import UserDropdownMenu from "auth/rn/UserDropdownMenu";
 import SimpleNavigator from "./SimpleNavigator";
 import { Z_INDEX } from "./zIndexLayers";
 
@@ -24,6 +26,9 @@ export type PageType = "home" | "settings" | "about" | "data" | "user";
 const DEFAULT_DRAWER_WIDTH = 260;
 const MIN_DRAWER_WIDTH = 200;
 const MAX_DRAWER_WIDTH = 400;
+
+// 状态栏高度
+const STATUSBAR_HEIGHT = Platform.OS === "ios" ? 44 : StatusBar.currentHeight;
 
 // 页面配置
 const PAGES = {
@@ -811,7 +816,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   topBar: {
-    height: 60,
+    height: 60 + (STATUSBAR_HEIGHT || 0),
+    paddingTop: STATUSBAR_HEIGHT,
     backgroundColor: "#007AFF",
     flexDirection: "row",
     alignItems: "center",
