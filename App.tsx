@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated as RNAnimated,
-  Platform,
-  StatusBar,
 } from "react-native";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import {
   GestureHandlerRootView,
   Gesture,
@@ -21,22 +23,18 @@ import SimpleNavigator from "./SimpleNavigator";
 import { Z_INDEX } from "./zIndexLayers";
 
 // 页面类型定义
-export type PageType = "home" | "settings" | "about" | "data" | "user";
+export type PageType = "chat" | "article" | "about" | "data";
 
 const DEFAULT_DRAWER_WIDTH = 260;
 const MIN_DRAWER_WIDTH = 200;
 const MAX_DRAWER_WIDTH = 400;
 
-// 状态栏高度
-const STATUSBAR_HEIGHT = Platform.OS === "ios" ? 44 : StatusBar.currentHeight;
-
 // 页面配置
 const PAGES = {
-  home: { title: "主页", icon: "🏠" },
-  settings: { title: "设置", icon: "⚙️" },
+  chat: { title: "对话", icon: "💬" },
+  article: { title: "文章", icon: "📝" },
   about: { title: "关于", icon: "ℹ️" },
   data: { title: "数据", icon: "📊" },
-  user: { title: "用户", icon: "👤" },
 };
 
 // Resize手柄组件
@@ -87,16 +85,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   selectedSpace,
   onSpaceChange,
 }) => {
-  const handleHomeClick = () => {
-    onPageChange("home");
-  };
-
   return (
     <View style={styles.sidebarContent}>
       <SidebarHeaderComponent
         selectedSpace={selectedSpace}
         onSpaceChange={onSpaceChange}
-        onHomeClick={handleHomeClick}
+        onHomeClick={() => onPageChange("chat")}
       />
 
       <View style={styles.navigationSection}>
@@ -145,6 +139,7 @@ const TopBar: React.FC<TopBarProps> = ({
     name: "用户001",
     email: "user001@example.com",
   };
+  const insets = useSafeAreaInsets();
 
   const getMenuIcon = () => {
     if (isLargeScreen) {
@@ -160,7 +155,12 @@ const TopBar: React.FC<TopBarProps> = ({
   };
 
   return (
-    <View style={styles.topBar}>
+    <View
+      style={[
+        styles.topBar,
+        { height: 60 + insets.top, paddingTop: insets.top },
+      ]}
+    >
       <View style={styles.topBarLeft}>
         <TouchableOpacity
           style={styles.menuButton}
@@ -203,46 +203,18 @@ const renderPageContent = (
   const pageInfo = PAGES[currentPage];
 
   switch (currentPage) {
-    case "home":
+    case "chat":
       return (
         <View>
-          <InfoCard label="当前屏幕宽度:" value={`${screenWidth}px`} />
-          <InfoCard
-            label="布局模式:"
-            value={
-              isLargeScreen
-                ? "桌面模式 (可折叠侧边栏)"
-                : "移动模式 (覆盖侧边栏)"
-            }
-          />
-          <InfoCard
-            label="侧边栏状态:"
-            value={
-              isLargeScreen
-                ? isDesktopDrawerCollapsed
-                  ? "已折叠"
-                  : "已展开"
-                : isDrawerOpen
-                  ? "已展开"
-                  : "已收起"
-            }
-          />
-          <Text style={styles.description}>
-            {isLargeScreen
-              ? "桌面端使用条件渲染实现侧边栏折叠，避免动画冲突，确保窗口拖拽时的稳定性。"
-              : "移动端使用动画覆盖模式，提供流畅的用户体验。"}
-          </Text>
+          <InfoCard label="当前会话:" value="默认会话" />
+          <Text style={styles.description}>在这里开始您的对话。</Text>
         </View>
       );
-    case "settings":
+    case "article":
       return (
         <View>
-          <InfoCard label="主题设置:" value="浅色模式" />
-          <InfoCard label="语言设置:" value="简体中文" />
-          <InfoCard label="通知设置:" value="已开启" />
-          <Text style={styles.description}>
-            在这里可以配置应用的各种设置选项。
-          </Text>
+          <InfoCard label="总文章数:" value="42" />
+          <Text style={styles.description}>在这里浏览和管理您的文章。</Text>
         </View>
       );
     case "about":
@@ -263,15 +235,6 @@ const renderPageContent = (
           <InfoCard label="存储空间:" value="45.6 MB" />
           <InfoCard label="最后同步:" value="刚刚" />
           <Text style={styles.description}>查看和管理应用数据统计信息。</Text>
-        </View>
-      );
-    case "user":
-      return (
-        <View>
-          <InfoCard label="用户名:" value="用户001" />
-          <InfoCard label="注册时间:" value="2024-12-01" />
-          <InfoCard label="权限级别:" value="管理员" />
-          <Text style={styles.description}>管理用户账户和个人信息设置。</Text>
         </View>
       );
     default:
@@ -386,25 +349,30 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
   onPageChange,
   selectedSpace,
   onSpaceChange,
-}) => (
-  <RNAnimated.View
-    style={[
-      styles.mobileSidebar,
-      {
-        width,
-        transform: [{ translateX }],
-        pointerEvents: isDrawerOpen ? "auto" : "none",
-      },
-    ]}
-  >
-    <SidebarContent
-      currentPage={currentPage}
-      onPageChange={onPageChange}
-      selectedSpace={selectedSpace}
-      onSpaceChange={onSpaceChange}
-    />
-  </RNAnimated.View>
-);
+}) => {
+  const insets = useSafeAreaInsets();
+  return (
+    <RNAnimated.View
+      style={[
+        styles.mobileSidebar,
+        {
+          width,
+          transform: [{ translateX }],
+          pointerEvents: isDrawerOpen ? "auto" : "none",
+          top: insets.top,
+          bottom: insets.bottom,
+        },
+      ]}
+    >
+      <SidebarContent
+        currentPage={currentPage}
+        onPageChange={onPageChange}
+        selectedSpace={selectedSpace}
+        onSpaceChange={onSpaceChange}
+      />
+    </RNAnimated.View>
+  );
+};
 
 // 遮罩层组件 - 独立的交互组件
 interface OverlayProps {
@@ -564,7 +532,7 @@ const useResponsiveLayout = () => {
   const [isDesktopDrawerCollapsed, setIsDesktopDrawerCollapsed] =
     useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_DRAWER_WIDTH);
-  const [currentPage, setCurrentPage] = useState<PageType>("home");
+  const [currentPage, setCurrentPage] = useState<PageType>("chat");
   const [selectedSpace, setSelectedSpace] = useState("个人空间");
 
   const isLargeScreen = screenWidth >= 768;
@@ -756,9 +724,11 @@ const InnerApp = () => {
 // 主应用组件 - 包含SimpleNavigator
 const MacOSApp = () => {
   return (
-    <SimpleNavigator>
-      <InnerApp />
-    </SimpleNavigator>
+    <SafeAreaProvider>
+      <SimpleNavigator>
+        <InnerApp />
+      </SimpleNavigator>
+    </SafeAreaProvider>
   );
 };
 
@@ -785,8 +755,6 @@ const styles = StyleSheet.create({
   mobileSidebar: {
     position: "absolute",
     left: 0,
-    top: 0,
-    bottom: 0,
     width: DEFAULT_DRAWER_WIDTH,
     backgroundColor: "#fff",
     borderRightWidth: 1,
@@ -816,8 +784,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   topBar: {
-    height: 60 + (STATUSBAR_HEIGHT || 0),
-    paddingTop: STATUSBAR_HEIGHT,
     backgroundColor: "#007AFF",
     flexDirection: "row",
     alignItems: "center",
