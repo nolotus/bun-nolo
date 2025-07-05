@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 // 页面类型定义
-export type PageType = "chat" | "article" | "about" | "data";
+export type PageType = "chat" | "article";
 
 // 应用状态接口
 interface AppState {

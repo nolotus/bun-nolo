@@ -9,14 +9,12 @@ import { SidebarContentConfig } from "rn/components/shared/SidebarContentProvide
 import { AppStateProvider, useAppState } from "rn/context/AppStateContext";
 
 // 页面类型定义
-export type PageType = "chat" | "article" | "about" | "data";
+export type PageType = "chat" | "article";
 
 // 页面配置
 const PAGES = {
   chat: { title: "对话", icon: "💬" },
   article: { title: "文章", icon: "📝" },
-  about: { title: "关于", icon: "ℹ️" },
-  data: { title: "数据", icon: "📊" },
 };
 
 // 信息卡片组件 - 可复用的UI组件
@@ -124,26 +122,6 @@ const renderPageContent = (
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
-      );
-    case "about":
-      return (
-        <View>
-          <InfoCard label="应用版本:" value="1.0.0" />
-          <InfoCard label="构建时间:" value="2025-01-05" />
-          <InfoCard label="开发者:" value="Nolo Team" />
-          <Text style={styles.description}>
-            这是一个响应式的React Native应用，支持桌面和移动端。
-          </Text>
-        </View>
-      );
-    case "data":
-      return (
-        <View>
-          <InfoCard label="数据总量:" value="1,234 条" />
-          <InfoCard label="存储空间:" value="45.6 MB" />
-          <InfoCard label="最后同步:" value="刚刚" />
-          <Text style={styles.description}>查看和管理应用数据统计信息。</Text>
         </View>
       );
     default:

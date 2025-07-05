@@ -76,6 +76,24 @@ const UserMenu: React.FC<UserMenuProps> = ({ userInfo }) => {
         navigate("Recharge");
       },
     },
+    {
+      id: "about",
+      title: "关于",
+      icon: "ℹ️",
+      onPress: () => {
+        setIsOpen(false);
+        navigate("About");
+      },
+    },
+    {
+      id: "data",
+      title: "数据",
+      icon: "📊",
+      onPress: () => {
+        setIsOpen(false);
+        navigate("Data");
+      },
+    },
   ];
 
   const toggleDropdown = () => {
