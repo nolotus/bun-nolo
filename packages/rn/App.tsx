@@ -6,7 +6,6 @@ import "intl-pluralrules";
 import i18n from "app/i18n";
 import * as RNLocalize from "react-native-localize";
 import { Provider } from "react-redux";
-import MainNavigation from "./MainNavigation";
 import { mobileStore } from "./store";
 import { rnTokenManager } from "auth/rn/tokenManager";
 import { useAppDispatch } from "app/store";
@@ -40,7 +39,6 @@ function App(): React.JSX.Element {
         barStyle={isDarkMode ? "light-content" : "dark-content"}
         backgroundColor={"#fff"}
       />
-      <MainNavigation />
     </>
   );
 }

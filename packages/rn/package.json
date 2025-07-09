@@ -9,7 +9,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@react-navigation/bottom-tabs": "^7.0.4",
     "app": "workspace:app",
     "intl-pluralrules": "^2.0.1",
     "render": "workspace:render"

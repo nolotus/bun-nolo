@@ -1,18 +1,6 @@
-import React, {
-  useState,
-  createContext,
-  useContext,
-  ReactNode,
-  useRef,
-  useEffect,
-} from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-} from "react-native";
+// SimpleNavigator.tsx
+import React, { useState, createContext, useContext, ReactNode } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // 动态导入所有 screens
@@ -45,7 +33,7 @@ export interface SidebarConfig {
 // 页面类型定义
 export type PageType = "home" | "chat" | "article";
 
-// 页面配置
+// 页面配置（可用于菜单或标签）
 export const PAGES: Record<PageType, { title: string; icon: string }> = {
   home: { title: "首页", icon: "🏠" },
   chat: { title: "对话", icon: "💬" },
@@ -58,27 +46,278 @@ interface InfoCardProps {
   value: string;
 }
 export const InfoCard: React.FC<InfoCardProps> = ({ label, value }) => (
-  <View style={styles.infoCard}>
+  <View style={[styles.baseCard, styles.infoExtras]}>
     <Text style={styles.infoLabel}>{label}</Text>
     <Text style={styles.infoValue}>{value}</Text>
   </View>
 );
 
-// 样式
+// 每页内容组件 Props
+interface PageProps {
+  navigate: (
+    screen: ScreenName,
+    params?: NavigationParams,
+    sidebarConfig?: SidebarConfig
+  ) => void;
+}
+
+// Home 页
+const HomePageContent: React.FC<PageProps> = ({ navigate }) => (
+  <View>
+    <InfoCard label="Redux状态:" value="已集成" />
+    <Text style={styles.description}>这里展示Redux Toolkit的使用示例。</Text>
+    <TouchableOpacity
+      style={styles.baseCard}
+      onPress={() =>
+        navigate("HomeScreen", { title: "Redux认证演示" }, { enabled: false })
+      }
+    >
+      <Text style={styles.listItemTitle}>🏠 Redux认证演示</Text>
+      <Text style={styles.listItemSubtitle}>
+        使用Redux Toolkit进行用户认证管理
+      </Text>
+    </TouchableOpacity>
+  </View>
+);
+
+// Chat 页
+const ChatPageContent: React.FC<PageProps> = ({ navigate }) => (
+  <View>
+    <InfoCard label="当前会话:" value="默认会话" />
+    <Text style={styles.description}>在这里开始您的对话。</Text>
+    <View style={styles.itemList}>
+      <Text style={styles.listTitle}>最近对话</Text>
+      <TouchableOpacity
+        style={styles.baseCard}
+        onPress={() =>
+          navigate(
+            "ChatDetail",
+            { id: "chat_001", title: "项目讨论" },
+            { enabled: true, type: "chat" }
+          )
+        }
+      >
+        <Text style={styles.listItemTitle}>💬 项目讨论</Text>
+        <Text style={styles.listItemSubtitle}>关于新功能的讨论...</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.baseCard}
+        onPress={() =>
+          navigate("ChatDetail", { id: "chat_002", title: "技术交流" })
+        }
+      >
+        <Text style={styles.listItemTitle}>💬 技术交流</Text>
+        <Text style={styles.listItemSubtitle}>React Native开发经验分享</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
+// Article 页
+const ArticlePageContent: React.FC<PageProps> = ({ navigate }) => (
+  <View>
+    <InfoCard label="总文章数:" value="42" />
+    <Text style={styles.description}>在这里浏览和管理您的文章。</Text>
+    <View style={styles.itemList}>
+      <Text style={styles.listTitle}>热门文章</Text>
+      <TouchableOpacity
+        style={styles.baseCard}
+        onPress={() =>
+          navigate(
+            "ArticleDetail",
+            { id: "article_001", title: "React Native最佳实践" },
+            { enabled: true, type: "article" }
+          )
+        }
+      >
+        <Text style={styles.listItemTitle}>📝 React Native最佳实践</Text>
+        <Text style={styles.listItemSubtitle}>分享开发中的经验和技巧</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.baseCard}
+        onPress={() =>
+          navigate("ArticleDetail", {
+            id: "article_002",
+            title: "移动端UI设计指南",
+          })
+        }
+      >
+        <Text style={styles.listItemTitle}>📝 移动端UI设计指南</Text>
+        <Text style={styles.listItemSubtitle}>如何设计优秀的移动应用界面</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
+// Loading 页
+const LoadingPageContent: React.FC = () => (
+  <View>
+    <Text style={styles.description}>页面内容加载中...</Text>
+  </View>
+);
+
+// 页面内容渲染函数
+export const renderPageContent = (
+  currentPage: PageType,
+  screenWidth: number,
+  isLargeScreen: boolean,
+  navigate: (
+    screen: ScreenName,
+    params?: NavigationParams,
+    sidebarConfig?: SidebarConfig
+  ) => void,
+  isDesktopDrawerCollapsed?: boolean,
+  isDrawerOpen?: boolean
+): ReactNode => {
+  switch (currentPage) {
+    case "home":
+      return <HomePageContent navigate={navigate} />;
+    case "chat":
+      return <ChatPageContent navigate={navigate} />;
+    case "article":
+      return <ArticlePageContent navigate={navigate} />;
+    default:
+      return <LoadingPageContent />;
+  }
+};
+
+// 导航历史项类型
+interface NavigationHistoryItem {
+  screen: ScreenName;
+  params?: NavigationParams;
+  sidebarConfig: SidebarConfig;
+}
+
+// 导航上下文类型
+interface NavigationContextType {
+  currentScreen: ScreenName;
+  currentParams: NavigationParams;
+  sidebarConfig: SidebarConfig;
+  navigate: (
+    screen: ScreenName,
+    params?: NavigationParams,
+    sidebarConfig?: SidebarConfig
+  ) => void;
+  goBack: () => void;
+  canGoBack: () => boolean;
+  updateSidebarConfig: (config: SidebarConfig) => void;
+}
+
+// 创建导航上下文
+const NavigationContext = createContext<NavigationContextType | undefined>(
+  undefined
+);
+
+// 导航 Hook
+export const useSimpleNavigation = (): NavigationContextType => {
+  const ctx = useContext(NavigationContext);
+  if (!ctx) {
+    throw new Error(
+      "useSimpleNavigation must be used within a SimpleNavigator"
+    );
+  }
+  return ctx;
+};
+
+// 简单导航器组件
+interface SimpleNavigatorProps {
+  children: ReactNode;
+}
+const SimpleNavigator: React.FC<SimpleNavigatorProps> = ({ children }) => {
+  const [currentScreen, setCurrentScreen] = useState<ScreenName>("Main");
+  const [currentParams, setCurrentParams] = useState<NavigationParams>({});
+  const [sidebarConfig, setSidebarConfig] = useState<SidebarConfig>({
+    enabled: true,
+    type: "default",
+  });
+  const [history, setHistory] = useState<NavigationHistoryItem[]>([
+    {
+      screen: "Main",
+      params: {},
+      sidebarConfig: { enabled: true, type: "default" },
+    },
+  ]);
+
+  const navigate = (
+    screen: ScreenName,
+    params: NavigationParams = {},
+    config: SidebarConfig = { enabled: true, type: "default" }
+  ) => {
+    setCurrentScreen(screen);
+    setCurrentParams(params);
+    setSidebarConfig(config);
+    setHistory((prev) => [...prev, { screen, params, sidebarConfig: config }]);
+  };
+
+  const goBack = () => {
+    if (history.length <= 1) return;
+    const next = history.slice(0, -1);
+    const last = next[next.length - 1];
+    setHistory(next);
+    setCurrentScreen(last.screen);
+    setCurrentParams(last.params || {});
+    setSidebarConfig(last.sidebarConfig);
+  };
+
+  const canGoBack = () => history.length > 1;
+
+  const updateSidebarConfig = (config: SidebarConfig) => {
+    setSidebarConfig(config);
+    setHistory((prev) => {
+      const copy = [...prev];
+      copy[copy.length - 1] = {
+        ...copy[copy.length - 1],
+        sidebarConfig: config,
+      };
+      return copy;
+    });
+  };
+
+  const value: NavigationContextType = {
+    currentScreen,
+    currentParams,
+    sidebarConfig,
+    navigate,
+    goBack,
+    canGoBack,
+    updateSidebarConfig,
+  };
+
+  const renderScreen = () => {
+    if (currentScreen === "Main") return <>{children}</>;
+    const loader = screens[currentScreen as keyof typeof screens];
+    if (!loader) return <>{children}</>;
+    const Comp = loader();
+    return <Comp {...currentParams} />;
+  };
+
+  return (
+    <SafeAreaProvider>
+      <NavigationContext.Provider value={value}>
+        <View style={{ flex: 1 }}>{renderScreen()}</View>
+      </NavigationContext.Provider>
+    </SafeAreaProvider>
+  );
+};
+
+export default SimpleNavigator;
+
 const styles = StyleSheet.create({
-  infoCard: {
+  baseCard: {
     backgroundColor: "#fff",
     padding: 16,
     marginBottom: 12,
     borderRadius: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     elevation: 1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+  },
+  infoExtras: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   infoLabel: {
     fontSize: 16,
@@ -106,17 +345,6 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 16,
   },
-  listItem: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 8,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
   listItemTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -128,266 +356,3 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 });
-
-// 页面内容渲染函数
-export const renderPageContent = (
-  currentPage: PageType,
-  screenWidth: number,
-  isLargeScreen: boolean,
-  navigate: (
-    screen: ScreenName,
-    params?: NavigationParams,
-    sidebarConfig?: SidebarConfig
-  ) => void,
-  isDesktopDrawerCollapsed?: boolean,
-  isDrawerOpen?: boolean
-): ReactNode => {
-  switch (currentPage) {
-    case "home":
-      return (
-        <View>
-          <InfoCard label="Redux状态:" value="已集成" />
-          <Text style={styles.description}>
-            这里展示Redux Toolkit的使用示例。
-          </Text>
-          <TouchableOpacity
-            style={styles.listItem}
-            onPress={() =>
-              navigate(
-                "HomeScreen",
-                { title: "Redux认证演示" },
-                { enabled: false }
-              )
-            }
-          >
-            <Text style={styles.listItemTitle}>🏠 Redux认证演示</Text>
-            <Text style={styles.listItemSubtitle}>
-              使用Redux Toolkit进行用户认证管理
-            </Text>
-          </TouchableOpacity>
-        </View>
-      );
-    case "chat":
-      return (
-        <View>
-          <InfoCard label="当前会话:" value="默认会话" />
-          <Text style={styles.description}>在这里开始您的对话。</Text>
-          <View style={styles.itemList}>
-            <Text style={styles.listTitle}>最近对话</Text>
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() =>
-                navigate(
-                  "ChatDetail",
-                  { id: "chat_001", title: "项目讨论" },
-                  { enabled: true, type: "chat" }
-                )
-              }
-            >
-              <Text style={styles.listItemTitle}>💬 项目讨论</Text>
-              <Text style={styles.listItemSubtitle}>关于新功能的讨论...</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() =>
-                navigate(
-                  "ChatDetail",
-                  { id: "chat_002", title: "技术交流" },
-                  { enabled: false }
-                )
-              }
-            >
-              <Text style={styles.listItemTitle}>💬 技术交流</Text>
-              <Text style={styles.listItemSubtitle}>
-                React Native开发经验分享
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    case "article":
-      return (
-        <View>
-          <InfoCard label="总文章数:" value="42" />
-          <Text style={styles.description}>在这里浏览和管理您的文章。</Text>
-          <View style={styles.itemList}>
-            <Text style={styles.listTitle}>热门文章</Text>
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() =>
-                navigate(
-                  "ArticleDetail",
-                  { id: "article_001", title: "React Native最佳实践" },
-                  { enabled: true, type: "article" }
-                )
-              }
-            >
-              <Text style={styles.listItemTitle}>📝 React Native最佳实践</Text>
-              <Text style={styles.listItemSubtitle}>
-                分享开发中的经验和技巧
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() =>
-                navigate(
-                  "ArticleDetail",
-                  { id: "article_002", title: "移动端UI设计指南" },
-                  { enabled: false }
-                )
-              }
-            >
-              <Text style={styles.listItemTitle}>📝 移动端UI设计指南</Text>
-              <Text style={styles.listItemSubtitle}>
-                如何设计优秀的移动应用界面
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    default:
-      return (
-        <View>
-          <Text style={styles.description}>页面内容加载中...</Text>
-        </View>
-      );
-  }
-};
-
-// 导航历史项类型
-interface NavigationHistoryItem {
-  screen: ScreenName;
-  params?: NavigationParams;
-  sidebarConfig?: SidebarConfig;
-}
-
-// 导航上下文类型
-interface NavigationContextType {
-  currentScreen: ScreenName;
-  currentParams: NavigationParams;
-  sidebarConfig: SidebarConfig;
-  navigate: (
-    screen: ScreenName,
-    params?: NavigationParams,
-    sidebarConfig?: SidebarConfig
-  ) => void;
-  goBack: () => void;
-  canGoBack: () => boolean;
-  updateSidebarConfig: (config: SidebarConfig) => void;
-}
-
-// 创建导航上下文
-const NavigationContext = createContext<NavigationContextType | undefined>(
-  undefined
-);
-
-// 导航 Hook
-export const useSimpleNavigation = () => {
-  const context = useContext(NavigationContext);
-  if (!context) {
-    throw new Error(
-      "useSimpleNavigation must be used within a SimpleNavigator"
-    );
-  }
-  return context;
-};
-
-// 简单导航器组件
-interface SimpleNavigatorProps {
-  children: ReactNode;
-}
-
-const SimpleNavigator: React.FC<SimpleNavigatorProps> = ({ children }) => {
-  const [currentScreen, setCurrentScreen] = useState<ScreenName>("Main");
-  const [currentParams, setCurrentParams] = useState<NavigationParams>({});
-  const [sidebarConfig, setSidebarConfig] = useState<SidebarConfig>({
-    enabled: true,
-    type: "default",
-  });
-  const [navigationHistory, setNavigationHistory] = useState<
-    NavigationHistoryItem[]
-  >([
-    {
-      screen: "Main",
-      params: {},
-      sidebarConfig: { enabled: true, type: "default" },
-    },
-  ]);
-
-  const navigate = (
-    screen: ScreenName,
-    params?: NavigationParams,
-    sidebarConfig?: SidebarConfig
-  ) => {
-    const newParams = params || {};
-    const newSidebarConfig = sidebarConfig || {
-      enabled: true,
-      type: "default",
-    };
-
-    setCurrentScreen(screen);
-    setCurrentParams(newParams);
-    setSidebarConfig(newSidebarConfig);
-    setNavigationHistory((prev) => [
-      ...prev,
-      { screen, params: newParams, sidebarConfig: newSidebarConfig },
-    ]);
-  };
-
-  const goBack = () => {
-    if (navigationHistory.length > 1) {
-      const newHistory = navigationHistory.slice(0, -1);
-      const previous = newHistory[newHistory.length - 1];
-      setNavigationHistory(newHistory);
-      setCurrentScreen(previous.screen);
-      setCurrentParams(previous.params || {});
-      setSidebarConfig(previous.sidebarConfig!);
-    }
-  };
-
-  const canGoBack = () => navigationHistory.length > 1;
-
-  const updateSidebarConfig = (config: SidebarConfig) => {
-    setSidebarConfig(config);
-    setNavigationHistory((prev) => {
-      const copy = [...prev];
-      copy[copy.length - 1] = {
-        ...copy[copy.length - 1],
-        sidebarConfig: config,
-      };
-      return copy;
-    });
-  };
-
-  const navigationValue: NavigationContextType = {
-    currentScreen,
-    currentParams,
-    sidebarConfig,
-    navigate,
-    goBack,
-    canGoBack,
-    updateSidebarConfig,
-  };
-
-  const renderScreen = () => {
-    if (currentScreen === "Main") {
-      return <>{children}</>;
-    }
-    const ScreenLoader = screens[currentScreen as keyof typeof screens];
-    if (ScreenLoader) {
-      const Component = ScreenLoader();
-      return <Component {...currentParams} />;
-    }
-    return <>{children}</>;
-  };
-
-  return (
-    <SafeAreaProvider>
-      <NavigationContext.Provider value={navigationValue}>
-        <View style={{ flex: 1 }}>{renderScreen()}</View>
-      </NavigationContext.Provider>
-    </SafeAreaProvider>
-  );
-};
-
-export default SimpleNavigator;

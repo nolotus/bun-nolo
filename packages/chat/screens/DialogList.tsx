@@ -11,7 +11,6 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { initialDialogData } from "./mockData"; // 导入假数据
 
-
 const DialogListScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState("");
   const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
@@ -41,7 +40,7 @@ const DialogListScreen = ({ navigation }) => {
 
       // 处理无分组的数据
       return (
-        item.userName.includes(text) || 
+        item.userName.includes(text) ||
         (item.lastMessage && item.lastMessage.includes(text))
       );
     });
@@ -94,7 +93,7 @@ const DialogListScreen = ({ navigation }) => {
           </View>
         );
       }
-      
+
       // 无分组的对话
       return (
         <TouchableOpacity
@@ -282,4 +281,3 @@ const styles = StyleSheet.create({
 });
 
 export default DialogListScreen;
-
