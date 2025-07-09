@@ -1,191 +1,45 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Provider } from "react-redux";
-import UserMenu from "rn/components/shared/UserMenu";
-import SimpleNavigator, { useSimpleNavigation } from "rn/SimpleNavigator";
+import SimpleNavigator, {
+  useSimpleNavigation,
+  renderPageContent,
+  PAGES,
+  PageType,
+} from "rn/SimpleNavigator";
+import { store } from "rn/redux/store";
+import { AppStateProvider, useAppState } from "rn/context/AppStateContext";
 import EnhancedSidebarLayout from "rn/components/EnhancedSidebarLayout";
 import ResponsiveHeader from "rn/components/shared/ResponsiveHeader";
-import { useResponsiveLayout } from "rn/hooks/useResponsiveLayout";
+import UserMenu from "rn/components/shared/UserMenu";
 import { SidebarContentConfig } from "rn/components/shared/SidebarContentProvider";
-import { AppStateProvider, useAppState } from "rn/context/AppStateContext";
-import { store } from "rn/redux/store";
+import { useResponsiveLayout } from "rn/hooks/useResponsiveLayout";
 
-// 页面类型定义
-export type PageType = "home" | "chat" | "article";
-
-// 页面配置
-const PAGES = {
-  home: { title: "首页", icon: "🏠" },
-  chat: { title: "对话", icon: "💬" },
-  article: { title: "文章", icon: "📝" },
-};
-
-// 信息卡片组件 - 可复用的UI组件
-interface InfoCardProps {
-  label: string;
-  value: string;
-}
-
-const InfoCard: React.FC<InfoCardProps> = ({ label, value }) => (
-  <View style={styles.infoCard}>
-    <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
-  </View>
-);
-
-// 页面内容渲染组件 - 根据页面类型渲染不同内容
-const renderPageContent = (
-  currentPage: PageType,
-  screenWidth: number,
-  isLargeScreen: boolean,
-  navigate: (screen: any, params?: any, sidebarConfig?: any) => void,
-  isDesktopDrawerCollapsed?: boolean,
-  isDrawerOpen?: boolean
-) => {
-  const pageInfo = PAGES[currentPage];
-
-  switch (currentPage) {
-    case "home":
-      return (
-        <View>
-          <InfoCard label="Redux状态:" value="已集成" />
-          <Text style={styles.description}>
-            这里展示Redux Toolkit的使用示例。
-          </Text>
-
-          <TouchableOpacity
-            style={styles.listItem}
-            onPress={() =>
-              navigate(
-                "HomeScreen",
-                { title: "Redux认证演示" },
-                { enabled: false }
-              )
-            }
-          >
-            <Text style={styles.listItemTitle}>🏠 Redux认证演示</Text>
-            <Text style={styles.listItemSubtitle}>
-              使用Redux Toolkit进行用户认证管理
-            </Text>
-          </TouchableOpacity>
-        </View>
-      );
-    case "chat":
-      return (
-        <View>
-          <InfoCard label="当前会话:" value="默认会话" />
-          <Text style={styles.description}>在这里开始您的对话。</Text>
-
-          <View style={styles.itemList}>
-            <Text style={styles.listTitle}>最近对话</Text>
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() =>
-                navigate(
-                  "ChatDetail",
-                  { id: "chat_001", title: "项目讨论" },
-                  { enabled: true, type: "chat" }
-                )
-              }
-            >
-              <Text style={styles.listItemTitle}>💬 项目讨论</Text>
-              <Text style={styles.listItemSubtitle}>关于新功能的讨论...</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() =>
-                navigate(
-                  "ChatDetail",
-                  { id: "chat_002", title: "技术交流" },
-                  { enabled: false }
-                )
-              }
-            >
-              <Text style={styles.listItemTitle}>💬 技术交流</Text>
-              <Text style={styles.listItemSubtitle}>
-                React Native开发经验分享
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    case "article":
-      return (
-        <View>
-          <InfoCard label="总文章数:" value="42" />
-          <Text style={styles.description}>在这里浏览和管理您的文章。</Text>
-
-          <View style={styles.itemList}>
-            <Text style={styles.listTitle}>热门文章</Text>
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() =>
-                navigate(
-                  "ArticleDetail",
-                  { id: "article_001", title: "React Native最佳实践" },
-                  { enabled: true, type: "article" }
-                )
-              }
-            >
-              <Text style={styles.listItemTitle}>📝 React Native最佳实践</Text>
-              <Text style={styles.listItemSubtitle}>
-                分享开发中的经验和技巧
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() =>
-                navigate(
-                  "ArticleDetail",
-                  { id: "article_002", title: "移动端UI设计指南" },
-                  { enabled: false }
-                )
-              }
-            >
-              <Text style={styles.listItemTitle}>📝 移动端UI设计指南</Text>
-              <Text style={styles.listItemSubtitle}>
-                如何设计优秀的移动应用界面
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      );
-    default:
-      return (
-        <View>
-          <Text style={styles.description}>页面内容加载中...</Text>
-        </View>
-      );
-  }
-};
-
-// 页面内容组件 - 业务逻辑组件
-interface PageContentProps {
-  screenWidth: number;
-  isLargeScreen: boolean;
-  isDesktopDrawerCollapsed?: boolean;
-  isDrawerOpen?: boolean;
-  onToggleDrawer: () => void;
-  currentPage: PageType;
-}
-
-const PageContent: React.FC<PageContentProps> = ({
-  screenWidth,
-  isLargeScreen,
-  isDesktopDrawerCollapsed,
-  isDrawerOpen,
-  onToggleDrawer,
-  currentPage,
-}) => {
-  const pageInfo = PAGES[currentPage];
+const PageContent: React.FC = () => {
   const { navigate } = useSimpleNavigation();
+  const {
+    isLargeScreen,
+    screenWidth,
+    isDesktopDrawerCollapsed,
+    isDrawerOpen,
+    setIsDesktopDrawerCollapsed,
+    setIsDrawerOpen,
+  } = useResponsiveLayout();
+  const { appState } = useAppState();
+  const currentPage = appState.currentPage as PageType;
+
+  const toggleSidebar = () => {
+    if (isLargeScreen) {
+      setIsDesktopDrawerCollapsed(!isDesktopDrawerCollapsed);
+    } else {
+      setIsDrawerOpen(!isDrawerOpen);
+    }
+  };
 
   return (
     <View style={styles.pageContent}>
       <Text style={styles.pageTitle}>
-        {pageInfo.icon} {pageInfo.title}
+        {PAGES[currentPage].icon} {PAGES[currentPage].title}
       </Text>
 
       {renderPageContent(
@@ -197,7 +51,7 @@ const PageContent: React.FC<PageContentProps> = ({
         isDrawerOpen
       )}
 
-      <TouchableOpacity style={styles.actionButton} onPress={onToggleDrawer}>
+      <TouchableOpacity style={styles.actionButton} onPress={toggleSidebar}>
         <Text style={styles.actionButtonText}>
           {isLargeScreen
             ? isDesktopDrawerCollapsed
@@ -212,13 +66,11 @@ const PageContent: React.FC<PageContentProps> = ({
   );
 };
 
-// 内部应用组件 - 不包含NavigationContainer
-const InnerApp = () => {
-  const layoutState = useResponsiveLayout();
+const InnerApp: React.FC = () => {
+  const layout = useResponsiveLayout();
   const { appState, setCurrentPage, setSelectedSpace } = useAppState();
 
-  // 配置App sidebar内容
-  const sidebarContentConfig: SidebarContentConfig = {
+  const sidebarConfig: SidebarContentConfig = {
     type: "app",
     appConfig: {
       currentPage: appState.currentPage,
@@ -228,76 +80,46 @@ const InnerApp = () => {
     },
   };
 
-  // 模拟用户信息
-  const userInfo = {
-    name: "用户001",
-    email: "user001@example.com",
-  };
-
-  // 用户菜单组件
-  const UserMenuWrapper = () => <UserMenu userInfo={userInfo} />;
-
-  // 主内容区域
-  const mainContent = (
-    <View style={styles.container}>
-      <ResponsiveHeader
-        title="React Native App"
-        isLargeScreen={layoutState.isLargeScreen}
-        isDesktopDrawerCollapsed={layoutState.isDesktopDrawerCollapsed}
-        isDrawerOpen={layoutState.isDrawerOpen}
-        onToggleSidebar={() => {
-          if (layoutState.isLargeScreen) {
-            layoutState.setIsDesktopDrawerCollapsed(
-              !layoutState.isDesktopDrawerCollapsed
-            );
-          } else {
-            layoutState.setIsDrawerOpen(!layoutState.isDrawerOpen);
-          }
-        }}
-        rightActions={<UserMenuWrapper />}
-      />
-
-      <PageContent
-        screenWidth={layoutState.screenWidth}
-        isLargeScreen={layoutState.isLargeScreen}
-        isDesktopDrawerCollapsed={layoutState.isDesktopDrawerCollapsed}
-        isDrawerOpen={layoutState.isDrawerOpen}
-        onToggleDrawer={() => {
-          if (layoutState.isLargeScreen) {
-            layoutState.setIsDesktopDrawerCollapsed(
-              !layoutState.isDesktopDrawerCollapsed
-            );
-          } else {
-            layoutState.setIsDrawerOpen(!layoutState.isDrawerOpen);
-          }
-        }}
-        currentPage={appState.currentPage}
-      />
-    </View>
-  );
+  const userInfo = { name: "用户001", email: "user001@example.com" };
 
   return (
     <EnhancedSidebarLayout
-      sidebarContentConfig={sidebarContentConfig}
-      externalLayoutState={layoutState}
+      sidebarContentConfig={sidebarConfig}
+      externalLayoutState={layout}
     >
-      {mainContent}
+      <View style={styles.container}>
+        <ResponsiveHeader
+          title="React Native App"
+          isLargeScreen={layout.isLargeScreen}
+          isDesktopDrawerCollapsed={layout.isDesktopDrawerCollapsed}
+          isDrawerOpen={layout.isDrawerOpen}
+          onToggleSidebar={() => {
+            if (layout.isLargeScreen) {
+              layout.setIsDesktopDrawerCollapsed(
+                !layout.isDesktopDrawerCollapsed
+              );
+            } else {
+              layout.setIsDrawerOpen(!layout.isDrawerOpen);
+            }
+          }}
+          rightActions={<UserMenu userInfo={userInfo} />}
+        />
+
+        <PageContent />
+      </View>
     </EnhancedSidebarLayout>
   );
 };
 
-// 主应用组件 - 包含Redux Provider、SimpleNavigator和AppStateProvider
-const MacOSApp = () => {
-  return (
-    <Provider store={store}>
-      <AppStateProvider>
-        <SimpleNavigator>
-          <InnerApp />
-        </SimpleNavigator>
-      </AppStateProvider>
-    </Provider>
-  );
-};
+const MacOSApp: React.FC = () => (
+  <Provider store={store}>
+    <AppStateProvider>
+      <SimpleNavigator>
+        <InnerApp />
+      </SimpleNavigator>
+    </AppStateProvider>
+  </Provider>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -315,81 +137,18 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     textAlign: "center",
   },
-  infoCard: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: "#666",
-    fontWeight: "500",
-  },
-  infoValue: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "bold",
-  },
   actionButton: {
     backgroundColor: "#007AFF",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignSelf: "center",
-    marginTop: 20,
-    marginBottom: 20,
+    marginVertical: 20,
   },
   actionButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  },
-  description: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-    textAlign: "center",
-    marginTop: 20,
-  },
-  // 列表样式
-  itemList: {
-    marginTop: 20,
-  },
-  listTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 16,
-  },
-  listItem: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 8,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  listItemTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 4,
-  },
-  listItemSubtitle: {
-    fontSize: 14,
-    color: "#666",
   },
 });
 

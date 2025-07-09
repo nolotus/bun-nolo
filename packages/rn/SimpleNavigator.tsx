@@ -6,10 +6,16 @@ import React, {
   useRef,
   useEffect,
 } from "react";
-import { View, Animated } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// 动态导入所有screens
+// 动态导入所有 screens
 const screens = {
   UserProfile: () => require("./screens/UserProfileScreen").default,
   Settings: () => require("./screens/SettingsScreen").default,
@@ -19,10 +25,9 @@ const screens = {
   About: () => require("./screens/AboutScreen").default,
   Data: () => require("./screens/DataScreen").default,
   HomeScreen: () => require("./screens/HomeScreen").default,
-  // 在这里添加新的screen就可以了，无需修改其他地方
 };
 
-// 导航类型定义 - 自动从screens对象生成
+// 导航类型定义
 export type ScreenName = keyof typeof screens | "Main";
 
 // 导航参数类型
@@ -36,6 +41,218 @@ export interface SidebarConfig {
   type?: "default" | "chat" | "article" | "custom";
   customContent?: ReactNode;
 }
+
+// 页面类型定义
+export type PageType = "home" | "chat" | "article";
+
+// 页面配置
+export const PAGES: Record<PageType, { title: string; icon: string }> = {
+  home: { title: "首页", icon: "🏠" },
+  chat: { title: "对话", icon: "💬" },
+  article: { title: "文章", icon: "📝" },
+};
+
+// 信息卡片组件
+interface InfoCardProps {
+  label: string;
+  value: string;
+}
+export const InfoCard: React.FC<InfoCardProps> = ({ label, value }) => (
+  <View style={styles.infoCard}>
+    <Text style={styles.infoLabel}>{label}</Text>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
+
+// 样式
+const styles = StyleSheet.create({
+  infoCard: {
+    backgroundColor: "#fff",
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  infoLabel: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "500",
+  },
+  infoValue: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "bold",
+  },
+  description: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+    textAlign: "center",
+    marginTop: 20,
+  },
+  itemList: {
+    marginTop: 20,
+  },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 16,
+  },
+  listItem: {
+    backgroundColor: "#fff",
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 8,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  listItemTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  listItemSubtitle: {
+    fontSize: 14,
+    color: "#666",
+  },
+});
+
+// 页面内容渲染函数
+export const renderPageContent = (
+  currentPage: PageType,
+  screenWidth: number,
+  isLargeScreen: boolean,
+  navigate: (
+    screen: ScreenName,
+    params?: NavigationParams,
+    sidebarConfig?: SidebarConfig
+  ) => void,
+  isDesktopDrawerCollapsed?: boolean,
+  isDrawerOpen?: boolean
+): ReactNode => {
+  switch (currentPage) {
+    case "home":
+      return (
+        <View>
+          <InfoCard label="Redux状态:" value="已集成" />
+          <Text style={styles.description}>
+            这里展示Redux Toolkit的使用示例。
+          </Text>
+          <TouchableOpacity
+            style={styles.listItem}
+            onPress={() =>
+              navigate(
+                "HomeScreen",
+                { title: "Redux认证演示" },
+                { enabled: false }
+              )
+            }
+          >
+            <Text style={styles.listItemTitle}>🏠 Redux认证演示</Text>
+            <Text style={styles.listItemSubtitle}>
+              使用Redux Toolkit进行用户认证管理
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    case "chat":
+      return (
+        <View>
+          <InfoCard label="当前会话:" value="默认会话" />
+          <Text style={styles.description}>在这里开始您的对话。</Text>
+          <View style={styles.itemList}>
+            <Text style={styles.listTitle}>最近对话</Text>
+            <TouchableOpacity
+              style={styles.listItem}
+              onPress={() =>
+                navigate(
+                  "ChatDetail",
+                  { id: "chat_001", title: "项目讨论" },
+                  { enabled: true, type: "chat" }
+                )
+              }
+            >
+              <Text style={styles.listItemTitle}>💬 项目讨论</Text>
+              <Text style={styles.listItemSubtitle}>关于新功能的讨论...</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.listItem}
+              onPress={() =>
+                navigate(
+                  "ChatDetail",
+                  { id: "chat_002", title: "技术交流" },
+                  { enabled: false }
+                )
+              }
+            >
+              <Text style={styles.listItemTitle}>💬 技术交流</Text>
+              <Text style={styles.listItemSubtitle}>
+                React Native开发经验分享
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    case "article":
+      return (
+        <View>
+          <InfoCard label="总文章数:" value="42" />
+          <Text style={styles.description}>在这里浏览和管理您的文章。</Text>
+          <View style={styles.itemList}>
+            <Text style={styles.listTitle}>热门文章</Text>
+            <TouchableOpacity
+              style={styles.listItem}
+              onPress={() =>
+                navigate(
+                  "ArticleDetail",
+                  { id: "article_001", title: "React Native最佳实践" },
+                  { enabled: true, type: "article" }
+                )
+              }
+            >
+              <Text style={styles.listItemTitle}>📝 React Native最佳实践</Text>
+              <Text style={styles.listItemSubtitle}>
+                分享开发中的经验和技巧
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.listItem}
+              onPress={() =>
+                navigate(
+                  "ArticleDetail",
+                  { id: "article_002", title: "移动端UI设计指南" },
+                  { enabled: false }
+                )
+              }
+            >
+              <Text style={styles.listItemTitle}>📝 移动端UI设计指南</Text>
+              <Text style={styles.listItemSubtitle}>
+                如何设计优秀的移动应用界面
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    default:
+      return (
+        <View>
+          <Text style={styles.description}>页面内容加载中...</Text>
+        </View>
+      );
+  }
+};
 
 // 导航历史项类型
 interface NavigationHistoryItem {
@@ -64,7 +281,7 @@ const NavigationContext = createContext<NavigationContextType | undefined>(
   undefined
 );
 
-// 导航Hook
+// 导航 Hook
 export const useSimpleNavigation = () => {
   const context = useContext(NavigationContext);
   if (!context) {
@@ -111,46 +328,34 @@ const SimpleNavigator: React.FC<SimpleNavigatorProps> = ({ children }) => {
     setCurrentScreen(screen);
     setCurrentParams(newParams);
     setSidebarConfig(newSidebarConfig);
-
-    const historyItem: NavigationHistoryItem = {
-      screen,
-      params: newParams,
-      sidebarConfig: newSidebarConfig,
-    };
-
-    setNavigationHistory((prev) => [...prev, historyItem]);
+    setNavigationHistory((prev) => [
+      ...prev,
+      { screen, params: newParams, sidebarConfig: newSidebarConfig },
+    ]);
   };
 
   const goBack = () => {
     if (navigationHistory.length > 1) {
       const newHistory = navigationHistory.slice(0, -1);
-      const previousItem = newHistory[newHistory.length - 1];
-
+      const previous = newHistory[newHistory.length - 1];
       setNavigationHistory(newHistory);
-      setCurrentScreen(previousItem.screen);
-      setCurrentParams(previousItem.params || {});
-      setSidebarConfig(
-        previousItem.sidebarConfig || { enabled: true, type: "default" }
-      );
+      setCurrentScreen(previous.screen);
+      setCurrentParams(previous.params || {});
+      setSidebarConfig(previous.sidebarConfig!);
     }
   };
 
-  const canGoBack = () => {
-    return navigationHistory.length > 1;
-  };
+  const canGoBack = () => navigationHistory.length > 1;
 
   const updateSidebarConfig = (config: SidebarConfig) => {
     setSidebarConfig(config);
-    // 更新当前历史项的侧边栏配置
     setNavigationHistory((prev) => {
-      const newHistory = [...prev];
-      if (newHistory.length > 0) {
-        newHistory[newHistory.length - 1] = {
-          ...newHistory[newHistory.length - 1],
-          sidebarConfig: config,
-        };
-      }
-      return newHistory;
+      const copy = [...prev];
+      copy[copy.length - 1] = {
+        ...copy[copy.length - 1],
+        sidebarConfig: config,
+      };
+      return copy;
     });
   };
 
@@ -168,15 +373,11 @@ const SimpleNavigator: React.FC<SimpleNavigatorProps> = ({ children }) => {
     if (currentScreen === "Main") {
       return <>{children}</>;
     }
-
-    // 动态渲染screen
-    const ScreenComponent = screens[currentScreen as keyof typeof screens];
-    if (ScreenComponent) {
-      const Component = ScreenComponent();
+    const ScreenLoader = screens[currentScreen as keyof typeof screens];
+    if (ScreenLoader) {
+      const Component = ScreenLoader();
       return <Component {...currentParams} />;
     }
-
-    // 如果找不到screen，返回Main
     return <>{children}</>;
   };
 
