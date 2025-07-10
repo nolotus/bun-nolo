@@ -20,7 +20,6 @@ import {
   selectIsLoadingInitial,
   selectMessageError,
 } from "chat/messages/messageSlice";
-import { browserDb } from "database/browser/db";
 import { extractCustomId } from "core/prefix";
 import Button from "render/web/ui/Button";
 
@@ -173,7 +172,7 @@ const DialogPage = ({ pageKey }: { pageKey: string }) => {
   useEffect(() => {
     if (pageKey && user && dialogId) {
       dispatch(initDialog(pageKey));
-      dispatch(initMsgs({ dialogId, limit: 10, db: browserDb }));
+      dispatch(initMsgs({ dialogId, limit: 10 }));
     }
   }, [pageKey, user, dispatch, dialogId]);
 

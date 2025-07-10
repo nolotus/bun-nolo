@@ -9,7 +9,6 @@ import {
 } from "../requests";
 
 // web
-import { browserDb } from "../browser/db";
 import { toast } from "react-hot-toast"; // 用于用户友好的错误提示
 
 /**
@@ -61,15 +60,14 @@ const calculateSha256 = (buffer: Buffer): string => {
  * 4. 异步将文件和元数据上传到服务器。
  * @param uploadConfig 上传配置，包含 file, customKey, 可选 userId。
  * @param thunkApi Redux Thunk API。
- * @param clientDb 客户端数据库实例 (默认为 browserDb)。
  * @returns Promise<any> 已保存到本地的文件元数据对象。
  * @throws Error 如果文件或参数无效、本地保存失败。
  */
 export const uploadFileAction = async (
   uploadConfig: { file: File; customKey: string; userId?: string },
-  thunkApi: any,
-  clientDb: any = browserDb // 允许注入 DB 进行测试
+  thunkApi: any
 ): Promise<any> => {
+  const { db: clientDb } = thunkApi.extra; // 获取额外的数据库实例
   const state = thunkApi.getState();
   const currentServer = selectCurrentServer(state); // 当前选定服务器
   const currentUserId = selectUserId(state); // 当前登录用户 ID

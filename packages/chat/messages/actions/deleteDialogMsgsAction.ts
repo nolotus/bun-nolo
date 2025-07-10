@@ -1,29 +1,13 @@
-// chat/message/action/
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { noloDeleteRequest, syncWithServers, SERVERS } from "database/requests";
-import pino from "pino";
-import { browserDb } from "database/browser/db";
 import { createKey } from "database/keys";
+
 import { resetMsgs } from "../messageSlice";
 
-const logger = pino({
-  level: "info",
-  transport: {
-    target: "pino-pretty",
-  },
-});
-// 通用的本地批量删除
-const batchDeleteLocal = async (keys: string[]) => {
-  const batch = browserDb.batch();
-  keys.forEach((key) => batch.del(key));
-  await batch.write();
-  logger.debug({ count: keys.length }, "Batch deleted keys locally");
-};
-
-// 通用的key收集
-const collectKeys = async (prefix: string) => {
+// 通用的 key 收集
+const collectKeys = async (prefix, db) => {
   const keys = [];
-  for await (const [key] of browserDb.iterator({
+  for await (const [key] of db.iterator({
     gte: prefix,
     lte: prefix + "\uffff",
   })) {
@@ -33,38 +17,36 @@ const collectKeys = async (prefix: string) => {
 };
 
 // 删除对话消息
-export const deleteDialogMsgsAction = async (dialogId: string, thunkApi) => {
+export const deleteDialogMsgsAction = async (dialogId, thunkApi) => {
   const prefix = createKey("dialog", dialogId, "msg");
   const state = thunkApi.getState();
+  const { db } = thunkApi.extra;
   const currentServer = selectCurrentServer(state);
 
   try {
-    const deletedIds = await collectKeys(prefix);
-    if (!deletedIds.length) {
-      logger.info({ dialogId }, "No messages to delete");
-      return { ids: [] };
-    }
+    const deletedIds = await collectKeys(prefix, db);
+    if (!deletedIds.length) return { ids: [] };
 
-    await batchDeleteLocal(deletedIds);
+    // 使用数组批量操作
+    const ops = deletedIds.map((key) => ({ type: "del" as const, key }));
+    await db.batch(ops);
 
     const servers = Array.from(
       new Set([currentServer, SERVERS.MAIN, SERVERS.US])
     );
+    // 异步同步到服务器（非阻塞）
+    void syncWithServers(
+      servers,
+      noloDeleteRequest,
+      "Failed to delete messages from",
+      dialogId,
+      { type: "messages" },
+      state
+    );
 
-    Promise.resolve().then(() => {
-      syncWithServers(
-        servers,
-        noloDeleteRequest,
-        "Failed to delete messages from",
-        dialogId,
-        { type: "messages" },
-        state
-      );
-    });
     await thunkApi.dispatch(resetMsgs());
     return { ids: deletedIds };
   } catch (error) {
-    logger.error({ dialogId, error }, "Failed to delete messages");
     throw error;
   }
 };

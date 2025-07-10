@@ -1,7 +1,6 @@
-import { pino } from "pino";
 import { curry } from "rambda";
 import { browserDb } from "database/browser/db";
-import { createTokenStatsKey, createTokenKey } from "database/keys";
+import { createTokenStatsKey } from "database/keys";
 
 export interface QueryParams {
   userId: string;
@@ -27,10 +26,6 @@ export interface StatsParams {
   endDate: string; // UTC YYYY-MM-DD
 }
 
-const logger = pino({
-  name: "token-db",
-});
-
 // 通用数据库迭代器
 const iterateDb = curry(
   async <T>(options: any, filter: (v: T) => boolean): Promise<T[]> => {
@@ -52,7 +47,6 @@ const iterateDb = curry(
       }
       return records;
     } catch (err) {
-      logger.error({ err }, "Failed to iterate db");
       throw err;
     }
   }
@@ -70,37 +64,14 @@ export const getTokenStats = async (
 ): Promise<TokenStats[]> => {
   const { userId, startDate, endDate } = params;
 
-  try {
-    logger.info(
-      {
-        userId,
-        startDate,
-        endDate,
-      },
-      "Getting token stats"
-    );
+  // 统计数据按UTC日期(00:00:00)存储
+  const startKey = createTokenStatsKey(userId, startDate);
+  const endKey = createTokenStatsKey(userId, endDate);
 
-    // 统计数据按UTC日期(00:00:00)存储
-    const startKey = createTokenStatsKey(userId, startDate);
-    const endKey = createTokenStatsKey(userId, endDate);
+  const records = await iterateDb<TokenStats>({
+    gte: startKey,
+    lte: endKey,
+  })((record) => Boolean(record?.total));
 
-    const records = await iterateDb<TokenStats>({
-      gte: startKey,
-      lte: endKey,
-    })((record) => Boolean(record?.total));
-
-    logger.debug(
-      {
-        startKey,
-        endKey,
-        recordCount: records.length,
-      },
-      "Stats query completed"
-    );
-
-    return records;
-  } catch (error) {
-    logger.error({ error }, "Failed to get token stats");
-    throw error;
-  }
+  return records;
 };

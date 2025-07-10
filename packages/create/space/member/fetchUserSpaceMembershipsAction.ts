@@ -1,17 +1,37 @@
-import { RootState } from "app/store";
+import { AppThunkApi } from "app/store";
 import { SpaceMemberWithSpaceInfo } from "app/types";
-import { browserDb } from "database/browser/db";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 import { SERVERS } from "database/requests"; // 1. 使用集中的服务器配置
 
-// 定义 thunkApi 的类型以获得更好的类型提示
-type ThunkApi = {
-  getState: () => RootState;
-  // 可以根据需要添加 dispatch, extra, signal 等
+/**
+ * 从本地 IndexedDB 获取数据
+ * @param userId - 用户ID
+ * @param db - IndexedDB 数据库实例
+ * @returns 返回一个 Promise，解析为 SpaceMemberWithSpaceInfo 数组
+ */
+const fetchLocal = async (
+  userId: string,
+  db: any // 使用 any 类型替代具体的 IndexedDB 类型
+): Promise<SpaceMemberWithSpaceInfo[]> => {
+  try {
+    const memberships: SpaceMemberWithSpaceInfo[] = [];
+    const prefix = `space-member-${userId}`;
+    for await (const [_, memberData] of db.iterator({
+      gte: prefix,
+      lte: prefix + "\xff",
+    })) {
+      // 增加健壮性检查
+      if (memberData && typeof memberData === "object" && memberData.spaceId) {
+        memberships.push(memberData);
+      }
+    }
+    return memberships;
+  } catch (error) {
+    console.error("Error fetching local memberships:", error);
+    return [];
+  }
 };
-
-const SERVER_TIMEOUT = 5000;
 
 /**
  * 获取用户的所有空间成员资格。
@@ -22,27 +42,11 @@ const SERVER_TIMEOUT = 5000;
  */
 export const fetchUserSpaceMembershipsAction = async (
   userId: string,
-  thunkAPI: ThunkApi
+  thunkAPI: AppThunkApi
 ): Promise<SpaceMemberWithSpaceInfo[]> => {
-  // 2. 将辅助函数封装在主函数内部，避免污染模块作用域
-  const fetchWithTimeout = async (url: string, options: RequestInit) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), SERVER_TIMEOUT);
-    try {
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      throw error;
-    }
-  };
-
   // --- 主逻辑开始 ---
   const state = thunkAPI.getState();
+  const db = thunkAPI.extra.db;
   const token = selectCurrentToken(state);
 
   // 辅助函数：从远程服务器获取数据
@@ -51,17 +55,14 @@ export const fetchUserSpaceMembershipsAction = async (
   ): Promise<SpaceMemberWithSpaceInfo[]> => {
     if (!token) return [];
     try {
-      const response = await fetchWithTimeout(
-        `${server}/rpc/getUserSpaceMemberships`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
+      const response = await fetch(`${server}/rpc/getUserSpaceMemberships`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      });
       if (!response.ok) {
         console.error(
           `Failed to fetch memberships from ${server}: ${response.statusText}`
@@ -78,31 +79,6 @@ export const fetchUserSpaceMembershipsAction = async (
     }
   };
 
-  // 辅助函数：从本地 IndexedDB 获取数据
-  const fetchLocal = async (): Promise<SpaceMemberWithSpaceInfo[]> => {
-    try {
-      const memberships: SpaceMemberWithSpaceInfo[] = [];
-      const prefix = `space-member-${userId}`;
-      for await (const [_, memberData] of browserDb.iterator({
-        gte: prefix,
-        lte: prefix + "\xff",
-      })) {
-        // 增加健壮性检查
-        if (
-          memberData &&
-          typeof memberData === "object" &&
-          memberData.spaceId
-        ) {
-          memberships.push(memberData);
-        }
-      }
-      return memberships;
-    } catch (error) {
-      console.error("Error fetching local memberships:", error);
-      return [];
-    }
-  };
-
   // 3. 并行获取本地和远程数据
   const currentServer = selectCurrentServer(state);
   const uniqueServers = Array.from(
@@ -110,7 +86,7 @@ export const fetchUserSpaceMembershipsAction = async (
   ).filter(Boolean);
 
   const [localMemberships, ...remoteResults] = await Promise.all([
-    fetchLocal(),
+    fetchLocal(userId, db),
     ...uniqueServers.map((server) => fetchRemote(server)),
   ]);
 

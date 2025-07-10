@@ -1,12 +1,10 @@
 // /ai/cybot/cybotSlice.ts
 
-import {
-  asyncThunkCreator,
-  buildCreateSlice,
-  AsyncThunk,
-} from "@reduxjs/toolkit";
-import * as R from "rambda";
-import { read } from "database/dbSlice";
+import { asyncThunkCreator, buildCreateSlice } from "@reduxjs/toolkit";
+import { AppThunkApi, RootState } from "app/store";
+import { selectCurrentToken } from "auth/authSlice";
+import { read, remove } from "database/dbSlice";
+import { pubCybotKeys } from "database/keys";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
 import { performFetchRequest } from "../chat/fetchUtils";
@@ -14,27 +12,32 @@ import { generateRequestBody } from "ai/llm/generateRequestBody";
 import { fetchReferenceContents } from "ai/context/buildReferenceContext";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { selectAllMsgs } from "chat/messages/messageSlice";
-import { contextCybotId } from "core/init";
-import { formatDataForApi } from "./formatDataForApi";
-import { selectCurrentSpace } from "create/space/spaceSlice";
-import { selectCurrentToken } from "auth/authSlice";
 import { sendCommonChatRequest } from "../chat/sendCommonRequest";
-import { RootState } from "app/store";
 import { Message } from "integrations/openai/generateRequestBody";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
+import { fetchAgentContexts } from "ai/agent/fetchAgentContexts";
+import {
+  getFullChatContextKeys,
+  deduplicateContextKeys,
+} from "ai/agent/getFullChatContextKeys";
+import { Agent } from "app/types";
+import { th } from "date-fns/locale";
+
+type SortBy = "newest" | "popular" | "rating";
+
+interface FetchResult {
+  data: Agent[];
+  total: number;
+  hasMore: boolean;
+}
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
 
-// --- 内部核心执行函数 ---
-
-/**
- * 内部核心模型执行器。
- * @param options - 配置：是否流式，是否带Agent上下文，是否带聊天历史
- * @param args - 来自 thunk 的参数
- * @param thunkApi - Redux Thunk API
- */
+//
+// —— 原有模型执行核心 ——
+//
 const _executeModel = async (
   options: {
     isStreaming: boolean;
@@ -45,68 +48,41 @@ const _executeModel = async (
   thunkApi: any
 ) => {
   const { isStreaming, withAgentContext, withChatHistory } = options;
-  const { cybotId: providedCybotId, content, parentMessageId } = args;
   const { getState, dispatch, rejectWithValue } = thunkApi;
-  const state = getState();
+  const state = getState() as RootState;
 
-  const cybotId =
-    providedCybotId || selectCurrentDialogConfig(state)?.cybots?.[0];
+  const cybotId = args.cybotId || selectCurrentDialogConfig(state)?.cybots?.[0];
   if (!cybotId) {
-    const errorMsg = `Model execution failed: No cybotId provided or found.`;
-    console.error(errorMsg);
-    return rejectWithValue(errorMsg);
+    const msg = "Model execution failed: No cybotId provided or found.";
+    console.error(msg);
+    return rejectWithValue(msg);
   }
 
   try {
     const agentConfig = await dispatch(read(cybotId)).unwrap();
-    let agentContexts = {};
-    let messages: Message[] = [];
+    const agentContexts = withAgentContext
+      ? await fetchAgentContexts(agentConfig.references, dispatch)
+      : {};
 
-    // 步骤 1: 准备 Agent 上下文 (如果需要)
-    if (withAgentContext) {
-      const botInstructionKeys = new Set<string>();
-      const botKnowledgeKeys = new Set<string>();
-      if (Array.isArray(agentConfig.references)) {
-        agentConfig.references.forEach(
-          (ref: { dbKey: string; type: string }) => {
-            if (ref && ref.dbKey) {
-              if (ref.type === "instruction") botInstructionKeys.add(ref.dbKey);
-              else botKnowledgeKeys.add(ref.dbKey);
-            }
-          }
-        );
-      }
-      const [botInstructionsContext, botKnowledgeContext] = await Promise.all([
-        fetchReferenceContents(Array.from(botInstructionKeys), dispatch),
-        fetchReferenceContents(Array.from(botKnowledgeKeys), dispatch),
-      ]);
-      agentContexts = { botInstructionsContext, botKnowledgeContext };
-    }
-
-    // 步骤 2: 准备消息列表
+    let messages: Message[];
     if (withChatHistory) {
       messages = filterAndCleanMessages(selectAllMsgs(state));
-      // 对于完整的聊天回合，当前用户输入也应被视为消息的一部分
-      messages.push({ role: "user", content });
+      messages.push({ role: "user", content: args.content });
     } else {
-      // 对于 Llm 和 Agent 调用，只包含当前任务作为用户消息
-      messages = [{ role: "user", content }];
+      messages = [{ role: "user", content: args.content }];
     }
 
-    // 步骤 3: 生成请求体
     const bodyData = generateRequestBody(agentConfig, messages, agentContexts);
     bodyData.stream = isStreaming;
 
-    // 步骤 4: 执行请求
     if (isStreaming) {
       await sendCommonChatRequest({
         bodyData,
         cybotConfig: agentConfig,
         thunkApi,
         dialogKey: selectCurrentDialogConfig(state)?.dbKey,
-        parentMessageId,
+        parentMessageId: args.parentMessageId,
       });
-      // 流式调用不返回内容
     } else {
       const response = await performFetchRequest({
         cybotConfig: agentConfig,
@@ -124,122 +100,112 @@ const _executeModel = async (
   }
 };
 
-// --- 辅助函数 (仅用于 streamAgentChatTurn 的复杂上下文收集) ---
+//
+// —— 公共 Cybot 列表相关 ——
+//
 
-const getFullChatContextKeys = async (
-  state: RootState,
-  dispatch: any,
-  agentConfig: any,
-  userInput: string | any[]
-): Promise<Record<string, Set<string>>> => {
-  const msgs = selectAllMsgs(state);
-  const botInstructionKeys = new Set<string>();
-  const botKnowledgeKeys = new Set<string>();
-  if (Array.isArray(agentConfig.references)) {
-    agentConfig.references.forEach((ref: { dbKey: string; type: string }) => {
-      if (ref?.dbKey) {
-        if (ref.type === "instruction") botInstructionKeys.add(ref.dbKey);
-        else botKnowledgeKeys.add(ref.dbKey);
-      }
-    });
+async function fetchLocalCybots({
+  limit = 20,
+  sortBy = "newest",
+  db,
+}: {
+  limit?: number;
+  sortBy?: SortBy;
+} = {}): Promise<FetchResult> {
+  const { start, end } = pubCybotKeys.list();
+  const all: Agent[] = [];
+  for await (const [, v] of db.iterator({ gte: start, lte: end })) {
+    if (v.isPublic) all.push(v);
   }
-  const currentUserKeys = new Set<string>();
-  if (Array.isArray(userInput)) {
-    userInput.forEach(
-      (part: any) => part?.pageKey && currentUserKeys.add(part.pageKey)
-    );
-  }
-  const smartReadKeys = new Set<string>();
-  if (agentConfig.smartReadEnabled === true) {
-    const spaceData = selectCurrentSpace(state);
-    const formattedData = formatDataForApi(spaceData, msgs);
-    try {
-      const outputReference = await dispatch(
-        (cybotSlice.actions.runLlm as AsyncThunk<any, any, any>)({
-          cybotId: contextCybotId,
-          content: `User Input: 请提取相关内容的 contentKey ID\n\n${formattedData}`,
-        })
-      ).unwrap();
-      const cleanedOutput = outputReference.replace(/```json|```/g, "").trim();
-      if (cleanedOutput) {
-        const parsedKeys = JSON.parse(cleanedOutput);
-        if (Array.isArray(parsedKeys)) {
-          parsedKeys.forEach(
-            (key) => typeof key === "string" && smartReadKeys.add(key)
-          );
-        }
-      }
-    } catch (error) {
-      console.error(
-        "getFullChatContextKeys - Failed to parse smartRead output:",
-        error
-      );
+  all.sort((a, b) => {
+    switch (sortBy) {
+      case "popular":
+        return (b.dialogCount || 0) - (a.dialogCount || 0);
+      case "rating":
+        return (b.messageCount || 0) - (a.messageCount || 0);
+      case "newest":
+      default:
+        const ta =
+          typeof a.createdAt === "string"
+            ? Date.parse(a.createdAt)
+            : a.createdAt;
+        const tb =
+          typeof b.createdAt === "string"
+            ? Date.parse(b.createdAt)
+            : b.createdAt;
+        return tb - ta;
     }
-  }
-  const historyKeys = new Set<string>();
-  msgs.forEach((msg: any) => {
-    const content = Array.isArray(msg.content) ? msg.content : [msg.content];
-    content.forEach(
-      (part: any) => part?.pageKey && historyKeys.add(part.pageKey)
-    );
   });
+  const paginated = all.slice(0, limit);
   return {
-    botInstructionKeys,
-    currentUserKeys,
-    smartReadKeys,
-    historyKeys,
-    botKnowledgeKeys,
+    data: paginated,
+    total: all.length,
+    hasMore: limit < all.length,
   };
-};
+}
 
-const deduplicateContextKeys = (
-  keys: Record<string, Set<string>>
-): Record<string, string[]> => {
-  const {
-    botInstructionKeys,
-    currentUserKeys,
-    smartReadKeys,
-    historyKeys,
-    botKnowledgeKeys,
-  } = keys;
-  const finalBotInstructionKeys = Array.from(botInstructionKeys);
-  const finalCurrentUserKeys = R.difference(
-    Array.from(currentUserKeys),
-    finalBotInstructionKeys
-  );
-  const finalSmartReadKeys = R.difference(Array.from(smartReadKeys), [
-    ...finalBotInstructionKeys,
-    ...finalCurrentUserKeys,
-  ]);
-  const finalHistoryKeys = R.difference(Array.from(historyKeys), [
-    ...finalBotInstructionKeys,
-    ...finalCurrentUserKeys,
-    ...finalSmartReadKeys,
-  ]);
-  const finalBotKnowledgeKeys = R.difference(Array.from(botKnowledgeKeys), [
-    ...finalBotInstructionKeys,
-    ...finalCurrentUserKeys,
-    ...finalSmartReadKeys,
-    ...finalHistoryKeys,
-  ]);
-  return {
-    botInstructionsContext: finalBotInstructionKeys,
-    currentUserContext: finalCurrentUserKeys,
-    smartReadContext: finalSmartReadKeys,
-    historyContext: finalHistoryKeys,
-    botKnowledgeContext: finalBotKnowledgeKeys,
+async function fetchRemoteCybots(
+  server: string,
+  limit: number,
+  sortBy: SortBy
+): Promise<FetchResult> {
+  const res = await fetch(`${server}/rpc/getPubCybots`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ limit, sortBy }),
+  });
+  if (!res.ok) throw new Error(`Remote fetch failed: ${res.status}`);
+  return res.json();
+}
+
+function mergeCybots(
+  localData: Agent[],
+  remoteData: Agent[]
+): { merged: Agent[]; toDelete: string[] } {
+  const remoteIds = new Set(remoteData.map((b) => b.id));
+  const merged: Agent[] = [];
+  const toDelete: string[] = [];
+
+  localData.forEach((bot) => {
+    if (remoteIds.has(bot.id)) merged.push(bot);
+    else toDelete.push(bot.id);
+  });
+
+  remoteData.forEach((bot) => {
+    if (!merged.some((b) => b.id === bot.id)) merged.push(bot);
+  });
+
+  merged.sort((a, b) => {
+    const ta =
+      typeof a.createdAt === "string" ? Date.parse(a.createdAt) : a.createdAt;
+    const tb =
+      typeof b.createdAt === "string" ? Date.parse(b.createdAt) : b.createdAt;
+    return tb - ta;
+  });
+
+  return { merged, toDelete };
+}
+
+interface CybotState {
+  pubCybots: {
+    loading: boolean;
+    error: string | null;
+    data: Agent[];
   };
+}
+
+const initialState: CybotState = {
+  pubCybots: {
+    loading: false,
+    error: null,
+    data: [],
+  },
 };
-
-// --- Slice Definition ---
-
-const initialState = {};
 
 export const cybotSlice = createSliceWithThunks({
   name: "cybot",
   initialState,
   reducers: (create) => ({
-    // TIER 1: LLM (无上下文, 无历史)
     runLlm: create.asyncThunk(
       (args: { cybotId?: string; content: any }, thunkApi) =>
         _executeModel(
@@ -267,8 +233,6 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
-
-    // TIER 2: Agent (有上下文, 无历史)
     runAgent: create.asyncThunk(
       (args: { cybotId: string; content: any }, thunkApi) =>
         _executeModel(
@@ -292,8 +256,6 @@ export const cybotSlice = createSliceWithThunks({
           thunkApi
         )
     ),
-
-    // TIER 3: Chat (有所有上下文, 有历史) - 逻辑复杂，保持独立
     streamAgentChatTurn: create.asyncThunk(
       async (
         args: {
@@ -303,10 +265,11 @@ export const cybotSlice = createSliceWithThunks({
         },
         thunkApi
       ) => {
-        const { cybotId, userInput, parentMessageId } = args;
         const { getState, dispatch, rejectWithValue } = thunkApi;
+        const state = getState() as RootState;
+
         try {
-          const state = getState();
+          const { cybotId, userInput, parentMessageId } = args;
           const agentConfig = await dispatch(read(cybotId)).unwrap();
 
           const keySets = await getFullChatContextKeys(
@@ -315,7 +278,7 @@ export const cybotSlice = createSliceWithThunks({
             agentConfig,
             userInput
           );
-          const finalKeyArrays = deduplicateContextKeys(keySets);
+          const finalKeys = deduplicateContextKeys(keySets);
 
           const [
             botInstructionsContext,
@@ -324,36 +287,21 @@ export const cybotSlice = createSliceWithThunks({
             historyContext,
             botKnowledgeContext,
           ] = await Promise.all([
-            fetchReferenceContents(
-              finalKeyArrays.botInstructionsContext,
-              dispatch
-            ),
-            fetchReferenceContents(finalKeyArrays.currentUserContext, dispatch),
-            fetchReferenceContents(finalKeyArrays.smartReadContext, dispatch),
-            fetchReferenceContents(finalKeyArrays.historyContext, dispatch),
-            fetchReferenceContents(
-              finalKeyArrays.botKnowledgeContext,
-              dispatch
-            ),
+            fetchReferenceContents(finalKeys.botInstructionsContext, dispatch),
+            fetchReferenceContents(finalKeys.currentUserContext, dispatch),
+            fetchReferenceContents(finalKeys.smartReadContext, dispatch),
+            fetchReferenceContents(finalKeys.historyContext, dispatch),
+            fetchReferenceContents(finalKeys.botKnowledgeContext, dispatch),
           ]);
 
-          const finalContexts = {
+          const messages = filterAndCleanMessages(selectAllMsgs(state));
+          const bodyData = generateRequestBody(agentConfig, messages, {
             botInstructionsContext,
             currentUserContext,
             smartReadContext,
             historyContext,
             botKnowledgeContext,
-          };
-
-          const messages = filterAndCleanMessages(selectAllMsgs(state));
-          console.log("streamAgentChatTurn - messages:", messages);
-          // `sendCommonChatRequest` 会处理新用户消息的创建，这里我们只需要历史和上下文
-
-          const bodyData = generateRequestBody(
-            agentConfig,
-            messages,
-            finalContexts
-          );
+          });
 
           await sendCommonChatRequest({
             bodyData,
@@ -364,17 +312,56 @@ export const cybotSlice = createSliceWithThunks({
           });
         } catch (error: any) {
           console.error(
-            `Error in streamAgentChatTurn for [${cybotId}]:`,
+            `Error in streamAgentChatTurn for [${args.cybotId}]:`,
             error
           );
           return rejectWithValue(error.message);
         }
       }
     ),
+    fetchPubCybots: create.asyncThunk(
+      async (
+        opts: { limit?: number; sortBy?: SortBy } = {},
+        thunkApi: AppThunkApi
+      ) => {
+        const { limit = 20, sortBy = "newest" } = opts;
+        const state = thunkApi.getState() as RootState;
+        const db = thunkApi.extra.db;
+        let localResult: FetchResult;
+        try {
+          localResult = await fetchLocalCybots({ limit, sortBy, db });
+        } catch (err: any) {
+          return thunkApi.rejectWithValue(err.message ?? "本地加载失败");
+        }
+
+        const server = selectCurrentServer(state);
+        if (!server) {
+          return localResult.data;
+        }
+
+        try {
+          const remoteResult = await fetchRemoteCybots(server, limit, sortBy);
+          const { merged, toDelete } = mergeCybots(
+            localResult.data,
+            remoteResult.data
+          );
+          toDelete.forEach((id) => thunkApi.dispatch(remove(id)));
+          return merged;
+        } catch {
+          return localResult.data;
+        }
+      }
+    ),
   }),
 });
 
-export const { runLlm, streamLlm, runAgent, streamAgent, streamAgentChatTurn } =
-  cybotSlice.actions;
+export const {
+  runLlm,
+  streamLlm,
+  runAgent,
+  streamAgent,
+  streamAgentChatTurn,
+  fetchPubCybots,
+} = cybotSlice.actions;
 
 export default cybotSlice.reducer;
