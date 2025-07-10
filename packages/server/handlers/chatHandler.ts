@@ -1,10 +1,34 @@
+// /path/to/your/chatHandler.ts
+
 import { getNoloKey } from "ai/llm/getNoloKey";
 import { authenticateRequest } from "auth/utils";
 
+// --- 优化点 1: 使用常量替代魔法数字，提高可维护性 ---
+// 默认超时时间 (毫秒)
+const INITIAL_REQUEST_TIMEOUT_MS = 60 * 1000; // 60秒，用于建立初始连接
+const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 120 * 1000; // 默认2分钟流空闲超时
+
+// API 相关常量
+const ANTHROPIC_VERSION = "2023-06-01";
+
+// CORS 头
 const CORS_HEADERS_PROXY = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+/**
+ * 格式化 SSE 错误消息
+ * @param message 错误信息
+ * @param code 错误码
+ * @returns Uint8Array 格式的错误数据
+ */
+const formatSseError = (message: string, code: string): Uint8Array => {
+  const encoder = new TextEncoder();
+  return encoder.encode(
+    `data: ${JSON.stringify({ error: { message, code } })}\n\n`
+  );
 };
 
 export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
@@ -13,13 +37,11 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
     return authResult;
   }
 
-  const encoder = new TextEncoder();
-  const formatSseError = (message, code) =>
-    encoder.encode(`data: ${JSON.stringify({ error: { message, code } })}\n\n`);
-
   try {
     const body = await req.json();
-    const { url, KEY, provider, ...restBody } = body;
+    // --- 优化点 2: 从请求体中解构出 streamIdleTimeout ---
+    const { url, KEY, provider, streamIdleTimeout, ...restBody } = body;
+
     const apiKey = KEY?.trim() || getNoloKey(provider || "");
 
     if (!apiKey) {
@@ -40,21 +62,22 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
       );
     }
 
+    const baseHeaders = { "Content-Type": "application/json" };
     const fetchHeaders = provider?.includes("anthropic")
       ? {
-          "Content-Type": "application/json",
+          ...baseHeaders,
           "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
+          "anthropic-version": ANTHROPIC_VERSION,
         }
       : {
-          "Content-Type": "application/json",
+          ...baseHeaders,
           Authorization: `Bearer ${apiKey}`,
         };
 
     const controller = new AbortController();
     const initTimer = setTimeout(
       () => controller.abort("Initial request timeout"),
-      60_000
+      INITIAL_REQUEST_TIMEOUT_MS
     );
 
     const upstreamResponse = await fetch(url, {
@@ -87,17 +110,22 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
       return new Response(errorStream, { status: 200, headers: streamHeaders });
     }
 
-    let idleTimer;
+    // --- 优化点 3: 使用客户端指定的超时或默认值 ---
+    const idleTimeout = streamIdleTimeout || DEFAULT_STREAM_IDLE_TIMEOUT_MS;
+    let idleTimer: ReturnType<typeof setTimeout>;
+
     const stream = upstreamResponse.body.pipeThrough(
       new TransformStream({
         transform(chunk, ctrl) {
           clearTimeout(idleTimer);
           ctrl.enqueue(chunk);
           idleTimer = setTimeout(() => {
-            ctrl.enqueue(
-              formatSseError("Stream idle timeout after 30s", "IDLE_TIMEOUT")
-            );
-          }, 30_000);
+            // --- 优化点 4: 动态错误信息 ---
+            const errorMessage = `Stream idle timeout after ${idleTimeout / 1000}s`;
+            ctrl.enqueue(formatSseError(errorMessage, "IDLE_TIMEOUT"));
+            // 可以在此处选择性地关闭流
+            // ctrl.terminate();
+          }, idleTimeout);
         },
         flush() {
           clearTimeout(idleTimer);
