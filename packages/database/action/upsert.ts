@@ -1,7 +1,8 @@
 // src/database/actions/upsertAction.ts
 import { toast } from "react-hot-toast";
+import { AppThunkApi } from "app/store";
+
 import { read, patch, write } from "../dbSlice";
-import type { ThunkApi } from "../dbSlice"; // 假设 dbSlice.ts 导出了 ThunkApi 类型
 
 /**
  * Upsert 数据协调器：根据数据是否存在，调度 patch 或 write 操作。
@@ -14,7 +15,7 @@ import type { ThunkApi } from "../dbSlice"; // 假设 dbSlice.ts 导出了 Thunk
  */
 export const upsertAction = async (
   upsertConfig: { dbKey: string; data: any },
-  thunkApi: ThunkApi
+  thunkApi: AppThunkApi
 ): Promise<any> => {
   const { dbKey, data } = upsertConfig;
   const { dispatch } = thunkApi;

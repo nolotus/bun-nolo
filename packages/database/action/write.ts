@@ -1,18 +1,16 @@
-// database/actions/write.ts
+// 文件路径: database/actions/write.ts
+
+// 1. 【新增】从 store 导入 AppThunkApi 类型
+import type { AppThunkApi } from "app/store";
 import { selectUserId } from "auth/authSlice";
 import { selectCurrentServer } from "app/settings/settingSlice";
-import { DataType } from "create/types"; // 假设 DataType 是有效的导入
+import { DataType } from "create/types";
 import { getAllServers, normalizeTimeFields, logger } from "./common";
-import {
-  noloWriteRequest, // 导入 write 请求函数
-  syncWithServers, // 导入通用同步函数
-} from "../requests";
+import { noloWriteRequest, syncWithServers } from "../requests";
 
-//web
-import { browserDb } from "../browser/db";
-import { toast } from "react-hot-toast"; // 保留 toast 用于可能的顶层错误处理
+import { toast } from "react-hot-toast";
 
-// 辅助函数：保存数据到客户端数据库
+// 辅助函数：saveToClientDb (这个函数设计得很好，无需修改)
 const saveToClientDb = async (
   clientDb: any,
   dbKey: string,
@@ -27,13 +25,9 @@ const saveToClientDb = async (
     logger.debug({ dbKey }, "Data saved successfully to local database.");
   } catch (err: any) {
     logger.error({ err, dbKey }, "Failed to save data to local database");
-    // 抛出错误，让 writeAction 捕获
     throw new Error(`Local database put failed for ${dbKey}: ${err.message}`);
   }
 };
-
-// 本地 syncWithServers 函数（使用 fetch 的版本）已被移除
-// 现在使用从 ../requests 导入的 syncWithServers
 
 /**
  * Write Action: 写入新数据项。
@@ -42,21 +36,22 @@ const saveToClientDb = async (
  * 3. 保存数据到本地数据库。
  * 4. 异步将完整数据写入服务器。
  * @param {object} writeConfig - 写入配置，包含 data, customKey, 可选 userId。
- * @param {any} thunkApi - Redux Thunk API。
- * @param {any} clientDb - 客户端数据库实例 (默认为 browserDb)。
+ * @param {AppThunkApi} thunkApi - Redux Thunk API。
  * @returns {Promise<any>} 已保存到本地的完整数据对象。
  * @throws {Error} 如果数据类型无效、本地保存失败。
  */
+// 2. 【修改函数签名】移除第三个参数 clientDb，并将 thunkApi 类型设为 AppThunkApi
 export const writeAction = async (
   writeConfig: { data: any; customKey: string; userId?: string },
-  thunkApi: any,
-  clientDb: any = browserDb // 允许注入 DB 进行测试
+  thunkApi: AppThunkApi
 ): Promise<any> => {
+  // 3. 【核心改动】从 thunkApi.extra 中获取数据库实例 (使用你指正的正确 key 'db')
+  const { db: clientDb } = thunkApi.extra;
+
   const state = thunkApi.getState();
-  const currentServer = selectCurrentServer(state); // 当前选定服务器
-  const currentUserId = selectUserId(state); // 当前登录用户 ID
+  const currentServer = selectCurrentServer(state);
+  const currentUserId = selectUserId(state);
   const { data, customKey } = writeConfig;
-  // 优先使用 writeConfig 中提供的 userId，否则回退到当前登录用户的 ID
   const userId = writeConfig.userId || currentUserId;
 
   if (!data || !customKey) {
@@ -67,8 +62,7 @@ export const writeAction = async (
     throw new Error(errorMsg);
   }
 
-  // 1. 数据类型验证 (如果需要)
-  // 假设 DataType 是一个枚举或包含有效类型的对象/数组
+  // ... 数据类型验证逻辑保持不变 ...
   const VALID_TYPES = [
     DataType.MSG,
     DataType.CYBOT,
@@ -80,59 +74,48 @@ export const writeAction = async (
     DataType.SETTING,
   ];
   if (!data.type || !VALID_TYPES.includes(data.type)) {
-    // 根据严格程度，可以是警告或错误
     logger.warn(
       `Invalid data type "${data.type}" for writeAction with key ${customKey}. Proceeding anyway.`
     );
-    // throw new Error(`Invalid data type: ${data.type}`); // 如果需要严格验证，取消注释此行
   }
 
   try {
-    // 2. 准备要保存的数据 (添加时间戳、dbKey、userId)
     const willSaveData = normalizeTimeFields({
-      // 添加 createdAt, updatedAt
       ...data,
-      dbKey: customKey, // 确保 dbKey 存在于对象中
-      userId: userId, // 确保 userId 存在于对象中
+      dbKey: customKey,
+      userId: userId,
     });
 
-    // 3. 首先尝试保存到本地数据库
+    // 本地保存，使用的是从 thunkApi 中获取的 clientDb
     await saveToClientDb(clientDb, customKey, willSaveData);
 
-    // 4. 获取所有目标服务器列表
-    const servers = getAllServers(currentServer); // common.ts 中的函数，应处理去重
+    const servers = getAllServers(currentServer);
 
-    // 5. 准备用于服务器写入的配置
     const serverWriteConfig = {
-      data: willSaveData, // 发送包含时间戳等的完整数据
+      data: willSaveData,
       customKey: customKey,
       userId: userId,
     };
 
-    // 6. 后台异步同步完整数据到所有服务器
+    // 后台同步逻辑保持不变
     Promise.resolve().then(() => {
       logger.debug(
         `[writeAction] Initiating background sync for key: ${customKey} to ${servers.length} servers.`
       );
       syncWithServers(
         servers,
-        noloWriteRequest, // 使用导入的 write 请求函数
-        `Write sync failed for ${customKey} on`, // 错误消息前缀
-        // --- 传递给 noloWriteRequest 的参数 ---
-        serverWriteConfig, // 包含 data, customKey, userId 的对象
-        state // 传递 state 用于认证
-        // ------------------------------------
+        noloWriteRequest,
+        `Write sync failed for ${customKey} on`,
+        serverWriteConfig,
+        state
       );
     });
 
-    // 7. 返回已保存到本地的数据
     return willSaveData;
   } catch (error: any) {
-    // 捕获 saveToClientDb 或上面可能的验证错误
     const errorMessage = `Write action failed for ${customKey}: ${error.message || "Unknown error"}`;
     logger.error("[writeAction] Error:", error);
-    toast.error(`Failed to save data for ${customKey}.`); // 用户友好的提示
-    // 重新抛出错误
+    toast.error(`Failed to save data for ${customKey}.`);
     throw error;
   }
 };

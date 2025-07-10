@@ -6,7 +6,7 @@
  *  Redux store 中的消息内容能够与数据库同步更新，从而实现实时UI刷新。
  */
 
-import { RootState } from "app/store";
+import { RootState, AppThunkApi } from "app/store";
 import {
   createSelector,
   asyncThunkCreator,
@@ -22,7 +22,6 @@ import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectCurrentToken, selectUserId } from "auth/authSlice";
 import { fetchMessages as fetchLocalMessages } from "chat/messages/fetchMessages";
 import { fetchConvMsgs } from "./fetchConvMsgs";
-import { browserDb } from "database/browser/db";
 import { SERVERS } from "database/requests";
 import { createDialogMessageKeyAndId } from "database/keys";
 import { extractCustomId } from "core/prefix";
@@ -221,13 +220,11 @@ export const messageSlice = createSliceWithThunks({
     // ================= [END] ADJUSTED USER MESSAGE THUNK =================
     initMsgs: create.asyncThunk(
       async (
-        {
-          dialogId,
-          limit,
-          db = browserDb,
-        }: { dialogId: string; limit?: number; db?: any },
-        { getState }
+        { dialogId, limit },
+        thunkApi: AppThunkApi
       ): Promise<Message[]> => {
+        const { db } = thunkApi.extra;
+        const { getState } = thunkApi;
         const state = getState() as RootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);
@@ -273,14 +270,11 @@ export const messageSlice = createSliceWithThunks({
     ),
     loadOlderMessages: create.asyncThunk(
       async (
-        {
-          dialogId,
-          beforeKey,
-          limit = OLDER_LOAD_LIMIT,
-          db = browserDb,
-        }: { dialogId: string; beforeKey: string; limit?: number; db?: any },
-        { getState }
+        { dialogId, beforeKey, limit = OLDER_LOAD_LIMIT },
+        thunkApi: AppThunkApi
       ): Promise<{ messages: Message[]; limit: number }> => {
+        const { getState, extra } = thunkApi;
+        const { db } = extra;
         const state = getState() as RootState;
         const server = selectCurrentServer(state);
         const token = selectCurrentToken(state);

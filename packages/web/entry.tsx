@@ -1,4 +1,4 @@
-// src/react/index.tsx
+// web/entry.tsx
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 import React from "react";
@@ -9,15 +9,19 @@ import { isProduction } from "utils/env";
 import { webTokenManager } from "auth/web/tokenManager";
 import App from "app/web/App";
 
-// 【修改】从统一的 store 文件导入工厂函数
-import { createAppStore } from "app/store"; // 假设你把 store.ts 放在了这里
+import { createAppStore } from "app/store";
+// 【核心修改】使用你提供的正确路径导入浏览器数据库实例
+import { browserDb } from "database/browser/db";
 import "./input.css";
 
-// 【修改】获取预加载状态
+// 获取预加载状态
 const preloadedState = window.__PRELOADED_STATE__;
 
-// 【修改】使用工厂函数创建客户端 store，并注入预加载状态
-const browserStore = createAppStore(preloadedState);
+// 调用 createAppStore 时，传入包含正确 db 实例和 preloadedState 的配置对象
+const browserStore = createAppStore({
+  dbInstance: browserDb, // <-- 直接使用导入的 browserDb
+  preloadedState: preloadedState,
+});
 
 // 删除全局变量，防止内存泄漏
 delete window.__PRELOADED_STATE__;
@@ -30,7 +34,6 @@ if (isProduction) {
   hydrateRoot(
     domNode,
     <React.StrictMode>
-      {/* 【修改】使用新创建的 browserStore */}
       <Provider store={browserStore}>
         <BrowserRouter>
           <App hostname={hostname} lng={lng} tokenManager={webTokenManager} />
@@ -39,7 +42,7 @@ if (isProduction) {
     </React.StrictMode>
   );
 } else {
-  // ... 开发环境逻辑相同 ...
+  // 开发环境逻辑相同
   const root = createRoot(domNode);
   root.render(
     <React.StrictMode>
