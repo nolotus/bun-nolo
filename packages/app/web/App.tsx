@@ -1,4 +1,4 @@
-// App.tsx (最终版本)
+// 文件路径: app/web/App.tsx
 
 import React, { useEffect, useRef } from "react";
 import { useAppDispatch } from "app/store";
@@ -13,16 +13,15 @@ import {
   loadDefaultSpace,
 } from "create/space/spaceSlice";
 import { useSystemTheme } from "app/theme/useSystemTheme";
-import GlobalThemeController from "app/theme/GlobalThemeController"; // <--- 1. 引入新的控制器
-
+import GlobalThemeController from "app/theme/GlobalThemeController";
 import Article from "lab/s-station/Article";
 import NavbarComponent from "lab/s-station/Navbar";
 import Moment from "lab/s-station/index";
 import { commonRoutes } from "./generatorRoutes";
 import { routes } from "./routes";
 
-// 路由生成器函数 (保持不变)
 const generatorRoutes = (hostname: string, auth: any) => {
+  // ... (此函数保持不变)
   if (hostname === "nolotus.local" || hostname === "cybot.run") {
     return [
       {
@@ -47,19 +46,16 @@ const generatorRoutes = (hostname: string, auth: any) => {
 interface AppProps {
   hostname: string;
   lng?: string;
-  tokenManager?: any;
 }
 
-export default function App({ hostname, lng = "en", tokenManager }: AppProps) {
+export default function App({ hostname, lng = "en" }: AppProps) {
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const initializedRef = useRef(false);
 
   useSystemTheme();
-
   const appRoutes = generatorRoutes(hostname, auth);
-
-  // ... (所有 useEffect hooks 保持不变) ...
+  const element = useRoutes(appRoutes);
 
   useEffect(() => {
     if (initializedRef.current) return;
@@ -67,22 +63,24 @@ export default function App({ hostname, lng = "en", tokenManager }: AppProps) {
     const initializeSystem = async () => {
       try {
         dispatch(addHostToCurrentServer(hostname));
-        await dispatch(initializeAuth(tokenManager)).unwrap();
+        // 【核心修改】调用 initializeAuth 时不再需要传递参数
+        await dispatch(initializeAuth()).unwrap();
       } catch (error) {
         console.error("系统初始化失败：", error);
       }
     };
     initializeSystem();
-  }, [dispatch, hostname, tokenManager]);
+  }, [dispatch, hostname]);
 
   useEffect(() => {
+    // ... (此 useEffect 保持不变)
     const initializeUserData = async () => {
       if (auth.user?.userId) {
         const userId = auth.user.userId;
         try {
           await dispatch(getSettings()).unwrap();
           await dispatch(fetchUserSpaceMemberships(userId)).unwrap();
-          await dispatch(loadDefaultSpace()).unwrap();
+          await dispatch(loadDefaultSpace(userId)).unwrap();
         } catch (error) {
           console.error(`用户数据初始化失败 for ${userId}:`, error);
         }
@@ -92,18 +90,15 @@ export default function App({ hostname, lng = "en", tokenManager }: AppProps) {
   }, [dispatch, auth.user]);
 
   useEffect(() => {
+    // ... (此 useEffect 保持不变)
     if (lng) {
       i18n.changeLanguage(lng);
     }
   }, [lng]);
 
-  const element = useRoutes(appRoutes);
-
   return (
     <>
-      {/* 2. 在顶层放置主题控制器。它不产生任何 div，只是在后台工作。 */}
       <GlobalThemeController />
-
       <Toaster position="top-right" reverseOrder={false} />
       {element}
     </>

@@ -1,20 +1,18 @@
-import { PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "app/store";
-import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
-import { generateUserIdV1 } from "core/generateMainKey";
-import { signToken } from "auth/token";
-import { selectCurrentServer } from "app/settings/settingSlice";
-import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
-import { parseToken } from "./token";
-import { User } from "./types";
-import { loginRequest } from "./client/loginRequest";
-import { signUpAction } from "./action/signUpAction";
-import { hashPasswordV1 } from "core/password";
-import { loadDefaultSpace } from "create/space/spaceSlice";
+// 文件路径: auth/authSlice.ts
 
-// 优化初始状态和类型定义
+import { buildCreateSlice, asyncThunkCreator } from "@reduxjs/toolkit";
+import { AppThunkApi, RootState } from "app/store";
+import { selectCurrentServer } from "app/settings/settingSlice";
+import { loadDefaultSpace } from "create/space/spaceSlice";
+import { generateUserIdV1 } from "core/generateMainKey";
+import { generateKeyPairFromSeedV1 } from "core/generateKeyPairFromSeedV1";
+import { hashPasswordV1 } from "core/password";
+import { signUpAction } from "./action/signUpAction";
+import { loginRequest } from "./client/loginRequest";
+import { parseToken, signToken } from "./token";
+import type { User } from "./types";
+
 interface AuthState {
-  tokenManager?: any;
   currentUser: User | null;
   users: User[];
   isLoggedIn: boolean;
@@ -23,7 +21,6 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  tokenManager: undefined,
   currentUser: null,
   users: [],
   isLoggedIn: false,
@@ -41,8 +38,8 @@ export const authSlice = createSliceWithThunks({
   reducers: (create) => ({
     signIn: create.asyncThunk(
       async (input, thunkAPI) => {
+        const { tokenManager } = thunkAPI.extra;
         const state: RootState = thunkAPI.getState();
-        const tokenManager = state.auth.tokenManager;
         try {
           const { username, locale, password } = input;
           const encryptionKey = await hashPasswordV1(password);
@@ -53,13 +50,14 @@ export const authSlice = createSliceWithThunks({
           const token = signToken({ userId, publicKey, username }, secretKey);
           const currentServer = selectCurrentServer(state);
           const res = await loginRequest(currentServer, { userId, token });
-          console.log("res", res);
+
           if (res.status !== 200) {
             const errorMessage = `服务器响应状态码：${res.status}`;
             return thunkAPI.rejectWithValue(errorMessage);
           }
+
           const result = await res.json();
-          tokenManager.storeToken(result.token);
+          await tokenManager!.storeToken(result.token);
           return { token: result.token };
         } catch (error) {
           return thunkAPI.rejectWithValue(error);
@@ -69,7 +67,7 @@ export const authSlice = createSliceWithThunks({
         pending: (state) => {
           state.isLoading = true;
         },
-        rejected: (state, action) => {
+        rejected: (state) => {
           state.isLoading = false;
         },
         fulfilled: (state, action) => {
@@ -78,7 +76,6 @@ export const authSlice = createSliceWithThunks({
           state.currentUser = user;
           state.currentToken = token;
           state.isLoggedIn = true;
-          // 使用 Immer 内置方法直接在原数组头部插入
           state.users.unshift(user);
           state.isLoading = false;
         },
@@ -100,22 +97,23 @@ export const authSlice = createSliceWithThunks({
     }, {}),
 
     initializeAuth: create.asyncThunk(
-      async (tokenManager, thunkAPI) => {
-        const tokens = await tokenManager.initTokens();
-        if (tokens) {
+      async (_, thunkAPI) => {
+        const { tokenManager } = thunkAPI.extra;
+        const tokens = await tokenManager!.initTokens();
+        if (tokens && tokens.length > 0) {
           const user = parseToken(tokens[0]);
-          return { tokens, user, tokenManager };
+          return { tokens, user };
         }
+        return { tokens: [], user: null };
       },
       {
         fulfilled: (state, action) => {
-          const { tokens, user, tokenManager } = action.payload;
-          state.tokenManager = tokenManager;
+          const { tokens, user } = action.payload;
           if (user) {
             state.currentUser = user;
             state.isLoggedIn = true;
           }
-          if (tokens) {
+          if (tokens && tokens.length > 0) {
             state.currentToken = tokens[0];
             state.users = tokens.map(parseToken);
           }
@@ -123,26 +121,16 @@ export const authSlice = createSliceWithThunks({
       }
     ),
 
-    restoreSession: (
-      state,
-      action: PayloadAction<{ user: User; users: User[]; token: string }>
-    ) => {
-      state.isLoggedIn = true;
-      state.currentUser = action.payload.user;
-      state.users = action.payload.users;
-      state.currentToken = action.payload.token;
-    },
-
     signOut: create.asyncThunk(
       async (_, thunkAPI) => {
+        const { tokenManager } = thunkAPI.extra;
         const state: RootState = thunkAPI.getState();
-        const tokenManager = state.auth.tokenManager;
-        const tokens = await tokenManager.getTokens();
         const token = selectCurrentToken(state);
         if (token) {
-          await tokenManager.removeToken(token);
+          await tokenManager!.removeToken(token);
         }
-        return { tokens };
+        const remainingTokens = await tokenManager!.getTokens();
+        return { tokens: remainingTokens };
       },
       {
         fulfilled: (state, action) => {
@@ -150,10 +138,15 @@ export const authSlice = createSliceWithThunks({
           const otherUsers = state.users.filter(
             (user) => user.userId !== state.currentUser?.userId
           );
+
           if (otherUsers.length > 0) {
-            state.currentUser = otherUsers[0];
+            const nextUser = otherUsers[0];
+            const nextToken =
+              tokens.find((t) => parseToken(t).userId === nextUser.userId) ||
+              null;
+            state.currentUser = nextUser;
             state.users = otherUsers;
-            state.currentToken = tokens[0] || null;
+            state.currentToken = nextToken;
           } else {
             state.isLoggedIn = false;
             state.currentUser = null;
@@ -166,18 +159,15 @@ export const authSlice = createSliceWithThunks({
 
     changeUser: create.asyncThunk(
       async (user: User, thunkAPI) => {
-        const dispatch = thunkAPI.dispatch;
-        const state: RootState = thunkAPI.getState();
-        const tokenManager = state.auth.tokenManager;
-
-        // 尝试初始化新用户的 space，如果出错也不阻断流程
+        const { tokenManager } = thunkAPI.extra;
+        const { dispatch } = thunkAPI;
         try {
           await dispatch(loadDefaultSpace(user.userId)).unwrap();
         } catch (error) {
           console.warn("Failed to initialize user settings:", error);
         }
 
-        const tokens = await tokenManager.getTokens();
+        const tokens = await tokenManager!.getTokens();
         const updatedToken = tokens.find(
           (t) => parseToken(t).userId === user.userId
         );
@@ -186,13 +176,10 @@ export const authSlice = createSliceWithThunks({
           return thunkAPI.rejectWithValue("Token not found for user");
         }
 
-        await tokenManager.removeToken(updatedToken);
-        await tokenManager.storeToken(updatedToken);
+        await tokenManager!.removeToken(updatedToken);
+        await tokenManager!.storeToken(updatedToken);
 
-        return {
-          user,
-          token: updatedToken,
-        };
+        return { user, token: updatedToken };
       },
       {
         fulfilled: (state, action) => {
@@ -206,7 +193,6 @@ export const authSlice = createSliceWithThunks({
 });
 
 export const {
-  restoreSession,
   signIn,
   signUp,
   inviteSignUp,
@@ -217,7 +203,6 @@ export const {
 
 export default authSlice.reducer;
 
-// 选择器
 export const selectCurrentUser = (state: RootState) => state.auth.currentUser;
 export const selectUsers = (state: RootState) => state.auth.users;
 export const selectUserId = (state: RootState) =>

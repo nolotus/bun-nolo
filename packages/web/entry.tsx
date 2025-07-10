@@ -1,4 +1,5 @@
-// web/entry.tsx
+// 文件路径: web/entry.tsx
+
 /// <reference lib="dom" />
 /// <reference lib="dom.iterable" />
 import React from "react";
@@ -8,49 +9,46 @@ import { BrowserRouter, HashRouter } from "react-router-dom";
 import { isProduction } from "utils/env";
 import { webTokenManager } from "auth/web/tokenManager";
 import App from "app/web/App";
-
 import { createAppStore } from "app/store";
-// 【核心修改】使用你提供的正确路径导入浏览器数据库实例
 import { browserDb } from "database/browser/db";
 import "./input.css";
 
-// 获取预加载状态
 const preloadedState = window.__PRELOADED_STATE__;
 
-// 调用 createAppStore 时，传入包含正确 db 实例和 preloadedState 的配置对象
+// 【核心修改】在创建 store 时注入 tokenManager
 const browserStore = createAppStore({
-  dbInstance: browserDb, // <-- 直接使用导入的 browserDb
+  dbInstance: browserDb,
+  tokenManager: webTokenManager, // <-- 注入 tokenManager
   preloadedState: preloadedState,
 });
 
-// 删除全局变量，防止内存泄漏
 delete window.__PRELOADED_STATE__;
 
 const hostname = window.location.hostname;
 const domNode = document.getElementById("root");
 const lng = window.navigator.language;
 
-if (isProduction) {
-  hydrateRoot(
-    domNode,
-    <React.StrictMode>
-      <Provider store={browserStore}>
+const AppRoot = () => (
+  <React.StrictMode>
+    <Provider store={browserStore}>
+      {isProduction ? (
         <BrowserRouter>
-          <App hostname={hostname} lng={lng} tokenManager={webTokenManager} />
+          {/* 【核心修改】移除 tokenManager prop */}
+          <App hostname={hostname} lng={lng} />
         </BrowserRouter>
-      </Provider>
-    </React.StrictMode>
-  );
-} else {
-  // 开发环境逻辑相同
-  const root = createRoot(domNode);
-  root.render(
-    <React.StrictMode>
-      <Provider store={browserStore}>
+      ) : (
         <HashRouter>
-          <App hostname={hostname} lng={lng} tokenManager={webTokenManager} />
+          {/* 【核心修改】移除 tokenManager prop */}
+          <App hostname={hostname} lng={lng} />
         </HashRouter>
-      </Provider>
-    </React.StrictMode>
-  );
+      )}
+    </Provider>
+  </React.StrictMode>
+);
+
+if (isProduction) {
+  hydrateRoot(domNode, <AppRoot />);
+} else {
+  const root = createRoot(domNode);
+  root.render(<AppRoot />);
 }
