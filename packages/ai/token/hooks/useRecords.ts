@@ -1,10 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
-import { pino } from "pino";
 import { queryUserTokens } from "ai/token/queryUserTokens";
 import { TokenRecord } from "ai/token/types";
 import { startOfDay, addDays, parseISO } from "date-fns";
-
-const logger = pino({ name: "use-records" });
 
 const ITEMS_PER_PAGE = 10;
 
@@ -36,16 +33,6 @@ export const useRecords = (
       // 获取UTC日期的开始时间
       const startTime = startOfDay(date).getTime();
 
-      logger.debug(
-        {
-          startTime: new Date(startTime).toISOString(),
-          filter,
-          page: filter.currentPage,
-          pageSize: ITEMS_PER_PAGE,
-        },
-        "Fetching records"
-      );
-
       const result = await queryUserTokens({
         userId,
         startTime,
@@ -54,20 +41,10 @@ export const useRecords = (
         pageSize: ITEMS_PER_PAGE,
       });
 
-      logger.info(
-        {
-          userId,
-          recordCount: result.records.length,
-          totalCount: result.total,
-          date: new Date(startTime).toISOString(),
-        },
-        "Records fetched"
-      );
-
       setRecords(result.records);
       setTotalCount(result.total);
     } catch (err) {
-      logger.error({ err }, "Failed to fetch records");
+      // 移除日志记录
     } finally {
       setLoading(false);
     }

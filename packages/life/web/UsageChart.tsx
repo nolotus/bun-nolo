@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import { formatInTimeZone } from "date-fns-tz";
-import { pino } from "pino";
 import { getTokenStats } from "ai/token/query";
 import { useAppSelector } from "app/store";
 import { selectUserId } from "auth/authSlice";
@@ -11,9 +10,8 @@ import { TimeRange, processDateRange } from "utils/processDateRange";
 import { ClockIcon, GraphIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import { Dropdown } from "render/web/ui/Dropdown";
-import Tabs from "render/web/ui/Tabs"; // 导入新组件
+import Tabs from "render/web/ui/Tabs";
 
-const logger = pino({ name: "usage-chart" });
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 type DataType = "tokens" | "cost";
@@ -52,7 +50,7 @@ const UsageChart: React.FC = () => {
         const stats = await getTokenStats({ userId, startDate, endDate });
         setStatsData(stats);
       } catch (err) {
-        logger.error({ err }, "Failed to fetch stats");
+        // 移除日志记录
       } finally {
         setLoading(false);
       }
