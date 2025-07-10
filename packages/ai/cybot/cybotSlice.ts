@@ -111,7 +111,8 @@ async function fetchLocalCybots({
 }: {
   limit?: number;
   sortBy?: SortBy;
-} = {}): Promise<FetchResult> {
+  db: any; // 修复类型定义
+}): Promise<FetchResult> {
   const { start, end } = pubCybotKeys.list();
   const all: Agent[] = [];
   for await (const [, v] of db.iterator({ gte: start, lte: end })) {
@@ -128,11 +129,11 @@ async function fetchLocalCybots({
         const ta =
           typeof a.createdAt === "string"
             ? Date.parse(a.createdAt)
-            : a.createdAt;
+            : a.createdAt || 0; // 添加回退值
         const tb =
           typeof b.createdAt === "string"
             ? Date.parse(b.createdAt)
-            : b.createdAt;
+            : b.createdAt || 0; // 添加回退值
         return tb - ta;
     }
   });
@@ -167,23 +168,42 @@ function mergeCybots(
   const toDelete: string[] = [];
 
   localData.forEach((bot) => {
-    if (remoteIds.has(bot.id)) merged.push(bot);
-    else toDelete.push(bot.id);
+    if (remoteIds.has(bot.id)) {
+      // 如果远程也存在，以远程为准，这里先添加本地的，后续会被远程的覆盖或合并
+    } else {
+      toDelete.push(bot.id);
+    }
   });
 
+  const localIds = new Set(localData.map((b) => b.id));
   remoteData.forEach((bot) => {
-    if (!merged.some((b) => b.id === bot.id)) merged.push(bot);
+    if (!localIds.has(bot.id)) {
+      merged.push(bot);
+    }
   });
 
-  merged.sort((a, b) => {
+  // 合并本地和远程数据，并去重
+  const combined = [
+    ...localData.filter((b) => remoteIds.has(b.id)),
+    ...remoteData,
+  ];
+  const finalMerged = Array.from(
+    new Map(combined.map((item) => [item.id, item])).values()
+  );
+
+  finalMerged.sort((a, b) => {
     const ta =
-      typeof a.createdAt === "string" ? Date.parse(a.createdAt) : a.createdAt;
+      typeof a.createdAt === "string"
+        ? Date.parse(a.createdAt)
+        : a.createdAt || 0;
     const tb =
-      typeof b.createdAt === "string" ? Date.parse(b.createdAt) : b.createdAt;
+      typeof b.createdAt === "string"
+        ? Date.parse(b.createdAt)
+        : b.createdAt || 0;
     return tb - ta;
   });
 
-  return { merged, toDelete };
+  return { merged: finalMerged, toDelete };
 }
 
 interface CybotState {
@@ -206,6 +226,7 @@ export const cybotSlice = createSliceWithThunks({
   name: "cybot",
   initialState,
   reducers: (create) => ({
+    // ... 其他 thunks 保持不变
     runLlm: create.asyncThunk(
       (args: { cybotId?: string; content: any }, thunkApi) =>
         _executeModel(
@@ -323,7 +344,8 @@ export const cybotSlice = createSliceWithThunks({
       async (
         opts: { limit?: number; sortBy?: SortBy } = {},
         thunkApi: AppThunkApi
-      ) => {
+      ): Promise<Agent[]> => {
+        // 明确 thunk 的返回类型
         const { limit = 20, sortBy = "newest" } = opts;
         const state = thunkApi.getState() as RootState;
         const db = thunkApi.extra.db;
@@ -345,14 +367,39 @@ export const cybotSlice = createSliceWithThunks({
             localResult.data,
             remoteResult.data
           );
-          toDelete.forEach((id) => thunkApi.dispatch(remove(id)));
+          // 在 thunk 中 dispatch 其他 action 是安全的
+          toDelete.forEach((id) =>
+            thunkApi.dispatch(remove(pubCybotKeys.item(id)))
+          );
           return merged;
-        } catch {
+        } catch (err: any) {
+          // 如果远程获取失败，仍然返回本地数据，并在UI上提示
+          console.warn(
+            "Remote fetch failed, returning local data:",
+            err.message
+          );
           return localResult.data;
         }
       }
     ),
   }),
+  // ✅ 添加 extraReducers 来处理异步 action 的状态
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchPubCybots.pending, (state) => {
+        state.pubCybots.loading = true;
+        state.pubCybots.error = null;
+      })
+      .addCase(fetchPubCybots.fulfilled, (state, action) => {
+        state.pubCybots.loading = false;
+        state.pubCybots.data = action.payload;
+      })
+      .addCase(fetchPubCybots.rejected, (state, action) => {
+        state.pubCybots.loading = false;
+        state.pubCybots.error =
+          (action.payload as string) || action.error.message || "未知错误";
+      });
+  },
 });
 
 export const {
