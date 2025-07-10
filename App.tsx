@@ -1,3 +1,5 @@
+// 文件路径: MacOSApp.tsx
+
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Provider } from "react-redux";
@@ -8,7 +10,8 @@ import SimpleNavigator, {
   PageType,
 } from "rn/SimpleNavigator";
 
-import { store } from "rn/redux/store";
+// 【核心修改】 1. 导入 createAppStore 工厂函数，而不是旧的 store 实例
+import { createAppStore } from "rn/redux/store";
 import { AppStateProvider, useAppState } from "rn/context/AppStateContext";
 import EnhancedSidebarLayout from "rn/components/EnhancedSidebarLayout";
 import ResponsiveHeader from "rn/components/shared/ResponsiveHeader";
@@ -16,6 +19,19 @@ import UserMenu from "rn/components/shared/UserMenu";
 import { SidebarContentConfig } from "rn/components/shared/SidebarContentProvider";
 import { useResponsiveLayout } from "rn/hooks/useResponsiveLayout";
 
+// 【核心修改】 2. 导入您的 React Native 原生依赖
+// 请将 '...' 替换为你的依赖项的实际文件路径
+import Level from "@nolotus/react-native-leveldb";
+import { rnTokenManager } from "auth/rn/tokenManager";
+const nativeDb = new Level("nolo", { valueEncoding: "json" });
+
+// 【核心修改】 3. 使用工厂函数创建 store 实例，并注入原生依赖
+const appStore = createAppStore({
+  dbInstance: nativeDb,
+  tokenManager: rnTokenManager,
+});
+
+// PageContent 组件保持不变，它通过 hooks 消费 state，无需修改
 const PageContent: React.FC = () => {
   const { navigate } = useSimpleNavigation();
   const {
@@ -67,6 +83,7 @@ const PageContent: React.FC = () => {
   );
 };
 
+// InnerApp 组件保持不变，它通过 context 和 hooks 消费 state，无需修改
 const InnerApp: React.FC = () => {
   const layout = useResponsiveLayout();
   const { appState, setCurrentPage, setSelectedSpace } = useAppState();
@@ -113,7 +130,8 @@ const InnerApp: React.FC = () => {
 };
 
 const MacOSApp: React.FC = () => (
-  <Provider store={store}>
+  // 【核心修改】 4. 将新创建的 appStore 实例传入 Provider
+  <Provider store={appStore}>
     <AppStateProvider>
       <SimpleNavigator>
         <InnerApp />
@@ -122,6 +140,7 @@ const MacOSApp: React.FC = () => (
   </Provider>
 );
 
+// styles 保持不变
 const styles = StyleSheet.create({
   container: {
     flex: 1,
