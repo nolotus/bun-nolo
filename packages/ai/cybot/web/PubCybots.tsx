@@ -1,10 +1,10 @@
 // ai/cybot/web/PubCybots.tsx
 
-import { memo, useEffect } from "react";
+import { memo } from "react";
 import { SyncIcon } from "@primer/octicons-react";
-import { useAppSelector, useAppDispatch } from "app/store";
+import { useAppSelector } from "app/store";
 import { selectTheme } from "app/settings/settingSlice";
-import { fetchPubCybots } from "ai/cybot/cybotSlice";
+import { usePubCybots } from "ai/llm/hooks/usePubCybots";
 import AgentBlock from "ai/llm/web/AgentBlock";
 import toast from "react-hot-toast";
 
@@ -31,9 +31,11 @@ const LoadingState = memo(() => {
           gap: 0.5rem;
           font-size: 0.9rem;
         }
+
         :global(.icon-spin) {
           animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
           from {
             transform: rotate(0deg);
@@ -46,6 +48,7 @@ const LoadingState = memo(() => {
     </div>
   );
 });
+
 LoadingState.displayName = "LoadingState";
 
 const EmptyState = memo(() => {
@@ -65,51 +68,51 @@ const EmptyState = memo(() => {
     </div>
   );
 });
+
 EmptyState.displayName = "EmptyState";
 
 const PubCybots = memo(({ limit = 20, showEmpty = true }: PubCybotsProps) => {
   const theme = useAppSelector(selectTheme);
-  const dispatch = useAppDispatch();
-  const { loading, error, data } = useAppSelector(
-    (state) => state.cybot.pubCybots
-  );
-
-  useEffect(() => {
-    dispatch(fetchPubCybots({ limit, sortBy: "newest" }));
-  }, [dispatch, limit]);
+  const { loading, error, data } = usePubCybots({
+    limit,
+    sortBy: "newest",
+  });
 
   if (error) {
     toast.error("加载AI列表失败");
     return null;
   }
 
-  if (loading && data.length === 0) {
+  // 只在完全没有数据时显示加载状态
+  if (loading && !data.length) {
     return <LoadingState />;
   }
 
-  if (!loading && data.length === 0 && showEmpty) {
+  if (!data.length && showEmpty) {
     return <EmptyState />;
   }
 
   return (
     <>
-      <div className="cybots-grid">
+      <div className={`cybots-grid `}>
         {data.map((item) => (
           <AgentBlock key={item.id} item={item} />
         ))}
       </div>
-      <style jsx>{`
+      <style>{`
         .cybots-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 1.5rem;
           padding: 0.5rem;
         }
+
         @media (max-width: 768px) {
           .cybots-grid {
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
           }
         }
+
         @media (max-width: 480px) {
           .cybots-grid {
             grid-template-columns: 1fr;
@@ -119,6 +122,7 @@ const PubCybots = memo(({ limit = 20, showEmpty = true }: PubCybotsProps) => {
     </>
   );
 });
+
 PubCybots.displayName = "PubCybots";
 
 export default PubCybots;
