@@ -20,9 +20,11 @@ import Moment from "lab/s-station/index";
 import { commonRoutes } from "./generatorRoutes";
 import { routes } from "./routes";
 
+const selfrUrl = "selfr.nolo.chat";
+
 const generatorRoutes = (hostname: string, auth: any) => {
   // ... (此函数保持不变)
-  if (hostname === "nolotus.local" || hostname === "cybot.run") {
+  if (hostname === "nolotus.local" || hostname === selfrUrl) {
     return [
       {
         path: "/",
