@@ -26,12 +26,16 @@ export const mistralModels: Model[] = [
     },
   },
   {
-    name: "mistral-ocr-latest",
-    displayName: "Mistral OCR",
+    name: "devstral-medium-2507",
+    displayName: "Devstral Medium",
     hasVision: true,
-    description: "OCR-capable model for extracting text from images",
-    contextWindow: 32000,
-    price: {},
+    description:
+      "A versatile model designed for a wide range of tasks with enhanced capabilities.",
+    contextWindow: 128000,
+    price: {
+      input: 3.2, // $0.4 * 8
+      output: 16, // $2 * 8
+    },
   },
   {
     name: "magistral-medium-2506",
