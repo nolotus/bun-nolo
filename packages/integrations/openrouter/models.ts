@@ -108,4 +108,13 @@ export const openrouterModels = [
     contextWindow: 1000000,
     supportsTool: true,
   },
+  {
+    name: "moonshotai/kimi-k2",
+    displayName: "MoonshotAI: Kimi K2",
+    hasVision: false,
+    price: { input: 0.57 * 8, output: 2.3 * 8 },
+    maxOutputTokens: 131072,
+    contextWindow: 131072,
+    supportsTool: true,
+  },
 ];
