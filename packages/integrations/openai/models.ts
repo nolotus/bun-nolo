@@ -40,4 +40,30 @@ export const openAIModels: Model[] = [
       inputCacheHit: 0.2,
     },
   },
+  {
+    name: "o3-pro",
+    displayName: "O3 Pro",
+    hasVision: false,
+    contextWindow: 200000,
+    maxOutputTokens: 100000,
+    supportsReasoningEffort: false,
+    price: {
+      input: 200.0,
+      output: 800.0,
+      inputCacheHit: 0.0,
+    },
+  },
+  {
+    name: "o3",
+    displayName: "O3",
+    hasVision: false,
+    contextWindow: 200000,
+    maxOutputTokens: 100000,
+    supportsReasoningEffort: false,
+    price: {
+      input: 20,
+      output: 80,
+      inputCacheHit: 5,
+    },
+  },
 ];
