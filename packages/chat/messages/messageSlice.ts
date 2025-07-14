@@ -507,6 +507,7 @@ export const messageSlice = createSliceWithThunks({
         );
 
         if (totalUsage) {
+          console.log("totalUsage", totalUsage);
           dispatch(updateTokens({ dialogId, usage: totalUsage, cybotConfig }));
         }
 
