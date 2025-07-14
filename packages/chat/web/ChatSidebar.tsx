@@ -28,7 +28,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import CategoryHeader from "create/space/category/CategoryHeader";
 import { AddCategoryModal } from "create/space/category/AddCategoryModal";
-
+import { DraggableContainer } from "./DraggableContainer";
 // --- 类型定义 ---
 interface CategoryItem {
   id: string;

@@ -22,4 +22,5 @@ export interface Model {
   canFineTune?: boolean; // 是否可以微调
   hasImageOutput?: boolean; // 是否支持图片输出
   supportsReasoningEffort?: boolean; // 是否支持推理功能
+  endpointKey?: string;
 }

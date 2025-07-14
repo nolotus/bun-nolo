@@ -41,7 +41,6 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
     const body = await req.json();
     // --- 优化点 2: 从请求体中解构出 streamIdleTimeout ---
     const { url, KEY, provider, streamIdleTimeout, ...restBody } = body;
-
     const apiKey = KEY?.trim() || getNoloKey(provider || "");
 
     if (!apiKey) {

@@ -56,6 +56,7 @@ export interface Agent {
   introduction?: string;
   greeting?: string;
   isPublic: boolean;
+  endpointKey?: string;
 }
 
 // --- 内容相关 (核心修改处) ---
