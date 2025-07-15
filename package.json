@@ -70,7 +70,6 @@
     "react-native-safe-area-context": "^5.2.0",
     "react-native-svg": "^15.9.0",
     "react-redux": "^9.2.0",
-    "react-responsive": "^10.0.0",
     "react-router": "^6.23.1",
     "react-router-dom": "^6.23.1",
     "reactotron-react-native": "^5.1.7",
