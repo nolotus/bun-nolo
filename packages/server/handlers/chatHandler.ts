@@ -5,7 +5,7 @@ import { authenticateRequest } from "auth/utils";
 
 // --- 优化点 1: 使用常量替代魔法数字，提高可维护性 ---
 // 默认超时时间 (毫秒)
-const INITIAL_REQUEST_TIMEOUT_MS = 60 * 1000; // 60秒，用于建立初始连接
+const INITIAL_REQUEST_TIMEOUT_MS = 120 * 1000; // 增加初始请求超时时间为120秒
 const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 120 * 1000; // 默认2分钟流空闲超时
 
 // API 相关常量
@@ -32,8 +32,11 @@ const formatSseError = (message: string, code: string): Uint8Array => {
 };
 
 export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
+  console.log("Starting request handling...");
+
   const authResult = await authenticateRequest(req);
   if (authResult instanceof Response) {
+    console.log("Authentication failed, returning response...");
     return authResult;
   }
 
@@ -41,9 +44,12 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
     const body = await req.json();
     // --- 优化点 2: 从请求体中解构出 streamIdleTimeout ---
     const { url, KEY, provider, streamIdleTimeout, ...restBody } = body;
+    console.log("restBody:", restBody); // 打印 restBody 的内容
     const apiKey = KEY?.trim() || getNoloKey(provider || "");
+    console.log("Using API Key:", apiKey);
 
     if (!apiKey) {
+      console.log("Missing API key for upstream");
       return new Response(
         JSON.stringify({
           error: {
@@ -73,12 +79,15 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
           Authorization: `Bearer ${apiKey}`,
         };
 
+    console.log("Request headers:", fetchHeaders);
+
     const controller = new AbortController();
     const initTimer = setTimeout(
       () => controller.abort("Initial request timeout"),
       INITIAL_REQUEST_TIMEOUT_MS
     );
 
+    console.log("Sending request to upstream:", url);
     const upstreamResponse = await fetch(url, {
       method: "POST",
       headers: fetchHeaders,
@@ -86,6 +95,8 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
       signal: controller.signal,
     });
     clearTimeout(initTimer);
+
+    console.log("Upstream response status:", upstreamResponse.status);
 
     const streamHeaders = {
       "Content-Type": "text/event-stream",
@@ -98,6 +109,7 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
     if (!upstreamResponse.ok) {
       const errorText = await upstreamResponse.text();
       const errorMessage = JSON.parse(errorText)?.error?.message || errorText;
+      console.log("Upstream request failed with error:", errorMessage);
       const errorStream = new ReadableStream({
         start(ctrl) {
           ctrl.enqueue(
@@ -121,6 +133,7 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
           idleTimer = setTimeout(() => {
             // --- 优化点 4: 动态错误信息 ---
             const errorMessage = `Stream idle timeout after ${idleTimeout / 1000}s`;
+            console.log("Stream idle timeout:", errorMessage);
             ctrl.enqueue(formatSseError(errorMessage, "IDLE_TIMEOUT"));
             // 可以在此处选择性地关闭流
             // ctrl.terminate();
@@ -132,8 +145,10 @@ export const handleChatRequest = async (req: Request, extraHeaders = {}) => {
       })
     );
 
+    console.log("Returning stream response...");
     return new Response(stream, { status: 200, headers: streamHeaders });
   } catch (e: any) {
+    console.error("Error occurred:", e);
     const isAbort = e.name === "AbortError";
     const status = isAbort ? 504 : 500;
     const message = isAbort ? e.message : "Proxy request failed";

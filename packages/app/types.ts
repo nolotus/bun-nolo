@@ -154,7 +154,7 @@ type MessageContentPart = MessageContentPartText | MessageContentPartImageUrl;
 
 export interface Message {
   id?: string;
-  role: "user" | "assistant" | "system" | "tool";
+  role: "user" | "assistant" | "system" | "tool" | "developer";
   content: string | MessageContentPart[];
   name?: string;
   tool_calls?: any;

@@ -1,49 +1,56 @@
 // /integrations/openai/generateResponseRequestBody.ts
 import { Agent, Message } from "app/types";
-import { prependPromptMessage } from "ai/agent/prependPromptMessage";
+import { generatePrompt } from "ai/agent/generatePrompt";
 import { Contexts } from "ai/types";
 
-/** 把 legacy Message[] 转成新版 API 的 input 字段 */
-function transformMessages(messages: Message[]) {
-  return messages.map((m) => ({
-    role: m.role,
-    content: m.content,
-    name: m.name,
-    tool_calls: m.tool_calls,
-    tool_call_id: m.tool_call_id,
-  }));
-}
-
-/** 生成新版 Response API 请求体 */
+/**
+ * 生成新版 Response API 请求体
+ * @param agentConfig Agent 配置
+ * @param msgs 历史消息列表（数组里每项为 { role, content, name?, tool_calls?, tool_call_id? }）
+ * @param contexts 可选上下文
+ */
 export function generateResponseRequestBody(
   agentConfig: Agent,
-  messages: Message[],
+  msgs: Message[],
   contexts?: Contexts
 ) {
-  // 1. 插入 system prompt（如果有）
-  const msgs = prependPromptMessage(
-    messages,
+  const promptContent = generatePrompt({
     agentConfig,
-    navigator.language,
-    contexts
-  );
-
-  // 2. 填字段
+    language: navigator.language,
+    contexts,
+  });
+  const promptMessage: Message = { role: "developer", content: promptContent };
+  const input = [promptMessage, ...msgs];
+  // 2. 构造请求体，只添加必需字段
   const body: Record<string, any> = {
     model: agentConfig.model,
-    input: transformMessages(msgs),
-    stream: agentConfig.stream ?? false,
-    temperature: agentConfig.temperature ?? 1,
-    top_p: agentConfig.top_p ?? 1,
-    max_output_tokens: agentConfig.max_tokens,
-    max_tool_calls: agentConfig.max_tool_calls,
-    instructions: agentConfig.prompt ?? null,
-    user: agentConfig.user ?? null,
-    // 如果需要，还可以加 include、metadata、service_tier……
-    include: agentConfig.include,
-    metadata: agentConfig.metadata,
-    service_tier: agentConfig.service_tier,
+    input,
+    stream: true,
   };
+
+  // 3. 按需添加可选字段
+
+  if (agentConfig.temperature !== undefined) {
+    body.temperature = agentConfig.temperature;
+  }
+  if (agentConfig.top_p !== undefined) {
+    body.top_p = agentConfig.top_p;
+  }
+  if (agentConfig.max_tokens !== undefined) {
+    body.max_output_tokens = agentConfig.max_tokens;
+  }
+  if (agentConfig.max_tool_calls !== undefined) {
+    body.max_tool_calls = agentConfig.max_tool_calls;
+  }
+  if (agentConfig.user !== undefined) {
+    body.user = agentConfig.user;
+  }
+  if (agentConfig.include !== undefined) {
+    body.include = agentConfig.include;
+  }
+  if (agentConfig.metadata !== undefined) {
+    body.metadata = agentConfig.metadata;
+  }
 
   return body;
 }

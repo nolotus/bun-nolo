@@ -36,7 +36,7 @@ export const openAIModels: Model[] = [
     contextWindow: 200_000,
     maxOutputTokens: 100_000,
     supportsReasoningEffort: true,
-    endpointKey: "responses", // ← 可读性强的命名端点
+    endpointKey: "responses",
     price: { input: 200, output: 800, inputCacheHit: 0 },
   },
   {
@@ -47,5 +47,14 @@ export const openAIModels: Model[] = [
     maxOutputTokens: 100_000,
     supportsReasoningEffort: true,
     price: { input: 20, output: 80, inputCacheHit: 5 },
+  },
+  {
+    name: "o4-mini",
+    displayName: "O4 Mini",
+    hasVision: false,
+    contextWindow: 200_000,
+    maxOutputTokens: 100_000,
+    supportsReasoningEffort: true,
+    price: { input: 11, output: 44, inputCacheHit: 2.8 },
   },
 ];

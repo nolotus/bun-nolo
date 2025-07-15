@@ -1,8 +1,8 @@
 import { RootState } from "app/store";
+import { Message } from "app/types";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { read } from "database/dbSlice";
 import { fetchAgentContexts } from "ai/agent/fetchAgentContexts";
-import { Message } from "integrations/openai/generateRequestBody";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { generateRequestBody } from "ai/llm/generateRequestBody";
@@ -10,7 +10,7 @@ import { getApiEndpoint } from "ai/llm/providers";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
 
-import { sendOpenAIRequest } from "../chat/sendOpenAIRequest";
+import { sendOpenAICompletionsRequest } from "../chat/sendOpenAICompletionsRequest";
 import { performFetchRequest } from "../chat/fetchUtils";
 
 export const _executeModel = async (
@@ -24,6 +24,7 @@ export const _executeModel = async (
 ) => {
   const { isStreaming, withAgentContext, withChatHistory } = options;
   const { getState, dispatch, rejectWithValue } = thunkApi;
+  const { content } = args;
   const state = getState() as RootState;
 
   const cybotId = args.cybotId || selectCurrentDialogConfig(state)?.cybots?.[0];
@@ -47,11 +48,16 @@ export const _executeModel = async (
       messages = [{ role: "user", content: args.content }];
     }
 
-    const bodyData = generateRequestBody(agentConfig, messages, agentContexts);
+    const bodyData = generateRequestBody({
+      agentConfig,
+      messages,
+      userInput: content,
+      contexts: agentContexts,
+    });
     bodyData.stream = isStreaming;
 
     if (isStreaming) {
-      await sendOpenAIRequest({
+      await sendOpenAICompletionsRequest({
         bodyData,
         cybotConfig: agentConfig,
         thunkApi,

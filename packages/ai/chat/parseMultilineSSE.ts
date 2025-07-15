@@ -1,38 +1,34 @@
-export function parseMultilineSSE(rawText: string) {
+/**
+ * 将原始 SSE 文本分割、累积并返回完整的 JSON 对象数组
+ */
+export function parseMultilineSSE(rawText: string): any[] {
   const results: any[] = [];
-  const lines = rawText.split("\n");
-  let currentJsonBuffer = "";
+  // 按双换行分割成若干事件块
+  const events = rawText.split(/\r?\n\r?\n/);
+  let carry = ""; // 用于跨块、跨行累积 JSON 片段
 
-  for (let line of lines) {
-    line = line.trim();
-    if (!line) continue;
+  for (const ev of events) {
+    if (!ev.trim()) continue;
 
-    if (line.startsWith("data:")) {
-      const dataContent = line.substring(5).trim();
-
-      if (dataContent === "[DONE]") {
+    // 把本块所有以 data: 开头的行内容累积到 carry
+    for (const line of ev.split(/\r?\n/)) {
+      const t = line.trim();
+      if (!t.startsWith("data:")) continue;
+      const content = t.substring(5).trim();
+      if (content === "[DONE]") {
+        carry = ""; // 对方主动结束，丢弃残余
         continue;
       }
+      carry += content;
+    }
 
-      try {
-        const parsedData = JSON.parse(dataContent);
-        currentJsonBuffer = "";
-        results.push(parsedData);
-      } catch (e) {
-        // 累积到 buffer
-        currentJsonBuffer += dataContent;
-        try {
-          const parsedAccumulated = JSON.parse(currentJsonBuffer);
-          results.push(parsedAccumulated);
-          currentJsonBuffer = "";
-        } catch (_e2) {
-          // 继续等下一行
-        }
-      }
-    } else {
-      if (currentJsonBuffer) {
-        currentJsonBuffer = "";
-      }
+    // 尝试一次完整解析
+    try {
+      const obj = JSON.parse(carry);
+      results.push(obj);
+      carry = "";
+    } catch {
+      // 还不够完整，留待下一个 chunk
     }
   }
 

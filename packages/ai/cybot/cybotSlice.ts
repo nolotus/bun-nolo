@@ -7,7 +7,6 @@ import { generateRequestBody } from "ai/llm/generateRequestBody";
 import { fetchReferenceContents } from "ai/context/buildReferenceContext";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { selectAllMsgs } from "chat/messages/messageSlice";
-import { sendOpenAIRequest } from "../chat/sendOpenAIRequest";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 import {
   getFullChatContextKeys,
@@ -15,25 +14,13 @@ import {
 } from "ai/agent/getFullChatContextKeys";
 import { Agent } from "app/types";
 import { _executeModel } from "ai/agent/_executeModel";
-type SortBy = "newest" | "popular" | "rating";
 
-interface FetchResult {
-  data: Agent[];
-  total: number;
-  hasMore: boolean;
-}
+import { sendOpenAICompletionsRequest } from "../chat/sendOpenAICompletionsRequest";
+import { sendOpenAIResponseRequest } from "../chat/sendOpenAIResponseRequest";
 
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
-
-//
-// —— 原有模型执行核心 ——
-//
-
-//
-// —— 公共 Cybot 列表相关 ——
-//
 
 interface CybotState {
   pubCybots: {
@@ -145,21 +132,38 @@ export const cybotSlice = createSliceWithThunks({
           ]);
 
           const messages = filterAndCleanMessages(selectAllMsgs(state));
-          const bodyData = generateRequestBody(agentConfig, messages, {
-            botInstructionsContext,
-            currentUserContext,
-            smartReadContext,
-            historyContext,
-            botKnowledgeContext,
+          const bodyData = generateRequestBody({
+            agentConfig,
+            messages,
+            userInput,
+            contexts: {
+              botInstructionsContext,
+              currentUserContext,
+              smartReadContext,
+              historyContext,
+              botKnowledgeContext,
+            },
           });
-
-          await sendOpenAIRequest({
-            bodyData,
-            cybotConfig: agentConfig,
-            thunkApi,
-            dialogKey: selectCurrentDialogConfig(state)?.dbKey,
-            parentMessageId,
-          });
+          console.log("bodyData", bodyData);
+          const isResponseAPIModel =
+            agentConfig.model === "o3-pro" || agentConfig.model === "o4-mini";
+          if (agentConfig.provider === "openai" && isResponseAPIModel) {
+            await sendOpenAIResponseRequest({
+              bodyData,
+              agentConfig,
+              thunkApi,
+              dialogKey: selectCurrentDialogConfig(state)?.dbKey,
+              parentMessageId,
+            });
+          } else {
+            await sendOpenAICompletionsRequest({
+              bodyData,
+              cybotConfig: agentConfig,
+              thunkApi,
+              dialogKey: selectCurrentDialogConfig(state)?.dbKey,
+              parentMessageId,
+            });
+          }
         } catch (error: any) {
           console.error(
             `Error in streamAgentChatTurn for [${args.cybotId}]:`,

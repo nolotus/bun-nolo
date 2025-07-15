@@ -49,7 +49,7 @@ function appendTextChunk(
 }
 
 // 主流程：发送常规聊天请求
-export const sendOpenAIRequest = async ({
+export const sendOpenAICompletionsRequest = async ({
   bodyData,
   cybotConfig,
   thunkApi,

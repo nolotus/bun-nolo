@@ -72,7 +72,6 @@ const EmptyState = memo(() => {
 EmptyState.displayName = "EmptyState";
 
 const PubCybots = memo(({ limit = 20, showEmpty = true }: PubCybotsProps) => {
-  const theme = useAppSelector(selectTheme);
   const { loading, error, data } = usePubCybots({
     limit,
     sortBy: "newest",

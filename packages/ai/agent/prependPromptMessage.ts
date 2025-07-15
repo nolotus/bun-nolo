@@ -1,6 +1,6 @@
 import { Agent, Message } from "app/types";
 import { Contexts } from "../types";
-import { generatePrompt } from "./generatePrompt";
+import { generatePrompt } from "ai/agent/generatePrompt";
 
 export const prependPromptMessage = (
   messages: Message[],
