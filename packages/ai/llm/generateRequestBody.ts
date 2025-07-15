@@ -1,27 +1,21 @@
 // /ai/llm/generateRequestBody.ts
+import { Agent, Message } from "app/types";
+import { generateOpenAIRequestBody } from "integrations/openai/generateOpenAIRequestBody";
+import { generateResponseRequestBody } from "integrations/openai/generateResponseRequestBody";
 
-import { Agent } from "app/types";
-import {
-  generateOpenAIRequestBody,
-  Message,
-} from "integrations/openai/generateRequestBody";
-
-/**
- * 根据 provider 生成请求体。
- * 目前只支持 OpenAI 兼容的格式，将来可扩展。
- */
 export const generateRequestBody = (
   agentConfig: Agent,
-  messages: Message[], // 接收准备好的消息数组
+  messages: Message[],
   contexts?: any
 ) => {
-  const providerName = agentConfig.provider.toLowerCase();
+  const provider = agentConfig.provider.toLowerCase();
+  const endpointKey = agentConfig.endpointKey;
 
-  // 传递消息数组给下一层
-  return generateOpenAIRequestBody(
-    agentConfig,
-    providerName,
-    messages,
-    contexts
-  );
+  // 如果是 OpenAI 且 endpointKey 标记了要走新版 /v1/responses
+  if (provider === "openai" && endpointKey === "responses") {
+    return generateResponseRequestBody(agentConfig, messages, contexts);
+  }
+
+  // 否则走老的 chat/completions
+  return generateOpenAIRequestBody(agentConfig, provider, messages, contexts);
 };

@@ -1,12 +1,6 @@
 import { DataType } from "create/types";
 
 export type ULID = string;
-export interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string | { type: string; data: string }[];
-  userId?: string;
-}
 
 export interface DialogConfig {
   id: string; // 对话的唯一标识符/路径
@@ -148,4 +142,22 @@ export interface SpaceSetting {
   createdAt: string;
   /** 最后更新时间的ISO字符串 */
   updatedAt: string;
+}
+
+type MessageContentPartText = { type: "text"; text: string };
+type MessageContentPartImageUrl = {
+  type: "image_url";
+  image_url: { url: string; detail?: "low" | "high" | "auto" };
+};
+
+type MessageContentPart = MessageContentPartText | MessageContentPartImageUrl;
+
+export interface Message {
+  id?: string;
+  role: "user" | "assistant" | "system" | "tool";
+  content: string | MessageContentPart[];
+  name?: string;
+  tool_calls?: any;
+  tool_call_id?: string;
+  userId?: string;
 }

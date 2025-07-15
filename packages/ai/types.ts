@@ -9,14 +9,17 @@ export type ModeType =
   | "surf"
   | "vision";
 
-export type Message = {
-  content: string;
-  role: string;
-};
-
 export interface PromptFormData {
   name: string;
   content: string;
   category?: string;
   tags?: string[];
+}
+
+export interface Contexts {
+  currentUserContext?: string | null;
+  smartReadContext?: string | null;
+  historyContext?: string | null;
+  botInstructionsContext?: string | null;
+  botKnowledgeContext?: string | null;
 }
