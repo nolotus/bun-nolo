@@ -55,6 +55,7 @@ export const openAIModels: Model[] = [
     contextWindow: 200_000,
     maxOutputTokens: 100_000,
     supportsReasoningEffort: true,
+    endpointKey: "responses",
     price: { input: 11, output: 44, inputCacheHit: 2.8 },
   },
 ];

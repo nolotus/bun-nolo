@@ -14,10 +14,10 @@ import {
 } from "ai/agent/getFullChatContextKeys";
 import { Agent } from "app/types";
 import { _executeModel } from "ai/agent/_executeModel";
+import { isResponseAPIModel } from "ai/llm/isResponseAPIModel";
 
 import { sendOpenAICompletionsRequest } from "../chat/sendOpenAICompletionsRequest";
 import { sendOpenAIResponseRequest } from "../chat/sendOpenAIResponseRequest";
-
 const createSliceWithThunks = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 });
@@ -144,17 +144,17 @@ export const cybotSlice = createSliceWithThunks({
               botKnowledgeContext,
             },
           });
-          console.log("bodyData", bodyData);
-          const isResponseAPIModel =
-            agentConfig.model === "o3-pro" || agentConfig.model === "o4-mini";
-          if (agentConfig.provider === "openai" && isResponseAPIModel) {
-            await sendOpenAIResponseRequest({
+
+          if (isResponseAPIModel(agentConfig)) {
+            const logsText = await sendOpenAIResponseRequest({
               bodyData,
               agentConfig,
               thunkApi,
               dialogKey: selectCurrentDialogConfig(state)?.dbKey,
               parentMessageId,
             });
+
+            console.log("=== 全量日志 ===\n", logsText);
           } else {
             await sendOpenAICompletionsRequest({
               bodyData,

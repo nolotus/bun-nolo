@@ -3,6 +3,7 @@ import { Agent, Message } from "app/types";
 import { Contexts } from "../types";
 import { generateOpenAIRequestBody } from "integrations/openai/generateOpenAIRequestBody";
 import { generateResponseRequestBody } from "integrations/openai/generateResponseRequestBody";
+import { isResponseAPIModel } from "./isResponseAPIModel";
 
 export interface GenerateRequestBodyArgs {
   agentConfig: Agent;
@@ -17,9 +18,8 @@ export const generateRequestBody = ({
   contexts,
 }: GenerateRequestBodyArgs) => {
   const provider = agentConfig.provider.toLowerCase();
-  const model = agentConfig.model;
 
-  if (provider === "openai" && model === "o3-pro") {
+  if (isResponseAPIModel(agentConfig)) {
     // 调新版 /v1/responses
     return generateResponseRequestBody(agentConfig, messages, contexts);
   }
