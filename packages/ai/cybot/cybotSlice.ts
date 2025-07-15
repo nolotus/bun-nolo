@@ -7,7 +7,7 @@ import { generateRequestBody } from "ai/llm/generateRequestBody";
 import { fetchReferenceContents } from "ai/context/buildReferenceContext";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
 import { selectAllMsgs } from "chat/messages/messageSlice";
-import { sendCommonChatRequest } from "../chat/sendCommonRequest";
+import { sendOpenAIRequest } from "../chat/sendOpenAIRequest";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 import {
   getFullChatContextKeys,
@@ -153,7 +153,7 @@ export const cybotSlice = createSliceWithThunks({
             botKnowledgeContext,
           });
 
-          await sendCommonChatRequest({
+          await sendOpenAIRequest({
             bodyData,
             cybotConfig: agentConfig,
             thunkApi,

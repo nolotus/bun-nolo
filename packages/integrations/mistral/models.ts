@@ -9,8 +9,8 @@ export const mistralModels: Model[] = [
       "Balanced model for a wide range of tasks, offering a good trade-off between performance and cost",
     contextWindow: 128000,
     price: {
-      input: 3.2, // $0.4 * 8
-      output: 16, // $2 * 8
+      input: 4, // $0.4 * 10
+      output: 20, // $2 * 10
     },
   },
   {
@@ -21,8 +21,8 @@ export const mistralModels: Model[] = [
       "Cost-efficient, fast, and reliable option for use cases such as translation, summarization, and sentiment analysis",
     contextWindow: 32000,
     price: {
-      input: 0.8, // $0.1 * 8
-      output: 2.4, // $0.3 * 8
+      input: 1, // $0.1 * 10
+      output: 3, // $0.3 * 10
     },
   },
   {
@@ -33,8 +33,8 @@ export const mistralModels: Model[] = [
       "A versatile model designed for a wide range of tasks with enhanced capabilities.",
     contextWindow: 128000,
     price: {
-      input: 3.2, // $0.4 * 8
-      output: 16, // $2 * 8
+      input: 4, // $0.4 * 10
+      output: 20, // $2 * 10
     },
   },
   {
@@ -45,8 +45,8 @@ export const mistralModels: Model[] = [
       "Thinking model excelling in domain-specific, transparent, and multilingual reasoning.",
     contextWindow: 40000,
     price: {
-      input: 2 * 8, // $2 per million tokens
-      output: 5 * 8, // $5 per million tokens
+      input: 2 * 10, // $2 per million tokens
+      output: 5 * 10, // $5 per million tokens
     },
     supportsReasoningEffort: true, // Supports reasoning effort
   },
@@ -58,8 +58,8 @@ export const mistralModels: Model[] = [
       "Thinking model excelling in domain-specific, transparent, and multilingual reasoning.",
     contextWindow: 40000,
     price: {
-      input: 0.5 * 8, // $0.5 per million tokens
-      output: 1.5 * 8, // $1.5 per million tokens
+      input: 0.5 * 10, // $0.5 per million tokens
+      output: 1.5 * 10, // $1.5 per million tokens
     },
     supportsReasoningEffort: true, // Supports reasoning effort
   },

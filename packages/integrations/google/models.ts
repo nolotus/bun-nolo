@@ -15,10 +15,10 @@ export const googleModels: Model[] = [
     maxOutputTokens: 65536,
     supportsReasoningEffort: true, // 添加支持推理功能
     price: {
-      input: 1.25 * 8,
-      output: 10 * 8,
-      cachingWrite: 0.2,
-      cachingRead: 0.2,
+      input: 1.25 * 10,
+      output: 10 * 10,
+      cachingWrite: 0.2 * 10,
+      cachingRead: 0.2 * 10,
     },
   },
   {
@@ -32,10 +32,10 @@ export const googleModels: Model[] = [
     maxOutputTokens: 65536,
     supportsReasoningEffort: true, // 添加支持推理功能
     price: {
-      input: 1.25 * 8,
-      output: 10 * 8,
-      cachingWrite: 0.2,
-      cachingRead: 0.2,
+      input: 1.25 * 10,
+      output: 10 * 10,
+      cachingWrite: 0.2 * 10,
+      cachingRead: 0.2 * 10,
     },
   },
   {
@@ -49,10 +49,10 @@ export const googleModels: Model[] = [
     maxOutputTokens: 8192,
     supportsReasoningEffort: true, // 添加支持推理功能
     price: {
-      input: 0.3 * 8,
-      output: 2.5 * 8,
-      cachingWrite: 0.2,
-      cachingRead: 0.2,
+      input: 0.3 * 10,
+      output: 2.5 * 10,
+      cachingWrite: 0.2 * 10,
+      cachingRead: 0.2 * 10,
     },
   },
   {
@@ -66,10 +66,10 @@ export const googleModels: Model[] = [
     contextWindow: 1048576,
     maxOutputTokens: 4096,
     price: {
-      input: 0.1 * 8, // $0.10 per 1M tokens, multiplied by 8
-      output: 0.4 * 8, // $0.40 per 1M tokens, multiplied by 8
-      cachingWrite: 0.2,
-      cachingRead: 0.2,
+      input: 0.1 * 10, // $0.10 per 1M tokens, multiplied by 8
+      output: 0.4 * 10, // $0.40 per 1M tokens, multiplied by 8
+      cachingWrite: 0.2 * 10,
+      cachingRead: 0.2 * 10,
     },
   },
 ];

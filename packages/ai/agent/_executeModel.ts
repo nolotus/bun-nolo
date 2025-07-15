@@ -1,16 +1,17 @@
-import { AppThunkApi, RootState } from "app/store";
+import { RootState } from "app/store";
 import { selectCurrentDialogConfig } from "chat/dialog/dialogSlice";
-import { read, remove } from "database/dbSlice";
+import { read } from "database/dbSlice";
 import { fetchAgentContexts } from "ai/agent/fetchAgentContexts";
 import { Message } from "integrations/openai/generateRequestBody";
 import { filterAndCleanMessages } from "integrations/openai/filterAndCleanMessages";
 import { selectAllMsgs } from "chat/messages/messageSlice";
 import { generateRequestBody } from "ai/llm/generateRequestBody";
-import { sendCommonChatRequest } from "../chat/sendCommonRequest";
-import { performFetchRequest } from "../chat/fetchUtils";
 import { getApiEndpoint } from "ai/llm/providers";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { selectCurrentToken } from "auth/authSlice";
+
+import { sendOpenAIRequest } from "../chat/sendOpenAIRequest";
+import { performFetchRequest } from "../chat/fetchUtils";
 
 export const _executeModel = async (
   options: {
@@ -50,7 +51,7 @@ export const _executeModel = async (
     bodyData.stream = isStreaming;
 
     if (isStreaming) {
-      await sendCommonChatRequest({
+      await sendOpenAIRequest({
         bodyData,
         cybotConfig: agentConfig,
         thunkApi,
