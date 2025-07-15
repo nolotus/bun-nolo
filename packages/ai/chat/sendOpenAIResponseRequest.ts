@@ -1,14 +1,8 @@
-// sendOpenAIResponseRequest.ts (Final Version with Full Logging)
-
 import {
   addActiveController,
   removeActiveController,
 } from "chat/dialog/dialogSlice";
-import {
-  messageStreamEnd,
-  messageStreaming,
-  handleToolCalls,
-} from "chat/messages/messageSlice";
+import { messageStreaming, messageStreamEnd } from "chat/messages/messageSlice";
 import { selectCurrentServer } from "app/settings/settingSlice";
 import { getApiEndpoint } from "ai/llm/providers";
 import { createDialogMessageKeyAndId } from "database/keys";
@@ -18,43 +12,50 @@ import { performFetchRequest } from "./fetchUtils";
 import { parseMultilineSSE } from "./parseMultilineSSE";
 import { parseApiError } from "./parseApiError";
 import { updateTotalUsage } from "./updateTotalUsage";
-import { accumulateToolCallChunks } from "./accumulateToolCallChunks";
 import { toolRegistry } from "../tools/toolRegistry";
 
 type Segment = { type: "text"; text: string };
+const seg = (txt: string): Segment[] => [{ type: "text", text: txt ?? "" }];
 
-function prepareTools(names: string[]): any[] {
-  return names.map((n) => toolRegistry[n]).filter(Boolean);
-}
-
-function appendTextChunk(buffer: Segment[], chunk: string): Segment[] {
-  if (!chunk) return buffer;
-  const last = buffer[buffer.length - 1];
-  if (last?.type === "text") {
-    return [...buffer.slice(0, -1), { ...last, text: last.text + chunk }];
+const safeCancel = async (
+  r?: ReadableStreamDefaultReader<Uint8Array>
+): Promise<void> => {
+  if (!r) return;
+  try {
+    await r.cancel();
+  } catch {
+    /* noop */
   }
-  return [...buffer, { type: "text", text: chunk }];
-}
+};
 
-/**
- * 发送 OpenAI 流式请求，同时将所有日志累积到一个字符串中返回。
- * @returns {Promise<string>} 完整的日志文本。
- */
+const prepareTools = (ns: string[]) =>
+  ns.map((n) => toolRegistry[n]).filter(Boolean);
+
 export const sendOpenAIResponseRequest = async ({
   bodyData,
   agentConfig: cybotConfig,
   thunkApi,
   dialogKey,
   parentMessageId,
+  debug = false,
 }: {
   bodyData: any;
   agentConfig: any;
   thunkApi: any;
   dialogKey: string;
   parentMessageId?: string;
+  debug?: boolean;
 }): Promise<string> => {
+  /* ---------------- log util ---------------- */
   const logs: string[] = [];
+  const log = (m: string, level: "debug" | "error" = "debug") => {
+    logs.push(m);
+    if (debug) {
+      (level === "error" ? console.error : console.debug)(m);
+    }
+  };
 
+  /* ---------------- common ---------------- */
   const { dispatch, getState, signal: thunkSignal } = thunkApi;
   const dialogId = extractCustomId(dialogKey);
 
@@ -62,17 +63,16 @@ export const sendOpenAIResponseRequest = async ({
   thunkSignal.addEventListener("abort", () => controller.abort());
   const signal = controller.signal;
 
-  let messageId: string, msgKey: string;
-  if (parentMessageId) {
-    messageId = parentMessageId;
-    msgKey = `msg:${dialogId}:${messageId}`;
-    logs.push(`[INIT] 使用 parentMessageId=${parentMessageId}`);
-  } else {
-    const ids = createDialogMessageKeyAndId(dialogId);
-    messageId = ids.messageId;
-    msgKey = ids.key;
-    logs.push(`[INIT] 新建 messageId=${messageId}, msgKey=${msgKey}`);
-  }
+  const ids =
+    parentMessageId != null
+      ? {
+          messageId: parentMessageId,
+          key: `msg:${dialogId}:${parentMessageId}`,
+        }
+      : createDialogMessageKeyAndId(dialogId);
+  const { messageId, key: msgKey } = ids;
+
+  log(`[INIT] msgId=${messageId} key=${msgKey}`);
 
   dispatch(addActiveController({ messageId, controller }));
   dispatch(
@@ -86,50 +86,131 @@ export const sendOpenAIResponseRequest = async ({
       isStreaming: true,
     })
   );
-  logs.push(`[ACTION] dispatch messageStreaming`);
 
-  if (Array.isArray(cybotConfig.tools) && cybotConfig.tools.length > 0) {
+  if (Array.isArray(cybotConfig.tools) && cybotConfig.tools.length) {
     bodyData.tools = prepareTools(cybotConfig.tools);
-    logs.push(`[TOOLS] 附加工具: ${JSON.stringify(cybotConfig.tools)}`);
+    log(`[TOOLS] ${JSON.stringify(cybotConfig.tools)}`);
   }
   bodyData.stream ??= true;
-  logs.push(`[STREAM] bodyData.stream = true`);
 
-  let contentBuffer: Segment[] = [];
-  let reasoningBuffer = "";
-  let summaryBuffer = "";
+  /* ---------------- buffers ---------------- */
+  let contentStr = "";
+  let reasoningBuf = "";
+  let summaryBuf = "";
   let totalUsage: any = null;
-  let toolCalls: any[] = [];
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
-  let hasFinalized = false;
 
-  const finalize = () => {
-    if (hasFinalized) {
-      logs.push(`[FINALIZE] 已执行过 finalize，跳过`);
-      return;
-    }
-    hasFinalized = true;
-    logs.push(`[FINALIZE] 开始 finalize`);
+  /* ---- throttled streaming ---- */
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const flush = () => {
+    timer = null;
     dispatch(
-      messageStreamEnd({
-        finalContentBuffer: contentBuffer,
-        totalUsage,
-        msgKey,
-        cybotConfig,
-        dialogId,
-        dialogKey,
-        messageId,
-        reasoningBuffer,
+      messageStreaming({
+        id: messageId,
+        dbKey: msgKey,
+        content: seg(contentStr),
+        thinkContent: reasoningBuf,
+        role: "assistant",
+        cybotKey: cybotConfig.dbKey,
       })
     );
-    logs.push(`[ACTION] dispatch messageStreamEnd`);
+    log(`[DISPATCH] messageStreaming`);
+  };
+  const schedule = () => (timer ??= setTimeout(flush, 50));
+
+  /* ---- once-finalize ---- */
+  const finalize = (() => {
+    let done = false;
+    return (): string => {
+      if (done) return debug ? logs.join("\n") : "";
+      done = true;
+
+      if (timer) {
+        clearTimeout(timer);
+        flush();
+      }
+
+      dispatch(
+        messageStreamEnd({
+          finalContentBuffer: seg(contentStr),
+          totalUsage,
+          msgKey,
+          cybotConfig,
+          dialogId,
+          dialogKey,
+          messageId,
+          reasoningBuffer: reasoningBuf,
+        })
+      );
+      log(`[ACTION] messageStreamEnd`);
+      return debug ? logs.join("\n") : "";
+    };
+  })();
+
+  /* ---------------- SSE handlers ---------------- */
+  type Event = any; // 可进一步在其它文件声明联合类型 (#6)
+  const handlers: Record<
+    string,
+    (e: Event) => Promise<"continue" | "finalize">
+  > = {
+    "response.output_text.delta": async (e) => {
+      if (e.delta) {
+        contentStr += e.delta;
+        schedule();
+      }
+      return "continue";
+    },
+    "response.failed": async (e) => {
+      contentStr += `\n[API Failed: ${
+        e.response?.error?.message || "unknown"
+      }]`;
+      return "finalize";
+    },
+    "response.incomplete": async (e) => {
+      contentStr += `\n[Incomplete: ${
+        e.response?.incomplete_details?.reason || "unknown"
+      }]`;
+      return "finalize";
+    },
+    "response.completed": async () => "finalize",
+    "response.reasoning.delta": async (e) => {
+      if (e.delta?.text) reasoningBuf += e.delta.text;
+      return "continue";
+    },
+    "response.reasoning.done": async (e) => {
+      if (e.text) reasoningBuf += e.text;
+      return "continue";
+    },
+    "response.reasoning_summary.delta": async (e) => {
+      if (e.delta?.text) summaryBuf += e.delta.text;
+      return "continue";
+    },
+    "response.reasoning_summary.done": async (e) => {
+      if (e.text) summaryBuf += e.text;
+      return "continue";
+    },
+    // 跳过型事件
+    "response.queued": async () => "continue",
+    "response.in_progress": async () => "continue",
+    "response.created": async () => "continue",
+    "response.output_item.added": async () => "continue",
+    "response.content_part.added": async () => "continue",
+    "response.output_text.done": async () => "continue",
+    "response.content_part.done": async () => "continue",
+    "response.output_item.done": async () => "continue",
+  };
+  const defaultHandler = async (e: Event) => {
+    log(`[WARN] unknown type ${e.type}`);
+    return "continue";
   };
 
+  /* ---------------- fetch & stream ---------------- */
   try {
     const api = getApiEndpoint(cybotConfig);
     const token = selectCurrentToken(getState());
-    logs.push(`[FETCH] POST ${api} body=${JSON.stringify(bodyData)}`);
-    const response = await performFetchRequest({
+    log(`[FETCH] POST ${api}`);
+
+    const resp = await performFetchRequest({
       cybotConfig,
       api,
       bodyData,
@@ -137,173 +218,52 @@ export const sendOpenAIResponseRequest = async ({
       signal,
       token,
     });
-    logs.push(`[FETCH RESULT] status=${response.status}`);
 
-    if (!response.ok) {
-      const err = await parseApiError(response);
-      logs.push(`[ERROR] HTTP ${response.status}: ${err}`);
-      contentBuffer = appendTextChunk(contentBuffer, `[错误: ${err}]`);
-      finalize();
-      return logs.join("\n");
+    if (!resp.ok) {
+      const err = await parseApiError(resp);
+      log(`[HTTP ${resp.status}] ${err}`, "error");
+      contentStr += `[错误: ${err}]`;
+      return finalize();
     }
 
-    reader = response.body?.getReader();
-    if (!reader) {
-      logs.push(`[WARN] response.body 没有 reader`);
-      finalize();
-      return logs.join("\n");
-    }
+    reader = resp.body?.getReader();
+    if (!reader) return finalize();
 
     const decoder = new TextDecoder("utf-8");
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) {
-        logs.push(`[STREAM] reader.done`);
-        break;
-      }
+      if (done) break;
       const chunk = decoder.decode(value, { stream: true });
-      logs.push(`[CHUNK] ${chunk}`);
 
-      const events = parseMultilineSSE(chunk);
-      const list = Array.isArray(events) ? events : [events];
-      logs.push(
-        `[PARSE] 解析到 ${list.length} 个事件，类型：[${list
-          .map((e) => e.type)
-          .join(", ")}]`
-      );
+      const eventsArr = parseMultilineSSE(chunk);
+      const events = Array.isArray(eventsArr) ? eventsArr : [eventsArr];
 
-      for (const event of list) {
-        logs.push(`[EVENT] ${JSON.stringify(event)}`);
+      for (const e of events) {
+        if (e.usage) totalUsage = updateTotalUsage(totalUsage, e.usage);
 
-        if (event.usage) {
-          totalUsage = updateTotalUsage(totalUsage, event.usage);
-          logs.push(`[USAGE] 更新 totalUsage=${JSON.stringify(totalUsage)}`);
+        if (e.type === "error") {
+          contentStr += `\n[Error: ${e.message || "Unknown"}]`;
+          await safeCancel(reader);
+          return finalize();
         }
 
-        if (event.type === "error") {
-          const msg = event.message || "Unknown error";
-          logs.push(`[ERROR] SSE error: ${msg}`);
-          contentBuffer = appendTextChunk(contentBuffer, `\n[Error: ${msg}]`);
-          await reader.cancel();
-          finalize();
-          return logs.join("\n");
-        }
-
-        switch (event.type) {
-          case "response.queued":
-          case "response.in_progress":
-          case "response.created":
-          case "response.output_item.added":
-          case "response.content_part.added":
-            logs.push(`[SKIP] 忽略启动/状态事件: ${event.type}`);
-            continue;
-
-          case "response.output_text.delta":
-            if (event.delta) {
-              logs.push(`[APPEND DELTA] 追加文本: "${event.delta}"`);
-              contentBuffer = appendTextChunk(contentBuffer, event.delta);
-              dispatch(
-                messageStreaming({
-                  id: messageId,
-                  dbKey: msgKey,
-                  content: contentBuffer,
-                  thinkContent: reasoningBuffer,
-                  role: "assistant",
-                  cybotKey: cybotConfig.dbKey,
-                })
-              );
-            }
-            continue;
-
-          case "response.output_text.done":
-          case "response.content_part.done":
-          case "response.output_item.done":
-            logs.push(`[SKIP] 忽略含冗余文本的 done 事件: ${event.type}`);
-            continue;
-
-          case "response.failed": {
-            const msg = event.response?.error?.message || "Request failed";
-            logs.push(`[FAILED] ${msg}`);
-            contentBuffer = appendTextChunk(
-              contentBuffer,
-              `\n[API Failed: ${msg}]`
-            );
-            await reader.cancel();
-            finalize();
-            return logs.join("\n");
-          }
-
-          case "response.incomplete": {
-            const r =
-              event.response?.incomplete_details?.reason || "incomplete";
-            logs.push(`[INCOMPLETE] reason=${r}`);
-            contentBuffer = appendTextChunk(
-              contentBuffer,
-              `\n[Incomplete: ${r}]`
-            );
-            await reader.cancel();
-            finalize();
-            return logs.join("\n");
-          }
-
-          case "response.completed":
-            logs.push(`[COMPLETED] 流结束，准备 finalize`);
-            await reader.cancel();
-            finalize();
-            return logs.join("\n");
-
-          case "response.reasoning.delta":
-            if (event.delta?.text) {
-              logs.push(`[REASONING DELTA] ${event.delta.text}`);
-              reasoningBuffer += event.delta.text;
-            }
-            continue;
-          case "response.reasoning.done":
-            if (event.text) {
-              logs.push(`[REASONING DONE] ${event.text}`);
-              reasoningBuffer += event.text;
-            }
-            continue;
-          case "response.reasoning_summary.delta":
-            if (event.delta?.text) {
-              logs.push(`[SUMMARY DELTA] ${event.delta.text}`);
-              summaryBuffer += event.delta.text;
-            }
-            continue;
-          case "response.reasoning_summary.done":
-            if (event.text) {
-              logs.push(`[SUMMARY DONE] ${event.text}`);
-              summaryBuffer += event.text;
-            }
-            continue;
-          default:
-            logs.push(`[WARN] 未知事件类型: ${event.type}`);
-            break;
+        const res = await (handlers[e.type] ?? defaultHandler)(e);
+        if (res === "finalize") {
+          await safeCancel(reader);
+          return finalize();
         }
       }
     }
 
-    finalize();
-    logs.push(`[END] 流程正常结束`);
-    return logs.join("\n");
+    return finalize();
   } catch (err: any) {
     const msg =
-      err.name === "AbortError" ? "[用户中断]" : `[异常: ${err.message}]`;
-    logs.push(`[EXCEPTION] ${msg}`);
-    contentBuffer = appendTextChunk(contentBuffer, msg);
-    finalize();
-    logs.push(`[END] 流程异常结束`);
-    return logs.join("\n");
+      err?.name === "AbortError" ? "[用户中断]" : `[异常: ${err?.message}]`;
+    contentStr += msg;
+    return finalize();
   } finally {
     dispatch(removeActiveController(messageId));
-    if (reader) {
-      try {
-        await reader.cancel();
-        logs.push(`[CLEANUP] reader.cancel()`);
-      } catch (__) {
-        logs.push(`[CLEANUP] reader.cancel() 失败`);
-      }
-    }
+    await safeCancel(reader);
   }
 };
