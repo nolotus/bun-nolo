@@ -1,4 +1,4 @@
-import React, { useState, useCallback, Suspense, lazy } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -10,8 +10,6 @@ import {
   TrashIcon,
   PlusIcon,
 } from "@primer/octicons-react";
-
-// Redux & State Management
 import { useAppDispatch, useAppSelector } from "app/store";
 import { useAuth } from "auth/hooks/useAuth";
 import {
@@ -32,13 +30,9 @@ import {
   selectCurrentSpaceId,
 } from "create/space/spaceSlice";
 import { useCreateDialog } from "chat/dialog/useCreateDialog";
-
-// Utils & Routes
 import { extractUserId } from "core/prefix";
 import { zIndex } from "render/styles/zIndex";
 import { RoutePaths } from "auth/web/routes";
-
-// UI Components
 import NavListItem from "render/layout/blocks/NavListItem";
 import DialogInfoPanel from "chat/dialog/DialogInfoPanel";
 import LanguageSwitcher from "render/web/ui/LanguageSwitcher";
@@ -48,109 +42,96 @@ import ModeToggle from "render/web/ui/ModeToggle";
 import Button from "render/web/ui/Button";
 import { LoggedInMenu } from "auth/web/IsLoggedInMenu";
 
-// Lazy load
 const CreateMenuButton = lazy(() => import("./CreateMenuButton"));
+const Spinner = () => <div className="topbar__spinner" />;
 
-// --- Reusable Components within TopBar ---
-
-const Spinner = () => <div className="spinner-small" />;
-
-const DeleteDialogButton = ({ dialogConfig, isMobile = false }) => {
+const DeleteButton = ({ cfg, mobile }: { cfg: any; mobile?: boolean }) => {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const nav = useNavigate();
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = useCallback(async () => {
-    if (!dialogConfig.dbKey && !dialogConfig.id) return;
-    setIsDeleting(true);
+  const doDelete = async () => {
+    if (!cfg.dbKey && !cfg.id) return;
+    setBusy(true);
     try {
-      await dispatch(
-        deleteCurrentDialog(dialogConfig.dbKey || dialogConfig.id)
-      ).unwrap();
+      await dispatch(deleteCurrentDialog(cfg.dbKey || cfg.id)).unwrap();
       toast.success(t("deleteSuccess"));
-      navigate("/");
-    } catch (error) {
+      nav("/");
+    } catch {
       toast.error(t("deleteFailed"));
-    } finally {
-      setIsDeleting(false);
-      setIsOpen(false);
     }
-  }, [dispatch, navigate, dialogConfig, t]);
+    setBusy(false);
+    setOpen(false);
+  };
 
-  const button = (
+  const btn = (
     <button
-      className={`btn-action btn-delete ${isMobile ? "btn-mobile" : ""}`}
-      onClick={() => setIsOpen(true)}
-      disabled={isDeleting}
+      className={`topbar__button ${mobile ? "topbar__button--mobile" : ""}`}
+      onClick={() => setOpen(true)}
+      disabled={busy}
       aria-label={t("delete")}
     >
       <TrashIcon size={16} />
-      {isMobile && <span>{t("delete")}</span>}
+      {mobile && t("delete")}
     </button>
   );
 
   return (
     <>
-      {isMobile ? (
-        button
-      ) : (
-        <Tooltip content={t("delete")} placement="bottom">
-          {button}
-        </Tooltip>
-      )}
+      {mobile ? btn : <Tooltip content={t("delete")}>{btn}</Tooltip>}
       <ConfirmModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        onConfirm={handleDelete}
-        title={t("deleteDialogTitle", { title: dialogConfig.title })}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onConfirm={doDelete}
+        title={t("deleteDialogTitle", { title: cfg.title })}
         message={t("deleteDialogConfirmation")}
         confirmText={t("delete")}
         cancelText={t("cancel")}
         type="error"
-        loading={isDeleting}
+        loading={busy}
       />
     </>
   );
 };
 
-const MobileDialogMenu = ({ currentDialogConfig }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const MobileMenu = ({ cfg }: { cfg: any }) => {
+  const [open, setOpen] = useState(false);
   const { t } = useTranslation("chat");
   const { isLoading, createNewDialog } = useCreateDialog();
 
-  const handleCreateDialog = useCallback(() => {
-    createNewDialog({ agents: currentDialogConfig.cybots });
-    setIsOpen(false);
-  }, [createNewDialog, currentDialogConfig]);
+  const onCreate = () => {
+    createNewDialog({ agents: cfg.cybots });
+    setOpen(false);
+  };
 
   return (
-    <div className="mobile-menu">
+    <div className="topbar__mobile-menu">
       <button
-        className="btn-action"
-        onClick={() => setIsOpen(!isOpen)}
+        className="topbar__button"
+        onClick={() => setOpen(!open)}
         aria-label={t("moreOptions")}
       >
         <KebabHorizontalIcon size={16} />
       </button>
-      {isOpen && (
+      {open && (
         <>
-          <div className="backdrop" onClick={() => setIsOpen(false)} />
-          <div className="dropdown">
-            <div className="menu-section">
+          <div className="topbar__backdrop" onClick={() => setOpen(false)} />
+          <div className="topbar__dropdown">
+            <div className="topbar__menu-section">
               <DialogInfoPanel isMobile />
             </div>
-            <div className="menu-section">
+            <div className="topbar__menu-section">
               <button
-                className="btn-action btn-mobile"
-                onClick={handleCreateDialog}
+                className="topbar__button topbar__button--mobile"
+                onClick={onCreate}
                 disabled={isLoading}
               >
                 {isLoading ? <Spinner /> : <PlusIcon size={16} />}
                 <span>{t("newchat")}</span>
               </button>
-              <DeleteDialogButton dialogConfig={currentDialogConfig} isMobile />
+              <DeleteButton cfg={cfg} mobile />
             </div>
           </div>
         </>
@@ -159,78 +140,61 @@ const MobileDialogMenu = ({ currentDialogConfig }) => {
   );
 };
 
-// --- Main TopBar Component ---
-
-const TopBar = ({ toggleSidebar }) => {
+const TopBar = ({ toggleSidebar }: { toggleSidebar?: () => void }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const nav = useNavigate();
   const { isLoggedIn, user } = useAuth();
   const { pageKey } = useParams();
+  const cfg = useAppSelector(selectCurrentDialogConfig);
+  const page = useAppSelector(selectPageData);
+  const readOnly = useAppSelector(selectIsReadOnly);
+  const dbSpace = useAppSelector(selectPageDbSpaceId);
+  const saving = useAppSelector(selectIsSaving);
+  const pending = useAppSelector(selectHasPendingChanges);
+  const curSpace = useAppSelector(selectCurrentSpaceId);
 
-  // --- State for Chat View ---
-  const currentDialogConfig = useAppSelector(selectCurrentDialogConfig);
+  const [delPgOpen, setDelPgOpen] = useState(false);
+  const [deletingPg, setDeletingPg] = useState(false);
 
-  // --- State & Logic for Page/Create View (Merged from CreateTool) ---
-  const pageState = useAppSelector(selectPageData);
-  const isReadOnly = useAppSelector(selectIsReadOnly);
-  const dbSpaceId = useAppSelector(selectPageDbSpaceId);
-  const isSaving = useAppSelector(selectIsSaving);
-  const hasPendingChanges = useAppSelector(selectHasPendingChanges);
-  const currentSpaceId = useAppSelector(selectCurrentSpaceId);
+  const creator = pageKey ? extractUserId(pageKey) : null;
+  const isCreator = creator === user?.userId;
+  const canEdit = isCreator || !page.creator;
+  const showEdit = pageKey?.startsWith("page") && canEdit && page.isInitialized;
 
-  const [isDeletePageModalOpen, setDeletePageModalOpen] = useState(false);
-  const [isDeletingPage, setDeletingPage] = useState(false);
-
-  const dataCreator = pageKey ? extractUserId(pageKey) : undefined;
-  const isCreator = dataCreator === user?.userId;
-  const allowEdit = isCreator || !pageState.creator;
-  const showEditTool =
-    pageKey?.startsWith("page") && allowEdit && pageState.isInitialized;
-
-  const handleToggleEdit = useCallback(() => {
-    dispatch(toggleReadOnly());
-  }, [dispatch]);
-
-  const handleSavePage = useCallback(async () => {
+  const toggleEdit = () => dispatch(toggleReadOnly());
+  const savePg = async () => {
     try {
       await dispatch(savePage()).unwrap();
       toast.success(t("saveSuccess"));
-    } catch (err) {
-      if (err.message !== "Aborted") {
-        toast.error(t("saveFailed"));
-      }
+    } catch (e: any) {
+      if (e.message !== "Aborted") toast.error(t("saveFailed"));
     }
-  }, [dispatch, t]);
-
-  const handleDeletePage = useCallback(async () => {
-    const spaceIdToDeleteFrom = dbSpaceId || currentSpaceId;
-    if (!pageKey || !spaceIdToDeleteFrom) {
-      toast.error(t("deleteFailedInfoMissing", "删除失败，信息不完整"));
+  };
+  const delPg = async () => {
+    const spaceId = dbSpace || curSpace;
+    if (!pageKey || !spaceId) {
+      toast.error(t("deleteFailedInfoMissing"));
       return;
     }
-    setDeletingPage(true);
+    setDeletingPg(true);
     try {
       await dispatch(
-        deleteContentFromSpace({
-          contentKey: pageKey,
-          spaceId: spaceIdToDeleteFrom,
-        })
+        deleteContentFromSpace({ contentKey: pageKey, spaceId })
       ).unwrap();
       toast.success(t("deleteSuccess"));
-      navigate(-1, { replace: true });
-    } catch (err) {
+      nav(-1, { replace: true });
+    } catch {
       toast.error(t("deleteFailed"));
-    } finally {
-      setDeletingPage(false);
-      setDeletePageModalOpen(false);
     }
-  }, [dispatch, navigate, t, pageKey, dbSpaceId, currentSpaceId]);
+    setDeletingPg(false);
+    setDelPgOpen(false);
+  };
 
   return (
     <>
       <div className="topbar">
-        <div className="topbar-section">
+        <div className="topbar__section">
           {!isLoggedIn && (
             <NavListItem
               label={t("home")}
@@ -240,7 +204,7 @@ const TopBar = ({ toggleSidebar }) => {
           )}
           {toggleSidebar && (
             <button
-              className="btn-action"
+              className="topbar__button"
               onClick={toggleSidebar}
               aria-label={t("toggleSidebar")}
             >
@@ -248,73 +212,64 @@ const TopBar = ({ toggleSidebar }) => {
             </button>
           )}
         </div>
-
-        <div className="topbar-center">
-          {/* ---- Chat View UI ---- */}
-          {currentDialogConfig && !showEditTool && (
+        <div className="topbar__center">
+          {cfg && !showEdit ? (
             <>
-              <h1 className="dialog-title" title={currentDialogConfig.title}>
-                {currentDialogConfig.title}
+              <h1 className="topbar__title" title={cfg.title}>
+                {cfg.title}
               </h1>
-              <div className="desktop-actions">
+              <div className="topbar__actions">
                 <DialogInfoPanel />
-                <DeleteDialogButton dialogConfig={currentDialogConfig} />
+                <DeleteButton cfg={cfg} />
               </div>
-              <MobileDialogMenu currentDialogConfig={currentDialogConfig} />
+              <MobileMenu cfg={cfg} />
             </>
-          )}
-
-          {/* ---- Page/Create View UI (Merged) ---- */}
-          {showEditTool && (
-            <>
-              <h1 className="dialog-title" title={pageState.title || ""}>
-                {pageState.title || t("loading", "加载中...")}
-              </h1>
-
-              <div className="desktop-actions">
-                <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
-                <button
-                  className="btn-action btn-delete"
-                  onClick={() => setDeletePageModalOpen(true)}
-                  disabled={isDeletingPage}
-                  title={t("delete")}
-                >
-                  <TrashIcon size={16} />
-                </button>
-                <Button
-                  variant="primary"
-                  onClick={handleSavePage}
-                  size="small"
-                  disabled={isReadOnly || isSaving || !hasPendingChanges}
-                  loading={isSaving}
-                >
-                  {isSaving ? t("saving", "保存中...") : t("save", "保存")}
-                </Button>
-              </div>
-
-              {/* Mobile Menu for Page Tools - shown only on mobile */}
-              <div className="mobile-menu">
-                <KebabHorizontalIcon size={16} />{" "}
-                {/* Placeholder for a future dropdown if needed */}
-                <ModeToggle isEdit={!isReadOnly} onChange={handleToggleEdit} />
-                <button
-                  className="btn-action btn-delete"
-                  onClick={() => setDeletePageModalOpen(true)}
-                  disabled={isDeletingPage}
-                  title={t("delete")}
-                >
-                  <TrashIcon size={16} />
-                </button>
-              </div>
-            </>
+          ) : (
+            showEdit && (
+              <>
+                <h1 className="topbar__title" title={page.title || ""}>
+                  {page.title || t("loading")}
+                </h1>
+                <div className="topbar__actions">
+                  <ModeToggle isEdit={!readOnly} onChange={toggleEdit} />
+                  <button
+                    className="topbar__button topbar__button--delete"
+                    onClick={() => setDelPgOpen(true)}
+                    disabled={deletingPg}
+                    title={t("delete")}
+                  >
+                    <TrashIcon size={16} />
+                  </button>
+                  <Button
+                    variant="primary"
+                    onClick={savePg}
+                    size="small"
+                    disabled={readOnly || saving || !pending}
+                    loading={saving}
+                  >
+                    {saving ? t("saving") : t("save")}
+                  </Button>
+                </div>
+                <div className="topbar__mobile-menu">
+                  <ModeToggle isEdit={!readOnly} onChange={toggleEdit} />
+                  <button
+                    className="topbar__button topbar__button--delete"
+                    onClick={() => setDelPgOpen(true)}
+                    disabled={deletingPg}
+                    title={t("delete")}
+                  >
+                    <TrashIcon size={16} />
+                  </button>
+                </div>
+              </>
+            )
           )}
         </div>
-
-        <div className="topbar-section">
+        <div className="topbar__section">
           {isLoggedIn ? (
             <>
-              <Suspense fallback={<div className="btn-action-placeholder" />}>
-                <CreateMenuButton currentDialogConfig={currentDialogConfig} />
+              <Suspense fallback={<div style={{ width: 24 }} />}>
+                <CreateMenuButton />
               </Suspense>
               <LoggedInMenu />
             </>
@@ -331,124 +286,181 @@ const TopBar = ({ toggleSidebar }) => {
         </div>
       </div>
 
-      {/* --- Modals --- */}
-      {showEditTool && (
+      {showEdit && (
         <ConfirmModal
-          isOpen={isDeletePageModalOpen}
-          onClose={() => setDeletePageModalOpen(false)}
-          onConfirm={handleDeletePage}
-          title={t("deleteDialogTitle", { title: pageState.title || pageKey })}
+          isOpen={delPgOpen}
+          onClose={() => setDelPgOpen(false)}
+          onConfirm={delPg}
+          title={t("deleteDialogTitle", {
+            title: page.title || pageKey,
+          })}
           message={t("deleteDialogConfirmation")}
           confirmText={t("delete")}
           cancelText={t("cancel")}
           type="error"
-          loading={isDeletingPage}
+          loading={deletingPg}
         />
       )}
 
       <style href="topbar-styles" precedence="default">{`
         .topbar {
-          display: flex; justify-content: space-between; align-items: center;
-          background: var(--background); position: sticky; top: 0;
-          padding: 0 var(--space-4); z-index: ${zIndex.topbar};
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: var(--background);
+          position: sticky;
+          top: 0;
+          padding: 0 var(--space-4);
+          z-index: ${zIndex.topbar};
           height: var(--headerHeight);
           border-bottom: 1px solid var(--border);
           gap: var(--space-4);
         }
-        .topbar-section {
-          display: flex; align-items: center; gap: var(--space-2);
+        .topbar__section {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
           flex-shrink: 0;
         }
-        .topbar-section:first-child { justify-content: flex-start; }
-        .topbar-section:last-child { justify-content: flex-end; }
-        .topbar-center {
-          flex: 1; display: flex; align-items: center; justify-content: center;
-          gap: var(--space-4); min-width: 0;
+        .topbar__center {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--space-4);
+          min-width: 0;
         }
-        .desktop-actions { 
-          display: flex; align-items: center; gap: var(--space-3); 
+        .topbar__actions {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
         }
-        .dialog-title {
-          margin: 0; font-size: 16px; font-weight: 500; color: var(--text);
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        .topbar__title {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 500;
+          color: var(--text);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 30ch;
         }
-
-        .btn-action {
-          display: flex; align-items: center; justify-content: center;
-          background: transparent; border: none; cursor: pointer;
-          color: var(--textSecondary); width: var(--space-8); height: var(--space-8);
-          border-radius: 6px; transition: all 0.15s ease; flex-shrink: 0;
+        .topbar__button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          color: var(--textSecondary);
+          width: var(--space-8);
+          height: var(--space-8);
+          border-radius: 6px;
+          transition: all .15s ease;
+          flex-shrink: 0;
         }
-        .btn-action:hover { background: var(--backgroundHover); color: var(--text); }
-        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-delete:hover { background: var(--primaryGhost); color: var(--error); }
-        .btn-action-placeholder { width: var(--space-8); height: var(--space-8); }
-        
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .spinner-small {
-          width: 16px; height: 16px;
+        .topbar__button:hover {
+          background: var(--backgroundHover);
+          color: var(--text);
+        }
+        .topbar__button:disabled {
+          opacity: .5;
+          cursor: not-allowed;
+        }
+        .topbar__button--delete:hover {
+          background: var(--primaryGhost);
+          color: var(--error);
+        }
+        .topbar__button--mobile {
+          width: 100% !important;
+          justify-content: flex-start !important;
+          gap: var(--space-3) !important;
+          padding: var(--space-3) !important;
+          height: auto !important;
+          font-size: 14px;
+          font-weight: 400;
+        }
+        .topbar__spinner {
+          width: 16px;
+          height: 16px;
           border: 2px solid var(--borderLight);
           border-top-color: var(--primary);
           border-radius: 50%;
-          animation: spin 0.8s linear infinite;
+          animation: spin .8s linear infinite;
         }
-        
-        /* Mobile Menu General Styles */
-        .mobile-menu { position: relative; display: none; }
-        .backdrop {
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-          z-index: ${zIndex.mobileMenuBackdrop}; background: transparent;
+        @keyframes spin {
+          100% { transform: rotate(360deg); }
         }
-        .dropdown {
-          position: absolute; top: calc(100% + var(--space-2)); right: 0;
-          background: var(--background); border: 1px solid var(--border);
-          border-radius: 8px; min-width: 240px; padding: var(--space-2);
-          z-index: ${zIndex.mobileMenuDropdown}; box-shadow: var(--shadowHeavy);
+        .topbar__mobile-menu {
+          position: relative;
+          display: none;
         }
-        .menu-section { display: flex; flex-direction: column; gap: var(--space-1); }
-        .menu-section:not(:last-child) {
-          margin-bottom: var(--space-2); padding-bottom: var(--space-2);
+        .topbar__backdrop {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: ${zIndex.mobileMenuBackdrop};
+          background: transparent;
+        }
+        .topbar__dropdown {
+          position: absolute;
+          top: calc(100% + var(--space-2));
+          right: 0;
+          background: var(--background);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          min-width: 240px;
+          padding: var(--space-2);
+          z-index: ${zIndex.mobileMenuDropdown};
+          box-shadow: var(--shadowHeavy);
+        }
+        .topbar__menu-section {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-1);
+          margin-bottom: var(--space-2);
+          padding-bottom: var(--space-2);
           border-bottom: 1px solid var(--borderLight);
         }
-        .btn-mobile {
-          width: 100% !important; justify-content: flex-start !important;
-          gap: var(--space-3) !important; padding: var(--space-3) !important;
-          height: auto !important; font-size: 14px; font-weight: 400;
+        .topbar__menu-section:last-child {
+          margin: 0;
+          padding: 0;
+          border: none;
         }
-        
         @media (max-width: 768px) {
-          .topbar { padding: 0 var(--space-2); gap: var(--space-2); }
-          .topbar-center { gap: var(--space-2); }
-          .dialog-title { font-size: 15px; flex-grow: 1; text-align: center; }
-          .desktop-actions { display: none !important; }
-          .mobile-menu { 
-            display: flex; 
-            align-items: center; 
-            gap: var(--space-2); 
-            /* For page tools on mobile, we display them directly instead of a dropdown */
-            /* But for dialog, we keep the dropdown behavior */
+          .topbar {
+            padding: 0 var(--space-2);
+            gap: var(--space-2);
           }
-          /* This specifically targets the mobile menu for dialogs to show the kebab icon */
-          .topbar-center > .mobile-menu .btn-action[aria-label="More options"] {
-             display: flex;
+          .topbar__center {
+            gap: var(--space-2);
           }
-          /* This hides the direct-display icons when they are part of the dialog menu */
-          .topbar-center > .mobile-menu:not(:has(.btn-action[aria-label="More options"])) .btn-action[aria-label="More options"] {
-             display: none;
+          .topbar__title {
+            font-size: 15px;
+            max-width: 20ch;
           }
-           /* A bit complex, but this makes the page edit tools (ModeToggle etc) only show on mobile if showEditTool is true */
-          .topbar-center > .mobile-menu:not(:has(button[aria-label="More options"])) {
-            display: none;
+          .topbar__actions {
+            display: none !important;
           }
-          ${showEditTool ? `.topbar-center > .mobile-menu:not(:has(button[aria-label="More options"])) { display: flex; }` : ""}
-          ${currentDialogConfig ? `.topbar-center > .mobile-menu:has(button[aria-label="More options"]) { display: block; }` : ""}
-
+          .topbar__mobile-menu {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+          }
         }
-        
         @media (max-width: 480px) {
-          .dialog-title { font-size: 14px; }
-          .topbar-section:first-child > .btn-action { display: flex; } /* Ensure toggle is always visible */
-          .topbar-section > * { transform: scale(0.95); }
+          .topbar__title {
+            font-size: 14px;
+            max-width: 15ch;
+          }
+          .topbar__section:first-child > .topbar__button {
+            display: flex;
+          }
+          .topbar__section > * {
+            transform: scale(.95);
+          }
         }
       `}</style>
     </>
