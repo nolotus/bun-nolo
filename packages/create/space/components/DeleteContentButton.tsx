@@ -1,6 +1,6 @@
 // create/space/components/DeleteContentButton.tsx
 
-import React, { useState, forwardRef } from "react";
+import React, { useState } from "react";
 import { TrashIcon } from "@primer/octicons-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,10 +26,9 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
   contentKey,
   title,
   className,
-  as: Component = "button", // Default to a standard button if 'as' prop is not provided
+  as: Component = "button",
 }) => {
-  // Use multiple namespaces for better translation key management
-  const { t } = useTranslation(["sidebar", "common"]);
+  const { t } = useTranslation(["common"]);
   const dispatch = useAppDispatch();
   const currentSpaceId = useAppSelector(selectCurrentSpaceId);
 
@@ -44,7 +43,7 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
 
   const handleDelete = async () => {
     if (!currentSpaceId) {
-      toast.error(t("sidebar:errors.noCurrentSpace"));
+      toast.error(t("errors.noCurrentSpace"));
       return;
     }
     setIsDeleting(true);
@@ -52,19 +51,16 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
       await dispatch(
         deleteContentFromSpace({ contentKey, spaceId: currentSpaceId })
       ).unwrap();
-      toast.success(t("sidebar:deleteSuccess"));
+      toast.success(t("deleteSuccess"));
       setIsConfirmOpen(false);
     } catch (error) {
       console.error("Failed to delete content:", error);
-      toast.error(t("sidebar:errors.deleteFailed"));
+      toast.error(t("errors.deleteFailed"));
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Props for the rendered component.
-  // When rendered as a MenuItem, it expects 'icon' and 'label' props.
-  // When rendered as a button, it needs children.
   const props = {
     className: `DeleteButton ${className || ""}`.trim(),
     onClick: openConfirmModal,
@@ -78,7 +74,6 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
   return (
     <>
       <Component {...props}>
-        {/* Render children only if it's a default button */}
         {Component === "button" && <TrashIcon size={16} />}
       </Component>
 
@@ -86,8 +81,8 @@ const DeleteContentButton: React.FC<DeleteContentButtonProps> = ({
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleDelete}
-        title={t("sidebar:deleteContentTitle", { title })}
-        message={t("sidebar:deleteContentConfirmation")}
+        title={t("deleteContentTitle", { title })}
+        message={t("deleteContentConfirmation")}
         confirmText={t("common:delete")}
         cancelText={t("common:cancel")}
         type="error"

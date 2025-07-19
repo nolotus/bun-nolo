@@ -1,5 +1,6 @@
 // render/web/ui/BaseActionModal.tsx
-import React, { useEffect, useState, useRef } from "react";
+
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { BaseModal } from "render/web/ui/BaseModal";
 import { useTheme } from "app/theme";
 
@@ -36,201 +37,187 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
 }) => {
   const theme = useTheme();
   const [animateIn, setAnimateIn] = useState(false);
-  const { space: sp } = theme;
   const modalRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
 
-  // 入场动画逻辑
+  const statusColor = {
+    error: theme.error,
+    warning: theme.warning || theme.primary,
+    success: theme.success || theme.primary,
+    info: theme.primary,
+  }[status];
+
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => setAnimateIn(true), 50);
       return () => clearTimeout(timer);
-    } else {
-      setAnimateIn(false);
     }
+    setAnimateIn(false);
   }, [isOpen]);
 
-  // 焦点管理 - 优化版本
   useEffect(() => {
-    if (isOpen && modalRef.current) {
-      const timer = setTimeout(() => {
-        // 优先聚焦到第一个可操作的按钮
-        const firstButton = actionsRef.current?.querySelector(
-          "button:not([disabled])"
-        ) as HTMLButtonElement;
-        if (firstButton) {
-          firstButton.focus();
-        } else {
-          modalRef.current?.focus();
-        }
-      }, 100); // 增加延时确保动画完成
-      return () => clearTimeout(timer);
-    }
+    if (!isOpen || !modalRef.current) return;
+
+    const timer = setTimeout(() => {
+      const firstButton = actionsRef.current?.querySelector(
+        "button:not([disabled])"
+      ) as HTMLButtonElement;
+      if (firstButton) {
+        firstButton.focus();
+      } else {
+        modalRef.current?.focus();
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
-  // 键盘事件监听 - 优化版本
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // 检查事件是否来自当前弹窗内部
-      const target = event.target as Element;
-      if (!modalRef.current?.contains(target)) {
-        return;
-      }
-
-      if (isActionDisabled) {
-        // 即使禁用状态也允许 ESC 关闭
-        if (event.key === "Escape") {
-          event.preventDefault();
-          onClose();
-        }
-        return;
-      }
-
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
+        return;
       }
 
+      if (isActionDisabled) return;
+
       if (event.key === "Enter" && onEnterPress) {
-        // 排除在表单元素内的回车
-        if (
-          !(target instanceof HTMLButtonElement) &&
-          !(target instanceof HTMLInputElement) &&
-          !(target instanceof HTMLTextAreaElement) &&
-          !(target instanceof HTMLSelectElement)
-        ) {
+        const target = event.target as Element;
+        const isInput = target.matches(
+          'input, textarea, select, [contenteditable="true"]'
+        );
+        if (!isInput) {
           event.preventDefault();
           onEnterPress();
         }
       }
-    };
+    },
+    [onClose, onEnterPress, isActionDisabled]
+  );
 
-    // 绑定到弹窗容器而不是 document
-    modalRef.current?.addEventListener("keydown", handleKeyDown);
+  useEffect(() => {
+    const modalElement = modalRef.current;
+    if (!isOpen || !modalElement) return;
 
+    modalElement.addEventListener("keydown", handleKeyDown);
     return () => {
-      modalRef.current?.removeEventListener("keydown", handleKeyDown);
+      modalElement.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose, onEnterPress, isActionDisabled]);
-
-  const getStatusColor = () => {
-    switch (status) {
-      case "error":
-        return theme.error;
-      case "warning":
-        return theme.warning || theme.primary;
-      case "success":
-        return theme.success || theme.primary;
-      default:
-        return theme.primary;
-    }
-  };
+  }, [isOpen, handleKeyDown]);
 
   return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      variant="default"
-      preventBodyScroll={true}
-      className={`action-modal ${className} ${animateIn ? "animate-in" : ""}`}
-    >
-      <div
-        ref={modalRef}
-        tabIndex={-1}
-        className="modal-container"
-        style={{ outline: "none" }}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
+    <>
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        variant="default"
+        preventBodyScroll={true}
+        className={`BaseActionModal-root ${className} ${animateIn ? "is-open" : ""}`}
       >
-        <div className="modal-header">
-          <div className="title-wrapper">
-            {titleIcon && <span className="title-icon">{titleIcon}</span>}
-            <h3 id="modal-title" className="title">
-              {title}
-            </h3>
+        <div
+          ref={modalRef}
+          tabIndex={-1}
+          className="BaseActionModal-container"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div className="BaseActionModal-header">
+            <div
+              className="BaseActionModal-titleWrapper"
+              style={{ color: statusColor }}
+            >
+              {titleIcon && (
+                <span className="BaseActionModal-titleIcon">{titleIcon}</span>
+              )}
+              <h3 id="modal-title" className="BaseActionModal-title">
+                {title}
+              </h3>
+            </div>
+            {headerExtra && (
+              <div className="BaseActionModal-headerExtra">{headerExtra}</div>
+            )}
           </div>
-          {headerExtra && <div className="header-extra">{headerExtra}</div>}
+
+          <div className={`BaseActionModal-body ${bodyClassName}`}>
+            {children}
+          </div>
+
+          {actions && (
+            <div ref={actionsRef} className="BaseActionModal-actions">
+              {actions}
+            </div>
+          )}
         </div>
+      </BaseModal>
 
-        <div className={`modal-body ${bodyClassName}`}>{children}</div>
-
-        {actions && (
-          <div ref={actionsRef} className="modal-actions">
-            {actions}
-          </div>
-        )}
-      </div>
-
-      <style jsx>{`
-        .action-modal {
+      <style href="base-action-modal-styles" precedence="component">{`
+        .BaseActionModal-root {
           background: var(--background);
           border-radius: 12px;
-          box-shadow:
-            0 0 0 1px var(--border),
-            0 10px 15px -3px var(--shadowLight),
-            0 4px 6px -2px var(--shadowMedium);
+          box-shadow: 0 0 0 1px var(--border), 0 10px 15px -3px var(--shadowMedium), 0 4px 6px -4px var(--shadowLight);
           width: 100%;
           max-width: ${typeof width === "number" ? `${width}px` : width};
-          margin: var(--space-4);
+          margin: var(--space-8);
           overflow: hidden;
           opacity: 0;
           transform: scale(0.95) translateY(10px);
           transition: all 0.2s ease-out;
+          outline: none;
         }
 
-        .action-modal.animate-in {
+        .BaseActionModal-root.is-open {
           opacity: 1;
           transform: scale(1) translateY(0);
         }
 
-        .modal-container {
+        .BaseActionModal-container {
           display: flex;
           flex-direction: column;
+          max-height: 90vh;
         }
 
-        .modal-header {
-          padding: var(--space-5) var(--space-6) var(--space-4);
-          border-bottom: 1px solid var(--backgroundTertiary);
+        .BaseActionModal-header {
+          padding: var(--space-4) var(--space-5);
+          border-bottom: 1px solid var(--borderLight);
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: var(--space-4);
-        }
-
-        .title-wrapper {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2);
-          color: ${getStatusColor()};
-        }
-
-        .title-icon {
-          display: flex;
-          align-items: center;
-          font-size: 20px;
-        }
-
-        .title {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 600;
-          color: var(--text);
-          letter-spacing: -0.01em;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: calc(100% - 32px);
-        }
-
-        .header-extra {
           flex-shrink: 0;
         }
 
-        .modal-body {
-          padding: var(--space-6) var(--space-6) var(--space-4);
+        .BaseActionModal-titleWrapper {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          overflow: hidden;
+        }
+
+        .BaseActionModal-titleIcon {
+          display: flex;
+          align-items: center;
+          font-size: 20px;
+          flex-shrink: 0;
+        }
+
+        .BaseActionModal-title {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: var(--text);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .BaseActionModal-headerExtra {
+          flex-shrink: 0;
+        }
+
+        .BaseActionModal-body {
+          /* Adjusted bottom padding to create space */
+          padding: var(--space-5) var(--space-5) var(--space-2);
           flex: 1;
           overflow-y: auto;
           color: var(--textSecondary);
@@ -239,67 +226,40 @@ export const BaseActionModal: React.FC<BaseActionModalProps> = ({
           -webkit-overflow-scrolling: touch;
         }
 
-        .modal-actions {
-          padding: var(--space-2) var(--space-6) var(--space-6);
+        .BaseActionModal-actions {
+          /* Cleaned up: removed border and background */
+          padding: var(--space-4) var(--space-5); /* Adjusted padding for breathing room */
           display: flex;
           justify-content: flex-end;
           gap: var(--space-3);
+          flex-shrink: 0;
         }
 
-        /* 移动端优化 */
         @media (max-width: 640px) {
-          .action-modal {
+          .BaseActionModal-root {
             margin: 0;
             max-width: 100%;
             width: 100vw;
             height: 100vh;
             border-radius: 0;
-            transform: translateY(20px);
+            transform: translateY(100%);
           }
-
-          .action-modal.animate-in {
+          .BaseActionModal-root.is-open {
             transform: translateY(0);
           }
-
-          .modal-container {
-            height: 100%;
-          }
-
-          .modal-header {
-            padding: var(--space-4);
-          }
-
-          .title {
-            font-size: 16px;
-          }
-
-          .modal-body {
-            padding: var(--space-4);
-            height: calc(100vh - 140px);
-          }
-
-          .modal-actions {
-            padding: var(--space-3) var(--space-4) var(--space-5);
-            margin-top: auto;
+          .BaseActionModal-container {
+            max-height: 100vh;
           }
         }
 
-        /* 平板端优化 */
-        @media (max-width: 768px) and (min-width: 641px) {
-          .action-modal {
-            margin: var(--space-4);
-            max-width: 90%;
-          }
-        }
-
-        /* 无障碍支持 */
         @media (prefers-reduced-motion: reduce) {
-          .action-modal {
-            transition: none;
+          .BaseActionModal-root {
+            transition: opacity 0.2s ease-out;
+            transform: none;
           }
         }
       `}</style>
-    </BaseModal>
+    </>
   );
 };
 

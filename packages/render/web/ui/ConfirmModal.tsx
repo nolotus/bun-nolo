@@ -1,13 +1,14 @@
-// ConfirmModal.tsx
+// render/web/ui/ConfirmModal.tsx
+
 import React from "react";
 import Button from "render/web/ui/Button";
 import { BaseActionModal } from "render/web/ui/BaseActionModal";
 import {
-  XCircleIcon,
-  AlertIcon,
-  CheckCircleIcon,
-  InfoIcon,
-} from "@primer/octicons-react";
+  LuCircleX,
+  LuTriangleAlert,
+  LuCircleCheck,
+  LuInfo,
+} from "react-icons/lu";
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -22,6 +23,14 @@ interface ConfirmModalProps {
   showCancel?: boolean;
 }
 
+const ICON_MAP: Record<Required<ConfirmModalProps>["type"], React.ElementType> =
+  {
+    error: LuCircleX,
+    warning: LuTriangleAlert,
+    success: LuCircleCheck,
+    info: LuInfo,
+  };
+
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen,
   onClose,
@@ -34,20 +43,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   loading = false,
   showCancel = true,
 }) => {
-  const getStatusIcon = () => {
-    const size = 16;
-    switch (type) {
-      case "error":
-        return <XCircleIcon size={size} />;
-      case "warning":
-        return <AlertIcon size={size} />;
-      case "success":
-        return <CheckCircleIcon size={size} />;
-      case "info":
-      default:
-        return <InfoIcon size={size} />;
-    }
-  };
+  const IconComponent = ICON_MAP[type] || LuInfo;
 
   const actions = (
     <>
@@ -74,39 +70,45 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   );
 
   return (
-    <BaseActionModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={title}
-      titleIcon={getStatusIcon()}
-      status={type}
-      actions={actions}
-      width={400}
-      onEnterPress={onConfirm}
-      isActionDisabled={loading}
-    >
-      <p className="confirm-message">{message}</p>
+    <>
+      <BaseActionModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={title}
+        titleIcon={<IconComponent size={16} />}
+        status={type}
+        actions={actions}
+        width={400}
+        onEnterPress={onConfirm}
+        isActionDisabled={loading}
+      >
+        {/* Updated class name for better specificity */}
+        <p className="ConfirmModal-message">{message}</p>
+      </BaseActionModal>
 
-      <style jsx>{`
-        .confirm-message {
+      <style href="confirm-modal-styles" precedence="component">{`
+        .ConfirmModal-message {
           margin: 0;
           line-height: 1.5;
           color: var(--text);
           font-size: 14px;
         }
-      `}</style>
 
-      <style jsx global>{`
-        .title {
+        /* 
+          This style targets the title element rendered within BaseActionModal.
+          The specific class name 'ConfirmModal-title' improves clarity and reduces conflict risk.
+          This assumes BaseActionModal assigns a 'title' or a similarly targetable class to its title element.
+        */
+        .BaseActionModal .title, 
+        .ConfirmModal-title {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          max-width: calc(100% - 32px);
           color: var(--text);
           font-size: 16px;
           font-weight: 500;
         }
       `}</style>
-    </BaseActionModal>
+    </>
   );
 };
