@@ -1,4 +1,4 @@
-// MainLayout.tsx (Final Version with Animations)
+// MainLayout.tsx (完整最终版)
 
 import { useAuth } from "auth/hooks/useAuth";
 import ChatSidebar from "chat/web/ChatSidebar";
@@ -13,7 +13,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSidebarWidth, selectSidebarWidth } from "app/settings/settingSlice";
 import { zIndex } from "render/styles/zIndex";
 
-//web
 import TopBar from "./TopBar";
 import { SidebarTop } from "./SidebarTop";
 import { Outlet, useLocation } from "react-router-dom";
@@ -29,6 +28,8 @@ const MainLayout: React.FC = () => {
   const [isResizing, setIsResizing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const lastWidthRef = useRef(sidebarWidth);
+  // [重新引入] 用于处理移动端初始化的 Ref
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
     if (sidebarWidth > 0) {
@@ -99,6 +100,16 @@ const MainLayout: React.FC = () => {
     };
   }, [resize, isResizing]);
 
+  // [重新引入] 移动端初始化副作用：确保在移动设备上强制关闭侧边栏，防止闪烁
+  useEffect(() => {
+    if (isInitialMount.current) {
+      if (isMobile && isOpen) {
+        dispatch(setSidebarWidth(0));
+      }
+      isInitialMount.current = false;
+    }
+  }, [isMobile, isOpen, dispatch]);
+
   useEffect(() => {
     document.body.style.overflow =
       isOpen && isMobile && hasSidebar ? "hidden" : "auto";
@@ -130,7 +141,6 @@ const MainLayout: React.FC = () => {
           <div className="MainLayout__backdrop" onClick={toggleSidebar} />
         )}
 
-        {/* --- 核心修复：移除 main 区域的 style.width，让 flexbox 自动处理动画 --- */}
         <main className={`MainLayout__main ${isResizing ? "is-resizing" : ""}`}>
           <TopBar toggleSidebar={hasSidebar ? toggleSidebar : undefined} />
           <div className="MainLayout__pageContent">
@@ -153,17 +163,14 @@ const MainLayout: React.FC = () => {
           display: flex;
           flex-direction: column;
           background: var(--backgroundSecondary);
-          box-shadow: var(--shadowMedium);
           flex-shrink: 0;
           position: relative;
           z-index: ${zIndex.sidebar};
-          overflow: hidden; /* 防止内容在收缩动画时溢出 */
-           border-right: 1px solid var(--border);
-          /* --- 动画效果: 桌面端 --- */
+          overflow: hidden;
+          border-right: 1px solid var(--border);
           transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* --- 关键：调整大小时禁用动画，以获得流畅的拖拽体验 --- */
         .MainLayout__sidebar.is-resizing,
         .MainLayout__main.is-resizing {
           transition: none !important;
@@ -171,7 +178,7 @@ const MainLayout: React.FC = () => {
 
         .MainLayout__sidebarContent {
           flex: 1;
-          min-width: 200px; /* 确保内容不会被过度压缩 */
+          min-width: 200px;
           overflow-y: auto;
           overflow-x: hidden;
         }
@@ -183,7 +190,6 @@ const MainLayout: React.FC = () => {
           height: 100vh;
           min-width: 0;
           overflow: hidden;
-          /* --- 动画效果: 桌面端主内容区无需添加 transition，flexbox 会自动处理 --- */
         }
         
         .MainLayout__pageContent {
@@ -211,16 +217,14 @@ const MainLayout: React.FC = () => {
           animation: fadeIn 0.3s ease;
         }
 
-        /* 移动端样式覆盖: 侧边栏恢复 fixed 定位 */
         @media (max-width: 768px) {
           .MainLayout__sidebar {
             position: fixed;
-            width: 85% !important; /* !important 覆盖内联样式 */
+            width: 85% !important;
             max-width: 320px;
             box-shadow: var(--shadowHeavy);
             transform: translateX(-100%);
-
-            /* --- 动画效果: 移动端 --- */
+            border-right: none;
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           }
           
